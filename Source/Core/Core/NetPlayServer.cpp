@@ -639,7 +639,7 @@ bool NetPlayServer::initUPnP()
 	memset(&m_upnp_data, 0, sizeof(IGDdatas));
 
 	// Find all UPnP devices
-	UPNPDev *devlist = upnpDiscover(2000, NULL, NULL, 0, 0, &upnperror);
+	UPNPDev *devlist = upnpDiscover(2000, nullptr, nullptr, 0, 0, &upnperror);
 	if (!devlist)
 	{
 		WARN_LOG(NETPLAY, "An error occured trying to discover UPnP devices.");
@@ -664,7 +664,7 @@ bool NetPlayServer::initUPnP()
 		{
 			parserootdesc(descXML, descXMLsize, &m_upnp_data);
 			free(descXML);
-			descXML = 0;
+			descXML = nullptr;
 			GetUPNPUrls(&m_upnp_urls, &m_upnp_data, dev->descURL, 0);
 
 			NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
@@ -695,7 +695,7 @@ bool NetPlayServer::UPnPMapPort(const std::string& addr, const u16 port)
 	result = UPNP_AddPortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype,
 	                             port_str, port_str, addr.c_str(),
 	                             (std::string("dolphin-emu TCP on ") + addr).c_str(),
-	                             "TCP", NULL, NULL);
+	                             "TCP", nullptr, nullptr);
 
 	if(result != 0)
 		return false;
@@ -719,7 +719,7 @@ bool NetPlayServer::UPnPUnmapPort(const u16 port)
 
 	sprintf(port_str, "%d", port);
 	UPNP_DeletePortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype,
-	                       port_str, "TCP", NULL);
+	                       port_str, "TCP", nullptr);
 
 	return true;
 }

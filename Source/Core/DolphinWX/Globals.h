@@ -256,7 +256,7 @@ enum
 	DECLARE_EVENT_TABLE_ENTRY(\
 			wxEVT_HOST_COMMAND, id, wxID_ANY, \
 			(wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent(wxCommandEventFunction, &fn), \
-			(wxObject*) NULL \
+			(wxObject*) nullptr \
 			),
 
 extern const wxEventType wxEVT_HOST_COMMAND;

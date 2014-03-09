@@ -15,7 +15,7 @@
 //void UpdateFPSDisplay(const char *text);
 extern NativeVertexFormat *g_nativeVertexFmt;
 
-GFXDebuggerBase *g_pdebugger = NULL;
+GFXDebuggerBase *g_pdebugger = nullptr;
 volatile bool GFXDebuggerPauseFlag = false; // if true, the GFX thread will be spin locked until it's false again
 volatile PauseEvent GFXDebuggerToPauseAtNext = NOT_PAUSE; // Event which will trigger spin locking the GFX thread
 volatile int GFXDebuggerEventToPauseCount = 0; // Number of events to wait for until GFX thread will be paused
@@ -27,14 +27,14 @@ void GFXDebuggerUpdateScreen()
 	if (D3D::bFrameInProgress)
 	{
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
-		D3D::dev->SetDepthStencilSurface(NULL);
+		D3D::dev->SetDepthStencilSurface(nullptr);
 
-		D3D::dev->StretchRect(FramebufferManager::GetEFBColorRTSurface(), NULL,
-			D3D::GetBackBufferSurface(), NULL,
+		D3D::dev->StretchRect(FramebufferManager::GetEFBColorRTSurface(), nullptr,
+			D3D::GetBackBufferSurface(), nullptr,
 			D3DTEXF_LINEAR);
 
 		D3D::dev->EndScene();
-		D3D::dev->Present(NULL, NULL, NULL, NULL);
+		D3D::dev->Present(nullptr, nullptr, nullptr, nullptr);
 
 		D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 		D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
@@ -43,7 +43,7 @@ void GFXDebuggerUpdateScreen()
 	else
 	{
 		D3D::dev->EndScene();
-		D3D::dev->Present(NULL, NULL, NULL, NULL);
+		D3D::dev->Present(nullptr, nullptr, nullptr, nullptr);
 		D3D::dev->BeginScene();
 	}*/
 }

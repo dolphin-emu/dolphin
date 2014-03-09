@@ -26,11 +26,11 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	: m_totalNameSize(0)
 	, m_dataStartAddress(-1)
 	, m_fstSize(0)
-	, m_FSTData(NULL)
+	, m_FSTData(nullptr)
 	, m_apploaderSize(0)
-	, m_apploader(NULL)
+	, m_apploader(nullptr)
 	, m_DOLSize(0)
-	, m_DOL(NULL)
+	, m_DOL(nullptr)
 	, FST_ADDRESS(0)
 	, DOL_ADDRESS(0)
 {
@@ -63,19 +63,19 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 CVolumeDirectory::~CVolumeDirectory()
 {
 	delete[] m_FSTData;
-	m_FSTData = NULL;
+	m_FSTData = nullptr;
 
 	delete[] m_diskHeader;
-	m_diskHeader = NULL;
+	m_diskHeader = nullptr;
 
 	delete m_diskHeaderInfo;
-	m_diskHeaderInfo = NULL;
+	m_diskHeaderInfo = nullptr;
 
 	delete[] m_DOL;
-	m_DOL = NULL;
+	m_DOL = nullptr;
 
 	delete[] m_apploader;
-	m_apploader = NULL;
+	m_apploader = nullptr;
 }
 
 bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
@@ -134,7 +134,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 		u64 fileOffset = _Offset - fileIter->first;
 
 		PlainFileReader* reader = PlainFileReader::Create(fileIter->second.c_str());
-		if(reader == NULL)
+		if(reader == nullptr)
 			return false;
 
 		u64 fileSize = reader->GetDataSize();

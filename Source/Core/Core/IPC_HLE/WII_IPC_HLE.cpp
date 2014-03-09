@@ -95,7 +95,7 @@ void Init()
 
 	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
-		dev = NULL;
+		dev = nullptr;
 	}
 
 	u32 i = 0;
@@ -139,14 +139,14 @@ void Reset(bool _bHard)
 
 	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
-		if (dev != NULL && !dev->IsHardware())
+		if (dev != nullptr && !dev->IsHardware())
 		{
 			// close all files and delete their resources
 			dev->Close(0, true);
 			delete dev;
 		}
 
-		dev = NULL;
+		dev = nullptr;
 	}
 
 	for (bool& in_use : es_inuse)
@@ -214,7 +214,7 @@ int getFreeDeviceId()
 {
 	for (u32 i=0; i<IPC_MAX_FDS; i++)
 	{
-		if (g_FdMap[i] == NULL)
+		if (g_FdMap[i] == nullptr)
 		{
 			return i;
 		}
@@ -233,7 +233,7 @@ IWII_IPC_HLE_Device* GetDeviceByName(const std::string& _rDeviceName)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
@@ -243,14 +243,14 @@ IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
 		return g_DeviceMap[_ID];
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 // This is called from ExecuteCommand() COMMAND_OPEN_DEVICE
 IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName)
 {
 	// scan device name and create the right one
-	IWII_IPC_HLE_Device* pDevice = NULL;
+	IWII_IPC_HLE_Device* pDevice = nullptr;
 
 	INFO_LOG(WII_IPC_FILEIO, "IOP: Create FileIO %s", _rDeviceName.c_str());
 	pDevice = new CWII_IPC_HLE_Device_FileIO(_DeviceID, _rDeviceName);
@@ -299,7 +299,7 @@ void DoState(PointerWrap &p)
 			}
 			else
 			{
-				g_FdMap[i] = NULL;
+				g_FdMap[i] = nullptr;
 			}
 		}
 
@@ -350,7 +350,7 @@ void ExecuteCommand(u32 _Address)
 	ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
 	volatile s32 DeviceID = Memory::Read_U32(_Address + 8);
 
-	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : NULL;
+	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : nullptr;
 
 	INFO_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) %p", _Address, Command, DeviceID, pDevice);
 
@@ -420,7 +420,7 @@ void ExecuteCommand(u32 _Address)
 				else
 				{
 					delete pDevice;
-					pDevice = NULL;
+					pDevice = nullptr;
 				}
 			}
 		}
@@ -445,13 +445,13 @@ void ExecuteCommand(u32 _Address)
 				}
 			}
 
-			g_FdMap[DeviceID] = NULL;
+			g_FdMap[DeviceID] = nullptr;
 
 			// Don't delete hardware
 			if (!pDevice->IsHardware())
 			{
 				delete pDevice;
-				pDevice = NULL;
+				pDevice = nullptr;
 			}
 		}
 		else

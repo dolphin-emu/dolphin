@@ -125,7 +125,7 @@ void SConfig::Init()
 void SConfig::Shutdown()
 {
 	delete m_Instance;
-	m_Instance = NULL;
+	m_Instance = nullptr;
 }
 
 SConfig::~SConfig()

@@ -52,7 +52,7 @@ int AshmemCreateFileMapping(const char *name, size_t size)
 void MemArena::GrabLowMemSpace(size_t size)
 {
 #ifdef _WIN32
-	hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, (DWORD)(size), NULL);
+	hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, (DWORD)(size), nullptr);
 #elif defined(ANDROID)
 	fd = AshmemCreateFileMapping("Dolphin-emu", size);
 	if (fd < 0)
@@ -190,9 +190,9 @@ static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32
 	for (int i = 0; i < num_views; i++)
 	{
 		if (views[i].out_ptr_low)
-			*views[i].out_ptr_low = 0;
+			*views[i].out_ptr_low = nullptr;
 		if (views[i].out_ptr)
-			*views[i].out_ptr = 0;
+			*views[i].out_ptr = nullptr;
 	}
 
 	int i;
@@ -255,13 +255,13 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	{
 		PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
 		exit(0);
-		return 0;
+		return nullptr;
 	}
 #else
 #ifdef _WIN32
 	// Try a whole range of possible bases. Return once we got a valid one.
 	u32 max_base_addr = 0x7FFF0000 - 0x31000000;
-	u8 *base = NULL;
+	u8 *base = nullptr;
 
 	for (u32 base_addr = 0x40000; base_addr < max_base_addr; base_addr += 0x40000)
 	{
@@ -304,7 +304,7 @@ void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemAr
 			{
 				arena->ReleaseView(*outptr, view->size);
 				freeset.insert(*outptr);
-				*outptr = NULL;
+				*outptr = nullptr;
 			}
 		}
 	}

@@ -24,8 +24,8 @@
 namespace FileMon
 {
 
-DiscIO::IVolume *OpenISO = NULL;
-DiscIO::IFileSystem *pFileSystem = NULL;
+DiscIO::IVolume *OpenISO = nullptr;
+DiscIO::IFileSystem *pFileSystem = nullptr;
 std::vector<const DiscIO::SFileInfo *> GCFiles;
 std::string ISOFile = "", CurrentFile = "";
 bool FileAccess = true;
@@ -34,7 +34,7 @@ bool FileAccess = true;
 bool IsSoundFile(const std::string& filename)
 {
 	std::string extension;
-	SplitPath(filename, NULL, NULL, &extension);
+	SplitPath(filename, nullptr, nullptr, &extension);
 	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
 	std::unordered_set<std::string> extensions = {
@@ -57,15 +57,15 @@ bool IsSoundFile(const std::string& filename)
 void ReadGC(const std::string& filename)
 {
 	// Should have an actual Shutdown procedure or something
-	if (OpenISO != NULL)
+	if (OpenISO != nullptr)
 	{
 		delete OpenISO;
-		OpenISO = NULL;
+		OpenISO = nullptr;
 	}
-	if (pFileSystem != NULL)
+	if (pFileSystem != nullptr)
 	{
 		delete pFileSystem;
-		pFileSystem = NULL;
+		pFileSystem = nullptr;
 	}
 
 	// GCFiles' pointers are no longer valid after pFileSystem is cleared
@@ -149,16 +149,16 @@ void FindFilename(u64 offset)
 
 void Close()
 {
-	if (OpenISO != NULL)
+	if (OpenISO != nullptr)
 	{
 		delete OpenISO;
-		OpenISO = NULL;
+		OpenISO = nullptr;
 	}
 
-	if (pFileSystem != NULL)
+	if (pFileSystem != nullptr)
 	{
 		delete pFileSystem;
-		pFileSystem = NULL;
+		pFileSystem = nullptr;
 	}
 
 	// GCFiles' pointers are no longer valid after pFileSystem is cleared

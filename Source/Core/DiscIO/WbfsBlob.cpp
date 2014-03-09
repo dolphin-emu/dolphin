@@ -24,7 +24,7 @@ static inline u64 align(u64 value, u64 bounds)
 }
 
 WbfsFileReader::WbfsFileReader(const char* filename)
-	: m_total_files(0), m_size(0), m_wlba_table(0), m_good(true)
+	: m_total_files(0), m_size(0), m_wlba_table(nullptr), m_good(true)
 {
 	if(!filename || (strlen(filename) < 4) || !OpenFiles(filename) || !ReadHeader())
 	{
@@ -182,7 +182,7 @@ WbfsFileReader* WbfsFileReader::Create(const char* filename)
 	else
 	{
 		delete reader;
-		return NULL;
+		return nullptr;
 	}
 }
 

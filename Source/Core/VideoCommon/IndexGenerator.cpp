@@ -33,7 +33,7 @@ void IndexGenerator::Init()
 		primitive_table[3] = IndexGenerator::AddStrip<false>;
 		primitive_table[4] = IndexGenerator::AddFan<false>;
 	}
-	primitive_table[1] = NULL;
+	primitive_table[1] = nullptr;
 	primitive_table[5] = &IndexGenerator::AddLineList;
 	primitive_table[6] = &IndexGenerator::AddLineStrip;
 	primitive_table[7] = &IndexGenerator::AddPoints;

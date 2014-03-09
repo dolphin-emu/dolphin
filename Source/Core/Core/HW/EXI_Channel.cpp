@@ -87,7 +87,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 			IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT ^ newStatus.CHIP_SELECT);
 			m_Status.CHIP_SELECT = newStatus.CHIP_SELECT;
-			if (pDevice != NULL)
+			if (pDevice != nullptr)
 				pDevice->SetCS(m_Status.CHIP_SELECT);
 
 			CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
@@ -110,7 +110,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			if (m_Control.TSTART)
 			{
 				IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT);
-				if (pDevice == NULL)
+				if (pDevice == nullptr)
 					return;
 
 				if (m_Control.DMA == 0)
@@ -216,7 +216,7 @@ IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 	case 2: return m_pDevices[1].get();
 	case 4: return m_pDevices[2].get();
 	}
-	return NULL;
+	return nullptr;
 }
 
 void CEXIChannel::Update()
@@ -273,5 +273,5 @@ IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int customIndex)
 		if (device)
 			return device;
 	}
-	return NULL;
+	return nullptr;
 }

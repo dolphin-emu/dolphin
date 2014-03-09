@@ -117,7 +117,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		case WM_SPACE_REGS2: {
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = NULL;
+			void *region_ptr = nullptr;
 			int region_size = 0;
 
 			switch(data[3])
@@ -200,7 +200,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		address &= 0xFEFFFF;
 		u16 size = Common::swap16(rd->size);
 		u8 *const block = new u8[size];
-		void *region_ptr = NULL;
+		void *region_ptr = nullptr;
 
 		dataRep.push(((data[2]>>1)<<16) + ((data[3])<<8) + addressLO);
 
@@ -948,7 +948,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 				address &= 0xFF00FF;
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = NULL;
+			void *region_ptr = nullptr;
 			int region_size = 0;
 
 			switch (address >> 16)
@@ -1093,7 +1093,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				address &= 0xFF00FF;
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = NULL;
+			void *region_ptr = nullptr;
 			int region_size = 0;
 
 			switch (address >> 16)

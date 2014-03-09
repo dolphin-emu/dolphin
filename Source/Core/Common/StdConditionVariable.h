@@ -72,9 +72,9 @@ public:
 #if defined(_WIN32) && defined(USE_CONDITION_VARIABLES)
 		InitializeConditionVariable(&m_handle);
 #elif defined(_WIN32)
-		m_handle = CreateEvent(NULL, false, false, NULL);
+		m_handle = CreateEvent(nullptr, false, false, nullptr);
 #else
-		pthread_cond_init(&m_handle, NULL);
+		pthread_cond_init(&m_handle, nullptr);
 #endif
 	}
 

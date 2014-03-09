@@ -28,7 +28,7 @@
 // faster than sscanf
 bool AsciiToHex(const char* _szValue, u32& result)
 {
-	char *endptr = NULL;
+	char *endptr = nullptr;
 	const u32 value = strtoul(_szValue, &endptr, 16);
 
 	if (!endptr || *endptr)
@@ -66,7 +66,7 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 	// will be present in the middle of a multibyte sequence.
 	//
 	// This is why we lookup an ANSI (cp1252) locale here and use _vsnprintf_l.
-	static locale_t c_locale = NULL;
+	static locale_t c_locale = nullptr;
 	if (!c_locale)
 		c_locale = _create_locale(LC_ALL, ".1252");
 	writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
@@ -89,7 +89,7 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 std::string StringFromFormat(const char* format, ...)
 {
 	va_list args;
-	char *buf = NULL;
+	char *buf = nullptr;
 #ifdef _WIN32
 	int required = 0;
 
@@ -159,7 +159,7 @@ std::string StripQuotes(const std::string& s)
 
 bool TryParse(const std::string &str, u32 *const output)
 {
-	char *endptr = NULL;
+	char *endptr = nullptr;
 
 	// Reset errno to a value other than ERANGE
 	errno = 0;

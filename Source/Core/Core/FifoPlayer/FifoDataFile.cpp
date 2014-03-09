@@ -129,7 +129,7 @@ FifoDataFile *FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 	File::IOFile file;
 	file.Open(filename, "rb");
 	if (!file)
-		return NULL;
+		return nullptr;
 
 	FileHeader header;
 	file.ReadBytes(&header, sizeof(header));
@@ -137,7 +137,7 @@ FifoDataFile *FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 	if (header.fileId != FILE_ID || header.min_loader_version > VERSION_NUMBER)
 	{
 		file.Close();
-		return NULL;
+		return nullptr;
 	}
 
 	FifoDataFile* dataFile = new FifoDataFile;

@@ -68,7 +68,7 @@ void* Host_GetRenderHandle()
 	return surf;
 }
 
-void* Host_GetInstance() { return NULL; }
+void* Host_GetInstance() { return nullptr; }
 
 void Host_UpdateTitle(const char* title)
 {
@@ -153,7 +153,7 @@ bool LoadBanner(std::string filename, u32 *Banner)
 {
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
 
-	if (pVolume != NULL)
+	if (pVolume != nullptr)
 	{
 		bool bIsWad = false;
 		if (DiscIO::IsVolumeWadFile(pVolume))
@@ -164,11 +164,11 @@ bool LoadBanner(std::string filename, u32 *Banner)
 		// check if we can get some info from the banner file too
 		DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
-		if (pFileSystem != NULL || bIsWad)
+		if (pFileSystem != nullptr || bIsWad)
 		{
 			DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, pVolume);
 
-			if (pBannerLoader != NULL)
+			if (pBannerLoader != nullptr)
 				if (pBannerLoader->IsValid())
 				{
 					m_names = pBannerLoader->GetNames();
@@ -213,7 +213,7 @@ std::string GetName(std::string filename)
 		return m_volume_names[0];
 	// No usable name, return filename (better than nothing)
 	std::string name;
-	SplitPath(filename, NULL, &name, NULL);
+	SplitPath(filename, nullptr, &name, nullptr);
 
 	return name;
 }
@@ -247,14 +247,14 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchAxisE
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Button, jint Action)
 {
-	const char *Device = env->GetStringUTFChars(jDevice, NULL);
+	const char *Device = env->GetStringUTFChars(jDevice, nullptr);
 	std::string strDevice = std::string(Device);
 	ButtonManager::GamepadEvent(strDevice, Button, Action);
 	env->ReleaseStringUTFChars(jDevice, Device);
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMoveEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Axis, jfloat Value)
 {
-	const char *Device = env->GetStringUTFChars(jDevice, NULL);
+	const char *Device = env->GetStringUTFChars(jDevice, nullptr);
 	std::string strDevice = std::string(Device);
 	ButtonManager::GamepadAxisEvent(strDevice, Axis, Value);
 	env->ReleaseStringUTFChars(jDevice, Device);
@@ -262,7 +262,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMov
 
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetBanner(JNIEnv *env, jobject obj, jstring jFile)
 {
-	const char *File = env->GetStringUTFChars(jFile, NULL);
+	const char *File = env->GetStringUTFChars(jFile, nullptr);
 	jintArray Banner = env->NewIntArray(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT);
 	u32 uBanner[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
 	if (LoadBanner(File, uBanner))
@@ -274,7 +274,7 @@ JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetBann
 }
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetTitle(JNIEnv *env, jobject obj, jstring jFile)
 {
-	const char *File = env->GetStringUTFChars(jFile, NULL);
+	const char *File = env->GetStringUTFChars(jFile, nullptr);
 	std::string Name = GetName(File);
 	m_names.clear();
 	m_volume_names.clear();
@@ -306,10 +306,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_eglBindAPI(J
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig(JNIEnv *env, jobject obj, jstring jFile, jstring jKey, jstring jValue, jstring jDefault)
 {
 	IniFile ini;
-	const char *File = env->GetStringUTFChars(jFile, NULL);
-	const char *Key = env->GetStringUTFChars(jKey, NULL);
-	const char *Value = env->GetStringUTFChars(jValue, NULL);
-	const char *Default = env->GetStringUTFChars(jDefault, NULL);
+	const char *File = env->GetStringUTFChars(jFile, nullptr);
+	const char *Key = env->GetStringUTFChars(jKey, nullptr);
+	const char *Value = env->GetStringUTFChars(jValue, nullptr);
+	const char *Default = env->GetStringUTFChars(jDefault, nullptr);
 
 	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(File));
 	std::string value;
@@ -326,10 +326,10 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(JNIEnv *env, jobject obj, jstring jFile, jstring jKey, jstring jValue, jstring jDefault)
 {
 	IniFile ini;
-	const char *File = env->GetStringUTFChars(jFile, NULL);
-	const char *Key = env->GetStringUTFChars(jKey, NULL);
-	const char *Value = env->GetStringUTFChars(jValue, NULL);
-	const char *Default = env->GetStringUTFChars(jDefault, NULL);
+	const char *File = env->GetStringUTFChars(jFile, nullptr);
+	const char *Key = env->GetStringUTFChars(jKey, nullptr);
+	const char *Value = env->GetStringUTFChars(jValue, nullptr);
+	const char *Default = env->GetStringUTFChars(jDefault, nullptr);
 
 	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(File));
 
@@ -344,7 +344,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(JN
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(JNIEnv *env, jobject obj, jstring jFile)
 {
-	const char *File = env->GetStringUTFChars(jFile, NULL);
+	const char *File = env->GetStringUTFChars(jFile, nullptr);
 
 	g_filename = std::string(File);
 

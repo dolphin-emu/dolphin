@@ -125,7 +125,7 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 bool CBoot::LoadMapFromFilename()
 {
 	std::string strMapFilename;
-	bool found = FindMapFile(&strMapFilename, NULL);
+	bool found = FindMapFile(&strMapFilename, nullptr);
 	if (found && g_symbolDB.LoadMap(strMapFilename.c_str()))
 	{
 		UpdateDebugger_MapLoaded();
@@ -201,7 +201,7 @@ bool CBoot::BootUp()
 	case SCoreStartupParameter::BOOT_ISO:
 	{
 		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename);
-		if (pVolume == NULL)
+		if (pVolume == nullptr)
 			break;
 
 		bool isoWii = DiscIO::IsVolumeWiiDisc(pVolume);

@@ -27,7 +27,7 @@ IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVo
 		return new CBannerLoaderGC(_rFileSystem, pVolume);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 } // namespace

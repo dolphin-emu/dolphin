@@ -39,7 +39,7 @@ void Init()
 	{
 		memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
 		DrawnToBuffer[i] = false;
-		ObjectBufferName[i] = 0;
+		ObjectBufferName[i] = nullptr;
 		BufferBase[i] = 0;
 	}
 }

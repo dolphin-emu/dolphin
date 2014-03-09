@@ -54,7 +54,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	: wxPanel(parent, id, pos, size, style, name)
 	, x(0), y(0), winpos(0)
 	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
-	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
+	, m_Log(nullptr), m_cmdline(nullptr), m_FontChoice(nullptr)
 {
 	m_LogManager = LogManager::GetInstance();
 

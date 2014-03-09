@@ -70,7 +70,7 @@ void Fifo_Shutdown()
 {
 	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
 	FreeMemoryPages(videoBuffer, FIFO_SIZE);
-	videoBuffer = NULL;
+	videoBuffer = nullptr;
 }
 
 u8* GetVideoBufferStartPtr()

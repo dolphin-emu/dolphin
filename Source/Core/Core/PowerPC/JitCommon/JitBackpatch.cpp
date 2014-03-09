@@ -171,27 +171,27 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	SContext *ctx = (SContext *)ctx_void;
 
 	if (!jit->IsInCodeSpace(codePtr))
-		return 0;  // this will become a regular crash real soon after this
+		return nullptr;  // this will become a regular crash real soon after this
 
 	InstructionInfo info = {};
 
 	if (!DisassembleMov(codePtr, &info)) {
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
-		return 0;
+		return nullptr;
 	}
 
 	if (info.otherReg != RBX)
 	{
 		PanicAlert("BackPatch : Base reg not RBX."
 		           "\n\nAttempted to access %08x.", emAddress);
-		return 0;
+		return nullptr;
 	}
 
 	auto it = registersInUseAtLoc.find(codePtr);
 	if (it == registersInUseAtLoc.end())
 	{
 		PanicAlert("BackPatch: no register use entry for address %p", codePtr);
-		return 0;
+		return nullptr;
 	}
 
 	u32 registersInUse = it->second;

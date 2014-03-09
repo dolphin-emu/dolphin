@@ -257,7 +257,7 @@ Wiimote::Wiimote( const unsigned int index )
 	: m_index(index)
 	, ir_sin(0)
 	, ir_cos(1)
-// , m_sound_stream( NULL )
+// , m_sound_stream( nullptr )
 {
 	// ---- set up all the controls ----
 

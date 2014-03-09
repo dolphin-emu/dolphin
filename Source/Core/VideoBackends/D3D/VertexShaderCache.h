@@ -40,7 +40,7 @@ private:
 
 		std::string code;
 
-		VSCacheEntry() : shader(NULL), bytecode(NULL) {}
+		VSCacheEntry() : shader(nullptr), bytecode(nullptr) {}
 		void SetByteCode(D3DBlob* blob)
 		{
 			SAFE_RELEASE(bytecode);

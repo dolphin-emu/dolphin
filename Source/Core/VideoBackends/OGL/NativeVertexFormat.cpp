@@ -50,9 +50,9 @@ static void SetPointer(u32 attrib, u32 stride, const AttributeFormat &format)
 
 	glEnableVertexAttribArray(attrib);
 	if (format.integer)
-		glVertexAttribIPointer(attrib, format.components, VarToGL(format.type), stride, (u8*)NULL + format.offset);
+		glVertexAttribIPointer(attrib, format.components, VarToGL(format.type), stride, (u8*)nullptr + format.offset);
 	else
-		glVertexAttribPointer(attrib, format.components, VarToGL(format.type), true, stride, (u8*)NULL + format.offset);
+		glVertexAttribPointer(attrib, format.components, VarToGL(format.type), true, stride, (u8*)nullptr + format.offset);
 }
 
 void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)

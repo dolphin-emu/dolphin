@@ -123,11 +123,11 @@ void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 
 static TPipelineFunction tableReadPosition[4][8][2] = {
 	{
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
 	},
 	{
 		{Pos_ReadDirect<u8, 2>, Pos_ReadDirect<u8, 3>,},

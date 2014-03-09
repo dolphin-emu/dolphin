@@ -22,7 +22,7 @@ void WiimoteScanner::Update()
 void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimote* & found_board)
 {
 	found_wiimotes.clear();
-	found_board = NULL;
+	found_board = nullptr;
 }
 
 bool WiimoteScanner::IsReady() const

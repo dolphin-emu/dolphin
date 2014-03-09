@@ -99,7 +99,7 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 		break;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool IUCode::NeedsResumeMail()

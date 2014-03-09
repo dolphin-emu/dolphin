@@ -18,7 +18,7 @@ namespace OSX
 {
 
 
-static IOHIDManagerRef HIDManager = NULL;
+static IOHIDManagerRef HIDManager = nullptr;
 static CFStringRef OurRunLoop = CFSTR("DolphinOSXInput");
 static std::map<std::string, int> kbd_name_counts, joy_name_counts;
 
@@ -90,7 +90,7 @@ void DeviceElementDebugPrint(const void *value, void *context)
 		  type == "collection" ? c_type.c_str() : " ",
 		  IOHIDElementGetUsagePage(e),
 		  IOHIDElementGetUsage(e),
-		  IOHIDElementGetName(e),		// usually just NULL
+		  IOHIDElementGetName(e),		// usually just nullptr
 		  IOHIDElementGetLogicalMin(e),
 		  IOHIDElementGetLogicalMax(e),
 		  IOHIDElementGetPhysicalMin(e),
@@ -102,7 +102,7 @@ void DeviceElementDebugPrint(const void *value, void *context)
 		CFRange range = {0, CFArrayGetCount(elements)};
 		// this leaks...but it's just debug code, right? :D
 		CFArrayApplyFunction(elements, range,
-			DeviceElementDebugPrint, NULL);
+			DeviceElementDebugPrint, nullptr);
 	}
 }
 
@@ -146,7 +146,7 @@ static void DeviceMatching_callback(void* inContext,
 {
 	NSString *pName = (NSString *)
 		IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey));
-	std::string name = (pName != NULL) ? [pName UTF8String] : "Unknown device";
+	std::string name = (pName != nullptr) ? [pName UTF8String] : "Unknown device";
 
 	DeviceDebugPrint(inIOHIDDeviceRef);
 
@@ -178,7 +178,7 @@ void Init(std::vector<Core::Device*>& devices, void *window)
 
 	g_window = window;
 
-	IOHIDManagerSetDeviceMatching(HIDManager, NULL);
+	IOHIDManagerSetDeviceMatching(HIDManager, nullptr);
 
 	// Callbacks for acquisition or loss of a matching device
 	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager,
@@ -200,7 +200,7 @@ void Init(std::vector<Core::Device*>& devices, void *window)
 
 	// Things should be configured now
 	// Disable hotplugging and other scheduling
-	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, NULL, NULL);
+	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, nullptr, nullptr);
 	IOHIDManagerUnscheduleFromRunLoop(HIDManager,
 		CFRunLoopGetCurrent(), OurRunLoop);
 }

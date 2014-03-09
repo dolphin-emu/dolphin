@@ -102,7 +102,7 @@ END_EVENT_TABLE()
 bool wxMsgAlert(const char*, const char*, bool, int);
 std::string wxStringTranslator(const char *);
 
-CFrame* main_frame = NULL;
+CFrame* main_frame = nullptr;
 
 #ifdef WIN32
 //Has no error handling.
@@ -204,7 +204,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0
+			wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
 
@@ -327,11 +327,11 @@ bool DolphinApp::OnInit()
 	if (File::Exists("www.dolphin-emulator.com.txt"))
 	{
 		File::Delete("www.dolphin-emulator.com.txt");
-		MessageBox(NULL,
+		MessageBox(nullptr,
 				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
 				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
 				   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
-		ShellExecute(NULL, L"open", L"http://dolphin-emu.org/?ref=badver", NULL, NULL, SW_SHOWDEFAULT);
+		ShellExecute(nullptr, L"open", L"http://dolphin-emu.org/?ref=badver", nullptr, nullptr, SW_SHOWDEFAULT);
 		exit(0);
 	}
 #endif
@@ -351,7 +351,7 @@ bool DolphinApp::OnInit()
 		y = wxDefaultCoord;
 #endif
 
-	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY,
+	main_frame = new CFrame((wxFrame*)nullptr, wxID_ANY,
 				StrToWxStr(scm_rev_str),
 				wxPoint(x, y), wxSize(w, h),
 				UseDebugger, BatchMode, UseLogger);
@@ -372,14 +372,14 @@ void DolphinApp::MacOpenFile(const wxString &fileName)
 	FileToLoad = fileName;
 	LoadFile = true;
 
-	if (m_afterinit == NULL)
+	if (m_afterinit == nullptr)
 		main_frame->BootGame(WxStrToStr(FileToLoad));
 }
 
 void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 {
 	delete m_afterinit;
-	m_afterinit = NULL;
+	m_afterinit = nullptr;
 
 	if (!BatchMode)
 		main_frame->UpdateGameList();
@@ -538,7 +538,7 @@ void* Host_GetInstance()
 #else
 void* Host_GetInstance()
 {
-	return NULL;
+	return nullptr;
 }
 #endif
 

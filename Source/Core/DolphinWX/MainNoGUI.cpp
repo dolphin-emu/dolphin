@@ -60,10 +60,10 @@ void Host_Message(int Id)
 
 void* Host_GetRenderHandle()
 {
-	return NULL;
+	return nullptr;
 }
 
-void* Host_GetInstance() { return NULL; }
+void* Host_GetInstance() { return nullptr; }
 
 void Host_UpdateTitle(const char* title){};
 
@@ -293,10 +293,10 @@ int main(int argc, char* argv[])
 #endif
 	int ch, help = 0;
 	struct option longopts[] = {
-		{ "exec",    no_argument, NULL, 'e' },
-		{ "help",    no_argument, NULL, 'h' },
-		{ "version", no_argument, NULL, 'v' },
-		{ NULL,      0,           NULL,  0  }
+		{ "exec",    no_argument, nullptr, 'e' },
+		{ "help",    no_argument, nullptr, 'h' },
+		{ "version", no_argument, nullptr, 'v' },
+		{ nullptr,      0,           nullptr,  0  }
 	};
 
 	while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1)
@@ -337,7 +337,7 @@ int main(int argc, char* argv[])
 	GLWin.platform = EGL_PLATFORM_NONE;
 #endif
 #if HAVE_WAYLAND
-	GLWin.wl_display = NULL;
+	GLWin.wl_display = nullptr;
 #endif
 
 	// No use running the loop when booting fails

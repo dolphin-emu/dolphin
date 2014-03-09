@@ -114,7 +114,7 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 	header.reserve(code_padded.size() * 4);
 	header.append("#define NUM_UCODES 1\n\n");
 	std::string filename;
-	SplitPath(_filename, NULL, &filename, NULL);
+	SplitPath(_filename, nullptr, &filename, nullptr);
 	header.append(StringFromFormat("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n", filename.c_str()));
 	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
@@ -151,7 +151,7 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 	for (u32 i = 0; i < numCodes; i++)
 	{
 		std::string filename;
-		if (! SplitPath(filenames->at(i), NULL, &filename, NULL))
+		if (! SplitPath(filenames->at(i), nullptr, &filename, nullptr))
 			filename = filenames->at(i);
 		header.append(StringFromFormat("\t\"%s\",\n", filename.c_str()));
 	}

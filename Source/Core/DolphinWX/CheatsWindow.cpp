@@ -72,8 +72,8 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 
 wxCheatsWindow::~wxCheatsWindow()
 {
-	main_frame->g_CheatsWindow = NULL;
-	::g_cheat_window = NULL;
+	main_frame->g_CheatsWindow = nullptr;
+	::g_cheat_window = nullptr;
 }
 
 void wxCheatsWindow::Init_ChildControls()
@@ -95,7 +95,7 @@ void wxCheatsWindow::Init_ChildControls()
 	m_GroupBox_Info = new wxStaticBox(m_Tab_Cheats, wxID_ANY, _("Code Info"));
 
 	m_Label_NumCodes = new wxStaticText(m_Tab_Cheats, wxID_ANY, _("Number Of Codes: "));
-	m_ListBox_CodesList = new wxListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, 0, wxLB_HSCROLL);
+	m_ListBox_CodesList = new wxListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, nullptr, wxLB_HSCROLL);
 
 	wxStaticBoxSizer* sGroupBoxInfo = new wxStaticBoxSizer(m_GroupBox_Info, wxVERTICAL);
 	sGroupBoxInfo->Add(m_Label_Codename, 0, wxALL, 5);
@@ -399,7 +399,7 @@ void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& W
 void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 {
 	const u8* const memptr = Memory::GetPointer(0);
-	if (NULL == memptr)
+	if (nullptr == memptr)
 	{
 		PanicAlertT("A game is not currently running.");
 		return;
@@ -433,7 +433,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 {
 	const u8* const memptr = Memory::GetPointer(0);
-	if (NULL == memptr)
+	if (nullptr == memptr)
 	{
 		PanicAlertT("A game is not currently running.");
 		return;

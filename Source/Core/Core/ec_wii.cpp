@@ -42,12 +42,12 @@ static u8 default_NG_sig[] = {
 // NG_key_id is the device-unique key_id to use
 // NG_priv is the device-unique private key to use
 // NG_sig is the device-unique signature blob (from issuer) to use
-// if NG_priv iis NULL or NG_sig is NULL or NG_id is 0 or NG_key_id is 0, default values
+// if NG_priv iis nullptr or NG_sig is nullptr or NG_id is 0 or NG_key_id is 0, default values
 // will be used for all of them
 void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, const u8* NG_sig)
 {
 	char name[64];
-	if ((NG_id==0)||(NG_key_id==0)||(NG_priv==NULL)||(NG_sig==NULL))
+	if ((NG_id==0)||(NG_key_id==0)||(NG_priv==nullptr)||(NG_sig==nullptr))
 	{
 		NG_id = default_NG_id;
 		NG_key_id = default_NG_key_id;
@@ -70,7 +70,7 @@ void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, c
 // data_size is the length of the buffer
 // NG_priv is the device-unique private key to use
 // NG_id is the device-unique id to use
-// if NG_priv is NULL or NG_id is 0, it will use builtin defaults
+// if NG_priv is nullptr or NG_id is 0, it will use builtin defaults
 void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u32 data_size, const u8 *NG_priv, u32 NG_id)
 {
 	u8 hash[20];
@@ -78,7 +78,7 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 	char signer[64];
 	char name[64];
 
-	if ((NG_id==0)||(NG_priv == NULL))
+	if ((NG_id==0)||(NG_priv == nullptr))
 	{
 		NG_priv = default_NG_priv;
 		NG_id = default_NG_id;
@@ -122,10 +122,10 @@ void make_blanksig_ec_cert(u8 *cert_out, const char *signer, const char *name, c
 // shared_secret_out is a pointer to 0x3c long buffer
 // remote_public_key is a pointer to the remote party's public key (0x3c bytes)
 // NG_priv is the device-unique private key to use
-// if NG_priv is NULL, default builtin will be used
+// if NG_priv is nullptr, default builtin will be used
 void get_shared_secret(u8* shared_secret_out, u8* remote_public_key, u8* NG_priv)
 {
-	if (NG_priv==NULL)
+	if (NG_priv==nullptr)
 	{
 		NG_priv = default_NG_priv;
 	}

@@ -41,7 +41,7 @@ std::vector<std::string> cdio_get_devices()
 {
 	std::vector<std::string> drives;
 
-	const DWORD buffsize = GetLogicalDriveStrings(0, NULL);
+	const DWORD buffsize = GetLogicalDriveStrings(0, nullptr);
 	std::vector<TCHAR> buff(buffsize);
 	if (GetLogicalDriveStrings(buffsize, buff.data()) == buffsize - 1)
 	{
@@ -77,7 +77,7 @@ std::vector<std::string> cdio_get_devices()
 		return( drives );
 
 	classes_to_match = IOServiceMatching( kIOCDMediaClass );
-	if( classes_to_match == NULL )
+	if( classes_to_match == nullptr )
 		return( drives );
 
 	CFDictionarySetValue( classes_to_match,
@@ -101,7 +101,7 @@ std::vector<std::string> cdio_get_devices()
 				IORegistryEntryCreateCFProperty( next_media,
 					CFSTR( kIOBSDNameKey ), kCFAllocatorDefault,
 					0 );
-			if( str_bsd_path == NULL )
+			if( str_bsd_path == nullptr )
 			{
 				IOObjectRelease( next_media );
 				continue;
@@ -118,7 +118,7 @@ std::vector<std::string> cdio_get_devices()
 				sizeof(psz_buf) - dev_path_length,
 				kCFStringEncodingASCII))
 			{
-				if(psz_buf != NULL)
+				if(psz_buf != nullptr)
 				{
 					std::string str = psz_buf;
 					drives.push_back(str);
@@ -151,7 +151,7 @@ static struct
 		{ "/dev/acd%d", 0, 27 },
 		{ "/dev/cd%d", 0, 27 },
 #endif
-		{ NULL, 0, 0 }
+		{ nullptr, 0, 0 }
 	};
 
 // Returns true if a device is a block or char device and not a symbolic link
@@ -196,7 +196,7 @@ std::vector<std::string> cdio_get_devices ()
 		for (unsigned int j = checklist[i].num_min; j <= checklist[i].num_max; ++j)
 		{
 			std::string drive = StringFromFormat(checklist[i].format, j);
-			if (is_cdrom(drive, NULL))
+			if (is_cdrom(drive, nullptr))
 			{
 				drives.push_back(std::move(drive));
 			}

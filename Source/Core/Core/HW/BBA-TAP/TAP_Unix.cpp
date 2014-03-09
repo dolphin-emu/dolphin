@@ -120,7 +120,7 @@ void ReadThreadHandler(CEXIETHERNET* self)
 		struct timeval timeout;
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 50000;
-		if (select(self->fd + 1, &rfds, NULL, NULL, &timeout) <= 0)
+		if (select(self->fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
 			continue;
 
 		int readBytes = read(self->fd, self->mRecvBuffer, BBA_RECV_SIZE);

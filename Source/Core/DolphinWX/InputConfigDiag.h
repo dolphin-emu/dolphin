@@ -173,7 +173,7 @@ public:
 class ControlGroupsSizer : public wxBoxSizer
 {
 public:
-	ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent, GamepadPage* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL);
+	ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent, GamepadPage* const eventsink, std::vector<ControlGroupBox*>* const groups = nullptr);
 };
 
 class InputConfigDialog;

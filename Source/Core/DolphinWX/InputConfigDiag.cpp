@@ -381,8 +381,8 @@ inline bool IsAlphabetic(wxString &str)
 
 inline void GetExpressionForControl(wxString &expr,
 				    wxString &control_name,
-				    DeviceQualifier *control_device = NULL,
-				    DeviceQualifier *default_device = NULL)
+				    DeviceQualifier *control_device = nullptr,
+				    DeviceQualifier *default_device = nullptr)
 {
 	expr = "";
 
@@ -748,7 +748,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 	: wxBoxSizer(wxVERTICAL)
 	, control_group(group)
 {
-	static_bitmap = NULL;
+	static_bitmap = nullptr;
 
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 	for (auto& control : group->controls)
@@ -915,7 +915,7 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 {
 	size_t col_size = 0;
 
-	wxBoxSizer* stacked_groups = NULL;
+	wxBoxSizer* stacked_groups = nullptr;
 	for (auto& group : controller->groups)
 	{
 		ControlGroupBox* control_group_box = new ControlGroupBox(group.get(), parent, eventsink);
@@ -925,7 +925,7 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 
 		const size_t grp_size = group->controls.size() + group->settings.size();
 		col_size += grp_size;
-		if (col_size > 8 || NULL == stacked_groups)
+		if (col_size > 8 || nullptr == stacked_groups)
 		{
 			if (stacked_groups)
 				Add(stacked_groups, 0, /*wxEXPAND|*/wxBOTTOM|wxRIGHT, 5);

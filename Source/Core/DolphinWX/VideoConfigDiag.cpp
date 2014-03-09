@@ -161,7 +161,7 @@ wxArrayString GetListOfResolutions()
 	dmi.dmSize = sizeof(dmi);
 	std::vector<std::string> resos;
 
-	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
+	while (EnumDisplaySettings(nullptr, iModeNum++, &dmi) != 0)
 	{
 		char res[100];
 		sprintf(res, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
@@ -177,7 +177,7 @@ wxArrayString GetListOfResolutions()
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->AddResolutions(retlist);
 #elif defined(__APPLE__)
-	CFArrayRef modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
+	CFArrayRef modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), nullptr);
 	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
 	{
 		std::stringstream res;

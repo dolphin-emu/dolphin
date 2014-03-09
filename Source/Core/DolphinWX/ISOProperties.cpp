@@ -88,8 +88,8 @@ struct WiiPartition
 };
 std::vector<WiiPartition> WiiDisc;
 
-DiscIO::IVolume *OpenISO = NULL;
-DiscIO::IFileSystem *pFileSystem = NULL;
+DiscIO::IVolume *OpenISO = nullptr;
+DiscIO::IFileSystem *pFileSystem = nullptr;
 
 std::vector<PatchEngine::Patch> onFrame;
 std::vector<ActionReplay::ARCode> arCodes;
@@ -135,9 +135,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 		{
 			WiiPartition temp;
-			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, 0, i)) != NULL)
+			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, 0, i)) != nullptr)
 			{
-				if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != NULL)
+				if ((temp.FileSystem = DiscIO::CreateFileSystem(temp.Partition)) != nullptr)
 				{
 					temp.FileSystem->GetFileList(temp.Files);
 					WiiDisc.push_back(temp);
@@ -611,7 +611,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 		// Filesystem tree
 		m_Treectrl = new wxTreeCtrl(m_Filesystem, ID_TREECTRL);
 		m_Treectrl->AssignImageList(m_iconList);
-		RootId = m_Treectrl->AddRoot(_("Disc"), 0, 0, 0);
+		RootId = m_Treectrl->AddRoot(_("Disc"), 0, 0, nullptr);
 
 		wxBoxSizer* sTreePage = new wxBoxSizer(wxVERTICAL);
 		sTreePage->Add(m_Treectrl, 1, wxEXPAND|wxALL, 5);
@@ -748,7 +748,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	char exportName[512];
 	u32 index[2] = {0, 0};
 	std::vector<const DiscIO::SFileInfo *> fst;
-	DiscIO::IFileSystem *FS = 0;
+	DiscIO::IFileSystem *FS = nullptr;
 
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
@@ -854,9 +854,9 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	{
 		if (DiscIO::IsVolumeWiiDisc(OpenISO))
 			for (u32 i = 0; i < WiiDisc.size(); i++)
-				ExportDir(NULL, WxStrToStr(Path).c_str(), i);
+				ExportDir(nullptr, WxStrToStr(Path).c_str(), i);
 		else
-			ExportDir(NULL, WxStrToStr(Path).c_str());
+			ExportDir(nullptr, WxStrToStr(Path).c_str());
 
 		return;
 	}
@@ -884,7 +884,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 {
-	DiscIO::IFileSystem *FS = NULL;
+	DiscIO::IFileSystem *FS = nullptr;
 	wxString Path = wxDirSelector(_("Choose the folder to extract to"));
 
 	if (Path.empty())
@@ -1153,10 +1153,10 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename)
 		withApplication: @"TextEdit"];
 #else
 	wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("ini"));
-	if(filetype == NULL) // From extension failed, trying with MIME type now
+	if(filetype == nullptr) // From extension failed, trying with MIME type now
 	{
 		filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"));
-		if(filetype == NULL) // MIME type failed, aborting mission
+		if(filetype == nullptr) // MIME type failed, aborting mission
 		{
 			PanicAlertT("Filetype 'ini' is unknown! Will not open!");
 			return;
@@ -1415,7 +1415,7 @@ void CISOProperties::ChangeBannerDetails(int lang)
 	m_Maker->SetValue(maker);//dev too
 
 	std::string filename, extension;
-	SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
+	SplitPath(OpenGameListItem->GetFileName(), nullptr, &filename, &extension);
 	// Also sets the window's title
 	SetTitle(StrToWxStr(StringFromFormat("%s%s: %s - ", filename.c_str(),
 		extension.c_str(), OpenGameListItem->GetUniqueID().c_str())) + shortName);

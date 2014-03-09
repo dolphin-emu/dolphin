@@ -79,7 +79,7 @@ static const char *err_string[] =
 };
 
 DSPAssembler::DSPAssembler(const AssemblerSettings &settings) :
-	gdg_buffer(NULL),
+	gdg_buffer(nullptr),
 	m_cur_addr(0),
 	m_cur_pass(0),
 	m_current_param(0),
@@ -127,7 +127,7 @@ bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vecto
 
 	if(gdg_buffer) {
 		free(gdg_buffer);
-		gdg_buffer = NULL;
+		gdg_buffer = nullptr;
 	}
 
 	last_error_str = "(no errors)";
@@ -310,7 +310,7 @@ char *DSPAssembler::FindBrackets(char *src, char *dst)
 	}
 	if (count)
 		ShowError(ERR_NO_MATCHING_BRACKETS);
-	return NULL;
+	return nullptr;
 }
 
 // Bizarre in-place expression evaluator.
@@ -323,7 +323,7 @@ u32 DSPAssembler::ParseExpression(const char *ptr)
 	char *s_buffer = (char *)malloc(1024);
 	strcpy(s_buffer, ptr);
 
-	while ((pbuf = FindBrackets(s_buffer, d_buffer)) != NULL)
+	while ((pbuf = FindBrackets(s_buffer, d_buffer)) != nullptr)
 	{
 		val = ParseExpression(d_buffer);
 		sprintf(d_buffer, "%s%d%s", s_buffer, val, pbuf);
@@ -359,14 +359,14 @@ u32 DSPAssembler::ParseExpression(const char *ptr)
 		d_buffer[i] = c;
 	}
 
-	while ((pbuf = strstr(d_buffer, "+")) != NULL)
+	while ((pbuf = strstr(d_buffer, "+")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) + ParseExpression(pbuf+1);
 		sprintf(d_buffer, "%d", val);
 	}
 
-	while ((pbuf = strstr(d_buffer, "-")) != NULL)
+	while ((pbuf = strstr(d_buffer, "-")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) - ParseExpression(pbuf+1);
@@ -378,28 +378,28 @@ u32 DSPAssembler::ParseExpression(const char *ptr)
 		sprintf(d_buffer, "%d", val);
 	}
 
-	while ((pbuf = strstr(d_buffer, "*")) != NULL)
+	while ((pbuf = strstr(d_buffer, "*")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) * ParseExpression(pbuf+1);
 		sprintf(d_buffer, "%d", val);
 	}
 
-	while ((pbuf = strstr(d_buffer, "/")) != NULL)
+	while ((pbuf = strstr(d_buffer, "/")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) / ParseExpression(pbuf+1);
 		sprintf(d_buffer, "%d", val);
 	}
 
-	while ((pbuf = strstr(d_buffer, "|")) != NULL)
+	while ((pbuf = strstr(d_buffer, "|")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) | ParseExpression(pbuf+1);
 		sprintf(d_buffer, "%d", val);
 	}
 
-	while ((pbuf = strstr(d_buffer, "&")) != NULL)
+	while ((pbuf = strstr(d_buffer, "&")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) & ParseExpression(pbuf+1);
@@ -420,7 +420,7 @@ u32 DSPAssembler::GetParams(char *parstr, param_t *par)
 	tmpstr = strtok(tmpstr, ",\x00");
 	for (int i = 0; i < 10; i++)
 	{
-		if (tmpstr == NULL)
+		if (tmpstr == nullptr)
 			break;
 		tmpstr = skip_spaces(tmpstr);
 		if (strlen(tmpstr) == 0)
@@ -463,7 +463,7 @@ u32 DSPAssembler::GetParams(char *parstr, param_t *par)
 			par[i].type = P_VAL;
 			break;
 		}
-		tmpstr = strtok(NULL, ",\x00");
+		tmpstr = strtok(nullptr, ",\x00");
 	}
 	return count;
 }
@@ -493,7 +493,7 @@ const opc_t *DSPAssembler::FindOpcode(const char *opcode, u32 par_count, const o
 		}
 	}
 	ShowError(ERR_UNKNOWN_OPCODE);
-	return NULL;
+	return nullptr;
 }
 
 // weird...
@@ -780,8 +780,8 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		//printf("A: %s\n", line);
 		code_line++;
 
-		param_t params[10] = {{0, P_NONE, NULL}};
-		param_t params_ext[10] = {{0, P_NONE, NULL}};
+		param_t params[10] = {{0, P_NONE, nullptr}};
+		param_t params_ext[10] = {{0, P_NONE, nullptr}};
 
 		bool upper = true;
 		for (int i = 0; i < LINEBUF_SIZE; i++)
@@ -851,33 +851,33 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			}
 		}
 
-		char *opcode = NULL;
+		char *opcode = nullptr;
 		opcode = strtok(ptr, " ");
-		char *opcode_ext = NULL;
+		char *opcode_ext = nullptr;
 
 		u32 params_count = 0;
 		u32 params_count_ext = 0;
 		if (opcode)
 		{
-			if ((opcode_ext = strstr(opcode, "'")) != NULL)
+			if ((opcode_ext = strstr(opcode, "'")) != nullptr)
 			{
 				opcode_ext[0] = '\0';
 				opcode_ext++;
 				if (strlen(opcode_ext) == 0)
-					opcode_ext = NULL;
+					opcode_ext = nullptr;
 			}
 			// now we have opcode and label
 
 			params_count = 0;
 			params_count_ext = 0;
 
-			char *paramstr = strtok(NULL, "\0");
-			char *paramstr_ext = 0;
+			char *paramstr = strtok(nullptr, "\0");
+			char *paramstr_ext = nullptr;
 			// there is valid opcode so probably we have parameters
 
 			if (paramstr)
 			{
-				if ((paramstr_ext = strstr(paramstr, ":")) != NULL)
+				if ((paramstr_ext = strstr(paramstr, ":")) != nullptr)
 				{
 					paramstr_ext[0] = '\0';
 					paramstr_ext++;
@@ -899,14 +899,14 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 				if (strcmp(opcode, "EQU") == 0)
 				{
 					lval = params[0].val;
-					opcode = NULL;
+					opcode = nullptr;
 				}
 			}
 			if (pass == 1)
 				labels.RegisterLabel(label, lval);
 		}
 
-		if (opcode == NULL)
+		if (opcode == nullptr)
 			continue;
 
 		// check if opcode is reserved compiler word
@@ -981,7 +981,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 
 		VerifyParams(opc, params, params_count);
 
-		const opc_t *opc_ext = NULL;
+		const opc_t *opc_ext = nullptr;
 		// Check for opcode extensions.
 		if (opc->extended)
 		{

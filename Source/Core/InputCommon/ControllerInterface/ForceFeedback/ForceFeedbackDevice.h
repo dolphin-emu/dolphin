@@ -29,7 +29,7 @@ class ForceFeedbackDevice : public Core::Device
 private:
 	struct EffectState
 	{
-		EffectState(LPDIRECTINPUTEFFECT eff) : iface(eff), params(NULL), size(0) {}
+		EffectState(LPDIRECTINPUTEFFECT eff) : iface(eff), params(nullptr), size(0) {}
 
 		LPDIRECTINPUTEFFECT iface;
 		void*               params; // null when force hasn't changed

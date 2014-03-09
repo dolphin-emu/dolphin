@@ -139,7 +139,7 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 	SetIcon(IconTemp);
 
 	DragAcceptFiles(true);
-	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CRenderFrame::OnDropFiles), NULL, this);
+	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CRenderFrame::OnDropFiles), nullptr, this);
 }
 
 void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
@@ -298,12 +298,12 @@ CFrame::CFrame(wxFrame* parent,
 		bool ShowLogWindow,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
-	, g_pCodeWindow(NULL), g_NetPlaySetupDiag(NULL), g_CheatsWindow(NULL)
-	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
-	, m_GameListCtrl(NULL), m_Panel(NULL)
-	, m_RenderFrame(NULL), m_RenderParent(NULL)
-	, m_LogWindow(NULL), m_LogConfigWindow(NULL)
-	, m_FifoPlayerDlg(NULL), UseDebugger(_UseDebugger)
+	, g_pCodeWindow(nullptr), g_NetPlaySetupDiag(nullptr), g_CheatsWindow(nullptr)
+	, m_ToolBar(nullptr), m_ToolBarDebug(nullptr), m_ToolBarAui(nullptr)
+	, m_GameListCtrl(nullptr), m_Panel(nullptr)
+	, m_RenderFrame(nullptr), m_RenderParent(nullptr)
+	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
+	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, m_bGameLoading(false)
 {
@@ -442,7 +442,7 @@ bool CFrame::RendererIsFullscreen()
 	}
 
 #if defined(__APPLE__)
-	if (m_RenderFrame != NULL)
+	if (m_RenderFrame != nullptr)
 	{
 		NSView *view = (NSView *) m_RenderFrame->GetHandle();
 		NSWindow *window = [view window];
@@ -512,7 +512,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 	{
 		// Close the log window now so that its settings are saved
 		m_LogWindow->Close();
-		m_LogWindow = NULL;
+		m_LogWindow = nullptr;
 	}
 
 
@@ -608,12 +608,12 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case IDM_UPDATESTATUSBAR:
-		if (GetStatusBar() != NULL)
+		if (GetStatusBar() != nullptr)
 			GetStatusBar()->SetStatusText(event.GetString(), event.GetInt());
 		break;
 
 	case IDM_UPDATETITLE:
-		if (m_RenderFrame != NULL)
+		if (m_RenderFrame != nullptr)
 			m_RenderFrame->SetTitle(event.GetString());
 		break;
 
@@ -700,13 +700,13 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 
 bool CFrame::RendererHasFocus()
 {
-	if (m_RenderParent == NULL)
+	if (m_RenderParent == nullptr)
 		return false;
 #ifdef _WIN32
 	if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
 		return true;
 #else
-	if (wxWindow::FindFocus() == NULL)
+	if (wxWindow::FindFocus() == nullptr)
 		return false;
 	// Why these different cases?
 	if (m_RenderParent == wxWindow::FindFocus() ||

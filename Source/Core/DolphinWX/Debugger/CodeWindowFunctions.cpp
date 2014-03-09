@@ -180,7 +180,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 	{
 	case IDM_PROFILEBLOCKS:
 		Core::SetState(Core::CORE_PAUSE);
-		if (jit != NULL)
+		if (jit != nullptr)
 			jit->ClearCache();
 		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
 		Core::SetState(Core::CORE_RUN);
@@ -191,13 +191,13 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
 		if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::MODE_JIT)
 		{
-			if (jit != NULL)
+			if (jit != nullptr)
 			{
 				std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
 				File::CreateFullPath(filename);
 				Profiler::WriteProfileResults(filename.c_str());
 
-				wxFileType* filetype = NULL;
+				wxFileType* filetype = nullptr;
 				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
 				{
 					// From extension failed, trying with MIME type now
@@ -379,7 +379,7 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 	int index = symbols->GetSelection();
 	if (index >= 0) {
 		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
-		if (pSymbol != NULL)
+		if (pSymbol != nullptr)
 		{
 			if(pSymbol->type == Symbol::SYMBOL_DATA)
 			{
@@ -456,7 +456,7 @@ void CCodeWindow::ToggleRegisterWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_RegisterWindow, false);
-		m_RegisterWindow = NULL;
+		m_RegisterWindow = nullptr;
 	}
 }
 
@@ -474,7 +474,7 @@ void CCodeWindow::ToggleBreakPointWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_BreakpointWindow, false);
-		m_BreakpointWindow = NULL;
+		m_BreakpointWindow = nullptr;
 	}
 }
 
@@ -492,7 +492,7 @@ void CCodeWindow::ToggleMemoryWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_MemoryWindow, false);
-		m_MemoryWindow = NULL;
+		m_MemoryWindow = nullptr;
 	}
 }
 
@@ -510,7 +510,7 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_JitWindow, false);
-		m_JitWindow = NULL;
+		m_JitWindow = nullptr;
 	}
 }
 
@@ -529,7 +529,7 @@ void CCodeWindow::ToggleSoundWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_SoundWindow, false);
-		m_SoundWindow = NULL;
+		m_SoundWindow = nullptr;
 	}
 }
 
@@ -547,6 +547,6 @@ void CCodeWindow::ToggleVideoWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_VideoWindow, false);
-		m_VideoWindow = NULL;
+		m_VideoWindow = nullptr;
 	}
 }

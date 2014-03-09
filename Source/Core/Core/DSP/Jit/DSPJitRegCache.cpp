@@ -71,7 +71,7 @@ static void *reg_ptr(int reg)
 #endif
 	default:
 		_assert_msg_(DSPLLE, 0, "cannot happen");
-		return NULL;
+		return nullptr;
 	}
 }
 

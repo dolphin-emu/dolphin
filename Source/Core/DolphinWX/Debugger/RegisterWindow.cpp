@@ -26,7 +26,7 @@ CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id,
 		const wxPoint& position, const wxSize& size,
 		long style, const wxString& name)
 	: wxPanel(parent, id, position, size, style, name)
-	, m_GPRGridView(NULL)
+	, m_GPRGridView(nullptr)
 {
 	CreateGUIControls();
 }
@@ -43,6 +43,6 @@ void CRegisterWindow::CreateGUIControls()
 
 void CRegisterWindow::NotifyUpdate()
 {
-	if (m_GPRGridView != NULL)
+	if (m_GPRGridView != nullptr)
 		m_GPRGridView->Update();
 }

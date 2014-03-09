@@ -48,7 +48,7 @@ namespace XInput2
 // This function will add zero or more KeyboardMouse objects to devices.
 void Init(std::vector<Core::Device*>& devices, void* const hwnd)
 {
-	Display* dpy = XOpenDisplay(NULL);
+	Display* dpy = XOpenDisplay(nullptr);
 
 	// xi_opcode is important; it will be used to identify XInput events by
 	// the polling loop in UpdateInput.
@@ -129,7 +129,7 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
 	// which it can individually filter to get just the events it's interested
 	// in. So be aware that each KeyboardMouse object actually has its own X11
 	// "context."
-	m_display = XOpenDisplay(NULL);
+	m_display = XOpenDisplay(nullptr);
 
 	int min_keycode, max_keycode;
 	XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
@@ -326,7 +326,7 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 	// 0x0110ffff is the top of the unicode character range according
 	// to keysymdef.h although it is probably more than we need.
 	if (keysym == NoSymbol || keysym > 0x0110ffff ||
-		XKeysymToString(keysym) == NULL)
+		XKeysymToString(keysym) == nullptr)
 		m_keyname = std::string();
 	else
 		m_keyname = std::string(XKeysymToString(keysym));

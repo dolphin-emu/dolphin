@@ -174,7 +174,7 @@ struct ARAMInfo
 		wii_mode = false;
 		size = ARAM_SIZE;
 		mask = ARAM_MASK;
-		ptr = NULL;
+		ptr = nullptr;
 	}
 };
 
@@ -282,12 +282,12 @@ void Shutdown()
 	if (!g_ARAM.wii_mode)
 	{
 		FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
-		g_ARAM.ptr = NULL;
+		g_ARAM.ptr = nullptr;
 	}
 
 	dsp_emulator->Shutdown();
 	delete dsp_emulator;
-	dsp_emulator = NULL;
+	dsp_emulator = nullptr;
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)

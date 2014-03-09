@@ -108,7 +108,7 @@ void innerFlush(FlushData* data)
 	if (!pFile)
 	{
 		std::string dir;
-		SplitPath(data->filename, &dir, 0, 0);
+		SplitPath(data->filename, &dir, nullptr, nullptr);
 		if (!File::IsDirectory(dir))
 			File::CreateFullPath(dir);
 		pFile.Open(data->filename, "wb");
@@ -166,7 +166,7 @@ CEXIMemoryCard::~CEXIMemoryCard()
 	CoreTiming::RemoveEvent(et_this_card);
 	Flush(true);
 	delete[] memory_card_content;
-	memory_card_content = NULL;
+	memory_card_content = nullptr;
 
 	if (flushThread.joinable())
 	{
@@ -482,8 +482,8 @@ void CEXIMemoryCard::DoState(PointerWrap &p)
 IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
 {
 	if (device_type != m_deviceType)
-		return NULL;
+		return nullptr;
 	if (customIndex != card_index)
-		return NULL;
+		return nullptr;
 	return this;
 }

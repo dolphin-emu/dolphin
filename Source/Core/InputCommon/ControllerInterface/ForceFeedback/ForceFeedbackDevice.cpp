@@ -102,7 +102,7 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 		}
 
 		LPDIRECTINPUTEFFECT pEffect;
-		if (SUCCEEDED(device->CreateEffect(f.guid, &eff, &pEffect, NULL)))
+		if (SUCCEEDED(device->CreateEffect(f.guid, &eff, &pEffect, nullptr)))
 		{
 			m_state_out.push_back(EffectState(pEffect));
 
@@ -155,7 +155,7 @@ bool ForceFeedbackDevice::UpdateOutput()
 				ok_count += SUCCEEDED(state.iface->Stop());
 			}
 
-			state.params = NULL;
+			state.params = nullptr;
 		}
 		else
 		{

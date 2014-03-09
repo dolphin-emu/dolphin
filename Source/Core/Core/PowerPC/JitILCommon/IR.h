@@ -547,19 +547,19 @@ public:
 		MarkUsed.clear();
 		MarkUsed.reserve(100000);
 		for (unsigned i = 0; i < 32; i++) {
-			GRegCache[i] = 0;
-			GRegCacheStore[i] = 0;
-			FRegCache[i] = 0;
-			FRegCacheStore[i] = 0;
+			GRegCache[i] = nullptr;
+			GRegCacheStore[i] = nullptr;
+			FRegCache[i] = nullptr;
+			FRegCacheStore[i] = nullptr;
 		}
-		CarryCache = 0;
-		CarryCacheStore = 0;
+		CarryCache = nullptr;
+		CarryCacheStore = nullptr;
 		for (unsigned i = 0; i < 8; i++) {
-			CRCache[i] = 0;
-			CRCacheStore[i] = 0;
+			CRCache[i] = nullptr;
+			CRCacheStore[i] = nullptr;
 		}
-		CTRCache = 0;
-		CTRCacheStore = 0;
+		CTRCache = nullptr;
+		CTRCacheStore = nullptr;
 	}
 
 	IRBuilder() { Reset(); }

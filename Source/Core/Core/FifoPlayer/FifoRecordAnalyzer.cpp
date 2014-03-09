@@ -16,7 +16,7 @@ using namespace FifoAnalyzer;
 
 FifoRecordAnalyzer::FifoRecordAnalyzer() :
 	m_DrawingObject(false),
-	m_BpMem(NULL)
+	m_BpMem(nullptr)
 {
 }
 

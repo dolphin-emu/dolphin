@@ -138,7 +138,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 						break;
 
 					std::string name, ext;
-					SplitPath(FileSearch.GetFileNames()[i], NULL, &name, &ext);
+					SplitPath(FileSearch.GetFileNames()[i], nullptr, &name, &ext);
 					std::string FileName = name + ext;
 
 					// Decode entities of invalid file system characters so that

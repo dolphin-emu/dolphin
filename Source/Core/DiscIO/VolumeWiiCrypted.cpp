@@ -21,7 +21,7 @@ namespace DiscIO
 CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
 									 const unsigned char* _pVolumeKey)
 	: m_pReader(_pReader),
-	m_pBuffer(0),
+	m_pBuffer(nullptr),
 	m_VolumeOffset(_VolumeOffset),
 	dataOffset(0x20000),
 	m_LastDecryptedBlockOffset(-1)
@@ -35,11 +35,11 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
 CVolumeWiiCrypted::~CVolumeWiiCrypted()
 {
 	delete m_pReader; // is this really our responsibility?
-	m_pReader = NULL;
+	m_pReader = nullptr;
 	delete[] m_pBuffer;
-	m_pBuffer = NULL;
+	m_pBuffer = nullptr;
 	delete m_AES_ctx;
-	m_AES_ctx = NULL;
+	m_AES_ctx = nullptr;
 }
 
 bool CVolumeWiiCrypted::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
@@ -56,7 +56,7 @@ bool CVolumeWiiCrypted::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
 
 bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 	{
 		return(false);
 	}
@@ -119,7 +119,7 @@ void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32 * _sz) const
 
 std::string CVolumeWiiCrypted::GetUniqueID() const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 	{
 		return std::string();
 	}
@@ -150,7 +150,7 @@ IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
 
 std::string CVolumeWiiCrypted::GetMakerID() const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 	{
 		return std::string();
 	}
@@ -174,7 +174,7 @@ std::vector<std::string> CVolumeWiiCrypted::GetNames() const
 	auto const string_decoder = CVolumeGC::GetStringDecoder(GetCountry());
 
 	char name[0xFF] = {};
-	if (m_pReader != NULL && Read(0x20, 0x60, (u8*)&name))
+	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name))
 		names.push_back(string_decoder(name));
 
 	return names;
@@ -182,7 +182,7 @@ std::vector<std::string> CVolumeWiiCrypted::GetNames() const
 
 u32 CVolumeWiiCrypted::GetFSTSize() const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 	{
 		return 0;
 	}
@@ -199,7 +199,7 @@ u32 CVolumeWiiCrypted::GetFSTSize() const
 
 std::string CVolumeWiiCrypted::GetApploaderDate() const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 	{
 		return std::string();
 	}

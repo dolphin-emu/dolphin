@@ -313,7 +313,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 
 			//_assert_msg_(POWERPC, WriteGatherPipeEnable, "Write gather pipe not enabled!");
 			//if ((HID2.PSE == 0))
-			//	MessageBox(NULL, "PSE in HID2 is set", "Warning", MB_OK);
+			//	MessageBox(nullptr, "PSE in HID2 is set", "Warning", MB_OK);
 		}
 		break;
 

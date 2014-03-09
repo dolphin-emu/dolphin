@@ -710,7 +710,7 @@ protected:
 	size_t region_size;
 
 public:
-	ARMXCodeBlock() : region(NULL), region_size(0) {}
+	ARMXCodeBlock() : region(nullptr), region_size(0) {}
 	virtual ~ARMXCodeBlock() { if (region) FreeCodeSpace(); }
 
 	// Call this before you generate any code.
@@ -735,7 +735,7 @@ public:
 	{
 #ifndef __SYMBIAN32__
 		FreeMemoryPages(region, region_size);
-		region = NULL;
+		region = nullptr;
 #endif
 		region_size = 0;
 	}

@@ -79,8 +79,8 @@ protected:
 public:
 	SymbolDB() {}
 	virtual ~SymbolDB() {}
-	virtual Symbol *GetSymbolFromAddr(u32 addr) { return 0; }
-	virtual Symbol *AddFunction(u32 startAddr) { return 0;}
+	virtual Symbol *GetSymbolFromAddr(u32 addr) { return nullptr; }
+	virtual Symbol *AddFunction(u32 startAddr) { return nullptr;}
 
 	void AddCompleteSymbol(const Symbol &symbol);
 
@@ -90,7 +90,7 @@ public:
 		if (iter != checksumToFunction.end())
 			return iter->second;
 		else
-			return 0;
+			return nullptr;
 	}
 
 	const XFuncMap &Symbols() const {return functions;}

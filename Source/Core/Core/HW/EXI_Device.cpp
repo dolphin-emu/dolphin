@@ -90,7 +90,7 @@ public:
 // F A C T O R Y
 IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 {
-	IEXIDevice* result = NULL;
+	IEXIDevice* result = nullptr;
 
 	switch (device_type)
 	{
@@ -132,7 +132,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 		break;
 	}
 
-	if (result != NULL)
+	if (result != nullptr)
 		result->m_deviceType = device_type;
 
 	return result;

@@ -260,7 +260,7 @@ _SSL_NEW_ERROR:
 			}
 			else
 			{
-				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, NULL, ssl->hostname);
+				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 
@@ -288,7 +288,7 @@ _SSL_NEW_ERROR:
 			WII_SSL* ssl = &_SSL[sslID];
 			std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
 			int ret = x509_crt_parse_file(&ssl->clicert, (cert_base_path + "clientca.pem").c_str());
-			int pk_ret = pk_parse_keyfile(&ssl->pk, (cert_base_path + "clientcakey.pem").c_str(), NULL);
+			int pk_ret = pk_parse_keyfile(&ssl->pk, (cert_base_path + "clientcakey.pem").c_str(), nullptr);
 			if (ret || pk_ret)
 			{
 				x509_crt_free(&ssl->clicert);
@@ -331,7 +331,7 @@ _SSL_NEW_ERROR:
 			memset(&ssl->clicert, 0, sizeof(x509_crt));
 			memset(&ssl->pk, 0, sizeof(pk_context));
 
-			ssl_set_own_cert(&ssl->ctx, NULL, NULL);
+			ssl_set_own_cert(&ssl->ctx, nullptr, nullptr);
 			Memory::Write_U32(SSL_OK, _BufferIn);
 		}
 		else
@@ -357,7 +357,7 @@ _SSL_NEW_ERROR:
 			}
 			else
 			{
-				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, NULL, ssl->hostname);
+				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);

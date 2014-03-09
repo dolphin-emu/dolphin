@@ -42,8 +42,8 @@ public:
 		virtual std::string GetName() const = 0;
 		virtual ~Control() {}
 
-		virtual Input* ToInput() { return NULL; }
-		virtual Output* ToOutput() { return NULL; }
+		virtual Input* ToInput() { return nullptr; }
+		virtual Output* ToOutput() { return nullptr; }
 	};
 
 	//

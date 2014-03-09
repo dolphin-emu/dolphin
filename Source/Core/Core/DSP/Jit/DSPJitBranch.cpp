@@ -95,7 +95,7 @@ static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 	// Jump directly to the called block if it has already been compiled.
 	if (!(dest >= emitter.startAddr && dest <= emitter.compilePC))
 	{
-		if (emitter.blockLinks[dest] != 0 )
+		if (emitter.blockLinks[dest] != nullptr )
 		{
 			emitter.gpr.flushRegs();
 			// Check if we have enough cycles to execute the next block

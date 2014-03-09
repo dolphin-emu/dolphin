@@ -70,7 +70,7 @@ Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 				return &func.second;
 		}
 	}
-	return 0;
+	return nullptr;
 }
 
 // lower case only

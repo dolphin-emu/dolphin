@@ -18,7 +18,7 @@
 
 
 std::mutex crit_netplay_client;
-static NetPlayClient * netplay_client = NULL;
+static NetPlayClient * netplay_client = nullptr;
 NetSettings g_NetPlaySettings;
 
 #define RPT_SIZE_HACK  (1 << 16)
@@ -912,7 +912,7 @@ u8 CSIDevice_DanceMat::NetPlay_InGamePadToLocalPad(u8 numPAD)
 
 bool NetPlay::IsNetPlayRunning()
 {
-	return netplay_client != NULL;
+	return netplay_client != nullptr;
 }
 
 void NetPlay_Enable(NetPlayClient* const np)
@@ -924,5 +924,5 @@ void NetPlay_Enable(NetPlayClient* const np)
 void NetPlay_Disable()
 {
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
-	netplay_client = NULL;
+	netplay_client = nullptr;
 }

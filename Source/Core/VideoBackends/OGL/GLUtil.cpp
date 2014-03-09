@@ -56,7 +56,7 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 	GLuint programID = glCreateProgram();
 
 	// compile vertex shader
-	glShaderSource(vertexShaderID, 1, &vertexShader, NULL);
+	glShaderSource(vertexShaderID, 1, &vertexShader, nullptr);
 	glCompileShader(vertexShaderID);
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
 	GLint Result = GL_FALSE;
@@ -75,7 +75,7 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 #endif
 
 	// compile fragment shader
-	glShaderSource(fragmentShaderID, 1, &fragmentShader, NULL);
+	glShaderSource(fragmentShaderID, 1, &fragmentShader, nullptr);
 	glCompileShader(fragmentShaderID);
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
 	glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &Result);

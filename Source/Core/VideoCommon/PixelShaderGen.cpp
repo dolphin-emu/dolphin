@@ -224,17 +224,17 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
-	pixel_shader_uid_data& uid_data = (&out.template GetUidData<pixel_shader_uid_data>() != NULL)
+	pixel_shader_uid_data& uid_data = (&out.template GetUidData<pixel_shader_uid_data>() != nullptr)
 										? out.template GetUidData<pixel_shader_uid_data>() : dummy_data;
 
 	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != NULL);
+	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
 #ifndef ANDROID
 	locale_t locale;
 	locale_t old_locale;
 	if (is_writing_shadercode)
 	{
-		locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
+		locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
 		old_locale = uselocale(locale); // Apply the locale for this thread
 	}
 #endif
@@ -1177,7 +1177,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	}
 	else
 	{
-		if (bpmem.fog.c_proj_fsel.fsel != 2 && out.GetBuffer() != NULL)
+		if (bpmem.fog.c_proj_fsel.fsel != 2 && out.GetBuffer() != nullptr)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 

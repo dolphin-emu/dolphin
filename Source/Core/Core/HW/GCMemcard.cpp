@@ -34,7 +34,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	{
 		//This function can be removed once more about hdr is known and we can check for a valid header
 		std::string fileType;
-		SplitPath(filename, NULL, NULL, &fileType);
+		SplitPath(filename, nullptr, nullptr, &fileType);
 		if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
 		{
 			PanicAlertT("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
@@ -814,7 +814,7 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::s
 	File::IOFile gci(gcih);
 	unsigned int offset;
 	std::string fileType;
-	SplitPath(inputFile, NULL, NULL, &fileType);
+	SplitPath(inputFile, nullptr, nullptr, &fileType);
 
 	if (!strcasecmp(fileType.c_str(), ".gci"))
 		offset = GCI;
@@ -913,7 +913,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &dire
 		gci.Open(fileName, "wb");
 
 		std::string fileType;
-		SplitPath(fileName, NULL, NULL, &fileType);
+		SplitPath(fileName, nullptr, nullptr, &fileType);
 		if (!strcasecmp(fileType.c_str(), ".gcs"))
 		{
 			offset = GCS;

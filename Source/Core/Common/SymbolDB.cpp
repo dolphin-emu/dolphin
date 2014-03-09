@@ -46,7 +46,7 @@ Symbol *SymbolDB::GetSymbolFromName(const char *name)
 		if (!strcmp(func.second.name.c_str(), name))
 			return &func.second;
 	}
-	return 0;
+	return nullptr;
 }
 
 void SymbolDB::AddCompleteSymbol(const Symbol &symbol)

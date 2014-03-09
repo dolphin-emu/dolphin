@@ -153,7 +153,7 @@ private:
 
 	void ReportMode(const wm_report_mode* const dr);
 	void SendAck(const u8 _reportID);
-	void RequestStatus(const wm_request_status* const rs = NULL);
+	void RequestStatus(const wm_request_status* const rs = nullptr);
 	void ReadData(const wm_read_data* const rd);
 	void WriteData(const wm_write_data* const wd);
 	void SendReadDataReply(ReadRequest& _request);

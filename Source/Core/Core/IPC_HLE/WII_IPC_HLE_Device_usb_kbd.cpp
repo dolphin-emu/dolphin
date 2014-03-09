@@ -34,7 +34,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 
 	m_OldModifiers = 0x00;
 
-	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, NULL));
+	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, nullptr));
 	Memory::Write_U32(m_DeviceID, _CommandAddress+4);
 	m_Active = true;
 	return true;

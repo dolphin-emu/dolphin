@@ -584,7 +584,7 @@ void CFrame::InitBitmaps()
 	m_Bitmaps[Toolbar_FullScreen].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
 
 	// Update in case the bitmap has been updated
-	if (m_ToolBar != NULL)
+	if (m_ToolBar != nullptr)
 		RecreateToolbar();
 }
 
@@ -608,7 +608,7 @@ void CFrame::BootGame(const std::string& filename)
 	// If all that fails, ask to add a dir and don't boot
 	if (bootfile.empty())
 	{
-		if (m_GameListCtrl->GetSelectedISO() != NULL)
+		if (m_GameListCtrl->GetSelectedISO() != nullptr)
 		{
 			if (m_GameListCtrl->GetSelectedISO()->IsValid())
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
@@ -872,7 +872,7 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 	else
 	{
 		// Change to default resolution
-		ChangeDisplaySettings(NULL, CDS_FULLSCREEN);
+		ChangeDisplaySettings(nullptr, CDS_FULLSCREEN);
 	}
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution != "Auto")
@@ -967,7 +967,7 @@ void CFrame::StartGame(const std::string& filename)
 		// Destroy the renderer frame when not rendering to main
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();
-		m_RenderParent = NULL;
+		m_RenderParent = nullptr;
 		m_bGameLoading = false;
 		UpdateGUI();
 	}
@@ -1060,7 +1060,7 @@ void CFrame::DoStop()
 
 	m_bGameLoading = false;
 	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
-			m_RenderParent != NULL)
+			m_RenderParent != nullptr)
 	{
 #if defined __WXGTK__
 		wxMutexGuiLeave();
@@ -1140,7 +1140,7 @@ void CFrame::DoStop()
 			// Make sure the window is not longer set to stay on top
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 		}
-		m_RenderParent = NULL;
+		m_RenderParent = nullptr;
 
 		// Clean framerate indications from the status bar.
 		GetStatusBar()->SetStatusText(wxT(" "), 0);
@@ -1339,7 +1339,7 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
 	if (!g_NetPlaySetupDiag)
 	{
-		if (NetPlayDiag::GetInstance() != NULL)
+		if (NetPlayDiag::GetInstance() != nullptr)
 			NetPlayDiag::GetInstance()->Raise();
 		else
 			g_NetPlaySetupDiag = new NetPlaySetupDiag(this, m_GameListCtrl);
@@ -1736,7 +1736,7 @@ void CFrame::UpdateGUI()
 			m_GameListCtrl->Show();
 		}
 		// Game has been selected but not started, enable play button
-		if (m_GameListCtrl->GetSelectedISO() != NULL && m_GameListCtrl->IsEnabled())
+		if (m_GameListCtrl->GetSelectedISO() != nullptr && m_GameListCtrl->IsEnabled())
 		{
 			if (m_ToolBar)
 				m_ToolBar->EnableTool(IDM_PLAY, true);

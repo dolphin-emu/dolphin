@@ -46,7 +46,7 @@ CVolumeWAD::~CVolumeWAD()
 
 bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 		return false;
 
 	return m_pReader->Read(_Offset, _Length, _pBuffer);

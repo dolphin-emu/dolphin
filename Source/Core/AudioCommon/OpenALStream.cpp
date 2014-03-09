@@ -27,7 +27,7 @@ bool OpenALStream::Start()
 		ALCdevice *pDevice = alcOpenDevice(defDevName);
 		if (pDevice)
 		{
-			ALCcontext *pContext = alcCreateContext(pDevice, NULL);
+			ALCcontext *pContext = alcCreateContext(pDevice, nullptr);
 			if (pContext)
 			{
 				// Used to determine an appropriate period size (2x period = total buffer size)
@@ -83,7 +83,7 @@ void OpenALStream::Stop()
 	ALCcontext *pContext = alcGetCurrentContext();
 	ALCdevice *pDevice = alcGetContextsDevice(pContext);
 
-	alcMakeContextCurrent(NULL);
+	alcMakeContextCurrent(nullptr);
 	alcDestroyContext(pContext);
 	alcCloseDevice(pDevice);
 }

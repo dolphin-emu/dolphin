@@ -62,7 +62,7 @@ GFXDebuggerPanel::GFXDebuggerPanel(wxWindow *parent, wxWindowID id, const wxPoin
 
 GFXDebuggerPanel::~GFXDebuggerPanel()
 {
-	g_pdebugger = NULL;
+	g_pdebugger = nullptr;
 	GFXDebuggerPauseFlag = false;
 }
 
@@ -154,7 +154,7 @@ void GFXDebuggerPanel::CreateGUIControls()
 
 	m_pCount = new wxTextCtrl(this, ID_COUNT, wxT("1"), wxDefaultPosition, wxSize(50,25), wxTE_RIGHT, wxDefaultValidator, _("Count"));
 
-	m_pPauseAtList = new wxChoice(this, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, NULL,0,wxDefaultValidator, _("PauseAtList"));
+	m_pPauseAtList = new wxChoice(this, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, nullptr,0,wxDefaultValidator, _("PauseAtList"));
 	for (int i=0; i<numPauseEventMap; i++)
 	{
 		m_pPauseAtList->Append(pauseEventMap[i].ListStr);
@@ -168,7 +168,7 @@ void GFXDebuggerPanel::CreateGUIControls()
 	m_pButtonClearVertexShaderCache = new wxButton(this, ID_CLEAR_VERTEX_SHADER_CACHE, _("Clear V Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear V Shaders"));
 	m_pButtonClearPixelShaderCache = new wxButton(this, ID_CLEAR_PIXEL_SHADER_CACHE, _("Clear P Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear P Shaders"));
 
-	m_pDumpList = new wxChoice(this, ID_DUMP_LIST, wxDefaultPosition, wxSize(120,25), 0, NULL, 0 ,wxDefaultValidator, _("DumpList"));
+	m_pDumpList = new wxChoice(this, ID_DUMP_LIST, wxDefaultPosition, wxSize(120,25), 0, nullptr, 0 ,wxDefaultValidator, _("DumpList"));
 	m_pDumpList->Insert(_("Pixel Shader"),0);
 	m_pDumpList->Append(_("Vertex Shader"));
 	m_pDumpList->Append(_("Pixel Shader Constants"));

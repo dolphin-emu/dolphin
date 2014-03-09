@@ -41,7 +41,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 			}
 		}
 		timeToFill+=8;
-		libusb_handle_events_timeout(NULL, &tv);
+		libusb_handle_events_timeout(nullptr, &tv);
 	}
 
 	return;
@@ -73,7 +73,7 @@ CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::strin
 {
 	deviceCommandAddress = 0;
 	memset(hidDeviceAliases, 0, sizeof(hidDeviceAliases));
-	int ret = libusb_init(NULL);
+	int ret = libusb_init(nullptr);
 	if (ret)
 	{
 		ERROR_LOG(WII_IPC_HID, "libusb_init failed with error: %d", ret);
@@ -102,7 +102,7 @@ CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 	open_devices.clear();
 
 	if (deinit_libusb)
-		libusb_exit(NULL);
+		libusb_exit(nullptr);
 }
 
 bool CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
@@ -190,7 +190,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		libusb_device_handle * dev_handle = GetDeviceByDevNum(dev_num);
 
-		if (dev_handle == NULL)
+		if (dev_handle == nullptr)
 		{
 			DEBUG_LOG(WII_IPC_HID, "Could not find handle: %X", dev_num);
 			break;
@@ -223,7 +223,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		libusb_device_handle * dev_handle = GetDeviceByDevNum(dev_num);
 
-		if (dev_handle == NULL)
+		if (dev_handle == nullptr)
 		{
 			DEBUG_LOG(WII_IPC_HID, "Could not find handle: %X", dev_num);
 			break;
@@ -359,8 +359,8 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 	int d,c,ic,i,e; /* config, interface container, interface, endpoint  */
 
 	libusb_device **list;
-	//libusb_device *found = NULL;
-	ssize_t cnt = libusb_get_device_list(NULL, &list);
+	//libusb_device *found = nullptr;
+	ssize_t cnt = libusb_get_device_list(nullptr, &list);
 	DEBUG_LOG(WII_IPC_HID, "Found %ld viable USB devices.", cnt);
 	for (d = 0; d < cnt; d++)
 	{
@@ -387,7 +387,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
 		for (c = 0; deviceValid && c < desc.bNumConfigurations; c++)
 		{
-			struct libusb_config_descriptor *config = NULL;
+			struct libusb_config_descriptor *config = nullptr;
 			int cRet = libusb_get_config_descriptor(device, c, &config);
 			// do not try to use usb devices with more than one interface, games can crash
 			if(cRet == 0 && config->bNumInterfaces <= MAX_HID_INTERFACES)
@@ -426,7 +426,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 					} // interfaces
 				} // interface containters
 				libusb_free_config_descriptor(config);
-				config = NULL;
+				config = nullptr;
 			}
 			else
 			{
@@ -502,11 +502,11 @@ int CWII_IPC_HLE_Device_hid::Align(int num, int alignment)
 libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 {
 	libusb_device **list;
-	libusb_device_handle *handle = NULL;
+	libusb_device_handle *handle = nullptr;
 	ssize_t cnt;
 
 	if(devNum >= MAX_DEVICE_DEVNUM)
-		return NULL;
+		return nullptr;
 
 
 	std::lock_guard<std::mutex> lk(s_open_devices);
@@ -525,10 +525,10 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 		}
 	}
 
-	cnt = libusb_get_device_list(NULL, &list);
+	cnt = libusb_get_device_list(nullptr, &list);
 
 	if (cnt < 0)
-		return NULL;
+		return nullptr;
 
 #ifdef _WIN32
 	static bool has_warned_about_drivers = false;
@@ -596,7 +596,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 		}
 		else
 		{
-			handle = NULL;
+			handle = nullptr;
 		}
 	}
 

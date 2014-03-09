@@ -132,11 +132,11 @@ void LOADERDECL TexCoord_ReadIndex_Float2_SSSE3()
 
 static TPipelineFunction tableReadTexCoord[4][8][2] = {
 	{
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
 	},
 	{
 		{TexCoord_ReadDirect<u8, 1>,  TexCoord_ReadDirect<u8, 2>,},

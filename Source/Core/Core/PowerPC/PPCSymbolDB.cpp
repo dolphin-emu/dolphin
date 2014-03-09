@@ -34,19 +34,19 @@ PPCSymbolDB::~PPCSymbolDB()
 Symbol *PPCSymbolDB::AddFunction(u32 startAddr)
 {
 	if (startAddr < 0x80000010)
-		return 0;
+		return nullptr;
 	XFuncMap::iterator iter = functions.find(startAddr);
 	if (iter != functions.end())
 	{
 		// it's already in the list
-		return 0;
+		return nullptr;
 	}
 	else
 	{
 		Symbol tempFunc; //the current one we're working on
 		u32 targetEnd = PPCAnalyst::AnalyzeFunction(startAddr, tempFunc);
 		if (targetEnd == 0)
-			return 0;  //found a dud :(
+			return nullptr;  //found a dud :(
 		//LOG(OSHLE, "Symbol found at %08x", startAddr);
 		functions[startAddr] = tempFunc;
 		tempFunc.type = Symbol::SYMBOL_FUNCTION;
@@ -86,7 +86,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int 
 Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
 	if (!Memory::IsRAMAddress(addr))
-		return 0;
+		return nullptr;
 
 	XFuncMap::iterator it = functions.find(addr);
 	if (it != functions.end())
@@ -101,7 +101,7 @@ Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 				return &p.second;
 		}
 	}
-	return 0;
+	return nullptr;
 }
 
 const std::string PPCSymbolDB::GetDescription(u32 addr)
@@ -237,7 +237,7 @@ bool PPCSymbolDB::LoadMap(const char *filename)
 		sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &unknown, name);
 
 		const char *namepos = strstr(line, name);
-		if (namepos != 0) //would be odd if not :P
+		if (namepos != nullptr) //would be odd if not :P
 			strcpy(name, namepos);
 		name[strlen(name) - 1] = 0;
 

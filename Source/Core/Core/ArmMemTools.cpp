@@ -81,6 +81,6 @@ void InstallExceptionHandler()
 	sa.sa_sigaction = &sigsegv_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
-	sigaction(SIGSEGV, &sa, NULL);
+	sigaction(SIGSEGV, &sa, nullptr);
 }
 }  // namespace

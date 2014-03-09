@@ -48,8 +48,8 @@ struct RegInfo {
 
 	RegInfo(JitIL* j, InstLoc f, unsigned insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts) {
 		for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++) {
-			regs[i] = 0;
-			fregs[i] = 0;
+			regs[i] = nullptr;
+			fregs[i] = nullptr;
 		}
 		numSpills = 0;
 		numFSpills = 0;
@@ -65,9 +65,9 @@ static u32 regsInUse(RegInfo& R) {
 	u32 result = 0;
 	for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
 	{
-		if (R.regs[i] != 0)
+		if (R.regs[i] != nullptr)
 			result |= (1 << i);
-		if (R.fregs[i] != 0)
+		if (R.fregs[i] != nullptr)
 			result |= (1 << (16 + i));
 	}
 	return result;
@@ -112,7 +112,7 @@ static void regSpill(RegInfo& RI, X64Reg reg) {
 		slot = regCreateSpill(RI, RI.regs[reg]);
 		RI.Jit->MOV(32, regLocForSlot(RI, slot), R(reg));
 	}
-	RI.regs[reg] = 0;
+	RI.regs[reg] = nullptr;
 }
 
 static OpArg fregLocForSlot(RegInfo& RI, unsigned slot) {
@@ -136,7 +136,7 @@ static void fregSpill(RegInfo& RI, X64Reg reg) {
 		slot = fregCreateSpill(RI, RI.fregs[reg]);
 		RI.Jit->MOVAPD(fregLocForSlot(RI, slot), reg);
 	}
-	RI.fregs[reg] = 0;
+	RI.fregs[reg] = nullptr;
 }
 
 // ECX is scratch, so we don't allocate it
@@ -164,11 +164,11 @@ static const int FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
 
 static X64Reg regFindFreeReg(RegInfo& RI) {
 	for (auto& reg : RegAllocOrder)
-		if (RI.regs[reg] == 0)
+		if (RI.regs[reg] == nullptr)
 			return reg;
 
 	int bestIndex = -1;
-	InstLoc bestEnd = 0;
+	InstLoc bestEnd = nullptr;
 	for (int i = 0; i < RegAllocSize; ++i) {
 		const InstLoc start = RI.regs[RegAllocOrder[i]];
 		const InstLoc end = RI.lastUsed[start - RI.FirstI];
@@ -185,11 +185,11 @@ static X64Reg regFindFreeReg(RegInfo& RI) {
 
 static X64Reg fregFindFreeReg(RegInfo& RI) {
 	for (auto& reg : FRegAllocOrder)
-		if (RI.fregs[reg] == 0)
+		if (RI.fregs[reg] == nullptr)
 			return reg;
 
 	int bestIndex = -1;
-	InstLoc bestEnd = 0;
+	InstLoc bestEnd = nullptr;
 	for (int i = 0; i < FRegAllocSize; ++i) {
 		const InstLoc start = RI.fregs[FRegAllocOrder[i]];
 		const InstLoc end = RI.lastUsed[start - RI.FirstI];
@@ -229,13 +229,13 @@ static OpArg fregLocForInst(RegInfo& RI, InstLoc I) {
 static void regClearInst(RegInfo& RI, InstLoc I) {
 	for (auto& reg : RegAllocOrder)
 		if (RI.regs[reg] == I)
-			RI.regs[reg] = 0;
+			RI.regs[reg] = nullptr;
 }
 
 static void fregClearInst(RegInfo& RI, InstLoc I) {
 	for (auto& reg : FRegAllocOrder)
 		if (RI.fregs[reg] == I)
-			RI.fregs[reg] = 0;
+			RI.fregs[reg] = nullptr;
 }
 
 static X64Reg regEnsureInReg(RegInfo& RI, InstLoc I) {
@@ -490,7 +490,7 @@ static OpArg regImmForConst(RegInfo& RI, InstLoc I, unsigned Size) {
 }
 
 static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size) {
-	auto info = regBuildMemAddress(RI, I, getOp2(I), 2, Size, 0);
+	auto info = regBuildMemAddress(RI, I, getOp2(I), 2, Size, nullptr);
 	if (info.first.IsImm())
 		RI.Jit->MOV(32, R(ECX), info.first);
 	else

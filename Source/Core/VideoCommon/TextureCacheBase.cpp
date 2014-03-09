@@ -25,7 +25,7 @@ enum
 
 TextureCache *g_texture_cache;
 
-GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
+GC_ALIGNED16(u8 *TextureCache::temp) = nullptr;
 unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
@@ -72,7 +72,7 @@ TextureCache::~TextureCache()
 {
 	Invalidate();
 	FreeAlignedMemory(temp);
-	temp = NULL;
+	temp = nullptr;
 }
 
 void TextureCache::OnConfigChanged(VideoConfig& config)
@@ -334,7 +334,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	unsigned int const tlutaddr, int const tlutfmt, bool const use_mipmaps, unsigned int maxlevel, bool const from_tmem)
 {
 	if (0 == address)
-		return NULL;
+		return nullptr;
 
 	// TexelSizeInNibbles(format) * width * height / 16;
 	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat) - 1;
@@ -431,7 +431,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		{
 			// delete the texture and make a new one
 			delete entry;
-			entry = NULL;
+			entry = nullptr;
 		}
 	}
 
@@ -452,7 +452,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 				if(entry)
 				{
 					delete entry;
-					entry = NULL;
+					entry = nullptr;
 				}
 			}
 			using_custom_texture = true;
@@ -480,7 +480,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	texLevels = (use_native_mips || using_custom_lods) ? texLevels : 1; // TODO: Should be forced to 1 for non-pow2 textures (e.g. efb copies with automatically adjusted IR)
 
 	// create the entry/texture
-	if (NULL == entry)
+	if (nullptr == entry)
 	{
 		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, expandedWidth, texLevels, pcfmt);
 
@@ -522,8 +522,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		{
 			src_data += texture_size;
 
-			const u8* ptr_even = NULL;
-			const u8* ptr_odd = NULL;
+			const u8* ptr_even = nullptr;
+			const u8* ptr_odd = nullptr;
 			if (from_tmem)
 			{
 				ptr_even = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE + texture_size];
@@ -862,11 +862,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		{
 			// remove it and recreate it as a render target
 			delete entry;
-			entry = NULL;
+			entry = nullptr;
 		}
 	}
 
-	if (NULL == entry)
+	if (nullptr == entry)
 	{
 		// create the texture
 		textures[dstAddr] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);

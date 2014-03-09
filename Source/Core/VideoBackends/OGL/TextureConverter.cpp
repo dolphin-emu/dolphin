@@ -179,7 +179,7 @@ void Init()
 	glGenTextures(1, &s_dstTexture);
 	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	
 	
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
@@ -261,8 +261,8 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 		// in this way, we only have one vram->ram transfer, but maybe a bigger
 		// cpu overhead because of the pbo
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, s_PBO);
-		glBufferData(GL_PIXEL_PACK_BUFFER, dstSize, NULL, GL_STREAM_READ);
-		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+		glBufferData(GL_PIXEL_PACK_BUFFER, dstSize, nullptr, GL_STREAM_READ);
+		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
 		u8* pbo = (u8*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, dstSize, GL_MAP_READ_BIT);
 
 		for (int i = 0; i < readLoops; i++)

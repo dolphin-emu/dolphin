@@ -151,7 +151,7 @@ void CFrame::ToggleLogConfigWindow(bool bShow)
 	else
 	{
 		DoRemovePage(m_LogConfigWindow, false);
-		m_LogConfigWindow = NULL;
+		m_LogConfigWindow = nullptr;
 	}
 
 	// Hide or Show the pane
@@ -388,7 +388,7 @@ void CFrame::ShowResizePane()
 void CFrame::TogglePane()
 {
 	// Get the first notebook
-	wxAuiNotebook * NB = NULL;
+	wxAuiNotebook * NB = nullptr;
 	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
 		if (m_Mgr->GetAllPanes()[i].window->IsKindOf(CLASSINFO(wxAuiNotebook)))
@@ -983,7 +983,7 @@ wxWindow * CFrame::GetNotebookPageFromId(wxWindowID Id)
 				return NB->GetPage(j);
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 wxFrame* CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWindow* Child)
@@ -1088,5 +1088,5 @@ wxAuiNotebook * CFrame::GetNotebookFromId(u32 NBId)
 			return (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
 		j++;
 	}
-	return NULL;
+	return nullptr;
 }

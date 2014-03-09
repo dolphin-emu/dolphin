@@ -106,7 +106,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 	TexImage0& ti0 = texUnit.texImage0[subTexmap];
 	TexTLUT& texTlut = texUnit.texTlut[subTexmap];
 
-	u8 *imageSrc, *imageSrcOdd = NULL;
+	u8 *imageSrc, *imageSrcOdd = nullptr;
 	if (texUnit.texImage1[subTexmap].image_type)
 	{
 		imageSrc = &texMem[texUnit.texImage1[subTexmap].tmem_even * TMEM_LINE_SIZE];

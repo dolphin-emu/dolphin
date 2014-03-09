@@ -121,7 +121,7 @@ IBlobReader* CreateBlobReader(const char* filename)
 		return DriveReader::Create(filename);
 
 	if (!File::Exists(filename))
-		return 0;
+		return nullptr;
 
 	if (IsWbfsBlob(filename))
 		return WbfsFileReader::Create(filename);

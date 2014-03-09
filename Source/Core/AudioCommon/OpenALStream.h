@@ -44,7 +44,7 @@ class OpenALStream: public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
-	OpenALStream(CMixer *mixer, void *hWnd = NULL)
+	OpenALStream(CMixer *mixer, void *hWnd = nullptr)
 		: SoundStream(mixer)
 		, uiSource(0)
 	{}

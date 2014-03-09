@@ -138,7 +138,7 @@ public:
 	bool RendererHasFocus();
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
-	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=NULL);
+	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
 	static void ConnectWiimote(int wm_idx, bool connect);
 
 	const CGameListCtrl *GetGameListCtrl() const;
@@ -244,7 +244,7 @@ private:
 	void DoFloatNotebookPage(wxWindowID Id);
 	wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
 			const wxString& title = wxT(""),
-			wxWindow * = NULL);
+			wxWindow * = nullptr);
 	wxString AuiFullscreen, AuiCurrent;
 	void AddPane();
 	void UpdateCurrentPerspective();

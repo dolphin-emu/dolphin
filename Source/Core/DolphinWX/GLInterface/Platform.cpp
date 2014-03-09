@@ -62,7 +62,7 @@ bool cPlatform::SelectDisplay(void)
 #endif
 			platform_env);
 			free(platform_env);
-			platform_env = NULL;
+			platform_env = nullptr;
 		}
 #if HAVE_WAYLAND
 		if (wayland_possible)
@@ -154,7 +154,7 @@ EGLDisplay cPlatform::EGLGetDisplay(void)
 #ifdef ANDROID
 	return eglGetDisplay(EGL_DEFAULT_DISPLAY);
 #endif
-	return NULL;
+	return nullptr;
 }
 
 EGLNativeWindowType cPlatform::CreateWindow(void)

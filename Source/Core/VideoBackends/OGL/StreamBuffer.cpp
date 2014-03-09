@@ -141,7 +141,7 @@ class MapAndOrphan : public StreamBuffer
 public:
 	MapAndOrphan(u32 type, size_t size) : StreamBuffer(type, size) {
 		glBindBuffer(m_buffertype, m_buffer);
-		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
+		glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
 	}
 
 	~MapAndOrphan() {
@@ -150,7 +150,7 @@ public:
 	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
 		Align(stride);
 		if(m_iterator + size >= m_size) {
-			glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
+			glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
 			m_iterator = 0;
 		}
 		u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
@@ -178,7 +178,7 @@ public:
 	MapAndSync(u32 type, size_t size) : StreamBuffer(type, size) {
 		CreateFences();
 		glBindBuffer(m_buffertype, m_buffer);
-		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
+		glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
 	}
 
 	~MapAndSync() {
@@ -223,7 +223,7 @@ public:
 		// PERSISTANT_BIT to make sure that the buffer can be used while mapped
 		// COHERENT_BIT is set so we don't have to use a MemoryBarrier on write
 		// CLIENT_STORAGE_BIT is set since we access the buffer more frequently on the client side then server side
-		glBufferStorage(m_buffertype, m_size, NULL,
+		glBufferStorage(m_buffertype, m_size, nullptr,
 			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_CLIENT_STORAGE_BIT); 
 		m_pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size,
 			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT); 
@@ -272,7 +272,7 @@ public:
 		glBindBuffer(m_buffertype, 0);
 		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
 		FreeAlignedMemory(m_pointer);
-		m_pointer = NULL;
+		m_pointer = nullptr;
 	}
 
 	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
@@ -299,7 +299,7 @@ class BufferSubData : public StreamBuffer
 public:
 	BufferSubData(u32 type, size_t size) : StreamBuffer(type, size) {
 		glBindBuffer(m_buffertype, m_buffer);
-		glBufferData(m_buffertype, size, 0, GL_STATIC_DRAW);
+		glBufferData(m_buffertype, size, nullptr, GL_STATIC_DRAW);
 		m_pointer = new u8[m_size];
 	}
 

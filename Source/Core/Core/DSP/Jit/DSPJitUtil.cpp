@@ -31,7 +31,7 @@ void DSPEmitter::dsp_reg_stack_push(int stack_reg)
 	MOVZX(32, 8, EAX, R(AL));
 #endif
 	MOV(16, MComplex(EAX, EAX, 1,
-			 PtrOffset(&g_dsp.reg_stack[stack_reg][0],0)), R(tmp1));
+			 PtrOffset(&g_dsp.reg_stack[stack_reg][0],nullptr)), R(tmp1));
 	gpr.putXReg(tmp1);
 }
 
@@ -50,7 +50,7 @@ void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
 	MOVZX(32, 8, EAX, R(AL));
 #endif
 	MOV(16, R(tmp1), MComplex(EAX, EAX, 1,
-				  PtrOffset(&g_dsp.reg_stack[stack_reg][0],0)));
+				  PtrOffset(&g_dsp.reg_stack[stack_reg][0],nullptr)));
 	MOV(16, M(&g_dsp.r.st[stack_reg]), R(tmp1));
 	gpr.putXReg(tmp1);
 

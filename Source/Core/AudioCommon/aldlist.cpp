@@ -50,13 +50,13 @@ ALDeviceList::ALDeviceList()
 	defaultDeviceIndex = 0;
 
 	// grab function pointers for 1.0-API functions, and if successful proceed to enumerate all devices
-	//if (LoadOAL10Library(NULL, &ALFunction) == TRUE) {
-		if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
+	//if (LoadOAL10Library(nullptr, &ALFunction) == TRUE) {
+		if (alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
 		{
-			const char *devices = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
-			const char *defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
-			// go through device list (each device terminated with a single NULL, list terminated with double NULL)
-			for (s32 index = 0; devices != NULL && strlen(devices) > 0; index++, devices += strlen(devices) + 1)
+			const char *devices = alcGetString(nullptr, ALC_DEVICE_SPECIFIER);
+			const char *defaultDeviceName = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
+			// go through device list (each device terminated with a single nullptr, list terminated with double nullptr)
+			for (s32 index = 0; devices != nullptr && strlen(devices) > 0; index++, devices += strlen(devices) + 1)
 			{
 				if (strcmp(defaultDeviceName, devices) == 0)
 				{
@@ -65,7 +65,7 @@ ALDeviceList::ALDeviceList()
 				ALCdevice *device = alcOpenDevice(devices);
 				if (device)
 				{
-					ALCcontext *context = alcCreateContext(device, NULL);
+					ALCcontext *context = alcCreateContext(device, nullptr);
 					if (context)
 					{
 						alcMakeContextCurrent(context);
@@ -79,7 +79,7 @@ ALDeviceList::ALDeviceList()
 								bNewName = false;
 							}
 						}
-						if ((bNewName) && (actualDeviceName != NULL) && (strlen(actualDeviceName) > 0))
+						if ((bNewName) && (actualDeviceName != nullptr) && (strlen(actualDeviceName) > 0))
 						{
 							ALDeviceInfo.bSelected = true;
 							ALDeviceInfo.strDeviceName = actualDeviceName;
@@ -120,7 +120,7 @@ ALDeviceList::ALDeviceList()
 
 							vDeviceInfo.push_back(ALDeviceInfo);
 						}
-						alcMakeContextCurrent(NULL);
+						alcMakeContextCurrent(nullptr);
 						alcDestroyContext(context);
 					}
 					alcCloseDevice(device);
@@ -163,7 +163,7 @@ char * ALDeviceList::GetDeviceName(s32 index)
 	if (index < GetNumDevices())
 		return (char *)vDeviceInfo[index].strDeviceName.c_str();
 	else
-		return NULL;
+		return nullptr;
 }
 
 /*

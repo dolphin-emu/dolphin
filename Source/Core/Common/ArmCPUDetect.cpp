@@ -14,7 +14,7 @@ const char procfile[] = "/proc/cpuinfo";
 char *GetCPUString()
 {
 	const char marker[] = "Hardware\t: ";
-	char *cpu_string = 0;
+	char *cpu_string = nullptr;
 	// Count the number of processor lines in /proc/cpuinfo
 	char buf[1024];
 
@@ -38,7 +38,7 @@ char *GetCPUString()
 unsigned char GetCPUImplementer()
 {
 	const char marker[] = "CPU implementer\t: ";
-	char *implementer_string = 0;
+	char *implementer_string = nullptr;
 	unsigned char implementer = 0;
 	char buf[1024];
 
@@ -65,7 +65,7 @@ unsigned char GetCPUImplementer()
 unsigned short GetCPUPart()
 {
 	const char marker[] = "CPU part\t: ";
-	char *part_string = 0;
+	char *part_string = nullptr;
 	unsigned short part = 0;
 	char buf[1024];
 
@@ -105,11 +105,11 @@ bool CheckCPUFeature(const char *feature)
 			continue;
 		char *featurestring = buf + sizeof(marker) - 1;
 		char *token = strtok(featurestring, " ");
-		while (token != NULL)
+		while (token != nullptr)
 		{
 			if (strstr(token, feature))
 				return true;
-			token = strtok(NULL, " ");
+			token = strtok(nullptr, " ");
 		}
 	}
 

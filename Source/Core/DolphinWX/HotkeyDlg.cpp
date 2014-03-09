@@ -45,7 +45,7 @@ HotkeyConfigDialog::HotkeyConfigDialog(wxWindow *parent, wxWindowID id, const wx
 	m_ButtonMappingTimer = new wxTimer(this, wxID_ANY);
 	g_Pressed = 0;
 	g_Modkey = 0;
-	ClickedButton = NULL;
+	ClickedButton = nullptr;
 	GetButtonWaitingID = 0;
 	GetButtonWaitingTimer = 0;
 #endif
@@ -69,13 +69,13 @@ void HotkeyConfigDialog::EndGetButtons(void)
 	m_ButtonMappingTimer->Stop();
 	GetButtonWaitingTimer = 0;
 	GetButtonWaitingID = 0;
-	ClickedButton = NULL;
+	ClickedButton = nullptr;
 	SetEscapeId(wxID_ANY);
 }
 
 void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
-	if(ClickedButton != NULL)
+	if(ClickedButton != nullptr)
 	{
 		// Save the key
 		g_Pressed = event.GetKeyCode();

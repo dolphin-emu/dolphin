@@ -736,7 +736,7 @@ bool TASInputDlg::TASHasFocus()
 
 	if (wxWindow::FindFocus() == this)
 		return true;
-	else if (wxWindow::FindFocus() != NULL &&
+	else if (wxWindow::FindFocus() != nullptr &&
 				wxWindow::FindFocus()->GetParent() == this)
 		return true;
 	else

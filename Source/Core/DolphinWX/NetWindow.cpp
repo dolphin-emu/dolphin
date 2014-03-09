@@ -54,10 +54,10 @@ BEGIN_EVENT_TABLE(NetPlayDiag, wxFrame)
 	EVT_COMMAND(wxID_ANY, wxEVT_THREAD, NetPlayDiag::OnThread)
 END_EVENT_TABLE()
 
-static NetPlayServer* netplay_server = NULL;
-static NetPlayClient* netplay_client = NULL;
+static NetPlayServer* netplay_server = nullptr;
+static NetPlayClient* netplay_client = nullptr;
 extern CFrame* main_frame;
-NetPlayDiag *NetPlayDiag::npd = NULL;
+NetPlayDiag *NetPlayDiag::npd = nullptr;
 
 std::string BuildGameName(const GameListItem& game)
 {
@@ -227,7 +227,7 @@ NetPlaySetupDiag::~NetPlaySetupDiag()
 	netplay_section.Set("HostPort", WxStrToStr(m_host_port_text->GetValue()));
 
 	inifile.Save(dolphin_ini);
-	main_frame->g_NetPlaySetupDiag = NULL;
+	main_frame->g_NetPlaySetupDiag = nullptr;
 }
 
 void NetPlaySetupDiag::MakeNetPlayDiag(int port, const std::string &game, bool is_hosting)
@@ -311,7 +311,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		const std::string& game, const bool is_hosting)
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR))
 	, m_selected_game(game)
-	, m_start_btn(NULL)
+	, m_start_btn(nullptr)
 	, m_game_list(game_list)
 {
 	wxPanel* const panel = new wxPanel(this);
@@ -409,14 +409,14 @@ NetPlayDiag::~NetPlayDiag()
 	if (netplay_client)
 	{
 		delete netplay_client;
-		netplay_client = NULL;
+		netplay_client = nullptr;
 	}
 	if (netplay_server)
 	{
 		delete netplay_server;
-		netplay_server = NULL;
+		netplay_server = nullptr;
 	}
-	npd = NULL;
+	npd = nullptr;
 }
 
 void NetPlayDiag::OnChat(wxCommandEvent&)
@@ -724,6 +724,6 @@ void PadMapDiag::OnAdjust(wxCommandEvent& event)
 
 void NetPlay::StopGame()
 {
-	if (netplay_client != NULL)
+	if (netplay_client != nullptr)
 		netplay_client->Stop();
 }

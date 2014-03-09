@@ -9,7 +9,7 @@
 #if USE_EGL
 bool cXInterface::ServerConnect(void)
 {
-	GLWin.dpy = XOpenDisplay(NULL);
+	GLWin.dpy = XOpenDisplay(nullptr);
 
 	if (!GLWin.dpy)
 		return false;
@@ -49,7 +49,7 @@ bool cXInterface::Initialize(void *config, void *window_handle)
 	GLWin.width = _twidth;
 	GLWin.height = _theight;
 
-	GLWin.evdpy = XOpenDisplay(NULL);
+	GLWin.evdpy = XOpenDisplay(nullptr);
 	GLWin.parent = (Window) window_handle;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 
@@ -86,7 +86,7 @@ void *cXInterface::CreateWindow(void)
 			CWBorderPixel | CWBackPixel | CWColormap | CWEventMask, &GLWin.attr);
 	wmProtocols[0] = XInternAtom(GLWin.evdpy, "WM_DELETE_WINDOW", True);
 	XSetWMProtocols(GLWin.evdpy, GLWin.win, wmProtocols, 1);
-	XSetStandardProperties(GLWin.evdpy, GLWin.win, "GPU", "GPU", None, NULL, 0, NULL);
+	XSetStandardProperties(GLWin.evdpy, GLWin.win, "GPU", "GPU", None, nullptr, 0, nullptr);
 	XMapRaised(GLWin.evdpy, GLWin.win);
 	XSync(GLWin.evdpy, True);
 
@@ -136,7 +136,7 @@ void cX11Window::CreateXWindow(void)
 			CWBorderPixel | CWBackPixel | CWColormap | CWEventMask, &GLWin.attr);
 	wmProtocols[0] = XInternAtom(GLWin.evdpy, "WM_DELETE_WINDOW", True);
 	XSetWMProtocols(GLWin.evdpy, GLWin.win, wmProtocols, 1);
-	XSetStandardProperties(GLWin.evdpy, GLWin.win, "GPU", "GPU", None, NULL, 0, NULL);
+	XSetStandardProperties(GLWin.evdpy, GLWin.win, "GPU", "GPU", None, nullptr, 0, nullptr);
 	XMapRaised(GLWin.evdpy, GLWin.win);
 	XSync(GLWin.evdpy, True);
 

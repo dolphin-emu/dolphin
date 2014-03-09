@@ -213,10 +213,10 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	hFont.SetFamily(wxFONTFAMILY_TELETYPE);
 
 	wxCoord w,h;
-	dc.GetTextExtent(_T("0WJyq"),&w,&h,NULL,NULL,&hFont);
+	dc.GetTextExtent(_T("0WJyq"),&w,&h,nullptr,nullptr,&hFont);
 	if (h > rowHeight)
 		rowHeight = h;
-	dc.GetTextExtent(_T("0WJyq"),&w,&h,NULL,NULL,&DebuggerFont);
+	dc.GetTextExtent(_T("0WJyq"),&w,&h,nullptr,nullptr,&DebuggerFont);
 	if (h > rowHeight)
 		rowHeight = h;
 

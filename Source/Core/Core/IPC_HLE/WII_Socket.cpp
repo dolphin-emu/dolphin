@@ -29,8 +29,8 @@ char* WiiSockMan::DecodeError(s32 ErrorCode)
 	// instead of a static buffer here.
 	// (And of course, free the buffer when we were done with it)
 	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
-		FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, ErrorCode,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)Message, 1024, NULL);
+		FORMAT_MESSAGE_MAX_WIDTH_MASK, nullptr, ErrorCode,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)Message, 1024, nullptr);
 	return Message;
 #else
 	return strerror(ErrorCode);
@@ -242,7 +242,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 				}
 				else
 				{
-					int ret = (s32)accept(fd, NULL, 0);
+					int ret = (s32)accept(fd, nullptr, 0);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", true);
 				}
 
@@ -440,7 +440,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 					}
 
 					int ret = sendto(fd, data, BufferInSize, flags,
-						has_destaddr ? (struct sockaddr*)&local_name : NULL,
+						has_destaddr ? (struct sockaddr*)&local_name : nullptr,
 						has_destaddr ? sizeof(sockaddr) :  0);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_SENDTO", true);
 
@@ -486,8 +486,8 @@ void WiiSocket::update(bool read, bool write, bool except)
 #endif
 					socklen_t addrlen = sizeof(sockaddr_in);
 					int ret = recvfrom(fd, data, data_len, flags,
-									BufferOutSize2 ? (struct sockaddr*) &local_name : NULL,
-									BufferOutSize2 ? &addrlen : 0);
+									BufferOutSize2 ? (struct sockaddr*) &local_name : nullptr,
+									BufferOutSize2 ? &addrlen : nullptr);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
 
 					INFO_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "

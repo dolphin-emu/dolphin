@@ -256,20 +256,20 @@ void VideoBackend::Video_Cleanup() {
 		TextureConverter::Shutdown();
 		VertexLoaderManager::Shutdown();
 		delete g_sampler_cache;
-		g_sampler_cache = NULL;
+		g_sampler_cache = nullptr;
 		delete g_texture_cache;
-		g_texture_cache = NULL;
+		g_texture_cache = nullptr;
 		PostProcessing::Shutdown();
 		ProgramShaderCache::Shutdown();
 		VertexShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
 		delete g_perf_query;
-		g_perf_query = NULL;
+		g_perf_query = nullptr;
 		delete g_vertex_manager;
-		g_vertex_manager = NULL;
+		g_vertex_manager = nullptr;
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
-		g_renderer = NULL;
+		g_renderer = nullptr;
 		GLInterface->ClearCurrent();
 	}
 }

@@ -47,7 +47,7 @@ void Shutdown()
 	for (auto& channel : g_Channels)
 	{
 		delete channel;
-		channel = NULL;
+		channel = nullptr;
 	}
 }
 
@@ -102,7 +102,7 @@ IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 		if (device)
 			return device;
 	}
-	return NULL;
+	return nullptr;
 }
 
 // Unused (?!)

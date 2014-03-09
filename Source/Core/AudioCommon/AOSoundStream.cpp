@@ -22,7 +22,7 @@ void AOSound::SoundLoop()
 	format.rate = m_mixer->GetSampleRate();
 	format.byte_format = AO_FMT_LITTLE;
 
-	device = ao_open_live(default_driver, &format, NULL /* no options */);
+	device = ao_open_live(default_driver, &format, nullptr /* no options */);
 	if (!device)
 	{
 		PanicAlertT("AudioCommon: Error opening AO device.\n");
@@ -73,7 +73,7 @@ void AOSound::Stop()
 
 	ao_shutdown();
 
-	device = NULL;
+	device = nullptr;
 	}
 }
 

@@ -242,7 +242,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, nullptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glGenFramebuffers(1, &entry->framebuffer);

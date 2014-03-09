@@ -28,7 +28,7 @@ private:
 	bool IsOK() {return hDisc != INVALID_HANDLE_VALUE;}
 #else
 	File::IOFile file_;
-	bool IsOK() {return file_ != 0;}
+	bool IsOK() {return file_ != nullptr;}
 #endif
 	s64 size;
 

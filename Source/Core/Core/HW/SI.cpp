@@ -434,7 +434,7 @@ void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 void RemoveDevice(int _iDeviceNumber)
 {
 	delete g_Channel[_iDeviceNumber].m_pDevice;
-	g_Channel[_iDeviceNumber].m_pDevice = NULL;
+	g_Channel[_iDeviceNumber].m_pDevice = nullptr;
 }
 
 void AddDevice(ISIDevice* pDevice)

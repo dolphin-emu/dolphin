@@ -211,10 +211,10 @@ END_EVENT_TABLE()
 
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 		wxPoint& pos, const wxSize& size, long style)
-	: wxListCtrl(parent, id, pos, size, style), toolTip(0)
+	: wxListCtrl(parent, id, pos, size, style), toolTip(nullptr)
 {
 	DragAcceptFiles(true);
-	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CGameListCtrl::OnDropFiles), NULL, this);
+	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CGameListCtrl::OnDropFiles), nullptr, this);
 }
 
 CGameListCtrl::~CGameListCtrl()
@@ -292,7 +292,7 @@ void CGameListCtrl::Update()
 	if (m_imageListSmall)
 	{
 		delete m_imageListSmall;
-		m_imageListSmall = NULL;
+		m_imageListSmall = nullptr;
 	}
 
 	Hide();
@@ -381,7 +381,7 @@ void CGameListCtrl::Update()
 		SetItemFont(index, *wxITALIC_FONT);
 		SetColumnWidth(0, wxLIST_AUTOSIZE);
 	}
-	if (GetSelectedISO() == NULL)
+	if (GetSelectedISO() == nullptr)
 		main_frame->UpdateGUI();
 	Show();
 
@@ -549,7 +549,7 @@ void CGameListCtrl::ScanForISOs()
 		for (u32 i = 0; i < rFilenames.size(); i++)
 		{
 			std::string FileName;
-			SplitPath(rFilenames[i], NULL, &FileName, NULL);
+			SplitPath(rFilenames[i], nullptr, &FileName, nullptr);
 
 			// Update with the progress (i) and the message
 			dialog.Update(i, wxString::Format(_("Scanning %s"),
@@ -644,7 +644,7 @@ const GameListItem *CGameListCtrl::GetISO(size_t index) const
 	if (index < m_ISOFiles.size())
 		return m_ISOFiles[index];
 	else
-		return NULL;
+		return nullptr;
 }
 
 CGameListCtrl *caller;
@@ -914,18 +914,18 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 {
 	if (m_ISOFiles.size() == 0)
 	{
-		return NULL;
+		return nullptr;
 	}
 	else if (GetSelectedItemCount() == 0)
 	{
-		return NULL;
+		return nullptr;
 	}
 	else
 	{
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item == wxNOT_FOUND)
 		{
-			return NULL;
+			return nullptr;
 		}
 		else
 		{
@@ -1111,7 +1111,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			if (!iso->IsCompressed() && _compress)
 			{
 				std::string FileName, FileExt;
-				SplitPath(iso->GetFileName(), NULL, &FileName, &FileExt);
+				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
 				m_currentFilename = FileName;
 				FileName.append(".gcz");
 
@@ -1136,7 +1136,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			else if (iso->IsCompressed() && !_compress)
 			{
 				std::string FileName, FileExt;
-				SplitPath(iso->GetFileName(), NULL, &FileName, &FileExt);
+				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
 				m_currentFilename = FileName;
 				if (iso->GetPlatform() == GameListItem::WII_DISC)
 					FileName.append(".iso");

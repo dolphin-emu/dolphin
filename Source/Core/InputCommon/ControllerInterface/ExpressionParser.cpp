@@ -357,7 +357,7 @@ Device::Control *ControlFinder::FindControl(ControlQualifier qualifier)
 {
 	Device *device = FindDevice(qualifier);
 	if (!device)
-		return NULL;
+		return nullptr;
 
 	if (is_input)
 		return device->FindInput(qualifier.control_name);
@@ -414,7 +414,7 @@ private:
 		case TOK_CONTROL:
 			{
 				Device::Control *control = finder.FindControl(tok.qualifier);
-				if (control == NULL)
+				if (control == nullptr)
 					return EXPRESSION_PARSE_NO_DEVICE;
 
 				*expr_out = new ControlExpression(tok.qualifier, control);
@@ -539,7 +539,7 @@ ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder &finde
 {
 	ExpressionParseStatus status;
 	Expression *expr;
-	*expr_out = NULL;
+	*expr_out = nullptr;
 
 	if (str == "")
 		return EXPRESSION_PARSE_SUCCESS;

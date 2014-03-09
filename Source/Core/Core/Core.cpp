@@ -79,7 +79,7 @@ void EmuThread();
 bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bStarted = false;
-void *g_pWindowHandle = NULL;
+void *g_pWindowHandle = nullptr;
 std::string g_stateFileName;
 std::thread g_EmuThread;
 
