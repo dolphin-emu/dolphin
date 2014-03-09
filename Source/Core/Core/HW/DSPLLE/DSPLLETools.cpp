@@ -12,9 +12,9 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 
-#include "Core/DSP/disassemble.h"
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/HW/DSPLLE/DSPLLEGlobals.h"
 #include "Core/HW/DSPLLE/DSPLLETools.h"

@@ -46,8 +46,8 @@ Initial import
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 
-#include "Core/DSP/assemble.h"
-#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPAssembler.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
 

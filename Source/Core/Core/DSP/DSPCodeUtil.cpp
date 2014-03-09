@@ -9,9 +9,9 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "Core/DSP/assemble.h"
-#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPAssembler.h"
 #include "Core/DSP/DSPCodeUtil.h"
+#include "Core/DSP/DSPDisassembler.h"
 
 bool Assemble(const char *text, std::vector<u16> &code, bool force)
 {
