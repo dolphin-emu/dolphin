@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Core/DSP/disassemble.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"

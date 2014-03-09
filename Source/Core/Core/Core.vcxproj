@@ -60,8 +60,8 @@
     <ClCompile Include="Debugger\Dump.cpp" />
     <ClCompile Include="Debugger\PPCDebugInterface.cpp" />
     <ClCompile Include="DSPEmulator.cpp" />
-    <ClCompile Include="DSP\assemble.cpp" />
-    <ClCompile Include="DSP\disassemble.cpp" />
+    <ClCompile Include="DSP\DSPAssembler.cpp" />
+    <ClCompile Include="DSP\DSPDisassembler.cpp" />
     <ClCompile Include="DSP\DSPAccelerator.cpp" />
     <ClCompile Include="DSP\DSPAnalyzer.cpp" />
     <ClCompile Include="DSP\DSPCodeUtil.cpp" />
@@ -265,8 +265,8 @@
     <ClInclude Include="Debugger\GCELF.h" />
     <ClInclude Include="Debugger\PPCDebugInterface.h" />
     <ClInclude Include="DSPEmulator.h" />
-    <ClInclude Include="DSP\assemble.h" />
-    <ClInclude Include="DSP\disassemble.h" />
+    <ClInclude Include="DSP\DSPAssembler.h" />
+    <ClInclude Include="DSP\DSPDisassembler.h" />
     <ClInclude Include="DSP\DSPAccelerator.h" />
     <ClInclude Include="DSP\DSPAnalyzer.h" />
     <ClInclude Include="DSP\DSPBreakpoints.h" />

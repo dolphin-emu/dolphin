@@ -29,7 +29,7 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 
-#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
 
 #ifdef _MSC_VER

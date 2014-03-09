@@ -26,8 +26,8 @@ set(SRCS	ActionReplay.cpp
 			Debugger/Debugger_SymbolMap.cpp
 			Debugger/Dump.cpp
 			Debugger/PPCDebugInterface.cpp
-			DSP/assemble.cpp
-			DSP/disassemble.cpp
+			DSP/DSPAssembler.cpp
+			DSP/DSPDisassembler.cpp
 			DSP/DSPAccelerator.cpp
 			DSP/DSPIntCCUtil.cpp
 			DSP/DSPIntExtOps.cpp

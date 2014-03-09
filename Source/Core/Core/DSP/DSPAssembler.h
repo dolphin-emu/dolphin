@@ -29,7 +29,7 @@
 
 #include "Common/Common.h"
 
-#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/LabelMap.h"
 

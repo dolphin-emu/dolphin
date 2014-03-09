@@ -10,8 +10,8 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "Core/DSP/disassemble.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
 namespace DSPSymbols {
