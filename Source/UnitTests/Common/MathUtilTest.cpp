@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <cmath>
 #include <gtest/gtest.h>
+#include <limits>
 
 #include "Common/MathUtil.h"
 
@@ -27,19 +27,28 @@ TEST(MathUtil, Clamp)
 	EXPECT_EQ(0.0, ClampAndReturn(-1.0, 0.0, 2.0));
 }
 
+TEST(MathUtil, IsINF)
+{
+	EXPECT_TRUE(MathUtil::IsINF( std::numeric_limits<double>::infinity()));
+	EXPECT_TRUE(MathUtil::IsINF(-std::numeric_limits<double>::infinity()));
+}
+
 TEST(MathUtil, IsNAN)
 {
-	EXPECT_TRUE(MathUtil::IsNAN(nan("")));
+	EXPECT_TRUE(MathUtil::IsNAN(std::numeric_limits<double>::quiet_NaN()));
+	EXPECT_TRUE(MathUtil::IsNAN(std::numeric_limits<double>::signaling_NaN()));
 }
 
 TEST(MathUtil, IsQNAN)
 {
-	// TODO
+	EXPECT_TRUE(MathUtil::IsQNAN(std::numeric_limits<double>::quiet_NaN()));
+	EXPECT_FALSE(MathUtil::IsQNAN(std::numeric_limits<double>::signaling_NaN()));
 }
 
 TEST(MathUtil, IsSNAN)
 {
-	// TODO
+	EXPECT_FALSE(MathUtil::IsSNAN(std::numeric_limits<double>::quiet_NaN()));
+	EXPECT_TRUE(MathUtil::IsSNAN(std::numeric_limits<double>::signaling_NaN()));
 }
 
 TEST(MathUtil, Log2)

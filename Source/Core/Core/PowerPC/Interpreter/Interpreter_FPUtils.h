@@ -33,22 +33,27 @@ const u32 FPSCR_VXSQRT     = (u32)1 << (31 - 22);
 const u32 FPSCR_VXCVI      = (u32)1 << (31 - 23);
 
 const u32 FPSCR_VX_ANY     = FPSCR_VXSNAN | FPSCR_VXISI | FPSCR_VXIDI | FPSCR_VXZDZ |
-							 FPSCR_VXIMZ | FPSCR_VXVC | FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI;
+                             FPSCR_VXIMZ | FPSCR_VXVC | FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI;
 
 const u32 FPSCR_ANY_X      = FPSCR_OX | FPSCR_UX | FPSCR_ZX | FPSCR_XX | FPSCR_VX_ANY;
 
 const u64 PPC_NAN_U64      = 0x7ff8000000000000ull;
 const double PPC_NAN       = *(double* const)&PPC_NAN_U64;
 
-inline bool IsINF(double x)
-{
-	return ((*(u64*)&x) & ~DOUBLE_SIGN) == DOUBLE_EXP;
-}
+// the 4 less-significand bits in FPSCR[FPRF]
+enum FPCC {
+	FL = 8, // <
+	FG = 4, // >
+	FE = 2, // =
+	FU = 1, // ?
+};
 
 inline void SetFPException(u32 mask)
 {
 	if ((FPSCR.Hex & mask) != mask)
+	{
 		FPSCR.FX = 1;
+	}
 	FPSCR.Hex |= mask;
 }
 
