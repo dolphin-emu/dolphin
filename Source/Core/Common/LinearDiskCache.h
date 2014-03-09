@@ -70,7 +70,7 @@ public:
 			// good header, read some key/value pairs
 			K key;
 
-			V *value = NULL;
+			V *value = nullptr;
 			u32 value_size;
 			u32 entry_number;
 

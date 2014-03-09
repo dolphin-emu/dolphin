@@ -33,7 +33,7 @@
 
 DSPLLE::DSPLLE()
 {
-	soundStream = NULL;
+	soundStream = nullptr;
 	m_InitMixer = false;
 	m_bIsRunning = false;
 	m_cycle_count = 0;
@@ -95,7 +95,7 @@ void DSPLLE::DoState(PointerWrap &p)
 			AudioCommon::PauseAndLock(false);
 			soundStream->Stop();
 			delete soundStream;
-			soundStream = NULL;
+			soundStream = nullptr;
 		}
 	}
 }

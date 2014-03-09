@@ -66,7 +66,7 @@ void LogConfigWindow::CreateGUIControls()
 	m_writeConsoleCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteConsoleChecked, this);
 	m_writeWindowCB = new wxCheckBox(this, wxID_ANY, _("Write to Window"));
 	m_writeWindowCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteWindowChecked, this);
-	m_writeDebuggerCB = NULL;
+	m_writeDebuggerCB = nullptr;
 #ifdef _MSC_VER
 	if (IsDebuggerPresent())
 	{

@@ -38,7 +38,7 @@ public:
 	CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
 	~CGameListCtrl();
 
-	void Update();
+	void Update() override;
 
 	void BrowseForDirectory();
 	const GameListItem *GetSelectedISO();

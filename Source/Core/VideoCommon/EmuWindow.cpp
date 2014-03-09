@@ -15,9 +15,9 @@
 
 namespace EmuWindow
 {
-HWND m_hWnd = NULL;
-HWND m_hParent = NULL;
-HINSTANCE m_hInstance = NULL;
+HWND m_hWnd = nullptr;
+HWND m_hParent = nullptr;
+HINSTANCE m_hInstance = nullptr;
 WNDCLASSEX wndClass;
 const TCHAR m_szClassName[] = _T("DolphinEmuWnd");
 int g_winstyle;
@@ -81,7 +81,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_CLOSE:
 		// When the user closes the window, we post an event to the main window to call Stop()
 		// Which then handles all the necessary steps to Shutdown the core
-		if (m_hParent == NULL)
+		if (m_hParent == nullptr)
 		{
 			// Stop the game
 			//PostMessage(m_hParent, WM_USER, WM_USER_STOP, 0);
@@ -126,12 +126,12 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;
 	wndClass.hInstance = hInstance;
-	wndClass.hIcon = LoadIcon( NULL, IDI_APPLICATION );
-	wndClass.hCursor = NULL;
+	wndClass.hIcon = LoadIcon( nullptr, IDI_APPLICATION );
+	wndClass.hCursor = nullptr;
 	wndClass.hbrBackground = (HBRUSH)GetStockObject( BLACK_BRUSH );
-	wndClass.lpszMenuName = NULL;
+	wndClass.lpszMenuName = nullptr;
 	wndClass.lpszClassName = m_szClassName;
-	wndClass.hIconSm = LoadIcon( NULL, IDI_APPLICATION );
+	wndClass.hIconSm = LoadIcon( nullptr, IDI_APPLICATION );
 
 	m_hInstance = hInstance;
 	RegisterClassEx( &wndClass );
@@ -139,7 +139,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	m_hParent = parent;
 
 	m_hWnd = CreateWindow(m_szClassName, title, (g_ActiveConfig.backend_info.bSupports3DVision && g_ActiveConfig.b3DVision) ? WS_EX_TOPMOST | WS_POPUP : WS_CHILD,
-		0, 0, width, height, m_hParent, NULL, hInstance, NULL);
+		0, 0, width, height, m_hParent, nullptr, hInstance, nullptr);
 
 	return m_hWnd;
 }

@@ -23,15 +23,15 @@ namespace D3D
 	bool CompileVertexShader(const char* code, unsigned int len,
 		D3DBlob** blob);
 	bool CompileGeometryShader(const char* code, unsigned int len,
-		D3DBlob** blob, const D3D_SHADER_MACRO* pDefines = NULL);
+		D3DBlob** blob, const D3D_SHADER_MACRO* pDefines = nullptr);
 	bool CompilePixelShader(const char* code, unsigned int len,
-		D3DBlob** blob, const D3D_SHADER_MACRO* pDefines = NULL);
+		D3DBlob** blob, const D3D_SHADER_MACRO* pDefines = nullptr);
 
 	// Utility functions
 	ID3D11VertexShader* CompileAndCreateVertexShader(const char* code,
 		unsigned int len);
 	ID3D11GeometryShader* CompileAndCreateGeometryShader(const char* code,
-		unsigned int len, const D3D_SHADER_MACRO* pDefines = NULL);
+		unsigned int len, const D3D_SHADER_MACRO* pDefines = nullptr);
 	ID3D11PixelShader* CompileAndCreatePixelShader(const char* code,
 		unsigned int len);
 
@@ -44,7 +44,7 @@ namespace D3D
 
 	inline ID3D11VertexShader* CompileAndCreateVertexShader(D3DBlob* code)
 	{ return CompileAndCreateVertexShader((const char*)code->Data(), code->Size()); }
-	inline ID3D11GeometryShader* CompileAndCreateGeometryShader(D3DBlob* code, const D3D_SHADER_MACRO* pDefines = NULL)
+	inline ID3D11GeometryShader* CompileAndCreateGeometryShader(D3DBlob* code, const D3D_SHADER_MACRO* pDefines = nullptr)
 	{ return CompileAndCreateGeometryShader((const char*)code->Data(), code->Size(), pDefines); }
 	inline ID3D11PixelShader* CompileAndCreatePixelShader(D3DBlob* code)
 	{ return CompileAndCreatePixelShader((const char*)code->Data(), code->Size()); }

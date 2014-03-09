@@ -28,7 +28,7 @@ public:
 	static void Reset();
 
 	// StepOpcode (Steps one Opcode)
-	static void StepOpcode(Common::Event *event = 0);
+	static void StepOpcode(Common::Event *event = nullptr);
 
 	// one step only
 	static void SingleStep();

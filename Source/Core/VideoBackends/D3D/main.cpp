@@ -161,7 +161,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 	UpdateActiveConfig();
 
 	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));
-	if (window_handle == NULL)
+	if (window_handle == nullptr)
 	{
 		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
 		return false;
@@ -230,8 +230,8 @@ void VideoBackend::Shutdown()
 		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;
-		g_renderer = NULL;
-		g_texture_cache = NULL;
+		g_renderer = nullptr;
+		g_texture_cache = nullptr;
 	}
 }
 

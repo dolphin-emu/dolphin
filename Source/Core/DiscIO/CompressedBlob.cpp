@@ -55,7 +55,7 @@ CompressedBlobReader* CompressedBlobReader::Create(const char* filename)
 	if (IsCompressedBlob(filename))
 		return new CompressedBlobReader(filename);
 	else
-		return 0;
+		return nullptr;
 }
 
 CompressedBlobReader::~CompressedBlobReader()

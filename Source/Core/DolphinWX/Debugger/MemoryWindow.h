@@ -43,7 +43,7 @@ class CMemoryWindow
 		void Save(IniFile& _IniFile) const;
 		void Load(IniFile& _IniFile);
 
-		void Update();
+		void Update() override;
 		void NotifyMapLoaded();
 
 		void JumpToAddress(u32 _Address);

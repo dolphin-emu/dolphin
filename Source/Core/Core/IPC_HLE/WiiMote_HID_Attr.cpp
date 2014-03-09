@@ -234,7 +234,7 @@ const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size)
 		return packet4_0x10001;
 	}
 
-	return 0;
+	return nullptr;
 }
 
 // XXX keep these?

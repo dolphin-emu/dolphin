@@ -59,7 +59,7 @@ static const char YUYV_DECODER_PS[] =
 ;
 
 Television::Television()
-	: m_yuyvTexture(NULL), m_yuyvTextureSRV(NULL), m_pShader(NULL)
+	: m_yuyvTexture(nullptr), m_yuyvTextureSRV(nullptr), m_pShader(nullptr)
 { }
 
 void Television::Init()
@@ -99,7 +99,7 @@ void Television::Init()
 	// Create YUYV-decoding pixel shader
 
 	m_pShader = D3D::CompileAndCreatePixelShader(YUYV_DECODER_PS, sizeof(YUYV_DECODER_PS));
-	CHECK(m_pShader != NULL, "compile and create yuyv decoder pixel shader");
+	CHECK(m_pShader != nullptr, "compile and create yuyv decoder pixel shader");
 	D3D::SetDebugObjectName(m_pShader, "yuyv decoder pixel shader");
 
 	// Create sampler state and set border color

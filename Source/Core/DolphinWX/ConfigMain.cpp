@@ -616,7 +616,7 @@ void CConfigMain::CreateGUIControls()
 	std::for_each(sv.begin(), sv.end(), [theme_selection](const std::string& filename)
 	{
 		std::string name, ext;
-		SplitPath(filename, NULL, &name, &ext);
+		SplitPath(filename, nullptr, &name, &ext);
 
 		name += ext;
 		auto const wxname = StrToWxStr(name);

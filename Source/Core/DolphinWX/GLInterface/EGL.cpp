@@ -31,7 +31,7 @@ void cInterfaceEGL::DetectMode()
 		return;
 
 	EGLint num_configs;
-	EGLConfig *config = NULL;
+	EGLConfig *config = nullptr;
 	bool supportsGL = false, supportsGLES2 = false, supportsGLES3 = false;
 
 	// attributes for a visual in RGBA format with at least
@@ -43,7 +43,7 @@ void cInterfaceEGL::DetectMode()
 		EGL_NONE };
 
 	// Get how many configs there are
-	if (!eglChooseConfig( GLWin.egl_dpy, attribs, NULL, 0, &num_configs))
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, nullptr, 0, &num_configs))
 	{
 		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
 		goto err_exit;
@@ -186,7 +186,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 
 	GLWin.native_window = Platform.CreateWindow();
 
-	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.native_window, NULL);
+	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.native_window, nullptr);
 	if (!GLWin.egl_surf)
 	{
 		INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
@@ -218,6 +218,6 @@ void cInterfaceEGL::Shutdown()
 			NOTICE_LOG(VIDEO, "Could not destroy window surface.");
 		if(!eglTerminate(GLWin.egl_dpy))
 			NOTICE_LOG(VIDEO, "Could not destroy display connection.");
-		GLWin.egl_ctx = NULL;
+		GLWin.egl_ctx = nullptr;
 	}
 }

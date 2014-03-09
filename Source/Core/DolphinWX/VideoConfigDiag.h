@@ -68,7 +68,7 @@ typedef IntegerSetting<u32> U32Setting;
 class SettingChoice : public wxChoice
 {
 public:
-	SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num = 0, const wxString choices[] = NULL, long style = 0);
+	SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num = 0, const wxString choices[] = nullptr, long style = 0);
 	void UpdateValue(wxCommandEvent& ev);
 private:
 	int &m_setting;
@@ -178,7 +178,7 @@ protected:
 
 	// Creates controls and connects their enter/leave window events to Evt_Enter/LeaveControl
 	SettingCheckBox* CreateCheckBox(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
-	SettingChoice* CreateChoice(wxWindow* parent, int& setting, const wxString& description, int num = 0, const wxString choices[] = NULL, long style = 0);
+	SettingChoice* CreateChoice(wxWindow* parent, int& setting, const wxString& description, int num = 0, const wxString choices[] = nullptr, long style = 0);
 	SettingRadioButton* CreateRadioButton(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
 
 	// Same as above but only connects enter/leave window events

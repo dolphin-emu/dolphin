@@ -101,7 +101,7 @@ void Init()
 	interruptSet = false;
 	interruptWaiting = false;
 
-	g_pVideoData = 0;
+	g_pVideoData = nullptr;
 	g_bSkipCurrentFrame = false;
 }
 

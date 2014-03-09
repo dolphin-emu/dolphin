@@ -11,7 +11,7 @@ enum {BUF_SIZE = 32*1024};
 WaveFileWriter::WaveFileWriter():
 	skip_silence(false),
 	audio_size(0),
-	conv_buffer(NULL)
+	conv_buffer(nullptr)
 {
 }
 

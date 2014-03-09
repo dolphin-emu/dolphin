@@ -22,10 +22,10 @@ public:
 	CFrame* GetCFrame();
 
 private:
-	bool OnInit();
-	int OnExit();
-	void OnFatalException();
-	bool Initialize(int& c, wxChar **v);
+	bool OnInit() override;
+	int OnExit() override;
+	void OnFatalException() override;
+	bool Initialize(int& c, wxChar **v) override;
 	void InitLanguageSupport();
 	void MacOpenFile(const wxString &fileName);
 

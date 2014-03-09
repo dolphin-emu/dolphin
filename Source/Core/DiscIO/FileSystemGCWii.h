@@ -21,16 +21,16 @@ class CFileSystemGCWii : public IFileSystem
 public:
 	CFileSystemGCWii(const IVolume* _rVolume);
 	virtual ~CFileSystemGCWii();
-	virtual bool IsValid() const { return m_Valid; }
-	virtual u64 GetFileSize(const char* _rFullPath);
-	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames);
-	virtual const char* GetFileName(u64 _Address);
-	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize);
-	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename);
-	virtual bool ExportApploader(const char* _rExportFolder) const;
-	virtual bool ExportDOL(const char* _rExportFolder) const;
-	virtual bool GetBootDOL(u8* &buffer, u32 DolSize) const;
-	virtual u32 GetBootDOLSize() const;
+	virtual bool IsValid() const override { return m_Valid; }
+	virtual u64 GetFileSize(const char* _rFullPath) override;
+	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) override;
+	virtual const char* GetFileName(u64 _Address) override;
+	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) override;
+	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) override;
+	virtual bool ExportApploader(const char* _rExportFolder) const override;
+	virtual bool ExportDOL(const char* _rExportFolder) const override;
+	virtual bool GetBootDOL(u8* &buffer, u32 DolSize) const override;
+	virtual u32 GetBootDOLSize() const override;
 
 private:
 	bool m_Initialized;

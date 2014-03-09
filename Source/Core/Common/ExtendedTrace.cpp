@@ -84,7 +84,7 @@ static void InitSymbolPath( PSTR lpszSymbolPath, PCSTR lpszIniPath )
 	}
 
 	// Add user defined path
-	if ( lpszIniPath != NULL )
+	if ( lpszIniPath != nullptr )
 		if ( lpszIniPath[0] != '\0' )
 		{
 			strcat( lpszSymbolPath, ";" );
@@ -140,7 +140,7 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 	DWORD             dwSymSize = 10000;
 	TCHAR             lpszUnDSymbol[BUFFERSIZE]=_T("?");
 	CHAR              lpszNonUnicodeUnDSymbol[BUFFERSIZE]="?";
-	LPTSTR            lpszParamSep = NULL;
+	LPTSTR            lpszParamSep = nullptr;
 	LPTSTR            lpszParsed = lpszUnDSymbol;
 	PIMAGEHLP_SYMBOL  pSym = (PIMAGEHLP_SYMBOL)GlobalAlloc( GMEM_FIXED, dwSymSize );
 
@@ -193,13 +193,13 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 
 		// Let's go through the stack, and modify the function prototype, and insert the actual
 		// parameter values from the stack
-		if ( _tcsstr( lpszUnDSymbol, _T("(void)") ) == NULL && _tcsstr( lpszUnDSymbol, _T("()") ) == NULL)
+		if ( _tcsstr( lpszUnDSymbol, _T("(void)") ) == nullptr && _tcsstr( lpszUnDSymbol, _T("()") ) == nullptr)
 		{
 			ULONG index = 0;
 			for( ; ; index++ )
 			{
 				lpszParamSep = _tcschr( lpszParsed, _T(',') );
-				if ( lpszParamSep == NULL )
+				if ( lpszParamSep == nullptr )
 					break;
 
 				*lpszParamSep = _T('\0');
@@ -211,7 +211,7 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 			}
 
 			lpszParamSep = _tcschr( lpszParsed, _T(')') );
-			if ( lpszParamSep != NULL )
+			if ( lpszParamSep != nullptr )
 			{
 				*lpszParamSep = _T('\0');
 
@@ -254,7 +254,7 @@ static BOOL GetSourceInfoFromAddress( UINT address, LPTSTR lpszSourceInfo )
 		PCSTR2LPTSTR( lineInfo.FileName, lpszFileName );
 		TCHAR fname[_MAX_FNAME];
 		TCHAR ext[_MAX_EXT];
-		_tsplitpath(lpszFileName, NULL, NULL, fname, ext);
+		_tsplitpath(lpszFileName, nullptr, nullptr, fname, ext);
 		_stprintf( lpszSourceInfo, _T("%s%s(%d)"), fname, ext, lineInfo.LineNumber );
 		ret = TRUE;
 	}
@@ -338,11 +338,11 @@ void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 				hProcess,
 				hThread,
 				&callStack,
-				NULL,
-				NULL,
+				nullptr,
+				nullptr,
 				SymFunctionTableAccess,
 				SymGetModuleBase,
-				NULL);
+				nullptr);
 
 			if ( index == 0 )
 				continue;
@@ -393,11 +393,11 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 				hProcess,
 				hThread,
 				&callStack,
-				NULL,
-				NULL,
+				nullptr,
+				nullptr,
 				SymFunctionTableAccess,
 				SymGetModuleBase,
-				NULL);
+				nullptr);
 
 			if ( index == 0 )
 				continue;

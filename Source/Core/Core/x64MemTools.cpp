@@ -183,7 +183,7 @@ void ExceptionThread(mach_port_t port)
 	#pragma pack()
 	memset(&msg_in, 0xee, sizeof(msg_in));
 	memset(&msg_out, 0xee, sizeof(msg_out));
-	mach_msg_header_t *send_msg = NULL;
+	mach_msg_header_t *send_msg = nullptr;
 	mach_msg_size_t send_size = 0;
 	mach_msg_option_t option = MACH_RCV_MSG;
 	while (1)
@@ -303,11 +303,11 @@ void InstallExceptionHandler()
 	PanicAlertT("InstallExceptionHandler called, but this platform does not yet support it.");
 #else
 	struct sigaction sa;
-	sa.sa_handler = 0;
+	sa.sa_handler = nullptr;
 	sa.sa_sigaction = &sigsegv_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
-	sigaction(SIGSEGV, &sa, NULL);
+	sigaction(SIGSEGV, &sa, nullptr);
 #endif
 }
 

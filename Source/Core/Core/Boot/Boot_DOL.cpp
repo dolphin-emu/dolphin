@@ -34,13 +34,13 @@ CDolLoader::~CDolLoader()
 	for (auto& sect : text_section)
 	{
 		delete [] sect;
-		sect = NULL;
+		sect = nullptr;
 	}
 
 	for (auto& sect : data_section)
 	{
 		delete [] sect;
-		sect = NULL;
+		sect = nullptr;
 	}
 }
 
@@ -54,9 +54,9 @@ void CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
 		p[i] = Common::swap32(p[i]);
 
 	for (auto& sect : text_section)
-		sect = NULL;
+		sect = nullptr;
 	for (auto& sect : data_section)
-		sect = NULL;
+		sect = nullptr;
 
 	u32 HID4_pattern = 0x7c13fba6;
 	u32 HID4_mask = 0xfc1fffff;

@@ -127,7 +127,7 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 			// Restore the global locale
 			_configthreadlocale(_DISABLE_PER_THREAD_LOCALE);
 		}
-		else if(new_locale != NULL)
+		else if(new_locale != nullptr)
 		{
 			// Configure the thread to set the locale only for this thread
 			_configthreadlocale(_ENABLE_PER_THREAD_LOCALE);

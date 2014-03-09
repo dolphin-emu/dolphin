@@ -82,7 +82,7 @@ int icmp_echo_rep(const u32 s, sockaddr_in *addr, const u32 timeout, const u32 d
 
 	timeval t;
 	t.tv_sec = timeout / 1000;
-	if (select(0, &read_fds, NULL, NULL, &t) > 0)
+	if (select(0, &read_fds, nullptr, nullptr, &t) > 0)
 	{
 		num_bytes = recvfrom((SOCKET)s, (LPSTR)workspace,
 			IP_HDR_LEN + ICMP_HDR_LEN + data_length,

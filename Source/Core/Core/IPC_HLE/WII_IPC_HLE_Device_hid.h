@@ -25,12 +25,12 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_hid();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);
-	virtual u32 Update();
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual u32 Update() override;
 
-	virtual bool IOCtlV(u32 _CommandAddress);
-	virtual bool IOCtl(u32 _CommandAddress);
+	virtual bool IOCtlV(u32 _CommandAddress) override;
+	virtual bool IOCtl(u32 _CommandAddress) override;
 
 private:
 	enum

@@ -35,9 +35,9 @@ class CISOFileReader : public IBlobReader
 public:
 	static CISOFileReader* Create(const char* filename);
 
-	u64 GetDataSize() const;
-	u64 GetRawSize() const;
-	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
+	u64 GetDataSize() const override;
+	u64 GetRawSize() const override;
+	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
 	CISOFileReader(std::FILE* file);

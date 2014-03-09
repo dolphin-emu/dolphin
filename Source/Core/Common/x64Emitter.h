@@ -265,7 +265,7 @@ protected:
 	inline void Write64(u64 value) {*(u64*)code = (value); code += 8;}
 
 public:
-	XEmitter() { code = NULL; }
+	XEmitter() { code = nullptr; }
 	XEmitter(u8 *code_ptr) { code = code_ptr; }
 	virtual ~XEmitter() {}
 
@@ -773,7 +773,7 @@ protected:
 	size_t region_size;
 
 public:
-	XCodeBlock() : region(NULL), region_size(0) {}
+	XCodeBlock() : region(nullptr), region_size(0) {}
 	virtual ~XCodeBlock() { if (region) FreeCodeSpace(); }
 
 	// Call this before you generate any code.
@@ -797,7 +797,7 @@ public:
 	void FreeCodeSpace()
 	{
 		FreeMemoryPages(region, region_size);
-		region = NULL;
+		region = nullptr;
 		region_size = 0;
 	}
 

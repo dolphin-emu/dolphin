@@ -42,7 +42,7 @@ private:
 
 		std::string code;
 
-		PSCacheEntry() : shader(NULL) {}
+		PSCacheEntry() : shader(nullptr) {}
 		void Destroy() { SAFE_RELEASE(shader); }
 	};
 

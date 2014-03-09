@@ -87,7 +87,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	DebugInterface* di = &PowerPC::debug_interface;
 
 	//symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition,
-	//      wxSize(20, 100), 0, NULL, wxLB_SORT);
+	//      wxSize(20, 100), 0, nullptr, wxLB_SORT);
 	//sizerLeft->Add(symbols, 1, wxEXPAND);
 	memview = new CMemoryView(di, this);
 	memview->dataType = 0;
@@ -220,7 +220,7 @@ void CMemoryWindow::OnSymbolListChange(wxCommandEvent& event)
 	if (index >= 0)
 	{
 		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
-		if (pSymbol != NULL)
+		if (pSymbol != nullptr)
 		{
 			memview->Center(pSymbol->address);
 		}
@@ -297,7 +297,7 @@ void CMemoryWindow::U32(wxCommandEvent& event)
 
 void CMemoryWindow::onSearch(wxCommandEvent& event)
 {
-	u8* TheRAM = 0;
+	u8* TheRAM = nullptr;
 	u32 szRAM = 0;
 	switch (memview->GetMemoryType())
 	{
@@ -331,8 +331,8 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 	long count = 0;
 	char copy[3] = {0};
 	long newsize = 0;
-	unsigned char *tmp2 = 0;
-	char* tmpstr = 0;
+	unsigned char *tmp2 = nullptr;
+	char* tmpstr = nullptr;
 
 	if (chkHex->GetValue())
 	{

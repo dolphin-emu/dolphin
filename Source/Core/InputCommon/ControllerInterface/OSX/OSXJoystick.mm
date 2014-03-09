@@ -39,7 +39,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 		{
 			IOHIDElementRef e =
 			(IOHIDElementRef)CFArrayGetValueAtIndex(buttons, i);
-			//DeviceElementDebugPrint(e, NULL);
+			//DeviceElementDebugPrint(e, nullptr);
 
 			AddInput(new Button(e, m_device));
 		}
@@ -62,7 +62,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 		{
 			IOHIDElementRef e =
 			(IOHIDElementRef)CFArrayGetValueAtIndex(axes, i);
-			//DeviceElementDebugPrint(e, NULL);
+			//DeviceElementDebugPrint(e, nullptr);
 
 			if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch) {
 				AddInput(new Hat(e, m_device, Hat::up));

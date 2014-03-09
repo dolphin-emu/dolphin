@@ -43,7 +43,7 @@ static std::mutex tsWriteLock;
 Common::FifoQueue<BaseEvent, false> tsQueue;
 
 // event pools
-Event *eventPool = 0;
+Event *eventPool = nullptr;
 
 int downcount, slicelength;
 int maxSliceLength = MAX_SLICE_LENGTH;
@@ -59,7 +59,7 @@ u64 fakeTBStartTicks;
 int ev_lost;
 
 
-void (*advanceCallback)(int cyclesExecuted) = NULL;
+void (*advanceCallback)(int cyclesExecuted) = nullptr;
 
 Event* GetNewEvent()
 {
@@ -236,7 +236,7 @@ void ClearPendingEvents()
 
 void AddEventToQueue(Event* ne)
 {
-	Event* prev = NULL;
+	Event* prev = nullptr;
 	Event** pNext = &first;
 	for(;;)
 	{

@@ -42,7 +42,7 @@
 int frameCount;
 int OSDChoice, OSDTime;
 
-Renderer *g_renderer = NULL;
+Renderer *g_renderer = nullptr;
 
 std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;

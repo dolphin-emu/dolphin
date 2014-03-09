@@ -157,7 +157,7 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	, m_IosVersion(0x09)
 	, m_BootIndex(-1)
 	, m_TIKSize(0)
-	, m_TIK(NULL)
+	, m_TIK(nullptr)
 {
 	m_Valid = Initialize(_rName);
 }
@@ -172,7 +172,7 @@ CNANDContentLoader::~CNANDContentLoader()
 	if (m_TIK)
 	{
 		delete []m_TIK;
-		m_TIK = NULL;
+		m_TIK = nullptr;
 	}
 }
 
@@ -185,7 +185,7 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 			return &Content;
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 bool CNANDContentLoader::Initialize(const std::string& _rName)
@@ -194,8 +194,8 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		return false;
 	m_Path = _rName;
 	WiiWAD Wad(_rName);
-	u8* pDataApp = NULL;
-	u8* pTMD = NULL;
+	u8* pDataApp = nullptr;
+	u8* pTMD = nullptr;
 	u8 DecryptTitleKey[16];
 	u8 IV[16];
 	if (Wad.IsValid())
@@ -272,7 +272,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 			continue;
 		}
 
-		rContent.m_pData = NULL;
+		rContent.m_pData = nullptr;
 
 		if (rContent.m_Type & 0x8000)  // shared app
 		{
@@ -325,11 +325,9 @@ CNANDContentManager CNANDContentManager::m_Instance;
 
 CNANDContentManager::~CNANDContentManager()
 {
-	CNANDContentMap::iterator itr = m_Map.begin();
-	while (itr != m_Map.end())
+	for (auto& entry : m_Map)
 	{
-		delete itr->second;
-		++itr;
+		delete entry.second;
 	}
 	m_Map.clear();
 }

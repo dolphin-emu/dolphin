@@ -45,7 +45,7 @@ namespace JitInterface
 		bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true;
 		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
-		CPUCoreBase *ptr = NULL;
+		CPUCoreBase *ptr = nullptr;
 		switch(core)
 		{
 			#if _M_X86
@@ -75,8 +75,8 @@ namespace JitInterface
 			default:
 			{
 				PanicAlert("Unrecognizable cpu_core: %d", core);
-				jit = NULL;
-				return NULL;
+				jit = nullptr;
+				return nullptr;
 			}
 		}
 		jit = static_cast<JitBase*>(ptr);
@@ -239,7 +239,7 @@ namespace JitInterface
 		{
 			jit->Shutdown();
 			delete jit;
-			jit = NULL;
+			jit = nullptr;
 		}
 	}
 }

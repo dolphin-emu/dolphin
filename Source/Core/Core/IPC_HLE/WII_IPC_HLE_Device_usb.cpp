@@ -90,7 +90,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 {
 	m_WiiMotes.clear();
-	SetUsbPointer(NULL);
+	SetUsbPointer(nullptr);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
@@ -299,7 +299,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_ConnectionHandle);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Send ACL Packet to ConnectionHandle 0x%04x", _ConnectionHandle);
@@ -584,7 +584,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(const bdaddr_t& _bd)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_bd);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventConnectionComplete), 0);
@@ -662,7 +662,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventDisconnect(u16 _connectionHandle, u8 _Reason)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventDisconnectCompleted), _connectionHandle);
@@ -686,7 +686,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventDisconnect(u16 _connectionHan
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventAuthenticationCompleted(u16 _connectionHandle)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventAuthenticationCompleted), _connectionHandle);
@@ -708,7 +708,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventAuthenticationCompleted(u16 _
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(const bdaddr_t& _bd)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_bd);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventRemoteNameReq), 0);
@@ -735,7 +735,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(const bdaddr_t&
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteFeatures(u16 _connectionHandle)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventReadRemoteFeatures), _connectionHandle);
@@ -770,7 +770,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteFeatures(u16 _conne
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteVerInfo(u16 _connectionHandle)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventReadRemoteVerInfo), _connectionHandle);
@@ -808,7 +808,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandComplete(u16 _OpCode, 
 	pHCIEvent->Opcode = _OpCode;
 
 	// add the payload
-	if ((_pData != NULL) && (_DataSize > 0))
+	if ((_pData != nullptr) && (_DataSize > 0))
 	{
 		u8* pPayload = Event.m_buffer + sizeof(SHCIEventCommand);
 		memcpy(pPayload, _pData, _DataSize);
@@ -840,7 +840,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd, bool _master)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_bd);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventRoleChange), 0);
@@ -910,7 +910,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventModeChange), _connectionHandle);
@@ -988,7 +988,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestLinkKey(const bdaddr_t
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadClockOffsetComplete(u16 _connectionHandle)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventReadClockOffsetComplete), _connectionHandle);
@@ -1012,7 +1012,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadClockOffsetComplete(u16 _
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConPacketTypeChange(u16 _connectionHandle, u16 _packetType)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventConPacketTypeChange), _connectionHandle);
@@ -1195,7 +1195,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 
 	default:
 		// send fake okay msg...
-		SendEventCommandComplete(pMsg->Opcode, NULL, 0);
+		SendEventCommandComplete(pMsg->Opcode, nullptr, 0);
 
 		if (ogf == HCI_OGF_VENDOR)
 		{
@@ -1536,7 +1536,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDeleteStoredLinkKey(u8* _Input)
 
 
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pDeleteStoredLinkKey->bdaddr);
-	if (pWiiMote == NULL)
+	if (pWiiMote == nullptr)
 		return;
 
 	hci_delete_stored_link_key_rp Reply;
@@ -1832,7 +1832,7 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const b
 
 	ERROR_LOG(WII_IPC_WIIMOTE,"Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		_rAddr.b[0], _rAddr.b[1], _rAddr.b[2], _rAddr.b[3], _rAddr.b[4], _rAddr.b[5]);
-	return NULL;
+	return nullptr;
 }
 
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _ConnectionHandle)
@@ -1845,7 +1845,7 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _Co
 
 	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find WiiMote by connection handle %02x", _ConnectionHandle);
 	PanicAlertT("Can't find WiiMote by connection handle %02x", _ConnectionHandle);
-	return NULL;
+	return nullptr;
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::LOG_LinkKey(const u8* _pLinkKey)

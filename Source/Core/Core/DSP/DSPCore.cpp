@@ -41,7 +41,7 @@ DSPBreakpoints dsp_breakpoints;
 DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
 bool init_hax = false;
-DSPEmitter *dspjit = NULL;
+DSPEmitter *dspjit = nullptr;
 Common::Event step_event;
 
 static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
@@ -133,7 +133,7 @@ static void DSPCore_FreeMemoryPages()
 	FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
 	FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
 	FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
-	g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = NULL;
+	g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = nullptr;
 }
 
 bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
@@ -142,7 +142,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	g_dsp.step_counter = 0;
 	cyclesLeft = 0;
 	init_hax = false;
-	dspjit = NULL;
+	dspjit = nullptr;
 
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
 	g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
@@ -218,7 +218,7 @@ void DSPCore_Shutdown()
 
 	if(dspjit) {
 		delete dspjit;
-		dspjit = NULL;
+		dspjit = nullptr;
 	}
 	DSPCore_FreeMemoryPages();
 }

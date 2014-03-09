@@ -12,8 +12,8 @@
 #include "VideoCommon/VideoBackendBase.h"
 
 std::vector<VideoBackend*> g_available_video_backends;
-VideoBackend* g_video_backend = NULL;
-static VideoBackend* s_default_backend = NULL;
+VideoBackend* g_video_backend = nullptr;
+static VideoBackend* s_default_backend = nullptr;
 
 #ifdef _WIN32
 #include <windows.h>
@@ -36,7 +36,7 @@ static bool IsGteVista()
 
 void VideoBackend::PopulateList()
 {
-	VideoBackend* backends[4] = { NULL };
+	VideoBackend* backends[4] = { nullptr };
 
 	// OGL > D3D11 > SW
 #if !defined(USE_GLES) || USE_GLES3
@@ -69,7 +69,7 @@ void VideoBackend::ClearList()
 
 void VideoBackend::ActivateBackend(const std::string& name)
 {
-	if (name.length() == 0) // If NULL, set it to the default backend (expected behavior)
+	if (name.length() == 0) // If nullptr, set it to the default backend (expected behavior)
 		g_video_backend = s_default_backend;
 
 	for (VideoBackend* backend : g_available_video_backends)

@@ -335,7 +335,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 void CCodeView::OnMouseUpR(wxMouseEvent& event)
 {
-	bool isSymbol = symbol_db->GetSymbolFromAddr(selection) != 0;
+	bool isSymbol = symbol_db->GetSymbolFromAddr(selection) != nullptr;
 	// popup menu
 	wxMenu* menu = new wxMenu;
 	//menu->Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
@@ -482,7 +482,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 						}
 						if (!found)
 						{
-							mojs = 0;
+							mojs = nullptr;
 							break;
 						}
 					}

@@ -60,7 +60,7 @@ void VertexManager::CreateDeviceObjects()
 	s_indexBuffer = StreamBuffer::Create(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
 	m_index_buffers = s_indexBuffer->m_buffer;
 
-	m_CurrentVertexFmt = NULL;
+	m_CurrentVertexFmt = nullptr;
 	m_last_vao = 0;
 }
 
@@ -120,9 +120,9 @@ void VertexManager::Draw(u32 stride)
 	}
 
 	if(g_ogl_config.bSupportsGLBaseVertex) {
-		glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_index_offset, (GLint)s_baseVertex);
+		glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr+s_index_offset, (GLint)s_baseVertex);
 	} else {
-		glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_index_offset);
+		glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr+s_index_offset);
 	}
 	INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 }

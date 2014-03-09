@@ -19,7 +19,7 @@ typedef void (*DecodingFunction)(u32);
 
 namespace OpcodeDecoder
 {
-static DecodingFunction currentFunction = NULL;
+static DecodingFunction currentFunction = nullptr;
 static u32 minCommandSize;
 static u16 streamSize;
 static u16 streamAddress;

@@ -16,7 +16,7 @@ KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
 {
 	memset(&m_state, 0, sizeof(m_state));
 
-	m_display = XOpenDisplay(NULL);
+	m_display = XOpenDisplay(nullptr);
 
 	int min_keycode, max_keycode;
 	XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
@@ -107,7 +107,7 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 	// 0x0110ffff is the top of the unicode character range according
 	// to keysymdef.h although it is probably more than we need.
 	if (keysym == NoSymbol || keysym > 0x0110ffff ||
-		XKeysymToString(keysym) == NULL)
+		XKeysymToString(keysym) == nullptr)
 		m_keyname = std::string();
 	else
 		m_keyname = std::string(XKeysymToString(keysym));

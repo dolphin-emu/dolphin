@@ -33,8 +33,10 @@ void Tev::Init()
 	FixedConstants[7] = 223;
 	FixedConstants[8] = 255;
 
-	for (int i = 0; i < 4; i++)
-		Zero16[i] = 0;
+	for (s16& comp : Zero16)
+	{
+		comp = 0;
+	}
 
 	m_ColorInputLUT[0][RED_INP] = &Reg[0][RED_C]; m_ColorInputLUT[0][GRN_INP] = &Reg[0][GRN_C]; m_ColorInputLUT[0][BLU_INP] = &Reg[0][BLU_C]; // prev.rgb
 	m_ColorInputLUT[1][RED_INP] = &Reg[0][ALP_C]; m_ColorInputLUT[1][GRN_INP] = &Reg[0][ALP_C]; m_ColorInputLUT[1][BLU_INP] = &Reg[0][ALP_C]; // prev.aaa
@@ -148,21 +150,27 @@ void Tev::SetRasColor(int colorChan, int swaptable)
 		break;
 		case 5: // alpha bump
 		{
-			for(int i = 0; i < 4; i++)
-				RasColor[i] = AlphaBump;
+			for (s16& comp : RasColor)
+			{
+				comp = AlphaBump;
+			}
 		}
 		break;
 	case 6: // alpha bump normalized
 		{
 			u8 normalized = AlphaBump | AlphaBump >> 5;
-			for(int i = 0; i < 4; i++)
-				RasColor[i] = normalized;
+			for (s16& comp : RasColor)
+			{
+				comp = normalized;
+			}
 		}
 		break;
 	default: // zero
 		{
-			for(int i = 0; i < 4; i++)
-				RasColor[i] = 0;
+			for (s16& comp : RasColor)
+			{
+				comp = 0;
+			}
 		}
 		break;
 	}

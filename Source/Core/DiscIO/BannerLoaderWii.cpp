@@ -21,7 +21,7 @@ namespace DiscIO
 {
 
 CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
-	: m_pBannerFile(NULL)
+	: m_pBannerFile(nullptr)
 	, m_IsValid(false)
 {
 	char Filename[260];
@@ -94,7 +94,7 @@ CBannerLoaderWii::~CBannerLoaderWii()
 	if (m_pBannerFile)
 	{
 		delete [] m_pBannerFile;
-		m_pBannerFile = NULL;
+		m_pBannerFile = nullptr;
 	}
 }
 
@@ -121,7 +121,7 @@ bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::stri
 		auto const banner = reinterpret_cast<const SWiiBanner*>(m_pBannerFile);
 		auto const src_ptr = banner->m_Comment[index];
 
-		// Trim at first NULL
+		// Trim at first nullptr
 		auto const length = std::find(src_ptr, src_ptr + COMMENT_SIZE, 0x0) - src_ptr;
 
 		std::wstring src;

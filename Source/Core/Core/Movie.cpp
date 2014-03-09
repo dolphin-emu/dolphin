@@ -45,7 +45,7 @@ u32 g_framesToSkip = 0, g_frameSkipCounter = 0;
 u8 g_numPads = 0;
 ControllerState g_padState;
 DTMHeader tmpHeader;
-u8* tmpInput = NULL;
+u8* tmpInput = nullptr;
 size_t tmpInputAllocated = 0;
 u64 g_currentByte = 0, g_totalBytes = 0;
 u64 g_currentFrame = 0, g_totalFrames = 0; // VI
@@ -72,7 +72,7 @@ std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
 
 std::string g_InputDisplay[8];
 
-ManipFunction mfunc = NULL;
+ManipFunction mfunc = nullptr;
 
 void EnsureTmpInputSize(size_t bound)
 {
@@ -86,7 +86,7 @@ void EnsureTmpInputSize(size_t bound)
 
 	u8* newTmpInput = new u8[newAlloc];
 	tmpInputAllocated = newAlloc;
-	if (tmpInput != NULL)
+	if (tmpInput != nullptr)
 	{
 		if (g_totalBytes > 0)
 			memcpy(newTmpInput, tmpInput, (size_t)g_totalBytes);
@@ -654,9 +654,9 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 
 void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
 {
-	u8* const coreData = rptf.core?(data+rptf.core):NULL;
-	u8* const accelData = rptf.accel?(data+rptf.accel):NULL;
-	u8* const irData = rptf.ir?(data+rptf.ir):NULL;
+	u8* const coreData = rptf.core?(data+rptf.core):nullptr;
+	u8* const accelData = rptf.accel?(data+rptf.accel):nullptr;
+	u8* const irData = rptf.ir?(data+rptf.ir):nullptr;
 	u8 size = rptf.size;
 	SetWiiInputDisplayString(wiimote, coreData, accelData, irData);
 
@@ -819,7 +819,7 @@ void LoadInput(const char *filename)
 		afterEnd = true;
 	}
 
-	if (!g_bReadOnly || tmpInput == NULL)
+	if (!g_bReadOnly || tmpInput == nullptr)
 	{
 		g_totalFrames = tmpHeader.frameCount;
 		g_totalLagCount = tmpHeader.lagCount;
@@ -926,7 +926,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 {
 	// Correct playback is entirely dependent on the emulator polling the controllers
 	// in the same order done during recording
-	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
+	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == nullptr)
 		return;
 
 	if (g_currentByte + 8 > g_totalBytes)
@@ -1022,7 +1022,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
 {
-	if(!IsPlayingInput() || !IsUsingWiimote(wiimote) || tmpInput == NULL)
+	if(!IsPlayingInput() || !IsUsingWiimote(wiimote) || tmpInput == nullptr)
 		return false;
 
 	if (g_currentByte > g_totalBytes)
@@ -1032,9 +1032,9 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 		return false;
 	}
 
-	u8* const coreData = rptf.core?(data+rptf.core):NULL;
-	u8* const accelData = rptf.accel?(data+rptf.accel):NULL;
-	u8* const irData = rptf.ir?(data+rptf.ir):NULL;
+	u8* const coreData = rptf.core?(data+rptf.core):nullptr;
+	u8* const accelData = rptf.accel?(data+rptf.accel):nullptr;
+	u8* const irData = rptf.ir?(data+rptf.ir):nullptr;
 	u8 size = rptf.size;
 
 	u8 sizeInMovie = tmpInput[g_currentByte];
@@ -1084,7 +1084,7 @@ void EndPlayInput(bool cont)
 		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
 		//g_totalFrames = g_totalBytes = 0;
 		//delete tmpInput;
-		//tmpInput = NULL;
+		//tmpInput = nullptr;
 	}
 }
 
@@ -1235,7 +1235,7 @@ void Shutdown()
 {
 	g_currentInputCount = g_totalInputCount = g_totalFrames = g_totalBytes = 0;
 	delete [] tmpInput;
-	tmpInput = NULL;
+	tmpInput = nullptr;
 	tmpInputAllocated = 0;
 }
 };

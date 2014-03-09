@@ -268,7 +268,7 @@ void BPWritten(const BPCmd& bp)
 			u32 tlutTMemAddr = (bp.newvalue & 0x3FF) << 9;
 			u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5;
 
-			u8 *ptr = 0;
+			u8 *ptr = nullptr;
 
 			// TODO - figure out a cleaner way.
 			if (GetConfig(CONFIG_ISWII))

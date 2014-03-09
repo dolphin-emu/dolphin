@@ -83,7 +83,7 @@ public:
 		}
 
 	protected:
-		ControlReference(const bool _is_input) : range(1), is_input(_is_input), parsed_expression(NULL) {}
+		ControlReference(const bool _is_input) : range(1), is_input(_is_input), parsed_expression(nullptr) {}
 		ciface::ExpressionParser::Expression *parsed_expression;
 	};
 
@@ -96,8 +96,8 @@ public:
 	{
 	public:
 		InputReference() : ControlReference(true) {}
-		ControlState State(const ControlState state);
-		Device::Control* Detect(const unsigned int ms, Device* const device);
+		ControlState State(const ControlState state) override;
+		Device::Control* Detect(const unsigned int ms, Device* const device) override;
 	};
 
 	//
@@ -109,11 +109,11 @@ public:
 	{
 	public:
 		OutputReference() : ControlReference(false) {}
-		ControlState State(const ControlState state);
-		Device::Control* Detect(const unsigned int ms, Device* const device);
+		ControlState State(const ControlState state) override;
+		Device::Control* Detect(const unsigned int ms, Device* const device) override;
 	};
 
-	ControllerInterface() : m_is_init(false), m_hwnd(NULL) {}
+	ControllerInterface() : m_is_init(false), m_hwnd(nullptr) {}
 
 	void SetHwnd(void* const hwnd);
 	void Initialize();

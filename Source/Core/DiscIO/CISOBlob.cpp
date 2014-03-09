@@ -37,7 +37,7 @@ CISOFileReader* CISOFileReader::Create(const char* filename)
 		return new CISOFileReader(f.ReleaseHandle());
 	}
 	else
-		return NULL;
+		return nullptr;
 }
 
 u64 CISOFileReader::GetDataSize() const

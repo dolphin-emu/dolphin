@@ -60,17 +60,17 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
-	vertex_shader_uid_data& uid_data = (&out.template GetUidData<vertex_shader_uid_data>() != NULL)
+	vertex_shader_uid_data& uid_data = (&out.template GetUidData<vertex_shader_uid_data>() != nullptr)
 											? out.template GetUidData<vertex_shader_uid_data>() : dummy_data;
 
 	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != NULL);
+	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
 #ifndef ANDROID
 	locale_t locale;
 	locale_t old_locale;
 	if (is_writing_shadercode)
 	{
-		locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
+		locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
 		old_locale = uselocale(locale); // Apply the locale for this thread
 	}
 #endif

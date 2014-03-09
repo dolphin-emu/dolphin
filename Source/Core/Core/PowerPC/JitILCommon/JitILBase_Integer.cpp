@@ -123,7 +123,7 @@ void JitILBase::boolX(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
 
-	IREmitter::InstLoc a = NULL;
+	IREmitter::InstLoc a = nullptr;
 	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
 	IREmitter::InstLoc b = ibuild.EmitLoadGReg(inst.RB);
 

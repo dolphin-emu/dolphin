@@ -36,7 +36,7 @@ public:
 	 * @note When implementing this method in a child class, you likely want to return the argument of the last SetBuffer call here
 	 * @note SetBuffer() should be called before using GetBuffer().
 	 */
-	const char* GetBuffer() { return NULL; }
+	const char* GetBuffer() { return nullptr; }
 
 	/*
 	 * Can be used to give the object a place to write to. This should be called before using Write().
@@ -51,10 +51,10 @@ public:
 
 	/*
 	 * Returns a pointer to an internally stored object of the uid_data type.
-	 * @warning since most child classes use the default implementation you shouldn't access this directly without adding precautions against NULL access (e.g. via adding a dummy structure, cf. the vertex/pixel shader generators)
+	 * @warning since most child classes use the default implementation you shouldn't access this directly without adding precautions against nullptr access (e.g. via adding a dummy structure, cf. the vertex/pixel shader generators)
 	 */
 	template<class uid_data>
-	uid_data& GetUidData() { return *(uid_data*)NULL; }
+	uid_data& GetUidData() { return *(uid_data*)nullptr; }
 };
 
 /**
@@ -106,7 +106,7 @@ private:
 class ShaderCode : public ShaderGeneratorInterface
 {
 public:
-	ShaderCode() : buf(NULL), write_ptr(NULL)
+	ShaderCode() : buf(nullptr), write_ptr(nullptr)
 	{
 
 	}

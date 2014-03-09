@@ -152,7 +152,7 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mcstrs)
 
 void MemChecks::Add(const TMemCheck& _rMemoryCheck)
 {
-	if (GetMemCheck(_rMemoryCheck.StartAddress) == 0)
+	if (GetMemCheck(_rMemoryCheck.StartAddress) == nullptr)
 		m_MemChecks.push_back(_rMemoryCheck);
 }
 
@@ -184,7 +184,7 @@ TMemCheck *MemChecks::GetMemCheck(u32 address)
 	}
 
 	// none found
-	return 0;
+	return nullptr;
 }
 
 void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc)

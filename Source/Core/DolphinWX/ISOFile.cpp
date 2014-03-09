@@ -57,7 +57,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	{
 		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
 
-		if (pVolume != NULL)
+		if (pVolume != nullptr)
 		{
 			if (!DiscIO::IsVolumeWadFile(pVolume))
 				m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
@@ -80,11 +80,11 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			// check if we can get some info from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
-			if (pFileSystem != NULL || m_Platform == WII_WAD)
+			if (pFileSystem != nullptr || m_Platform == WII_WAD)
 			{
 				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, pVolume);
 
-				if (pBannerLoader != NULL)
+				if (pBannerLoader != nullptr)
 				{
 					if (pBannerLoader->IsValid())
 					{
@@ -270,7 +270,7 @@ std::string GameListItem::GetName(int _index) const
 	if (name.empty())
 	{
 		// No usable name, return filename (better than nothing)
-		SplitPath(GetFileName(), NULL, &name, NULL);
+		SplitPath(GetFileName(), nullptr, &name, nullptr);
 	}
 
 	return name;
@@ -281,7 +281,7 @@ const std::string GameListItem::GetWiiFSPath() const
 	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(m_FileName);
 	std::string ret;
 
-	if (Iso == NULL)
+	if (Iso == nullptr)
 		return ret;
 
 	if (DiscIO::IsVolumeWiiDisc(Iso) || DiscIO::IsVolumeWadFile(Iso))

@@ -464,10 +464,10 @@ void LOADERDECL TexMtx_Write_Float4()
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 {
-	m_compiledCode = NULL;
+	m_compiledCode = nullptr;
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
-	m_NativeFmt = 0;
+	m_NativeFmt = nullptr;
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
@@ -594,7 +594,7 @@ void VertexLoader::CompileVertexTranslator()
 		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal,
 			m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 
-		if (pFunc == 0)
+		if (pFunc == nullptr)
 		{
 			Host_SysMessage(
 				StringFromFormat("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!", 
@@ -829,7 +829,7 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	m_numLoadedVertices += count;
 
 	// Flush if our vertex format is different from the currently set.
-	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
+	if (g_nativeVertexFmt != nullptr && g_nativeVertexFmt != m_NativeFmt)
 	{
 		// We really must flush here. It's possible that the native representations
 		// of the two vtx formats are the same, but we have no way to easily check that

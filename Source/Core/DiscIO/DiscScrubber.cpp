@@ -24,7 +24,7 @@ namespace DiscScrubber
 
 #define CLUSTER_SIZE 0x8000
 
-u8* m_FreeTable = NULL;
+u8* m_FreeTable = nullptr;
 u64 m_FileSize;
 u64 m_BlockCount;
 u32 m_BlockSize;
@@ -32,7 +32,7 @@ int m_BlocksPerCluster;
 bool m_isScrubbing = false;
 
 std::string m_Filename;
-IVolume* m_Disc = NULL;
+IVolume* m_Disc = nullptr;
 
 struct SPartitionHeader
 {
@@ -112,7 +112,7 @@ bool SetupScrub(const char* filename, int block_size)
 	success = ParseDisc();
 	// Done with it; need it closed for the next part
 	delete m_Disc;
-	m_Disc = NULL;
+	m_Disc = nullptr;
 	m_BlockCount = 0;
 
 	// Let's not touch the file if we've failed up to here :p
@@ -146,7 +146,7 @@ void GetNextBlock(File::IOFile& in, u8* buffer)
 void Cleanup()
 {
 	if (m_FreeTable) delete[] m_FreeTable;
-	m_FreeTable = NULL;
+	m_FreeTable = nullptr;
 	m_FileSize = 0;
 	m_BlockCount = 0;
 	m_BlockSize = 0;

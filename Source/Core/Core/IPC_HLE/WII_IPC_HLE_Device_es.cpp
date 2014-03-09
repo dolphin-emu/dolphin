@@ -61,7 +61,7 @@ std::string CWII_IPC_HLE_Device_es::m_ContentFile;
 
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	, m_pContentLoader(NULL)
+	, m_pContentLoader(nullptr)
 	, m_TitleID(-1)
 	, m_AccessIdentID(0x6000000)
 {
@@ -190,7 +190,7 @@ bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
 		delete pair.second.m_pFile;
 	}
 	m_ContentAccessMap.clear();
-	m_pContentLoader = NULL;
+	m_pContentLoader = nullptr;
 	m_TitleIDs.clear();
 	m_TitleID = -1;
 	m_AccessIdentID = 0x6000000;
@@ -214,7 +214,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 
 	const DiscIO::SNANDContent* pContent = Loader.GetContentByIndex(Index);
 
-	if (pContent == NULL)
+	if (pContent == nullptr)
 	{
 		return 0xffffffff; //TODO: what is the correct error value here?
 	}
@@ -223,7 +223,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 	Access.m_Position = 0;
 	Access.m_pContent = pContent;
 	Access.m_TitleID = TitleID;
-	Access.m_pFile = NULL;
+	Access.m_pFile = nullptr;
 
 	if (!pContent->m_pData)
 	{
@@ -393,7 +393,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			}
 			SContentAccess& rContent = itr->second;
 
-			_dbg_assert_(WII_IPC_ES, rContent.m_pContent->m_pData != NULL);
+			_dbg_assert_(WII_IPC_ES, rContent.m_pContent->m_pData != nullptr);
 
 			u8* pDest = Memory::GetPointer(Addr);
 

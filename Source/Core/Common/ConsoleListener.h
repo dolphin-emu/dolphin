@@ -26,7 +26,7 @@ public:
 #ifdef _WIN32
 	COORD GetCoordinates(int BytesRead, int BufferWidth);
 #endif
-	void Log(LogTypes::LOG_LEVELS, const char *Text);
+	void Log(LogTypes::LOG_LEVELS, const char *Text) override;
 	void ClearScreen(bool Cursor = true);
 
 private:

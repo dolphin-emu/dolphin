@@ -72,7 +72,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	static bool sranded=false;
 	if (!sranded)
 	{
-		srand((unsigned int)time(0));
+		srand((unsigned int)time(nullptr));
 		sranded=true;
 	}
 	bcastMagic=rand() & 0xFFFF;
@@ -107,7 +107,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 		return;
 	}
 
-	if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0)
+	if ((rv = getaddrinfo(nullptr, _port, &hints, &servinfo)) != 0)
 	{
 		cleanup;
 		err=-1;
@@ -115,7 +115,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	}
 
 	// loop through all the results and bind to everything we can
-	for(p = servinfo; p != NULL; p = p->ai_next)
+	for(p = servinfo; p != nullptr; p = p->ai_next)
 	{
 		sock_t sock;
 		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK)
@@ -191,7 +191,7 @@ void UDPWiimote::mainThread()
 
 		lk.unlock(); //VERY hacky. don't like it
 		if (d->exit) return;
-		int rt=select(maxfd,&fds,NULL,NULL,&timeout);
+		int rt=select(maxfd,&fds,nullptr,nullptr,&timeout);
 		if (d->exit) return;
 		lk.lock();
 		if (d->exit) return;

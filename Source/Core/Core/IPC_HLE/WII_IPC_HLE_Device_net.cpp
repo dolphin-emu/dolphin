@@ -864,9 +864,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 		Memory::Write_U32(Common::swap32(*(u32 *)remoteHost->h_addr_list[0]), BufferOut);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETATON = %d "
-			"%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: %08X",remoteHost->h_addr_list[0] == 0 ? -1 : 0,
+			"%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: %08X",remoteHost->h_addr_list[0] == nullptr ? -1 : 0,
 			(char*)Memory::GetPointer(BufferIn), BufferIn, BufferInSize, BufferOut, BufferOutSize, Common::swap32(*(u32 *)remoteHost->h_addr_list[0]));
-		ReturnValue = remoteHost->h_addr_list[0] == 0 ? 0 : 1;
+		ReturnValue = remoteHost->h_addr_list[0] == nullptr ? 0 : 1;
 		break;
 	}
 
@@ -913,7 +913,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 				ERROR_LOG(WII_IPC_NET, "Hidden POLL");
 
 			pollfd_t* ufds = (pollfd_t *)malloc(sizeof(pollfd_t) * nfds);
-			if (ufds == NULL)
+			if (ufds == nullptr)
 			{
 				ReturnValue = -1;
 				break;
@@ -1008,7 +1008,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 				Memory::Write_U32(wii_addr, BufferOut + 4);
 				Memory::Write_U32(wii_addr + sizeof(u32), wii_addr);
 				wii_addr += sizeof(u32);
-				Memory::Write_U32((u32)NULL, wii_addr);
+				Memory::Write_U32(0, wii_addr);
 				wii_addr += sizeof(u32);
 
 				// hardcode to ipv4
@@ -1028,8 +1028,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 					Memory::Write_U32(wii_addr + sizeof(u32) * (num_addr + 1), wii_addr);
 					wii_addr += sizeof(u32);
 				}
-				// NULL terminated list
-				Memory::Write_U32((u32)NULL, wii_addr);
+				// null-terminated list
+				Memory::Write_U32(0, wii_addr);
 				wii_addr += sizeof(u32);
 				// The actual IPs
 				for (int i = 0; remoteHost->h_addr_list[i]; i++)
@@ -1144,7 +1144,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		{
 			u32 address = 0;
 #ifdef _WIN32
-			PIP_ADAPTER_ADDRESSES AdapterAddresses = NULL;
+			PIP_ADAPTER_ADDRESSES AdapterAddresses = nullptr;
 			ULONG OutBufferLength = 0;
 			ULONG RetVal = 0, i;
 			for (i = 0; i < 5; i++)
@@ -1152,7 +1152,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 				RetVal = GetAdaptersAddresses(
 					AF_INET,
 					0,
-					NULL,
+					nullptr,
 					AdapterAddresses,
 					&OutBufferLength);
 
@@ -1160,12 +1160,12 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 					break;
 				}
 
-				if (AdapterAddresses != NULL) {
+				if (AdapterAddresses != nullptr) {
 					FREE(AdapterAddresses);
 				}
 
 				AdapterAddresses = (PIP_ADAPTER_ADDRESSES)MALLOC(OutBufferLength);
-				if (AdapterAddresses == NULL) {
+				if (AdapterAddresses == nullptr) {
 					RetVal = GetLastError();
 					break;
 				}
@@ -1197,7 +1197,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 					}
 				}
 			}
-			if (AdapterAddresses != NULL) {
+			if (AdapterAddresses != nullptr) {
 				FREE(AdapterAddresses);
 			}
 #endif
@@ -1253,7 +1253,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	case IOCTLV_SO_GETADDRINFO:
 	{
 		struct addrinfo hints;
-		struct addrinfo *result = NULL;
+		struct addrinfo *result = nullptr;
 
 		if (BufferInSize3)
 		{
@@ -1262,25 +1262,25 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			hints.ai_socktype  = Memory::Read_U32(_BufferIn3 + 0x8);
 			hints.ai_protocol  = Memory::Read_U32(_BufferIn3 + 0xC);
 			hints.ai_addrlen   = Memory::Read_U32(_BufferIn3 + 0x10);
-			hints.ai_canonname = NULL;
-			hints.ai_addr      = NULL;
-			hints.ai_next      = NULL;
+			hints.ai_canonname = nullptr;
+			hints.ai_addr      = nullptr;
+			hints.ai_next      = nullptr;
 		}
 
-		char* pNodeName = NULL;
+		char* pNodeName = nullptr;
 		if (BufferInSize > 0)
 			pNodeName = (char*)Memory::GetPointer(_BufferIn);
 
-		char* pServiceName = NULL;
+		char* pServiceName = nullptr;
 		if (BufferInSize2 > 0)
 			pServiceName = (char*)Memory::GetPointer(_BufferIn2);
 
-		int ret = getaddrinfo(pNodeName, pServiceName, BufferInSize3 ? &hints : NULL, &result);
+		int ret = getaddrinfo(pNodeName, pServiceName, BufferInSize3 ? &hints : nullptr, &result);
 		u32 addr = _BufferOut;
 		u32 sockoffset = addr + 0x460;
 		if (ret == 0)
 		{
-			while (result != NULL)
+			while (result != nullptr)
 			{
 				Memory::Write_U32(result->ai_flags, addr);
 				Memory::Write_U32(result->ai_family, addr + 0x04);

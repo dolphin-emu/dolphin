@@ -10,11 +10,11 @@ public:
 	CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName);
 	virtual ~CWII_IPC_HLE_Device_usb_kbd();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);
-	virtual bool Write(u32 _CommandAddress);
-	virtual bool IOCtl(u32 _CommandAddress);
-	virtual u32 Update();
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual bool Write(u32 _CommandAddress) override;
+	virtual bool IOCtl(u32 _CommandAddress) override;
+	virtual u32 Update() override;
 
 private:
 	enum

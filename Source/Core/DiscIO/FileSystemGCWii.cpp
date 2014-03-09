@@ -40,7 +40,7 @@ u64 CFileSystemGCWii::GetFileSize(const char* _rFullPath)
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
 
-	if (pFileInfo != NULL && !pFileInfo->IsDirectory())
+	if (pFileInfo != nullptr && !pFileInfo->IsDirectory())
 		return pFileInfo->m_FileSize;
 
 	return 0;
@@ -60,7 +60,7 @@ const char* CFileSystemGCWii::GetFileName(u64 _Address)
 		}
 	}
 
-	return 0;
+	return nullptr;
 }
 
 u64 CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize)
@@ -69,7 +69,7 @@ u64 CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _Max
 		InitFileSystem();
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
-	if (pFileInfo == NULL)
+	if (pFileInfo == nullptr)
 		return 0;
 
 	if (pFileInfo->m_FileSize > _MaxBufferSize)
@@ -243,7 +243,7 @@ const SFileInfo* CFileSystemGCWii::FindFileInfo(const char* _rFullPath)
 			return &fileInfo;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool CFileSystemGCWii::DetectFileSystem()
@@ -297,7 +297,7 @@ void CFileSystemGCWii::InitFileSystem()
 			NameTableOffset += 0xC;
 		}
 
-		BuildFilenames(1, m_FileInfoVector.size(), NULL, NameTableOffset);
+		BuildFilenames(1, m_FileInfoVector.size(), nullptr, NameTableOffset);
 	}
 }
 
@@ -317,7 +317,7 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 		if (rFileInfo->IsDirectory())
 		{
 			// this is a directory, build up the new szDirectory
-			if (_szDirectory != NULL)
+			if (_szDirectory != nullptr)
 				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s/", _szDirectory, filename.c_str());
 			else
 				CharArrayFromFormat(rFileInfo->m_FullPath, "%s/", filename.c_str());
@@ -327,7 +327,7 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 		else
 		{
 			// this is a filename
-			if (_szDirectory != NULL)
+			if (_szDirectory != nullptr)
 				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s", _szDirectory, filename.c_str());
 			else
 				CharArrayFromFormat(rFileInfo->m_FullPath, "%s", filename.c_str());

@@ -194,7 +194,7 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 
 	if (!CompileShader(newentry.shader, vcode.GetBuffer(), pcode.GetBuffer())) {
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
-		return NULL;
+		return nullptr;
 	}
 
 	INCSTAT(stats.numPixelShadersCreated);
@@ -281,7 +281,7 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 
 	const char *src[] = {s_glsl_header, code};
 
-	glShaderSource(result, 2, src, NULL);
+	glShaderSource(result, 2, src, nullptr);
 	glCompileShader(result);
 	GLint compileStatus;
 	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
@@ -396,7 +396,7 @@ void ProgramShaderCache::Init(void)
 	CreateHeader();
 
 	CurrentProgram = 0;
-	last_entry = NULL;
+	last_entry = nullptr;
 }
 
 void ProgramShaderCache::Shutdown(void)
@@ -404,21 +404,26 @@ void ProgramShaderCache::Shutdown(void)
 	// store all shaders in cache on disk
 	if (g_ogl_config.bSupportsGLSLCache && !g_Config.bEnableShaderDebugging)
 	{
-		PCache::iterator iter = pshaders.begin();
-		for (; iter != pshaders.end(); ++iter)
+		for (auto& entry : pshaders)
 		{
-			if(iter->second.in_cache) continue;
+			if(entry.second.in_cache)
+			{
+				continue;
+			}
 
 			GLint binary_size;
-			glGetProgramiv(iter->second.shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
-			if(!binary_size) continue;
+			glGetProgramiv(entry.second.shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
+			if(!binary_size)
+			{
+				continue;
+			}
 
 			u8 *data = new u8[binary_size+sizeof(GLenum)];
 			u8 *binary = data + sizeof(GLenum);
 			GLenum *prog_format = (GLenum*)data;
-			glGetProgramBinary(iter->second.shader.glprogid, binary_size, NULL, prog_format, binary);
+			glGetProgramBinary(entry.second.shader.glprogid, binary_size, nullptr, prog_format, binary);
 
-			g_program_disk_cache.Append(iter->first, data, binary_size+sizeof(GLenum));
+			g_program_disk_cache.Append(entry.first, data, binary_size+sizeof(GLenum));
 			delete [] data;
 		}
 
@@ -428,16 +433,17 @@ void ProgramShaderCache::Shutdown(void)
 
 	glUseProgram(0);
 
-	PCache::iterator iter = pshaders.begin();
-	for (; iter != pshaders.end(); ++iter)
-		iter->second.Destroy();
+	for (auto& entry : pshaders)
+	{
+		entry.second.Destroy();
+	}
 	pshaders.clear();
 
 	pixel_uid_checker.Invalidate();
 	vertex_uid_checker.Invalidate();
 
 	delete s_buffer;
-	s_buffer = 0;
+	s_buffer = nullptr;
 }
 
 void ProgramShaderCache::CreateHeader ( void )

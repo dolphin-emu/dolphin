@@ -70,7 +70,7 @@ void Init(const char *gameCode)
 		for (auto& rFilename : rFilenames)
 		{
 			std::string FileName;
-			SplitPath(rFilename, NULL, &FileName, NULL);
+			SplitPath(rFilename, nullptr, &FileName, nullptr);
 
 			if (FileName.substr(0, strlen(code)).compare(code) == 0 && textureMap.find(FileName) == textureMap.end())
 				textureMap.insert(std::map<std::string, std::string>::value_type(FileName, rFilename));
@@ -95,7 +95,7 @@ PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned in
 	int channels;
 
 	u8 *temp = SOIL_load_image(textureMap[key].c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
-	if (temp == NULL)
+	if (temp == nullptr)
 	{
 		ERROR_LOG(VIDEO, "Custom texture %s failed to load", textureMap[key].c_str());
 		return PC_TEX_FMT_NONE;

@@ -29,7 +29,7 @@ using namespace DVDInterface;
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	, m_pFileSystem(NULL)
+	, m_pFileSystem(nullptr)
 	, m_ErrorStatus(0)
 	, m_CoverStatus(DI_COVER_REG_NO_DISC)
 {}
@@ -39,7 +39,7 @@ CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 	if (m_pFileSystem)
 	{
 		delete m_pFileSystem;
-		m_pFileSystem = NULL;
+		m_pFileSystem = nullptr;
 	}
 }
 
@@ -61,7 +61,7 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 	if (m_pFileSystem)
 	{
 		delete m_pFileSystem;
-		m_pFileSystem = NULL;
+		m_pFileSystem = nullptr;
 	}
 	m_ErrorStatus = 0;
 	if (!_bForce)
@@ -159,7 +159,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	if(m_pFileSystem && !VolumeHandler::IsValid())
 	{
 		delete m_pFileSystem;
-		m_pFileSystem = NULL;
+		m_pFileSystem = nullptr;
 		m_CoverStatus |= DI_COVER_REG_NO_DISC;
 	}
 
@@ -201,10 +201,10 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			// Don't do anything if the log is unselected
 			if (LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
 			{
-				const char *pFilename = NULL;
+				const char *pFilename = nullptr;
 				if (m_pFileSystem)
 					pFilename = m_pFileSystem->GetFileName(DVDAddress);
-				if (pFilename != NULL)
+				if (pFilename != nullptr)
 				{
 					INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%" PRIx64 ") - (DVDAddr: 0x%" PRIx64 ", Size: 0x%x)",
 						pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
@@ -339,10 +339,10 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case DVDLowSeek:
 		{
 			u64 DVDAddress = Memory::Read_U32(_BufferIn + 0x4) << 2;
-			const char *pFilename = NULL;
+			const char *pFilename = nullptr;
 			if (m_pFileSystem)
 				pFilename = m_pFileSystem->GetFileName(DVDAddress);
-			if (pFilename != NULL)
+			if (pFilename != nullptr)
 			{
 				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: %s (0x%" PRIx64 ") - (DVDAddr: 0x%" PRIx64 ")",
 					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress);

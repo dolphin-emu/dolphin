@@ -169,7 +169,7 @@ void Shutdown()
 {
 	JitInterface::Shutdown();
 	interpreter->Shutdown();
-	cpu_core_base = NULL;
+	cpu_core_base = nullptr;
 	state = CPU_POWERDOWN;
 }
 

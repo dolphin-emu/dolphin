@@ -14,12 +14,12 @@ public:
 
 	CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName);
 
-	virtual void DoState(PointerWrap& p);
+	virtual void DoState(PointerWrap& p) override;
 
-	bool Open(u32 _CommandAddress, u32 _Mode);
-	bool Close(u32 _CommandAddress, bool _bForce);
-	bool IOCtl(u32 _CommandAddress);
-	bool IOCtlV(u32 _CommandAddress);
+	bool Open(u32 _CommandAddress, u32 _Mode) override;
+	bool Close(u32 _CommandAddress, bool _bForce) override;
+	bool IOCtl(u32 _CommandAddress) override;
+	bool IOCtlV(u32 _CommandAddress) override;
 
 	void EventNotify();
 

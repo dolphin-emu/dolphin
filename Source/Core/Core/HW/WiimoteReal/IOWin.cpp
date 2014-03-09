@@ -51,25 +51,25 @@ typedef DWORD (__stdcall *PBth_BluetoothSetServiceState)(HANDLE, const BLUETOOTH
 typedef DWORD (__stdcall *PBth_BluetoothAuthenticateDevice)(HWND, HANDLE, BLUETOOTH_DEVICE_INFO*, PWCHAR, ULONG);
 typedef DWORD (__stdcall *PBth_BluetoothEnumerateInstalledServices)(HANDLE, BLUETOOTH_DEVICE_INFO*, DWORD*, GUID*);
 
-PHidD_GetHidGuid HidD_GetHidGuid = NULL;
-PHidD_GetAttributes HidD_GetAttributes = NULL;
-PHidD_SetOutputReport HidD_SetOutputReport = NULL;
-PHidD_GetProductString HidD_GetProductString = NULL;
+PHidD_GetHidGuid HidD_GetHidGuid = nullptr;
+PHidD_GetAttributes HidD_GetAttributes = nullptr;
+PHidD_SetOutputReport HidD_SetOutputReport = nullptr;
+PHidD_GetProductString HidD_GetProductString = nullptr;
 
-PBth_BluetoothFindDeviceClose Bth_BluetoothFindDeviceClose = NULL;
-PBth_BluetoothFindFirstDevice Bth_BluetoothFindFirstDevice = NULL;
-PBth_BluetoothFindFirstRadio Bth_BluetoothFindFirstRadio = NULL;
-PBth_BluetoothFindNextDevice Bth_BluetoothFindNextDevice = NULL;
-PBth_BluetoothFindNextRadio Bth_BluetoothFindNextRadio = NULL;
-PBth_BluetoothFindRadioClose Bth_BluetoothFindRadioClose = NULL;
-PBth_BluetoothGetRadioInfo Bth_BluetoothGetRadioInfo = NULL;
-PBth_BluetoothRemoveDevice Bth_BluetoothRemoveDevice = NULL;
-PBth_BluetoothSetServiceState Bth_BluetoothSetServiceState = NULL;
-PBth_BluetoothAuthenticateDevice Bth_BluetoothAuthenticateDevice = NULL;
-PBth_BluetoothEnumerateInstalledServices Bth_BluetoothEnumerateInstalledServices = NULL;
+PBth_BluetoothFindDeviceClose Bth_BluetoothFindDeviceClose = nullptr;
+PBth_BluetoothFindFirstDevice Bth_BluetoothFindFirstDevice = nullptr;
+PBth_BluetoothFindFirstRadio Bth_BluetoothFindFirstRadio = nullptr;
+PBth_BluetoothFindNextDevice Bth_BluetoothFindNextDevice = nullptr;
+PBth_BluetoothFindNextRadio Bth_BluetoothFindNextRadio = nullptr;
+PBth_BluetoothFindRadioClose Bth_BluetoothFindRadioClose = nullptr;
+PBth_BluetoothGetRadioInfo Bth_BluetoothGetRadioInfo = nullptr;
+PBth_BluetoothRemoveDevice Bth_BluetoothRemoveDevice = nullptr;
+PBth_BluetoothSetServiceState Bth_BluetoothSetServiceState = nullptr;
+PBth_BluetoothAuthenticateDevice Bth_BluetoothAuthenticateDevice = nullptr;
+PBth_BluetoothEnumerateInstalledServices Bth_BluetoothEnumerateInstalledServices = nullptr;
 
-HINSTANCE hid_lib = NULL;
-HINSTANCE bthprops_lib = NULL;
+HINSTANCE hid_lib = nullptr;
+HINSTANCE bthprops_lib = nullptr;
 
 static int initialized = 0;
 
@@ -201,22 +201,22 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	HidD_GetHidGuid(&device_id);
 
 	// Get all hid devices connected
-	HDEVINFO const device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
+	HDEVINFO const device_info = SetupDiGetClassDevs(&device_id, nullptr, nullptr, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
 
 	SP_DEVICE_INTERFACE_DATA device_data;
 	device_data.cbSize = sizeof(device_data);
-	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
+	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = nullptr;
 
-	for (int index = 0; SetupDiEnumDeviceInterfaces(device_info, NULL, &device_id, index, &device_data); ++index)
+	for (int index = 0; SetupDiEnumDeviceInterfaces(device_info, nullptr, &device_id, index, &device_data); ++index)
 	{
 		// Get the size of the data block required
 		DWORD len;
-		SetupDiGetDeviceInterfaceDetail(device_info, &device_data, NULL, 0, &len, NULL);
+		SetupDiGetDeviceInterfaceDetail(device_info, &device_data, nullptr, 0, &len, nullptr);
 		detail_data = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(len);
 		detail_data->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
 		// Query the data for this device
-		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
+		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, nullptr, nullptr))
 		{
 			auto const wm = new Wiimote;
 			wm->devicepath = detail_data->DevicePath;
@@ -250,7 +250,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, size_t size, int attempts)
 {
 	OVERLAPPED hid_overlap_write = OVERLAPPED();
-	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
+	hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
 	enum win_bt_stack_t stack = MSBT_STACK_UNKNOWN;
 
 	DWORD written = 0;
@@ -287,7 +287,7 @@ int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, size_t size, int at
 int CheckDeviceType_Read(HANDLE &dev_handle, u8* buf, int attempts)
 {
 	OVERLAPPED hid_overlap_read = OVERLAPPED();
-	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
+	hid_overlap_read.hEvent = CreateEvent(nullptr, true, false, nullptr);
 	int read = 0;
 	for (; attempts>0; --attempts)
 	{
@@ -318,8 +318,8 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 	HANDLE dev_handle = CreateFile(devicepath.c_str(),
 	                               GENERIC_READ | GENERIC_WRITE,
 	                               FILE_SHARE_READ | FILE_SHARE_WRITE,
-	                               NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED,
-	                               NULL);
+	                               nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED,
+	                               nullptr);
 	if (dev_handle == INVALID_HANDLE_VALUE)
 		return;
 	// enable to only check for official nintendo wiimotes/bb's
@@ -447,7 +447,7 @@ bool WiimoteScanner::IsReady() const
 	HANDLE hRadio;
 	HBLUETOOTH_RADIO_FIND hFindRadio = Bth_BluetoothFindFirstRadio(&radioParam, &hRadio);
 
-	if (NULL != hFindRadio)
+	if (nullptr != hFindRadio)
 	{
 		Bth_BluetoothFindRadioClose(hFindRadio);
 		return true;
@@ -480,7 +480,7 @@ bool Wiimote::ConnectInternal()
 
 	dev_handle = CreateFile(devicepath.c_str(),
 		GENERIC_READ | GENERIC_WRITE, open_flags,
-		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+		nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr);
 
 	if (dev_handle == INVALID_HANDLE_VALUE)
 	{
@@ -549,10 +549,10 @@ void Wiimote::InitInternal()
 	stack = MSBT_STACK_UNKNOWN;
 
 	hid_overlap_read = OVERLAPPED();
-	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
+	hid_overlap_read.hEvent = CreateEvent(nullptr, true, false, nullptr);
 
 	hid_overlap_write = OVERLAPPED();
-	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
+	hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
 }
 
 void Wiimote::TeardownInternal()
@@ -620,7 +620,7 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 		}
 	}
 
-	WiimoteEmu::Spy(NULL, buf, bytes + 1);
+	WiimoteEmu::Spy(nullptr, buf, bytes + 1);
 
 	return bytes + 1;
 }
@@ -642,7 +642,7 @@ int Wiimote::IORead(u8* buf)
 
 int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len)
 {
-	WiimoteEmu::Spy(NULL, buf, len);
+	WiimoteEmu::Spy(nullptr, buf, len);
 
 	switch (stack)
 	{
@@ -772,7 +772,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 				if (false == Bth_BluetoothFindNextDevice(hFindDevice, &btdi))
 				{
 					Bth_BluetoothFindDeviceClose(hFindDevice);
-					hFindDevice = NULL;
+					hFindDevice = nullptr;
 				}
 			}
 		}
@@ -780,7 +780,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 		if (false == Bth_BluetoothFindNextRadio(hFindRadio, &hRadio))
 		{
 			Bth_BluetoothFindRadioClose(hFindRadio);
-			hFindRadio = NULL;
+			hFindRadio = nullptr;
 		}
 	}
 }
@@ -810,7 +810,7 @@ bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO& radio_info, BLUETO
 #if defined(AUTHENTICATE_WIIMOTES)
 		// Authenticate
 		auto const& radio_addr = radio_info.address.rgBytes;
-		const DWORD auth_result = Bth_BluetoothAuthenticateDevice(NULL, hRadio, &btdi,
+		const DWORD auth_result = Bth_BluetoothAuthenticateDevice(nullptr, hRadio, &btdi,
 		                                                          std::vector<WCHAR>(radio_addr, radio_addr + 6).data(), 6);
 
 		if (ERROR_SUCCESS != auth_result)

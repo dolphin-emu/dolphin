@@ -31,11 +31,11 @@ public:
 
 	virtual ~AOSound();
 
-	virtual bool Start();
+	virtual bool Start() override;
 
-	virtual void SoundLoop();
+	virtual void SoundLoop() override;
 
-	virtual void Stop();
+	virtual void Stop() override;
 
 	static bool isValid() {
 		return true;
@@ -45,7 +45,7 @@ public:
 		return true;
 	}
 
-	virtual void Update();
+	virtual void Update() override;
 
 #else
 public:

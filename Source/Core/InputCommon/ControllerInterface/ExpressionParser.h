@@ -47,7 +47,7 @@ class ExpressionNode;
 class Expression
 {
 public:
-	Expression() : node(NULL) {}
+	Expression() : node(nullptr) {}
 	Expression(ExpressionNode *node);
 	~Expression();
 	ControlState GetValue();

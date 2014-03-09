@@ -71,7 +71,7 @@ static void *reg_ptr(int reg)
 #endif
 	default:
 		_assert_msg_(DSPLLE, 0, "cannot happen");
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -81,7 +81,7 @@ static void *reg_ptr(int reg)
 DSPJitRegCache::DSPJitRegCache(DSPEmitter &_emitter)
 	: emitter(_emitter), temporary(false), merged(false)
 {
-	for(auto& xreg : xregs)
+	for (X64CachedReg& xreg : xregs)
 	{
 		xreg.guest_reg = DSP_REG_STATIC;
 		xreg.pushed = false;
@@ -475,7 +475,7 @@ void DSPJitRegCache::pushRegs()
 	}
 
 	int push_count = 0;
-	for(auto& xreg : xregs)
+	for (X64CachedReg& xreg : xregs)
 	{
 		if (xreg.guest_reg == DSP_REG_USED)
 			push_count++;
@@ -533,7 +533,7 @@ void DSPJitRegCache::popRegs() {
 	emitter.MOV(32, M(&ebp_store), R(EBP));
 #endif
 	int push_count = 0;
-	for(auto& xreg : xregs)
+	for (X64CachedReg& xreg : xregs)
 	{
 		if (xreg.pushed)
 		{
@@ -1062,9 +1062,8 @@ X64Reg DSPJitRegCache::spillXReg()
 {
 	int max_use_ctr_diff = 0;
 	X64Reg least_recent_use_reg = INVALID_REG;
-	for(size_t i = 0; i < sizeof(alloc_order)/sizeof(alloc_order[0]); i++)
+	for (X64Reg reg : alloc_order)
 	{
-		X64Reg reg = alloc_order[i];
 		if (xregs[reg].guest_reg <= DSP_REG_MAX_MEM_BACKED &&
 		    !regs[xregs[reg].guest_reg].used)
 		{
@@ -1084,9 +1083,8 @@ X64Reg DSPJitRegCache::spillXReg()
 	}
 
 	//just choose one.
-	for(size_t i = 0; i < sizeof(alloc_order)/sizeof(alloc_order[0]); i++)
+	for (X64Reg reg : alloc_order)
 	{
-		X64Reg reg = alloc_order[i];
 		if (xregs[reg].guest_reg <= DSP_REG_MAX_MEM_BACKED &&
 		    !regs[xregs[reg].guest_reg].used)
 		{
@@ -1118,7 +1116,7 @@ void DSPJitRegCache::spillXReg(X64Reg reg)
 
 X64Reg DSPJitRegCache::findFreeXReg()
 {
-	for(auto& x : alloc_order)
+	for (X64Reg x : alloc_order)
 	{
 		if (xregs[x].guest_reg == DSP_REG_NONE)
 		{

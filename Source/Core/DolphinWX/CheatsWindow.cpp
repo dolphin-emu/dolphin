@@ -72,8 +72,8 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 
 wxCheatsWindow::~wxCheatsWindow()
 {
-	main_frame->g_CheatsWindow = NULL;
-	::g_cheat_window = NULL;
+	main_frame->g_CheatsWindow = nullptr;
+	::g_cheat_window = nullptr;
 }
 
 void wxCheatsWindow::Init_ChildControls()
@@ -95,7 +95,7 @@ void wxCheatsWindow::Init_ChildControls()
 	m_GroupBox_Info = new wxStaticBox(m_Tab_Cheats, wxID_ANY, _("Code Info"));
 
 	m_Label_NumCodes = new wxStaticText(m_Tab_Cheats, wxID_ANY, _("Number Of Codes: "));
-	m_ListBox_CodesList = new wxListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, 0, wxLB_HSCROLL);
+	m_ListBox_CodesList = new wxListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, nullptr, wxLB_HSCROLL);
 
 	wxStaticBoxSizer* sGroupBoxInfo = new wxStaticBoxSizer(m_GroupBox_Info, wxVERTICAL);
 	sGroupBoxInfo->Add(m_Label_Codename, 0, wxALL, 5);
@@ -338,11 +338,11 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 			m_Label_NumCodes->SetLabel(StrToWxStr(numcodes));
 			m_ListBox_CodesList->Clear();
 
-			for (size_t j = 0; j < code.ops.size(); j++)
+			for (const AREntry& entry : code.ops)
 			{
 				char text2[CHAR_MAX];
 				char* ops = text2;
-				sprintf(ops, "%08x %08x", code.ops[j].cmd_addr, code.ops[j].value);
+				sprintf(ops, "%08x %08x", entry.cmd_addr, entry.value);
 				m_ListBox_CodesList->Append(StrToWxStr(ops));
 			}
 		}
@@ -352,11 +352,11 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (event))
 {
 	int index = m_CheckListBox_CheatsList->GetSelection();
-	for (size_t i = 0; i < indexList.size(); i++)
+	for (const ARCodeIndex& code_index : indexList)
 	{
-		if ((int)indexList[i].uiIndex == index)
+		if ((int)code_index.uiIndex == index)
 		{
-			ActionReplay::SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(index), indexList[i].index);
+			ActionReplay::SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(index), code_index.index);
 		}
 	}
 }
@@ -364,9 +364,9 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (ev
 void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 {
 	// Apply AR Code changes
-	for (size_t i = 0; i < indexList.size(); i++)
+	for (const ARCodeIndex& code_index : indexList)
 	{
-		ActionReplay::SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(indexList[i].uiIndex), indexList[i].index);
+		ActionReplay::SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(code_index.uiIndex), code_index.index);
 	}
 
 	// Apply Gecko Code changes
@@ -385,10 +385,9 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (event))
 {
 	m_TextCtrl_Log->Clear();
-	const std::vector<std::string> &arLog = ActionReplay::GetSelfLog();
-	for (u32 i = 0; i < arLog.size(); i++)
+	for (const std::string& text : ActionReplay::GetSelfLog())
 	{
-		m_TextCtrl_Log->AppendText(StrToWxStr(arLog[i]));
+		m_TextCtrl_Log->AppendText(StrToWxStr(text));
 	}
 }
 
@@ -400,7 +399,7 @@ void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& W
 void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 {
 	const u8* const memptr = Memory::GetPointer(0);
-	if (NULL == memptr)
+	if (nullptr == memptr)
 	{
 		PanicAlertT("A game is not currently running.");
 		return;
@@ -434,15 +433,11 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 {
 	const u8* const memptr = Memory::GetPointer(0);
-	if (NULL == memptr)
+	if (nullptr == memptr)
 	{
 		PanicAlertT("A game is not currently running.");
 		return;
 	}
-
-	std::vector<CheatSearchResult>::iterator
-		i = search_results.begin(),
-		e = search_results.end();
 
 	// Set up the sub-search results efficiently to prevent automatic re-allocations.
 	std::vector<CheatSearchResult> filtered_results;
@@ -459,10 +454,10 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 	if (value_x_radiobtn.rad_oldvalue->GetValue()) // using old value comparison
 	{
-		for (; i!=e; ++i)
+		for (CheatSearchResult& result : search_results)
 		{
 			// with big endian, can just use memcmp for ><= comparison
-			int cmp_result = memcmp(memptr + i->address, &i->old_value, search_type_size);
+			int cmp_result = memcmp(memptr + result.address, &result.old_value, search_type_size);
 			if (cmp_result < 0)
 				cmp_result = 4;
 			else
@@ -470,8 +465,8 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 			if (cmp_result & filter_mask)
 			{
-				memcpy(&i->old_value, memptr + i->address, search_type_size);
-				filtered_results.push_back(*i);
+				memcpy(&result.old_value, memptr + result.address, search_type_size);
+				filtered_results.push_back(result);
 			}
 		}
 	}
@@ -510,10 +505,10 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 			// #endif
 		}
 
-		for (; i!=e; ++i)
+		for (CheatSearchResult& result : search_results)
 		{
 			// with big endian, can just use memcmp for ><= comparison
-			int cmp_result = memcmp(memptr + i->address, &user_x_val, search_type_size);
+			int cmp_result = memcmp(memptr + result.address, &user_x_val, search_type_size);
 			if (cmp_result < 0)
 				cmp_result = 4;
 			else if (cmp_result)
@@ -523,8 +518,8 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 			if (cmp_result & filter_mask)
 			{
-				memcpy(&i->old_value, memptr + i->address, search_type_size);
-				filtered_results.push_back(*i);
+				memcpy(&result.old_value, memptr + result.address, search_type_size);
+				filtered_results.push_back(result);
 			}
 		}
 	}

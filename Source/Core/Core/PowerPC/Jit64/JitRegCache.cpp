@@ -9,7 +9,7 @@
 using namespace Gen;
 using namespace PowerPC;
 
-RegCache::RegCache() : emit(0)
+RegCache::RegCache() : emit(nullptr)
 {
 	memset(locks, 0, sizeof(locks));
 	memset(xlocks, 0, sizeof(xlocks));

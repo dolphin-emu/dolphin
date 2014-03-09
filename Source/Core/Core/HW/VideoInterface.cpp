@@ -173,11 +173,15 @@ void Init()
 
 	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.bForceNTSCJ;
 
-	for (int i = 0; i < 4; i++)
-		m_InterruptRegister[i].Hex = 0;
+	for (UVIInterruptRegister& reg : m_InterruptRegister)
+	{
+		reg.Hex = 0;
+	}
 
-	for (int i = 0; i < 2; i++)
-		m_LatchRegister[i].Hex = 0;
+	for (UVILatchRegister& reg : m_LatchRegister)
+	{
+		reg.Hex = 0;
+	}
 
 	m_DisplayControlRegister.Hex = 0;
 	UpdateParameters();
@@ -359,8 +363,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			{
 				// shuffle2 clear all data, reset to default vals, and enter idle mode
 				m_DisplayControlRegister.RST = 0;
-				for (int i = 0; i < 4; i++)
-					m_InterruptRegister[i].Hex = 0;
+				for (UVIInterruptRegister& reg : m_InterruptRegister)
+				{
+					reg.Hex = 0;
+				}
 				UpdateInterrupts();
 			}
 
@@ -576,10 +582,12 @@ void Update()
 	if (++m_VBeamPos > s_lineCount * fields)
 		m_VBeamPos = 1;
 
-	for (int i = 0; i < 4; i++)
+	for (UVIInterruptRegister& reg : m_InterruptRegister)
 	{
-		if (m_VBeamPos == m_InterruptRegister[i].VCT)
-			m_InterruptRegister[i].IR_INT = 1;
+		if (m_VBeamPos == reg.VCT)
+		{
+			reg.IR_INT = 1;
+		}
 	}
 	UpdateInterrupts();
 }

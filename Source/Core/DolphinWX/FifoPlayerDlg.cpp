@@ -53,7 +53,7 @@ DEFINE_EVENT_TYPE(FRAME_WRITTEN_EVENT)
 using namespace std;
 
 std::recursive_mutex sMutex;
-wxEvtHandler *volatile FifoPlayerDlg::m_EvtHandler = NULL;
+wxEvtHandler *volatile FifoPlayerDlg::m_EvtHandler = nullptr;
 
 FifoPlayerDlg::FifoPlayerDlg(wxWindow * const parent) :
 	wxDialog(parent, wxID_ANY, _("FIFO Player")),
@@ -90,10 +90,10 @@ FifoPlayerDlg::~FifoPlayerDlg()
 	m_objectsList->Unbind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectListSelectionChanged, this);
 	m_objectCmdList->Unbind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectCmdListSelectionChanged, this);
 
-	FifoPlayer::GetInstance().SetFrameWrittenCallback(NULL);
+	FifoPlayer::GetInstance().SetFrameWrittenCallback(nullptr);
 
 	sMutex.lock();
-	m_EvtHandler = NULL;
+	m_EvtHandler = nullptr;
 	sMutex.unlock();
 }
 
@@ -978,7 +978,7 @@ wxString FifoPlayerDlg::CreateIntegerLabel(size_t size, const wxString& label) c
 
 bool FifoPlayerDlg::GetSaveButtonEnabled() const
 {
-	return (FifoRecorder::GetInstance().GetRecordedFile() != NULL);
+	return (FifoRecorder::GetInstance().GetRecordedFile() != nullptr);
 }
 
 void FifoPlayerDlg::RecordingFinished()

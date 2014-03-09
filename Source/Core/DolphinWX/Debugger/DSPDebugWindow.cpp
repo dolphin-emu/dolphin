@@ -34,7 +34,7 @@
 
 class wxWindow;
 
-DSPDebuggerLLE* m_DebuggerFrame = NULL;
+DSPDebuggerLLE* m_DebuggerFrame = nullptr;
 
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
@@ -69,7 +69,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	m_Toolbar->Realize();
 
 	m_SymbolList = new wxListBox(this, ID_SYMBOLLIST, wxDefaultPosition,
-		wxSize(140, 100), 0, NULL, wxLB_SORT);
+		wxSize(140, 100), 0, nullptr, wxLB_SORT);
 
 	m_MainNotebook = new wxAuiNotebook(this, wxID_ANY,
 		wxDefaultPosition, wxDefaultSize,
@@ -118,7 +118,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 DSPDebuggerLLE::~DSPDebuggerLLE()
 {
 	m_mgr.UnInit();
-	m_DebuggerFrame = NULL;
+	m_DebuggerFrame = nullptr;
 }
 
 void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
@@ -217,7 +217,7 @@ void DSPDebuggerLLE::UpdateDisAsmListView()
 
 void DSPDebuggerLLE::UpdateSymbolMap()
 {
-	if (g_dsp.dram == NULL)
+	if (g_dsp.dram == nullptr)
 		return;
 
 	m_SymbolList->Freeze(); // HyperIris: wx style fast filling
@@ -235,7 +235,7 @@ void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
 	int index = m_SymbolList->GetSelection();
 	if (index >= 0) {
 		Symbol* pSymbol = static_cast<Symbol *>(m_SymbolList->GetClientData(index));
-		if (pSymbol != NULL)
+		if (pSymbol != nullptr)
 		{
 			if (pSymbol->type == Symbol::SYMBOL_FUNCTION)
 			{

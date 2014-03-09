@@ -30,12 +30,12 @@ public:
 		memset(m_CachedRegHasChanged, 0, sizeof(m_CachedRegHasChanged));
 	}
 
-	int GetNumberCols(void) {return 2;}
-	int GetNumberRows(void) {return 32;}
-	bool IsEmptyCell(int row, int col) {return false;}
-	wxString GetValue(int row, int col);
-	void SetValue(int row, int col, const wxString &);
-	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind);
+	int GetNumberCols(void) override {return 2;}
+	int GetNumberRows(void) override {return 32;}
+	bool IsEmptyCell(int row, int col) override {return false;}
+	wxString GetValue(int row, int col) override;
+	void SetValue(int row, int col, const wxString &) override;
+	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
 	void UpdateCachedRegs();
 };
 
@@ -43,5 +43,5 @@ class DSPRegisterView : public wxGrid
 {
 public:
 	DSPRegisterView(wxWindow* parent, wxWindowID id);
-	void Update();
+	void Update() override;
 };

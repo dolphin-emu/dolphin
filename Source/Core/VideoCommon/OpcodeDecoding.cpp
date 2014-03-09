@@ -31,7 +31,7 @@
 #include "VideoCommon/XFMemory.h"
 
 
-u8* g_pVideoData = 0;
+u8* g_pVideoData = nullptr;
 bool g_bRecordFifoData = false;
 
 #if _M_SSE >= 0x301
@@ -85,7 +85,7 @@ void InterpretDisplayList(u32 address, u32 size)
 	u8* startAddress = Memory::GetPointer(address);
 
 	// Avoid the crash if Memory::GetPointer failed ..
-	if (startAddress != 0)
+	if (startAddress != nullptr)
 	{
 		g_pVideoData = startAddress;
 

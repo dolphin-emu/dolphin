@@ -18,7 +18,7 @@ using namespace Gen;
 
 DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 {
-	m_compiledCode = NULL;
+	m_compiledCode = nullptr;
 
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 
@@ -37,7 +37,7 @@ DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 	for(int i = 0x0000; i < MAX_BLOCKS; i++)
 	{
 		blocks[i] = (DSPCompiledCode)stubEntryPoint;
-		blockLinks[i] = 0;
+		blockLinks[i] = nullptr;
 		blockSize[i] = 0;
 	}
 }
@@ -55,7 +55,7 @@ void DSPEmitter::ClearIRAM()
 	for(int i = 0x0000; i < 0x1000; i++)
 	{
 		blocks[i] = (DSPCompiledCode)stubEntryPoint;
-		blockLinks[i] = 0;
+		blockLinks[i] = nullptr;
 		blockSize[i] = 0;
 		unresolvedJumps[i].clear();
 	}
@@ -71,7 +71,7 @@ void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
 	for(int i = 0x0000; i < 0x10000; i++)
 	{
 		blocks[i] = (DSPCompiledCode)stubEntryPoint;
-		blockLinks[i] = 0;
+		blockLinks[i] = nullptr;
 		blockSize[i] = 0;
 		unresolvedJumps[i].clear();
 	}
@@ -345,7 +345,7 @@ void DSPEmitter::Compile(u16 start_addr)
 				{
 					// Mark the block to be recompiled again
 					blocks[i] = (DSPCompiledCode)stubEntryPoint;
-					blockLinks[i] = 0;
+					blockLinks[i] = nullptr;
 					blockSize[i] = 0;
 				}
 			}

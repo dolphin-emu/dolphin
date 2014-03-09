@@ -44,7 +44,7 @@ void Init()
 {
 	MarkAllDirty();
 	for (VertexLoader*& vertexLoader : g_VertexLoaders)
-		vertexLoader = NULL;
+		vertexLoader = nullptr;
 	RecomputeCachedArraybases();
 }
 

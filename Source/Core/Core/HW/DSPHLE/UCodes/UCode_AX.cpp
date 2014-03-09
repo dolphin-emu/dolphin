@@ -468,7 +468,7 @@ void CUCode_AX::ProcessPBList(u32 pb_addr)
 			ApplyUpdatesForMs(curr_ms, (u16*)&pb, pb.updates.num_updates, updates);
 
 			ProcessVoice(pb, buffers, spms, ConvertMixerControl(pb.mixer_control),
-			             m_coeffs_available ? m_coeffs : NULL);
+			             m_coeffs_available ? m_coeffs : nullptr);
 
 			// Forward the buffers
 			for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)
@@ -482,7 +482,7 @@ void CUCode_AX::ProcessPBList(u32 pb_addr)
 
 void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 {
-	int* buffers[3] = { 0 };
+	int* buffers[3] = { nullptr };
 
 	switch (aux_id)
 	{

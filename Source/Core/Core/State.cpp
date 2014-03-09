@@ -47,7 +47,7 @@ static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
 static std::string g_last_filename;
 
-static CallbackFunc g_onAfterLoadCb = NULL;
+static CallbackFunc g_onAfterLoadCb = nullptr;
 
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
@@ -131,7 +131,7 @@ void SaveToBuffer(std::vector<u8>& buffer)
 {
 	bool wasUnpaused = Core::PauseAndLock(true);
 
-	u8* ptr = NULL;
+	u8* ptr = nullptr;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 
 	DoState(p);
@@ -301,7 +301,7 @@ void SaveAs(const std::string& filename, bool wait)
 	bool wasUnpaused = Core::PauseAndLock(true);
 
 	// Measure the size of the buffer.
-	u8 *ptr = NULL;
+	u8 *ptr = nullptr;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 	DoState(p);
 	const size_t buffer_size = reinterpret_cast<size_t>(ptr);
@@ -393,7 +393,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 				break;
 
 			f.ReadBytes(out, cur_len);
-			const int res = lzo1x_decompress(out, cur_len, &buffer[i], &new_len, NULL);
+			const int res = lzo1x_decompress(out, cur_len, &buffer[i], &new_len, nullptr);
 			if (res != LZO_E_OK)
 			{
 				// This doesn't seem to happen anymore.

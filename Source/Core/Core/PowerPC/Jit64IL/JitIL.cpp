@@ -206,9 +206,9 @@ namespace JitILProfiler
 		virtual ~JitILProfilerFinalizer()
 		{
 			char buffer[1024];
-			sprintf(buffer, "JitIL_profiling_%d.csv", (int)time(NULL));
+			sprintf(buffer, "JitIL_profiling_%d.csv", (int)time(nullptr));
 			File::IOFile file(buffer, "w");
-			setvbuf(file.GetHandle(), NULL, _IOFBF, 1024 * 1024);
+			setvbuf(file.GetHandle(), nullptr, _IOFBF, 1024 * 1024);
 			fprintf(file.GetHandle(), "code hash,total elapsed,number of calls,elapsed per call\n");
 			for (auto& block : blocks)
 			{

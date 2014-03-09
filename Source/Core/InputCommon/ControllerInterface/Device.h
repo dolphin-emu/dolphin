@@ -42,8 +42,8 @@ public:
 		virtual std::string GetName() const = 0;
 		virtual ~Control() {}
 
-		virtual Input* ToInput() { return NULL; }
-		virtual Output* ToOutput() { return NULL; }
+		virtual Input* ToInput() { return nullptr; }
+		virtual Output* ToOutput() { return nullptr; }
 	};
 
 	//
@@ -59,7 +59,7 @@ public:
 
 		virtual ControlState GetState() const = 0;
 
-		Input* ToInput() { return this; }
+		Input* ToInput() override { return this; }
 	};
 
 	//
@@ -74,7 +74,7 @@ public:
 
 		virtual void SetState(ControlState state) = 0;
 
-		Output* ToOutput() { return this; }
+		Output* ToOutput() override { return this; }
 	};
 
 	virtual ~Device();
@@ -104,12 +104,12 @@ protected:
 			: m_low(*low), m_high(*high)
 		{}
 
-		ControlState GetState() const
+		ControlState GetState() const override
 		{
 			return (1 + m_high.GetState() - m_low.GetState()) / 2;
 		}
 
-		std::string GetName() const
+		std::string GetName() const override
 		{
 			return m_low.GetName() + *m_high.GetName().rbegin();
 		}

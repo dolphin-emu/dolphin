@@ -58,7 +58,7 @@ public:
 
 	// A pointer returned by GetBlockData is invalidated as soon as GetBlockData, Read, or ReadMultipleAlignedBlocks is called again.
 	const u8 *GetBlockData(u64 block_num);
-	virtual bool Read(u64 offset, u64 size, u8 *out_ptr);
+	virtual bool Read(u64 offset, u64 size, u8 *out_ptr) override;
 	friend class DriveReader;
 };
 
@@ -68,8 +68,8 @@ IBlobReader* CreateBlobReader(const char *filename);
 typedef void (*CompressCB)(const char *text, float percent, void* arg);
 
 bool CompressFileToBlob(const char *infile, const char *outfile, u32 sub_type = 0, int sector_size = 16384,
-		CompressCB callback = 0, void *arg = 0);
+		CompressCB callback = nullptr, void *arg = nullptr);
 bool DecompressBlobToFile(const char *infile, const char *outfile,
-		CompressCB callback = 0, void *arg = 0);
+		CompressCB callback = nullptr, void *arg = nullptr);
 
 }  // namespace

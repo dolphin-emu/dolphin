@@ -19,13 +19,13 @@ FifoRecorder::FifoRecorder() :
 	m_WasRecording(false),
 	m_RequestedRecordingEnd(false),
 	m_RecordFramesRemaining(0),
-	m_FinishedCb(NULL),
-	m_File(NULL),
+	m_FinishedCb(nullptr),
+	m_File(nullptr),
 	m_SkipNextData(true),
 	m_SkipFutureData(true),
 	m_FrameEnded(false),
-	m_Ram(NULL),
-	m_ExRam(NULL)
+	m_Ram(nullptr),
+	m_ExRam(nullptr)
 {
 }
 

@@ -51,11 +51,11 @@ public:
 	const u8 *GetSectionDataPtr(int section) const
 	{
 		if (section < 0 || section >= header->e_shnum)
-			return 0;
+			return nullptr;
 		if (sections[section].sh_type != SHT_NOBITS)
 			return GetPtr(sections[section].sh_offset);
 		else
-			return 0;
+			return nullptr;
 	}
 	bool IsCodeSection(int section) const
 	{

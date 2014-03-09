@@ -90,7 +90,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	// DOL
 	const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
-	if (pContent == NULL)
+	if (pContent == nullptr)
 		return false;
 
 	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
@@ -119,7 +119,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	// Load patches and run startup patches
 	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_pFilename);
-	if (pVolume != NULL)
+	if (pVolume != nullptr)
 		PatchEngine::LoadPatches();
 
 	return true;

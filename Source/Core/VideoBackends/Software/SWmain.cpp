@@ -60,7 +60,7 @@ std::string VideoSoftware::GetName()
 
 void *DllDebugger(void *_hParent, bool Show)
 {
-	return NULL;
+	return nullptr;
 }
 
 void VideoSoftware::ShowConfig(void *_hParent)

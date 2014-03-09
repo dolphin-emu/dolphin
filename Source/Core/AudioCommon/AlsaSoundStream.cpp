@@ -12,7 +12,7 @@
 #define BUFFER_SIZE_MAX 8192
 #define BUFFER_SIZE_BYTES (BUFFER_SIZE_MAX*2*2)
 
-AlsaSound::AlsaSound(CMixer *mixer) : SoundStream(mixer), thread_data(0), handle(NULL), frames_to_deliver(FRAME_COUNT_MIN)
+AlsaSound::AlsaSound(CMixer *mixer) : SoundStream(mixer), thread_data(0), handle(nullptr), frames_to_deliver(FRAME_COUNT_MIN)
 {
 	mix_buffer = new u8[BUFFER_SIZE_BYTES];
 }
@@ -204,11 +204,11 @@ bool AlsaSound::AlsaInit()
 
 void AlsaSound::AlsaShutdown()
 {
-	if (handle != NULL)
+	if (handle != nullptr)
 	{
 		snd_pcm_drop(handle);
 		snd_pcm_close(handle);
-		handle = NULL;
+		handle = nullptr;
 	}
 }
 

@@ -52,20 +52,20 @@ void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& de
 	// if that's dumb, I will make a VirtualDevice class that just uses ranges of inputs/outputs from other devices
 	// so there can be a separated Keyboard and mouse, as well as combined KeyboardMouse
 
-	LPDIRECTINPUTDEVICE8 kb_device = NULL;
-	LPDIRECTINPUTDEVICE8 mo_device = NULL;
+	LPDIRECTINPUTDEVICE8 kb_device = nullptr;
+	LPDIRECTINPUTDEVICE8 mo_device = nullptr;
 
-	if (SUCCEEDED(idi8->CreateDevice( GUID_SysKeyboard, &kb_device, NULL)))
+	if (SUCCEEDED(idi8->CreateDevice( GUID_SysKeyboard, &kb_device, nullptr)))
 	{
 		if (SUCCEEDED(kb_device->SetDataFormat(&c_dfDIKeyboard)))
 		{
-			if (SUCCEEDED(kb_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
+			if (SUCCEEDED(kb_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 			{
-				if (SUCCEEDED(idi8->CreateDevice( GUID_SysMouse, &mo_device, NULL )))
+				if (SUCCEEDED(idi8->CreateDevice( GUID_SysMouse, &mo_device, nullptr )))
 				{
 					if (SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)))
 					{
-						if (SUCCEEDED(mo_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
+						if (SUCCEEDED(mo_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 						{
 							devices.push_back(new KeyboardMouse(kb_device, mo_device));
 							return;

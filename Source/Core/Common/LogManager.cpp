@@ -30,7 +30,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	va_end(args);
 }
 
-LogManager *LogManager::m_logManager = NULL;
+LogManager *LogManager::m_logManager = nullptr;
 
 LogManager::LogManager()
 {
@@ -145,7 +145,7 @@ void LogManager::Init()
 void LogManager::Shutdown()
 {
 	delete m_logManager;
-	m_logManager = NULL;
+	m_logManager = nullptr;
 }
 
 LogContainer::LogContainer(const char* shortName, const char* fullName, bool enable)

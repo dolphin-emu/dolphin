@@ -72,11 +72,11 @@ public:
 
 	HRESULT QueryInterface(REFIID iid, LPVOID *ppv)
 	{
-		*ppv = NULL;
+		*ppv = nullptr;
 
 		if (CFEqual(&iid, IUnknownUUID))
 			*ppv = this;
-		if (NULL == *ppv)
+		if (nullptr == *ppv)
 			return E_NOINTERFACE;
 
 		((IUnknown*)*ppv)->AddRef();

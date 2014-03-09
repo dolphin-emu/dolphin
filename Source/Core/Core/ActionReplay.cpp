@@ -72,7 +72,7 @@ enum
 };
 
 // pointer to the code currently being run, (used by log messages that include the code name)
-static ARCode const* current_code = NULL;
+static ARCode const* current_code = nullptr;
 
 static bool b_RanOnce = false;
 static std::vector<ARCode> arCodes;

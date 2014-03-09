@@ -10,7 +10,7 @@
 #include "Core/Debugger/Dump.h"
 
 CDump::CDump(const char* _szFilename) :
-	m_pData(NULL)
+	m_pData(nullptr)
 {
 	File::IOFile pStream(_szFilename, "rb");
 	if (pStream)
@@ -25,10 +25,10 @@ CDump::CDump(const char* _szFilename) :
 
 CDump::~CDump(void)
 {
-	if (m_pData != NULL)
+	if (m_pData != nullptr)
 	{
 		delete[] m_pData;
-		m_pData = NULL;
+		m_pData = nullptr;
 	}
 }
 

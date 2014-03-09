@@ -95,7 +95,7 @@ static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
 static SHADER s_ShowEFBCopyRegions;
 
-static RasterFont* s_pfont = NULL;
+static RasterFont* s_pfont = nullptr;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
@@ -499,14 +499,14 @@ Renderer::Renderer()
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (GLExtensions::Supports("GL_KHR_debug"))
 	{
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
-		glDebugMessageCallback( ErrorCallback, NULL );
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+		glDebugMessageCallback( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
 	else if (GLExtensions::Supports("GL_ARB_debug_output"))
 	{
-		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
-		glDebugMessageCallbackARB( ErrorCallback, NULL );
+		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+		glDebugMessageCallbackARB( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
 #endif
@@ -639,7 +639,7 @@ void Renderer::Shutdown()
 	s_ShowEFBCopyRegions_VBO = 0;
 
 	delete s_pfont;
-	s_pfont = 0;
+	s_pfont = nullptr;
 	s_ShowEFBCopyRegions.Destroy();
 }
 
@@ -671,9 +671,9 @@ void Renderer::Init()
 	glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
 	glBindVertexArray( s_ShowEFBCopyRegions_VAO );
 	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, NULL);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, nullptr);
 	glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB);
-	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
+	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)nullptr+2);
 }
 
 // Create On-Screen-Messages
@@ -703,7 +703,7 @@ void Renderer::DrawDebugInfo()
 		// 2*Coords + 3*Color
 		u32 length = stats.efb_regions.size() * sizeof(GLfloat) * (2+3)*2*6;
 		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
-		glBufferData(GL_ARRAY_BUFFER, length, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, length, nullptr, GL_STREAM_DRAW);
 		GLfloat *Vertices = (GLfloat*)glMapBufferRange(GL_ARRAY_BUFFER, 0, length, GL_MAP_WRITE_BIT);
 
 		// Draw EFB copy regions rectangles
@@ -1315,7 +1315,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	// Copy the framebuffer to screen.
 
-	const XFBSourceBase* xfbSource = NULL;
+	const XFBSourceBase* xfbSource = nullptr;
 
 	if(g_ActiveConfig.bUseXFB)
 	{

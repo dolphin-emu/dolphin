@@ -206,7 +206,7 @@ public:
 	void DoLinkedList(LinkedListItem<T>*& list_start, LinkedListItem<T>** list_end=0)
 	{
 		LinkedListItem<T>* list_cur = list_start;
-		LinkedListItem<T>* prev = 0;
+		LinkedListItem<T>* prev = nullptr;
 
 		while (true)
 		{
@@ -220,7 +220,7 @@ public:
 				{
 					if (mode == MODE_READ)
 					{
-						cur->next = 0;
+						cur->next = nullptr;
 						list_cur = cur;
 						if (prev)
 							prev->next = cur;
@@ -239,13 +239,13 @@ public:
 				if (mode == MODE_READ)
 				{
 					if (prev)
-						prev->next = 0;
+						prev->next = nullptr;
 					if (list_end)
 						*list_end = prev;
 					if (list_cur)
 					{
 						if (list_start == list_cur)
-							list_start = 0;
+							list_start = nullptr;
 						do
 						{
 							LinkedListItem<T>* next = list_cur->next;
@@ -393,7 +393,7 @@ public:
 		}
 
 		// Get data
-		u8 *ptr = 0;
+		u8 *ptr = nullptr;
 		PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 		_class.DoState(p);
 		size_t const sz = (size_t)ptr;
