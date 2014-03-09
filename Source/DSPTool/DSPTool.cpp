@@ -486,8 +486,15 @@ int main(int argc, const char *argv[])
 		source.clear();
 	}
 
-	if(!outputSize)
-		printf("Assembly completed successfully!\n");
+	if (disassemble)
+	{
+		printf("Disassembly completed successfully!\n");
+	}
+	else
+	{
+		if (!outputSize)
+			printf("Assembly completed successfully!\n");
+	}
 
 	return 0;
 }
