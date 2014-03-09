@@ -98,7 +98,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 						mainScreen.getPreference(0).setEnabled(true);
 						mainScreen.getPreference(1).setEnabled(true);
 						mainScreen.getPreference(3).setEnabled(true);
-						//mainScreen.getPreference(4).setEnabled(false);
 
 						// Create an alert telling them that their phone sucks
 						if (eglHelper.supportsGLES3()
