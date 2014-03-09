@@ -8,4 +8,5 @@ macro(add_dolphin_test target srcs libs)
 	add_test(NAME ${target} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests/${target})
 endmacro(add_dolphin_test)
 
+add_subdirectory(Common)
 add_subdirectory(Core)
