@@ -46,7 +46,11 @@ bool IsSoundFile(const std::string& filename)
 		".dsp",   // Metroid Prime
 		".hps",   // SSB Melee
 		".ogg",   // Tony Hawk's Underground 2
-		".sad"    // Disaster 
+		".sad",   // Disaster
+		".snd",   // Tales of Symphonia
+		".song",  // Tales of Symphonia
+		".ssm",   // Custom Robo, Kirby Air Ride, etc.
+		".str",   // Harry Potter & the Sorcerer's Stone
 	};
 
 	return extensions.find(extension) != extensions.end();
