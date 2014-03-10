@@ -57,10 +57,6 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 				m_CurrentUCode.m_Length = _uMail & 0xffff;
 				break;
 
-			case 0x80F3C002:
-				m_CurrentUCode.m_IMEMAddress = _uMail & 0xffff;
-				break;
-
 			case 0x80F3B002:
 				m_CurrentUCode.m_DMEMLength = _uMail & 0xffff;
 				if (m_CurrentUCode.m_DMEMLength) {
@@ -68,16 +64,17 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 				}
 				break;
 
+			case 0x80F3C002:
+				m_CurrentUCode.m_IMEMAddress = _uMail & 0xffff;
+				break;
+
 			case 0x80F3D001:
-			{
 				m_CurrentUCode.m_StartPC = _uMail & 0xffff;
 				BootUCode();
 				return;  // Important! BootUCode indirectly does "delete this;". Must exit immediately.
-			}
-			break;
 
 			default:
-			break;
+				break;
 		}
 
 		// THE GODDAMN OVERWRITE WAS HERE. Without the return above, since BootUCode may delete "this", well ...
