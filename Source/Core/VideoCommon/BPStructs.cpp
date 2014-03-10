@@ -560,9 +560,9 @@ void BPWritten(const BPCmd& bp)
 				// don't compare with changes!
 				int num = (bp.address >> 1) & 0x3;
 				if ((bp.address & 1) == 0)
-					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].low.type, num);
+					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].type_ra, num);
 				else
-					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
+					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].type_bg, num);
 			}
 			break;
 
