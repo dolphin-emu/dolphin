@@ -1,3 +1,9 @@
+/**
+ * Copyright 2014 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.about;
 
 import org.dolphinemu.dolphinemu.utils.EGLHelper;

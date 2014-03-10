@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Dolphin Emulator Project
+ * Copyright 2014 Dolphin Emulator Project
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
@@ -18,8 +18,6 @@ import java.util.List;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.about.AboutActivity.AboutFragmentItem;
-import org.dolphinemu.dolphinemu.about.AboutActivity.InfoFragmentAdapter;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
 
 /**
@@ -41,7 +39,7 @@ public final class DolphinInfoFragment extends ListFragment
 		Input.add(new AboutFragmentItem(getString(R.string.supports_gles3), eglHelper.supportsGLES3() ? yes : no));
 		Input.add(new AboutFragmentItem(getString(R.string.supports_neon),  NativeLibrary.SupportsNEON() ? yes : no));
 
-		InfoFragmentAdapter adapter = new InfoFragmentAdapter(getActivity(), R.layout.about_layout, Input);
+		AboutInfoFragmentAdapter adapter = new AboutInfoFragmentAdapter(getActivity(), R.layout.about_layout, Input);
 		rootView.setAdapter(adapter);
 		rootView.setEnabled(false);  // Makes the list view non-clickable.
 
