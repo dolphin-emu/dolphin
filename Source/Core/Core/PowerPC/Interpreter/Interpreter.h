@@ -206,7 +206,6 @@ public:
 	static void stwcxd(UGeckoInstruction _inst);
 	static void stwux(UGeckoInstruction _inst);
 	static void stwx(UGeckoInstruction _inst);
-	static void sync(UGeckoInstruction _inst);
 	static void tlbia(UGeckoInstruction _inst);
 	static void tlbie(UGeckoInstruction _inst);
 	static void tlbsync(UGeckoInstruction _inst);
@@ -281,8 +280,18 @@ public:
 	static void mcrf(UGeckoInstruction _inst);
 	static void rfi(UGeckoInstruction _inst);
 	static void rfid(UGeckoInstruction _inst);
-//   static void sync(UGeckoInstruction _inst);
+	static void sync(UGeckoInstruction _inst);
 	static void isync(UGeckoInstruction _inst);
+
+	static _interpreterInstruction m_opTable[64];
+	static _interpreterInstruction m_opTable4[1024];
+	static _interpreterInstruction m_opTable19[1024];
+	static _interpreterInstruction m_opTable31[1024];
+	static _interpreterInstruction m_opTable59[32];
+	static _interpreterInstruction m_opTable63[1024];
+
+	// singleton
+	static Interpreter* getInstance();
 
 	static void RunTable4(UGeckoInstruction _instCode);
 	static void RunTable19(UGeckoInstruction _instCode);
@@ -290,6 +299,7 @@ public:
 	static void RunTable59(UGeckoInstruction _instCode);
 	static void RunTable63(UGeckoInstruction _instCode);
 
+private:
 	// flag helper
 	static void Helper_UpdateCR0(u32 _uValue);
 	static void Helper_UpdateCR1(double _fValue);
@@ -309,22 +319,6 @@ public:
 
 	// other helper
 	static u32 Helper_Mask(int mb, int me);
-
-	static _interpreterInstruction m_opTable[64];
-	static _interpreterInstruction m_opTable4[1024];
-	static _interpreterInstruction m_opTable19[1024];
-	static _interpreterInstruction m_opTable31[1024];
-	static _interpreterInstruction m_opTable59[32];
-	static _interpreterInstruction m_opTable63[1024];
-
-	// singleton
-	static Interpreter *getInstance();
-
-private:
-	Interpreter() { }
-	~Interpreter() { }
-	Interpreter(const Interpreter &);
-	Interpreter & operator=(const Interpreter &);
 
 	static void Helper_FloatCompareOrdered(UGeckoInstruction _inst, double a, double b);
 	static void Helper_FloatCompareUnordered(UGeckoInstruction _inst, double a, double b);
