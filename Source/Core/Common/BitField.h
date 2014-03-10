@@ -56,7 +56,7 @@
  *     struct
  *     {
  *         u32 first_seven_bits : 7;
- *         u32 first_seven_bits : 8;
+ *         u32 next_eight_bits : 8;
  *     };
  *     struct
  *     {
