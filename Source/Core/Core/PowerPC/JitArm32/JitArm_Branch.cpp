@@ -192,7 +192,7 @@ void JitArm::bcx(UGeckoInstruction inst)
 	gpr.Unlock(rA, rB);
 
 	u32 destination;
-	if(inst.AA)
+	if (inst.AA)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
@@ -223,7 +223,7 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 		//NPC = CTR & 0xfffffffc;
 		ARMReg rA = gpr.GetReg();
 
-		if(inst.LK_3)
+		if (inst.LK_3)
 		{
 			u32 Jumpto = js.compilerPC + 4;
 			MOVI2R(rA, Jumpto);

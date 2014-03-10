@@ -84,7 +84,7 @@ s32 GetMaxTextureLod(u32 texmap)
 	u8 mip = maxLod >> 4;
 	u8 fract = maxLod & 0xf;
 
-	if(fract)
+	if (fract)
 		++mip;
 
 	return (s32)mip;

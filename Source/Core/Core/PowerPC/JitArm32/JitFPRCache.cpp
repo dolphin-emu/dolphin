@@ -16,14 +16,14 @@ void ArmFPRCache::Init(ARMXEmitter *emitter)
 	ARMReg *PPCRegs = GetPPCAllocationOrder(NUMPPCREG);
 	ARMReg *Regs = GetAllocationOrder(NUMARMREG);
 
-	for(u8 a = 0; a < NUMPPCREG; ++a)
+	for (u8 a = 0; a < NUMPPCREG; ++a)
 	{
 		ArmCRegs[a].PPCReg = 33;
 		ArmCRegs[a].Reg = PPCRegs[a];
 		ArmCRegs[a].LastLoad = 0;
 		ArmCRegs[a].PS1 = false;
 	}
-	for(u8 a = 0; a < NUMARMREG; ++a)
+	for (u8 a = 0; a < NUMARMREG; ++a)
 	{
 		ArmRegs[a].Reg = Regs[a];
 		ArmRegs[a].free = true;
@@ -61,8 +61,8 @@ ARMReg *ArmFPRCache::GetAllocationOrder(int &count)
 
 ARMReg ArmFPRCache::GetReg(bool AutoLock)
 {
-	for(u8 a = 0; a < NUMARMREG; ++a)
-		if(ArmRegs[a].free)
+	for (u8 a = 0; a < NUMARMREG; ++a)
+		if (ArmRegs[a].free)
 		{
 			// Alright, this one is free
 			if (AutoLock)
@@ -75,9 +75,9 @@ ARMReg ArmFPRCache::GetReg(bool AutoLock)
 }
 void ArmFPRCache::Unlock(ARMReg V0)
 {
-	for(u8 RegNum = 0; RegNum < NUMARMREG; ++RegNum)
+	for (u8 RegNum = 0; RegNum < NUMARMREG; ++RegNum)
 	{
-		if(ArmRegs[RegNum].Reg == V0)
+		if (ArmRegs[RegNum].Reg == V0)
 		{
 			_assert_msg_(_DYNA_REC, !ArmRegs[RegNum].free, "This register is already unlocked");
 			ArmRegs[RegNum].free = true;
@@ -88,7 +88,7 @@ u32 ArmFPRCache::GetLeastUsedRegister(bool increment)
 {
 	u32 HighestUsed = 0;
 	u8 lastRegIndex = 0;
-	for(u8 a = 0; a < NUMPPCREG; ++a){
+	for (u8 a = 0; a < NUMPPCREG; ++a){
 		if (increment)
 			++ArmCRegs[a].LastLoad;
 		if (ArmCRegs[a].LastLoad > HighestUsed)

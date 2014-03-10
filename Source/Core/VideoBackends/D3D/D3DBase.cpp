@@ -126,7 +126,7 @@ void UnloadDXGI()
 	if (!dxgi_dll_ref) return;
 	if (--dxgi_dll_ref != 0) return;
 
-	if(hDXGIDll) FreeLibrary(hDXGIDll);
+	if (hDXGIDll) FreeLibrary(hDXGIDll);
 	hDXGIDll = nullptr;
 	PCreateDXGIFactory = nullptr;
 }
@@ -136,7 +136,7 @@ void UnloadD3D()
 	if (!d3d_dll_ref) return;
 	if (--d3d_dll_ref != 0) return;
 
-	if(hD3DDll) FreeLibrary(hD3DDll);
+	if (hD3DDll) FreeLibrary(hD3DDll);
 	hD3DDll = nullptr;
 	PD3D11CreateDevice = nullptr;
 	PD3D11CreateDeviceAndSwapChain = nullptr;
@@ -365,22 +365,22 @@ void Close()
 
 const char* VertexShaderVersionString()
 {
-	if(featlevel == D3D_FEATURE_LEVEL_11_0) return "vs_5_0";
-	else if(featlevel == D3D_FEATURE_LEVEL_10_1) return "vs_4_1";
+	if (featlevel == D3D_FEATURE_LEVEL_11_0) return "vs_5_0";
+	else if (featlevel == D3D_FEATURE_LEVEL_10_1) return "vs_4_1";
 	else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/ return "vs_4_0";
 }
 
 const char* GeometryShaderVersionString()
 {
-	if(featlevel == D3D_FEATURE_LEVEL_11_0) return "gs_5_0";
-	else if(featlevel == D3D_FEATURE_LEVEL_10_1) return "gs_4_1";
+	if (featlevel == D3D_FEATURE_LEVEL_11_0) return "gs_5_0";
+	else if (featlevel == D3D_FEATURE_LEVEL_10_1) return "gs_4_1";
 	else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/ return "gs_4_0";
 }
 
 const char* PixelShaderVersionString()
 {
-	if(featlevel == D3D_FEATURE_LEVEL_11_0) return "ps_5_0";
-	else if(featlevel == D3D_FEATURE_LEVEL_10_1) return "ps_4_1";
+	if (featlevel == D3D_FEATURE_LEVEL_11_0) return "ps_5_0";
+	else if (featlevel == D3D_FEATURE_LEVEL_10_1) return "ps_4_1";
 	else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/ return "ps_4_0";
 }
 

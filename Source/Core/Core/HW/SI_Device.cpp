@@ -18,7 +18,7 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 
 	char szTemp[256] = "";
 	int num = 0;
-	while(num < _iLength)
+	while (num < _iLength)
 	{
 		char szTemp2[128] = "";
 		sprintf(szTemp2, "0x%02x ", _pBuffer[num^3]);

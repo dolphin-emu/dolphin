@@ -682,7 +682,7 @@ int main()
 #endif
 		{
 			curUcode++;
-			if(curUcode == NUM_UCODES)
+			if (curUcode == NUM_UCODES)
 				curUcode = 0;
 
 			// Reset step counters since we're in a new ucode.

@@ -309,7 +309,7 @@ void CpuThread()
 
 
 	#ifdef USE_GDBSTUB
-	if(_CoreParameter.iGDBPort > 0)
+	if (_CoreParameter.iGDBPort > 0)
 	{
 		gdb_init(_CoreParameter.iGDBPort);
 		// break at next instruction (the first instruction)
@@ -353,7 +353,7 @@ void FifoPlayerThread()
 
 	g_bStarted = false;
 
-	if(!_CoreParameter.bCPUThread)
+	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
 	return;
@@ -492,7 +492,7 @@ void EmuThread()
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 
-	if(_CoreParameter.bCPUThread)
+	if (_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
 	VolumeHandler::EjectVolume();
@@ -644,7 +644,7 @@ bool ShouldSkipFrame(int skipped)
 // Should be called from GPU thread when a frame is drawn
 void Callback_VideoCopiedToXFB(bool video_update)
 {
-	if(video_update)
+	if (video_update)
 		Common::AtomicIncrement(DrawnFrame);
 	Movie::FrameUpdate();
 }

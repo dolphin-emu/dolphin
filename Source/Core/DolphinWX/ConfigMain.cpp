@@ -203,7 +203,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	CreateGUIControls();
 
 	// Update selected ISO paths
-	for(const std::string& folder : SConfig::GetInstance().m_ISOFolder)
+	for (const std::string& folder : SConfig::GetInstance().m_ISOFolder)
 	{
 		ISOPaths->Append(StrToWxStr(folder));
 	}
@@ -228,7 +228,7 @@ void CConfigMain::SetSelectedTab(int tab)
 // Used to restrict changing of some options while emulator is running
 void CConfigMain::UpdateGUI()
 {
-	if(Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		// Disable the Core stuff on GeneralPage
 		CPUThread->Disable();
@@ -1195,7 +1195,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		int wii_system_lang = WiiSystemLang->GetSelection();
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
 		u8 country_code = GetSADRCountryCode(wii_system_lang);
-		if(!SConfig::GetInstance().m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
+		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
 		{
 			PanicAlert("Failed to update country code in SYSCONF");
 		}

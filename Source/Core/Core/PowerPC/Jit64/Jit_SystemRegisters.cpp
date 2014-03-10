@@ -262,7 +262,7 @@ void Jit64::crXXX(UGeckoInstruction inst)
 		SHR(8, R(ECX), Imm8(shiftB));
 
 	// Compute combined bit
-	switch(inst.SUBOP10)
+	switch (inst.SUBOP10)
 	{
 	case 33:  // crnor
 		OR(8, R(EAX), R(ECX));

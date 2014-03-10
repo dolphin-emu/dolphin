@@ -169,7 +169,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	{
 		char tmp[17];
 		u8 _tTitleID[8];
-		if(OpenISO->GetTitleID(_tTitleID))
+		if (OpenISO->GetTitleID(_tTitleID))
 		{
 			snprintf(tmp, 17, "%016" PRIx64, Common::swap64(_tTitleID));
 			_iniFilename = tmp;
@@ -330,7 +330,7 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 
 		char *itemName = strrchr(name, DIR_SEP_CHR);
 
-		if(!itemName)
+		if (!itemName)
 			itemName = name;
 		else
 			itemName++;
@@ -678,8 +678,8 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 
 	wxMenu* popupMenu = new wxMenu;
 
-	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0
-		&& m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
+	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
+	    m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
 	{
 		popupMenu->Append(IDM_EXTRACTDIR, _("Extract Partition..."));
 	}
@@ -694,8 +694,8 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 
 	popupMenu->Append(IDM_EXTRACTALL, _("Extract All Files..."));
 
-	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0
-		&& m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
+	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
+	    m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
 	{
 		popupMenu->AppendSeparator();
 		popupMenu->Append(IDM_EXTRACTAPPLOADER, _("Extract Apploader..."));
@@ -772,7 +772,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	}
 	else // Look for the dir we are going to extract
 	{
-		for(index[0] = 0; index[0] < fst.size(); index[0]++)
+		for (index[0] = 0; index[0] < fst.size(); index[0]++)
 		{
 			if (!strcmp(fst.at(index[0])->m_FullPath, _rFullPath))
 			{
@@ -896,7 +896,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 		std::size_t partitionNum = (std::size_t)wxAtoi(Directory.Mid(Directory.find_first_of("/"), 1));
 		Directory.Remove(0, Directory.find_first_of("/") +1); // Remove "Partition x/"
 
-		if(WiiDisc.size() > partitionNum)
+		if (WiiDisc.size() > partitionNum)
 		{
 			// Get the filesystem of the LAST partition
 			FS = WiiDisc.at(partitionNum).FileSystem;
@@ -1153,10 +1153,10 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename)
 		withApplication: @"TextEdit"];
 #else
 	wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("ini"));
-	if(filetype == nullptr) // From extension failed, trying with MIME type now
+	if (filetype == nullptr) // From extension failed, trying with MIME type now
 	{
 		filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"));
-		if(filetype == nullptr) // MIME type failed, aborting mission
+		if (filetype == nullptr) // MIME type failed, aborting mission
 		{
 			PanicAlertT("Filetype 'ini' is unknown! Will not open!");
 			return;
@@ -1164,10 +1164,10 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename)
 	}
 	wxString OpenCommand;
 	OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
-	if(OpenCommand.IsEmpty())
+	if (OpenCommand.IsEmpty())
 		PanicAlertT("Couldn't find open command for extension 'ini'!");
 	else
-		if(wxExecute(OpenCommand, wxEXEC_SYNC) == -1)
+		if (wxExecute(OpenCommand, wxEXEC_SYNC) == -1)
 			PanicAlertT("wxExecute returned -1 on application run!");
 #endif
 
@@ -1201,8 +1201,8 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case ID_PATCHES_LIST:
-		if (Patches->GetSelection() == wxNOT_FOUND
-		        || DefaultPatches.find(Patches->GetString(Patches->GetSelection()).ToStdString()) != DefaultPatches.end())
+		if (Patches->GetSelection() == wxNOT_FOUND ||
+		    DefaultPatches.find(Patches->GetString(Patches->GetSelection()).ToStdString()) != DefaultPatches.end())
 		{
 			EditPatch->Disable();
 			RemovePatch->Disable();
@@ -1214,8 +1214,8 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 		}
 		break;
 	case ID_CHEATS_LIST:
-		if (Cheats->GetSelection() == wxNOT_FOUND
-		        || DefaultCheats.find(Cheats->GetString(Cheats->GetSelection()).ToStdString()) != DefaultCheats.end())
+		if (Cheats->GetSelection() == wxNOT_FOUND ||
+		    DefaultCheats.find(Cheats->GetString(Cheats->GetSelection()).ToStdString()) != DefaultCheats.end())
 		{
 			EditCheat->Disable();
 			RemoveCheat->Disable();

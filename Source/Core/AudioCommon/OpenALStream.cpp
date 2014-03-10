@@ -105,7 +105,7 @@ void OpenALStream::Clear(bool mute)
 {
 	m_muted = mute;
 
-	if(m_muted)
+	if (m_muted)
 	{
 		soundTouch.clear();
 		alSourceStop(uiSource);

@@ -149,7 +149,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	{
 		CFRunLoopRun();
 	}
-	while(!sbt->done);
+	while (!sbt->done);
 
 	int found_devices = [[bti foundDevices] count];
 
@@ -166,7 +166,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		Wiimote *wm = new Wiimote();
 		wm->btd = [dev retain];
 		
-		if(IsBalanceBoardName([[dev name] UTF8String]))
+		if (IsBalanceBoardName([[dev name] UTF8String]))
 		{
 			found_board = wm;
 		}

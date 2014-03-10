@@ -105,7 +105,7 @@ CPanel::CPanel(
 		switch (nMsg)
 		{
 		case WM_USER:
-			switch(wParam)
+			switch (wParam)
 			{
 			case WM_USER_STOP:
 				main_frame->DoStop();
@@ -497,7 +497,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 	}
 
 	//Stop Dolphin from saving the minimized Xpos and Ypos
-	if(main_frame->IsIconized())
+	if (main_frame->IsIconized())
 		main_frame->Iconize(false);
 
 	// Don't forget the skip or the window won't be destroyed
@@ -873,8 +873,8 @@ bool TASInputHasFocus()
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	if(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			(RendererHasFocus() || TASInputHasFocus()))
+	if (Core::GetState() != Core::CORE_UNINITIALIZED &&
+	    (RendererHasFocus() || TASInputHasFocus()))
 	{
 		int WiimoteId = -1;
 		// Toggle fullscreen
@@ -1045,7 +1045,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 #if defined(HAVE_X11) && HAVE_X11
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		if(event.Dragging())
+		if (event.Dragging())
 			X11Utils::SendMotionEvent(X11Utils::XDisplayFromHandle(GetHandle()),
 					event.GetPosition().x, event.GetPosition().y);
 		else
@@ -1055,7 +1055,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 #endif
 
 	// next handlers are all for FreeLook, so we don't need to check them if disabled
-	if(!g_Config.bFreeLook)
+	if (!g_Config.bFreeLook)
 	{
 		event.Skip();
 		return;
@@ -1066,28 +1066,28 @@ void CFrame::OnMouse(wxMouseEvent& event)
 	static bool mouseMoveEnabled = false;
 	static float lastMouse[2];
 
-	if(event.MiddleDown())
+	if (event.MiddleDown())
 	{
 		lastMouse[0] = event.GetX();
 		lastMouse[1] = event.GetY();
 		mouseMoveEnabled = true;
 	}
-	else if(event.RightDown())
+	else if (event.RightDown())
 	{
 		lastMouse[0] = event.GetX();
 		lastMouse[1] = event.GetY();
 		mouseLookEnabled = true;
 	}
-	else if(event.MiddleUp())
+	else if (event.MiddleUp())
 	{
 		mouseMoveEnabled = false;
 	}
-	else if(event.RightUp())
+	else if (event.RightUp())
 	{
 		mouseLookEnabled = false;
 	}
 	// no button, so it's a move event
-	else if(event.GetButton() == wxMOUSE_BTN_NONE)
+	else if (event.GetButton() == wxMOUSE_BTN_NONE)
 	{
 		if (mouseLookEnabled)
 		{

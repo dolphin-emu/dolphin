@@ -106,7 +106,7 @@ void VertexManager::Draw(u32 stride)
 	u32 max_index = IndexGenerator::GetNumVerts();
 	GLenum primitive_mode = 0;
 
-	switch(current_primitive_type)
+	switch (current_primitive_type)
 	{
 		case PRIMITIVE_POINTS:
 			primitive_mode = GL_POINTS;
@@ -119,7 +119,7 @@ void VertexManager::Draw(u32 stride)
 			break;
 	}
 
-	if(g_ogl_config.bSupportsGLBaseVertex) {
+	if (g_ogl_config.bSupportsGLBaseVertex) {
 		glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr+s_index_offset, (GLint)s_baseVertex);
 	} else {
 		glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr+s_index_offset);
@@ -132,7 +132,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)g_nativeVertexFmt;
 	u32 stride  = nativeVertexFmt->GetVertexStride();
 
-	if(m_last_vao != nativeVertexFmt->VAO) {
+	if (m_last_vao != nativeVertexFmt->VAO) {
 		glBindVertexArray(nativeVertexFmt->VAO);
 		m_last_vao = nativeVertexFmt->VAO;
 	}

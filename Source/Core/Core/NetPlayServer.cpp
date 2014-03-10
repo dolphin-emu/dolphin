@@ -697,7 +697,7 @@ bool NetPlayServer::UPnPMapPort(const std::string& addr, const u16 port)
 	                             (std::string("dolphin-emu TCP on ") + addr).c_str(),
 	                             "TCP", nullptr, nullptr);
 
-	if(result != 0)
+	if (result != 0)
 		return false;
 
 	m_upnp_mapped = port;

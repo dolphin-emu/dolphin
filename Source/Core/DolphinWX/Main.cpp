@@ -424,7 +424,7 @@ void DolphinApp::InitLanguageSupport()
 	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
 
 	// Load language if possible, fall back to system default otherwise
-	if(wxLocale::IsAvailable(language))
+	if (wxLocale::IsAvailable(language))
 	{
 		m_locale = new wxLocale(language);
 
@@ -434,7 +434,7 @@ void DolphinApp::InitLanguageSupport()
 
 		m_locale->AddCatalog(wxT("dolphin-emu"));
 
-		if(!m_locale->IsOk())
+		if (!m_locale->IsOk())
 		{
 			PanicAlertT("Error loading selected language. Falling back to system default.");
 			delete m_locale;
@@ -688,7 +688,7 @@ void Host_SetWiiMoteConnectionState(int _State)
 
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 
-	switch(_State)
+	switch (_State)
 	{
 	case 0: event.SetString(_("Not connected")); break;
 	case 1: event.SetString(_("Connecting...")); break;

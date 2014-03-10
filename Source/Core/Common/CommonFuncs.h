@@ -35,8 +35,8 @@ struct ArraySizeImpl : public std::extent<T>
 	#define __GNUC_PREREQ(a, b) 0 
 #endif
 
-#if (defined __GNUC__ && !__GNUC_PREREQ(4,9))  \
-	&& !defined __SSSE3__ && !defined _M_GENERIC
+#if (defined __GNUC__ && !__GNUC_PREREQ(4,9)) && \
+    !defined __SSSE3__ && !defined _M_GENERIC
 #include <emmintrin.h>
 static __inline __m128i __attribute__((__always_inline__))
 _mm_shuffle_epi8(__m128i a, __m128i mask)
@@ -122,18 +122,18 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 		// Retrieve the current thread-specific locale
 		locale_t old_locale = bIsPerThread ? _get_current_locale() : LC_GLOBAL_LOCALE;
 
-		if(new_locale == LC_GLOBAL_LOCALE)
+		if (new_locale == LC_GLOBAL_LOCALE)
 		{
 			// Restore the global locale
 			_configthreadlocale(_DISABLE_PER_THREAD_LOCALE);
 		}
-		else if(new_locale != nullptr)
+		else if (new_locale != nullptr)
 		{
 			// Configure the thread to set the locale only for this thread
 			_configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
 
 			// Set all locale categories
-			for(int i = LC_MIN; i <= LC_MAX; i++)
+			for (int i = LC_MIN; i <= LC_MAX; i++)
 				setlocale(i, new_locale->locinfo->lc_category[i].locale);
 		}
 

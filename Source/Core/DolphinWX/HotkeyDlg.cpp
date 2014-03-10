@@ -75,7 +75,7 @@ void HotkeyConfigDialog::EndGetButtons(void)
 
 void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
-	if(ClickedButton != nullptr)
+	if (ClickedButton != nullptr)
 	{
 		// Save the key
 		g_Pressed = event.GetKeyCode();
@@ -136,9 +136,9 @@ void HotkeyConfigDialog::DoGetButtons(int _GetId)
 	const int TimesPerSecond = 40; // How often to run the check
 
 	// If the Id has changed or the timer is not running we should start one
-	if( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer->IsRunning() )
+	if ( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer->IsRunning() )
 	{
-		if(m_ButtonMappingTimer->IsRunning())
+		if (m_ButtonMappingTimer->IsRunning())
 			m_ButtonMappingTimer->Stop();
 
 		// Save the button Id

@@ -371,7 +371,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		for (unsigned int i = 0; i < numTexgen; ++i)
 			out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
 		out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			out.Write(",\n  in %s float4 Normal : TEXCOORD%d", optCentroid, numTexgen + 1);
 		out.Write("        ) {\n");
 	}
@@ -484,7 +484,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	RegisterStates[0].AlphaNeedOverflowControl = false;
 	RegisterStates[0].ColorNeedOverflowControl = false;
 	RegisterStates[0].AuxStored = false;
-	for(int i = 1; i < 4; i++)
+	for (int i = 1; i < 4; i++)
 	{
 		RegisterStates[i].AlphaNeedOverflowControl = true;
 		RegisterStates[i].ColorNeedOverflowControl = true;
@@ -515,13 +515,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		// The results of the last texenv stage are put onto the screen,
 		// regardless of the used destination register
-		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
+		if (bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
 			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].AuxStored;
 			out.Write("\tprev.rgb = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
 			RegisterStates[0].ColorNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl;
 		}
-		if(bpmem.combiners[numStages - 1].alphaC.dest != 0)
+		if (bpmem.combiners[numStages - 1].alphaC.dest != 0)
 		{
 			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AuxStored;
 			out.Write("\tprev.a = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
@@ -529,7 +529,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		}
 	}
 	// emulation of unsigned 8 overflow when casting if needed
-	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
+	if (RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
 		out.Write("\tprev = frac(prev * (255.0/256.0)) * (256.0/255.0);\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
@@ -766,12 +766,12 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	uid_data.stagehash[n].cc = cc.hex & 0xFFFFFF;
 	uid_data.stagehash[n].ac = ac.hex & 0xFFFFF0; // Storing rswap and tswap later
 
-	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
-		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
-		|| cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC
-		|| cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC
-		|| ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA
-		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
+	if (cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC ||
+	   cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC ||
+	   cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC ||
+	   cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC ||
+	   ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA ||
+	   ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
 		const int i = bpmem.combiners[n].alphaC.rswap;
 		uid_data.stagehash[n].ac |= bpmem.combiners[n].alphaC.rswap;
@@ -792,7 +792,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (!bHasIndStage)
 		{
 			// calc tevcord
-			if(bHasTexCoord)
+			if (bHasTexCoord)
 				out.Write("tevcoord.xy = uv%d.xy;\n", texcoord);
 			else
 				out.Write("tevcoord.xy = float2(0.0, 0.0);\n");
@@ -820,15 +820,17 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	}
 
 
-	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST
-		|| ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST)
+	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST ||
+	    cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST ||
+	    ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST ||
+	    ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST)
 	{
 		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 		uid_data.stagehash[n].tevksel_kc = kc;
 		uid_data.stagehash[n].tevksel_ka = ka;
 		out.Write("konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
-		if(kc > 7 || ka > 7)
+		if (kc > 7 || ka > 7)
 		{
 			out.Write("ckonsttemp = frac(konsttemp * (255.0/256.0)) * (256.0/255.0);\n");
 		}
@@ -842,12 +844,13 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 			out.SetConstantsUsed(C_KCOLORS+((ka-0xc)%4),C_KCOLORS+((ka-0xc)%4));
 	}
 
-	if(cc.a == TEVCOLORARG_CPREV || cc.a == TEVCOLORARG_APREV
-		|| cc.b == TEVCOLORARG_CPREV || cc.b == TEVCOLORARG_APREV
-		|| cc.c == TEVCOLORARG_CPREV || cc.c == TEVCOLORARG_APREV
-		|| ac.a == TEVALPHAARG_APREV || ac.b == TEVALPHAARG_APREV || ac.c == TEVALPHAARG_APREV)
+	if (cc.a == TEVCOLORARG_CPREV || cc.a == TEVCOLORARG_APREV ||
+	    cc.b == TEVCOLORARG_CPREV || cc.b == TEVCOLORARG_APREV ||
+	    cc.c == TEVCOLORARG_CPREV || cc.c == TEVCOLORARG_APREV ||
+	    ac.a == TEVALPHAARG_APREV || ac.b == TEVALPHAARG_APREV ||
+	    ac.c == TEVALPHAARG_APREV)
 	{
-		if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
+		if (RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
 		{
 			out.Write("cprev = frac(prev * (255.0/256.0)) * (256.0/255.0);\n");
 			RegisterStates[0].AlphaNeedOverflowControl = false;
@@ -860,13 +863,14 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		RegisterStates[0].AuxStored = true;
 	}
 
-	if(cc.a == TEVCOLORARG_C0 || cc.a == TEVCOLORARG_A0
-	|| cc.b == TEVCOLORARG_C0 || cc.b == TEVCOLORARG_A0
-	|| cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0
-	|| ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 || ac.c == TEVALPHAARG_A0)
+	if (cc.a == TEVCOLORARG_C0 || cc.a == TEVCOLORARG_A0 ||
+	    cc.b == TEVCOLORARG_C0 || cc.b == TEVCOLORARG_A0 ||
+	    cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0 ||
+	    ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 ||
+	    ac.c == TEVALPHAARG_A0)
 	{
 		out.SetConstantsUsed(C_COLORS+1,C_COLORS+1);
-		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
+		if (RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
 		{
 			out.Write("cc0 = frac(c0 * (255.0/256.0)) * (256.0/255.0);\n");
 			RegisterStates[1].AlphaNeedOverflowControl = false;
@@ -879,13 +883,14 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		RegisterStates[1].AuxStored = true;
 	}
 
-	if(cc.a == TEVCOLORARG_C1 || cc.a == TEVCOLORARG_A1
-	|| cc.b == TEVCOLORARG_C1 || cc.b == TEVCOLORARG_A1
-	|| cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1
-	|| ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 || ac.c == TEVALPHAARG_A1)
+	if (cc.a == TEVCOLORARG_C1 || cc.a == TEVCOLORARG_A1 ||
+	    cc.b == TEVCOLORARG_C1 || cc.b == TEVCOLORARG_A1 ||
+	    cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1 ||
+	    ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 ||
+	    ac.c == TEVALPHAARG_A1)
 	{
 		out.SetConstantsUsed(C_COLORS+2,C_COLORS+2);
-		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
+		if (RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
 		{
 			out.Write("cc1 = frac(c1 * (255.0/256.0)) * (256.0/255.0);\n");
 			RegisterStates[2].AlphaNeedOverflowControl = false;
@@ -898,13 +903,14 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		RegisterStates[2].AuxStored = true;
 	}
 
-	if(cc.a == TEVCOLORARG_C2 || cc.a == TEVCOLORARG_A2
-	|| cc.b == TEVCOLORARG_C2 || cc.b == TEVCOLORARG_A2
-	|| cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2
-	|| ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 || ac.c == TEVALPHAARG_A2)
+	if (cc.a == TEVCOLORARG_C2 || cc.a == TEVCOLORARG_A2 ||
+	    cc.b == TEVCOLORARG_C2 || cc.b == TEVCOLORARG_A2 ||
+	    cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2 ||
+	    ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 ||
+	    ac.c == TEVALPHAARG_A2)
 	{
 		out.SetConstantsUsed(C_COLORS+3,C_COLORS+3);
-		if(RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
+		if (RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
 		{
 			out.Write("cc2 = frac(c2 * (255.0/256.0)) * (256.0/255.0);\n");
 			RegisterStates[3].AlphaNeedOverflowControl = false;
@@ -948,7 +954,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (cc.shift > TEVSCALE_1)
 			out.Write("%s*(", tevScaleTable[cc.shift]);
 
-		if(!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
+		if (!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
 			out.Write("%s%s", tevCInputTable[cc.d], tevOpTable[cc.op]);
 
 		if (cc.a == cc.b)
@@ -997,7 +1003,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (ac.shift > TEVSCALE_1)
 			out.Write("%s*(", tevScaleTable[ac.shift]);
 
-		if(!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
+		if (!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
 			out.Write("%s.a%s", tevAInputTable[ac.d], tevOpTable[ac.op]);
 
 		if (ac.a == ac.b)
@@ -1095,7 +1101,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 	out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
-	if(per_pixel_depth)
+	if (per_pixel_depth)
 		out.Write("\t\tdepth = 1.0;\n");
 
 	// HAXX: zcomploc (aka early_ztest) is a way to control whether depth test is done before
@@ -1138,7 +1144,7 @@ template<class T>
 static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 {
 	uid_data.fog_fsel = bpmem.fog.c_proj_fsel.fsel;
-	if(bpmem.fog.c_proj_fsel.fsel == 0)
+	if (bpmem.fog.c_proj_fsel.fsel == 0)
 		return; // no Fog
 
 	uid_data.fog_proj = bpmem.fog.c_proj_fsel.proj;

@@ -178,7 +178,7 @@ void X11_MainLoop()
 		for (int num_events = XPending(dpy); num_events > 0; num_events--)
 		{
 			XNextEvent(dpy, &event);
-			switch(event.type)
+			switch (event.type)
 			{
 				case KeyPress:
 					key = XLookupKeysym((XKeyEvent*)&event, 0);
@@ -269,7 +269,7 @@ void X11_MainLoop()
 void Wayland_MainLoop()
 {
 	// Wait for display to be initialized
-	while(!GLWin.wl_display)
+	while (!GLWin.wl_display)
 		usleep(20000);
 
 	GLWin.running = 1;

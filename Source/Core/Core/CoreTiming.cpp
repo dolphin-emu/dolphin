@@ -63,7 +63,7 @@ void (*advanceCallback)(int cyclesExecuted) = nullptr;
 
 Event* GetNewEvent()
 {
-	if(!eventPool)
+	if (!eventPool)
 		return new Event;
 
 	Event* ev = eventPool;
@@ -127,7 +127,7 @@ void Shutdown()
 	ClearPendingEvents();
 	UnregisterAllEvents();
 
-	while(eventPool)
+	while (eventPool)
 	{
 		Event *ev = eventPool;
 		eventPool = ev->next;
@@ -214,7 +214,7 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 // in which case the event will get handled immediately, before returning.
 void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 {
-	if(Core::IsCPUThread())
+	if (Core::IsCPUThread())
 	{
 		event_types[event_type].callback(userdata, 0);
 	}
@@ -238,10 +238,10 @@ void AddEventToQueue(Event* ne)
 {
 	Event* prev = nullptr;
 	Event** pNext = &first;
-	for(;;)
+	for (;;)
 	{
 		Event*& next = *pNext;
-		if(!next || ne->time < next->time)
+		if (!next || ne->time < next->time)
 		{
 			ne->next = next;
 			next = ne;
@@ -287,7 +287,7 @@ void RemoveEvent(int event_type)
 	if (!first)
 		return;
 
-	while(first)
+	while (first)
 	{
 		if (first->type == event_type)
 		{

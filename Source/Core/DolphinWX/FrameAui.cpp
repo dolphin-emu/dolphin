@@ -163,7 +163,7 @@ void CFrame::OnToggleWindow(wxCommandEvent& event)
 {
 	bool bShow = GetMenuBar()->IsChecked(event.GetId());
 
-	switch(event.GetId())
+	switch (event.GetId())
 	{
 		case IDM_LOGWINDOW:
 			if (!g_pCodeWindow)
@@ -228,7 +228,7 @@ void CFrame::OnNotebookPageChanged(wxAuiNotebookEvent& event)
 	// Update the notebook affiliation
 	for (int i = IDM_LOGWINDOW; i <= IDM_CODEWINDOW; i++)
 	{
-		if(GetNotebookAffiliation(i) >= 0)
+		if (GetNotebookAffiliation(i) >= 0)
 			g_pCodeWindow->iNbAffiliation[i - IDM_LOGWINDOW] = GetNotebookAffiliation(i);
 	}
 }
@@ -596,7 +596,7 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 {
 	ClearStatusBar();
 
-	switch(event.GetId())
+	switch (event.GetId())
 	{
 		case IDM_ADD_PERSPECTIVE:
 			{
@@ -693,7 +693,7 @@ void CFrame::TogglePaneStyle(bool On, int EventId)
 			Pane.PinButton(true);
 			Pane.Show();
 
-			switch(EventId)
+			switch (EventId)
 			{
 				case IDM_EDIT_PERSPECTIVES:
 					Pane.CaptionVisible(On);
@@ -977,7 +977,7 @@ wxWindow * CFrame::GetNotebookPageFromId(wxWindowID Id)
 			continue;
 
 		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
-		for(u32 j = 0; j < NB->GetPageCount(); j++)
+		for (u32 j = 0; j < NB->GetPageCount(); j++)
 		{
 			if (NB->GetPage(j)->GetId() == Id)
 				return NB->GetPage(j);
@@ -1024,7 +1024,7 @@ void CFrame::AddRemoveBlankPage()
 			continue;
 
 		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
-		for(u32 j = 0; j < NB->GetPageCount(); j++)
+		for (u32 j = 0; j < NB->GetPageCount(); j++)
 		{
 			if (NB->GetPageText(j).IsSameAs(wxT("<>")) && NB->GetPageCount() > 1)
 				NB->DeletePage(j);
@@ -1043,7 +1043,7 @@ int CFrame::GetNotebookAffiliation(wxWindowID Id)
 			continue;
 
 		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
-		for(u32 k = 0; k < NB->GetPageCount(); k++)
+		for (u32 k = 0; k < NB->GetPageCount(); k++)
 		{
 			if (NB->GetPage(k)->GetId() == Id)
 				return j;

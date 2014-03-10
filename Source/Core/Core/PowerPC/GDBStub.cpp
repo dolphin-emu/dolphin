@@ -116,7 +116,7 @@ static u8 gdb_calc_chksum()
 	u8 *ptr = cmd_bfr;
 	u8 c = 0;
 
-	while(len-- > 0)
+	while (len-- > 0)
 		c += *ptr++;
 
 	return c;
@@ -306,7 +306,7 @@ static void gdb_reply(const char *reply)
 	u8 *ptr;
 	int n;
 
-	if(!gdb_active())
+	if (!gdb_active())
 		return;
 
 	memset(cmd_bfr, 0, sizeof cmd_bfr);
@@ -329,7 +329,8 @@ static void gdb_reply(const char *reply)
 
 	ptr = cmd_bfr;
 	left = cmd_len + 4;
-	while (left > 0) {
+	while (left > 0)
+	{
 		n = send(sock, ptr, left, 0);
 		if (n < 0)
 		{
@@ -719,14 +720,15 @@ static void gdb_remove_bp()
 
 void gdb_handle_exception()
 {
-	while (gdb_active()) {
-		if(!gdb_data_available())
+	while (gdb_active())
+	{
+		if (!gdb_data_available())
 			continue;
 		gdb_read_command();
 		if (cmd_len == 0)
 			continue;
 
-		switch(cmd_bfr[0]) {
+		switch (cmd_bfr[0]) {
 			case 'q':
 				gdb_handle_query();
 				break;

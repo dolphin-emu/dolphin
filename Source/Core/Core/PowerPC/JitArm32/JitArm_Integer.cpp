@@ -283,7 +283,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		break;
 
 		case 31: // addcx, addx, subfx
-			switch(inst.SUBOP10)
+			switch (inst.SUBOP10)
 			{
 				case 24: // slwx
 				case 28: // andx
@@ -341,7 +341,7 @@ void JitArm::arith(UGeckoInstruction inst)
 	{
 		bool hasCarry = false;
 		u32 dest = d;
-		switch(inst.OPCD)
+		switch (inst.OPCD)
 		{
 			case 7:
 				gpr.SetImmediate(d, Mul(Imm[0], Imm[1]));
@@ -372,7 +372,7 @@ void JitArm::arith(UGeckoInstruction inst)
 				dest = a;
 			break;
 			case 31: // addcx, addx, subfx
-				switch(inst.SUBOP10)
+				switch (inst.SUBOP10)
 				{
 					case 24:
 						gpr.SetImmediate(a, Imm[0] << Imm[1]);
@@ -439,7 +439,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		return;
 	}
 	// One or the other isn't a IMM
-	switch(inst.OPCD)
+	switch (inst.OPCD)
 	{
 		case 7:
 		{
@@ -511,7 +511,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		}
 		break;
 		case 31:
-			switch(inst.SUBOP10)
+			switch (inst.SUBOP10)
 			{
 				case 24:
 					RA = gpr.R(a);

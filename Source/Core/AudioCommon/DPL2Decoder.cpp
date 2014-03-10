@@ -123,7 +123,7 @@ float* design_fir(unsigned int *n, float* fc, float opt)
 	float fc1;                               // Cutoff frequencies
 
 	// Sanity check
-	if(*n==0) return nullptr;
+	if (*n==0) return nullptr;
 	MathUtil::Clamp(&fc[0],float(0.001),float(1));
 
 	float *w=(float*)calloc(sizeof(float),*n);

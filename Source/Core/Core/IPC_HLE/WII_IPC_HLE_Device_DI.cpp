@@ -93,7 +93,7 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 
 	// Prepare the out buffer(s) with zeros as a safety precaution
 	// to avoid returning bad values
-	for(u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
+	for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
 	{
 		Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
 			CommandBuffer.PayloadBuffer[i].m_Size);
@@ -148,7 +148,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	}
 
 	// Initializing a filesystem if it was just loaded
-	if(!m_pFileSystem && VolumeHandler::IsValid())
+	if (!m_pFileSystem && VolumeHandler::IsValid())
 	{
 		m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
 		m_CoverStatus |= DI_COVER_REG_INITIALIZED;
@@ -156,7 +156,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	}
 
 	// De-initializing a filesystem if the volume was unmounted
-	if(m_pFileSystem && !VolumeHandler::IsValid())
+	if (m_pFileSystem && !VolumeHandler::IsValid())
 	{
 		delete m_pFileSystem;
 		m_pFileSystem = nullptr;
@@ -294,13 +294,12 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			// * 0x460a0000 - 0x460a0008
 			// * 0x7ed40000 - 0x7ed40008
 			u32 DVDAddress32 = Memory::Read_U32(_BufferIn + 0x08);
-			if (!( (DVDAddress32 > 0x00000000 && DVDAddress32 < 0x00014000)
-				|| (((DVDAddress32 + Size) > 0x00000000) && (DVDAddress32 + Size) < 0x00014000)
-				|| (DVDAddress32 > 0x460a0000 && DVDAddress32 < 0x460a0008)
-				|| (((DVDAddress32 + Size) > 0x460a0000) && (DVDAddress32 + Size) < 0x460a0008)
-				|| (DVDAddress32 > 0x7ed40000 && DVDAddress32 < 0x7ed40008)
-				|| (((DVDAddress32 + Size) > 0x7ed40000) && (DVDAddress32 + Size) < 0x7ed40008)
-				))
+			if (!((DVDAddress32 > 0x00000000 && DVDAddress32 < 0x00014000) ||
+			      (((DVDAddress32 + Size) > 0x00000000) && (DVDAddress32 + Size) < 0x00014000) ||
+			      (DVDAddress32 > 0x460a0000 && DVDAddress32 < 0x460a0008) ||
+			      (((DVDAddress32 + Size) > 0x460a0000) && (DVDAddress32 + Size) < 0x460a0008) ||
+			      (DVDAddress32 > 0x7ed40000 && DVDAddress32 < 0x7ed40008) ||
+			      (((DVDAddress32 + Size) > 0x7ed40000) && (DVDAddress32 + Size) < 0x7ed40008)))
 			{
 				WARN_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: trying to read out of bounds @ %x", DVDAddress32);
 				m_ErrorStatus = ERROR_READY | ERROR_BLOCK_OOB;
@@ -317,7 +316,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				PanicAlertT("Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
 				Size = _BufferOutSize;
 			}
-			if(!VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
+			if (!VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
 			{
 				PanicAlertT("DVDLowUnencryptedRead - Fatal Error: failed to read from volume");
 			}

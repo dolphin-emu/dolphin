@@ -72,7 +72,7 @@ void PixelShaderManager::SetConstants()
 	{
 		// set by two components, so keep changed flag here
 		// TODO: try to split both registers and move this logic to the shader
-		if(!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled == 1)
+		if (!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled == 1)
 		{
 			//bpmem.fogRange.Base.Center : center of the viewport in x axis. observation: bpmem.fogRange.Base.Center = realcenter + 342;
 			int center = ((u32)bpmem.fogRange.Base.Center) - 342;
@@ -137,7 +137,7 @@ void PixelShaderManager::SetConstants()
 		}
 	}
 
-	if(s_bViewPortChanged)
+	if (s_bViewPortChanged)
 	{
 		constants.zbias[1][0] = xfregs.viewport.farZ / 16777216.0f;
 		constants.zbias[1][1] = xfregs.viewport.zRange / 16777216.0f;
@@ -179,7 +179,7 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wra
 {
 	// TODO: move this check out to callee. There we could just call this function on texture changes
 	// or better, use textureSize() in glsl
-	if(constants.texdims[texmapid][0] != 1.0f/width || constants.texdims[texmapid][1] != 1.0f/height)
+	if (constants.texdims[texmapid][0] != 1.0f/width || constants.texdims[texmapid][1] != 1.0f/height)
 		dirty = true;
 
 	constants.texdims[texmapid][0] = 1.0f/width;
@@ -280,7 +280,7 @@ void PixelShaderManager::SetFogColorChanged()
 
 void PixelShaderManager::SetFogParamChanged()
 {
-	if(!g_ActiveConfig.bDisableFog)
+	if (!g_ActiveConfig.bDisableFog)
 	{
 		constants.fog[1][0] = bpmem.fog.a.GetA();
 		constants.fog[1][1] = (float)bpmem.fog.b_magnitude / 0xFFFFFF;
@@ -324,7 +324,7 @@ void PixelShaderManager::InvalidateXFRange(int start, int end)
 
 void PixelShaderManager::SetMaterialColorChanged(int index, u32 color)
 {
-	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		constants.pmaterials[index][0] = ((color >> 24) & 0xFF) / 255.0f;
 		constants.pmaterials[index][1] = ((color >> 16) & 0xFF) / 255.0f;

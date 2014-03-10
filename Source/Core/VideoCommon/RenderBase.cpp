@@ -288,7 +288,7 @@ void Renderer::DrawDebugText()
 	}
 
 	const char* ar_text = "";
-	switch(g_ActiveConfig.iAspectRatio)
+	switch (g_ActiveConfig.iAspectRatio)
 	{
 	case ASPECT_AUTO:
 		ar_text = "Auto";

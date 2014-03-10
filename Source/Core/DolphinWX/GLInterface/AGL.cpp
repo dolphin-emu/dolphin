@@ -97,8 +97,8 @@ void cInterfaceAGL::Update()
 	size.width *= scale;
 	size.height *= scale;
 
-	if( s_backbuffer_width == size.width
-	   && s_backbuffer_height == size.height)
+	if (s_backbuffer_width == size.width &&
+	    s_backbuffer_height == size.height)
 		return;
 
 	s_backbuffer_width = size.width;

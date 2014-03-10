@@ -126,7 +126,7 @@ inline s16 Clamp1024(s16 in)
 
 void Tev::SetRasColor(int colorChan, int swaptable)
 {
-	switch(colorChan)
+	switch (colorChan)
 	{
 	case 0: // Color0
 		{
@@ -209,7 +209,7 @@ void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc)
 
 	InputRegType InputReg;
 
-	switch(cmp) {
+	switch (cmp) {
 	case TEVCMP_R8_GT:
 		{
 			a = *m_ColorInputLUT[cc.a][RED_INP] & 0xff;
@@ -336,7 +336,7 @@ void Tev::DrawAlphaCompare(TevStageCombiner::AlphaCombiner &ac)
 
 	InputRegType InputReg;
 
-	switch(cmp) {
+	switch (cmp) {
 	case TEVCMP_R8_GT:
 		{
 			a = m_AlphaInputLUT[ac.a][RED_C] & 0xff;
@@ -415,7 +415,7 @@ void Tev::DrawAlphaCompare(TevStageCombiner::AlphaCombiner &ac)
 
 static bool AlphaCompare(int alpha, int ref, int comp)
 {
-	switch(comp) {
+	switch (comp) {
 	case ALPHACMP_ALWAYS:  return true;
 	case ALPHACMP_NEVER:   return false;
 	case ALPHACMP_LEQUAL:  return alpha <= ref;
@@ -497,7 +497,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 	bias[2] = indirect.bias&4?biasValue:0;
 
 	// format
-	switch(indirect.fmt)
+	switch (indirect.fmt)
 	{
 		case ITF_8:
 			indcoord[0] = indmap[TextureSampler::ALP_SMP] + bias[0];
@@ -756,7 +756,7 @@ void Tev::Draw()
 
 		}
 
-		if(bpmem.fogRange.Base.Enabled)
+		if (bpmem.fogRange.Base.Enabled)
 		{
 			// TODO: This is untested and should definitely be checked against real hw.
 			// - No idea if offset is really normalized against the viewport width or against the projection matrix or yet something else

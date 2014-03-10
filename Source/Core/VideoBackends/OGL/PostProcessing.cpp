@@ -77,7 +77,7 @@ void BindTargetFramebuffer ()
 
 void BlitToScreen()
 {
-	if(!s_enable) return;
+	if (!s_enable) return;
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glViewport(0, 0, s_width, s_height);
@@ -101,7 +101,7 @@ void Update ( u32 width, u32 height )
 {
 	ApplyShader();
 
-	if(s_enable && (width != s_width || height != s_height)) {
+	if (s_enable && (width != s_width || height != s_height)) {
 		s_width = width;
 		s_height = height;
 
@@ -133,7 +133,7 @@ void ApplyShader()
 		// Fallback to shared user dir
 		path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + g_ActiveConfig.sPostProcessingShader + ".glsl";
 	}
-	if(!File::ReadFileToString(path.c_str(), code)) {
+	if (!File::ReadFileToString(path.c_str(), code)) {
 		ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
 		return;
 	}

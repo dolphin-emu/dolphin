@@ -208,11 +208,12 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 #if _M_X86_64
 		u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
 		s64 distance = (s64)offset - (s64)ripAddr;
-		_assert_msg_(DYNA_REC, (distance < 0x80000000LL
-					&& distance >=  -0x80000000LL) ||
-			     !warn_64bit_offset,
-			     "WriteRest: op out of range (0x%" PRIx64 " uses 0x%" PRIx64 ")",
-			     ripAddr, offset);
+		_assert_msg_(DYNA_REC, 
+		             (distance < 0x80000000LL &&
+		              distance >=  -0x80000000LL) ||
+		             !warn_64bit_offset,
+		             "WriteRest: op out of range (0x%" PRIx64 " uses 0x%" PRIx64 ")",
+		             ripAddr, offset);
 		s32 offs = (s32)distance;
 		emit->Write32((u32)offs);
 #else
@@ -358,9 +359,9 @@ void XEmitter::JMP(const u8 *addr, bool force5Bytes)
 	{
 		s64 distance = (s64)(fn - ((u64)code + 5));
 
-		_assert_msg_(DYNA_REC, distance >= -0x80000000LL
-			     && distance < 0x80000000LL,
-			     "Jump target too far away, needs indirect register");
+		_assert_msg_(DYNA_REC,
+		             distance >= -0x80000000LL && distance < 0x80000000LL,
+		             "Jump target too far away, needs indirect register");
 		Write8(0xE9);
 		Write32((u32)(s32)distance);
 	}
@@ -396,9 +397,10 @@ void XEmitter::CALLptr(OpArg arg)
 void XEmitter::CALL(const void *fnptr)
 {
 	u64 distance = u64(fnptr) - (u64(code) + 5);
-	_assert_msg_(DYNA_REC, distance < 0x0000000080000000ULL
-		     || distance >=  0xFFFFFFFF80000000ULL,
-		     "CALL out of range (%p calls %p)", code, fnptr);
+	_assert_msg_(DYNA_REC,
+	             distance < 0x0000000080000000ULL ||
+	             distance >=  0xFFFFFFFF80000000ULL,
+	             "CALL out of range (%p calls %p)", code, fnptr);
 	Write8(0xE8);
 	Write32(u32(distance));
 }
@@ -456,9 +458,9 @@ void XEmitter::J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes)
 	else
 	{
 		s64 distance = (s64)(fn - ((u64)code + 6));
-		_assert_msg_(DYNA_REC, distance >= -0x80000000LL
-			     && distance < 0x80000000LL,
-			     "Jump target too far away, needs indirect register");
+		_assert_msg_(DYNA_REC,
+		             distance >= -0x80000000LL && distance < 0x80000000LL,
+			         "Jump target too far away, needs indirect register");
 		Write8(0x0F);
 		Write8(0x80 + conditionCode);
 		Write32((u32)(s32)distance);

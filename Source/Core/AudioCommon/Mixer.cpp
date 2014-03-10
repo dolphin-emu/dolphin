@@ -48,8 +48,8 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_
 	float numLeft = ((indexW - indexR) & INDEX_MASK) / 2;
 	m_numLeftI = (numLeft + m_numLeftI*(CONTROL_AVG-1)) / CONTROL_AVG;
 	float offset = (m_numLeftI - LOW_WATERMARK) * CONTROL_FACTOR;
-	if(offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
-	if(offset < -MAX_FREQ_SHIFT) offset = -MAX_FREQ_SHIFT;
+	if (offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
+	if (offset < -MAX_FREQ_SHIFT) offset = -MAX_FREQ_SHIFT;
 
 	//render numleft sample pairs to samples[]
 	//advance indexR with sample position
@@ -65,7 +65,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_
 	static u32 frac = 0;
 	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_sampleRate );
 
-	if(ratio > 0x10000)
+	if (ratio > 0x10000)
 		ERROR_LOG(AUDIO, "ratio out of range");
 
 	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2) {

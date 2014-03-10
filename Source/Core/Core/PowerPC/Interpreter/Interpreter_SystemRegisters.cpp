@@ -253,7 +253,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 	//Our DMA emulation is highly inaccurate - instead of properly emulating the queue
 	//and so on, we simply make all DMA:s complete instantaneously.
 
-	switch(iIndex)
+	switch (iIndex)
 	{
 	case SPR_TL:
 	case SPR_TU:

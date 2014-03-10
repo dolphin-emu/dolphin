@@ -116,7 +116,7 @@ void JitArmIL::bcx(UGeckoInstruction inst)
 	IREmitter::InstLoc Test = TestBranch(ibuild, inst);
 
 	u32 destination;
-	if(inst.AA)
+	if (inst.AA)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);

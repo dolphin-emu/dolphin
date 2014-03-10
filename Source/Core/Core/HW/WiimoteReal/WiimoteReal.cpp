@@ -179,9 +179,9 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 			leds_rpt.leds = 0xf;
 		}
 	}
-	else if (rpt[1] == WM_WRITE_SPEAKER_DATA
-		&& (!SConfig::GetInstance().m_WiimoteEnableSpeaker
-		|| (!wm->m_status.speaker || wm->m_speaker_mute)))
+	else if (rpt[1] == WM_WRITE_SPEAKER_DATA &&
+	         (!SConfig::GetInstance().m_WiimoteEnableSpeaker ||
+	         (!wm->m_status.speaker || wm->m_speaker_mute)))
 	{
 		// Translate speaker data reports into rumble reports.
 		rpt[1] = WM_RUMBLE;
@@ -200,10 +200,14 @@ bool Wiimote::Read()
 
 	if (result > 0 && m_channel > 0)
 	{
-		if (Core::g_CoreStartupParameter.iBBDumpPort > 0 && index == WIIMOTE_BALANCE_BOARD)
+		if (Core::g_CoreStartupParameter.iBBDumpPort > 0 &&
+		    index == WIIMOTE_BALANCE_BOARD)
 		{
 			static sf::SocketUDP Socket;
-			Socket.Send((char*)rpt.data(), rpt.size(), sf::IPAddress::LocalHost, Core::g_CoreStartupParameter.iBBDumpPort);
+			Socket.Send((char*)rpt.data(),
+			            rpt.size(),
+			            sf::IPAddress::LocalHost,
+		                Core::g_CoreStartupParameter.iBBDumpPort);
 		}
 
 		// Add it to queue
@@ -321,10 +325,10 @@ bool Wiimote::PrepareOnThread()
 	u8 static const req_status_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REQUEST_STATUS, 0};
 	// TODO: check for sane response?
 
-	return (IOWrite(mode_report, sizeof(mode_report))
-	        && IOWrite(led_report, sizeof(led_report))
-	        && (SLEEP(200), IOWrite(rumble_report, sizeof(rumble_report)))
-	        && IOWrite(req_status_report, sizeof(req_status_report)));
+	return (IOWrite(mode_report, sizeof(mode_report)) &&
+	        IOWrite(led_report, sizeof(led_report)) &&
+	        (SLEEP(200), IOWrite(rumble_report, sizeof(rumble_report))) &&
+	        IOWrite(req_status_report, sizeof(req_status_report)));
 }
 
 void Wiimote::EmuStart()
@@ -464,9 +468,9 @@ void WiimoteScanner::ThreadFunc()
 		// TODO: this is a fairly lame place for this
 		CheckForDisconnectedWiimotes();
 
-		if(m_want_wiimotes)
+		if (m_want_wiimotes)
 			HandleFoundWiimotes(found_wiimotes);
-		if(m_want_bb && found_board)
+		if (m_want_bb && found_board)
 			TryToConnectBalanceBoard(found_board);
 
 		//std::this_thread::yield();
@@ -596,7 +600,7 @@ void Initialize(bool wait)
 		g_wiimote_scanner.FindWiimotes(found_wiimotes, found_board);
 		if (SConfig::GetInstance().m_WiimoteContinuousScanning)
 		{
-			while(CalculateWantedWiimotes() && CalculateConnectedWiimotes() < found_wiimotes.size() && timeout)
+			while (CalculateWantedWiimotes() && CalculateConnectedWiimotes() < found_wiimotes.size() && timeout)
 			{
 				Common::SleepCurrentThread(100);
 				timeout--;
@@ -671,8 +675,7 @@ void ChangeWiimoteSource(unsigned int index, int source)
 
 static bool TryToConnectWiimoteN(Wiimote* wm, unsigned int i)
 {
-	if (WIIMOTE_SRC_REAL & g_wiimote_sources[i]
-		&& !g_wiimotes[i])
+	if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
 	{
 		if (wm->Connect())
 		{
@@ -794,7 +797,7 @@ void Refresh()
 		}
 
 		HandleFoundWiimotes(found_wiimotes);
-		if(found_board)
+		if (found_board)
 			TryToConnectBalanceBoard(found_board);
 	}
 

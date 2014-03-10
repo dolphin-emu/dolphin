@@ -43,7 +43,7 @@ HWND GetParentWnd()
 
 LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {
-	switch( iMsg )
+	switch ( iMsg )
 	{
 	case WM_PAINT:
 		{
@@ -65,7 +65,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	/* Post the mouse events to the main window, it's necessary, because the difference between the
 	   keyboard inputs is that these events only appear here, not in the parent window or any other WndProc()*/
 	case WM_LBUTTONDOWN:
-		if(g_ActiveConfig.backend_info.bSupports3DVision && g_ActiveConfig.b3DVision)
+		if (g_ActiveConfig.backend_info.bSupports3DVision && g_ActiveConfig.b3DVision)
 		{
 			// This basically throws away the left button down input when b3DVision is activated so WX
 			// can't get access to it, stopping focus pulling on mouse click.

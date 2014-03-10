@@ -318,7 +318,7 @@ static void silly_random(u8 * rndArea, u8 count)
 	u16 i;
 	srand((unsigned) (time(nullptr)));
 
-	for(i=0;i<count;i++)
+	for (i=0;i<count;i++)
 	{
 		rndArea[i]=rand();
 	}

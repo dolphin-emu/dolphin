@@ -34,7 +34,7 @@ void PCSTR2LPTSTR( PCSTR lpszIn, LPTSTR lpszOut )
 	ULONG index = 0;
 	PCSTR lpAct = lpszIn;
 
-	for( ; ; lpAct++ )
+	for ( ; ; lpAct++ )
 	{
 		lpszOut[index++] = (TCHAR)(*lpAct);
 		if ( *lpAct == 0 )
@@ -196,7 +196,7 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 		if ( _tcsstr( lpszUnDSymbol, _T("(void)") ) == nullptr && _tcsstr( lpszUnDSymbol, _T("()") ) == nullptr)
 		{
 			ULONG index = 0;
-			for( ; ; index++ )
+			for ( ; ; index++ )
 			{
 				lpszParamSep = _tcschr( lpszParsed, _T(',') );
 				if ( lpszParamSep == nullptr )
@@ -331,7 +331,7 @@ void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 
 		PrintFunctionAndSourceInfo(file, callStack);
 
-		for( ULONG index = 0; ; index++ )
+		for ( ULONG index = 0; ; index++ )
 		{
 			bResult = StackWalk(
 				IMAGE_FILE_MACHINE_I386,
@@ -347,14 +347,14 @@ void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 			if ( index == 0 )
 				continue;
 
-			if( !bResult || callStack.AddrFrame.Offset == 0 )
+			if (!bResult || callStack.AddrFrame.Offset == 0)
 				break;
 
 			PrintFunctionAndSourceInfo(file, callStack);
 
 		}
 
-		if ( hThread != GetCurrentThread() )
+		if (hThread != GetCurrentThread())
 			ResumeThread( hThread );
 }
 
@@ -366,7 +366,7 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 
 	// If it's not this thread, let's suspend it, and resume it at the end
 	if ( hThread != GetCurrentThread() )
-		if ( SuspendThread( hThread ) == -1 )
+		if (SuspendThread( hThread ) == -1)
 		{
 			// whaaat ?!
 			etfprint(file, "Call stack info failed\n");
@@ -386,7 +386,7 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 
 		PrintFunctionAndSourceInfo(file, callStack);
 
-		for( ULONG index = 0; ; index++ )
+		for (ULONG index = 0; ; index++)
 		{
 			bResult = StackWalk(
 				IMAGE_FILE_MACHINE_I386,
@@ -399,17 +399,17 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 				SymGetModuleBase,
 				nullptr);
 
-			if ( index == 0 )
+			if (index == 0)
 				continue;
 
-			if( !bResult || callStack.AddrFrame.Offset == 0 )
+			if (!bResult || callStack.AddrFrame.Offset == 0)
 				break;
 
 			PrintFunctionAndSourceInfo(file, callStack);
 		}
 
-		if ( hThread != GetCurrentThread() )
-			ResumeThread( hThread );
+		if (hThread != GetCurrentThread())
+			ResumeThread(hThread);
 }
 
 char g_uefbuf[2048];

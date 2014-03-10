@@ -184,9 +184,9 @@ void CCodeView::InsertBlrNop(int Blr)
 {
 	// Check if this address has been modified
 	int find = -1;
-	for(u32 i = 0; i < BlrList.size(); i++)
+	for (u32 i = 0; i < BlrList.size(); i++)
 	{
-		if(BlrList.at(i).Address == selection)
+		if (BlrList.at(i).Address == selection)
 		{
 			find = i;
 			break;

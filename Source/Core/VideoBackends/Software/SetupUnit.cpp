@@ -22,7 +22,7 @@ void SetupUnit::Init(u8 primitiveType)
 
 void SetupUnit::SetupVertex()
 {
-	switch(m_PrimType)
+	switch (m_PrimType)
 	{
 	case GX_DRAW_QUADS:
 		SetupQuad();

@@ -115,7 +115,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	}
 
 	// loop through all the results and bind to everything we can
-	for(p = servinfo; p != nullptr; p = p->ai_next)
+	for (p = servinfo; p != nullptr; p = p->ai_next)
 	{
 		sock_t sock;
 		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK)

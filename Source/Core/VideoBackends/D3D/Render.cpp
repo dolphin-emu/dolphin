@@ -233,7 +233,7 @@ Renderer::Renderer()
 											0.f, 1 << g_ActiveConfig.iMaxAnisotropy,
 											D3D11_COMPARISON_ALWAYS, border,
 											-D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
-		if(g_ActiveConfig.iMaxAnisotropy != 0) gx_state.sampdc[k].Filter = D3D11_FILTER_ANISOTROPIC;
+		if (g_ActiveConfig.iMaxAnisotropy != 0) gx_state.sampdc[k].Filter = D3D11_FILTER_ANISOTROPIC;
 	}
 
 	// Clear EFB textures
@@ -362,7 +362,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 	// Take the mean of the resulting dimensions; TODO: Don't use the center pixel, compute the average color instead
 	D3D11_RECT RectToLock;
-	if(type == PEEK_COLOR || type == PEEK_Z)
+	if (type == PEEK_COLOR || type == PEEK_Z)
 	{
 		RectToLock.left = (targetPixelRc.left + targetPixelRc.right) / 2;
 		RectToLock.top = (targetPixelRc.top + targetPixelRc.bottom) / 2;
@@ -409,7 +409,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 		float val = *(float*)map.pData;
 		u32 ret = 0;
-		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
 			// if Z is in 16 bit format you must return a 16 bit integer
 			ret = ((u32)(val * 0xffff));
@@ -433,7 +433,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// read the data from system memory
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 		u32 ret = 0;
-		if(map.pData)
+		if (map.pData)
 			ret = *(u32*)map.pData;
 		D3D::context->Unmap(read_tex, 0);
 
@@ -448,13 +448,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		{
 			ret = RGBA8ToRGB565ToRGBA8(ret);
 		}
-		if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
+		if (bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
 		{
 			ret |= 0xFF000000;
 		}
 
-		if(alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
-		else if(alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
+		if (alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
+		else if (alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
 		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
 	}
 	else //if(type == POKE_COLOR)
@@ -784,7 +784,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		s_television.Submit(xfbAddr, fbWidth, fbHeight);
 		s_television.Render();
 	}
-	else if(g_ActiveConfig.bUseXFB)
+	else if (g_ActiveConfig.bUseXFB)
 	{
 		const XFBSourceBase* xfbSource;
 
@@ -1084,7 +1084,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		// TODO: unnecessary state changes, we should store a list of shader resources
 		//if (shader_resources[stage])
 		{
-			if(g_ActiveConfig.iMaxAnisotropy > 0) gx_state.sampdc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
+			if (g_ActiveConfig.iMaxAnisotropy > 0) gx_state.sampdc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
 			hr = D3D::device->CreateSamplerState(&gx_state.sampdc[stage], &samplerstate[stage]);
 			if (FAILED(hr)) PanicAlert("Fail %s %d, stage=%d\n", __FILE__, __LINE__, stage);
 			else D3D::SetDebugObjectName((ID3D11DeviceChild*)samplerstate[stage], "sampler state used to emulate the GX pipeline");

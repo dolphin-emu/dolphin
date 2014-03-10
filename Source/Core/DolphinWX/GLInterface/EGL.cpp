@@ -93,7 +93,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	const char *s;
 	EGLint egl_major, egl_minor;
 
-	if(!Platform.SelectDisplay())
+	if (!Platform.SelectDisplay())
 		return false;
 
 	GLWin.egl_dpy = Platform.EGLGetDisplay();
@@ -131,7 +131,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		EGL_CONTEXT_CLIENT_VERSION, 2,
 		EGL_NONE
 	};
-	switch(s_opengl_mode)
+	switch (s_opengl_mode)
 	{
 		case MODE_OPENGL:
 			attribs[1] = EGL_OPENGL_BIT;
@@ -212,11 +212,11 @@ void cInterfaceEGL::Shutdown()
 	if (GLWin.egl_ctx)
 	{
 		eglMakeCurrent(GLWin.egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		if(!eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx))
+		if (!eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx))
 			NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
-		if(!eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf))
+		if (!eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf))
 			NOTICE_LOG(VIDEO, "Could not destroy window surface.");
-		if(!eglTerminate(GLWin.egl_dpy))
+		if (!eglTerminate(GLWin.egl_dpy))
 			NOTICE_LOG(VIDEO, "Could not destroy display connection.");
 		GLWin.egl_ctx = nullptr;
 	}

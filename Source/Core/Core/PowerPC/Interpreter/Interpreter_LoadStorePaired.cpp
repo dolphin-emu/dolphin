@@ -99,7 +99,7 @@ float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quant
 {
 	// dequantize the value
 	float fResult;
-	switch(_quantizeType)
+	switch (_quantizeType)
 	{
 	case QUANTIZE_FLOAT:
 		{

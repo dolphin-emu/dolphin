@@ -173,8 +173,8 @@ bool TryParse(const std::string &str, u32 *const output)
 		return false;
 
 #if ULONG_MAX > UINT_MAX
-	if (value >= 0x100000000ull
-	    && value <= 0xFFFFFFFF00000000ull)
+	if (value >= 0x100000000ull &&
+	    value <= 0xFFFFFFFF00000000ull)
 		return false;
 #endif
 
@@ -275,7 +275,7 @@ std::string TabsToSpaces(int tab_size, const std::string &in)
 
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest)
 {
-	while(1)
+	while (1)
 	{
 		size_t pos = result.find(src);
 		if (pos == std::string::npos) break;
@@ -336,8 +336,8 @@ std::string UriDecode(const std::string & sSrc)
 		if (*pSrc == '%')
 		{
 			char dec1, dec2;
-			if (16 != (dec1 = HEX2DEC[*(pSrc + 1)])
-				&& 16 != (dec2 = HEX2DEC[*(pSrc + 2)]))
+			if (16 != (dec1 = HEX2DEC[*(pSrc + 1)]) &&
+			    16 != (dec2 = HEX2DEC[*(pSrc + 2)]))
 			{
 				*pEnd++ = (dec1 << 4) + dec2;
 				pSrc += 3;

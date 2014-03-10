@@ -153,7 +153,7 @@ u64 Timer::GetLocalTimeSinceJan1970()
 
 	// Account for DST where needed
 	gmTime = localtime(&sysTime);
-	if(gmTime->tm_isdst == 1)
+	if (gmTime->tm_isdst == 1)
 		tzDST = 3600;
 	else
 		tzDST = 0;

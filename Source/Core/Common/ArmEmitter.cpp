@@ -193,9 +193,9 @@ void ARMXEmitter::ORI2R(ARMReg rd, ARMReg rs, u32 val, ARMReg scratch)
 
 void ARMXEmitter::FlushLitPool()
 {
-	for(LiteralPool& pool : currentLitPool) {
+	for (LiteralPool& pool : currentLitPool) {
 		// Search for duplicates
-		for(LiteralPool& old_pool : currentLitPool) {
+		for (LiteralPool& old_pool : currentLitPool) {
 			if (old_pool.val == pool.val)
 				pool.loc = old_pool.loc;
 		}
@@ -242,7 +242,7 @@ void ARMXEmitter::MOVI2R(ARMReg reg, u32 val, bool optimize)
 		{
 			// Use MOVW+MOVT for ARMv7+
 			MOVW(reg, val & 0xFFFF);
-			if(val & 0xFFFF0000)
+			if (val & 0xFFFF0000)
 				MOVT(reg, val, true);
 		} else if (!TrySetValue_TwoOp(reg,val)) {
 			// Use literal pool for ARMv6.

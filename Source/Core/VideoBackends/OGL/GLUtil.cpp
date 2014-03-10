@@ -64,9 +64,9 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 	GLsizei stringBufferUsage = 0;
 	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderInfoLog(vertexShaderID, 1024, &stringBufferUsage, stringBuffer);
-	if(Result && stringBufferUsage) {
+	if (Result && stringBufferUsage) {
 		ERROR_LOG(VIDEO, "GLSL vertex shader warnings:\n%s%s", stringBuffer, vertexShader);
-	} else if(!Result) {
+	} else if (!Result) {
 		ERROR_LOG(VIDEO, "GLSL vertex shader error:\n%s%s", stringBuffer, vertexShader);
 	} else {
 		DEBUG_LOG(VIDEO, "GLSL vertex shader compiled:\n%s", vertexShader);
@@ -80,9 +80,9 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
 	glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderInfoLog(fragmentShaderID, 1024, &stringBufferUsage, stringBuffer);
-	if(Result && stringBufferUsage) {
+	if (Result && stringBufferUsage) {
 		ERROR_LOG(VIDEO, "GLSL fragment shader warnings:\n%s%s", stringBuffer, fragmentShader);
-	} else if(!Result) {
+	} else if (!Result) {
 		ERROR_LOG(VIDEO, "GLSL fragment shader error:\n%s%s", stringBuffer, fragmentShader);
 	} else {
 		DEBUG_LOG(VIDEO, "GLSL fragment shader compiled:\n%s", fragmentShader);
@@ -97,9 +97,9 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
 	glGetProgramiv(programID, GL_LINK_STATUS, &Result);
 	glGetProgramInfoLog(programID, 1024, &stringBufferUsage, stringBuffer);
-	if(Result && stringBufferUsage) {
+	if (Result && stringBufferUsage) {
 		ERROR_LOG(VIDEO, "GLSL linker warnings:\n%s%s%s", stringBuffer, vertexShader, fragmentShader);
-	} else if(!Result && !shader_errors) {
+	} else if (!Result && !shader_errors) {
 		ERROR_LOG(VIDEO, "GLSL linker error:\n%s%s%s", stringBuffer, vertexShader, fragmentShader);
 	}
 #endif

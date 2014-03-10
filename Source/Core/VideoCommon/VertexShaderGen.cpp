@@ -49,7 +49,7 @@ static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
 
 	DefineVSOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfregs.numTexGen.numTexGens);
 
-	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfregs.numTexGen.numTexGens + 1);
 
 	object.Write("};\n");
@@ -104,7 +104,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	uid_data.components = components;
 	uid_data.pixel_lighting = (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting);
 
-	if(api_type == API_OPENGL)
+	if (api_type == API_OPENGL)
 	{
 		out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
 		if (components & VB_HAS_POSMTXIDX)
@@ -384,7 +384,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// clipPos/w needs to be done in pixel shader, not here
 	out.Write("o.clipPos = float4(pos.x,pos.y,o.pos.z,o.pos.w);\n");
 
-	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		out.Write("o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
 
@@ -418,7 +418,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		//seems to get rather complicated
 	}
 
-	if(api_type == API_OPENGL)
+	if (api_type == API_OPENGL)
 	{
 		// Bit ugly here
 		// TODO: Make pretty
@@ -428,7 +428,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 			out.Write(" uv%d_2.xyz =  o.tex%d;\n", i, i);
 		out.Write("  clipPos_2 = o.clipPos;\n");
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			out.Write("  Normal_2 = o.Normal;\n");
 
 		out.Write("colors_02 = o.colors_0;\n");

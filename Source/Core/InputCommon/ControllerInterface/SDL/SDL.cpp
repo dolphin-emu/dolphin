@@ -36,7 +36,7 @@ void Init( std::vector<Core::Device*>& devices )
 	if (SDL_Init( SDL_INIT_FLAGS ) >= 0)
 	{
 		// joysticks
-		for(int i = 0; i < SDL_NumJoysticks(); ++i)
+		for (int i = 0; i < SDL_NumJoysticks(); ++i)
 		{
 			SDL_Joystick* dev = SDL_JoystickOpen(i);
 			if (dev)
@@ -67,12 +67,11 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	std::string lcasename = GetName();
 	std::transform(lcasename.begin(), lcasename.end(), lcasename.begin(), tolower);
 
-	if ((std::string::npos != lcasename.find("xbox 360"))
-		&& (10 == SDL_JoystickNumButtons(joystick))
-		&& (5 == SDL_JoystickNumAxes(joystick))
-		&& (1 == SDL_JoystickNumHats(joystick))
-		&& (0 == SDL_JoystickNumBalls(joystick))
-		)
+	if ((std::string::npos != lcasename.find("xbox 360")) &&
+	    (10 == SDL_JoystickNumButtons(joystick)) &&
+	    (5 == SDL_JoystickNumAxes(joystick)) &&
+	    (1 == SDL_JoystickNumHats(joystick)) &&
+	    (0 == SDL_JoystickNumBalls(joystick)))
 	{
 		// this device won't be used
 		return;

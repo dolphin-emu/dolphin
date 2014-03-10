@@ -139,7 +139,7 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 
 	// TODO!
 #if 0
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 		{Default(inst); return;} // turn off from debugger
 	INSTRUCTION_START;
 		MOV(32, R(EAX), gpr.R(inst.RB));
