@@ -555,7 +555,7 @@ endif()
 
 if(OPENAL_FOUND)
 	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		check_lib(SOUNDTOUCH SoundTouch soundtouch/soundtouch.h QUIET)
+		check_lib(SOUNDTOUCH SoundTouch soundtouch/SoundTouch.h QUIET)
 	endif()
 	if (SOUNDTOUCH_FOUND)
 		message("Using shared soundtouch")
