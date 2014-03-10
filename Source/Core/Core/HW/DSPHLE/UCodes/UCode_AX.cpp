@@ -669,7 +669,6 @@ void CUCode_AX::HandleMail(u32 mail)
 	{
 		CopyCmdList(mail, cmdlist_size);
 		StartWorking();
-		NotifyAXThread();
 	}
 	else if (m_UploadSetupInProgress)
 	{
