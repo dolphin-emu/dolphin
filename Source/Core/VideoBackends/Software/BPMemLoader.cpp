@@ -160,11 +160,11 @@ void SWBPWritten(int address, int newvalue)
 	case BPMEM_TEV_REGISTER_L+6: // Reg 4
 		{
 			int regNum = (address >> 1 ) & 0x3;
-			ColReg& reg = bpmem.tevregs[regNum].low;
-			bool konst = reg.type;
+			TevReg& reg = bpmem.tevregs[regNum];
+			bool konst = reg.type_ra;
 
-			Rasterizer::SetTevReg(regNum, Tev::ALP_C, konst, reg.b); // A
-			Rasterizer::SetTevReg(regNum, Tev::RED_C, konst, reg.a); // R
+			Rasterizer::SetTevReg(regNum, Tev::ALP_C, konst, reg.alpha);
+			Rasterizer::SetTevReg(regNum, Tev::RED_C, konst, reg.red);
 
 			break;
 		}
@@ -175,11 +175,11 @@ void SWBPWritten(int address, int newvalue)
 	case BPMEM_TEV_REGISTER_H+6: // Reg 4
 		{
 			int regNum = (address >> 1 ) & 0x3;
-			ColReg& reg = bpmem.tevregs[regNum].high;
-			bool konst = reg.type;
+			TevReg& reg = bpmem.tevregs[regNum];
+			bool konst = reg.type_bg;
 
-			Rasterizer::SetTevReg(regNum, Tev::GRN_C, konst, reg.b); // G
-			Rasterizer::SetTevReg(regNum, Tev::BLU_C, konst, reg.a); // B
+			Rasterizer::SetTevReg(regNum, Tev::GRN_C, konst, reg.green);
+			Rasterizer::SetTevReg(regNum, Tev::BLU_C, konst, reg.blue);
 
 			break;
 		}
