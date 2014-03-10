@@ -61,7 +61,7 @@ CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _Devi
 
 CWII_IPC_HLE_Device_net_kd_request::~CWII_IPC_HLE_Device_net_kd_request()
 {
-	WiiSockMan::getInstance().clean();
+	WiiSockMan::GetInstance().Clean();
 }
 
 bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
@@ -660,8 +660,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		u32 type = Memory::Read_U32(BufferIn + 0x04);
 		u32 prot = Memory::Read_U32(BufferIn + 0x08);
 
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		ReturnValue = sm.newSocket(af, type, prot);
+		WiiSockMan &sm = WiiSockMan::GetInstance();
+		ReturnValue = sm.NewSocket(af, type, prot);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_SOCKET "
 			"Socket: %08x (%d,%d,%d), BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			ReturnValue, af, type, prot, BufferIn, BufferInSize, BufferOut, BufferOutSize);
@@ -671,8 +671,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 	{
 		u32 pf = Memory::Read_U32(BufferIn);
 
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		ReturnValue = sm.newSocket(pf, SOCK_RAW, IPPROTO_ICMP);
+		WiiSockMan &sm = WiiSockMan::GetInstance();
+		ReturnValue = sm.NewSocket(pf, SOCK_RAW, IPPROTO_ICMP);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_ICMPSOCKET(%x) %d", pf, ReturnValue);
 		break;
 	}
@@ -680,8 +680,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 	case IOCTL_SO_ICMPCLOSE:
 	{
 		u32 fd = Memory::Read_U32(BufferIn);
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		ReturnValue = sm.delSocket(fd);
+		WiiSockMan &sm = WiiSockMan::GetInstance();
+		ReturnValue = sm.DeleteSocket(fd);
 		DEBUG_LOG(WII_IPC_NET, "%s(%x) %x",
 			Command == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE",
 			fd, ReturnValue);
@@ -693,8 +693,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 	case IOCTL_SO_FCNTL:
 	{
 		u32 fd = Memory::Read_U32(BufferIn);
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		sm.doSock(fd, _CommandAddress, (NET_IOCTL)Command);
+		WiiSockMan &sm = WiiSockMan::GetInstance();
+		sm.DoSock(fd, _CommandAddress, (NET_IOCTL)Command);
 		return false;
 	}
 	/////////////////////////////////////////////////////////////
@@ -709,7 +709,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		u32 fd = Memory::Read_U32(BufferIn);
 		u32 how = Memory::Read_U32(BufferIn+4);
 		int ret = shutdown(fd, how);
-		ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_SHUTDOWN", false);
+		ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SHUTDOWN", false);
 		break;
 	}
 	case IOCTL_SO_LISTEN:
@@ -718,7 +718,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		u32 fd = Memory::Read_U32(BufferIn);
 		u32 BACKLOG = Memory::Read_U32(BufferIn + 0x04);
 		u32 ret = listen(fd, BACKLOG);
-		ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_LISTEN", false);
+		ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_LISTEN", false);
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_LISTEN = %d "
 			"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
@@ -750,7 +750,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		u32 optlen = 4;
 
 		int ret = getsockopt (fd, nat_level, nat_optname, (char *) &optval, (socklen_t*)&optlen);
-		ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_GETSOCKOPT", false);
+		ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_GETSOCKOPT", false);
 
 
 		Memory::Write_U32(optlen, BufferOut + 0xC);
@@ -758,7 +758,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 		if (optname == SO_ERROR)
 		{
-			s32 last_error = WiiSockMan::getInstance().getLastNetError();
+			s32 last_error = WiiSockMan::GetInstance().GetLastNetError();
 
 			Memory::Write_U32(sizeof(s32), BufferOut + 0xC);
 			Memory::Write_U32(last_error, BufferOut + 0x10);
@@ -807,7 +807,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		}
 
 		int ret = setsockopt(fd, nat_level, nat_optname, (char*)optval, optlen);
-		ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_SETSOCKOPT", false);
+		ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SETSOCKOPT", false);
 		break;
 	}
 	case IOCTL_SO_GETSOCKNAME:
@@ -946,7 +946,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 			}
 
 			int ret = poll(ufds, nfds, timeout);
-			ret = WiiSockMan::getNetErrorCode(ret, "SO_POLL", false);
+			ret = WiiSockMan::GetNetErrorCode(ret, "SO_POLL", false);
 
 			for (int i = 0; i<nfds; i++)
 			{
@@ -1237,16 +1237,16 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	case IOCTLV_SO_SENDTO:
 	{
 		u32 fd = Memory::Read_U32(_BufferIn2);
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		sm.doSock(fd, CommandAddress, IOCTLV_SO_SENDTO);
+		WiiSockMan &sm = WiiSockMan::GetInstance();
+		sm.DoSock(fd, CommandAddress, IOCTLV_SO_SENDTO);
 		return false;
 		break;
 	}
 	case IOCTLV_SO_RECVFROM:
 	{
 		u32 fd = Memory::Read_U32(_BufferIn);
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		sm.doSock(fd, CommandAddress, IOCTLV_SO_RECVFROM);
+		WiiSockMan &sm = WiiSockMan::GetInstance();
+		sm.DoSock(fd, CommandAddress, IOCTLV_SO_RECVFROM);
 		return false;
 		break;
 	}
@@ -1417,6 +1417,6 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 }
 u32 CWII_IPC_HLE_Device_net_ip_top::Update()
 {
-	WiiSockMan::getInstance().Update();
+	WiiSockMan::GetInstance().Update();
 	return 0;
 }

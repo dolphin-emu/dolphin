@@ -404,8 +404,8 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			WiiSockMan &sm = WiiSockMan::getInstance();
-			sm.doSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_DOHANDSHAKE);
+			WiiSockMan &sm = WiiSockMan::GetInstance();
+			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_DOHANDSHAKE);
 			return false;
 		}
 		else
@@ -419,8 +419,8 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			WiiSockMan &sm = WiiSockMan::getInstance();
-			sm.doSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_WRITE);
+			WiiSockMan &sm = WiiSockMan::GetInstance();
+			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_WRITE);
 			return false;
 		}
 		else
@@ -444,8 +444,8 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			WiiSockMan &sm = WiiSockMan::getInstance();
-			sm.doSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_READ);
+			WiiSockMan &sm = WiiSockMan::GetInstance();
+			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_READ);
 			return false;
 		}
 		else
