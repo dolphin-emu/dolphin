@@ -107,11 +107,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 							AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 							builder.setTitle(R.string.device_compat_warning);
 							builder.setMessage(R.string.device_gles3compat_warning_msg);
-							builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int which) {
-									// Do Nothing. Just create the Yes button
-								}
-							});
+							builder.setPositiveButton(R.string.yes, null);
 							builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog, int which)
 								{

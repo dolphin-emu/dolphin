@@ -255,16 +255,11 @@ public final class EmulationActivity extends Activity
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setTitle(getString(R.string.overlay_exit_emulation));
 				builder.setMessage(R.string.overlay_exit_emulation_confirm);
+				builder.setNegativeButton(R.string.no, null);
 				builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which)
 					{
 						finish();
-					}
-				});
-				builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which)
-					{
-						// Do nothing. Just makes the No button appear.
 					}
 				});
 				builder.show();
