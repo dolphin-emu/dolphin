@@ -110,7 +110,7 @@ public:
 		}
 	}
 
-	static constexpr T MaxVal()
+	static T MaxVal()
 	{
 		return (std::numeric_limits<T>::is_signed)
 		            ? ((1ull << (bits - 1)) - 1ull)
@@ -120,7 +120,7 @@ public:
 	}
 
 private:
-	constexpr u64 GetMask()
+	u64 GetMask() const
 	{
 		return (bits == 64)
 		           ? (~0ull)
