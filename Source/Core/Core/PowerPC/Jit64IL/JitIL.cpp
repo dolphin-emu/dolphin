@@ -223,7 +223,7 @@ namespace JitILProfiler
 	std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
-		finalizer = std::unique_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
+		finalizer.reset(new JitILProfilerFinalizer());
 	}
 	static void Shutdown()
 	{
