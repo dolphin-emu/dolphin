@@ -158,7 +158,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 								no_yes[copy.half_scale],
 								no_yes[copy.scale_invert],
 								no_yes[copy.clear],
-								copy.frame_to_field,
+								(u32)copy.frame_to_field,
 								no_yes[copy.copy_to_xfb],
 								no_yes[copy.intensity_fmt],
 								no_yes[copy.auto_conv]);
