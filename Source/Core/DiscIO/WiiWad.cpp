@@ -38,7 +38,7 @@ WiiWAD::WiiWAD(const std::string& _rName)
 	if (pReader == nullptr || File::IsDirectory(_rName))
 	{
 		m_Valid = false;
-		if(pReader) delete pReader;
+		if (pReader) delete pReader;
 		return;
 	}
 
@@ -131,7 +131,7 @@ bool WiiWAD::IsWiiWAD(const std::string& _rName)
 	if (Reader.Read32(0x00) == 0x20)
 	{
 		u32 WADTYpe = Reader.Read32(0x04);
-		switch(WADTYpe)
+		switch (WADTYpe)
 		{
 		case 0x49730000:
 		case 0x69620000:

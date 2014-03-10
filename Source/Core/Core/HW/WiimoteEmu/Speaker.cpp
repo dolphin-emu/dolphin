@@ -42,7 +42,8 @@ static s32 av_clip(s32 a, s32 amin, s32 amax)
 
 static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, u8 nibble)
 {
-	if(!s.step) {
+	if (!s.step)
+	{
 		s.predictor = 0;
 		s.step = 0;
 	}

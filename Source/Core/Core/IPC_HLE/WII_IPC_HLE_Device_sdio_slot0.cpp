@@ -244,14 +244,14 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 
 	// Prepare the out buffer(s) with zeros as a safety precaution
 	// to avoid returning bad values
-	for(u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
+	for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
 	{
 		Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
 			CommandBuffer.PayloadBuffer[i].m_Size);
 	}
 
 	u32 ReturnValue = 0;
-	switch(CommandBuffer.Parameter) {
+	switch (CommandBuffer.Parameter) {
 	case IOCTLV_SENDCMD:
 		INFO_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address));
 		ReturnValue = ExecuteCommand(

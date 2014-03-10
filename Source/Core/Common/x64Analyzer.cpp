@@ -49,7 +49,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 
 	// Skip two-byte opcode byte
 	bool twoByte = false;
-	if(codeByte == 0x0F)
+	if (codeByte == 0x0F)
 	{
 		twoByte = true;
 		codeByte2 = *codePtr++;

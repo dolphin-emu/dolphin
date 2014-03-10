@@ -246,7 +246,7 @@ void WiimoteConfigDiag::SelectSource(wxCommandEvent& event)
 	// Revert if the dialog is canceled.
 	int index = m_wiimote_index_from_ctrl_id[event.GetId()];
 
-	if(index != WIIMOTE_BALANCE_BOARD)
+	if (index != WIIMOTE_BALANCE_BOARD)
 	{
 		WiimoteReal::ChangeWiimoteSource(index, event.GetInt());
 		if (g_wiimote_sources[index] != WIIMOTE_SRC_EMU && g_wiimote_sources[index] != WIIMOTE_SRC_HYBRID)

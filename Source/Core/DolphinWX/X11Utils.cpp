@@ -57,8 +57,9 @@ void SendMotionEvent(Display *dpy, int x, int y)
 
 void EWMH_Fullscreen(Display *dpy, int action)
 {
-	_assert_(action == _NET_WM_STATE_REMOVE || action == _NET_WM_STATE_ADD
-			|| action == _NET_WM_STATE_TOGGLE);
+	_assert_(action == _NET_WM_STATE_REMOVE ||
+	         action == _NET_WM_STATE_ADD ||
+	         action == _NET_WM_STATE_TOGGLE);
 
 	Window win = (Window)Core::GetWindowHandle();
 
@@ -73,7 +74,7 @@ void EWMH_Fullscreen(Display *dpy, int action)
 
 	// Send the event
 	if (!XSendEvent(dpy, DefaultRootWindow(dpy), False,
-				SubstructureRedirectMask | SubstructureNotifyMask, &event))
+	                SubstructureRedirectMask | SubstructureNotifyMask, &event))
 		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.");
 }
 
@@ -156,7 +157,7 @@ XRRConfiguration::~XRRConfiguration()
 
 void XRRConfiguration::Update()
 {
-	if(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution == "Auto")
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution == "Auto")
 		return;
 
 	if (!bValid)

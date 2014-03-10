@@ -567,7 +567,7 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Write vertex position loader
-	if(g_ActiveConfig.bUseBBox)
+	if (g_ActiveConfig.bUseBBox)
 	{
 		WriteCall(UpdateBoundingBoxPrepare);
 		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
@@ -947,7 +947,7 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[7].Format   = vat.g2.Tex7CoordFormat;
 	m_VtxAttr.texCoord[7].Frac     = vat.g2.Tex7Frac;
 
-	if(!m_VtxAttr.ByteDequant) {
+	if (!m_VtxAttr.ByteDequant) {
 		ERROR_LOG(VIDEO, "ByteDequant is set to zero");
 	}
 };

@@ -29,7 +29,7 @@ template<typename T> AutoState<T>::AutoState(const AutoState<T> &source)
 
 template<typename T> AutoState<T>::~AutoState()
 {
-	if(state) ((T*)state)->Release();
+	if (state) ((T*)state)->Release();
 	state = nullptr;
 }
 

@@ -175,7 +175,7 @@ void CFrame::CreateMenu()
 
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
-	for(int i = 0; i < 10; i++)
+	for (int i = 0; i < 10; i++)
 		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format(wxT("%i"), i), wxEmptyString, wxITEM_RADIO);
 	skippingMenu->Check(IDM_FRAMESKIP0 + SConfig::GetInstance().m_FrameSkip, true);
 	Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
@@ -613,15 +613,15 @@ void CFrame::BootGame(const std::string& filename)
 			if (m_GameListCtrl->GetSelectedISO()->IsValid())
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
-		else if (!StartUp.m_strDefaultGCM.empty()
-				&& wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
+		else if (!StartUp.m_strDefaultGCM.empty() &&
+		         wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
 		{
 			bootfile = StartUp.m_strDefaultGCM;
 		}
 		else
 		{
-			if (!SConfig::GetInstance().m_LastFilename.empty()
-					&& wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			if (!SConfig::GetInstance().m_LastFilename.empty() &&
+			    wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
 			{
 				bootfile = SConfig::GetInstance().m_LastFilename;
 			}
@@ -716,7 +716,7 @@ void CFrame::OnFrameStep(wxCommandEvent& event)
 	Movie::DoFrameStep();
 
 	bool isPaused = (Core::GetState() == Core::CORE_PAUSE);
-	if(isPaused && !wasPaused) // don't update on unpause, otherwise the status would be wrong when pausing next frame
+	if (isPaused && !wasPaused) // don't update on unpause, otherwise the status would be wrong when pausing next frame
 		UpdateGUI();
 }
 
@@ -747,7 +747,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 			controllers |= (1 << (i + 4));
 	}
 
-	if(Movie::BeginRecordingInput(controllers))
+	if (Movie::BeginRecordingInput(controllers))
 		BootGame(std::string(""));
 }
 
@@ -761,7 +761,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
-	if(path.IsEmpty())
+	if (path.IsEmpty())
 		return;
 
 	if (!Movie::IsReadOnly())
@@ -878,7 +878,7 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution != "Auto")
 		m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #elif defined __APPLE__
-	if(bFullscreen)
+	if (bFullscreen)
 		CGDisplayHideCursor(CGMainDisplayID());
 	else
 		CGDisplayShowCursor(CGMainDisplayID());
@@ -1089,9 +1089,9 @@ void CFrame::DoStop()
 		}
 
 		// TODO: Show the author/description dialog here
-		if(Movie::IsRecordingInput())
+		if (Movie::IsRecordingInput())
 			DoRecordingSave();
-		if(Movie::IsPlayingInput() || Movie::IsRecordingInput())
+		if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
 			Movie::EndPlayInput(false);
 		NetPlay::StopGame();
 
@@ -1180,7 +1180,7 @@ void CFrame::DoRecordingSave()
 			wxFD_SAVE | wxFD_PREVIEW | wxFD_OVERWRITE_PROMPT,
 			this);
 
-	if(path.IsEmpty())
+	if (path.IsEmpty())
 		return;
 
 	Movie::SaveRecording(WxStrToStr(path).c_str());
@@ -1392,7 +1392,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 {
 	std::string fileName;
 
-	switch(event.GetId())
+	switch (event.GetId())
 	{
 	case IDM_LIST_INSTALLWAD:
 	{
@@ -1709,8 +1709,8 @@ void CFrame::UpdateGUI()
 				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
 			}
 			// Prepare to load last selected file, enable play button
-			else if (!SConfig::GetInstance().m_LastFilename.empty()
-					&& wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
+			         wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);

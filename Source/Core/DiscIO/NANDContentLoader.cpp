@@ -336,7 +336,7 @@ const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& 
 {
 	CNANDContentMap::iterator lb = m_Map.lower_bound(_rName);
 
-	if(lb == m_Map.end() || (m_Map.key_comp()(_rName, lb->first)))
+	if (lb == m_Map.end() || (m_Map.key_comp()(_rName, lb->first)))
 	{
 		m_Map.insert(lb, CNANDContentMap::value_type(_rName, new CNANDContentLoader(_rName)));
 	}
@@ -367,7 +367,7 @@ bool CNANDContentManager::RemoveTitle(u64 _titleID)
 void CNANDContentLoader::RemoveTitle() const
 {
 	INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
-	if(IsValid())
+	if (IsValid())
 	{
 		// remove tmd?
 		for (u32 i = 0; i < m_numEntries; i++)

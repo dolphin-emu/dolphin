@@ -66,7 +66,7 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 	{
 		Flush();
 
-		if(count > IndexGenerator::GetRemainingIndices())
+		if (count > IndexGenerator::GetRemainingIndices())
 			ERROR_LOG(VIDEO, "Too little remaining index values. Use 32-bit or reset them on flush.");
 		if (count > GetRemainingIndices(primitive))
 			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all indices! "
@@ -77,7 +77,7 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 	}
 
 	// need to alloc new buffer
-	if(IsFlushed)
+	if (IsFlushed)
 	{
 		g_vertex_manager->ResetBuffer(stride);
 		IsFlushed = false;
@@ -88,7 +88,7 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 {
 	u32 index_len = MAXIBUFFERSIZE - IndexGenerator::GetIndexLen();
 
-	if(g_Config.backend_info.bSupportsPrimitiveRestart)
+	if (g_Config.backend_info.bSupportsPrimitiveRestart)
 	{
 		switch (primitive)
 		{
@@ -216,13 +216,15 @@ void VertexManager::Flush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
-		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&
+	                   bpmem.dstalpha.enable &&
+	                   bpmem.blendmode.alphaupdate &&
+	                   bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
-	if(PerfQueryBase::ShouldEmulate())
+	if (PerfQueryBase::ShouldEmulate())
 		g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	g_vertex_manager->vFlush(useDstAlpha);
-	if(PerfQueryBase::ShouldEmulate())
+	if (PerfQueryBase::ShouldEmulate())
 		g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);

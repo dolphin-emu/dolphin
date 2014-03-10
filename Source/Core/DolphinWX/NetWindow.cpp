@@ -277,7 +277,7 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	if (netplay_server->is_connected)
 	{
 #ifdef USE_UPNP
-		if(m_upnp_chk->GetValue())
+		if (m_upnp_chk->GetValue())
 			netplay_server->TryPortmapping(port);
 #endif
 		MakeNetPlayDiag(port, game, true);

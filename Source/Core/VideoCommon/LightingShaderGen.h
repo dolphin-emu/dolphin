@@ -207,7 +207,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			object.Write("lacc.w = 1.0;\n");
 		}
 
-		if(color.enablelighting && alpha.enablelighting)
+		if (color.enablelighting && alpha.enablelighting)
 		{
 			// both have lighting, test if they use the same lights
 			int mask = 0;
@@ -217,10 +217,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			uid_data.diffusefunc |= alpha.diffusefunc << (2*(j+2));
 			uid_data.light_mask |= color.GetFullLightMask() << (8*j);
 			uid_data.light_mask |= alpha.GetFullLightMask() << (8*(j+2));
-			if(color.lightparams == alpha.lightparams)
+			if (color.lightparams == alpha.lightparams)
 			{
 				mask = color.GetFullLightMask() & alpha.GetFullLightMask();
-				if(mask)
+				if (mask)
 				{
 					for (int i = 0; i < 8; ++i)
 					{

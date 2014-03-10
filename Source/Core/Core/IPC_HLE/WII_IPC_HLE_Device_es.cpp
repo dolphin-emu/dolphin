@@ -803,7 +803,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				TMDCnt += DiscIO::INANDContentLoader::TMD_HEADER_SIZE;
 				TMDCnt += (u32)Loader.GetContentSize() * DiscIO::INANDContentLoader::CONTENT_HEADER_SIZE;
 			}
-			if(Buffer.NumberPayloadBuffer)
+			if (Buffer.NumberPayloadBuffer)
 				Memory::Write_U32(TMDCnt, Buffer.PayloadBuffer[0].m_Address);
 
 			Memory::Write_U32(0, _CommandAddress + 0x4);
@@ -1151,7 +1151,7 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 		#endif
 	}
 
-	if(!File::Exists(tmdPath))
+	if (!File::Exists(tmdPath))
 	{
 		File::IOFile _pTMDFile(tmdPath, "wb");
 		if (!_pTMDFile.WriteBytes(_pTMD, _sz))

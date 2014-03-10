@@ -150,8 +150,8 @@ private:
 	{
 		char file_header[sizeof(Header)];
 
-		return (Read(file_header, sizeof(Header))
-			&& !memcmp((const char*)&m_header, file_header, sizeof(Header)));
+		return (Read(file_header, sizeof(Header)) &&
+		        !memcmp((const char*)&m_header, file_header, sizeof(Header)));
 	}
 
 	template <typename D>

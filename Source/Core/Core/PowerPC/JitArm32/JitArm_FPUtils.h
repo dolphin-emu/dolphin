@@ -31,7 +31,7 @@ static Operand2 VXSQRTException(2, 5); // 0x200
 inline void JitArm::SetFPException(ARMReg Reg, u32 Exception)
 {
 	Operand2 *ExceptionMask;
-	switch(Exception)
+	switch (Exception)
 	{
 		case FPSCR_VXCVI:
 			ExceptionMask = &CVIException;

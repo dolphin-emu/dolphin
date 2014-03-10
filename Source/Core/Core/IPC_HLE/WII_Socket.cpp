@@ -188,7 +188,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 			u32 BufferOut = Memory::Read_U32(it->_CommandAddress + 0x18);
 			u32 BufferOutSize = Memory::Read_U32(it->_CommandAddress + 0x1C);
 
-			switch(it->net_type)
+			switch (it->net_type)
 			{
 			case IOCTL_SO_FCNTL:
 			{
@@ -261,8 +261,8 @@ void WiiSocket::update(bool read, bool write, bool except)
 			// Fix blocking error codes
 			if (!nonBlock)
 			{
-				if (it->net_type == IOCTL_SO_CONNECT
-					&& ReturnValue == -SO_EISCONN)
+				if (it->net_type == IOCTL_SO_CONNECT &&
+				    ReturnValue == -SO_EISCONN)
 				{
 					ReturnValue = SO_SUCCESS;
 				}
@@ -305,7 +305,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 				int sslID = Memory::Read_U32(BufferOut) - 1;
 				if (SSLID_VALID(sslID))
 				{
-					switch(it->ssl_type)
+					switch (it->ssl_type)
 					{
 					case IOCTLV_NET_SSL_DOHANDSHAKE:
 					{
@@ -511,12 +511,19 @@ void WiiSocket::update(bool read, bool write, bool except)
 			}
 		}
 
-		if ( nonBlock || forceNonBlock
-			|| (!it->is_ssl && ReturnValue != -SO_EAGAIN && ReturnValue != -SO_EINPROGRESS && ReturnValue != -SO_EALREADY)
-			|| (it->is_ssl && ReturnValue != SSL_ERR_WAGAIN && ReturnValue != SSL_ERR_RAGAIN))
+		if (nonBlock ||
+			forceNonBlock ||
+		    (!it->is_ssl &&
+		     ReturnValue != -SO_EAGAIN &&
+		     ReturnValue != -SO_EINPROGRESS &&
+		     ReturnValue != -SO_EALREADY) ||
+		    (it->is_ssl &&
+		     ReturnValue != SSL_ERR_WAGAIN &&
+		     ReturnValue != SSL_ERR_RAGAIN))
 		{
-			DEBUG_LOG(WII_IPC_NET, "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d",
-				fd, it->is_ssl ? (int) it->ssl_type : (int) it->net_type, ReturnValue, nonBlock, forceNonBlock);
+			DEBUG_LOG(WII_IPC_NET,
+			          "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d",
+			          fd, it->is_ssl ? (int) it->ssl_type : (int) it->net_type, ReturnValue, nonBlock, forceNonBlock);
 			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue);
 			it = pending_sockops.erase(it);
 		}
@@ -552,9 +559,9 @@ void WiiSockMan::addSocket(s32 fd)
 
 s32 WiiSockMan::newSocket(s32 af, s32 type, s32 protocol)
 {
-	if (NetPlay::IsNetPlayRunning()
-		|| Movie::IsRecordingInput()
-		|| Movie::IsPlayingInput())
+	if (NetPlay::IsNetPlayRunning() ||
+	    Movie::IsRecordingInput() ||
+	    Movie::IsPlayingInput())
 	{
 		return SO_ENOMEM;
 	}

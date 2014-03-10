@@ -89,7 +89,7 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 	if (regOffset != -1)
 		RB = gpr.R(regOffset);
 	ARMReg RS = gpr.R(value);
-	switch(accessSize)
+	switch (accessSize)
 	{
 		case 32:
 			MOVI2R(rA, (u32)&Memory::Write_U32);
@@ -129,7 +129,7 @@ void JitArm::stX(UGeckoInstruction inst)
 	bool zeroA = true;
 	bool update = false;
 	bool fastmem = false;
-	switch(inst.OPCD)
+	switch (inst.OPCD)
 	{
 		case 45: // sthu
 			update = true;
@@ -314,10 +314,10 @@ void JitArm::lXX(UGeckoInstruction inst)
 	bool reverse = false;
 	bool fastmem = false;
 
-	switch(inst.OPCD)
+	switch (inst.OPCD)
 	{
 		case 31:
-			switch(inst.SUBOP10)
+			switch (inst.SUBOP10)
 			{
 				case 55: // lwzux
 					zeroA = false;

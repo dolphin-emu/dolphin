@@ -46,7 +46,7 @@ TextureCache::TextureCache()
 
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 
-	if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
+	if (g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
@@ -88,7 +88,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 		{
 			g_texture_cache->Invalidate();
 
-			if(g_ActiveConfig.bHiresTextures)
+			if (g_ActiveConfig.bHiresTextures)
 				HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 
 			SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
@@ -125,10 +125,9 @@ void TextureCache::Cleanup()
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount
-
-			// EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
-			&& ! iter->second->IsEfbCopy() )
+		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount &&
+            // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
+		    !iter->second->IsEfbCopy())
 		{
 			delete iter->second;
 			textures.erase(iter++);
@@ -421,9 +420,14 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if ((entry->type == TCET_NORMAL && width == entry->virtual_width && height == entry->virtual_height
-			&& full_format == entry->format && entry->num_mipmaps > maxlevel)
-			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == width && entry->native_height == height))
+		if ((entry->type == TCET_NORMAL &&
+			 width == entry->virtual_width &&
+			 height == entry->virtual_height &&
+		     full_format == entry->format &&
+		     entry->num_mipmaps > maxlevel) ||
+		    (entry->type == TCET_EC_DYNAMIC &&
+		     entry->native_width == width &&
+		     entry->native_height == height))
 		{
 			// reuse the texture
 		}
@@ -449,7 +453,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 				expandedHeight = height;
 
 				// If we thought we could reuse the texture before, make sure to pool it now!
-				if(entry)
+				if (entry)
 				{
 					delete entry;
 					entry = nullptr;
@@ -750,7 +754,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			ColorMask[4] = ColorMask[7] = 1.0f / 15.0f;
 			
 			cbufid = 16;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 17;
@@ -760,7 +764,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
 			
 			cbufid = 18;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 19;
@@ -771,7 +775,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
 			
 			cbufid = 20;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[0] = 1.0f;
 				fConstAdd[1] = 1.0f;
@@ -818,7 +822,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			ColorMask[7] = 1.0f / 7.0f;
 			
 			cbufid = 27;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 28;
@@ -828,7 +832,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
 			
 			cbufid = 29;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 30;

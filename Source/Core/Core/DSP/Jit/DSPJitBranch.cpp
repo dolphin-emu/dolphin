@@ -21,7 +21,7 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 
 	emitter.dsp_op_read_reg(DSP_REG_SR, EAX);
 
-	switch(cond)
+	switch (cond)
 	{
 	case 0x0: // GE - Greater Equal
 	case 0x1: // L - Less

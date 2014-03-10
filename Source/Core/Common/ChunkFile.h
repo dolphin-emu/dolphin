@@ -306,7 +306,7 @@ private:
 
 	void DoVoid(void *data, u32 size)
 	{
-		for(u32 i = 0; i != size; ++i)
+		for (u32 i = 0; i != size; ++i)
 			DoByte(reinterpret_cast<u8*>(data)[i]);
 	}
 };

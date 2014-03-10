@@ -35,13 +35,13 @@ public:
 	int AppendData(void* data, int size, int vertex_size)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
-		if(offset + size >= max_size)
+		if (offset + size >= max_size)
 		{
 			// wrap buffer around and notify observers
 			offset = 0;
 			context->Map(buf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 
-			for(bool* observer : observers)
+			for (bool* observer : observers)
 				*observer = true;
 		}
 		else
@@ -623,10 +623,10 @@ void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 		{ x2, y1, 0.f, Color },
 	};
 
-	if(cq_observer ||
-		draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||
-		draw_quad_data.x2 != x2 || draw_quad_data.y2 != y2 ||
-		draw_quad_data.col != Color)
+	if (cq_observer ||
+	    draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||
+	    draw_quad_data.x2 != x2 || draw_quad_data.y2 != y2 ||
+	    draw_quad_data.col != Color)
 	{
 		cq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(ColVertex));
 		cq_observer = false;

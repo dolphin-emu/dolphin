@@ -223,7 +223,7 @@ void VideoSoftware::Video_EndField()
 	}
 	if (!g_SWVideoConfig.bHwRasterizer)
 	{
-		if(!g_SWVideoConfig.bBypassXFB)
+		if (!g_SWVideoConfig.bBypassXFB)
 		{
 			EfbInterface::yuv422_packed *xfb = (EfbInterface::yuv422_packed *) Memory::GetPointer(s_beginFieldArgs.xfbAddr);
 

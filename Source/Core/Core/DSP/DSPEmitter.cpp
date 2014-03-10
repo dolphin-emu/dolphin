@@ -34,7 +34,7 @@ DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 	stubEntryPoint = CompileStub();
 
 	//clear all of the block references
-	for(int i = 0x0000; i < MAX_BLOCKS; i++)
+	for (int i = 0x0000; i < MAX_BLOCKS; i++)
 	{
 		blocks[i] = (DSPCompiledCode)stubEntryPoint;
 		blockLinks[i] = nullptr;
@@ -52,7 +52,7 @@ DSPEmitter::~DSPEmitter()
 
 void DSPEmitter::ClearIRAM()
 {
-	for(int i = 0x0000; i < 0x1000; i++)
+	for (int i = 0x0000; i < 0x1000; i++)
 	{
 		blocks[i] = (DSPCompiledCode)stubEntryPoint;
 		blockLinks[i] = nullptr;
@@ -68,7 +68,7 @@ void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
 	CompileDispatcher();
 	stubEntryPoint = CompileStub();
 
-	for(int i = 0x0000; i < 0x10000; i++)
+	for (int i = 0x0000; i < 0x10000; i++)
 	{
 		blocks[i] = (DSPCompiledCode)stubEntryPoint;
 		blockLinks[i] = nullptr;
@@ -334,7 +334,7 @@ void DSPEmitter::Compile(u16 start_addr)
 	{
 		blockLinks[start_addr] = blockLinkEntry;
 
-		for(u16 i = 0x0000; i < 0xffff; ++i)
+		for (u16 i = 0x0000; i < 0xffff; ++i)
 		{
 			if (!unresolvedJumps[i].empty())
 			{

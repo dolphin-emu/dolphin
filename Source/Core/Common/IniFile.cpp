@@ -373,8 +373,11 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 					// Lines starting with '$', '*' or '+' are kept verbatim.
 					// Kind of a hack, but the support for raw lines inside an
 					// INI is a hack anyway.
-					if ((key == "" && value == "")
-					        || (line.size() >= 1 && (line[0] == '$' || line[0] == '+' || line[0] == '*')))
+					if ((key == "" && value == "") ||
+					    (line.size() >= 1 &&
+					     (line[0] == '$' ||
+					      line[0] == '+' ||
+					      line[0] == '*')))
 						current_section->lines.push_back(line);
 					else
 						current_section->Set(key, value);

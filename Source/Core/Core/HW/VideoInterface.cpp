@@ -515,7 +515,7 @@ static void BeginField(FieldType field)
 		// But the PAL ports of some games are poorly programmed and don't use correct ordering.
 		// Zelda: Wind Waker and Simpsons Hit & Run are exampes of this, there are probally more.
 		// PAL Wind Waker also runs at 30fps instead of 25.
-		if(field == FieldType::FIELD_PROGRESSIVE || GetXFBAddressBottom() != (GetXFBAddressTop() - 1280))
+		if (field == FieldType::FIELD_PROGRESSIVE || GetXFBAddressBottom() != (GetXFBAddressTop() - 1280))
 		{
 			WARN_LOG(VIDEOINTERFACE, "PAL game is trying to use incorrect (NTSC) field ordering");
 			// Lets kindly fix this for them.
@@ -523,7 +523,9 @@ static void BeginField(FieldType field)
 
 			// TODO: PAL Simpsons Hit & Run now has a green line at the bottom when Real XFB is used.
 			// Might be a bug later on in our code, or a bug in the actual game.
-		} else {
+		}
+		else
+		{
 			xfbAddr = GetXFBAddressBottom();
 		}
 	} else {

@@ -90,7 +90,7 @@ DSPAssembler::DSPAssembler(const AssemblerSettings &settings) :
 
 DSPAssembler::~DSPAssembler()
 {
-	if(gdg_buffer)
+	if (gdg_buffer)
 		free(gdg_buffer);
 }
 
@@ -109,7 +109,7 @@ bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vecto
 	if (m_totalSize > 0)
 	{
 		gdg_buffer = (char *)malloc(m_totalSize * sizeof(u16) + 4);
-		if(!gdg_buffer)
+		if (!gdg_buffer)
 			return false;
 
 		memset(gdg_buffer, 0, m_totalSize * sizeof(u16));
@@ -121,11 +121,13 @@ bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vecto
 		return false;
 
 	code.resize(m_totalSize);
-	for (int i = 0; i < m_totalSize; i++) {
+	for (int i = 0; i < m_totalSize; i++)
+	{
 		code[i] = *(u16 *)(gdg_buffer + i * 2);
 	}
 
-	if(gdg_buffer) {
+	if (gdg_buffer)
+	{
 		free(gdg_buffer);
 		gdg_buffer = nullptr;
 	}
@@ -223,7 +225,7 @@ s32 DSPAssembler::ParseValue(const char *str)
 				for (int i = 2; ptr[i] != 0; i++)
 				{
 					val *=2;
-					if(ptr[i] >= '0' && ptr[i] <= '1')
+					if (ptr[i] >= '0' && ptr[i] <= '1')
 						val += ptr[i] - '0';
 					else
 						ShowError(ERR_INCORRECT_BIN, str);
@@ -773,7 +775,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 	{
 		int opcode_size = 0;
 		fsrc.getline(line, LINEBUF_SIZE);
-		if(fsrc.fail())
+		if (fsrc.fail())
 			break;
 
 		cur_line = line;
@@ -836,7 +838,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		{
 			bool valid = true;
 
-			for(int j = 0; j < (int)col_pos; j++)
+			for (int j = 0; j < (int)col_pos; j++)
 			{
 				if (j == 0)
 					if (!((ptr[j] >= 'A' && ptr[j] <= 'Z') || (ptr[j] == '_')))

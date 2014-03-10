@@ -46,7 +46,7 @@ namespace JitInterface
 		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
 		CPUCoreBase *ptr = nullptr;
-		switch(core)
+		switch (core)
 		{
 			#if _M_X86
 			case 1:
@@ -85,7 +85,7 @@ namespace JitInterface
 	}
 	void InitTables(int core)
 	{
-		switch(core)
+		switch (core)
 		{
 			#if _M_X86
 			case 1:

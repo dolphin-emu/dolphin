@@ -324,7 +324,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		if (s_Stream->codec->coded_frame->pts != (unsigned int)AV_NOPTS_VALUE)
 			pkt.pts = av_rescale_q(s_Stream->codec->coded_frame->pts,
 					s_Stream->codec->time_base, s_Stream->time_base);
-		if(s_Stream->codec->coded_frame->key_frame)
+		if (s_Stream->codec->coded_frame->key_frame)
 			pkt.flags |= AV_PKT_FLAG_KEY;
 		pkt.stream_index = s_Stream->index;
 		pkt.data = s_OutBuffer;

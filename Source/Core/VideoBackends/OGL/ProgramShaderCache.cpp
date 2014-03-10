@@ -47,9 +47,9 @@ void SHADER::SetProgramVariables()
 		GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
 		GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
 
-		if(PSBlock_id != -1)
+		if (PSBlock_id != -1)
 			glUniformBlockBinding(glprogid, PSBlock_id, 1);
-		if(VSBlock_id != -1)
+		if (VSBlock_id != -1)
 			glUniformBlockBinding(glprogid, VSBlock_id, 2);
 	}
 
@@ -89,7 +89,7 @@ void SHADER::SetProgramBindings()
 	glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB,    "rawnorm1");
 	glBindAttribLocation(glprogid, SHADER_NORM2_ATTRIB,    "rawnorm2");
 
-	for(int i=0; i<8; i++) {
+	for (int i=0; i<8; i++) {
 		char attrib_name[8];
 		snprintf(attrib_name, 8, "tex%d", i);
 		glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB+i, attrib_name);
@@ -98,7 +98,7 @@ void SHADER::SetProgramBindings()
 
 void SHADER::Bind()
 {
-	if(CurrentProgram != glprogid)
+	if (CurrentProgram != glprogid)
 	{
 		glUseProgram(glprogid);
 		CurrentProgram = glprogid;
@@ -107,7 +107,7 @@ void SHADER::Bind()
 
 void ProgramShaderCache::UploadConstants()
 {
-	if(PixelShaderManager::dirty || VertexShaderManager::dirty)
+	if (PixelShaderManager::dirty || VertexShaderManager::dirty)
 	{
 		auto buffer = s_buffer->Map(s_ubo_buffer_size, s_ubo_align);
 
@@ -210,7 +210,7 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 	GLuint vsid = CompileSingleShader(GL_VERTEX_SHADER, vcode);
 	GLuint psid = CompileSingleShader(GL_FRAGMENT_SHADER, pcode);
 
-	if(!vsid || !psid)
+	if (!vsid || !psid)
 	{
 		glDeleteShader(vsid);
 		glDeleteShader(psid);
@@ -250,7 +250,7 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		file << s_glsl_header << vcode << s_glsl_header << pcode << infoLog;
 		file.close();
 
-		if(linkStatus != GL_TRUE)
+		if (linkStatus != GL_TRUE)
 			PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
 				szTemp,
 				g_ogl_config.gl_vendor,
@@ -308,7 +308,7 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		file << s_glsl_header << code << infoLog;
 		file.close();
 
-		if(compileStatus != GL_TRUE)
+		if (compileStatus != GL_TRUE)
 			PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
 				type==GL_VERTEX_SHADER ? "vertex" : "pixel",
 				szTemp,
@@ -373,7 +373,7 @@ void ProgramShaderCache::Init(void)
 	{
 		GLint Supported;
 		glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
-		if(!Supported)
+		if (!Supported)
 		{
 			ERROR_LOG(VIDEO, "GL_ARB_get_program_binary is supported, but no binary format is known. So disable shader cache.");
 			g_ogl_config.bSupportsGLSLCache = false;
@@ -406,14 +406,14 @@ void ProgramShaderCache::Shutdown(void)
 	{
 		for (auto& entry : pshaders)
 		{
-			if(entry.second.in_cache)
+			if (entry.second.in_cache)
 			{
 				continue;
 			}
 
 			GLint binary_size;
 			glGetProgramiv(entry.second.shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
-			if(!binary_size)
+			if (!binary_size)
 			{
 				continue;
 			}

@@ -66,7 +66,7 @@ static const u32 SYNC_POINTS = 16;
 void StreamBuffer::CreateFences()
 {
 	fences = new GLsync[SYNC_POINTS];
-	for(u32 i=0; i<SYNC_POINTS; i++)
+	for (u32 i=0; i<SYNC_POINTS; i++)
 		fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }
 void StreamBuffer::DeleteFences()
@@ -123,7 +123,7 @@ void StreamBuffer::AllocMemory(size_t size)
 
 void StreamBuffer::Align(u32 stride)
 {
-	if(m_iterator && stride) {
+	if (m_iterator && stride) {
 		m_iterator--;
 		m_iterator = m_iterator - (m_iterator % stride) + stride;
 	}
@@ -149,7 +149,7 @@ public:
 
 	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
 		Align(stride);
-		if(m_iterator + size >= m_size) {
+		if (m_iterator + size >= m_size) {
 			glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
 			m_iterator = 0;
 		}
@@ -350,9 +350,9 @@ public:
 StreamBuffer* StreamBuffer::Create(u32 type, size_t size)
 {
 	// without basevertex support, only streaming methods whith uploads everything to zero works fine:
-	if(!g_ogl_config.bSupportsGLBaseVertex)
+	if (!g_ogl_config.bSupportsGLBaseVertex)
 	{
-		if(!DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
+		if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
 			return new BufferSubData(type, size);
 
 		// BufferData is by far the worst way, only use it if needed
@@ -360,7 +360,7 @@ StreamBuffer* StreamBuffer::Create(u32 type, size_t size)
 	}
 
 	// Prefer the syncing buffers over the orphaning one
-	if(g_ogl_config.bSupportsGLSync)
+	if (g_ogl_config.bSupportsGLSync)
 	{
 		// try to use buffer storage whenever possible
 		if (g_ogl_config.bSupportsGLBufferStorage &&
@@ -368,16 +368,16 @@ StreamBuffer* StreamBuffer::Create(u32 type, size_t size)
 			return new BufferStorage(type, size);
 
 		// pinned memory is almost as fine
-		if(g_ogl_config.bSupportsGLPinnedMemory &&
+		if (g_ogl_config.bSupportsGLPinnedMemory &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER))
 			return new PinnedMemory(type, size);
 
 		// don't fall back to MapAnd* for nvidia drivers
-		if(DriverDetails::HasBug(DriverDetails::BUG_BROKENUNSYNCMAPPING))
+		if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUNSYNCMAPPING))
 			return new BufferSubData(type, size);
 
 		// mapping fallback
-		if(g_ogl_config.bSupportsGLSync)
+		if (g_ogl_config.bSupportsGLSync)
 			return new MapAndSync(type, size);
 	}
 

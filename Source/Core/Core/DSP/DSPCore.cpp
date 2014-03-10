@@ -202,7 +202,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	// Initialize JIT, if necessary
-	if(bUsingJIT)
+	if (bUsingJIT)
 		dspjit = new DSPEmitter();
 
 	core_state = DSPCORE_RUNNING;
@@ -216,7 +216,7 @@ void DSPCore_Shutdown()
 
 	core_state = DSPCORE_STOP;
 
-	if(dspjit) {
+	if (dspjit) {
 		delete dspjit;
 		dspjit = nullptr;
 	}
@@ -377,7 +377,7 @@ void CompileCurrent()
 	while (retry)
 	{
 		retry = false;
-		for(u16 i = 0x0000; i < 0xffff; ++i)
+		for (u16 i = 0x0000; i < 0xffff; ++i)
 		{
 			if (!dspjit->unresolvedJumps[i].empty())
 			{
@@ -392,7 +392,7 @@ void CompileCurrent()
 
 u16 DSPCore_ReadRegister(int reg)
 {
-	switch(reg)
+	switch (reg)
 	{
 	case DSP_REG_AR0:
 	case DSP_REG_AR1:
@@ -443,7 +443,7 @@ u16 DSPCore_ReadRegister(int reg)
 
 void DSPCore_WriteRegister(int reg, u16 val)
 {
-	switch(reg)
+	switch (reg)
 	{
 	case DSP_REG_AR0:
 	case DSP_REG_AR1:

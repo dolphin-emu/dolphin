@@ -164,7 +164,7 @@ public:
 		FFDeviceObjectReference ref;
 
 		HRESULT hr = FFCreateDevice(hidDevice, &ref);
-		if(SUCCEEDED(hr))
+		if (SUCCEEDED(hr))
 			*pDeviceReference = new FFDeviceAdapter(ref);
 
 		return hr;
@@ -175,7 +175,7 @@ public:
 		FFEffectObjectReference ref;
 
 		HRESULT hr = FFDeviceCreateEffect(m_device, uuidRef, pEffectDefinition, &ref);
-		if(SUCCEEDED(hr))
+		if (SUCCEEDED(hr))
 			*pEffectReference = new FFEffectAdapter(m_device, ref);
 
 		return hr;

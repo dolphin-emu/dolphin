@@ -198,7 +198,7 @@ public:
 		SetEnableBooting(0);
 		SetEmail("@wii.com");
 
-		for(i=0; i<nwc24_config_t::URL_COUNT; i++)
+		for (i=0; i<nwc24_config_t::URL_COUNT; i++)
 		{
 			strncpy(config.http_urls[i], urls[i], nwc24_config_t::MAX_URL_LENGTH);
 		}
@@ -231,7 +231,7 @@ public:
 			else
 			{
 				s32 config_error = CheckNwc24Config();
-				if(config_error)
+				if (config_error)
 					ERROR_LOG(WII_IPC_WC24, "There is an error in the config for for WC24: %d", config_error);
 			}
 		}

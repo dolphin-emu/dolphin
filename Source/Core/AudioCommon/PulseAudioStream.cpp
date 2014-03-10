@@ -49,7 +49,7 @@ void PulseAudio::SoundLoop()
 		while (m_run_thread.load() && m_pa_connected == 1 && m_pa_error >= 0)
 			m_pa_error = pa_mainloop_iterate(m_pa_ml, 1, nullptr);
 
-		if(m_pa_error < 0)
+		if (m_pa_error < 0)
 			ERROR_LOG(AUDIO, "PulseAudio error: %s", pa_strerror(m_pa_error));
 
 		PulseShutdown();

@@ -28,7 +28,7 @@ static u32 state_checksum(u32 *buf, int len)
 	u32 checksum = 0;
 	len = len>>2;
 
-	for(int i=0; i<len; i++)
+	for (int i=0; i<len; i++)
 	{
 		checksum += buf[i];
 	}

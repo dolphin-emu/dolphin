@@ -54,7 +54,7 @@ void GFXDebuggerCheckAndPause(bool update)
 	if (GFXDebuggerPauseFlag)
 	{
 		g_pdebugger->OnPause();
-		while( GFXDebuggerPauseFlag )
+		while ( GFXDebuggerPauseFlag )
 		{
 			g_video_backend->UpdateFPSDisplay("Paused by Video Debugger");
 
@@ -93,7 +93,7 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 	}
 	else
 	{
-		if(g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+		if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 		{
 			output = "Using dual source blending for destination alpha:\n";
 ///			output += GeneratePixelShaderCode(DSTALPHA_DUAL_SOURCE_BLEND, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);

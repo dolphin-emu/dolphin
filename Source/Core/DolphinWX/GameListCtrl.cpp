@@ -120,7 +120,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 		indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
-	switch(sortData)
+	switch (sortData)
 	{
 		case CGameListCtrl::COLUMN_TITLE:
 			if (!strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()))
@@ -143,9 +143,9 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 				return strcasecmp(cmp1.c_str(), cmp2.c_str()) * t;
 			}
 		case CGameListCtrl::COLUMN_COUNTRY:
-			if(iso1->GetCountry() > iso2->GetCountry())
+			if (iso1->GetCountry() > iso2->GetCountry())
 				return  1 * t;
-			if(iso1->GetCountry() < iso2->GetCountry())
+			if (iso1->GetCountry() < iso2->GetCountry())
 				return -1 * t;
 			return 0;
 		case CGameListCtrl::COLUMN_SIZE:
@@ -155,9 +155,9 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 				return -1 * t;
 			return 0;
 		case CGameListCtrl::COLUMN_PLATFORM:
-			if(iso1->GetPlatform() > iso2->GetPlatform())
+			if (iso1->GetPlatform() > iso2->GetPlatform())
 				return  1 * t;
-			if(iso1->GetPlatform() < iso2->GetPlatform())
+			if (iso1->GetPlatform() < iso2->GetPlatform())
 				return -1 * t;
 			return 0;
 
@@ -471,7 +471,7 @@ wxColour blend50(const wxColour& c1, const wxColour& c2)
 
 void CGameListCtrl::SetBackgroundColor()
 {
-	for(long i = 0; i < GetItemCount(); i++)
+	for (long i = 0; i < GetItemCount(); i++)
 	{
 		wxColour color = (i & 1) ?
 			blend50(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT),
@@ -564,7 +564,7 @@ void CGameListCtrl::ScanForISOs()
 			{
 				bool list = true;
 
-				switch(ISOFile.GetPlatform())
+				switch (ISOFile.GetPlatform())
 				{
 					case GameListItem::WII_DISC:
 						if (!SConfig::GetInstance().m_ListWii)
@@ -580,7 +580,7 @@ void CGameListCtrl::ScanForISOs()
 						break;
 				}
 
-				switch(ISOFile.GetCountry())
+				switch (ISOFile.GetCountry())
 				{
 					case DiscIO::IVolume::COUNTRY_TAIWAN:
 						if (!SConfig::GetInstance().m_ListTaiwan)
@@ -665,7 +665,7 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 
 void CGameListCtrl::OnColumnClick(wxListEvent& event)
 {
-	if(event.GetColumn() != COLUMN_BANNER)
+	if (event.GetColumn() != COLUMN_BANNER)
 	{
 		int current_column = event.GetColumn();
 		if (sorted)
@@ -876,7 +876,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			popupMenu->AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
 
 			// First we have to decide a starting value when we append it
-			if(selected_iso->GetFileName() == SConfig::GetInstance().
+			if (selected_iso->GetFileName() == SConfig::GetInstance().
 				m_LocalCoreStartupParameter.m_strDefaultGCM)
 				popupMenu->FindItem(IDM_SETDEFAULTGCM)->Check();
 
@@ -887,8 +887,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			{
 				if (selected_iso->IsCompressed())
 					popupMenu->Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
-				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso"
-						 && selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
+				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" &&
+				         selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
 					popupMenu->Append(IDM_COMPRESSGCM, _("Compress ISO..."));
 			}
 			else
@@ -1039,7 +1039,7 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 		return;
 
 	CISOProperties ISOProperties(iso->GetFileName(), this);
-	if(ISOProperties.ShowModal() == wxID_OK)
+	if (ISOProperties.ShowModal() == wxID_OK)
 		Update();
 }
 

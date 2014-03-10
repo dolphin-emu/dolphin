@@ -122,12 +122,12 @@ bool CSIDevice_DanceMat::GetData(u32& _Hi, u32& _Low)
 
 	Movie::SetPolledDevice();
 
-	if(Movie::IsPlayingInput())
+	if (Movie::IsPlayingInput())
 	{
 		Movie::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
 		Movie::InputUpdate();
 	}
-	else if(Movie::IsRecordingInput())
+	else if (Movie::IsRecordingInput())
 	{
 		Movie::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
 		Movie::InputUpdate();

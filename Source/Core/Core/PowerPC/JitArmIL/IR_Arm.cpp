@@ -165,7 +165,7 @@ static void regWriteExit(RegInfo& RI, InstLoc dest) {
 }
 static void regStoreInstToPPCState(RegInfo& RI, unsigned width, InstLoc I, s32 offset) {
 	void (JitArmIL::*op)(ARMReg, ARMReg, Operand2, bool);
-	switch(width)
+	switch (width)
 	{
 		case 32:
 			op = &JitArmIL::STR;

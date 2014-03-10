@@ -207,7 +207,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 				}
 				wxString OpenCommand;
 				OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
-				if(!OpenCommand.IsEmpty())
+				if (!OpenCommand.IsEmpty())
 					wxExecute(OpenCommand, wxEXEC_SYNC);
 			}
 		}
@@ -227,7 +227,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_CLEARSYMBOLS:
-		if(!AskYesNo("Do you want to clear the list of symbol names?")) return;
+		if (!AskYesNo("Do you want to clear the list of symbol names?")) return;
 		g_symbolDB.Clear();
 		Host_NotifyMapLoaded();
 		break;
@@ -381,9 +381,9 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
 		if (pSymbol != nullptr)
 		{
-			if(pSymbol->type == Symbol::SYMBOL_DATA)
+			if (pSymbol->type == Symbol::SYMBOL_DATA)
 			{
-				if(m_MemoryWindow)// && m_MemoryWindow->IsVisible())
+				if (m_MemoryWindow)// && m_MemoryWindow->IsVisible())
 					m_MemoryWindow->JumpToAddress(pSymbol->address);
 			}
 			else

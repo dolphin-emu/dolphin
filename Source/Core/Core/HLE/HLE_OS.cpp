@@ -32,9 +32,12 @@ void HLE_OSPanic()
 void HLE_GeneralDebugPrint()
 {
 	std::string ReportMessage;
-	if(*(u32*)Memory::GetPointer(GPR(3)) > 0x80000000){
+	if (*(u32*)Memory::GetPointer(GPR(3)) > 0x80000000)
+	{
 		GetStringVA(ReportMessage, 4);
-	}else{
+	}
+	else
+	{
 		GetStringVA(ReportMessage);
 	}
 	NPC = LR;
@@ -50,7 +53,8 @@ void HLE_VPrintf()
 	u32 offset = Memory::Read_U32(r4+8);
 	u32 check = Memory::Read_U32(r4);
 	//NOTICE_LOG(OSREPORT, "Offset: %08X, Check %08X", offset, check);
-	for(int i = 4; i<= 10; i++){
+	for (int i = 4; i<= 10; i++)
+	{
 		GPR(i) = Memory::Read_U32(offset+(i-(check == 0x01000000? 3 : 2))*4);
 		//NOTICE_LOG(OSREPORT, "r%d: %08X",i, GPR(i));
 	}
@@ -96,18 +100,18 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 		return;
 	}
 
-	while(*pString)
+	while (*pString)
 	{
 		if (*pString == '%')
 		{
 			char* pArgument = ArgumentBuffer;
 			*pArgument++ = *pString++;
-			if(*pString == '%') {
+			if (*pString == '%') {
 				_rOutBuffer += "%";
 				pString++;
 				continue;
 			}
-			while(*pString < 'A' || *pString > 'z' || *pString == 'l' || *pString == '-')
+			while (*pString < 'A' || *pString > 'z' || *pString == 'l' || *pString == '-')
 				*pArgument++ = *pString++;
 
 			*pArgument++ = *pString;
@@ -130,7 +134,7 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 			}
 			ParameterCounter++;
 
-			switch(*pString)
+			switch (*pString)
 			{
 			case 's':
 				_rOutBuffer += StringFromFormat(ArgumentBuffer, (char*)Memory::GetPointer((u32)Parameter));
@@ -170,7 +174,7 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 			pString++;
 		}
 	}
-	if(_rOutBuffer[_rOutBuffer.length() - 1] == '\n')
+	if (_rOutBuffer[_rOutBuffer.length() - 1] == '\n')
 		_rOutBuffer.resize(_rOutBuffer.length() - 1);
 }
 

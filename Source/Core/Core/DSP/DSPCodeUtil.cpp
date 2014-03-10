@@ -135,7 +135,7 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 {
 	std::vector<std::vector<u16> > codes_padded;
 	u32 reserveSize = 0;
-	for(u32 i = 0; i < numCodes; i++)
+	for (u32 i = 0; i < numCodes; i++)
 	{
 		codes_padded.push_back(codes[i]);
 		// Pad with nops to 32byte boundary
@@ -158,9 +158,9 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 	header.append("};\n\n");
 	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
-	for(u32 i = 0; i < numCodes; i++)
+	for (u32 i = 0; i < numCodes; i++)
 	{
-		if(codes[i].size() == 0)
+		if (codes[i].size() == 0)
 			continue;
 
 		header.append("\t{\n\t\t");

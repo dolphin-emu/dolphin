@@ -248,7 +248,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 	u32 DataSize = _Size - sizeof(l2cap_hdr_t);
 	INFO_LOG(WII_IPC_WIIMOTE, "  CID 0x%04x, Len 0x%x, DataSize 0x%x", pHeader->dcid, pHeader->length, DataSize);
 
-	if(pHeader->length != DataSize)
+	if (pHeader->length != DataSize)
 	{
 		INFO_LOG(WII_IPC_WIIMOTE, "Faulty packet. It is dropped.");
 		return;
@@ -776,7 +776,7 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 
 	CBigEndianBuffer buffer(_pData);
 
-	switch(buffer.Read8(0))
+	switch (buffer.Read8(0))
 	{
 	// SDP_ServiceSearchRequest
 	case 0x02:

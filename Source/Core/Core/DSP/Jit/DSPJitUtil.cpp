@@ -204,7 +204,7 @@ void DSPEmitter::dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg, D
 	case DSP_REG_ST2:
 	case DSP_REG_ST3:
 		dsp_reg_load_stack(reg - DSP_REG_ST0, host_dreg);
-		switch(extend)
+		switch (extend)
 		{
 		case SIGN:
 #if _M_X86_64
@@ -240,7 +240,7 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 	case DSP_REG_ST2:
 	case DSP_REG_ST3:
 		dsp_reg_load_stack(reg - DSP_REG_ST0, host_dreg);
-		switch(extend)
+		switch (extend)
 		{
 		case SIGN:
 #if _M_X86_64

@@ -225,7 +225,7 @@ void PrintObject(const T &Obj)
 	ss << std::hex;
 	for (size_t i = 0; i < sizeof(T); i++)
 	{
-		if((i & 1) == 0)
+		if ((i & 1) == 0)
 			ss << ' ';
 		ss.width(2);
 		ss.fill('0');

@@ -69,7 +69,7 @@ namespace DriverDetails
 		m_family = family;
 
 		if (driver == DRIVER_UNKNOWN)
-			switch(vendor)
+			switch (vendor)
 			{
 				case VENDOR_NVIDIA:
 				case VENDOR_TEGRA:
@@ -91,15 +91,14 @@ namespace DriverDetails
 					break;
 			}
 
-		for(auto& bug : m_known_bugs)
+		for (auto& bug : m_known_bugs)
 		{
-			if(
-				( bug.m_os & m_os ) &&
-				( bug.m_vendor == m_vendor || bug.m_vendor == VENDOR_ALL ) &&
-				( bug.m_driver == m_driver || bug.m_driver == DRIVER_ALL ) &&
-				( bug.m_family == m_family || bug.m_family == -1) &&
-				( bug.m_versionstart <= m_version || bug.m_versionstart == -1 ) &&
-				( bug.m_versionend > m_version || bug.m_versionend == -1 )
+			if (( bug.m_os & m_os ) &&
+			    ( bug.m_vendor == m_vendor || bug.m_vendor == VENDOR_ALL ) &&
+			    ( bug.m_driver == m_driver || bug.m_driver == DRIVER_ALL ) &&
+			    ( bug.m_family == m_family || bug.m_family == -1) &&
+			    ( bug.m_versionstart <= m_version || bug.m_versionstart == -1 ) &&
+			    ( bug.m_versionend > m_version || bug.m_versionend == -1 )
 			)
 				m_bugs.insert(std::make_pair(bug.m_bug, bug));
 		}

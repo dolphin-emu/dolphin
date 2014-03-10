@@ -268,7 +268,7 @@ void HLEGeckoCodehandler()
 	{
 		return;
 	}
-	else if(existing - magic > 5)
+	else if (existing - magic > 5)
 	{
 		existing = magic;
 	}

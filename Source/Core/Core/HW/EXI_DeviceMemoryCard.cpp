@@ -134,7 +134,7 @@ void innerFlush(FlushData* data)
 // Flush memory card contents to disc
 void CEXIMemoryCard::Flush(bool exiting)
 {
-	if(!m_bDirty)
+	if (!m_bDirty)
 		return;
 
 	if (!Core::g_CoreStartupParameter.bEnableMemcardSaving)
@@ -145,7 +145,7 @@ void CEXIMemoryCard::Flush(bool exiting)
 		flushThread.join();
 	}
 
-	if(!exiting)
+	if (!exiting)
 		Core::DisplayMessage(StringFromFormat("Writing to memory card %c", card_index ? 'B' : 'A'), 1000);
 
 	flushData.filename = m_strFilename;
@@ -423,7 +423,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				break;
 			}
 
-			if(m_uPosition >= 5)
+			if (m_uPosition >= 5)
 				programming_buffer[((m_uPosition - 5) & 0x7F)] = byte; // wrap around after 128 bytes
 
 			byte = 0xFF;

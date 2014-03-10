@@ -24,7 +24,7 @@ namespace DInput
 void GetXInputGUIDS( std::vector<DWORD>& guids )
 {
 
-#define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=nullptr; } }
+#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=nullptr; } }
 
 	IWbemLocator*           pIWbemLocator  = nullptr;
 	IEnumWbemClassObject*   pEnumDevices   = nullptr;
@@ -50,9 +50,9 @@ void GetXInputGUIDS( std::vector<DWORD>& guids )
 	if (FAILED(hr) || pIWbemLocator == nullptr)
 		goto LCleanup;
 
-	bstrNamespace = SysAllocString(L"\\\\.\\root\\cimv2");if(bstrNamespace == nullptr) goto LCleanup;
-	bstrClassName = SysAllocString(L"Win32_PNPEntity");   if(bstrClassName == nullptr) goto LCleanup;
-	bstrDeviceID  = SysAllocString(L"DeviceID");          if(bstrDeviceID == nullptr)  goto LCleanup;
+	bstrNamespace = SysAllocString(L"\\\\.\\root\\cimv2"); if (bstrNamespace == nullptr) goto LCleanup;
+	bstrClassName = SysAllocString(L"Win32_PNPEntity");    if (bstrClassName == nullptr) goto LCleanup;
+	bstrDeviceID  = SysAllocString(L"DeviceID");           if (bstrDeviceID == nullptr)  goto LCleanup;
 
 	// Connect to WMI
 	hr = pIWbemLocator->ConnectServer(bstrNamespace, nullptr, nullptr, 0L, 0L, nullptr, nullptr, &pIWbemServices);
@@ -105,11 +105,11 @@ void GetXInputGUIDS( std::vector<DWORD>& guids )
 	}
 
 LCleanup:
-	if(bstrNamespace)
+	if (bstrNamespace)
 		SysFreeString(bstrNamespace);
-	if(bstrDeviceID)
+	if (bstrDeviceID)
 		SysFreeString(bstrDeviceID);
-	if(bstrClassName)
+	if (bstrClassName)
 		SysFreeString(bstrClassName);
 	for (UINT iDevice = 0; iDevice < 20; iDevice++)
 		SAFE_RELEASE(pDevices[iDevice]);

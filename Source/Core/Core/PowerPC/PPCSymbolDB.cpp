@@ -273,7 +273,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 	const int wxYES_NO = 0x00000002 | 0x00000008;
 	if (functions.size() == 0)
 	{
-		if(!AskYesNo(StringFromFormat(
+		if (!AskYesNo(StringFromFormat(
 			"No symbol names are generated. Do you want to replace '%s' with a blank file?",
 			mapFile.c_str()).c_str(), "Confirm", wxYES_NO)) return false;
 	}

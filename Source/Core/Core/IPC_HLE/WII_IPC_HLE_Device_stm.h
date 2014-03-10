@@ -66,7 +66,7 @@ public:
 		Memory::Memset(BufferOut, 0, BufferOutSize);
 		u32 ReturnValue = 0;
 
-		switch(Parameter)
+		switch (Parameter)
 		{
 		case IOCTL_STM_RELEASE_EH:
 			INFO_LOG(WII_IPC_STM, "%s - IOCtl:", GetDeviceName().c_str());

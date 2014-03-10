@@ -233,7 +233,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nNormalMatricesChanged[0] / 3;
 		int endn = (nNormalMatricesChanged[1] + 2) / 3;
-		for(int i=startn; i<endn; i++)
+		for (int i=startn; i<endn; i++)
 		{
 			memcpy(constants.normalmatrices[i], &xfmem[XFMEM_NORMALMATRICES + 3*i], 12);
 		}
@@ -372,7 +372,7 @@ void VertexShaderManager::SetConstants()
 		g_renderer->SetViewport();
 		
 		// Update projection if the viewport isn't 1:1 useable
-		if(!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
+		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
 			bProjectionChanged = true;
@@ -385,7 +385,7 @@ void VertexShaderManager::SetConstants()
 
 		float *rawProjection = xfregs.projection.rawProjection;
 
-		switch(xfregs.projection.type)
+		switch (xfregs.projection.type)
 		{
 		case GX_PERSPECTIVE:
 

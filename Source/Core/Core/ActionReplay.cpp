@@ -115,8 +115,8 @@ bool CompareValues(const u32 val1, const u32 val2, const int type);
 void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats
-		&& !forceLoad)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats &&
+		!forceLoad)
 		return;
 
 	arCodes.clear();
@@ -895,7 +895,7 @@ bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkipCount)
 
 bool CompareValues(const u32 val1, const u32 val2, const int type)
 {
-	switch(type)
+	switch (type)
 	{
 	case CONDTIONAL_EQUAL:
 		LogInfo("Type 1: If Equal");

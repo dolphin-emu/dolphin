@@ -201,7 +201,7 @@ void RunAsmTests()
 // So far, all this binary can do is test partially that itself works correctly.
 int main(int argc, const char *argv[])
 {
-	if(argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
+	if (argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
 	{
 		printf("USAGE: DSPTool [-?] [--help] [-f] [-d] [-m] [-p <FILE>] [-o <FILE>] [-h <FILE>] <DSP ASSEMBLER FILE>\n");
 		printf("-? / --help: Prints this message\n");
@@ -278,7 +278,7 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-	if(multiple && (compare || disassemble || !output_name.empty() ||
+	if (multiple && (compare || disassemble || !output_name.empty() ||
 					input_name.empty())) {
 		printf("ERROR: Multiple files can only be used with assembly "
 			"and must compile a header file.\n");
@@ -398,7 +398,7 @@ int main(int argc, const char *argv[])
 		std::string source;
 		if (File::ReadFileToString(input_name.c_str(), source))
 		{
-			if(multiple)
+			if (multiple)
 			{
 				// When specifying a list of files we must compile a header
 				// (we can't assemble multiple files to one binary)
@@ -411,17 +411,17 @@ int main(int argc, const char *argv[])
 
 				source.append("\n");
 
-				while((pos = source.find('\n', lastPos)) != std::string::npos)
+				while ((pos = source.find('\n', lastPos)) != std::string::npos)
 				{
 					std::string temp = source.substr(lastPos, pos - lastPos);
-					if(!temp.empty())
+					if (!temp.empty())
 						files.push_back(temp);
 					lastPos = pos + 1;
 				}
 
 				lines = (int)files.size();
 
-				if(lines == 0)
+				if (lines == 0)
 				{
 					printf("ERROR: Must specify at least one file\n");
 					return 1;

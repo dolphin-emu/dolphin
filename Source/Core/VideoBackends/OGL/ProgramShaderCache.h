@@ -25,9 +25,9 @@ public:
 
 	bool operator <(const SHADERUID& r) const
 	{
-		if(puid < r.puid) return true;
-		if(r.puid < puid) return false;
-		if(vuid < r.vuid) return true;
+		if (puid < r.puid) return true;
+		if (r.puid < puid) return false;
+		if (vuid < r.vuid) return true;
 		return false;
 	}
 

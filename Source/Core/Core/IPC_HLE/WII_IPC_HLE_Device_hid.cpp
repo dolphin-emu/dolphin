@@ -390,7 +390,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 			struct libusb_config_descriptor *config = nullptr;
 			int cRet = libusb_get_config_descriptor(device, c, &config);
 			// do not try to use usb devices with more than one interface, games can crash
-			if(cRet == 0 && config->bNumInterfaces <= MAX_HID_INTERFACES)
+			if (cRet == 0 && config->bNumInterfaces <= MAX_HID_INTERFACES)
 			{
 				WiiHIDConfigDescriptor wii_config;
 				ConvertConfigToWii(&wii_config, config);
@@ -430,7 +430,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 			}
 			else
 			{
-				if(cRet)
+				if (cRet)
 					DEBUG_LOG(WII_IPC_HID, "libusb_get_config_descriptor failed with: %d", cRet);
 				deviceValid = false;
 				OffsetBuffer = OffsetStart;
@@ -471,7 +471,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 	for (i=0; i<MAX_DEVICE_DEVNUM; i++)
 	{
 		u16 check_cur = (u16)(hidDeviceAliases[i] >> 48);
-		if(hidDeviceAliases[i] != 0 && check_cur != check)
+		if (hidDeviceAliases[i] != 0 && check_cur != check)
 		{
 			DEBUG_LOG(WII_IPC_HID, "Removing: device %d %hX %hX", i, check, check_cur);
 			std::lock_guard<std::mutex> lk(s_open_devices);
@@ -505,7 +505,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 	libusb_device_handle *handle = nullptr;
 	ssize_t cnt;
 
-	if(devNum >= MAX_DEVICE_DEVNUM)
+	if (devNum >= MAX_DEVICE_DEVNUM)
 		return nullptr;
 
 
@@ -514,7 +514,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 	if (open_devices.find(devNum) != open_devices.end())
 	{
 		handle = open_devices[devNum];
-		if(libusb_kernel_driver_active(handle, 0) != LIBUSB_ERROR_NO_DEVICE)
+		if (libusb_kernel_driver_active(handle, 0) != LIBUSB_ERROR_NO_DEVICE)
 		{
 			return handle;
 		}
@@ -549,14 +549,15 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 			{
 				if (ret == LIBUSB_ERROR_ACCESS)
 				{
-					if( dRet )
+					if (dRet)
 					{
 						ERROR_LOG(WII_IPC_HID, "Dolphin does not have access to this device: Bus %03d Device %03d: ID ????:???? (couldn't get id).",
 								bus,
 								port
 						);
 					}
-					else{
+					else
+					{
 						ERROR_LOG(WII_IPC_HID, "Dolphin does not have access to this device: Bus %03d Device %03d: ID %04X:%04X.",
 								bus,
 								port,
@@ -568,7 +569,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 #ifdef _WIN32
 				else if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
 				{
-					if(!has_warned_about_drivers)
+					if (!has_warned_about_drivers)
 					{
 						// Max of one warning.
 						has_warned_about_drivers = true;
@@ -615,7 +616,7 @@ int CWII_IPC_HLE_Device_hid::GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 b
 	for (int i=0; i<MAX_DEVICE_DEVNUM; i++)
 	{
 		u64 id = hidDeviceAliases[i] & HID_ID_MASK;
-		if(id == 0 && pos == -1)
+		if (id == 0 && pos == -1)
 		{
 			pos = i;
 		}
@@ -626,7 +627,7 @@ int CWII_IPC_HLE_Device_hid::GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 b
 		}
 	}
 
-	if(pos != -1)
+	if (pos != -1)
 	{
 		hidDeviceAliases[pos] = unique_id | ((u64)check << 48);
 		return pos;

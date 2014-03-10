@@ -242,7 +242,7 @@ void JitArm::crXXX(UGeckoInstruction inst)
 		LSR(rB, rB, shiftB);
 
 	// Compute combined bit
-	switch(inst.SUBOP10)
+	switch (inst.SUBOP10)
 	{
 	case 33: // crnor
 		ORR(rA, rA, rB);

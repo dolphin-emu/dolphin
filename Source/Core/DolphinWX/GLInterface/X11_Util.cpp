@@ -161,7 +161,7 @@ void cX11Window::XEventThread()
 		for (int num_events = XPending(GLWin.evdpy); num_events > 0; num_events--)
 		{
 			XNextEvent(GLWin.evdpy, &event);
-			switch(event.type) {
+			switch (event.type) {
 				case ConfigureNotify:
 					GLInterface->SetBackBufferDimensions(event.xconfigure.width, event.xconfigure.height);
 					break;

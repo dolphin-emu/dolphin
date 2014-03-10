@@ -353,7 +353,7 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 
 	GLuint src_texture = 0;
 
-	if(m_msaaSamples > 1)
+	if (m_msaaSamples > 1)
 	{
 		// MSAA mode, so resolve first
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer);

@@ -584,7 +584,7 @@ void WriteZ24Encoder(char*& p, API_TYPE ApiType)
 		WRITE(p, "  expanded%i.b = depth%i;\n", i, i);
 	}
 
-	WRITE(p, "  if(!first) {\n");
+	WRITE(p, "  if (!first) {\n");
 	// upper 16
 	WRITE(p, "     ocol0.b = expanded0.g / 255.0;\n");
 	WRITE(p, "     ocol0.g = expanded0.b / 255.0;\n");

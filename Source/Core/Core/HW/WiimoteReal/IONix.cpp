@@ -104,7 +104,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 				auto* const wm = new Wiimote;
 				wm->bdaddr = scan_infos[i].bdaddr;
-				if(IsBalanceBoardName(name))
+				if (IsBalanceBoardName(name))
 				{
 					found_board = wm;
 					NOTICE_LOG(WIIMOTE, "Found balance board (%s).", bdaddr_str);

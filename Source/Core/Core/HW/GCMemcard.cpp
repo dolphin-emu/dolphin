@@ -155,7 +155,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 // the backup should be copied?
 //	}
 //
-//	if(BE16(dir_backup.UpdateCounter) > BE16(dir.UpdateCounter)) //check if the backup is newer
+//	if (BE16(dir_backup.UpdateCounter) > BE16(dir.UpdateCounter)) //check if the backup is newer
 //	{
 //		dir = dir_backup;
 //		bat = bat_backup; // needed?
@@ -348,7 +348,7 @@ u8 GCMemcard::TitlePresent(DEntry d) const
 		return DIRLEN;
 
 	u8 i = 0;
-	while(i < DIRLEN)
+	while (i < DIRLEN)
 	{
 		if ((BE32(CurrentDir->Dir[i].Gamecode) == BE32(d.Gamecode)) &&
 			(!memcmp(CurrentDir->Dir[i].Filename, d.Filename, 32)))
@@ -433,7 +433,7 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
 
 	int x = CurrentDir->Dir[index].IconFmt[0];
 	std::string format;
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 	{
 		if (i == 8) x = CurrentDir->Dir[index].IconFmt[1];
 		format.push_back((x & 0x80) ? '1' : '0');
@@ -449,7 +449,7 @@ std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
 
 	int x = CurrentDir->Dir[index].AnimSpeed[0];
 	std::string speed;
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 	{
 		if (i == 8) x = CurrentDir->Dir[index].AnimSpeed[1];
 		speed.push_back((x & 0x80) ? '1' : '0');
@@ -929,7 +929,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &dire
 
 	gci.Seek(0, SEEK_SET);
 
-	switch(offset)
+	switch (offset)
 	{
 	case GCS:
 		u8 gcsHDR[GCS];
@@ -964,7 +964,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &dire
 	std::vector<GCMBlock> saveData;
 	saveData.reserve(size);
 
-	switch(GetSaveData(index, saveData))
+	switch (GetSaveData(index, saveData))
 	{
 	case FAIL:
 		return FAIL;
@@ -985,7 +985,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &dire
 
 void GCMemcard::Gcs_SavConvert(DEntry &tempDEntry, int saveType, int length)
 {
-	switch(saveType)
+	switch (saveType)
 	{
 	case GCS:
 	{
@@ -1171,7 +1171,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 			//Speed is set but there's no actual icon
 			//This is used to reduce animation speed in Pikmin and Luigi's Mansion for example
 			//These "blank frames" show the next icon
-			for(j=i; j<8;++j)
+			for (j=i; j<8;++j)
 			{
 				if (fmts[j] != 0)
 				{
@@ -1260,7 +1260,7 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 	u64 rand = CEXIIPL::GetGCTime();
 	p_hdr->formatTime = Common::swap64(rand);
 
-	for(int i = 0; i < 12; i++)
+	for (int i = 0; i < 12; i++)
 	{
 		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
 		p_hdr->serial[i] = (u8)(g_SRAM.flash_id[0][i] + (u32)rand);

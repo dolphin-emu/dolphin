@@ -75,7 +75,7 @@ void mv(const UDSPInstruction opc)
 	u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
 	u8 dreg = ((opc >> 2) & 0x3);
 
-	switch(sreg)
+	switch (sreg)
 	{
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:
@@ -97,7 +97,7 @@ void s(const UDSPInstruction opc)
 	u8 dreg = opc & 0x3;
 	u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
 
-	switch(sreg)
+	switch (sreg)
 	{
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:
@@ -120,7 +120,7 @@ void sn(const UDSPInstruction opc)
 	u8 dreg = opc & 0x3;
 	u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
 
-	switch(sreg)
+	switch (sreg)
 	{
 	case DSP_REG_ACL0:
 	case DSP_REG_ACL1:

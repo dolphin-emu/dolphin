@@ -16,13 +16,13 @@ void ArmRegCache::Init(ARMXEmitter *emitter)
 	ARMReg *PPCRegs = GetPPCAllocationOrder(NUMPPCREG);
 	ARMReg *Regs = GetAllocationOrder(NUMARMREG);
 
-	for(u8 a = 0; a < NUMPPCREG; ++a)
+	for (u8 a = 0; a < NUMPPCREG; ++a)
 	{
 		ArmCRegs[a].PPCReg = 33;
 		ArmCRegs[a].Reg = PPCRegs[a];
 		ArmCRegs[a].LastLoad = 0;
 	}
-	for(u8 a = 0; a < NUMARMREG; ++a)
+	for (u8 a = 0; a < NUMARMREG; ++a)
 	{
 		ArmRegs[a].Reg = Regs[a];
 		ArmRegs[a].free = true;
@@ -57,8 +57,8 @@ ARMReg *ArmRegCache::GetAllocationOrder(int &count)
 
 ARMReg ArmRegCache::GetReg(bool AutoLock)
 {
-	for(u8 a = 0; a < NUMARMREG; ++a)
-		if(ArmRegs[a].free)
+	for (u8 a = 0; a < NUMARMREG; ++a)
+		if (ArmRegs[a].free)
 		{
 			// Alright, this one is free
 			if (AutoLock)
@@ -72,23 +72,24 @@ ARMReg ArmRegCache::GetReg(bool AutoLock)
 
 void ArmRegCache::Unlock(ARMReg R0, ARMReg R1, ARMReg R2, ARMReg R3)
 {
-	for(u8 RegNum = 0; RegNum < NUMARMREG; ++RegNum)
+	for (u8 RegNum = 0; RegNum < NUMARMREG; ++RegNum)
 	{
-		if(ArmRegs[RegNum].Reg == R0)
+		if (ArmRegs[RegNum].Reg == R0)
 		{
 			_assert_msg_(_DYNA_REC, !ArmRegs[RegNum].free, "This register is already unlocked");
 			ArmRegs[RegNum].free = true;
 		}
-		if( R1 != INVALID_REG && ArmRegs[RegNum].Reg == R1) ArmRegs[RegNum].free = true;
-		if( R2 != INVALID_REG && ArmRegs[RegNum].Reg == R2) ArmRegs[RegNum].free = true;
-		if( R3 != INVALID_REG && ArmRegs[RegNum].Reg == R3) ArmRegs[RegNum].free = true;
+		if ( R1 != INVALID_REG && ArmRegs[RegNum].Reg == R1) ArmRegs[RegNum].free = true;
+		if ( R2 != INVALID_REG && ArmRegs[RegNum].Reg == R2) ArmRegs[RegNum].free = true;
+		if ( R3 != INVALID_REG && ArmRegs[RegNum].Reg == R3) ArmRegs[RegNum].free = true;
 	}
 }
 u32 ArmRegCache::GetLeastUsedRegister(bool increment)
 {
 	u32 HighestUsed = 0;
 	u8 lastRegIndex = 0;
-	for(u8 a = 0; a < NUMPPCREG; ++a){
+	for (u8 a = 0; a < NUMPPCREG; ++a)
+	{
 		if (increment)
 			++ArmCRegs[a].LastLoad;
 		if (ArmCRegs[a].LastLoad > HighestUsed)
@@ -118,7 +119,7 @@ ARMReg ArmRegCache::R(u32 preg)
 	u32 lastRegIndex = GetLeastUsedRegister(true);
 
 	// Check if already Loaded
-	if(regs[preg].GetType() == REG_REG)
+	if (regs[preg].GetType() == REG_REG)
 	{
 		u8 a = regs[preg].GetRegIndex();
 		ArmCRegs[a].LastLoad = 0;
