@@ -124,15 +124,15 @@ private:
 	{
 		return (bits == 64)
 		           ? (~0ull)
-		           : ((1ull << bits)-1ull) << position;
+		           : ((1ull << bits) - 1ull) << position;
 	}
 
 	T storage;
 
-	static_assert(bits+position <= 8*sizeof(T), "Bitfield out of range");
+	static_assert(bits + position <= 8 * sizeof(T), "Bitfield out of range");
 
 	// And, you know, just in case people specify something stupid like bits=position=0x80000000
-	static_assert(position < 8*sizeof(T), "Invalid position");
-	static_assert(bits <= 8*sizeof(T), "Invalid number of bits");
+	static_assert(position < 8 * sizeof(T), "Invalid position");
+	static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
 	static_assert(bits > 0, "Invalid number of bits");
 };
