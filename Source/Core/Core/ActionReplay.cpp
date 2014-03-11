@@ -283,13 +283,10 @@ bool RunCode(const ARCode &arcode)
 	LogInfo("Code Name: %s", arcode.name.c_str());
 	LogInfo("Number of codes: %i", arcode.ops.size());
 
-	std::vector<AREntry>::const_iterator
-		iter = arcode.ops.begin(),
-		ops_end = arcode.ops.end();
-	for (; iter != ops_end; ++iter)
+	for (const AREntry& entry : arcode.ops)
 	{
-		const ARAddr& addr = *(ARAddr*)&iter->cmd_addr;
-		const u32 data = iter->value;
+		const ARAddr& addr = *(ARAddr*)&entry.cmd_addr;
+		const u32 data = entry.value;
 
 		// after a conditional code, skip lines if needed
 		if (skip_count)

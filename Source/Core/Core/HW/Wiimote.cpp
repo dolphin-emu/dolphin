@@ -24,11 +24,10 @@ InputPlugin *GetPlugin()
 
 void Shutdown()
 {
-	std::vector<ControllerEmu*>::const_iterator
-		i = g_plugin.controllers.begin(),
-		e = g_plugin.controllers.end();
-	for ( ; i!=e; ++i )
-		delete *i;
+	for (const ControllerEmu* i : g_plugin.controllers)
+	{
+		delete i;
+	}
 	g_plugin.controllers.clear();
 
 	WiimoteReal::Stop();

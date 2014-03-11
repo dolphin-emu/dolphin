@@ -235,11 +235,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	choice_backend = new wxChoice(page_general, wxID_ANY);
 	RegisterControl(choice_backend, wxGetTranslation(backend_desc));
 
-	std::vector<VideoBackend*>::const_iterator
-			it = g_available_video_backends.begin(),
-			itend = g_available_video_backends.end();
-	for (; it != itend; ++it)
-		choice_backend->AppendString(wxGetTranslation(StrToWxStr((*it)->GetDisplayName())));
+	for (const VideoBackend* backend : g_available_video_backends)
+	{
+		choice_backend->AppendString(wxGetTranslation(StrToWxStr(backend->GetDisplayName())));
+	}
 
 	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetDisplayName())));
 	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
@@ -259,11 +258,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 		wxChoice* const choice_adapter = CreateChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_desc));
 
-		std::vector<std::string>::const_iterator
-			it = vconfig.backend_info.Adapters.begin(),
-			itend = vconfig.backend_info.Adapters.end();
-		for (; it != itend; ++it)
-			choice_adapter->AppendString(StrToWxStr(*it));
+		for (const std::string& adapter : vconfig.backend_info.Adapters)
+		{
+			choice_adapter->AppendString(StrToWxStr(adapter));
+		}
 
 		choice_adapter->Select(vconfig.iAdapter);
 
@@ -381,11 +379,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	text_aamode = new wxStaticText(page_enh, -1, _("Anti-Aliasing:"));
 	choice_aamode = CreateChoice(page_enh, vconfig.iMultisampleMode, wxGetTranslation(aa_desc));
 
-	std::vector<std::string>::const_iterator
-		it = vconfig.backend_info.AAModes.begin(),
-		itend = vconfig.backend_info.AAModes.end();
-	for (; it != itend; ++it)
-		choice_aamode->AppendString(wxGetTranslation(StrToWxStr(*it)));
+	for (const std::string& mode : vconfig.backend_info.AAModes)
+	{
+		choice_aamode->AppendString(wxGetTranslation(StrToWxStr(mode)));
+	}
 
 	choice_aamode->Select(vconfig.iMultisampleMode);
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -406,11 +403,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
 		choice_ppshader->AppendString(_("(off)"));
 
-		std::vector<std::string>::const_iterator
-			it = vconfig.backend_info.PPShaders.begin(),
-			itend = vconfig.backend_info.PPShaders.end();
-		for (; it != itend; ++it)
-			choice_ppshader->AppendString(StrToWxStr(*it));
+		for (const std::string& shader : vconfig.backend_info.PPShaders)
+		{
+			choice_ppshader->AppendString(StrToWxStr(shader));
+		}
 
 		if (vconfig.sPostProcessingShader.empty())
 			choice_ppshader->Select(0);

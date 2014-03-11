@@ -547,12 +547,9 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 	}
 	else
 	{
-		std::vector<CheatSearchResult>::const_iterator
-			i = search_results.begin(),
-			e = search_results.end();
-		for (; i!=e; ++i)
+		for (const CheatSearchResult& result : search_results)
 		{
-			u32 display_value = i->old_value;
+			u32 display_value = result.old_value;
 
 			// #ifdef LIL_ENDIAN :p
 			switch (search_type_size)
@@ -574,7 +571,7 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 			rowfmt[14] = (wxChar)(wxT('0') + search_type_size*2);
 
 			lbox_search_results->Append(
-				wxString::Format(rowfmt, i->address, display_value, display_value, display_value));
+				wxString::Format(rowfmt, result.address, display_value, display_value, display_value));
 		}
 	}
 

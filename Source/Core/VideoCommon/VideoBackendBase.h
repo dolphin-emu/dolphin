@@ -80,8 +80,8 @@ public:
 	virtual void Shutdown() = 0;
 	virtual void RunLoop(bool enable) = 0;
 
-	virtual std::string GetName() = 0;
-	virtual std::string GetDisplayName() { return GetName(); }
+	virtual std::string GetName() const = 0;
+	virtual std::string GetDisplayName() const { return GetName(); }
 
 	virtual void ShowConfig(void*) {}
 

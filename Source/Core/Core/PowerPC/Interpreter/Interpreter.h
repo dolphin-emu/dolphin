@@ -299,13 +299,14 @@ public:
 	static void RunTable59(UGeckoInstruction _instCode);
 	static void RunTable63(UGeckoInstruction _instCode);
 
+	static u32 Helper_Carry(u32 _uValue1, u32 _uValue2);
+
 private:
 	// flag helper
 	static void Helper_UpdateCR0(u32 _uValue);
 	static void Helper_UpdateCR1(double _fValue);
 	static void Helper_UpdateCR1(float _fValue);
 	static void Helper_UpdateCRx(int _x, u32 _uValue);
-	static u32 Helper_Carry(u32 _uValue1, u32 _uValue2);
 
 	// address helper
 	static u32 Helper_Get_EA   (const UGeckoInstruction _inst);

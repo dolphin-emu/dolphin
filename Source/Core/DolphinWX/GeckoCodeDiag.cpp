@@ -88,14 +88,13 @@ void CodeConfigPanel::UpdateCodeList(bool checkRunning)
 
 	m_listbox_gcodes->Clear();
 	// add the codes to the listbox
-	std::vector<GeckoCode>::const_iterator
-		gcodes_iter = m_gcodes.begin(),
-		gcodes_end = m_gcodes.end();
-	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	for (const GeckoCode& code : m_gcodes)
 	{
-		m_listbox_gcodes->Append(StrToWxStr(gcodes_iter->name));
-		if (gcodes_iter->enabled)
+		m_listbox_gcodes->Append(StrToWxStr(code.name));
+		if (code.enabled)
+		{
 			m_listbox_gcodes->Check(m_listbox_gcodes->GetCount()-1, true);
+		}
 	}
 
 	wxCommandEvent evt;
@@ -131,21 +130,19 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 
 		// notes textctrl
 		m_infobox.textctrl_notes->Clear();
-		std::vector<std::string>::const_iterator
-			notes_iter = m_gcodes[sel].notes.begin(),
-			notes_end = m_gcodes[sel].notes.end();
-		for (; notes_iter!=notes_end; ++notes_iter)
-			m_infobox.textctrl_notes->AppendText(StrToWxStr(*notes_iter));
+		for (const std::string& note : m_gcodes[sel].notes)
+		{
+			m_infobox.textctrl_notes->AppendText(StrToWxStr(note));
+		}
 		m_infobox.textctrl_notes->ScrollLines(-99); // silly
 
 		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + StrToWxStr(m_gcodes[sel].creator));
 
 		// add codes to info listbox
-		std::vector<GeckoCode::Code>::const_iterator
-		codes_iter = m_gcodes[sel].codes.begin(),
-		codes_end = m_gcodes[sel].codes.end();
-		for (; codes_iter!=codes_end; ++codes_iter)
-			m_infobox.listbox_codes->Append(wxString::Format(wxT("%08X %08X"), codes_iter->address, codes_iter->data));
+		for (const GeckoCode::Code& code : m_gcodes[sel].codes)
+		{
+			m_infobox.listbox_codes->Append(wxString::Format(wxT("%08X %08X"), code.address, code.data));
+		}
 	}
 	else
 	{
@@ -281,10 +278,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 			unsigned long added_count = 0;
 
 			// append the codes to the code list
-			std::vector<GeckoCode>::const_iterator
-				gcodes_iter = gcodes.begin(),
-				gcodes_end = gcodes.end();
-			for (; gcodes_iter!= gcodes_end; ++gcodes_iter)
+			for (const GeckoCode& code : gcodes)
 			{
 				// only add codes which do not already exist
 				std::vector<GeckoCode>::const_iterator
@@ -294,13 +288,13 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 				{
 					if (existing_gcodes_end == existing_gcodes_iter)
 					{
-						m_gcodes.push_back(*gcodes_iter);
+						m_gcodes.push_back(code);
 						++added_count;
 						break;
 					}
 
 					// code exists
-					if (existing_gcodes_iter->Compare(*gcodes_iter))
+					if (existing_gcodes_iter->Compare(code))
 						break;
 				}
 			}
