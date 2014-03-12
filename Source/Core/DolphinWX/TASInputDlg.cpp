@@ -871,51 +871,51 @@ void TASInputDlg::SetTurboFalse(wxMouseEvent& event)
 	switch (event.GetId())
 	{
 		case ID_A:
-				A_turbo = false;
+			A_turbo = false;
 			break;
 
 		case ID_B:
-				B_turbo = false;
+			B_turbo = false;
 			break;
 
 		case ID_X:
-				X_turbo = false;
+			X_turbo = false;
 			break;
 
 		case ID_Y:
-				Y_turbo = false;
+			Y_turbo = false;
 			break;
 
 		case ID_Z:
-				Z_turbo = false;
+			Z_turbo = false;
 			break;
 
 		case ID_L:
-				L_turbo = false;
+			L_turbo = false;
 			break;
 
 		case ID_R:
-				R_turbo = false;
+			R_turbo = false;
 			break;
 
 		case ID_START:
-				START_turbo = false;
+			START_turbo = false;
 			break;
 
 		case ID_UP:
-				DU_turbo = false;
+			DU_turbo = false;
 			break;
 
 		case ID_DOWN:
-				DD_turbo = false;
+			DD_turbo = false;
 			break;
 
 		case ID_LEFT:
-				DL_turbo = false;
+			DL_turbo = false;
 			break;
 
 		case ID_RIGHT:
-				DR_turbo = false;
+			DR_turbo = false;
 			break;
 
 		default:
@@ -933,99 +933,62 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 	{
 		case ID_A:
 			placeholder = wx_a_button;
-
-			if (A_turbo)
-				A_turbo = false;
-			else
-				A_turbo = true;
+			A_turbo = !A_turbo;
 			break;
 
 		case ID_B:
 			placeholder = wx_b_button;
-			if (B_turbo)
-				B_turbo = false;
-			else
-				B_turbo = true;
+			B_turbo = !B_turbo;
 			break;
 
 		case ID_X:
 			placeholder = wx_x_button;
-			if (X_turbo)
-				X_turbo = false;
-			else
-				X_turbo = true;
+			X_turbo = !X_turbo;
 			break;
 
 		case ID_Y:
 			placeholder = wx_y_button;
-			if (Y_turbo)
-				Y_turbo = false;
-			else
-				Y_turbo = true;
+			Y_turbo = !Y_turbo;
 			break;
 
 		case ID_Z:
 			placeholder = wx_z_button;
-			if (Z_turbo)
-				Z_turbo = false;
-			else
-				Z_turbo = true;
+			Z_turbo = !Z_turbo;
 			break;
 
 		case ID_L:
 			placeholder = wx_l_button;
-			if (L_turbo)
-				L_turbo = false;
-			else
-				L_turbo = true;
+			L_turbo = !L_turbo;
 			break;
 
 		case ID_R:
 			placeholder = wx_r_button;
-			if (R_turbo)
-				R_turbo = false;
-			else
-				R_turbo = true;
+			R_turbo = !R_turbo;
 			break;
 
 		case ID_START:
 			placeholder = wx_start_button;
-			if (START_turbo)
-				START_turbo = false;
-			else
-				START_turbo = true;
+			START_turbo = !START_turbo;
 			break;
 
 		case ID_UP:
 			placeholder = wx_up_button;
-			if (DU_turbo)
-				DU_turbo = false;
-			else
-				DU_turbo = true;
+			DU_turbo = !DU_turbo;
 			break;
 
 		case ID_DOWN:
 			placeholder = wx_down_button;
-			if (DD_turbo)
-				DD_turbo = false;
-			else
-				DD_turbo = true;
+			DD_turbo = !DD_turbo;
 			break;
 
 		case ID_LEFT:
 			placeholder = wx_left_button;
-			if (DL_turbo)
-				DL_turbo = false;
-			else
-				DL_turbo = true;
+			DL_turbo = !DL_turbo;
 			break;
 
 		case ID_RIGHT:
 			placeholder = wx_right_button;
-			if (DR_turbo)
-				DR_turbo = false;
-			else
-				DR_turbo = true;
+			DR_turbo = !DR_turbo;
 			break;
 		default:
 			return;
