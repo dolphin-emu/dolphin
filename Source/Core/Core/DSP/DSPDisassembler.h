@@ -25,6 +25,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <vector>
 
 #include "Common/Common.h"
@@ -73,7 +74,7 @@ public:
 
 private:
 	// Moves PC forward and writes the result to dest.
-	bool DisFile(const char* name, int base_addr, int pass, std::string &output);
+	bool DisFile(const std::string& name, int base_addr, int pass, std::string &output);
 
 	char* DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, char* strbuf);
 	std::map<u16, int> unk_opcodes;

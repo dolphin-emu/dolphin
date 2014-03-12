@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "VideoCommon/RenderBase.h"
 
 namespace OGL
@@ -27,8 +28,8 @@ extern struct VideoConfig {
 	bool bSupportOGL31;
 	bool bSupportViewportFloat;
 
-	const char *gl_vendor;
-	const char *gl_renderer;
+	const char* gl_vendor;
+	const char* gl_renderer;
 	const char* gl_version;
 	const char* glsl_version;
 
@@ -60,7 +61,7 @@ public:
 	void ApplyState(bool bUseDstAlpha) override {}
 	void RestoreState() override {}
 
-	void RenderText(const char* pstr, int left, int top, u32 color) override;
+	void RenderText(const std::string& text, int left, int top, u32 color) override;
 	void DrawDebugInfo();
 	void FlipImageData(u8 *data, int w, int h, int pixel_width = 3);
 

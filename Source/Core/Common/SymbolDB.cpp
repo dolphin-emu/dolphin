@@ -39,13 +39,14 @@ void SymbolDB::Index()
 	}
 }
 
-Symbol *SymbolDB::GetSymbolFromName(const char *name)
+Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
 {
 	for (auto& func : functions)
 	{
-		if (!strcmp(func.second.name.c_str(), name))
+		if (func.second.name == name)
 			return &func.second;
 	}
+
 	return nullptr;
 }
 

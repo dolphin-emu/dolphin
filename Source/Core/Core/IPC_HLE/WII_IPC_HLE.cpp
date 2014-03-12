@@ -100,35 +100,35 @@ void Init()
 
 	u32 i = 0;
 	// Build hardware devices
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh1_57e_305(i, std::string("/dev/usb/oh1/57e/305")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_immediate(i, std::string("/dev/stm/immediate")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_eventhook(i, std::string("/dev/stm/eventhook")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_fs(i, std::string("/dev/fs")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh1_57e_305(i, "/dev/usb/oh1/57e/305"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_immediate(i, "/dev/stm/immediate"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_eventhook(i, "/dev/stm/eventhook"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_fs(i, "/dev/fs"); i++;
 
 	// IOS allows two ES devices at a time
 	for (u32 j=0; j<ES_MAX_COUNT; j++)
 	{
-		g_DeviceMap[i] = es_handles[j] = new CWII_IPC_HLE_Device_es(i, std::string("/dev/es")); i++;
+		g_DeviceMap[i] = es_handles[j] = new CWII_IPC_HLE_Device_es(i, "/dev/es"); i++;
 		es_inuse[j] = false;
 	}
 
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_di(i, std::string("/dev/di")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_request(i, std::string("/dev/net/kd/request")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_time(i, std::string("/dev/net/kd/time")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ncd_manage(i, std::string("/dev/net/ncd/manage")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_wd_command(i, std::string("/dev/net/wd/command")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ip_top(i, std::string("/dev/net/ip/top")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ssl(i, std::string("/dev/net/ssl")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, std::string("/dev/usb/kbd")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, std::string("/dev/sdio/slot0")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/sdio/slot1")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_request(i, "/dev/net/kd/request"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_time(i, "/dev/net/kd/time"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ncd_manage(i, "/dev/net/ncd/manage"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_wd_command(i, "/dev/net/wd/command"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ip_top(i, "/dev/net/ip/top"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ssl(i, "/dev/net/ssl"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, "/dev/usb/kbd"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, "/dev/sdio/slot0"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/sdio/slot1"); i++;
 	#if defined(__LIBUSB__) || defined(_WIN32)
-		g_DeviceMap[i] = new CWII_IPC_HLE_Device_hid(i, std::string("/dev/usb/hid")); i++;
+		g_DeviceMap[i] = new CWII_IPC_HLE_Device_hid(i, "/dev/usb/hid"); i++;
 	#else
-		g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/hid")); i++;
+		g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/usb/hid"); i++;
 	#endif
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/oh1")); i++;
-	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, std::string("_Unimplemented_Device_")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/usb/oh1"); i++;
+	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, "_Unimplemented_Device_"); i++;
 
 	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
 }
@@ -190,7 +190,7 @@ void SetDefaultContentFile(const std::string& _rFilename)
 {
 	for (const auto& entry : g_DeviceMap)
 	{
-		if (entry.second && entry.second->GetDeviceName().find(std::string("/dev/es")) == 0)
+		if (entry.second && entry.second->GetDeviceName().find("/dev/es") == 0)
 		{
 			((CWII_IPC_HLE_Device_es*)entry.second)->LoadWAD(_rFilename);
 		}
@@ -205,7 +205,7 @@ void ES_DIVerify(u8 *_pTMD, u32 _sz)
 void SDIO_EventNotify()
 {
 	CWII_IPC_HLE_Device_sdio_slot0 *pDevice =
-		(CWII_IPC_HLE_Device_sdio_slot0*)GetDeviceByName(std::string("/dev/sdio/slot0"));
+		(CWII_IPC_HLE_Device_sdio_slot0*)GetDeviceByName("/dev/sdio/slot0");
 	if (pDevice)
 		pDevice->EventNotify();
 }

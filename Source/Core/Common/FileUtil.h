@@ -143,8 +143,8 @@ std::string GetBundleDirectory();
 std::string &GetExeDirectory();
 #endif
 
-bool WriteStringToFile(const std::string &str, const char *filename);
-bool ReadFileToString(const char *filename, std::string &str);
+bool WriteStringToFile(const std::string& str, const std::string& filename);
+bool ReadFileToString(const std::string& filename, std::string& str);
 
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier

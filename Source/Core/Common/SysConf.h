@@ -163,8 +163,8 @@ public:
 	}
 
 	bool Save();
-	bool SaveToFile(const char* filename);
-	bool LoadFromFile(const char* filename);
+	bool SaveToFile(const std::string& filename);
+	bool LoadFromFile(const std::string& filename);
 	bool Reload();
 	// This function is used when the NAND root is changed
 	void UpdateLocation();

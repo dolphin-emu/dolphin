@@ -25,7 +25,7 @@ class CBoot
 public:
 
 	static bool BootUp();
-	static bool IsElfWii(const char *filename);
+	static bool IsElfWii(const std::string& filename);
 
 	// Tries to find a map file for the current game by looking first in the
 	// local user directory, then in the shared user directory.
@@ -46,8 +46,8 @@ private:
 	static void UpdateDebugger_MapLoaded(const char* _gameID = nullptr);
 
 	static bool LoadMapFromFilename();
-	static bool Boot_ELF(const char *filename);
-	static bool Boot_WiiWAD(const char *filename);
+	static bool Boot_ELF(const std::string& filename);
+	static bool Boot_WiiWAD(const std::string& filename);
 
 	static bool EmulatedBS2_GC();
 	static bool EmulatedBS2_Wii();

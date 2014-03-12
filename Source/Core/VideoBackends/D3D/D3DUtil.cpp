@@ -2,7 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cctype>
 #include <list>
+#include <string>
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
@@ -316,7 +318,7 @@ int CD3DFont::Shutdown()
 	return S_OK;
 }
 
-int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const char* strText)
+int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const std::string& text)
 {
 	if (!m_pVB)
 		return 0;
@@ -331,7 +333,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	// translate starting positions
 	float sx = x * scalex - 1.f;
 	float sy = 1.f - y * scaley;
-	char c;
 
 	// Fill vertex buffer
 	FONT2DVERTEX* pVertices;
@@ -355,14 +356,14 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	D3D::context->PSSetShaderResources(0, 1, &m_pTexture);
 
 	float fStartX = sx;
-	while (c = *strText++)
+	for (char c : text)
 	{
-		if (c == ('\n'))
+		if (c == '\n')
 		{
 			sx  = fStartX;
 			sy -= scaley * size;
 		}
-		if (c < (' '))
+		if (!std::isprint(c))
 			continue;
 
 		c -= 32;

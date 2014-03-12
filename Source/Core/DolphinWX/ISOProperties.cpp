@@ -735,11 +735,11 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	{
 		int partitionNum = wxAtoi(File.Mid(File.find_first_of("/"), 1));
 		File.Remove(0, File.find_first_of("/") +1); // Remove "Partition x/"
-		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
+		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
 	}
 	else
 	{
-		pFileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
+		pFileSystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
 	}
 }
 
@@ -915,11 +915,11 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	bool ret = false;
 	if (event.GetId() == IDM_EXTRACTAPPLOADER)
 	{
-		ret = FS->ExportApploader(WxStrToStr(Path).c_str());
+		ret = FS->ExportApploader(WxStrToStr(Path));
 	}
 	else if (event.GetId() == IDM_EXTRACTDOL)
 	{
-		ret = FS->ExportDOL(WxStrToStr(Path).c_str());
+		ret = FS->ExportDOL(WxStrToStr(Path));
 	}
 
 	if (!ret)
@@ -1135,7 +1135,7 @@ bool CISOProperties::SaveGameConfig()
 	ActionReplayList_Save();
 	Gecko::SaveCodes(GameIniLocal, m_geckocode_panel->GetCodes());
 
-	bool success = GameIniLocal.Save(GameIniFileLocal.c_str());
+	bool success = GameIniLocal.Save(GameIniFileLocal);
 
 	// If the resulting file is empty, delete it. Kind of a hack, but meh.
 	if (success && File::GetSize(GameIniFileLocal) == 0)

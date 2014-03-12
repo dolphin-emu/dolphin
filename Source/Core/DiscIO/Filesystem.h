@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -43,11 +44,11 @@ public:
 	virtual ~IFileSystem();
 	virtual bool IsValid() const = 0;
 	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) = 0;
-	virtual u64 GetFileSize(const char* _rFullPath) = 0;
-	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) = 0;
-	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) = 0;
-	virtual bool ExportApploader(const char* _rExportFolder) const = 0;
-	virtual bool ExportDOL(const char* _rExportFolder) const = 0;
+	virtual u64 GetFileSize(const std::string& _rFullPath) = 0;
+	virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) = 0;
+	virtual bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) = 0;
+	virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
+	virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;
 	virtual const char* GetFileName(u64 _Address) = 0;
 	virtual bool GetBootDOL(u8* &buffer, u32 DolSize) const = 0;
 	virtual u32 GetBootDOLSize() const = 0;

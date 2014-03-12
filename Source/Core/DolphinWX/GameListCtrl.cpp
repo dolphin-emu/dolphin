@@ -500,16 +500,14 @@ void CGameListCtrl::ScanForISOs()
 					bool duplicate = false;
 					for (auto& Directory : Directories)
 					{
-						if (strcmp(Directory.c_str(),
-									Entry.physicalName.c_str()) == 0)
+						if (Directory == Entry.physicalName)
 						{
 							duplicate = true;
 							break;
 						}
 					}
 					if (!duplicate)
-						Directories.push_back(
-								Entry.physicalName.c_str());
+						Directories.push_back(Entry.physicalName);
 				}
 			}
 		}
@@ -949,7 +947,7 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 
 	wxFileName path = wxFileName::FileName(StrToWxStr(iso->GetFileName()));
 	path.MakeAbsolute();
-	WxUtils::Explore(path.GetPath().char_str());
+	WxUtils::Explore(WxStrToStr(path.GetPath()));
 }
 
 void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
@@ -959,7 +957,7 @@ void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
 		return;
 	std::string path = iso->GetWiiFSPath();
 	if (!path.empty())
-		WxUtils::Explore(path.c_str());
+		WxUtils::Explore(path);
 }
 
 void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
@@ -1056,7 +1054,7 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 	else
 		wikiUrl = ReplaceAll(wikiUrl, "[GAME_NAME]", "");
 
-	WxUtils::Launch(wikiUrl.c_str());
+	WxUtils::Launch(wikiUrl);
 }
 
 void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
@@ -1128,8 +1126,8 @@ void CGameListCtrl::CompressSelection(bool _compress)
 							wxYES_NO) == wxNO)
 					continue;
 
-				all_good &= DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
-						OutputFileName.c_str(),
+				all_good &= DiscIO::CompressFileToBlob(iso->GetFileName(),
+						OutputFileName,
 						(iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0,
 						16384, &MultiCompressCB, &progressDialog);
 			}
@@ -1240,11 +1238,11 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 
 
 	if (iso->IsCompressed())
-		all_good = DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
-				path.char_str(), &CompressCB, &dialog);
+		all_good = DiscIO::DecompressBlobToFile(iso->GetFileName(),
+				WxStrToStr(path), &CompressCB, &dialog);
 	else
-		all_good = DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
-				path.char_str(),
+		all_good = DiscIO::CompressFileToBlob(iso->GetFileName(),
+				WxStrToStr(path),
 				(iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0,
 				16384, &CompressCB, &dialog);
 	}
@@ -1326,7 +1324,7 @@ void CGameListCtrl::OnDropFiles(wxDropFilesEvent& event)
 			main_frame->GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
 		}
 
-		if (Movie::PlayInput(file.GetFullPath().c_str()))
+		if (Movie::PlayInput(WxStrToStr(file.GetFullPath())))
 			main_frame->BootGame(std::string(""));
 	}
 	else if (!Core::IsRunning())
@@ -1335,6 +1333,6 @@ void CGameListCtrl::OnDropFiles(wxDropFilesEvent& event)
 	}
 	else
 	{
-		DVDInterface::ChangeDisc(WxStrToStr(file.GetFullPath()).c_str());
+		DVDInterface::ChangeDisc(WxStrToStr(file.GetFullPath()));
 	}
 }

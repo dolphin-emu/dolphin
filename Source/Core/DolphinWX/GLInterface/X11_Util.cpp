@@ -106,9 +106,9 @@ void cXInterface::DestroyWindow(void)
 	XFreeColormap(GLWin.evdpy, GLWin.attr.colormap);
 }
 
-void cXInterface::UpdateFPSDisplay(const char *text)
+void cXInterface::UpdateFPSDisplay(const std::string& text)
 {
-	XStoreName(GLWin.evdpy, GLWin.win, text);
+	XStoreName(GLWin.evdpy, GLWin.win, text.c_str());
 }
 
 void cXInterface::SwapBuffers()

@@ -9,7 +9,7 @@
 
 #include "Common/Common.h"
 
-bool Assemble(const char *text, std::vector<u16> &code, bool force = false);
+bool Assemble(const std::string& text, std::vector<u16> &code, bool force = false);
 bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &text);
 bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2);
 void GenRandomCode(u32 size, std::vector<u16> &code);
@@ -23,5 +23,5 @@ void CodeToBinaryStringBE(const std::vector<u16> &code, std::string &str);
 void BinaryStringBEToCode(const std::string &str, std::vector<u16> &code);
 
 // Load code (big endian binary).
-bool LoadBinary(const char *filename, std::vector<u16> &code);
-bool SaveBinary(const std::vector<u16> &code, const char *filename);
+bool LoadBinary(const std::string& filename, std::vector<u16> &code);
+bool SaveBinary(const std::vector<u16> &code, const std::string& filename);

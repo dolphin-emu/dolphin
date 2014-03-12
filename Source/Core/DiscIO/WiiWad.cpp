@@ -34,7 +34,7 @@ private:
 
 WiiWAD::WiiWAD(const std::string& _rName)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName.c_str());
+	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName);
 	if (pReader == nullptr || File::IsDirectory(_rName))
 	{
 		m_Valid = false;
@@ -120,7 +120,7 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 
 bool WiiWAD::IsWiiWAD(const std::string& _rName)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName.c_str());
+	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName);
 	if (pReader == nullptr)
 		return false;
 

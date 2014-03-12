@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
@@ -17,7 +18,7 @@
 namespace DiscIO
 {
 
-DriveReader::DriveReader(const char *drive)
+DriveReader::DriveReader(const std::string& drive)
 {
 #ifdef _WIN32
 	SectorReader::SetSectorSize(2048);
@@ -56,8 +57,10 @@ DriveReader::DriveReader(const char *drive)
 #endif
 	}
 	else
-		NOTICE_LOG(DISCIO, "Load from DVD backup failed or no disc in drive %s", drive);
-}  // DriveReader::DriveReader
+	{
+		NOTICE_LOG(DISCIO, "Load from DVD backup failed or no disc in drive %s", drive.c_str());
+	}
+}
 
 DriveReader::~DriveReader()
 {
@@ -79,18 +82,20 @@ DriveReader::~DriveReader()
 #endif
 }
 
-DriveReader *DriveReader::Create(const char *drive)
+DriveReader* DriveReader::Create(const std::string& drive)
 {
-	DriveReader *reader = new DriveReader(drive);
+	DriveReader* reader = new DriveReader(drive);
+
 	if (!reader->IsOK())
 	{
 		delete reader;
 		return nullptr;
 	}
+
 	return reader;
 }
 
-void DriveReader::GetBlock(u64 block_num, u8 *out_ptr)
+void DriveReader::GetBlock(u64 block_num, u8* out_ptr)
 {
 	u8* const lpSector = new u8[m_blocksize];
 #ifdef _WIN32
@@ -109,7 +114,7 @@ void DriveReader::GetBlock(u64 block_num, u8 *out_ptr)
 	delete[] lpSector;
 }
 
-bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr)
+bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* out_ptr)
 {
 #ifdef _WIN32
 	u32 NotUsed;

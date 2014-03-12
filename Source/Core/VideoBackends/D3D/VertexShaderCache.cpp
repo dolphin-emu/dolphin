@@ -138,7 +138,7 @@ void VertexShaderCache::Init()
 	Clear();
 
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
+		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 	SETSTAT(stats.numVertexShadersCreated, 0);
 	SETSTAT(stats.numVertexShadersAlive, 0);

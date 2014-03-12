@@ -113,7 +113,7 @@ void PadSettingExtension::UpdateValue()
 	extension->switch_extension = ((wxChoice*)wxcontrol)->GetSelection();
 }
 
-PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const char* const label)
+PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const std::string& label)
 	: PadSetting(new wxCheckBox(parent, -1, wxGetTranslation(StrToWxStr(label))))
 	, value(_value)
 {

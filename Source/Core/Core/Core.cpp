@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cctype>
+
 #ifdef _WIN32
 #include <windows.h>
 #include "VideoCommon/EmuWindow.h"
@@ -109,15 +111,17 @@ bool PanicAlertToVideo(const char* text, bool yes_no)
 	return true;
 }
 
-void DisplayMessage(const char *message, int time_in_ms)
+void DisplayMessage(const std::string& message, int time_in_ms)
 {
 	SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	// Actually displaying non-ASCII could cause things to go pear-shaped
-	for (const char *c = message; *c != '\0'; ++c)
-		if (*c < ' ')
+	for (const char& c : message)
+	{
+		if (!std::isprint(c))
 			return;
+	}
 
 	g_video_backend->Video_AddMessage(message, time_in_ms);
 
@@ -575,7 +579,7 @@ void SaveScreenShot()
 
 	SetState(CORE_PAUSE);
 
-	g_video_backend->Video_Screenshot(GenerateScreenshotName().c_str());
+	g_video_backend->Video_Screenshot(GenerateScreenshotName());
 
 	if (!bPaused)
 		SetState(CORE_RUN);
@@ -716,13 +720,11 @@ void UpdateTitle()
 	#endif
 
 	// This is our final "frame counter" string
-	std::string SMessage = StringFromFormat("%s | %s",
-		SSettings.c_str(), SFPS.c_str());
-	std::string TMessage = StringFromFormat("%s | ", scm_rev_str) +
-		SMessage;
+	std::string SMessage = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
+	std::string TMessage = StringFromFormat("%s | %s", scm_rev_str, SMessage.c_str());
 
 	// Show message
-	g_video_backend->UpdateFPSDisplay(SMessage.c_str());
+	g_video_backend->UpdateFPSDisplay(SMessage);
 
 	// Update the audio timestretcher with the current speed
 	if (soundStream)
@@ -734,11 +736,13 @@ void UpdateTitle()
 	if (_CoreParameter.bRenderToMain &&
 		SConfig::GetInstance().m_InterfaceStatusbar)
 	{
-		Host_UpdateStatusBar(SMessage.c_str());
+		Host_UpdateStatusBar(SMessage);
 		Host_UpdateTitle(scm_rev_str);
 	}
 	else
-		Host_UpdateTitle(TMessage.c_str());
+	{
+		Host_UpdateTitle(TMessage);
 	}
+}
 
 } // Core

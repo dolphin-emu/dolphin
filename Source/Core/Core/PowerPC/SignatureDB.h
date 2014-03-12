@@ -31,15 +31,15 @@ class SignatureDB
 
 public:
 	// Returns the hash.
-	u32 Add(u32 startAddr, u32 size, const char *name);
+	u32 Add(u32 startAddr, u32 size, const std::string& name);
 
-	bool Load(const char *filename);  // Does not clear. Remember to clear first if that's what you want.
-	bool Save(const char *filename);
+	bool Load(const std::string& filename);  // Does not clear. Remember to clear first if that's what you want.
+	bool Save(const std::string& filename);
 	void Clean(const char *prefix);
 	void Clear();
 	void List();
 
-	void Initialize(PPCSymbolDB *func_db, const char *prefix = "");
+	void Initialize(PPCSymbolDB *func_db, const std::string& prefix = "");
 	void Apply(PPCSymbolDB *func_db);
 
 	static u32 ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd);

@@ -7,7 +7,7 @@
 #include "VideoCommon/RenderBase.h"
 
 // Show the current FPS
-void cInterfaceEGL::UpdateFPSDisplay(const char *text)
+void cInterfaceEGL::UpdateFPSDisplay(const std::string& text)
 {
 	Platform.UpdateFPSDisplay(text);
 }
@@ -20,7 +20,7 @@ void cInterfaceEGL::SwapInterval(int Interval)
 	eglSwapInterval(GLWin.egl_dpy, Interval);
 }
 
-void* cInterfaceEGL::GetFuncAddress(std::string name)
+void* cInterfaceEGL::GetFuncAddress(const std::string& name)
 {
 	return (void*)eglGetProcAddress(name.c_str());
 }

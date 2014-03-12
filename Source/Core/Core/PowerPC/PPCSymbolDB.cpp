@@ -55,7 +55,7 @@ Symbol *PPCSymbolDB::AddFunction(u32 startAddr)
 	}
 }
 
-void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int type)
+void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& name, int type)
 {
 	XFuncMap::iterator iter = functions.find(startAddr);
 	if (iter != functions.end())
@@ -196,7 +196,7 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 
 // This one can load both leftover map files on game discs (like Zelda), and mapfiles
 // produced by SaveSymbolMap below.
-bool PPCSymbolDB::LoadMap(const char *filename)
+bool PPCSymbolDB::LoadMap(const std::string& filename)
 {
 	File::IOFile f(filename, "r");
 	if (!f)
@@ -263,11 +263,12 @@ bool PPCSymbolDB::LoadMap(const char *filename)
 // ===================================================
 /* Save the map file and save a code file */
 // ----------------
-bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
+bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 {
 	// Format the name for the codes version
 	std::string mapFile = filename;
-	if (WithCodes) mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
+	if (WithCodes)
+		mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
 
 	// Check size
 	const int wxYES_NO = 0x00000002 | 0x00000008;
@@ -277,7 +278,9 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 			"No symbol names are generated. Do you want to replace '%s' with a blank file?",
 			mapFile.c_str()).c_str(), "Confirm", wxYES_NO)) return false;
 	}
-	if (WithCodes) Host_UpdateStatusBar("Saving code, please stand by ...");
+
+	if (WithCodes)
+		Host_UpdateStatusBar("Saving code, please stand by ...");
 
 	// Make a file
 	File::IOFile f(mapFile, "w");

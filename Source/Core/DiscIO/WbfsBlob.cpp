@@ -23,10 +23,10 @@ static inline u64 align(u64 value, u64 bounds)
 	return (value + (bounds - 1)) & (~(bounds - 1));
 }
 
-WbfsFileReader::WbfsFileReader(const char* filename)
+WbfsFileReader::WbfsFileReader(const std::string& filename)
 	: m_total_files(0), m_size(0), m_wlba_table(nullptr), m_good(true)
 {
-	if (!filename || (strlen(filename) < 4) || !OpenFiles(filename) || !ReadHeader())
+	if (filename.length() < 4 || !OpenFiles(filename) || !ReadHeader())
 	{
 		m_good = false;
 		return;
@@ -48,7 +48,7 @@ WbfsFileReader::~WbfsFileReader()
 	delete[] m_wlba_table;
 }
 
-bool WbfsFileReader::OpenFiles(const char* filename)
+bool WbfsFileReader::OpenFiles(const std::string& filename)
 {
 	m_total_files = 0;
 
@@ -171,7 +171,7 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 	return m_files[0]->file;
 }
 
-WbfsFileReader* WbfsFileReader::Create(const char* filename)
+WbfsFileReader* WbfsFileReader::Create(const std::string& filename)
 {
 	WbfsFileReader* reader = new WbfsFileReader(filename);
 
@@ -186,7 +186,7 @@ WbfsFileReader* WbfsFileReader::Create(const char* filename)
 	}
 }
 
-bool IsWbfsBlob(const char* filename)
+bool IsWbfsBlob(const std::string& filename)
 {
 	File::IOFile f(filename, "rb");
 

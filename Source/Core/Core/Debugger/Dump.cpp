@@ -3,16 +3,17 @@
 // Refer to the license.txt file included.
 
 #include <cstdio>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 
 #include "Core/Debugger/Dump.h"
 
-CDump::CDump(const char* _szFilename) :
+CDump::CDump(const std::string& filename) :
 	m_pData(nullptr)
 {
-	File::IOFile pStream(_szFilename, "rb");
+	File::IOFile pStream(filename, "rb");
 	if (pStream)
 	{
 		m_size = (size_t)pStream.GetSize();

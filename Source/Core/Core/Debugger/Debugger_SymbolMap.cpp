@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <functional>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
@@ -139,9 +140,9 @@ void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 	});
 }
 
-void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const char* _title)
+void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const std::string& _title)
 {
-	GENERIC_LOG(type, LogTypes::LDEBUG, "%s", _title);
+	GENERIC_LOG(type, LogTypes::LDEBUG, "%s", _title.c_str());
 	for (u32 j = 0; j < _Size;)
 	{
 		std::string hex_line = "";

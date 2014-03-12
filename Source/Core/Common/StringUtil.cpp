@@ -26,10 +26,10 @@
 #endif
 
 // faster than sscanf
-bool AsciiToHex(const char* _szValue, u32& result)
+bool AsciiToHex(const std::string& _szValue, u32& result)
 {
 	char *endptr = nullptr;
-	const u32 value = strtoul(_szValue, &endptr, 16);
+	const u32 value = strtoul(_szValue.c_str(), &endptr, 16);
 
 	if (!endptr || *endptr)
 		return false;

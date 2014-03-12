@@ -39,7 +39,7 @@ VideoConfig::VideoConfig()
 	backend_info.bSupports3DVision = false;
 }
 
-void VideoConfig::Load(const char *ini_file)
+void VideoConfig::Load(const std::string& ini_file)
 {
 	IniFile iniFile;
 	iniFile.Load(ini_file);
@@ -217,7 +217,7 @@ void VideoConfig::VerifyValidity()
 	if (!backend_info.bSupportsPixelLighting) bEnablePixelLighting = false;
 }
 
-void VideoConfig::Save(const char *ini_file)
+void VideoConfig::Save(const std::string& ini_file)
 {
 	IniFile iniFile;
 	iniFile.Load(ini_file);

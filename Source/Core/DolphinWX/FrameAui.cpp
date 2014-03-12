@@ -579,7 +579,7 @@ void CFrame::OnToolBar(wxCommandEvent& event)
 			}
 			SaveIniPerspectives();
 			GetStatusBar()->SetStatusText(StrToWxStr(std::string
-						("Saved " + Perspectives[ActivePerspective].Name).c_str()), 0);
+						("Saved " + Perspectives[ActivePerspective].Name)), 0);
 			break;
 		case IDM_PERSPECTIVES_ADD_PANE:
 			AddPane();
@@ -869,12 +869,14 @@ void CFrame::LoadIniPerspectives()
 		for (auto& Width : _SWidth)
 		{
 			int _Tmp;
-			if (TryParse(Width.c_str(), &_Tmp)) Tmp.Width.push_back(_Tmp);
+			if (TryParse(Width, &_Tmp))
+				Tmp.Width.push_back(_Tmp);
 		}
 		for (auto& Height : _SHeight)
 		{
 			int _Tmp;
-			if (TryParse(Height.c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
+			if (TryParse(Height, &_Tmp))
+				Tmp.Height.push_back(_Tmp);
 		}
 		Perspectives.push_back(Tmp);
 	}

@@ -143,7 +143,7 @@ bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 		irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
 	if (!File::Exists(coef_file))
 		coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
-	if (!DSPCore_Init(irom_file.c_str(), coef_file.c_str(), AudioCommon::UseJIT()))
+	if (!DSPCore_Init(irom_file, coef_file, AudioCommon::UseJIT()))
 		return false;
 
 	g_dsp.cpu_ram = Memory::GetPointer(0);

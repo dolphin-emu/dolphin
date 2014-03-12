@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
 #include "Core/PowerPC/JitInterface.h"
 
 namespace Profiler
@@ -10,7 +11,7 @@ namespace Profiler
 bool g_ProfileBlocks;
 bool g_ProfileInstructions;
 
-void WriteProfileResults(const char *filename)
+void WriteProfileResults(const std::string& filename)
 {
 	JitInterface::WriteProfileResults(filename);
 }

@@ -381,7 +381,7 @@ void ProgramShaderCache::Init(void)
 		else
 		{
 			if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-				File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
+				File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 			char cache_filename[MAX_PATH];
 			sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),

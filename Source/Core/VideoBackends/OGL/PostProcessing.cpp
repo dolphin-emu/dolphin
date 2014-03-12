@@ -133,7 +133,7 @@ void ApplyShader()
 		// Fallback to shared user dir
 		path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + g_ActiveConfig.sPostProcessingShader + ".glsl";
 	}
-	if (!File::ReadFileToString(path.c_str(), code)) {
+	if (!File::ReadFileToString(path, code)) {
 		ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
 		return;
 	}

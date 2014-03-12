@@ -386,7 +386,7 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 
 	if (playMovie && movieFile != wxEmptyString)
 	{
-		if (Movie::PlayInput(movieFile.char_str()))
+		if (Movie::PlayInput(WxStrToStr(movieFile)))
 		{
 			if (LoadFile && FileToLoad != wxEmptyString)
 			{
@@ -602,7 +602,7 @@ void Host_UpdateMainFrame()
 	}
 }
 
-void Host_UpdateTitle(const char* title)
+void Host_UpdateTitle(const std::string& title)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
 	event.SetString(StrToWxStr(title));
@@ -668,11 +668,11 @@ void Host_SetStartupDebuggingParameters()
 	StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
 }
 
-void Host_UpdateStatusBar(const char* _pText, int Field)
+void Host_UpdateStatusBar(const std::string& text, int Field)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 	// Set the event string
-	event.SetString(StrToWxStr(_pText));
+	event.SetString(StrToWxStr(text));
 	// Update statusbar field
 	event.SetInt(Field);
 	// Post message

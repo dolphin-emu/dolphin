@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -27,11 +28,9 @@ unsigned int VideoBackend::PeekMessages()
 }
 
 // Show the current FPS
-void VideoBackend::UpdateFPSDisplay(const char *text)
+void VideoBackend::UpdateFPSDisplay(const std::string& text)
 {
-	char temp[100];
-	snprintf(temp, sizeof temp, "%s | %s | %s", scm_rev_str, GetDisplayName().c_str(), text);
-	return GLInterface->UpdateFPSDisplay(temp);
+	return GLInterface->UpdateFPSDisplay(StringFromFormat("%s | %s | %s", scm_rev_str, GetDisplayName().c_str(), text.c_str()));
 }
 
 }
@@ -48,7 +47,7 @@ void InitInterface()
 	#endif
 }
 
-GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentShader )
+GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShader)
 {
 	// generate objects
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);

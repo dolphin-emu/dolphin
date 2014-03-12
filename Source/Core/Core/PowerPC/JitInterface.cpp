@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <string>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -123,7 +124,7 @@ namespace JitInterface
 		return jit;
 	}
 
-	void WriteProfileResults(const char *filename)
+	void WriteProfileResults(const std::string& filename)
 	{
 		// Can't really do this with no jit core available
 		#if _M_X86
@@ -157,7 +158,7 @@ namespace JitInterface
 		File::IOFile f(filename, "w");
 		if (!f)
 		{
-			PanicAlert("Failed to open %s", filename);
+			PanicAlert("Failed to open %s", filename.c_str());
 			return;
 		}
 		fprintf(f.GetHandle(), "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");

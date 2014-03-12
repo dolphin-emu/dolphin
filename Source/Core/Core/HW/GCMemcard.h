@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/StringUtil.h"
@@ -169,12 +171,12 @@ private:
 	};
 #pragma pack(pop)
 
-	u32 ImportGciInternal(FILE* gcih, const char *inputFile, const std::string &outputFile);
+	u32 ImportGciInternal(FILE* gcih, const std::string& inputFile, const std::string &outputFile);
 	static void FormatInternal(GCMC_Header &GCP);
 	void initDirBatPointers() ;
 public:
 
-	GCMemcard(const char* fileName, bool forceCreation=false, bool sjis=false);
+	GCMemcard(const std::string& fileName, bool forceCreation=false, bool sjis=false);
 	bool IsValid() const { return m_valid; }
 	bool IsAsciiEncoding() const;
 	bool Save();
@@ -233,10 +235,10 @@ public:
 	u32 CopyFrom(const GCMemcard& source, u8 index);
 
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-	u32 ImportGci(const char* inputFile,const std::string &outputFile);
+	u32 ImportGci(const std::string& inputFile,const std::string &outputFile);
 
 	// writes a .gci file to disk containing index
-	u32 ExportGci(u8 index, const char* fileName, const std::string &directory) const;
+	u32 ExportGci(u8 index, const std::string& fileName, const std::string &directory) const;
 
 	// GCI files are untouched, SAV files are byteswapped
 	// GCS files have the block count set, default is 1 (For export as GCS)

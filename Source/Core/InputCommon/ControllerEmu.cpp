@@ -148,22 +148,22 @@ ControllerEmu::AnalogStick::AnalogStick(const char* const _name) : ControlGroup(
 
 }
 
-ControllerEmu::Buttons::Buttons(const char* const _name) : ControlGroup(_name, GROUP_TYPE_BUTTONS)
+ControllerEmu::Buttons::Buttons(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_BUTTONS)
 {
 	settings.emplace_back(new Setting(_trans("Threshold"), 0.5f));
 }
 
-ControllerEmu::MixedTriggers::MixedTriggers(const char* const _name) : ControlGroup(_name, GROUP_TYPE_MIXED_TRIGGERS)
+ControllerEmu::MixedTriggers::MixedTriggers(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_MIXED_TRIGGERS)
 {
 	settings.emplace_back(new Setting(_trans("Threshold"), 0.9f));
 }
 
-ControllerEmu::Triggers::Triggers(const char* const _name) : ControlGroup(_name, GROUP_TYPE_TRIGGERS)
+ControllerEmu::Triggers::Triggers(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_TRIGGERS)
 {
 	settings.emplace_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
 }
 
-ControllerEmu::Slider::Slider(const char* const _name) : ControlGroup(_name, GROUP_TYPE_SLIDER)
+ControllerEmu::Slider::Slider(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_SLIDER)
 {
 	controls.emplace_back(new Input("Left"));
 	controls.emplace_back(new Input("Right"));
@@ -171,7 +171,7 @@ ControllerEmu::Slider::Slider(const char* const _name) : ControlGroup(_name, GRO
 	settings.emplace_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
 }
 
-ControllerEmu::Force::Force(const char* const _name) : ControlGroup(_name, GROUP_TYPE_FORCE)
+ControllerEmu::Force::Force(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_FORCE)
 {
 	memset(m_swing, 0, sizeof(m_swing));
 
@@ -185,7 +185,7 @@ ControllerEmu::Force::Force(const char* const _name) : ControlGroup(_name, GROUP
 	settings.emplace_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
 }
 
-ControllerEmu::Tilt::Tilt(const char* const _name)
+ControllerEmu::Tilt::Tilt(const std::string& _name)
 	: ControlGroup(_name, GROUP_TYPE_TILT)
 {
 	memset(m_tilt, 0, sizeof(m_tilt));
@@ -202,7 +202,7 @@ ControllerEmu::Tilt::Tilt(const char* const _name)
 	settings.emplace_back(new Setting(_trans("Angle"), 0.9f, 0, 180));
 }
 
-ControllerEmu::Cursor::Cursor(const char* const _name)
+ControllerEmu::Cursor::Cursor(const std::string& _name)
 	: ControlGroup(_name, GROUP_TYPE_CURSOR)
 	, m_z(0)
 {

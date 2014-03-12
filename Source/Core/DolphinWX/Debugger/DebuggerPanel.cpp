@@ -278,50 +278,50 @@ void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 	switch (m_pDumpList->GetSelection())
 	{
 		case 0: // Pixel Shader
-			DumpPixelShader(dump_path.c_str());
+			DumpPixelShader(dump_path);
 			break;
 
 		case 1: // Vertex Shader
-			DumpVertexShader(dump_path.c_str());
+			DumpVertexShader(dump_path);
 			break;
 
 		case 2: // Pixel Shader Constants
-			DumpPixelShaderConstants(dump_path.c_str());
+			DumpPixelShaderConstants(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 3: // Vertex Shader Constants
-			DumpVertexShaderConstants(dump_path.c_str());
+			DumpVertexShaderConstants(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 4: // Textures
-			DumpTextures(dump_path.c_str());
+			DumpTextures(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 5: // Frame Buffer
-			DumpFrameBuffer(dump_path.c_str());
+			DumpFrameBuffer(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 6: // Geometry
-			DumpGeometry(dump_path.c_str());
+			DumpGeometry(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 7: // Vertex Description
-			DumpVertexDecl(dump_path.c_str());
+			DumpVertexDecl(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 8: // Vertex Matrices
-			DumpMatrices(dump_path.c_str());
+			DumpMatrices(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 9: // Statistics
-			DumpStats(dump_path.c_str());
+			DumpStats(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 	}

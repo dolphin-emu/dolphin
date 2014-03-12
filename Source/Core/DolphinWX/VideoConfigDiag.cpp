@@ -87,7 +87,7 @@ void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 
 void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 {
-	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
+	g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
 
 	EndModal(wxID_OK);
 }
@@ -213,7 +213,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	, vconfig(g_Config)
 	, ininame(_ininame)
 {
-	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
+	vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
 
 	Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 

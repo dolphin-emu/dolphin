@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Core/Host.h"
 
 #include "DolphinWX/GLInterface/GLInterface.h"
@@ -13,9 +15,9 @@ typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);
 PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
 
 // Show the current FPS
-void cInterfaceGLX::UpdateFPSDisplay(const char *text)
+void cInterfaceGLX::UpdateFPSDisplay(const std::string& text)
 {
-	XStoreName(GLWin.evdpy, GLWin.win, text);
+	XStoreName(GLWin.evdpy, GLWin.win, text.c_str());
 }
 
 void cInterfaceGLX::SwapInterval(int Interval)

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 
 // Host - defines an interface for the emulator core to communicate back to the
 // OS-specific layer
@@ -38,8 +39,8 @@ void Host_UpdateBreakPointView();
 void Host_UpdateDisasmDialog();
 void Host_UpdateLogDisplay();
 void Host_UpdateMainFrame();
-void Host_UpdateStatusBar(const char* _pText, int Filed = 0);
-void Host_UpdateTitle(const char* title);
+void Host_UpdateStatusBar(const std::string& text, int Filed = 0);
+void Host_UpdateTitle(const std::string& title);
 
 // TODO (neobrain): Remove these from host!
 void* Host_GetInstance();

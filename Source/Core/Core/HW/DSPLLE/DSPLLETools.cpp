@@ -8,9 +8,11 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPCore.h"
@@ -21,10 +23,8 @@
 
 bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 {
-	char binFile[MAX_PATH];
-	char txtFile[MAX_PATH];
-	sprintf(binFile, "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), crc);
-	sprintf(txtFile, "%sDSP_UC_%08X.txt", File::GetUserPath(D_DUMPDSP_IDX).c_str(), crc);
+	const std::string binFile = StringFromFormat("%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), crc);
+	const std::string txtFile = StringFromFormat("%sDSP_UC_%08X.txt", File::GetUserPath(D_DUMPDSP_IDX).c_str(), crc);
 
 	File::IOFile pFile(binFile, "wb");
 	if (pFile)
@@ -34,7 +34,7 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 	}
 	else
 	{
-		PanicAlert("Can't open file (%s) to dump UCode!!", binFile);
+		PanicAlert("Can't open file (%s) to dump UCode!!", binFile.c_str());
 		return false;
 	}
 

@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <fstream>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
@@ -48,7 +49,7 @@ class LinearDiskCache
 {
 public:
 	// return number of read entries
-	u32 OpenAndRead(const char *filename, LinearDiskCacheReader<K, V> &reader)
+	u32 OpenAndRead(const std::string& filename, LinearDiskCacheReader<K, V> &reader)
 	{
 		using std::ios_base;
 

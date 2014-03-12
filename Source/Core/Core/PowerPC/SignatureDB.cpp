@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 
@@ -11,7 +13,8 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/SignatureDB.h"
 
-namespace {
+namespace
+{
 
 // On-disk format for SignatureDB entries.
 struct FuncDesc
@@ -23,7 +26,7 @@ struct FuncDesc
 
 }  // namespace
 
-bool SignatureDB::Load(const char *filename)
+bool SignatureDB::Load(const std::string& filename)
 {
 	File::IOFile f(filename, "rb");
 	if (!f)
@@ -47,7 +50,7 @@ bool SignatureDB::Load(const char *filename)
 	return true;
 }
 
-bool SignatureDB::Save(const char *filename)
+bool SignatureDB::Save(const std::string& filename)
 {
 	File::IOFile f(filename, "wb");
 	if (!f)
@@ -72,7 +75,7 @@ bool SignatureDB::Save(const char *filename)
 }
 
 //Adds a known function to the hash database
-u32 SignatureDB::Add(u32 startAddr, u32 size, const char *name)
+u32 SignatureDB::Add(u32 startAddr, u32 size, const std::string& name)
 {
 	u32 hash = ComputeCodeChecksum(startAddr, startAddr + size);
 
@@ -83,6 +86,7 @@ u32 SignatureDB::Add(u32 startAddr, u32 size, const char *name)
 	FuncDB::iterator iter = database.find(hash);
 	if (iter == database.end())
 		database[hash] = temp_dbfunc;
+
 	return hash;
 }
 
@@ -126,12 +130,11 @@ void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 	symbol_db->Index();
 }
 
-void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
+void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const std::string& prefix)
 {
-	std::string prefix_str(prefix);
 	for (const auto& symbol : symbol_db->Symbols())
 	{
-		if ((symbol.second.name.substr(0, prefix_str.size()) == prefix_str) || prefix_str.empty())
+		if ((symbol.second.name.substr(0, prefix.size()) == prefix) || prefix.empty())
 		{
 			DBFunc temp_dbfunc;
 			temp_dbfunc.name = symbol.second.name;

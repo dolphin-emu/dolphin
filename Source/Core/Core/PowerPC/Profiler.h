@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <string>
+
 #ifdef _WIN32
 
 #if _M_X86_32
@@ -58,5 +60,5 @@ namespace Profiler
 extern bool g_ProfileBlocks;
 extern bool g_ProfileInstructions;
 
-void WriteProfileResults(const char *filename);
+void WriteProfileResults(const std::string& filename);
 }

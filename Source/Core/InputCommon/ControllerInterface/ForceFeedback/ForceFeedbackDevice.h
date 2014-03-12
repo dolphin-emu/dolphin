@@ -5,6 +5,7 @@
 #pragma once
 
 #include <list>
+#include <string>
 
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -41,10 +42,10 @@ private:
 	{
 	public:
 		std::string GetName() const;
-		Force(const char* name, EffectState& state);
+		Force(const std::string& name, EffectState& state);
 		void SetState(ControlState state);
 	private:
-		const char* m_name;
+		const std::string m_name;
 		EffectState& m_state;
 		P params;
 	};

@@ -81,9 +81,9 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
 
 	u32 StartAddress, EndAddress;
 	bool EndAddressOK = EndAddressString.Len() &&
-		AsciiToHex(WxStrToStr(EndAddressString).c_str(), EndAddress);
+		AsciiToHex(WxStrToStr(EndAddressString), EndAddress);
 
-	if (AsciiToHex(WxStrToStr(StartAddressString).c_str(), StartAddress) &&
+	if (AsciiToHex(WxStrToStr(StartAddressString), StartAddress) &&
 		(OnRead || OnWrite) && (Log || Break))
 	{
 		TMemCheck MemCheck;

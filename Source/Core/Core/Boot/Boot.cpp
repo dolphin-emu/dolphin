@@ -126,7 +126,7 @@ bool CBoot::LoadMapFromFilename()
 {
 	std::string strMapFilename;
 	bool found = FindMapFile(&strMapFilename, nullptr);
-	if (found && g_symbolDB.LoadMap(strMapFilename.c_str()))
+	if (found && g_symbolDB.LoadMap(strMapFilename))
 	{
 		UpdateDebugger_MapLoaded();
 		return true;
@@ -149,7 +149,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 
 	// Load the whole ROM dump
 	std::string data;
-	if (!File::ReadFileToString(_rBootROMFilename.c_str(), data))
+	if (!File::ReadFileToString(_rBootROMFilename, data))
 		return false;
 
 	u32 ipl_hash = HashAdler32((const u8*)data.data(), data.size());
@@ -247,7 +247,7 @@ bool CBoot::BootUp()
 		{
 			PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
 			SignatureDB db;
-			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+			if (db.Load(File::GetSysDirectory() + TOTALDB))
 			{
 				db.Apply(&g_symbolDB);
 				HLE::PatchFunctions();
@@ -268,7 +268,7 @@ bool CBoot::BootUp()
 	// DOL
 	case SCoreStartupParameter::BOOT_DOL:
 	{
-		CDolLoader dolLoader(_StartupPara.m_strFilename.c_str());
+		CDolLoader dolLoader(_StartupPara.m_strFilename);
 		// Check if we have gotten a Wii file or not
 		bool dolWii = dolLoader.IsWii();
 		if (dolWii != _StartupPara.bWii)
@@ -284,7 +284,7 @@ bool CBoot::BootUp()
 		}
 		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
 		{
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
+			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
 			BS2Success = EmulatedBS2(dolWii);
 		}
 
@@ -320,7 +320,7 @@ bool CBoot::BootUp()
 		}
 
 		// Check if we have gotten a Wii file or not
-		bool elfWii = IsElfWii(_StartupPara.m_strFilename.c_str());
+		bool elfWii = IsElfWii(_StartupPara.m_strFilename);
 		if (elfWii != _StartupPara.bWii)
 		{
 			PanicAlertT("Warning - starting ELF in wrong console mode!");
@@ -334,7 +334,7 @@ bool CBoot::BootUp()
 		}
 		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
 		{
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
+			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
 			BS2Success = EmulatedBS2(elfWii);
 		}
 
@@ -362,7 +362,7 @@ bool CBoot::BootUp()
 		else // Poor man's bootup
 		{
 			Load_FST(elfWii);
-			Boot_ELF(_StartupPara.m_strFilename.c_str());
+			Boot_ELF(_StartupPara.m_strFilename);
 		}
 		UpdateDebugger_MapLoaded();
 		Dolphin_Debugger::AddAutoBreakpoints();
@@ -371,7 +371,7 @@ bool CBoot::BootUp()
 
 	// Wii WAD
 	case SCoreStartupParameter::BOOT_WII_NAND:
-		Boot_WiiWAD(_StartupPara.m_strFilename.c_str());
+		Boot_WiiWAD(_StartupPara.m_strFilename);
 
 		if (LoadMapFromFilename())
 			HLE::PatchFunctions();

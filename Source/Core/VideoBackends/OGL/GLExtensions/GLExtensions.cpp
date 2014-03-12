@@ -1755,7 +1755,7 @@ namespace GLExtensions
 
 	// Public members
 	u32 Version() { return _GLVersion; }
-	bool Supports(std::string name)
+	bool Supports(const std::string& name)
 	{
 		return m_extension_list[name];
 	}

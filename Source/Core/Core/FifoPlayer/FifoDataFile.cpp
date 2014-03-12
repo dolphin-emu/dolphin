@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Common/FileUtil.h"
 
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -41,7 +43,7 @@ void FifoDataFile::AddFrame(const FifoFrameInfo &frameInfo)
 	m_Frames.push_back(frameInfo);
 }
 
-bool FifoDataFile::Save(const char *filename)
+bool FifoDataFile::Save(const std::string& filename)
 {
 	File::IOFile file;
 	if (!file.Open(filename, "wb"))

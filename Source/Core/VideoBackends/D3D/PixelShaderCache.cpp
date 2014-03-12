@@ -391,7 +391,7 @@ void PixelShaderCache::Init()
 	Clear();
 
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
+		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 	SETSTAT(stats.numPixelShadersCreated, 0);
 	SETSTAT(stats.numPixelShadersAlive, 0);
