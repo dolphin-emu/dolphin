@@ -733,7 +733,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
-		int partitionNum = wxAtoi(File.Mid(File.find_first_of("/"), 1));
+		int partitionNum = wxAtoi(File.Mid(File.find_first_of("/") - 1, 1));
 		File.Remove(0, File.find_first_of("/") +1); // Remove "Partition x/"
 		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
 	}
@@ -872,7 +872,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
-		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("/"), 1));
+		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("/") - 1, 1));
 		Directory.Remove(0, Directory.find_first_of("/") +1); // Remove "Partition x/"
 		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str(), partitionNum);
 	}
