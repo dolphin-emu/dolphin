@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/BitField.h"
 #include "Common/Common.h"
 
 #pragma pack(4)
@@ -831,22 +832,25 @@ struct TCoordInfo
 };
 
 
-union ColReg
+union TevReg
 {
-	u32 hex;
-	struct
-	{
-		s32 a    : 11;
-		u32      : 1;
-		s32 b    : 11;
-		u32 type : 1;
-	};
-};
+	u64 hex;
 
-struct TevReg
-{
-	ColReg low;
-	ColReg high;
+	// Access to individual registers
+	BitField< 0, 32,u64> low;
+	BitField<32, 32,u64> high;
+
+	// Low register
+	BitField< 0,11,s64> red;
+
+	BitField<12,11,s64> alpha;
+	BitField<23, 1,u64> type_ra;
+
+	// High register
+	BitField<32,11,s64> blue;
+
+	BitField<44,11,s64> green;
+	BitField<55, 1,u64> type_bg;
 };
 
 union TevKSel
@@ -923,21 +927,20 @@ union AlphaTest
 union UPE_Copy
 {
 	u32 Hex;
-	struct
-	{
-		u32 clamp0              : 1; // if set clamp top
-		u32 clamp1              : 1; // if set clamp bottom
-		u32 yuv                 : 1; // if set, color conversion from RGB to YUV
-		u32 target_pixel_format : 4; // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb (pattern: cycling right shift)
-		u32 gamma               : 2; // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
-		u32 half_scale          : 1; // "mipmap" filter... 0 = no filter (scale 1:1) ; 1 = box filter (scale 2:1)
-		u32 scale_invert        : 1; // if set vertical scaling is on
-		u32 clear               : 1;
-		u32 frame_to_field      : 2; // 0 progressive ; 1 is reserved ; 2 = interlaced (even lines) ; 3 = interlaced 1 (odd lines)
-		u32 copy_to_xfb         : 1;
-		u32 intensity_fmt       : 1; // if set, is an intensity format (I4,I8,IA4,IA8)
-		u32 auto_conv           : 1; // if 0 automatic color conversion by texture format and pixel type
-	};
+
+	BitField< 0,1,u32> clamp0;               // if set clamp top
+	BitField< 1,1,u32> clamp1;               // if set clamp bottom
+	BitField< 2,1,u32> yuv;                  // if set, color conversion from RGB to YUV
+	BitField< 3,4,u32> target_pixel_format;  // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb (pattern: cycling right shift)
+	BitField< 7,2,u32> gamma;                // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
+	BitField< 9,1,u32> half_scale;           // "mipmap" filter... 0 = no filter (scale 1:1) ; 1 = box filter (scale 2:1)
+	BitField<10,1,u32> scale_invert;         // if set vertical scaling is on
+	BitField<11,1,u32> clear;
+	BitField<12,2,u32> frame_to_field;       // 0 progressive ; 1 is reserved ; 2 = interlaced (even lines) ; 3 = interlaced 1 (odd lines)
+	BitField<14,1,u32> copy_to_xfb;
+	BitField<15,1,u32> intensity_fmt;        // if set, is an intensity format (I4,I8,IA4,IA8)
+	BitField<16,1,u32> auto_conv;            // if 0 automatic color conversion by texture format and pixel type
+
 	u32 tp_realFormat() {
 		return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
 	}
