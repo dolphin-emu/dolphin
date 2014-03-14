@@ -457,11 +457,15 @@ void ProgramShaderCache::CreateHeader ( void )
 
 		// Precision defines for GLSLES3
 		"%s\n"
+		"%s\n"
 
 		// Silly differences
 		"#define float2 vec2\n"
 		"#define float3 vec3\n"
 		"#define float4 vec4\n"
+		"#define uint2 uvec2\n"
+		"#define uint3 uvec3\n"
+		"#define uint4 uvec4\n"
 		"#define int2 ivec2\n"
 		"#define int3 ivec3\n"
 		"#define int4 ivec4\n"
@@ -480,6 +484,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		, g_ActiveConfig.backend_info.bSupportShadingLanguage420pack ? "#extension GL_ARB_shading_language_420pack : enable" : ""
 
 		, v==GLSLES3 ? "precision highp float;" : ""
+		, v==GLSLES3 ? "precision highp int;" : ""
 
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENTEXTURESIZE) ? "#define textureSize(x, y) ivec2(1, 1)" : ""
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "#define centroid" : ""

@@ -11,26 +11,30 @@ typedef s32 int4[4];
 
 struct PixelShaderConstants
 {
-	float4 colors[4];
-	float4 kcolors[4];
-	float4 alpha;
+	int4 colors[4];
+	int4 kcolors[4];
+	int4 alpha;
 	float4 texdims[8];
-	float4 zbias[2];
-	float4 indtexscale[2];
-	float4 indtexmtx[6];
-	float4 fog[3];
+	int4 zbias[2];
+	int4 indtexscale[2];
+	int4 indtexmtx[6];
+	int4 fogcolor;
+	int4 fogi;
+	float4 fogf[2];
 
 	// For pixel lighting
-	float4 plights[40];
-	float4 pmaterials[4];
+	int4 plight_colors[8];
+	float4 plights[32];
+	int4 pmaterials[4];
 };
 
 struct VertexShaderConstants
 {
 	float4 posnormalmatrix[6];
 	float4 projection[4];
-	float4 materials[4];
-	float4 lights[40];
+	int4 materials[4];
+	int4 light_colors[8]; // 8 lights
+	float4 lights[32]; // 8 lights * 4 parameters
 	float4 texmatrices[24];
 	float4 transformmatrices[64];
 	float4 normalmatrices[32];

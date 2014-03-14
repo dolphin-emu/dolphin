@@ -478,7 +478,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 		case ITBA_OFF:
 			AlphaBump = 0;
 			break;
-			case ITBA_S:
+		case ITBA_S:
 			AlphaBump = indmap[TextureSampler::ALP_SMP];
 			break;
 		case ITBA_T:
@@ -528,9 +528,9 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 			return;
 	}
 
-	s64 indtevtrans[2] = { 0,0 };
+	s32 indtevtrans[2] = { 0,0 };
 
-	// matrix multiply
+	// matrix multiply - results might overflow, but we don't care since we only use the lower 24 bits of the result.
 	int indmtxid = indirect.mid & 3;
 	if (indmtxid)
 	{
@@ -544,19 +544,21 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 		switch (indirect.mid & 12)
 		{
 			case 0:
-				shift = 3 + (17 - scale);
-				indtevtrans[0] = indmtx.col0.ma * indcoord[0] + indmtx.col1.mc * indcoord[1] + indmtx.col2.me * indcoord[2];
-				indtevtrans[1] = indmtx.col0.mb * indcoord[0] + indmtx.col1.md * indcoord[1] + indmtx.col2.mf * indcoord[2];
+				// matrix values are S0.10, output format is S17.7, so divide by 8
+				shift = (17 - scale);
+				indtevtrans[0] = (indmtx.col0.ma * indcoord[0] + indmtx.col1.mc * indcoord[1] + indmtx.col2.me * indcoord[2]) >> 3;
+				indtevtrans[1] = (indmtx.col0.mb * indcoord[0] + indmtx.col1.md * indcoord[1] + indmtx.col2.mf * indcoord[2]) >> 3;
 				break;
 			case 4: // s matrix
-				shift = 8 + (17 - scale);
-				indtevtrans[0] = s * indcoord[0];
-				indtevtrans[1] = t * indcoord[0];
+				// s is S17.7, matrix elements are divided by 256, output is S17.7, so divide by 256. - TODO: Maybe, since s is actually stored as S24, we should divide by 256*64?
+				shift = (17 - scale);
+				indtevtrans[0] = s * indcoord[0] / 256;
+				indtevtrans[1] = t * indcoord[0] / 256;
 				break;
 			case 8: // t matrix
-				shift = 8 + (17 - scale);
-				indtevtrans[0] = s * indcoord[1];
-				indtevtrans[1] = t * indcoord[1];
+				shift = (17 - scale);
+				indtevtrans[0] = s * indcoord[1] / 256;
+				indtevtrans[1] = t * indcoord[1] / 256;
 				break;
 			default:
 				return;

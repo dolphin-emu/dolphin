@@ -38,9 +38,6 @@ public:
 };
 
 
-const int NUM_UNIFORMS = 19;
-extern const char *UniformNames[NUM_UNIFORMS];
-
 struct SHADER
 {
 	SHADER() : glprogid(0) { }
@@ -52,8 +49,6 @@ struct SHADER
 	GLuint glprogid; // opengl program id
 
 	std::string strvprog, strpprog;
-	GLint UniformLocations[NUM_UNIFORMS];
-	u32 UniformSize[NUM_UNIFORMS];
 
 	void SetProgramVariables();
 	void SetProgramBindings();

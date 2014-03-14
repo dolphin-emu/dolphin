@@ -411,9 +411,6 @@ union TEXSCALE
 		u32 rid : 8;
 	};
 	u32 hex;
-
-	float getScaleS(int i){return 1.0f/(float)(1<<(i?ss1:ss0));}
-	float getScaleT(int i){return 1.0f/(float)(1<<(i?ts1:ts0));}
 };
 
 union RAS1_IREF
