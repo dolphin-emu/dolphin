@@ -6,11 +6,11 @@
 // In particular, this means we're stuck with the c++11 feature set
 // supported by GCC 4.6 until a new update of devkitPPC is released.
 
+#pragma once
+
 #include <limits>
 
 #include "CommonTypes.h"
-
-#pragma once
 
 /*
  * Abstract bitfield class
