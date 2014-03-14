@@ -81,10 +81,10 @@ bool ParsePartitionData(SPartition& _rPartition);
 u32 GetDOLSize(u64 _DOLOffset);
 
 
-bool SetupScrub(const char* filename, int block_size)
+bool SetupScrub(const std::string& filename, int block_size)
 {
 	bool success = true;
-	m_Filename = std::string(filename);
+	m_Filename = filename;
 	m_BlockSize = block_size;
 
 	if (CLUSTER_SIZE % m_BlockSize != 0)
@@ -102,7 +102,7 @@ bool SetupScrub(const char* filename, int block_size)
 
 	// Warn if not DVD5 or DVD9 size
 	if (numClusters != 0x23048 && numClusters != 0x46090)
-		WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename, numClusters);
+		WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename.c_str(), numClusters);
 
 	// Table of free blocks
 	m_FreeTable = new u8[numClusters];

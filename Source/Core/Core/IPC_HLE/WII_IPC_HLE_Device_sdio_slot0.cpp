@@ -53,7 +53,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
 	if (!m_Card)
 	{
 		WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
-		if (SDCardCreate(128, filename.c_str()))
+		if (SDCardCreate(128, filename))
 		{
 			WARN_LOG(WII_IPC_SD, "Successfully created %s", filename.c_str());
 			m_Card.Open(filename, "r+b");

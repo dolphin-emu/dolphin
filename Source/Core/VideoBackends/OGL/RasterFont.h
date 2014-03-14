@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace OGL
 {
 
@@ -14,7 +16,7 @@ public:
 	~RasterFont(void);
 	static int debug;
 
-	void printMultilineText(const char *text, double x, double y, double z, int bbWidth, int bbHeight, u32 color);
+	void printMultilineText(const std::string& text, double x, double y, double z, int bbWidth, int bbHeight, u32 color);
 private:
 
 	u32 VBO;

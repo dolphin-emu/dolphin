@@ -70,9 +70,9 @@ void* Host_GetRenderHandle()
 
 void* Host_GetInstance() { return nullptr; }
 
-void Host_UpdateTitle(const char* title)
+void Host_UpdateTitle(const std::string& title)
 {
-	LOGI(title);
+	LOGI(title.c_str());
 };
 
 void Host_UpdateLogDisplay(){}
@@ -112,7 +112,7 @@ void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
 void Host_SetWaitCursor(bool enable){}
 
-void Host_UpdateStatusBar(const char* _pText, int Filed){}
+void Host_UpdateStatusBar(const std::string& text, int filed){}
 
 void Host_SysMessage(const char *fmt, ...)
 {

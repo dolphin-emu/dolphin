@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
@@ -79,10 +81,9 @@ void ContinueGFXDebugger()
 }
 
 
-void GFXDebuggerBase::DumpPixelShader(const char* path)
+void GFXDebuggerBase::DumpPixelShader(const std::string& path)
 {
-	char filename[MAX_PATH];
-	sprintf(filename, "%sdump_ps.txt", path);
+	const std::string filename = StringFromFormat("%sdump_ps.txt", path.c_str());
 
 	std::string output;
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
@@ -111,51 +112,50 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 	File::WriteStringToFile(output, filename);
 }
 
-void GFXDebuggerBase::DumpVertexShader(const char* path)
+void GFXDebuggerBase::DumpVertexShader(const std::string& path)
 {
-	char filename[MAX_PATH];
-	sprintf(filename, "%sdump_vs.txt", path);
+	const std::string filename = StringFromFormat("%sdump_vs.txt", path.c_str());
 
 	File::CreateEmptyFile(filename);
 ///	File::WriteStringToFile(GenerateVertexShaderCode(g_nativeVertexFmt->m_components, g_ActiveConfig.backend_info.APIType), filename);
 }
 
-void GFXDebuggerBase::DumpPixelShaderConstants(const char* path)
+void GFXDebuggerBase::DumpPixelShaderConstants(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpVertexShaderConstants(const char* path)
+void GFXDebuggerBase::DumpVertexShaderConstants(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpTextures(const char* path)
+void GFXDebuggerBase::DumpTextures(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpFrameBuffer(const char* path)
+void GFXDebuggerBase::DumpFrameBuffer(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpGeometry(const char* path)
+void GFXDebuggerBase::DumpGeometry(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpVertexDecl(const char* path)
+void GFXDebuggerBase::DumpVertexDecl(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpMatrices(const char* path)
+void GFXDebuggerBase::DumpMatrices(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpStats(const char* path)
+void GFXDebuggerBase::DumpStats(const std::string& path)
 {
 	// TODO
 }

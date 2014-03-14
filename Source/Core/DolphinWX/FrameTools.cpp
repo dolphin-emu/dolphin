@@ -674,7 +674,7 @@ void CFrame::DoOpen(bool Boot)
 	}
 	else
 	{
-		DVDInterface::ChangeDisc(WxStrToStr(path).c_str());
+		DVDInterface::ChangeDisc(WxStrToStr(path));
 	}
 }
 
@@ -771,7 +771,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
 	}
 
-	if (Movie::PlayInput(WxStrToStr(path).c_str()))
+	if (Movie::PlayInput(WxStrToStr(path)))
 		BootGame(std::string(""));
 }
 
@@ -1183,7 +1183,7 @@ void CFrame::DoRecordingSave()
 	if (path.IsEmpty())
 		return;
 
-	Movie::SaveRecording(WxStrToStr(path).c_str());
+	Movie::SaveRecording(WxStrToStr(path));
 
 	if (!paused)
 		DoPause();
@@ -1822,7 +1822,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_PURGECACHE:
 		CFileSearch::XStringVector Directories;
-		Directories.push_back(File::GetUserPath(D_CACHE_IDX).c_str());
+		Directories.push_back(File::GetUserPath(D_CACHE_IDX));
 		CFileSearch::XStringVector Extensions;
 		Extensions.push_back("*.cache");
 

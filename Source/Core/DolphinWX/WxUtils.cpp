@@ -17,10 +17,11 @@
 #import <AppKit/AppKit.h>
 #endif
 
-namespace WxUtils {
+namespace WxUtils
+{
 
 // Launch a file according to its mime type
-void Launch(const char *filename)
+void Launch(const std::string& filename)
 {
 	if (! ::wxLaunchDefaultBrowser(StrToWxStr(filename)))
 	{
@@ -29,7 +30,7 @@ void Launch(const char *filename)
 }
 
 // Launch an file explorer window on a certain path
-void Explore(const char *path)
+void Explore(const std::string& path)
 {
 	wxString wxPath = StrToWxStr(path);
 #ifndef _WIN32

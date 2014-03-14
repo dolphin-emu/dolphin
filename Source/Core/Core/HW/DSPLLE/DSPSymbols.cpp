@@ -80,12 +80,12 @@ void DisassembleRange(u16 start, u16 end)
 	// TODO: ?
 }
 
-bool ReadAnnotatedAssembly(const char *filename)
+bool ReadAnnotatedAssembly(const std::string& filename)
 {
 	File::IOFile f(filename, "r");
 	if (!f)
 	{
-		ERROR_LOG(DSPLLE, "Bah! ReadAnnotatedAssembly couldn't find the file %s", filename);
+		ERROR_LOG(DSPLLE, "Bah! ReadAnnotatedAssembly couldn't find the file %s", filename.c_str());
 		return false;
 	}
 	char line[512];

@@ -922,7 +922,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 						}
 						else
 						{
-							pDolLoader.reset(new CDolLoader(pContent->m_Filename.c_str()));
+							pDolLoader.reset(new CDolLoader(pContent->m_Filename));
 						}
 						pDolLoader->Load(); // TODO: Check why sysmenu does not load the DOL correctly
 						PC = pDolLoader->GetEntryPoint() | 0x80000000;
@@ -1111,7 +1111,7 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	if (Movie::IsRecordingInput())
 	{
 		// TODO: Check for the actual save data
-		if (File::Exists((savePath + "banner.bin").c_str()))
+		if (File::Exists(savePath + "banner.bin"))
 			Movie::g_bClearSave = false;
 		else
 			Movie::g_bClearSave = true;
@@ -1120,34 +1120,34 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	// TODO: Force the game to save to another location, instead of moving the user's save.
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsStartingFromClearSave())
 	{
-		if (File::Exists((savePath + "banner.bin").c_str()))
+		if (File::Exists(savePath + "banner.bin"))
 		{
-			if (File::Exists((savePath + "../backup/").c_str()))
+			if (File::Exists(savePath + "../backup/"))
 			{
 				// The last run of this game must have been to play back a movie, so their save is already backed up.
-				File::DeleteDirRecursively(savePath.c_str());
+				File::DeleteDirRecursively(savePath);
 			}
 			else
 			{
 				#ifdef _WIN32
 					MoveFile(UTF8ToTStr(savePath).c_str(), UTF8ToTStr(savePath + "../backup/").c_str());
 				#else
-					File::CopyDir(savePath.c_str(),(savePath + "../backup/").c_str());
-					File::DeleteDirRecursively(savePath.c_str());
+					File::CopyDir(savePath, savePath + "../backup/");
+					File::DeleteDirRecursively(savePath);
 				#endif
 			}
 		}
 	}
-	else if (File::Exists((savePath + "../backup/").c_str()))
+	else if (File::Exists(savePath + "../backup/"))
 	{
 		// Delete the save made by a previous movie, and copy back the user's save.
-		if (File::Exists((savePath + "banner.bin").c_str()))
+		if (File::Exists(savePath + "banner.bin"))
 			File::DeleteDirRecursively(savePath);
 		#ifdef _WIN32
 			MoveFile(UTF8ToTStr(savePath + "../backup/").c_str(), UTF8ToTStr(savePath).c_str());
 		#else
-			File::CopyDir((savePath + "../backup/").c_str(), savePath.c_str());
-			File::DeleteDirRecursively((savePath + "../backup/").c_str());
+			File::CopyDir(savePath + "../backup/", savePath);
+			File::DeleteDirRecursively(savePath + "../backup/");
 		#endif
 	}
 

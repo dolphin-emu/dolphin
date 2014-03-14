@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <string>
 #include "Common/FileUtil.h"
 
 class WaveFileWriter
@@ -31,7 +32,7 @@ public:
 	WaveFileWriter();
 	~WaveFileWriter();
 
-	bool Start(const char *filename, unsigned int HLESampleRate);
+	bool Start(const std::string& filename, unsigned int HLESampleRate);
 	void Stop();
 
 	void SetSkipSilence(bool skip) { skip_silence = skip; }

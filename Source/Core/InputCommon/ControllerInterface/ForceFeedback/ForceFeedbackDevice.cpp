@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
 namespace ciface
@@ -17,7 +18,7 @@ template class ForceFeedbackDevice::Force<DIPERIODIC>;
 typedef struct
 {
 	GUID guid;
-	const char* name;
+	const std::string name;
 } ForceType;
 
 static const ForceType force_type_names[] =
@@ -216,7 +217,7 @@ void ForceFeedbackDevice::ForcePeriodic::SetState(const ControlState state)
 }
 
 template <typename P>
-ForceFeedbackDevice::Force<P>::Force(const char* name, EffectState& state)
+ForceFeedbackDevice::Force<P>::Force(const std::string& name, EffectState& state)
 : m_name(name), m_state(state)
 {
 	memset(&params, 0, sizeof(params));

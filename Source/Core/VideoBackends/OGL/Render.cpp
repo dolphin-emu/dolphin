@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
+#include <string>
 #include <vector>
 
 #include "Common/Atomic.h"
@@ -829,7 +830,7 @@ void Renderer::DrawDebugInfo()
 	}
 }
 
-void Renderer::RenderText(const char *text, int left, int top, u32 color)
+void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
 	const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
@@ -1436,7 +1437,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 					{
 						OSD::AddMessage(StringFromFormat(
 									"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h).c_str(), 2000);
+									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
 					}
 				}
 				if (bAVIDumping)
@@ -1485,7 +1486,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 						OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 					else
 					{
-						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h).c_str(), 2000);
+						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
 					}
 				}
 				if (pFrameDump)

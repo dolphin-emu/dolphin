@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "DolphinWX/GLInterface/InterfaceBase.h"
 #include "DolphinWX/GLInterface/X11_Util.h"
 
@@ -15,7 +17,7 @@ public:
 	friend class cX11Window;
 	void SwapInterval(int Interval) override;
 	void Swap() override;
-	void UpdateFPSDisplay(const char *Text) override;
+	void UpdateFPSDisplay(const std::string& text) override;
 	void* GetFuncAddress(std::string name) override;
 	bool Create(void *&window_handle) override;
 	bool MakeCurrent() override;

@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/Thread.h"
 
 #include "Core/DSP/DSPBreakpoints.h"
@@ -268,8 +270,7 @@ extern DSPEmitter *dspjit;
 extern u16 cyclesLeft;
 extern bool init_hax;
 
-bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
-				  bool bUsingJIT);
+bool DSPCore_Init(const std::string& irom_filename, const std::string& coef_filename, bool bUsingJIT);
 
 void DSPCore_Reset();
 void DSPCore_Shutdown(); // Frees all allocated memory.

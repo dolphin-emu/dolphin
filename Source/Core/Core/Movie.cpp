@@ -435,14 +435,14 @@ bool BeginRecordingInput(int controllers)
 		if (File::Exists(tmpStateFilename))
 			File::Delete(tmpStateFilename);
 
-		State::SaveAs(tmpStateFilename.c_str());
+		State::SaveAs(tmpStateFilename);
 		g_bRecordingFromSaveState = true;
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
 		// TODO: find a way to GetTitleDataPath() from Movie::Init()
 		if (Core::g_CoreStartupParameter.bWii)
 		{
-			if (File::Exists((Common::GetTitleDataPath(g_titleID) + "banner.bin").c_str()))
+			if (File::Exists(Common::GetTitleDataPath(g_titleID) + "banner.bin"))
 				Movie::g_bClearSave = false;
 			else
 				Movie::g_bClearSave = true;
@@ -711,9 +711,9 @@ void ReadHeader()
 	memcpy(MD5, tmpHeader.md5, 16);
 }
 
-bool PlayInput(const char *filename)
+bool PlayInput(const std::string& filename)
 {
-	if (!filename || g_playMode != MODE_NONE)
+	if (g_playMode != MODE_NONE)
 		return false;
 
 	if (!File::Exists(filename))
@@ -753,7 +753,7 @@ bool PlayInput(const char *filename)
 	// Load savestate (and skip to frame data)
 	if (tmpHeader.bFromSaveState)
 	{
-		const std::string stateFilename = std::string(filename) + ".sav";
+		const std::string stateFilename = filename + ".sav";
 		if (File::Exists(stateFilename))
 			Core::SetStateFileName(stateFilename);
 		g_bRecordingFromSaveState = true;
@@ -782,12 +782,12 @@ void DoState(PointerWrap &p)
 	// other variables (such as g_totalBytes and g_totalFrames) are set in LoadInput
 }
 
-void LoadInput(const char *filename)
+void LoadInput(const std::string& filename)
 {
 	File::IOFile t_record;
 	if (!t_record.Open(filename, "r+b"))
 	{
-		PanicAlertT("Failed to read %s", filename);
+		PanicAlertT("Failed to read %s", filename.c_str());
 		EndPlayInput(false);
 		return;
 	}
@@ -796,7 +796,7 @@ void LoadInput(const char *filename)
 
 	if (tmpHeader.filetype[0] != 'D' || tmpHeader.filetype[1] != 'T' || tmpHeader.filetype[2] != 'M' || tmpHeader.filetype[3] != 0x1A)
 	{
-		PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename);
+		PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename.c_str());
 		EndPlayInput(false);
 		return;
 	}
@@ -1002,7 +1002,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 		for (int i = 0; i < numPaths; i++)
 		{
 			path = SConfig::GetInstance().m_ISOFolder[i];
-			if (File::Exists((path + '/' + g_discChange.c_str()).c_str()))
+			if (File::Exists(path + '/' + g_discChange))
 			{
 				found = true;
 				break;
@@ -1010,7 +1010,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 		}
 		if (found)
 		{
-			DVDInterface::ChangeDisc((path + '/' + g_discChange.c_str()).c_str());
+			DVDInterface::ChangeDisc(path + '/' + g_discChange);
 			Core::SetState(Core::CORE_RUN);
 		}
 		else
@@ -1091,7 +1091,7 @@ void EndPlayInput(bool cont)
 	}
 }
 
-void SaveRecording(const char *filename)
+void SaveRecording(const std::string& filename)
 {
 	File::IOFile save_record(filename, "wb");
 	// Create the real header now and write it
@@ -1145,15 +1145,14 @@ void SaveRecording(const char *filename)
 
 	if (success && g_bRecordingFromSaveState)
 	{
-		std::string stateFilename = filename;
-		stateFilename.append(".sav");
+		std::string stateFilename = filename + ".sav";
 		success = File::Copy(tmpStateFilename, stateFilename);
 	}
 
 	if (success)
-		Core::DisplayMessage(StringFromFormat("DTM %s saved", filename).c_str(), 2000);
+		Core::DisplayMessage(StringFromFormat("DTM %s saved", filename.c_str()), 2000);
 	else
-		Core::DisplayMessage(StringFromFormat("Failed to save %s", filename).c_str(), 2000);
+		Core::DisplayMessage(StringFromFormat("Failed to save %s", filename.c_str()), 2000);
 }
 
 void SetInputManip(ManipFunction func)

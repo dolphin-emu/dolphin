@@ -5,6 +5,7 @@
 #pragma once
 
 #include <EGL/egl.h>
+#include <string>
 
 #include "Core/ConfigManager.h"
 #include "DolphinWX/GLInterface/InterfaceBase.h"
@@ -26,7 +27,7 @@ public:
 	EGLDisplay EGLGetDisplay(void);
 	EGLNativeWindowType CreateWindow(void);
 	void DestroyWindow(void);
-	void UpdateFPSDisplay(const char *text);
+	void UpdateFPSDisplay(const std::string& text);
 	void ToggleFullscreen(bool fullscreen);
 	void SwapBuffers();
 };
@@ -41,8 +42,8 @@ public:
 	void SwapInterval(int Interval);
 	void Swap();
 	void SetMode(u32 mode) { s_opengl_mode = mode; }
-	void UpdateFPSDisplay(const char *Text);
-	void* GetFuncAddress(std::string name);
+	void UpdateFPSDisplay(const std::string& text);
+	void* GetFuncAddress(const std::string& name);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();
 	void Shutdown();

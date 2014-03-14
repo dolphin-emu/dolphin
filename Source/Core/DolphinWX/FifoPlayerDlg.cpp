@@ -413,7 +413,7 @@ void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 		{
 			// Attempt to save the file to the path the user chose
 			wxBeginBusyCursor();
-			bool result = file->Save(WxStrToStr(path).c_str());
+			bool result = file->Save(WxStrToStr(path));
 			wxEndBusyCursor();
 
 			// Wasn't able to save the file, shit's whack, yo.

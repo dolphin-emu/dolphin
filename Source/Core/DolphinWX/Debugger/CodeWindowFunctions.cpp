@@ -195,7 +195,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 			{
 				std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
 				File::CreateFullPath(filename);
-				Profiler::WriteProfileResults(filename.c_str());
+				Profiler::WriteProfileResults(filename);
 
 				wxFileType* filetype = nullptr;
 				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
@@ -235,7 +235,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 		PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
 		SignatureDB db;
-		if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+		if (db.Load(File::GetSysDirectory() + TOTALDB))
 		{
 			db.Apply(&g_symbolDB);
 			Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);
@@ -255,23 +255,23 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			g_symbolDB.Clear();
 			PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
 			SignatureDB db;
-			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+			if (db.Load(File::GetSysDirectory() + TOTALDB))
 				db.Apply(&g_symbolDB);
 			Parent->StatusBarMessage("'%s' not found, scanning for common functions instead", writable_map_file.c_str());
 		}
 		else
 		{
-			g_symbolDB.LoadMap(existing_map_file.c_str());
+			g_symbolDB.LoadMap(existing_map_file);
 			Parent->StatusBarMessage("Loaded symbols from '%s'", existing_map_file.c_str());
 		}
 		HLE::PatchFunctions();
 		NotifyMapLoaded();
 		break;
 	case IDM_SAVEMAPFILE:
-		g_symbolDB.SaveMap(writable_map_file.c_str());
+		g_symbolDB.SaveMap(writable_map_file);
 		break;
 	case IDM_SAVEMAPFILEWITHCODES:
-		g_symbolDB.SaveMap(writable_map_file.c_str(), true);
+		g_symbolDB.SaveMap(writable_map_file, true);
 		break;
 
 	case IDM_RENAME_SYMBOLS:
@@ -328,8 +328,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				if (!path.IsEmpty())
 				{
 					SignatureDB db;
-					db.Initialize(&g_symbolDB, prefix.c_str());
-					db.Save(WxStrToStr(path).c_str());
+					db.Initialize(&g_symbolDB, prefix);
+					db.Save(WxStrToStr(path));
 				}
 			}
 		}
@@ -343,7 +343,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			if (!path.IsEmpty())
 			{
 				SignatureDB db;
-				db.Load(WxStrToStr(path).c_str());
+				db.Load(WxStrToStr(path));
 				db.Apply(&g_symbolDB);
 			}
 		}

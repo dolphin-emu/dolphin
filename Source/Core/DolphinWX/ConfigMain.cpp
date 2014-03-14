@@ -1062,7 +1062,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 	{
 		if (File::Exists(filename))
 		{
-			GCMemcard memorycard(filename.c_str());
+			GCMemcard memorycard(filename);
 			if (!memorycard.IsValid())
 			{
 				PanicAlertT("Cannot use that file as a memory card.\n%s\n" \

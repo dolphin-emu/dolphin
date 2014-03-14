@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
@@ -19,7 +21,7 @@ namespace DiscIO
 class DriveReader : public SectorReader
 {
 private:
-	DriveReader(const char *drive);
+	DriveReader(const std::string& drive);
 	void GetBlock(u64 block_num, u8 *out_ptr) override;
 
 #ifdef _WIN32
@@ -33,7 +35,7 @@ private:
 	s64 size;
 
 public:
-	static DriveReader *Create(const char *drive);
+	static DriveReader* Create(const std::string& drive);
 	~DriveReader();
 	u64 GetDataSize() const override { return size; }
 	u64 GetRawSize() const override { return size; }

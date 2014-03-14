@@ -235,7 +235,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 	}
 
 	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
-		Movie::SaveRecording((filename + ".dtm").c_str());
+		Movie::SaveRecording(filename + ".dtm");
 	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
 		File::Delete(filename + ".dtm");
 
@@ -290,8 +290,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 		f.WriteBytes(buffer_data, buffer_size);
 	}
 
-	Core::DisplayMessage(StringFromFormat("Saved State to %s",
-		filename.c_str()).c_str(), 2000);
+	Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
 	g_compressAndDumpStateSyncEvent.Set();
 }
 
@@ -444,7 +443,7 @@ void LoadAs(const std::string& filename)
 		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 		SaveToBuffer(g_undo_load_buffer);
 		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-			Movie::SaveRecording((File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm").c_str());
+			Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
 		else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) +"undo.dtm"))
 			File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
 	}
@@ -471,9 +470,9 @@ void LoadAs(const std::string& filename)
 	{
 		if (loadedSuccessfully)
 		{
-			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()).c_str(), 2000);
+			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
 			if (File::Exists(filename + ".dtm"))
-				Movie::LoadInput((filename + ".dtm").c_str());
+				Movie::LoadInput(filename + ".dtm");
 			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())
 				Movie::EndPlayInput(false);
 		}
@@ -522,7 +521,7 @@ void VerifyAt(const std::string& filename)
 		DoState(p);
 
 		if (p.GetMode() == PointerWrap::MODE_VERIFY)
-			Core::DisplayMessage(StringFromFormat("Verified state at %s", filename.c_str()).c_str(), 2000);
+			Core::DisplayMessage(StringFromFormat("Verified state at %s", filename.c_str()), 2000);
 		else
 			Core::DisplayMessage("Unable to Verify : Can't verify state from other revisions !", 4000);
 	}
@@ -623,7 +622,7 @@ void UndoLoadState()
 		{
 			LoadFromBuffer(g_undo_load_buffer);
 			if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-				Movie::LoadInput((File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm").c_str());
+				Movie::LoadInput(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
 		}
 		else
 		{
@@ -639,7 +638,7 @@ void UndoLoadState()
 // Load the state that the last save state overwritten on
 void UndoSaveState()
 {
-		LoadAs((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str());
+	LoadAs(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav");
 }
 
 } // namespace State

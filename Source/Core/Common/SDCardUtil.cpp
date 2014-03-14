@@ -33,6 +33,7 @@
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
@@ -188,7 +189,7 @@ static unsigned int write_empty(FILE* file, u64 count)
 	return 0;
 }
 
-bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename)
+bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
 {
 	u32 sectors_per_fat;
 	u32 sectors_per_disk;
@@ -196,7 +197,8 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename)
 	// Convert MB to bytes
 	disk_size *= 1024 * 1024;
 
-	if (disk_size < 0x800000 || disk_size > 0x800000000ULL) {
+	if (disk_size < 0x800000 || disk_size > 0x800000000ULL)
+	{
 		ERROR_LOG(COMMON, "Trying to create SD Card image of size %" PRIu64 "MB is out of range (8MB-32GB)", disk_size/(1024*1024));
 		return false;
 	}
@@ -212,7 +214,7 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename)
 	FILE* const f = file.GetHandle();
 	if (!f)
 	{
-		ERROR_LOG(COMMON, "Could not create file '%s', aborting...\n", filename);
+		ERROR_LOG(COMMON, "Could not create file '%s', aborting...\n", filename.c_str());
 		return false;
 	}
 
@@ -229,31 +231,51 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename)
 	*  zero sectors
 	*/
 
-	if (write_sector(f, s_boot_sector))		goto FailWrite;
-	if (write_sector(f, s_fsinfo_sector))	goto FailWrite;
+	if (write_sector(f, s_boot_sector))
+		goto FailWrite;
+
+	if (write_sector(f, s_fsinfo_sector))
+		goto FailWrite;
+
 	if (BACKUP_BOOT_SECTOR > 0)
 	{
-		if (write_empty(f, BACKUP_BOOT_SECTOR - 2)) goto FailWrite;
-		if (write_sector(f, s_boot_sector))		goto FailWrite;
-		if (write_sector(f, s_fsinfo_sector))	goto FailWrite;
-		if (write_empty(f, RESERVED_SECTORS - 2 - BACKUP_BOOT_SECTOR)) goto FailWrite;
+		if (write_empty(f, BACKUP_BOOT_SECTOR - 2))
+			goto FailWrite;
+
+		if (write_sector(f, s_boot_sector))
+			goto FailWrite;
+
+		if (write_sector(f, s_fsinfo_sector))
+			goto FailWrite;
+
+		if (write_empty(f, RESERVED_SECTORS - 2 - BACKUP_BOOT_SECTOR))
+			goto FailWrite;
 	}
 	else
+	{
 		if (write_empty(f, RESERVED_SECTORS - 2)) goto FailWrite;
+	}
 
-	if (write_sector(f, s_fat_head))		goto FailWrite;
-	if (write_empty(f, sectors_per_fat-1))	goto FailWrite;
+	if (write_sector(f, s_fat_head))
+		goto FailWrite;
 
-	if (write_sector(f, s_fat_head))		goto FailWrite;
-	if (write_empty(f, sectors_per_fat-1))	goto FailWrite;
+	if (write_empty(f, sectors_per_fat - 1))
+		goto FailWrite;
 
-	if (write_empty(f, sectors_per_disk - RESERVED_SECTORS - 2*sectors_per_fat)) goto FailWrite;
+	if (write_sector(f, s_fat_head))
+		goto FailWrite;
+
+	if (write_empty(f, sectors_per_fat - 1))
+		goto FailWrite;
+
+	if (write_empty(f, sectors_per_disk - RESERVED_SECTORS - 2*sectors_per_fat))
+		goto FailWrite;
 
 	return true;
 
 FailWrite:
-	ERROR_LOG(COMMON, "Could not write to '%s', aborting...\n", filename);
-	if (unlink(filename) < 0)
-		ERROR_LOG(COMMON, "unlink(%s) failed\n%s", filename, GetLastErrorMsg());
+	ERROR_LOG(COMMON, "Could not write to '%s', aborting...\n", filename.c_str());
+	if (unlink(filename.c_str()) < 0)
+		ERROR_LOG(COMMON, "unlink(%s) failed\n%s", filename.c_str(), GetLastErrorMsg());
 	return false;
 }

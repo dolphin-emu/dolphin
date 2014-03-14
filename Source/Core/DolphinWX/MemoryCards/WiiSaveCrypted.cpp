@@ -65,7 +65,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			if (entry.isDirectory)
 			{
 				u32 gameid;
-				if (AsciiToHex(entry.virtualName.c_str(), gameid))
+				if (AsciiToHex(entry.virtualName, gameid))
 				{
 					std::string bannerPath = StringFromFormat("%s%08x/data/banner.bin", folder.c_str(), gameid);
 					if (File::Exists(bannerPath))

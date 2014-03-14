@@ -42,6 +42,7 @@ Initial import
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
@@ -94,7 +95,7 @@ DSPAssembler::~DSPAssembler()
 		free(gdg_buffer);
 }
 
-bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vector<int> *line_numbers)
+bool DSPAssembler::Assemble(const std::string& text, std::vector<u16> &code, std::vector<int> *line_numbers)
 {
 	if (line_numbers)
 		line_numbers->clear();

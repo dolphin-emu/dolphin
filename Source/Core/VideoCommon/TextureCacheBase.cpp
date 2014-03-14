@@ -47,7 +47,7 @@ TextureCache::TextureCache()
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 
 	if (g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
-		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
 
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 
@@ -89,7 +89,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 			g_texture_cache->Invalidate();
 
 			if (g_ActiveConfig.bHiresTextures)
-				HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+				HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
 
 			SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 			TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
@@ -290,8 +290,8 @@ void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
 
 	// make sure that the directory exists
-	if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
-		File::CreateDir(szDir.c_str());
+	if (!File::Exists(szDir) || !File::IsDirectory(szDir))
+		File::CreateDir(szDir);
 
 	// For compatibility with old texture packs, don't print the LOD index for level 0.
 	 // TODO: TLUT format should actually be stored in filename? :/
@@ -421,8 +421,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
 		if ((entry->type == TCET_NORMAL &&
-			 width == entry->virtual_width &&
-			 height == entry->virtual_height &&
+		     width == entry->virtual_width &&
+		     height == entry->virtual_height &&
 		     full_format == entry->format &&
 		     entry->num_mipmaps > maxlevel) ||
 		    (entry->type == TCET_EC_DYNAMIC &&

@@ -69,12 +69,12 @@ void UDPWrapper::SaveConfig(IniFile::Section *sec, const std::string& defdev, co
 void UDPWrapper::Refresh()
 {
 	bool udpAEn=(inst!=nullptr);
-	if (udpEn&&udpAEn)
+	if (udpEn && udpAEn)
 	{
-		if (strcmp(inst->getPort(),port.c_str()))
+		if (inst->getPort() == port)
 		{
 			delete inst;
-			inst = new UDPWiimote(port.c_str(),"Dolphin-Emu",index); //TODO: Changeable display name
+			inst = new UDPWiimote(port, "Dolphin-Emu", index); //TODO: Changeable display name
 		}
 		return;
 	}
@@ -86,7 +86,7 @@ void UDPWrapper::Refresh()
 		return;
 	}
 	//else
-	inst = new UDPWiimote(port.c_str(),"Dolphin-Emu",index);
+	inst = new UDPWiimote(port, "Dolphin-Emu", index);
 }
 
 UDPWrapper::~UDPWrapper()

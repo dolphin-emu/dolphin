@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
 #include "Core/Host.h"
 #include "DolphinWX/GLInterface/GLInterface.h"
 
@@ -185,7 +186,7 @@ void cPlatform::DestroyWindow(void)
 #endif
 }
 
-void cPlatform::UpdateFPSDisplay(const char *text)
+void cPlatform::UpdateFPSDisplay(const std::string& text)
 {
 #if HAVE_WAYLAND
 	if (cPlatform::platform == EGL_PLATFORM_WAYLAND)

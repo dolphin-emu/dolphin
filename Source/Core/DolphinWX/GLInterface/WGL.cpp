@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Core/Host.h"
 
 #include "DolphinWX/GLInterface/GLInterface.h"
@@ -55,11 +57,9 @@ bool cInterfaceWGL::PeekMessages()
 }
 
 // Show the current FPS
-void cInterfaceWGL::UpdateFPSDisplay(const char *text)
+void cInterfaceWGL::UpdateFPSDisplay(const std::string& text)
 {
-	TCHAR temp[512];
-	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs"), text);
-	EmuWindow::SetWindowText(temp);
+	EmuWindow::SetWindowText(text);
 }
 
 // Create rendering window.

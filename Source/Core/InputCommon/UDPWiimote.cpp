@@ -4,10 +4,11 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 #include <functional>
 #include <list>
-#include <string.h>
+#include <string>
 
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -63,10 +64,10 @@ struct UDPWiimote::_d
 
 int UDPWiimote::noinst = 0;
 
-UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
+UDPWiimote::UDPWiimote(const std::string& _port, const std::string& name, int _index) :
 	port(_port), displayName(name),
-	d(new _d) ,x(0),y(0),z(1.0f),naX(0),naY(0),naZ(-1.0f),nunX(0),nunY(0),
-	pointerX(1001.0f/2),pointerY(0),nunMask(0),mask(0),index(_index), int_port(atoi(_port))
+	d(new _d) ,x(0), y(0), z(1.0f), naX(0), naY(0), naZ(-1.0f), nunX(0), nunY(0),
+	pointerX(1001.0f / 2), pointerY(0), nunMask(0), mask(0), index(_index), int_port(atoi(_port.c_str()))
 {
 
 	static bool sranded=false;
@@ -107,7 +108,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 		return;
 	}
 
-	if ((rv = getaddrinfo(nullptr, _port, &hints, &servinfo)) != 0)
+	if ((rv = getaddrinfo(nullptr, _port.c_str(), &hints, &servinfo)) != 0)
 	{
 		cleanup;
 		err=-1;
@@ -403,7 +404,7 @@ u32 UDPWiimote::getButtons()
 	return msk;
 }
 
-void UDPWiimote::getIR(float &_x, float &_y)
+void UDPWiimote::getIR(float& _x, float& _y)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
 	_x=(float)pointerX;
@@ -418,21 +419,21 @@ void UDPWiimote::getNunchuck(float &_x, float &_y, u8 &_mask)
 	_mask=nunMask;
 }
 
-void UDPWiimote::getNunchuckAccel(float &_x, float &_y, float &_z)
+void UDPWiimote::getNunchuckAccel(float& _x, float& _y, float& _z)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x=(float)naX;
-	_y=(float)naY;
-	_z=(float)naZ;
+	_x = (float)naX;
+	_y = (float)naY;
+	_z = (float)naZ;
 }
 
-const char * UDPWiimote::getPort()
+const std::string& UDPWiimote::getPort()
 {
-	return port.c_str();
+	return port;
 }
 
-void UDPWiimote::changeName(const char * name)
+void UDPWiimote::changeName(const std::string& name)
 {
 	std::lock_guard<std::mutex> lk(d->nameMutex);
-	displayName=name;
+	displayName = name;
 }

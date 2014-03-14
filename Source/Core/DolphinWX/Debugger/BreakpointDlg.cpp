@@ -42,7 +42,7 @@ void BreakPointDlg::OnOK(wxCommandEvent& event)
 {
 	wxString AddressString = m_pEditAddress->GetLineText(0);
 	u32 Address = 0;
-	if (AsciiToHex(WxStrToStr(AddressString).c_str(), Address))
+	if (AsciiToHex(WxStrToStr(AddressString), Address))
 	{
 		PowerPC::breakpoints.Add(Address);
 		Parent->NotifyUpdate();

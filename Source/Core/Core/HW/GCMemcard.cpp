@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <string>
 
 #include "Common/ColorUtil.h"
 #include "Core/HW/GCMemcard.h"
@@ -14,7 +15,7 @@ static void ByteSwap(u8 *valueA, u8 *valueB)
 	*valueB = tmp;
 }
 
-GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
+GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool sjis)
 	: m_valid(false)
 	, m_fileName(filename)
 {
@@ -23,7 +24,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	File::IOFile mcdFile(m_fileName, "rb");
 	if (!mcdFile.IsOpen())
 	{
-		if (!forceCreation && !AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
+		if (!forceCreation && !AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename.c_str()))
 		{
 			return;
 		}
@@ -43,12 +44,12 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 		auto size = mcdFile.GetSize();
 		if (size < MC_FST_BLOCKS*BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename, (unsigned) size);
+			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename.c_str(), (unsigned) size);
 			return;
 		}
 		if (size % BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename, (unsigned) size);
+			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename.c_str(), (unsigned) size);
 				return;
 		}
 
@@ -63,7 +64,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 			case MemCard2043Mb:
 				break;
 			default:
-				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename, (unsigned) size);
+				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename.c_str(), (unsigned) size);
 				return;
 		}
 	}
@@ -795,7 +796,7 @@ u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
 	}
 }
 
-u32 GCMemcard::ImportGci(const char *inputFile, const std::string &outputFile)
+u32 GCMemcard::ImportGci(const std::string& inputFile, const std::string &outputFile)
 {
 	if (outputFile.empty() && !m_valid)
 		return OPENFAIL;
@@ -809,7 +810,7 @@ u32 GCMemcard::ImportGci(const char *inputFile, const std::string &outputFile)
 	return result;
 }
 
-u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::string &outputFile)
+u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile, const std::string &outputFile)
 {
 	File::IOFile gci(gcih);
 	unsigned int offset;
@@ -898,30 +899,22 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::s
 	return ret;
 }
 
-u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &directory) const
+u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::string &directory) const
 {
 	File::IOFile gci;
 	int offset = GCI;
-	if (!fileName)
-	{
-		std::string gciFilename;
-		if (!GCI_FileName(index, gciFilename)) return SUCCESS;
-		gci.Open(directory + DIR_SEP + gciFilename, "wb");
-	}
-	else
-	{
-		gci.Open(fileName, "wb");
 
-		std::string fileType;
-		SplitPath(fileName, nullptr, nullptr, &fileType);
-		if (!strcasecmp(fileType.c_str(), ".gcs"))
-		{
-			offset = GCS;
-		}
-		else if (!strcasecmp(fileType.c_str(), ".sav"))
-		{
-			offset = SAV;
-		}
+	gci.Open(fileName, "wb");
+
+	std::string fileType;
+	SplitPath(fileName, nullptr, nullptr, &fileType);
+	if (!strcasecmp(fileType.c_str(), ".gcs"))
+	{
+		offset = GCS;
+	}
+	else if (!strcasecmp(fileType.c_str(), ".sav"))
+	{
+		offset = SAV;
 	}
 
 	if (!gci)

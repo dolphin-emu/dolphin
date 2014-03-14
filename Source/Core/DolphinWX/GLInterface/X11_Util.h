@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include <X11/keysym.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -19,7 +20,7 @@ public:
 	void *EGLGetDisplay(void);
 	void *CreateWindow(void);
 	void DestroyWindow(void);
-	void UpdateFPSDisplay(const char *text);
+	void UpdateFPSDisplay(const std::string& text);
 	void SwapBuffers();
 };
 #else

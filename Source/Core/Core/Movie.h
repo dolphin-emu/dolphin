@@ -18,10 +18,12 @@ struct ReportFeatures;
 
 // Per-(video )Movie actions
 
-namespace Movie {
+namespace Movie
+{
 
 // Enumerations and structs
-enum PlayMode {
+enum PlayMode
+{
 	MODE_NONE = 0,
 	MODE_RECORDING,
 	MODE_PLAYING
@@ -29,7 +31,8 @@ enum PlayMode {
 
 // Gamecube Controller State
 #pragma pack(push,1)
-struct ControllerState {
+struct ControllerState
+{
 	bool Start:1, A:1, B:1, X:1, Y:1, Z:1; // Binary buttons, 6 bits
 	bool DPadUp:1, DPadDown:1,             // Binary D-Pad buttons, 4 bits
 	    DPadLeft:1, DPadRight:1;
@@ -66,7 +69,8 @@ extern std::string g_discChange;
 extern u32 g_rerecords;
 
 #pragma pack(push,1)
-struct DTMHeader {
+struct DTMHeader
+{
 	u8 filetype[4];         // Unique Identifier (always "DTM"0x1A)
 
 	u8 gameID[6];           // The Game ID
@@ -161,13 +165,13 @@ bool BeginRecordingInput(int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);
 void RecordWiimote(int wiimote, u8 *data, u8 size);
 
-bool PlayInput(const char *filename);
-void LoadInput(const char *filename);
+bool PlayInput(const std::string& filename);
+void LoadInput(const std::string& filename);
 void ReadHeader();
 void PlayController(SPADStatus *PadStatus, int controllerID);
 bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 void EndPlayInput(bool cont);
-void SaveRecording(const char *filename);
+void SaveRecording(const std::string& filename);
 void DoState(PointerWrap &p);
 void CheckMD5();
 void GetMD5();

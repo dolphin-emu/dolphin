@@ -36,7 +36,7 @@ u64 GetIdleTicks();
 void DoState(PointerWrap &p);
 
 // Returns the event_type identifier. if name is not unique, an existing event_type will be discarded.
-int RegisterEvent(const char *name, TimedCallback callback);
+int RegisterEvent(const std::string& name, TimedCallback callback);
 void UnregisterAllEvents();
 
 // userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from disk,

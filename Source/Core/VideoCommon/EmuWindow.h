@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <windows.h>
 
 namespace EmuWindow
@@ -13,6 +14,6 @@ void Close();
 void SetSize(int displayWidth, int displayHeight);
 bool IsSizing();
 void OSDMenu(WPARAM wParam);
-void SetWindowText(const TCHAR* text);
+void SetWindowText(const std::string& text);
 
 }

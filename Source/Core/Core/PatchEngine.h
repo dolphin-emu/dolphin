@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include "Common/IniFile.h"
 
 namespace PatchEngine
@@ -36,7 +37,7 @@ struct Patch
 };
 
 int GetSpeedhackCycles(const u32 addr);
-void LoadPatchSection(const char *section, std::vector<Patch> &patches,
+void LoadPatchSection(const std::string& section, std::vector<Patch> &patches,
                       IniFile &globalIni, IniFile &localIni);
 void LoadPatches();
 void ApplyFramePatches();

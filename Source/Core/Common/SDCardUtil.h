@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include "Common/CommonTypes.h"
 
-bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename);
+bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename);

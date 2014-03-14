@@ -25,6 +25,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
@@ -333,7 +334,7 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	return true;
 }
 
-bool DSPDisassembler::DisFile(const char* name, int base_addr, int pass, std::string &output)
+bool DSPDisassembler::DisFile(const std::string& name, int base_addr, int pass, std::string &output)
 {
 	File::IOFile in(name, "rb");
 	if (!in)

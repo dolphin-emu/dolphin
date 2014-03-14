@@ -156,9 +156,10 @@ bool IsEnabled(int flags)
 	return true;
 }
 
-u32 UnPatch(std::string patchName)
+u32 UnPatch(const std::string& patchName)
 {
-	Symbol *symbol = g_symbolDB.GetSymbolFromName(patchName.c_str());
+	Symbol* symbol = g_symbolDB.GetSymbolFromName(patchName);
+
 	if (symbol)
 	{
 		for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
@@ -168,6 +169,7 @@ u32 UnPatch(std::string patchName)
 		}
 		return symbol->address;
 	}
+
 	return 0;
 }
 

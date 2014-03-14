@@ -50,10 +50,10 @@ class IniFile;
 struct VideoConfig
 {
 	VideoConfig();
-	void Load(const char *ini_file);
+	void Load(const std::string& ini_file);
 	void GameIniLoad();
 	void VerifyValidity();
-	void Save(const char *ini_file);
+	void Save(const std::string& ini_file);
 	void UpdateProjectionHack();
 	bool IsVSync();
 

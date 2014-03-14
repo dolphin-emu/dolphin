@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
 
@@ -14,14 +16,14 @@ CDolLoader::CDolLoader(u8* _pBuffer, u32 _Size)
 	Initialize(_pBuffer, _Size);
 }
 
-CDolLoader::CDolLoader(const char* _szFilename)
+CDolLoader::CDolLoader(const std::string& filename)
 	: m_isWii(false)
 {
-	const u64 size = File::GetSize(_szFilename);
+	const u64 size = File::GetSize(filename);
 	u8* const tmpBuffer = new u8[(size_t)size];
 
 	{
-	File::IOFile pStream(_szFilename, "rb");
+	File::IOFile pStream(filename, "rb");
 	pStream.ReadBytes(tmpBuffer, (size_t)size);
 	}
 

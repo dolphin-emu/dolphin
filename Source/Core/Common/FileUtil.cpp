@@ -939,12 +939,12 @@ std::string GetThemeDir(const std::string& theme_name)
 	return dir;
 }
 
-bool WriteStringToFile(const std::string &str, const char *filename)
+bool WriteStringToFile(const std::string &str, const std::string& filename)
 {
 	return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());
 }
 
-bool ReadFileToString(const char *filename, std::string &str)
+bool ReadFileToString(const std::string& filename, std::string &str)
 {
 	File::IOFile file(filename, "rb");
 	auto const f = file.GetHandle();

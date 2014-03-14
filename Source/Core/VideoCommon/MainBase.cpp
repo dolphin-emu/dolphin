@@ -119,9 +119,9 @@ void VideoBackendHardware::Video_EndField()
 	}
 }
 
-void VideoBackendHardware::Video_AddMessage(const char* pstr, u32 milliseconds)
+void VideoBackendHardware::Video_AddMessage(const std::string& msg, u32 milliseconds)
 {
-	OSD::AddMessage(pstr, milliseconds);
+	OSD::AddMessage(msg, milliseconds);
 }
 
 void VideoBackendHardware::Video_ClearMessages()
@@ -130,9 +130,9 @@ void VideoBackendHardware::Video_ClearMessages()
 }
 
 // Screenshot
-bool VideoBackendHardware::Video_Screenshot(const char *_szFilename)
+bool VideoBackendHardware::Video_Screenshot(const std::string& filename)
 {
-	Renderer::SetScreenshot(_szFilename);
+	Renderer::SetScreenshot(filename.c_str());
 	return true;
 }
 

@@ -123,7 +123,7 @@ void GetShaders(std::vector<std::string> &shaders)
 		File::ScanDirectoryTree(directory, entry);
 		for (auto& file : entry.children)
 		{
-			std::string name = file.virtualName.c_str();
+			std::string name = file.virtualName;
 			if (name.size() < 5)
 				continue;
 			if (strcasecmp(name.substr(name.size() - 5).c_str(), ".glsl"))
@@ -176,7 +176,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini").c_str());
+	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
 	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();

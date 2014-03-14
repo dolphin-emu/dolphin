@@ -35,7 +35,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	{
 		std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
 		File::DeleteDirRecursively(Path);
-		File::CreateDir(Path.c_str());
+		File::CreateDir(Path);
 	}
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -505,10 +505,11 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		File::DeleteDirRecursively(Path);
-		File::CreateDir(Path.c_str());
+		File::CreateDir(Path);
 
 		//now restore from the stream
-		while (1) {
+		while (1)
+		{
 			char type = 0;
 			p.Do(type);
 			if (!type)
@@ -520,7 +521,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 			{
 			case 'd':
 			{
-				File::CreateDir(name.c_str());
+				File::CreateDir(name);
 				break;
 			}
 			case 'f':
@@ -531,7 +532,8 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				File::IOFile handle(name, "wb");
 				char buf[65536];
 				u32 count = size;
-				while (count > 65536) {
+				while (count > 65536)
+				{
 					p.DoArray(&buf[0], 65536);
 					handle.WriteArray(&buf[0], 65536);
 					count -= 65536;

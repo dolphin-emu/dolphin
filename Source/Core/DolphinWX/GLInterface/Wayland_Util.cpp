@@ -379,9 +379,9 @@ void cWaylandInterface::DestroyWindow(void)
 	wl_surface_destroy(GLWin.wl_surface);
 }
 
-void cWaylandInterface::UpdateFPSDisplay(const char *text)
+void cWaylandInterface::UpdateFPSDisplay(const std::string& text)
 {
-	wl_shell_surface_set_title(GLWin.wl_shell_surface, text);
+	wl_shell_surface_set_title(GLWin.wl_shell_surface, text.c_str());
 }
 
 void cWaylandInterface::ToggleFullscreen(bool fullscreen)

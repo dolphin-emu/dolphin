@@ -128,12 +128,12 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 							, d_of = box / 256.0
 							, x_of = box / 2.0;
 
-						if (strcmp(g->control_group->name, "Main Stick") == 0)
+						if (g->control_group->name == "Main Stick")
 						{
 							max = (87.0f / 127.0f) * 100;
 							diagonal = (55.0f / 127.0f) * 100.0;
 						}
-						else if (strcmp(g->control_group->name,"C-Stick") == 0)
+						else if (g->control_group->name == "C-Stick")
 						{
 							max = (74.0f / 127.0f) * 100;
 							diagonal = (46.0f / 127.0f) * 100;
@@ -278,7 +278,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						dc.DrawRectangle(n * 12, 0, 14, 12);
 
 						// text
-						const char* const name = g->control_group->controls[n]->name;
+						const std::string name = g->control_group->controls[n]->name;
 						// bit of hax so ZL, ZR show up as L, R
 						dc.DrawText(StrToWxStr(std::string(1, (name[1] && name[1] < 'a') ? name[1] : name[0])), n*12 + 2, 1);
 					}

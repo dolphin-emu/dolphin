@@ -25,23 +25,23 @@
 class UDPWiimote
 {
 public:
-	UDPWiimote(const char * port, const char * name, int index);
+	UDPWiimote(const std::string& port, const std::string& name, int index);
 	virtual ~UDPWiimote();
-	void getAccel(float &x, float &y, float &z);
+	void getAccel(float& x, float& y, float& z);
 	u32 getButtons();
-	void getNunchuck(float &x, float &y, u8 &mask);
-	void getIR(float &x, float &y);
-	void getNunchuckAccel(float &x, float &y, float &z);
-	int getErrNo() {return err;};
-	const char * getPort();
-	void changeName(const char * name);
+	void getNunchuck(float& x, float& y, u8& mask);
+	void getIR(float& x, float& y);
+	void getNunchuckAccel(float& x, float& y, float& z);
+	int getErrNo() { return err; }
+	const std::string& getPort();
+	void changeName(const std::string& name);
 
 	void mainThread();
 private:
 	std::string port,displayName;
-	int pharsePacket(u8 * data, size_t size);
+	int pharsePacket(u8* data, size_t size);
 	struct _d; //using pimpl because Winsock2.h doesn't have include guards -_-
-	_d *d;
+	_d* d;
 	double x,y,z;
 	double naX,naY,naZ;
 	double nunX,nunY;
@@ -54,8 +54,8 @@ private:
 	int int_port;
 	static int noinst;
 	void broadcastPresence();
-	void broadcastIPv4(const void * data, size_t size);
-	void broadcastIPv6(const void * data, size_t size);
+	void broadcastIPv4(const void* data, size_t size);
+	void broadcastIPv6(const void* data, size_t size);
 	void initBroadcastIPv4();
 	void initBroadcastIPv6();
 };

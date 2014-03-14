@@ -84,7 +84,7 @@ public:
 class PadSettingCheckBox : public PadSetting
 {
 public:
-	PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const char* const label);
+	PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const std::string& label);
 	void UpdateGUI() override;
 	void UpdateValue() override;
 

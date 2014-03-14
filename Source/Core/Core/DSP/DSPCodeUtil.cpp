@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "Common/Common.h"
@@ -13,7 +14,7 @@
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPDisassembler.h"
 
-bool Assemble(const char *text, std::vector<u16> &code, bool force)
+bool Assemble(const std::string& text, std::vector<u16> &code, bool force)
 {
 	AssemblerSettings settings;
 	// settings.pc = 0;
@@ -194,7 +195,7 @@ void BinaryStringBEToCode(const std::string &str, std::vector<u16> &code)
 	}
 }
 
-bool LoadBinary(const char *filename, std::vector<u16> &code)
+bool LoadBinary(const std::string& filename, std::vector<u16> &code)
 {
 	std::string buffer;
 	if (!File::ReadFileToString(filename, buffer))
@@ -204,7 +205,7 @@ bool LoadBinary(const char *filename, std::vector<u16> &code)
 	return true;
 }
 
-bool SaveBinary(const std::vector<u16> &code, const char *filename)
+bool SaveBinary(const std::vector<u16> &code, const std::string& filename)
 {
 	std::string buffer;
 	CodeToBinaryStringBE(code, buffer);

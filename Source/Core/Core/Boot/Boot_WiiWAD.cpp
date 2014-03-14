@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <memory>
+#include <string>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
@@ -45,9 +46,8 @@ typedef struct {
 	u32 unknown[6];
 } StateFlags;
 
-bool CBoot::Boot_WiiWAD(const char* _pFilename)
+bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
-
 	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_STATE);
 
 	if (File::Exists(state_filename))
@@ -102,7 +102,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	}
 	else
 	{
-		pDolLoader.reset(new CDolLoader(pContent->m_Filename.c_str()));
+		pDolLoader.reset(new CDolLoader(pContent->m_Filename));
 	}
 	pDolLoader->Load();
 	PC = pDolLoader->GetEntryPoint() | 0x80000000;

@@ -44,7 +44,7 @@ bool init_hax = false;
 DSPEmitter *dspjit = nullptr;
 Common::Event step_event;
 
-static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
+static bool LoadRom(const std::string& fname, int size_in_words, u16 *rom)
 {
 	File::IOFile pFile(fname, "rb");
 	const size_t size_in_bytes = size_in_words * sizeof(u16);
@@ -70,12 +70,12 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 		"Use DSPSpy to dump the file from your physical console.\n"
 		"\n"
 		"You may use the DSP HLE engine which does not require ROM dumps.\n"
-		"(Choose it from the \"Audio\" tab of the configuration dialog.)", fname);
+		"(Choose it from the \"Audio\" tab of the configuration dialog.)", fname.c_str());
 	return false;
 }
 
 // Returns false iff the hash fails and the user hits "Yes"
-static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
+static bool VerifyRoms(const std::string& irom_filename, const std::string& coef_filename)
 {
 	struct DspRomHashes
 	{
@@ -136,8 +136,7 @@ static void DSPCore_FreeMemoryPages()
 	g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = nullptr;
 }
 
-bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
-				  bool bUsingJIT)
+bool DSPCore_Init(const std::string& irom_filename, const std::string& coef_filename, bool bUsingJIT)
 {
 	g_dsp.step_counter = 0;
 	cyclesLeft = 0;
@@ -155,8 +154,8 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 
 	// Try to load real ROM contents.
 	if (!LoadRom(irom_filename, DSP_IROM_SIZE, g_dsp.irom) ||
-			!LoadRom(coef_filename, DSP_COEF_SIZE, g_dsp.coef) ||
-			!VerifyRoms(irom_filename, coef_filename))
+	    !LoadRom(coef_filename, DSP_COEF_SIZE, g_dsp.coef) ||
+	    !VerifyRoms(irom_filename, coef_filename))
 	{
 		DSPCore_FreeMemoryPages();
 		return false;

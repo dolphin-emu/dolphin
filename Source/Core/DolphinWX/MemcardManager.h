@@ -116,7 +116,7 @@ class CMemcardManager : public wxDialog
 
 		void CreateGUIControls();
 		void CopyDeleteClick(wxCommandEvent& event);
-		bool ReloadMemcard(const char *fileName, int card);
+		bool ReloadMemcard(const std::string& fileName, int card);
 		void OnMenuChange(wxCommandEvent& event);
 		void OnPageChange(wxCommandEvent& event);
 		void OnPathChange(wxFileDirPickerEvent& event);
