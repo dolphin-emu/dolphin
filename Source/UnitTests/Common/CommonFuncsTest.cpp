@@ -11,8 +11,8 @@ TEST(CommonFuncs, ArraySizeMacro)
 	char test[4];
 	u32 test2[42];
 
-	EXPECT_EQ(4, ArraySize(test));
-	EXPECT_EQ(42, ArraySize(test2));
+	EXPECT_EQ(4u, ArraySize(test));
+	EXPECT_EQ(42u, ArraySize(test2));
 }
 
 TEST(CommonFuncs, RoundUpPow2Macro)
@@ -41,6 +41,6 @@ TEST(CommonFuncs, Swap)
 {
 	EXPECT_EQ(0xf0, Common::swap8(0xf0));
 	EXPECT_EQ(0x1234, Common::swap16(0x3412));
-	EXPECT_EQ(0x12345678, Common::swap32(0x78563412));
+	EXPECT_EQ(0x12345678u, Common::swap32(0x78563412));
 	EXPECT_EQ(0x123456789abcdef0ull, Common::swap64(0xf0debc9a78563412ull));
 }
