@@ -76,6 +76,9 @@ bool BootCore(const std::string& _rFilename)
 
 	StartUp.hInstance = Host_GetInstance();
 
+	// This is saved seperately from everything because it can be changed in SConfig::AutoSetup()
+	config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
+
 	// If for example the ISO file is bad we return here
 	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT))
 		return false;
@@ -108,7 +111,6 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
 		config_cache.strBackend = StartUp.m_strVideoBackend;
-		config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
 		config_cache.m_EnableJIT = SConfig::GetInstance().m_DSPEnableJIT;
 		config_cache.bDSPThread = StartUp.bDSPThread;
 		config_cache.Volume = SConfig::GetInstance().m_Volume;
