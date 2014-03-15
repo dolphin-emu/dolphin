@@ -36,7 +36,6 @@ struct PHackData
 {
 	bool PHackSZNear;
 	bool PHackSZFar;
-	bool PHackExP;
 	std::string PHZNear;
 	std::string PHZFar;
 };
