@@ -105,7 +105,7 @@ CPanel::CPanel(
 		switch (nMsg)
 		{
 		case WM_USER:
-			switch(wParam)
+			switch (wParam)
 			{
 			case WM_USER_STOP:
 				main_frame->DoStop();
@@ -139,7 +139,7 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 	SetIcon(IconTemp);
 
 	DragAcceptFiles(true);
-	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CRenderFrame::OnDropFiles), NULL, this);
+	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CRenderFrame::OnDropFiles), nullptr, this);
 }
 
 void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
@@ -298,26 +298,25 @@ CFrame::CFrame(wxFrame* parent,
 		bool ShowLogWindow,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
-	, g_pCodeWindow(NULL), g_NetPlaySetupDiag(NULL), g_CheatsWindow(NULL)
-	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
-	, m_GameListCtrl(NULL), m_Panel(NULL)
-	, m_RenderFrame(NULL), m_RenderParent(NULL)
-	, m_LogWindow(NULL), m_LogConfigWindow(NULL)
-	, m_FifoPlayerDlg(NULL), UseDebugger(_UseDebugger)
+	, g_pCodeWindow(nullptr), g_NetPlaySetupDiag(nullptr), g_CheatsWindow(nullptr)
+	, m_ToolBar(nullptr), m_ToolBarDebug(nullptr), m_ToolBarAui(nullptr)
+	, m_GameListCtrl(nullptr), m_Panel(nullptr)
+	, m_RenderFrame(nullptr), m_RenderParent(nullptr)
+	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
+	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, m_bGameLoading(false)
 {
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
 
-	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
-
-	// Give it a console early to show potential messages from this onward
-	ConsoleListener *Console = LogManager::GetInstance()->GetConsoleListener();
-	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
+	if (ShowLogWindow)
+		SConfig::GetInstance().m_InterfaceLogWindow = true;
 
 	// Start debugging maximized
-	if (UseDebugger) this->Maximize(true);
+	if (UseDebugger)
+		this->Maximize(true);
+
 	// Debugger class
 	if (UseDebugger)
 	{
@@ -392,8 +391,6 @@ CFrame::CFrame(wxFrame* parent,
 			ToggleLogWindow(true);
 		if (SConfig::GetInstance().m_InterfaceLogConfigWindow)
 			ToggleLogConfigWindow(true);
-		if (SConfig::GetInstance().m_InterfaceConsole)
-			ToggleConsole(true);
 	}
 
 	// Show window
@@ -445,7 +442,7 @@ bool CFrame::RendererIsFullscreen()
 	}
 
 #if defined(__APPLE__)
-	if (m_RenderFrame != NULL)
+	if (m_RenderFrame != nullptr)
 	{
 		NSView *view = (NSView *) m_RenderFrame->GetHandle();
 		NSWindow *window = [view window];
@@ -500,7 +497,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 	}
 
 	//Stop Dolphin from saving the minimized Xpos and Ypos
-	if(main_frame->IsIconized())
+	if (main_frame->IsIconized())
 		main_frame->Iconize(false);
 
 	// Don't forget the skip or the window won't be destroyed
@@ -515,7 +512,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 	{
 		// Close the log window now so that its settings are saved
 		m_LogWindow->Close();
-		m_LogWindow = NULL;
+		m_LogWindow = nullptr;
 	}
 
 
@@ -611,12 +608,12 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case IDM_UPDATESTATUSBAR:
-		if (GetStatusBar() != NULL)
+		if (GetStatusBar() != nullptr)
 			GetStatusBar()->SetStatusText(event.GetString(), event.GetInt());
 		break;
 
 	case IDM_UPDATETITLE:
-		if (m_RenderFrame != NULL)
+		if (m_RenderFrame != nullptr)
 			m_RenderFrame->SetTitle(event.GetString());
 		break;
 
@@ -681,7 +678,6 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 	// Add space for the log/console/debugger window
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 			(SConfig::GetInstance().m_InterfaceLogWindow ||
-			 SConfig::GetInstance().m_InterfaceConsole ||
 			 SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
 			!m_Mgr->GetPane(wxT("Pane 1")).IsFloating())
 	{
@@ -704,13 +700,13 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 
 bool CFrame::RendererHasFocus()
 {
-	if (m_RenderParent == NULL)
+	if (m_RenderParent == nullptr)
 		return false;
 #ifdef _WIN32
 	if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
 		return true;
 #else
-	if (wxWindow::FindFocus() == NULL)
+	if (wxWindow::FindFocus() == nullptr)
 		return false;
 	// Why these different cases?
 	if (m_RenderParent == wxWindow::FindFocus() ||
@@ -877,8 +873,8 @@ bool TASInputHasFocus()
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	if(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			(RendererHasFocus() || TASInputHasFocus()))
+	if (Core::GetState() != Core::CORE_UNINITIALIZED &&
+	    (RendererHasFocus() || TASInputHasFocus()))
 	{
 		int WiimoteId = -1;
 		// Toggle fullscreen
@@ -1049,7 +1045,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 #if defined(HAVE_X11) && HAVE_X11
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		if(event.Dragging())
+		if (event.Dragging())
 			X11Utils::SendMotionEvent(X11Utils::XDisplayFromHandle(GetHandle()),
 					event.GetPosition().x, event.GetPosition().y);
 		else
@@ -1059,7 +1055,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 #endif
 
 	// next handlers are all for FreeLook, so we don't need to check them if disabled
-	if(!g_Config.bFreeLook)
+	if (!g_Config.bFreeLook)
 	{
 		event.Skip();
 		return;
@@ -1070,28 +1066,28 @@ void CFrame::OnMouse(wxMouseEvent& event)
 	static bool mouseMoveEnabled = false;
 	static float lastMouse[2];
 
-	if(event.MiddleDown())
+	if (event.MiddleDown())
 	{
 		lastMouse[0] = event.GetX();
 		lastMouse[1] = event.GetY();
 		mouseMoveEnabled = true;
 	}
-	else if(event.RightDown())
+	else if (event.RightDown())
 	{
 		lastMouse[0] = event.GetX();
 		lastMouse[1] = event.GetY();
 		mouseLookEnabled = true;
 	}
-	else if(event.MiddleUp())
+	else if (event.MiddleUp())
 	{
 		mouseMoveEnabled = false;
 	}
-	else if(event.RightUp())
+	else if (event.RightUp())
 	{
 		mouseLookEnabled = false;
 	}
 	// no button, so it's a move event
-	else if(event.GetButton() == wxMOUSE_BTN_NONE)
+	else if (event.GetButton() == wxMOUSE_BTN_NONE)
 	{
 		if (mouseLookEnabled)
 		{

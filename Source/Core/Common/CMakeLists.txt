@@ -13,6 +13,7 @@ set(SRCS	BreakPoints.cpp
 			Misc.cpp
 			MsgHandler.cpp
 			NandPaths.cpp
+			Network.cpp
 			SettingsHandler.cpp
 			SDCardUtil.cpp
 			StringUtil.cpp
@@ -27,15 +28,14 @@ set(SRCS	BreakPoints.cpp
 			Crypto/bn.cpp
 			Crypto/ec.cpp)
 
-if(_M_ARM) #ARM
-	set(SRCS	${SRCS}
-				ArmCPUDetect.cpp
-				ArmEmitter.cpp)
+if(_M_ARM_32) #ARMv7
+	set(SRCS ${SRCS}
+	         ArmCPUDetect.cpp
+	         ArmEmitter.cpp)
 else()
-	if(NOT _M_GENERIC) #X86
-		set(SRCS	${SRCS}
-					x64FPURoundMode.cpp
-					)
+	if(_M_X86) #X86
+		set(SRCS ${SRCS}
+		         x64FPURoundMode.cpp)
 	endif()
 	set(SRCS ${SRCS} x64CPUDetect.cpp)
 endif()

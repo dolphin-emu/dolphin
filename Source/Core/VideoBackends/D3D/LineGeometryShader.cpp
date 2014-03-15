@@ -125,7 +125,7 @@ static const char LINE_GS_COMMON[] =
 ;
 
 LineGeometryShader::LineGeometryShader()
-	: m_ready(false), m_paramsBuffer(NULL)
+	: m_ready(false), m_paramsBuffer(nullptr)
 { }
 
 void LineGeometryShader::Init()
@@ -138,7 +138,7 @@ void LineGeometryShader::Init()
 
 	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(LineGSParams_Padded),
 		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	hr = D3D::device->CreateBuffer(&bd, NULL, &m_paramsBuffer);
+	hr = D3D::device->CreateBuffer(&bd, nullptr, &m_paramsBuffer);
 	CHECK(SUCCEEDED(hr), "create line geometry shader params buffer");
 	D3D::SetDebugObjectName(m_paramsBuffer, "line geometry shader params buffer");
 
@@ -184,14 +184,14 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 		const std::string& numTexCoordsStr = numTexCoordsStream.str();
 		D3D_SHADER_MACRO macros[] = {
 			{ "NUM_TEXCOORDS", numTexCoordsStr.c_str() },
-			{ NULL, NULL }
+			{ nullptr, nullptr }
 		};
 		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code.GetBuffer(), unsigned int(strlen(code.GetBuffer())), macros);
 		if (!newShader)
 		{
 			WARN_LOG(VIDEO, "Line geometry shader for components 0x%.08X failed to compile", components);
 			// Add dummy shader to prevent trying to compile again
-			m_shaders[components] = NULL;
+			m_shaders[components] = nullptr;
 			return false;
 		}
 
@@ -223,7 +223,7 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 			DEBUG_LOG(VIDEO, "Line params: width %f, texOffset %f, vpWidth %f, vpHeight %f",
 				lineWidth, texOffset, vpWidth, vpHeight);
 
-			D3D::context->GSSetShader(shaderIt->second, NULL, 0);
+			D3D::context->GSSetShader(shaderIt->second, nullptr, 0);
 			D3D::context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
 
 			return true;

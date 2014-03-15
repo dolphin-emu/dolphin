@@ -44,7 +44,7 @@
 #define USE_RVALUE_REFERENCES
 #endif
 
-#if defined(_WIN32) && defined(_M_X64)
+#if defined(_WIN32) && _M_X86_64
 #define USE_SRWLOCKS
 #endif
 
@@ -143,7 +143,7 @@ public:
 #ifdef _WIN32
 		InitializeSRWLock(&m_handle);
 #else
-		pthread_mutex_init(&m_handle, NULL);
+		pthread_mutex_init(&m_handle, nullptr);
 #endif
 	}
 
@@ -238,7 +238,7 @@ public:
 	typedef Mutex mutex_type;
 
 	unique_lock()
-		: pm(NULL), owns(false)
+		: pm(nullptr), owns(false)
 	{}
 
 	/*explicit*/ unique_lock(mutex_type& m)
@@ -290,11 +290,11 @@ public:
 	unique_lock(const unique_lock&) /*= delete*/;
 
 	unique_lock(unique_lock&& other)
-		: pm(NULL), owns(false)
+		: pm(nullptr), owns(false)
 	{
 #else
 	unique_lock(const unique_lock& u)
-		: pm(NULL), owns(false)
+		: pm(nullptr), owns(false)
 	{
 		// ugly const_cast to get around lack of rvalue references
 		unique_lock& other = const_cast<unique_lock&>(u);
@@ -335,7 +335,7 @@ public:
 	{
 		auto const ret = mutex();
 
-		pm = NULL;
+		pm = nullptr;
 		owns = false;
 
 		return ret;

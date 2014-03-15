@@ -36,7 +36,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_stm_immediate()
 	{}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -44,7 +44,7 @@ public:
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce)
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Close");
 		if (!_bForce)
@@ -53,7 +53,7 @@ public:
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress)
+	virtual bool IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
@@ -66,7 +66,7 @@ public:
 		Memory::Memset(BufferOut, 0, BufferOutSize);
 		u32 ReturnValue = 0;
 
-		switch(Parameter)
+		switch (Parameter)
 		{
 		case IOCTL_STM_RELEASE_EH:
 			INFO_LOG(WII_IPC_STM, "%s - IOCtl:", GetDeviceName().c_str());
@@ -125,14 +125,14 @@ public:
 	{
 	}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 		m_Active = true;
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce)
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override
 	{
 		m_EventHookAddress = 0;
 
@@ -143,7 +143,7 @@ public:
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress)
+	virtual bool IOCtl(u32 _CommandAddress) override
 	{
 		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);

@@ -9,16 +9,19 @@
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoCommon.h"
 
-#define I_COLORS      "color"
-#define I_KCOLORS     "k"
-#define I_ALPHA       "alphaRef"
-#define I_TEXDIMS     "texdim"
-#define I_ZBIAS       "czbias"
-#define I_INDTEXSCALE "cindscale"
-#define I_INDTEXMTX   "cindmtx"
-#define I_FOG         "cfog"
-#define I_PLIGHTS     "cPLights"
-#define I_PMATERIALS  "cPmtrl"
+#define I_COLORS        "color"
+#define I_KCOLORS       "k"
+#define I_ALPHA         "alphaRef"
+#define I_TEXDIMS       "texdim"
+#define I_ZBIAS         "czbias"
+#define I_INDTEXSCALE   "cindscale"
+#define I_INDTEXMTX     "cindmtx"
+#define I_FOGCOLOR      "cfogcolor"
+#define I_FOGI          "cfogi"
+#define I_FOGF          "cfogf"
+#define I_PLIGHT_COLORS "cPLightColors"
+#define I_PLIGHTS       "cPLights"
+#define I_PMATERIALS    "cPmtrl"
 
 // TODO: get rid of them as they aren't used
 #define C_COLORMATRIX   0                   // 0
@@ -29,10 +32,13 @@
 #define C_ZBIAS         (C_TEXDIMS + 8)     //17
 #define C_INDTEXSCALE   (C_ZBIAS + 2)       //19
 #define C_INDTEXMTX     (C_INDTEXSCALE + 2) //21
-#define C_FOG           (C_INDTEXMTX + 6)   //27
+#define C_FOGCOLOR      (C_INDTEXMTX + 6)   //27
+#define C_FOGI          (C_FOGCOLOR + 1)    //28
+#define C_FOGF          (C_FOGI + 1)        //29
 
-#define C_PLIGHTS       (C_FOG + 3)
-#define C_PMATERIALS    (C_PLIGHTS + 40)
+#define C_PLIGHT_COLORS (C_FOGF + 2)
+#define C_PLIGHTS       (C_PLIGHT_COLORS + 8)
+#define C_PMATERIALS    (C_PLIGHTS + 32)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
 
 // Different ways to achieve rendering with destination alpha

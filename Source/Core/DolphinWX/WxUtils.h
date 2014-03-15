@@ -16,10 +16,10 @@ namespace WxUtils
 {
 
 // Launch a file according to its mime type
-void Launch(const char *filename);
+void Launch(const std::string& filename);
 
 // Launch an file explorer window on a certain path
-void Explore(const char *path);
+void Explore(const std::string& path);
 
 double GetCurrentBitmapLogicalScale();
 

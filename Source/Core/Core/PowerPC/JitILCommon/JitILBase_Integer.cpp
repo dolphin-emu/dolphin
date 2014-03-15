@@ -78,7 +78,7 @@ void JitILBase::reg_imm(UGeckoInstruction inst)
 			ComputeRC(ibuild, val);
 		break;
 	default:
-		Default(inst);
+		FallBackToInterpreter(inst);
 		break;
 	}
 }
@@ -123,7 +123,7 @@ void JitILBase::boolX(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
 
-	IREmitter::InstLoc a = NULL;
+	IREmitter::InstLoc a = nullptr;
 	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
 	IREmitter::InstLoc b = ibuild.EmitLoadGReg(inst.RB);
 
@@ -303,7 +303,9 @@ void JitILBase::mulhwux(UGeckoInstruction inst)
 // skipped some of the special handling in here - if we get crashes, let the interpreter handle this op
 void JitILBase::divwux(UGeckoInstruction inst)
 {
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
+
 #if 0
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.FlushLockX(EDX);

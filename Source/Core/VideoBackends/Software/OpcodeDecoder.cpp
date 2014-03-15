@@ -19,7 +19,7 @@ typedef void (*DecodingFunction)(u32);
 
 namespace OpcodeDecoder
 {
-static DecodingFunction currentFunction = NULL;
+static DecodingFunction currentFunction = nullptr;
 static u32 minCommandSize;
 static u16 streamSize;
 static u16 streamAddress;
@@ -139,7 +139,7 @@ void DecodeStandard(u32 bufferSize)
 		DebugUtil::OnObjectBegin();
 	}
 #endif
-	switch(Cmd)
+	switch (Cmd)
 	{
 	case GX_NOP:
 		break;
@@ -250,7 +250,7 @@ bool CommandRunnable(u32 iBufferSize)
 		u8 Cmd = DataPeek8(0);
 		u32 minSize = 1;
 
-		switch(Cmd)
+		switch (Cmd)
 		{
 		case GX_LOAD_CP_REG: //0x08
 			minSize = 6;

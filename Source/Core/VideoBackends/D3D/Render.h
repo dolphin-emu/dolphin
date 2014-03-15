@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "VideoCommon/RenderBase.h"
 
 namespace DX11
@@ -30,7 +31,7 @@ public:
 	void ApplyCullDisable();
 	void RestoreCull();
 
-	void RenderText(const char* pstr, int left, int top, u32 color);
+	void RenderText(const std::string& text, int left, int top, u32 color);
 
 	u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
 

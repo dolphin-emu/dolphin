@@ -29,7 +29,7 @@
 
 #include "Common/Common.h"
 
-#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/LabelMap.h"
 
@@ -73,7 +73,7 @@ public:
 	// one for each word of code, indicating the source assembler code line number it came from.
 
 	// If returns false, call GetErrorString to get some text to present to the user.
-	bool Assemble(const char *text, std::vector<u16> &code, std::vector<int> *line_numbers = NULL);
+	bool Assemble(const std::string& text, std::vector<u16> &code, std::vector<int> *line_numbers = nullptr);
 
 	std::string GetErrorString() const { return last_error_str; }
 	err_t GetError() const { return last_error; }
@@ -103,8 +103,8 @@ private:
 	void InitPass(int pass);
 	bool AssembleFile(const char *fname, int pass);
 
-	void ShowError(err_t err_code, const char *extra_info = NULL);
-	// void ShowWarning(err_t err_code, const char *extra_info = NULL);
+	void ShowError(err_t err_code, const char *extra_info = nullptr);
+	// void ShowWarning(err_t err_code, const char *extra_info = nullptr);
 
 	char *FindBrackets(char *src, char *dst);
 	const opc_t *FindOpcode(const char *opcode, u32 par_count, const opc_t * const opcod, int opcod_size);

@@ -123,7 +123,7 @@ void GetShaders(std::vector<std::string> &shaders)
 		File::ScanDirectoryTree(directory, entry);
 		for (auto& file : entry.children)
 		{
-			std::string name = file.virtualName.c_str();
+			std::string name = file.virtualName;
 			if (name.size() < 5)
 				continue;
 			if (strcasecmp(name.substr(name.size() - 5).c_str(), ".glsl"))
@@ -176,7 +176,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini").c_str());
+	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
 	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
@@ -256,20 +256,20 @@ void VideoBackend::Video_Cleanup() {
 		TextureConverter::Shutdown();
 		VertexLoaderManager::Shutdown();
 		delete g_sampler_cache;
-		g_sampler_cache = NULL;
+		g_sampler_cache = nullptr;
 		delete g_texture_cache;
-		g_texture_cache = NULL;
+		g_texture_cache = nullptr;
 		PostProcessing::Shutdown();
 		ProgramShaderCache::Shutdown();
 		VertexShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
 		delete g_perf_query;
-		g_perf_query = NULL;
+		g_perf_query = nullptr;
 		delete g_vertex_manager;
-		g_vertex_manager = NULL;
+		g_vertex_manager = nullptr;
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
-		g_renderer = NULL;
+		g_renderer = nullptr;
 		GLInterface->ClearCurrent();
 	}
 }

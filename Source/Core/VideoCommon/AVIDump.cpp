@@ -68,7 +68,7 @@ bool AVIDump::CreateFile()
 	AVIFileInit();
 	NOTICE_LOG(VIDEO, "Opening AVI file (%s) for dumping", movie_file_name);
 	// TODO: Make this work with AVIFileOpenW without it throwing REGDB_E_CLASSNOTREG
-	HRESULT hr = AVIFileOpenA(&m_file, movie_file_name, OF_WRITE | OF_CREATE, NULL);
+	HRESULT hr = AVIFileOpenA(&m_file, movie_file_name, OF_WRITE | OF_CREATE, nullptr);
 	if (FAILED(hr))
 	{
 		if (hr == AVIERR_BADFORMAT) NOTICE_LOG(VIDEO, "The file couldn't be read, indicating a corrupt file or an unrecognized format.");
@@ -99,7 +99,7 @@ bool AVIDump::CreateFile()
 		}
 	}
 
-	if (FAILED(AVIMakeCompressedStream(&m_streamCompressed, m_stream, &m_options, NULL)))
+	if (FAILED(AVIMakeCompressedStream(&m_streamCompressed, m_stream, &m_options, nullptr)))
 	{
 		NOTICE_LOG(VIDEO, "AVIMakeCompressedStream failed");
 		Stop();
@@ -121,19 +121,19 @@ void AVIDump::CloseFile()
 	if (m_streamCompressed)
 	{
 		AVIStreamClose(m_streamCompressed);
-		m_streamCompressed = NULL;
+		m_streamCompressed = nullptr;
 	}
 
 	if (m_stream)
 	{
 		AVIStreamClose(m_stream);
-		m_stream = NULL;
+		m_stream = nullptr;
 	}
 
 	if (m_file)
 	{
 		AVIFileRelease(m_file);
-		m_file = NULL;
+		m_file = nullptr;
 	}
 
 	AVIFileExit();
@@ -160,7 +160,7 @@ void AVIDump::AddFrame(const u8* data, int w, int h)
 		m_bitmap.biHeight = h;
 	}
 
-	AVIStreamWrite(m_streamCompressed, ++m_frameCount, 1, const_cast<u8*>(data), m_bitmap.biSizeImage, AVIIF_KEYFRAME, NULL, &m_byteBuffer);
+	AVIStreamWrite(m_streamCompressed, ++m_frameCount, 1, const_cast<u8*>(data), m_bitmap.biSizeImage, AVIIF_KEYFRAME, nullptr, &m_byteBuffer);
 	m_totalBytes += m_byteBuffer;
 	// Close the recording if the file is more than 2gb
 	// VfW can't properly save files over 2gb in size, but can keep writing to them up to 4gb.
@@ -215,11 +215,11 @@ extern "C" {
 #include <libavutil/mathematics.h>
 }
 
-AVFormatContext *s_FormatContext = NULL;
-AVStream *s_Stream = NULL;
-AVFrame *s_BGRFrame = NULL, *s_YUVFrame = NULL;
-uint8_t *s_YUVBuffer = NULL;
-uint8_t *s_OutBuffer = NULL;
+AVFormatContext *s_FormatContext = nullptr;
+AVStream *s_Stream = nullptr;
+AVFrame *s_BGRFrame = nullptr, *s_YUVFrame = nullptr;
+uint8_t *s_YUVBuffer = nullptr;
+uint8_t *s_OutBuffer = nullptr;
 int s_width;
 int s_height;
 int s_size;
@@ -245,14 +245,14 @@ bool AVIDump::Start(int w, int h)
 
 bool AVIDump::CreateFile()
 {
-	AVCodec *codec = NULL;
+	AVCodec *codec = nullptr;
 
 	s_FormatContext = avformat_alloc_context();
 	snprintf(s_FormatContext->filename, sizeof(s_FormatContext->filename), "%s",
 			(File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi").c_str());
 	File::CreateFullPath(s_FormatContext->filename);
 
-	if (!(s_FormatContext->oformat = av_guess_format("avi", NULL, NULL)) ||
+	if (!(s_FormatContext->oformat = av_guess_format("avi", nullptr, nullptr)) ||
 			!(s_Stream = avformat_new_stream(s_FormatContext, codec)))
 	{
 		CloseFile();
@@ -270,7 +270,7 @@ bool AVIDump::CreateFile()
 	s_Stream->codec->pix_fmt = g_Config.bUseFFV1 ? PIX_FMT_BGRA : PIX_FMT_YUV420P;
 
 	if (!(codec = avcodec_find_encoder(s_Stream->codec->codec_id)) ||
-			(avcodec_open2(s_Stream->codec, codec, NULL) < 0))
+			(avcodec_open2(s_Stream->codec, codec, nullptr) < 0))
 	{
 		CloseFile();
 		return false;
@@ -294,7 +294,7 @@ bool AVIDump::CreateFile()
 		return false;
 	}
 
-	avformat_write_header(s_FormatContext, NULL);
+	avformat_write_header(s_FormatContext, nullptr);
 
 	return true;
 }
@@ -307,7 +307,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	// width and height
 	struct SwsContext *s_SwsContext;
 	if ((s_SwsContext = sws_getContext(width, height, PIX_FMT_BGR24, s_width, s_height,
-					s_Stream->codec->pix_fmt, SWS_BICUBIC, NULL, NULL, NULL)))
+					s_Stream->codec->pix_fmt, SWS_BICUBIC, nullptr, nullptr, nullptr)))
 	{
 		sws_scale(s_SwsContext, s_BGRFrame->data, s_BGRFrame->linesize, 0,
 				height, s_YUVFrame->data, s_YUVFrame->linesize);
@@ -324,7 +324,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		if (s_Stream->codec->coded_frame->pts != (unsigned int)AV_NOPTS_VALUE)
 			pkt.pts = av_rescale_q(s_Stream->codec->coded_frame->pts,
 					s_Stream->codec->time_base, s_Stream->time_base);
-		if(s_Stream->codec->coded_frame->key_frame)
+		if (s_Stream->codec->coded_frame->key_frame)
 			pkt.flags |= AV_PKT_FLAG_KEY;
 		pkt.stream_index = s_Stream->index;
 		pkt.data = s_OutBuffer;
@@ -334,7 +334,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		av_interleaved_write_frame(s_FormatContext, &pkt);
 
 		// Encode delayed frames
-		outsize = avcodec_encode_video(s_Stream->codec, s_OutBuffer, s_size, NULL);
+		outsize = avcodec_encode_video(s_Stream->codec, s_OutBuffer, s_size, nullptr);
 	}
 }
 
@@ -352,31 +352,31 @@ void AVIDump::CloseFile()
 		if (s_Stream->codec)
 			avcodec_close(s_Stream->codec);
 		av_free(s_Stream);
-		s_Stream = NULL;
+		s_Stream = nullptr;
 	}
 
 	if (s_YUVBuffer)
 		delete[] s_YUVBuffer;
-	s_YUVBuffer = NULL;
+	s_YUVBuffer = nullptr;
 
 	if (s_OutBuffer)
 		delete[] s_OutBuffer;
-	s_OutBuffer = NULL;
+	s_OutBuffer = nullptr;
 
 	if (s_BGRFrame)
 		av_free(s_BGRFrame);
-	s_BGRFrame = NULL;
+	s_BGRFrame = nullptr;
 
 	if (s_YUVFrame)
 		av_free(s_YUVFrame);
-	s_YUVFrame = NULL;
+	s_YUVFrame = nullptr;
 
 	if (s_FormatContext)
 	{
 		if (s_FormatContext->pb)
 			avio_close(s_FormatContext->pb);
 		av_free(s_FormatContext);
-		s_FormatContext = NULL;
+		s_FormatContext = nullptr;
 	}
 }
 

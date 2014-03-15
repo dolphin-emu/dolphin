@@ -1739,15 +1739,15 @@ namespace GLExtensions
 	void* GetFuncAddress(std::string name, void **func)
 	{
 		*func = GLInterface->GetFuncAddress(name);
-		if (*func == NULL)
+		if (*func == nullptr)
 		{
 #if defined(__linux__) || defined(__APPLE__)
 			// Give it a second try with dlsym
 			*func = dlsym(RTLD_NEXT, name.c_str());
 #endif
-			if (*func == NULL && _isES)
+			if (*func == nullptr && _isES)
 				*func = (void*)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
-			if (*func == NULL)
+			if (*func == nullptr)
 				ERROR_LOG(VIDEO, "Couldn't load function %s", name.c_str());
 		}
 		return *func;
@@ -1755,7 +1755,7 @@ namespace GLExtensions
 
 	// Public members
 	u32 Version() { return _GLVersion; }
-	bool Supports(std::string name)
+	bool Supports(const std::string& name)
 	{
 		return m_extension_list[name];
 	}
@@ -1769,13 +1769,13 @@ namespace GLExtensions
 		// We need them to grab the extension list
 		// Also to check if there is an error grabbing the version
 		// If it fails then the user's drivers don't support GL 3.0
-		if (GetFuncAddress ("glGetIntegerv", (void**)&glGetIntegerv) == NULL)
+		if (GetFuncAddress ("glGetIntegerv", (void**)&glGetIntegerv) == nullptr)
 			return false;
-		if (GetFuncAddress("glGetString", (void**)&glGetString) == NULL)
+		if (GetFuncAddress("glGetString", (void**)&glGetString) == nullptr)
 			return false;
-		if (GetFuncAddress("glGetStringi", (void**)&glGetStringi) == NULL)
+		if (GetFuncAddress("glGetStringi", (void**)&glGetStringi) == nullptr)
 			return false;
-		if (GetFuncAddress("glGetError", (void**)&glGetError) == NULL)
+		if (GetFuncAddress("glGetError", (void**)&glGetError) == nullptr)
 			return false;
 
 		InitVersion();

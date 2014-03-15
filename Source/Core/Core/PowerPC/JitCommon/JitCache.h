@@ -89,8 +89,8 @@ class JitBaseBlockCache
 
 public:
 	JitBaseBlockCache() :
-		blockCodePointers(0), blocks(0), num_blocks(0),
-		iCache(0), iCacheEx(0), iCacheVMEM(0) {}
+		blockCodePointers(nullptr), blocks(nullptr), num_blocks(0),
+		iCache(nullptr), iCacheEx(nullptr), iCacheVMEM(nullptr) {}
 	int AllocateBlock(u32 em_address);
 	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
 

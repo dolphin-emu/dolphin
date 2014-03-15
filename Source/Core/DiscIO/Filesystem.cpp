@@ -22,12 +22,12 @@ IFileSystem* CreateFileSystem(const IVolume* _rVolume)
 	IFileSystem* pFileSystem = new CFileSystemGCWii(_rVolume);
 
 	if (!pFileSystem)
-		return 0;
+		return nullptr;
 
 	if (!pFileSystem->IsValid())
 	{
 		delete pFileSystem;
-		pFileSystem = NULL;
+		pFileSystem = nullptr;
 	}
 
 	return pFileSystem;

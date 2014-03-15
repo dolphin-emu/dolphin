@@ -76,7 +76,7 @@ public:
 	}
 
 	const char *GetName() override {
-#ifdef _M_X64
+#if _M_X86_64
 		return "JIT64";
 #else
 		return "JIT32";
@@ -113,7 +113,7 @@ public:
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
-	void Default(UGeckoInstruction _inst);
+	void FallBackToInterpreter(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);
 

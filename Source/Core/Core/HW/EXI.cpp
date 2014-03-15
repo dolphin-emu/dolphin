@@ -30,7 +30,7 @@ void Init()
 
 	if (Movie::IsPlayingInput() && Movie::IsUsingMemcard() && Movie::IsConfigSaved())
 		g_Channels[0]->AddDevice(EXIDEVICE_MEMORYCARD, 0); // SlotA
-	else if(Movie::IsPlayingInput() && !Movie::IsUsingMemcard() && Movie::IsConfigSaved())
+	else if (Movie::IsPlayingInput() && !Movie::IsUsingMemcard() && Movie::IsConfigSaved())
 		g_Channels[0]->AddDevice(EXIDEVICE_NONE,       0); // SlotA
 	else
 		g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[0], 0); // SlotA
@@ -47,7 +47,7 @@ void Shutdown()
 	for (auto& channel : g_Channels)
 	{
 		delete channel;
-		channel = NULL;
+		channel = nullptr;
 	}
 }
 
@@ -102,7 +102,7 @@ IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 		if (device)
 			return device;
 	}
-	return NULL;
+	return nullptr;
 }
 
 // Unused (?!)

@@ -212,7 +212,7 @@ const IniFile::Section* IniFile::GetSection(const std::string& sectionName) cons
 	for (const Section& sect : sections)
 		if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
 			return (&(sect));
-	return 0;
+	return nullptr;
 }
 
 IniFile::Section* IniFile::GetSection(const std::string& sectionName)
@@ -220,7 +220,7 @@ IniFile::Section* IniFile::GetSection(const std::string& sectionName)
 	for (Section& sect : sections)
 		if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
 			return (&(sect));
-	return 0;
+	return nullptr;
 }
 
 IniFile::Section* IniFile::GetOrCreateSection(const std::string& sectionName)
@@ -335,7 +335,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 
 	if (in.fail()) return false;
 
-	Section* current_section = NULL;
+	Section* current_section = nullptr;
 	while (!in.eof())
 	{
 		char templine[MAX_BYTES];
@@ -373,8 +373,11 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 					// Lines starting with '$', '*' or '+' are kept verbatim.
 					// Kind of a hack, but the support for raw lines inside an
 					// INI is a hack anyway.
-					if ((key == "" && value == "")
-					        || (line.size() >= 1 && (line[0] == '$' || line[0] == '+' || line[0] == '*')))
+					if ((key == "" && value == "") ||
+					    (line.size() >= 1 &&
+					     (line[0] == '$' ||
+					      line[0] == '+' ||
+					      line[0] == '*')))
 						current_section->lines.push_back(line);
 					else
 						current_section->Set(key, value);

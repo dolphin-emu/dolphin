@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <string>
 
 #include "Common/ColorUtil.h"
 #include "Core/HW/GCMemcard.h"
@@ -14,7 +15,7 @@ static void ByteSwap(u8 *valueA, u8 *valueB)
 	*valueB = tmp;
 }
 
-GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
+GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool sjis)
 	: m_valid(false)
 	, m_fileName(filename)
 {
@@ -23,7 +24,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	File::IOFile mcdFile(m_fileName, "rb");
 	if (!mcdFile.IsOpen())
 	{
-		if (!forceCreation && !AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
+		if (!forceCreation && !AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename.c_str()))
 		{
 			return;
 		}
@@ -34,7 +35,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	{
 		//This function can be removed once more about hdr is known and we can check for a valid header
 		std::string fileType;
-		SplitPath(filename, NULL, NULL, &fileType);
+		SplitPath(filename, nullptr, nullptr, &fileType);
 		if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
 		{
 			PanicAlertT("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
@@ -43,12 +44,12 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 		auto size = mcdFile.GetSize();
 		if (size < MC_FST_BLOCKS*BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename, (unsigned) size);
+			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename.c_str(), (unsigned) size);
 			return;
 		}
 		if (size % BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename, (unsigned) size);
+			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename.c_str(), (unsigned) size);
 				return;
 		}
 
@@ -63,7 +64,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 			case MemCard2043Mb:
 				break;
 			default:
-				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename, (unsigned) size);
+				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename.c_str(), (unsigned) size);
 				return;
 		}
 	}
@@ -155,7 +156,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 // the backup should be copied?
 //	}
 //
-//	if(BE16(dir_backup.UpdateCounter) > BE16(dir.UpdateCounter)) //check if the backup is newer
+//	if (BE16(dir_backup.UpdateCounter) > BE16(dir.UpdateCounter)) //check if the backup is newer
 //	{
 //		dir = dir_backup;
 //		bat = bat_backup; // needed?
@@ -348,7 +349,7 @@ u8 GCMemcard::TitlePresent(DEntry d) const
 		return DIRLEN;
 
 	u8 i = 0;
-	while(i < DIRLEN)
+	while (i < DIRLEN)
 	{
 		if ((BE32(CurrentDir->Dir[i].Gamecode) == BE32(d.Gamecode)) &&
 			(!memcmp(CurrentDir->Dir[i].Filename, d.Filename, 32)))
@@ -433,7 +434,7 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
 
 	int x = CurrentDir->Dir[index].IconFmt[0];
 	std::string format;
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 	{
 		if (i == 8) x = CurrentDir->Dir[index].IconFmt[1];
 		format.push_back((x & 0x80) ? '1' : '0');
@@ -449,7 +450,7 @@ std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
 
 	int x = CurrentDir->Dir[index].AnimSpeed[0];
 	std::string speed;
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 	{
 		if (i == 8) x = CurrentDir->Dir[index].AnimSpeed[1];
 		speed.push_back((x & 0x80) ? '1' : '0');
@@ -795,7 +796,7 @@ u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
 	}
 }
 
-u32 GCMemcard::ImportGci(const char *inputFile, const std::string &outputFile)
+u32 GCMemcard::ImportGci(const std::string& inputFile, const std::string &outputFile)
 {
 	if (outputFile.empty() && !m_valid)
 		return OPENFAIL;
@@ -809,12 +810,12 @@ u32 GCMemcard::ImportGci(const char *inputFile, const std::string &outputFile)
 	return result;
 }
 
-u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::string &outputFile)
+u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile, const std::string &outputFile)
 {
 	File::IOFile gci(gcih);
 	unsigned int offset;
 	std::string fileType;
-	SplitPath(inputFile, NULL, NULL, &fileType);
+	SplitPath(inputFile, nullptr, nullptr, &fileType);
 
 	if (!strcasecmp(fileType.c_str(), ".gci"))
 		offset = GCI;
@@ -898,30 +899,22 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::s
 	return ret;
 }
 
-u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &directory) const
+u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::string &directory) const
 {
 	File::IOFile gci;
 	int offset = GCI;
-	if (!fileName)
-	{
-		std::string gciFilename;
-		if (!GCI_FileName(index, gciFilename)) return SUCCESS;
-		gci.Open(directory + DIR_SEP + gciFilename, "wb");
-	}
-	else
-	{
-		gci.Open(fileName, "wb");
 
-		std::string fileType;
-		SplitPath(fileName, NULL, NULL, &fileType);
-		if (!strcasecmp(fileType.c_str(), ".gcs"))
-		{
-			offset = GCS;
-		}
-		else if (!strcasecmp(fileType.c_str(), ".sav"))
-		{
-			offset = SAV;
-		}
+	gci.Open(fileName, "wb");
+
+	std::string fileType;
+	SplitPath(fileName, nullptr, nullptr, &fileType);
+	if (!strcasecmp(fileType.c_str(), ".gcs"))
+	{
+		offset = GCS;
+	}
+	else if (!strcasecmp(fileType.c_str(), ".sav"))
+	{
+		offset = SAV;
 	}
 
 	if (!gci)
@@ -929,7 +922,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &dire
 
 	gci.Seek(0, SEEK_SET);
 
-	switch(offset)
+	switch (offset)
 	{
 	case GCS:
 		u8 gcsHDR[GCS];
@@ -964,7 +957,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &dire
 	std::vector<GCMBlock> saveData;
 	saveData.reserve(size);
 
-	switch(GetSaveData(index, saveData))
+	switch (GetSaveData(index, saveData))
 	{
 	case FAIL:
 		return FAIL;
@@ -985,7 +978,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &dire
 
 void GCMemcard::Gcs_SavConvert(DEntry &tempDEntry, int saveType, int length)
 {
-	switch(saveType)
+	switch (saveType)
 	{
 	case GCS:
 	{
@@ -1171,7 +1164,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 			//Speed is set but there's no actual icon
 			//This is used to reduce animation speed in Pikmin and Luigi's Mansion for example
 			//These "blank frames" show the next icon
-			for(j=i; j<8;++j)
+			for (j=i; j<8;++j)
 			{
 				if (fmts[j] != 0)
 				{
@@ -1260,7 +1253,7 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 	u64 rand = CEXIIPL::GetGCTime();
 	p_hdr->formatTime = Common::swap64(rand);
 
-	for(int i = 0; i < 12; i++)
+	for (int i = 0; i < 12; i++)
 	{
 		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
 		p_hdr->serial[i] = (u8)(g_SRAM.flash_id[0][i] + (u32)rand);

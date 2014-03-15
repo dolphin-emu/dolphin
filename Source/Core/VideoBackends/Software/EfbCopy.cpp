@@ -27,24 +27,36 @@ namespace EfbCopy
 {
 	void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 	{
-		GLInterface->Update(); // just updates the render window position and the backbuffer size
+		GLInterface->Update(); // update the render window position and the backbuffer size
 
 		if (!g_SWVideoConfig.bHwRasterizer)
 		{
 			INFO_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), Gamma %f",
 					 xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom, sourceRc.right, Gamma);
 
-			if(!g_SWVideoConfig.bBypassXFB) {
+			if (!g_SWVideoConfig.bBypassXFB)
+			{
 				EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed *) Memory::GetPointer(xfbAddr);
 
 				EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
-
-			} else {
-				u8 *colorTexture = SWRenderer::getColorTexture(); // Ask SWRenderer for the next color texture
+			}
+			else
+			{
+				// Ask SWRenderer for the next color texture
+				u8 *colorTexture = SWRenderer::getColorTexture();
 
 				EfbInterface::BypassXFB(colorTexture, fbWidth, fbHeight, sourceRc, Gamma);
 
-				SWRenderer::swapColorTexture(); // Tell SWRenderer we are now finished with it.
+				// Tell SWRenderer we are now finished with it.
+				SWRenderer::swapColorTexture();
+
+				// FifoPlayer is broken and never calls BeginFrame/EndFrame.
+				// Hence, we manually force a swap now. This emulates the behavior
+				// of hardware backends with XFB emulation disabled.
+				// TODO: Fix FifoPlayer by making proper use of VideoInterface!
+				//       This requires careful synchronization since GPU commands
+				//       are processed on a different thread than VI commands.
+				SWRenderer::Swap(fbWidth, fbHeight);
 			}
 		}
 	}

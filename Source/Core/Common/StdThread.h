@@ -193,7 +193,7 @@ public:
 		WaitForSingleObject(m_handle, INFINITE);
 		detach();
 #else
-		pthread_join(m_id.m_thread, NULL);
+		pthread_join(m_id.m_thread, nullptr);
 		m_id = id();
 #endif
 	}
@@ -238,9 +238,9 @@ private:
 	void StartThread(F* param)
 	{
 #ifdef USE_BEGINTHREADEX
-		m_handle = (HANDLE)_beginthreadex(NULL, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
+		m_handle = (HANDLE)_beginthreadex(nullptr, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
 #elif defined(_WIN32)
-		m_handle = CreateThread(NULL, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
+		m_handle = CreateThread(nullptr, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
 #else
 		pthread_attr_t attr;
 		pthread_attr_init(&attr);

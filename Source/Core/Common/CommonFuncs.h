@@ -35,8 +35,8 @@ struct ArraySizeImpl : public std::extent<T>
 	#define __GNUC_PREREQ(a, b) 0 
 #endif
 
-#if (defined __GNUC__ && !__GNUC_PREREQ(4,9))  \
-	&& !defined __SSSE3__ && !defined _M_GENERIC
+#if (defined __GNUC__ && !__GNUC_PREREQ(4,9)) && \
+    !defined __SSSE3__ && !defined _M_GENERIC
 #include <emmintrin.h>
 static __inline __m128i __attribute__((__always_inline__))
 _mm_shuffle_epi8(__m128i a, __m128i mask)
@@ -122,18 +122,18 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 		// Retrieve the current thread-specific locale
 		locale_t old_locale = bIsPerThread ? _get_current_locale() : LC_GLOBAL_LOCALE;
 
-		if(new_locale == LC_GLOBAL_LOCALE)
+		if (new_locale == LC_GLOBAL_LOCALE)
 		{
 			// Restore the global locale
 			_configthreadlocale(_DISABLE_PER_THREAD_LOCALE);
 		}
-		else if(new_locale != NULL)
+		else if (new_locale != nullptr)
 		{
 			// Configure the thread to set the locale only for this thread
 			_configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
 
 			// Set all locale categories
-			for(int i = LC_MIN; i <= LC_MAX; i++)
+			for (int i = LC_MIN; i <= LC_MAX; i++)
 				setlocale(i, new_locale->locinfo->lc_category[i].locale);
 		}
 
@@ -148,7 +148,7 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 	#define fstat64 _fstat64
 	#define fileno _fileno
 
-	#if _M_IX86
+	#if _M_X86_32
 		#define Crash() {__asm int 3}
 	#else
 extern "C" {
@@ -188,7 +188,7 @@ inline u32 swap24(const u8* _data) {return (_data[0] << 16) | (_data[1] << 8) | 
 inline u16 swap16(u16 _data) {return _byteswap_ushort(_data);}
 inline u32 swap32(u32 _data) {return _byteswap_ulong (_data);}
 inline u64 swap64(u64 _data) {return _byteswap_uint64(_data);}
-#elif _M_ARM
+#elif _M_ARM_32 
 inline u16 swap16 (u16 _data) { u32 data = _data; __asm__ ("rev16 %0, %1\n" : "=l" (data) : "l" (data)); return (u16)data;}
 inline u32 swap32 (u32 _data) {__asm__ ("rev %0, %1\n" : "=l" (_data) : "l" (_data)); return _data;}
 inline u64 swap64(u64 _data) {return ((u64)swap32(_data) << 32) | swap32(_data >> 32);}

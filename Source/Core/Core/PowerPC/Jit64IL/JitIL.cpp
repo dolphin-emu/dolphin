@@ -206,9 +206,9 @@ namespace JitILProfiler
 		virtual ~JitILProfilerFinalizer()
 		{
 			char buffer[1024];
-			sprintf(buffer, "JitIL_profiling_%d.csv", (int)time(NULL));
+			sprintf(buffer, "JitIL_profiling_%d.csv", (int)time(nullptr));
 			File::IOFile file(buffer, "w");
-			setvbuf(file.GetHandle(), NULL, _IOFBF, 1024 * 1024);
+			setvbuf(file.GetHandle(), nullptr, _IOFBF, 1024 * 1024);
 			fprintf(file.GetHandle(), "code hash,total elapsed,number of calls,elapsed per call\n");
 			for (auto& block : blocks)
 			{
@@ -316,9 +316,9 @@ void JitIL::unknown_instruction(UGeckoInstruction inst)
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void JitIL::Default(UGeckoInstruction _inst)
+void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 {
-	ibuild.EmitInterpreterFallback(
+	ibuild.EmitFallBackToInterpreter(
 		ibuild.EmitIntConst(_inst.hex),
 		ibuild.EmitIntConst(js.compilerPC));
 }
@@ -346,7 +346,7 @@ static void ImHere()
 	{
 		if (!f)
 		{
-#ifdef _M_X64
+#if _M_X86_64
 			f.Open("log64.txt", "w");
 #else
 			f.Open("log32.txt", "w");

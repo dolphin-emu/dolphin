@@ -25,11 +25,12 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 
-#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
 
 #ifdef _MSC_VER
@@ -208,8 +209,8 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 
 	const u32 op1 = binbuf[*pc & 0x0fff];
 
-	const DSPOPCTemplate *opc = NULL;
-	const DSPOPCTemplate *opc_ext = NULL;
+	const DSPOPCTemplate *opc = nullptr;
+	const DSPOPCTemplate *opc_ext = nullptr;
 
 	// find opcode
 	for (int j = 0; j < opcodes_size; j++)
@@ -222,7 +223,7 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 			break;
 		}
 	}
-	const DSPOPCTemplate fake_op = {"CW", 0x0000, 0x0000, nop, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
+	const DSPOPCTemplate fake_op = {"CW", 0x0000, 0x0000, nop, nullptr, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
 	if (!opc)
 		opc = &fake_op;
 
@@ -333,7 +334,7 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	return true;
 }
 
-bool DSPDisassembler::DisFile(const char* name, int base_addr, int pass, std::string &output)
+bool DSPDisassembler::DisFile(const std::string& name, int base_addr, int pass, std::string &output)
 {
 	File::IOFile in(name, "rb");
 	if (!in)

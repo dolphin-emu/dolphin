@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <string>
 #include <utility>
 #include <SOIL/SOIL.h>
 
@@ -19,16 +20,14 @@ namespace HiresTextures
 
 std::map<std::string, std::string> textureMap;
 
-void Init(const char *gameCode)
+void Init(const std::string& gameCode)
 {
 	textureMap.clear();
 
 	CFileSearch::XStringVector Directories;
-	//Directories.push_back(File::GetUserPath(D_HIRESTEXTURES_IDX));
-	char szDir[MAX_PATH];
-	sprintf(szDir, "%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode);
-	Directories.push_back(std::string(szDir));
 
+	std::string szDir = StringFromFormat("%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode.c_str());
+	Directories.push_back(szDir);
 
 	for (u32 i = 0; i < Directories.size(); i++)
 	{
@@ -39,65 +38,66 @@ void Init(const char *gameCode)
 			if (entry.isDirectory)
 			{
 				bool duplicate = false;
+
 				for (auto& Directory : Directories)
 				{
-					if (strcmp(Directory.c_str(), entry.physicalName.c_str()) == 0)
+					if (Directory == entry.physicalName)
 					{
 						duplicate = true;
 						break;
 					}
 				}
+
 				if (!duplicate)
-					Directories.push_back(entry.physicalName.c_str());
+					Directories.push_back(entry.physicalName);
 			}
 		}
 	}
 
-	CFileSearch::XStringVector Extensions;
-	Extensions.push_back("*.png");
-	Extensions.push_back("*.bmp");
-	Extensions.push_back("*.tga");
-	Extensions.push_back("*.dds");
-	Extensions.push_back("*.jpg"); // Why not? Could be useful for large photo-like textures
+	CFileSearch::XStringVector Extensions = {
+		"*.png",
+		"*.bmp",
+		"*.tga",
+		"*.dds",
+		"*.jpg" // Why not? Could be useful for large photo-like textures
+	};
 
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
-	char code[MAX_PATH];
-	sprintf(code, "%s_", gameCode);
+
+	const std::string code = StringFromFormat("%s_", gameCode.c_str());
 
 	if (rFilenames.size() > 0)
 	{
 		for (auto& rFilename : rFilenames)
 		{
 			std::string FileName;
-			SplitPath(rFilename, NULL, &FileName, NULL);
+			SplitPath(rFilename, nullptr, &FileName, nullptr);
 
-			if (FileName.substr(0, strlen(code)).compare(code) == 0 && textureMap.find(FileName) == textureMap.end())
+			if (FileName.substr(0, code.length()).compare(code) == 0 && textureMap.find(FileName) == textureMap.end())
 				textureMap.insert(std::map<std::string, std::string>::value_type(FileName, rFilename));
 		}
 	}
 }
 
-bool HiresTexExists(const char* filename)
+bool HiresTexExists(const std::string& filename)
 {
-	std::string key(filename);
-	return textureMap.find(key) != textureMap.end();
+	return textureMap.find(filename) != textureMap.end();
 }
 
-PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned int *pHeight, unsigned int *required_size, int texformat, unsigned int data_size, u8 *data)
+PC_TexFormat GetHiresTex(const std::string& filename, unsigned int* pWidth, unsigned int* pHeight, unsigned int* required_size, int texformat, unsigned int data_size, u8* data)
 {
-	std::string key(fileName);
-	if (textureMap.find(key) == textureMap.end())
+	if (textureMap.find(filename) == textureMap.end())
 		return PC_TEX_FMT_NONE;
 
 	int width;
 	int height;
 	int channels;
 
-	u8 *temp = SOIL_load_image(textureMap[key].c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
-	if (temp == NULL)
+	u8 *temp = SOIL_load_image(textureMap[filename].c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
+	if (temp == nullptr)
 	{
-		ERROR_LOG(VIDEO, "Custom texture %s failed to load", textureMap[key].c_str());
+		ERROR_LOG(VIDEO, "Custom texture %s failed to load", textureMap[filename].c_str());
 		return PC_TEX_FMT_NONE;
 	}
 
@@ -136,7 +136,7 @@ PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned in
 		break;
 	}
 
-	INFO_LOG(VIDEO, "Loading custom texture from %s", textureMap[key].c_str());
+	INFO_LOG(VIDEO, "Loading custom texture from %s", textureMap[filename].c_str());
 cleanup:
 	SOIL_free_image_data(temp);
 	return returnTex;

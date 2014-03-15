@@ -62,7 +62,7 @@ class CCodeWindow
 		bool JITBlockLinking();
 		void JumpToAddress(u32 _Address);
 
-		void Update();
+		void Update() override;
 		void NotifyMapLoaded();
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 		void CreateMenuOptions(wxMenu *pMenu);

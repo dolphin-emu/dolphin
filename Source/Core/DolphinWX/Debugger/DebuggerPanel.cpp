@@ -62,7 +62,7 @@ GFXDebuggerPanel::GFXDebuggerPanel(wxWindow *parent, wxWindowID id, const wxPoin
 
 GFXDebuggerPanel::~GFXDebuggerPanel()
 {
-	g_pdebugger = NULL;
+	g_pdebugger = nullptr;
 	GFXDebuggerPauseFlag = false;
 }
 
@@ -83,9 +83,10 @@ void GFXDebuggerPanel::SaveSettings() const
 	// weird values, perhaps because of some conflict with the rendering window
 
 	// TODO: get the screen resolution and make limits from that
-	if (GetPosition().x < 1000 && GetPosition().y < 1000
-							   && GetSize().GetWidth() < 1000
-							   && GetSize().GetHeight() < 1000)
+	if (GetPosition().x < 1000 &&
+	    GetPosition().y < 1000 &&
+	    GetSize().GetWidth() < 1000 &&
+	    GetSize().GetHeight() < 1000)
 	{
 		file.Set("VideoWindow", "x", GetPosition().x);
 		file.Set("VideoWindow", "y", GetPosition().y);
@@ -154,7 +155,7 @@ void GFXDebuggerPanel::CreateGUIControls()
 
 	m_pCount = new wxTextCtrl(this, ID_COUNT, wxT("1"), wxDefaultPosition, wxSize(50,25), wxTE_RIGHT, wxDefaultValidator, _("Count"));
 
-	m_pPauseAtList = new wxChoice(this, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, NULL,0,wxDefaultValidator, _("PauseAtList"));
+	m_pPauseAtList = new wxChoice(this, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, nullptr,0,wxDefaultValidator, _("PauseAtList"));
 	for (int i=0; i<numPauseEventMap; i++)
 	{
 		m_pPauseAtList->Append(pauseEventMap[i].ListStr);
@@ -168,7 +169,7 @@ void GFXDebuggerPanel::CreateGUIControls()
 	m_pButtonClearVertexShaderCache = new wxButton(this, ID_CLEAR_VERTEX_SHADER_CACHE, _("Clear V Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear V Shaders"));
 	m_pButtonClearPixelShaderCache = new wxButton(this, ID_CLEAR_PIXEL_SHADER_CACHE, _("Clear P Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear P Shaders"));
 
-	m_pDumpList = new wxChoice(this, ID_DUMP_LIST, wxDefaultPosition, wxSize(120,25), 0, NULL, 0 ,wxDefaultValidator, _("DumpList"));
+	m_pDumpList = new wxChoice(this, ID_DUMP_LIST, wxDefaultPosition, wxSize(120,25), 0, nullptr, 0 ,wxDefaultValidator, _("DumpList"));
 	m_pDumpList->Insert(_("Pixel Shader"),0);
 	m_pDumpList->Append(_("Vertex Shader"));
 	m_pDumpList->Append(_("Pixel Shader Constants"));
@@ -277,50 +278,50 @@ void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 	switch (m_pDumpList->GetSelection())
 	{
 		case 0: // Pixel Shader
-			DumpPixelShader(dump_path.c_str());
+			DumpPixelShader(dump_path);
 			break;
 
 		case 1: // Vertex Shader
-			DumpVertexShader(dump_path.c_str());
+			DumpVertexShader(dump_path);
 			break;
 
 		case 2: // Pixel Shader Constants
-			DumpPixelShaderConstants(dump_path.c_str());
+			DumpPixelShaderConstants(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 3: // Vertex Shader Constants
-			DumpVertexShaderConstants(dump_path.c_str());
+			DumpVertexShaderConstants(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 4: // Textures
-			DumpTextures(dump_path.c_str());
+			DumpTextures(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 5: // Frame Buffer
-			DumpFrameBuffer(dump_path.c_str());
+			DumpFrameBuffer(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 6: // Geometry
-			DumpGeometry(dump_path.c_str());
+			DumpGeometry(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 7: // Vertex Description
-			DumpVertexDecl(dump_path.c_str());
+			DumpVertexDecl(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 8: // Vertex Matrices
-			DumpMatrices(dump_path.c_str());
+			DumpMatrices(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 9: // Statistics
-			DumpStats(dump_path.c_str());
+			DumpStats(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 	}

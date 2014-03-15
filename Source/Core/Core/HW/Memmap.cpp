@@ -53,7 +53,7 @@ bool bMMU = false;
 // Init() declarations
 // ----------------
 // Store the MemArena here
-u8* base = NULL;
+u8* base = nullptr;
 
 // The MemArena class
 MemArena g_arena;
@@ -121,12 +121,12 @@ bool IsInitialized()
 static const MemoryView views[] =
 {
 	{&m_pRAM,      &m_pPhysicalRAM,          0x00000000, RAM_SIZE, 0},
-	{NULL,         &m_pVirtualCachedRAM,     0x80000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
-	{NULL,         &m_pVirtualUncachedRAM,   0xC0000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
+	{nullptr,         &m_pVirtualCachedRAM,     0x80000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
+	{nullptr,         &m_pVirtualUncachedRAM,   0xC0000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
 
 //  Don't map any memory for the EFB. We want all access to this area to go
 //  through the hardware access handlers.
-#ifndef _M_X64
+#if _ARCH_32
 // {&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
 #endif
 	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},
@@ -134,8 +134,8 @@ static const MemoryView views[] =
 	{&m_pFakeVMEM, &m_pVirtualFakeVMEM,      0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
 
 	{&m_pEXRAM,    &m_pPhysicalEXRAM,        0x10000000, EXRAM_SIZE, MV_WII_ONLY},
-	{NULL,         &m_pVirtualCachedEXRAM,   0x90000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
-	{NULL,         &m_pVirtualUncachedEXRAM, 0xD0000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+	{nullptr,         &m_pVirtualCachedEXRAM,   0x90000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+	{nullptr,         &m_pVirtualUncachedEXRAM, 0xD0000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
 };
 static const int num_views = sizeof(views) / sizeof(MemoryView);
 
@@ -185,7 +185,7 @@ void Shutdown()
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSpace();
-	base = NULL;
+	base = nullptr;
 	delete mmio_mapping;
 	INFO_LOG(MEMMAP, "Memory system shut down.");
 }
@@ -223,7 +223,7 @@ void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t _iSize)
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 {
 	u8 *ptr = GetPointer(_Address);
-	if (ptr != NULL)
+	if (ptr != nullptr)
 	{
 		memset(ptr,_iValue,_iLength);
 	}
@@ -239,7 +239,7 @@ void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlo
 	const u8 *src = GetCachePtr() + (_CacheAddr & 0x3FFFF);
 	u8 *dst = GetPointer(_MemAddr);
 
-	if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
 	{
 		memcpy(dst, src, 32 * _iNumBlocks);
 	}
@@ -258,7 +258,7 @@ void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlo
 	const u8 *src = GetPointer(_MemAddr);
 	u8 *dst = GetCachePtr() + (_CacheAddr & 0x3FFFF);
 
-	if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
 	{
 		memcpy(dst, src, 32 * _iNumBlocks);
 	}
@@ -343,7 +343,7 @@ u8 *GetPointer(const u32 _Address)
 
 	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", _Address, PC, LR);
 
-	return NULL;
+	return nullptr;
 }
 
 

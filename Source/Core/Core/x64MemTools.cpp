@@ -51,7 +51,7 @@ bool DoFault(u64 bad_address, SContext *ctx)
 
 	u64 memspace_bottom = (u64)Memory::base;
 	u64 memspace_top = memspace_bottom +
-#ifdef _M_X64
+#if _ARCH_64
 		0x100000000ULL;
 #else
 		0x40000000;
@@ -131,7 +131,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 void InstallExceptionHandler()
 {
-#ifdef _M_X64
+#if _M_X86_64
 	// Make sure this is only called once per process execution
 	// Instead, could make a Uninstall function, but whatever..
 	static bool handlerInstalled = false;
@@ -153,7 +153,7 @@ void CheckKR(const char* name, kern_return_t kr)
 	}
 }
 
-#ifdef _M_X64
+#if _M_X86_64
 void ExceptionThread(mach_port_t port)
 {
 	Common::SetCurrentThreadName("Mach exception thread");
@@ -183,7 +183,7 @@ void ExceptionThread(mach_port_t port)
 	#pragma pack()
 	memset(&msg_in, 0xee, sizeof(msg_in));
 	memset(&msg_out, 0xee, sizeof(msg_out));
-	mach_msg_header_t *send_msg = NULL;
+	mach_msg_header_t *send_msg = nullptr;
 	mach_msg_size_t send_size = 0;
 	mach_msg_option_t option = MACH_RCV_MSG;
 	while (1)
@@ -248,7 +248,7 @@ void ExceptionThread(mach_port_t port)
 
 void InstallExceptionHandler()
 {
-#ifdef _M_IX86
+#if _M_X86_32
 	PanicAlertT("InstallExceptionHandler called, but this platform does not yet support it.");
 #else
 	mach_port_t port;
@@ -299,15 +299,15 @@ void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 
 void InstallExceptionHandler()
 {
-#ifdef _M_IX86
+#if _M_X86_32
 	PanicAlertT("InstallExceptionHandler called, but this platform does not yet support it.");
 #else
 	struct sigaction sa;
-	sa.sa_handler = 0;
+	sa.sa_handler = nullptr;
 	sa.sa_sigaction = &sigsegv_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
-	sigaction(SIGSEGV, &sa, NULL);
+	sigaction(SIGSEGV, &sa, nullptr);
 #endif
 }
 

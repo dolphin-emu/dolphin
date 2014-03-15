@@ -2,9 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <emmintrin.h>
+
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
 
+#include "Core/HW/MMIO.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
@@ -15,7 +18,7 @@ static u32 GC_ALIGNED16(float_buffer);
 
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
 #else
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
@@ -42,7 +45,7 @@ void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int acc
 
 void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
 #else
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
@@ -53,7 +56,7 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend)
 {
 	u8 *result;
-#ifdef _M_X64
+#if _M_X86_64
 	if (opAddress.IsSimpleReg())
 	{
 		// Deal with potential wraparound.  (This is just a heuristic, and it would
@@ -117,13 +120,129 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 	return result;
 }
 
+// Visitor that generates code to read a MMIO value to EAX.
+template <typename T>
+class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
+{
+public:
+	MMIOReadCodeGenerator(Gen::XCodeBlock* code, u32 registers_in_use,
+	                      Gen::X64Reg dst_reg, u32 address, bool sign_extend)
+		: m_code(code), m_registers_in_use(registers_in_use), m_dst_reg(dst_reg),
+		  m_address(address), m_sign_extend(sign_extend)
+	{
+	}
+
+	virtual void VisitConstant(T value)
+	{
+		LoadConstantToReg(8 * sizeof (T), value);
+	}
+	virtual void VisitDirect(const T* addr, u32 mask)
+	{
+		LoadAddrMaskToReg(8 * sizeof (T), addr, mask);
+	}
+	virtual void VisitComplex(const std::function<T(u32)>* lambda)
+	{
+		CallLambda(8 * sizeof (T), lambda);
+	}
+
+private:
+	// Generates code to load a constant to the destination register. In
+	// practice it would be better to avoid using a register for this, but it
+	// would require refactoring a lot of JIT code.
+	void LoadConstantToReg(int sbits, u32 value)
+	{
+		if (m_sign_extend)
+		{
+			u32 sign = !!(value & (1 << (sbits - 1)));
+			value |= sign * ((0xFFFFFFFF >> sbits) << sbits);
+		}
+		m_code->MOV(32, R(m_dst_reg), Gen::Imm32(value));
+	}
+
+	// Generate the proper MOV instruction depending on whether the read should
+	// be sign extended or zero extended.
+	void MoveOpArgToReg(int sbits, Gen::OpArg arg)
+	{
+		if (m_sign_extend)
+			m_code->MOVSX(32, sbits, m_dst_reg, arg);
+		else
+			m_code->MOVZX(32, sbits, m_dst_reg, arg);
+	}
+
+	void LoadAddrMaskToReg(int sbits, const void* ptr, u32 mask)
+	{
+#ifdef _ARCH_64
+		m_code->MOV(64, R(EAX), ImmPtr(ptr));
+#else
+		m_code->MOV(32, R(EAX), ImmPtr(ptr));
+#endif
+		// If we do not need to mask, we can do the sign extend while loading
+		// from memory. If masking is required, we have to first zero extend,
+		// then mask, then sign extend if needed (1 instr vs. 2/3).
+		u32 all_ones = (1ULL << sbits) - 1;
+		if ((all_ones & mask) == all_ones)
+			MoveOpArgToReg(sbits, MDisp(EAX, 0));
+		else
+		{
+			m_code->MOVZX(32, sbits, m_dst_reg, MDisp(EAX, 0));
+			m_code->AND(32, R(m_dst_reg), Imm32(mask));
+			if (m_sign_extend)
+				m_code->MOVSX(32, sbits, m_dst_reg, R(m_dst_reg));
+		}
+	}
+
+	void CallLambda(int sbits, const std::function<T(u32)>* lambda)
+	{
+		m_code->ABI_PushRegistersAndAdjustStack(m_registers_in_use, false);
+		m_code->ABI_CallLambdaC(lambda, m_address);
+		m_code->ABI_PopRegistersAndAdjustStack(m_registers_in_use, false);
+		MoveOpArgToReg(sbits, R(EAX));
+	}
+
+	Gen::XCodeBlock* m_code;
+	u32 m_registers_in_use;
+	Gen::X64Reg m_dst_reg;
+	u32 m_address;
+	bool m_sign_extend;
+};
+
+void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
+                                 u32 registers_in_use, u32 address,
+                                 int access_size, bool sign_extend)
+{
+	switch (access_size)
+	{
+	case 8:
+		{
+			MMIOReadCodeGenerator<u8> gen(this, registers_in_use, reg_value,
+			                              address, sign_extend);
+			mmio->GetHandlerForRead8(address).Visit(gen);
+			break;
+		}
+	case 16:
+		{
+			MMIOReadCodeGenerator<u16> gen(this, registers_in_use, reg_value,
+			                               address, sign_extend);
+			mmio->GetHandlerForRead16(address).Visit(gen);
+			break;
+		}
+	case 32:
+		{
+			MMIOReadCodeGenerator<u32> gen(this, registers_in_use, reg_value,
+			                               address, sign_extend);
+			mmio->GetHandlerForRead32(address).Visit(gen);
+			break;
+		}
+	}
+}
+
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags)
 {
 	if (!jit->js.memcheck)
 	{
 		registersInUse &= ~(1 << RAX | 1 << reg_value);
 	}
-#if defined(_M_X64)
+#if _M_X86_64
 	if (!Core::g_CoreStartupParameter.bMMU &&
 	    Core::g_CoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
@@ -156,9 +275,24 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		if (opAddress.IsImm())
 		{
 			u32 address = (u32)opAddress.offset + offset;
+
+			// If we know the address, try the following loading methods in
+			// order:
+			//
+			// 1. If the address is in RAM, generate an unsafe load (directly
+			//    access the RAM buffer and load from there).
+			// 2. If the address is in the MMIO range, find the appropriate
+			//    MMIO handler and generate the code to load using the handler.
+			// 3. Otherwise, just generate a call to Memory::Read_* with the
+			//    address hardcoded.
 			if ((address & mem_mask) == 0)
 			{
 				UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
+			}
+			else if (!Core::g_CoreStartupParameter.bMMU && MMIO::IsMMIOAddress(address))
+			{
+				MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
+				              address, accessSize, signExtend);
 			}
 			else
 			{
@@ -267,7 +401,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
 	}
 	if (swap) BSWAP(accessSize, reg_value);
-#ifdef _M_X64
+#if _M_X86_64
 	result = GetWritableCodePtr();
 	MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), R(reg_value));
 #else
@@ -282,7 +416,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags)
 {
 	registersInUse &= ~(1 << RAX);
-#if defined(_M_X64)
+#if _M_X86_64
 	if (!Core::g_CoreStartupParameter.bMMU &&
 	    Core::g_CoreStartupParameter.bFastmem &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
@@ -365,7 +499,7 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 re
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
 		PSHUFB(xmm_value, M((void *)pbswapShuffle1x4));
-#ifdef _M_X64
+#if _M_X86_64
 		MOVD_xmm(MComplex(RBX, reg_addr, SCALE_1, 0), xmm_value);
 #else
 		AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
@@ -381,7 +515,7 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 re
 
 void EmuCodeBlock::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
 #else
 	MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), arg);
@@ -390,7 +524,7 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg,
 
 void EmuCodeBlock::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(32, R(RAX), Imm32(address));
 	MOVSS(MComplex(RBX, RAX, 1, 0), xmm_reg);
 #else
@@ -418,9 +552,8 @@ void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm) {
 
 static u32 GC_ALIGNED16(temp32);
 static u64 GC_ALIGNED16(temp64);
-#ifdef _WIN32
-#include <intrin.h>
-#ifdef _M_X64
+
+#if _M_X86_64
 static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0, 0x0000000000400000);
 static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi64x(0, 0x000000007f800000);
 static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi64x(0, 0x0008000000000000);
@@ -430,12 +563,6 @@ static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi32(0, 0, 0x00000
 static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi32(0, 0, 0x00000000, 0x7f800000);
 static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi32(0, 0, 0x00080000, 0x00000000);
 static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi32(0, 0, 0x7ff00000, 0x00000000);
-#endif
-#else
-static const __uint128_t GC_ALIGNED16(single_qnan_bit) = 0x0000000000400000;
-static const __uint128_t GC_ALIGNED16(single_exponent) = 0x000000007f800000;
-static const __uint128_t GC_ALIGNED16(double_qnan_bit) = 0x0008000000000000;
-static const __uint128_t GC_ALIGNED16(double_exponent) = 0x7ff0000000000000;
 #endif
 
 // Since the following float conversion functions are used in non-arithmetic PPC float instructions,
@@ -451,8 +578,7 @@ static const __uint128_t GC_ALIGNED16(double_exponent) = 0x7ff0000000000000;
 //#define MORE_ACCURATE_DOUBLETOSINGLE
 #ifdef MORE_ACCURATE_DOUBLETOSINGLE
 
-#ifdef _WIN32
-#ifdef _M_X64
+#if _M_X86_64
 static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi64x(0, 0x000fffffffffffff);
 static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0, 0x8000000000000000);
 static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi64x(0, 0x0010000000000000);
@@ -464,13 +590,6 @@ static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi32(0, 0, 0x80000
 static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi32(0, 0, 0x00100000, 0x00000000);
 static const __m128i GC_ALIGNED16(double_top_two_bits) = _mm_set_epi32(0, 0, 0xc0000000, 0x00000000);
 static const __m128i GC_ALIGNED16(double_bottom_bits)  = _mm_set_epi32(0, 0, 0x07ffffff, 0xe0000000);
-#endif
-#else
-static const __uint128_t GC_ALIGNED16(double_fraction) = 0x000fffffffffffff;
-static const __uint128_t GC_ALIGNED16(double_sign_bit) = 0x8000000000000000;
-static const __uint128_t GC_ALIGNED16(double_explicit_top_bit) = 0x0010000000000000;
-static const __uint128_t GC_ALIGNED16(double_top_two_bits) = 0xc000000000000000;
-static const __uint128_t GC_ALIGNED16(double_bottom_bits)  = 0x07ffffffe0000000;
 #endif
 
 // This is the same algorithm used in the interpreter (and actual hardware)

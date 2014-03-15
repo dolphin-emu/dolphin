@@ -9,12 +9,12 @@
 	#include <xlocale.h>
 #endif
 
+#include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
-#include "Common/MathUtil.h"
 
 #define WRITE p+=sprintf
 
@@ -584,7 +584,7 @@ void WriteZ24Encoder(char*& p, API_TYPE ApiType)
 		WRITE(p, "  expanded%i.b = depth%i;\n", i, i);
 	}
 
-	WRITE(p, "  if(!first) {\n");
+	WRITE(p, "  if (!first) {\n");
 	// upper 16
 	WRITE(p, "     ocol0.b = expanded0.g / 255.0;\n");
 	WRITE(p, "     ocol0.g = expanded0.b / 255.0;\n");
@@ -604,7 +604,7 @@ void WriteZ24Encoder(char*& p, API_TYPE ApiType)
 const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 {
 #ifndef ANDROID
-	locale_t locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
+	locale_t locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
 	locale_t old_locale = uselocale(locale); // Apply the locale for this thread
 #endif
 	text[sizeof(text) - 1] = 0x7C;  // canary

@@ -25,7 +25,7 @@ BEGIN_EVENT_TABLE(BreakPointDlg, wxDialog)
 END_EVENT_TABLE()
 
 BreakPointDlg::BreakPointDlg(CBreakPointWindow *_Parent)
-	: wxDialog(_Parent, wxID_ANY, wxT("BreakPoint"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(_Parent, wxID_ANY, wxT("BreakPoint"))
 	, Parent(_Parent)
 {
 	m_pEditAddress = new wxTextCtrl(this, wxID_ANY, wxT("80000000"));
@@ -42,7 +42,7 @@ void BreakPointDlg::OnOK(wxCommandEvent& event)
 {
 	wxString AddressString = m_pEditAddress->GetLineText(0);
 	u32 Address = 0;
-	if (AsciiToHex(WxStrToStr(AddressString).c_str(), Address))
+	if (AsciiToHex(WxStrToStr(AddressString), Address))
 	{
 		PowerPC::breakpoints.Add(Address);
 		Parent->NotifyUpdate();

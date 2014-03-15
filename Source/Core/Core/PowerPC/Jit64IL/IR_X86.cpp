@@ -48,8 +48,8 @@ struct RegInfo {
 
 	RegInfo(JitIL* j, InstLoc f, unsigned insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts) {
 		for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++) {
-			regs[i] = 0;
-			fregs[i] = 0;
+			regs[i] = nullptr;
+			fregs[i] = nullptr;
 		}
 		numSpills = 0;
 		numFSpills = 0;
@@ -61,13 +61,13 @@ struct RegInfo {
 };
 
 static u32 regsInUse(RegInfo& R) {
-#ifdef _M_X64
+#if _M_X86_64
 	u32 result = 0;
 	for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
 	{
-		if (R.regs[i] != 0)
+		if (R.regs[i] != nullptr)
 			result |= (1 << i);
-		if (R.fregs[i] != 0)
+		if (R.fregs[i] != nullptr)
 			result |= (1 << (16 + i));
 	}
 	return result;
@@ -112,7 +112,7 @@ static void regSpill(RegInfo& RI, X64Reg reg) {
 		slot = regCreateSpill(RI, RI.regs[reg]);
 		RI.Jit->MOV(32, regLocForSlot(RI, slot), R(reg));
 	}
-	RI.regs[reg] = 0;
+	RI.regs[reg] = nullptr;
 }
 
 static OpArg fregLocForSlot(RegInfo& RI, unsigned slot) {
@@ -136,11 +136,11 @@ static void fregSpill(RegInfo& RI, X64Reg reg) {
 		slot = fregCreateSpill(RI, RI.fregs[reg]);
 		RI.Jit->MOVAPD(fregLocForSlot(RI, slot), reg);
 	}
-	RI.fregs[reg] = 0;
+	RI.fregs[reg] = nullptr;
 }
 
 // ECX is scratch, so we don't allocate it
-#ifdef _M_X64
+#if _M_X86_64
 
 // 64-bit - calling conventions differ between linux & windows, so...
 #ifdef _WIN32
@@ -164,11 +164,11 @@ static const int FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
 
 static X64Reg regFindFreeReg(RegInfo& RI) {
 	for (auto& reg : RegAllocOrder)
-		if (RI.regs[reg] == 0)
+		if (RI.regs[reg] == nullptr)
 			return reg;
 
 	int bestIndex = -1;
-	InstLoc bestEnd = 0;
+	InstLoc bestEnd = nullptr;
 	for (int i = 0; i < RegAllocSize; ++i) {
 		const InstLoc start = RI.regs[RegAllocOrder[i]];
 		const InstLoc end = RI.lastUsed[start - RI.FirstI];
@@ -185,11 +185,11 @@ static X64Reg regFindFreeReg(RegInfo& RI) {
 
 static X64Reg fregFindFreeReg(RegInfo& RI) {
 	for (auto& reg : FRegAllocOrder)
-		if (RI.fregs[reg] == 0)
+		if (RI.fregs[reg] == nullptr)
 			return reg;
 
 	int bestIndex = -1;
-	InstLoc bestEnd = 0;
+	InstLoc bestEnd = nullptr;
 	for (int i = 0; i < FRegAllocSize; ++i) {
 		const InstLoc start = RI.fregs[FRegAllocOrder[i]];
 		const InstLoc end = RI.lastUsed[start - RI.FirstI];
@@ -229,13 +229,13 @@ static OpArg fregLocForInst(RegInfo& RI, InstLoc I) {
 static void regClearInst(RegInfo& RI, InstLoc I) {
 	for (auto& reg : RegAllocOrder)
 		if (RI.regs[reg] == I)
-			RI.regs[reg] = 0;
+			RI.regs[reg] = nullptr;
 }
 
 static void fregClearInst(RegInfo& RI, InstLoc I) {
 	for (auto& reg : FRegAllocOrder)
 		if (RI.fregs[reg] == I)
-			RI.fregs[reg] = 0;
+			RI.fregs[reg] = nullptr;
 }
 
 static X64Reg regEnsureInReg(RegInfo& RI, InstLoc I) {
@@ -259,7 +259,7 @@ static X64Reg fregEnsureInReg(RegInfo& RI, InstLoc I) {
 }
 
 static void regSpillCallerSaved(RegInfo& RI) {
-#ifdef _M_IX86
+#if _M_X86_32
 	// 32-bit
 	regSpill(RI, EDX);
 	regSpill(RI, ECX);
@@ -490,7 +490,7 @@ static OpArg regImmForConst(RegInfo& RI, InstLoc I, unsigned Size) {
 }
 
 static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size) {
-	auto info = regBuildMemAddress(RI, I, getOp2(I), 2, Size, 0);
+	auto info = regBuildMemAddress(RI, I, getOp2(I), 2, Size, nullptr);
 	if (info.first.IsImm())
 		RI.Jit->MOV(32, R(ECX), info.first);
 	else
@@ -595,7 +595,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case LoadGQR:
 		case BlockEnd:
 		case BlockStart:
-		case InterpreterFallback:
+		case FallBackToInterpreter:
 		case SystemCall:
 		case RFIExit:
 		case InterpreterBranch:
@@ -742,7 +742,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		}
 
 		switch (getOpcode(*I)) {
-		case InterpreterFallback: {
+		case FallBackToInterpreter: {
 			unsigned InstCode = ibuild->GetImmValue(getOp1(I));
 			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			// There really shouldn't be anything live across an
@@ -1134,7 +1134,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			if (cpu_info.bSSSE3) {
 				static const u32 GC_ALIGNED16(maskSwapa64_1[4]) =
 				{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
-#ifdef _M_X64
+#if _M_X86_64
 				// TODO: Remove regEnsureInReg() and use ECX
 				X64Reg address = regEnsureInReg(RI, getOp1(I));
 				Jit->MOVQ_xmm(reg, MComplex(RBX, address, SCALE_1, 0));
@@ -1170,7 +1170,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->MOVZX(32, 16, EAX, M(((char *)&GQR(quantreg)) + 2));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 			Jit->OR(32, R(EDX), Imm8(w << 3));
-#ifdef _M_IX86
+#if _M_X86_32
 			int addr_scale = SCALE_4;
 #else
 			int addr_scale = SCALE_8;
@@ -1223,7 +1223,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 					X64Reg value = fregBinLHSRegWithMov(RI, I);
 					Jit->PSHUFB(value, M((void*)maskSwapa64_1));
 					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-#ifdef _M_X64
+#if _M_X86_64
 					Jit->MOVQ_xmm(MComplex(RBX, ECX, SCALE_1, 0), value);
 #else
 					Jit->AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
@@ -1274,7 +1274,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			u32 quantreg = *I >> 24;
 			Jit->MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, EDX, R(AL));
-#ifdef _M_IX86
+#if _M_X86_32
 			int addr_scale = SCALE_4;
 #else
 			int addr_scale = SCALE_8;
@@ -1763,7 +1763,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 			// Remove the invalid instruction from the icache, forcing a recompile
-#ifdef _M_IX86
+#if _M_X86_32
 			Jit->MOV(32, M(jit->GetBlockCache()->GetICachePtr(InstLoc)), Imm32(JIT_ICACHE_INVALID_WORD));
 #else
 			Jit->MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(InstLoc)));

@@ -137,7 +137,7 @@ bool CBoot::EmulatedBS2_GC()
 		INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
 		DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength);
 
-	} while(PowerPC::ppcState.gpr[3] != 0x00);
+	} while (PowerPC::ppcState.gpr[3] != 0x00);
 
 	// iAppLoaderClose
 	DEBUG_LOG(MASTER_LOG, "call iAppLoaderClose");
@@ -377,7 +377,7 @@ bool CBoot::EmulatedBS2_Wii()
 
 			INFO_LOG(BOOT, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
 			DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength);
-		} while(PowerPC::ppcState.gpr[3] != 0x00);
+		} while (PowerPC::ppcState.gpr[3] != 0x00);
 
 		// iAppLoaderClose
 		DEBUG_LOG(BOOT, "Run iAppLoaderClose");

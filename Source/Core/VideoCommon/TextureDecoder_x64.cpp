@@ -791,7 +791,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					{
 						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
 						u16 *s = (u16 *)(src + 8 * xStep);
-						for(int j = 0; j < 4; j++)
+						for (int j = 0; j < 4; j++)
 							*ptr++ = Common::swap16(*s++);
 					}
 
@@ -825,7 +825,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					{
 						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
 						u16 *s = (u16 *)(src + 8 * xStep);
-						for(int j = 0; j < 4; j++)
+						for (int j = 0; j < 4; j++)
 							*ptr++ = Common::swap16(*s++);
 					}
 		}
@@ -974,7 +974,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
 						decodebytesC4_5A3_To_rgba32(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
 		}
-		else if(tlutfmt == 0)
+		else if (tlutfmt == 0)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
@@ -1229,7 +1229,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 		}
-		else if(tlutfmt == 0)
+		else if (tlutfmt == 0)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
@@ -2068,7 +2068,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 		{
 			for (int x=0; x < xcnt; x++)
 			{
-				switch(retval)
+				switch (retval)
 				{
 				case PC_TEX_FMT_I8:
 					{

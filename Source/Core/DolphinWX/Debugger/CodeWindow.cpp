@@ -89,13 +89,13 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
 	: wxPanel((wxWindow*)parent, id, position, size, style, name)
 	, Parent(parent)
-	, m_RegisterWindow(NULL)
-	, m_BreakpointWindow(NULL)
-	, m_MemoryWindow(NULL)
-	, m_JitWindow(NULL)
-	, m_SoundWindow(NULL)
-	, m_VideoWindow(NULL)
-	, codeview(NULL)
+	, m_RegisterWindow(nullptr)
+	, m_BreakpointWindow(nullptr)
+	, m_MemoryWindow(nullptr)
+	, m_JitWindow(nullptr)
+	, m_SoundWindow(nullptr)
+	, m_VideoWindow(nullptr)
+	, codeview(nullptr)
 {
 	InitBitmaps();
 
@@ -111,11 +111,11 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	sizerLeft->Add(callstack = new wxListBox(this, ID_CALLSTACKLIST,
 				wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
 	sizerLeft->Add(symbols = new wxListBox(this, ID_SYMBOLLIST,
-				wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
+				wxDefaultPosition, wxSize(90, 100), 0, nullptr, wxLB_SORT), 1, wxEXPAND);
 	sizerLeft->Add(calls = new wxListBox(this, ID_CALLSLIST, wxDefaultPosition,
-				wxSize(90, 100), 0, NULL, wxLB_SORT), 0, wxEXPAND);
+				wxSize(90, 100), 0, nullptr, wxLB_SORT), 0, wxEXPAND);
 	sizerLeft->Add(callers = new wxListBox(this, ID_CALLERSLIST, wxDefaultPosition,
-				wxSize(90, 100), 0, NULL, wxLB_SORT), 0, wxEXPAND);
+				wxSize(90, 100), 0, nullptr, wxLB_SORT), 0, wxEXPAND);
 
 	SetSizer(sizerBig);
 

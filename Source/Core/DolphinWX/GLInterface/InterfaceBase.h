@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/Common.h"
 
 enum GLInterfaceMode {
@@ -23,10 +25,10 @@ protected:
 	u32 s_opengl_mode;
 public:
 	virtual void Swap() {}
-	virtual void UpdateFPSDisplay(const char *Text) {}
+	virtual void UpdateFPSDisplay(const std::string& text) {}
 	virtual void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
 	virtual u32 GetMode() { return s_opengl_mode; }
-	virtual void* GetFuncAddress(std::string name) { return NULL; }
+	virtual void* GetFuncAddress(std::string name) { return nullptr; }
 	virtual bool Create(void *&window_handle) { return true; }
 	virtual bool MakeCurrent() { return true; }
 	virtual bool ClearCurrent() { return true; }

@@ -26,10 +26,10 @@
 #endif
 
 // faster than sscanf
-bool AsciiToHex(const char* _szValue, u32& result)
+bool AsciiToHex(const std::string& _szValue, u32& result)
 {
-	char *endptr = NULL;
-	const u32 value = strtoul(_szValue, &endptr, 16);
+	char *endptr = nullptr;
+	const u32 value = strtoul(_szValue.c_str(), &endptr, 16);
 
 	if (!endptr || *endptr)
 		return false;
@@ -66,7 +66,7 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 	// will be present in the middle of a multibyte sequence.
 	//
 	// This is why we lookup an ANSI (cp1252) locale here and use _vsnprintf_l.
-	static locale_t c_locale = NULL;
+	static locale_t c_locale = nullptr;
 	if (!c_locale)
 		c_locale = _create_locale(LC_ALL, ".1252");
 	writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
@@ -89,7 +89,7 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 std::string StringFromFormat(const char* format, ...)
 {
 	va_list args;
-	char *buf = NULL;
+	char *buf = nullptr;
 #ifdef _WIN32
 	int required = 0;
 
@@ -159,7 +159,7 @@ std::string StripQuotes(const std::string& s)
 
 bool TryParse(const std::string &str, u32 *const output)
 {
-	char *endptr = NULL;
+	char *endptr = nullptr;
 
 	// Reset errno to a value other than ERANGE
 	errno = 0;
@@ -173,8 +173,8 @@ bool TryParse(const std::string &str, u32 *const output)
 		return false;
 
 #if ULONG_MAX > UINT_MAX
-	if (value >= 0x100000000ull
-	    && value <= 0xFFFFFFFF00000000ull)
+	if (value >= 0x100000000ull &&
+	    value <= 0xFFFFFFFF00000000ull)
 		return false;
 #endif
 
@@ -275,7 +275,7 @@ std::string TabsToSpaces(int tab_size, const std::string &in)
 
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest)
 {
-	while(1)
+	while (1)
 	{
 		size_t pos = result.find(src);
 		if (pos == std::string::npos) break;
@@ -336,8 +336,8 @@ std::string UriDecode(const std::string & sSrc)
 		if (*pSrc == '%')
 		{
 			char dec1, dec2;
-			if (16 != (dec1 = HEX2DEC[*(pSrc + 1)])
-				&& 16 != (dec2 = HEX2DEC[*(pSrc + 2)]))
+			if (16 != (dec1 = HEX2DEC[*(pSrc + 1)]) &&
+			    16 != (dec2 = HEX2DEC[*(pSrc + 2)]))
 			{
 				*pEnd++ = (dec1 << 4) + dec2;
 				pSrc += 3;

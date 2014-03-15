@@ -113,8 +113,8 @@ END_EVENT_TABLE()
 CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	memoryCard[SLOT_A]=NULL;
-	memoryCard[SLOT_B]=NULL;
+	memoryCard[SLOT_A]=nullptr;
+	memoryCard[SLOT_B]=nullptr;
 
 	mcmSettings.twoCardsLoaded = false;
 	if (!LoadSettings())
@@ -135,12 +135,12 @@ CMemcardManager::~CMemcardManager()
 	if (memoryCard[SLOT_A])
 	{
 		delete memoryCard[SLOT_A];
-		memoryCard[SLOT_A] = NULL;
+		memoryCard[SLOT_A] = nullptr;
 	}
 	if (memoryCard[SLOT_B])
 	{
 		delete memoryCard[SLOT_B];
-		memoryCard[SLOT_B] = NULL;
+		memoryCard[SLOT_B] = nullptr;
 	}
 	SaveSettings();
 }
@@ -165,7 +165,7 @@ bool CMemcardManager::LoadSettings()
 
 		mcmSettings.column[NUMBER_OF_COLUMN] = false;
 
-		for(int i = COLUMN_GAMECODE; i < NUMBER_OF_COLUMN; i++)
+		for (int i = COLUMN_GAMECODE; i < NUMBER_OF_COLUMN; i++)
 		{
 			mcmSettings.column[i] = mcmSettings.column[NUMBER_OF_COLUMN];
 		}
@@ -300,12 +300,12 @@ void CMemcardManager::ChangePath(int slot)
 	}
 	if (!m_MemcardPath[SLOT_A]->GetPath().CmpNoCase(m_MemcardPath[SLOT_B]->GetPath()))
 	{
-		if(m_MemcardPath[slot]->GetPath().length())
+		if (m_MemcardPath[slot]->GetPath().length())
 			PanicAlertT("Memcard already opened");
 	}
 	else
 	{
-		if (m_MemcardPath[slot]->GetPath().length() && ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()).c_str(), slot))
+		if (m_MemcardPath[slot]->GetPath().length() && ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()), slot))
 		{
 			if (memoryCard[slot2])
 			{
@@ -320,7 +320,7 @@ void CMemcardManager::ChangePath(int slot)
 			if (memoryCard[slot])
 			{
 				delete memoryCard[slot];
-				memoryCard[slot] = NULL;
+				memoryCard[slot] = nullptr;
 			}
 			mcmSettings.twoCardsLoaded = false;
 			m_MemcardPath[slot]->SetPath(wxEmptyString);
@@ -360,7 +360,7 @@ void CMemcardManager::OnPageChange(wxCommandEvent& event)
 			m_NextPage[slot]->Disable();
 			m_MemcardList[slot]->nextPage = false;
 		}
-		ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()).c_str(), slot);
+		ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()), slot);
 		break;
 	case ID_PREVPAGE_A:
 		slot = SLOT_A;
@@ -376,7 +376,7 @@ void CMemcardManager::OnPageChange(wxCommandEvent& event)
 			m_PrevPage[slot]->Disable();
 			m_MemcardList[slot]->prevPage = false;
 		}
-		ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()).c_str(), slot);
+		ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()), slot);
 		break;
 	}
 }
@@ -384,7 +384,7 @@ void CMemcardManager::OnPageChange(wxCommandEvent& event)
 void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 {
 	int _id = event.GetId();
-	switch(_id)
+	switch (_id)
 	{
 	case ID_MEMCARDPATH_A:
 	case ID_MEMCARDPATH_B:
@@ -415,8 +415,8 @@ void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 		break;
 	}
 
-	if (memoryCard[SLOT_A]) ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_A]->GetPath()).c_str(), SLOT_A);
-	if (memoryCard[SLOT_B]) ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_B]->GetPath()).c_str(), SLOT_B);
+	if (memoryCard[SLOT_A]) ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_A]->GetPath()), SLOT_A);
+	if (memoryCard[SLOT_B]) ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_B]->GetPath()), SLOT_B);
 }
 bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 {
@@ -431,7 +431,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 			memoryCard[slot]->FixChecksums();
 			if (!memoryCard[slot]->Save()) PanicAlert(E_SAVEFAILED);
 			page[slot] = FIRSTPAGE;
-			ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()).c_str(), slot);
+			ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()), slot);
 		}
 		break;
 	case NOMEMCARD:
@@ -557,7 +557,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		}
 		if (fileName.length() > 0)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ImportGci(WxStrToStr(fileName).c_str(), fileName2), slot);
+			CopyDeleteSwitch(memoryCard[slot]->ImportGci(WxStrToStr(fileName), fileName2), slot);
 		}
 	}
 	break;
@@ -585,7 +585,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 
 			if (fileName.length() > 0)
 			{
-				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, WxStrToStr(fileName).c_str(), ""), -1))
+				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, WxStrToStr(fileName), ""), -1))
 				{
 					File::Delete(WxStrToStr(fileName));
 				}
@@ -598,14 +598,14 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	{
 		std::string path1, path2, mpath;
 		mpath = WxStrToStr(m_MemcardPath[slot]->GetPath());
-		SplitPath(mpath, &path1, &path2, NULL);
+		SplitPath(mpath, &path1, &path2, nullptr);
 		path1 += path2;
 		File::CreateDir(path1);
-		if(PanicYesNoT("Warning: This will overwrite any existing saves that are in the folder:\n"
-					"%s\nand have the same name as a file on your memcard\nContinue?", path1.c_str()))
+		if (PanicYesNoT("Warning: This will overwrite any existing saves that are in the folder:\n"
+		                "%s\nand have the same name as a file on your memcard\nContinue?", path1.c_str()))
 		for (int i = 0; i < DIRLEN; i++)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, NULL, path1), -1);
+			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, nullptr, path1), -1);
 		}
 		break;
 	}
@@ -622,7 +622,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	}
 }
 
-bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
+bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
 {
 	if (memoryCard[card]) delete memoryCard[card];
 

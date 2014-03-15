@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace MMIO { class Mapping; }
@@ -31,9 +32,9 @@ class VideoSoftware : public VideoBackend
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) override;
 	u32 Video_GetQueryResult(PerfQueryType type) override;
 
-	void Video_AddMessage(const char* pstr, unsigned int milliseconds) override;
+	void Video_AddMessage(const std::string& msg, unsigned int milliseconds) override;
 	void Video_ClearMessages() override;
-	bool Video_Screenshot(const char* filename) override;
+	bool Video_Screenshot(const std::string& filename) override;
 
 	int Video_LoadTexture(char *imagedata, u32 width, u32 height);
 	void Video_DeleteTexture(int texID);
@@ -49,7 +50,7 @@ class VideoSoftware : public VideoBackend
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 	void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) override;
 
-	void UpdateFPSDisplay(const char*) override;
+	void UpdateFPSDisplay(const std::string&) override;
 	unsigned int PeekMessages() override;
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;

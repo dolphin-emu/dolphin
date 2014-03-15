@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
@@ -15,7 +17,7 @@
 //void UpdateFPSDisplay(const char *text);
 extern NativeVertexFormat *g_nativeVertexFmt;
 
-GFXDebuggerBase *g_pdebugger = NULL;
+GFXDebuggerBase *g_pdebugger = nullptr;
 volatile bool GFXDebuggerPauseFlag = false; // if true, the GFX thread will be spin locked until it's false again
 volatile PauseEvent GFXDebuggerToPauseAtNext = NOT_PAUSE; // Event which will trigger spin locking the GFX thread
 volatile int GFXDebuggerEventToPauseCount = 0; // Number of events to wait for until GFX thread will be paused
@@ -27,14 +29,14 @@ void GFXDebuggerUpdateScreen()
 	if (D3D::bFrameInProgress)
 	{
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
-		D3D::dev->SetDepthStencilSurface(NULL);
+		D3D::dev->SetDepthStencilSurface(nullptr);
 
-		D3D::dev->StretchRect(FramebufferManager::GetEFBColorRTSurface(), NULL,
-			D3D::GetBackBufferSurface(), NULL,
+		D3D::dev->StretchRect(FramebufferManager::GetEFBColorRTSurface(), nullptr,
+			D3D::GetBackBufferSurface(), nullptr,
 			D3DTEXF_LINEAR);
 
 		D3D::dev->EndScene();
-		D3D::dev->Present(NULL, NULL, NULL, NULL);
+		D3D::dev->Present(nullptr, nullptr, nullptr, nullptr);
 
 		D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 		D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
@@ -43,7 +45,7 @@ void GFXDebuggerUpdateScreen()
 	else
 	{
 		D3D::dev->EndScene();
-		D3D::dev->Present(NULL, NULL, NULL, NULL);
+		D3D::dev->Present(nullptr, nullptr, nullptr, nullptr);
 		D3D::dev->BeginScene();
 	}*/
 }
@@ -54,7 +56,7 @@ void GFXDebuggerCheckAndPause(bool update)
 	if (GFXDebuggerPauseFlag)
 	{
 		g_pdebugger->OnPause();
-		while( GFXDebuggerPauseFlag )
+		while ( GFXDebuggerPauseFlag )
 		{
 			g_video_backend->UpdateFPSDisplay("Paused by Video Debugger");
 
@@ -79,10 +81,9 @@ void ContinueGFXDebugger()
 }
 
 
-void GFXDebuggerBase::DumpPixelShader(const char* path)
+void GFXDebuggerBase::DumpPixelShader(const std::string& path)
 {
-	char filename[MAX_PATH];
-	sprintf(filename, "%sdump_ps.txt", path);
+	const std::string filename = StringFromFormat("%sdump_ps.txt", path.c_str());
 
 	std::string output;
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
@@ -93,7 +94,7 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 	}
 	else
 	{
-		if(g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+		if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 		{
 			output = "Using dual source blending for destination alpha:\n";
 ///			output += GeneratePixelShaderCode(DSTALPHA_DUAL_SOURCE_BLEND, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
@@ -111,51 +112,50 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 	File::WriteStringToFile(output, filename);
 }
 
-void GFXDebuggerBase::DumpVertexShader(const char* path)
+void GFXDebuggerBase::DumpVertexShader(const std::string& path)
 {
-	char filename[MAX_PATH];
-	sprintf(filename, "%sdump_vs.txt", path);
+	const std::string filename = StringFromFormat("%sdump_vs.txt", path.c_str());
 
 	File::CreateEmptyFile(filename);
 ///	File::WriteStringToFile(GenerateVertexShaderCode(g_nativeVertexFmt->m_components, g_ActiveConfig.backend_info.APIType), filename);
 }
 
-void GFXDebuggerBase::DumpPixelShaderConstants(const char* path)
+void GFXDebuggerBase::DumpPixelShaderConstants(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpVertexShaderConstants(const char* path)
+void GFXDebuggerBase::DumpVertexShaderConstants(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpTextures(const char* path)
+void GFXDebuggerBase::DumpTextures(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpFrameBuffer(const char* path)
+void GFXDebuggerBase::DumpFrameBuffer(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpGeometry(const char* path)
+void GFXDebuggerBase::DumpGeometry(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpVertexDecl(const char* path)
+void GFXDebuggerBase::DumpVertexDecl(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpMatrices(const char* path)
+void GFXDebuggerBase::DumpMatrices(const std::string& path)
 {
 	// TODO
 }
 
-void GFXDebuggerBase::DumpStats(const char* path)
+void GFXDebuggerBase::DumpStats(const std::string& path)
 {
 	// TODO
 }

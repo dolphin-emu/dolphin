@@ -35,7 +35,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	{
 		std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
 		File::DeleteDirRecursively(Path);
-		File::CreateDir(Path.c_str());
+		File::CreateDir(Path);
 	}
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -74,13 +74,13 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 	// Prepare the out buffer(s) with zeros as a safety precaution
 	// to avoid returning bad values
-	for(u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
+	for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
 	{
 		Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
 			CommandBuffer.PayloadBuffer[i].m_Size);
 	}
 
-	switch(CommandBuffer.Parameter)
+	switch (CommandBuffer.Parameter)
 	{
 	case IOCTLV_READ_DIR:
 		{
@@ -138,7 +138,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 						break;
 
 					std::string name, ext;
-					SplitPath(FileSearch.GetFileNames()[i], NULL, &name, &ext);
+					SplitPath(FileSearch.GetFileNames()[i], nullptr, &name, &ext);
 					std::string FileName = name + ext;
 
 					// Decode entities of invalid file system characters so that
@@ -253,7 +253,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress)
 
 s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
 {
-	switch(_Parameter)
+	switch (_Parameter)
 	{
 	case IOCTL_GET_STATS:
 		{
@@ -505,10 +505,11 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		File::DeleteDirRecursively(Path);
-		File::CreateDir(Path.c_str());
+		File::CreateDir(Path);
 
 		//now restore from the stream
-		while(1) {
+		while (1)
+		{
 			char type = 0;
 			p.Do(type);
 			if (!type)
@@ -516,11 +517,11 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 			std::string filename;
 			p.Do(filename);
 			std::string name = Path + DIR_SEP + filename;
-			switch(type)
+			switch (type)
 			{
 			case 'd':
 			{
-				File::CreateDir(name.c_str());
+				File::CreateDir(name);
 				break;
 			}
 			case 'f':
@@ -531,7 +532,8 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				File::IOFile handle(name, "wb");
 				char buf[65536];
 				u32 count = size;
-				while(count > 65536) {
+				while (count > 65536)
+				{
 					p.DoArray(&buf[0], 65536);
 					handle.WriteArray(&buf[0], 65536);
 					count -= 65536;
@@ -553,7 +555,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 		todo.insert(todo.end(), parentEntry.children.begin(),
 			    parentEntry.children.end());
 
-		while(!todo.empty())
+		while (!todo.empty())
 		{
 			File::FSTEntry &entry = todo.front();
 			std::string name = entry.physicalName;
@@ -574,7 +576,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				File::IOFile handle(entry.physicalName, "rb");
 				char buf[65536];
 				u32 count = size;
-				while(count > 65536) {
+				while (count > 65536) {
 					handle.ReadArray(&buf[0], 65536);
 					p.DoArray(&buf[0], 65536);
 					count -= 65536;

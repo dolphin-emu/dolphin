@@ -2,7 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cctype>
 #include <list>
+#include <string>
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
@@ -21,10 +23,10 @@ namespace D3D
 class UtilVertexBuffer
 {
 public:
-	UtilVertexBuffer(int size) : buf(NULL), offset(0), max_size(size)
+	UtilVertexBuffer(int size) : buf(nullptr), offset(0), max_size(size)
 	{
 		D3D11_BUFFER_DESC desc = CD3D11_BUFFER_DESC(max_size, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		device->CreateBuffer(&desc, NULL, &buf);
+		device->CreateBuffer(&desc, nullptr, &buf);
 	}
 	~UtilVertexBuffer()
 	{
@@ -35,13 +37,13 @@ public:
 	int AppendData(void* data, int size, int vertex_size)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
-		if(offset + size >= max_size)
+		if (offset + size >= max_size)
 		{
 			// wrap buffer around and notify observers
 			offset = 0;
 			context->Map(buf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 
-			for(bool* observer : observers)
+			for (bool* observer : observers)
 				*observer = true;
 		}
 		else
@@ -72,7 +74,7 @@ private:
 };
 
 CD3DFont font;
-UtilVertexBuffer* util_vbuf = NULL;
+UtilVertexBuffer* util_vbuf = nullptr;
 
 #define MAX_NUM_VERTICES 50*6
 struct FONT2DVERTEX {
@@ -93,11 +95,11 @@ inline FONT2DVERTEX InitFont2DVertex(float x, float y, u32 color, float tu, floa
 
 CD3DFont::CD3DFont() : m_dwTexWidth(512), m_dwTexHeight(512)
 {
-	m_pTexture    = NULL;
-	m_pVB         = NULL;
-	m_InputLayout = NULL;
-	m_pshader     = NULL;
-	m_vshader     = NULL;
+	m_pTexture    = nullptr;
+	m_pVB         = nullptr;
+	m_InputLayout = nullptr;
+	m_pshader     = nullptr;
+	m_vshader     = nullptr;
 }
 
 const char fontpixshader[] = {
@@ -161,8 +163,8 @@ int CD3DFont::Init()
 	bmi.bmiHeader.biBitCount    = 32;
 
 	// Create a DC and a bitmap for the font
-	HDC hDC = CreateCompatibleDC(NULL);
-	HBITMAP hbmBitmap = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&pBitmapBits, NULL, 0);
+	HDC hDC = CreateCompatibleDC(nullptr);
+	HBITMAP hbmBitmap = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&pBitmapBits, nullptr, 0);
 	SetMapMode(hDC, MM_TEXT);
 
 	// create a GDI font
@@ -170,7 +172,7 @@ int CD3DFont::Init()
 							FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
 							CLIP_DEFAULT_PRECIS, PROOF_QUALITY,
 							VARIABLE_PITCH, _T("Tahoma"));
-	if (NULL == hFont) return E_FAIL;
+	if (nullptr == hFont) return E_FAIL;
 
 	HGDIOBJ hOldbmBitmap = SelectObject(hDC, hbmBitmap);
 	HGDIOBJ hOldFont = SelectObject(hDC, hFont);
@@ -199,7 +201,7 @@ int CD3DFont::Init()
 			y += m_LineHeight;
 		}
 
-		ExtTextOutA(hDC, x+1, y+0, ETO_OPAQUE | ETO_CLIPPED, NULL, str, 1, NULL);
+		ExtTextOutA(hDC, x+1, y+0, ETO_OPAQUE | ETO_CLIPPED, nullptr, str, 1, nullptr);
 		m_fTexCoords[c][0] = ((float)(x+0))/m_dwTexWidth;
 		m_fTexCoords[c][1] = ((float)(y+0))/m_dwTexHeight;
 		m_fTexCoords[c][2] = ((float)(x+0+size.cx))/m_dwTexWidth;
@@ -215,7 +217,7 @@ int CD3DFont::Init()
 	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, m_dwTexWidth, m_dwTexHeight,
 										1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC,
 										D3D11_CPU_ACCESS_WRITE);
-	hr = device->CreateTexture2D(&texdesc, NULL, &buftex);
+	hr = device->CreateTexture2D(&texdesc, nullptr, &buftex);
 	if (FAILED(hr))
 	{
 		PanicAlert("Failed to create font texture");
@@ -240,7 +242,7 @@ int CD3DFont::Init()
 
 	// Done updating texture, so clean up used objects
 	context->Unmap(buftex, 0);
-	hr = D3D::device->CreateShaderResourceView(buftex, NULL, &m_pTexture);
+	hr = D3D::device->CreateShaderResourceView(buftex, nullptr, &m_pTexture);
 	if (FAILED(hr)) PanicAlert("Failed to create shader resource view at %s %d\n", __FILE__, __LINE__);
 	SAFE_RELEASE(buftex);
 
@@ -252,14 +254,14 @@ int CD3DFont::Init()
 
 	// setup device objects for drawing
 	m_pshader = D3D::CompileAndCreatePixelShader(fontpixshader, sizeof(fontpixshader));
-	if (m_pshader == NULL) PanicAlert("Failed to create pixel shader, %s %d\n", __FILE__, __LINE__);
+	if (m_pshader == nullptr) PanicAlert("Failed to create pixel shader, %s %d\n", __FILE__, __LINE__);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_pshader, "pixel shader of a CD3DFont object");
 
 	D3DBlob* vsbytecode;
 	D3D::CompileVertexShader(fontvertshader, sizeof(fontvertshader), &vsbytecode);
-	if (vsbytecode == NULL) PanicAlert("Failed to compile vertex shader, %s %d\n", __FILE__, __LINE__);
+	if (vsbytecode == nullptr) PanicAlert("Failed to compile vertex shader, %s %d\n", __FILE__, __LINE__);
 	m_vshader = D3D::CreateVertexShaderFromByteCode(vsbytecode);
-	if (m_vshader == NULL) PanicAlert("Failed to create vertex shader, %s %d\n", __FILE__, __LINE__);
+	if (m_vshader == nullptr) PanicAlert("Failed to create vertex shader, %s %d\n", __FILE__, __LINE__);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_vshader, "vertex shader of a CD3DFont object");
 
 	const D3D11_INPUT_ELEMENT_DESC desc[] =
@@ -293,7 +295,7 @@ int CD3DFont::Init()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_raststate, "rasterizer state of a CD3DFont object");
 
 	D3D11_BUFFER_DESC vbdesc = CD3D11_BUFFER_DESC(MAX_NUM_VERTICES*sizeof(FONT2DVERTEX), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	if (FAILED(hr = device->CreateBuffer(&vbdesc, NULL, &m_pVB)))
+	if (FAILED(hr = device->CreateBuffer(&vbdesc, nullptr, &m_pVB)))
 	{
 		PanicAlert("Failed to create font vertex buffer at %s, line %d\n", __FILE__, __LINE__);
 		return hr;
@@ -316,7 +318,7 @@ int CD3DFont::Shutdown()
 	return S_OK;
 }
 
-int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const char* strText)
+int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const std::string& text)
 {
 	if (!m_pVB)
 		return 0;
@@ -331,7 +333,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	// translate starting positions
 	float sx = x * scalex - 1.f;
 	float sy = 1.f - y * scaley;
-	char c;
 
 	// Fill vertex buffer
 	FONT2DVERTEX* pVertices;
@@ -347,22 +348,22 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	D3D::stateman->PushRasterizerState(m_raststate);
 	D3D::stateman->Apply();
 
-	D3D::context->PSSetShader(m_pshader, NULL, 0);
-	D3D::context->VSSetShader(m_vshader, NULL, 0);
+	D3D::context->PSSetShader(m_pshader, nullptr, 0);
+	D3D::context->VSSetShader(m_vshader, nullptr, 0);
 
 	D3D::context->IASetInputLayout(m_InputLayout);
 	D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	D3D::context->PSSetShaderResources(0, 1, &m_pTexture);
 
 	float fStartX = sx;
-	while (c = *strText++)
+	for (char c : text)
 	{
-		if (c == ('\n'))
+		if (c == '\n')
 		{
 			sx  = fStartX;
 			sy -= scaley * size;
 		}
-		if (c < (' '))
+		if (!std::isprint(c))
 			continue;
 
 		c -= 32;
@@ -415,8 +416,8 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	return S_OK;
 }
 
-ID3D11SamplerState* linear_copy_sampler = NULL;
-ID3D11SamplerState* point_copy_sampler = NULL;
+ID3D11SamplerState* linear_copy_sampler = nullptr;
+ID3D11SamplerState* point_copy_sampler = nullptr;
 
 typedef struct { float x,y,z,u,v,w; } STQVertex;
 typedef struct { float x,y,z,u,v,w; } STSQVertex;
@@ -545,13 +546,13 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	D3D::context->IASetInputLayout(layout);
 	D3D::context->IASetVertexBuffers(0, 1, &util_vbuf->GetBuffer(), &stride, &offset);
-	D3D::context->PSSetShader(PShader, NULL, 0);
+	D3D::context->PSSetShader(PShader, nullptr, 0);
 	D3D::context->PSSetShaderResources(0, 1, &texture);
-	D3D::context->VSSetShader(Vshader, NULL, 0);
+	D3D::context->VSSetShader(Vshader, nullptr, 0);
 	D3D::stateman->Apply();
 	D3D::context->Draw(4, stq_offset);
 
-	ID3D11ShaderResourceView* texres = NULL;
+	ID3D11ShaderResourceView* texres = nullptr;
 	context->PSSetShaderResources(0, 1, &texres); // immediately unbind the texture
 }
 
@@ -603,12 +604,12 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	context->IASetVertexBuffers(0, 1, &util_vbuf->GetBuffer(), &stride, &offset);
 	context->IASetInputLayout(layout);
 	context->PSSetShaderResources(0, 1, &texture);
-	context->PSSetShader(PShader, NULL, 0);
-	context->VSSetShader(Vshader, NULL, 0);
+	context->PSSetShader(PShader, nullptr, 0);
+	context->VSSetShader(Vshader, nullptr, 0);
 	stateman->Apply();
 	context->Draw(4, stsq_offset);
 
-	ID3D11ShaderResourceView* texres = NULL;
+	ID3D11ShaderResourceView* texres = nullptr;
 	context->PSSetShaderResources(0, 1, &texres); // immediately unbind the texture
 }
 
@@ -623,10 +624,10 @@ void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 		{ x2, y1, 0.f, Color },
 	};
 
-	if(cq_observer ||
-		draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||
-		draw_quad_data.x2 != x2 || draw_quad_data.y2 != y2 ||
-		draw_quad_data.col != Color)
+	if (cq_observer ||
+	    draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||
+	    draw_quad_data.x2 != x2 || draw_quad_data.y2 != y2 ||
+	    draw_quad_data.col != Color)
 	{
 		cq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(ColVertex));
 		cq_observer = false;
@@ -638,8 +639,8 @@ void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 		draw_quad_data.col = Color;
 	}
 
-	context->VSSetShader(VertexShaderCache::GetClearVertexShader(), NULL, 0);
-	context->PSSetShader(PixelShaderCache::GetClearProgram(), NULL, 0);
+	context->VSSetShader(VertexShaderCache::GetClearVertexShader(), nullptr, 0);
+	context->PSSetShader(PixelShaderCache::GetClearProgram(), nullptr, 0);
 	context->IASetInputLayout(VertexShaderCache::GetClearInputLayout());
 
 	UINT stride = sizeof(ColVertex);
@@ -668,8 +669,8 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 		clear_quad_data.col = Color;
 		clear_quad_data.z = z;
 	}
-	context->VSSetShader(Vshader, NULL, 0);
-	context->PSSetShader(PShader, NULL, 0);
+	context->VSSetShader(Vshader, nullptr, 0);
+	context->PSSetShader(PShader, nullptr, 0);
 	context->IASetInputLayout(layout);
 
 	UINT stride = sizeof(ClearVertex);

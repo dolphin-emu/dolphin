@@ -139,7 +139,7 @@ void DoState(PointerWrap &p)
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	for (int i = 0; i < MI_REGION0_FIRST; i += 4)
+	for (int i = MI_REGION0_FIRST; i <= MI_REGION3_LAST; i += 4)
 	{
 		auto& region = g_mi_mem.regions[i / 4];
 		mmio->Register(base | i,

@@ -23,14 +23,14 @@
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/MemoryCheckDlg.h"
 
-#define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, wxT(text), wxDefaultPosition, wxDefaultSize)
+#define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, wxT(text))
 
 BEGIN_EVENT_TABLE(MemoryCheckDlg, wxDialog)
 	EVT_BUTTON(wxID_OK, MemoryCheckDlg::OnOK)
 END_EVENT_TABLE()
 
 MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
-	: wxDialog(parent, wxID_ANY, _("Memory Check"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, _("Memory Check"))
 	, m_parent(parent)
 {
 	m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, wxT(""));
@@ -81,9 +81,9 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
 
 	u32 StartAddress, EndAddress;
 	bool EndAddressOK = EndAddressString.Len() &&
-		AsciiToHex(WxStrToStr(EndAddressString).c_str(), EndAddress);
+		AsciiToHex(WxStrToStr(EndAddressString), EndAddress);
 
-	if (AsciiToHex(WxStrToStr(StartAddressString).c_str(), StartAddress) &&
+	if (AsciiToHex(WxStrToStr(StartAddressString), StartAddress) &&
 		(OnRead || OnWrite) && (Log || Break))
 	{
 		TMemCheck MemCheck;

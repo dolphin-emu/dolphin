@@ -20,8 +20,8 @@ CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
 	: CUCode_AX(dsp_hle, l_CRC),
 	  m_last_main_volume(0x8000)
 {
-	for (int i = 0; i < 3; ++i)
-		m_last_aux_volumes[i] = 0x8000;
+	for (u16& volume : m_last_aux_volumes)
+		volume = 0x8000;
 
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AXWii");
 
@@ -467,7 +467,7 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 				ApplyUpdatesForMs(curr_ms, (u16*)&pb, num_updates, updates);
 				ProcessVoice(pb, buffers, 32,
 				             ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-				             m_coeffs_available ? m_coeffs : NULL);
+				             m_coeffs_available ? m_coeffs : nullptr);
 
 				// Forward the buffers
 				for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)
@@ -479,7 +479,7 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 		{
 			ProcessVoice(pb, buffers, 96,
 			             ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-			             m_coeffs_available ? m_coeffs : NULL);
+			             m_coeffs_available ? m_coeffs : nullptr);
 		}
 
 		WritePB(pb_addr, pb);
@@ -493,7 +493,7 @@ void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 
 	GenerateVolumeRamp(volume_ramp, m_last_aux_volumes[aux_id], volume, 96);
 	m_last_aux_volumes[aux_id] = volume;
 
-	int* buffers[3] = { 0 };
+	int* buffers[3] = { nullptr };
 	int* main_buffers[3] = {
 		m_samples_left,
 		m_samples_right,

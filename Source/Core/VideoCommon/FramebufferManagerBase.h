@@ -58,7 +58,7 @@ public:
 protected:
 	struct VirtualXFB
 	{
-		VirtualXFB() : xfbSource(NULL) {}
+		VirtualXFB() : xfbSource(nullptr) {}
 
 		// Address and size in GameCube RAM
 		u32 xfbAddr;

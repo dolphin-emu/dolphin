@@ -29,11 +29,11 @@ template<typename T> AutoState<T>::AutoState(const AutoState<T> &source)
 
 template<typename T> AutoState<T>::~AutoState()
 {
-	if(state) ((T*)state)->Release();
-	state = NULL;
+	if (state) ((T*)state)->Release();
+	state = nullptr;
 }
 
-StateManager::StateManager() : cur_blendstate(NULL), cur_depthstate(NULL), cur_raststate(NULL) {}
+StateManager::StateManager() : cur_blendstate(nullptr), cur_depthstate(nullptr), cur_raststate(nullptr) {}
 
 void StateManager::PushBlendState(const ID3D11BlendState* state) { blendstates.push(AutoBlendState(state)); }
 void StateManager::PushDepthState(const ID3D11DepthStencilState* state) { depthstates.push(AutoDepthStencilState(state)); }
@@ -49,7 +49,7 @@ void StateManager::Apply()
 		if (cur_blendstate != blendstates.top().GetPtr())
 		{
 			cur_blendstate = (ID3D11BlendState*)blendstates.top().GetPtr();
-			D3D::context->OMSetBlendState(cur_blendstate, NULL, 0xFFFFFFFF);
+			D3D::context->OMSetBlendState(cur_blendstate, nullptr, 0xFFFFFFFF);
 		}
 	}
 	else ERROR_LOG(VIDEO, "Tried to apply without blend state!");

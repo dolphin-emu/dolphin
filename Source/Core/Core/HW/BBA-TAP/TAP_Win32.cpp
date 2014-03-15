@@ -35,7 +35,7 @@ bool IsTAPDevice(const TCHAR *guid)
 		DWORD data_type;
 
 		len = sizeof(enum_name);
-		status = RegEnumKeyEx(netcard_key, i, enum_name, &len, NULL, NULL, NULL, NULL);
+		status = RegEnumKeyEx(netcard_key, i, enum_name, &len, nullptr, nullptr, nullptr, nullptr);
 
 		if (status == ERROR_NO_MORE_ITEMS)
 			break;
@@ -53,13 +53,13 @@ bool IsTAPDevice(const TCHAR *guid)
 		else
 		{
 			len = sizeof(component_id);
-			status = RegQueryValueEx(unit_key, component_id_string, NULL,
+			status = RegQueryValueEx(unit_key, component_id_string, nullptr,
 				&data_type, (LPBYTE)component_id, &len);
 
 			if (!(status != ERROR_SUCCESS || data_type != REG_SZ))
 			{
 				len = sizeof(net_cfg_instance_id);
-				status = RegQueryValueEx(unit_key, net_cfg_instance_id_string, NULL,
+				status = RegQueryValueEx(unit_key, net_cfg_instance_id_string, nullptr,
 					&data_type, (LPBYTE)net_cfg_instance_id, &len);
 
 				if (status == ERROR_SUCCESS && data_type == REG_SZ)
@@ -106,7 +106,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 
 		len = sizeof(enum_name);
 		status = RegEnumKeyEx(control_net_key, i, enum_name,
-			&len, NULL, NULL, NULL, NULL);
+			&len, nullptr, nullptr, nullptr, nullptr);
 
 		if (status == ERROR_NO_MORE_ITEMS)
 			break;
@@ -122,7 +122,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 		if (status == ERROR_SUCCESS)
 		{
 			len = sizeof(name_data);
-			status = RegQueryValueEx(connection_key, name_string, NULL,
+			status = RegQueryValueEx(connection_key, name_string, nullptr,
 				&name_type, (LPBYTE)name_data, &len);
 
 			if (status != ERROR_SUCCESS || name_type != REG_SZ)
@@ -199,7 +199,7 @@ bool CEXIETHERNET::Activate()
 	/* get driver version info */
 	ULONG info[3];
 	if (DeviceIoControl(mHAdapter, TAP_IOCTL_GET_VERSION,
-		&info, sizeof(info), &info, sizeof(info), &len, NULL))
+		&info, sizeof(info), &info, sizeof(info), &len, nullptr))
 	{
 		INFO_LOG(SP1, "TAP-Win32 Driver Version %d.%d %s",
 			info[0], info[1], info[2] ? "(DEBUG)" : "");
@@ -217,7 +217,7 @@ bool CEXIETHERNET::Activate()
 	/* set driver media status to 'connected' */
 	ULONG status = TRUE;
 	if (!DeviceIoControl(mHAdapter, TAP_IOCTL_SET_MEDIA_STATUS,
-		&status, sizeof(status), &status, sizeof(status), &len, NULL))
+		&status, sizeof(status), &status, sizeof(status), &len, nullptr))
 	{
 		ERROR_LOG(SP1, "WARNING: The TAP-Win32 driver rejected a"
 			"TAP_IOCTL_SET_MEDIA_STATUS DeviceIoControl call.");
@@ -283,7 +283,7 @@ bool CEXIETHERNET::RecvInit()
 {
 	// Set up recv event
 
-	if ((mHRecvEvent = CreateEvent(NULL, false, false, NULL)) == NULL)
+	if ((mHRecvEvent = CreateEvent(nullptr, false, false, nullptr)) == nullptr)
 	{
 		ERROR_LOG(SP1, "Failed to create recv event:%x", GetLastError());
 		return false;

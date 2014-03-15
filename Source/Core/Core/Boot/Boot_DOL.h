@@ -4,12 +4,14 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/CommonTypes.h"
 
 class CDolLoader
 {
 public:
-	CDolLoader(const char* _szFilename);
+	CDolLoader(const std::string& filename);
 	CDolLoader(u8* _pBuffer, u32 _Size);
 	~CDolLoader();
 

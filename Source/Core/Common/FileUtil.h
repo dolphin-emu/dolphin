@@ -143,8 +143,8 @@ std::string GetBundleDirectory();
 std::string &GetExeDirectory();
 #endif
 
-bool WriteStringToFile(const std::string &str, const char *filename);
-bool ReadFileToString(const char *filename, std::string &str);
+bool WriteStringToFile(const std::string& str, const std::string& filename);
+bool ReadFileToString(const std::string& filename, std::string& str);
 
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
@@ -167,7 +167,7 @@ public:
 	bool Close();
 
 	template <typename T>
-	bool ReadArray(T* data, size_t length, size_t* pReadBytes = NULL)
+	bool ReadArray(T* data, size_t length, size_t* pReadBytes = nullptr)
 	{
 		size_t read_bytes = 0;
 		if (!IsOpen() || length != (read_bytes = std::fread(data, sizeof(T), length, m_file)))
@@ -198,11 +198,11 @@ public:
 		return WriteArray(reinterpret_cast<const char*>(data), length);
 	}
 
-	bool IsOpen() { return NULL != m_file; }
+	bool IsOpen() { return nullptr != m_file; }
 
 	// m_good is set to false when a read, write or other function fails
 	bool IsGood() { return m_good; }
-	operator void*() { return m_good ? m_file : NULL; }
+	operator void*() { return m_good ? m_file : nullptr; }
 
 	std::FILE* ReleaseHandle();
 

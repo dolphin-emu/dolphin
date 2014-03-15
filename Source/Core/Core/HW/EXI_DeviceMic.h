@@ -13,9 +13,9 @@ class CEXIMic : public IEXIDevice
 public:
 	CEXIMic(const int index);
 	virtual ~CEXIMic();
-	void SetCS(int cs);
-	bool IsInterruptSet();
-	bool IsPresent();
+	void SetCS(int cs) override;
+	bool IsInterruptSet() override;
+	bool IsPresent() override;
 
 private:
 	static u8 const exi_id[];
@@ -93,7 +93,7 @@ public:
 	int samples_avail;
 
 protected:
-	virtual void TransferByte(u8 &byte);
+	virtual void TransferByte(u8 &byte) override;
 };
 
 #else // HAVE_PORTAUDIO

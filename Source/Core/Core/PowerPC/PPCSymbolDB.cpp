@@ -34,19 +34,19 @@ PPCSymbolDB::~PPCSymbolDB()
 Symbol *PPCSymbolDB::AddFunction(u32 startAddr)
 {
 	if (startAddr < 0x80000010)
-		return 0;
+		return nullptr;
 	XFuncMap::iterator iter = functions.find(startAddr);
 	if (iter != functions.end())
 	{
 		// it's already in the list
-		return 0;
+		return nullptr;
 	}
 	else
 	{
 		Symbol tempFunc; //the current one we're working on
 		u32 targetEnd = PPCAnalyst::AnalyzeFunction(startAddr, tempFunc);
 		if (targetEnd == 0)
-			return 0;  //found a dud :(
+			return nullptr;  //found a dud :(
 		//LOG(OSHLE, "Symbol found at %08x", startAddr);
 		functions[startAddr] = tempFunc;
 		tempFunc.type = Symbol::SYMBOL_FUNCTION;
@@ -55,7 +55,7 @@ Symbol *PPCSymbolDB::AddFunction(u32 startAddr)
 	}
 }
 
-void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int type)
+void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& name, int type)
 {
 	XFuncMap::iterator iter = functions.find(startAddr);
 	if (iter != functions.end())
@@ -86,7 +86,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int 
 Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
 	if (!Memory::IsRAMAddress(addr))
-		return 0;
+		return nullptr;
 
 	XFuncMap::iterator it = functions.find(addr);
 	if (it != functions.end())
@@ -101,14 +101,14 @@ Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 				return &p.second;
 		}
 	}
-	return 0;
+	return nullptr;
 }
 
-const char *PPCSymbolDB::GetDescription(u32 addr)
+const std::string PPCSymbolDB::GetDescription(u32 addr)
 {
 	Symbol *symbol = GetSymbolFromAddr(addr);
 	if (symbol)
-		return symbol->name.c_str();
+		return symbol->name;
 	else
 		return " --- ";
 }
@@ -196,7 +196,7 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 
 // This one can load both leftover map files on game discs (like Zelda), and mapfiles
 // produced by SaveSymbolMap below.
-bool PPCSymbolDB::LoadMap(const char *filename)
+bool PPCSymbolDB::LoadMap(const std::string& filename)
 {
 	File::IOFile f(filename, "r");
 	if (!f)
@@ -237,7 +237,7 @@ bool PPCSymbolDB::LoadMap(const char *filename)
 		sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &unknown, name);
 
 		const char *namepos = strstr(line, name);
-		if (namepos != 0) //would be odd if not :P
+		if (namepos != nullptr) //would be odd if not :P
 			strcpy(name, namepos);
 		name[strlen(name) - 1] = 0;
 
@@ -263,21 +263,24 @@ bool PPCSymbolDB::LoadMap(const char *filename)
 // ===================================================
 /* Save the map file and save a code file */
 // ----------------
-bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
+bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 {
 	// Format the name for the codes version
 	std::string mapFile = filename;
-	if (WithCodes) mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
+	if (WithCodes)
+		mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
 
 	// Check size
 	const int wxYES_NO = 0x00000002 | 0x00000008;
 	if (functions.size() == 0)
 	{
-		if(!AskYesNo(StringFromFormat(
+		if (!AskYesNo(StringFromFormat(
 			"No symbol names are generated. Do you want to replace '%s' with a blank file?",
 			mapFile.c_str()).c_str(), "Confirm", wxYES_NO)) return false;
 	}
-	if (WithCodes) Host_UpdateStatusBar("Saving code, please stand by ...");
+
+	if (WithCodes)
+		Host_UpdateStatusBar("Saving code, please stand by ...");
 
 	// Make a file
 	File::IOFile f(mapFile, "w");
@@ -332,7 +335,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 			{
 				int Address = LastAddress + i;
 				char disasm[256];
-				debugger->disasm(Address, disasm, 256);
+				debugger->Disassemble(Address, disasm, 256);
 				fprintf(f.GetHandle(),"%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm);
 			}
 			// Write a blank line after each block

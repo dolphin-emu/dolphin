@@ -46,7 +46,7 @@ Device::Input* Device::FindInput(const std::string &name) const
 			return input;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Device::Output* Device::FindOutput(const std::string &name) const
@@ -57,7 +57,7 @@ Device::Output* Device::FindOutput(const std::string &name) const
 			return output;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 //
@@ -151,7 +151,7 @@ Device* DeviceContainer::FindDevice(const DeviceQualifier& devq) const
 			return d;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Device::Input* DeviceContainer::FindInput(const std::string& name, const Device* def_dev) const
@@ -171,7 +171,7 @@ Device::Input* DeviceContainer::FindInput(const std::string& name, const Device*
 			return i;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Device::Output* DeviceContainer::FindOutput(const std::string& name, const Device* def_dev) const

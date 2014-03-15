@@ -30,9 +30,9 @@ private:
 	{
 		friend class KeyboardMouse;
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		Key(Display* display, KeyCode keycode, const char* keyboard);
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
 		std::string       m_keyname;
@@ -44,10 +44,10 @@ private:
 	class Button : public Input
 	{
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		Button(unsigned int index, unsigned int& buttons)
 			: m_buttons(buttons), m_index(index) {}
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
 		const unsigned int& m_buttons;
@@ -57,11 +57,11 @@ private:
 	class Cursor : public Input
 	{
 	public:
-		std::string GetName() const;
-		bool IsDetectable() { return false; }
+		std::string GetName() const override;
+		bool IsDetectable() override { return false; }
 		Cursor(u8 index, bool positive, const float& cursor)
 			: m_cursor(cursor), m_index(index), m_positive(positive) {}
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
 		const float& m_cursor;
@@ -70,15 +70,15 @@ private:
 	};
 
 public:
-	bool UpdateInput();
-	bool UpdateOutput();
+	bool UpdateInput() override;
+	bool UpdateOutput() override;
 
 	KeyboardMouse(Window window);
 	~KeyboardMouse();
 
-	std::string GetName() const;
-	std::string GetSource() const;
-	int GetId() const;
+	std::string GetName() const override;
+	std::string GetSource() const override;
+	int GetId() const override;
 
 private:
 	Window   m_window;

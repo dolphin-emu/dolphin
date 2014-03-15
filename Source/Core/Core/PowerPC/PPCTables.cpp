@@ -31,7 +31,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
-		switch(table)
+		switch (table)
 		{
 		case 4:  return m_infoTable4[_inst.SUBOP10];
 		case 19: return m_infoTable19[_inst.SUBOP10];
@@ -40,7 +40,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 		case 63: return m_infoTable63[_inst.SUBOP10];
 		default:
 			_assert_msg_(POWERPC,0,"GetOpInfo - invalid subtable op %08x @ %08x", _inst.hex, PC);
-			return 0;
+			return nullptr;
 		}
 	}
 	else
@@ -48,7 +48,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
 		{
 			_assert_msg_(POWERPC,0,"GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
-			return 0;
+			return nullptr;
 		}
 		return m_infoTable[_inst.OPCD];
 	}
@@ -60,7 +60,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
-		switch(table)
+		switch (table)
 		{
 		case 4:  return Interpreter::m_opTable4[_inst.SUBOP10];
 		case 19: return Interpreter::m_opTable19[_inst.SUBOP10];
@@ -69,7 +69,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 		case 63: return Interpreter::m_opTable63[_inst.SUBOP10];
 		default:
 			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid subtable op %08x @ %08x", _inst.hex, PC);
-			return 0;
+			return nullptr;
 		}
 	}
 	else
@@ -77,7 +77,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
 		{
 			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid op %08x @ %08x", _inst.hex, PC);
-			return 0;
+			return nullptr;
 		}
 		return Interpreter::m_opTable[_inst.OPCD];
 	}
@@ -161,13 +161,13 @@ namespace {
 const char *GetInstructionName(UGeckoInstruction _inst)
 {
 	const GekkoOPInfo *info = GetOpInfo(_inst);
-	return info ? info->opname : 0;
+	return info ? info->opname : nullptr;
 }
 
 bool IsValidInstruction(UGeckoInstruction _inst)
 {
 	const GekkoOPInfo *info = GetOpInfo(_inst);
-	return info != 0;
+	return info != nullptr;
 }
 
 void CountInstruction(UGeckoInstruction _inst)

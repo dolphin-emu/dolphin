@@ -14,7 +14,7 @@ unsigned int FramebufferManagerBase::s_last_xfb_height = 1;
 
 FramebufferManagerBase::FramebufferManagerBase()
 {
-	m_realXFBSource = NULL;
+	m_realXFBSource = nullptr;
 
 	// can't hurt
 	memset(m_overlappingXFBArray, 0, sizeof(m_overlappingXFBArray));
@@ -22,12 +22,10 @@ FramebufferManagerBase::FramebufferManagerBase()
 
 FramebufferManagerBase::~FramebufferManagerBase()
 {
-	VirtualXFBListType::iterator
-		it = m_virtualXFBList.begin(),
-		vlend = m_virtualXFBList.end();
-	for (; it != vlend; ++it)
-		delete it->xfbSource;
-
+	for (VirtualXFB& vxfb : m_virtualXFBList)
+	{
+		delete vxfb.xfbSource;
+	}
 	m_virtualXFBList.clear();
 
 	delete m_realXFBSource;
@@ -36,7 +34,7 @@ FramebufferManagerBase::~FramebufferManagerBase()
 const XFBSourceBase* const* FramebufferManagerBase::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
 {
 	if (!g_ActiveConfig.bUseXFB)
-		return NULL;
+		return nullptr;
 
 	if (g_ActiveConfig.bUseRealXFB)
 		return GetRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
@@ -79,7 +77,7 @@ const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbA
 	xfbCount = 0;
 
 	if (m_virtualXFBList.empty())  // no Virtual XFBs available
-		return NULL;
+		return nullptr;
 
 	u32 srcLower = xfbAddr;
 	u32 srcUpper = xfbAddr + 2 * fbWidth * fbHeight;
@@ -145,7 +143,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 	if (vxfb->xfbSource && (vxfb->xfbSource->texWidth != target_width || vxfb->xfbSource->texHeight != target_height))
 	{
 		//delete vxfb->xfbSource;
-		//vxfb->xfbSource = NULL;
+		//vxfb->xfbSource = nullptr;
 	}
 
 	if (!vxfb->xfbSource)

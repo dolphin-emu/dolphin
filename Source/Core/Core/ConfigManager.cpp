@@ -125,7 +125,7 @@ void SConfig::Init()
 void SConfig::Shutdown()
 {
 	delete m_Instance;
-	m_Instance = NULL;
+	m_Instance = nullptr;
 }
 
 SConfig::~SConfig()
@@ -184,7 +184,6 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowStatusbar",       m_InterfaceStatusbar);
 	ini.Set("Interface", "ShowLogWindow",       m_InterfaceLogWindow);
 	ini.Set("Interface", "ShowLogConfigWindow", m_InterfaceLogConfigWindow);
-	ini.Set("Interface", "ShowConsole",         m_InterfaceConsole);
 	ini.Set("Interface", "ThemeName40",         m_LocalCoreStartupParameter.theme_name);
 
 	// Hotkeys
@@ -332,7 +331,6 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowStatusbar",           &m_InterfaceStatusbar,                          true);
 		ini.Get("Interface", "ShowLogWindow",           &m_InterfaceLogWindow,                          false);
 		ini.Get("Interface", "ShowLogConfigWindow",     &m_InterfaceLogConfigWindow,                    false);
-		ini.Get("Interface", "ShowConsole",             &m_InterfaceConsole,                            false);
 		ini.Get("Interface", "ThemeName40",             &m_LocalCoreStartupParameter.theme_name,        "Clean");
 
 		// Hotkeys
@@ -377,10 +375,12 @@ void SConfig::LoadSettings()
 
 		// Core
 		ini.Get("Core", "HLE_BS2",      &m_LocalCoreStartupParameter.bHLE_BS2, false);
-#ifdef _M_ARM
+#ifdef _M_X86
+		ini.Get("Core", "CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 1);
+#elif _M_ARM_32
 		ini.Get("Core", "CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 3);
 #else
-		ini.Get("Core", "CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 1);
+		ini.Get("Core", "CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 0);
 #endif
 		ini.Get("Core", "Fastmem",           &m_LocalCoreStartupParameter.bFastmem,      true);
 		ini.Get("Core", "DSPThread",         &m_LocalCoreStartupParameter.bDSPThread,    false);

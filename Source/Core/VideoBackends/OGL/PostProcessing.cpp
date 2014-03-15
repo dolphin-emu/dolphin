@@ -51,7 +51,7 @@ void Init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); // disable mipmaps
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	glBindFramebuffer(GL_FRAMEBUFFER, s_fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_texture, 0);
 	FramebufferManager::SetFramebuffer(0);
@@ -77,7 +77,7 @@ void BindTargetFramebuffer ()
 
 void BlitToScreen()
 {
-	if(!s_enable) return;
+	if (!s_enable) return;
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glViewport(0, 0, s_width, s_height);
@@ -101,14 +101,14 @@ void Update ( u32 width, u32 height )
 {
 	ApplyShader();
 
-	if(s_enable && (width != s_width || height != s_height)) {
+	if (s_enable && (width != s_width || height != s_height)) {
 		s_width = width;
 		s_height = height;
 
 		// alloc texture for framebuffer
 		glActiveTexture(GL_TEXTURE0+9);
 		glBindTexture(GL_TEXTURE_2D, s_texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	}
 }
 
@@ -133,7 +133,7 @@ void ApplyShader()
 		// Fallback to shared user dir
 		path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + g_ActiveConfig.sPostProcessingShader + ".glsl";
 	}
-	if(!File::ReadFileToString(path.c_str(), code)) {
+	if (!File::ReadFileToString(path, code)) {
 		ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
 		return;
 	}

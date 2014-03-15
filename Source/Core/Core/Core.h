@@ -59,12 +59,7 @@ void* GetWindowHandle();
 void StartTrace(bool write);
 
 // This displays messages in a user-visible way.
-void DisplayMessage(const char *message, int time_in_ms);
-
-inline void DisplayMessage(const std::string &message, int time_in_ms)
-{
-	DisplayMessage(message.c_str(), time_in_ms);
-}
+void DisplayMessage(const std::string& message, int time_in_ms);
 
 std::string GetStateFileName();
 void SetStateFileName(std::string val);

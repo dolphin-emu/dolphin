@@ -4,10 +4,11 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <ctime>
 #include <functional>
 #include <list>
-#include <string.h>
+#include <string>
 
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -63,16 +64,16 @@ struct UDPWiimote::_d
 
 int UDPWiimote::noinst = 0;
 
-UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
+UDPWiimote::UDPWiimote(const std::string& _port, const std::string& name, int _index) :
 	port(_port), displayName(name),
-	d(new _d) ,x(0),y(0),z(1.0f),naX(0),naY(0),naZ(-1.0f),nunX(0),nunY(0),
-	pointerX(1001.0f/2),pointerY(0),nunMask(0),mask(0),index(_index), int_port(atoi(_port))
+	d(new _d) ,x(0), y(0), z(1.0f), naX(0), naY(0), naZ(-1.0f), nunX(0), nunY(0),
+	pointerX(1001.0f / 2), pointerY(0), nunMask(0), mask(0), index(_index), int_port(atoi(_port.c_str()))
 {
 
 	static bool sranded=false;
 	if (!sranded)
 	{
-		srand((unsigned int)time(0));
+		srand((unsigned int)time(nullptr));
 		sranded=true;
 	}
 	bcastMagic=rand() & 0xFFFF;
@@ -107,7 +108,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 		return;
 	}
 
-	if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0)
+	if ((rv = getaddrinfo(nullptr, _port.c_str(), &hints, &servinfo)) != 0)
 	{
 		cleanup;
 		err=-1;
@@ -115,7 +116,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	}
 
 	// loop through all the results and bind to everything we can
-	for(p = servinfo; p != NULL; p = p->ai_next)
+	for (p = servinfo; p != nullptr; p = p->ai_next)
 	{
 		sock_t sock;
 		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK)
@@ -191,7 +192,7 @@ void UDPWiimote::mainThread()
 
 		lk.unlock(); //VERY hacky. don't like it
 		if (d->exit) return;
-		int rt=select(maxfd,&fds,NULL,NULL,&timeout);
+		int rt=select(maxfd,&fds,nullptr,nullptr,&timeout);
 		if (d->exit) return;
 		lk.lock();
 		if (d->exit) return;
@@ -403,7 +404,7 @@ u32 UDPWiimote::getButtons()
 	return msk;
 }
 
-void UDPWiimote::getIR(float &_x, float &_y)
+void UDPWiimote::getIR(float& _x, float& _y)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
 	_x=(float)pointerX;
@@ -418,21 +419,21 @@ void UDPWiimote::getNunchuck(float &_x, float &_y, u8 &_mask)
 	_mask=nunMask;
 }
 
-void UDPWiimote::getNunchuckAccel(float &_x, float &_y, float &_z)
+void UDPWiimote::getNunchuckAccel(float& _x, float& _y, float& _z)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x=(float)naX;
-	_y=(float)naY;
-	_z=(float)naZ;
+	_x = (float)naX;
+	_y = (float)naY;
+	_z = (float)naZ;
 }
 
-const char * UDPWiimote::getPort()
+const std::string& UDPWiimote::getPort()
 {
-	return port.c_str();
+	return port;
 }
 
-void UDPWiimote::changeName(const char * name)
+void UDPWiimote::changeName(const std::string& name)
 {
 	std::lock_guard<std::mutex> lk(d->nameMutex);
-	displayName=name;
+	displayName = name;
 }

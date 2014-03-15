@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cctype>
 #include <list>
 #include <map>
 #include <string>
@@ -10,11 +11,12 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "Core/DSP/disassemble.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
-namespace DSPSymbols {
+namespace DSPSymbols
+{
 
 DSPSymbolDB g_dsp_symbol_db;
 
@@ -70,53 +72,20 @@ Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 				return &func.second;
 		}
 	}
-	return 0;
+	return nullptr;
 }
 
-// lower case only
-bool IsHexDigit(char c)
+void DisassembleRange(u16 start, u16 end)
 {
-	switch (c)
-	{
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-		case 'a':
-		case 'b':
-		case 'c':
-		case 'd':
-		case 'e':
-		case 'f':
-			return true;
-		default:
-			return false;
-	}
+	// TODO: ?
 }
 
-bool IsAlpha(char c)
-{
-	return (c >= 'A' && c <= 'Z') ||
-		   (c >= 'a' && c <= 'z');
-}
-
-void DisasssembleRange(u16 start, u16 end)
-{
-
-}
-
-bool ReadAnnotatedAssembly(const char *filename)
+bool ReadAnnotatedAssembly(const std::string& filename)
 {
 	File::IOFile f(filename, "r");
 	if (!f)
 	{
-		ERROR_LOG(DSPLLE, "Bah! ReadAnnotatedAssembly couldn't find the file %s", filename);
+		ERROR_LOG(DSPLLE, "Bah! ReadAnnotatedAssembly couldn't find the file %s", filename.c_str());
 		return false;
 	}
 	char line[512];
@@ -141,7 +110,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 		for (unsigned int i = 0; i < strlen(line); i++)
 		{
 			const char c = line[i];
-			if (IsHexDigit(c))
+			if (isxdigit(c))
 			{
 				if (first_hex == -1)
 				{
@@ -165,7 +134,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 				{
 					first_hex = -1;
 				}
-				if (IsAlpha(c))
+				if (isalpha(c))
 					break;
 			}
 		}

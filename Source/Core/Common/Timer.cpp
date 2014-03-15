@@ -27,7 +27,7 @@ u32 Timer::GetTimeMs()
 	return timeGetTime();
 #else
 	struct timeval t;
-	(void)gettimeofday(&t, NULL);
+	(void)gettimeofday(&t, nullptr);
 	return ((u32)(t.tv_sec * 1000 + t.tv_usec / 1000));
 #endif
 }
@@ -153,7 +153,7 @@ u64 Timer::GetLocalTimeSinceJan1970()
 
 	// Account for DST where needed
 	gmTime = localtime(&sysTime);
-	if(gmTime->tm_isdst == 1)
+	if (gmTime->tm_isdst == 1)
 		tzDST = 3600;
 	else
 		tzDST = 0;
@@ -184,7 +184,7 @@ std::string Timer::GetTimeFormatted()
 	return StringFromFormat("%s:%03i", tmp, tp.millitm);
 #else
 	struct timeval t;
-	(void)gettimeofday(&t, NULL);
+	(void)gettimeofday(&t, nullptr);
 	return StringFromFormat("%s:%03d", tmp, (int)(t.tv_usec / 1000));
 #endif
 }
@@ -198,7 +198,7 @@ double Timer::GetDoubleTime()
 	(void)::ftime(&tp);
 #else
 	struct timeval t;
-	(void)gettimeofday(&t, NULL);
+	(void)gettimeofday(&t, nullptr);
 #endif
 	// Get continuous timestamp
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();

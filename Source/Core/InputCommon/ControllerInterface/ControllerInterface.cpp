@@ -230,7 +230,7 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 	, const DeviceQualifier& default_device) const
 {
 	delete ref->parsed_expression;
-	ref->parsed_expression = NULL;
+	ref->parsed_expression = nullptr;
 
 	ControlFinder finder(*this, default_device, ref->is_input);
 	ref->parse_error = ParseExpression(ref->expression, finder, &ref->parsed_expression);
@@ -244,7 +244,7 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 // which is useful for those crazy flightsticks that have certain buttons that are always held down
 // or some crazy axes or something
 // upon input, return pointer to detected Control
-// else return NULL
+// else return nullptr
 //
 Device::Control* ControllerInterface::InputReference::Detect(const unsigned int ms, Device* const device)
 {
@@ -252,7 +252,7 @@ Device::Control* ControllerInterface::InputReference::Detect(const unsigned int 
 	std::vector<bool> states(device->Inputs().size());
 
 	if (device->Inputs().size() == 0)
-		return NULL;
+		return nullptr;
 
 	// get starting state of all inputs,
 	// so we can ignore those that were activated at time of Detect start
@@ -285,7 +285,7 @@ Device::Control* ControllerInterface::InputReference::Detect(const unsigned int 
 	}
 
 	// no input was detected
-	return NULL;
+	return nullptr;
 }
 
 //
@@ -317,5 +317,5 @@ Device::Control* ControllerInterface::OutputReference::Detect(const unsigned int
 		State(0);
 		device->UpdateOutput();
 	}
-	return NULL;
+	return nullptr;
 }

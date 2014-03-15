@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Dolphin Emulator Project
+ * Copyright 2014 Dolphin Emulator Project
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
@@ -89,12 +89,12 @@ public final class GLES3InfoFragment extends ListFragment
 		final EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES3_BIT_KHR);
 
 		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
-		List<AboutActivity.AboutFragmentItem> Input = new ArrayList<AboutActivity.AboutFragmentItem>();
+		List<AboutFragmentItem> Input = new ArrayList<AboutFragmentItem>();
 
 		for (Limit limit : Limits)
 		{
 			Log.i("GLES3InfoFragment", "Getting enum " + limit.name);
-			Input.add(new AboutActivity.AboutFragmentItem(limit.name, limit.GetValue(eglHelper)));
+			Input.add(new AboutFragmentItem(limit.name, limit.GetValue(eglHelper)));
 		}
 
 		// Get extensions manually
@@ -104,9 +104,9 @@ public final class GLES3InfoFragment extends ListFragment
 		{
 			extensionsBuilder.append(eglHelper.glGetStringi(GLES30.GL_EXTENSIONS, i)).append('\n');
 		}
-		Input.add(new AboutActivity.AboutFragmentItem("OpenGL ES 3.0 Extensions", extensionsBuilder.toString()));
+		Input.add(new AboutFragmentItem("OpenGL ES 3.0 Extensions", extensionsBuilder.toString()));
 
-		AboutActivity.InfoFragmentAdapter adapter = new AboutActivity.InfoFragmentAdapter(getActivity(), R.layout.about_layout, Input);
+		AboutInfoFragmentAdapter adapter = new AboutInfoFragmentAdapter(getActivity(), R.layout.about_layout, Input);
 		rootView.setAdapter(adapter);
 
 		return rootView;

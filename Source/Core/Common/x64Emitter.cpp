@@ -124,7 +124,7 @@ void XEmitter::WriteSIB(int scale, int index, int base)
 void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 {
 	if (customOp == -1)       customOp = operandReg;
-#ifdef _M_X64
+#if _M_X86_64
 	u8 op = 0x40;
 	if (opBits == 64)         op |= 8;
 	if (customOp & 8)         op |= 4;
@@ -205,14 +205,15 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		_offsetOrBaseReg = 5;
 		emit->WriteModRM(0, _operandReg, _offsetOrBaseReg);
 		//TODO : add some checks
-#ifdef _M_X64
+#if _M_X86_64
 		u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
 		s64 distance = (s64)offset - (s64)ripAddr;
-		_assert_msg_(DYNA_REC, (distance < 0x80000000LL
-					&& distance >=  -0x80000000LL) ||
-			     !warn_64bit_offset,
-			     "WriteRest: op out of range (0x%" PRIx64 " uses 0x%" PRIx64 ")",
-			     ripAddr, offset);
+		_assert_msg_(DYNA_REC, 
+		             (distance < 0x80000000LL &&
+		              distance >=  -0x80000000LL) ||
+		             !warn_64bit_offset,
+		             "WriteRest: op out of range (0x%" PRIx64 " uses 0x%" PRIx64 ")",
+		             ripAddr, offset);
 		s32 offs = (s32)distance;
 		emit->Write32((u32)offs);
 #else
@@ -358,9 +359,9 @@ void XEmitter::JMP(const u8 *addr, bool force5Bytes)
 	{
 		s64 distance = (s64)(fn - ((u64)code + 5));
 
-		_assert_msg_(DYNA_REC, distance >= -0x80000000LL
-			     && distance < 0x80000000LL,
-			     "Jump target too far away, needs indirect register");
+		_assert_msg_(DYNA_REC,
+		             distance >= -0x80000000LL && distance < 0x80000000LL,
+		             "Jump target too far away, needs indirect register");
 		Write8(0xE9);
 		Write32((u32)(s32)distance);
 	}
@@ -396,9 +397,10 @@ void XEmitter::CALLptr(OpArg arg)
 void XEmitter::CALL(const void *fnptr)
 {
 	u64 distance = u64(fnptr) - (u64(code) + 5);
-	_assert_msg_(DYNA_REC, distance < 0x0000000080000000ULL
-		     || distance >=  0xFFFFFFFF80000000ULL,
-		     "CALL out of range (%p calls %p)", code, fnptr);
+	_assert_msg_(DYNA_REC,
+	             distance < 0x0000000080000000ULL ||
+	             distance >=  0xFFFFFFFF80000000ULL,
+	             "CALL out of range (%p calls %p)", code, fnptr);
 	Write8(0xE8);
 	Write32(u32(distance));
 }
@@ -456,9 +458,9 @@ void XEmitter::J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes)
 	else
 	{
 		s64 distance = (s64)(fn - ((u64)code + 6));
-		_assert_msg_(DYNA_REC, distance >= -0x80000000LL
-			     && distance < 0x80000000LL,
-			     "Jump target too far away, needs indirect register");
+		_assert_msg_(DYNA_REC,
+		             distance >= -0x80000000LL && distance < 0x80000000LL,
+			         "Jump target too far away, needs indirect register");
 		Write8(0x0F);
 		Write8(0x80 + conditionCode);
 		Write32((u32)(s32)distance);
@@ -1191,7 +1193,7 @@ void XEmitter::MOVD_xmm(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x6E, tru
 void XEmitter::MOVD_xmm(const OpArg &arg, X64Reg src) {WriteSSEOp(64, 0x7E, true, src, arg, 0);}
 
 void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg) {
-#ifdef _M_X64
+#if _M_X86_64
 		// Alternate encoding
 		// This does not display correctly in MSVC's debugger, it thinks it's a MOVD
 		arg.operandReg = dest;
@@ -1551,7 +1553,7 @@ void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
 void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 {
 	using namespace Gen;
-#ifdef _M_X64
+#if _M_X86_64
 
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
@@ -1582,7 +1584,7 @@ void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 void XEmitter::CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3)
 {
 	using namespace Gen;
-#ifdef _M_X64
+#if _M_X86_64
 
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
@@ -1616,7 +1618,7 @@ void XEmitter::CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 void XEmitter::CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4)
 {
 	using namespace Gen;
-#ifdef _M_X64
+#if _M_X86_64
 
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
@@ -1653,7 +1655,7 @@ void XEmitter::CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 void XEmitter::CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5)
 {
 	using namespace Gen;
-#ifdef _M_X64
+#if _M_X86_64
 
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
@@ -1690,7 +1692,7 @@ void XEmitter::CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 #endif
 }
 
-#ifdef _M_X64
+#if _M_X86_64
 
 // See header
 void XEmitter::___CallCdeclImport3(void* impptr, u32 arg0, u32 arg1, u32 arg2) {

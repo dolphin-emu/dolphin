@@ -40,7 +40,7 @@ SWVertexLoader::SWVertexLoader() :
 SWVertexLoader::~SWVertexLoader()
 {
 	delete m_SetupUnit;
-	m_SetupUnit = NULL;
+	m_SetupUnit = nullptr;
 }
 
 void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
@@ -89,8 +89,8 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	m_VertexSize = 0;
 
 	// Reset pipeline
-	m_positionLoader = NULL;
-	m_normalLoader = NULL;
+	m_positionLoader = nullptr;
+	m_normalLoader = nullptr;
 	m_NumAttributeLoaders = 0;
 
 	// Reset vertex
@@ -164,7 +164,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		m_normalLoader = VertexLoader_Normal::GetFunction(g_VtxDesc.Normal,
 			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
 
-		if (m_normalLoader == 0)
+		if (m_normalLoader == nullptr)
 		{
 			ERROR_LOG(VIDEO, "VertexLoader_Normal::GetFunction returned zero!");
 		}
@@ -176,7 +176,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		switch (colDesc[i])
 		{
 		case NOT_PRESENT:
-			m_colorLoader[i] = NULL;
+			m_colorLoader[i] = nullptr;
 			break;
 		case DIRECT:
 			switch (colComp[i])

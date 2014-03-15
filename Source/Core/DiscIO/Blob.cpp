@@ -33,9 +33,12 @@ void SectorReader::SetSectorSize(int blocksize)
 	m_blocksize = blocksize;
 }
 
-SectorReader::~SectorReader() {
-	for (int i = 0; i < CACHE_SIZE; i++)
-		delete [] cache[i];
+SectorReader::~SectorReader()
+{
+	for (u8*& block : cache)
+	{
+		delete [] block;
+	}
 }
 
 const u8 *SectorReader::GetBlockData(u64 block_num)
@@ -98,6 +101,7 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 			block++;
 		}
 	}
+
 	return true;
 }
 
@@ -110,16 +114,17 @@ bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *
 			return false;
 		memcpy(out_ptr + i * m_blocksize, data, m_blocksize);
 	}
+
 	return true;
 }
 
-IBlobReader* CreateBlobReader(const char* filename)
+IBlobReader* CreateBlobReader(const std::string& filename)
 {
-	if (cdio_is_cdrom(std::string(filename)))
+	if (cdio_is_cdrom(filename))
 		return DriveReader::Create(filename);
 
 	if (!File::Exists(filename))
-		return 0;
+		return nullptr;
 
 	if (IsWbfsBlob(filename))
 		return WbfsFileReader::Create(filename);

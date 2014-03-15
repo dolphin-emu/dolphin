@@ -327,7 +327,7 @@ void Interpreter::ClearCache()
 
 const char *Interpreter::GetName()
 {
-#ifdef _M_X64
+#ifdef _ARCH_64
 		return "Interpreter64";
 #else
 		return "Interpreter32";

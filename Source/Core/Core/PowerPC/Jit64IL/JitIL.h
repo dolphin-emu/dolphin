@@ -36,9 +36,9 @@
 #include "Core/PowerPC/JitILCommon/IR.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-#ifdef _M_X64
+#if _M_X86_64
 #define DISABLE64 \
-	{Default(inst); return;}
+	{FallBackToInterpreter(inst); return;}
 #else
 #define DISABLE64
 #endif
@@ -69,7 +69,7 @@ public:
 
 	JitBlockCache *GetBlockCache() override { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) override { return NULL; };
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) override { return nullptr; };
 
 	bool IsInCodeSpace(u8 *ptr) override { return IsInSpace(ptr); }
 
@@ -82,7 +82,7 @@ public:
 	}
 
 	const char *GetName() override {
-#ifdef _M_X64
+#if _M_X86_64
 		return "JIT64IL";
 #else
 		return "JIT32IL";
@@ -116,7 +116,7 @@ public:
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst) override;
-	void Default(UGeckoInstruction _inst) override;
+	void FallBackToInterpreter(UGeckoInstruction _inst) override;
 	void DoNothing(UGeckoInstruction _inst) override;
 	void HLEFunction(UGeckoInstruction _inst) override;
 

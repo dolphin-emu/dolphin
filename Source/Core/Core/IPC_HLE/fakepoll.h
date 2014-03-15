@@ -60,10 +60,10 @@ inline int poll(struct pollfd *pollSet, int pollCount, int pollTimeout)
 	int maxFD;
 
 	if (!pollSet) {
-		pollEnd = NULL;
-		readp = NULL;
-		writep = NULL;
-		exceptp = NULL;
+		pollEnd = nullptr;
+		readp = nullptr;
+		writep = nullptr;
+		exceptp = nullptr;
 		maxFD = 0;
 	}
 	else {
@@ -97,14 +97,14 @@ inline int poll(struct pollfd *pollSet, int pollCount, int pollTimeout)
 	}
 
 	// poll timeout is in milliseconds. Convert to struct timeval.
-	// poll timeout == -1 : wait forever : select timeout of NULL
+	// poll timeout == -1 : wait forever : select timeout of nullptr
 	// poll timeout == 0  : return immediately : select timeout of zero
 	if (pollTimeout >= 0) {
 		tv.tv_sec = pollTimeout / 1000;
 		tv.tv_usec = (pollTimeout % 1000) * 1000;
 		tvp = &tv;
 	} else {
-		tvp = NULL;
+		tvp = nullptr;
 	}
 
 

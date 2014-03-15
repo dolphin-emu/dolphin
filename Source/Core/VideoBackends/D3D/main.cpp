@@ -2,11 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
 #include <wx/wx.h>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/LogManager.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -54,11 +56,9 @@ unsigned int VideoBackend::PeekMessages()
 	return TRUE;
 }
 
-void VideoBackend::UpdateFPSDisplay(const char *text)
+void VideoBackend::UpdateFPSDisplay(const std::string& text)
 {
-	TCHAR temp[512];
-	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs | D3D | %hs"), scm_rev_str, text);
-	EmuWindow::SetWindowText(temp);
+	EmuWindow::SetWindowText(StringFromFormat("%s | D3D | %s", scm_rev_str, text.c_str()));
 }
 
 std::string VideoBackend::GetName()
@@ -154,14 +154,14 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	frameCount = 0;
 
-	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_dx11.ini").c_str());
+	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_dx11.ini");
 	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
 	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));
-	if (window_handle == NULL)
+	if (window_handle == nullptr)
 	{
 		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
 		return false;
@@ -230,8 +230,8 @@ void VideoBackend::Shutdown()
 		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;
-		g_renderer = NULL;
-		g_texture_cache = NULL;
+		g_renderer = nullptr;
+		g_texture_cache = nullptr;
 	}
 }
 

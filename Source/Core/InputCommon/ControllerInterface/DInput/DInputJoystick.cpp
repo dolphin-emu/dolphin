@@ -24,47 +24,47 @@ namespace DInput
 void GetXInputGUIDS( std::vector<DWORD>& guids )
 {
 
-#define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
+#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=nullptr; } }
 
-	IWbemLocator*           pIWbemLocator  = NULL;
-	IEnumWbemClassObject*   pEnumDevices   = NULL;
+	IWbemLocator*           pIWbemLocator  = nullptr;
+	IEnumWbemClassObject*   pEnumDevices   = nullptr;
 	IWbemClassObject*       pDevices[20]   = {0};
-	IWbemServices*          pIWbemServices = NULL;
-	BSTR                    bstrNamespace  = NULL;
-	BSTR                    bstrDeviceID   = NULL;
-	BSTR                    bstrClassName  = NULL;
+	IWbemServices*          pIWbemServices = nullptr;
+	BSTR                    bstrNamespace  = nullptr;
+	BSTR                    bstrDeviceID   = nullptr;
+	BSTR                    bstrClassName  = nullptr;
 	DWORD                   uReturned      = 0;
 	VARIANT                 var;
 	HRESULT                 hr;
 
 	// CoInit if needed
-	hr = CoInitialize(NULL);
+	hr = CoInitialize(nullptr);
 	bool bCleanupCOM = SUCCEEDED(hr);
 
 	// Create WMI
 	hr = CoCreateInstance(__uuidof(WbemLocator),
-	                      NULL,
+	                      nullptr,
 	                      CLSCTX_INPROC_SERVER,
 	                      __uuidof(IWbemLocator),
 	                      (LPVOID*) &pIWbemLocator);
-	if (FAILED(hr) || pIWbemLocator == NULL)
+	if (FAILED(hr) || pIWbemLocator == nullptr)
 		goto LCleanup;
 
-	bstrNamespace = SysAllocString(L"\\\\.\\root\\cimv2");if(bstrNamespace == NULL) goto LCleanup;
-	bstrClassName = SysAllocString(L"Win32_PNPEntity");   if(bstrClassName == NULL) goto LCleanup;
-	bstrDeviceID  = SysAllocString(L"DeviceID");          if(bstrDeviceID == NULL)  goto LCleanup;
+	bstrNamespace = SysAllocString(L"\\\\.\\root\\cimv2"); if (bstrNamespace == nullptr) goto LCleanup;
+	bstrClassName = SysAllocString(L"Win32_PNPEntity");    if (bstrClassName == nullptr) goto LCleanup;
+	bstrDeviceID  = SysAllocString(L"DeviceID");           if (bstrDeviceID == nullptr)  goto LCleanup;
 
 	// Connect to WMI
-	hr = pIWbemLocator->ConnectServer(bstrNamespace, NULL, NULL, 0L, 0L, NULL, NULL, &pIWbemServices);
-	if (FAILED(hr) || pIWbemServices == NULL)
+	hr = pIWbemLocator->ConnectServer(bstrNamespace, nullptr, nullptr, 0L, 0L, nullptr, nullptr, &pIWbemServices);
+	if (FAILED(hr) || pIWbemServices == nullptr)
 		goto LCleanup;
 
 	// Switch security level to IMPERSONATE.
-	CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL,
-	                  RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE);
+	CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, nullptr,
+	                  RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE);
 
-	hr = pIWbemServices->CreateInstanceEnum(bstrClassName, 0, NULL, &pEnumDevices);
-	if (FAILED(hr) || pEnumDevices == NULL)
+	hr = pIWbemServices->CreateInstanceEnum(bstrClassName, 0, nullptr, &pEnumDevices);
+	if (FAILED(hr) || pEnumDevices == nullptr)
 		goto LCleanup;
 
 	// Loop over all devices
@@ -78,8 +78,8 @@ void GetXInputGUIDS( std::vector<DWORD>& guids )
 		for (UINT iDevice = 0; iDevice < uReturned; ++iDevice)
 		{
 			// For each device, get its device ID
-			hr = pDevices[iDevice]->Get(bstrDeviceID, 0L, &var, NULL, NULL);
-			if (SUCCEEDED(hr) && var.vt == VT_BSTR && var.bstrVal != NULL)
+			hr = pDevices[iDevice]->Get(bstrDeviceID, 0L, &var, nullptr, nullptr);
+			if (SUCCEEDED(hr) && var.vt == VT_BSTR && var.bstrVal != nullptr)
 			{
 				// Check if the device ID contains "IG_".  If it does, then it's an XInput device
 				// This information can not be found from DirectInput
@@ -105,11 +105,11 @@ void GetXInputGUIDS( std::vector<DWORD>& guids )
 	}
 
 LCleanup:
-	if(bstrNamespace)
+	if (bstrNamespace)
 		SysFreeString(bstrNamespace);
-	if(bstrDeviceID)
+	if (bstrDeviceID)
 		SysFreeString(bstrDeviceID);
-	if(bstrClassName)
+	if (bstrClassName)
 		SysFreeString(bstrClassName);
 	for (UINT iDevice = 0; iDevice < 20; iDevice++)
 		SAFE_RELEASE(pDevices[iDevice]);
@@ -140,7 +140,7 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
 			continue;
 
 		LPDIRECTINPUTDEVICE8 js_device;
-		if (SUCCEEDED(idi8->CreateDevice(joystick.guidInstance, &js_device, NULL)))
+		if (SUCCEEDED(idi8->CreateDevice(joystick.guidInstance, &js_device, nullptr)))
 		{
 			if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
 			{
@@ -148,7 +148,7 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
 				{
 					//PanicAlert("SetCooperativeLevel(DISCL_EXCLUSIVE) failed!");
 					// fall back to non-exclusive mode, with no rumble
-					if (FAILED(js_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
+					if (FAILED(js_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 					{
 						//PanicAlert("SetCooperativeLevel failed!");
 						js_device->Release();

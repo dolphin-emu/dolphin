@@ -25,13 +25,13 @@ void DSPEmitter::dsp_reg_stack_push(int stack_reg)
 	gpr.getFreeXReg(tmp1);
 	//g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r[DSP_REG_ST0 + stack_reg];
 	MOV(16, R(tmp1), M(&g_dsp.r.st[stack_reg]));
-#ifdef _M_X64
+#if _M_X86_64
 	MOVZX(64, 8, RAX, R(AL));
 #else
 	MOVZX(32, 8, EAX, R(AL));
 #endif
 	MOV(16, MComplex(EAX, EAX, 1,
-			 PtrOffset(&g_dsp.reg_stack[stack_reg][0],0)), R(tmp1));
+			 PtrOffset(&g_dsp.reg_stack[stack_reg][0],nullptr)), R(tmp1));
 	gpr.putXReg(tmp1);
 }
 
@@ -44,13 +44,13 @@ void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
 	MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
-#ifdef _M_X64
+#if _M_X86_64
 	MOVZX(64, 8, RAX, R(AL));
 #else
 	MOVZX(32, 8, EAX, R(AL));
 #endif
 	MOV(16, R(tmp1), MComplex(EAX, EAX, 1,
-				  PtrOffset(&g_dsp.reg_stack[stack_reg][0],0)));
+				  PtrOffset(&g_dsp.reg_stack[stack_reg][0],nullptr)));
 	MOV(16, M(&g_dsp.r.st[stack_reg]), R(tmp1));
 	gpr.putXReg(tmp1);
 
@@ -204,17 +204,17 @@ void DSPEmitter::dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg, D
 	case DSP_REG_ST2:
 	case DSP_REG_ST3:
 		dsp_reg_load_stack(reg - DSP_REG_ST0, host_dreg);
-		switch(extend)
+		switch (extend)
 		{
 		case SIGN:
-#ifdef _M_X64
+#if _M_X86_64
 			MOVSX(64, 16, host_dreg, R(host_dreg));
 #else
 			MOVSX(32, 16, host_dreg, R(host_dreg));
 #endif
 			break;
 		case ZERO:
-#ifdef _M_X64
+#if _M_X86_64
 			MOVZX(64, 16, host_dreg, R(host_dreg));
 #else
 			MOVZX(32, 16, host_dreg, R(host_dreg));
@@ -240,17 +240,17 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 	case DSP_REG_ST2:
 	case DSP_REG_ST3:
 		dsp_reg_load_stack(reg - DSP_REG_ST0, host_dreg);
-		switch(extend)
+		switch (extend)
 		{
 		case SIGN:
-#ifdef _M_X64
+#if _M_X86_64
 			MOVSX(64, 16, host_dreg, R(host_dreg));
 #else
 			MOVSX(32, 16, host_dreg, R(host_dreg));
 #endif
 			break;
 		case ZERO:
-#ifdef _M_X64
+#if _M_X86_64
 			MOVZX(64, 16, host_dreg, R(host_dreg));
 #else
 			MOVZX(32, 16, host_dreg, R(host_dreg));
@@ -265,7 +265,7 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 	case DSP_REG_ACM1:
 	{
 		//we already know this is ACCM0 or ACCM1
-#ifdef _M_X64
+#if _M_X86_64
 		OpArg acc_reg;
 		gpr.getReg(reg-DSP_REG_ACM0+DSP_REG_ACC0_64, acc_reg);
 #else
@@ -279,7 +279,7 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 		FixupBranch not_40bit = J_CC(CC_Z, true);
 
 
-#ifdef _M_X64
+#if _M_X86_64
 		MOVSX(64,32,host_dreg,acc_reg);
 		CMP(64,R(host_dreg),acc_reg);
 		FixupBranch no_saturate = J_CC(CC_Z);
@@ -585,7 +585,7 @@ void DSPEmitter::dmem_write(X64Reg value)
 
 	//  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
 	AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(ECX), ImmPtr(g_dsp.dram));
 #else
 	MOV(32, R(ECX), ImmPtr(g_dsp.dram));
@@ -610,7 +610,7 @@ void DSPEmitter::dmem_write_imm(u16 address, X64Reg value)
 	switch (address >> 12)
 	{
 	case 0x0: // 0xxx DRAM
-#ifdef _M_X64
+#if _M_X86_64
 		MOV(64, R(RDX), ImmPtr(g_dsp.dram));
 		MOV(16, MDisp(RDX, (address & DSP_DRAM_MASK)*2), R(value));
 #else
@@ -644,7 +644,7 @@ void DSPEmitter::imem_read(X64Reg address)
 	FixupBranch irom = J_CC(CC_A);
 	//	return g_dsp.iram[addr & DSP_IRAM_MASK];
 	AND(16, R(address), Imm16(DSP_IRAM_MASK));
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(ECX), ImmPtr(g_dsp.iram));
 #else
 	MOV(32, R(ECX), ImmPtr(g_dsp.iram));
@@ -656,7 +656,7 @@ void DSPEmitter::imem_read(X64Reg address)
 	//	else if (addr == 0x8)
 	//		return g_dsp.irom[addr & DSP_IROM_MASK];
 	AND(16, R(address), Imm16(DSP_IROM_MASK));
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(ECX), ImmPtr(g_dsp.irom));
 #else
 	MOV(32, R(ECX), ImmPtr(g_dsp.irom));
@@ -676,7 +676,7 @@ void DSPEmitter::dmem_read(X64Reg address)
 	FixupBranch dram = J_CC(CC_A);
 	//	return g_dsp.dram[addr & DSP_DRAM_MASK];
 	AND(32, R(address), Imm32(DSP_DRAM_MASK));
-#ifdef _M_X64
+#if _M_X86_64
 	MOVZX(64, 16, address, R(address));
 	MOV(64, R(ECX), ImmPtr(g_dsp.dram));
 #else
@@ -691,7 +691,7 @@ void DSPEmitter::dmem_read(X64Reg address)
 	FixupBranch ifx = J_CC(CC_A);
 	//		return g_dsp.coef[addr & DSP_COEF_MASK];
 	AND(32, R(address), Imm32(DSP_COEF_MASK));
-#ifdef _M_X64
+#if _M_X86_64
 	MOVZX(64, 16, address, R(address));
 	MOV(64, R(ECX), ImmPtr(g_dsp.coef));
 #else
@@ -718,7 +718,7 @@ void DSPEmitter::dmem_read_imm(u16 address)
 	switch (address >> 12)
 	{
 	case 0x0:  // 0xxx DRAM
-#ifdef _M_X64
+#if _M_X86_64
 		MOV(64, R(RDX), ImmPtr(g_dsp.dram));
 		MOV(16, R(EAX), MDisp(RDX, (address & DSP_DRAM_MASK)*2));
 #else
@@ -727,7 +727,7 @@ void DSPEmitter::dmem_read_imm(u16 address)
 		break;
 
 	case 0x1:  // 1xxx COEF
-#ifdef _M_X64
+#if _M_X86_64
 		MOV(64, R(RDX), ImmPtr(g_dsp.coef));
 		MOV(16, R(EAX), MDisp(RDX, (address & DSP_COEF_MASK)*2));
 #else
@@ -751,7 +751,7 @@ void DSPEmitter::dmem_read_imm(u16 address)
 // Returns s64 in RAX
 void DSPEmitter::get_long_prod(X64Reg long_prod)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	//s64 val   = (s8)(u8)g_dsp.r[DSP_REG_PRODH];
 	OpArg prod_reg;
 	gpr.getReg(DSP_REG_PROD_64, prod_reg);
@@ -775,7 +775,7 @@ void DSPEmitter::get_long_prod(X64Reg long_prod)
 // Clobbers RCX
 void DSPEmitter::get_long_prod_round_prodl(X64Reg long_prod)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	//s64 prod = dsp_get_long_prod();
 	get_long_prod(long_prod);
 
@@ -804,7 +804,7 @@ void DSPEmitter::get_long_prod_round_prodl(X64Reg long_prod)
 // In: RAX = s64 val
 void DSPEmitter::set_long_prod()
 {
-#ifdef _M_X64
+#if _M_X86_64
 	X64Reg tmp;
 	gpr.getFreeXReg(tmp);
 
@@ -824,7 +824,7 @@ void DSPEmitter::set_long_prod()
 // Clobbers RCX
 void DSPEmitter::round_long_acc(X64Reg long_acc)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	//if (prod & 0x10000) prod = (prod + 0x8000) & ~0xffff;
 	TEST(32, R(long_acc), Imm32(0x10000));
 	FixupBranch jump = J_CC(CC_Z);
@@ -845,7 +845,7 @@ void DSPEmitter::round_long_acc(X64Reg long_acc)
 // Returns s64 in acc
 void DSPEmitter::get_long_acc(int _reg, X64Reg acc)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	OpArg reg;
 	gpr.getReg(DSP_REG_ACC0_64+_reg, reg);
 	MOV(64, R(acc), reg);
@@ -856,7 +856,7 @@ void DSPEmitter::get_long_acc(int _reg, X64Reg acc)
 // In: acc = s64 val
 void DSPEmitter::set_long_acc(int _reg, X64Reg acc)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	OpArg reg;
 	gpr.getReg(DSP_REG_ACC0_64+_reg, reg, false);
 	MOV(64, reg, R(acc));

@@ -25,9 +25,9 @@ public:
 
 	bool operator <(const SHADERUID& r) const
 	{
-		if(puid < r.puid) return true;
-		if(r.puid < puid) return false;
-		if(vuid < r.vuid) return true;
+		if (puid < r.puid) return true;
+		if (r.puid < puid) return false;
+		if (vuid < r.vuid) return true;
 		return false;
 	}
 
@@ -37,9 +37,6 @@ public:
 	}
 };
 
-
-const int NUM_UNIFORMS = 19;
-extern const char *UniformNames[NUM_UNIFORMS];
 
 struct SHADER
 {
@@ -52,8 +49,6 @@ struct SHADER
 	GLuint glprogid; // opengl program id
 
 	std::string strvprog, strpprog;
-	GLint UniformLocations[NUM_UNIFORMS];
-	u32 UniformSize[NUM_UNIFORMS];
 
 	void SetProgramVariables();
 	void SetProgramBindings();

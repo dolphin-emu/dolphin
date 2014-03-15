@@ -88,7 +88,7 @@ void PatchFunctions()
 	for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
 	{
 		Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
-		if (symbol > 0)
+		if (symbol)
 		{
 			for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
 			{
@@ -103,7 +103,7 @@ void PatchFunctions()
 		for (size_t i = 1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
 		{
 			Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
-			if (symbol > 0)
+			if (symbol)
 			{
 				PowerPC::breakpoints.Add(symbol->address, false);
 				INFO_LOG(OSHLE, "Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
@@ -156,10 +156,11 @@ bool IsEnabled(int flags)
 	return true;
 }
 
-u32 UnPatch(std::string patchName)
+u32 UnPatch(const std::string& patchName)
 {
-	Symbol *symbol = g_symbolDB.GetSymbolFromName(patchName.c_str());
-	if (symbol > 0)
+	Symbol* symbol = g_symbolDB.GetSymbolFromName(patchName);
+
+	if (symbol)
 	{
 		for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
 		{
@@ -168,6 +169,7 @@ u32 UnPatch(std::string patchName)
 		}
 		return symbol->address;
 	}
+
 	return 0;
 }
 

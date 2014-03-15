@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cctype>
+
 #ifdef _WIN32
 #include <windows.h>
 #include "VideoCommon/EmuWindow.h"
@@ -79,7 +81,7 @@ void EmuThread();
 bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bStarted = false;
-void *g_pWindowHandle = NULL;
+void *g_pWindowHandle = nullptr;
 std::string g_stateFileName;
 std::thread g_EmuThread;
 
@@ -109,15 +111,17 @@ bool PanicAlertToVideo(const char* text, bool yes_no)
 	return true;
 }
 
-void DisplayMessage(const char *message, int time_in_ms)
+void DisplayMessage(const std::string& message, int time_in_ms)
 {
 	SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	// Actually displaying non-ASCII could cause things to go pear-shaped
-	for (const char *c = message; *c != '\0'; ++c)
-		if (*c < ' ')
+	for (const char& c : message)
+	{
+		if (!std::isprint(c))
 			return;
+	}
 
 	g_video_backend->Video_AddMessage(message, time_in_ms);
 
@@ -297,7 +301,7 @@ void CpuThread()
 		g_video_backend->Video_Prepare();
 	}
 
-	#if defined(_M_X64) || _M_ARM
+	#if _M_X86_64 || _M_ARM_32
 	if (_CoreParameter.bFastmem)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
@@ -309,7 +313,7 @@ void CpuThread()
 
 
 	#ifdef USE_GDBSTUB
-	if(_CoreParameter.iGDBPort > 0)
+	if (_CoreParameter.iGDBPort > 0)
 	{
 		gdb_init(_CoreParameter.iGDBPort);
 		// break at next instruction (the first instruction)
@@ -353,7 +357,7 @@ void FifoPlayerThread()
 
 	g_bStarted = false;
 
-	if(!_CoreParameter.bCPUThread)
+	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
 	return;
@@ -492,7 +496,7 @@ void EmuThread()
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 
-	if(_CoreParameter.bCPUThread)
+	if (_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
 	VolumeHandler::EjectVolume();
@@ -575,7 +579,7 @@ void SaveScreenShot()
 
 	SetState(CORE_PAUSE);
 
-	g_video_backend->Video_Screenshot(GenerateScreenshotName().c_str());
+	g_video_backend->Video_Screenshot(GenerateScreenshotName());
 
 	if (!bPaused)
 		SetState(CORE_RUN);
@@ -644,7 +648,7 @@ bool ShouldSkipFrame(int skipped)
 // Should be called from GPU thread when a frame is drawn
 void Callback_VideoCopiedToXFB(bool video_update)
 {
-	if(video_update)
+	if (video_update)
 		Common::AtomicIncrement(DrawnFrame);
 	Movie::FrameUpdate();
 }
@@ -716,13 +720,11 @@ void UpdateTitle()
 	#endif
 
 	// This is our final "frame counter" string
-	std::string SMessage = StringFromFormat("%s | %s",
-		SSettings.c_str(), SFPS.c_str());
-	std::string TMessage = StringFromFormat("%s | ", scm_rev_str) +
-		SMessage;
+	std::string SMessage = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
+	std::string TMessage = StringFromFormat("%s | %s", scm_rev_str, SMessage.c_str());
 
 	// Show message
-	g_video_backend->UpdateFPSDisplay(SMessage.c_str());
+	g_video_backend->UpdateFPSDisplay(SMessage);
 
 	// Update the audio timestretcher with the current speed
 	if (soundStream)
@@ -734,11 +736,13 @@ void UpdateTitle()
 	if (_CoreParameter.bRenderToMain &&
 		SConfig::GetInstance().m_InterfaceStatusbar)
 	{
-		Host_UpdateStatusBar(SMessage.c_str());
+		Host_UpdateStatusBar(SMessage);
 		Host_UpdateTitle(scm_rev_str);
 	}
 	else
-		Host_UpdateTitle(TMessage.c_str());
+	{
+		Host_UpdateTitle(TMessage);
 	}
+}
 
 } // Core

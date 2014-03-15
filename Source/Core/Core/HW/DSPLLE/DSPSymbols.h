@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/Common.h"
 #include "Common/SymbolDB.h"
 
@@ -22,7 +24,7 @@ public:
 
 extern DSPSymbolDB g_dsp_symbol_db;
 
-bool ReadAnnotatedAssembly(const char *filename);
+bool ReadAnnotatedAssembly(const std::string& filename);
 void AutoDisassembly(u16 start_addr, u16 end_addr);
 
 void Clear();

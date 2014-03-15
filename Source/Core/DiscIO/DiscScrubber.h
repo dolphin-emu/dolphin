@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <string>
 #include "Common/CommonTypes.h"
 
 namespace File { class IOFile; }
@@ -23,7 +24,7 @@ namespace DiscIO
 namespace DiscScrubber
 {
 
-bool SetupScrub(const char* filename, int block_size);
+bool SetupScrub(const std::string& filename, int block_size);
 void GetNextBlock(File::IOFile& in, u8* buffer);
 void Cleanup();
 

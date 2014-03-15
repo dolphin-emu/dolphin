@@ -199,7 +199,7 @@ void Jit64::Shutdown()
 	asm_routines.Shutdown();
 }
 
-// This is only called by Default() in this file. It will execute an instruction with the interpreter functions.
+// This is only called by FallBackToInterpreter() in this file. It will execute an instruction with the interpreter functions.
 void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush(FLUSH_ALL);
@@ -218,7 +218,7 @@ void Jit64::unknown_instruction(UGeckoInstruction inst)
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void Jit64::Default(UGeckoInstruction _inst)
+void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
 {
 	WriteCallInterpreter(_inst.hex);
 }
@@ -246,7 +246,7 @@ static void ImHere()
 	{
 		if (!f)
 		{
-#ifdef _M_X64
+#if _M_X86_64
 			f.Open("log64.txt", "w");
 #else
 			f.Open("log32.txt", "w");
@@ -696,7 +696,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 		// Remove the invalid instruction from the icache, forcing a recompile
-#ifdef _M_IX86
+#if _M_X86_32
 		MOV(32, M(jit->GetBlockCache()->GetICachePtr(js.compilerPC)), Imm32(JIT_ICACHE_INVALID_WORD));
 #else
 		MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
@@ -726,7 +726,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 u32 Jit64::RegistersInUse()
 {
-#ifdef _M_X64
+#if _M_X86_64
 	u32 result = 0;
 	for (int i = 0; i < NUMXREGS; i++)
 	{

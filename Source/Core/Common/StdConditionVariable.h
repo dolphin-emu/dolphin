@@ -40,7 +40,7 @@
 #define USE_RVALUE_REFERENCES
 #endif
 
-#if defined(_WIN32) && defined(_M_X64)
+#if defined(_WIN32) && _M_X86_64
 #define USE_CONDITION_VARIABLES
 #elif defined(_WIN32)
 #define USE_EVENTS
@@ -72,9 +72,9 @@ public:
 #if defined(_WIN32) && defined(USE_CONDITION_VARIABLES)
 		InitializeConditionVariable(&m_handle);
 #elif defined(_WIN32)
-		m_handle = CreateEvent(NULL, false, false, NULL);
+		m_handle = CreateEvent(nullptr, false, false, nullptr);
 #else
-		pthread_cond_init(&m_handle, NULL);
+		pthread_cond_init(&m_handle, nullptr);
 #endif
 	}
 

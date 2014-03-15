@@ -26,16 +26,16 @@ public:
 	~PPCSymbolDB();
 
 	Symbol *AddFunction(u32 startAddr) override;
-	void AddKnownSymbol(u32 startAddr, u32 size, const char *name, int type = Symbol::SYMBOL_FUNCTION);
+	void AddKnownSymbol(u32 startAddr, u32 size, const std::string& name, int type = Symbol::SYMBOL_FUNCTION);
 
 	Symbol *GetSymbolFromAddr(u32 addr) override;
 
-	const char *GetDescription(u32 addr);
+	const std::string GetDescription(u32 addr);
 
 	void FillInCallers();
 
-	bool LoadMap(const char *filename);
-	bool SaveMap(const char *filename, bool WithCodes = false) const;
+	bool LoadMap(const std::string& filename);
+	bool SaveMap(const std::string& filename, bool WithCodes = false) const;
 
 	void PrintCalls(u32 funcAddr) const;
 	void PrintCallers(u32 funcAddr) const;

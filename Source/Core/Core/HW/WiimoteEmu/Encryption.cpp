@@ -197,7 +197,7 @@ void genkey(const u8* const rand, const u8 idx, u8* const key)
 	const u8* const ans = ans_tbl[idx];
 	u8 t0[10];
 
-	for(int i=0; i<10; ++i)
+	for (int i=0; i<10; ++i)
 		t0[i] = tsbox[rand[i]];
 
 	key[0] = ((ror8((ans[0]^t0[5]),(t0[2]%8)) - t0[9]) ^ t0[4]);
@@ -249,7 +249,7 @@ void wiimote_gen_key(wiimote_key* const key, const u8* const keydata)
 	//DEBUG_LOG(WIIMOTE, "rand: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x", rand[0], rand[1], rand[2], rand[3], rand[4], rand[5], rand[6], rand[7], rand[8], rand[9]);
 	//DEBUG_LOG(WIIMOTE, "key:  %02x %02x %02x %02x %02x %02x", skey[0], skey[1], skey[2], skey[3], skey[4], skey[5]);
 
-	for(idx = 0; idx < 7; ++idx)
+	for (idx = 0; idx < 7; ++idx)
 	{
 		genkey(rand, idx, testkey);
 		if (0 == memcmp(testkey, skey, 6))

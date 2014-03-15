@@ -2,7 +2,6 @@ set(SRCS	ActionReplay.cpp
 			ARDecrypt.cpp
 			BootManager.cpp
 			ConfigManager.cpp
-			Console.cpp
 			Core.cpp
 			CoreParameter.cpp
 			CoreTiming.cpp
@@ -27,8 +26,8 @@ set(SRCS	ActionReplay.cpp
 			Debugger/Debugger_SymbolMap.cpp
 			Debugger/Dump.cpp
 			Debugger/PPCDebugInterface.cpp
-			DSP/assemble.cpp
-			DSP/disassemble.cpp
+			DSP/DSPAssembler.cpp
+			DSP/DSPDisassembler.cpp
 			DSP/DSPAccelerator.cpp
 			DSP/DSPIntCCUtil.cpp
 			DSP/DSPIntExtOps.cpp
@@ -178,7 +177,7 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/JitILCommon/JitILBase_Integer.cpp
 			)
 
-if(NOT _M_GENERIC)
+if(_M_X86)
 	set(SRCS ${SRCS}
 			x64MemTools.cpp
 			PowerPC/Jit64IL/IR_X86.cpp
@@ -201,7 +200,7 @@ if(NOT _M_GENERIC)
 			PowerPC/JitCommon/JitAsmCommon.cpp
 			PowerPC/JitCommon/Jit_Util.cpp)
 endif()
-if(_M_ARM)
+if(_M_ARM_32)
 	set(SRCS ${SRCS}
 			ArmMemTools.cpp
 			PowerPC/JitArm32/Jit.cpp

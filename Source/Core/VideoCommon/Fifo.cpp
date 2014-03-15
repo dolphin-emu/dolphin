@@ -70,7 +70,7 @@ void Fifo_Shutdown()
 {
 	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
 	FreeMemoryPages(videoBuffer, FIFO_SIZE);
-	videoBuffer = NULL;
+	videoBuffer = nullptr;
 }
 
 u8* GetVideoBufferStartPtr()
@@ -95,7 +95,7 @@ void ExitGpuLoop()
 	// This should break the wait loop in CPU thread
 	CommandProcessor::fifo.bFF_GPReadEnable = false;
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	while(fifo.isGpuReadingData) Common::YieldCPU();
+	while (fifo.isGpuReadingData) Common::YieldCPU();
 	// Terminate GPU thread loop
 	GpuRunningState = false;
 	EmuRunningState = true;
@@ -180,7 +180,7 @@ void RunGpuLoop()
 
 				Common::AtomicStore(fifo.CPReadPointer, readPtr);
 				Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
-				if((GetVideoBufferEndPtr() - g_pVideoData) == 0)
+				if ((GetVideoBufferEndPtr() - g_pVideoData) == 0)
 					Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 			}
 

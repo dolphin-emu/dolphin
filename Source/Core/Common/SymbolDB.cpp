@@ -12,15 +12,15 @@
 
 void SymbolDB::List()
 {
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
+	for (const auto& func : functions)
 	{
 		DEBUG_LOG(OSHLE, "%s @ %08x: %i bytes (hash %08x) : %i calls",
-			iter->second.name.c_str(), iter->second.address,
-			iter->second.size, iter->second.hash,
-			iter->second.numCalls);
+		          func.second.name.c_str(), func.second.address,
+		          func.second.size, func.second.hash,
+		          func.second.numCalls);
 	}
 	INFO_LOG(OSHLE, "%lu functions known in this program above.",
-		(unsigned long)functions.size());
+	         (unsigned long)functions.size());
 }
 
 void SymbolDB::Clear(const char *prefix)
@@ -39,14 +39,15 @@ void SymbolDB::Index()
 	}
 }
 
-Symbol *SymbolDB::GetSymbolFromName(const char *name)
+Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
 {
 	for (auto& func : functions)
 	{
-		if (!strcmp(func.second.name.c_str(), name))
+		if (func.second.name == name)
 			return &func.second;
 	}
-	return 0;
+
+	return nullptr;
 }
 
 void SymbolDB::AddCompleteSymbol(const Symbol &symbol)

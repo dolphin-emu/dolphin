@@ -119,7 +119,7 @@ static const char POINT_GS_COMMON[] =
 ;
 
 PointGeometryShader::PointGeometryShader()
-	: m_ready(false), m_paramsBuffer(NULL)
+	: m_ready(false), m_paramsBuffer(nullptr)
 { }
 
 void PointGeometryShader::Init()
@@ -132,7 +132,7 @@ void PointGeometryShader::Init()
 
 	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(PointGSParams_Padded),
 		D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	hr = D3D::device->CreateBuffer(&bd, NULL, &m_paramsBuffer);
+	hr = D3D::device->CreateBuffer(&bd, nullptr, &m_paramsBuffer);
 	CHECK(SUCCEEDED(hr), "create point geometry shader params buffer");
 	D3D::SetDebugObjectName(m_paramsBuffer, "point geometry shader params buffer");
 
@@ -178,14 +178,14 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 		const std::string& numTexCoordsStr = numTexCoordsStream.str();
 		D3D_SHADER_MACRO macros[] = {
 			{ "NUM_TEXCOORDS", numTexCoordsStr.c_str() },
-			{ NULL, NULL }
+			{ nullptr, nullptr }
 		};
 		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code.GetBuffer(), unsigned int(strlen(code.GetBuffer())), macros);
 		if (!newShader)
 		{
 			WARN_LOG(VIDEO, "Point geometry shader for components 0x%.08X failed to compile", components);
 			// Add dummy shader to prevent trying to compile again
-			m_shaders[components] = NULL;
+			m_shaders[components] = nullptr;
 			return false;
 		}
 
@@ -217,7 +217,7 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 			DEBUG_LOG(VIDEO, "Point params: size %f, texOffset %f, vpWidth %f, vpHeight %f",
 				pointSize, texOffset, vpWidth, vpHeight);
 
-			D3D::context->GSSetShader(shaderIt->second, NULL, 0);
+			D3D::context->GSSetShader(shaderIt->second, nullptr, 0);
 			D3D::context->GSSetConstantBuffers(0, 1, &m_paramsBuffer);
 
 			return true;

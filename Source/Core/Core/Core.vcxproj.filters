@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="ActionReplay">
@@ -137,7 +137,6 @@
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
-    <ClCompile Include="Console.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreParameter.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
@@ -510,10 +509,7 @@
     <ClCompile Include="HW\SystemTimers.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\assemble.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="DSP\disassemble.cpp">
+    <ClCompile Include="DSP\DSPAssembler.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
     <ClCompile Include="DSP\DSPAccelerator.cpp">
@@ -526,6 +522,9 @@
       <Filter>DSPCore</Filter>
     </ClCompile>
     <ClCompile Include="DSP\DSPCore.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPDisassembler.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
     <ClCompile Include="DSPEmulator.cpp">
@@ -710,7 +709,6 @@
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="ConfigManager.h" />
-    <ClInclude Include="Console.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreParameter.h" />
     <ClInclude Include="CoreTiming.h" />
@@ -1040,10 +1038,7 @@
     <ClInclude Include="HW\SystemTimers.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\assemble.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="DSP\disassemble.h">
+    <ClInclude Include="DSP\DSPAssembler.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPAccelerator.h">
@@ -1062,6 +1057,9 @@
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPCore.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPDisassembler.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSPEmulator.h">

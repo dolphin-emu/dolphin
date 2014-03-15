@@ -39,7 +39,7 @@ VideoConfig::VideoConfig()
 	backend_info.bSupports3DVision = false;
 }
 
-void VideoConfig::Load(const char *ini_file)
+void VideoConfig::Load(const std::string& ini_file)
 {
 	IniFile iniFile;
 	iniFile.Load(ini_file);
@@ -197,7 +197,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "ProjectionHack", iPhackvalue[0]);
 	CHECK_SETTING("Video", "PH_SZNear", iPhackvalue[1]);
 	CHECK_SETTING("Video", "PH_SZFar", iPhackvalue[2]);
-	CHECK_SETTING("Video", "PH_ExtraParam", iPhackvalue[3]);
 	CHECK_SETTING("Video", "PH_ZNear", sPhackvalue[0]);
 	CHECK_SETTING("Video", "PH_ZFar", sPhackvalue[1]);
 	CHECK_SETTING("Video", "UseBBox", bUseBBox);
@@ -217,7 +216,7 @@ void VideoConfig::VerifyValidity()
 	if (!backend_info.bSupportsPixelLighting) bEnablePixelLighting = false;
 }
 
-void VideoConfig::Save(const char *ini_file)
+void VideoConfig::Save(const std::string& ini_file)
 {
 	IniFile iniFile;
 	iniFile.Load(ini_file);

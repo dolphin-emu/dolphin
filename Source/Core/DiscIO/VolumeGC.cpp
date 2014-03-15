@@ -22,12 +22,12 @@ CVolumeGC::CVolumeGC(IBlobReader* _pReader)
 CVolumeGC::~CVolumeGC()
 {
 	delete m_pReader;
-	m_pReader = NULL; // I don't think this makes any difference, but anyway
+	m_pReader = nullptr; // I don't think this makes any difference, but anyway
 }
 
 bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 		return false;
 
 	FileMon::FindFilename(_Offset);
@@ -43,7 +43,7 @@ bool CVolumeGC::RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const
 std::string CVolumeGC::GetUniqueID() const
 {
 	static const std::string NO_UID("NO_UID");
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 		return NO_UID;
 
 	char ID[7];
@@ -77,7 +77,7 @@ IVolume::ECountry CVolumeGC::GetCountry() const
 
 std::string CVolumeGC::GetMakerID() const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 		return std::string();
 
 	char makerID[3];
@@ -107,7 +107,7 @@ std::vector<std::string> CVolumeGC::GetNames() const
 	auto const string_decoder = GetStringDecoder(GetCountry());
 
 	char name[0x60 + 1] = {};
-	if (m_pReader != NULL && Read(0x20, 0x60, (u8*)name))
+	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)name))
 		names.push_back(string_decoder(name));
 
 	return names;
@@ -115,7 +115,7 @@ std::vector<std::string> CVolumeGC::GetNames() const
 
 u32 CVolumeGC::GetFSTSize() const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 		return 0;
 
 	u32 size;
@@ -127,7 +127,7 @@ u32 CVolumeGC::GetFSTSize() const
 
 std::string CVolumeGC::GetApploaderDate() const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 		return std::string();
 
 	char date[16];

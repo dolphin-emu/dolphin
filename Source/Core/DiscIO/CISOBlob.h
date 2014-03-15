@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdio>
+#include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -13,7 +14,7 @@
 namespace DiscIO
 {
 
-bool IsCISOBlob(const char* filename);
+bool IsCISOBlob(const std::string& filename);
 
 static const u32 CISO_HEADER_SIZE = 0x8000;
 static const u32 CISO_MAP_SIZE = CISO_HEADER_SIZE - sizeof(u32) - sizeof(char) * 4;
@@ -33,11 +34,11 @@ struct CISOHeader
 class CISOFileReader : public IBlobReader
 {
 public:
-	static CISOFileReader* Create(const char* filename);
+	static CISOFileReader* Create(const std::string& filename);
 
-	u64 GetDataSize() const;
-	u64 GetRawSize() const;
-	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
+	u64 GetDataSize() const override;
+	u64 GetRawSize() const override;
+	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
 	CISOFileReader(std::FILE* file);

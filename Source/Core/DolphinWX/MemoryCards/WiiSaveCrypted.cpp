@@ -65,7 +65,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			if (entry.isDirectory)
 			{
 				u32 gameid;
-				if (AsciiToHex(entry.virtualName.c_str(), gameid))
+				if (AsciiToHex(entry.virtualName, gameid))
 				{
 					std::string bannerPath = StringFromFormat("%s%08x/data/banner.bin", folder.c_str(), gameid);
 					if (File::Exists(bannerPath))
@@ -303,7 +303,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 
 	FileHDR _tmpFileHDR;
 
-	for(u32 i = 0; i < _numberOfFiles; i++)
+	for (u32 i = 0; i < _numberOfFiles; i++)
 	{
 		memset(&_tmpFileHDR, 0, FILE_HDR_SZ);
 		memset(IV, 0, 0x10);
@@ -365,7 +365,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 {
 	if (!b_valid) return;
 
-	for(u32 i = 0; i < _numberOfFiles; i++)
+	for (u32 i = 0; i < _numberOfFiles; i++)
 	{
 		FileHDR tmpFileHDR;
 		std::string __name;
@@ -558,14 +558,14 @@ bool CWiiSaveCrypted::getPaths(bool forExport)
 			(u8)(m_TitleID >> 24) & 0xFF, (u8)(m_TitleID >> 16) & 0xFF,
 			(u8)(m_TitleID >>  8) & 0xFF, (u8)m_TitleID & 0xFF);
 
-		if(!File::IsDirectory(WiiTitlePath))
+		if (!File::IsDirectory(WiiTitlePath))
 		{
 			b_valid = false;
 			PanicAlertT("No save folder found for title %s", GameID);
 			return false;
 		}
 
-		if(!File::Exists(WiiTitlePath + "banner.bin"))
+		if (!File::Exists(WiiTitlePath + "banner.bin"))
 		{
 			b_valid = false;
 			PanicAlertT("No banner file found for title  %s", GameID);

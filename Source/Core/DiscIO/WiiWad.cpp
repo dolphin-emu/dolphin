@@ -34,11 +34,11 @@ private:
 
 WiiWAD::WiiWAD(const std::string& _rName)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName.c_str());
-	if (pReader == NULL || File::IsDirectory(_rName))
+	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName);
+	if (pReader == nullptr || File::IsDirectory(_rName))
 	{
 		m_Valid = false;
-		if(pReader) delete pReader;
+		if (pReader) delete pReader;
 		return;
 	}
 
@@ -63,7 +63,7 @@ u8* WiiWAD::CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset
 	if (_Size > 0)
 	{
 		u8* pTmpBuffer = new u8[_Size];
-		_dbg_assert_msg_(BOOT, pTmpBuffer!=0, "WiiWAD: Cant allocate memory for WAD entry");
+		_dbg_assert_msg_(BOOT, pTmpBuffer!=nullptr, "WiiWAD: Cant allocate memory for WAD entry");
 
 		if (!_rReader.Read(_Offset, _Size, pTmpBuffer))
 		{
@@ -72,7 +72,7 @@ u8* WiiWAD::CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset
 		}
 		return pTmpBuffer;
 	}
-	return NULL;
+	return nullptr;
 }
 
 
@@ -120,8 +120,8 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 
 bool WiiWAD::IsWiiWAD(const std::string& _rName)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName.c_str());
-	if (pReader == NULL)
+	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName);
+	if (pReader == nullptr)
 		return false;
 
 	CBlobBigEndianReader Reader(*pReader);
@@ -131,7 +131,7 @@ bool WiiWAD::IsWiiWAD(const std::string& _rName)
 	if (Reader.Read32(0x00) == 0x20)
 	{
 		u32 WADTYpe = Reader.Read32(0x04);
-		switch(WADTYpe)
+		switch (WADTYpe)
 		{
 		case 0x49730000:
 		case 0x69620000:

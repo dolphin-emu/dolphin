@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Crypto">
@@ -36,6 +36,7 @@
     <ClInclude Include="MemoryUtil.h" />
     <ClInclude Include="MsgHandler.h" />
     <ClInclude Include="NandPaths.h" />
+    <ClInclude Include="Network.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="StdConditionVariable.h" />
@@ -49,9 +50,6 @@
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Analyzer.h" />
     <ClInclude Include="x64Emitter.h" />
-    <ClInclude Include="Crypto\tools.h">
-      <Filter>Crypto</Filter>
-    </ClInclude>
     <ClInclude Include="ConsoleListener.h">
       <Filter>Logging</Filter>
     </ClInclude>
@@ -62,6 +60,8 @@
       <Filter>Logging</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Crypto\bn.h" />
+    <ClInclude Include="Crypto\ec.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />
@@ -78,6 +78,7 @@
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="MsgHandler.cpp" />
     <ClCompile Include="NandPaths.cpp" />
+    <ClCompile Include="Network.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
@@ -104,6 +105,7 @@
       <Filter>Logging</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="XSaveWorkaround.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

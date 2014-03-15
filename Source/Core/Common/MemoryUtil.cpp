@@ -31,7 +31,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 #if defined(_WIN32)
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
-	static char *map_hint = 0;
+	static char *map_hint = nullptr;
 #if defined(__x86_64__) && !defined(MAP_32BIT)
 	// This OS has no flag to enforce allocation below the 4 GB boundary,
 	// but if we hint that we want a low address it is very likely we will
@@ -56,9 +56,9 @@ void* AllocateExecutableMemory(size_t size, bool low)
 #if defined(__FreeBSD__)
 	if (ptr == MAP_FAILED)
 	{
-		ptr = NULL;
+		ptr = nullptr;
 #else
-	if (ptr == NULL)
+	if (ptr == nullptr)
 	{
 #endif
 		PanicAlert("Failed to allocate executable memory");
@@ -75,7 +75,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 	}
 #endif
 
-#if defined(_M_X64)
+#if _ARCH_64
 	if ((u64)ptr >= 0x80000000 && low == true)
 		PanicAlert("Executable memory ended up above 2GB!");
 #endif
@@ -88,14 +88,14 @@ void* AllocateMemoryPages(size_t size)
 #ifdef _WIN32
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
 #else
-	void* ptr = mmap(0, size, PROT_READ | PROT_WRITE,
+	void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE,
 			MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif
 
 	// printf("Mapped memory at %p (size %ld)\n", ptr,
 	//	(unsigned long)size);
 
-	if (ptr == NULL)
+	if (ptr == nullptr)
 		PanicAlert("Failed to allocate raw memory");
 
 	return ptr;
@@ -106,7 +106,7 @@ void* AllocateAlignedMemory(size_t size,size_t alignment)
 #ifdef _WIN32
 	void* ptr =  _aligned_malloc(size,alignment);
 #else
-	void* ptr = NULL;
+	void* ptr = nullptr;
 #ifdef ANDROID
 	ptr = memalign(alignment, size);
 #else
@@ -118,7 +118,7 @@ void* AllocateAlignedMemory(size_t size,size_t alignment)
 	// printf("Mapped memory at %p (size %ld)\n", ptr,
 	//	(unsigned long)size);
 
-	if (ptr == NULL)
+	if (ptr == nullptr)
 		PanicAlert("Failed to allocate aligned memory");
 
 	return ptr;
@@ -185,7 +185,7 @@ std::string MemUsage()
 	// Print information about the memory usage of the process.
 
 	hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-	if (NULL == hProcess) return "MemUsage Error";
+	if (nullptr == hProcess) return "MemUsage Error";
 
 	if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
 		Ret = StringFromFormat("%s K", ThousandSeparate(pmc.WorkingSetSize / 1024, 7).c_str());

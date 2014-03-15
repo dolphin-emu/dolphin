@@ -51,7 +51,7 @@ void JitArm::mtspr(UGeckoInstruction inst)
 		break;
 
 	default:
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -77,7 +77,7 @@ void JitArm::mfspr(UGeckoInstruction inst)
 	case SPR_DEC:
 	case SPR_TL:
 	case SPR_TU:
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	default:
 		ARMReg RD = gpr.R(inst.RD);
@@ -242,7 +242,7 @@ void JitArm::crXXX(UGeckoInstruction inst)
 		LSR(rB, rB, shiftB);
 
 	// Compute combined bit
-	switch(inst.SUBOP10)
+	switch (inst.SUBOP10)
 	{
 	case 33: // crnor
 		ORR(rA, rA, rB);

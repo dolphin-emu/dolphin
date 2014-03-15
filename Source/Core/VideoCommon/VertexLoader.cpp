@@ -464,10 +464,10 @@ void LOADERDECL TexMtx_Write_Float4()
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 {
-	m_compiledCode = NULL;
+	m_compiledCode = nullptr;
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
-	m_NativeFmt = 0;
+	m_NativeFmt = nullptr;
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
@@ -567,7 +567,7 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Write vertex position loader
-	if(g_ActiveConfig.bUseBBox)
+	if (g_ActiveConfig.bUseBBox)
 	{
 		WriteCall(UpdateBoundingBoxPrepare);
 		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
@@ -594,7 +594,7 @@ void VertexLoader::CompileVertexTranslator()
 		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal,
 			m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 
-		if (pFunc == 0)
+		if (pFunc == nullptr)
 		{
 			Host_SysMessage(
 				StringFromFormat("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!", 
@@ -768,7 +768,7 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_VERTEX_LOADER_JIT
 	// End loop here
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)&loop_counter));
 	SUB(32, MatR(RAX), Imm8(1));
 #else
@@ -787,7 +787,7 @@ void VertexLoader::CompileVertexTranslator()
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)func));
 	CALLptr(R(RAX));
 #else
@@ -802,7 +802,7 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, dest, MatR(RAX));
 #else
@@ -814,7 +814,7 @@ void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, MatR(RAX), value);
 #else
@@ -829,7 +829,7 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	m_numLoadedVertices += count;
 
 	// Flush if our vertex format is different from the currently set.
-	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
+	if (g_nativeVertexFmt != nullptr && g_nativeVertexFmt != m_NativeFmt)
 	{
 		// We really must flush here. It's possible that the native representations
 		// of the two vtx formats are the same, but we have no way to easily check that
@@ -947,7 +947,7 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[7].Format   = vat.g2.Tex7CoordFormat;
 	m_VtxAttr.texCoord[7].Frac     = vat.g2.Tex7Frac;
 
-	if(!m_VtxAttr.ByteDequant) {
+	if (!m_VtxAttr.ByteDequant) {
 		ERROR_LOG(VIDEO, "ByteDequant is set to zero");
 	}
 };

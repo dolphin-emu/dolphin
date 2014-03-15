@@ -71,8 +71,8 @@ CCodeView::CCodeView(DebugInterface* debuginterface, SymbolDB *symboldb,
 	  debugger(debuginterface),
 	  symbol_db(symboldb),
 	  plain(false),
-	  curAddress(debuginterface->getPC()),
-	  align(debuginterface->getInstructionSize(0)),
+	  curAddress(debuginterface->GetPC()),
+	  align(debuginterface->GetInstructionSize(0)),
 	  rowHeight(13),
 	  selection(0),
 	  oldSelection(0),
@@ -116,7 +116,7 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
 
 void CCodeView::ToggleBreakpoint(u32 address)
 {
-	debugger->toggleBreakpoint(address);
+	debugger->ToggleBreakpoint(address);
 	Refresh();
 	Host_UpdateBreakPointView();
 }
@@ -169,7 +169,7 @@ void CCodeView::OnMouseUpL(wxMouseEvent& event)
 u32 CCodeView::AddrToBranch(u32 addr)
 {
 	char disasm[256];
-	debugger->disasm(addr, disasm, 256);
+	debugger->Disassemble(addr, disasm, 256);
 	const char *mojs = strstr(disasm, "->0x");
 	if (mojs)
 	{
@@ -184,9 +184,9 @@ void CCodeView::InsertBlrNop(int Blr)
 {
 	// Check if this address has been modified
 	int find = -1;
-	for(u32 i = 0; i < BlrList.size(); i++)
+	for (u32 i = 0; i < BlrList.size(); i++)
 	{
-		if(BlrList.at(i).Address == selection)
+		if (BlrList.at(i).Address == selection)
 		{
 			find = i;
 			break;
@@ -196,19 +196,19 @@ void CCodeView::InsertBlrNop(int Blr)
 	// Save the old value
 	if (find >= 0)
 	{
-		debugger->writeExtraMemory(0, BlrList.at(find).OldValue, selection);
+		debugger->WriteExtraMemory(0, BlrList.at(find).OldValue, selection);
 		BlrList.erase(BlrList.begin() + find);
 	}
 	else
 	{
 		BlrStruct Temp;
 		Temp.Address = selection;
-		Temp.OldValue = debugger->readMemory(selection);
+		Temp.OldValue = debugger->ReadMemory(selection);
 		BlrList.push_back(Temp);
 		if (Blr == 0)
-			debugger->insertBLR(selection, 0x4e800020);
+			debugger->InsertBLR(selection, 0x4e800020);
 		else
-			debugger->insertBLR(selection, 0x60000000);
+			debugger->InsertBLR(selection, 0x60000000);
 	}
 	Refresh();
 }
@@ -233,7 +233,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		case IDM_COPYCODE:
 			{
 				char disasm[256];
-				debugger->disasm(selection, disasm, 256);
+				debugger->Disassemble(selection, disasm, 256);
 				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(disasm)));
 			}
 			break;
@@ -241,7 +241,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		case IDM_COPYHEX:
 			{
 				char temp[24];
-				sprintf(temp, "%08x", debugger->readInstruction(selection));
+				sprintf(temp, "%08x", debugger->ReadInstruction(selection));
 				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
 			}
 			break;
@@ -260,7 +260,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 					for (u32 addr = start; addr != end; addr += 4)
 					{
 						char disasm[256];
-						debugger->disasm(addr, disasm, 256);
+						debugger->Disassemble(addr, disasm, 256);
 						text = text + StringFromFormat("%08x: ", addr) + disasm + "\r\n";
 					}
 					wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(text)));
@@ -270,8 +270,8 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 #endif
 
 		case IDM_RUNTOHERE:
-			debugger->setBreakpoint(selection);
-			debugger->runToBreakpoint();
+			debugger->SetBreakpoint(selection);
+			debugger->RunToBreakpoint();
 			Refresh();
 			break;
 
@@ -286,7 +286,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			break;
 
 		case IDM_JITRESULTS:
-			debugger->showJitResults(selection);
+			debugger->ShowJitResults(selection);
 			break;
 
 		case IDM_FOLLOWBRANCH:
@@ -335,7 +335,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 void CCodeView::OnMouseUpR(wxMouseEvent& event)
 {
-	bool isSymbol = symbol_db->GetSymbolFromAddr(selection) != 0;
+	bool isSymbol = symbol_db->GetSymbolFromAddr(selection) != nullptr;
 	// popup menu
 	wxMenu* menu = new wxMenu;
 	//menu->Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
@@ -430,7 +430,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 		int rowY2 = rc.height / 2 + rowHeight * i + rowHeight / 2;
 
 		wxString temp = wxString::Format(_T("%08x"), address);
-		u32 col = debugger->getColor(address);
+		u32 col = debugger->GetColor(address);
 		wxBrush rowBrush(wxColor(col >> 16, col >> 8, col));
 		dc.SetBrush(nullBrush);
 		dc.SetPen(nullPen);
@@ -441,7 +441,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 		else
 			dc.SetPen(i == 0 ? currentPen : nullPen);
 
-		if (address == debugger->getPC())
+		if (address == debugger->GetPC())
 			dc.SetBrush(pcBrush);
 		else
 			dc.SetBrush(rowBrush);
@@ -456,10 +456,10 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 		}
 
 		// If running
-		if (debugger->isAlive())
+		if (debugger->IsAlive())
 		{
 			char dis[256];
-			debugger->disasm(address, dis, 256);
+			debugger->Disassemble(address, dis, 256);
 			char* dis2 = strchr(dis, '\t');
 			char desc[256] = "";
 
@@ -482,7 +482,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 						}
 						if (!found)
 						{
-							mojs = 0;
+							mojs = nullptr;
 							break;
 						}
 					}
@@ -494,7 +494,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 					branches[numBranches].src = rowY1 + rowHeight / 2;
 					branches[numBranches].srcAddr = address / align;
 					branches[numBranches++].dst = (int)(rowY1 + ((s64)(u32)offs - (s64)(u32)address) * rowHeight / align + rowHeight / 2);
-					sprintf(desc, "-->%s", debugger->getDescription(offs).c_str());
+					sprintf(desc, "-->%s", debugger->GetDescription(offs).c_str());
 					dc.SetTextForeground(_T("#600060")); // the -> arrow illustrations are purple
 				}
 				else
@@ -516,7 +516,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
 			if (desc[0] == 0)
 			{
-				strcpy(desc, debugger->getDescription(address).c_str());
+				strcpy(desc, debugger->GetDescription(address).c_str());
 			}
 
 			if (!plain)
@@ -532,7 +532,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			}
 
 			// Show red breakpoint dot
-			if (debugger->isBreakpoint(address))
+			if (debugger->IsBreakpoint(address))
 			{
 				dc.SetBrush(bpBrush);
 				dc.DrawRectangle(2, rowY1 + 1, 11, 11);

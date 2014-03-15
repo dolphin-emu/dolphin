@@ -16,7 +16,7 @@ SysConf::SysConf()
 	: m_IsValid(false)
 {
 	m_FilenameDefault = File::GetUserPath(F_WIISYSCONF_IDX);
-	m_IsValid = LoadFromFile(m_FilenameDefault.c_str());
+	m_IsValid = LoadFromFile(m_FilenameDefault);
 }
 
 SysConf::~SysConf()
@@ -32,10 +32,11 @@ void SysConf::Clear()
 {
 	for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
 		delete [] i->data;
+
 	m_Entries.clear();
 }
 
-bool SysConf::LoadFromFile(const char *filename)
+bool SysConf::LoadFromFile(const std::string& filename)
 {
 	// Basic check
 	if (!File::Exists(filename))
@@ -55,7 +56,9 @@ bool SysConf::LoadFromFile(const char *filename)
 			return true;
 		}
 		else
+		{
 			return false;
+		}
 	}
 
 	File::IOFile f(filename, "rb");
@@ -361,7 +364,7 @@ void SysConf::GenerateSysConf()
 	m_Filename = m_FilenameDefault;
 }
 
-bool SysConf::SaveToFile(const char *filename)
+bool SysConf::SaveToFile(const std::string& filename)
 {
 	File::IOFile f(filename, "r+b");
 
@@ -393,7 +396,8 @@ bool SysConf::Save()
 {
 	if (!m_IsValid)
 		return false;
-	return SaveToFile(m_Filename.c_str());
+
+	return SaveToFile(m_Filename);
 }
 
 void SysConf::UpdateLocation()
@@ -416,6 +420,6 @@ bool SysConf::Reload()
 
 	std::string& filename = m_Filename.empty() ? m_FilenameDefault : m_Filename;
 
-	m_IsValid = LoadFromFile(filename.c_str());
+	m_IsValid = LoadFromFile(filename);
 	return m_IsValid;
 }

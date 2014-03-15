@@ -41,7 +41,7 @@ std::vector<std::string> cdio_get_devices()
 {
 	std::vector<std::string> drives;
 
-	const DWORD buffsize = GetLogicalDriveStrings(0, NULL);
+	const DWORD buffsize = GetLogicalDriveStrings(0, nullptr);
 	std::vector<TCHAR> buff(buffsize);
 	if (GetLogicalDriveStrings(buffsize, buff.data()) == buffsize - 1)
 	{
@@ -73,11 +73,11 @@ std::vector<std::string> cdio_get_devices()
 	std::vector<std::string> drives;
 
 	kern_result = IOMasterPort( MACH_PORT_NULL, &master_port );
-	if( kern_result != KERN_SUCCESS )
+	if (kern_result != KERN_SUCCESS)
 		return( drives );
 
 	classes_to_match = IOServiceMatching( kIOCDMediaClass );
-	if( classes_to_match == NULL )
+	if (classes_to_match == nullptr)
 		return( drives );
 
 	CFDictionarySetValue( classes_to_match,
@@ -85,11 +85,11 @@ std::vector<std::string> cdio_get_devices()
 
 	kern_result = IOServiceGetMatchingServices( master_port,
 		classes_to_match, &media_iterator );
-	if( kern_result != KERN_SUCCESS)
+	if (kern_result != KERN_SUCCESS)
 		return( drives );
 
 	next_media = IOIteratorNext( media_iterator );
-	if( next_media != 0 )
+	if (next_media != 0)
 	{
 		char psz_buf[0x32];
 		size_t dev_path_length;
@@ -101,7 +101,7 @@ std::vector<std::string> cdio_get_devices()
 				IORegistryEntryCreateCFProperty( next_media,
 					CFSTR( kIOBSDNameKey ), kCFAllocatorDefault,
 					0 );
-			if( str_bsd_path == NULL )
+			if (str_bsd_path == nullptr)
 			{
 				IOObjectRelease( next_media );
 				continue;
@@ -113,12 +113,12 @@ std::vector<std::string> cdio_get_devices()
 			snprintf( psz_buf, sizeof(psz_buf), "%s%c", _PATH_DEV, 'r' );
 			dev_path_length = strlen( psz_buf );
 
-			if( CFStringGetCString( (CFStringRef)str_bsd_path,
+			if (CFStringGetCString( (CFStringRef)str_bsd_path,
 				(char*)&psz_buf + dev_path_length,
 				sizeof(psz_buf) - dev_path_length,
 				kCFStringEncodingASCII))
 			{
-				if(psz_buf != NULL)
+				if (psz_buf != nullptr)
 				{
 					std::string str = psz_buf;
 					drives.push_back(str);
@@ -127,7 +127,7 @@ std::vector<std::string> cdio_get_devices()
 			CFRelease( str_bsd_path );
 			IOObjectRelease( next_media );
 
-		} while( ( next_media = IOIteratorNext( media_iterator ) ) != 0 );
+		} while (( next_media = IOIteratorNext( media_iterator ) ) != 0);
 	}
 	IOObjectRelease( media_iterator );
 	return drives;
@@ -151,7 +151,7 @@ static struct
 		{ "/dev/acd%d", 0, 27 },
 		{ "/dev/cd%d", 0, 27 },
 #endif
-		{ NULL, 0, 0 }
+		{ nullptr, 0, 0 }
 	};
 
 // Returns true if a device is a block or char device and not a symbolic link
@@ -175,7 +175,7 @@ static bool is_cdrom(const std::string& drive, char *mnttype)
 	bool is_cd=false;
 	// If it does exist, verify that it is a cdrom/dvd drive
 	int cdfd = open(drive.c_str(), (O_RDONLY|O_NONBLOCK), 0);
-	if ( cdfd >= 0 )
+	if (cdfd >= 0)
 	{
 #ifdef __linux__
 		if (ioctl(cdfd, CDROM_GET_CAPABILITY, 0) != -1)
@@ -196,7 +196,7 @@ std::vector<std::string> cdio_get_devices ()
 		for (unsigned int j = checklist[i].num_min; j <= checklist[i].num_max; ++j)
 		{
 			std::string drive = StringFromFormat(checklist[i].format, j);
-			if (is_cdrom(drive, NULL))
+			if (is_cdrom(drive, nullptr))
 			{
 				drives.push_back(std::move(drive));
 			}

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <string>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -16,14 +17,14 @@
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-#ifndef _M_GENERIC
+#if _M_X86
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 #endif
 
-#ifdef _M_ARM
+#if _M_ARM_32
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitArm32/JitArm_Tables.h"
 #include "Core/PowerPC/JitArmIL/JitIL.h"
@@ -45,10 +46,10 @@ namespace JitInterface
 		bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true;
 		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
-		CPUCoreBase *ptr = NULL;
-		switch(core)
+		CPUCoreBase *ptr = nullptr;
+		switch (core)
 		{
-			#ifndef _M_GENERIC
+			#if _M_X86
 			case 1:
 			{
 				ptr = new Jit64();
@@ -60,7 +61,7 @@ namespace JitInterface
 				break;
 			}
 			#endif
-			#ifdef _M_ARM
+			#if _M_ARM_32
 			case 3:
 			{
 				ptr = new JitArm();
@@ -75,8 +76,8 @@ namespace JitInterface
 			default:
 			{
 				PanicAlert("Unrecognizable cpu_core: %d", core);
-				jit = NULL;
-				return NULL;
+				jit = nullptr;
+				return nullptr;
 			}
 		}
 		jit = static_cast<JitBase*>(ptr);
@@ -85,9 +86,9 @@ namespace JitInterface
 	}
 	void InitTables(int core)
 	{
-		switch(core)
+		switch (core)
 		{
-			#ifndef _M_GENERIC
+			#if _M_X86
 			case 1:
 			{
 				Jit64Tables::InitTables();
@@ -99,7 +100,7 @@ namespace JitInterface
 				break;
 			}
 			#endif
-			#ifdef _M_ARM
+			#if _M_ARM_32
 			case 3:
 			{
 				JitArmTables::InitTables();
@@ -123,10 +124,10 @@ namespace JitInterface
 		return jit;
 	}
 
-	void WriteProfileResults(const char *filename)
+	void WriteProfileResults(const std::string& filename)
 	{
 		// Can't really do this with no jit core available
-		#ifndef _M_GENERIC
+		#if _M_X86
 
 		std::vector<BlockStat> stats;
 		stats.reserve(jit->GetBlockCache()->GetNumBlocks());
@@ -157,7 +158,7 @@ namespace JitInterface
 		File::IOFile f(filename, "w");
 		if (!f)
 		{
-			PanicAlert("Failed to open %s", filename);
+			PanicAlert("Failed to open %s", filename.c_str());
 			return;
 		}
 		fprintf(f.GetHandle(), "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
@@ -239,7 +240,7 @@ namespace JitInterface
 		{
 			jit->Shutdown();
 			delete jit;
-			jit = NULL;
+			jit = nullptr;
 		}
 	}
 }

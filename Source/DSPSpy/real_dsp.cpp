@@ -28,7 +28,7 @@ void RealDSP::Init()
 
 	u32 level;
 	_CPU_ISR_Disable(level);
-	IRQ_Request(IRQ_DSP_DSP, dsp_irq_handler, NULL);
+	IRQ_Request(IRQ_DSP_DSP, dsp_irq_handler, nullptr);
 	_CPU_ISR_Restore(level);
 }
 

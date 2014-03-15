@@ -47,14 +47,13 @@ std::vector<Patch> onFrame;
 std::map<u32, int> speedHacks;
 std::vector<std::string> discList;
 
-void LoadPatchSection(const char *section, std::vector<Patch>& patches,
-                      IniFile& globalIni, IniFile& localIni)
+void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni, IniFile& localIni)
 {
 	// Load the name of all enabled patches
-	std::string enabledSectionName = std::string(section) + "_Enabled";
+	std::string enabledSectionName = section + "_Enabled";
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
-	localIni.GetLines(enabledSectionName.c_str(), enabledLines);
+	localIni.GetLines(enabledSectionName, enabledLines);
 	for (const std::string& line : enabledLines)
 	{
 		if (line.size() != 0 && line[0] == '$')

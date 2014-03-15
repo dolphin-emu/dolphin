@@ -16,7 +16,7 @@ hide_cursor(void)
 		return;
 
 	wl_pointer_set_cursor(GLWin.pointer.wl_pointer,
-			      GLWin.pointer.serial, NULL, 0, 0);
+			      GLWin.pointer.serial, nullptr, 0, 0);
 }
 
 static void
@@ -104,10 +104,10 @@ toggle_fullscreen(bool fullscreen)
 	if (fullscreen) {
 		wl_shell_surface_set_fullscreen(GLWin.wl_shell_surface,
 						WL_SHELL_SURFACE_FULLSCREEN_METHOD_DEFAULT,
-						0, NULL);
+						0, nullptr);
 	} else {
 		wl_shell_surface_set_toplevel(GLWin.wl_shell_surface);
-		handle_configure(NULL, GLWin.wl_shell_surface, 0,
+		handle_configure(nullptr, GLWin.wl_shell_surface, 0,
 				 GLWin.window_size.width,
 				 GLWin.window_size.height);
 	}
@@ -124,7 +124,7 @@ keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard,
 		return;
 	}
 
-	map_str = (char *) mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+	map_str = (char *) mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
 	if (map_str == MAP_FAILED) {
 		close(fd);
 		return;
@@ -146,7 +146,7 @@ keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard,
 	if (!GLWin.keyboard.xkb.state) {
 		fprintf(stderr, "failed to create XKB state\n");
 		xkb_map_unref(GLWin.keyboard.xkb.keymap);
-		GLWin.keyboard.xkb.keymap = NULL;
+		GLWin.keyboard.xkb.keymap = nullptr;
 		return;
 	}
 
@@ -244,15 +244,15 @@ static void
 seat_handle_capabilities(void *data, struct wl_seat *seat,
 			 uint32_t caps)
 {
-	struct wl_pointer *wl_pointer = NULL;
-	struct wl_keyboard *wl_keyboard = NULL;
+	struct wl_pointer *wl_pointer = nullptr;
+	struct wl_keyboard *wl_keyboard = nullptr;
 
 	if ((caps & WL_SEAT_CAPABILITY_POINTER) && !wl_pointer) {
 		wl_pointer = wl_seat_get_pointer(seat);
 		wl_pointer_add_listener(wl_pointer, &pointer_listener, 0);
 	} else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && wl_pointer) {
 		wl_pointer_destroy(wl_pointer);
-		wl_pointer = NULL;
+		wl_pointer = nullptr;
 	}
 
 	GLWin.pointer.wl_pointer = wl_pointer;
@@ -262,7 +262,7 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
 		wl_keyboard_add_listener(wl_keyboard, &keyboard_listener, 0);
 	} else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD) && wl_keyboard) {
 		wl_keyboard_destroy(wl_keyboard);
-		wl_keyboard = NULL;
+		wl_keyboard = nullptr;
 	}
 
 	GLWin.keyboard.wl_keyboard = wl_keyboard;
@@ -290,7 +290,7 @@ registry_handle_global(void *data, struct wl_registry *registry,
 	} else if (strcmp(interface, "wl_shm") == 0) {
 		GLWin.wl_shm = (wl_shm *) wl_registry_bind(registry, name,
 					  &wl_shm_interface, 1);
-		GLWin.wl_cursor_theme = (wl_cursor_theme *) wl_cursor_theme_load(NULL, 32, GLWin.wl_shm);
+		GLWin.wl_cursor_theme = (wl_cursor_theme *) wl_cursor_theme_load(nullptr, 32, GLWin.wl_shm);
 		GLWin.wl_cursor = (wl_cursor *)
 			wl_cursor_theme_get_cursor(GLWin.wl_cursor_theme, "left_ptr");
 	}
@@ -309,7 +309,7 @@ static const struct wl_registry_listener registry_listener = {
 
 bool cWaylandInterface::ServerConnect(void)
 {
-	GLWin.wl_display = wl_display_connect(NULL);
+	GLWin.wl_display = wl_display_connect(nullptr);
 
 	if (!GLWin.wl_display)
 		return false;
@@ -324,18 +324,18 @@ bool cWaylandInterface::Initialize(void *config)
 		return false;
 	}
 
-	GLWin.pointer.wl_pointer = NULL;
-	GLWin.keyboard.wl_keyboard = NULL;
+	GLWin.pointer.wl_pointer = nullptr;
+	GLWin.keyboard.wl_keyboard = nullptr;
 
 	GLWin.keyboard.xkb.context = xkb_context_new((xkb_context_flags) 0);
-	if (GLWin.keyboard.xkb.context == NULL) {
+	if (GLWin.keyboard.xkb.context == nullptr) {
 		fprintf(stderr, "Failed to create XKB context\n");
-		return NULL;
+		return nullptr;
 	}
 
 	GLWin.wl_registry = wl_display_get_registry(GLWin.wl_display);
 	wl_registry_add_listener(GLWin.wl_registry,
-				 &registry_listener, NULL);
+				 &registry_listener, nullptr);
 
 	while (!GLWin.wl_compositor)
 		wl_display_dispatch(GLWin.wl_display);
@@ -379,9 +379,9 @@ void cWaylandInterface::DestroyWindow(void)
 	wl_surface_destroy(GLWin.wl_surface);
 }
 
-void cWaylandInterface::UpdateFPSDisplay(const char *text)
+void cWaylandInterface::UpdateFPSDisplay(const std::string& text)
 {
-	wl_shell_surface_set_title(GLWin.wl_shell_surface, text);
+	wl_shell_surface_set_title(GLWin.wl_shell_surface, text.c_str());
 }
 
 void cWaylandInterface::ToggleFullscreen(bool fullscreen)

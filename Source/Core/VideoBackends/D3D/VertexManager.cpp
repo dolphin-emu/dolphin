@@ -41,8 +41,8 @@ void VertexManager::CreateDeviceObjects()
 	m_vertex_buffers = new PID3D11Buffer[MAX_VBUFFER_COUNT];
 	for (m_current_index_buffer = 0; m_current_index_buffer < MAX_VBUFFER_COUNT; m_current_index_buffer++)
 	{
-		m_index_buffers[m_current_index_buffer] = NULL;
-		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, NULL, &m_index_buffers[m_current_index_buffer])),
+		m_index_buffers[m_current_index_buffer] = nullptr;
+		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, nullptr, &m_index_buffers[m_current_index_buffer])),
 		"Failed to create index buffer.");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_index_buffers[m_current_index_buffer], "index buffer of VertexManager");
 	}
@@ -50,8 +50,8 @@ void VertexManager::CreateDeviceObjects()
 	bufdesc.ByteWidth = VBUFFER_SIZE;
 	for (m_current_vertex_buffer = 0; m_current_vertex_buffer < MAX_VBUFFER_COUNT; m_current_vertex_buffer++)
 	{
-		m_vertex_buffers[m_current_vertex_buffer] = NULL;
-		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, NULL, &m_vertex_buffers[m_current_vertex_buffer])),
+		m_vertex_buffers[m_current_vertex_buffer] = nullptr;
+		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, nullptr, &m_vertex_buffers[m_current_vertex_buffer])),
 		"Failed to create vertex buffer.");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_vertex_buffers[m_current_vertex_buffer], "Vertex buffer of VertexManager");
 	}
@@ -167,7 +167,7 @@ void VertexManager::Draw(UINT stride)
 			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 
-			D3D::context->GSSetShader(NULL, NULL, 0);
+			D3D::context->GSSetShader(nullptr, nullptr, 0);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}
@@ -191,7 +191,7 @@ void VertexManager::Draw(UINT stride)
 			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 
-			D3D::context->GSSetShader(NULL, NULL, 0);
+			D3D::context->GSSetShader(nullptr, nullptr, 0);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}

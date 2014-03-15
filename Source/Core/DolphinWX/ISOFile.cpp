@@ -57,7 +57,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	{
 		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
 
-		if (pVolume != NULL)
+		if (pVolume != nullptr)
 		{
 			if (!DiscIO::IsVolumeWadFile(pVolume))
 				m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
@@ -73,18 +73,18 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
-			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
+			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName);
 			m_IsDiscTwo = pVolume->IsDiscTwo();
 			m_Revision = pVolume->GetRevision();
 
 			// check if we can get some info from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
-			if (pFileSystem != NULL || m_Platform == WII_WAD)
+			if (pFileSystem != nullptr || m_Platform == WII_WAD)
 			{
 				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, pVolume);
 
-				if (pBannerLoader != NULL)
+				if (pBannerLoader != nullptr)
 				{
 					if (pBannerLoader->IsValid())
 					{
@@ -270,7 +270,7 @@ std::string GameListItem::GetName(int _index) const
 	if (name.empty())
 	{
 		// No usable name, return filename (better than nothing)
-		SplitPath(GetFileName(), NULL, &name, NULL);
+		SplitPath(GetFileName(), nullptr, &name, nullptr);
 	}
 
 	return name;
@@ -278,32 +278,31 @@ std::string GameListItem::GetName(int _index) const
 
 const std::string GameListItem::GetWiiFSPath() const
 {
-	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(m_FileName);
+	DiscIO::IVolume *iso = DiscIO::CreateVolumeFromFilename(m_FileName);
 	std::string ret;
 
-	if (Iso == NULL)
+	if (iso == nullptr)
 		return ret;
 
-	if (DiscIO::IsVolumeWiiDisc(Iso) || DiscIO::IsVolumeWadFile(Iso))
+	if (DiscIO::IsVolumeWiiDisc(iso) || DiscIO::IsVolumeWadFile(iso))
 	{
-		char Path[250];
-		u64 Title;
+		u64 title;
 
-		Iso->GetTitleID((u8*)&Title);
-		Title = Common::swap64(Title);
+		iso->GetTitleID((u8*)&title);
+		title = Common::swap64(title);
 
-		sprintf(Path, "%stitle/%08x/%08x/data/",
-				File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(Title>>32), (u32)Title);
+		const std::string path = StringFromFormat("%stitle/%08x/%08x/data/",
+				File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(title>>32), (u32)title);
 
-		if (!File::Exists(Path))
-			File::CreateFullPath(Path);
+		if (!File::Exists(path))
+			File::CreateFullPath(path);
 
-		if (Path[0] == '.')
-			ret = WxStrToStr(wxGetCwd()) + std::string(Path).substr(strlen(ROOT_DIR));
+		if (path[0] == '.')
+			ret = WxStrToStr(wxGetCwd()) + path.substr(strlen(ROOT_DIR));
 		else
-			ret = std::string(Path);
+			ret = path;
 	}
-	delete Iso;
+	delete iso;
 
 	return ret;
 }

@@ -44,14 +44,14 @@ static u32 s_LastAA = 0;
 
 static Television s_television;
 
-ID3D11Buffer* access_efb_cbuf = NULL;
-ID3D11BlendState* clearblendstates[4] = {NULL};
-ID3D11DepthStencilState* cleardepthstates[3] = {NULL};
-ID3D11BlendState* resetblendstate = NULL;
-ID3D11DepthStencilState* resetdepthstate = NULL;
-ID3D11RasterizerState* resetraststate = NULL;
+ID3D11Buffer* access_efb_cbuf = nullptr;
+ID3D11BlendState* clearblendstates[4] = {nullptr};
+ID3D11DepthStencilState* cleardepthstates[3] = {nullptr};
+ID3D11BlendState* resetblendstate = nullptr;
+ID3D11DepthStencilState* resetdepthstate = nullptr;
+ID3D11RasterizerState* resetraststate = nullptr;
 
-static ID3D11Texture2D* s_screenshot_texture = NULL;
+static ID3D11Texture2D* s_screenshot_texture = nullptr;
 
 
 // GX pipeline state
@@ -145,7 +145,7 @@ void SetupDeviceObjects()
 	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
 
-	s_screenshot_texture = NULL;
+	s_screenshot_texture = nullptr;
 }
 
 // Kill off all device objects
@@ -172,7 +172,7 @@ void TeardownDeviceObjects()
 void CreateScreenshotTexture(const TargetRectangle& rc)
 {
 	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, rc.GetWidth(), rc.GetHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
-	HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, NULL, &s_screenshot_texture);
+	HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, nullptr, &s_screenshot_texture);
 	CHECK(hr==S_OK, "Create screenshot staging texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
 }
@@ -233,7 +233,7 @@ Renderer::Renderer()
 											0.f, 1 << g_ActiveConfig.iMaxAnisotropy,
 											D3D11_COMPARISON_ALWAYS, border,
 											-D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
-		if(g_ActiveConfig.iMaxAnisotropy != 0) gx_state.sampdc[k].Filter = D3D11_FILTER_ANISOTROPIC;
+		if (g_ActiveConfig.iMaxAnisotropy != 0) gx_state.sampdc[k].Filter = D3D11_FILTER_ANISOTROPIC;
 	}
 
 	// Clear EFB textures
@@ -255,7 +255,7 @@ Renderer::~Renderer()
 	D3D::Close();
 }
 
-void Renderer::RenderText(const char *text, int left, int top, u32 color)
+void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
 	D3D::font.DrawTextScaled((float)left, (float)top, 20.f, 0.0f, color, text);
 }
@@ -362,7 +362,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 	// Take the mean of the resulting dimensions; TODO: Don't use the center pixel, compute the average color instead
 	D3D11_RECT RectToLock;
-	if(type == PEEK_COLOR || type == PEEK_Z)
+	if (type == PEEK_COLOR || type == PEEK_Z)
 	{
 		RectToLock.left = (targetPixelRc.left + targetPixelRc.right) / 2;
 		RectToLock.top = (targetPixelRc.top + targetPixelRc.bottom) / 2;
@@ -385,7 +385,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
 		D3D::context->RSSetViewports(1, &vp);
 		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), NULL);
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), nullptr);
 		D3D::SetPointCopySampler();
 		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
 								&RectToLock,
@@ -409,7 +409,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 		float val = *(float*)map.pData;
 		u32 ret = 0;
-		if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
 			// if Z is in 16 bit format you must return a 16 bit integer
 			ret = ((u32)(val * 0xffff));
@@ -433,7 +433,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// read the data from system memory
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
 		u32 ret = 0;
-		if(map.pData)
+		if (map.pData)
 			ret = *(u32*)map.pData;
 		D3D::context->Unmap(read_tex, 0);
 
@@ -448,13 +448,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		{
 			ret = RGBA8ToRGB565ToRGBA8(ret);
 		}
-		if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
+		if (bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
 		{
 			ret |= 0xFF000000;
 		}
 
-		if(alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
-		else if(alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
+		if (alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
+		else if (alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
 		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
 	}
 	else //if(type == POKE_COLOR)
@@ -464,7 +464,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
 		ResetAPIState();
 
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), NULL);
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), nullptr);
 		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
 		                            - (float)RectToLock.top    * 2.f / (float)Renderer::GetTargetHeight() + 1.f,
 		                              (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
@@ -570,7 +570,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetTargetWidth(), (float)g_renderer->GetTargetHeight());
 	D3D::context->RSSetViewports(1, &vp);
 
-	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(), NULL);
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(), nullptr);
 	D3D::SetPointCopySampler();
 	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
@@ -770,7 +770,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height);
 	D3D::context->RSSetViewports(1, &vp);
-	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
+	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
 	D3D::context->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV(), ClearColor);
@@ -784,7 +784,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		s_television.Submit(xfbAddr, fbWidth, fbHeight);
 		s_television.Render();
 	}
-	else if(g_ActiveConfig.bUseXFB)
+	else if (g_ActiveConfig.bUseXFB)
 	{
 		const XFBSourceBase* xfbSource;
 
@@ -999,7 +999,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
-		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
+		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
 		delete g_framebuffer_manager;
 		g_framebuffer_manager = new FramebufferManager;
@@ -1084,12 +1084,12 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		// TODO: unnecessary state changes, we should store a list of shader resources
 		//if (shader_resources[stage])
 		{
-			if(g_ActiveConfig.iMaxAnisotropy > 0) gx_state.sampdc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
+			if (g_ActiveConfig.iMaxAnisotropy > 0) gx_state.sampdc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
 			hr = D3D::device->CreateSamplerState(&gx_state.sampdc[stage], &samplerstate[stage]);
 			if (FAILED(hr)) PanicAlert("Fail %s %d, stage=%d\n", __FILE__, __LINE__, stage);
 			else D3D::SetDebugObjectName((ID3D11DeviceChild*)samplerstate[stage], "sampler state used to emulate the GX pipeline");
 		}
-		// else samplerstate[stage] = NULL;
+		// else samplerstate[stage] = nullptr;
 	}
 	D3D::context->PSSetSamplers(0, 8, samplerstate);
 	for (unsigned int stage = 0; stage < 8; stage++)
@@ -1107,13 +1107,13 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	D3D::context->PSSetConstantBuffers(0, 1, &PixelShaderCache::GetConstantBuffer());
 	D3D::context->VSSetConstantBuffers(0, 1, &VertexShaderCache::GetConstantBuffer());
 
-	D3D::context->PSSetShader(PixelShaderCache::GetActiveShader(), NULL, 0);
-	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), NULL, 0);
+	D3D::context->PSSetShader(PixelShaderCache::GetActiveShader(), nullptr, 0);
+	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), nullptr, 0);
 }
 
 void Renderer::RestoreState()
 {
-	ID3D11ShaderResourceView* shader_resources[8] = { NULL };
+	ID3D11ShaderResourceView* shader_resources[8] = { nullptr };
 	D3D::context->PSSetShaderResources(0, 8, shader_resources);
 
 	D3D::stateman->PopBlendState();

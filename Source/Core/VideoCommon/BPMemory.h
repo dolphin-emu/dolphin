@@ -340,9 +340,9 @@ struct TevStageCombiner
 
 // several discoveries:
 // GXSetTevIndBumpST(tevstage, indstage, matrixind)
-//  if( matrix == 2 ) realmat = 6; // 10
-//  else if( matrix == 3 ) realmat = 7; // 11
-//  else if( matrix == 1 ) realmat = 5; // 9
+//  if ( matrix == 2 ) realmat = 6; // 10
+//  else if ( matrix == 3 ) realmat = 7; // 11
+//  else if ( matrix == 1 ) realmat = 5; // 9
 //  GXSetTevIndirect(tevstage, indstage, 0, 3, realmat, 6, 6, 0, 0, 0)
 //  GXSetTevIndirect(tevstage+1, indstage, 0, 3, realmat+4, 6, 6, 1, 0, 0)
 //  GXSetTevIndirect(tevstage+2, indstage, 0, 0, 0, 0, 0, 1, 0, 0)
@@ -411,9 +411,6 @@ union TEXSCALE
 		u32 rid : 8;
 	};
 	u32 hex;
-
-	float getScaleS(int i){return 1.0f/(float)(1<<(i?ss1:ss0));}
-	float getScaleT(int i){return 1.0f/(float)(1<<(i?ts1:ts0));}
 };
 
 union RAS1_IREF
@@ -886,7 +883,7 @@ union AlphaTest
 
 	inline TEST_RESULT TestResult() const
 	{
-		switch(logic)
+		switch (logic)
 		{
 		case 0: // AND
 			if (comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS)

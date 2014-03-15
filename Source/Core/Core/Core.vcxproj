@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -53,7 +53,6 @@
     <ClCompile Include="Boot\Boot_WiiWAD.cpp" />
     <ClCompile Include="Boot\ElfReader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
-    <ClCompile Include="Console.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreParameter.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
@@ -61,8 +60,8 @@
     <ClCompile Include="Debugger\Dump.cpp" />
     <ClCompile Include="Debugger\PPCDebugInterface.cpp" />
     <ClCompile Include="DSPEmulator.cpp" />
-    <ClCompile Include="DSP\assemble.cpp" />
-    <ClCompile Include="DSP\disassemble.cpp" />
+    <ClCompile Include="DSP\DSPAssembler.cpp" />
+    <ClCompile Include="DSP\DSPDisassembler.cpp" />
     <ClCompile Include="DSP\DSPAccelerator.cpp" />
     <ClCompile Include="DSP\DSPAnalyzer.cpp" />
     <ClCompile Include="DSP\DSPCodeUtil.cpp" />
@@ -258,7 +257,6 @@
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
     <ClInclude Include="ConfigManager.h" />
-    <ClInclude Include="Console.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreParameter.h" />
     <ClInclude Include="CoreTiming.h" />
@@ -267,8 +265,8 @@
     <ClInclude Include="Debugger\GCELF.h" />
     <ClInclude Include="Debugger\PPCDebugInterface.h" />
     <ClInclude Include="DSPEmulator.h" />
-    <ClInclude Include="DSP\assemble.h" />
-    <ClInclude Include="DSP\disassemble.h" />
+    <ClInclude Include="DSP\DSPAssembler.h" />
+    <ClInclude Include="DSP\DSPDisassembler.h" />
     <ClInclude Include="DSP\DSPAccelerator.h" />
     <ClInclude Include="DSP\DSPAnalyzer.h" />
     <ClInclude Include="DSP\DSPBreakpoints.h" />

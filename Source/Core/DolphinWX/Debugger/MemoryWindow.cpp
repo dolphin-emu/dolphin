@@ -87,7 +87,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	DebugInterface* di = &PowerPC::debug_interface;
 
 	//symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition,
-	//      wxSize(20, 100), 0, NULL, wxLB_SORT);
+	//      wxSize(20, 100), 0, nullptr, wxLB_SORT);
 	//sizerLeft->Add(symbols, 1, wxEXPAND);
 	memview = new CMemoryView(di, this);
 	memview->dataType = 0;
@@ -130,7 +130,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 void CMemoryWindow::Save(IniFile& _IniFile) const
 {
 	// Prevent these bad values that can happen after a crash or hanging
-	if(GetPosition().x != -32000 && GetPosition().y != -32000)
+	if (GetPosition().x != -32000 && GetPosition().y != -32000)
 	{
 		_IniFile.Set("MemoryWindow", "x", GetPosition().x);
 		_IniFile.Set("MemoryWindow", "y", GetPosition().y);
@@ -220,7 +220,7 @@ void CMemoryWindow::OnSymbolListChange(wxCommandEvent& event)
 	if (index >= 0)
 	{
 		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
-		if (pSymbol != NULL)
+		if (pSymbol != nullptr)
 		{
 			memview->Center(pSymbol->address);
 		}
@@ -297,7 +297,7 @@ void CMemoryWindow::U32(wxCommandEvent& event)
 
 void CMemoryWindow::onSearch(wxCommandEvent& event)
 {
-	u8* TheRAM = 0;
+	u8* TheRAM = nullptr;
 	u32 szRAM = 0;
 	switch (memview->GetMemoryType())
 	{
@@ -331,8 +331,8 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 	long count = 0;
 	char copy[3] = {0};
 	long newsize = 0;
-	unsigned char *tmp2 = 0;
-	char* tmpstr = 0;
+	unsigned char *tmp2 = nullptr;
+	char* tmpstr = nullptr;
 
 	if (chkHex->GetValue())
 	{
@@ -356,7 +356,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 		strcat(tmpstr, WxStrToStr(rawData).c_str());
 		tmp2 = &Dest.front();
 		count = 0;
-		for(i = 0; i < strlen(tmpstr); i++)
+		for (i = 0; i < strlen(tmpstr); i++)
 		{
 			copy[0] = tmpstr[i];
 			copy[1] = tmpstr[i+1];
@@ -381,13 +381,13 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 		tmp2 = &Dest.front();
 		sprintf(tmpstr, "%s", WxStrToStr(rawData).c_str());
 
-		for(i = 0; i < size; i++)
+		for (i = 0; i < size; i++)
 			tmp2[i] = tmpstr[i];
 
 		delete[] tmpstr;
 	}
 
-	if(size)
+	if (size)
 	{
 		unsigned char* pnt = &Dest.front();
 		unsigned int k = 0;
@@ -399,19 +399,19 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 			sscanf(WxStrToStr(txt).c_str(), "%08x", &addr);
 		}
 		i = addr+4;
-		for( ; i < szRAM; i++)
+		for ( ; i < szRAM; ++i)
 		{
-			for(k = 0; k < size; k++)
+			for (k = 0; k < size; ++k)
 			{
-				if(i + k > szRAM) break;
-				if(k > size) break;
-				if(pnt[k] != TheRAM[i+k])
+				if (i + k > szRAM) break;
+				if (k > size) break;
+				if (pnt[k] != TheRAM[i+k])
 				{
 					k = 0;
 					break;
 				}
 			}
-			if(k == size)
+			if (k == size)
 			{
 				//Match was found
 				wxMessageBox(_("A match was found. Placing viewer at the offset."));

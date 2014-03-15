@@ -90,14 +90,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 	ISIDevice::RunBuffer(_pBuffer, _iLength);
 
 	int iPosition = 0;
-	while(iPosition < _iLength)
+	while (iPosition < _iLength)
 	{
 		// read the command
 		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
 		iPosition++;
 
 		// handle it
-		switch(command)
+		switch (command)
 		{
 		case CMD_RESET: // returns ID and dip switches
 			{

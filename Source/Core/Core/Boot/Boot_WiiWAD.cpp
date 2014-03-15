@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <memory>
+#include <string>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
@@ -28,7 +29,7 @@ static u32 state_checksum(u32 *buf, int len)
 	u32 checksum = 0;
 	len = len>>2;
 
-	for(int i=0; i<len; i++)
+	for (int i=0; i<len; i++)
 	{
 		checksum += buf[i];
 	}
@@ -45,9 +46,8 @@ typedef struct {
 	u32 unknown[6];
 } StateFlags;
 
-bool CBoot::Boot_WiiWAD(const char* _pFilename)
+bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
-
 	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_STATE);
 
 	if (File::Exists(state_filename))
@@ -90,7 +90,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	// DOL
 	const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
-	if (pContent == NULL)
+	if (pContent == nullptr)
 		return false;
 
 	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
@@ -102,7 +102,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	}
 	else
 	{
-		pDolLoader.reset(new CDolLoader(pContent->m_Filename.c_str()));
+		pDolLoader.reset(new CDolLoader(pContent->m_Filename));
 	}
 	pDolLoader->Load();
 	PC = pDolLoader->GetEntryPoint() | 0x80000000;
@@ -119,7 +119,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	// Load patches and run startup patches
 	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_pFilename);
-	if (pVolume != NULL)
+	if (pVolume != nullptr)
 		PatchEngine::LoadPatches();
 
 	return true;

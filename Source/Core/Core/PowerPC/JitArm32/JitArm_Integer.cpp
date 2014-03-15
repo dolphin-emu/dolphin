@@ -109,7 +109,11 @@ void JitArm::subfic(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
-	Default(inst); return; // FIXME
+
+	// FIXME
+	FallBackToInterpreter(inst);
+	return;
+
 	int a = inst.RA, d = inst.RD;
 
 	int imm = inst.SIMM_16;
@@ -279,7 +283,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		break;
 
 		case 31: // addcx, addx, subfx
-			switch(inst.SUBOP10)
+			switch (inst.SUBOP10)
 			{
 				case 24: // slwx
 				case 28: // andx
@@ -328,15 +332,16 @@ void JitArm::arith(UGeckoInstruction inst)
 			}
 		break;
 		default:
-			WARN_LOG(DYNA_REC, "Unkown OPCD %d with arith function", inst.OPCD);
-			Default(inst); return;
+			WARN_LOG(DYNA_REC, "Unknown OPCD %d with arith function", inst.OPCD);
+			FallBackToInterpreter(inst);
+			return;
 		break;
 	}
 	if (isImm[0] && isImm[1]) // Immediate propagation
 	{
 		bool hasCarry = false;
 		u32 dest = d;
-		switch(inst.OPCD)
+		switch (inst.OPCD)
 		{
 			case 7:
 				gpr.SetImmediate(d, Mul(Imm[0], Imm[1]));
@@ -367,7 +372,7 @@ void JitArm::arith(UGeckoInstruction inst)
 				dest = a;
 			break;
 			case 31: // addcx, addx, subfx
-				switch(inst.SUBOP10)
+				switch (inst.SUBOP10)
 				{
 					case 24:
 						gpr.SetImmediate(a, Imm[0] << Imm[1]);
@@ -434,7 +439,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		return;
 	}
 	// One or the other isn't a IMM
-	switch(inst.OPCD)
+	switch (inst.OPCD)
 	{
 		case 7:
 		{
@@ -506,7 +511,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		}
 		break;
 		case 31:
-			switch(inst.SUBOP10)
+			switch (inst.SUBOP10)
 			{
 				case 24:
 					RA = gpr.R(a);
@@ -615,7 +620,11 @@ void JitArm::addex(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
-	Default(inst); return; // FIXME
+
+	// FIXME
+	FallBackToInterpreter(inst);
+	return;
+
 	ARMReg RA = gpr.R(a);
 	ARMReg RB = gpr.R(b);
 	ARMReg RD = gpr.R(d);

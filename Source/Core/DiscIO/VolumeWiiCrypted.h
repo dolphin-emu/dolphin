@@ -23,21 +23,21 @@ class CVolumeWiiCrypted : public IVolume
 public:
 	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
 	~CVolumeWiiCrypted();
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
-	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
-	bool GetTitleID(u8* _pBuffer) const;
-	void GetTMD(u8* _pBuffer, u32* _sz) const;
-	std::string GetUniqueID() const;
-	std::string GetMakerID() const;
-	std::vector<std::string> GetNames() const;
-	u32 GetFSTSize() const;
-	std::string GetApploaderDate() const;
-	ECountry GetCountry() const;
-	u64 GetSize() const;
-	u64 GetRawSize() const;
+	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
+	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
+	bool GetTitleID(u8* _pBuffer) const override;
+	void GetTMD(u8* _pBuffer, u32* _sz) const override;
+	std::string GetUniqueID() const override;
+	std::string GetMakerID() const override;
+	std::vector<std::string> GetNames() const override;
+	u32 GetFSTSize() const override;
+	std::string GetApploaderDate() const override;
+	ECountry GetCountry() const override;
+	u64 GetSize() const override;
+	u64 GetRawSize() const override;
 
-	bool SupportsIntegrityCheck() const { return true; }
-	bool CheckIntegrity() const;
+	bool SupportsIntegrityCheck() const override { return true; }
+	bool CheckIntegrity() const override;
 
 private:
 	IBlobReader* m_pReader;

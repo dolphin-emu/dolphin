@@ -7,7 +7,7 @@
 #include "VideoCommon/RenderBase.h"
 
 // Show the current FPS
-void cInterfaceEGL::UpdateFPSDisplay(const char *text)
+void cInterfaceEGL::UpdateFPSDisplay(const std::string& text)
 {
 	Platform.UpdateFPSDisplay(text);
 }
@@ -20,7 +20,7 @@ void cInterfaceEGL::SwapInterval(int Interval)
 	eglSwapInterval(GLWin.egl_dpy, Interval);
 }
 
-void* cInterfaceEGL::GetFuncAddress(std::string name)
+void* cInterfaceEGL::GetFuncAddress(const std::string& name)
 {
 	return (void*)eglGetProcAddress(name.c_str());
 }
@@ -31,7 +31,7 @@ void cInterfaceEGL::DetectMode()
 		return;
 
 	EGLint num_configs;
-	EGLConfig *config = NULL;
+	EGLConfig *config = nullptr;
 	bool supportsGL = false, supportsGLES2 = false, supportsGLES3 = false;
 
 	// attributes for a visual in RGBA format with at least
@@ -43,7 +43,7 @@ void cInterfaceEGL::DetectMode()
 		EGL_NONE };
 
 	// Get how many configs there are
-	if (!eglChooseConfig( GLWin.egl_dpy, attribs, NULL, 0, &num_configs))
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, nullptr, 0, &num_configs))
 	{
 		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
 		goto err_exit;
@@ -93,7 +93,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	const char *s;
 	EGLint egl_major, egl_minor;
 
-	if(!Platform.SelectDisplay())
+	if (!Platform.SelectDisplay())
 		return false;
 
 	GLWin.egl_dpy = Platform.EGLGetDisplay();
@@ -131,7 +131,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		EGL_CONTEXT_CLIENT_VERSION, 2,
 		EGL_NONE
 	};
-	switch(s_opengl_mode)
+	switch (s_opengl_mode)
 	{
 		case MODE_OPENGL:
 			attribs[1] = EGL_OPENGL_BIT;
@@ -186,7 +186,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 
 	GLWin.native_window = Platform.CreateWindow();
 
-	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.native_window, NULL);
+	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.native_window, nullptr);
 	if (!GLWin.egl_surf)
 	{
 		INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
@@ -212,12 +212,12 @@ void cInterfaceEGL::Shutdown()
 	if (GLWin.egl_ctx)
 	{
 		eglMakeCurrent(GLWin.egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		if(!eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx))
+		if (!eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx))
 			NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
-		if(!eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf))
+		if (!eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf))
 			NOTICE_LOG(VIDEO, "Could not destroy window surface.");
-		if(!eglTerminate(GLWin.egl_dpy))
+		if (!eglTerminate(GLWin.egl_dpy))
 			NOTICE_LOG(VIDEO, "Could not destroy display connection.");
-		GLWin.egl_ctx = NULL;
+		GLWin.egl_ctx = nullptr;
 	}
 }

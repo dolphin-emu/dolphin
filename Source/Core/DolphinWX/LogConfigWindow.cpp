@@ -56,8 +56,7 @@ void LogConfigWindow::CreateGUIControls()
 	for (int i = 0; i < MAX_LOGLEVEL; ++i)
 		wxLevelsUse.Add(wxLevels[i]);
 	m_verbosity = new wxRadioBox(this, wxID_ANY, _("Verbosity"),
-			wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0,
-			wxRA_SPECIFY_ROWS, wxDefaultValidator);
+			wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0, wxRA_SPECIFY_ROWS);
 	m_verbosity->Bind(wxEVT_COMMAND_RADIOBOX_SELECTED, &LogConfigWindow::OnVerbosityChange, this);
 
 	// Options
@@ -67,7 +66,7 @@ void LogConfigWindow::CreateGUIControls()
 	m_writeConsoleCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteConsoleChecked, this);
 	m_writeWindowCB = new wxCheckBox(this, wxID_ANY, _("Write to Window"));
 	m_writeWindowCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteWindowChecked, this);
-	m_writeDebuggerCB = NULL;
+	m_writeDebuggerCB = nullptr;
 #ifdef _MSC_VER
 	if (IsDebuggerPresent())
 	{

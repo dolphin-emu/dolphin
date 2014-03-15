@@ -135,12 +135,12 @@ void Jit64::GenerateRC()
 
 void Jit64::ComputeRC(const Gen::OpArg & arg)
 {
-	if( arg.IsImm() )
+	if (arg.IsImm())
 	{
 		s32 value = (s32)arg.offset;
-		if( value < 0 )
+		if (value < 0)
 			MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x8));
-		else if( value > 0 )
+		else if (value > 0)
 			MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x4));
 		else
 			MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x2));
@@ -296,7 +296,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	case 12: regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, false, true); break; //addic
 	case 13: regimmop(d, a, true, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, true, true); break; //addic_rc
 	default:
-		Default(inst);
+		FallBackToInterpreter(inst);
 		break;
 	}
 }
@@ -1102,13 +1102,13 @@ void Jit64::mulli(UGeckoInstruction inst)
 		{
 			XOR(32, gpr.R(d), gpr.R(d));
 		}
-		else if(imm == (u32)-1)
+		else if (imm == (u32)-1)
 		{
 			if (d != a)
 				MOV(32, gpr.R(d), gpr.R(a));
 			NEG(32, gpr.R(d));
 		}
-		else if((imm & (imm - 1)) == 0)
+		else if ((imm & (imm - 1)) == 0)
 		{
 			u32 shift = 0;
 			if (imm & 0xFFFF0000) shift |= 16;
@@ -1157,13 +1157,13 @@ void Jit64::mullwx(UGeckoInstruction inst)
 			{
 				XOR(32, gpr.R(d), gpr.R(d));
 			}
-			else if(imm == (u32)-1)
+			else if (imm == (u32)-1)
 			{
 				if (d != src)
 					MOV(32, gpr.R(d), gpr.R(src));
 				NEG(32, gpr.R(d));
 			}
-			else if((imm & (imm - 1)) == 0 && !inst.OE)
+			else if ((imm & (imm - 1)) == 0 && !inst.OE)
 			{
 				u32 shift = 0;
 				if (imm & 0xFFFF0000) shift |= 16;
@@ -1245,7 +1245,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
 	{
-		if( gpr.R(b).offset == 0 )
+		if (gpr.R(b).offset == 0)
 		{
 			gpr.SetImmediate32(d, 0);
 			if (inst.OE)
@@ -1276,7 +1276,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 		else
 		{
 			u32 shift = 31;
-			while(!(divisor & (1 << shift)))
+			while (!(divisor & (1 << shift)))
 				shift--;
 
 			if (divisor == (u32)(1 << shift))
@@ -1298,7 +1298,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 				if (((u64)(magic+1) * (max_quotient*divisor-1)) >> (shift + 32) != max_quotient-1)
 				{
 					// If failed, use slower round-down method
-#ifdef _M_X64
+#if _M_X86_64
 					gpr.Lock(a, b, d);
 					gpr.BindToRegister(d, d == a, true);
 					MOV(32, R(EAX), Imm32(magic));
@@ -1324,7 +1324,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 				else
 				{
 					// If success, use faster round-up method
-#ifdef _M_X64
+#if _M_X86_64
 					gpr.Lock(a, b, d);
 					gpr.BindToRegister(a, true, false);
 					gpr.BindToRegister(d, false, true);
@@ -1403,7 +1403,7 @@ void Jit64::divwx(UGeckoInstruction inst)
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
 	{
 		s32 i = (s32)gpr.R(a).offset, j = (s32)gpr.R(b).offset;
-		if( j == 0 || (i == (s32)0x80000000 && j == -1))
+		if (j == 0 || (i == (s32)0x80000000 && j == -1))
 		{
 			gpr.SetImmediate32(d, (i >> 31) ^ j);
 			if (inst.OE)
@@ -1920,7 +1920,7 @@ void Jit64::srwx(UGeckoInstruction inst)
 	}
 	else
 	{
-#ifdef _M_X64
+#if _M_X86_64
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
 		gpr.BindToRegister(a, (a == b || a == s), true);
@@ -1976,7 +1976,7 @@ void Jit64::slwx(UGeckoInstruction inst)
 	}
 	else
 	{
-#ifdef _M_X64
+#if _M_X86_64
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
 		gpr.BindToRegister(a, (a == b || a == s), true);
@@ -2030,7 +2030,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = inst.RB;
 	int s = inst.RS;
-#ifdef _M_X64
+#if _M_X86_64
 	gpr.Lock(a, s, b);
 	gpr.FlushLockX(ECX);
 	gpr.BindToRegister(a, (a == s || a == b), true);
@@ -2111,15 +2111,21 @@ void Jit64::srawix(UGeckoInstruction inst)
 	}
 	else
 	{
-		Default(inst); return; // FIXME
+		// FIXME
+		FallBackToInterpreter(inst);
+		return;
+
 		gpr.Lock(a, s);
 		JitClearCA();
 		gpr.BindToRegister(a, a == s, true);
+
 		if (a != s)
 		{
 			MOV(32, gpr.R(a), gpr.R(s));
 		}
-		if (inst.Rc) {
+
+		if (inst.Rc)
+		{
 			ComputeRC(gpr.R(a));
 		}
 		gpr.UnlockAll();
@@ -2184,6 +2190,7 @@ void Jit64::twx(UGeckoInstruction inst)
 	FixupBranch ag = J_CC(CC_G);
 	FixupBranch ae = J_CC(CC_Z);
 	// FIXME: will never be reached. But also no known code uses it...
+	_assert_msg_(DYNA_REC, (inst.TO & 3) == 0, "Seems like something actually does use this.");
 	FixupBranch ll = J_CC(CC_NO);
 	FixupBranch lg = J_CC(CC_O);
 

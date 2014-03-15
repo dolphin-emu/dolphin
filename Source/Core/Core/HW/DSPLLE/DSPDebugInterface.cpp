@@ -2,20 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Core/DSP/disassemble.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
-void DSPDebugInterface::disasm(unsigned int address, char *dest, int max_size)
+void DSPDebugInterface::Disassemble(unsigned int address, char *dest, int max_size)
 {
 	// we'll treat addresses as line numbers.
 	strncpy(dest, DSPSymbols::GetLineText(address), max_size);
 	dest[max_size-1] = 0;
 }
 
-void DSPDebugInterface::getRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
+void DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
 {
 	if (DSPCore_GetState() == DSPCORE_STOP)
 	{
@@ -55,22 +55,22 @@ void DSPDebugInterface::getRawMemoryString(int memory, unsigned int address, cha
 	}
 }
 
-unsigned int DSPDebugInterface::readMemory(unsigned int address)
+unsigned int DSPDebugInterface::ReadMemory(unsigned int address)
 {
 	return 0; //Memory::ReadUnchecked_U32(address);
 }
 
-unsigned int DSPDebugInterface::readInstruction(unsigned int address)
+unsigned int DSPDebugInterface::ReadInstruction(unsigned int address)
 {
 	return 0; //Memory::Read_Instruction(address);
 }
 
-bool DSPDebugInterface::isAlive()
+bool DSPDebugInterface::IsAlive()
 {
 	return true; //Core::GetState() != Core::CORE_UNINITIALIZED;
 }
 
-bool DSPDebugInterface::isBreakpoint(unsigned int address)
+bool DSPDebugInterface::IsBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
 	if (real_addr >= 0)
@@ -79,7 +79,7 @@ bool DSPDebugInterface::isBreakpoint(unsigned int address)
 		return false;
 }
 
-void DSPDebugInterface::setBreakpoint(unsigned int address)
+void DSPDebugInterface::SetBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
 
@@ -92,7 +92,7 @@ void DSPDebugInterface::setBreakpoint(unsigned int address)
 	}
 }
 
-void DSPDebugInterface::clearBreakpoint(unsigned int address)
+void DSPDebugInterface::ClearBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
 
@@ -105,12 +105,12 @@ void DSPDebugInterface::clearBreakpoint(unsigned int address)
 	}
 }
 
-void DSPDebugInterface::clearAllBreakpoints()
+void DSPDebugInterface::ClearAllBreakpoints()
 {
 	dsp_breakpoints.Clear();
 }
 
-void DSPDebugInterface::toggleBreakpoint(unsigned int address)
+void DSPDebugInterface::ToggleBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
 	if (real_addr >= 0)
@@ -122,17 +122,22 @@ void DSPDebugInterface::toggleBreakpoint(unsigned int address)
 	}
 }
 
-bool DSPDebugInterface::isMemCheck(unsigned int address)
+bool DSPDebugInterface::IsMemCheck(unsigned int address)
 {
 	return false;
 }
 
-void DSPDebugInterface::toggleMemCheck(unsigned int address)
+void DSPDebugInterface::ClearAllMemChecks()
 {
 	PanicAlert("MemCheck functionality not supported in DSP module.");
 }
 
-void DSPDebugInterface::insertBLR(unsigned int address, unsigned int value)
+void DSPDebugInterface::ToggleMemCheck(unsigned int address)
+{
+	PanicAlert("MemCheck functionality not supported in DSP module.");
+}
+
+void DSPDebugInterface::InsertBLR(unsigned int address, unsigned int value)
 {
 	PanicAlert("insertBLR functionality not supported in DSP module.");
 }
@@ -140,7 +145,7 @@ void DSPDebugInterface::insertBLR(unsigned int address, unsigned int value)
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-int DSPDebugInterface::getColor(unsigned int address)
+int DSPDebugInterface::GetColor(unsigned int address)
 {
 	static const int colors[6] =
 	{
@@ -173,24 +178,24 @@ int DSPDebugInterface::getColor(unsigned int address)
 // =============
 
 
-std::string DSPDebugInterface::getDescription(unsigned int address)
+std::string DSPDebugInterface::GetDescription(unsigned int address)
 {
 	return "";  // g_symbolDB.GetDescription(address);
 }
 
-unsigned int DSPDebugInterface::getPC()
+unsigned int DSPDebugInterface::GetPC()
 {
 	return DSPSymbols::Addr2Line(g_dsp.pc);
 }
 
-void DSPDebugInterface::setPC(unsigned int address)
+void DSPDebugInterface::SetPC(unsigned int address)
 {
 	int new_pc = DSPSymbols::Line2Addr(address);
 	if (new_pc > 0)
 		g_dsp.pc = new_pc;
 }
 
-void DSPDebugInterface::runToBreakpoint()
+void DSPDebugInterface::RunToBreakpoint()
 {
 
 }

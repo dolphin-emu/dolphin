@@ -14,31 +14,32 @@ class PPCDebugInterface : public DebugInterface
 {
 public:
 	PPCDebugInterface(){}
-	virtual void disasm(unsigned int address, char *dest, int max_size) override;
-	virtual void getRawMemoryString(int memory, unsigned int address, char *dest, int max_size) override;
-	virtual int getInstructionSize(int /*instruction*/) override {return 4;}
-	virtual bool isAlive() override;
-	virtual bool isBreakpoint(unsigned int address) override;
-	virtual void setBreakpoint(unsigned int address) override;
-	virtual void clearBreakpoint(unsigned int address) override;
-	virtual void clearAllBreakpoints() override;
-	virtual void toggleBreakpoint(unsigned int address) override;
-	virtual bool isMemCheck(unsigned int address) override;
-	virtual void toggleMemCheck(unsigned int address) override;
-	virtual unsigned int readMemory(unsigned int address) override;
+	virtual void Disassemble(unsigned int address, char *dest, int max_size) final override;
+	virtual void GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size) final override;
+	virtual int GetInstructionSize(int /*instruction*/) final override {return 4;}
+	virtual bool IsAlive() final override;
+	virtual bool IsBreakpoint(unsigned int address) final override;
+	virtual void SetBreakpoint(unsigned int address) final override;
+	virtual void ClearBreakpoint(unsigned int address) final override;
+	virtual void ClearAllBreakpoints() final override;
+	virtual void ToggleBreakpoint(unsigned int address) final override;
+	virtual void ClearAllMemChecks() final override;
+	virtual bool IsMemCheck(unsigned int address) final override;
+	virtual void ToggleMemCheck(unsigned int address) final override;
+	virtual unsigned int ReadMemory(unsigned int address) final override;
 
 	enum {
 		EXTRAMEM_ARAM = 1,
 	};
-	virtual unsigned int readExtraMemory(int memory, unsigned int address) override;
-	virtual unsigned int readInstruction(unsigned int address) override;
-	virtual unsigned int getPC() override;
-	virtual void setPC(unsigned int address) override;
-	virtual void step() override {}
-	virtual void breakNow() override;
-	virtual void runToBreakpoint() override;
-	virtual void insertBLR(unsigned int address, unsigned int value) override;
-	virtual int getColor(unsigned int address) override;
-	virtual std::string getDescription(unsigned int address) override;
-	virtual void showJitResults(u32 address) override;
+	virtual unsigned int ReadExtraMemory(int memory, unsigned int address) final override;
+	virtual unsigned int ReadInstruction(unsigned int address) final override;
+	virtual unsigned int GetPC() final override;
+	virtual void SetPC(unsigned int address) final override;
+	virtual void Step() final override {}
+	virtual void BreakNow() final override;
+	virtual void RunToBreakpoint() final override;
+	virtual void InsertBLR(unsigned int address, unsigned int value) final override;
+	virtual int GetColor(unsigned int address) final override;
+	virtual std::string GetDescription(unsigned int address) final override;
+	virtual void ShowJitResults(u32 address) final override;
 };

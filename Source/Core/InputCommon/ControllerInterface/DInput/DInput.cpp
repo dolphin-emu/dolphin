@@ -48,7 +48,7 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 void Init(std::vector<Core::Device*>& devices, HWND hwnd)
 {
 	IDirectInput8* idi8;
-	if (FAILED(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&idi8, NULL)))
+	if (FAILED(DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&idi8, nullptr)))
 		return;
 
 	InitKeyboardMouse(idi8, devices, hwnd);

@@ -14,6 +14,7 @@
 // detect whether the file is a compressed blob, or just a big hunk of data, or a drive, and
 // automatically do the right thing.
 
+#include <string>
 #include "Common/CommonTypes.h"
 
 namespace DiscIO
@@ -58,18 +59,18 @@ public:
 
 	// A pointer returned by GetBlockData is invalidated as soon as GetBlockData, Read, or ReadMultipleAlignedBlocks is called again.
 	const u8 *GetBlockData(u64 block_num);
-	virtual bool Read(u64 offset, u64 size, u8 *out_ptr);
+	virtual bool Read(u64 offset, u64 size, u8 *out_ptr) override;
 	friend class DriveReader;
 };
 
 // Factory function - examines the path to choose the right type of IBlobReader, and returns one.
-IBlobReader* CreateBlobReader(const char *filename);
+IBlobReader* CreateBlobReader(const std::string& filename);
 
 typedef void (*CompressCB)(const char *text, float percent, void* arg);
 
-bool CompressFileToBlob(const char *infile, const char *outfile, u32 sub_type = 0, int sector_size = 16384,
-		CompressCB callback = 0, void *arg = 0);
-bool DecompressBlobToFile(const char *infile, const char *outfile,
-		CompressCB callback = 0, void *arg = 0);
+bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u32 sub_type = 0, int sector_size = 16384,
+		CompressCB callback = nullptr, void *arg = nullptr);
+bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
+		CompressCB callback = nullptr, void *arg = nullptr);
 
 }  // namespace

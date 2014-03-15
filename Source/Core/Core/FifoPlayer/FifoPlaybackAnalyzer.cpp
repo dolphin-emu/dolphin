@@ -159,7 +159,7 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
 
 	int cmd = ReadFifo8(data);
 
-	switch(cmd)
+	switch (cmd)
 	{
 	case GX_NOP:
 	case 0x44:

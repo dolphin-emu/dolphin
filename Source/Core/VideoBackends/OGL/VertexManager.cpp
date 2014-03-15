@@ -60,7 +60,7 @@ void VertexManager::CreateDeviceObjects()
 	s_indexBuffer = StreamBuffer::Create(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
 	m_index_buffers = s_indexBuffer->m_buffer;
 
-	m_CurrentVertexFmt = NULL;
+	m_CurrentVertexFmt = nullptr;
 	m_last_vao = 0;
 }
 
@@ -106,7 +106,7 @@ void VertexManager::Draw(u32 stride)
 	u32 max_index = IndexGenerator::GetNumVerts();
 	GLenum primitive_mode = 0;
 
-	switch(current_primitive_type)
+	switch (current_primitive_type)
 	{
 		case PRIMITIVE_POINTS:
 			primitive_mode = GL_POINTS;
@@ -119,10 +119,10 @@ void VertexManager::Draw(u32 stride)
 			break;
 	}
 
-	if(g_ogl_config.bSupportsGLBaseVertex) {
-		glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_index_offset, (GLint)s_baseVertex);
+	if (g_ogl_config.bSupportsGLBaseVertex) {
+		glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr+s_index_offset, (GLint)s_baseVertex);
 	} else {
-		glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_index_offset);
+		glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr+s_index_offset);
 	}
 	INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 }
@@ -132,7 +132,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)g_nativeVertexFmt;
 	u32 stride  = nativeVertexFmt->GetVertexStride();
 
-	if(m_last_vao != nativeVertexFmt->VAO) {
+	if (m_last_vao != nativeVertexFmt->VAO) {
 		glBindVertexArray(nativeVertexFmt->VAO);
 		m_last_vao = nativeVertexFmt->VAO;
 	}

@@ -57,10 +57,10 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 	wxStaticBoxSizer* sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, _("Cheat Code"));
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
 
-	wxStaticText* EditCheatNameText = new wxStaticText(this, ID_EDITCHEAT_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
-	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText* EditCheatNameText = new wxStaticText(this, ID_EDITCHEAT_NAME_TEXT, _("Name:"));
+	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString);
 	EditCheatName->SetValue(currentName);
-	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
+	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT);
 	EntrySelection->SetRange(1, ((int)arCodes.size()) > 0 ? (int)arCodes.size() : 1);
 	EntrySelection->SetValue((int)(arCodes.size() - selection));
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE);
@@ -112,8 +112,8 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
 		{
 			// Decrypted code line.
-			u32 addr = strtoul(pieces[0].c_str(), NULL, 16);
-			u32 value = strtoul(pieces[1].c_str(), NULL, 16);
+			u32 addr = std::stoul(pieces[0], nullptr, 16);
+			u32 value = std::stoul(pieces[1], nullptr, 16);
 
 			decryptedLines.push_back(ActionReplay::AREntry(addr, value));
 			continue;

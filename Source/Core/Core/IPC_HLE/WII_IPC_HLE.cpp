@@ -92,43 +92,43 @@ void Init()
 {
 	_dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isn't empty on init");
 	CWII_IPC_HLE_Device_es::m_ContentFile = "";
-	u32 i;
-	for (i=0; i<IPC_MAX_FDS; i++)
+
+	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
-		g_FdMap[i] = NULL;
+		dev = nullptr;
 	}
 
-	i = 0;
+	u32 i = 0;
 	// Build hardware devices
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh1_57e_305(i, std::string("/dev/usb/oh1/57e/305")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_immediate(i, std::string("/dev/stm/immediate")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_eventhook(i, std::string("/dev/stm/eventhook")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_fs(i, std::string("/dev/fs")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh1_57e_305(i, "/dev/usb/oh1/57e/305"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_immediate(i, "/dev/stm/immediate"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_eventhook(i, "/dev/stm/eventhook"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_fs(i, "/dev/fs"); i++;
 
-	// IOS allows two ES devices at a time<
+	// IOS allows two ES devices at a time
 	for (u32 j=0; j<ES_MAX_COUNT; j++)
 	{
-		g_DeviceMap[i] = es_handles[j] = new CWII_IPC_HLE_Device_es(i, std::string("/dev/es")); i++;
+		g_DeviceMap[i] = es_handles[j] = new CWII_IPC_HLE_Device_es(i, "/dev/es"); i++;
 		es_inuse[j] = false;
 	}
 
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_di(i, std::string("/dev/di")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_request(i, std::string("/dev/net/kd/request")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_time(i, std::string("/dev/net/kd/time")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ncd_manage(i, std::string("/dev/net/ncd/manage")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_wd_command(i, std::string("/dev/net/wd/command")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ip_top(i, std::string("/dev/net/ip/top")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ssl(i, std::string("/dev/net/ssl")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, std::string("/dev/usb/kbd")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, std::string("/dev/sdio/slot0")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/sdio/slot1")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_request(i, "/dev/net/kd/request"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_time(i, "/dev/net/kd/time"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ncd_manage(i, "/dev/net/ncd/manage"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_wd_command(i, "/dev/net/wd/command"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ip_top(i, "/dev/net/ip/top"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ssl(i, "/dev/net/ssl"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, "/dev/usb/kbd"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, "/dev/sdio/slot0"); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/sdio/slot1"); i++;
 	#if defined(__LIBUSB__) || defined(_WIN32)
-		g_DeviceMap[i] = new CWII_IPC_HLE_Device_hid(i, std::string("/dev/usb/hid")); i++;
+		g_DeviceMap[i] = new CWII_IPC_HLE_Device_hid(i, "/dev/usb/hid"); i++;
 	#else
-		g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/hid")); i++;
+		g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/usb/hid"); i++;
 	#endif
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/oh1")); i++;
-	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, std::string("_Unimplemented_Device_")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/usb/oh1"); i++;
+	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, "_Unimplemented_Device_"); i++;
 
 	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
 }
@@ -137,21 +137,21 @@ void Reset(bool _bHard)
 {
 	CoreTiming::RemoveAllEvents(enque_reply);
 
-	for (u32 i=0; i<IPC_MAX_FDS; i++)
+	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
-		if (g_FdMap[i] != NULL && !g_FdMap[i]->IsHardware())
+		if (dev != nullptr && !dev->IsHardware())
 		{
 			// close all files and delete their resources
-			g_FdMap[i]->Close(0, true);
-			delete g_FdMap[i];
+			dev->Close(0, true);
+			delete dev;
 		}
 
-		g_FdMap[i] = NULL;
+		dev = nullptr;
 	}
 
-	for (u32 j=0; j<ES_MAX_COUNT; j++)
+	for (bool& in_use : es_inuse)
 	{
-		es_inuse[j] = false;
+		in_use = false;
 	}
 
 	for (const auto& entry : g_DeviceMap)
@@ -190,7 +190,7 @@ void SetDefaultContentFile(const std::string& _rFilename)
 {
 	for (const auto& entry : g_DeviceMap)
 	{
-		if (entry.second && entry.second->GetDeviceName().find(std::string("/dev/es")) == 0)
+		if (entry.second && entry.second->GetDeviceName().find("/dev/es") == 0)
 		{
 			((CWII_IPC_HLE_Device_es*)entry.second)->LoadWAD(_rFilename);
 		}
@@ -205,7 +205,7 @@ void ES_DIVerify(u8 *_pTMD, u32 _sz)
 void SDIO_EventNotify()
 {
 	CWII_IPC_HLE_Device_sdio_slot0 *pDevice =
-		(CWII_IPC_HLE_Device_sdio_slot0*)GetDeviceByName(std::string("/dev/sdio/slot0"));
+		(CWII_IPC_HLE_Device_sdio_slot0*)GetDeviceByName("/dev/sdio/slot0");
 	if (pDevice)
 		pDevice->EventNotify();
 }
@@ -214,7 +214,7 @@ int getFreeDeviceId()
 {
 	for (u32 i=0; i<IPC_MAX_FDS; i++)
 	{
-		if (g_FdMap[i] == NULL)
+		if (g_FdMap[i] == nullptr)
 		{
 			return i;
 		}
@@ -228,25 +228,29 @@ IWII_IPC_HLE_Device* GetDeviceByName(const std::string& _rDeviceName)
 	for (const auto& entry : g_DeviceMap)
 	{
 		if (entry.second && entry.second->GetDeviceName() == _rDeviceName)
+		{
 			return entry.second;
+		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
 {
 	if (g_DeviceMap.find(_ID) != g_DeviceMap.end())
+	{
 		return g_DeviceMap[_ID];
+	}
 
-		return NULL;
+	return nullptr;
 }
 
 // This is called from ExecuteCommand() COMMAND_OPEN_DEVICE
 IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName)
 {
 	// scan device name and create the right one
-	IWII_IPC_HLE_Device* pDevice = NULL;
+	IWII_IPC_HLE_Device* pDevice = nullptr;
 
 	INFO_LOG(WII_IPC_FILEIO, "IOP: Create FileIO %s", _rDeviceName.c_str());
 	pDevice = new CWII_IPC_HLE_Device_FileIO(_DeviceID, _rDeviceName);
@@ -295,7 +299,7 @@ void DoState(PointerWrap &p)
 			}
 			else
 			{
-				g_FdMap[i] = NULL;
+				g_FdMap[i] = nullptr;
 			}
 		}
 
@@ -310,22 +314,22 @@ void DoState(PointerWrap &p)
 	}
 	else
 	{
-		for (u32 i=0; i<IPC_MAX_FDS; i++)
+		for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 		{
-			u32 exists = g_FdMap[i] ? 1 : 0;
+			u32 exists = dev ? 1 : 0;
 			p.Do(exists);
 			if (exists)
 			{
-				u32 isHw = g_FdMap[i]->IsHardware() ? 1 : 0;
+				u32 isHw = dev->IsHardware() ? 1 : 0;
 				p.Do(isHw);
 				if (isHw)
 				{
-					u32 hwId = g_FdMap[i]->GetDeviceID();
+					u32 hwId = dev->GetDeviceID();
 					p.Do(hwId);
 				}
 				else
 				{
-					g_FdMap[i]->DoState(p);
+					dev->DoState(p);
 				}
 			}
 		}
@@ -346,7 +350,7 @@ void ExecuteCommand(u32 _Address)
 	ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
 	volatile s32 DeviceID = Memory::Read_U32(_Address + 8);
 
-	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : NULL;
+	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : nullptr;
 
 	INFO_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) %p", _Address, Command, DeviceID, pDevice);
 
@@ -416,7 +420,7 @@ void ExecuteCommand(u32 _Address)
 				else
 				{
 					delete pDevice;
-					pDevice = NULL;
+					pDevice = nullptr;
 				}
 			}
 		}
@@ -441,13 +445,13 @@ void ExecuteCommand(u32 _Address)
 				}
 			}
 
-			g_FdMap[DeviceID] = NULL;
+			g_FdMap[DeviceID] = nullptr;
 
 			// Don't delete hardware
 			if (!pDevice->IsHardware())
 			{
 				delete pDevice;
-				pDevice = NULL;
+				pDevice = nullptr;
 			}
 		}
 		else

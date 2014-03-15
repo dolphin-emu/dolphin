@@ -132,7 +132,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 
 	u32 destination;
-	if(inst.AA)
+	if (inst.AA)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);

@@ -317,15 +317,15 @@ void InsertDiscCallback(u64 userdata, int cyclesLate)
 	delete _FileName;
 }
 
-void ChangeDisc(const char* _newFileName)
+void ChangeDisc(const std::string& newFileName)
 {
-	std::string* _FileName = new std::string(_newFileName);
+	std::string* _FileName = new std::string(newFileName);
 	CoreTiming::ScheduleEvent_Threadsafe(0, ejectDisc);
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, insertDisc, (u64)_FileName);
 	if (Movie::IsRecordingInput())
 	{
 		Movie::g_bDiscChange = true;
-		std::string fileName = _newFileName;
+		std::string fileName = newFileName;
 		auto sizeofpath = fileName.find_last_of("/\\") + 1;
 		if (fileName.substr(sizeofpath).length() > 40)
 		{
@@ -521,7 +521,7 @@ void UpdateInterrupts()
 
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 {
-	switch(_DVDInterrupt)
+	switch (_DVDInterrupt)
 	{
 	case INT_DEINT:  m_DISR.DEINT   = 1; break;
 	case INT_TCINT:  m_DISR.TCINT   = 1; break;
@@ -535,9 +535,9 @@ void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 void ExecuteCommand(UDICR& _DICR)
 {
 	// _dbg_assert_(DVDINTERFACE, _DICR.RW == 0); // only DVD to Memory
-	int GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD)
-		&& (SConfig::GetInstance().m_EXIDevice[2] == EXIDEVICE_AM_BASEBOARD))
-		? 1 : 0;
+	int GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD) &&
+	            (SConfig::GetInstance().m_EXIDevice[2] == EXIDEVICE_AM_BASEBOARD))
+	           ? 1 : 0;
 
 	if (GCAM)
 	{
@@ -929,15 +929,15 @@ void ExecuteCommand(UDICR& _DICR)
 	// Just for fun
 	case 0xFF:
 		{
-			if (m_DICMDBUF[0].Hex == 0xFF014D41
-				&& m_DICMDBUF[1].Hex == 0x54534849
-				&& m_DICMDBUF[2].Hex == 0x54410200)
+			if (m_DICMDBUF[0].Hex == 0xFF014D41 &&
+			    m_DICMDBUF[1].Hex == 0x54534849 &&
+			    m_DICMDBUF[2].Hex == 0x54410200)
 			{
 				INFO_LOG(DVDINTERFACE, "Unlock test 1 passed");
 			}
-			else if (m_DICMDBUF[0].Hex == 0xFF004456
-				&& m_DICMDBUF[1].Hex == 0x442D4741
-				&& m_DICMDBUF[2].Hex == 0x4D450300)
+			else if (m_DICMDBUF[0].Hex == 0xFF004456 &&
+			         m_DICMDBUF[1].Hex == 0x442D4741 &&
+			         m_DICMDBUF[2].Hex == 0x4D450300)
 			{
 				INFO_LOG(DVDINTERFACE, "Unlock test 2 passed");
 			}

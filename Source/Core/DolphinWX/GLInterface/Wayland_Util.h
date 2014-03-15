@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 #include <wayland-egl.h>
@@ -22,7 +23,7 @@ public:
 	void *EGLGetDisplay(void);
 	void *CreateWindow(void);
 	void DestroyWindow(void);
-	void UpdateFPSDisplay(const char *text);
+	void UpdateFPSDisplay(const std::string& text);
 	void ToggleFullscreen(bool fullscreen);
 	void SwapBuffers();
 };

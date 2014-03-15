@@ -54,12 +54,12 @@ void DoState(PointerWrap &p)
 {
 	ZSlope.DoState(p);
 	WSlope.DoState(p);
-	for (auto& ColorSlope : ColorSlopes)
-		for (int n=0; n<4; ++n)
-			ColorSlope[n].DoState(p);
-	for (auto& TexSlope : TexSlopes)
-		for (int n=0; n<3; ++n)
-			TexSlope[n].DoState(p);
+	for (auto& color_slopes_1d : ColorSlopes)
+		for (Slope& color_slope : color_slopes_1d)
+			color_slope.DoState(p);
+	for (auto& tex_slopes_1d : TexSlopes)
+		for (Slope& tex_slope : tex_slopes_1d)
+			tex_slope.DoState(p);
 	p.Do(vertex0X);
 	p.Do(vertex0Y);
 	p.Do(vertexOffsetX);
@@ -86,17 +86,9 @@ inline int iround(float x)
 {
 	int t;
 
-#if defined(_WIN32) && !defined(_M_X64)
-	__asm
-	{
-		fld  x
-		fistp t
-	}
-#else
 	t = (int)x;
-	if((x - t) >= 0.5)
+	if ((x - t) >= 0.5)
 		return t + 1;
-#endif
 
 	return t;
 }
@@ -157,7 +149,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	//  colors
 	for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
 	{
-		for(int comp = 0; comp < 4; comp++)
+		for (int comp = 0; comp < 4; comp++)
 		{
 			u16 color = (u16)ColorSlopes[i][comp].GetValue(dx, dy);
 
@@ -307,7 +299,7 @@ void BuildBlock(s32 blockX, s32 blockY)
 	{
 		int stageOdd = i&1;
 		TwoTevStageOrders &order = bpmem.tevorders[i >> 1];
-		if(order.getEnable(stageOdd))
+		if (order.getEnable(stageOdd))
 		{
 			u32 texmap = order.getTexMap(stageOdd);
 			u32 texcoord = order.getTexCoord(stageOdd);
@@ -392,15 +384,15 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	if (!bpmem.genMode.zfreeze || !g_SWVideoConfig.bZFreeze)
 		InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
-	for(unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
+	for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
 	{
-		for(int comp = 0; comp < 4; comp++)
+		for (int comp = 0; comp < 4; comp++)
 			InitSlope(&ColorSlopes[i][comp], v0->color[i][comp], v1->color[i][comp], v2->color[i][comp], fltdx31, fltdx12, fltdy12, fltdy31);
 	}
 
-	for(unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
+	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
 	{
-		for(int comp = 0; comp < 3; comp++)
+		for (int comp = 0; comp < 3; comp++)
 			InitSlope(&TexSlopes[i][comp], v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1], v2->texCoords[i][comp] * w[2], fltdx31, fltdx12, fltdy12, fltdy31);
 	}
 
@@ -414,14 +406,14 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	s32 C3 = DY31 * X3 - DX31 * Y3;
 
 	// Correct for fill convention
-	if(DY12 < 0 || (DY12 == 0 && DX12 > 0)) C1++;
-	if(DY23 < 0 || (DY23 == 0 && DX23 > 0)) C2++;
-	if(DY31 < 0 || (DY31 == 0 && DX31 > 0)) C3++;
+	if (DY12 < 0 || (DY12 == 0 && DX12 > 0)) C1++;
+	if (DY23 < 0 || (DY23 == 0 && DX23 > 0)) C2++;
+	if (DY31 < 0 || (DY31 == 0 && DX31 > 0)) C3++;
 
 	// Loop through blocks
-	for(s32 y = miny; y < maxy; y += BLOCK_SIZE)
+	for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
 	{
-		for(s32 x = minx; x < maxx; x += BLOCK_SIZE)
+		for (s32 x = minx; x < maxx; x += BLOCK_SIZE)
 		{
 			// Corners of block
 			s32 x0 = x << 4;
@@ -449,17 +441,17 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 			int c = (c00 << 0) | (c10 << 1) | (c01 << 2) | (c11 << 3);
 
 			// Skip block when outside an edge
-			if(a == 0x0 || b == 0x0 || c == 0x0)
+			if (a == 0x0 || b == 0x0 || c == 0x0)
 				continue;
 
 			BuildBlock(x, y);
 
 			// Accept whole block when totally covered
-			if(a == 0xF && b == 0xF && c == 0xF)
+			if (a == 0xF && b == 0xF && c == 0xF)
 			{
-				for(s32 iy = 0; iy < BLOCK_SIZE; iy++)
+				for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
 				{
-					for(s32 ix = 0; ix < BLOCK_SIZE; ix++)
+					for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
 					{
 						Draw(x + ix, y + iy, ix, iy);
 					}
@@ -471,15 +463,15 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 				s32 CY2 = C2 + DX23 * y0 - DY23 * x0;
 				s32 CY3 = C3 + DX31 * y0 - DY31 * x0;
 
-				for(s32 iy = 0; iy < BLOCK_SIZE; iy++)
+				for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
 				{
 					s32 CX1 = CY1;
 					s32 CX2 = CY2;
 					s32 CX3 = CY3;
 
-					for(s32 ix = 0; ix < BLOCK_SIZE; ix++)
+					for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
 					{
-						if(CX1 > 0 && CX2 > 0 && CX3 > 0)
+						if (CX1 > 0 && CX2 > 0 && CX3 > 0)
 						{
 							Draw(x + ix, y + iy, ix, iy);
 						}

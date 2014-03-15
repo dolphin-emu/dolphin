@@ -73,7 +73,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	wxStaticText* EditPatchOffsetText = new wxStaticText(this, ID_EDITPATCH_OFFSET_TEXT, _("Offset:"));
 	EditPatchOffset = new wxTextCtrl(this, ID_EDITPATCH_OFFSET);
 	EditPatchOffset->SetValue(wxString::Format(wxT("%08X"), tempEntries.at(0).address));
-	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
+	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT);
 	EntrySelection->SetRange(0, (int)tempEntries.size()-1);
 	EntrySelection->SetValue((int)tempEntries.size()-1);
 	wxArrayString wxArrayStringFor_EditPatchType;

@@ -46,7 +46,7 @@ CVolumeWAD::~CVolumeWAD()
 
 bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 		return false;
 
 	return m_pReader->Read(_Offset, _Length, _pBuffer);
@@ -66,7 +66,7 @@ std::string CVolumeWAD::GetUniqueID() const
 	u32 Offset = ALIGN_40(hdr_size) + ALIGN_40(cert_size);
 
 	char GameCode[8];
-	if(!Read(Offset + 0x01E0, 4, (u8*)GameCode))
+	if (!Read(Offset + 0x01E0, 4, (u8*)GameCode))
 		return "0";
 
 	GameCode[4] = temp.at(0);
@@ -94,7 +94,7 @@ bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
 {
 	u32 Offset = ALIGN_40(hdr_size) + ALIGN_40(cert_size);
 
-	if(!Read(Offset + 0x01DC, 8, _pBuffer))
+	if (!Read(Offset + 0x01DC, 8, _pBuffer))
 		return false;
 
 	return true;

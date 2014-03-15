@@ -20,11 +20,20 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 	// Skip disabled JIT instructions
 	if (Core::g_CoreStartupParameter.bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87))
-	{ Default(inst); return; }
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 	if (Core::g_CoreStartupParameter.bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)))
-	{ Default(inst); return; }
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 	if (Core::g_CoreStartupParameter.bJITLoadStorelwzOff && (inst.OPCD == 32))
-	{ Default(inst); return; }
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	// Determine memory access size and sign extend
 	int accessSize = 0;
@@ -225,7 +234,8 @@ void Jit64::dcbst(UGeckoInstruction inst)
 	// dcbt = 0x7c00022c
 	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
 	{
-		Default(inst); return;
+		FallBackToInterpreter(inst);
+		return;
 	}
 }
 
@@ -235,14 +245,16 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
 
-	Default(inst); return;
+	// FIXME
+	FallBackToInterpreter(inst);
+	return;
 
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
 	AND(32, R(EAX), Imm32(~31));
 	XORPD(XMM0, R(XMM0));
-#ifdef _M_X64
+#if _M_X86_64
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 0), XMM0);
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 16), XMM0);
 #else
@@ -333,7 +345,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			MOV(32, R(ABI_PARAM1), gpr.R(a));
 			MOV(32, R(EAX), gpr.R(s));
 			BSWAP(32, EAX);
-#ifdef _M_X64
+#if _M_X86_64
 			MOV(accessSize, MComplex(RBX, ABI_PARAM1, SCALE_1, (u32)offset), R(EAX));
 #else
 			AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
@@ -351,7 +363,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		}
 
 		/* // TODO - figure out why Beyond Good and Evil hates this
-		#if defined(_WIN32) && defined(_M_X64)
+		#if defined(_WIN32) && _M_X86_64
 		if (accessSize == 32 && !update)
 		{
 		// Fast and daring - requires 64-bit
@@ -398,7 +410,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	if (!a || a == s || a == b)
 	{
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
 	gpr.Lock(a, b, s);
@@ -437,7 +449,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
 
-#ifdef _M_X64
+#if _M_X86_64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
@@ -451,7 +463,8 @@ void Jit64::lmw(UGeckoInstruction inst)
 	}
 	gpr.UnlockAllX();
 #else
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 #endif
 }
 
@@ -460,7 +473,7 @@ void Jit64::stmw(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
 
-#ifdef _M_X64
+#if _M_X86_64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
@@ -473,12 +486,13 @@ void Jit64::stmw(UGeckoInstruction inst)
 	}
 	gpr.UnlockAllX();
 #else
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 #endif
 }
 
 void Jit64::icbi(UGeckoInstruction inst)
 {
-	Default(inst);
+	FallBackToInterpreter(inst);
 	WriteExit(js.compilerPC + 4);
 }

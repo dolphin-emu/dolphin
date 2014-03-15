@@ -57,8 +57,9 @@ void SendMotionEvent(Display *dpy, int x, int y)
 
 void EWMH_Fullscreen(Display *dpy, int action)
 {
-	_assert_(action == _NET_WM_STATE_REMOVE || action == _NET_WM_STATE_ADD
-			|| action == _NET_WM_STATE_TOGGLE);
+	_assert_(action == _NET_WM_STATE_REMOVE ||
+	         action == _NET_WM_STATE_ADD ||
+	         action == _NET_WM_STATE_TOGGLE);
 
 	Window win = (Window)Core::GetWindowHandle();
 
@@ -73,7 +74,7 @@ void EWMH_Fullscreen(Display *dpy, int action)
 
 	// Send the event
 	if (!XSendEvent(dpy, DefaultRootWindow(dpy), False,
-				SubstructureRedirectMask | SubstructureNotifyMask, &event))
+	                SubstructureRedirectMask | SubstructureNotifyMask, &event))
 		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.");
 }
 
@@ -100,9 +101,9 @@ void InhibitScreensaver(Display *dpy, Window win, bool suspend)
 		(char *)"xdg-screensaver",
 		(char *)(suspend ? "suspend" : "resume"),
 		id,
-		NULL};
+		nullptr};
 	pid_t pid;
-	if (!posix_spawnp(&pid, "xdg-screensaver", NULL, NULL, argv, environ))
+	if (!posix_spawnp(&pid, "xdg-screensaver", nullptr, nullptr, argv, environ))
 	{
 		int status;
 		while (waitpid (pid, &status, 0) == -1);
@@ -115,7 +116,7 @@ void InhibitScreensaver(Display *dpy, Window win, bool suspend)
 XRRConfiguration::XRRConfiguration(Display *_dpy, Window _win)
 	: dpy(_dpy)
 	, win(_win)
-	, screenResources(NULL), outputInfo(NULL), crtcInfo(NULL)
+	, screenResources(nullptr), outputInfo(nullptr), crtcInfo(nullptr)
 	, fullMode(0)
 	, fs_fb_width(0), fs_fb_height(0), fs_fb_width_mm(0), fs_fb_height_mm(0)
 	, bValid(true), bIsFullscreen(false)
@@ -156,7 +157,7 @@ XRRConfiguration::~XRRConfiguration()
 
 void XRRConfiguration::Update()
 {
-	if(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution == "Auto")
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution == "Auto")
 		return;
 
 	if (!bValid)
@@ -165,18 +166,18 @@ void XRRConfiguration::Update()
 	if (outputInfo)
 	{
 		XRRFreeOutputInfo(outputInfo);
-		outputInfo = NULL;
+		outputInfo = nullptr;
 	}
 	if (crtcInfo)
 	{
 		XRRFreeCrtcInfo(crtcInfo);
-		crtcInfo = NULL;
+		crtcInfo = nullptr;
 	}
 	fullMode = 0;
 
 	// Get the resolution setings for fullscreen mode
 	unsigned int fullWidth, fullHeight;
-	char *output_name = NULL;
+	char *output_name = nullptr;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.find(':') ==
 			std::string::npos)
 	{

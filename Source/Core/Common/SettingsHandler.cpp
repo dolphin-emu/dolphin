@@ -84,13 +84,13 @@ void SettingsHandler::Reset()
 
 void SettingsHandler::AddSetting(const std::string& key, const std::string& value)
 {
-	for(const char& c : key) {
+	for (const char& c : key) {
 		WriteByte(c);
 	}
 
 	WriteByte('=');
 
-	for(const char& c : value) {
+	for (const char& c : value) {
 		WriteByte(c);
 	}
 

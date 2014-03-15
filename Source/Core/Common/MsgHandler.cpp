@@ -56,7 +56,7 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 		crit_caption = str_translator(_trans("Critical"));
 	}
 
-	switch(Style)
+	switch (Style)
 	{
 		case INFORMATION:
 			caption = info_caption;

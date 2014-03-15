@@ -87,7 +87,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 			IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT ^ newStatus.CHIP_SELECT);
 			m_Status.CHIP_SELECT = newStatus.CHIP_SELECT;
-			if (pDevice != NULL)
+			if (pDevice != nullptr)
 				pDevice->SetCS(m_Status.CHIP_SELECT);
 
 			CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
@@ -110,7 +110,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			if (m_Control.TSTART)
 			{
 				IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT);
-				if (pDevice == NULL)
+				if (pDevice == nullptr)
 					return;
 
 				if (m_Control.DMA == 0)
@@ -137,7 +137,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 					m_Control.TSTART = 0;
 				}
 
-				if(!m_Control.TSTART) // completed !
+				if (!m_Control.TSTART) // completed !
 				{
 					m_Status.TCINT = 1;
 					CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
@@ -171,7 +171,7 @@ void CEXIChannel::AddDevice(IEXIDevice* pDevice, const int device_num, bool noti
 	// replace it with the new one
 	m_pDevices[device_num].reset(pDevice);
 
-	if(notifyPresenceChanged)
+	if (notifyPresenceChanged)
 	{
 		// This means "device presence changed", software has to check
 		// m_Status.EXT to see if it is now present or not
@@ -216,7 +216,7 @@ IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 	case 2: return m_pDevices[1].get();
 	case 4: return m_pDevices[2].get();
 	}
-	return NULL;
+	return nullptr;
 }
 
 void CEXIChannel::Update()
@@ -241,13 +241,13 @@ void CEXIChannel::DoState(PointerWrap &p)
 		p.Do(type);
 		IEXIDevice* pSaveDevice = (type == pDevice->m_deviceType) ? pDevice : EXIDevice_Create(type, m_ChannelId);
 		pSaveDevice->DoState(p);
-		if(pSaveDevice != pDevice)
+		if (pSaveDevice != pDevice)
 		{
 			// if we had to create a temporary device, discard it if we're not loading.
 			// also, if no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created,
 			// unless the device is NONE (since ChangeDevice sets that temporarily).
-			if(p.GetMode() != PointerWrap::MODE_READ)
+			if (p.GetMode() != PointerWrap::MODE_READ)
 			{
 				delete pSaveDevice;
 			}
@@ -273,5 +273,5 @@ IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int customIndex)
 		if (device)
 			return device;
 	}
-	return NULL;
+	return nullptr;
 }

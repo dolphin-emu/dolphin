@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <string>
 #include <vector>
 
 #include "Common/FifoQueue.h"
@@ -23,7 +24,7 @@ namespace CoreTiming
 struct EventType
 {
 	TimedCallback callback;
-	const char *name;
+	std::string name;
 };
 
 std::vector<EventType> event_types;
@@ -43,7 +44,7 @@ static std::mutex tsWriteLock;
 Common::FifoQueue<BaseEvent, false> tsQueue;
 
 // event pools
-Event *eventPool = 0;
+Event *eventPool = nullptr;
 
 int downcount, slicelength;
 int maxSliceLength = MAX_SLICE_LENGTH;
@@ -59,11 +60,11 @@ u64 fakeTBStartTicks;
 int ev_lost;
 
 
-void (*advanceCallback)(int cyclesExecuted) = NULL;
+void (*advanceCallback)(int cyclesExecuted) = nullptr;
 
 Event* GetNewEvent()
 {
-	if(!eventPool)
+	if (!eventPool)
 		return new Event;
 
 	Event* ev = eventPool;
@@ -79,7 +80,7 @@ void FreeEvent(Event* ev)
 
 static void EmptyTimedCallback(u64 userdata, int cyclesLate) {}
 
-int RegisterEvent(const char *name, TimedCallback callback)
+int RegisterEvent(const std::string& name, TimedCallback callback)
 {
 	EventType type;
 	type.name = name;
@@ -89,9 +90,9 @@ int RegisterEvent(const char *name, TimedCallback callback)
 	// we want event type names to remain unique so that we can use them for serialization.
 	for (auto& event_type : event_types)
 	{
-		if (!strcmp(name, event_type.name))
+		if (name == event_type.name)
 		{
-			WARN_LOG(POWERPC, "Discarded old event type \"%s\" because a new type with the same name was registered.", name);
+			WARN_LOG(POWERPC, "Discarded old event type \"%s\" because a new type with the same name was registered.", name.c_str());
 			// we don't know if someone might be holding on to the type index,
 			// so we gut the old event type instead of actually removing it.
 			event_type.name = "_discarded_event";
@@ -127,7 +128,7 @@ void Shutdown()
 	ClearPendingEvents();
 	UnregisterAllEvents();
 
-	while(eventPool)
+	while (eventPool)
 	{
 		Event *ev = eventPool;
 		eventPool = ev->next;
@@ -154,7 +155,7 @@ void EventDoState(PointerWrap &p, BaseEvent* ev)
 		bool foundMatch = false;
 		for (unsigned int i = 0; i < event_types.size(); ++i)
 		{
-			if (!strcmp(name.c_str(), event_types[i].name))
+			if (name == event_types[i].name)
 			{
 				ev->type = i;
 				foundMatch = true;
@@ -214,7 +215,7 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 // in which case the event will get handled immediately, before returning.
 void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 {
-	if(Core::IsCPUThread())
+	if (Core::IsCPUThread())
 	{
 		event_types[event_type].callback(userdata, 0);
 	}
@@ -236,12 +237,12 @@ void ClearPendingEvents()
 
 void AddEventToQueue(Event* ne)
 {
-	Event* prev = NULL;
+	Event* prev = nullptr;
 	Event** pNext = &first;
-	for(;;)
+	for (;;)
 	{
 		Event*& next = *pNext;
-		if(!next || ne->time < next->time)
+		if (!next || ne->time < next->time)
 		{
 			ne->next = next;
 			next = ne;
@@ -287,7 +288,7 @@ void RemoveEvent(int event_type)
 	if (!first)
 		return;
 
-	while(first)
+	while (first)
 	{
 		if (first->type == event_type)
 		{
@@ -467,11 +468,9 @@ std::string GetScheduledEventsSummary()
 		if (t >= event_types.size())
 			PanicAlertT("Invalid event type %i", t);
 
-		const char *name = event_types[ptr->type].name;
-		if (!name)
-			name = "[unknown]";
+		const std::string& name = event_types[ptr->type].name;
 
-		text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", name, ptr->time, ptr->userdata);
+		text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", name.c_str(), ptr->time, ptr->userdata);
 		ptr = ptr->next;
 	}
 	return text;

@@ -67,7 +67,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 	u8 data[32] = {};
 	memcpy(data, data_, size_);
 
-	switch(data[1])
+	switch (data[1])
 	{
 	case WM_RUMBLE:
 		size = 1;
@@ -109,7 +109,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		u32 address = Common::swap24(wd->address);
 		address &= ~0x010000;
 
-		switch(data[2] >> 0x01)
+		switch (data[2] >> 0x01)
 		{
 		case WM_SPACE_EEPROM:
 			if (logCom) Name.append(" REG_EEPROM"); break;
@@ -117,19 +117,19 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		case WM_SPACE_REGS2: {
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = NULL;
+			void *region_ptr = nullptr;
 			int region_size = 0;
 
-			switch(data[3])
+			switch (data[3])
 			{
 			case 0xa2:
 				if (logCom)
 				{
 					Name.append(" REG_SPEAKER");
-					if(data[6] == 7)
+					if (data[6] == 7)
 					{
 						//INFO_LOG(CONSOLE, "Sound configuration:");
-						if(data[8] == 0x00)
+						if (data[8] == 0x00)
 						{
 							//memcpy(&SampleValue, &data[9], 2);
 							//NOTICE_LOG(CONSOLE, "    Data format: 4-bit ADPCM (%i Hz)", 6000000 / SampleValue);
@@ -173,7 +173,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 				memcpy((u8*)region_ptr + region_offset, wd->data, wd->size);
 			// save key
 			if (region_offset >= 0x40 && region_offset <= 0x4c) {
-				if(!emu)
+				if (!emu)
 					wiimote_gen_key(&wm->m_ext_key, wm->m_reg_ext.encryption_key);
 				INFO_LOG(CONSOLE, "Writing key: %s", ArrayToString((u8*)&wm->m_ext_key, sizeof(wm->m_ext_key), 0, 30).c_str());
 			}
@@ -200,11 +200,11 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		address &= 0xFEFFFF;
 		u16 size = Common::swap16(rd->size);
 		u8 *const block = new u8[size];
-		void *region_ptr = NULL;
+		void *region_ptr = nullptr;
 
 		dataRep.push(((data[2]>>1)<<16) + ((data[3])<<8) + addressLO);
 
-		switch(data[2]>>1)
+		switch (data[2]>>1)
 		{
 		case WM_SPACE_EEPROM:
 			if (logCom) Name.append(" REG_EEPROM");
@@ -216,7 +216,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			// ignore second byte for extension area
 			if (address>>16 == 0xA4) address &= 0xFF00FF;
 			const u8 region_offset = (u8)address;
-			switch(data[3])
+			switch (data[3])
 			{
 			case 0xa2:
 				if (logCom) Name.append(" REG_SPEAKER");
@@ -300,7 +300,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		wm_read_data_reply* const rdr = (wm_read_data_reply*)(data2 + 2);
 
 		bool decrypted = false;
-		if(!dataRep.empty())
+		if (!dataRep.empty())
 		{
 			dataReply[0] = (dataRep.front()>>16)&0x00FF;
 			dataReply[1] = (dataRep.front()>>8)&0x00FF;
@@ -308,14 +308,14 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			dataRep.pop();
 		}
 
-		switch(dataReply[0])
+		switch (dataReply[0])
 		{
 		case WM_SPACE_EEPROM:
 			if (logCom)
 				Name.append(" REG_EEPROM");
 			// Wiimote calibration
-			if(data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10) {
-				if(data[6] == 0x10) {
+			if (data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10) {
+				if (data[6] == 0x10) {
 					accel_cal* calib = (accel_cal*)&rdr->data[6];
 					ERROR_LOG(CONSOLE, "Wiimote calibration:");
 					//SERROR_LOG(CONSOLE, "%s", ArrayToString(rdr->data, rdr->size).c_str());
@@ -334,7 +334,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 		case WM_SPACE_REGS1:
 		case WM_SPACE_REGS2:
-			switch(dataReply[1])
+			switch (dataReply[1])
 			{
 			case 0xa2: if (logCom) Name.append(" REG_SPEAKER"); break;
 			case 0xa4: if (logCom) Name.append(" REG_EXT"); break;
@@ -387,7 +387,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		}
 
 		// Nunchuck calibration
-		if(data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
+		if (data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
 		{
 			// log
 			//TmpData = StringFromFormat("Read[%s] (enc): %s", (Emu ? "Emu" : "Real"), ArrayToString(data, size + 2).c_str());
@@ -435,7 +435,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			if (!emu)
 			{
 				// Save to registry
-				if(data[7 + 0] != 0xff)
+				if (data[7 + 0] != 0xff)
 				{
 					//memcpy((u8*)&wm->m_reg_ext.calibration, &data[7], 0x10);
 					//memcpy((u8*)&wm->m_reg_ext.unknown3, &data[7], 0x10);
@@ -448,7 +448,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 				//WiimoteEmu::UpdateEeprom();
 			}
 			// third party Nunchuck
-			else if(data[7] == 0xff)
+			else if (data[7] == 0xff)
 			{
 				//memcpy(wm->m_reg_ext + 0x20, WiimoteEmu::wireless_nunchuck_calibration, sizeof(WiimoteEmu::wireless_nunchuck_calibration));
 				//memcpy(wm->m_reg_ext + 0x30, WiimoteEmu::wireless_nunchuck_calibration, sizeof(WiimoteEmu::wireless_nunchuck_calibration));
@@ -460,7 +460,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 		if (dataReply[1] == 0xa4 || dataReply[1] == 0xa6)
 		{
-			if(rdr->error == 7 || rdr->error == 8)
+			if (rdr->error == 7 || rdr->error == 8)
 			{
 				WARN_LOG(CONSOLE, "R%s[0x%02x 0x%02x]: e-%d", decrypted?"*":"", dataReply[1], rdr->address>>8, rdr->error);
 			}
@@ -948,7 +948,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 				address &= 0xFF00FF;
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = NULL;
+			void *region_ptr = nullptr;
 			int region_size = 0;
 
 			switch (address >> 16)
@@ -1093,7 +1093,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				address &= 0xFF00FF;
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = NULL;
+			void *region_ptr = nullptr;
 			int region_size = 0;
 
 			switch (address >> 16)

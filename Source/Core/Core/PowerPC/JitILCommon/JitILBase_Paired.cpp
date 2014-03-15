@@ -7,36 +7,47 @@
 
 void JitILBase::ps_mr(UGeckoInstruction inst)
 {
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 }
 
 void JitILBase::ps_sel(UGeckoInstruction inst)
 {
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 }
 
 void JitILBase::ps_sign(UGeckoInstruction inst)
 {
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 }
 
 void JitILBase::ps_rsqrte(UGeckoInstruction inst)
 {
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 }
 
 void JitILBase::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc || (inst.SUBOP5 != 21 && inst.SUBOP5 != 20 && inst.SUBOP5 != 25)) {
-		Default(inst); return;
+
+	if (inst.Rc || (inst.SUBOP5 != 21 && inst.SUBOP5 != 20 && inst.SUBOP5 != 25))
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
-	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA), rhs;
+
+	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
+	IREmitter::InstLoc rhs;
+
 	if (inst.SUBOP5 == 25)
 		rhs = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
 	else
 		rhs = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+
 	val = ibuild.EmitCompactMRegToPacked(val);
 
 	switch (inst.SUBOP5)
@@ -50,6 +61,7 @@ void JitILBase::ps_arith(UGeckoInstruction inst)
 	case 25:
 		val = ibuild.EmitFPMul(val, rhs);
 	}
+
 	val = ibuild.EmitExpandPackedToMReg(val);
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
@@ -59,13 +71,21 @@ void JitILBase::ps_sum(UGeckoInstruction inst)
 	// TODO: This operation strikes me as a bit strange...
 	// perhaps we can optimize it depending on the users?
 	// TODO: ps_sum breaks Sonic Colours (black screen)
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
+
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc || inst.SUBOP5 != 10) {
-		Default(inst); return;
+
+	if (inst.Rc || inst.SUBOP5 != 10)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
-	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA), temp;
+
+	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
+	IREmitter::InstLoc temp;
+
 	val = ibuild.EmitCompactMRegToPacked(val);
 	val = ibuild.EmitFPDup0(val);
 	temp = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
@@ -81,11 +101,15 @@ void JitILBase::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
-	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA),
-	                   rhs = ibuild.EmitLoadFReg(inst.FC);
+
+	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
+	IREmitter::InstLoc rhs = ibuild.EmitLoadFReg(inst.FC);
 
 	val = ibuild.EmitCompactMRegToPacked(val);
 	rhs = ibuild.EmitCompactMRegToPacked(rhs);
@@ -106,12 +130,15 @@ void JitILBase::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
-	IREmitter::InstLoc val = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FA)),
-			   rhs = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+	IREmitter::InstLoc val = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FA));
+	IREmitter::InstLoc rhs = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
 
 	switch (inst.SUBOP10)
 	{
@@ -130,6 +157,7 @@ void JitILBase::ps_mergeXX(UGeckoInstruction inst)
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_merge - invalid op");
 	}
+
 	val = ibuild.EmitExpandPackedToMReg(val);
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
@@ -139,12 +167,16 @@ void JitILBase::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA), op2, op3;
 	val = ibuild.EmitCompactMRegToPacked(val);
+
 	switch (inst.SUBOP5)
 	{
 	case 14: {//madds0
@@ -194,6 +226,7 @@ void JitILBase::ps_maddXX(UGeckoInstruction inst)
 		break;
 	}
 	}
+
 	val = ibuild.EmitExpandPackedToMReg(val);
 	ibuild.EmitStoreFReg(val, inst.FD);
 }

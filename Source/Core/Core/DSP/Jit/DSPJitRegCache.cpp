@@ -10,7 +10,7 @@ using namespace Gen;
 
 static void *reg_ptr(int reg)
 {
-	switch(reg)
+	switch (reg)
 	{
 	case DSP_REG_AR0:
 	case DSP_REG_AR1:
@@ -62,7 +62,7 @@ static void *reg_ptr(int reg)
 	case DSP_REG_AX0_32:
 	case DSP_REG_AX1_32:
 		return &g_dsp.r.ax[reg - DSP_REG_AX0_32].val;
-#ifdef _M_X64
+#if _M_X86_64
 	case DSP_REG_ACC0_64:
 	case DSP_REG_ACC1_64:
 		return &g_dsp.r.ac[reg - DSP_REG_ACC0_64].val;
@@ -71,7 +71,7 @@ static void *reg_ptr(int reg)
 #endif
 	default:
 		_assert_msg_(DSPLLE, 0, "cannot happen");
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -81,7 +81,7 @@ static void *reg_ptr(int reg)
 DSPJitRegCache::DSPJitRegCache(DSPEmitter &_emitter)
 	: emitter(_emitter), temporary(false), merged(false)
 {
-	for(auto& xreg : xregs)
+	for (X64CachedReg& xreg : xregs)
 	{
 		xreg.guest_reg = DSP_REG_STATIC;
 		xreg.pushed = false;
@@ -101,7 +101,7 @@ DSPJitRegCache::DSPJitRegCache(DSPEmitter &_emitter)
 	xregs[RSI].guest_reg = DSP_REG_NONE;
 	xregs[RDI].guest_reg = DSP_REG_NONE;
 
-#ifdef _M_X64
+#if _M_X86_64
 #ifdef STATIC_REG_ACCS
 	xregs[R8].guest_reg = DSP_REG_STATIC; //acc0
 	xregs[R9].guest_reg = DSP_REG_STATIC; //acc1
@@ -117,7 +117,7 @@ DSPJitRegCache::DSPJitRegCache(DSPEmitter &_emitter)
 	xregs[R15].guest_reg = DSP_REG_NONE;
 #endif
 
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		regs[i].mem = reg_ptr(i);
 		regs[i].size = 0;
@@ -130,17 +130,17 @@ DSPJitRegCache::DSPJitRegCache(DSPEmitter &_emitter)
 		regs[i].loc = M(regs[i].mem);
 	}
 
-	for(unsigned int i = 0; i < 32; i++)
+	for (unsigned int i = 0; i < 32; i++)
 	{
 		regs[i].size = 2;
 	}
 	//special composite registers
-#ifdef _M_X64
+#if _M_X86_64
 #ifdef STATIC_REG_ACCS
 	regs[DSP_REG_ACC0_64].host_reg = R8;
 	regs[DSP_REG_ACC1_64].host_reg = R9;
 #endif
-	for(unsigned int i = 0; i < 2; i++)
+	for (unsigned int i = 0; i < 2; i++)
 	{
 		regs[i+DSP_REG_ACC0_64].size = 8;
 		regs[i+DSP_REG_ACL0].parentReg = i+DSP_REG_ACC0_64;
@@ -162,7 +162,7 @@ DSPJitRegCache::DSPJitRegCache(DSPEmitter &_emitter)
 	regs[DSP_REG_PRODM2].shift = 48;
 #endif
 
-	for(unsigned int i = 0; i < 2; i++)
+	for (unsigned int i = 0; i < 2; i++)
 	{
 		regs[i+DSP_REG_AX0_32].size = 4;
 		regs[i+DSP_REG_AXL0].parentReg = i+DSP_REG_AX0_32;
@@ -209,7 +209,7 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 	size_t i;
 
 	// drop all guest register not used by cache
-	for(i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		regs[i].used = false; //used is restored later
 		if (regs[i].loc.IsSimpleReg() &&
@@ -224,7 +224,7 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 	do
 	{
 		movcnt = 0;
-		for(i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+		for (i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 		{
 			X64Reg simple = regs[i].loc.GetSimpleReg();
 			X64Reg simple_cache = cache.regs[i].loc.GetSimpleReg();
@@ -238,7 +238,7 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 	} while (movcnt != 0);
 
 	// free all host regs that are not used for the same guest reg
-	for(i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		if (cache.regs[i].loc.GetSimpleReg() !=
 		    regs[i].loc.GetSimpleReg() &&
@@ -249,14 +249,14 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 	}
 
 	// load all guest regs that are in memory and should be in host reg
-	for(i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		if (cache.regs[i].loc.IsSimpleReg())
 		{
 			movToHostReg(i, cache.regs[i].loc.GetSimpleReg(), true);
 			rotateHostReg(i, cache.regs[i].shift, true);
 		}
-		else if(cache.regs[i].loc.IsImm())
+		else if (cache.regs[i].loc.IsImm())
 		{
 			// TODO: Immediates?
 		}
@@ -268,7 +268,7 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 
 	// sync the freely used xregs
 	if (!emit) {
-		for(i = 0; i < NUMXREGS; i++)
+		for (i = 0; i < NUMXREGS; i++)
 		{
 			if (cache.xregs[i].guest_reg == DSP_REG_USED &&
 			    xregs[i].guest_reg == DSP_REG_NONE)
@@ -284,14 +284,14 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 	}
 
 	// consistency checks
-	for(i = 0; i < NUMXREGS; i++)
+	for (i = 0; i < NUMXREGS; i++)
 	{
 		_assert_msg_(DSPLLE,
 			     xregs[i].guest_reg == cache.xregs[i].guest_reg,
 			     "cache and current xreg guest_reg mismatch for %zi", i);
 	}
 
-	for(i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		_assert_msg_(DSPLLE,
 			     regs[i].loc.IsImm() == cache.regs[i].loc.IsImm(),
@@ -319,7 +319,7 @@ void DSPJitRegCache::flushMemBackedRegs()
 	// this should have the same effect as
 	// merge(DSPJitRegCache(emitter));
 
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		_assert_msg_(DSPLLE, !regs[i].used,
 			     "register %x still in use", i);
@@ -345,7 +345,7 @@ void DSPJitRegCache::flushRegs()
 {
 	flushMemBackedRegs();
 
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		if (regs[i].host_reg != INVALID_REG)
 		{
@@ -353,7 +353,7 @@ void DSPJitRegCache::flushRegs()
 		}
 	}
 
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		_assert_msg_(DSPLLE,
 		             !regs[i].loc.IsSimpleReg(),
@@ -375,7 +375,7 @@ void DSPJitRegCache::flushRegs()
 	_assert_msg_(DSPLLE,
 	             xregs[RDI].guest_reg == DSP_REG_NONE,
 	             "wrong xreg state for %d", RDI);
-#ifdef _M_X64
+#if _M_X86_64
 #ifdef STATIC_REG_ACCS
 	_assert_msg_(DSPLLE,
 	             xregs[R8].guest_reg == DSP_REG_STATIC,
@@ -418,7 +418,7 @@ static u64 ebp_store;
 
 void DSPJitRegCache::loadRegs(bool emit)
 {
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		if (regs[i].host_reg != INVALID_REG)
 		{
@@ -428,7 +428,7 @@ void DSPJitRegCache::loadRegs(bool emit)
 
 	if (emit)
 	{
-#ifdef _M_X64
+#if _M_X86_64
 		emitter.MOV(64, M(&ebp_store), R(RBP));
 #else
 		emitter.MOV(32, M(&ebp_store), R(EBP));
@@ -440,7 +440,7 @@ void DSPJitRegCache::saveRegs()
 {
 	flushRegs();
 
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		if (regs[i].host_reg != INVALID_REG)
 		{
@@ -448,14 +448,14 @@ void DSPJitRegCache::saveRegs()
 		}
 	}
 
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		_assert_msg_(DSPLLE,
 		             !regs[i].loc.IsSimpleReg(),
 		             "register %x is still a simple reg", i);
 	}
 
-#ifdef _M_X64
+#if _M_X86_64
 	emitter.MOV(64, R(RBP), M(&ebp_store));
 #else
 	emitter.MOV(32, R(EBP), M(&ebp_store));
@@ -466,7 +466,7 @@ void DSPJitRegCache::pushRegs()
 {
 	flushMemBackedRegs();
 
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		if (regs[i].host_reg != INVALID_REG)
 		{
@@ -475,14 +475,14 @@ void DSPJitRegCache::pushRegs()
 	}
 
 	int push_count = 0;
-	for(auto& xreg : xregs)
+	for (X64CachedReg& xreg : xregs)
 	{
 		if (xreg.guest_reg == DSP_REG_USED)
 			push_count++;
 	}
 
 	//hardcoding alignment to 16 bytes
-#ifdef _M_X64
+#if _M_X86_64
 	if (push_count & 1)
 	{
 		emitter.SUB(64,R(RSP),Imm32(8));
@@ -494,7 +494,7 @@ void DSPJitRegCache::pushRegs()
 	}
 #endif
 
-	for(unsigned int i = 0; i < NUMXREGS; i++)
+	for (unsigned int i = 0; i < NUMXREGS; i++)
 	{
 		if (xregs[i].guest_reg == DSP_REG_USED)
 		{
@@ -504,14 +504,14 @@ void DSPJitRegCache::pushRegs()
 		}
 	}
 
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		_assert_msg_(DSPLLE,
 		             !regs[i].loc.IsSimpleReg(),
 		             "register %x is still a simple reg", i);
 	}
 
-	for(unsigned int i = 0; i < NUMXREGS; i++)
+	for (unsigned int i = 0; i < NUMXREGS; i++)
 	{
 		_assert_msg_(DSPLLE,
 		             xregs[i].guest_reg == DSP_REG_NONE ||
@@ -519,7 +519,7 @@ void DSPJitRegCache::pushRegs()
 		             "register %x is still used", i);
 	}
 
-#ifdef _M_X64
+#if _M_X86_64
 	emitter.MOV(64, R(RBP), M(&ebp_store));
 #else
 	emitter.MOV(32, R(EBP), M(&ebp_store));
@@ -527,13 +527,13 @@ void DSPJitRegCache::pushRegs()
 }
 
 void DSPJitRegCache::popRegs() {
-#ifdef _M_X64
+#if _M_X86_64
 	emitter.MOV(64, M(&ebp_store), R(RBP));
 #else
 	emitter.MOV(32, M(&ebp_store), R(EBP));
 #endif
 	int push_count = 0;
-	for(auto& xreg : xregs)
+	for (X64CachedReg& xreg : xregs)
 	{
 		if (xreg.pushed)
 		{
@@ -541,7 +541,7 @@ void DSPJitRegCache::popRegs() {
 		}
 	}
 
-	for(int i = NUMXREGS-1; i >= 0; i--)
+	for (int i = NUMXREGS-1; i >= 0; i--)
 	{
 		if (xregs[i].pushed)
 		{
@@ -552,7 +552,7 @@ void DSPJitRegCache::popRegs() {
 	}
 
 	//hardcoding alignment to 16 bytes
-#ifdef _M_X64
+#if _M_X86_64
 	if (push_count & 1)
 	{
 		emitter.ADD(64,R(RSP),Imm32(8));
@@ -564,7 +564,7 @@ void DSPJitRegCache::popRegs() {
 	}
 #endif
 
-	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
+	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		if (regs[i].host_reg != INVALID_REG)
 		{
@@ -589,7 +589,7 @@ X64Reg DSPJitRegCache::makeABICallSafe(X64Reg reg)
 		emitter.INT3();
 	}
 	xregs[RBP].guest_reg = rbp_guest;
-#ifdef _M_X64
+#if _M_X86_64
 	emitter.MOV(64,R(safe),R(reg));
 #else
 	emitter.MOV(32,R(safe),R(reg));
@@ -618,7 +618,7 @@ void DSPJitRegCache::movToHostReg(int reg, X64Reg host_reg, bool load)
 
 	if (load)
 	{
-		switch(regs[reg].size)
+		switch (regs[reg].size)
 		{
 		case 2:
 			emitter.MOV(16, R(host_reg), regs[reg].loc);
@@ -626,7 +626,7 @@ void DSPJitRegCache::movToHostReg(int reg, X64Reg host_reg, bool load)
 		case 4:
 			emitter.MOV(32, R(host_reg), regs[reg].loc);
 			break;
-#ifdef _M_X64
+#if _M_X86_64
 		case 8:
 			emitter.MOV(64, R(host_reg), regs[reg].loc);
 			break;
@@ -690,7 +690,7 @@ void DSPJitRegCache::rotateHostReg(int reg, int shift, bool emit)
 
 	if (shift > regs[reg].shift && emit)
 	{
-		switch(regs[reg].size)
+		switch (regs[reg].size)
 		{
 		case 2:
 			emitter.ROR(16, regs[reg].loc, Imm8(shift - regs[reg].shift));
@@ -698,7 +698,7 @@ void DSPJitRegCache::rotateHostReg(int reg, int shift, bool emit)
 		case 4:
 			emitter.ROR(32, regs[reg].loc, Imm8(shift - regs[reg].shift));
 			break;
-#ifdef _M_X64
+#if _M_X86_64
 		case 8:
 			emitter.ROR(64, regs[reg].loc, Imm8(shift - regs[reg].shift));
 			break;
@@ -707,7 +707,7 @@ void DSPJitRegCache::rotateHostReg(int reg, int shift, bool emit)
 	}
 	else if (shift < regs[reg].shift && emit)
 	{
-		switch(regs[reg].size)
+		switch (regs[reg].size)
 		{
 		case 2:
 			emitter.ROL(16, regs[reg].loc, Imm8(regs[reg].shift - shift));
@@ -715,7 +715,7 @@ void DSPJitRegCache::rotateHostReg(int reg, int shift, bool emit)
 		case 4:
 			emitter.ROL(32, regs[reg].loc, Imm8(regs[reg].shift - shift));
 			break;
-#ifdef _M_X64
+#if _M_X86_64
 		case 8:
 			emitter.ROL(64, regs[reg].loc, Imm8(regs[reg].shift - shift));
 			break;
@@ -762,7 +762,7 @@ void DSPJitRegCache::movToMemory(int reg)
 
 	if (regs[reg].dirty)
 	{
-		switch(regs[reg].size)
+		switch (regs[reg].size)
 		{
 		case 2:
 			emitter.MOV(16, tmp, regs[reg].loc);
@@ -770,7 +770,7 @@ void DSPJitRegCache::movToMemory(int reg)
 		case 4:
 			emitter.MOV(32, tmp, regs[reg].loc);
 			break;
-#ifdef _M_X64
+#if _M_X86_64
 		case 8:
 			emitter.MOV(64, tmp, regs[reg].loc);
 			break;
@@ -835,9 +835,9 @@ void DSPJitRegCache::getReg(int reg, OpArg &oparg, bool load)
 	regs[real_reg].used = true;
 
 	//do some register specific fixup
-	switch(reg)
+	switch (reg)
 	{
-#ifdef _M_X64
+#if _M_X86_64
 	case DSP_REG_ACC0_64:
 	case DSP_REG_ACC1_64:
 		if (load)
@@ -862,7 +862,7 @@ void DSPJitRegCache::putReg(int reg, bool dirty)
 
 	OpArg oparg = regs[real_reg].loc;
 
-	switch(reg)
+	switch (reg)
 	{
 	case DSP_REG_ACH0:
 	case DSP_REG_ACH1:
@@ -876,7 +876,7 @@ void DSPJitRegCache::putReg(int reg, bool dirty)
 				// (if at all)
 
 				// sign extend from the bottom 8 bits.
-#ifndef _M_X64
+#if _M_X86_32
 				// cannot use movsx with SPL, BPL, SIL or DIL
 				// on 32 bit
 				if (oparg.GetSimpleReg() == RSP ||
@@ -910,7 +910,7 @@ void DSPJitRegCache::putReg(int reg, bool dirty)
 			}
 		}
 		break;
-#ifdef _M_X64
+#if _M_X86_64
 	case DSP_REG_ACC0_64:
 	case DSP_REG_ACC1_64:
 		if (dirty)
@@ -939,12 +939,12 @@ void DSPJitRegCache::readReg(int sreg, X64Reg host_dreg, DSPJitSignExtend extend
 	OpArg reg;
 	getReg(sreg, reg);
 
-	switch(regs[sreg].size)
+	switch (regs[sreg].size)
 	{
 	case 2:
-		switch(extend)
+		switch (extend)
 		{
-#ifdef _M_X64
+#if _M_X86_64
 		case SIGN:
 			emitter.MOVSX(64, 16, host_dreg, reg);
 			break;
@@ -965,8 +965,8 @@ void DSPJitRegCache::readReg(int sreg, X64Reg host_dreg, DSPJitSignExtend extend
 		}
 		break;
 	case 4:
-#ifdef _M_X64
-		switch(extend)
+#if _M_X86_64
+		switch (extend)
 		{
 		case SIGN:
 			emitter.MOVSX(64, 32, host_dreg, reg);
@@ -982,7 +982,7 @@ void DSPJitRegCache::readReg(int sreg, X64Reg host_dreg, DSPJitSignExtend extend
 		emitter.MOV(32, R(host_dreg), reg);
 #endif
 		break;
-#ifdef _M_X64
+#if _M_X86_64
 	case 8:
 		emitter.MOV(64, R(host_dreg), reg);
 		break;
@@ -1000,7 +1000,7 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 	getReg(dreg, reg, false);
 	if (arg.IsImm())
 	{
-		switch(regs[dreg].size)
+		switch (regs[dreg].size)
 		{
 		case 2:
 			emitter.MOV(16, reg, Imm16((u16) arg.offset));
@@ -1008,7 +1008,7 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 		case 4:
 			emitter.MOV(32, reg, Imm32((u32) arg.offset));
 			break;
-#ifdef _M_X64
+#if _M_X86_64
 		case 8:
 			if ((u32) arg.offset == arg.offset)
 			{
@@ -1027,7 +1027,7 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 	}
 	else
 	{
-		switch(regs[dreg].size)
+		switch (regs[dreg].size)
 		{
 		case 2:
 			emitter.MOV(16, reg, arg);
@@ -1035,7 +1035,7 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 		case 4:
 			emitter.MOV(32, reg, arg);
 			break;
-#ifdef _M_X64
+#if _M_X86_64
 		case 8:
 			emitter.MOV(64, reg, arg);
 			break;
@@ -1051,7 +1051,7 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 //ordered in order of prefered use
 //not all of these are actually available
 static X64Reg alloc_order[] = {
-#ifdef _M_X64
+#if _M_X86_64
 	R8,R9,R10,R11,R12,R13,R14,R15,RSI,RDI,RBX,RCX,RDX,RAX,RBP
 #else
 	ESI,EDI,EBX,ECX,EDX,EAX,EBP
@@ -1062,9 +1062,8 @@ X64Reg DSPJitRegCache::spillXReg()
 {
 	int max_use_ctr_diff = 0;
 	X64Reg least_recent_use_reg = INVALID_REG;
-	for(size_t i = 0; i < sizeof(alloc_order)/sizeof(alloc_order[0]); i++)
+	for (X64Reg reg : alloc_order)
 	{
-		X64Reg reg = alloc_order[i];
 		if (xregs[reg].guest_reg <= DSP_REG_MAX_MEM_BACKED &&
 		    !regs[xregs[reg].guest_reg].used)
 		{
@@ -1084,9 +1083,8 @@ X64Reg DSPJitRegCache::spillXReg()
 	}
 
 	//just choose one.
-	for(size_t i = 0; i < sizeof(alloc_order)/sizeof(alloc_order[0]); i++)
+	for (X64Reg reg : alloc_order)
 	{
-		X64Reg reg = alloc_order[i];
 		if (xregs[reg].guest_reg <= DSP_REG_MAX_MEM_BACKED &&
 		    !regs[xregs[reg].guest_reg].used)
 		{
@@ -1118,7 +1116,7 @@ void DSPJitRegCache::spillXReg(X64Reg reg)
 
 X64Reg DSPJitRegCache::findFreeXReg()
 {
-	for(auto& x : alloc_order)
+	for (X64Reg x : alloc_order)
 	{
 		if (xregs[x].guest_reg == DSP_REG_NONE)
 		{

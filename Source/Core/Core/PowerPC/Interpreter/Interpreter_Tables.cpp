@@ -367,7 +367,7 @@ void InitTables()
 	for (int i = 0; i < 32; i++)
 	{
 		Interpreter::m_opTable59[i] = Interpreter::unknown_instruction;
-		m_infoTable59[i] = 0;
+		m_infoTable59[i] = nullptr;
 	}
 
 	for (int i = 0; i < 1024; i++)
@@ -376,10 +376,10 @@ void InitTables()
 		Interpreter::m_opTable19[i] = Interpreter::unknown_instruction;
 		Interpreter::m_opTable31[i] = Interpreter::unknown_instruction;
 		Interpreter::m_opTable63[i] = Interpreter::unknown_instruction;
-		m_infoTable4[i] = 0;
-		m_infoTable19[i] = 0;
-		m_infoTable31[i] = 0;
-		m_infoTable63[i] = 0;
+		m_infoTable4[i] = nullptr;
+		m_infoTable19[i] = nullptr;
+		m_infoTable31[i] = nullptr;
+		m_infoTable63[i] = nullptr;
 	}
 
 	for (auto& tpl : primarytable)

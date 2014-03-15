@@ -12,7 +12,7 @@ enum DSPJitRegSpecial
 {
 	DSP_REG_AX0_32   =32,
 	DSP_REG_AX1_32   =33,
-#ifdef _M_X64
+#if _M_X86_64
 	DSP_REG_ACC0_64  =34,
 	DSP_REG_ACC1_64  =35,
 	DSP_REG_PROD_64  =36,
@@ -33,7 +33,7 @@ enum DSPJitSignExtend
 	NONE
 };
 
-#ifdef _M_X64
+#if _M_X86_64
 #define NUMXREGS 16
 #else
 #define NUMXREGS 8

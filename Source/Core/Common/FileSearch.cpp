@@ -78,9 +78,9 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 	{
 		std::string found(dp->d_name);
 
-		if ((found != ".") && (found != "..")
-			&& (found.size() >= end_match.size())
-			&& std::equal(end_match.rbegin(), end_match.rend(), found.rbegin()))
+		if ((found != ".") && (found != "..") &&
+		    (found.size() >= end_match.size()) &&
+		    std::equal(end_match.rbegin(), end_match.rend(), found.rbegin()))
 		{
 			std::string full_name;
 			if (_strPath.c_str()[_strPath.size()-1] == DIR_SEP_CHR)

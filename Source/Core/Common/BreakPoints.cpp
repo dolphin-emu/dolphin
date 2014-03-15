@@ -17,6 +17,7 @@ bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 	for (const TBreakPoint& bp : m_BreakPoints)
 		if (bp.iAddress == _iAddress)
 			return true;
+
 	return false;
 }
 
@@ -25,6 +26,7 @@ bool BreakPoints::IsTempBreakPoint(u32 _iAddress)
 	for (const TBreakPoint& bp : m_BreakPoints)
 		if (bp.iAddress == _iAddress && bp.bTemporary)
 			return true;
+
 	return false;
 }
 
@@ -150,7 +152,7 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mcstrs)
 
 void MemChecks::Add(const TMemCheck& _rMemoryCheck)
 {
-	if (GetMemCheck(_rMemoryCheck.StartAddress) == 0)
+	if (GetMemCheck(_rMemoryCheck.StartAddress) == nullptr)
 		m_MemChecks.push_back(_rMemoryCheck);
 }
 
@@ -176,27 +178,29 @@ TMemCheck *MemChecks::GetMemCheck(u32 address)
 				return &(bp);
 		}
 		else if (bp.StartAddress == address)
+		{
 			return &(bp);
+		}
 	}
 
 	// none found
-	return 0;
+	return nullptr;
 }
 
-void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr,
-						bool write, int size, u32 pc)
+void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc)
 {
 	if ((write && OnWrite) || (!write && OnRead))
 	{
 		if (Log)
 		{
 			INFO_LOG(MEMMAP, "CHK %08x (%s) %s%i %0*x at %08x (%s)",
-				pc, debug_interface->getDescription(pc).c_str(),
+				pc, debug_interface->GetDescription(pc).c_str(),
 				write ? "Write" : "Read", size*8, size*2, iValue, addr,
-				debug_interface->getDescription(addr).c_str()
+				debug_interface->GetDescription(addr).c_str()
 				);
 		}
+
 		if (Break)
-			debug_interface->breakNow();
+			debug_interface->BreakNow();
 	}
 }

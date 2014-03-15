@@ -141,9 +141,12 @@ RasterFont::RasterFont()
 	glActiveTexture(GL_TEXTURE0+8);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	u32* texture_data = new u32[char_width*char_count*char_height];
-	for(u32 y=0; y<char_height; y++) {
-		for(u32 c=0; c<char_count; c++) {
-			for(u32 x=0; x<char_width; x++) {
+	for (u32 y = 0; y < char_height; y++)
+	{
+		for (u32 c = 0; c < char_count; c++)
+		{
+			for (u32 x = 0; x < char_width; x++)
+			{
 				bool pixel = (0 != (rasters[c][y] & (1<<(char_width-x-1))));
 				texture_data[char_width*char_count*y+char_width*c+x] = pixel ? -1 : 0;
 			}
@@ -168,9 +171,9 @@ RasterFont::RasterFont()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindVertexArray(VAO);
 	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, NULL);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, nullptr);
 	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
-	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
+	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)nullptr+2);
 }
 
 RasterFont::~RasterFont()
@@ -181,10 +184,9 @@ RasterFont::~RasterFont()
 	s_shader.Destroy();
 }
 
-void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
+void RasterFont::printMultilineText(const std::string& text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
 {
-	size_t length = strlen(text);
-	GLfloat *vertices = new GLfloat[length*6*4];
+	GLfloat* vertices = new GLfloat[text.length() * 6 * 4];
 
 	int usage = 0;
 	GLfloat delta_x = GLfloat(2*char_width)/GLfloat(bbWidth);
@@ -195,22 +197,24 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	GLfloat x = GLfloat(start_x);
 	GLfloat y = GLfloat(start_y);
 
-	for(size_t i=0; i<length; i++) {
-		u8 c = text[i];
-
-		if(c == '\n') {
+	for (const char& c : text)
+	{
+		if (c == '\n')
+		{
 			x = GLfloat(start_x);
 			y -= delta_y + border_y;
 			continue;
 		}
 
 		// do not print spaces, they can be skipped easily
-		if(c == ' ') {
+		if (c == ' ')
+		{
 			x += delta_x + border_x;
 			continue;
 		}
 
-		if(c < char_offset || c >= char_count+char_offset) continue;
+		if (c < char_offset || c >= char_count+char_offset)
+			continue;
 
 		vertices[usage++] = x;
 		vertices[usage++] = y;
@@ -245,7 +249,8 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 		x += delta_x + border_x;
 	}
 
-	if(!usage) {
+	if (!usage)
+	{
 		delete [] vertices;
 		return;
 	}
@@ -258,7 +263,8 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 
 	s_shader.Bind();
 
-	if(color != cached_color) {
+	if (color != cached_color)
+	{
 		glUniform4f(uniform_color_id, GLfloat((color>>16)&0xff)/255.f,GLfloat((color>>8)&0xff)/255.f,GLfloat((color>>0)&0xff)/255.f,GLfloat((color>>24)&0xff)/255.f);
 		cached_color = color;
 	}

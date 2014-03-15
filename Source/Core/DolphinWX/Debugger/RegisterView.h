@@ -45,12 +45,12 @@ public:
 		memset(m_CachedSpecialRegHasChanged, 0, sizeof(m_CachedSpecialRegHasChanged));
 		memset(m_CachedFRegHasChanged, 0, sizeof(m_CachedFRegHasChanged));
 	}
-    int GetNumberCols(void) {return 5;}
-    int GetNumberRows(void) {return 32 + NUM_SPECIALS;}
-	bool IsEmptyCell(int row, int col) {return row > 31 && col > 2;}
-    wxString GetValue(int row, int col);
-    void SetValue(int row, int col, const wxString &);
-	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind);
+    int GetNumberCols(void) override {return 5;}
+    int GetNumberRows(void) override {return 32 + NUM_SPECIALS;}
+	bool IsEmptyCell(int row, int col) override {return row > 31 && col > 2;}
+    wxString GetValue(int row, int col) override;
+    void SetValue(int row, int col, const wxString &) override;
+	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
 	void UpdateCachedRegs();
 
 private:
@@ -68,5 +68,5 @@ class CRegisterView : public wxGrid
 {
 public:
 	CRegisterView(wxWindow* parent, wxWindowID id);
-	void Update();
+	void Update() override;
 };

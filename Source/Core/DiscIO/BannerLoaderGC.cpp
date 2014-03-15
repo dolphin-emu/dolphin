@@ -16,7 +16,7 @@
 namespace DiscIO
 {
 CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume)
-	: m_pBannerFile(NULL)
+	: m_pBannerFile(nullptr)
 	, m_IsValid(false)
 	, m_country(volume->GetCountry())
 {
@@ -45,7 +45,7 @@ CBannerLoaderGC::~CBannerLoaderGC()
 	if (m_pBannerFile)
 	{
 		delete [] m_pBannerFile;
-		m_pBannerFile = NULL;
+		m_pBannerFile = nullptr;
 	}
 }
 

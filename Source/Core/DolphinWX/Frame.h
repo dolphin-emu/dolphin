@@ -127,7 +127,6 @@ public:
 	void UpdateGameList();
 	void ToggleLogWindow(bool bShow);
 	void ToggleLogConfigWindow(bool bShow);
-	void ToggleConsole(bool bShow);
 	void PostEvent(wxCommandEvent& event);
 	void StatusBarMessage(const char * Text, ...);
 	void ClearStatusBar();
@@ -139,7 +138,7 @@ public:
 	bool RendererHasFocus();
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
-	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=NULL);
+	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
 	static void ConnectWiimote(int wm_idx, bool connect);
 
 	const CGameListCtrl *GetGameListCtrl() const;
@@ -238,7 +237,6 @@ private:
 	void ResetToolbarStyle();
 	void TogglePaneStyle(bool On, int EventId);
 	void ToggleNotebookStyle(bool On, long Style);
-	void ResizeConsole();
 	// Float window
 	void DoUnfloatPage(int Id);
 	void OnFloatingPageClosed(wxCloseEvent& event);
@@ -246,7 +244,7 @@ private:
 	void DoFloatNotebookPage(wxWindowID Id);
 	wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
 			const wxString& title = wxT(""),
-			wxWindow * = NULL);
+			wxWindow * = nullptr);
 	wxString AuiFullscreen, AuiCurrent;
 	void AddPane();
 	void UpdateCurrentPerspective();

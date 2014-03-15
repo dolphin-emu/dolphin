@@ -102,7 +102,7 @@ END_EVENT_TABLE()
 bool wxMsgAlert(const char*, const char*, bool, int);
 std::string wxStringTranslator(const char *);
 
-CFrame* main_frame = NULL;
+CFrame* main_frame = nullptr;
 
 #ifdef WIN32
 //Has no error handling.
@@ -118,7 +118,7 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	//dumpCurrentDate(file);
 	etfprintf(file.GetHandle(), "Unhandled Exception\n  Code: 0x%08X\n",
 		e->ExceptionRecord->ExceptionCode);
-#ifndef _M_X64
+#if _M_X86_32
 	STACKTRACE2(file.GetHandle(), e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
 #else
 	STACKTRACE2(file.GetHandle(), e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
@@ -204,7 +204,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0
+			wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
 
@@ -327,11 +327,11 @@ bool DolphinApp::OnInit()
 	if (File::Exists("www.dolphin-emulator.com.txt"))
 	{
 		File::Delete("www.dolphin-emulator.com.txt");
-		MessageBox(NULL,
+		MessageBox(nullptr,
 				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
 				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
 				   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
-		ShellExecute(NULL, L"open", L"http://dolphin-emu.org/?ref=badver", NULL, NULL, SW_SHOWDEFAULT);
+		ShellExecute(nullptr, L"open", L"http://dolphin-emu.org/?ref=badver", nullptr, nullptr, SW_SHOWDEFAULT);
 		exit(0);
 	}
 #endif
@@ -351,7 +351,7 @@ bool DolphinApp::OnInit()
 		y = wxDefaultCoord;
 #endif
 
-	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY,
+	main_frame = new CFrame((wxFrame*)nullptr, wxID_ANY,
 				StrToWxStr(scm_rev_str),
 				wxPoint(x, y), wxSize(w, h),
 				UseDebugger, BatchMode, UseLogger);
@@ -372,21 +372,21 @@ void DolphinApp::MacOpenFile(const wxString &fileName)
 	FileToLoad = fileName;
 	LoadFile = true;
 
-	if (m_afterinit == NULL)
+	if (m_afterinit == nullptr)
 		main_frame->BootGame(WxStrToStr(FileToLoad));
 }
 
 void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 {
 	delete m_afterinit;
-	m_afterinit = NULL;
+	m_afterinit = nullptr;
 
 	if (!BatchMode)
 		main_frame->UpdateGameList();
 
 	if (playMovie && movieFile != wxEmptyString)
 	{
-		if (Movie::PlayInput(movieFile.char_str()))
+		if (Movie::PlayInput(WxStrToStr(movieFile)))
 		{
 			if (LoadFile && FileToLoad != wxEmptyString)
 			{
@@ -424,7 +424,7 @@ void DolphinApp::InitLanguageSupport()
 	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
 
 	// Load language if possible, fall back to system default otherwise
-	if(wxLocale::IsAvailable(language))
+	if (wxLocale::IsAvailable(language))
 	{
 		m_locale = new wxLocale(language);
 
@@ -434,7 +434,7 @@ void DolphinApp::InitLanguageSupport()
 
 		m_locale->AddCatalog(wxT("dolphin-emu"));
 
-		if(!m_locale->IsOk())
+		if (!m_locale->IsOk())
 		{
 			PanicAlertT("Error loading selected language. Falling back to system default.");
 			delete m_locale;
@@ -538,7 +538,7 @@ void* Host_GetInstance()
 #else
 void* Host_GetInstance()
 {
-	return NULL;
+	return nullptr;
 }
 #endif
 
@@ -602,7 +602,7 @@ void Host_UpdateMainFrame()
 	}
 }
 
-void Host_UpdateTitle(const char* title)
+void Host_UpdateTitle(const std::string& title)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
 	event.SetString(StrToWxStr(title));
@@ -668,11 +668,11 @@ void Host_SetStartupDebuggingParameters()
 	StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
 }
 
-void Host_UpdateStatusBar(const char* _pText, int Field)
+void Host_UpdateStatusBar(const std::string& text, int Field)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 	// Set the event string
-	event.SetString(StrToWxStr(_pText));
+	event.SetString(StrToWxStr(text));
 	// Update statusbar field
 	event.SetInt(Field);
 	// Post message
@@ -688,7 +688,7 @@ void Host_SetWiiMoteConnectionState(int _State)
 
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 
-	switch(_State)
+	switch (_State)
 	{
 	case 0: event.SetString(_("Not connected")); break;
 	case 1: event.SetString(_("Connecting...")); break;

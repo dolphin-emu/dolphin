@@ -99,7 +99,7 @@ u32 HashEctor(const u8* ptr, int length)
 }
 
 
-#ifdef _M_X64
+#if _ARCH_64
 
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only
@@ -155,9 +155,9 @@ u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
 	const u8 * data = (const u8*)src;
 	const int nblocks = len / 16;
 	u32 Step = (len / 8);
-	if(samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = max(Step, 1u);
 	Step = Step / samples;
-	if(Step < 1) Step = 1;
+	if (Step < 1) Step = 1;
 
 	u64 h1 = 0x9368e53c2f6af274;
 	u64 h2 = 0x586dcd208f7cd3fd;
@@ -171,7 +171,7 @@ u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
 
 	const u64 * blocks = (const u64 *)(data);
 
-	for(int i = 0; i < nblocks; i+=Step)
+	for (int i = 0; i < nblocks; i+=Step)
 	{
 		u64 k1 = getblock(blocks,i*2+0);
 		u64 k2 = getblock(blocks,i*2+1);
@@ -187,7 +187,7 @@ u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
 	u64 k1 = 0;
 	u64 k2 = 0;
 
-	switch(len & 15)
+	switch (len & 15)
 	{
 	case 15: k2 ^= u64(tail[14]) << 48;
 	case 14: k2 ^= u64(tail[13]) << 40;
@@ -233,10 +233,10 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
-	if(samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = max(Step, 1u);
 	Step = Step / samples;
-	if(Step < 1) Step = 1;
-	while(data < end)
+	if (Step < 1) Step = 1;
+	while (data < end)
 	{
 		h = _mm_crc32_u64(h, data[0]);
 		data += Step;
@@ -265,10 +265,10 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
-	if(samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = max(Step, 1u);
 	Step = Step / samples;
-	if(Step < 1) Step = 1;
-	while(data < end)
+	if (Step < 1) Step = 1;
+	while (data < end)
 	{
 		u64 k = data[0];
 		data+=Step;
@@ -281,7 +281,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 
 	const u8 * data2 = (const u8*)end;
 
-	switch(len & 7)
+	switch (len & 7)
 	{
 	case 7: h ^= u64(data2[6]) << 48;
 	case 6: h ^= u64(data2[5]) << 40;
@@ -308,10 +308,10 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 	u32 Step = (len/4);
 	const u32 *data = (const u32 *)src;
 	const u32 *end = data + Step;
-	if(samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = max(Step, 1u);
 	Step  = Step / samples;
-	if(Step < 1) Step = 1;
-	while(data < end)
+	if (Step < 1) Step = 1;
+	while (data < end)
 	{
 		h = _mm_crc32_u32(h, data[0]);
 		data += Step;
@@ -380,9 +380,9 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 	u32 out[2];
 	const int nblocks = len / 8;
 	u32 Step = (len / 4);
-	if(samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = max(Step, 1u);
 	Step = Step / samples;
-	if(Step < 1) Step = 1;
+	if (Step < 1) Step = 1;
 
 	u32 h1 = 0x8de1c3ac;
 	u32 h2 = 0xbab98226;
@@ -395,7 +395,7 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 
 	const u32 * blocks = (const u32 *)(data + nblocks*8);
 
-	for(int i = -nblocks; i < 0; i+=Step)
+	for (int i = -nblocks; i < 0; i+=Step)
 	{
 		u32 k1 = getblock(blocks,i*2+0);
 		u32 k2 = getblock(blocks,i*2+1);
@@ -411,7 +411,7 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 	u32 k1 = 0;
 	u32 k2 = 0;
 
-	switch(len & 7)
+	switch (len & 7)
 	{
 	case 7: k2 ^= tail[6] << 16;
 	case 6: k2 ^= tail[5] << 8;
@@ -456,10 +456,10 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
-	if(samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = max(Step, 1u);
 	Step = Step / samples;
-	if(Step < 1) Step = 1;
-	while(data < end)
+	if (Step < 1) Step = 1;
+	while (data < end)
 	{
 		u64 k = data[0];
 		data+=Step;
@@ -472,7 +472,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 
 	const u8 * data2 = (const u8*)end;
 
-	switch(len & 7)
+	switch (len & 7)
 	{
 	case 7: h ^= u64(data2[6]) << 48;
 	case 6: h ^= u64(data2[5]) << 40;

@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cstring>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "Common/Common.h"
@@ -23,88 +24,97 @@
 namespace FileMon
 {
 
-DiscIO::IVolume *OpenISO = NULL;
-DiscIO::IFileSystem *pFileSystem = NULL;
+DiscIO::IVolume *OpenISO = nullptr;
+DiscIO::IFileSystem *pFileSystem = nullptr;
 std::vector<const DiscIO::SFileInfo *> GCFiles;
 std::string ISOFile = "", CurrentFile = "";
 bool FileAccess = true;
 
 // Filtered files
-bool ShowSound(std::string FileName)
+bool IsSoundFile(const std::string& filename)
 {
-	std::string Ending;
-	SplitPath(FileName, NULL, NULL, &Ending);
-	std::transform(Ending.begin(),Ending.end(),Ending.begin(),::tolower);
+	std::string extension;
+	SplitPath(filename, nullptr, nullptr, &extension);
+	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-	if (
-		   (Ending == ".adp") // 1080 Avalanche, Crash Bandicoot, etc
-		|| (Ending == ".afc") // Zelda WW
-		|| (Ending == ".ast") // Zelda TP, Mario Kart
-		|| (Ending == ".dsp") // Metroid Prime
-		|| (Ending == ".hps") // SSB Melee
+	std::unordered_set<std::string> extensions = {
+		".adp",   // 1080 Avalanche, Crash Bandicoot, etc.
+		".adx",   // Sonic Adventure 2 Battle, etc.
+		".afc",   // Zelda WW
+		".ast",   // Zelda TP, Mario Kart
+		".brstm", // Wii Sports, Wario Land, etc.
+		".dsp",   // Metroid Prime
+		".hps",   // SSB Melee
+		".ogg",   // Tony Hawk's Underground 2
+		".sad",   // Disaster
+		".snd",   // Tales of Symphonia
+		".song",  // Tales of Symphonia
+		".ssm",   // Custom Robo, Kirby Air Ride, etc.
+		".str",   // Harry Potter & the Sorcerer's Stone
+	};
 
-		|| (Ending == ".brstm") // Wii Sports, Wario Land, etc
-		|| (Ending == ".sad") // Disaster
-		)
-		return true;
-
-	return false;
+	return extensions.find(extension) != extensions.end();
 }
 
 
 // Read the GC file system
-void ReadGC(std::string FileName)
+void ReadGC(const std::string& filename)
 {
 	// Should have an actual Shutdown procedure or something
-	if(OpenISO != NULL)
+	if (OpenISO != nullptr)
 	{
 		delete OpenISO;
-		OpenISO = NULL;
+		OpenISO = nullptr;
 	}
-	if(pFileSystem != NULL)
+	if (pFileSystem != nullptr)
 	{
 		delete pFileSystem;
-		pFileSystem = NULL;
+		pFileSystem = nullptr;
 	}
 
 	// GCFiles' pointers are no longer valid after pFileSystem is cleared
 	GCFiles.clear();
-	OpenISO = DiscIO::CreateVolumeFromFilename(FileName);
-	if (!OpenISO) return;
+	OpenISO = DiscIO::CreateVolumeFromFilename(filename);
+	if (!OpenISO)
+		return;
+
 	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
 	{
 		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
-		if(!pFileSystem) return;
+
+		if (!pFileSystem)
+			return;
+
 		pFileSystem->GetFileList(GCFiles);
 	}
 	FileAccess = true;
 }
 
 // Check if we should play this file
-void CheckFile(std::string File, u64 Size)
+void CheckFile(const std::string& file, u64 size)
 {
 	// Don't do anything if the log is unselected
 	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
 		return;
 	// Do nothing if we found the same file again
-	if (CurrentFile == File)
+	if (CurrentFile == file)
 		return;
 
-	if (Size > 0)
-		Size = (Size / 1000);
+	if (size > 0)
+		size = (size / 1000);
 
-	std::string Str = StringFromFormat("%s kB %s", ThousandSeparate(Size, 7).c_str(), File.c_str());
-	if (ShowSound(File))
+	std::string str = StringFromFormat("%s kB %s", ThousandSeparate(size, 7).c_str(), file.c_str());
+	if (IsSoundFile(file))
 	{
-		INFO_LOG(FILEMON, "%s", Str.c_str());
+		INFO_LOG(FILEMON, "%s", str.c_str());
 	}
 	else
 	{
-		WARN_LOG(FILEMON, "%s", Str.c_str());
+		WARN_LOG(FILEMON, "%s", str.c_str());
 	}
 
 	// Update the current file
-	CurrentFile = File;
+	CurrentFile = file;
 }
 
 
@@ -143,16 +153,16 @@ void FindFilename(u64 offset)
 
 void Close()
 {
-	if(OpenISO != NULL)
+	if (OpenISO != nullptr)
 	{
 		delete OpenISO;
-		OpenISO = NULL;
+		OpenISO = nullptr;
 	}
 
-	if(pFileSystem != NULL)
+	if (pFileSystem != nullptr)
 	{
 		delete pFileSystem;
-		pFileSystem = NULL;
+		pFileSystem = nullptr;
 	}
 
 	// GCFiles' pointers are no longer valid after pFileSystem is cleared

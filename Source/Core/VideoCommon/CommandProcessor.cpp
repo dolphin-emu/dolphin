@@ -310,8 +310,9 @@ void STACKALIGN GatherPipeBursted()
 		{
 			// In multibuffer mode is not allowed write in the same FIFO attached to the GPU.
 			// Fix Pokemon XD in DC mode.
-			if((ProcessorInterface::Fifo_CPUEnd == fifo.CPEnd) && (ProcessorInterface::Fifo_CPUBase == fifo.CPBase)
-				 && fifo.CPReadWriteDistance > 0)
+			if ((ProcessorInterface::Fifo_CPUEnd == fifo.CPEnd) &&
+			    (ProcessorInterface::Fifo_CPUBase == fifo.CPBase) &&
+			    fifo.CPReadWriteDistance > 0)
 			{
 				ProcessFifoAllDistance();
 			}
@@ -509,17 +510,17 @@ void SetCpControlRegister()
 	fifo.bFF_LoWatermarkInt = m_CPCtrlReg.FifoUnderflowIntEnable;
 	fifo.bFF_GPLinkEnable = m_CPCtrlReg.GPLinkEnable;
 
-	if(m_CPCtrlReg.GPReadEnable && m_CPCtrlReg.GPLinkEnable)
+	if (m_CPCtrlReg.GPReadEnable && m_CPCtrlReg.GPLinkEnable)
 	{
 		ProcessorInterface::Fifo_CPUWritePointer = fifo.CPWritePointer;
 		ProcessorInterface::Fifo_CPUBase = fifo.CPBase;
 		ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
 	}
 
-	if(fifo.bFF_GPReadEnable && !m_CPCtrlReg.GPReadEnable)
+	if (fifo.bFF_GPReadEnable && !m_CPCtrlReg.GPReadEnable)
 	{
 		fifo.bFF_GPReadEnable = m_CPCtrlReg.GPReadEnable;
-		while(fifo.isGpuReadingData) Common::YieldCPU();
+		while (fifo.isGpuReadingData) Common::YieldCPU();
 	}
 	else
 	{

@@ -11,32 +11,32 @@ WII_SSL CWII_IPC_HLE_Device_net_ssl::_SSL[NET_SSL_MAXINSTANCES];
 CWII_IPC_HLE_Device_net_ssl::CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
-	for (int i = 0; i < NET_SSL_MAXINSTANCES; ++i)
+	for (WII_SSL& ssl : _SSL)
 	{
-		memset(&_SSL[i], 0, sizeof(WII_SSL));
+		memset(&ssl, 0, sizeof(WII_SSL));
 	}
 }
 
 CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
 {
 	// Cleanup sessions
-	for (int i = 0; i < NET_SSL_MAXINSTANCES; i++)
+	for (WII_SSL& ssl : _SSL)
 	{
-		if (_SSL[i].active)
+		if (ssl.active)
 		{
-			ssl_close_notify(&_SSL[i].ctx);
-			ssl_session_free(&_SSL[i].session);
-			ssl_free(&_SSL[i].ctx);
+			ssl_close_notify(&ssl.ctx);
+			ssl_session_free(&ssl.session);
+			ssl_free(&ssl.ctx);
 
-			x509_crt_free(&_SSL[i].cacert);
-			x509_crt_free(&_SSL[i].clicert);
+			x509_crt_free(&ssl.cacert);
+			x509_crt_free(&ssl.clicert);
 
-			memset(&_SSL[i].ctx, 0, sizeof(ssl_context));
-			memset(&_SSL[i].session, 0, sizeof(ssl_session));
-			memset(&_SSL[i].entropy, 0, sizeof(entropy_context));
-			memset(_SSL[i].hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
+			memset(&ssl.ctx, 0, sizeof(ssl_context));
+			memset(&ssl.session, 0, sizeof(ssl_session));
+			memset(&ssl.entropy, 0, sizeof(entropy_context));
+			memset(ssl.hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
 
-			_SSL[i].active = false;
+			ssl.active = false;
 		}
 	}
 }
@@ -79,9 +79,9 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
 	u32 Command       = Memory::Read_U32(_CommandAddress + 0x0C);
 
 	INFO_LOG(WII_IPC_SSL, "%s unknown %i "
-	"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			 GetDeviceName().c_str(), Command,
-			 BufferIn, BufferInSize, BufferOut, BufferOutSize);
+	         "(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+	         GetDeviceName().c_str(), Command,
+	         BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	Memory::Write_U32(0, _CommandAddress + 0x4);
 	return true;
 }
@@ -139,45 +139,46 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 		if (freeSSL)
 		{
 			int sslID = freeSSL - 1;
-			int ret = ssl_init(&_SSL[sslID].ctx);
+			WII_SSL* ssl = &_SSL[sslID];
+			int ret = ssl_init(&ssl->ctx);
 			if (ret)
 			{
 				// Cleanup possibly dirty ctx
-				memset(&_SSL[sslID].ctx, 0, sizeof(ssl_context));
+				memset(&ssl->ctx, 0, sizeof(ssl_context));
 				goto _SSL_NEW_ERROR;
 			}
 
-			entropy_init(&_SSL[sslID].entropy);
+			entropy_init(&ssl->entropy);
 			const char* pers = "dolphin-emu";
-			ret = ctr_drbg_init(&_SSL[sslID].ctr_drbg, entropy_func,
-			                    &_SSL[sslID].entropy,
+			ret = ctr_drbg_init(&ssl->ctr_drbg, entropy_func,
+			                    &ssl->entropy,
 			                    (const unsigned char*)pers,
 			                    strlen(pers));
 			if (ret)
 			{
-				ssl_free(&_SSL[sslID].ctx);
+				ssl_free(&ssl->ctx);
 				// Cleanup possibly dirty ctx
-				memset(&_SSL[sslID].ctx, 0, sizeof(ssl_context));
-				entropy_free(&_SSL[sslID].entropy);
+				memset(&ssl->ctx, 0, sizeof(ssl_context));
+				entropy_free(&ssl->entropy);
 				goto _SSL_NEW_ERROR;
 			}
 
-			ssl_set_rng(&_SSL[sslID].ctx, ctr_drbg_random, &_SSL[sslID].ctr_drbg);
+			ssl_set_rng(&ssl->ctx, ctr_drbg_random, &ssl->ctr_drbg);
 
 			// For some reason we can't use TLSv1.2, v1.1 and below are fine!
-			ssl_set_max_version(&_SSL[sslID].ctx, SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_2);
+			ssl_set_max_version(&ssl->ctx, SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_2);
 
-			ssl_set_session(&_SSL[sslID].ctx, &_SSL[sslID].session);
+			ssl_set_session(&ssl->ctx, &ssl->session);
 
-			ssl_set_endpoint(&_SSL[sslID].ctx, SSL_IS_CLIENT);
-			ssl_set_authmode(&_SSL[sslID].ctx, SSL_VERIFY_NONE);
-			ssl_set_renegotiation(&_SSL[sslID].ctx, SSL_RENEGOTIATION_ENABLED);
+			ssl_set_endpoint(&ssl->ctx, SSL_IS_CLIENT);
+			ssl_set_authmode(&ssl->ctx, SSL_VERIFY_NONE);
+			ssl_set_renegotiation(&ssl->ctx, SSL_RENEGOTIATION_ENABLED);
 
-			memcpy(_SSL[sslID].hostname, hostname, min((int)BufferOutSize2, NET_SSL_MAX_HOSTNAME_LEN));
-			_SSL[sslID].hostname[NET_SSL_MAX_HOSTNAME_LEN-1] = '\0';
-			ssl_set_hostname(&_SSL[sslID].ctx, _SSL[sslID].hostname);
+			memcpy(ssl->hostname, hostname, min((int)BufferOutSize2, NET_SSL_MAX_HOSTNAME_LEN));
+			ssl->hostname[NET_SSL_MAX_HOSTNAME_LEN-1] = '\0';
+			ssl_set_hostname(&ssl->ctx, ssl->hostname);
 
-			_SSL[sslID].active = true;
+			ssl->active = true;
 			Memory::Write_U32(freeSSL, _BufferIn);
 		}
 		else
@@ -201,21 +202,22 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			ssl_close_notify(&_SSL[sslID].ctx);
-			ssl_session_free(&_SSL[sslID].session);
-			ssl_free(&_SSL[sslID].ctx);
+			WII_SSL* ssl = &_SSL[sslID];
+			ssl_close_notify(&ssl->ctx);
+			ssl_session_free(&ssl->session);
+			ssl_free(&ssl->ctx);
 
-			entropy_free(&_SSL[sslID].entropy);
+			entropy_free(&ssl->entropy);
 			
-			x509_crt_free(&_SSL[sslID].cacert);
-			x509_crt_free(&_SSL[sslID].clicert);
+			x509_crt_free(&ssl->cacert);
+			x509_crt_free(&ssl->clicert);
 
-			memset(&_SSL[sslID].ctx, 0, sizeof(ssl_context));
-			memset(&_SSL[sslID].session, 0, sizeof(ssl_session));
-			memset(&_SSL[sslID].entropy, 0, sizeof(entropy_context));
-			memset(_SSL[sslID].hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
+			memset(&ssl->ctx, 0, sizeof(ssl_context));
+			memset(&ssl->session, 0, sizeof(ssl_session));
+			memset(&ssl->entropy, 0, sizeof(entropy_context));
+			memset(ssl->hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
 
-			_SSL[sslID].active = false;
+			ssl->active = false;
 
 			Memory::Write_U32(SSL_OK, _BufferIn);
 		}
@@ -246,8 +248,9 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
+			WII_SSL* ssl = &_SSL[sslID];
 			int ret = x509_crt_parse_der(
-				&_SSL[sslID].cacert,
+				&ssl->cacert,
 				Memory::GetPointer(BufferOut2),
 				BufferOutSize2);
 
@@ -257,7 +260,7 @@ _SSL_NEW_ERROR:
 			}
 			else
 			{
-				ssl_set_ca_chain(&_SSL[sslID].ctx, &_SSL[sslID].cacert, NULL, _SSL[sslID].hostname);
+				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 
@@ -282,20 +285,21 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
+			WII_SSL* ssl = &_SSL[sslID];
 			std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
-			int ret = x509_crt_parse_file(&_SSL[sslID].clicert, (cert_base_path + "clientca.pem").c_str());
-			int pk_ret = pk_parse_keyfile(&_SSL[sslID].pk, (cert_base_path + "clientcakey.pem").c_str(), NULL);
+			int ret = x509_crt_parse_file(&ssl->clicert, (cert_base_path + "clientca.pem").c_str());
+			int pk_ret = pk_parse_keyfile(&ssl->pk, (cert_base_path + "clientcakey.pem").c_str(), nullptr);
 			if (ret || pk_ret)
 			{
-				x509_crt_free(&_SSL[sslID].clicert);
-				pk_free(&_SSL[sslID].pk);
-				memset(&_SSL[sslID].clicert, 0, sizeof(x509_crt));
-				memset(&_SSL[sslID].pk, 0, sizeof(pk_context));
+				x509_crt_free(&ssl->clicert);
+				pk_free(&ssl->pk);
+				memset(&ssl->clicert, 0, sizeof(x509_crt));
+				memset(&ssl->pk, 0, sizeof(pk_context));
 				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 			}
 			else
 			{
-				ssl_set_own_cert(&_SSL[sslID].ctx, &_SSL[sslID].clicert, &_SSL[sslID].pk);
+				ssl_set_own_cert(&ssl->ctx, &ssl->clicert, &ssl->pk);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 
@@ -321,12 +325,13 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			x509_crt_free(&_SSL[sslID].clicert);
-			pk_free(&_SSL[sslID].pk);
-			memset(&_SSL[sslID].clicert, 0, sizeof(x509_crt));
-			memset(&_SSL[sslID].pk, 0, sizeof(pk_context));
+			WII_SSL* ssl = &_SSL[sslID];
+			x509_crt_free(&ssl->clicert);
+			pk_free(&ssl->pk);
+			memset(&ssl->clicert, 0, sizeof(x509_crt));
+			memset(&ssl->pk, 0, sizeof(pk_context));
 
-			ssl_set_own_cert(&_SSL[sslID].ctx, NULL, NULL);
+			ssl_set_own_cert(&ssl->ctx, nullptr, nullptr);
 			Memory::Write_U32(SSL_OK, _BufferIn);
 		}
 		else
@@ -341,17 +346,18 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
+			WII_SSL* ssl = &_SSL[sslID];
 			std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
 
-			int ret = x509_crt_parse_file(&_SSL[sslID].cacert, (cert_base_path + "rootca.pem").c_str());
+			int ret = x509_crt_parse_file(&ssl->cacert, (cert_base_path + "rootca.pem").c_str());
 			if (ret)
 			{
-				x509_crt_free(&_SSL[sslID].clicert);
+				x509_crt_free(&ssl->clicert);
 				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 			}
 			else
 			{
-				ssl_set_ca_chain(&_SSL[sslID].ctx, &_SSL[sslID].cacert, NULL, _SSL[sslID].hostname);
+				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
@@ -374,9 +380,10 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			_SSL[sslID].sockfd = Memory::Read_U32(BufferOut2);
-			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", _SSL[sslID].sockfd);
-			ssl_set_bio(&_SSL[sslID].ctx, net_recv, &_SSL[sslID].sockfd, net_send, &_SSL[sslID].sockfd);
+			WII_SSL* ssl = &_SSL[sslID];
+			ssl->sockfd = Memory::Read_U32(BufferOut2);
+			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", ssl->sockfd);
+			ssl_set_bio(&ssl->ctx, net_recv, &ssl->sockfd, net_send, &ssl->sockfd);
 			Memory::Write_U32(SSL_OK, _BufferIn);
 		}
 		else
@@ -397,8 +404,8 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			WiiSockMan &sm = WiiSockMan::getInstance();
-			sm.doSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_DOHANDSHAKE);
+			WiiSockMan &sm = WiiSockMan::GetInstance();
+			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_DOHANDSHAKE);
 			return false;
 		}
 		else
@@ -412,8 +419,8 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			WiiSockMan &sm = WiiSockMan::getInstance();
-			sm.doSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_WRITE);
+			WiiSockMan &sm = WiiSockMan::GetInstance();
+			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_WRITE);
 			return false;
 		}
 		else
@@ -437,8 +444,8 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			WiiSockMan &sm = WiiSockMan::getInstance();
-			sm.doSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_READ);
+			WiiSockMan &sm = WiiSockMan::GetInstance();
+			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_READ);
 			return false;
 		}
 		else

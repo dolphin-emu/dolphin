@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "AudioCommon/WaveFile.h"
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
@@ -11,7 +13,7 @@ enum {BUF_SIZE = 32*1024};
 WaveFileWriter::WaveFileWriter():
 	skip_silence(false),
 	audio_size(0),
-	conv_buffer(NULL)
+	conv_buffer(nullptr)
 {
 }
 
@@ -21,7 +23,7 @@ WaveFileWriter::~WaveFileWriter()
 	Stop();
 }
 
-bool WaveFileWriter::Start(const char *filename, unsigned int HLESampleRate)
+bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRate)
 {
 	if (!conv_buffer)
 		conv_buffer = new short[BUF_SIZE];
@@ -29,14 +31,14 @@ bool WaveFileWriter::Start(const char *filename, unsigned int HLESampleRate)
 	// Check if the file is already open
 	if (file)
 	{
-		PanicAlertT("The file %s was already open, the file header will not be written.", filename);
+		PanicAlertT("The file %s was already open, the file header will not be written.", filename.c_str());
 		return false;
 	}
 
 	file.Open(filename, "wb");
 	if (!file)
 	{
-		PanicAlertT("The file %s could not be opened for writing. Please check if it's already opened by another program.", filename);
+		PanicAlertT("The file %s could not be opened for writing. Please check if it's already opened by another program.", filename.c_str());
 		return false;
 	}
 

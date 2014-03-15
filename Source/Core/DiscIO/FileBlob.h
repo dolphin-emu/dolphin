@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdio>
+#include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -21,11 +22,11 @@ class PlainFileReader : public IBlobReader
 	s64 m_size;
 
 public:
-	static PlainFileReader* Create(const char* filename);
+	static PlainFileReader* Create(const std::string& filename);
 
-	u64 GetDataSize() const { return m_size; }
-	u64 GetRawSize() const { return m_size; }
-	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
+	u64 GetDataSize() const override { return m_size; }
+	u64 GetRawSize() const override { return m_size; }
+	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 };
 
 }  // namespace

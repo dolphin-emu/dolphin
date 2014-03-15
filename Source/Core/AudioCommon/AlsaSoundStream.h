@@ -19,9 +19,9 @@ public:
 	AlsaSound(CMixer *mixer);
 	virtual ~AlsaSound();
 
-	virtual bool Start();
-	virtual void SoundLoop();
-	virtual void Stop();
+	virtual bool Start() override;
+	virtual void SoundLoop() override;
+	virtual void Stop() override;
 
 	static bool isValid() {
 		return true;
@@ -30,7 +30,7 @@ public:
 		return true;
 	}
 
-	virtual void Update();
+	virtual void Update() override;
 
 private:
 	bool AlsaInit();

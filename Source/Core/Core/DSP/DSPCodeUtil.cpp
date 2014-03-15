@@ -3,17 +3,18 @@
 // Refer to the license.txt file included.
 
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "Core/DSP/assemble.h"
-#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPAssembler.h"
 #include "Core/DSP/DSPCodeUtil.h"
+#include "Core/DSP/DSPDisassembler.h"
 
-bool Assemble(const char *text, std::vector<u16> &code, bool force)
+bool Assemble(const std::string& text, std::vector<u16> &code, bool force)
 {
 	AssemblerSettings settings;
 	// settings.pc = 0;
@@ -114,7 +115,7 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 	header.reserve(code_padded.size() * 4);
 	header.append("#define NUM_UCODES 1\n\n");
 	std::string filename;
-	SplitPath(_filename, NULL, &filename, NULL);
+	SplitPath(_filename, nullptr, &filename, nullptr);
 	header.append(StringFromFormat("const char* UCODE_NAMES[NUM_UCODES] = {\"%s\"};\n\n", filename.c_str()));
 	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
@@ -135,7 +136,7 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 {
 	std::vector<std::vector<u16> > codes_padded;
 	u32 reserveSize = 0;
-	for(u32 i = 0; i < numCodes; i++)
+	for (u32 i = 0; i < numCodes; i++)
 	{
 		codes_padded.push_back(codes[i]);
 		// Pad with nops to 32byte boundary
@@ -151,16 +152,16 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 	for (u32 i = 0; i < numCodes; i++)
 	{
 		std::string filename;
-		if (! SplitPath(filenames->at(i), NULL, &filename, NULL))
+		if (! SplitPath(filenames->at(i), nullptr, &filename, nullptr))
 			filename = filenames->at(i);
 		header.append(StringFromFormat("\t\"%s\",\n", filename.c_str()));
 	}
 	header.append("};\n\n");
 	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
-	for(u32 i = 0; i < numCodes; i++)
+	for (u32 i = 0; i < numCodes; i++)
 	{
-		if(codes[i].size() == 0)
+		if (codes[i].size() == 0)
 			continue;
 
 		header.append("\t{\n\t\t");
@@ -194,7 +195,7 @@ void BinaryStringBEToCode(const std::string &str, std::vector<u16> &code)
 	}
 }
 
-bool LoadBinary(const char *filename, std::vector<u16> &code)
+bool LoadBinary(const std::string& filename, std::vector<u16> &code)
 {
 	std::string buffer;
 	if (!File::ReadFileToString(filename, buffer))
@@ -204,7 +205,7 @@ bool LoadBinary(const char *filename, std::vector<u16> &code)
 	return true;
 }
 
-bool SaveBinary(const std::vector<u16> &code, const char *filename)
+bool SaveBinary(const std::vector<u16> &code, const std::string& filename)
 {
 	std::string buffer;
 	CodeToBinaryStringBE(code, buffer);

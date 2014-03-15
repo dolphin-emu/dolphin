@@ -37,7 +37,7 @@ void JitArm::lfXX(UGeckoInstruction inst)
 	switch (inst.OPCD)
 	{
 		case 31:
-			switch(inst.SUBOP10)
+			switch (inst.SUBOP10)
 			{
 				case 567: // lfsux
 					single = true;
@@ -199,7 +199,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 	switch (inst.OPCD)
 	{
 		case 31:
-			switch(inst.SUBOP10)
+			switch (inst.SUBOP10)
 			{
 				case 663: // stfsx
 					single = true;

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/StringUtil.h"
-
+#include "Common/Network.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
@@ -14,97 +13,29 @@
 // being compiled for a little endian host.
 
 
-// TODO move this code into Common or something, for IOS to use
-
-enum MACConsumer
-{
-	BBA,
-	IOS
-};
-
-void GenerateMAC(MACConsumer type, u8 (&mac)[6])
-{
-	memset(mac, 0, 6);
-
-	u8 const oui_bba[] = { 0x00, 0x09, 0xbf };
-	u8 const oui_ios[] = { 0x00, 0x17, 0xab };
-
-	switch (type)
-	{
-	case BBA:
-		memcpy(mac, oui_bba, 3);
-		break;
-	case IOS:
-		memcpy(mac, oui_ios, 3);
-		break;
-	}
-
-	srand((unsigned int)time(nullptr));
-
-	u8 id[3] =
-	{
-		(u8)rand(),
-		(u8)rand(),
-		(u8)rand()
-	};
-
-	memcpy(&mac[3], id, 3);
-}
-
 CEXIETHERNET::CEXIETHERNET()
 {
 	tx_fifo = new u8[1518];
 	mBbaMem = new u8[BBA_MEM_SIZE];
 
-	mRecvBuffer = new u8 [BBA_RECV_SIZE];
+	mRecvBuffer = new u8[BBA_RECV_SIZE];
 	mRecvBufferLength = 0;
 
 	MXHardReset();
 
 	// Parse MAC address from config, and generate a new one if it doesn't
 	// exist or can't be parsed.
+	std::string &mac_addr_setting = SConfig::GetInstance().m_bba_mac;
+	u8 mac_addr[MAC_ADDRESS_SIZE] = { 0 };
 
-	auto &mac_addr_setting = SConfig::GetInstance().m_bba_mac;
-	bool mac_addr_valid = false;
-	u8 mac_addr[6] = { 0 };
-
-	if (!mac_addr_setting.empty())
+	if (!StringToMacAddress(mac_addr_setting, mac_addr))
 	{
-		int x = 0;
-
-		for (size_t i = 0; i < mac_addr_setting.size() && x < 12; i++)
-		{
-			char c = mac_addr_setting.at(i);
-			if (c >= '0' && c <= '9')
-			{
-				mac_addr[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4); x++;
-			}
-			else if (c >= 'A' && c <= 'F')
-			{
-				mac_addr[x / 2] |= (c - 'A' + 10) << ((x & 1) ? 0 : 4); x++;
-			}
-			else if (c >= 'a' && c <= 'f')
-			{
-				mac_addr[x / 2] |= (c - 'a' + 10) << ((x & 1) ? 0 : 4); x++;
-			}
-		}
-
-		if (x / 2 == 6)
-		{
-			memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, 6);
-			mac_addr_valid = true;
-		}
-	}
-
-	if (!mac_addr_valid)
-	{
-		GenerateMAC(BBA, mac_addr);
-
-		mac_addr_setting = ArrayToString(mac_addr, 6, 10, false);
+		GenerateMacAddress(BBA, mac_addr);
+		mac_addr_setting = MacAddressToString(mac_addr);
 		SConfig::GetInstance().SaveSettings();
-
-		memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, 6);
 	}
+
+	memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, MAC_ADDRESS_SIZE);
 
 	// HACK: .. fully established 100BASE-T link
 	mBbaMem[BBA_NWAYS] = NWAYS_LS100 | NWAYS_LPNWAY | NWAYS_100TXF | NWAYS_ANCLPT;

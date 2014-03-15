@@ -161,7 +161,7 @@ public:
 
 	Operand2(ARMReg base, ShiftType type, u8 shift)// For IMM shifted register
 	{
-		if(shift == 32) shift = 0;
+		if (shift == 32) shift = 0;
 		switch (type)
 		{
 		case ST_LSL:
@@ -198,7 +198,7 @@ public:
 	}
 	u32 GetData()
 	{
-		switch(Type)
+		switch (Type)
 		{
 		case TYPE_IMM:
 			return Imm12Mod(); // This'll need to be changed later
@@ -710,7 +710,7 @@ protected:
 	size_t region_size;
 
 public:
-	ARMXCodeBlock() : region(NULL), region_size(0) {}
+	ARMXCodeBlock() : region(nullptr), region_size(0) {}
 	virtual ~ARMXCodeBlock() { if (region) FreeCodeSpace(); }
 
 	// Call this before you generate any code.
@@ -735,7 +735,7 @@ public:
 	{
 #ifndef __SYMBIAN32__
 		FreeMemoryPages(region, region_size);
-		region = NULL;
+		region = nullptr;
 #endif
 		region_size = 0;
 	}

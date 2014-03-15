@@ -28,7 +28,7 @@ static std::string s_sScreenshotName;
 
 // Rasterfont isn't compatible with GLES
 // degasus: I think it does, but I can't test it
-RasterFont* s_pfont = NULL;
+RasterFont* s_pfont = nullptr;
 
 void SWRenderer::Init()
 {
@@ -44,7 +44,7 @@ void SWRenderer::Shutdown()
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 		delete s_pfont;
-		s_pfont = 0;
+		s_pfont = nullptr;
 	}
 }
 
@@ -160,7 +160,7 @@ void SWRenderer::swapColorTexture() {
 
 void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight)
 {
-	if(fbWidth*fbHeight > 640*568) {
+	if (fbWidth*fbHeight > 640*568) {
 		ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
 		return;
 	}

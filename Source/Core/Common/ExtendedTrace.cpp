@@ -34,7 +34,7 @@ void PCSTR2LPTSTR( PCSTR lpszIn, LPTSTR lpszOut )
 	ULONG index = 0;
 	PCSTR lpAct = lpszIn;
 
-	for( ; ; lpAct++ )
+	for ( ; ; lpAct++ )
 	{
 		lpszOut[index++] = (TCHAR)(*lpAct);
 		if ( *lpAct == 0 )
@@ -84,7 +84,7 @@ static void InitSymbolPath( PSTR lpszSymbolPath, PCSTR lpszIniPath )
 	}
 
 	// Add user defined path
-	if ( lpszIniPath != NULL )
+	if ( lpszIniPath != nullptr )
 		if ( lpszIniPath[0] != '\0' )
 		{
 			strcat( lpszSymbolPath, ";" );
@@ -140,7 +140,7 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 	DWORD             dwSymSize = 10000;
 	TCHAR             lpszUnDSymbol[BUFFERSIZE]=_T("?");
 	CHAR              lpszNonUnicodeUnDSymbol[BUFFERSIZE]="?";
-	LPTSTR            lpszParamSep = NULL;
+	LPTSTR            lpszParamSep = nullptr;
 	LPTSTR            lpszParsed = lpszUnDSymbol;
 	PIMAGEHLP_SYMBOL  pSym = (PIMAGEHLP_SYMBOL)GlobalAlloc( GMEM_FIXED, dwSymSize );
 
@@ -152,7 +152,7 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 	_tcscpy( lpszSymbol, _T("?") );
 
 	// Get symbol info for IP
-#ifndef _M_X64
+#if _M_X86_32
 	DWORD             dwDisp = 0;
 	if ( SymGetSymFromAddr( GetCurrentProcess(), (ULONG)fnAddress, &dwDisp, pSym ) )
 #else
@@ -193,13 +193,13 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 
 		// Let's go through the stack, and modify the function prototype, and insert the actual
 		// parameter values from the stack
-		if ( _tcsstr( lpszUnDSymbol, _T("(void)") ) == NULL && _tcsstr( lpszUnDSymbol, _T("()") ) == NULL)
+		if ( _tcsstr( lpszUnDSymbol, _T("(void)") ) == nullptr && _tcsstr( lpszUnDSymbol, _T("()") ) == nullptr)
 		{
 			ULONG index = 0;
-			for( ; ; index++ )
+			for ( ; ; index++ )
 			{
 				lpszParamSep = _tcschr( lpszParsed, _T(',') );
-				if ( lpszParamSep == NULL )
+				if ( lpszParamSep == nullptr )
 					break;
 
 				*lpszParamSep = _T('\0');
@@ -211,7 +211,7 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 			}
 
 			lpszParamSep = _tcschr( lpszParsed, _T(')') );
-			if ( lpszParamSep != NULL )
+			if ( lpszParamSep != nullptr )
 			{
 				*lpszParamSep = _T('\0');
 
@@ -254,7 +254,7 @@ static BOOL GetSourceInfoFromAddress( UINT address, LPTSTR lpszSourceInfo )
 		PCSTR2LPTSTR( lineInfo.FileName, lpszFileName );
 		TCHAR fname[_MAX_FNAME];
 		TCHAR ext[_MAX_EXT];
-		_tsplitpath(lpszFileName, NULL, NULL, fname, ext);
+		_tsplitpath(lpszFileName, nullptr, nullptr, fname, ext);
 		_stprintf( lpszSourceInfo, _T("%s%s(%d)"), fname, ext, lineInfo.LineNumber );
 		ret = TRUE;
 	}
@@ -313,7 +313,7 @@ void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 		}
 
 		::ZeroMemory( &callStack, sizeof(callStack) );
-#ifndef _M_X64
+#if _M_X86_32
 		callStack.AddrPC.Offset    = context.Eip;
 		callStack.AddrStack.Offset = context.Esp;
 		callStack.AddrFrame.Offset = context.Ebp;
@@ -331,30 +331,30 @@ void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 
 		PrintFunctionAndSourceInfo(file, callStack);
 
-		for( ULONG index = 0; ; index++ )
+		for ( ULONG index = 0; ; index++ )
 		{
 			bResult = StackWalk(
 				IMAGE_FILE_MACHINE_I386,
 				hProcess,
 				hThread,
 				&callStack,
-				NULL,
-				NULL,
+				nullptr,
+				nullptr,
 				SymFunctionTableAccess,
 				SymGetModuleBase,
-				NULL);
+				nullptr);
 
 			if ( index == 0 )
 				continue;
 
-			if( !bResult || callStack.AddrFrame.Offset == 0 )
+			if (!bResult || callStack.AddrFrame.Offset == 0)
 				break;
 
 			PrintFunctionAndSourceInfo(file, callStack);
 
 		}
 
-		if ( hThread != GetCurrentThread() )
+		if (hThread != GetCurrentThread())
 			ResumeThread( hThread );
 }
 
@@ -366,7 +366,7 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 
 	// If it's not this thread, let's suspend it, and resume it at the end
 	if ( hThread != GetCurrentThread() )
-		if ( SuspendThread( hThread ) == -1 )
+		if (SuspendThread( hThread ) == -1)
 		{
 			// whaaat ?!
 			etfprint(file, "Call stack info failed\n");
@@ -386,30 +386,30 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 
 		PrintFunctionAndSourceInfo(file, callStack);
 
-		for( ULONG index = 0; ; index++ )
+		for (ULONG index = 0; ; index++)
 		{
 			bResult = StackWalk(
 				IMAGE_FILE_MACHINE_I386,
 				hProcess,
 				hThread,
 				&callStack,
-				NULL,
-				NULL,
+				nullptr,
+				nullptr,
 				SymFunctionTableAccess,
 				SymGetModuleBase,
-				NULL);
+				nullptr);
 
-			if ( index == 0 )
+			if (index == 0)
 				continue;
 
-			if( !bResult || callStack.AddrFrame.Offset == 0 )
+			if (!bResult || callStack.AddrFrame.Offset == 0)
 				break;
 
 			PrintFunctionAndSourceInfo(file, callStack);
 		}
 
-		if ( hThread != GetCurrentThread() )
-			ResumeThread( hThread );
+		if (hThread != GetCurrentThread())
+			ResumeThread(hThread);
 }
 
 char g_uefbuf[2048];

@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
+#include <string>
 #include <vector>
 
 #include "Common/Atomic.h"
@@ -95,7 +96,7 @@ static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
 static SHADER s_ShowEFBCopyRegions;
 
-static RasterFont* s_pfont = NULL;
+static RasterFont* s_pfont = nullptr;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
@@ -147,7 +148,7 @@ int GetNumMSAASamples(int MSAAMode)
 			samples = 1;
 	}
 
-	if(samples <= g_ogl_config.max_samples) return samples;
+	if (samples <= g_ogl_config.max_samples) return samples;
 
 	// TODO: move this to InitBackendInfo
 	OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", samples, g_ogl_config.max_samples), 10000);
@@ -172,7 +173,7 @@ int GetNumMSAACoverageSamples(int MSAAMode)
 		default:
 			samples = 0;
 	}
-	if(g_ogl_config.bSupportCoverageMSAA || samples == 0) return samples;
+	if (g_ogl_config.bSupportCoverageMSAA || samples == 0) return samples;
 
 	// TODO: move this to InitBackendInfo
 	OSD::AddMessage("CSAA Anti Aliasing isn't supported by your GPU.", 10000);
@@ -183,15 +184,15 @@ void ApplySSAASettings() {
 	// GLES3 doesn't support SSAA
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
-		if(g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X) {
-			if(g_ogl_config.bSupportSampleShading) {
+		if (g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X) {
+			if (g_ogl_config.bSupportSampleShading) {
 				glEnable(GL_SAMPLE_SHADING_ARB);
 				glMinSampleShadingARB(s_MSAASamples);
 			} else {
 				// TODO: move this to InitBackendInfo
 				OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
 			}
-		} else if(g_ogl_config.bSupportSampleShading) {
+		} else if (g_ogl_config.bSupportSampleShading) {
 			glDisable(GL_SAMPLE_SHADING_ARB);
 		}
 	}
@@ -202,7 +203,7 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 	const char *s_source;
 	const char *s_type;
 
-	switch(source)
+	switch (source)
 	{
 		case GL_DEBUG_SOURCE_API_ARB:             s_source = "API"; break;
 		case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:   s_source = "Window System"; break;
@@ -212,7 +213,7 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 		case GL_DEBUG_SOURCE_OTHER_ARB:           s_source = "Other"; break;
 		default:                                  s_source = "Unknown"; break;
 	}
-	switch(type)
+	switch (type)
 	{
 		case GL_DEBUG_TYPE_ERROR_ARB:               s_type = "Error"; break;
 		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB: s_type = "Deprecated"; break;
@@ -222,7 +223,7 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 		case GL_DEBUG_TYPE_OTHER_ARB:               s_type = "Other"; break;
 		default:                                    s_type = "Unknown"; break;
 	}
-	switch(severity)
+	switch (severity)
 	{
 		case GL_DEBUG_SEVERITY_HIGH_ARB:   ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 		case GL_DEBUG_SEVERITY_MEDIUM_ARB: WARN_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
@@ -277,7 +278,7 @@ void InitDriverInfo()
 		vendor = DriverDetails::VENDOR_VIVANTE;
 
 	// Get device family and driver version...if we care about it
-	switch(vendor)
+	switch (vendor)
 	{
 		case DriverDetails::VENDOR_QUALCOMM:
 		{
@@ -292,16 +293,16 @@ void InitDriverInfo()
 		case DriverDetails::VENDOR_ARM:
 			if (std::string::npos != srenderer.find("Mali-T6"))
 				driver = DriverDetails::DRIVER_ARM_T6XX;
-			else if(std::string::npos != srenderer.find("Mali-4"))
+			else if (std::string::npos != srenderer.find("Mali-4"))
 				driver = DriverDetails::DRIVER_ARM_4XX;
 		break;
 		case DriverDetails::VENDOR_MESA:
 		{
-			if(svendor == "nouveau")
+			if (svendor == "nouveau")
 				driver = DriverDetails::DRIVER_NOUVEAU;
-			else if(svendor == "Intel Open Source Technology Center")
+			else if (svendor == "Intel Open Source Technology Center")
 				driver = DriverDetails::DRIVER_I965;
-			else if(std::string::npos != srenderer.find("AMD") || std::string::npos != srenderer.find("ATI"))
+			else if (std::string::npos != srenderer.find("AMD") || std::string::npos != srenderer.find("ATI"))
 				driver = DriverDetails::DRIVER_R600;
 
 			int major = 0;
@@ -474,19 +475,19 @@ Renderer::Renderer()
 		g_ogl_config.eSupportedGLSLVersion = GLSLES3;
 	else
 	{
-		if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
+		if (strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
 		{
 			PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
 					"GPU: Does your video card support OpenGL 3.0?\n"
 					"GPU: Your driver supports GLSL %s", g_ogl_config.glsl_version);
 			bSuccess = false;
 		}
-		else if(strstr(g_ogl_config.glsl_version, "1.30"))
+		else if (strstr(g_ogl_config.glsl_version, "1.30"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 		}
-		else if(strstr(g_ogl_config.glsl_version, "1.40"))
+		else if (strstr(g_ogl_config.glsl_version, "1.40"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
@@ -499,20 +500,20 @@ Renderer::Renderer()
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (GLExtensions::Supports("GL_KHR_debug"))
 	{
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
-		glDebugMessageCallback( ErrorCallback, NULL );
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+		glDebugMessageCallback( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
 	else if (GLExtensions::Supports("GL_ARB_debug_output"))
 	{
-		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
-		glDebugMessageCallbackARB( ErrorCallback, NULL );
+		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+		glDebugMessageCallbackARB( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
 #endif
 	int samples;
 	glGetIntegerv(GL_SAMPLES, &samples);
-	if(samples > 1)
+	if (samples > 1)
 	{
 		// MSAA on default framebuffer isn't working because of glBlitFramebuffer.
 		// It also isn't useful as we don't render anything to the default framebuffer.
@@ -531,7 +532,7 @@ Renderer::Renderer()
 	}
 
 	glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
-	if(g_ogl_config.max_samples < 1)
+	if (g_ogl_config.max_samples < 1)
 		g_ogl_config.max_samples = 1;
 
 	UpdateActiveConfig();
@@ -599,12 +600,12 @@ Renderer::Renderer()
 	glBlendColor(0, 0, 0, 0.5f);
 	glClearDepthf(1.0f);
 
-	if(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+	if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
 	{
 		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 			glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
 		else
-			if(g_ogl_config.bSupportOGL31)
+			if (g_ogl_config.bSupportOGL31)
 			{
 				glEnable(GL_PRIMITIVE_RESTART);
 				glPrimitiveRestartIndex(65535);
@@ -639,7 +640,7 @@ void Renderer::Shutdown()
 	s_ShowEFBCopyRegions_VBO = 0;
 
 	delete s_pfont;
-	s_pfont = 0;
+	s_pfont = nullptr;
 	s_ShowEFBCopyRegions.Destroy();
 }
 
@@ -671,9 +672,9 @@ void Renderer::Init()
 	glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
 	glBindVertexArray( s_ShowEFBCopyRegions_VAO );
 	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, NULL);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, nullptr);
 	glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB);
-	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
+	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)nullptr+2);
 }
 
 // Create On-Screen-Messages
@@ -703,7 +704,7 @@ void Renderer::DrawDebugInfo()
 		// 2*Coords + 3*Color
 		u32 length = stats.efb_regions.size() * sizeof(GLfloat) * (2+3)*2*6;
 		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
-		glBufferData(GL_ARRAY_BUFFER, length, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, length, nullptr, GL_STREAM_DRAW);
 		GLfloat *Vertices = (GLfloat*)glMapBufferRange(GL_ARRAY_BUFFER, 0, length, GL_MAP_WRITE_BIT);
 
 		// Draw EFB copy regions rectangles
@@ -829,7 +830,7 @@ void Renderer::DrawDebugInfo()
 	}
 }
 
-void Renderer::RenderText(const char *text, int left, int top, u32 color)
+void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
 	const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
@@ -988,7 +989,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// Scale the 32-bit value returned by glReadPixels to a 24-bit
 			// value (GC uses a 24-bit Z-buffer).
 			// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-			if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+			if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 			{
 				// if Z is in 16 bit format you must return a 16 bit integer
 				z = z >> 16;
@@ -1054,12 +1055,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			{
 				color = RGBA8ToRGB565ToRGBA8(color);
 			}
-			if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
+			if (bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
 			{
 				color |= 0xFF000000;
 			}
-			if(alpha_read_mode.ReadMode == 2) return color; // GX_READ_NONE
-			else if(alpha_read_mode.ReadMode == 1) return (color | 0xFF000000); // GX_READ_FF
+			if (alpha_read_mode.ReadMode == 2) return color; // GX_READ_NONE
+			else if (alpha_read_mode.ReadMode == 1) return (color | 0xFF000000); // GX_READ_FF
 			else /*if(alpha_read_mode.ReadMode == 0)*/ return (color & 0x00FFFFFF); // GX_READ_00
 		}
 
@@ -1110,7 +1111,7 @@ void Renderer::SetViewport()
 	}
 
 	// Update the view port
-	if(g_ogl_config.bSupportViewportFloat)
+	if (g_ogl_config.bSupportViewportFloat)
 	{
 		glViewportIndexedf(0, X, Y, Width, Height);
 	}
@@ -1315,9 +1316,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	// Copy the framebuffer to screen.
 
-	const XFBSourceBase* xfbSource = NULL;
+	const XFBSourceBase* xfbSource = nullptr;
 
-	if(g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 	{
 		// Render to the real/postprocessing buffer now.
 		PostProcessing::BindTargetFramebuffer();
@@ -1436,7 +1437,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 					{
 						OSD::AddMessage(StringFromFormat(
 									"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h).c_str(), 2000);
+									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
 					}
 				}
 				if (bAVIDumping)
@@ -1485,7 +1486,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 						OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 					else
 					{
-						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h).c_str(), 2000);
+						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
 					}
 				}
 				if (pFrameDump)
@@ -1583,7 +1584,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		GL_REPORT_ERRORD();
 	}
 
-	if(s_vsync != g_ActiveConfig.IsVSync())
+	if (s_vsync != g_ActiveConfig.IsVSync())
 	{
 		s_vsync = g_ActiveConfig.IsVSync();
 		GLInterface->SwapInterval(s_vsync);
@@ -1767,7 +1768,7 @@ void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width)
 	// Flip image upside down. Damn OpenGL.
 	for (int y = 0; y < h / 2; ++y)
 	{
-		for(int x = 0; x < w; ++x)
+		for (int x = 0; x < w; ++x)
 		{
 			for (int delta = 0; delta < pixel_width; ++delta)
 				std::swap(data[(y * w + x) * pixel_width + delta], data[((h - 1 - y) * w + x) * pixel_width + delta]);

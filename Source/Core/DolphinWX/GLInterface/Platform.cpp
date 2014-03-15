@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
 #include "Core/Host.h"
 #include "DolphinWX/GLInterface/GLInterface.h"
 
@@ -62,7 +63,7 @@ bool cPlatform::SelectDisplay(void)
 #endif
 			platform_env);
 			free(platform_env);
-			platform_env = NULL;
+			platform_env = nullptr;
 		}
 #if HAVE_WAYLAND
 		if (wayland_possible)
@@ -154,7 +155,7 @@ EGLDisplay cPlatform::EGLGetDisplay(void)
 #ifdef ANDROID
 	return eglGetDisplay(EGL_DEFAULT_DISPLAY);
 #endif
-	return NULL;
+	return nullptr;
 }
 
 EGLNativeWindowType cPlatform::CreateWindow(void)
@@ -185,7 +186,7 @@ void cPlatform::DestroyWindow(void)
 #endif
 }
 
-void cPlatform::UpdateFPSDisplay(const char *text)
+void cPlatform::UpdateFPSDisplay(const std::string& text)
 {
 #if HAVE_WAYLAND
 	if (cPlatform::platform == EGL_PLATFORM_WAYLAND)

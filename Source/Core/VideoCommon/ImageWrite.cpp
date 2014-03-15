@@ -35,8 +35,8 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
 
 	char title[] = "Dolphin Screenshot";
 	char title_key[] = "Title";
-	png_structp png_ptr = NULL;
-	png_infop info_ptr = NULL;
+	png_structp png_ptr = nullptr;
+	png_infop info_ptr = nullptr;
 
 	// Open file for writing (binary mode)
 	File::IOFile fp(filename, "wb");
@@ -46,8 +46,8 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
 	}
 
 	// Initialize write structure
-	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (png_ptr == NULL) {
+	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+	if (png_ptr == nullptr) {
 		PanicAlert("Screenshot failed: Could not allocate write struct\n");
 		goto finalise;
 
@@ -55,7 +55,7 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
 
 	// Initialize info structure
 	info_ptr = png_create_info_struct(png_ptr);
-	if (info_ptr == NULL) {
+	if (info_ptr == nullptr) {
 		PanicAlert("Screenshot failed: Could not allocate info struct\n");
 		goto finalise;
 	}
@@ -96,13 +96,13 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
 	}
 
 	// End write
-	png_write_end(png_ptr, NULL);
+	png_write_end(png_ptr, nullptr);
 
 	success = true;
 
 finalise:
-	if (info_ptr != NULL) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
-	if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+	if (info_ptr != nullptr) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
+	if (png_ptr != nullptr) png_destroy_write_struct(&png_ptr, (png_infopp)nullptr);
 
 	return success;
 }

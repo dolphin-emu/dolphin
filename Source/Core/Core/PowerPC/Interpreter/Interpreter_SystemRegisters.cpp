@@ -49,7 +49,7 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 	}
 
 	// Set SSE rounding mode and denormal handling
-	FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
+	FPURoundMode::SetSIMDMode(fp.RN, fp.NI);
 }
 
 void Interpreter::mtfsb0x(UGeckoInstruction _inst)
@@ -253,7 +253,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 	//Our DMA emulation is highly inaccurate - instead of properly emulating the queue
 	//and so on, we simply make all DMA:s complete instantaneously.
 
-	switch(iIndex)
+	switch (iIndex)
 	{
 	case SPR_TL:
 	case SPR_TU:
@@ -313,7 +313,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 
 			//_assert_msg_(POWERPC, WriteGatherPipeEnable, "Write gather pipe not enabled!");
 			//if ((HID2.PSE == 0))
-			//	MessageBox(NULL, "PSE in HID2 is set", "Warning", MB_OK);
+			//	MessageBox(nullptr, "PSE in HID2 is set", "Warning", MB_OK);
 		}
 		break;
 

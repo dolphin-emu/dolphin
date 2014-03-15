@@ -18,7 +18,7 @@
 ConsoleListener::ConsoleListener()
 {
 #ifdef _WIN32
-	hConsole = NULL;
+	hConsole = nullptr;
 	bUseColor = true;
 #else
 	bUseColor = isatty(fileno(stdout));
@@ -68,19 +68,19 @@ void ConsoleListener::UpdateHandle()
 void ConsoleListener::Close()
 {
 #ifdef _WIN32
-	if (hConsole == NULL)
+	if (hConsole == nullptr)
 		return;
 	FreeConsole();
-	hConsole = NULL;
+	hConsole = nullptr;
 #else
-	fflush(NULL);
+	fflush(nullptr);
 #endif
 }
 
 bool ConsoleListener::IsOpen()
 {
 #ifdef _WIN32
-	return (hConsole != NULL);
+	return (hConsole != nullptr);
 #else
 	return true;
 #endif
@@ -280,11 +280,11 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 	{
 		// First 10 chars white
 		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-		WriteConsole(hConsole, Text, 10, &cCharsWritten, NULL);
+		WriteConsole(hConsole, Text, 10, &cCharsWritten, nullptr);
 		Text += 10;
 	}
 	SetConsoleTextAttribute(hConsole, Color);
-	WriteConsole(hConsole, Text, (DWORD)strlen(Text), &cCharsWritten, NULL);
+	WriteConsole(hConsole, Text, (DWORD)strlen(Text), &cCharsWritten, nullptr);
 #else
 	char ColorAttr[16] = "";
 	char ResetAttr[16] = "";

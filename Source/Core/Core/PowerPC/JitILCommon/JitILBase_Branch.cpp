@@ -17,7 +17,7 @@
 
 // Zelda and many more games seem to pass the Acid Test.
 
-//#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
+//#define NORMALBRANCH_START FallBackToInterpreter(inst); ibuild.EmitInterpreterBranch(); return;
 #define NORMALBRANCH_START
 
 void JitILBase::sc(UGeckoInstruction inst)
@@ -62,7 +62,7 @@ void JitILBase::bx(UGeckoInstruction inst)
 }
 
 static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruction inst) {
-	IREmitter::InstLoc CRTest = 0, CTRTest = 0;
+	IREmitter::InstLoc CRTest = nullptr, CTRTest = nullptr;
 	if ((inst.BO & 16) == 0)  // Test a CR bit
 	{
 		IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
@@ -108,7 +108,7 @@ void JitILBase::bcx(UGeckoInstruction inst)
 	IREmitter::InstLoc Test = TestBranch(ibuild, inst);
 
 	u32 destination;
-	if(inst.AA)
+	if (inst.AA)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);

@@ -42,7 +42,7 @@
 int frameCount;
 int OSDChoice, OSDTime;
 
-Renderer *g_renderer = NULL;
+Renderer *g_renderer = nullptr;
 
 std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;
@@ -238,7 +238,7 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 	return false;
 }
 
-void Renderer::SetScreenshot(const char *filename)
+void Renderer::SetScreenshot(const std::string& filename)
 {
 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 	s_sScreenshotName = filename;
@@ -288,7 +288,7 @@ void Renderer::DrawDebugText()
 	}
 
 	const char* ar_text = "";
-	switch(g_ActiveConfig.iAspectRatio)
+	switch (g_ActiveConfig.iAspectRatio)
 	{
 	case ASPECT_AUTO:
 		ar_text = "Auto";
@@ -343,11 +343,11 @@ void Renderer::DrawDebugText()
 	}
 
 	// Render a shadow
-	g_renderer->RenderText(final_cyan.c_str(), 21, 21, 0xDD000000);
-	g_renderer->RenderText(final_yellow.c_str(), 21, 21, 0xDD000000);
+	g_renderer->RenderText(final_cyan, 21, 21, 0xDD000000);
+	g_renderer->RenderText(final_yellow, 21, 21, 0xDD000000);
 	//and then the text
-	g_renderer->RenderText(final_cyan.c_str(), 20, 20, 0xFF00FFFF);
-	g_renderer->RenderText(final_yellow.c_str(), 20, 20, 0xFFFFFF00);
+	g_renderer->RenderText(final_cyan, 20, 20, 0xFF00FFFF);
+	g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
 
 // TODO: remove

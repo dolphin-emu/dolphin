@@ -316,9 +316,9 @@ void point_mul(u8 *d, const u8 *a, const u8 *b) // a is bignum
 static void silly_random(u8 * rndArea, u8 count)
 {
 	u16 i;
-	srand((unsigned) (time(NULL)));
+	srand((unsigned) (time(nullptr)));
 
-	for(i=0;i<count;i++)
+	for (i=0;i<count;i++)
 	{
 		rndArea[i]=rand();
 	}

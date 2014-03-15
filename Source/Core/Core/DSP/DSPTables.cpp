@@ -292,7 +292,7 @@ const DSPOPCTemplate opcodes[] =
 };
 
 const DSPOPCTemplate cw =
-	{"CW",     0x0000, 0x0000, nop, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
+	{"CW",     0x0000, 0x0000, nop, nullptr, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
 
 // extended opcodes
 
@@ -353,43 +353,43 @@ const pdlabel_t pdlabels[] =
 	{0xffae, "COEF_A1_7", "COEF_A1_7",},
 	{0xffaf, "COEF_A2_7", "COEF_A2_7",},
 
-	{0xffb0, "0xffb0", 0,},
-	{0xffb1, "0xffb1", 0,},
-	{0xffb2, "0xffb2", 0,},
-	{0xffb3, "0xffb3", 0,},
-	{0xffb4, "0xffb4", 0,},
-	{0xffb5, "0xffb5", 0,},
-	{0xffb6, "0xffb6", 0,},
-	{0xffb7, "0xffb7", 0,},
-	{0xffb8, "0xffb8", 0,},
-	{0xffb9, "0xffb9", 0,},
-	{0xffba, "0xffba", 0,},
-	{0xffbb, "0xffbb", 0,},
-	{0xffbc, "0xffbc", 0,},
-	{0xffbd, "0xffbd", 0,},
-	{0xffbe, "0xffbe", 0,},
-	{0xffbf, "0xffbf", 0,},
+	{0xffb0, "0xffb0", nullptr,},
+	{0xffb1, "0xffb1", nullptr,},
+	{0xffb2, "0xffb2", nullptr,},
+	{0xffb3, "0xffb3", nullptr,},
+	{0xffb4, "0xffb4", nullptr,},
+	{0xffb5, "0xffb5", nullptr,},
+	{0xffb6, "0xffb6", nullptr,},
+	{0xffb7, "0xffb7", nullptr,},
+	{0xffb8, "0xffb8", nullptr,},
+	{0xffb9, "0xffb9", nullptr,},
+	{0xffba, "0xffba", nullptr,},
+	{0xffbb, "0xffbb", nullptr,},
+	{0xffbc, "0xffbc", nullptr,},
+	{0xffbd, "0xffbd", nullptr,},
+	{0xffbe, "0xffbe", nullptr,},
+	{0xffbf, "0xffbf", nullptr,},
 
-	{0xffc0, "0xffc0", 0,},
-	{0xffc1, "0xffc1", 0,},
-	{0xffc2, "0xffc2", 0,},
-	{0xffc3, "0xffc3", 0,},
-	{0xffc4, "0xffc4", 0,},
-	{0xffc5, "0xffc5", 0,},
-	{0xffc6, "0xffc6", 0,},
-	{0xffc7, "0xffc7", 0,},
-	{0xffc8, "0xffc8", 0,},
+	{0xffc0, "0xffc0", nullptr,},
+	{0xffc1, "0xffc1", nullptr,},
+	{0xffc2, "0xffc2", nullptr,},
+	{0xffc3, "0xffc3", nullptr,},
+	{0xffc4, "0xffc4", nullptr,},
+	{0xffc5, "0xffc5", nullptr,},
+	{0xffc6, "0xffc6", nullptr,},
+	{0xffc7, "0xffc7", nullptr,},
+	{0xffc8, "0xffc8", nullptr,},
 	{0xffc9, "DSCR", "DSP DMA Control Reg",},
-	{0xffca, "0xffca", 0,},
+	{0xffca, "0xffca", nullptr,},
 	{0xffcb, "DSBL", "DSP DMA Block Length",},
-	{0xffcc, "0xffcc", 0,},
+	{0xffcc, "0xffcc", nullptr,},
 	{0xffcd, "DSPA", "DSP DMA DMEM Address",},
 	{0xffce, "DSMAH", "DSP DMA Mem Address H",},
 	{0xffcf, "DSMAL", "DSP DMA Mem Address L",},
 
-	{0xffd0, "0xffd0",0,},
+	{0xffd0, "0xffd0",nullptr,},
 	{0xffd1, "SampleFormat", "SampleFormat",},
-	{0xffd2, "0xffd2",0,},
+	{0xffd2, "0xffd2",nullptr,},
 	{0xffd3, "UnkZelda", "Unk Zelda reads/writes from/to it",},
 	{0xffd4, "ACSAH", "Accelerator start address H",},
 	{0xffd5, "ACSAL", "Accelerator start address L",},
@@ -402,36 +402,36 @@ const pdlabel_t pdlabels[] =
 	{0xffdc, "yn2", "yn2",},
 	{0xffdd, "ARAM", "Direct Read from ARAM (uses ADPCM)",},
 	{0xffde, "GAIN", "Gain",},
-	{0xffdf, "0xffdf", 0,},
+	{0xffdf, "0xffdf", nullptr,},
 
-	{0xffe0, "0xffe0",0,},
-	{0xffe1, "0xffe1",0,},
-	{0xffe2, "0xffe2",0,},
-	{0xffe3, "0xffe3",0,},
-	{0xffe4, "0xffe4",0,},
-	{0xffe5, "0xffe5",0,},
-	{0xffe6, "0xffe6",0,},
-	{0xffe7, "0xffe7",0,},
-	{0xffe8, "0xffe8",0,},
-	{0xffe9, "0xffe9",0,},
-	{0xffea, "0xffea",0,},
-	{0xffeb, "0xffeb",0,},
-	{0xffec, "0xffec",0,},
-	{0xffed, "0xffed",0,},
-	{0xffee, "0xffee",0,},
+	{0xffe0, "0xffe0",nullptr,},
+	{0xffe1, "0xffe1",nullptr,},
+	{0xffe2, "0xffe2",nullptr,},
+	{0xffe3, "0xffe3",nullptr,},
+	{0xffe4, "0xffe4",nullptr,},
+	{0xffe5, "0xffe5",nullptr,},
+	{0xffe6, "0xffe6",nullptr,},
+	{0xffe7, "0xffe7",nullptr,},
+	{0xffe8, "0xffe8",nullptr,},
+	{0xffe9, "0xffe9",nullptr,},
+	{0xffea, "0xffea",nullptr,},
+	{0xffeb, "0xffeb",nullptr,},
+	{0xffec, "0xffec",nullptr,},
+	{0xffed, "0xffed",nullptr,},
+	{0xffee, "0xffee",nullptr,},
 	{0xffef, "AMDM", "ARAM DMA Request Mask",},
 
-	{0xfff0, "0xfff0",0,},
-	{0xfff1, "0xfff1",0,},
-	{0xfff2, "0xfff2",0,},
-	{0xfff3, "0xfff3",0,},
-	{0xfff4, "0xfff4",0,},
-	{0xfff5, "0xfff5",0,},
-	{0xfff6, "0xfff6",0,},
-	{0xfff7, "0xfff7",0,},
-	{0xfff8, "0xfff8",0,},
-	{0xfff9, "0xfff9",0,},
-	{0xfffa, "0xfffa",0,},
+	{0xfff0, "0xfff0",nullptr,},
+	{0xfff1, "0xfff1",nullptr,},
+	{0xfff2, "0xfff2",nullptr,},
+	{0xfff3, "0xfff3",nullptr,},
+	{0xfff4, "0xfff4",nullptr,},
+	{0xfff5, "0xfff5",nullptr,},
+	{0xfff6, "0xfff6",nullptr,},
+	{0xfff7, "0xfff7",nullptr,},
+	{0xfff8, "0xfff8",nullptr,},
+	{0xfff9, "0xfff9",nullptr,},
+	{0xfffa, "0xfffa",nullptr,},
 	{0xfffb, "DIRQ", "DSP IRQ Request",},
 	{0xfffc, "DMBH", "DSP Mailbox H",},
 	{0xfffd, "DMBL", "DSP Mailbox L",},
@@ -492,7 +492,7 @@ const char* pdname(u16 val)
 {
 	static char tmpstr[12]; // nasty
 
-	for (auto& pdlabel : pdlabels)
+	for (const pdlabel_t& pdlabel : pdlabels)
 	{
 		if (pdlabel.addr == val)
 			return pdlabel.name;
@@ -527,31 +527,37 @@ void InitInstructionTable()
 	{
 		extOpTable[i] = &cw;
 
-		for (auto& ext : opcodes_ext)
+		for (const DSPOPCTemplate& ext : opcodes_ext)
 		{
 			u16 mask = ext.opcode_mask;
 			if ((mask & i) == ext.opcode)
 			{
 				if (extOpTable[i] == &cw)
+				{
 					extOpTable[i] = &ext;
+				}
 				else
 				{
 					//if the entry already in the table
 					//is a strict subset, allow it
 					if ((extOpTable[i]->opcode_mask | ext.opcode_mask) != extOpTable[i]->opcode_mask)
+					{
 						ERROR_LOG(DSPLLE, "opcode ext table place %d already in use by %s when inserting %s", i, extOpTable[i]->name, ext.name);
+					}
 				}
 			}
 		}
 	}
 
 	// op table
-	for (int i = 0; i < OPTABLE_SIZE; i++)
-		opTable[i] = &cw;
+	for (const DSPOPCTemplate*& opcode : opTable)
+	{
+		opcode = &cw;
+	}
 
 	for (int i = 0; i < OPTABLE_SIZE; i++)
 	{
-		for (auto& opcode : opcodes)
+		for (const DSPOPCTemplate& opcode : opcodes)
 		{
 			u16 mask = opcode.opcode_mask;
 			if ((mask & i) == opcode.opcode)
@@ -564,6 +570,8 @@ void InitInstructionTable()
 		}
 	}
 
-	for (int i=0; i < WRITEBACKLOGSIZE; i++)
-		writeBackLogIdx[i] = -1;
+	for (int& elem : writeBackLogIdx)
+	{
+		elem = -1;
+	}
 }

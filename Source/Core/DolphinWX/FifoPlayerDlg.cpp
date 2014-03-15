@@ -53,10 +53,10 @@ DEFINE_EVENT_TYPE(FRAME_WRITTEN_EVENT)
 using namespace std;
 
 std::recursive_mutex sMutex;
-wxEvtHandler *volatile FifoPlayerDlg::m_EvtHandler = NULL;
+wxEvtHandler *volatile FifoPlayerDlg::m_EvtHandler = nullptr;
 
 FifoPlayerDlg::FifoPlayerDlg(wxWindow * const parent) :
-	wxDialog(parent, wxID_ANY, _("FIFO Player"), wxDefaultPosition, wxDefaultSize),
+	wxDialog(parent, wxID_ANY, _("FIFO Player")),
 	m_search_result_idx(0), m_FramesToRecord(1)
 {
 	CreateGUIControls();
@@ -90,10 +90,10 @@ FifoPlayerDlg::~FifoPlayerDlg()
 	m_objectsList->Unbind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectListSelectionChanged, this);
 	m_objectCmdList->Unbind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectCmdListSelectionChanged, this);
 
-	FifoPlayer::GetInstance().SetFrameWrittenCallback(NULL);
+	FifoPlayer::GetInstance().SetFrameWrittenCallback(nullptr);
 
 	sMutex.lock();
-	m_EvtHandler = NULL;
+	m_EvtHandler = nullptr;
 	sMutex.unlock();
 }
 
@@ -102,7 +102,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);
 
-	m_Notebook = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+	m_Notebook = new wxNotebook(this, wxID_ANY);
 
 	{
 	m_PlayPage = new wxPanel(m_Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -112,15 +112,15 @@ void FifoPlayerDlg::CreateGUIControls()
 	wxStaticBoxSizer* sPlayInfo;
 	sPlayInfo = new wxStaticBoxSizer(new wxStaticBox(m_PlayPage, wxID_ANY, _("File Info")), wxVERTICAL);
 
-	m_NumFramesLabel = new wxStaticText(m_PlayPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+	m_NumFramesLabel = new wxStaticText(m_PlayPage, wxID_ANY, wxEmptyString);
 	m_NumFramesLabel->Wrap(-1);
 	sPlayInfo->Add(m_NumFramesLabel, 0, wxALL, 5);
 
-	m_CurrentFrameLabel = new wxStaticText(m_PlayPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+	m_CurrentFrameLabel = new wxStaticText(m_PlayPage, wxID_ANY, wxEmptyString);
 	m_CurrentFrameLabel->Wrap(-1);
 	sPlayInfo->Add(m_CurrentFrameLabel, 0, wxALL, 5);
 
-	m_NumObjectsLabel = new wxStaticText(m_PlayPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+	m_NumObjectsLabel = new wxStaticText(m_PlayPage, wxID_ANY, wxEmptyString);
 	m_NumObjectsLabel->Wrap(-1);
 	sPlayInfo->Add(m_NumObjectsLabel, 0, wxALL, 5);
 
@@ -129,14 +129,14 @@ void FifoPlayerDlg::CreateGUIControls()
 	wxStaticBoxSizer* sFrameRange;
 	sFrameRange = new wxStaticBoxSizer(new wxStaticBox(m_PlayPage, wxID_ANY, _("Frame Range")), wxHORIZONTAL);
 
-	m_FrameFromLabel = new wxStaticText(m_PlayPage, wxID_ANY, _("From"), wxDefaultPosition, wxDefaultSize, 0);
+	m_FrameFromLabel = new wxStaticText(m_PlayPage, wxID_ANY, _("From"));
 	m_FrameFromLabel->Wrap(-1);
 	sFrameRange->Add(m_FrameFromLabel, 0, wxALL, 5);
 
 	m_FrameFromCtrl = new wxSpinCtrl(m_PlayPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10, 0);
 	sFrameRange->Add(m_FrameFromCtrl, 0, wxALL, 5);
 
-	m_FrameToLabel = new wxStaticText(m_PlayPage, wxID_ANY, _("To"), wxDefaultPosition, wxDefaultSize, 0);
+	m_FrameToLabel = new wxStaticText(m_PlayPage, wxID_ANY, _("To"));
 	m_FrameToLabel->Wrap(-1);
 	sFrameRange->Add(m_FrameToLabel, 0, wxALL, 5);
 
@@ -148,14 +148,14 @@ void FifoPlayerDlg::CreateGUIControls()
 	wxStaticBoxSizer* sObjectRange;
 	sObjectRange = new wxStaticBoxSizer(new wxStaticBox(m_PlayPage, wxID_ANY, _("Object Range")), wxHORIZONTAL);
 
-	m_ObjectFromLabel = new wxStaticText(m_PlayPage, wxID_ANY, _("From"), wxDefaultPosition, wxDefaultSize, 0);
+	m_ObjectFromLabel = new wxStaticText(m_PlayPage, wxID_ANY, _("From"));
 	m_ObjectFromLabel->Wrap(-1);
 	sObjectRange->Add(m_ObjectFromLabel, 0, wxALL, 5);
 
 	m_ObjectFromCtrl = new wxSpinCtrl(m_PlayPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 0);
 	sObjectRange->Add(m_ObjectFromCtrl, 0, wxALL, 5);
 
-	m_ObjectToLabel = new wxStaticText(m_PlayPage, wxID_ANY, _("To"), wxDefaultPosition, wxDefaultSize, 0);
+	m_ObjectToLabel = new wxStaticText(m_PlayPage, wxID_ANY, _("To"));
 	m_ObjectToLabel->Wrap(-1);
 	sObjectRange->Add(m_ObjectToLabel, 0, wxALL, 5);
 
@@ -167,7 +167,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	wxStaticBoxSizer* sPlayOptions;
 	sPlayOptions = new wxStaticBoxSizer(new wxStaticBox(m_PlayPage, wxID_ANY, _("Playback Options")), wxVERTICAL);
 
-	m_EarlyMemoryUpdates = new wxCheckBox(m_PlayPage, wxID_ANY, _("Early Memory Updates"), wxDefaultPosition, wxDefaultSize, 0);
+	m_EarlyMemoryUpdates = new wxCheckBox(m_PlayPage, wxID_ANY, _("Early Memory Updates"));
 	sPlayOptions->Add(m_EarlyMemoryUpdates, 0, wxALL, 5);
 
 	sPlayPage->Add(sPlayOptions, 0, wxEXPAND, 5);
@@ -187,15 +187,15 @@ void FifoPlayerDlg::CreateGUIControls()
 	wxStaticBoxSizer* sRecordInfo;
 	sRecordInfo = new wxStaticBoxSizer(new wxStaticBox(m_RecordPage, wxID_ANY, _("Recording Info")), wxVERTICAL);
 
-	m_RecordingFifoSizeLabel = new wxStaticText(m_RecordPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+	m_RecordingFifoSizeLabel = new wxStaticText(m_RecordPage, wxID_ANY, wxEmptyString);
 	m_RecordingFifoSizeLabel->Wrap(-1);
 	sRecordInfo->Add(m_RecordingFifoSizeLabel, 0, wxALL, 5);
 
-	m_RecordingMemSizeLabel = new wxStaticText(m_RecordPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+	m_RecordingMemSizeLabel = new wxStaticText(m_RecordPage, wxID_ANY, wxEmptyString);
 	m_RecordingMemSizeLabel->Wrap(-1);
 	sRecordInfo->Add(m_RecordingMemSizeLabel, 0, wxALL, 5);
 
-	m_RecordingFramesLabel = new wxStaticText(m_RecordPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+	m_RecordingFramesLabel = new wxStaticText(m_RecordPage, wxID_ANY, wxEmptyString);
 	m_RecordingFramesLabel->Wrap(-1);
 	sRecordInfo->Add(m_RecordingFramesLabel, 0, wxALL, 5);
 
@@ -204,10 +204,10 @@ void FifoPlayerDlg::CreateGUIControls()
 	wxBoxSizer* sRecordButtons;
 	sRecordButtons = new wxBoxSizer(wxHORIZONTAL);
 
-	m_RecordStop = new wxButton(m_RecordPage, wxID_ANY, _("Record"), wxDefaultPosition, wxDefaultSize, 0);
+	m_RecordStop = new wxButton(m_RecordPage, wxID_ANY, _("Record"));
 	sRecordButtons->Add(m_RecordStop, 0, wxALL, 5);
 
-	m_Save = new wxButton(m_RecordPage, wxID_ANY, _("Save"), wxDefaultPosition, wxDefaultSize, 0);
+	m_Save = new wxButton(m_RecordPage, wxID_ANY, _("Save"));
 	sRecordButtons->Add(m_Save, 0, wxALL, 5);
 
 	sRecordPage->Add(sRecordButtons, 0, wxEXPAND, 5);
@@ -215,7 +215,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	wxStaticBoxSizer* sRecordingOptions;
 	sRecordingOptions = new wxStaticBoxSizer(new wxStaticBox(m_RecordPage, wxID_ANY, _("Recording Options")), wxHORIZONTAL);
 
-	m_FramesToRecordLabel = new wxStaticText(m_RecordPage, wxID_ANY, _("Frames To Record"), wxDefaultPosition, wxDefaultSize, 0);
+	m_FramesToRecordLabel = new wxStaticText(m_RecordPage, wxID_ANY, _("Frames To Record"));
 	m_FramesToRecordLabel->Wrap(-1);
 	sRecordingOptions->Add(m_FramesToRecordLabel, 0, wxALL, 5);
 
@@ -308,7 +308,7 @@ void FifoPlayerDlg::CreateGUIControls()
 
 	sButtons->Add(sCloseButtonExpander, 1, wxEXPAND, 5);
 
-	m_Close = new wxButton(this, wxID_ANY, _("Close"), wxDefaultPosition, wxDefaultSize, 0);
+	m_Close = new wxButton(this, wxID_ANY, _("Close"));
 	sButtons->Add(m_Close, 0, wxALL, 5);
 
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
@@ -413,7 +413,7 @@ void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 		{
 			// Attempt to save the file to the path the user chose
 			wxBeginBusyCursor();
-			bool result = file->Save(WxStrToStr(path).c_str());
+			bool result = file->Save(WxStrToStr(path));
 			wxEndBusyCursor();
 
 			// Wasn't able to save the file, shit's whack, yo.
@@ -978,7 +978,7 @@ wxString FifoPlayerDlg::CreateIntegerLabel(size_t size, const wxString& label) c
 
 bool FifoPlayerDlg::GetSaveButtonEnabled() const
 {
-	return (FifoRecorder::GetInstance().GetRecordedFile() != NULL);
+	return (FifoRecorder::GetInstance().GetRecordedFile() != nullptr);
 }
 
 void FifoPlayerDlg::RecordingFinished()

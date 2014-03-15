@@ -154,11 +154,11 @@ void Interpreter::twi(UGeckoInstruction _inst)
 
 	ERROR_LOG(POWERPC, "twi rA %x SIMM %x TO %0x", a, b, TO);
 
-	if (   ((a < b) && (TO & 0x10))
-		|| ((a > b) && (TO & 0x08))
-		|| ((a ==b) && (TO & 0x04))
-		|| (((u32)a <(u32)b) && (TO & 0x02))
-		|| (((u32)a >(u32)b) && (TO & 0x01)))
+	if (((a < b) && (TO & 0x10)) ||
+	    ((a > b) && (TO & 0x08)) ||
+	    ((a ==b) && (TO & 0x04)) ||
+	    (((u32)a <(u32)b) && (TO & 0x02)) ||
+	    (((u32)a >(u32)b) && (TO & 0x01)))
 	{
 		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_PROGRAM);
 		PowerPC::CheckExceptions();
@@ -382,11 +382,11 @@ void Interpreter::tw(UGeckoInstruction _inst)
 
 	ERROR_LOG(POWERPC, "tw rA %0x rB %0x TO %0x", a, b, TO);
 
-	if (   ((a < b) && (TO & 0x10))
-		|| ((a > b) && (TO & 0x08))
-		|| ((a ==b) && (TO & 0x04))
-		|| (((u32)a <(u32)b) && (TO & 0x02))
-		|| (((u32)a >(u32)b) && (TO & 0x01)))
+	if (((a < b) && (TO & 0x10)) ||
+	    ((a > b) && (TO & 0x08)) ||
+	    ((a ==b) && (TO & 0x04)) ||
+	    (((u32)a <(u32)b) && (TO & 0x02)) ||
+	    (((u32)a >(u32)b) && (TO & 0x01)))
 	{
 		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_PROGRAM);
 		PowerPC::CheckExceptions();

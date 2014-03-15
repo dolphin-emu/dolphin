@@ -165,7 +165,7 @@ static void regWriteExit(RegInfo& RI, InstLoc dest) {
 }
 static void regStoreInstToPPCState(RegInfo& RI, unsigned width, InstLoc I, s32 offset) {
 	void (JitArmIL::*op)(ARMReg, ARMReg, Operand2, bool);
-	switch(width)
+	switch (width)
 	{
 		case 32:
 			op = &JitArmIL::STR;
@@ -310,7 +310,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit, u32 exitAddress) {
 		case LoadGQR:
 		case BlockEnd:
 		case BlockStart:
-		case InterpreterFallback:
+		case FallBackToInterpreter:
 		case SystemCall:
 		case RFIExit:
 		case InterpreterBranch:
@@ -571,7 +571,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit, u32 exitAddress) {
 			RI.regs[reg] = I;
 			break;
 		}
-		case InterpreterFallback: {
+		case FallBackToInterpreter: {
 			unsigned InstCode = ibuild->GetImmValue(getOp1(I));
 			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			// There really shouldn't be anything live across an

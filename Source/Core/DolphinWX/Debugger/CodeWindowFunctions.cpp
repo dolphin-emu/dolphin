@@ -180,7 +180,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 	{
 	case IDM_PROFILEBLOCKS:
 		Core::SetState(Core::CORE_PAUSE);
-		if (jit != NULL)
+		if (jit != nullptr)
 			jit->ClearCache();
 		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
 		Core::SetState(Core::CORE_RUN);
@@ -191,13 +191,13 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
 		if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::MODE_JIT)
 		{
-			if (jit != NULL)
+			if (jit != nullptr)
 			{
 				std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
 				File::CreateFullPath(filename);
-				Profiler::WriteProfileResults(filename.c_str());
+				Profiler::WriteProfileResults(filename);
 
-				wxFileType* filetype = NULL;
+				wxFileType* filetype = nullptr;
 				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
 				{
 					// From extension failed, trying with MIME type now
@@ -207,7 +207,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 				}
 				wxString OpenCommand;
 				OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
-				if(!OpenCommand.IsEmpty())
+				if (!OpenCommand.IsEmpty())
 					wxExecute(OpenCommand, wxEXEC_SYNC);
 			}
 		}
@@ -227,7 +227,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_CLEARSYMBOLS:
-		if(!AskYesNo("Do you want to clear the list of symbol names?")) return;
+		if (!AskYesNo("Do you want to clear the list of symbol names?")) return;
 		g_symbolDB.Clear();
 		Host_NotifyMapLoaded();
 		break;
@@ -235,7 +235,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 		PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
 		SignatureDB db;
-		if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+		if (db.Load(File::GetSysDirectory() + TOTALDB))
 		{
 			db.Apply(&g_symbolDB);
 			Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);
@@ -255,23 +255,23 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			g_symbolDB.Clear();
 			PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
 			SignatureDB db;
-			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+			if (db.Load(File::GetSysDirectory() + TOTALDB))
 				db.Apply(&g_symbolDB);
 			Parent->StatusBarMessage("'%s' not found, scanning for common functions instead", writable_map_file.c_str());
 		}
 		else
 		{
-			g_symbolDB.LoadMap(existing_map_file.c_str());
+			g_symbolDB.LoadMap(existing_map_file);
 			Parent->StatusBarMessage("Loaded symbols from '%s'", existing_map_file.c_str());
 		}
 		HLE::PatchFunctions();
 		NotifyMapLoaded();
 		break;
 	case IDM_SAVEMAPFILE:
-		g_symbolDB.SaveMap(writable_map_file.c_str());
+		g_symbolDB.SaveMap(writable_map_file);
 		break;
 	case IDM_SAVEMAPFILEWITHCODES:
-		g_symbolDB.SaveMap(writable_map_file.c_str(), true);
+		g_symbolDB.SaveMap(writable_map_file, true);
 		break;
 
 	case IDM_RENAME_SYMBOLS:
@@ -328,8 +328,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				if (!path.IsEmpty())
 				{
 					SignatureDB db;
-					db.Initialize(&g_symbolDB, prefix.c_str());
-					db.Save(WxStrToStr(path).c_str());
+					db.Initialize(&g_symbolDB, prefix);
+					db.Save(WxStrToStr(path));
 				}
 			}
 		}
@@ -343,7 +343,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			if (!path.IsEmpty())
 			{
 				SignatureDB db;
-				db.Load(WxStrToStr(path).c_str());
+				db.Load(WxStrToStr(path));
 				db.Apply(&g_symbolDB);
 			}
 		}
@@ -379,11 +379,11 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 	int index = symbols->GetSelection();
 	if (index >= 0) {
 		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
-		if (pSymbol != NULL)
+		if (pSymbol != nullptr)
 		{
-			if(pSymbol->type == Symbol::SYMBOL_DATA)
+			if (pSymbol->type == Symbol::SYMBOL_DATA)
 			{
-				if(m_MemoryWindow)// && m_MemoryWindow->IsVisible())
+				if (m_MemoryWindow)// && m_MemoryWindow->IsVisible())
 					m_MemoryWindow->JumpToAddress(pSymbol->address);
 			}
 			else
@@ -418,8 +418,6 @@ void CCodeWindow::OpenPages()
 		Parent->ToggleLogWindow(true);
 	if (bShowOnStart[IDM_LOGCONFIGWINDOW - IDM_LOGWINDOW])
 		Parent->ToggleLogConfigWindow(true);
-	if (bShowOnStart[IDM_CONSOLEWINDOW - IDM_LOGWINDOW])
-		Parent->ToggleConsole(true);
 	if (bShowOnStart[IDM_REGISTERWINDOW - IDM_LOGWINDOW])
 		ToggleRegisterWindow(true);
 	if (bShowOnStart[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW])
@@ -458,7 +456,7 @@ void CCodeWindow::ToggleRegisterWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_RegisterWindow, false);
-		m_RegisterWindow = NULL;
+		m_RegisterWindow = nullptr;
 	}
 }
 
@@ -476,7 +474,7 @@ void CCodeWindow::ToggleBreakPointWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_BreakpointWindow, false);
-		m_BreakpointWindow = NULL;
+		m_BreakpointWindow = nullptr;
 	}
 }
 
@@ -494,7 +492,7 @@ void CCodeWindow::ToggleMemoryWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_MemoryWindow, false);
-		m_MemoryWindow = NULL;
+		m_MemoryWindow = nullptr;
 	}
 }
 
@@ -512,7 +510,7 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_JitWindow, false);
-		m_JitWindow = NULL;
+		m_JitWindow = nullptr;
 	}
 }
 
@@ -531,7 +529,7 @@ void CCodeWindow::ToggleSoundWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_SoundWindow, false);
-		m_SoundWindow = NULL;
+		m_SoundWindow = nullptr;
 	}
 }
 
@@ -549,6 +547,6 @@ void CCodeWindow::ToggleVideoWindow(bool bShow)
 	else // Close
 	{
 		Parent->DoRemovePage(m_VideoWindow, false);
-		m_VideoWindow = NULL;
+		m_VideoWindow = nullptr;
 	}
 }

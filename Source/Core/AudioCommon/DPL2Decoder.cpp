@@ -123,7 +123,7 @@ float* design_fir(unsigned int *n, float* fc, float opt)
 	float fc1;                               // Cutoff frequencies
 
 	// Sanity check
-	if(*n==0) return NULL;
+	if (*n==0) return nullptr;
 	MathUtil::Clamp(&fc[0],float(0.001),float(1));
 
 	float *w=(float*)calloc(sizeof(float),*n);
@@ -188,7 +188,7 @@ void done(void)
 	{
 		free(filter_coefs_lfe);
 	}
-	filter_coefs_lfe = NULL;
+	filter_coefs_lfe = nullptr;
 }
 
 float* calc_coefficients_125Hz_lowpass(int rate)
@@ -378,5 +378,5 @@ void dpl2reset()
 {
 	olddelay = -1;
 	oldfreq = 0;
-	filter_coefs_lfe = NULL;
+	filter_coefs_lfe = nullptr;
 }

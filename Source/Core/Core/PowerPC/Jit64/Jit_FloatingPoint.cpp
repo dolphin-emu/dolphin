@@ -18,7 +18,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 	if (d == a)
 	{
 		fpr.BindToRegister(d, true);
-		if(!single)
+		if (!single)
 		{
 			fpr.BindToRegister(b, true, false);
 		}
@@ -29,7 +29,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 		if (reversible)
 		{
 			fpr.BindToRegister(d, true);
-			if(!single)
+			if (!single)
 			{
 				fpr.BindToRegister(a, true, false);
 			}
@@ -47,7 +47,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 	{
 		// Sources different from d, can use rather quick solution
 		fpr.BindToRegister(d, !single);
-		if(!single)
+		if (!single)
 		{
 			fpr.BindToRegister(b, true, false);
 		}
@@ -75,13 +75,18 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF) {
-		Default(inst); return;
+	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	bool single = inst.OPCD == 59;
@@ -98,29 +103,35 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 
 void Jit64::frsqrtex(UGeckoInstruction inst)
 {
-       INSTRUCTION_START
-       JITDISABLE(bJITFloatingPointOff)
-       int d = inst.FD;
-       int b = inst.FB;
-       fpr.Lock(b, d);
-       fpr.BindToRegister(d, true, true);
-       MOVSD(XMM0, M((void *)&one_const));
-       SQRTSD(XMM1, fpr.R(b));
-       DIVSD(XMM0, R(XMM1));
-       MOVSD(fpr.R(d), XMM0);
-       fpr.UnlockAll();
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+	int d = inst.FD;
+	int b = inst.FB;
+	fpr.Lock(b, d);
+	fpr.BindToRegister(d, true, true);
+	MOVSD(XMM0, M((void *)&one_const));
+	SQRTSD(XMM1, fpr.R(b));
+	DIVSD(XMM0, R(XMM1));
+	MOVSD(fpr.R(d), XMM0);
+	fpr.UnlockAll();
 }
 
 void Jit64::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF) {
-		Default(inst); return;
+	if (inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	bool single_precision = inst.OPCD == 59;
@@ -172,8 +183,11 @@ void Jit64::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	int d = inst.FD;
@@ -203,9 +217,13 @@ void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	int d = inst.FD;
 	int b = inst.FB;
 	fpr.Lock(b, d);
@@ -219,8 +237,11 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	if (jo.fpAccurateFcmp) {
-		Default(inst); return; // turn off from debugger
+
+	if (jo.fpAccurateFcmp)
+	{
+		FallBackToInterpreter(inst); // turn off from debugger
+		return;
 	}
 
 	//bool ordered = inst.SUBOP10 == 32;

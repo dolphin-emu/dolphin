@@ -61,8 +61,8 @@ class PadSettingExtension : public PadSetting
 {
 public:
 	PadSettingExtension(wxWindow* const parent, ControllerEmu::Extension* const ext);
-	void UpdateGUI();
-	void UpdateValue();
+	void UpdateGUI() override;
+	void UpdateValue() override;
 
 	ControllerEmu::Extension* const extension;
 };
@@ -75,8 +75,8 @@ public:
 			, wxSize(54, -1), 0, setting->low, setting->high, (int)(setting->value * 100)))
 			, value(setting->value) {}
 
-	void UpdateGUI();
-	void UpdateValue();
+	void UpdateGUI() override;
+	void UpdateValue() override;
 
 	ControlState& value;
 };
@@ -84,9 +84,9 @@ public:
 class PadSettingCheckBox : public PadSetting
 {
 public:
-	PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const char* const label);
-	void UpdateGUI();
-	void UpdateValue();
+	PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const std::string& label);
+	void UpdateGUI() override;
+	void UpdateValue() override;
 
 	ControlState& value;
 };
@@ -100,7 +100,7 @@ public:
 
 	wxStaticBoxSizer* CreateControlChooser(GamepadPage* const parent);
 
-	virtual bool Validate();
+	virtual bool Validate() override;
 
 	void DetectControl(wxCommandEvent& event);
 	void ClearControl(wxCommandEvent& event);
@@ -173,7 +173,7 @@ public:
 class ControlGroupsSizer : public wxBoxSizer
 {
 public:
-	ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent, GamepadPage* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL);
+	ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent, GamepadPage* const eventsink, std::vector<ControlGroupBox*>* const groups = nullptr);
 };
 
 class InputConfigDialog;
@@ -234,7 +234,7 @@ public:
 	InputConfigDialog(wxWindow* const parent, InputPlugin& plugin, const std::string& name, const int tab_num = 0);
 	//~InputConfigDialog();
 
-	bool Destroy();
+	bool Destroy() override;
 
 	void ClickSave(wxCommandEvent& event);
 

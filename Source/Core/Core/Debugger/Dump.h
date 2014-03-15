@@ -8,13 +8,14 @@
 //
 #pragma once
 
+#include <string>
 #include "Common/Common.h"
 
 class CDump
 {
 public:
 
-	CDump(const char* _szFilename);
+	CDump(const std::string& filename);
 	~CDump();
 
 	int GetNumberOfSteps();

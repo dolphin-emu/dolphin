@@ -51,7 +51,7 @@
 // Used for communications with the DSP, such as dumping registers etc.
 u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000)));
 
-static void *xfb = NULL;
+static void *xfb = nullptr;
 void (*reboot)() = (void(*)())0x80001800;
 GXRModeObj *rmode;
 
@@ -522,7 +522,7 @@ void InitGeneral()
 
 	// Obtain the preferred video mode from the system
 	// This will correspond to the settings in the Wii menu
-	rmode = VIDEO_GetPreferredMode(NULL);
+	rmode = VIDEO_GetPreferredMode(nullptr);
 
 	// Allocate memory for the display in the uncached region
 	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
@@ -682,7 +682,7 @@ int main()
 #endif
 		{
 			curUcode++;
-			if(curUcode == NUM_UCODES)
+			if (curUcode == NUM_UCODES)
 				curUcode = 0;
 
 			// Reset step counters since we're in a new ucode.

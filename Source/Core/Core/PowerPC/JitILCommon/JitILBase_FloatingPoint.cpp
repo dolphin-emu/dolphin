@@ -10,13 +10,19 @@ void JitILBase::fp_arith_s(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 	if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 &&
-	                inst.SUBOP5 != 21 && inst.SUBOP5 != 26)) {
-		Default(inst); return;
+	                inst.SUBOP5 != 21 && inst.SUBOP5 != 26))
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF) {
-		Default(inst); return;
+	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	switch (inst.SUBOP5)
 	{
@@ -52,13 +58,19 @@ void JitILBase::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF) {
-		Default(inst); return;
+	if (inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
 	if (inst.SUBOP5 & 1)
@@ -80,9 +92,13 @@ void JitILBase::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FB);
 	val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
 	ibuild.EmitStoreFReg(val, inst.FD);
@@ -105,7 +121,8 @@ void JitILBase::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	Default(inst);
+
+	FallBackToInterpreter(inst);
 	return;
 
 	// TODO

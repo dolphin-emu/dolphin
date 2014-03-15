@@ -8,7 +8,6 @@
 #pragma once
 
 #include "Common/Common.h"
-#include "Common/FPURoundMode.h"
 
 // --- Gekko Instruction ---
 
@@ -390,7 +389,7 @@ union UReg_FPSCR
 	struct
 	{
 		// Rounding mode (towards: nearest, zero, +inf, -inf)
-		enum FPURoundMode::RoundModes RN : 2;
+		u32 RN      : 2;
 		// Non-IEEE mode enable (aka flush-to-zero)
 		u32 NI      : 1;
 		// Inexact exception enable
@@ -411,7 +410,8 @@ union UReg_FPSCR
 		u32 VXSOFT  : 1;
 		// reserved
 		u32         : 1;
-		// Floating point result flags (not sticky)
+		// Floating point result flags (includes FPCC) (not sticky)
+		// from more to less significand: class, <, >, =, ?
 		u32 FPRF    : 5;
 		// Fraction inexact (not sticky)
 		u32 FI      : 1;

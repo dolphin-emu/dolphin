@@ -33,12 +33,12 @@ void CEXIAD16::TransferByte(u8& _byte)
 	}
 	else
 	{
-		switch(m_uCommand)
+		switch (m_uCommand)
 		{
 		case init:
 			{
 				m_uAD16Register.U32 = 0x04120000;
-				switch(m_uPosition)
+				switch (m_uPosition)
 				{
 				case 1: _dbg_assert_(EXPANSIONINTERFACE, (_byte == 0x00)); break; // just skip
 				case 2: _byte = m_uAD16Register.U8[0]; break;
@@ -51,7 +51,7 @@ void CEXIAD16::TransferByte(u8& _byte)
 
 		case write:
 			{
-				switch(m_uPosition)
+				switch (m_uPosition)
 				{
 				case 1: m_uAD16Register.U8[0] = _byte; break;
 				case 2: m_uAD16Register.U8[1] = _byte; break;
@@ -63,7 +63,7 @@ void CEXIAD16::TransferByte(u8& _byte)
 
 		case read:
 			{
-				switch(m_uPosition)
+				switch (m_uPosition)
 				{
 				case 1: _byte = m_uAD16Register.U8[0]; break;
 				case 2: _byte = m_uAD16Register.U8[1]; break;

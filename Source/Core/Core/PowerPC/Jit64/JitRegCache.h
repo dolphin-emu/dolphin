@@ -35,9 +35,9 @@ struct X64CachedReg
 typedef int XReg;
 typedef int PReg;
 
-#ifdef _M_X64
+#if _M_X86_64
 #define NUMXREGS 16
-#elif _M_IX86
+#elif _M_X86_32
 #define NUMXREGS 8
 #endif
 

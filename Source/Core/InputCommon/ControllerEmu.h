@@ -60,13 +60,13 @@ public:
 		class Control
 		{
 		protected:
-			Control(ControllerInterface::ControlReference* const _ref, const char* const _name)
+			Control(ControllerInterface::ControlReference* const _ref, const std::string& _name)
 				: control_ref(_ref), name(_name) {}
 
 		public:
 			virtual ~Control() {}
 			std::unique_ptr<ControllerInterface::ControlReference> const control_ref;
-			const char* const  name;
+			const std::string name;
 
 		};
 
@@ -74,7 +74,7 @@ public:
 		{
 		public:
 
-			Input(const char* const _name)
+			Input(const std::string& _name)
 				: Control(new ControllerInterface::InputReference, _name) {}
 		};
 
@@ -82,7 +82,7 @@ public:
 		{
 		public:
 
-			Output(const char* const _name)
+			Output(const std::string& _name)
 				: Control(new ControllerInterface::OutputReference, _name) {}
 		};
 
@@ -90,7 +90,7 @@ public:
 		{
 		public:
 
-			Setting(const char* const _name, const ControlState def_value
+			Setting(const std::string& _name, const ControlState def_value
 				, const unsigned int _low = 0, const unsigned int _high = 100)
 				: name(_name)
 				, value(def_value)
@@ -98,19 +98,19 @@ public:
 				, low(_low)
 				, high(_high){}
 
-			const char* const   name;
+			const std::string   name;
 			ControlState        value;
 			const ControlState  default_value;
 			const unsigned int  low, high;
 		};
 
-		ControlGroup(const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}
+		ControlGroup(const std::string& _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}
 		virtual ~ControlGroup() {}
 
 		virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 		virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 
-		const char* const     name;
+		const std::string     name;
 		const unsigned int    type;
 
 		std::vector<std::unique_ptr<Control>> controls;
@@ -186,7 +186,7 @@ public:
 	class Buttons : public ControlGroup
 	{
 	public:
-		Buttons(const char* const _name);
+		Buttons(const std::string& _name);
 
 		template <typename C>
 		void GetState(C* const buttons, const C* bitmasks)
@@ -224,7 +224,7 @@ public:
 			}
 		}
 
-		MixedTriggers(const char* const _name);
+		MixedTriggers(const std::string& _name);
 
 	};
 
@@ -241,7 +241,7 @@ public:
 				*analog = S(std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone) * range);
 		}
 
-		Triggers(const char* const _name);
+		Triggers(const std::string& _name);
 
 	};
 
@@ -261,14 +261,14 @@ public:
 				*slider = 0;
 		}
 
-		Slider(const char* const _name);
+		Slider(const std::string& _name);
 
 	};
 
 	class Force : public ControlGroup
 	{
 	public:
-		Force(const char* const _name);
+		Force(const std::string& _name);
 
 		template <typename C, typename R>
 		void GetState(C* axis, const u8 base, const R range)
@@ -294,7 +294,7 @@ public:
 	class Tilt : public ControlGroup
 	{
 	public:
-		Tilt(const char* const _name);
+		Tilt(const std::string& _name);
 
 		template <typename C, typename R>
 		void GetState(C* const x, C* const y, const unsigned int base, const R range, const bool step = true)
@@ -374,7 +374,7 @@ public:
 	class Cursor : public ControlGroup
 	{
 	public:
-		Cursor(const char* const _name);
+		Cursor(const std::string& _name);
 
 		template <typename C>
 		void GetState(C* const x, C* const y, C* const z, const bool adjusted = false)
@@ -418,7 +418,7 @@ public:
 	class Extension : public ControlGroup
 	{
 	public:
-		Extension(const char* const _name)
+		Extension(const std::string& _name)
 			: ControlGroup(_name, GROUP_TYPE_EXTENSION)
 			, switch_extension(0)
 			, active_extension(0) {}

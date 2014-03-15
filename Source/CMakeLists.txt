@@ -47,12 +47,10 @@ macro(add_dolphin_library lib srcs libs)
 endmacro(add_dolphin_library)
 
 add_subdirectory(Core)
+add_subdirectory(UnitTests)
 
 if (DSPTOOL)
 	add_subdirectory(DSPTool)
 endif()
-
-
-
 
 # TODO: Add DSPSpy. Preferrably make it option() and cpack component

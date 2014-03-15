@@ -45,7 +45,7 @@ HotkeyConfigDialog::HotkeyConfigDialog(wxWindow *parent, wxWindowID id, const wx
 	m_ButtonMappingTimer = new wxTimer(this, wxID_ANY);
 	g_Pressed = 0;
 	g_Modkey = 0;
-	ClickedButton = NULL;
+	ClickedButton = nullptr;
 	GetButtonWaitingID = 0;
 	GetButtonWaitingTimer = 0;
 #endif
@@ -69,13 +69,13 @@ void HotkeyConfigDialog::EndGetButtons(void)
 	m_ButtonMappingTimer->Stop();
 	GetButtonWaitingTimer = 0;
 	GetButtonWaitingID = 0;
-	ClickedButton = NULL;
+	ClickedButton = nullptr;
 	SetEscapeId(wxID_ANY);
 }
 
 void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
-	if(ClickedButton != NULL)
+	if (ClickedButton != nullptr)
 	{
 		// Save the key
 		g_Pressed = event.GetKeyCode();
@@ -136,9 +136,9 @@ void HotkeyConfigDialog::DoGetButtons(int _GetId)
 	const int TimesPerSecond = 40; // How often to run the check
 
 	// If the Id has changed or the timer is not running we should start one
-	if( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer->IsRunning() )
+	if ( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer->IsRunning() )
 	{
-		if(m_ButtonMappingTimer->IsRunning())
+		if (m_ButtonMappingTimer->IsRunning())
 			m_ButtonMappingTimer->Stop();
 
 		// Save the button Id
@@ -281,11 +281,11 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 	// A small type font
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
-	wxNotebook *Notebook = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	wxNotebook *Notebook = new wxNotebook(this, wxID_ANY);
 
 	for (int j = 0; j < 2; j++)
 	{
-		wxPanel *Page = new wxPanel(Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
 		Notebook->AddPage(Page, pageNames[j]);
 
 		wxGridBagSizer *sHotkeys = new wxGridBagSizer();
@@ -309,8 +309,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 			wxStaticText *stHotkeys = new wxStaticText(Page, wxID_ANY, hkText[i]);
 
 			// Key selection button
-			m_Button_Hotkeys[i] = new wxButton(Page, i, wxEmptyString,
-					wxDefaultPosition, size);
+			m_Button_Hotkeys[i] = new wxButton(Page, i, wxEmptyString, wxDefaultPosition, size);
 			m_Button_Hotkeys[i]->SetFont(m_SmallFont);
 			m_Button_Hotkeys[i]->SetToolTip(_("Left click to detect hotkeys.\nEnter space to clear."));
 			SetButtonText(i,

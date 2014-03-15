@@ -195,7 +195,7 @@ void Matrix44::LoadMatrix33(Matrix44 &mtx, const Matrix33 &m33)
 
 void Matrix44::Set(Matrix44 &mtx, const float mtxArray[16])
 {
-	for(int i = 0; i < 16; ++i)
+	for (int i = 0; i < 16; ++i)
 	{
 		mtx.data[i] = mtxArray[i];
 	}

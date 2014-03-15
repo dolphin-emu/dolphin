@@ -84,8 +84,8 @@ TextureCache::TCacheEntry::~TCacheEntry()
 {
 	if (texture)
 	{
-		for(auto& gtex : s_Textures)
-			if(gtex == texture)
+		for (auto& gtex : s_Textures)
+			if (gtex == texture)
 				gtex = 0;
 		glDeleteTextures(1, &texture);
 		texture = 0;
@@ -242,7 +242,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, nullptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glGenFramebuffers(1, &entry->framebuffer);
@@ -282,14 +282,17 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
-		if(srcFormat == PIXELFMT_Z24) {
+		if (srcFormat == PIXELFMT_Z24)
+		{
 			s_DepthMatrixProgram.Bind();
-			if(s_DepthCbufid != cbufid)
+			if (s_DepthCbufid != cbufid)
 				glUniform4fv(s_DepthMatrixUniform, 5, colmat);
 			s_DepthCbufid = cbufid;
-		} else {
+		}
+		else
+		{
 			s_ColorMatrixProgram.Bind();
-			if(s_ColorCbufid != cbufid)
+			if (s_ColorCbufid != cbufid)
 				glUniform4fv(s_ColorMatrixUniform, 7, colmat);
 			s_ColorCbufid = cbufid;
 		}
@@ -391,7 +394,7 @@ TextureCache::TextureCache()
 	s_DepthCopyPositionUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "copy_position");
 
 	s_ActiveTexture = -1;
-	for(auto& gtex : s_Textures)
+	for (auto& gtex : s_Textures)
 		gtex = -1;
 }
 
@@ -409,7 +412,7 @@ void TextureCache::DisableStage(unsigned int stage)
 void TextureCache::SetStage ()
 {
 	// -1 is the initial value as we don't know which testure should be bound
-	if(s_ActiveTexture != (u32)-1)
+	if (s_ActiveTexture != (u32)-1)
 		glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
 

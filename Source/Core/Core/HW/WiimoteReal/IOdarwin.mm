@@ -40,19 +40,19 @@
 	length: (NSUInteger) length
 {
 	IOBluetoothDevice *device = [l2capChannel device];
-	WiimoteReal::Wiimote *wm = NULL;
+	WiimoteReal::Wiimote *wm = nullptr;
 	
 	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
-		if (WiimoteReal::g_wiimotes[i] == NULL)
+		if (WiimoteReal::g_wiimotes[i] == nullptr)
 			continue;
 		if ([device isEqual: WiimoteReal::g_wiimotes[i]->btd] == TRUE)
 			wm = WiimoteReal::g_wiimotes[i];
 	}
 
-	if (wm == NULL) {
+	if (wm == nullptr) {
 		ERROR_LOG(WIIMOTE, "Received packet for unknown wiimote");
 		return;
 	}
@@ -79,19 +79,19 @@
 - (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel
 {
 	IOBluetoothDevice *device = [l2capChannel device];
-	WiimoteReal::Wiimote *wm = NULL;
+	WiimoteReal::Wiimote *wm = nullptr;
 	
 	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
-		if (WiimoteReal::g_wiimotes[i] == NULL)
+		if (WiimoteReal::g_wiimotes[i] == nullptr)
 			continue;
 		if ([device isEqual: WiimoteReal::g_wiimotes[i]->btd] == TRUE)
 			wm = WiimoteReal::g_wiimotes[i];
 	}
 
-	if (wm == NULL) {
+	if (wm == nullptr) {
 		ERROR_LOG(WIIMOTE, "Channel for unknown wiimote was closed");
 		return;
 	}
@@ -123,7 +123,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	IOBluetoothDeviceInquiry *bti;
 	SearchBT *sbt;
 	NSEnumerator *en;
-	found_board = NULL;
+	found_board = nullptr;
 
 	bth = [[IOBluetoothHostController alloc] init];
 	if ([bth addressAsString] == nil)
@@ -149,7 +149,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	{
 		CFRunLoopRun();
 	}
-	while(!sbt->done);
+	while (!sbt->done);
 
 	int found_devices = [[bti foundDevices] count];
 
@@ -166,7 +166,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		Wiimote *wm = new Wiimote();
 		wm->btd = [dev retain];
 		
-		if(IsBalanceBoardName([[dev name] UTF8String]))
+		if (IsBalanceBoardName([[dev name] UTF8String]))
 		{
 			found_board = wm;
 		}
@@ -191,7 +191,7 @@ void Wiimote::InitInternal()
 {
 	inputlen = 0;
 	m_connected = false;
-	m_wiimote_thread_run_loop = NULL;
+	m_wiimote_thread_run_loop = nullptr;
 	btd = nil;
 }
 
@@ -200,7 +200,7 @@ void Wiimote::TeardownInternal()
 	if (m_wiimote_thread_run_loop)
 	{
 		CFRelease(m_wiimote_thread_run_loop);
-		m_wiimote_thread_run_loop = NULL;
+		m_wiimote_thread_run_loop = nullptr;
 	}
 	[btd release];
 	btd = nil;
