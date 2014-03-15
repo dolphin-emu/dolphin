@@ -46,7 +46,7 @@ u64 CFileSystemGCWii::GetFileSize(const std::string& _rFullPath)
 	return 0;
 }
 
-const char* CFileSystemGCWii::GetFileName(u64 _Address)
+const std::string CFileSystemGCWii::GetFileName(u64 _Address)
 {
 	if (!m_Initialized)
 		InitFileSystem();
@@ -239,7 +239,7 @@ const SFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& _rFullPath)
 
 	for (auto& fileInfo : m_FileInfoVector)
 	{
-		if (!strcasecmp(fileInfo.m_FullPath, _rFullPath.c_str()))
+		if (!strcasecmp(fileInfo.m_FullPath.c_str(), _rFullPath.c_str()))
 			return &fileInfo;
 	}
 
@@ -297,13 +297,11 @@ void CFileSystemGCWii::InitFileSystem()
 			NameTableOffset += 0xC;
 		}
 
-		BuildFilenames(1, m_FileInfoVector.size(), nullptr, NameTableOffset);
+		BuildFilenames(1, m_FileInfoVector.size(), "", NameTableOffset);
 	}
 }
 
-// Changed this stuff from C++ string to C strings for speed in debug mode. Doesn't matter in release, but
-// std::string is SLOW in debug mode.
-size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, u64 _NameTableOffset)
+size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const std::string& _szDirectory, u64 _NameTableOffset)
 {
 	size_t CurrentIndex = _FirstIndex;
 
@@ -316,21 +314,19 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 		// check next index
 		if (rFileInfo->IsDirectory())
 		{
-			// this is a directory, build up the new szDirectory
-			if (_szDirectory != nullptr)
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s/", _szDirectory, filename.c_str());
+			if (_szDirectory.empty())
+				rFileInfo->m_FullPath += StringFromFormat("%s/", filename.c_str());
 			else
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s/", filename.c_str());
+				rFileInfo->m_FullPath += StringFromFormat("%s%s/", _szDirectory.c_str(), filename.c_str());
 
 			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo->m_FileSize, rFileInfo->m_FullPath, _NameTableOffset);
 		}
-		else
+		else // This is a filename
 		{
-			// this is a filename
-			if (_szDirectory != nullptr)
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s", _szDirectory, filename.c_str());
+			if (_szDirectory.empty())
+				rFileInfo->m_FullPath += filename;
 			else
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s", filename.c_str());
+				rFileInfo->m_FullPath += StringFromFormat("%s%s", _szDirectory.c_str(), filename.c_str());
 
 			CurrentIndex++;
 		}

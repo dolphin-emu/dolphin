@@ -201,19 +201,17 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			// Don't do anything if the log is unselected
 			if (LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
 			{
-				const char *pFilename = nullptr;
 				if (m_pFileSystem)
-					pFilename = m_pFileSystem->GetFileName(DVDAddress);
-				if (pFilename != nullptr)
 				{
+					const std::string filename = m_pFileSystem->GetFileName(DVDAddress);
+
 					INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%" PRIx64 ") - (DVDAddr: 0x%" PRIx64 ", Size: 0x%x)",
-						pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
-					FileMon::CheckFile(std::string(pFilename), (int)m_pFileSystem->GetFileSize(pFilename));
+						filename.c_str(), m_pFileSystem->GetFileSize(filename), DVDAddress, Size);
+					FileMon::CheckFile(filename, (int)m_pFileSystem->GetFileSize(filename));
 				}
 				else
 				{
-					INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unknown - (DVDAddr: 0x%" PRIx64 ", Size: 0x%x)",
-						DVDAddress, Size);
+					ERROR_LOG(WII_IPC_DVD, "Filesystem is invalid.");
 				}
 			}
 
@@ -338,18 +336,17 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case DVDLowSeek:
 		{
 			u64 DVDAddress = Memory::Read_U32(_BufferIn + 0x4) << 2;
-			const char *pFilename = nullptr;
+
 			if (m_pFileSystem)
-				pFilename = m_pFileSystem->GetFileName(DVDAddress);
-			if (pFilename != nullptr)
 			{
+				const std::string filename = m_pFileSystem->GetFileName(DVDAddress);
+
 				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: %s (0x%" PRIx64 ") - (DVDAddr: 0x%" PRIx64 ")",
-					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress);
+					filename.c_str(), m_pFileSystem->GetFileSize(filename), DVDAddress);
 			}
 			else
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: file unknown - (DVDAddr: 0x%" PRIx64 ")",
-					DVDAddress);
+				ERROR_LOG(WII_IPC_DVD, "Filesystem is invalid.");
 			}
 		}
 		break;

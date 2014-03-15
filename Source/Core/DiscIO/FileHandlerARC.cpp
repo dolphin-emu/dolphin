@@ -9,6 +9,7 @@
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/FileHandlerARC.h"
 #include "DiscIO/Filesystem.h"
@@ -86,7 +87,7 @@ size_t CARCFile::GetFileSize(const std::string& _rFullPath)
 
 	if (pFileInfo != nullptr)
 	{
-		return (size_t) pFileInfo->m_FileSize;
+		return (size_t)pFileInfo->m_FileSize;
 	}
 
 	return 0;
@@ -177,14 +178,14 @@ bool CARCFile::ParseBuffer()
 			szNameTable += 0xC;
 		}
 
-		BuildFilenames(1, m_FileInfoVector.size(), nullptr, szNameTable);
+		BuildFilenames(1, m_FileInfoVector.size(), "", szNameTable);
 	}
 
 	return true;
 }
 
 
-size_t CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, const char* _szNameTable)
+size_t CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const std::string& _szDirectory, const char* _szNameTable)
 {
 	size_t CurrentIndex = _FirstIndex;
 
@@ -196,29 +197,19 @@ size_t CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastInde
 		// check next index
 		if (rFileInfo.IsDirectory())
 		{
-			// this is a directory, build up the new szDirectory
-			if (_szDirectory != nullptr)
-			{
-				sprintf(rFileInfo.m_FullPath, "%s%s/", _szDirectory, &_szNameTable[uOffset]);
-			}
+			if (_szDirectory.empty())
+				rFileInfo.m_FullPath += StringFromFormat("%s/", &_szNameTable[uOffset]);
 			else
-			{
-				sprintf(rFileInfo.m_FullPath, "%s/", &_szNameTable[uOffset]);
-			}
+				rFileInfo.m_FullPath += StringFromFormat("%s%s/", _szDirectory.c_str(), &_szNameTable[uOffset]);
 
 			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);
 		}
-		else
+		else // This is a filename
 		{
-			// this is a filename
-			if (_szDirectory != nullptr)
-			{
-				sprintf(rFileInfo.m_FullPath, "%s%s", _szDirectory, &_szNameTable[uOffset]);
-			}
+			if (_szDirectory.empty())
+				rFileInfo.m_FullPath += StringFromFormat("%s", &_szNameTable[uOffset]);
 			else
-			{
-				sprintf(rFileInfo.m_FullPath, "%s", &_szNameTable[uOffset]);
-			}
+				rFileInfo.m_FullPath += StringFromFormat("%s%s", _szDirectory.c_str(), &_szNameTable[uOffset]);
 
 			CurrentIndex++;
 		}
@@ -232,7 +223,7 @@ const SFileInfo* CARCFile::FindFileInfo(const std::string& _rFullPath) const
 {
 	for (auto& fileInfo : m_FileInfoVector)
 	{
-		if (!strcasecmp(fileInfo.m_FullPath, _rFullPath.c_str()))
+		if (!strcasecmp(fileInfo.m_FullPath.c_str(), _rFullPath.c_str()))
 		{
 			return &fileInfo;
 		}

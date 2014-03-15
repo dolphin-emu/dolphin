@@ -320,30 +320,32 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 
 	while (CurrentIndex < _LastIndex)
 	{
-		const DiscIO::SFileInfo *rFileInfo = fileInfos[CurrentIndex];
-		char *name = (char*)rFileInfo->m_FullPath;
+		const DiscIO::SFileInfo* rFileInfo = fileInfos[CurrentIndex];
+		std::string filePath = rFileInfo->m_FullPath;
 
-		if (rFileInfo->IsDirectory())
+		// Trim the trailing '/' if it exists.
+		if (filePath[filePath.length() - 1] == DIR_SEP_CHR)
 		{
-			name[strlen(name) - 1] = '\0';
+			filePath.pop_back();
 		}
 
-		char *itemName = strrchr(name, DIR_SEP_CHR);
-
-		if (!itemName)
-			itemName = name;
-		else
-			itemName++;
+		// Cut off the path up to the actual filename or folder.
+		// Say we have "/music/stream/stream1.strm", the result will be "stream1.strm".
+		size_t dirSepIndex = filePath.find_last_of(DIR_SEP_CHR);
+		if (dirSepIndex != std::string::npos)
+		{
+			filePath = filePath.substr(dirSepIndex + 1);
+		}
 
 		// check next index
 		if (rFileInfo->IsDirectory())
 		{
-			wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(itemName), 1, 1);
+			wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(filePath), 1, 1);
 			CurrentIndex = CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo->m_FileSize);
 		}
 		else
 		{
-			m_Treectrl->AppendItem(parent, StrToWxStr(itemName), 2, 2);
+			m_Treectrl->AppendItem(parent, StrToWxStr(filePath), 2, 2);
 			CurrentIndex++;
 		}
 	}
@@ -734,7 +736,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		int partitionNum = wxAtoi(File.Mid(File.find_first_of("/") - 1, 1));
-		File.Remove(0, File.find_first_of("/") +1); // Remove "Partition x/"
+		File.Remove(0, File.find_first_of("/") + 1); // Remove "Partition x/"
 		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
 	}
 	else
@@ -745,7 +747,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
 {
-	char exportName[512];
+	std::string exportName;
 	u32 index[2] = {0, 0};
 	std::vector<const DiscIO::SFileInfo *> fst;
 	DiscIO::IFileSystem *FS = nullptr;
@@ -774,7 +776,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	{
 		for (index[0] = 0; index[0] < fst.size(); index[0]++)
 		{
-			if (!strcmp(fst.at(index[0])->m_FullPath, _rFullPath))
+			if (fst.at(index[0])->m_FullPath == _rFullPath)
 			{
 				DEBUG_LOG(DISCIO, "Found the directory at %u", index[0]);
 				index[1] = (u32)fst.at(index[0])->m_FileSize;
@@ -802,41 +804,40 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		dialog.SetTitle(wxString::Format(wxT("%s : %d%%"), dialogTitle.c_str(),
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
 
-		dialog.Update(i, wxString::Format(_("Extracting %s"),
-			StrToWxStr(fst[i]->m_FullPath)));
+		dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i]->m_FullPath)));
 
 		if (dialog.WasCancelled())
 			break;
 
 		if (fst[i]->IsDirectory())
 		{
-			snprintf(exportName, sizeof(exportName), "%s/%s/", _rExportFolder, fst[i]->m_FullPath);
-			DEBUG_LOG(DISCIO, "%s", exportName);
+			exportName = StringFromFormat("%s/%s/", _rExportFolder, fst[i]->m_FullPath.c_str());
+			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
 			if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
 			{
-				ERROR_LOG(DISCIO, "Could not create the path %s", exportName);
+				ERROR_LOG(DISCIO, "Could not create the path %s", exportName.c_str());
 			}
 			else
 			{
 				if (!File::IsDirectory(exportName))
-					ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName);
+					ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName.c_str());
 
-				DEBUG_LOG(DISCIO, "Folder %s already exists", exportName);
+				DEBUG_LOG(DISCIO, "Folder %s already exists", exportName.c_str());
 			}
 		}
 		else
 		{
-			snprintf(exportName, sizeof(exportName), "%s/%s", _rExportFolder, fst[i]->m_FullPath);
-			DEBUG_LOG(DISCIO, "%s", exportName);
+			exportName = StringFromFormat("%s/%s", _rExportFolder, fst[i]->m_FullPath.c_str());
+			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
 			if (!File::Exists(exportName) && !FS->ExportFile(fst[i]->m_FullPath, exportName))
 			{
-				ERROR_LOG(DISCIO, "Could not export %s", exportName);
+				ERROR_LOG(DISCIO, "Could not export %s", exportName.c_str());
 			}
 			else
 			{
-				DEBUG_LOG(DISCIO, "%s already exists", exportName);
+				DEBUG_LOG(DISCIO, "%s already exists", exportName.c_str());
 			}
 		}
 	}
@@ -863,8 +864,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 	while (m_Treectrl->GetItemParent(m_Treectrl->GetSelection()) != m_Treectrl->GetRootItem())
 	{
-		wxString temp;
-		temp = m_Treectrl->GetItemText(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
+		wxString temp = m_Treectrl->GetItemText(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 		Directory = temp + wxT(DIR_SEP_CHR) + Directory;
 
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
@@ -873,7 +873,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("/") - 1, 1));
-		Directory.Remove(0, Directory.find_first_of("/") +1); // Remove "Partition x/"
+		Directory.Remove(0, Directory.find_first_of("/") + 1); // Remove "Partition x/"
 		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str(), partitionNum);
 	}
 	else
@@ -893,7 +893,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
-		std::size_t partitionNum = (std::size_t)wxAtoi(Directory.Mid(Directory.find_first_of("0123456789"), 2));
+		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("0123456789"), 2));
 
 		if (WiiDisc.size() > partitionNum)
 		{
@@ -902,7 +902,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 		}
 		else
 		{
-			PanicAlertT("Partition doesn't exist: %u", (unsigned) partitionNum);
+			PanicAlertT("Partition doesn't exist: %d", partitionNum);
 			return;
 		}
 	}
