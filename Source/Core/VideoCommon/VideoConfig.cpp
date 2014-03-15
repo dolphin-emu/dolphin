@@ -197,7 +197,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "ProjectionHack", iPhackvalue[0]);
 	CHECK_SETTING("Video", "PH_SZNear", iPhackvalue[1]);
 	CHECK_SETTING("Video", "PH_SZFar", iPhackvalue[2]);
-	CHECK_SETTING("Video", "PH_ExtraParam", iPhackvalue[3]);
 	CHECK_SETTING("Video", "PH_ZNear", sPhackvalue[0]);
 	CHECK_SETTING("Video", "PH_ZFar", sPhackvalue[1]);
 	CHECK_SETTING("Video", "UseBBox", bUseBBox);
