@@ -27,12 +27,15 @@ class UDPWiimote
 public:
 	UDPWiimote(const std::string& port, const std::string& name, int index);
 	virtual ~UDPWiimote();
-	void getAccel(float& x, float& y, float& z);
+	void getAccel(float* x, float* y, float* z);
 	u32 getButtons();
-	void getNunchuck(float& x, float& y, u8& mask);
-	void getIR(float& x, float& y);
-	void getNunchuckAccel(float& x, float& y, float& z);
-	int getErrNo() { return err; }
+	void getNunchuck(float* x, float* y, u8* mask);
+	void getIR(float* x, float* y);
+	void getNunchuckAccel(float* x, float* y, float* z);
+	int getErrNo()
+	{
+		return err;
+	}
 	const std::string& getPort();
 	void changeName(const std::string& name);
 
@@ -42,12 +45,12 @@ private:
 	int pharsePacket(u8* data, size_t size);
 	struct _d; //using pimpl because Winsock2.h doesn't have include guards -_-
 	_d* d;
-	double x,y,z;
-	double naX,naY,naZ;
-	double nunX,nunY;
-	double pointerX,pointerY;
+	double waX, waY, waZ;
+	double naX, naY, naZ;
+	double nunX, nunY;
+	double pointerX, pointerY;
 	u8 nunMask;
-	u32 mask;
+	u32 wiimoteMask;
 	u16 bcastMagic;
 	int err;
 	int index;

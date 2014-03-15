@@ -123,8 +123,8 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
-	localIni.GetLines("ActionReplay_Enabled", enabledLines);
-	for (auto& line : enabledLines)
+	localIni.GetLines("ActionReplay_Enabled", &enabledLines);
+	for (const std::string& line : enabledLines)
 	{
 		if (line.size() != 0 && line[0] == '$')
 		{
@@ -140,12 +140,14 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 		std::vector<std::string> encryptedLines;
 		ARCode currentCode;
 
-		ini->GetLines("ActionReplay", lines);
+		ini->GetLines("ActionReplay", &lines);
 
-		for (std::string line : lines)
+		for (const std::string& line : lines)
 		{
 			if (line.empty())
+			{
 				continue;
+			}
 
 			std::vector<std::string> pieces;
 

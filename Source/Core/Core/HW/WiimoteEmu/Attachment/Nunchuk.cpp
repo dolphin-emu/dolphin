@@ -130,7 +130,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		{
 			u8 mask;
 			float x, y;
-			m_udpWrap->inst->getNunchuck(x, y, mask);
+			m_udpWrap->inst->getNunchuck(&x, &y, &mask);
 			// buttons
 			if (mask & UDPWM_NC)
 				ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_C;
@@ -146,7 +146,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		if (m_udpWrap->updNunAccel)
 		{
 			float x, y, z;
-			m_udpWrap->inst->getNunchuckAccel(x, y, z);
+			m_udpWrap->inst->getNunchuckAccel(&x, &y, &z);
 			accel.x = x;
 			accel.y = y;
 			accel.z = z;
