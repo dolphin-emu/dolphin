@@ -893,8 +893,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
-		std::size_t partitionNum = (std::size_t)wxAtoi(Directory.Mid(Directory.find_first_of("/"), 1));
-		Directory.Remove(0, Directory.find_first_of("/") +1); // Remove "Partition x/"
+		std::size_t partitionNum = (std::size_t)wxAtoi(Directory.Mid(Directory.find_first_of("0123456789"), 2));
 
 		if (WiiDisc.size() > partitionNum)
 		{
