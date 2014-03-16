@@ -87,20 +87,25 @@ void CPHackSettings::CreateGUIControls()
 void CPHackSettings::LoadPHackData()
 {
 	std::string sTemp;
-	char sIndex[15];
+	std::string sIndex;
 
 	PHackChoice->Clear();
 	PHackChoice->Append(_("[Custom]"));
-	for (int i=0 ;  ; i++)
+	for (int i = 0; ; i++)
 	{
-		sprintf(sIndex,"%d",i);
+		sIndex = std::to_string(i);
+
 		if (!PHPresetsIni.Exists(sIndex, "Title"))
 			break;
+
 		PHPresetsIni.Get(sIndex, "Title", &sTemp);
+
 		if (sTemp.empty())
-			sTemp = wxString(_("(UNKNOWN)")).char_str();
+			sTemp = WxStrToStr(_("(UNKNOWN)"));
+
 		if (i == 0)
 			PHackChoice->Append(StrToWxStr("-------------"));
+
 		PHackChoice->Append(StrToWxStr(sTemp));
 	}
 	PHackChoice->Select(0);
@@ -116,12 +121,13 @@ void CPHackSettings::SetRefresh(wxCommandEvent& event)
 {
 	bool bTemp;
 	std::string sTemp;
-	char sIndex[15];
+	std::string sIndex;
+
 	int index = event.GetSelection();
 	if (index > 1)
 	{
 		index -= 2;
-		sprintf(sIndex,"%d", index);
+		sIndex = std::to_string(index);
 
 		PHPresetsIni.Get(sIndex, "PH_SZNear", &bTemp);
 		PHackSZNear->Set3StateValue((wxCheckBoxState)bTemp);
