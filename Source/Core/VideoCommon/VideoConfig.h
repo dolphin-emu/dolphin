@@ -47,7 +47,7 @@ enum EFBScale
 class IniFile;
 
 // NEVER inherit from this class.
-struct VideoConfig
+struct VideoConfig final
 {
 	VideoConfig();
 	void Load(const std::string& ini_file);
