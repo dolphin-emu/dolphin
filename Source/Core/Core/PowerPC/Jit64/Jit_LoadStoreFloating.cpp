@@ -96,8 +96,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 		MOVSD(xd, R(XMM0));
 	} else {
 #if _M_X86_64
-		MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
-		BSWAP(64, EAX);
+		LoadAndSwap(64, EAX, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 		MOV(64, M(&temp64), R(EAX));
 
 		MEMCHECK_START
