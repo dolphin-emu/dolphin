@@ -159,6 +159,7 @@ void CPUInfo::Detect()
 		if ((cpu_id[2] >> 9)  & 1) bSSSE3 = true;
 		if ((cpu_id[2] >> 19) & 1) bSSE4_1 = true;
 		if ((cpu_id[2] >> 20) & 1) bSSE4_2 = true;
+		if ((cpu_id[2] >> 22) & 1) bMOVBE = true;
 		if ((cpu_id[2] >> 25) & 1) bAES = true;
 
 		// To check DAZ support, we first need to check FXSAVE support.
@@ -263,6 +264,7 @@ std::string CPUInfo::Summarize()
 	if (bAVX) sum += ", AVX";
 	if (bFMA) sum += ", FMA";
 	if (bAES) sum += ", AES";
+	if (bMOVBE) sum += ", MOVBE";
 	if (bLongMode) sum += ", 64-bit support";
 	return sum;
 }
