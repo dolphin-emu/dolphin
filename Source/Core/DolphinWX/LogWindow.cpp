@@ -205,8 +205,7 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 
 	{
 	std::lock_guard<std::mutex> lk(m_LogSection);
-	int msgQueueSize = (int)msgQueue.size();
-	for (int i = 0; i < msgQueueSize; i++)
+	while (!msgQueue.empty())
 		msgQueue.pop();
 	}
 
@@ -280,10 +279,11 @@ void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
 
 void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 {
-	if (!m_LogAccess) return;
-	if (m_ignoreLogTimer) return;
+	if (!m_LogAccess || m_ignoreLogTimer)
+		return;
 
 	UpdateLog();
+
 	// Scroll to the last line
 	if (!msgQueue.empty())
 	{
@@ -294,58 +294,55 @@ void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 
 void CLogWindow::UpdateLog()
 {
-	if (!m_LogAccess) return;
-	if (!m_Log) return;
+	if (!m_LogAccess || !m_Log)
+		return;
 
 	// m_LogTimer->Stop();
 	// instead of stopping the timer, let's simply ignore its calls during UpdateLog,
 	// because repeatedly stopping and starting a timer churns memory (and potentially leaks it).
 	m_ignoreLogTimer = true;
 
-	if (!msgQueue.empty())
+	std::lock_guard<std::mutex> lk(m_LogSection);
+	while (!msgQueue.empty())
 	{
-		std::lock_guard<std::mutex> lk(m_LogSection);
-		int msgQueueSize = (int)msgQueue.size();
-		for (int i = 0; i < msgQueueSize; i++)
+		switch (msgQueue.front().first)
 		{
-			switch (msgQueue.front().first)
-			{
-				case ERROR_LEVEL:
-					m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
-					break;
+			case ERROR_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
+				break;
 
-				case WARNING_LEVEL:
-					m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
-					break;
+			case WARNING_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
+				break;
 
-				case NOTICE_LEVEL:
-					m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
-					break;
+			case NOTICE_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
+				break;
 
-				case INFO_LEVEL:
-					m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
-					break;
+			case INFO_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
+				break;
 
-				case DEBUG_LEVEL:
-					m_Log->SetDefaultStyle(wxTextAttr(*wxLIGHT_GREY));
-					break;
+			case DEBUG_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(*wxLIGHT_GREY));
+				break;
 
-				default:
-					m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
-					break;
-			}
-			if (msgQueue.front().second.size())
-			{
-				int j = m_Log->GetLastPosition();
-				m_Log->AppendText(msgQueue.front().second);
-				// White timestamp
-				m_Log->SetStyle(j, j + 9, wxTextAttr(*wxWHITE));
-			}
-			msgQueue.pop();
+			default:
+				m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
+				break;
 		}
-	} // unlock log
 
-	// m_LogTimer->Start(UPDATETIME);
+		if (msgQueue.front().second.size())
+		{
+			int i = m_Log->GetLastPosition();
+			m_Log->AppendText(msgQueue.front().second);
+			// White timestamp
+			m_Log->SetStyle(i, i + 9, wxTextAttr(*wxWHITE));
+		}
+
+		msgQueue.pop();
+	}
+
 	m_ignoreLogTimer = false;
 }
 
