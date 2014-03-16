@@ -90,7 +90,7 @@ void CPHackSettings::LoadPHackData()
 	std::string sIndex;
 
 	PHackChoice->Clear();
-	PHackChoice->Append(_("[Custom]"));
+	PHackChoice->Append("[Custom]");
 	for (int i = 0; ; i++)
 	{
 		sIndex = std::to_string(i);
@@ -104,7 +104,7 @@ void CPHackSettings::LoadPHackData()
 			sTemp = WxStrToStr(_("(UNKNOWN)"));
 
 		if (i == 0)
-			PHackChoice->Append(StrToWxStr("-------------"));
+			PHackChoice->Append("-------------");
 
 		PHackChoice->Append(StrToWxStr(sTemp));
 	}
