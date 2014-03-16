@@ -16,6 +16,32 @@ using namespace Gen;
 static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 static u32 GC_ALIGNED16(float_buffer);
 
+void EmuCodeBlock::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
+{
+	if (cpu_info.bMOVBE)
+	{
+		MOVBE(size, R(dst), src);
+	}
+	else
+	{
+		MOV(size, R(dst), src);
+		BSWAP(size, dst);
+	}
+}
+
+void EmuCodeBlock::SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src)
+{
+	if (cpu_info.bMOVBE)
+	{
+		MOVBE(size, dst, R(src));
+	}
+	else
+	{
+		BSWAP(size, src);
+		MOV(size, dst, R(src));
+	}
+}
+
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
 #if _M_X86_64
@@ -513,12 +539,15 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 re
 	}
 }
 
-void EmuCodeBlock::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
+void EmuCodeBlock::WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 address, bool swap)
 {
 #if _M_X86_64
-	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
+	if (swap)
+		SwapAndStore(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
+	else
+		MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), R(arg));
 #else
-	MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), arg);
+	MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), R(arg));
 #endif
 }
 
