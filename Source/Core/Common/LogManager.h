@@ -6,10 +6,10 @@
 
 #include <cstdarg>
 #include <fstream>
-#include <mutex>
 #include <set>
 
 #include "Common/Common.h"
+#include "Common/StdMutex.h"
 
 #define MAX_MESSAGES 8000
 #define MAX_MSGLEN  1024
