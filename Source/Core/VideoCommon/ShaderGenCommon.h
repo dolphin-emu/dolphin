@@ -152,30 +152,9 @@ private:
 };
 
 template<class T>
-static inline void WriteRegister(T& object, API_TYPE ApiType, const char *prefix, const u32 num)
-{
-	if (ApiType == API_OPENGL)
-		return; // Nothing to do here
-
-	object.Write(" : register(%s%d)", prefix, num);
-}
-
-template<class T>
-static inline void WriteLocation(T& object, API_TYPE ApiType)
-{
-	if (ApiType == API_OPENGL)
-		return;
-
-	object.Write("uniform ");
-}
-
-template<class T>
 static inline void DeclareUniform(T& object, API_TYPE api_type, const u32 num, const char* type, const char* name)
 {
-	WriteLocation(object, api_type);
-	object.Write("%s %s ", type, name);
-	WriteRegister(object, api_type, "c", num);
-	object.Write(";\n");
+	object.Write("%s %s;\n", type, name);
 }
 
 /**

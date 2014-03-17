@@ -221,6 +221,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (ApiType == API_OPENGL)
 		out.Write("layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 1" : "");
+	else
+		out.Write("cbuffer PSBlock {\n");
 
 	DeclareUniform(out, ApiType, C_COLORS, "int4", I_COLORS"[4]");
 	DeclareUniform(out, ApiType, C_KCOLORS, "int4", I_KCOLORS"[4]");
@@ -238,8 +240,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	DeclareUniform(out, ApiType, C_PLIGHTS, "float4", I_PLIGHTS"[32]");
 	DeclareUniform(out, ApiType, C_PMATERIALS, "int4", I_PMATERIALS"[4]");
 
-	if (ApiType == API_OPENGL)
-		out.Write("};\n");
+	out.Write("};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
