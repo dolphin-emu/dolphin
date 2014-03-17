@@ -170,13 +170,6 @@ int TexDecoder_GetPaletteSize(int format)
 	}
 }
 
-static inline u32 decodeIA8(u16 val)
-{
-	int a = val >> 8;
-	int i = val & 0xFF;
-	return (a << 24) | (i << 16) | (i << 8) | i;
-}
-
 static inline u32 decode5A3(u16 val)
 {
 	int r,g,b,a;

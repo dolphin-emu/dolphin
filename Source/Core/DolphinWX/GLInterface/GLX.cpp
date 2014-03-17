@@ -27,7 +27,7 @@ void cInterfaceGLX::SwapInterval(int Interval)
 	else
 		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
 }
-void* cInterfaceGLX::GetFuncAddress(std::string name)
+void* cInterfaceGLX::GetFuncAddress(const std::string& name)
 {
 	return (void*)glXGetProcAddress((const GLubyte*)name.c_str());
 }

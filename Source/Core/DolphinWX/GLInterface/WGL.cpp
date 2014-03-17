@@ -33,7 +33,7 @@ void cInterfaceWGL::Swap()
 	SwapBuffers(hDC);
 }
 
-void* cInterfaceWGL::GetFuncAddress(std::string name)
+void* cInterfaceWGL::GetFuncAddress(const std::string& name)
 {
 	void* func = (void*)wglGetProcAddress((LPCSTR)name.c_str());
 	if (func == nullptr)

@@ -51,7 +51,7 @@ int g_width, g_height;
 std::string g_filename;
 static std::thread g_run_thread;
 
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "Dolphinemu", __VA_ARGS__))
+#define DOLPHIN_TAG "Dolphinemu"
 
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
@@ -72,8 +72,8 @@ void* Host_GetInstance() { return nullptr; }
 
 void Host_UpdateTitle(const std::string& title)
 {
-	LOGI(title.c_str());
-};
+	__android_log_write(ANDROID_LOG_INFO, DOLPHIN_TAG, title.c_str());
+}
 
 void Host_UpdateLogDisplay(){}
 
@@ -116,19 +116,11 @@ void Host_UpdateStatusBar(const std::string& text, int filed){}
 
 void Host_SysMessage(const char *fmt, ...)
 {
-	va_list list;
-	char msg[512];
+	va_list args;
 
-	va_start(list, fmt);
-	vsnprintf(msg, 512, fmt, list);
-	va_end(list);
-
-	size_t len = strlen(msg);
-	if (msg[len - 1] != '\n') {
-		msg[len - 1] = '\n';
-		msg[len] = '\0';
-	}
-	LOGI(msg);
+	va_start(args, fmt);
+	__android_log_vprint(ANDROID_LOG_INFO, DOLPHIN_TAG, fmt, args); 
+	va_end(args);
 }
 
 void Host_SetWiiMoteConnectionState(int _State) {}
