@@ -195,14 +195,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (ApiType == API_OPENGL)
 	{
-		// Fmod implementation gleaned from Nvidia
-		// At http://http.developer.nvidia.com/Cg/fmod.html
-		out.Write("float fmod( float x, float y )\n");
-		out.Write("{\n");
-		out.Write("\tfloat z = fract( abs( x / y) ) * abs( y );\n");
-		out.Write("\treturn (x < 0.0) ? -z : z;\n");
-		out.Write("}\n");
-
 		// Declare samplers
 		for (int i = 0; i < 8; ++i)
 			out.Write("uniform sampler2D samp%d;\n", i);
