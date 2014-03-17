@@ -86,19 +86,18 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
 	else
 		out.Write("cbuffer VSBlock {\n");
-
-	DeclareUniform(out, api_type, C_POSNORMALMATRIX, "float4", I_POSNORMALMATRIX"[6]");
-	DeclareUniform(out, api_type, C_PROJECTION, "float4", I_PROJECTION"[4]");
-	DeclareUniform(out, api_type, C_MATERIALS, "int4", I_MATERIALS"[4]");
-	DeclareUniform(out, api_type, C_LIGHT_COLORS,  "int4", I_LIGHT_COLORS"[8]");
-	DeclareUniform(out, api_type, C_LIGHTS,  "float4", I_LIGHTS"[32]");
-	DeclareUniform(out, api_type, C_TEXMATRICES, "float4", I_TEXMATRICES"[24]");
-	DeclareUniform(out, api_type, C_TRANSFORMMATRICES, "float4", I_TRANSFORMMATRICES"[64]");
-	DeclareUniform(out, api_type, C_NORMALMATRICES, "float4", I_NORMALMATRICES"[32]");
-	DeclareUniform(out, api_type, C_POSTTRANSFORMMATRICES, "float4", I_POSTTRANSFORMMATRICES"[64]");
-	DeclareUniform(out, api_type, C_DEPTHPARAMS, "float4", I_DEPTHPARAMS);
-
-	out.Write("};\n");
+	out.Write(
+		"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
+		"\tfloat4 " I_PROJECTION"[4];\n"
+		"\tint4 " I_MATERIALS"[4];\n"
+		"\tint4 " I_LIGHT_COLORS"[8];\n"
+		"\tfloat4 " I_LIGHTS"[32];\n"
+		"\tfloat4 " I_TEXMATRICES"[24];\n"
+		"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
+		"\tfloat4 " I_NORMALMATRICES"[32];\n"
+		"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
+		"\tfloat4 " I_DEPTHPARAMS";\n"
+		"};\n");
 
 	GenerateVSOutputStruct(out, api_type);
 

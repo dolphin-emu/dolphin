@@ -150,13 +150,6 @@ public:
 private:
 	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?
 };
-
-template<class T>
-static inline void DeclareUniform(T& object, API_TYPE api_type, const u32 num, const char* type, const char* name)
-{
-	object.Write("%s %s;\n", type, name);
-}
-
 /**
  * Checks if there has been
  */

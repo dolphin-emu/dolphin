@@ -223,24 +223,23 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 1" : "");
 	else
 		out.Write("cbuffer PSBlock {\n");
+	out.Write(
+		"\tint4 " I_COLORS"[4];\n"
+		"\tint4 " I_KCOLORS"[4];\n"
+		"\tint4 " I_ALPHA";\n"
+		"\tfloat4 " I_TEXDIMS"[8];\n"
+		"\tint4 " I_ZBIAS"[2];\n"
+		"\tint4 " I_INDTEXSCALE"[2];\n"
+		"\tint4 " I_INDTEXMTX"[6];\n"
+		"\tint4 " I_FOGCOLOR";\n"
+		"\tint4 " I_FOGI";\n"
+		"\tfloat4 " I_FOGF"[2];\n"
 
-	DeclareUniform(out, ApiType, C_COLORS, "int4", I_COLORS"[4]");
-	DeclareUniform(out, ApiType, C_KCOLORS, "int4", I_KCOLORS"[4]");
-	DeclareUniform(out, ApiType, C_ALPHA, "int4", I_ALPHA);
-	DeclareUniform(out, ApiType, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
-	DeclareUniform(out, ApiType, C_ZBIAS, "int4", I_ZBIAS"[2]");
-	DeclareUniform(out, ApiType, C_INDTEXSCALE, "int4", I_INDTEXSCALE"[2]");
-	DeclareUniform(out, ApiType, C_INDTEXMTX, "int4", I_INDTEXMTX"[6]");
-	DeclareUniform(out, ApiType, C_FOGCOLOR, "int4", I_FOGCOLOR);
-	DeclareUniform(out, ApiType, C_FOGI, "int4", I_FOGI);
-	DeclareUniform(out, ApiType, C_FOGF, "float4", I_FOGF"[2]");
-
-	// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
-	DeclareUniform(out, ApiType, C_PLIGHT_COLORS, "int4", I_PLIGHT_COLORS"[8]");
-	DeclareUniform(out, ApiType, C_PLIGHTS, "float4", I_PLIGHTS"[32]");
-	DeclareUniform(out, ApiType, C_PMATERIALS, "int4", I_PMATERIALS"[4]");
-
-	out.Write("};\n");
+		// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
+		"\tint4 " I_PLIGHT_COLORS"[8];\n"
+		"\tfloat4 " I_PLIGHTS"[32];\n"
+		"\tint4 " I_PMATERIALS"[4];\n"
+		"};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
