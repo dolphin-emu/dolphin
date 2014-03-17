@@ -65,9 +65,9 @@ struct UDPWiimote::_d
 int UDPWiimote::noinst = 0;
 
 UDPWiimote::UDPWiimote(const std::string& _port, const std::string& name, int _index) :
-	port(_port), displayName(name),
-	d(new _d) ,x(0), y(0), z(1.0f), naX(0), naY(0), naZ(-1.0f), nunX(0), nunY(0),
-	pointerX(1001.0f / 2), pointerY(0), nunMask(0), mask(0), index(_index), int_port(atoi(_port.c_str()))
+	port(_port), displayName(name),	d(new _d),
+	waX(0), waY(0), waZ(1), naX(0), naY(0), naZ(-1), nunX(0), nunY(0),
+	pointerX(1001.0f / 2), pointerY(0), nunMask(0), wiimoteMask(0), index(_index), int_port(atoi(_port.c_str()))
 {
 
 	static bool sranded=false;
@@ -275,9 +275,9 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 		ux=(double)((s32)ntohl(*p)); p++;
 		uy=(double)((s32)ntohl(*p)); p++;
 		uz=(double)((s32)ntohl(*p)); p++;
-		x=ux/1048576; //packet accel data
-		y=uy/1048576;
-		z=uz/1048576;
+		waX=ux/1048576; //packet accel data
+		waY=uy/1048576;
+		waZ=uz/1048576;
 	}
 
 	if (bf[2] & BUTT_FLAG)
@@ -285,7 +285,7 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 		if ((size-(((u8*)p)-bf)) < 4)
 			return -1;
 
-		mask=ntohl(*p); p++;
+		wiimoteMask = ntohl(*p); p++;
 	}
 
 	if (bf[2] & IR_FLAG)
@@ -388,43 +388,43 @@ void UDPWiimote::broadcastPresence()
 	broadcastIPv6(bf,7+slen);
 }
 
-void UDPWiimote::getAccel(float &_x, float &_y, float &_z)
+void UDPWiimote::getAccel(float* x, float* y, float* z)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x=(float)x;
-	_y=(float)y;
-	_z=(float)z;
+	*x = (float)waX;
+	*y = (float)waY;
+	*z = (float)waZ;
 }
 
 u32 UDPWiimote::getButtons()
 {
 	u32 msk;
 	std::lock_guard<std::mutex> lk(d->mutex);
-	msk=mask;
+	msk = wiimoteMask;
 	return msk;
 }
 
-void UDPWiimote::getIR(float& _x, float& _y)
+void UDPWiimote::getIR(float* x, float* y)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x=(float)pointerX;
-	_y=(float)pointerY;
+	*x = (float)pointerX;
+	*y = (float)pointerY;
 }
 
-void UDPWiimote::getNunchuck(float &_x, float &_y, u8 &_mask)
+void UDPWiimote::getNunchuck(float* x, float* y, u8* mask)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x=(float)nunX;
-	_y=(float)nunY;
-	_mask=nunMask;
+	*x = (float)nunX;
+	*y = (float)nunY;
+	*mask = nunMask;
 }
 
-void UDPWiimote::getNunchuckAccel(float& _x, float& _y, float& _z)
+void UDPWiimote::getNunchuckAccel(float* x, float* y, float* z)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x = (float)naX;
-	_y = (float)naY;
-	_z = (float)naZ;
+	*x = (float)naX;
+	*y = (float)naY;
+	*z = (float)naZ;
 }
 
 const std::string& UDPWiimote::getPort()

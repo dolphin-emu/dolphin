@@ -61,12 +61,12 @@ void VideoBackend::UpdateFPSDisplay(const std::string& text)
 	EmuWindow::SetWindowText(StringFromFormat("%s | D3D | %s", scm_rev_str, text.c_str()));
 }
 
-std::string VideoBackend::GetName()
+std::string VideoBackend::GetName() const
 {
 	return "D3D";
 }
 
-std::string VideoBackend::GetDisplayName()
+std::string VideoBackend::GetDisplayName() const
 {
 	return "Direct3D";
 }

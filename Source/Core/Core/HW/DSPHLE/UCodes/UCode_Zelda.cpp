@@ -58,7 +58,7 @@ CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
 
 	if (IsLightVersion())
 	{
-		NOTICE_LOG(DSPHLE, "Luigi Stylee!");
+		DEBUG_LOG(DSPHLE, "Luigi Stylee!");
 		m_rMailHandler.PushMail(0x88881111);
 	}
 	else
@@ -92,9 +92,9 @@ CUCode_Zelda::~CUCode_Zelda()
 u8 *CUCode_Zelda::GetARAMPointer(u32 address)
 {
 	if (IsDMAVersion())
-		return (u8 *)(Memory::GetPointer(m_DMABaseAddr)) + address;
+		return Memory::GetPointer(m_DMABaseAddr) + address;
 	else
-		return (u8 *)(DSP::GetARAMPtr()) + address;
+		return DSP::GetARAMPtr() + address;
 }
 
 void CUCode_Zelda::Update(int cycles)

@@ -11,22 +11,22 @@ TEST(FifoQueue, Simple)
 {
 	Common::FifoQueue<u32> q;
 
-	EXPECT_EQ(0, q.Size());
+	EXPECT_EQ(0u, q.Size());
 	EXPECT_TRUE(q.Empty());
 
 	q.Push(1);
-	EXPECT_EQ(1, q.Size());
+	EXPECT_EQ(1u, q.Size());
 	EXPECT_FALSE(q.Empty());
 
 	u32 v; q.Pop(v);
-	EXPECT_EQ(1, v);
-	EXPECT_EQ(0, q.Size());
+	EXPECT_EQ(1u, v);
+	EXPECT_EQ(0u, q.Size());
 	EXPECT_TRUE(q.Empty());
 
 	// Test the FIFO order.
 	for (u32 i = 0; i < 1000; ++i)
 		q.Push(i);
-	EXPECT_EQ(1000, q.Size());
+	EXPECT_EQ(1000u, q.Size());
 	for (u32 i = 0; i < 1000; ++i)
 	{
 		u32 v2; q.Pop(v2);

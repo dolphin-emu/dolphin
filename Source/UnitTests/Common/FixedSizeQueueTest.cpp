@@ -10,7 +10,7 @@ TEST(FixedSizeQueue, Simple)
 {
 	FixedSizeQueue<int, 5> q;
 
-	EXPECT_EQ(0, q.size());
+	EXPECT_EQ(0u, q.size());
 
 	q.push(0);
 	q.push(1);
@@ -29,5 +29,5 @@ TEST(FixedSizeQueue, Simple)
 	EXPECT_EQ(1003, q.pop_front());
 	EXPECT_EQ(1004, q.pop_front());
 
-	EXPECT_EQ(0, q.size());
+	EXPECT_EQ(0u, q.size());
 }

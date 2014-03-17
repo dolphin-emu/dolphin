@@ -851,7 +851,9 @@ void CFrame::LoadIniPerspectives()
 
 		// Don't save a blank perspective
 		if (Tmp.Name.empty())
+		{
 			continue;
+		}
 
 		_Section = StringFromFormat("P - %s", Tmp.Name.c_str());
 		ini.Get(_Section, "Perspective", &_Perspective,

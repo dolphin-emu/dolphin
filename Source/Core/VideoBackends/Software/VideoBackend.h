@@ -13,7 +13,7 @@ class VideoSoftware : public VideoBackend
 	bool Initialize(void *&) override;
 	void Shutdown() override;
 
-	std::string GetName() override;
+	std::string GetName() const override;
 
 	void EmuStateChange(EMUSTATE_CHANGE newState) override;
 

@@ -123,8 +123,8 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
-	localIni.GetLines("ActionReplay_Enabled", enabledLines);
-	for (auto& line : enabledLines)
+	localIni.GetLines("ActionReplay_Enabled", &enabledLines);
+	for (const std::string& line : enabledLines)
 	{
 		if (line.size() != 0 && line[0] == '$')
 		{
@@ -140,12 +140,14 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 		std::vector<std::string> encryptedLines;
 		ARCode currentCode;
 
-		ini->GetLines("ActionReplay", lines);
+		ini->GetLines("ActionReplay", &lines);
 
-		for (std::string line : lines)
+		for (const std::string& line : lines)
 		{
 			if (line.empty())
+			{
 				continue;
+			}
 
 			std::vector<std::string> pieces;
 
@@ -283,13 +285,10 @@ bool RunCode(const ARCode &arcode)
 	LogInfo("Code Name: %s", arcode.name.c_str());
 	LogInfo("Number of codes: %i", arcode.ops.size());
 
-	std::vector<AREntry>::const_iterator
-		iter = arcode.ops.begin(),
-		ops_end = arcode.ops.end();
-	for (; iter != ops_end; ++iter)
+	for (const AREntry& entry : arcode.ops)
 	{
-		const ARAddr& addr = *(ARAddr*)&iter->cmd_addr;
-		const u32 data = iter->value;
+		const ARAddr& addr = *(ARAddr*)&entry.cmd_addr;
+		const u32 data = entry.value;
 
 		// after a conditional code, skip lines if needed
 		if (skip_count)

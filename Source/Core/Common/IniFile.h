@@ -66,7 +66,7 @@ public:
 		bool Get(const std::string& key, bool* value, bool defaultValue = false);
 		bool Get(const std::string& key, float* value, float defaultValue = false);
 		bool Get(const std::string& key, double* value, double defaultValue = false);
-		bool Get(const std::string& key, std::vector<std::string>& values);
+		bool Get(const std::string& key, std::vector<std::string>* values);
 
 		bool operator < (const Section& other) const {
 			return name < other.name;
@@ -116,7 +116,7 @@ public:
 	bool Get(const std::string& sectionName, const std::string& key, int* value, int defaultValue = 0);
 	bool Get(const std::string& sectionName, const std::string& key, u32* value, u32 defaultValue = 0);
 	bool Get(const std::string& sectionName, const std::string& key, bool* value, bool defaultValue = false);
-	bool Get(const std::string& sectionName, const std::string& key, std::vector<std::string>& values);
+	bool Get(const std::string& sectionName, const std::string& key, std::vector<std::string>* values);
 	bool Get(const std::string& sectionName, const std::string& key, std::string* value, const std::string& defaultValue = NULL_STRING);
 
 	template<typename T> bool GetIfExists(const std::string& sectionName, const std::string& key, T value)
@@ -126,10 +126,10 @@ public:
 		return false;
 	}
 
-	bool GetKeys(const std::string& sectionName, std::vector<std::string>& keys) const;
+	bool GetKeys(const std::string& sectionName, std::vector<std::string>* keys) const;
 
-	void SetLines(const std::string& sectionName, const std::vector<std::string> &lines);
-	bool GetLines(const std::string& sectionName, std::vector<std::string>& lines, const bool remove_comments = true) const;
+	void SetLines(const std::string& sectionName, const std::vector<std::string>& lines);
+	bool GetLines(const std::string& sectionName, std::vector<std::string>* lines, const bool remove_comments = true) const;
 
 	bool DeleteKey(const std::string& sectionName, const std::string& key);
 	bool DeleteSection(const std::string& sectionName);

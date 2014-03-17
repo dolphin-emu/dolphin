@@ -20,7 +20,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 	for (const IniFile* ini : inis)
 	{
 		std::vector<std::string> lines;
-		ini->GetLines("Gecko", lines, false);
+		ini->GetLines("Gecko", &lines, false);
 
 		GeckoCode gcode;
 
@@ -72,19 +72,25 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 
 		// add the last code
 		if (gcode.name.size())
+		{
 			gcodes.push_back(gcode);
+		}
 
-		ini->GetLines("Gecko_Enabled", lines, false);
+		ini->GetLines("Gecko_Enabled", &lines, false);
 
-		for (auto line : lines)
+		for (const std::string& line : lines)
 		{
 			if (line.size() == 0 || line[0] != '$')
+			{
 				continue;
+			}
 			std::string name = line.substr(1);
-			for (auto& ogcode : gcodes)
+			for (GeckoCode& ogcode : gcodes)
 			{
 				if (ogcode.name == name)
+				{
 					ogcode.enabled = true;
+				}
 			}
 		}
 	}

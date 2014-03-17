@@ -114,7 +114,7 @@ bool IniFile::Section::Get(const std::string& key, std::string* value, const std
 		return false;
 }
 
-bool IniFile::Section::Get(const std::string& key, std::vector<std::string>& out)
+bool IniFile::Section::Get(const std::string& key, std::vector<std::string>* out)
 {
 	std::string temp;
 	bool retval = Get(key, &temp);
@@ -132,7 +132,7 @@ bool IniFile::Section::Get(const std::string& key, std::vector<std::string>& out
 		size_t subEnd = temp.find_first_of(",", subStart);
 		if (subStart != subEnd)
 			// take from first char until next ,
-			out.push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
+			out->push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
 		// Find the next non , char
 		subStart = temp.find_first_not_of(",", subEnd);
 	}
@@ -273,23 +273,25 @@ bool IniFile::DeleteKey(const std::string& sectionName, const std::string& key)
 }
 
 // Return a list of all keys in a section
-bool IniFile::GetKeys(const std::string& sectionName, std::vector<std::string>& keys) const
+bool IniFile::GetKeys(const std::string& sectionName, std::vector<std::string>* keys) const
 {
 	const Section* section = GetSection(sectionName);
 	if (!section)
+	{
 		return false;
-	keys = section->keys_order;
+	}
+	*keys = section->keys_order;
 	return true;
 }
 
 // Return a list of all lines in a section
-bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>& lines, const bool remove_comments) const
+bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>* lines, const bool remove_comments) const
 {
 	const Section* section = GetSection(sectionName);
 	if (!section)
 		return false;
 
-	lines.clear();
+	lines->clear();
 	for (std::string line : section->lines)
 	{
 		line = StripSpaces(line);
@@ -308,7 +310,7 @@ bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>&
 			}
 		}
 
-		lines.push_back(line);
+		lines->push_back(line);
 	}
 
 	return true;
@@ -426,7 +428,7 @@ bool IniFile::Save(const std::string& filename)
 	return File::RenameSync(temp, filename);
 }
 
-bool IniFile::Get(const std::string& sectionName, const std::string& key, std::vector<std::string>& values)
+bool IniFile::Get(const std::string& sectionName, const std::string& key, std::vector<std::string>* values)
 {
 	Section *section = GetSection(sectionName);
 	if (!section)

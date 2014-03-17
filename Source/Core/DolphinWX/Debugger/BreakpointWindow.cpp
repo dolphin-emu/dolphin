@@ -112,7 +112,7 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
 	m_BreakPointListView = new CBreakPointView(this, wxID_ANY);
 
 	m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY), wxAuiPaneInfo().ToolbarPane().Top().
-			LeftDockable(false).RightDockable(false).BottomDockable(false).Floatable(false));
+	              LeftDockable(false).RightDockable(false).BottomDockable(false).Floatable(false));
 	m_mgr.AddPane(m_BreakPointListView, wxAuiPaneInfo().CenterPane());
 	m_mgr.Update();
 }
@@ -195,12 +195,19 @@ void CBreakPointWindow::LoadAll(wxCommandEvent& WXUNUSED(event))
 	MemChecks::TMemChecksStr newmcs;
 
 	if (!ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
+	{
 		return;
+	}
 
-	if (ini.GetLines("BreakPoints", newbps, false))
+	if (ini.GetLines("BreakPoints", &newbps, false))
+	{
 		PowerPC::breakpoints.AddFromStrings(newbps);
-	if (ini.GetLines("MemoryChecks", newmcs, false))
+	}
+
+	if (ini.GetLines("MemoryChecks", &newmcs, false))
+	{
 		PowerPC::memchecks.AddFromStrings(newmcs);
+	}
 
 	NotifyUpdate();
 }

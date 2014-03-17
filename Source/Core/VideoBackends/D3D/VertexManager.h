@@ -17,12 +17,12 @@ public:
 	VertexManager();
 	~VertexManager();
 
-	NativeVertexFormat* CreateNativeVertexFormat();
-	void CreateDeviceObjects();
-	void DestroyDeviceObjects();
+	NativeVertexFormat* CreateNativeVertexFormat() override;
+	void CreateDeviceObjects() override;
+	void DestroyDeviceObjects() override;
 
 protected:
-	virtual void ResetBuffer(u32 stride);
+	virtual void ResetBuffer(u32 stride) override;
 	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
 
 private:
@@ -30,7 +30,7 @@ private:
 	void PrepareDrawBuffers();
 	void Draw(u32 stride);
 	// temp
-	void vFlush(bool useDstAlpha);
+	void vFlush(bool useDstAlpha) override;
 
 	u32 m_vertex_buffer_cursor;
 	u32 m_vertex_draw_offset;

@@ -92,12 +92,12 @@ Make AA apply instantly during gameplay if possible
 namespace OGL
 {
 
-std::string VideoBackend::GetName()
+std::string VideoBackend::GetName() const
 {
 	return "OGL";
 }
 
-std::string VideoBackend::GetDisplayName()
+std::string VideoBackend::GetDisplayName() const
 {
 	if (GLInterface != nullptr && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 		return "OpenGLES";
