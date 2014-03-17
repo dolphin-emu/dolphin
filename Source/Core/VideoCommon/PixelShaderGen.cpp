@@ -253,6 +253,14 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (per_pixel_depth)
 			out.Write("#define depth gl_FragDepth\n");
 
+		// We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
+		// pixel shader will be executed for each pixel which has at least one passed sample.
+		// So there may be rendered pixels where the center of the pixel isn't in the primitive.
+		// As the pixel shader usually renders at the center of the pixel, this position may be
+		// outside the primitive. This will lead to sampling outside the texture, sign changes, ...
+		// As a workaround, we interpolate at the centroid of the coveraged pixel, which
+		// is always inside the primitive.
+		// Without MSAA, this flag is defined to have no effect.
 		out.Write("centroid in float4 colors_02;\n");
 		out.Write("centroid in float4 colors_12;\n");
 
@@ -303,18 +311,15 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
 			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
-		// Use centroid sampling to make MSAA work properly
-		const char* optCentroid = "centroid";
-
-		out.Write("  in %s float4 colors_0 : COLOR0,\n", optCentroid);
-		out.Write("  in %s float4 colors_1 : COLOR1", optCentroid);
+		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
+		out.Write("  in centroid float4 colors_1 : COLOR1");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		for (unsigned int i = 0; i < numTexgen; ++i)
-			out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
-		out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
+			out.Write(",\n  in centroid float3 uv%d : TEXCOORD%d", i, i);
+		out.Write(",\n  in centroid float4 clipPos : TEXCOORD%d", numTexgen);
 		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write(",\n  in %s float4 Normal : TEXCOORD%d", optCentroid, numTexgen + 1);
+			out.Write(",\n  in centroid float4 Normal : TEXCOORD%d", numTexgen + 1);
 		out.Write("        ) {\n");
 	}
 
