@@ -104,13 +104,6 @@ std::string StopMessage(bool bMainThread, std::string Message)
 		bMainThread ? "Main Thread" : "Video Thread", Common::CurrentThreadId(), MemUsage().c_str(), Message.c_str());
 }
 
-//
-bool PanicAlertToVideo(const char* text, bool yes_no)
-{
-	DisplayMessage(text, 3000);
-	return true;
-}
-
 void DisplayMessage(const std::string& message, int time_in_ms)
 {
 	SCoreStartupParameter& _CoreParameter =
