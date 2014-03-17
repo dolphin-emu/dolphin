@@ -694,12 +694,18 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 
 	popupMenu->Append(IDM_EXTRACTALL, _("Extract All Files..."));
 
-	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
-	    m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
+	if (!DiscIO::IsVolumeWiiDisc(OpenISO) ||
+		(m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
+		m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection()))
 	{
 		popupMenu->AppendSeparator();
 		popupMenu->Append(IDM_EXTRACTAPPLOADER, _("Extract Apploader..."));
 		popupMenu->Append(IDM_EXTRACTDOL, _("Extract DOL..."));
+	}
+
+	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
+		m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
+	{
 		popupMenu->AppendSeparator();
 		popupMenu->Append(IDM_CHECKINTEGRITY, _("Check Partition Integrity"));
 	}
