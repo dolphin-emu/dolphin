@@ -131,7 +131,11 @@ else()
 	add_definitions(-D_ARCH_32=1)
 endif()
 
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR 
+   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i686" OR
+   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i486" OR
+   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i386" OR
+   ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	add_definitions(-msse2)
 	set(_M_X86 1)
 	add_definitions(-D_M_X86=1)
