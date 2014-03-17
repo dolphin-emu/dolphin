@@ -171,9 +171,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
 	unsigned int numTexgen = bpmem.genMode.numtexgens;
 
-	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
-	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
-
 	out.Write("//Pixel Shader for TEV stages\n");
 	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
 		numStages, numTexgen, bpmem.genMode.numindstages);
@@ -244,6 +241,39 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (ApiType == API_OPENGL)
 		out.Write("};\n");
 
+	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
+	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
+
+	if (forced_early_z)
+	{
+		// Zcomploc (aka early_ztest) is a way to control whether depth test is done before
+		// or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
+		// this feature properly until 2012: Depth tests were always done after alpha testing.
+		// Most importantly, it was not possible to write to the depth buffer without also writing
+		// a color value (unless color writing was disabled altogether).
+
+		// OpenGL has a flag which allows the driver to still update the depth buffer if alpha
+		// test fails. The driver isn't required to do this, but I (degasus) assume all of them do
+		// because it's the much faster code path for the GPU.
+
+		// D3D11 also has a way to force the driver to enable early-z, so we're fine here.
+		if(ApiType == API_OPENGL)
+		{
+			out.Write("layout(early_fragment_tests) in;\n");
+		}
+		else
+		{
+			out.Write("[earlydepthstencil]\n");
+		}
+	}
+	else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
+	{
+		static bool warn_once = true;
+		if (warn_once)
+			WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
+		warn_once = false;
+	}
+
 	if (ApiType == API_OPENGL)
 	{
 		out.Write("out vec4 ocol0;\n");
@@ -276,36 +306,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			out.Write("centroid in float4 Normal_2;\n");
 		}
 
-		if (forced_early_z)
-		{
-			// HACK: This doesn't force the driver to write to depth buffer if alpha test fails.
-			// It just allows it, but it seems that all drivers do.
-			out.Write("layout(early_fragment_tests) in;\n");
-		}
-		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
-		{
-			static bool warn_once = true;
-			if (warn_once)
-				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
-			warn_once = false;
-		}
-
 		out.Write("void main()\n{\n");
 	}
 	else // D3D
 	{
-		if (forced_early_z)
-		{
-			out.Write("[earlydepthstencil]\n");
-		}
-		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
-		{
-			static bool warn_once = true;
-			if (warn_once)
-				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
-			warn_once = false;
-		}
-
 		out.Write("void main(\n");
 		out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
@@ -950,19 +954,13 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 	if (per_pixel_depth)
 		out.Write("\t\tdepth = 1.0;\n");
 
-	// HAXX: zcomploc (aka early_ztest) is a way to control whether depth test is done before
-	// or after texturing and alpha test. PC graphics APIs have no way to support this
-	// feature properly as of 2012: Depth buffer and depth test are not
-	// programmable and the depth test is always done after texturing.
-	// Most importantly, they do not allow writing to the z-buffer without
-	// writing a color value (unless color writing is disabled altogether).
-	// We implement "depth test before texturing" by disabling alpha test when early-z is in use.
-	// It seems to be less buggy than not to update the depth buffer if alpha test fails,
-	// but both ways wouldn't be accurate.
-
-	// OpenGL 4.2 has a flag which allows the driver to still update the depth buffer
-	// if alpha test fails. The driver doesn't have to, but I assume they all do because
-	// it's the much faster code path for the GPU.
+	// ZCOMPLOC HACK:
+	// The only way to emulate alpha test + early-z is to force early-z in the shader.
+	// As this isn't available on all drivers and as we can't emulate this feature otherwise,
+	// we are only able to choose which one we want to respect more.
+	// Tests seem to have proven that writing depth even when the alpha test fails is more
+	// important that a reliable alpha test, so we just force the alpha test to always succeed.
+	// At least this seems to be less buggy.
 	uid_data.alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable && !g_ActiveConfig.backend_info.bSupportsEarlyZ;
 	if (!uid_data.alpha_test_use_zcomploc_hack)
 	{
