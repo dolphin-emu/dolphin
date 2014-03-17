@@ -131,7 +131,9 @@ else()
 	add_definitions(-D_ARCH_32=1)
 endif()
 
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR 
+   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
+   ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	add_definitions(-msse2)
 	set(_M_X86 1)
 	add_definitions(-D_M_X86=1)
@@ -160,6 +162,7 @@ elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 	set(_M_GENERIC 1)
 	add_definitions(-D_M_GENERIC=1)
 else()
+	message("Warning! Building generic build!")
 	set(_M_GENERIC 1)
 	add_definitions(-D_M_GENERIC=1)
 endif()
