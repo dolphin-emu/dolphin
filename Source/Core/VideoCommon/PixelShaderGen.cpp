@@ -124,8 +124,8 @@ static const char *tevAInputTable[] =
 
 static const char *tevRasTable[] =
 {
-	"int4(round(colors_0 * 255.0))",
-	"int4(round(colors_1 * 255.0))",
+	"iround(colors_0 * 255.0)",
+	"iround(colors_1 * 255.0)",
 	"ERROR13", //2
 	"ERROR14", //3
 	"ERROR15", //4
@@ -192,6 +192,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "\tint4 tmp = x * y;\n"
 	          "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
 	          "}\n\n");
+
+	// rounding + casting to integer at once in a single function
+	out.Write("int  iround(float  x) { return int (round(x)); }\n"
+	          "int2 iround(float2 x) { return int2(round(x)); }\n"
+	          "int3 iround(float3 x) { return int3(round(x)); }\n"
+	          "int4 iround(float4 x) { return int4(round(x)); }\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -386,7 +392,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 				out.Write("\t\tuv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);
 			}
 
-			out.Write("\tint2 fixpoint_uv%d = int2(round(uv%d.xy * " I_TEXDIMS"[%d].zw * 128.0));\n\n", i, i, i);
+			out.Write("\tint2 fixpoint_uv%d = iround(uv%d.xy * " I_TEXDIMS"[%d].zw * 128.0);\n\n", i, i, i);
 			// TODO: S24 overflows here?
 		}
 	}
@@ -473,12 +479,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// The performance impact of this additional calculation doesn't matter, but it prevents
 	// the host GPU driver from performing any early depth test optimizations.
 	if (g_ActiveConfig.bFastDepthCalc)
-		out.Write("\tint zCoord = int(round(rawpos.z * float(0xFFFFFF)));\n");
+		out.Write("\tint zCoord = iround(rawpos.z * float(0xFFFFFF));\n");
 	else
 	{
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
 		// the screen space depth value = far z + (clip z / clip w) * z range
-		out.Write("\tint zCoord = " I_ZBIAS"[1].x + int(round((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y)));\n");
+		out.Write("\tint zCoord = " I_ZBIAS"[1].x + iround((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y));\n");
 	}
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
@@ -887,9 +893,9 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 
 	if (ApiType == API_D3D)
-		out.Write("int4(round(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy))).%s;\n", texmap,texmap, texcoords, texmap, texswap);
+		out.Write("iround(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
-		out.Write("int4(round(255.0 * texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy))).%s;\n", texmap, texcoords, texmap, texswap);
+		out.Write("iround(255.0 * texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
@@ -1029,7 +1035,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
-	out.Write("\tint ifog = int(round(fog * 256.0));\n");
+	out.Write("\tint ifog = iround(fog * 256.0);\n");
 	out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
 
