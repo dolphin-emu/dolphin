@@ -20,7 +20,6 @@ public:
 	virtual bool Start();
 	virtual void Stop();
 	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
 
 private:
 	std::thread thread;

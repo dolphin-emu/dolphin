@@ -65,7 +65,6 @@ public:
 	virtual void Stop();
 	virtual void Clear(bool mute);
 	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
 	virtual void Update();
 
 #else

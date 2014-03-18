@@ -57,7 +57,6 @@ public:
 	virtual void Stop() override;
 	virtual void Clear(bool mute) override;
 	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
 	virtual void Update() override;
 
 private:

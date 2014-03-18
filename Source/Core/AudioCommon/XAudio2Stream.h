@@ -60,7 +60,6 @@ public:
 	virtual void Update();
 	virtual void Clear(bool mute);
 	virtual void SetVolume(int volume);
-	virtual bool usesMixer() const { return true; }
 
 	static bool isValid() { return InitLibrary(); }
 

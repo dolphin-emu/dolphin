@@ -25,9 +25,6 @@ public:
 	static bool isValid() {
 		return true;
 	}
-	virtual bool usesMixer() const {
-		return true;
-	}
 
 	virtual void Update();
 
