@@ -158,8 +158,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 	ProgramShaderCache::UploadConstants();
 
 	// setup the pointers
-	if (g_nativeVertexFmt)
-		g_nativeVertexFmt->SetupVertexPointers();
+	g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
 
 	Draw(stride);
