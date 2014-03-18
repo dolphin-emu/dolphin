@@ -143,19 +143,11 @@ void VertexManager::vFlush(bool useDstAlpha)
 	// Makes sure we can actually do Dual source blending
 	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
-	// finally bind
-	if (dualSourcePossible)
+	// If host supports GL_ARB_blend_func_extended, we can do dst alpha in
+	// the same pass as regular rendering.
+	if (useDstAlpha && dualSourcePossible)
 	{
-		if (useDstAlpha)
-		{
-			// If host supports GL_ARB_blend_func_extended, we can do dst alpha in
-			// the same pass as regular rendering.
-			ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
-		}
-		else
-		{
-			ProgramShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
-		}
+		ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
 	}
 	else
 	{
@@ -166,8 +158,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 	ProgramShaderCache::UploadConstants();
 
 	// setup the pointers
-	if (g_nativeVertexFmt)
-		g_nativeVertexFmt->SetupVertexPointers();
+	g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
 
 	Draw(stride);
