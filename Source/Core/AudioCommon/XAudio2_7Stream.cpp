@@ -260,8 +260,6 @@ void XAudio2_7::Stop()
 	}
 }
 
-bool XAudio2_7::usesMixer() const { return true; }
-
 #else
 
 struct StreamingVoiceContext2_7 {};
@@ -283,7 +281,6 @@ void XAudio2_7::Stop() {}
 void XAudio2_7::Update() {}
 void XAudio2_7::Clear(bool mute) {}
 void XAudio2_7::SetVolume(int volume) {}
-bool XAudio2_7::usesMixer() const { return false; }
 bool XAudio2_7::InitLibrary() { return false; }
 
 #endif

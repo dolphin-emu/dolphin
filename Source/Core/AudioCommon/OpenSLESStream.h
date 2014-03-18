@@ -7,7 +7,7 @@
 #include "AudioCommon/SoundStream.h"
 #include "Common/Thread.h"
 
-class OpenSLESStream : public SoundStream
+class OpenSLESStream final : public SoundStream
 {
 #ifdef ANDROID
 public:
@@ -20,7 +20,6 @@ public:
 	virtual bool Start();
 	virtual void Stop();
 	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
 
 private:
 	std::thread thread;

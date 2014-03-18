@@ -15,7 +15,7 @@
 #define BUFSIZE (1024 * 8 * 4)
 #endif
 
-class DSound : public SoundStream
+class DSound final : public SoundStream
 {
 #ifdef _WIN32
 	std::thread thread;
@@ -65,7 +65,6 @@ public:
 	virtual void Stop();
 	virtual void Clear(bool mute);
 	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
 	virtual void Update();
 
 #else

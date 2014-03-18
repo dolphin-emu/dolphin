@@ -11,7 +11,7 @@
 #include <ao/ao.h>
 #endif
 
-class AOSound : public SoundStream
+class AOSound final : public SoundStream
 {
 #if defined(HAVE_AO) && HAVE_AO
 	std::thread thread;
@@ -38,10 +38,6 @@ public:
 	virtual void Stop() override;
 
 	static bool isValid() {
-		return true;
-	}
-
-	virtual bool usesMixer() const {
 		return true;
 	}
 

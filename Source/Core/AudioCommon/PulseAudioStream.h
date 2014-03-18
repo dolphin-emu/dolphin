@@ -14,7 +14,7 @@
 #include "Common/Common.h"
 #include "Common/Thread.h"
 
-class PulseAudio : public SoundStream
+class PulseAudio final : public SoundStream
 {
 #if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 public:
@@ -24,8 +24,6 @@ public:
 	virtual void Stop() override;
 
 	static bool isValid() {return true;}
-
-	virtual bool usesMixer() const {return true;}
 
 	virtual void Update() override;
 

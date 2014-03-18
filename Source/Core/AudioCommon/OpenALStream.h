@@ -40,7 +40,7 @@
 #define FRAME_SURROUND_FLOAT    SURROUND_CHANNELS * SIZE_FLOAT
 #endif
 
-class OpenALStream: public SoundStream
+class OpenALStream final : public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
@@ -57,7 +57,6 @@ public:
 	virtual void Stop() override;
 	virtual void Clear(bool mute) override;
 	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
 	virtual void Update() override;
 
 private:
