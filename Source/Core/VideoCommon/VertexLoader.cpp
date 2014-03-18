@@ -291,15 +291,15 @@ void LOADERDECL UpdateBoundingBox()
 		return;
 
 	// Check points for bounds
-	u8 b0 = ((p0.x > 0) ? 1 : 0) | (((p0.y > 0) ? 1 : 0) << 1) | (((p0.x > 607) ? 1 : 0) << 2) | (((p0.y > 479) ? 1 : 0) << 3);
-	u8 b1 = ((p1.x > 0) ? 1 : 0) | (((p1.y > 0) ? 1 : 0) << 1) | (((p1.x > 607) ? 1 : 0) << 2) | (((p1.y > 479) ? 1 : 0) << 3);
+	u8 b0 = ((p0.x > 0) ? 1 : 0) | ((p0.y > 0) ? 2 : 0) | ((p0.x > 607) ? 4 : 0) | ((p0.y > 479) ? 8 : 0);
+	u8 b1 = ((p1.x > 0) ? 1 : 0) | ((p1.y > 0) ? 2 : 0) | ((p1.x > 607) ? 4 : 0) | ((p1.y > 479) ? 8 : 0);
 
 	// Let's be practical... If we only have a line, setting b2 to 3 saves an "if"-clause later on
 	u8 b2 = 3;
 
 	// Otherwise if we have a triangle, we need to check the third point
 	if (numPoints == 3)
-		b2 = ((p2.x > 0) ? 1 : 0) | (((p2.y > 0) ? 1 : 0) << 1) | (((p2.x > 607) ? 1 : 0) << 2) | (((p2.y > 479) ? 1 : 0) << 3);
+		b2 = ((p2.x > 0) ? 1 : 0) | ((p2.y > 0) ? 2 : 0) | ((p2.x > 607) ? 4 : 0) | ((p2.y > 479) ? 8 : 0);
 
 	// These are the internal bbox vars
 	s32 left = 608, right = -1, top = 480, bottom = -1;
