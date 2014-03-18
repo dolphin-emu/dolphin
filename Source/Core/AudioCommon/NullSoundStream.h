@@ -9,7 +9,7 @@
 
 #define BUF_SIZE (48000 * 4 / 32)
 
-class NullSound : public SoundStream
+class NullSound final : public SoundStream
 {
 	// playback position
 	short realtimeBuffer[BUF_SIZE / sizeof(short)];

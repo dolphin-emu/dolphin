@@ -12,7 +12,7 @@
 #include "Common/Common.h"
 #include "Common/Thread.h"
 
-class AlsaSound : public SoundStream
+class AlsaSound final : public SoundStream
 {
 #if defined(HAVE_ALSA) && HAVE_ALSA
 public:

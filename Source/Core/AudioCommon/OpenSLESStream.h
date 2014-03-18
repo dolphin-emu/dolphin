@@ -7,7 +7,7 @@
 #include "AudioCommon/SoundStream.h"
 #include "Common/Thread.h"
 
-class OpenSLESStream : public SoundStream
+class OpenSLESStream final : public SoundStream
 {
 #ifdef ANDROID
 public:

@@ -15,7 +15,7 @@
 #define BUFSIZE (1024 * 8 * 4)
 #endif
 
-class DSound : public SoundStream
+class DSound final : public SoundStream
 {
 #ifdef _WIN32
 	std::thread thread;

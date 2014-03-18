@@ -21,7 +21,7 @@ struct IXAudio2MasteringVoice;
 
 #endif
 
-class XAudio2 : public SoundStream
+class XAudio2 final : public SoundStream
 {
 #ifdef _WIN32
 

@@ -10,7 +10,7 @@
 
 #include "AudioCommon/SoundStream.h"
 
-class CoreAudioSound : public SoundStream
+class CoreAudioSound final : public SoundStream
 {
 #ifdef __APPLE__
 public:
