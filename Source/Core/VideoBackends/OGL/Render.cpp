@@ -1065,12 +1065,46 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		}
 
 	case POKE_COLOR:
-	case POKE_Z:
-		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
-		// the exact location. Note: EFB pokes are susceptible to Z-buffering
-		// and perhaps blending.
-		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
+	{
+		ResetAPIState();
+
+		glClearColor(float((poke_data >> 16) & 0xFF) / 255.0f,
+		             float((poke_data >>  8) & 0xFF) / 255.0f,
+		             float((poke_data >>  0) & 0xFF) / 255.0f,
+		             float((poke_data >> 24) & 0xFF) / 255.0f);
+
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(targetPixelRc.left, targetPixelRc.bottom, targetPixelRc.GetWidth(), targetPixelRc.GetHeight());
+
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		RestoreAPIState();
+
+		// TODO: Could just update the EFB cache with the new value
+		ClearEFBCache();
+
 		break;
+	}
+
+	case POKE_Z:
+	{
+		ResetAPIState();
+
+		glDepthMask(GL_TRUE);
+		glClearDepthf(float(poke_data & 0xFFFFFF) / float(0xFFFFFF));
+
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(targetPixelRc.left, targetPixelRc.bottom, targetPixelRc.GetWidth(), targetPixelRc.GetHeight());
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		RestoreAPIState();
+
+		// TODO: Could just update the EFB cache with the new value
+		ClearEFBCache();
+
+		break;
+	}
 
 	default:
 		break;
