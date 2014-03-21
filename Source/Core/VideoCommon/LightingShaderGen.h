@@ -255,7 +255,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 					GenerateLightShader<T>(object, uid_data, i, lit_index, lightsColName, lightsName, coloralpha);
 			}
 		}
-		object.Write("%s%d = float4(mat * clamp(lacc, 0, 255) / 255) / 255.0;\n", dest, j);
+		object.Write("%s%d = float4(uint4(mat * clamp(lacc, 0, 255)) / 255) / 255.0;\n", dest, j);
 		object.Write("}\n");
 	}
 }
