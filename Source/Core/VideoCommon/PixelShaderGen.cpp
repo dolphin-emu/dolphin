@@ -791,7 +791,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
 			out.Write("%s %s ", tevCInputTable[cc.d], tevOpTable[cc.op]);
 
-		out.Write("((%s&255) * (int3(255,255,255) - (%s&255)) + (%s&255) * (%s&255)) / 255", tevCInputTable[cc.a], tevCInputTable[cc.c], tevCInputTable[cc.b], tevCInputTable[cc.c]);
+		out.Write("uint3((%s&255) * (int3(255,255,255) - (%s&255)) + (%s&255) * (%s&255)) / 255", tevCInputTable[cc.a], tevCInputTable[cc.c], tevCInputTable[cc.b], tevCInputTable[cc.c]);
 
 		out.Write(" %s", tevBiasTable[cc.bias]);
 
@@ -835,7 +835,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
 			out.Write("%s.a %s ", tevAInputTable[ac.d], tevOpTable[ac.op]);
 
-		out.Write("((%s.a&255) * (255 - (%s.a&255)) + (%s.a&255) * (%s.a&255)) / 255", tevAInputTable[ac.a], tevAInputTable[ac.c], tevAInputTable[ac.b], tevAInputTable[ac.c]);
+		out.Write("uint((%s.a&255) * (255 - (%s.a&255)) + (%s.a&255) * (%s.a&255)) / 255", tevAInputTable[ac.a], tevAInputTable[ac.c], tevAInputTable[ac.b], tevAInputTable[ac.c]);
 
 		out.Write(" %s",tevBiasTable[ac.bias]);
 
