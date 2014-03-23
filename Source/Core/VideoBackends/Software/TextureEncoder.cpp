@@ -1386,8 +1386,8 @@ void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 
 void Encode(u8 *dest_ptr)
 {
-	int pixelformat = bpmem.zcontrol.pixel_format;
-	bool bFromZBuffer = pixelformat == PIXELFMT_Z24;
+	auto pixelformat = bpmem.zcontrol.pixel_format;
+	bool bFromZBuffer = pixelformat == PEControl::Z24;
 	bool bIsIntensityFmt = bpmem.triggerEFBCopy.intensity_fmt > 0;
 	u32 copyfmt = ((bpmem.triggerEFBCopy.target_pixel_format / 2) + ((bpmem.triggerEFBCopy.target_pixel_format & 1) * 8));
 
@@ -1409,24 +1409,24 @@ void Encode(u8 *dest_ptr)
 
 	if (bpmem.triggerEFBCopy.half_scale)
 	{
-		if (pixelformat == PIXELFMT_RGBA6_Z24)
+		if (pixelformat == PEControl::RGBA6_Z24)
 			EncodeRGBA6halfscale(dest_ptr, src, format);
-		else if (pixelformat == PIXELFMT_RGB8_Z24)
+		else if (pixelformat == PEControl::RGB8_Z24)
 			EncodeRGB8halfscale(dest_ptr, src, format);
-		else if (pixelformat == PIXELFMT_RGB565_Z16)  // not supported
+		else if (pixelformat == PEControl::RGB565_Z16)  // not supported
 			EncodeRGB8halfscale(dest_ptr, src, format);
-		else if (pixelformat == PIXELFMT_Z24)
+		else if (pixelformat == PEControl::Z24)
 			EncodeZ24halfscale(dest_ptr, src, format);
 	}
 	else
 	{
-		if (pixelformat == PIXELFMT_RGBA6_Z24)
+		if (pixelformat == PEControl::RGBA6_Z24)
 			EncodeRGBA6(dest_ptr, src, format);
-		else if (pixelformat == PIXELFMT_RGB8_Z24)
+		else if (pixelformat == PEControl::RGB8_Z24)
 			EncodeRGB8(dest_ptr, src, format);
-		else if (pixelformat == PIXELFMT_RGB565_Z16)  // not supported
+		else if (pixelformat == PEControl::RGB565_Z16)  // not supported
 			EncodeRGB8(dest_ptr, src, format);
-		else if (pixelformat == PIXELFMT_Z24)
+		else if (pixelformat == PEControl::Z24)
 			EncodeZ24(dest_ptr, src, format);
 	}
 }

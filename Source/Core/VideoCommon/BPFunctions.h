@@ -31,7 +31,7 @@ void SetBlendMode();
 void SetDitherMode();
 void SetLogicOpMode();
 void SetColorMask();
-void CopyEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+void CopyEFB(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 void ClearScreen(const EFBRectangle &rc);
 void OnPixelFormatChange();

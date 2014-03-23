@@ -111,8 +111,8 @@ public:
 
 	virtual bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc) = 0;
 
-	static unsigned int GetPrevPixelFormat() { return prev_efb_format; }
-	static void StorePixelFormat(unsigned int new_format) { prev_efb_format = new_format; }
+	static PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
+	static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
 
 protected:
 
@@ -151,7 +151,7 @@ protected:
 	static bool XFBWrited;
 
 private:
-	static unsigned int prev_efb_format;
+	static PEControl::PixelFormat prev_efb_format;
 	static unsigned int efb_scale_numeratorX;
 	static unsigned int efb_scale_numeratorY;
 	static unsigned int efb_scale_denominatorX;

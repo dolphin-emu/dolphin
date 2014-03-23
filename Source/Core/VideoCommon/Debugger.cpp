@@ -85,7 +85,7 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 	sprintf(filename, "%sdump_ps.txt", path);
 
 	std::string output;
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 	if (!useDstAlpha)
 	{
 		output = "Destination alpha disabled:\n";

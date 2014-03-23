@@ -246,7 +246,7 @@ void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
 	UPE_Copy peCopy = m_BpMem.triggerEFBCopy;
 
 	u32 copyfmt = peCopy.tp_realFormat();
-	bool bFromZBuffer = m_BpMem.zcontrol.pixel_format == PIXELFMT_Z24;
+	bool bFromZBuffer = m_BpMem.zcontrol.pixel_format == PEControl::Z24;
 	u32 address = bpmem.copyTexDest << 5;
 
 	u32 format = copyfmt;

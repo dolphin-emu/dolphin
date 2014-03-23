@@ -33,14 +33,14 @@ namespace EfbInterface
 
 	void SetPixelAlphaOnly(u32 offset, u8 a)
 	{
-			switch (bpmem.zcontrol.pixel_format)
+		switch (bpmem.zcontrol.pixel_format)
 		{
-		case PIXELFMT_RGB8_Z24:
-		case PIXELFMT_Z24:
-		case PIXELFMT_RGB565_Z16:
+		case PEControl::RGB8_Z24:
+		case PEControl::Z24:
+		case PEControl::RGB565_Z16:
 			// do nothing
 			break;
-		case PIXELFMT_RGBA6_Z24:
+		case PEControl::RGBA6_Z24:
 			{
 				u32 a32 = a;
 				u32 *dst = (u32*)&efb[offset];
@@ -50,7 +50,7 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", bpmem.zcontrol.pixel_format);
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
 		}
 	}
 
@@ -58,8 +58,8 @@ namespace EfbInterface
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
-		case PIXELFMT_RGB8_Z24:
-		case PIXELFMT_Z24:
+		case PEControl::RGB8_Z24:
+		case PEControl::Z24:
 			{
 				u32 src = *(u32*)rgb;
 				u32 *dst = (u32*)&efb[offset];
@@ -68,7 +68,7 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		case PIXELFMT_RGBA6_Z24:
+		case PEControl::RGBA6_Z24:
 			{
 				u32 src = *(u32*)rgb;
 				u32 *dst = (u32*)&efb[offset];
@@ -79,9 +79,9 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		case PIXELFMT_RGB565_Z16:
+		case PEControl::RGB565_Z16:
 			{
-				INFO_LOG(VIDEO, "PIXELFMT_RGB565_Z16 is not supported correctly yet");
+				INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
 				u32 src = *(u32*)rgb;
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
@@ -90,16 +90,16 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", bpmem.zcontrol.pixel_format);
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
 		}
 	}
 
 	void SetPixelAlphaColor(u32 offset, u8 *color)
 	{
-			switch (bpmem.zcontrol.pixel_format)
+		switch (bpmem.zcontrol.pixel_format)
 		{
-		case PIXELFMT_RGB8_Z24:
-		case PIXELFMT_Z24:
+		case PEControl::RGB8_Z24:
+		case PEControl::Z24:
 			{
 				u32 src = *(u32*)color;
 				u32 *dst = (u32*)&efb[offset];
@@ -108,7 +108,7 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		case PIXELFMT_RGBA6_Z24:
+		case PEControl::RGBA6_Z24:
 			{
 				u32 src = *(u32*)color;
 				u32 *dst = (u32*)&efb[offset];
@@ -120,9 +120,9 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		case PIXELFMT_RGB565_Z16:
+		case PEControl::RGB565_Z16:
 			{
-				INFO_LOG(VIDEO, "PIXELFMT_RGB565_Z16 is not supported correctly yet");
+				INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
 				u32 src = *(u32*)color;
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
@@ -131,16 +131,16 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", bpmem.zcontrol.pixel_format);
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
 		}
 	}
 
-		void GetPixelColor(u32 offset, u8 *color)
+	void GetPixelColor(u32 offset, u8 *color)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
-		case PIXELFMT_RGB8_Z24:
-		case PIXELFMT_Z24:
+		case PEControl::RGB8_Z24:
+		case PEControl::Z24:
 			{
 				u32 src = *(u32*)&efb[offset];
 				u32 *dst = (u32*)color;
@@ -148,7 +148,7 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		case PIXELFMT_RGBA6_Z24:
+		case PEControl::RGBA6_Z24:
 			{
 				u32 src = *(u32*)&efb[offset];
 				color[ALP_C] = Convert6To8(src & 0x3f);
@@ -157,9 +157,9 @@ namespace EfbInterface
 				color[RED_C] = Convert6To8((src >> 18) & 0x3f);
 			}
 			break;
-		case PIXELFMT_RGB565_Z16:
+		case PEControl::RGB565_Z16:
 			{
-				INFO_LOG(VIDEO, "PIXELFMT_RGB565_Z16 is not supported correctly yet");
+				INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
 				u32 src = *(u32*)&efb[offset];
 				u32 *dst = (u32*)color;
 				u32 val = 0xff | ((src & 0x00ffffff) << 8);
@@ -167,7 +167,7 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", bpmem.zcontrol.pixel_format);
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
 		}
 	}
 
@@ -175,9 +175,9 @@ namespace EfbInterface
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
-		case PIXELFMT_RGB8_Z24:
-		case PIXELFMT_RGBA6_Z24:
-		case PIXELFMT_Z24:
+		case PEControl::RGB8_Z24:
+		case PEControl::RGBA6_Z24:
+		case PEControl::Z24:
 			{
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
@@ -185,9 +185,9 @@ namespace EfbInterface
 				*dst = val;
 			}
 			break;
-		case PIXELFMT_RGB565_Z16:
+		case PEControl::RGB565_Z16:
 			{
-				INFO_LOG(VIDEO, "PIXELFMT_RGB565_Z16 is not supported correctly yet");
+				INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= depth & 0x00ffffff;
@@ -195,31 +195,31 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", bpmem.zcontrol.pixel_format);
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
 		}
 	}
 
-		u32 GetPixelDepth(u32 offset)
+	u32 GetPixelDepth(u32 offset)
 	{
 		u32 depth = 0;
 
 		switch (bpmem.zcontrol.pixel_format)
 		{
-		case PIXELFMT_RGB8_Z24:
-		case PIXELFMT_RGBA6_Z24:
-		case PIXELFMT_Z24:
+		case PEControl::RGB8_Z24:
+		case PEControl::RGBA6_Z24:
+		case PEControl::Z24:
 			{
 				depth = (*(u32*)&efb[offset]) & 0x00ffffff;
 			}
 			break;
-		case PIXELFMT_RGB565_Z16:
+		case PEControl::RGB565_Z16:
 			{
-				INFO_LOG(VIDEO, "PIXELFMT_RGB565_Z16 is not supported correctly yet");
+				INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
 				depth = (*(u32*)&efb[offset]) & 0x00ffffff;
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", bpmem.zcontrol.pixel_format);
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
 		}
 
 		return depth;
