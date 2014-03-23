@@ -89,9 +89,8 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 		}
 		break;
 
-	case BPMEM_ZCOMPARE:
+	case PEControl::id():
 		{
-			SetRegName(BPMEM_ZCOMPARE);
 			PEControl config; config.hex = cmddata;
 			const char* pixel_formats[] = { "RGB8_Z24", "RGBA6_Z24", "RGB565_Z16", "Z24", "Y8", "U8", "V8", "YUV420" };
 			const char* zformats[] = { "linear", "compressed (near)", "compressed (mid)", "compressed (far)", "inv linear", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)" };

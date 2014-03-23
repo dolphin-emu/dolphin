@@ -388,7 +388,7 @@ void BPWritten(const BPCmd& bp)
 		// TODO: Needs some restructuring in TextureCacheBase.
 		break;
 
-	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
+	case PEControl::id():      // Set the Z-Compare and EFB pixel format
 		OnPixelFormatChange();
 		if(bp.changes & 7)
 		{

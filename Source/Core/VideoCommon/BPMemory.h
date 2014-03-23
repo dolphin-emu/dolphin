@@ -30,7 +30,7 @@
 #define BPMEM_ZMODE            0x40
 #define BPMEM_BLENDMODE        0x41
 #define BPMEM_CONSTANTALPHA    0x42
-#define BPMEM_ZCOMPARE         0x43
+
 #define BPMEM_FIELDMASK        0x44
 #define BPMEM_SETDRAWDONE      0x45
 #define BPMEM_BUSCLOCK0        0x46
@@ -809,6 +809,8 @@ union PEControl
 	BitField< 6,1,u32>         early_ztest;
 
 	u32 hex;
+
+	static constexpr int id() { return 0x43; }
 };
 
 
