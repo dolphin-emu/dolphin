@@ -114,6 +114,10 @@ public:
 	}
 
 private:
+	// StorageType is T for non-enum types and the underlying type of T if
+	// T is an enumeration. Note that T is wrapped within an enable_if in the
+	// former case to workaround compile errors which arise when using
+	// std::underlying_type<T>::type directly.
 	typedef typename std::conditional<std::is_enum<T>::value,
 	                                  std::underlying_type<T>,
 	                                  std::enable_if<true,T>>::type::type StorageType;
