@@ -12,6 +12,7 @@
     <string name="build_revision">ビルドのバージョン</string>
     <string name="supports_gles3">サポートのOpenGL ES 3</string>
     <string name="supports_neon">サポートのNEON</string>
+    <string name="general">一般</string>
     <string name="cpu">CPU</string>
     <string name="gles_two">GLES 2</string>
     <string name="gles_three">GLES 3</string>
@@ -78,6 +79,7 @@
     <string name="wiimote_2">Wiiリモコン2</string>
     <string name="wiimote_3">Wiiリモコン3</string>
     <string name="wiimote_4">Wiiリモコン4</string>
+    <string name="enable_wiimote">Wiiリモコンを有効</string>
     <string name="input_binding">入力バインディング</string>
     <string name="input_binding_descrip">%1$sにバインドするための入力を移動または押してください。</string>
     <!-- Gamecube buttons (May be shared with Wiimote stuff too) -->
