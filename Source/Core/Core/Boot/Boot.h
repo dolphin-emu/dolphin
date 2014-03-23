@@ -43,7 +43,7 @@ public:
 private:
 	static void RunFunction(u32 _iAddr);
 
-	static void UpdateDebugger_MapLoaded(const char* _gameID = nullptr);
+	static void UpdateDebugger_MapLoaded();
 
 	static bool LoadMapFromFilename();
 	static bool Boot_ELF(const std::string& filename);
