@@ -94,7 +94,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	@Override
 	public void draw(Canvas canvas)
 	{
-		super.onDraw(canvas);
+		super.draw(canvas);
 
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
