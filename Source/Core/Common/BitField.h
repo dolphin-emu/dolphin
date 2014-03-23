@@ -9,6 +9,7 @@
 #pragma once
 
 #include <limits>
+#include <type_traits>
 
 #include "CommonTypes.h"
 
@@ -74,7 +75,7 @@
  * correctly, e.g. printf("Value: %d", (s32)some_register.some_signed_fields);
  *
  */
-template<u32 position, u32 bits, typename T>
+template<std::size_t position, std::size_t bits, typename T>
 struct BitField
 {
 private:
@@ -96,38 +97,33 @@ public:
 
 	operator T() const
 	{
-		if (bits == 64)
-			return storage;
-
 		if (std::numeric_limits<T>::is_signed)
 		{
-			u64 shift = 8 * sizeof(T) - bits;
-			return (T)((storage & GetMask()) << (shift - position)) >> shift;
+			std::size_t shift = 8 * sizeof(T) - bits;
+			return (T)(((storage & GetMask()) << (shift - position)) >> shift);
 		}
 		else
 		{
-			return (storage & GetMask()) >> position;
+			return (T)((storage & GetMask()) >> position);
 		}
 	}
 
 	static T MaxVal()
 	{
-		return (std::numeric_limits<T>::is_signed)
-		            ? ((1ull << (bits - 1)) - 1ull)
-		            : (bits == 64)
-		                ? 0xFFFFFFFFFFFFFFFFull
-		                : ((1ull << bits) - 1ull);
+		return ((~(T)0) >> (8*sizeof(T) - bits + (std::size_t)std::numeric_limits<T>::is_signed));
 	}
 
 private:
-	u64 GetMask() const
+	typedef typename std::conditional<std::is_enum<T>::value,
+	                                  std::underlying_type<T>,
+	                                  std::enable_if<true,T>>::type::type StorageType;
+
+	StorageType GetMask() const
 	{
-		return (bits == 64)
-		           ? (~0ull)
-		           : ((1ull << bits) - 1ull) << position;
+		return ((~(StorageType)0) >> (8*sizeof(T) - bits)) << position;
 	}
 
-	T storage;
+	StorageType storage;
 
 	static_assert(bits + position <= 8 * sizeof(T), "Bitfield out of range");
 
