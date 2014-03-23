@@ -79,10 +79,10 @@ void SetColorMask()
 	g_renderer->SetColorMask();
 }
 
-void CopyEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+void CopyEFB(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
-	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
+	// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (g_ActiveConfig.bEFBCopyEnable)
 	{
 		TextureCache::CopyRenderTargetToTexture(dstAddr, dstFormat, srcFormat,
@@ -111,11 +111,12 @@ void ClearScreen(const EFBRectangle &rc)
 	bool colorEnable = bpmem.blendmode.colorupdate;
 	bool alphaEnable = bpmem.blendmode.alphaupdate;
 	bool zEnable = bpmem.zmode.updateenable;
+	auto pixel_format = bpmem.zcontrol.pixel_format;
 
 	// (1): Disable unused color channels
-	if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB8_Z24 ||
-		bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16 ||
-		bpmem.zcontrol.pixel_format == PIXELFMT_Z24)
+	if (pixel_format == PEControl::RGB8_Z24 ||
+		pixel_format == PEControl::RGB565_Z16 ||
+		pixel_format == PEControl::Z24)
 	{
 		alphaEnable = false;
 	}
@@ -126,11 +127,11 @@ void ClearScreen(const EFBRectangle &rc)
 		u32 z = bpmem.clearZValue;
 
 		// (2) drop additional accuracy
-		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+		if (pixel_format == PEControl::RGBA6_Z24)
 		{
 			color = RGBA8ToRGBA6ToRGBA8(color);
 		}
-		else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		else if (pixel_format == PEControl::RGB565_Z16)
 		{
 			color = RGBA8ToRGB565ToRGBA8(color);
 			z = Z24ToZ16ToZ24(z);
@@ -156,8 +157,8 @@ void OnPixelFormatChange()
 		!g_ActiveConfig.backend_info.bSupportsFormatReinterpretation)
 		return;
 
-	u32 old_format = Renderer::GetPrevPixelFormat();
-	u32 new_format = bpmem.zcontrol.pixel_format;
+	auto old_format = Renderer::GetPrevPixelFormat();
+	auto new_format = bpmem.zcontrol.pixel_format;
 
 	// no need to reinterpret pixel data in these cases
 	if (new_format == old_format || old_format == (unsigned int)-1)
@@ -166,31 +167,31 @@ void OnPixelFormatChange()
 	// Check for pixel format changes
 	switch (old_format)
 	{
-		case PIXELFMT_RGB8_Z24:
-		case PIXELFMT_Z24:
+		case PEControl::RGB8_Z24:
+		case PEControl::Z24:
 			// Z24 and RGB8_Z24 are treated equal, so just return in this case
-			if (new_format == PIXELFMT_RGB8_Z24 || new_format == PIXELFMT_Z24)
+			if (new_format == PEControl::RGB8_Z24 || new_format == PEControl::Z24)
 				goto skip;
 
-			if (new_format == PIXELFMT_RGBA6_Z24)
+			if (new_format == PEControl::RGBA6_Z24)
 				convtype = 0;
-			else if (new_format == PIXELFMT_RGB565_Z16)
+			else if (new_format == PEControl::RGB565_Z16)
 				convtype = 1;
 			break;
 
-		case PIXELFMT_RGBA6_Z24:
-			if (new_format == PIXELFMT_RGB8_Z24 ||
-				new_format == PIXELFMT_Z24)
+		case PEControl::RGBA6_Z24:
+			if (new_format == PEControl::RGB8_Z24 ||
+				new_format == PEControl::Z24)
 				convtype = 2;
-			else if (new_format == PIXELFMT_RGB565_Z16)
+			else if (new_format == PEControl::RGB565_Z16)
 				convtype = 3;
 			break;
 
-		case PIXELFMT_RGB565_Z16:
-			if (new_format == PIXELFMT_RGB8_Z24 ||
-				new_format == PIXELFMT_Z24)
+		case PEControl::RGB565_Z16:
+			if (new_format == PEControl::RGB8_Z24 ||
+				new_format == PEControl::Z24)
 				convtype = 4;
-			else if (new_format == PIXELFMT_RGBA6_Z24)
+			else if (new_format == PEControl::RGBA6_Z24)
 				convtype = 5;
 			break;
 
@@ -200,14 +201,14 @@ void OnPixelFormatChange()
 
 	if (convtype == -1)
 	{
-		ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d\n", old_format, new_format);
+		ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d\n", static_cast<int>(old_format), static_cast<int>(new_format));
 		goto skip;
 	}
 
 	g_renderer->ReinterpretPixelData(convtype);
 
 skip:
-	DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", new_format, bpmem.zcontrol.zformat);
+	DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", static_cast<int>(new_format), static_cast<int>(bpmem.zcontrol.zformat));
 
 	Renderer::StorePixelFormat(new_format);
 }

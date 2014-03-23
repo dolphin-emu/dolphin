@@ -1031,8 +1031,8 @@ void PSTextureEncoder::Shutdown()
 }
 
 size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
-	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
-	bool scaleByHalf)
+            PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+            bool isIntensity, scaleByHalf)
 {
 	if (!m_ready) // Make sure we initialized OK
 		return 0;
@@ -1122,7 +1122,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
 
-		ID3D11ShaderResourceView* pEFB = (srcFormat == PIXELFMT_Z24) ?
+		ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
 			FramebufferManager::GetEFBDepthTexture()->GetSRV() :
 			// FIXME: Instead of resolving EFB, it would be better to pick out a
 			// single sample from each pixel. The game may break if it isn't
@@ -1208,10 +1208,10 @@ static const char* INTENSITY_FUNC_NAMES[2] = {
 	"Intensity_0", "Intensity_1"
 };
 
-bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcFormat,
+bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 	bool isIntensity, bool scaleByHalf)
 {
-	size_t fetchNum = srcFormat;
+	size_t fetchNum = static_cast<size_t>(srcFormat);
 	size_t scaledFetchNum = scaleByHalf ? 1 : 0;
 	size_t intensityNum = isIntensity ? 1 : 0;
 	size_t generatorNum = dstFormat;
@@ -1244,7 +1244,7 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 		}
 
 		INFO_LOG(VIDEO, "Compiling efb encoding shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d",
-			dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
+			dstFormat, static_cast<int>(srcFormat), isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 
 		// Shader permutation not found, so compile it
 		D3DBlob* bytecode = nullptr;
@@ -1258,7 +1258,7 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 		if (!D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), &bytecode, macros))
 		{
 			WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d failed to compile",
-				dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
+				dstFormat, static_cast<int>(srcFormat), isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 			// Add dummy shader to map to prevent trying to compile over and
 			// over again
 			m_staticShaders[key] = nullptr;
@@ -1369,9 +1369,9 @@ static const char* INTENSITY_CLASS_NAMES[2] = {
 };
 
 bool PSTextureEncoder::SetDynamicShader(unsigned int dstFormat,
-	unsigned int srcFormat, bool isIntensity, bool scaleByHalf)
+	PEControl::PixelFormat srcFormat, bool isIntensity, bool scaleByHalf)
 {
-	size_t fetchNum = srcFormat;
+	size_t fetchNum = static_cast<size_t>(srcFormat);
 	size_t scaledFetchNum = scaleByHalf ? 1 : 0;
 	size_t intensityNum = isIntensity ? 1 : 0;
 	size_t generatorNum = dstFormat;

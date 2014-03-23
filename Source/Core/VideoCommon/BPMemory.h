@@ -773,35 +773,37 @@ union FieldMask
 	u32 hex;
 };
 
-#define PIXELFMT_RGB8_Z24   0
-#define PIXELFMT_RGBA6_Z24  1
-#define PIXELFMT_RGB565_Z16 2
-#define PIXELFMT_Z24        3
-#define PIXELFMT_Y8         4
-#define PIXELFMT_U8         5
-#define PIXELFMT_V8         6
-#define PIXELFMT_YUV420     7
-
-#define ZC_LINEAR     0
-#define ZC_NEAR       1
-#define ZC_MID        2
-#define ZC_FAR        3
-// It seems these Z formats aren't supported/were removed ?
-#define ZC_INV_LINEAR 4
-#define ZC_INV_NEAR   5
-#define ZC_INV_MID    6
-#define ZC_INV_FAR    7
-
-union PE_CONTROL
+union PEControl
 {
-	struct
+	enum PixelFormat : u32
 	{
-		u32 pixel_format : 3; // PIXELFMT_X
-		u32 zformat      : 3; // Z Compression for 16bit Z format
-		u32 early_ztest  : 1; // 1: before tex stage
-		u32 unused       : 17;
-		u32 rid          : 8;
+		RGB8_Z24   = 0,
+		RGBA6_Z24  = 1,
+		RGB565_Z16 = 2,
+		Z24        = 3,
+		Y8         = 4,
+		U8         = 5,
+		V8         = 6,
+		YUV420     = 7
 	};
+
+	enum DepthFormat : u32
+	{
+		LINEAR     = 0,
+		NEAR       = 1,
+		MID        = 2,
+		FAR        = 3,
+
+		// It seems these Z formats aren't supported/were removed ?
+		INV_LINEAR = 4,
+		INV_NEAR   = 5,
+		INV_MID    = 6,
+		INV_FAR    = 7
+	};
+
+	BitField< 0,3,PixelFormat> pixel_format;
+	BitField< 3,3,DepthFormat> zformat;
+	BitField< 6,1,u32>         early_ztest;
 
 	u32 hex;
 };
@@ -999,7 +1001,7 @@ struct BPMemory
 	ZMode zmode; //40
 	BlendMode blendmode; //41
 	ConstantAlpha dstalpha;  //42
-	PE_CONTROL zcontrol; //43 GXSetZCompLoc, GXPixModeSync
+	PEControl zcontrol; //43 GXSetZCompLoc, GXPixModeSync
 	FieldMask fieldmask; //44
 	u32 drawdone;  //45, bit1=1 if end of list
 	u32 unknown5;  //46 clock?
