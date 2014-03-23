@@ -41,6 +41,10 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 	// float buttonY = sPrefs.getFloat(buttonId+"-Y", -1f);
 	//
 	private final String buttonId;
+
+	// The offset of the press while moving the button
+	private float moveOffsetX, moveOffsetY;
+
 	private Drawable resizeDrawable(Drawable image, float scale)
 	{
 		// Retrieve screen dimensions.
@@ -97,11 +101,20 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 	{
 		switch(event.getAction())
 		{
+			// Get the offset of the press within the button
+			// The event X and Y locations are the offset within the button, not the screen
+			case MotionEvent.ACTION_DOWN:
+			{
+				moveOffsetX = event.getX();
+				moveOffsetY = event.getY();
+				return true;
+			}
+
 			// Only change the X/Y coordinates when we move the button.
 			case MotionEvent.ACTION_MOVE:
 			{
-				setX(getX() + event.getX());
-				setY(getY() + event.getY());
+				setX(getX() + event.getX() - moveOffsetX);
+				setY(getY() + event.getY() - moveOffsetY);
 				return true;
 			}
 
