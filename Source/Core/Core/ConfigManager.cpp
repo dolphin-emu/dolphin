@@ -184,6 +184,7 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowStatusbar",       m_InterfaceStatusbar);
 	ini.Set("Interface", "ShowLogWindow",       m_InterfaceLogWindow);
 	ini.Set("Interface", "ShowLogConfigWindow", m_InterfaceLogConfigWindow);
+	ini.Set("Interface", "ExtendedFPSInfo",     m_InterfaceExtendedFPSInfo);
 	ini.Set("Interface", "ThemeName40",         m_LocalCoreStartupParameter.theme_name);
 
 	// Hotkeys
@@ -331,6 +332,7 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowStatusbar",           &m_InterfaceStatusbar,                          true);
 		ini.Get("Interface", "ShowLogWindow",           &m_InterfaceLogWindow,                          false);
 		ini.Get("Interface", "ShowLogConfigWindow",     &m_InterfaceLogConfigWindow,                    false);
+		ini.Get("Interface", "ExtendedFPSInfo",         &m_InterfaceExtendedFPSInfo,                    false);
 		ini.Get("Interface", "ThemeName40",             &m_LocalCoreStartupParameter.theme_name,        "Clean");
 
 		// Hotkeys
