@@ -142,13 +142,9 @@ void FindFilename(u64 offset)
 		return;
 	}
 
-	const char *fname = pFileSystem->GetFileName(offset);
+	const std::string filename = pFileSystem->GetFileName(offset);
 
-	// There's something wrong with the paths
-	if (!fname || (strlen(fname) == 512))
-		return;
-
-	CheckFile(fname, pFileSystem->GetFileSize(fname));
+	CheckFile(filename, pFileSystem->GetFileSize(filename));
 }
 
 void Close()

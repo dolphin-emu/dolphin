@@ -317,7 +317,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 		// Go through the filesystem and mark entries as used
 		for (size_t currentFile = 0; currentFile < numFiles; currentFile++)
 		{
-			DEBUG_LOG(DISCIO, "%s", currentFile ? (*Files.at(currentFile)).m_FullPath : "/");
+			DEBUG_LOG(DISCIO, "%s", currentFile ? (*Files.at(currentFile)).m_FullPath.c_str() : "/");
 			// Just 1byte for directory? - it will end up reserving a cluster this way
 			if ((*Files.at(currentFile)).m_NameOffset & 0x1000000)
 				MarkAsUsedE(_rPartition.Offset

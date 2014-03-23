@@ -47,8 +47,8 @@ class CARCFile
 
 		bool ParseBuffer();
 
-		size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, const char* _szNameTable);
+		size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const std::string& _szDirectory, const char* _szNameTable);
 
-		const SFileInfo* FindFileInfo(std::string _rFullPath) const;
+		const SFileInfo* FindFileInfo(const std::string& _rFullPath) const;
 };
 } // namespace
