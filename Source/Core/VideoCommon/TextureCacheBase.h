@@ -77,7 +77,7 @@ public:
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
 		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-			unsigned int srcFormat, const EFBRectangle& srcRect,
+			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 			const float *colmat) = 0;
 
@@ -103,7 +103,7 @@ public:
 
 	static TCacheEntryBase* Load(unsigned int stage, u32 address, unsigned int width, unsigned int height,
 		int format, unsigned int tlutaddr, int tlutfmt, bool use_mipmaps, unsigned int maxlevel, bool from_tmem);
-	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 	static void RequestInvalidateTextureCache();
