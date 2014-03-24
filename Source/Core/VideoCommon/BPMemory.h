@@ -791,16 +791,16 @@ union PEControl
 
 	enum DepthFormat : u32
 	{
-		LINEAR     = 0,
-		NEAR       = 1,
-		MID        = 2,
-		FAR        = 3,
+		ZLINEAR     = 0,
+		ZNEAR       = 1,
+		ZMID        = 2,
+		ZFAR        = 3,
 
 		// It seems these Z formats aren't supported/were removed ?
-		INV_LINEAR = 4,
-		INV_NEAR   = 5,
-		INV_MID    = 6,
-		INV_FAR    = 7
+		ZINV_LINEAR = 4,
+		ZINV_NEAR   = 5,
+		ZINV_MID    = 6,
+		ZINV_FAR    = 7
 	};
 
 	BitField< 0,3,PixelFormat> pixel_format;
