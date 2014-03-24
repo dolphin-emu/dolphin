@@ -185,10 +185,11 @@ void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner &cc, const InputRegTy
 		u16 c = InputReg.c + (InputReg.c >> 7);
 
 		s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
-		temp = cc.op?(-temp >> 8):(temp >> 8);
+		temp <<= m_ScaleLShiftLUT[cc.shift];
+		temp += (cc.shift != 3) ? 0 : (cc.op == 1) ? 127 : 128;
+		temp = cc.op ? (-temp >> 8) : (temp >> 8);
 
-		s32 result = InputReg.d + temp + m_BiasLUT[cc.bias];
-		result = result << m_ScaleLShiftLUT[cc.shift];
+		s32 result = ((InputReg.d + m_BiasLUT[cc.bias]) << m_ScaleLShiftLUT[cc.shift]) + temp;
 		result = result >> m_ScaleRShiftLUT[cc.shift];
 
 		Reg[cc.dest][BLU_C + i] = result;
@@ -259,10 +260,11 @@ void Tev::DrawAlphaRegular(TevStageCombiner::AlphaCombiner &ac, const InputRegTy
 	u16 c = InputReg.c + (InputReg.c >> 7);
 
 	s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
-	temp = ac.op?(-temp >> 8):(temp >> 8);
+	temp <<= m_ScaleLShiftLUT[ac.shift];
+	temp += (ac.shift != 3) ? 0 : (ac.op == 1) ? 127 : 128;
+	temp = ac.op ? (-temp >> 8) : (temp >> 8);
 
-	s32 result = InputReg.d + temp + m_BiasLUT[ac.bias];
-	result = result << m_ScaleLShiftLUT[ac.shift];
+	s32 result = ((InputReg.d + m_BiasLUT[ac.bias]) << m_ScaleLShiftLUT[ac.shift]) + temp;
 	result = result >> m_ScaleRShiftLUT[ac.shift];
 
 	Reg[ac.dest][ALP_C] = result;
