@@ -112,14 +112,14 @@ static const char *tevCInputTable[] =
 
 static const char *tevAInputTable[] =
 {
-	"prev",            // APREV,
-	"c0",              // A0,
-	"c1",              // A1,
-	"c2",              // A2,
-	"textemp",         // TEXA,
-	"rastemp",         // RASA,
-	"konsttemp",       // KONST,  (hw1 had quarter)
-	"int4(0,0,0,0)",   // ZERO
+	"prev.a",        // APREV,
+	"c0.a",          // A0,
+	"c1.a",          // A1,
+	"c2.a",          // A2,
+	"textemp.a",     // TEXA,
+	"rastemp.a",     // RASA,
+	"konsttemp.a",   // KONST,  (hw1 had quarter)
+	"0",             // ZERO
 };
 
 static const char *tevRasTable[] =
@@ -140,6 +140,7 @@ static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 static char text[16384];
 
 template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, const char swapModeTable[4][5]);
+template<class T> static inline void WriteTevRegular(T& out, const char* components, int bias, int op, int clamp, int shift);
 template<class T> static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data);
@@ -759,6 +760,76 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 
+	out.Write("tevin_a = int4(%s, %s)&255;\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
+	out.Write("tevin_b = int4(%s, %s)&255;\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
+	out.Write("tevin_c = int4(%s, %s)&255;\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
+	out.Write("tevin_d = int4(%s, %s);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
+
+	out.Write("\t// color combine\n");
+	out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
+	if (cc.bias != TevBias_COMPARE)
+	{
+		WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift);
+	}
+	else
+	{
+		const char *function_table[] =
+		{
+			"((tevin_a.r > tevin_b.r) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_R8_GT
+			"((tevin_a.r == tevin_b.r) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_R8_EQ
+			"((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_GR16_GT
+			"((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_GR16_EQ
+			"((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_BGR24_GT
+			"((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_BGR24_EQ
+			"(max(sign(tevin_a.rgb - tevin_b.rgb), int3(0,0,0)) * tevin_c.rgb)", // TEVCMP_RGB8_GT
+			"((int3(255,255,255) - max(sign(abs(tevin_a.rgb - tevin_b.rgb))), int3(0,0,0))) * tevin_c.rgb)" // TEVCMP_RGB8_EQ
+		};
+
+		int mode = (cc.shift<<1)|cc.op;
+		out.Write("   tevin_d.rgb + ");
+		out.Write(function_table[mode]);
+	}
+	if (cc.clamp)
+		out.Write(", int3(0,0,0), int3(255,255,255))");
+	else
+		out.Write(", int3(-1024,-1024,-1024), int3(1023,1023,1023))");
+	out.Write(";\n");
+
+	out.Write("\t// alpha combine\n");
+	out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
+	if (ac.bias != TevBias_COMPARE)
+	{
+		WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift);
+	}
+	else
+	{
+		const char *function_table[] =
+		{
+			"((tevin_a.r > tevin_b.r) ? tevin_c.a : 0)", // TEVCMP_R8_GT
+			"((tevin_a.r == tevin_b.r) ? tevin_c.a : 0)", // TEVCMP_R8_EQ
+			"((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, comp16)) ? tevin_c.a : 0)", // TEVCMP_GR16_GT
+			"((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.a : 0)", // TEVCMP_GR16_EQ
+			"((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.a : 0)", // TEVCMP_BGR24_GT
+			"((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.a : 0)", // TEVCMP_BGR24_EQ
+			"((tevin_a.a >  tevin_b.a) ? tevin_c.a : 0)", // TEVCMP_A8_GT
+			"((tevin_a.a == tevin_b.a) ? tevin_c.a : 0)" // TEVCMP_A8_EQ
+		};
+
+		int mode = (ac.shift<<1)|ac.op;
+		out.Write("   tevin_d.a + ");
+		out.Write(function_table[mode]);
+	}
+	if (ac.clamp)
+		out.Write(", 0, 255)");
+	else
+		out.Write(", -1024, 1023)");
+
+	out.Write(";\n\n");
+}
+
+template<class T>
+static inline void WriteTevRegular(T& out, const char* components, int bias, int op, int clamp, int shift)
+{
 	const char *tevScaleTableLeft[] =
 	{
 		"",       // SCALE_1
@@ -796,74 +867,17 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		"-",      // TEVOP_SUB = 1,
 	};
 
-	out.Write("tevin_a = int4(%s, %s.a)&255;\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
-	out.Write("tevin_b = int4(%s, %s.a)&255;\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
-	out.Write("tevin_c = int4(%s, %s.a)&255;\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
-	out.Write("tevin_d = int4(%s, %s.a);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
-
-	out.Write("\t// color combine\n");
-	out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
-
-	// combine the color channel
-	if (cc.bias != TevBias_COMPARE) // if not compare
-	{
-		out.Write("(((tevin_d.rgb%s)%s) %s ((((tevin_a.rgb*256 + (tevin_b.rgb-tevin_a.rgb)*(tevin_c.rgb+(tevin_c.rgb>>7)))%s)%s)>>8))%s", tevBiasTable[cc.bias], tevScaleTableLeft[cc.shift], tevOpTable[cc.op], tevScaleTableLeft[cc.shift], tevLerpBias[2*cc.op+(cc.shift==3)], tevScaleTableRight[cc.shift]);
-	}
-	else
-	{
-		const char *function_table[] =
-		{
-			"((tevin_a.r > tevin_b.r) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_R8_GT
-			"((tevin_a.r == tevin_b.r) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_R8_EQ
-			"((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_GR16_GT
-			"((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_GR16_EQ
-			"((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_BGR24_GT
-			"((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_BGR24_EQ
-			"(max(sign(tevin_a.rgb - tevin_b.rgb), int3(0,0,0)) * tevin_c.rgb)", // TEVCMP_RGB8_GT
-			"((int3(255,255,255) - max(sign(abs(tevin_a.rgb - tevin_b.rgb))), int3(0,0,0))) * tevin_c.rgb)" // TEVCMP_RGB8_EQ
-		};
-
-		int mode = (cc.shift<<1)|cc.op;
-		out.Write("   tevin_d.rgb + ");
-		out.Write(function_table[mode]);
-	}
-	if (cc.clamp)
-		out.Write(", int3(0,0,0), int3(255,255,255))");
-	else
-		out.Write(", int3(-1024,-1024,-1024), int3(1023,1023,1023))");
-	out.Write(";\n");
-
-	out.Write("\t// alpha combine\n");
-	out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
-
-	if (ac.bias != TevBias_COMPARE) // if not compare
-	{
-		out.Write("(((tevin_d.a%s)%s) %s ((((tevin_a.a*256 + (tevin_b.a-tevin_a.a)*(tevin_c.a+(tevin_c.a>>7)))%s)%s)>>8))%s", tevBiasTable[ac.bias], tevScaleTableLeft[ac.shift], tevOpTable[ac.op], tevScaleTableLeft[ac.shift], tevLerpBias[2*ac.op+(ac.shift==3)], tevScaleTableRight[ac.shift]);
-	}
-	else
-	{
-		const char *function_table[] =
-		{
-			"((tevin_a.r > tevin_b.r) ? tevin_c.a : 0)", // TEVCMP_R8_GT
-			"((tevin_a.r == tevin_b.r) ? tevin_c.a : 0)", // TEVCMP_R8_EQ
-			"((idot(tevin_a.rgb, comp16) >  idot(tevin_b.rgb, comp16)) ? tevin_c.a : 0)", // TEVCMP_GR16_GT
-			"((idot(tevin_a.rgb, comp16) == idot(tevin_b.rgb, comp16)) ? tevin_c.a : 0)", // TEVCMP_GR16_EQ
-			"((idot(tevin_a.rgb, comp24) >  idot(tevin_b.rgb, comp24)) ? tevin_c.a : 0)", // TEVCMP_BGR24_GT
-			"((idot(tevin_a.rgb, comp24) == idot(tevin_b.rgb, comp24)) ? tevin_c.a : 0)", // TEVCMP_BGR24_EQ
-			"((tevin_a.a >  tevin_b.a) ? tevin_c.a : 0)", // TEVCMP_A8_GT
-			"((tevin_a.a == tevin_b.a) ? tevin_c.a : 0)" // TEVCMP_A8_EQ
-		};
-
-		int mode = (ac.shift<<1)|ac.op;
-		out.Write("   tevin_d.a + ");
-		out.Write(function_table[mode]);
-	}
-	if (ac.clamp)
-		out.Write(", 0, 255)");
-	else
-		out.Write(", -1024, 1023)");
-
-	out.Write(";\n\n");
+	// Regular TEV stage: (d + bias + lerp(a,b,c)) * scale
+	// The GC/Wii GPU uses a very sophisticated algorithm for scale-lerping:
+	// - c is scaled from 0..255 to 0..256, which allows dividing the result by 256 instead of 255
+	// - if scale is bigger than one, it is moved inside the lerp calculation for increased accuracy
+	// - a rounding bias is added before dividing by 256
+	out.Write("(((tevin_d.%s%s)%s)", components, tevBiasTable[bias], tevScaleTableLeft[shift]);
+	out.Write(" %s ", tevOpTable[op]);
+	out.Write("((((tevin_a.%s*256 + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
+	          components, components, components, components, components,
+	          tevScaleTableLeft[shift], tevLerpBias[2*op+(shift==3)]);
+	out.Write(")%s", tevScaleTableRight[shift]);
 }
 
 template<class T>
