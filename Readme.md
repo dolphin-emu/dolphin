@@ -1,3 +1,5 @@
+DO NOT MERGE THIS PR!
+
 # Dolphin - A Gamecube / Triforce / Wii Emulator
 
 [Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://code.google.com/p/dolphin-emu/issues/list)
