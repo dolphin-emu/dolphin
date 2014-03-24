@@ -1755,16 +1755,16 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i ggbb11 = _mm_unpackhi_epi8(gb1, gb1);
 
 						// G and B are already in perfect spots in the center, just remove the extra copies in the 1st and 4th positions:
-						const __m128i _gb_00 = _mm_and_si128(ggbb00, kMask_x0ff0);
-						const __m128i _gb_01 = _mm_and_si128(ggbb01, kMask_x0ff0);
-						const __m128i _gb_10 = _mm_and_si128(ggbb10, kMask_x0ff0);
-						const __m128i _gb_11 = _mm_and_si128(ggbb11, kMask_x0ff0);
+						const __m128i gb_00 = _mm_and_si128(ggbb00, kMask_x0ff0);
+						const __m128i gb_01 = _mm_and_si128(ggbb01, kMask_x0ff0);
+						const __m128i gb_10 = _mm_and_si128(ggbb10, kMask_x0ff0);
+						const __m128i gb_11 = _mm_and_si128(ggbb11, kMask_x0ff0);
 
 						// Now join up R__A and _GB_ to get RGBA!
-						rgba00 = _mm_or_si128(r__a00, _gb_00);
-						rgba01 = _mm_or_si128(r__a01, _gb_01);
-						rgba10 = _mm_or_si128(r__a10, _gb_10);
-						rgba11 = _mm_or_si128(r__a11, _gb_11);
+						rgba00 = _mm_or_si128(r__a00, gb_00);
+						rgba01 = _mm_or_si128(r__a01, gb_01);
+						rgba10 = _mm_or_si128(r__a10, gb_10);
+						rgba11 = _mm_or_si128(r__a11, gb_11);
 						// Write em out!
 						__m128i *dst128 = (__m128i*)( dst + (y + 0) * width + x );
 						_mm_storeu_si128(dst128, rgba00);

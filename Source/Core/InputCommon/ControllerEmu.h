@@ -60,8 +60,8 @@ public:
 		class Control
 		{
 		protected:
-			Control(ControllerInterface::ControlReference* const _ref, const std::string& _name)
-				: control_ref(_ref), name(_name) {}
+			Control(ControllerInterface::ControlReference* const ref, const std::string& _name)
+				: control_ref(ref), name(_name) {}
 
 		public:
 			virtual ~Control() {}
@@ -179,14 +179,14 @@ public:
 			*x = C(xx * range + base);
 		}
 
-		AnalogStick(const char* const _name);
+		AnalogStick(const char* const name);
 
 	};
 
 	class Buttons : public ControlGroup
 	{
 	public:
-		Buttons(const std::string& _name);
+		Buttons(const std::string& name);
 
 		template <typename C>
 		void GetState(C* const buttons, const C* bitmasks)
@@ -224,7 +224,7 @@ public:
 			}
 		}
 
-		MixedTriggers(const std::string& _name);
+		MixedTriggers(const std::string& name);
 
 	};
 
@@ -241,7 +241,7 @@ public:
 				*analog = S(std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone) * range);
 		}
 
-		Triggers(const std::string& _name);
+		Triggers(const std::string& name);
 
 	};
 
@@ -261,14 +261,14 @@ public:
 				*slider = 0;
 		}
 
-		Slider(const std::string& _name);
+		Slider(const std::string& name);
 
 	};
 
 	class Force : public ControlGroup
 	{
 	public:
-		Force(const std::string& _name);
+		Force(const std::string& name);
 
 		template <typename C, typename R>
 		void GetState(C* axis, const u8 base, const R range)
@@ -294,7 +294,7 @@ public:
 	class Tilt : public ControlGroup
 	{
 	public:
-		Tilt(const std::string& _name);
+		Tilt(const std::string& name);
 
 		template <typename C, typename R>
 		void GetState(C* const x, C* const y, const unsigned int base, const R range, const bool step = true)
@@ -374,7 +374,7 @@ public:
 	class Cursor : public ControlGroup
 	{
 	public:
-		Cursor(const std::string& _name);
+		Cursor(const std::string& name);
 
 		template <typename C>
 		void GetState(C* const x, C* const y, C* const z, const bool adjusted = false)

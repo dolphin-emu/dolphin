@@ -153,15 +153,15 @@ void Jit64::ComputeRC(const Gen::OpArg & arg)
 			CMP(32, arg, Imm8(0));
 		FixupBranch pLesser  = J_CC(CC_L);
 		FixupBranch pGreater = J_CC(CC_G);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x2)); // _x86Reg == 0
+		MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x2)); // x86Reg == 0
 		FixupBranch continue1 = J();
 
 		SetJumpTarget(pGreater);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x4)); // _x86Reg > 0
+		MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x4)); // x86Reg > 0
 		FixupBranch continue2 = J();
 
 		SetJumpTarget(pLesser);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x8)); // _x86Reg < 0
+		MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x8)); // x86Reg < 0
 
 		SetJumpTarget(continue1);
 		SetJumpTarget(continue2);
@@ -189,7 +189,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 		else if (a == d)
 		{
 			gpr.KillImmediate(d, true, true);
-			(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+			(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[inst.RA] + inst.SIMM_16;
 			if (Rc)
 			{
 				// All of the possible passed operators affect Sign/Zero flags
@@ -202,7 +202,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 		{
 			gpr.BindToRegister(d, false);
 			MOV(32, gpr.R(d), gpr.R(a));
-			(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+			(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[inst.RA] + inst.SIMM_16;
 			if (Rc)
 			{
 				// All of the possible passed operators affect Sign/Zero flags
@@ -459,13 +459,13 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 
 			FixupBranch pLesser  = J_CC(less_than);
 			FixupBranch pGreater = J_CC(greater_than);
-			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // _x86Reg == 0
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // x86Reg == 0
 			FixupBranch continue1 = J();
 			SetJumpTarget(pGreater);
-			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4)); // _x86Reg > 0
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4)); // x86Reg > 0
 			FixupBranch continue2 = J();
 			SetJumpTarget(pLesser);
-			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // x86Reg < 0
 			SetJumpTarget(continue1);
 			SetJumpTarget(continue2);
 			// TODO: If we ever care about SO, borrow a trick from

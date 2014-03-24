@@ -172,39 +172,39 @@ namespace ButtonManager
 	// InputDevice
 	void InputDevice::PressEvent(int button, int action)
 	{
-		if (_inputbinds.find(button) == _inputbinds.end())
+		if (inputbinds.find(button) == inputbinds.end())
 			return;
-		_buttons[_inputbinds[button]->_buttontype] = action == 0 ? true : false;
+		buttons[inputbinds[button]->buttontype] = action == 0 ? true : false;
 	}
 	void InputDevice::AxisEvent(int axis, float value)
 	{
-		if (_inputbinds.find(axis) == _inputbinds.end())
+		if (inputbinds.find(axis) == inputbinds.end())
 			return;
-		_axises[_inputbinds[axis]->_buttontype] = value;
+		axises[inputbinds[axis]->buttontype] = value;
 	}
 	bool InputDevice::ButtonValue(int padID, ButtonType button)
 	{
-		auto it = _binds.find(button);
-		if (it == _binds.end())
+		auto it = binds.find(button);
+		if (it == binds.end())
 			return false;
-		if (it->second->_padID != padID)
+		if (it->second->padID != padID)
 			return false;
-		if (it->second->_bindtype == BIND_BUTTON)
-			return _buttons[it->second->_buttontype];
+		if (it->second->bindtype == BIND_BUTTON)
+			return buttons[it->second->buttontype];
 		else
 			return AxisValue(padID, button);
 	}
 	float InputDevice::AxisValue(int padID, ButtonType axis)
 	{
-		auto it = _binds.find(axis);
-		if (it == _binds.end())
+		auto it = binds.find(axis);
+		if (it == binds.end())
 			return 0.0f;
-		if (it->second->_padID != padID)
+		if (it->second->padID != padID)
 			return 0.0f;
-		if (it->second->_bindtype == BIND_BUTTON)
+		if (it->second->bindtype == BIND_BUTTON)
 			return ButtonValue(padID, axis);
 		else
-			return _axises[it->second->_buttontype] * it->second->_neg;
+			return axises[it->second->buttontype] * it->second->neg;
 	}
 
 }

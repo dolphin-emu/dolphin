@@ -303,9 +303,9 @@ inline s64 dsp_get_long_acc(int reg)
 	return ((s64)(g_dsp.r.ac[reg].val << 24) >> 24);
 }
 
-inline void dsp_set_long_acc(int _reg, s64 val)
+inline void dsp_set_long_acc(int reg, s64 val)
 {
-	g_dsp.r.ac[_reg].val = (u64)val;
+	g_dsp.r.ac[reg].val = (u64)val;
 }
 
 inline s64 dsp_convert_long_acc(s64 val) // s64 -> s40
@@ -323,26 +323,26 @@ inline s64 dsp_round_long_acc(s64 val)
 	return val;
 }
 
-inline s16 dsp_get_acc_l(int _reg)
+inline s16 dsp_get_acc_l(int reg)
 {
-	return (s16)g_dsp.r.ac[_reg].l;
+	return (s16)g_dsp.r.ac[reg].l;
 }
 
-inline s16 dsp_get_acc_m(int _reg)
+inline s16 dsp_get_acc_m(int reg)
 {
-	return (s16)g_dsp.r.ac[_reg].m;
+	return (s16)g_dsp.r.ac[reg].m;
 }
 
-inline s16 dsp_get_acc_h(int _reg)
+inline s16 dsp_get_acc_h(int reg)
 {
-	return (s16)g_dsp.r.ac[_reg].h;
+	return (s16)g_dsp.r.ac[reg].h;
 }
 
-inline u16 dsp_op_read_reg_and_saturate(u8 _reg)
+inline u16 dsp_op_read_reg_and_saturate(u8 reg)
 {
 	if (g_dsp.r.sr & SR_40_MODE_BIT)
 	{
-		s64 acc = dsp_get_long_acc(_reg);
+		s64 acc = dsp_get_long_acc(reg);
 
 		if (acc != (s32)acc)
 		{
@@ -353,12 +353,12 @@ inline u16 dsp_op_read_reg_and_saturate(u8 _reg)
 		}
 		else
 		{
-			return g_dsp.r.ac[_reg].m;
+			return g_dsp.r.ac[reg].m;
 		}
 	}
 	else
 	{
-		return g_dsp.r.ac[_reg].m;
+		return g_dsp.r.ac[reg].m;
 	}
 }
 
@@ -366,17 +366,17 @@ inline u16 dsp_op_read_reg_and_saturate(u8 _reg)
 // --- AX - extra accumulators (32-bit)
 // ---------------------------------------------------------------------------------------
 
-inline s32 dsp_get_long_acx(int _reg)
+inline s32 dsp_get_long_acx(int reg)
 {
-	return (s32)(((u32)g_dsp.r.ax[_reg].h << 16) | g_dsp.r.ax[_reg].l);
+	return (s32)(((u32)g_dsp.r.ax[reg].h << 16) | g_dsp.r.ax[reg].l);
 }
 
-inline s16 dsp_get_ax_l(int _reg)
+inline s16 dsp_get_ax_l(int reg)
 {
-	return (s16)g_dsp.r.ax[_reg].l;
+	return (s16)g_dsp.r.ax[reg].l;
 }
 
-inline s16 dsp_get_ax_h(int _reg)
+inline s16 dsp_get_ax_h(int reg)
 {
-	return (s16)g_dsp.r.ax[_reg].h;
+	return (s16)g_dsp.r.ax[reg].h;
 }

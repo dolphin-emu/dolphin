@@ -58,7 +58,7 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
 				object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(lightsName, index));
-				object.Write("lacc.%s += int%s(round(%sdot(ldir, _norm0)) * float%s(" LIGHT_COL")));\n",
+				object.Write("lacc.%s += int%s(round(%sdot(ldir, norm0)) * float%s(" LIGHT_COL")));\n",
 				             swizzle, swizzle_components, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0," :"(",
 				             swizzle_components, LIGHT_COL_PARAMS(lightsColName, index, swizzle));
 				break;
@@ -82,7 +82,7 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 		else if (chan.attnfunc == 1)
 		{ // specular
 			object.Write("ldir = normalize(" LIGHT_POS".xyz);\n", LIGHT_POS_PARAMS(lightsName, index));
-			object.Write("attn = (dot(_norm0,ldir) >= 0.0) ? max(0.0, dot(_norm0, " LIGHT_DIR".xyz)) : 0.0;\n", LIGHT_DIR_PARAMS(lightsName, index));
+			object.Write("attn = (dot(norm0,ldir) >= 0.0) ? max(0.0, dot(norm0, " LIGHT_DIR".xyz)) : 0.0;\n", LIGHT_DIR_PARAMS(lightsName, index));
 			// attn*attn may overflow
 			object.Write("attn = max(0.0, " LIGHT_COSATT".x + " LIGHT_COSATT".y*attn + " LIGHT_COSATT".z*attn*attn) / (" LIGHT_DISTATT".x + " LIGHT_DISTATT".y*attn + " LIGHT_DISTATT".z*attn*attn);\n",
 			             LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_COSATT_PARAMS(lightsName, index),
@@ -98,7 +98,7 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				object.Write("lacc.%s += int%s(round(attn * %sdot(ldir, _norm0)) * float%s(" LIGHT_COL")));\n",
+				object.Write("lacc.%s += int%s(round(attn * %sdot(ldir, norm0)) * float%s(" LIGHT_COL")));\n",
 				             swizzle, swizzle_components,
 				             chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0," :"(",
 				             swizzle_components, LIGHT_COL_PARAMS(lightsColName, index, swizzle));

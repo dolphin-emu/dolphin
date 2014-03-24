@@ -88,12 +88,12 @@ void CCodeWindow::Load()
 		ini.Get("ShowOnStart", SettingName[i], &bShowOnStart[i], false);
 
 	// Get notebook affiliation
-	std::string _Section = "P - " +
+	std::string Section = "P - " +
 		((Parent->ActivePerspective < Parent->Perspectives.size())
 		? Parent->Perspectives[Parent->ActivePerspective].Name : "Perspective 1");
 
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get(_Section, SettingName[i], &iNbAffiliation[i], 0);
+		ini.Get(Section, SettingName[i], &iNbAffiliation[i], 0);
 
 	// Get floating setting
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
@@ -129,9 +129,9 @@ void CCodeWindow::Save()
 		ini.Set("ShowOnStart", SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
 
 	// Save notebook affiliations
-	std::string _Section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
+	std::string Section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Set(_Section, SettingName[i], iNbAffiliation[i]);
+		ini.Set(Section, SettingName[i], iNbAffiliation[i]);
 
 	// Save floating setting
 	for (int i = IDM_LOGWINDOW_PARENT; i <= IDM_CODEWINDOW_PARENT; i++)

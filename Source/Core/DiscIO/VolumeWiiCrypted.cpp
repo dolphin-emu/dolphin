@@ -18,16 +18,16 @@
 namespace DiscIO
 {
 
-CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
-									 const unsigned char* _pVolumeKey)
-	: m_pReader(_pReader),
+CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* pReader, u64 VolumeOffset,
+									 const unsigned char* pVolumeKey)
+	: m_pReader(pReader),
 	m_pBuffer(nullptr),
-	m_VolumeOffset(_VolumeOffset),
+	m_VolumeOffset(VolumeOffset),
 	dataOffset(0x20000),
 	m_LastDecryptedBlockOffset(-1)
 {
 	m_AES_ctx = new aes_context;
-	aes_setkey_dec(m_AES_ctx, _pVolumeKey, 128);
+	aes_setkey_dec(m_AES_ctx, pVolumeKey, 128);
 	m_pBuffer = new u8[0x8000];
 }
 
@@ -42,32 +42,32 @@ CVolumeWiiCrypted::~CVolumeWiiCrypted()
 	m_AES_ctx = nullptr;
 }
 
-bool CVolumeWiiCrypted::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
+bool CVolumeWiiCrypted::RAWRead( u64 Offset, u64 Length, u8* pBuffer ) const
 {
 	// HyperIris: hack for DVDLowUnencryptedRead
 	// Medal Of Honor Heroes 2 read this DVD offset for PartitionsInfo
 	// and, PartitionsInfo is not encrypted, let's read it directly.
-	if (!m_pReader->Read(_Offset, _Length, _pBuffer))
+	if (!m_pReader->Read(Offset, Length, pBuffer))
 	{
 		return(false);
 	}
 	return true;
 }
 
-bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
+bool CVolumeWiiCrypted::Read(u64 ReadOffset, u64 Length, u8* pBuffer) const
 {
 	if (m_pReader == nullptr)
 	{
 		return(false);
 	}
 
-	while (_Length > 0)
+	while (Length > 0)
 	{
 		static unsigned char IV[16];
 
 		// math block offset
-		u64 Block  = _ReadOffset / 0x7C00;
-		u64 Offset = _ReadOffset % 0x7C00;
+		u64 Block  = ReadOffset / 0x7C00;
+		u64 Offset = ReadOffset % 0x7C00;
 
 		// read current block
 		if (!m_pReader->Read(m_VolumeOffset + dataOffset + Block * 0x8000, 0x8000, m_pBuffer))
@@ -85,27 +85,27 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 
 		// copy the encrypted data
 		u64 MaxSizeToCopy = 0x7C00 - Offset;
-		u64 CopySize = (_Length > MaxSizeToCopy) ? MaxSizeToCopy : _Length;
-		memcpy(_pBuffer, &m_LastDecryptedBlock[Offset], (size_t)CopySize);
+		u64 CopySize = (Length > MaxSizeToCopy) ? MaxSizeToCopy : Length;
+		memcpy(pBuffer, &m_LastDecryptedBlock[Offset], (size_t)CopySize);
 
 		// increase buffers
-		_Length -= CopySize;
-		_pBuffer    += CopySize;
-		_ReadOffset += CopySize;
+		Length -= CopySize;
+		pBuffer    += CopySize;
+		ReadOffset += CopySize;
 	}
 
 	return(true);
 }
 
-bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
+bool CVolumeWiiCrypted::GetTitleID(u8* pBuffer) const
 {
 	// Tik is at m_VolumeOffset size 0x2A4
 	// TitleID offset in tik is 0x1DC
-	return RAWRead(m_VolumeOffset + 0x1DC, 8, _pBuffer);
+	return RAWRead(m_VolumeOffset + 0x1DC, 8, pBuffer);
 }
-void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32 * _sz) const
+void CVolumeWiiCrypted::GetTMD(u8* pBuffer, u32 * sz) const
 {
-	*_sz = 0;
+	*sz = 0;
 	u32 tmdSz,
 		tmdAddr;
 
@@ -113,8 +113,8 @@ void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32 * _sz) const
 	RAWRead(m_VolumeOffset + 0x2a8, sizeof(u32), (u8*)&tmdAddr);
 	tmdSz = Common::swap32(tmdSz);
 	tmdAddr = Common::swap32(tmdAddr) << 2;
-	RAWRead(m_VolumeOffset + tmdAddr, tmdSz, _pBuffer);
-	*_sz = tmdSz;
+	RAWRead(m_VolumeOffset + tmdAddr, tmdSz, pBuffer);
+	*sz = tmdSz;
 }
 
 std::string CVolumeWiiCrypted::GetUniqueID() const

@@ -294,7 +294,7 @@ CFrame::CFrame(wxFrame* parent,
 		const wxPoint& pos,
 		const wxSize& size,
 		bool _UseDebugger,
-		bool _BatchMode,
+		bool BatchMode,
 		bool ShowLogWindow,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
@@ -304,7 +304,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_RenderFrame(nullptr), m_RenderParent(nullptr)
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
 	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
-	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
+	, m_bBatchMode(BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, m_bGameLoading(false)
 {
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)

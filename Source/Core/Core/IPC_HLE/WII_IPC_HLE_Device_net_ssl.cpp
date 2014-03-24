@@ -8,8 +8,8 @@
 
 WII_SSL CWII_IPC_HLE_Device_net_ssl::_SSL[NET_SSL_MAXINSTANCES];
 
-CWII_IPC_HLE_Device_net_ssl::CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID, const std::string& _rDeviceName)
-	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+CWII_IPC_HLE_Device_net_ssl::CWII_IPC_HLE_Device_net_ssl(u32 DeviceID, const std::string& rDeviceName)
+	: IWII_IPC_HLE_Device(DeviceID, rDeviceName)
 {
 	for (WII_SSL& ssl : _SSL)
 	{
@@ -53,44 +53,44 @@ int CWII_IPC_HLE_Device_net_ssl::getSSLFreeID()
 	return 0;
 }
 
-bool CWII_IPC_HLE_Device_net_ssl::Open(u32 _CommandAddress, u32 _Mode)
+bool CWII_IPC_HLE_Device_net_ssl::Open(u32 CommandAddress, u32 Mode)
 {
-	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+	Memory::Write_U32(GetDeviceID(), CommandAddress+4);
 	m_Active = true;
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_net_ssl::Close(u32 _CommandAddress, bool _bForce)
+bool CWII_IPC_HLE_Device_net_ssl::Close(u32 CommandAddress, bool bForce)
 {
-	if (!_bForce)
+	if (!bForce)
 	{
-		Memory::Write_U32(0, _CommandAddress + 4);
+		Memory::Write_U32(0, CommandAddress + 4);
 	}
 	m_Active = false;
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 CommandAddress)
 {
-	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
-	u32 Command       = Memory::Read_U32(_CommandAddress + 0x0C);
+	u32 BufferIn      = Memory::Read_U32(CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(CommandAddress + 0x1C);
+	u32 Command       = Memory::Read_U32(CommandAddress + 0x0C);
 
 	INFO_LOG(WII_IPC_SSL, "%s unknown %i "
 	         "(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 	         GetDeviceName().c_str(), Command,
 	         BufferIn, BufferInSize, BufferOut, BufferOutSize);
-	Memory::Write_U32(0, _CommandAddress + 0x4);
+	Memory::Write_U32(0, CommandAddress + 0x4);
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 CommandAddress)
 {
-	SIOCtlVBuffer CommandBuffer(_CommandAddress);
+	SIOCtlVBuffer CommandBuffer(CommandAddress);
 
-	u32 _BufferIn = 0, _BufferIn2 = 0, _BufferIn3 = 0;
+	u32 BufferIn = 0, BufferIn2 = 0, BufferIn3 = 0;
 	u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
 
 	u32 BufferOut = 0, BufferOut2 = 0, BufferOut3 = 0;
@@ -98,17 +98,17 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 
 	if (CommandBuffer.InBuffer.size() > 0)
 	{
-		_BufferIn = CommandBuffer.InBuffer.at(0).m_Address;
+		BufferIn = CommandBuffer.InBuffer.at(0).m_Address;
 		BufferInSize = CommandBuffer.InBuffer.at(0).m_Size;
 	}
 	if (CommandBuffer.InBuffer.size() > 1)
 	{
-		_BufferIn2 = CommandBuffer.InBuffer.at(1).m_Address;
+		BufferIn2 = CommandBuffer.InBuffer.at(1).m_Address;
 		BufferInSize2 = CommandBuffer.InBuffer.at(1).m_Size;
 	}
 	if (CommandBuffer.InBuffer.size() > 2)
 	{
-		_BufferIn3 = CommandBuffer.InBuffer.at(2).m_Address;
+		BufferIn3 = CommandBuffer.InBuffer.at(2).m_Address;
 		BufferInSize3 = CommandBuffer.InBuffer.at(2).m_Size;
 	}
 
@@ -179,12 +179,12 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			ssl_set_hostname(&ssl->ctx, ssl->hostname);
 
 			ssl->active = true;
-			Memory::Write_U32(freeSSL, _BufferIn);
+			Memory::Write_U32(freeSSL, BufferIn);
 		}
 		else
 		{
 _SSL_NEW_ERROR:
-			Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
+			Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
 		}
 
 		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_NEW (%d, %s) "
@@ -192,8 +192,8 @@ _SSL_NEW_ERROR:
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
 			verifyOption, hostname,
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 		break;
 	}
@@ -219,18 +219,18 @@ _SSL_NEW_ERROR:
 
 			ssl->active = false;
 
-			Memory::Write_U32(SSL_OK, _BufferIn);
+			Memory::Write_U32(SSL_OK, BufferIn);
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 		}
 		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SHUTDOWN "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 		break;
 	}
@@ -240,8 +240,8 @@ _SSL_NEW_ERROR:
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
 
@@ -256,19 +256,19 @@ _SSL_NEW_ERROR:
 
 			if (ret)
 			{
-				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
+				Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
 			}
 			else
 			{
 				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname);
-				Memory::Write_U32(SSL_OK, _BufferIn);
+				Memory::Write_U32(SSL_OK, BufferIn);
 			}
 
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCA = %d", ret);
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 		}
 		break;
 	}
@@ -278,8 +278,8 @@ _SSL_NEW_ERROR:
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
 		int sslID = Memory::Read_U32(BufferOut) - 1;
@@ -295,19 +295,19 @@ _SSL_NEW_ERROR:
 				pk_free(&ssl->pk);
 				memset(&ssl->clicert, 0, sizeof(x509_crt));
 				memset(&ssl->pk, 0, sizeof(pk_context));
-				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
+				Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
 			}
 			else
 			{
 				ssl_set_own_cert(&ssl->ctx, &ssl->clicert, &ssl->pk);
-				Memory::Write_U32(SSL_OK, _BufferIn);
+				Memory::Write_U32(SSL_OK, BufferIn);
 			}
 
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, pk_ret);
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
 		}
 		break;
@@ -318,8 +318,8 @@ _SSL_NEW_ERROR:
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
 		int sslID = Memory::Read_U32(BufferOut) - 1;
@@ -332,11 +332,11 @@ _SSL_NEW_ERROR:
 			memset(&ssl->pk, 0, sizeof(pk_context));
 
 			ssl_set_own_cert(&ssl->ctx, nullptr, nullptr);
-			Memory::Write_U32(SSL_OK, _BufferIn);
+			Memory::Write_U32(SSL_OK, BufferIn);
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
 		}
 		break;
@@ -353,25 +353,25 @@ _SSL_NEW_ERROR:
 			if (ret)
 			{
 				x509_crt_free(&ssl->clicert);
-				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
+				Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
 			}
 			else
 			{
 				ssl_set_ca_chain(&ssl->ctx, &ssl->cacert, nullptr, ssl->hostname);
-				Memory::Write_U32(SSL_OK, _BufferIn);
+				Memory::Write_U32(SSL_OK, BufferIn);
 			}
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 		}
 		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 		break;
 	}
@@ -384,18 +384,18 @@ _SSL_NEW_ERROR:
 			ssl->sockfd = Memory::Read_U32(BufferOut2);
 			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", ssl->sockfd);
 			ssl_set_bio(&ssl->ctx, net_recv, &ssl->sockfd, net_send, &ssl->sockfd);
-			Memory::Write_U32(SSL_OK, _BufferIn);
+			Memory::Write_U32(SSL_OK, BufferIn);
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 		}
 		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 		break;
 	}
@@ -405,12 +405,12 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			WiiSockMan &sm = WiiSockMan::GetInstance();
-			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_DOHANDSHAKE);
+			sm.DoSock(_SSL[sslID].sockfd, CommandAddress, IOCTLV_NET_SSL_DOHANDSHAKE);
 			return false;
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 		}
 		break;
 	}
@@ -420,19 +420,19 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			WiiSockMan &sm = WiiSockMan::GetInstance();
-			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_WRITE);
+			sm.DoSock(_SSL[sslID].sockfd, CommandAddress, IOCTLV_NET_SSL_WRITE);
 			return false;
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 		}
 		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_WRITE "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 		INFO_LOG(WII_IPC_SSL, "%s", Memory::GetPointer(BufferOut2));
 		break;
@@ -445,12 +445,12 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			WiiSockMan &sm = WiiSockMan::GetInstance();
-			sm.DoSock(_SSL[sslID].sockfd, _CommandAddress, IOCTLV_NET_SSL_READ);
+			sm.DoSock(_SSL[sslID].sockfd, CommandAddress, IOCTLV_NET_SSL_READ);
 			return false;
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 		}
 
 		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_READ(%d)"
@@ -458,8 +458,8 @@ _SSL_NEW_ERROR:
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
 			ret,
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 		break;
 	}
@@ -468,18 +468,18 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			Memory::Write_U32(SSL_OK, _BufferIn);
+			Memory::Write_U32(SSL_OK, BufferIn);
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 		}
 		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCADEFAULT "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 		break;
 	}
@@ -489,18 +489,18 @@ _SSL_NEW_ERROR:
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			Memory::Write_U32(SSL_OK, _BufferIn);
+			Memory::Write_U32(SSL_OK, BufferIn);
 		}
 		else
 		{
-			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
+			Memory::Write_U32(SSL_ERR_ID, BufferIn);
 		}
 		break;
 	}
@@ -510,14 +510,14 @@ _SSL_NEW_ERROR:
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
 			CommandBuffer.Parameter,
-			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
+			BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 		break;
 	}
 
 	// SSL return codes are written to BufferIn
-	Memory::Write_U32(0, _CommandAddress+4);
+	Memory::Write_U32(0, CommandAddress+4);
 
 	return true;
 }

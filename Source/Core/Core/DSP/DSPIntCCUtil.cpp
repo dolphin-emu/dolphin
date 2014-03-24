@@ -13,7 +13,7 @@
 
 namespace DSPInterpreter {
 
-void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
+void Update_SR_Register64(s64 Value, bool carry, bool overflow)
 {
 	g_dsp.r.sr &= ~SR_CMP_MASK;
 
@@ -31,32 +31,32 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 	}
 
 	// 0x04
-	if (_Value == 0)
+	if (Value == 0)
 	{
 		g_dsp.r.sr |= SR_ARITH_ZERO;
 	}
 
 	// 0x08
-	if (_Value < 0)
+	if (Value < 0)
 	{
 		g_dsp.r.sr |= SR_SIGN;
 	}
 
 	// 0x10
-	if (_Value != (s32)_Value)
+	if (Value != (s32)Value)
 	{
 		g_dsp.r.sr |= SR_OVER_S32;
 	}
 
 	// 0x20 - Checks if top bits of m are equal
-	if (((_Value & 0xc0000000) == 0) || ((_Value & 0xc0000000) == 0xc0000000))
+	if (((Value & 0xc0000000) == 0) || ((Value & 0xc0000000) == 0xc0000000))
 	{
 		g_dsp.r.sr |= SR_TOP2BITS;
 	}
 }
 
 
-void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
+void Update_SR_Register16(s16 Value, bool carry, bool overflow, bool overS32)
 {
 	g_dsp.r.sr &= ~SR_CMP_MASK;
 
@@ -74,13 +74,13 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 	}
 
 	// 0x04
-	if (_Value == 0)
+	if (Value == 0)
 	{
 		g_dsp.r.sr |= SR_ARITH_ZERO;
 	}
 
 	// 0x08
-	if (_Value < 0)
+	if (Value < 0)
 	{
 		g_dsp.r.sr |= SR_SIGN;
 	}
@@ -92,7 +92,7 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 	}
 
 	// 0x20 - Checks if top bits of m are equal
-	if ((((u16)_Value >> 14) == 0) || (((u16)_Value >> 14) == 3))
+	if ((((u16)Value >> 14) == 0) || (((u16)Value >> 14) == 3))
 	{
 		g_dsp.r.sr |= SR_TOP2BITS;
 	}
@@ -140,9 +140,9 @@ inline bool isConditionA() {
 }
 
 //see DSPCore.h for flags
-bool CheckCondition(u8 _Condition)
+bool CheckCondition(u8 Condition)
 {
-	switch (_Condition & 0xf)
+	switch (Condition & 0xf)
 	{
 	case 0xf: // Always true.
 		return true;

@@ -777,10 +777,10 @@ void Wiimote::Update()
 	}
 }
 
-void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size)
+void Wiimote::ControlChannel(const u16 channelID, const void* pData, u32 Size)
 {
 	// Check for custom communication
-	if (99 == _channelID)
+	if (99 == channelID)
 	{
 		// wiimote disconnected
 		//PanicAlert( "Wiimote Disconnected" );
@@ -791,9 +791,9 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 	}
 
 	// this all good?
-	m_reporting_channel = _channelID;
+	m_reporting_channel = channelID;
 
-	const hid_packet* const hidp = (hid_packet*)_pData;
+	const hid_packet* const hidp = (hid_packet*)pData;
 
 	INFO_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index, hidp->type, hidp->param);
 
@@ -815,7 +815,7 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 			HidOutputReport((wm_report*)hidp->data);
 
 			u8 handshake = HID_HANDSHAKE_SUCCESS;
-			Core::Callback_WiimoteInterruptChannel(m_index, _channelID, &handshake, 1);
+			Core::Callback_WiimoteInterruptChannel(m_index, channelID, &handshake, 1);
 		}
 		break;
 
@@ -830,12 +830,12 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 
 }
 
-void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size)
+void Wiimote::InterruptChannel(const u16 channelID, const void* pData, u32 Size)
 {
 	// this all good?
-	m_reporting_channel = _channelID;
+	m_reporting_channel = channelID;
 
-	const hid_packet* const hidp = (hid_packet*)_pData;
+	const hid_packet* const hidp = (hid_packet*)pData;
 
 	switch (hidp->type)
 	{
@@ -854,11 +854,11 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 					case WM_REQUEST_STATUS :
 					case WM_READ_DATA :
 						if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
-							WiimoteReal::InterruptChannel(m_index, _channelID, _pData, _Size);
+							WiimoteReal::InterruptChannel(m_index, channelID, pData, Size);
 						break;
 
 					default :
-						WiimoteReal::InterruptChannel(m_index, _channelID, _pData, _Size);
+						WiimoteReal::InterruptChannel(m_index, channelID, pData, Size);
 						break;
 					}
 

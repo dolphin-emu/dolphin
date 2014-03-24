@@ -31,7 +31,7 @@ enum SIInterruptType
 	INT_RDSTINT = 0,
 	INT_TCINT   = 1,
 };
-static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);
+static void GenerateSIInterrupt(SIInterruptType SIInterrupt);
 
 // SI Internal Hardware Addresses
 enum
@@ -148,7 +148,7 @@ union USIComCSR
 		u32 TCINT      : 1; // Transfer Complete Interrupt
 	};
 	USIComCSR() {Hex = 0;}
-	USIComCSR(u32 _hex) {Hex = _hex;}
+	USIComCSR(u32 hex) {Hex = hex;}
 };
 
 // SI Status Register
@@ -188,7 +188,7 @@ union USIStatusReg
 		u32 WR      : 1; // (RW) write 1 start copy, read 0 copy done
 	};
 	USIStatusReg() {Hex = 0;}
-	USIStatusReg(u32 _hex) {Hex = _hex;}
+	USIStatusReg(u32 hex) {Hex = hex;}
 };
 
 // SI EXI Clock Count
@@ -420,9 +420,9 @@ void UpdateInterrupts()
 	}
 }
 
-void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
+void GenerateSIInterrupt(SIInterruptType SIInterrupt)
 {
-	switch (_SIInterrupt)
+	switch (SIInterrupt)
 	{
 	case INT_RDSTINT: g_ComCSR.RDSTINT = 1; break;
 	case INT_TCINT:   g_ComCSR.TCINT = 1; break;
@@ -431,28 +431,28 @@ void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 	UpdateInterrupts();
 }
 
-void RemoveDevice(int _iDeviceNumber)
+void RemoveDevice(int iDeviceNumber)
 {
-	delete g_Channel[_iDeviceNumber].m_pDevice;
-	g_Channel[_iDeviceNumber].m_pDevice = nullptr;
+	delete g_Channel[iDeviceNumber].m_pDevice;
+	g_Channel[iDeviceNumber].m_pDevice = nullptr;
 }
 
 void AddDevice(ISIDevice* pDevice)
 {
-	int _iDeviceNumber = pDevice->GetDeviceNumber();
+	int iDeviceNumber = pDevice->GetDeviceNumber();
 
-	//_dbg_assert_(SERIALINTERFACE, _iDeviceNumber < MAX_SI_CHANNELS);
+	//_dbg_assert_(SERIALINTERFACE, iDeviceNumber < MAX_SI_CHANNELS);
 
 	// delete the old device
-	RemoveDevice(_iDeviceNumber);
+	RemoveDevice(iDeviceNumber);
 
 	// create the new one
-	g_Channel[_iDeviceNumber].m_pDevice = pDevice;
+	g_Channel[iDeviceNumber].m_pDevice = pDevice;
 }
 
-void AddDevice(const SIDevices _device, int _iDeviceNumber)
+void AddDevice(const SIDevices device, int iDeviceNumber)
 {
-	ISIDevice *pDevice = SIDevice_Create(_device, _iDeviceNumber);
+	ISIDevice *pDevice = SIDevice_Create(device, iDeviceNumber);
 	AddDevice(pDevice);
 }
 

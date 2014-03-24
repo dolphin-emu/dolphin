@@ -22,7 +22,7 @@ class CBreakPointWindow : public wxPanel
 {
 public:
 
-	CBreakPointWindow(CCodeWindow* _pCodeWindow,
+	CBreakPointWindow(CCodeWindow* pCodeWindow,
 		wxWindow* parent,
 		wxWindowID id = wxID_ANY,
 		const wxString& title = wxT("Breakpoints"),

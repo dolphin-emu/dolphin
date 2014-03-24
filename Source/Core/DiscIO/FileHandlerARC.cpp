@@ -18,11 +18,11 @@
 
 namespace DiscIO
 {
-CARCFile::CARCFile(const std::string& _rFilename)
+CARCFile::CARCFile(const std::string& rFilename)
 	: m_pBuffer(nullptr)
 	, m_Initialized(false)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rFilename.c_str());
+	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(rFilename.c_str());
 	if (pReader != nullptr)
 	{
 		u64 FileSize = pReader->GetDataSize();
@@ -34,11 +34,11 @@ CARCFile::CARCFile(const std::string& _rFilename)
 	}
 }
 
-CARCFile::CARCFile(const std::string& _rFilename, u32 offset)
+CARCFile::CARCFile(const std::string& rFilename, u32 offset)
 	: m_pBuffer(nullptr)
 	, m_Initialized(false)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rFilename.c_str());
+	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(rFilename.c_str());
 	if (pReader != nullptr)
 	{
 		u64 FileSize = pReader->GetDataSize() - offset;
@@ -50,15 +50,15 @@ CARCFile::CARCFile(const std::string& _rFilename, u32 offset)
 	}
 }
 
-CARCFile::CARCFile(const u8* _pBuffer, size_t _BufferSize)
+CARCFile::CARCFile(const u8* pBuffer, size_t BufferSize)
 	: m_pBuffer(nullptr)
 	, m_Initialized(false)
 {
-	m_pBuffer = new u8[_BufferSize];
+	m_pBuffer = new u8[BufferSize];
 
 	if (m_pBuffer)
 	{
-		memcpy(m_pBuffer, _pBuffer, _BufferSize);
+		memcpy(m_pBuffer, pBuffer, BufferSize);
 		m_Initialized = ParseBuffer();
 	}
 }
@@ -76,14 +76,14 @@ bool CARCFile::IsInitialized()
 }
 
 
-size_t CARCFile::GetFileSize(const std::string& _rFullPath)
+size_t CARCFile::GetFileSize(const std::string& rFullPath)
 {
 	if (!m_Initialized)
 	{
 		return 0;
 	}
 
-	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
+	const SFileInfo* pFileInfo = FindFileInfo(rFullPath);
 
 	if (pFileInfo != nullptr)
 	{
@@ -94,51 +94,51 @@ size_t CARCFile::GetFileSize(const std::string& _rFullPath)
 }
 
 
-size_t CARCFile::ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize)
+size_t CARCFile::ReadFile(const std::string& rFullPath, u8* pBuffer, size_t MaxBufferSize)
 {
 	if (!m_Initialized)
 	{
 		return 0;
 	}
 
-	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
+	const SFileInfo* pFileInfo = FindFileInfo(rFullPath);
 
 	if (pFileInfo == nullptr)
 	{
 		return 0;
 	}
 
-	if (pFileInfo->m_FileSize > _MaxBufferSize)
+	if (pFileInfo->m_FileSize > MaxBufferSize)
 	{
 		return 0;
 	}
 
-	memcpy(_pBuffer, &m_pBuffer[pFileInfo->m_Offset], (size_t)pFileInfo->m_FileSize);
+	memcpy(pBuffer, &m_pBuffer[pFileInfo->m_Offset], (size_t)pFileInfo->m_FileSize);
 	return (size_t) pFileInfo->m_FileSize;
 }
 
 
-bool CARCFile::ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename)
+bool CARCFile::ExportFile(const std::string& rFullPath, const std::string& rExportFilename)
 {
 	if (!m_Initialized)
 	{
 		return false;
 	}
 
-	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
+	const SFileInfo* pFileInfo = FindFileInfo(rFullPath);
 
 	if (pFileInfo == nullptr)
 	{
 		return false;
 	}
 
-	File::IOFile pFile(_rExportFilename, "wb");
+	File::IOFile pFile(rExportFilename, "wb");
 
 	return pFile.WriteBytes(&m_pBuffer[pFileInfo->m_Offset], (size_t) pFileInfo->m_FileSize);
 }
 
 
-bool CARCFile::ExportAllFiles(const std::string& _rFullPath)
+bool CARCFile::ExportAllFiles(const std::string& rFullPath)
 {
 	return false;
 }
@@ -185,11 +185,11 @@ bool CARCFile::ParseBuffer()
 }
 
 
-size_t CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const std::string& _szDirectory, const char* _szNameTable)
+size_t CARCFile::BuildFilenames(const size_t FirstIndex, const size_t LastIndex, const std::string& szDirectory, const char* szNameTable)
 {
-	size_t CurrentIndex = _FirstIndex;
+	size_t CurrentIndex = FirstIndex;
 
-	while (CurrentIndex < _LastIndex)
+	while (CurrentIndex < LastIndex)
 	{
 		SFileInfo& rFileInfo = m_FileInfoVector[CurrentIndex];
 		int uOffset = rFileInfo.m_NameOffset & 0xFFFFFF;
@@ -197,19 +197,19 @@ size_t CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastInde
 		// check next index
 		if (rFileInfo.IsDirectory())
 		{
-			if (_szDirectory.empty())
-				rFileInfo.m_FullPath += StringFromFormat("%s/", &_szNameTable[uOffset]);
+			if (szDirectory.empty())
+				rFileInfo.m_FullPath += StringFromFormat("%s/", &szNameTable[uOffset]);
 			else
-				rFileInfo.m_FullPath += StringFromFormat("%s%s/", _szDirectory.c_str(), &_szNameTable[uOffset]);
+				rFileInfo.m_FullPath += StringFromFormat("%s%s/", szDirectory.c_str(), &szNameTable[uOffset]);
 
-			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);
+			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_FileSize, rFileInfo.m_FullPath, szNameTable);
 		}
 		else // This is a filename
 		{
-			if (_szDirectory.empty())
-				rFileInfo.m_FullPath += StringFromFormat("%s", &_szNameTable[uOffset]);
+			if (szDirectory.empty())
+				rFileInfo.m_FullPath += StringFromFormat("%s", &szNameTable[uOffset]);
 			else
-				rFileInfo.m_FullPath += StringFromFormat("%s%s", _szDirectory.c_str(), &_szNameTable[uOffset]);
+				rFileInfo.m_FullPath += StringFromFormat("%s%s", szDirectory.c_str(), &szNameTable[uOffset]);
 
 			CurrentIndex++;
 		}
@@ -219,11 +219,11 @@ size_t CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastInde
 }
 
 
-const SFileInfo* CARCFile::FindFileInfo(const std::string& _rFullPath) const
+const SFileInfo* CARCFile::FindFileInfo(const std::string& rFullPath) const
 {
 	for (auto& fileInfo : m_FileInfoVector)
 	{
-		if (!strcasecmp(fileInfo.m_FullPath.c_str(), _rFullPath.c_str()))
+		if (!strcasecmp(fileInfo.m_FullPath.c_str(), rFullPath.c_str()))
 		{
 			return &fileInfo;
 		}

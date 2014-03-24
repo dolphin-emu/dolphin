@@ -34,7 +34,7 @@ union UDSPControl
 		u16 DSPInit        : 1; // DSPInit() writes to this flag
 		u16 pad            : 4;
 	};
-	UDSPControl(u16 _Hex = 0) : Hex(_Hex) {}
+	UDSPControl(u16 hex = 0) : Hex(hex) {}
 };
 
 namespace AudioCommon

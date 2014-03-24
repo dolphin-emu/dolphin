@@ -316,7 +316,7 @@ union UGQR
 		u32          : 2;
 	};
 
-	UGQR(u32 _hex) { Hex = _hex; }
+	UGQR(u32 hex) { Hex = hex; }
 	UGQR()         {Hex = 0;  }
 };
 
@@ -347,7 +347,7 @@ union UReg_XER
 	};
 	u32 Hex;
 
-	UReg_XER(u32 _hex) { Hex = _hex; }
+	UReg_XER(u32 hex) { Hex = hex; }
 	UReg_XER()         { Hex = 0; }
 };
 
@@ -379,7 +379,7 @@ union UReg_MSR
 	};
 	u32 Hex;
 
-	UReg_MSR(u32 _hex) { Hex = _hex; }
+	UReg_MSR(u32 hex) { Hex = hex; }
 	UReg_MSR()         { Hex = 0; }
 };
 
@@ -446,7 +446,7 @@ union UReg_FPSCR
 	};
 	u32 Hex;
 
-	UReg_FPSCR(u32 _hex) { Hex = _hex; }
+	UReg_FPSCR(u32 hex) { Hex = hex; }
 	UReg_FPSCR()         { Hex = 0;}
 };
 
@@ -511,7 +511,7 @@ union UReg_HID2
 	};
 	u32 Hex;
 
-	UReg_HID2(u32 _hex) { Hex = _hex; }
+	UReg_HID2(u32 hex) { Hex = hex; }
 	UReg_HID2()         { Hex = 0; }
 };
 
@@ -534,7 +534,7 @@ union UReg_HID4
 	};
 	u32 Hex;
 
-	UReg_HID4(u32 _hex) { Hex = _hex; }
+	UReg_HID4(u32 hex) { Hex = hex; }
 	UReg_HID4()         { Hex = 0; }
 };
 
@@ -597,7 +597,7 @@ union UReg_WPAR
 	};
 	u32 Hex;
 
-	UReg_WPAR(u32 _hex) { Hex = _hex; }
+	UReg_WPAR(u32 hex) { Hex = hex; }
 	UReg_WPAR()         { Hex = 0; }
 };
 
@@ -611,7 +611,7 @@ union UReg_DMAU
 	};
 	u32 Hex;
 
-	UReg_DMAU(u32 _hex) { Hex = _hex; }
+	UReg_DMAU(u32 hex) { Hex = hex; }
 	UReg_DMAU()         { Hex = 0; }
 };
 
@@ -628,7 +628,7 @@ union UReg_DMAL
 	};
 	u32 Hex;
 
-	UReg_DMAL(u32 _hex) { Hex = _hex; }
+	UReg_DMAL(u32 hex) { Hex = hex; }
 	UReg_DMAL()         { Hex = 0; }
 };
 
@@ -644,7 +644,7 @@ union UReg_BAT_Up
 	};
 	u32 Hex;
 
-	UReg_BAT_Up(u32 _hex) { Hex = _hex; }
+	UReg_BAT_Up(u32 hex) { Hex = hex; }
 	UReg_BAT_Up()         { Hex = 0; }
 };
 
@@ -660,7 +660,7 @@ union UReg_BAT_Lo
 	};
 	u32 Hex;
 
-	UReg_BAT_Lo(u32 _hex) { Hex = _hex; }
+	UReg_BAT_Lo(u32 hex) { Hex = hex; }
 	UReg_BAT_Lo()         { Hex = 0; }
 };
 

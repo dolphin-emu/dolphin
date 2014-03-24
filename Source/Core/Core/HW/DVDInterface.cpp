@@ -78,7 +78,7 @@ union UDISR
 		u32            : 25;
 	};
 	UDISR() {Hex = 0;}
-	UDISR(u32 _hex) {Hex = _hex;}
+	UDISR(u32 hex) {Hex = hex;}
 };
 
 // DI Cover Register
@@ -93,7 +93,7 @@ union UDICVR
 		u32            : 29;
 	};
 	UDICVR() {Hex = 0;}
-	UDICVR(u32 _hex) {Hex = _hex;}
+	UDICVR(u32 hex) {Hex = hex;}
 };
 
 union UDICMDBUF
@@ -175,7 +175,7 @@ union UDICFG
 		u32        : 24;
 	};
 	UDICFG() {Hex = 0;}
-	UDICFG(u32 _hex) {Hex = _hex;}
+	UDICFG(u32 hex) {Hex = hex;}
 };
 
 
@@ -215,7 +215,7 @@ void EjectDiscCallback(u64 userdata, int cyclesLate);
 void InsertDiscCallback(u64 userdata, int cyclesLate);
 
 void UpdateInterrupts();
-void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt);
+void GenerateDIInterrupt(DI_InterruptType DVDInterrupt);
 void ExecuteCommand(UDICR& _DICR);
 
 void DoState(PointerWrap &p)
@@ -279,9 +279,9 @@ void Shutdown()
 {
 }
 
-void SetDiscInside(bool _DiscInside)
+void SetDiscInside(bool DiscInside)
 {
-	g_bDiscInside = _DiscInside;
+	g_bDiscInside = DiscInside;
 }
 
 bool IsDiscInside()
@@ -304,9 +304,9 @@ void EjectDiscCallback(u64 userdata, int cyclesLate)
 void InsertDiscCallback(u64 userdata, int cyclesLate)
 {
 	std::string& SavedFileName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
-	std::string *_FileName = (std::string *)userdata;
+	std::string *FileName = (std::string *)userdata;
 
-	if (!VolumeHandler::SetVolumeName(*_FileName))
+	if (!VolumeHandler::SetVolumeName(*FileName))
 	{
 		// Put back the old one
 		VolumeHandler::SetVolumeName(SavedFileName);
@@ -314,14 +314,14 @@ void InsertDiscCallback(u64 userdata, int cyclesLate)
 	}
 	SetLidOpen(false);
 	SetDiscInside(VolumeHandler::IsValid());
-	delete _FileName;
+	delete FileName;
 }
 
 void ChangeDisc(const std::string& newFileName)
 {
-	std::string* _FileName = new std::string(newFileName);
+	std::string* FileName = new std::string(newFileName);
 	CoreTiming::ScheduleEvent_Threadsafe(0, ejectDisc);
-	CoreTiming::ScheduleEvent_Threadsafe(500000000, insertDisc, (u64)_FileName);
+	CoreTiming::ScheduleEvent_Threadsafe(500000000, insertDisc, (u64)FileName);
 	if (Movie::IsRecordingInput())
 	{
 		Movie::g_bDiscChange = true;
@@ -335,9 +335,9 @@ void ChangeDisc(const std::string& newFileName)
 	}
 }
 
-void SetLidOpen(bool _bOpen)
+void SetLidOpen(bool bOpen)
 {
-	m_DICVR.CVR = _bOpen ? 1 : 0;
+	m_DICVR.CVR = bOpen ? 1 : 0;
 
 	GenerateDIInterrupt(INT_CVRINT);
 }
@@ -352,31 +352,31 @@ void ClearCoverInterrupt()
 	m_DICVR.CVRINT = 0;
 }
 
-bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
+bool DVDRead(u32 iDVDOffset, u32 iRamAddress, u32 iLength)
 {
 	// We won't need the crit sec when DTK streaming has been rewritten correctly.
 	std::lock_guard<std::mutex> lk(dvdread_section);
-	return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
+	return VolumeHandler::ReadToPtr(Memory::GetPointer(iRamAddress), iDVDOffset, iLength);
 }
 
-bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
+bool DVDReadADPCM(u8* pDestBuffer, u32 iNumSamples)
 {
-	_iNumSamples &= ~31;
+	iNumSamples &= ~31;
 
 	if (AudioPos == 0)
 	{
-		memset(_pDestBuffer, 0, _iNumSamples); // probably __AI_SRC_INIT :P
+		memset(pDestBuffer, 0, iNumSamples); // probably __AI_SRC_INIT :P
 	}
 	else
 	{
 		std::lock_guard<std::mutex> lk(dvdread_section);
-		VolumeHandler::ReadToPtr(_pDestBuffer, AudioPos, _iNumSamples);
+		VolumeHandler::ReadToPtr(pDestBuffer, AudioPos, iNumSamples);
 	}
 
 	// loop check
 	if (g_bStream)
 	{
-		AudioPos += _iNumSamples;
+		AudioPos += iNumSamples;
 
 		if (AudioPos >= CurrentStart + CurrentLength)
 		{
@@ -519,9 +519,9 @@ void UpdateInterrupts()
 	CoreTiming::ForceExceptionCheck(50);
 }
 
-void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
+void GenerateDIInterrupt(DI_InterruptType DVDInterrupt)
 {
-	switch (_DVDInterrupt)
+	switch (DVDInterrupt)
 	{
 	case INT_DEINT:  m_DISR.DEINT   = 1; break;
 	case INT_TCINT:  m_DISR.TCINT   = 1; break;

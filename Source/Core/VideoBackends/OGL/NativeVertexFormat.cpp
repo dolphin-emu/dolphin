@@ -27,7 +27,6 @@ NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
 
 GLVertexFormat::GLVertexFormat()
 {
-
 }
 
 GLVertexFormat::~GLVertexFormat()
@@ -50,19 +49,25 @@ static void SetPointer(u32 attrib, u32 stride, const AttributeFormat &format)
 
 	glEnableVertexAttribArray(attrib);
 	if (format.integer)
+	{
 		glVertexAttribIPointer(attrib, format.components, VarToGL(format.type), stride, (u8*)nullptr + format.offset);
+	}
 	else
+	{
 		glVertexAttribPointer(attrib, format.components, VarToGL(format.type), true, stride, (u8*)nullptr + format.offset);
+	}
 }
 
-void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
+void GLVertexFormat::Initialize(const PortableVertexDeclaration& _vtx_decl)
 {
 	this->vtx_decl = _vtx_decl;
 	vertex_stride = vtx_decl.stride;
 
 	// We will not allow vertex components causing uneven strides.
 	if (vertex_stride & 3)
+	{
 		PanicAlert("Uneven vertex stride: %i", vertex_stride);
+	}
 
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
 
@@ -75,15 +80,18 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	SetPointer(SHADER_POSITION_ATTRIB, vertex_stride, vtx_decl.position);
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		SetPointer(SHADER_NORM0_ATTRIB+i, vertex_stride, vtx_decl.normals[i]);
 	}
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++)
+	{
 		SetPointer(SHADER_COLOR0_ATTRIB+i, vertex_stride, vtx_decl.colors[i]);
 	}
 
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 8; i++)
+	{
 		SetPointer(SHADER_TEXTURE0_ATTRIB+i, vertex_stride, vtx_decl.texcoords[i]);
 	}
 
@@ -92,7 +100,8 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	vm->m_last_vao = VAO;
 }
 
-void GLVertexFormat::SetupVertexPointers() {
+void GLVertexFormat::SetupVertexPointers()
+{
 }
 
 }

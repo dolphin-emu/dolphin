@@ -41,12 +41,12 @@ void cInterfaceGLX::Swap()
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceGLX::Create(void *&window_handle)
 {
-	int _tx, _ty, _twidth, _theight;
-	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
+	int tx, ty, twidth, theight;
+	Host_GetRenderWindowSize(tx, ty, twidth, theight);
 
 	// Control window size and picture scaling
-	s_backbuffer_width = _twidth;
-	s_backbuffer_height = _theight;
+	s_backbuffer_width = twidth;
+	s_backbuffer_height = theight;
 
 	int glxMajorVersion, glxMinorVersion;
 
@@ -113,10 +113,10 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		return false;
 	}
 
-	GLWin.x = _tx;
-	GLWin.y = _ty;
-	GLWin.width = _twidth;
-	GLWin.height = _theight;
+	GLWin.x = tx;
+	GLWin.y = ty;
+	GLWin.width = twidth;
+	GLWin.height = theight;
 
 	XWindow.CreateXWindow();
 	window_handle = (void *)GLWin.win;

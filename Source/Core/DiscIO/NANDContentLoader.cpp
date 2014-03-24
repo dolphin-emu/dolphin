@@ -52,11 +52,11 @@ void CSharedContent::UpdateLocation()
 CSharedContent::~CSharedContent()
 {}
 
-std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
+std::string CSharedContent::GetFilenameFromSHA1(const u8* pHash)
 {
 	for (auto& Element : m_Elements)
 	{
-		if (memcmp(_pHash, Element.SHA1Hash, 20) == 0)
+		if (memcmp(pHash, Element.SHA1Hash, 20) == 0)
 		{
 			char szFilename[1024];
 			sprintf(szFilename,  "%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX).c_str(),
@@ -68,16 +68,16 @@ std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
 	return "unk";
 }
 
-std::string CSharedContent::AddSharedContent(const u8* _pHash)
+std::string CSharedContent::AddSharedContent(const u8* pHash)
 {
-	std::string szFilename = GetFilenameFromSHA1(_pHash);
+	std::string szFilename = GetFilenameFromSHA1(pHash);
 	if (strcasecmp(szFilename.c_str(), "unk") == 0)
 	{
 		char tempFilename[1024], c_ID[9];
 		SElement Element;
 		sprintf(c_ID, "%08x", lastID);
 		memcpy(Element.FileName, c_ID, 8);
-		memcpy(Element.SHA1Hash, _pHash, 20);
+		memcpy(Element.SHA1Hash, pHash, 20);
 		m_Elements.push_back(Element);
 
 		File::CreateFullPath(contentMap);
@@ -98,7 +98,7 @@ class CNANDContentLoader : public INANDContentLoader
 {
 public:
 
-	CNANDContentLoader(const std::string& _rName);
+	CNANDContentLoader(const std::string& rName);
 
 	virtual ~CNANDContentLoader();
 
@@ -108,7 +108,7 @@ public:
 	u16 GetIosVersion() const override { return m_IosVersion; }
 	u32 GetBootIndex() const override  { return m_BootIndex; }
 	size_t GetContentSize() const override { return m_Content.size(); }
-	const SNANDContent* GetContentByIndex(int _Index) const override;
+	const SNANDContent* GetContentByIndex(int Index) const override;
 	const u8* GetTMDView() const override { return m_TMDView; }
 	const u8* GetTMDHeader() const override { return m_TMDHeader; }
 	u32 GetTIKSize() const override { return m_TIKSize; }
@@ -140,9 +140,9 @@ private:
 	std::vector<SNANDContent> m_Content;
 
 
-	bool Initialize(const std::string& _rName);
+	bool Initialize(const std::string& rName);
 
-	void AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest);
+	void AESDecode(u8* pKey, u8* _IV, u8* pSrc, u32 Size, u8* pDest);
 
 	void GetKeyFromTicket(u8* pTicket, u8* pTicketKey);
 };
@@ -150,7 +150,7 @@ private:
 
 
 
-CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
+CNANDContentLoader::CNANDContentLoader(const std::string& rName)
 	: m_Valid(false)
 	, m_isWAD(false)
 	, m_TitleID(-1)
@@ -159,7 +159,7 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	, m_TIKSize(0)
 	, m_TIK(nullptr)
 {
-	m_Valid = Initialize(_rName);
+	m_Valid = Initialize(rName);
 }
 
 CNANDContentLoader::~CNANDContentLoader()
@@ -176,11 +176,11 @@ CNANDContentLoader::~CNANDContentLoader()
 	}
 }
 
-const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
+const SNANDContent* CNANDContentLoader::GetContentByIndex(int Index) const
 {
 	for (auto& Content : m_Content)
 	{
-		if (Content.m_Index == _Index)
+		if (Content.m_Index == Index)
 		{
 			return &Content;
 		}
@@ -188,12 +188,12 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 	return nullptr;
 }
 
-bool CNANDContentLoader::Initialize(const std::string& _rName)
+bool CNANDContentLoader::Initialize(const std::string& rName)
 {
-	if (_rName.empty())
+	if (rName.empty())
 		return false;
-	m_Path = _rName;
-	WiiWAD Wad(_rName);
+	m_Path = rName;
+	WiiWAD Wad(rName);
 	u8* pDataApp = nullptr;
 	u8* pTMD = nullptr;
 	u8 DecryptTitleKey[16];
@@ -293,12 +293,12 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 	delete [] pTMD;
 	return true;
 }
-void CNANDContentLoader::AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
+void CNANDContentLoader::AESDecode(u8* pKey, u8* _IV, u8* pSrc, u32 Size, u8* pDest)
 {
 	aes_context AES_ctx;
 
-	aes_setkey_dec(&AES_ctx, _pKey, 128);
-	aes_crypt_cbc(&AES_ctx, AES_DECRYPT, _Size, _IV, _pSrc, _pDest);
+	aes_setkey_dec(&AES_ctx, pKey, 128);
+	aes_crypt_cbc(&AES_ctx, AES_DECRYPT, Size, _IV, pSrc, pDest);
 }
 
 void CNANDContentLoader::GetKeyFromTicket(u8* pTicket, u8* pTicketKey)
@@ -332,36 +332,36 @@ CNANDContentManager::~CNANDContentManager()
 	m_Map.clear();
 }
 
-const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& _rName, bool forceReload)
+const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& rName, bool forceReload)
 {
-	CNANDContentMap::iterator lb = m_Map.lower_bound(_rName);
+	CNANDContentMap::iterator lb = m_Map.lower_bound(rName);
 
-	if (lb == m_Map.end() || (m_Map.key_comp()(_rName, lb->first)))
+	if (lb == m_Map.end() || (m_Map.key_comp()(rName, lb->first)))
 	{
-		m_Map.insert(lb, CNANDContentMap::value_type(_rName, new CNANDContentLoader(_rName)));
+		m_Map.insert(lb, CNANDContentMap::value_type(rName, new CNANDContentLoader(rName)));
 	}
 	else
 	{
 		if (!lb->second->IsValid() || forceReload)
 		{
 			delete lb->second;
-			lb->second = new CNANDContentLoader(_rName);
+			lb->second = new CNANDContentLoader(rName);
 		}
 	}
-	return *m_Map[_rName];
+	return *m_Map[rName];
 }
 
-const INANDContentLoader& CNANDContentManager::GetNANDLoader(u64 _titleId, bool forceReload)
+const INANDContentLoader& CNANDContentManager::GetNANDLoader(u64 titleId, bool forceReload)
 {
-	std::string _rName = Common::GetTitleContentPath(_titleId);
-	return GetNANDLoader(_rName, forceReload);
+	std::string rName = Common::GetTitleContentPath(titleId);
+	return GetNANDLoader(rName, forceReload);
 }
-bool CNANDContentManager::RemoveTitle(u64 _titleID)
+bool CNANDContentManager::RemoveTitle(u64 titleID)
 {
-	if (!GetNANDLoader(_titleID).IsValid())
+	if (!GetNANDLoader(titleID).IsValid())
 		return false;
-	GetNANDLoader(_titleID).RemoveTitle();
-	return GetNANDLoader(_titleID, true).IsValid();
+	GetNANDLoader(titleID).RemoveTitle();
+	return GetNANDLoader(titleID, true).IsValid();
 }
 
 void CNANDContentLoader::RemoveTitle() const
@@ -418,11 +418,11 @@ void cUIDsys::UpdateLocation()
 cUIDsys::~cUIDsys()
 {}
 
-u32 cUIDsys::GetUIDFromTitle(u64 _Title)
+u32 cUIDsys::GetUIDFromTitle(u64 Title)
 {
 	for (auto& Element : m_Elements)
 	{
-		if (Common::swap64(_Title) == *(u64*)&(Element.titleID))
+		if (Common::swap64(Title) == *(u64*)&(Element.titleID))
 		{
 			return Common::swap32(Element.UID);
 		}
@@ -430,16 +430,16 @@ u32 cUIDsys::GetUIDFromTitle(u64 _Title)
 	return 0;
 }
 
-void cUIDsys::AddTitle(u64 _TitleID)
+void cUIDsys::AddTitle(u64 TitleID)
 {
-	if (GetUIDFromTitle(_TitleID))
+	if (GetUIDFromTitle(TitleID))
 	{
-		INFO_LOG(DISCIO, "Title %08x%08x, already exists in uid.sys", (u32)(_TitleID >> 32), (u32)_TitleID);
+		INFO_LOG(DISCIO, "Title %08x%08x, already exists in uid.sys", (u32)(TitleID >> 32), (u32)TitleID);
 		return;
 	}
 
 	SElement Element;
-	*(u64*)&(Element.titleID) = Common::swap64(_TitleID);
+	*(u64*)&(Element.titleID) = Common::swap64(TitleID);
 	*(u32*)&(Element.UID) = Common::swap32(lastUID++);
 	m_Elements.push_back(Element);
 
@@ -450,13 +450,13 @@ void cUIDsys::AddTitle(u64 _TitleID)
 		ERROR_LOG(DISCIO, "fwrite failed");
 }
 
-void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
+void cUIDsys::GetTitleIDs(std::vector<u64>& TitleIDs, bool owned)
 {
 	for (auto& Element : m_Elements)
 	{
-		if ((_owned && Common::CheckTitleTIK(Common::swap64(Element.titleID)))  ||
-			(!_owned && Common::CheckTitleTMD(Common::swap64(Element.titleID))))
-			_TitleIDs.push_back(Common::swap64(Element.titleID));
+		if ((owned && Common::CheckTitleTIK(Common::swap64(Element.titleID)))  ||
+			(!owned && Common::CheckTitleTMD(Common::swap64(Element.titleID))))
+			TitleIDs.push_back(Common::swap64(Element.titleID));
 	}
 }
 

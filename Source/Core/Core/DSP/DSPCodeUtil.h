@@ -13,7 +13,7 @@ bool Assemble(const std::string& text, std::vector<u16> &code, bool force = fals
 bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &text);
 bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2);
 void GenRandomCode(u32 size, std::vector<u16> &code);
-void CodeToHeader(const std::vector<u16> &code, std::string _filename,
+void CodeToHeader(const std::vector<u16> &code, std::string filename,
 				  const char *name, std::string &header);
 void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string> *filenames,
 				   u32 numCodes, const char *name, std::string &header);

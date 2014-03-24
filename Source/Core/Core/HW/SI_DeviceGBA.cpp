@@ -123,14 +123,14 @@ void GBASockServer::Transfer(char* si_buffer)
 		si_buffer[i ^ 3] = current_data[i];
 }
 
-CSIDevice_GBA::CSIDevice_GBA(SIDevices _device, int _iDeviceNumber)
-	: ISIDevice(_device, _iDeviceNumber)
+CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int iDeviceNumber)
+	: ISIDevice(device, iDeviceNumber)
 	, GBASockServer()
 {
 }
 
-int CSIDevice_GBA::RunBuffer(u8* _pBuffer, int _iLength)
+int CSIDevice_GBA::RunBuffer(u8* pBuffer, int iLength)
 {
-	Transfer((char*)_pBuffer);
-	return _iLength;
+	Transfer((char*)pBuffer);
+	return iLength;
 }

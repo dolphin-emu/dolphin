@@ -41,8 +41,8 @@ void DoState(PointerWrap &p);
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void UpdateInterrupts(u64 userdata = 0, int cyclesLate = 0);
-void GenerateAck(u32 _Address);
-void GenerateReply(u32 _Address);
+void GenerateAck(u32 Address);
+void GenerateReply(u32 Address);
 
 bool IsReady();
 

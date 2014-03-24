@@ -16,23 +16,23 @@
 #endif
 
 
-CFileSearch::CFileSearch(const CFileSearch::XStringVector& _rSearchStrings, const CFileSearch::XStringVector& _rDirectories)
+CFileSearch::CFileSearch(const CFileSearch::XStringVector& rSearchStrings, const CFileSearch::XStringVector& rDirectories)
 {
 	// Reverse the loop order for speed?
-	for (auto& _rSearchString : _rSearchStrings)
+	for (auto& rSearchString : rSearchStrings)
 	{
-		for (auto& _rDirectory : _rDirectories)
+		for (auto& rDirectory : rDirectories)
 		{
-			FindFiles(_rSearchString, _rDirectory);
+			FindFiles(rSearchString, rDirectory);
 		}
 	}
 }
 
 
-void CFileSearch::FindFiles(const std::string& _searchString, const std::string& _strPath)
+void CFileSearch::FindFiles(const std::string& searchString, const std::string& strPath)
 {
 	std::string GCMSearchPath;
-	BuildCompleteFilename(GCMSearchPath, _strPath, _searchString);
+	BuildCompleteFilename(GCMSearchPath, strPath, searchString);
 #ifdef _WIN32
 	WIN32_FIND_DATA findData;
 	HANDLE FindFirst = FindFirstFile(UTF8ToTStr(GCMSearchPath).c_str(), &findData);
@@ -46,7 +46,7 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 			if (findData.cFileName[0] != '.')
 			{
 				std::string strFilename;
-				BuildCompleteFilename(strFilename, _strPath, TStrToUTF8(findData.cFileName));
+				BuildCompleteFilename(strFilename, strPath, TStrToUTF8(findData.cFileName));
 				m_FileNames.push_back(strFilename);
 			}
 
@@ -59,7 +59,7 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 #else
 	// TODO: super lame/broken
 
-	auto end_match(_searchString);
+	auto end_match(searchString);
 
 	// assuming we have a "*.blah"-like pattern
 	if (!end_match.empty() && end_match[0] == '*')
@@ -69,7 +69,7 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 	if (end_match == ".*")
 		end_match.clear();
 
-	DIR* dir = opendir(_strPath.c_str());
+	DIR* dir = opendir(strPath.c_str());
 
 	if (!dir)
 		return;
@@ -83,10 +83,10 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 		    std::equal(end_match.rbegin(), end_match.rend(), found.rbegin()))
 		{
 			std::string full_name;
-			if (_strPath.c_str()[_strPath.size()-1] == DIR_SEP_CHR)
-				full_name = _strPath + found;
+			if (strPath.c_str()[strPath.size()-1] == DIR_SEP_CHR)
+				full_name = strPath + found;
 			else
-				full_name = _strPath + DIR_SEP + found;
+				full_name = strPath + DIR_SEP + found;
 
 			m_FileNames.push_back(full_name);
 		}

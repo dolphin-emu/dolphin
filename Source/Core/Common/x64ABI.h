@@ -19,7 +19,7 @@
 
 // Windows 64-bit
 // * 4-reg "fastcall" variant, very new-skool stack handling
-// * Callee moves stack pointer, to make room for shadow regs for the biggest function _it itself calls_
+// * Callee moves stack pointer, to make room for shadow regs for the biggest function it itself calls_
 // * Parameters passed in RCX, RDX, ... further parameters are MOVed into the allocated stack space.
 // Scratch:      RAX RCX RDX R8 R9 R10 R11
 // Callee-save:  RBX RSI RDI RBP R12 R13 R14 R15

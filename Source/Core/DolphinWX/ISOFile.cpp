@@ -39,8 +39,8 @@ static const u32 CACHE_REVISION = 0x115;
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
 
-GameListItem::GameListItem(const std::string& _rFileName)
-	: m_FileName(_rFileName)
+GameListItem::GameListItem(const std::string& rFileName)
+	: m_FileName(rFileName)
 	, m_emu_state(0)
 	, m_FileSize(0)
 	, m_Revision(0)
@@ -55,7 +55,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	}
 	else
 	{
-		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
+		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(rFileName);
 
 		if (pVolume != nullptr)
 		{
@@ -73,7 +73,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
-			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName);
+			m_BlobCompressed = DiscIO::IsCompressedBlob(rFileName);
 			m_IsDiscTwo = pVolume->IsDiscTwo();
 			m_Revision = pVolume->GetRevision();
 
@@ -258,14 +258,14 @@ std::string GameListItem::GetBannerName(int _index) const
 }
 
 // (-1 = Japanese, 0 = English, etc)?
-std::string GameListItem::GetName(int _index) const
+std::string GameListItem::GetName(int index) const
 {
 	// Prefer name from banner, fallback to name from volume, fallback to filename
 
-	std::string name = GetBannerName(_index);
+	std::string name = GetBannerName(index);
 
 	if (name.empty())
-		name = GetVolumeName(_index);
+		name = GetVolumeName(index);
 
 	if (name.empty())
 	{

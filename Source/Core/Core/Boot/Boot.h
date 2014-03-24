@@ -41,9 +41,9 @@ public:
 	                        std::string* writable_map_file);
 
 private:
-	static void RunFunction(u32 _iAddr);
+	static void RunFunction(u32 iAddr);
 
-	static void UpdateDebugger_MapLoaded(const char* _gameID = nullptr);
+	static void UpdateDebugger_MapLoaded(const char* gameID = nullptr);
 
 	static bool LoadMapFromFilename();
 	static bool Boot_ELF(const std::string& filename);
@@ -51,9 +51,9 @@ private:
 
 	static bool EmulatedBS2_GC();
 	static bool EmulatedBS2_Wii();
-	static bool EmulatedBS2(bool _bIsWii);
-	static bool Load_BS2(const std::string& _rBootROMFilename);
-	static void Load_FST(bool _bIsWii);
+	static bool EmulatedBS2(bool bIsWii);
+	static bool Load_BS2(const std::string& rBootROMFilename);
+	static void Load_FST(bool bIsWii);
 
 	static bool SetupWiiMemory(IVolume::ECountry country);
 };

@@ -11,7 +11,7 @@ class wxWindow;
 class UDPConfigDiag : public wxDialog
 {
 public:
-	UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp);
+	UDPConfigDiag(wxWindow * const parent, UDPWrapper * wrp);
 private:
 	UDPWrapper * wrp;
 	void ChangeUpdateFlags(wxCommandEvent & event);

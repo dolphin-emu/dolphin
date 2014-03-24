@@ -140,17 +140,17 @@ void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 	});
 }
 
-void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const std::string& _title)
+void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* pData, size_t Size, const std::string& title)
 {
-	GENERIC_LOG(type, LogTypes::LDEBUG, "%s", _title.c_str());
-	for (u32 j = 0; j < _Size;)
+	GENERIC_LOG(type, LogTypes::LDEBUG, "%s", title.c_str());
+	for (u32 j = 0; j < Size;)
 	{
 		std::string hex_line = "";
 		for (int i = 0; i < 16; i++)
 		{
-			hex_line += StringFromFormat("%02x ", _pData[j++]);
+			hex_line += StringFromFormat("%02x ", pData[j++]);
 
-			if (j >= _Size)
+			if (j >= Size)
 				break;
 		}
 		GENERIC_LOG(type, LogTypes::LDEBUG, "   Data: %s", hex_line.c_str());

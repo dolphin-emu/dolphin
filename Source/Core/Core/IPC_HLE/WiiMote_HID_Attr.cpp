@@ -201,28 +201,28 @@ static u8 packet4_0x10001[] = {
 
 
 
-const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size)
+const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& size)
 {
 	if (serviceHandle == 0x10000)
 	{
 		if (cont == 0)
 		{
-			_size = sizeof(packet1);
+			size = sizeof(packet1);
 			return packet1;
 		}
 		else if (cont == 0x76)
 		{
-			_size = sizeof(packet2);
+			size = sizeof(packet2);
 			return packet2;
 		}
 		else if (cont == 0xec)
 		{
-			_size = sizeof(packet3);
+			size = sizeof(packet3);
 			return packet3;
 		}
 		else if (cont == 0x162)
 		{
-			_size = sizeof(packet4);
+			size = sizeof(packet4);
 			return packet4;
 		}
 	}
@@ -230,7 +230,7 @@ const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size)
 	if (serviceHandle == 0x10001)
 	{
 		_dbg_assert_(WII_IPC_WIIMOTE, cont == 0x00);
-		_size = sizeof(packet4_0x10001);
+		size = sizeof(packet4_0x10001);
 		return packet4_0x10001;
 	}
 

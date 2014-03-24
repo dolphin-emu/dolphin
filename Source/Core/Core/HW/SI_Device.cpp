@@ -11,17 +11,17 @@
 
 
 // --- interface ISIDevice ---
-int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
+int ISIDevice::RunBuffer(u8* pBuffer, int iLength)
 {
 #ifdef _DEBUG
-	DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", ISIDevice::m_iDeviceNumber,_iLength);
+	DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", ISIDevice::m_iDeviceNumber,iLength);
 
 	char szTemp[256] = "";
 	int num = 0;
-	while (num < _iLength)
+	while (num < iLength)
 	{
 		char szTemp2[128] = "";
-		sprintf(szTemp2, "0x%02x ", _pBuffer[num^3]);
+		sprintf(szTemp2, "0x%02x ", pBuffer[num^3]);
 		strcat(szTemp, szTemp2);
 		num++;
 
@@ -41,18 +41,18 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 class CSIDevice_Null : public ISIDevice
 {
 public:
-	CSIDevice_Null(SIDevices device, int _iDeviceNumber) : ISIDevice(device, _iDeviceNumber) {}
+	CSIDevice_Null(SIDevices device, int iDeviceNumber) : ISIDevice(device, iDeviceNumber) {}
 	virtual ~CSIDevice_Null() {}
 
-	int RunBuffer(u8* _pBuffer, int _iLength) override {
-		reinterpret_cast<u32*>(_pBuffer)[0] = SI_ERROR_NO_RESPONSE;
+	int RunBuffer(u8* pBuffer, int iLength) override {
+		reinterpret_cast<u32*>(pBuffer)[0] = SI_ERROR_NO_RESPONSE;
 		return 4;
 	}
-	bool GetData(u32& _Hi, u32& _Low) override {
-		_Hi = 0x80000000;
+	bool GetData(u32& Hi, u32& Low) override {
+		Hi = 0x80000000;
 		return true;
 	}
-	void SendCommand(u32 _Cmd, u8 _Poll) override {}
+	void SendCommand(u32 Cmd, u8 Poll) override {}
 };
 
 

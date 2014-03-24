@@ -107,7 +107,7 @@ union UVIVerticalTimingRegister
 		u16 ACV : 10; // Active video in lines per field (seems always zero)
 		u16     : 2;
 	};
-	UVIVerticalTimingRegister(u16 _hex) { Hex = _hex;}
+	UVIVerticalTimingRegister(u16 hex) { Hex = hex;}
 	UVIVerticalTimingRegister() { Hex = 0;}
 };
 
@@ -125,7 +125,7 @@ union UVIDisplayControlRegister
 		u16 FMT : 2; // 0: NTSC, 1: PAL, 2: MPAL, 3: Debug
 		u16     : 6;
 	};
-	UVIDisplayControlRegister(u16 _hex) { Hex = _hex;}
+	UVIDisplayControlRegister(u16 hex) { Hex = hex;}
 	UVIDisplayControlRegister() { Hex = 0;}
 };
 
@@ -252,7 +252,7 @@ union UVIHorizontalScaling
 		u16 HS_EN : 1; // Enable Horizontal Scaling
 		u16       : 3;
 	};
-	UVIHorizontalScaling(u16 _hex) { Hex = _hex;}
+	UVIHorizontalScaling(u16 hex) { Hex = hex;}
 	UVIHorizontalScaling() { Hex = 0;}
 };
 
@@ -320,7 +320,7 @@ union UVIDTVStatus
 	extern u32 TargetRefreshRate;
 
 	// For BS2 HLE
-	void Preset(bool _bNTSC);
+	void Preset(bool bNTSC);
 
 	void Init();
 	void SetRegionReg(char region);

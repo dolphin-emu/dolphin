@@ -14,22 +14,22 @@ class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
 {
 public:
 
-	CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_es(u32 DeviceID, const std::string& rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_es();
 
-	void LoadWAD(const std::string& _rContentFile);
+	void LoadWAD(const std::string& rContentFile);
 
 	void OpenInternal();
 
 	virtual void DoState(PointerWrap& p) override;
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual bool Open(u32 CommandAddress, u32 Mode) override;
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual bool Close(u32 CommandAddress, bool bForce) override;
 
-	virtual bool IOCtlV(u32 _CommandAddress) override;
-	static u32 ES_DIVerify(u8 *_pTMD, u32 _sz);
+	virtual bool IOCtlV(u32 CommandAddress) override;
+	static u32 ES_DIVerify(u8 *pTMD, u32 sz);
 
 	// This should only be cleared on power reset
 	static std::string m_ContentFile;
@@ -138,10 +138,10 @@ private:
 
 	u64 GetCurrentTitleID() const;
 
-	const DiscIO::INANDContentLoader& AccessContentDevice(u64 _TitleID);
+	const DiscIO::INANDContentLoader& AccessContentDevice(u64 TitleID);
 	u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 
-	bool IsValid(u64 _TitleID) const;
+	bool IsValid(u64 TitleID) const;
 
 	typedef struct ecc_cert_t
 	{

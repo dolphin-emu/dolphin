@@ -164,9 +164,9 @@ void UpdateException()
 		Common::AtomicAnd(PowerPC::ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
 }
 
-static const char *Debug_GetInterruptName(u32 _causemask)
+static const char *Debug_GetInterruptName(u32 causemask)
 {
-	switch (_causemask)
+	switch (causemask)
 	{
 	case INT_CAUSE_PI:         return "INT_CAUSE_PI";
 	case INT_CAUSE_DI:         return "INT_CAUSE_DI";
@@ -188,32 +188,32 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 	}
 }
 
-void SetInterrupt(u32 _causemask, bool _bSet)
+void SetInterrupt(u32 causemask, bool bSet)
 {
 	// TODO(ector): add sanity check that current thread id is cpu thread
 
-	if (_bSet && !(m_InterruptCause & _causemask))
+	if (bSet && !(m_InterruptCause & causemask))
 	{
-		DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (set)", Debug_GetInterruptName(_causemask));
+		DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (set)", Debug_GetInterruptName(causemask));
 	}
 
-	if (!_bSet && (m_InterruptCause & _causemask))
+	if (!bSet && (m_InterruptCause & causemask))
 	{
-		DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (clear)", Debug_GetInterruptName(_causemask));
+		DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (clear)", Debug_GetInterruptName(causemask));
 	}
 
-	if (_bSet)
-		Common::AtomicOr(m_InterruptCause, _causemask);
+	if (bSet)
+		Common::AtomicOr(m_InterruptCause, causemask);
 	else
-		Common::AtomicAnd(m_InterruptCause, ~_causemask);// is there any reason to have this possibility?
+		Common::AtomicAnd(m_InterruptCause, ~causemask);// is there any reason to have this possibility?
 										// F|RES: i think the hw devices reset the interrupt in the PI to 0
 										// if the interrupt cause is eliminated. that isnt done by software (afaik)
 	UpdateException();
 }
 
-void SetResetButton(bool _bSet)
+void SetResetButton(bool bSet)
 {
-	if (_bSet)
+	if (bSet)
 		Common::AtomicAnd(m_InterruptCause, ~INT_CAUSE_RST_BUTTON);
 	else
 		Common::AtomicOr(m_InterruptCause, INT_CAUSE_RST_BUTTON);

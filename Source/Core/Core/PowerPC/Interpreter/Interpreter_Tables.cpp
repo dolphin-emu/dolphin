@@ -4,12 +4,12 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 
-typedef void (*_Instruction) (UGeckoInstruction instCode);
+typedef void (*Instruction) (UGeckoInstruction instCode);
 
 struct GekkoOPTemplate
 {
 	int opcode;
-	_Instruction Inst;
+	Instruction Inst;
 	GekkoOPInfo opinfo;
 };
 

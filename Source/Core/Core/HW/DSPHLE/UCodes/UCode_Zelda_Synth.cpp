@@ -10,11 +10,11 @@
 #include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* Buffer, int Size)
 {
-	float _ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
+	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (PB.RatioInt << 16);
-	s64 ratio = (s64)((_ratio * _ratioFactor) * 16);
+	s64 ratio = (s64)((_ratio * ratioFactor) * 16);
 	s64 TrueSamplePosition = PB.CurSampleFrac;
 
 	// PB.Format == 0x3 -> Rectangular Wave, 0x0 -> Square Wave
@@ -34,7 +34,7 @@ void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Siz
 		PB.ReachedEnd = 0;
 	}
 
-_lRestart:
+lRestart:
 	if (PB.ReachedEnd)
 	{
 		PB.ReachedEnd = 0;
@@ -55,19 +55,19 @@ _lRestart:
 		}
 	}
 
-	while (i < _Size)
+	while (i < Size)
 	{
 		s16 sample = ((pos[1] & mask) == mask) ? 0xc000 : 0x4000;
 
 		TrueSamplePosition += (ratio >> 16);
 
-		_Buffer[i++] = (s32)sample;
+		Buffer[i++] = (s32)sample;
 
 		(*(u64*)&pos) += ratio;
 		if ((pos[1] + ((PB.CurAddr - PB.StartAddr) >> 1)) >= PB.Length)
 		{
 			PB.ReachedEnd = 1;
-			goto _lRestart;
+			goto lRestart;
 		}
 	}
 
@@ -84,25 +84,25 @@ _lRestart:
 	PB.CurSampleFrac = TrueSamplePosition & 0xFFFF;
 }
 
-void CUCode_Zelda::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void CUCode_Zelda::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* Buffer, int Size)
 {
 	s32 ratio = (s32)ceil((float)PB.RatioInt / 3);
 	s64 pos = PB.CurSampleFrac;
 
-	for (int i = 0; i < _Size; i++)
+	for (int i = 0; i < Size; i++)
 	{
 		pos += ratio;
-		_Buffer[i] = pos & 0xFFFF;
+		Buffer[i] = pos & 0xFFFF;
 	}
 
 	PB.CurSampleFrac = pos & 0xFFFF;
 }
 
-void CUCode_Zelda::RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void CUCode_Zelda::RenderSynth_Constant(ZeldaVoicePB &PB, s32* Buffer, int Size)
 {
 	// TODO: Header, footer
-	for (int i = 0; i < _Size; i++)
-		_Buffer[i] = (s32)PB.RatioInt;
+	for (int i = 0; i < Size; i++)
+		Buffer[i] = (s32)PB.RatioInt;
 }
 
 // A piece of code from LLE so we can see how the wrap register affects the sound
@@ -127,7 +127,7 @@ inline u16 AddValueToReg(u32 ar, s32 ix)
 	return nar;
 }
 
-void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* Buffer, int Size)
 {
 	u16 address;
 
@@ -163,7 +163,7 @@ void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Si
 
 	for (int i = 0; i < 0x50; i++)
 	{
-		_Buffer[i] = m_MiscTable[address];
+		Buffer[i] = m_MiscTable[address];
 
 		ACC0 += PB.RatioInt << 5;
 		address = AddValueToReg(address, ((ACC0 >> 16) & 0xffff));

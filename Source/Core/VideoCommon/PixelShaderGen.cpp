@@ -370,7 +370,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
+		out.Write("\tfloat3 norm0 = normalize(Normal.xyz);\n\n");
 		out.Write("\tfloat3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
 
 		out.Write("\tint4 lacc;\n"

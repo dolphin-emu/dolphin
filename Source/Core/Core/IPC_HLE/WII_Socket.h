@@ -163,7 +163,7 @@ class WiiSocket
 {
 	struct sockop
 	{
-		u32 _CommandAddress;
+		u32 CommandAddress;
 		bool is_ssl;
 		union
 		{
@@ -181,10 +181,13 @@ private:
 	s32 CloseFd();
 	s32 FCntl(u32 cmd, u32 arg);
 
-	void DoSock(u32 _CommandAddress, NET_IOCTL type);
-	void DoSock(u32 _CommandAddress, SSL_IOCTL type);
+	void DoSock(u32 CommandAddress, NET_IOCTL type);
+	void DoSock(u32 CommandAddress, SSL_IOCTL type);
 	void Update(bool read, bool write, bool except);
-	bool IsValid() {return fd >= 0;}
+	bool IsValid()
+	{
+		return fd >= 0;
+	}
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();

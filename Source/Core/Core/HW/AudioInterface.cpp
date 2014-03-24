@@ -87,8 +87,14 @@ enum
 // AI Control Register
 union AICR
 {
-	AICR() { hex = 0;}
-	AICR(u32 _hex) { hex = _hex;}
+	AICR()
+	{
+		hex = 0;
+	}
+	AICR(u32 _hex)
+	{
+		hex = _hex;
+	}
 	struct
 	{
 		u32 PSTAT    : 1;  // sample counter/playback enable
@@ -144,8 +150,8 @@ void DoState(PointerWrap &p)
 
 static void GenerateAudioInterrupt();
 static void UpdateInterrupts();
-static void IncreaseSampleCount(const u32 _uAmount);
-void ReadStreamBlock(s16* _pPCM);
+static void IncreaseSampleCount(const u32 uAmount);
+void ReadStreamBlock(s16* pPCM);
 u64 GetAIPeriod();
 int et_AI;
 
@@ -272,15 +278,15 @@ void GenerateAISInterrupt()
 	GenerateAudioInterrupt();
 }
 
-void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DACSampleRate)
+void Callback_GetSampleRate(unsigned int &AISampleRate, unsigned int &DACSampleRate)
 {
-	_AISampleRate = g_AISSampleRate;
-	_DACSampleRate = g_AIDSampleRate;
+	AISampleRate = g_AISSampleRate;
+	DACSampleRate = g_AIDSampleRate;
 }
 
 // Callback for the disc streaming
 // WARNING - called from audio thread
-unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples, unsigned int _sampleRate)
+unsigned int Callback_GetStreaming(short* pDestBuffer, unsigned int numSamples, unsigned int sampleRate)
 {
 	if (m_Control.PSTAT && !CCPU::IsStepping())
 	{
@@ -289,39 +295,39 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 		const int lvolume = m_Volume.left;
 		const int rvolume = m_Volume.right;
 
-		if (g_AISSampleRate == 48000 && _sampleRate == 32000)
+		if (g_AISSampleRate == 48000 && sampleRate == 32000)
 		{
-			_dbg_assert_msg_(AUDIO_INTERFACE, !(_numSamples & 1), "Number of Samples: %i must be even!", _numSamples);
-			_numSamples = _numSamples * 3 / 2;
+			_dbg_assert_msg_(AUDIO_INTERFACE, !(numSamples & 1), "Number of Samples: %i must be even!", numSamples);
+			numSamples = numSamples * 3 / 2;
 		}
 
 		int pcm_l = 0, pcm_r = 0;
-		for (unsigned int i = 0; i < _numSamples; i++)
+		for (unsigned int i = 0; i < numSamples; i++)
 		{
 			if (pos == 0)
 				ReadStreamBlock(pcm);
 
-			if (g_AISSampleRate == 48000 && _sampleRate == 32000) //downsample 48>32
+			if (g_AISSampleRate == 48000 && sampleRate == 32000) //downsample 48>32
 			{
 				if (i % 3)
 				{
-					pcm_l = (((pcm_l + (int)pcm[pos*2]) / 2  * lvolume) >> 8) + (int)(*_pDestBuffer);
+					pcm_l = (((pcm_l + (int)pcm[pos*2]) / 2  * lvolume) >> 8) + (int)(*pDestBuffer);
 					MathUtil::Clamp(&pcm_l, -32767, 32767);
-					*_pDestBuffer++ = pcm_l;
+					*pDestBuffer++ = pcm_l;
 
-					pcm_r = (((pcm_r + (int)pcm[pos*2+1]) / 2 * rvolume) >> 8) + (int)(*_pDestBuffer);
+					pcm_r = (((pcm_r + (int)pcm[pos*2+1]) / 2 * rvolume) >> 8) + (int)(*pDestBuffer);
 					MathUtil::Clamp(&pcm_r, -32767, 32767);
-					*_pDestBuffer++ = pcm_r;
+					*pDestBuffer++ = pcm_r;
 				}
 				pcm_l = pcm[pos*2];
 				pcm_r = pcm[pos*2+1];
 
 				pos++;
 			}
-			else if (g_AISSampleRate == 32000 && _sampleRate == 48000) //upsample 32>48
+			else if (g_AISSampleRate == 32000 && sampleRate == 48000) //upsample 32>48
 			{
 				//starts with one sample of 0
-				const u32 ratio = (u32)( 65536.0f * 32000.0f / (float)_sampleRate );
+				const u32 ratio = (u32)( 65536.0f * 32000.0f / (float)sampleRate );
 				static u32 frac = 0;
 
 				static s16 l1 = 0;
@@ -339,13 +345,13 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 				pcm_r = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
 
 
-				pcm_l = (pcm_l * lvolume >> 8) + (int)(*_pDestBuffer);
+				pcm_l = (pcm_l * lvolume >> 8) + (int)(*pDestBuffer);
 				MathUtil::Clamp(&pcm_l, -32767, 32767);
-				*_pDestBuffer++ = pcm_l;
+				*pDestBuffer++ = pcm_l;
 
-				pcm_r = (pcm_r * lvolume >> 8) + (int)(*_pDestBuffer);
+				pcm_r = (pcm_r * lvolume >> 8) + (int)(*pDestBuffer);
 				MathUtil::Clamp(&pcm_r, -32767, 32767);
-				*_pDestBuffer++ = pcm_r;
+				*pDestBuffer++ = pcm_r;
 
 				frac += ratio;
 				pos += frac >> 16;
@@ -353,13 +359,13 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 			}
 			else //1:1 no resampling
 			{
-				pcm_l = (((int)pcm[pos*2] * lvolume) >> 8) + (int)(*_pDestBuffer);
+				pcm_l = (((int)pcm[pos*2] * lvolume) >> 8) + (int)(*pDestBuffer);
 				MathUtil::Clamp(&pcm_l, -32767, 32767);
-				*_pDestBuffer++ = pcm_l;
+				*pDestBuffer++ = pcm_l;
 
-				pcm_r = (((int)pcm[pos*2+1] * rvolume) >> 8) + (int)(*_pDestBuffer);
+				pcm_r = (((int)pcm[pos*2+1] * rvolume) >> 8) + (int)(*pDestBuffer);
 				MathUtil::Clamp(&pcm_r, -32767, 32767);
-				*_pDestBuffer++ = pcm_r;
+				*pDestBuffer++ = pcm_r;
 
 				pos++;
 			}
@@ -372,38 +378,38 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 	{
 		// Don't overwrite existed sample data
 		/*
-		for (unsigned int i = 0; i < _numSamples * 2; i++)
+		for (unsigned int i = 0; i < numSamples * 2; i++)
 		{
-			_pDestBuffer[i] = 0; //silence!
+			pDestBuffer[i] = 0; //silence!
 		}
 		*/
 	}
 
-	return _numSamples;
+	return numSamples;
 }
 
 // WARNING - called from audio thread
-void ReadStreamBlock(s16 *_pPCM)
+void ReadStreamBlock(s16 *pPCM)
 {
 	u8 tempADPCM[NGCADPCM::ONE_BLOCK_SIZE];
 	if (DVDInterface::DVDReadADPCM(tempADPCM, NGCADPCM::ONE_BLOCK_SIZE))
 	{
-		NGCADPCM::DecodeBlock(_pPCM, tempADPCM);
+		NGCADPCM::DecodeBlock(pPCM, tempADPCM);
 	}
 	else
 	{
-		memset(_pPCM, 0, NGCADPCM::SAMPLES_PER_BLOCK*2);
+		memset(pPCM, 0, NGCADPCM::SAMPLES_PER_BLOCK*2);
 	}
 
 	// our whole streaming code is "faked" ... so it shouldn't increase the sample counter
 	// streaming will never work correctly this way, but at least the program will think all is alright.
 }
 
-static void IncreaseSampleCount(const u32 _iAmount)
+static void IncreaseSampleCount(const u32 iAmount)
 {
 	if (m_Control.PSTAT)
 	{
-		m_SampleCounter += _iAmount;
+		m_SampleCounter += iAmount;
 		if (m_Control.AIINTVLD && (m_SampleCounter >= m_InterruptTiming))
 		{
 			GenerateAudioInterrupt();

@@ -105,9 +105,9 @@ void CCPU::StepOpcode(Common::Event *event)
 	}
 }
 
-void CCPU::EnableStepping(const bool _bStepping)
+void CCPU::EnableStepping(const bool bStepping)
 {
-	if (_bStepping)
+	if (bStepping)
 	{
 		PowerPC::Pause();
 		m_StepEvent.Reset();

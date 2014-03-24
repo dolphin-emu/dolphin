@@ -29,7 +29,7 @@ public:
 
 	public:
 		Section() {}
-		Section(const std::string& _name) : name(_name) {}
+		Section(const std::string& name_) : name(name_) {}
 
 		bool Exists(const std::string& key) const;
 		bool Delete(const std::string& key);

@@ -44,9 +44,9 @@ void DoState(u8 **ptr, PointerWrap::Mode mode);
 void EmuStateChange(EMUSTATE_CHANGE newState);
 InputPlugin *GetPlugin();
 
-void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
-void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
-void Update(int _number);
+void ControlChannel(int number, u16 channelID, const void* pData, u32 Size);
+void InterruptChannel(int number, u16 channelID, const void* pData, u32 Size);
+void Update(int number);
 
 }
 

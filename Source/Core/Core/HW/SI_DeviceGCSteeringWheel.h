@@ -54,7 +54,7 @@ private:
 			u32            : 8;
 		};
 		UCommand()            {Hex = 0;}
-		UCommand(u32 _iValue) {Hex = _iValue;}
+		UCommand(u32 iValue) {Hex = iValue;}
 	};
 
 	enum EButtonCombo
@@ -82,20 +82,20 @@ private:
 public:
 
 	// Constructor
-	CSIDevice_GCSteeringWheel(SIDevices device, int _iDeviceNumber);
+	CSIDevice_GCSteeringWheel(SIDevices device, int iDeviceNumber);
 
 	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
+	virtual int RunBuffer(u8* pBuffer, int iLength) override;
 
 	// Send and Receive pad input from network
 	static bool NetPlay_GetInput(u8 numPAD, SPADStatus status, u32 *PADStatus);
 	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
 
 	// Return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low) override;
+	virtual bool GetData(u32& Hi, u32& Low) override;
 
 	// Send a command directly
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) override;
+	virtual void SendCommand(u32 Cmd, u8 Poll) override;
 
 	// Savestate support
 	virtual void DoState(PointerWrap& p) override;

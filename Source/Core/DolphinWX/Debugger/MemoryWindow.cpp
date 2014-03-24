@@ -127,31 +127,31 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerBig->Fit(this);
 }
 
-void CMemoryWindow::Save(IniFile& _IniFile) const
+void CMemoryWindow::Save(IniFile& IniFile) const
 {
 	// Prevent these bad values that can happen after a crash or hanging
 	if (GetPosition().x != -32000 && GetPosition().y != -32000)
 	{
-		_IniFile.Set("MemoryWindow", "x", GetPosition().x);
-		_IniFile.Set("MemoryWindow", "y", GetPosition().y);
-		_IniFile.Set("MemoryWindow", "w", GetSize().GetWidth());
-		_IniFile.Set("MemoryWindow", "h", GetSize().GetHeight());
+		IniFile.Set("MemoryWindow", "x", GetPosition().x);
+		IniFile.Set("MemoryWindow", "y", GetPosition().y);
+		IniFile.Set("MemoryWindow", "w", GetSize().GetWidth());
+		IniFile.Set("MemoryWindow", "h", GetSize().GetHeight());
 	}
 }
 
-void CMemoryWindow::Load(IniFile& _IniFile)
+void CMemoryWindow::Load(IniFile& IniFile)
 {
 	int x, y, w, h;
-	_IniFile.Get("MemoryWindow", "x", &x, GetPosition().x);
-	_IniFile.Get("MemoryWindow", "y", &y, GetPosition().y);
-	_IniFile.Get("MemoryWindow", "w", &w, GetSize().GetWidth());
-	_IniFile.Get("MemoryWindow", "h", &h, GetSize().GetHeight());
+	IniFile.Get("MemoryWindow", "x", &x, GetPosition().x);
+	IniFile.Get("MemoryWindow", "y", &y, GetPosition().y);
+	IniFile.Get("MemoryWindow", "w", &w, GetSize().GetWidth());
+	IniFile.Get("MemoryWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
 }
 
-void CMemoryWindow::JumpToAddress(u32 _Address)
+void CMemoryWindow::JumpToAddress(u32 Address)
 {
-	memview->Center(_Address);
+	memview->Center(Address);
 }
 
 void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)

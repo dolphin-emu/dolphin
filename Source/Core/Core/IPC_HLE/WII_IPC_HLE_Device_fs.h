@@ -33,16 +33,16 @@ class CWII_IPC_HLE_Device_fs : public IWII_IPC_HLE_Device
 {
 public:
 
-	CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_fs(u32 DeviceID, const std::string& rDeviceName);
 	virtual ~CWII_IPC_HLE_Device_fs();
 
 	virtual void DoState(PointerWrap& p) override;
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual bool Open(u32 CommandAddress, u32 Mode) override;
+	virtual bool Close(u32 CommandAddress, bool bForce) override;
 
-	virtual bool IOCtl(u32 _CommandAddress) override;
-	virtual bool IOCtlV(u32 _CommandAddress) override;
+	virtual bool IOCtl(u32 CommandAddress) override;
+	virtual bool IOCtlV(u32 CommandAddress) override;
 
 	virtual int GetCmdDelay(u32) override;
 
@@ -62,5 +62,5 @@ private:
 		IOCTL_SHUTDOWN    = 0x0D
 	};
 
-	s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
+	s32 ExecuteCommand(u32 Parameter, u32 BufferIn, u32 BufferInSize, u32 BufferOut, u32 BufferOutSize);
 };

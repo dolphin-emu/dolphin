@@ -114,9 +114,9 @@ void PatchFunctions()
 	// CBreakPoints::AddBreakPoint(0x8000D3D0, false);
 }
 
-void Execute(u32 _CurrentPC, u32 _Instruction)
+void Execute(u32 CurrentPC, u32 Instruction)
 {
-	unsigned int FunctionIndex = _Instruction & 0xFFFFF;
+	unsigned int FunctionIndex = Instruction & 0xFFFFF;
 	if ((FunctionIndex > 0) && (FunctionIndex < (sizeof(OSPatches) / sizeof(SPatch))))
 	{
 		OSPatches[FunctionIndex].PatchFunction();

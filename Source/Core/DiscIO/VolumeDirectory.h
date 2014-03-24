@@ -24,15 +24,15 @@ class CVolumeDirectory : public IVolume
 {
 public:
 
-	CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
-		const std::string& _rApploader = "", const std::string& _rDOL = "");
+	CVolumeDirectory(const std::string& rDirectory, bool bIsWii,
+		const std::string& rApploader = "", const std::string& rDOL = "");
 
 	~CVolumeDirectory();
 
-	static bool IsValidDirectory(const std::string& _rDirectory);
+	static bool IsValidDirectory(const std::string& rDirectory);
 
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
-	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
+	bool Read(u64 Offset, u64 Length, u8* pBuffer) const override;
+	bool RAWRead(u64 Offset, u64 Length, u8* pBuffer) const override;
 
 	std::string GetUniqueID() const override;
 	void SetUniqueID(std::string _ID);
@@ -54,20 +54,20 @@ public:
 	void BuildFST();
 
 private:
-	static std::string ExtractDirectoryName(const std::string& _rDirectory);
+	static std::string ExtractDirectoryName(const std::string& rDirectory);
 
 	void SetDiskTypeWii();
 	void SetDiskTypeGC();
 
-	bool SetApploader(const std::string& _rApploader);
+	bool SetApploader(const std::string& rApploader);
 
-	void SetDOL(const std::string& _rDOL);
+	void SetDOL(const std::string& rDOL);
 
 	// writing to read buffer
-	void WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _Src,
-					   u64& _Address, u64& _Length, u8*& _pBuffer) const;
+	void WriteToBuffer(u64 SrcStartAddress, u64 SrcLength, u8* Src,
+					   u64& Address, u64& Length, u8*& pBuffer) const;
 
-	void PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length, u8*& _pBuffer) const;
+	void PadToAddress(u64 StartAddress, u64& Address, u64& Length, u8*& pBuffer) const;
 
 	void Write32(u32 data, u32 offset, u8* buffer);
 
@@ -76,8 +76,8 @@ private:
 	void WriteEntryName(u32& nameOffset, const std::string& name);
 	void WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum);
 
-	// returns number of entries found in _Directory
-	u32 AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry);
+	// returns number of entries found in Directory
+	u32 AddDirectoryEntries(const std::string& Directory, File::FSTEntry& parentEntry);
 
 	std::string m_rootDirectory;
 

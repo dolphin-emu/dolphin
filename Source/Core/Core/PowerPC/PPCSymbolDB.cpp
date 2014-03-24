@@ -268,7 +268,9 @@ bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 	// Format the name for the codes version
 	std::string mapFile = filename;
 	if (WithCodes)
+	{
 		mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
+	}
 
 	// Check size
 	const int wxYES_NO = 0x00000002 | 0x00000008;
@@ -276,16 +278,23 @@ bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 	{
 		if (!AskYesNo(StringFromFormat(
 			"No symbol names are generated. Do you want to replace '%s' with a blank file?",
-			mapFile.c_str()).c_str(), "Confirm", wxYES_NO)) return false;
+			mapFile.c_str()).c_str(), "Confirm", wxYES_NO))
+		{
+			return false;
+		}
 	}
 
 	if (WithCodes)
+	{
 		Host_UpdateStatusBar("Saving code, please stand by ...");
+	}
 
 	// Make a file
 	File::IOFile f(mapFile, "w");
 	if (!f)
+	{
 		return false;
+	}
 
 	// --------------------------------------------------------------------
 	// Walk through every code row

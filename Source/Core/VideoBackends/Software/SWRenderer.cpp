@@ -101,10 +101,10 @@ void SWRenderer::Prepare()
 	GL_REPORT_ERRORD();
 }
 
-void SWRenderer::SetScreenshot(const char *_szFilename)
+void SWRenderer::SetScreenshot(const char *szFilename)
 {
 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-	s_sScreenshotName = _szFilename;
+	s_sScreenshotName = szFilename;
 	s_bScreenshot = true;
 }
 

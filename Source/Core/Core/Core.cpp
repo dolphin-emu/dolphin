@@ -73,7 +73,7 @@ u32 DrawnVideo = 0;
 
 // Function forwarding
 const char *Callback_ISOName(void);
-void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
+void Callback_WiimoteInterruptChannel(int number, u16 channelID, const void* pData, u32 Size);
 
 // Function declarations
 void EmuThread();
@@ -106,7 +106,7 @@ std::string StopMessage(bool bMainThread, std::string Message)
 
 void DisplayMessage(const std::string& message, int time_in_ms)
 {
-	SCoreStartupParameter& _CoreParameter =
+	SCoreStartupParameter& CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	// Actually displaying non-ASCII could cause things to go pear-shaped
@@ -118,7 +118,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 
 	g_video_backend->Video_AddMessage(message, time_in_ms);
 
-	if (_CoreParameter.bRenderToMain &&
+	if (CoreParameter.bRenderToMain &&
 		SConfig::GetInstance().m_InterfaceStatusbar)
 	{
 			Host_UpdateStatusBar(message);
@@ -161,9 +161,9 @@ bool IsCPUThread()
 
 bool IsGPUThread()
 {
-	const SCoreStartupParameter& _CoreParameter =
+	const SCoreStartupParameter& CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
-	if (_CoreParameter.bCPUThread)
+	if (CoreParameter.bCPUThread)
 	{
 		return (g_EmuThread.joinable() && (g_EmuThread.get_id() == std::this_thread::get_id()));
 	}
@@ -177,7 +177,7 @@ bool IsGPUThread()
 // BootManager.cpp
 bool Init()
 {
-	const SCoreStartupParameter& _CoreParameter =
+	const SCoreStartupParameter& CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	if (g_EmuThread.joinable())
@@ -186,7 +186,7 @@ bool Init()
 		return false;
 	}
 
-	g_CoreStartupParameter = _CoreParameter;
+	g_CoreStartupParameter = CoreParameter;
 
 	INFO_LOG(OSREPORT, "Starting core = %s mode",
 		g_CoreStartupParameter.bWii ? "Wii" : "Gamecube");
@@ -195,10 +195,10 @@ bool Init()
 
 	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
 
-	g_aspect_wide = _CoreParameter.bWii;
+	g_aspect_wide = CoreParameter.bWii;
 	if (g_aspect_wide)
 	{
-		IniFile gameIni = _CoreParameter.LoadGameIni();
+		IniFile gameIni = CoreParameter.LoadGameIni();
 		gameIni.Get("Wii", "Widescreen", &g_aspect_wide,
 			!!SConfig::GetInstance().m_SYSCONF->
 				GetData<u8>("IPL.AR"));
@@ -225,7 +225,7 @@ void Stop()  // - Hammertime!
 		return;
 	}
 
-	const SCoreStartupParameter& _CoreParameter =
+	const SCoreStartupParameter& CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	g_bStopping = true;
@@ -241,7 +241,7 @@ void Stop()  // - Hammertime!
 	// Kick it if it's waiting (code stepping wait loop)
 	CCPU::StepOpcode();
 
-	if (_CoreParameter.bCPUThread)
+	if (CoreParameter.bCPUThread)
 	{
 		// Video_EnterLoop() should now exit so that EmuThread()
 		// will continue concurrently with the rest of the commands
@@ -268,7 +268,7 @@ void Stop()  // - Hammertime!
 	Core::StopTrace();
 
 	// Reload sysconf file in order to see changes committed during emulation
-	if (_CoreParameter.bWii)
+	if (CoreParameter.bWii)
 		SConfig::GetInstance().m_SYSCONF->Reload();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
@@ -281,10 +281,10 @@ void Stop()  // - Hammertime!
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
 void CpuThread()
 {
-	const SCoreStartupParameter& _CoreParameter =
+	const SCoreStartupParameter& CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	if (_CoreParameter.bCPUThread)
+	if (CoreParameter.bCPUThread)
 	{
 		Common::SetCurrentThreadName("CPU thread");
 	}
@@ -295,7 +295,7 @@ void CpuThread()
 	}
 
 	#if _M_X86_64 || _M_ARM_32
-	if (_CoreParameter.bFastmem)
+	if (CoreParameter.bFastmem)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
 
@@ -306,9 +306,9 @@ void CpuThread()
 
 
 	#ifdef USE_GDBSTUB
-	if (_CoreParameter.iGDBPort > 0)
+	if (CoreParameter.iGDBPort > 0)
 	{
-		gdb_init(_CoreParameter.iGDBPort);
+		gdb_init(CoreParameter.iGDBPort);
 		// break at next instruction (the first instruction)
 		gdb_break();
 	}
@@ -319,7 +319,7 @@ void CpuThread()
 
 	g_bStarted = false;
 
-	if (!_CoreParameter.bCPUThread)
+	if (!CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
 	return;
@@ -327,9 +327,9 @@ void CpuThread()
 
 void FifoPlayerThread()
 {
-	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SCoreStartupParameter& CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	if (_CoreParameter.bCPUThread)
+	if (CoreParameter.bCPUThread)
 	{
 		Common::SetCurrentThreadName("FIFO player thread");
 	}
@@ -342,7 +342,7 @@ void FifoPlayerThread()
 	g_bStarted = true;
 
 	// Enter CPU run loop. When we leave it - we are done.
-	if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
+	if (FifoPlayer::GetInstance().Open(CoreParameter.m_strFilename))
 	{
 		FifoPlayer::GetInstance().Play();
 		FifoPlayer::GetInstance().Close();
@@ -350,7 +350,7 @@ void FifoPlayerThread()
 
 	g_bStarted = false;
 
-	if (!_CoreParameter.bCPUThread)
+	if (!CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
 	return;
@@ -361,14 +361,14 @@ void FifoPlayerThread()
 // See the BootManager.cpp file description for a complete call schedule.
 void EmuThread()
 {
-	const SCoreStartupParameter& _CoreParameter =
+	const SCoreStartupParameter& CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
 
 	DisplayMessage(cpu_info.brand_string, 8000);
 	DisplayMessage(cpu_info.Summarize(), 8000);
-	DisplayMessage(_CoreParameter.m_strFilename, 3000);
+	DisplayMessage(CoreParameter.m_strFilename, 3000);
 	if (cpu_info.IsUnsafe() && (NetPlay::IsNetPlayRunning() || Movie::IsRecordingInput() || Movie::IsPlayingInput()))
 	{
 		PanicAlertT("Warning: Netplay/movies will desync because your CPU does not support DAZ and Dolphin does not emulate it anymore.");
@@ -388,7 +388,7 @@ void EmuThread()
 	OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
 
 	if (!DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
-		_CoreParameter.bWii, _CoreParameter.bDSPThread))
+		CoreParameter.bWii, CoreParameter.bDSPThread))
 	{
 		HW::Shutdown();
 		g_video_backend->Shutdown();
@@ -414,7 +414,7 @@ void EmuThread()
 	g_bHwInit = true;
 
 	// Boot to pause or not
-	Core::SetState(_CoreParameter.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
+	Core::SetState(CoreParameter.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
@@ -422,8 +422,8 @@ void EmuThread()
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer ||
-					_CoreParameter.bRunCompareClient))
+	if (CoreParameter.iCPUCore && (!CoreParameter.bRunCompareServer ||
+					CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
@@ -434,13 +434,13 @@ void EmuThread()
 
 	// Determine the cpu thread function
 	void (*cpuThreadFunc)(void);
-	if (_CoreParameter.m_BootType == SCoreStartupParameter::BOOT_DFF)
+	if (CoreParameter.m_BootType == SCoreStartupParameter::BOOT_DFF)
 		cpuThreadFunc = FifoPlayerThread;
 	else
 		cpuThreadFunc = CpuThread;
 
 	// ENTER THE VIDEO THREAD LOOP
-	if (_CoreParameter.bCPUThread)
+	if (CoreParameter.bCPUThread)
 	{
 		// This thread, after creating the EmuWindow, spawns a CPU
 		// thread, and then takes over and becomes the video thread
@@ -489,7 +489,7 @@ void EmuThread()
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 
-	if (_CoreParameter.bCPUThread)
+	if (CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
 	VolumeHandler::EjectVolume();
@@ -511,9 +511,9 @@ void EmuThread()
 
 // Set or get the running state
 
-void SetState(EState _State)
+void SetState(EState State)
 {
-	switch (_State)
+	switch (State)
 	{
 	case CORE_PAUSE:
 		CCPU::EnableStepping(true);  // Break
@@ -662,7 +662,7 @@ void UpdateTitle()
 {
 	u32 ElapseTime = (u32)Timer.GetTimeDifference();
 	g_requestRefreshInfo = false;
-	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	if (ElapseTime == 0)
 		ElapseTime = 1;
@@ -672,8 +672,8 @@ void UpdateTitle()
 	float Speed = (float) (DrawnVideo * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
-	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",
-		g_video_backend->GetDisplayName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
+	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), CoreParameter.bCPUThread ? "DC" : "SC",
+		g_video_backend->GetDisplayName().c_str(), CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
 	std::string SFPS;
 
@@ -702,12 +702,12 @@ void UpdateTitle()
 			float TicksPercentage = (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
 
 			SFPS += StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
-					_CoreParameter.bSkipIdle ? "~" : "",
+					CoreParameter.bSkipIdle ? "~" : "",
 					(int)(diff),
 					(int)(diff - idleDiff),
 					(int)(idleDiff),
 					SystemTimers::GetTicksPerSecond() / 1000000,
-					_CoreParameter.bSkipIdle ? "~" : "",
+					CoreParameter.bSkipIdle ? "~" : "",
 					TicksPercentage);
 		}
 	}
@@ -725,7 +725,7 @@ void UpdateTitle()
 		pMixer->UpdateSpeed((float)Speed / 100);
 	}
 
-	if (_CoreParameter.bRenderToMain &&
+	if (CoreParameter.bRenderToMain &&
 		SConfig::GetInstance().m_InterfaceStatusbar)
 	{
 		Host_UpdateStatusBar(SMessage);

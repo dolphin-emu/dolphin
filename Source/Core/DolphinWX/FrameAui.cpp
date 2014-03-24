@@ -730,9 +730,9 @@ void CFrame::ToggleNotebookStyle(bool On, long Style)
 
 void CFrame::OnSelectPerspective(wxCommandEvent& event)
 {
-	u32 _Selection = event.GetId() - IDM_PERSPECTIVES_0;
-	if (Perspectives.size() <= _Selection) _Selection = 0;
-	ActivePerspective = _Selection;
+	u32 Selection = event.GetId() - IDM_PERSPECTIVES_0;
+	if (Perspectives.size() <= Selection) Selection = 0;
+	ActivePerspective = Selection;
 	DoLoadPerspective();
 }
 
@@ -845,8 +845,8 @@ void CFrame::LoadIniPerspectives()
 	for (auto& VPerspective : VPerspectives)
 	{
 		SPerspectives Tmp;
-		std::string _Section, _Perspective, _Widths, _Heights;
-		std::vector<std::string> _SWidth, _SHeight;
+		std::string Section, Perspective, Widths, Heights;
+		std::vector<std::string> SWidth, SHeight;
 		Tmp.Name = VPerspective;
 
 		// Don't save a blank perspective
@@ -855,30 +855,34 @@ void CFrame::LoadIniPerspectives()
 			continue;
 		}
 
-		_Section = StringFromFormat("P - %s", Tmp.Name.c_str());
-		ini.Get(_Section, "Perspective", &_Perspective,
+		Section = StringFromFormat("P - %s", Tmp.Name.c_str());
+		ini.Get(Section, "Perspective", &Perspective,
 				"layout2|"
 				"name=Pane 0;caption=Pane 0;state=768;dir=5;prop=100000;|"
 				"name=Pane 1;caption=Pane 1;state=31458108;dir=4;prop=100000;|"
 				"dock_size(5,0,0)=22|dock_size(4,0,0)=333|");
-		ini.Get(_Section, "Width", &_Widths, "70,25");
-		ini.Get(_Section, "Height", &_Heights, "80,80");
+		ini.Get(Section, "Width", &Widths, "70,25");
+		ini.Get(Section, "Height", &Heights, "80,80");
 
-		Tmp.Perspective = StrToWxStr(_Perspective);
+		Tmp.Perspective = StrToWxStr(Perspective);
 
-		SplitString(_Widths, ',', _SWidth);
-		SplitString(_Heights, ',', _SHeight);
-		for (auto& Width : _SWidth)
+		SplitString(Widths, ',', SWidth);
+		SplitString(Heights, ',', SHeight);
+		for (auto& Width : SWidth)
 		{
 			int _Tmp;
 			if (TryParse(Width, &_Tmp))
+			{
 				Tmp.Width.push_back(_Tmp);
+			}
 		}
-		for (auto& Height : _SHeight)
+		for (auto& Height : SHeight)
 		{
 			int _Tmp;
 			if (TryParse(Height, &_Tmp))
+			{
 				Tmp.Height.push_back(_Tmp);
+			}
 		}
 		Perspectives.push_back(Tmp);
 	}
@@ -935,8 +939,8 @@ void CFrame::SaveIniPerspectives()
 	// Save the perspectives
 	for (auto& Perspective : Perspectives)
 	{
-		std::string _Section = "P - " + Perspective.Name;
-		ini.Set(_Section, "Perspective", WxStrToStr(Perspective.Perspective));
+		std::string Section = "P - " + Perspective.Name;
+		ini.Set(Section, "Perspective", WxStrToStr(Perspective.Perspective));
 
 		std::string SWidth = "", SHeight = "";
 		for (u32 j = 0; j < Perspective.Width.size(); j++)
@@ -948,8 +952,8 @@ void CFrame::SaveIniPerspectives()
 		SWidth = SWidth.substr(0, SWidth.length()-1);
 		SHeight = SHeight.substr(0, SHeight.length()-1);
 
-		ini.Set(_Section, "Width", SWidth);
-		ini.Set(_Section, "Height", SHeight);
+		ini.Set(Section, "Width", SWidth);
+		ini.Set(Section, "Height", SHeight);
 	}
 
 	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));

@@ -37,8 +37,8 @@ CPHackSettings::CPHackSettings(wxWindow* parent, wxWindowID id, const wxString& 
 	: wxDialog(parent, id, title, position, size, style)
 {
 	CreateGUIControls();
-	std::string _iniFilename = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP "PH_PRESETS.ini";
-	PHPresetsIni.Load(_iniFilename);
+	std::string iniFilename = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP "PH_PRESETS.ini";
+	PHPresetsIni.Load(iniFilename);
 	PHPresetsIni.SortSections();
 
 	LoadPHackData();

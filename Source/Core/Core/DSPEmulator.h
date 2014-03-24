@@ -20,10 +20,10 @@ public:
 	virtual void DoState(PointerWrap &p) = 0;
 	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) = 0;
 
-	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) = 0;
-	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short) = 0;
-	virtual unsigned short DSP_ReadMailBoxHigh(bool _CPUMailbox) = 0;
-	virtual unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox) = 0;
+	virtual void DSP_WriteMailBoxHigh(bool CPUMailbox, unsigned short) = 0;
+	virtual void DSP_WriteMailBoxLow(bool CPUMailbox, unsigned short) = 0;
+	virtual unsigned short DSP_ReadMailBoxHigh(bool CPUMailbox) = 0;
+	virtual unsigned short DSP_ReadMailBoxLow(bool CPUMailbox) = 0;
 	virtual unsigned short DSP_ReadControlRegister() = 0;
 	virtual unsigned short DSP_WriteControlRegister(unsigned short) = 0;
 	virtual void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples) = 0;

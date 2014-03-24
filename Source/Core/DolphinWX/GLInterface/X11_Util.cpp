@@ -19,7 +19,7 @@ bool cXInterface::ServerConnect(void)
 
 bool cXInterface::Initialize(void *config, void *window_handle)
 {
-	int _tx, _ty, _twidth, _theight;
+	int tx, ty, twidth, theight;
 	XVisualInfo  visTemplate;
 	int num_visuals;
 	EGLint vid;
@@ -42,12 +42,12 @@ bool cXInterface::Initialize(void *config, void *window_handle)
 		exit(1);
 	}
 
-	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
+	Host_GetRenderWindowSize(tx, ty, twidth, theight);
 
-	GLWin.x = _tx;
-	GLWin.y = _ty;
-	GLWin.width = _twidth;
-	GLWin.height = _theight;
+	GLWin.x = tx;
+	GLWin.y = ty;
+	GLWin.width = twidth;
+	GLWin.height = theight;
 
 	GLWin.evdpy = XOpenDisplay(nullptr);
 	GLWin.parent = (Window) window_handle;

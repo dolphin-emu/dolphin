@@ -32,23 +32,23 @@ u32 CUCode_GBA::GetUpdateMs()
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void CUCode_GBA::HandleMail(u32 _uMail)
+void CUCode_GBA::HandleMail(u32 uMail)
 {
 	static bool nextmail_is_mramaddr = false;
 	static bool calc_done = false;
 
 	if (m_UploadSetupInProgress)
 	{
-		PrepareBootUCode(_uMail);
+		PrepareBootUCode(uMail);
 	}
-	else if ((_uMail >> 16 == 0xabba) && !nextmail_is_mramaddr)
+	else if ((uMail >> 16 == 0xabba) && !nextmail_is_mramaddr)
 	{
 		nextmail_is_mramaddr = true;
 	}
 	else if (nextmail_is_mramaddr)
 	{
 		nextmail_is_mramaddr = false;
-		u32 mramaddr = _uMail;
+		u32 mramaddr = uMail;
 
 		struct sec_params_t
 		{
@@ -125,9 +125,9 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 		calc_done = true;
 		m_rMailHandler.PushMail(DSP_DONE);
 	}
-	else if ((_uMail >> 16 == 0xcdd1) && calc_done)
+	else if ((uMail >> 16 == 0xcdd1) && calc_done)
 	{
-		switch (_uMail & 0xffff)
+		switch (uMail & 0xffff)
 		{
 		case 1:
 			m_UploadSetupInProgress = true;
@@ -136,12 +136,12 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 			m_DSPHLE->SetUCode(UCODE_ROM);
 			break;
 		default:
-			DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown 0xcdd1 command: %08x", _uMail);
+			DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown 0xcdd1 command: %08x", uMail);
 			break;
 		}
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown command: %08x", _uMail);
+		DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown command: %08x", uMail);
 	}
 }

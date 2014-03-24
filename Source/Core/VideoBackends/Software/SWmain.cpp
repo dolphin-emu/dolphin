@@ -61,15 +61,15 @@ std::string VideoSoftware::GetName() const
 	return _trans("Software Renderer");
 }
 
-void *DllDebugger(void *_hParent, bool Show)
+void *DllDebugger(void *hParent, bool Show)
 {
 	return nullptr;
 }
 
-void VideoSoftware::ShowConfig(void *_hParent)
+void VideoSoftware::ShowConfig(void *hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	VideoConfigDialog diag((wxWindow*)_hParent, "Software", "gfx_software");
+	VideoConfigDialog diag((wxWindow*)hParent, "Software", "gfx_software");
 	diag.ShowModal();
 #endif
 }

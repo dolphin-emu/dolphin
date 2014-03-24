@@ -301,7 +301,7 @@ void JitIL::WriteCallInterpreter(UGeckoInstruction inst)
 		MOV(32, M(&PC), Imm32(js.compilerPC));
 		MOV(32, M(&NPC), Imm32(js.compilerPC + 4));
 	}
-	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
+	Interpreter::interpreterInstruction instr = GetInterpreterOp(inst);
 	ABI_CallFunctionC((void*)instr, inst.hex);
 	if (js.isLastInstruction)
 	{
@@ -316,21 +316,21 @@ void JitIL::unknown_instruction(UGeckoInstruction inst)
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
+void JitIL::FallBackToInterpreter(UGeckoInstruction inst)
 {
 	ibuild.EmitFallBackToInterpreter(
-		ibuild.EmitIntConst(_inst.hex),
+		ibuild.EmitIntConst(inst.hex),
 		ibuild.EmitIntConst(js.compilerPC));
 }
 
-void JitIL::HLEFunction(UGeckoInstruction _inst)
+void JitIL::HLEFunction(UGeckoInstruction inst)
 {
-	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
+	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, inst.hex);
 	MOV(32, R(EAX), M(&NPC));
 	WriteExitDestInOpArg(R(EAX));
 }
 
-void JitIL::DoNothing(UGeckoInstruction _inst)
+void JitIL::DoNothing(UGeckoInstruction inst)
 {
 	// Yup, just don't do anything.
 }

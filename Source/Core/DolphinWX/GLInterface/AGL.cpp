@@ -21,8 +21,8 @@ void cInterfaceAGL::Swap()
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceAGL::Create(void *&window_handle)
 {
-	int _tx, _ty, _twidth, _theight;
-	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
+	int tx, ty, twidth, theight;
+	Host_GetRenderWindowSize(tx, ty, twidth, theight);
 
 	GLWin.cocoaWin = (NSView*)(((wxPanel*)window_handle)->GetHandle());
 
@@ -32,12 +32,12 @@ bool cInterfaceAGL::Create(void *&window_handle)
 	NSWindow *window = [GLWin.cocoaWin window];
 
 	float scale = [window backingScaleFactor];
-	_twidth *= scale;
-	_theight *= scale;
+	twidth *= scale;
+	theight *= scale;
 
 	// Control window size and picture scaling
-	s_backbuffer_width = _twidth;
-	s_backbuffer_height = _theight;
+	s_backbuffer_width = twidth;
+	s_backbuffer_height = theight;
 
 	NSOpenGLPixelFormatAttribute attr[] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, NSOpenGLPFAAccelerated, 0 };
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]

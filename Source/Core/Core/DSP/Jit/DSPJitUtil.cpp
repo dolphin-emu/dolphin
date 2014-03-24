@@ -865,65 +865,65 @@ void DSPEmitter::set_long_acc(int _reg, X64Reg acc)
 }
 
 // Returns s16 in AX
-void DSPEmitter::get_acc_l(int _reg, X64Reg acl, bool sign)
+void DSPEmitter::get_acc_l(int reg, X64Reg acl, bool sign)
 {
-	//	return g_dsp.r[DSP_REG_ACM0 + _reg];
-	gpr.readReg(_reg+DSP_REG_ACL0, acl, sign?SIGN:ZERO);
+	//	return g_dsp.r[DSP_REG_ACM0 + reg];
+	gpr.readReg(reg+DSP_REG_ACL0, acl, sign?SIGN:ZERO);
 }
 
-void DSPEmitter::set_acc_l(int _reg, OpArg arg)
+void DSPEmitter::set_acc_l(int reg, OpArg arg)
 {
-	//	return g_dsp.r[DSP_REG_ACM0 + _reg];
-	gpr.writeReg(_reg+DSP_REG_ACL0,arg);
-}
-
-// Returns s16 in AX
-void DSPEmitter::get_acc_m(int _reg, X64Reg acm, bool sign)
-{
-//	return g_dsp.r[DSP_REG_ACM0 + _reg];
-	gpr.readReg(_reg+DSP_REG_ACM0, acm, sign?SIGN:ZERO);
-}
-
-// In: s16 in AX
-void DSPEmitter::set_acc_m(int _reg, OpArg arg)
-{
-	//	return g_dsp.r.ac[_reg].m;
-	gpr.writeReg(_reg+DSP_REG_ACM0,arg);
+	//	return g_dsp.r[DSP_REG_ACM0 + reg];
+	gpr.writeReg(reg+DSP_REG_ACL0,arg);
 }
 
 // Returns s16 in AX
-void DSPEmitter::get_acc_h(int _reg, X64Reg ach, bool sign)
+void DSPEmitter::get_acc_m(int reg, X64Reg acm, bool sign)
 {
-//	return g_dsp.r.ac[_reg].h;
-	gpr.readReg(_reg+DSP_REG_ACH0, ach, sign?SIGN:ZERO);
+//	return g_dsp.r[DSP_REG_ACM0 + reg];
+	gpr.readReg(reg+DSP_REG_ACM0, acm, sign?SIGN:ZERO);
 }
 
 // In: s16 in AX
-void DSPEmitter::set_acc_h(int _reg, OpArg arg)
+void DSPEmitter::set_acc_m(int reg, OpArg arg)
 {
-	//	return g_dsp.r[DSP_REG_ACM0 + _reg];
-	gpr.writeReg(_reg+DSP_REG_ACH0,arg);
+	//	return g_dsp.r.ac[reg].m;
+	gpr.writeReg(reg+DSP_REG_ACM0,arg);
+}
+
+// Returns s16 in AX
+void DSPEmitter::get_acc_h(int reg, X64Reg ach, bool sign)
+{
+//	return g_dsp.r.ac[reg].h;
+	gpr.readReg(reg+DSP_REG_ACH0, ach, sign?SIGN:ZERO);
+}
+
+// In: s16 in AX
+void DSPEmitter::set_acc_h(int reg, OpArg arg)
+{
+	//	return g_dsp.r[DSP_REG_ACM0 + reg];
+	gpr.writeReg(reg+DSP_REG_ACH0,arg);
 }
 
 // Returns u32 in EAX
-void DSPEmitter::get_long_acx(int _reg, X64Reg acx)
+void DSPEmitter::get_long_acx(int reg, X64Reg acx)
 {
-//	return ((u32)g_dsp.r[DSP_REG_AXH0 + _reg] << 16) | g_dsp.r[DSP_REG_AXL0 + _reg];
-	gpr.readReg(_reg+DSP_REG_AX0_32, acx, SIGN);
+//	return ((u32)g_dsp.r[DSP_REG_AXH0 + reg] << 16) | g_dsp.r[DSP_REG_AXL0 + reg];
+	gpr.readReg(reg+DSP_REG_AX0_32, acx, SIGN);
 }
 
 // Returns s16 in EAX
-void DSPEmitter::get_ax_l(int _reg, X64Reg axl)
+void DSPEmitter::get_ax_l(int reg, X64Reg axl)
 {
-//	return (s16)g_dsp.r[DSP_REG_AXL0 + _reg];
-	gpr.readReg(_reg+DSP_REG_AXL0, axl, SIGN);
+//	return (s16)g_dsp.r[DSP_REG_AXL0 + reg];
+	gpr.readReg(reg+DSP_REG_AXL0, axl, SIGN);
 }
 
 // Returns s16 in EAX
-void DSPEmitter::get_ax_h(int _reg, X64Reg axh)
+void DSPEmitter::get_ax_h(int reg, X64Reg axh)
 {
-//	return (s16)g_dsp.r[DSP_REG_AXH0 + _reg];
-	gpr.readReg(_reg+DSP_REG_AXH0, axh, SIGN);
+//	return (s16)g_dsp.r[DSP_REG_AXH0 + reg];
+	gpr.readReg(reg+DSP_REG_AXH0, axh, SIGN);
 }
 
 

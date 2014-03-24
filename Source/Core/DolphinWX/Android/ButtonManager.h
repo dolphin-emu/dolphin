@@ -69,13 +69,13 @@ namespace ButtonManager
 
 	struct sBind
 	{
-		const int _padID;
-		const ButtonType _buttontype;
-		const BindType _bindtype;
-		const int _bind;
-		const float _neg;
-		sBind(int padID, ButtonType buttontype, BindType bindtype, int bind, float neg)
-			: _padID(padID), _buttontype(buttontype), _bindtype(bindtype), _bind(bind), _neg(neg)
+		const int padID;
+		const ButtonType buttontype;
+		const BindType bindtype;
+		const int bind;
+		const float neg;
+		sBind(int _padID, ButtonType _buttontype, BindType _bindtype, int _bind, float _neg)
+			: padID(_padID), buttontype(_buttontype), bindtype(_bindtype), bind(_bind), neg(_neg)
 		{}
 	};
 
@@ -83,20 +83,20 @@ namespace ButtonManager
 	class InputDevice
 	{
 	private:
-		const std::string _dev;
-		std::map<ButtonType, bool> _buttons;
-		std::map<ButtonType, float> _axises;
-		std::map<ButtonType, sBind*> _binds;
-		std::map<int, sBind*> _inputbinds;
+		const std::string dev;
+		std::map<ButtonType, bool> buttons;
+		std::map<ButtonType, float> axises;
+		std::map<ButtonType, sBind*> binds;
+		std::map<int, sBind*> inputbinds;
 	public:
-		InputDevice(std::string dev)
-			: _dev(dev) {}
+		InputDevice(std::string _dev)
+			: dev(_dev) {}
 		~InputDevice()
 		{
-			for (const auto& bind : _binds)
+			for (const auto& bind : binds)
 				delete bind.second;
 		}
-		void AddBind(sBind *bind) { _binds[bind->_buttontype] = bind; _inputbinds[bind->_bind] = bind; }
+		void AddBind(sBind *bind) { binds[bind->buttontype] = bind; inputbinds[bind->bind] = bind; }
 		void PressEvent(int button, int action);
 		void AxisEvent(int axis, float value);
 		bool ButtonValue(int padID, ButtonType button);

@@ -209,13 +209,13 @@ namespace JitInterface
 			jit->GetBlockCache()->InvalidateICache(address, size);
 	}
 
-	u32 Read_Opcode_JIT(u32 _Address)
+	u32 Read_Opcode_JIT(u32 Address)
 	{
 	#ifdef FAST_ICACHE
-		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
+		if (bMMU && !bFakeVMEM && (Address & Memory::ADDR_MASK_MEM1))
 		{
-			_Address = Memory::TranslateAddress(_Address, Memory::FLAG_OPCODE);
-			if (_Address == 0)
+			Address = Memory::TranslateAddress(Address, Memory::FLAG_OPCODE);
+			if (Address == 0)
 			{
 				return 0;
 			}
@@ -224,12 +224,12 @@ namespace JitInterface
 		u32 inst;
 		// Bypass the icache for the external interrupt exception handler
 		// -- this is stupid, should respect HID0
-		if ( (_Address & 0x0FFFFF00) == 0x00000500 )
-			inst = Memory::ReadUnchecked_U32(_Address);
+		if ( (Address & 0x0FFFFF00) == 0x00000500 )
+			inst = Memory::ReadUnchecked_U32(Address);
 		else
-			inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
+			inst = PowerPC::ppcState.iCache.ReadInstruction(Address);
 	#else
-		u32 inst = Memory::ReadUnchecked_U32(_Address);
+		u32 inst = Memory::ReadUnchecked_U32(Address);
 	#endif
 		return inst;
 	}

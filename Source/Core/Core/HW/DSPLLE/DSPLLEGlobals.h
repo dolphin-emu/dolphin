@@ -12,8 +12,8 @@
 #define PROFILE   0
 
 #if PROFILE
-	void ProfilerDump(u64 _count);
+	void ProfilerDump(u64 count);
 	void ProfilerInit();
-	void ProfilerAddDelta(int _addr, int _delta);
+	void ProfilerAddDelta(int addr, int delta);
 	void ProfilerStart();
 #endif

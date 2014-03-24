@@ -12,7 +12,7 @@ namespace WiimoteEmu
 class Classic : public Attachment
 {
 public:
-	Classic(WiimoteEmu::ExtensionReg& _reg);
+	Classic(WiimoteEmu::ExtensionReg& reg);
 	void GetState(u8* const data, const bool focus) override;
 
 	enum

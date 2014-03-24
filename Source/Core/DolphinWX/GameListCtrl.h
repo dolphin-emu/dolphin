@@ -78,7 +78,7 @@ private:
 	wxSize lastpos;
 	wxEmuStateTip *toolTip;
 	void InitBitmaps();
-	void InsertItemInReportView(long _Index);
+	void InsertItemInReportView(long Index);
 	void SetBackgroundColor();
 	void ScanForISOs();
 
@@ -105,7 +105,7 @@ private:
 	void OnInstallWAD(wxCommandEvent& event);
 	void OnDropFiles(wxDropFilesEvent& event);
 
-	void CompressSelection(bool _compress);
+	void CompressSelection(bool compress);
 	void AutomaticColumnWidth();
 	void UnselectAll();
 

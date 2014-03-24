@@ -43,6 +43,6 @@ private:
 	void OnWriteWindowChecked(wxCommandEvent& event);
 	void OnWriteDebuggerChecked(wxCommandEvent& event);
 	void OnToggleAll(wxCommandEvent& event);
-	void ToggleLog(int _logType, bool enable);
+	void ToggleLog(int logType, bool enable);
 	void OnLogCheck(wxCommandEvent& event);
 };

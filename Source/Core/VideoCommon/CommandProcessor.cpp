@@ -86,11 +86,11 @@ void DoState(PointerWrap &p)
 	p.Do(interruptFinishWaiting);
 }
 
-inline void WriteLow (volatile u32& _reg, u16 lowbits)  {Common::AtomicStore(_reg,(_reg & 0xFFFF0000) | lowbits);}
-inline void WriteHigh(volatile u32& _reg, u16 highbits) {Common::AtomicStore(_reg,(_reg & 0x0000FFFF) | ((u32)highbits << 16));}
+inline void WriteLow (volatile u32& reg, u16 lowbits)  {Common::AtomicStore(reg,(reg & 0xFFFF0000) | lowbits);}
+inline void WriteHigh(volatile u32& reg, u16 highbits) {Common::AtomicStore(reg,(reg & 0x0000FFFF) | ((u32)highbits << 16));}
 
-inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
-inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
+inline u16 ReadLow  (u32 reg)  {return (u16)(reg & 0xFFFF);}
+inline u16 ReadHigh (u32 reg)  {return (u16)(reg >> 16);}
 
 void Init()
 {

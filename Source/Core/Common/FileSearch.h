@@ -12,12 +12,12 @@ class CFileSearch
 public:
 	typedef std::vector<std::string>XStringVector;
 
-	CFileSearch(const XStringVector& _rSearchStrings, const XStringVector& _rDirectories);
+	CFileSearch(const XStringVector& rSearchStrings, const XStringVector& rDirectories);
 	const XStringVector& GetFileNames() const;
 
 private:
 
-	void FindFiles(const std::string& _searchString, const std::string& _strPath);
+	void FindFiles(const std::string& searchString, const std::string& strPath);
 
 	XStringVector m_FileNames;
 };

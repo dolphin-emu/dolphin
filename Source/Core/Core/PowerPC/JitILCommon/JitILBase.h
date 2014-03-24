@@ -43,11 +43,11 @@ public:
 	virtual void DoNothing(UGeckoInstruction inst) = 0;
 	virtual void HLEFunction(UGeckoInstruction inst) = 0;
 
-	virtual void DynaRunTable4(UGeckoInstruction _inst) = 0;
-	virtual void DynaRunTable19(UGeckoInstruction _inst) = 0;
-	virtual void DynaRunTable31(UGeckoInstruction _inst) = 0;
-	virtual void DynaRunTable59(UGeckoInstruction _inst) = 0;
-	virtual void DynaRunTable63(UGeckoInstruction _inst) = 0;
+	virtual void DynaRunTable4(UGeckoInstruction inst) = 0;
+	virtual void DynaRunTable19(UGeckoInstruction inst) = 0;
+	virtual void DynaRunTable31(UGeckoInstruction inst) = 0;
+	virtual void DynaRunTable59(UGeckoInstruction inst) = 0;
+	virtual void DynaRunTable63(UGeckoInstruction inst) = 0;
 
 	// Branches
 	void sc(UGeckoInstruction inst);

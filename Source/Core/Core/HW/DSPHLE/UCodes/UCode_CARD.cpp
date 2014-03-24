@@ -37,15 +37,15 @@ u32 CUCode_CARD::GetUpdateMs()
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void CUCode_CARD::HandleMail(u32 _uMail)
+void CUCode_CARD::HandleMail(u32 uMail)
 {
-	if (_uMail == 0xFF000000) // unlock card
+	if (uMail == 0xFF000000) // unlock card
 	{
 		//	m_Mails.push(0x00000001); // ACK (actually anything != 0)
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "CUCode_CARD - unknown command: %x", _uMail);
+		DEBUG_LOG(DSPHLE, "CUCode_CARD - unknown command: %x", uMail);
 	}
 
 	m_rMailHandler.PushMail(DSP_DONE);

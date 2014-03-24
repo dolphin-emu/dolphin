@@ -20,22 +20,22 @@ private:
 	{
 	public:
 		std::string GetName() const;
-		Button(int padID, ButtonManager::ButtonType index) :  _padID(padID), _index(index) {}
+		Button(int _padID, ButtonManager::ButtonType _index) :  padID(_padID), index(_index) {}
 		ControlState GetState() const;
 	private:
-		const int _padID;
-		const ButtonManager::ButtonType _index;
+		const int padID;
+		const ButtonManager::ButtonType index;
 	};
 	class Axis : public Input
 	{
 	public:
 		std::string GetName() const;
-		Axis(int padID, ButtonManager::ButtonType index, float neg = 1.0f) : _padID(padID), _index(index), _neg(neg) {}
+		Axis(int _padID, ButtonManager::ButtonType _index, float _neg = 1.0f) : padID(_padID), index(_index), neg(_neg) {}
 		ControlState GetState() const;
 	private:
-		const int _padID;
-		const ButtonManager::ButtonType _index;
-		const float _neg;
+		const int padID;
+		const ButtonManager::ButtonType index;
+		const float neg;
 	};
 	
 public:
@@ -49,7 +49,7 @@ public:
 	int GetId() const;
 	std::string GetSource() const;
 private:
-	const int _padID;
+	const int padID;
 };
 
 }

@@ -88,7 +88,7 @@ void Shutdown();
 void DoState(PointerWrap &p);
 
 CoreMode GetMode();
-void SetMode(CoreMode _coreType);
+void SetMode(CoreMode coreType);
 
 void SingleStep();
 void CheckExceptions();
@@ -104,7 +104,7 @@ volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern d
 void CompactCR();
 void ExpandCR();
 
-void OnIdle(u32 _uThreadAddr);
+void OnIdle(u32 uThreadAddr);
 void OnIdleIL();
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);

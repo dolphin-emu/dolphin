@@ -180,13 +180,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
 	{
 		s32 ReturnValue = 0;
 		bool forceNonBlock = false;
-		ECommandType ct = static_cast<ECommandType>(Memory::Read_U32(it->_CommandAddress));
+		ECommandType ct = static_cast<ECommandType>(Memory::Read_U32(it->CommandAddress));
 		if (!it->is_ssl && ct == COMMAND_IOCTL)
 		{
-			u32 BufferIn = Memory::Read_U32(it->_CommandAddress + 0x10);
-			u32 BufferInSize = Memory::Read_U32(it->_CommandAddress + 0x14);
-			u32 BufferOut = Memory::Read_U32(it->_CommandAddress + 0x18);
-			u32 BufferOutSize = Memory::Read_U32(it->_CommandAddress + 0x1C);
+			u32 BufferIn = Memory::Read_U32(it->CommandAddress + 0x10);
+			u32 BufferInSize = Memory::Read_U32(it->CommandAddress + 0x14);
+			u32 BufferOut = Memory::Read_U32(it->CommandAddress + 0x18);
+			u32 BufferOutSize = Memory::Read_U32(it->CommandAddress + 0x1C);
 
 			switch (it->net_type)
 			{
@@ -269,7 +269,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 		}
 		else if (ct == COMMAND_IOCTLV)
 		{
-			SIOCtlVBuffer CommandBuffer(it->_CommandAddress);
+			SIOCtlVBuffer CommandBuffer(it->CommandAddress);
 			u32 BufferIn = 0, BufferIn2 = 0;
 			u32 BufferInSize = 0, BufferInSize2 = 0;
 			u32 BufferOut = 0, BufferOut2 = 0;
@@ -523,7 +523,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 			DEBUG_LOG(WII_IPC_NET,
 			          "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d",
 			          fd, it->is_ssl ? (int) it->ssl_type : (int) it->net_type, ReturnValue, nonBlock, forceNonBlock);
-			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue);
+			WiiSockMan::EnqueueReply(it->CommandAddress, ReturnValue);
 			it = pending_sockops.erase(it);
 		}
 		else
@@ -533,16 +533,16 @@ void WiiSocket::Update(bool read, bool write, bool except)
 	}
 }
 
-void WiiSocket::DoSock(u32 _CommandAddress, NET_IOCTL type)
+void WiiSocket::DoSock(u32 CommandAddress, NET_IOCTL type)
 {
-	sockop so = {_CommandAddress, false};
+	sockop so = {CommandAddress, false};
 	so.net_type = type;
 	pending_sockops.push_back(so);
 }
 
-void WiiSocket::DoSock(u32 _CommandAddress, SSL_IOCTL type)
+void WiiSocket::DoSock(u32 CommandAddress, SSL_IOCTL type)
 {
-	sockop so = {_CommandAddress, true};
+	sockop so = {CommandAddress, true};
 	so.ssl_type = type;
 	pending_sockops.push_back(so);
 }

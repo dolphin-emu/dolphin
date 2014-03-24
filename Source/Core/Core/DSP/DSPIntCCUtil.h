@@ -12,12 +12,12 @@
 
 namespace DSPInterpreter {
 
-bool CheckCondition(u8 _Condition);
+bool CheckCondition(u8 Condition);
 
 int GetMultiplyModifier();
 
-void Update_SR_Register16(s16 _Value, bool carry = false, bool overflow = false, bool overS32 = false);
-void Update_SR_Register64(s64 _Value, bool carry = false, bool overflow = false);
+void Update_SR_Register16(s16 Value, bool carry = false, bool overflow = false, bool overS32 = false);
+void Update_SR_Register64(s64 Value, bool carry = false, bool overflow = false);
 void Update_SR_LZ(bool value);
 
 inline bool isCarry(u64 val, u64 result) {

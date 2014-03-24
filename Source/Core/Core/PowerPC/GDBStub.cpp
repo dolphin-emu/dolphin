@@ -280,7 +280,7 @@ static void gdb_read_command()
 
 static int gdb_data_available() {
 	struct timeval t;
-	fd_set _fds, *fds = &_fds;
+	fd_set fds, *fds = &fds;
 
 	FD_ZERO(fds);
 	FD_SET(sock, fds);
@@ -643,7 +643,7 @@ bool gdb_add_bp(u32 type, u32 addr, u32 len)
 	return true;
 }
 
-static void _gdb_add_bp()
+static void gdb_add_bp()
 {
 	u32 type;
 	u32 i, addr = 0, len = 0;
@@ -773,7 +773,7 @@ void gdb_handle_exception()
 				gdb_remove_bp();
 				break;
 			case 'Z':
-				_gdb_add_bp();
+				gdb_add_bp();
 				break;
 			default:
 				gdb_reply("");

@@ -129,20 +129,20 @@ void HotkeyConfigDialog::SetButtonText(int id, const wxString &keystr, const wxS
 	m_Button_Hotkeys[id]->SetLabel(modkeystr + keystr);
 }
 
-void HotkeyConfigDialog::DoGetButtons(int _GetId)
+void HotkeyConfigDialog::DoGetButtons(int get_id)
 {
 	// Values used in this function
 	const int Seconds = 4; // Seconds to wait for
 	const int TimesPerSecond = 40; // How often to run the check
 
 	// If the Id has changed or the timer is not running we should start one
-	if ( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer->IsRunning() )
+	if ( GetButtonWaitingID != get_id || !m_ButtonMappingTimer->IsRunning() )
 	{
 		if (m_ButtonMappingTimer->IsRunning())
 			m_ButtonMappingTimer->Stop();
 
 		// Save the button Id
-		GetButtonWaitingID = _GetId;
+		GetButtonWaitingID = get_id;
 		GetButtonWaitingTimer = 0;
 
 		// Start the timer
@@ -161,14 +161,14 @@ void HotkeyConfigDialog::DoGetButtons(int _GetId)
 		// Current time
 		int TmpTime = Seconds - (GetButtonWaitingTimer / TimesPerSecond);
 		// Update text
-		SetButtonText(_GetId, wxString::Format(wxT("[ %d ]"), TmpTime));
+		SetButtonText(get_id, wxString::Format(wxT("[ %d ]"), TmpTime));
 	}
 
 	// Time's up
 	if (GetButtonWaitingTimer / TimesPerSecond >= Seconds)
 	{
 		// Revert back to old label
-		SetButtonText(_GetId, OldLabel);
+		SetButtonText(get_id, OldLabel);
 		EndGetButtons();
 	}
 }

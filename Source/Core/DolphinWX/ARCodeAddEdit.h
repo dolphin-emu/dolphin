@@ -21,7 +21,7 @@ namespace ActionReplay { struct ARCode; }
 class CARCodeAddEdit : public wxDialog
 {
 	public:
-		CARCodeAddEdit(int _selection, wxWindow* parent,
+		CARCodeAddEdit(int selection, wxWindow* parent,
 			wxWindowID id = 1,
 			const wxString& title = _("Edit ActionReplay Code"),
 			const wxPoint& pos = wxDefaultPosition,

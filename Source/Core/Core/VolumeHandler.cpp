@@ -28,7 +28,7 @@ void EjectVolume()
 	}
 }
 
-bool SetVolumeName(const std::string& _rFullPath)
+bool SetVolumeName(const std::string& rFullPath)
 {
 	if (g_pVolume)
 	{
@@ -36,12 +36,12 @@ bool SetVolumeName(const std::string& _rFullPath)
 		g_pVolume = nullptr;
 	}
 
-	g_pVolume = DiscIO::CreateVolumeFromFilename(_rFullPath);
+	g_pVolume = DiscIO::CreateVolumeFromFilename(rFullPath);
 
 	return (g_pVolume != nullptr);
 }
 
-void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii, const std::string& _rApploader, const std::string& _rDOL)
+void SetVolumeDirectory(const std::string& rFullPath, bool bIsWii, const std::string& rApploader, const std::string& rDOL)
 {
 	if (g_pVolume)
 	{
@@ -49,35 +49,35 @@ void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii, const std::
 		g_pVolume = nullptr;
 	}
 
-	g_pVolume = DiscIO::CreateVolumeFromDirectory(_rFullPath, _bIsWii, _rApploader, _rDOL);
+	g_pVolume = DiscIO::CreateVolumeFromDirectory(rFullPath, bIsWii, rApploader, rDOL);
 }
 
-u32 Read32(u64 _Offset)
+u32 Read32(u64 Offset)
 {
 	if (g_pVolume != nullptr)
 	{
 		u32 Temp;
-		g_pVolume->Read(_Offset, 4, (u8*)&Temp);
+		g_pVolume->Read(Offset, 4, (u8*)&Temp);
 		return Common::swap32(Temp);
 	}
 	return 0;
 }
 
-bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength)
+bool ReadToPtr(u8* ptr, u64 dwOffset, u64 dwLength)
 {
 	if (g_pVolume != nullptr && ptr)
 	{
-		g_pVolume->Read(_dwOffset, _dwLength, ptr);
+		g_pVolume->Read(dwOffset, dwLength, ptr);
 		return true;
 	}
 	return false;
 }
 
-bool RAWReadToPtr( u8* ptr, u64 _dwOffset, u64 _dwLength )
+bool RAWReadToPtr( u8* ptr, u64 dwOffset, u64 dwLength )
 {
 	if (g_pVolume != nullptr && ptr)
 	{
-		g_pVolume->RAWRead(_dwOffset, _dwLength, ptr);
+		g_pVolume->RAWRead(dwOffset, dwLength, ptr);
 		return true;
 	}
 	return false;

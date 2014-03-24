@@ -87,30 +87,30 @@ void Clear();
 bool AreMemoryBreakpointsActivated();
 
 // ONLY for use by GUI
-u8 ReadUnchecked_U8(const u32 _Address);
-u32 ReadUnchecked_U32(const u32 _Address);
+u8 ReadUnchecked_U8(const u32 Address);
+u32 ReadUnchecked_U32(const u32 Address);
 
-void WriteUnchecked_U8(const u8 _Data, const u32 _Address);
-void WriteUnchecked_U32(const u32 _Data, const u32 _Address);
+void WriteUnchecked_U8(const u8 Data, const u32 Address);
+void WriteUnchecked_U32(const u32 Data, const u32 Address);
 
 bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false, bool allow_fake_vmem = false);
 
 inline u8* GetCachePtr() {return m_pL1Cache;}
 inline u8* GetMainRAMPtr() {return m_pRAM;}
-inline u32 ReadFast32(const u32 _Address)
+inline u32 ReadFast32(const u32 Address)
 {
 #if _ARCH_32
-	return Common::swap32(*(u32 *)(base + (_Address & MEMVIEW32_MASK)));  // ReadUnchecked_U32(_Address);
+	return Common::swap32(*(u32 *)(base + (Address & MEMVIEW32_MASK)));  // ReadUnchecked_U32(Address);
 #else
-	return Common::swap32(*(u32 *)(base + _Address));
+	return Common::swap32(*(u32 *)(base + Address));
 #endif
 }
 
 // used by interpreter to read instructions, uses iCache
-u32 Read_Opcode(const u32 _Address);
+u32 Read_Opcode(const u32 Address);
 // this is used by Debugger a lot.
 // For now, just reads from memory!
-u32 Read_Instruction(const u32 _Address);
+u32 Read_Instruction(const u32 Address);
 
 
 // For use by emulator
@@ -120,43 +120,43 @@ u32 Read_Instruction(const u32 _Address);
 #define HWSHIFT 10
 #define HW_MASK 0x3FF
 
-u8  Read_U8(const u32 _Address);
-u16 Read_U16(const u32 _Address);
-u32 Read_U32(const u32 _Address);
-u64 Read_U64(const u32 _Address);
+u8  Read_U8(const u32 Address);
+u16 Read_U16(const u32 Address);
+u32 Read_U32(const u32 Address);
+u64 Read_U64(const u32 Address);
 
 // Useful helper functions, used by ARM JIT
-float Read_F32(const u32 _Address);
-double Read_F64(const u32 _Address);
+float Read_F32(const u32 Address);
+double Read_F64(const u32 Address);
 
 // used by JIT. Return zero-extended 32bit values
-u32 Read_U8_ZX(const u32 _Address);
-u32 Read_U16_ZX(const u32 _Address);
+u32 Read_U8_ZX(const u32 Address);
+u32 Read_U16_ZX(const u32 Address);
 
 // used by JIT (Jit64::lXz)
 u32 EFB_Read(const u32 addr);
 
-void Write_U8(const u8 _Data, const u32 _Address);
-void Write_U16(const u16 _Data, const u32 _Address);
-void Write_U32(const u32 _Data, const u32 _Address);
-void Write_U64(const u64 _Data, const u32 _Address);
+void Write_U8(const u8 Data, const u32 Address);
+void Write_U16(const u16 Data, const u32 Address);
+void Write_U32(const u32 Data, const u32 Address);
+void Write_U64(const u64 Data, const u32 Address);
 
-void Write_U16_Swap(const u16 _Data, const u32 _Address);
-void Write_U32_Swap(const u32 _Data, const u32 _Address);
-void Write_U64_Swap(const u64 _Data, const u32 _Address);
+void Write_U16_Swap(const u16 Data, const u32 Address);
+void Write_U32_Swap(const u32 Data, const u32 Address);
+void Write_U64_Swap(const u64 Data, const u32 Address);
 
 // Useful helper functions, used by ARM JIT
-void Write_F64(const double _Data, const u32 _Address);
+void Write_F64(const double Data, const u32 Address);
 
-void WriteHW_U32(const u32 _Data, const u32 _Address);
-void GetString(std::string& _string, const u32 _Address);
+void WriteHW_U32(const u32 Data, const u32 Address);
+void GetString(std::string& _string, const u32 Address);
 
-void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t size);
-void ReadBigEData(u8 *_pDest, const u32 _Address, const u32 size);
-u8* GetPointer(const u32 _Address);
-void DMA_LCToMemory(const u32 _iMemAddr, const u32 _iCacheAddr, const u32 _iNumBlocks);
-void DMA_MemoryToLC(const u32 _iCacheAddr, const u32 _iMemAddr, const u32 _iNumBlocks);
-void Memset(const u32 _Address, const u8 _Data, const u32 _iLength);
+void WriteBigEData(const u8 *pData, const u32 Address, const size_t size);
+void ReadBigEData(u8 *pDest, const u32 Address, const u32 size);
+u8* GetPointer(const u32 Address);
+void DMA_LCToMemory(const u32 iMemAddr, const u32 iCacheAddr, const u32 iNumBlocks);
+void DMA_MemoryToLC(const u32 iCacheAddr, const u32 iMemAddr, const u32 iNumBlocks);
+void Memset(const u32 Address, const u8 Data, const u32 iLength);
 
 // TLB functions
 void SDRUpdated();
@@ -167,10 +167,10 @@ enum XCheckTLBFlag
 	FLAG_WRITE,
 	FLAG_OPCODE,
 };
-u32 TranslateAddress(u32 _Address, XCheckTLBFlag _Flag);
-void InvalidateTLBEntry(u32 _Address);
-void GenerateDSIException(u32 _EffectiveAdress, bool _bWrite);
-void GenerateISIException(u32 _EffectiveAdress);
+u32 TranslateAddress(u32 Address, XCheckTLBFlag Flag);
+void InvalidateTLBEntry(u32 Address);
+void GenerateDSIException(u32 EffectiveAdress, bool bWrite);
+void GenerateISIException(u32 EffectiveAdress);
 extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
 

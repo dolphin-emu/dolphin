@@ -7,22 +7,22 @@
 #include "Common/FileUtil.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
-std::string HLE_IPC_BuildFilename(std::string _pFilename, int _size);
+std::string HLE_IPC_BuildFilename(std::string pFilename, int size);
 void HLE_IPC_CreateVirtualFATFilesystem();
 
 class CWII_IPC_HLE_Device_FileIO : public IWII_IPC_HLE_Device
 {
 public:
-	CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_FileIO(u32 DeviceID, const std::string& rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_FileIO();
 
-	bool Close(u32 _CommandAddress, bool _bForce) override;
-	bool Open(u32 _CommandAddress, u32 _Mode) override;
-	bool Seek(u32 _CommandAddress) override;
-	bool Read(u32 _CommandAddress) override;
-	bool Write(u32 _CommandAddress) override;
-	bool IOCtl(u32 _CommandAddress) override;
+	bool Close(u32 CommandAddress, bool bForce) override;
+	bool Open(u32 CommandAddress, u32 Mode) override;
+	bool Seek(u32 CommandAddress) override;
+	bool Read(u32 CommandAddress) override;
+	bool Write(u32 CommandAddress) override;
+	bool IOCtl(u32 CommandAddress) override;
 	void DoState(PointerWrap &p) override;
 
 	File::IOFile OpenFile();

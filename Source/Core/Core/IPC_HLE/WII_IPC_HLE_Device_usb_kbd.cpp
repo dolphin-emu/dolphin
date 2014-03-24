@@ -13,14 +13,14 @@
 #include <windows.h>
 #endif
 
-CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName)
-: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 DeviceID, const std::string& rDeviceName)
+: IWII_IPC_HLE_Device(DeviceID, rDeviceName)
 {}
 
 CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
 {}
 
-bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
+bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 CommandAddress, u32 Mode)
 {
 	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
 	IniFile ini;
@@ -35,34 +35,34 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 	m_OldModifiers = 0x00;
 
 	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, nullptr));
-	Memory::Write_U32(m_DeviceID, _CommandAddress+4);
+	Memory::Write_U32(m_DeviceID, CommandAddress+4);
 	m_Active = true;
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
+bool CWII_IPC_HLE_Device_usb_kbd::Close(u32 CommandAddress, bool bForce)
 {
 	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Close");
 	while (!m_MessageQueue.empty())
 		m_MessageQueue.pop();
-	if (!_bForce)
-		Memory::Write_U32(0, _CommandAddress + 4);
+	if (!bForce)
+		Memory::Write_U32(0, CommandAddress + 4);
 	m_Active = false;
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_usb_kbd::Write(u32 CommandAddress)
 {
 	INFO_LOG(WII_IPC_STM, "Ignoring write to CWII_IPC_HLE_Device_usb_kbd");
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	DumpCommands(_CommandAddress, 10, LogTypes::WII_IPC_STM, LogTypes::LDEBUG);
+	DumpCommands(CommandAddress, 10, LogTypes::WII_IPC_STM, LogTypes::LDEBUG);
 #endif
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 CommandAddress)
 {
-	u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOut = Memory::Read_U32(CommandAddress + 0x18);
 
 	if (SConfig::GetInstance().m_WiiKeyboard && !m_MessageQueue.empty())
 	{
@@ -70,14 +70,14 @@ bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 		m_MessageQueue.pop();
 	}
 
-	Memory::Write_U32(0, _CommandAddress + 0x4);
+	Memory::Write_U32(0, CommandAddress + 0x4);
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
+bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int Key)
 {
 #ifdef _WIN32
-	if (GetAsyncKeyState(_Key) & 0x8000)
+	if (GetAsyncKeyState(Key) & 0x8000)
 		return true;
 	else
 		return false;

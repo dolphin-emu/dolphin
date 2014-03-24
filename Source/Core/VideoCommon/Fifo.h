@@ -20,7 +20,7 @@ void Fifo_Shutdown();
 void Fifo_DoState(PointerWrap &f);
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);
 
-void ReadDataFromFifo(u8* _uData, u32 len);
+void ReadDataFromFifo(u8* uData, u32 len);
 
 void RunGpu();
 void RunGpuLoop();

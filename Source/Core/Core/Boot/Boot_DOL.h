@@ -12,7 +12,7 @@ class CDolLoader
 {
 public:
 	CDolLoader(const std::string& filename);
-	CDolLoader(u8* _pBuffer, u32 _Size);
+	CDolLoader(u8* pBuffer, u32 Size);
 	~CDolLoader();
 
 	bool IsWii()        { return m_isWii; }
@@ -52,5 +52,5 @@ private:
 	bool m_isWii;
 
 	// Copy sections to internal buffers
-	void Initialize(u8* _pBuffer, u32 _Size);
+	void Initialize(u8* pBuffer, u32 Size);
 };

@@ -581,8 +581,11 @@ enum NEONAlignment
 class NEONXEmitter
 {
 private:
-	ARMXEmitter *_emit;
-	inline void Write32(u32 value) { _emit->Write32(value); }
+	ARMXEmitter *emit;
+	inline void Write32(u32 value)
+	{
+		emit->Write32(value);
+	}
 
 	inline u32 encodedSize(u32 value)
 	{
@@ -602,8 +605,8 @@ private:
 	void VREVX(u32 size, u32 Size, ARMReg Vd, ARMReg Vm);
 
 public:
-	NEONXEmitter(ARMXEmitter *emit)
-		: _emit(emit)
+	NEONXEmitter(ARMXEmitter* _emit)
+		: emit(_emit)
 	{}
 
 	void VABA(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);

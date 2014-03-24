@@ -650,9 +650,9 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 		if (f.name.substr(0, 3) == "zzz")
 		{
 			if (f.flags & FFLAG_LEAF)
-				f.name += "_leaf";
+				f.name += "leaf";
 			if (f.flags & FFLAG_STRAIGHT)
-				f.name += "_straight";
+				f.name += "straight";
 		}
 		if (f.flags & FFLAG_LEAF)
 		{

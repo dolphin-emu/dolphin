@@ -549,36 +549,36 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	for (int i = 0; i < numBranches; i++)
 	{
 		int x = 17 + 49 * charWidth + (branches[i].srcAddr % 9) * 8;
-		_MoveTo(x-2, branches[i].src);
+		MoveTo(x-2, branches[i].src);
 
 		if (branches[i].dst < rc.height + 400 && branches[i].dst > -400)
 		{
-			_LineTo(dc, x+2, branches[i].src);
-			_LineTo(dc, x+2, branches[i].dst);
-			_LineTo(dc, x-4, branches[i].dst);
+			LineTo(dc, x+2, branches[i].src);
+			LineTo(dc, x+2, branches[i].dst);
+			LineTo(dc, x-4, branches[i].dst);
 
-			_MoveTo(x, branches[i].dst - 4);
-			_LineTo(dc, x-4, branches[i].dst);
-			_LineTo(dc, x+1, branches[i].dst+5);
+			MoveTo(x, branches[i].dst - 4);
+			LineTo(dc, x-4, branches[i].dst);
+			LineTo(dc, x+1, branches[i].dst+5);
 		}
 		//else
 		//{
 			// This can be re-enabled when there is a scrollbar or
 			// something on the codeview (the lines are too long)
 
-			//_LineTo(dc, x+4, branches[i].src);
-			//_MoveTo(x+2, branches[i].dst-4);
-			//_LineTo(dc, x+6, branches[i].dst);
-			//_LineTo(dc, x+1, branches[i].dst+5);
+			//LineTo(dc, x+4, branches[i].src);
+			//MoveTo(x+2, branches[i].dst-4);
+			//LineTo(dc, x+6, branches[i].dst);
+			//LineTo(dc, x+1, branches[i].dst+5);
 		//}
 
-		//_LineTo(dc, x, branches[i].dst+4);
-		//_LineTo(dc, x-2, branches[i].dst);
+		//LineTo(dc, x, branches[i].dst+4);
+		//LineTo(dc, x-2, branches[i].dst);
 	}
 	// ------------
 }
 
-void CCodeView::_LineTo(wxPaintDC &dc, int x, int y)
+void CCodeView::LineTo(wxPaintDC &dc, int x, int y)
 {
 	dc.DrawLine(lx, ly, x, y);
 	lx = x;

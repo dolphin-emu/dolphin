@@ -28,8 +28,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void UpdateDevices();
 
-void RemoveDevice(int _iDeviceNumber);
-void AddDevice(const SIDevices _device, int _iDeviceNumber);
+void RemoveDevice(int iDeviceNumber);
+void AddDevice(const SIDevices device, int iDeviceNumber);
 void AddDevice(ISIDevice* pDevice);
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate);

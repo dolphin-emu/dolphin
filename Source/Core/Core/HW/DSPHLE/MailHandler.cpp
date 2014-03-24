@@ -13,10 +13,10 @@ CMailHandler::~CMailHandler()
 	Clear();
 }
 
-void CMailHandler::PushMail(u32 _Mail)
+void CMailHandler::PushMail(u32 Mail)
 {
-	m_Mails.push(_Mail);
-	DEBUG_LOG(DSP_MAIL, "DSP writes 0x%08x", _Mail);
+	m_Mails.push(Mail);
+	DEBUG_LOG(DSP_MAIL, "DSP writes 0x%08x", Mail);
 }
 
 u16 CMailHandler::ReadDSPMailboxHigh()
@@ -53,9 +53,9 @@ bool CMailHandler::IsEmpty()
 	return m_Mails.empty();
 }
 
-void CMailHandler::Halt(bool _Halt)
+void CMailHandler::Halt(bool halt)
 {
-	if (_Halt)
+	if (halt)
 	{
 		Clear();
 		m_Mails.push(0x80544348);

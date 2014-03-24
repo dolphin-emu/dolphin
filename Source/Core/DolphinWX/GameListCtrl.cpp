@@ -390,21 +390,21 @@ void CGameListCtrl::Update()
 	SetFocus();
 }
 
-wxString NiceSizeFormat(u64 _size)
+wxString NiceSizeFormat(u64 size)
 {
 	const char* const unit_symbols[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"};
 
-	const u64 unit = Log2(std::max<u64>(_size, 1)) / 10;
+	const u64 unit = Log2(std::max<u64>(size, 1)) / 10;
 	const u64 unit_size = (1 << (unit * 10));
 
 	// ugly rounding integer math
-	const u64 value = (_size + unit_size / 2) / unit_size;
-	const u64 frac = (_size % unit_size * 10 + unit_size / 2) / unit_size % 10;
+	const u64 value = (size + unit_size / 2) / unit_size;
+	const u64 frac = (size % unit_size * 10 + unit_size / 2) / unit_size % 10;
 
 	return StrToWxStr(StringFromFormat("%" PRIu64 ".%" PRIu64 " %s", value, frac, unit_symbols[unit]));
 }
 
-void CGameListCtrl::InsertItemInReportView(long _Index)
+void CGameListCtrl::InsertItemInReportView(long Index)
 {
 	// When using wxListCtrl, there is no hope of per-column text colors.
 	// But for reference, here are the old colors that were used: (BGR)
@@ -412,19 +412,19 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// company: 0x007030
 	int ImageIndex = -1;
 
-	GameListItem& rISOFile = *m_ISOFiles[_Index];
+	GameListItem& rISOFile = *m_ISOFiles[Index];
 
 	// Insert a first row with nothing in it, that will be used as the Index
-	long ItemIndex = InsertItem(_Index, wxEmptyString);
+	long ItemIndex = InsertItem(Index, wxEmptyString);
 
 	// Insert the platform's image in the first (visible) column
-	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.GetPlatform()]);
+	SetItemColumnImage(Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.GetPlatform()]);
 
 	if (rISOFile.GetBitmap().IsOk())
 		ImageIndex = m_imageListSmall->Add(rISOFile.GetBitmap());
 
 	// Set the game's banner in the second column
-	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
+	SetItemColumnImage(Index, COLUMN_BANNER, ImageIndex);
 
 	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 
@@ -435,28 +435,28 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	}
 
 	std::string const name = rISOFile.GetName(SelectedLanguage);
-	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
+	SetItem(Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
 	// We show the company string on Gamecube only
 	// On Wii we show the description instead as the company string is empty
 	std::string const notes = (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
 		rISOFile.GetCompany() : rISOFile.GetDescription(SelectedLanguage);
-	SetItem(_Index, COLUMN_NOTES, StrToWxStr(notes), -1);
+	SetItem(Index, COLUMN_NOTES, StrToWxStr(notes), -1);
 
 	// Emulation state
-	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[rISOFile.GetEmuState()]);
+	SetItemColumnImage(Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[rISOFile.GetEmuState()]);
 
 	// Country
-	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
+	SetItemColumnImage(Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
 
 	// File size
-	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
+	SetItem(Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
 
 	// Background color
 	SetBackgroundColor();
 
 	// Item data
-	SetItemData(_Index, ItemIndex);
+	SetItemData(Index, ItemIndex);
 }
 
 wxColour blend50(const wxColour& c1, const wxColour& c2)
@@ -1077,7 +1077,7 @@ void CGameListCtrl::OnMultiDecompressGCM(wxCommandEvent& /*event*/)
 	CompressSelection(false);
 }
 
-void CGameListCtrl::CompressSelection(bool _compress)
+void CGameListCtrl::CompressSelection(bool compress)
 {
 	wxString dirHome;
 	wxGetHomeDir(&dirHome);
@@ -1091,7 +1091,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 	{
 	wxProgressDialog progressDialog(
-		_compress ? _("Compressing ISO") : _("Decompressing ISO"),
+		compress ? _("Compressing ISO") : _("Decompressing ISO"),
 		_("Working..."),
 		1000,
 		this,
@@ -1106,7 +1106,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	{
 		const GameListItem *iso = GetSelectedISO();
 
-			if (!iso->IsCompressed() && _compress)
+			if (!iso->IsCompressed() && compress)
 			{
 				std::string FileName, FileExt;
 				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
@@ -1131,7 +1131,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 						(iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0,
 						16384, &MultiCompressCB, &progressDialog);
 			}
-			else if (iso->IsCompressed() && !_compress)
+			else if (iso->IsCompressed() && !compress)
 			{
 				std::string FileName, FileExt;
 				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);

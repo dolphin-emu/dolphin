@@ -60,7 +60,7 @@ void JitArm::WriteCallInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush();
 	fpr.Flush();
-	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
+	Interpreter::interpreterInstruction instr = GetInterpreterOp(inst);
 	MOVI2R(R0, inst.hex);
 	MOVI2R(R12, (u32)instr);
 	BL(R12);
@@ -70,24 +70,24 @@ void JitArm::unknown_instruction(UGeckoInstruction inst)
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void JitArm::FallBackToInterpreter(UGeckoInstruction _inst)
+void JitArm::FallBackToInterpreter(UGeckoInstruction inst)
 {
-	WriteCallInterpreter(_inst.hex);
+	WriteCallInterpreter(inst.hex);
 }
 
-void JitArm::HLEFunction(UGeckoInstruction _inst)
+void JitArm::HLEFunction(UGeckoInstruction inst)
 {
 	gpr.Flush();
 	fpr.Flush();
 	MOVI2R(R0, js.compilerPC);
-	MOVI2R(R1, _inst.hex);
+	MOVI2R(R1, inst.hex);
 	QuickCallFunction(R14, (void*)&HLE::Execute);
 	ARMReg rA = gpr.GetReg();
 	LDR(rA, R9, PPCSTATE_OFF(npc));
 	WriteExitDestInR(rA);
 }
 
-void JitArm::DoNothing(UGeckoInstruction _inst)
+void JitArm::DoNothing(UGeckoInstruction inst)
 {
 	// Yup, just don't do anything.
 }

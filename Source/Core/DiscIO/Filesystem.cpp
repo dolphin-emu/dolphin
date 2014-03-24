@@ -8,8 +8,8 @@
 namespace DiscIO
 {
 
-IFileSystem::IFileSystem(const IVolume *_rVolume)
-	: m_rVolume(_rVolume)
+IFileSystem::IFileSystem(const IVolume *rVolume)
+	: m_rVolume(rVolume)
 {}
 
 
@@ -17,9 +17,9 @@ IFileSystem::~IFileSystem()
 {}
 
 
-IFileSystem* CreateFileSystem(const IVolume* _rVolume)
+IFileSystem* CreateFileSystem(const IVolume* rVolume)
 {
-	IFileSystem* pFileSystem = new CFileSystemGCWii(_rVolume);
+	IFileSystem* pFileSystem = new CFileSystemGCWii(rVolume);
 
 	if (!pFileSystem)
 		return nullptr;

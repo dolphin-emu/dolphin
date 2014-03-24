@@ -88,11 +88,11 @@ u32 DSPHLE::DSP_UpdateRate()
 		return SystemTimers::GetTicksPerSecond() / 1000;
 }
 
-void DSPHLE::SendMailToDSP(u32 _uMail)
+void DSPHLE::SendMailToDSP(u32 uMail)
 {
 	if (m_pUCode != nullptr) {
-		DEBUG_LOG(DSP_MAIL, "CPU writes 0x%08x", _uMail);
-		m_pUCode->HandleMail(_uMail);
+		DEBUG_LOG(DSP_MAIL, "CPU writes 0x%08x", uMail);
+		m_pUCode->HandleMail(uMail);
 	}
 }
 
@@ -101,26 +101,26 @@ IUCode* DSPHLE::GetUCode()
 	return m_pUCode;
 }
 
-void DSPHLE::SetUCode(u32 _crc)
+void DSPHLE::SetUCode(u32 crc)
 {
 	delete m_pUCode;
 
 	m_pUCode = nullptr;
 	m_MailHandler.Clear();
-	m_pUCode = UCodeFactory(_crc, this, m_bWii);
+	m_pUCode = UCodeFactory(crc, this, m_bWii);
 }
 
 // TODO do it better?
 // Assumes that every odd call to this func is by the persistent ucode.
 // Even callers are deleted.
-void DSPHLE::SwapUCode(u32 _crc)
+void DSPHLE::SwapUCode(u32 crc)
 {
 	m_MailHandler.Clear();
 
 	if (m_lastUCode == nullptr)
 	{
 		m_lastUCode = m_pUCode;
-		m_pUCode = UCodeFactory(_crc, this, m_bWii);
+		m_pUCode = UCodeFactory(crc, this, m_bWii);
 	}
 	else
 	{
@@ -210,9 +210,9 @@ void DSPHLE::DoState(PointerWrap &p)
 }
 
 // Mailbox fuctions
-unsigned short DSPHLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)
+unsigned short DSPHLE::DSP_ReadMailBoxHigh(bool CPUMailbox)
 {
-	if (_CPUMailbox)
+	if (CPUMailbox)
 	{
 		return (m_dspState.CPUMailbox >> 16) & 0xFFFF;
 	}
@@ -222,9 +222,9 @@ unsigned short DSPHLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)
 	}
 }
 
-unsigned short DSPHLE::DSP_ReadMailBoxLow(bool _CPUMailbox)
+unsigned short DSPHLE::DSP_ReadMailBoxLow(bool CPUMailbox)
 {
-	if (_CPUMailbox)
+	if (CPUMailbox)
 	{
 		return m_dspState.CPUMailbox & 0xFFFF;
 	}
@@ -234,30 +234,30 @@ unsigned short DSPHLE::DSP_ReadMailBoxLow(bool _CPUMailbox)
 	}
 }
 
-void DSPHLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short _Value)
+void DSPHLE::DSP_WriteMailBoxHigh(bool CPUMailbox, unsigned short Value)
 {
-	if (_CPUMailbox)
+	if (CPUMailbox)
 	{
-		m_dspState.CPUMailbox = (m_dspState.CPUMailbox & 0xFFFF) | (_Value << 16);
+		m_dspState.CPUMailbox = (m_dspState.CPUMailbox & 0xFFFF) | (Value << 16);
 	}
 	else
 	{
-		PanicAlert("CPU can't write %08x to DSP mailbox", _Value);
+		PanicAlert("CPU can't write %08x to DSP mailbox", Value);
 	}
 }
 
-void DSPHLE::DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short _Value)
+void DSPHLE::DSP_WriteMailBoxLow(bool CPUMailbox, unsigned short Value)
 {
-	if (_CPUMailbox)
+	if (CPUMailbox)
 	{
-		m_dspState.CPUMailbox = (m_dspState.CPUMailbox & 0xFFFF0000) | _Value;
+		m_dspState.CPUMailbox = (m_dspState.CPUMailbox & 0xFFFF0000) | Value;
 		SendMailToDSP(m_dspState.CPUMailbox);
 		// Mail sent so clear MSB to show that it is progressed
 		m_dspState.CPUMailbox &= 0x7FFFFFFF;
 	}
 	else
 	{
-		PanicAlert("CPU can't write %08x to DSP mailbox", _Value);
+		PanicAlert("CPU can't write %08x to DSP mailbox", Value);
 	}
 }
 
@@ -273,9 +273,9 @@ void DSPHLE::InitMixer()
 }
 
 // Other DSP fuctions
-u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
+u16 DSPHLE::DSP_WriteControlRegister(unsigned short Value)
 {
-	UDSPControl Temp(_Value);
+	UDSPControl Temp(Value);
 	if (!m_InitMixer)
 	{
 		if (!Temp.DSPHalt)

@@ -85,7 +85,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 END_EVENT_TABLE()
 
 // Class
-CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *parent,
+CCodeWindow::CCodeWindow(const SCoreStartupParameter& LocalCoreStartupParameter, CFrame *parent,
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
 	: wxPanel((wxWindow*)parent, id, position, size, style, name)
 	, Parent(parent)
@@ -195,9 +195,9 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 	Parent->UpdateGUI();
 }
 
-void CCodeWindow::JumpToAddress(u32 _Address)
+void CCodeWindow::JumpToAddress(u32 Address)
 {
-	codeview->Center(_Address);
+	codeview->Center(Address);
 	UpdateLists();
 }
 
@@ -359,7 +359,7 @@ void CCodeWindow::UpdateCallstack()
 }
 
 // Create CPU Mode menus
-void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar)
+void CCodeWindow::CreateMenu(const SCoreStartupParameter& LocalCoreStartupParameter, wxMenuBar *pMenuBar)
 {
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;
@@ -369,7 +369,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
 		" slow, perhaps slower than 1 fps."),
 		wxITEM_CHECK);
-	interpreter->Check(_LocalCoreStartupParameter.iCPUCore == 0);
+	interpreter->Check(LocalCoreStartupParameter.iCPUCore == 0);
 	pCoreMenu->AppendSeparator();
 
 	pCoreMenu->Append(IDM_JITBLOCKLINKING, _("&JIT Block Linking off"),

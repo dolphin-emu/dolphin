@@ -94,8 +94,8 @@ extern GekkoOPInfo *m_allInstructions[512];
 
 extern int m_numInstructions;
 
-GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
-Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
+GekkoOPInfo *GetOpInfo(UGeckoInstruction inst);
+Interpreter::interpreterInstruction GetInterpreterOp(UGeckoInstruction inst);
 
 class cJit64;
 
@@ -103,12 +103,12 @@ namespace PPCTables
 {
 
 void InitTables(int cpu_core);
-bool IsValidInstruction(UGeckoInstruction _instCode);
-bool UsesFPU(UGeckoInstruction _inst);
+bool IsValidInstruction(UGeckoInstruction instCode);
+bool UsesFPU(UGeckoInstruction inst);
 
-void CountInstruction(UGeckoInstruction _inst);
+void CountInstruction(UGeckoInstruction inst);
 void PrintInstructionRunCounts();
 void LogCompiledInstructions();
-const char *GetInstructionName(UGeckoInstruction _inst);
+const char *GetInstructionName(UGeckoInstruction inst);
 
 }  // namespace

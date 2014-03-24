@@ -123,7 +123,7 @@ void Host_SysMessage(const char *fmt, ...)
 	va_end(args);
 }
 
-void Host_SetWiiMoteConnectionState(int _State) {}
+void Host_SetWiiMoteConnectionState(int State) {}
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -334,10 +334,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(
 {
 	g_filename = GetJString(env, jFile);
 }
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetDimensions(JNIEnv *env, jobject obj, jint _width, jint _height)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetDimensions(JNIEnv *env, jobject obj, jint width, jint height)
 {
-	g_width = (int)_width;
-	g_height = (int)_height;
+	g_width = (int)width;
+	g_height = (int)height;
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv *env, jobject obj, jint slot)

@@ -50,7 +50,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 inline u32 GetMask() { return m_InterruptMask; }
 inline u32 GetCause() { return m_InterruptCause; }
 
-void SetInterrupt(u32 _causemask, bool _bSet=true);
+void SetInterrupt(u32 causemask, bool bSet=true);
 
 // Thread-safe func which sets and clears reset button state automagically
 void ResetButton_Tap();

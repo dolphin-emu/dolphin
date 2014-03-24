@@ -138,7 +138,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 			u32 *d = (u32*)dst;
 			for (int j = 0; j < (int)(srcSize + 3) / 4; j++)
 			{
-				*d++ = /*_byteswap_ulong*/(*s++);
+				*d++ = /*byteswap_ulong*/(*s++);
 			}
 			if (srcSize < dstSize)
 			{

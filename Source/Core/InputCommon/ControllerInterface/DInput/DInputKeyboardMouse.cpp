@@ -44,9 +44,9 @@ static const struct
 // lil silly
 static HWND hwnd;
 
-void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND _hwnd)
+void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND hwnd)
 {
-	hwnd = _hwnd;
+	hwnd = hwnd;
 
 	// mouse and keyboard are a combined device, to allow shift+click and stuff
 	// if that's dumb, I will make a VirtualDevice class that just uses ranges of inputs/outputs from other devices

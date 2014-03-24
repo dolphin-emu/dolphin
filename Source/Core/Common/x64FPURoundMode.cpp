@@ -41,10 +41,10 @@ namespace FPURoundMode
 				2 << 10, // +inf
 				1 << 10, // -inf
 			};
-			unsigned short _mode;
-			asm ("fstcw %0" : "=m" (_mode));
-			_mode = (_mode & ~X87_ROUND_MASK) | x87_rounding_table[mode];
-			asm ("fldcw %0" : : "m" (_mode));
+			unsigned short mode;
+			asm ("fstcw %0" : "=m" (mode));
+			mode = (mode & ~X87_ROUND_MASK) | x87_rounding_table[mode];
+			asm ("fldcw %0" : : "m" (mode));
 		#endif
 		#endif
 	}
@@ -64,10 +64,10 @@ namespace FPURoundMode
 				2 << 8, // 53 bits
 				3 << 8, // 64 bits
 			};
-			unsigned short _mode;
-			asm ("fstcw %0" : "=m" (_mode));
-			_mode = (_mode & ~PRECISION_MASK) | precision_table[mode];
-			asm ("fldcw %0" : : "m" (_mode));
+			unsigned short mode;
+			asm ("fstcw %0" : "=m" (mode));
+			mode = (mode & ~PRECISION_MASK) | precision_table[mode];
+			asm ("fldcw %0" : : "m" (mode));
 		#endif
 		#else
 			//x64 doesn't need this - fpu is done with SSE

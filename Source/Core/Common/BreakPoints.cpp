@@ -12,19 +12,19 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
-bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
+bool BreakPoints::IsAddressBreakPoint(u32 iAddress)
 {
 	for (const TBreakPoint& bp : m_BreakPoints)
-		if (bp.iAddress == _iAddress)
+		if (bp.iAddress == iAddress)
 			return true;
 
 	return false;
 }
 
-bool BreakPoints::IsTempBreakPoint(u32 _iAddress)
+bool BreakPoints::IsTempBreakPoint(u32 iAddress)
 {
 	for (const TBreakPoint& bp : m_BreakPoints)
-		if (bp.iAddress == _iAddress && bp.bTemporary)
+		if (bp.iAddress == iAddress && bp.bTemporary)
 			return true;
 
 	return false;
@@ -150,17 +150,17 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mcstrs)
 	}
 }
 
-void MemChecks::Add(const TMemCheck& _rMemoryCheck)
+void MemChecks::Add(const TMemCheck& rMemoryCheck)
 {
-	if (GetMemCheck(_rMemoryCheck.StartAddress) == nullptr)
-		m_MemChecks.push_back(_rMemoryCheck);
+	if (GetMemCheck(rMemoryCheck.StartAddress) == nullptr)
+		m_MemChecks.push_back(rMemoryCheck);
 }
 
-void MemChecks::Remove(u32 _Address)
+void MemChecks::Remove(u32 Address)
 {
 	for (auto i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
 	{
-		if (i->StartAddress == _Address)
+		if (i->StartAddress == Address)
 		{
 			m_MemChecks.erase(i);
 			return;

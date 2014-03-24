@@ -55,7 +55,7 @@ static void *xfb = nullptr;
 void (*reboot)() = (void(*)())0x80001800;
 GXRModeObj *rmode;
 
-static vu16* const _dspReg = (u16*)0xCC005000;
+static vu16* const dspReg = (u16*)0xCC005000;
 
 u16 *dspbufP;
 u16 *dspbufC;
@@ -176,16 +176,16 @@ void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_
 	CON_Printf(x+2, y+12, "AX1: %04x %04x", regs[DSP_REG_AXH1], regs[DSP_REG_AXL1]);
 }
 
-void print_regs(int _step, int _dsp_steps)
+void print_regs(int step, int dsp_steps)
 {
-	const u16 *regs = _step == 0 ? dspreg_in : dspreg_out[_step - 1];
-	const u16 *regs2 = dspreg_out[_step];
+	const u16 *regs = step == 0 ? dspreg_in : dspreg_out[step - 1];
+	const u16 *regs2 = dspreg_out[step];
 
-	print_reg_block(0, 2, _step == 0 ? cursor_reg : -1, regs, regs2);
+	print_reg_block(0, 2, step == 0 ? cursor_reg : -1, regs, regs2);
 	print_reg_block(33, 2, -1, regs2, regs);
 
 	CON_SetColor(CON_WHITE);
-	CON_Printf(33, 17, "%i / %i      ", _step + 1, _dsp_steps);
+	CON_Printf(33, 17, "%i / %i      ", step + 1, dsp_steps);
 
 	return;
 
@@ -239,7 +239,7 @@ void DumpDSP_ROMs(const u16* rom, const u16* coef)
 	}
 #else
 	// Allow to connect to gdb (dump ram... :s)
-	_break();
+	break();
 #endif
 }
 

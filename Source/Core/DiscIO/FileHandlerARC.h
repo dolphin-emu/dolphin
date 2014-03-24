@@ -17,23 +17,23 @@ class CARCFile
 {
 	public:
 
-		CARCFile(const std::string& _rFilename);
+		CARCFile(const std::string& rFilename);
 
-		CARCFile(const std::string& _rFilename, u32 offset);
+		CARCFile(const std::string& rFilename, u32 offset);
 
-		CARCFile(const u8* _pBuffer, size_t _BufferSize);
+		CARCFile(const u8* pBuffer, size_t BufferSize);
 
 		virtual ~CARCFile();
 
 		bool IsInitialized();
 
-		size_t GetFileSize(const std::string& _rFullPath);
+		size_t GetFileSize(const std::string& rFullPath);
 
-		size_t ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize);
+		size_t ReadFile(const std::string& rFullPath, u8* pBuffer, size_t MaxBufferSize);
 
-		bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename);
+		bool ExportFile(const std::string& rFullPath, const std::string& rExportFilename);
 
-		bool ExportAllFiles(const std::string& _rFullPath);
+		bool ExportAllFiles(const std::string& rFullPath);
 
 
 	private:
@@ -47,8 +47,8 @@ class CARCFile
 
 		bool ParseBuffer();
 
-		size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const std::string& _szDirectory, const char* _szNameTable);
+		size_t BuildFilenames(const size_t FirstIndex, const size_t LastIndex, const std::string& szDirectory, const char* szNameTable);
 
-		const SFileInfo* FindFileInfo(const std::string& _rFullPath) const;
+		const SFileInfo* FindFileInfo(const std::string& rFullPath) const;
 };
 } // namespace

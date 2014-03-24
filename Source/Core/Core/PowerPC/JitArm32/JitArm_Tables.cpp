@@ -7,25 +7,25 @@
 #include "Core/PowerPC/JitArm32/JitArm_Tables.h"
 
 // Should be moved in to the Jit class
-typedef void (JitArm::*_Instruction) (UGeckoInstruction instCode);
+typedef void (JitArm::*Instruction) (UGeckoInstruction instCode);
 
-static _Instruction dynaOpTable[64];
-static _Instruction dynaOpTable4[1024];
-static _Instruction dynaOpTable19[1024];
-static _Instruction dynaOpTable31[1024];
-static _Instruction dynaOpTable59[32];
-static _Instruction dynaOpTable63[1024];
+static Instruction dynaOpTable[64];
+static Instruction dynaOpTable4[1024];
+static Instruction dynaOpTable19[1024];
+static Instruction dynaOpTable31[1024];
+static Instruction dynaOpTable59[32];
+static Instruction dynaOpTable63[1024];
 
-void JitArm::DynaRunTable4(UGeckoInstruction _inst)  {(this->*dynaOpTable4 [_inst.SUBOP10])(_inst);}
-void JitArm::DynaRunTable19(UGeckoInstruction _inst) {(this->*dynaOpTable19[_inst.SUBOP10])(_inst);}
-void JitArm::DynaRunTable31(UGeckoInstruction _inst) {(this->*dynaOpTable31[_inst.SUBOP10])(_inst);}
-void JitArm::DynaRunTable59(UGeckoInstruction _inst) {(this->*dynaOpTable59[_inst.SUBOP5 ])(_inst);}
-void JitArm::DynaRunTable63(UGeckoInstruction _inst) {(this->*dynaOpTable63[_inst.SUBOP10])(_inst);}
+void JitArm::DynaRunTable4(UGeckoInstruction inst)  {(this->*dynaOpTable4 [inst.SUBOP10])(inst);}
+void JitArm::DynaRunTable19(UGeckoInstruction inst) {(this->*dynaOpTable19[inst.SUBOP10])(inst);}
+void JitArm::DynaRunTable31(UGeckoInstruction inst) {(this->*dynaOpTable31[inst.SUBOP10])(inst);}
+void JitArm::DynaRunTable59(UGeckoInstruction inst) {(this->*dynaOpTable59[inst.SUBOP5 ])(inst);}
+void JitArm::DynaRunTable63(UGeckoInstruction inst) {(this->*dynaOpTable63[inst.SUBOP10])(inst);}
 
 struct GekkoOPTemplate
 {
 	int opcode;
-	_Instruction Inst;
+	Instruction Inst;
 	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
 };
 

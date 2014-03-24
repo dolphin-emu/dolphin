@@ -276,7 +276,7 @@ void LogConfigWindow::ToggleLog(int _logType, bool enable)
 {
 	LogTypes::LOG_TYPE logType = (LogTypes::LOG_TYPE)_logType;
 
-	m_checks->Check(_logType, enable);
+	m_checks->Check(logType, enable);
 
 	m_LogManager->SetEnable(logType, enable);
 

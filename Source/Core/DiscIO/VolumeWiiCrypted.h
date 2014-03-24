@@ -21,12 +21,12 @@ class IBlobReader;
 class CVolumeWiiCrypted : public IVolume
 {
 public:
-	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
+	CVolumeWiiCrypted(IBlobReader* pReader, u64 VolumeOffset, const unsigned char* pVolumeKey);
 	~CVolumeWiiCrypted();
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
-	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
-	bool GetTitleID(u8* _pBuffer) const override;
-	void GetTMD(u8* _pBuffer, u32* _sz) const override;
+	bool Read(u64 Offset, u64 Length, u8* pBuffer) const override;
+	bool RAWRead(u64 Offset, u64 Length, u8* pBuffer) const override;
+	bool GetTitleID(u8* pBuffer) const override;
+	void GetTMD(u8* pBuffer, u32* sz) const override;
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
 	std::vector<std::string> GetNames() const override;

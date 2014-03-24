@@ -23,7 +23,7 @@ private:
 
 		D3D11_USAGE usage;
 
-		TCacheEntry(D3DTexture2D *_tex) : texture(_tex) {}
+		TCacheEntry(D3DTexture2D *tex) : texture(tex) {}
 		~TCacheEntry();
 
 		void Load(unsigned int width, unsigned int height,

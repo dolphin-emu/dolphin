@@ -112,20 +112,20 @@ void CUCode_Zelda::Update(int cycles)
 	}
 }
 
-void CUCode_Zelda::HandleMail(u32 _uMail)
+void CUCode_Zelda::HandleMail(u32 uMail)
 {
 	if (IsLightVersion())
-		HandleMail_LightVersion(_uMail);
+		HandleMail_LightVersion(uMail);
 	else if (IsSMSVersion())
-		HandleMail_SMSVersion(_uMail);
+		HandleMail_SMSVersion(uMail);
 	else
-		HandleMail_NormalVersion(_uMail);
+		HandleMail_NormalVersion(uMail);
 }
 
-void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
+void CUCode_Zelda::HandleMail_LightVersion(u32 uMail)
 {
 	//ERROR_LOG(DSPHLE, "Light version mail %08X, list in progress: %s, step: %i/%i",
-	// _uMail, m_bListInProgress ? "yes":"no", m_step, m_numSteps);
+	// uMail, m_bListInProgress ? "yes":"no", m_step, m_numSteps);
 
 	if (m_bSyncCmdPending)
 	{
@@ -143,7 +143,7 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 
 	if (!m_bListInProgress)
 	{
-		switch ((_uMail >> 24) & 0x7F)
+		switch ((uMail >> 24) & 0x7F)
 		{
 		case 0x00: m_numSteps = 1; break; // dummy
 		case 0x01: m_numSteps = 5; break; // DsetupTable
@@ -152,7 +152,7 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 		default:
 			{
 				m_numSteps = 0;
-				PanicAlert("Zelda uCode (light version): unknown/unsupported command %02X", (_uMail >> 24) & 0x7F);
+				PanicAlert("Zelda uCode (light version): unknown/unsupported command %02X", (uMail >> 24) & 0x7F);
 			}
 			return;
 		}
@@ -164,7 +164,7 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 	if (m_step >= sizeof(m_Buffer) / 4)
 		PanicAlert("m_step out of range");
 
-	((u32*)m_Buffer)[m_step] = _uMail;
+	((u32*)m_Buffer)[m_step] = uMail;
 	m_step++;
 
 	if (m_step >= m_numSteps)
@@ -174,14 +174,14 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 	}
 }
 
-void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
+void CUCode_Zelda::HandleMail_SMSVersion(u32 uMail)
 {
 	if (m_bSyncInProgress)
 	{
 		if (m_bSyncCmdPending)
 		{
-			m_SyncFlags[(m_NumSyncMail << 1)    ] = _uMail >> 16;
-			m_SyncFlags[(m_NumSyncMail << 1) + 1] = _uMail & 0xFFFF;
+			m_SyncFlags[(m_NumSyncMail << 1)    ] = uMail >> 16;
+			m_SyncFlags[(m_NumSyncMail << 1) + 1] = uMail & 0xFFFF;
 
 			m_NumSyncMail++;
 			if (m_NumSyncMail == 2)
@@ -221,7 +221,7 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 		if (m_step >= sizeof(m_Buffer) / 4)
 			PanicAlert("m_step out of range");
 
-		((u32*)m_Buffer)[m_step] = _uMail;
+		((u32*)m_Buffer)[m_step] = uMail;
 		m_step++;
 
 		if (m_step >= m_numSteps)
@@ -235,23 +235,23 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 
 	// Here holds: m_bSyncInProgress == false && m_bListInProgress == false
 
-	if (_uMail == 0)
+	if (uMail == 0)
 	{
 		m_bSyncInProgress = true;
 		m_NumSyncMail = 0;
 	}
-	else if ((_uMail >> 16) == 0)
+	else if ((uMail >> 16) == 0)
 	{
 		m_bListInProgress = true;
-		m_numSteps = _uMail;
+		m_numSteps = uMail;
 		m_step = 0;
 	}
-	else if ((_uMail >> 16) == 0xCDD1) // A 0xCDD1000X mail should come right after we send a DSP_SYNCEND mail
+	else if ((uMail >> 16) == 0xCDD1) // A 0xCDD1000X mail should come right after we send a DSP_SYNCEND mail
 	{
 		// The low part of the mail tells the operation to perform
 		// Seeing as every possible operation number halts the uCode,
 		// except 3, that thing seems to be intended for debugging
-		switch (_uMail & 0xFFFF)
+		switch (uMail & 0xFFFF)
 		{
 		case 0x0003: // Do nothing
 			return;
@@ -259,27 +259,27 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 		case 0x0000: // Halt
 		case 0x0001: // Dump memory? and halt
 		case 0x0002: // Do something and halt
-			WARN_LOG(DSPHLE, "Zelda uCode(SMS version): received halting operation %04X", _uMail & 0xFFFF);
+			WARN_LOG(DSPHLE, "Zelda uCode(SMS version): received halting operation %04X", uMail & 0xFFFF);
 			return;
 
 		default:     // Invalid (the real ucode would likely crash)
-			WARN_LOG(DSPHLE, "Zelda uCode(SMS version): received invalid operation %04X", _uMail & 0xFFFF);
+			WARN_LOG(DSPHLE, "Zelda uCode(SMS version): received invalid operation %04X", uMail & 0xFFFF);
 			return;
 		}
 	}
 	else
 	{
-		WARN_LOG(DSPHLE, "Zelda uCode (SMS version): unknown mail %08X", _uMail);
+		WARN_LOG(DSPHLE, "Zelda uCode (SMS version): unknown mail %08X", uMail);
 	}
 }
 
-void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
+void CUCode_Zelda::HandleMail_NormalVersion(u32 uMail)
 {
-	// WARN_LOG(DSPHLE, "Zelda uCode: Handle mail %08X", _uMail);
+	// WARN_LOG(DSPHLE, "Zelda uCode: Handle mail %08X", uMail);
 
 	if (m_UploadSetupInProgress) // evaluated first!
 	{
-		PrepareBootUCode(_uMail);
+		PrepareBootUCode(uMail);
 		return;
 	}
 
@@ -287,9 +287,9 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 	{
 		if (m_bSyncCmdPending)
 		{
-			u32 n = (_uMail >> 16) & 0xF;
+			u32 n = (uMail >> 16) & 0xF;
 			m_MaxVoice = (n + 1) << 4;
-			m_SyncFlags[n] = _uMail & 0xFFFF;
+			m_SyncFlags[n] = uMail & 0xFFFF;
 			m_bSyncInProgress = false;
 
 			// Normally, we should mix to the buffers used by the game.
@@ -351,7 +351,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 		if (m_step >= sizeof(m_Buffer) / 4)
 			PanicAlert("m_step out of range");
 
-		((u32*)m_Buffer)[m_step] = _uMail;
+		((u32*)m_Buffer)[m_step] = uMail;
 		m_step++;
 
 		if (m_step >= m_numSteps)
@@ -370,22 +370,22 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 	// - 00000000, 000X0000 - Sync mails
 	// - CDD1XXXX - comes after DsyncFrame completed, seems to be debugging stuff
 
-	if (_uMail == 0)
+	if (uMail == 0)
 	{
 		m_bSyncInProgress = true;
 	}
-	else if ((_uMail >> 16) == 0)
+	else if ((uMail >> 16) == 0)
 	{
 		m_bListInProgress = true;
-		m_numSteps = _uMail;
+		m_numSteps = uMail;
 		m_step = 0;
 	}
-	else if ((_uMail >> 16) == 0xCDD1) // A 0xCDD1000X mail should come right after we send a DSP_FRAME_END mail
+	else if ((uMail >> 16) == 0xCDD1) // A 0xCDD1000X mail should come right after we send a DSP_FRAME_END mail
 	{
 		// The low part of the mail tells the operation to perform
 		// Seeing as every possible operation number halts the uCode,
 		// except 3, that thing seems to be intended for debugging
-		switch (_uMail & 0xFFFF)
+		switch (uMail & 0xFFFF)
 		{
 		case 0x0003: // Do nothing - continue normally
 			return;
@@ -401,17 +401,17 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 			return;
 
 		case 0x0000: // Halt
-			WARN_LOG(DSPHLE, "Zelda uCode: received halting operation %04X", _uMail & 0xFFFF);
+			WARN_LOG(DSPHLE, "Zelda uCode: received halting operation %04X", uMail & 0xFFFF);
 			return;
 
 		default:     // Invalid (the real ucode would likely crash)
-			WARN_LOG(DSPHLE, "Zelda uCode: received invalid operation %04X", _uMail & 0xFFFF);
+			WARN_LOG(DSPHLE, "Zelda uCode: received invalid operation %04X", uMail & 0xFFFF);
 			return;
 		}
 	}
 	else
 	{
-		WARN_LOG(DSPHLE, "Zelda uCode: unknown mail %08X", _uMail);
+		WARN_LOG(DSPHLE, "Zelda uCode: unknown mail %08X", uMail);
 	}
 }
 

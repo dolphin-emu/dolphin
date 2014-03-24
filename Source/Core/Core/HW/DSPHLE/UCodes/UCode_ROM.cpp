@@ -30,19 +30,19 @@ CUCode_Rom::~CUCode_Rom()
 void CUCode_Rom::Update(int cycles)
 {}
 
-void CUCode_Rom::HandleMail(u32 _uMail)
+void CUCode_Rom::HandleMail(u32 uMail)
 {
 	if (m_NextParameter == 0)
 	{
 		// wait for beginning of UCode
-		if ((_uMail & 0xFFFF0000) != 0x80F30000)
+		if ((uMail & 0xFFFF0000) != 0x80F30000)
 		{
-			u32 Message = 0xFEEE0000 | (_uMail & 0xFFFF);
+			u32 Message = 0xFEEE0000 | (uMail & 0xFFFF);
 			m_rMailHandler.PushMail(Message);
 		}
 		else
 		{
-			m_NextParameter = _uMail;
+			m_NextParameter = uMail;
 		}
 	}
 	else
@@ -50,26 +50,26 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 		switch (m_NextParameter)
 		{
 			case 0x80F3A001:
-				m_CurrentUCode.m_RAMAddress = _uMail;
+				m_CurrentUCode.m_RAMAddress = uMail;
 				break;
 
 			case 0x80F3A002:
-				m_CurrentUCode.m_Length = _uMail & 0xffff;
+				m_CurrentUCode.m_Length = uMail & 0xffff;
 				break;
 
 			case 0x80F3B002:
-				m_CurrentUCode.m_DMEMLength = _uMail & 0xffff;
+				m_CurrentUCode.m_DMEMLength = uMail & 0xffff;
 				if (m_CurrentUCode.m_DMEMLength) {
 					NOTICE_LOG(DSPHLE,"m_CurrentUCode.m_DMEMLength = 0x%04x.", m_CurrentUCode.m_DMEMLength);
 				}
 				break;
 
 			case 0x80F3C002:
-				m_CurrentUCode.m_IMEMAddress = _uMail & 0xffff;
+				m_CurrentUCode.m_IMEMAddress = uMail & 0xffff;
 				break;
 
 			case 0x80F3D001:
-				m_CurrentUCode.m_StartPC = _uMail & 0xffff;
+				m_CurrentUCode.m_StartPC = uMail & 0xffff;
 				BootUCode();
 				return;  // Important! BootUCode indirectly does "delete this;". Must exit immediately.
 

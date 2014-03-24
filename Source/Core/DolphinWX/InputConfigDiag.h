@@ -46,7 +46,7 @@ class wxWindow;
 class PadSetting
 {
 protected:
-	PadSetting(wxControl* const _control) : wxcontrol(_control) { wxcontrol->SetClientData(this); }
+	PadSetting(wxControl* const control) : wxcontrol(control) { wxcontrol->SetClientData(this); }
 
 public:
 	virtual void UpdateGUI() = 0;
@@ -84,7 +84,7 @@ public:
 class PadSettingCheckBox : public PadSetting
 {
 public:
-	PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const std::string& label);
+	PadSettingCheckBox(wxWindow* const parent, ControlState& value, const std::string& label);
 	void UpdateGUI() override;
 	void UpdateValue() override;
 
@@ -142,7 +142,7 @@ public:
 class ControlButton : public wxButton
 {
 public:
-	ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref, const unsigned int width, const std::string& label = "");
+	ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const ref, const unsigned int width, const std::string& label = "");
 
 	ControllerInterface::ControlReference* const control_reference;
 };

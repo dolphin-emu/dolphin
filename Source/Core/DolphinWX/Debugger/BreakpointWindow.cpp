@@ -100,11 +100,11 @@ BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
 	EVT_LIST_ITEM_SELECTED(wxID_ANY, CBreakPointWindow::OnSelectBP)
 END_EVENT_TABLE()
 
-CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent,
+CBreakPointWindow::CBreakPointWindow(CCodeWindow* pCodeWindow, wxWindow* parent,
 	    wxWindowID id, const wxString& title, const wxPoint& position,
 	    const wxSize& size, long style)
 	: wxPanel(parent, id, position, size, style, title)
-	, m_pCodeWindow(_pCodeWindow)
+	, m_pCodeWindow(pCodeWindow)
 {
 	m_mgr.SetManagedWindow(this);
 	m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);

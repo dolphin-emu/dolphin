@@ -80,8 +80,8 @@ private:
 	bool selecting;
 
 	int lx, ly;
-	void _MoveTo(int x, int y) {lx = x; ly = y;}
-	void _LineTo(wxPaintDC &dc, int x, int y);
+	void MoveTo(int x, int y) {lx = x; ly = y;}
+	void LineTo(wxPaintDC &dc, int x, int y);
 
 	DECLARE_EVENT_TABLE()
 };

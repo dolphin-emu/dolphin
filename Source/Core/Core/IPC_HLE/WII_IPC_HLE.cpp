@@ -133,7 +133,7 @@ void Init()
 	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
 }
 
-void Reset(bool _bHard)
+void Reset(bool bHard)
 {
 	CoreTiming::RemoveAllEvents(enque_reply);
 
@@ -162,12 +162,12 @@ void Reset(bool _bHard)
 			entry.second->Close(0, true);
 
 			// Hardware should not be deleted unless it is a hard reset
-			if (_bHard)
+			if (bHard)
 				delete entry.second;
 		}
 	}
 
-	if (_bHard)
+	if (bHard)
 	{
 		g_DeviceMap.erase(g_DeviceMap.begin(), g_DeviceMap.end());
 	}
@@ -186,20 +186,20 @@ void Shutdown()
 	Reset(true);
 }
 
-void SetDefaultContentFile(const std::string& _rFilename)
+void SetDefaultContentFile(const std::string& rFilename)
 {
 	for (const auto& entry : g_DeviceMap)
 	{
 		if (entry.second && entry.second->GetDeviceName().find("/dev/es") == 0)
 		{
-			((CWII_IPC_HLE_Device_es*)entry.second)->LoadWAD(_rFilename);
+			((CWII_IPC_HLE_Device_es*)entry.second)->LoadWAD(rFilename);
 		}
 	}
 }
 
-void ES_DIVerify(u8 *_pTMD, u32 _sz)
+void ES_DIVerify(u8 *pTMD, u32 sz)
 {
-	CWII_IPC_HLE_Device_es::ES_DIVerify(_pTMD, _sz);
+	CWII_IPC_HLE_Device_es::ES_DIVerify(pTMD, sz);
 }
 
 void SDIO_EventNotify()
@@ -223,11 +223,11 @@ int getFreeDeviceId()
 	return -1;
 }
 
-IWII_IPC_HLE_Device* GetDeviceByName(const std::string& _rDeviceName)
+IWII_IPC_HLE_Device* GetDeviceByName(const std::string& rDeviceName)
 {
 	for (const auto& entry : g_DeviceMap)
 	{
-		if (entry.second && entry.second->GetDeviceName() == _rDeviceName)
+		if (entry.second && entry.second->GetDeviceName() == rDeviceName)
 		{
 			return entry.second;
 		}
@@ -247,13 +247,13 @@ IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
 }
 
 // This is called from ExecuteCommand() COMMAND_OPEN_DEVICE
-IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName)
+IWII_IPC_HLE_Device* CreateFileIO(u32 DeviceID, const std::string& rDeviceName)
 {
 	// scan device name and create the right one
 	IWII_IPC_HLE_Device* pDevice = nullptr;
 
-	INFO_LOG(WII_IPC_FILEIO, "IOP: Create FileIO %s", _rDeviceName.c_str());
-	pDevice = new CWII_IPC_HLE_Device_FileIO(_DeviceID, _rDeviceName);
+	INFO_LOG(WII_IPC_FILEIO, "IOP: Create FileIO %s", rDeviceName.c_str());
+	pDevice = new CWII_IPC_HLE_Device_FileIO(DeviceID, rDeviceName);
 
 	return pDevice;
 }
@@ -343,26 +343,26 @@ void DoState(PointerWrap &p)
 	}
 }
 
-void ExecuteCommand(u32 _Address)
+void ExecuteCommand(u32 Address)
 {
 	bool CmdSuccess = false;
 
-	ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
-	volatile s32 DeviceID = Memory::Read_U32(_Address + 8);
+	ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(Address));
+	volatile s32 DeviceID = Memory::Read_U32(Address + 8);
 
 	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : nullptr;
 
-	INFO_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) %p", _Address, Command, DeviceID, pDevice);
+	INFO_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) %p", Address, Command, DeviceID, pDevice);
 
 	switch (Command)
 	{
 	case COMMAND_OPEN_DEVICE:
 	{
-		u32 Mode = Memory::Read_U32(_Address + 0x10);
+		u32 Mode = Memory::Read_U32(Address + 0x10);
 		DeviceID = getFreeDeviceId();
 
 		std::string DeviceName;
-		Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
+		Memory::GetString(DeviceName, Memory::Read_U32(Address + 0xC));
 
 		WARN_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
 		if (DeviceID >= 0)
@@ -376,15 +376,15 @@ void ExecuteCommand(u32 _Address)
 					{
 						es_inuse[j] = true;
 						g_FdMap[DeviceID] = es_handles[j];
-						CmdSuccess = es_handles[j]->Open(_Address, Mode);
-						Memory::Write_U32(DeviceID, _Address+4);
+						CmdSuccess = es_handles[j]->Open(Address, Mode);
+						Memory::Write_U32(DeviceID, Address+4);
 						break;
 					}
 				}
 
 				if (j == ES_MAX_COUNT)
 				{
-					Memory::Write_U32(FS_EESEXHAUSTED, _Address + 4);
+					Memory::Write_U32(FS_EESEXHAUSTED, Address + 4);
 					CmdSuccess = true;
 				}
 			}
@@ -394,26 +394,26 @@ void ExecuteCommand(u32 _Address)
 				if (pDevice)
 				{
 					g_FdMap[DeviceID] = pDevice;
-					CmdSuccess = pDevice->Open(_Address, Mode);
+					CmdSuccess = pDevice->Open(Address, Mode);
 					INFO_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
 						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
-					Memory::Write_U32(DeviceID, _Address+4);
+					Memory::Write_U32(DeviceID, Address+4);
 				}
 				else
 				{
 					WARN_LOG(WII_IPC_HLE, "Unimplemented device: %s", DeviceName.c_str());
-					Memory::Write_U32(FS_ENOENT, _Address+4);
+					Memory::Write_U32(FS_ENOENT, Address+4);
 					CmdSuccess = true;
 				}
 			}
 			else
 			{
 				pDevice = CreateFileIO(DeviceID, DeviceName);
-				CmdSuccess = pDevice->Open(_Address, Mode);
+				CmdSuccess = pDevice->Open(Address, Mode);
 
 				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
 						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
-				if (Memory::Read_U32(_Address + 4) == (u32)DeviceID)
+				if (Memory::Read_U32(Address + 4) == (u32)DeviceID)
 				{
 					g_FdMap[DeviceID] = pDevice;
 				}
@@ -426,7 +426,7 @@ void ExecuteCommand(u32 _Address)
 		}
 		else
 		{
-			Memory::Write_U32(FS_EFDEXHAUSTED, _Address + 4);
+			Memory::Write_U32(FS_EFDEXHAUSTED, Address + 4);
 			CmdSuccess = true;
 		}
 		break;
@@ -435,7 +435,7 @@ void ExecuteCommand(u32 _Address)
 	{
 		if (pDevice)
 		{
-			CmdSuccess = pDevice->Close(_Address);
+			CmdSuccess = pDevice->Close(Address);
 
 			for (u32 j=0; j<ES_MAX_COUNT; j++)
 			{
@@ -456,7 +456,7 @@ void ExecuteCommand(u32 _Address)
 		}
 		else
 		{
-			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			Memory::Write_U32(FS_EINVAL, Address + 4);
 			CmdSuccess = true;
 		}
 		break;
@@ -465,11 +465,11 @@ void ExecuteCommand(u32 _Address)
 	{
 		if (pDevice)
 		{
-			CmdSuccess = pDevice->Read(_Address);
+			CmdSuccess = pDevice->Read(Address);
 		}
 		else
 		{
-			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			Memory::Write_U32(FS_EINVAL, Address + 4);
 			CmdSuccess = true;
 		}
 		break;
@@ -478,11 +478,11 @@ void ExecuteCommand(u32 _Address)
 	{
 		if (pDevice)
 		{
-			CmdSuccess = pDevice->Write(_Address);
+			CmdSuccess = pDevice->Write(Address);
 		}
 		else
 		{
-			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			Memory::Write_U32(FS_EINVAL, Address + 4);
 			CmdSuccess = true;
 		}
 		break;
@@ -491,11 +491,11 @@ void ExecuteCommand(u32 _Address)
 	{
 		if (pDevice)
 		{
-			CmdSuccess = pDevice->Seek(_Address);
+			CmdSuccess = pDevice->Seek(Address);
 		}
 		else
 		{
-			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			Memory::Write_U32(FS_EINVAL, Address + 4);
 			CmdSuccess = true;
 		}
 		break;
@@ -504,7 +504,7 @@ void ExecuteCommand(u32 _Address)
 	{
 		if (pDevice)
 		{
-			CmdSuccess = pDevice->IOCtl(_Address);
+			CmdSuccess = pDevice->IOCtl(Address);
 		}
 		break;
 	}
@@ -512,13 +512,13 @@ void ExecuteCommand(u32 _Address)
 	{
 		if (pDevice)
 		{
-			CmdSuccess = pDevice->IOCtlV(_Address);
+			CmdSuccess = pDevice->IOCtlV(Address);
 		}
 		break;
 	}
 	default:
 	{
-		_dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown IPC Command %i (0x%08x)", Command, _Address);
+		_dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown IPC Command %i (0x%08x)", Command, Address);
 		break;
 	}
 	}
@@ -528,13 +528,13 @@ void ExecuteCommand(u32 _Address)
 	{
 		// It seems that the original hardware overwrites the command after it has been
 		// executed. We write 8 which is not any valid command, and what IOS does
-		Memory::Write_U32(8, _Address);
+		Memory::Write_U32(8, Address);
 		// IOS seems to write back the command that was responded to
-		Memory::Write_U32(Command, _Address + 8);
+		Memory::Write_U32(Command, Address + 8);
 
 		// Ensure replies happen in order, fairly ugly
 		// Without this, tons of games fail now that DI commands have different reply delays
-		int reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
+		int reply_delay = pDevice ? pDevice->GetCmdDelay(Address) : 0;
 
 		const s64 ticks_til_last_reply = last_reply_time - CoreTiming::GetTicks();
 
@@ -546,20 +546,20 @@ void ExecuteCommand(u32 _Address)
 		last_reply_time = CoreTiming::GetTicks() + reply_delay;
 
 		// Generate a reply to the IPC command
-		EnqReply(_Address, reply_delay);
+		EnqReply(Address, reply_delay);
 	}
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
-void EnqRequest(u32 _Address)
+void EnqRequest(u32 Address)
 {
-	request_queue.push_back(_Address);
+	request_queue.push_back(Address);
 }
 
 // Called when IOS module has some reply
-void EnqReply(u32 _Address, int cycles_in_future)
+void EnqReply(u32 Address, int cycles_in_future)
 {
-	CoreTiming::ScheduleEvent(cycles_in_future, enque_reply, _Address);
+	CoreTiming::ScheduleEvent(cycles_in_future, enque_reply, Address);
 }
 
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp

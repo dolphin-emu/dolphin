@@ -95,8 +95,8 @@ public:
 		const wxString& title = wxT("Dolphin"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
-		bool _UseDebugger = false,
-		bool _BatchMode = false,
+		bool UseDebugger = false,
+		bool BatchMode = false,
 		bool ShowLogWindow = false,
 		long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 

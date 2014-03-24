@@ -16,14 +16,14 @@ private:
 
 public:
 	// constructor
-	CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumber);
+	CSIDevice_AMBaseboard(SIDevices device, int iDeviceNumber);
 
 	// run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
+	virtual int RunBuffer(u8* pBuffer, int iLength) override;
 
 	// return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low) override;
+	virtual bool GetData(u32& Hi, u32& Low) override;
 
 	// send a command directly
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) override;
+	virtual void SendCommand(u32 Cmd, u8 Poll) override;
 };

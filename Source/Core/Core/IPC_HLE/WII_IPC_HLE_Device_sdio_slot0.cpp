@@ -13,8 +13,8 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 
 
-CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
-	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 DeviceID, const std::string& rDeviceName)
+	: IWII_IPC_HLE_Device(DeviceID, rDeviceName)
 	, m_Status(CARD_NOT_EXIST)
 	, m_BlockLength(0)
 	, m_BusWidth(0)
@@ -65,19 +65,19 @@ void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
 	}
 }
 
-bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
+bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 CommandAddress, u32 Mode)
 {
 	INFO_LOG(WII_IPC_SD, "Open");
 
 	OpenInternal();
 
-	Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
+	Memory::Write_U32(GetDeviceID(), CommandAddress + 0x4);
 	memset(m_Registers, 0, sizeof(m_Registers));
 	m_Active = true;
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool _bForce)
+bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 CommandAddress, bool bForce)
 {
 	INFO_LOG(WII_IPC_SD, "Close");
 
@@ -85,21 +85,21 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool _bForce)
 	m_BlockLength = 0;
 	m_BusWidth = 0;
 
-	if (!_bForce)
-		Memory::Write_U32(0, _CommandAddress + 0x4);
+	if (!bForce)
+		Memory::Write_U32(0, CommandAddress + 0x4);
 	m_Active = false;
 	return true;
 }
 
 // The front SD slot
-bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 CommandAddress)
 {
-	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
+	u32 Cmd = Memory::Read_U32(CommandAddress + 0xC);
 
-	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 BufferIn      = Memory::Read_U32(CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(CommandAddress + 0x1C);
 
 	// As a safety precaution we fill the out buffer with zeros to avoid
 	// returning nonsense values
@@ -178,7 +178,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_SENDCMD:
 		INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD %x IPC:%08x",
-			Memory::Read_U32(BufferIn), _CommandAddress);
+			Memory::Read_U32(BufferIn), CommandAddress);
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, 0, 0, BufferOut, BufferOutSize);
 		break;
 
@@ -211,8 +211,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	if (ReturnValue == RET_EVENT_REGISTER)
 	{
 		// async
-		m_event.addr = _CommandAddress;
-		Memory::Write_U32(0, _CommandAddress + 0x4);
+		m_event.addr = CommandAddress;
+		Memory::Write_U32(0, CommandAddress + 0x4);
 		// Check if the condition is already true
 		EventNotify();
 		return false;
@@ -226,21 +226,21 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		WII_IPC_HLE_Interface::EnqReply(m_event.addr);
 		m_event.addr = 0;
 		m_event.type = EVENT_NONE;
-		Memory::Write_U32(0, _CommandAddress + 0x4);
+		Memory::Write_U32(0, CommandAddress + 0x4);
 		return true;
 	}
 	else
 	{
-		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+		Memory::Write_U32(ReturnValue, CommandAddress + 0x4);
 		return true;
 	}
 }
 
-bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 CommandAddress)
 {
 	// PPC sending commands
 
-	SIOCtlVBuffer CommandBuffer(_CommandAddress);
+	SIOCtlVBuffer CommandBuffer(CommandAddress);
 
 	// Prepare the out buffer(s) with zeros as a safety precaution
 	// to avoid returning bad values
@@ -267,14 +267,14 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 
 	//DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
 
-	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+	Memory::Write_U32(ReturnValue, CommandAddress + 0x4);
 
 	return true;
 }
 
-u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize,
-                                                   u32 _rwBuffer, u32 _rwBufferSize,
-                                                   u32 _BufferOut, u32 _BufferOutSize)
+u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 BufferIn, u32 BufferInSize,
+                                                   u32 rwBuffer, u32 rwBufferSize,
+                                                   u32 BufferOut, u32 BufferOutSize)
 {
 	// The game will send us a SendCMD with this information. To be able to read and write
 	// to a file we need to prepare a 0x10 byte output buffer as response.
@@ -290,17 +290,17 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		u32 pad0;
 	} req;
 
-	req.command = Memory::Read_U32(_BufferIn + 0);
-	req.type    = Memory::Read_U32(_BufferIn + 4);
-	req.resp    = Memory::Read_U32(_BufferIn + 8);
-	req.arg     = Memory::Read_U32(_BufferIn + 12);
-	req.blocks  = Memory::Read_U32(_BufferIn + 16);
-	req.bsize   = Memory::Read_U32(_BufferIn + 20);
-	req.addr    = Memory::Read_U32(_BufferIn + 24);
-	req.isDMA   = Memory::Read_U32(_BufferIn + 28);
-	req.pad0    = Memory::Read_U32(_BufferIn + 32);
+	req.command = Memory::Read_U32(BufferIn + 0);
+	req.type    = Memory::Read_U32(BufferIn + 4);
+	req.resp    = Memory::Read_U32(BufferIn + 8);
+	req.arg     = Memory::Read_U32(BufferIn + 12);
+	req.blocks  = Memory::Read_U32(BufferIn + 16);
+	req.bsize   = Memory::Read_U32(BufferIn + 20);
+	req.addr    = Memory::Read_U32(BufferIn + 24);
+	req.isDMA   = Memory::Read_U32(BufferIn + 28);
+	req.pad0    = Memory::Read_U32(BufferIn + 32);
 
-	// Note: req.addr is the virtual address of _rwBuffer
+	// Note: req.addr is the virtual address of rwBuffer
 
 
 	u32 ret = RET_OK;
@@ -313,20 +313,20 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
 	case SEND_RELATIVE_ADDR:
 		// Technically RCA should be generated when asked and at power on...w/e :p
-		Memory::Write_U32(0x9f62, _BufferOut);
+		Memory::Write_U32(0x9f62, BufferOut);
 		break;
 
 	case SELECT_CARD:
 		// This covers both select and deselect
 		// Differentiate by checking if rca is set in req.arg
 		// If it is, it's a select and return 0x700
-		Memory::Write_U32((req.arg>>16) ? 0x700 : 0x900, _BufferOut);
+		Memory::Write_U32((req.arg>>16) ? 0x700 : 0x900, BufferOut);
 		break;
 
 	case SEND_IF_COND:
 		// If the card can operate on the supplied voltage, the response echoes back the supply
 		// voltage and the check pattern that were set in the command argument.
-		Memory::Write_U32(req.arg, _BufferOut);
+		Memory::Write_U32(req.arg, BufferOut);
 		break;
 
 	case SEND_CSD:
@@ -335,41 +335,41 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		// CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
 
 		// Values used currently are from lpfaint99
-		Memory::Write_U32(0x80168000, _BufferOut);
-		Memory::Write_U32(0xa9ffffff, _BufferOut + 4);
-		Memory::Write_U32(0x325b5a83, _BufferOut + 8);
-		Memory::Write_U32(0x00002e00, _BufferOut + 12);
+		Memory::Write_U32(0x80168000, BufferOut);
+		Memory::Write_U32(0xa9ffffff, BufferOut + 4);
+		Memory::Write_U32(0x325b5a83, BufferOut + 8);
+		Memory::Write_U32(0x00002e00, BufferOut + 12);
 		break;
 
 	case ALL_SEND_CID:
 	case SEND_CID:
 		DEBUG_LOG(WII_IPC_SD, "(ALL_)SEND_CID");
-		Memory::Write_U32(0x80114d1c, _BufferOut);
-		Memory::Write_U32(0x80080000, _BufferOut + 4);
-		Memory::Write_U32(0x8007b520, _BufferOut + 8);
-		Memory::Write_U32(0x80080000, _BufferOut + 12);
+		Memory::Write_U32(0x80114d1c, BufferOut);
+		Memory::Write_U32(0x80080000, BufferOut + 4);
+		Memory::Write_U32(0x8007b520, BufferOut + 8);
+		Memory::Write_U32(0x80080000, BufferOut + 12);
 		break;
 
 	case SET_BLOCKLEN:
 		m_BlockLength = req.arg;
-		Memory::Write_U32(0x900, _BufferOut);
+		Memory::Write_U32(0x900, BufferOut);
 		break;
 
 	case APP_CMD_NEXT:
 		// Next cmd is going to be ACMD_*
-		Memory::Write_U32(0x920, _BufferOut);
+		Memory::Write_U32(0x920, BufferOut);
 		break;
 
 	case ACMD_SETBUSWIDTH:
 		// 0 = 1bit, 2 = 4bit
 		m_BusWidth = (req.arg & 3);
-		Memory::Write_U32(0x920, _BufferOut);
+		Memory::Write_U32(0x920, BufferOut);
 		break;
 
 	case ACMD_SENDOPCOND:
 		// Sends host capacity support information (HCS) and asks the accessed card to send
 		// its operating condition register (OCR) content
-		Memory::Write_U32(0x80ff8000, _BufferOut);
+		Memory::Write_U32(0x80ff8000, BufferOut);
 		break;
 
 	case READ_MULTIPLE_BLOCK:
@@ -395,7 +395,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 				{
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
-				DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", _rwBufferSize, i);
+				DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", rwBufferSize, i);
 			}
 			else
 			{
@@ -407,7 +407,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			delete[] buffer;
 		}
 		}
-		Memory::Write_U32(0x900, _BufferOut);
+		Memory::Write_U32(0x900, BufferOut);
 		break;
 
 	case WRITE_MULTIPLE_BLOCK:
@@ -441,7 +441,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			delete[] buffer;
 		}
 		}
-		Memory::Write_U32(0x900, _BufferOut);
+		Memory::Write_U32(0x900, BufferOut);
 		break;
 
 	case EVENT_REGISTER: // async

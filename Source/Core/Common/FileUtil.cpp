@@ -458,7 +458,7 @@ bool CreateEmptyFile(const std::string &filename)
 }
 
 
-// Scans the directory tree gets, starting from _Directory and adds the
+// Scans the directory tree gets, starting from Directory and adds the
 // results into parentEntry. Returns the number of files+directories found
 u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 {
@@ -1068,9 +1068,9 @@ bool IOFile::Resize(u64 size)
 {
 	if (!IsOpen() || 0 !=
 #ifdef _WIN32
-		// ector: _chsize sucks, not 64-bit safe
+		// ector: chsize sucks, not 64-bit safe
 		// F|RES: changed to _chsize_s. i think it is 64-bit safe
-		_chsize_s(_fileno(m_file), size)
+		_chsize_s(fileno(m_file), size)
 #else
 		// TODO: handle 64bit and growing
 		ftruncate(fileno(m_file), size)

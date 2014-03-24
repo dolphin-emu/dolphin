@@ -16,12 +16,12 @@
 namespace VolumeHandler
 {
 
-bool SetVolumeName(const std::string& _rFullPath);
-void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii, const std::string& _rApploader = "", const std::string& _rDOL = "");
+bool SetVolumeName(const std::string& rFullPath);
+void SetVolumeDirectory(const std::string& rFullPath, bool bIsWii, const std::string& rApploader = "", const std::string& rDOL = "");
 
-u32 Read32(u64 _Offset);
-bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength);
-bool RAWReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength);
+u32 Read32(u64 Offset);
+bool ReadToPtr(u8* ptr, u64 dwOffset, u64 dwLength);
+bool RAWReadToPtr(u8* ptr, u64 dwOffset, u64 dwLength);
 
 bool IsValid();
 bool IsWii();

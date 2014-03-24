@@ -40,13 +40,13 @@ class CMemoryWindow
 		wxButton*   btnSearch;
 		wxCheckBox* chkAscii;
 		wxCheckBox* chkHex;
-		void Save(IniFile& _IniFile) const;
-		void Load(IniFile& _IniFile);
+		void Save(IniFile& IniFile) const;
+		void Load(IniFile& IniFile);
 
 		void Update() override;
 		void NotifyMapLoaded();
 
-		void JumpToAddress(u32 _Address);
+		void JumpToAddress(u32 Address);
 
 	private:
 		DECLARE_EVENT_TABLE()

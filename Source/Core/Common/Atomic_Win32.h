@@ -33,23 +33,23 @@ namespace Common
 {
 
 inline void AtomicAdd(volatile u32& target, u32 value) {
-	_InterlockedExchangeAdd((volatile LONG*)&target, (LONG)value);
+	InterlockedExchangeAdd((volatile LONG*)&target, (LONG)value);
 }
 
 inline void AtomicAnd(volatile u32& target, u32 value) {
-	_InterlockedAnd((volatile LONG*)&target, (LONG)value);
+	InterlockedAnd((volatile LONG*)&target, (LONG)value);
 }
 
 inline void AtomicIncrement(volatile u32& target) {
-	_InterlockedIncrement((volatile LONG*)&target);
+	InterlockedIncrement((volatile LONG*)&target);
 }
 
 inline void AtomicDecrement(volatile u32& target) {
-	_InterlockedDecrement((volatile LONG*)&target);
+	InterlockedDecrement((volatile LONG*)&target);
 }
 
 inline void AtomicOr(volatile u32& target, u32 value) {
-	_InterlockedOr((volatile LONG*)&target, (LONG)value);
+	InterlockedOr((volatile LONG*)&target, (LONG)value);
 }
 
 template <typename T>
@@ -77,7 +77,7 @@ inline void AtomicStoreRelease(volatile T& dest, U value) {
 
 template <typename T, typename U>
 inline T* AtomicExchangeAcquire(T* volatile& loc, U newval) {
-	return (T*) _InterlockedExchangePointer_acq((void* volatile*) &loc, (void*) newval);
+	return (T*) InterlockedExchangePointer_acq((void* volatile*) &loc, (void*) newval);
 }
 
 }

@@ -430,9 +430,9 @@ void LoadAs(const std::string& filename)
 	// but it was causing us to leak gigantic amounts of memory here,
 	// enough that only a few savestates could be loaded before crashing,
 	// so let's disable it temporarily.
-	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+	int tmpflag = CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
 	if (g_loadDepth == 0)
-		_CrtSetDbgFlag(tmpflag & ~_CRTDBG_DELAY_FREE_MEM_DF);
+		CrtSetDbgFlag(tmpflag & ~_CRTDBG_DELAY_FREE_MEM_DF);
 #endif
 
 	g_loadDepth++;
@@ -495,7 +495,7 @@ void LoadAs(const std::string& filename)
 #if defined _DEBUG && defined _WIN32
 	// restore _CRTDBG_DELAY_FREE_MEM_DF
 	if (g_loadDepth == 0)
-		_CrtSetDbgFlag(tmpflag);
+		CrtSetDbgFlag(tmpflag);
 #endif
 
 	// resume dat core

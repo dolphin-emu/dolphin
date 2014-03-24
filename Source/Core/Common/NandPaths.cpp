@@ -15,58 +15,58 @@
 namespace Common
 {
 
-std::string GetTicketFileName(u64 _titleID)
+std::string GetTicketFileName(u64 titleID)
 {
 	return StringFromFormat("%sticket/%08x/%08x.tik",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), 
-			(u32)(_titleID >> 32), (u32)_titleID);
+			(u32)(titleID >> 32), (u32)titleID);
 }
 
-std::string GetTitleDataPath(u64 _titleID)
+std::string GetTitleDataPath(u64 titleID)
 {
 	return StringFromFormat("%stitle/%08x/%08x/data/",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(),
-			(u32)(_titleID >> 32), (u32)_titleID);
+			(u32)(titleID >> 32), (u32)titleID);
 }
 
-std::string GetTMDFileName(u64 _titleID)
+std::string GetTMDFileName(u64 titleID)
 {
-	return GetTitleContentPath(_titleID) + "title.tmd";
+	return GetTitleContentPath(titleID) + "title.tmd";
 }
-std::string GetTitleContentPath(u64 _titleID)
+std::string GetTitleContentPath(u64 titleID)
 {
 	return StringFromFormat("%stitle/%08x/%08x/content/",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), 
-			(u32)(_titleID >> 32), (u32)_titleID);
+			(u32)(titleID >> 32), (u32)titleID);
 }
 
-bool CheckTitleTMD(u64 _titleID)
+bool CheckTitleTMD(u64 titleID)
 {
-	const std::string TitlePath = GetTMDFileName(_titleID);
+	const std::string TitlePath = GetTMDFileName(titleID);
 	if (File::Exists(TitlePath))
 	{
 		File::IOFile pTMDFile(TitlePath, "rb");
 		u64 TitleID = 0;
 		pTMDFile.Seek(0x18C, SEEK_SET);
-		if (pTMDFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))
+		if (pTMDFile.ReadArray(&TitleID, 1) && titleID == Common::swap64(TitleID))
 			return true;
 	}
-	INFO_LOG(DISCIO, "Invalid or no tmd for title %08x %08x", (u32)(_titleID >> 32), (u32)(_titleID & 0xFFFFFFFF));
+	INFO_LOG(DISCIO, "Invalid or no tmd for title %08x %08x", (u32)(titleID >> 32), (u32)(titleID & 0xFFFFFFFF));
 	return false;
 }
 
-bool CheckTitleTIK(u64 _titleID)
+bool CheckTitleTIK(u64 titleID)
 {
-	const std::string ticketFileName = Common::GetTicketFileName(_titleID);
+	const std::string ticketFileName = Common::GetTicketFileName(titleID);
 	if (File::Exists(ticketFileName))
 	{
 		File::IOFile pTIKFile(ticketFileName, "rb");
 		u64 TitleID = 0;
 		pTIKFile.Seek(0x1dC, SEEK_SET);
-		if (pTIKFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))
+		if (pTIKFile.ReadArray(&TitleID, 1) && titleID == Common::swap64(TitleID))
 			return true;
 	}
-	INFO_LOG(DISCIO, "Invalid or no tik for title %08x %08x", (u32)(_titleID >> 32), (u32)(_titleID & 0xFFFFFFFF));
+	INFO_LOG(DISCIO, "Invalid or no tik for title %08x %08x", (u32)(titleID >> 32), (u32)(titleID & 0xFFFFFFFF));
 	return false;
 }
 
