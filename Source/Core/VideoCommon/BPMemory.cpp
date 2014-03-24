@@ -92,7 +92,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 	case BPMEM_ZCOMPARE:
 		{
 			SetRegName(BPMEM_ZCOMPARE);
-			PE_CONTROL config; config.hex = cmddata;
+			PEControl config; config.hex = cmddata;
 			const char* pixel_formats[] = { "RGB8_Z24", "RGBA6_Z24", "RGB565_Z16", "Z24", "Y8", "U8", "V8", "YUV420" };
 			const char* zformats[] = { "linear", "compressed (near)", "compressed (mid)", "compressed (far)", "inv linear", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)" };
 			snprintf(desc, desc_size, "EFB pixel format: %s\n"
@@ -158,7 +158,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 								no_yes[copy.half_scale],
 								no_yes[copy.scale_invert],
 								no_yes[copy.clear],
-								copy.frame_to_field,
+								(u32)copy.frame_to_field,
 								no_yes[copy.copy_to_xfb],
 								no_yes[copy.intensity_fmt],
 								no_yes[copy.auto_conv]);
@@ -292,7 +292,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 				snprintf(desc, desc_size, "test 1: %s (ref: %#02x)\n"
 										"test 2: %s (ref: %#02x)\n"
 										"logic: %s\n",
-										functions[test.comp0], test.ref0, functions[test.comp1], test.ref1, logic[test.logic]);
+										functions[test.comp0], (int)test.ref0, functions[test.comp1], (int)test.ref1, logic[test.logic]);
 				break;
 			}
 
