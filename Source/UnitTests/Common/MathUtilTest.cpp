@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <limits>
+#include <random>
 
 #include "Common/MathUtil.h"
 
@@ -29,7 +30,7 @@ TEST(MathUtil, Clamp)
 
 TEST(MathUtil, IsINF)
 {
-	EXPECT_TRUE(MathUtil::IsINF( std::numeric_limits<double>::infinity()));
+	EXPECT_TRUE(MathUtil::IsINF(+std::numeric_limits<double>::infinity()));
 	EXPECT_TRUE(MathUtil::IsINF(-std::numeric_limits<double>::infinity()));
 }
 
@@ -62,4 +63,44 @@ TEST(MathUtil, Log2)
 	// Rounding behavior.
 	EXPECT_EQ(3, Log2(15));
 	EXPECT_EQ(63, Log2(0xFFFFFFFFFFFFFFFFull));
+}
+
+TEST(MathUtil, FlushToZero)
+{
+	// To test the software implementation we need to make sure FTZ and DAZ are disabled.
+	// Using volatile here to ensure the compiler doesn't constant-fold it,
+	// we want the multiplication to occur at test runtime.
+	volatile float s = std::numeric_limits<float>::denorm_min();
+	volatile double d = std::numeric_limits<double>::denorm_min();
+	EXPECT_LT(0, s * 2);
+	EXPECT_LT(0, d * 2);
+
+	EXPECT_EQ(+0, MathUtil::FlushToZero(+std::numeric_limits<double>::denorm_min()));
+	EXPECT_EQ(-0, MathUtil::FlushToZero(-std::numeric_limits<double>::denorm_min()));
+	EXPECT_EQ(+0, MathUtil::FlushToZero(+std::numeric_limits<double>::min() / 2));
+	EXPECT_EQ(-0, MathUtil::FlushToZero(-std::numeric_limits<double>::min() / 2));
+	EXPECT_EQ(std::numeric_limits<double>::min(), MathUtil::FlushToZero(std::numeric_limits<double>::min()));
+	EXPECT_EQ(std::numeric_limits<double>::max(), MathUtil::FlushToZero(std::numeric_limits<double>::max()));
+	EXPECT_EQ(+std::numeric_limits<double>::infinity(), MathUtil::FlushToZero(+std::numeric_limits<double>::infinity()));
+	EXPECT_EQ(-std::numeric_limits<double>::infinity(), MathUtil::FlushToZero(-std::numeric_limits<double>::infinity()));
+
+	// Test all subnormals as well as an equally large set of random normal floats.
+	std::default_random_engine engine(0);
+	std::uniform_int_distribution<u32> dist(0x00800000u, 0x7fffffffu);
+	for (u32 i = 0; i <= 0x007fffffu; ++i)
+	{
+		MathUtil::IntFloat x(i);
+		EXPECT_EQ(+0, MathUtil::FlushToZero(x.f));
+
+		x.i = i | 0x80000000u;
+		EXPECT_EQ(-0, MathUtil::FlushToZero(x.f));
+
+		x.i = dist(engine);
+		MathUtil::IntFloat y(MathUtil::FlushToZero(x.f));
+		EXPECT_EQ(x.i, y.i);
+
+		x.i |= 0x80000000u;
+		y.f = MathUtil::FlushToZero(x.f);
+		EXPECT_EQ(x.i, y.i);
+	}
 }
