@@ -11,16 +11,16 @@ union TestUnion
 {
 	u64 hex;
 
-	BitField<0,64,u64> full_u64;   // spans whole storage
-	BitField<0,64,s64> full_s64;   // spans whole storage
+	BitField< 0,64,u64> full_u64;   // spans whole storage
+	BitField< 0,64,s64> full_s64;   // spans whole storage
 
-	BitField<9,3,u64> regular_field_unsigned;  // a plain bitfield
-	BitField<9,3,u64> regular_field_unsigned2; // Just the very same bitfield again
-	BitField<9,3,u64> regular_field_signed;    // Same bitfield, but different sign
+	BitField< 9, 3,u64> regular_field_unsigned;  // a plain bitfield
+	BitField< 9, 3,u64> regular_field_unsigned2; // Just the very same bitfield again
+	BitField< 9, 3,s64> regular_field_signed;    // Same bitfield, but different sign
 
-	BitField<4,30,s64> at_dword_boundary;  // goes over the boundary of two u32 values
+	BitField<30, 4,s64> at_dword_boundary;  // goes over the boundary of two u32 values
 
-	BitField<15,1,s64> signed_1bit;  // allowed values: -1 and 0
+	BitField<15, 1,s64> signed_1bit;  // allowed values: -1 and 0
 };
 
 // table of raw numbers to test with
@@ -75,7 +75,7 @@ TEST(BitField, Read)
 	{
 		object.hex = val;
 
-		// Make sure reading/casting is not behaving completely idiotic
+		// Make sure reading/casting does not behave completely idiotic
 		EXPECT_EQ(object.full_u64, (u64)object.full_u64);
 		EXPECT_EQ(object.full_s64, (s64)object.full_s64);
 		EXPECT_EQ(object.regular_field_unsigned, (u64)object.regular_field_unsigned);
@@ -85,13 +85,13 @@ TEST(BitField, Read)
 		EXPECT_EQ(object.signed_1bit, (s64)object.signed_1bit);
 
 		// Now make sure the value is indeed correct
-		EXPECT_EQ(val, object.full_u64); // TODO: Remove +1, just checking how error messages look like
+		EXPECT_EQ(val, object.full_u64);
 		EXPECT_EQ(*(s64*)&val, object.full_s64);
 		EXPECT_EQ((val>>9) & 0x7, object.regular_field_unsigned);
 		EXPECT_EQ((val>>9) & 0x7, object.regular_field_unsigned2);
-//		EXPECT_EQ(object.regular_field_signed);
-//		EXPECT_EQ(object.at_dword_boundary);
-//		EXPECT_EQ(object.signed_1bit);
+		EXPECT_EQ(((s64)(object.hex<<52))>>61, object.regular_field_signed);
+		EXPECT_EQ(((s64)(object.hex<<30))>>60, object.at_dword_boundary);
+		EXPECT_EQ(((object.hex>>15)&1) ? -1 : 0, object.signed_1bit);
 	}
 }
 
@@ -99,19 +99,29 @@ TEST(BitField, Assignment)
 {
 	TestUnion object;
 
-	// TODO: Assignment with fixed value
-	// TODO: Assignment with BitField
-	// TODO: Assignment with value greater than the bitfield
-
 	for (u64 val : table)
 	{
+		// Assignments with fixed values
 		object.full_u64 = val;
-		EXPECT_EQ(object.full_u64, val);
-		// TODO: Same for every of the other bitfields
+		EXPECT_EQ(val, object.full_u64);
+
+		object.full_s64 = (s64)val;
+		EXPECT_EQ((s64)val, object.full_u64);
+
+		object.regular_field_unsigned = val;
+		EXPECT_EQ(val&0x7, object.regular_field_unsigned);
+
+		object.at_dword_boundary = val;
+		EXPECT_EQ(((s64)(val<<60))>>60, object.at_dword_boundary);
+
+		object.signed_1bit = val;
+		EXPECT_EQ((val&1) ? -1 : 0, object.signed_1bit);
+
+		object.regular_field_signed = val;
+		EXPECT_EQ(((s64)(object.hex<<61))>>61, object.regular_field_signed);
+
+		// Assignment from other BitField
+		object.at_dword_boundary = object.regular_field_unsigned;
+		EXPECT_EQ(object.regular_field_unsigned, object.at_dword_boundary);
 	}
-}
-
-TEST(BitField, MaxVal)
-{
-
 }
