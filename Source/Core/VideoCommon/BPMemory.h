@@ -149,27 +149,6 @@
 #define GX_TEVREG1       2
 #define GX_TEVREG2       3
 
-#define ALPHACMP_NEVER   0
-#define ALPHACMP_LESS    1
-#define ALPHACMP_EQUAL   2
-#define ALPHACMP_LEQUAL  3
-#define ALPHACMP_GREATER 4
-#define ALPHACMP_NEQUAL  5
-#define ALPHACMP_GEQUAL  6
-#define ALPHACMP_ALWAYS  7
-
-enum Compare
-{
-	COMPARE_NEVER = 0,
-	COMPARE_LESS,
-	COMPARE_EQUAL,
-	COMPARE_LEQUAL,
-	COMPARE_GREATER,
-	COMPARE_NEQUAL,
-	COMPARE_GEQUAL,
-	COMPARE_ALWAYS
-};
-
 #define ZTEXTURE_DISABLE 0
 #define ZTEXTURE_ADD 1
 #define ZTEXTURE_REPLACE 2
@@ -178,14 +157,6 @@ enum Compare
 #define TevBias_ADDHALF  1
 #define TevBias_SUBHALF  2
 #define TevBias_COMPARE  3
-
-enum AlphaOp
-{
-	ALPHAOP_AND = 0,
-	ALPHAOP_OR,
-	ALPHAOP_XOR,
-	ALPHAOP_XNOR,
-};
 
 union IND_MTXA
 {
@@ -610,31 +581,52 @@ union X10Y10
 
 // Framebuffer/pixel stuff (incl fog)
 
-#define GX_BL_ZERO         0
-#define GX_BL_ONE          1
-#define GX_BL_SRCCLR       2 // for dst factor
-#define GX_BL_INVSRCCLR    3 // for dst factor
-#define GX_BL_SRCALPHA     4
-#define GX_BL_INVSRCALPHA  5
-#define GX_BL_DSTALPHA     6
-#define GX_BL_INVDSTALPHA  7
-#define GX_BL_DSTCLR       GX_BL_SRCCLR // for src factor
-#define GX_BL_INVDSTCLR    GX_BL_INVSRCCLR // for src factor
-
 union BlendMode
 {
-	struct
+	enum BlendFactor : u32
 	{
-		u32 blendenable   : 1;
-		u32 logicopenable : 1;
-		u32 dither        : 1;
-		u32 colorupdate   : 1;
-		u32 alphaupdate   : 1;
-		u32 dstfactor     : 3; //BLEND_ONE, BLEND_INV_SRc etc
-		u32 srcfactor     : 3;
-		u32 subtract      : 1;
-		u32 logicmode     : 4;
+		ZERO        = 0,
+		ONE         = 1,
+		SRCCLR      = 2,         // for dst factor
+		INVSRCCLR   = 3,         // for dst factor
+		DSTCLR      = SRCCLR,    // for src factor
+		INVDSTCLR   = INVSRCCLR, // for src factor
+		SRCALPHA    = 4,
+		INVSRCALPHA = 5,
+		DSTALPHA    = 6,
+		INVDSTALPHA = 7
 	};
+
+	enum LogicOp : u32
+	{
+		CLEAR         =  0,
+		AND           =  1,
+		AND_REVERSE   =  2,
+		COPY          =  3,
+		AND_INVERTED  =  4,
+		NOOP          =  5,
+		XOR           =  6,
+		OR            =  7,
+		NOR           =  8,
+		EQUIV         =  9,
+		INVERT        = 10,
+		OR_REVERSE    = 11,
+		COPY_INVERTED = 12,
+		OR_INVERTED   = 13,
+		NAND          = 14,
+		SET           = 15
+	};
+
+	BitField< 0,1,u32>         blendenable;
+	BitField< 1,1,u32>         logicopenable;
+	BitField< 2,1,u32>         dither;
+	BitField< 3,1,u32>         colorupdate;
+	BitField< 4,1,u32>         alphaupdate;
+	BitField< 5,3,BlendFactor> dstfactor;
+	BitField< 8,3,BlendFactor> srcfactor;
+	BitField<11,1,u32>         subtract;
+	BitField<12,4,LogicOp>     logicmode;
+
 	u32 hex;
 };
 
@@ -734,12 +726,22 @@ struct FogParams
 
 union ZMode
 {
-	struct
+	enum CompareMode : u32
 	{
-		u32 testenable   : 1;
-		u32 func         : 3;
-		u32 updateenable : 1;  //size?
+		NEVER   = 0,
+		LESS    = 1,
+		EQUAL   = 2,
+		LEQUAL  = 3,
+		GREATER = 4,
+		NEQUAL  = 5,
+		GEQUAL  = 6,
+		ALWAYS  = 7
 	};
+
+	BitField<0,1,u32>         testenable;
+	BitField<1,3,CompareMode> func;
+	BitField<4,1,u32>         updateenable;
+
 	u32 hex;
 };
 
@@ -870,14 +872,32 @@ union TevKSel
 
 union AlphaTest
 {
-	struct
+	enum CompareMode : u32
 	{
-		u32 ref0 : 8;
-		u32 ref1 : 8;
-		u32 comp0 : 3;
-		u32 comp1 : 3;
-		u32 logic : 2;
+		NEVER   = 0,
+		LESS    = 1,
+		EQUAL   = 2,
+		LEQUAL  = 3,
+		GREATER = 4,
+		NEQUAL  = 5,
+		GEQUAL  = 6,
+		ALWAYS  = 7
 	};
+
+	enum Op
+	{
+		AND  = 0,
+		OR   = 1,
+		XOR  = 2,
+		XNOR = 3
+	};
+
+	BitField< 0,8, u32>         ref0;
+	BitField< 8,8, u32>         ref1;
+	BitField<16,3, CompareMode> comp0;
+	BitField<19,3, CompareMode> comp1;
+	BitField<22,2, Op>          logic;
+
 	u32 hex;
 
 	enum TEST_RESULT
@@ -891,31 +911,31 @@ union AlphaTest
 	{
 		switch (logic)
 		{
-		case 0: // AND
-			if (comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS)
+		case AND:
+			if (comp0 == ALWAYS && comp1 == ALWAYS)
 				return PASS;
-			if (comp0 == ALPHACMP_NEVER || comp1 == ALPHACMP_NEVER)
+			if (comp0 == NEVER || comp1 == NEVER)
 				return FAIL;
 			break;
 
-		case 1: // OR
-			if (comp0 == ALPHACMP_ALWAYS || comp1 == ALPHACMP_ALWAYS)
+		case OR:
+			if (comp0 == ALWAYS || comp1 == ALWAYS)
 				return PASS;
-			if (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_NEVER)
+			if (comp0 == NEVER && comp1 == NEVER)
 				return FAIL;
 			break;
 
-		case 2: // XOR
-			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_NEVER) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_ALWAYS))
+		case XOR:
+			if ((comp0 == ALWAYS && comp1 == NEVER) || (comp0 == NEVER && comp1 == ALWAYS))
 				return PASS;
-			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_NEVER))
+			if ((comp0 == ALWAYS && comp1 == ALWAYS) || (comp0 == NEVER && comp1 == NEVER))
 				return FAIL;
 			break;
 
-		case 3: // XNOR
-			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_NEVER) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_ALWAYS))
+		case XNOR:
+			if ((comp0 == ALWAYS && comp1 == NEVER) || (comp0 == NEVER && comp1 == ALWAYS))
 				return FAIL;
-			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_NEVER))
+			if ((comp0 == ALWAYS && comp1 == ALWAYS) || (comp0 == NEVER && comp1 == NEVER))
 				return PASS;
 			break;
 		}

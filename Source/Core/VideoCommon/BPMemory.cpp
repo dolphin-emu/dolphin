@@ -292,7 +292,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 				snprintf(desc, desc_size, "test 1: %s (ref: %#02x)\n"
 										"test 2: %s (ref: %#02x)\n"
 										"logic: %s\n",
-										functions[test.comp0], test.ref0, functions[test.comp1], test.ref1, logic[test.logic]);
+										functions[test.comp0], (int)test.ref0, functions[test.comp1], (int)test.ref1, logic[test.logic]);
 				break;
 			}
 

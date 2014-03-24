@@ -10,7 +10,6 @@
 #include "VideoBackends/D3D/PSTextureEncoder.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/TextureCache.h"
-#include "VideoCommon/BPMemory.h"
 
 // "Static mode" will compile a new EFB encoder shader for every combination of
 // encoding configurations. It's compatible with Shader Model 4.

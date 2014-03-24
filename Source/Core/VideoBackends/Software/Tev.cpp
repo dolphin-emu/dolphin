@@ -413,17 +413,17 @@ void Tev::DrawAlphaCompare(TevStageCombiner::AlphaCombiner &ac)
 	}
 }
 
-static bool AlphaCompare(int alpha, int ref, int comp)
+static bool AlphaCompare(int alpha, int ref, AlphaTest::CompareMode comp)
 {
 	switch (comp) {
-	case ALPHACMP_ALWAYS:  return true;
-	case ALPHACMP_NEVER:   return false;
-	case ALPHACMP_LEQUAL:  return alpha <= ref;
-	case ALPHACMP_LESS:    return alpha < ref;
-	case ALPHACMP_GEQUAL:  return alpha >= ref;
-	case ALPHACMP_GREATER: return alpha > ref;
-	case ALPHACMP_EQUAL:   return alpha == ref;
-	case ALPHACMP_NEQUAL:  return alpha != ref;
+	case AlphaTest::ALWAYS:  return true;
+	case AlphaTest::NEVER:   return false;
+	case AlphaTest::LEQUAL:  return alpha <= ref;
+	case AlphaTest::LESS:    return alpha < ref;
+	case AlphaTest::GEQUAL:  return alpha >= ref;
+	case AlphaTest::GREATER: return alpha > ref;
+	case AlphaTest::EQUAL:   return alpha == ref;
+	case AlphaTest::NEQUAL:  return alpha != ref;
 	}
 	return true;
 }
