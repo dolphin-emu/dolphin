@@ -60,7 +60,7 @@ const std::string CFileSystemGCWii::GetFileName(u64 _Address)
 		}
 	}
 
-	return nullptr;
+	return "";
 }
 
 u64 CFileSystemGCWii::ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize)
