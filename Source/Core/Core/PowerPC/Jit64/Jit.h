@@ -94,7 +94,7 @@ public:
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
 	void WriteRfiExitDestInEAX();
-	void WriteCallInterpreter(UGeckoInstruction _inst);
+	void WriteCallInterpreter(UGeckoInstruction inst);
 	void Cleanup();
 
 	void GenerateConstantOverflow(bool overflow);
@@ -112,16 +112,16 @@ public:
 	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst);
-	void FallBackToInterpreter(UGeckoInstruction _inst);
-	void DoNothing(UGeckoInstruction _inst);
-	void HLEFunction(UGeckoInstruction _inst);
+	void unknown_instruction(UGeckoInstruction inst);
+	void FallBackToInterpreter(UGeckoInstruction inst);
+	void DoNothing(UGeckoInstruction inst);
+	void HLEFunction(UGeckoInstruction inst);
 
-	void DynaRunTable4(UGeckoInstruction _inst);
-	void DynaRunTable19(UGeckoInstruction _inst);
-	void DynaRunTable31(UGeckoInstruction _inst);
-	void DynaRunTable59(UGeckoInstruction _inst);
-	void DynaRunTable63(UGeckoInstruction _inst);
+	void DynaRunTable4(UGeckoInstruction inst);
+	void DynaRunTable19(UGeckoInstruction inst);
+	void DynaRunTable31(UGeckoInstruction inst);
+	void DynaRunTable59(UGeckoInstruction inst);
+	void DynaRunTable63(UGeckoInstruction inst);
 
 	void addx(UGeckoInstruction inst);
 	void addcx(UGeckoInstruction inst);
@@ -139,12 +139,12 @@ public:
 	void extsbx(UGeckoInstruction inst);
 	void extshx(UGeckoInstruction inst);
 
-	void sc(UGeckoInstruction _inst);
-	void rfi(UGeckoInstruction _inst);
+	void sc(UGeckoInstruction inst);
+	void rfi(UGeckoInstruction inst);
 
 	void bx(UGeckoInstruction inst);
-	void bclrx(UGeckoInstruction _inst);
-	void bcctrx(UGeckoInstruction _inst);
+	void bclrx(UGeckoInstruction inst);
+	void bcctrx(UGeckoInstruction inst);
 	void bcx(UGeckoInstruction inst);
 
 	void mtspr(UGeckoInstruction inst);

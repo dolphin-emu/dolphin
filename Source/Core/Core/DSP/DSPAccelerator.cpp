@@ -11,14 +11,14 @@
 #include "Core/DSP/DSPInterpreter.h"
 
 // The hardware adpcm decoder :)
-static s16 ADPCM_Step(u32& _rSamplePos)
+static s16 ADPCM_Step(u32& rSamplePos)
 {
 	const s16 *pCoefTable = (const s16 *)&g_dsp.ifx_regs[DSP_COEF_A1_0];
 
-	if (((_rSamplePos) & 15) == 0)
+	if (((rSamplePos) & 15) == 0)
 	{
-		g_dsp.ifx_regs[DSP_PRED_SCALE] = DSPHost::ReadHostMemory((_rSamplePos & ~15) >> 1);
-		_rSamplePos += 2;
+		g_dsp.ifx_regs[DSP_PRED_SCALE] = DSPHost::ReadHostMemory((rSamplePos & ~15) >> 1);
+		rSamplePos += 2;
 	}
 
 	int scale = 1 << (g_dsp.ifx_regs[DSP_PRED_SCALE] & 0xF);
@@ -27,9 +27,9 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 	s32 coef1 = pCoefTable[coef_idx * 2 + 0];
 	s32 coef2 = pCoefTable[coef_idx * 2 + 1];
 
-	int temp = (_rSamplePos & 1) ?
-	       (DSPHost::ReadHostMemory(_rSamplePos >> 1) & 0xF) :
-	       (DSPHost::ReadHostMemory(_rSamplePos >> 1) >> 4);
+	int temp = (rSamplePos & 1) ?
+	       (DSPHost::ReadHostMemory(rSamplePos >> 1) & 0xF) :
+	       (DSPHost::ReadHostMemory(rSamplePos >> 1) >> 4);
 
 	if (temp >= 8)
 		temp -= 16;
@@ -42,7 +42,7 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 	g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 	g_dsp.ifx_regs[DSP_YN1] = val;
 
-	_rSamplePos++;
+	rSamplePos++;
 
 	// The advanced interpolation (linear, polyphase,...) is done by the UCode,
 	// so we don't need to bother with it here.

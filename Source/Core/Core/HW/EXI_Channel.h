@@ -48,7 +48,7 @@ private:
 			u32                 :18;
 		};
 		UEXI_STATUS() {Hex = 0;}
-		UEXI_STATUS(u32 _hex) {Hex = _hex;}
+		UEXI_STATUS(u32 hex) {Hex = hex;}
 	};
 
 	// EXI Control Register

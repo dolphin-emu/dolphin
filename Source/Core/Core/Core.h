@@ -47,12 +47,12 @@ bool IsRunningInCurrentThread(); // this tells us whether we are running in the 
 bool IsCPUThread(); // this tells us whether we are the cpu thread.
 bool IsGPUThread();
 
-void SetState(EState _State);
+void SetState(EState State);
 EState GetState();
 
 void SaveScreenShot();
 
-void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
+void Callback_WiimoteInterruptChannel(int number, u16 channelID, const void* pData, u32 Size);
 
 void* GetWindowHandle();
 

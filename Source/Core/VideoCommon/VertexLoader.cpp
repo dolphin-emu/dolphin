@@ -902,12 +902,12 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const coun
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 }
 
-void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
+void VertexLoader::SetVAT(u32 group0, u32 group1, u32 group2)
 {
 	VAT vat;
-	vat.g0.Hex = _group0;
-	vat.g1.Hex = _group1;
-	vat.g2.Hex = _group2;
+	vat.g0.Hex = group0;
+	vat.g1.Hex = group1;
+	vat.g2.Hex = group2;
 
 	m_VtxAttr.PosElements          = vat.g0.PosElements;
 	m_VtxAttr.PosFormat            = vat.g0.PosFormat;

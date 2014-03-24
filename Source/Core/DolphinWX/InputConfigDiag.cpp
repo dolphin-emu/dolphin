@@ -171,12 +171,12 @@ ControlDialog::ControlDialog(GamepadPage* const parent, InputPlugin& plugin, Con
 	SetFocus();
 }
 
-ControlButton::ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref, const unsigned int width, const std::string& label)
+ControlButton::ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const ref, const unsigned int width, const std::string& label)
 : wxButton(parent, -1, wxT(""), wxDefaultPosition, wxSize(width,20))
-, control_reference(_ref)
+, control_reference(ref)
 {
 	if (label.empty())
-		SetLabel(StrToWxStr(_ref->expression));
+		SetLabel(StrToWxStr(ref->expression));
 	else
 		SetLabel(StrToWxStr(label));
 }

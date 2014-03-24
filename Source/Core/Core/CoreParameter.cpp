@@ -107,11 +107,11 @@ void SCoreStartupParameter::LoadDefaults()
 	m_strUniqueID = "00000000";
 }
 
-bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
+bool SCoreStartupParameter::AutoSetup(EBootBS2 BootBS2)
 {
 	std::string Region(EUR_DIR);
 
-	switch (_BootBS2)
+	switch (BootBS2)
 	{
 	case BOOT_DEFAULT:
 		{

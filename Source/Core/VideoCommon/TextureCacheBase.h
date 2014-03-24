@@ -46,10 +46,10 @@ public:
 		int frameCount;
 
 
-		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format, unsigned int _num_mipmaps)
+		void SetGeneralParameters(u32 _addr, u32 size, u32 _format, unsigned int _num_mipmaps)
 		{
 			addr = _addr;
-			size_in_bytes = _size;
+			size_in_bytes = size;
 			format = _format;
 			num_mipmaps = _num_mipmaps;
 		}

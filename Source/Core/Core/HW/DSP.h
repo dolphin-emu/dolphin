@@ -36,12 +36,12 @@ DSPEmulator *GetDSPEmulator();
 
 void DoState(PointerWrap &p);
 
-void GenerateDSPInterrupt(DSPInterruptType _DSPInterruptType, bool _bSet = true);
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType _DSPInterruptType, bool _bSet = true);
+void GenerateDSPInterrupt(DSPInterruptType DSPInterruptType, bool bSet = true);
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType DSPInterruptType, bool bSet = true);
 
 // Audio/DSP Helper
-u8 ReadARAM(const u32 _uAddress);
-void WriteARAM(u8 value, u32 _uAddress);
+u8 ReadARAM(const u32 uAddress);
+void WriteARAM(u8 value, u32 uAddress);
 
 // Debugger Helper
 u8* GetARAMPtr();

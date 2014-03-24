@@ -113,7 +113,7 @@ void InhibitScreensaver(Display *dpy, Window win, bool suspend)
 }
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-XRRConfiguration::XRRConfiguration(Display *_dpy, Window _win)
+XRRConfiguration::XRRConfiguration(Display* _dpy, Window _win)
 	: dpy(_dpy)
 	, win(_win)
 	, screenResources(nullptr), outputInfo(nullptr), crtcInfo(nullptr)

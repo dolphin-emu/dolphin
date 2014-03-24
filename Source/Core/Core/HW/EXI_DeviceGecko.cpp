@@ -145,15 +145,15 @@ void GeckoSockServer::ClientThread()
 	client.Close();
 }
 
-void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
+void CEXIGecko::ImmReadWrite(u32 &uData, u32 uSize)
 {
-	// We don't really care about _uSize
-	(void)_uSize;
+	// We don't really care about uSize
+	(void)uSize;
 
 	if (!client.IsValid())
 		GetAvailableSock(client);
 
-	switch (_uData >> 28)
+	switch (uData >> 28)
 	{
 	case CMD_LED_OFF:
 		Core::DisplayMessage(StringFromFormat(
@@ -167,7 +167,7 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		break;
 
 	case CMD_INIT:
-		_uData = ident;
+		uData = ident;
 		break;
 
 		// PC -> Gecko
@@ -177,7 +177,7 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		std::lock_guard<std::mutex> lk(transfer_lock);
 		if (!recv_fifo.empty())
 		{
-			_uData = 0x08000000 | (recv_fifo.front() << 16);
+			uData = 0x08000000 | (recv_fifo.front() << 16);
 			recv_fifo.pop_front();
 		}
 		break;
@@ -188,15 +188,15 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 	case CMD_SEND:
 		{
 		std::lock_guard<std::mutex> lk(transfer_lock);
-		send_fifo.push_back(_uData >> 20);
-		_uData = 0x04000000;
+		send_fifo.push_back(uData >> 20);
+		uData = 0x04000000;
 		break;
 		}
 
 		// Check if ok for Gecko -> PC, or FIFO full
 		// |= 0x04000000 if FIFO is not full
 	case CMD_CHK_TX:
-		_uData = 0x04000000;
+		uData = 0x04000000;
 		break;
 
 		// Check if data in FIFO for PC -> Gecko, or FIFO empty
@@ -204,12 +204,12 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 	case CMD_CHK_RX:
 		{
 		std::lock_guard<std::mutex> lk(transfer_lock);
-		_uData = recv_fifo.empty() ? 0 : 0x04000000;
+		uData = recv_fifo.empty() ? 0 : 0x04000000;
 		break;
 		}
 
 	default:
-		ERROR_LOG(EXPANSIONINTERFACE, "Unknown USBGecko command %x", _uData);
+		ERROR_LOG(EXPANSIONINTERFACE, "Unknown USBGecko command %x", uData);
 		break;
 	}
 }

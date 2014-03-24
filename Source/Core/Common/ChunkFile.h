@@ -316,15 +316,15 @@ class CChunkFileReader
 public:
 	// Load file template
 	template<class T>
-	static bool Load(const std::string& _rFilename, u32 _Revision, T& _class)
+	static bool Load(const std::string& rFilename, u32 Revision, T& _class)
 	{
-		INFO_LOG(COMMON, "ChunkReader: Loading %s" , _rFilename.c_str());
+		INFO_LOG(COMMON, "ChunkReader: Loading %s" , rFilename.c_str());
 
-		if (!File::Exists(_rFilename))
+		if (!File::Exists(rFilename))
 			return false;
 
 		// Check file size
-		const u64 fileSize = File::GetSize(_rFilename);
+		const u64 fileSize = File::GetSize(rFilename);
 		static const u64 headerSize = sizeof(SChunkHeader);
 		if (fileSize < headerSize)
 		{
@@ -332,7 +332,7 @@ public:
 			return false;
 		}
 
-		File::IOFile pFile(_rFilename, "rb");
+		File::IOFile pFile(rFilename, "rb");
 		if (!pFile)
 		{
 			ERROR_LOG(COMMON,"ChunkReader: Can't open file for reading");
@@ -348,10 +348,10 @@ public:
 		}
 
 		// Check revision
-		if (header.Revision != _Revision)
+		if (header.Revision != Revision)
 		{
 			ERROR_LOG(COMMON,"ChunkReader: Wrong file revision, got %d expected %d",
-				header.Revision, _Revision);
+				header.Revision, Revision);
 			return false;
 		}
 
@@ -376,16 +376,16 @@ public:
 		PointerWrap p(&ptr, PointerWrap::MODE_READ);
 		_class.DoState(p);
 
-		INFO_LOG(COMMON, "ChunkReader: Done loading %s" , _rFilename.c_str());
+		INFO_LOG(COMMON, "ChunkReader: Done loading %s" , rFilename.c_str());
 		return true;
 	}
 
 	// Save file template
 	template<class T>
-	static bool Save(const std::string& _rFilename, u32 _Revision, T& _class)
+	static bool Save(const std::string& rFilename, u32 Revision, T& _class)
 	{
-		INFO_LOG(COMMON, "ChunkReader: Writing %s" , _rFilename.c_str());
-		File::IOFile pFile(_rFilename, "wb");
+		INFO_LOG(COMMON, "ChunkReader: Writing %s" , rFilename.c_str());
+		File::IOFile pFile(rFilename, "wb");
 		if (!pFile)
 		{
 			ERROR_LOG(COMMON,"ChunkReader: Error opening file for write");
@@ -404,7 +404,7 @@ public:
 
 		// Create header
 		SChunkHeader header;
-		header.Revision = _Revision;
+		header.Revision = Revision;
 		header.ExpectedSize = (u32)sz;
 
 		// Write to file
@@ -420,7 +420,7 @@ public:
 			return false;
 		}
 
-		INFO_LOG(COMMON,"ChunkReader: Done writing %s", _rFilename.c_str());
+		INFO_LOG(COMMON,"ChunkReader: Done writing %s", rFilename.c_str());
 		return true;
 	}
 

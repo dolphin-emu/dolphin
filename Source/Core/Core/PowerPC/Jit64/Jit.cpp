@@ -209,7 +209,7 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 		MOV(32, M(&PC), Imm32(js.compilerPC));
 		MOV(32, M(&NPC), Imm32(js.compilerPC + 4));
 	}
-	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
+	Interpreter::interpreterInstruction instr = GetInterpreterOp(inst);
 	ABI_CallFunctionC((void*)instr, inst.hex);
 }
 
@@ -218,19 +218,19 @@ void Jit64::unknown_instruction(UGeckoInstruction inst)
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
+void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 {
-	WriteCallInterpreter(_inst.hex);
+	WriteCallInterpreter(inst.hex);
 }
 
-void Jit64::HLEFunction(UGeckoInstruction _inst)
+void Jit64::HLEFunction(UGeckoInstruction inst)
 {
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
-	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
+	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, inst.hex);
 }
 
-void Jit64::DoNothing(UGeckoInstruction _inst)
+void Jit64::DoNothing(UGeckoInstruction inst)
 {
 	// Yup, just don't do anything.
 }

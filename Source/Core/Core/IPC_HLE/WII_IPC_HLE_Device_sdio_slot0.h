@@ -12,14 +12,14 @@ class CWII_IPC_HLE_Device_sdio_slot0 : public IWII_IPC_HLE_Device
 {
 public:
 
-	CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_sdio_slot0(u32 DeviceID, const std::string& rDeviceName);
 
 	virtual void DoState(PointerWrap& p) override;
 
-	bool Open(u32 _CommandAddress, u32 _Mode) override;
-	bool Close(u32 _CommandAddress, bool _bForce) override;
-	bool IOCtl(u32 _CommandAddress) override;
-	bool IOCtlV(u32 _CommandAddress) override;
+	bool Open(u32 CommandAddress, u32 Mode) override;
+	bool Close(u32 CommandAddress, bool bForce) override;
+	bool IOCtl(u32 CommandAddress) override;
+	bool IOCtlV(u32 CommandAddress) override;
 
 	void EventNotify();
 
@@ -121,6 +121,6 @@ private:
 
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize,
 		u32 BufferIn2, u32 BufferInSize2,
-		u32 _BufferOut, u32 BufferOutSize);
+		u32 BufferOut, u32 BufferOutSize);
 	void OpenInternal();
 };

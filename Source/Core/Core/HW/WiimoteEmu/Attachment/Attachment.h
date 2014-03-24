@@ -13,7 +13,7 @@ namespace WiimoteEmu
 class Attachment : public ControllerEmu
 {
 public:
-	Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg);
+	Attachment(const char* const name, WiimoteEmu::ExtensionReg& reg);
 
 	virtual void GetState(u8* const data, const bool focus = true) {}
 	void Reset();
@@ -29,7 +29,7 @@ public:
 class None : public Attachment
 {
 public:
-	None(WiimoteEmu::ExtensionReg& _reg);
+	None(WiimoteEmu::ExtensionReg& reg);
 };
 
 }

@@ -23,18 +23,18 @@ namespace {
 bool Interpreter::m_EndBlock;
 
 // function tables
-Interpreter::_interpreterInstruction Interpreter::m_opTable[64];
-Interpreter::_interpreterInstruction Interpreter::m_opTable4[1024];
-Interpreter::_interpreterInstruction Interpreter::m_opTable19[1024];
-Interpreter::_interpreterInstruction Interpreter::m_opTable31[1024];
-Interpreter::_interpreterInstruction Interpreter::m_opTable59[32];
-Interpreter::_interpreterInstruction Interpreter::m_opTable63[1024];
+Interpreter::interpreterInstruction Interpreter::m_opTable[64];
+Interpreter::interpreterInstruction Interpreter::m_opTable4[1024];
+Interpreter::interpreterInstruction Interpreter::m_opTable19[1024];
+Interpreter::interpreterInstruction Interpreter::m_opTable31[1024];
+Interpreter::interpreterInstruction Interpreter::m_opTable59[32];
+Interpreter::interpreterInstruction Interpreter::m_opTable63[1024];
 
-void Interpreter::RunTable4(UGeckoInstruction _inst)  {m_opTable4 [_inst.SUBOP10](_inst);}
-void Interpreter::RunTable19(UGeckoInstruction _inst) {m_opTable19[_inst.SUBOP10](_inst);}
-void Interpreter::RunTable31(UGeckoInstruction _inst) {m_opTable31[_inst.SUBOP10](_inst);}
-void Interpreter::RunTable59(UGeckoInstruction _inst) {m_opTable59[_inst.SUBOP5 ](_inst);}
-void Interpreter::RunTable63(UGeckoInstruction _inst) {m_opTable63[_inst.SUBOP10](_inst);}
+void Interpreter::RunTable4(UGeckoInstruction inst)  {m_opTable4 [inst.SUBOP10](inst);}
+void Interpreter::RunTable19(UGeckoInstruction inst) {m_opTable19[inst.SUBOP10](inst);}
+void Interpreter::RunTable31(UGeckoInstruction inst) {m_opTable31[inst.SUBOP10](inst);}
+void Interpreter::RunTable59(UGeckoInstruction inst) {m_opTable59[inst.SUBOP5 ](inst);}
+void Interpreter::RunTable63(UGeckoInstruction inst) {m_opTable63[inst.SUBOP10](inst);}
 
 void Interpreter::Init()
 {
@@ -307,15 +307,15 @@ void Interpreter::Run()
 	}
 }
 
-void Interpreter::unknown_instruction(UGeckoInstruction _inst)
+void Interpreter::unknown_instruction(UGeckoInstruction inst)
 {
-	if (_inst.hex != 0)
+	if (inst.hex != 0)
 	{
 		char disasm[256];
 		DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc, disasm, 256);
 		NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm);
 		Dolphin_Debugger::PrintCallstack();
-		_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
+		_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", inst.hex, PC, last_pc, LR);
 	}
 
 }

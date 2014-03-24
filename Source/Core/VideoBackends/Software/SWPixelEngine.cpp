@@ -126,13 +126,13 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 
 // SetToken
 // THIS IS EXECUTED FROM VIDEO THREAD
-void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
+void SetToken(const u16 token, const int bSetTokenAcknowledge)
 {
-	pereg.token = _token;
-	if (_bSetTokenAcknowledge) // set token INT
+	pereg.token = token;
+	if (bSetTokenAcknowledge) // set token INT
 	{
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread,
-			_token | (_bSetTokenAcknowledge << 16));
+			token | (bSetTokenAcknowledge << 16));
 	}
 }
 

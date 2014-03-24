@@ -48,7 +48,7 @@
 
 #if defined(_MSC_VER) && defined(_MT)
 // When linking with LIBCMT (the multithreaded C library), Microsoft recommends
-// using _beginthreadex instead of CreateThread.
+// using beginthreadex instead of CreateThread.
 #define USE_BEGINTHREADEX
 #include <process.h>
 #endif
@@ -92,7 +92,7 @@ public:
 		friend class thread;
 	public:
 		id() : m_thread(0) {}
-		id(THREAD_ID _id) : m_thread(_id) {}
+		id(THREAD_ID id) : m_thread(id) {}
 
 		bool operator==(const id& rhs) const
 		{
@@ -238,7 +238,7 @@ private:
 	void StartThread(F* param)
 	{
 #ifdef USE_BEGINTHREADEX
-		m_handle = (HANDLE)_beginthreadex(nullptr, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
+		m_handle = (HANDLE)beginthreadex(nullptr, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
 #elif defined(_WIN32)
 		m_handle = CreateThread(nullptr, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
 #else

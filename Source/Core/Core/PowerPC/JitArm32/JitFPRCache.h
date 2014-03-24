@@ -15,7 +15,7 @@ using namespace ArmGen;
 class ArmFPRCache
 {
 private:
-	OpArg _regs[32][2]; // One for each FPR reg
+	OpArg regs[32][2]; // One for each FPR reg
 	JRCPPC ArmCRegs[ARMFPUREGS];
 	JRCReg ArmRegs[ARMFPUREGS];
 

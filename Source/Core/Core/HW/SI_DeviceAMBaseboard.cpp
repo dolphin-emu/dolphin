@@ -79,21 +79,21 @@ public:
 
 
 // AM-Baseboard device on SI
-CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumber)
-	: ISIDevice(device, _iDeviceNumber)
+CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(SIDevices device, int iDeviceNumber)
+	: ISIDevice(device, iDeviceNumber)
 {
 }
 
-int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
+int CSIDevice_AMBaseboard::RunBuffer(u8* pBuffer, int iLength)
 {
 	// for debug logging only
-	ISIDevice::RunBuffer(_pBuffer, _iLength);
+	ISIDevice::RunBuffer(pBuffer, iLength);
 
 	int iPosition = 0;
-	while (iPosition < _iLength)
+	while (iPosition < iLength)
 	{
 		// read the command
-		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
+		EBufferCommands command = static_cast<EBufferCommands>(pBuffer[iPosition ^ 3]);
 		iPosition++;
 
 		// handle it
@@ -101,8 +101,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 		{
 		case CMD_RESET: // returns ID and dip switches
 			{
-				*(u32*)&_pBuffer[0] = SI_AM_BASEBOARD|0x100; // 0x100 is progressive flag according to dip switch
-				iPosition = _iLength; // break the while loop
+				*(u32*)&pBuffer[0] = SI_AM_BASEBOARD|0x100; // 0x100 is progressive flag according to dip switch
+				iPosition = iLength; // break the while loop
 			}
 			break;
 		case CMD_GCAM:
@@ -111,13 +111,13 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 
 				// calculate checksum over buffer
 				int csum = 0;
-				for (i=0; i<_iLength; ++i)
-					csum += _pBuffer[i];
+				for (i=0; i<iLength; ++i)
+					csum += pBuffer[i];
 
 				unsigned char res[0x80];
 				int resp = 0;
 
-				int real_len = _pBuffer[1^3];
+				int real_len = pBuffer[1^3];
 				int p = 2;
 
 				static int d10_1 = 0xfe;
@@ -126,7 +126,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 				res[resp++] = 1;
 				res[resp++] = 1;
 
-#define ptr(x) _pBuffer[(p + x)^3]
+#define ptr(x) pBuffer[(p + x)^3]
 				while (p < real_len+2)
 				{
 					switch (ptr(0))
@@ -389,7 +389,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 					}
 					p += ptr(1) + 2;
 				}
-				memset(_pBuffer, 0, _iLength);
+				memset(pBuffer, 0, iLength);
 
 				int len = resp - 2;
 
@@ -413,16 +413,16 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 				static int lastptr[2];
 
 				{
-					memcpy(last + 1, _pBuffer, 0x80);
-					memcpy(_pBuffer, last, 0x80);
+					memcpy(last + 1, pBuffer, 0x80);
+					memcpy(pBuffer, last, 0x80);
 					memcpy(last, last + 1, 0x80);
 
-					lastptr[1] = _iLength;
-					_iLength = lastptr[0];
+					lastptr[1] = iLength;
+					iLength = lastptr[0];
 					lastptr[0] = lastptr[1];
 				}
 
-				iPosition = _iLength;
+				iPosition = iLength;
 				break;
 			}
 			// DEFAULT
@@ -430,7 +430,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 			{
 				ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
 				PanicAlert("SI: Unknown command");
-				iPosition = _iLength;
+				iPosition = iLength;
 			}
 			break;
 		}
@@ -440,16 +440,16 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 }
 
 // Not really used on GC-AM
-bool CSIDevice_AMBaseboard::GetData(u32& _Hi, u32& _Low)
+bool CSIDevice_AMBaseboard::GetData(u32& Hi, u32& Low)
 {
-	_Low = 0;
-	_Hi  = 0x00800000;
+	Low = 0;
+	Hi  = 0x00800000;
 
 	return true;
 }
 
-void CSIDevice_AMBaseboard::SendCommand(u32 _Cmd, u8 _Poll)
+void CSIDevice_AMBaseboard::SendCommand(u32 Cmd, u8 Poll)
 {
-	ERROR_LOG(SERIALINTERFACE, "Unknown direct command     (0x%x)", _Cmd);
+	ERROR_LOG(SERIALINTERFACE, "Unknown direct command     (0x%x)", Cmd);
 	PanicAlert("SI: (GCAM) Unknown direct command");
 }

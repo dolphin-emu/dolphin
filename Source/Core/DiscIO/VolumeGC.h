@@ -20,10 +20,10 @@ class IBlobReader;
 class CVolumeGC : public IVolume
 {
 public:
-	CVolumeGC(IBlobReader* _pReader);
+	CVolumeGC(IBlobReader* pReader);
 	~CVolumeGC();
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
-	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
+	bool Read(u64 Offset, u64 Length, u8* pBuffer) const override;
+	bool RAWRead(u64 Offset, u64 Length, u8* pBuffer) const override;
 	std::string GetUniqueID() const override;
 	std::string GetRevisionSpecificUniqueID() const override;
 	std::string GetMakerID() const override;

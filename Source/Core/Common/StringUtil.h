@@ -76,16 +76,16 @@ static bool TryParse(const std::string &str, N *const output)
 }
 
 // TODO: kill this
-bool AsciiToHex(const std::string& _szValue, u32& result);
+bool AsciiToHex(const std::string& szValue, u32& result);
 
 std::string TabsToSpaces(int tab_size, const std::string &in);
 
 void SplitString(const std::string& str, char delim, std::vector<std::string>& output);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
-bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension);
+bool SplitPath(const std::string& full_path, std::string* pPath, std::string* pFilename, std::string* pExtension);
 
-void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename);
+void BuildCompleteFilename(std::string& CompleteFilename, const std::string& Path, const std::string& Filename);
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest);
 std::string UriDecode(const std::string & sSrc);
 std::string UriEncode(const std::string & sSrc);

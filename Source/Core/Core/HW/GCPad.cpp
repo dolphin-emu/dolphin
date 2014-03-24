@@ -47,10 +47,10 @@ void Initialize(void* const hwnd)
 	g_plugin.LoadConfig(true);
 }
 
-void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
+void GetStatus(u8 numPAD, SPADStatus* pPADStatus)
 {
-	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
-	_pPADStatus->err = PAD_ERR_NONE;
+	memset(pPADStatus, 0, sizeof(*pPADStatus));
+	pPADStatus->err = PAD_ERR_NONE;
 
 	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
 
@@ -58,33 +58,33 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		// if gui has lock (messing with controls), skip this input cycle
 		// center axes and return
-		memset(&_pPADStatus->stickX, 0x80, 4);
+		memset(&pPADStatus->stickX, 0x80, 4);
 		return;
 	}
 
 	// if we are on the next input cycle, update output and input
 	// if we can get a lock
-	static int _last_numPAD = 4;
-	if (_numPAD <= _last_numPAD)
+	static int last_numPAD = 4;
+	if (numPAD <= last_numPAD)
 	{
 		g_controller_interface.UpdateOutput();
 		g_controller_interface.UpdateInput();
 	}
-	_last_numPAD = _numPAD;
+	last_numPAD = numPAD;
 
 	// get input
-	((GCPad*)g_plugin.controllers[_numPAD])->GetInput(_pPADStatus);
+	((GCPad*)g_plugin.controllers[numPAD])->GetInput(pPADStatus);
 }
 
 // __________________________________________________________________________________________________
 // Function: Rumble
 // Purpose:  Pad rumble!
-// input:    _numPad    - Which pad to rumble.
-//           _uType     - Command type (Stop=0, Rumble=1, Stop Hard=2).
-//           _uStrength - Strength of the Rumble
+// input:    numPad    - Which pad to rumble.
+//           uType     - Command type (Stop=0, Rumble=1, Stop Hard=2).
+//           uStrength - Strength of the Rumble
 // output:   none
 //
-void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
+void Rumble(u8 numPAD, unsigned int uType, unsigned int uStrength)
 {
 	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
 
@@ -92,13 +92,13 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 	{
 		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
 		// set rumble
-		if (1 == _uType && _uStrength > 2)
+		if (1 == uType && uStrength > 2)
 		{
-			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput(255);
+			((GCPad*)g_plugin.controllers[ numPAD ])->SetOutput(255);
 		}
 		else
 		{
-			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput(0);
+			((GCPad*)g_plugin.controllers[ numPAD ])->SetOutput(0);
 		}
 	}
 }
@@ -106,12 +106,12 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 // __________________________________________________________________________________________________
 // Function: Motor
 // Purpose:  For devices with constant Force feedback
-// input:    _numPAD    - The pad to operate on
-//           _uType     - 06 = Motor On, 04 = Motor Off
-//           _uStrength - 00 = Left Strong, 127 = Left Weak, 128 = Right Weak, 255 = Right Strong
+// input:    numPAD    - The pad to operate on
+//           uType     - 06 = Motor On, 04 = Motor Off
+//           uStrength - 00 = Left Strong, 127 = Left Weak, 128 = Right Weak, 255 = Right Strong
 // output:   none
 //
-void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
+void Motor(u8 numPAD, unsigned int uType, unsigned int uStrength)
 {
 	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
 
@@ -119,9 +119,9 @@ void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 	{
 		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
 		// set rumble
-		if (_uType == 6)
+		if (uType == 6)
 		{
-			((GCPad*)g_plugin.controllers[ _numPAD ])->SetMotor(_uStrength);
+			((GCPad*)g_plugin.controllers[ numPAD ])->SetMotor(uStrength);
 		}
 	}
 }

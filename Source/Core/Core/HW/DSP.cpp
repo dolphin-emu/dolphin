@@ -124,7 +124,7 @@ union UAudioDMAControl
 		u16 Enable     : 1;
 	};
 
-	UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex)
+	UAudioDMAControl(u16 hex = 0) : Hex(hex)
 	{}
 };
 
@@ -227,7 +227,7 @@ void DoState(PointerWrap &p)
 
 void UpdateInterrupts();
 void Do_ARAM_DMA();
-void WriteARAM(u8 _iValue, u32 _iAddress);
+void WriteARAM(u8 iValue, u32 iAddress);
 bool Update_DSP_ReadRegister();
 void Update_DSP_WriteRegister();
 
@@ -458,23 +458,23 @@ void UpdateInterrupts()
 	}
 }
 
-void GenerateDSPInterrupt(DSPInterruptType type, bool _bSet)
+void GenerateDSPInterrupt(DSPInterruptType type, bool bSet)
 {
 	switch (type)
 	{
-	case INT_DSP:  g_dspState.DSPControl.DSP  = _bSet ? 1 : 0; break;
-	case INT_ARAM: g_dspState.DSPControl.ARAM = _bSet ? 1 : 0; if (_bSet) g_dspState.DSPControl.DMAState = 0; break;
-	case INT_AID:  g_dspState.DSPControl.AID  = _bSet ? 1 : 0; break;
+	case INT_DSP:  g_dspState.DSPControl.DSP  = bSet ? 1 : 0; break;
+	case INT_ARAM: g_dspState.DSPControl.ARAM = bSet ? 1 : 0; if (bSet) g_dspState.DSPControl.DMAState = 0; break;
+	case INT_AID:  g_dspState.DSPControl.AID  = bSet ? 1 : 0; break;
 	}
 
 	UpdateInterrupts();
 }
 
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool _bSet)
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool bSet)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
-		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
+		0, et_GenerateDSPInterrupt, type | (bSet<<16));
 	CoreTiming::ForceExceptionCheck(100);
 }
 
@@ -646,27 +646,27 @@ void Do_ARAM_DMA()
 // (shuffle2) I still don't believe that this hack is actually needed... :(
 // Maybe the wii sports ucode is processed incorrectly?
 // (LM) It just means that dsp reads via '0xffdd' on WII can end up in EXRAM or main RAM
-u8 ReadARAM(u32 _iAddress)
+u8 ReadARAM(u32 iAddress)
 {
-	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", _iAddress);
+	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", iAddress);
 	if (g_ARAM.wii_mode)
 	{
-		if (_iAddress & 0x10000000)
-			return g_ARAM.ptr[_iAddress & g_ARAM.mask];
+		if (iAddress & 0x10000000)
+			return g_ARAM.ptr[iAddress & g_ARAM.mask];
 		else
-			return Memory::Read_U8(_iAddress & Memory::RAM_MASK);
+			return Memory::Read_U8(iAddress & Memory::RAM_MASK);
 	}
 	else
 	{
-		return g_ARAM.ptr[_iAddress & g_ARAM.mask];
+		return g_ARAM.ptr[iAddress & g_ARAM.mask];
 	}
 }
 
-void WriteARAM(u8 value, u32 _uAddress)
+void WriteARAM(u8 value, u32 uAddress)
 {
-	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", _uAddress);
+	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x", uAddress);
 	//TODO: verify this on WII
-	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
+	g_ARAM.ptr[uAddress & g_ARAM.mask] = value;
 }
 
 u8 *GetARAMPtr()

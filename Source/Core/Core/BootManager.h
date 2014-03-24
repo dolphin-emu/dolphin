@@ -10,7 +10,7 @@ class GameListItem;
 
 namespace BootManager
 {
-bool BootCore(const std::string& _rFilename);
+bool BootCore(const std::string& rFilename);
 
 void Stop();
 };

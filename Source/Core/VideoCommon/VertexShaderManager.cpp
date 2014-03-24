@@ -557,7 +557,7 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		else
 		{
 			if (nNormalMatricesChanged[0] > _start) nNormalMatricesChanged[0] = _start;
-			if (nNormalMatricesChanged[1] < _end) nNormalMatricesChanged[1] = _end;
+			if (nNormalMatricesChanged[1] < _end)   nNormalMatricesChanged[1] = _end;
 		}
 	}
 
@@ -574,7 +574,7 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 		else
 		{
 			if (nPostTransformMatricesChanged[0] > _start) nPostTransformMatricesChanged[0] = _start;
-			if (nPostTransformMatricesChanged[1] < _end) nPostTransformMatricesChanged[1] = _end;
+			if (nPostTransformMatricesChanged[1] < _end)   nPostTransformMatricesChanged[1] = _end;
 		}
 	}
 

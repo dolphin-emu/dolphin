@@ -7,13 +7,13 @@
 class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device
 {
 public:
-	CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_usb_kbd(u32 DeviceID, const std::string& rDeviceName);
 	virtual ~CWII_IPC_HLE_Device_usb_kbd();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
-	virtual bool Write(u32 _CommandAddress) override;
-	virtual bool IOCtl(u32 _CommandAddress) override;
+	virtual bool Open(u32 CommandAddress, u32 Mode) override;
+	virtual bool Close(u32 CommandAddress, bool bForce) override;
+	virtual bool Write(u32 CommandAddress) override;
+	virtual bool IOCtl(u32 CommandAddress) override;
 	virtual u32 Update() override;
 
 private:
@@ -33,7 +33,7 @@ private:
 		u8 Unk2;
 		u8 PressedKeys[6];
 
-		SMessageData(u32 _MsgType, u8 _Modifiers, u8 *_PressedKeys) {
+		SMessageData(u32 _MsgType, u8 _Modifiers, u8* _PressedKeys) {
 			MsgType = Common::swap32(_MsgType);
 			Unk1 = 0; // swapped
 			Modifiers = _Modifiers;
@@ -51,7 +51,7 @@ private:
 	bool m_OldKeyBuffer[256];
 	u8 m_OldModifiers;
 
-	virtual bool IsKeyPressed(int _Key);
+	virtual bool IsKeyPressed(int Key);
 
 	// This stuff should probably die
 	enum

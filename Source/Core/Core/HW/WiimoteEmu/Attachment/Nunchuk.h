@@ -14,7 +14,7 @@ namespace WiimoteEmu
 class Nunchuk : public Attachment
 {
 public:
-	Nunchuk(UDPWrapper * wrp, WiimoteEmu::ExtensionReg& _reg);
+	Nunchuk(UDPWrapper * wrp, WiimoteEmu::ExtensionReg& reg);
 
 	virtual void GetState(u8* const data, const bool focus) override;
 

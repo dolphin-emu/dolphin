@@ -34,7 +34,7 @@ public:
 	static void SingleStep();
 
 	// Enable or Disable Stepping
-	static void EnableStepping(const bool _bStepping);
+	static void EnableStepping(const bool bStepping);
 
 	// break, same as EnableStepping(true).
 	static void Break();

@@ -33,7 +33,7 @@ private:
 	void do_sig();
 	void make_ec_cert(u8 *cert, u8 *sig, char *signer, char *name, u8 *priv, u32 key_id);
 	bool getPaths(bool forExport = false);
-	void ScanForFiles(std::string savDir, std::vector<std::string>&FilesList, u32 *_numFiles, u32 *_sizeFiles);
+	void ScanForFiles(std::string savDir, std::vector<std::string>&FilesList, u32 *numFiles, u32 *sizeFiles);
 
 	aes_context m_AES_ctx;
 	u8 SD_IV[0x10];
@@ -45,10 +45,10 @@ private:
 
 	u8  IV[0x10];
 
-	u32 //_bannerSize,
-		_numberOfFiles,
-		_sizeOfFiles,
-		_totalSize;
+	u32 //bannerSize,
+		numberOfFiles,
+		sizeOfFiles,
+		totalSize;
 
 	u64 m_TitleID;
 
@@ -92,7 +92,7 @@ private:
 	{
 		Data_Bin_HDR hdr;
 		u8 BNR[FULL_BNR_MAX];
-	}_header, _encryptedHeader;
+	}header, encryptedHeader;
 
 	struct BK_Header // Not encrypted
 	{

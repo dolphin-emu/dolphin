@@ -1568,9 +1568,9 @@ const GLFunc gl_function_array[] =
 namespace GLExtensions
 {
 	// Private members and functions
-	bool _isES3;
-	bool _isES;
-	u32 _GLVersion;
+	bool isES3;
+	bool isES;
+	u32 GLVersion;
 	std::unordered_map<std::string, bool> m_extension_list;
 
 	// Private initialization functions
@@ -1590,7 +1590,7 @@ namespace GLExtensions
 	void InitExtensionList()
 	{
 		m_extension_list.clear();
-		if (_isES3)
+		if (isES3)
 		{
 			// XXX: Add all extensions that a base ES3 implementation supports
 			std::string gles3exts[] = {
@@ -1608,7 +1608,7 @@ namespace GLExtensions
 			for (auto it : gles3exts)
 				m_extension_list[it] = true;
 		}
-		else if (!_isES)
+		else if (!isES)
 		{
 			// Some OpenGL implementations chose to not expose core extensions as extensions
 			// Let's add them to the list manually depending on which version of OpenGL we have
@@ -1616,7 +1616,7 @@ namespace GLExtensions
 			// When an extension got merged in to core, the naming may have changed
 
 			// This has intentional fall through
-			switch (_GLVersion)
+			switch (GLVersion)
 			{
 				default:
 				case 330:
@@ -1713,7 +1713,7 @@ namespace GLExtensions
 			}
 		}
 
-		if (_GLVersion < 300)
+		if (GLVersion < 300)
 		{
 			InitExtensionList21();
 			return;
@@ -1729,11 +1729,11 @@ namespace GLExtensions
 		glGetIntegerv(GL_MAJOR_VERSION, &major);
 		glGetIntegerv(GL_MINOR_VERSION, &minor);
 		if (glGetError() == GL_NO_ERROR)
-			_GLVersion = major * 100 + minor * 10;
+			GLVersion = major * 100 + minor * 10;
 		else
-			_GLVersion = 210;
-		if (_isES3)
-			_GLVersion = 330; // Get all the fun things
+			GLVersion = 210;
+		if (isES3)
+			GLVersion = 330; // Get all the fun things
 	}
 
 	void* GetFuncAddress(std::string name, void **func)
@@ -1745,7 +1745,7 @@ namespace GLExtensions
 			// Give it a second try with dlsym
 			*func = dlsym(RTLD_NEXT, name.c_str());
 #endif
-			if (*func == nullptr && _isES)
+			if (*func == nullptr && isES)
 				*func = (void*)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
 			if (*func == nullptr)
 				ERROR_LOG(VIDEO, "Couldn't load function %s", name.c_str());
@@ -1754,7 +1754,10 @@ namespace GLExtensions
 	}
 
 	// Public members
-	u32 Version() { return _GLVersion; }
+	u32 Version()
+	{
+		return GLVersion;
+	}
 	bool Supports(const std::string& name)
 	{
 		return m_extension_list[name];
@@ -1762,8 +1765,8 @@ namespace GLExtensions
 
 	bool Init()
 	{
-		_isES3 = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3;
-		_isES = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 || GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES2;
+		isES3 = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3;
+		isES = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 || GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES2;
 
 		// Grab a few functions for initial checking
 		// We need them to grab the extension list

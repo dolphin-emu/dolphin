@@ -52,7 +52,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 		sprintf(bnrFilename, "%stitle/%08x/%08x/data/opening.bnr",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 
-		if (!_rFileSystem.ExportFile("opening.bnr", bnrFilename)) {
+		if (!rFileSystem.ExportFile("opening.bnr", bnrFilename)) {
 			m_IsValid = false;
 			return;
 		}

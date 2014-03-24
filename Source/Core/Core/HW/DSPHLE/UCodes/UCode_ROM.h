@@ -9,11 +9,11 @@
 class CUCode_Rom : public IUCode
 {
 public:
-	CUCode_Rom(DSPHLE *dsp_hle, u32 _crc);
+	CUCode_Rom(DSPHLE *dsp_hle, u32 crc);
 	virtual ~CUCode_Rom();
 	u32 GetUpdateMs() override;
 
-	void HandleMail(u32 _uMail) override;
+	void HandleMail(u32 uMail) override;
 	void Update(int cycles) override;
 
 	void DoState(PointerWrap &p) override;

@@ -17,7 +17,7 @@ class WiiWAD
 {
 public:
 
-	WiiWAD(const std::string& _rName);
+	WiiWAD(const std::string& rName);
 
 	~WiiWAD();
 
@@ -34,7 +34,7 @@ public:
 	u8* GetDataApp() const { return m_pDataApp; }
 	u8* GetFooter() const { return m_pFooter; }
 
-	static bool IsWiiWAD(const std::string& _rName);
+	static bool IsWiiWAD(const std::string& rName);
 
 private:
 
@@ -52,8 +52,8 @@ private:
 	u8* m_pDataApp;
 	u8* m_pFooter;
 
-	u8* CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset);
-	bool ParseWAD(DiscIO::IBlobReader& _rReader);
+	u8* CreateWADEntry(DiscIO::IBlobReader& rReader, u32 Size, u64 Offset);
+	bool ParseWAD(DiscIO::IBlobReader& rReader);
 };
 
 }

@@ -26,10 +26,10 @@
 #endif
 
 // faster than sscanf
-bool AsciiToHex(const std::string& _szValue, u32& result)
+bool AsciiToHex(const std::string& szValue, u32& result)
 {
 	char *endptr = nullptr;
-	const u32 value = strtoul(_szValue.c_str(), &endptr, 16);
+	const u32 value = strtoul(szValue.c_str(), &endptr, 16);
 
 	if (!endptr || *endptr)
 		return false;
@@ -65,7 +65,7 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 	// multibyte handling is required as we can simply assume that no '%' char
 	// will be present in the middle of a multibyte sequence.
 	//
-	// This is why we lookup an ANSI (cp1252) locale here and use _vsnprintf_l.
+	// This is why we lookup an ANSI (cp1252) locale here and use vsnprintf_l.
 	static locale_t c_locale = nullptr;
 	if (!c_locale)
 		c_locale = _create_locale(LC_ALL, ".1252");
@@ -94,7 +94,7 @@ std::string StringFromFormat(const char* format, ...)
 	int required = 0;
 
 	va_start(args, format);
-	required = _vscprintf(format, args);
+	required = vscprintf(format, args);
 	buf = new char[required + 1];
 	CharArrayFromFormatV(buf, required + 1, format, args);
 	va_end(args);
@@ -206,7 +206,7 @@ std::string StringFromBool(bool value)
 	return value ? "True" : "False";
 }
 
-bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension)
+bool SplitPath(const std::string& full_path, std::string* pPath, std::string* pFilename, std::string* pExtension)
 {
 	if (full_path.empty())
 		return false;
@@ -226,28 +226,28 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 	if (fname_end < dir_end || std::string::npos == fname_end)
 		fname_end = full_path.size();
 
-	if (_pPath)
-		*_pPath = full_path.substr(0, dir_end);
+	if (pPath)
+		*pPath = full_path.substr(0, dir_end);
 
-	if (_pFilename)
-		*_pFilename = full_path.substr(dir_end, fname_end - dir_end);
+	if (pFilename)
+		*pFilename = full_path.substr(dir_end, fname_end - dir_end);
 
-	if (_pExtension)
-		*_pExtension = full_path.substr(fname_end);
+	if (pExtension)
+		*pExtension = full_path.substr(fname_end);
 
 	return true;
 }
 
-void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename)
+void BuildCompleteFilename(std::string& CompleteFilename, const std::string& Path, const std::string& Filename)
 {
-	_CompleteFilename = _Path;
+	CompleteFilename = Path;
 
 	// check for seperator
-	if (DIR_SEP_CHR != *_CompleteFilename.rbegin())
-		_CompleteFilename += DIR_SEP_CHR;
+	if (DIR_SEP_CHR != *CompleteFilename.rbegin())
+		CompleteFilename += DIR_SEP_CHR;
 
 	// add the filename
-	_CompleteFilename += _Filename;
+	CompleteFilename += Filename;
 }
 
 void SplitString(const std::string& str, const char delim, std::vector<std::string>& output)

@@ -22,11 +22,11 @@ class IBlobReader;
 class CVolumeWAD : public IVolume
 {
 public:
-	CVolumeWAD(IBlobReader* _pReader);
+	CVolumeWAD(IBlobReader* pReader);
 	~CVolumeWAD();
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
-	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override { return false; }
-	bool GetTitleID(u8* _pBuffer) const override;
+	bool Read(u64 Offset, u64 Length, u8* pBuffer) const override;
+	bool RAWRead(u64 Offset, u64 Length, u8* pBuffer) const override { return false; }
+	bool GetTitleID(u8* pBuffer) const override;
 	std::string GetUniqueID() const override;
 	std::string GetMakerID() const override;
 	std::vector<std::string> GetNames() const override;

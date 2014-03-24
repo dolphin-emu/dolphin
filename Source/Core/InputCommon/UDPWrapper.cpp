@@ -16,12 +16,12 @@ const std::string DefaultPort(const int index)
 	return s;
 }
 
-UDPWrapper::UDPWrapper(int indx, const char* const _name) :
-	ControllerEmu::ControlGroup(_name,GROUP_TYPE_UDPWII),
-	inst(nullptr), index(indx),
-	updIR(false),updAccel(false),
-	updButt(false),udpEn(false)
-	, port(DefaultPort(indx))
+UDPWrapper::UDPWrapper(int _index, const char* const _name) :
+	ControllerEmu::ControlGroup(_name, GROUP_TYPE_UDPWII),
+	inst(nullptr), index(_index),
+	updIR(false), updAccel(false),
+	updButt(false), udpEn(false),
+	port(DefaultPort(_index))
 {
 	//PanicAlert("UDPWrapper #%d ctor",index);
 }

@@ -79,9 +79,9 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 	}
 }
 
-u8 GetSysMenuRegion(u16 _TitleVersion)
+u8 GetSysMenuRegion(u16 TitleVersion)
 {
-	switch (_TitleVersion)
+	switch (TitleVersion)
 	{
 	case 128: case 192: case 224: case 256:
 	case 288: case 352: case 384: case 416:

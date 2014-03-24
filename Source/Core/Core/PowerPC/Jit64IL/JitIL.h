@@ -100,7 +100,7 @@ public:
 	void WriteExitDestInOpArg(const Gen::OpArg& arg);
 	void WriteExceptionExit();
 	void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
-	void WriteCallInterpreter(UGeckoInstruction _inst);
+	void WriteCallInterpreter(UGeckoInstruction inst);
 	void Cleanup();
 
 	void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
@@ -115,14 +115,14 @@ public:
 	void WriteCode(u32 exitAddress);
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst) override;
-	void FallBackToInterpreter(UGeckoInstruction _inst) override;
-	void DoNothing(UGeckoInstruction _inst) override;
-	void HLEFunction(UGeckoInstruction _inst) override;
+	void unknown_instruction(UGeckoInstruction inst) override;
+	void FallBackToInterpreter(UGeckoInstruction inst) override;
+	void DoNothing(UGeckoInstruction inst) override;
+	void HLEFunction(UGeckoInstruction inst) override;
 
-	void DynaRunTable4(UGeckoInstruction _inst) override;
-	void DynaRunTable19(UGeckoInstruction _inst) override;
-	void DynaRunTable31(UGeckoInstruction _inst) override;
-	void DynaRunTable59(UGeckoInstruction _inst) override;
-	void DynaRunTable63(UGeckoInstruction _inst) override;
+	void DynaRunTable4(UGeckoInstruction inst) override;
+	void DynaRunTable19(UGeckoInstruction inst) override;
+	void DynaRunTable31(UGeckoInstruction inst) override;
+	void DynaRunTable59(UGeckoInstruction inst) override;
+	void DynaRunTable63(UGeckoInstruction inst) override;
 };

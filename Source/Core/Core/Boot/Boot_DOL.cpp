@@ -10,10 +10,10 @@
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/HW/Memmap.h"
 
-CDolLoader::CDolLoader(u8* _pBuffer, u32 _Size)
+CDolLoader::CDolLoader(u8* pBuffer, u32 Size)
 	: m_isWii(false)
 {
-	Initialize(_pBuffer, _Size);
+	Initialize(pBuffer, Size);
 }
 
 CDolLoader::CDolLoader(const std::string& filename)
@@ -46,9 +46,9 @@ CDolLoader::~CDolLoader()
 	}
 }
 
-void CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
+void CDolLoader::Initialize(u8* pBuffer, u32 Size)
 {
-	memcpy(&m_dolheader, _pBuffer, sizeof(SDolHeader));
+	memcpy(&m_dolheader, pBuffer, sizeof(SDolHeader));
 
 	// swap memory
 	u32* p = (u32*)&m_dolheader;
@@ -68,7 +68,7 @@ void CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
 		if (m_dolheader.textOffset[i] != 0)
 		{
 			text_section[i] = new u8[m_dolheader.textSize[i]];
-			memcpy(text_section[i], _pBuffer + m_dolheader.textOffset[i], m_dolheader.textSize[i]);
+			memcpy(text_section[i], pBuffer + m_dolheader.textOffset[i], m_dolheader.textSize[i]);
 			for (unsigned int j = 0; j < (m_dolheader.textSize[i]/sizeof(u32)); j++)
 			{
 				u32 word = Common::swap32(((u32*)text_section[i])[j]);
@@ -86,7 +86,7 @@ void CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
 		if (m_dolheader.dataOffset[i] != 0)
 		{
 			data_section[i] = new u8[m_dolheader.dataSize[i]];
-			memcpy(data_section[i], _pBuffer + m_dolheader.dataOffset[i], m_dolheader.dataSize[i]);
+			memcpy(data_section[i], pBuffer + m_dolheader.dataOffset[i], m_dolheader.dataSize[i]);
 		}
 	}
 }

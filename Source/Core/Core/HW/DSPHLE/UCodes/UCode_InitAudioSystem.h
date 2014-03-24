@@ -13,7 +13,7 @@ public:
 	virtual ~CUCode_InitAudioSystem();
 	u32 GetUpdateMs() override;
 
-	void HandleMail(u32 _uMail) override;
+	void HandleMail(u32 uMail) override;
 	void Update(int cycles) override;
 	void Init();
 };

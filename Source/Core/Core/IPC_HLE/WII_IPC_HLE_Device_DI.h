@@ -16,21 +16,21 @@ class CWII_IPC_HLE_Device_di : public IWII_IPC_HLE_Device
 {
 public:
 
-	CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_di(u32 DeviceID, const std::string& rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_di();
 
-	bool Open(u32 _CommandAddress, u32 _Mode) override;
-	bool Close(u32 _CommandAddress, bool _bForce) override;
+	bool Open(u32 CommandAddress, u32 Mode) override;
+	bool Close(u32 CommandAddress, bool bForce) override;
 
-	bool IOCtl(u32 _CommandAddress) override;
-	bool IOCtlV(u32 _CommandAddress) override;
+	bool IOCtl(u32 CommandAddress) override;
+	bool IOCtlV(u32 CommandAddress) override;
 
 	int GetCmdDelay(u32) override;
 
 private:
 
-	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
+	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 BufferOut, u32 BufferOutSize);
 
 	DiscIO::IFileSystem* m_pFileSystem;
 	u32 m_ErrorStatus;

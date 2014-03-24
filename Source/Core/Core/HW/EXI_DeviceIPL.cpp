@@ -160,9 +160,9 @@ void CEXIIPL::LoadFileToIPL(std::string filename, u32 offset)
 	}
 }
 
-void CEXIIPL::SetCS(int _iCS)
+void CEXIIPL::SetCS(int iCS)
 {
-	if (_iCS)
+	if (iCS)
 	{
 		// cs transition to high
 		m_uPosition = 0;
@@ -174,7 +174,7 @@ bool CEXIIPL::IsPresent()
 	return true;
 }
 
-void CEXIIPL::TransferByte(u8& _uByte)
+void CEXIIPL::TransferByte(u8& uByte)
 {
 	// Seconds between 1.1.2000 and 4.1.2008 16:00:38
 	const u32 cWiiBias = 0x0F1114A6;
@@ -184,9 +184,9 @@ void CEXIIPL::TransferByte(u8& _uByte)
 	if (m_uPosition <= 3)
 	{
 		m_uAddress <<= 8;
-		m_uAddress |= _uByte;
+		m_uAddress |= uByte;
 		m_uRWOffset = 0;
-		_uByte = 0xFF;
+		uByte = 0xFF;
 
 		// Check if the command is complete
 		if (m_uPosition == 3)
@@ -257,25 +257,25 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		{
 		case REGION_RTC:
 			if (IsWriteCommand())
-				m_RTC[(m_uAddress & 0x03) + m_uRWOffset] = _uByte;
+				m_RTC[(m_uAddress & 0x03) + m_uRWOffset] = uByte;
 			else
-				_uByte = m_RTC[(m_uAddress & 0x03) + m_uRWOffset];
+				uByte = m_RTC[(m_uAddress & 0x03) + m_uRWOffset];
 			break;
 
 		case REGION_SRAM:
 			if (IsWriteCommand())
-				g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
+				g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = uByte;
 			else
-				_uByte = g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
+				uByte = g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
 			break;
 
 		case REGION_UART:
 		case REGION_EUART:
 			if (IsWriteCommand())
 			{
-				if (_uByte != '\0')
-					m_szBuffer[m_count++] = _uByte;
-				if ((m_count >= 256) || (_uByte == 0xD))
+				if (uByte != '\0')
+					m_szBuffer[m_count++] = uByte;
+				if ((m_count >= 256) || (uByte == 0xD))
 				{
 					m_szBuffer[m_count] = 0x00;
 					NOTICE_LOG(OSREPORT, "%s", m_szBuffer);
@@ -286,7 +286,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			else
 			{
 				// "Queue Length"... return 0 cause we're instant
-				_uByte = 0;
+				uByte = 0;
 			}
 			break;
 
@@ -296,12 +296,12 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			break;
 
 		case REGION_UART_UNK:
-			DEBUG_LOG(OSREPORT, "UART? %x", _uByte);
-			_uByte = 0xff;
+			DEBUG_LOG(OSREPORT, "UART? %x", uByte);
+			uByte = 0xff;
 			break;
 
 		case REGION_BARNACLE:
-			DEBUG_LOG(OSREPORT, "UART Barnacle %x", _uByte);
+			DEBUG_LOG(OSREPORT, "UART Barnacle %x", uByte);
 			break;
 
 		case REGION_WRTC0:
@@ -318,7 +318,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 					// Technically we should descramble here iff descrambling logic is enabled.
 					// At the moment, we pre-decrypt the whole thing and
 					// ignore the "enabled" bit - see CEXIIPL::CEXIIPL
-					_uByte = m_pIPL[position];
+					uByte = m_pIPL[position];
 
 					if ((position >= 0x001AFF00) && (position <= 0x001FF474) && !m_FontsLoaded)
 					{
@@ -333,7 +333,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			else
 			{
 				NOTICE_LOG(OSREPORT, "EXI IPL-DEV: %s %x at %08x",
-					IsWriteCommand() ? "write" : "read", _uByte, m_uAddress);
+					IsWriteCommand() ? "write" : "read", uByte, m_uAddress);
 			}
 			break;
 		}

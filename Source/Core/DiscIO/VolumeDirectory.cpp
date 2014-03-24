@@ -21,8 +21,8 @@
 namespace DiscIO
 {
 
-CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
-								   const std::string& _rApploader, const std::string& _rDOL)
+CVolumeDirectory::CVolumeDirectory(const std::string& rDirectory, bool bIsWii,
+								   const std::string& rApploader, const std::string& rDOL)
 	: m_totalNameSize(0)
 	, m_dataStartAddress(-1)
 	, m_fstSize(0)
@@ -34,7 +34,7 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	, FST_ADDRESS(0)
 	, DOL_ADDRESS(0)
 {
-	m_rootDirectory = ExtractDirectoryName(_rDirectory);
+	m_rootDirectory = ExtractDirectoryName(rDirectory);
 
 	// create the default disk header
 	m_diskHeader = new u8[DISKHEADERINFO_ADDRESS];
@@ -42,7 +42,7 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	SetUniqueID("AGBJ01");
 	SetName("Default name");
 
-	if (_bIsWii)
+	if (bIsWii)
 	{
 		SetDiskTypeWii();
 	}
@@ -54,8 +54,8 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	m_diskHeaderInfo = new SDiskHeaderInfo();
 
 	// Don't load the dol if we've no apploader...
-	if (SetApploader(_rApploader))
-		SetDOL(_rDOL);
+	if (SetApploader(rApploader))
+		SetDOL(rDOL);
 
 	BuildFST();
 }
@@ -78,60 +78,60 @@ CVolumeDirectory::~CVolumeDirectory()
 	m_apploader = nullptr;
 }
 
-bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
+bool CVolumeDirectory::IsValidDirectory(const std::string& rDirectory)
 {
-	std::string directoryName = ExtractDirectoryName(_rDirectory);
+	std::string directoryName = ExtractDirectoryName(rDirectory);
 	return File::IsDirectory(directoryName);
 }
 
-bool CVolumeDirectory::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
+bool CVolumeDirectory::RAWRead( u64 Offset, u64 Length, u8* pBuffer ) const
 {
 	return false;
 }
 
-bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
+bool CVolumeDirectory::Read(u64 Offset, u64 Length, u8* pBuffer) const
 {
 	// header
-	if (_Offset < DISKHEADERINFO_ADDRESS)
+	if (Offset < DISKHEADERINFO_ADDRESS)
 	{
-		WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_diskHeader, _Offset, _Length, _pBuffer);
+		WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_diskHeader, Offset, Length, pBuffer);
 	}
 	// header info
-	if (_Offset >= DISKHEADERINFO_ADDRESS && _Offset < APPLOADER_ADDRESS)
+	if (Offset >= DISKHEADERINFO_ADDRESS && Offset < APPLOADER_ADDRESS)
 	{
-		WriteToBuffer(DISKHEADERINFO_ADDRESS, sizeof(m_diskHeaderInfo), (u8*)m_diskHeaderInfo, _Offset, _Length, _pBuffer);
+		WriteToBuffer(DISKHEADERINFO_ADDRESS, sizeof(m_diskHeaderInfo), (u8*)m_diskHeaderInfo, Offset, Length, pBuffer);
 	}
 	// apploader
-	if (_Offset >= APPLOADER_ADDRESS && _Offset < APPLOADER_ADDRESS + m_apploaderSize)
+	if (Offset >= APPLOADER_ADDRESS && Offset < APPLOADER_ADDRESS + m_apploaderSize)
 	{
-		WriteToBuffer(APPLOADER_ADDRESS, m_apploaderSize, m_apploader, _Offset, _Length, _pBuffer);
+		WriteToBuffer(APPLOADER_ADDRESS, m_apploaderSize, m_apploader, Offset, Length, pBuffer);
 	}
 	// dol
-	if (_Offset >= DOL_ADDRESS && _Offset < DOL_ADDRESS + m_DOLSize)
+	if (Offset >= DOL_ADDRESS && Offset < DOL_ADDRESS + m_DOLSize)
 	{
-		WriteToBuffer(DOL_ADDRESS, m_DOLSize, m_DOL, _Offset, _Length, _pBuffer);
+		WriteToBuffer(DOL_ADDRESS, m_DOLSize, m_DOL, Offset, Length, pBuffer);
 	}
 	// fst
-	if (_Offset >= FST_ADDRESS && _Offset < m_dataStartAddress)
+	if (Offset >= FST_ADDRESS && Offset < m_dataStartAddress)
 	{
-		WriteToBuffer(FST_ADDRESS, m_fstSize, m_FSTData, _Offset, _Length, _pBuffer);
+		WriteToBuffer(FST_ADDRESS, m_fstSize, m_FSTData, Offset, Length, pBuffer);
 	}
 
 	if (m_virtualDisk.empty())
 		return true;
 
 	// Determine which file the offset refers to
-	std::map<u64, std::string>::const_iterator fileIter = m_virtualDisk.lower_bound(_Offset);
-	if (fileIter->first > _Offset && fileIter != m_virtualDisk.begin())
+	std::map<u64, std::string>::const_iterator fileIter = m_virtualDisk.lower_bound(Offset);
+	if (fileIter->first > Offset && fileIter != m_virtualDisk.begin())
 		--fileIter;
 
 	// zero fill to start of file data
-	PadToAddress(fileIter->first, _Offset, _Length, _pBuffer);
+	PadToAddress(fileIter->first, Offset, Length, pBuffer);
 
-	while (fileIter != m_virtualDisk.end() && _Length > 0)
+	while (fileIter != m_virtualDisk.end() && Length > 0)
 	{
-		_dbg_assert_(DVDINTERFACE, fileIter->first <= _Offset);
-		u64 fileOffset = _Offset - fileIter->first;
+		_dbg_assert_(DVDINTERFACE, fileIter->first <= Offset);
+		u64 fileOffset = Offset - fileIter->first;
 
 		PlainFileReader* reader = PlainFileReader::Create(fileIter->second);
 		if (reader == nullptr)
@@ -142,23 +142,23 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 		if (fileOffset < fileSize)
 		{
 			u64 fileBytes = fileSize - fileOffset;
-			if (_Length < fileBytes)
-				fileBytes = _Length;
+			if (Length < fileBytes)
+				fileBytes = Length;
 
-			if (!reader->Read(fileOffset, fileBytes, _pBuffer))
+			if (!reader->Read(fileOffset, fileBytes, pBuffer))
 				return false;
 
-			_Length -= fileBytes;
-			_pBuffer += fileBytes;
-			_Offset += fileBytes;
+			Length -= fileBytes;
+			pBuffer += fileBytes;
+			Offset += fileBytes;
 		}
 
 		++fileIter;
 
 		if (fileIter != m_virtualDisk.end())
 		{
-			_dbg_assert_(DVDINTERFACE, fileIter->first >= _Offset);
-			PadToAddress(fileIter->first, _Offset, _Length, _pBuffer);
+			_dbg_assert_(DVDINTERFACE, fileIter->first >= Offset);
+			PadToAddress(fileIter->first, Offset, Length, pBuffer);
 		}
 
 		delete reader;
@@ -210,15 +210,15 @@ std::vector<std::string> CVolumeDirectory::GetNames() const
 	return std::vector<std::string>(1, (char*)(m_diskHeader + 0x20));
 }
 
-void CVolumeDirectory::SetName(std::string _Name)
+void CVolumeDirectory::SetName(std::string Name)
 {
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
 
-	u32 length = (u32)_Name.length();
+	u32 length = (u32)Name.length();
 	if (length > MAX_NAME_LENGTH)
 	    length = MAX_NAME_LENGTH;
 
-	memcpy(m_diskHeader + 0x20, _Name.c_str(), length);
+	memcpy(m_diskHeader + 0x20, Name.c_str(), length);
 	m_diskHeader[length + 0x20] = 0;
 }
 
@@ -242,9 +242,9 @@ u64 CVolumeDirectory::GetRawSize() const
 	return GetSize();
 }
 
-std::string CVolumeDirectory::ExtractDirectoryName(const std::string& _rDirectory)
+std::string CVolumeDirectory::ExtractDirectoryName(const std::string& rDirectory)
 {
-	std::string directoryName = _rDirectory;
+	std::string directoryName = rDirectory;
 
 	size_t lastSep = directoryName.find_last_of(DIR_SEP_CHR);
 
@@ -293,12 +293,12 @@ void CVolumeDirectory::SetDiskTypeGC()
 	m_addressShift = 0;
 }
 
-bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
+bool CVolumeDirectory::SetApploader(const std::string& rApploader)
 {
-	if (!_rApploader.empty())
+	if (!rApploader.empty())
 	{
 		std::string data;
-		if (!File::ReadFileToString(_rApploader.c_str(), data))
+		if (!File::ReadFileToString(rApploader.c_str(), data))
 		{
 			PanicAlertT("Apploader unable to load from file");
 			return false;
@@ -389,45 +389,45 @@ void CVolumeDirectory::BuildFST()
 	Write32((u32)(m_fstSize >> m_addressShift), 0x042c, m_diskHeader);
 }
 
-void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _Src,
-									 u64& _Address, u64& _Length, u8*& _pBuffer) const
+void CVolumeDirectory::WriteToBuffer(u64 SrcStartAddress, u64 SrcLength, u8* Src,
+									 u64& Address, u64& Length, u8*& pBuffer) const
 {
-	if (_Length == 0)
+	if (Length == 0)
 		return;
 
-	_dbg_assert_(DVDINTERFACE, _Address >= _SrcStartAddress);
+	_dbg_assert_(DVDINTERFACE, Address >= SrcStartAddress);
 
-	u64 srcOffset = _Address - _SrcStartAddress;
+	u64 srcOffset = Address - SrcStartAddress;
 
-	if (srcOffset < _SrcLength)
+	if (srcOffset < SrcLength)
 	{
-		u64 srcBytes = _SrcLength - srcOffset;
-		if (_Length < srcBytes)
-			srcBytes = _Length;
+		u64 srcBytes = SrcLength - srcOffset;
+		if (Length < srcBytes)
+			srcBytes = Length;
 
-		memcpy(_pBuffer, _Src + srcOffset, (size_t)srcBytes);
+		memcpy(pBuffer, Src + srcOffset, (size_t)srcBytes);
 
-		_Length -= srcBytes;
-		_pBuffer += srcBytes;
-		_Address += srcBytes;
+		Length -= srcBytes;
+		pBuffer += srcBytes;
+		Address += srcBytes;
 	}
 }
 
-void CVolumeDirectory::PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length, u8*& _pBuffer) const
+void CVolumeDirectory::PadToAddress(u64 StartAddress, u64& Address, u64& Length, u8*& pBuffer) const
 {
-	if (_StartAddress <= _Address)
+	if (StartAddress <= Address)
 		return;
 
-	u64 padBytes = _StartAddress - _Address;
-	if (padBytes > _Length)
-		padBytes = _Length;
+	u64 padBytes = StartAddress - Address;
+	if (padBytes > Length)
+		padBytes = Length;
 
-	if (_Length > 0)
+	if (Length > 0)
 	{
-		memset(_pBuffer, 0, (size_t)padBytes);
-		_Length -= padBytes;
-		_pBuffer += padBytes;
-		_Address += padBytes;
+		memset(pBuffer, 0, (size_t)padBytes);
+		Length -= padBytes;
+		pBuffer += padBytes;
+		Address += padBytes;
 	}
 }
 
@@ -506,9 +506,9 @@ static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 	return nameSize;
 }
 
-u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry)
+u32 CVolumeDirectory::AddDirectoryEntries(const std::string& Directory, File::FSTEntry& parentEntry)
 {
-	u32 foundEntries = ScanDirectoryTree(_Directory, parentEntry);
+	u32 foundEntries = ScanDirectoryTree(Directory, parentEntry);
 	m_totalNameSize += ComputeNameSize(parentEntry);
 	return foundEntries;
 }

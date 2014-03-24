@@ -139,9 +139,9 @@ u32 GetTicksPerSecond()
 	return CPU_CORE_CLOCK;
 }
 
-u32 ConvertMillisecondsToTicks(u32 _Milliseconds)
+u32 ConvertMillisecondsToTicks(u32 Milliseconds)
 {
-	return GetTicksPerSecond() / 1000 * _Milliseconds;
+	return GetTicksPerSecond() / 1000 * Milliseconds;
 }
 
 // DSP/CPU timeslicing.

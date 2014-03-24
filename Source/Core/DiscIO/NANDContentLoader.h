@@ -43,7 +43,7 @@ public:
 	virtual u16 GetIosVersion() const = 0;
 	virtual u32 GetBootIndex() const = 0;
 	virtual size_t GetContentSize() const = 0;
-	virtual const SNANDContent* GetContentByIndex(int _Index) const = 0;
+	virtual const SNANDContent* GetContentByIndex(int Index) const = 0;
 	virtual const u8* GetTMDView() const = 0;
 	virtual const u8* GetTMDHeader() const = 0;
 	virtual u32 GetTIKSize() const = 0;
@@ -72,9 +72,9 @@ public:
 	static CNANDContentManager& Access() { return m_Instance; }
 	u64 Install_WiiWAD(std::string &fileName);
 
-	const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
-	const INANDContentLoader& GetNANDLoader(u64 _titleId, bool forceReload = false);
-	bool RemoveTitle(u64 _titleID);
+	const INANDContentLoader& GetNANDLoader(const std::string& rName, bool forceReload = false);
+	const INANDContentLoader& GetNANDLoader(u64 titleId, bool forceReload = false);
+	bool RemoveTitle(u64 titleID);
 private:
 
 	CNANDContentManager() {};
@@ -94,8 +94,8 @@ public:
 
 	static CSharedContent& AccessInstance() { return m_Instance; }
 
-	std::string GetFilenameFromSHA1(const u8* _pHash);
-	std::string AddSharedContent(const u8* _pHash);
+	std::string GetFilenameFromSHA1(const u8* pHash);
+	std::string AddSharedContent(const u8* pHash);
 	void UpdateLocation();
 
 private:
@@ -125,9 +125,9 @@ public:
 
 	static cUIDsys& AccessInstance() { return m_Instance; }
 
-	u32 GetUIDFromTitle(u64 _Title);
-	void AddTitle(u64 _Title);
-	void GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned = false);
+	u32 GetUIDFromTitle(u64 Title);
+	void AddTitle(u64 Title);
+	void GetTitleIDs(std::vector<u64>& TitleIDs, bool owned = false);
 	void UpdateLocation();
 private:
 

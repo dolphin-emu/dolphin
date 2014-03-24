@@ -91,7 +91,7 @@ union UCPStatusReg
 	};
 	u16 Hex;
 	UCPStatusReg() {Hex = 0; }
-	UCPStatusReg(u16 _hex) {Hex = _hex; }
+	UCPStatusReg(u16 hex) {Hex = hex; }
 };
 
 // Fifo Control Register
@@ -109,7 +109,7 @@ union UCPCtrlReg
 	};
 	u16 Hex;
 	UCPCtrlReg() {Hex = 0; }
-	UCPCtrlReg(u16 _hex) {Hex = _hex; }
+	UCPCtrlReg(u16 hex) {Hex = hex; }
 };
 
 // Fifo Clear Register
@@ -124,7 +124,7 @@ union UCPClearReg
 	};
 	u16 Hex;
 	UCPClearReg() {Hex = 0; }
-	UCPClearReg(u16 _hex) {Hex = _hex; }
+	UCPClearReg(u16 hex) {Hex = hex; }
 };
 
 // Can be any number, low enough to not be below the number of clocks executed by the GPU per CP_PERIOD

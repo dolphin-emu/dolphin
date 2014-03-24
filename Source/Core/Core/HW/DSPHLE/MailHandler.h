@@ -15,9 +15,9 @@ public:
 	CMailHandler();
 	~CMailHandler();
 
-	void PushMail(u32 _Mail);
+	void PushMail(u32 Mail);
 	void Clear();
-	void Halt(bool _Halt);
+	void Halt(bool Halt);
 	void DoState(PointerWrap &p);
 	bool IsEmpty();
 

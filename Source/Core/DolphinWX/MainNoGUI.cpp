@@ -130,7 +130,7 @@ void Host_SysMessage(const char *fmt, ...)
 	fprintf(stderr, "%s", msg);
 }
 
-void Host_SetWiiMoteConnectionState(int _State) {}
+void Host_SetWiiMoteConnectionState(int State) {}
 
 #if HAVE_X11
 void X11_MainLoop()

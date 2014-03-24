@@ -18,8 +18,8 @@
 
 namespace DiscIO
 {
-CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
-	: m_pReader(_pReader), OpeningBnrOffset(0), hdr_size(0), cert_size(0), tick_size(0), tmd_size(0), data_size(0)
+CVolumeWAD::CVolumeWAD(IBlobReader* pReader)
+	: m_pReader(pReader), OpeningBnrOffset(0), hdr_size(0), cert_size(0), tick_size(0), tmd_size(0), data_size(0)
 {
 	Read(0x00, 4, (u8*)&hdr_size);
 	Read(0x08, 4, (u8*)&cert_size);
@@ -44,12 +44,12 @@ CVolumeWAD::~CVolumeWAD()
 	delete m_pReader;
 }
 
-bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
+bool CVolumeWAD::Read(u64 Offset, u64 Length, u8* pBuffer) const
 {
 	if (m_pReader == nullptr)
 		return false;
 
-	return m_pReader->Read(_Offset, _Length, _pBuffer);
+	return m_pReader->Read(Offset, Length, pBuffer);
 }
 
 IVolume::ECountry CVolumeWAD::GetCountry() const
@@ -90,11 +90,11 @@ std::string CVolumeWAD::GetMakerID() const
 	return temp;
 }
 
-bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
+bool CVolumeWAD::GetTitleID(u8* pBuffer) const
 {
 	u32 Offset = ALIGN_40(hdr_size) + ALIGN_40(cert_size);
 
-	if (!Read(Offset + 0x01DC, 8, _pBuffer))
+	if (!Read(Offset + 0x01DC, 8, pBuffer))
 		return false;
 
 	return true;

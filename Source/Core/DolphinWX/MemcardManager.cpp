@@ -383,12 +383,12 @@ void CMemcardManager::OnPageChange(wxCommandEvent& event)
 
 void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 {
-	int _id = event.GetId();
-	switch (_id)
+	int id = event.GetId();
+	switch (id)
 	{
 	case ID_MEMCARDPATH_A:
 	case ID_MEMCARDPATH_B:
-		DefaultMemcard[_id - ID_MEMCARDPATH_A] = WxStrToStr(m_MemcardPath[_id - ID_MEMCARDPATH_A]->GetPath());
+		DefaultMemcard[id - ID_MEMCARDPATH_A] = WxStrToStr(m_MemcardPath[id - ID_MEMCARDPATH_A]->GetPath());
 		return;
 	case ID_USEPAGES:
 		mcmSettings.usePages = !mcmSettings.usePages;
@@ -411,7 +411,7 @@ void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 		}
 		break;
 	default:
-		mcmSettings.column[_id] = !mcmSettings.column[_id];
+		mcmSettings.column[id] = !mcmSettings.column[id];
 		break;
 	}
 

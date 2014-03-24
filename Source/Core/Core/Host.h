@@ -32,7 +32,7 @@ void Host_NotifyMapLoaded();
 void Host_RefreshDSPDebuggerWindow();
 void Host_RequestRenderWindowSize(int width, int height);
 void Host_SetStartupDebuggingParameters();
-void Host_SetWiiMoteConnectionState(int _State);
+void Host_SetWiiMoteConnectionState(int State);
 void Host_ShowJitResults(unsigned int address);
 void Host_SysMessage(const char *fmt, ...);
 void Host_UpdateBreakPointView();

@@ -18,7 +18,7 @@ class PointerWrap;
 class GameListItem : NonCopyable
 {
 public:
-	GameListItem(const std::string& _rFileName);
+	GameListItem(const std::string& rFileName);
 	~GameListItem();
 
 	bool IsValid() const {return m_Valid;}

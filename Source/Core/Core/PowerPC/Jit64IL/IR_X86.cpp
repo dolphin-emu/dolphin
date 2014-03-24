@@ -1086,13 +1086,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			X64Reg reg = regBinReg(RI, I);
 			FixupBranch pLesser  = Jit->J_CC(CC_B);
 			FixupBranch pGreater = Jit->J_CC(CC_A);
-			Jit->MOV(32, R(reg), Imm32(0x2)); // _x86Reg == 0
+			Jit->MOV(32, R(reg), Imm32(0x2)); // x86Reg == 0
 			FixupBranch continue1 = Jit->J();
 			Jit->SetJumpTarget(pGreater);
-			Jit->MOV(32, R(reg), Imm32(0x4)); // _x86Reg > 0
+			Jit->MOV(32, R(reg), Imm32(0x4)); // x86Reg > 0
 			FixupBranch continue2 = Jit->J();
 			Jit->SetJumpTarget(pLesser);
-			Jit->MOV(32, R(reg), Imm32(0x8)); // _x86Reg < 0
+			Jit->MOV(32, R(reg), Imm32(0x8)); // x86Reg < 0
 			Jit->SetJumpTarget(continue1);
 			Jit->SetJumpTarget(continue2);
 			RI.regs[reg] = I;
@@ -1105,13 +1105,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			X64Reg reg = regBinReg(RI, I);
 			FixupBranch pLesser  = Jit->J_CC(CC_L);
 			FixupBranch pGreater = Jit->J_CC(CC_G);
-			Jit->MOV(32, R(reg), Imm32(0x2)); // _x86Reg == 0
+			Jit->MOV(32, R(reg), Imm32(0x2)); // x86Reg == 0
 			FixupBranch continue1 = Jit->J();
 			Jit->SetJumpTarget(pGreater);
-			Jit->MOV(32, R(reg), Imm32(0x4)); // _x86Reg > 0
+			Jit->MOV(32, R(reg), Imm32(0x4)); // x86Reg > 0
 			FixupBranch continue2 = Jit->J();
 			Jit->SetJumpTarget(pLesser);
-			Jit->MOV(32, R(reg), Imm32(0x8)); // _x86Reg < 0
+			Jit->MOV(32, R(reg), Imm32(0x8)); // x86Reg < 0
 			Jit->SetJumpTarget(continue1);
 			Jit->SetJumpTarget(continue2);
 			RI.regs[reg] = I;

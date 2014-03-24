@@ -151,7 +151,7 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
 // Clears product register $prod.
 // Magic numbers taken from duddie's doc
 
-// 00ff_(fff0 + 0010)_0000 = 0100_0000_0000, conveniently, lower 40bits = 0
+// 00ff_(fff0 + 0010)0000 = 0100_0000_0000, conveniently, lower 40bits = 0
 
 // It's not ok, to just zero all of them, correct values should be set because of
 // direct use of prod regs by AX/AXWII (look @that part of ucode).

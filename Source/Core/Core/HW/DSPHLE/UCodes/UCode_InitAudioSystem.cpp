@@ -37,7 +37,7 @@ u32 CUCode_InitAudioSystem::GetUpdateMs()
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void CUCode_InitAudioSystem::HandleMail(u32 _uMail)
+void CUCode_InitAudioSystem::HandleMail(u32 uMail)
 {
 }
 

@@ -19,12 +19,12 @@ namespace DiscIO
 class CBlobBigEndianReader
 {
 public:
-	CBlobBigEndianReader(DiscIO::IBlobReader& _rReader) : m_rReader(_rReader) {}
+	CBlobBigEndianReader(DiscIO::IBlobReader& rReader) : m_rReader(rReader) {}
 
-	u32 Read32(u64 _Offset)
+	u32 Read32(u64 Offset)
 	{
 		u32 Temp;
-		m_rReader.Read(_Offset, 4, (u8*)&Temp);
+		m_rReader.Read(Offset, 4, (u8*)&Temp);
 		return(Common::swap32(Temp));
 	}
 
@@ -32,10 +32,10 @@ private:
 	DiscIO::IBlobReader& m_rReader;
 };
 
-WiiWAD::WiiWAD(const std::string& _rName)
+WiiWAD::WiiWAD(const std::string& rName)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName);
-	if (pReader == nullptr || File::IsDirectory(_rName))
+	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(rName);
+	if (pReader == nullptr || File::IsDirectory(rName))
 	{
 		m_Valid = false;
 		if (pReader) delete pReader;
@@ -58,14 +58,14 @@ WiiWAD::~WiiWAD()
 	}
 }
 
-u8* WiiWAD::CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset)
+u8* WiiWAD::CreateWADEntry(DiscIO::IBlobReader& rReader, u32 Size, u64 Offset)
 {
-	if (_Size > 0)
+	if (Size > 0)
 	{
-		u8* pTmpBuffer = new u8[_Size];
+		u8* pTmpBuffer = new u8[Size];
 		_dbg_assert_msg_(BOOT, pTmpBuffer!=nullptr, "WiiWAD: Cant allocate memory for WAD entry");
 
-		if (!_rReader.Read(_Offset, _Size, pTmpBuffer))
+		if (!rReader.Read(Offset, Size, pTmpBuffer))
 		{
 			ERROR_LOG(DISCIO, "WiiWAD: Could not read from file");
 			PanicAlertT("WiiWAD: Could not read from file");
@@ -76,9 +76,9 @@ u8* WiiWAD::CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset
 }
 
 
-bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
+bool WiiWAD::ParseWAD(DiscIO::IBlobReader& rReader)
 {
-	CBlobBigEndianReader ReaderBig(_rReader);
+	CBlobBigEndianReader ReaderBig(rReader);
 
 	// get header size
 	u32 HeaderSize = ReaderBig.Read32(0);
@@ -90,7 +90,7 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 
 	// get header
 	u8 Header[0x20];
-	_rReader.Read(0, HeaderSize, Header);
+	rReader.Read(0, HeaderSize, Header);
 	u32 HeaderType = ReaderBig.Read32(0x4);
 	if ((0x49730000 != HeaderType) && (0x69620000 != HeaderType))
 		return false;
@@ -109,20 +109,22 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 #endif
 
 	u32 Offset = 0x40;
-	m_pCertificateChain   = CreateWADEntry(_rReader, m_CertificateChainSize, Offset);  Offset += ROUND_UP(m_CertificateChainSize, 0x40);
-	m_pTicket             = CreateWADEntry(_rReader, m_TicketSize, Offset);            Offset += ROUND_UP(m_TicketSize, 0x40);
-	m_pTMD                = CreateWADEntry(_rReader, m_TMDSize, Offset);               Offset += ROUND_UP(m_TMDSize, 0x40);
-	m_pDataApp            = CreateWADEntry(_rReader, m_DataAppSize, Offset);           Offset += ROUND_UP(m_DataAppSize, 0x40);
-	m_pFooter             = CreateWADEntry(_rReader, m_FooterSize, Offset);            Offset += ROUND_UP(m_FooterSize, 0x40);
+	m_pCertificateChain   = CreateWADEntry(rReader, m_CertificateChainSize, Offset);  Offset += ROUND_UP(m_CertificateChainSize, 0x40);
+	m_pTicket             = CreateWADEntry(rReader, m_TicketSize, Offset);            Offset += ROUND_UP(m_TicketSize, 0x40);
+	m_pTMD                = CreateWADEntry(rReader, m_TMDSize, Offset);               Offset += ROUND_UP(m_TMDSize, 0x40);
+	m_pDataApp            = CreateWADEntry(rReader, m_DataAppSize, Offset);           Offset += ROUND_UP(m_DataAppSize, 0x40);
+	m_pFooter             = CreateWADEntry(rReader, m_FooterSize, Offset);            Offset += ROUND_UP(m_FooterSize, 0x40);
 
 	return true;
 }
 
-bool WiiWAD::IsWiiWAD(const std::string& _rName)
+bool WiiWAD::IsWiiWAD(const std::string& rName)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName);
+	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(rName);
 	if (pReader == nullptr)
+	{
 		return false;
+	}
 
 	CBlobBigEndianReader Reader(*pReader);
 	bool Result = false;

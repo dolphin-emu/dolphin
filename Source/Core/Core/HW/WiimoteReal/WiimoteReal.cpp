@@ -804,34 +804,34 @@ void Refresh()
 	Initialize();
 }
 
-void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
+void InterruptChannel(int WiimoteNumber, u16 channelID, const void* pData, u32 Size)
 {
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-	if (g_wiimotes[_WiimoteNumber])
-		g_wiimotes[_WiimoteNumber]->InterruptChannel(_channelID, _pData, _Size);
+	if (g_wiimotes[WiimoteNumber])
+		g_wiimotes[WiimoteNumber]->InterruptChannel(channelID, pData, Size);
 }
 
-void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
+void ControlChannel(int WiimoteNumber, u16 channelID, const void* pData, u32 Size)
 {
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
-	if (g_wiimotes[_WiimoteNumber])
-		g_wiimotes[_WiimoteNumber]->ControlChannel(_channelID, _pData, _Size);
+	if (g_wiimotes[WiimoteNumber])
+		g_wiimotes[WiimoteNumber]->ControlChannel(channelID, pData, Size);
 }
 
 
 // Read the Wiimote once
-void Update(int _WiimoteNumber)
+void Update(int WiimoteNumber)
 {
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
-	if (g_wiimotes[_WiimoteNumber])
-		g_wiimotes[_WiimoteNumber]->Update();
+	if (g_wiimotes[WiimoteNumber])
+		g_wiimotes[WiimoteNumber]->Update();
 
 	// Wiimote::Update() may remove the Wiimote if it was disconnected.
-	if (!g_wiimotes[_WiimoteNumber])
+	if (!g_wiimotes[WiimoteNumber])
 	{
-		Host_ConnectWiimote(_WiimoteNumber, false);
+		Host_ConnectWiimote(WiimoteNumber, false);
 	}
 }
 

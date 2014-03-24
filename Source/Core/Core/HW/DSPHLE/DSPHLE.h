@@ -23,10 +23,10 @@ public:
 	virtual void DoState(PointerWrap &p) override;
 	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 
-	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) override;
-	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short) override;
-	virtual unsigned short DSP_ReadMailBoxHigh(bool _CPUMailbox) override;
-	virtual unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox) override;
+	virtual void DSP_WriteMailBoxHigh(bool CPUMailbox, unsigned short) override;
+	virtual void DSP_WriteMailBoxLow(bool CPUMailbox, unsigned short) override;
+	virtual unsigned short DSP_ReadMailBoxHigh(bool CPUMailbox) override;
+	virtual unsigned short DSP_ReadMailBoxLow(bool CPUMailbox) override;
 	virtual unsigned short DSP_ReadControlRegister() override;
 	virtual unsigned short DSP_WriteControlRegister(unsigned short) override;
 	virtual void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples) override;
@@ -39,11 +39,11 @@ public:
 
 	// Formerly DSPHandler
 	IUCode *GetUCode();
-	void SetUCode(u32 _crc);
-	void SwapUCode(u32 _crc);
+	void SetUCode(u32 crc);
+	void SwapUCode(u32 crc);
 
 private:
-	void SendMailToDSP(u32 _uMail);
+	void SendMailToDSP(u32 uMail);
 	void InitMixer();
 
 	// Declarations and definitions

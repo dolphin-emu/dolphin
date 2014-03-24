@@ -40,7 +40,7 @@
 // A struct for IOS ioctlv calls
 struct SIOCtlVBuffer
 {
-	SIOCtlVBuffer(u32 _Address) : m_Address(_Address)
+	SIOCtlVBuffer(u32 Address) : m_Address(Address)
 	{
 		// These are the Ioctlv parameters in the IOS communication. The BufferVector
 		// is a memory address offset at where the in and out buffer addresses are
@@ -96,10 +96,10 @@ class IWII_IPC_HLE_Device
 {
 public:
 
-	IWII_IPC_HLE_Device(u32 _DeviceID, const std::string& _rName, bool _Hardware = true) :
-		m_Name(_rName),
-		m_DeviceID(_DeviceID),
-		m_Hardware(_Hardware),
+	IWII_IPC_HLE_Device(u32 DeviceID, const std::string& rName, bool Hardware = true) :
+		m_Name(rName),
+		m_DeviceID(DeviceID),
+		m_Hardware(Hardware),
 		m_Active(false)
 	{
 	}
@@ -119,20 +119,20 @@ public:
 	const std::string& GetDeviceName() const { return m_Name; }
 	u32 GetDeviceID() const { return m_DeviceID; }
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	virtual bool Open(u32 CommandAddress, u32 Mode)
 	{
-		(void)_Mode;
+		(void)Mode;
 		WARN_LOG(WII_IPC_HLE, "%s does not support Open()", m_Name.c_str());
-		Memory::Write_U32(FS_ENOENT, _CommandAddress + 4);
+		Memory::Write_U32(FS_ENOENT, CommandAddress + 4);
 		m_Active = true;
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce = false)
+	virtual bool Close(u32 CommandAddress, bool bForce = false)
 	{
 		WARN_LOG(WII_IPC_HLE, "%s does not support Close()", m_Name.c_str());
-		if (!_bForce)
-			Memory::Write_U32(FS_EINVAL, _CommandAddress + 4);
+		if (!bForce)
+			Memory::Write_U32(FS_EINVAL, CommandAddress + 4);
 		m_Active = false;
 		return true;
 	}
@@ -160,18 +160,18 @@ protected:
 	bool m_Hardware;
 	bool m_Active;
 
-	// Write out the IPC struct from _CommandAddress to _NumberOfCommands numbers
+	// Write out the IPC struct from CommandAddress to NumberOfCommands numbers
 	// of 4 byte commands.
-	void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8,
+	void DumpCommands(u32 CommandAddress, size_t NumberOfCommands = 8,
 		LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE,
 		LogTypes::LOG_LEVELS Verbosity = LogTypes::LDEBUG)
 	{
 		GENERIC_LOG(LogType, Verbosity, "CommandDump of %s",
 					GetDeviceName().c_str());
-		for (u32 i = 0; i < _NumberOfCommands; i++)
+		for (u32 i = 0; i < NumberOfCommands; i++)
 		{
 			GENERIC_LOG(LogType, Verbosity, "    Command%02i: 0x%08x", i,
-						Memory::Read_U32(_CommandAddress + i*4));
+						Memory::Read_U32(CommandAddress + i*4));
 		}
 	}
 

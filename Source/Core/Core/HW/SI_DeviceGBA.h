@@ -34,12 +34,12 @@ private:
 class CSIDevice_GBA : public ISIDevice, private GBASockServer
 {
 public:
-	CSIDevice_GBA(SIDevices device, int _iDeviceNumber);
+	CSIDevice_GBA(SIDevices device, int iDeviceNumber);
 	~CSIDevice_GBA() {}
 
 	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
+	virtual int RunBuffer(u8* pBuffer, int iLength) override;
 
-	virtual bool GetData(u32& _Hi, u32& _Low) override { return true; }
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) override {}
+	virtual bool GetData(u32& Hi, u32& Low) override { return true; }
+	virtual void SendCommand(u32 Cmd, u8 Poll) override {}
 };

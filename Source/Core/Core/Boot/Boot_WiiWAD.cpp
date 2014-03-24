@@ -46,7 +46,7 @@ typedef struct {
 	u32 unknown[6];
 } StateFlags;
 
-bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
+bool CBoot::Boot_WiiWAD(const std::string& filename)
 {
 	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_STATE);
 
@@ -74,7 +74,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 		state_file.WriteBytes(&state, sizeof(StateFlags));
 	}
 
-	const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
+	const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(filename);
 	if (!ContentLoader.IsValid())
 		return false;
 
@@ -93,7 +93,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	if (pContent == nullptr)
 		return false;
 
-	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
+	WII_IPC_HLE_Interface::SetDefaultContentFile(filename);
 
 	std::unique_ptr<CDolLoader> pDolLoader;
 	if (pContent->m_pData)
@@ -118,7 +118,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	Memory::Write_U32(Memory::Read_U32(0x00003140), 0x00003188);
 
 	// Load patches and run startup patches
-	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_pFilename);
+	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
 	if (pVolume != nullptr)
 		PatchEngine::LoadPatches();
 

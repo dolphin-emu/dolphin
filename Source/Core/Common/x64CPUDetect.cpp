@@ -9,15 +9,15 @@
 #include "Common/CPUDetect.h"
 
 #ifdef _WIN32
-#define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
-#define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
-#define _interlockedbittestandset64 workaround_ms_header_bug_platform_sdk6_set64
-#define _interlockedbittestandreset64 workaround_ms_header_bug_platform_sdk6_reset64
+#define interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
+#define interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
+#define interlockedbittestandset64 workaround_ms_header_bug_platform_sdk6_set64
+#define interlockedbittestandreset64 workaround_ms_header_bug_platform_sdk6_reset64
 #include <intrin.h>
-#undef _interlockedbittestandset
-#undef _interlockedbittestandreset
-#undef _interlockedbittestandset64
-#undef _interlockedbittestandreset64
+#undef interlockedbittestandset
+#undef interlockedbittestandreset
+#undef interlockedbittestandset64
+#undef interlockedbittestandreset64
 #else
 
 //#include <config/i386/cpuid.h>
@@ -182,8 +182,8 @@ void CPUInfo::Detect()
 			// lowest byte of MXCSR_MASK
 			if ((fx_state[0x1C] >> 6) & 1)
 			{
-				// On x86, the FTZ field (supported since SSE1) only flushes denormal _outputs_ to zero,
-				// now that we checked DAZ support (flushing denormal _inputs_ to zero),
+				// On x86, the FTZ field (supported since SSE1) only flushes denormal outputs_ to zero,
+				// now that we checked DAZ support (flushing denormal inputs_ to zero),
 				// we can set our generic flag.
 				bFlushToZero = true;
 			}

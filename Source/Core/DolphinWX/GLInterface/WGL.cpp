@@ -66,12 +66,12 @@ void cInterfaceWGL::UpdateFPSDisplay(const std::string& text)
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceWGL::Create(void *&window_handle)
 {
-	int _tx, _ty, _twidth, _theight;
-	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
+	int tx, ty, twidth, theight;
+	Host_GetRenderWindowSize(tx, ty, twidth, theight);
 
 	// Control window size and picture scaling
-	s_backbuffer_width = _twidth;
-	s_backbuffer_height = _theight;
+	s_backbuffer_width = twidth;
+	s_backbuffer_height = theight;
 
 #ifdef _WIN32
 	dllHandle = LoadLibrary(TEXT("OpenGL32.dll"));

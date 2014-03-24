@@ -25,21 +25,21 @@ GekkoOPInfo *m_infoTable63[1024];
 GekkoOPInfo *m_allInstructions[512];
 int m_numInstructions;
 
-GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
+GekkoOPInfo *GetOpInfo(UGeckoInstruction inst)
 {
-	GekkoOPInfo *info = m_infoTable[_inst.OPCD];
+	GekkoOPInfo *info = m_infoTable[inst.OPCD];
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
 		switch (table)
 		{
-		case 4:  return m_infoTable4[_inst.SUBOP10];
-		case 19: return m_infoTable19[_inst.SUBOP10];
-		case 31: return m_infoTable31[_inst.SUBOP10];
-		case 59: return m_infoTable59[_inst.SUBOP5];
-		case 63: return m_infoTable63[_inst.SUBOP10];
+		case 4:  return m_infoTable4[inst.SUBOP10];
+		case 19: return m_infoTable19[inst.SUBOP10];
+		case 31: return m_infoTable31[inst.SUBOP10];
+		case 59: return m_infoTable59[inst.SUBOP5];
+		case 63: return m_infoTable63[inst.SUBOP10];
 		default:
-			_assert_msg_(POWERPC,0,"GetOpInfo - invalid subtable op %08x @ %08x", _inst.hex, PC);
+			_assert_msg_(POWERPC,0,"GetOpInfo - invalid subtable op %08x @ %08x", inst.hex, PC);
 			return nullptr;
 		}
 	}
@@ -47,28 +47,28 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 	{
 		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
 		{
-			_assert_msg_(POWERPC,0,"GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
+			_assert_msg_(POWERPC,0,"GetOpInfo - invalid op %08x @ %08x", inst.hex, PC);
 			return nullptr;
 		}
-		return m_infoTable[_inst.OPCD];
+		return m_infoTable[inst.OPCD];
 	}
 }
 
-Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
+Interpreter::interpreterInstruction GetInterpreterOp(UGeckoInstruction inst)
 {
-	const GekkoOPInfo *info = m_infoTable[_inst.OPCD];
+	const GekkoOPInfo *info = m_infoTable[inst.OPCD];
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
 		switch (table)
 		{
-		case 4:  return Interpreter::m_opTable4[_inst.SUBOP10];
-		case 19: return Interpreter::m_opTable19[_inst.SUBOP10];
-		case 31: return Interpreter::m_opTable31[_inst.SUBOP10];
-		case 59: return Interpreter::m_opTable59[_inst.SUBOP5];
-		case 63: return Interpreter::m_opTable63[_inst.SUBOP10];
+		case 4:  return Interpreter::m_opTable4[inst.SUBOP10];
+		case 19: return Interpreter::m_opTable19[inst.SUBOP10];
+		case 31: return Interpreter::m_opTable31[inst.SUBOP10];
+		case 59: return Interpreter::m_opTable59[inst.SUBOP5];
+		case 63: return Interpreter::m_opTable63[inst.SUBOP10];
 		default:
-			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid subtable op %08x @ %08x", _inst.hex, PC);
+			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid subtable op %08x @ %08x", inst.hex, PC);
 			return nullptr;
 		}
 	}
@@ -76,21 +76,21 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 	{
 		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
 		{
-			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid op %08x @ %08x", _inst.hex, PC);
+			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid op %08x @ %08x", inst.hex, PC);
 			return nullptr;
 		}
-		return Interpreter::m_opTable[_inst.OPCD];
+		return Interpreter::m_opTable[inst.OPCD];
 	}
 }
 namespace PPCTables
 {
 
-bool UsesFPU(UGeckoInstruction _inst)
+bool UsesFPU(UGeckoInstruction inst)
 {
-	switch (_inst.OPCD)
+	switch (inst.OPCD)
 	{
 	case 04: // PS
-		return _inst.SUBOP10 != 1014;
+		return inst.SUBOP10 != 1014;
 
 	case 48: // lfs
 	case 49: // lfsu
@@ -110,7 +110,7 @@ bool UsesFPU(UGeckoInstruction _inst)
 		return true;
 
 	case 31:
-		switch (_inst.SUBOP10)
+		switch (inst.SUBOP10)
 		{
 		case 535:
 		case 567:
@@ -158,21 +158,21 @@ namespace {
 }
 #endif
 
-const char *GetInstructionName(UGeckoInstruction _inst)
+const char *GetInstructionName(UGeckoInstruction inst)
 {
-	const GekkoOPInfo *info = GetOpInfo(_inst);
+	const GekkoOPInfo *info = GetOpInfo(inst);
 	return info ? info->opname : nullptr;
 }
 
-bool IsValidInstruction(UGeckoInstruction _inst)
+bool IsValidInstruction(UGeckoInstruction inst)
 {
-	const GekkoOPInfo *info = GetOpInfo(_inst);
+	const GekkoOPInfo *info = GetOpInfo(inst);
 	return info != nullptr;
 }
 
-void CountInstruction(UGeckoInstruction _inst)
+void CountInstruction(UGeckoInstruction inst)
 {
-	GekkoOPInfo *info = GetOpInfo(_inst);
+	GekkoOPInfo *info = GetOpInfo(inst);
 	if (info)
 	{
 		info->runCount++;
@@ -232,7 +232,7 @@ void LogCompiledInstructions()
 	}
 
 #ifdef OPLOG
-	f.Open(StringFromFormat("%s" OP_TO_LOG "_at%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
+	f.Open(StringFromFormat("%s" OP_TO_LOG "at%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (auto& rsplocation : rsplocations)
 	{
 		fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocation);

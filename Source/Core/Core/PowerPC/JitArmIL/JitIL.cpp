@@ -54,23 +54,23 @@ void JitArmIL::unknown_instruction(UGeckoInstruction inst)
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void JitArmIL::FallBackToInterpreter(UGeckoInstruction _inst)
+void JitArmIL::FallBackToInterpreter(UGeckoInstruction inst)
 {
 	ibuild.EmitFallBackToInterpreter(
-		ibuild.EmitIntConst(_inst.hex),
+		ibuild.EmitIntConst(inst.hex),
 		ibuild.EmitIntConst(js.compilerPC));
 }
 
-void JitArmIL::HLEFunction(UGeckoInstruction _inst)
+void JitArmIL::HLEFunction(UGeckoInstruction inst)
 {
 	// XXX
 }
 
-void JitArmIL::DoNothing(UGeckoInstruction _inst)
+void JitArmIL::DoNothing(UGeckoInstruction inst)
 {
 	// Yup, just don't do anything.
 }
-void JitArmIL::Break(UGeckoInstruction _inst)
+void JitArmIL::Break(UGeckoInstruction inst)
 {
 	ibuild.EmitINT3();
 }

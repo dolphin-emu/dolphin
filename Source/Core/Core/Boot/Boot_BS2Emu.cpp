@@ -23,9 +23,9 @@
 
 #include "DiscIO/VolumeCreator.h"
 
-void CBoot::RunFunction(u32 _iAddr)
+void CBoot::RunFunction(u32 iAddr)
 {
-	PC = _iAddr;
+	PC = iAddr;
 	LR = 0x00;
 
 	while (PC != 0x00)
@@ -404,7 +404,7 @@ bool CBoot::EmulatedBS2_Wii()
 }
 
 // Returns true if apploader has run successfully
-bool CBoot::EmulatedBS2(bool _bIsWii)
+bool CBoot::EmulatedBS2(bool bIsWii)
 {
-	return _bIsWii ? EmulatedBS2_Wii() : EmulatedBS2_GC();
+	return bIsWii ? EmulatedBS2_Wii() : EmulatedBS2_GC();
 }

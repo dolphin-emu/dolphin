@@ -92,12 +92,12 @@ void DoState(PointerWrap &p)
 }
 
 // Executed after Init, before game boot
-void Preset(bool _bNTSC)
+void Preset(bool bNTSC)
 {
 	m_VerticalTimingRegister.EQU = 6;
 
 	m_DisplayControlRegister.ENB = 1;
-	m_DisplayControlRegister.FMT = _bNTSC ? 0 : 1;
+	m_DisplayControlRegister.FMT = bNTSC ? 0 : 1;
 
 	m_HTiming0.HLW = 429;
 	m_HTiming0.HCE = 105;

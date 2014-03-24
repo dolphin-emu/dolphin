@@ -15,23 +15,23 @@
 
 namespace DiscIO
 {
-CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume)
+CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& rFileSystem, DiscIO::IVolume* volume)
 	: m_pBannerFile(nullptr)
 	, m_IsValid(false)
 	, m_country(volume->GetCountry())
 {
 	// load the opening.bnr
-	size_t FileSize = (size_t) _rFileSystem.GetFileSize("opening.bnr");
+	size_t FileSize = (size_t) rFileSystem.GetFileSize("opening.bnr");
 	if (FileSize == BNR1_SIZE || FileSize == BNR2_SIZE)
 	{
 		m_pBannerFile = new u8[FileSize];
 		if (m_pBannerFile)
 		{
-			_rFileSystem.ReadFile("opening.bnr", m_pBannerFile, FileSize);
+			rFileSystem.ReadFile("opening.bnr", m_pBannerFile, FileSize);
 			m_BNRType = getBannerType();
 			if (m_BNRType == BANNER_UNKNOWN)
 				PanicAlertT("Invalid opening.bnr found in gcm:\n%s\n You may need to redump this game.",
-					_rFileSystem.GetVolume()->GetName().c_str());
+					rFileSystem.GetVolume()->GetName().c_str());
 			else m_IsValid = true;
 		}
 	}

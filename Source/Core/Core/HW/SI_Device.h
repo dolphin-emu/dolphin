@@ -63,8 +63,8 @@ protected:
 
 public:
 	// Constructor
-	ISIDevice(SIDevices deviceType, int _iDeviceNumber)
-		: m_iDeviceNumber(_iDeviceNumber)
+	ISIDevice(SIDevices deviceType, int iDeviceNumber)
+		: m_iDeviceNumber(iDeviceNumber)
 		, m_deviceType(deviceType)
 	{}
 
@@ -72,13 +72,13 @@ public:
 	virtual ~ISIDevice() {}
 
 	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength);
+	virtual int RunBuffer(u8* pBuffer, int iLength);
 
 	// Return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low) = 0;
+	virtual bool GetData(u32& Hi, u32& Low) = 0;
 
 	// Send a command directly (no detour per buffer)
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) = 0;
+	virtual void SendCommand(u32 Cmd, u8 Poll) = 0;
 
 	// Savestate support
 	virtual void DoState(PointerWrap& p) {}

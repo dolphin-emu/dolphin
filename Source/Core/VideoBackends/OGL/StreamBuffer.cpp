@@ -208,7 +208,7 @@ public:
  * So we map it persistently in the initialization.
  * 
  * Unsync mapping sounds like an easy task, but it isn't for threaded drivers.
- * So every mapping on current close-source driver _will_ end in
+ * So every mapping on current close-source driver will_ end in
  * at least a round trip time between two threads.
  * 
  * As persistently mapped buffer can't use orphaning, we also have to sync.

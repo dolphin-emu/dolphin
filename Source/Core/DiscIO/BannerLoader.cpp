@@ -16,15 +16,15 @@ namespace DiscIO
 class IBannerLoader;
 class IVolume;
 
-IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume)
+IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& rFileSystem, DiscIO::IVolume *pVolume)
 {
 	if (IsVolumeWiiDisc(pVolume) || IsVolumeWadFile(pVolume))
 	{
 		return new CBannerLoaderWii(pVolume);
 	}
-	if (_rFileSystem.IsValid())
+	if (rFileSystem.IsValid())
 	{
-		return new CBannerLoaderGC(_rFileSystem, pVolume);
+		return new CBannerLoaderGC(rFileSystem, pVolume);
 	}
 
 	return nullptr;

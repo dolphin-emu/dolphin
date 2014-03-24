@@ -24,7 +24,7 @@ namespace JitInterface
 	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx);
 
 	// used by JIT to read instructions
-	u32 Read_Opcode_JIT(const u32 _Address);
+	u32 Read_Opcode_JIT(const u32 Address);
 
 	// Clearing CodeCache
 	void ClearCache();

@@ -21,16 +21,16 @@
 class CWII_IPC_HLE_Device_hid : public IWII_IPC_HLE_Device
 {
 public:
-	CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_hid(u32 DeviceID, const std::string& rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_hid();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual bool Open(u32 CommandAddress, u32 Mode) override;
+	virtual bool Close(u32 CommandAddress, bool bForce) override;
 	virtual u32 Update() override;
 
-	virtual bool IOCtlV(u32 _CommandAddress) override;
-	virtual bool IOCtl(u32 _CommandAddress) override;
+	virtual bool IOCtlV(u32 CommandAddress) override;
+	virtual bool IOCtl(u32 CommandAddress) override;
 
 private:
 	enum
@@ -134,7 +134,7 @@ private:
 		u32 enq_address;
 		u32 type;
 		void * context;
-	} _hidevent;
+	} hidevent;
 
-	std::list<_hidevent> event_list;
+	std::list<hidevent> event_list;
 };

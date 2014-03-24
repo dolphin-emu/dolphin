@@ -220,10 +220,10 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 	UpdateActiveList();
 }
 
-void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalIni, IniFile& localIni)
+void LoadCodes(std::vector<ARCode>& _arCodes, IniFile& globalIni, IniFile& localIni)
 {
 	LoadCodes(globalIni, localIni, true);
-	_arCodes = arCodes;
+	arCodes = _arCodes;
 }
 
 

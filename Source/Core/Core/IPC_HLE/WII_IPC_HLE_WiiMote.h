@@ -38,7 +38,7 @@ private:
 class CWII_IPC_HLE_WiiMote
 {
 public:
-	CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bdaddr_t _BD, bool ready = false);
+	CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* pHost, int Number, bdaddr_t _BD, bool ready = false);
 
 	virtual ~CWII_IPC_HLE_WiiMote() {}
 
@@ -52,14 +52,14 @@ public:
 	bool LinkChannel();
 	void ResetChannels();
 	void Activate(bool ready);
-	void ExecuteL2capCmd(u8* _pData, u32 _Size); // From CPU
-	void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size); // From wiimote
+	void ExecuteL2capCmd(u8* pData, u32 Size); // From CPU
+	void ReceiveL2capData(u16 scid, const void* pData, u32 Size); // From wiimote
 
-	int NetPlay_GetWiimoteNum(int _number);
+	int NetPlay_GetWiimoteNum(int number);
 
 	void EventConnectionAccepted();
 	void EventDisconnect();
-	bool EventPagingChanged(u8 _pageMode);
+	bool EventPagingChanged(u8 pageMode);
 
 	const bdaddr_t& GetBD() const { return m_BD; }
 	const uint8_t* GetClass() const { return uclass; }
@@ -119,28 +119,28 @@ private:
 		return m_Channel.find(_SCID) != m_Channel.end();
 	}
 
-	void SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLength, u8* _pCommandData);
+	void SendCommandToACL(u8 Ident, u8 Code, u8 CommandLength, u8* pCommandData);
 
-	void SignalChannel(u8* _pData, u32 _Size);
+	void SignalChannel(u8* pData, u32 Size);
 
 	void SendConnectionRequest(u16 _SCID, u16 _PSM);
-	void SendConfigurationRequest(u16 _SCID, u16 _pMTU = 0, u16 _pFlushTimeOut = 0);
+	void SendConfigurationRequest(u16 _SCID, u16 pMTU = 0, u16 pFlushTimeOut = 0);
 	void SendDisconnectRequest(u16 _SCID);
 
-	void ReceiveConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
-	void ReceiveConnectionResponse(u8 _Ident, u8* _pData, u32 _Size);
-	void ReceiveDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size);
-	void ReceiveConfigurationReq(u8 _Ident, u8* _pData, u32 _Size);
-	void ReceiveConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
+	void ReceiveConnectionReq(u8 Ident, u8* pData, u32 Size);
+	void ReceiveConnectionResponse(u8 Ident, u8* pData, u32 Size);
+	void ReceiveDisconnectionReq(u8 Ident, u8* pData, u32 Size);
+	void ReceiveConfigurationReq(u8 Ident, u8* pData, u32 Size);
+	void ReceiveConfigurationResponse(u8 Ident, u8* pData, u32 Size);
 
 	// some new ugly stuff
 	// should be inside the plugin
-	void HandleSDP(u16 _SCID, u8* _pData, u32 _Size);
-	void SDPSendServiceSearchResponse(u16 _SCID, u16 _TransactionID, u8* _pServiceSearchPattern, u16 _MaximumServiceRecordCount);
+	void HandleSDP(u16 _SCID, u8* pData, u32 Size);
+	void SDPSendServiceSearchResponse(u16 _SCID, u16 TransactionID, u8* pServiceSearchPattern, u16 MaximumServiceRecordCount);
 
-	void SDPSendServiceAttributeResponse(u16 _SCID, u16 TransactionID, u32 _ServiceHandle,
-											u16 _StartAttrID, u16 _EndAttrID,
-											u16 _MaximumAttributeByteCount, u8* _pContinuationState);
+	void SDPSendServiceAttributeResponse(u16 _SCID, u16 TransactionID, u32 ServiceHandle,
+											u16 StartAttrID, u16 EndAttrID,
+											u16 MaximumAttributeByteCount, u8* pContinuationState);
 
-	u16 AddAttribToList(int _AttribID, u8* _pBuffer);
+	u16 AddAttribToList(int AttribID, u8* pBuffer);
 };

@@ -25,11 +25,11 @@ bool CEXIAD16::IsPresent()
 	return true;
 }
 
-void CEXIAD16::TransferByte(u8& _byte)
+void CEXIAD16::TransferByte(u8& byte)
 {
 	if (m_uPosition == 0)
 	{
-		m_uCommand = _byte;
+		m_uCommand = byte;
 	}
 	else
 	{
@@ -40,11 +40,11 @@ void CEXIAD16::TransferByte(u8& _byte)
 				m_uAD16Register.U32 = 0x04120000;
 				switch (m_uPosition)
 				{
-				case 1: _dbg_assert_(EXPANSIONINTERFACE, (_byte == 0x00)); break; // just skip
-				case 2: _byte = m_uAD16Register.U8[0]; break;
-				case 3: _byte = m_uAD16Register.U8[1]; break;
-				case 4: _byte = m_uAD16Register.U8[2]; break;
-				case 5: _byte = m_uAD16Register.U8[3]; break;
+				case 1: _dbg_assert_(EXPANSIONINTERFACE, (byte == 0x00)); break; // just skip
+				case 2: byte = m_uAD16Register.U8[0]; break;
+				case 3: byte = m_uAD16Register.U8[1]; break;
+				case 4: byte = m_uAD16Register.U8[2]; break;
+				case 5: byte = m_uAD16Register.U8[3]; break;
 				}
 			}
 			break;
@@ -53,10 +53,10 @@ void CEXIAD16::TransferByte(u8& _byte)
 			{
 				switch (m_uPosition)
 				{
-				case 1: m_uAD16Register.U8[0] = _byte; break;
-				case 2: m_uAD16Register.U8[1] = _byte; break;
-				case 3: m_uAD16Register.U8[2] = _byte; break;
-				case 4: m_uAD16Register.U8[3] = _byte; break;
+				case 1: m_uAD16Register.U8[0] = byte; break;
+				case 2: m_uAD16Register.U8[1] = byte; break;
+				case 3: m_uAD16Register.U8[2] = byte; break;
+				case 4: m_uAD16Register.U8[3] = byte; break;
 				}
 			}
 			break;
@@ -65,10 +65,10 @@ void CEXIAD16::TransferByte(u8& _byte)
 			{
 				switch (m_uPosition)
 				{
-				case 1: _byte = m_uAD16Register.U8[0]; break;
-				case 2: _byte = m_uAD16Register.U8[1]; break;
-				case 3: _byte = m_uAD16Register.U8[2]; break;
-				case 4: _byte = m_uAD16Register.U8[3]; break;
+				case 1: byte = m_uAD16Register.U8[0]; break;
+				case 2: byte = m_uAD16Register.U8[1]; break;
+				case 3: byte = m_uAD16Register.U8[2]; break;
+				case 4: byte = m_uAD16Register.U8[3]; break;
 				}
 			}
 			break;

@@ -25,7 +25,7 @@ bool CEXIAMBaseboard::IsPresent()
 	return true;
 }
 
-void CEXIAMBaseboard::TransferByte(u8& _byte)
+void CEXIAMBaseboard::TransferByte(u8& byte)
 {
 	/*
 	ID:
@@ -49,16 +49,16 @@ void CEXIAMBaseboard::TransferByte(u8& _byte)
 		xx xx xx xx 04 rr rr
 		3 byte command, 1 byte checksum
 	*/
-	DEBUG_LOG(SP1, "AM-BB > %02x", _byte);
+	DEBUG_LOG(SP1, "AM-BB > %02x", byte);
 	if (m_position < 4)
 	{
-		m_command[m_position] = _byte;
-		_byte = 0xFF;
+		m_command[m_position] = byte;
+		byte = 0xFF;
 	}
 
 	if ((m_position >= 2) && (m_command[0] == 0 && m_command[1] == 0))
 	{
-		_byte = "\x06\x04\x10\x00"[(m_position-2)&3];
+		byte = "\x06\x04\x10\x00"[(m_position-2)&3];
 	}
 	else if (m_position == 3)
 	{
@@ -80,7 +80,7 @@ void CEXIAMBaseboard::TransferByte(u8& _byte)
 	{
 		if (m_position == 4)
 		{
-			_byte = 4;
+			byte = 4;
 			ERROR_LOG(SP1, "AM-BB COMMAND: %02x %02x %02x", m_command[0], m_command[1], m_command[2]);
 
 			if ((m_command[0] == 0xFF) && (m_command[1] == 0) && (m_command[2] == 0))
@@ -93,13 +93,13 @@ void CEXIAMBaseboard::TransferByte(u8& _byte)
 			switch (m_command[0])
 			{
 			case 0xFF: // lan
-				_byte = 0xFF;
+				byte = 0xFF;
 				break;
 			case 0x86: // imr
-				_byte = 0x00;
+				byte = 0x00;
 				break;
 			case 0x82: // isr
-				_byte = m_have_irq ? 0xFF : 0;
+				byte = m_have_irq ? 0xFF : 0;
 				break;
 			default:
 				_dbg_assert_msg_(SP1, 0, "Unknown AM-BB command");
@@ -108,10 +108,10 @@ void CEXIAMBaseboard::TransferByte(u8& _byte)
 		}
 		else
 		{
-			_byte = 0xFF;
+			byte = 0xFF;
 		}
 	}
-	DEBUG_LOG(SP1, "AM-BB < %02x", _byte);
+	DEBUG_LOG(SP1, "AM-BB < %02x", byte);
 	m_position++;
 }
 

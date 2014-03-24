@@ -36,7 +36,7 @@ unsigned int lfe_pos;
 float *filter_coefs_lfe;
 unsigned int len125;
 
-template<class T,class _ftype_t> static _ftype_t dotproduct(int count,const T *buf,const _ftype_t *coefficients)
+template<class T, class ftype_t> static ftype_t dotproduct(int count, const T *buf, const ftype_t* coefficients)
 {
 	float sum0=0,sum1=0,sum2=0,sum3=0;
 	for (;count>=4;buf+=4,coefficients+=4,count-=4)
@@ -260,8 +260,8 @@ void matrix_decode(const float *in, const int k, const int il,
 		// Stereo rear channel is steered with the same AGC steering as
 		// the decoding matrix. Note this requires a fast updating AGC
 		// at the order of 20 ms (which is the case here).
-		_lr[kr] *= (_l_fwr + _l_fwr) / (1 + _l_fwr + _r_fwr);
-		_rr[kr] *= (_r_fwr + _r_fwr) / (1 + _l_fwr + _r_fwr);
+		_lr[kr] *= (l_fwr + l_fwr) / (1 + l_fwr + r_fwr);
+		_rr[kr] *= (r_fwr + r_fwr) / (1 + l_fwr + r_fwr);
 	}
 
 	/*** AXIS NO. 2: (Lt + Rt, Lt - Rt) -> (L, R) ***/

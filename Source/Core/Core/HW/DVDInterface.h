@@ -20,21 +20,21 @@ void DoState(PointerWrap &p);
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // Disc detection and swapping
-void SetDiscInside(bool _DiscInside);
+void SetDiscInside(bool DiscInside);
 bool IsDiscInside();
 void ChangeDisc(const std::string& fileName);
 
 // Lid Functions
-void SetLidOpen(bool _bOpen = true);
+void SetLidOpen(bool bOpen = true);
 bool IsLidOpen();
 
 // Used as low level control by WII_IPC_HLE_Device_DI
 void ClearCoverInterrupt();
 
 // DVD Access Functions
-bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength);
+bool DVDRead(u32 iDVDOffset, u32 iRamAddress, u32 iLength);
 // For AudioInterface
-bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples);
+bool DVDReadADPCM(u8* pDestBuffer, u32 iNumSamples);
 extern bool g_bStream;
 
 

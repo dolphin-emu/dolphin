@@ -121,10 +121,10 @@ public:
 	virtual ~CUCode_Zelda();
 	u32 GetUpdateMs() override;
 
-	void HandleMail(u32 _uMail) override;
-	void HandleMail_LightVersion(u32 _uMail);
-	void HandleMail_SMSVersion(u32 _uMail);
-	void HandleMail_NormalVersion(u32 _uMail);
+	void HandleMail(u32 uMail) override;
+	void HandleMail_LightVersion(u32 uMail);
+	void HandleMail_SMSVersion(u32 uMail);
+	void HandleMail_NormalVersion(u32 uMail);
 
 	void Update(int cycles) override;
 	void MixAdd(short* buffer, int size) override;
@@ -269,20 +269,20 @@ private:
 	// AFC decoder
 	static void AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, short *histp, short *hist2p, int type);
 
-	void ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB);
-	void WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB);
+	void ReadVoicePB(u32 Addr, ZeldaVoicePB& PB);
+	void WritebackVoicePB(u32 Addr, ZeldaVoicePB& PB);
 
 	// Voice formats
-	void RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
-	void RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
-	void RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
-	void RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
+	void RenderSynth_Constant(ZeldaVoicePB &PB, s32* Buffer, int Size);
+	void RenderSynth_RectWave(ZeldaVoicePB &PB, s32* Buffer, int Size);
+	void RenderSynth_SawWave(ZeldaVoicePB &PB, s32* Buffer, int Size);
+	void RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* Buffer, int Size);
 
-	void RenderVoice_PCM8(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
-	void RenderVoice_PCM16(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
+	void RenderVoice_PCM8(ZeldaVoicePB& PB, s16* Buffer, int Size);
+	void RenderVoice_PCM16(ZeldaVoicePB& PB, s16* Buffer, int Size);
 
-	void RenderVoice_AFC(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
-	void RenderVoice_Raw(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
+	void RenderVoice_AFC(ZeldaVoicePB& PB, s16* Buffer, int Size);
+	void RenderVoice_Raw(ZeldaVoicePB& PB, s16* Buffer, int Size);
 
 	void Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do_resample = false);
 
@@ -290,5 +290,5 @@ private:
 	int SizeForResampling(ZeldaVoicePB &PB, int size, int ratio);
 
 	// Renders a voice and mixes it into LeftBuffer, RightBuffer
-	void RenderAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);
+	void RenderAddVoice(ZeldaVoicePB& PB, s32* LeftBuffer, s32* RightBuffer, int Size);
 };

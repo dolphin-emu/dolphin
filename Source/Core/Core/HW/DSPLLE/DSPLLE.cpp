@@ -190,9 +190,9 @@ void DSPLLE::InitMixer()
 	m_InitMixer = true;
 }
 
-u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
+u16 DSPLLE::DSP_WriteControlRegister(u16 uFlag)
 {
-	UDSPControl Temp(_uFlag);
+	UDSPControl Temp(uFlag);
 	if (!m_InitMixer)
 	{
 		if (!Temp.DSPHalt)
@@ -200,11 +200,11 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 			InitMixer();
 		}
 	}
-	DSPInterpreter::WriteCR(_uFlag);
+	DSPInterpreter::WriteCR(uFlag);
 
 	// Check if the CPU has set an external interrupt (CR_EXTERNAL_INT)
 	// and immediately process it, if it has.
-	if (_uFlag & 2)
+	if (uFlag & 2)
 	{
 		if (!m_bDSPThread)
 		{
@@ -226,25 +226,25 @@ u16 DSPLLE::DSP_ReadControlRegister()
 	return DSPInterpreter::ReadCR();
 }
 
-u16 DSPLLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)
+u16 DSPLLE::DSP_ReadMailBoxHigh(bool CPUMailbox)
 {
-	if (_CPUMailbox)
+	if (CPUMailbox)
 		return gdsp_mbox_read_h(GDSP_MBOX_CPU);
 	else
 		return gdsp_mbox_read_h(GDSP_MBOX_DSP);
 }
 
-u16 DSPLLE::DSP_ReadMailBoxLow(bool _CPUMailbox)
+u16 DSPLLE::DSP_ReadMailBoxLow(bool CPUMailbox)
 {
-	if (_CPUMailbox)
+	if (CPUMailbox)
 		return gdsp_mbox_read_l(GDSP_MBOX_CPU);
 	else
 		return gdsp_mbox_read_l(GDSP_MBOX_DSP);
 }
 
-void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
+void DSPLLE::DSP_WriteMailBoxHigh(bool CPUMailbox, u16 uHighMail)
 {
-	if (_CPUMailbox)
+	if (CPUMailbox)
 	{
 		if (gdsp_mbox_peek(GDSP_MBOX_CPU) & 0x80000000)
 		{
@@ -252,13 +252,13 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
 		}
 
 #if PROFILE
-		if ((_uHighMail) == 0xBABE)
+		if ((uHighMail) == 0xBABE)
 		{
 			ProfilerStart();
 		}
 #endif
 
-		gdsp_mbox_write_h(GDSP_MBOX_CPU, _uHighMail);
+		gdsp_mbox_write_h(GDSP_MBOX_CPU, uHighMail);
 	}
 	else
 	{
@@ -266,11 +266,11 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
 	}
 }
 
-void DSPLLE::DSP_WriteMailBoxLow(bool _CPUMailbox, u16 _uLowMail)
+void DSPLLE::DSP_WriteMailBoxLow(bool CPUMailbox, u16 uLowMail)
 {
-	if (_CPUMailbox)
+	if (CPUMailbox)
 	{
-		gdsp_mbox_write_l(GDSP_MBOX_CPU, _uLowMail);
+		gdsp_mbox_write_l(GDSP_MBOX_CPU, uLowMail);
 	}
 	else
 	{

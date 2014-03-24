@@ -28,13 +28,13 @@ private:
 
 public:
 	// Immediate copy functions
-	virtual void ImmWrite(u32 _uData,  u32 _uSize);
-	virtual u32  ImmRead(u32 _uSize);
-	virtual void ImmReadWrite(u32 &/*_uData*/, u32 /*_uSize*/) {}
+	virtual void ImmWrite(u32 uData,  u32 uSize);
+	virtual u32  ImmRead(u32 uSize);
+	virtual void ImmReadWrite(u32 &/*uData*/, u32 /*uSize*/) {}
 
 	// DMA copy functions
-	virtual void DMAWrite(u32 _uAddr, u32 _uSize);
-	virtual void DMARead (u32 _uAddr, u32 _uSize);
+	virtual void DMAWrite(u32 uAddr, u32 uSize);
+	virtual void DMARead (u32 uAddr, u32 uSize);
 
 	virtual bool IsPresent() {return false;}
 	virtual void SetCS(int) {}

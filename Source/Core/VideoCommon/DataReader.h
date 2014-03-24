@@ -25,26 +25,26 @@ __forceinline void DataSkip()
 }
 
 template <typename T>
-__forceinline T DataPeek(int _uOffset)
+__forceinline T DataPeek(int uOffset)
 {
-	auto const result = Common::FromBigEndian(*reinterpret_cast<T*>(g_pVideoData + _uOffset));
+	auto const result = Common::FromBigEndian(*reinterpret_cast<T*>(g_pVideoData + uOffset));
 	return result;
 }
 
 // TODO: kill these
-__forceinline u8 DataPeek8(int _uOffset)
+__forceinline u8 DataPeek8(int uOffset)
 {
-	return DataPeek<u8>(_uOffset);
+	return DataPeek<u8>(uOffset);
 }
 
-__forceinline u16 DataPeek16(int _uOffset)
+__forceinline u16 DataPeek16(int uOffset)
 {
-	return DataPeek<u16>(_uOffset);
+	return DataPeek<u16>(uOffset);
 }
 
-__forceinline u32 DataPeek32(int _uOffset)
+__forceinline u32 DataPeek32(int uOffset)
 {
-	return DataPeek<u32>(_uOffset);
+	return DataPeek<u32>(uOffset);
 }
 
 template <typename T>

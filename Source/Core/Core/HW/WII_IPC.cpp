@@ -220,21 +220,21 @@ void UpdateInterrupts(u64 userdata, int cyclesLate)
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC, !!(ppc_irq_flags & ppc_irq_masks));
 }
 
-void GenerateAck(u32 _Address)
+void GenerateAck(u32 Address)
 {
-	arm_msg = _Address; // dunno if it's really set here, but HLE needs to stay in context
+	arm_msg = Address; // dunno if it's really set here, but HLE needs to stay in context
 	ctrl.Y2 = 1;
 	INFO_LOG(WII_IPC, "GenerateAck: %08x | %08x [R:%i A:%i E:%i]",
-		ppc_msg,_Address, ctrl.Y1, ctrl.Y2, ctrl.X1);
+		ppc_msg,Address, ctrl.Y1, ctrl.Y2, ctrl.X1);
 	CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
 }
 
-void GenerateReply(u32 _Address)
+void GenerateReply(u32 Address)
 {
-	arm_msg = _Address;
+	arm_msg = Address;
 	ctrl.Y1 = 1;
 	INFO_LOG(WII_IPC, "GenerateReply: %08x | %08x [R:%i A:%i E:%i]",
-		ppc_msg,_Address, ctrl.Y1, ctrl.Y2, ctrl.X1);
+		ppc_msg,Address, ctrl.Y1, ctrl.Y2, ctrl.X1);
 	UpdateInterrupts();
 }
 

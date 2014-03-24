@@ -138,11 +138,11 @@ void InitBackendInfo()
 	DX11::D3D::UnloadD3D();
 }
 
-void VideoBackend::ShowConfig(void *_hParent)
+void VideoBackend::ShowConfig(void *hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
-	VideoConfigDiag diag((wxWindow*)_hParent, _trans("Direct3D"), "gfx_dx11");
+	VideoConfigDiag diag((wxWindow*)hParent, _trans("Direct3D"), "gfx_dx11");
 	diag.ShowModal();
 #endif
 }

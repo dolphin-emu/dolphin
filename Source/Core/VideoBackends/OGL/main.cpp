@@ -160,11 +160,11 @@ void InitBackendInfo()
 	GetShaders(g_Config.backend_info.PPShaders);
 }
 
-void VideoBackend::ShowConfig(void *_hParent)
+void VideoBackend::ShowConfig(void *hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
-	VideoConfigDiag diag((wxWindow*)_hParent, "OpenGL", "gfx_opengl");
+	VideoConfigDiag diag((wxWindow*)hParent, "OpenGL", "gfx_opengl");
 	diag.ShowModal();
 #endif
 }

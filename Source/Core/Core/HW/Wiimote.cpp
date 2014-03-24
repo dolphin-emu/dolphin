@@ -71,17 +71,17 @@ void Pause()
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
 //           on the HID CONTROL channel.
 //
-// Inputs:   _number    [Description needed]
-//           _channelID [Description needed]
-//           _pData     [Description needed]
-//           _Size      [Description needed]
+// Inputs:   number    [Description needed]
+//           channelID [Description needed]
+//           pData     [Description needed]
+//           Size      [Description needed]
 //
 // Output:   none
 //
-void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
+void ControlChannel(int number, u16 channelID, const void* pData, u32 Size)
 {
-	if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[_number])
-		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->ControlChannel(_channelID, _pData, _Size);
+	if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[number])
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[number])->ControlChannel(channelID, pData, Size);
 }
 
 // __________________________________________________________________________________________________
@@ -89,44 +89,44 @@ void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
 //           on the HID INTERRUPT channel.
 //
-// Inputs:   _number    [Description needed]
-//           _channelID [Description needed]
-//           _pData     [Description needed]
-//           _Size      [Description needed]
+// Inputs:   number    [Description needed]
+//           channelID [Description needed]
+//           pData     [Description needed]
+//           Size      [Description needed]
 //
 // Output:   none
 //
-void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
+void InterruptChannel(int number, u16 channelID, const void* pData, u32 Size)
 {
-	if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[_number])
-		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->InterruptChannel(_channelID, _pData, _Size);
+	if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[number])
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[number])->InterruptChannel(channelID, pData, Size);
 }
 
 // __________________________________________________________________________________________________
 // Function: Update
 // Purpose:  This function is called periodically by the Core. // TODO: Explain why.
-// input:    _number: [Description needed]
+// input:    number: [Description needed]
 // output:   none
 //
-void Update(int _number)
+void Update(int number)
 {
 	//PanicAlert( "Wiimote_Update" );
 
 	// TODO: change this to a try_to_lock, and make it give empty input on failure
 	std::lock_guard<std::recursive_mutex> lk(g_plugin.controls_lock);
 
-	static int _last_number = 4;
-	if (_number <= _last_number)
+	static int last_number = 4;
+	if (number <= last_number)
 	{
 		g_controller_interface.UpdateOutput();
 		g_controller_interface.UpdateInput();
 	}
-	_last_number = _number;
+	last_number = number;
 
-	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
-		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->Update();
+	if (WIIMOTE_SRC_EMU & g_wiimote_sources[number])
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[number])->Update();
 	else
-		WiimoteReal::Update(_number);
+		WiimoteReal::Update(number);
 }
 
 // __________________________________________________________________________________________________

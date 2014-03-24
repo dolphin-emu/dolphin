@@ -24,7 +24,10 @@ struct SFileInfo
 	u64 m_FileSize;
 	std::string m_FullPath;
 
-	bool IsDirectory() const { return (m_NameOffset & 0xFF000000) != 0; }
+	bool IsDirectory() const
+	{
+		return (m_NameOffset & 0xFF000000) != 0;
+	}
 
 	SFileInfo() : m_NameOffset(0), m_Offset(0), m_FileSize(0)
 	{
@@ -39,25 +42,28 @@ struct SFileInfo
 class IFileSystem
 {
 public:
-	IFileSystem(const IVolume *_rVolume);
+	IFileSystem(const IVolume *rVolume);
 
 	virtual ~IFileSystem();
 	virtual bool IsValid() const = 0;
-	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) = 0;
-	virtual u64 GetFileSize(const std::string& _rFullPath) = 0;
-	virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) = 0;
-	virtual bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename) = 0;
-	virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
-	virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;
-	virtual const std::string GetFileName(u64 _Address) = 0;
+	virtual size_t GetFileList(std::vector<const SFileInfo *> &rFilenames) = 0;
+	virtual u64 GetFileSize(const std::string& rFullPath) = 0;
+	virtual u64 ReadFile(const std::string& rFullPath, u8* pBuffer, size_t MaxBufferSize) = 0;
+	virtual bool ExportFile(const std::string& rFullPath, const std::string& rExportFilename) = 0;
+	virtual bool ExportApploader(const std::string& rExportFolder) const = 0;
+	virtual bool ExportDOL(const std::string& rExportFolder) const = 0;
+	virtual const std::string GetFileName(u64 Address) = 0;
 	virtual bool GetBootDOL(u8* &buffer, u32 DolSize) const = 0;
 	virtual u32 GetBootDOLSize() const = 0;
 
-	virtual const IVolume *GetVolume() const { return m_rVolume; }
+	virtual const IVolume *GetVolume() const
+	{
+		return m_rVolume;
+	}
 protected:
 	const IVolume *m_rVolume;
 };
 
-IFileSystem* CreateFileSystem(const IVolume *_rVolume);
+IFileSystem* CreateFileSystem(const IVolume *rVolume);
 
 } // namespace

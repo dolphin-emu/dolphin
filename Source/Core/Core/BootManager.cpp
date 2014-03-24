@@ -60,7 +60,7 @@ struct ConfigCache
 static ConfigCache config_cache;
 
 // Boot the ISO or file
-bool BootCore(const std::string& _rFilename)
+bool BootCore(const std::string& rFilename)
 {
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
@@ -68,8 +68,8 @@ bool BootCore(const std::string& _rFilename)
 	Host_SetStartupDebuggingParameters();
 
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
-	StartUp.m_strFilename = _rFilename;
-	SConfig::GetInstance().m_LastFilename = _rFilename;
+	StartUp.m_strFilename = rFilename;
+	SConfig::GetInstance().m_LastFilename = rFilename;
 	SConfig::GetInstance().SaveSettings();
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;

@@ -140,9 +140,9 @@ class CMemcardManager : public wxDialog
 		public:
 			CMemcardListCtrl(wxWindow* parent, const wxWindowID id,
 				const wxPoint& pos, const wxSize& size,
-				long style, _mcmSettings& _mcmSetngs)
+				long style, _mcmSettings& mcmSetngs)
 				: wxListCtrl(parent, id, pos, size, style)
-				, __mcmSettings(_mcmSetngs)
+				, __mcmSettings(mcmSetngs)
 			{
 				Bind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this);
 			}

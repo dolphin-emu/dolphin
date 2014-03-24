@@ -48,7 +48,7 @@ void InhibitScreensaver(Display *dpy, Window win, bool suspend);
 class XRRConfiguration
 {
 	public:
-		XRRConfiguration(Display *_dpy, Window _win);
+		XRRConfiguration(Display *dpy, Window win);
 		~XRRConfiguration();
 
 		void Update();

@@ -22,7 +22,7 @@ extern const char *PatchTypeStrings[];
 struct PatchEntry
 {
 	PatchEntry() {}
-	PatchEntry(PatchType _t, u32 _addr, u32 _value) : type(_t), address(_addr), value(_value) {}
+	PatchEntry(PatchType t, u32 addr, u32 _value) : type(t), address(addr), value(_value) {}
 	PatchType type;
 	u32 address;
 	u32 value;

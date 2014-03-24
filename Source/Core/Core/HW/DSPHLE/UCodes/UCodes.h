@@ -17,54 +17,54 @@
 
 class CMailHandler;
 
-inline bool ExramRead(u32 _uAddress)
+inline bool ExramRead(u32 uAddress)
 {
-	if (_uAddress & 0x10000000)
+	if (uAddress & 0x10000000)
 		return true;
 	else
 		return false;
 }
 
-inline u8 HLEMemory_Read_U8(u32 _uAddress)
+inline u8 HLEMemory_Read_U8(u32 uAddress)
 {
-	if (ExramRead(_uAddress))
-		return Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK];
+	if (ExramRead(uAddress))
+		return Memory::m_pEXRAM[uAddress & Memory::EXRAM_MASK];
 	else
-		return Memory::m_pRAM[_uAddress & Memory::RAM_MASK];
+		return Memory::m_pRAM[uAddress & Memory::RAM_MASK];
 }
 
-inline u16 HLEMemory_Read_U16(u32 _uAddress)
+inline u16 HLEMemory_Read_U16(u32 uAddress)
 {
-	if (ExramRead(_uAddress))
-		return Common::swap16(*(u16*)&Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK]);
+	if (ExramRead(uAddress))
+		return Common::swap16(*(u16*)&Memory::m_pEXRAM[uAddress & Memory::EXRAM_MASK]);
 	else
-		return Common::swap16(*(u16*)&Memory::m_pRAM[_uAddress & Memory::RAM_MASK]);
+		return Common::swap16(*(u16*)&Memory::m_pRAM[uAddress & Memory::RAM_MASK]);
 }
 
-inline u32 HLEMemory_Read_U32(u32 _uAddress)
+inline u32 HLEMemory_Read_U32(u32 uAddress)
 {
-	if (ExramRead(_uAddress))
-		return Common::swap32(*(u32*)&Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK]);
+	if (ExramRead(uAddress))
+		return Common::swap32(*(u32*)&Memory::m_pEXRAM[uAddress & Memory::EXRAM_MASK]);
 	else
-		return Common::swap32(*(u32*)&Memory::m_pRAM[_uAddress & Memory::RAM_MASK]);
+		return Common::swap32(*(u32*)&Memory::m_pRAM[uAddress & Memory::RAM_MASK]);
 }
 
-inline void* HLEMemory_Get_Pointer(u32 _uAddress)
+inline void* HLEMemory_Get_Pointer(u32 uAddress)
 {
-	if (ExramRead(_uAddress))
-		return &Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK];
+	if (ExramRead(uAddress))
+		return &Memory::m_pEXRAM[uAddress & Memory::EXRAM_MASK];
 	else
-		return &Memory::m_pRAM[_uAddress & Memory::RAM_MASK];
+		return &Memory::m_pRAM[uAddress & Memory::RAM_MASK];
 }
 
 class IUCode
 {
 public:
-	IUCode(DSPHLE *dsphle, u32 _crc)
+	IUCode(DSPHLE *dsphle, u32 crc)
 		: m_rMailHandler(dsphle->AccessMailHandler())
 		, m_UploadSetupInProgress(false)
 		, m_DSPHLE(dsphle)
-		, m_CRC(_crc)
+		, m_CRC(crc)
 		, m_NextUCode()
 		, m_NextUCode_steps(0)
 		, m_NeedsResumeMail(false)
@@ -73,7 +73,7 @@ public:
 	virtual ~IUCode()
 	{}
 
-	virtual void HandleMail(u32 _uMail) = 0;
+	virtual void HandleMail(u32 uMail) = 0;
 
 	// Cycles are out of the 81/121mhz the DSP runs at.
 	virtual void Update(int cycles) = 0;

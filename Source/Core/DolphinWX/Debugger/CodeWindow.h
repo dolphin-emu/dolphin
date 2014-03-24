@@ -37,7 +37,7 @@ class CCodeWindow
 {
 	public:
 
-		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter,
+		CCodeWindow(const SCoreStartupParameter& LocalCoreStartupParameter,
 			CFrame * parent,
 			wxWindowID id = wxID_ANY,
 			const wxPoint& pos = wxDefaultPosition,
@@ -60,11 +60,11 @@ class CCodeWindow
 		bool AutomaticStart();
 		bool JITNoBlockCache();
 		bool JITBlockLinking();
-		void JumpToAddress(u32 _Address);
+		void JumpToAddress(u32 Address);
 
 		void Update() override;
 		void NotifyMapLoaded();
-		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
+		void CreateMenu(const SCoreStartupParameter& LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 		void CreateMenuOptions(wxMenu *pMenu);
 		void CreateMenuSymbols(wxMenuBar *pMenuBar);
 		void RecreateToolbar(wxAuiToolBar*);

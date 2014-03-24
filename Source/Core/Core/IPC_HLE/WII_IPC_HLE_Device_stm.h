@@ -29,37 +29,37 @@ class CWII_IPC_HLE_Device_stm_immediate : public IWII_IPC_HLE_Device
 {
 public:
 
-	CWII_IPC_HLE_Device_stm_immediate(u32 _DeviceID, const std::string& _rDeviceName) :
-		IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+	CWII_IPC_HLE_Device_stm_immediate(u32 DeviceID, const std::string& rDeviceName) :
+		IWII_IPC_HLE_Device(DeviceID, rDeviceName)
 	{}
 
 	virtual ~CWII_IPC_HLE_Device_stm_immediate()
 	{}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
+	virtual bool Open(u32 CommandAddress, u32 Mode) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Open");
-		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+		Memory::Write_U32(GetDeviceID(), CommandAddress+4);
 		m_Active = true;
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override
+	virtual bool Close(u32 CommandAddress, bool bForce) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Close");
-		if (!_bForce)
-			Memory::Write_U32(0, _CommandAddress+4);
+		if (!bForce)
+			Memory::Write_U32(0, CommandAddress+4);
 		m_Active = false;
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress) override
+	virtual bool IOCtl(u32 CommandAddress) override
 	{
-		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
-		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
-		u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
-		u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+		u32 Parameter     = Memory::Read_U32(CommandAddress + 0x0C);
+		u32 BufferIn      = Memory::Read_U32(CommandAddress + 0x10);
+		u32 BufferInSize  = Memory::Read_U32(CommandAddress + 0x14);
+		u32 BufferOut     = Memory::Read_U32(CommandAddress + 0x18);
+		u32 BufferOutSize = Memory::Read_U32(CommandAddress + 0x1C);
 
 		// Prepare the out buffer(s) with zeroes as a safety precaution
 		// to avoid returning bad values
@@ -106,7 +106,7 @@ public:
 		}
 
 		// Write return value to the IPC call
-		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+		Memory::Write_U32(ReturnValue, CommandAddress + 0x4);
 		return true;
 	}
 };
@@ -116,8 +116,8 @@ class CWII_IPC_HLE_Device_stm_eventhook : public IWII_IPC_HLE_Device
 {
 public:
 
-	CWII_IPC_HLE_Device_stm_eventhook(u32 _DeviceID, const std::string& _rDeviceName)
-		: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+	CWII_IPC_HLE_Device_stm_eventhook(u32 DeviceID, const std::string& rDeviceName)
+		: IWII_IPC_HLE_Device(DeviceID, rDeviceName)
 		, m_EventHookAddress(0)
 	{}
 
@@ -125,31 +125,31 @@ public:
 	{
 	}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
+	virtual bool Open(u32 CommandAddress, u32 Mode) override
 	{
-		Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
+		Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
 		m_Active = true;
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override
+	virtual bool Close(u32 CommandAddress, bool bForce) override
 	{
 		m_EventHookAddress = 0;
 
 		INFO_LOG(WII_IPC_STM, "STM eventhook: Close");
-		if (!_bForce)
-			Memory::Write_U32(0, _CommandAddress+4);
+		if (!bForce)
+			Memory::Write_U32(0, CommandAddress+4);
 		m_Active = false;
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress) override
+	virtual bool IOCtl(u32 CommandAddress) override
 	{
-		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
-		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
-		u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
-		u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+		u32 Parameter     = Memory::Read_U32(CommandAddress + 0x0C);
+		u32 BufferIn      = Memory::Read_U32(CommandAddress + 0x10);
+		u32 BufferInSize  = Memory::Read_U32(CommandAddress + 0x14);
+		u32 BufferOut     = Memory::Read_U32(CommandAddress + 0x18);
+		u32 BufferOutSize = Memory::Read_U32(CommandAddress + 0x1C);
 
 		// Prepare the out buffer(s) with zeros as a safety precaution
 		// to avoid returning bad values
@@ -161,7 +161,7 @@ public:
 		{
 		case IOCTL_STM_EVENTHOOK:
 			{
-				m_EventHookAddress = _CommandAddress;
+				m_EventHookAddress = CommandAddress;
 
 				INFO_LOG(WII_IPC_STM, "%s registers event hook:", GetDeviceName().c_str());
 				DEBUG_LOG(WII_IPC_STM, "%x - IOCTL_STM_EVENTHOOK", Parameter);
@@ -181,7 +181,7 @@ public:
 		}
 
 		// Write return value to the IPC call, 0 means success
-		Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+		Memory::Write_U32(ReturnValue, CommandAddress + 0x4);
 		return false;
 	}
 

@@ -92,7 +92,7 @@ public:
 	void WriteExitDestInR(ARMReg Reg);
 	void WriteRfiExitDestInR(ARMReg Reg);
 	void WriteExceptionExit();
-	void WriteCallInterpreter(UGeckoInstruction _inst);
+	void WriteCallInterpreter(UGeckoInstruction inst);
 	void Cleanup();
 
 	void GenerateRC(int cr = 0);
@@ -113,132 +113,132 @@ public:
 
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst);
-	void FallBackToInterpreter(UGeckoInstruction _inst);
-	void DoNothing(UGeckoInstruction _inst);
-	void HLEFunction(UGeckoInstruction _inst);
+	void unknown_instruction(UGeckoInstruction inst);
+	void FallBackToInterpreter(UGeckoInstruction inst);
+	void DoNothing(UGeckoInstruction inst);
+	void HLEFunction(UGeckoInstruction inst);
 
-	void DynaRunTable4(UGeckoInstruction _inst);
-	void DynaRunTable19(UGeckoInstruction _inst);
-	void DynaRunTable31(UGeckoInstruction _inst);
-	void DynaRunTable59(UGeckoInstruction _inst);
-	void DynaRunTable63(UGeckoInstruction _inst);
+	void DynaRunTable4(UGeckoInstruction inst);
+	void DynaRunTable19(UGeckoInstruction inst);
+	void DynaRunTable31(UGeckoInstruction inst);
+	void DynaRunTable59(UGeckoInstruction inst);
+	void DynaRunTable63(UGeckoInstruction inst);
 
 	// Breakin shit
-	void Break(UGeckoInstruction _inst);
+	void Break(UGeckoInstruction inst);
 	// Branch
-	void bx(UGeckoInstruction _inst);
-	void bcx(UGeckoInstruction _inst);
-	void bclrx(UGeckoInstruction _inst);
-	void sc(UGeckoInstruction _inst);
-	void rfi(UGeckoInstruction _inst);
-	void bcctrx(UGeckoInstruction _inst);
+	void bx(UGeckoInstruction inst);
+	void bcx(UGeckoInstruction inst);
+	void bclrx(UGeckoInstruction inst);
+	void sc(UGeckoInstruction inst);
+	void rfi(UGeckoInstruction inst);
+	void bcctrx(UGeckoInstruction inst);
 
 	// Integer
-	void arith(UGeckoInstruction _inst);
+	void arith(UGeckoInstruction inst);
 
-	void addex(UGeckoInstruction _inst);
-	void subfic(UGeckoInstruction _inst);
-	void cntlzwx(UGeckoInstruction _inst);
-	void cmp (UGeckoInstruction _inst);
-	void cmpi(UGeckoInstruction _inst);
-	void cmpl(UGeckoInstruction _inst);
-	void cmpli(UGeckoInstruction _inst);
-	void negx(UGeckoInstruction _inst);
-	void mulhwux(UGeckoInstruction _inst);
-	void rlwimix(UGeckoInstruction _inst);
-	void rlwinmx(UGeckoInstruction _inst);
-	void rlwnmx(UGeckoInstruction _inst);
-	void srawix(UGeckoInstruction _inst);
+	void addex(UGeckoInstruction inst);
+	void subfic(UGeckoInstruction inst);
+	void cntlzwx(UGeckoInstruction inst);
+	void cmp (UGeckoInstruction inst);
+	void cmpi(UGeckoInstruction inst);
+	void cmpl(UGeckoInstruction inst);
+	void cmpli(UGeckoInstruction inst);
+	void negx(UGeckoInstruction inst);
+	void mulhwux(UGeckoInstruction inst);
+	void rlwimix(UGeckoInstruction inst);
+	void rlwinmx(UGeckoInstruction inst);
+	void rlwnmx(UGeckoInstruction inst);
+	void srawix(UGeckoInstruction inst);
 	void extshx(UGeckoInstruction inst);
 	void extsbx(UGeckoInstruction inst);
 
 	// System Registers
-	void mtmsr(UGeckoInstruction _inst);
-	void mfmsr(UGeckoInstruction _inst);
-	void mtspr(UGeckoInstruction _inst);
-	void mfspr(UGeckoInstruction _inst);
-	void mftb(UGeckoInstruction _inst);
-	void crXXX(UGeckoInstruction _inst);
-	void mcrf(UGeckoInstruction _inst);
-	void mfcr(UGeckoInstruction _inst);
-	void mtcrf(UGeckoInstruction _inst);
-	void mtsr(UGeckoInstruction _inst);
-	void mfsr(UGeckoInstruction _inst);
-	void mcrxr(UGeckoInstruction _inst);
-	void twx(UGeckoInstruction _inst);
+	void mtmsr(UGeckoInstruction inst);
+	void mfmsr(UGeckoInstruction inst);
+	void mtspr(UGeckoInstruction inst);
+	void mfspr(UGeckoInstruction inst);
+	void mftb(UGeckoInstruction inst);
+	void crXXX(UGeckoInstruction inst);
+	void mcrf(UGeckoInstruction inst);
+	void mfcr(UGeckoInstruction inst);
+	void mtcrf(UGeckoInstruction inst);
+	void mtsr(UGeckoInstruction inst);
+	void mfsr(UGeckoInstruction inst);
+	void mcrxr(UGeckoInstruction inst);
+	void twx(UGeckoInstruction inst);
 
 	// LoadStore
-	void stX(UGeckoInstruction _inst);
-	void lXX(UGeckoInstruction _inst);
-	void lmw(UGeckoInstruction _inst);
-	void stmw(UGeckoInstruction _inst);
+	void stX(UGeckoInstruction inst);
+	void lXX(UGeckoInstruction inst);
+	void lmw(UGeckoInstruction inst);
+	void stmw(UGeckoInstruction inst);
 
-	void icbi(UGeckoInstruction _inst);
-	void dcbst(UGeckoInstruction _inst);
+	void icbi(UGeckoInstruction inst);
+	void dcbst(UGeckoInstruction inst);
 
 	// Floating point
-	void fabsx(UGeckoInstruction _inst);
-	void fnabsx(UGeckoInstruction _inst);
-	void fnegx(UGeckoInstruction _inst);
-	void faddsx(UGeckoInstruction _inst);
-	void faddx(UGeckoInstruction _inst);
-	void fsubsx(UGeckoInstruction _inst);
-	void fsubx(UGeckoInstruction _inst);
-	void fmulsx(UGeckoInstruction _inst);
-	void fmulx(UGeckoInstruction _inst);
-	void fmrx(UGeckoInstruction _inst);
-	void fmaddsx(UGeckoInstruction _inst);
-	void fmaddx(UGeckoInstruction _inst);
-	void fctiwx(UGeckoInstruction _inst);
-	void fctiwzx(UGeckoInstruction _inst);
-	void fcmpo(UGeckoInstruction _inst);
-	void fcmpu(UGeckoInstruction _inst);
-	void fnmaddx(UGeckoInstruction _inst);
-	void fnmaddsx(UGeckoInstruction _inst);
-	void fresx(UGeckoInstruction _inst);
-	void fselx(UGeckoInstruction _inst);
-	void frsqrtex(UGeckoInstruction _inst);
+	void fabsx(UGeckoInstruction inst);
+	void fnabsx(UGeckoInstruction inst);
+	void fnegx(UGeckoInstruction inst);
+	void faddsx(UGeckoInstruction inst);
+	void faddx(UGeckoInstruction inst);
+	void fsubsx(UGeckoInstruction inst);
+	void fsubx(UGeckoInstruction inst);
+	void fmulsx(UGeckoInstruction inst);
+	void fmulx(UGeckoInstruction inst);
+	void fmrx(UGeckoInstruction inst);
+	void fmaddsx(UGeckoInstruction inst);
+	void fmaddx(UGeckoInstruction inst);
+	void fctiwx(UGeckoInstruction inst);
+	void fctiwzx(UGeckoInstruction inst);
+	void fcmpo(UGeckoInstruction inst);
+	void fcmpu(UGeckoInstruction inst);
+	void fnmaddx(UGeckoInstruction inst);
+	void fnmaddsx(UGeckoInstruction inst);
+	void fresx(UGeckoInstruction inst);
+	void fselx(UGeckoInstruction inst);
+	void frsqrtex(UGeckoInstruction inst);
 
 	// Floating point loadStore
-	void lfXX(UGeckoInstruction _inst);
-	void stfXX(UGeckoInstruction _inst);
-	void stfs(UGeckoInstruction _inst);
+	void lfXX(UGeckoInstruction inst);
+	void stfXX(UGeckoInstruction inst);
+	void stfs(UGeckoInstruction inst);
 
 	// Paired Singles
-	void ps_add(UGeckoInstruction _inst);
-	void ps_div(UGeckoInstruction _inst);
-	void ps_res(UGeckoInstruction _inst);
-	void ps_sum0(UGeckoInstruction _inst);
-	void ps_sum1(UGeckoInstruction _inst);
-	void ps_madd(UGeckoInstruction _inst);
-	void ps_nmadd(UGeckoInstruction _inst);
-	void ps_msub(UGeckoInstruction _inst);
-	void ps_nmsub(UGeckoInstruction _inst);
-	void ps_madds0(UGeckoInstruction _inst);
-	void ps_madds1(UGeckoInstruction _inst);
-	void ps_sub(UGeckoInstruction _inst);
-	void ps_mul(UGeckoInstruction _inst);
-	void ps_muls0(UGeckoInstruction _inst);
-	void ps_muls1(UGeckoInstruction _inst);
-	void ps_merge00(UGeckoInstruction _inst);
-	void ps_merge01(UGeckoInstruction _inst);
-	void ps_merge10(UGeckoInstruction _inst);
-	void ps_merge11(UGeckoInstruction _inst);
-	void ps_mr(UGeckoInstruction _inst);
-	void ps_neg(UGeckoInstruction _inst);
-	void ps_abs(UGeckoInstruction _inst);
-	void ps_nabs(UGeckoInstruction _inst);
-	void ps_rsqrte(UGeckoInstruction _inst);
-	void ps_sel(UGeckoInstruction _inst);
-	void ps_cmpu0(UGeckoInstruction _inst);
-	void ps_cmpu1(UGeckoInstruction _inst);
-	void ps_cmpo0(UGeckoInstruction _inst);
-	void ps_cmpo1(UGeckoInstruction _inst);
+	void ps_add(UGeckoInstruction inst);
+	void ps_div(UGeckoInstruction inst);
+	void ps_res(UGeckoInstruction inst);
+	void ps_sum0(UGeckoInstruction inst);
+	void ps_sum1(UGeckoInstruction inst);
+	void ps_madd(UGeckoInstruction inst);
+	void ps_nmadd(UGeckoInstruction inst);
+	void ps_msub(UGeckoInstruction inst);
+	void ps_nmsub(UGeckoInstruction inst);
+	void ps_madds0(UGeckoInstruction inst);
+	void ps_madds1(UGeckoInstruction inst);
+	void ps_sub(UGeckoInstruction inst);
+	void ps_mul(UGeckoInstruction inst);
+	void ps_muls0(UGeckoInstruction inst);
+	void ps_muls1(UGeckoInstruction inst);
+	void ps_merge00(UGeckoInstruction inst);
+	void ps_merge01(UGeckoInstruction inst);
+	void ps_merge10(UGeckoInstruction inst);
+	void ps_merge11(UGeckoInstruction inst);
+	void ps_mr(UGeckoInstruction inst);
+	void ps_neg(UGeckoInstruction inst);
+	void ps_abs(UGeckoInstruction inst);
+	void ps_nabs(UGeckoInstruction inst);
+	void ps_rsqrte(UGeckoInstruction inst);
+	void ps_sel(UGeckoInstruction inst);
+	void ps_cmpu0(UGeckoInstruction inst);
+	void ps_cmpu1(UGeckoInstruction inst);
+	void ps_cmpo0(UGeckoInstruction inst);
+	void ps_cmpo1(UGeckoInstruction inst);
 
 	// LoadStore paired
-	void psq_l(UGeckoInstruction _inst);
-	void psq_lx(UGeckoInstruction _inst);
-	void psq_st(UGeckoInstruction _inst);
-	void psq_stx(UGeckoInstruction _inst);
+	void psq_l(UGeckoInstruction inst);
+	void psq_lx(UGeckoInstruction inst);
+	void psq_st(UGeckoInstruction inst);
+	void psq_stx(UGeckoInstruction inst);
 };

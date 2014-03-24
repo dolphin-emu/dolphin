@@ -85,7 +85,7 @@ union UPECtrlReg
 	};
 	u16 Hex;
 	UPECtrlReg() {Hex = 0; }
-	UPECtrlReg(u16 _hex) {Hex = _hex; }
+	UPECtrlReg(u16 hex) {Hex = hex; }
 };
 
 // STATE_TO_SAVE
@@ -308,15 +308,15 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 
 // SetToken
 // THIS IS EXECUTED FROM VIDEO THREAD
-void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
+void SetToken(const u16 token, const int bSetTokenAcknowledge)
 {
-	if (_bSetTokenAcknowledge) // set token INT
+	if (bSetTokenAcknowledge) // set token INT
 	{
 		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
 	}
 
 	CommandProcessor::interruptTokenWaiting = true;
-	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, token | (bSetTokenAcknowledge << 16));
 }
 
 // SetFinish

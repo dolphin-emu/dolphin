@@ -48,44 +48,44 @@ const float m_quantizeTable[] =
 	1.0 / (1 <<  4),    1.0 / (1 <<  3), 1.0 / (1 <<  2), 1.0 / (1 <<  1),
 };
 
-void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const EQuantizeType _quantizeType, const unsigned int _uScale)
+void Interpreter::Helper_Quantize(const u32 Addr, const double fValue, const EQuantizeType quantizeType, const unsigned int uScale)
 {
-	switch (_quantizeType)
+	switch (quantizeType)
 	{
 	case QUANTIZE_FLOAT:
-		Memory::Write_U32(ConvertToSingleFTZ(*(u64*)&_fValue), _Addr);
+		Memory::Write_U32(ConvertToSingleFTZ(*(u64*)&fValue), Addr);
 		break;
 
 	// used for THP player
 	case QUANTIZE_U8:
 		{
-			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			float fResult = (float)fValue * m_quantizeTable[uScale];
 			MathUtil::Clamp(&fResult, 0.0f, 255.0f);
-			Memory::Write_U8((u8)fResult, _Addr);
+			Memory::Write_U8((u8)fResult, Addr);
 		}
 		break;
 
 	case QUANTIZE_U16:
 		{
-			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			float fResult = (float)fValue * m_quantizeTable[uScale];
 			MathUtil::Clamp(&fResult, 0.0f, 65535.0f);
-			Memory::Write_U16((u16)fResult, _Addr);
+			Memory::Write_U16((u16)fResult, Addr);
 		}
 		break;
 
 	case QUANTIZE_S8:
 		{
-			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			float fResult = (float)fValue * m_quantizeTable[uScale];
 			MathUtil::Clamp(&fResult, -128.0f, 127.0f);
-			Memory::Write_U8((u8)(s8)fResult, _Addr);
+			Memory::Write_U8((u8)(s8)fResult, Addr);
 		}
 		break;
 
 	case QUANTIZE_S16:
 		{
-			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			float fResult = (float)fValue * m_quantizeTable[uScale];
 			MathUtil::Clamp(&fResult, -32768.0f, 32767.0f);
-			Memory::Write_U16((u16)(s16)fResult, _Addr);
+			Memory::Write_U16((u16)(s16)fResult, Addr);
 		}
 		break;
 
@@ -95,34 +95,34 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const E
 	}
 }
 
-float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType, const unsigned int _uScale)
+float Interpreter::Helper_Dequantize(const u32 Addr, const EQuantizeType quantizeType, const unsigned int uScale)
 {
 	// dequantize the value
 	float fResult;
-	switch (_quantizeType)
+	switch (quantizeType)
 	{
 	case QUANTIZE_FLOAT:
 		{
-			u32 dwValue = Memory::Read_U32(_Addr);
+			u32 dwValue = Memory::Read_U32(Addr);
 			fResult = *(float*)&dwValue;
 		}
 		break;
 
 	case QUANTIZE_U8:
-		fResult = static_cast<float>(Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = static_cast<float>(Memory::Read_U8(Addr)) * m_dequantizeTable[uScale];
 		break;
 
 	case QUANTIZE_U16:
-		fResult = static_cast<float>(Memory::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = static_cast<float>(Memory::Read_U16(Addr)) * m_dequantizeTable[uScale];
 		break;
 
 	case QUANTIZE_S8:
-		fResult = static_cast<float>((s8)Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = static_cast<float>((s8)Memory::Read_U8(Addr)) * m_dequantizeTable[uScale];
 		break;
 
 		// used for THP player
 	case QUANTIZE_S16:
-		fResult = static_cast<float>((s16)Memory::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = static_cast<float>((s16)Memory::Read_U16(Addr)) * m_dequantizeTable[uScale];
 		break;
 
 	default:
@@ -133,19 +133,19 @@ float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quant
 	return fResult;
 }
 
-void Interpreter::psq_l(UGeckoInstruction _inst)
+void Interpreter::psq_l(UGeckoInstruction inst)
 {
-	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
 	const unsigned int ldScale = gqr.LD_SCALE;
-	const u32 EA = _inst.RA ?
-		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
+	const u32 EA = inst.RA ?
+		(m_GPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
 
 	int c = 4;
 	if ((ldType == QUANTIZE_U8)  || (ldType == QUANTIZE_S8))  c = 0x1;
 	if ((ldType == QUANTIZE_U16) || (ldType == QUANTIZE_S16)) c = 0x2;
 
-	if (_inst.W == 0)
+	if (inst.W == 0)
 	{
 		float ps0 = Helper_Dequantize(EA,   ldType, ldScale);
 		float ps1 = Helper_Dequantize(EA+c, ldType, ldScale);
@@ -153,8 +153,8 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(inst.RS) = ps0;
+		rPS1(inst.RS) = ps1;
 	}
 	else
 	{
@@ -163,23 +163,23 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = 1.0f;
+		rPS0(inst.RS) = ps0;
+		rPS1(inst.RS) = 1.0f;
 	}
 }
 
-void Interpreter::psq_lu(UGeckoInstruction _inst)
+void Interpreter::psq_lu(UGeckoInstruction inst)
 {
-	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
 	const unsigned int ldScale = gqr.LD_SCALE;
-	const u32 EA = m_GPR[_inst.RA] + _inst.SIMM_12;
+	const u32 EA = m_GPR[inst.RA] + inst.SIMM_12;
 
 	int c = 4;
 	if ((ldType == 4) || (ldType == 6)) c = 0x1;
 	if ((ldType == 5) || (ldType == 7)) c = 0x2;
 
-	if (_inst.W == 0)
+	if (inst.W == 0)
 	{
 		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
 		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
@@ -187,8 +187,8 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(inst.RS) = ps0;
+		rPS1(inst.RS) = ps1;
 	}
 	else
 	{
@@ -197,74 +197,74 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = 1.0f;
+		rPS0(inst.RS) = ps0;
+		rPS1(inst.RS) = 1.0f;
 	}
-	m_GPR[_inst.RA] = EA;
+	m_GPR[inst.RA] = EA;
 }
 
-void Interpreter::psq_st(UGeckoInstruction _inst)
+void Interpreter::psq_st(UGeckoInstruction inst)
 {
-	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	const unsigned int stScale = gqr.ST_SCALE;
-	const u32 EA = _inst.RA ?
-		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
+	const u32 EA = inst.RA ?
+		(m_GPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
 
 	int c = 4;
 	if ((stType == 4) || (stType == 6)) c = 0x1;
 	if ((stType == 5) || (stType == 7)) c = 0x2;
 
-	if (_inst.W == 0)
+	if (inst.W == 0)
 	{
-		Helper_Quantize( EA,   rPS0(_inst.RS), stType, stScale );
-		Helper_Quantize( EA+c, rPS1(_inst.RS), stType, stScale );
+		Helper_Quantize( EA,   rPS0(inst.RS), stType, stScale );
+		Helper_Quantize( EA+c, rPS1(inst.RS), stType, stScale );
 	}
 	else
 	{
-		Helper_Quantize( EA,   rPS0(_inst.RS), stType, stScale );
+		Helper_Quantize( EA,   rPS0(inst.RS), stType, stScale );
 	}
 }
 
-void Interpreter::psq_stu(UGeckoInstruction _inst)
+void Interpreter::psq_stu(UGeckoInstruction inst)
 {
-	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	const unsigned int stScale = gqr.ST_SCALE;
-	const u32 EA = m_GPR[_inst.RA] + _inst.SIMM_12;
+	const u32 EA = m_GPR[inst.RA] + inst.SIMM_12;
 
 	int c = 4;
 	if ((stType == 4) || (stType == 6)) c = 0x1;
 	if ((stType == 5) || (stType == 7)) c = 0x2;
 
-	if (_inst.W == 0)
+	if (inst.W == 0)
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(inst.RS), stType, stScale);
+		Helper_Quantize(EA+c, rPS1(inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(inst.RS), stType, stScale);
 	}
 	if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 	{
 		return;
 	}
-	m_GPR[_inst.RA] = EA;
+	m_GPR[inst.RA] = EA;
 }
 
-void Interpreter::psq_lx(UGeckoInstruction _inst)
+void Interpreter::psq_lx(UGeckoInstruction inst)
 {
-	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.Ix));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
 	const unsigned int ldScale = gqr.LD_SCALE;
-	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB];
+	const u32 EA = inst.RA ? (m_GPR[inst.RA] + m_GPR[inst.RB]) : m_GPR[inst.RB];
 
 	int c = 4;
 	if ((ldType == 4) || (ldType == 6)) c = 0x1;
 	if ((ldType == 5) || (ldType == 7)) c = 0x2;
 
-	if (_inst.Wx == 0)
+	if (inst.Wx == 0)
 	{
 		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
 		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
@@ -274,8 +274,8 @@ void Interpreter::psq_lx(UGeckoInstruction _inst)
 			return;
 		}
 
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(inst.RS) = ps0;
+		rPS1(inst.RS) = ps1;
 	}
 	else
 	{
@@ -287,45 +287,45 @@ void Interpreter::psq_lx(UGeckoInstruction _inst)
 			return;
 		}
 
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(inst.RS) = ps0;
+		rPS1(inst.RS) = ps1;
 	}
 }
 
-void Interpreter::psq_stx(UGeckoInstruction _inst)
+void Interpreter::psq_stx(UGeckoInstruction inst)
 {
-	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.Ix));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	const unsigned int stScale = gqr.ST_SCALE;
-	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB];
+	const u32 EA = inst.RA ? (m_GPR[inst.RA] + m_GPR[inst.RB]) : m_GPR[inst.RB];
 
 	int c = 4;
 	if ((stType == 4) || (stType == 6)) c = 0x1;
 	if ((stType == 5) || (stType == 7)) c = 0x2;
 
-	if (_inst.Wx == 0)
+	if (inst.Wx == 0)
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(inst.RS), stType, stScale);
+		Helper_Quantize(EA+c, rPS1(inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(inst.RS), stType, stScale);
 	}
 }
 
-void Interpreter::psq_lux(UGeckoInstruction _inst)
+void Interpreter::psq_lux(UGeckoInstruction inst)
 {
-	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.Ix));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
 	const unsigned int ldScale = gqr.LD_SCALE;
-	const u32 EA = m_GPR[_inst.RA] + m_GPR[_inst.RB];
+	const u32 EA = m_GPR[inst.RA] + m_GPR[inst.RB];
 
 	int c = 4;
 	if ((ldType == 4) || (ldType == 6)) c = 0x1;
 	if ((ldType == 5) || (ldType == 7)) c = 0x2;
 
-	if (_inst.Wx == 0)
+	if (inst.Wx == 0)
 	{
 		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
 		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
@@ -333,8 +333,8 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = ps1;
+		rPS0(inst.RS) = ps0;
+		rPS1(inst.RS) = ps1;
 	}
 	else
 	{
@@ -343,36 +343,36 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 		{
 			return;
 		}
-		rPS0(_inst.RS) = ps0;
-		rPS1(_inst.RS) = 1.0f;
+		rPS0(inst.RS) = ps0;
+		rPS1(inst.RS) = 1.0f;
 	}
-	m_GPR[_inst.RA] = EA;
+	m_GPR[inst.RA] = EA;
 }
 
-void Interpreter::psq_stux(UGeckoInstruction _inst)
+void Interpreter::psq_stux(UGeckoInstruction inst)
 {
-	const UGQR gqr(rSPR(SPR_GQR0 + _inst.Ix));
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.Ix));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	const unsigned int stScale = gqr.ST_SCALE;
-	const u32 EA = m_GPR[_inst.RA] + m_GPR[_inst.RB];
+	const u32 EA = m_GPR[inst.RA] + m_GPR[inst.RB];
 
 	int c = 4;
 	if ((stType == 4) || (stType == 6)) c = 0x1;
 	if ((stType == 5) || (stType == 7)) c = 0x2;
 
-	if (_inst.Wx == 0)
+	if (inst.Wx == 0)
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(inst.RS), stType, stScale);
+		Helper_Quantize(EA+c, rPS1(inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(inst.RS), stType, stScale);
 	}
 	if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 	{
 		return;
 	}
-	m_GPR[_inst.RA] = EA;
+	m_GPR[inst.RA] = EA;
 
 }  // namespace=======

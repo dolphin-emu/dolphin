@@ -115,7 +115,7 @@ namespace SWPixelEngine
 		};
 		u16 Hex;
 		UPECtrlReg() {Hex = 0; }
-		UPECtrlReg(u16 _hex) {Hex = _hex; }
+		UPECtrlReg(u16 hex) {Hex = hex; }
 	};
 
 	struct PEReg
@@ -204,7 +204,7 @@ namespace SWPixelEngine
 	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 	// gfx backend support
-	void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
+	void SetToken(const u16 token, const int bSetTokenAcknowledge);
 	void SetFinish(void);
 	bool AllowIdleSkipping();
 

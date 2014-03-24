@@ -162,26 +162,26 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	}
 
 	// Load game ini
-	std::string _iniFilename = OpenISO->GetUniqueID();
-	std::string _iniFilenameRevisionSpecific = OpenISO->GetRevisionSpecificUniqueID();
+	std::string iniFilename = OpenISO->GetUniqueID();
+	std::string iniFilenameRevisionSpecific = OpenISO->GetRevisionSpecificUniqueID();
 
-	if (!_iniFilename.length())
+	if (!iniFilename.length())
 	{
 		char tmp[17];
-		u8 _tTitleID[8];
-		if (OpenISO->GetTitleID(_tTitleID))
+		u8 tTitleID[8];
+		if (OpenISO->GetTitleID(tTitleID))
 		{
-			snprintf(tmp, 17, "%016" PRIx64, Common::swap64(_tTitleID));
-			_iniFilename = tmp;
+			snprintf(tmp, 17, "%016" PRIx64, Common::swap64(tTitleID));
+			iniFilename = tmp;
 		}
 	}
 
-	GameIniFileDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilename + ".ini";
-	std::string GameIniFileDefaultRevisionSpecific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilenameRevisionSpecific + ".ini";
-	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + _iniFilename + ".ini";
+	GameIniFileDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + iniFilename + ".ini";
+	std::string GameIniFileDefaultRevisionSpecific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + iniFilenameRevisionSpecific + ".ini";
+	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + iniFilename + ".ini";
 
 	GameIniDefault.Load(GameIniFileDefault);
-	if (_iniFilenameRevisionSpecific != "")
+	if (iniFilenameRevisionSpecific != "")
 		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
 	GameIniLocal.Load(GameIniFileLocal);
 
@@ -313,12 +313,12 @@ CISOProperties::~CISOProperties()
 
 size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		std::vector<const DiscIO::SFileInfo*> fileInfos,
-		const size_t _FirstIndex,
-		const size_t _LastIndex)
+		const size_t FirstIndex,
+		const size_t LastIndex)
 {
-	size_t CurrentIndex = _FirstIndex;
+	size_t CurrentIndex = FirstIndex;
 
-	while (CurrentIndex < _LastIndex)
+	while (CurrentIndex < LastIndex)
 	{
 		const DiscIO::SFileInfo* rFileInfo = fileInfos[CurrentIndex];
 		std::string filePath = rFileInfo->m_FullPath;
@@ -751,7 +751,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
-void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
+void CISOProperties::ExportDir(const char* rFullPath, const char* rExportFolder, const int partitionNum)
 {
 	std::string exportName;
 	u32 index[2] = {0, 0};
@@ -769,20 +769,20 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 
 	FS->GetFileList(fst);
 
-	if (!_rFullPath) // Extract all
+	if (!rFullPath) // Extract all
 	{
 		index[0] = 0;
 		index[1] = (u32)fst.size();
 
-		FS->ExportApploader(_rExportFolder);
+		FS->ExportApploader(rExportFolder);
 		if (!DiscIO::IsVolumeWiiDisc(OpenISO))
-			FS->ExportDOL(_rExportFolder);
+			FS->ExportDOL(rExportFolder);
 	}
 	else // Look for the dir we are going to extract
 	{
 		for (index[0] = 0; index[0] < fst.size(); index[0]++)
 		{
-			if (fst.at(index[0])->m_FullPath == _rFullPath)
+			if (fst.at(index[0])->m_FullPath == rFullPath)
 			{
 				DEBUG_LOG(DISCIO, "Found the directory at %u", index[0]);
 				index[1] = (u32)fst.at(index[0])->m_FileSize;
@@ -790,7 +790,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 			}
 		}
 
-		DEBUG_LOG(DISCIO,"Directory found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
+		DEBUG_LOG(DISCIO,"Directory found from %u to %u\nextracting to:\n%s",index[0],index[1],rExportFolder);
 	}
 
 	wxString dialogTitle = index[0] ? _("Extracting Directory") : _("Extracting All Files");
@@ -817,7 +817,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 
 		if (fst[i]->IsDirectory())
 		{
-			exportName = StringFromFormat("%s/%s/", _rExportFolder, fst[i]->m_FullPath.c_str());
+			exportName = StringFromFormat("%s/%s/", rExportFolder, fst[i]->m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
 			if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
@@ -834,7 +834,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		}
 		else
 		{
-			exportName = StringFromFormat("%s/%s", _rExportFolder, fst[i]->m_FullPath.c_str());
+			exportName = StringFromFormat("%s/%s", rExportFolder, fst[i]->m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
 			if (!File::Exists(exportName) && !FS->ExportFile(fst[i]->m_FullPath, exportName))
@@ -899,7 +899,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
-		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("0123456789"), 2));
+		size_t partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("0123456789"), 2));
 
 		if (WiiDisc.size() > partitionNum)
 		{
@@ -908,7 +908,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 		}
 		else
 		{
-			PanicAlertT("Partition doesn't exist: %d", partitionNum);
+			PanicAlertT("Partition doesn't exist: %zu", partitionNum);
 			return;
 		}
 	}

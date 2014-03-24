@@ -23,21 +23,21 @@ void Init();
 void Shutdown();
 
 // Reset
-void Reset(bool _bHard = false);
+void Reset(bool bHard = false);
 
 // Do State
 void DoState(PointerWrap &p);
 
 // Set default content file
-void SetDefaultContentFile(const std::string& _rFilename);
-void ES_DIVerify(u8 *_pTMD, u32 _sz);
+void SetDefaultContentFile(const std::string& rFilename);
+void ES_DIVerify(u8 *pTMD, u32 sz);
 
 void SDIO_EventNotify();
 
 
-IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName);
+IWII_IPC_HLE_Device* CreateFileIO(u32 DeviceID, const std::string& rDeviceName);
 
-IWII_IPC_HLE_Device* GetDeviceByName(const std::string& _rDeviceName);
+IWII_IPC_HLE_Device* GetDeviceByName(const std::string& rDeviceName);
 IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
 int getFreeDeviceId();
 
@@ -47,10 +47,10 @@ void Update();
 // Update Devices
 void UpdateDevices();
 
-void ExecuteCommand(u32 _Address);
+void ExecuteCommand(u32 Address);
 
-void EnqRequest(u32 _Address);
-void EnqReply(u32 _Address, int cycles_in_future = 0);
+void EnqRequest(u32 Address);
+void EnqReply(u32 Address, int cycles_in_future = 0);
 
 enum ECommandType
 {

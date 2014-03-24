@@ -22,11 +22,11 @@ void ProfilerStart()
 	g_profile = true;
 }
 
-void ProfilerAddDelta(int _addr, int _delta)
+void ProfilerAddDelta(int addr, int delta)
 {
 	if (g_profile)
 	{
-		g_profileMap[_addr] += _delta;
+		g_profileMap[addr] += delta;
 	}
 }
 

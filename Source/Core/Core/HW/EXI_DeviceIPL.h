@@ -13,7 +13,7 @@ public:
 	CEXIIPL();
 	virtual ~CEXIIPL();
 
-	virtual void SetCS(int _iCS) override;
+	virtual void SetCS(int iCS) override;
 	bool IsPresent() override;
 	void DoState(PointerWrap &p) override;
 
@@ -62,7 +62,7 @@ private:
 	int m_count;
 	bool m_FontsLoaded;
 
-	virtual void TransferByte(u8 &_uByte) override;
+	virtual void TransferByte(u8 &uByte) override;
 	bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
 	u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
 

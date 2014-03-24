@@ -12,7 +12,7 @@ namespace WiimoteEmu
 class Guitar : public Attachment
 {
 public:
-	Guitar(WiimoteEmu::ExtensionReg& _reg);
+	Guitar(WiimoteEmu::ExtensionReg& reg);
 	void GetState(u8* const data, const bool focus) override;
 
 	enum

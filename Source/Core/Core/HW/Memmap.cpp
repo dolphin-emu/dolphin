@@ -215,59 +215,59 @@ u32 Read_Instruction(const u32 em_address)
 	return inst.hex;
 }
 
-void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t _iSize)
+void WriteBigEData(const u8 *pData, const u32 Address, const size_t iSize)
 {
-	memcpy(GetPointer(_Address), _pData, _iSize);
+	memcpy(GetPointer(Address), pData, iSize);
 }
 
-void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
+void Memset(const u32 Address, const u8 iValue, const u32 iLength)
 {
-	u8 *ptr = GetPointer(_Address);
+	u8 *ptr = GetPointer(Address);
 	if (ptr != nullptr)
 	{
-		memset(ptr,_iValue,_iLength);
+		memset(ptr,iValue,iLength);
 	}
 	else
 	{
-		for (u32 i = 0; i < _iLength; i++)
-			Write_U8(_iValue, _Address + i);
+		for (u32 i = 0; i < iLength; i++)
+			Write_U8(iValue, Address + i);
 	}
 }
 
-void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
+void DMA_LCToMemory(const u32 MemAddr, const u32 CacheAddr, const u32 iNumBlocks)
 {
-	const u8 *src = GetCachePtr() + (_CacheAddr & 0x3FFFF);
-	u8 *dst = GetPointer(_MemAddr);
+	const u8 *src = GetCachePtr() + (CacheAddr & 0x3FFFF);
+	u8 *dst = GetPointer(MemAddr);
 
-	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	if ((dst != nullptr) && (src != nullptr) && (MemAddr & 3) == 0 && (CacheAddr & 3) == 0)
 	{
-		memcpy(dst, src, 32 * _iNumBlocks);
+		memcpy(dst, src, 32 * iNumBlocks);
 	}
 	else
 	{
-		for (u32 i = 0; i < 32 * _iNumBlocks; i++)
+		for (u32 i = 0; i < 32 * iNumBlocks; i++)
 		{
-			u8 Temp = Read_U8(_CacheAddr + i);
-			Write_U8(Temp, _MemAddr + i);
+			u8 Temp = Read_U8(CacheAddr + i);
+			Write_U8(Temp, MemAddr + i);
 		}
 	}
 }
 
-void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlocks)
+void DMA_MemoryToLC(const u32 CacheAddr, const u32 MemAddr, const u32 iNumBlocks)
 {
-	const u8 *src = GetPointer(_MemAddr);
-	u8 *dst = GetCachePtr() + (_CacheAddr & 0x3FFFF);
+	const u8 *src = GetPointer(MemAddr);
+	u8 *dst = GetCachePtr() + (CacheAddr & 0x3FFFF);
 
-	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	if ((dst != nullptr) && (src != nullptr) && (MemAddr & 3) == 0 && (CacheAddr & 3) == 0)
 	{
-		memcpy(dst, src, 32 * _iNumBlocks);
+		memcpy(dst, src, 32 * iNumBlocks);
 	}
 	else
 	{
-		for (u32 i = 0; i < 32 * _iNumBlocks; i++)
+		for (u32 i = 0; i < 32 * iNumBlocks; i++)
 		{
-			u8 Temp = Read_U8(_MemAddr + i);
-			Write_U8(Temp, _CacheAddr + i);
+			u8 Temp = Read_U8(MemAddr + i);
+			Write_U8(Temp, CacheAddr + i);
 		}
 	}
 }
@@ -296,16 +296,16 @@ void GetString(std::string& _string, const u32 em_address)
 // GetPointer must always return an address in the bottom 32 bits of address space, so that 64-bit
 // programs don't have problems directly addressing any part of memory.
 // TODO re-think with respect to other BAT setups...
-u8 *GetPointer(const u32 _Address)
+u8 *GetPointer(const u32 Address)
 {
-	switch (_Address >> 28)
+	switch (Address >> 28)
 	{
 	case 0x0:
 	case 0x8:
-		if ((_Address & 0xfffffff) < REALRAM_SIZE)
-			return m_pPhysicalRAM + (_Address & RAM_MASK);
+		if ((Address & 0xfffffff) < REALRAM_SIZE)
+			return m_pPhysicalRAM + (Address & RAM_MASK);
 	case 0xc:
-		switch (_Address >> 24)
+		switch (Address >> 24)
 		{
 		case 0xcc:
 		case 0xcd:
@@ -315,8 +315,8 @@ u8 *GetPointer(const u32 _Address)
 			break;
 
 		default:
-			if ((_Address & 0xfffffff) < REALRAM_SIZE)
-				return m_pPhysicalRAM + (_Address & RAM_MASK);
+			if ((Address & 0xfffffff) < REALRAM_SIZE)
+				return m_pPhysicalRAM + (Address & RAM_MASK);
 		}
 
 	case 0x1:
@@ -324,24 +324,24 @@ u8 *GetPointer(const u32 _Address)
 	case 0xd:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
-			if ((_Address & 0xfffffff) < EXRAM_SIZE)
-				return m_pPhysicalEXRAM + (_Address & EXRAM_MASK);
+			if ((Address & 0xfffffff) < EXRAM_SIZE)
+				return m_pPhysicalEXRAM + (Address & EXRAM_MASK);
 		}
 		else
 			break;
 
 	case 0xe:
-		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
-			return GetCachePtr() + (_Address & L1_CACHE_MASK);
+		if (Address < (0xE0000000 + L1_CACHE_SIZE))
+			return GetCachePtr() + (Address & L1_CACHE_MASK);
 		else
 			break;
 
 	default:
 		if (bFakeVMEM)
-			return m_pVirtualFakeVMEM + (_Address & FAKEVMEM_MASK);
+			return m_pVirtualFakeVMEM + (Address & FAKEVMEM_MASK);
 	}
 
-	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", _Address, PC, LR);
+	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", Address, PC, LR);
 
 	return nullptr;
 }

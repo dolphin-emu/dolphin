@@ -169,9 +169,9 @@ extern std::recursive_mutex g_refresh_lock;
 extern WiimoteScanner g_wiimote_scanner;
 extern Wiimote *g_wiimotes[MAX_BBMOTES];
 
-void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
-void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
-void Update(int _WiimoteNumber);
+void InterruptChannel(int WiimoteNumber, u16 channelID, const void* pData, u32 Size);
+void ControlChannel(int WiimoteNumber, u16 channelID, const void* pData, u32 Size);
+void Update(int WiimoteNumber);
 
 void DoState(PointerWrap &p);
 void StateChange(EMUSTATE_CHANGE newState);

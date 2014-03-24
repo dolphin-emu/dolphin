@@ -92,7 +92,7 @@ private:
 	void flushMemBackedRegs();
 
 public:
-	DSPJitRegCache(DSPEmitter &_emitter);
+	DSPJitRegCache(DSPEmitter &emitter);
 
 	//for branching into multiple control flows
 	DSPJitRegCache(const DSPJitRegCache &cache);
@@ -100,7 +100,7 @@ public:
 
 	~DSPJitRegCache();
 
-	//merge must be done _before_ leaving the code branch, so we can fix
+	//merge must be done before_ leaving the code branch, so we can fix
 	//up any differences in state
 	void flushRegs(DSPJitRegCache &cache, bool emit = true);
 	/* since some use cases are non-trivial, some examples:
@@ -169,7 +169,7 @@ public:
 	Gen::X64Reg makeABICallSafe(Gen::X64Reg reg);
 
 	//gives no SCALE_RIP with abs(offset) >= 0x80000000
-	//32/64 bit writes allowed when the register has a _64 or _32 suffix
+	//32/64 bit writes allowed when the register has a 64 or 32 suffix
 	//only 16 bit writes allowed without any suffix.
 	void getReg(int reg, Gen::OpArg &oparg, bool load = true);
 	//done with all usages of OpArg above

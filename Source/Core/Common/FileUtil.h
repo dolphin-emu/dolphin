@@ -106,7 +106,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename);
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string &filename);
 
-// Scans the directory tree gets, starting from _Directory and adds the
+// Scans the directory tree gets, starting from Directory and adds the
 // results into parentEntry. Returns the number of files+directories found
 u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry);
 

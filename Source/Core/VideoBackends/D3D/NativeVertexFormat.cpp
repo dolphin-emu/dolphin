@@ -23,7 +23,7 @@ public:
 	D3DVertexFormat() : m_num_elems(0), m_vs_bytecode(nullptr), m_layout(nullptr) {}
 	~D3DVertexFormat() { SAFE_RELEASE(m_vs_bytecode); SAFE_RELEASE(m_layout); }
 
-	void Initialize(const PortableVertexDeclaration &_vtx_decl);
+	void Initialize(const PortableVertexDeclaration &vtx_decl);
 	void SetupVertexPointers();
 };
 
@@ -57,11 +57,11 @@ DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
 	return retval;
 }
 
-void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
+void D3DVertexFormat::Initialize(const PortableVertexDeclaration &vtx_decl)
 {
-	vertex_stride = _vtx_decl.stride;
+	vertex_stride = vtx_decl.stride;
 	memset(m_elems, 0, sizeof(m_elems));
-	const AttributeFormat* format = &_vtx_decl.position;
+	const AttributeFormat* format = &vtx_decl.position;
 
 	if (format->enable)
 	{
@@ -74,7 +74,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 3; i++)
 	{
-		format = &_vtx_decl.normals[i];
+		format = &vtx_decl.normals[i];
 		if (format->enable)
 		{
 			m_elems[m_num_elems].SemanticName = "NORMAL";
@@ -88,7 +88,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 2; i++)
 	{
-		format = &_vtx_decl.colors[i];
+		format = &vtx_decl.colors[i];
 		if (format->enable)
 		{
 			m_elems[m_num_elems].SemanticName = "COLOR";
@@ -102,7 +102,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 8; i++)
 	{
-		format = &_vtx_decl.texcoords[i];
+		format = &vtx_decl.texcoords[i];
 		if (format->enable)
 		{
 			m_elems[m_num_elems].SemanticName = "TEXCOORD";
@@ -114,7 +114,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		}
 	}
 
-	format = &_vtx_decl.posmtx;
+	format = &vtx_decl.posmtx;
 	if (format->enable)
 	{
 		m_elems[m_num_elems].SemanticName = "BLENDINDICES";

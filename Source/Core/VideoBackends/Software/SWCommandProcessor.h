@@ -57,7 +57,7 @@ namespace SWCommandProcessor
 		};
 		u16 Hex;
 		UCPStatusReg() {Hex = 0; }
-		UCPStatusReg(u16 _hex) {Hex = _hex; }
+		UCPStatusReg(u16 hex) {Hex = hex; }
 	};
 
 	// Fifo Control Register
@@ -75,7 +75,7 @@ namespace SWCommandProcessor
 		};
 		u16 Hex;
 		UCPCtrlReg() {Hex = 0; }
-		UCPCtrlReg(u16 _hex) {Hex = _hex; }
+		UCPCtrlReg(u16 hex) {Hex = hex; }
 	};
 
 	// Fifo Control Register
@@ -90,7 +90,7 @@ namespace SWCommandProcessor
 		};
 		u16 Hex;
 		UCPClearReg() {Hex = 0; }
-		UCPClearReg(u16 _hex) {Hex = _hex; }
+		UCPClearReg(u16 hex) {Hex = hex; }
 	};
 
 	struct CPReg

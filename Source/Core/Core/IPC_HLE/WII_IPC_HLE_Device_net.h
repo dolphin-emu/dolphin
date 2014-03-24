@@ -145,7 +145,7 @@ struct nwc24_config_t
 	};
 
 	u32 magic;      /* 'WcCf' 0x57634366 */
-	u32 _unk_04;    /* must be 8 */
+	u32 unk_04;    /* must be 8 */
 	u64 nwc24_id;
 	u32 id_generation;
 	u32 creation_stage; /* 0==not_generated;1==generated;2==registered; */
@@ -281,8 +281,8 @@ public:
 	u32 Magic(){return Common::swap32(config.magic);}
 	void SetMagic(u32 magic){config.magic = Common::swap32(magic);}
 
-	u32 Unk(){return Common::swap32(config._unk_04);}
-	void SetUnk(u32 _unk_04){config._unk_04 = Common::swap32(_unk_04);}
+	u32 Unk(){return Common::swap32(config.unk_04);}
+	void SetUnk(u32 unk_04){config.unk_04 = Common::swap32(unk_04);}
 
 	u32 IdGen(){return Common::swap32(config.id_generation);}
 	void SetIdGen(u32 id_generation){config.id_generation = Common::swap32(id_generation);}
@@ -390,13 +390,13 @@ public:
 class CWII_IPC_HLE_Device_net_kd_request : public IWII_IPC_HLE_Device
 {
 public:
-	CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_net_kd_request(u32 DeviceID, const std::string& rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
-	virtual bool IOCtl(u32 _CommandAddress) override;
+	virtual bool Open(u32 CommandAddress, u32 Mode) override;
+	virtual bool Close(u32 CommandAddress, bool bForce) override;
+	virtual bool IOCtl(u32 CommandAddress) override;
 
 private:
 	enum
@@ -446,8 +446,8 @@ private:
 class CWII_IPC_HLE_Device_net_kd_time : public IWII_IPC_HLE_Device
 {
 public:
-	CWII_IPC_HLE_Device_net_kd_time(u32 _DeviceID, const std::string& _rDeviceName)
-		: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+	CWII_IPC_HLE_Device_net_kd_time(u32 DeviceID, const std::string& rDeviceName)
+		: IWII_IPC_HLE_Device(DeviceID, rDeviceName)
 		, rtc()
 		, utcdiff()
 	{
@@ -456,26 +456,26 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_kd_time()
 	{}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
+	virtual bool Open(u32 CommandAddress, u32 Mode) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
-		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+		Memory::Write_U32(GetDeviceID(), CommandAddress+4);
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override
+	virtual bool Close(u32 CommandAddress, bool bForce) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
-		if (!_bForce)
-			Memory::Write_U32(0, _CommandAddress + 4);
+		if (!bForce)
+			Memory::Write_U32(0, CommandAddress + 4);
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress) override
+	virtual bool IOCtl(u32 CommandAddress) override
 	{
-		u32 Parameter = Memory::Read_U32(_CommandAddress + 0x0C);
-		u32 BufferIn  = Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
+		u32 Parameter = Memory::Read_U32(CommandAddress + 0x0C);
+		u32 BufferIn  = Memory::Read_U32(CommandAddress + 0x10);
+		u32 BufferOut = Memory::Read_U32(CommandAddress + 0x18);
 
 		u32 result = 0;
 		u32 common_result = 0;
@@ -514,7 +514,7 @@ public:
 
 		// write return values
 		Memory::Write_U32(common_result, BufferOut);
-		Memory::Write_U32(result, _CommandAddress + 4);
+		Memory::Write_U32(result, CommandAddress + 4);
 		return true;
 	}
 
@@ -592,14 +592,14 @@ enum NET_IOCTL
 class CWII_IPC_HLE_Device_net_ip_top : public IWII_IPC_HLE_Device
 {
 public:
-	CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_net_ip_top(u32 DeviceID, const std::string& rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_net_ip_top();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
-	virtual bool IOCtl(u32 _CommandAddress) override;
-	virtual bool IOCtlV(u32 _CommandAddress) override;
+	virtual bool Open(u32 CommandAddress, u32 Mode) override;
+	virtual bool Close(u32 CommandAddress, bool bForce) override;
+	virtual bool IOCtl(u32 CommandAddress) override;
+	virtual bool IOCtlV(u32 CommandAddress) override;
 
 	virtual u32 Update() override;
 
@@ -607,7 +607,7 @@ private:
 #ifdef _WIN32
 	WSADATA InitData;
 #endif
-	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
+	u32 ExecuteCommand(u32 Parameter, u32 BufferIn, u32 BufferInSize, u32 BufferOut, u32 BufferOutSize);
 	u32 ExecuteCommandV(SIOCtlVBuffer& CommandBuffer);
 };
 
@@ -616,13 +616,13 @@ private:
 class CWII_IPC_HLE_Device_net_ncd_manage : public IWII_IPC_HLE_Device
 {
 public:
-	CWII_IPC_HLE_Device_net_ncd_manage(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_net_ncd_manage(u32 DeviceID, const std::string& rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
-	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
-	virtual bool IOCtlV(u32 _CommandAddress) override;
+	virtual bool Open(u32 CommandAddress, u32 Mode) override;
+	virtual bool Close(u32 CommandAddress, bool bForce) override;
+	virtual bool IOCtlV(u32 CommandAddress) override;
 
 private:
 	enum

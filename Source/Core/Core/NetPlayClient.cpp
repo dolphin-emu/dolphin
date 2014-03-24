@@ -642,7 +642,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 
 
 // called from ---CPU--- thread
-bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
+bool NetPlayClient::WiimoteUpdate(int number, u8* data, const u8 size)
 {
 	NetWiimote nw;
 	static u8 previousSize[4] = {4,4,4,4};
@@ -650,7 +650,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
 	// in game mapping for this local wiimote
-	unsigned int in_game_num = LocalWiimoteToInGameWiimote(_number);
+	unsigned int in_game_num = LocalWiimoteToInGameWiimote(number);
 	// does this local wiimote map in game?
 	if (in_game_num < 4)
 	{
@@ -686,7 +686,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 
 	} // unlock players
 
-	while (previousSize[_number] == size && !m_wiimote_buffer[_number].Pop(nw))
+	while (previousSize[number] == size && !m_wiimote_buffer[number].Pop(nw))
 	{
 		// wait for receiving thread to push some data
 		Common::SleepCurrentThread(1);
@@ -695,14 +695,14 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 	}
 
 	// Use a blank input, since we may not have any valid input.
-	if (previousSize[_number] != size)
+	if (previousSize[number] != size)
 	{
 		nw.resize(size, 0);
-		m_wiimote_buffer[_number].Push(nw);
-		m_wiimote_buffer[_number].Push(nw);
-		m_wiimote_buffer[_number].Push(nw);
-		m_wiimote_buffer[_number].Push(nw);
-		m_wiimote_buffer[_number].Push(nw);
+		m_wiimote_buffer[number].Push(nw);
+		m_wiimote_buffer[number].Push(nw);
+		m_wiimote_buffer[number].Push(nw);
+		m_wiimote_buffer[number].Push(nw);
+		m_wiimote_buffer[number].Push(nw);
 	}
 
 	// We should have used a blank input last time, so now we just need to pop through the old buffer, until we reach a good input
@@ -712,7 +712,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 		// Clear the buffer and wait for new input, since we probably just changed reporting mode.
 		while (nw.size() != size)
 		{
-			while (!m_wiimote_buffer[_number].Pop(nw))
+			while (!m_wiimote_buffer[number].Pop(nw))
 			{
 				Common::SleepCurrentThread(1);
 				if (false == m_is_running)
@@ -731,7 +731,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 		}
 	}
 
-	previousSize[_number] = size;
+	previousSize[number] = size;
 	memcpy(data, nw.data(), size);
 	return true;
 }

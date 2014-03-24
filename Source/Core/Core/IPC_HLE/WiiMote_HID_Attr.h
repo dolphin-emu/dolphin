@@ -11,9 +11,9 @@ struct SAttrib
 	u8* pData;
 	u16 size;
 
-	SAttrib(u16 _ID, u8* _Data, u16 _size)
+	SAttrib(u16 _ID, u8* Data, u16 _size)
 		: ID(_ID)
-		, pData(_Data)
+		, pData(Data)
 		, size(_size)
 	{ }
 };
@@ -23,4 +23,4 @@ typedef std::vector<SAttrib> CAttribTable;
 const CAttribTable& GetAttribTable();
 #endif
 
-const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size);
+const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& size);

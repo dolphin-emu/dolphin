@@ -15,8 +15,8 @@
 
 namespace DiscIO
 {
-CVolumeGC::CVolumeGC(IBlobReader* _pReader)
-	: m_pReader(_pReader)
+CVolumeGC::CVolumeGC(IBlobReader* pReader)
+	: m_pReader(pReader)
 {}
 
 CVolumeGC::~CVolumeGC()
@@ -25,19 +25,19 @@ CVolumeGC::~CVolumeGC()
 	m_pReader = nullptr; // I don't think this makes any difference, but anyway
 }
 
-bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
+bool CVolumeGC::Read(u64 Offset, u64 Length, u8* pBuffer) const
 {
 	if (m_pReader == nullptr)
 		return false;
 
-	FileMon::FindFilename(_Offset);
+	FileMon::FindFilename(Offset);
 
-	return m_pReader->Read(_Offset, _Length, _pBuffer);
+	return m_pReader->Read(Offset, Length, pBuffer);
 }
 
-bool CVolumeGC::RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const
+bool CVolumeGC::RAWRead(u64 Offset, u64 Length, u8* pBuffer) const
 {
-	return Read(_Offset, _Length, _pBuffer);
+	return Read(Offset, Length, pBuffer);
 }
 
 std::string CVolumeGC::GetUniqueID() const

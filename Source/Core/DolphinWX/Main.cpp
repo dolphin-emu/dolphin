@@ -124,7 +124,7 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	STACKTRACE2(file.GetHandle(), e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
 #endif
 	file.Close();
-	_flushall();
+	flushall();
 
 	//LeaveCriticalSection(&g_uefcs);
 	return EXCEPTION_CONTINUE_SEARCH;
@@ -233,9 +233,9 @@ bool DolphinApp::OnInit()
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32
-	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+	int tmpflag = CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
 	tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
-	_CrtSetDbgFlag(tmpflag);
+	CrtSetDbgFlag(tmpflag);
 #endif
 
 	// Register message box and translation handlers
@@ -679,16 +679,16 @@ void Host_UpdateStatusBar(const std::string& text, int Field)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-void Host_SetWiiMoteConnectionState(int _State)
+void Host_SetWiiMoteConnectionState(int State)
 {
 	static int currentState = -1;
-	if (_State == currentState)
+	if (State == currentState)
 		return;
-	currentState = _State;
+	currentState = State;
 
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 
-	switch (_State)
+	switch (State)
 	{
 	case 0: event.SetString(_("Not connected")); break;
 	case 1: event.SetString(_("Connecting...")); break;

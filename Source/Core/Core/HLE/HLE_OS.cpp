@@ -14,7 +14,7 @@
 namespace HLE_OS
 {
 
-void GetStringVA(std::string& _rOutBuffer, u32 strReg = 3);
+void GetStringVA(std::string& rOutBuffer, u32 strReg = 3);
 
 void HLE_OSPanic()
 {
@@ -87,9 +87,9 @@ void HLE_write_console()
 	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());
 }
 
-void GetStringVA(std::string& _rOutBuffer, u32 strReg)
+void GetStringVA(std::string& rOutBuffer, u32 strReg)
 {
-	_rOutBuffer = "";
+	rOutBuffer = "";
 	char ArgumentBuffer[256];
 	u32 ParameterCounter = strReg+1;
 	u32 FloatingParameterCounter = 1;
@@ -107,7 +107,7 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 			char* pArgument = ArgumentBuffer;
 			*pArgument++ = *pString++;
 			if (*pString == '%') {
-				_rOutBuffer += "%";
+				rOutBuffer += "%";
 				pString++;
 				continue;
 			}
@@ -137,20 +137,20 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 			switch (*pString)
 			{
 			case 's':
-				_rOutBuffer += StringFromFormat(ArgumentBuffer, (char*)Memory::GetPointer((u32)Parameter));
+				rOutBuffer += StringFromFormat(ArgumentBuffer, (char*)Memory::GetPointer((u32)Parameter));
 				break;
 
 			case 'd':
 			case 'i':
 			{
 				//u64 Double = Memory::Read_U64(Parameter);
-				_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
+				rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
 				break;
 			}
 
 			case 'f':
 			{
-				_rOutBuffer += StringFromFormat(ArgumentBuffer,
+				rOutBuffer += StringFromFormat(ArgumentBuffer,
 												rPS0(FloatingParameterCounter));
 				FloatingParameterCounter++;
 				ParameterCounter--;
@@ -159,23 +159,23 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 
 			case 'p':
 				// Override, so 64bit dolphin prints 32bit pointers, since the ppc is 32bit :)
-				_rOutBuffer += StringFromFormat("%x", (u32)Parameter);
+				rOutBuffer += StringFromFormat("%x", (u32)Parameter);
 				break;
 
 			default:
-				_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
+				rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
 				break;
 			}
 			pString++;
 		}
 		else
 		{
-			_rOutBuffer += StringFromFormat("%c", *pString);
+			rOutBuffer += StringFromFormat("%c", *pString);
 			pString++;
 		}
 	}
-	if (_rOutBuffer[_rOutBuffer.length() - 1] == '\n')
-		_rOutBuffer.resize(_rOutBuffer.length() - 1);
+	if (rOutBuffer[rOutBuffer.length() - 1] == '\n')
+		rOutBuffer.resize(rOutBuffer.length() - 1);
 }
 
 }  // end of namespace HLE_OS

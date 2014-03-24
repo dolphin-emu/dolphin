@@ -17,21 +17,21 @@
 
 
 // --- interface IEXIDevice ---
-void IEXIDevice::ImmWrite(u32 _uData, u32 _uSize)
+void IEXIDevice::ImmWrite(u32 uData, u32 uSize)
 {
-	while (_uSize--)
+	while (uSize--)
 	{
-		u8 uByte = _uData >> 24;
+		u8 uByte = uData >> 24;
 		TransferByte(uByte);
-		_uData <<= 8;
+		uData <<= 8;
 	}
 }
 
-u32 IEXIDevice::ImmRead(u32 _uSize)
+u32 IEXIDevice::ImmRead(u32 uSize)
 {
 	u32 uResult = 0;
 	u32 uPosition = 0;
-	while (_uSize--)
+	while (uSize--)
 	{
 		u8 uByte = 0;
 		TransferByte(uByte);
@@ -40,24 +40,24 @@ u32 IEXIDevice::ImmRead(u32 _uSize)
 	return uResult;
 }
 
-void IEXIDevice::DMAWrite(u32 _uAddr, u32 _uSize)
+void IEXIDevice::DMAWrite(u32 uAddr, u32 uSize)
 {
 	// _dbg_assert_(EXPANSIONINTERFACE, 0);
-	while (_uSize--)
+	while (uSize--)
 	{
-		u8 uByte = Memory::Read_U8(_uAddr++);
+		u8 uByte = Memory::Read_U8(uAddr++);
 		TransferByte(uByte);
 	}
 }
 
-void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize)
+void IEXIDevice::DMARead(u32 uAddr, u32 uSize)
 {
 	// _dbg_assert_(EXPANSIONINTERFACE, 0);
-	while (_uSize--)
+	while (uSize--)
 	{
 		u8 uByte = 0;
 		TransferByte(uByte);
-		Memory::Write_U8(uByte, _uAddr++);
+		Memory::Write_U8(uByte, uAddr++);
 	}
 };
 
@@ -70,11 +70,11 @@ class CEXIDummy : public IEXIDevice
 {
 	std::string m_strName;
 
-	void TransferByte(u8& _byte) override {}
+	void TransferByte(u8& byte) override {}
 
 public:
-	CEXIDummy(const std::string& _strName) :
-	  m_strName(_strName)
+	CEXIDummy(const std::string& strName) :
+	  m_strName(strName)
 	{
 	}
 
