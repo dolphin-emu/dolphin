@@ -108,11 +108,6 @@ public:
 		}
 	}
 
-	static T MaxVal()
-	{
-		return ((~(T)0) >> (8*sizeof(T) - bits + (std::size_t)std::numeric_limits<T>::is_signed));
-	}
-
 private:
 	// StorageType is T for non-enum types and the underlying type of T if
 	// T is an enumeration. Note that T is wrapped within an enable_if in the
