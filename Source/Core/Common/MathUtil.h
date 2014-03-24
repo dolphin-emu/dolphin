@@ -36,35 +36,41 @@ static const u32 FLOAT_SIGN = 0x80000000,
 union IntDouble {
 	double d;
 	u64 i;
+
+	explicit IntDouble(u64 _i) : i(_i) {}
+	explicit IntDouble(double _d) : d(_d) {}
 };
 union IntFloat {
 	float f;
 	u32 i;
+
+	explicit IntFloat(u32 _i) : i(_i) {}
+	explicit IntFloat(float _f) : f(_f) {}
 };
 
 inline bool IsINF(double d)
 {
-	IntDouble x; x.d = d;
+	IntDouble x(d);
 	return (x.i & ~DOUBLE_SIGN) == DOUBLE_EXP;
 }
 
 inline bool IsNAN(double d)
 {
-	IntDouble x; x.d = d;
+	IntDouble x(d);
 	return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
 	       ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO);
 }
 
 inline bool IsQNAN(double d)
 {
-	IntDouble x; x.d = d;
+	IntDouble x(d);
 	return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
 	       ((x.i & DOUBLE_QBIT) == DOUBLE_QBIT);
 }
 
 inline bool IsSNAN(double d)
 {
-	IntDouble x; x.d = d;
+	IntDouble x(d);
 	return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
 	       ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO) &&
 	       ((x.i & DOUBLE_QBIT) == DOUBLE_ZERO);
@@ -72,7 +78,7 @@ inline bool IsSNAN(double d)
 
 inline float FlushToZero(float f)
 {
-	IntFloat x; x.f = f;
+	IntFloat x(f);
 	if ((x.i & FLOAT_EXP) == 0)
 	{
 		x.i &= FLOAT_SIGN;  // turn into signed zero
@@ -82,7 +88,7 @@ inline float FlushToZero(float f)
 
 inline double FlushToZero(double d)
 {
-	IntDouble x; x.d = d;
+	IntDouble x(d);
 	if ((x.i & DOUBLE_EXP) == 0)
 	{
 		x.i &= DOUBLE_SIGN;  // turn into signed zero

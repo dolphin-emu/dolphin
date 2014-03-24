@@ -15,8 +15,7 @@ namespace MathUtil
 u32 ClassifyDouble(double dvalue)
 {
 	// TODO: Optimize the below to be as fast as possible.
-	IntDouble value;
-	value.d = dvalue;
+	IntDouble value(dvalue);
 	u64 sign = value.i & DOUBLE_SIGN;
 	u64 exp  = value.i & DOUBLE_EXP;
 	if (exp > DOUBLE_ZERO && exp < DOUBLE_EXP)
@@ -55,8 +54,7 @@ u32 ClassifyDouble(double dvalue)
 u32 ClassifyFloat(float fvalue)
 {
 	// TODO: Optimize the below to be as fast as possible.
-	IntFloat value;
-	value.f = fvalue;
+	IntFloat value(fvalue);
 	u32 sign = value.i & FLOAT_SIGN;
 	u32 exp  = value.i & FLOAT_EXP;
 	if (exp > FLOAT_ZERO && exp < FLOAT_EXP)
