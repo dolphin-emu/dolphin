@@ -38,8 +38,6 @@
 #include <limits>
 #include <type_traits>
 
-#include "CommonTypes.h"
-
 /*
  * Abstract bitfield class
  *
