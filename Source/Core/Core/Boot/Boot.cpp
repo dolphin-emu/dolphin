@@ -61,7 +61,7 @@ void CBoot::Load_FST(bool _bIsWii)
 	Memory::Write_U32(maxFstSize, 0x0000003c);
 }
 
-void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
+void CBoot::UpdateDebugger_MapLoaded()
 {
 	Host_NotifyMapLoaded();
 }
