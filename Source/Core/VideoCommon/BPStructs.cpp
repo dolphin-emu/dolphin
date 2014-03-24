@@ -133,8 +133,8 @@ void BPWritten(const BPCmd& bp)
 		SetLineWidth();
 		break;
 	case BPMEM_ZMODE: // Depth Control
-		PRIM_LOG("zmode: test=%d, func=%d, upd=%d", bpmem.zmode.testenable, bpmem.zmode.func,
-		bpmem.zmode.updateenable);
+		PRIM_LOG("zmode: test=%d, func=%d, upd=%d", (int)bpmem.zmode.testenable,
+		         (int)bpmem.zmode.func, (int)bpmem.zmode.updateenable);
 		SetDepthMode();
 		break;
 	case BPMEM_BLENDMODE: // Blending Control
@@ -142,8 +142,9 @@ void BPWritten(const BPCmd& bp)
 			if (bp.changes & 0xFFFF)
 			{
 				PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d",
-					bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
-					bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
+				         (int)bpmem.blendmode.blendenable, (int)bpmem.blendmode.logicopenable, (int)bpmem.blendmode.colorupdate,
+				         (int)bpmem.blendmode.alphaupdate, (int)bpmem.blendmode.dstfactor, (int)bpmem.blendmode.srcfactor,
+				         (int)bpmem.blendmode.subtract, (int)bpmem.blendmode.logicmode);
 
 				// Set LogicOp Blending Mode
 				if (bp.changes & 0xF002) // logicopenable | logicmode
@@ -304,8 +305,10 @@ void BPWritten(const BPCmd& bp)
 			PixelShaderManager::SetFogColorChanged();
 		break;
 	case BPMEM_ALPHACOMPARE: // Compare Alpha Values
-		PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d", bpmem.alpha_test.ref0,
-				bpmem.alpha_test.ref1, bpmem.alpha_test.comp0, bpmem.alpha_test.comp1, bpmem.alpha_test.logic);
+		PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d",
+		         (int)bpmem.alpha_test.ref0, (int)bpmem.alpha_test.ref1,
+		         (int)bpmem.alpha_test.comp0, (int)bpmem.alpha_test.comp1,
+		         (int)bpmem.alpha_test.logic);
 		if (bp.changes & 0xFFFF)
 			PixelShaderManager::SetAlpha();
 		if (bp.changes)
