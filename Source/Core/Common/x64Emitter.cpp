@@ -126,32 +126,34 @@ void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 	if (customOp == -1)       customOp = operandReg;
 #if _M_X86_64
 	u8 op = 0x40;
+	// REX.W (whether operation is a 64-bit operation)
 	if (opBits == 64)         op |= 8;
+	// REX.R (whether ModR/M reg field refers to R8-R15.
 	if (customOp & 8)         op |= 4;
+	// REX.X (whether ModR/M SIB index field refers to R8-R15)
 	if (indexReg & 8)         op |= 2;
-	if (offsetOrBaseReg & 8)  op |= 1; //TODO investigate if this is dangerous
+	// REX.B (whether ModR/M rm or SIB base or opcode reg field refers to R8-R15)
+	if (offsetOrBaseReg & 8)  op |= 1;
+	// Write REX if wr have REX bits to write, or if the operation accesses
+	// SIL, DIL, BPL, or SPL.
 	if (op != 0x40 ||
-		(bits == 8 && (offsetOrBaseReg & 0x10c) == 4) ||
+		(scale == SCALE_NONE && bits == 8 && (offsetOrBaseReg & 0x10c) == 4) ||
 		(opBits == 8 && (customOp & 0x10c) == 4)) {
 		emit->Write8(op);
-		_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 0x100) == 0 || bits != 8);
-		_dbg_assert_(DYNA_REC, (customOp & 0x100) == 0 || opBits != 8);
-	} else {
-		_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 0x10c) == 0 ||
-				(offsetOrBaseReg & 0x10c) == 0x104 ||
-				bits != 8);
-		_dbg_assert_(DYNA_REC, (customOp & 0x10c) == 0 ||
-				(customOp & 0x10c) == 0x104 ||
-				opBits != 8);
+		// Check the operation doesn't access AH, BH, CH, or DH.
+		_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 0x100) == 0);
+		_dbg_assert_(DYNA_REC, (customOp & 0x100) == 0);
 	}
-
 #else
+	// Make sure we don't perform a 64-bit operation.
 	_dbg_assert_(DYNA_REC, opBits != 64);
-	_dbg_assert_(DYNA_REC, (customOp & 8) == 0 || customOp == -1);
+	// Make sure the operation doesn't access R8-R15 registers.
+	_dbg_assert_(DYNA_REC, (customOp & 8) == 0);
 	_dbg_assert_(DYNA_REC, (indexReg & 8) == 0);
 	_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 8) == 0);
-	_dbg_assert_(DYNA_REC, opBits != 8 || (customOp & 0x10c) != 4 || customOp == -1);
-	_dbg_assert_(DYNA_REC, bits != 8 || (offsetOrBaseReg & 0x10c) != 4);
+	// Make sure the operation doesn't access SIL, DIL, BPL, or SPL.
+	_dbg_assert_(DYNA_REC, opBits != 8 || (customOp & 0x10c) != 4);
+	_dbg_assert_(DYNA_REC, scale != SCALE_NONE || bits != 8 || (offsetOrBaseReg & 0x10c) != 4);
 #endif
 }
 
