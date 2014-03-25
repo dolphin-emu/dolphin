@@ -80,9 +80,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		overlayJoysticks.add(initializeOverlayJoystick(context,
 				R.drawable.gcpad_joystick_range, R.drawable.gcpad_joystick,
 				ButtonType.STICK_MAIN));
-        overlayJoysticks.add(initializeOverlayJoystick(context,
-                R.drawable.gcpad_cstick_range, R.drawable.gcpad_cstick,
-                ButtonType.STICK_C));
+		overlayJoysticks.add(initializeOverlayJoystick(context,
+				R.drawable.gcpad_cstick_range, R.drawable.gcpad_cstick,
+				ButtonType.STICK_C));
 
 		// Set the on touch listener.
 		setOnTouchListener(this);
