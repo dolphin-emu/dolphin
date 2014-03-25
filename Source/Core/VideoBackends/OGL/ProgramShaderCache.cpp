@@ -384,8 +384,7 @@ void ProgramShaderCache::Init(void)
 				File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 			char cache_filename[MAX_PATH];
-			sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+			sprintf(cache_filename, "%sogl-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str());
 
 			ProgramShaderCacheInserter inserter;
 			g_program_disk_cache.OpenAndRead(cache_filename, inserter);
