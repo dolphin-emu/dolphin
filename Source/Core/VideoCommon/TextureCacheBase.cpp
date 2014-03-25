@@ -14,6 +14,7 @@
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/TexelDecoder.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -29,6 +30,7 @@ TextureCache *g_texture_cache;
 
 GC_ALIGNED16(u8 *TextureCache::temp) = nullptr;
 unsigned int TextureCache::temp_size;
+std::unique_ptr<TextureDecoder> TextureCache::m_texture_decoder;
 
 TextureCache::TexCache TextureCache::textures;
 
@@ -45,8 +47,6 @@ TextureCache::TextureCache()
 	temp_size = 2048 * 2048 * 4;
 	if (!temp)
 		temp = (u8*)AllocateAlignedMemory(temp_size, 16);
-
-	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 
 	if (g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
@@ -67,6 +67,7 @@ void TextureCache::Invalidate()
 	{
 		delete tex.second;
 	}
+
 	textures.clear();
 }
 
@@ -94,7 +95,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 				HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
 
 			SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
-			TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
+			m_texture_decoder->SetTextureFormatOverlay(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 
 			invalidate_texture_cache_requested = false;
 		}
@@ -338,8 +339,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		return nullptr;
 
 	// TexelSizeInNibbles(format) * width * height / 16;
-	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat) - 1;
-	const unsigned int bsh = TexDecoder_GetBlockHeightInTexels(texformat) - 1;
+	const unsigned int bsw = TextureDecoderTools::GetBlockWidthInTexels(texformat) - 1;
+	const unsigned int bsh = TextureDecoderTools::GetBlockHeightInTexels(texformat) - 1;
 
 	unsigned int expandedWidth  = (width  + bsw) & (~bsw);
 	unsigned int expandedHeight = (height + bsh) & (~bsh);
@@ -358,7 +359,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	if (isPaletteTexture)
 		full_format = texformat | (tlutfmt << 16);
 
-	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
+	const u32 texture_size = TextureDecoderTools::GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
 
 	const u8* src_data;
 	if (from_tmem)
@@ -370,7 +371,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	tex_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	if (isPaletteTexture)
 	{
-		const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
+		const u32 palette_size = TextureDecoderTools::GetPaletteSize(texformat);
 		tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 		// NOTE: For non-paletted textures, texID is equal to the texture address.
@@ -469,14 +470,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	{
 		if (!(texformat == GX_TF_RGBA8 && from_tmem))
 		{
-			pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth,
-						expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
+			m_texture_decoder->Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt);
 		}
 		else
 		{
 			u8* src_data_gb = &texMem[bpmem.tex[stage/4].texImage2[stage%4].tmem_odd * TMEM_LINE_SIZE];
-			pcfmt = TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
+			TexelDecoder::DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
 		}
+		// Format is always RGBA32 if we aren't using custom textures
+		pcfmt = PC_TEX_FMT_RGBA32;
 	}
 
 	u32 texLevels = use_mipmaps ? (maxlevel + 1) : 1;
@@ -546,8 +548,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 				const u8*& mip_src_data = from_tmem
 					? ((level % 2) ? ptr_odd : ptr_even)
 					: src_data;
-				TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
-				mip_src_data += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
+				m_texture_decoder->Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat, tlutaddr, tlutfmt);
+				mip_src_data += TextureDecoderTools::GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
 
 				entry->Load(mip_width, mip_height, expanded_mip_width, level);
 

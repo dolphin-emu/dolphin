@@ -84,7 +84,11 @@
     <ClCompile Include="VideoBackendBase.cpp" />
     <ClCompile Include="VideoConfig.cpp" />
     <ClCompile Include="VideoState.cpp" />
-    <ClCompile Include="TextureDecoder_x64.cpp" />
+    <ClCompile Include="TexelDecoder.cpp" />
+    <ClCompile Include="TextureDecoder.cpp" />
+    <ClCompile Include="TextureDecoderGeneric.cpp" />
+    <ClCompile Include="TextureDecoderHelpers.cpp" />
+    <ClCompile Include="TextureDecoderX86.cpp" />
     <ClCompile Include="XFMemory.cpp" />
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
@@ -119,9 +123,14 @@
     <ClInclude Include="ShaderGenCommon.h" />
     <ClInclude Include="Statistics.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TexelDecoder.h" />
     <ClInclude Include="TextureCacheBase.h" />
     <ClInclude Include="TextureConversionShader.h" />
     <ClInclude Include="TextureDecoder.h" />
+    <ClInclude Include="TextureDecoderFunctions.h" />
+    <ClInclude Include="TextureDecoderGeneric.h" />
+    <ClInclude Include="TextureDecoderHelpers.h" />
+    <ClInclude Include="TextureDecoderX86.h" />
     <ClInclude Include="VertexLoader.h" />
     <ClInclude Include="VertexLoaderManager.h" />
     <ClInclude Include="VertexLoader_Color.h" />

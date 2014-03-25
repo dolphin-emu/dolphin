@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
@@ -113,6 +114,8 @@ protected:
 
 	static  GC_ALIGNED16(u8 *temp);
 	static unsigned int temp_size;
+
+	static std::unique_ptr<TextureDecoder> m_texture_decoder;
 
 private:
 	static bool CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels);

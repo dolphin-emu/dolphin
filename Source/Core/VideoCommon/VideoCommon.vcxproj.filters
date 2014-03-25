@@ -80,10 +80,22 @@
     <ClCompile Include="PixelShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="TexelDecoder.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
     <ClCompile Include="TextureConversionShader.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
-    <ClCompile Include="TextureDecoder_x64.cpp">
+    <ClCompile Include="TextureDecoder.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureDecoderGeneric.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureDecoderHelpers.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureDecoderX86.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
     <ClCompile Include="VertexShaderGen.cpp">
@@ -177,7 +189,19 @@
     <ClInclude Include="OpcodeDecoding.h">
       <Filter>Decoding</Filter>
     </ClInclude>
+    <ClInclude Include="TexelDecoder.h">
+      <Filter>Decoding</Filter>
+    </ClInclude>
     <ClInclude Include="TextureDecoder.h">
+      <Filter>Decoding</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureDecoderFunctions.h">
+      <Filter>Decoding</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureDecoderGeneric.h">
+      <Filter>Decoding</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureDecoderX86.h">
       <Filter>Decoding</Filter>
     </ClInclude>
     <ClInclude Include="BPFunctions.h">

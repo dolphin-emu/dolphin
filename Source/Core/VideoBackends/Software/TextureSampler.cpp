@@ -8,7 +8,9 @@
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/TextureSampler.h"
+#include "VideoCommon/TexelDecoder.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TextureDecoderHelpers.h"
 
 #define ALLOW_MIPMAP 1
 
@@ -132,9 +134,9 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 		int mipWidth = imageWidth + 1;
 		int mipHeight = imageHeight + 1;
 
-		int fmtWidth = TexDecoder_GetBlockWidthInTexels(ti0.format);
-		int fmtHeight = TexDecoder_GetBlockHeightInTexels(ti0.format);
-		int fmtDepth = TexDecoder_GetTexelSizeInNibbles(ti0.format);
+		int fmtWidth = TextureDecoderTools::GetBlockWidthInTexels(ti0.format);
+		int fmtHeight = TextureDecoderTools::GetBlockHeightInTexels(ti0.format);
+		int fmtDepth = TextureDecoderTools::GetTexelSizeInNibbles(ti0.format);
 
 		imageWidth >>= mip;
 		imageHeight >>= mip;
@@ -181,30 +183,30 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 
 		if (!(ti0.format == GX_TF_RGBA8 && texUnit.texImage1[subTexmap].image_type))
 		{
-			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+			TexelDecoder::DecodeTexel(sampledTex, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
 			SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
 
-			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+			TexelDecoder::DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
 			AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
 
-			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+			TexelDecoder::DecodeTexel(sampledTex, imageSrc, imageS, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
 			AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
 
-			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+			TexelDecoder::DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
 			AddTexel(sampledTex, texel, (fractS) * (fractT));
 		}
 		else
 		{
-			TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageS, imageT, imageWidth);
+			TexelDecoder::DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageS, imageT, imageWidth);
 			SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
 
-			TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageSPlus1, imageT, imageWidth);
+			TexelDecoder::DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageSPlus1, imageT, imageWidth);
 			AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
 
-			TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageS, imageTPlus1, imageWidth);
+			TexelDecoder::DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageS, imageTPlus1, imageWidth);
 			AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
 
-			TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageSPlus1, imageTPlus1, imageWidth);
+			TexelDecoder::DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageSPlus1, imageTPlus1, imageWidth);
 			AddTexel(sampledTex, texel, (fractS) * (fractT));
 		}
 
@@ -224,9 +226,9 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 		WrapCoord(imageT, tm0.wrap_t, imageHeight);
 
 		if (!(ti0.format == GX_TF_RGBA8 && texUnit.texImage1[subTexmap].image_type))
-			TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+			TexelDecoder::DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
 		else
-			TexDecoder_DecodeTexelRGBA8FromTmem(sample, imageSrc, imageSrcOdd, imageS, imageT, imageWidth);
+			TexelDecoder::DecodeTexelRGBA8FromTmem(sample, imageSrc, imageSrcOdd, imageS, imageT, imageWidth);
 	}
 }
 
