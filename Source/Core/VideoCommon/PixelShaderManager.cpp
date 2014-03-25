@@ -148,17 +148,13 @@ void PixelShaderManager::SetConstants()
 	}
 }
 
-// This one is high in profiles (0.5%).
-// TODO: Move conversion out, only store the raw color value
-// and update it when the shader constant is set, only.
-// TODO: Conversion should be checked in the context of tev_fixes..
 void PixelShaderManager::SetColorChanged(int type, int num)
 {
 	int4* c = type ? constants.kcolors : constants.colors;
-	c[num][0] = bpmem.tevregs[num].low.a;
-	c[num][3] = bpmem.tevregs[num].low.b;
-	c[num][2] = bpmem.tevregs[num].high.a;
-	c[num][1] = bpmem.tevregs[num].high.b;
+	c[num][0] = bpmem.tevregs[num].red;
+	c[num][3] = bpmem.tevregs[num].alpha;
+	c[num][2] = bpmem.tevregs[num].blue;
+	c[num][1] = bpmem.tevregs[num].green;
 	dirty = true;
 
 	PRIM_LOG("pixel %scolor%d: %d %d %d %d\n", type?"k":"", num, c[num][0], c[num][1], c[num][2], c[num][3]);

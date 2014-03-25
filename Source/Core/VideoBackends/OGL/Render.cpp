@@ -877,7 +877,7 @@ void Renderer::SetColorMask()
 	{
 		if (bpmem.blendmode.colorupdate)
 			ColorMask = GL_TRUE;
-		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24))
 			AlphaMask = GL_TRUE;
 	}
 	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
@@ -989,7 +989,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// Scale the 32-bit value returned by glReadPixels to a 24-bit
 			// value (GC uses a 24-bit Z-buffer).
 			// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-			if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+			if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 			{
 				// if Z is in 16 bit format you must return a 16 bit integer
 				z = z >> 16;
@@ -1047,15 +1047,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// check what to do with the alpha channel (GX_PokeAlphaRead)
 			PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
 
-			if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+			if (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24)
 			{
 				color = RGBA8ToRGBA6ToRGBA8(color);
 			}
-			else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+			else if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 			{
 				color = RGBA8ToRGB565ToRGBA8(color);
 			}
-			if (bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
+			if (bpmem.zcontrol.pixel_format != PEControl::RGBA6_Z24)
 			{
 				color |= 0xFF000000;
 			}
@@ -1207,7 +1207,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 {
 	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
 	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
-	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
 	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
@@ -1279,18 +1279,18 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		// adjust alpha factors
 		if (useDualSource)
 		{
-			srcidx = GX_BL_ONE;
-			dstidx = GX_BL_ZERO;
+			srcidx = BlendMode::ONE;
+			dstidx = BlendMode::ZERO;
 		}
 		else
 		{
 			// we can't use GL_DST_COLOR or GL_ONE_MINUS_DST_COLOR for source in alpha channel so use their alpha equivalent instead
-			if (srcidx == GX_BL_DSTCLR) srcidx = GX_BL_DSTALPHA;
-			if (srcidx == GX_BL_INVDSTCLR) srcidx = GX_BL_INVDSTALPHA;
+			if (srcidx == BlendMode::DSTCLR) srcidx = BlendMode::DSTALPHA;
+			if (srcidx == BlendMode::INVDSTCLR) srcidx = BlendMode::INVDSTALPHA;
 
 			// we can't use GL_SRC_COLOR or GL_ONE_MINUS_SRC_COLOR for destination in alpha channel so use their alpha equivalent instead
-			if (dstidx == GX_BL_SRCCLR) dstidx = GX_BL_SRCALPHA;
-			if (dstidx == GX_BL_INVSRCCLR) dstidx = GX_BL_INVSRCALPHA;
+			if (dstidx == BlendMode::SRCCLR) dstidx = BlendMode::SRCALPHA;
+			if (dstidx == BlendMode::INVSRCCLR) dstidx = BlendMode::INVSRCALPHA;
 		}
 		GLenum srcFactorAlpha = glSrcFactors[srcidx];
 		GLenum dstFactorAlpha = glDestFactors[dstidx];
