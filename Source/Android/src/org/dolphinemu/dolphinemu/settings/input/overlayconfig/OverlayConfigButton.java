@@ -79,6 +79,8 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 		// Set the button's icon that represents it.
 		setBackground(resizeDrawable(getResources().getDrawable(drawableId),
 		                drawableId == R.drawable.gcpad_joystick_range ? 0.30f : 0.20f));
+        setBackground(resizeDrawable(getResources().getDrawable(drawableId),
+                        drawableId == R.drawable.gcpad_cstick_range ? 0.30f : 0.20f));
 
 		// Get the SharedPreferences instance.
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);

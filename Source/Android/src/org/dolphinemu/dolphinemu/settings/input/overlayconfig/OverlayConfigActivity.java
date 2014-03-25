@@ -32,6 +32,7 @@ public final class OverlayConfigActivity extends Activity
 		final OverlayConfigButton buttonL = new OverlayConfigButton(this, "gcpad_l", R.drawable.gcpad_l);
 		final OverlayConfigButton buttonR = new OverlayConfigButton(this, "gcpad_r", R.drawable.gcpad_r);
 		final OverlayConfigButton joystick = new OverlayConfigButton(this, "gcpad_joystick_range", R.drawable.gcpad_joystick_range);
+		final OverlayConfigButton cstick = new OverlayConfigButton(this, "gcpad_cstick_range", R.drawable.gcpad_cstick_range);
 
 		// Add the buttons to the layout
 		final RelativeLayout configLayout = new RelativeLayout(this);
@@ -44,6 +45,7 @@ public final class OverlayConfigActivity extends Activity
 		configLayout.addView(buttonL);
 		configLayout.addView(buttonR);
 		configLayout.addView(joystick);
+		configLayout.addView(cstick);
 
 		// Now set the layout
 		setContentView(configLayout);
