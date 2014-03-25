@@ -396,6 +396,14 @@ TextureCache::TextureCache()
 	s_ActiveTexture = -1;
 	for (auto& gtex : s_Textures)
 		gtex = -1;
+
+#ifdef _M_X86
+	m_texture_decoder = new TextureDecoderX86();
+#else
+	m_texture_decoder = new TextureDecoder();
+#endif
+		
+	m_texture_decoder->SetTextureFormatOverlay(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 }
 
 
@@ -403,6 +411,9 @@ TextureCache::~TextureCache()
 {
 	s_ColorMatrixProgram.Destroy();
 	s_DepthMatrixProgram.Destroy();
+
+	delete m_texture_decoder;
+	m_texture_decoder = nullptr;
 }
 
 void TextureCache::DisableStage(unsigned int stage)

@@ -114,6 +114,8 @@ protected:
 	static  GC_ALIGNED16(u8 *temp);
 	static unsigned int temp_size;
 
+	static TextureDecoder *m_texture_decoder;
+
 private:
 	static bool CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels);
 	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height);
