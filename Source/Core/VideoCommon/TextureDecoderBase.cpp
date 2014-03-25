@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <cmath>
 
@@ -21,11 +8,9 @@
 #include "Common/CPUDetect.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TextureDecoderFunctions.h"
 //#include "VideoCommon/VideoCommon.h" // to get debug logs
 #include "VideoCommon/VideoConfig.h"
-
-bool TexFmt_Overlay_Enable=false;
-bool TexFmt_Overlay_Center=false;
 
 extern const char* texfmt[];
 extern const unsigned char sfont_map[];
@@ -34,458 +19,6 @@ extern const unsigned char sfont_raw[][9*10];
 // TRAM
 // STATE_TO_SAVE
  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
-
-
-// Gamecube/Wii texture decoder
-
-// Decodes all known Gamecube/Wii texture formats.
-// by ector
-
-int TexDecoder_GetTexelSizeInNibbles(int format)
-{
-	switch (format & 0x3f) {
-	case GX_TF_I4: return 1;
-	case GX_TF_I8: return 2;
-	case GX_TF_IA4: return 2;
-	case GX_TF_IA8: return 4;
-	case GX_TF_RGB565: return 4;
-	case GX_TF_RGB5A3: return 4;
-	case GX_TF_RGBA8: return 8;
-	case GX_TF_C4: return 1;
-	case GX_TF_C8: return 2;
-	case GX_TF_C14X2: return 4;
-	case GX_TF_CMPR: return 1;
-	case GX_CTF_R4:    return 1;
-	case GX_CTF_RA4:   return 2;
-	case GX_CTF_RA8:   return 4;
-	case GX_CTF_YUVA8: return 8;
-	case GX_CTF_A8:    return 2;
-	case GX_CTF_R8:    return 2;
-	case GX_CTF_G8:    return 2;
-	case GX_CTF_B8:    return 2;
-	case GX_CTF_RG8:   return 4;
-	case GX_CTF_GB8:   return 4;
-
-	case GX_TF_Z8:     return 2;
-	case GX_TF_Z16:    return 4;
-	case GX_TF_Z24X8:  return 8;
-
-	case GX_CTF_Z4:    return 1;
-	case GX_CTF_Z8M:   return 2;
-	case GX_CTF_Z8L:   return 2;
-	case GX_CTF_Z16L:  return 4;
-	default: return 1;
-	}
-}
-
-int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
-{
-	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 2;
-}
-
-int TexDecoder_GetBlockWidthInTexels(u32 format)
-{
-	switch (format)
-	{
-	case GX_TF_I4: return 8;
-	case GX_TF_I8: return 8;
-	case GX_TF_IA4: return 8;
-	case GX_TF_IA8: return 4;
-	case GX_TF_RGB565: return 4;
-	case GX_TF_RGB5A3: return 4;
-	case GX_TF_RGBA8: return  4;
-	case GX_TF_C4: return 8;
-	case GX_TF_C8: return 8;
-	case GX_TF_C14X2: return 4;
-	case GX_TF_CMPR: return 8;
-	case GX_CTF_R4: return 8;
-	case GX_CTF_RA4: return 8;
-	case GX_CTF_RA8: return 4;
-	case GX_CTF_A8: return 8;
-	case GX_CTF_R8: return 8;
-	case GX_CTF_G8: return 8;
-	case GX_CTF_B8: return 8;
-	case GX_CTF_RG8: return 4;
-	case GX_CTF_GB8: return 4;
-	case GX_TF_Z8: return 8;
-	case GX_TF_Z16: return 4;
-	case GX_TF_Z24X8: return 4;
-	case GX_CTF_Z4: return 8;
-	case GX_CTF_Z8M: return 8;
-	case GX_CTF_Z8L: return 8;
-	case GX_CTF_Z16L: return 4;
-	default:
-		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockWidthInTexels)", format);
-		return 8;
-	}
-}
-
-int TexDecoder_GetBlockHeightInTexels(u32 format)
-{
-	switch (format)
-	{
-	case GX_TF_I4: return 8;
-	case GX_TF_I8: return 4;
-	case GX_TF_IA4: return 4;
-	case GX_TF_IA8: return 4;
-	case GX_TF_RGB565: return 4;
-	case GX_TF_RGB5A3: return 4;
-	case GX_TF_RGBA8: return  4;
-	case GX_TF_C4: return 8;
-	case GX_TF_C8: return 4;
-	case GX_TF_C14X2: return 4;
-	case GX_TF_CMPR: return 8;
-	case GX_CTF_R4: return 8;
-	case GX_CTF_RA4: return 4;
-	case GX_CTF_RA8: return 4;
-	case GX_CTF_A8: return 4;
-	case GX_CTF_R8: return 4;
-	case GX_CTF_G8: return 4;
-	case GX_CTF_B8: return 4;
-	case GX_CTF_RG8: return 4;
-	case GX_CTF_GB8: return 4;
-	case GX_TF_Z8: return 4;
-	case GX_TF_Z16: return 4;
-	case GX_TF_Z24X8: return 4;
-	case GX_CTF_Z4: return 8;
-	case GX_CTF_Z8M: return 4;
-	case GX_CTF_Z8L: return 4;
-	case GX_CTF_Z16L: return 4;
-	default:
-		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockHeightInTexels)", format);
-		return 4;
-	}
-}
-
-//returns bytes
-int TexDecoder_GetPaletteSize(int format)
-{
-	switch (format)
-	{
-	case GX_TF_C4: return 16 * 2;
-	case GX_TF_C8: return 256 * 2;
-	case GX_TF_C14X2: return 16384 * 2;
-	default:
-		return 0;
-	}
-}
-
-static inline u32 decode5A3(u16 val)
-{
-	int r,g,b,a;
-	if ((val & 0x8000))
-	{
-		a = 0xFF;
-		r = Convert5To8((val >> 10) & 0x1F);
-		g = Convert5To8((val >> 5) & 0x1F);
-		b = Convert5To8(val & 0x1F);
-	}
-	else
-	{
-		a = Convert3To8((val >> 12) & 0x7);
-		r = Convert4To8((val >> 8) & 0xF);
-		g = Convert4To8((val >> 4) & 0xF);
-		b = Convert4To8(val & 0xF);
-	}
-	return (a << 24) | (r << 16) | (g << 8) | b;
-}
-
-static inline u32 decode5A3RGBA(u16 val)
-{
-	int r,g,b,a;
-	if ((val&0x8000))
-	{
-		r=Convert5To8((val>>10) & 0x1f);
-		g=Convert5To8((val>>5 ) & 0x1f);
-		b=Convert5To8((val    ) & 0x1f);
-		a=0xFF;
-	}
-	else
-	{
-		a=Convert3To8((val>>12) & 0x7);
-		r=Convert4To8((val>>8 ) & 0xf);
-		g=Convert4To8((val>>4 ) & 0xf);
-		b=Convert4To8((val    ) & 0xf);
-	}
-	return r | (g<<8) | (b << 16) | (a << 24);
-}
-
-static inline u32 decode565RGBA(u16 val)
-{
-	int r,g,b,a;
-	r=Convert5To8((val>>11) & 0x1f);
-	g=Convert6To8((val>>5 ) & 0x3f);
-	b=Convert5To8((val    ) & 0x1f);
-	a=0xFF;
-	return  r | (g<<8) | (b << 16) | (a << 24);
-}
-
-static inline u32 decodeIA8Swapped(u16 val)
-{
-	int a = val & 0xFF;
-	int i = val >> 8;
-	return i | (i<<8) | (i<<16) | (a<<24);
-}
-
-
-
-struct DXTBlock
-{
-	u16 color1;
-	u16 color2;
-	u8 lines[4];
-};
-
-//inline void decodebytesC4(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
-inline void decodebytesC4_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
-{
-	u16 *tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u8 val = src[x];
-		*dst++ = decode5A3(Common::swap16(tlut[val >> 4]));
-		*dst++ = decode5A3(Common::swap16(tlut[val & 0xF]));
-	}
-}
-
-inline void decodebytesC4_5A3_To_rgba32(u32 *dst, const u8 *src, int tlutaddr)
-{
-	u16 *tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u8 val = src[x];
-		*dst++ = decode5A3RGBA(Common::swap16(tlut[val >> 4]));
-		*dst++ = decode5A3RGBA(Common::swap16(tlut[val & 0xF]));
-	}
-}
-
-inline void decodebytesC4_To_Raw16(u16* dst, const u8* src, int tlutaddr)
-{
-	u16* tlut = (u16*)(texMem+tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u8 val = src[x];
-		*dst++ = Common::swap16(tlut[val >> 4]);
-		*dst++ = Common::swap16(tlut[val & 0xF]);
-	}
-}
-
-inline void decodebytesC4IA8_To_RGBA(u32* dst, const u8* src, int tlutaddr)
-{
-	u16* tlut = (u16*)(texMem+tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u8 val = src[x];
-		*dst++ = decodeIA8Swapped(tlut[val >> 4]);
-		*dst++ = decodeIA8Swapped(tlut[val & 0xF]);
-	}
-}
-
-inline void decodebytesC4RGB565_To_RGBA(u32* dst, const u8* src, int tlutaddr)
-{
-	u16* tlut = (u16*)(texMem+tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u8 val = src[x];
-		*dst++ = decode565RGBA(Common::swap16(tlut[val >> 4]));
-		*dst++ = decode565RGBA(Common::swap16(tlut[val & 0xF]));
-	}
-}
-
-//inline void decodebytesC8(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
-inline void decodebytesC8_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
-{
-	u16 *tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 8; x++)
-	{
-		u8 val = src[x];
-		*dst++ = decode5A3(Common::swap16(tlut[val]));
-	}
-}
-
-inline void decodebytesC8_5A3_To_RGBA32(u32 *dst, const u8 *src, int tlutaddr)
-{
-	u16 *tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 8; x++)
-	{
-		u8 val = src[x];
-		*dst++ = decode5A3RGBA(Common::swap16(tlut[val]));
-	}
-}
-
-inline void decodebytesC8_To_Raw16(u16* dst, const u8* src, int tlutaddr)
-{
-	u16* tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 8; x++)
-	{
-		u8 val = src[x];
-		*dst++ = Common::swap16(tlut[val]);
-	}
-}
-
-inline void decodebytesC8IA8_To_RGBA(u32* dst, const u8* src, int tlutaddr)
-{
-	u16* tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 8; x++)
-	{
-		*dst++ = decodeIA8Swapped(tlut[src[x]]);
-	}
-}
-
-inline void decodebytesC8RGB565_To_RGBA(u32* dst, const u8* src, int tlutaddr)
-{
-	u16* tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 8; x++)
-	{
-		*dst++ = decode565RGBA(Common::swap16(tlut[src[x]]));
-	}
-}
-
-inline void decodebytesC14X2_5A3_To_BGRA32(u32 *dst, const u16 *src, int tlutaddr)
-{
-	u16 *tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u16 val = Common::swap16(src[x]);
-		*dst++ = decode5A3(Common::swap16(tlut[(val & 0x3FFF)]));
-	}
-}
-
-inline void decodebytesC14X2_5A3_To_RGBA(u32 *dst, const u16 *src, int tlutaddr)
-{
-	u16 *tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u16 val = Common::swap16(src[x]);
-		*dst++ = decode5A3RGBA(Common::swap16(tlut[(val & 0x3FFF)]));
-	}
-}
-
-inline void decodebytesC14X2_To_Raw16(u16* dst, const u16* src, int tlutaddr)
-{
-	u16* tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u16 val = Common::swap16(src[x]);
-		*dst++ = Common::swap16(tlut[(val & 0x3FFF)]);
-	}
-}
-
-inline void decodebytesC14X2IA8_To_RGBA(u32* dst, const u16* src, int tlutaddr)
-{
-	u16* tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u16 val = Common::swap16(src[x]);
-		*dst++ = decodeIA8Swapped(tlut[(val & 0x3FFF)]);
-	}
-}
-
-inline void decodebytesC14X2rgb565_To_RGBA(u32* dst, const u16* src, int tlutaddr)
-{
-	u16* tlut = (u16*)(texMem + tlutaddr);
-	for (int x = 0; x < 4; x++)
-	{
-		u16 val = Common::swap16(src[x]);
-		*dst++ = decode565RGBA(Common::swap16(tlut[(val & 0x3FFF)]));
-	}
-}
-
-// Needs more speed.
-inline void decodebytesIA4(u16 *dst, const u8 *src)
-{
-	for (int x = 0; x < 8; x++)
-	{
-		const u8 val = src[x];
-		u8 a = Convert4To8(val >> 4);
-		u8 l = Convert4To8(val & 0xF);
-		dst[x] = (a << 8) | l;
-	}
-}
-
-inline void decodebytesIA4RGBA(u32 *dst, const u8 *src)
-{
-	for (int x = 0; x < 8; x++)
-	{
-		const u8 val = src[x];
-		u8 a = Convert4To8(val >> 4);
-		u8 l = Convert4To8(val & 0xF);
-		dst[x] = (a << 24) | l << 16 | l << 8 | l;
-	}
-}
-
-inline void decodebytesRGB5A3(u32 *dst, const u16 *src)
-{
-#if 0
-	for (int x = 0; x < 4; x++)
-		dst[x] = decode5A3(Common::swap16(src[x]));
-#else
-	dst[0] = decode5A3(Common::swap16(src[0]));
-	dst[1] = decode5A3(Common::swap16(src[1]));
-	dst[2] = decode5A3(Common::swap16(src[2]));
-	dst[3] = decode5A3(Common::swap16(src[3]));
-#endif
-}
-
-inline void decodebytesRGB5A3rgba(u32 *dst, const u16 *src)
-{
-#if 0
-	for (int x = 0; x < 4; x++)
-		dst[x] = decode5A3RGBA(Common::swap16(src[x]));
-#else
-	dst[0] = decode5A3RGBA(Common::swap16(src[0]));
-	dst[1] = decode5A3RGBA(Common::swap16(src[1]));
-	dst[2] = decode5A3RGBA(Common::swap16(src[2]));
-	dst[3] = decode5A3RGBA(Common::swap16(src[3]));
-#endif
-}
-
-// This one is used by many video formats. It'd therefore be good if it was fast.
-// Needs more speed.
-inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
-{
-#if 0
-	for (int x = 0; x < 4; x++)
-		dst[x] = Common::swap32((src2[x] << 16) | src[x]);
-#else
-	dst[0] = Common::swap32((src2[0] << 16) | src[0]);
-	dst[1] = Common::swap32((src2[1] << 16) | src[1]);
-	dst[2] = Common::swap32((src2[2] << 16) | src[2]);
-	dst[3] = Common::swap32((src2[3] << 16) | src[3]);
-#endif
-
-	// This can probably be done in a few SSE pack/unpack instructions + pshufb
-	// some unpack instruction x2:
-	// ABABABABABABABAB 1212121212121212 ->
-	// AB12AB12AB12AB12 AB12AB12AB12AB12
-	// 2x pshufb->
-	// 21BA21BA21BA21BA 21BA21BA21BA21BA
-	// and we are done.
-}
-
-inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 * src2)
-{
-#if 0
-	for (int x = 0; x < 4; x++) {
-		dst[x] =  ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00)>>8)  | (src2[x] << 8);
-	}
-#else
-	dst[0] =  ((src[0] & 0xFF) << 24) | ((src[0] & 0xFF00)>>8)  | (src2[0] << 8);
-	dst[1] =  ((src[1] & 0xFF) << 24) | ((src[1] & 0xFF00)>>8)  | (src2[1] << 8);
-	dst[2] =  ((src[2] & 0xFF) << 24) | ((src[2] & 0xFF00)>>8)  | (src2[2] << 8);
-	dst[3] =  ((src[3] & 0xFF) << 24) | ((src[3] & 0xFF00)>>8)  | (src2[3] << 8);
-#endif
-}
-
-inline u32 makecol(int r, int g, int b, int a)
-{
-	return (a << 24)|(r << 16)|(g << 8)|b;
-}
-
-inline u32 makeRGBA(int r, int g, int b, int a)
-{
-	return (a<<24)|(b<<16)|(g<<8)|r;
-}
 
 void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 {
@@ -573,487 +106,258 @@ void decodeDXTBlockRGBA(u32 *dst, const DXTBlock *src, int pitch)
 	}
 }
 
-#if 0   // TODO - currently does not handle transparency correctly and causes problems when texture dimensions are not multiples of 8
-static void copyDXTBlock(u8* dst, const u8* src)
-{
-	((u16*)dst)[0] = Common::swap16(((u16*)src)[0]);
-	((u16*)dst)[1] = Common::swap16(((u16*)src)[1]);
-	u32 pixels = ((u32*)src)[1];
-	// A bit of trickiness here: the row are in the same order
-	// between the two formats, but the ordering within the rows
-	// is reversed.
-	pixels = ((pixels >> 4) & 0x0F0F0F0F) | ((pixels << 4) & 0xF0F0F0F0);
-	pixels = ((pixels >> 2) & 0x33333333) | ((pixels << 2) & 0xCCCCCCCC);
-	((u32*)dst)[1] = pixels;
-}
-#endif
+// Gamecube/Wii texture decoder
 
-static PC_TexFormat GetPCFormatFromTLUTFormat(int tlutfmt)
+// Decodes all known Gamecube/Wii texture formats.
+// by ector
+
+void TextureDecoder::SetTextureFormatOverlay(bool enable, bool center)
 {
-	switch (tlutfmt)
+	m_TexFmt_Overlay_Enable = enable;
+	m_TexFmt_Overlay_Center = center;
+}
+
+// Texture decoding
+void TextureDecoder::Decode_C4(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt)
+{
+	const int Wsteps8 = (width + 7) / 8;
+	if (tlutfmt == 2)
 	{
-	case 0: return PC_TEX_FMT_IA8;    // IA8
-	case 1: return PC_TEX_FMT_RGB565; // RGB565
-	case 2: return PC_TEX_FMT_BGRA32; // RGB5A3: This TLUT format requires
-									  // extra work to decode.
+		// Special decoding is required for TLUT format 5A3
+		for (int y = 0; y < height; y += 8)
+			for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
+				for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
+					decodebytesC4_5A3_To_rgba32(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
 	}
-	return PC_TEX_FMT_NONE; // Error
-}
-
-PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
-{
-	switch (texformat)
+	else if (tlutfmt == 0)
 	{
-	case GX_TF_C4:
-		return GetPCFormatFromTLUTFormat(tlutfmt);
-	case GX_TF_I4:
-		return PC_TEX_FMT_IA8;
-	case GX_TF_I8:  // speed critical
-		return PC_TEX_FMT_IA8;
-	case GX_TF_C8:
-		return GetPCFormatFromTLUTFormat(tlutfmt);
-	case GX_TF_IA4:
-		return PC_TEX_FMT_IA4_AS_IA8;
-	case GX_TF_IA8:
-		return PC_TEX_FMT_IA8;
-	case GX_TF_C14X2:
-		return GetPCFormatFromTLUTFormat(tlutfmt);
-	case GX_TF_RGB565:
-		return PC_TEX_FMT_RGB565;
-	case GX_TF_RGB5A3:
-		return PC_TEX_FMT_BGRA32;
-	case GX_TF_RGBA8:  // speed critical
-		return PC_TEX_FMT_BGRA32;
-	case GX_TF_CMPR:  // speed critical
-		// The metroid games use this format almost exclusively.
-		{
-			return PC_TEX_FMT_BGRA32;
-		}
+		for (int y = 0; y < height; y += 8)
+			for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
+				for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
+					decodebytesC4IA8_To_RGBA(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
 	}
-
-	// The "copy" texture formats, too?
-	return PC_TEX_FMT_NONE;
+	else
+	{
+		for (int y = 0; y < height; y += 8)
+			for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
+				for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
+					decodebytesC4RGB565_To_RGBA(dst + (y + iy) * width + x, src  + 4 * xStep, tlutaddr);
+	}
 }
 
+void TextureDecoder::Decode_C8(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt)
+{
+	const int Wsteps8 = (width + 7) / 8;
+	if (tlutfmt == 2)
+	{
+		// Special decoding is required for TLUT format 5A3
+		for (int y = 0; y < height; y += 4)
+			for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+				for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
+	}
+	else if (tlutfmt == 0)
+	{
+		for (int y = 0; y < height; y += 4)
+			for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+				for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					decodebytesC8IA8_To_RGBA(dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
+	}
+	else
+	{
+		for (int y = 0; y < height; y += 4)
+			for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+				for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					decodebytesC8RGB565_To_RGBA(dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 
-//switch endianness, unswizzle
-//TODO: to save memory, don't blindly convert everything to argb8888
-//also ARGB order needs to be swapped later, to accommodate modern hardware better
-//need to add DXT support too
-PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+	}
+}
+
+void TextureDecoder::Decode_I4(u32 *dst, const u8 *src, int width, int height)
+{
+	// Reference C implementation:
+	for (int y = 0; y < height; y += 8)
+		for (int x = 0; x < width; x += 8)
+			for (int iy = 0; iy < 8; iy++, src += 4)
+				for (int ix = 0; ix < 4; ix++)
+				{
+					int val = src[ix];
+					u8 i1 = Convert4To8(val >> 4);
+					u8 i2 = Convert4To8(val & 0xF);
+					memset(dst+(y + iy) * width + x + ix * 2 , i1,4);
+					memset(dst+(y + iy) * width + x + ix * 2 + 1 , i2,4);
+				}
+}
+
+void TextureDecoder::Decode_I8(u32 *dst, const u8 *src, int width, int height)
+{
+	// Reference C implementation
+	for (int y = 0; y < height; y += 4)
+		for (int x = 0; x < width; x += 8)
+			for (int iy = 0; iy < 4; ++iy, src += 8)
+			{
+				u32 *  newdst = dst + (y + iy)*width+x;
+				const u8 *  newsrc = src;
+				u8 srcval;
+
+				srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+				srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+				srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+				srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+				srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+				srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+				srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+				srcval = newsrc[0]; newdst[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
+			}
+}
+
+void TextureDecoder::Decode_IA4(u32 *dst, const u8 *src, int width, int height)
+{
+	const int Wsteps8 = (width + 7) / 8;
+	for (int y = 0; y < height; y += 4)
+		for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
+			for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+				decodebytesIA4RGBA(dst + (y + iy) * width + x, src + 8 * xStep);
+}
+
+void TextureDecoder::Decode_IA8(u32 *dst, const u8 *src, int width, int height)
+{
+	// Reference C implementation:
+	for (int y = 0; y < height; y += 4)
+		for (int x = 0; x < width; x += 4)
+			for (int iy = 0; iy < 4; iy++, src += 8)
+			{
+				u32 *ptr = dst + (y + iy) * width + x;
+				u16 *s = (u16 *)src;
+				ptr[0] = decodeIA8Swapped(s[0]);
+				ptr[1] = decodeIA8Swapped(s[1]);
+				ptr[2] = decodeIA8Swapped(s[2]);
+				ptr[3] = decodeIA8Swapped(s[3]);
+			}
+}
+
+void TextureDecoder::Decode_C14X2(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt)
 {
 	const int Wsteps4 = (width + 3) / 4;
-	const int Wsteps8 = (width + 7) / 8;
+	if (tlutfmt == 2)
+	{
+		// Special decoding is required for TLUT format 5A3
+		for (int y = 0; y < height; y += 4)
+			for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+				for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					decodebytesC14X2_5A3_To_BGRA32(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
+	}
+	else if (tlutfmt == 0)
+	{
+		for (int y = 0; y < height; y += 4)
+			for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+				for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					decodebytesC14X2IA8_To_RGBA(dst + (y + iy) * width + x,  (u16*)(src + 8 * xStep), tlutaddr);
+	}
+	else
+	{
+		for (int y = 0; y < height; y += 4)
+			for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+				for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					decodebytesC14X2rgb565_To_RGBA(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
+	}
+}
 
+void TextureDecoder::Decode_RGB565(u32 *dst, const u8 *src, int width, int height)
+{
+	// Reference C implementation.
+	for (int y = 0; y < height; y += 4)
+		for (int x = 0; x < width; x += 4)
+			for (int iy = 0; iy < 4; iy++, src += 8)
+			{
+				u32 *ptr = dst + (y + iy) * width + x;
+				u16 *s = (u16 *)src;
+				for (int j = 0; j < 4; j++)
+					*ptr++ = decode565RGBA(Common::swap16(*s++));
+			}
+}
+
+void TextureDecoder::Decode_RGB5A3(u32 *dst, const u8 *src, int width, int height)
+{
+	// Reference C implementation:
+	for (int y = 0; y < height; y += 4)
+		for (int x = 0; x < width; x += 4)
+			for (int iy = 0; iy < 4; iy++, src += 8)
+				decodebytesRGB5A3rgba(dst+(y+iy)*width+x, (u16*)src);
+}
+
+void TextureDecoder::Decode_RGBA8(u32 *dst, const u8 *src, int width, int height)
+{
+	// Reference C implementation.
+	for (int y = 0; y < height; y += 4)
+		for (int x = 0; x < width; x += 4)
+		{
+			for (int iy = 0; iy < 4; iy++)
+				decodebytesARGB8_4ToRgba(dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
+			src += 64;
+		}
+}
+
+void TextureDecoder::Decode_CMPR(u32 *dst, const u8 *src, int width, int height)
+{
+	for (int y = 0; y < height; y += 8)
+	{
+		for (int x = 0; x < width; x += 8)
+		{
+			decodeDXTBlockRGBA((u32*)dst + y * width + x, (DXTBlock*)src, width);
+								src += sizeof(DXTBlock);
+			decodeDXTBlockRGBA((u32*)dst + y * width + x + 4, (DXTBlock*)src, width);
+								src += sizeof(DXTBlock);
+			decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x, (DXTBlock*)src, width);
+								src += sizeof(DXTBlock);
+			decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src, width);
+								src += sizeof(DXTBlock);
+		}
+	}
+}
+
+void TextureDecoder::Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+{
 	switch (texformat)
 	{
 	case GX_TF_C4:
-		if (tlutfmt == 2)
-		{
-			// Special decoding is required for TLUT format 5A3
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = yStep * 8; iy < 8; iy++, xStep++)
-						decodebytesC4_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
-		}
-		else
-		{
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = yStep * 8; iy < 8; iy++, xStep++)
-						decodebytesC4_To_Raw16((u16*)dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
-		}
-		return GetPCFormatFromTLUTFormat(tlutfmt);
-	case GX_TF_I4:
-		{
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = yStep * 8 ; iy < 8; iy++,xStep++)
-						for (int ix = 0; ix < 4; ix++)
-						{
-							int val = src[4 * xStep + ix];
-							dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
-							dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
-						}
-		}
-	   return PC_TEX_FMT_I4_AS_I8;
-	case GX_TF_I8:  // speed critical
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						((u64*)(dst + (y + iy) * width + x))[0] = ((u64*)(src + 8 * xStep))[0];
-		}
-		return PC_TEX_FMT_I8;
-	case GX_TF_C8:
-		if (tlutfmt == 2)
-		{
-			// Special decoding is required for TLUT format 5A3
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC8_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
-		}
-		else
-		{
-
-			{
-				for (int y = 0; y < height; y += 4)
-					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-							decodebytesC8_To_Raw16((u16*)dst + (y + iy) * width + x, src  + 8 * xStep, tlutaddr);
-			}
-		}
-		return GetPCFormatFromTLUTFormat(tlutfmt);
-	case GX_TF_IA4:
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesIA4((u16*)dst + (y + iy) * width + x, src + 8 * xStep);
-		}
-		return PC_TEX_FMT_IA4_AS_IA8;
-	case GX_TF_IA8:
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = yStep * 4; iy < 4; iy++, xStep++)
-					{
-						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
-						u16 *s = (u16 *)(src + 8 * xStep);
-						for (int j = 0; j < 4; j++)
-							*ptr++ = Common::swap16(*s++);
-					}
-		}
-		return PC_TEX_FMT_IA8;
-	case GX_TF_C14X2:
-		if (tlutfmt == 2)
-		{
-			// Special decoding is required for TLUT format 5A3
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC14X2_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
-		}
-		else
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC14X2_To_Raw16((u16*)dst + (y + iy) * width + x,(u16*)(src + 8 * xStep), tlutaddr);
-		}
-		return GetPCFormatFromTLUTFormat(tlutfmt);
-	case GX_TF_RGB565:
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-					{
-						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
-						u16 *s = (u16 *)(src + 8 * xStep);
-						for (int j = 0; j < 4; j++)
-							*ptr++ = Common::swap16(*s++);
-					}
-		}
-		return PC_TEX_FMT_RGB565;
-	case GX_TF_RGB5A3:
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						//decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
-						decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)(src + 8 * xStep));
-		}
-		return PC_TEX_FMT_BGRA32;
-	case GX_TF_RGBA8:  // speed critical
-		{
-			for (int y = 0; y < height; y += 4)
-			{
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-				{
-					const u8* src2 = src + 64 * yStep;
-					for (int iy = 0; iy < 4; iy++)
-						decodebytesARGB8_4((u32*)dst + (y+iy)*width + x, (u16*)src2 + 4 * iy, (u16*)src2 + 4 * iy + 16);
-				}
-			}
-		}
-		return PC_TEX_FMT_BGRA32;
-	case GX_TF_CMPR:  // speed critical
-		// The metroid games use this format almost exclusively.
-		{
-#if 0   // TODO - currently does not handle transparency correctly and causes problems when texture dimensions are not multiples of 8
-			// 11111111 22222222 55555555 66666666
-			// 33333333 44444444 77777777 88888888
-			for (int y = 0; y < height; y += 8)
-			{
-				for (int x = 0; x < width; x += 8)
-				{
-					copyDXTBlock(dst+(y/2)*width+x*2, src);
-					src += 8;
-					copyDXTBlock(dst+(y/2)*width+x*2+8, src);
-					src += 8;
-					copyDXTBlock(dst+(y/2+2)*width+x*2, src);
-					src += 8;
-					copyDXTBlock(dst+(y/2+2)*width+x*2+8, src);
-					src += 8;
-				}
-			}
-			return PC_TEX_FMT_DXT1;
-#else
-			for (int y = 0; y < height; y += 8)
-			{
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
-				{
-					const u8* src2 = src + 4 * sizeof(DXTBlock) * yStep;
-					decodeDXTBlock((u32*)dst + y * width + x, (DXTBlock*)src2, width);
-										src2 += sizeof(DXTBlock);
-					decodeDXTBlock((u32*)dst + y * width + x + 4, (DXTBlock*)src2, width);
-										src2 += sizeof(DXTBlock);
-					decodeDXTBlock((u32*)dst + (y + 4) * width + x, (DXTBlock*)src2, width);
-										src2 += sizeof(DXTBlock);
-					decodeDXTBlock((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src2, width);
-				}
-			}
-#endif
-			return PC_TEX_FMT_BGRA32;
-		}
-	}
-
-	// The "copy" texture formats, too?
-	return PC_TEX_FMT_NONE;
-}
-
-
-
-// JSD 01/06/11:
-// TODO: we really should ensure BOTH the source and destination addresses are aligned to 16-byte boundaries to
-// squeeze out a little more performance. _mm_loadu_si128/_mm_storeu_si128 is slower than _mm_load_si128/_mm_store_si128
-// because they work on unaligned addresses. The processor is free to make the assumption that addresses are multiples
-// of 16 in the aligned case.
-// TODO: complete SSE2 optimization of less often used texture formats.
-// TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
-
-PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
-{
-
-	const int Wsteps4 = (width + 3) / 4;
-	const int Wsteps8 = (width + 7) / 8;
-
-	switch (texformat)
-	{
-	case GX_TF_C4:
-		if (tlutfmt == 2)
-		{
-			// Special decoding is required for TLUT format 5A3
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
-					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
-						decodebytesC4_5A3_To_rgba32(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
-		}
-		else if (tlutfmt == 0)
-		{
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
-					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
-						decodebytesC4IA8_To_RGBA(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
-		}
-		else
-		{
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
-					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
-						decodebytesC4RGB565_To_RGBA(dst + (y + iy) * width + x, src  + 4 * xStep, tlutaddr);
-		}
-		break;
-	case GX_TF_I4:
-		{
-			// Reference C implementation:
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
-						for (int ix = 0; ix < 4; ix++)
-						{
-							int val = src[ix];
-							u8 i1 = Convert4To8(val >> 4);
-							u8 i2 = Convert4To8(val & 0xF);
-							memset(dst+(y + iy) * width + x + ix * 2 , i1,4);
-							memset(dst+(y + iy) * width + x + ix * 2 + 1 , i2,4);
-						}
-		}
-	   break;
-	case GX_TF_I8:  // speed critical
-		{
-			// Reference C implementation
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; ++iy, src += 8)
-					{
-						u32 *  newdst = dst + (y + iy)*width+x;
-						const u8 *  newsrc = src;
-						u8 srcval;
-
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = newsrc[0]; newdst[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-					}
-		}
+		Decode_C4((u32*)dst, src, width, height, tlutaddr, tlutfmt);
 		break;
 	case GX_TF_C8:
-		if (tlutfmt == 2)
-		{
-			// Special decoding is required for TLUT format 5A3
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
-		}
-		else if (tlutfmt == 0)
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC8IA8_To_RGBA(dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
-		}
-		else
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC8RGB565_To_RGBA(dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
-
-		}
+		Decode_C8((u32*)dst, src, width, height, tlutaddr, tlutfmt);
+		break;
+	case GX_TF_I4:
+		Decode_I4((u32*)dst, src, width, height);
+		break;
+	case GX_TF_I8:  // speed critical
+		Decode_I8((u32*)dst, src, width, height);
 		break;
 	case GX_TF_IA4:
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesIA4RGBA(dst + (y + iy) * width + x, src + 8 * xStep);
-		}
+		Decode_IA4((u32*)dst, src, width, height);
 		break;
 	case GX_TF_IA8:
-		{
-			// Reference C implementation:
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-					{
-						u32 *ptr = dst + (y + iy) * width + x;
-						u16 *s = (u16 *)src;
-						ptr[0] = decodeIA8Swapped(s[0]);
-						ptr[1] = decodeIA8Swapped(s[1]);
-						ptr[2] = decodeIA8Swapped(s[2]);
-						ptr[3] = decodeIA8Swapped(s[3]);
-					}
-		}
+		Decode_IA8((u32*)dst, src, width, height);
 		break;
 	case GX_TF_C14X2:
-		if (tlutfmt == 2)
-		{
-			// Special decoding is required for TLUT format 5A3
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC14X2_5A3_To_BGRA32(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
-		}
-		else if (tlutfmt == 0)
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC14X2IA8_To_RGBA(dst + (y + iy) * width + x,  (u16*)(src + 8 * xStep), tlutaddr);
-		}
-		else
-		{
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC14X2rgb565_To_RGBA(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
-		}
+		Decode_C14X2((u32*)dst, src, width, height, tlutaddr, tlutaddr);
 		break;
 	case GX_TF_RGB565:
-		{
-			// Reference C implementation.
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-					{
-						u32 *ptr = dst + (y + iy) * width + x;
-						u16 *s = (u16 *)src;
-						for (int j = 0; j < 4; j++)
-							*ptr++ = decode565RGBA(Common::swap16(*s++));
-					}
-		}
+		Decode_RGB565((u32*)dst, src, width, height);
 		break;
 	case GX_TF_RGB5A3:
-		{
-			// Reference C implementation:
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesRGB5A3rgba(dst+(y+iy)*width+x, (u16*)src);
-		}
+		Decode_RGB5A3((u32*)dst, src, width, height);
 		break;
 	case GX_TF_RGBA8:  // speed critical
-		{
-			// Reference C implementation.
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-				{
-					for (int iy = 0; iy < 4; iy++)
-						decodebytesARGB8_4ToRgba(dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
-					src += 64;
-				}
-		}
+		Decode_RGBA8((u32*)dst, src, width, height);
 		break;
 	case GX_TF_CMPR:  // speed critical
 		// The metroid games use this format almost exclusively.
-		{
-			for (int y = 0; y < height; y += 8)
-			{
-				for (int x = 0; x < width; x += 8)
-				{
-					decodeDXTBlockRGBA((u32*)dst + y * width + x, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-					decodeDXTBlockRGBA((u32*)dst + y * width + x + 4, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-					decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-					decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-				}
-			}
-			break;
-		}
+		Decode_CMPR((u32*)dst, src, width, height);
+		break;
 	}
 
-	// The "copy" texture formats, too?
-	return PC_TEX_FMT_RGBA32;
-}
-
-
-
-
-void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
-{
-	TexFmt_Overlay_Enable = enable;
-	TexFmt_Overlay_Center = center;
-}
-
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt,bool rgbaOnly)
-{
-	PC_TexFormat retval = rgbaOnly ? TexDecoder_Decode_RGBA((u32*)dst, src,
-			width, height, texformat, tlutaddr, tlutfmt)
-		: TexDecoder_Decode_real(dst, src,
-			width, height, texformat, tlutaddr, tlutfmt);
-
-	if ((!TexFmt_Overlay_Enable) || (retval == PC_TEX_FMT_NONE))
-		return retval;
+	if (!m_TexFmt_Overlay_Enable)
+		return;
 
 	int w = min(width, 40);
 	int h = min(height, 10);
@@ -1061,7 +365,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 	int xoff = (width - w) >> 1;
 	int yoff = (height - h) >> 1;
 
-	if (!TexFmt_Overlay_Center)
+	if (!m_TexFmt_Overlay_Center)
 	{
 		xoff=0;
 		yoff=0;
@@ -1086,375 +390,17 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 		{
 			for (int x=0; x < xcnt; x++)
 			{
-				switch (retval)
-				{
-				case PC_TEX_FMT_I8:
-					{
-						// TODO: Is this an acceptable way to draw in I8?
-						u8  *dtp = (u8*)dst;
-						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFF : 0x88;
-						break;
-					}
-				case PC_TEX_FMT_IA8:
-				case PC_TEX_FMT_IA4_AS_IA8:
-					{
-						u16  *dtp = (u16*)dst;
-						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFF : 0xFF00;
-						break;
-					}
-				case PC_TEX_FMT_RGB565:
-					{
-						u16  *dtp = (u16*)dst;
-						dtp[(y + yoff)*width + x + xoff] = ptr[x] ? 0xFFFF : 0x0000;
-						break;
-					}
-				default:
-				case PC_TEX_FMT_BGRA32:
-					{
-						int  *dtp = (int*)dst;
-						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFFFFFF : 0xFF000000;
-						break;
-					}
-				}
+				int  *dtp = (int*)dst;
+				dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFFFFFF : 0xFF000000;
 			}
 			ptr += 9;
 		}
 		xoff += xcnt;
 		fmt++;
 	}
-
-	return retval;
 }
 
-
-
-void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, int tlutfmt)
-{
-	/* General formula for computing texture offset
-	//
-	u16 sBlk = s / blockWidth;
-	u16 tBlk = t / blockHeight;
-	u16 widthBlks = (width / blockWidth) + 1;
-	u32 base = (tBlk * widthBlks + sBlk) * blockWidth * blockHeight;
-	u16 blkS = s & (blockWidth - 1);
-	u16 blkT =  t & (blockHeight - 1);
-	u32 blkOff = blkT * blockWidth + blkS;
-	*/
-
-	switch (texformat)
-	{
-	case GX_TF_C4:
-		{
-			u16 sBlk = s >> 3;
-			u16 tBlk = t >> 3;
-			u16 widthBlks = (imageWidth >> 3) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 5;
-			u16 blkS = s & 7;
-			u16 blkT =  t & 7;
-			u32 blkOff = (blkT << 3) + blkS;
-
-			int rs = (blkOff & 1)?0:4;
-			u32 offset = base + (blkOff >> 1);
-
-			u8 val = (*(src + offset) >> rs) & 0xF;
-			u16 *tlut = (u16*)(texMem + tlutaddr);
-
-			switch (tlutfmt)
-			{
-			case 0:
-				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
-				break;
-			case 1:
-				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
-				break;
-			case 2:
-				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
-				break;
-			}
-		}
-		break;
-	case GX_TF_I4:
-		{
-			u16 sBlk = s >> 3;
-			u16 tBlk = t >> 3;
-			u16 widthBlks = (imageWidth >> 3) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 5;
-			u16 blkS = s & 7;
-			u16 blkT =  t & 7;
-			u32 blkOff = (blkT << 3) + blkS;
-
-			int rs = (blkOff & 1)?0:4;
-			u32 offset = base + (blkOff >> 1);
-
-			u8 val = (*(src + offset) >> rs) & 0xF;
-			val = Convert4To8(val);
-			dst[0] = val;
-			dst[1] = val;
-			dst[2] = val;
-			dst[3] = val;
-		}
-	   break;
-	case GX_TF_I8:
-		{
-			u16 sBlk = s >> 3;
-			u16 tBlk = t >> 2;
-			u16 widthBlks = (imageWidth >> 3) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 5;
-			u16 blkS = s & 7;
-			u16 blkT =  t & 3;
-			u32 blkOff = (blkT << 3) + blkS;
-
-			u8 val = *(src + base + blkOff);
-			dst[0] = val;
-			dst[1] = val;
-			dst[2] = val;
-			dst[3] = val;
-		}
-		break;
-	case GX_TF_C8:
-		{
-			u16 sBlk = s >> 3;
-			u16 tBlk = t >> 2;
-			u16 widthBlks = (imageWidth >> 3) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 5;
-			u16 blkS = s & 7;
-			u16 blkT =  t & 3;
-			u32 blkOff = (blkT << 3) + blkS;
-
-			u8 val = *(src + base + blkOff);
-			u16 *tlut = (u16*)(texMem + tlutaddr);
-
-			switch (tlutfmt)
-			{
-			case 0:
-				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
-				break;
-			case 1:
-				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
-				break;
-			case 2:
-				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
-				break;
-			}
-		}
-		break;
-	case GX_TF_IA4:
-		{
-			u16 sBlk = s >> 3;
-			u16 tBlk = t >> 2;
-			u16 widthBlks = (imageWidth >> 3) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 5;
-			u16 blkS = s & 7;
-			u16 blkT =  t & 3;
-			u32 blkOff = (blkT << 3) + blkS;
-
-			u8 val = *(src + base + blkOff);
-			const u8 a = Convert4To8(val>>4);
-			const u8 l = Convert4To8(val&0xF);
-			dst[0] = l;
-			dst[1] = l;
-			dst[2] = l;
-			dst[3] = a;
-		}
-		break;
-	case GX_TF_IA8:
-		{
-			u16 sBlk = s >> 2;
-			u16 tBlk = t >> 2;
-			u16 widthBlks = (imageWidth >> 2) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 4;
-			u16 blkS = s & 3;
-			u16 blkT =  t & 3;
-			u32 blkOff = (blkT << 2) + blkS;
-
-			u32 offset = (base + blkOff) << 1;
-			const u16* valAddr = (u16*)(src + offset);
-
-			*((u32*)dst) = decodeIA8Swapped(*valAddr);
-		}
-		break;
-	case GX_TF_C14X2:
-		{
-			u16 sBlk = s >> 2;
-			u16 tBlk = t >> 2;
-			u16 widthBlks = (imageWidth >> 2) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 4;
-			u16 blkS = s & 3;
-			u16 blkT =  t & 3;
-			u32 blkOff = (blkT << 2) + blkS;
-
-			u32 offset = (base + blkOff) << 1;
-			const u16* valAddr = (u16*)(src + offset);
-
-			u16 val = Common::swap16(*valAddr) & 0x3FFF;
-			u16 *tlut = (u16*)(texMem + tlutaddr);
-
-			switch (tlutfmt)
-			{
-			case 0:
-				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
-				break;
-			case 1:
-				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
-				break;
-			case 2:
-				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
-				break;
-			}
-		}
-		break;
-	case GX_TF_RGB565:
-		{
-			u16 sBlk = s >> 2;
-			u16 tBlk = t >> 2;
-			u16 widthBlks = (imageWidth >> 2) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 4;
-			u16 blkS = s & 3;
-			u16 blkT =  t & 3;
-			u32 blkOff = (blkT << 2) + blkS;
-
-			u32 offset = (base + blkOff) << 1;
-			const u16* valAddr = (u16*)(src + offset);
-
-			*((u32*)dst) = decode565RGBA(Common::swap16(*valAddr));
-		}
-		break;
-	case GX_TF_RGB5A3:
-		{
-			u16 sBlk = s >> 2;
-			u16 tBlk = t >> 2;
-			u16 widthBlks = (imageWidth >> 2) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 4;
-			u16 blkS = s & 3;
-			u16 blkT =  t & 3;
-			u32 blkOff = (blkT << 2) + blkS;
-
-			u32 offset = (base + blkOff) << 1;
-			const u16* valAddr = (u16*)(src + offset);
-
-			*((u32*)dst) = decode5A3RGBA(Common::swap16(*valAddr));
-		}
-		break;
-	case GX_TF_RGBA8:
-		{
-			u16 sBlk = s >> 2;
-			u16 tBlk = t >> 2;
-			u16 widthBlks = (imageWidth >> 2) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 5; // shift by 5 is correct
-			u16 blkS = s & 3;
-			u16 blkT =  t & 3;
-			u32 blkOff = (blkT << 2) + blkS;
-
-			u32 offset = (base + blkOff) << 1 ;
-			const u8* valAddr = src + offset;
-
-			dst[3] = valAddr[0];
-			dst[0] = valAddr[1];
-			dst[1] = valAddr[32];
-			dst[2] = valAddr[33];
-		}
-		break;
-	case GX_TF_CMPR:
-		{
-			u16 sDxt = s >> 2;
-			u16 tDxt = t >> 2;
-
-			u16 sBlk = sDxt >> 1;
-			u16 tBlk = tDxt >> 1;
-			u16 widthBlks = (imageWidth >> 3) + 1;
-			u32 base = (tBlk * widthBlks + sBlk) << 2;
-			u16 blkS = sDxt & 1;
-			u16 blkT =  tDxt & 1;
-			u32 blkOff = (blkT << 1) + blkS;
-
-			u32 offset = (base + blkOff) << 3;
-
-			const DXTBlock* dxtBlock = (const DXTBlock*)(src + offset);
-
-			u16 c1 = Common::swap16(dxtBlock->color1);
-			u16 c2 = Common::swap16(dxtBlock->color2);
-			int blue1 = Convert5To8(c1 & 0x1F);
-			int blue2 = Convert5To8(c2 & 0x1F);
-			int green1 = Convert6To8((c1 >> 5) & 0x3F);
-			int green2 = Convert6To8((c2 >> 5) & 0x3F);
-			int red1 = Convert5To8((c1 >> 11) & 0x1F);
-			int red2 = Convert5To8((c2 >> 11) & 0x1F);
-
-			u16 ss = s & 3;
-			u16 tt = t & 3;
-
-			int colorSel = dxtBlock->lines[tt];
-			int rs = 6 - (ss << 1);
-			colorSel = (colorSel >> rs) & 3;
-			colorSel |= c1 > c2?0:4;
-
-			u32 color = 0;
-
-			switch (colorSel)
-			{
-				case 0:
-				case 4:
-					color = makeRGBA(red1, green1, blue1, 255);
-					break;
-				case 1:
-				case 5:
-					color = makeRGBA(red2, green2, blue2, 255);
-					break;
-				case 2:
-					color = makeRGBA(red1+(red2-red1)/3, green1+(green2-green1)/3, blue1+(blue2-blue1)/3, 255);
-					break;
-				case 3:
-					color = makeRGBA(red2+(red1-red2)/3, green2+(green1-green2)/3, blue2+(blue1-blue2)/3, 255);
-					break;
-				case 6:
-					color = makeRGBA((int)ceil((float)(red1+red2)/2), (int)ceil((float)(green1+green2)/2), (int)ceil((float)(blue1+blue2)/2), 255);
-					break;
-				case 7:
-					color = makeRGBA(red2, green2, blue2, 0);
-					break;
-			}
-
-			*((u32*)dst) = color;
-		}
-		break;
-	}
-}
-
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* src_gb, int s, int t, int imageWidth)
-{
-	u16 sBlk = s >> 2;
-	u16 tBlk = t >> 2;
-	u16 widthBlks = (imageWidth >> 2) + 1; // TODO: Looks wrong. Shouldn't this be ((imageWidth-1)>>2)+1 ?
-	u32 base_ar = (tBlk * widthBlks + sBlk) << 4;
-	u32 base_gb = (tBlk * widthBlks + sBlk) << 4;
-	u16 blkS = s & 3;
-	u16 blkT =  t & 3;
-	u32 blk_off = (blkT << 2) + blkS;
-
-	u32 offset_ar = (base_ar + blk_off) << 1;
-	u32 offset_gb = (base_gb + blk_off) << 1;
-	const u8* val_addr_ar = src_ar + offset_ar;
-	const u8* val_addr_gb = src_gb + offset_gb;
-
-	dst[3] = val_addr_ar[0]; // A
-	dst[0] = val_addr_ar[1]; // R
-	dst[1] = val_addr_gb[0]; // G
-	dst[2] = val_addr_gb[1]; // B
-}
-
-PC_TexFormat TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height)
-{
-	// TODO for someone who cares: Make this less slow!
-	for (int y = 0; y < height; ++y)
-		for (int x = 0; x < width; ++x)
-		{
-			TexDecoder_DecodeTexelRGBA8FromTmem(dst, src_ar, src_gb, x, y, width-1);
-			dst += 4;
-		}
-
-	return PC_TEX_FMT_RGBA32;
-}
-
+// Texture format overlay data
 const char* texfmt[] = {
 	// pixel
 	"I4",      "I8",      "IA4",     "IA8",

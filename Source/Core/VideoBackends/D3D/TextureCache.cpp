@@ -199,6 +199,9 @@ TextureCache::TextureCache()
 	// FIXME: Is it safe here?
 	g_encoder = new PSTextureEncoder;
 	g_encoder->Init();
+
+	m_texture_decoder = new TextureDecoderX86();
+	m_texture_decoder->SetTextureFormatOverlay(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 }
 
 TextureCache::~TextureCache()
@@ -209,6 +212,10 @@ TextureCache::~TextureCache()
 	g_encoder->Shutdown();
 	delete g_encoder;
 	g_encoder = nullptr;
+
+	delete m_texture_decoder;
+	m_texture_decoder = nullptr;
+
 }
 
 }

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/Hash.h"
+#include "VideoCommon/TextureDecoderHelpers.h"
 
 enum
 {
@@ -13,67 +14,63 @@ enum
 };
 extern  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
 
-enum TextureFormat
+class TextureDecoder
 {
-	GX_TF_I4     = 0x0,
-	GX_TF_I8     = 0x1,
-	GX_TF_IA4    = 0x2,
-	GX_TF_IA8    = 0x3,
-	GX_TF_RGB565 = 0x4,
-	GX_TF_RGB5A3 = 0x5,
-	GX_TF_RGBA8  = 0x6,
-	GX_TF_C4     = 0x8,
-	GX_TF_C8     = 0x9,
-	GX_TF_C14X2  = 0xA,
-	GX_TF_CMPR   = 0xE,
+	private:
+	bool m_TexFmt_Overlay_Enable;
+	bool m_TexFmt_Overlay_Center;
 
-	_GX_TF_CTF   = 0x20,  // copy-texture-format only (simply means linear?)
-	_GX_TF_ZTF   = 0x10,  // Z-texture-format
+	// Private texture decoders
+	// Generic CPU based TextureDecoding
+	virtual void Decode_C4(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt);
+	virtual void Decode_C8(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt);
+	virtual void Decode_I4(u32 *dst, const u8 *src, int width, int height);
+	virtual void Decode_I8(u32 *dst, const u8 *src, int width, int height);
+	virtual void Decode_IA4(u32 *dst, const u8 *src, int width, int height);
+	virtual void Decode_IA8(u32 *dst, const u8 *src, int width, int height);
+	virtual void Decode_C14X2(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt);
+	virtual void Decode_RGB565(u32 *dst, const u8 *src, int width, int height);
+	virtual void Decode_RGB5A3(u32 *dst, const u8 *src, int width, int height);
+	virtual void Decode_RGBA8(u32 *dst, const u8 *src, int width, int height);
+	virtual void Decode_CMPR(u32 *dst, const u8 *src, int width, int height);
 
-	// these formats are also valid when copying targets
-	GX_CTF_R4    = 0x0 | _GX_TF_CTF,
-	GX_CTF_RA4   = 0x2 | _GX_TF_CTF,
-	GX_CTF_RA8   = 0x3 | _GX_TF_CTF,
-	GX_CTF_YUVA8 = 0x6 | _GX_TF_CTF,
-	GX_CTF_A8    = 0x7 | _GX_TF_CTF,
-	GX_CTF_R8    = 0x8 | _GX_TF_CTF,
-	GX_CTF_G8    = 0x9 | _GX_TF_CTF,
-	GX_CTF_B8    = 0xA | _GX_TF_CTF,
-	GX_CTF_RG8   = 0xB | _GX_TF_CTF,
-	GX_CTF_GB8   = 0xC | _GX_TF_CTF,
+	public:
+	virtual ~TextureDecoder() {}
+	TextureDecoder() : m_TexFmt_Overlay_Enable(false), m_TexFmt_Overlay_Center(false) {}	
 
-	GX_TF_Z8     = 0x1 | _GX_TF_ZTF,
-	GX_TF_Z16    = 0x3 | _GX_TF_ZTF,
-	GX_TF_Z24X8  = 0x6 | _GX_TF_ZTF,
-
-	GX_CTF_Z4    = 0x0 | _GX_TF_ZTF | _GX_TF_CTF,
-	GX_CTF_Z8M   = 0x9 | _GX_TF_ZTF | _GX_TF_CTF,
-	GX_CTF_Z8L   = 0xA | _GX_TF_ZTF | _GX_TF_CTF,
-	GX_CTF_Z16L  = 0xC | _GX_TF_ZTF | _GX_TF_CTF,
+	// Texture format overlay option setting
+	virtual void SetTextureFormatOverlay(bool enable, bool center) final;
+	
+	// Calls our internal texture decoders
+	// Also puts the texture overlay upon the final texture image
+	virtual void Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt) final;
 };
 
-int TexDecoder_GetTexelSizeInNibbles(int format);
-int TexDecoder_GetTextureSizeInBytes(int width, int height, int format);
-int TexDecoder_GetBlockWidthInTexels(u32 format);
-int TexDecoder_GetBlockHeightInTexels(u32 format);
-int TexDecoder_GetPaletteSize(int fmt);
+#ifdef _M_X86
+// JSD 01/06/11:
+// TODO: we really should ensure BOTH the source and destination addresses are aligned to 16-byte boundaries to
+// squeeze out a little more performance. _mm_loadu_si128/_mm_storeu_si128 is slower than _mm_load_si128/_mm_store_si128
+// because they work on unaligned addresses. The processor is free to make the assumption that addresses are multiples
+// of 16 in the aligned case.
+// TODO: complete SSE2 optimization of less often used texture formats.
+// TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
-enum PC_TexFormat
+class TextureDecoderX86 : public TextureDecoder
 {
-	PC_TEX_FMT_NONE = 0,
-	PC_TEX_FMT_BGRA32,
-	PC_TEX_FMT_RGBA32,
-	PC_TEX_FMT_I4_AS_I8,
-	PC_TEX_FMT_IA4_AS_IA8,
-	PC_TEX_FMT_I8,
-	PC_TEX_FMT_IA8,
-	PC_TEX_FMT_RGB565,
-	PC_TEX_FMT_DXT1,
+	private:
+	// Private texture decoders
+	// x86 accelerated texture decoding
+	void Decode_C4(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt);
+	void Decode_C8(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt);
+	void Decode_I4(u32 *dst, const u8 *src, int width, int height);
+	void Decode_I8(u32 *dst, const u8 *src, int width, int height);
+	void Decode_IA4(u32 *dst, const u8 *src, int width, int height);
+	void Decode_IA8(u32 *dst, const u8 *src, int width, int height);
+	void Decode_C14X2(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt);
+	void Decode_RGB565(u32 *dst, const u8 *src, int width, int height);
+	void Decode_RGB5A3(u32 *dst, const u8 *src, int width, int height);
+	void Decode_RGBA8(u32 *dst, const u8 *src, int width, int height);
+	void Decode_CMPR(u32 *dst, const u8 *src, int width, int height);
 };
+#endif
 
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt,bool rgbaOnly = false);
-PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt);
-void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, int tlutfmt);
-void TexDecoder_DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* src_gb, int s, int t, int imageWidth);
-PC_TexFormat TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height);
-void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);

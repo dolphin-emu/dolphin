@@ -63,8 +63,8 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	// width of the destination rectangle, scale_factor (1 or 2)
 	WRITE(p, "uniform int4 position;\n");
 
-	int blkW = TexDecoder_GetBlockWidthInTexels(format);
-	int blkH = TexDecoder_GetBlockHeightInTexels(format);
+	int blkW = TextureDecoderTools::GetBlockWidthInTexels(format);
+	int blkH = TextureDecoderTools::GetBlockHeightInTexels(format);
 	int samples = GetEncodedSampleCount(format);
 
 	if (ApiType == API_OPENGL)
