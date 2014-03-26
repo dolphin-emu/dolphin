@@ -884,7 +884,7 @@ union AlphaTest
 		ALWAYS  = 7
 	};
 
-	enum Op
+	enum Op : u32
 	{
 		AND  = 0,
 		OR   = 1,
