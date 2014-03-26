@@ -213,11 +213,11 @@ void XEmitter::ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2,u32 param
 }
 
 void XEmitter::ABI_CallFunctionPC(void *func, void *param1, u32 param2) {
-	ABI_AlignStack(3 * 4);
+	ABI_AlignStack(2 * 4);
 	PUSH(32, Imm32(param2));
 	PUSH(32, Imm32((u32)param1));
 	CALL(func);
-	ABI_RestoreStack(3 * 4);
+	ABI_RestoreStack(2 * 4);
 }
 
 void XEmitter::ABI_CallFunctionPPC(void *func, void *param1, void *param2,u32 param3) {
