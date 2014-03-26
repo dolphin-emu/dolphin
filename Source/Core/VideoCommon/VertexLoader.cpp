@@ -352,19 +352,19 @@ void LOADERDECL UpdateBoundingBox()
 	// Second point inside
 	if (b1 == 3)
 	{
-		left = (p1.x < left) ? p1.x : left;
-		top = (p1.y < top) ? p1.y : top;
-		right = (p1.x > right) ? p1.x : right;
-		bottom = (p1.y > bottom) ? p1.y : bottom;
+		left = std::min(p1.x, left);
+		top = std::min(p1.y, top);
+		right = std::max(p1.x, right);
+		bottom = std::max(p1.y, bottom);
 	}
 
 	// Third point inside
 	if ((b2 == 3) && (numPoints == 3))
 	{
-		left = (p2.x < left) ? p2.x : left;
-		top = (p2.y < top) ? p2.y : top;
-		right = (p2.x > right) ? p2.x : right;
-		bottom = (p2.y > bottom) ? p2.y : bottom;
+		left = std::min(p2.x, left);
+		top = std::min(p2.y, top);
+		right = std::max(p2.x, right);
+		bottom = std::max(p2.y, bottom);
 	}
 
 	// Triangle equation vars
@@ -382,10 +382,10 @@ void LOADERDECL UpdateBoundingBox()
 	{
 		m = (p1.x - p0.x) ? ((p1.y - p0.y) / (p1.x - p0.x)) : highNum;
 		c = p0.y - (m * p0.x);
-		if (i0 & 1) { s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
-		if (i0 & 2) { s = (s32)((-c / m) + roundUp); if (s >= 0 && s <= 607) top = 0;   left = (s < left) ? s : left; right = (s > right) ? s : right; }
-		if (i0 & 4) { s = (s32)((m * 607) + c + roundUp); if (s >= 0 && s <= 479) right = 607; top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
-		if (i0 & 8) { s = (s32)(((479 - c) / m) + roundUp); if (s >= 0 && s <= 607) bottom = 479; left = (s < left) ? s : left; right = (s > right) ? s : right; }
+		if (i0 & 1) { s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = std::min(s, top);  bottom = std::max(s, bottom); }
+		if (i0 & 2) { s = (s32)((-c / m) + roundUp); if (s >= 0 && s <= 607) top = 0;   left = std::min(s, left); right = std::max(s, right); }
+		if (i0 & 4) { s = (s32)((m * 607) + c + roundUp); if (s >= 0 && s <= 479) right = 607; top = std::min(s, top);  bottom = std::max(s, bottom); }
+		if (i0 & 8) { s = (s32)(((479 - c) / m) + roundUp); if (s >= 0 && s <= 607) bottom = 479; left = std::min(s, left); right = std::max(s, right); }
 	}
 
 	// Only check other lines if we are dealing with a triangle
@@ -396,10 +396,10 @@ void LOADERDECL UpdateBoundingBox()
 		{
 			m = (p2.x - p1.x) ? ((p2.y - p1.y) / (p2.x - p1.x)) : highNum;
 			c = p1.y - (m * p1.x);
-			if (i1 & 1) { s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
-			if (i1 & 2) { s = (s32)((-c / m) + roundUp); if (s >= 0 && s <= 607) top = 0;   left = (s < left) ? s : left; right = (s > right) ? s : right; }
-			if (i1 & 4) { s = (s32)((m * 607) + c + roundUp); if (s >= 0 && s <= 479) right = 607; top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
-			if (i1 & 8) { s = (s32)(((479 - c) / m) + roundUp); if (s >= 0 && s <= 607) bottom = 479; left = (s < left) ? s : left; right = (s > right) ? s : right; }
+			if (i1 & 1) { s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = std::min(s, top);  bottom = std::max(s, bottom); }
+			if (i1 & 2) { s = (s32)((-c / m) + roundUp); if (s >= 0 && s <= 607) top = 0;   left = std::min(s, left); right = std::max(s, right); }
+			if (i1 & 4) { s = (s32)((m * 607) + c + roundUp); if (s >= 0 && s <= 479) right = 607; top = std::min(s, top);  bottom = std::max(s, bottom); }
+			if (i1 & 8) { s = (s32)(((479 - c) / m) + roundUp); if (s >= 0 && s <= 607) bottom = 479; left = std::min(s, left); right = std::max(s, right); }
 		}
 
 		// Third line intersects
@@ -407,10 +407,10 @@ void LOADERDECL UpdateBoundingBox()
 		{
 			m = (p2.x - p0.x) ? ((p2.y - p0.y) / (p2.x - p0.x)) : highNum;
 			c = p0.y - (m * p0.x);
-			if (i2 & 1) { s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
-			if (i2 & 2) { s = (s32)((-c / m) + roundUp); if (s >= 0 && s <= 607) top = 0;   left = (s < left) ? s : left; right = (s > right) ? s : right; }
-			if (i2 & 4) { s = (s32)((m * 607) + c + roundUp); if (s >= 0 && s <= 479) right = 607; top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
-			if (i2 & 8) { s = (s32)(((479 - c) / m) + roundUp); if (s >= 0 && s <= 607) bottom = 479; left = (s < left) ? s : left; right = (s > right) ? s : right; }
+			if (i2 & 1) { s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = std::min(s, top);  bottom = std::max(s, bottom); }
+			if (i2 & 2) { s = (s32)((-c / m) + roundUp); if (s >= 0 && s <= 607) top = 0;   left = std::min(s, left); right = std::max(s, right); }
+			if (i2 & 4) { s = (s32)((m * 607) + c + roundUp); if (s >= 0 && s <= 479) right = 607; top = std::min(s, top);  bottom = std::max(s, bottom); }
+			if (i2 & 8) { s = (s32)(((479 - c) / m) + roundUp); if (s >= 0 && s <= 607) bottom = 479; left = std::min(s, left); right = std::max(s, right); }
 		}
 	}
 
