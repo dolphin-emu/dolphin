@@ -613,10 +613,8 @@ void VertexLoader::CompileVertexTranslator()
 			nat_offset += 12;
 		}
 
-		int numNormals = (m_VtxAttr.NormalElements == 1) ? NRM_THREE : NRM_ONE;
 		components |= VB_HAS_NRM0;
-
-		if (numNormals == NRM_THREE)
+		if (m_VtxAttr.NormalElements == 1)
 			components |= VB_HAS_NRM1 | VB_HAS_NRM2;
 	}
 
