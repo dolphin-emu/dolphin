@@ -61,7 +61,6 @@ struct RegInfo {
 };
 
 static u32 regsInUse(RegInfo& R) {
-#if _M_X86_64
 	u32 result = 0;
 	for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
 	{
@@ -71,10 +70,6 @@ static u32 regsInUse(RegInfo& R) {
 			result |= (1 << (16 + i));
 	}
 	return result;
-#else
-	// not needed
-	return 0;
-#endif
 }
 
 static void regMarkUse(RegInfo& R, InstLoc I, InstLoc Op, unsigned OpNum) {

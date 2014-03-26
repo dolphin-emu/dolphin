@@ -92,7 +92,7 @@ void XEmitter::ABI_PushRegistersAndAdjustStack(u32 mask, bool noProlog)
 	{
 		if (mask & (1 << (16 + x)))
 		{
-			MOVAPD(MDisp(RSP, offset), (X64Reg) x);
+			MOVUPD(MDisp(RSP, offset), (X64Reg) x);
 			offset += 16;
 		}
 	}
@@ -114,7 +114,7 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(u32 mask, bool noProlog)
 	{
 		if (mask & (1 << (16 + x)))
 		{
-			MOVAPD((X64Reg) x, MDisp(RSP, size));
+			MOVUPD((X64Reg) x, MDisp(RSP, size));
 			size += 16;
 		}
 	}
@@ -213,11 +213,11 @@ void XEmitter::ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2,u32 param
 }
 
 void XEmitter::ABI_CallFunctionPC(void *func, void *param1, u32 param2) {
-	ABI_AlignStack(3 * 4);
+	ABI_AlignStack(2 * 4);
 	PUSH(32, Imm32(param2));
 	PUSH(32, Imm32((u32)param1));
 	CALL(func);
-	ABI_RestoreStack(3 * 4);
+	ABI_RestoreStack(2 * 4);
 }
 
 void XEmitter::ABI_CallFunctionPPC(void *func, void *param1, void *param2,u32 param3) {
