@@ -480,8 +480,8 @@ void CUCode_Zelda::ExecuteList()
 			// Addresses for right & left buffers in main memory
 			// Each buffer is 160 bytes long. The number of (both left & right) buffers
 			// is set by the first mail of the list.
-			m_RightBuffersAddr = Read32() & 0x7FFFFFFF;
 			m_LeftBuffersAddr = Read32() & 0x7FFFFFFF;
+			m_RightBuffersAddr = Read32() & 0x7FFFFFFF;
 
 			DEBUG_LOG(DSPHLE, "DsyncFrame");
 			// These alternate between three sets of mixing buffers. They are all three fairly near,
