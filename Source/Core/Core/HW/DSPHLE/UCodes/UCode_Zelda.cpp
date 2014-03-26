@@ -130,6 +130,9 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 	if (m_bSyncCmdPending)
 	{
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+
+		MixAudio();
+
 		m_CurBuffer++;
 
 		if (m_CurBuffer == m_NumBuffers)
@@ -187,6 +190,8 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 			{
 				m_NumSyncMail = 0;
 				m_bSyncInProgress = false;
+
+				MixAudio();
 
 				m_CurBuffer++;
 
