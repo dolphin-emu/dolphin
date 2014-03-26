@@ -726,7 +726,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 u32 Jit64::RegistersInUse()
 {
-#if _M_X86_64
 	u32 result = 0;
 	for (int i = 0; i < NUMXREGS; i++)
 	{
@@ -736,8 +735,4 @@ u32 Jit64::RegistersInUse()
 			result |= (1 << (16 + i));
 	}
 	return result;
-#else
-	// not needed
-	return 0;
-#endif
 }
