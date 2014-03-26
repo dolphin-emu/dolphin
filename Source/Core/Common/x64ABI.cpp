@@ -92,7 +92,7 @@ void XEmitter::ABI_PushRegistersAndAdjustStack(u32 mask, bool noProlog)
 	{
 		if (mask & (1 << (16 + x)))
 		{
-			MOVAPD(MDisp(RSP, offset), (X64Reg) x);
+			MOVUPD(MDisp(RSP, offset), (X64Reg) x);
 			offset += 16;
 		}
 	}
@@ -114,7 +114,7 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(u32 mask, bool noProlog)
 	{
 		if (mask & (1 << (16 + x)))
 		{
-			MOVAPD((X64Reg) x, MDisp(RSP, size));
+			MOVUPD((X64Reg) x, MDisp(RSP, size));
 			size += 16;
 		}
 	}
