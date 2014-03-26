@@ -78,7 +78,6 @@ set(SRCS	ActionReplay.cpp
 			HW/DSPHLE/UCodes/UCode_Zelda_ADPCM.cpp
 			HW/DSPHLE/UCodes/UCode_Zelda_Voice.cpp
 			HW/DSPHLE/UCodes/UCode_Zelda_Synth.cpp
-			HW/DSPHLE/HLEMixer.cpp
 			HW/DSPHLE/MailHandler.cpp
 			HW/DSPHLE/DSPHLE.cpp
 			HW/DSPLLE/DSPDebugInterface.cpp
