@@ -106,7 +106,6 @@
     <ClCompile Include="HW\CPU.cpp" />
     <ClCompile Include="HW\DSP.cpp" />
     <ClCompile Include="HW\DSPHLE\DSPHLE.cpp" />
-    <ClCompile Include="HW\DSPHLE\HLEMixer.cpp" />
     <ClCompile Include="HW\DSPHLE\MailHandler.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\UCodes.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\UCode_AX.cpp" />
@@ -305,7 +304,6 @@
     <ClInclude Include="HW\CPU.h" />
     <ClInclude Include="HW\DSP.h" />
     <ClInclude Include="HW\DSPHLE\DSPHLE.h" />
-    <ClInclude Include="HW\DSPHLE\HLEMixer.h" />
     <ClInclude Include="HW\DSPHLE\MailHandler.h" />
     <ClInclude Include="HW\DSPHLE\UCodes\UCodes.h" />
     <ClInclude Include="HW\DSPHLE\UCodes\UCode_AX.h" />

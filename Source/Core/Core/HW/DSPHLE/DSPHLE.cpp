@@ -15,7 +15,6 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
-#include "Core/HW/DSPHLE/HLEMixer.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 DSPHLE::DSPHLE()
@@ -266,7 +265,7 @@ void DSPHLE::InitMixer()
 	unsigned int AISampleRate, DACSampleRate;
 	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
 	delete soundStream;
-	soundStream = AudioCommon::InitSoundStream(new HLEMixer(this, AISampleRate, DACSampleRate, 48000), m_hWnd);
+	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, 48000), m_hWnd);
 	if (!soundStream) PanicAlert("Error starting up sound stream");
 	// Mixer is initialized
 	m_InitMixer = true;

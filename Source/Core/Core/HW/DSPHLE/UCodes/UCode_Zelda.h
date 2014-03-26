@@ -127,7 +127,6 @@ public:
 	void HandleMail_NormalVersion(u32 _uMail);
 
 	void Update(int cycles) override;
-	void MixAdd(short* buffer, int size) override;
 
 	void CopyPBsFromRAM();
 	void CopyPBsToRAM();

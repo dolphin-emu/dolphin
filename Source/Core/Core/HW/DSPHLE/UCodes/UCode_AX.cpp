@@ -16,30 +16,16 @@ CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
 	, m_work_available(false)
 	, m_cmdlist_size(0)
-	, m_run_on_thread(false)
 {
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AX: crc=%08x", crc);
 	m_rMailHandler.PushMail(DSP_INIT);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
 	LoadResamplingCoefficients();
-
-	// DSP HLE on thread is always disabled because it causes audio
-	// issues/glitching (different timing characteristics). m_run_on_thread is
-	// always false.
-	if (m_run_on_thread)
-		m_axthread = std::thread(SpawnAXThread, this);
 }
 
 CUCode_AX::~CUCode_AX()
 {
-	if (m_run_on_thread)
-	{
-		m_cmdlist_size = (u16)-1; // Special value to signal end
-		NotifyAXThread();
-		m_axthread.join();
-	}
-
 	m_rMailHandler.Clear();
 }
 
@@ -80,51 +66,11 @@ void CUCode_AX::LoadResamplingCoefficients()
 	m_coeffs_available = true;
 }
 
-void CUCode_AX::SpawnAXThread(CUCode_AX* self)
-{
-	self->AXThread();
-}
-
-void CUCode_AX::AXThread()
-{
-	while (true)
-	{
-		{
-			std::unique_lock<std::mutex> lk(m_cmdlist_mutex);
-			while (m_cmdlist_size == 0)
-				m_cmdlist_cv.wait(lk);
-		}
-
-		if (m_cmdlist_size == (u16)-1) // End of thread signal
-			break;
-
-		m_processing.lock();
-		HandleCommandList();
-		m_cmdlist_size = 0;
-		SignalWorkEnd();
-		m_processing.unlock();
-	}
-}
-
 void CUCode_AX::SignalWorkEnd()
 {
 	// Signal end of processing
 	m_rMailHandler.PushMail(DSP_YIELD);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-}
-
-void CUCode_AX::NotifyAXThread()
-{
-	std::unique_lock<std::mutex> lk(m_cmdlist_mutex);
-	m_cmdlist_cv.notify_one();
-}
-
-void CUCode_AX::StartWorking()
-{
-	if (m_run_on_thread)
-		NotifyAXThread();
-	else
-		m_work_available = true;
 }
 
 void CUCode_AX::HandleCommandList()
@@ -660,15 +606,10 @@ void CUCode_AX::HandleMail(u32 mail)
 
 	bool set_next_is_cmdlist = false;
 
-	// Wait for DSP processing to be done before answering any mail. This is
-	// safe to do because it matches what the DSP does on real hardware: there
-	// is no interrupt when a mail from CPU is received.
-	m_processing.lock();
-
 	if (next_is_cmdlist)
 	{
 		CopyCmdList(mail, cmdlist_size);
-		StartWorking();
+		m_work_available = true;
 	}
 	else if (m_UploadSetupInProgress)
 	{
@@ -682,7 +623,6 @@ void CUCode_AX::HandleMail(u32 mail)
 	}
 	else if (mail == MAIL_NEW_UCODE)
 	{
-		soundStream->GetMixer()->SetHLEReady(false);
 		m_UploadSetupInProgress = true;
 	}
 	else if (mail == MAIL_RESET)
@@ -705,7 +645,6 @@ void CUCode_AX::HandleMail(u32 mail)
 		ERROR_LOG(DSPHLE, "Unknown mail sent to AX::HandleMail: %08x", mail);
 	}
 
-	m_processing.unlock();
 	next_is_cmdlist = set_next_is_cmdlist;
 }
 
@@ -720,12 +659,6 @@ void CUCode_AX::CopyCmdList(u32 addr, u16 size)
 	for (u32 i = 0; i < size; ++i, addr += 2)
 		m_cmdlist[i] = HLEMemory_Read_U16(addr);
 	m_cmdlist_size = size;
-}
-
-void CUCode_AX::MixAdd(short* out_buffer, int nsamples)
-{
-	// Should never be called: we do not set HLE as ready.
-	// We accurately send samples to RAM instead of directly to the mixer.
 }
 
 void CUCode_AX::Update(int cycles)
@@ -767,8 +700,6 @@ void CUCode_AX::DoAXState(PointerWrap& p)
 
 void CUCode_AX::DoState(PointerWrap& p)
 {
-	std::lock_guard<std::mutex> lk(m_processing);
-
 	DoStateShared(p);
 	DoAXState(p);
 }

@@ -738,7 +738,7 @@ ContinueWithBlock:
 		PB.NeedsReset = 0;
 	}
 }
-
+#if 0
 // size is in stereo samples.
 void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 {
@@ -788,3 +788,4 @@ void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 		_Buffer += 2;
 	}
 }
+#endif

@@ -667,8 +667,6 @@ u32 CUCode_AXWii::GetUpdateMs()
 
 void CUCode_AXWii::DoState(PointerWrap &p)
 {
-	std::lock_guard<std::mutex> lk(m_processing);
-
 	DoStateShared(p);
 	DoAXState(p);
 

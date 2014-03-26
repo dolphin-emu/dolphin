@@ -26,7 +26,6 @@ public:
 		, m_dacSampleRate(DACSampleRate)
 		, m_bits(16)
 		, m_channels(2)
-		, m_HLEready(false)
 		, m_logAudio(0)
 		, m_indexW(0)
 		, m_indexR(0)
@@ -45,18 +44,12 @@ public:
 
 	// Called from audio threads
 	virtual unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
-	virtual void Premix(short * /*samples*/, unsigned int /*numSamples*/) {}
 
 	// Called from main thread
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
 	unsigned int GetSampleRate() const {return m_sampleRate;}
 
 	void SetThrottle(bool use) { m_throttle = use;}
-
-	// TODO: do we need this
-	bool IsHLEReady() const { return m_HLEready;}
-	void SetHLEReady(bool ready) { m_HLEready = ready;}
-	// ---------------------
 
 
 	virtual void StartLogAudio(const std::string& filename)
@@ -102,7 +95,6 @@ protected:
 
 	WaveFileWriter g_wave_writer;
 
-	bool m_HLEready;
 	bool m_logAudio;
 
 	bool m_throttle;

@@ -347,9 +347,6 @@
     <ClCompile Include="HW\DSPHLE\DSPHLE.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\HLEMixer.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClCompile>
     <ClCompile Include="HW\DSPHLE\MailHandler.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
     </ClCompile>
@@ -871,9 +868,6 @@
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\DSPHLE.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\DSPHLE\HLEMixer.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\MailHandler.h">
