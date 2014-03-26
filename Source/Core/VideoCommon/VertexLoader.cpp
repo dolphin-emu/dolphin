@@ -307,22 +307,18 @@ void LOADERDECL UpdateBoundingBox()
 	// If the polygon is inside viewport, let's update the bounding box and be done with it
 	if ((b0 == 3) && (b0 == b1) && (b0 == b2))
 	{
-		// Line
-		if (numPoints == 2)
-		{
-			left = (p0.x < p1.x) ? p0.x : p1.x;
-			top = (p0.y < p1.y) ? p0.y : p1.y;
-			right = (p0.x > p1.x) ? p0.x : p1.x;
-			bottom = (p0.y > p1.y) ? p0.y : p1.y;
-		}
+		left = std::min(p0.x, p1.x);
+		top = std::min(p0.y, p1.y);
+		right = std::max(p0.x, p1.x);
+		bottom = std::max(p0.y, p1.y);
 
 		// Triangle
-		else
+		if (numPoints == 3)
 		{
-			left = (p0.x < p1.x) ? (p0.x < p2.x) ? p0.x : p2.x : (p1.x < p2.x) ? p1.x : p2.x;
-			top = (p0.y < p1.y) ? (p0.y < p2.y) ? p0.y : p2.y : (p1.y < p2.y) ? p1.y : p2.y;
-			right = (p0.x > p1.x) ? (p0.x > p2.x) ? p0.x : p2.x : (p1.x > p2.x) ? p1.x : p2.x;
-			bottom = (p0.y > p1.y) ? (p0.y > p2.y) ? p0.y : p2.y : (p1.y > p2.y) ? p1.y : p2.y;
+			left = std::min(left, p2.x);
+			top = std::min(top, p2.y);
+			right = std::max(right, p2.x);
+			bottom = std::max(bottom, p2.y);
 		}
 
 		// Update bounding box
