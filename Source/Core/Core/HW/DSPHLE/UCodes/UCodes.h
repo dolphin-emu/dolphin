@@ -94,7 +94,6 @@ protected:
 	void DoStateShared(PointerWrap &p);
 
 	CMailHandler& m_rMailHandler;
-	std::mutex m_csMix;
 
 	enum EDSP_Codes
 	{

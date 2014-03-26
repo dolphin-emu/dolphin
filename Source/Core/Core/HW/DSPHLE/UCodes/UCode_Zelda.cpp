@@ -290,31 +290,13 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 			m_SyncFlags[n] = _uMail & 0xFFFF;
 			m_bSyncInProgress = false;
 
-			// Normally, we should mix to the buffers used by the game.
-			// We don't do it currently for a simple reason:
-			// if the game runs fast all the time, then it's OK,
-			// but if it runs slow, sound can become choppy.
-			// This problem won't happen when mixing to the buffer
-			// provided by MixAdd(), because the size of this buffer
-			// is automatically adjusted if the game runs slow.
-#if 0
-			if (m_SyncFlags[n] & 0x8000)
-			{
-				for (; m_CurVoice < m_MaxVoice; m_CurVoice++)
-				{
-					if (m_CurVoice >= m_NumVoices)
-						break;
-
-					MixVoice(m_CurVoice);
-				}
-			}
-			else
-#endif
-				m_CurVoice = m_MaxVoice;
+			m_CurVoice = m_MaxVoice;
 
 			if (m_CurVoice >= m_NumVoices)
 			{
 				m_CurBuffer++;
+
+				MixAudio();
 
 				m_rMailHandler.PushMail(DSP_SYNC);
 				DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
@@ -555,9 +537,6 @@ u32 CUCode_Zelda::GetUpdateMs()
 
 void CUCode_Zelda::DoState(PointerWrap &p)
 {
-	// It's bad if we try to save during Mix()
-	std::lock_guard<std::mutex> lk(m_csMix);
-
 	p.Do(m_AFCCoefTable);
 	p.Do(m_MiscTable);
 
