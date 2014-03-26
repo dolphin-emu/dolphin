@@ -528,14 +528,16 @@ void VertexLoader::CompileVertexTranslator()
 #endif
 
 	// Colors
-	const u32 col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
+	const TVtxDesc::VertexComponentType col[2] = { m_VtxDesc.Color0, m_VtxDesc.Color1 };
 	// TextureCoord
 	// Since m_VtxDesc.Text7Coord is broken across a 32 bit word boundary, retrieve its value manually.
 	// If we didn't do this, the vertex format would be read as one bit offset from where it should be, making
 	// 01 become 00, and 10/11 become 01
-	const u32 tc[8] = {
+	// TODO (neobrain): Uh.. this looks dumb.
+	const TVtxDesc::VertexComponentType tc[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (const u32)((m_VtxDesc.Hex >> 31) & 3)
+		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord,
+		(const TVtxDesc::VertexComponentType)((m_VtxDesc.Hex >> 31) & 3)
 	};
 
 	u32 components = 0;
@@ -582,7 +584,7 @@ void VertexLoader::CompileVertexTranslator()
 	vtx_decl.position.integer = false;
 
 	// Normals
-	if (m_VtxDesc.Normal != NOT_PRESENT)
+	if (m_VtxDesc.Normal != TVtxDesc::NOT_PRESENT)
 	{
 		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal,
 			m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
@@ -621,9 +623,9 @@ void VertexLoader::CompileVertexTranslator()
 		vtx_decl.colors[i].integer = false;
 		switch (col[i])
 		{
-		case NOT_PRESENT:
+		case TVtxDesc::NOT_PRESENT:
 			break;
-		case DIRECT:
+		case TVtxDesc::DIRECT:
 			switch (m_VtxAttr.color[i].Comp)
 			{
 			case FORMAT_16B_565:  m_VertexSize += 2; WriteCall(Color_ReadDirect_16b_565); break;
@@ -635,7 +637,7 @@ void VertexLoader::CompileVertexTranslator()
 			default: _assert_(0); break;
 			}
 			break;
-		case INDEX8:
+		case TVtxDesc::INDEX8:
 			m_VertexSize += 1;
 			switch (m_VtxAttr.color[i].Comp)
 			{
@@ -648,7 +650,7 @@ void VertexLoader::CompileVertexTranslator()
 			default: _assert_(0); break;
 			}
 			break;
-		case INDEX16:
+		case TVtxDesc::INDEX16:
 			m_VertexSize += 2;
 			switch (m_VtxAttr.color[i].Comp)
 			{
@@ -663,7 +665,7 @@ void VertexLoader::CompileVertexTranslator()
 			break;
 		}
 		// Common for the three bottom cases
-		if (col[i] != NOT_PRESENT)
+		if (col[i] != TVtxDesc::NOT_PRESENT)
 		{
 			components |= VB_HAS_COL0 << i;
 			vtx_decl.colors[i].offset = nat_offset;
@@ -682,13 +684,13 @@ void VertexLoader::CompileVertexTranslator()
 		const int format = m_VtxAttr.texCoord[i].Format;
 		const int elements = m_VtxAttr.texCoord[i].Elements;
 
-		if (tc[i] == NOT_PRESENT)
+		if (tc[i] == TVtxDesc::NOT_PRESENT)
 		{
 			components &= ~(VB_HAS_UV0 << i);
 		}
 		else
 		{
-			_assert_msg_(VIDEO, DIRECT <= tc[i] && tc[i] <= INDEX16, "Invalid texture coordinates!\n(tc[i] = %d)", tc[i]);
+			_assert_msg_(VIDEO, TVtxDesc::DIRECT <= tc[i] && tc[i] <= TVtxDesc::INDEX16, "Invalid texture coordinates!\n(tc[i] = %d)", (int)tc[i]);
 			_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
 			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elements!\n(elements = %d)", elements);
 
@@ -700,7 +702,7 @@ void VertexLoader::CompileVertexTranslator()
 		if (components & (VB_HAS_TEXMTXIDX0 << i))
 		{
 			vtx_decl.texcoords[i].enable = true;
-			if (tc[i] != NOT_PRESENT)
+			if (tc[i] != TVtxDesc::NOT_PRESENT)
 			{
 				// if texmtx is included, texcoord will always be 3 floats, z will be the texmtx index
 				vtx_decl.texcoords[i].components = 3;
@@ -717,7 +719,7 @@ void VertexLoader::CompileVertexTranslator()
 		}
 		else
 		{
-			if (tc[i] != NOT_PRESENT)
+			if (tc[i] != TVtxDesc::NOT_PRESENT)
 			{
 				vtx_decl.texcoords[i].enable = true;
 				vtx_decl.texcoords[i].components = vtx_attr.texCoord[i].Elements ? 2 : 1;
@@ -725,13 +727,13 @@ void VertexLoader::CompileVertexTranslator()
 			}
 		}
 
-		if (tc[i] == NOT_PRESENT)
+		if (tc[i] == TVtxDesc::NOT_PRESENT)
 		{
 			// if there's more tex coords later, have to write a dummy call
 			int j = i + 1;
 			for (; j < 8; ++j)
 			{
-				if (tc[j] != NOT_PRESENT)
+				if (tc[j] != TVtxDesc::NOT_PRESENT)
 				{
 					WriteCall(VertexLoader_TextCoord::GetDummyFunction()); // important to get indices right!
 					break;

@@ -20,14 +20,6 @@ enum
 // Vertex components
 enum
 {
-	NOT_PRESENT = 0,
-	DIRECT      = 1,
-	INDEX8      = 2,
-	INDEX16     = 3,
-};
-
-enum
-{
 	FORMAT_UBYTE   = 0, // 2 Cmp
 	FORMAT_BYTE    = 1, // 3 Cmp
 	FORMAT_USHORT  = 2,
@@ -57,6 +49,14 @@ union TVtxDesc
 {
 	u64 Hex;
 
+	enum VertexComponentType : u64
+	{
+		NOT_PRESENT = 0,
+		DIRECT      = 1,
+		INDEX8      = 2,
+		INDEX16     = 3,
+	};
+
 	// 0: not present
 	// 1: present
 	BitField< 0,1,u64> PosMatIdx;
@@ -73,18 +73,18 @@ union TVtxDesc
 	// 01: direct
 	// 10: 8 bit index
 	// 11: 16 bit index
-	BitField< 9,2,u64> Position;
-	BitField<11,2,u64> Normal;
-	BitField<13,2,u64> Color0;
-	BitField<15,2,u64> Color1;
-	BitField<17,2,u64> Tex0Coord;
-	BitField<19,2,u64> Tex1Coord;
-	BitField<21,2,u64> Tex2Coord;
-	BitField<23,2,u64> Tex3Coord;
-	BitField<25,2,u64> Tex4Coord;
-	BitField<27,2,u64> Tex5Coord;
-	BitField<29,2,u64> Tex6Coord;
-	BitField<31,2,u64> Tex7Coord;
+	BitField< 9,2,VertexComponentType> Position;
+	BitField<11,2,VertexComponentType> Normal;
+	BitField<13,2,VertexComponentType> Color0;
+	BitField<15,2,VertexComponentType> Color1;
+	BitField<17,2,VertexComponentType> Tex0Coord;
+	BitField<19,2,VertexComponentType> Tex1Coord;
+	BitField<21,2,VertexComponentType> Tex2Coord;
+	BitField<23,2,VertexComponentType> Tex3Coord;
+	BitField<25,2,VertexComponentType> Tex4Coord;
+	BitField<27,2,VertexComponentType> Tex5Coord;
+	BitField<29,2,VertexComponentType> Tex6Coord;
+	BitField<31,2,VertexComponentType> Tex7Coord;
 
 	// 31 unused bits
 

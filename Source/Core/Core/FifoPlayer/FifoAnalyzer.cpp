@@ -139,8 +139,14 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	const VAT &vtxAttr = cpMem.vtxAttr[vatIndex];
 
 	// Colors
-	const u32 colDesc[2] = {vtxDesc.Color0, vtxDesc.Color1};
+	const TVtxDesc::VertexComponentType colDesc[2] = {vtxDesc.Color0, vtxDesc.Color1};
 	const u32 colComp[2] = {vtxAttr.g0.Color0Comp, vtxAttr.g0.Color1Comp};
+
+	const TVtxDesc::VertexComponentType tcDesc[8] =
+	{
+		vtxDesc.Tex0Coord, vtxDesc.Tex1Coord, vtxDesc.Tex2Coord, vtxDesc.Tex3Coord,
+		vtxDesc.Tex4Coord, vtxDesc.Tex5Coord, vtxDesc.Tex6Coord, vtxDesc.Tex7Coord
+	};
 
 	const u32 tcElements[8] =
 	{
@@ -168,7 +174,7 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	sizes[9] = VertexLoader_Position::GetSize(vtxDesc.Position, vtxAttr.g0.PosFormat, vtxAttr.g0.PosElements);
 
 	// Normals
-	if (vtxDesc.Normal != NOT_PRESENT)
+	if (vtxDesc.Normal != TVtxDesc::NOT_PRESENT)
 	{
 		sizes[10] = VertexLoader_Normal::GetSize(vtxDesc.Normal, vtxAttr.g0.NormalFormat, vtxAttr.g0.NormalElements, vtxAttr.g0.NormalIndex3);
 	}
@@ -184,9 +190,9 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 
 		switch (colDesc[i])
 		{
-		case NOT_PRESENT:
+		case TVtxDesc::NOT_PRESENT:
 			break;
-		case DIRECT:
+		case TVtxDesc::DIRECT:
 			switch (colComp[i])
 			{
 			case FORMAT_16B_565:  size = 2; break;
@@ -198,10 +204,10 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 			default: _assert_(0); break;
 			}
 			break;
-		case INDEX8:
+		case TVtxDesc::INDEX8:
 			size = 1;
 			break;
-		case INDEX16:
+		case TVtxDesc::INDEX16:
 			size = 2;
 			break;
 		}
@@ -210,11 +216,9 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	}
 
 	// Texture coordinates
-	vtxDescHex = vtxDesc.Hex >> 17;
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 8; ++i)
 	{
-		sizes[13 + i] = VertexLoader_TextCoord::GetSize(vtxDescHex & 3, tcFormat[i], tcElements[i]);
-		vtxDescHex >>= 2;
+		sizes[13 + i] = VertexLoader_TextCoord::GetSize(tcDesc[i], tcFormat[i], tcElements[i]);
 	}
 }
 
