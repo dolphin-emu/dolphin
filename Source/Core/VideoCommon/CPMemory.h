@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/BitField.h"
 #include "Common/Common.h"
 
 // Vertex array numbers
@@ -55,118 +56,106 @@ enum
 union TVtxDesc
 {
 	u64 Hex;
-	struct
-	{
-		// 0: not present
-		// 1: present
-		u32 PosMatIdx   : 1;
-		u32 Tex0MatIdx  : 1;
-		u32 Tex1MatIdx  : 1;
-		u32 Tex2MatIdx  : 1;
-		u32 Tex3MatIdx  : 1;
-		u32 Tex4MatIdx  : 1;
-		u32 Tex5MatIdx  : 1;
-		u32 Tex6MatIdx  : 1;
-		u32 Tex7MatIdx  : 1;
 
-		// 00: not present
-		// 01: direct
-		// 10: 8 bit index
-		// 11: 16 bit index
-		u32 Position    : 2;
-		u32 Normal      : 2;
-		u32 Color0      : 2;
-		u32 Color1      : 2;
-		u32 Tex0Coord   : 2;
-		u32 Tex1Coord   : 2;
-		u32 Tex2Coord   : 2;
-		u32 Tex3Coord   : 2;
-		u32 Tex4Coord   : 2;
-		u32 Tex5Coord   : 2;
-		u32 Tex6Coord   : 2;
-		u32 Tex7Coord   : 2;
-		u32             :31;
-	};
+	// 0: not present
+	// 1: present
+	BitField< 0,1,u64> PosMatIdx;
+	BitField< 1,1,u64> Tex0MatIdx;
+	BitField< 2,1,u64> Tex1MatIdx;
+	BitField< 3,1,u64> Tex2MatIdx;
+	BitField< 4,1,u64> Tex3MatIdx;
+	BitField< 5,1,u64> Tex4MatIdx;
+	BitField< 6,1,u64> Tex5MatIdx;
+	BitField< 7,1,u64> Tex6MatIdx;
+	BitField< 8,1,u64> Tex7MatIdx;
 
-	struct
-	{
-		u32 Hex0, Hex1;
-	};
+	// 00: not present
+	// 01: direct
+	// 10: 8 bit index
+	// 11: 16 bit index
+	BitField< 9,2,u64> Position;
+	BitField<11,2,u64> Normal;
+	BitField<13,2,u64> Color0;
+	BitField<15,2,u64> Color1;
+	BitField<17,2,u64> Tex0Coord;
+	BitField<19,2,u64> Tex1Coord;
+	BitField<21,2,u64> Tex2Coord;
+	BitField<23,2,u64> Tex3Coord;
+	BitField<25,2,u64> Tex4Coord;
+	BitField<27,2,u64> Tex5Coord;
+	BitField<29,2,u64> Tex6Coord;
+	BitField<31,2,u64> Tex7Coord;
+
+	// 31 unused bits
+
+	BitField< 0,32,u64> Hex0;
+	BitField<32,32,u64> Hex1;
 };
 
 union UVAT_group0
 {
 	u32 Hex;
-	struct
-	{
-		// 0:8
-		u32 PosElements         : 1;
-		u32 PosFormat           : 3;
-		u32 PosFrac             : 5;
-		// 9:12
-		u32 NormalElements      : 1;
-		u32 NormalFormat        : 3;
-		// 13:16
-		u32 Color0Elements      : 1;
-		u32 Color0Comp          : 3;
-		// 17:20
-		u32 Color1Elements      : 1;
-		u32 Color1Comp          : 3;
-		// 21:29
-		u32 Tex0CoordElements   : 1;
-		u32 Tex0CoordFormat     : 3;
-		u32 Tex0Frac            : 5;
-		// 30:31
-		u32 ByteDequant         : 1;
-		u32 NormalIndex3        : 1;
-	};
+
+	BitField< 0,1,u32> PosElements;
+	BitField< 1,3,u32> PosFormat;
+	BitField< 4,5,u32> PosFrac;
+
+	BitField< 9,1,u32> NormalElements;
+	BitField<10,3,u32> NormalFormat;
+
+	BitField<13,1,u32> Color0Elements;
+	BitField<14,3,u32> Color0Comp;
+
+	BitField<17,1,u32> Color1Elements;
+	BitField<18,3,u32> Color1Comp;
+
+	BitField<21,1,u32> Tex0CoordElements;
+	BitField<22,3,u32> Tex0CoordFormat;
+	BitField<25,5,u32> Tex0Frac;
+
+	BitField<30,1,u32> ByteDequant;
+	BitField<31,1,u32> NormalIndex3;
 };
 
 union UVAT_group1
 {
 	u32 Hex;
-	struct
-	{
-		// 0:8
-		u32 Tex1CoordElements   : 1;
-		u32 Tex1CoordFormat     : 3;
-		u32 Tex1Frac            : 5;
-		// 9:17
-		u32 Tex2CoordElements   : 1;
-		u32 Tex2CoordFormat     : 3;
-		u32 Tex2Frac            : 5;
-		// 18:26
-		u32 Tex3CoordElements   : 1;
-		u32 Tex3CoordFormat     : 3;
-		u32 Tex3Frac            : 5;
-		// 27:30
-		u32 Tex4CoordElements   : 1;
-		u32 Tex4CoordFormat     : 3;
-		//
-		u32                     : 1;
-	};
+
+	BitField< 0,1,u32> Tex1CoordElements;
+	BitField< 1,3,u32> Tex1CoordFormat;
+	BitField< 4,5,u32> Tex1Frac;
+
+	BitField< 9,1,u32> Tex2CoordElements;
+	BitField<10,3,u32> Tex2CoordFormat;
+	BitField<13,5,u32> Tex2Frac;
+
+	BitField<18,1,u32> Tex3CoordElements;
+	BitField<19,3,u32> Tex3CoordFormat;
+	BitField<22,5,u32> Tex3Frac;
+
+	BitField<27,1,u32> Tex4CoordElements;
+	BitField<28,3,u32> Tex4CoordFormat;
+
+	// 1 unused bit
 };
 
 union UVAT_group2
 {
 	u32 Hex;
-	struct
-	{
-		// 0:4
-		u32 Tex4Frac          : 5;
-		// 5:13
-		u32 Tex5CoordElements : 1;
-		u32 Tex5CoordFormat   : 3;
-		u32 Tex5Frac          : 5;
-		// 14:22
-		u32 Tex6CoordElements : 1;
-		u32 Tex6CoordFormat   : 3;
-		u32 Tex6Frac          : 5;
-		// 23:31
-		u32 Tex7CoordElements : 1;
-		u32 Tex7CoordFormat   : 3;
-		u32 Tex7Frac          : 5;
-	};
+
+	BitField<0,5,u32> Tex4Frac;
+
+	BitField<5,1,u32> Tex5CoordElements;
+	BitField<6,3,u32> Tex5CoordFormat;
+	BitField<9,5,u32> Tex5Frac;
+
+	BitField<14,1,u32> Tex6CoordElements;
+	BitField<15,3,u32> Tex6CoordFormat;
+	BitField<18,5,u32> Tex6Frac;
+
+	BitField<23,1,u32> Tex7CoordElements;
+	BitField<24,3,u32> Tex7CoordFormat;
+	BitField<27,5,u32> Tex7Frac;
 };
 
 struct ColorAttr
@@ -198,35 +187,23 @@ struct TVtxAttr
 // Matrix indices
 union TMatrixIndexA
 {
-	struct
-	{
-		u32 PosNormalMtxIdx : 6;
-		u32 Tex0MtxIdx : 6;
-		u32 Tex1MtxIdx : 6;
-		u32 Tex2MtxIdx : 6;
-		u32 Tex3MtxIdx : 6;
-	};
-	struct
-	{
-		u32 Hex : 30;
-		u32 unused : 2;
-	};
+	BitField< 0,6,u32> PosNormalMtxIdx;
+	BitField< 6,6,u32> Tex0MtxIdx;
+	BitField<12,6,u32> Tex1MtxIdx;
+	BitField<18,6,u32> Tex2MtxIdx;
+	BitField<24,6,u32> Tex3MtxIdx;
+
+	BitField<0,30,u32> Hex; // TODO: Ugly
 };
 
 union TMatrixIndexB
 {
-	struct
-	{
-		u32 Tex4MtxIdx : 6;
-		u32 Tex5MtxIdx : 6;
-		u32 Tex6MtxIdx : 6;
-		u32 Tex7MtxIdx : 6;
-	};
-	struct
-	{
-		u32 Hex : 24;
-		u32 unused : 8;
-	};
+	BitField< 0,6,u32> Tex4MtxIdx;
+	BitField< 6,6,u32> Tex5MtxIdx;
+	BitField<12,6,u32> Tex6MtxIdx;
+	BitField<18,6,u32> Tex7MtxIdx;
+
+	BitField<0,24,u32> Hex; // TODO: Ugly
 };
 
 #pragma pack()

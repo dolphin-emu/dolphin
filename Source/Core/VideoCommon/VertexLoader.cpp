@@ -594,7 +594,7 @@ void VertexLoader::CompileVertexTranslator()
 		{
 			Host_SysMessage(
 				StringFromFormat("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!",
-				m_VtxDesc.Normal, m_VtxAttr.NormalFormat,
+				(int)m_VtxDesc.Normal, (int)m_VtxAttr.NormalFormat,
 				m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3).c_str());
 		}
 		WriteCall(pFunc);
@@ -970,7 +970,7 @@ void VertexLoader::AppendToString(std::string *dest) const
 	};
 
 	dest->append(StringFromFormat("%ib skin: %i P: %i %s-%s ",
-		m_VertexSize, m_VtxDesc.PosMatIdx,
+		m_VertexSize, (int)m_VtxDesc.PosMatIdx,
 		m_VtxAttr.PosElements ? 3 : 2, posMode[m_VtxDesc.Position], posFormats[m_VtxAttr.PosFormat]));
 
 	if (m_VtxDesc.Normal)
