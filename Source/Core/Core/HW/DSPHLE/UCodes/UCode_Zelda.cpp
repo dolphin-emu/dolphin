@@ -294,9 +294,9 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 
 			if (m_CurVoice >= m_NumVoices)
 			{
-				m_CurBuffer++;
-
 				MixAudio();
+
+				m_CurBuffer++;
 
 				m_rMailHandler.PushMail(DSP_SYNC);
 				DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
