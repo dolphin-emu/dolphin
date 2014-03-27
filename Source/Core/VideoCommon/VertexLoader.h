@@ -120,19 +120,6 @@ private:
 		u8 Frac;
 	};
 
-	struct TVtxAttr
-	{
-		u8 PosElements;
-		u8 PosFormat;
-		u8 PosFrac;
-		u8 NormalElements;
-		u8 NormalFormat;
-		ColorAttr color[2];
-		TexAttr texCoord[8];
-		u8 ByteDequant;
-		u8 NormalIndex3;
-	};
-
 	enum
 	{
 		NRM_ZERO  = 0,
@@ -142,8 +129,10 @@ private:
 
 	int m_VertexSize;      // number of bytes of a raw GC vertex. Computed by CompileVertexTranslator.
 
-	// GC vertex format
-	TVtxAttr m_VtxAttr;  // VAT decoded into easy format
+	// GC vertex format - decoded into easy format
+	ColorAttr m_VtxAttrColor[2];
+	TexAttr m_VtxAttrTexCoord[8];
+	VAT m_VtxAttr;
 	TVtxDesc m_VtxDesc;  // Not really used currently - or well it is, but could be easily avoided.
 
 	// PC vertex format
