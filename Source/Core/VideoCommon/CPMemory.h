@@ -69,10 +69,6 @@ union TVtxDesc
 	BitField< 7,1,u64> Tex6MatIdx;
 	BitField< 8,1,u64> Tex7MatIdx;
 
-	// 00: not present
-	// 01: direct
-	// 10: 8 bit index
-	// 11: 16 bit index
 	BitField< 9,2,VertexComponentType> Position;
 	BitField<11,2,VertexComponentType> Normal;
 	BitField<13,2,VertexComponentType> Color0;
@@ -193,6 +189,19 @@ struct VAT
 	UVAT_group0 g0;
 	UVAT_group1 g1;
 	UVAT_group2 g2;
+
+	DECLARE_BITFIELD_ARRAY(GetColorElements, g0.Color0Elements, g0.Color1Elements);
+	DECLARE_BITFIELD_ARRAY(GetColorComponents, g0.Color0Comp, g0.Color1Comp);
+
+	DECLARE_BITFIELD_ARRAY(GetTexCoordElements, g0.Tex0CoordElements, g1.Tex1CoordElements,
+			g1.Tex2CoordElements, g1.Tex3CoordElements, g1.Tex4CoordElements,
+			g2.Tex5CoordElements, g2.Tex6CoordElements, g2.Tex7CoordElements);
+	DECLARE_BITFIELD_ARRAY(GetTexCoordFormats, g0.Tex0CoordFormat, g1.Tex1CoordFormat,
+			g1.Tex2CoordFormat, g1.Tex3CoordFormat, g1.Tex4CoordFormat,
+			g2.Tex5CoordFormat, g2.Tex6CoordFormat, g2.Tex7CoordFormat);
+	DECLARE_BITFIELD_ARRAY(GetTexCoordFracs, g0.Tex0Frac, g1.Tex1Frac,
+			g1.Tex2Frac, g1.Tex3Frac, g2.Tex4Frac,
+			g2.Tex5Frac, g2.Tex6Frac, g2.Tex7Frac);
 };
 
 extern TVtxDesc g_VtxDesc;
