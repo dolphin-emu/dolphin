@@ -21,6 +21,8 @@ union TestUnion
 	BitField<30, 4,s64> at_dword_boundary;  // goes over the boundary of two u32 values
 
 	BitField<15, 1,s64> signed_1bit;  // allowed values: -1 and 0
+
+	DECLARE_BITFIELD_ARRAY(GetArray, full_u64, regular_field_unsigned, signed_1bit, regular_field_signed);
 };
 
 // table of raw numbers to test with
@@ -165,5 +167,31 @@ TEST(BitField, Alignment)
 		// Assignment from other BitField
 		object.at_dword_boundary = object.regular_field_unsigned;
 		EXPECT_EQ(object.regular_field_unsigned, object.at_dword_boundary);
+	}
+}
+
+TEST(BitField, Arrays)
+{
+	TestUnion object;
+
+	for (u64 val : table)
+	{
+		object.full_u64 = val;
+
+		auto array = object.GetArray();
+		EXPECT_EQ(object.full_u64, array[0]);
+		EXPECT_EQ(object.regular_field_unsigned, array[1]);
+		EXPECT_EQ(object.signed_1bit, array[2]);
+		EXPECT_EQ(object.regular_field_signed, array[3]);
+
+		for (int i = 0; i < 3; ++i)
+		{
+			object.GetArray()[i] = val;
+
+			EXPECT_EQ(object.full_u64, object.GetArray()[0]);
+			EXPECT_EQ(object.regular_field_unsigned, object.GetArray()[1]);
+			EXPECT_EQ(object.signed_1bit, object.GetArray()[2]);
+			EXPECT_EQ(object.regular_field_signed, object.GetArray()[3]);
+		}
 	}
 }
