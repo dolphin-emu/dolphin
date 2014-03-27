@@ -122,7 +122,7 @@ struct VAT
 
 	union
 	{
-		u32 Hex;
+		u32 Hex0;
 
 		BitField< 0,1,u32> PosElements;
 		BitField< 1,3,VertexComponentFormat> PosFormat;
@@ -143,11 +143,11 @@ struct VAT
 
 		BitField<30,1,u32> ByteDequant;
 		BitField<31,1,u32> NormalIndex3;
-	} g0;
+	};
 
 	union
 	{
-		u32 Hex;
+		u32 Hex1;
 
 		BitField< 0,1,u32> Tex1CoordElements;
 		BitField< 1,3,VertexComponentFormat> Tex1CoordFormat;
@@ -165,11 +165,11 @@ struct VAT
 		BitField<28,3,VertexComponentFormat> Tex4CoordFormat;
 
 		// 1 unused bit
-	} g1;
+	};
 
 	union
 	{
-		u32 Hex;
+		u32 Hex2;
 
 		BitField<0,5,u32> Tex4Frac;
 
@@ -184,21 +184,21 @@ struct VAT
 		BitField<23,1,u32> Tex7CoordElements;
 		BitField<24,3,VertexComponentFormat> Tex7CoordFormat;
 		BitField<27,5,u32> Tex7Frac;
-	} g2;
+	};
 
 
-	DECLARE_BITFIELD_ARRAY(GetColorElements, g0.Color0Elements, g0.Color1Elements);
-	DECLARE_BITFIELD_ARRAY(GetColorComponents, g0.Color0Comp, g0.Color1Comp);
+	DECLARE_BITFIELD_ARRAY(GetColorElements, Color0Elements, Color1Elements);
+	DECLARE_BITFIELD_ARRAY(GetColorComponents, Color0Comp, Color1Comp);
 
-	DECLARE_BITFIELD_ARRAY(GetTexCoordElements, g0.Tex0CoordElements, g1.Tex1CoordElements,
-			g1.Tex2CoordElements, g1.Tex3CoordElements, g1.Tex4CoordElements,
-			g2.Tex5CoordElements, g2.Tex6CoordElements, g2.Tex7CoordElements);
-	DECLARE_BITFIELD_ARRAY(GetTexCoordFormats, g0.Tex0CoordFormat, g1.Tex1CoordFormat,
-			g1.Tex2CoordFormat, g1.Tex3CoordFormat, g1.Tex4CoordFormat,
-			g2.Tex5CoordFormat, g2.Tex6CoordFormat, g2.Tex7CoordFormat);
-	DECLARE_BITFIELD_ARRAY(GetTexCoordFracs, g0.Tex0Frac, g1.Tex1Frac,
-			g1.Tex2Frac, g1.Tex3Frac, g2.Tex4Frac,
-			g2.Tex5Frac, g2.Tex6Frac, g2.Tex7Frac);
+	DECLARE_BITFIELD_ARRAY(GetTexCoordElements, Tex0CoordElements, Tex1CoordElements,
+			Tex2CoordElements, Tex3CoordElements, Tex4CoordElements,
+			Tex5CoordElements, Tex6CoordElements, Tex7CoordElements);
+	DECLARE_BITFIELD_ARRAY(GetTexCoordFormats, Tex0CoordFormat, Tex1CoordFormat,
+			Tex2CoordFormat, Tex3CoordFormat, Tex4CoordFormat,
+			Tex5CoordFormat, Tex6CoordFormat, Tex7CoordFormat);
+	DECLARE_BITFIELD_ARRAY(GetTexCoordFracs, Tex0Frac, Tex1Frac,
+			Tex2Frac, Tex3Frac, Tex4Frac,
+			Tex5Frac, Tex6Frac, Tex7Frac);
 };
 
 extern TVtxDesc g_VtxDesc;

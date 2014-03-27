@@ -47,15 +47,15 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
 	m_CurrentVat = &g_VtxAttr[attributeIndex];
 
-	posScale = 1.0f / float(1 << m_CurrentVat->g0.PosFrac);
-	tcScale[0] = 1.0f / float(1 << m_CurrentVat->g0.Tex0Frac);
-	tcScale[1] = 1.0f / float(1 << m_CurrentVat->g1.Tex1Frac);
-	tcScale[2] = 1.0f / float(1 << m_CurrentVat->g1.Tex2Frac);
-	tcScale[3] = 1.0f / float(1 << m_CurrentVat->g1.Tex3Frac);
-	tcScale[4] = 1.0f / float(1 << m_CurrentVat->g2.Tex4Frac);
-	tcScale[5] = 1.0f / float(1 << m_CurrentVat->g2.Tex5Frac);
-	tcScale[6] = 1.0f / float(1 << m_CurrentVat->g2.Tex6Frac);
-	tcScale[7] = 1.0f / float(1 << m_CurrentVat->g2.Tex7Frac);
+	posScale = 1.0f / float(1 << m_CurrentVat->PosFrac);
+	tcScale[0] = 1.0f / float(1 << m_CurrentVat->Tex0Frac);
+	tcScale[1] = 1.0f / float(1 << m_CurrentVat->Tex1Frac);
+	tcScale[2] = 1.0f / float(1 << m_CurrentVat->Tex2Frac);
+	tcScale[3] = 1.0f / float(1 << m_CurrentVat->Tex3Frac);
+	tcScale[4] = 1.0f / float(1 << m_CurrentVat->Tex4Frac);
+	tcScale[5] = 1.0f / float(1 << m_CurrentVat->Tex5Frac);
+	tcScale[6] = 1.0f / float(1 << m_CurrentVat->Tex6Frac);
+	tcScale[7] = 1.0f / float(1 << m_CurrentVat->Tex7Frac);
 
 	//TexMtx
 	const u32 tmDesc[8] = {
@@ -65,9 +65,9 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
 	// Colors
 	const TVtxDesc::VertexComponentType colDesc[2] = {g_VtxDesc.Color0, g_VtxDesc.Color1};
-	colElements[0] = m_CurrentVat->g0.Color0Elements;
-	colElements[1] = m_CurrentVat->g0.Color1Elements;
-	const u32 colComp[2] = {m_CurrentVat->g0.Color0Comp, m_CurrentVat->g0.Color1Comp};
+	colElements[0] = m_CurrentVat->Color0Elements;
+	colElements[1] = m_CurrentVat->Color1Elements;
+	const u32 colComp[2] = {m_CurrentVat->Color0Comp, m_CurrentVat->Color1Comp};
 
 	// TextureCoord
 	const TVtxDesc::VertexComponentType tcDesc[8] = {
@@ -76,15 +76,15 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		(const TVtxDesc::VertexComponentType)((g_VtxDesc.Hex >> 31) & 3) // TODO (neobrain): dumber than necessary?
 	};
 	const u32 tcElements[8] = {
-		m_CurrentVat->g0.Tex0CoordElements, m_CurrentVat->g1.Tex1CoordElements, m_CurrentVat->g1.Tex2CoordElements,
-		m_CurrentVat->g1.Tex3CoordElements, m_CurrentVat->g1.Tex4CoordElements, m_CurrentVat->g2.Tex5CoordElements,
-		m_CurrentVat->g2.Tex6CoordElements, m_CurrentVat->g2.Tex7CoordElements
+		m_CurrentVat->Tex0CoordElements, m_CurrentVat->Tex1CoordElements, m_CurrentVat->Tex2CoordElements,
+		m_CurrentVat->Tex3CoordElements, m_CurrentVat->Tex4CoordElements, m_CurrentVat->Tex5CoordElements,
+		m_CurrentVat->Tex6CoordElements, m_CurrentVat->Tex7CoordElements
 	};
 
 	const VAT::VertexComponentFormat tcFormat[8] = {
-		m_CurrentVat->g0.Tex0CoordFormat, m_CurrentVat->g1.Tex1CoordFormat, m_CurrentVat->g1.Tex2CoordFormat,
-		m_CurrentVat->g1.Tex3CoordFormat, m_CurrentVat->g1.Tex4CoordFormat, m_CurrentVat->g2.Tex5CoordFormat,
-		m_CurrentVat->g2.Tex6CoordFormat, m_CurrentVat->g2.Tex7CoordFormat
+		m_CurrentVat->Tex0CoordFormat, m_CurrentVat->Tex1CoordFormat, m_CurrentVat->Tex2CoordFormat,
+		m_CurrentVat->Tex3CoordFormat, m_CurrentVat->Tex4CoordFormat, m_CurrentVat->Tex5CoordFormat,
+		m_CurrentVat->Tex6CoordFormat, m_CurrentVat->Tex7CoordFormat
 	};
 
 	m_VertexSize = 0;
@@ -152,18 +152,18 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	}
 
 	// Write vertex position loader
-	m_positionLoader = VertexLoader_Position::GetFunction(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
-	m_VertexSize += VertexLoader_Position::GetSize(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
+	m_positionLoader = VertexLoader_Position::GetFunction(g_VtxDesc.Position, m_CurrentVat->PosFormat, m_CurrentVat->PosElements);
+	m_VertexSize += VertexLoader_Position::GetSize(g_VtxDesc.Position, m_CurrentVat->PosFormat, m_CurrentVat->PosElements);
 	AddAttributeLoader(LoadPosition);
 
 	// Normals
 	if (g_VtxDesc.Normal != TVtxDesc::NOT_PRESENT)
 	{
 		m_VertexSize += VertexLoader_Normal::GetSize(g_VtxDesc.Normal,
-			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
+			m_CurrentVat->NormalFormat, m_CurrentVat->NormalElements, m_CurrentVat->NormalIndex3);
 
 		m_normalLoader = VertexLoader_Normal::GetFunction(g_VtxDesc.Normal,
-			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
+			m_CurrentVat->NormalFormat, m_CurrentVat->NormalElements, m_CurrentVat->NormalIndex3);
 
 		if (m_normalLoader == nullptr)
 		{
@@ -261,7 +261,7 @@ void SWVertexLoader::LoadVertex()
 
 	if (g_VtxDesc.Normal != TVtxDesc::NOT_PRESENT)
 	{
-		TransformUnit::TransformNormal(&m_Vertex, m_CurrentVat->g0.NormalElements, outVertex);
+		TransformUnit::TransformNormal(&m_Vertex, m_CurrentVat->NormalElements, outVertex);
 	}
 
 	TransformUnit::TransformColor(&m_Vertex, outVertex);

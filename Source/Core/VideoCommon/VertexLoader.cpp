@@ -469,7 +469,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	VertexLoader_TextCoord::Init();
 
 	m_VtxDesc = vtx_desc;
-	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
+	SetVAT(vtx_attr.Hex0, vtx_attr.Hex1, vtx_attr.Hex2);
 
 	#ifdef USE_VERTEX_LOADER_JIT
 	AllocCodeSpace(COMPILED_CODE_SIZE);
@@ -569,14 +569,14 @@ void VertexLoader::CompileVertexTranslator()
 	if (g_ActiveConfig.bUseBBox)
 	{
 		WriteCall(UpdateBoundingBoxPrepare);
-		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.g0.PosFormat, m_VtxAttr.g0.PosElements));
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
 		WriteCall(UpdateBoundingBox);
 	}
 	else
 	{
-		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.g0.PosFormat, m_VtxAttr.g0.PosElements));
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
 	}
-	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.g0.PosFormat, m_VtxAttr.g0.PosElements);
+	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
 	nat_offset += 12;
 	vtx_decl.position.components = 3;
 	vtx_decl.position.enable = true;
@@ -588,21 +588,21 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Normal != TVtxDesc::NOT_PRESENT)
 	{
 		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal,
-			m_VtxAttr.g0.NormalFormat, m_VtxAttr.g0.NormalElements, m_VtxAttr.g0.NormalIndex3);
+			m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 
 		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal,
-			m_VtxAttr.g0.NormalFormat, m_VtxAttr.g0.NormalElements, m_VtxAttr.g0.NormalIndex3);
+			m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 
 		if (pFunc == nullptr)
 		{
 			Host_SysMessage(
 				StringFromFormat("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!",
-				(int)m_VtxDesc.Normal, (int)m_VtxAttr.g0.NormalFormat,
-				(int)m_VtxAttr.g0.NormalElements, (int)m_VtxAttr.g0.NormalIndex3).c_str());
+				(int)m_VtxDesc.Normal, (int)m_VtxAttr.NormalFormat,
+				(int)m_VtxAttr.NormalElements, (int)m_VtxAttr.NormalIndex3).c_str());
 		}
 		WriteCall(pFunc);
 
-		for (int i = 0; i < (vtx_attr.g0.NormalElements ? 3 : 1); i++)
+		for (int i = 0; i < (vtx_attr.NormalElements ? 3 : 1); i++)
 		{
 			vtx_decl.normals[i].components = 3;
 			vtx_decl.normals[i].enable = true;
@@ -613,7 +613,7 @@ void VertexLoader::CompileVertexTranslator()
 		}
 
 		components.has_normal0 = true;
-		if (m_VtxAttr.g0.NormalElements == 1)
+		if (m_VtxAttr.NormalElements == 1)
 		{
 			components.has_normal1 = true;
 			components.has_normal2 = true;
@@ -847,17 +847,17 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	g_nativeVertexFmt = m_NativeFmt;
 
 	// Load position and texcoord scale factors.
-	m_VtxAttr.g0.PosFrac = g_VtxAttr[vtx_attr_group].g0.PosFrac;
-	m_VtxAttr.g0.Tex0Frac = g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
-	m_VtxAttr.g1.Tex1Frac = g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
-	m_VtxAttr.g1.Tex2Frac = g_VtxAttr[vtx_attr_group].g1.Tex2Frac;
-	m_VtxAttr.g1.Tex3Frac = g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
-	m_VtxAttr.g2.Tex4Frac = g_VtxAttr[vtx_attr_group].g2.Tex4Frac;
-	m_VtxAttr.g2.Tex5Frac = g_VtxAttr[vtx_attr_group].g2.Tex5Frac;
-	m_VtxAttr.g2.Tex6Frac = g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
-	m_VtxAttr.g2.Tex7Frac = g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
+	m_VtxAttr.PosFrac = g_VtxAttr[vtx_attr_group].PosFrac;
+	m_VtxAttr.Tex0Frac = g_VtxAttr[vtx_attr_group].Tex0Frac;
+	m_VtxAttr.Tex1Frac = g_VtxAttr[vtx_attr_group].Tex1Frac;
+	m_VtxAttr.Tex2Frac = g_VtxAttr[vtx_attr_group].Tex2Frac;
+	m_VtxAttr.Tex3Frac = g_VtxAttr[vtx_attr_group].Tex3Frac;
+	m_VtxAttr.Tex4Frac = g_VtxAttr[vtx_attr_group].Tex4Frac;
+	m_VtxAttr.Tex5Frac = g_VtxAttr[vtx_attr_group].Tex5Frac;
+	m_VtxAttr.Tex6Frac = g_VtxAttr[vtx_attr_group].Tex6Frac;
+	m_VtxAttr.Tex7Frac = g_VtxAttr[vtx_attr_group].Tex7Frac;
 
-	posScale = fractionTable[m_VtxAttr.g0.PosFrac];
+	posScale = fractionTable[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components.uvs)
 	{
 		for (int i = 0; i < 8; i++)
@@ -917,13 +917,13 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const coun
 void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 {
 	VAT vat;
-	vat.g0.Hex = _group0;
-	vat.g1.Hex = _group1;
-	vat.g2.Hex = _group2;
+	vat.Hex0 = _group0;
+	vat.Hex1 = _group1;
+	vat.Hex2 = _group2;
 
 	m_VtxAttr = vat;
 
-	if (!m_VtxAttr.g0.ByteDequant)
+	if (!m_VtxAttr.ByteDequant)
 	{
 		ERROR_LOG(VIDEO, "ByteDequant is set to zero");
 	}
@@ -954,12 +954,12 @@ void VertexLoader::AppendToString(std::string *dest) const
 
 	dest->append(StringFromFormat("%ib skin: %i P: %i %s-%s ",
 		m_VertexSize, (int)m_VtxDesc.PosMatIdx,
-		m_VtxAttr.g0.PosElements ? 3 : 2, posMode[m_VtxDesc.Position], posFormats[m_VtxAttr.g0.PosFormat]));
+		m_VtxAttr.PosElements ? 3 : 2, posMode[m_VtxDesc.Position], posFormats[m_VtxAttr.PosFormat]));
 
 	if (m_VtxDesc.Normal)
 	{
 		dest->append(StringFromFormat("Nrm: %i %s-%s ",
-			(int)m_VtxAttr.g0.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.g0.NormalFormat]));
+			(int)m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat]));
 	}
 
 	u32 color_mode[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};

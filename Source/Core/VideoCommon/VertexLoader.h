@@ -36,9 +36,9 @@ public:
 	{
 		vid[0] = g_VtxDesc.Hex & 0xFFFFFFFF;
 		vid[1] = g_VtxDesc.Hex >> 32;
-		vid[2] = g_VtxAttr[vtx_attr_group].g0.Hex & ~VAT_0_FRACBITS;
-		vid[3] = g_VtxAttr[vtx_attr_group].g1.Hex & ~VAT_1_FRACBITS;
-		vid[4] = g_VtxAttr[vtx_attr_group].g2.Hex & ~VAT_2_FRACBITS;
+		vid[2] = g_VtxAttr[vtx_attr_group].Hex0 & ~VAT_0_FRACBITS;
+		vid[3] = g_VtxAttr[vtx_attr_group].Hex1 & ~VAT_1_FRACBITS;
+		vid[4] = g_VtxAttr[vtx_attr_group].Hex2 & ~VAT_2_FRACBITS;
 		hash = CalculateHash();
 	}
 

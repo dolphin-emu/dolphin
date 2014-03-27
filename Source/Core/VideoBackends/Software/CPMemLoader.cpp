@@ -31,17 +31,17 @@ void SWLoadCPReg(u32 sub_cmd, u32 value)
 
 	case 0x70:
 		_assert_((sub_cmd & 0x0F) < 8);
-		g_VtxAttr[sub_cmd & 7].g0.Hex = value;
+		g_VtxAttr[sub_cmd & 7].Hex0 = value;
 		break;
 
 	case 0x80:
 		_assert_((sub_cmd & 0x0F) < 8);
-		g_VtxAttr[sub_cmd & 7].g1.Hex = value;
+		g_VtxAttr[sub_cmd & 7].Hex1 = value;
 		break;
 
 	case 0x90:
 		_assert_((sub_cmd & 0x0F) < 8);
-		g_VtxAttr[sub_cmd & 7].g2.Hex = value;
+		g_VtxAttr[sub_cmd & 7].Hex2 = value;
 		break;
 
 	// Pointers to vertex arrays in GC RAM
