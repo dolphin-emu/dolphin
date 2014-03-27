@@ -51,7 +51,6 @@ static int loop_counter;
 // Vertex loaders read these. Although the scale ones should be baked into the shader.
 int tcIndex;
 int colIndex;
-TVtxAttr* pVtxAttr;
 int colElements[2];
 float posScale;
 float tcScale[8];
@@ -855,7 +854,6 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	m_VtxAttr.texCoord[6].Frac = g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
 	m_VtxAttr.texCoord[7].Frac = g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
 
-	pVtxAttr = &m_VtxAttr;
 	posScale = fractionTable[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components.uvs)
 	{

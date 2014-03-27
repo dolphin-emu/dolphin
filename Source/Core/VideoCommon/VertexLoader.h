@@ -107,6 +107,39 @@ public:
 	int GetNumLoadedVerts() const { return m_numLoadedVertices; }
 
 private:
+	struct ColorAttr
+	{
+		u8 Elements;
+		u8 Comp;
+	};
+
+	struct TexAttr
+	{
+		u8 Elements;
+		u8 Format;
+		u8 Frac;
+	};
+
+	struct TVtxAttr
+	{
+		u8 PosElements;
+		u8 PosFormat;
+		u8 PosFrac;
+		u8 NormalElements;
+		u8 NormalFormat;
+		ColorAttr color[2];
+		TexAttr texCoord[8];
+		u8 ByteDequant;
+		u8 NormalIndex3;
+	};
+
+	enum
+	{
+		NRM_ZERO  = 0,
+		NRM_ONE   = 1,
+		NRM_THREE = 3,
+	};
+
 	int m_VertexSize;      // number of bytes of a raw GC vertex. Computed by CompileVertexTranslator.
 
 	// GC vertex format

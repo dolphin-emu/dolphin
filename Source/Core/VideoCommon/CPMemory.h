@@ -158,32 +158,6 @@ union UVAT_group2
 	BitField<27,5,u32> Tex7Frac;
 };
 
-struct ColorAttr
-{
-	u8 Elements;
-	u8 Comp;
-};
-
-struct TexAttr
-{
-	u8 Elements;
-	u8 Format;
-	u8 Frac;
-};
-
-struct TVtxAttr
-{
-	u8 PosElements;
-	u8 PosFormat;
-	u8 PosFrac;
-	u8 NormalElements;
-	u8 NormalFormat;
-	ColorAttr color[2];
-	TexAttr texCoord[8];
-	u8 ByteDequant;
-	u8 NormalIndex3;
-};
-
 // Matrix indices
 union TMatrixIndexA
 {
