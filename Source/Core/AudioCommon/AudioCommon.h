@@ -17,7 +17,6 @@ namespace AudioCommon
 	SoundStream *InitSoundStream(void *hWnd);
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
-	bool UseJIT();
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void UpdateSoundStream();
 }

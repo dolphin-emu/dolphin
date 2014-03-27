@@ -133,15 +133,6 @@ namespace AudioCommon
 		return backends;
 	}
 
-	bool UseJIT()
-	{
-		if (!Movie::IsDSPHLE() && Movie::IsPlayingInput() && Movie::IsConfigSaved())
-		{
-			return true;
-		}
-		return SConfig::GetInstance().m_DSPEnableJIT;
-	}
-
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	{
 		if (soundStream)
