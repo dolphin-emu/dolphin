@@ -34,6 +34,7 @@
 #pragma once
 
 #include <limits>
+#include <tuple>
 #include <type_traits>
 
 #include "Common.h"
@@ -144,6 +145,8 @@ public:
 		}
 	}
 
+	typedef T UnderlyingType;
+
 private:
 	// StorageType is T for non-enum types and the underlying type of T if
 	// T is an enumeration. Note that T is wrapped within an enable_if in the
@@ -171,3 +174,186 @@ private:
 	static_assert(bits > 0, "Invalid number of bits");
 };
 #pragma pack()
+
+/*
+ * Allows grouping multiple BitField objects into an array
+ *
+ * Get() behaves exactly like the [] operator of a regular array, but
+ * it can only be used if the array index is known at compile time (as a
+ * constexpr). If that is not the case, GetValue and SetValue allow modifying
+ * the bitfields. Do note that the latter functions might incur a minimal
+ * performance overhead, especially if the compiler cannot determine the
+ * index value on compile time.
+ *
+ * Usage:
+ *
+ * Given a union (or structure) called SomeStructure containing any BitFields,
+ * the bitfields can be grouped by adding a new method returning a
+ * BitFieldArray object, e.g.:
+ *
+ * struct SomeStructure
+ * {
+ *     u32 hex;
+ *     BitField<0, 8, u32> field1;
+ *     BitField<8, 2, u32> field2;
+ *     BitField<10, 5, u32> field3;
+ *
+ *     DECLARE_BITFIELD_ARRAY(GetFieldArray, field1, field2, field3);
+ * };
+ *
+ */
+template<typename... BitFields>
+class BitFieldArray
+{
+private:
+	// TODO: Assert that all tuple bitfields use the same underlying type
+	std::tuple<BitFields&...> bitfields;
+
+	// Helper functions to create sub-tuples
+	template<unsigned...s> struct seq { typedef seq<s...>& type; };
+	template<unsigned max, unsigned... s> struct make_seq:make_seq<max-1, max-1, s...> {};
+	template<unsigned...s> struct make_seq<0, s...>:seq<s...> {};
+
+	template<unsigned... s, typename Tuple>
+	static auto extract_tuple(seq<s...>, Tuple& tup) -> decltype(std::tie(std::get<s>(tup)...))
+	{
+		return std::tie(std::get<s>(tup)...);
+	}
+
+	// ArrayElement: Private variadic template class used to deal with indexable tuples with the common base type UnderlyingType.
+	// Implemented via recursion, with the common members stored in ArrayElementBase.
+	template<typename... BitFields_2>
+	class ArrayElementBase
+	{
+	protected:
+		ArrayElementBase(size_t idx, std::tuple<BitFields_2&...> bfs) : index(idx), fields(bfs) {}
+
+		const size_t index;
+		const std::tuple<BitFields_2&...> fields;
+		typedef typename std::tuple_element<0,std::tuple<BitFields_2...>>::type::UnderlyingType UnderlyingType;
+	};
+
+	template<typename B1_2, typename... BitFields_2>
+	class ArrayElement : public ArrayElementBase<B1_2, BitFields_2...>
+	{
+		typedef typename ArrayElementBase<B1_2, BitFields_2...>::UnderlyingType UnderlyingType;
+
+//		static_assert(typeid(typename std::tuple_element<0,std::tuple<BitFields_2...>>::type::UnderlyingType) ==
+//		              typeid(typename std::tuple_element<1,std::tuple<BitFields_2...>>::type::UnderlyingType), "Typeids mismatch!");
+
+	public:
+		ArrayElement(size_t idx, std::tuple<B1_2&, BitFields_2&...> bfs) : ArrayElementBase<B1_2, BitFields_2...>(idx, bfs)
+		{
+		}
+
+		// TODO: Not sure if it's a good idea to expose this operator.
+		__forceinline ArrayElement& operator=(const ArrayElement& other)
+		{
+			*this = (UnderlyingType)other;
+			return *this;
+		}
+
+		__forceinline ArrayElement& operator=(const UnderlyingType& val)
+		{
+			// TODO: I don't get it. shouldn't this be == 0?
+			if (this->index == sizeof...(BitFields_2))
+			{
+				std::get<sizeof...(BitFields_2)>(this->fields) = val;
+			}
+			else
+			{
+				MakeArrayElementFromTuple(this->index, extract_tuple(make_seq<sizeof...(BitFields_2)>(), this->fields)) = val;
+			}
+			return *this;
+		}
+
+		__forceinline operator UnderlyingType() const
+		{
+			if (this->index == sizeof...(BitFields_2))
+			{
+				return std::get<sizeof...(BitFields_2)>(this->fields);
+			}
+			else
+			{
+				auto sub_tuple = extract_tuple(make_seq<sizeof...(BitFields_2)>(), this->fields);
+				return MakeArrayElementFromTuple(this->index, sub_tuple);
+			}
+		}
+	};
+
+	template<typename B1_2>
+	class ArrayElement<B1_2> : public ArrayElementBase<B1_2>
+	{
+		typedef typename ArrayElementBase<B1_2>::UnderlyingType UnderlyingType;
+
+	public:
+		ArrayElement(size_t idx, std::tuple<B1_2&> bfs) : ArrayElementBase<B1_2>(idx, bfs)
+		{
+		}
+
+		// TODO: Not sure if it's a good idea to expose this operator.
+		__forceinline ArrayElement& operator=(const ArrayElement& other)
+		{
+			*this = (UnderlyingType)other;
+			return *this;
+		}
+
+		__forceinline ArrayElement& operator=(UnderlyingType val)
+		{
+			std::get<0>(this->fields) = val;
+			return *this;
+		}
+
+		__forceinline operator UnderlyingType() const
+		{
+			return std::get<0>(this->fields);
+		}
+	};
+
+	template<typename... BitFields_2>
+	static ArrayElement<BitFields_2...> MakeArrayElementFromTuple(size_t index, std::tuple<BitFields_2&...> bfs)
+	{
+		return ArrayElement<BitFields_2...>(index, bfs);
+	}
+
+public:
+	BitFieldArray(std::tuple<BitFields&...> tup) : bitfields(tup)
+	{
+	}
+
+	// TODO: This doesn't actually return a reference
+	template<size_t index>
+	const auto Get() const -> typename std::tuple_element<index,decltype(bitfields)>::type
+	{
+		return std::get<index>(bitfields);
+	}
+
+	ArrayElement<BitFields...> operator[](size_t index) const
+	{
+		return MakeArrayElementFromTuple(index, bitfields);
+	}
+};
+
+
+template<typename... BitFields>
+static inline BitFieldArray<BitFields...> MakeBitFieldArrayFromTupleConst(const std::tuple<BitFields&...> bfs)
+{
+	return BitFieldArray<BitFields...>(bfs);
+}
+
+template<typename... BitFields>
+static inline BitFieldArray<BitFields...> MakeBitFieldArrayFromTuple(std::tuple<BitFields&...> bfs)
+{
+	return BitFieldArray<BitFields...>(bfs);
+}
+
+
+#define DECLARE_BITFIELD_ARRAY(name, ...) \
+	inline auto name() const -> decltype(MakeBitFieldArrayFromTupleConst(std::tie(__VA_ARGS__))) \
+	{ \
+		return MakeBitFieldArrayFromTupleConst(std::tie(__VA_ARGS__)); \
+	} \
+	inline auto name() -> decltype(MakeBitFieldArrayFromTuple(std::tie(__VA_ARGS__))) \
+	{ \
+		return MakeBitFieldArrayFromTuple(std::tie(__VA_ARGS__)); \
+	}
