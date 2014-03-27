@@ -56,14 +56,9 @@ public:
 	virtual ~CUCode_AX();
 
 	virtual void HandleMail(u32 mail) override;
-	virtual void MixAdd(short* out_buffer, int nsamples) override;
 	virtual void Update(int cycles) override;
 	virtual void DoState(PointerWrap& p) override;
 	u32 GetUpdateMs() override;
-
-	// Needed because StdThread.h std::thread implem does not support member
-	// pointers. TODO(delroth): obsolete.
-	static void SpawnAXThread(CUCode_AX* self);
 
 protected:
 	enum MailType
@@ -92,19 +87,8 @@ protected:
 	// This flag is set if there is anything to process.
 	bool m_work_available;
 
-	// Volatile because it's set by HandleMail and accessed in
-	// HandleCommandList, which are running in two different threads.
-	volatile u16 m_cmdlist[512];
-	volatile u32 m_cmdlist_size;
-
-	bool m_run_on_thread;
-
-	// Sync objects
-	std::mutex m_processing;
-	std::condition_variable m_cmdlist_cv;
-	std::mutex m_cmdlist_mutex;
-
-	std::thread m_axthread;
+	u16 m_cmdlist[512];
+	u32 m_cmdlist_size;
 
 	// Table of coefficients for polyphase sample rate conversion.
 	// The coefficients aren't always available (they are part of the DSP DROM)
@@ -124,16 +108,6 @@ protected:
 
 	// Apply updates to a PB. Generic, used in AX GC and AX Wii.
 	void ApplyUpdatesForMs(int curr_ms, u16* pb, u16* num_updates, u16* updates);
-
-	// Signal that we should start handling a command list. Dispatches to the
-	// AX thread if using a thread, else just sets a boolean flag.
-	void StartWorking();
-
-	// Send a notification to the AX thread to tell it a new cmdlist addr is
-	// available for processing.
-	void NotifyAXThread();
-
-	void AXThread();
 
 	virtual void HandleCommandList();
 	void SignalWorkEnd();

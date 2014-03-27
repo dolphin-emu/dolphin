@@ -125,9 +125,7 @@ public:
 	void HandleMail_LightVersion(u32 _uMail);
 	void HandleMail_SMSVersion(u32 _uMail);
 	void HandleMail_NormalVersion(u32 _uMail);
-
 	void Update(int cycles) override;
-	void MixAdd(short* buffer, int size) override;
 
 	void CopyPBsFromRAM();
 	void CopyPBsToRAM();
@@ -291,4 +289,6 @@ private:
 
 	// Renders a voice and mixes it into LeftBuffer, RightBuffer
 	void RenderAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);
+
+	void MixAudio();
 };

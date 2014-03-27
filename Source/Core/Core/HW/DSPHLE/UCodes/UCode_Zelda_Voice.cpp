@@ -49,9 +49,7 @@ void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 
 int CUCode_Zelda::ConvertRatio(int pb_ratio)
 {
-	float _ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
-	u32 _ratio = (pb_ratio << 16);
-	return (u64)((_ratio * _ratioFactor) * 16) >> 16;
+	return pb_ratio * 16;
 }
 
 int CUCode_Zelda::SizeForResampling(ZeldaVoicePB &PB, int size, int ratio) {
@@ -739,17 +737,13 @@ ContinueWithBlock:
 	}
 }
 
-// size is in stereo samples.
-void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
+void CUCode_Zelda::MixAudio()
 {
-	std::lock_guard<std::mutex> lk(m_csMix);
-	// Safety check
-	if (_Size > 256 * 1024 - 8)
-		_Size = 256 * 1024 - 8;
+	const int BufferSamples = 5 * 16;
 
 	// Final mix buffers
-	memset(m_LeftBuffer, 0, _Size * sizeof(s32));
-	memset(m_RightBuffer, 0, _Size * sizeof(s32));
+	memset(m_LeftBuffer, 0, BufferSamples * sizeof(s32));
+	memset(m_RightBuffer, 0, BufferSamples * sizeof(s32));
 
 	// For each PB...
 	for (u32 i = 0; i < m_NumVoices; i++)
@@ -769,22 +763,24 @@ void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 		if (pb.KeyOff != 0)
 			continue;
 
-		RenderAddVoice(pb, m_LeftBuffer, m_RightBuffer, _Size);
+		RenderAddVoice(pb, m_LeftBuffer, m_RightBuffer, BufferSamples);
 		WritebackVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
 	}
 
 	// Post processing, final conversion.
-	for (int i = 0; i < _Size; i++)
+	s16* left_buffer = (s16*)HLEMemory_Get_Pointer(m_LeftBuffersAddr);
+	s16* right_buffer = (s16*)HLEMemory_Get_Pointer(m_RightBuffersAddr);
+	left_buffer += m_CurBuffer * BufferSamples;
+	right_buffer += m_CurBuffer * BufferSamples;
+	for (int i = 0; i < BufferSamples; i++)
 	{
-		s32 left  = (s32)_Buffer[0] + m_LeftBuffer[i];
-		s32 right = (s32)_Buffer[1] + m_RightBuffer[i];
+		s32 left = m_LeftBuffer[i];
+		s32 right = m_RightBuffer[i];
 
 		MathUtil::Clamp(&left, -32768, 32767);
-		_Buffer[0] = (short)left;
+		left_buffer[i] = Common::swap16((short)left);
 
 		MathUtil::Clamp(&right, -32768, 32767);
-		_Buffer[1] = (short)right;
-
-		_Buffer += 2;
+		right_buffer[i] = Common::swap16((short)right);
 	}
 }

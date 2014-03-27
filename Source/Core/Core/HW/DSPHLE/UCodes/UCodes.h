@@ -77,7 +77,6 @@ public:
 
 	// Cycles are out of the 81/121mhz the DSP runs at.
 	virtual void Update(int cycles) = 0;
-	virtual void MixAdd(short* buffer, int size) {}
 	virtual u32 GetUpdateMs() = 0;
 
 	virtual void DoState(PointerWrap &p) { DoStateShared(p); }
@@ -95,7 +94,6 @@ protected:
 	void DoStateShared(PointerWrap &p);
 
 	CMailHandler& m_rMailHandler;
-	std::mutex m_csMix;
 
 	enum EDSP_Codes
 	{

@@ -130,11 +130,13 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 	if (m_bSyncCmdPending)
 	{
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+
+		MixAudio();
+
 		m_CurBuffer++;
 
 		if (m_CurBuffer == m_NumBuffers)
 		{
-			soundStream->GetMixer()->SetHLEReady(true);
 			m_bSyncCmdPending = false;
 			DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 		}
@@ -189,6 +191,8 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 				m_NumSyncMail = 0;
 				m_bSyncInProgress = false;
 
+				MixAudio();
+
 				m_CurBuffer++;
 
 				m_rMailHandler.PushMail(DSP_SYNC);
@@ -200,7 +204,6 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 					m_rMailHandler.PushMail(DSP_FRAME_END);
 					// DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
-					soundStream->GetMixer()->SetHLEReady(true);
 					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 					// soundStream->Update(); //do it in this thread to avoid sync problems
 
@@ -292,30 +295,12 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 			m_SyncFlags[n] = _uMail & 0xFFFF;
 			m_bSyncInProgress = false;
 
-			// Normally, we should mix to the buffers used by the game.
-			// We don't do it currently for a simple reason:
-			// if the game runs fast all the time, then it's OK,
-			// but if it runs slow, sound can become choppy.
-			// This problem won't happen when mixing to the buffer
-			// provided by MixAdd(), because the size of this buffer
-			// is automatically adjusted if the game runs slow.
-#if 0
-			if (m_SyncFlags[n] & 0x8000)
-			{
-				for (; m_CurVoice < m_MaxVoice; m_CurVoice++)
-				{
-					if (m_CurVoice >= m_NumVoices)
-						break;
-
-					MixVoice(m_CurVoice);
-				}
-			}
-			else
-#endif
-				m_CurVoice = m_MaxVoice;
+			m_CurVoice = m_MaxVoice;
 
 			if (m_CurVoice >= m_NumVoices)
 			{
+				MixAudio();
+
 				m_CurBuffer++;
 
 				m_rMailHandler.PushMail(DSP_SYNC);
@@ -330,7 +315,6 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 						m_rMailHandler.PushMail(DSP_FRAME_END);
 					//g_dspInitialize.pGenerateDSPInterrupt();
 
-					soundStream->GetMixer()->SetHLEReady(true);
 					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 					// soundStream->Update(); //do it in this thread to avoid sync problems
 
@@ -392,7 +376,6 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 
 		case 0x0001: // accepts params to either dma to iram and/or dram (used for hotbooting a new ucode)
 			// TODO find a better way to protect from HLEMixer?
-			soundStream->GetMixer()->SetHLEReady(false);
 			m_UploadSetupInProgress = true;
 			return;
 
@@ -484,8 +467,8 @@ void CUCode_Zelda::ExecuteList()
 			// Addresses for right & left buffers in main memory
 			// Each buffer is 160 bytes long. The number of (both left & right) buffers
 			// is set by the first mail of the list.
-			m_RightBuffersAddr = Read32() & 0x7FFFFFFF;
 			m_LeftBuffersAddr = Read32() & 0x7FFFFFFF;
+			m_RightBuffersAddr = Read32() & 0x7FFFFFFF;
 
 			DEBUG_LOG(DSPHLE, "DsyncFrame");
 			// These alternate between three sets of mixing buffers. They are all three fairly near,
@@ -559,9 +542,6 @@ u32 CUCode_Zelda::GetUpdateMs()
 
 void CUCode_Zelda::DoState(PointerWrap &p)
 {
-	// It's bad if we try to save during Mix()
-	std::lock_guard<std::mutex> lk(m_csMix);
-
 	p.Do(m_AFCCoefTable);
 	p.Do(m_MiscTable);
 

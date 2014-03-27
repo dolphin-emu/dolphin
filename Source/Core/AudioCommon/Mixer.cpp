@@ -99,9 +99,6 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_
 	// Flush cached variable
 	Common::AtomicStore(m_indexR, indexR);
 
-	// Add the DSPHLE sound, re-sampling is done inside
-	Premix(samples, numSamples);
-
 	// Add the DTK Music
 	// Re-sampling is done inside
 	AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
