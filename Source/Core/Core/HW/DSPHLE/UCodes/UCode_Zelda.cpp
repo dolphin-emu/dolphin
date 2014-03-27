@@ -6,9 +6,6 @@
 // Zelda: The Windwaker, Mario Sunshine, Mario Kart, Twilight Princess,
 // Super Mario Galaxy
 
-#include "AudioCommon/Mixer.h"
-#include "AudioCommon/WaveFile.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -204,9 +201,6 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 					m_rMailHandler.PushMail(DSP_FRAME_END);
 					// DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
-					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-					// soundStream->Update(); //do it in this thread to avoid sync problems
-
 					m_bSyncCmdPending = false;
 				}
 			}
@@ -314,9 +308,6 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 					if (!IsDMAVersion()) // this is a hack... without it Pikmin 1 Wii/ Zelda TP Wii mail-s stopped
 						m_rMailHandler.PushMail(DSP_FRAME_END);
 					//g_dspInitialize.pGenerateDSPInterrupt();
-
-					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-					// soundStream->Update(); //do it in this thread to avoid sync problems
 
 					m_bSyncCmdPending = false;
 				}

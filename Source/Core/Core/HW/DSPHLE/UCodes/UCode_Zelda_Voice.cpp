@@ -4,8 +4,6 @@
 
 #include <sstream>
 
-#include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/Mixer.h"
 #include "Common/MathUtil.h"
 
 #include "Core/HW/DSP.h"
