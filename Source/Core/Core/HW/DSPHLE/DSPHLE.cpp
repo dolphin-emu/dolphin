@@ -274,7 +274,7 @@ void DSPHLE::InitMixer()
 // Other DSP fuctions
 u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 {
-	UDSPControl Temp(_Value);
+	DSP::UDSPControl Temp(_Value);
 	if (!m_InitMixer)
 	{
 		if (!Temp.DSPHalt)

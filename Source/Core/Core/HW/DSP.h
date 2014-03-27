@@ -27,6 +27,35 @@ enum
 	ARAM_MASK = 0x00FFFFFF,
 };
 
+// UDSPControl
+#define DSP_CONTROL_MASK 0x0C07
+union UDSPControl
+{
+	u16 Hex;
+	struct
+	{
+		// DSP Control
+		u16 DSPReset : 1; // Write 1 to reset and waits for 0
+		u16 DSPAssertInt : 1;
+		u16 DSPHalt : 1;
+		// Interrupt for DMA to the AI/speakers
+		u16 AID : 1;
+		u16 AID_mask : 1;
+		// ARAM DMA interrupt
+		u16 ARAM : 1;
+		u16 ARAM_mask : 1;
+		// DSP DMA interrupt
+		u16 DSP : 1;
+		u16 DSP_mask : 1;
+		// Other ???
+		u16 DMAState : 1; // DSPGetDMAStatus() uses this flag. __ARWaitForDMA() uses it too...maybe it's just general DMA flag
+		u16 DSPInitCode : 1; // Indicator that the DSP was initialized?
+		u16 DSPInit : 1; // DSPInit() writes to this flag
+		u16 pad : 4;
+	};
+	UDSPControl(u16 _Hex = 0) : Hex(_Hex) {}
+};
+
 void Init(bool hle);
 void Shutdown();
 
