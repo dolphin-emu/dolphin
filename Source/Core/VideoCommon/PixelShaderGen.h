@@ -49,6 +49,7 @@ enum DSTALPHA_MODE
 	DSTALPHA_DUAL_SOURCE_BLEND // Use dual-source blending
 };
 
+// TODO: Use BitField for this structure
 #pragma pack(1)
 struct pixel_shader_uid_data
 {
@@ -57,11 +58,19 @@ struct pixel_shader_uid_data
 	u32 num_values; // TODO: Shouldn't be a u32
 	u32 NumValues() const { return num_values; }
 
-	u32 components : 23;
-	u32 dstAlphaMode : 2;
-	u32 Pretest : 2;
-	u32 nIndirectStagesUsed : 4;
-	u32 pad0 : 1;
+	union
+	{
+		VertexComponents components;
+
+		struct
+		{
+			u32 : 23; // VertexComponents placeholder
+			u32 dstAlphaMode : 2;
+			u32 Pretest : 2;
+			u32 nIndirectStagesUsed : 4;
+			u32 pad0 : 1;
+		};
+	};
 
 	u32 genMode_numtexgens : 4;
 	u32 genMode_numtevstages : 4;
@@ -143,6 +152,6 @@ typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 typedef ShaderCode PixelShaderCode; // TODO: Obsolete
 typedef ShaderConstantProfile PixelShaderConstantProfile; // TODO: Obsolete
 
-void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
-void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
-void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
+void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, VertexComponents components);
+void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, VertexComponents components);
+void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, VertexComponents components);

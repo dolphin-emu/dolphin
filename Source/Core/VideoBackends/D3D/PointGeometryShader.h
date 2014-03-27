@@ -5,6 +5,7 @@
 #pragma once
 
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/NativeVertexFormat.h"
 
 struct ID3D11Buffer;
 struct ID3D11GeometryShader;
@@ -24,7 +25,7 @@ public:
 	void Init();
 	void Shutdown();
 	// Returns true on success, false on failure
-	bool SetShader(u32 components, float pointSize, float texOffset,
+	bool SetShader(VertexComponents components, float pointSize, float texOffset,
 		float vpWidth, float vpHeight, const bool* texOffsetEnable);
 
 private:

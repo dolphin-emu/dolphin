@@ -115,7 +115,7 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 // inColorName is color in vs and colors_ in ps
 // dest is o.colors_ in vs and colors_ in ps
 template<class T>
-static void GenerateLightingShader(T& object, LightingUidData& uid_data, int components, const char* materialsName, const char* lightsColName, const char* lightsName, const char* inColorName, const char* dest)
+static void GenerateLightingShader(T& object, LightingUidData& uid_data, VertexComponents components, const char* materialsName, const char* lightsColName, const char* lightsName, const char* inColorName, const char* dest)
 {
 	for (unsigned int j = 0; j < xfregs.numChan.numColorChans; j++)
 	{
@@ -127,9 +127,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		uid_data.matsource |= xfregs.color[j].matsource << j;
 		if (color.matsource) // from vertex
 		{
-			if (components & (VB_HAS_COL0 << j))
+			if ((j == 0 && components.has_color0) ||
+				(j == 1 && components.has_color1))
 				object.Write("int4 mat = int4(round(%s%d * 255.0));\n", inColorName, j);
-			else if (components & VB_HAS_COL0)
+			else if (components.has_color0)
 				object.Write("int4 mat = int4(round(%s0 * 255.0));\n", inColorName);
 			else
 				object.Write("int4 mat = int4(255, 255, 255, 255);\n");
@@ -145,9 +146,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			uid_data.ambsource |= xfregs.color[j].ambsource << j;
 			if (color.ambsource) // from vertex
 			{
-				if (components & (VB_HAS_COL0<<j) )
+				if ((j == 0 && components.has_color0) ||
+					(j == 1 && components.has_color1))
 					object.Write("lacc = int4(round(%s%d * 255.0));\n", inColorName, j);
-				else if (components & VB_HAS_COL0 )
+				else if (components.has_color0)
 					object.Write("lacc = int4(round(%s0 * 255.0));\n", inColorName);
 				else
 					// TODO: this isn't verified. Here we want to read the ambient from the vertex,
@@ -171,9 +173,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		{
 			if (alpha.matsource) // from vertex
 			{
-				if (components & (VB_HAS_COL0<<j))
+				if ((j == 0 && components.has_color0) ||
+					(j == 1 && components.has_color1))
 					object.Write("mat.w = int(round(%s%d.w * 255.0));\n", inColorName, j);
-				else if (components & VB_HAS_COL0)
+				else if (components.has_color0)
 					object.Write("mat.w = int(round(%s0.w * 255.0));\n", inColorName);
 				else object.Write("mat.w = 255;\n");
 			}
@@ -189,9 +192,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			uid_data.ambsource |= xfregs.alpha[j].ambsource << (j+2);
 			if (alpha.ambsource) // from vertex
 			{
-				if (components & (VB_HAS_COL0<<j) )
+				if ((j == 0 && components.has_color0) ||
+					(j == 1 && components.has_color1))
 					object.Write("lacc.w = int(round(%s%d.w * 255.0));\n", inColorName, j);
-				else if (components & VB_HAS_COL0 )
+				else if (components.has_color0)
 					object.Write("lacc.w = int(round(%s0.w * 255.0));\n", inColorName);
 				else
 					// TODO: The same for alpha: We want to read from vertex, but the vertex has no color

@@ -448,7 +448,7 @@ void PixelShaderCache::Shutdown()
 	g_ps_disk_cache.Close();
 }
 
-bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
+bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, VertexComponents components)
 {
 	PixelShaderUid uid;
 	GetPixelShaderUid(uid, dstAlphaMode, API_D3D, components);

@@ -146,7 +146,7 @@ template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_dat
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data);
 
 template<class T>
-static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, VertexComponents components)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
@@ -1038,17 +1038,17 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
 
-void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, VertexComponents components)
 {
 	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType, components);
 }
 
-void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, VertexComponents components)
 {
 	GeneratePixelShader<PixelShaderCode>(object, dstAlphaMode, ApiType, components);
 }
 
-void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, VertexComponents components)
 {
 	GeneratePixelShader<PixelShaderConstantProfile>(object, dstAlphaMode, ApiType, components);
 }

@@ -180,7 +180,7 @@ void VertexShaderCache::Shutdown()
 	g_vs_disk_cache.Close();
 }
 
-bool VertexShaderCache::SetShader(u32 components)
+bool VertexShaderCache::SetShader(VertexComponents components)
 {
 	VertexShaderUid uid;
 	GetVertexShaderUid(uid, components, API_D3D);

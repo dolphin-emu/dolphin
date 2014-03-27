@@ -4,41 +4,82 @@
 
 #pragma once
 
+#include "Common/BitField.h"
 #include "Common/Common.h"
 
-// m_components
-enum
+union VertexComponents
 {
-	VB_HAS_POSMTXIDX =(1<<1),
-	VB_HAS_TEXMTXIDX0=(1<<2),
-	VB_HAS_TEXMTXIDX1=(1<<3),
-	VB_HAS_TEXMTXIDX2=(1<<4),
-	VB_HAS_TEXMTXIDX3=(1<<5),
-	VB_HAS_TEXMTXIDX4=(1<<6),
-	VB_HAS_TEXMTXIDX5=(1<<7),
-	VB_HAS_TEXMTXIDX6=(1<<8),
-	VB_HAS_TEXMTXIDX7=(1<<9),
-	VB_HAS_TEXMTXIDXALL=(0xff<<2),
+	// NOTE: Having a "position" component is always implied
+	//BitField< 0,1,u32> has_position;
+	BitField< 1,1,u32> has_posmtxidx;
 
-	//VB_HAS_POS=0, // Implied, it always has pos! don't bother testing
-	VB_HAS_NRM0=(1<<10),
-	VB_HAS_NRM1=(1<<11),
-	VB_HAS_NRM2=(1<<12),
-	VB_HAS_NRMALL=(7<<10),
+	BitField< 2,1,u32> has_texmtxidx0;
+	BitField< 3,1,u32> has_texmtxidx1;
+	BitField< 4,1,u32> has_texmtxidx2;
+	BitField< 5,1,u32> has_texmtxidx3;
+	BitField< 6,1,u32> has_texmtxidx4;
+	BitField< 7,1,u32> has_texmtxidx5;
+	BitField< 8,1,u32> has_texmtxidx6;
+	BitField< 9,1,u32> has_texmtxidx7;
 
-	VB_HAS_COL0=(1<<13),
-	VB_HAS_COL1=(1<<14),
+	BitField<10,1,u32> has_normal0;
+	BitField<11,1,u32> has_normal1;
+	BitField<12,1,u32> has_normal2;
 
-	VB_HAS_UV0=(1<<15),
-	VB_HAS_UV1=(1<<16),
-	VB_HAS_UV2=(1<<17),
-	VB_HAS_UV3=(1<<18),
-	VB_HAS_UV4=(1<<19),
-	VB_HAS_UV5=(1<<20),
-	VB_HAS_UV6=(1<<21),
-	VB_HAS_UV7=(1<<22),
-	VB_HAS_UVALL=(0xff<<15),
-	VB_HAS_UVTEXMTXSHIFT=13,
+	BitField<13,1,u32> has_color0;
+	BitField<14,1,u32> has_color1;
+
+	BitField<15,1,u32> has_uv0;
+	BitField<16,1,u32> has_uv1;
+	BitField<17,1,u32> has_uv2;
+	BitField<18,1,u32> has_uv3;
+	BitField<19,1,u32> has_uv4;
+	BitField<20,1,u32> has_uv5;
+	BitField<21,1,u32> has_uv6;
+	BitField<22,1,u32> has_uv7;
+
+	// Convenience fields
+	BitField< 2,8,u32> texmtxidxs;
+	BitField<10,3,u32> normals;
+	BitField<15,8,u32> uvs;
+
+	u32 hex;
+
+	inline void SetUv(int index, bool enabled = true)
+	{
+		if (index == 0) has_uv0 = enabled;
+		else if (index == 1) has_uv1 = enabled;
+		else if (index == 2) has_uv2 = enabled;
+		else if (index == 3) has_uv3 = enabled;
+		else if (index == 4) has_uv4 = enabled;
+		else if (index == 5) has_uv5 = enabled;
+		else if (index == 6) has_uv6 = enabled;
+		else /*if (index == 7) */has_uv7 = enabled;
+	}
+
+	inline bool HasTexMtxIdx(int index) const
+	{
+		if (index == 0) return has_texmtxidx0;
+		else if (index == 1) return has_texmtxidx1;
+		else if (index == 2) return has_texmtxidx2;
+		else if (index == 3) return has_texmtxidx3;
+		else if (index == 4) return has_texmtxidx4;
+		else if (index == 5) return has_texmtxidx5;
+		else if (index == 6) return has_texmtxidx6;
+		else /*if (index == 7) */return has_texmtxidx7;
+	}
+
+	inline bool HasUv(int index) const
+	{
+		if (index == 0) return has_uv0;
+		else if (index == 1) return has_uv1;
+		else if (index == 2) return has_uv2;
+		else if (index == 3) return has_uv3;
+		else if (index == 4) return has_uv4;
+		else if (index == 5) return has_uv5;
+		else if (index == 6) return has_uv6;
+		else /*if (index == 7) */return has_uv7;
+	}
 };
 
 #ifdef WIN32
@@ -94,7 +135,7 @@ public:
 	u32 GetVertexStride() const { return vertex_stride; }
 
 	// TODO: move this under private:
-	u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.
+	VertexComponents m_components;  // vertex components present
 
 protected:
 	// Let subclasses construct.

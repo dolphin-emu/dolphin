@@ -157,7 +157,7 @@ GLuint ProgramShaderCache::GetCurrentProgram(void)
 	return CurrentProgram;
 }
 
-SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 components )
+SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, VertexComponents components)
 {
 	SHADERUID uid;
 	GetShaderId(&uid, dstAlphaMode, components);
@@ -354,7 +354,7 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 	return result;
 }
 
-void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 components)
+void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, VertexComponents components)
 {
 	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
 	GetVertexShaderUid(uid->vuid, components, API_OPENGL);

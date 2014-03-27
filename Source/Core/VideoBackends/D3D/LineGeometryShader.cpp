@@ -158,14 +158,14 @@ void LineGeometryShader::Shutdown()
 	SAFE_RELEASE(m_paramsBuffer);
 }
 
-bool LineGeometryShader::SetShader(u32 components, float lineWidth,
+bool LineGeometryShader::SetShader(VertexComponents components, float lineWidth,
 	float texOffset, float vpWidth, float vpHeight, const bool* texOffsetEnable)
 {
 	if (!m_ready)
 		return false;
 
 	// Make sure geometry shader for "components" is available
-	ComboMap::iterator shaderIt = m_shaders.find(components);
+	ComboMap::iterator shaderIt = m_shaders.find(components.hex);
 	if (shaderIt == m_shaders.end())
 	{
 		// Generate new shader. Warning: not thread-safe.
@@ -179,7 +179,7 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 		numTexCoordsStream << xfregs.numTexGen.numTexGens;
 
 		INFO_LOG(VIDEO, "Compiling line geometry shader for components 0x%.08X (num texcoords %d)",
-			components, xfregs.numTexGen.numTexGens);
+			components.hex, xfregs.numTexGen.numTexGens);
 
 		const std::string& numTexCoordsStr = numTexCoordsStream.str();
 		D3D_SHADER_MACRO macros[] = {
@@ -189,7 +189,7 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code.GetBuffer(), unsigned int(strlen(code.GetBuffer())), macros);
 		if (!newShader)
 		{
-			WARN_LOG(VIDEO, "Line geometry shader for components 0x%.08X failed to compile", components);
+			WARN_LOG(VIDEO, "Line geometry shader for components 0x%.08X failed to compile", components.hex);
 			// Add dummy shader to prevent trying to compile again
 			m_shaders[components] = nullptr;
 			return false;
