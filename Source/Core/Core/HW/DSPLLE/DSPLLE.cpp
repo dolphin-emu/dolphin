@@ -192,13 +192,9 @@ void DSPLLE::InitMixer()
 
 u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 {
-	UDSPControl Temp(_uFlag);
 	if (!m_InitMixer)
 	{
-		if (!Temp.DSPHalt)
-		{
-			InitMixer();
-		}
+		InitMixer();
 	}
 	DSPInterpreter::WriteCR(_uFlag);
 

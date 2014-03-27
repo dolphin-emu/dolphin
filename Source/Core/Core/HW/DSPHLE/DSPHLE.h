@@ -8,6 +8,7 @@
 #include "AudioCommon/SoundStream.h"
 
 #include "Core/DSPEmulator.h"
+#include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 
 class IUCode;
@@ -73,7 +74,7 @@ private:
 	IUCode* m_pUCode;
 	IUCode* m_lastUCode;
 
-	UDSPControl m_DSPControl;
+	DSP::UDSPControl m_DSPControl;
 	CMailHandler m_MailHandler;
 
 	bool m_bHalt;
