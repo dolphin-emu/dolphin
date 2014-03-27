@@ -4,7 +4,6 @@
 //
 #define AX_WII // Used in UCode_AX_Voice.
 
-#include "AudioCommon/Mixer.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 

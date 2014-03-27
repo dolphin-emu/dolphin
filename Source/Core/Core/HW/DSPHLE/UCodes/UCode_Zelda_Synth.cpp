@@ -4,17 +4,12 @@
 
 #include <cmath>
 
-#include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/Mixer.h"
-
 #include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
-	float _ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
-	u32 _ratio = (PB.RatioInt << 16);
-	s64 ratio = (s64)((_ratio * _ratioFactor) * 16);
+	s64 ratio = ((s64)PB.RatioInt << 16) * 16;
 	s64 TrueSamplePosition = PB.CurSampleFrac;
 
 	// PB.Format == 0x3 -> Rectangular Wave, 0x0 -> Square Wave
