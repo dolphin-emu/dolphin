@@ -13,6 +13,8 @@
 #include "Core/HW/DSP.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace
@@ -112,14 +114,14 @@ void CCPU::EnableStepping(const bool _bStepping)
 		PowerPC::Pause();
 		m_StepEvent.Reset();
 		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PAUSE);
-		DSP::GetDSPEmulator()->DSP_ClearAudioBuffer(true);
+		AudioCommon::ClearAudioBuffer(true);
 	}
 	else
 	{
 		PowerPC::Start();
 		m_StepEvent.Set();
 		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PLAY);
-		DSP::GetDSPEmulator()->DSP_ClearAudioBuffer(false);
+		AudioCommon::ClearAudioBuffer(false);
 	}
 }
 

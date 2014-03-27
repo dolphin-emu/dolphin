@@ -37,6 +37,8 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "AudioCommon/AudioCommon.h"
+
 namespace DSP
 {
 
@@ -482,7 +484,9 @@ void UpdateAudioDMA()
 
 		if (g_audioDMA.BlocksLeft == 0)
 		{
-			dsp_emulator->DSP_SendAIBuffer(g_audioDMA.SourceAddress, 8*g_audioDMA.AudioDMAControl.NumBlocks);
+			void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
+			unsigned samples = 8 * g_audioDMA.AudioDMAControl.NumBlocks;
+			AudioCommon::SendAIBuffer((short*)address, samples);
 			GenerateDSPInterrupt(DSP::INT_AID);
 			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
@@ -492,7 +496,7 @@ void UpdateAudioDMA()
 	{
 		// Send silence. Yeah, it's a bit of a waste to sample rate convert
 		// silence.  or hm. Maybe we shouldn't do this :)
-		dsp_emulator->DSP_SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
+		AudioCommon::SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
 	}
 }
 

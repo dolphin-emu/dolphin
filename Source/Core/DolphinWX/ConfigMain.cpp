@@ -23,6 +23,8 @@
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
