@@ -155,13 +155,6 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 		vtxAttr.g2.Tex6CoordElements, vtxAttr.g2.Tex7CoordElements
 	};
 
-	const u32 tcFormat[8] =
-	{
-		vtxAttr.g0.Tex0CoordFormat, vtxAttr.g1.Tex1CoordFormat, vtxAttr.g1.Tex2CoordFormat,
-		vtxAttr.g1.Tex3CoordFormat, vtxAttr.g1.Tex4CoordFormat, vtxAttr.g2.Tex5CoordFormat,
-		vtxAttr.g2.Tex6CoordFormat, vtxAttr.g2.Tex7CoordFormat
-	};
-
 	// Add position and texture matrix indices
 	u64 vtxDescHex = cpMem.vtxDesc.Hex;
 	for (int i = 0; i < 9; ++i)
@@ -218,7 +211,7 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	// Texture coordinates
 	for (int i = 0; i < 8; ++i)
 	{
-		sizes[13 + i] = VertexLoader_TextCoord::GetSize(tcDesc[i], tcFormat[i], tcElements[i]);
+		sizes[13 + i] = VertexLoader_TextCoord::GetSize(tcDesc[i], vtxAttr.GetTexCoordFormats()[i], tcElements[i]);
 	}
 }
 

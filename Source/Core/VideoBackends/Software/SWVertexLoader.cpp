@@ -81,7 +81,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		m_CurrentVat->g2.Tex6CoordElements, m_CurrentVat->g2.Tex7CoordElements
 	};
 
-	const u32 tcFormat[8] = {
+	const VAT::VertexComponentFormat tcFormat[8] = {
 		m_CurrentVat->g0.Tex0CoordFormat, m_CurrentVat->g1.Tex1CoordFormat, m_CurrentVat->g1.Tex2CoordFormat,
 		m_CurrentVat->g1.Tex3CoordFormat, m_CurrentVat->g1.Tex4CoordFormat, m_CurrentVat->g2.Tex5CoordFormat,
 		m_CurrentVat->g2.Tex6CoordFormat, m_CurrentVat->g2.Tex7CoordFormat
@@ -227,10 +227,10 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	for (int i = 0; i < 8; i++)
 	{
 		const TVtxDesc::VertexComponentType desc = tcDesc[i];
-		const int format = tcFormat[i];
+		const VAT::VertexComponentFormat format = tcFormat[i];
 		const int elements = tcElements[i];
 		_assert_msg_(VIDEO, TVtxDesc::NOT_PRESENT <= desc && desc <= TVtxDesc::INDEX16, "Invalid texture coordinates description!\n(desc = %d)", (int)desc);
-		_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
+		_assert_msg_(VIDEO, VAT::UBYTE <= format && format <= VAT::FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
 		_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elements!\n(elements = %d)", elements);
 
 		m_texCoordLoader[i] = VertexLoader_TextCoord::GetFunction(desc, format, elements);

@@ -201,12 +201,14 @@ void VertexLoader_TextCoord::Init(void)
 
 }
 
-unsigned int VertexLoader_TextCoord::GetSize(TVtxDesc::VertexComponentType _type, unsigned int _format, unsigned int _elements)
+unsigned int VertexLoader_TextCoord::GetSize(TVtxDesc::VertexComponentType _type,
+	VAT::VertexComponentFormat _format, unsigned int _elements)
 {
 	return tableReadTexCoordVertexSize[_type][_format][_elements];
 }
 
-TPipelineFunction VertexLoader_TextCoord::GetFunction(TVtxDesc::VertexComponentType _type, unsigned int _format, unsigned int _elements)
+TPipelineFunction VertexLoader_TextCoord::GetFunction(TVtxDesc::VertexComponentType _type,
+	VAT::VertexComponentFormat _format, unsigned int _elements)
 {
 	return tableReadTexCoord[_type][_format][_elements];
 }

@@ -691,7 +691,7 @@ void VertexLoader::CompileVertexTranslator()
 		vtx_decl.texcoords[i].type = VAR_FLOAT;
 		vtx_decl.texcoords[i].integer = false;
 
-		const int format = m_VtxAttr.GetTexCoordFormats()[i];
+		const VAT::VertexComponentFormat format = m_VtxAttr.GetTexCoordFormats()[i];
 		const int elements = m_VtxAttr.GetTexCoordElements()[i];
 
 		if (tc[i] == TVtxDesc::NOT_PRESENT)
@@ -702,7 +702,7 @@ void VertexLoader::CompileVertexTranslator()
 		else
 		{
 			_assert_msg_(VIDEO, TVtxDesc::DIRECT <= tc[i] && tc[i] <= TVtxDesc::INDEX16, "Invalid texture coordinates!\n(tc[i] = %d)", (int)tc[i]);
-			_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
+			_assert_msg_(VIDEO, VAT::UBYTE <= format && format <= VAT::FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
 			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elements!\n(elements = %d)", elements);
 
 			components.SetUv(i, true);

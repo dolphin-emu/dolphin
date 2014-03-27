@@ -184,12 +184,14 @@ void VertexLoader_Position::Init(void)
 
 }
 
-unsigned int VertexLoader_Position::GetSize(TVtxDesc::VertexComponentType _type, unsigned int _format, unsigned int _elements)
+unsigned int VertexLoader_Position::GetSize(TVtxDesc::VertexComponentType _type,
+	VAT::VertexComponentFormat _format, unsigned int _elements)
 {
 	return tableReadPositionVertexSize[_type][_format][_elements];
 }
 
-TPipelineFunction VertexLoader_Position::GetFunction(TVtxDesc::VertexComponentType _type, unsigned int _format, unsigned int _elements)
+TPipelineFunction VertexLoader_Position::GetFunction(TVtxDesc::VertexComponentType _type,
+	VAT::VertexComponentFormat _format, unsigned int _elements)
 {
 	return tableReadPosition[_type][_format][_elements];
 }

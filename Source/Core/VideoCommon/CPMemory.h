@@ -20,15 +20,6 @@ enum
 // Vertex components
 enum
 {
-	FORMAT_UBYTE   = 0, // 2 Cmp
-	FORMAT_BYTE    = 1, // 3 Cmp
-	FORMAT_USHORT  = 2,
-	FORMAT_SHORT   = 3,
-	FORMAT_FLOAT   = 4,
-};
-
-enum
-{
 	FORMAT_16B_565  = 0, // NA
 	FORMAT_24B_888  = 1,
 	FORMAT_32B_888x = 2,
@@ -88,72 +79,6 @@ union TVtxDesc
 	BitField<32,32,u64> Hex1;
 };
 
-union UVAT_group0
-{
-	u32 Hex;
-
-	BitField< 0,1,u32> PosElements;
-	BitField< 1,3,u32> PosFormat;
-	BitField< 4,5,u32> PosFrac;
-
-	BitField< 9,1,u32> NormalElements;
-	BitField<10,3,u32> NormalFormat;
-
-	BitField<13,1,u32> Color0Elements;
-	BitField<14,3,u32> Color0Comp;
-
-	BitField<17,1,u32> Color1Elements;
-	BitField<18,3,u32> Color1Comp;
-
-	BitField<21,1,u32> Tex0CoordElements;
-	BitField<22,3,u32> Tex0CoordFormat;
-	BitField<25,5,u32> Tex0Frac;
-
-	BitField<30,1,u32> ByteDequant;
-	BitField<31,1,u32> NormalIndex3;
-};
-
-union UVAT_group1
-{
-	u32 Hex;
-
-	BitField< 0,1,u32> Tex1CoordElements;
-	BitField< 1,3,u32> Tex1CoordFormat;
-	BitField< 4,5,u32> Tex1Frac;
-
-	BitField< 9,1,u32> Tex2CoordElements;
-	BitField<10,3,u32> Tex2CoordFormat;
-	BitField<13,5,u32> Tex2Frac;
-
-	BitField<18,1,u32> Tex3CoordElements;
-	BitField<19,3,u32> Tex3CoordFormat;
-	BitField<22,5,u32> Tex3Frac;
-
-	BitField<27,1,u32> Tex4CoordElements;
-	BitField<28,3,u32> Tex4CoordFormat;
-
-	// 1 unused bit
-};
-
-union UVAT_group2
-{
-	u32 Hex;
-
-	BitField<0,5,u32> Tex4Frac;
-
-	BitField<5,1,u32> Tex5CoordElements;
-	BitField<6,3,u32> Tex5CoordFormat;
-	BitField<9,5,u32> Tex5Frac;
-
-	BitField<14,1,u32> Tex6CoordElements;
-	BitField<15,3,u32> Tex6CoordFormat;
-	BitField<18,5,u32> Tex6Frac;
-
-	BitField<23,1,u32> Tex7CoordElements;
-	BitField<24,3,u32> Tex7CoordFormat;
-	BitField<27,5,u32> Tex7Frac;
-};
-
 // Matrix indices
 union TMatrixIndexA
 {
@@ -186,9 +111,81 @@ extern TMatrixIndexB MatrixIndexB;
 
 struct VAT
 {
-	UVAT_group0 g0;
-	UVAT_group1 g1;
-	UVAT_group2 g2;
+	enum VertexComponentFormat : u32
+	{
+		UBYTE   = 0,
+		BYTE    = 1,
+		USHORT  = 2,
+		SHORT   = 3,
+		FLOAT   = 4,
+	};
+
+	union
+	{
+		u32 Hex;
+
+		BitField< 0,1,u32> PosElements;
+		BitField< 1,3,VertexComponentFormat> PosFormat;
+		BitField< 4,5,u32> PosFrac;
+
+		BitField< 9,1,u32> NormalElements;
+		BitField<10,3,VertexComponentFormat> NormalFormat;
+
+		BitField<13,1,u32> Color0Elements;
+		BitField<14,3,u32> Color0Comp;
+
+		BitField<17,1,u32> Color1Elements;
+		BitField<18,3,u32> Color1Comp;
+
+		BitField<21,1,u32> Tex0CoordElements;
+		BitField<22,3,VertexComponentFormat> Tex0CoordFormat;
+		BitField<25,5,u32> Tex0Frac;
+
+		BitField<30,1,u32> ByteDequant;
+		BitField<31,1,u32> NormalIndex3;
+	} g0;
+
+	union
+	{
+		u32 Hex;
+
+		BitField< 0,1,u32> Tex1CoordElements;
+		BitField< 1,3,VertexComponentFormat> Tex1CoordFormat;
+		BitField< 4,5,u32> Tex1Frac;
+
+		BitField< 9,1,u32> Tex2CoordElements;
+		BitField<10,3,VertexComponentFormat> Tex2CoordFormat;
+		BitField<13,5,u32> Tex2Frac;
+
+		BitField<18,1,u32> Tex3CoordElements;
+		BitField<19,3,VertexComponentFormat> Tex3CoordFormat;
+		BitField<22,5,u32> Tex3Frac;
+
+		BitField<27,1,u32> Tex4CoordElements;
+		BitField<28,3,VertexComponentFormat> Tex4CoordFormat;
+
+		// 1 unused bit
+	} g1;
+
+	union
+	{
+		u32 Hex;
+
+		BitField<0,5,u32> Tex4Frac;
+
+		BitField<5,1,u32> Tex5CoordElements;
+		BitField<6,3,VertexComponentFormat> Tex5CoordFormat;
+		BitField<9,5,u32> Tex5Frac;
+
+		BitField<14,1,u32> Tex6CoordElements;
+		BitField<15,3,VertexComponentFormat> Tex6CoordFormat;
+		BitField<18,5,u32> Tex6Frac;
+
+		BitField<23,1,u32> Tex7CoordElements;
+		BitField<24,3,VertexComponentFormat> Tex7CoordFormat;
+		BitField<27,5,u32> Tex7Frac;
+	} g2;
+
 
 	DECLARE_BITFIELD_ARRAY(GetColorElements, g0.Color0Elements, g0.Color1Elements);
 	DECLARE_BITFIELD_ARRAY(GetColorComponents, g0.Color0Comp, g0.Color1Comp);

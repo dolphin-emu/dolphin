@@ -14,10 +14,12 @@ public:
 	static void Init(void);
 
 	// GetSize
-	static unsigned int GetSize(TVtxDesc::VertexComponentType _type, unsigned int _format, unsigned int _elements);
+	static unsigned int GetSize(TVtxDesc::VertexComponentType _type,
+		VAT::VertexComponentFormat _format, unsigned int _elements);
 
 	// GetFunction
-	static TPipelineFunction GetFunction(TVtxDesc::VertexComponentType _type, unsigned int _format, unsigned int _elements);
+	static TPipelineFunction GetFunction(TVtxDesc::VertexComponentType _type,
+		VAT::VertexComponentFormat _format, unsigned int _elements);
 
 	// GetDummyFunction
 	// It is important to synchronize tcIndex.

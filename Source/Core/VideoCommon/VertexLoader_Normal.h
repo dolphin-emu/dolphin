@@ -14,25 +14,16 @@ public:
 	static void Init(void);
 
 	// GetSize
-	static unsigned int GetSize(TVtxDesc::VertexComponentType _type, unsigned int _format,
-		unsigned int _elements, unsigned int _index3);
+	static unsigned int GetSize(TVtxDesc::VertexComponentType _type,
+		VAT::VertexComponentFormat _format, unsigned int _elements, unsigned int _index3);
 
 	// GetFunction
 	static TPipelineFunction GetFunction(TVtxDesc::VertexComponentType _type,
-		unsigned int _format, unsigned int _elements, unsigned int _index3);
+		VAT::VertexComponentFormat _format, unsigned int _elements, unsigned int _index3);
 
 private:
 	static const int NUM_NRM_TYPE = 4;
-
-	enum ENormalFormat
-	{
-		FORMAT_UBYTE   = 0,
-		FORMAT_BYTE    = 1,
-		FORMAT_USHORT  = 2,
-		FORMAT_SHORT   = 3,
-		FORMAT_FLOAT   = 4,
-		NUM_NRM_FORMAT
-	};
+	static const int NUM_NRM_FORMAT = 5;
 
 	enum ENormalElements
 	{
