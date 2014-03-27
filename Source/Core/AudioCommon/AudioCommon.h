@@ -14,7 +14,7 @@ extern SoundStream *soundStream;
 
 namespace AudioCommon
 {
-	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd);
+	SoundStream *InitSoundStream(void *hWnd);
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
 	bool UseJIT();

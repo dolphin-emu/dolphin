@@ -26,8 +26,13 @@ SoundStream *soundStream = nullptr;
 
 namespace AudioCommon 
 {
-	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd)
+	SoundStream *InitSoundStream(void *hWnd)
 	{
+		unsigned int AISampleRate, DACSampleRate;
+		AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
+		delete soundStream;
+		CMixer *mixer = new CMixer(AISampleRate, DACSampleRate, 48000);
+
 		// TODO: possible memleak with mixer
 
 		std::string backend = SConfig::GetInstance().sBackend;
