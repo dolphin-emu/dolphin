@@ -677,10 +677,7 @@ void VertexLoader::CompileVertexTranslator()
 			vtx_decl.colors[i].enable = true;
 			nat_offset += 4;
 
-			if (i == 0)
-				components.has_color0 = true;
-			else
-				components.has_color1 = true;
+			components.HasColor()[i] = true;
 		}
 	}
 
@@ -694,10 +691,11 @@ void VertexLoader::CompileVertexTranslator()
 		const VAT::VertexComponentFormat format = m_VtxAttr.GetTexCoordFormats()[i];
 		const int elements = m_VtxAttr.GetTexCoordElements()[i];
 
+		auto has_uv = components.HasUv();
+
 		if (tc[i] == TVtxDesc::NOT_PRESENT)
 		{
-			// TODO!!!
-			components.SetUv(i, false);
+			has_uv[i] = false;
 		}
 		else
 		{
@@ -705,12 +703,12 @@ void VertexLoader::CompileVertexTranslator()
 			_assert_msg_(VIDEO, VAT::UBYTE <= format && format <= VAT::FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
 			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elements!\n(elements = %d)", elements);
 
-			components.SetUv(i, true);
+			has_uv[i] = true;
 			WriteCall(VertexLoader_TextCoord::GetFunction(tc[i], format, elements));
 			m_VertexSize += VertexLoader_TextCoord::GetSize(tc[i], format, elements);
 		}
 
-		if (components.HasTexMtxIdx(i))
+		if (components.HasTexMtxIdx()[i])
 		{
 			vtx_decl.texcoords[i].enable = true;
 			if (tc[i] != TVtxDesc::NOT_PRESENT)
@@ -722,7 +720,7 @@ void VertexLoader::CompileVertexTranslator()
 			}
 			else
 			{
-				components.SetUv(i, true); // have to include since using now
+				has_uv[i] = true; // have to include since using now
 				vtx_decl.texcoords[i].components = 4;
 				nat_offset += 16; // still include the texture coordinate, but this time as 6 + 2 bytes
 				WriteCall(TexMtx_Write_Float4);

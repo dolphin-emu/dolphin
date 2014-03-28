@@ -45,41 +45,16 @@ union VertexComponents
 
 	u32 hex;
 
-	inline void SetUv(int index, bool enabled = true)
-	{
-		if (index == 0) has_uv0 = enabled;
-		else if (index == 1) has_uv1 = enabled;
-		else if (index == 2) has_uv2 = enabled;
-		else if (index == 3) has_uv3 = enabled;
-		else if (index == 4) has_uv4 = enabled;
-		else if (index == 5) has_uv5 = enabled;
-		else if (index == 6) has_uv6 = enabled;
-		else /*if (index == 7) */has_uv7 = enabled;
-	}
+	DECLARE_BITFIELD_ARRAY(HasTexMtxIdx, has_texmtxidx0, has_texmtxidx1,
+	                       has_texmtxidx2, has_texmtxidx3, has_texmtxidx4,
+	                       has_texmtxidx5, has_texmtxidx6, has_texmtxidx7);
 
-	inline bool HasTexMtxIdx(int index) const
-	{
-		if (index == 0) return has_texmtxidx0;
-		else if (index == 1) return has_texmtxidx1;
-		else if (index == 2) return has_texmtxidx2;
-		else if (index == 3) return has_texmtxidx3;
-		else if (index == 4) return has_texmtxidx4;
-		else if (index == 5) return has_texmtxidx5;
-		else if (index == 6) return has_texmtxidx6;
-		else /*if (index == 7) */return has_texmtxidx7;
-	}
+	DECLARE_BITFIELD_ARRAY(HasNormal, has_normal0, has_normal1, has_normal2);
 
-	inline bool HasUv(int index) const
-	{
-		if (index == 0) return has_uv0;
-		else if (index == 1) return has_uv1;
-		else if (index == 2) return has_uv2;
-		else if (index == 3) return has_uv3;
-		else if (index == 4) return has_uv4;
-		else if (index == 5) return has_uv5;
-		else if (index == 6) return has_uv6;
-		else /*if (index == 7) */return has_uv7;
-	}
+	DECLARE_BITFIELD_ARRAY(HasColor, has_color0, has_color1);
+
+	DECLARE_BITFIELD_ARRAY(HasUv, has_uv0, has_uv1, has_uv2, has_uv3,
+	                       has_uv4, has_uv5, has_uv6, has_uv7);
 };
 
 #ifdef WIN32

@@ -110,22 +110,22 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 		out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
 		if (components.has_posmtxidx)
 			out.Write("in float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
-		if (components.has_normal0)
+		if (components.HasNormal()[0])
 			out.Write("in float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
-		if (components.has_normal1)
+		if (components.HasNormal()[1])
 			out.Write("in float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
-		if (components.has_normal2)
+		if (components.HasNormal()[2])
 			out.Write("in float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
 
-		if (components.has_color0)
+		if (components.HasColor()[0])
 			out.Write("in float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
-		if (components.has_color1)
+		if (components.HasColor()[1])
 			out.Write("in float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
 
 		for (int i = 0; i < 8; ++i)
 		{
-			if (components.HasUv(i) || components.HasTexMtxIdx(i))
-				out.Write("in float%d tex%d; // ATTR%d,\n", components.HasTexMtxIdx(i) ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
+			if (components.HasUv()[i] || components.HasTexMtxIdx()[i])
+				out.Write("in float%d tex%d; // ATTR%d,\n", components.HasTexMtxIdx()[i] ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
 		// Let's set up attributes
@@ -150,20 +150,20 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 		out.Write("VS_OUTPUT main(\n");
 
 		// inputs
-		if (components.has_normal0)
+		if (components.HasNormal()[0])
 			out.Write("  float3 rawnorm0 : NORMAL0,\n");
-		if (components.has_normal1)
+		if (components.HasNormal()[1])
 			out.Write("  float3 rawnorm1 : NORMAL1,\n");
-		if (components.has_normal2)
+		if (components.HasNormal()[2])
 			out.Write("  float3 rawnorm2 : NORMAL2,\n");
-		if (components.has_color0)
+		if (components.HasColor()[0])
 			out.Write("  float4 color0 : COLOR0,\n");
-		if (components.has_color1)
+		if (components.HasColor()[1])
 			out.Write("  float4 color1 : COLOR1,\n");
 		for (int i = 0; i < 8; ++i)
 		{
-			if (components.HasUv(i) || components.HasTexMtxIdx(i))
-				out.Write("  float%d tex%d : TEXCOORD%d,\n", components.HasTexMtxIdx(i) ? 3 : 2, i, i);
+			if (components.HasUv()[i] || components.HasTexMtxIdx()[i])
+				out.Write("  float%d tex%d : TEXCOORD%d,\n", components.HasTexMtxIdx()[i] ? 3 : 2, i, i);
 		}
 		if (components.has_posmtxidx)
 			out.Write("  float fposmtx : BLENDINDICES,\n");
@@ -192,25 +192,25 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 				out.Write("float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
 			}
 		}
-		if (components.has_normal0)
+		if (components.HasNormal()[0])
 			out.Write("float3 _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0)));\n");
-		if (components.has_normal1)
+		if (components.HasNormal()[1])
 			out.Write("float3 _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");
-		if (components.has_normal2)
+		if (components.HasNormal()[2])
 			out.Write("float3 _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n");
 	}
 	else
 	{
 		out.Write("float4 pos = float4(dot(" I_POSNORMALMATRIX"[0], rawpos), dot(" I_POSNORMALMATRIX"[1], rawpos), dot(" I_POSNORMALMATRIX"[2], rawpos), 1.0);\n");
-		if (components.has_normal0)
+		if (components.HasNormal()[0])
 			out.Write("float3 _norm0 = normalize(float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm0), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm0), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm0)));\n");
-		if (components.has_normal1)
+		if (components.HasNormal()[1])
 			out.Write("float3 _norm1 = float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm1), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm1), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm1));\n");
-		if (components.has_normal2)
+		if (components.HasNormal()[2])
 			out.Write("float3 _norm2 = float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm2), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm2), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm2));\n");
 	}
 
-	if (!(components.has_normal0))
+	if (!components.HasNormal()[0])
 		out.Write("float3 _norm0 = float3(0.0, 0.0, 0.0);\n");
 
 
@@ -223,7 +223,7 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 	uid_data.numColorChans = xfregs.numChan.numColorChans;
 	if (xfregs.numChan.numColorChans == 0)
 	{
-		if (components.has_color0)
+		if (components.HasColor()[0])
 			out.Write("o.colors_0 = color0;\n");
 		else
 			out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
@@ -233,7 +233,7 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 
 	if (xfregs.numChan.numColorChans < 2)
 	{
-		if (components.has_color1)
+		if (components.HasColor()[1])
 			out.Write("o.colors_1 = color1;\n");
 		else
 			out.Write("o.colors_1 = o.colors_0;\n");
@@ -263,7 +263,7 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 			out.Write("coord = rawpos;\n"); // pos.w is 1
 			break;
 		case XF_SRCNORMAL_INROW:
-			if (components.has_normal0)
+			if (components.HasNormal()[0])
 			{
 				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
 				out.Write("coord = float4(rawnorm0.xyz, 1.0);\n");
@@ -273,14 +273,14 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 			_assert_( texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 || texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1 );
 			break;
 		case XF_SRCBINORMAL_T_INROW:
-			if (components.has_normal1)
+			if (components.HasNormal()[1])
 			{
 				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
 				out.Write("coord = float4(rawnorm1.xyz, 1.0);\n");
 			}
 			break;
 		case XF_SRCBINORMAL_B_INROW:
-			if (components.has_normal2)
+			if (components.HasNormal()[2])
 			{
 				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
 				out.Write("coord = float4(rawnorm2.xyz, 1.0);\n");
@@ -288,7 +288,7 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 			break;
 		default:
 			_assert_(texinfo.sourcerow <= XF_SRCTEX7_INROW);
-			if (components.HasUv(texinfo.sourcerow - XF_SRCTEX0_INROW))
+			if (components.HasUv()[texinfo.sourcerow - XF_SRCTEX0_INROW])
 				out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
 		}
@@ -299,7 +299,7 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 		{
 			case XF_TEXGEN_EMBOSS_MAP: // calculate tex coords into bump map
 
-				if (components.has_normal1 || components.has_normal2)
+				if (components.HasNormal()[1] || components.HasNormal()[2])
 				{
 					// transform the light dir into tangent space
 					uid_data.texMtxInfo[i].embosslightshift = xfregs.texMtxInfo[i].embosslightshift;
@@ -326,7 +326,7 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 			case XF_TEXGEN_REGULAR:
 			default:
 				uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
-				if (components.HasTexMtxIdx(i))
+				if (components.HasTexMtxIdx()[i])
 				{
 					out.Write("int tmp = int(tex%d.z);\n", i);
 					if (texinfo.projection == XF_TEXPROJ_STQ)
@@ -387,10 +387,10 @@ static inline void GenerateVertexShader(T& out, VertexComponents components, API
 	{
 		out.Write("o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
 
-		if (components.has_color0)
+		if (components.HasColor()[0])
 			out.Write("o.colors_0 = color0;\n");
 
-		if (components.has_color1)
+		if (components.HasColor()[1])
 			out.Write("o.colors_1 = color1;\n");
 	}
 

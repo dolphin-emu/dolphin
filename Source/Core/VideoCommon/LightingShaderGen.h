@@ -127,10 +127,9 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, VertexC
 		uid_data.matsource |= xfregs.color[j].matsource << j;
 		if (color.matsource) // from vertex
 		{
-			if ((j == 0 && components.has_color0) ||
-				(j == 1 && components.has_color1))
+			if (components.HasColor()[j])
 				object.Write("int4 mat = int4(round(%s%d * 255.0));\n", inColorName, j);
-			else if (components.has_color0)
+			else if (components.HasColor()[0])
 				object.Write("int4 mat = int4(round(%s0 * 255.0));\n", inColorName);
 			else
 				object.Write("int4 mat = int4(255, 255, 255, 255);\n");
@@ -146,10 +145,9 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, VertexC
 			uid_data.ambsource |= xfregs.color[j].ambsource << j;
 			if (color.ambsource) // from vertex
 			{
-				if ((j == 0 && components.has_color0) ||
-					(j == 1 && components.has_color1))
+				if (components.HasColor()[j])
 					object.Write("lacc = int4(round(%s%d * 255.0));\n", inColorName, j);
-				else if (components.has_color0)
+				else if (components.HasColor()[0])
 					object.Write("lacc = int4(round(%s0 * 255.0));\n", inColorName);
 				else
 					// TODO: this isn't verified. Here we want to read the ambient from the vertex,
@@ -173,10 +171,9 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, VertexC
 		{
 			if (alpha.matsource) // from vertex
 			{
-				if ((j == 0 && components.has_color0) ||
-					(j == 1 && components.has_color1))
+				if (components.HasColor()[j])
 					object.Write("mat.w = int(round(%s%d.w * 255.0));\n", inColorName, j);
-				else if (components.has_color0)
+				else if (components.HasColor()[0])
 					object.Write("mat.w = int(round(%s0.w * 255.0));\n", inColorName);
 				else object.Write("mat.w = 255;\n");
 			}
@@ -192,10 +189,9 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, VertexC
 			uid_data.ambsource |= xfregs.alpha[j].ambsource << (j+2);
 			if (alpha.ambsource) // from vertex
 			{
-				if ((j == 0 && components.has_color0) ||
-					(j == 1 && components.has_color1))
+				if (components.HasColor()[j])
 					object.Write("lacc.w = int(round(%s%d.w * 255.0));\n", inColorName, j);
-				else if (components.has_color0)
+				else if (components.HasColor()[0])
 					object.Write("lacc.w = int(round(%s0.w * 255.0));\n", inColorName);
 				else
 					// TODO: The same for alpha: We want to read from vertex, but the vertex has no color
