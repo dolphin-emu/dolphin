@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cfenv>
+
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
 #include "Common/FPURoundMode.h"
@@ -20,33 +22,14 @@ namespace FPURoundMode
 
 	void SetRoundMode(int mode)
 	{
-		// Set FPU rounding mode to mimic the PowerPC's
-		#ifdef _M_X86_32
-			// This shouldn't really be needed anymore since we use SSE
-		#ifdef _WIN32
-			const int table[4] =
-			{
-				_RC_NEAR,
-				_RC_CHOP,
-				_RC_UP,
-				_RC_DOWN
-			};
-			_set_controlfp(_MCW_RC, table[mode]);
-		#else
-			const unsigned short X87_ROUND_MASK = 3 << 10;
-			const unsigned short x87_rounding_table[] =
-			{
-				0 << 10, // nearest
-				3 << 10, // zero
-				2 << 10, // +inf
-				1 << 10, // -inf
-			};
-			unsigned short _mode;
-			asm ("fstcw %0" : "=m" (_mode));
-			_mode = (_mode & ~X87_ROUND_MASK) | x87_rounding_table[mode];
-			asm ("fldcw %0" : : "m" (_mode));
-		#endif
-		#endif
+		// Convert PowerPC to native rounding mode.
+		const int rounding_mode_lut[] = {
+			FE_TONEAREST,
+			FE_TOWARDZERO,
+			FE_UPWARD,
+			FE_DOWNWARD
+		};
+		fesetround(rounding_mode_lut[mode]);
 	}
 
 	void SetPrecisionMode(PrecisionMode mode)
