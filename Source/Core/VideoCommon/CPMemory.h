@@ -77,6 +77,16 @@ union TVtxDesc
 
 	BitField< 0,32,u64> Hex0;
 	BitField<32,32,u64> Hex1;
+
+	DECLARE_BITFIELD_ARRAY(Color, Color0, Color1);
+
+	DECLARE_BITFIELD_ARRAY(TexMtxIdx, Tex0MatIdx, Tex1MatIdx, Tex2MatIdx,
+	                       Tex3MatIdx, Tex4MatIdx, Tex5MatIdx, Tex6MatIdx,
+	                       Tex7MatIdx);
+
+	DECLARE_BITFIELD_ARRAY(TexCoord, Tex0Coord, Tex1Coord, Tex2Coord,
+	                       Tex3Coord, Tex4Coord, Tex5Coord, Tex6Coord,
+	                       Tex7Coord);
 };
 
 // Matrix indices

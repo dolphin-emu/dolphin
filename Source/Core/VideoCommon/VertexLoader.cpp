@@ -469,7 +469,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	VertexLoader_TextCoord::Init();
 
 	m_VtxDesc = vtx_desc;
-	SetVAT(vtx_attr.Hex0, vtx_attr.Hex1, vtx_attr.Hex2);
+	SetVAT(vtx_attr);
 
 	#ifdef USE_VERTEX_LOADER_JIT
 	AllocCodeSpace(COMPILED_CODE_SIZE);
@@ -526,18 +526,8 @@ void VertexLoader::CompileVertexTranslator()
 	m_numPipelineStages = 0;
 #endif
 
-	// Colors
-	const TVtxDesc::VertexComponentType col[2] = { m_VtxDesc.Color0, m_VtxDesc.Color1 };
-	// TextureCoord
-	// Since m_VtxDesc.Text7Coord is broken across a 32 bit word boundary, retrieve its value manually.
-	// If we didn't do this, the vertex format would be read as one bit offset from where it should be, making
-	// 01 become 00, and 10/11 become 01
-	// TODO (neobrain): Uh.. this looks dumb.
-	const TVtxDesc::VertexComponentType tc[8] = {
-		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord,
-		(const TVtxDesc::VertexComponentType)((m_VtxDesc.Hex >> 31) & 3)
-	};
+	auto col = m_VtxDesc.Color();
+	auto tc = m_VtxDesc.TexCoord();
 
 	VertexComponents components;
 	components.hex = 0;
@@ -555,15 +545,15 @@ void VertexLoader::CompileVertexTranslator()
 		m_VertexSize += 1;
 	}
 
-	// TODO: Simplify
-	if (m_VtxDesc.Tex0MatIdx) { m_VertexSize += 1; components.HasTexMtxIdx()[0] = true; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex1MatIdx) { m_VertexSize += 1; components.HasTexMtxIdx()[1] = true; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex2MatIdx) { m_VertexSize += 1; components.HasTexMtxIdx()[2] = true; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex3MatIdx) { m_VertexSize += 1; components.HasTexMtxIdx()[3] = true; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex4MatIdx) { m_VertexSize += 1; components.HasTexMtxIdx()[4] = true; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex5MatIdx) { m_VertexSize += 1; components.HasTexMtxIdx()[5] = true; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex6MatIdx) { m_VertexSize += 1; components.HasTexMtxIdx()[6] = true; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex7MatIdx) { m_VertexSize += 1; components.HasTexMtxIdx()[7] = true; WriteCall(TexMtx_ReadDirect_UByte); }
+	for (unsigned int i = 0; i < 8; ++i)
+	{
+		if (m_VtxDesc.TexMtxIdx()[i])
+		{
+			m_VertexSize += 1;
+			components.HasTexMtxIdx()[i] = true;
+			WriteCall(TexMtx_ReadDirect_UByte);
+		}
+	}
 
 	// Write vertex position loader
 	if (g_ActiveConfig.bUseBBox)
@@ -846,14 +836,8 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 
 	// Load position and texcoord scale factors.
 	m_VtxAttr.PosFrac = g_VtxAttr[vtx_attr_group].PosFrac;
-	m_VtxAttr.Tex0Frac = g_VtxAttr[vtx_attr_group].Tex0Frac;
-	m_VtxAttr.Tex1Frac = g_VtxAttr[vtx_attr_group].Tex1Frac;
-	m_VtxAttr.Tex2Frac = g_VtxAttr[vtx_attr_group].Tex2Frac;
-	m_VtxAttr.Tex3Frac = g_VtxAttr[vtx_attr_group].Tex3Frac;
-	m_VtxAttr.Tex4Frac = g_VtxAttr[vtx_attr_group].Tex4Frac;
-	m_VtxAttr.Tex5Frac = g_VtxAttr[vtx_attr_group].Tex5Frac;
-	m_VtxAttr.Tex6Frac = g_VtxAttr[vtx_attr_group].Tex6Frac;
-	m_VtxAttr.Tex7Frac = g_VtxAttr[vtx_attr_group].Tex7Frac;
+	for (int i = 0; i < 8; ++i)
+		m_VtxAttr.GetTexCoordFracs()[i] = g_VtxAttr[vtx_attr_group].GetTexCoordFracs()[i];
 
 	posScale = fractionTable[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components.uvs)
@@ -863,10 +847,9 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 			tcScale[i] = fractionTable[m_VtxAttr.GetTexCoordFracs()[i]];
 		}
 	}
+
 	for (int i = 0; i < 2; i++)
-	{
 		colElements[i] = m_VtxAttr.GetColorElements()[i];
-	}
 
 	// Prepare bounding box
 	s_bbox_primitive = primitive;
@@ -912,13 +895,8 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const coun
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 }
 
-void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
+void VertexLoader::SetVAT(const VAT& vat)
 {
-	VAT vat;
-	vat.Hex0 = _group0;
-	vat.Hex1 = _group1;
-	vat.Hex2 = _group2;
-
 	m_VtxAttr = vat;
 
 	if (!m_VtxAttr.ByteDequant)
@@ -952,34 +930,35 @@ void VertexLoader::AppendToString(std::string *dest) const
 
 	dest->append(StringFromFormat("%ib skin: %i P: %i %s-%s ",
 		m_VertexSize, (int)m_VtxDesc.PosMatIdx,
-		m_VtxAttr.PosElements ? 3 : 2, posMode[m_VtxDesc.Position], posFormats[m_VtxAttr.PosFormat]));
+		m_VtxAttr.PosElements ? 3 : 2, posMode[m_VtxDesc.Position],
+		posFormats[m_VtxAttr.PosFormat]));
 
 	if (m_VtxDesc.Normal)
 	{
 		dest->append(StringFromFormat("Nrm: %i %s-%s ",
-			(int)m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat]));
+			(int)m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal],
+			posFormats[m_VtxAttr.NormalFormat]));
 	}
 
-	u32 color_mode[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	for (int i = 0; i < 2; i++)
 	{
-		if (color_mode[i])
+		if (m_VtxDesc.Color()[i])
 		{
-			dest->append(StringFromFormat("C%i: %i %s-%s ", i, static_cast<int>(m_VtxAttr.GetColorElements()[i]),
-					posMode[color_mode[i]], colorFormat[m_VtxAttr.GetColorComponents()[i]]));
+			dest->append(StringFromFormat("C%i: %i %s-%s ",
+				i, static_cast<int>(m_VtxAttr.GetColorElements()[i]),
+				posMode[m_VtxDesc.Color()[i]],
+				colorFormat[m_VtxAttr.GetColorComponents()[i]]));
 		}
 	}
-	u32 tex_mode[8] = {
-		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord
-	};
+
 	for (int i = 0; i < 8; i++)
 	{
-		if (tex_mode[i])
+		if (m_VtxDesc.TexCoord()[i])
 		{
 			dest->append(StringFromFormat("T%i: %i %s-%s ",
 				i, static_cast<int>(m_VtxAttr.GetTexCoordElements()[i]),
-				posMode[tex_mode[i]], posFormats[m_VtxAttr.GetTexCoordFormats()[i]]));
+				posMode[m_VtxDesc.TexCoord()[i]],
+				posFormats[m_VtxAttr.GetTexCoordFormats()[i]]));
 		}
 	}
 	dest->append(StringFromFormat(" - %i v\n", m_numLoadedVertices));
