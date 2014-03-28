@@ -159,4 +159,25 @@ namespace AudioCommon
 			soundStream->SetVolume(SConfig::GetInstance().m_Volume);
 		}
 	}
+
+	void ClearAudioBuffer(bool mute)
+	{
+		if (soundStream)
+			soundStream->Clear(mute);
+	}
+
+	void SendAIBuffer(short *samples, unsigned int num_samples)
+	{
+		if (!soundStream)
+			return;
+
+		CMixer* pMixer = soundStream->GetMixer();
+
+		if (pMixer && samples)
+		{
+			pMixer->PushSamples(samples, num_samples);
+		}
+
+		soundStream->Update();
+	}
 }

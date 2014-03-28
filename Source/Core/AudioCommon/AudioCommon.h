@@ -19,4 +19,6 @@ namespace AudioCommon
 	std::vector<std::string> GetSoundBackends();
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void UpdateSoundStream();
+	void ClearAudioBuffer(bool mute);
+	void SendAIBuffer(short* samples, unsigned int num_samples);
 }
