@@ -28,7 +28,7 @@
 
 // ewww
 #if _LIBCPP_VERSION
-#define IsTriviallyCopyable(T) std::is_trivially_copyable<T>::value
+#define IsTriviallyCopyable(T) std::is_trivially_copyable<typename std::remove_volatile<T>::type>::value
 #elif __GNUC__
 #define IsTriviallyCopyable(T) std::has_trivial_copy_constructor<T>::value
 #elif _MSC_VER >= 1800
