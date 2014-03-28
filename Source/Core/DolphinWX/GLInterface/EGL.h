@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <EGL/egl.h>
 #include <string>
+#include <EGL/egl.h>
 
 #include "Core/ConfigManager.h"
 #include "DolphinWX/GLInterface/InterfaceBase.h"
