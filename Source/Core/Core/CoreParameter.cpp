@@ -126,12 +126,12 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 
 			std::string Extension;
 			SplitPath(m_strFilename, nullptr, nullptr, &Extension);
-			if (!strcasecmp(Extension.c_str(), ".gcm") ||
-				!strcasecmp(Extension.c_str(), ".iso") ||
-				!strcasecmp(Extension.c_str(), ".wbfs") ||
-				!strcasecmp(Extension.c_str(), ".ciso") ||
-				!strcasecmp(Extension.c_str(), ".gcz") ||
-				bootDrive)
+			if (CompareNoCase(Extension, ".gcm")  ||
+			    CompareNoCase(Extension, ".iso")  ||
+			    CompareNoCase(Extension, ".wbfs") ||
+			    CompareNoCase(Extension, ".ciso") ||
+			    CompareNoCase(Extension, ".gcz")  ||
+			    bootDrive)
 			{
 				m_BootType = BOOT_ISO;
 				DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename);
@@ -188,14 +188,14 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 
 				delete pVolume;
 			}
-			else if (!strcasecmp(Extension.c_str(), ".elf"))
+			else if (CompareNoCase(Extension, ".elf"))
 			{
 				bWii = CBoot::IsElfWii(m_strFilename);
 				Region = USA_DIR;
 				m_BootType = BOOT_ELF;
 				bNTSC = true;
 			}
-			else if (!strcasecmp(Extension.c_str(), ".dol"))
+			else if (CompareNoCase(Extension, ".dol"))
 			{
 				CDolLoader dolfile(m_strFilename);
 				bWii = dolfile.IsWii();
@@ -203,7 +203,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				m_BootType = BOOT_DOL;
 				bNTSC = true;
 			}
-			else if (!strcasecmp(Extension.c_str(), ".dff"))
+			else if (CompareNoCase(Extension, ".dff"))
 			{
 				bWii = true;
 				Region = USA_DIR;

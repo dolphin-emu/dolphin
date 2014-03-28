@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Common/ColorUtil.h"
+#include "Common/StringUtil.h"
 #include "Core/HW/GCMemcard.h"
 
 static void ByteSwap(u8 *valueA, u8 *valueB)
@@ -36,7 +37,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool sjis)
 		//This function can be removed once more about hdr is known and we can check for a valid header
 		std::string fileType;
 		SplitPath(filename, nullptr, nullptr, &fileType);
-		if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
+		if (!CompareNoCase(fileType, ".raw") && !CompareNoCase(fileType, ".gcp"))
 		{
 			PanicAlertT("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
 			return;
@@ -817,20 +818,22 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile, const
 	std::string fileType;
 	SplitPath(inputFile, nullptr, nullptr, &fileType);
 
-	if (!strcasecmp(fileType.c_str(), ".gci"))
+	if (CompareNoCase(fileType, ".gci"))
+	{
 		offset = GCI;
+	}
 	else
 	{
 		char tmp[0xD];
 		gci.ReadBytes(tmp, sizeof(tmp));
-		if (!strcasecmp(fileType.c_str(), ".gcs"))
+		if (CompareNoCase(fileType, ".gcs"))
 		{
 			if (!memcmp(tmp, "GCSAVE", 6)) // Header must be uppercase
 				offset = GCS;
 			else
 				return GCSFAIL;
 		}
-		else if (!strcasecmp(fileType.c_str(), ".sav"))
+		else if (CompareNoCase(fileType, ".sav"))
 		{
 			if (!memcmp(tmp, "DATELGC_SAVE", 0xC)) // Header must be uppercase
 				offset = SAV;
@@ -838,7 +841,9 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile, const
 				return SAVFAIL;
 		}
 		else
+		{
 			return OPENFAIL;
+		}
 	}
 	gci.Seek(offset, SEEK_SET);
 
@@ -908,11 +913,11 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
 
 	std::string fileType;
 	SplitPath(fileName, nullptr, nullptr, &fileType);
-	if (!strcasecmp(fileType.c_str(), ".gcs"))
+	if (CompareNoCase(fileType, ".gcs"))
 	{
 		offset = GCS;
 	}
-	else if (!strcasecmp(fileType.c_str(), ".sav"))
+	else if (CompareNoCase(fileType, ".sav"))
 	{
 		offset = SAV;
 	}

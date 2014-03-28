@@ -42,6 +42,7 @@ Make AA apply instantly during gameplay if possible
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/LogManager.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"
@@ -126,7 +127,7 @@ void GetShaders(std::vector<std::string> &shaders)
 			std::string name = file.virtualName;
 			if (name.size() < 5)
 				continue;
-			if (strcasecmp(name.substr(name.size() - 5).c_str(), ".glsl"))
+			if (!CompareNoCase(name.substr(name.size() - 5), ".glsl"))
 				continue;
 
 			name = name.substr(0, name.size() - 5);
