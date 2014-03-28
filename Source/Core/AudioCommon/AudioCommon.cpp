@@ -26,8 +26,13 @@ SoundStream *soundStream = nullptr;
 
 namespace AudioCommon 
 {
-	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd)
+	SoundStream *InitSoundStream(void *hWnd)
 	{
+		unsigned int AISampleRate, DACSampleRate;
+		AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
+		delete soundStream;
+		CMixer *mixer = new CMixer(AISampleRate, DACSampleRate, 48000);
+
 		// TODO: possible memleak with mixer
 
 		std::string backend = SConfig::GetInstance().sBackend;
@@ -128,15 +133,6 @@ namespace AudioCommon
 		return backends;
 	}
 
-	bool UseJIT()
-	{
-		if (!Movie::IsDSPHLE() && Movie::IsPlayingInput() && Movie::IsConfigSaved())
-		{
-			return true;
-		}
-		return SConfig::GetInstance().m_DSPEnableJIT;
-	}
-
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	{
 		if (soundStream)
@@ -162,5 +158,26 @@ namespace AudioCommon
 			soundStream->GetMixer()->SetThrottle(SConfig::GetInstance().m_Framelimit == 2);
 			soundStream->SetVolume(SConfig::GetInstance().m_Volume);
 		}
+	}
+
+	void ClearAudioBuffer(bool mute)
+	{
+		if (soundStream)
+			soundStream->Clear(mute);
+	}
+
+	void SendAIBuffer(short *samples, unsigned int num_samples)
+	{
+		if (!soundStream)
+			return;
+
+		CMixer* pMixer = soundStream->GetMixer();
+
+		if (pMixer && samples)
+		{
+			pMixer->PushSamples(samples, num_samples);
+		}
+
+		soundStream->Update();
 	}
 }

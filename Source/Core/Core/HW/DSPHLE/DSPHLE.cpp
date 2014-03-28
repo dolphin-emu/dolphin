@@ -19,8 +19,6 @@
 
 DSPHLE::DSPHLE()
 {
-	m_InitMixer = false;
-	soundStream = nullptr;
 }
 
 // Mailbox utility
@@ -43,7 +41,6 @@ struct DSPState
 
 bool DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {
-	m_hWnd = hWnd;
 	m_bWii = bWii;
 	m_pUCode = nullptr;
 	m_lastUCode = nullptr;
@@ -54,7 +51,6 @@ bool DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	m_DSPControl.DSPHalt = 1;
 	m_DSPControl.DSPInit = 1;
 
-	m_InitMixer = false;
 	m_dspState.Reset();
 
 	return true;
@@ -66,7 +62,6 @@ void DSPHLE::DSP_StopSoundStream()
 
 void DSPHLE::Shutdown()
 {
-	AudioCommon::ShutdownSoundStream();
 }
 
 void DSPHLE::DSP_Update(int cycles)
@@ -138,23 +133,6 @@ void DSPHLE::DoState(PointerWrap &p)
 		Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.", 3000);
 		p.SetMode(PointerWrap::MODE_VERIFY);
 		return;
-	}
-	bool prevInitMixer = m_InitMixer;
-	p.Do(m_InitMixer);
-	if (prevInitMixer != m_InitMixer && p.GetMode() == PointerWrap::MODE_READ)
-	{
-		if (m_InitMixer)
-		{
-			InitMixer();
-			AudioCommon::PauseAndLock(true);
-		}
-		else
-		{
-			AudioCommon::PauseAndLock(false);
-			soundStream->Stop();
-			delete soundStream;
-			soundStream = nullptr;
-		}
 	}
 
 	p.DoPOD(m_DSPControl);
@@ -260,28 +238,10 @@ void DSPHLE::DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short _Value)
 	}
 }
 
-void DSPHLE::InitMixer()
-{
-	unsigned int AISampleRate, DACSampleRate;
-	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-	delete soundStream;
-	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, 48000), m_hWnd);
-	if (!soundStream) PanicAlert("Error starting up sound stream");
-	// Mixer is initialized
-	m_InitMixer = true;
-}
-
 // Other DSP fuctions
 u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 {
-	UDSPControl Temp(_Value);
-	if (!m_InitMixer)
-	{
-		if (!Temp.DSPHalt)
-		{
-			InitMixer();
-		}
-	}
+	DSP::UDSPControl Temp(_Value);
 
 	if (Temp.DSPReset)
 	{
@@ -304,34 +264,6 @@ u16 DSPHLE::DSP_ReadControlRegister()
 	return m_DSPControl.Hex;
 }
 
-
-// The reason that we don't disable this entire
-// function when Other Audio is disabled is that then we can't turn it back on
-// again once the game has started.
-void DSPHLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
-{
-	if (!soundStream)
-		return;
-
-	CMixer* pMixer = soundStream->GetMixer();
-
-	if (pMixer && address)
-	{
-		short* samples = (short*)HLEMemory_Get_Pointer(address);
-		pMixer->PushSamples(samples, num_samples);
-	}
-
-	soundStream->Update();
-}
-
-void DSPHLE::DSP_ClearAudioBuffer(bool mute)
-{
-	if (soundStream)
-		soundStream->Clear(mute);
-}
-
 void DSPHLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
-	if (doLock || unpauseOnUnlock)
-		DSP_ClearAudioBuffer(doLock);
 }

@@ -410,6 +410,8 @@ void EmuThread()
 
 	}
 
+	AudioCommon::InitSoundStream(g_pWindowHandle);
+
 	// The hardware is initialized.
 	g_bHwInit = true;
 
@@ -507,6 +509,7 @@ void EmuThread()
 	Pad::Shutdown();
 	Wiimote::Shutdown();
 	g_video_backend->Shutdown();
+	AudioCommon::ShutdownSoundStream();
 }
 
 // Set or get the running state
