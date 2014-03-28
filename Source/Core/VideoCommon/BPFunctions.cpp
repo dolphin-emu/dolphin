@@ -161,7 +161,7 @@ void OnPixelFormatChange()
 	auto new_format = bpmem.zcontrol.pixel_format;
 
 	// no need to reinterpret pixel data in these cases
-	if (new_format == old_format || old_format == (unsigned int)-1)
+	if (new_format == old_format || old_format == PEControl::INVALID_FMT)
 		goto skip;
 
 	// Check for pixel format changes

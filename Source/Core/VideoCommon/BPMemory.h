@@ -779,14 +779,15 @@ union PEControl
 {
 	enum PixelFormat : u32
 	{
-		RGB8_Z24   = 0,
-		RGBA6_Z24  = 1,
-		RGB565_Z16 = 2,
-		Z24        = 3,
-		Y8         = 4,
-		U8         = 5,
-		V8         = 6,
-		YUV420     = 7
+		RGB8_Z24    = 0,
+		RGBA6_Z24   = 1,
+		RGB565_Z16  = 2,
+		Z24         = 3,
+		Y8          = 4,
+		U8          = 5,
+		V8          = 6,
+		YUV420      = 7,
+		INVALID_FMT = 0xffffffff, // Used by Dolphin to represent a missing value.
 	};
 
 	enum DepthFormat : u32
