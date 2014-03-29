@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cinttypes>
 #include <string>
 
@@ -15,7 +16,7 @@ static void ByteSwap(u8 *valueA, u8 *valueB)
 	*valueB = tmp;
 }
 
-GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool sjis)
+GCMemcard::GCMemcard(const std::string &filename, bool forceCreation, bool ascii)
 	: m_valid(false)
 	, m_fileName(filename)
 {
@@ -24,11 +25,13 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool sjis)
 	File::IOFile mcdFile(m_fileName, "rb");
 	if (!mcdFile.IsOpen())
 	{
-		if (!forceCreation && !AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename.c_str()))
+		if (!forceCreation)
 		{
-			return;
+			if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename.c_str()))
+				return;
+			ascii = AskYesNoT("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)");
 		}
-		Format(forceCreation ? sjis : !AskYesNoT("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)"));
+		Format(ascii);
 		return;
 	}
 	else
@@ -235,7 +238,7 @@ bool GCMemcard::Save()
 	return mcdFile.Close();
 }
 
-void GCMemcard::calc_checksumsBE(u16 *buf, u32 length, u16 *csum, u16 *inv_csum)
+void calc_checksumsBE(u16 *buf, u32 length, u16 *csum, u16 *inv_csum)
 {
 	*csum = *inv_csum = 0;
 
@@ -366,7 +369,7 @@ bool GCMemcard::GCI_FileName(u8 index, std::string &filename) const
 	if (!m_valid || index > DIRLEN || (BE32(CurrentDir->Dir[index].Gamecode) == 0xFFFFFFFF))
 		return false;
 
-	filename = std::string((char*)CurrentDir->Dir[index].Gamecode, 4) + '_' + (char*)CurrentDir->Dir[index].Filename + ".gci";
+	filename = CurrentDir->Dir[index].GCI_FileName();
 	return true;
 }
 
@@ -546,7 +549,7 @@ bool GCMemcard::GetDEntry(u8 index, DEntry &dest) const
 	return true;
 }
 
-u16 GCMemcard::BlockAlloc::GetNextBlock(u16 Block) const
+u16 BlockAlloc::GetNextBlock(u16 Block) const
 {
 	if ((Block < MC_FST_BLOCKS) || (Block > 4091))
 		return 0;
@@ -554,7 +557,7 @@ u16 GCMemcard::BlockAlloc::GetNextBlock(u16 Block) const
 	return Common::swap16(Map[Block-MC_FST_BLOCKS]);
 }
 
-u16 GCMemcard::BlockAlloc::NextFreeBlock(u16 MaxBlock, u16 StartingBlock) const
+u16 BlockAlloc::NextFreeBlock(u16 MaxBlock, u16 StartingBlock) const
 {
 	if (FreeBlocks)
 	{
@@ -570,7 +573,7 @@ u16 GCMemcard::BlockAlloc::NextFreeBlock(u16 MaxBlock, u16 StartingBlock) const
 	return 0xFFFF;
 }
 
-bool GCMemcard::BlockAlloc::ClearBlocks(u16 FirstBlock, u16 BlockCount)
+bool BlockAlloc::ClearBlocks(u16 FirstBlock, u16 BlockCount)
 {
 	std::vector<u16> blocks;
 	while (FirstBlock != 0xFFFF && FirstBlock != 0)
@@ -670,8 +673,8 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 
 	int fileBlocks = BE16(direntry.BlockCount);
 
-	FZEROGX_MakeSaveGameValid(direntry, saveBlocks);
-	PSO_MakeSaveGameValid(direntry, saveBlocks);
+	FZEROGX_MakeSaveGameValid(hdr, direntry, saveBlocks);
+	PSO_MakeSaveGameValid(hdr, direntry, saveBlocks);
 
 	BlockAlloc UpdatedBat = *CurrentBat;
 	u16 nextBlock;
@@ -1201,29 +1204,23 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 	return frames;
 }
 
-
-bool GCMemcard::Format(u8 * card_data, bool sjis, u16 SizeMb)
+bool GCMemcard::Format(u8 *card_data, bool ascii, u16 SizeMb)
 {
 	if (!card_data)
 		return false;
 	memset(card_data, 0xFF, BLOCK_SIZE*3);
 	memset(card_data + BLOCK_SIZE*3, 0, BLOCK_SIZE*2);
 
-	GCMC_Header gcp;
-	gcp.hdr = (Header*)card_data;
-	gcp.dir = (Directory *)(card_data + BLOCK_SIZE);
-	gcp.dir_backup = (Directory *)(card_data + BLOCK_SIZE*2);
-	gcp.bat = (BlockAlloc *)(card_data + BLOCK_SIZE*3);
-	gcp.bat_backup = (BlockAlloc *)(card_data + BLOCK_SIZE*4);
+	*((Header *)card_data) = Header(SLOT_A, SizeMb, ascii);
 
-	*(u16*)gcp.hdr->SizeMb = BE16(SizeMb);
-	gcp.hdr->Encoding = BE16(sjis ? 1 : 0);
-
-	FormatInternal(gcp);
+	*((Directory *)(card_data + BLOCK_SIZE)) = Directory();
+	*((Directory *)(card_data + BLOCK_SIZE * 2)) = Directory();
+	*((BlockAlloc *)(card_data + BLOCK_SIZE * 3)) = BlockAlloc(SizeMb);
+	*((BlockAlloc *)(card_data + BLOCK_SIZE * 4)) = BlockAlloc(SizeMb);
 	return true;
 }
 
-bool GCMemcard::Format(bool sjis, u16 SizeMb)
+bool GCMemcard::Format(bool ascii, u16 SizeMb)
 {
 	memset(&hdr, 0xFF, BLOCK_SIZE);
 	memset(&dir, 0xFF, BLOCK_SIZE);
@@ -1231,81 +1228,20 @@ bool GCMemcard::Format(bool sjis, u16 SizeMb)
 	memset(&bat, 0, BLOCK_SIZE);
 	memset(&bat_backup, 0, BLOCK_SIZE);
 
-	GCMC_Header gcp;
-	gcp.hdr = &hdr;
-	gcp.dir = &dir;
-	gcp.dir_backup = &dir_backup;
-	gcp.bat = &bat;
-	gcp.bat_backup = &bat_backup;
-
-	*(u16*)hdr.SizeMb = BE16(SizeMb);
-	hdr.Encoding = BE16(sjis ? 1 : 0);
-	FormatInternal(gcp);
+	hdr = Header(SLOT_A, SizeMb, ascii);
+	dir = dir_backup = Directory();
+	bat = bat_backup = BlockAlloc(SizeMb);
 
 	m_sizeMb = SizeMb;
 	maxBlock = (u32)m_sizeMb * MBIT_TO_BLOCKS;
-	mc_data_blocks.reserve(maxBlock - MC_FST_BLOCKS);
-	for (u32 i = 0; i < (maxBlock - MC_FST_BLOCKS); ++i)
-	{
-		GCMBlock b;
-		mc_data_blocks.push_back(b);
-	}
+	mc_data_blocks.clear();
+	mc_data_blocks.resize(maxBlock - MC_FST_BLOCKS);
 
 	initDirBatPointers();
 	m_valid = true;
 
 	return Save();
 }
-
-void GCMemcard::FormatInternal(GCMC_Header &GCP)
-{
-	Header *p_hdr = GCP.hdr;
-	u64 rand = CEXIIPL::GetGCTime();
-	p_hdr->formatTime = Common::swap64(rand);
-
-	for (int i = 0; i < 12; i++)
-	{
-		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-		p_hdr->serial[i] = (u8)(g_SRAM.flash_id[0][i] + (u32)rand);
-		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-		rand &= (u64)0x0000000000007fffULL;
-	}
-	p_hdr->SramBias = g_SRAM.counter_bias;
-	p_hdr->SramLang = g_SRAM.lang;
-	// TODO: determine the purpose of Unk2 1 works for slot A, 0 works for both slot A and slot B
-	*(u32*)&p_hdr->Unk2 = 0; // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-	*(u16*)&p_hdr->deviceID = 0;
-	calc_checksumsBE((u16*)p_hdr, 0xFE, &p_hdr->Checksum, &p_hdr->Checksum_Inv);
-
-	Directory *p_dir = GCP.dir,
-		*p_dir_backup = GCP.dir_backup;
-	*(u16*)&p_dir->UpdateCounter = 0;
-	p_dir_backup->UpdateCounter = BE16(1);
-	calc_checksumsBE((u16*)p_dir, 0xFFE, &p_dir->Checksum, &p_dir->Checksum_Inv);
-	calc_checksumsBE((u16*)p_dir_backup, 0xFFE, &p_dir_backup->Checksum, &p_dir_backup->Checksum_Inv);
-
-	BlockAlloc *p_bat = GCP.bat,
-		*p_bat_backup = GCP.bat_backup;
-	p_bat_backup->UpdateCounter = BE16(1);
-	p_bat->FreeBlocks = *(u16*)&p_bat_backup->FreeBlocks = BE16(( BE16(p_hdr->SizeMb) * MBIT_TO_BLOCKS) - MC_FST_BLOCKS);
-	p_bat->LastAllocated = p_bat_backup->LastAllocated = BE16(4);
-	calc_checksumsBE((u16*)p_bat+2, 0xFFE, &p_bat->Checksum, &p_bat->Checksum_Inv);
-	calc_checksumsBE((u16*)p_bat_backup+2, 0xFFE, &p_bat_backup->Checksum, &p_bat_backup->Checksum_Inv);
-}
-
-void GCMemcard::CARD_GetSerialNo(u32 *serial1,u32 *serial2)
-{
-	u32 serial[8];
-
-	for (int i = 0; i < 8; i++)
-	{
-		memcpy(&serial[i], (u8 *) &hdr+(i*4), 4);
-	}
-
-	*serial1 = serial[0]^serial[2]^serial[4]^serial[6];
-	*serial2 = serial[1]^serial[3]^serial[5]^serial[7];
-}
-
 
 /*************************************************************/
 /* FZEROGX_MakeSaveGameValid                                 */
@@ -1318,7 +1254,7 @@ void GCMemcard::CARD_GetSerialNo(u32 *serial1,u32 *serial2)
 /* Returns: Error code                                       */
 /*************************************************************/
 
-s32 GCMemcard::FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer)
+s32 GCMemcard::FZEROGX_MakeSaveGameValid(Header &cardheader, DEntry &direntry, std::vector<GCMBlock> &FileBuffer)
 {
 	u32 i,j;
 	u32 serial1,serial2;
@@ -1329,7 +1265,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock>
 	if (strcmp((char*)direntry.Filename,"f_zero.dat")!=0) return 0;
 
 	// get encrypted destination memory card serial numbers
-	CARD_GetSerialNo(&serial1,&serial2);
+	cardheader.CARD_GetSerialNo(&serial1, &serial2);
 
 	// set new serial numbers
 	*(u16*)&FileBuffer[1].block[0x0066] = BE16(BE32(serial1) >> 16);
@@ -1366,7 +1302,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock>
 /* Returns: Error code                                     */
 /***********************************************************/
 
-s32 GCMemcard::PSO_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer)
+s32 GCMemcard::PSO_MakeSaveGameValid(Header &cardheader, DEntry &direntry, std::vector<GCMBlock> &FileBuffer)
 {
 	u32 i,j;
 	u32 chksum;
@@ -1391,7 +1327,7 @@ s32 GCMemcard::PSO_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &Fi
 	}
 
 	// get encrypted destination memory card serial numbers
-	CARD_GetSerialNo(&serial1,&serial2);
+	cardheader.CARD_GetSerialNo(&serial1, &serial2);
 
 	// set new serial numbers
 	*(u32*)&FileBuffer[1].block[0x0158] = serial1;

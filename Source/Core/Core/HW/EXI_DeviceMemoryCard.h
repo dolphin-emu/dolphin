@@ -3,11 +3,13 @@
 // Refer to the license.txt file included.
 
 #pragma once
+#include "Common/StdMakeUnique.h"
+
 class MemoryCardBase;
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-	CEXIMemoryCard(const int index);
+	CEXIMemoryCard(const int index, bool gciFolder);
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs) override;
 	bool IsInterruptSet() override;
@@ -15,8 +17,12 @@ public:
 	void DoState(PointerWrap &p) override;
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) override;
+	void DMARead(u32 _uAddr, u32 _uSize) override;
+	void DMAWrite(u32 _uAddr, u32 _uSize) override;
 
 private:
+	void setupGciFolder(u16 sizeMb);
+	void setupRawMemcard(u16 sizeMb);
 	// This is scheduled whenever a page write is issued. The this pointer is passed
 	// through the userdata parameter, so that it can then call Flush on the right card.
 	static void FlushCallback(u64 userdata, int cyclesLate);
@@ -68,7 +74,7 @@ private:
 	unsigned int card_id;
 	unsigned int address;
 	u32 memory_card_size;
-	MemoryCardBase * memorycard;
+	std::unique_ptr<MemoryCardBase> memorycard;
 
 protected:
 	virtual void TransferByte(u8 &byte) override;

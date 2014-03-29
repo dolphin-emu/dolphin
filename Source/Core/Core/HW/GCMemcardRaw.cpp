@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 #include "Core/Core.h"
-#include "Core/HW/EXI_DeviceMemoryCardRaw.h"
 #include "Core/HW/GCMemcard.h"
+#include "Core/HW/GCMemcardRaw.h"
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-void innerFlush(FlushData* data)
+void innerFlush(FlushData *data)
 {
 	File::IOFile pFile(data->filename, "r+b");
 	if (!pFile)
@@ -22,24 +22,27 @@ void innerFlush(FlushData* data)
 	if (!pFile) // Note - pFile changed inside above if
 	{
 		PanicAlertT("Could not write memory card file %s.\n\n"
-			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
-			"Are you receiving this after moving the emulator directory?\nIf so, then you may "
-			"need to re-specify your memory card location in the options.", data->filename.c_str());
+					"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
+					"Are you receiving this after moving the emulator directory?\nIf so, then you may "
+					"need to re-specify your memory card location in the options.",
+					data->filename.c_str());
 		return;
 	}
 
 	pFile.WriteBytes(data->memcardContent, data->memcardSize);
 
 	if (!data->bExiting)
-		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s",
-		data->memcardIndex ? 'B' : 'A', data->filename.c_str()).c_str(), 4000);
+		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s", data->memcardIndex ? 'B' : 'A',
+											  data->filename.c_str()).c_str(),
+							 4000);
 	return;
 }
 
-MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb) : MemoryCardBase(_card_index, sizeMb), m_strFilename(filename), m_bDirty(false)
+MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb)
+	: MemoryCardBase(_card_index, sizeMb)
+	, m_bDirty(false)
+	, m_strFilename(filename)
 {
-
-	std::string ;
 	File::IOFile pFile(m_strFilename, "rb");
 	if (pFile)
 	{
@@ -51,7 +54,6 @@ MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb) : Memo
 
 		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
 		pFile.ReadBytes(memory_card_content, memory_card_size);
-
 	}
 	else
 	{
@@ -105,7 +107,7 @@ void MemoryCard::Flush(bool exiting)
 	m_bDirty = false;
 }
 
-s32 MemoryCard::Read(u32 srcaddress, s32 length, u8* destaddress)
+s32 MemoryCard::Read(u32 srcaddress, s32 length, u8 *destaddress)
 {
 	if (!memory_card_content)
 		return -1;
@@ -119,7 +121,7 @@ s32 MemoryCard::Read(u32 srcaddress, s32 length, u8* destaddress)
 	return length;
 }
 
-s32 MemoryCard::Write(u32 destaddress, s32 length, u8* srcaddress)
+s32 MemoryCard::Write(u32 destaddress, s32 length, u8 *srcaddress)
 {
 	if (!memory_card_content)
 		return -1;

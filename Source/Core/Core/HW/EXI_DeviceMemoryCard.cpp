@@ -5,7 +5,6 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -13,8 +12,10 @@
 #include "Core/HW/EXI.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceMemoryCard.h"
-#include "Core/HW/EXI_DeviceMemoryCardRaw.h"
 #include "Core/HW/GCMemcard.h"
+#include "Core/HW/GCMemcardDirectory.h"
+#include "Core/HW/GCMemcardRaw.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/Sram.h"
 
 #define MC_STATUS_BUSY              0x80
@@ -24,8 +25,6 @@
 #define MC_STATUS_PROGRAMEERROR     0x08
 #define MC_STATUS_READY             0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
-#define MC_HDR_SIZE 0xA000
-
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
@@ -44,14 +43,10 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 		pThis->CmdDone();
 }
 
-CEXIMemoryCard::CEXIMemoryCard(const int index)
+CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	: card_index(index)
 	, m_bDirty(false)
 {
-	std::string filename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
-	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave())
-		filename = File::GetUserPath(D_GCUSER_IDX) + "Movie.raw";
-
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
 	et_this_card = CoreTiming::RegisterEvent((index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
 	et_cmd_done = CoreTiming::RegisterEvent((index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
@@ -62,7 +57,6 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
 	m_uPosition = 0;
 	memset(programming_buffer, 0, sizeof(programming_buffer));
-
 	//Nintendo Memory Card EXI IDs
 	//0x00000004 Memory Card 59     4Mbit
 	//0x00000008 Memory Card 123    8Mb
@@ -73,6 +67,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 
 	//0x00000510 16Mb "bigben" card
 	//card_id = 0xc243;
+	card_id = 0xc221; // It's a Nintendo brand memcard
 
 	// The following games have issues with memory cards bigger than 16Mb
 	// Darkened Skye GDQE6S GDQP6S
@@ -83,25 +78,96 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	bool useMC251;
 	IniFile gameIni = Core::g_CoreStartupParameter.LoadGameIni();
 	gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
-	u16 sizeMb = MemCard2043Mb;
-	if (useMC251)
+	u16 sizeMb = useMC251 ? MemCard251Mb : MemCard2043Mb;
+
+	if (gciFolder)
 	{
-		sizeMb = MemCard251Mb;
+		setupGciFolder(sizeMb);
+	}
+	else
+	{
+		setupRawMemcard(sizeMb);
+	}
+
+	memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
+	u8 header[20] = {0};
+	memorycard->Read(0, ArraySize(header), header);
+	SetCardFlashID(header, card_index);
+}
+
+void CEXIMemoryCard::setupGciFolder(u16 sizeMb)
+{
+
+	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
+	auto strUniqueID = Core::g_CoreStartupParameter.m_strUniqueID;
+	u32 CurrentGameId = 0;
+	if (strUniqueID.length() >= 4)
+	{
+		CountryCode = DiscIO::CountrySwitch(strUniqueID.at(3));
+		memcpy((u8 *)&CurrentGameId, strUniqueID.c_str(), 4);
+	}
+	bool ascii = true;
+	std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
+	switch (CountryCode)
+	{
+	case DiscIO::IVolume::COUNTRY_JAPAN:
+		ascii = false;
+		strDirectoryName += JAP_DIR DIR_SEP;
+		break;
+	case DiscIO::IVolume::COUNTRY_USA:
+		strDirectoryName += USA_DIR DIR_SEP;
+		break;
+	default:
+		CountryCode = DiscIO::IVolume::COUNTRY_EUROPE;
+		strDirectoryName += EUR_DIR DIR_SEP;
+	}
+	strDirectoryName += StringFromFormat("Card %c", 'A' + card_index);
+
+	if (!File::Exists(strDirectoryName)) // first use of memcard folder, migrate automatically
+	{
+		MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
+	}
+	else if (!File::IsDirectory(strDirectoryName))
+	{
+		if (File::Rename(strDirectoryName, strDirectoryName + ".original"))
+		{
+			PanicAlertT("%s was not a directory, moved to *.original", strDirectoryName.c_str());
+			MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
+		}
+		else // we tried but the user wants to crash
+		{
+			// TODO more user friendly abort
+			PanicAlertT("%s is not a directory, failed to move to *.original.\n Verify your write permissions or move "
+						"the file outside of dolphin",
+						strDirectoryName.c_str());
+			exit(0);
+		}
+	}
+
+	memorycard = std::make_unique<GCMemcardDirectory>(strDirectoryName + DIR_SEP, card_index, sizeMb, ascii,
+													  CountryCode, CurrentGameId);
+}
+
+void CEXIMemoryCard::setupRawMemcard(u16 sizeMb)
+{
+	std::string filename =
+		(card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard() &&
+		Movie::IsStartingFromClearSave())
+		filename = File::GetUserPath(D_GCUSER_IDX) + "Movie.raw";
+
+	if (sizeMb == MemCard251Mb)
+	{
 		filename.insert(filename.find_last_of("."), ".251");
 	}
-	card_id = 0xc221; // It's a Nintendo brand memcard
-	memorycard = new MemoryCard(filename, card_index, sizeMb);
-	memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
-	u8 header[20] = { 0 };
-	memorycard->Read(0, 20, header);
-	SetCardFlashID(header, card_index);
+	memorycard = std::make_unique<MemoryCard>(filename, card_index, sizeMb);
 }
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
 	CoreTiming::RemoveEvent(et_this_card);
 	memorycard->Flush(true);
-	delete memorycard;
+	memorycard.release();
 }
 
 bool CEXIMemoryCard::IsPresent()
@@ -140,7 +206,7 @@ void CEXIMemoryCard::SetCS(int cs)
 		case cmdSectorErase:
 			if (m_uPosition > 2)
 			{
-				memorycard->ClearBlock(address  & (memory_card_size - 1));
+				memorycard->ClearBlock(address & (memory_card_size - 1));
 				status |= MC_STATUS_BUSY;
 				status &= ~MC_STATUS_READY;
 
@@ -390,4 +456,18 @@ IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
 	if (customIndex != card_index)
 		return nullptr;
 	return this;
+}
+
+// DMA reads are preceded by all of the necessary setup via IMMRead
+// read all at once instead of single byte at a time as done by IEXIDevice::DMARead
+void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
+{
+	memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
+}
+
+// DMA write are preceded by all of the necessary setup via IMMWrite
+// write all at once instead of single byte at a time as done by IEXIDevice::DMAWrite
+void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
+{
+	memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
 }
