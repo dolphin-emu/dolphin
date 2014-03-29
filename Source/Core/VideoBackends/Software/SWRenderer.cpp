@@ -51,7 +51,7 @@ void SWRenderer::Shutdown()
 void CreateShaders()
 {
 	static const char *fragShaderText =
-		"#if GL_ES\n"
+		"#ifdef GL_ES\n"
 		"precision highp float;\n"
 		"#endif\n"
 		"varying vec2 TexCoordOut;\n"
@@ -60,7 +60,7 @@ void CreateShaders()
 		"	gl_FragColor = texture2D(Texture, TexCoordOut);\n"
 		"}\n";
 	static const char *vertShaderText =
-		"#if GL_ES\n"
+		"#ifdef GL_ES\n"
 		"precision highp float;\n"
 		"#endif\n"
 		"attribute vec4 pos;\n"
