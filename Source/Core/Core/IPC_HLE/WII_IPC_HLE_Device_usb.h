@@ -58,6 +58,8 @@ public:
 
 	virtual u32 Update() override;
 
+	static void EnqueueReply(u32 CommandAddress);
+
 	// Send ACL data back to bt stack
 	void SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 

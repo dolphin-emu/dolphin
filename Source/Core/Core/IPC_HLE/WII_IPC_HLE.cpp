@@ -82,6 +82,9 @@ static int enque_reply;
 
 static u64 last_reply_time;
 
+// NOTE: Only call this if you have correctly handled
+//       CommandAddress+0 and CommandAddress+8.
+//       Please search for examples of this being called elsewhere.
 void EnqueReplyCallback(u64 userdata, int)
 {
 	std::lock_guard<std::mutex> lk(s_reply_queue);
@@ -347,7 +350,7 @@ void ExecuteCommand(u32 _Address)
 {
 	bool CmdSuccess = false;
 
-	ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
+	IPCCommandType Command = static_cast<IPCCommandType>(Memory::Read_U32(_Address));
 	volatile s32 DeviceID = Memory::Read_U32(_Address + 8);
 
 	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : nullptr;
@@ -356,7 +359,7 @@ void ExecuteCommand(u32 _Address)
 
 	switch (Command)
 	{
-	case COMMAND_OPEN_DEVICE:
+	case IPC_CMD_OPEN:
 	{
 		u32 Mode = Memory::Read_U32(_Address + 0x10);
 		DeviceID = getFreeDeviceId();
@@ -431,7 +434,7 @@ void ExecuteCommand(u32 _Address)
 		}
 		break;
 	}
-	case COMMAND_CLOSE_DEVICE:
+	case IPC_CMD_CLOSE:
 	{
 		if (pDevice)
 		{
@@ -461,7 +464,7 @@ void ExecuteCommand(u32 _Address)
 		}
 		break;
 	}
-	case COMMAND_READ:
+	case IPC_CMD_READ:
 	{
 		if (pDevice)
 		{
@@ -474,7 +477,7 @@ void ExecuteCommand(u32 _Address)
 		}
 		break;
 	}
-	case COMMAND_WRITE:
+	case IPC_CMD_WRITE:
 	{
 		if (pDevice)
 		{
@@ -487,7 +490,7 @@ void ExecuteCommand(u32 _Address)
 		}
 		break;
 	}
-	case COMMAND_SEEK:
+	case IPC_CMD_SEEK:
 	{
 		if (pDevice)
 		{
@@ -500,7 +503,7 @@ void ExecuteCommand(u32 _Address)
 		}
 		break;
 	}
-	case COMMAND_IOCTL:
+	case IPC_CMD_IOCTL:
 	{
 		if (pDevice)
 		{
@@ -508,7 +511,7 @@ void ExecuteCommand(u32 _Address)
 		}
 		break;
 	}
-	case COMMAND_IOCTLV:
+	case IPC_CMD_IOCTLV:
 	{
 		if (pDevice)
 		{
@@ -526,10 +529,9 @@ void ExecuteCommand(u32 _Address)
 
 	if (CmdSuccess)
 	{
-		// It seems that the original hardware overwrites the command after it has been
-		// executed. We write 8 which is not any valid command, and what IOS does
-		Memory::Write_U32(8, _Address);
-		// IOS seems to write back the command that was responded to
+		// The original hardware overwrites the command type with the async reply type.
+		Memory::Write_U32(IPC_REP_ASYNC, _Address);
+		// IOS also seems to write back the command that was responded to in the FD field.
 		Memory::Write_U32(Command, _Address + 8);
 
 		// Ensure replies happen in order, fairly ugly
@@ -557,6 +559,9 @@ void EnqRequest(u32 _Address)
 }
 
 // Called when IOS module has some reply
+// NOTE: Only call this if you have correctly handled
+//       CommandAddress+0 and CommandAddress+8.
+//       Please search for examples of this being called elsewhere.
 void EnqReply(u32 _Address, int cycles_in_future)
 {
 	CoreTiming::ScheduleEvent(cycles_in_future, enque_reply, _Address);

@@ -991,11 +991,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			// This is necessary because Reset(true) above deleted this object.  Ew.
 
-			// It seems that the original hardware overwrites the command after it has been
-			// executed. We write 8 which is not any valid command, and what IOS does
-			Memory::Write_U32(8, _CommandAddress);
-			// IOS seems to write back the command that was responded to
-			Memory::Write_U32(7, _CommandAddress + 8);
+			// The original hardware overwrites the command type with the async reply type.
+			Memory::Write_U32(IPC_REP_ASYNC, _CommandAddress);
+			// IOS also seems to write back the command that was responded to in the FD field.
+			Memory::Write_U32(IPC_CMD_IOCTLV, _CommandAddress + 8);
 
 			// Generate a reply to the IPC command
 			WII_IPC_HLE_Interface::EnqReply(_CommandAddress, 0);

@@ -21,6 +21,7 @@ public:
 	bool IOCtl(u32 _CommandAddress) override;
 	bool IOCtlV(u32 _CommandAddress) override;
 
+	static void EnqueueReply(u32 CommandAddress, u32 ReturnValue);
 	void EventNotify();
 
 private:
