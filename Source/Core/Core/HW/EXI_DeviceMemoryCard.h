@@ -3,18 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
-
-#include "Common/Thread.h"
-
-// Data structure to be passed to the flushing thread.
-struct FlushData
-{
-	bool bExiting;
-	std::string filename;
-	u8 *memcardContent;
-	int memcardSize, memcardIndex;
-};
-
+class MemoryCardBase;
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
@@ -63,7 +52,6 @@ private:
 		cmdChipErase        = 0xF4,
 	};
 
-	std::string m_strFilename;
 	int card_index;
 	int et_this_card, et_cmd_done;
 	//! memory card state
@@ -77,13 +65,10 @@ private:
 	u8 programming_buffer[128];
 	bool m_bDirty;
 	//! memory card parameters
-	unsigned int nintendo_card_id, card_id;
+	unsigned int card_id;
 	unsigned int address;
-	int memory_card_size; //! in bytes, must be power of 2.
-	u8 *memory_card_content;
-
-	FlushData flushData;
-	std::thread flushThread;
+	u32 memory_card_size;
+	MemoryCardBase * memorycard;
 
 protected:
 	virtual void TransferByte(u8 &byte) override;
