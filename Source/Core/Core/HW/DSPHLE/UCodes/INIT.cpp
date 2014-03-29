@@ -6,8 +6,8 @@
 #include "Core/HW/DSPHLE/UCodes/INIT.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-INITUCode::INITUCode(DSPHLE *dsp_hle, u32 crc)
-	: UCodeInterface(dsp_hle, crc)
+INITUCode::INITUCode(DSPHLE *dsphle, u32 crc)
+	: UCodeInterface(dsphle, crc)
 {
 	DEBUG_LOG(DSPHLE, "INITUCode - initialized");
 }
@@ -37,7 +37,7 @@ u32 INITUCode::GetUpdateMs()
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void INITUCode::HandleMail(u32 _uMail)
+void INITUCode::HandleMail(u32 mail)
 {
 }
 
