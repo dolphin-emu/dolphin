@@ -1582,7 +1582,7 @@ namespace GLExtensions
 		const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
 		std::string tmp(extensions);
 		std::istringstream buffer(tmp);
-		
+
 		while (buffer >> tmp)
 			m_extension_list[tmp] = true;
 	}

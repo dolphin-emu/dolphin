@@ -28,7 +28,7 @@ namespace DriverDetails
 	const u32 m_os = OS_ALL | OS_ANDROID;
 #elif __APPLE__
 	const u32 m_os = OS_ALL | OS_OSX;
-#elif __linux__ 
+#elif __linux__
 	const u32 m_os = OS_ALL | OS_LINUX;
 #endif
 

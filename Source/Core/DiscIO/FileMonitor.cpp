@@ -143,7 +143,7 @@ void FindFilename(u64 offset)
 	}
 
 	const std::string filename = pFileSystem->GetFileName(offset);
-	
+
 	if (filename.empty())
 		return;
 

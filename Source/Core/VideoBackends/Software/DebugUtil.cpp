@@ -157,7 +157,7 @@ void DumpDepth(const std::string& filename)
 		{
 			u32 depth = EfbInterface::GetDepth(x, y);
 			// depth to rgba
-			*(writePtr++) = depth & 0xff; 
+			*(writePtr++) = depth & 0xff;
 			*(writePtr++) = (depth >> 8) & 0xff;
 			*(writePtr++) = (depth >> 16) & 0xff;
 			*(writePtr++) = 255;

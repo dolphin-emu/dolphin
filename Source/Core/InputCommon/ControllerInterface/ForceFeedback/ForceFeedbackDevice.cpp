@@ -171,13 +171,13 @@ template<>
 void ForceFeedbackDevice::ForceConstant::SetState(const ControlState state)
 {
 	const LONG new_val = LONG(10000 * state);
-	
+
 	LONG &val = params.lMagnitude;
 	if (val != new_val)
 	{
 		val = new_val;
 		m_state.params = &params; // tells UpdateOutput the state has changed
-		
+
 		// tells UpdateOutput to either start or stop the force
 		m_state.size = new_val ? sizeof(params) : 0;
 	}

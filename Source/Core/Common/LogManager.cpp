@@ -128,7 +128,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 
 	std::string msg = StringFromFormat("%s %s:%u %c[%s]: %s\n",
 	                                   Common::Timer::GetTimeFormatted().c_str(),
-	                                   file, line, 
+	                                   file, line,
 	                                   LogTypes::LOG_LEVEL_TO_CHAR[(int)level],
 	                                   log->GetShortName(), temp);
 #ifdef ANDROID

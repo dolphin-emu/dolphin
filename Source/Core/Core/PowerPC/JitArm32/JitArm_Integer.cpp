@@ -955,7 +955,7 @@ void JitArm::twx(UGeckoInstruction inst)
 
 	gpr.Flush();
 	fpr.Flush();
-	
+
 	ARMReg RA = gpr.GetReg();
 	ARMReg RB = gpr.GetReg();
 	MOV(RA, inst.TO);
@@ -1001,7 +1001,7 @@ void JitArm::twx(UGeckoInstruction inst)
 	SetJumpTarget(take3);
 	SetJumpTarget(take4);
 	SetJumpTarget(take5);
-	
+
 	LDR(RA, R9, PPCSTATE_OFF(Exceptions));
 	MOVI2R(RB, EXCEPTION_PROGRAM); // XXX: Can be optimized
 	ORR(RA, RA, RB);

@@ -4,7 +4,7 @@
 
 #pragma once
 
-/* 
+/*
  * Define all constants from ForceFeedbackConstants.h with DirectInput prefixes.
  *
  * No effort was made to confirm if all definitions are actually supported by

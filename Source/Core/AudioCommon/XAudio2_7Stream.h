@@ -59,7 +59,7 @@ private:
 public:
 	XAudio2_7(CMixer *mixer);
 	virtual ~XAudio2_7();
- 
+
 	virtual bool Start();
 	virtual void Stop();
 

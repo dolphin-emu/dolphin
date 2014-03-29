@@ -135,7 +135,7 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 	float intendedY = xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff;
 	float intendedWd = 2.0f * xfregs.viewport.wd;
 	float intendedHt = -2.0f * xfregs.viewport.ht;
-	
+
 	if (intendedWd < 0.f)
 	{
 		intendedX += intendedWd;
@@ -152,11 +152,11 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 	float Y = (intendedY >= 0.f) ? intendedY : 0.f;
 	float Wd = (X + intendedWd <= EFB_WIDTH) ? intendedWd : (EFB_WIDTH - X);
 	float Ht = (Y + intendedHt <= EFB_HEIGHT) ? intendedHt : (EFB_HEIGHT - Y);
-	
+
 	Matrix44::LoadIdentity(result);
 	if (Wd == 0 || Ht == 0)
 		return;
-	
+
 	result.data[4*0+0] = intendedWd / Wd;
 	result.data[4*0+3] = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
 	result.data[4*1+1] = intendedHt / Ht;
@@ -363,7 +363,7 @@ void VertexShaderManager::SetConstants()
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();
-		
+
 		// Update projection if the viewport isn't 1:1 useable
 		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{

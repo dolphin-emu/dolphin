@@ -208,7 +208,7 @@ _SSL_NEW_ERROR:
 			ssl_free(&ssl->ctx);
 
 			entropy_free(&ssl->entropy);
-			
+
 			x509_crt_free(&ssl->cacert);
 			x509_crt_free(&ssl->clicert);
 

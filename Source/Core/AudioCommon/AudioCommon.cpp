@@ -24,7 +24,7 @@
 // This shouldn't be a global, at least not here.
 SoundStream *soundStream = nullptr;
 
-namespace AudioCommon 
+namespace AudioCommon
 {
 	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd)
 	{

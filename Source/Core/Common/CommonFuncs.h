@@ -31,8 +31,8 @@ struct ArraySizeImpl : public std::extent<T>
 #define b32(x)  (b16(x) | (b16(x) >>16) )
 #define ROUND_UP_POW2(x)  (b32(x - 1) + 1)
 
-#ifndef __GNUC_PREREQ 
-	#define __GNUC_PREREQ(a, b) 0 
+#ifndef __GNUC_PREREQ
+	#define __GNUC_PREREQ(a, b) 0
 #endif
 
 #if (defined __GNUC__ && !__GNUC_PREREQ(4,9)) && \
@@ -188,7 +188,7 @@ inline u32 swap24(const u8* _data) {return (_data[0] << 16) | (_data[1] << 8) | 
 inline u16 swap16(u16 _data) {return _byteswap_ushort(_data);}
 inline u32 swap32(u32 _data) {return _byteswap_ulong (_data);}
 inline u64 swap64(u64 _data) {return _byteswap_uint64(_data);}
-#elif _M_ARM_32 
+#elif _M_ARM_32
 inline u16 swap16 (u16 _data) { u32 data = _data; __asm__ ("rev16 %0, %1\n" : "=l" (data) : "l" (data)); return (u16)data;}
 inline u32 swap32 (u32 _data) {__asm__ ("rev %0, %1\n" : "=l" (_data) : "l" (_data)); return _data;}
 inline u64 swap64(u64 _data) {return ((u64)swap32(_data) << 32) | swap32(_data >> 32);}

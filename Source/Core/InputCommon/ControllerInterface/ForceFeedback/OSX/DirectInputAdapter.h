@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-/* 
+/*
  * The OS X Force Feedback API is very similar to the DirectInput API,
  * but it is no longer object-oriented and all prefixes have been changed.
  *
@@ -155,7 +155,7 @@ class FFDeviceAdapter : public IUnknownImpl
 {
 public:
 	FFDeviceObjectReference m_device;
-	
+
 	FFDeviceAdapter(FFDeviceObjectReference device) : m_device(device) {}
 	~FFDeviceAdapter() { FFReleaseDevice(m_device); }
 
@@ -206,7 +206,7 @@ public:
 		// There are only two properties supported
 		if (property != DIPROP_FFGAIN && property != DIPROP_AUTOCENTER)
 			return DIERR_UNSUPPORTED;
-			
+
 		// And they are both device properties
 		if (pdiph->dwHow != DIPH_DEVICE)
 			return DIERR_INVALIDPARAM;

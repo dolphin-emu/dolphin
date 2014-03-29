@@ -119,7 +119,7 @@ void Host_SysMessage(const char *fmt, ...)
 	va_list args;
 
 	va_start(args, fmt);
-	__android_log_vprint(ANDROID_LOG_INFO, DOLPHIN_TAG, fmt, args); 
+	__android_log_vprint(ANDROID_LOG_INFO, DOLPHIN_TAG, fmt, args);
 	va_end(args);
 }
 
@@ -215,7 +215,7 @@ std::string GetJString(JNIEnv *env, jstring jstr)
 	std::string result = "";
 	if (!jstr)
 		return result;
-	
+
 	const char *s = env->GetStringUTFChars(jstr, nullptr);
 	result = s;
 	env->ReleaseStringUTFChars(jstr, s);

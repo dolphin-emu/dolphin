@@ -39,25 +39,25 @@ StreamBuffer::~StreamBuffer()
 }
 
 /* Shared synchronisation code for ring buffers
- * 
+ *
  * The next three functions are to create/delete/use the OpenGL synchronisation.
  * ARB_sync (OpenGL 3.2) is used and required.
- * 
+ *
  * To reduce overhead, the complete buffer is splitted up into SYNC_POINTS chunks.
  * For each of this chunks, there is a fence which checks if this chunk is still in use.
- * 
+ *
  * As our API allows to alloc more memory then it has to use, we have to catch how much is already written.
- * 
+ *
  * m_iterator      - writing position
  * m_free_iterator - last position checked if free
  * m_used_iterator - last position known to be written
- * 
+ *
  * So on alloc, we have to wait for all slots between m_free_iterator and m_iterator (and set m_free_iterator to m_iterator afterwards).
- * 
+ *
  * We also assume that this buffer is accessed by the gpu between the Unmap and Map function,
  * so we may create the fences on the start of mapping.
  * Some here, new fences for the chunks between m_used_iterator and m_iterator (also update m_used_iterator).
- * 
+ *
  * As ring buffers have an ugly behavoir on rollover, have fun to read this code ;)
  */
 
@@ -133,7 +133,7 @@ void StreamBuffer::Align(u32 stride)
  * Described here: https://www.opengl.org/wiki/Buffer_Object_Streaming#Unsynchronized_buffer_mapping
  * Just do unsync appends until the buffer is full.
  * When it's full, orphan (alloc a new buffer and free the old one)
- * 
+ *
  * As reallocation is an overhead, this method isn't as fast as it is known to be.
  */
 class MapAndOrphan : public StreamBuffer
@@ -203,14 +203,14 @@ public:
 /* Streaming fifo without mapping ovearhead.
  * This one usually requires ARB_buffer_storage (OpenGL 4.4).
  * And is usually not available on OpenGL3 gpus.
- * 
+ *
  * ARB_buffer_storage allows us to render from a mapped buffer.
  * So we map it persistently in the initialization.
- * 
+ *
  * Unsync mapping sounds like an easy task, but it isn't for threaded drivers.
  * So every mapping on current close-source driver _will_ end in
  * at least a round trip time between two threads.
- * 
+ *
  * As persistently mapped buffer can't use orphaning, we also have to sync.
  */
 class BufferStorage : public StreamBuffer
@@ -224,9 +224,9 @@ public:
 		// COHERENT_BIT is set so we don't have to use a MemoryBarrier on write
 		// CLIENT_STORAGE_BIT is set since we access the buffer more frequently on the client side then server side
 		glBufferStorage(m_buffertype, m_size, nullptr,
-			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_CLIENT_STORAGE_BIT); 
+			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_CLIENT_STORAGE_BIT);
 		m_pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size,
-			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT); 
+			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 	}
 
 	~BufferStorage() {
@@ -251,7 +251,7 @@ public:
 /* --- AMD only ---
  * Another streaming fifo without mapping overhead.
  * As we can't orphan without mapping, we have to sync.
- * 
+ *
  * This one uses AMD_pinned_memory which is available on all AMD gpus.
  * OpenGL 4.4 drivers should use BufferStorage.
  */

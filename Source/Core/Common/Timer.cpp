@@ -171,7 +171,7 @@ std::string Timer::GetTimeFormatted()
 {
 	time_t sysTime;
 	time(&sysTime);
-	
+
 	struct tm * gmTime = localtime(&sysTime);
 
 	char tmp[13];

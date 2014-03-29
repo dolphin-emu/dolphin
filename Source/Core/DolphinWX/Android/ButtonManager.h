@@ -52,7 +52,7 @@ namespace ButtonManager
 		Button() : m_state(BUTTON_RELEASED) {}
 		void SetState(ButtonState state) { m_state = state; }
 		bool Pressed() { return m_state == BUTTON_PRESSED; }
-			
+
 		~Button() {}
 	};
 	class Axis

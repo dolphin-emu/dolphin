@@ -40,7 +40,7 @@ protected:
 
 	const u32 m_buffertype;
 	const size_t m_size;
-	
+
 	size_t m_iterator;
 	size_t m_used_iterator;
 	size_t m_free_iterator;
