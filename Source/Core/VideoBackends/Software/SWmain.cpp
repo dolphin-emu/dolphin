@@ -24,7 +24,6 @@
 #include "VideoBackends/Software/OpcodeDecoder.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWCommandProcessor.h"
-#include "VideoBackends/Software/SWPixelEngine.h"
 #include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVertexLoader.h"
@@ -37,6 +36,8 @@
 #endif // HAVE_WX
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/XFMemory.h"
 
 #define VSYNC_ENABLED 0
 
@@ -89,7 +90,7 @@ bool VideoSoftware::Initialize(void *&window_handle)
 	InitBPMemory();
 	InitXFMemory();
 	SWCommandProcessor::Init();
-	SWPixelEngine::Init();
+	PixelEngine::Init();
 	OpcodeDecoder::Init();
 	Clipper::Init();
 	Rasterizer::Init();
@@ -110,7 +111,7 @@ void VideoSoftware::DoState(PointerWrap& p)
 
 	// TODO: incomplete?
 	SWCommandProcessor::DoState(p);
-	SWPixelEngine::DoState(p);
+	PixelEngine::DoState(p);
 	EfbInterface::DoState(p);
 	OpcodeDecoder::DoState(p);
 	Clipper::DoState(p);
@@ -283,8 +284,7 @@ u32 VideoSoftware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputDa
 
 u32 VideoSoftware::Video_GetQueryResult(PerfQueryType type)
 {
-	// TODO:
-	return 0;
+	return EfbInterface::perf_values[type];
 }
 
 bool VideoSoftware::Video_Screenshot(const std::string& filename)
@@ -374,11 +374,6 @@ void VideoSoftware::Video_AbortFrame(void)
 void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
 {
 	SWCommandProcessor::RegisterMMIO(mmio, base);
-}
-
-void VideoSoftware::RegisterPEMMIO(MMIO::Mapping* mmio, u32 base)
-{
-	SWPixelEngine::RegisterMMIO(mmio, base);
 }
 
 // Draw messages on top of the screen

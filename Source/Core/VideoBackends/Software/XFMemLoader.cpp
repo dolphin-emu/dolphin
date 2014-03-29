@@ -8,7 +8,7 @@
 #include "VideoBackends/Software/XFMemLoader.h"
 #include "VideoCommon/VideoCommon.h"
 
-XFRegisters swxfregs;
+SWXFRegisters swxfregs;
 
 void InitXFMemory()
 {

@@ -7,10 +7,11 @@
 
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/EfbCopy.h"
+#include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/Rasterizer.h"
-#include "VideoBackends/Software/SWPixelEngine.h"
 #include "VideoBackends/Software/Tev.h"
 
+#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -50,7 +51,7 @@ void SWBPWritten(int address, int newvalue)
 		switch (bpmem.drawdone & 0xFF)
 		{
 		case 0x02:
-			SWPixelEngine::SetFinish(); // may generate interrupt
+			PixelEngine::SetFinish(); // may generate interrupt
 			DEBUG_LOG(VIDEO, "GXSetDrawDone SetPEFinish (value: 0x%02X)", (bpmem.drawdone & 0xFFFF));
 			break;
 
@@ -61,37 +62,26 @@ void SWBPWritten(int address, int newvalue)
 		break;
 	case BPMEM_PE_TOKEN_ID: // Pixel Engine Token ID
 		DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bpmem.petoken & 0xFFFF));
-		SWPixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), false);
+		PixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), false);
 		break;
 	case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID
 		DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bpmem.petokenint & 0xFFFF));
-		SWPixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), true);
+		PixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), true);
 		break;
 	case BPMEM_TRIGGER_EFB_COPY:
 		EfbCopy::CopyEfb();
 		break;
 	case BPMEM_CLEARBBOX1:
-		SWPixelEngine::pereg.boxRight = newvalue >> 10;
-		SWPixelEngine::pereg.boxLeft = newvalue & 0x3ff;
+		PixelEngine::bbox[0] = newvalue >> 10;
+		PixelEngine::bbox[1] = newvalue & 0x3ff;
 		break;
 	case BPMEM_CLEARBBOX2:
-		SWPixelEngine::pereg.boxBottom = newvalue >> 10;
-		SWPixelEngine::pereg.boxTop = newvalue & 0x3ff;
+		PixelEngine::bbox[2] = newvalue >> 10;
+		PixelEngine::bbox[3] = newvalue & 0x3ff;
 		break;
 	case BPMEM_CLEAR_PIXEL_PERF:
 		// TODO: I didn't test if the value written to this register affects the amount of cleared registers
-		SWPixelEngine::pereg.perfZcompInputZcomplocLo = 0;
-		SWPixelEngine::pereg.perfZcompInputZcomplocHi = 0;
-		SWPixelEngine::pereg.perfZcompOutputZcomplocLo = 0;
-		SWPixelEngine::pereg.perfZcompOutputZcomplocHi = 0;
-		SWPixelEngine::pereg.perfZcompInputLo = 0;
-		SWPixelEngine::pereg.perfZcompInputHi = 0;
-		SWPixelEngine::pereg.perfZcompOutputLo = 0;
-		SWPixelEngine::pereg.perfZcompOutputHi = 0;
-		SWPixelEngine::pereg.perfBlendInputLo = 0;
-		SWPixelEngine::pereg.perfBlendInputHi = 0;
-		SWPixelEngine::pereg.perfEfbCopyClocksLo = 0;
-		SWPixelEngine::pereg.perfEfbCopyClocksHi = 0;
+		memset(EfbInterface::perf_values, 0, sizeof(EfbInterface::perf_values));
 		break;
 	case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
 		break;
