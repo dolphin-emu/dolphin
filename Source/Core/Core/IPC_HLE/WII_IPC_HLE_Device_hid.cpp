@@ -29,9 +29,10 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 			if (hid->deviceCommandAddress != 0){
 				hid->FillOutDevices(Memory::Read_U32(hid->deviceCommandAddress + 0x18), Memory::Read_U32(hid->deviceCommandAddress + 0x1C));
 
-				Memory::Write_U32(8, hid->deviceCommandAddress);
-				// IOS seems to write back the command that was responded to
-				Memory::Write_U32(/*COMMAND_IOCTL*/ 6, hid->deviceCommandAddress + 8);
+				// The original hardware overwrites the command type with the async reply type.
+				Memory::Write_U32(IPC_REP_ASYNC, hid->deviceCommandAddress);
+				// IOS also seems to write back the command that was responded to in the FD field.
+				Memory::Write_U32(IPC_CMD_IOCTL, hid->deviceCommandAddress + 8);
 
 				// Return value
 				Memory::Write_U32(0, hid->deviceCommandAddress + 4);
@@ -56,9 +57,10 @@ void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer *transfer)
 		ret = transfer->length;
 	}
 
-	Memory::Write_U32(8, replyAddress);
-	// IOS seems to write back the command that was responded to
-	Memory::Write_U32(/*COMMAND_IOCTL*/ 6, replyAddress + 8);
+	// The original hardware overwrites the command type with the async reply type.
+	Memory::Write_U32(IPC_REP_ASYNC, replyAddress);
+	// IOS also seems to write back the command that was responded to in the FD field.
+	Memory::Write_U32(IPC_CMD_IOCTL, replyAddress + 8);
 
 	// Return value
 	Memory::Write_U32(ret, replyAddress + 4);
@@ -247,9 +249,10 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		if (deviceCommandAddress != 0){
 			Memory::Write_U32(0xFFFFFFFF, Memory::Read_U32(deviceCommandAddress + 0x18));
 
-			Memory::Write_U32(8, deviceCommandAddress);
-			// IOS seems to write back the command that was responded to
-			Memory::Write_U32(/*COMMAND_IOCTL*/ 6, deviceCommandAddress + 8);
+			// The original hardware overwrites the command type with the async reply type.
+			Memory::Write_U32(IPC_REP_ASYNC, deviceCommandAddress);
+			// IOS also seems to write back the command that was responded to in the FD field.
+			Memory::Write_U32(IPC_CMD_IOCTL, deviceCommandAddress + 8);
 
 			// Return value
 			Memory::Write_U32(-1, deviceCommandAddress + 4);

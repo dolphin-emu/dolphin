@@ -8,11 +8,6 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_Socket.h" // No Wii socket support while using NetPlay or TAS
 
-
-using WII_IPC_HLE_Interface::ECommandType;
-using WII_IPC_HLE_Interface::COMMAND_IOCTL;
-using WII_IPC_HLE_Interface::COMMAND_IOCTLV;
-
 #ifdef _WIN32
 #define ERRORCODE(name) WSA ## name
 #define EITHER(win32, posix) win32
@@ -180,8 +175,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 	{
 		s32 ReturnValue = 0;
 		bool forceNonBlock = false;
-		ECommandType ct = static_cast<ECommandType>(Memory::Read_U32(it->_CommandAddress));
-		if (!it->is_ssl && ct == COMMAND_IOCTL)
+		IPCCommandType ct = static_cast<IPCCommandType>(Memory::Read_U32(it->_CommandAddress));
+		if (!it->is_ssl && ct == IPC_CMD_IOCTL)
 		{
 			u32 BufferIn = Memory::Read_U32(it->_CommandAddress + 0x10);
 			u32 BufferInSize = Memory::Read_U32(it->_CommandAddress + 0x14);
@@ -267,7 +262,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 				}
 			}
 		}
-		else if (ct == COMMAND_IOCTLV)
+		else if (ct == IPC_CMD_IOCTLV)
 		{
 			SIOCtlVBuffer CommandBuffer(it->_CommandAddress);
 			u32 BufferIn = 0, BufferIn2 = 0;
@@ -523,7 +518,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 			DEBUG_LOG(WII_IPC_NET,
 			          "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d",
 			          fd, it->is_ssl ? (int) it->ssl_type : (int) it->net_type, ReturnValue, nonBlock, forceNonBlock);
-			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue);
+			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue, ct);
 			it = pending_sockops.erase(it);
 		}
 		else
@@ -625,11 +620,12 @@ void WiiSockMan::Update()
 	}
 }
 
-void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue)
+void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue, IPCCommandType CommandType)
 {
-	Memory::Write_U32(8, CommandAddress);
-	// IOS seems to write back the command that was responded to
-	Memory::Write_U32(Memory::Read_U32(CommandAddress), CommandAddress + 8);
+	// The original hardware overwrites the command type with the async reply type.
+	Memory::Write_U32(IPC_REP_ASYNC, CommandAddress);
+	// IOS also seems to write back the command that was responded to in the FD field.
+	Memory::Write_U32(CommandType, CommandAddress + 8);
 
 	// Return value
 	Memory::Write_U32(ReturnValue, CommandAddress + 4);
