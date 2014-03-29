@@ -135,6 +135,7 @@
     <ClCompile Include="HW\EXI_DeviceGecko.cpp" />
     <ClCompile Include="HW\EXI_DeviceIPL.cpp" />
     <ClCompile Include="HW\EXI_DeviceMemoryCard.cpp" />
+    <ClCompile Include="HW\EXI_DeviceMemoryCardRaw.cpp" />
     <ClCompile Include="HW\EXI_DeviceMic.cpp" />
     <ClCompile Include="HW\GCMemcard.cpp" />
     <ClCompile Include="HW\GCPad.cpp" />
@@ -331,6 +332,7 @@
     <ClInclude Include="HW\EXI_DeviceGecko.h" />
     <ClInclude Include="HW\EXI_DeviceIPL.h" />
     <ClInclude Include="HW\EXI_DeviceMemoryCard.h" />
+    <ClInclude Include="HW\EXI_DeviceMemoryCardRaw.h" />
     <ClInclude Include="HW\EXI_DeviceMic.h" />
     <ClInclude Include="HW\GCMemcard.h" />
     <ClInclude Include="HW\GCPad.h" />

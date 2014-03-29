@@ -13,6 +13,7 @@
 #include "Core/HW/EXI.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceMemoryCard.h"
+#include "Core/HW/EXI_DeviceMemoryCardRaw.h"
 #include "Core/HW/GCMemcard.h"
 #include "Core/HW/Sram.h"
 
@@ -25,13 +26,14 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
+
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
 	// note that userdata is forbidden to be a pointer, due to the implementation of EventDoState
 	int card_index = (int)userdata;
 	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
-	if (pThis)
-		pThis->Flush();
+	if (pThis && pThis->memorycard)
+		pThis->memorycard->Flush();
 }
 
 void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
@@ -46,13 +48,13 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	: card_index(index)
 	, m_bDirty(false)
 {
-	m_strFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
+	std::string filename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave())
-		m_strFilename = File::GetUserPath(D_GCUSER_IDX) + "Movie.raw";
+		filename = File::GetUserPath(D_GCUSER_IDX) + "Movie.raw";
 
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
-	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
-	et_cmd_done = CoreTiming::RegisterEvent((card_index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
+	et_this_card = CoreTiming::RegisterEvent((index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
+	et_cmd_done = CoreTiming::RegisterEvent((index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
 
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -81,110 +83,25 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	bool useMC251;
 	IniFile gameIni = Core::g_CoreStartupParameter.LoadGameIni();
 	gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
-	nintendo_card_id = MemCard2043Mb;
+	u16 sizeMb = MemCard2043Mb;
 	if (useMC251)
 	{
-		nintendo_card_id = MemCard251Mb;
-		m_strFilename.insert(m_strFilename.find_last_of("."), ".251");
+		sizeMb = MemCard251Mb;
+		filename.insert(filename.find_last_of("."), ".251");
 	}
 	card_id = 0xc221; // It's a Nintendo brand memcard
-
-	File::IOFile pFile(m_strFilename, "rb");
-	if (pFile)
-	{
-		// Measure size of the memcard file.
-		memory_card_size = (int)pFile.GetSize();
-		nintendo_card_id = memory_card_size / SIZE_TO_Mb;
-		memory_card_content = new u8[memory_card_size];
-		memset(memory_card_content, 0xFF, memory_card_size);
-
-		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
-		pFile.ReadBytes(memory_card_content, memory_card_size);
-
-	}
-	else
-	{
-		// Create a new memcard
-		memory_card_size = nintendo_card_id * SIZE_TO_Mb;
-
-		memory_card_content = new u8[memory_card_size];
-		GCMemcard::Format(memory_card_content, m_strFilename.find(".JAP.raw") != std::string::npos, nintendo_card_id);
-		memset(memory_card_content+MC_HDR_SIZE, 0xFF, memory_card_size-MC_HDR_SIZE);
-		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create a new one.");
-	}
-	SetCardFlashID(memory_card_content, card_index);
-}
-
-void innerFlush(FlushData* data)
-{
-	File::IOFile pFile(data->filename, "r+b");
-	if (!pFile)
-	{
-		std::string dir;
-		SplitPath(data->filename, &dir, nullptr, nullptr);
-		if (!File::IsDirectory(dir))
-			File::CreateFullPath(dir);
-		pFile.Open(data->filename, "wb");
-	}
-
-	if (!pFile) // Note - pFile changed inside above if
-	{
-		PanicAlertT("Could not write memory card file %s.\n\n"
-			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
-			"Are you receiving this after moving the emulator directory?\nIf so, then you may "
-			"need to re-specify your memory card location in the options.", data->filename.c_str());
-		return;
-	}
-
-	pFile.WriteBytes(data->memcardContent, data->memcardSize);
-
-	if (!data->bExiting)
-		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s",
-			data->memcardIndex ? 'B' : 'A', data->filename.c_str()).c_str(), 4000);
-	return;
-}
-
-// Flush memory card contents to disc
-void CEXIMemoryCard::Flush(bool exiting)
-{
-	if (!m_bDirty)
-		return;
-
-	if (!Core::g_CoreStartupParameter.bEnableMemcardSaving)
-		return;
-
-	if (flushThread.joinable())
-	{
-		flushThread.join();
-	}
-
-	if (!exiting)
-		Core::DisplayMessage(StringFromFormat("Writing to memory card %c", card_index ? 'B' : 'A'), 1000);
-
-	flushData.filename = m_strFilename;
-	flushData.memcardContent = memory_card_content;
-	flushData.memcardIndex = card_index;
-	flushData.memcardSize = memory_card_size;
-	flushData.bExiting = exiting;
-
-	flushThread = std::thread(innerFlush, &flushData);
-	if (exiting)
-		flushThread.join();
-
-	m_bDirty = false;
+	memorycard = new MemoryCard(filename, card_index, sizeMb);
+	memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
+	u8 header[20] = { 0 };
+	memorycard->Read(0, 20, header);
+	SetCardFlashID(header, card_index);
 }
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
 	CoreTiming::RemoveEvent(et_this_card);
-	Flush(true);
-	delete[] memory_card_content;
-	memory_card_content = nullptr;
-
-	if (flushThread.joinable())
-	{
-		flushThread.join();
-	}
+	memorycard->Flush(true);
+	delete memorycard;
 }
 
 bool CEXIMemoryCard::IsPresent()
@@ -210,10 +127,7 @@ void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 void CEXIMemoryCard::SetCS(int cs)
 {
 	// So that memory card won't be invalidated during flushing
-	if (flushThread.joinable())
-	{
-		flushThread.join();
-	}
+	memorycard->joinThread();
 
 	if (cs)  // not-selected to selected
 	{
@@ -226,7 +140,7 @@ void CEXIMemoryCard::SetCS(int cs)
 		case cmdSectorErase:
 			if (m_uPosition > 2)
 			{
-				memset(memory_card_content + (address & (memory_card_size-1)), 0xFF, 0x2000);
+				memorycard->ClearBlock(address  & (memory_card_size - 1));
 				status |= MC_STATUS_BUSY;
 				status &= ~MC_STATUS_READY;
 
@@ -239,7 +153,8 @@ void CEXIMemoryCard::SetCS(int cs)
 		case cmdChipErase:
 			if (m_uPosition > 2)
 			{
-				memset(memory_card_content, 0xFF, memory_card_size);
+				// TODO: Investigate on HW, I (LPFaint99) believe that this only erases the system area (Blocks 0-4)
+				memorycard->ClearAll();
 				status &= ~MC_STATUS_BUSY;
 				m_bDirty = true;
 			}
@@ -254,7 +169,7 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				while (count--)
 				{
-					memory_card_content[address] = programming_buffer[i++];
+					memorycard->Write(address, 1, &(programming_buffer[i++]));
 					i &= 127;
 					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
 				}
@@ -336,7 +251,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 			if (m_uPosition == 1)
 				byte = 0x80; // dummy cycle
 			else
-				byte = (u8)(nintendo_card_id >> (24-(((m_uPosition-2) & 3) * 8)));
+				byte = (u8)(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
 			break;
 
 		case cmdReadArray:
@@ -358,7 +273,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 			}
 			if (m_uPosition > 1) // not specified for 1..8, anyway
 			{
-				byte = memory_card_content[address & (memory_card_size-1)];
+				memorycard->Read(address & (memory_card_size - 1), 1, &byte);
 				// after 9 bytes, we start incrementing the address,
 				// but only the sector offset - the pointer wraps around
 				if (m_uPosition >= 9)
@@ -441,10 +356,7 @@ void CEXIMemoryCard::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	{
 		// we don't exactly have anything to pause,
 		// but let's make sure the flush thread isn't running.
-		if (flushThread.joinable())
-		{
-			flushThread.join();
-		}
+		memorycard->joinThread();
 	}
 }
 
@@ -466,11 +378,7 @@ void CEXIMemoryCard::DoState(PointerWrap &p)
 		p.Do(programming_buffer);
 		p.Do(m_bDirty);
 		p.Do(address);
-
-		p.Do(nintendo_card_id);
-		p.Do(card_id);
-		p.Do(memory_card_size);
-		p.DoArray(memory_card_content, memory_card_size);
+		memorycard->DoState(p);
 		p.Do(card_index);
 	}
 }
