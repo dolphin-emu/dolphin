@@ -2,8 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Thread.h"
+#include <algorithm>
 
+#include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
