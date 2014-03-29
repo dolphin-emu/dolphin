@@ -20,8 +20,8 @@ ROMUCode::ROMUCode(DSPHLE *dsp_hle, u32 crc)
 	, m_NextParameter(0)
 {
 	DEBUG_LOG(DSPHLE, "UCode_Rom - initialized");
-	m_rMailHandler.Clear();
-	m_rMailHandler.PushMail(0x8071FEED);
+	m_mail_handler.Clear();
+	m_mail_handler.PushMail(0x8071FEED);
 }
 
 ROMUCode::~ROMUCode()
@@ -38,7 +38,7 @@ void ROMUCode::HandleMail(u32 _uMail)
 		if ((_uMail & 0xFFFF0000) != 0x80F30000)
 		{
 			u32 Message = 0xFEEE0000 | (_uMail & 0xFFFF);
-			m_rMailHandler.PushMail(Message);
+			m_mail_handler.PushMail(Message);
 		}
 		else
 		{
@@ -104,7 +104,7 @@ void ROMUCode::BootUCode()
 	DEBUG_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", ector_crc);
 	DEBUG_LOG(DSPHLE, "BootTask - done");
 
-	m_DSPHLE->SetUCode(ector_crc);
+	m_dsphle->SetUCode(ector_crc);
 }
 
 u32 ROMUCode::GetUpdateMs()

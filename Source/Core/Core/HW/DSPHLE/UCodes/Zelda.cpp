@@ -56,13 +56,13 @@ ZeldaUCode::ZeldaUCode(DSPHLE *dsp_hle, u32 _CRC)
 	if (IsLightVersion())
 	{
 		DEBUG_LOG(DSPHLE, "Luigi Stylee!");
-		m_rMailHandler.PushMail(0x88881111);
+		m_mail_handler.PushMail(0x88881111);
 	}
 	else
 	{
-		m_rMailHandler.PushMail(DSP_INIT);
+		m_mail_handler.PushMail(DSP_INIT);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-		m_rMailHandler.PushMail(0xF3551111); // handshake
+		m_mail_handler.PushMail(0xF3551111); // handshake
 	}
 
 	m_VoiceBuffer = new s32[256 * 1024];
@@ -78,7 +78,7 @@ ZeldaUCode::ZeldaUCode(DSPHLE *dsp_hle, u32 _CRC)
 
 ZeldaUCode::~ZeldaUCode()
 {
-	m_rMailHandler.Clear();
+	m_mail_handler.Clear();
 
 	delete [] m_VoiceBuffer;
 	delete [] m_ResampleBuffer;
@@ -98,13 +98,13 @@ void ZeldaUCode::Update(int cycles)
 {
 	if (!IsLightVersion())
 	{
-		if (m_rMailHandler.GetNextMail() == DSP_FRAME_END)
+		if (m_mail_handler.GetNextMail() == DSP_FRAME_END)
 			DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
 
 	if (NeedsResumeMail())
 	{
-		m_rMailHandler.PushMail(DSP_RESUME);
+		m_mail_handler.PushMail(DSP_RESUME);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
 }
@@ -192,13 +192,13 @@ void ZeldaUCode::HandleMail_SMSVersion(u32 _uMail)
 
 				m_CurBuffer++;
 
-				m_rMailHandler.PushMail(DSP_SYNC);
+				m_mail_handler.PushMail(DSP_SYNC);
 				DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-				m_rMailHandler.PushMail(0xF355FF00 | m_CurBuffer);
+				m_mail_handler.PushMail(0xF355FF00 | m_CurBuffer);
 
 				if (m_CurBuffer == m_NumBuffers)
 				{
-					m_rMailHandler.PushMail(DSP_FRAME_END);
+					m_mail_handler.PushMail(DSP_FRAME_END);
 					// DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
 					m_bSyncCmdPending = false;
@@ -274,7 +274,7 @@ void ZeldaUCode::HandleMail_NormalVersion(u32 _uMail)
 {
 	// WARN_LOG(DSPHLE, "Zelda uCode: Handle mail %08X", _uMail);
 
-	if (m_UploadSetupInProgress) // evaluated first!
+	if (m_upload_setup_in_progress) // evaluated first!
 	{
 		PrepareBootUCode(_uMail);
 		return;
@@ -297,16 +297,16 @@ void ZeldaUCode::HandleMail_NormalVersion(u32 _uMail)
 
 				m_CurBuffer++;
 
-				m_rMailHandler.PushMail(DSP_SYNC);
+				m_mail_handler.PushMail(DSP_SYNC);
 				DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-				m_rMailHandler.PushMail(0xF355FF00 | m_CurBuffer);
+				m_mail_handler.PushMail(0xF355FF00 | m_CurBuffer);
 
 				m_CurVoice = 0;
 
 				if (m_CurBuffer == m_NumBuffers)
 				{
 					if (!IsDMAVersion()) // this is a hack... without it Pikmin 1 Wii/ Zelda TP Wii mail-s stopped
-						m_rMailHandler.PushMail(DSP_FRAME_END);
+						m_mail_handler.PushMail(DSP_FRAME_END);
 					//g_dspInitialize.pGenerateDSPInterrupt();
 
 					m_bSyncCmdPending = false;
@@ -367,11 +367,11 @@ void ZeldaUCode::HandleMail_NormalVersion(u32 _uMail)
 
 		case 0x0001: // accepts params to either dma to iram and/or dram (used for hotbooting a new ucode)
 			// TODO find a better way to protect from HLEMixer?
-			m_UploadSetupInProgress = true;
+			m_upload_setup_in_progress = true;
 			return;
 
 		case 0x0002: // Let IROM play us off
-			m_DSPHLE->SetUCode(UCODE_ROM);
+			m_dsphle->SetUCode(UCODE_ROM);
 			return;
 
 		case 0x0000: // Halt
@@ -514,15 +514,15 @@ void ZeldaUCode::ExecuteList()
 	if (IsLightVersion())
 	{
 		if (m_bSyncCmdPending)
-			m_rMailHandler.PushMail(0x80000000 | m_NumBuffers); // after CMD_2
+			m_mail_handler.PushMail(0x80000000 | m_NumBuffers); // after CMD_2
 		else
-			m_rMailHandler.PushMail(0x80000000 | Sync); // after CMD_0, CMD_1
+			m_mail_handler.PushMail(0x80000000 | Sync); // after CMD_0, CMD_1
 	}
 	else
 	{
-		m_rMailHandler.PushMail(DSP_SYNC);
+		m_mail_handler.PushMail(DSP_SYNC);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-		m_rMailHandler.PushMail(0xF3550000 | Sync);
+		m_mail_handler.PushMail(0xF3550000 | Sync);
 	}
 }
 

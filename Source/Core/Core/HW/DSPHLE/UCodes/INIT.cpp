@@ -25,9 +25,9 @@ void INITUCode::Init()
 
 void INITUCode::Update(int cycles)
 {
-	if (m_rMailHandler.IsEmpty())
+	if (m_mail_handler.IsEmpty())
 	{
-		m_rMailHandler.PushMail(0x80544348);
+		m_mail_handler.PushMail(0x80544348);
 		// HALT
 	}
 }

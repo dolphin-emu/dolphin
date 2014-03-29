@@ -152,7 +152,7 @@ private:
 	// - sound data transferred using DMA instead of accelerator
 	bool IsDMAVersion() const
 	{
-		switch (m_CRC)
+		switch (m_crc)
 		{
 			case 0xb7eb9a9c: // Wii Pikmin - PAL
 			case 0xeaeb38cc: // Wii Pikmin 2 - PAL
@@ -169,7 +169,7 @@ private:
 	// - exceptions and interrupts not used
 	bool IsLightVersion() const
 	{
-		switch (m_CRC)
+		switch (m_crc)
 		{
 			case 0x6ba3b3ea: // IPL - PAL
 			case 0x24b22038: // IPL - NTSC/NTSC-JAP
@@ -187,7 +187,7 @@ private:
 	// and I couldn't find a better name)
 	bool IsSMSVersion() const
 	{
-		switch (m_CRC)
+		switch (m_crc)
 		{
 			case 0x56d36052: // Super Mario Sunshine
 			case 0x267fd05a: // Pikmin PAL

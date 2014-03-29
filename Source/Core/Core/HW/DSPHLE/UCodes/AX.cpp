@@ -18,7 +18,7 @@ AXUCode::AXUCode(DSPHLE* dsp_hle, u32 crc)
 	, m_cmdlist_size(0)
 {
 	WARN_LOG(DSPHLE, "Instantiating AXUCode: crc=%08x", crc);
-	m_rMailHandler.PushMail(DSP_INIT);
+	m_mail_handler.PushMail(DSP_INIT);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
 	LoadResamplingCoefficients();
@@ -26,7 +26,7 @@ AXUCode::AXUCode(DSPHLE* dsp_hle, u32 crc)
 
 AXUCode::~AXUCode()
 {
-	m_rMailHandler.Clear();
+	m_mail_handler.Clear();
 }
 
 void AXUCode::LoadResamplingCoefficients()
@@ -69,7 +69,7 @@ void AXUCode::LoadResamplingCoefficients()
 void AXUCode::SignalWorkEnd()
 {
 	// Signal end of processing
-	m_rMailHandler.PushMail(DSP_YIELD);
+	m_mail_handler.PushMail(DSP_YIELD);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
@@ -270,7 +270,7 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
 	u32 ret = 0;
 
 	// TODO: find other UCode versions with different mixer_control values
-	if (m_CRC == 0x4e8a8b21)
+	if (m_crc == 0x4e8a8b21)
 	{
 		ret |= MIX_L | MIX_R;
 		if (mixer_control & 0x0001) ret |= MIX_AUXA_L | MIX_AUXA_R;
@@ -611,23 +611,23 @@ void AXUCode::HandleMail(u32 mail)
 		CopyCmdList(mail, cmdlist_size);
 		m_work_available = true;
 	}
-	else if (m_UploadSetupInProgress)
+	else if (m_upload_setup_in_progress)
 	{
 		PrepareBootUCode(mail);
 	}
 	else if (mail == MAIL_RESUME)
 	{
 		// Acknowledge the resume request
-		m_rMailHandler.PushMail(DSP_RESUME);
+		m_mail_handler.PushMail(DSP_RESUME);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
 	else if (mail == MAIL_NEW_UCODE)
 	{
-		m_UploadSetupInProgress = true;
+		m_upload_setup_in_progress = true;
 	}
 	else if (mail == MAIL_RESET)
 	{
-		m_DSPHLE->SetUCode(UCODE_ROM);
+		m_dsphle->SetUCode(UCODE_ROM);
 	}
 	else if (mail == MAIL_CONTINUE)
 	{
@@ -666,7 +666,7 @@ void AXUCode::Update(int cycles)
 	// Used for UCode switching.
 	if (NeedsResumeMail())
 	{
-		m_rMailHandler.PushMail(DSP_RESUME);
+		m_mail_handler.PushMail(DSP_RESUME);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
 	else if (m_work_available)

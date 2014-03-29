@@ -10,18 +10,18 @@
 GBAUCode::GBAUCode(DSPHLE *dsp_hle, u32 crc)
 : UCodeInterface(dsp_hle, crc)
 {
-	m_rMailHandler.PushMail(DSP_INIT);
+	m_mail_handler.PushMail(DSP_INIT);
 }
 
 GBAUCode::~GBAUCode()
 {
-	m_rMailHandler.Clear();
+	m_mail_handler.Clear();
 }
 
 void GBAUCode::Update(int cycles)
 {
 	// check if we have to send something
-	if (!m_rMailHandler.IsEmpty())
+	if (!m_mail_handler.IsEmpty())
 	{
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
@@ -37,7 +37,7 @@ void GBAUCode::HandleMail(u32 _uMail)
 	static bool nextmail_is_mramaddr = false;
 	static bool calc_done = false;
 
-	if (m_UploadSetupInProgress)
+	if (m_upload_setup_in_progress)
 	{
 		PrepareBootUCode(_uMail);
 	}
@@ -123,17 +123,17 @@ void GBAUCode::HandleMail(u32 _uMail)
 			x22, x23);
 
 		calc_done = true;
-		m_rMailHandler.PushMail(DSP_DONE);
+		m_mail_handler.PushMail(DSP_DONE);
 	}
 	else if ((_uMail >> 16 == 0xcdd1) && calc_done)
 	{
 		switch (_uMail & 0xffff)
 		{
 		case 1:
-			m_UploadSetupInProgress = true;
+			m_upload_setup_in_progress = true;
 			break;
 		case 2:
-			m_DSPHLE->SetUCode(UCODE_ROM);
+			m_dsphle->SetUCode(UCODE_ROM);
 			break;
 		default:
 			DEBUG_LOG(DSPHLE, "GBAUCode - unknown 0xcdd1 command: %08x", _uMail);

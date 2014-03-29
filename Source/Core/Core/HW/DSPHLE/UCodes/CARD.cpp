@@ -13,20 +13,20 @@ CARDUCode::CARDUCode(DSPHLE *dsp_hle, u32 crc)
 	: UCodeInterface(dsp_hle, crc)
 {
 	DEBUG_LOG(DSPHLE, "CARDUCode - initialized");
-	m_rMailHandler.PushMail(DSP_INIT);
+	m_mail_handler.PushMail(DSP_INIT);
 }
 
 
 CARDUCode::~CARDUCode()
 {
-	m_rMailHandler.Clear();
+	m_mail_handler.Clear();
 }
 
 
 void CARDUCode::Update(int cycles)
 {
 	// check if we have to sent something
-	if (!m_rMailHandler.IsEmpty())
+	if (!m_mail_handler.IsEmpty())
 	{
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
@@ -48,8 +48,8 @@ void CARDUCode::HandleMail(u32 _uMail)
 		DEBUG_LOG(DSPHLE, "CARDUCode - unknown command: %x", _uMail);
 	}
 
-	m_rMailHandler.PushMail(DSP_DONE);
-	m_DSPHLE->SetUCode(UCODE_ROM);
+	m_mail_handler.PushMail(DSP_DONE);
+	m_dsphle->SetUCode(UCODE_ROM);
 }
 
 
