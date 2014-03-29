@@ -7,8 +7,8 @@
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-GBAUCode::GBAUCode(DSPHLE *dsp_hle, u32 crc)
-: UCodeInterface(dsp_hle, crc)
+GBAUCode::GBAUCode(DSPHLE *dsphle, u32 crc)
+: UCodeInterface(dsphle, crc)
 {
 	m_mail_handler.PushMail(DSP_INIT);
 }
@@ -32,23 +32,23 @@ u32 GBAUCode::GetUpdateMs()
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void GBAUCode::HandleMail(u32 _uMail)
+void GBAUCode::HandleMail(u32 mail)
 {
 	static bool nextmail_is_mramaddr = false;
 	static bool calc_done = false;
 
 	if (m_upload_setup_in_progress)
 	{
-		PrepareBootUCode(_uMail);
+		PrepareBootUCode(mail);
 	}
-	else if ((_uMail >> 16 == 0xabba) && !nextmail_is_mramaddr)
+	else if ((mail >> 16 == 0xabba) && !nextmail_is_mramaddr)
 	{
 		nextmail_is_mramaddr = true;
 	}
 	else if (nextmail_is_mramaddr)
 	{
 		nextmail_is_mramaddr = false;
-		u32 mramaddr = _uMail;
+		u32 mramaddr = mail;
 
 		struct sec_params_t
 		{
@@ -125,9 +125,9 @@ void GBAUCode::HandleMail(u32 _uMail)
 		calc_done = true;
 		m_mail_handler.PushMail(DSP_DONE);
 	}
-	else if ((_uMail >> 16 == 0xcdd1) && calc_done)
+	else if ((mail >> 16 == 0xcdd1) && calc_done)
 	{
-		switch (_uMail & 0xffff)
+		switch (mail & 0xffff)
 		{
 		case 1:
 			m_upload_setup_in_progress = true;
@@ -136,12 +136,12 @@ void GBAUCode::HandleMail(u32 _uMail)
 			m_dsphle->SetUCode(UCODE_ROM);
 			break;
 		default:
-			DEBUG_LOG(DSPHLE, "GBAUCode - unknown 0xcdd1 command: %08x", _uMail);
+			DEBUG_LOG(DSPHLE, "GBAUCode - unknown 0xcdd1 command: %08x", mail);
 			break;
 		}
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "GBAUCode - unknown command: %08x", _uMail);
+		DEBUG_LOG(DSPHLE, "GBAUCode - unknown command: %08x", mail);
 	}
 }
