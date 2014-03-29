@@ -525,7 +525,7 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 
 	ChangeSearchResult(0);
 	m_beginSearch->Disable();
-	m_numResultsText->SetLabel(wxString::Format(_("Found %d results for \'"), search_results.size()) + m_searchField->GetValue() + "\'");
+	m_numResultsText->SetLabel(wxString::Format(_("Found %u results for \'"), (u32)search_results.size()) + m_searchField->GetValue() + "\'");
 }
 
 void FifoPlayerDlg::OnSearchFieldTextChanged(wxCommandEvent& event)
@@ -625,9 +625,9 @@ void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
 	m_objectsList->Clear();
 	if (event.GetInt() != -1)
 	{
-		int num_objects = player.GetAnalyzedFrameInfo(event.GetInt()).objectStarts.size();
-		for (int i = 0; i < num_objects; ++i)
-			m_objectsList->Append(wxString::Format("Object %i", i));
+		size_t num_objects = player.GetAnalyzedFrameInfo(event.GetInt()).objectStarts.size();
+		for (size_t i = 0; i < num_objects; ++i)
+			m_objectsList->Append(wxString::Format("Object %u", (u32)i));
 	}
 
 	// Update object list
@@ -888,7 +888,7 @@ void FifoPlayerDlg::UpdateAnalyzerGui()
 
 		for (size_t i = 0; i < num_frames; ++i)
 		{
-			m_framesList->Append(wxString::Format("Frame %i", i));
+			m_framesList->Append(wxString::Format("Frame %u", (u32)i));
 		}
 
 		wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
@@ -912,7 +912,7 @@ wxString FifoPlayerDlg::CreateCurrentFrameLabel() const
 	FifoDataFile *file = FifoPlayer::GetInstance().GetFile();
 
 	if (file)
-		return _("Frame ") + wxString::Format("%i", FifoPlayer::GetInstance().GetCurrentFrameNum());
+		return _("Frame ") + wxString::Format("%u", FifoPlayer::GetInstance().GetCurrentFrameNum());
 
 	return wxEmptyString;
 }
@@ -982,7 +982,7 @@ wxString FifoPlayerDlg::CreateIntegerLabel(size_t size, const wxString& label) c
 	if (size != 1)
 		postfix = _("s");
 
-	return wxString::Format("%u ", size) + label + postfix;
+	return wxString::Format("%u ", (u32)size) + label + postfix;
 }
 
 bool FifoPlayerDlg::GetSaveButtonEnabled() const
