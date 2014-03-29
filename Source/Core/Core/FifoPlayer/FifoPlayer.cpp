@@ -2,8 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include <algorithm>
 
+#include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -14,7 +15,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
-
 #include "VideoCommon/BPMemory.h"
 
 FifoPlayer::~FifoPlayer()
