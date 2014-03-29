@@ -17,6 +17,8 @@ enum TEXIDevices
 	EXIDEVICE_ETH,
 	EXIDEVICE_AM_BASEBOARD,
 	EXIDEVICE_GECKO,
+	EXIDEVICE_MEMORYCARDFOLDER, // Only used when creating a device by EXIDevice_Create
+	                            // Converted to EXIDEVICE_MEMORYCARD internally
 	EXIDEVICE_NONE = (u8)-1
 };
 

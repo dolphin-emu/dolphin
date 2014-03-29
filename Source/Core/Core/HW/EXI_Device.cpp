@@ -99,9 +99,13 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 		break;
 
 	case EXIDEVICE_MEMORYCARD:
-		result = new CEXIMemoryCard(channel_num);
+	case EXIDEVICE_MEMORYCARDFOLDER:
+	{
+		bool gci_folder = (device_type == EXIDEVICE_MEMORYCARDFOLDER);
+		result = new CEXIMemoryCard(channel_num, gci_folder);
+		device_type = EXIDEVICE_MEMORYCARD;
 		break;
-
+	}
 	case EXIDEVICE_MASKROM:
 		result = new CEXIIPL();
 		break;
