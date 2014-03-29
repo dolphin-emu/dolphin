@@ -5,7 +5,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_CARD.h"
+#include "Core/HW/DSPHLE/UCodes/CARD.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 

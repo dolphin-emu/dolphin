@@ -4,7 +4,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_GBA.h"
+#include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 CUCode_GBA::CUCode_GBA(DSPHLE *dsp_hle, u32 crc)

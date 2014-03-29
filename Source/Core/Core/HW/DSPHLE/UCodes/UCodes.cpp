@@ -8,14 +8,14 @@
 
 #include "Common/Hash.h"
 
-#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_AXWii.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_CARD.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_GBA.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_InitAudioSystem.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_ROM.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
+#include "Core/HW/DSPHLE/UCodes/AX.h"
+#include "Core/HW/DSPHLE/UCodes/AXWii.h"
+#include "Core/HW/DSPHLE/UCodes/CARD.h"
+#include "Core/HW/DSPHLE/UCodes/GBA.h"
+#include "Core/HW/DSPHLE/UCodes/INIT.h"
+#include "Core/HW/DSPHLE/UCodes/ROM.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
 IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 {

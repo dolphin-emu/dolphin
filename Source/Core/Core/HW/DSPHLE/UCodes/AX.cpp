@@ -7,10 +7,10 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
+#include "Core/HW/DSPHLE/UCodes/AX.h"
 
 #define AX_GC
-#include "Core/HW/DSPHLE/UCodes/UCode_AX_Voice.h"
+#include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 
 CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)

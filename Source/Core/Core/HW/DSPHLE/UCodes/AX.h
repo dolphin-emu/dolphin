@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
+#include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 // We can't directly use the mixer_control field from the PB because it does

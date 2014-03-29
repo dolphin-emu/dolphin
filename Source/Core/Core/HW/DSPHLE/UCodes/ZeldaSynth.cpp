@@ -4,8 +4,8 @@
 
 #include <cmath>
 
-#include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
 void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {

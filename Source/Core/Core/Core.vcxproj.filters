@@ -311,34 +311,34 @@
     <ClCompile Include="HW\DVDInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_AX.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\AX.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_AXWii.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\AXWii.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_CARD.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\CARD.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_GBA.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\GBA.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_InitAudioSystem.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\INIT.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_ROM.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\ROM.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_Zelda.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\Zelda.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_Zelda_ADPCM.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaADPCM.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_Zelda_Synth.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaSynth.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_Zelda_Voice.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaVoice.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\UCodes.cpp">
@@ -837,31 +837,31 @@
     <ClInclude Include="HW\DVDInterface.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_AX.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\AX.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_AX_Voice.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\AXVoice.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_AXStructs.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\AXStructs.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_AXWii.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\AXWii.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_CARD.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\CARD.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_GBA.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\GBA.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_InitAudioSystem.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\INIT.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_ROM.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\ROM.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_Zelda.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\Zelda.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\UCodes\UCodes.h">

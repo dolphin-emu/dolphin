@@ -2,16 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 //
-#define AX_WII // Used in UCode_AX_Voice.
+#define AX_WII // Used in AXVoice.
 
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
 #include "Core/HW/DSPHLE/MailHandler.h"
 
-#include "Core/HW/DSPHLE/UCodes/UCode_AX_Voice.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_AXWii.h"
+#include "Core/HW/DSPHLE/UCodes/AXStructs.h"
+#include "Core/HW/DSPHLE/UCodes/AXVoice.h"
+#include "Core/HW/DSPHLE/UCodes/AXWii.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 
