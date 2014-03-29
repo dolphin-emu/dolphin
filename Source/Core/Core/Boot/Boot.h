@@ -12,14 +12,14 @@
 #include "DiscIO/Volume.h"
 using DiscIO::IVolume;
 
-typedef struct CountrySetting 
+typedef struct CountrySetting
 {
 	const std::string area;
 	const std::string video;
 	const std::string game;
 	const std::string code;
 } CountrySetting;
-	
+
 class CBoot
 {
 public:

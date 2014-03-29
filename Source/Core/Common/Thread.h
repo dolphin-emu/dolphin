@@ -59,8 +59,8 @@ public:
 	void Reset()
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);
-		// no other action required, since wait loops on 
-		// the predicate and any lingering signal will get 
+		// no other action required, since wait loops on
+		// the predicate and any lingering signal will get
 		// cleared on the first iteration
 		is_set = false;
 	}

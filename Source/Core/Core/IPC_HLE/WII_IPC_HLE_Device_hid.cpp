@@ -400,7 +400,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 				for (ic = 0; ic < config->bNumInterfaces; ic++)
 				{
 					const struct libusb_interface *interfaceContainer = &config->interface[ic];
-					
+
 					for (i = 0; i < interfaceContainer->num_altsetting; i++)
 					{
 						const struct libusb_interface_descriptor *interface = &interfaceContainer->altsetting[i];

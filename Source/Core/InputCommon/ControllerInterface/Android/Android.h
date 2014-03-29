@@ -37,7 +37,7 @@ private:
 		const ButtonManager::ButtonType _index;
 		const float _neg;
 	};
-	
+
 public:
 	bool UpdateInput() { return true; }
 	bool UpdateOutput() { return true; }

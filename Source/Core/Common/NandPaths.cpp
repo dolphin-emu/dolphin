@@ -18,7 +18,7 @@ namespace Common
 std::string GetTicketFileName(u64 _titleID)
 {
 	return StringFromFormat("%sticket/%08x/%08x.tik",
-			File::GetUserPath(D_WIIUSER_IDX).c_str(), 
+			File::GetUserPath(D_WIIUSER_IDX).c_str(),
 			(u32)(_titleID >> 32), (u32)_titleID);
 }
 
@@ -36,7 +36,7 @@ std::string GetTMDFileName(u64 _titleID)
 std::string GetTitleContentPath(u64 _titleID)
 {
 	return StringFromFormat("%stitle/%08x/%08x/content/",
-			File::GetUserPath(D_WIIUSER_IDX).c_str(), 
+			File::GetUserPath(D_WIIUSER_IDX).c_str(),
 			(u32)(_titleID >> 32), (u32)_titleID);
 }
 

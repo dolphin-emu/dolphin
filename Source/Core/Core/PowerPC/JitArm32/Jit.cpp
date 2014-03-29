@@ -187,7 +187,7 @@ void JitArm::WriteExit(u32 destination)
 	linkData.linkStatus = false;
 
 	// Link opportunity!
-	int block; 
+	int block;
 	if (jo.enableBlocklink && (block = blocks.GetBlockNumberFromStartAddress(destination)) >= 0)
 	{
 		// It exists! Joy of joy!

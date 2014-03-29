@@ -516,7 +516,7 @@ void Tev::Draw()
 #if ALLOW_TEV_DUMPS
 		if (g_SWVideoConfig.bDumpTevStages)
 		{
-			u8 stage[4] = { 
+			u8 stage[4] = {
 				IndirectTex[stageNum][TextureSampler::ALP_SMP],
 				IndirectTex[stageNum][TextureSampler::BLU_SMP],
 				IndirectTex[stageNum][TextureSampler::GRN_SMP],

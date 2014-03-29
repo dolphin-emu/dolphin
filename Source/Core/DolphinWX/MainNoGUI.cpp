@@ -126,7 +126,7 @@ void Host_SysMessage(const char *fmt, ...)
 		msg[len - 1] = '\n';
 		msg[len] = '\0';
 	}
-	
+
 	fprintf(stderr, "%s", msg);
 }
 

@@ -13,7 +13,7 @@ namespace SWRenderer
 	void Init();
 	void Prepare();
 	void Shutdown();
-	
+
 	void SetScreenshot(const char *_szFilename);
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugText();

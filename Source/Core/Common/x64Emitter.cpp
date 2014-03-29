@@ -210,7 +210,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 #if _M_X86_64
 		u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
 		s64 distance = (s64)offset - (s64)ripAddr;
-		_assert_msg_(DYNA_REC, 
+		_assert_msg_(DYNA_REC,
 		             (distance < 0x80000000LL &&
 		              distance >=  -0x80000000LL) ||
 		             !warn_64bit_offset,

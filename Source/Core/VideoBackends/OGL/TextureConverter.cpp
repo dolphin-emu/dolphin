@@ -180,8 +180,8 @@ void Init()
 	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	
-	
+
+
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_dstTexture, 0);
 	FramebufferManager::SetFramebuffer(0);

@@ -597,8 +597,8 @@ void VertexLoader::CompileVertexTranslator()
 		if (pFunc == nullptr)
 		{
 			Host_SysMessage(
-				StringFromFormat("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!", 
-				m_VtxDesc.Normal, m_VtxAttr.NormalFormat, 
+				StringFromFormat("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!",
+				m_VtxDesc.Normal, m_VtxAttr.NormalFormat,
 				m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3).c_str());
 		}
 		WriteCall(pFunc);

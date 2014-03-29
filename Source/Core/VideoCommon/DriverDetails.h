@@ -7,7 +7,7 @@
 namespace DriverDetails
 {
 	// Enum of supported operating systems
-	enum OS 
+	enum OS
 	{
 		OS_ALL     = (1 << 0),
 		OS_WINDOWS = (1 << 1),
@@ -132,13 +132,13 @@ namespace DriverDetails
 		// The driver stalls in each instance no matter what you do
 		// Apparently Mali and Adreno share code in this regard since it was wrote by the same person.
 		BUG_BROKENBUFFERSTREAM,
-		// Bug: GLSL ES 3.0 textureSize causes abort 
+		// Bug: GLSL ES 3.0 textureSize causes abort
 		// Affected devices: Adreno a3xx
 		// Started Version: -1 (Noticed in v53)
 		// Ended Version: -1
 		// If a shader includes a textureSize function call then the shader compiler will call abort()
 		BUG_BROKENTEXTURESIZE,
-		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams 
+		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams
 		// Affected devices: Geforce 4xx+
 		// Started Version: -1
 		// Ended Version: 332.21
@@ -165,7 +165,7 @@ namespace DriverDetails
 		// TODO: some windows AMD driver/gpu combination seems also affected
 		//       but as they all support pinned memory, it doesn't matter
 		BUG_BROKENUNSYNCMAPPING,
-		// Bug: Adreno now rotates the framebuffer on blit a full 180 degrees 
+		// Bug: Adreno now rotates the framebuffer on blit a full 180 degrees
 		// Affected devices: Adreno
 		// Started Version: v53 (dev drivers)
 		// Ended Version: -1

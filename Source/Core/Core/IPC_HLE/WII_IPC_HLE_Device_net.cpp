@@ -408,7 +408,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 
 	case IOCTLV_NCD_GETWIRELESSMACADDRESS:
 		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
-		
+
 		u8 address[MAC_ADDRESS_SIZE];
 		GetMacAddress(address);
 		Memory::WriteBigEData(address,
@@ -505,7 +505,7 @@ bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 		// Probably used to disallow certain channels?
 		memcpy(info->country, "US", 2);
 		info->ntr_allowed_channels = Common::swap16(0xfffe);
-		
+
 		u8 address[MAC_ADDRESS_SIZE];
 		GetMacAddress(address);
 		memcpy(info->mac, address, sizeof(info->mac));

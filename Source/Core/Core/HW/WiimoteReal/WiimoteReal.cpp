@@ -299,7 +299,7 @@ void Wiimote::Update()
 	// Send the report
 	if (!rpt.empty() && m_channel > 0)
 	{
-		Core::Callback_WiimoteInterruptChannel(index, m_channel, 
+		Core::Callback_WiimoteInterruptChannel(index, m_channel,
 			rpt.data(), (u32)rpt.size());
 	}
 }

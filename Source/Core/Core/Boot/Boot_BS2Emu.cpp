@@ -171,9 +171,9 @@ bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 		{IVolume::COUNTRY_TAIWAN, {"JPN", "NTSC", "JP", "LJ"}}
 	};
 	auto entryPos = country_settings.find(country);
-	const CountrySetting& country_setting = 
-		(entryPos != country_settings.end()) ? 
-		  entryPos->second : 
+	const CountrySetting& country_setting =
+		(entryPos != country_settings.end()) ?
+		  entryPos->second :
 		  SETTING_EUROPE; //Default to EUROPE
 
 	SettingsHandler gen;
@@ -210,7 +210,7 @@ bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 	gen.AddSetting("SERNO", serno);
 	gen.AddSetting("VIDEO", country_setting.video);
 	gen.AddSetting("GAME", country_setting.game);
-	
+
 	File::CreateFullPath(settings_Filename);
 	{
 		File::IOFile settingsFileHandle(settings_Filename, "wb");
@@ -225,7 +225,7 @@ bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 	}
 
 	INFO_LOG(BOOT, "Setup Wii Memory...");
-	
+
 	/*
 	Set hardcoded global variables to Wii memory. These are partly collected from
 	Wiibrew. These values are needed for the games to function correctly. A few

@@ -21,7 +21,7 @@ public:
 		// Key used to encrypt/decrypt setting.txt contents
 		INITIAL_SEED = 0x73B5DBFA
 	};
-	
+
 	void AddSetting(const std::string& key, const std::string& value);
 
 	const u8 *GetData() const;

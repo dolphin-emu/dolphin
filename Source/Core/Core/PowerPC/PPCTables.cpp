@@ -189,7 +189,7 @@ void PrintInstructionRunCounts()
 		GekkoOPInfo *pInst = m_allInstructions[i];
 		temp.emplace_back(pInst->opname, pInst->runCount);
 	}
-	std::sort(temp.begin(), temp.end(), 
+	std::sort(temp.begin(), temp.end(),
 		[](const OpInfo &a, const OpInfo &b)
 		{
 			return a.second > b.second;

@@ -86,7 +86,7 @@ void Init(std::vector<Core::Device*>& devices)
 			return;
 		}
 	}
-	
+
 	XINPUT_CAPABILITIES caps;
 	for (int i = 0; i != 4; ++i)
 		if (ERROR_SUCCESS == PXInputGetCapabilities(i, 0, &caps))

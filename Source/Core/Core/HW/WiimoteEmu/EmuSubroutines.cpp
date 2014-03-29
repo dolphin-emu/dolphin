@@ -357,9 +357,9 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		//if(((((u8*)&wm->m_reg_ext)[0xf0] == 0xaa) || ((u8*)&wm->m_reg_motion_plus)[0xf0] == 0xaa) && rdr->address>>8 < 0xf0) {
 
 		//if(!wm->GetMotionPlusActive() && ((u8*)&wm->m_reg_ext)[0xf0] == 0xaa && rdr->address>>8 < 0xf0) {
-		
+
 		//if(!wm->GetMotionPlusActive() && ((u8*)&wm->m_reg_ext)[0xf0] == 0xaa) {
-		
+
 			// SWARN_LOG(CONSOLE, "key %s", ArrayToString(((u8*)&wm->m_ext_key), sizeof(wm->m_ext_key), 0, 30).c_str());
 			// SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
 			// wiimote_decrypt(&wm->m_ext_key, rdr->data, dataReply[2]&0xffff, rdr->size+1);

@@ -96,7 +96,7 @@ TODO (in no particular order):
 - Scheduling to reduce register pressure: PowerPCcompilers like to push
   uses far away from definitions, but it's rather unfriendly to modern
   x86 processors, which are short on registers and extremely good at instruction reordering.
- 
+
 - Common subexpression elimination
 - Optimize load/store of sum using complex addressing (partially implemented)
 - Loop optimizations (loop-carried registers, LICM)
