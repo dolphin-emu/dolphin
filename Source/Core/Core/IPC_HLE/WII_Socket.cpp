@@ -8,8 +8,6 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_Socket.h" // No Wii socket support while using NetPlay or TAS
 
-
-using WII_IPC_HLE_Interface::ECommandType;
 using WII_IPC_HLE_Interface::COMMAND_IOCTL;
 using WII_IPC_HLE_Interface::COMMAND_IOCTLV;
 
@@ -523,7 +521,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 			DEBUG_LOG(WII_IPC_NET,
 			          "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d",
 			          fd, it->is_ssl ? (int) it->ssl_type : (int) it->net_type, ReturnValue, nonBlock, forceNonBlock);
-			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue);
+			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue, ct);
 			it = pending_sockops.erase(it);
 		}
 		else
@@ -625,11 +623,11 @@ void WiiSockMan::Update()
 	}
 }
 
-void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue)
+void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue, ECommandType CommandType)
 {
-	Memory::Write_U32(8, CommandAddress);
 	// IOS seems to write back the command that was responded to
-	Memory::Write_U32(Memory::Read_U32(CommandAddress), CommandAddress + 8);
+	Memory::Write_U32(CommandType, CommandAddress + 8);
+	Memory::Write_U32(8, CommandAddress);
 
 	// Return value
 	Memory::Write_U32(ReturnValue, CommandAddress + 4);

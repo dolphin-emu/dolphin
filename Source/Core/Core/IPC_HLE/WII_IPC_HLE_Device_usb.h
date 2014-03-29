@@ -39,6 +39,8 @@ struct SQueuedEvent
 	}
 };
 
+using WII_IPC_HLE_Interface::ECommandType;
+
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus
 // 57e/305 -> VendorID/ProductID of device on usb bus
@@ -57,6 +59,8 @@ public:
 	virtual bool IOCtl(u32 _CommandAddress) override;
 
 	virtual u32 Update() override;
+
+	static void EnqueueReply(u32 CommandAddress);
 
 	// Send ACL data back to bt stack
 	void SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size);

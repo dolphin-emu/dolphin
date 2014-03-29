@@ -557,6 +557,9 @@ void EnqRequest(u32 _Address)
 }
 
 // Called when IOS module has some reply
+// NOTE: Only call this if you have correctly handled
+//       CommandAddress+0 and CommandAddress+8.
+//       Please search for examples of this being called elsewhere.
 void EnqReply(u32 _Address, int cycles_in_future)
 {
 	CoreTiming::ScheduleEvent(cycles_in_future, enque_reply, _Address);
