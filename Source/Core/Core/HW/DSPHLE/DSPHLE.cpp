@@ -95,7 +95,7 @@ void DSPHLE::SendMailToDSP(u32 _uMail)
 	}
 }
 
-IUCode* DSPHLE::GetUCode()
+UCodeInterface* DSPHLE::GetUCode()
 {
 	return m_pUCode;
 }
@@ -160,9 +160,9 @@ void DSPHLE::DoState(PointerWrap &p)
 	p.DoPOD(m_DSPControl);
 	p.DoPOD(m_dspState);
 
-	int ucode_crc = IUCode::GetCRC(m_pUCode);
+	int ucode_crc = UCodeInterface::GetCRC(m_pUCode);
 	int ucode_crc_beforeLoad = ucode_crc;
-	int lastucode_crc = IUCode::GetCRC(m_lastUCode);
+	int lastucode_crc = UCodeInterface::GetCRC(m_lastUCode);
 	int lastucode_crc_beforeLoad = lastucode_crc;
 
 	p.Do(ucode_crc);
@@ -170,8 +170,8 @@ void DSPHLE::DoState(PointerWrap &p)
 
 	// if a different type of ucode was being used when the savestate was created,
 	// we have to reconstruct the old type of ucode so that we have a valid thing to call DoState on.
-	IUCode*     ucode =     (ucode_crc ==     ucode_crc_beforeLoad) ?    m_pUCode : UCodeFactory(    ucode_crc, this, m_bWii);
-	IUCode* lastucode = (lastucode_crc != lastucode_crc_beforeLoad) ? m_lastUCode : UCodeFactory(lastucode_crc, this, m_bWii);
+	UCodeInterface*     ucode =     (ucode_crc ==     ucode_crc_beforeLoad) ?    m_pUCode : UCodeFactory(    ucode_crc, this, m_bWii);
+	UCodeInterface* lastucode = (lastucode_crc != lastucode_crc_beforeLoad) ? m_lastUCode : UCodeFactory(lastucode_crc, this, m_bWii);
 
 	if (ucode)
 		ucode->DoState(p);

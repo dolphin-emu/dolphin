@@ -8,34 +8,34 @@
 
 #include "Common/Hash.h"
 
-#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_AXWii.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_CARD.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_GBA.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_InitAudioSystem.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_ROM.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
+#include "Core/HW/DSPHLE/UCodes/AX.h"
+#include "Core/HW/DSPHLE/UCodes/AXWii.h"
+#include "Core/HW/DSPHLE/UCodes/CARD.h"
+#include "Core/HW/DSPHLE/UCodes/GBA.h"
+#include "Core/HW/DSPHLE/UCodes/INIT.h"
+#include "Core/HW/DSPHLE/UCodes/ROM.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
-IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
+UCodeInterface* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 {
 	switch (_CRC)
 	{
 	case UCODE_ROM:
 		INFO_LOG(DSPHLE, "Switching to ROM ucode");
-		return new CUCode_Rom(dsp_hle, _CRC);
+		return new ROMUCode(dsp_hle, _CRC);
 
 	case UCODE_INIT_AUDIO_SYSTEM:
 		INFO_LOG(DSPHLE, "Switching to INIT ucode");
-		return new CUCode_InitAudioSystem(dsp_hle, _CRC);
+		return new INITUCode(dsp_hle, _CRC);
 
 	case 0x65d6cc6f: // CARD
 		INFO_LOG(DSPHLE, "Switching to CARD ucode");
-		return new CUCode_CARD(dsp_hle, _CRC);
+		return new CARDUCode(dsp_hle, _CRC);
 
 	case 0xdd7e72d5:
 		INFO_LOG(DSPHLE, "Switching to GBA ucode");
-		return new CUCode_GBA(dsp_hle, _CRC);
+		return new GBAUCode(dsp_hle, _CRC);
 
 	case 0x3ad3b7ac: // Naruto3, Paper Mario - The Thousand Year Door
 	case 0x3daf59b9: // Alien Hominid
@@ -48,14 +48,14 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
 	case 0x3389a79e: // MP1/MP2 Wii (Metroid Prime Trilogy)
 		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", _CRC);
-		return new CUCode_AX(dsp_hle, _CRC);
+		return new AXUCode(dsp_hle, _CRC);
 
 	case 0x6ba3b3ea: // IPL - PAL
 	case 0x24b22038: // IPL - NTSC/NTSC-JAP
 	case 0x42f64ac4: // Luigi
 	case 0x4be6a5cb: // AC, Pikmin
 		INFO_LOG(DSPHLE, "CRC %08x: JAC (early Zelda) ucode chosen", _CRC);
-		return new CUCode_Zelda(dsp_hle, _CRC);
+		return new ZeldaUCode(dsp_hle, _CRC);
 
 	case 0x6CA33A6D: // DK Jungle Beat
 	case 0x86840740: // Zelda WW - US
@@ -63,7 +63,7 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	case 0x2fcdf1ec: // Mario Kart, zelda 4 swords
 	case 0x267fd05a: // Pikmin PAL
 		INFO_LOG(DSPHLE, "CRC %08x: Zelda ucode chosen", _CRC);
-		return new CUCode_Zelda(dsp_hle, _CRC);
+		return new ZeldaUCode(dsp_hle, _CRC);
 
 	// WII CRCs
 	case 0xb7eb9a9c: // Wii Pikmin - PAL
@@ -71,7 +71,7 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	case 0x6c3f6f94: // Zelda TP - PAL
 	case 0xd643001f: // Mario Galaxy - PAL / WII DK Jungle Beat - PAL
 		INFO_LOG(DSPHLE, "CRC %08x: Zelda Wii ucode chosen\n", _CRC);
-		return new CUCode_Zelda(dsp_hle, _CRC);
+		return new ZeldaUCode(dsp_hle, _CRC);
 
 	case 0x2ea36ce6: // Some Wii demos
 	case 0x5ef56da3: // AX demo
@@ -81,18 +81,18 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	case 0x4cc52064: // Bleach: Versus Crusade
 	case 0xd9c4bf34: // WiiMenu
 		INFO_LOG(DSPHLE, "CRC %08x: Wii - AXWii chosen", _CRC);
-		return new CUCode_AXWii(dsp_hle, _CRC);
+		return new AXWiiUCode(dsp_hle, _CRC);
 
 	default:
 		if (bWii)
 		{
 			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AXWii.\n\nTry LLE emulator if this is homebrew.", _CRC);
-			return new CUCode_AXWii(dsp_hle, _CRC);
+			return new AXWiiUCode(dsp_hle, _CRC);
 		}
 		else
 		{
 			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.\n\nTry LLE emulator if this is homebrew.", _CRC);
-			return new CUCode_AX(dsp_hle, _CRC);
+			return new AXUCode(dsp_hle, _CRC);
 		}
 
 	case UCODE_NULL:
@@ -102,7 +102,7 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	return nullptr;
 }
 
-bool IUCode::NeedsResumeMail()
+bool UCodeInterface::NeedsResumeMail()
 {
 	if (m_NeedsResumeMail)
 	{
@@ -112,7 +112,7 @@ bool IUCode::NeedsResumeMail()
 	return false;
 }
 
-void IUCode::PrepareBootUCode(u32 mail)
+void UCodeInterface::PrepareBootUCode(u32 mail)
 {
 	switch (m_NextUCode_steps)
 	{
@@ -174,7 +174,7 @@ void IUCode::PrepareBootUCode(u32 mail)
 	}
 }
 
-void IUCode::DoStateShared(PointerWrap &p)
+void UCodeInterface::DoStateShared(PointerWrap &p)
 {
 	p.Do(m_UploadSetupInProgress);
 	p.Do(m_NextUCode);

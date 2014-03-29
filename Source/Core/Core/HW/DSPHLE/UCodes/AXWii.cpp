@@ -2,36 +2,36 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 //
-#define AX_WII // Used in UCode_AX_Voice.
+#define AX_WII // Used in AXVoice.
 
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
 #include "Core/HW/DSPHLE/MailHandler.h"
 
-#include "Core/HW/DSPHLE/UCodes/UCode_AX_Voice.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_AXWii.h"
+#include "Core/HW/DSPHLE/UCodes/AXStructs.h"
+#include "Core/HW/DSPHLE/UCodes/AXVoice.h"
+#include "Core/HW/DSPHLE/UCodes/AXWii.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 
-CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
-	: CUCode_AX(dsp_hle, l_CRC),
+AXWiiUCode::AXWiiUCode(DSPHLE *dsp_hle, u32 l_CRC)
+	: AXUCode(dsp_hle, l_CRC),
 	  m_last_main_volume(0x8000)
 {
 	for (u16& volume : m_last_aux_volumes)
 		volume = 0x8000;
 
-	WARN_LOG(DSPHLE, "Instantiating CUCode_AXWii");
+	WARN_LOG(DSPHLE, "Instantiating AXWiiUCode");
 
 	m_old_axwii = (l_CRC == 0xfa450138);
 }
 
-CUCode_AXWii::~CUCode_AXWii()
+AXWiiUCode::~AXWiiUCode()
 {
 }
 
-void CUCode_AXWii::HandleCommandList()
+void AXWiiUCode::HandleCommandList()
 {
 	// Temp variables for addresses computation
 	u16 addr_hi, addr_lo;
@@ -243,7 +243,7 @@ void CUCode_AXWii::HandleCommandList()
 	}
 }
 
-void CUCode_AXWii::SetupProcessing(u32 init_addr)
+void AXWiiUCode::SetupProcessing(u32 init_addr)
 {
 	// TODO: should be easily factorizable with AX
 	s16 init_data[60];
@@ -302,7 +302,7 @@ void CUCode_AXWii::SetupProcessing(u32 init_addr)
 	}
 }
 
-void CUCode_AXWii::AddToLR(u32 val_addr, bool neg)
+void AXWiiUCode::AddToLR(u32 val_addr, bool neg)
 {
 	int* ptr = (int*)HLEMemory_Get_Pointer(val_addr);
 	for (int i = 0; i < 32 * 3; ++i)
@@ -316,7 +316,7 @@ void CUCode_AXWii::AddToLR(u32 val_addr, bool neg)
 	}
 }
 
-void CUCode_AXWii::AddSubToLR(u32 val_addr)
+void AXWiiUCode::AddSubToLR(u32 val_addr)
 {
 	int* ptr = (int*)HLEMemory_Get_Pointer(val_addr);
 	for (int i = 0; i < 32 * 3; ++i)
@@ -331,7 +331,7 @@ void CUCode_AXWii::AddSubToLR(u32 val_addr)
 	}
 }
 
-AXMixControl CUCode_AXWii::ConvertMixerControl(u32 mixer_control)
+AXMixControl AXWiiUCode::ConvertMixerControl(u32 mixer_control)
 {
 	u32 ret = 0;
 
@@ -359,7 +359,7 @@ AXMixControl CUCode_AXWii::ConvertMixerControl(u32 mixer_control)
 	return (AXMixControl)ret;
 }
 
-void CUCode_AXWii::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals)
+void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals)
 {
 	float curr = vol1;
 	for (size_t i = 0; i < nvals; ++i)
@@ -369,7 +369,7 @@ void CUCode_AXWii::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nv
 	}
 }
 
-bool CUCode_AXWii::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates,
+bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates,
                                         u32* updates_addr)
 {
 	u16* pb_mem = (u16*)&pb;
@@ -409,7 +409,7 @@ bool CUCode_AXWii::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* upda
 	return true;
 }
 
-void CUCode_AXWii::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 updates_addr)
+void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 updates_addr)
 {
 	u16* pb_mem = (u16*)&pb;
 
@@ -424,7 +424,7 @@ void CUCode_AXWii::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 upda
 	pb_mem[45] = updates_addr & 0xFFFF;
 }
 
-void CUCode_AXWii::ProcessPBList(u32 pb_addr)
+void AXWiiUCode::ProcessPBList(u32 pb_addr)
 {
 	AXPBWii pb;
 
@@ -486,7 +486,7 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 	}
 }
 
-void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume)
+void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume)
 {
 	u16 volume_ramp[96];
 	GenerateVolumeRamp(volume_ramp, m_last_aux_volumes[aux_id], volume, 96);
@@ -540,7 +540,7 @@ void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 
 		}
 }
 
-void CUCode_AXWii::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
+void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
 {
 	int* aux_left = aux_id ? m_samples_auxB_left : m_samples_auxA_left;
 	int* aux_right = aux_id ? m_samples_auxB_right : m_samples_auxA_right;
@@ -584,7 +584,7 @@ void CUCode_AXWii::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
 	}
 }
 
-void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume,
+void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume,
                                  bool upload_auxc)
 {
 	u16 volume_ramp[96];
@@ -637,7 +637,7 @@ void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume,
 	// sounds to go at half speed. I have no idea why.
 }
 
-void CUCode_AXWii::OutputWMSamples(u32* addresses)
+void AXWiiUCode::OutputWMSamples(u32* addresses)
 {
 	int* buffers[] = {
 		m_samples_wm0,
@@ -659,12 +659,12 @@ void CUCode_AXWii::OutputWMSamples(u32* addresses)
 	}
 }
 
-u32 CUCode_AXWii::GetUpdateMs()
+u32 AXWiiUCode::GetUpdateMs()
 {
 	return 3;
 }
 
-void CUCode_AXWii::DoState(PointerWrap &p)
+void AXWiiUCode::DoState(PointerWrap &p)
 {
 	DoStateShared(p);
 	DoAXState(p);

@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
+#include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 // We can't directly use the mixer_control field from the PB because it does
@@ -49,11 +49,11 @@ enum AXMixControl
 	MIX_AUXC_S_RAMP = 0x800000
 };
 
-class CUCode_AX : public IUCode
+class AXUCode : public UCodeInterface
 {
 public:
-	CUCode_AX(DSPHLE* dsp_hle, u32 crc);
-	virtual ~CUCode_AX();
+	AXUCode(DSPHLE* dsp_hle, u32 crc);
+	virtual ~AXUCode();
 
 	virtual void HandleMail(u32 mail) override;
 	virtual void Update(int cycles) override;

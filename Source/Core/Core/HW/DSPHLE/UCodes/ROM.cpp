@@ -10,11 +10,11 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_ROM.h"
+#include "Core/HW/DSPHLE/UCodes/ROM.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-CUCode_Rom::CUCode_Rom(DSPHLE *dsp_hle, u32 crc)
-	: IUCode(dsp_hle, crc)
+ROMUCode::ROMUCode(DSPHLE *dsp_hle, u32 crc)
+	: UCodeInterface(dsp_hle, crc)
 	, m_CurrentUCode()
 	, m_BootTask_numSteps(0)
 	, m_NextParameter(0)
@@ -24,13 +24,13 @@ CUCode_Rom::CUCode_Rom(DSPHLE *dsp_hle, u32 crc)
 	m_rMailHandler.PushMail(0x8071FEED);
 }
 
-CUCode_Rom::~CUCode_Rom()
+ROMUCode::~ROMUCode()
 {}
 
-void CUCode_Rom::Update(int cycles)
+void ROMUCode::Update(int cycles)
 {}
 
-void CUCode_Rom::HandleMail(u32 _uMail)
+void ROMUCode::HandleMail(u32 _uMail)
 {
 	if (m_NextParameter == 0)
 	{
@@ -82,7 +82,7 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 	}
 }
 
-void CUCode_Rom::BootUCode()
+void ROMUCode::BootUCode()
 {
 	u32 ector_crc = HashEctor(
 		(u8*)HLEMemory_Get_Pointer(m_CurrentUCode.m_RAMAddress),
@@ -107,12 +107,12 @@ void CUCode_Rom::BootUCode()
 	m_DSPHLE->SetUCode(ector_crc);
 }
 
-u32 CUCode_Rom::GetUpdateMs()
+u32 ROMUCode::GetUpdateMs()
 {
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void CUCode_Rom::DoState(PointerWrap &p)
+void ROMUCode::DoState(PointerWrap &p)
 {
 	p.Do(m_CurrentUCode);
 	p.Do(m_BootTask_numSteps);

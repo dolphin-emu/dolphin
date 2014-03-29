@@ -4,21 +4,21 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_GBA.h"
+#include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-CUCode_GBA::CUCode_GBA(DSPHLE *dsp_hle, u32 crc)
-: IUCode(dsp_hle, crc)
+GBAUCode::GBAUCode(DSPHLE *dsp_hle, u32 crc)
+: UCodeInterface(dsp_hle, crc)
 {
 	m_rMailHandler.PushMail(DSP_INIT);
 }
 
-CUCode_GBA::~CUCode_GBA()
+GBAUCode::~GBAUCode()
 {
 	m_rMailHandler.Clear();
 }
 
-void CUCode_GBA::Update(int cycles)
+void GBAUCode::Update(int cycles)
 {
 	// check if we have to send something
 	if (!m_rMailHandler.IsEmpty())
@@ -27,12 +27,12 @@ void CUCode_GBA::Update(int cycles)
 	}
 }
 
-u32 CUCode_GBA::GetUpdateMs()
+u32 GBAUCode::GetUpdateMs()
 {
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void CUCode_GBA::HandleMail(u32 _uMail)
+void GBAUCode::HandleMail(u32 _uMail)
 {
 	static bool nextmail_is_mramaddr = false;
 	static bool calc_done = false;
@@ -136,12 +136,12 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 			m_DSPHLE->SetUCode(UCODE_ROM);
 			break;
 		default:
-			DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown 0xcdd1 command: %08x", _uMail);
+			DEBUG_LOG(DSPHLE, "GBAUCode - unknown 0xcdd1 command: %08x", _uMail);
 			break;
 		}
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown command: %08x", _uMail);
+		DEBUG_LOG(DSPHLE, "GBAUCode - unknown command: %08x", _uMail);
 	}
 }

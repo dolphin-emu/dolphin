@@ -67,17 +67,17 @@ set(SRCS	ActionReplay.cpp
 			HW/AudioInterface.cpp
 			HW/CPU.cpp
 			HW/DSP.cpp
-			HW/DSPHLE/UCodes/UCode_AX.cpp
-			HW/DSPHLE/UCodes/UCode_AXWii.cpp
-			HW/DSPHLE/UCodes/UCode_CARD.cpp
-			HW/DSPHLE/UCodes/UCode_InitAudioSystem.cpp
-			HW/DSPHLE/UCodes/UCode_ROM.cpp
+			HW/DSPHLE/UCodes/AX.cpp
+			HW/DSPHLE/UCodes/AXWii.cpp
+			HW/DSPHLE/UCodes/CARD.cpp
+			HW/DSPHLE/UCodes/GBA.cpp
+			HW/DSPHLE/UCodes/INIT.cpp
+			HW/DSPHLE/UCodes/ROM.cpp
 			HW/DSPHLE/UCodes/UCodes.cpp
-			HW/DSPHLE/UCodes/UCode_GBA.cpp
-			HW/DSPHLE/UCodes/UCode_Zelda.cpp
-			HW/DSPHLE/UCodes/UCode_Zelda_ADPCM.cpp
-			HW/DSPHLE/UCodes/UCode_Zelda_Voice.cpp
-			HW/DSPHLE/UCodes/UCode_Zelda_Synth.cpp
+			HW/DSPHLE/UCodes/Zelda.cpp
+			HW/DSPHLE/UCodes/ZeldaADPCM.cpp
+			HW/DSPHLE/UCodes/ZeldaSynth.cpp
+			HW/DSPHLE/UCodes/ZeldaVoice.cpp
 			HW/DSPHLE/MailHandler.cpp
 			HW/DSPHLE/DSPHLE.cpp
 			HW/DSPLLE/DSPDebugInterface.cpp

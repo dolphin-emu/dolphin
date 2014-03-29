@@ -6,11 +6,11 @@
 
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-class CUCode_InitAudioSystem : public IUCode
+class INITUCode : public UCodeInterface
 {
 public:
-	CUCode_InitAudioSystem(DSPHLE *dsp_hle, u32 crc);
-	virtual ~CUCode_InitAudioSystem();
+	INITUCode(DSPHLE *dsp_hle, u32 crc);
+	virtual ~INITUCode();
 	u32 GetUpdateMs() override;
 
 	void HandleMail(u32 _uMail) override;

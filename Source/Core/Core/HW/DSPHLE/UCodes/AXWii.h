@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
+#include "Core/HW/DSPHLE/UCodes/AX.h"
 
-class CUCode_AXWii : public CUCode_AX
+class AXWiiUCode : public AXUCode
 {
 public:
-	CUCode_AXWii(DSPHLE *dsp_hle, u32 _CRC);
-	virtual ~CUCode_AXWii();
+	AXWiiUCode(DSPHLE *dsp_hle, u32 _CRC);
+	virtual ~AXWiiUCode();
 	u32 GetUpdateMs() override;
 
 	virtual void DoState(PointerWrap &p) override;

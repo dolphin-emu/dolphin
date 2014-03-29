@@ -4,9 +4,9 @@
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
+#include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
-void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed short *out, short *histp, short *hist2p, int type)
+void ZeldaUCode::AFCdecodebuffer(const s16 *coef, const char *src, signed short *out, short *histp, short *hist2p, int type)
 {
 	// First 2 nibbles are ADPCM scale etc.
 	short delta = 1 << (((*src) >> 4) & 0xf);

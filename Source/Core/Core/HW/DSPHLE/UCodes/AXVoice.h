@@ -9,7 +9,7 @@
 #pragma once
 
 #if !defined(AX_GC) && !defined(AX_WII)
-#error UCode_AX_Voice.h included without specifying version
+#error AXVoice.h included without specifying version
 #endif
 
 #include <functional>
@@ -18,8 +18,8 @@
 #include "Common/MathUtil.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
-#include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
+#include "Core/HW/DSPHLE/UCodes/AX.h"
+#include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 
 #ifdef AX_GC
 # define PB_TYPE AXPB

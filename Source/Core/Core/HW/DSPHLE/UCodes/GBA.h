@@ -6,10 +6,10 @@
 
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-struct CUCode_GBA : public IUCode
+struct GBAUCode : public UCodeInterface
 {
-	CUCode_GBA(DSPHLE *dsp_hle, u32 crc);
-	virtual ~CUCode_GBA();
+	GBAUCode(DSPHLE *dsp_hle, u32 crc);
+	virtual ~GBAUCode();
 	u32 GetUpdateMs() override;
 
 	void HandleMail(u32 _uMail) override;

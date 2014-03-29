@@ -114,11 +114,11 @@ union ZeldaUnkPB
 	u16 raw[16];
 };
 
-class CUCode_Zelda : public IUCode
+class ZeldaUCode : public UCodeInterface
 {
 public:
-	CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC);
-	virtual ~CUCode_Zelda();
+	ZeldaUCode(DSPHLE *dsp_hle, u32 _CRC);
+	virtual ~ZeldaUCode();
 	u32 GetUpdateMs() override;
 
 	void HandleMail(u32 _uMail) override;

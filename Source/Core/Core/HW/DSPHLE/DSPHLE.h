@@ -10,7 +10,7 @@
 #include "Core/DSPEmulator.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 
-class IUCode;
+class UCodeInterface;
 
 class DSPHLE : public DSPEmulator {
 public:
@@ -38,7 +38,7 @@ public:
 	CMailHandler& AccessMailHandler() { return m_MailHandler; }
 
 	// Formerly DSPHandler
-	IUCode *GetUCode();
+	UCodeInterface *GetUCode();
 	void SetUCode(u32 _crc);
 	void SwapUCode(u32 _crc);
 
@@ -70,8 +70,8 @@ private:
 	};
 	DSPState m_dspState;
 
-	IUCode* m_pUCode;
-	IUCode* m_lastUCode;
+	UCodeInterface* m_pUCode;
+	UCodeInterface* m_lastUCode;
 
 	UDSPControl m_DSPControl;
 	CMailHandler m_MailHandler;
