@@ -15,8 +15,8 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 
-AXWiiUCode::AXWiiUCode(DSPHLE *dsp_hle, u32 l_CRC)
-	: AXUCode(dsp_hle, l_CRC),
+AXWiiUCode::AXWiiUCode(DSPHLE *dsphle, u32 crc)
+	: AXUCode(dsphle, crc),
 	  m_last_main_volume(0x8000)
 {
 	for (u16& volume : m_last_aux_volumes)
@@ -24,7 +24,7 @@ AXWiiUCode::AXWiiUCode(DSPHLE *dsp_hle, u32 l_CRC)
 
 	WARN_LOG(DSPHLE, "Instantiating AXWiiUCode");
 
-	m_old_axwii = (l_CRC == 0xfa450138);
+	m_old_axwii = (crc == 0xfa450138);
 }
 
 AXWiiUCode::~AXWiiUCode()

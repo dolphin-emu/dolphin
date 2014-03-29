@@ -52,7 +52,7 @@ enum AXMixControl
 class AXUCode : public UCodeInterface
 {
 public:
-	AXUCode(DSPHLE* dsp_hle, u32 crc);
+	AXUCode(DSPHLE* dsphle, u32 crc);
 	virtual ~AXUCode();
 
 	virtual void HandleMail(u32 mail) override;

@@ -12,8 +12,8 @@
 #define AX_GC
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 
-AXUCode::AXUCode(DSPHLE* dsp_hle, u32 crc)
-	: UCodeInterface(dsp_hle, crc)
+AXUCode::AXUCode(DSPHLE* dsphle, u32 crc)
+	: UCodeInterface(dsphle, crc)
 	, m_work_available(false)
 	, m_cmdlist_size(0)
 {
