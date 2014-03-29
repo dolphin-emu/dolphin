@@ -7,17 +7,18 @@
 #endif
 
 #include "Common/Hash.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/DSPHLE/UCodes/ROM.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-ROMUCode::ROMUCode(DSPHLE *dsp_hle, u32 crc)
-	: UCodeInterface(dsp_hle, crc)
-	, m_CurrentUCode()
-	, m_BootTask_numSteps(0)
-	, m_NextParameter(0)
+ROMUCode::ROMUCode(DSPHLE *dsphle, u32 crc)
+	: UCodeInterface(dsphle, crc)
+	, m_current_ucode()
+	, m_boot_task_num_steps(0)
+	, m_next_parameter(0)
 {
 	DEBUG_LOG(DSPHLE, "UCode_Rom - initialized");
 	m_mail_handler.Clear();
@@ -30,46 +31,46 @@ ROMUCode::~ROMUCode()
 void ROMUCode::Update(int cycles)
 {}
 
-void ROMUCode::HandleMail(u32 _uMail)
+void ROMUCode::HandleMail(u32 mail)
 {
-	if (m_NextParameter == 0)
+	if (m_next_parameter == 0)
 	{
 		// wait for beginning of UCode
-		if ((_uMail & 0xFFFF0000) != 0x80F30000)
+		if ((mail & 0xFFFF0000) != 0x80F30000)
 		{
-			u32 Message = 0xFEEE0000 | (_uMail & 0xFFFF);
+			u32 Message = 0xFEEE0000 | (mail & 0xFFFF);
 			m_mail_handler.PushMail(Message);
 		}
 		else
 		{
-			m_NextParameter = _uMail;
+			m_next_parameter = mail;
 		}
 	}
 	else
 	{
-		switch (m_NextParameter)
+		switch (m_next_parameter)
 		{
 			case 0x80F3A001:
-				m_CurrentUCode.m_RAMAddress = _uMail;
+				m_current_ucode.m_ram_address = mail;
 				break;
 
 			case 0x80F3A002:
-				m_CurrentUCode.m_Length = _uMail & 0xffff;
+				m_current_ucode.m_length = mail & 0xffff;
 				break;
 
 			case 0x80F3B002:
-				m_CurrentUCode.m_DMEMLength = _uMail & 0xffff;
-				if (m_CurrentUCode.m_DMEMLength) {
-					NOTICE_LOG(DSPHLE,"m_CurrentUCode.m_DMEMLength = 0x%04x.", m_CurrentUCode.m_DMEMLength);
+				m_current_ucode.m_dmem_length = mail & 0xffff;
+				if (m_current_ucode.m_dmem_length) {
+					NOTICE_LOG(DSPHLE,"m_current_ucode.m_dmem_length = 0x%04x.", m_current_ucode.m_dmem_length);
 				}
 				break;
 
 			case 0x80F3C002:
-				m_CurrentUCode.m_IMEMAddress = _uMail & 0xffff;
+				m_current_ucode.m_imem_address = mail & 0xffff;
 				break;
 
 			case 0x80F3D001:
-				m_CurrentUCode.m_StartPC = _uMail & 0xffff;
+				m_current_ucode.m_start_pc = mail & 0xffff;
 				BootUCode();
 				return;  // Important! BootUCode indirectly does "delete this;". Must exit immediately.
 
@@ -78,29 +79,33 @@ void ROMUCode::HandleMail(u32 _uMail)
 		}
 
 		// THE GODDAMN OVERWRITE WAS HERE. Without the return above, since BootUCode may delete "this", well ...
-		m_NextParameter = 0;
+		m_next_parameter = 0;
 	}
 }
 
 void ROMUCode::BootUCode()
 {
 	u32 ector_crc = HashEctor(
-		(u8*)HLEMemory_Get_Pointer(m_CurrentUCode.m_RAMAddress),
-		m_CurrentUCode.m_Length);
+		(u8*)HLEMemory_Get_Pointer(m_current_ucode.m_ram_address),
+		m_current_ucode.m_length);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	char binFile[MAX_PATH];
-	sprintf(binFile, "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
+	std::string ucode_dump_path = StringFromFormat(
+		"%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
 
-	File::IOFile pFile(binFile, "wb");
-	pFile.WriteArray((u8*)Memory::GetPointer(m_CurrentUCode.m_RAMAddress), m_CurrentUCode.m_Length);
+	File::IOFile fp(ucode_dump_path, "wb");
+	if (fp)
+	{
+		fp.WriteArray((u8*)HLEMemory_Get_Pointer(m_current_ucode.m_ram_address),
+		              m_current_ucode.m_length);
+	}
 #endif
 
-	DEBUG_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_CurrentUCode.m_RAMAddress);
-	DEBUG_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_CurrentUCode.m_Length);
-	DEBUG_LOG(DSPHLE, "CurrentUCode DEST Addr:   0x%08x", m_CurrentUCode.m_IMEMAddress);
-	DEBUG_LOG(DSPHLE, "CurrentUCode DMEM Length: 0x%08x", m_CurrentUCode.m_DMEMLength);
-	DEBUG_LOG(DSPHLE, "CurrentUCode init_vector: 0x%08x", m_CurrentUCode.m_StartPC);
+	DEBUG_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_current_ucode.m_ram_address);
+	DEBUG_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_current_ucode.m_length);
+	DEBUG_LOG(DSPHLE, "CurrentUCode DEST Addr:   0x%08x", m_current_ucode.m_imem_address);
+	DEBUG_LOG(DSPHLE, "CurrentUCode DMEM Length: 0x%08x", m_current_ucode.m_dmem_length);
+	DEBUG_LOG(DSPHLE, "CurrentUCode init_vector: 0x%08x", m_current_ucode.m_start_pc);
 	DEBUG_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", ector_crc);
 	DEBUG_LOG(DSPHLE, "BootTask - done");
 
@@ -114,9 +119,9 @@ u32 ROMUCode::GetUpdateMs()
 
 void ROMUCode::DoState(PointerWrap &p)
 {
-	p.Do(m_CurrentUCode);
-	p.Do(m_BootTask_numSteps);
-	p.Do(m_NextParameter);
+	p.Do(m_current_ucode);
+	p.Do(m_boot_task_num_steps);
+	p.Do(m_next_parameter);
 
 	DoStateShared(p);
 }
