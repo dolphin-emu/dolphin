@@ -995,7 +995,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			// executed. We write 8 which is not any valid command, and what IOS does
 			Memory::Write_U32(8, _CommandAddress);
 			// IOS seems to write back the command that was responded to
-			Memory::Write_U32(7, _CommandAddress + 8);
+			Memory::Write_U32(/*COMMAND_IOCTLV*/ 7, _CommandAddress + 8);
 
 			// Generate a reply to the IPC command
 			WII_IPC_HLE_Interface::EnqReply(_CommandAddress, 0);
