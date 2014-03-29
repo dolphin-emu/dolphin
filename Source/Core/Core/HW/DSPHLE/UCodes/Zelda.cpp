@@ -13,9 +13,9 @@
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
 
-CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
+ZeldaUCode::ZeldaUCode(DSPHLE *dsp_hle, u32 _CRC)
 	:
-	IUCode(dsp_hle, _CRC),
+	UCodeInterface(dsp_hle, _CRC),
 
 	m_bSyncInProgress(false),
 	m_MaxVoice(0),
@@ -76,7 +76,7 @@ CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
 	memset(m_PBMask, 0, sizeof(m_PBMask));
 }
 
-CUCode_Zelda::~CUCode_Zelda()
+ZeldaUCode::~ZeldaUCode()
 {
 	m_rMailHandler.Clear();
 
@@ -86,7 +86,7 @@ CUCode_Zelda::~CUCode_Zelda()
 	delete [] m_RightBuffer;
 }
 
-u8 *CUCode_Zelda::GetARAMPointer(u32 address)
+u8 *ZeldaUCode::GetARAMPointer(u32 address)
 {
 	if (IsDMAVersion())
 		return Memory::GetPointer(m_DMABaseAddr) + address;
@@ -94,7 +94,7 @@ u8 *CUCode_Zelda::GetARAMPointer(u32 address)
 		return DSP::GetARAMPtr() + address;
 }
 
-void CUCode_Zelda::Update(int cycles)
+void ZeldaUCode::Update(int cycles)
 {
 	if (!IsLightVersion())
 	{
@@ -109,7 +109,7 @@ void CUCode_Zelda::Update(int cycles)
 	}
 }
 
-void CUCode_Zelda::HandleMail(u32 _uMail)
+void ZeldaUCode::HandleMail(u32 _uMail)
 {
 	if (IsLightVersion())
 		HandleMail_LightVersion(_uMail);
@@ -119,7 +119,7 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 		HandleMail_NormalVersion(_uMail);
 }
 
-void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
+void ZeldaUCode::HandleMail_LightVersion(u32 _uMail)
 {
 	//ERROR_LOG(DSPHLE, "Light version mail %08X, list in progress: %s, step: %i/%i",
 	// _uMail, m_bListInProgress ? "yes":"no", m_step, m_numSteps);
@@ -173,7 +173,7 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 	}
 }
 
-void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
+void ZeldaUCode::HandleMail_SMSVersion(u32 _uMail)
 {
 	if (m_bSyncInProgress)
 	{
@@ -270,7 +270,7 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 	}
 }
 
-void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
+void ZeldaUCode::HandleMail_NormalVersion(u32 _uMail)
 {
 	// WARN_LOG(DSPHLE, "Zelda uCode: Handle mail %08X", _uMail);
 
@@ -390,7 +390,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 }
 
 // zelda debug ..803F6418
-void CUCode_Zelda::ExecuteList()
+void ZeldaUCode::ExecuteList()
 {
 	// begin with the list
 	m_readOffset = 0;
@@ -526,12 +526,12 @@ void CUCode_Zelda::ExecuteList()
 	}
 }
 
-u32 CUCode_Zelda::GetUpdateMs()
+u32 ZeldaUCode::GetUpdateMs()
 {
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void CUCode_Zelda::DoState(PointerWrap &p)
+void ZeldaUCode::DoState(PointerWrap &p)
 {
 	p.Do(m_AFCCoefTable);
 	p.Do(m_MiscTable);

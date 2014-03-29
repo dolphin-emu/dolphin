@@ -6,11 +6,11 @@
 
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-class CUCode_Rom : public IUCode
+class ROMUCode : public UCodeInterface
 {
 public:
-	CUCode_Rom(DSPHLE *dsp_hle, u32 _crc);
-	virtual ~CUCode_Rom();
+	ROMUCode(DSPHLE *dsp_hle, u32 _crc);
+	virtual ~ROMUCode();
 	u32 GetUpdateMs() override;
 
 	void HandleMail(u32 _uMail) override;

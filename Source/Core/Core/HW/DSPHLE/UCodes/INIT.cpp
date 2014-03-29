@@ -6,24 +6,24 @@
 #include "Core/HW/DSPHLE/UCodes/INIT.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-CUCode_InitAudioSystem::CUCode_InitAudioSystem(DSPHLE *dsp_hle, u32 crc)
-	: IUCode(dsp_hle, crc)
+INITUCode::INITUCode(DSPHLE *dsp_hle, u32 crc)
+	: UCodeInterface(dsp_hle, crc)
 {
-	DEBUG_LOG(DSPHLE, "CUCode_InitAudioSystem - initialized");
+	DEBUG_LOG(DSPHLE, "INITUCode - initialized");
 }
 
 
-CUCode_InitAudioSystem::~CUCode_InitAudioSystem()
-{
-}
-
-
-void CUCode_InitAudioSystem::Init()
+INITUCode::~INITUCode()
 {
 }
 
 
-void CUCode_InitAudioSystem::Update(int cycles)
+void INITUCode::Init()
+{
+}
+
+
+void INITUCode::Update(int cycles)
 {
 	if (m_rMailHandler.IsEmpty())
 	{
@@ -32,12 +32,12 @@ void CUCode_InitAudioSystem::Update(int cycles)
 	}
 }
 
-u32 CUCode_InitAudioSystem::GetUpdateMs()
+u32 INITUCode::GetUpdateMs()
 {
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void CUCode_InitAudioSystem::HandleMail(u32 _uMail)
+void INITUCode::HandleMail(u32 _uMail)
 {
 }
 

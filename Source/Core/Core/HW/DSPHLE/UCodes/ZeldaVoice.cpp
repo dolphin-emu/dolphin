@@ -11,7 +11,7 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
-void CUCode_Zelda::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
+void ZeldaUCode::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {
 	u16 *memory = (u16*)Memory::GetPointer(_Addr);
 
@@ -30,7 +30,7 @@ void CUCode_Zelda::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 	PB.UnkAddr = (PB.UnkAddr << 16) | (PB.UnkAddr >> 16);
 }
 
-void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
+void ZeldaUCode::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {
 	u16 *memory = (u16*)Memory::GetPointer(_Addr);
 
@@ -45,12 +45,12 @@ void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 		memory[i] = Common::swap16(((u16*)&PB)[i]);
 }
 
-int CUCode_Zelda::ConvertRatio(int pb_ratio)
+int ZeldaUCode::ConvertRatio(int pb_ratio)
 {
 	return pb_ratio * 16;
 }
 
-int CUCode_Zelda::SizeForResampling(ZeldaVoicePB &PB, int size, int ratio) {
+int ZeldaUCode::SizeForResampling(ZeldaVoicePB &PB, int size, int ratio) {
 	// This is the little calculation at the start of every sample decoder
 	// in the ucode.
 	return (PB.CurSampleFrac + size * ConvertRatio(PB.RatioInt)) >> 16;
@@ -59,7 +59,7 @@ int CUCode_Zelda::SizeForResampling(ZeldaVoicePB &PB, int size, int ratio) {
 // Simple resampler, linear interpolation.
 // Any future state should be stored in PB.raw[0x3c to 0x3f].
 // In must point 4 samples into a buffer.
-void CUCode_Zelda::Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do_resample)
+void ZeldaUCode::Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do_resample)
 {
 	if (!do_resample)
 	{
@@ -98,7 +98,7 @@ void UpdateSampleCounters10(ZeldaVoicePB &PB)
 	PB.ReachedEnd = 0;
 }
 
-void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
+void ZeldaUCode::RenderVoice_PCM16(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
 	u32 rem_samples = _RealSize;
@@ -156,7 +156,7 @@ void UpdateSampleCounters8(ZeldaVoicePB &PB)
 	PB.ReachedEnd = 0;
 }
 
-void CUCode_Zelda::RenderVoice_PCM8(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
+void ZeldaUCode::RenderVoice_PCM8(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
 	u32 rem_samples = _RealSize;
@@ -231,7 +231,7 @@ void PrintObject(const T &Obj)
 	DEBUG_LOG(DSPHLE, "AFC PB:%s", ss.str().c_str());
 }
 
-void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
+void ZeldaUCode::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	// TODO: Compare mono, stereo and surround samples
 #if defined DEBUG || defined DEBUGFAST
@@ -379,7 +379,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer);
 // 0x21 seems to really just be reading raw 16-bit audio from RAM (not ARAM).
 // The rules seem to be quite different, though.
 // It's used for streaming, not for one-shot or looped sample playback.
-void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
+void ZeldaUCode::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	// Decoder0x21 starts here.
 	u32 _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
@@ -471,7 +471,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
 }
 
 
-void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)
+void ZeldaUCode::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)
 {
 	if (PB.IsBlank)
 	{
@@ -735,7 +735,7 @@ ContinueWithBlock:
 	}
 }
 
-void CUCode_Zelda::MixAudio()
+void ZeldaUCode::MixAudio()
 {
 	const int BufferSamples = 5 * 16;
 

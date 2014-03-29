@@ -9,21 +9,21 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 
-CUCode_CARD::CUCode_CARD(DSPHLE *dsp_hle, u32 crc)
-	: IUCode(dsp_hle, crc)
+CARDUCode::CARDUCode(DSPHLE *dsp_hle, u32 crc)
+	: UCodeInterface(dsp_hle, crc)
 {
-	DEBUG_LOG(DSPHLE, "CUCode_CARD - initialized");
+	DEBUG_LOG(DSPHLE, "CARDUCode - initialized");
 	m_rMailHandler.PushMail(DSP_INIT);
 }
 
 
-CUCode_CARD::~CUCode_CARD()
+CARDUCode::~CARDUCode()
 {
 	m_rMailHandler.Clear();
 }
 
 
-void CUCode_CARD::Update(int cycles)
+void CARDUCode::Update(int cycles)
 {
 	// check if we have to sent something
 	if (!m_rMailHandler.IsEmpty())
@@ -32,12 +32,12 @@ void CUCode_CARD::Update(int cycles)
 	}
 }
 
-u32 CUCode_CARD::GetUpdateMs()
+u32 CARDUCode::GetUpdateMs()
 {
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void CUCode_CARD::HandleMail(u32 _uMail)
+void CARDUCode::HandleMail(u32 _uMail)
 {
 	if (_uMail == 0xFF000000) // unlock card
 	{
@@ -45,7 +45,7 @@ void CUCode_CARD::HandleMail(u32 _uMail)
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "CUCode_CARD - unknown command: %x", _uMail);
+		DEBUG_LOG(DSPHLE, "CARDUCode - unknown command: %x", _uMail);
 	}
 
 	m_rMailHandler.PushMail(DSP_DONE);

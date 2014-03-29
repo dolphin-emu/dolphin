@@ -1,6 +1,6 @@
 
 #if 0
-void CUCode_Zelda::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _Size)
+void ZeldaUCode::UpdatePB(ZPB& _rPB, int *templbuffer, int *temprbuffer, u32 _Size)
 {
     u16* pTest = (u16*)&_rPB;
 

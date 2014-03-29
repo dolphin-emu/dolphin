@@ -12,24 +12,24 @@
 #define AX_GC
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 
-CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
-	: IUCode(dsp_hle, crc)
+AXUCode::AXUCode(DSPHLE* dsp_hle, u32 crc)
+	: UCodeInterface(dsp_hle, crc)
 	, m_work_available(false)
 	, m_cmdlist_size(0)
 {
-	WARN_LOG(DSPHLE, "Instantiating CUCode_AX: crc=%08x", crc);
+	WARN_LOG(DSPHLE, "Instantiating AXUCode: crc=%08x", crc);
 	m_rMailHandler.PushMail(DSP_INIT);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
 	LoadResamplingCoefficients();
 }
 
-CUCode_AX::~CUCode_AX()
+AXUCode::~AXUCode()
 {
 	m_rMailHandler.Clear();
 }
 
-void CUCode_AX::LoadResamplingCoefficients()
+void AXUCode::LoadResamplingCoefficients()
 {
 	m_coeffs_available = false;
 
@@ -66,14 +66,14 @@ void CUCode_AX::LoadResamplingCoefficients()
 	m_coeffs_available = true;
 }
 
-void CUCode_AX::SignalWorkEnd()
+void AXUCode::SignalWorkEnd()
 {
 	// Signal end of processing
 	m_rMailHandler.PushMail(DSP_YIELD);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
-void CUCode_AX::HandleCommandList()
+void AXUCode::HandleCommandList()
 {
 	// Temp variables for addresses computation
 	u16 addr_hi, addr_lo;
@@ -250,7 +250,7 @@ void CUCode_AX::HandleCommandList()
 	}
 }
 
-void CUCode_AX::ApplyUpdatesForMs(int curr_ms, u16* pb, u16* num_updates, u16* updates)
+void AXUCode::ApplyUpdatesForMs(int curr_ms, u16* pb, u16* num_updates, u16* updates)
 {
 	u32 start_idx = 0;
 	for (int i = 0; i < curr_ms; ++i)
@@ -265,7 +265,7 @@ void CUCode_AX::ApplyUpdatesForMs(int curr_ms, u16* pb, u16* num_updates, u16* u
 	}
 }
 
-AXMixControl CUCode_AX::ConvertMixerControl(u32 mixer_control)
+AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
 {
 	u32 ret = 0;
 
@@ -313,7 +313,7 @@ AXMixControl CUCode_AX::ConvertMixerControl(u32 mixer_control)
 	return (AXMixControl)ret;
 }
 
-void CUCode_AX::SetupProcessing(u32 init_addr)
+void AXUCode::SetupProcessing(u32 init_addr)
 {
 	u16 init_data[0x20];
 
@@ -356,7 +356,7 @@ void CUCode_AX::SetupProcessing(u32 init_addr)
 	}
 }
 
-void CUCode_AX::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb)
+void AXUCode::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb)
 {
 	int* buffers_main[3] = { m_samples_left, m_samples_right, m_samples_surround };
 	int* buffers_auxa[3] = { m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround };
@@ -381,7 +381,7 @@ void CUCode_AX::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u
 	}
 }
 
-void CUCode_AX::ProcessPBList(u32 pb_addr)
+void AXUCode::ProcessPBList(u32 pb_addr)
 {
 	// Samples per millisecond. In theory DSP sampling rate can be changed from
 	// 32KHz to 48KHz, but AX always process at 32KHz.
@@ -426,7 +426,7 @@ void CUCode_AX::ProcessPBList(u32 pb_addr)
 	}
 }
 
-void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
+void AXUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 {
 	int* buffers[3] = { nullptr };
 
@@ -465,7 +465,7 @@ void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 		sample += (int)Common::swap32(*ptr++);
 }
 
-void CUCode_AX::UploadLRS(u32 dst_addr)
+void AXUCode::UploadLRS(u32 dst_addr)
 {
 	int buffers[3][5 * 32];
 
@@ -478,7 +478,7 @@ void CUCode_AX::UploadLRS(u32 dst_addr)
 	memcpy(HLEMemory_Get_Pointer(dst_addr), buffers, sizeof (buffers));
 }
 
-void CUCode_AX::SetMainLR(u32 src_addr)
+void AXUCode::SetMainLR(u32 src_addr)
 {
 	int* ptr = (int*)HLEMemory_Get_Pointer(src_addr);
 	for (u32 i = 0; i < 5 * 32; ++i)
@@ -490,7 +490,7 @@ void CUCode_AX::SetMainLR(u32 src_addr)
 	}
 }
 
-void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
+void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
 {
 	int surround_buffer[5 * 32];
 
@@ -517,7 +517,7 @@ void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
 	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
 }
 
-void CUCode_AX::MixAUXBLR(u32 ul_addr, u32 dl_addr)
+void AXUCode::MixAUXBLR(u32 ul_addr, u32 dl_addr)
 {
 	// Upload AUXB L/R
 	int* ptr = (int*)HLEMemory_Get_Pointer(ul_addr);
@@ -542,7 +542,7 @@ void CUCode_AX::MixAUXBLR(u32 ul_addr, u32 dl_addr)
 	}
 }
 
-void CUCode_AX::SetOppositeLR(u32 src_addr)
+void AXUCode::SetOppositeLR(u32 src_addr)
 {
 	int* ptr = (int*)HLEMemory_Get_Pointer(src_addr);
 	for (u32 i = 0; i < 5 * 32; ++i)
@@ -554,7 +554,7 @@ void CUCode_AX::SetOppositeLR(u32 src_addr)
 	}
 }
 
-void CUCode_AX::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
+void AXUCode::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
                               u32 main_r_dl, u32 auxb_l_dl, u32 auxb_r_dl)
 {
 	// Buffers to upload first
@@ -598,7 +598,7 @@ void CUCode_AX::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
 	}
 }
 
-void CUCode_AX::HandleMail(u32 mail)
+void AXUCode::HandleMail(u32 mail)
 {
 	// Indicates if the next message is a command list address.
 	static bool next_is_cmdlist = false;
@@ -648,7 +648,7 @@ void CUCode_AX::HandleMail(u32 mail)
 	next_is_cmdlist = set_next_is_cmdlist;
 }
 
-void CUCode_AX::CopyCmdList(u32 addr, u16 size)
+void AXUCode::CopyCmdList(u32 addr, u16 size)
 {
 	if (size >= (sizeof (m_cmdlist) / sizeof (u16)))
 	{
@@ -661,7 +661,7 @@ void CUCode_AX::CopyCmdList(u32 addr, u16 size)
 	m_cmdlist_size = size;
 }
 
-void CUCode_AX::Update(int cycles)
+void AXUCode::Update(int cycles)
 {
 	// Used for UCode switching.
 	if (NeedsResumeMail())
@@ -677,12 +677,12 @@ void CUCode_AX::Update(int cycles)
 	}
 }
 
-u32 CUCode_AX::GetUpdateMs()
+u32 AXUCode::GetUpdateMs()
 {
 	return 5;
 }
 
-void CUCode_AX::DoAXState(PointerWrap& p)
+void AXUCode::DoAXState(PointerWrap& p)
 {
 	p.Do(m_cmdlist);
 	p.Do(m_cmdlist_size);
@@ -698,7 +698,7 @@ void CUCode_AX::DoAXState(PointerWrap& p)
 	p.Do(m_samples_auxB_surround);
 }
 
-void CUCode_AX::DoState(PointerWrap& p)
+void AXUCode::DoState(PointerWrap& p)
 {
 	DoStateShared(p);
 	DoAXState(p);

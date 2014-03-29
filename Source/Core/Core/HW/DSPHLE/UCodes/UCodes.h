@@ -57,10 +57,10 @@ inline void* HLEMemory_Get_Pointer(u32 _uAddress)
 		return &Memory::m_pRAM[_uAddress & Memory::RAM_MASK];
 }
 
-class IUCode
+class UCodeInterface
 {
 public:
-	IUCode(DSPHLE *dsphle, u32 _crc)
+	UCodeInterface(DSPHLE *dsphle, u32 _crc)
 		: m_rMailHandler(dsphle->AccessMailHandler())
 		, m_UploadSetupInProgress(false)
 		, m_DSPHLE(dsphle)
@@ -70,7 +70,7 @@ public:
 		, m_NeedsResumeMail(false)
 	{}
 
-	virtual ~IUCode()
+	virtual ~UCodeInterface()
 	{}
 
 	virtual void HandleMail(u32 _uMail) = 0;
@@ -81,7 +81,7 @@ public:
 
 	virtual void DoState(PointerWrap &p) { DoStateShared(p); }
 
-	static u32 GetCRC(IUCode* pUCode) { return pUCode ? pUCode->m_CRC : UCODE_NULL; }
+	static u32 GetCRC(UCodeInterface* pUCode) { return pUCode ? pUCode->m_CRC : UCODE_NULL; }
 
 protected:
 	void PrepareBootUCode(u32 mail);
@@ -106,7 +106,7 @@ protected:
 	};
 
 	// UCode is forwarding mails to PrepareBootUCode
-	// UCode only needs to set this to true, IUCode will set to false when done!
+	// UCode only needs to set this to true, UCodeInterface will set to false when done!
 	bool m_UploadSetupInProgress;
 
 	// Need a pointer back to DSPHLE to switch ucodes.
@@ -136,4 +136,4 @@ private:
 	bool m_NeedsResumeMail;
 };
 
-extern IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii);
+extern UCodeInterface* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii);
