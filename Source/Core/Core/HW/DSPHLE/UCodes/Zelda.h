@@ -117,14 +117,14 @@ union ZeldaUnkPB
 class ZeldaUCode : public UCodeInterface
 {
 public:
-	ZeldaUCode(DSPHLE *dsp_hle, u32 _CRC);
+	ZeldaUCode(DSPHLE *dsphle, u32 crc);
 	virtual ~ZeldaUCode();
 	u32 GetUpdateMs() override;
 
-	void HandleMail(u32 _uMail) override;
-	void HandleMail_LightVersion(u32 _uMail);
-	void HandleMail_SMSVersion(u32 _uMail);
-	void HandleMail_NormalVersion(u32 _uMail);
+	void HandleMail(u32 mail) override;
+	void HandleMail_LightVersion(u32 mail);
+	void HandleMail_SMSVersion(u32 mail);
+	void HandleMail_NormalVersion(u32 mail);
 	void Update(int cycles) override;
 
 	void CopyPBsFromRAM();
