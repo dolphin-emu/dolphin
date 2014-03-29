@@ -219,7 +219,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_FramesToRecordLabel->Wrap(-1);
 	sRecordingOptions->Add(m_FramesToRecordLabel, 0, wxALL, 5);
 
-	wxString initialNum = wxString::Format(_T("%d"), m_FramesToRecord);
+	wxString initialNum = wxString::Format("%d", m_FramesToRecord);
 	m_FramesToRecordCtrl = new wxSpinCtrl(m_RecordPage, wxID_ANY, initialNum, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 1);
 	sRecordingOptions->Add(m_FramesToRecordCtrl, 0, wxALL, 5);
 
@@ -406,7 +406,7 @@ void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 	if (file)
 	{
 		// Bring up a save file dialog. The location the user chooses will be assigned to this variable.
-		wxString path = wxSaveFileSelector(_("Dolphin FIFO"), wxT("dff"), wxEmptyString, this);
+		wxString path = wxSaveFileSelector(_("Dolphin FIFO"), "dff", wxEmptyString, this);
 
 		// Has a valid file path
 		if (!path.empty())
@@ -525,7 +525,7 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 
 	ChangeSearchResult(0);
 	m_beginSearch->Disable();
-	m_numResultsText->SetLabel(wxString::Format(_("Found %d results for \'"), search_results.size()) + m_searchField->GetValue() + _("\'"));
+	m_numResultsText->SetLabel(wxString::Format(_("Found %d results for \'"), search_results.size()) + m_searchField->GetValue() + "\'");
 }
 
 void FifoPlayerDlg::OnSearchFieldTextChanged(wxCommandEvent& event)
@@ -627,7 +627,7 @@ void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
 	{
 		int num_objects = player.GetAnalyzedFrameInfo(event.GetInt()).objectStarts.size();
 		for (int i = 0; i < num_objects; ++i)
-			m_objectsList->Append(wxString::Format(wxT("Object %i"), i));
+			m_objectsList->Append(wxString::Format("Object %i", i));
 	}
 
 	// Update object list
@@ -659,13 +659,13 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		int cmd = *objectdata++;
 		int stream_size = Common::swap16(objectdata);
 		objectdata += 2;
-		wxString newLabel = wxString::Format(wxT("%08X:  %02X %04X  "), obj_offset, cmd, stream_size);
+		wxString newLabel = wxString::Format("%08X:  %02X %04X  ", obj_offset, cmd, stream_size);
 		if (stream_size && ((objectdata_end - objectdata) % stream_size))
 			newLabel += _("NOTE: Stream size doesn't match actual data length\n");
 
 		while (objectdata < objectdata_end)
 		{
-			newLabel += wxString::Format(wxT("%02X"), *objectdata++);
+			newLabel += wxString::Format("%02X", *objectdata++);
 		}
 		m_objectCmdList->Append(newLabel);
 		m_objectCmdOffsets.push_back(0);
@@ -683,15 +683,15 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 				switch (command)
 				{
 				case GX_NOP:
-					newLabel = _("NOP");
+					newLabel = "NOP";
 					break;
 
 				case 0x44:
-					newLabel = _("0x44");
+					newLabel = "0x44";
 					break;
 
 				case GX_CMD_INVL_VC:
-					newLabel = _("GX_CMD_INVL_VC");
+					newLabel = "GX_CMD_INVL_VC";
 					break;
 
 				case GX_LOAD_CP_REG:
@@ -700,7 +700,7 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 						u32 value = Common::swap32(objectdata);
 						objectdata += 4;
 
-						newLabel = wxString::Format(wxT("CP  %02X  %08X"), cmd2, value);
+						newLabel = wxString::Format("CP  %02X  %08X", cmd2, value);
 					}
 					break;
 
@@ -714,11 +714,13 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 						const u8* stream_start = objectdata;
 						const u8* stream_end = stream_start + streamSize * 4;
 
-						newLabel = wxString::Format(wxT("XF  %08X  "), cmd2);
+						newLabel = wxString::Format("XF  %08X  ", cmd2);
 						while (objectdata < stream_end)
 						{
-							newLabel += wxString::Format(wxT("%02X"), *objectdata++);
-							if (((objectdata - stream_start) % 4) == 0) newLabel += wxT(" ");
+							newLabel += wxString::Format("%02X", *objectdata++);
+
+							if (((objectdata - stream_start) % 4) == 0)
+								newLabel += " ";
 						}
 					}
 					break;
@@ -728,9 +730,9 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 				case GX_LOAD_INDX_C:
 				case GX_LOAD_INDX_D:
 					objectdata += 4;
-					newLabel = wxString::Format(wxT("LOAD INDX %s"), (command == GX_LOAD_INDX_A) ? _("A") :
-																	(command == GX_LOAD_INDX_B) ? _("B") :
-																	(command == GX_LOAD_INDX_C) ? _("C") : _("D"));
+					newLabel = wxString::Format("LOAD INDX %s", (command == GX_LOAD_INDX_A) ? "A" :
+					                                            (command == GX_LOAD_INDX_B) ? "B" :
+					                                            (command == GX_LOAD_INDX_C) ? "C" : "D");
 					break;
 
 				case GX_CMD_CALL_DL:
@@ -738,14 +740,14 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 					// That is done to make it easier to track where memory is updated
 					_assert_(false);
 					objectdata += 8;
-					newLabel = wxString::Format(wxT("CALL DL"));
+					newLabel = wxString::Format("CALL DL");
 					break;
 
 				case GX_LOAD_BP_REG:
 					{
 						u32 cmd2 = Common::swap32(objectdata);
 						objectdata += 4;
-						newLabel = wxString::Format(wxT("BP  %02X %06X"), cmd2 >> 24, cmd2 & 0xFFFFFF);
+						newLabel = wxString::Format("BP  %02X %06X", cmd2 >> 24, cmd2 & 0xFFFFFF);
 					}
 					break;
 
@@ -754,7 +756,7 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 					objectdata = (u8*)next_objdata_start;
 					break;
 				}
-				newLabel = wxString::Format(_("%08X:  "), new_offset) + newLabel;
+				newLabel = wxString::Format("%08X:  ", new_offset) + newLabel;
 				m_objectCmdList->Append(newLabel);
 			}
 		}
@@ -791,18 +793,25 @@ void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
 		GetBPRegInfo(cmddata+1, name, sizeof(name), desc, sizeof(desc));
 		newLabel = _("BP register ");
 		newLabel += (name[0] != '\0') ? StrToWxStr(name) : wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1));
-		newLabel += wxT(":\n");
+		newLabel += ":\n";
+
 		if (desc[0] != '\0')
 			newLabel += StrToWxStr(desc);
 		else
 			newLabel += _("No description available");
 	}
 	else if (*cmddata == GX_LOAD_CP_REG)
-		newLabel = _("CP reg");
+	{
+		newLabel = _("CP register ");
+	}
 	else if (*cmddata == GX_LOAD_XF_REG)
-		newLabel = _("XF reg");
+	{
+		newLabel = _("XF register ");
+	}
 	else
+	{
 		newLabel = _("No description available");
+	}
 
 	m_objectCmdInfo->SetLabel(newLabel);
 	Layout();
@@ -879,7 +888,7 @@ void FifoPlayerDlg::UpdateAnalyzerGui()
 
 		for (size_t i = 0; i < num_frames; ++i)
 		{
-			m_framesList->Append(wxString::Format(wxT("Frame %i"), i));
+			m_framesList->Append(wxString::Format("Frame %i", i));
 		}
 
 		wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
@@ -903,7 +912,7 @@ wxString FifoPlayerDlg::CreateCurrentFrameLabel() const
 	FifoDataFile *file = FifoPlayer::GetInstance().GetFile();
 
 	if (file)
-		return _("Frame ") + wxString::Format(wxT("%i"), FifoPlayer::GetInstance().GetCurrentFrameNum());
+		return _("Frame ") + wxString::Format("%i", FifoPlayer::GetInstance().GetCurrentFrameNum());
 
 	return wxEmptyString;
 }
@@ -973,7 +982,7 @@ wxString FifoPlayerDlg::CreateIntegerLabel(size_t size, const wxString& label) c
 	if (size != 1)
 		postfix = _("s");
 
-	return wxString::Format(wxT("%u"), size) + wxT(" ") + label + postfix;
+	return wxString::Format("%u ", size) + label + postfix;
 }
 
 bool FifoPlayerDlg::GetSaveButtonEnabled() const
