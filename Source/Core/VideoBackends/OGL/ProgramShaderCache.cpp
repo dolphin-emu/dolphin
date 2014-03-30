@@ -42,7 +42,7 @@ void SHADER::SetProgramVariables()
 	Bind();
 
 	// Bind UBO
-	if (!g_ActiveConfig.backend_info.bSupportShadingLanguage420pack)
+	if (!g_ActiveConfig.backend_info.bSupportsBindingLayout)
 	{
 		GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
 		GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
@@ -448,14 +448,14 @@ void ProgramShaderCache::Shutdown(void)
 
 void ProgramShaderCache::CreateHeader ( void )
 {
-	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
+	u32 v = g_ogl_config.SupportedGLSLVersion;
 	snprintf(s_glsl_header, sizeof(s_glsl_header),
 		"%s\n"
 		"%s\n" // ubo
 		"%s\n" // early-z
 		"%s\n" // 420pack
 
-		// Precision defines for GLSLES3
+		// Precision defines for GLSL ES
 		"%s\n"
 		"%s\n"
 
@@ -478,13 +478,13 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n" // replace textureSize as constant
 		"%s\n" // wipe out all centroid usages
 
-		, v==GLSLES3 ? "#version 300 es" : v==GLSL_130 ? "#version 130" : v==GLSL_140 ? "#version 140" : "#version 150"
+		, (v & GLSLES_310) ? "#version 310 es" : (v & GLSLES_300) ? "#version 300 es" : v==GLSL_130 ? "#version 130" : v==GLSL_140 ? "#version 140" : "#version 150"
 		, v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
-		, g_ActiveConfig.backend_info.bSupportShadingLanguage420pack ? "#extension GL_ARB_shading_language_420pack : enable" : ""
+		, g_ogl_config.bSupportShadingLanguage420pack ? "#extension GL_ARB_shading_language_420pack : enable" : ""
 
-		, v==GLSLES3 ? "precision highp float;" : ""
-		, v==GLSLES3 ? "precision highp int;" : ""
+		, (v & GLSLES_300) ? "precision highp float;" : ""
+		, (v & GLSLES_300) ? "precision highp int;" : ""
 
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENTEXTURESIZE) ? "#define textureSize(x, y) ivec2(1, 1)" : ""
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "#define centroid" : ""

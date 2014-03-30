@@ -152,7 +152,7 @@ struct VideoConfig final
 		bool bSupportsSeparateAlphaFunction;
 		bool bSupportsOversizedViewports;
 		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
-		bool bSupportShadingLanguage420pack; // needed by ShaderGen, so must stay in VideoCommon
+		bool bSupportsBindingLayout; // Needed by ShaderGen, so must stay in VideoCommon
 	} backend_info;
 
 	// Utility
