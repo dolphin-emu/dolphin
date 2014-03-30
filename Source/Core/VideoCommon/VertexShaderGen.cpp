@@ -83,7 +83,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	// uniforms
 	if (api_type == API_OPENGL)
-		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportShadingLanguage420pack ? ", binding = 2" : "");
+		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
 
 	DeclareUniform(out, api_type, C_POSNORMALMATRIX, "float4", I_POSNORMALMATRIX"[6]");
 	DeclareUniform(out, api_type, C_PROJECTION, "float4", I_PROJECTION"[4]");

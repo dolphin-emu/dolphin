@@ -9,10 +9,11 @@ namespace OGL
 void ClearEFBCache();
 
 enum GLSL_VERSION {
-	GLSL_130,
-	GLSL_140,
-	GLSL_150, // and above
-	GLSLES3
+	GLSL_130   = (1 << 0),
+	GLSL_140   = (1 << 1),
+	GLSL_150   = (1 << 2),  // and above
+	GLSLES_300 = (1 << 3),  // GLES 3.0
+	GLSLES_310 = (1 << 4), // GLES 3.1
 };
 
 // ogl-only config, so not in VideoConfig.h
@@ -24,9 +25,10 @@ extern struct VideoConfig {
 	bool bSupportsGLBufferStorage;
 	bool bSupportCoverageMSAA;
 	bool bSupportSampleShading;
-	GLSL_VERSION eSupportedGLSLVersion;
+	u32  SupportedGLSLVersion;
 	bool bSupportOGL31;
 	bool bSupportViewportFloat;
+	bool bSupportShadingLanguage420pack;
 
 	const char* gl_vendor;
 	const char* gl_renderer;
