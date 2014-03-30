@@ -9,24 +9,24 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 
-CARDUCode::CARDUCode(DSPHLE *dsp_hle, u32 crc)
-	: UCodeInterface(dsp_hle, crc)
+CARDUCode::CARDUCode(DSPHLE *dsphle, u32 crc)
+	: UCodeInterface(dsphle, crc)
 {
 	DEBUG_LOG(DSPHLE, "CARDUCode - initialized");
-	m_rMailHandler.PushMail(DSP_INIT);
+	m_mail_handler.PushMail(DSP_INIT);
 }
 
 
 CARDUCode::~CARDUCode()
 {
-	m_rMailHandler.Clear();
+	m_mail_handler.Clear();
 }
 
 
 void CARDUCode::Update(int cycles)
 {
 	// check if we have to sent something
-	if (!m_rMailHandler.IsEmpty())
+	if (!m_mail_handler.IsEmpty())
 	{
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
@@ -37,19 +37,19 @@ u32 CARDUCode::GetUpdateMs()
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void CARDUCode::HandleMail(u32 _uMail)
+void CARDUCode::HandleMail(u32 mail)
 {
-	if (_uMail == 0xFF000000) // unlock card
+	if (mail == 0xFF000000) // unlock card
 	{
 		//	m_Mails.push(0x00000001); // ACK (actually anything != 0)
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "CARDUCode - unknown command: %x", _uMail);
+		DEBUG_LOG(DSPHLE, "CARDUCode - unknown command: %x", mail);
 	}
 
-	m_rMailHandler.PushMail(DSP_DONE);
-	m_DSPHLE->SetUCode(UCODE_ROM);
+	m_mail_handler.PushMail(DSP_DONE);
+	m_dsphle->SetUCode(UCODE_ROM);
 }
 
 

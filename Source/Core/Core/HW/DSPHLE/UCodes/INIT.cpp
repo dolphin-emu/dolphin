@@ -6,8 +6,8 @@
 #include "Core/HW/DSPHLE/UCodes/INIT.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-INITUCode::INITUCode(DSPHLE *dsp_hle, u32 crc)
-	: UCodeInterface(dsp_hle, crc)
+INITUCode::INITUCode(DSPHLE *dsphle, u32 crc)
+	: UCodeInterface(dsphle, crc)
 {
 	DEBUG_LOG(DSPHLE, "INITUCode - initialized");
 }
@@ -25,9 +25,9 @@ void INITUCode::Init()
 
 void INITUCode::Update(int cycles)
 {
-	if (m_rMailHandler.IsEmpty())
+	if (m_mail_handler.IsEmpty())
 	{
-		m_rMailHandler.PushMail(0x80544348);
+		m_mail_handler.PushMail(0x80544348);
 		// HALT
 	}
 }
@@ -37,7 +37,7 @@ u32 INITUCode::GetUpdateMs()
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
-void INITUCode::HandleMail(u32 _uMail)
+void INITUCode::HandleMail(u32 mail)
 {
 }
 

@@ -9,7 +9,7 @@
 class AXWiiUCode : public AXUCode
 {
 public:
-	AXWiiUCode(DSPHLE *dsp_hle, u32 _CRC);
+	AXWiiUCode(DSPHLE *dsphle, u32 crc);
 	virtual ~AXWiiUCode();
 	u32 GetUpdateMs() override;
 
