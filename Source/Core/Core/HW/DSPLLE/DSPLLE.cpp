@@ -2,9 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/Mixer.h"
-
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/Common.h"
@@ -33,8 +30,6 @@
 
 DSPLLE::DSPLLE()
 {
-	soundStream = nullptr;
-	m_InitMixer = false;
 	m_bIsRunning = false;
 	m_cycle_count = 0;
 }
@@ -80,24 +75,6 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.Do(cyclesLeft);
 	p.Do(init_hax);
 	p.Do(m_cycle_count);
-
-	bool prevInitMixer = m_InitMixer;
-	p.Do(m_InitMixer);
-	if (prevInitMixer != m_InitMixer && p.GetMode() == PointerWrap::MODE_READ)
-	{
-		if (m_InitMixer)
-		{
-			InitMixer();
-			AudioCommon::PauseAndLock(true);
-		}
-		else
-		{
-			AudioCommon::PauseAndLock(false);
-			soundStream->Stop();
-			delete soundStream;
-			soundStream = nullptr;
-		}
-	}
 }
 
 // Regular thread
@@ -131,10 +108,8 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 
 bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {
-	m_hWnd = hWnd;
 	m_bWii = bWii;
 	m_bDSPThread = bDSPThread;
-	m_InitMixer = false;
 
 	std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
 	std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
@@ -143,7 +118,9 @@ bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 		irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
 	if (!File::Exists(coef_file))
 		coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
-	if (!DSPCore_Init(irom_file, coef_file, AudioCommon::UseJIT()))
+
+	bool use_jit = SConfig::GetInstance().m_DSPEnableJIT;
+	if (!DSPCore_Init(irom_file, coef_file, use_jit))
 		return false;
 
 	g_dsp.cpu_ram = Memory::GetPointer(0);
@@ -175,31 +152,11 @@ void DSPLLE::DSP_StopSoundStream()
 
 void DSPLLE::Shutdown()
 {
-	AudioCommon::ShutdownSoundStream();
 	DSPCore_Shutdown();
-}
-
-void DSPLLE::InitMixer()
-{
-	unsigned int AISampleRate, DACSampleRate;
-	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-	delete soundStream;
-	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, 48000), m_hWnd);
-	if (!soundStream) PanicAlert("Error starting up sound stream");
-	// Mixer is initialized
-	m_InitMixer = true;
 }
 
 u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 {
-	UDSPControl Temp(_uFlag);
-	if (!m_InitMixer)
-	{
-		if (!Temp.DSPHalt)
-		{
-			InitMixer();
-		}
-	}
 	DSPInterpreter::WriteCR(_uFlag);
 
 	// Check if the CPU has set an external interrupt (CR_EXTERNAL_INT)
@@ -323,34 +280,8 @@ u32 DSPLLE::DSP_UpdateRate()
 	return 12600; // TO BE TWEAKED
 }
 
-void DSPLLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
-{
-	if (!soundStream)
-		return;
-
-	CMixer *pMixer = soundStream->GetMixer();
-
-	if (pMixer && address)
-	{
-		address &= (address & 0x10000000) ? 0x13ffffff : 0x01ffffff;
-		const short *samples = (const short *)&g_dsp.cpu_ram[address];
-		pMixer->PushSamples(samples, num_samples);
-	}
-
-	soundStream->Update();
-}
-
-void DSPLLE::DSP_ClearAudioBuffer(bool mute)
-{
-	if (soundStream)
-		soundStream->Clear(mute);
-}
-
 void DSPLLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
-	if (doLock || unpauseOnUnlock)
-		DSP_ClearAudioBuffer(doLock);
-
 	if (doLock)
 		m_csDSPThreadActive.lock();
 	else

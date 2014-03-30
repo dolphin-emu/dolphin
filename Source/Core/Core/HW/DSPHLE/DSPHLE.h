@@ -4,10 +4,8 @@
 
 #pragma once
 
-#include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/SoundStream.h"
-
 #include "Core/DSPEmulator.h"
+#include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 
 class UCodeInterface;
@@ -29,10 +27,8 @@ public:
 	virtual unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox) override;
 	virtual unsigned short DSP_ReadControlRegister() override;
 	virtual unsigned short DSP_WriteControlRegister(unsigned short) override;
-	virtual void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples) override;
 	virtual void DSP_Update(int cycles) override;
 	virtual void DSP_StopSoundStream() override;
-	virtual void DSP_ClearAudioBuffer(bool mute) override;
 	virtual u32 DSP_UpdateRate() override;
 
 	CMailHandler& AccessMailHandler() { return m_MailHandler; }
@@ -44,12 +40,9 @@ public:
 
 private:
 	void SendMailToDSP(u32 _uMail);
-	void InitMixer();
 
 	// Declarations and definitions
 	bool m_bWii;
-
-	bool m_InitMixer;
 
 	// Fake mailbox utility
 	struct DSPState
@@ -73,7 +66,7 @@ private:
 	UCodeInterface* m_pUCode;
 	UCodeInterface* m_lastUCode;
 
-	UDSPControl m_DSPControl;
+	DSP::UDSPControl m_DSPControl;
 	CMailHandler m_MailHandler;
 
 	bool m_bHalt;
