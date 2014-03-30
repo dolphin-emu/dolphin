@@ -298,7 +298,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			out.Write("centroid in float3 uv%d_2;\n", i);
 		}
-		out.Write("centroid in float4 clipPos_2;\n");
+		out.Write("centroid in float4 clipPos;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
 			out.Write("centroid in float4 Normal_2;\n");
@@ -349,7 +349,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 				out.Write("\tfloat3 uv%d = uv%d_2;\n", i, i);
 			}
 		}
-		out.Write("\tfloat4 clipPos = clipPos_2;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
 			out.Write("\tfloat4 Normal = Normal_2;\n");
@@ -371,8 +370,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		uid_data.components = components;
 		GenerateLightingShader<T>(out, uid_data.lighting, components, I_PMATERIALS, I_PLIGHT_COLORS, I_PLIGHTS, "colors_", "colors_");
 	}
-
-	out.Write("\tclipPos = float4(rawpos.x, rawpos.y, clipPos.z, clipPos.w);\n");
 
 	// HACK to handle cases where the tex gen is not enabled
 	if (numTexgen == 0)
@@ -1018,7 +1015,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	if (bpmem.fogRange.Base.Enabled)
 	{
 		out.SetConstantsUsed(C_FOGF, C_FOGF);
-		out.Write("\tfloat x_adjust = (2.0 * (clipPos.x / " I_FOGF"[0].y)) - 1.0 - " I_FOGF"[0].x;\n");
+		out.Write("\tfloat x_adjust = (2.0 * (rawpos.x / " I_FOGF"[0].y)) - 1.0 - " I_FOGF"[0].x;\n");
 		out.Write("\tx_adjust = sqrt(x_adjust * x_adjust + " I_FOGF"[0].z * " I_FOGF"[0].z) / " I_FOGF"[0].z;\n");
 		out.Write("\tze *= x_adjust;\n");
 	}
