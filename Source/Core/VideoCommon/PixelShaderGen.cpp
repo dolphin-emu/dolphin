@@ -301,7 +301,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("centroid in float4 clipPos;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
-			out.Write("centroid in float4 Normal_2;\n");
+			out.Write("centroid in float4 Normal;\n");
 		}
 
 		out.Write("void main()\n{\n");
@@ -348,10 +348,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			{
 				out.Write("\tfloat3 uv%d = uv%d_2;\n", i, i);
 			}
-		}
-		if (g_ActiveConfig.bEnablePixelLighting)
-		{
-			out.Write("\tfloat4 Normal = Normal_2;\n");
 		}
 	}
 
