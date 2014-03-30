@@ -134,7 +134,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		{
 			if (i < xfregs.numTexGen.numTexGens)
 			{
-				out.Write("centroid out  float3 uv%d_2;\n", i);
+				out.Write("centroid out  float3 uv%d;\n", i);
 			}
 		}
 		out.Write("centroid out   float4 clipPos;\n");
@@ -433,7 +433,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		// clipPos/w needs to be done in pixel shader, not here
 
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			out.Write(" uv%d_2.xyz =  o.tex%d;\n", i, i);
+			out.Write(" uv%d.xyz =  o.tex%d;\n", i, i);
 		out.Write("  clipPos = o.clipPos;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
 			out.Write("  Normal = o.Normal;\n");

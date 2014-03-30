@@ -296,7 +296,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Let's set up attributes
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 		{
-			out.Write("centroid in float3 uv%d_2;\n", i);
+			out.Write("centroid in float3 uv%d;\n", i);
 		}
 		out.Write("centroid in float4 clipPos;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
@@ -305,6 +305,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		}
 
 		out.Write("void main()\n{\n");
+		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}
 	else // D3D
 	{
@@ -337,18 +338,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		// On Mali, global variables must be initialized as constants.
 		// This is why we initialize these variables locally instead.
-		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 		out.Write("\tfloat4 colors_0 = colors_02;\n");
 		out.Write("\tfloat4 colors_1 = colors_12;\n");
-		// compute window position if needed because binding semantic WPOS is not widely supported
-		// Let's set up attributes
-		if (numTexgen)
-		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			{
-				out.Write("\tfloat3 uv%d = uv%d_2;\n", i, i);
-			}
-		}
 	}
 
 	if (g_ActiveConfig.bEnablePixelLighting)
@@ -377,15 +368,18 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS+numTexgen-1);
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
+			out.Write("\tint2 fixpoint_uv%d = iround(", i);
 			// optional perspective divides
 			uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
 			if (xfregs.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
 			{
-				out.Write("\tif (uv%d.z != 0.0)\n", i);
-				out.Write("\t\tuv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);
+				out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
 			}
-
-			out.Write("\tint2 fixpoint_uv%d = iround(uv%d.xy * " I_TEXDIMS"[%d].zw * 128.0);\n\n", i, i, i);
+			else
+			{
+				out.Write("uv%d.xy", i);
+			}
+			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0);\n\n", i);
 			// TODO: S24 overflows here?
 		}
 	}
