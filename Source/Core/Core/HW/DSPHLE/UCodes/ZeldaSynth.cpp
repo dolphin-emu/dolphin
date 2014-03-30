@@ -158,7 +158,7 @@ void ZeldaUCode::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size
 
 	for (int i = 0; i < 0x50; i++)
 	{
-		_Buffer[i] = m_MiscTable[address];
+		_Buffer[i] = m_misc_table[address];
 
 		ACC0 += PB.RatioInt << 5;
 		address = AddValueToReg(address, ((ACC0 >> 16) & 0xffff));

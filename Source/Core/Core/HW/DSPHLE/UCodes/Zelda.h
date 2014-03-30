@@ -140,8 +140,8 @@ public:
 
 	u32 Read32()
 	{
-		u32 res = *(u32*)&m_Buffer[m_readOffset];
-		m_readOffset += 4;
+		u32 res = *(u32*)&m_buffer[m_read_offset];
+		m_read_offset += 4;
 		return res;
 	}
 
@@ -198,52 +198,52 @@ private:
 	}
 
 	// These are the only dynamically allocated things allowed in the ucode.
-	s32* m_VoiceBuffer;
-	s16* m_ResampleBuffer;
-	s32* m_LeftBuffer;
-	s32* m_RightBuffer;
+	s32* m_voice_buffer;
+	s16* m_resample_buffer;
+	s32* m_left_buffer;
+	s32* m_right_buffer;
 
 	// If you add variables, remember to keep DoState() and the constructor up to date.
 
-	s16 m_AFCCoefTable[32];
-	s16 m_MiscTable[0x280];
+	s16 m_afc_coef_table[32];
+	s16 m_misc_table[0x280];
 
-	bool m_bSyncInProgress;
-	u32 m_MaxVoice;
-	u32 m_SyncFlags[16];
+	bool m_sync_in_progress;
+	u32 m_max_voice;
+	u32 m_sync_flags[16];
 
 	// Used by SMS version
-	u32 m_NumSyncMail;
+	u32 m_num_sync_mail;
 
-	u32 m_NumVoices;
+	u32 m_num_voices;
 
-	bool m_bSyncCmdPending;
-	u32 m_CurVoice;
-	u32 m_CurBuffer;
-	u32 m_NumBuffers;
+	bool m_sync_cmd_pending;
+	u32 m_current_voice;
+	u32 m_current_buffer;
+	u32 m_num_buffers;
 
 	// Those are set by command 0x1 (DsetupTable)
-	u32 m_VoicePBsAddr;
-	u32 m_UnkTableAddr;
-	u32 m_AFCCoefTableAddr;
-	u32 m_ReverbPBsAddr;
+	u32 m_voice_pbs_addr;
+	u32 m_unk_table_addr;
+	u32 m_afc_coef_table_addr;
+	u32 m_reverb_pbs_addr;
 
-	u32 m_RightBuffersAddr;
-	u32 m_LeftBuffersAddr;
+	u32 m_right_buffers_addr;
+	u32 m_left_buffers_addr;
 	//u32 m_unkAddr;
 	u32 m_pos;
 
 	// Only in SMG ucode
 	// Set by command 0xE (DsetDMABaseAddr)
-	u32 m_DMABaseAddr;
+	u32 m_dma_base_addr;
 
 	// List, buffer management =====================
-	u32 m_numSteps;
-	bool m_bListInProgress;
+	u32 m_num_steps;
+	bool m_list_in_progress;
 	u32 m_step;
-	u8 m_Buffer[1024];
+	u8 m_buffer[1024];
 
-	u32 m_readOffset;
+	u32 m_read_offset;
 
 	enum EMailState
 	{
@@ -253,12 +253,12 @@ private:
 		ReadingSystemMsg
 	};
 
-	EMailState m_MailState;
-	u16 m_PBMask[0x10];
+	EMailState m_mail_state;
+	u16 m_pb_mask[0x10];
 
-	u32 m_NumPBs;
-	u32 m_PBAddress;   // The main param block array
-	u32 m_PBAddress2;  // 4 smaller param blocks
+	u32 m_num_pbs;
+	u32 m_pb_address;   // The main param block array
+	u32 m_pb_address2;  // 4 smaller param blocks
 
 	void ExecuteList();
 
