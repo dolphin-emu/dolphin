@@ -64,7 +64,7 @@ int Renderer::s_LastEFBScale;
 bool Renderer::s_skipSwap;
 bool Renderer::XFBWrited;
 
-PEControl::PixelFormat Renderer::prev_efb_format = (PEControl::PixelFormat)-1;
+PEControl::PixelFormat Renderer::prev_efb_format = PEControl::INVALID_FMT;
 unsigned int Renderer::efb_scale_numeratorX = 1;
 unsigned int Renderer::efb_scale_numeratorY = 1;
 unsigned int Renderer::efb_scale_denominatorX = 1;
@@ -89,7 +89,7 @@ Renderer::Renderer()
 Renderer::~Renderer()
 {
 	// invalidate previous efb format
-	prev_efb_format = (PEControl::PixelFormat)-1;
+	prev_efb_format = PEControl::INVALID_FMT;
 
 	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
