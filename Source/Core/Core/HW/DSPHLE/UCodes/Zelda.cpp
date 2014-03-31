@@ -23,21 +23,10 @@ ZeldaUCode::ZeldaUCode(DSPHLE *dsphle, u32 crc)
 	  m_current_voice(0),
 	  m_current_buffer(0),
 	  m_num_buffers(0),
-	  m_voice_pbs_addr(0),
-	  m_unk_table_addr(0),
-	  m_reverb_pbs_addr(0),
-	  m_right_buffers_addr(0),
-	  m_left_buffers_addr(0),
-	  m_pos(0),
-	  m_dma_base_addr(0),
 	  m_num_steps(0),
 	  m_list_in_progress(false),
 	  m_step(0),
-	  m_read_offset(0),
-	  m_mail_state(WaitForMail),
-	  m_num_pbs(0),
-	  m_pb_address(0),
-	  m_pb_address2(0)
+	  m_read_offset(0)
 {
 	DEBUG_LOG(DSPHLE, "UCode_Zelda - add boot mails for handshake");
 
@@ -52,34 +41,11 @@ ZeldaUCode::ZeldaUCode(DSPHLE *dsphle, u32 crc)
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 		m_mail_handler.PushMail(0xF3551111); // handshake
 	}
-
-	m_voice_buffer = new s32[256 * 1024];
-	m_resample_buffer = new s16[256 * 1024];
-	m_left_buffer = new s32[256 * 1024];
-	m_right_buffer = new s32[256 * 1024];
-
-	memset(m_buffer, 0, sizeof(m_buffer));
-	memset(m_sync_flags, 0, sizeof(m_sync_flags));
-	memset(m_afc_coef_table, 0, sizeof(m_afc_coef_table));
-	memset(m_pb_mask, 0, sizeof(m_pb_mask));
 }
 
 ZeldaUCode::~ZeldaUCode()
 {
 	m_mail_handler.Clear();
-
-	delete [] m_voice_buffer;
-	delete [] m_resample_buffer;
-	delete [] m_left_buffer;
-	delete [] m_right_buffer;
-}
-
-u8 *ZeldaUCode::GetARAMPointer(u32 address)
-{
-	if (IsDMAVersion())
-		return Memory::GetPointer(m_dma_base_addr) + address;
-	else
-		return DSP::GetARAMPtr() + address;
 }
 
 void ZeldaUCode::Update()
@@ -116,7 +82,7 @@ void ZeldaUCode::HandleMail_LightVersion(u32 mail)
 	{
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
-		MixAudio();
+		// TODO(delroth): Mix audio.
 
 		m_current_buffer++;
 
@@ -176,7 +142,7 @@ void ZeldaUCode::HandleMail_SMSVersion(u32 mail)
 				m_num_sync_mail = 0;
 				m_sync_in_progress = false;
 
-				MixAudio();
+				// TODO(delroth): Mix audio.
 
 				m_current_buffer++;
 
@@ -281,7 +247,7 @@ void ZeldaUCode::HandleMail_NormalVersion(u32 mail)
 
 			if (m_current_voice >= m_num_voices)
 			{
-				MixAudio();
+				// TODO(delroth): Mix audio.
 
 				m_current_buffer++;
 
@@ -403,63 +369,16 @@ void ZeldaUCode::ExecuteList()
 
 		// DsetupTable ... zelda ww jumps to 0x0095
 		case 0x01:
-		{
-			m_num_voices = extra_data;
-			m_voice_pbs_addr = Read32() & 0x7FFFFFFF;
-			m_unk_table_addr = Read32() & 0x7FFFFFFF;
-			m_afc_coef_table_addr = Read32() & 0x7FFFFFFF;
-			m_reverb_pbs_addr = Read32() & 0x7FFFFFFF;  // WARNING: reverb PBs are very different from voice PBs!
-
-			// Read the other table
-			u16 *tmp_ptr = (u16*)Memory::GetPointer(m_unk_table_addr);
-			for (int i = 0; i < 0x280; i++)
-				m_misc_table[i] = (s16)Common::swap16(tmp_ptr[i]);
-
-			// Read AFC coef table
-			tmp_ptr = (u16*)Memory::GetPointer(m_afc_coef_table_addr);
-			for (int i = 0; i < 32; i++)
-				m_afc_coef_table[i] = (s16)Common::swap16(tmp_ptr[i]);
-
-			DEBUG_LOG(DSPHLE, "DsetupTable");
-			DEBUG_LOG(DSPHLE, "Num voice param blocks:             %i", m_num_voices);
-			DEBUG_LOG(DSPHLE, "Voice param blocks address:         0x%08x", m_voice_pbs_addr);
-
-			// This points to some strange data table. Don't know yet what it's for. Reverb coefs?
-			DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):       0x%08x", m_unk_table_addr);
-
-			// Zelda WW: This points to a 64-byte array of coefficients, which are EXACTLY the same
-			// as the AFC ADPCM coef array in decode.c of the in_cube winamp plugin,
-			// which can play Zelda audio. So, these should definitely be used when decoding AFC.
-			DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500):      0x%08x", m_afc_coef_table_addr);
-			DEBUG_LOG(DSPHLE, "Reverb param blocks address:        0x%08x", m_reverb_pbs_addr);
-		}
+			Read32(); Read32(); Read32(); Read32();
 			break;
 
 			// SyncFrame ... zelda ww jumps to 0x0243
 		case 0x02:
-		{
-			m_sync_cmd_pending = true;
-
-			m_current_buffer = 0;
-			m_num_buffers = (cmd_mail >> 16) & 0xFF;
-
-			// Addresses for right & left buffers in main memory
-			// Each buffer is 160 bytes long. The number of (both left & right) buffers
-			// is set by the first mail of the list.
-			m_left_buffers_addr = Read32() & 0x7FFFFFFF;
-			m_right_buffers_addr = Read32() & 0x7FFFFFFF;
-
-			DEBUG_LOG(DSPHLE, "DsyncFrame");
-			// These alternate between three sets of mixing buffers. They are all three fairly near,
-			// but not at, the ADMA read addresses.
-			DEBUG_LOG(DSPHLE, "Right buffer address:               0x%08x", m_right_buffers_addr);
-			DEBUG_LOG(DSPHLE, "Left buffer address:                0x%08x", m_left_buffers_addr);
-
+			Read32(); Read32();
 			if (IsLightVersion())
 				break;
 			else
 				return;
-		}
 
 
 		// Simply sends the sync messages
@@ -485,11 +404,7 @@ void ZeldaUCode::ExecuteList()
 			// This opcode, in the SMG ucode, sets the base address for audio data transfers from main memory (using DMA).
 			// In the Zelda ucode, it is dummy, because this ucode uses accelerator for audio data transfers.
 		case 0x0e:
-			{
-				m_dma_base_addr = Read32() & 0x7FFFFFFF;
-				DEBUG_LOG(DSPHLE, "DsetDMABaseAddr");
-				DEBUG_LOG(DSPHLE, "DMA base address:                   0x%08x", m_dma_base_addr);
-			}
+			Read32();
 			break;
 
 		// default ... zelda ww jumps to 0x0043
@@ -521,9 +436,6 @@ u32 ZeldaUCode::GetUpdateMs()
 
 void ZeldaUCode::DoState(PointerWrap &p)
 {
-	p.Do(m_afc_coef_table);
-	p.Do(m_misc_table);
-
 	p.Do(m_sync_in_progress);
 	p.Do(m_max_voice);
 	p.Do(m_sync_flags);
@@ -537,30 +449,12 @@ void ZeldaUCode::DoState(PointerWrap &p)
 	p.Do(m_current_buffer);
 	p.Do(m_num_buffers);
 
-	p.Do(m_voice_pbs_addr);
-	p.Do(m_unk_table_addr);
-	p.Do(m_afc_coef_table_addr);
-	p.Do(m_reverb_pbs_addr);
-
-	p.Do(m_right_buffers_addr);
-	p.Do(m_left_buffers_addr);
-	p.Do(m_pos);
-
-	p.Do(m_dma_base_addr);
-
 	p.Do(m_num_steps);
 	p.Do(m_list_in_progress);
 	p.Do(m_step);
 	p.Do(m_buffer);
 
 	p.Do(m_read_offset);
-
-	p.Do(m_mail_state);
-	p.Do(m_pb_mask);
-
-	p.Do(m_num_pbs);
-	p.Do(m_pb_address);
-	p.Do(m_pb_address2);
 
 	DoStateShared(p);
 }

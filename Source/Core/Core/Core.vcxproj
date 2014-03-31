@@ -108,9 +108,6 @@
     <ClCompile Include="HW\DSPHLE\UCodes\INIT.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\ROM.cpp" />
     <ClCompile Include="HW\DSPHLE\UCodes\Zelda.cpp" />
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaADPCM.cpp" />
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaSynth.cpp" />
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaVoice.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPDebugInterface.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPHost.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLE.cpp" />

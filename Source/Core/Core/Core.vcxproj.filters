@@ -336,15 +336,6 @@
     <ClCompile Include="HW\DSPHLE\UCodes\Zelda.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaADPCM.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaSynth.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaVoice.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\UCodes.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
