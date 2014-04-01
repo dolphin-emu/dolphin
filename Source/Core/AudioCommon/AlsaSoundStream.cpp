@@ -24,7 +24,7 @@ AlsaSound::~AlsaSound()
 
 bool AlsaSound::Start()
 {
-	thread = std::thread(std::mem_fun(&AlsaSound::SoundLoop), this);
+	thread = std::thread(std::mem_fn(&AlsaSound::SoundLoop), this);
 	thread_data = 0;
 	return true;
 }
