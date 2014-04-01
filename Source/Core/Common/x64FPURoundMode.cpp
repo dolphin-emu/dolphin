@@ -34,10 +34,6 @@ namespace FPURoundMode
 
 	void SetPrecisionMode(PrecisionMode mode)
 	{
-		#ifdef _M_X86_32
-			// sets the floating-point lib to 53-bit
-			// PowerPC has a 53bit floating pipeline only
-			// eg: sscanf is very sensitive
 		#ifdef _WIN32
 			_control87(_PC_53, MCW_PC);
 		#else
@@ -47,14 +43,10 @@ namespace FPURoundMode
 				2 << 8, // 53 bits
 				3 << 8, // 64 bits
 			};
-			unsigned short _mode;
-			asm ("fstcw %0" : "=m" (_mode));
-			_mode = (_mode & ~PRECISION_MASK) | precision_table[mode];
-			asm ("fldcw %0" : : "m" (_mode));
-		#endif
-		#else
-			//x64 doesn't need this - fpu is done with SSE
-			//but still - set any useful sse options here
+			unsigned short cw;
+			asm ("fnstcw %0" : "=m" (cw));
+			cw = (cw & ~PRECISION_MASK) | precision_table[mode];
+			asm ("fldcw %0" : : "m" (cw));
 		#endif
 	}
 
