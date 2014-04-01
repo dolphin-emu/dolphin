@@ -24,7 +24,7 @@ PulseAudio::PulseAudio(CMixer *mixer)
 bool PulseAudio::Start()
 {
 	m_run_thread = true;
-	m_thread = std::thread(std::mem_fun(&PulseAudio::SoundLoop), this);
+	m_thread = std::thread(std::mem_fn(&PulseAudio::SoundLoop), this);
 	return true;
 }
 
