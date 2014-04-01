@@ -27,5 +27,3 @@ public:
 	void ToggleFullscreen(bool fullscreen);
 	void SwapBuffers();
 };
-
-#endif
