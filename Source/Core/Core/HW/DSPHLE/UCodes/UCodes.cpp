@@ -9,6 +9,7 @@
 #include "Common/Hash.h"
 #include "Common/StringUtil.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
 #include "Core/HW/DSPHLE/UCodes/CARD.h"
@@ -142,17 +143,18 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 			(u8*)HLEMemory_Get_Pointer(m_next_ucode.iram_mram_addr),
 			m_next_ucode.iram_size);
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-		std::string ucode_dump_path = StringFromFormat(
-			"%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
-
-		File::IOFile fp(ucode_dump_path, "wb");
-		if (fp)
+		if (SConfig::GetInstance().m_DumpUCode)
 		{
-			fp.WriteArray((u8*)Memory::GetPointer(m_next_ucode.iram_mram_addr),
-			              m_next_ucode.iram_size);
+			std::string ucode_dump_path = StringFromFormat(
+				"%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
+
+			File::IOFile fp(ucode_dump_path, "wb");
+			if (fp)
+			{
+				fp.WriteArray((u8*)Memory::GetPointer(m_next_ucode.iram_mram_addr),
+							  m_next_ucode.iram_size);
+			}
 		}
-#endif
 
 		DEBUG_LOG(DSPHLE, "PrepareBootUCode 0x%08x", ector_crc);
 		DEBUG_LOG(DSPHLE, "DRAM -> MRAM: src %04x dst %08x size %04x",
