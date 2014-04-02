@@ -39,7 +39,7 @@ namespace HwRasterizer
 	{
 		// Color Vertices
 		static const char *fragcolText =
-			"#if GL_ES\n"
+			"#ifdef GL_ES\n"
 			"precision highp float;\n"
 			"#endif\n"
 			"varying vec4 TexCoordOut;\n"
@@ -48,7 +48,7 @@ namespace HwRasterizer
 			"}\n";
 		// Texture Vertices
 		static const char *fragtexText =
-			"#if GL_ES\n"
+			"#ifdef GL_ES\n"
 			"precision highp float;\n"
 			"#define texture2DRect texture2D\n"
 			"#define sampler2DRect sampler2D\n"
@@ -60,7 +60,7 @@ namespace HwRasterizer
 			"}\n";
 		// Clear shader
 		static const char *fragclearText =
-			"#if GL_ES\n"
+			"#ifdef GL_ES\n"
 			"precision highp float;\n"
 			"#endif\n"
 			"uniform vec4 Color;\n"
