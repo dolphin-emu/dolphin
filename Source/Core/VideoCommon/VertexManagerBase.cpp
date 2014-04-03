@@ -149,6 +149,12 @@ void VertexManager::Flush()
 
 	VideoFifo_CheckEFBAccess();
 
+	if (g_ActiveConfig.bDisableDrawing)
+	{
+		IsFlushed = true;
+		return;
+	}
+
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGen.numTexGens,
 		xfregs.numChan.numColorChans, xfregs.dualTexTrans.enabled, bpmem.ztex2.op,
