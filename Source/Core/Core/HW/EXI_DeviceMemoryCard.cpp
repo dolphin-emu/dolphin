@@ -73,6 +73,21 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	//0x00000510 16Mb "bigben" card
 	//card_id = 0xc243;
 
+	// The following games have issues with memory cards bigger than 16Mb
+	// Darkened Skye GDQE6S GDQP6S
+	// WTA Tour Tennis GWTEA4 GWTJA4 GWTPA4
+	// Disney Sports : Skate Boarding GDXEA4 GDXPA4 GDXJA4
+	// Disney Sports : Soccer GDKEA4 
+	// Use a 16Mb (251 block) memory card for these games
+	bool useMC251;
+	IniFile gameIni = Core::g_CoreStartupParameter.LoadGameIni();
+	gameIni.Get("Core", "MemoryCard251", &useMC251, false);
+	nintendo_card_id = MemCard2043Mb;
+	if (useMC251)
+	{
+		nintendo_card_id = MemCard251Mb;
+		m_strFilename.insert(m_strFilename.find_last_of("."), ".251");
+	}
 	card_id = 0xc221; // It's a Nintendo brand memcard
 
 	File::IOFile pFile(m_strFilename, "rb");
@@ -90,8 +105,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	}
 	else
 	{
-		// Create a new 128Mb memcard
-		nintendo_card_id = 0x00000080;
+		// Create a new memcard
 		memory_card_size = nintendo_card_id * SIZE_TO_Mb;
 
 		memory_card_content = new u8[memory_card_size];
