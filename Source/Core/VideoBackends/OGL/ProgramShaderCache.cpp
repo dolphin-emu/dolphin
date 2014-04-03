@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Common/MathUtil.h"
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -36,13 +38,33 @@ UidChecker<VertexShaderUid,VertexShaderCode> ProgramShaderCache::vertex_uid_chec
 
 static char s_glsl_header[1024] = "";
 
+std::string GetGLSLVersionString()
+{
+	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
+	switch(v)
+	{
+		case GLSLES_300:
+			return "#version 300 es";
+		case GLSLES_310:
+			return "#version 310 es";
+		case GLSL_130:
+			return "#version 130";
+		case GLSL_140:
+			return "#version 140";
+		case GLSL_150:
+			return "#version 150";
+	}
+	// Shouldn't ever hit this
+	return "#version ERROR";
+}
+
 void SHADER::SetProgramVariables()
 {
 	// glsl shader must be bind to set samplers
 	Bind();
 
 	// Bind UBO
-	if (!g_ActiveConfig.backend_info.bSupportShadingLanguage420pack)
+	if (!g_ActiveConfig.backend_info.bSupportsBindingLayout)
 	{
 		GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
 		GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
@@ -455,7 +477,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n" // early-z
 		"%s\n" // 420pack
 
-		// Precision defines for GLSLES3
+		// Precision defines for GLSL ES
 		"%s\n"
 		"%s\n"
 
@@ -478,13 +500,13 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n" // replace textureSize as constant
 		"%s\n" // wipe out all centroid usages
 
-		, v==GLSLES3 ? "#version 300 es" : v==GLSL_130 ? "#version 130" : v==GLSL_140 ? "#version 140" : "#version 150"
+		, GetGLSLVersionString().c_str()
 		, v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
-		, g_ActiveConfig.backend_info.bSupportShadingLanguage420pack ? "#extension GL_ARB_shading_language_420pack : enable" : ""
+		, (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ? "#extension GL_ARB_shading_language_420pack : enable" : ""
 
-		, v==GLSLES3 ? "precision highp float;" : ""
-		, v==GLSLES3 ? "precision highp int;" : ""
+		, v>=GLSLES_300 ? "precision highp float;" : ""
+		, v>=GLSLES_300 ? "precision highp int;" : ""
 
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENTEXTURESIZE) ? "#define textureSize(x, y) ivec2(1, 1)" : ""
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "#define centroid" : ""

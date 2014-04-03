@@ -459,7 +459,10 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
-	g_Config.backend_info.bSupportShadingLanguage420pack = GLExtensions::Supports("GL_ARB_shading_language_420pack");
+
+	// Desktop OpenGL supports the binding layout if it supports 420pack
+	// OpenGL ES 3.1 supports it implicitly without an extension
+	g_Config.backend_info.bSupportsBindingLayout = GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
 	g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
 	g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
@@ -472,7 +475,17 @@ Renderer::Renderer()
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
-		g_ogl_config.eSupportedGLSLVersion = GLSLES3;
+	{
+		if (strstr(g_ogl_config.glsl_version, "3.00"))
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
+		}
+		else
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
+			g_Config.backend_info.bSupportsBindingLayout = true;
+		}
+	}
 	else
 	{
 		if (strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))

@@ -223,7 +223,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	out.Write("\n");
 
 	if (ApiType == API_OPENGL)
-		out.Write("layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportShadingLanguage420pack ? ", binding = 1" : "");
+		out.Write("layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 1" : "");
 
 	DeclareUniform(out, ApiType, C_COLORS, "int4", I_COLORS"[4]");
 	DeclareUniform(out, ApiType, C_KCOLORS, "int4", I_KCOLORS"[4]");
