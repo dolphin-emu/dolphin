@@ -77,7 +77,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	// Darkened Skye GDQE6S GDQP6S
 	// WTA Tour Tennis GWTEA4 GWTJA4 GWTPA4
 	// Disney Sports : Skate Boarding GDXEA4 GDXPA4 GDXJA4
-	// Disney Sports : Soccer GDKEA4 
+	// Disney Sports : Soccer GDKEA4
 	// Use a 16Mb (251 block) memory card for these games
 	bool useMC251;
 	IniFile gameIni = Core::g_CoreStartupParameter.LoadGameIni();
