@@ -153,8 +153,7 @@ void OnPixelFormatChange()
 	 * Since we are always using an RGBA8 buffer though, this causes issues in some games.
 	 * Thus, we reinterpret the old EFB data with the new format here.
 	 */
-	if (!g_ActiveConfig.bEFBEmulateFormatChanges ||
-		!g_ActiveConfig.backend_info.bSupportsFormatReinterpretation)
+	if (!g_ActiveConfig.bEFBEmulateFormatChanges)
 		return;
 
 	auto old_format = Renderer::GetPrevPixelFormat();

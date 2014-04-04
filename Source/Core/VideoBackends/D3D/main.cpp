@@ -86,8 +86,6 @@ void InitBackendInfo()
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
-	g_Config.backend_info.bSupportsFormatReinterpretation = true;
-	g_Config.backend_info.bSupportsPixelLighting = true;
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 	g_Config.backend_info.bSupportsOversizedViewports = false;
 

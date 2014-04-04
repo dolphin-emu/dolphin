@@ -154,9 +154,6 @@ protected:
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 
-		// pixel lighting
-		pixel_lighting->Enable(vconfig.backend_info.bSupportsPixelLighting);
-
 		// 3D vision
 		_3d_vision->Enable(vconfig.backend_info.bSupports3DVision);
 		_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
@@ -165,9 +162,6 @@ protected:
 		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
 		efbcopy_ram->Enable(vconfig.bEFBCopyEnable);
 		cache_efb_copies->Enable(vconfig.bEFBCopyEnable && !vconfig.bCopyEFBToTexture);
-
-		// EFB format change emulation
-		emulate_efb_format_changes->Enable(vconfig.backend_info.bSupportsFormatReinterpretation);
 
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
@@ -193,14 +187,11 @@ protected:
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
 
-	SettingCheckBox* pixel_lighting;
-
 	SettingCheckBox* _3d_vision;
 
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;
 	SettingCheckBox* cache_efb_copies;
-	SettingCheckBox* emulate_efb_format_changes;
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;

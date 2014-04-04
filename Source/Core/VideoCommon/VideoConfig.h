@@ -146,10 +146,7 @@ struct VideoConfig final
 		bool bUseMinimalMipCount;
 		bool bSupports3DVision;
 		bool bSupportsDualSourceBlend;
-		bool bSupportsFormatReinterpretation;
-		bool bSupportsPixelLighting;
 		bool bSupportsPrimitiveRestart;
-		bool bSupportsSeparateAlphaFunction;
 		bool bSupportsOversizedViewports;
 		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
 		bool bSupportsBindingLayout; // Needed by ShaderGen, so must stay in VideoCommon
