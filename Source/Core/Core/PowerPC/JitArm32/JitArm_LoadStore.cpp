@@ -19,7 +19,7 @@
 void JitArm::UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 {
 	// All this gets replaced on backpatch
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 	BIC(dest, dest, mask); // 1
 	MOVI2R(R14, (u32)Memory::base, false); // 2-3
 	ADD(dest, dest, R14); // 4
@@ -212,7 +212,7 @@ void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offse
 	ADD(addr, addr, rA); // - 1
 
 	// All this gets replaced on backpatch
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 	BIC(addr, addr, mask); // 1
 	MOVI2R(rA, (u32)Memory::base, false); // 2-3
 	ADD(addr, addr, rA); // 4
@@ -461,7 +461,7 @@ void JitArm::lmw(UGeckoInstruction inst)
 	MOVI2R(rA, inst.SIMM_16);
 	if (a)
 		ADD(rA, rA, gpr.R(a));
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 	BIC(rA, rA, mask); // 3
 	MOVI2R(rB, (u32)Memory::base, false); // 4-5
 	ADD(rA, rA, rB); // 6
@@ -493,7 +493,7 @@ void JitArm::stmw(UGeckoInstruction inst)
 	MOVI2R(rA, inst.SIMM_16);
 	if (a)
 		ADD(rA, rA, gpr.R(a));
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 	BIC(rA, rA, mask); // 3
 	MOVI2R(rB, (u32)Memory::base, false); // 4-5
 	ADD(rA, rA, rB); // 6

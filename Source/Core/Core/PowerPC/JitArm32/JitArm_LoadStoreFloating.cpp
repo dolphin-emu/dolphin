@@ -129,7 +129,7 @@ void JitArm::lfXX(UGeckoInstruction inst)
 
 	if (Core::g_CoreStartupParameter.bFastmem)
 	{
-		Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 		BIC(rB, rB, mask); // 1
 		MOVI2R(rA, (u32)Memory::base, false); // 2-3
 		ADD(rB, rB, rA); // 4
@@ -291,7 +291,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 	}
 	if (Core::g_CoreStartupParameter.bFastmem)
 	{
-		Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+		Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 		BIC(rB, rB, mask); // 1
 		MOVI2R(rA, (u32)Memory::base, false); // 2-3
 		ADD(rB, rB, rA); // 4
