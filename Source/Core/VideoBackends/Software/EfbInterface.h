@@ -53,7 +53,8 @@ namespace EfbInterface
 	void DoState(PointerWrap &p);
 
 	extern u32 perf_values[PQ_NUM_MEMBERS];
-	inline void IncPerfCounterQuadCount(PerfQueryType type) {
+	inline void IncPerfCounterQuadCount(PerfQueryType type)
+	{
 		// NOTE: hardware doesn't process individual pixels but quads instead.
 		// Current software renderer architecture works on pixels though, so
 		// we have this "quad" hack here to only increment the registers on
