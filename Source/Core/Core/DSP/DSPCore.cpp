@@ -35,6 +35,7 @@
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPIntUtil.h"
+#include "Core/Movie.h"
 
 SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;
@@ -119,9 +120,18 @@ static bool VerifyRoms(const std::string& irom_filename, const std::string& coef
 	}
 	else if (rom_idx == 2)
 	{
-		DSPHost::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
-		DSPHost::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
-		DSPHost::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.\n", 8000);
+		if (Movie::IsRecordingInput())
+		{
+			PanicAlertT("You are using a free DSP ROM made by the Dolphin Team.\n"
+						"This rom is not accurate and should not be used for TASing\n"
+						"You should instead use official roms dumped from a Wii.");
+		}
+		else
+		{
+			DSPHost::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
+			DSPHost::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
+			DSPHost::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.\n", 8000);
+		}
 	}
 
 	return true;
