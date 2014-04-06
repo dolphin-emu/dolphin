@@ -74,7 +74,7 @@ static bool LoadRom(const std::string& fname, int size_in_words, u16 *rom)
 	return false;
 }
 
-// Returns false iff the hash fails and the user hits "Yes"
+// Returns false if the hash fails and the user hits "Yes"
 static bool VerifyRoms(const std::string& irom_filename, const std::string& coef_filename)
 {
 	struct DspRomHashes
