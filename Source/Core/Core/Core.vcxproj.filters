@@ -182,10 +182,10 @@
     <ClCompile Include="Debugger\PPCDebugInterface.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntArithmetic.cpp">
+    <ClCompile Include="DSP\DSPIntArithmetic.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntBranch.cpp">
+    <ClCompile Include="DSP\DSPIntBranch.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="DSP\DSPIntCCUtil.cpp">
@@ -197,13 +197,13 @@
     <ClCompile Include="DSP\DSPIntExtOps.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntLoadStore.cpp">
+    <ClCompile Include="DSP\DSPIntLoadStore.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntMisc.cpp">
+    <ClCompile Include="DSP\DSPIntMisc.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntMultiplier.cpp">
+    <ClCompile Include="DSP\DSPIntMultiplier.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Jit\DSPJitArithmetic.cpp">
