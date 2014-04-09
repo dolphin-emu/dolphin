@@ -24,13 +24,10 @@
 #include <AL/alext.h>
 #endif
 
-#include <soundtouch/SoundTouch.h>
-#include <soundtouch/STTypes.h>
-
 // 16 bit Stereo
 #define SFX_MAX_SOURCE          1
 #define OAL_MAX_BUFFERS         32
-#define OAL_MAX_SAMPLES         256
+#define OAL_MAX_SAMPLES         512
 #define STEREO_CHANNELS         2
 #define SURROUND_CHANNELS       6   // number of channels in surround mode
 #define SIZE_SHORT              2
@@ -64,7 +61,6 @@ private:
 	Common::Event soundSyncEvent;
 
 	short realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];
-	soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
 	ALuint uiBuffers[OAL_MAX_BUFFERS];
 	ALuint uiSource;
 	ALfloat fVolume;
