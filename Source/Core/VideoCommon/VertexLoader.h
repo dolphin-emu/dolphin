@@ -88,7 +88,7 @@ private:
 
 // ARMTODO: This should be done in a better way
 #ifndef _M_GENERIC
-class VertexLoader : public Gen::XCodeBlock, NonCopyable
+class VertexLoader : public Gen::X64CodeBlock
 #else
 class VertexLoader
 #endif

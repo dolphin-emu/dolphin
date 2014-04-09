@@ -125,7 +125,7 @@ template <typename T>
 class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
 {
 public:
-	MMIOReadCodeGenerator(Gen::XCodeBlock* code, u32 registers_in_use,
+	MMIOReadCodeGenerator(Gen::X64CodeBlock* code, u32 registers_in_use,
 	                      Gen::X64Reg dst_reg, u32 address, bool sign_extend)
 		: m_code(code), m_registers_in_use(registers_in_use), m_dst_reg(dst_reg),
 		  m_address(address), m_sign_extend(sign_extend)
@@ -199,7 +199,7 @@ private:
 		MoveOpArgToReg(sbits, R(EAX));
 	}
 
-	Gen::XCodeBlock* m_code;
+	Gen::X64CodeBlock* m_code;
 	u32 m_registers_in_use;
 	Gen::X64Reg m_dst_reg;
 	u32 m_address;

@@ -27,7 +27,7 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0]))
-class JitArm : public JitBase, public ArmGen::ARMXCodeBlock
+class JitArm : public JitBase, public ArmGen::ARMCodeBlock
 {
 private:
 	JitArmBlockCache blocks;
