@@ -22,7 +22,7 @@ namespace MMIO { class Mapping; }
 
 
 // Like XCodeBlock but has some utilities for memory access.
-class EmuCodeBlock : public Gen::XCodeBlock
+class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);

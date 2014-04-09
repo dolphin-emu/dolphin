@@ -234,7 +234,7 @@ static inline u64 *ContextRN(SContext* ctx, int n)
 #define CTX_PC CTX_EIP
 #endif
 
-class TrampolineCache : public Gen::XCodeBlock
+class TrampolineCache : public Gen::X64CodeBlock
 {
 public:
 	void Init();

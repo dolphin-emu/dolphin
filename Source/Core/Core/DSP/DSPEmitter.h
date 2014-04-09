@@ -18,7 +18,7 @@
 typedef u32 (*DSPCompiledCode)();
 typedef const u8 *Block;
 
-class DSPEmitter : public Gen::XCodeBlock, NonCopyable
+class DSPEmitter : public Gen::X64CodeBlock
 {
 public:
 	DSPEmitter();

@@ -10,8 +10,8 @@
 #include <cstring>
 #include <functional>
 
+#include "Common/CodeBlock.h"
 #include "Common/Common.h"
-#include "Common/MemoryUtil.h"
 
 namespace Gen
 {
@@ -762,65 +762,13 @@ public:
 	}
 };  // class XEmitter
 
-
-// Everything that needs to generate X86 code should inherit from this.
-// You get memory management for free, plus, you can use all the MOV etc functions without
-// having to prefix them with gen-> or something similar.
-class XCodeBlock : public XEmitter
+class X64CodeBlock : public CodeBlock<XEmitter>
 {
-protected:
-	u8 *region;
-	size_t region_size;
-
-public:
-	XCodeBlock() : region(nullptr), region_size(0) {}
-	virtual ~XCodeBlock() { if (region) FreeCodeSpace(); }
-
-	// Call this before you generate any code.
-	void AllocCodeSpace(int size)
-	{
-		region_size = size;
-		region = (u8*)AllocateExecutableMemory(region_size);
-		SetCodePtr(region);
-	}
-
-	// Always clear code space with breakpoints, so that if someone accidentally executes
-	// uninitialized, it just breaks into the debugger.
-	void ClearCodeSpace()
+private:
+	void PoisonMemory() override
 	{
 		// x86/64: 0xCC = breakpoint
 		memset(region, 0xCC, region_size);
-		ResetCodePtr();
-	}
-
-	// Call this when shutting down. Don't rely on the destructor, even though it'll do the job.
-	void FreeCodeSpace()
-	{
-		FreeMemoryPages(region, region_size);
-		region = nullptr;
-		region_size = 0;
-	}
-
-	bool IsInSpace(u8 *ptr)
-	{
-		return ptr >= region && ptr < region + region_size;
-	}
-
-	// Cannot currently be undone. Will write protect the entire code region.
-	// Start over if you need to change the code (call FreeCodeSpace(), AllocCodeSpace()).
-	void WriteProtect()
-	{
-		WriteProtectMemory(region, region_size, true);
-	}
-
-	void ResetCodePtr()
-	{
-		SetCodePtr(region);
-	}
-
-	size_t GetSpaceLeft() const
-	{
-		return region_size - (GetCodePtr() - region);
 	}
 };
 

@@ -7,8 +7,7 @@
 #include "Common/ArmEmitter.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 
-using namespace ArmGen;
-class JitArmAsmRoutineManager : public CommonAsmRoutinesBase, public ARMXCodeBlock
+class JitArmAsmRoutineManager : public CommonAsmRoutinesBase, public ArmGen::ARMCodeBlock
 {
 private:
 	void Generate();

@@ -14,6 +14,8 @@
 #include "Core/PowerPC/JitArmIL/JitILAsm.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
+using namespace ArmGen;
+
 JitArmILAsmRoutineManager armil_asm_routines;
 void JitArmILAsmRoutineManager::Generate()
 {

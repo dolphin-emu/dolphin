@@ -13,7 +13,7 @@
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 #define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0]))
-class JitArmIL : public JitILBase, public ArmGen::ARMXCodeBlock
+class JitArmIL : public JitILBase, public ArmGen::ARMCodeBlock
 {
 private:
 	JitArmBlockCache blocks;
@@ -60,8 +60,8 @@ public:
 	//
 	void WriteCode(u32 exitAddress);
 	void WriteExit(u32 destination);
-	void WriteExitDestInReg(ARMReg Reg);
-	void WriteRfiExitDestInR(ARMReg Reg);
+	void WriteExitDestInReg(ArmGen::ARMReg Reg);
+	void WriteRfiExitDestInR(ArmGen::ARMReg Reg);
 	void WriteExceptionExit();
 
 	// OPCODES
@@ -78,10 +78,10 @@ public:
 	void DynaRunTable63(UGeckoInstruction inst);
 
 	// Binary ops
-	void BIN_AND(ARMReg reg, Operand2 op2);
-	void BIN_XOR(ARMReg reg, Operand2 op2);
-	void BIN_OR(ARMReg reg, Operand2 op2);
-	void BIN_ADD(ARMReg reg, Operand2 op2);
+	void BIN_AND(ArmGen::ARMReg reg, ArmGen::Operand2 op2);
+	void BIN_XOR(ArmGen::ARMReg reg, ArmGen::Operand2 op2);
+	void BIN_OR(ArmGen::ARMReg reg, ArmGen::Operand2 op2);
+	void BIN_ADD(ArmGen::ARMReg reg, ArmGen::Operand2 op2);
 
 	// Branches
 	void bx(UGeckoInstruction inst);
