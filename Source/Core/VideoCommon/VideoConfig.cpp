@@ -69,6 +69,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
 	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
 	iniFile.Get("Settings", "FastDepthCalc", &bFastDepthCalc, true);
+	iniFile.Get("Settings", "DisableDrawing", &bDisableDrawing, false);
 
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
 	iniFile.Get("Settings", "EFBScale", &iEFBScale, (int) SCALE_1X); // native
@@ -245,6 +246,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	iniFile.Set("Settings", "EnablePixelLighting", bEnablePixelLighting);
 	iniFile.Set("Settings", "FastDepthCalc", bFastDepthCalc);
+	iniFile.Set("Settings", "DisableDrawing", bDisableDrawing);
 
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "MSAA", iMultisampleMode);

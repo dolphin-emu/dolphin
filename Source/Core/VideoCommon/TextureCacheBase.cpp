@@ -575,6 +575,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
+	if (g_ActiveConfig.bDisableDrawing)
+	{
+		return;
+	}
+
 	// Emulation methods:
 	//
 	// - EFB to RAM:
