@@ -107,13 +107,6 @@ public:
 	int GetNumLoadedVerts() const { return m_numLoadedVertices; }
 
 private:
-	enum
-	{
-		NRM_ZERO  = 0,
-		NRM_ONE   = 1,
-		NRM_THREE = 3,
-	};
-
 	int m_VertexSize;      // number of bytes of a raw GC vertex. Computed by CompileVertexTranslator.
 
 	// GC vertex format
