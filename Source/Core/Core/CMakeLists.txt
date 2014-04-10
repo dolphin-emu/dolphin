@@ -35,11 +35,11 @@ set(SRCS	ActionReplay.cpp
 			DSP/DSPMemoryMap.cpp
 			DSP/DSPStacks.cpp
 			DSP/DSPAnalyzer.cpp
-			DSP/DspIntArithmetic.cpp
-			DSP/DspIntBranch.cpp
-			DSP/DspIntLoadStore.cpp
-			DSP/DspIntMisc.cpp
-			DSP/DspIntMultiplier.cpp
+			DSP/DSPIntArithmetic.cpp
+			DSP/DSPIntBranch.cpp
+			DSP/DSPIntLoadStore.cpp
+			DSP/DSPIntMisc.cpp
+			DSP/DSPIntMultiplier.cpp
 			DSP/DSPEmitter.cpp
 			DSP/DSPCodeUtil.cpp
 			DSP/LabelMap.cpp
