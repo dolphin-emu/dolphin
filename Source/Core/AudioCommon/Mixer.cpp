@@ -86,6 +86,10 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_
 		frac &= 0xffff;
 	}
 
+	// Add the DTK Music
+	// Re-sampling is done inside
+	AudioInterface::Callback_GetStreaming(samples, currentSample / 2, m_sampleRate);
+
 	// Padding
 	unsigned short s[2];
 	s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
@@ -99,9 +103,6 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_
 	// Flush cached variable
 	Common::AtomicStore(m_indexR, indexR);
 
-	// Add the DTK Music
-	// Re-sampling is done inside
-	AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
 	if (m_logAudio)
 		g_wave_writer.AddStereoSamples(samples, numSamples);
 
