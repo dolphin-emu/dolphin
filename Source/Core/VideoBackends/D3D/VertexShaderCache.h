@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <map>
+#include <unordered_map>
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBlob.h"
@@ -53,7 +53,7 @@ private:
 			SAFE_RELEASE(bytecode);
 		}
 	};
-	typedef std::map<VertexShaderUid, VSCacheEntry> VSCache;
+	typedef std::unordered_map<VertexShaderUid, VSCacheEntry, ::ShaderUidHasher<VertexShaderUid> > VSCache;
 
 	static VSCache vshaders;
 	static const VSCacheEntry* last_entry;

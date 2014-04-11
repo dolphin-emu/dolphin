@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <unordered_map>
 #include "Common/LinearDiskCache.h"
 #include "Core/ConfigManager.h"
 #include "VideoBackends/OGL/GLUtil.h"
@@ -35,8 +36,12 @@ public:
 	{
 		return puid == r.puid && vuid == r.vuid;
 	}
-};
 
+	size_t hash() const
+	{
+		return puid.hash() ^ vuid.hash();
+	}
+};
 
 struct SHADER
 {
@@ -70,7 +75,7 @@ public:
 		}
 	};
 
-	typedef std::map<SHADERUID, PCacheEntry> PCache;
+	typedef std::unordered_map<SHADERUID, PCacheEntry, ::ShaderUidHasher<SHADERUID> > PCache;
 
 	static PCacheEntry GetShaderProgram(void);
 	static GLuint GetCurrentProgram(void);
@@ -94,7 +99,6 @@ private:
 
 	static PCache pshaders;
 	static PCacheEntry* last_entry;
-	static SHADERUID last_uid;
 
 	static UidChecker<PixelShaderUid,PixelShaderCode> pixel_uid_checker;
 	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
