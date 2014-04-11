@@ -239,7 +239,7 @@ const SFileInfo* CFileSystemGCWii::FindFileInfo(const std::string& _rFullPath)
 
 	for (auto& fileInfo : m_FileInfoVector)
 	{
-		if (!strcasecmp(fileInfo.m_FullPath.c_str(), _rFullPath.c_str()))
+		if (CompareNoCase(fileInfo.m_FullPath, _rFullPath))
 			return &fileInfo;
 	}
 

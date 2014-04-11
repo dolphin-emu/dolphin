@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cctype>
 #include <cstdarg>
 #include <cstddef>
 #include <iomanip>
@@ -72,7 +73,23 @@ static bool TryParse(const std::string &str, N *const output)
 		return true;
 	}
 	else
+	{
 		return false;
+	}
+}
+
+static bool CompareNoCase(const std::string& left, const std::string& right)
+{
+	if (left.size() != right.size())
+		return false;
+
+	for (size_t i = 0; i < left.size(); i++)
+	{
+		if (tolower(left[i]) != tolower(right[i]))
+			return false;
+	}
+
+	return true;
 }
 
 // TODO: kill this

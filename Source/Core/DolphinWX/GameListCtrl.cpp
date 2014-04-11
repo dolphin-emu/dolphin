@@ -123,7 +123,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	switch (sortData)
 	{
 		case CGameListCtrl::COLUMN_TITLE:
-			if (!strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()))
+			if (CompareNoCase(iso1->GetName(indexOne), iso2->GetName(indexOther)))
 			{
 				if (iso1->IsDiscTwo())
 					return 1 * t;
@@ -163,9 +163,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 
 		case CGameListCtrl::COLUMN_EMULATION_STATE:
 		{
-			const int
-				nState1 = iso1->GetEmuState(),
-				nState2 = iso2->GetEmuState();
+			const int nState1 = iso1->GetEmuState();
+			const int nState2 = iso2->GetEmuState();
 
 			if (nState1 > nState2)
 				return  1 * t;

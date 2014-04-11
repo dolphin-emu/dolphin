@@ -71,7 +71,8 @@ std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
 std::string CSharedContent::AddSharedContent(const u8* _pHash)
 {
 	std::string szFilename = GetFilenameFromSHA1(_pHash);
-	if (strcasecmp(szFilename.c_str(), "unk") == 0)
+
+	if (CompareNoCase(szFilename, "unk"))
 	{
 		char tempFilename[1024], c_ID[9];
 		SElement Element;
@@ -89,6 +90,7 @@ std::string CSharedContent::AddSharedContent(const u8* _pHash)
 		szFilename = tempFilename;
 		lastID++;
 	}
+
 	return szFilename;
 }
 

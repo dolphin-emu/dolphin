@@ -210,16 +210,22 @@ bool IniFile::Section::Delete(const std::string& key)
 const IniFile::Section* IniFile::GetSection(const std::string& sectionName) const
 {
 	for (const Section& sect : sections)
-		if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
+	{
+		if (CompareNoCase(sect.name, sectionName))
 			return (&(sect));
+	}
+
 	return nullptr;
 }
 
 IniFile::Section* IniFile::GetSection(const std::string& sectionName)
 {
 	for (Section& sect : sections)
-		if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
+	{
+		if (CompareNoCase(sect.name, sectionName))
 			return (&(sect));
+	}
+
 	return nullptr;
 }
 
