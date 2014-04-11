@@ -8,7 +8,6 @@ set(SRCS BPMemLoader.cpp
 	   HwRasterizer.cpp
 	   SWmain.cpp
 	   OpcodeDecoder.cpp
-	   SWPixelEngine.cpp
 	   RasterFont.cpp
 	   Rasterizer.cpp
 	   SWRenderer.cpp

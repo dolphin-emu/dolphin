@@ -2,20 +2,24 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/Common.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/SWPixelEngine.h"
 
 #include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/PixelEngine.h"
 
 
 u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
 
 namespace EfbInterface
 {
+	u32 perf_values[PQ_NUM_MEMBERS];
+
 	inline u32 GetColorOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3;
@@ -434,10 +438,10 @@ namespace EfbInterface
 		}
 
 		// branchless bounding box update
-		SWPixelEngine::pereg.boxLeft = SWPixelEngine::pereg.boxLeft>x?x:SWPixelEngine::pereg.boxLeft;
-		SWPixelEngine::pereg.boxRight = SWPixelEngine::pereg.boxRight<x?x:SWPixelEngine::pereg.boxRight;
-		SWPixelEngine::pereg.boxTop = SWPixelEngine::pereg.boxTop>y?y:SWPixelEngine::pereg.boxTop;
-		SWPixelEngine::pereg.boxBottom = SWPixelEngine::pereg.boxBottom<y?y:SWPixelEngine::pereg.boxBottom;
+		PixelEngine::bbox[0] = std::min(x, PixelEngine::bbox[0]);
+		PixelEngine::bbox[1] = std::max(x, PixelEngine::bbox[1]);
+		PixelEngine::bbox[2] = std::min(y, PixelEngine::bbox[2]);
+		PixelEngine::bbox[3] = std::max(y, PixelEngine::bbox[3]);
 	}
 
 	void SetColor(u16 x, u16 y, u8 *color)

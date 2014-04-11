@@ -317,7 +317,3 @@ void VideoBackendHardware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
 	CommandProcessor::RegisterMMIO(mmio, base);
 }
 
-void VideoBackendHardware::RegisterPEMMIO(MMIO::Mapping* mmio, u32 base)
-{
-	PixelEngine::RegisterMMIO(mmio, base);
-}

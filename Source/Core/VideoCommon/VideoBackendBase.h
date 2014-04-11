@@ -110,7 +110,6 @@ public:
 
 	// Registers MMIO handlers for the CommandProcessor registers.
 	virtual void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) = 0;
-	virtual void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) = 0;
 
 	static void PopulateList();
 	static void ClearList();
@@ -159,7 +158,6 @@ class VideoBackendHardware : public VideoBackend
 	void Video_AbortFrame() override;
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
-	void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) override;
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 	void DoState(PointerWrap &p) override;

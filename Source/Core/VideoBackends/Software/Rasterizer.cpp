@@ -8,7 +8,6 @@
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/HwRasterizer.h"
 #include "VideoBackends/Software/Rasterizer.h"
-#include "VideoBackends/Software/SWPixelEngine.h"
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/Tev.h"
@@ -130,14 +129,14 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	if (bpmem.UseEarlyDepthTest() && g_SWVideoConfig.bZComploc)
 	{
 		// TODO: Test if perf regs are incremented even if test is disabled
-		SWPixelEngine::pereg.IncZInputQuadCount(true);
+		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
 		if (bpmem.zmode.testenable)
 		{
 			// early z
 			if (!EfbInterface::ZCompare(x, y, z))
 				return;
 		}
-		SWPixelEngine::pereg.IncZOutputQuadCount(true);
+		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT_ZCOMPLOC);
 	}
 
 	RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];

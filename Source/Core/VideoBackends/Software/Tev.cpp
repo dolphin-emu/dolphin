@@ -8,7 +8,6 @@
 
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/SWPixelEngine.h"
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/Tev.h"
@@ -745,12 +744,12 @@ void Tev::Draw()
 	if (late_ztest && bpmem.zmode.testenable)
 	{
 		// TODO: Check against hw if these values get incremented even if depth testing is disabled
-		SWPixelEngine::pereg.IncZInputQuadCount(false);
+		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT);
 
 		if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
 			return;
 
-		SWPixelEngine::pereg.IncZOutputQuadCount(false);
+		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT);
 	}
 
 #if ALLOW_TEV_DUMPS
@@ -774,7 +773,7 @@ void Tev::Draw()
 #endif
 
 	INCSTAT(swstats.thisFrame.tevPixelsOut);
-	SWPixelEngine::pereg.IncBlendInputQuadCount();
+	EfbInterface::IncPerfCounterQuadCount(PQ_BLEND_INPUT);
 
 	EfbInterface::BlendTev(Position[0], Position[1], output);
 }
