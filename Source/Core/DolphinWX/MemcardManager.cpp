@@ -605,7 +605,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		                "%s\nand have the same name as a file on your memcard\nContinue?", path1.c_str()))
 		for (int i = 0; i < DIRLEN; i++)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, nullptr, path1), -1);
+			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, "", path1), -1);
 		}
 		break;
 	}

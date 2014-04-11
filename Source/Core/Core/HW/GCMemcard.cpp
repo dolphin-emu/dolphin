@@ -904,17 +904,26 @@ u32 GCMemcard::ExportGci(u8 index, const std::string& fileName, const std::strin
 	File::IOFile gci;
 	int offset = GCI;
 
-	gci.Open(fileName, "wb");
-
-	std::string fileType;
-	SplitPath(fileName, nullptr, nullptr, &fileType);
-	if (!strcasecmp(fileType.c_str(), ".gcs"))
+	if (!fileName.length())
 	{
-		offset = GCS;
+		std::string gciFilename;
+		// GCI_FileName should only fail if the gamecode is 0xFFFFFFFF
+		if (!GCI_FileName(index, gciFilename)) return SUCCESS;
+		gci.Open(directory + DIR_SEP + gciFilename, "wb");
 	}
-	else if (!strcasecmp(fileType.c_str(), ".sav"))
+	else
 	{
-		offset = SAV;
+		std::string fileType;
+		gci.Open(fileName, "wb");
+		SplitPath(fileName, nullptr, nullptr, &fileType);
+		if (!strcasecmp(fileType.c_str(), ".gcs"))
+		{
+			offset = GCS;
+		}
+		else if (!strcasecmp(fileType.c_str(), ".sav"))
+		{
+			offset = SAV;
+		}
 	}
 
 	if (!gci)
