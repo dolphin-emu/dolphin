@@ -314,8 +314,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			else if (Memory::IsRAMAddress(addr))
 			{
 				MOV(32, R(EAX), gpr.R(s));
-				BSWAP(accessSize, EAX);
-				WriteToConstRamAddress(accessSize, R(EAX), addr);
+				WriteToConstRamAddress(accessSize, EAX, addr, true);
 				if (update)
 					gpr.SetImmediate32(a, addr);
 				return;
@@ -344,10 +343,10 @@ void Jit64::stX(UGeckoInstruction inst)
 			gpr.FlushLockX(ABI_PARAM1);
 			MOV(32, R(ABI_PARAM1), gpr.R(a));
 			MOV(32, R(EAX), gpr.R(s));
-			BSWAP(32, EAX);
 #if _M_X86_64
-			MOV(accessSize, MComplex(RBX, ABI_PARAM1, SCALE_1, (u32)offset), R(EAX));
+			SwapAndStore(accessSize, MComplex(RBX, ABI_PARAM1, SCALE_1, (u32)offset), EAX);
 #else
+			BSWAP(32, EAX);
 			AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
 			MOV(accessSize, MDisp(ABI_PARAM1, (u32)Memory::base + (u32)offset), R(EAX));
 #endif
@@ -456,8 +455,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 		ADD(32, R(EAX), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
-		MOV(32, R(ECX), MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4));
-		BSWAP(32, ECX);
+		LoadAndSwap(32, ECX, MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4));
 		gpr.BindToRegister(i, false, true);
 		MOV(32, gpr.R(i), R(ECX));
 	}
@@ -481,8 +479,7 @@ void Jit64::stmw(UGeckoInstruction inst)
 	for (int i = inst.RD; i < 32; i++)
 	{
 		MOV(32, R(ECX), gpr.R(i));
-		BSWAP(32, ECX);
-		MOV(32, MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4), R(ECX));
+		SwapAndStore(32, MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4), ECX);
 	}
 	gpr.UnlockAllX();
 #else

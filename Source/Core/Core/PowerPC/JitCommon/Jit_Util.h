@@ -25,6 +25,9 @@ namespace MMIO { class Mapping; }
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
+	void LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src);
+	void SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src);
+
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset);
 	// these return the address of the MOV, for backpatching
@@ -47,7 +50,7 @@ public:
 	// Trashes both inputs and EAX.
 	void SafeWriteFloatToReg(Gen::X64Reg xmm_value, Gen::X64Reg reg_addr, u32 registersInUse, int flags = 0);
 
-	void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
+	void WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 address, bool swap = false);
 	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void JitClearCA();
 	void JitSetCA();

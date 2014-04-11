@@ -44,6 +44,7 @@ struct CPUInfo
 	bool bAES;
 	// FXSAVE/FXRSTOR
 	bool bFXSR;
+	bool bMOVBE;
 	// This flag indicates that the hardware supports some mode
 	// in which denormal inputs _and_ outputs are automatically set to (signed) zero.
 	// TODO: ARM

@@ -21,15 +21,11 @@ void CommonAsmRoutines::GenFifoWrite(int size)
 	PUSH(ESI);
 	if (size != 32)
 		PUSH(EDX);
-	BSWAP(size, ABI_PARAM1);
 	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
 	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
-	if (size != 32) {
-		MOV(32, R(EDX), R(ABI_PARAM1));
-		MOV(size, MComplex(RAX, RSI, 1, 0), R(EDX));
-	} else {
-		MOV(size, MComplex(RAX, RSI, 1, 0), R(ABI_PARAM1));
-	}
+
+	SwapAndStore(size, MComplex(RAX, RSI, 1, 0), ABI_PARAM1);
+
 	ADD(32, R(ESI), Imm8(size >> 3));
 	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
 	if (size != 32)
@@ -45,10 +41,9 @@ void CommonAsmRoutines::GenFifoFloatWrite()
 	PUSH(EDX);
 	MOVSS(M(&temp32), XMM0);
 	MOV(32, R(EDX), M(&temp32));
-	BSWAP(32, EDX);
 	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
 	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
-	MOV(32, MComplex(RAX, RSI, 1, 0), R(EDX));
+	SwapAndStore(32, MComplex(RAX, RSI, 1, 0), EDX);
 	ADD(32, R(ESI), Imm8(4));
 	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
 	POP(EDX);
@@ -150,8 +145,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 	TEST(32, R(ECX), Imm32(0x0C000000));
 	FixupBranch too_complex = J_CC(CC_NZ, true);
 	MOV(64, R(RAX), M(&psTemp[0]));
-	BSWAP(64, RAX);
-	MOV(64, MComplex(RBX, RCX, SCALE_1, 0), R(RAX));
+	SwapAndStore(64, MComplex(RBX, RCX, SCALE_1, 0), RAX);
 	FixupBranch skip_complex = J(true);
 	SetJumpTarget(too_complex);
 	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
@@ -371,8 +365,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
 	} else {
 #if _M_X86_64
-		MOV(64, R(RCX), MComplex(RBX, RCX, 1, 0));
-		BSWAP(64, RCX);
+		LoadAndSwap(64, RCX, MComplex(RBX, RCX, 1, 0));
 		ROL(64, R(RCX), Imm8(32));
 		MOVQ_xmm(XMM0, R(RCX));
 #else
