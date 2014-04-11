@@ -263,7 +263,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			out.Write("centroid in float3 uv%d_2;\n", i);
 		}
 		out.Write("centroid in float4 clipPos_2;\n");
-		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if (g_ActiveConfig.bEnablePixelLighting)
 		{
 			out.Write("centroid in float4 Normal_2;\n");
 		}
@@ -313,7 +313,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		for (unsigned int i = 0; i < numTexgen; ++i)
 			out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
 		out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
-		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if (g_ActiveConfig.bEnablePixelLighting)
 			out.Write(",\n  in %s float4 Normal : TEXCOORD%d", optCentroid, numTexgen + 1);
 		out.Write("        ) {\n");
 	}
@@ -343,13 +343,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			}
 		}
 		out.Write("\tfloat4 clipPos = clipPos_2;\n");
-		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if (g_ActiveConfig.bEnablePixelLighting)
 		{
 			out.Write("\tfloat4 Normal = Normal_2;\n");
 		}
 	}
 
-	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if (g_ActiveConfig.bEnablePixelLighting)
 	{
 		out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
 		out.Write("\tfloat3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
@@ -439,7 +439,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		WriteStage<T>(out, uid_data, i, ApiType, swapModeTable); // build the equation for this stage
 
 #define MY_STRUCT_OFFSET(str,elem) ((u32)((u64)&(str).elem-(u64)&(str)))
-	bool enable_pl = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	bool enable_pl = g_ActiveConfig.bEnablePixelLighting;
 	uid_data.num_values = (enable_pl) ? sizeof(uid_data) : MY_STRUCT_OFFSET(uid_data,stagehash[numStages]);
 
 
