@@ -21,23 +21,15 @@
 class CMixer {
 
 public:
-	CMixer(unsigned int AISampleRate = 48000, unsigned int DACSampleRate = 48000, unsigned int BackendSampleRate = 32000)
-		: m_aiSampleRate(AISampleRate)
-		, m_dacSampleRate(DACSampleRate)
-		, m_bits(16)
-		, m_channels(2)
+	CMixer(unsigned int BackendSampleRate)
+		: m_dma_mixer(this, 32000)
+		, m_streaming_mixer(this, 48000)
+		, m_sampleRate(BackendSampleRate)
 		, m_logAudio(0)
-		, m_indexW(0)
-		, m_indexR(0)
-		, m_numLeftI(0.0f)
+		, m_throttle(false)
+		, m_speed(0)
 	{
-		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
-		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
-		m_sampleRate = BackendSampleRate;
-
-		memset(m_buffer, 0, sizeof(m_buffer));
-
-		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
+		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
 	}
 
 	virtual ~CMixer() {}
@@ -47,7 +39,8 @@ public:
 
 	// Called from main thread
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
-	unsigned int GetSampleRate() const {return m_sampleRate;}
+	virtual void PushStreamingSamples(const short* samples, unsigned int num_samples);
+	unsigned int GetSampleRate() const { return m_sampleRate; }
 
 	void SetThrottle(bool use) { m_throttle = use;}
 
@@ -87,11 +80,30 @@ public:
 	void UpdateSpeed(volatile float val) { m_speed = val; }
 
 protected:
+	class MixerFifo {
+	public:
+		MixerFifo(CMixer *mixer, unsigned sample_rate)
+			: m_mixer(mixer)
+			, m_input_sample_rate(sample_rate)
+			, m_indexW(0)
+			, m_indexR(0)
+			, m_numLeftI(0.0f)
+		{
+			memset(m_buffer, 0, sizeof(m_buffer));
+		}
+		void PushSamples(const short* samples, unsigned int num_samples);
+		unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
+	private:
+		CMixer *m_mixer;
+		unsigned m_input_sample_rate;
+		short m_buffer[MAX_SAMPLES * 2];
+		volatile u32 m_indexW;
+		volatile u32 m_indexR;
+		float m_numLeftI;
+	};
+	MixerFifo m_dma_mixer;
+	MixerFifo m_streaming_mixer;
 	unsigned int m_sampleRate;
-	unsigned int m_aiSampleRate;
-	unsigned int m_dacSampleRate;
-	int m_bits;
-	int m_channels;
 
 	WaveFileWriter g_wave_writer;
 
@@ -99,14 +111,7 @@ protected:
 
 	bool m_throttle;
 
-	short m_buffer[MAX_SAMPLES * 2];
-	volatile u32 m_indexW;
-	volatile u32 m_indexR;
-
 	std::mutex m_csMixing;
-	float m_numLeftI;
 
 	volatile float m_speed; // Current rate of the emulation (1.0 = 100% speed)
-private:
-
 };
