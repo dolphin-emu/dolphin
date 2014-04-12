@@ -15,7 +15,6 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <polarssl/md5.h>
 #include <wx/arrstr.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
@@ -57,6 +56,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/MD5Sum.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
 #include "Core/ActionReplay.h"
@@ -1212,7 +1212,7 @@ void CISOProperties::OnCalculateMD5Sum(wxCommandEvent& WXUNUSED (event))
 	size_t read_size;
 	size_t read_offset = 0;
 	u64 game_size;
-	md5_context ctx;
+	MD5Sum md5sum;
 
 	File::IOFile file(GameFileName, "rb");
 	game_size = file.GetSize();
@@ -1227,19 +1227,17 @@ void CISOProperties::OnCalculateMD5Sum(wxCommandEvent& WXUNUSED (event))
 		wxPD_SMOOTH
 		);
 
-	md5_starts(&ctx);
-
 	while(read_offset < game_size)
 	{
 		progressDialog.Update(read_offset, _("Calculating MD5 checksum"));
 
 		file.ReadArray(&data[0], READ_SIZE, &read_size);
-		md5_update(&ctx, &data[0], read_size);
+		md5sum.Update(&data[0], read_size);
 
 		read_offset += read_size;
 	}
 
-	md5_finish(&ctx, output);
+	md5sum.Finish(output);
 
 	// Convert to hex
 	for (int a = 0; a < 16; ++a)
