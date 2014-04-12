@@ -291,9 +291,12 @@ void InitDriverInfo()
 		}
 		break;
 		case DriverDetails::VENDOR_ARM:
-			if (std::string::npos != srenderer.find("Mali-T6"))
+			// Currently the Mali-T line has two families in it.
+			// Mali-T6xx and Mali-T7xx
+			// These two families are similar enough that they share bugs in their drivers.
+			if (std::string::npos != srenderer.find("Mali-T"))
 			{
-				driver = DriverDetails::DRIVER_ARM_T6XX;
+				driver = DriverDetails::DRIVER_ARM_TXXX;
 				// Mali drivers provide no way to explicitly find out what video driver is running.
 				// This is similar to how we can't find the Nvidia driver version in Windows.
 				// Good thing is that ARM introduces a new video driver about once every two years so we can
