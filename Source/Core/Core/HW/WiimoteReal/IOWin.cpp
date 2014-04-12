@@ -4,7 +4,7 @@
 
 // Used for pair up
 #undef NTDDI_VERSION
-#define NTDDI_VERSION  NTDDI_WINXPSP2
+#define NTDDI_VERSION  NTDDI_VISTA
 
 #include <algorithm>
 #include <cstdio>

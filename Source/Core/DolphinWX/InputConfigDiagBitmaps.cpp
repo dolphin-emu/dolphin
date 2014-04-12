@@ -4,7 +4,7 @@
 
 #include <cstring>
 #include <memory>
-#include <mutex>
+#include "Common/StdMutex.h"
 #include <string>
 #include <vector>
 #include <wx/bitmap.h>

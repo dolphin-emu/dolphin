@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#define _WIN32_WINNT 0x0600
+
 #include <algorithm>
 #include <cctype>
 #include <cstring>
