@@ -21,26 +21,34 @@
 namespace DebugUtil
 {
 
-u32 skipFrames = 0;
-bool drawingHwTriangles = false;
+static u32 skipFrames = 0;
+static bool drawingHwTriangles = false;
 
 enum { NumObjectBuffers = 40};
 
-u32 ObjectBuffer[NumObjectBuffers][EFB_WIDTH*EFB_HEIGHT];
-u32 TempBuffer[NumObjectBuffers];
+static u32 *ObjectBuffer[NumObjectBuffers];
+static u32 TempBuffer[NumObjectBuffers];
 
-bool DrawnToBuffer[NumObjectBuffers];
-const char* ObjectBufferName[NumObjectBuffers];
-int BufferBase[NumObjectBuffers];
+static bool DrawnToBuffer[NumObjectBuffers];
+static const char* ObjectBufferName[NumObjectBuffers];
+static int BufferBase[NumObjectBuffers];
 
 void Init()
 {
 	for (int i = 0; i < NumObjectBuffers; i++)
 	{
-		memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
+		ObjectBuffer[i] = new u32[EFB_WIDTH*EFB_HEIGHT]();
 		DrawnToBuffer[i] = false;
 		ObjectBufferName[i] = nullptr;
 		BufferBase[i] = 0;
+	}
+}
+
+void Shutdown()
+{
+	for (int i = 0; i < NumObjectBuffers; i++)
+	{
+		delete[] ObjectBuffer[i];
 	}
 }
 
@@ -245,7 +253,7 @@ void OnObjectEnd()
 					swstats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]);
 
 				(void)TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);
-				memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
+				memset(ObjectBuffer[i], 0, EFB_WIDTH * EFB_HEIGHT * sizeof(u32));
 
 			}
 		}
