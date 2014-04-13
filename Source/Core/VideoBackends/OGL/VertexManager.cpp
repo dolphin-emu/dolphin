@@ -8,7 +8,6 @@
 #include "Common/FileUtil.h"
 #include "Common/MemoryUtil.h"
 
-#include "VideoBackends/OGL/Globals.h"
 #include "VideoBackends/OGL/main.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"

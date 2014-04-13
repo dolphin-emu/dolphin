@@ -8,7 +8,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-#include "VideoBackends/OGL/Globals.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/VideoBackend.h"

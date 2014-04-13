@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Decoder">
@@ -95,7 +95,6 @@
     <ClInclude Include="TextureCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Globals.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="SamplerCache.h" />
     <ClInclude Include="VideoBackend.h" />
