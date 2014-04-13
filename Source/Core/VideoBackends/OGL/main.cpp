@@ -49,7 +49,6 @@ Make AA apply instantly during gameplay if possible
 #include "Core/Host.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
-#include "VideoBackends/OGL/Globals.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoBackends/OGL/PostProcessing.h"

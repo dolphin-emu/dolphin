@@ -20,7 +20,6 @@
 #include "Core/Movie.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
-#include "VideoBackends/OGL/Globals.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/main.h"
 #include "VideoBackends/OGL/PostProcessing.h"
