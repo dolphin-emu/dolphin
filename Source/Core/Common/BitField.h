@@ -94,13 +94,23 @@
  *
  * Caveats:
  *
+ * 1)
  * BitField provides automatic casting from and to the storage type where
  * appropriate. However, when using non-typesafe functions like printf, an
  * explicit cast must be performed on the BitField object to make sure it gets
  * passed correctly, e.g.:
  * printf("Value: %d", (s32)some_register.some_signed_fields);
  *
+ * 2)
+ * Not really a caveat, but potentially irritating: This class is used in some
+ * packed structures that do not guarantee proper alignment. Therefore we have
+ * to use #pragma pack here not to pack the members of the class, but instead
+ * to break GCC's assumption that the members of the class are aligned on
+ * sizeof(StorageType).
+ * TODO(neobrain): Confirm that this is a proper fix and not just masking
+ * symptoms.
  */
+#pragma pack(1)
 template<std::size_t position, std::size_t bits, typename T>
 struct BitField
 {
@@ -160,3 +170,4 @@ private:
 	static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
 	static_assert(bits > 0, "Invalid number of bits");
 };
+#pragma pack()
