@@ -36,6 +36,8 @@
 #include <limits>
 #include <type_traits>
 
+#include "Common.h"
+
 /*
  * Abstract bitfield class
  *
@@ -113,13 +115,13 @@ public:
 	// so that we can use this within unions
 	BitField() = default;
 
-	BitField& operator=(T val)
+	__forceinline BitField& operator=(T val)
 	{
 		storage = (storage & ~GetMask()) | ((val << position) & GetMask());
 		return *this;
 	}
 
-	operator T() const
+	__forceinline operator T() const
 	{
 		if (std::numeric_limits<T>::is_signed)
 		{
@@ -144,7 +146,7 @@ private:
 	// Unsigned version of StorageType
 	typedef typename std::make_unsigned<StorageType>::type StorageTypeU;
 
-	StorageType GetMask() const
+	__forceinline StorageType GetMask() const
 	{
 		return ((~(StorageTypeU)0) >> (8*sizeof(T) - bits)) << position;
 	}
