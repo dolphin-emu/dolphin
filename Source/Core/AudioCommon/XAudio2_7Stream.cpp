@@ -9,6 +9,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/XAudio2_7Stream.h"
+#include "Common/Event.h"
 
 #ifdef HAVE_DXSDK
 #include <dxsdkver.h>

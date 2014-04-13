@@ -10,8 +10,8 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/Event.h"
 #include "Common/LogManager.h"
-#include "Common/Thread.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
