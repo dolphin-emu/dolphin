@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "Common/Flag.h"
 #include "Common/StdConditionVariable.h"
 #include "Common/StdMutex.h"
 
@@ -20,38 +21,35 @@ namespace Common {
 class Event
 {
 public:
-	Event()
-		: is_set(false)
-	{}
-
 	void Set()
 	{
-		std::lock_guard<std::mutex> lk(m_mutex);
-		if (!is_set)
+		if (m_flag.TestAndSet())
 		{
-			is_set = true;
+			std::lock_guard<std::mutex> lk(m_mutex);
 			m_condvar.notify_one();
 		}
 	}
 
 	void Wait()
 	{
+		if (m_flag.TestAndClear())
+			return;
+
 		std::unique_lock<std::mutex> lk(m_mutex);
-		m_condvar.wait(lk, [&]{ return is_set; });
-		is_set = false;
+		m_condvar.wait(lk, [&]{ return m_flag.IsSet(); });
+		m_flag.Clear();
 	}
 
 	void Reset()
 	{
-		std::unique_lock<std::mutex> lk(m_mutex);
 		// no other action required, since wait loops on
 		// the predicate and any lingering signal will get
 		// cleared on the first iteration
-		is_set = false;
+		m_flag.Clear();
 	}
 
 private:
-	volatile bool is_set;
+	Flag m_flag;
 	std::condition_variable m_condvar;
 	std::mutex m_mutex;
 };
