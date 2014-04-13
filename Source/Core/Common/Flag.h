@@ -3,10 +3,17 @@
 // Refer to the license.txt file included.
 
 // Abstraction for a simple flag that can be toggled in a multithreaded way.
-// It exposes a very simple API:
+//
+// Simple API:
 // * Set(bool = true): sets the Flag
 // * IsSet(): tests if the flag is set
 // * Clear(): clears the flag (equivalent to Set(false)).
+//
+// More advanced features:
+// * TestAndSet(bool = true): sets the flag to the given value. If a change was
+//                            needed (the flag did not already have this value)
+//                            the function returns true. Else, false.
+// * TestAndClear(): alias for TestAndSet(false).
 
 #pragma once
 
@@ -35,6 +42,17 @@ public:
 	bool IsSet() const
 	{
 		return m_val.load();
+	}
+
+	bool TestAndSet(bool val = true)
+	{
+		bool expected = !val;
+		return m_val.compare_exchange_strong(expected, val);
+	}
+
+	bool TestAndClear()
+	{
+		return TestAndSet(false);
 	}
 
 private:

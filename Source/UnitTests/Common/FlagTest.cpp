@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <array>
 #include <gtest/gtest.h>
 #include <thread>
 
@@ -22,6 +23,9 @@ TEST(Flag, Simple)
 
 	f.Set(false);
 	EXPECT_FALSE(f.IsSet());
+
+	EXPECT_TRUE(f.TestAndSet());
+	EXPECT_TRUE(f.TestAndClear());
 
 	Flag f2(true);
 	EXPECT_TRUE(f2.IsSet());
@@ -57,4 +61,31 @@ TEST(Flag, MultiThreaded)
 	clearer_thread.join();
 
 	EXPECT_EQ(ITERATIONS_COUNT, count);
+}
+
+TEST(Flag, SpinLock)
+{
+	// Uses a flag to implement basic spinlocking using TestAndSet.
+	Flag f;
+	int count = 0;
+	const int ITERATIONS_COUNT = 5000;
+	const int THREADS_COUNT = 50;
+
+	auto adder_func = [&]() {
+		for (int i = 0; i < ITERATIONS_COUNT; ++i)
+		{
+			// Acquire the spinlock.
+			while (!f.TestAndSet());
+			count++;
+			f.Clear();
+		}
+	};
+
+	std::array<std::thread, THREADS_COUNT> threads;
+	for (auto& th : threads)
+		th = std::thread(adder_func);
+	for (auto& th : threads)
+		th.join();
+
+	EXPECT_EQ(ITERATIONS_COUNT * THREADS_COUNT, count);
 }
