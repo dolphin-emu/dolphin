@@ -214,11 +214,20 @@ void JitArm::stX(UGeckoInstruction inst)
 	}
 }
 
-void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
+void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offsetReg, s32 offset)
 {
 	ARMReg rA = gpr.GetReg();
-	MOVI2R(rA, offset, false); // -3
-	ADD(addr, addr, rA); // - 1
+	if (offsetReg == -1)
+	{
+		MOVI2R(rA, offset, false); // -3
+		ADD(addr, addr, rA); // - 1
+	}
+	else
+	{
+		NOP(2); // -3, -2
+		// offsetReg is preloaded here
+		ADD(addr, addr, gpr.R(offsetReg)); // -1
+	}
 
 	// All this gets replaced on backpatch
 	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
@@ -257,14 +266,19 @@ void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offse
 void JitArm::SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse)
 {
 	ARMReg RD = gpr.R(dest);
+
 	if (Core::g_CoreStartupParameter.bFastmem && fastmem)
 	{
+		// Preload for fastmem
+		if (offsetReg != -1)
+			gpr.R(offsetReg);
+
 		if (addr != -1)
 			MOV(R10, gpr.R(addr));
 		else
 			MOV(R10, 0);
 
-		UnsafeLoadToReg(RD, R10, accessSize, offset);
+		UnsafeLoadToReg(RD, R10, accessSize, offsetReg, offset);
 		return;
 	}
 	ARMReg rA = gpr.GetReg();
@@ -336,18 +350,21 @@ void JitArm::lXX(UGeckoInstruction inst)
 				case 55: // lwzux
 					update = true;
 				case 23: // lwzx
+					fastmem = true;
 					accessSize = 32;
 					offsetReg = b;
 				break;
 				case 119: //lbzux
 					update = true;
 				case 87: // lbzx
+					fastmem = true;
 					accessSize = 8;
 					offsetReg = b;
 				break;
 				case 311: // lhzux
 					update = true;
 				case 279: // lhzx
+					fastmem = true;
 					accessSize = 16;
 					offsetReg = b;
 				break;
