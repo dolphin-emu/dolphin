@@ -14,7 +14,7 @@
 
 #include <memory>
 #include "AudioCommon/SoundStream.h"
-#include "Common/Thread.h"
+#include "Common/Event.h"
 
 #ifdef _WIN32
 

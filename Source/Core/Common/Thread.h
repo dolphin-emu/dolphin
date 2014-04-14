@@ -32,45 +32,6 @@ int CurrentThreadId();
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask);
 void SetCurrentThreadAffinity(u32 mask);
 
-class Event
-{
-public:
-	Event()
-		: is_set(false)
-	{}
-
-	void Set()
-	{
-		std::lock_guard<std::mutex> lk(m_mutex);
-		if (!is_set)
-		{
-			is_set = true;
-			m_condvar.notify_one();
-		}
-	}
-
-	void Wait()
-	{
-		std::unique_lock<std::mutex> lk(m_mutex);
-		m_condvar.wait(lk, [&]{ return is_set; });
-		is_set = false;
-	}
-
-	void Reset()
-	{
-		std::unique_lock<std::mutex> lk(m_mutex);
-		// no other action required, since wait loops on
-		// the predicate and any lingering signal will get
-		// cleared on the first iteration
-		is_set = false;
-	}
-
-private:
-	volatile bool is_set;
-	std::condition_variable m_condvar;
-	std::mutex m_mutex;
-};
-
 // TODO: doesn't work on windows with (count > 2)
 class Barrier
 {

@@ -5,6 +5,8 @@
 #include "AudioCommon/aldlist.h"
 #include "AudioCommon/DPL2Decoder.h"
 #include "AudioCommon/OpenALStream.h"
+#include "Common/StdThread.h"
+#include "Common/Thread.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 

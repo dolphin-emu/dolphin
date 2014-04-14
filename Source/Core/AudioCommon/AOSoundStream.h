@@ -5,7 +5,9 @@
 #pragma once
 
 #include "AudioCommon/SoundStream.h"
-#include "Common/Thread.h"
+#include "Common/Event.h"
+#include "Common/StdMutex.h"
+#include "Common/StdThread.h"
 
 #if defined(HAVE_AO) && HAVE_AO
 #include <ao/ao.h>

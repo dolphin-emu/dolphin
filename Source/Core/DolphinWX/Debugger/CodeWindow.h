@@ -14,7 +14,7 @@
 #include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
+#include "Common/Event.h"
 #include "DolphinWX/Globals.h"
 
 class CFrame;

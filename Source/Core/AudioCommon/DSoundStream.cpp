@@ -9,6 +9,8 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/DSoundStream.h"
+#include "Common/StdThread.h"
+#include "Common/Thread.h"
 
 bool DSound::CreateBuffer()
 {

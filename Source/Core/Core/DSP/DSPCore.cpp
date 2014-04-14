@@ -24,10 +24,10 @@
    ====================================================================*/
 
 #include "Common/Common.h"
+#include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/MemoryUtil.h"
-#include "Common/Thread.h"
 
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
