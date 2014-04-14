@@ -5,7 +5,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <mutex>
+#include "Common/StdMutex.h"
 #include <string>
 #include <utility>
 #include <wx/app.h>

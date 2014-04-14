@@ -25,7 +25,8 @@
 
 #include <condition_variable> // IWYU pragma: export
 
-#elif _MSC_VER >= 1700
+//#elif _MSC_VER >= 1700
+#elif 0 // MSVC's threading causes slow DSP LLE on thread
 
 // The standard implementation is included since VS2012
 #include <condition_variable> // IWYU pragma: export

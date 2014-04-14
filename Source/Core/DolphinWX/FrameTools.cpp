@@ -16,7 +16,7 @@ Core::GetWindowHandle().
 
 #include <cstdarg>
 #include <cstdio>
-#include <mutex>
+#include "Common/StdMutex.h"
 #include <string>
 #include <vector>
 #include <wx/app.h>

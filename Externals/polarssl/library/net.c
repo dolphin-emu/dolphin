@@ -33,7 +33,7 @@
     !defined(EFI32)
 
 #if defined(POLARSSL_HAVE_IPV6)
-#define _WIN32_WINNT 0x0501
+#define _WIN32_WINNT 0x0600
 #include <ws2tcpip.h>
 #endif
 

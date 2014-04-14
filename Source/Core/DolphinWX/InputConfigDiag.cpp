@@ -6,7 +6,7 @@
 #include <cctype>
 #include <cstddef>
 #include <memory>
-#include <mutex>
+#include "Common/StdMutex.h"
 #include <string>
 #include <vector>
 #include <wx/app.h>

@@ -59,8 +59,8 @@
 
 #ifdef __GNUC__
     #include <initguid.h>
-    #define _WIN32_WINNT 0x0501
-    #define WINVER 0x0501
+    #define _WIN32_WINNT 0x0600
+    #define WINVER 0x0600
 #endif
 
 #include <string.h> /* strlen() */
