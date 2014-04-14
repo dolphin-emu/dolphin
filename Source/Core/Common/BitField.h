@@ -323,7 +323,7 @@ public:
 
 	// TODO: This doesn't actually return a reference
 	template<size_t index>
-	const auto Get() const -> typename std::tuple_element<index,decltype(bitfields)>::type
+	auto Get() const -> typename std::add_const<typename std::tuple_element<index,decltype(bitfields)>::type>::type
 	{
 		return std::get<index>(bitfields);
 	}
