@@ -95,6 +95,8 @@ private:
 	wxTextCtrl *m_Revision;
 	wxTextCtrl *m_Date;
 	wxTextCtrl *m_FST;
+	wxTextCtrl *m_MD5Sum;
+	wxButton   *m_MD5SumCalculate;
 	wxArrayString arrayStringFor_Lang;
 	wxChoice *m_Lang;
 	wxTextCtrl *m_ShortName;
@@ -154,6 +156,8 @@ private:
 		ID_REVISION,
 		ID_DATE,
 		ID_FST,
+		ID_MD5SUM,
+		ID_MD5SUMGENERATE,
 		ID_VERSION,
 		ID_LANG,
 		ID_SHORTNAME,
@@ -176,6 +180,7 @@ private:
 	void OnClose(wxCloseEvent& event);
 	void OnCloseClick(wxCommandEvent& event);
 	void OnEditConfig(wxCommandEvent& event);
+	void OnCalculateMD5Sum(wxCommandEvent& event);
 	void OnShowDefaultConfig(wxCommandEvent& event);
 	void ListSelectionChanged(wxCommandEvent& event);
 	void PatchButtonClicked(wxCommandEvent& event);
@@ -207,6 +212,7 @@ private:
 	IniFile GameIniLocal;
 	std::string GameIniFileDefault;
 	std::string GameIniFileLocal;
+	const std::string GameFileName;
 
 	std::set<std::string> DefaultPatches;
 	std::set<std::string> DefaultCheats;

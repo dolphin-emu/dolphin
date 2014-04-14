@@ -56,6 +56,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/MD5Sum.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
 #include "Core/ActionReplay.h"
@@ -100,6 +101,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
 	EVT_BUTTON(wxID_OK, CISOProperties::OnCloseClick)
 	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
+	EVT_BUTTON(ID_MD5SUMGENERATE, CISOProperties::OnCalculateMD5Sum)
 	EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
@@ -124,7 +126,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 END_EVENT_TABLE()
 
 CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
-	: wxDialog(parent, id, title, position, size, style)
+	: wxDialog(parent, id, title, position, size, style), GameFileName(fileName)
 {
 	// Load ISO data
 	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
@@ -526,6 +528,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_Date = new wxTextCtrl(m_Information, ID_DATE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText* const m_FSTText = new wxStaticText(m_Information, wxID_ANY, _("FST Size:"));
 	m_FST = new wxTextCtrl(m_Information, ID_FST, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+	wxStaticText* const m_MD5SumText = new wxStaticText(m_Information, wxID_ANY, _("MD5 Checksum:"));
+	m_MD5Sum = new wxTextCtrl(m_Information, ID_MD5SUM, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+	m_MD5SumCalculate = new wxButton(m_Information, ID_MD5SUMGENERATE, _("Calculate"));
 
 	wxStaticText* const m_LangText = new wxStaticText(m_Information, wxID_ANY, _("Show Language:"));
 	arrayStringFor_Lang.Add(_("English"));
@@ -559,19 +564,25 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// ISO Details
 	wxGridBagSizer* const sISODetails = new wxGridBagSizer(0, 0);
 	sISODetails->Add(m_NameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_GameIDText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_GameID, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_GameID, wxGBPosition(1, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Country, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_Country, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_MakerIDText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_MakerID, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_MakerID, wxGBPosition(3, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_RevisionText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Revision, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_Revision, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_DateText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Date, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_Date, wxGBPosition(5, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_FSTText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_FST, wxGBPosition(6, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_FST, wxGBPosition(6, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_MD5SumText, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_MD5Sum, wxGBPosition(7, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	wxSizer* sMD5SumButtonSizer = CreateButtonSizer(wxNO_DEFAULT);
+	sMD5SumButtonSizer->Add(m_MD5SumCalculate);
+	sISODetails->Add(sMD5SumButtonSizer, wxGBPosition(7, 2), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+
 	sISODetails->AddGrowableCol(1);
 	wxStaticBoxSizer* const sbISODetails =
 		new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
@@ -1190,6 +1201,49 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 	LaunchExternalEditor(GameIniFileLocal);
 	GameIniLocal.Load(GameIniFileLocal);
 	LoadGameConfig();
+}
+
+void CISOProperties::OnCalculateMD5Sum(wxCommandEvent& WXUNUSED (event))
+{
+	u8 output[16];
+	std::string output_string;
+#define READ_SIZE (8*1024*1024)
+	std::vector<u8> data(READ_SIZE);
+	size_t read_size;
+	size_t read_offset = 0;
+	u64 game_size;
+	MD5Sum md5sum;
+
+	File::IOFile file(GameFileName, "rb");
+	game_size = file.GetSize();
+
+	wxProgressDialog progressDialog(
+		_("Calculating MD5 checksum"),
+		_("Working..."),
+		game_size,
+		this,
+		wxPD_APP_MODAL |
+		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+		wxPD_SMOOTH
+		);
+
+	while(read_offset < game_size)
+	{
+		progressDialog.Update(read_offset, _("Calculating MD5 checksum"));
+
+		file.ReadArray(&data[0], READ_SIZE, &read_size);
+		md5sum.Update(&data[0], read_size);
+
+		read_offset += read_size;
+	}
+
+	md5sum.Finish(output);
+
+	// Convert to hex
+	for (int a = 0; a < 16; ++a)
+		output_string += StringFromFormat("%02x", output[a]);
+
+	m_MD5Sum->SetValue(output_string);
 }
 
 void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED (event))
