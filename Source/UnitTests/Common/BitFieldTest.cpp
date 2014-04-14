@@ -125,3 +125,45 @@ TEST(BitField, Assignment)
 		EXPECT_EQ(object.regular_field_unsigned, object.at_dword_boundary);
 	}
 }
+
+// Test class behavior on oddly aligned structures.
+TEST(BitField, Alignment)
+{
+	#pragma pack(1)
+	struct OddlyAlignedTestStruct
+	{
+		u8 padding;
+		TestUnion obj;
+	};
+	#pragma pack()
+
+	GC_ALIGNED16(OddlyAlignedTestStruct test_struct);
+	TestUnion& object = test_struct.obj;
+	static_assert(alignof(test_struct.obj.signed_1bit) == 1, "Incorrect variable alignment");
+
+	for (u64 val : table)
+	{
+		// Assignments with fixed values
+		object.full_u64 = val;
+		EXPECT_EQ(val, object.full_u64);
+
+		object.full_s64 = (s64)val;
+		EXPECT_EQ((s64)val, object.full_u64);
+
+		object.regular_field_unsigned = val;
+		EXPECT_EQ(val & 0x7, object.regular_field_unsigned);
+
+		object.at_dword_boundary = val;
+		EXPECT_EQ(((s64)(val << 60)) >> 60, object.at_dword_boundary);
+
+		object.signed_1bit = val;
+		EXPECT_EQ((val & 1) ? -1 : 0, object.signed_1bit);
+
+		object.regular_field_signed = val;
+		EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed);
+
+		// Assignment from other BitField
+		object.at_dword_boundary = object.regular_field_unsigned;
+		EXPECT_EQ(object.regular_field_unsigned, object.at_dword_boundary);
+	}
+}
