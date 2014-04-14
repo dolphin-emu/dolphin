@@ -12,13 +12,20 @@
 
 #pragma once
 
+#ifdef _WIN32
+#include <concrt.h>
+#endif
+
 #include "Common/Flag.h"
 #include "Common/StdConditionVariable.h"
 #include "Common/StdMutex.h"
 
 namespace Common {
 
-class Event
+// Windows uses a specific implementation because std::condition_variable has
+// terrible performance for this kind of workload with MSVC++ 2013.
+#ifndef _WIN32
+class Event final
 {
 public:
 	void Set()
@@ -53,5 +60,17 @@ private:
 	std::condition_variable m_condvar;
 	std::mutex m_mutex;
 };
+#else
+class Event final
+{
+public:
+	void Set() { m_event.set(); }
+	void Wait() { m_event.wait(); m_event.reset(); }
+	void Reset() { m_event.reset(); }
+
+private:
+	concurrency::event m_event;
+};
+#endif
 
 }  // namespace Common
