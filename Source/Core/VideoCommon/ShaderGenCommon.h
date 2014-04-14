@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Hash.h"
 #include "VideoCommon/VideoCommon.h"
 
 /**
@@ -89,6 +90,11 @@ public:
 		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) < 0;
 	}
 
+	size_t hash() const
+	{
+		return GetMurmurHash3(values, data.NumValues() * sizeof(*values), 0);
+	}
+
 	template<class T>
 	inline T& GetUidData() { return data; }
 
@@ -101,6 +107,16 @@ private:
 		uid_data data;
 		u8 values[sizeof(uid_data)];
 	};
+};
+
+template<typename T>
+class ShaderUidHasher
+{
+public:
+	size_t operator()(const T& uid) const
+	{
+		return uid.hash();
+	}
 };
 
 class ShaderCode : public ShaderGeneratorInterface

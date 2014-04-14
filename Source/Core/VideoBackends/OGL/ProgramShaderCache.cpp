@@ -32,7 +32,6 @@ LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
 static GLuint CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;
-SHADERUID ProgramShaderCache::last_uid;
 UidChecker<PixelShaderUid,PixelShaderCode> ProgramShaderCache::pixel_uid_checker;
 UidChecker<VertexShaderUid,VertexShaderCode> ProgramShaderCache::vertex_uid_checker;
 
@@ -161,19 +160,6 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 {
 	SHADERUID uid;
 	GetShaderId(&uid, dstAlphaMode, components);
-
-	// Check if the shader is already set
-	if (last_entry)
-	{
-		if (uid == last_uid)
-		{
-			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-			last_entry->shader.Bind();
-			return &last_entry->shader;
-		}
-	}
-
-	last_uid = uid;
 
 	// Check if shader is already in cache
 	PCache::iterator iter = pshaders.find(uid);

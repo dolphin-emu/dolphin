@@ -5,7 +5,7 @@
 #pragma once
 
 #include <d3d11.h>
-#include <map>
+#include <unordered_map>
 
 #include "VideoCommon/PixelShaderGen.h"
 
@@ -46,7 +46,7 @@ private:
 		void Destroy() { SAFE_RELEASE(shader); }
 	};
 
-	typedef std::map<PixelShaderUid, PSCacheEntry> PSCache;
+	typedef std::unordered_map<PixelShaderUid, PSCacheEntry, ::ShaderUidHasher<PixelShaderUid> > PSCache;
 
 	static PSCache PixelShaders;
 	static const PSCacheEntry* last_entry;
