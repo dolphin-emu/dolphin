@@ -503,16 +503,18 @@ void JitILBase::srawix(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
-	IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS), test;
-	val = ibuild.EmitSarl(val, ibuild.EmitIntConst(inst.SH));
-	ibuild.EmitStoreGReg(val, inst.RA);
+	// Shift right by two
+	IREmitter::InstLoc input = ibuild.EmitLoadGReg(inst.RS);
+	IREmitter::InstLoc output = ibuild.EmitSarl(input, ibuild.EmitIntConst(inst.SH));
+	ibuild.EmitStoreGReg(output, inst.RA);
+	// Check whether the input is negative and any bits got shifted out.
 	unsigned int mask = -1u << inst.SH;
-	test = ibuild.EmitOr(val, ibuild.EmitIntConst(mask & 0x7FFFFFFF));
+	IREmitter::InstLoc test = ibuild.EmitOr(input, ibuild.EmitIntConst(mask & 0x7FFFFFFF));
 	test = ibuild.EmitICmpUgt(test, ibuild.EmitIntConst(mask));
 
 	ibuild.EmitStoreCarry(test);
 	if (inst.Rc)
-		ComputeRC(ibuild, val);
+		ComputeRC(ibuild, output);
 }
 
 // count leading zeroes
