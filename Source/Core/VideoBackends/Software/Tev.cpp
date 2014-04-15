@@ -198,7 +198,7 @@ void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner &cc, const InputRegTy
 
 void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc, const InputRegType inputs[4])
 {
-	for (int i = BLU_C; i < RED_C; i++)
+	for (int i = BLU_C; i <= RED_C; i++)
 	{
 		switch ((cc.shift<<1)|cc.op|8)  // encoded compare mode
 		{
