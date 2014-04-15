@@ -1208,7 +1208,7 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 	u8 output[16];
 	std::string output_string;
 	std::vector<u8> data(8 * 1024 * 1024);
-	size_t read_offset = 0;
+	u64 read_offset = 0;
 	md5_context ctx;
 
 	File::IOFile file(OpenGameListItem->GetFileName(), "rb");
@@ -1217,7 +1217,7 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 	wxProgressDialog progressDialog(
 		_("Computing MD5 checksum"),
 		_("Working..."),
-		game_size,
+		1000,
 		this,
 		wxPD_APP_MODAL | wxPD_CAN_ABORT |
 		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
@@ -1228,7 +1228,7 @@ void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 
 	while(read_offset < game_size)
 	{
-		if (!progressDialog.Update(read_offset, _("Computing MD5 checksum")))
+		if (!progressDialog.Update((int)((double)read_offset / (double)game_size * 1000), _("Computing MD5 checksum")))
 			return;
 
 		size_t read_size;
