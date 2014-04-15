@@ -185,8 +185,9 @@ void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner &cc, const InputRegTy
 
 		s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
 		temp <<= m_ScaleLShiftLUT[cc.shift];
-		temp += (cc.shift != 3) ? 0 : (cc.op == 1) ? 127 : 128;
-		temp = cc.op ? (-temp >> 8) : (temp >> 8);
+		temp += (cc.shift == 3) ? 0 : (cc.op == 1) ? 127 : 128;
+		temp >>= 8;
+		temp = cc.op ? -temp : temp;
 
 		s32 result = ((InputReg.d + m_BiasLUT[cc.bias]) << m_ScaleLShiftLUT[cc.shift]) + temp;
 		result = result >> m_ScaleRShiftLUT[cc.shift];
@@ -197,7 +198,7 @@ void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner &cc, const InputRegTy
 
 void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc, const InputRegType inputs[4])
 {
-	for (int i = BLU_C; i < RED_C; i++)
+	for (int i = BLU_C; i <= RED_C; i++)
 	{
 		switch ((cc.shift<<1)|cc.op|8)  // encoded compare mode
 		{
