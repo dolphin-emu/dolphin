@@ -16,7 +16,6 @@
 #include <wx/defs.h>
 #include <wx/event.h>
 #include <wx/font.h>
-#include <wx/gdicmn.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/string.h>
@@ -33,13 +32,11 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/LogManager.h"
+#include "Common/MathUtil.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
-
-// Milliseconds between msgQueue flushes to wxTextCtrl
-#define UPDATETIME 200
 
 BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 	EVT_CLOSE(CLogWindow::OnClose)
@@ -60,6 +57,9 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 
 	CreateGUIControls();
 
+	// Milliseconds between msgQueue flushes to wxTextCtrl
+	const int UPDATETIME = 200;
+
 	m_LogTimer = new wxTimer(this, IDTM_UPDATELOG);
 	m_LogTimer->Start(UPDATETIME);
 }
@@ -78,10 +78,7 @@ void CLogWindow::CreateGUIControls()
 	ini.Get("Options", "Verbosity", &verbosity, 0);
 
 	// Ensure the verbosity level is valid
-	if (verbosity < 1)
-		verbosity = 1;
-	if (verbosity > MAX_LOGLEVEL)
-		verbosity = MAX_LOGLEVEL;
+	MathUtil::Clamp(&verbosity, 1, MAX_LOGLEVEL);
 
 	// Get the logger output settings from the config ini file.
 	ini.Get("Options", "WriteToFile", &m_writeFile, false);
@@ -127,7 +124,7 @@ void CLogWindow::CreateGUIControls()
 	m_FontChoice->Append(_("Selected font"));
 
 	DefaultFont = GetFont();
-	MonoSpaceFont.SetNativeFontInfoUserDesc(_T("lucida console windows-1252"));
+	MonoSpaceFont.SetNativeFontInfoUserDesc("lucida console windows-1252");
 	LogFont.push_back(DefaultFont);
 	LogFont.push_back(MonoSpaceFont);
 	LogFont.push_back(DebuggerFont);
@@ -312,7 +309,7 @@ void CLogWindow::UpdateLog()
 				break;
 
 			case WARNING_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
+				m_Log->SetDefaultStyle(wxTextAttr(*wxYELLOW));
 				break;
 
 			case NOTICE_LEVEL:
@@ -336,8 +333,9 @@ void CLogWindow::UpdateLog()
 		{
 			int i = m_Log->GetLastPosition();
 			m_Log->AppendText(msgQueue.front().second);
+
 			// White timestamp
-			m_Log->SetStyle(i, i + 9, wxTextAttr(*wxWHITE));
+			m_Log->SetStyle(i, i + 16, wxTextAttr(*wxWHITE));
 		}
 
 		msgQueue.pop();
