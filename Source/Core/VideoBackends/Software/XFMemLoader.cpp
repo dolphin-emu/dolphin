@@ -8,11 +8,10 @@
 #include "VideoBackends/Software/XFMemLoader.h"
 #include "VideoCommon/VideoCommon.h"
 
-SWXFRegisters swxfregs;
-
 void InitXFMemory()
 {
-	memset(&swxfregs, 0, sizeof(swxfregs));
+	memset(&xfregs, 0, sizeof(xfregs));
+	memset(&xfmem, 0, sizeof(xfmem));
 }
 
 void XFWritten(u32 transferSize, u32 baseAddress)
@@ -25,7 +24,7 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 	// fix lights so invalid values don't trash the lighting computations
 	if (baseAddress <= 0x067f && topAddress >= 0x0604)
 	{
-		u32* x = swxfregs.lights;
+		u32* x = xfmem.lights;
 
 		// go through all lights
 		for (int light = 0; light < 8; light++)
@@ -49,22 +48,47 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 
 void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 {
-	u32 size = transferSize;
-
 	// do not allow writes past registers
 	if (baseAddress + transferSize > 0x1058)
 	{
-		INFO_LOG(VIDEO, "xf load exceeds address space: %x %d bytes\n", baseAddress, transferSize);
+		INFO_LOG(VIDEO, "XF load exceeds address space: %x %d bytes", baseAddress, transferSize);
 
 		if (baseAddress >= 0x1058)
-			size = 0;
+			transferSize = 0;
 		else
-			size = 0x1058 - baseAddress;
+			transferSize = 0x1058 - baseAddress;
 	}
 
-	if (size > 0)
+	// write to XF mem
+	if (baseAddress < 0x1000 && transferSize > 0)
 	{
-		memcpy_gc( &((u32*)&swxfregs)[baseAddress], pData, size * 4);
+		u32 end = baseAddress + transferSize;
+
+		u32 xfMemBase = baseAddress;
+		u32 xfMemTransferSize = transferSize;
+
+		if (end >= 0x1000)
+		{
+			xfMemTransferSize = 0x1000 - baseAddress;
+
+			baseAddress = 0x1000;
+			transferSize = end - 0x1000;
+		}
+		else
+		{
+			transferSize = 0;
+		}
+
+		memcpy_gc((u32*)(&xfmem) + xfMemBase, pData, xfMemTransferSize * 4);
+		XFWritten(xfMemTransferSize, xfMemBase);
+
+		pData += xfMemTransferSize;
+	}
+
+	// write to XF regs
+	if (transferSize > 0)
+	{
+		memcpy_gc((u32*)(&xfregs) + (baseAddress - 0x1000), pData, transferSize * 4);
 		XFWritten(transferSize, baseAddress);
 	}
 }

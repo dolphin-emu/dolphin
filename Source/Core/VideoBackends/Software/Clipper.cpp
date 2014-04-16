@@ -67,8 +67,8 @@ namespace Clipper
 
 	void SetViewOffset()
 	{
-		m_ViewOffset[0] = swxfregs.viewport.xOrig - 342;
-		m_ViewOffset[1] = swxfregs.viewport.yOrig - 342;
+		m_ViewOffset[0] = xfregs.viewport.xOrig - 342;
+		m_ViewOffset[1] = xfregs.viewport.yOrig - 342;
 	}
 
 
@@ -430,9 +430,9 @@ namespace Clipper
 		Vec3 &screen = vertex->screenPosition;
 
 		float wInverse = 1.0f/projected.w;
-		screen.x = projected.x * wInverse * swxfregs.viewport.wd + m_ViewOffset[0];
-		screen.y = projected.y * wInverse * swxfregs.viewport.ht + m_ViewOffset[1];
-		screen.z = projected.z * wInverse * swxfregs.viewport.zRange + swxfregs.viewport.farZ;
+		screen.x = projected.x * wInverse * xfregs.viewport.wd + m_ViewOffset[0];
+		screen.y = projected.y * wInverse * xfregs.viewport.ht + m_ViewOffset[1];
+		screen.z = projected.z * wInverse * xfregs.viewport.zRange + xfregs.viewport.farZ;
 	}
 
 }

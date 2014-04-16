@@ -108,7 +108,7 @@ void PixelShaderManager::SetConstants()
 			// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 			int istart = nLightsChanged[0] / 0x10;
 			int iend = (nLightsChanged[1] + 15) / 0x10;
-			const float* xfmemptr = (const float*)&xfmem[0x10 * istart + XFMEM_LIGHTS];
+			const float* xfmemptr = (const float*)&xfmem.lights[0x10 * istart];
 
 			for (int i = istart; i < iend; ++i)
 			{

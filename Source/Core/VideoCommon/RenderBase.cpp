@@ -504,7 +504,7 @@ void Renderer::RecordVideoMemory()
 {
 	u32 *bpMem = (u32*)&bpmem;
 	u32 cpMem[256];
-	u32 *xfMem = (u32*)xfmem;
+	u32 *xfMem = (u32*)&xfmem;
 	u32 *xfRegs = (u32*)&xfregs;
 
 	memset(cpMem, 0, 256 * 4);

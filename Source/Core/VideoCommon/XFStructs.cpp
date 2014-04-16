@@ -228,7 +228,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 		}
 
 		XFMemWritten(xfMemTransferSize, xfMemBase);
-		memcpy_gc(&xfmem[xfMemBase], pData, xfMemTransferSize * 4);
+		memcpy_gc((u32*)(&xfmem) + xfMemBase, pData, xfMemTransferSize * 4);
 
 		pData += xfMemTransferSize;
 	}
@@ -249,7 +249,7 @@ void LoadIndexedXF(u32 val, int refarray)
 	int size = ((val >> 12) & 0xF) + 1;
 	//load stuff from array to address in xf mem
 
-	u32* currData = (u32*)(xfmem + address);
+	u32* currData = (u32*)(&xfmem) + address;
 	u32* newData = (u32*)Memory::GetPointer(arraybases[refarray] + arraystrides[refarray] * index);
 	bool changed = false;
 	for (int i = 0; i < size; ++i)
