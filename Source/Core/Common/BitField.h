@@ -384,7 +384,9 @@ public:
 	}
 };
 
-
+// C++ constructors do not allow for automatic template argument deduction.
+// Hence, we also provide two helper functions for constructing BitFieldArray
+// objects with template argument deduction.
 template<typename... BitFields>
 static inline BitFieldArray<BitFields...> MakeBitFieldArrayFromTupleConst(const std::tuple<BitFields&...> bfs)
 {
