@@ -142,19 +142,19 @@ static const char EFB_ENCODE_PS[] =
 "}\n"
 
 "uint Float8ToUint3(float v) {\n"
-	"return (uint)(v*255.0) >> 5;\n"
+	"return (uint)round(v*255.0) >> 5;\n"
 "}\n"
 
 "uint Float8ToUint4(float v) {\n"
-	"return (uint)(v*255.0) >> 4;\n"
+	"return (uint)round(v*255.0) >> 4;\n"
 "}\n"
 
 "uint Float8ToUint5(float v) {\n"
-	"return (uint)(v*255.0) >> 3;\n"
+	"return (uint)round(v*255.0) >> 3;\n"
 "}\n"
 
 "uint Float8ToUint6(float v) {\n"
-	"return (uint)(v*255.0) >> 2;\n"
+	"return (uint)round(v*255.0) >> 2;\n"
 "}\n"
 
 "uint EncodeRGB5A3(float4 pixel) {\n"
@@ -426,10 +426,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
-		"255*float4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
-		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
-		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
+		"round(255*float4(sample0.r, sample4.r, sample8.r, sampleC.r)),\n"
+		"round(255*float4(sample1.r, sample5.r, sample9.r, sampleD.r)),\n"
+		"round(255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r)),\n"
+		"round(255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -506,10 +506,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
-		"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-		"255*float4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
-		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		"round(255*float4(sample0.a, sample2.a, sample4.a, sample6.a)),\n"
+		"round(255*float4(sample0.r, sample2.r, sample4.r, sample6.r)),\n"
+		"round(255*float4(sample1.a, sample3.a, sample5.a, sample7.a)),\n"
+		"round(255*float4(sample1.r, sample3.r, sample5.r, sample7.r))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -584,20 +584,20 @@ static const char EFB_ENCODE_PS[] =
 	"{\n"
 		// First cache line gets AR
 		"dw4 = UINT4_8888_BE(\n"
-			"255*float4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
-			"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-			"255*float4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
-			"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+			"round(255*float4(sample0.a, sample2.a, sample4.a, sample6.a)),\n"
+			"round(255*float4(sample0.r, sample2.r, sample4.r, sample6.r)),\n"
+			"round(255*float4(sample1.a, sample3.a, sample5.a, sample7.a)),\n"
+			"round(255*float4(sample1.r, sample3.r, sample5.r, sample7.r))\n"
 			");\n"
 	"}\n"
 	"else\n"
 	"{\n"
 		// Second cache line gets GB
 		"dw4 = UINT4_8888_BE(\n"
-			"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-			"255*float4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
-			"255*float4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
-			"255*float4(sample1.b, sample3.b, sample5.b, sample7.b)\n"
+			"round(255*float4(sample0.g, sample2.g, sample4.g, sample6.g)),\n"
+			"round(255*float4(sample0.b, sample2.b, sample4.b, sample6.b)),\n"
+			"round(255*float4(sample1.g, sample3.g, sample5.g, sample7.g)),\n"
+			"round(255*float4(sample1.b, sample3.b, sample5.b, sample7.b))\n"
 			");\n"
 	"}\n"
 
@@ -629,10 +629,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.a, sample4.a, sample8.a, sampleC.a),\n"
-		"255*float4(sample1.a, sample5.a, sample9.a, sampleD.a),\n"
-		"255*float4(sample2.a, sample6.a, sampleA.a, sampleE.a),\n"
-		"255*float4(sample3.a, sample7.a, sampleB.a, sampleF.a)\n"
+		"round(255*float4(sample0.a, sample4.a, sample8.a, sampleC.a)),\n"
+		"round(255*float4(sample1.a, sample5.a, sample9.a, sampleD.a)),\n"
+		"round(255*float4(sample2.a, sample6.a, sampleA.a, sampleE.a)),\n"
+		"round(255*float4(sample3.a, sample7.a, sampleB.a, sampleF.a))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -663,10 +663,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
-		"255*float4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
-		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
-		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
+		"round(255*float4(sample0.r, sample4.r, sample8.r, sampleC.r)),\n"
+		"round(255*float4(sample1.r, sample5.r, sample9.r, sampleD.r)),\n"
+		"round(255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r)),\n"
+		"round(255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -698,10 +698,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.g, sample4.g, sample8.g, sampleC.g),\n"
-		"255*float4(sample1.g, sample5.g, sample9.g, sampleD.g),\n"
-		"255*float4(sample2.g, sample6.g, sampleA.g, sampleE.g),\n"
-		"255*float4(sample3.g, sample7.g, sampleB.g, sampleF.g)\n"
+		"round(255*float4(sample0.g, sample4.g, sample8.g, sampleC.g)),\n"
+		"round(255*float4(sample1.g, sample5.g, sample9.g, sampleD.g)),\n"
+		"round(255*float4(sample2.g, sample6.g, sampleA.g, sampleE.g)),\n"
+		"round(255*float4(sample3.g, sample7.g, sampleB.g, sampleF.g))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -732,10 +732,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.b, sample4.b, sample8.b, sampleC.b),\n"
-		"255*float4(sample1.b, sample5.b, sample9.b, sampleD.b),\n"
-		"255*float4(sample2.b, sample6.b, sampleA.b, sampleE.b),\n"
-		"255*float4(sample3.b, sample7.b, sampleB.b, sampleF.b)\n"
+		"round(255*float4(sample0.b, sample4.b, sample8.b, sampleC.b)),\n"
+		"round(255*float4(sample1.b, sample5.b, sample9.b, sampleD.b)),\n"
+		"round(255*float4(sample2.b, sample6.b, sampleA.b, sampleE.b)),\n"
+		"round(255*float4(sample3.b, sample7.b, sampleB.b, sampleF.b))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -758,10 +758,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-		"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
-		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		"round(255*float4(sample0.g, sample2.g, sample4.g, sample6.g)),\n"
+		"round(255*float4(sample0.r, sample2.r, sample4.r, sample6.r)),\n"
+		"round(255*float4(sample1.g, sample3.g, sample5.g, sample7.g)),\n"
+		"round(255*float4(sample1.r, sample3.r, sample5.r, sample7.r))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -785,10 +785,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
-		"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-		"255*float4(sample1.b, sample3.b, sample5.b, sample7.b),\n"
-		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g)\n"
+		"round(255*float4(sample0.b, sample2.b, sample4.b, sample6.b)),\n"
+		"round(255*float4(sample0.g, sample2.g, sample4.g, sample6.g)),\n"
+		"round(255*float4(sample1.b, sample3.b, sample5.b, sample7.b)),\n"
+		"round(255*float4(sample1.g, sample3.g, sample5.g, sample7.g))\n"
 		");\n"
 
 	"return dw4;\n"
