@@ -876,7 +876,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 	out.Write(" %s ", tevOpTable[op]);
 	out.Write("((((tevin_a.%s*256 + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
 	          components, components, components, components, components,
-	          tevScaleTableLeft[shift], tevLerpBias[2*op+(shift==3)]);
+	          tevScaleTableLeft[shift], tevLerpBias[2*op+(shift!=3)]);
 	out.Write(")%s", tevScaleTableRight[shift]);
 }
 
