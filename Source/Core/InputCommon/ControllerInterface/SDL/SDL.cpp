@@ -78,6 +78,17 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	}
 #endif
 
+	if (SDL_JoystickNumButtons(joystick) > 255 ||
+	    SDL_JoystickNumAxes(joystick) > 255 ||
+	    SDL_JoystickNumHats(joystick) > 255 ||
+	    SDL_JoystickNumBalls(joystick) > 255)
+	{
+		// This device is invalid, don't use it
+		// Some crazy devices(HP webcam 2100) end up as HID devices
+		// SDL tries parsing these as joysticks
+		return;
+	}
+
 	// get buttons
 	for (u8 i = 0; i != SDL_JoystickNumButtons(m_joystick); ++i)
 		AddInput(new Button(i, m_joystick));
