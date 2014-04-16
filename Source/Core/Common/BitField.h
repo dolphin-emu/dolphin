@@ -263,8 +263,9 @@ private:
 	{
 		typedef typename ArrayElementBase<B1_2, BitFields_2...>::UnderlyingType UnderlyingType;
 
-//		static_assert(typeid(typename std::tuple_element<0,std::tuple<BitFields_2...>>::type::UnderlyingType) ==
-//		              typeid(typename std::tuple_element<1,std::tuple<BitFields_2...>>::type::UnderlyingType), "Typeids mismatch!");
+		static_assert(std::is_same<UnderlyingType,
+		              typename std::tuple_element<1,std::tuple<B1_2, BitFields_2...>>::type::UnderlyingType>::value
+		              "Underlying BitField types don't match");
 
 	public:
 		ArrayElement(size_t idx, std::tuple<B1_2&, BitFields_2&...> bfs) : ArrayElementBase<B1_2, BitFields_2...>(idx, bfs)
