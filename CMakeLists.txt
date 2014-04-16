@@ -577,19 +577,12 @@ if(NOT ANDROID)
 		message("Using shared SDL2")
 		include_directories(${SDL2_INCLUDE_DIR})
 	else(SDL2_FOUND)
-		# SDL2 not found, try SDL
-		if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-			include(FindSDL OPTIONAL)
-		endif()
-		if(SDL_FOUND)
-			message("Using shared SDL")
-			include_directories(${SDL_INCLUDE_DIR})
-		else(SDL_FOUND)
-			# TODO: Use the prebuilt one on Windows
-			message("Using static SDL from Externals")
-			include_directories(Externals/SDL/SDL Externals/SDL Externals/SDL/include)
-			add_subdirectory(Externals/SDL)
-		endif(SDL_FOUND)
+		# SDL2 not found, build static
+		message("Using static SDL2 from Externals")
+		# No need to build shared library
+		set(SDL_SHARED OFF)
+		add_subdirectory(Externals/SDL2-2.0.3)
+		include_directories(Externals/SDL2-2.0.3/SDL Externals/SDL2-2.0.3 Externals/SDL2-2.0.3/include)
 	endif(SDL2_FOUND)
 endif()
 
