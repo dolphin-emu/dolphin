@@ -210,12 +210,37 @@ private:
 	std::tuple<BitFields&...> bitfields;
 
 	// Helper functions to create sub-tuples
-	template<unsigned...s> struct seq { typedef seq<s...>& type; };
-	template<unsigned max, unsigned... s> struct make_seq:make_seq<max-1, max-1, s...> {};
-	template<unsigned...s> struct make_seq<0, s...>:seq<s...> {};
+	template<unsigned...s>
+	struct integer_sequence
+	{
+		typedef integer_sequence<s...>& type;
+	};
 
-	template<unsigned... s, typename Tuple>
-	static auto extract_tuple(seq<s...>, Tuple& tup) -> decltype(std::tie(std::get<s>(tup)...))
+	// Constructs an integer_sequence object of all integers from 0 to (num-1)
+	// Usage pattern: make_integer_sequence<max>()
+	// E.g. make_integer_sequence<2>() is of type integer_sequence<0,1>
+	template<unsigned num, unsigned... s>
+	struct make_integer_sequence : make_integer_sequence<num-1, num-1, s...>
+	{
+	};
+	// partially specialized version for num=0 to abort the recursion
+	template<unsigned...s>
+	struct make_integer_sequence<0, s...> : integer_sequence<s...>
+	{
+	};
+
+	// Make sure our integer sequence implementation works
+	static_assert(std::is_base_of<integer_sequence<0>, decltype(make_integer_sequence<1>())>::value, "Implementation of compile time integer sequences fragile");
+	static_assert(std::is_base_of<integer_sequence<0,1>, decltype(make_integer_sequence<2>())>::value, "Implementation of compile time integer sequences fragile");
+	static_assert(std::is_base_of<integer_sequence<0,1,2>, decltype(make_integer_sequence<3>())>::value, "Implementation of compile time integer sequences fragile");
+
+	// Given some tuple type (e.g. const std::tuple<u8, u16, u32>),
+	// extract a new tuple from the types indexed by s.
+	//
+	// Example: extract_tuple(integer_sequence<0,2>, std::tuple<u8, u16, u32>&)
+	// returns a subtuple of the type std::stuple<u8, u32>.
+	template<typename Tuple, unsigned... s>
+	static auto extract_tuple(integer_sequence<s...>, Tuple& tup) -> decltype(std::tie(std::get<s>(tup)...))
 	{
 		return std::tie(std::get<s>(tup)...);
 	}
@@ -262,7 +287,7 @@ private:
 			}
 			else
 			{
-				MakeArrayElementFromTuple(this->index, extract_tuple(make_seq<sizeof...(BitFields_2)>(), this->fields)) = val;
+				MakeArrayElementFromTuple(this->index, extract_tuple(make_integer_sequence<sizeof...(BitFields_2)>(), this->fields)) = val;
 			}
 			return *this;
 		}
@@ -275,7 +300,7 @@ private:
 			}
 			else
 			{
-				auto sub_tuple = extract_tuple(make_seq<sizeof...(BitFields_2)>(), this->fields);
+				auto sub_tuple = extract_tuple(make_integer_sequence<sizeof...(BitFields_2)>(), this->fields);
 				return MakeArrayElementFromTuple(this->index, sub_tuple);
 			}
 		}
