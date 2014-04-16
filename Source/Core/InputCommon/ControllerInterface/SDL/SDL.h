@@ -7,20 +7,11 @@
 #include <list>
 
 #include <SDL.h>
+#include <SDL_haptic.h>
 
 #include "InputCommon/ControllerInterface/Device.h"
 
-
-#if SDL_VERSION_ATLEAST(1, 3, 0)
-	#define USE_SDL_HAPTIC
-#endif
-
-#ifdef USE_SDL_HAPTIC
-	#include <SDL_haptic.h>
-	#define SDL_INIT_FLAGS  SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
-#else
-	#define SDL_INIT_FLAGS  SDL_INIT_JOYSTICK
-#endif
+#define SDL_INIT_FLAGS  SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
 
 namespace ciface
 {
@@ -33,7 +24,6 @@ class Joystick : public Core::Device
 {
 private:
 
-#ifdef USE_SDL_HAPTIC
 	struct EffectIDState
 	{
 		EffectIDState() : effect(SDL_HapticEffect()), id(-1), changed(false) {}
@@ -42,7 +32,6 @@ private:
 		int              id;
 		bool             changed;
 	};
-#endif
 
 	class Button : public Core::Device::Input
 	{
@@ -79,7 +68,6 @@ private:
 		const u8 m_index;
 	};
 
-#ifdef USE_SDL_HAPTIC
 	class ConstantEffect : public Output
 	{
 	public:
@@ -131,7 +119,6 @@ private:
 	private:
 		EffectIDState& m_effect;
 	};
-#endif
 
 public:
 	bool UpdateInput() override;
@@ -149,10 +136,8 @@ private:
 	const int                m_sdl_index;
 	const unsigned int       m_index;
 
-#ifdef USE_SDL_HAPTIC
 	std::list<EffectIDState> m_state_out;
 	SDL_Haptic*              m_haptic;
-#endif
 };
 
 }

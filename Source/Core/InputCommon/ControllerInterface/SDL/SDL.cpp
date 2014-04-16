@@ -20,11 +20,7 @@ namespace SDL
 
 std::string GetJoystickName(int index)
 {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
 	return SDL_JoystickNameForIndex(index);
-#else
-	return SDL_JoystickName(index);
-#endif
 }
 
 void Init( std::vector<Core::Device*>& devices )
@@ -98,7 +94,6 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 			new Axis(i, m_joystick, 32767));
 	}
 
-#ifdef USE_SDL_HAPTIC
 	// try to get supported ff effects
 	m_haptic = SDL_HapticOpenFromJoystick( m_joystick );
 	if (m_haptic)
@@ -145,13 +140,10 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 			AddOutput(new TriangleEffect(m_state_out.back()));
 		}
 	}
-#endif
-
 }
 
 Joystick::~Joystick()
 {
-#ifdef USE_SDL_HAPTIC
 	if (m_haptic)
 	{
 		// stop/destroy all effects
@@ -166,13 +158,11 @@ Joystick::~Joystick()
 		// close haptic first
 		SDL_HapticClose(m_haptic);
 	}
-#endif
 
 	// close joystick
 	SDL_JoystickClose(m_joystick);
 }
 
-#ifdef USE_SDL_HAPTIC
 std::string Joystick::ConstantEffect::GetName() const
 {
 	return "Constant";
@@ -303,7 +293,6 @@ void Joystick::TriangleEffect::SetState(ControlState state)
 	if (old != m_effect.effect.periodic.magnitude)
 		m_effect.changed = true;
 }
-#endif
 
 bool Joystick::UpdateInput()
 {
@@ -315,7 +304,6 @@ bool Joystick::UpdateInput()
 
 bool Joystick::UpdateOutput()
 {
-#ifdef USE_SDL_HAPTIC
 	for (auto &i : m_state_out)
 	{
 		if (i.changed) // if SetState was called on this output
@@ -347,7 +335,6 @@ bool Joystick::UpdateOutput()
 			i.changed = false;
 		}
 	}
-#endif
 	return true;
 }
 
