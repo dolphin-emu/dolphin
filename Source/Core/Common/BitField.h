@@ -245,7 +245,10 @@ private:
 		return std::tie(std::get<s>(tup)...);
 	}
 
-	// ArrayElement: Private variadic template class used to deal with indexable tuples with the common base type UnderlyingType.
+	// ArrayElement: Type of elements returned by the BitFieldArray::[] operator
+	// Supports all operations of "regular" BitField objects, while being indexable at runtime.
+	//
+	// Uses variadic templates to deal with indexable tuples with the common base type UnderlyingType.
 	// Implemented via recursion, with the common members stored in ArrayElementBase.
 	template<typename... BitFields_2>
 	class ArrayElementBase
@@ -253,18 +256,34 @@ private:
 	protected:
 		ArrayElementBase(size_t idx, std::tuple<BitFields_2&...> bfs) : index(idx), fields(bfs) {}
 
+		// Index of the referenced BitField object within the fields tuple.
 		const size_t index;
+
+		// A reference to the actual BitField tuple
 		const std::tuple<BitFields_2&...> fields;
+
+		// A typedef for the first tuple element's UnderlyingType.
+		// Note that UnderlyingType needs to be the same for all tuple
+		// elements (as static_asserted later)
 		typedef typename std::tuple_element<0,std::tuple<BitFields_2...>>::type::UnderlyingType UnderlyingType;
 	};
 
 	template<typename B1_2, typename... BitFields_2>
 	class ArrayElement : public ArrayElementBase<B1_2, BitFields_2...>
 	{
+		// Use parent's definition of "UnderlyingType"
 		typedef typename ArrayElementBase<B1_2, BitFields_2...>::UnderlyingType UnderlyingType;
 
+		// TODO: Once all of our target compilers support constexpr, we should
+		// encapsulate the index of the object which is currently being tested
+		// against (and hence will be dropped in the next recursion iteration)
+		// in a constexpr.
+
+		// Make sure all BitFields' UnderlyingTypes are equal
+		// This only tests the first and last elements for equality, but by
+		// recursion all element will be tested.
 		static_assert(std::is_same<UnderlyingType,
-		              typename std::tuple_element<1,std::tuple<B1_2, BitFields_2...>>::type::UnderlyingType>::value
+		              typename std::tuple_element<sizeof...(BitFields_2),std::tuple<B1_2, BitFields_2...>>::type::UnderlyingType>::value,
 		              "Underlying BitField types don't match");
 
 	public:
@@ -281,13 +300,15 @@ private:
 
 		__forceinline ArrayElement& operator=(const UnderlyingType& val)
 		{
-			// TODO: I don't get it. shouldn't this be == 0?
 			if (this->index == sizeof...(BitFields_2))
 			{
+				// if the last element is the indexed one, assign it to the new value.
 				std::get<sizeof...(BitFields_2)>(this->fields) = val;
 			}
 			else
 			{
+				// Otherwise, remove the last element from the fields tuple
+				// and delegate the operation to a new ArrayElement object.
 				MakeArrayElementFromTuple(this->index, extract_tuple(make_integer_sequence<sizeof...(BitFields_2)>(), this->fields)) = val;
 			}
 			return *this;
@@ -297,10 +318,13 @@ private:
 		{
 			if (this->index == sizeof...(BitFields_2))
 			{
+				// if the last element is the indexed one, return it.
 				return std::get<sizeof...(BitFields_2)>(this->fields);
 			}
 			else
 			{
+				// Otherwise, remove the last element from the fields tuple
+				// and delegate the operation to a new ArrayElement object.
 				auto sub_tuple = extract_tuple(make_integer_sequence<sizeof...(BitFields_2)>(), this->fields);
 				return MakeArrayElementFromTuple(this->index, sub_tuple);
 			}
