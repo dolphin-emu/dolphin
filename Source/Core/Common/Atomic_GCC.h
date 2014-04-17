@@ -45,7 +45,8 @@ inline void AtomicOr(volatile u32& target, u32 value) {
 	__sync_or_and_fetch(&target, value);
 }
 
-#ifdef __clang__
+// Support clang versions older than 3.4.
+#if __clang__ && !__has_feature(cxx_atomic)
 template <typename T>
 _Atomic(T)* ToC11Atomic(volatile T* loc)
 {
