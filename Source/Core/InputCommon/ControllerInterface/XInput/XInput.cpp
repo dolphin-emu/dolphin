@@ -1,6 +1,10 @@
 
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
 
+#ifndef XINPUT_GAMEPAD_GUIDE
+#define XINPUT_GAMEPAD_GUIDE 0x0400
+#endif
+
 namespace ciface
 {
 namespace XInput
@@ -24,6 +28,7 @@ static const struct
 	{ "Back", XINPUT_GAMEPAD_BACK },
 	{ "Shoulder L", XINPUT_GAMEPAD_LEFT_SHOULDER },
 	{ "Shoulder R", XINPUT_GAMEPAD_RIGHT_SHOULDER },
+	{ "Guide", XINPUT_GAMEPAD_GUIDE },
 	{ "Thumb L", XINPUT_GAMEPAD_LEFT_THUMB },
 	{ "Thumb R", XINPUT_GAMEPAD_RIGHT_THUMB }
 };
@@ -58,6 +63,8 @@ static XInputGetCapabilities_t PXInputGetCapabilities = nullptr;
 static XInputSetState_t PXInputSetState = nullptr;
 static XInputGetState_t PXInputGetState = nullptr;
 
+static bool haveGuideButton = false;
+
 void Init(std::vector<Core::Device*>& devices)
 {
 	if (!hXInput)
@@ -76,7 +83,15 @@ void Init(std::vector<Core::Device*>& devices)
 
 		PXInputGetCapabilities = (XInputGetCapabilities_t)::GetProcAddress(hXInput, "XInputGetCapabilities");
 		PXInputSetState = (XInputSetState_t)::GetProcAddress(hXInput, "XInputSetState");
-		PXInputGetState = (XInputGetState_t)::GetProcAddress(hXInput, "XInputGetState");
+
+		// Ordinal 100 is the same as XInputGetState, except it doesn't dummy out the guide
+		// button info. Try loading it and fall back if needed.
+		PXInputGetState = (XInputGetState_t)::GetProcAddress(hXInput, (LPCSTR)100);
+		if (PXInputGetState)
+			haveGuideButton = true;
+		else
+			PXInputGetState = (XInputGetState_t)::GetProcAddress(hXInput, "XInputGetState");
+
 		if (!PXInputGetCapabilities ||
 			!PXInputSetState ||
 			!PXInputGetState)
@@ -114,7 +129,9 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	// get supported buttons
 	for (int i = 0; i != sizeof(named_buttons)/sizeof(*named_buttons); ++i)
 	{
-		if (named_buttons[i].bitmask & caps.Gamepad.wButtons)
+		// Guide button is never reported in caps
+		if ((named_buttons[i].bitmask & caps.Gamepad.wButtons) ||
+			((named_buttons[i].bitmask & XINPUT_GAMEPAD_GUIDE) && haveGuideButton))
 			AddInput(new Button(i, m_state_in.Gamepad.wButtons));
 	}
 
