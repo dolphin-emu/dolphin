@@ -217,7 +217,7 @@ void LOADERDECL UpdateBoundingBox()
 	// We need to get the raw projection values for the bounding box calculation
 	// to work properly. That means, no projection hacks!
 	const float * const orig_point = s_bbox_vertex_buffer;
-	const float * const world_matrix = (float*)xfmem.posMatrices + s_curposmtx * 4;
+	const float * const world_matrix = (float*)xfregs.posMatrices + s_curposmtx * 4;
 	const float * const proj_matrix = xfregs.projection.rawProjection;
 
 	// Transform by world matrix

@@ -11,7 +11,6 @@
 void InitXFMemory()
 {
 	memset(&xfregs, 0, sizeof(xfregs));
-	memset(&xfmem, 0, sizeof(xfmem));
 }
 
 void XFWritten(u32 transferSize, u32 baseAddress)
@@ -24,7 +23,7 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 	// fix lights so invalid values don't trash the lighting computations
 	if (baseAddress <= 0x067f && topAddress >= 0x0604)
 	{
-		u32* x = xfmem.lights;
+		u32* x = xfregs.lights;
 
 		// go through all lights
 		for (int light = 0; light < 8; light++)
@@ -59,36 +58,10 @@ void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 			transferSize = 0x1058 - baseAddress;
 	}
 
-	// write to XF mem
-	if (baseAddress < 0x1000 && transferSize > 0)
-	{
-		u32 end = baseAddress + transferSize;
-
-		u32 xfMemBase = baseAddress;
-		u32 xfMemTransferSize = transferSize;
-
-		if (end >= 0x1000)
-		{
-			xfMemTransferSize = 0x1000 - baseAddress;
-
-			baseAddress = 0x1000;
-			transferSize = end - 0x1000;
-		}
-		else
-		{
-			transferSize = 0;
-		}
-
-		memcpy_gc((u32*)(&xfmem) + xfMemBase, pData, xfMemTransferSize * 4);
-		XFWritten(xfMemTransferSize, xfMemBase);
-
-		pData += xfMemTransferSize;
-	}
-
 	// write to XF regs
 	if (transferSize > 0)
 	{
-		memcpy_gc((u32*)(&xfregs) + (baseAddress - 0x1000), pData, transferSize * 4);
+		memcpy_gc((u32*)(&xfregs) + baseAddress, pData, transferSize * 4);
 		XFWritten(transferSize, baseAddress);
 	}
 }

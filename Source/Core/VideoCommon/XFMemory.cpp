@@ -6,4 +6,3 @@
 
 // STATE_TO_SAVE
 XFRegisters xfregs;
-XFMemory xfmem;

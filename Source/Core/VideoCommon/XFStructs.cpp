@@ -83,7 +83,7 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETCHAN1_COLOR:
 		case XFMEM_SETCHAN0_ALPHA: // Channel Alpha
 		case XFMEM_SETCHAN1_ALPHA:
-			if (((u32*)&xfregs)[address - 0x1000] != (newValue & 0x7fff))
+			if (((u32*)&xfregs)[address] != (newValue & 0x7fff))
 				VertexManager::Flush();
 			break;
 
@@ -228,7 +228,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 		}
 
 		XFMemWritten(xfMemTransferSize, xfMemBase);
-		memcpy_gc((u32*)(&xfmem) + xfMemBase, pData, xfMemTransferSize * 4);
+		memcpy_gc((u32*)(&xfregs) + xfMemBase, pData, xfMemTransferSize * 4);
 
 		pData += xfMemTransferSize;
 	}
@@ -237,7 +237,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 	if (transferSize > 0)
 	{
 		XFRegWritten(transferSize, baseAddress, pData);
-		memcpy_gc((u32*)(&xfregs) + (baseAddress - 0x1000), pData, transferSize * 4);
+		memcpy_gc((u32*)(&xfregs) + baseAddress, pData, transferSize * 4);
 	}
 }
 
@@ -249,7 +249,7 @@ void LoadIndexedXF(u32 val, int refarray)
 	int size = ((val >> 12) & 0xF) + 1;
 	//load stuff from array to address in xf mem
 
-	u32* currData = (u32*)(&xfmem) + address;
+	u32* currData = (u32*)(&xfregs) + address;
 	u32* newData = (u32*)Memory::GetPointer(arraybases[refarray] + arraystrides[refarray] * index);
 	bool changed = false;
 	for (int i = 0; i < size; ++i)

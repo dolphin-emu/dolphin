@@ -70,7 +70,7 @@ void MultipleVec3Ortho(const Vec3 &vec, const float *proj, Vec4 &result)
 
 void TransformPosition(const InputVertexData *src, OutputVertexData *dst)
 {
-	const float* mat = (const float*)&xfmem.posMatrices[src->posMtx * 4];
+	const float* mat = (const float*)&xfregs.posMatrices[src->posMtx * 4];
 	MultiplyVec3Mat34(src->position, mat, dst->mvPosition);
 
 	if (xfregs.projection.type == GX_PERSPECTIVE)
@@ -85,7 +85,7 @@ void TransformPosition(const InputVertexData *src, OutputVertexData *dst)
 
 void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst)
 {
-	const float* mat = (const float*)&xfmem.normalMatrices[(src->posMtx & 31)  * 3];
+	const float* mat = (const float*)&xfregs.normalMatrices[(src->posMtx & 31)  * 3];
 
 	if (nbt)
 	{
@@ -124,7 +124,7 @@ void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool spec
 			break;
 	}
 
-	const float *mat = (const float*)&xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
+	const float *mat = (const float*)&xfregs.posMatrices[srcVertex->texMtx[coordNum] * 4];
 	Vec3 *dst = &dstVertex->texCoords[coordNum];
 
 	if (texinfo.projection == XF_TEXPROJ_ST)
@@ -150,7 +150,7 @@ void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool spec
 
 		// normalize
 		const PostMtxInfo &postInfo = xfregs.postMtxInfo[coordNum];
-		const float *postMat = (const float*)&xfmem.postMatrices[postInfo.index * 4];
+		const float *postMat = (const float*)&xfregs.postMatrices[postInfo.index * 4];
 
 		if (specialCase)
 		{
@@ -212,7 +212,7 @@ inline float SafeDivide(float n, float d)
 
 void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, Vec3 &lightCol)
 {
-	const LightPointer *light = (const LightPointer*)&xfmem.lights[0x10*lightNum];
+	const LightPointer *light = (const LightPointer*)&xfregs.lights[0x10*lightNum];
 
 	if (!(chan.attnfunc & 1))
 	{
@@ -297,7 +297,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, float &lightCol)
 {
-	const LightPointer *light = (const LightPointer*)&xfmem.lights[0x10*lightNum];
+	const LightPointer *light = (const LightPointer*)&xfregs.lights[0x10*lightNum];
 
 	if (!(chan.attnfunc & 1))
 	{
@@ -471,7 +471,7 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool s
 			break;
 		case XF_TEXGEN_EMBOSS_MAP:
 			{
-				const LightPointer *light = (const LightPointer*)&xfmem.lights[0x10*texinfo.embosslightshift];
+				const LightPointer *light = (const LightPointer*)&xfregs.lights[0x10*texinfo.embosslightshift];
 
 				Vec3 ldir = (light->pos - dst->mvPosition).normalized();
 				float d1 = ldir * dst->normal[1];

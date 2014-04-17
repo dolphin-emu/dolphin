@@ -168,7 +168,6 @@ void VertexShaderManager::Init()
 	Dirty();
 
 	memset(&xfregs, 0, sizeof(xfregs));
-	memset(&xfmem, 0, sizeof(xfmem));
 	memset(&constants, 0 , sizeof(constants));
 	ResetView();
 
@@ -216,7 +215,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
 		int endn = (nTransformMatricesChanged[1] + 3) / 4;
-		memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4], (endn - startn) * 16);
+		memcpy(constants.transformmatrices[startn], &xfregs.posMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
 	}
@@ -227,7 +226,7 @@ void VertexShaderManager::SetConstants()
 		int endn = (nNormalMatricesChanged[1] + 2) / 3;
 		for (int i=startn; i<endn; i++)
 		{
-			memcpy(constants.normalmatrices[i], &xfmem.normalMatrices[3*i], 12);
+			memcpy(constants.normalmatrices[i], &xfregs.normalMatrices[3*i], 12);
 		}
 		dirty = true;
 		nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
@@ -237,7 +236,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nPostTransformMatricesChanged[0] / 4;
 		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
-		memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4], (endn - startn) * 16);
+		memcpy(constants.posttransformmatrices[startn], &xfregs.postMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
@@ -248,7 +247,7 @@ void VertexShaderManager::SetConstants()
 		// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 		int istart = nLightsChanged[0] / 0x10;
 		int iend = (nLightsChanged[1] + 15) / 0x10;
-		const float* xfmemptr = (const float*)&xfmem.lights[0x10 * istart];
+		const float* xfmemptr = (const float*)&xfregs.lights[0x10 * istart];
 
 		for (int i = istart; i < iend; ++i)
 		{
@@ -286,7 +285,7 @@ void VertexShaderManager::SetConstants()
 		{
 			if (nMaterialsChanged & (1 << i))
 			{
-				u32 data = *(xfregs.ambColor + i);
+				u32 data = xfregs.ambColor[i];
 				constants.materials[i][0] = (data >> 24) & 0xFF;
 				constants.materials[i][1] = (data >> 16) & 0xFF;
 				constants.materials[i][2] = (data >>  8) & 0xFF;
@@ -298,7 +297,7 @@ void VertexShaderManager::SetConstants()
 		{
 			if (nMaterialsChanged & (1 << (i + 2)))
 			{
-				u32 data = *(xfregs.matColor + i);
+				u32 data = xfregs.matColor[i];
 				constants.materials[i+2][0] = (data >> 24) & 0xFF;
 				constants.materials[i+2][1] = (data >> 16) & 0xFF;
 				constants.materials[i+2][2] = (data >>  8) & 0xFF;
@@ -314,8 +313,8 @@ void VertexShaderManager::SetConstants()
 	{
 		bPosNormalMatrixChanged = false;
 
-		const float *pos = (const float *)xfmem.posMatrices + MatrixIndexA.PosNormalMtxIdx * 4;
-		const float *norm = (const float *)xfmem.normalMatrices + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
+		const float *pos = (const float *)xfregs.posMatrices + MatrixIndexA.PosNormalMtxIdx * 4;
+		const float *norm = (const float *)xfregs.normalMatrices + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
 
 		memcpy(constants.posnormalmatrix, pos, 3*16);
 		memcpy(constants.posnormalmatrix[3], norm, 12);
@@ -329,10 +328,10 @@ void VertexShaderManager::SetConstants()
 		bTexMatricesChanged[0] = false;
 		const float *fptrs[] =
 		{
-			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex0MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex1MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex2MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex3MtxIdx * 4]
+			(const float *)&xfregs.posMatrices[MatrixIndexA.Tex0MtxIdx * 4],
+			(const float *)&xfregs.posMatrices[MatrixIndexA.Tex1MtxIdx * 4],
+			(const float *)&xfregs.posMatrices[MatrixIndexA.Tex2MtxIdx * 4],
+			(const float *)&xfregs.posMatrices[MatrixIndexA.Tex3MtxIdx * 4]
 		};
 
 		for (int i = 0; i < 4; ++i)
@@ -346,10 +345,10 @@ void VertexShaderManager::SetConstants()
 	{
 		bTexMatricesChanged[1] = false;
 		const float *fptrs[] = {
-			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex4MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex5MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex6MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex7MtxIdx * 4]
+			(const float *)&xfregs.posMatrices[MatrixIndexB.Tex4MtxIdx * 4],
+			(const float *)&xfregs.posMatrices[MatrixIndexB.Tex5MtxIdx * 4],
+			(const float *)&xfregs.posMatrices[MatrixIndexB.Tex6MtxIdx * 4],
+			(const float *)&xfregs.posMatrices[MatrixIndexB.Tex7MtxIdx * 4]
 		};
 
 		for (int i = 0; i < 4; ++i)
