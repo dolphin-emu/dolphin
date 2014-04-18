@@ -19,11 +19,17 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 
-// Disc transfer rate measured in bytes per second
-static const u32 DISC_TRANSFER_RATE_GC = 5 * 1024 * 1024;
+// A Gamecube disc can be read at somewhere between
+// 2 and 3MB/sec, depending on the location on disk.  Wii disks
+// not yet tested.
+static const u32 DISC_TRANSFER_RATE_GC = 3 * 1024 * 1024;
+
+// Rate the drive can transfer data to main memory, given the data
+// is already buffered.
+static const u32 BUFFER_TRANSFER_RATE_GC = 16 * 1024 * 1024;
 
 // Disc access time measured in milliseconds
-static const u32 DISC_ACCESS_TIME_MS = 1;
+static const u32 DISC_ACCESS_TIME_MS = 50;
 
 namespace DVDInterface
 {
@@ -201,6 +207,9 @@ bool g_bDiscInside = false;
 bool g_bStream = false;
 int  tc = 0;
 
+static u64 g_last_read_offset;
+static u64 g_last_read_time;
+
 // GC-AM only
 static unsigned char media_buffer[0x40];
 
@@ -216,7 +225,8 @@ void InsertDiscCallback(u64 userdata, int cyclesLate);
 
 void UpdateInterrupts();
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt);
-void ExecuteCommand(UDICR& _DICR);
+void ExecuteCommand();
+void FinishExecuteRead();
 
 void DoState(PointerWrap &p)
 {
@@ -239,12 +249,15 @@ void DoState(PointerWrap &p)
 
 	p.Do(CurrentStart);
 	p.Do(CurrentLength);
+
+	p.Do(g_last_read_offset);
+	p.Do(g_last_read_time);
 }
 
 void TransferComplete(u64 userdata, int cyclesLate)
 {
 	if (m_DICR.TSTART)
-		ExecuteCommand(m_DICR);
+		FinishExecuteRead();
 }
 
 void Init()
@@ -474,17 +487,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			m_DICR.Hex = val & 7;
 			if (m_DICR.TSTART)
 			{
-				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
-				{
-					u64 ticksUntilTC = m_DILENGTH.Length *
-						(SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 1 : DISC_TRANSFER_RATE_GC)) +
-						(SystemTimers::GetTicksPerSecond() * DISC_ACCESS_TIME_MS / 1000);
-					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
-				}
-				else
-				{
-					ExecuteCommand(m_DICR);
-				}
+				ExecuteCommand();
 			}
 		})
 	);
@@ -532,7 +535,7 @@ void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 	UpdateInterrupts();
 }
 
-void ExecuteCommand(UDICR& _DICR)
+void ExecuteCommand()
 {
 	// _dbg_assert_(DVDINTERFACE, _DICR.RW == 0); // only DVD to Memory
 	int GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD) &&
@@ -650,11 +653,83 @@ void ExecuteCommand(UDICR& _DICR)
 						}
 					}
 
-					// Here is the actual Disk Reading
-					if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
+					u64 ticksUntilTC = 0;
+
+					// The drive buffers 1MB (?) of data after every read request;
+					// if a read request is covered by this buffer (or if it's
+					// faster to wait for the data to be buffered), the drive
+					// doesn't seek; it returns buffered data.  Data can be
+					// transferred from the buffer at up to 16MB/sec.
+					//
+					// If the drive has to seek, the time this takes varies a lot.
+					// A short seek is around 50ms; a long seek is around 150ms.
+					// However, the time isn't purely dependent on the distance; the
+					// pattern of previous seeks seems to matter in a way I'm
+					// not sure how to explain.
+					//
+					// Metroid Prime is a good example of a game that's sensitive to
+					// all of these details; if there isn't enough latency in the
+					// right places, doors open too quickly, and if there's too
+					// much latency in the wrong places, the video before the
+					// save-file select screen lags.
+					//
+					// For now, just use a very rough approximation: 50ms seek
+					// and 3MB/sec for reads outside 1MB, acceleated reads
+					// within 1MB.  We can refine this if someone comes up
+					// with a more complete model for seek times.
+					if (iDVDOffset + m_DILENGTH.Length - g_last_read_offset > 1024 * 1024)
 					{
-						PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
+						// No buffer; just use the simple seek time + read time.
+						DEBUG_LOG(DVDINTERFACE, "Seeking %lld bytes", s64(g_last_read_offset) - s64(iDVDOffset));
+						ticksUntilTC = m_DILENGTH.Length *
+							(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC);
+						ticksUntilTC += SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
 					}
+					else
+					{
+						// Possibly buffered; use the buffer if it saves time.
+						// It's not proven that the buffer actually behaves like this, but
+						// it appears to be a decent approximation.
+
+						// Time at which the buffer will contain the data we need.
+						u64 buffer_fill_time = (iDVDOffset + m_DILENGTH.Length - g_last_read_offset) *
+							(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC) +
+							g_last_read_time;
+						// Number of ticks it takes to transfer the data from the buffer to memory.
+						u64 buffer_read_duration = m_DILENGTH.Length *
+							(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE_GC);
+						// Number of ticks it takes to seek and read directly from the disk.
+						u64 disk_read_duration = m_DILENGTH.Length *
+							(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC) +
+						    SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
+
+						u64 cur_time = CoreTiming::GetTicks();
+						if (cur_time > buffer_fill_time)
+						{
+							DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %lld", s64(iDVDOffset));
+							ticksUntilTC = buffer_read_duration;
+						}
+						else if (cur_time + disk_read_duration > buffer_fill_time)
+						{
+							DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %lld", s64(iDVDOffset));
+							ticksUntilTC = std::max(buffer_fill_time - cur_time, buffer_read_duration);
+						}
+						else
+						{
+							DEBUG_LOG(DVDINTERFACE, "Seeking %lld bytes", s64(g_last_read_offset) - s64(iDVDOffset));
+							ticksUntilTC = disk_read_duration;
+						}
+					}
+					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
+					{
+						// Make the virtual DVD drive much faster than a physical drive;
+						// most games aren't very sensitive to the speed, and everyone
+						// likes shorter load times.
+						ticksUntilTC /= 8;
+					}
+					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
+					// Early return; we'll finish executing the command in FinishExecuteRead.
+					return;
 				}
 				break;
 
@@ -675,7 +750,7 @@ void ExecuteCommand(UDICR& _DICR)
 		else
 		{
 			// there is no disc to read
-			_DICR.TSTART = 0;
+			m_DICR.TSTART = 0;
 			m_DILENGTH.Length = 0;
 			g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
 			GenerateDIInterrupt(INT_DEINT);
@@ -955,7 +1030,24 @@ void ExecuteCommand(UDICR& _DICR)
 	}
 
 	// transfer is done
-	_DICR.TSTART = 0;
+	m_DICR.TSTART = 0;
+	m_DILENGTH.Length = 0;
+	GenerateDIInterrupt(INT_TCINT);
+	g_ErrorCode = 0;
+}
+
+void FinishExecuteRead() {
+	u32 iDVDOffset = m_DICMDBUF[1].Hex << 2;
+
+	if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
+	{
+		PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
+	}
+	g_last_read_offset = (iDVDOffset + m_DILENGTH.Length - 2048) & ~2047;
+	g_last_read_time = CoreTiming::GetTicks();
+
+	// transfer is done
+	m_DICR.TSTART = 0;
 	m_DILENGTH.Length = 0;
 	GenerateDIInterrupt(INT_TCINT);
 	g_ErrorCode = 0;
