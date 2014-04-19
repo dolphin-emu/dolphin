@@ -295,7 +295,7 @@ void InitDriverInfo()
 			// These two families are similar enough that they share bugs in their drivers.
 			if (std::string::npos != srenderer.find("Mali-T"))
 			{
-				driver = DriverDetails::DRIVER_ARM_TXXX;
+				driver = DriverDetails::DRIVER_ARM_MIDGARD;
 				// Mali drivers provide no way to explicitly find out what video driver is running.
 				// This is similar to how we can't find the Nvidia driver version in Windows.
 				// Good thing is that ARM introduces a new video driver about once every two years so we can
@@ -309,9 +309,11 @@ void InitDriverInfo()
 				else
 					version = 300;
 			}
-			else if (std::string::npos != srenderer.find("Mali-4"))
+			else if (std::string::npos != srenderer.find("Mali-4") ||
+			         std::string::npos != srenderer.find("Mali-3") ||
+			         std::string::npos != srenderer.find("Mali-2"))
 			{
-				driver = DriverDetails::DRIVER_ARM_4XX;
+				driver = DriverDetails::DRIVER_ARM_UTGARD;
 			}
 		break;
 		case DriverDetails::VENDOR_MESA:
