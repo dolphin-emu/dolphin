@@ -11,6 +11,10 @@
 #include <cstdlib>
 #include <cstring>
 
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
 // SVN version number
 extern const char *scm_desc_str;
 extern const char *scm_branch_str;
