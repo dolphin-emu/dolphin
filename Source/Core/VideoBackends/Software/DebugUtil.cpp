@@ -21,7 +21,6 @@
 namespace DebugUtil
 {
 
-static u32 skipFrames = 0;
 static bool drawingHwTriangles = false;
 
 enum { NumObjectBuffers = 40};
