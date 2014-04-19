@@ -547,7 +547,10 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 a
 	else
 		MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), R(arg));
 #else
-	MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), R(arg));
+	if (swap)
+		SwapAndStore(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), arg);
+	else
+		MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), R(arg));
 #endif
 }
 
