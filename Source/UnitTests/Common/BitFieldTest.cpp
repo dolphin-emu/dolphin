@@ -106,7 +106,7 @@ TEST(BitField, Assignment)
 		EXPECT_EQ(val, object.full_u64);
 
 		object.full_s64 = (s64)val;
-		EXPECT_EQ((s64)val, object.full_u64);
+		EXPECT_EQ(val, object.full_u64);
 
 		object.regular_field_unsigned = val;
 		EXPECT_EQ(val & 0x7, object.regular_field_unsigned);
@@ -121,8 +121,8 @@ TEST(BitField, Assignment)
 		EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed);
 
 		// Assignment from other BitField
-		object.at_dword_boundary = object.regular_field_unsigned;
-		EXPECT_EQ(object.regular_field_unsigned, object.at_dword_boundary);
+		object.at_dword_boundary = object.regular_field_signed;
+		EXPECT_EQ(object.regular_field_signed, object.at_dword_boundary);
 	}
 }
 
@@ -148,7 +148,7 @@ TEST(BitField, Alignment)
 		EXPECT_EQ(val, object.full_u64);
 
 		object.full_s64 = (s64)val;
-		EXPECT_EQ((s64)val, object.full_u64);
+		EXPECT_EQ(val, object.full_u64);
 
 		object.regular_field_unsigned = val;
 		EXPECT_EQ(val & 0x7, object.regular_field_unsigned);
@@ -163,7 +163,7 @@ TEST(BitField, Alignment)
 		EXPECT_EQ(((s64)(object.hex << 61)) >> 61, object.regular_field_signed);
 
 		// Assignment from other BitField
-		object.at_dword_boundary = object.regular_field_unsigned;
-		EXPECT_EQ(object.regular_field_unsigned, object.at_dword_boundary);
+		object.at_dword_boundary = object.regular_field_signed;
+		EXPECT_EQ(object.regular_field_signed, object.at_dword_boundary);
 	}
 }
