@@ -293,28 +293,10 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 		}
 		break;
 	case SPR_HID2: // HID2
-		{
-			UReg_HID2 old_hid2;
-			old_hid2.Hex = oldValue;
-
-			//if (HID2.LCE && !old_hid2.LCE)
-			//	PanicAlert("Locked cache enabled!");
-
-			if (HID2.PSE == 0)
-				PanicAlert("WARNING: PSE (paired single enable) in HID2 was unset");
-
-			//	bool WriteGatherPipeEnable = (bool)HID2.WPE; //TODO?
-			//	bool LockedCacheEnable = (bool)HID2.LCE;
-			//	int DMAQueueLength = HID2.DMAQL; // Ignore - our DMA:s are instantaneous
-			//	bool PairedSingleEnable = HID2.PSE;
-			//	bool QuantizeEnable = HID2.LSQE;
-			//TODO(ector): Protect LC memory if LCE is false.
-			//TODO(ector): Honor PSE.
-
-			//_assert_msg_(POWERPC, WriteGatherPipeEnable, "Write gather pipe not enabled!");
-			//if ((HID2.PSE == 0))
-			//	MessageBox(nullptr, "PSE in HID2 is set", "Warning", MB_OK);
-		}
+		// TODO: generate illegal instruction for paired inst if PSE or LSQE
+		// not set.
+		// TODO: disable write gather pipe if WPE not set
+		// TODO: emulate locked cache and DMA bits.
 		break;
 
 	case SPR_WPAR:
