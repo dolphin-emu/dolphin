@@ -97,17 +97,17 @@ void LoadCPReg(u32 subCmd, u32 value, CPMemory &cpMem)
 
 	case 0x70:
 		_assert_((subCmd & 0x0F) < 8);
-		cpMem.vtxAttr[subCmd & 7].g0.Hex = value;
+		cpMem.vtxAttr[subCmd & 7].Hex0 = value;
 		break;
 
 	case 0x80:
 		_assert_((subCmd & 0x0F) < 8);
-		cpMem.vtxAttr[subCmd & 7].g1.Hex = value;
+		cpMem.vtxAttr[subCmd & 7].Hex1 = value;
 		break;
 
 	case 0x90:
 		_assert_((subCmd & 0x0F) < 8);
-		cpMem.vtxAttr[subCmd & 7].g2.Hex = value;
+		cpMem.vtxAttr[subCmd & 7].Hex2 = value;
 		break;
 
 	case 0xA0:
@@ -139,21 +139,20 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	const VAT &vtxAttr = cpMem.vtxAttr[vatIndex];
 
 	// Colors
-	const u32 colDesc[2] = {vtxDesc.Color0, vtxDesc.Color1};
-	const u32 colComp[2] = {vtxAttr.g0.Color0Comp, vtxAttr.g0.Color1Comp};
+	const TVtxDesc::VertexComponentType colDesc[2] = {vtxDesc.Color0, vtxDesc.Color1};
+	const u32 colComp[2] = {vtxAttr.Color0Comp, vtxAttr.Color1Comp};
+
+	const TVtxDesc::VertexComponentType tcDesc[8] =
+	{
+		vtxDesc.Tex0Coord, vtxDesc.Tex1Coord, vtxDesc.Tex2Coord, vtxDesc.Tex3Coord,
+		vtxDesc.Tex4Coord, vtxDesc.Tex5Coord, vtxDesc.Tex6Coord, vtxDesc.Tex7Coord
+	};
 
 	const u32 tcElements[8] =
 	{
-		vtxAttr.g0.Tex0CoordElements, vtxAttr.g1.Tex1CoordElements, vtxAttr.g1.Tex2CoordElements,
-		vtxAttr.g1.Tex3CoordElements, vtxAttr.g1.Tex4CoordElements, vtxAttr.g2.Tex5CoordElements,
-		vtxAttr.g2.Tex6CoordElements, vtxAttr.g2.Tex7CoordElements
-	};
-
-	const u32 tcFormat[8] =
-	{
-		vtxAttr.g0.Tex0CoordFormat, vtxAttr.g1.Tex1CoordFormat, vtxAttr.g1.Tex2CoordFormat,
-		vtxAttr.g1.Tex3CoordFormat, vtxAttr.g1.Tex4CoordFormat, vtxAttr.g2.Tex5CoordFormat,
-		vtxAttr.g2.Tex6CoordFormat, vtxAttr.g2.Tex7CoordFormat
+		vtxAttr.Tex0CoordElements, vtxAttr.Tex1CoordElements, vtxAttr.Tex2CoordElements,
+		vtxAttr.Tex3CoordElements, vtxAttr.Tex4CoordElements, vtxAttr.Tex5CoordElements,
+		vtxAttr.Tex6CoordElements, vtxAttr.Tex7CoordElements
 	};
 
 	// Add position and texture matrix indices
@@ -165,12 +164,12 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	}
 
 	// Position
-	sizes[9] = VertexLoader_Position::GetSize(vtxDesc.Position, vtxAttr.g0.PosFormat, vtxAttr.g0.PosElements);
+	sizes[9] = VertexLoader_Position::GetSize(vtxDesc.Position, vtxAttr.PosFormat, vtxAttr.PosElements);
 
 	// Normals
-	if (vtxDesc.Normal != NOT_PRESENT)
+	if (vtxDesc.Normal != TVtxDesc::NOT_PRESENT)
 	{
-		sizes[10] = VertexLoader_Normal::GetSize(vtxDesc.Normal, vtxAttr.g0.NormalFormat, vtxAttr.g0.NormalElements, vtxAttr.g0.NormalIndex3);
+		sizes[10] = VertexLoader_Normal::GetSize(vtxDesc.Normal, vtxAttr.NormalFormat, vtxAttr.NormalElements, vtxAttr.NormalIndex3);
 	}
 	else
 	{
@@ -184,9 +183,9 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 
 		switch (colDesc[i])
 		{
-		case NOT_PRESENT:
+		case TVtxDesc::NOT_PRESENT:
 			break;
-		case DIRECT:
+		case TVtxDesc::DIRECT:
 			switch (colComp[i])
 			{
 			case FORMAT_16B_565:  size = 2; break;
@@ -198,10 +197,10 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 			default: _assert_(0); break;
 			}
 			break;
-		case INDEX8:
+		case TVtxDesc::INDEX8:
 			size = 1;
 			break;
-		case INDEX16:
+		case TVtxDesc::INDEX16:
 			size = 2;
 			break;
 		}
@@ -210,11 +209,9 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	}
 
 	// Texture coordinates
-	vtxDescHex = vtxDesc.Hex >> 17;
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 8; ++i)
 	{
-		sizes[13 + i] = VertexLoader_TextCoord::GetSize(vtxDescHex & 3, tcFormat[i], tcElements[i]);
-		vtxDescHex >>= 2;
+		sizes[13 + i] = VertexLoader_TextCoord::GetSize(tcDesc[i], vtxAttr.GetTexCoordFormats()[i], tcElements[i]);
 	}
 }
 

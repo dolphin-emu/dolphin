@@ -74,8 +74,8 @@ public:
 
 	static PCacheEntry GetShaderProgram(void);
 	static GLuint GetCurrentProgram(void);
-	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
-	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
+	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, VertexComponents components);
+	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, VertexComponents components);
 
 	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode);
 	static GLuint CompileSingleShader(GLuint type, const char *code);

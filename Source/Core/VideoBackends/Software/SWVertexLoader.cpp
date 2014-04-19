@@ -47,44 +47,20 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
 	m_CurrentVat = &g_VtxAttr[attributeIndex];
 
-	posScale = 1.0f / float(1 << m_CurrentVat->g0.PosFrac);
-	tcScale[0] = 1.0f / float(1 << m_CurrentVat->g0.Tex0Frac);
-	tcScale[1] = 1.0f / float(1 << m_CurrentVat->g1.Tex1Frac);
-	tcScale[2] = 1.0f / float(1 << m_CurrentVat->g1.Tex2Frac);
-	tcScale[3] = 1.0f / float(1 << m_CurrentVat->g1.Tex3Frac);
-	tcScale[4] = 1.0f / float(1 << m_CurrentVat->g2.Tex4Frac);
-	tcScale[5] = 1.0f / float(1 << m_CurrentVat->g2.Tex5Frac);
-	tcScale[6] = 1.0f / float(1 << m_CurrentVat->g2.Tex6Frac);
-	tcScale[7] = 1.0f / float(1 << m_CurrentVat->g2.Tex7Frac);
+	posScale = 1.0f / float(1 << m_CurrentVat->PosFrac);
+	for (int i = 0; i < 8; ++i)
+		tcScale[0] = 1.0f / float(1 << m_CurrentVat->GetTexCoordFracs()[i]);
 
-	//TexMtx
-	const u32 tmDesc[8] = {
-		g_VtxDesc.Tex0MatIdx, g_VtxDesc.Tex1MatIdx, g_VtxDesc.Tex2MatIdx, g_VtxDesc.Tex3MatIdx,
-		g_VtxDesc.Tex4MatIdx, g_VtxDesc.Tex5MatIdx, g_VtxDesc.Tex6MatIdx, g_VtxDesc.Tex7MatIdx
-	};
+	const auto tmDesc = g_VtxDesc.TexMtxIdx();
 
 	// Colors
-	const u32 colDesc[2] = {g_VtxDesc.Color0, g_VtxDesc.Color1};
-	colElements[0] = m_CurrentVat->g0.Color0Elements;
-	colElements[1] = m_CurrentVat->g0.Color1Elements;
-	const u32 colComp[2] = {m_CurrentVat->g0.Color0Comp, m_CurrentVat->g0.Color1Comp};
+	const auto colDesc = g_VtxDesc.Color();
+	const auto colComp = m_CurrentVat->GetColorComponents();
+	colElements[0] = m_CurrentVat->Color0Elements;
+	colElements[1] = m_CurrentVat->Color1Elements;
 
 	// TextureCoord
-	const u32 tcDesc[8] = {
-		g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord,
-		g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const u32)((g_VtxDesc.Hex >> 31) & 3)
-	};
-	const u32 tcElements[8] = {
-		m_CurrentVat->g0.Tex0CoordElements, m_CurrentVat->g1.Tex1CoordElements, m_CurrentVat->g1.Tex2CoordElements,
-		m_CurrentVat->g1.Tex3CoordElements, m_CurrentVat->g1.Tex4CoordElements, m_CurrentVat->g2.Tex5CoordElements,
-		m_CurrentVat->g2.Tex6CoordElements, m_CurrentVat->g2.Tex7CoordElements
-	};
-
-	const u32 tcFormat[8] = {
-		m_CurrentVat->g0.Tex0CoordFormat, m_CurrentVat->g1.Tex1CoordFormat, m_CurrentVat->g1.Tex2CoordFormat,
-		m_CurrentVat->g1.Tex3CoordFormat, m_CurrentVat->g1.Tex4CoordFormat, m_CurrentVat->g2.Tex5CoordFormat,
-		m_CurrentVat->g2.Tex6CoordFormat, m_CurrentVat->g2.Tex7CoordFormat
-	};
+	const auto tcDesc = g_VtxDesc.TexCoord();
 
 	m_VertexSize = 0;
 
@@ -135,7 +111,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	m_Vertex.texMtx[7] = MatrixIndexB.Tex7MtxIdx;
 #endif
 
-	if (g_VtxDesc.PosMatIdx != NOT_PRESENT)
+	if (g_VtxDesc.PosMatIdx != TVtxDesc::NOT_PRESENT)
 	{
 		AddAttributeLoader(LoadPosMtx);
 		m_VertexSize++;
@@ -143,7 +119,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
 	for (int i = 0; i < 8; ++i)
 	{
-		if (tmDesc[i] != NOT_PRESENT)
+		if (tmDesc[i] != TVtxDesc::NOT_PRESENT)
 		{
 			AddAttributeLoader(LoadTexMtx, i);
 			m_VertexSize++;
@@ -151,18 +127,18 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	}
 
 	// Write vertex position loader
-	m_positionLoader = VertexLoader_Position::GetFunction(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
-	m_VertexSize += VertexLoader_Position::GetSize(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
+	m_positionLoader = VertexLoader_Position::GetFunction(g_VtxDesc.Position, m_CurrentVat->PosFormat, m_CurrentVat->PosElements);
+	m_VertexSize += VertexLoader_Position::GetSize(g_VtxDesc.Position, m_CurrentVat->PosFormat, m_CurrentVat->PosElements);
 	AddAttributeLoader(LoadPosition);
 
 	// Normals
-	if (g_VtxDesc.Normal != NOT_PRESENT)
+	if (g_VtxDesc.Normal != TVtxDesc::NOT_PRESENT)
 	{
 		m_VertexSize += VertexLoader_Normal::GetSize(g_VtxDesc.Normal,
-			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
+			m_CurrentVat->NormalFormat, m_CurrentVat->NormalElements, m_CurrentVat->NormalIndex3);
 
 		m_normalLoader = VertexLoader_Normal::GetFunction(g_VtxDesc.Normal,
-			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
+			m_CurrentVat->NormalFormat, m_CurrentVat->NormalElements, m_CurrentVat->NormalIndex3);
 
 		if (m_normalLoader == nullptr)
 		{
@@ -175,10 +151,10 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	{
 		switch (colDesc[i])
 		{
-		case NOT_PRESENT:
+		case TVtxDesc::NOT_PRESENT:
 			m_colorLoader[i] = nullptr;
 			break;
-		case DIRECT:
+		case TVtxDesc::DIRECT:
 			switch (colComp[i])
 			{
 			case FORMAT_16B_565:  m_VertexSize += 2; m_colorLoader[i] = (Color_ReadDirect_16b_565); break;
@@ -191,7 +167,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 			}
 			AddAttributeLoader(LoadColor, i);
 			break;
-		case INDEX8:
+		case TVtxDesc::INDEX8:
 			m_VertexSize += 1;
 			switch (colComp[i])
 			{
@@ -205,7 +181,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 			}
 			AddAttributeLoader(LoadColor, i);
 			break;
-		case INDEX16:
+		case TVtxDesc::INDEX16:
 			m_VertexSize += 2;
 			switch (colComp[i])
 			{
@@ -225,11 +201,11 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
 	for (int i = 0; i < 8; i++)
 	{
-		const int desc = tcDesc[i];
-		const int format = tcFormat[i];
-		const int elements = tcElements[i];
-		_assert_msg_(VIDEO, NOT_PRESENT <= desc && desc <= INDEX16, "Invalid texture coordinates description!\n(desc = %d)", desc);
-		_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
+		const TVtxDesc::VertexComponentType desc = tcDesc[i];
+		const VAT::VertexComponentFormat format = m_CurrentVat->GetTexCoordFormats()[i];
+		const int elements = m_CurrentVat->GetTexCoordElements()[i];
+		_assert_msg_(VIDEO, TVtxDesc::NOT_PRESENT <= desc && desc <= TVtxDesc::INDEX16, "Invalid texture coordinates description!\n(desc = %d)", (int)desc);
+		_assert_msg_(VIDEO, VAT::UBYTE <= format && format <= VAT::FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
 		_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elements!\n(elements = %d)", elements);
 
 		m_texCoordLoader[i] = VertexLoader_TextCoord::GetFunction(desc, format, elements);
@@ -241,7 +217,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	// special case if only pos and tex coord 0 and tex coord input is AB11
 	m_TexGenSpecialCase =
 		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
-		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
+		(g_VtxDesc.Tex0Coord != TVtxDesc::NOT_PRESENT) &&
 		(swxfregs.texMtxInfo[0].projection == XF_TEXPROJ_ST);
 
 	m_SetupUnit->Init(primitiveType);
@@ -258,9 +234,9 @@ void SWVertexLoader::LoadVertex()
 	// transform input data
 	TransformUnit::TransformPosition(&m_Vertex, outVertex);
 
-	if (g_VtxDesc.Normal != NOT_PRESENT)
+	if (g_VtxDesc.Normal != TVtxDesc::NOT_PRESENT)
 	{
-		TransformUnit::TransformNormal(&m_Vertex, m_CurrentVat->g0.NormalElements, outVertex);
+		TransformUnit::TransformNormal(&m_Vertex, m_CurrentVat->NormalElements, outVertex);
 	}
 
 	TransformUnit::TransformColor(&m_Vertex, outVertex);

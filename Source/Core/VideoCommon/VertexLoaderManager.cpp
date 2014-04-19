@@ -167,19 +167,19 @@ void LoadCPReg(u32 sub_cmd, u32 value)
 
 	case 0x70:
 		_assert_((sub_cmd & 0x0F) < 8);
-		g_VtxAttr[sub_cmd & 7].g0.Hex = value;
+		g_VtxAttr[sub_cmd & 7].Hex0 = value;
 		s_attr_dirty |= 1 << (sub_cmd & 7);
 		break;
 
 	case 0x80:
 		_assert_((sub_cmd & 0x0F) < 8);
-		g_VtxAttr[sub_cmd & 7].g1.Hex = value;
+		g_VtxAttr[sub_cmd & 7].Hex1 = value;
 		s_attr_dirty |= 1 << (sub_cmd & 7);
 		break;
 
 	case 0x90:
 		_assert_((sub_cmd & 0x0F) < 8);
-		g_VtxAttr[sub_cmd & 7].g2.Hex = value;
+		g_VtxAttr[sub_cmd & 7].Hex2 = value;
 		s_attr_dirty |= 1 << (sub_cmd & 7);
 		break;
 
@@ -204,9 +204,9 @@ void FillCPMemoryArray(u32 *memory)
 
 	for (int i = 0; i < 8; ++i)
 	{
-		memory[0x70 + i] = g_VtxAttr[i].g0.Hex;
-		memory[0x80 + i] = g_VtxAttr[i].g1.Hex;
-		memory[0x90 + i] = g_VtxAttr[i].g2.Hex;
+		memory[0x70 + i] = g_VtxAttr[i].Hex0;
+		memory[0x80 + i] = g_VtxAttr[i].Hex1;
+		memory[0x90 + i] = g_VtxAttr[i].Hex2;
 	}
 
 	for (int i = 0; i < 16; ++i)

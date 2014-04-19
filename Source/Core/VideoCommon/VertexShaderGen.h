@@ -56,16 +56,24 @@
 
 #pragma pack(1)
 
+// TODO: Use BitField for this!
 struct vertex_shader_uid_data
 {
 	u32 NumValues() const { return sizeof(vertex_shader_uid_data); }
 
-	u32 components           : 23;
-	u32 numTexGens           : 4;
-	u32 numColorChans        : 2;
-	u32 dualTexTrans_enabled : 1;
-	u32 pixel_lighting       : 1;
-	u32 pad0                 : 1;
+	union
+	{
+		VertexComponents components;
+		struct
+		{
+			u32                      : 23;
+			u32 numTexGens           : 4;
+			u32 numColorChans        : 2;
+			u32 dualTexTrans_enabled : 1;
+			u32 pixel_lighting       : 1;
+			u32 pad0                 : 1;
+		};
+	};
 
 	u32 texMtxInfo_n_projection : 16; // Stored separately to guarantee that the texMtxInfo struct is 8 bits wide
 	struct {
@@ -89,6 +97,6 @@ struct vertex_shader_uid_data
 typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
 typedef ShaderCode VertexShaderCode; // TODO: Obsolete..
 
-void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);
-void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type);
+void GetVertexShaderUid(VertexShaderUid& object, VertexComponents components, API_TYPE api_type);
+void GenerateVertexShaderCode(VertexShaderCode& object, VertexComponents components, API_TYPE api_type);
 void GenerateVSOutputStructForGS(ShaderCode& object, API_TYPE api_type);

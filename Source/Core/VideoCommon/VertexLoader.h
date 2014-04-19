@@ -36,9 +36,9 @@ public:
 	{
 		vid[0] = g_VtxDesc.Hex & 0xFFFFFFFF;
 		vid[1] = g_VtxDesc.Hex >> 32;
-		vid[2] = g_VtxAttr[vtx_attr_group].g0.Hex & ~VAT_0_FRACBITS;
-		vid[3] = g_VtxAttr[vtx_attr_group].g1.Hex & ~VAT_1_FRACBITS;
-		vid[4] = g_VtxAttr[vtx_attr_group].g2.Hex & ~VAT_2_FRACBITS;
+		vid[2] = g_VtxAttr[vtx_attr_group].Hex0 & ~VAT_0_FRACBITS;
+		vid[3] = g_VtxAttr[vtx_attr_group].Hex1 & ~VAT_1_FRACBITS;
+		vid[4] = g_VtxAttr[vtx_attr_group].Hex2 & ~VAT_2_FRACBITS;
 		hash = CalculateHash();
 	}
 
@@ -107,10 +107,17 @@ public:
 	int GetNumLoadedVerts() const { return m_numLoadedVertices; }
 
 private:
+	enum
+	{
+		NRM_ZERO  = 0,
+		NRM_ONE   = 1,
+		NRM_THREE = 3,
+	};
+
 	int m_VertexSize;      // number of bytes of a raw GC vertex. Computed by CompileVertexTranslator.
 
-	// GC vertex format
-	TVtxAttr m_VtxAttr;  // VAT decoded into easy format
+	// GC vertex format - decoded into easy format
+	VAT m_VtxAttr;
 	TVtxDesc m_VtxDesc;  // Not really used currently - or well it is, but could be easily avoided.
 
 	// PC vertex format
@@ -127,7 +134,7 @@ private:
 
 	int m_numLoadedVertices;
 
-	void SetVAT(u32 _group0, u32 _group1, u32 _group2);
+	void SetVAT(const VAT& vtx_attr);
 
 	void CompileVertexTranslator();
 	void ConvertVertices(int count);

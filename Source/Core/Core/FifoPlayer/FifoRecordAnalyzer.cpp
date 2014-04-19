@@ -189,7 +189,7 @@ void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, u8 *vertexData, int ve
 	int maxIndex = 0;
 
 	// Determine min and max indices
-	if (arrayType == INDEX8)
+	if (arrayType == TVtxDesc::INDEX8)
 	{
 		for (int i = 0; i < numVertices; ++i)
 		{

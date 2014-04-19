@@ -13,7 +13,6 @@
 #include "VideoCommon/VideoCommon.h"
 
 extern float posScale;
-extern TVtxAttr *pVtxAttr;
 
 // Thoughts on the implementation of a vertex loader compiler.
 // s_pCurBufferPointer should definitely be in a register.
@@ -185,12 +184,14 @@ void VertexLoader_Position::Init(void)
 
 }
 
-unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements)
+unsigned int VertexLoader_Position::GetSize(TVtxDesc::VertexComponentType _type,
+	VAT::VertexComponentFormat _format, unsigned int _elements)
 {
 	return tableReadPositionVertexSize[_type][_format][_elements];
 }
 
-TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements)
+TPipelineFunction VertexLoader_Position::GetFunction(TVtxDesc::VertexComponentType _type,
+	VAT::VertexComponentFormat _format, unsigned int _elements)
 {
 	return tableReadPosition[_type][_format][_elements];
 }
