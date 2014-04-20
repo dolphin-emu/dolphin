@@ -39,7 +39,7 @@ namespace JitInterface
 	void DoState(PointerWrap &p)
 	{
 		if (jit && p.GetMode() == PointerWrap::MODE_READ)
-			jit->GetBlockCache()->ClearSafe();
+			jit->GetBlockCache()->Clear();
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
@@ -199,8 +199,12 @@ namespace JitInterface
 	}
 	void ClearSafe()
 	{
+		// This clear is "safe" in the sense that it's okay to run from
+		// inside a JIT'ed block: it clears the instruction cache, but not
+		// the JIT'ed code.
+		// TODO: There's probably a better way to handle this situation.
 		if (jit)
-			jit->GetBlockCache()->ClearSafe();
+			jit->GetBlockCache()->Clear();
 	}
 
 	void InvalidateICache(u32 address, u32 size)

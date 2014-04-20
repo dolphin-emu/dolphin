@@ -96,7 +96,6 @@ public:
 	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
 
 	void Clear();
-	void ClearSafe();
 	void Init();
 	void Shutdown();
 	void Reset();
@@ -122,9 +121,6 @@ public:
 	// DOES NOT WORK CORRECTLY WITH INLINING
 	void InvalidateICache(u32 address, const u32 length);
 	void DestroyBlock(int block_num, bool invalidate);
-
-	// Not currently used
-	//void DestroyBlocksWithFlag(BlockFlag death_flag);
 };
 
 // x86 BlockCache

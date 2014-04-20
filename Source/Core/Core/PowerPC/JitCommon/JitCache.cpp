@@ -116,24 +116,6 @@ using namespace Gen;
 		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
 	}
 
-	void JitBaseBlockCache::ClearSafe()
-	{
-		memset(iCache, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
-		memset(iCacheEx, JIT_ICACHE_INVALID_BYTE, JIT_ICACHEEX_SIZE);
-		memset(iCacheVMEM, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
-	}
-
-	/*void JitBaseBlockCache::DestroyBlocksWithFlag(BlockFlag death_flag)
-	{
-		for (int i = 0; i < num_blocks; i++)
-		{
-			if (blocks[i].flags & death_flag)
-			{
-				DestroyBlock(i, false);
-			}
-		}
-	}*/
-
 	void JitBaseBlockCache::Reset()
 	{
 		Shutdown();
