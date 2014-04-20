@@ -50,8 +50,8 @@ Touchscreen::Touchscreen(int padID)
 	AddAnalogInputs(new Axis(_padID, ButtonManager::STICK_MAIN_UP, -1.0f), new Axis(_padID, ButtonManager::STICK_MAIN_DOWN));
 	AddAnalogInputs(new Axis(_padID, ButtonManager::STICK_C_UP, -1.0f), new Axis(_padID, ButtonManager::STICK_C_DOWN));
 	AddAnalogInputs(new Axis(_padID, ButtonManager::STICK_C_LEFT, -1.0f), new Axis(_padID, ButtonManager::STICK_C_RIGHT));
-	AddAnalogInputs(new Axis(_padID, ButtonManager::TRIGGER_L), new Axis(_padID, ButtonManager::TRIGGER_L));
-	AddAnalogInputs(new Axis(_padID, ButtonManager::TRIGGER_R), new Axis(_padID, ButtonManager::TRIGGER_R));
+	AddInput(new Button(_padID, ButtonManager::TRIGGER_L));
+	AddInput(new Button(_padID, ButtonManager::TRIGGER_R));
 }
 // Buttons and stuff
 
