@@ -66,10 +66,10 @@ public final class DolphinEmulator extends Activity
 
 			// Copy assets if needed
 			File file = new File(GCDir + File.separator + "font_sjis.bin");
+			CopyAsset("GCPadNew.ini",    ConfigDir + File.separator + "GCPadNew.ini");
 			if(!file.exists())
 			{
 				NativeLibrary.CreateUserFolders();
-				CopyAsset("GCPadNew.ini",    ConfigDir + File.separator + "GCPadNew.ini");
 				CopyAsset("Dolphin.ini",     ConfigDir + File.separator + "Dolphin.ini");
 				CopyAsset("dsp_coef.bin",    GCDir + File.separator + "dsp_coef.bin");
 				CopyAsset("dsp_rom.bin",     GCDir + File.separator + "dsp_rom.bin");
