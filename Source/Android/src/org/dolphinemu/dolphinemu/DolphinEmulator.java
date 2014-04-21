@@ -66,6 +66,7 @@ public final class DolphinEmulator extends Activity
 
 			// Copy assets if needed
 			File file = new File(GCDir + File.separator + "font_sjis.bin");
+			// Update this file on startup so changes to it can be applied
 			CopyAsset("GCPadNew.ini",    ConfigDir + File.separator + "GCPadNew.ini");
 			if(!file.exists())
 			{
