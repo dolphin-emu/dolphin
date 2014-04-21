@@ -531,16 +531,24 @@ struct FourTexUnits
 
 union GenMode
 {
-	struct
+	enum CullMode : u32
 	{
-		u32 numtexgens    : 4; //     0xF
-		u32 numcolchans   : 5; //   0x1E0
-		u32 multisampling : 1; //   0x200
-		u32 numtevstages  : 4; //  0x3C00
-		u32 cullmode      : 2; //  0xC000
-		u32 numindstages  : 3; // 0x30000
-		u32 zfreeze       : 5; //0x3C0000
+		CULL_NONE = 0,
+		CULL_BACK = 1, // cull back-facing primitives
+		CULL_FRONT = 2, // cull front-facing primitives
+		CULL_ALL = 3, // cull all primitives
 	};
+
+	BitField< 0,4,u32> numtexgens;
+	BitField< 4,3,u32> numcolchans;
+	// 1 bit unused?
+	BitField< 8,1,u32> flat_shading; // unconfirmed
+	BitField< 9,1,u32> multisampling;
+	BitField<10,4,u32> numtevstages;
+	BitField<14,2,CullMode> cullmode;
+	BitField<16,3,u32> numindstages;
+	BitField<19,5,u32> zfreeze;
+
 	u32 hex;
 };
 
