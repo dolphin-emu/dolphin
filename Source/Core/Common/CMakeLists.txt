@@ -14,6 +14,7 @@ set(SRCS	BreakPoints.cpp
 			MsgHandler.cpp
 			NandPaths.cpp
 			Network.cpp
+			PcapFile.cpp
 			SettingsHandler.cpp
 			SDCardUtil.cpp
 			StringUtil.cpp
