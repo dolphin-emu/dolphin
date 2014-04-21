@@ -540,7 +540,9 @@ union GenMode
 	};
 
 	BitField< 0,4,u32> numtexgens;
-	BitField< 4,5,u32> numcolchans;
+	BitField< 4,3,u32> numcolchans;
+	// 1 bit unused?
+	BitField< 8,1,u32> flat_shading; // unconfirmed
 	BitField< 9,1,u32> multisampling;
 	BitField<10,4,u32> numtevstages;
 	BitField<14,2,CullMode> cullmode;
