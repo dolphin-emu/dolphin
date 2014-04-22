@@ -64,6 +64,8 @@ namespace ButtonManager
 			m_buttons[std::make_pair(a, BUTTON_DOWN)] = new Button();
 			m_buttons[std::make_pair(a, BUTTON_LEFT)] = new Button();
 			m_buttons[std::make_pair(a, BUTTON_RIGHT)] = new Button();
+			m_buttons[std::make_pair(a, TRIGGER_L)] = new Button();
+			m_buttons[std::make_pair(a, TRIGGER_R)] = new Button();
 
 			m_axises[std::make_pair(a, STICK_MAIN_UP)] = new Axis();
 			m_axises[std::make_pair(a, STICK_MAIN_DOWN)] = new Axis();
@@ -73,8 +75,6 @@ namespace ButtonManager
 			m_axises[std::make_pair(a, STICK_C_DOWN)] = new Axis();
 			m_axises[std::make_pair(a, STICK_C_LEFT)] = new Axis();
 			m_axises[std::make_pair(a, STICK_C_RIGHT)] = new Axis();
-			m_buttons[std::make_pair(a, TRIGGER_L)] = new Button();
-			m_buttons[std::make_pair(a, TRIGGER_R)] = new Button();
 		}
 		// Init our controller bindings
 		IniFile ini;
