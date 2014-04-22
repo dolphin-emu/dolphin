@@ -115,7 +115,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 		WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
 	}
 
-	WRITE(p, "  float sample_offset = position.w / float(%d);\n", EFB_WIDTH);
+	WRITE(p, "  float sample_offset = float(position.w) / float(%d);\n", EFB_WIDTH);
 }
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
