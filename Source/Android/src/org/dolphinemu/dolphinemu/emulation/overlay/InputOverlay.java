@@ -123,6 +123,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		{
 			if (button.getBounds().contains((int)event.getX(), (int)event.getY()))
 				NativeLibrary.onTouchEvent(0, button.getId(), buttonState);
+			else // Release button after touch leaves boundaries
+				NativeLibrary.onTouchEvent(0, button.getId(), ButtonState.RELEASED);
 		}
 
 
