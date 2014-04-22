@@ -28,7 +28,6 @@
     <ClInclude Include="FifoQueue.h" />
     <ClInclude Include="FileSearch.h" />
     <ClInclude Include="FileUtil.h" />
-    <ClInclude Include="FixedSizeQueue.h" />
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
