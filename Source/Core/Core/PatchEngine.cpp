@@ -45,7 +45,6 @@ const char *PatchTypeStrings[] =
 
 std::vector<Patch> onFrame;
 std::map<u32, int> speedHacks;
-std::vector<std::string> discList;
 
 void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni, IniFile& localIni)
 {
@@ -126,23 +125,6 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
 	}
 }
 
-static void LoadDiscList(const std::string& section, IniFile& ini)
-{
-	std::vector<std::string> lines;
-	if (!ini.GetLines(section, &lines))
-	{
-		return;
-	}
-
-	for (const std::string& line : lines)
-	{
-		if (!line.empty())
-		{
-			discList.push_back(line);
-		}
-	}
-}
-
 static void LoadSpeedhacks(const std::string& section, IniFile& ini)
 {
 	std::vector<std::string> keys;
@@ -190,7 +172,6 @@ void LoadPatches()
 	Gecko::SetActiveCodes(gcodes);
 
 	LoadSpeedhacks("Speedhacks", merged);
-	LoadDiscList("DiscList", merged);
 }
 
 void ApplyPatches(const std::vector<Patch> &patches)
