@@ -290,10 +290,10 @@ public final class EmulationActivity extends Activity
 					}
 
 					// Normal key events.
-					action = 0;
+					action = NativeLibrary.ButtonState.PRESSED;
 					break;
 				case KeyEvent.ACTION_UP:
-					action = 1;
+					action = NativeLibrary.ButtonState.RELEASED;
 					break;
 				default:
 					return false;

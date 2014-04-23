@@ -86,17 +86,19 @@ namespace ButtonManager
 		const std::string _dev;
 		std::map<ButtonType, bool> _buttons;
 		std::map<ButtonType, float> _axises;
-		std::map<ButtonType, sBind*> _binds;
-		std::map<int, sBind*> _inputbinds;
+
+		// Key is padID and ButtonType
+		std::map<std::pair<int, ButtonType>, sBind*> _inputbinds;
 	public:
 		InputDevice(std::string dev)
 			: _dev(dev) {}
 		~InputDevice()
 		{
-			for (const auto& bind : _binds)
+			for (const auto& bind : _inputbinds)
 				delete bind.second;
+			_inputbinds.clear();
 		}
-		void AddBind(sBind *bind) { _binds[bind->_buttontype] = bind; _inputbinds[bind->_bind] = bind; }
+		void AddBind(sBind *bind) { _inputbinds[std::make_pair(bind->_padID, bind->_buttontype)] = bind; }
 		void PressEvent(int button, int action);
 		void AxisEvent(int axis, float value);
 		bool ButtonValue(int padID, ButtonType button);
@@ -106,8 +108,6 @@ namespace ButtonManager
 	void Init();
 	bool GetButtonPressed(int padID, ButtonType button);
 	float GetAxisValue(int padID, ButtonType axis);
-	void TouchEvent(int padID, ButtonType button, int action);
-	void TouchAxisEvent(int padID, ButtonType axis, float value);
 	void GamepadEvent(std::string dev, int button, int action);
 	void GamepadAxisEvent(std::string dev, int axis, float value);
 	void Shutdown();

@@ -69,13 +69,16 @@ public final class DolphinEmulator extends Activity
 			if(!file.exists())
 			{
 				NativeLibrary.CreateUserFolders();
-				CopyAsset("GCPadNew.ini",    ConfigDir + File.separator + "GCPadNew.ini");
 				CopyAsset("Dolphin.ini",     ConfigDir + File.separator + "Dolphin.ini");
 				CopyAsset("dsp_coef.bin",    GCDir + File.separator + "dsp_coef.bin");
 				CopyAsset("dsp_rom.bin",     GCDir + File.separator + "dsp_rom.bin");
 				CopyAsset("font_ansi.bin",   GCDir + File.separator + "font_ansi.bin");
 				CopyAsset("font_sjis.bin",   GCDir + File.separator + "font_sjis.bin");
 			}
+
+			// Always copy over the GCPad config in case of change or corruption.
+			// Not a user configurable file.
+			CopyAsset("GCPadNew.ini",    ConfigDir + File.separator + "GCPadNew.ini");
 
 			// Load the configuration keys set in the Dolphin ini and gfx ini files
 			// into the application's shared preferences.
