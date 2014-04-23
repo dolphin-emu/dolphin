@@ -17,6 +17,7 @@ struct InstructionInfo
 	bool signExtend;
 	bool hasImmediate;
 	bool isMemoryWrite;
+	bool byteSwap;
 	u64 immediate;
 	s32 displacement;
 };

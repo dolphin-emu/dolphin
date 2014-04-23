@@ -404,8 +404,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UNPCKLPS(XMM0, M((void*)m_one));
 	} else {
 #if _M_X86_64
-		MOV(32, R(RCX), MComplex(RBX, RCX, 1, 0));
-		BSWAP(32, RCX);
+		LoadAndSwap(32, RCX, MComplex(RBX, RCX, 1, 0));
 		MOVD_xmm(XMM0, R(RCX));
 		UNPCKLPS(XMM0, M((void*)m_one));
 #else
