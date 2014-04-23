@@ -10,11 +10,14 @@ option(USE_WAYLAND "Enables Wayland Support" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 option(ENABLE_PCH "Use PCH to speed up compilation" ON)
+option(ENABLE_LTO "Enables Link Time Optimization" OFF)
+
+option(OPENMP "Enable OpenMP parallelization" ON)
+option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(FASTLOG "Enable all logs" OFF)
 option(OPROFILING "Enable profiling" OFF)
-option(OPENMP "Enable OpenMP parallelization" ON)
-option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
+option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
 ########################################
 # Optional Targets
 # TODO: Add DSPSpy
@@ -204,6 +207,10 @@ if(UNIX AND NOT APPLE)
 	check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
 endif()
 
+if(ENABLE_LTO)
+	check_and_add_flag(LTO -flto)
+endif()
+
 if(APPLE)
 	# Ignore MacPorts and Fink and any other locally installed packages that
 	# might prevent building a distributable binary.
@@ -306,7 +313,6 @@ if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
-option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
 if(GDBSTUB)
 	add_definitions(-DUSE_GDBSTUB)
 endif(GDBSTUB)
