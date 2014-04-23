@@ -1192,11 +1192,11 @@ void GetSettings()
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
-	u8 tmp[21];
+	unsigned int tmp;
 	for (int i = 0; i < 20; ++i)
 	{
-		sscanf(&scm_rev_git_str[2 * i], "%02hhx", &tmp[i]);
-		revision[i] = tmp[i];
+		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
+		revision[i] = tmp;
 	}
 }
 
