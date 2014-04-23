@@ -290,7 +290,7 @@ public:
 	void INT3();
 
 	// Do nothing
-	void NOP(int count = 1); //nop padding - TODO: fast nop slides, for amd and intel (check their manuals)
+	void NOP(int count = 1);
 
 	// Save energy in wait-loops on P4 only. Probably not too useful.
 	void PAUSE();
