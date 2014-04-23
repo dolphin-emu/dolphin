@@ -318,7 +318,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 		return;
 	}
 
-	// adapted from http://www.devmaster.net/forums/showthread.php?t=1884
+	// adapted from http://devmaster.net/posts/6145/advanced-rasterization
 
 	// 28.4 fixed-pou32 coordinates. rounded to nearest and adjusted to match hardware output
 	// could also take floor and adjust -8
