@@ -360,6 +360,17 @@ void VertexShaderManager::SetConstants()
 		bViewportChanged = false;
 		constants.depthparams[0] = xfregs.viewport.farZ / 16777216.0f;
 		constants.depthparams[1] = xfregs.viewport.zRange / 16777216.0f;
+
+		// The console GPU places the pixel center at 7/12 unless antialiasing
+		// is enabled, while D3D and OpenGL place it at 0.5. See the comment
+		// in VertexShaderGen.cpp for details.
+		// NOTE: If we ever emulate antialiasing, the sample locations set by
+		// BP registers 0x01-0x04 need to be considered here.
+		const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
+		const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfregs.viewport.wd);
+		const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfregs.viewport.ht);
+		constants.depthparams[2] = pixel_center_correction * pixel_size_x;
+		constants.depthparams[3] = pixel_center_correction * pixel_size_y;
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();
