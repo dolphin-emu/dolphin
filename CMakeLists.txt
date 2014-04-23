@@ -11,10 +11,12 @@ option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 option(ENABLE_PCH "Use PCH to speed up compilation" ON)
 
-option(FASTLOG "Enable all logs" OFF)
-option(OPROFILING "Enable profiling" OFF)
 option(OPENMP "Enable OpenMP parallelization" ON)
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
+
+option(FASTLOG "Enable all logs" OFF)
+option(OPROFILING "Enable profiling" OFF)
+option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
 ########################################
 # Optional Targets
 # TODO: Add DSPSpy
@@ -306,7 +308,6 @@ if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
-option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
 if(GDBSTUB)
 	add_definitions(-DUSE_GDBSTUB)
 endif(GDBSTUB)
