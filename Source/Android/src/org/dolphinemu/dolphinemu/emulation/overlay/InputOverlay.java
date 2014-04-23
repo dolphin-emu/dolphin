@@ -116,12 +116,22 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		//
 		// TODO: Refactor this so we detect either Axis movements or button presses so we don't run two loops all the time.
 		//
-		int buttonState = (event.getAction() == MotionEvent.ACTION_DOWN) ? ButtonState.PRESSED : ButtonState.RELEASED;
+		int buttonState = (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE)
+				? ButtonState.PRESSED : ButtonState.RELEASED;
 		// Check if there was a touch within the bounds of a drawable.
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
 			if (button.getBounds().contains((int)event.getX(), (int)event.getY()))
+			{
 				NativeLibrary.onTouchEvent(0, button.getId(), buttonState);
+			}
+			else
+			{
+				// Because the above code only changes the state for the button that is being touched, sliding off the
+				// button does not allow for it to be released. Release the button as soon as the touch coordinates leave
+				// the button bounds.
+				NativeLibrary.onTouchEvent(0, button.getId(), ButtonState.RELEASED);
+			}
 		}
 
 
