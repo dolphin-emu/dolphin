@@ -154,6 +154,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 			info->immediate = *(u32*)codePtr;
 			codePtr += 4;
 			break;
+
 		case 8:
 			info->zeroExtend = true;
 			info->immediate = *(u32*)codePtr;
