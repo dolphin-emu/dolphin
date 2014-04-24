@@ -156,12 +156,12 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	case 30: //nmsub
 		MULSD(XMM0, fpr.R(c));
 		SUBSD(XMM0, fpr.R(b));
-		XORPD(XMM0, M((void*)&psSignBits2));
+		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
 	case 31: //nmadd
 		MULSD(XMM0, fpr.R(c));
 		ADDSD(XMM0, fpr.R(b));
-		XORPD(XMM0, M((void*)&psSignBits2));
+		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
 	}
 	fpr.BindToRegister(d, false);
@@ -197,13 +197,13 @@ void Jit64::fsign(UGeckoInstruction inst)
 	MOVSD(XMM0, fpr.R(b));
 	switch (inst.SUBOP10) {
 	case 40:  // fnegx
-		XORPD(XMM0, M((void*)&psSignBits2));
+		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
 	case 264: // fabsx
-		ANDPD(XMM0, M((void*)&psAbsMask2));
+		PAND(XMM0, M((void*)&psAbsMask2));
 		break;
 	case 136: // fnabs
-		ORPD(XMM0, M((void*)&psSignBits2));
+		POR(XMM0, M((void*)&psSignBits2));
 		break;
 	default:
 		PanicAlert("fsign bleh");

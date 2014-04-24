@@ -253,7 +253,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
 	AND(32, R(EAX), Imm32(~31));
-	XORPD(XMM0, R(XMM0));
+	PXOR(XMM0, R(XMM0));
 #if _M_X86_64
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 0), XMM0);
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 16), XMM0);

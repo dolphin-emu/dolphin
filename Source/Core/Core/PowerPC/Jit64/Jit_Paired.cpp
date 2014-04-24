@@ -59,13 +59,13 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 
 	fpr.Lock(a, b, c, d);
 	MOVAPD(XMM0, fpr.R(a));
-	XORPD(XMM1, R(XMM1));
+	PXOR(XMM1, R(XMM1));
 	// XMM0 = XMM0 < 0 ? all 1s : all 0s
 	CMPPD(XMM0, R(XMM1), LT);
 	MOVAPD(XMM1, R(XMM0));
-	ANDPD(XMM0, fpr.R(b));
-	ANDNPD(XMM1, fpr.R(c));
-	ORPD(XMM0, R(XMM1));
+	PAND(XMM0, fpr.R(b));
+	PANDN(XMM1, fpr.R(c));
+	POR(XMM0, R(XMM1));
 	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), R(XMM0));
 	fpr.UnlockAll();
@@ -99,13 +99,13 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	switch (inst.SUBOP10)
 	{
 	case 40: //neg
-		XORPD(fpr.RX(d), M((void*)&psSignBits));
+		PXOR(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	case 136: //nabs
-		ORPD(fpr.RX(d), M((void*)&psSignBits));
+		POR(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	case 264: //abs
-		ANDPD(fpr.RX(d), M((void*)&psAbsMask));
+		PAND(fpr.RX(d), M((void*)&psAbsMask));
 		break;
 	}
 
@@ -391,12 +391,12 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	case 30: //nmsub
 		MULPD(XMM0, fpr.R(c));
 		SUBPD(XMM0, fpr.R(b));
-		XORPD(XMM0, M((void*)&psSignBits));
+		PXOR(XMM0, M((void*)&psSignBits));
 		break;
 	case 31: //nmadd
 		MULPD(XMM0, fpr.R(c));
 		ADDPD(XMM0, fpr.R(b));
-		XORPD(XMM0, M((void*)&psSignBits));
+		PXOR(XMM0, M((void*)&psSignBits));
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_maddXX WTF!!!");
