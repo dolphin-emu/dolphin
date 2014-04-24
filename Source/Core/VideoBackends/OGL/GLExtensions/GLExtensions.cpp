@@ -1604,6 +1604,7 @@ namespace GLExtensions
 				"GL_ARB_sync",
 				"GL_ARB_ES2_compatibility",
 				"VERSION_GLES3",
+				"VERSION_3_0",
 				};
 			for (auto it : gles3exts)
 				m_extension_list[it] = true;
