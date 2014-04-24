@@ -109,7 +109,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	{
 		out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
 		if (components & VB_HAS_POSMTXIDX)
-			out.Write("in float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+			out.Write("in int posmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 		if (components & VB_HAS_NRM0)
 			out.Write("in float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
 		if (components & VB_HAS_NRM1)
@@ -168,7 +168,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
 		}
 		if (components & VB_HAS_POSMTXIDX)
-			out.Write("  float fposmtx : BLENDINDICES,\n");
+			out.Write("  int posmtx : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
 	}
 	out.Write("VS_OUTPUT o;\n");
@@ -176,8 +176,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
 	{
-		out.Write("int posmtx = int(fposmtx * 255.0);\n"); // TODO: Ugly, should use an integer instead
-
 		if (is_writing_shadercode && (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS) && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS)) )
 		{
 			// This'll cause issues, but  it can't be helped

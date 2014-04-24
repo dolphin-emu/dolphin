@@ -753,7 +753,7 @@ void VertexLoader::CompileVertexTranslator()
 		vtx_decl.posmtx.enable = true;
 		vtx_decl.posmtx.offset = nat_offset;
 		vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
-		vtx_decl.posmtx.integer = false;
+		vtx_decl.posmtx.integer = true;
 		nat_offset += 4;
 	}
 
