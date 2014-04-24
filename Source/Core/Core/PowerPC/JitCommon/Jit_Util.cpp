@@ -426,11 +426,21 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 	if (accessSize == 8 && reg_value >= 4) {
 		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
 	}
-	if (swap) BSWAP(accessSize, reg_value);
 #if _M_X86_64
 	result = GetWritableCodePtr();
-	MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), R(reg_value));
+	if (swap)
+	{
+		SwapAndStore(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), reg_value);
+	}
+	else
+	{
+		MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), R(reg_value));
+	}
 #else
+	if (swap)
+	{
+		BSWAP(accessSize, reg_value);
+	}
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
 	result = GetWritableCodePtr();
 	MOV(accessSize, MDisp(reg_addr, (u32)Memory::base + offset), R(reg_value));
@@ -502,6 +512,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 
 void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 registersInUse, int flags)
 {
+	// FIXME
 	if (false && cpu_info.bSSSE3) {
 		// This path should be faster but for some reason it causes errors so I've disabled it.
 		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
@@ -516,8 +527,7 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 re
 		TEST(32, R(reg_addr), Imm32(mem_mask));
 		FixupBranch argh = J_CC(CC_Z);
 		MOVSS(M(&float_buffer), xmm_value);
-		MOV(32, R(EAX), M(&float_buffer));
-		BSWAP(32, EAX);
+		LoadAndSwap(32, EAX, M(&float_buffer));
 		MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 		ABI_PushRegistersAndAdjustStack(registersInUse, false);
 		ABI_CallFunctionRR((void *)&Memory::Write_U32, EAX, reg_addr);

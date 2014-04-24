@@ -368,8 +368,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		// Fast and daring - requires 64-bit
 		MOV(32, R(EAX), gpr.R(s));
 		gpr.BindToRegister(a, true, false);
-		BSWAP(32, EAX);
-		MOV(accessSize, MComplex(RBX, gpr.RX(a), SCALE_1, (u32)offset), R(EAX));
+		SwapAndStore(32, MComplex(RBX, gpr.RX(a), SCALE_1, (u32)offset), EAX);
 		return;
 		}
 		#endif*/

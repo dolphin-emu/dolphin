@@ -187,6 +187,12 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		return nullptr;
 	}
 
+	if (info.byteSwap && info.instructionSize < 5)
+	{
+		PanicAlert("BackPatch: MOVBE is too small");
+		return nullptr;
+	}
+
 	auto it = registersInUseAtLoc.find(codePtr);
 	if (it == registersInUseAtLoc.end())
 	{
@@ -200,8 +206,11 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	{
 		XEmitter emitter(codePtr);
 		int bswapNopCount;
+		if (info.byteSwap)
+			// MOVBE -> no BSWAP following
+			bswapNopCount = 0;
 		// Check the following BSWAP for REX byte
-		if ((codePtr[info.instructionSize] & 0xF0) == 0x40)
+		else if ((codePtr[info.instructionSize] & 0xF0) == 0x40)
 			bswapNopCount = 3;
 		else
 			bswapNopCount = 2;
@@ -214,29 +223,38 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	else
 	{
 		// TODO: special case FIFO writes. Also, support 32-bit mode.
-		// We entered here with a BSWAP-ed register. We'll have to swap it back.
-		u64 *ptr = ContextRN(ctx, info.regOperandReg);
-		int bswapSize = 0;
-		switch (info.operandSize)
-		{
-		case 1:
-			bswapSize = 0;
-			break;
-		case 2:
-			bswapSize = 4 + (info.regOperandReg >= 8 ? 1 : 0);
-			*ptr = Common::swap16((u16) *ptr);
-			break;
-		case 4:
-			bswapSize = 2 + (info.regOperandReg >= 8 ? 1 : 0);
-			*ptr = Common::swap32((u32) *ptr);
-			break;
-		case 8:
-			bswapSize = 3;
-			*ptr = Common::swap64(*ptr);
-			break;
-		}
 
-		u8 *start = codePtr - bswapSize;
+		u8 *start;
+		if (info.byteSwap)
+		{
+			// The instruction is a MOVBE but it failed so the value is still in little-endian byte order.
+			start = codePtr;
+		}
+		else
+		{
+			// We entered here with a BSWAP-ed register. We'll have to swap it back.
+			u64 *ptr = ContextRN(ctx, info.regOperandReg);
+			int bswapSize = 0;
+			switch (info.operandSize)
+			{
+			case 1:
+				bswapSize = 0;
+				break;
+			case 2:
+				bswapSize = 4 + (info.regOperandReg >= 8 ? 1 : 0);
+				*ptr = Common::swap16((u16) *ptr);
+				break;
+			case 4:
+				bswapSize = 2 + (info.regOperandReg >= 8 ? 1 : 0);
+				*ptr = Common::swap32((u32) *ptr);
+				break;
+			case 8:
+				bswapSize = 3;
+				*ptr = Common::swap64(*ptr);
+				break;
+			}
+			start = codePtr - bswapSize;
+		}
 		XEmitter emitter(start);
 		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
