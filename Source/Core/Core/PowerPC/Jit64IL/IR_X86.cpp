@@ -1636,7 +1636,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->ABI_CallFunction((void *)&PowerPC::OnIdleIL);
 
 			Jit->MOV(32, M(&PC), Imm32(ibuild->GetImmValue( getOp2(I) )));
-			Jit->JMP(((JitIL *)jit)->asm_routines.testExceptions, true);
+			Jit->WriteExceptionExit();
 
 			Jit->SetJumpTarget(cont);
 			if (RI.IInfo[I - RI.FirstI] & 4)
@@ -1691,7 +1691,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			Jit->ABI_CallFunction((void *)&CoreTiming::Idle);
 			Jit->MOV(32, M(&PC), Imm32(InstLoc));
-			Jit->JMP(((JitIL *)jit)->asm_routines.testExceptions, true);
+			Jit->WriteExceptionExit();
 			break;
 		}
 		case SystemCall: {
@@ -1734,7 +1734,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			// from PC.  Update PC with the latest value in case that happens.
 			Jit->MOV(32, M(&PC), Imm32(InstLoc));
 			Jit->SUB(32, M(&CoreTiming::downcount), Jit->js.downcountAmount > 127 ? Imm32(Jit->js.downcountAmount) : Imm8(Jit->js.downcountAmount));
-			Jit->JMP(Jit->asm_routines.fpException, true);
+			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+			Jit->WriteExceptionExit();
 			Jit->SetJumpTarget(b1);
 			break;
 		}

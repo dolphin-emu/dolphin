@@ -141,17 +141,6 @@ void JitArmAsmRoutineManager::Generate()
 
 		B(dispatcherNoCheck);
 
-		// fpException()
-		// Floating Point Exception Check, Jumped to if false
-		fpException = GetCodePtr();
-			LDR(R0, R9, PPCSTATE_OFF(Exceptions));
-			ORR(R0, R0, EXCEPTION_FPU_UNAVAILABLE);
-			STR(R0, R9, PPCSTATE_OFF(Exceptions));
-				QuickCallFunction(R14, (void*)&PowerPC::CheckExceptions);
-			LDR(R0, R9, PPCSTATE_OFF(npc));
-			STR(R0, R9, PPCSTATE_OFF(pc));
-		B(dispatcher);
-
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 		// XXX: In JIT64, Advance() gets called /after/ the exception checking
@@ -159,7 +148,6 @@ void JitArmAsmRoutineManager::Generate()
 		QuickCallFunction(R14, (void*)&CoreTiming::Advance);
 
 		// Does exception checking
-		testExceptions = GetCodePtr();
 			LDR(R0, R9, PPCSTATE_OFF(pc));
 			STR(R0, R9, PPCSTATE_OFF(npc));
 				QuickCallFunction(R14, (void*)&PowerPC::CheckExceptions);

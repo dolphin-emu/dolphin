@@ -13,7 +13,6 @@
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
-#include "Core/PowerPC/Jit64IL/JitILAsm.h"
 
 using namespace Gen;
 using namespace PowerPC;
@@ -426,12 +425,14 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 {
 	MOV(32, M(&PC), arg);
+	MOV(32, M(&NPC), arg);
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
-	JMP(asm_routines.testExceptions, true);
+	JMP(asm_routines.dispatcher, true);
 }
 
 void JitIL::WriteExceptionExit()
@@ -440,8 +441,11 @@ void JitIL::WriteExceptionExit()
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
+	MOV(32, R(EAX), M(&PC));
+	MOV(32, M(&NPC), R(EAX));
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
-	JMP(asm_routines.testExceptions, true);
+	JMP(asm_routines.dispatcher, true);
 }
 
 void STACKALIGN JitIL::Run()
@@ -567,8 +571,13 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		// This block uses FPU - needs to add FP exception bailout
 		TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP enabled bit
 		FixupBranch b1 = J_CC(CC_NZ);
+
+		// If a FPU exception occurs, the exception handler will read
+		// from PC.  Update PC with the latest value in case that happens.
 		MOV(32, M(&PC), Imm32(js.blockStart));
-		JMP(asm_routines.fpException, true);
+		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+		WriteExceptionExit();
+
 		SetJumpTarget(b1);
 	}
 

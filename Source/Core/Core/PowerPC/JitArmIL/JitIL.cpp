@@ -111,15 +111,28 @@ void JitArmIL::WriteRfiExitDestInR(ARMReg Reg)
 {
 	STR(Reg, R9, PPCSTATE_OFF(pc));
 	DoDownCount();
-	MOVI2R(Reg, (u32)asm_routines.testExceptions);
-	B(Reg);
+
+	LDR(R0, R9, PPCSTATE_OFF(pc));
+	STR(R0, R9, PPCSTATE_OFF(npc));
+		QuickCallFunction(R0, (void*)&PowerPC::CheckExceptions);
+	LDR(R0, R9, PPCSTATE_OFF(npc));
+	STR(R0, R9, PPCSTATE_OFF(pc));
+
+	MOVI2R(R0, (u32)asm_routines.dispatcher);
+	B(R0);
 }
 void JitArmIL::WriteExceptionExit()
 {
 	DoDownCount();
 
-	MOVI2R(R14, (u32)asm_routines.testExceptions);
-	B(R14);
+	LDR(R0, R9, PPCSTATE_OFF(pc));
+	STR(R0, R9, PPCSTATE_OFF(npc));
+		QuickCallFunction(R0, (void*)&PowerPC::CheckExceptions);
+	LDR(R0, R9, PPCSTATE_OFF(npc));
+	STR(R0, R9, PPCSTATE_OFF(pc));
+
+	MOVI2R(R0, (u32)asm_routines.dispatcher);
+	B(R0);
 }
 void JitArmIL::WriteExit(u32 destination)
 {

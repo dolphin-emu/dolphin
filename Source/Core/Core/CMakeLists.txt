@@ -180,7 +180,6 @@ if(_M_X86)
 	set(SRCS ${SRCS}
 			x64MemTools.cpp
 			PowerPC/Jit64IL/IR_X86.cpp
-			PowerPC/Jit64IL/JitILAsm.cpp
 			PowerPC/Jit64IL/JitIL.cpp
 			PowerPC/Jit64IL/JitIL_Tables.cpp
 			PowerPC/Jit64/Jit64_Tables.cpp

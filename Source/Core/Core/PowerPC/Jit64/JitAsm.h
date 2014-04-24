@@ -37,5 +37,3 @@ public:
 		FreeCodeSpace();
 	}
 };
-
-extern Jit64AsmRoutineManager asm_routines;
