@@ -428,13 +428,23 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 	}
 #if _M_X86_64
 	result = GetWritableCodePtr();
+	OpArg dest = MComplex(RBX, reg_addr, SCALE_1, offset);
 	if (swap)
 	{
-		SwapAndStore(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), reg_value);
+		if (cpu_info.bMOVBE)
+		{
+			MOVBE(accessSize, dest, R(reg_value));
+		}
+		else
+		{
+			BSWAP(accessSize, reg_value);
+			result = GetWritableCodePtr();
+			MOV(accessSize, dest, R(reg_value));
+		}
 	}
 	else
 	{
-		MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), R(reg_value));
+		MOV(accessSize, dest, R(reg_value));
 	}
 #else
 	if (swap)
