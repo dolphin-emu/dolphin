@@ -187,6 +187,12 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		return nullptr;
 	}
 
+	if (info.byteSwap && info.instructionSize < 5)
+	{
+		PanicAlert("BackPatch: MOVBE is too small");
+		return nullptr;
+	}
+
 	auto it = registersInUseAtLoc.find(codePtr);
 	if (it == registersInUseAtLoc.end())
 	{
