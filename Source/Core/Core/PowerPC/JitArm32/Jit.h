@@ -46,6 +46,8 @@ private:
 
 	void PrintDebug(UGeckoInstruction inst, u32 level);
 
+	void Helper_ClassifyDouble(ARMReg value, ARMReg classed);
+	void Helper_UpdateFPRF(ARMReg value);
 	void Helper_UpdateCR1(ARMReg fpscr, ARMReg temp);
 	void Helper_UpdateCR1();
 
