@@ -23,6 +23,18 @@ void JitArm::Helper_UpdateCR1(ARMReg fpscr, ARMReg temp)
 	STRB(temp, R9, PPCSTATE_OFF(cr_fast[1]));
 }
 
+void JitArm::Helper_UpdateCR1()
+{
+	ARMReg fpscrReg = gpr.GetReg();
+	ARMReg temp = gpr.GetReg();
+
+	LDR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+	UBFX(temp, fpscrReg, 28, 4);
+	STRB(temp, R9, PPCSTATE_OFF(cr_fast[1]));
+
+	gpr.Unlock(fpscrReg, temp);
+}
+
 void JitArm::fctiwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -345,16 +357,13 @@ void JitArm::fabsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VABS(vD, vB);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fnabsx(UGeckoInstruction inst)
@@ -362,17 +371,14 @@ void JitArm::fnabsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VABS(vD, vB);
 	VNEG(vD, vD);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fnegx(UGeckoInstruction inst)
@@ -380,16 +386,13 @@ void JitArm::fnegx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VNEG(vD, vB);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::faddsx(UGeckoInstruction inst)
@@ -509,16 +512,13 @@ void JitArm::fmrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VMOV(vD, vB);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fmaddsx(UGeckoInstruction inst)
@@ -676,12 +676,6 @@ void JitArm::fselx(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vC0 = fpr.R0(c);
@@ -696,6 +690,9 @@ void JitArm::fselx(UGeckoInstruction inst)
 	SetJumpTarget(GT0);
 	VMOV(vD0, vC0);
 	SetJumpTarget(EQ0);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::frsqrtex(UGeckoInstruction inst)
