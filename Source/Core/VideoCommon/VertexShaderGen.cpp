@@ -419,6 +419,14 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		//seems to get rather complicated
 	}
 
+	// The console GPU places the pixel center at 7/12 in screen space unless
+	// antialiasing is enabled, while D3D and OpenGL place it at 0.5. This results
+	// in some primitives being placed one pixel too far to the bottom-right,
+	// which in turn can be critical if it happens for clear quads.
+	// Hence, we compensate for this pixel center difference so that primitives
+	// get rasterized correctly.
+	out.Write("o.pos.xy = o.pos.xy - " I_DEPTHPARAMS".zw;\n");
+
 	if (api_type == API_OPENGL)
 	{
 		// Bit ugly here
