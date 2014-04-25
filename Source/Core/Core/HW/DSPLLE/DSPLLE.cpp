@@ -108,11 +108,28 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 	}
 }
 
-bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
+static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 {
-	m_bWii = bWii;
-	m_bDSPThread = bDSPThread;
+	std::string bytes;
+	if (!File::ReadFileToString(filename, bytes))
+		return false;
 
+	if (bytes.size() != size_in_bytes)
+	{
+		ERROR_LOG(DSPLLE, "%s has a wrong size (%u, expected %u)",
+		          filename.c_str(), (u32)bytes.size(), size_in_bytes);
+		return false;
+	}
+
+	const u16* words = reinterpret_cast<const u16*>(bytes.c_str());
+	for (u32 i = 0; i < size_in_bytes / 2; ++i)
+		rom[i] = Common::swap16(words[i]);
+
+	return true;
+}
+
+static bool FillDSPInitOptions(DSPInitOptions* opts)
+{
 	std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
 	std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
 
@@ -121,8 +138,26 @@ bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	if (!File::Exists(coef_file))
 		coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
 
-	bool use_jit = SConfig::GetInstance().m_DSPEnableJIT;
-	if (!DSPCore_Init(irom_file, coef_file, use_jit))
+	if (!LoadDSPRom(opts->irom_contents.data(), irom_file, DSP_IROM_BYTE_SIZE))
+		return false;
+	if (!LoadDSPRom(opts->coef_contents.data(), coef_file, DSP_COEF_BYTE_SIZE))
+		return false;
+
+	opts->core_type = SConfig::GetInstance().m_DSPEnableJIT ?
+		DSPInitOptions::CORE_JIT : DSPInitOptions::CORE_INTERPRETER;
+
+	return true;
+}
+
+bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
+{
+	m_bWii = bWii;
+	m_bDSPThread = bDSPThread;
+
+	DSPInitOptions opts;
+	if (!FillDSPInitOptions(&opts))
+		return false;
+	if (!DSPCore_Init(opts))
 		return false;
 
 	g_dsp.cpu_ram = Memory::GetPointer(0);
