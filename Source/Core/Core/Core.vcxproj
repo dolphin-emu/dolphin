@@ -64,6 +64,7 @@
     <ClCompile Include="DSP\DSPDisassembler.cpp" />
     <ClCompile Include="DSP\DSPAccelerator.cpp" />
     <ClCompile Include="DSP\DSPAnalyzer.cpp" />
+    <ClCompile Include="DSP\DSPCaptureLogger.cpp" />
     <ClCompile Include="DSP\DSPCodeUtil.cpp" />
     <ClCompile Include="DSP\DSPCore.cpp" />
     <ClCompile Include="DSP\DSPEmitter.cpp" />
@@ -268,6 +269,7 @@
     <ClInclude Include="DSP\DSPAccelerator.h" />
     <ClInclude Include="DSP\DSPAnalyzer.h" />
     <ClInclude Include="DSP\DSPBreakpoints.h" />
+    <ClInclude Include="DSP\DSPCaptureLogger.h" />
     <ClInclude Include="DSP\DSPCodeUtil.h" />
     <ClInclude Include="DSP\DSPCommon.h" />
     <ClInclude Include="DSP\DSPCore.h" />
