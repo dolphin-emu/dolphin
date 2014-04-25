@@ -45,7 +45,7 @@ public final class UserPreferences
 		editor.putString("internalResolution",     getConfig("gfx_opengl.ini", "Settings", "EFBScale", "2") );
 		editor.putString("FSAA",                   getConfig("gfx_opengl.ini", "Settings", "MSAA", "0"));
 		editor.putString("anisotropicFiltering",   getConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", "0"));
-		editor.putBoolean("scaledEFBCopy",         getConfig("gfx_opengl.ini", "Hacks", "EFBScaleCopy", "True").equals("True"));
+		editor.putBoolean("scaledEFBCopy",         getConfig("gfx_opengl.ini", "Hacks", "EFBScaledCopy", "True").equals("True"));
 		editor.putBoolean("perPixelLighting",      getConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", "False").equals("True"));
 		editor.putBoolean("forceTextureFiltering", getConfig("gfx_opengl.ini", "Enhancements", "ForceFiltering", "False").equals("True"));
 		editor.putBoolean("disableFog",            getConfig("gfx_opengl.ini", "Settings", "DisableFog", "False").equals("True"));
