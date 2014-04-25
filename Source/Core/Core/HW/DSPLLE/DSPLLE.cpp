@@ -16,6 +16,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/DSP/DSPCaptureLogger.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPHost.h"
@@ -145,6 +146,12 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 
 	opts->core_type = SConfig::GetInstance().m_DSPEnableJIT ?
 		DSPInitOptions::CORE_JIT : DSPInitOptions::CORE_INTERPRETER;
+
+	if (SConfig::GetInstance().m_DSPCaptureLog)
+	{
+		const std::string pcap_path = File::GetUserPath(D_DUMPDSP_IDX) + "dsp.pcap";
+		opts->capture_logger = new PCAPDSPCaptureLogger(pcap_path);
+	}
 
 	return true;
 }

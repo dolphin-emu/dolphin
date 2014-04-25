@@ -515,6 +515,9 @@
     <ClCompile Include="DSP\DSPAnalyzer.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
+    <ClCompile Include="DSP\DSPCaptureLogger.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
     <ClCompile Include="DSP\DSPCodeUtil.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
@@ -1039,6 +1042,9 @@
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPBreakpoints.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPCaptureLogger.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPCodeUtil.h">

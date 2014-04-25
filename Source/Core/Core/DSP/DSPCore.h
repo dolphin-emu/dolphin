@@ -26,11 +26,13 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <string>
 
 #include "Common/Thread.h"
 
 #include "Core/DSP/DSPBreakpoints.h"
+#include "Core/DSP/DSPCaptureLogger.h"
 #include "Core/DSP/DSPEmitter.h"
 
 #define DSP_IRAM_BYTE_SIZE  0x2000
@@ -270,6 +272,7 @@ extern DSPBreakpoints dsp_breakpoints;
 extern DSPEmitter *dspjit;
 extern u16 cyclesLeft;
 extern bool init_hax;
+extern std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 
 struct DSPInitOptions
 {
@@ -280,6 +283,7 @@ struct DSPInitOptions
 	std::array<u16, DSP_COEF_SIZE> coef_contents;
 
 	// Core used to emulate the DSP.
+	// Default: CORE_JIT.
 	enum CoreType
 	{
 		CORE_INTERPRETER,
@@ -287,8 +291,13 @@ struct DSPInitOptions
 	};
 	CoreType core_type;
 
-	// Provide default option values.
-	DSPInitOptions() : core_type(CORE_JIT)
+	// Optional capture logger used to log internal DSP data transfers.
+	// Default: dummy implementation, does nothing.
+	DSPCaptureLogger* capture_logger;
+
+	DSPInitOptions()
+		: core_type(CORE_JIT),
+		  capture_logger(new DefaultDSPCaptureLogger())
 	{
 	}
 };

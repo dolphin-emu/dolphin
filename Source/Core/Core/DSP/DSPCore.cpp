@@ -42,6 +42,7 @@ DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
 bool init_hax = false;
 DSPEmitter *dspjit = nullptr;
+std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 Common::Event step_event;
 
 // Returns false if the hash fails and the user hits "Yes"
@@ -171,6 +172,8 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 	if (opts.core_type == DSPInitOptions::CORE_JIT)
 		dspjit = new DSPEmitter();
 
+	g_dsp_cap.reset(opts.capture_logger);
+
 	core_state = DSPCORE_RUNNING;
 	return true;
 }
@@ -187,6 +190,8 @@ void DSPCore_Shutdown()
 		dspjit = nullptr;
 	}
 	DSPCore_FreeMemoryPages();
+
+	g_dsp_cap.reset();
 }
 
 void DSPCore_Reset()
