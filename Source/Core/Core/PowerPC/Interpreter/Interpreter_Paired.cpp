@@ -15,35 +15,35 @@ void Interpreter::ps_sel(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FA) >= -0.0 ? rPS0(_inst.FC) : rPS0(_inst.FB);
 	rPS1(_inst.FD) = rPS1(_inst.FA) >= -0.0 ? rPS1(_inst.FC) : rPS1(_inst.FB);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_neg(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) ^ (1ULL << 63);
 	riPS1(_inst.FD) = riPS1(_inst.FB) ^ (1ULL << 63);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_mr(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FB);
 	rPS1(_inst.FD) = rPS1(_inst.FB);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_nabs(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) | (1ULL << 63);
 	riPS1(_inst.FD) = riPS1(_inst.FB) | (1ULL << 63);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_abs(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) &~ (1ULL << 63);
 	riPS1(_inst.FD) = riPS1(_inst.FB) &~ (1ULL << 63);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 // These are just moves, double is OK.
@@ -53,7 +53,7 @@ void Interpreter::ps_merge00(UGeckoInstruction _inst)
 	double p1 = rPS0(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_merge01(UGeckoInstruction _inst)
@@ -62,7 +62,7 @@ void Interpreter::ps_merge01(UGeckoInstruction _inst)
 	double p1 = rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_merge10(UGeckoInstruction _inst)
@@ -71,7 +71,7 @@ void Interpreter::ps_merge10(UGeckoInstruction _inst)
 	double p1 = rPS0(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_merge11(UGeckoInstruction _inst)
@@ -80,7 +80,7 @@ void Interpreter::ps_merge11(UGeckoInstruction _inst)
 	double p1 = rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 // From here on, the real deal.
@@ -166,7 +166,7 @@ void Interpreter::ps_div(UGeckoInstruction _inst)
 
 	SetFPException(ex_mask);
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_res(UGeckoInstruction _inst)
@@ -195,7 +195,7 @@ void Interpreter::ps_res(UGeckoInstruction _inst)
 			riPS1(_inst.FD) = MIN_SINGLE;
 	}
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_rsqrte(UGeckoInstruction _inst)
@@ -231,7 +231,7 @@ void Interpreter::ps_rsqrte(UGeckoInstruction _inst)
 	}
 
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 
@@ -240,7 +240,7 @@ void Interpreter::ps_sub(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = ForceSingle(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
 	rPS1(_inst.FD) = ForceSingle(NI_sub(rPS1(_inst.FA), rPS1(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_add(UGeckoInstruction _inst)
@@ -248,7 +248,7 @@ void Interpreter::ps_add(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = ForceSingle(NI_add(rPS0(_inst.FA), rPS0(_inst.FB)));
 	rPS1(_inst.FD) = ForceSingle(NI_add(rPS1(_inst.FA), rPS1(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_mul(UGeckoInstruction _inst)
@@ -256,7 +256,7 @@ void Interpreter::ps_mul(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = ForceSingle(NI_mul(rPS0(_inst.FA), rPS0(_inst.FC)));
 	rPS1(_inst.FD) = ForceSingle(NI_mul(rPS1(_inst.FA), rPS1(_inst.FC)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 
@@ -265,7 +265,7 @@ void Interpreter::ps_msub(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = ForceSingle(NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
 	rPS1(_inst.FD) = ForceSingle(NI_msub(rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_madd(UGeckoInstruction _inst)
@@ -273,7 +273,7 @@ void Interpreter::ps_madd(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = ForceSingle(NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
 	rPS1(_inst.FD) = ForceSingle(NI_madd(rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_nmsub(UGeckoInstruction _inst)
@@ -281,7 +281,7 @@ void Interpreter::ps_nmsub(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = ForceSingle( -NI_msub( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
 	rPS1(_inst.FD) = ForceSingle( -NI_msub( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_nmadd(UGeckoInstruction _inst)
@@ -289,7 +289,7 @@ void Interpreter::ps_nmadd(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = ForceSingle( -NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
 	rPS1(_inst.FD) = ForceSingle( -NI_madd( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_sum0(UGeckoInstruction _inst)
@@ -299,7 +299,7 @@ void Interpreter::ps_sum0(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_sum1(UGeckoInstruction _inst)
@@ -309,7 +309,7 @@ void Interpreter::ps_sum1(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS1(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_muls0(UGeckoInstruction _inst)
@@ -319,7 +319,7 @@ void Interpreter::ps_muls0(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_muls1(UGeckoInstruction _inst)
@@ -329,7 +329,7 @@ void Interpreter::ps_muls1(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_madds0(UGeckoInstruction _inst)
@@ -339,7 +339,7 @@ void Interpreter::ps_madds0(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_madds1(UGeckoInstruction _inst)
@@ -349,7 +349,7 @@ void Interpreter::ps_madds1(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_cmpu0(UGeckoInstruction _inst)

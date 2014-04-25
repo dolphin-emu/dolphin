@@ -304,8 +304,7 @@ public:
 private:
 	// flag helper
 	static void Helper_UpdateCR0(u32 _uValue);
-	static void Helper_UpdateCR1(double _fValue);
-	static void Helper_UpdateCR1(float _fValue);
+	static void Helper_UpdateCR1();
 	static void Helper_UpdateCRx(int _x, u32 _uValue);
 
 	// address helper
