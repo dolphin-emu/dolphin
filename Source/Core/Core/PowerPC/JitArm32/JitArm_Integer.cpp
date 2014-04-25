@@ -309,7 +309,8 @@ void JitArm::arith(UGeckoInstruction inst)
 					Rc = inst.Rc;
 				break;
 
-				case 10: // addcx
+				case 10:  // addcx
+				case 522: // addcox
 					carry = true;
 				case 40: // subfx
 					isUnsigned = true;
