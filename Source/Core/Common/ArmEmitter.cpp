@@ -641,6 +641,13 @@ void ARMXEmitter::CLZ(ARMReg rd, ARMReg rm)
 	Write32(condition | (0x16F << 16) | (rd << 12) | (0xF1 << 4) | rm);
 }
 
+void ARMXEmitter::BFC(ARMReg rd, u8 lsb, u8 width)
+{
+	u32 msb = (lsb + width - 1);
+	if (msb > 31) msb = 31;
+	Write32(condition | (0x7C0 << 16) | (msb << 16) | (rd << 12) | (lsb << 7) | (1 << 4) | 0xF);
+}
+
 void ARMXEmitter::BFI(ARMReg rd, ARMReg rn, u8 lsb, u8 width)
 {
 	u32 msb = (lsb + width - 1);
