@@ -52,27 +52,7 @@ UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", crc);
 		return new AXUCode(dsphle, crc);
 
-	case 0x6ba3b3ea: // IPL - PAL
-	case 0x24b22038: // IPL - NTSC/NTSC-JAP
-	case 0x42f64ac4: // Luigi's Mansion
-	case 0x4be6a5cb: // AC, Pikmin
-		INFO_LOG(DSPHLE, "CRC %08x: JAC (early Zelda) ucode chosen", crc);
-		return new ZeldaUCode(dsphle, crc);
-
-	case 0x6CA33A6D: // DK Jungle Beat
 	case 0x86840740: // Zelda WW - US
-	case 0x56d36052: // Mario Sunshine
-	case 0x2fcdf1ec: // Mario Kart, Zelda 4 Swords
-	case 0x267fd05a: // Pikmin PAL
-		INFO_LOG(DSPHLE, "CRC %08x: Zelda ucode chosen", crc);
-		return new ZeldaUCode(dsphle, crc);
-
-	// Wii CRCs
-	case 0xb7eb9a9c: // Wii Pikmin - PAL
-	case 0xeaeb38cc: // Wii Pikmin 2 - PAL
-	case 0x6c3f6f94: // Zelda TP - PAL
-	case 0xd643001f: // Mario Galaxy - PAL / Wii DK Jungle Beat - PAL
-		INFO_LOG(DSPHLE, "CRC %08x: Zelda Wii ucode chosen\n", crc);
 		return new ZeldaUCode(dsphle, crc);
 
 	case 0x2ea36ce6: // Some Wii demos
