@@ -515,23 +515,63 @@ void XEmitter::INT3() {Write8(0xCC);}
 void XEmitter::RET()  {Write8(0xC3);}
 void XEmitter::RET_FAST()  {Write8(0xF3); Write8(0xC3);} //two-byte return (rep ret) - recommended by AMD optimization manual for the case of jumping to a ret
 
-void XEmitter::NOP(int count)
+// The first sign of decadence: optimized NOPs.
+void XEmitter::NOP(int size)
 {
-	// TODO: look up the fastest nop sleds for various sizes
-	int i;
-	switch (count) {
-	case 1:
-		Write8(0x90);
-		break;
-	case 2:
-		Write8(0x66);
-		Write8(0x90);
-		break;
-	default:
-		for (i = 0; i < count; i++) {
+	while (true)
+	{
+		switch (size)
+		{
+		case 0:
+			return;
+		case 1:
 			Write8(0x90);
+			return;
+		case 2:
+			Write8(0x66); Write8(0x90);
+			return;
+		case 3:
+			Write8(0x0F); Write8(0x1F); Write8(0x00);
+			return;
+		case 4:
+			Write8(0x0F); Write8(0x1F); Write8(0x40); Write8(0x00);
+			return;
+		case 5:
+			Write8(0x0F); Write8(0x1F); Write8(0x44); Write8(0x00);
+			Write8(0x00);
+			return;
+		case 6:
+			Write8(0x66); Write8(0x0F); Write8(0x1F); Write8(0x44);
+			Write8(0x00); Write8(0x00);
+			return;
+		case 7:
+			Write8(0x0F); Write8(0x1F); Write8(0x80); Write8(0x00);
+			Write8(0x00); Write8(0x00); Write8(0x00);
+			return;
+		case 8:
+			Write8(0x0F); Write8(0x1F); Write8(0x84); Write8(0x00);
+			Write8(0x00); Write8(0x00); Write8(0x00); Write8(0x00);
+			return;
+		case 9:
+			Write8(0x66); Write8(0x0F); Write8(0x1F); Write8(0x84);
+			Write8(0x00); Write8(0x00); Write8(0x00); Write8(0x00);
+			Write8(0x00);
+			return;
+		case 10:
+			Write8(0x66); Write8(0x66); Write8(0x0F); Write8(0x1F);
+			Write8(0x84); Write8(0x00); Write8(0x00); Write8(0x00);
+			Write8(0x00); Write8(0x00);
+			return;
+		default:
+			// Even though x86 instructions are allowed to be up to 15 bytes long,
+			// AMD advises against using NOPs longer than 11 bytes because they
+			// carry a performance penalty on CPUs older than AMD family 16h.
+			Write8(0x66); Write8(0x66); Write8(0x66); Write8(0x0F);
+			Write8(0x1F); Write8(0x84); Write8(0x00); Write8(0x00);
+			Write8(0x00); Write8(0x00); Write8(0x00);
+			size -= 11;
+			continue;
 		}
-		break;
 	}
 }
 
