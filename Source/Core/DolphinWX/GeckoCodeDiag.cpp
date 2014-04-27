@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <SFML/Network/Http.hpp>
 #include <wx/button.h>
 #include <wx/chartype.h>
 #include <wx/checklst.h>
@@ -15,11 +15,13 @@
 #include <wx/listbox.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/sstream.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
 #include <wx/textctrl.h>
 #include <wx/translation.h>
 #include <wx/window.h>
+#include <wx/protocol/http.h>
 
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
@@ -172,21 +174,25 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 		break;
 	}
 
-	sf::Http::Request req;
-	req.SetURI("/txt.php?txt=" + gameid);
+	wxHTTP request;
+	request.SetTimeout(10); // Timeout is in seconds
 
-	sf::Http http;
-	http.SetHost("geckocodes.org");
+	request.Connect("geckocodes.org");
 
-	const sf::Http::Response resp = http.SendRequest(req, 5.0f);
+	std::unique_ptr<wxInputStream> http_stream(request.GetInputStream("/txt.php?txt=" + gameid));
 
-	if (sf::Http::Response::Ok == resp.GetStatus())
+	if (request.GetError() == wxPROTO_NOERR)
 	{
+		// Read the response from the server
+		wxString response;
+		wxStringOutputStream out_stream(&response);
+		http_stream->Read(out_stream);
+
 		// temp vector containing parsed codes
 		std::vector<GeckoCode> gcodes;
 
 		// parse the codes
-		std::istringstream ss(resp.GetBody());
+		std::istringstream ss(response.ToStdString());
 
 		// debug
 		//PanicAlert("File size is %i bytes.", ss.str().size());
@@ -315,6 +321,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 	{
 		PanicAlertT("Failed to download codes.");
 	}
+	request.Close();
 }
 
 }
