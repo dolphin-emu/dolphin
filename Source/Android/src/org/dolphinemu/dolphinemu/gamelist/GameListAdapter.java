@@ -70,6 +70,9 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 			}
 		}
 
+		if (position % 2 == 1)
+			convertView.setBackgroundColor(0xFFE3E3E3);
+
 		return convertView;
 	}
 }
