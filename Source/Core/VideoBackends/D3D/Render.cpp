@@ -391,7 +391,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 								&RectToLock,
 								Renderer::GetTargetWidth(),
 								Renderer::GetTargetHeight(),
-								PixelShaderCache::GetDepthMatrixProgram(true),
+								PixelShaderCache::GetColorCopyProgram(true),
 								VertexShaderCache::GetSimpleVertexShader(),
 								VertexShaderCache::GetSimpleInputLayout());
 
