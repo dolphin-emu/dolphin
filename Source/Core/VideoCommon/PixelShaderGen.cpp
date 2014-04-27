@@ -294,7 +294,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
-		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 		{
 			out.Write("centroid in float3 uv%d;\n", i);
 		}
@@ -370,8 +370,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			out.Write("\tint2 fixpoint_uv%d = iround(", i);
 			// optional perspective divides
-			uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
-			if (xfregs.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
+			uid_data.texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
+			if (xfmem.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
 			{
 				out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
 			}

@@ -170,10 +170,10 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 		code.Write("\n%s", POINT_GS_COMMON);
 
 		std::stringstream numTexCoordsStream;
-		numTexCoordsStream << xfregs.numTexGen.numTexGens;
+		numTexCoordsStream << xfmem.numTexGen.numTexGens;
 
 		INFO_LOG(VIDEO, "Compiling point geometry shader for components 0x%.08X (num texcoords %d)",
-			components, xfregs.numTexGen.numTexGens);
+			components, xfmem.numTexGen.numTexGens);
 
 		const std::string& numTexCoordsStr = numTexCoordsStream.str();
 		D3D_SHADER_MACRO macros[] = {

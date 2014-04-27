@@ -234,7 +234,7 @@ struct Projection
 	u32 type;                      // only GX_PERSPECTIVE or GX_ORTHOGRAPHIC are allowed
 };
 
-struct XFRegisters
+struct XFMemory
 {
 	u32 posMatrices[256];           // 0x0000 - 0x00ff
 	u32 unk0[768];                  // 0x0100 - 0x03ff
@@ -275,7 +275,7 @@ struct XFRegisters
 };
 
 
-extern XFRegisters xfregs;
+extern XFMemory xfmem;
 
 void LoadXFReg(u32 transferSize, u32 address, u32 *pData);
 void LoadIndexedXF(u32 val, int array);

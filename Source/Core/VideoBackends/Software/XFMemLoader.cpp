@@ -10,7 +10,7 @@
 
 void InitXFMemory()
 {
-	memset(&xfregs, 0, sizeof(xfregs));
+	memset(&xfmem, 0, sizeof(xfmem));
 }
 
 void XFWritten(u32 transferSize, u32 baseAddress)
@@ -23,7 +23,7 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 	// fix lights so invalid values don't trash the lighting computations
 	if (baseAddress <= 0x067f && topAddress >= 0x0604)
 	{
-		u32* x = xfregs.lights;
+		u32* x = xfmem.lights;
 
 		// go through all lights
 		for (int light = 0; light < 8; light++)
@@ -61,7 +61,7 @@ void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 	// write to XF regs
 	if (transferSize > 0)
 	{
-		memcpy_gc((u32*)(&xfregs) + baseAddress, pData, transferSize * 4);
+		memcpy_gc((u32*)(&xfmem) + baseAddress, pData, transferSize * 4);
 		XFWritten(transferSize, baseAddress);
 	}
 }

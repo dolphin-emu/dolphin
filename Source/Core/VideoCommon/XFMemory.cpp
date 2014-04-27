@@ -5,4 +5,4 @@
 #include "VideoCommon/XFMemory.h"
 
 // STATE_TO_SAVE
-XFRegisters xfregs;
+XFMemory xfmem;

@@ -95,15 +95,15 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
 	// Reset vertex
 	// matrix index from xf regs or cp memory?
-	if (xfregs.MatrixIndexA.PosNormalMtxIdx != MatrixIndexA.PosNormalMtxIdx ||
-		xfregs.MatrixIndexA.Tex0MtxIdx != MatrixIndexA.Tex0MtxIdx ||
-		xfregs.MatrixIndexA.Tex1MtxIdx != MatrixIndexA.Tex1MtxIdx ||
-		xfregs.MatrixIndexA.Tex2MtxIdx != MatrixIndexA.Tex2MtxIdx ||
-		xfregs.MatrixIndexA.Tex3MtxIdx != MatrixIndexA.Tex3MtxIdx ||
-		xfregs.MatrixIndexB.Tex4MtxIdx != MatrixIndexB.Tex4MtxIdx ||
-		xfregs.MatrixIndexB.Tex5MtxIdx != MatrixIndexB.Tex5MtxIdx ||
-		xfregs.MatrixIndexB.Tex6MtxIdx != MatrixIndexB.Tex6MtxIdx ||
-		xfregs.MatrixIndexB.Tex7MtxIdx != MatrixIndexB.Tex7MtxIdx)
+	if (xfmem.MatrixIndexA.PosNormalMtxIdx != MatrixIndexA.PosNormalMtxIdx ||
+		xfmem.MatrixIndexA.Tex0MtxIdx != MatrixIndexA.Tex0MtxIdx ||
+		xfmem.MatrixIndexA.Tex1MtxIdx != MatrixIndexA.Tex1MtxIdx ||
+		xfmem.MatrixIndexA.Tex2MtxIdx != MatrixIndexA.Tex2MtxIdx ||
+		xfmem.MatrixIndexA.Tex3MtxIdx != MatrixIndexA.Tex3MtxIdx ||
+		xfmem.MatrixIndexB.Tex4MtxIdx != MatrixIndexB.Tex4MtxIdx ||
+		xfmem.MatrixIndexB.Tex5MtxIdx != MatrixIndexB.Tex5MtxIdx ||
+		xfmem.MatrixIndexB.Tex6MtxIdx != MatrixIndexB.Tex6MtxIdx ||
+		xfmem.MatrixIndexB.Tex7MtxIdx != MatrixIndexB.Tex7MtxIdx)
 	{
 		WARN_LOG(VIDEO, "Matrix indices don't match");
 
@@ -114,15 +114,15 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	}
 
 #if(1)
-	m_Vertex.posMtx = xfregs.MatrixIndexA.PosNormalMtxIdx;
-	m_Vertex.texMtx[0] = xfregs.MatrixIndexA.Tex0MtxIdx;
-	m_Vertex.texMtx[1] = xfregs.MatrixIndexA.Tex1MtxIdx;
-	m_Vertex.texMtx[2] = xfregs.MatrixIndexA.Tex2MtxIdx;
-	m_Vertex.texMtx[3] = xfregs.MatrixIndexA.Tex3MtxIdx;
-	m_Vertex.texMtx[4] = xfregs.MatrixIndexB.Tex4MtxIdx;
-	m_Vertex.texMtx[5] = xfregs.MatrixIndexB.Tex5MtxIdx;
-	m_Vertex.texMtx[6] = xfregs.MatrixIndexB.Tex6MtxIdx;
-	m_Vertex.texMtx[7] = xfregs.MatrixIndexB.Tex7MtxIdx;
+	m_Vertex.posMtx = xfmem.MatrixIndexA.PosNormalMtxIdx;
+	m_Vertex.texMtx[0] = xfmem.MatrixIndexA.Tex0MtxIdx;
+	m_Vertex.texMtx[1] = xfmem.MatrixIndexA.Tex1MtxIdx;
+	m_Vertex.texMtx[2] = xfmem.MatrixIndexA.Tex2MtxIdx;
+	m_Vertex.texMtx[3] = xfmem.MatrixIndexA.Tex3MtxIdx;
+	m_Vertex.texMtx[4] = xfmem.MatrixIndexB.Tex4MtxIdx;
+	m_Vertex.texMtx[5] = xfmem.MatrixIndexB.Tex5MtxIdx;
+	m_Vertex.texMtx[6] = xfmem.MatrixIndexB.Tex6MtxIdx;
+	m_Vertex.texMtx[7] = xfmem.MatrixIndexB.Tex7MtxIdx;
 #else
 	m_Vertex.posMtx = MatrixIndexA.PosNormalMtxIdx;
 	m_Vertex.texMtx[0] = MatrixIndexA.Tex0MtxIdx;
@@ -242,7 +242,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	m_TexGenSpecialCase =
 		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
 		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
-		(xfregs.texMtxInfo[0].projection == XF_TEXPROJ_ST);
+		(xfmem.texMtxInfo[0].projection == XF_TEXPROJ_ST);
 
 	m_SetupUnit->Init(primitiveType);
 }

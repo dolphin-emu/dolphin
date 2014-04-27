@@ -217,8 +217,8 @@ void LOADERDECL UpdateBoundingBox()
 	// We need to get the raw projection values for the bounding box calculation
 	// to work properly. That means, no projection hacks!
 	const float * const orig_point = s_bbox_vertex_buffer;
-	const float * const world_matrix = (float*)xfregs.posMatrices + s_curposmtx * 4;
-	const float * const proj_matrix = xfregs.projection.rawProjection;
+	const float * const world_matrix = (float*)xfmem.posMatrices + s_curposmtx * 4;
+	const float * const proj_matrix = xfmem.projection.rawProjection;
 
 	// Transform by world matrix
 	// Only calculate what we need, discard the rest
@@ -226,7 +226,7 @@ void LOADERDECL UpdateBoundingBox()
 	transformed[1] = orig_point[0] * world_matrix[4] + orig_point[1] * world_matrix[5] + orig_point[2] * world_matrix[6] + world_matrix[7];
 
 	// Transform by projection matrix
-	switch (xfregs.projection.type)
+	switch (xfmem.projection.type)
 	{
 		// Perspective projection, we must divide by w
 	case GX_PERSPECTIVE:
@@ -246,13 +246,13 @@ void LOADERDECL UpdateBoundingBox()
 		break;
 
 	default:
-		ERROR_LOG(VIDEO, "Unknown projection type: %d", xfregs.projection.type);
+		ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
 		screenPoint[0] = screenPoint[1] = screenPoint[2] = 1;
 	}
 
 	// Convert to screen space and add the point to the list - round like the real hardware
-	s_bbox_points[s_bbox_currPoint].x = (((s32) (0.5f + (16.0f * (screenPoint[0] * xfregs.viewport.wd + (xfregs.viewport.xOrig - 342.0f))))) + 3) >> 4;
-	s_bbox_points[s_bbox_currPoint].y = (((s32) (0.5f + (16.0f * (screenPoint[1] * xfregs.viewport.ht + (xfregs.viewport.yOrig - 342.0f))))) + 3) >> 4;
+	s_bbox_points[s_bbox_currPoint].x = (((s32) (0.5f + (16.0f * (screenPoint[0] * xfmem.viewport.wd + (xfmem.viewport.xOrig - 342.0f))))) + 3) >> 4;
+	s_bbox_points[s_bbox_currPoint].y = (((s32) (0.5f + (16.0f * (screenPoint[1] * xfmem.viewport.ht + (xfmem.viewport.yOrig - 342.0f))))) + 3) >> 4;
 	s_bbox_points[s_bbox_currPoint].z = screenPoint[2];
 
 	// Update point list for primitive
