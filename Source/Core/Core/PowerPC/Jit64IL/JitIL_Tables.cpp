@@ -114,11 +114,11 @@ static GekkoOPTemplate table4[] =
 {    //SUBOP10
 	{0,    &JitIL::FallBackToInterpreter}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
 	{32,   &JitIL::FallBackToInterpreter}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
-	{40,   &JitIL::ps_sign},               //"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
-	{136,  &JitIL::ps_sign},               //"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
-	{264,  &JitIL::ps_sign},               //"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
+	{40,   &JitIL::FallBackToInterpreter}, //"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
+	{136,  &JitIL::FallBackToInterpreter}, //"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
+	{264,  &JitIL::FallBackToInterpreter}, //"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
 	{64,   &JitIL::FallBackToInterpreter}, //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
-	{72,   &JitIL::ps_mr},                 //"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
+	{72,   &JitIL::FallBackToInterpreter}, //"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
 	{96,   &JitIL::FallBackToInterpreter}, //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
 	{528,  &JitIL::ps_mergeXX},            //"ps_merge00", OPTYPE_PS, FL_RC_BIT}},
 	{560,  &JitIL::ps_mergeXX},            //"ps_merge01", OPTYPE_PS, FL_RC_BIT}},
@@ -139,16 +139,15 @@ static GekkoOPTemplate table4_2[] =
 	{18, &JitIL::ps_arith},              //"ps_div",    OPTYPE_PS, 0, 16}},
 	{20, &JitIL::ps_arith},              //"ps_sub",    OPTYPE_PS, 0}},
 	{21, &JitIL::ps_arith},              //"ps_add",    OPTYPE_PS, 0}},
-	{23, &JitIL::ps_sel},                //"ps_sel",    OPTYPE_PS, 0}},
+	{23, &JitIL::FallBackToInterpreter}, //"ps_sel",    OPTYPE_PS, 0}},
 	{24, &JitIL::FallBackToInterpreter}, //"ps_res",    OPTYPE_PS, 0}},
 	{25, &JitIL::ps_arith},              //"ps_mul",    OPTYPE_PS, 0}},
-	{26, &JitIL::ps_rsqrte},             //"ps_rsqrte", OPTYPE_PS, 0, 1}},
+	{26, &JitIL::FallBackToInterpreter}, //"ps_rsqrte", OPTYPE_PS, 0, 1}},
 	{28, &JitIL::ps_maddXX},             //"ps_msub",   OPTYPE_PS, 0}},
 	{29, &JitIL::ps_maddXX},             //"ps_madd",   OPTYPE_PS, 0}},
 	{30, &JitIL::ps_maddXX},             //"ps_nmsub",  OPTYPE_PS, 0}},
 	{31, &JitIL::ps_maddXX},             //"ps_nmadd",  OPTYPE_PS, 0}},
 };
-
 
 static GekkoOPTemplate table4_3[] =
 {

@@ -5,30 +5,6 @@
 #include "Common/Common.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-void JitILBase::ps_mr(UGeckoInstruction inst)
-{
-	FallBackToInterpreter(inst);
-	return;
-}
-
-void JitILBase::ps_sel(UGeckoInstruction inst)
-{
-	FallBackToInterpreter(inst);
-	return;
-}
-
-void JitILBase::ps_sign(UGeckoInstruction inst)
-{
-	FallBackToInterpreter(inst);
-	return;
-}
-
-void JitILBase::ps_rsqrte(UGeckoInstruction inst)
-{
-	FallBackToInterpreter(inst);
-	return;
-}
-
 void JitILBase::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
