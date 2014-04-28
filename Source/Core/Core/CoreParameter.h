@@ -83,6 +83,15 @@ enum Hotkey
 	NUM_HOTKEYS,
 };
 
+enum CPUBackend : u8
+{
+	CPU_INTERPRETER = 0,
+	CPU_JIT_X64     = 1,
+	CPU_JIT_IL_X64  = 2,
+	CPU_JIT_ARM     = 3,
+	CPU_JIT_IL_ARM  = 4,
+};
+
 struct SCoreStartupParameter
 {
 	void* hInstance;  // HINSTANCE but we don't want to include <windows.h>
@@ -95,11 +104,7 @@ struct SCoreStartupParameter
 	bool bAutomaticStart;
 	bool bBootToPause;
 
-	// 0 = Interpreter
-	// 1 = Jit
-	// 2 = JitIL
-	// 3 = JIT ARM
-	int iCPUCore;
+	CPUBackend iCPUCore;
 
 	// JIT (shared between JIT and JITIL)
 	bool bJITNoBlockCache, bJITBlockLinking;

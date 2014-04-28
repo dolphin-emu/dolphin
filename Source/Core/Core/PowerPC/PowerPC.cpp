@@ -135,7 +135,7 @@ void Init(int cpu_core)
 
 	switch (cpu_core)
 	{
-		case 0:
+		case CPU_INTERPRETER:
 		{
 			cpu_core_base = interpreter;
 			break;
