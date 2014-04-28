@@ -424,11 +424,16 @@ void EmuThread()
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer ||
-					_CoreParameter.bRunCompareClient))
+	if (_CoreParameter.iCPUCore != CPU_INTERPRETER &&
+		(!_CoreParameter.bRunCompareServer ||
+		 _CoreParameter.bRunCompareClient))
+	{
 		PowerPC::SetMode(PowerPC::MODE_JIT);
+	}
 	else
+	{
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+	}
 
 	// Update the window again because all stuff is initialized
 	Host_UpdateDisasmDialog();

@@ -61,7 +61,7 @@ u64 g_recordingStartTime; // seconds since 1970 that recording started
 bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
 bool g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
 std::string videoBackend = "unknown";
-int iCPUCore = 1;
+CPUBackend iCPUCore = CPU_JIT_X64;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
 std::string author = "";
@@ -356,7 +356,7 @@ bool IsFastDiscSpeed()
 	return bFastDiscSpeed;
 }
 
-int GetCPUMode()
+CPUBackend GetCPUMode()
 {
 	return iCPUCore;
 }
