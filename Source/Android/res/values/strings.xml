@@ -66,8 +66,11 @@
 
     <!-- Input Config Fragment -->
     <string name="input_settings">Input</string>
+    <string name="input_overlay">Input Overlay</string>
     <string name="input_overlay_layout">Input Overlay Layout</string>
     <string name="input_overlay_layout_desc">Button layout for the input overlay.</string>
+    <string name="enable_overlay_buttons">Enable Overlay Buttons</string>
+    <string name="enable_overlay_buttons_desc">Choose which overlay buttons to draw.</string>
     <string name="gamecube_bindings">Gamecube Controller Bindings</string>
     <string name="controller_0">Controller 1</string>
     <string name="controller_1">Controller 2</string>
@@ -93,10 +96,12 @@
     <string name="dpad_down">D-Pad Down</string>
     <string name="dpad_left">D-Pad Left</string>
     <string name="dpad_right">D-Pad Right</string>
+    <string name="main_stick">Main Stick</string>
     <string name="main_stick_up">Main Stick Up</string>
     <string name="main_stick_down">Main Stick Down</string>
     <string name="main_stick_left">Main Stick Left</string>
     <string name="main_stick_right">Main Stick Right</string>
+    <string name="c_stick">C Stick</string>
     <string name="c_stick_up">C Stick Up</string>
     <string name="c_stick_down">C Stick Down</string>
     <string name="c_stick_left">C Stick Left</string>

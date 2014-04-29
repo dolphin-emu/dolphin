@@ -68,18 +68,28 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	{
 		super(context, attrs);
 
-		// Add all the overlay items to the HashSet.
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_a, ButtonType.BUTTON_A));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_b, ButtonType.BUTTON_B));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_x, ButtonType.BUTTON_X));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_y, ButtonType.BUTTON_Y));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_z, ButtonType.BUTTON_Z));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_start, ButtonType.BUTTON_START));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_l, ButtonType.TRIGGER_L));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_r, ButtonType.TRIGGER_R));
-		overlayJoysticks.add(initializeOverlayJoystick(context,
-				R.drawable.gcpad_joystick_range, R.drawable.gcpad_joystick,
-				ButtonType.STICK_MAIN));
+		// Add the enabled overlay items to the HashSet.
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+		if (prefs.getBoolean("drawOverlayA", true))
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_a, ButtonType.BUTTON_A));
+		if (prefs.getBoolean("drawOverlayB", true))
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_b, ButtonType.BUTTON_B));
+		if (prefs.getBoolean("drawOverlayX", true))
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_x, ButtonType.BUTTON_X));
+		if (prefs.getBoolean("drawOverlayY", true))
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_y, ButtonType.BUTTON_Y));
+		if (prefs.getBoolean("drawOverlayZ", true))
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_z, ButtonType.BUTTON_Z));
+		if (prefs.getBoolean("drawOverlayStart", true))
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_start, ButtonType.BUTTON_START));
+		if (prefs.getBoolean("drawOverlayL", true))
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_l, ButtonType.TRIGGER_L));
+		if (prefs.getBoolean("drawOverlayR", true))
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_r, ButtonType.TRIGGER_R));
+		if (prefs.getBoolean("drawOverlayStickMain", true))
+			overlayJoysticks.add(initializeOverlayJoystick(context,
+					R.drawable.gcpad_joystick_range, R.drawable.gcpad_joystick,
+					ButtonType.STICK_MAIN));
 
 		// Set the on touch listener.
 		setOnTouchListener(this);
