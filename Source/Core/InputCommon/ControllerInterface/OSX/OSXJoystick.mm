@@ -16,8 +16,7 @@ namespace OSX
 
 
 Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
-	: ForceFeedbackDevice(device)
-	, m_device(device)
+	: m_device(device)
 	, m_device_name(name)
 	, m_index(index)
 	, m_ff_device(nullptr)

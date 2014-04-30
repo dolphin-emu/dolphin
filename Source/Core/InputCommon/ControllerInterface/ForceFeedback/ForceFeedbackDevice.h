@@ -31,8 +31,6 @@ namespace ForceFeedback
 		void InitForceFeedback(const LPDIRECTINPUTDEVICE8);
 		bool UpdateOutput();
 
-		ForceFeedbackDevice(const LPDIRECTINPUTDEVICE8 device);
-
 	private:
 		class EffectState : NonCopyable
 		{

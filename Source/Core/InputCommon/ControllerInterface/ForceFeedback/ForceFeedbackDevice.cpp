@@ -83,13 +83,6 @@ static const ForceType force_type_names[] =
 	{ GUID_Friction, "Friction", DIEFT_CONDITION },
 };
 
-ForceFeedbackDevice::ForceFeedbackDevice(const LPDIRECTINPUTDEVICE8 device)
-{
-	// disable autocentering (needs to happen before "Acquire" with my sidewinder joystick)
-	// This should probably be optional in some way..
-	DInput::SetDeviceProperty(device, DIPROP_AUTOCENTER, DIPROPAUTOCENTER_OFF);
-}
-
 void ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device)
 {
 	DICONSTANTFORCE diCF = {};
@@ -238,6 +231,7 @@ ForceFeedbackDevice::Force::Force(const std::string& name, EffectState& effect_s
 // Moved to a separate function to avoid SEH causing "error C2712".
 bool StartEffect(LPDIRECTINPUTEFFECT iface)
 {
+#ifdef _WIN32
 	__try
 	{
 		// For some reason the "Download" operation crashes on occasion.
@@ -250,6 +244,9 @@ bool StartEffect(LPDIRECTINPUTEFFECT iface)
 	}
 
 	return true;
+#else
+	return SUCCEEDED(iface->Start(EFFECT_DURATION / EFFECT_PERIOD, 0));
+#endif
 }
 
 bool ForceFeedbackDevice::EffectState::Update()

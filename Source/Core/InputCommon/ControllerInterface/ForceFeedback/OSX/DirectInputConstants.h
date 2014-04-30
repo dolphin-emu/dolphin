@@ -11,6 +11,8 @@
  * DirectInput, so some of these definitions may actually only exist on Mac OS X.
  */
 
+#include <ForceFeedback/ForceFeedbackConstants.h>
+
 // UUIDs
 #define GUID_ConstantForce              kFFEffectType_ConstantForce_ID
 #define GUID_CustomForce                kFFEffectType_CustomForce_ID

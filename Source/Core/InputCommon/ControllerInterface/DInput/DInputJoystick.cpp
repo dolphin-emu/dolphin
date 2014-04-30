@@ -173,8 +173,7 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
 }
 
 Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVICE8 device, const unsigned int index )
-	: ForceFeedbackDevice(device)
-	, m_device(device)
+	: m_device(device)
 	, m_index(index)
 	//, m_name(TStringToString(lpddi->tszInstanceName))
 {
@@ -182,6 +181,10 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	// polled or buffered data
 	// if we can't set the property, we can't use buffered data
 	m_buffered = SUCCEEDED(SetDeviceProperty(m_device, DIPROP_BUFFERSIZE, DATA_BUFFER_SIZE));
+
+	// disable autocentering (needs to happen before "Acquire" with my sidewinder joystick)
+	// This should probably be optional in some way..
+	SetDeviceProperty(device, DIPROP_AUTOCENTER, DIPROPAUTOCENTER_OFF);
 
 	// seems this needs to be done after SetProperty of buffer size
 	m_device->Acquire();
