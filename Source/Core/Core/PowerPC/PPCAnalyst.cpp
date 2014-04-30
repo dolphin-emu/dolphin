@@ -699,4 +699,317 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 		leafSize, niceSize, unniceSize);
 }
 
+void PPCAnalyser::ReorderInstructions(u32 instructions, CodeOp *code)
+{
+	// Instruction Reordering Pass
+	// Bubble down compares towards branches, so that they can be merged.
+	// -2: -1 for the pair, -1 for not swapping with the final instruction which is probably the branch.
+	for (u32 i = 0; i < (instructions - 2); ++i)
+	{
+		CodeOp &a = code[i];
+		CodeOp &b = code[i + 1];
+		// All integer compares can be reordered.
+		if ((a.inst.OPCD == 10 || a.inst.OPCD == 11) ||
+			(a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32)))
+		{
+			// Got a compare instruction.
+			if (CanSwapAdjacentOps(a, b)) {
+				// Alright, let's bubble it down!
+				CodeOp c = a;
+				a = b;
+				b = c;
+			}
+		}
+	}
+}
+
+void PPCAnalyser::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index)
+{
+	code->wantsCR0 = false;
+	code->wantsCR1 = false;
+	code->wantsPS1 = false;
+
+	if (opinfo->flags & FL_USE_FPU)
+		block->m_fpa->any = true;
+
+	if (opinfo->flags & FL_TIMER)
+		block->m_gpa->anyTimer = true;
+
+	// Does the instruction output CR0?
+	if (opinfo->flags & FL_RC_BIT)
+		code->outputCR0 = code->inst.hex & 1; //todo fix
+	else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 0)
+		code->outputCR0 = true;
+	else
+		code->outputCR0 = (opinfo->flags & FL_SET_CR0) ? true : false;
+
+	// Does the instruction output CR1?
+	if (opinfo->flags & FL_RC_BIT_F)
+		code->outputCR1 = code->inst.hex & 1; //todo fix
+	else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 1)
+		code->outputCR1 = true;
+	else
+		code->outputCR1 = (opinfo->flags & FL_SET_CR1) ? true : false;
+
+	int numOut = 0;
+	int numIn = 0;
+	if (opinfo->flags & FL_OUT_A)
+	{
+		code->regsOut[numOut++] = code->inst.RA;
+		block->m_gpa->SetOutputRegister(code->inst.RA, index);
+	}
+	if (opinfo->flags & FL_OUT_D)
+	{
+		code->regsOut[numOut++] = code->inst.RD;
+		block->m_gpa->SetOutputRegister(code->inst.RD, index);
+	}
+	if (opinfo->flags & FL_OUT_S)
+	{
+		code->regsOut[numOut++] = code->inst.RS;
+		block->m_gpa->SetOutputRegister(code->inst.RS, index);
+	}
+	if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
+	{
+		code->regsIn[numIn++] = code->inst.RA;
+		block->m_gpa->SetInputRegister(code->inst.RA, index);
+	}
+	if (opinfo->flags & FL_IN_B)
+	{
+		code->regsIn[numIn++] = code->inst.RB;
+		block->m_gpa->SetInputRegister(code->inst.RB, index);
+	}
+	if (opinfo->flags & FL_IN_C)
+	{
+		code->regsIn[numIn++] = code->inst.RC;
+		block->m_gpa->SetInputRegister(code->inst.RC, index);
+	}
+	if (opinfo->flags & FL_IN_S)
+	{
+		code->regsIn[numIn++] = code->inst.RS;
+		block->m_gpa->SetInputRegister(code->inst.RS, index);
+	}
+
+	// Set remaining register slots as unused (-1)
+	for (int j = numIn; j < 3; j++)
+		code->regsIn[j] = -1;
+	for (int j = numOut; j < 2; j++)
+		code->regsOut[j] = -1;
+	for (int j = 0; j < 3; j++)
+		code->fregsIn[j] = -1;
+	code->fregOut = -1;
+
+	switch (opinfo->type)
+	{
+	case OPTYPE_INTEGER:
+	case OPTYPE_LOAD:
+	case OPTYPE_STORE:
+	case OPTYPE_LOADFP:
+	case OPTYPE_STOREFP:
+		break;
+	case OPTYPE_FPU:
+		break;
+	case OPTYPE_BRANCH:
+		if (code->inst.hex == 0x4e800020)
+		{
+			// For analysis purposes, we can assume that blr eats opinfo->flags.
+			code->outputCR0 = true;
+			code->outputCR1 = true;
+		}
+		break;
+	case OPTYPE_SYSTEM:
+	case OPTYPE_SYSTEMFP:
+		break;
+	}
+}
+
+u32 PPCAnalyser::Analyse(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize)
+{
+	// Clear block stats
+	memset(block->m_stats, 0, sizeof(BlockStats));
+
+	// Clear register stats
+	block->m_gpa->any = true;
+	block->m_fpa->any = false;
+
+	block->m_gpa->Clear();
+	block->m_fpa->Clear();
+
+	// Set the blocks start address
+	block->m_address = address;
+
+	// Reset our block state
+	block->m_broken = false;
+	block->m_instructions = 0;
+
+	CodeOp *code = buffer->codebuffer;
+
+	bool found_exit = false;
+	u32 returnAddress = 0;
+	u32 numFollows = 0;
+	u32 num_inst = 0;
+
+	for (u32 i = 0; i < blockSize; ++i)
+	{
+		UGeckoInstruction inst = JitInterface::Read_Opcode_JIT(address);
+
+		if (inst.hex != 0)
+		{
+			num_inst++;
+			memset(&code[i], 0, sizeof(CodeOp));
+			GekkoOPInfo *opinfo = GetOpInfo(inst);
+
+			code[i].opinfo = opinfo;
+			code[i].address = address;
+			code[i].inst = inst;
+			code[i].branchTo = -1;
+			code[i].branchToIndex = -1;
+			code[i].skip = false;
+			block->m_stats->numCycles += opinfo->numCycles;
+
+			SetInstructionStats(block, &code[i], opinfo, i);
+
+			bool follow = false;
+			u32 destination = 0;
+
+			bool conditional_continue = false;
+
+			// Do we inline leaf functions?
+			if (HasOption(OPTION_LEAF_INLINE))
+			{
+				if (inst.OPCD == 18 && blockSize > 1)
+				{
+					//Is bx - should we inline? yes!
+					if (inst.AA)
+						destination = SignExt26(inst.LI << 2);
+					else
+						destination = address + SignExt26(inst.LI << 2);
+					if (destination != block->m_address)
+						follow = true;
+				}
+				else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+					(inst.BO & (1 << 4)) && (inst.BO & (1 << 2)) &&
+					returnAddress != 0)
+				{
+					// bclrx with unconditional branch = return
+					follow = true;
+					destination = returnAddress;
+					returnAddress = 0;
+
+					if (inst.LK)
+						returnAddress = address + 4;
+				}
+				else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
+				{
+					// mtspr
+					const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+					if (index == SPR_LR) {
+						// We give up to follow the return address
+						// because we have to check the register usage.
+						returnAddress = 0;
+					}
+				}
+
+				// TODO: Find the optimal value for FUNCTION_FOLLOWING_THRESHOLD.
+				//       If it is small, the performance will be down.
+				//       If it is big, the size of generated code will be big and
+				//       cache clearning will happen many times.
+				// TODO: Investivate the reason why
+				//       "0" is fastest in some games, MP2 for example.
+				if (numFollows > FUNCTION_FOLLOWING_THRESHOLD)
+					follow = false;
+			}
+
+			if (HasOption(OPTION_CONDITIONAL_CONTINUE))
+			{
+				if (inst.OPCD == 16 &&
+				   ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+				{
+					// bcx with conditional branch
+					conditional_continue = true;
+				}
+				else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+				        ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+				{
+					// bclrx with conditional branch
+					conditional_continue = true;
+				}
+				else if (inst.OPCD == 3 ||
+					  (inst.OPCD == 31 && inst.SUBOP10 == 4))
+				{
+					// tw/twi tests and raises an exception
+					conditional_continue = true;
+				}
+				else if (inst.OPCD == 19 && inst.SUBOP10 == 528 &&
+				        (inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0)
+				{
+					// Rare bcctrx with conditional branch
+					// Seen in NES games
+					conditional_continue = true;
+				}
+			}
+
+			if (!follow)
+			{
+				if (!conditional_continue && opinfo->flags & FL_ENDBLOCK) //right now we stop early
+				{
+					found_exit = true;
+					break;
+				}
+				address += 4;
+			}
+			// XXX: We don't support inlining yet.
+#if 0
+			else
+			{
+				numFollows++;
+				// We don't "code[i].skip = true" here
+				// because bx may store a certain value to the link register.
+				// Instead, we skip a part of bx in Jit**::bx().
+				address = destination;
+				merged_addresses[size_of_merged_addresses++] = address;
+			}
+#endif
+		}
+		else
+		{
+			// ISI exception or other critical memory exception occured (game over)
+			ERROR_LOG(DYNA_REC, "Instruction hex was 0!");
+			break;
+		}
+	}
+
+	if (block->m_instructions > 1)
+		ReorderInstructions(block->m_instructions, code);
+
+	if ((!found_exit && num_inst > 0) || blockSize == 1)
+	{
+		// We couldn't find an exit
+		block->m_broken = true;
+	}
+
+	// Scan for CR0 dependency
+	// assume next block wants CR0 to be safe
+	bool wantsCR0 = true;
+	bool wantsCR1 = true;
+	bool wantsPS1 = true;
+	for (int i = block->m_instructions - 1; i >= 0; i--)
+	{
+		if (code[i].outputCR0)
+			wantsCR0 = false;
+		if (code[i].outputCR1)
+			wantsCR1 = false;
+		if (code[i].outputPS1)
+			wantsPS1 = false;
+		wantsCR0 |= code[i].wantsCR0;
+		wantsCR1 |= code[i].wantsCR1;
+		wantsPS1 |= code[i].wantsPS1;
+		code[i].wantsCR0 = wantsCR0;
+		code[i].wantsCR1 = wantsCR1;
+		code[i].wantsPS1 = wantsPS1;
+	}
+	block->m_instructions = num_inst;
+	return address;
+}
+
+
 }  // namespace
