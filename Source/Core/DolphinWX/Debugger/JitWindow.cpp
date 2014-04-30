@@ -129,8 +129,7 @@ void CJitWindow::Compare(u32 em_address)
 
 	const u8 *code = (const u8 *)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
 	u64 disasmPtr = (u64)code;
-	int size = block->codeSize;
-	const u8 *end = code + size;
+	const u8 *end = code + block->codeSize;
 	char *sptr = (char*)xDis;
 
 	int num_x86_instructions = 0;
@@ -154,14 +153,17 @@ void CJitWindow::Compare(u32 em_address)
 	PPCAnalyst::BlockStats st;
 	PPCAnalyst::BlockRegStats gpa;
 	PPCAnalyst::BlockRegStats fpa;
-	bool broken_block = false;
-	u32 merged_addresses[32];
-	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
-	int size_of_merged_addresses;
-	if (PPCAnalyst::Flatten(ppc_addr, &size, &st, &gpa, &fpa, broken_block, &code_buffer, size, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses) != 0xffffffff)
+	PPCAnalyst::CodeBlock code_block;
+	PPCAnalyst::PPCAnalyzer analyzer;
+
+	code_block.m_stats = &st;
+	code_block.m_gpa = &gpa;
+	code_block.m_fpa = &fpa;
+
+	if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, block->codeSize) != 0xFFFFFFFF)
 	{
 		sptr = (char*)xDis;
-		for (int i = 0; i < size; i++)
+		for (u32 i = 0; i < code_block.m_num_instructions; i++)
 		{
 			const PPCAnalyst::CodeOp &op = code_buffer.codebuffer[i];
 			char temp[256];
@@ -181,9 +183,9 @@ void CJitWindow::Compare(u32 em_address)
 		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
 
 		sptr += sprintf(sptr, "Num instr: PPC: %i  x86: %i  (blowup: %i%%)\n",
-				size, num_x86_instructions, 100 * (num_x86_instructions / size - 1));
+				code_block.m_num_instructions, num_x86_instructions, 100 * (num_x86_instructions / code_block.m_num_instructions - 1));
 		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n",
-				size * 4, block->codeSize, 100 * (block->codeSize / (4 * size) - 1));
+				code_block.m_num_instructions * 4, block->codeSize, 100 * (block->codeSize / (4 * code_block.m_num_instructions) - 1));
 
 		ppc_box->SetValue(StrToWxStr((char*)xDis));
 	}
