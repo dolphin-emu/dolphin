@@ -22,58 +22,60 @@
 namespace ciface
 {
 
-namespace DInput
-{
-
-HRESULT SetDeviceProperty(const LPDIRECTINPUTDEVICE8 device, const GUID& property_guid, DWORD data);
-std::string DIJOYSTATE_AxisName(size_t index);
-
-}
-
 namespace ForceFeedback
 {
 
-class ForceFeedbackDevice : public Core::Device
-{
-public:
-	void InitForceFeedback(const LPDIRECTINPUTDEVICE8);
-	bool UpdateOutput();
-
-	ForceFeedbackDevice(const LPDIRECTINPUTDEVICE8 device);
-
-private:
-	class EffectState : NonCopyable
+	class ForceFeedbackDevice : public Core::Device
 	{
 	public:
-		EffectState(LPDIRECTINPUTEFFECT iface, std::size_t axis_count);
-		~EffectState();
+		void InitForceFeedback(const LPDIRECTINPUTDEVICE8);
+		bool UpdateOutput();
 
-		bool Update();
-		void SetAxisForce(std::size_t axis_offset, LONG magnitude);
-
-	private:
-		LPDIRECTINPUTEFFECT const m_iface;
-		std::vector<LONG> m_axis_directions;
-		bool m_dirty;
-	};
-
-	class Force : public Output
-	{
-	public:
-		std::string GetName() const;
-		Force(const std::string& name, EffectState& effect_state_ref, std::size_t axis_index);
-
-		void SetState(ControlState state);
+		ForceFeedbackDevice(const LPDIRECTINPUTDEVICE8 device);
 
 	private:
-		const std::string m_name;
-		EffectState& m_effect_state_ref;
-		std::size_t const m_axis_index;
+		class EffectState : NonCopyable
+		{
+		public:
+			EffectState(LPDIRECTINPUTEFFECT iface, std::size_t axis_count);
+			~EffectState();
+
+			bool Update();
+			void SetAxisForce(std::size_t axis_offset, LONG magnitude);
+
+		private:
+			LPDIRECTINPUTEFFECT const m_iface;
+			std::vector<LONG> m_axis_directions;
+			bool m_dirty;
+		};
+
+		class Force : public Output
+		{
+		public:
+			std::string GetName() const;
+			Force(const std::string& name, EffectState& effect_state_ref, std::size_t axis_index);
+
+			void SetState(ControlState state);
+
+		private:
+			const std::string m_name;
+			EffectState& m_effect_state_ref;
+			std::size_t const m_axis_index;
+		};
+
+		std::list<EffectState> m_effect_states;
 	};
-
-	std::list<EffectState> m_effect_states;
-};
-
 
 }
+
+namespace DInput
+{
+
+	using namespace ForceFeedback;
+
+	HRESULT SetDeviceProperty(const LPDIRECTINPUTDEVICE8 device, REFGUID property_guid, DWORD data);
+	std::string DIJOYSTATE_AxisName(size_t index);
+
+}
+
 }

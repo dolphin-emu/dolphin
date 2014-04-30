@@ -13,7 +13,9 @@ namespace ciface
 namespace DInput
 {
 
-HRESULT SetDeviceProperty(const LPDIRECTINPUTDEVICE8 device, const GUID& property_guid, DWORD data)
+using namespace ForceFeedback;
+
+HRESULT SetDeviceProperty(const LPDIRECTINPUTDEVICE8 device, REFGUID property_guid, DWORD data)
 {
 	DIPROPDWORD dipdw;
 	dipdw.diph.dwSize = sizeof(dipdw);

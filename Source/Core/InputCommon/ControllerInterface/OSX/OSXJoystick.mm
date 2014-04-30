@@ -16,7 +16,8 @@ namespace OSX
 
 
 Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
-	: m_device(device)
+	: ForceFeedbackDevice(device)
+	, m_device(device)
 	, m_device_name(name)
 	, m_index(index)
 	, m_ff_device(nullptr)
@@ -82,7 +83,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 	if (SUCCEEDED(ForceFeedback::FFDeviceAdapter::Create(IOHIDDeviceGetService(m_device), &m_ff_device)) &&
 		SUCCEEDED(FFDeviceGetForceFeedbackCapabilities(m_ff_device->m_device, &ff_caps)))
 	{
-		InitForceFeedback(m_ff_device, ff_caps.numFfAxes);
+		InitForceFeedback(m_ff_device);
 	}
 }
 

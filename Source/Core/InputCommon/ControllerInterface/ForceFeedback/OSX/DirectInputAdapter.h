@@ -40,6 +40,7 @@ typedef FFPERIODIC                  DIPERIODIC;
 typedef FFRAMPFORCE                 DIRAMPFORCE;
 
 // Other types
+typedef FFProperty                  REFGUID;
 typedef CFUUIDRef                   GUID;
 typedef FFDeviceAdapter*            FFDeviceAdapterReference;
 typedef FFEffectAdapter*            FFEffectAdapterReference;
