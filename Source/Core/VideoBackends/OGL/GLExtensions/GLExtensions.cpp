@@ -744,9 +744,6 @@ PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC glDrawElementsInstancedBaseVertex;
 PFNGLDRAWRANGEELEMENTSBASEVERTEXPROC glDrawRangeElementsBaseVertex;
 PFNGLMULTIDRAWELEMENTSBASEVERTEXPROC glMultiDrawElementsBaseVertex;
 
-// NV_framebuffer_multisample_coverage
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLECOVERAGENVPROC glRenderbufferStorageMultisampleCoverageNV;
-
 // ARB_sample_shading
 PFNGLMINSAMPLESHADINGARBPROC glMinSampleShadingARB;
 
@@ -1525,9 +1522,6 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glDrawElementsInstancedBaseVertex, "GL_ARB_draw_elements_base_vertex"),
 	GLFUNC_REQUIRES(glDrawRangeElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
 	GLFUNC_REQUIRES(glMultiDrawElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
-
-	// NV_framebuffer_multisample_coverage
-	GLFUNC_REQUIRES(glRenderbufferStorageMultisampleCoverageNV, "GL_NV_framebuffer_multisample_coverage"),
 
 	// ARB_sample_shading
 	GLFUNC_REQUIRES(glMinSampleShadingARB, "GL_ARB_sample_shading"),

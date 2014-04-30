@@ -90,7 +90,6 @@
     <ClInclude Include="GLExtensions\gl_3_2.h" />
     <ClInclude Include="GLExtensions\gl_common.h" />
     <ClInclude Include="GLExtensions\KHR_debug.h" />
-    <ClInclude Include="GLExtensions\NV_framebuffer_multisample_coverage.h" />
     <ClInclude Include="GLExtensions\NV_primitive_restart.h" />
     <ClInclude Include="GLUtil.h" />
     <ClInclude Include="main.h" />
