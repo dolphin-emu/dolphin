@@ -307,7 +307,7 @@ const u8* JitArmIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		js.op = &ops[i];
 		js.instructionNumber = i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
-		js.downcountAmount += (opinfo->numCyclesMinusOne + 1);
+		js.downcountAmount += opinfo->numCycles;
 
 		if (i == (int)size - 1)
 		{
