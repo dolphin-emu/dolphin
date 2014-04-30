@@ -206,8 +206,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	{
 		XEmitter emitter(codePtr);
 		int bswapNopCount;
-		if (info.byteSwap)
-			// MOVBE -> no BSWAP following
+		if (info.byteSwap || info.operandSize == 1)
 			bswapNopCount = 0;
 		// Check the following BSWAP for REX byte
 		else if ((codePtr[info.instructionSize] & 0xF0) == 0x40)
