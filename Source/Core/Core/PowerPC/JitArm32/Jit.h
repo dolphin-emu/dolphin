@@ -42,6 +42,7 @@ private:
 	ArmFPRCache fpr;
 
 	PPCAnalyst::CodeBuffer code_buffer;
+
 	void DoDownCount();
 
 	void PrintDebug(UGeckoInstruction inst, u32 level);

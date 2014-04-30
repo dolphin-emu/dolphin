@@ -83,6 +83,9 @@ protected:
 		std::unordered_set<u32> fifoWriteAddresses;
 	};
 
+	PPCAnalyst::CodeBlock code_block;
+	PPCAnalyst::PPCAnalyser analyser;
+
 public:
 	// This should probably be removed from public:
 	JitOptions jo;

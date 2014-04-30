@@ -1014,7 +1014,9 @@ void JitArm::twx(UGeckoInstruction inst)
 	SetJumpTarget(exit3);
 	SetJumpTarget(exit4);
 	SetJumpTarget(exit5);
-	WriteExit(js.compilerPC + 4);
+
+	if (!analyser.HasOption(PPCAnalyst::PPCAnalyser::OPTION_CONDITIONAL_CONTINUE))
+		WriteExit(js.compilerPC + 4);
 
 	gpr.Unlock(RA, RB);
 }
