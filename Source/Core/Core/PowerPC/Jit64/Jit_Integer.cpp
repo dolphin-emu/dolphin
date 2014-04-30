@@ -425,7 +425,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			}
 			else
 			{
-				if (!analyser.HasOption(PPCAnalyst::PPCAnalyser::OPTION_CONDITIONAL_CONTINUE))
+				if (!analyser.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 				{
 					js.skipnext = true;
 					WriteExit(js.next_compilerPC + 4);
@@ -537,7 +537,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			if (!!(4 & test_bit) == condition) SetJumpTarget(continue2);
 			if (!!(2 & test_bit) == condition) SetJumpTarget(continue1);
 
-			if (!analyser.HasOption(PPCAnalyst::PPCAnalyser::OPTION_CONDITIONAL_CONTINUE))
+			if (!analyser.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 			{
 				js.skipnext = true;
 				WriteExit(js.next_compilerPC + 4);
@@ -2234,6 +2234,6 @@ void Jit64::twx(UGeckoInstruction inst)
 	SetJumpTarget(exit4);
 	SetJumpTarget(exit5);
 
-	if (!analyser.HasOption(PPCAnalyst::PPCAnalyser::OPTION_CONDITIONAL_CONTINUE))
+	if (!analyser.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 		WriteExit(js.compilerPC + 4);
 }

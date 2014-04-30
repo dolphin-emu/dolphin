@@ -142,7 +142,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
 
-	if (!analyser.HasOption(PPCAnalyst::PPCAnalyser::OPTION_CONDITIONAL_CONTINUE))
+	if (!analyser.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 		WriteExit(js.compilerPC + 4);
 }
 
@@ -192,7 +192,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
 
-		if (!analyser.HasOption(PPCAnalyst::PPCAnalyser::OPTION_CONDITIONAL_CONTINUE))
+		if (!analyser.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 			WriteExit(js.compilerPC + 4);
 	}
 }
@@ -242,6 +242,6 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
 
-	if (!analyser.HasOption(PPCAnalyst::PPCAnalyser::OPTION_CONDITIONAL_CONTINUE))
+	if (!analyser.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 		WriteExit(js.compilerPC + 4);
 }

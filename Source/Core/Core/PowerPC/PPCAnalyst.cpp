@@ -311,7 +311,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 	CodeOp *code = buffer->codebuffer;
 	bool foundExit = false;
 
-	u32 returnAddress = 0;
+	u32 return_address = 0;
 
 	// Do analysis of the code, look for dependencies etc
 	int numSystemInstructions = 0;
@@ -446,15 +446,15 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 			}
 			else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
 				(inst.BO & (1 << 4)) && (inst.BO & (1 << 2)) &&
-				returnAddress != 0)
+				return_address != 0)
 			{
 				// bclrx with unconditional branch = return
 				follow = true;
-				destination = returnAddress;
-				returnAddress = 0;
+				destination = return_address;
+				return_address = 0;
 
 				if (inst.LK)
-					returnAddress = address + 4;
+					return_address = address + 4;
 			}
 			else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
 			{
@@ -463,7 +463,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 				if (index == SPR_LR) {
 					// We give up to follow the return address
 					// because we have to check the register usage.
-					returnAddress = 0;
+					return_address = 0;
 				}
 			}
 
@@ -699,7 +699,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 		leafSize, niceSize, unniceSize);
 }
 
-void PPCAnalyser::ReorderInstructions(u32 instructions, CodeOp *code)
+void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 {
 	// Instruction Reordering Pass
 	// Bubble down compares towards branches, so that they can be merged.
@@ -723,7 +723,7 @@ void PPCAnalyser::ReorderInstructions(u32 instructions, CodeOp *code)
 	}
 }
 
-void PPCAnalyser::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index)
+void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index)
 {
 	code->wantsCR0 = false;
 	code->wantsCR1 = false;
@@ -822,7 +822,7 @@ void PPCAnalyser::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	}
 }
 
-u32 PPCAnalyser::Analyse(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize)
+u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize)
 {
 	// Clear block stats
 	memset(block->m_stats, 0, sizeof(BlockStats));
@@ -839,12 +839,12 @@ u32 PPCAnalyser::Analyse(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	// Reset our block state
 	block->m_broken = false;
-	block->m_instructions = 0;
+	block->m_num_instructions = 0;
 
 	CodeOp *code = buffer->codebuffer;
 
 	bool found_exit = false;
-	u32 returnAddress = 0;
+	u32 return_address = 0;
 	u32 numFollows = 0;
 	u32 num_inst = 0;
 
@@ -888,15 +888,15 @@ u32 PPCAnalyser::Analyse(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 				}
 				else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
 					(inst.BO & (1 << 4)) && (inst.BO & (1 << 2)) &&
-					returnAddress != 0)
+					return_address != 0)
 				{
 					// bclrx with unconditional branch = return
 					follow = true;
-					destination = returnAddress;
-					returnAddress = 0;
+					destination = return_address;
+					return_address = 0;
 
 					if (inst.LK)
-						returnAddress = address + 4;
+						return_address = address + 4;
 				}
 				else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
 				{
@@ -905,7 +905,7 @@ u32 PPCAnalyser::Analyse(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 					if (index == SPR_LR) {
 						// We give up to follow the return address
 						// because we have to check the register usage.
-						returnAddress = 0;
+						return_address = 0;
 					}
 				}
 
@@ -978,8 +978,8 @@ u32 PPCAnalyser::Analyse(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		}
 	}
 
-	if (block->m_instructions > 1)
-		ReorderInstructions(block->m_instructions, code);
+	if (block->m_num_instructions > 1)
+		ReorderInstructions(block->m_num_instructions, code);
 
 	if ((!found_exit && num_inst > 0) || blockSize == 1)
 	{
@@ -992,7 +992,7 @@ u32 PPCAnalyser::Analyse(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	bool wantsCR0 = true;
 	bool wantsCR1 = true;
 	bool wantsPS1 = true;
-	for (int i = block->m_instructions - 1; i >= 0; i--)
+	for (int i = block->m_num_instructions - 1; i >= 0; i--)
 	{
 		if (code[i].outputCR0)
 			wantsCR0 = false;
@@ -1007,7 +1007,7 @@ u32 PPCAnalyser::Analyse(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		code[i].wantsCR1 = wantsCR1;
 		code[i].wantsPS1 = wantsPS1;
 	}
-	block->m_instructions = num_inst;
+	block->m_num_instructions = num_inst;
 	return address;
 }
 

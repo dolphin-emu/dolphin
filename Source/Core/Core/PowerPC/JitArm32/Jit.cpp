@@ -44,7 +44,7 @@ void JitArm::Init()
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
-	analyser.SetOption(PPCAnalyst::PPCAnalyser::OPTION_CONDITIONAL_CONTINUE);
+	analyser.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 }
 
 void JitArm::ClearCache()
@@ -336,7 +336,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 	if (!memory_exception)
-		nextPC = analyser.Analyse(em_address, &code_block, code_buf, blockSize);
+		nextPC = analyser.Analyze(em_address, &code_block, code_buf, blockSize);
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -397,7 +397,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
 	js.skipnext = false;
-	js.blockSize = code_block.m_instructions;
+	js.blockSize = code_block.m_num_instructions;
 	js.compilerPC = nextPC;
 
 	const int DEBUG_OUTPUT = 0;
@@ -406,7 +406,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		WARN_LOG(DYNA_REC, "-------0x%08x-------", em_address);
 
 	// Translate instructions
-	for (u32 i = 0; i < code_block.m_instructions; i++)
+	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
 		js.compilerPC = ops[i].address;
 		js.op = &ops[i];
@@ -414,7 +414,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
 
-		if (i == (code_block.m_instructions - 1))
+		if (i == (code_block.m_num_instructions - 1))
 		{
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
@@ -488,7 +488,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 
 	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
-	b->originalSize = code_block.m_instructions;
+	b->originalSize = code_block.m_num_instructions;
 	FlushIcache();
 	return start;
 }

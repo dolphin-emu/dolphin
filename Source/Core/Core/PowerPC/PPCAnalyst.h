@@ -114,7 +114,7 @@ struct CodeBlock
 
 	// Number of instructions
 	// Gives us the size of the block.
-	u32 m_instructions;
+	u32 m_num_instructions;
 
 	// Some basic statistics about the block.
 	BlockStats *m_stats;
@@ -126,17 +126,16 @@ struct CodeBlock
 	bool m_broken;
 };
 
-class PPCAnalyser
+class PPCAnalyzer
 {
-	private:
+private:
 
 	void ReorderInstructions(u32 instructions, CodeOp *code);
 	void SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index);
 
 	// Options
 	u32 m_options;
-
-	public:
+public:
 
 	enum AnalystOption
 	{
@@ -166,14 +165,14 @@ class PPCAnalyser
 	};
 
 
-	PPCAnalyser() : m_options(0) {}
+	PPCAnalyzer() : m_options(0) {}
 
 	// Option setting/getting
 	void SetOption(AnalystOption option) { m_options |= option; }
 	void ClearOption(AnalystOption option) { m_options &= ~(option); }
 	bool HasOption(AnalystOption option) { return !!(m_options & option); }
 
-	u32 Analyse(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize);
+	u32 Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize);
 };
 
 u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
