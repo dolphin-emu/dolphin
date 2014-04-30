@@ -24,7 +24,8 @@ namespace Core
 // TODO: kill, use SConfig instead
 extern SCoreStartupParameter g_CoreStartupParameter;
 
-extern bool IsFramelimiterTempDisabled;
+bool GetIsFramelimiterTempDisabled();
+void SetIsFramelimiterTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
 

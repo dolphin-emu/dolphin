@@ -124,7 +124,7 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 			if (*PowerPC::GetStatePtr() != PowerPC::CPU_RUNNING || soundStream->IsMuted())
 				break;
 			// Shortcut key for Throttle Skipping
-			if (Core::IsFramelimiterTempDisabled)
+			if (Core::GetIsFramelimiterTempDisabled())
 				break;
 			SLEEP(1);
 			soundStream->Update();

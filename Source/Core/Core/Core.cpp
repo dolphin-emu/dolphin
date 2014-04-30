@@ -90,7 +90,17 @@ static bool g_requestRefreshInfo = false;
 static int g_pauseAndLockDepth = 0;
 
 SCoreStartupParameter g_CoreStartupParameter;
-bool IsFramelimiterTempDisabled = false;
+static bool IsFramelimiterTempDisabled = false;
+
+bool GetIsFramelimiterTempDisabled()
+{
+	return IsFramelimiterTempDisabled;
+}
+
+void SetIsFramelimiterTempDisabled(bool disable)
+{
+	IsFramelimiterTempDisabled = disable;
+}
 
 std::string GetStateFileName() { return g_stateFileName; }
 void SetStateFileName(std::string val) { g_stateFileName = val; }

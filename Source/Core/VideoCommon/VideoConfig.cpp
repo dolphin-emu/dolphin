@@ -276,5 +276,5 @@ void VideoConfig::Save(const std::string& ini_file)
 
 bool VideoConfig::IsVSync()
 {
-	return Core::IsFramelimiterTempDisabled ? false : bVSync;
+	return bVSync && !Core::GetIsFramelimiterTempDisabled();
 }

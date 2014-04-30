@@ -942,7 +942,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		}
 		else if (IsHotkey(event, HK_TOGGLE_THROTTLE))
 		{
-			Core::IsFramelimiterTempDisabled = true;
+			Core::SetIsFramelimiterTempDisabled(true);
 		}
 		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
 		{
@@ -1049,7 +1049,7 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 	{
 		if (IsHotkey(event, HK_TOGGLE_THROTTLE))
 		{
-			Core::IsFramelimiterTempDisabled = false;
+			Core::SetIsFramelimiterTempDisabled(false);
 		}
 	}
 	else
