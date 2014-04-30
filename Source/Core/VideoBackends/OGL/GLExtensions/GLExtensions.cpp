@@ -711,6 +711,12 @@ PFNGLGETSYNCIVPROC glGetSynciv;
 PFNGLISSYNCPROC glIsSync;
 PFNGLWAITSYNCPROC glWaitSync;
 
+// ARB_texture_multisample
+PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
+PFNGLTEXIMAGE3DMULTISAMPLEPROC glTexImage3DMultisample;
+PFNGLGETMULTISAMPLEFVPROC glGetMultisamplefv;
+PFNGLSAMPLEMASKIPROC glSampleMaski;
+
 // ARB_ES2_compatibility
 PFNGLCLEARDEPTHFPROC glClearDepthf;
 PFNGLDEPTHRANGEFPROC glDepthRangef;
@@ -1489,6 +1495,12 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glGetSynciv,      "GL_ARB_sync"),
 	GLFUNC_REQUIRES(glIsSync,         "GL_ARB_sync"),
 	GLFUNC_REQUIRES(glWaitSync,       "GL_ARB_sync"),
+
+	// ARB_texture_multisample
+	GLFUNC_REQUIRES(glTexImage2DMultisample, "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glTexImage3DMultisample, "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glGetMultisamplefv,      "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glSampleMaski,           "GL_ARB_texture_multisample"),
 
 	// ARB_ES2_compatibility
 	GLFUNC_REQUIRES(glClearDepthf,              "GL_ARB_ES2_compatibility"),
