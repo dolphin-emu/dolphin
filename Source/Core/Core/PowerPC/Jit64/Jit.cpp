@@ -185,7 +185,7 @@ void Jit64::Init()
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
-	analyser.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 }
 
 void Jit64::ClearCache()
@@ -449,7 +449,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 	if (!memory_exception)
-		nextPC = analyser.Analyze(em_address, &code_block, code_buf, blockSize);
+		nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
 
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;

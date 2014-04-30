@@ -84,7 +84,7 @@ protected:
 	};
 
 	PPCAnalyst::CodeBlock code_block;
-	PPCAnalyst::PPCAnalyzer analyser;
+	PPCAnalyst::PPCAnalyzer analyzer;
 
 public:
 	// This should probably be removed from public:
