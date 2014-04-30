@@ -173,21 +173,15 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
 }
 
 Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVICE8 device, const unsigned int index )
-	: m_device(device)
+	: ForceFeedbackDevice(device)
+	, m_device(device)
 	, m_index(index)
 	//, m_name(TStringToString(lpddi->tszInstanceName))
 {
 	// seems this needs to be done before GetCapabilities
 	// polled or buffered data
-	DIPROPDWORD dipdw;
-	dipdw.diph.dwSize = sizeof(DIPROPDWORD);
-	dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
-	dipdw.diph.dwObj = 0;
-	dipdw.diph.dwHow = DIPH_DEVICE;
-	dipdw.dwData = DATA_BUFFER_SIZE;
-	// set the buffer size,
 	// if we can't set the property, we can't use buffered data
-	m_buffered = SUCCEEDED(m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
+	m_buffered = SUCCEEDED(SetDeviceProperty(m_device, DIPROP_BUFFERSIZE, DATA_BUFFER_SIZE));
 
 	// seems this needs to be done after SetProperty of buffer size
 	m_device->Acquire();

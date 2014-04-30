@@ -4,6 +4,7 @@
 
 #include <string>
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
+#include "InputCommon/ControllerInterface/DInput/DInput.h"
 
 namespace ciface
 {
@@ -36,6 +37,12 @@ static const ForceType force_type_names[] =
 	//{GUID_Friction, "Friction"},
 };
 
+ForceFeedbackDevice::ForceFeedbackDevice(const LPDIRECTINPUTDEVICE8 device)
+{
+	// disable autocentering (needs to happen before "Acquire" with my sidewinder joystick)
+	DInput::SetDeviceProperty(device, DIPROP_AUTOCENTER, DIPROPAUTOCENTER_OFF);
+}
+
 ForceFeedbackDevice::~ForceFeedbackDevice()
 {
 	// release the ff effect iface's
@@ -47,7 +54,7 @@ ForceFeedbackDevice::~ForceFeedbackDevice()
 	}
 }
 
-bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, int cAxes)
+bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, size_t cAxes)
 {
 	if (cAxes == 0)
 		return false;
@@ -114,18 +121,6 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 			else
 				AddOutput(new ForcePeriodic(f.name, m_state_out.back()));
 		}
-	}
-
-	// disable autocentering
-	if (Outputs().size())
-	{
-		DIPROPDWORD dipdw;
-		dipdw.diph.dwSize = sizeof( DIPROPDWORD );
-		dipdw.diph.dwHeaderSize = sizeof( DIPROPHEADER );
-		dipdw.diph.dwObj = 0;
-		dipdw.diph.dwHow = DIPH_DEVICE;
-		dipdw.dwData = DIPROPAUTOCENTER_OFF;
-		device->SetProperty( DIPROP_AUTOCENTER, &dipdw.diph );
 	}
 
 	return true;

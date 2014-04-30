@@ -45,6 +45,17 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 	return result;
 }
 
+HRESULT SetDeviceProperty(const LPDIRECTINPUTDEVICE8 device, const GUID& property_guid, DWORD data)
+{
+	DIPROPDWORD dipdw;
+	dipdw.diph.dwSize = sizeof(dipdw);
+	dipdw.diph.dwHeaderSize = sizeof(dipdw.diph);
+	dipdw.diph.dwObj = 0;
+	dipdw.diph.dwHow = DIPH_DEVICE;
+	dipdw.dwData = data;
+	return device->SetProperty(property_guid, &dipdw.diph);
+}
+
 void Init(std::vector<Core::Device*>& devices, HWND hwnd)
 {
 	IDirectInput8* idi8;

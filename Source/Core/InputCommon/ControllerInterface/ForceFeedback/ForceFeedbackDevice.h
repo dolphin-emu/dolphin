@@ -54,9 +54,10 @@ private:
 	typedef Force<DIPERIODIC>       ForcePeriodic;
 
 public:
-	bool InitForceFeedback(const LPDIRECTINPUTDEVICE8, int cAxes);
+	bool InitForceFeedback(const LPDIRECTINPUTDEVICE8, size_t cAxes);
 	bool UpdateOutput();
 
+	ForceFeedbackDevice(const LPDIRECTINPUTDEVICE8 device);
 	virtual ~ForceFeedbackDevice();
 private:
 	std::list<EffectState>     m_state_out;
