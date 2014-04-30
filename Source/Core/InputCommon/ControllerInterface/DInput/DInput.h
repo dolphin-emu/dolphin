@@ -24,8 +24,6 @@ namespace DInput
 BOOL CALLBACK DIEnumDeviceObjectsCallback(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
 BOOL CALLBACK DIEnumDevicesCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef);
 std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device);
-HRESULT SetDeviceProperty(const LPDIRECTINPUTDEVICE8 device, const GUID& property_guid, DWORD data);
-std::string DIJOYSTATE_AxisName(size_t index);
 
 void Init(std::vector<Core::Device*>& devices, HWND hwnd);
 

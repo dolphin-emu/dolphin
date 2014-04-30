@@ -21,9 +21,17 @@
 
 namespace ciface
 {
-namespace ForceFeedback
+
+namespace DInput
 {
 
+HRESULT SetDeviceProperty(const LPDIRECTINPUTDEVICE8 device, const GUID& property_guid, DWORD data);
+std::string DIJOYSTATE_AxisName(size_t index);
+
+}
+
+namespace ForceFeedback
+{
 
 class ForceFeedbackDevice : public Core::Device
 {
