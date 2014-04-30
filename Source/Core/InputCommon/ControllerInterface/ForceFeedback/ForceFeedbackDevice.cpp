@@ -21,20 +21,28 @@ struct ForceType
 {
 	GUID guid;
 	const std::string name;
+	DWORD effect_type;
 };
 
+// TODO: Should we use EnumEffects instead?
+// Or is it as questionable as EnumObjects?
 static const ForceType force_type_names[] =
 {
-	// DICONSTANTFORCE
-	{GUID_ConstantForce, "Constant"},
-	// DIRAMPFORCE
-	{GUID_RampForce, "Ramp"},
-	// DIPERIODIC ...
-	{GUID_Square, "Square"},
-	{GUID_Sine, "Sine"},
-	{GUID_Triangle, "Triangle"},
-	{GUID_SawtoothUp, "Sawtooth Up"},
-	{GUID_SawtoothDown, "Sawtooth Down"},
+	// DIEFT_CONSTANTFORCE
+	{ GUID_ConstantForce, "Constant", DIEFT_CONSTANTFORCE },
+	// DIEFT_RAMPFORCE
+	{ GUID_RampForce, "Ramp", DIEFT_RAMPFORCE },
+	// DIEFT_PERIODIC ...
+	{ GUID_Square, "Square", DIEFT_PERIODIC },
+	{ GUID_Sine, "Sine", DIEFT_PERIODIC },
+	{ GUID_Triangle, "Triangle", DIEFT_PERIODIC },
+	{ GUID_SawtoothUp, "Sawtooth Up", DIEFT_PERIODIC },
+	{ GUID_SawtoothDown, "Sawtooth Down", DIEFT_PERIODIC },
+	// DIEFT_CONDITION ...
+	{ GUID_Spring, "Spring", DIEFT_CONDITION },
+	{ GUID_Damper, "Damper", DIEFT_CONDITION },
+	{ GUID_Inertia, "Inertia", DIEFT_CONDITION },
+	{ GUID_Friction, "Friction", DIEFT_CONDITION },
 };
 
 ForceFeedbackDevice::ForceFeedbackDevice(const LPDIRECTINPUTDEVICE8 device)
@@ -58,6 +66,13 @@ void ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device)
 	diPE.dwMagnitude = DI_FFNOMINALMAX;
 	diPE.dwPeriod = EFFECT_PERIOD;
 
+	DICONDITION diCO = {};
+	diCO.lPositiveCoefficient = DI_FFNOMINALMAX;
+	diCO.lNegativeCoefficient = DI_FFNOMINALMAX;
+	diCO.dwPositiveSaturation = DI_FFNOMINALMAX;
+	diCO.dwNegativeSaturation = DI_FFNOMINALMAX;
+	diCO.lDeadBand = DI_FFNOMINALMAX * 5 / 100;
+
 	for (const ForceType& force : force_type_names)
 	{
 		DIEFFECT eff = {};
@@ -73,21 +88,25 @@ void ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device)
 		eff.lpvTypeSpecificParams = nullptr;
 		eff.dwStartDelay = 0;
 
-		if (force.guid == GUID_ConstantForce)
+		if (force.effect_type == DIEFT_CONSTANTFORCE)
 		{
 			eff.cbTypeSpecificParams = sizeof(diCF);
 			eff.lpvTypeSpecificParams = &diCF;
 		}
-		else if (force.guid == GUID_RampForce)
+		else if (force.effect_type == DIEFT_RAMPFORCE)
 		{
 			eff.cbTypeSpecificParams = sizeof(diRF);
 			eff.lpvTypeSpecificParams = &diRF;
 		}
-		else
+		else if (force.effect_type == DIEFT_PERIODIC)
 		{
-			// all other forces need periodic parameters
 			eff.cbTypeSpecificParams = sizeof(diPE);
 			eff.lpvTypeSpecificParams = &diPE;
+		}
+		else if (force.effect_type == DIEFT_CONDITION)
+		{
+			eff.cbTypeSpecificParams = sizeof(diCO);
+			eff.lpvTypeSpecificParams = &diCO;
 		}
 
 		std::vector<DWORD> valid_ff_axes;
