@@ -290,7 +290,7 @@ public:
 	void INT3();
 
 	// Do nothing
-	void NOP(int count = 1);
+	void NOP(size_t count = 1);
 
 	// Save energy in wait-loops on P4 only. Probably not too useful.
 	void PAUSE();

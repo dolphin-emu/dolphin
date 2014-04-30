@@ -6,6 +6,7 @@
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
+#include "Common/Log.h"
 #include "Common/x64Emitter.h"
 
 namespace Gen
@@ -516,8 +517,9 @@ void XEmitter::RET()  {Write8(0xC3);}
 void XEmitter::RET_FAST()  {Write8(0xF3); Write8(0xC3);} //two-byte return (rep ret) - recommended by AMD optimization manual for the case of jumping to a ret
 
 // The first sign of decadence: optimized NOPs.
-void XEmitter::NOP(int size)
+void XEmitter::NOP(size_t size)
 {
+	_dbg_assert_(DYNA_REC, (int)size > 0);
 	while (true)
 	{
 		switch (size)
