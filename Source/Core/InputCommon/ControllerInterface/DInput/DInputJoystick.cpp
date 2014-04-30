@@ -215,9 +215,9 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	range.diph.dwSize = sizeof(range);
 	range.diph.dwHeaderSize = sizeof(range.diph);
 	range.diph.dwHow = DIPH_BYOFFSET;
-	// screw EnumObjects, just go through all the axis offsets and try to GetProperty
+	// screw EnumObjects, just go through all 8 axis offsets in the dataformat and try to GetProperty
 	// this should be more foolproof, less code, and probably faster
-	for (unsigned int offset = 0; offset < DIJOFS_BUTTON(0) / sizeof(LONG); ++offset)
+	for (unsigned int offset = 0; offset != 8; ++offset)
 	{
 		range.diph.dwObj = offset * sizeof(LONG);
 		// try to set some nice power of 2 values (128) to match the GameCube controls
@@ -239,10 +239,9 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	}
 
 	// force feedback
-	std::list<DIDEVICEOBJECTINSTANCE> objects;
-	if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS)))
+	if (js_caps.dwFlags & DIDC_FORCEFEEDBACK)
 	{
-		InitForceFeedback(m_device, objects.size());
+		InitForceFeedback(m_device);
 	}
 
 	ClearInputState();
@@ -332,22 +331,7 @@ std::string Joystick::Button::GetName() const
 
 std::string Joystick::Axis::GetName() const
 {
-	std::ostringstream ss;
-	// axis
-	if (m_index < 6)
-	{
-		ss << "Axis " << (char)('X' + (m_index % 3));
-		if (m_index > 2)
-			ss << 'r';
-	}
-	// slider
-	else
-	{
-		ss << "Slider " << (int)(m_index - 6);
-	}
-
-	ss << (m_range < 0 ? '-' : '+');
-	return ss.str();
+	return DIJOYSTATE_AxisName(m_index) + (m_range < 0 ? '-' : '+');
 }
 
 std::string Joystick::Hat::GetName() const

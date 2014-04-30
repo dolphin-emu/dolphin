@@ -27,40 +27,43 @@ namespace ForceFeedback
 
 class ForceFeedbackDevice : public Core::Device
 {
-private:
-	struct EffectState
-	{
-		EffectState(LPDIRECTINPUTEFFECT eff) : iface(eff), params(nullptr), size(0) {}
+public:
+	void InitForceFeedback(const LPDIRECTINPUTDEVICE8);
+	bool UpdateOutput();
 
-		LPDIRECTINPUTEFFECT iface;
-		void*               params; // null when force hasn't changed
-		u8                  size;   // zero when force should stop
+	ForceFeedbackDevice(const LPDIRECTINPUTDEVICE8 device);
+
+private:
+	class EffectState : NonCopyable
+	{
+	public:
+		EffectState(LPDIRECTINPUTEFFECT iface, std::size_t axis_count);
+		~EffectState();
+
+		bool Update();
+		void SetAxisForce(std::size_t axis_offset, LONG magnitude);
+
+	private:
+		LPDIRECTINPUTEFFECT const m_iface;
+		std::vector<LONG> m_axis_directions;
+		bool m_dirty;
 	};
 
-	template <typename P>
 	class Force : public Output
 	{
 	public:
 		std::string GetName() const;
-		Force(const std::string& name, EffectState& state);
+		Force(const std::string& name, EffectState& effect_state_ref, std::size_t axis_index);
+
 		void SetState(ControlState state);
+
 	private:
 		const std::string m_name;
-		EffectState& m_state;
-		P params;
+		EffectState& m_effect_state_ref;
+		std::size_t const m_axis_index;
 	};
-	typedef Force<DICONSTANTFORCE>  ForceConstant;
-	typedef Force<DIRAMPFORCE>      ForceRamp;
-	typedef Force<DIPERIODIC>       ForcePeriodic;
 
-public:
-	bool InitForceFeedback(const LPDIRECTINPUTDEVICE8, size_t cAxes);
-	bool UpdateOutput();
-
-	ForceFeedbackDevice(const LPDIRECTINPUTDEVICE8 device);
-	virtual ~ForceFeedbackDevice();
-private:
-	std::list<EffectState>     m_state_out;
+	std::list<EffectState> m_effect_states;
 };
 
 

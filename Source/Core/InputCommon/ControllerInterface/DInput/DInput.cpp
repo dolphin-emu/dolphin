@@ -56,6 +56,25 @@ HRESULT SetDeviceProperty(const LPDIRECTINPUTDEVICE8 device, const GUID& propert
 	return device->SetProperty(property_guid, &dipdw.diph);
 }
 
+std::string DIJOYSTATE_AxisName(size_t index)
+{
+	std::ostringstream ss;
+	// axis
+	if (index < 6)
+	{
+		ss << "Axis " << (char)('X' + (index % 3));
+		if (index > 2)
+			ss << 'r';
+	}
+	// slider
+	else
+	{
+		ss << "Slider " << (int)(index - 6);
+	}
+
+	return ss.str();
+}
+
 void Init(std::vector<Core::Device*>& devices, HWND hwnd)
 {
 	IDirectInput8* idi8;
