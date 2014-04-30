@@ -18,7 +18,6 @@ namespace OGL
 int FramebufferManager::m_targetWidth;
 int FramebufferManager::m_targetHeight;
 int FramebufferManager::m_msaaSamples;
-int FramebufferManager::m_msaaCoverageSamples;
 
 GLuint FramebufferManager::m_efbFramebuffer;
 GLuint FramebufferManager::m_efbColor; // Renderbuffer in MSAA mode; Texture otherwise
@@ -35,7 +34,7 @@ GLuint FramebufferManager::m_xfbFramebuffer;
 SHADER FramebufferManager::m_pixel_format_shaders[2];
 
 
-FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples)
+FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples)
 {
 	m_efbFramebuffer = 0;
 	m_efbColor = 0;
@@ -49,7 +48,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	m_targetHeight = targetHeight;
 
 	m_msaaSamples = msaaSamples;
-	m_msaaCoverageSamples = msaaCoverageSamples;
 
 	// The EFB can be set to different pixel formats by the game through the
 	// BPMEM_ZCOMPARE register (which should probably have a different name).
@@ -117,16 +115,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		m_efbDepth = glObj[1];
 
 		glBindRenderbuffer(GL_RENDERBUFFER, m_efbColor);
-		if (m_msaaCoverageSamples)
-			glRenderbufferStorageMultisampleCoverageNV(GL_RENDERBUFFER, m_msaaCoverageSamples, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight);
-		else
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight);
 
 		glBindRenderbuffer(GL_RENDERBUFFER, m_efbDepth);
-		if (m_msaaCoverageSamples)
-			glRenderbufferStorageMultisampleCoverageNV(GL_RENDERBUFFER, m_msaaCoverageSamples, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight);
-		else
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight);
 
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 

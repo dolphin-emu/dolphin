@@ -60,7 +60,7 @@ struct XFBSource : public XFBSourceBase
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
-	FramebufferManager(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples);
+	FramebufferManager(int targetWidth, int targetHeight, int msaaSamples);
 	~FramebufferManager();
 
 	// To get the EFB in texture form, these functions may have to transfer
@@ -99,7 +99,6 @@ private:
 	static int m_targetWidth;
 	static int m_targetHeight;
 	static int m_msaaSamples;
-	static int m_msaaCoverageSamples;
 
 	static GLuint m_efbFramebuffer;
 	static GLuint m_efbColor; // Renderbuffer in MSAA mode; Texture otherwise

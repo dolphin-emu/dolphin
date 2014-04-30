@@ -78,10 +78,6 @@ enum MultisampleMode {
 	MULTISAMPLE_2X,
 	MULTISAMPLE_4X,
 	MULTISAMPLE_8X,
-	MULTISAMPLE_CSAA_8X,
-	MULTISAMPLE_CSAA_8XQ,
-	MULTISAMPLE_CSAA_16X,
-	MULTISAMPLE_CSAA_16XQ,
 	MULTISAMPLE_SSAA_4X,
 };
 
@@ -99,7 +95,6 @@ static RasterFont* s_pfont = nullptr;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
-static int s_MSAACoverageSamples = 0;
 static int s_LastMultisampleMode = 0;
 
 static u32 s_blendMode;
@@ -131,15 +126,11 @@ int GetNumMSAASamples(int MSAAMode)
 			break;
 
 		case MULTISAMPLE_4X:
-		case MULTISAMPLE_CSAA_8X:
-		case MULTISAMPLE_CSAA_16X:
 		case MULTISAMPLE_SSAA_4X:
 			samples = 4;
 			break;
 
 		case MULTISAMPLE_8X:
-		case MULTISAMPLE_CSAA_8XQ:
-		case MULTISAMPLE_CSAA_16XQ:
 			samples = 8;
 			break;
 
@@ -152,31 +143,6 @@ int GetNumMSAASamples(int MSAAMode)
 	// TODO: move this to InitBackendInfo
 	OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", samples, g_ogl_config.max_samples), 10000);
 	return g_ogl_config.max_samples;
-}
-
-int GetNumMSAACoverageSamples(int MSAAMode)
-{
-	int samples;
-	switch (g_ActiveConfig.iMultisampleMode)
-	{
-		case MULTISAMPLE_CSAA_8X:
-		case MULTISAMPLE_CSAA_8XQ:
-			samples = 8;
-			break;
-
-		case MULTISAMPLE_CSAA_16X:
-		case MULTISAMPLE_CSAA_16XQ:
-			samples = 16;
-			break;
-
-		default:
-			samples = 0;
-	}
-	if (g_ogl_config.bSupportCoverageMSAA || samples == 0) return samples;
-
-	// TODO: move this to InitBackendInfo
-	OSD::AddMessage("CSAA Anti Aliasing isn't supported by your GPU.", 10000);
-	return 0;
 }
 
 void ApplySSAASettings() {
@@ -489,7 +455,6 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
 	g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex");
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage");
-	g_ogl_config.bSupportCoverageMSAA = GLExtensions::Supports("GL_NV_framebuffer_multisample_coverage");
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
@@ -575,7 +540,7 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
 
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
 			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
@@ -584,13 +549,11 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
 			g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
-			g_ogl_config.bSupportCoverageMSAA ? "" : "CSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA "
 			);
 
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
-	s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
 	ApplySSAASettings();
 
 	// Decide framebuffer size
@@ -681,7 +644,7 @@ void Renderer::Init()
 {
 	// Initialize the FramebufferManager
 	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
-			s_MSAASamples, s_MSAACoverageSamples);
+			s_MSAASamples);
 
 	s_pfont = new RasterFont();
 
@@ -1609,12 +1572,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		{
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
-			s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
 			ApplySSAASettings();
 
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
-				s_MSAASamples, s_MSAACoverageSamples);
+				s_MSAASamples);
 		}
 	}
 
