@@ -110,24 +110,24 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		// Create EFB target renderbuffers.
 
 		GLuint glObj[2];
-		glGenRenderbuffers(2, glObj);
+		glGenTextures(2, glObj);
 		m_efbColor = glObj[0];
 		m_efbDepth = glObj[1];
 
-		glBindRenderbuffer(GL_RENDERBUFFER, m_efbColor);
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_efbColor);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_msaaSamples, GL_RGBA, m_targetWidth, m_targetHeight, false);
 
-		glBindRenderbuffer(GL_RENDERBUFFER, m_efbDepth);
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_efbDepth);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_msaaSamples, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, false);
 
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 		// Bind target renderbuffers to EFB framebuffer.
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
 
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_efbColor);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_efbDepth);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_efbColor, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, m_efbDepth, 0);
 
 		GL_REPORT_FBO_ERROR();
 
@@ -237,10 +237,7 @@ FramebufferManager::~FramebufferManager()
 
 	glObj[0] = m_efbColor;
 	glObj[1] = m_efbDepth;
-	if (m_msaaSamples <= 1)
-		glDeleteTextures(2, glObj);
-	else
-		glDeleteRenderbuffers(2, glObj);
+	glDeleteTextures(2, glObj);
 	m_efbColor = 0;
 	m_efbDepth = 0;
 
