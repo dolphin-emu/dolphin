@@ -331,7 +331,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 			code[i].branchTo = -1;
 			code[i].branchToIndex = -1;
 			code[i].skip = false;
-			numCycles += opinfo->numCyclesMinusOne + 1;
+			numCycles += opinfo->numCycles;
 
 			code[i].wantsCR0 = false;
 			code[i].wantsCR1 = false;

@@ -193,7 +193,7 @@ int Interpreter::SingleStepInner(void)
 	patches();
 
 	GekkoOPInfo *opinfo = GetOpInfo(instCode);
-	return opinfo->numCyclesMinusOne + 1;
+	return opinfo->numCycles;
 }
 
 void Interpreter::SingleStep()

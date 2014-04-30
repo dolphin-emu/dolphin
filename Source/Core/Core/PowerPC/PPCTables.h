@@ -78,7 +78,7 @@ struct GekkoOPInfo
 	const char *opname;
 	int type;
 	int flags;
-	int numCyclesMinusOne;
+	int numCycles;
 	u64 runCount;
 	int compileCount;
 	u32 lastUse;
