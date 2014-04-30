@@ -197,6 +197,23 @@ ForceFeedbackDevice::Force::Force(const std::string& name, EffectState& effect_s
 	, m_axis_index(axis_index)
 {}
 
+// Moved to a separate function to avoid SEH causing "error C2712".
+bool StartEffect(LPDIRECTINPUTEFFECT iface)
+{
+	__try
+	{
+		// For some reason the "Download" operation crashes on occasion.
+		// The only "solution" I've found is to catch the access violation.
+		return SUCCEEDED(iface->Start(EFFECT_DURATION / EFFECT_PERIOD, 0));
+	}
+	__except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 bool ForceFeedbackDevice::EffectState::Update()
 {
 	DIEFFECT eff = {};
@@ -219,17 +236,7 @@ bool ForceFeedbackDevice::EffectState::Update()
 			//eff.dwDuration = EFFECT_DURATION;
 
 			m_iface->SetParameters(&eff, DIEP_DIRECTION | DIEP_GAIN | /*DIEP_DURATION | */DIEP_NODOWNLOAD);
-
-			__try
-			{
-				// For some reason the "Download" operation crashes on occasion.
-				// The only "solution" I've found is to catch the access violation.
-				return SUCCEEDED(m_iface->Start(EFFECT_DURATION / EFFECT_PERIOD, 0));
-			}
-			__except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
-			{
-				return false;
-			}
+			return StartEffect(m_iface);
 		}
 		else
 		{
@@ -238,7 +245,7 @@ bool ForceFeedbackDevice::EffectState::Update()
 			//eff.dwDuration = 0;
 			//m_iface->SetParameters(&eff, DIEP_GAIN | DIEP_DURATION | DIEP_START);
 			//m_iface->Stop();
-			// TODO: Is Unloading and downloading the effect every time is restarts sane?
+			// TODO: Is Unloading and downloading the effect every time it restarts sane?
 			return SUCCEEDED(m_iface->Unload());
 		}
 	}
