@@ -42,16 +42,6 @@ public final class UserPreferences
 		editor.putBoolean("showFPS",              getConfig("gfx_opengl.ini", "Settings", "ShowFPS", "False").equals("True"));
 		editor.putBoolean("drawOnscreenControls", getConfig("Dolphin.ini", "Android", "ScreenControls", "True").equals("True"));
 
-		editor.putBoolean("drawOverlayA",         getConfig("Dolphin.ini", "Android", "DrawOverlayA", "True").equals("True"));
-		editor.putBoolean("drawOverlayB",         getConfig("Dolphin.ini", "Android", "DrawOverlayB", "True").equals("True"));
-		editor.putBoolean("drawOverlayX",         getConfig("Dolphin.ini", "Android", "DrawOverlayX", "True").equals("True"));
-		editor.putBoolean("drawOverlayY",         getConfig("Dolphin.ini", "Android", "DrawOverlayY", "True").equals("True"));
-		editor.putBoolean("drawOverlayZ",         getConfig("Dolphin.ini", "Android", "DrawOverlayZ", "True").equals("True"));
-		editor.putBoolean("drawOverlayStart",     getConfig("Dolphin.ini", "Android", "DrawOverlayStart", "True").equals("True"));
-		editor.putBoolean("drawOverlayL",         getConfig("Dolphin.ini", "Android", "DrawOverlayL", "True").equals("True"));
-		editor.putBoolean("drawOverlayR",         getConfig("Dolphin.ini", "Android", "DrawOverlayR", "True").equals("True"));
-		editor.putBoolean("drawOverlayStickMain", getConfig("Dolphin.ini", "Android", "DrawOverlayStickMain", "True").equals("True"));
-
 		editor.putString("internalResolution",     getConfig("gfx_opengl.ini", "Settings", "EFBScale", "2") );
 		editor.putString("FSAA",                   getConfig("gfx_opengl.ini", "Settings", "MSAA", "0"));
 		editor.putString("anisotropicFiltering",   getConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", "0"));
@@ -141,17 +131,6 @@ public final class UserPreferences
 		// Whether or not to draw on-screen controls.
 		boolean drawingOnscreenControls = prefs.getBoolean("drawOnscreenControls", true);
 
-		// Which on-screen controls to draw.
-		boolean drawingOverlayA = prefs.getBoolean("drawOverlayA", true);
-		boolean drawingOverlayB = prefs.getBoolean("drawOverlayB", true);
-		boolean drawingOverlayX = prefs.getBoolean("drawOverlayX", true);
-		boolean drawingOverlayY = prefs.getBoolean("drawOverlayY", true);
-		boolean drawingOverlayZ = prefs.getBoolean("drawOverlayZ", true);
-		boolean drawingOverlayStart = prefs.getBoolean("drawOverlayStart", true);
-		boolean drawingOverlayL = prefs.getBoolean("drawOverlayL", true);
-		boolean drawingOverlayR = prefs.getBoolean("drawOverlayR", true);
-		boolean drawingOverlayStickMain = prefs.getBoolean("drawOverlayStickMain", true);
-
 		// Whether or not to ignore all EFB access requests from the CPU.
 		boolean skipEFBAccess = prefs.getBoolean("skipEFBAccess", false);
 
@@ -204,17 +183,6 @@ public final class UserPreferences
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", currentVideoBackend);
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "ShowFPS", showingFPS ? "True" : "False");
 		NativeLibrary.SetConfig("Dolphin.ini", "Android", "ScreenControls", drawingOnscreenControls ? "True" : "False");
-
-		// Overlay Buttons
-		NativeLibrary.SetConfig("Dolphin.ini", "Android", "DrawOverlayA", drawingOverlayA ? "True" : "False");
-		NativeLibrary.SetConfig("Dolphin.ini", "Android", "DrawOverlayB", drawingOverlayB ? "True" : "False");
-		NativeLibrary.SetConfig("Dolphin.ini", "Android", "DrawOverlayX", drawingOverlayX ? "True" : "False");
-		NativeLibrary.SetConfig("Dolphin.ini", "Android", "DrawOverlayY", drawingOverlayY ? "True" : "False");
-		NativeLibrary.SetConfig("Dolphin.ini", "Android", "DrawOverlayZ", drawingOverlayZ ? "True" : "False");
-		NativeLibrary.SetConfig("Dolphin.ini", "Android", "DrawOverlayStart", drawingOverlayStart ? "True" : "False");
-		NativeLibrary.SetConfig("Dolphin.ini", "Android", "DrawOverlayL", drawingOverlayL ? "True" : "False");
-		NativeLibrary.SetConfig("Dolphin.ini", "Android", "DrawOverlayR", drawingOverlayR ? "True" : "False");
-		NativeLibrary.SetConfig("Dolphin.ini", "Android", "DrawOverlayStickMain", drawingOverlayStickMain ? "True" : "False");
 
 		// Video Hack Settings
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBAccessEnable", skipEFBAccess ? "False" : "True");
