@@ -181,6 +181,11 @@ void Jit64::Init()
 
 	blocks.Init();
 	asm_routines.Init();
+
+	code_block.m_stats = &js.st;
+	code_block.m_gpa = &js.gpa;
+	code_block.m_fpa = &js.fpa;
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 }
 
 void Jit64::ClearCache()
@@ -404,9 +409,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	// Memory exception on instruction fetch
 	bool memory_exception = false;
 
-	// A broken block is a block that does not end in a branch
-	bool broken_block = false;
-
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
@@ -433,7 +435,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
-	int size = 0;
 	js.firstFPInstructionFound = false;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
@@ -444,17 +445,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	jit->js.numLoadStoreInst = 0;
 	jit->js.numFloatingPointInst = 0;
 
+	u32 nextPC = em_address;
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	u32 nextPC = em_address;
-	u32 merged_addresses[32];
-	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
-	int size_of_merged_addresses = 0;
 	if (!memory_exception)
-	{
-		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
-		nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses);
-	}
+		nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
+
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -499,19 +495,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	js.downcountAmount = 0;
 	if (!Core::g_CoreStartupParameter.bEnableDebugging)
-	{
-		for (int i = 0; i < size_of_merged_addresses; ++i)
-		{
-			const u32 address = merged_addresses[i];
-			js.downcountAmount += PatchEngine::GetSpeedhackCycles(address);
-		}
-	}
+		js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
 	js.skipnext = false;
-	js.blockSize = size;
+	js.blockSize = code_block.m_num_instructions;
 	js.compilerPC = nextPC;
 	// Translate instructions
-	for (int i = 0; i < (int)size; i++)
+	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
 		js.compilerPC = ops[i].address;
 		js.op = &ops[i];
@@ -519,7 +509,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
 
-		if (i == (int)size - 1)
+		if (i == (code_block.m_num_instructions - 1))
 		{
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
@@ -706,7 +696,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		WriteExceptionExit();
 	}
 
-	if (broken_block)
+	if (code_block.m_broken)
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
@@ -715,10 +705,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
-	b->originalSize = size;
+	b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_X86
-	LogGeneratedX86(size, code_buf, normalEntry, b);
+	LogGeneratedX86(code_block.m_num_instructions, code_buf, normalEntry, b);
 #endif
 
 	return normalEntry;

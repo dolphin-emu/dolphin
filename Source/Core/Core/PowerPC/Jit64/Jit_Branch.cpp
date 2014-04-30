@@ -103,7 +103,6 @@ void Jit64::bcx(UGeckoInstruction inst)
 	JITDISABLE(bJITBranchOff)
 
 	// USES_CR
-	_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -142,7 +141,9 @@ void Jit64::bcx(UGeckoInstruction inst)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
-	WriteExit(js.compilerPC + 4);
+
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+		WriteExit(js.compilerPC + 4);
 }
 
 void Jit64::bcctrx(UGeckoInstruction inst)
@@ -190,7 +191,9 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		WriteExitDestInEAX();
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
-		WriteExit(js.compilerPC + 4);
+
+		if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+			WriteExit(js.compilerPC + 4);
 	}
 }
 
@@ -198,13 +201,6 @@ void Jit64::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff)
-
-	if (!js.isLastInstruction &&
-		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
-		if (inst.LK)
-			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-		return;
-	}
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -245,5 +241,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
-	WriteExit(js.compilerPC + 4);
+
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+		WriteExit(js.compilerPC + 4);
 }

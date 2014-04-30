@@ -149,7 +149,6 @@ void JitArm::bcx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff)
 	// USES_CR
-	_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
 
 	gpr.Flush();
 	fpr.Flush();
@@ -203,7 +202,8 @@ void JitArm::bcx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
 
-	WriteExit(js.compilerPC + 4);
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+		WriteExit(js.compilerPC + 4);
 }
 void JitArm::bcctrx(UGeckoInstruction inst)
 {
@@ -265,25 +265,16 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 		WriteExitDestInR(rA);
 
 		SetJumpTarget(b);
-		WriteExit(js.compilerPC + 4);
+
+		if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+			WriteExit(js.compilerPC + 4);
 	}
 }
 void JitArm::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff)
-	if (!js.isLastInstruction &&
-		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
-		if (inst.LK)
-		{
-			ARMReg rA = gpr.GetReg(false);
-			u32 Jumpto = js.compilerPC + 4;
-			MOVI2R(rA, Jumpto);
-			STR(rA, R9, PPCSTATE_OFF(spr[SPR_LR]));
-			// ARMABI_MOVI2M((u32)&LR, js.compilerPC + 4);
-		}
-		return;
-	}
+
 	gpr.Flush();
 	fpr.Flush();
 
@@ -342,5 +333,7 @@ void JitArm::bclrx(UGeckoInstruction inst)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
-	WriteExit(js.compilerPC + 4);
+
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+		WriteExit(js.compilerPC + 4);
 }

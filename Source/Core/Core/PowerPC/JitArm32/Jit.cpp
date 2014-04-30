@@ -40,6 +40,11 @@ void JitArm::Init()
 	fpr.Init(this);
 	jo.enableBlocklink = true;
 	jo.optimizeGatherPipe = true;
+
+	code_block.m_stats = &js.st;
+	code_block.m_gpa = &js.gpa;
+	code_block.m_fpa = &js.fpa;
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 }
 
 void JitArm::ClearCache()
@@ -250,27 +255,27 @@ void JitArm::Trace()
 void JitArm::PrintDebug(UGeckoInstruction inst, u32 level)
 {
 	if (level > 0)
-	printf("Start: %08x OP '%s' Info\n", (u32)GetCodePtr(),  PPCTables::GetInstructionName(inst));
+		WARN_LOG(DYNA_REC, "Start: %08x OP '%s' Info", (u32)GetCodePtr(),  PPCTables::GetInstructionName(inst));
 	if (level > 1)
 	{
 		GekkoOPInfo* Info = GetOpInfo(inst.hex);
-		printf("\tOuts\n");
+		WARN_LOG(DYNA_REC, "\tOuts");
 		if (Info->flags & FL_OUT_A)
-			printf("\t-OUT_A: %x\n", inst.RA);
+			WARN_LOG(DYNA_REC, "\t-OUT_A: %x", inst.RA);
 		if (Info->flags & FL_OUT_D)
-			printf("\t-OUT_D: %x\n", inst.RD);
-		printf("\tIns\n");
+			WARN_LOG(DYNA_REC, "\t-OUT_D: %x", inst.RD);
+		WARN_LOG(DYNA_REC, "\tIns");
 		// A, AO, B, C, S
 		if (Info->flags & FL_IN_A)
-			printf("\t-IN_A: %x\n", inst.RA);
+			WARN_LOG(DYNA_REC, "\t-IN_A: %x", inst.RA);
 		if (Info->flags & FL_IN_A0)
-			printf("\t-IN_A0: %x\n", inst.RA);
+			WARN_LOG(DYNA_REC, "\t-IN_A0: %x", inst.RA);
 		if (Info->flags & FL_IN_B)
-			printf("\t-IN_B: %x\n", inst.RB);
+			WARN_LOG(DYNA_REC, "\t-IN_B: %x", inst.RB);
 		if (Info->flags & FL_IN_C)
-			printf("\t-IN_C: %x\n", inst.RC);
+			WARN_LOG(DYNA_REC, "\t-IN_C: %x", inst.RC);
 		if (Info->flags & FL_IN_S)
-			printf("\t-IN_S: %x\n", inst.RS);
+			WARN_LOG(DYNA_REC, "\t-IN_S: %x", inst.RS);
 	}
 }
 
@@ -298,14 +303,10 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	// Memory exception on instruction fetch
 	bool memory_exception = false;
 
-	// A broken block is a block that does not end in a branch
-	bool broken_block = false;
-
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
 		blockSize = 1;
-		broken_block = true;
 		Trace();
 	}
 
@@ -324,8 +325,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		}
 	}
 
-
-	int size = 0;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
@@ -333,17 +332,12 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	js.block_flags = 0;
 	js.cancel = false;
 
+	u32 nextPC = em_address;
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	u32 nextPC = em_address;
-	u32 merged_addresses[32];
-	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
-	int size_of_merged_addresses = 0;
 	if (!memory_exception)
-	{
-		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
-		nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses);
-	}
+		nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
+
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
 	const u8 *start = GetCodePtr();
@@ -398,20 +392,21 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
 	js.downcountAmount = 0;
+
 	if (!Core::g_CoreStartupParameter.bEnableDebugging)
-	{
-		for (int i = 0; i < size_of_merged_addresses; ++i)
-		{
-			const u32 address = merged_addresses[i];
-			js.downcountAmount += PatchEngine::GetSpeedhackCycles(address);
-		}
-	}
+		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
 	js.skipnext = false;
-	js.blockSize = size;
+	js.blockSize = code_block.m_num_instructions;
 	js.compilerPC = nextPC;
+
+	const int DEBUG_OUTPUT = 0;
+
+	if (DEBUG_OUTPUT)
+		WARN_LOG(DYNA_REC, "-------0x%08x-------", em_address);
+
 	// Translate instructions
-	for (int i = 0; i < (int)size; i++)
+	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
 		js.compilerPC = ops[i].address;
 		js.op = &ops[i];
@@ -419,7 +414,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
 
-		if (i == (int)size - 1)
+		if (i == (code_block.m_num_instructions - 1))
 		{
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
@@ -468,7 +463,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		}
 		if (!ops[i].skip)
 		{
-				PrintDebug(ops[i].inst, 0);
+				PrintDebug(ops[i].inst, DEBUG_OUTPUT);
 				if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 				{
 					// Don't do this yet
@@ -485,7 +480,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	}
 	if (memory_exception)
 		BKPT(0x500);
-	if (broken_block)
+	if (code_block.m_broken)
 	{
 		printf("Broken Block going to 0x%08x\n", nextPC);
 		WriteExit(nextPC);
@@ -493,7 +488,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 
 	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
-	b->originalSize = size;
+	b->originalSize = code_block.m_num_instructions;
 	FlushIcache();
 	return start;
 }
