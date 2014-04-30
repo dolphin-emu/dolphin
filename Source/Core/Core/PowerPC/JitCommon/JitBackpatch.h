@@ -8,6 +8,9 @@
 #include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
 
+// We need at least this many bytes for backpatching.
+const int BACKPATCH_SIZE = 5;
+
 // meh.
 #if defined(_WIN32)
 	#include <windows.h>

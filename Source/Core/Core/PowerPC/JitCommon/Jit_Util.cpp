@@ -98,19 +98,28 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 		}
 
 		result = GetWritableCodePtr();
-		MOVZX(32, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
+		if (accessSize == 8 && signExtend)
+			MOVSX(32, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
+		else
+			MOVZX(32, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
 	}
 	else
 	{
 		MOV(32, R(reg_value), opAddress);
 		result = GetWritableCodePtr();
-		MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
+		if (accessSize == 8 && signExtend)
+			MOVSX(32, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
+		else
+			MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
 	}
 #else
 	if (opAddress.IsImm())
 	{
 		result = GetWritableCodePtr();
-		MOVZX(32, accessSize, reg_value, M(Memory::base + (((u32)opAddress.offset + offset) & Memory::MEMVIEW32_MASK)));
+		if (accessSize == 8 && signExtend)
+			MOVSX(32, accessSize, reg_value, M(Memory::base + (((u32)opAddress.offset + offset) & Memory::MEMVIEW32_MASK)));
+		else
+			MOVZX(32, accessSize, reg_value, M(Memory::base + (((u32)opAddress.offset + offset) & Memory::MEMVIEW32_MASK)));
 	}
 	else
 	{
@@ -118,31 +127,32 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 			MOV(32, R(reg_value), opAddress);
 		AND(32, R(reg_value), Imm32(Memory::MEMVIEW32_MASK));
 		result = GetWritableCodePtr();
-		MOVZX(32, accessSize, reg_value, MDisp(reg_value, (u32)Memory::base + offset));
+		if (accessSize == 8 && signExtend)
+			MOVSX(32, accessSize, reg_value, MDisp(reg_value, (u32)Memory::base + offset));
+		else
+			MOVZX(32, accessSize, reg_value, MDisp(reg_value, (u32)Memory::base + offset));
 	}
 #endif
 
-	// Add a 2 bytes NOP to have some space for the backpatching
-	if (accessSize == 8)
-		NOP(2);
+	switch (accessSize)
+	{
+	case 8:
+		_dbg_assert_(DYNA_REC, BACKPATCH_SIZE - (GetCodePtr() - result <= 0));
+		break;
 
-	if (accessSize == 32)
-	{
-		BSWAP(32, reg_value);
-	}
-	else if (accessSize == 16)
-	{
+	case 16:
 		BSWAP(32, reg_value);
 		if (signExtend)
 			SAR(32, R(reg_value), Imm8(16));
 		else
 			SHR(32, R(reg_value), Imm8(16));
+		break;
+
+	case 32:
+		BSWAP(32, reg_value);
+		break;
 	}
-	else if (signExtend)
-	{
-		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, reg_value, R(reg_value));
-	}
+
 	return result;
 }
 
@@ -472,11 +482,12 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	    )
 	{
 		MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
-		u8 *mov = UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_LOADSTORE_NO_SWAP));
-		if (accessSize == 8)
+		const u8* backpatchStart = GetCodePtr();
+		u8* mov = UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_LOADSTORE_NO_SWAP));
+		int padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
+		if (padding > 0)
 		{
-			NOP(1);
-			NOP(1);
+			NOP(padding);
 		}
 
 		registersInUseAtLoc[mov] = registersInUse;

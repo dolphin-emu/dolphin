@@ -187,7 +187,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		return nullptr;
 	}
 
-	if (info.byteSwap && info.instructionSize < 5)
+	if (info.byteSwap && info.instructionSize < BACKPATCH_SIZE)
 	{
 		PanicAlert("BackPatch: MOVBE is too small");
 		return nullptr;
@@ -206,8 +206,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	{
 		XEmitter emitter(codePtr);
 		int bswapNopCount;
-		if (info.byteSwap)
-			// MOVBE -> no BSWAP following
+		if (info.byteSwap || info.operandSize == 1)
 			bswapNopCount = 0;
 		// Check the following BSWAP for REX byte
 		else if ((codePtr[info.instructionSize] & 0xF0) == 0x40)
@@ -217,7 +216,11 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 
 		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
-		emitter.NOP((int)info.instructionSize + bswapNopCount - 5);
+		int padding = info.instructionSize + bswapNopCount - BACKPATCH_SIZE;
+		if (padding > 0)
+		{
+			emitter.NOP(padding);
+		}
 		return codePtr;
 	}
 	else
@@ -258,11 +261,14 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		XEmitter emitter(start);
 		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
-		emitter.NOP((int)(codePtr + info.instructionSize - emitter.GetCodePtr()));
+		int padding = codePtr + info.instructionSize - emitter.GetCodePtr();
+		if (padding > 0)
+		{
+			emitter.NOP(padding);
+		}
 		return start;
 	}
 #else
 	return 0;
 #endif
 }
-
