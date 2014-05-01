@@ -158,7 +158,7 @@ private:
 		u16 LastAllocated;  //0x0008    2       Last allocated Block
 		u16 Map[BAT_SIZE];  //0x000a    0x1ff8  Map of allocated Blocks
 		u16 GetNextBlock(u16 Block) const;
-		u16 NextFreeBlock(u16 StartingBlock=MC_FST_BLOCKS) const;
+		u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
 		bool ClearBlocks(u16 StartingBlock, u16 Length);
 	} bat,bat_backup;
 
