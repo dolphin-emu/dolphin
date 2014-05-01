@@ -102,7 +102,7 @@ void SHADER::SetProgramBindings()
 	// Need to set some attribute locations
 	glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
 
-	glBindAttribLocation(glprogid, SHADER_POSMTX_ATTRIB,   "fposmtx");
+	glBindAttribLocation(glprogid, SHADER_POSMTX_ATTRIB,   "posmtx");
 
 	glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB,   "color0");
 	glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB,   "color1");
