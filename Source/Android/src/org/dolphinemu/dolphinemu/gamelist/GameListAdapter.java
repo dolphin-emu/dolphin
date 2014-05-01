@@ -70,6 +70,10 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 			}
 		}
 
+		// Make every other game in the list grey
+		if (position % 2 == 1)
+			convertView.setBackgroundColor(0xFFE3E3E3);
+
 		return convertView;
 	}
 }
