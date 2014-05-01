@@ -82,7 +82,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 	if (SUCCEEDED(ForceFeedback::FFDeviceAdapter::Create(IOHIDDeviceGetService(m_device), &m_ff_device)) &&
 		SUCCEEDED(FFDeviceGetForceFeedbackCapabilities(m_ff_device->m_device, &ff_caps)))
 	{
-		InitForceFeedback(m_ff_device, ff_caps.numFfAxes);
+		InitForceFeedback(m_ff_device);
 	}
 }
 

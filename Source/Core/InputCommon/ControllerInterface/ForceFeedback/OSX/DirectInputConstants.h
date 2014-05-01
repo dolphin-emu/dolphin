@@ -11,6 +11,8 @@
  * DirectInput, so some of these definitions may actually only exist on Mac OS X.
  */
 
+#include <ForceFeedback/ForceFeedbackConstants.h>
+
 // UUIDs
 #define GUID_ConstantForce              kFFEffectType_ConstantForce_ID
 #define GUID_CustomForce                kFFEffectType_CustomForce_ID
@@ -145,3 +147,9 @@
 #define DIGFFS_USERFFSWITCHON           FFGFFS_USERFFSWITCHON
 #define DIGFFS_USERFFSWITCHOFF          FFGFFS_USERFFSWITCHOFF
 #define DIGFFS_DEVICELOST               FFGFFS_DEVICELOST
+
+// EffectType
+#define DIEFT_CONSTANTFORCE             FFEFT_CONSTANTFORCE 
+#define DIEFT_RAMPFORCE                 FFEFT_RAMPFORCE
+#define DIEFT_PERIODIC                  FFEFT_PERIODIC
+#define DIEFT_CONDITION                 FFEFT_CONDITION

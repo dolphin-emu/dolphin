@@ -21,47 +21,59 @@
 
 namespace ciface
 {
+
 namespace ForceFeedback
 {
 
-
-class ForceFeedbackDevice : public Core::Device
-{
-private:
-	struct EffectState
-	{
-		EffectState(LPDIRECTINPUTEFFECT eff) : iface(eff), params(nullptr), size(0) {}
-
-		LPDIRECTINPUTEFFECT iface;
-		void*               params; // null when force hasn't changed
-		u8                  size;   // zero when force should stop
-	};
-
-	template <typename P>
-	class Force : public Output
+	class ForceFeedbackDevice : public Core::Device
 	{
 	public:
-		std::string GetName() const;
-		Force(const std::string& name, EffectState& state);
-		void SetState(ControlState state);
+		void InitForceFeedback(const LPDIRECTINPUTDEVICE8);
+		bool UpdateOutput();
+
 	private:
-		const std::string m_name;
-		EffectState& m_state;
-		P params;
+		class EffectState : NonCopyable
+		{
+		public:
+			EffectState(LPDIRECTINPUTEFFECT iface, std::size_t axis_count);
+			~EffectState();
+
+			bool Update();
+			void SetAxisForce(std::size_t axis_offset, LONG magnitude);
+
+		private:
+			LPDIRECTINPUTEFFECT const m_iface;
+			std::vector<LONG> m_axis_directions;
+			bool m_dirty;
+		};
+
+		class Force : public Output
+		{
+		public:
+			std::string GetName() const;
+			Force(const std::string& name, EffectState& effect_state_ref, std::size_t axis_index);
+
+			void SetState(ControlState state);
+
+		private:
+			const std::string m_name;
+			EffectState& m_effect_state_ref;
+			std::size_t const m_axis_index;
+		};
+
+		std::list<EffectState> m_effect_states;
 	};
-	typedef Force<DICONSTANTFORCE>  ForceConstant;
-	typedef Force<DIRAMPFORCE>      ForceRamp;
-	typedef Force<DIPERIODIC>       ForcePeriodic;
-
-public:
-	bool InitForceFeedback(const LPDIRECTINPUTDEVICE8, int cAxes);
-	bool UpdateOutput();
-
-	virtual ~ForceFeedbackDevice();
-private:
-	std::list<EffectState>     m_state_out;
-};
-
 
 }
+
+namespace DInput
+{
+
+	using namespace ForceFeedback;
+
+	HRESULT SetDeviceProperty(const LPDIRECTINPUTDEVICE8 device, REFGUID property_guid, DWORD data);
+	std::string DIJOYSTATE_AxisName(size_t index);
+
+}
+
 }

@@ -216,7 +216,7 @@ ControlState ControllerInterface::InputReference::State( const ControlState igno
 ControlState ControllerInterface::OutputReference::State(const ControlState state)
 {
 	if (parsed_expression)
-		parsed_expression->SetValue(state);
+		parsed_expression->SetValue(state * range);
 	return 0.0f;
 }
 
