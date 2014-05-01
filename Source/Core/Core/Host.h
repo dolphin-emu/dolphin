@@ -25,7 +25,6 @@
 
 bool Host_RendererHasFocus();
 void Host_ConnectWiimote(int wm_idx, bool connect);
-bool Host_GetKeyState(int keycode);
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height);
 void Host_Message(int Id);
 void Host_NotifyMapLoaded();

@@ -940,6 +940,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			OSDChoice = 4;
 			g_Config.bDisableFog = !g_Config.bDisableFog;
 		}
+		else if (IsHotkey(event, HK_TOGGLE_THROTTLE))
+		{
+			Core::SetIsFramelimiterTempDisabled(true);
+		}
 		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
 		{
 			if (++SConfig::GetInstance().m_Framelimit > 0x19)
@@ -1040,7 +1044,18 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 void CFrame::OnKeyUp(wxKeyEvent& event)
 {
-	event.Skip();
+	if(Core::GetState() != Core::CORE_UNINITIALIZED &&
+			(RendererHasFocus() || TASInputHasFocus()))
+	{
+		if (IsHotkey(event, HK_TOGGLE_THROTTLE))
+		{
+			Core::SetIsFramelimiterTempDisabled(false);
+		}
+	}
+	else
+	{
+		event.Skip();
+	}
 }
 
 void CFrame::OnMouse(wxMouseEvent& event)

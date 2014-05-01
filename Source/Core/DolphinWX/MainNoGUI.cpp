@@ -79,11 +79,6 @@ void Host_UpdateMainFrame()
 
 void Host_UpdateBreakPointView(){}
 
-bool Host_GetKeyState(int keycode)
-{
-	return false;
-}
-
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
 	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
