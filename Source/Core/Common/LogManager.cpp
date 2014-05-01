@@ -22,19 +22,6 @@
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		const char *file, int line, const char* fmt, ...)
 {
-#ifdef _WIN32
-	int delimiter = '\\';
-#else
-	int delimiter = '/';
-#endif
-	// The used macro __FILE__ differs between GCC and VS:
-	// GCC defines the full path, VS relative to the local project file.
-	// It would be the best to get the one relative to the project directory,
-	// but the full path is even worse, so just strip it to the filename itself.
-	const char* basefile = strrchr(file, delimiter);
-	if(basefile != nullptr)
-		file = basefile + 1;
-
 	va_list args;
 	va_start(args, fmt);
 	if (LogManager::GetInstance())
