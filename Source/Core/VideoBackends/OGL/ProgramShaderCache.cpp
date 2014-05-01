@@ -476,6 +476,8 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n" // ubo
 		"%s\n" // early-z
 		"%s\n" // 420pack
+		"%s\n" // msaa
+		"%s\n" // sample shading
 
 		// Precision defines for GLSL ES
 		"%s\n"
@@ -504,6 +506,8 @@ void ProgramShaderCache::CreateHeader ( void )
 		, v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
 		, (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ? "#extension GL_ARB_shading_language_420pack : enable" : ""
+		, (g_ogl_config.bSupportsMSAA && v < GLSL_150) ? "#extension GL_ARB_texture_multisample : enable" : ""
+		, (g_ogl_config.bSupportSampleShading) ? "#extension GL_ARB_sample_shading : enable" : ""
 
 		, v>=GLSLES_300 ? "precision highp float;" : ""
 		, v>=GLSLES_300 ? "precision highp int;" : ""
