@@ -516,7 +516,8 @@ static void BeginField(FieldType field)
 	// What should actually happen is that we should pass on the correct width,
 	// stride, and height to the video backend, and it should deinterlace the
 	// output when appropriate.
-	u32 fbWidth = m_PictureConfiguration.STD * (field == FIELD_PROGRESSIVE ? 16 : 8);
+	u32 fbStride = m_PictureConfiguration.STD * (field == FIELD_PROGRESSIVE ? 16 : 8);
+	u32 fbWidth = m_PictureConfiguration.WPL * 16;
 	u32 fbHeight = m_VerticalTimingRegister.ACV * (field == FIELD_PROGRESSIVE ? 1 : 2);
 	u32 xfbAddr;
 
@@ -550,7 +551,7 @@ static void BeginField(FieldType field)
 			  m_VerticalTimingRegister.ACV, fieldTypeNames[field]);
 
 	if (xfbAddr)
-		g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbHeight);
+		g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbStride, fbHeight);
 }
 
 static void EndField()
