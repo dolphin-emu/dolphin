@@ -505,8 +505,18 @@ unsigned int GetTicksPerFrame()
 
 static void BeginField(FieldType field)
 {
-	u32 fbWidth = m_HorizontalStepping.FieldSteps * 16;
-	u32 fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
+	// TODO: the stride and height shouldn't depend on whether the FieldType is
+	// "progressive".  We're actually telling the video backend to draw unspecified
+	// junk.  Due to the way XFB copies work, the unspecified junk is usually
+	// the contents of the other field, so it looks okay in most cases, but we
+	// shouldn't depend on that; a good example of where our output is wrong is
+	// the title screen teaser videos in Metroid Prime.
+	//
+	// What should actually happen is that we should pass on the correct width,
+	// stride, and height to the video backend, and it should deinterlace the
+	// output when appropriate.
+	u32 fbWidth = m_HorizontalStepping.FbSteps * (field == FIELD_PROGRESSIVE ? 16 : 8);
+	u32 fbHeight = m_VerticalTimingRegister.ACV * (field == FIELD_PROGRESSIVE ? 1 : 2);
 	u32 xfbAddr;
 
 	// NTSC and PAL have opposite field orders.
