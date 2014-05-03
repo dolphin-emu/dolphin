@@ -1,5 +1,4 @@
-set(SRCS GLExtensions/GLExtensions.cpp
-	   FramebufferManager.cpp
+set(SRCS FramebufferManager.cpp
 	   GLUtil.cpp
 	   main.cpp
 	   NativeVertexFormat.cpp
@@ -17,6 +16,7 @@ set(SRCS GLExtensions/GLExtensions.cpp
 set(LIBS	videocommon
 			SOIL
 			common
+			epoxy
 			dl
 			${X11_LIBRARIES})
 if(USE_EGL)

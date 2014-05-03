@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include <epoxy/gl.h>
+
 #include "Common/MathUtil.h"
 #include "DolphinWX/GLInterface/GLInterface.h"
-#include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/VideoConfig.h"
 
 #ifndef _WIN32

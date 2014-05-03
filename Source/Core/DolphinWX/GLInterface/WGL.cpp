@@ -17,10 +17,6 @@ static HDC hDC = nullptr;       // Private GDI Device Context
 static HGLRC hRC = nullptr;     // Permanent Rendering Context
 static HINSTANCE dllHandle = nullptr; // Handle to OpenGL32.dll
 
-// typedef from wglext.h
-typedef BOOL(WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
-static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = nullptr;
-
 void cInterfaceWGL::SwapInterval(int Interval)
 {
 	if (wglSwapIntervalEXT)
@@ -133,17 +129,14 @@ bool cInterfaceWGL::Create(void *&window_handle)
 
 bool cInterfaceWGL::MakeCurrent()
 {
-	return wglMakeCurrent(hDC, hRC) ? true : false;
+	bool success = wglMakeCurrent(hDC, hRC) ? true : false;
+	epoxy_handle_external_wglMakeCurrent();
+	return success;
 }
 
 bool cInterfaceWGL::ClearCurrent()
 {
 	bool success = wglMakeCurrent(hDC, nullptr) ? true : false;
-	if (success)
-	{
-		// Grab the swap interval function pointer
-		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
-	}
 	return success;
 }
 
