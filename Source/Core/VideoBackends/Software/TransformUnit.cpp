@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cmath>
 
 #include "Common/Common.h"
@@ -229,7 +230,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 			case LIGHTDIF_CLAMP:
 				{
 					Vec3 ldir = (light->pos - pos).normalized();
-					float diffuse = max(0.0f, ldir * normal);
+					float diffuse = std::max(0.0f, ldir * normal);
 					AddScaledIntegerColor(light->color, diffuse, lightCol);
 				}
 				break;
@@ -247,21 +248,21 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 			float dist2 = ldir.length2();
 			float dist = sqrtf(dist2);
 			ldir = ldir / dist;
-			attn = max(0.0f, ldir * light->dir);
+			attn = std::max(0.0f, ldir * light->dir);
 
 			float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
 			float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
-			attn = SafeDivide(max(0.0f, cosAtt), distAtt);
+			attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
 		}
 		else if (chan.attnfunc == 1) // specular
 		{
 			// donko - what is going on here?  655.36 is a guess but seems about right.
-			attn = (light->pos * normal) > -655.36 ? max(0.0f, (light->dir * normal)) : 0;
+			attn = (light->pos * normal) > -655.36 ? std::max(0.0f, (light->dir * normal)) : 0;
 			ldir.set(1.0f, attn, attn * attn);
 
-			float cosAtt = max(0.0f, light->cosatt * ldir);
+			float cosAtt = std::max(0.0f, light->cosatt * ldir);
 			float distAtt = light->distatt * ldir;
-			attn = SafeDivide(max(0.0f, cosAtt), distAtt);
+			attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
 		}
 		else
 		{
@@ -283,7 +284,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 			case LIGHTDIF_CLAMP:
 				{
-					float difAttn = max(0.0f, ldir * normal);
+					float difAttn = std::max(0.0f, ldir * normal);
 					AddScaledIntegerColor(light->color, attn * difAttn, lightCol);
 				}
 				break;
@@ -314,7 +315,7 @@ void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 			case LIGHTDIF_CLAMP:
 				{
 					Vec3 ldir = (light->pos - pos).normalized();
-					float diffuse = max(0.0f, ldir * normal);
+					float diffuse = std::max(0.0f, ldir * normal);
 					lightCol += light->color[0] * diffuse;
 				}
 				break;
@@ -331,21 +332,21 @@ void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 			float dist2 = ldir.length2();
 			float dist = sqrtf(dist2);
 			ldir = ldir / dist;
-			attn = max(0.0f, ldir * light->dir);
+			attn = std::max(0.0f, ldir * light->dir);
 
 			float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
 			float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
-			attn = SafeDivide(max(0.0f, cosAtt), distAtt);
+			attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
 		}
 		else /* if (chan.attnfunc == 1) */ // specular
 		{
 			// donko - what is going on here?  655.36 is a guess but seems about right.
-			attn = (light->pos * normal) > -655.36 ? max(0.0f, (light->dir * normal)) : 0;
+			attn = (light->pos * normal) > -655.36 ? std::max(0.0f, (light->dir * normal)) : 0;
 			ldir.set(1.0f, attn, attn * attn);
 
 			float cosAtt = light->cosatt * ldir;
 			float distAtt = light->distatt * ldir;
-			attn = SafeDivide(max(0.0f, cosAtt), distAtt);
+			attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
 		}
 
 		switch (chan.diffusefunc)
@@ -362,7 +363,7 @@ void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 			case LIGHTDIF_CLAMP:
 				{
-					float difAttn = max(0.0f, ldir * normal);
+					float difAttn = std::max(0.0f, ldir * normal);
 					lightCol += light->color[0] * attn * difAttn;
 				}
 				break;

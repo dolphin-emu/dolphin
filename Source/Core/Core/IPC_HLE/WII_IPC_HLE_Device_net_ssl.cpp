@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/FileUtil.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_Socket.h"
@@ -174,7 +176,7 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			ssl_set_authmode(&ssl->ctx, SSL_VERIFY_NONE);
 			ssl_set_renegotiation(&ssl->ctx, SSL_RENEGOTIATION_ENABLED);
 
-			memcpy(ssl->hostname, hostname, min((int)BufferOutSize2, NET_SSL_MAX_HOSTNAME_LEN));
+			memcpy(ssl->hostname, hostname, std::min((int)BufferOutSize2, NET_SSL_MAX_HOSTNAME_LEN));
 			ssl->hostname[NET_SSL_MAX_HOSTNAME_LEN-1] = '\0';
 			ssl_set_hostname(&ssl->ctx, ssl->hostname);
 

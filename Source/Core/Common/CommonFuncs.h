@@ -158,15 +158,6 @@ extern "C" {
 	#endif // M_IX86
 #endif // WIN32 ndef
 
-// Dolphin's min and max functions
-#undef min
-#undef max
-
-template<class T>
-inline T min(const T& a, const T& b) {return a > b ? b : a;}
-template<class T>
-inline T max(const T& a, const T& b) {return a > b ? a : b;}
-
 // Generic function to get last error message.
 // Call directly after the command or use the error num.
 // This function might change the error code.

@@ -193,7 +193,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 	u64 position = 0;
 	int num_compressed = 0;
 	int num_stored = 0;
-	int progress_monitor = max<int>(1, header.num_blocks / 1000);
+	int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
 
 	for (u32 i = 0; i < header.num_blocks; i++)
 	{
@@ -299,7 +299,7 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];
-	int progress_monitor = max<int>(1, header.num_blocks / 100);
+	int progress_monitor = std::max<int>(1, header.num_blocks / 100);
 
 	for (u64 i = 0; i < header.num_blocks; i++)
 	{

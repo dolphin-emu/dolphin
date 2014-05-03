@@ -24,6 +24,8 @@ The register allocation is linear scan allocation.
 #pragma warning(disable:4146)   // unary minus operator applied to unsigned type, result still unsigned
 #endif
 
+#include <algorithm>
+
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -76,7 +78,7 @@ static void regMarkUse(RegInfo& R, InstLoc I, InstLoc Op, unsigned OpNum) {
 	unsigned& info = R.IInfo[Op - R.FirstI];
 	if (info == 0) R.IInfo[I - R.FirstI] |= 1 << (OpNum + 1);
 	if (info < 2) info++;
-	R.lastUsed[Op - R.FirstI] = max(R.lastUsed[Op - R.FirstI], I);
+	R.lastUsed[Op - R.FirstI] = std::max(R.lastUsed[Op - R.FirstI], I);
 }
 
 static unsigned regReadUse(RegInfo& R, InstLoc I) {

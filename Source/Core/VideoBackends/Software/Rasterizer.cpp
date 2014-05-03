@@ -2,8 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include <algorithm>
 
+#include "Common/Common.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/HwRasterizer.h"
@@ -231,12 +232,12 @@ inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
 		float *uv1 = rasterBlock.Pixel[1][0].Uv[texcoord];
 		float *uv2 = rasterBlock.Pixel[0][1].Uv[texcoord];
 
-		sDelta = max(fabsf(uv0[0] - uv1[0]), fabsf(uv0[0] - uv2[0]));
-		tDelta = max(fabsf(uv0[1] - uv1[1]), fabsf(uv0[1] - uv2[1]));
+		sDelta = std::max(fabsf(uv0[0] - uv1[0]), fabsf(uv0[0] - uv2[0]));
+		tDelta = std::max(fabsf(uv0[1] - uv1[1]), fabsf(uv0[1] - uv2[1]));
 	}
 
 	// get LOD in s28.4
-	lod = FixedLog2(max(sDelta, tDelta));
+	lod = FixedLog2(std::max(sDelta, tDelta));
 
 	// bias is s2.5
 	int bias = tm0.lod_bias;
@@ -349,16 +350,16 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	const s32 FDY31 = DY31 << 4;
 
 	// Bounding rectangle
-	s32 minx = (min(min(X1, X2), X3) + 0xF) >> 4;
-	s32 maxx = (max(max(X1, X2), X3) + 0xF) >> 4;
-	s32 miny = (min(min(Y1, Y2), Y3) + 0xF) >> 4;
-	s32 maxy = (max(max(Y1, Y2), Y3) + 0xF) >> 4;
+	s32 minx = (std::min(std::min(X1, X2), X3) + 0xF) >> 4;
+	s32 maxx = (std::max(std::max(X1, X2), X3) + 0xF) >> 4;
+	s32 miny = (std::min(std::min(Y1, Y2), Y3) + 0xF) >> 4;
+	s32 maxy = (std::max(std::max(Y1, Y2), Y3) + 0xF) >> 4;
 
 	// scissor
-	minx = max(minx, scissorLeft);
-	maxx = min(maxx, scissorRight);
-	miny = max(miny, scissorTop);
-	maxy = min(maxy, scissorBottom);
+	minx = std::max(minx, scissorLeft);
+	maxx = std::min(maxx, scissorRight);
+	miny = std::max(miny, scissorTop);
+	maxy = std::min(maxy, scissorBottom);
 
 	if (minx >= maxx || miny >= maxy)
 		return;

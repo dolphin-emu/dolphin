@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
@@ -289,8 +291,8 @@ void FifoRecordAnalyzer::WriteTexMapMemory(int texMap, u32 &writtenTexMaps)
 		width >>= 1;
 		height >>= 1;
 
-		width = max(width, fmtWidth);
-		height = max(height, fmtHeight);
+		width = std::max(width, fmtWidth);
+		height = std::max(height, fmtHeight);
 		u32 size = (width * height * fmtDepth) >> 1;
 
 		textureSize += size;
