@@ -15,12 +15,6 @@
 namespace BPFunctions
 {
 
-enum
-{
-	CONFIG_ISWII = 0,
-	CONFIG_SHOWEFBREGIONS
-};
-
 void FlushPipeline();
 void SetGenerationMode();
 void SetScissor();
@@ -34,6 +28,5 @@ void CopyEFB(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcForm
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 void ClearScreen(const EFBRectangle &rc);
 void OnPixelFormatChange();
-bool GetConfig(const int &type);
 void SetInterlacingMode(const BPCmd &bp);
 };

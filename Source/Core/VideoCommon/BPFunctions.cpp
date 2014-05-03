@@ -223,20 +223,6 @@ skip:
 	Renderer::StorePixelFormat(new_format);
 }
 
-bool GetConfig(const int &type)
-{
-	switch (type)
-	{
-	case CONFIG_ISWII:
-		return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	case CONFIG_SHOWEFBREGIONS:
-		return g_ActiveConfig.bShowEFBCopyRegions;
-	default:
-		PanicAlert("GetConfig Error: Unknown Config Type!");
-		return false;
-	}
-}
-
 void SetInterlacingMode(const BPCmd &bp)
 {
 	// TODO

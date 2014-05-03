@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "Common/Thread.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPFunctions.h"
@@ -219,7 +220,7 @@ void BPWritten(const BPCmd& bp)
 			// Check if we are to copy from the EFB or draw to the XFB
 			if (PE_copy.copy_to_xfb == 0)
 			{
-				if (GetConfig(CONFIG_SHOWEFBREGIONS))
+				if (g_ActiveConfig.bShowEFBCopyRegions)
 					stats.efb_regions.push_back(rc);
 
 				CopyEFB(bpmem.copyTexDest << 5, PE_copy.tp_realFormat(),
@@ -272,7 +273,7 @@ void BPWritten(const BPCmd& bp)
 			u8 *ptr = nullptr;
 
 			// TODO - figure out a cleaner way.
-			if (GetConfig(CONFIG_ISWII))
+			if (Core::g_CoreStartupParameter.bWii)
 				ptr = Memory::GetPointer(bpmem.tmem_config.tlut_src << 5);
 			else
 				ptr = Memory::GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);
