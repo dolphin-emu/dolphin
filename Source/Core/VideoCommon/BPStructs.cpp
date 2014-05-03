@@ -198,14 +198,16 @@ static void BPWritten(const BPCmd& bp)
 			// The bottom right is within the rectangle
 			// The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in case 0x49 and 0x4a in this function
 
-			EFBRectangle rc;
-			rc.left = (int)bpmem.copyTexSrcXY.x;
-			rc.top = (int)bpmem.copyTexSrcXY.y;
+			u32 destAddr = bpmem.copyTexDest << 5;
+
+			EFBRectangle srcRect;
+			srcRect.left = (int)bpmem.copyTexSrcXY.x;
+			srcRect.top = (int)bpmem.copyTexSrcXY.y;
 
 			// Here Width+1 like Height, otherwise some textures are corrupted already since the native resolution.
 			// TODO: What's the behavior of out of bound access?
-			rc.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
-			rc.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
+			srcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
+			srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
 			UPE_Copy PE_copy = bpmem.triggerEFBCopy;
 
@@ -213,11 +215,11 @@ static void BPWritten(const BPCmd& bp)
 			if (PE_copy.copy_to_xfb == 0)
 			{
 				if (g_ActiveConfig.bShowEFBCopyRegions)
-					stats.efb_regions.push_back(rc);
+					stats.efb_regions.push_back(srcRect);
 
-				CopyEFB(bpmem.copyTexDest << 5, PE_copy.tp_realFormat(),
-					bpmem.zcontrol.pixel_format, rc, PE_copy.intensity_fmt,
-					PE_copy.half_scale);
+				CopyEFB(destAddr, srcRect,
+					PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
+					PE_copy.intensity_fmt, PE_copy.half_scale);
 			}
 			else
 			{
@@ -240,17 +242,18 @@ static void BPWritten(const BPCmd& bp)
 					xfbLines = MAX_XFB_HEIGHT;
 				}
 
-				Renderer::RenderToXFB(bpmem.copyTexDest << 5,
-						      bpmem.copyMipMapStrideChannels << 4,
-						      (u32)xfbLines,
-						      rc,
+				u32 width = bpmem.copyMipMapStrideChannels << 4;
+				u32 height = xfbLines;
+
+				Renderer::RenderToXFB(destAddr, srcRect,
+						      width, height,
 						      s_gammaLUT[PE_copy.gamma]);
 			}
 
 			// Clear the rectangular region after copying it.
 			if (PE_copy.clear)
 			{
-				ClearScreen(rc);
+				ClearScreen(srcRect);
 			}
 
 			return;

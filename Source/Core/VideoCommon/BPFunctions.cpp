@@ -90,8 +90,9 @@ void SetColorMask()
 	g_renderer->SetColorMask();
 }
 
-void CopyEFB(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
-	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+void CopyEFB(u32 dstAddr, const EFBRectangle& srcRect,
+	     unsigned int dstFormat, PEControl::PixelFormat srcFormat,
+	     bool isIntensity, bool scaleByHalf)
 {
 	// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (g_ActiveConfig.bEFBCopyEnable)
