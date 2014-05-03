@@ -39,11 +39,6 @@ void BPInit()
 	bpmem.bpMask = 0xFFFFFF;
 }
 
-void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xfbLines, u32 xfbAddr, const u32 dstWidth, const u32 dstHeight, float gamma)
-{
-	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc, gamma);
-}
-
 static void BPWritten(const BPCmd& bp)
 {
 	/*
@@ -245,11 +240,11 @@ static void BPWritten(const BPCmd& bp)
 					xfbLines = MAX_XFB_HEIGHT;
 				}
 
-				RenderToXFB(bp, rc, yScale, xfbLines,
-									 bpmem.copyTexDest << 5,
-									 bpmem.copyMipMapStrideChannels << 4,
-									 (u32)xfbLines,
-									 s_gammaLUT[PE_copy.gamma]);
+				Renderer::RenderToXFB(bpmem.copyTexDest << 5,
+						      bpmem.copyMipMapStrideChannels << 4,
+						      (u32)xfbLines,
+						      rc,
+						      s_gammaLUT[PE_copy.gamma]);
 			}
 
 			// Clear the rectangular region after copying it.
