@@ -659,12 +659,4 @@ void BPReload()
 	SetBlendMode();
 	SetColorMask();
 	OnPixelFormatChange();
-	{
-		BPCmd bp = {BPMEM_FIELDMASK, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMASK])};
-		SetInterlacingMode(bp);
-	}
-	{
-		BPCmd bp = {BPMEM_FIELDMODE, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMODE])};
-		SetInterlacingMode(bp);
-	}
 }
