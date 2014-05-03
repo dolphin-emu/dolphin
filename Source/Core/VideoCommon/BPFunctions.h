@@ -37,6 +37,5 @@ void ClearScreen(const EFBRectangle &rc);
 void OnPixelFormatChange();
 u8 *GetPointer(const u32 &address);
 bool GetConfig(const int &type);
-void SetTextureMode(const BPCmd &bp);
 void SetInterlacingMode(const BPCmd &bp);
 };
