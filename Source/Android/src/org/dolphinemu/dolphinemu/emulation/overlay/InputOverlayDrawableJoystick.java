@@ -61,6 +61,7 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 
 	public void TrackEvent(MotionEvent event)
 	{
+		//TODO: Allow joysticks to be used with a finger other than the one that first touches screen
 		int pointerIndex = event.getActionIndex();
 		if (trackid == -1)
 		{
