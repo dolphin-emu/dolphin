@@ -15,16 +15,15 @@ void BPWritten(const BPCmd& bp);
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 void LoadBPReg(u32 value0)
 {
-	//handle the mask register
-	int opcode = value0 >> 24;
-	int oldval = ((u32*)&bpmem)[opcode];
+	int regNum = value0 >> 24;
+	int oldval = ((u32*)&bpmem)[regNum];
 	int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
 	int changes = (oldval ^ newval) & 0xFFFFFF;
 
-	BPCmd bp = {opcode, changes, newval};
+	BPCmd bp = {regNum, changes, newval};
 
-	//reset the mask register
-	if (opcode != 0xFE)
+	// Reset the mask register if we're not trying to set it ourselves.
+	if (regNum != BPMEM_BP_MASK)
 		bpmem.bpMask = 0xFFFFFF;
 
 	BPWritten(bp);
