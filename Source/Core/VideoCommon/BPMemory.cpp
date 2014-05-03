@@ -46,16 +46,16 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 		// TODO: Description
 		break;
 
-	case BPMEM_DISPLAYCOPYFILER: // 0x01
+	case BPMEM_DISPLAYCOPYFILTER: // 0x01
 		// TODO: This is actually the sample pattern used for copies from an antialiased EFB
-		SetRegName(BPMEM_DISPLAYCOPYFILER);
+		SetRegName(BPMEM_DISPLAYCOPYFILTER);
 		// TODO: Description
 		break;
 
 	case 0x02: // 0x02
 	case 0x03: // 0x03
 	case 0x04: // 0x04
-		// TODO: same as BPMEM_DISPLAYCOPYFILER
+		// TODO: same as BPMEM_DISPLAYCOPYFILTER
 		break;
 
 	case BPMEM_EFB_TL: // 0x49

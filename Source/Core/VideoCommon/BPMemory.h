@@ -10,7 +10,7 @@
 #pragma pack(4)
 
 #define BPMEM_GENMODE          0x00
-#define BPMEM_DISPLAYCOPYFILER 0x01 // 0x01 + 4
+#define BPMEM_DISPLAYCOPYFILTER 0x01 // 0x01 + 4
 #define BPMEM_IND_MTXA         0x06 // 0x06 + (3 * 3)
 #define BPMEM_IND_MTXB         0x07 // 0x07 + (3 * 3)
 #define BPMEM_IND_MTXC         0x08 // 0x08 + (3 * 3)

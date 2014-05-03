@@ -335,12 +335,12 @@ void BPWritten(const BPCmd& bp)
 	// Display Copy Filtering Control - GX_SetCopyFilter(u8 aa,u8 sample_pattern[12][2],u8 vf,u8 vfilter[7])
 	// Fields: Destination, Frame2Field, Gamma, Source
 	// ----------------------------------
-	case BPMEM_DISPLAYCOPYFILER:   // if (aa) { use sample_pattern } else { use 666666 }
-	case BPMEM_DISPLAYCOPYFILER+1: // if (aa) { use sample_pattern } else { use 666666 }
-	case BPMEM_DISPLAYCOPYFILER+2: // if (aa) { use sample_pattern } else { use 666666 }
-	case BPMEM_DISPLAYCOPYFILER+3: // if (aa) { use sample_pattern } else { use 666666 }
-	case BPMEM_COPYFILTER0:        // if (vf) { use vfilter } else { use 595000 }
-	case BPMEM_COPYFILTER1:        // if (vf) { use vfilter } else { use 000015 }
+	case BPMEM_DISPLAYCOPYFILTER:   // if (aa) { use sample_pattern } else { use 666666 }
+	case BPMEM_DISPLAYCOPYFILTER+1: // if (aa) { use sample_pattern } else { use 666666 }
+	case BPMEM_DISPLAYCOPYFILTER+2: // if (aa) { use sample_pattern } else { use 666666 }
+	case BPMEM_DISPLAYCOPYFILTER+3: // if (aa) { use sample_pattern } else { use 666666 }
+	case BPMEM_COPYFILTER0:         // if (vf) { use vfilter } else { use 595000 }
+	case BPMEM_COPYFILTER1:         // if (vf) { use vfilter } else { use 000015 }
 		break;
 	// -----------------------------------
 	// Interlacing Control
