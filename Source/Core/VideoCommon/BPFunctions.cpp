@@ -229,8 +229,6 @@ bool GetConfig(const int &type)
 	{
 	case CONFIG_ISWII:
 		return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	case CONFIG_DISABLEFOG:
-		return g_ActiveConfig.bDisableFog;
 	case CONFIG_SHOWEFBREGIONS:
 		return g_ActiveConfig.bShowEFBCopyRegions;
 	default:

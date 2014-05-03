@@ -18,7 +18,6 @@ namespace BPFunctions
 enum
 {
 	CONFIG_ISWII = 0,
-	CONFIG_DISABLEFOG,
 	CONFIG_SHOWEFBREGIONS
 };
 

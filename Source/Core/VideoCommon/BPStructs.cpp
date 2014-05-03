@@ -290,18 +290,18 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_FOGRANGE+3:
 	case BPMEM_FOGRANGE+4:
 	case BPMEM_FOGRANGE+5:
-		if (!GetConfig(CONFIG_DISABLEFOG) && bp.changes)
+		if (bp.changes)
 			PixelShaderManager::SetFogRangeAdjustChanged();
 		break;
 	case BPMEM_FOGPARAM0:
 	case BPMEM_FOGBMAGNITUDE:
 	case BPMEM_FOGBEXPONENT:
 	case BPMEM_FOGPARAM3:
-		if (!GetConfig(CONFIG_DISABLEFOG) && bp.changes)
+		if (bp.changes)
 			PixelShaderManager::SetFogParamChanged();
 		break;
 	case BPMEM_FOGCOLOR: // Fog Color
-		if (!GetConfig(CONFIG_DISABLEFOG) && bp.changes)
+		if (bp.changes)
 			PixelShaderManager::SetFogColorChanged();
 		break;
 	case BPMEM_ALPHACOMPARE: // Compare Alpha Values

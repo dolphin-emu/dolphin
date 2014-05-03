@@ -268,6 +268,9 @@ void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 
 void PixelShaderManager::SetFogColorChanged()
 {
+	if (g_ActiveConfig.bDisableFog)
+		return;
+
 	constants.fogcolor[0] = bpmem.fog.color.r;
 	constants.fogcolor[1] = bpmem.fog.color.g;
 	constants.fogcolor[2] = bpmem.fog.color.b;
@@ -295,6 +298,9 @@ void PixelShaderManager::SetFogParamChanged()
 
 void PixelShaderManager::SetFogRangeAdjustChanged()
 {
+	if (g_ActiveConfig.bDisableFog)
+		return;
+
 	s_bFogRangeAdjustChanged = true;
 }
 
