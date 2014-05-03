@@ -273,9 +273,9 @@ void BPWritten(const BPCmd& bp)
 
 			// TODO - figure out a cleaner way.
 			if (GetConfig(CONFIG_ISWII))
-				ptr = GetPointer(bpmem.tmem_config.tlut_src << 5);
+				ptr = Memory::GetPointer(bpmem.tmem_config.tlut_src << 5);
 			else
-				ptr = GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);
+				ptr = Memory::GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);
 
 			if (ptr)
 				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);

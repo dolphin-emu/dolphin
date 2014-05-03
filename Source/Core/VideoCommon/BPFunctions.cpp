@@ -239,11 +239,6 @@ bool GetConfig(const int &type)
 	}
 }
 
-u8 *GetPointer(const u32 &address)
-{
-	return Memory::GetPointer(address);
-}
-
 void SetInterlacingMode(const BPCmd &bp)
 {
 	// TODO
