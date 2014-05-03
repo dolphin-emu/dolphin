@@ -330,8 +330,6 @@ if(ANDROID)
 	add_definitions(-DUSE_EGL=1)
 endif()
 
-include_directories(Externals/GL)
-
 # For now Wayland and EGL are tied to each other.
 # The alternative would be an shm path
 if(USE_WAYLAND)
