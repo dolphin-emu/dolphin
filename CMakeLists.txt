@@ -209,6 +209,10 @@ endif()
 
 if(ENABLE_LTO)
 	check_and_add_flag(LTO -flto)
+	if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+		set(CMAKE_AR gcc-ar)
+		set(CMAKE_RANLIB gcc-ranlib)
+	endif()
 endif()
 
 if(APPLE)
