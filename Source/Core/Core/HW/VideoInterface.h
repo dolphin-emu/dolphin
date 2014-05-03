@@ -135,8 +135,8 @@ union UVIHorizontalTiming0
 	struct { u16 Lo, Hi; };
 	struct
 	{
-		u32 HLW : 9; // Halfline Width (W*16 = Width (720))
-		u32     : 7;
+		u32 HLW : 10; // Halfline Width (W*16 = Width (720))
+		u32     : 6;
 		u32 HCE : 7; // Horizontal Sync Start to Color Burst End
 		u32     : 1;
 		u32 HCS : 7; // Horizontal Sync Start to Color Burst Start
@@ -151,10 +151,9 @@ union UVIHorizontalTiming1
 	struct
 	{
 		u32 HSY    : 7; // Horizontal Sync Width
-		u32 HBE640 : 9; // Horizontal Sync Start to horizontal blank end
-		u32        : 1;
-		u32 HBS640 : 9; // Half line to horizontal blanking start
-		u32        : 6;
+		u32 HBE640 : 10; // Horizontal Sync Start to horizontal blank end
+		u32 HBS640 : 10; // Half line to horizontal blanking start
+		u32        : 5;
 	};
 };
 
@@ -232,13 +231,14 @@ union UVILatchRegister
 	};
 };
 
-union UVIHorizontalStepping
+union PictureConfigurationRegister
 {
 	u16 Hex;
 	struct
 	{
-		u16 FbSteps    : 8;
-		u16 FieldSteps : 8;
+		u16 STD  : 8;
+		u16 WPL  : 7;
+		u16      : 1;
 	};
 };
 
@@ -313,6 +313,16 @@ union UVIDTVStatus
 		u16 component_plugged : 1;
 		u16 ntsc_j            : 1;
 		u16                   :14;
+	};
+};
+
+union UVIHorizontalStepping
+{
+	u16 Hex;
+	struct
+	{
+		u16 srcwidth : 10;
+		u16          :  6;
 	};
 };
 

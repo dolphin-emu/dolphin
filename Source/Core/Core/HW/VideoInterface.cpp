@@ -39,13 +39,13 @@ static u16                       m_VBeamPos = 0;    // 0: Inactive
 static u16                       m_HBeamPos = 0;    // 0: Inactive
 static UVIInterruptRegister      m_InterruptRegister[4];
 static UVILatchRegister          m_LatchRegister[2];
-static UVIHorizontalStepping     m_HorizontalStepping;
+static PictureConfigurationRegister  m_PictureConfiguration;
 static UVIHorizontalScaling      m_HorizontalScaling;
 static SVIFilterCoefTables       m_FilterCoefTables;
 static u32                       m_UnkAARegister = 0;// ??? 0x00FF0000
 static u16                       m_Clock = 0;       // 0: 27MHz, 1: 54MHz
 static UVIDTVStatus              m_DTVStatus;
-static u16                       m_FBWidth = 0;     // Only correct when scaling is enabled?
+static UVIHorizontalStepping     m_FBWidth;         // Only correct when scaling is enabled?
 static UVIBorderBlankRegister    m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
@@ -76,7 +76,7 @@ void DoState(PointerWrap &p)
 	p.Do(m_HBeamPos);
 	p.DoArray(m_InterruptRegister, 4);
 	p.DoArray(m_LatchRegister, 2);
-	p.Do(m_HorizontalStepping);
+	p.Do(m_PictureConfiguration);
 	p.DoPOD(m_HorizontalScaling);
 	p.Do(m_FilterCoefTables);
 	p.Do(m_UnkAARegister);
@@ -129,8 +129,8 @@ void Preset(bool _bNTSC)
 	m_InterruptRegister[1].IR_MASK = 1;
 	m_InterruptRegister[1].IR_INT = 0;
 
-	m_HorizontalStepping.FbSteps = 40;
-	m_HorizontalStepping.FieldSteps = 40;
+	m_PictureConfiguration.STD = 40;
+	m_PictureConfiguration.WPL = 40;
 
 	m_HBeamPos = -1; // NTSC-U N64 VC games check for a non-zero HBeamPos
 	m_VBeamPos = 0; // RG4JC0 checks for a zero VBeamPos
@@ -160,12 +160,12 @@ void Init()
 	m_3DFBInfoBottom.Hex = 0;
 	m_VBeamPos = 0;
 	m_HBeamPos = 0;
-	m_HorizontalStepping.Hex = 0;
+	m_PictureConfiguration.Hex = 0;
 	m_HorizontalScaling.Hex = 0;
 	m_UnkAARegister = 0;
 	m_Clock = 0;
 	m_DTVStatus.Hex = 0;
-	m_FBWidth = 0;
+	m_FBWidth.Hex = 0;
 	m_BorderHBlank.Hex = 0;
 	memset(&m_FilterCoefTables, 0, sizeof(m_FilterCoefTables));
 
@@ -218,7 +218,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		{ VI_DISPLAY_LATCH_0_LO, &m_LatchRegister[0].Lo },
 		{ VI_DISPLAY_LATCH_1_HI, &m_LatchRegister[1].Hi },
 		{ VI_DISPLAY_LATCH_1_LO, &m_LatchRegister[1].Lo },
-		{ VI_HSCALEW, &m_HorizontalStepping.Hex },
+		{ VI_HSCALEW, &m_PictureConfiguration.Hex },
 		{ VI_HSCALER, &m_HorizontalScaling.Hex },
 		{ VI_FILTER_COEF_0_HI, &m_FilterCoefTables.Tables02[0].Hi },
 		{ VI_FILTER_COEF_0_LO, &m_FilterCoefTables.Tables02[0].Lo },
@@ -236,7 +236,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		{ VI_FILTER_COEF_6_LO, &m_FilterCoefTables.Tables36[3].Lo },
 		{ VI_CLOCK, &m_Clock },
 		{ VI_DTV_STATUS, &m_DTVStatus.Hex },
-		{ VI_FBWIDTH, &m_FBWidth },
+		{ VI_FBWIDTH, &m_FBWidth.Hex },
 		{ VI_BORDER_BLANK_END, &m_BorderHBlank.Lo },
 		{ VI_BORDER_BLANK_START, &m_BorderHBlank.Hi },
 	};
@@ -515,7 +515,7 @@ static void BeginField(FieldType field)
 	// What should actually happen is that we should pass on the correct width,
 	// stride, and height to the video backend, and it should deinterlace the
 	// output when appropriate.
-	u32 fbWidth = m_HorizontalStepping.FbSteps * (field == FIELD_PROGRESSIVE ? 16 : 8);
+	u32 fbWidth = m_PictureConfiguration.STD * (field == FIELD_PROGRESSIVE ? 16 : 8);
 	u32 fbHeight = m_VerticalTimingRegister.ACV * (field == FIELD_PROGRESSIVE ? 1 : 2);
 	u32 xfbAddr;
 
@@ -545,8 +545,8 @@ static void BeginField(FieldType field)
 	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
 
 	DEBUG_LOG(VIDEOINTERFACE,
-			  "(VI->BeginField): Address: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
-			  xfbAddr, m_HorizontalStepping.FieldSteps,m_HorizontalStepping.FbSteps,
+			  "(VI->BeginField): Address: %.08X | WPL %u | STD %u | ACV %u | Field %s",
+			  xfbAddr, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
 			  m_VerticalTimingRegister.ACV, fieldTypeNames[field]);
 
 	if (xfbAddr)
