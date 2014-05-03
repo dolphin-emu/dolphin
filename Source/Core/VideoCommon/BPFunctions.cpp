@@ -34,11 +34,22 @@ void SetGenerationMode()
 
 void SetScissor()
 {
-	const int xoff = bpmem.scissorOffset.x * 2 - 342;
-	const int yoff = bpmem.scissorOffset.y * 2 - 342;
+	/* NOTE: the minimum value here for the scissor rect and offset is -342.
+	 * GX internally adds on an offset of 342 to both the offset and scissor
+	 * coords to ensure that the register was always unsigned.
+	 *
+	 * The code that was here before tried to "undo" this offset, but
+	 * since we always take the difference, the +342 added to both
+	 * sides cancels out. */
 
-	EFBRectangle rc (bpmem.scissorTL.x - xoff - 342, bpmem.scissorTL.y - yoff - 342,
-					bpmem.scissorBR.x - xoff - 341, bpmem.scissorBR.y - yoff - 341);
+	/* The scissor offset is always even, so to save space, the scissor offset
+	 * register is scaled down by 2. So, if somebody calls
+	 * GX_SetScissorBoxOffset(20, 20); the registers will be set to 10, 10. */
+	const int xoff = bpmem.scissorOffset.x * 2;
+	const int yoff = bpmem.scissorOffset.y * 2;
+
+	EFBRectangle rc (bpmem.scissorTL.x - xoff,     bpmem.scissorTL.y - yoff,
+	                 bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
 
 	if (rc.left < 0) rc.left = 0;
 	if (rc.top < 0) rc.top = 0;
