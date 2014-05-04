@@ -394,18 +394,20 @@ wxString NiceSizeFormat(u64 _size)
 {
 	const char* const unit_symbols[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"};
 
-	//very ugly and inefficient rounding
-	const u64 temp = Log2(std::max<u64>(_size, 1)) / 10;
-	const u64 temp_size = (1 << (temp * 10));
-	const u64 next_size = (temp_size << 10);
-	const bool size_up = (_size + next_size / 2) >= next_size;
-	const u64 unit = (size_up) ? temp + 1 : temp;
-	const u64 unit_size = (size_up) ? next_size : temp_size;
+	// gets the magnitude (unit) of the filesize first
+	u64 unit = Log2(std::max<u64>(_size, 1)) / 10;
+	u64 unit_size = (1ULL << (unit * 10));
+	
+	// then adjusts upwards if more than halfway to the next unit
+	u64 next_size = (unit_size << 10);
+	if (_size >= next_size / 2) {
+		unit += 1;
+		unit_size = next_size;
+	}
 
-	const u64 value = _size / unit_size;
-	const u64 frac = round(((double)(_size % unit_size) / (double)(unit_size)) * 10.0);
+	const double value = (double)_size / (double)unit_size;
 
-	return StrToWxStr(StringFromFormat("%" PRIu64 ".%" PRIu64 " %s", value, frac, unit_symbols[unit]));
+	return StrToWxStr(StringFromFormat("%.1f %s", value, unit_symbols[unit]));
 }
 
 void CGameListCtrl::InsertItemInReportView(long _Index)
