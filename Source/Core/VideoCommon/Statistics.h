@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
-
-#pragma once
 
 struct Statistics
 {
