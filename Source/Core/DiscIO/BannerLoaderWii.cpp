@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -21,8 +22,6 @@ namespace DiscIO
 {
 
 CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
-	: m_pBannerFile(nullptr)
-	, m_IsValid(false)
 {
 	char Filename[260];
 	u64 TitleID;
@@ -79,11 +78,12 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 
 	if (FileSize > 0)
 	{
-		m_pBannerFile = new u8[FileSize];
+		m_bannerfile = std::unique_ptr<u8[]>(new u8[FileSize]);
+
 		File::IOFile pFile(Filename, "rb");
 		if (pFile)
 		{
-			pFile.ReadBytes(m_pBannerFile, FileSize);
+			pFile.ReadBytes(m_bannerfile.get(), FileSize);
 			m_IsValid = true;
 		}
 	}
@@ -91,21 +91,11 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 
 CBannerLoaderWii::~CBannerLoaderWii()
 {
-	if (m_pBannerFile)
-	{
-		delete [] m_pBannerFile;
-		m_pBannerFile = nullptr;
-	}
-}
-
-bool CBannerLoaderWii::IsValid()
-{
-	return m_IsValid;
 }
 
 std::vector<u32> CBannerLoaderWii::GetBanner(int* pWidth, int* pHeight)
 {
-	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
+	SWiiBanner* pBanner = (SWiiBanner*)m_bannerfile.get();
 	std::vector<u32> Buffer;
 	Buffer.resize(192 * 64);
 	ColorUtil::decode5A3image(&Buffer[0], (u16*)pBanner->m_BannerTexture, 192, 64);
@@ -118,7 +108,7 @@ bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::stri
 {
 	if (IsValid())
 	{
-		auto const banner = reinterpret_cast<const SWiiBanner*>(m_pBannerFile);
+		auto const banner = reinterpret_cast<const SWiiBanner*>(m_bannerfile.get());
 		auto const src_ptr = banner->m_Comment[index];
 
 		// Trim at first nullptr

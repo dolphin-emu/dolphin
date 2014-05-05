@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -19,21 +20,30 @@ class IBannerLoader
 {
 	public:
 
-		IBannerLoader()
-		{}
+		IBannerLoader() : m_IsValid(false)
+		{
+		}
 
 
 		virtual ~IBannerLoader()
-		{}
+		{
+		}
 
 
-		virtual bool IsValid() = 0;
+		bool IsValid()
+		{
+			return m_IsValid;
+		}
 
 		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
 
 		virtual std::vector<std::string> GetNames() = 0;
 		virtual std::string GetCompany() = 0;
 		virtual std::vector<std::string> GetDescriptions() = 0;
+
+protected:
+	std::unique_ptr<u8[]> m_bannerfile;
+	bool m_IsValid;
 };
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume);

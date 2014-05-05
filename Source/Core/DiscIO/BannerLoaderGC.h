@@ -25,8 +25,6 @@ class CBannerLoaderGC final : public IBannerLoader
 		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume);
 		virtual ~CBannerLoaderGC();
 
-		virtual bool IsValid() override;
-
 		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) override;
 
 		virtual std::vector<std::string> GetNames() override;
@@ -78,10 +76,7 @@ class CBannerLoaderGC final : public IBannerLoader
 			return string_decoder(std::string(data, strnlen(data, sizeof(data))));
 		}
 
-		u8* m_pBannerFile;
-		bool m_IsValid;
 		BANNER_TYPE m_BNRType;
-
 		BANNER_TYPE getBannerType();
 
 		DiscIO::IVolume::ECountry const m_country;

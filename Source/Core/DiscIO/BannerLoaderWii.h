@@ -23,8 +23,6 @@ class CBannerLoaderWii final : public IBannerLoader
 
 		virtual ~CBannerLoaderWii();
 
-		virtual bool IsValid() override;
-
 		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) override;
 
 		virtual std::vector<std::string> GetNames() override;
@@ -59,10 +57,6 @@ class CBannerLoaderWii final : public IBannerLoader
 			u8  m_BannerTexture[TEXTURE_SIZE];
 			u8  m_IconTexture[8][ICON_SIZE];
 		} ;
-
-		u8* m_pBannerFile;
-
-		bool m_IsValid;
 
 		bool GetStringFromComments(const CommentIndex index, std::string& s);
 };

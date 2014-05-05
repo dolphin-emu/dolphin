@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -16,50 +17,43 @@
 namespace DiscIO
 {
 CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume)
-	: m_pBannerFile(nullptr)
-	, m_IsValid(false)
-	, m_country(volume->GetCountry())
+	: m_country(volume->GetCountry())
 {
 	// load the opening.bnr
 	size_t FileSize = (size_t) _rFileSystem.GetFileSize("opening.bnr");
 	if (FileSize == BNR1_SIZE || FileSize == BNR2_SIZE)
 	{
-		m_pBannerFile = new u8[FileSize];
-		if (m_pBannerFile)
+		m_bannerfile = std::unique_ptr<u8[]>(new u8[FileSize]);
+
+		_rFileSystem.ReadFile("opening.bnr", m_bannerfile.get(), FileSize);
+
+		m_BNRType = getBannerType();
+		if (m_BNRType == BANNER_UNKNOWN)
 		{
-			_rFileSystem.ReadFile("opening.bnr", m_pBannerFile, FileSize);
-			m_BNRType = getBannerType();
-			if (m_BNRType == BANNER_UNKNOWN)
-				PanicAlertT("Invalid opening.bnr found in gcm:\n%s\n You may need to redump this game.",
-					_rFileSystem.GetVolume()->GetName().c_str());
-			else m_IsValid = true;
+			PanicAlertT("Invalid opening.bnr found in gcm:\n%s\n You may need to redump this game.",
+				_rFileSystem.GetVolume()->GetName().c_str());
+		}
+		else
+		{
+			m_IsValid = true;
 		}
 	}
-	else WARN_LOG(DISCIO, "Invalid opening.bnr size: %0lx",
-		(unsigned long)FileSize);
+	else
+	{
+		WARN_LOG(DISCIO, "Invalid opening.bnr size: %0lx", (unsigned long)FileSize);
+	}
 }
 
 
 CBannerLoaderGC::~CBannerLoaderGC()
 {
-	if (m_pBannerFile)
-	{
-		delete [] m_pBannerFile;
-		m_pBannerFile = nullptr;
-	}
-}
-
-
-bool CBannerLoaderGC::IsValid()
-{
-	return m_IsValid;
 }
 
 std::vector<u32> CBannerLoaderGC::GetBanner(int* pWidth, int* pHeight)
 {
 	std::vector<u32> Buffer;
 	Buffer.resize(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT);
-	auto const pBanner = (DVDBanner*)m_pBannerFile;
+	auto const pBanner = (DVDBanner*)m_bannerfile.get();
 	ColorUtil::decode5A3image(&Buffer[0], pBanner->image, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT);
 	*pWidth = DVD_BANNER_WIDTH;
 	*pHeight = DVD_BANNER_HEIGHT;
@@ -93,7 +87,7 @@ std::vector<std::string> CBannerLoaderGC::GetNames()
 		break;
 	}
 
-	auto const banner = reinterpret_cast<const DVDBanner*>(m_pBannerFile);
+	auto const banner = reinterpret_cast<const DVDBanner*>(m_bannerfile.get());
 
 	for (u32 i = 0; i != name_count; ++i)
 	{
@@ -121,7 +115,7 @@ std::string CBannerLoaderGC::GetCompany()
 
 	if (IsValid())
 	{
-		auto const pBanner = (DVDBanner*)m_pBannerFile;
+		auto const pBanner = (DVDBanner*)m_bannerfile.get();
 		auto& data = pBanner->comment[0].shortMaker;
 		company = GetDecodedString(data);
 	}
@@ -157,7 +151,7 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 		break;
 	}
 
-	auto banner = reinterpret_cast<const DVDBanner*>(m_pBannerFile);
+	auto banner = reinterpret_cast<const DVDBanner*>(m_bannerfile.get());
 
 	for (u32 i = 0; i != desc_count; ++i)
 	{
@@ -170,7 +164,7 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 
 CBannerLoaderGC::BANNER_TYPE CBannerLoaderGC::getBannerType()
 {
-	u32 bannerSignature = *(u32*)m_pBannerFile;
+	u32 bannerSignature = *(u32*)m_bannerfile.get();
 	CBannerLoaderGC::BANNER_TYPE type = CBannerLoaderGC::BANNER_UNKNOWN;
 	switch (bannerSignature)
 	{
