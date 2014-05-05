@@ -7,9 +7,6 @@
     <Filter Include="ControllerInterface\DInput">
       <UniqueIdentifier>{0289ef91-50f5-4c16-9fa4-ff4c4d8208e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ControllerInterface\SDL">
-      <UniqueIdentifier>{770bf6f3-b0c3-4731-be52-46f54b4cb319}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ControllerInterface\XInput">
       <UniqueIdentifier>{07bad1aa-7e03-4f5c-ade2-a44857c5cbc3}</UniqueIdentifier>
     </Filter>
@@ -33,9 +30,6 @@
     </ClCompile>
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp">
       <Filter>ControllerInterface\XInput</Filter>
-    </ClCompile>
-    <ClCompile Include="ControllerInterface\SDL\SDL.cpp">
-      <Filter>ControllerInterface\SDL</Filter>
     </ClCompile>
     <ClCompile Include="ControllerInterface\Device.cpp">
       <Filter>ControllerInterface</Filter>
@@ -68,9 +62,6 @@
     </ClInclude>
     <ClInclude Include="ControllerInterface\XInput\XInput.h">
       <Filter>ControllerInterface\XInput</Filter>
-    </ClInclude>
-    <ClInclude Include="ControllerInterface\SDL\SDL.h">
-      <Filter>ControllerInterface\SDL</Filter>
     </ClInclude>
     <ClInclude Include="ControllerInterface\ControllerInterface.h">
       <Filter>ControllerInterface</Filter>
