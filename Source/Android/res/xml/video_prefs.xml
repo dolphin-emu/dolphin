@@ -28,6 +28,11 @@
             android:summary="@string/anisotropic_filtering_descrip"
             android:title="@string/anisotropic_filtering"/>
 
+        <ListPreference
+            android:key="postProcessingShader"
+            android:summary="@string/postprocessing_shader_descrip"
+            android:title="@string/postprocessing_shader"/>
+
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="scaledEFBCopy"
