@@ -65,7 +65,7 @@ public:
 
 
 // we open the NAND Content files to often... lets cache them
-class CNANDContentManager
+class CNANDContentManager final
 {
 public:
 
@@ -88,7 +88,7 @@ private:
 
 };
 
-class CSharedContent
+class CSharedContent final
 {
 public:
 
@@ -99,7 +99,6 @@ public:
 	void UpdateLocation();
 
 private:
-
 
 	CSharedContent();
 
@@ -119,7 +118,7 @@ private:
 	static CSharedContent m_Instance;
 };
 
-class cUIDsys
+class cUIDsys final
 {
 public:
 

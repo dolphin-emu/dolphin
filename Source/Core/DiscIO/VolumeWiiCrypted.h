@@ -18,7 +18,7 @@ namespace DiscIO
 
 class IBlobReader;
 
-class CVolumeWiiCrypted : public IVolume
+class CVolumeWiiCrypted final : public IVolume
 {
 public:
 	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);

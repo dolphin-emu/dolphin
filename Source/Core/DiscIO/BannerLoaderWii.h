@@ -15,8 +15,7 @@ namespace DiscIO
 
 class IVolume;
 
-class CBannerLoaderWii
-	: public IBannerLoader
+class CBannerLoaderWii final : public IBannerLoader
 {
 	public:
 

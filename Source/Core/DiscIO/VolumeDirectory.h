@@ -20,7 +20,7 @@ namespace File { struct FSTEntry; }
 namespace DiscIO
 {
 
-class CVolumeDirectory : public IVolume
+class CVolumeDirectory final : public IVolume
 {
 public:
 

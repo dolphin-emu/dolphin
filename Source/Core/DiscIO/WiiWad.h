@@ -13,7 +13,7 @@ namespace DiscIO
 
 class IBlobReader;
 
-class WiiWAD
+class WiiWAD final
 {
 public:
 

@@ -14,7 +14,7 @@
 namespace DiscIO
 {
 
-class PlainFileReader : public IBlobReader
+class PlainFileReader final : public IBlobReader
 {
 	PlainFileReader(std::FILE* file);
 

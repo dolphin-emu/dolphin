@@ -19,8 +19,7 @@ namespace DiscIO
 
 class IFileSystem;
 
-class CBannerLoaderGC
-	: public IBannerLoader
+class CBannerLoaderGC final : public IBannerLoader
 {
 	public:
 		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume);

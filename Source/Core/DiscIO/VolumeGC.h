@@ -17,7 +17,7 @@ namespace DiscIO
 
 class IBlobReader;
 
-class CVolumeGC : public IVolume
+class CVolumeGC final : public IVolume
 {
 public:
 	CVolumeGC(IBlobReader* _pReader);
