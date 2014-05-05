@@ -554,11 +554,12 @@ u16 GCMemcard::BlockAlloc::GetNextBlock(u16 Block) const
 	return Common::swap16(Map[Block-MC_FST_BLOCKS]);
 }
 
-u16 GCMemcard::BlockAlloc::NextFreeBlock(u16 StartingBlock) const
+u16 GCMemcard::BlockAlloc::NextFreeBlock(u16 MaxBlock, u16 StartingBlock) const
 {
 	if (FreeBlocks)
 	{
-		for (u16 i = StartingBlock; i < BAT_SIZE; ++i)
+		MaxBlock = std::min<u16>(MaxBlock, BAT_SIZE);
+		for (u16 i = StartingBlock; i < MaxBlock; ++i)
 			if (Map[i-MC_FST_BLOCKS] == 0)
 				return i;
 
@@ -638,7 +639,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 	}
 
 	// find first free data block
-	u16 firstBlock = CurrentBat->NextFreeBlock(BE16(CurrentBat->LastAllocated));
+	u16 firstBlock = CurrentBat->NextFreeBlock(maxBlock - MC_FST_BLOCKS, BE16(CurrentBat->LastAllocated));
 	if (firstBlock == 0xFFFF)
 		return OUTOFBLOCKS;
 	Directory UpdatedDir = *CurrentDir;
@@ -683,7 +684,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 		if (i == fileBlocks-1)
 			nextBlock = 0xFFFF;
 		else
-			nextBlock = UpdatedBat.NextFreeBlock(firstBlock+1);
+			nextBlock = UpdatedBat.NextFreeBlock(maxBlock - MC_FST_BLOCKS, firstBlock + 1);
 		UpdatedBat.Map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
 		UpdatedBat.LastAllocated = BE16(firstBlock);
 		firstBlock = nextBlock;
