@@ -9,7 +9,7 @@ void main()
 	float red = c0.r;
 	float blue = c0.b;
 	float green = c0.g;
-	float factor = 2;
+	float factor = 2.0;
 	float max = 0.8;
 	float min = 0.3;
 

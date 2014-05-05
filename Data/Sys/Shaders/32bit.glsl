@@ -8,7 +8,7 @@ uniform vec4 resolution;
 void main()
 {
   //Change this number to increase the pixel size.
-  float pixelSize = 2;
+  float pixelSize = 2.0;
 
   float red   = 0.0;
   float green = 0.0;
