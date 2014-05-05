@@ -135,7 +135,7 @@ namespace DriverDetails
 		// Bug: GLSL ES 3.0 textureSize causes abort
 		// Affected devices: Adreno a3xx
 		// Started Version: -1 (Noticed in v53)
-		// Ended Version: -1
+		// Ended Version: 66
 		// If a shader includes a textureSize function call then the shader compiler will call abort()
 		BUG_BROKENTEXTURESIZE,
 		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams
