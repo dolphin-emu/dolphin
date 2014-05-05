@@ -550,7 +550,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 {
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
-	bool bHasIndStage = bpmem.tevind[n].IsActive() && bpmem.tevind[n].bt < bpmem.genMode.numindstages;
+	bool bHasIndStage = bpmem.tevind[n].bt < bpmem.genMode.numindstages;
 	// HACK to handle cases where the tex gen is not enabled
 	if (!bHasTexCoord)
 		texcoord = 0;
@@ -579,24 +579,24 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 			// TODO: Should we reset alphabump to 0 here?
 		}
 
-		// format
-		const char *tevIndFmtMask[]   = {"255", "31", "15", "7" };
-		out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, bpmem.tevind[n].bt, tevIndFmtMask[bpmem.tevind[n].fmt]);
-
-		// bias - TODO: Check if this needs to be this complicated..
-		const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
-		const char *tevIndBiasAdd[]    = {"-128", "1", "1", "1" }; // indexed by fmt
-		if (bpmem.tevind[n].bias == ITB_S || bpmem.tevind[n].bias == ITB_T || bpmem.tevind[n].bias == ITB_U)
-			out.Write("\tiindtevcrd%d.%s += int(%s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
-		else if (bpmem.tevind[n].bias == ITB_ST || bpmem.tevind[n].bias == ITB_SU || bpmem.tevind[n].bias == ITB_TU)
-			out.Write("\tiindtevcrd%d.%s += int2(%s, %s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt]);
-		else if (bpmem.tevind[n].bias == ITB_STU)
-			out.Write("\tiindtevcrd%d.%s += int3(%s, %s, %s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt]);
-
-		// multiply by offset matrix and scale - calculations are likely to overflow badly,
-		// yet it works out since we only care about the lower 23 bits (+1 sign bit) of the result
 		if (bpmem.tevind[n].mid != 0)
 		{
+			// format
+			const char *tevIndFmtMask[] = { "255", "31", "15", "7" };
+			out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, bpmem.tevind[n].bt, tevIndFmtMask[bpmem.tevind[n].fmt]);
+
+			// bias - TODO: Check if this needs to be this complicated..
+			const char *tevIndBiasField[] = { "", "x", "y", "xy", "z", "xz", "yz", "xyz" }; // indexed by bias
+			const char *tevIndBiasAdd[] = { "-128", "1", "1", "1" }; // indexed by fmt
+			if (bpmem.tevind[n].bias == ITB_S || bpmem.tevind[n].bias == ITB_T || bpmem.tevind[n].bias == ITB_U)
+				out.Write("\tiindtevcrd%d.%s += int(%s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
+			else if (bpmem.tevind[n].bias == ITB_ST || bpmem.tevind[n].bias == ITB_SU || bpmem.tevind[n].bias == ITB_TU)
+				out.Write("\tiindtevcrd%d.%s += int2(%s, %s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt]);
+			else if (bpmem.tevind[n].bias == ITB_STU)
+				out.Write("\tiindtevcrd%d.%s += int3(%s, %s, %s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt]);
+
+			// multiply by offset matrix and scale - calculations are likely to overflow badly,
+			// yet it works out since we only care about the lower 23 bits (+1 sign bit) of the result
 			if (bpmem.tevind[n].mid <= 3)
 			{
 				int mtxidx = 2*(bpmem.tevind[n].mid-1);

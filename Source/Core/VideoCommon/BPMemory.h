@@ -321,7 +321,6 @@ struct TevStageCombiner
 
 	union TevStageIndirect
 	{
-		// if mid, sw, tw, and addprev are 0, then no indirect stage is used, mask = 0x17fe00
 		struct
 		{
 			u32 bt          : 2; // Indirect tex stage ID
@@ -342,7 +341,9 @@ struct TevStageCombiner
 			u32 unused : 11;
 		};
 
-		bool IsActive() { return (hex & 0x17fe00) != 0; }
+		// If bs and mid are zero, the result of the stage is independent of
+		// the texture sample data, so we can skip sampling the texture.
+		bool IsActive() { return bs != ITBA_OFF || mid != 0; }
 	};
 
 	union TwoTevStageOrders
