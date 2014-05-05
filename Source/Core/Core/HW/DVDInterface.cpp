@@ -677,6 +677,7 @@ void ExecuteCommand()
 					// and 3MB/sec for reads outside 1MB, acceleated reads
 					// within 1MB.  We can refine this if someone comes up
 					// with a more complete model for seek times.
+					u64 cur_time = CoreTiming::GetTicks();
 					if (iDVDOffset + m_DILENGTH.Length - g_last_read_offset > 1024 * 1024)
 					{
 						// No buffer; just use the simple seek time + read time.
@@ -684,6 +685,7 @@ void ExecuteCommand()
 						ticksUntilTC = m_DILENGTH.Length *
 							(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC);
 						ticksUntilTC += SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
+						g_last_read_time = cur_time + ticksUntilTC;
 					}
 					else
 					{
@@ -703,23 +705,27 @@ void ExecuteCommand()
 							(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC) +
 						    SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
 
-						u64 cur_time = CoreTiming::GetTicks();
 						if (cur_time > buffer_fill_time)
 						{
 							DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %lld", s64(iDVDOffset));
 							ticksUntilTC = buffer_read_duration;
+							g_last_read_time = buffer_fill_time;
 						}
 						else if (cur_time + disk_read_duration > buffer_fill_time)
 						{
 							DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %lld", s64(iDVDOffset));
 							ticksUntilTC = std::max(buffer_fill_time - cur_time, buffer_read_duration);
+							g_last_read_time = buffer_fill_time;
 						}
 						else
 						{
 							DEBUG_LOG(DVDINTERFACE, "Seeking %lld bytes", s64(g_last_read_offset) - s64(iDVDOffset));
 							ticksUntilTC = disk_read_duration;
+							g_last_read_time = CoreTiming::GetTicks() + ticksUntilTC;
 						}
 					}
+					g_last_read_offset = (iDVDOffset + m_DILENGTH.Length - 2048) & ~2047;
+
 					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
 					{
 						// Make the virtual DVD drive much faster than a physical drive;
@@ -1036,15 +1042,14 @@ void ExecuteCommand()
 	g_ErrorCode = 0;
 }
 
-void FinishExecuteRead() {
+void FinishExecuteRead()
+{
 	u32 iDVDOffset = m_DICMDBUF[1].Hex << 2;
 
 	if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
 	{
 		PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 	}
-	g_last_read_offset = (iDVDOffset + m_DILENGTH.Length - 2048) & ~2047;
-	g_last_read_time = CoreTiming::GetTicks();
 
 	// transfer is done
 	m_DICR.TSTART = 0;
