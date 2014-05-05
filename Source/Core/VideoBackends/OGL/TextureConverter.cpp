@@ -47,7 +47,7 @@ static int s_encodingUniforms[NUM_ENCODING_PROGRAMS];
 
 static GLuint s_PBO = 0; // for readback with different strides
 
-void CreatePrograms()
+static void CreatePrograms()
 {
 	/* TODO: Accuracy Improvements
 	 *
@@ -129,7 +129,7 @@ void CreatePrograms()
 	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgramYuyvToRgb, FProgramYuyvToRgb);
 }
 
-SHADER &GetOrCreateEncodingShader(u32 format)
+static SHADER &GetOrCreateEncodingShader(u32 format)
 {
 	if (format > NUM_ENCODING_PROGRAMS)
 	{
@@ -210,7 +210,7 @@ void Shutdown()
 	s_texConvFrameBuffer[1] = 0;
 }
 
-void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
+static void EncodeToRamUsingShader(GLuint srcTexture,
 						u8* destAddr, int dstWidth, int dstHeight, int readStride,
 						bool linearFilter)
 {
@@ -322,18 +322,13 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		source.left, source.top,
 		expandedWidth, bScaleByHalf ? 2 : 1);
 
-	TargetRectangle scaledSource;
-	scaledSource.top = 0;
-	scaledSource.bottom = expandedHeight;
-	scaledSource.left = 0;
-	scaledSource.right = expandedWidth / samples;
 	int cacheBytes = 32;
 	if ((format & 0x0f) == 6)
 		cacheBytes = 64;
 
 	int readStride = (expandedWidth * cacheBytes) /
 		TexDecoder_GetBlockWidthInTexels(format);
-	EncodeToRamUsingShader(source_texture, scaledSource,
+	EncodeToRamUsingShader(source_texture,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
 		bScaleByHalf > 0 && !bFromZBuffer);
 	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
@@ -351,7 +346,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	// We enable linear filtering, because the gamecube does filtering in the vertical direction when
 	// yscale is enabled.
 	// Otherwise we get jaggies when a game uses yscaling (most PAL games)
-	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);
+	EncodeToRamUsingShader(srcTexture, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
