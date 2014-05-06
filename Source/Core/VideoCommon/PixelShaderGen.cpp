@@ -124,8 +124,8 @@ static const char *tevAInputTable[] =
 
 static const char *tevRasTable[] =
 {
-	"int4(round(colors_0 * 255.0))",
-	"int4(round(colors_1 * 255.0))",
+	"iround(colors_0 * 255.0)",
+	"iround(colors_1 * 255.0)",
 	"ERROR13", //2
 	"ERROR14", //3
 	"ERROR15", //4
@@ -171,9 +171,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
 	unsigned int numTexgen = bpmem.genMode.numtexgens;
 
-	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
-	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
-
 	out.Write("//Pixel Shader for TEV stages\n");
 	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
 		numStages, numTexgen, bpmem.genMode.numindstages);
@@ -196,16 +193,14 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	          "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
 	          "}\n\n");
 
+	// rounding + casting to integer at once in a single function
+	out.Write("int  iround(float  x) { return int (round(x)); }\n"
+	          "int2 iround(float2 x) { return int2(round(x)); }\n"
+	          "int3 iround(float3 x) { return int3(round(x)); }\n"
+	          "int4 iround(float4 x) { return int4(round(x)); }\n\n");
+
 	if (ApiType == API_OPENGL)
 	{
-		// Fmod implementation gleaned from Nvidia
-		// At http://http.developer.nvidia.com/Cg/fmod.html
-		out.Write("float fmod( float x, float y )\n");
-		out.Write("{\n");
-		out.Write("\tfloat z = fract( abs( x / y) ) * abs( y );\n");
-		out.Write("\treturn (x < 0.0) ? -z : z;\n");
-		out.Write("}\n");
-
 		// Declare samplers
 		for (int i = 0; i < 8; ++i)
 			out.Write("uniform sampler2D samp%d;\n", i);
@@ -224,25 +219,58 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (ApiType == API_OPENGL)
 		out.Write("layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 1" : "");
+	else
+		out.Write("cbuffer PSBlock {\n");
+	out.Write(
+		"\tint4 " I_COLORS"[4];\n"
+		"\tint4 " I_KCOLORS"[4];\n"
+		"\tint4 " I_ALPHA";\n"
+		"\tfloat4 " I_TEXDIMS"[8];\n"
+		"\tint4 " I_ZBIAS"[2];\n"
+		"\tint4 " I_INDTEXSCALE"[2];\n"
+		"\tint4 " I_INDTEXMTX"[6];\n"
+		"\tint4 " I_FOGCOLOR";\n"
+		"\tint4 " I_FOGI";\n"
+		"\tfloat4 " I_FOGF"[2];\n"
 
-	DeclareUniform(out, ApiType, C_COLORS, "int4", I_COLORS"[4]");
-	DeclareUniform(out, ApiType, C_KCOLORS, "int4", I_KCOLORS"[4]");
-	DeclareUniform(out, ApiType, C_ALPHA, "int4", I_ALPHA);
-	DeclareUniform(out, ApiType, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
-	DeclareUniform(out, ApiType, C_ZBIAS, "int4", I_ZBIAS"[2]");
-	DeclareUniform(out, ApiType, C_INDTEXSCALE, "int4", I_INDTEXSCALE"[2]");
-	DeclareUniform(out, ApiType, C_INDTEXMTX, "int4", I_INDTEXMTX"[6]");
-	DeclareUniform(out, ApiType, C_FOGCOLOR, "int4", I_FOGCOLOR);
-	DeclareUniform(out, ApiType, C_FOGI, "int4", I_FOGI);
-	DeclareUniform(out, ApiType, C_FOGF, "float4", I_FOGF"[2]");
+		// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
+		"\tint4 " I_PLIGHT_COLORS"[8];\n"
+		"\tfloat4 " I_PLIGHTS"[32];\n"
+		"\tint4 " I_PMATERIALS"[4];\n"
+		"};\n");
 
-	// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
-	DeclareUniform(out, ApiType, C_PLIGHT_COLORS, "int4", I_PLIGHT_COLORS"[8]");
-	DeclareUniform(out, ApiType, C_PLIGHTS, "float4", I_PLIGHTS"[32]");
-	DeclareUniform(out, ApiType, C_PMATERIALS, "int4", I_PMATERIALS"[4]");
+	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
+	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
 
-	if (ApiType == API_OPENGL)
-		out.Write("};\n");
+	if (forced_early_z)
+	{
+		// Zcomploc (aka early_ztest) is a way to control whether depth test is done before
+		// or after texturing and alpha test. PC graphics APIs used to provide no way to emulate
+		// this feature properly until 2012: Depth tests were always done after alpha testing.
+		// Most importantly, it was not possible to write to the depth buffer without also writing
+		// a color value (unless color writing was disabled altogether).
+
+		// OpenGL has a flag which allows the driver to still update the depth buffer if alpha
+		// test fails. The driver isn't required to do this, but I (degasus) assume all of them do
+		// because it's the much faster code path for the GPU.
+
+		// D3D11 also has a way to force the driver to enable early-z, so we're fine here.
+		if(ApiType == API_OPENGL)
+		{
+			out.Write("layout(early_fragment_tests) in;\n");
+		}
+		else
+		{
+			out.Write("[earlydepthstencil]\n");
+		}
+	}
+	else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
+	{
+		static bool warn_once = true;
+		if (warn_once)
+			WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
+		warn_once = false;
+	}
 
 	if (ApiType == API_OPENGL)
 	{
@@ -253,6 +281,14 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (per_pixel_depth)
 			out.Write("#define depth gl_FragDepth\n");
 
+		// We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the
+		// pixel shader will be executed for each pixel which has at least one passed sample.
+		// So there may be rendered pixels where the center of the pixel isn't in the primitive.
+		// As the pixel shader usually renders at the center of the pixel, this position may be
+		// outside the primitive. This will lead to sampling outside the texture, sign changes, ...
+		// As a workaround, we interpolate at the centroid of the coveraged pixel, which
+		// is always inside the primitive.
+		// Without MSAA, this flag is defined to have no effect.
 		out.Write("centroid in float4 colors_02;\n");
 		out.Write("centroid in float4 colors_12;\n");
 
@@ -260,61 +296,33 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Let's set up attributes
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 		{
-			out.Write("centroid in float3 uv%d_2;\n", i);
+			out.Write("centroid in float3 uv%d;\n", i);
 		}
-		out.Write("centroid in float4 clipPos_2;\n");
+		out.Write("centroid in float4 clipPos;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
-			out.Write("centroid in float4 Normal_2;\n");
-		}
-
-		if (forced_early_z)
-		{
-			// HACK: This doesn't force the driver to write to depth buffer if alpha test fails.
-			// It just allows it, but it seems that all drivers do.
-			out.Write("layout(early_fragment_tests) in;\n");
-		}
-		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
-		{
-			static bool warn_once = true;
-			if (warn_once)
-				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
-			warn_once = false;
+			out.Write("centroid in float4 Normal;\n");
 		}
 
 		out.Write("void main()\n{\n");
+		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 	}
 	else // D3D
 	{
-		if (forced_early_z)
-		{
-			out.Write("[earlydepthstencil]\n");
-		}
-		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
-		{
-			static bool warn_once = true;
-			if (warn_once)
-				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
-			warn_once = false;
-		}
-
 		out.Write("void main(\n");
 		out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
 			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
-		// Use centroid sampling to make MSAA work properly
-		const char* optCentroid = "centroid";
-
-		out.Write("  in %s float4 colors_0 : COLOR0,\n", optCentroid);
-		out.Write("  in %s float4 colors_1 : COLOR1", optCentroid);
+		out.Write("  in centroid float4 colors_0 : COLOR0,\n");
+		out.Write("  in centroid float4 colors_1 : COLOR1");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		for (unsigned int i = 0; i < numTexgen; ++i)
-			out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
-		out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
+			out.Write(",\n  in centroid float3 uv%d : TEXCOORD%d", i, i);
+		out.Write(",\n  in centroid float4 clipPos : TEXCOORD%d", numTexgen);
 		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write(",\n  in %s float4 Normal : TEXCOORD%d", optCentroid, numTexgen + 1);
+			out.Write(",\n  in centroid float4 Normal : TEXCOORD%d", numTexgen + 1);
 		out.Write("        ) {\n");
 	}
 
@@ -330,23 +338,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		// On Mali, global variables must be initialized as constants.
 		// This is why we initialize these variables locally instead.
-		out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
 		out.Write("\tfloat4 colors_0 = colors_02;\n");
 		out.Write("\tfloat4 colors_1 = colors_12;\n");
-		// compute window position if needed because binding semantic WPOS is not widely supported
-		// Let's set up attributes
-		if (numTexgen)
-		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			{
-				out.Write("\tfloat3 uv%d = uv%d_2;\n", i, i);
-			}
-		}
-		out.Write("\tfloat4 clipPos = clipPos_2;\n");
-		if (g_ActiveConfig.bEnablePixelLighting)
-		{
-			out.Write("\tfloat4 Normal = Normal_2;\n");
-		}
 	}
 
 	if (g_ActiveConfig.bEnablePixelLighting)
@@ -365,8 +358,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		GenerateLightingShader<T>(out, uid_data.lighting, components, I_PMATERIALS, I_PLIGHT_COLORS, I_PLIGHTS, "colors_", "colors_");
 	}
 
-	out.Write("\tclipPos = float4(rawpos.x, rawpos.y, clipPos.z, clipPos.w);\n");
-
 	// HACK to handle cases where the tex gen is not enabled
 	if (numTexgen == 0)
 	{
@@ -377,15 +368,18 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS+numTexgen-1);
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
+			out.Write("\tint2 fixpoint_uv%d = iround(", i);
 			// optional perspective divides
 			uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
 			if (xfregs.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
 			{
-				out.Write("\tif (uv%d.z != 0.0)\n", i);
-				out.Write("\t\tuv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);
+				out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
 			}
-
-			out.Write("\tint2 fixpoint_uv%d = int2(round(uv%d.xy * " I_TEXDIMS"[%d].zw * 128.0));\n\n", i, i, i);
+			else
+			{
+				out.Write("uv%d.xy", i);
+			}
+			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0);\n\n", i);
 			// TODO: S24 overflows here?
 		}
 	}
@@ -472,12 +466,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// The performance impact of this additional calculation doesn't matter, but it prevents
 	// the host GPU driver from performing any early depth test optimizations.
 	if (g_ActiveConfig.bFastDepthCalc)
-		out.Write("\tint zCoord = int(round(rawpos.z * float(0xFFFFFF)));\n");
+		out.Write("\tint zCoord = iround(rawpos.z * float(0xFFFFFF));\n");
 	else
 	{
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
 		// the screen space depth value = far z + (clip z / clip w) * z range
-		out.Write("\tint zCoord = " I_ZBIAS"[1].x + int(round((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y)));\n");
+		out.Write("\tint zCoord = " I_ZBIAS"[1].x + iround((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y));\n");
 	}
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
@@ -886,9 +880,9 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 
 	if (ApiType == API_D3D)
-		out.Write("int4(round(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy))).%s;\n", texmap,texmap, texcoords, texmap, texswap);
+		out.Write("iround(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
-		out.Write("int4(round(255.0 * texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy))).%s;\n", texmap, texcoords, texmap, texswap);
+		out.Write("iround(255.0 * texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
@@ -945,19 +939,13 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 	if (per_pixel_depth)
 		out.Write("\t\tdepth = 1.0;\n");
 
-	// HAXX: zcomploc (aka early_ztest) is a way to control whether depth test is done before
-	// or after texturing and alpha test. PC graphics APIs have no way to support this
-	// feature properly as of 2012: Depth buffer and depth test are not
-	// programmable and the depth test is always done after texturing.
-	// Most importantly, they do not allow writing to the z-buffer without
-	// writing a color value (unless color writing is disabled altogether).
-	// We implement "depth test before texturing" by disabling alpha test when early-z is in use.
-	// It seems to be less buggy than not to update the depth buffer if alpha test fails,
-	// but both ways wouldn't be accurate.
-
-	// OpenGL 4.2 has a flag which allows the driver to still update the depth buffer
-	// if alpha test fails. The driver doesn't have to, but I assume they all do because
-	// it's the much faster code path for the GPU.
+	// ZCOMPLOC HACK:
+	// The only way to emulate alpha test + early-z is to force early-z in the shader.
+	// As this isn't available on all drivers and as we can't emulate this feature otherwise,
+	// we are only able to choose which one we want to respect more.
+	// Tests seem to have proven that writing depth even when the alpha test fails is more
+	// important that a reliable alpha test, so we just force the alpha test to always succeed.
+	// At least this seems to be less buggy.
 	uid_data.alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable && !g_ActiveConfig.backend_info.bSupportsEarlyZ;
 	if (!uid_data.alpha_test_use_zcomploc_hack)
 	{
@@ -1017,7 +1005,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	if (bpmem.fogRange.Base.Enabled)
 	{
 		out.SetConstantsUsed(C_FOGF, C_FOGF);
-		out.Write("\tfloat x_adjust = (2.0 * (clipPos.x / " I_FOGF"[0].y)) - 1.0 - " I_FOGF"[0].x;\n");
+		out.Write("\tfloat x_adjust = (2.0 * (rawpos.x / " I_FOGF"[0].y)) - 1.0 - " I_FOGF"[0].x;\n");
 		out.Write("\tx_adjust = sqrt(x_adjust * x_adjust + " I_FOGF"[0].z * " I_FOGF"[0].z) / " I_FOGF"[0].z;\n");
 		out.Write("\tze *= x_adjust;\n");
 	}
@@ -1034,7 +1022,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
-	out.Write("\tint ifog = int(round(fog * 256.0));\n");
+	out.Write("\tint ifog = iround(fog * 256.0);\n");
 	out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
 

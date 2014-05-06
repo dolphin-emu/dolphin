@@ -84,20 +84,20 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// uniforms
 	if (api_type == API_OPENGL)
 		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
-
-	DeclareUniform(out, api_type, C_POSNORMALMATRIX, "float4", I_POSNORMALMATRIX"[6]");
-	DeclareUniform(out, api_type, C_PROJECTION, "float4", I_PROJECTION"[4]");
-	DeclareUniform(out, api_type, C_MATERIALS, "int4", I_MATERIALS"[4]");
-	DeclareUniform(out, api_type, C_LIGHT_COLORS,  "int4", I_LIGHT_COLORS"[8]");
-	DeclareUniform(out, api_type, C_LIGHTS,  "float4", I_LIGHTS"[32]");
-	DeclareUniform(out, api_type, C_TEXMATRICES, "float4", I_TEXMATRICES"[24]");
-	DeclareUniform(out, api_type, C_TRANSFORMMATRICES, "float4", I_TRANSFORMMATRICES"[64]");
-	DeclareUniform(out, api_type, C_NORMALMATRICES, "float4", I_NORMALMATRICES"[32]");
-	DeclareUniform(out, api_type, C_POSTTRANSFORMMATRICES, "float4", I_POSTTRANSFORMMATRICES"[64]");
-	DeclareUniform(out, api_type, C_DEPTHPARAMS, "float4", I_DEPTHPARAMS);
-
-	if (api_type == API_OPENGL)
-		out.Write("};\n");
+	else
+		out.Write("cbuffer VSBlock {\n");
+	out.Write(
+		"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
+		"\tfloat4 " I_PROJECTION"[4];\n"
+		"\tint4 " I_MATERIALS"[4];\n"
+		"\tint4 " I_LIGHT_COLORS"[8];\n"
+		"\tfloat4 " I_LIGHTS"[32];\n"
+		"\tfloat4 " I_TEXMATRICES"[24];\n"
+		"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
+		"\tfloat4 " I_NORMALMATRICES"[32];\n"
+		"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
+		"\tfloat4 " I_DEPTHPARAMS";\n"
+		"};\n");
 
 	GenerateVSOutputStruct(out, api_type);
 
@@ -134,12 +134,12 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		{
 			if (i < xfregs.numTexGen.numTexGens)
 			{
-				out.Write("centroid out  float3 uv%d_2;\n", i);
+				out.Write("centroid out  float3 uv%d;\n", i);
 			}
 		}
-		out.Write("centroid out   float4 clipPos_2;\n");
+		out.Write("centroid out   float4 clipPos;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write("centroid out   float4 Normal_2;\n");
+			out.Write("centroid out   float4 Normal;\n");
 
 		out.Write("centroid out   float4 colors_02;\n");
 		out.Write("centroid out   float4 colors_12;\n");
@@ -433,10 +433,10 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		// clipPos/w needs to be done in pixel shader, not here
 
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			out.Write(" uv%d_2.xyz =  o.tex%d;\n", i, i);
-		out.Write("  clipPos_2 = o.clipPos;\n");
+			out.Write(" uv%d.xyz =  o.tex%d;\n", i, i);
+		out.Write("  clipPos = o.clipPos;\n");
 		if (g_ActiveConfig.bEnablePixelLighting)
-			out.Write("  Normal_2 = o.Normal;\n");
+			out.Write("  Normal = o.Normal;\n");
 
 		out.Write("colors_02 = o.colors_0;\n");
 		out.Write("colors_12 = o.colors_1;\n");
