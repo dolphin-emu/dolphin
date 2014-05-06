@@ -18,28 +18,25 @@ class IVolume;
 
 class IBannerLoader
 {
-	public:
+public:
+	IBannerLoader() : m_IsValid(false)
+	{
+	}
 
-		IBannerLoader() : m_IsValid(false)
-		{
-		}
+	virtual ~IBannerLoader()
+	{
+	}
 
+	bool IsValid()
+	{
+		return m_IsValid;
+	}
 
-		virtual ~IBannerLoader()
-		{
-		}
+	virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
 
-
-		bool IsValid()
-		{
-			return m_IsValid;
-		}
-
-		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
-
-		virtual std::vector<std::string> GetNames() = 0;
-		virtual std::string GetCompany() = 0;
-		virtual std::vector<std::string> GetDescriptions() = 0;
+	virtual std::vector<std::string> GetNames() = 0;
+	virtual std::string GetCompany() = 0;
+	virtual std::vector<std::string> GetDescriptions() = 0;
 
 protected:
 	std::unique_ptr<u8[]> m_bannerfile;
