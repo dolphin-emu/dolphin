@@ -33,6 +33,7 @@
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="LinearDiskCache.h" />
+    <ClInclude Include="MakeUnique.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="MemArena.h" />
     <ClInclude Include="MemoryUtil.h" />
