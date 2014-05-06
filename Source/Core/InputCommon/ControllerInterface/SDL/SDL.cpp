@@ -71,7 +71,8 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	    (10 == SDL_JoystickNumButtons(joystick)) &&
 	    (5 == SDL_JoystickNumAxes(joystick)) &&
 	    (1 == SDL_JoystickNumHats(joystick)) &&
-	    (0 == SDL_JoystickNumBalls(joystick)))
+		(0 == SDL_JoystickNumBalls(joystick)) ||
+		(std::string::npos != lcasename.find("nvidia shield")))
 	{
 		// this device won't be used
 		return;
