@@ -25,6 +25,7 @@ void SetupUnit::SetupVertex()
 	switch (m_PrimType)
 	{
 	case GX_DRAW_QUADS:
+	case GX_DRAW_QUADS_2:
 		SetupQuad();
 		break;
 	case GX_DRAW_TRIANGLES:
