@@ -201,7 +201,7 @@ u32 FifoCommandRunnable(u32 &command_size)
 		break;
 
 	default:
-		if (cmd_byte & 0x80)
+		if ((cmd_byte & 0xC0) == 0x80)
 		{
 			// check if we can read the header
 			if (buffer_size >= 3)
@@ -346,7 +346,7 @@ static void Decode()
 
 	// draw primitives
 	default:
-		if (cmd_byte & 0x80)
+		if ((cmd_byte & 0xC0) == 0x80)
 		{
 			// load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();
@@ -434,7 +434,7 @@ static void DecodeSemiNop()
 
 	// draw primitives
 	default:
-		if (cmd_byte & 0x80)
+		if ((cmd_byte & 0xC0) == 0x80)
 		{
 			// load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();
