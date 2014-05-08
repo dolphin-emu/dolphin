@@ -677,14 +677,18 @@ void ExecuteCommand()
 					// and 3MB/sec for reads outside 1MB, acceleated reads
 					// within 1MB.  We can refine this if someone comes up
 					// with a more complete model for seek times.
+
 					u64 cur_time = CoreTiming::GetTicks();
+					// Number of ticks it takes to seek and read directly from the disk.
+					u64 disk_read_duration = m_DILENGTH.Length *
+						(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC) +
+						SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
+
 					if (iDVDOffset + m_DILENGTH.Length - g_last_read_offset > 1024 * 1024)
 					{
 						// No buffer; just use the simple seek time + read time.
 						DEBUG_LOG(DVDINTERFACE, "Seeking %lld bytes", s64(g_last_read_offset) - s64(iDVDOffset));
-						ticksUntilTC = m_DILENGTH.Length *
-							(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC);
-						ticksUntilTC += SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
+						ticksUntilTC = disk_read_duration;
 						g_last_read_time = cur_time + ticksUntilTC;
 					}
 					else
@@ -700,10 +704,6 @@ void ExecuteCommand()
 						// Number of ticks it takes to transfer the data from the buffer to memory.
 						u64 buffer_read_duration = m_DILENGTH.Length *
 							(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE_GC);
-						// Number of ticks it takes to seek and read directly from the disk.
-						u64 disk_read_duration = m_DILENGTH.Length *
-							(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC) +
-						    SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
 
 						if (cur_time > buffer_fill_time)
 						{
@@ -719,21 +719,23 @@ void ExecuteCommand()
 						}
 						else
 						{
-							DEBUG_LOG(DVDINTERFACE, "Seeking %lld bytes", s64(g_last_read_offset) - s64(iDVDOffset));
+							DEBUG_LOG(DVDINTERFACE, "Short seek %lld bytes", s64(g_last_read_offset) - s64(iDVDOffset));
 							ticksUntilTC = disk_read_duration;
-							g_last_read_time = CoreTiming::GetTicks() + ticksUntilTC;
+							g_last_read_time = cur_time + ticksUntilTC;
 						}
 					}
 					g_last_read_offset = (iDVDOffset + m_DILENGTH.Length - 2048) & ~2047;
 
 					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
 					{
-						// Make the virtual DVD drive much faster than a physical drive;
-						// most games aren't very sensitive to the speed, and everyone
-						// likes shorter load times.
+						// Make the virtual DVD drive much faster than a physical drive if
+						// the user requests it; most games aren't very sensitive to the speed,
+						// and everyone likes shorter load times.
 						ticksUntilTC /= 8;
 					}
+
 					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
+
 					// Early return; we'll finish executing the command in FinishExecuteRead.
 					return;
 				}
