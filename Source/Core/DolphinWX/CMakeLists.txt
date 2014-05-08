@@ -38,8 +38,8 @@ if(NOT ANDROID)
 			# Using shared SDL
 			set(LIBS	${LIBS} ${SDL_LIBRARY})
 		else(SDL_FOUND)
-			# Using static SDL from Externals
-			set(LIBS	${LIBS} SDL)
+			# Using static SDL2 from Externals
+			set(LIBS	${LIBS} SDL2-static)
 		endif()
 	endif()
 else()
