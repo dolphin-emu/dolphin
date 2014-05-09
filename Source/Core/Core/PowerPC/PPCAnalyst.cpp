@@ -15,7 +15,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/SignatureDB.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 // Analyzes PowerPC code in memory to find functions
 // After running, for each function we will know what functions it calls
@@ -543,7 +543,25 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	// Reset our block state
 	block->m_broken = false;
+	block->m_memory_exception = false;
 	block->m_num_instructions = 0;
+
+	if (address == 0)
+	{
+		// Memory exception occurred during instruction fetch
+		block->m_memory_exception = true;
+		return address;
+	}
+
+	if (Core::g_CoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT))
+	{
+		if (!Memory::TranslateAddress(address, Memory::FLAG_OPCODE))
+		{
+			// Memory exception occurred during instruction fetch
+			block->m_memory_exception = true;
+			return address;
+		}
+	}
 
 	CodeOp *code = buffer->codebuffer;
 
