@@ -139,7 +139,7 @@ public final class UserPreferences
 		boolean ignoreFormatChanges = prefs.getBoolean("ignoreFormatChanges", false);
 
 		// EFB copy method to use.
-		String efbCopyMethod = prefs.getString("efbCopyMethod", "Off");
+		String efbCopyMethod = prefs.getString("efbCopyMethod", "Texture");
 
 		// Texture cache accuracy. Falls back to "Fast" up error.
 		String textureCacheAccuracy = prefs.getString("textureCacheAccuracy", "128");
