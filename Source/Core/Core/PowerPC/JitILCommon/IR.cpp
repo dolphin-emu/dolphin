@@ -125,6 +125,7 @@ TODO (in no particular order):
 #include <memory>
 #include <set>
 
+#include "Common/StdMakeUnique.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GPFifo.h"
@@ -1280,7 +1281,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 	_assert_(sizeof(opcodeNames) / sizeof(opcodeNames[0]) == Int3 + 1);
 
 	if (!writer.get()) {
-		writer = std::unique_ptr<Writer>(new Writer);
+		writer = std::make_unique<Writer>();
 	}
 
 	FILE* const file = writer->file.GetHandle();

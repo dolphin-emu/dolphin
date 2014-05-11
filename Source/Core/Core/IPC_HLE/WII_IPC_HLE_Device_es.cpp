@@ -42,6 +42,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
+#include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
@@ -918,11 +919,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 						std::unique_ptr<CDolLoader> pDolLoader;
 						if (pContent->m_pData)
 						{
-							pDolLoader.reset(new CDolLoader(pContent->m_pData, pContent->m_Size));
+							pDolLoader = std::make_unique<CDolLoader>(pContent->m_pData, pContent->m_Size);
 						}
 						else
 						{
-							pDolLoader.reset(new CDolLoader(pContent->m_Filename));
+							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
 						}
 						pDolLoader->Load(); // TODO: Check why sysmenu does not load the DOL correctly
 						PC = pDolLoader->GetEntryPoint() | 0x80000000;
