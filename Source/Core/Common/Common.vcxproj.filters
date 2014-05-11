@@ -33,7 +33,6 @@
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="LinearDiskCache.h" />
-    <ClInclude Include="MakeUnique.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="MemArena.h" />
     <ClInclude Include="MemoryUtil.h" />
@@ -43,6 +42,7 @@
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="StdConditionVariable.h" />
+    <ClInclude Include="StdMakeUnique.h" />
     <ClInclude Include="StdMutex.h" />
     <ClInclude Include="StdThread.h" />
     <ClInclude Include="StringUtil.h" />
