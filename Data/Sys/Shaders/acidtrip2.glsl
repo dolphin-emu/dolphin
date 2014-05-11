@@ -9,5 +9,5 @@ void main()
 {
   vec4 a = texture(samp9, uv0+resolution.zw);
   vec4 b = texture(samp9, uv0-resolution.zw);
-  ocol0 = ( a*a*1.3 - b )*8;
+  ocol0 = ( a*a*1.3 - b ) * 8.0;
 }

@@ -18,7 +18,7 @@ void main()
   float edge = (x1 - x0) * (x1 - x0) + (x3 - x2) * (x3 - x2);
   float4 color = texture(samp9, uv0).rgba;
 
-  float4 c0 = color - float4(edge, edge, edge, edge) * 12;
+  float4 c0 = color - float4(edge, edge, edge, edge) * 12.0;
 
  
 
@@ -35,7 +35,7 @@ void main()
 
 	 
 	 for(count = 1; count <= numColors ; count++){
-		 colorN = count / numColors;
+		 colorN = float(count / numColors);
 		 
 		 if ( c0.r <= colorN && c0.r >= colorB && rr == false ){
 			if (count == 1){
@@ -81,7 +81,7 @@ void main()
 			 gg = true;
 		}
 			
-		colorB = count / numColors;
+		colorB = float(count / numColors);
 		if(rr == true && bb == true && gg == true)
 			break;
 	}

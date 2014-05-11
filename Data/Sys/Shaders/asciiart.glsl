@@ -6,7 +6,7 @@ const int char_height = 13;
 const int char_count = 95;
 const int char_pixels = char_width*char_height;
 const vec2 char_dim = vec2(char_width, char_height);
-const vec2 font_scale = vec2(1.0/char_width/char_count, 1.0/char_height);
+const vec2 font_scale = vec2(1.0/float(char_width)/float(char_count), 1.0/float(char_height));
 
 out vec4 ocol0;
 in vec2 uv0;
@@ -18,7 +18,7 @@ void main()
   vec2 char_pos = floor(uv0*resolution.xy/char_dim);
   vec2 pixel_offset = floor(uv0*resolution.xy) - char_pos*char_dim;
 
-  float mindiff = char_width*char_height*100; // just a big number
+  float mindiff = float(char_width*char_height) * 100.0; // just a big number
   float minc = 0.0;
   vec4 mina = vec4(0.0, 0.0, 0.0, 0.0);
   vec4 minb = vec4(0.0, 0.0, 0.0, 0.0);
@@ -74,21 +74,21 @@ void main()
       
       So, both equations must be zero at minimum and there is only one solution.
     */
-    vec4 a = (f*ft - ff*t + f*t - ft*char_pixels) / (f*f  - ff*char_pixels);
-    vec4 b = (f*ft - ff*t)                        / (f*f  - ff*char_pixels);
+    vec4 a = (f*ft - ff*t + f*t - ft*float(char_pixels)) / (f*f  - ff*float(char_pixels));
+    vec4 b = (f*ft - ff*t)                        / (f*f  - ff*float(char_pixels));
     
-    vec4 diff = a*a*ff + 2.0*a*b*f - 2.0*a*b*ff - 2.0*a*ft + b*b *(-2.0*f + ff + char_pixels) + 2.0*b*ft - 2.0*b*t + tt;
+    vec4 diff = a*a*ff + 2.0*a*b*f - 2.0*a*b*ff - 2.0*a*ft + b*b *(-2.0*f + ff + float(char_pixels)) + 2.0*b*ft - 2.0*b*t + tt;
     float diff_f = dot(diff, vec4(1.0, 1.0, 1.0, 1.0));
     
     if(diff_f < mindiff) {
       mindiff = diff_f;
-      minc = i;
+      minc = float(i);
       mina = a;
       minb = b;
     }
   }
   
-  vec2 font_pos_res = vec2(minc*char_width, 0) + pixel_offset + 0.5;
+  vec2 font_pos_res = vec2(minc * float(char_width), 0.0) + pixel_offset + 0.5;
 
   vec4 col = texture(samp8, font_pos_res * font_scale);
   ocol0 = mina * col + minb * (vec4(1.0,1.0,1.0,1.0) - col);
