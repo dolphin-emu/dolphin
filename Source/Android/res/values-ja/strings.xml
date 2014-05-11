@@ -157,6 +157,8 @@
     <string name="FSAA_descrip">3Dグラフィックスをラスタライズによって生じるエイリアシングの量が減少。 レンダリングされた画像はあまりギザギザになります。 抽選でエミュレーション速度を下げます。問題を引き起こす可能性があります。</string>
     <string name="anisotropic_filtering">異方性フィルタリング</string>
     <string name="anisotropic_filtering_descrip">異方性フィルタリングを適用します。 奥行きのあるテクスチャをより精細に描画することが出来ます。 特定のゲームでは描画バグの原因になることがあります。</string>
+    <string name="postprocessing_shader">ポストプロセッシングシェーダー</string>
+    <string name="postprocessing_shader_descrip">フレーム終了後の後処理効果を適用する。</string>
     <string name="scaled_efb_copy">Scaled EFB Copy</string>
     <string name="scaled_efb_copy_descrip">テクスチャエフェクトを表示するために作成されたテクスチャの品質を著しく向上させます。 特に高解像度出力時に効果が大きく出ます。 動作速度は少々低下し、まれに描画バグの原因にもなることもあります。</string>
     <string name="per_pixel_lighting">Per-Pixel Lighting</string>
