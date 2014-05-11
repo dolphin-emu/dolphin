@@ -427,16 +427,6 @@ void LoadAs(const std::string& filename)
 	// Stop the core while we load the state
 	bool wasUnpaused = Core::PauseAndLock(true);
 
-#if defined _DEBUG && defined _WIN32
-	// we use _CRTDBG_DELAY_FREE_MEM_DF (as a speed hack?),
-	// but it was causing us to leak gigantic amounts of memory here,
-	// enough that only a few savestates could be loaded before crashing,
-	// so let's disable it temporarily.
-	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-	if (g_loadDepth == 0)
-		_CrtSetDbgFlag(tmpflag & ~_CRTDBG_DELAY_FREE_MEM_DF);
-#endif
-
 	g_loadDepth++;
 
 	// Save temp buffer for undo load state
@@ -493,12 +483,6 @@ void LoadAs(const std::string& filename)
 		g_onAfterLoadCb();
 
 	g_loadDepth--;
-
-#if defined _DEBUG && defined _WIN32
-	// restore _CRTDBG_DELAY_FREE_MEM_DF
-	if (g_loadDepth == 0)
-		_CrtSetDbgFlag(tmpflag);
-#endif
 
 	// resume dat core
 	Core::PauseAndLock(false, wasUnpaused);
