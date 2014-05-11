@@ -40,6 +40,21 @@ public final class DolphinEmulator extends Activity
 		}
 	}
 
+	private void CopyAssetFolder(String assetFolder, String outputFolder)
+	{
+		try
+		{
+			for (String file : getAssets().list(assetFolder))
+			{
+				CopyAsset(assetFolder + File.separator + file, outputFolder + File.separator + file);
+			}
+		}
+		catch (IOException e)
+		{
+			Log.e("DolphinEmulator", "Failed to copy asset folder: " + assetFolder, e);
+		}
+	}
+
 	private void copyFile(InputStream in, OutputStream out) throws IOException
 	{
 		byte[] buffer = new byte[1024];
@@ -75,6 +90,7 @@ public final class DolphinEmulator extends Activity
 				CopyAsset("dsp_rom.bin",     GCDir + File.separator + "dsp_rom.bin");
 				CopyAsset("font_ansi.bin",   GCDir + File.separator + "font_ansi.bin");
 				CopyAsset("font_sjis.bin",   GCDir + File.separator + "font_sjis.bin");
+				CopyAssetFolder("Shaders", BaseDir + File.separator + "Shaders");
 			}
 
 			// Load the configuration keys set in the Dolphin ini and gfx ini files

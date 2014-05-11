@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -18,6 +19,10 @@ import android.preference.PreferenceScreen;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -54,7 +59,36 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			videoBackends.setEntries(R.array.videoBackendEntriesNoGLES3);
 			videoBackends.setEntryValues(R.array.videoBackendValuesNoGLES3);
 		}
-		
+
+		//
+		// Set available post processing shaders
+		//
+		File[] shaders = new File(Environment.getExternalStorageDirectory()+ File.separator+"dolphin-emu"+ File.separator+"Shaders").listFiles();
+		List<CharSequence> shader_names = new ArrayList<CharSequence>();
+		List<CharSequence> shader_values = new ArrayList<CharSequence>();
+
+		// Disabled option
+		shader_names.add("Disabled");
+		shader_values.add("");
+
+		for (File file : shaders)
+		{
+			if (file.isFile())
+			{
+				String filename = file.getName();
+				if (filename.contains(".glsl"))
+				{
+					// Strip the extension and put it in to the list
+					shader_names.add(filename.substring(0, filename.lastIndexOf('.')));
+					shader_values.add(filename.substring(0, filename.lastIndexOf('.')));
+				}
+			}
+		}
+
+		final ListPreference shader_preference = (ListPreference) findPreference("postProcessingShader");
+		shader_preference.setEntries(shader_names.toArray(new CharSequence[shader_names.size()]));
+		shader_preference.setEntryValues(shader_values.toArray(new CharSequence[shader_values.size()]));
+
 		//
 		// Disable all options if Software Rendering is used.
 		//
