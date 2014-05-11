@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Common/Common.h"
+#include "Common/StdMakeUnique.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/Profiler.h"
@@ -223,7 +224,7 @@ namespace JitILProfiler
 	std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
-		finalizer.reset(new JitILProfilerFinalizer());
+		finalizer = std::make_unique<JitILProfilerFinalizer>();
 	}
 	static void Shutdown()
 	{
