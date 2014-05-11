@@ -1369,15 +1369,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	TargetRectangle flipped_trc = GetTargetRectangle();
 
-	if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
-	{
-		std::swap(flipped_trc.left, flipped_trc.right);
-	}
-	else
-	{
-		// Flip top and bottom for some reason; TODO: Fix the code to suck less?
-		std::swap(flipped_trc.top, flipped_trc.bottom);
-	}
+	// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+	std::swap(flipped_trc.top, flipped_trc.bottom);
 
 	GL_REPORT_ERRORD();
 
