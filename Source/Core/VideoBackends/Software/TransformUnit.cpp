@@ -5,6 +5,8 @@
 #include <cmath>
 
 #include "Common/Common.h"
+#include "Common/MathUtil.h"
+
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/CPMemLoader.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
@@ -198,11 +200,6 @@ inline void AddScaledIntegerColor(const u8 *src, float scale, Vec3 &dst)
 	dst.x += src[1] * scale;
 	dst.y += src[2] * scale;
 	dst.z += src[3] * scale;
-}
-
-inline float Clamp(float val, float a, float b)
-{
-	return val<a?a:val>b?b:val;
 }
 
 inline float SafeDivide(float n, float d)
@@ -414,10 +411,15 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 					LightColor(dst->mvPosition, dst->normal[0], i, colorchan, lightCol);
 			}
 
-			float inv = 1.0f / 255.0f;
-			chancolor[1] = (u8)(matcolor[1] * Clamp(lightCol.x * inv, 0.0f, 1.0f));
-			chancolor[2] = (u8)(matcolor[2] * Clamp(lightCol.y * inv, 0.0f, 1.0f));
-			chancolor[3] = (u8)(matcolor[3] * Clamp(lightCol.z * inv, 0.0f, 1.0f));
+			int light_x = int(lightCol.x);
+			int light_y = int(lightCol.y);
+			int light_z = int(lightCol.z);
+			MathUtil::Clamp(&light_x, 0, 255);
+			MathUtil::Clamp(&light_y, 0, 255);
+			MathUtil::Clamp(&light_z, 0, 255);
+			chancolor[1] = (matcolor[1] * (light_x + (light_x >> 7))) >> 8;
+			chancolor[2] = (matcolor[2] * (light_y + (light_y >> 7))) >> 8;
+			chancolor[3] = (matcolor[3] * (light_z + (light_z >> 7))) >> 8;
 		}
 		else
 		{
@@ -446,7 +448,9 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 					LightAlpha(dst->mvPosition, dst->normal[0], i, alphachan, lightCol);
 			}
 
-			chancolor[0] = (u8)(matcolor[0] * Clamp(lightCol / 255.0f, 0.0f, 1.0f));
+			int light_a = int(lightCol);
+			MathUtil::Clamp(&light_a, 0, 255);
+			chancolor[0] = (matcolor[0] * (light_a + (light_a >> 7))) >> 8;
 		}
 		else
 		{
