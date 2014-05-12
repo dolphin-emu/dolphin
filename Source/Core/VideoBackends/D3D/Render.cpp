@@ -1033,12 +1033,8 @@ void Renderer::RestoreAPIState()
 	BPFunctions::SetScissor();
 }
 
-void Renderer::ApplyState(bool bUseDstAlpha)
-{
-	HRESULT hr;
-
-	if (bUseDstAlpha)
-	{
+void Renderer::ApplyState(bool bUseDstAlpha) {
+	if (bUseDstAlpha) {
 		// Colors should blend against SRC1_ALPHA
 		if (gx_state.blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_ALPHA)
 			gx_state.blenddc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC1_ALPHA;
@@ -1056,44 +1052,20 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		gx_state.blenddc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	}
 
-	ID3D11BlendState* blstate;
-	hr = D3D::device->CreateBlendState(&gx_state.blenddc, &blstate);
-	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
-	D3D::stateman->PushBlendState(blstate);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)blstate, "blend state used to emulate the GX pipeline");
-	SAFE_RELEASE(blstate);
-
-	ID3D11DepthStencilState* depth_state;
-	hr = D3D::device->CreateDepthStencilState(&gx_state.depthdc, &depth_state);
-	if (SUCCEEDED(hr)) D3D::SetDebugObjectName((ID3D11DeviceChild*)depth_state, "depth-stencil state used to emulate the GX pipeline");
-	else PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
-	D3D::stateman->PushDepthState(depth_state);
-	SAFE_RELEASE(depth_state);
+	
+	D3D::stateman->PushBlendState( D3D::GetBlendState(gx_state.blenddc, "blend state used to emulate the GX pipeline") );
+	D3D::stateman->PushDepthState( D3D::GetDepthStencilState(gx_state.depthdc, "depth-stencil state used to emulate the GX pipeline") );
 
 	gx_state.rastdc.FillMode = (g_ActiveConfig.bWireFrame) ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-	ID3D11RasterizerState* raststate;
-	hr = D3D::device->CreateRasterizerState(&gx_state.rastdc, &raststate);
-	if (FAILED(hr)) PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)raststate, "rasterizer state used to emulate the GX pipeline");
-	D3D::stateman->PushRasterizerState(raststate);
-	SAFE_RELEASE(raststate);
+	D3D::stateman->PushRasterizerState( D3D::GetRasterizerState(gx_state.rastdc, "rasterizer state used to emulate the GX pipeline") );
 
-	ID3D11SamplerState* samplerstate[8];
-	for (unsigned int stage = 0; stage < 8; stage++)
-	{
-		// TODO: unnecessary state changes, we should store a list of shader resources
-		//if (shader_resources[stage])
-		{
-			if (g_ActiveConfig.iMaxAnisotropy > 0) gx_state.sampdc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
-			hr = D3D::device->CreateSamplerState(&gx_state.sampdc[stage], &samplerstate[stage]);
-			if (FAILED(hr)) PanicAlert("Fail %s %d, stage=%d\n", __FILE__, __LINE__, stage);
-			else D3D::SetDebugObjectName((ID3D11DeviceChild*)samplerstate[stage], "sampler state used to emulate the GX pipeline");
-		}
-		// else samplerstate[stage] = nullptr;
+	std::array<ID3D11SamplerState*,8> samplerstate;
+	for (unsigned int stage = 0; stage < samplerstate.size(); stage++) {
+		if (g_ActiveConfig.iMaxAnisotropy > 0) 
+			gx_state.sampdc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
+		samplerstate[stage] = D3D::GetSamplerState(gx_state.sampdc[stage],"sampler state used to emulate the GX pipeline");
 	}
-	D3D::context->PSSetSamplers(0, 8, samplerstate);
-	for (unsigned int stage = 0; stage < 8; stage++)
-		SAFE_RELEASE(samplerstate[stage]);
+	D3D::context->PSSetSamplers(0, 8, samplerstate.data());
 
 	D3D::stateman->Apply();
 
@@ -1111,11 +1083,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), nullptr, 0);
 }
 
-void Renderer::RestoreState()
-{
-	ID3D11ShaderResourceView* shader_resources[8] = { nullptr };
-	D3D::context->PSSetShaderResources(0, 8, shader_resources);
-
+void Renderer::RestoreState() {
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
@@ -1125,15 +1093,7 @@ void Renderer::ApplyCullDisable()
 {
 	D3D11_RASTERIZER_DESC rastDesc = gx_state.rastdc;
 	rastDesc.CullMode = D3D11_CULL_NONE;
-
-	ID3D11RasterizerState* raststate;
-	HRESULT hr = D3D::device->CreateRasterizerState(&rastDesc, &raststate);
-	if (FAILED(hr)) PanicAlert("Failed to create culling-disabled rasterizer state at %s %d\n", __FILE__, __LINE__);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)raststate, "rasterizer state (culling disabled) used to emulate the GX pipeline");
-
-	D3D::stateman->PushRasterizerState(raststate);
-	SAFE_RELEASE(raststate);
-
+	D3D::stateman->PushRasterizerState(D3D::GetRasterizerState(rastDesc));
 	D3D::stateman->Apply();
 }
 
