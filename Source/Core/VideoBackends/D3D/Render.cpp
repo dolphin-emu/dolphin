@@ -912,9 +912,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
 	{
-		char fps[20];
-		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
-		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
+		char fps[ 64 ];
+		StringCchPrintfA( fps, 20, "%.2fms - %d\n", s_fps ? 1000.f / float( s_fps ) : 0.f, s_fps );
+		D3D::font.DrawTextScaled( 0, 0, 20, 0.0f, 0xFF00FFFF, fps );
 	}
 
 	if (SConfig::GetInstance().m_ShowLag)
