@@ -572,7 +572,9 @@ bool CWiiSaveCrypted::getPaths(bool forExport)
 			return false;
 		}
 		if (encryptedSavePath.length() == 0)
-			encryptedSavePath = "."; // If no path was passed, use current dir
+		{
+			encryptedSavePath = File::GetUserPath(D_USER_IDX); // If no path was passed, use User folder
+		}
 		encryptedSavePath += StringFromFormat("/private/wii/title/%s/data.bin", GameID);
 		File::CreateFullPath(encryptedSavePath);
 	}
