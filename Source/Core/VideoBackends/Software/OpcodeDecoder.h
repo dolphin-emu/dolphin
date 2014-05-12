@@ -23,7 +23,7 @@ namespace OpcodeDecoder
 	#define GX_CMD_CALL_DL              0x40
 	#define GX_CMD_INVL_VC              0x48
 
-	#define GX_PRIMITIVE_MASK           0x78
+	#define GX_PRIMITIVE_MASK           0x38
 	#define GX_PRIMITIVE_SHIFT          3
 	#define GX_VAT_MASK                 0x07
 
