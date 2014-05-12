@@ -30,7 +30,7 @@ namespace D3D
 {
 
 ID3D11Device* device = nullptr;
-ID3D11DeviceContext* context = nullptr;
+WrapDeviceContext context;
 IDXGISwapChain* swapchain = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
@@ -284,7 +284,7 @@ HRESULT Create(HWND wnd)
 											D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
 											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
 											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
-											&featlevel, &context);
+											&featlevel, &context.ctx_);
 	}
 
 	if (FAILED(hr))
@@ -305,7 +305,7 @@ HRESULT Create(HWND wnd)
 		SAFE_RELEASE(swapchain);
 		return E_FAIL;
 	}
-	SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
+	SetDebugObjectName( (ID3D11DeviceChild*) context, "device context" );
 	SAFE_RELEASE(factory);
 	SAFE_RELEASE(output);
 	SAFE_RELEASE(adapter);
