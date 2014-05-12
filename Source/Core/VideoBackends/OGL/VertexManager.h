@@ -17,8 +17,9 @@ namespace OGL
 		GLVertexFormat();
 		~GLVertexFormat();
 
-		virtual void Initialize(const PortableVertexDeclaration &_vtx_decl) override;
-		virtual void SetupVertexPointers() override;
+		void Initialize(const PortableVertexDeclaration &_vtx_decl) override;
+		void SetupVertexPointers() override;
+		bool Equal(NativeVertexFormat const &) const override;
 
 		GLuint VAO;
 	};

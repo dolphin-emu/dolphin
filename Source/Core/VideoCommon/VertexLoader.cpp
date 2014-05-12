@@ -823,7 +823,7 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	m_numLoadedVertices += count;
 
 	// Flush if our vertex format is different from the currently set.
-	if (g_nativeVertexFmt != nullptr && g_nativeVertexFmt != m_NativeFmt)
+	if (g_nativeVertexFmt != nullptr && !g_nativeVertexFmt->Equal(*m_NativeFmt))
 	{
 		// We really must flush here. It's possible that the native representations
 		// of the two vtx formats are the same, but we have no way to easily check that
