@@ -488,6 +488,8 @@ VertexLoader::~VertexLoader()
 	#ifdef USE_VERTEX_LOADER_JIT
 	FreeCodeSpace();
 	#endif
+	if (g_nativeVertexFmt == m_NativeFmt)
+		g_nativeVertexFmt = nullptr;
 	delete m_NativeFmt;
 }
 
