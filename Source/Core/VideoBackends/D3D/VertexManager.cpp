@@ -91,12 +91,19 @@ VertexManager::~VertexManager()
 	DestroyDeviceObjects();
 }
 
-void VertexManager::PrepareDrawBuffers()
+void VertexManager::PrepareDrawBuffers(u32 stride)
 {
 	D3D11_MAPPED_SUBRESOURCE map;
 
 	UINT vSize = UINT(s_pCurBufferPointer - s_pBaseBufferPointer);
 	D3D11_MAP MapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+
+	// align on stride allow to use BaseVertexLocation from DrawIndexed and factorize the IASetVertexBuffers with a 
+	// zero offset.
+	if ( u32 padding = (m_vertex_buffer_cursor % stride) ) {
+		m_vertex_buffer_cursor += stride - padding;
+	}
+
 	if (m_vertex_buffer_cursor + vSize >= VBUFFER_SIZE)
 	{
 		// Wrap around
@@ -138,13 +145,15 @@ static const float LINE_PT_TEX_OFFSETS[8] = {
 
 void VertexManager::Draw(UINT stride)
 {
-	D3D::context->IASetVertexBuffers(0, 1, &m_vertex_buffers[m_current_vertex_buffer], &stride, &m_vertex_draw_offset);
+	u32 zero{};
+	D3D::context->IASetVertexBuffers(0, 1, &m_vertex_buffers[m_current_vertex_buffer], &stride, &zero);
 	D3D::context->IASetIndexBuffer(m_index_buffers[m_current_index_buffer], DXGI_FORMAT_R16_UINT, 0);
 
+	u32 baseVertexLocation = m_vertex_draw_offset/stride;
 	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
 		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
+		D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, baseVertexLocation);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	else if (current_primitive_type == PRIMITIVE_LINES)
@@ -164,7 +173,7 @@ void VertexManager::Draw(UINT stride)
 		{
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
+			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, baseVertexLocation);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 
 			D3D::context->GSSetShader(nullptr, nullptr, 0);
@@ -188,7 +197,7 @@ void VertexManager::Draw(UINT stride)
 		{
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
+			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, baseVertexLocation);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 
 			D3D::context->GSSetShader(nullptr, nullptr, 0);
@@ -211,8 +220,8 @@ void VertexManager::vFlush(bool useDstAlpha)
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		return;
 	}
-	PrepareDrawBuffers();
 	unsigned int stride = g_nativeVertexFmt->GetVertexStride();
+	PrepareDrawBuffers(stride);
 	g_nativeVertexFmt->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);
 

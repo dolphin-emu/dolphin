@@ -27,7 +27,7 @@ protected:
 
 private:
 
-	void PrepareDrawBuffers();
+	void PrepareDrawBuffers(u32 stride);
 	void Draw(u32 stride);
 	// temp
 	void vFlush(bool useDstAlpha) override;
