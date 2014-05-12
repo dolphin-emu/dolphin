@@ -64,13 +64,15 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		int pointerIndex = event.getActionIndex();
 		if (trackid == -1)
 		{
-			if (event.getAction() == MotionEvent.ACTION_DOWN)
-				if(getBounds().contains((int)event.getX(), (int)event.getY()))
+			if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_POINTER_DOWN)
+			{
+				if(getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
 					trackid = event.getPointerId(pointerIndex);
+			}
 		}
 		else
 		{
-			if (event.getAction() == MotionEvent.ACTION_UP)
+			if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_POINTER_UP)
 			{
 				if (trackid == event.getPointerId(pointerIndex))
 				{
