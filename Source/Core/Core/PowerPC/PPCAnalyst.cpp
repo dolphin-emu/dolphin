@@ -403,6 +403,78 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 		leafSize, niceSize, unniceSize);
 }
 
+u32 PPCAnalyzer::FindBlockEnd(u32 address, u32 max_size)
+{
+	if (!HasOption(OPTION_FORWARD_JUMP))
+		return 0;
+
+	u32 farthest_branch_target = address;
+	const u32 max_internal_branches = 25;
+	const u32 max_block_size = 150;
+	u32 internal_branches = 0;
+	u32 block_size = 0;
+
+	while (true)
+	{
+		++block_size;
+		UGeckoInstruction inst = (UGeckoInstruction)Memory::ReadUnchecked_U32(address);
+		GekkoOPInfo *opinfo = GetOpInfo(inst);
+
+		if (max_size && block_size > max_size)
+		{
+			// The chances of this happening are exceedingly thin
+			WARN_LOG(DYNA_REC, "Block size %d managed to hit past max block size %d", block_size, max_size);
+			return address - 4;
+		}
+
+		if (inst.hex != 0 && PPCTables::IsValidInstruction(inst))
+		{
+			if (inst.hex == 0x4e800020 || //4e800021 is blrl, not the end of a function
+			   ((opinfo->flags & FL_ENDBLOCK) && internal_branches >= max_internal_branches))
+			{
+				//a final blr!
+				//We're done! Looks like we have a neat valid function. Perfect.
+				//Let's calc the checksum and get outta here
+				return address;
+			}
+			else
+			{
+				// B
+				if (inst.OPCD == 16)
+				{
+					u32 target = SignExt16(inst.BD << 2);
+
+					if (!inst.AA)
+						target += address;
+
+					if (target > farthest_branch_target)
+						farthest_branch_target = target;
+					internal_branches++;
+				}
+				else if (inst.OPCD == 18)
+				{
+					// bx. Is only unconditional
+					u32 target = SignExt26(inst.LI << 2);
+
+					if (!inst.AA)
+						target += address;
+
+					if (target > farthest_branch_target)
+						farthest_branch_target = target;
+
+					internal_branches++;
+				}
+			}
+		}
+		else
+		{
+			return address - 4;
+		}
+		address += 4;
+	}
+	return 0;
+}
+
 void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 {
 	// Instruction Reordering Pass
@@ -544,6 +616,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	// Reset our block state
 	block->m_broken = false;
 	block->m_num_instructions = 0;
+	block->m_jumps_to.clear();
 
 	CodeOp *code = buffer->codebuffer;
 
@@ -551,6 +624,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	u32 return_address = 0;
 	u32 numFollows = 0;
 	u32 num_inst = 0;
+
+	u32 last_address = FindBlockEnd(address, blockSize);
 
 	for (u32 i = 0; i < blockSize; ++i)
 	{
@@ -572,9 +647,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 			SetInstructionStats(block, &code[i], opinfo, i);
 
+			// OPTION_INLINE_LEAF
 			bool follow = false;
 			u32 destination = 0;
 
+			// OPTION_CONDITIONAL_CONTINUE
 			bool conditional_continue = false;
 
 			// Do we inline leaf functions?
@@ -652,15 +729,51 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 				}
 			}
 
-			if (!follow)
+			if (!!last_address)
+			{
+				// OPTION_FORWARD_JUMP
+				u32 forward_destination = 0;
+
+				if (inst.OPCD == 18)
+				{
+					// bx. Is only unconditional
+					if (inst.AA)
+						forward_destination = SignExt26(inst.LI << 2);
+					else
+						forward_destination = address + SignExt26(inst.LI << 2);
+				}
+				else if (inst.OPCD == 16)
+				{
+					// bcx, both conditional and unconditional
+					if (inst.AA)
+						forward_destination = SignExt26(inst.BD << 2);
+					else
+						forward_destination = address + SignExt26(inst.BD << 2);
+				}
+
+				// On the last instruction in the block we'll be a BLR or other ENDBLOCK instruction
+				// This'll make forward_destination be 0 and we'll leave
+				if (forward_destination > address && forward_destination <= last_address)
+					block->m_jumps_to[address] = forward_destination;
+
+				// Are we at the end of the block?
+				if (address == last_address)
+				{
+					if (opinfo->flags & FL_ENDBLOCK)
+						found_exit = true;
+					break;
+				}
+			}
+			else if (!follow)
 			{
 				if (!conditional_continue && opinfo->flags & FL_ENDBLOCK) //right now we stop early
 				{
 					found_exit = true;
 					break;
 				}
-				address += 4;
 			}
+
+			address += 4;
 			// XXX: We don't support inlining yet.
 #if 0
 			else

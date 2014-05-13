@@ -18,6 +18,9 @@
 // ----------
 #pragma once
 
+#include <map>
+#include <vector>
+
 #include "Common/x64ABI.h"
 #include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
@@ -47,6 +50,12 @@ private:
 	// large chunk of memory for each recompiled block.
 	PPCAnalyst::CodeBuffer code_buffer;
 	Jit64AsmRoutineManager asm_routines;
+
+	// For OPTION_FORWARD_JUMP
+	std::map<u32, FixupBranch> jump_to;
+	std::map<u32, std::vector<u32>> jumps_from;
+
+	void SetForwardJump(u32 destination);
 
 public:
 	Jit64() : code_buffer(32000) {}

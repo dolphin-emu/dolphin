@@ -186,6 +186,7 @@ void Jit64::Init()
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 }
 
 void Jit64::ClearCache()
@@ -390,6 +391,24 @@ void Jit64::Trace()
 		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
 }
 
+void Jit64::SetForwardJump(u32 destination)
+{
+	if (!js.isLastInstruction && analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP))
+	{
+		auto jump = code_block.m_jumps_to.find(js.compilerPC);
+		if (jump != code_block.m_jumps_to.end())
+		{
+			// Has a relative branch forward
+			FixupBranch forward_jump = J(true);
+			jump_to[js.compilerPC] = forward_jump;
+			jumps_from[jump->second].push_back(js.compilerPC);
+			return;
+		}
+	}
+
+	WriteExit(destination);
+}
+
 void STACKALIGN Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || Core::g_CoreStartupParameter.bJITNoBlockCache)
@@ -500,6 +519,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.skipnext = false;
 	js.blockSize = code_block.m_num_instructions;
 	js.compilerPC = nextPC;
+
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
@@ -564,6 +584,23 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 		if (!ops[i].skip)
 		{
+
+			if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP))
+			{
+				auto jumping_to_us = jumps_from.find(ops[i].address);
+				if (jumping_to_us != jumps_from.end())
+				{
+					gpr.Flush(FLUSH_ALL);
+					fpr.Flush(FLUSH_ALL);
+					// Found jumps to current instruction
+					for (auto jump : jumping_to_us->second)
+					{
+						// There can be multiple jumps leading to the same location
+						SetJumpTarget(jump_to[jump]);
+					}
+				}
+			}
+
 			if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
 			{
 				gpr.Flush(FLUSH_ALL);
@@ -662,6 +699,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 		if (js.cancel)
 			break;
+	}
+
+	if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP))
+	{
+		// Clear all of our forward jumps
+		jump_to.clear();
+		jumps_from.clear();
 	}
 
 	u32 function = HLE::GetFunctionIndex(js.blockStart);
