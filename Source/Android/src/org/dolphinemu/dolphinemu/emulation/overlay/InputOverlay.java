@@ -110,27 +110,22 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	@Override
 	public boolean onTouch(View v, MotionEvent event)
 	{
-		// Determine the button state to apply based on the MotionEvent action flag.
-		// TODO: This will not work when Axis support is added. Make sure to refactor this when that time comes
-		// The reason it won't work is that when moving an axis, you would get the event MotionEvent.ACTION_MOVE.
-		//
-		// TODO: Refactor this so we detect either Axis movements or button presses so we don't run two loops all the time.
-		//
-		int buttonState = (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE)
-				? ButtonState.PRESSED : ButtonState.RELEASED;
-		// Check if there was a touch within the bounds of a drawable.
+		int pointerIndex = event.getActionIndex();
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
-			if (button.getBounds().contains((int)event.getX(), (int)event.getY()))
+			// Determine the button state to apply based on the MotionEvent action flag.
+			switch(event.getAction() & MotionEvent.ACTION_MASK)
 			{
-				NativeLibrary.onTouchEvent(0, button.getId(), buttonState);
-			}
-			else
-			{
-				// Because the above code only changes the state for the button that is being touched, sliding off the
-				// button does not allow for it to be released. Release the button as soon as the touch coordinates leave
-				// the button bounds.
-				NativeLibrary.onTouchEvent(0, button.getId(), ButtonState.RELEASED);
+			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_POINTER_DOWN:
+			case MotionEvent.ACTION_MOVE:
+				// Check if there was a touch within the bounds of a drawable.
+				if (button.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+					NativeLibrary.onTouchEvent(0, button.getId(), ButtonState.PRESSED);
+				break;
+			default:
+ 				NativeLibrary.onTouchEvent(0, button.getId(), ButtonState.RELEASED);
+				break;
 			}
 		}
 
