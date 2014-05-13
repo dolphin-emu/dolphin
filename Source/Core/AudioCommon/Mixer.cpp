@@ -54,9 +54,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	static u32 frac = 0;
 	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );
 
-	if (ratio > 0x10000)
-		ERROR_LOG(AUDIO, "ratio out of range");
-
+	// TODO: consider a higher-quality resampling algorithm.
 	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2) {
 		u32 indexR2 = indexR + 2; //next sample
 
