@@ -23,10 +23,10 @@
 void Tev::Init()
 {
 	FixedConstants[0] = 0;
-	FixedConstants[1] = 31;
-	FixedConstants[2] = 63;
-	FixedConstants[3] = 95;
-	FixedConstants[4] = 127;
+	FixedConstants[1] = 32;
+	FixedConstants[2] = 64;
+	FixedConstants[3] = 96;
+	FixedConstants[4] = 128;
 	FixedConstants[5] = 159;
 	FixedConstants[6] = 191;
 	FixedConstants[7] = 223;
@@ -74,10 +74,20 @@ void Tev::Init()
 		m_KonstLUT[6][comp] = &FixedConstants[2];
 		m_KonstLUT[7][comp] = &FixedConstants[1];
 
-		m_KonstLUT[12][comp] = &KonstantColors[0][comp];
-		m_KonstLUT[13][comp] = &KonstantColors[1][comp];
-		m_KonstLUT[14][comp] = &KonstantColors[2][comp];
-		m_KonstLUT[15][comp] = &KonstantColors[3][comp];
+		// These are "invalid" values, not meant to be used. On hardware,
+		// they all output zero.
+		for (int i = 8; i < 16; ++i)
+		{
+			m_KonstLUT[i][comp] = &FixedConstants[0];
+		}
+
+		if (comp != ALP_C)
+		{
+			m_KonstLUT[12][comp] = &KonstantColors[0][comp];
+			m_KonstLUT[13][comp] = &KonstantColors[1][comp];
+			m_KonstLUT[14][comp] = &KonstantColors[2][comp];
+			m_KonstLUT[15][comp] = &KonstantColors[3][comp];
+		}
 
 		m_KonstLUT[16][comp] = &KonstantColors[0][RED_C];
 		m_KonstLUT[17][comp] = &KonstantColors[1][RED_C];
