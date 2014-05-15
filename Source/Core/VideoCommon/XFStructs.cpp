@@ -228,7 +228,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 		}
 
 		XFMemWritten(xfMemTransferSize, xfMemBase);
-		memcpy_gc((u32*)(&xfmem) + xfMemBase, pData, xfMemTransferSize * 4);
+		memcpy((u32*)(&xfmem) + xfMemBase, pData, xfMemTransferSize * 4);
 
 		pData += xfMemTransferSize;
 	}
@@ -237,7 +237,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 	if (transferSize > 0)
 	{
 		XFRegWritten(transferSize, baseAddress, pData);
-		memcpy_gc((u32*)(&xfmem) + baseAddress, pData, transferSize * 4);
+		memcpy((u32*)(&xfmem) + baseAddress, pData, transferSize * 4);
 	}
 }
 

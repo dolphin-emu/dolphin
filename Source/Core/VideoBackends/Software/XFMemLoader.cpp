@@ -61,7 +61,7 @@ void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 	// write to XF regs
 	if (transferSize > 0)
 	{
-		memcpy_gc((u32*)(&xfmem) + baseAddress, pData, transferSize * 4);
+		memcpy((u32*)(&xfmem) + baseAddress, pData, transferSize * 4);
 		XFWritten(transferSize, baseAddress);
 	}
 }

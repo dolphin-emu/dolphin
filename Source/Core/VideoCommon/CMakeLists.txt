@@ -35,8 +35,7 @@ set(SRCS	BPFunctions.cpp
 			VideoConfig.cpp
 			VideoState.cpp
 			XFMemory.cpp
-			XFStructs.cpp
-			memcpy_amd.cpp)
+			XFStructs.cpp)
 set(LIBS core png)
 
 if(NOT _M_GENERIC)
