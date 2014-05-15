@@ -16,12 +16,12 @@
         android:layout_alignParentBottom="true"
         android:layout_marginRight="6dip"/>
 
-    <TextView
+    <!-- Properties in the 'tools' namespace are only visible in the UI editor, not at runtime. -->
+    <TextView tools:text="@string/file_size"
         android:id="@+id/ListItemSubTitle"
         android:layout_width="fill_parent"
-        android:layout_height="26dip" 
+        android:layout_height="26dip"
 
-        tools:text="File Size: 1459978240"
         android:textColor="#aaaaaa"
 
         android:layout_toRightOf="@id/ListItemIcon"
@@ -29,18 +29,18 @@
         android:layout_alignParentRight="true"
 
         android:singleLine="true"
-        android:ellipsize="marquee"/>
+        android:ellipsize="marquee"
+        />
 
-    <TextView
+    <!-- Properties in the 'tools' namespace are only visible in the UI editor, not at runtime. -->
+    <TextView tools:text="Name of Game"
         android:id="@+id/ListItemTitle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
 
-        tools:text="Name of Game"
-
         android:fontFamily="sans-serif-light"
         android:textSize="20sp"
-        android:textColor="#555555"
+        android:textColor="#333333"
 
         android:layout_toRightOf="@id/ListItemIcon"
         android:layout_alignParentRight="true"
