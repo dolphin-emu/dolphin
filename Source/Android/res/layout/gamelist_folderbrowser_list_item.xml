@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:padding="3dp">
@@ -9,6 +10,8 @@
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
 
+        tools:src="@drawable/ic_launcher"
+
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
         android:layout_marginRight="6dip"/>
@@ -17,6 +20,9 @@
         android:id="@+id/ListItemSubTitle"
         android:layout_width="fill_parent"
         android:layout_height="26dip" 
+
+        tools:text="File Size: 1459978240"
+        android:textColor="#aaaaaa"
 
         android:layout_toRightOf="@id/ListItemIcon"
         android:layout_alignParentBottom="true"
@@ -30,6 +36,12 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
 
+        tools:text="Name of Game"
+
+        android:fontFamily="sans-serif-light"
+        android:textSize="20sp"
+        android:textColor="#555555"
+
         android:layout_toRightOf="@id/ListItemIcon"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
@@ -37,6 +49,6 @@
         android:layout_alignWithParentIfMissing="true"
 
         android:gravity="center_vertical"
-        android:textStyle="bold" />
+        />
 
 </RelativeLayout>
