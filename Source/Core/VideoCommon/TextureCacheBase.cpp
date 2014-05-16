@@ -181,8 +181,7 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 		tcend = textures.end();
 	while (iter != tcend)
 	{
-		const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
-		if (0 == rangePosition)
+		if (iter->second->OverlapsMemoryRange(start_address, size))
 		{
 			delete iter->second;
 			textures.erase(iter++);
@@ -205,8 +204,7 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 
 	for (; iter != tcend; ++iter)
 	{
-		const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
-		if (0 == rangePosition)
+		if (iter->second->OverlapsMemoryRange(start_address, size))
 		{
 			iter->second->SetHashes(TEXHASH_INVALID);
 		}
@@ -223,15 +221,15 @@ bool TextureCache::Find(u32 start_address, u64 hash)
 	return false;
 }
 
-int TextureCache::TCacheEntryBase::IntersectsMemoryRange(u32 range_address, u32 range_size) const
+bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 range_size) const
 {
 	if (addr + size_in_bytes < range_address)
-		return -1;
+		return false;
 
 	if (addr >= range_address + range_size)
-		return 1;
+		return false;
 
-	return 0;
+	return true;
 }
 
 void TextureCache::ClearRenderTargets()
