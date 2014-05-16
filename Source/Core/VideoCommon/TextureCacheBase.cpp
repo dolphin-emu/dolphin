@@ -116,11 +116,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 		}
 
 		// TODO: Probably shouldn't clear all render targets here, just mark them dirty or something.
-		if (config.bEFBCopyCacheEnable != backup_config.s_copy_cache_enable || // TODO: not sure if this is needed?
-			config.bCopyEFBToTexture != backup_config.s_copy_efb_to_texture ||
-			config.bCopyEFBScaled != backup_config.s_copy_efb_scaled ||
-			config.bEFBCopyEnable != backup_config.s_copy_efb ||
-			config.iEFBScale != backup_config.s_efb_scale)
+		if (config.bEFBCopyCacheEnable != backup_config.s_copy_cache_enable) // TODO: not sure if this is needed?
 		{
 			g_texture_cache->ClearRenderTargets();
 		}
@@ -134,10 +130,6 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 	}
 
 	backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
-	backup_config.s_copy_efb_to_texture = config.bCopyEFBToTexture;
-	backup_config.s_copy_efb_scaled = config.bCopyEFBScaled;
-	backup_config.s_copy_efb = config.bEFBCopyEnable;
-	backup_config.s_efb_scale = config.iEFBScale;
 	backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
 	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
 	backup_config.s_hires_textures = config.bHiresTextures;
