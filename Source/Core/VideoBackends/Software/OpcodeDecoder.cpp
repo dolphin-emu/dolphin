@@ -201,7 +201,7 @@ void DecodeStandard(u32 bufferSize)
 
 	// draw primitives
 	default:
-		if (Cmd & 0x80)
+		if ((Cmd & 0xC0) == 0x80)
 		{
 			u8 vatIndex = Cmd & GX_VAT_MASK;
 			u8 primitiveType = (Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT;
@@ -283,7 +283,7 @@ bool CommandRunnable(u32 iBufferSize)
 
 		// draw primitives
 		default:
-			if (Cmd & 0x80)
+			if ((Cmd & 0xC0) == 0x80)
 				minSize = 3;
 			break;
 		}
