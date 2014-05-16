@@ -336,7 +336,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	const unsigned int nativeW = width;
 	const unsigned int nativeH = height;
 
-	u32 texID = address;
 	// Hash assigned to texcache entry (also used to generate filenames used for texture dumping and custom texture lookup)
 	u64 tex_hash = TEXHASH_INVALID;
 	u64 tlut_hash = TEXHASH_INVALID;
@@ -362,17 +361,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	{
 		const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
 		tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-		// NOTE: For non-paletted textures, texID is equal to the texture address.
-		//       A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
-		//       This (changing texID depending on the tlut_hash) is a trick to get around
-		//       an issue with Metroid Prime's fonts (it has multiple sets of fonts on each other
-		//       stored in a single texture and uses the palette to make different characters
-		//       visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
-		//       we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
-		//
-		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
-		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
 		tex_hash ^= tlut_hash;
 	}
 
@@ -381,7 +369,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && std::max(expandedWidth, expandedHeight) >> maxlevel == 0)
 		--maxlevel;
 
-	TCacheEntryBase *entry = textures[texID];
+	TCacheEntryBase *entry = textures[address];
 	if (entry)
 	{
 		// 1. Calculate reference hash:
@@ -478,7 +466,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	// create the entry/texture
 	if (nullptr == entry)
 	{
-		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, expandedWidth, texLevels, pcfmt);
+		textures[address] = entry = g_texture_cache->CreateTexture(width, height, expandedWidth, texLevels, pcfmt);
 
 		// Sometimes, we can get around recreating a texture if only the number of mip levels changes
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
