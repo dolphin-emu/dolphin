@@ -44,7 +44,6 @@ private:
 	void Draw(u32 stride);
 	void vFlush(bool useDstAlpha) override;
 	void PrepareDrawBuffers(u32 stride);
-	NativeVertexFormat *m_CurrentVertexFmt;
 };
 
 }
