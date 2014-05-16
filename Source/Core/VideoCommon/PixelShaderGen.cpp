@@ -635,7 +635,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		// ---------
 		// Wrapping
 		// ---------
-		const char *tevIndWrapStart[]  = {"0", "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)", "1" }; // TODO: Should the last one be 1 or (1<<7)?
+		const int tevIndWrapStart[]  = {0, 256<<7, 128<<7, 64<<7, 32<<7, 16<<7, 1 }; // TODO: Should the last one be 1 or (1<<7)?
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
@@ -643,7 +643,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		else if (bpmem.tevind[n].sw == ITW_0)
 			out.Write("\twrappedcoord.x = 0;\n");
 		else
-			out.Write("\twrappedcoord.x = fixpoint_uv%d.x %% %s;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw]);
+			out.Write("\twrappedcoord.x = fixpoint_uv%d.x & %d;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw] - 1);
 
 		// wrap T
 		if (bpmem.tevind[n].tw == ITW_OFF)
@@ -651,7 +651,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		else if (bpmem.tevind[n].tw == ITW_0)
 			out.Write("\twrappedcoord.y = 0;\n");
 		else
-			out.Write("\twrappedcoord.y = fixpoint_uv%d.y %% %s;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw]);
+			out.Write("\twrappedcoord.y = fixpoint_uv%d.y & %d;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw] - 1);
 
 		if (bpmem.tevind[n].fb_addprev) // add previous tevcoord
 			out.Write("\ttevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);
