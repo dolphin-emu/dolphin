@@ -854,55 +854,60 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		INFO_LOG(WII_IPC_NET, "IOCTL_SO_GETHOSTID "
 			"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			BufferIn, BufferInSize, BufferOut, BufferOutSize);
-		// default placeholder, in case of failure
-		ReturnValue = 192 << 24 | 168 << 16 | 1 << 8 | 150;
 
 #ifdef _WIN32
-		DWORD forwardTableSize, ipTableSize;
-		PMIB_IPFORWARDTABLE forwardTable = (PMIB_IPFORWARDTABLE)malloc(sizeof(MIB_IPFORWARDTABLE));
-		PMIB_IPADDRTABLE ipTable = (PMIB_IPADDRTABLE)malloc(sizeof(MIB_IPADDRTABLE));
+		DWORD forwardTableSize, ipTableSize, result;
+		DWORD ifIndex = -1;
+		std::unique_ptr<MIB_IPFORWARDTABLE> forwardTable;
+		std::unique_ptr<MIB_IPADDRTABLE> ipTable;
 		
-		forwardTableSize = sizeof(MIB_IPFORWARDTABLE);
-		if (GetIpForwardTable(forwardTable, &forwardTableSize, 0) == ERROR_INSUFFICIENT_BUFFER)
+		forwardTableSize = 0;
+		if (GetIpForwardTable(nullptr, &forwardTableSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
 		{
-			free(forwardTable);
-			forwardTable = (PMIB_IPFORWARDTABLE)malloc(forwardTableSize);
+			forwardTable = std::unique_ptr<MIB_IPFORWARDTABLE>((PMIB_IPFORWARDTABLE)operator new(forwardTableSize));
 		}
 
-		ipTableSize = sizeof(MIB_IPADDRTABLE);
-		if (GetIpAddrTable(ipTable, &ipTableSize, 0) == ERROR_INSUFFICIENT_BUFFER)
+		ipTableSize = 0;
+		if (GetIpAddrTable(nullptr, &ipTableSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
 		{
-			free(ipTable);
-			ipTable = (PMIB_IPADDRTABLE)malloc(ipTableSize);
+			ipTable = std::unique_ptr<MIB_IPADDRTABLE>((PMIB_IPADDRTABLE)operator new(ipTableSize));
 		}
 
 		// find the interface IP used for the default route and use that
-		if (!GetIpForwardTable(forwardTable, &forwardTableSize, 0) && !GetIpAddrTable(ipTable, &ipTableSize, 0))
+		result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
+		while (result == NO_ERROR || result == ERROR_MORE_DATA) // can return ERROR_MORE_DATA on XP even after the first call
 		{
 			for (DWORD i = 0; i < forwardTable->dwNumEntries; i++)
 			{
-				MIB_IPFORWARDROW forwardRow = forwardTable->table[i];
-				if (forwardRow.dwForwardDest == 0)
+				if (forwardTable->table[i].dwForwardDest == 0)
 				{
-					for (DWORD j = 0; j < ipTable->dwNumEntries; j++)
-					{
-						MIB_IPADDRROW ipRow = ipTable->table[j];
-						if (ipRow.dwIndex == forwardRow.dwForwardIfIndex)
-						{
-							ReturnValue = Common::swap32(ipRow.dwAddr);
-							break;
-						}
-					}
+					ifIndex = forwardTable->table[i].dwForwardIfIndex;
+					break;
+				}
+			}
 
+			if (result == NO_ERROR || ifIndex != -1)
+				break;
+
+			result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
+		}
+
+		if (ifIndex != -1 && GetIpAddrTable(ipTable.get(), &ipTableSize, FALSE) == NO_ERROR)
+		{
+			for (DWORD i = 0; i < ipTable->dwNumEntries; i++)
+			{
+				if (ipTable->table[i].dwIndex == ifIndex)
+				{
+					ReturnValue = Common::swap32(ipTable->table[i].dwAddr);
 					break;
 				}
 			}
 		}
-
-		free(forwardTable);
-		free(ipTable);
 #endif
 
+		// default placeholder, in case of failure
+		if (ReturnValue == 0)
+			ReturnValue = 192 << 24 | 168 << 16 | 1 << 8 | 150;
 		break;
 	}
 
