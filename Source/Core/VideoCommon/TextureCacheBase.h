@@ -33,7 +33,6 @@ public:
 		u32 addr;
 		u32 size_in_bytes;
 		u64 hash;
-		//u32 pal_hash;
 		u32 format;
 
 		enum TexCacheEntryType type;
@@ -64,10 +63,9 @@ public:
 			virtual_height = _virtual_height;
 		}
 
-		void SetHashes(u64 _hash/*, u32 _pal_hash*/)
+		void SetHashes(u64 _hash)
 		{
 			hash = _hash;
-			//pal_hash = _pal_hash;
 		}
 
 
