@@ -372,13 +372,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	TCacheEntryBase *entry = textures[address];
 	if (entry)
 	{
-		// 1. Calculate reference hash:
-		// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
-		if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
-			tex_hash = TEXHASH_INVALID;
-
-		// 2. a) For EFB copies, only the hash and the texture address need to match
-		if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
+		// 1. For EFB copies, only the texture address need to match. For hybrid copies, also the hash must match.
+		if (entry->IsEfbCopy() && (tex_hash == entry->hash || TEXHASH_INVALID == entry->hash) && address == entry->addr)
 		{
 			entry->type = TCET_EC_VRAM;
 
@@ -388,7 +383,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 			return ReturnEntry(stage, entry);
 		}
 
-		// 2. b) For normal textures, all texture parameters need to match
+		// 2. For normal textures, all texture parameters need to match
 		if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
 			entry->num_mipmaps > maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
 		{
