@@ -966,7 +966,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 						int cmd = GetCmdForHotkey(i);
 						if (cmd >= 0)
 						{
-							wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, cmd);
+							wxCommandEvent evt(wxEVT_MENU, cmd);
 							wxMenuItem *item = GetMenuBar()->FindItem(cmd);
 							if (item && item->IsCheckable())
 							{

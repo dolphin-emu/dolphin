@@ -42,8 +42,8 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	: wxPanel(parent, -1)
 {
 	m_listbox_gcodes = new wxCheckListBox(this, -1);
-	m_listbox_gcodes->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &CodeConfigPanel::UpdateInfoBox, this);
-	m_listbox_gcodes->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &CodeConfigPanel::ToggleCode, this);
+	m_listbox_gcodes->Bind(wxEVT_LISTBOX, &CodeConfigPanel::UpdateInfoBox, this);
+	m_listbox_gcodes->Bind(wxEVT_CHECKLISTBOX, &CodeConfigPanel::ToggleCode, this);
 
 	m_infobox.label_name = new wxStaticText(this, -1, wxGetTranslation(wxstr_name));
 	m_infobox.label_creator = new wxStaticText(this, -1, wxGetTranslation(wxstr_creator));
@@ -65,7 +65,7 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
 	btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
 	btn_download->Enable(false);
-	btn_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CodeConfigPanel::DownloadCodes, this);
+	btn_download->Bind(wxEVT_BUTTON, &CodeConfigPanel::DownloadCodes, this);
 	sizer_buttons->AddStretchSpacer(1);
 	sizer_buttons->Add(btn_download, 1, wxEXPAND);
 

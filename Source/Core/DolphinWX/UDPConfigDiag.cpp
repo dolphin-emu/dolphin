@@ -38,13 +38,13 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	port_tbox = new wxTextCtrl(this, wxID_ANY, StrToWxStr(wrp->port));
 	port_sizer->Add(port_tbox, 1, wxLEFT | wxEXPAND, 5);
 
-	enable->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeState, this);
-	butt->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
-	accel->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
-	point->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
-	nun->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
-	nunaccel->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
-	port_tbox->Bind(wxEVT_COMMAND_TEXT_UPDATED, &UDPConfigDiag::ChangeState, this);
+	enable->Bind(wxEVT_CHECKBOX, &UDPConfigDiag::ChangeState, this);
+	butt->Bind(wxEVT_CHECKBOX, &UDPConfigDiag::ChangeUpdateFlags, this);
+	accel->Bind(wxEVT_CHECKBOX, &UDPConfigDiag::ChangeUpdateFlags, this);
+	point->Bind(wxEVT_CHECKBOX, &UDPConfigDiag::ChangeUpdateFlags, this);
+	nun->Bind(wxEVT_CHECKBOX, &UDPConfigDiag::ChangeUpdateFlags, this);
+	nunaccel->Bind(wxEVT_CHECKBOX, &UDPConfigDiag::ChangeUpdateFlags, this);
+	port_tbox->Bind(wxEVT_TEXT, &UDPConfigDiag::ChangeState, this);
 
 	enable->SetValue(wrp->udpEn);
 	butt->SetValue(wrp->updButt);
