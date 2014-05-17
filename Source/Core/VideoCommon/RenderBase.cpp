@@ -502,15 +502,18 @@ void Renderer::CheckFifoRecording()
 
 void Renderer::RecordVideoMemory()
 {
-	u32 *bpMem = (u32*)&bpmem;
-	u32 cpMem[256];
-	u32 *xfMem = (u32*)&xfmem;
-	u32 *xfRegs = (u32*)&xfmem + 0x1000;
+	u32 *bpmem_ptr = (u32*)&bpmem;
+	u32 cpmem[256];
+	// The FIFO recording format splits XF memory into xfmem and xfregs; follow
+	// that split here.
+	u32 *xfmem_ptr = (u32*)&xfmem;
+	u32 *xfregs_ptr = (u32*)&xfmem + FifoDataFile::XF_MEM_SIZE;
+	u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
-	memset(cpMem, 0, 256 * 4);
-	FillCPMemoryArray(cpMem);
+	memset(cpmem, 0, 256 * 4);
+	FillCPMemoryArray(cpmem);
 
-	FifoRecorder::GetInstance().SetVideoMemory(bpMem, cpMem, xfMem, xfRegs, sizeof(XFMemory) / 4);
+	FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size);
 }
 
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc, float Gamma)
