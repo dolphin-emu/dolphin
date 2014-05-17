@@ -30,8 +30,7 @@ static void DoState(PointerWrap &p)
 	p.DoMarker("CP Memory");
 
 	// XF Memory
-	p.Do(xfregs);
-	p.DoArray(xfmem, XFMEM_SIZE);
+	p.Do(xfmem);
 	p.DoMarker("XF Memory");
 
 	// Texture decoder
