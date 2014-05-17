@@ -23,7 +23,7 @@ void IndexGenerator::Init()
 	if (g_Config.backend_info.bSupportsPrimitiveRestart)
 	{
 		primitive_table[GX_DRAW_QUADS] = IndexGenerator::AddQuads<true>;
-		primitive_table[GX_DRAW_QUADS_2] = IndexGenerator::AddQuads<true>;
+		primitive_table[GX_DRAW_QUADS_2] = IndexGenerator::AddQuads_nonstandard<true>;
 		primitive_table[GX_DRAW_TRIANGLES] = IndexGenerator::AddList<true>;
 		primitive_table[GX_DRAW_TRIANGLE_STRIP] = IndexGenerator::AddStrip<true>;
 		primitive_table[GX_DRAW_TRIANGLE_FAN] = IndexGenerator::AddFan<true>;
@@ -31,7 +31,7 @@ void IndexGenerator::Init()
 	else
 	{
 		primitive_table[GX_DRAW_QUADS] = IndexGenerator::AddQuads<false>;
-		primitive_table[GX_DRAW_QUADS_2] = IndexGenerator::AddQuads<false>;
+		primitive_table[GX_DRAW_QUADS_2] = IndexGenerator::AddQuads_nonstandard<false>;
 		primitive_table[GX_DRAW_TRIANGLES] = IndexGenerator::AddList<false>;
 		primitive_table[GX_DRAW_TRIANGLE_STRIP] = IndexGenerator::AddStrip<false>;
 		primitive_table[GX_DRAW_TRIANGLE_FAN] = IndexGenerator::AddFan<false>;
@@ -196,6 +196,12 @@ template <bool pr> u16* IndexGenerator::AddQuads(u16 *Iptr, u32 numVerts, u32 in
 		Iptr = WriteTriangle<pr>(Iptr, index+numVerts-3, index+numVerts-2, index+numVerts-1);
 	}
 	return Iptr;
+}
+
+template <bool pr> u16* IndexGenerator::AddQuads_nonstandard(u16 *Iptr, u32 numVerts, u32 index)
+{
+	WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
+	return AddQuads<pr>(Iptr, numVerts, index);
 }
 
 // Lines

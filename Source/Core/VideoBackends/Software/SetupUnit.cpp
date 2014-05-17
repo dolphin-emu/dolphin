@@ -25,7 +25,10 @@ void SetupUnit::SetupVertex()
 	switch (m_PrimType)
 	{
 	case GX_DRAW_QUADS:
+		SetupQuad();
+		break;
 	case GX_DRAW_QUADS_2:
+		WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
 		SetupQuad();
 		break;
 	case GX_DRAW_TRIANGLES:
