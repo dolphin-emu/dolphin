@@ -106,12 +106,6 @@ void JitArm::bx(UGeckoInstruction inst)
 		STR(rA, R9, PPCSTATE_OFF(spr[SPR_LR]));
 		//ARMABI_MOVI2M((u32)&LR, js.compilerPC + 4);
 	}
-	// If this is not the last instruction of a block,
-	// we will skip the rest process.
-	// Because PPCAnalyst::Flatten() merged the blocks.
-	if (!js.isLastInstruction) {
-		return;
-	}
 
 	gpr.Flush();
 	fpr.Flush();
@@ -141,7 +135,8 @@ void JitArm::bx(UGeckoInstruction inst)
 		MOVI2R(R14, (u32)asm_routines.testExceptions);
 		B(R14);
 	}
-	WriteExit(destination);
+
+	SetForwardJump(destination);
 }
 
 void JitArm::bcx(UGeckoInstruction inst)
@@ -195,14 +190,15 @@ void JitArm::bcx(UGeckoInstruction inst)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
-	WriteExit(destination);
+
+	SetForwardJump(destination);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
 
-	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	if (js.isLastInstruction || !analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 		WriteExit(js.compilerPC + 4);
 }
 void JitArm::bcctrx(UGeckoInstruction inst)
@@ -266,7 +262,7 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 
 		SetJumpTarget(b);
 
-		if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+		if (js.isLastInstruction || !analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 			WriteExit(js.compilerPC + 4);
 	}
 }
@@ -334,6 +330,6 @@ void JitArm::bclrx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
 
-	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	if (js.isLastInstruction || !analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 		WriteExit(js.compilerPC + 4);
 }

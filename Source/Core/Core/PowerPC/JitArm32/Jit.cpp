@@ -45,6 +45,7 @@ void JitArm::Init()
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
 	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP);
 }
 
 void JitArm::ClearCache()
@@ -279,6 +280,32 @@ void JitArm::PrintDebug(UGeckoInstruction inst, u32 level)
 	}
 }
 
+void JitArm::Break(UGeckoInstruction inst)
+{
+	ERROR_LOG(DYNA_REC, "%s called a Break instruction!", PPCTables::GetInstructionName(inst));
+	BKPT(0x4444);
+}
+
+void JitArm::SetForwardJump(u32 destination)
+{
+	if (!js.isLastInstruction && analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP))
+	{
+		auto jump = code_block.m_jumps_to.find(js.compilerPC);
+		if (jump != code_block.m_jumps_to.end())
+		{
+			// Has a relative branch forward
+			FixupBranch forward_jump = B();
+			jump_to[js.compilerPC] = forward_jump;
+			jumps_from[destination].push_back(js.compilerPC);
+			return;
+		}
+		if (destination > js.compilerPC && destination < (js.blockStart + (code_block.m_num_instructions * 4)))
+			WARN_LOG(DYNA_REC, "ERROR! Setting forward jump that didn't exist! 0x%08x -> 0x%08x", js.compilerPC, destination);
+	}
+
+	WriteExit(destination);
+}
+
 void STACKALIGN JitArm::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || Core::g_CoreStartupParameter.bJITNoBlockCache)
@@ -290,11 +317,6 @@ void STACKALIGN JitArm::Jit(u32 em_address)
 	JitBlock *b = blocks.GetBlock(block_num);
 	const u8* BlockPtr = DoJit(PowerPC::ppcState.pc, &code_buffer, b);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, BlockPtr);
-}
-void JitArm::Break(UGeckoInstruction inst)
-{
-	ERROR_LOG(DYNA_REC, "%s called a Break instruction!", PPCTables::GetInstructionName(inst));
-	BKPT(0x4444);
 }
 
 const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
@@ -435,6 +457,23 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			js.next_inst = ops[i + 1].inst;
 			js.next_compilerPC = ops[i + 1].address;
 		}
+
+		if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP))
+		{
+			auto jumping_to_us = jumps_from.find(ops[i].address);
+			if (jumping_to_us != jumps_from.end())
+			{
+				gpr.Flush();
+				fpr.Flush();
+				// Found jumps to current instruction
+				for (auto jump : jumping_to_us->second)
+				{
+					// There can be multiple jumps leading to the same location
+					SetJumpTarget(jump_to[jump]);
+				}
+			}
+		}
+
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
 			js.fifoBytesThisBlock -= 32;
@@ -442,6 +481,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			QuickCallFunction(R14, (void*)&GPFifo::CheckGatherPipe);
 			POP(4, R0, R1, R2, R3);
 		}
+
 		if (Core::g_CoreStartupParameter.bEnableDebugging)
 		{
 			// Add run count
@@ -461,28 +501,39 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			fpr.Unlock(VA);
 			fpr.Unlock(VB);
 		}
+
 		if (!ops[i].skip)
 		{
-				PrintDebug(ops[i].inst, DEBUG_OUTPUT);
-				if (js.memcheck && (opinfo->flags & FL_USE_FPU))
-				{
-					// Don't do this yet
-					BKPT(0x7777);
-				}
-				JitArmTables::CompileInstruction(ops[i]);
-				fpr.Flush();
-				if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
-				{
-					// Don't do this yet
-					BKPT(0x666);
-				}
+			PrintDebug(ops[i].inst, DEBUG_OUTPUT);
+			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
+			{
+				// Don't do this yet
+				BKPT(0x7777);
+			}
+
+			JitArmTables::CompileInstruction(ops[i]);
+			fpr.Flush();
+			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
+			{
+				// Don't do this yet
+				BKPT(0x666);
+			}
 		}
 	}
+
+	if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_FORWARD_JUMP))
+	{
+		// Clear all of our forward jumps
+		jump_to.clear();
+		jumps_from.clear();
+	}
+
 	if (memory_exception)
 		BKPT(0x500);
+
 	if (code_block.m_broken)
 	{
-		printf("Broken Block going to 0x%08x\n", nextPC);
+		WARN_LOG(DYNA_REC, "Broken Block going to 0x%08x\n", nextPC);
 		WriteExit(nextPC);
 	}
 

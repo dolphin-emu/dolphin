@@ -18,6 +18,9 @@
 // ----------
 #pragma once
 
+#include <map>
+#include <vector>
+
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/JitArm32/JitArmCache.h"
@@ -43,6 +46,10 @@ private:
 
 	PPCAnalyst::CodeBuffer code_buffer;
 
+	// For OPTION_FORWARD_JUMP
+	std::map<u32, FixupBranch> jump_to;
+	std::map<u32, std::vector<u32>> jumps_from;
+
 	void DoDownCount();
 
 	void PrintDebug(UGeckoInstruction inst, u32 level);
@@ -50,6 +57,9 @@ private:
 	void Helper_UpdateCR1(ARMReg fpscr, ARMReg temp);
 
 	void SetFPException(ARMReg Reg, u32 Exception);
+
+	void SetForwardJump(u32 destination);
+
 public:
 	JitArm() : code_buffer(32000) {}
 	~JitArm() {}

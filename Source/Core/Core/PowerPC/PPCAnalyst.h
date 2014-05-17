@@ -124,6 +124,12 @@ struct CodeBlock
 
 	// Are we a broken block?
 	bool m_broken;
+
+	// For OPTION_FORWARD_JUMP
+	// Key is the address that is jumping from/to and the result is the address that it is jumping to/from respectively
+	// A jump to can only jump to one place
+	// A jump from can be jumped to from multiple places
+	std::map<u32, u32> m_jumps_to;
 };
 
 class PPCAnalyzer
@@ -132,6 +138,7 @@ private:
 
 	void ReorderInstructions(u32 instructions, CodeOp *code);
 	void SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index);
+	u32 FindBlockEnd(u32 address, u32 max_size);
 
 	// Options
 	u32 m_options;
@@ -159,8 +166,14 @@ public:
 
 		// Similar to complex blocks.
 		// Instead of jumping backwards, this jumps forwards within the block.
+		// This causes both conditional and unconditional branches forward to keep going in a block.
+		// As long as these branches still end up in the same block
 		// Requires JIT support to work.
-		// XXX: NOT COMPLETE
+
+		// !!! Has a bit of a artificial limit in place !!!
+		// Only jumps a maximum amount of inline jumps to keep block sizes to acceptable levels
+		// Having infinite jumps caused exceedingly large block sizes which caused a lot of block compiling
+		// at multiple points inside a larger block.
 		OPTION_FORWARD_JUMP = (1 << 3),
 	};
 
@@ -168,9 +181,9 @@ public:
 	PPCAnalyzer() : m_options(0) {}
 
 	// Option setting/getting
-	void SetOption(AnalystOption option) { m_options |= option; }
-	void ClearOption(AnalystOption option) { m_options &= ~(option); }
-	bool HasOption(AnalystOption option) { return !!(m_options & option); }
+	inline void SetOption(AnalystOption option) { m_options |= option; }
+	inline void ClearOption(AnalystOption option) { m_options &= ~(option); }
+	inline bool HasOption(AnalystOption option) { return !!(m_options & option); }
 
 	u32 Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize);
 };
