@@ -160,7 +160,7 @@ void HotkeyConfigDialog::DoGetButtons(int _GetId)
 		// Current time
 		int TmpTime = Seconds - (GetButtonWaitingTimer / TimesPerSecond);
 		// Update text
-		SetButtonText(_GetId, wxString::Format(wxT("[ %d ]"), TmpTime));
+		SetButtonText(_GetId, wxString::Format("[ %d ]", TmpTime));
 	}
 
 	// Time's up

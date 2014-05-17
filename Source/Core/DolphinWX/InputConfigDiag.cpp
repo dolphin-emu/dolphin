@@ -172,7 +172,7 @@ ControlDialog::ControlDialog(GamepadPage* const parent, InputPlugin& plugin, Con
 }
 
 ControlButton::ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref, const unsigned int width, const std::string& label)
-: wxButton(parent, -1, wxT(""), wxDefaultPosition, wxSize(width,20))
+: wxButton(parent, -1, "", wxDefaultPosition, wxSize(width,20))
 , control_reference(_ref)
 {
 	if (label.empty())
@@ -267,10 +267,10 @@ void ControlDialog::UpdateGUI()
 	switch (control_reference->parse_error)
 	{
 	case EXPRESSION_PARSE_SYNTAX_ERROR:
-		m_error_label->SetLabel("Syntax error");
+		m_error_label->SetLabel(_("Syntax error"));
 		break;
 	case EXPRESSION_PARSE_NO_DEVICE:
-		m_error_label->SetLabel("Device not found");
+		m_error_label->SetLabel(_("Device not found"));
 		break;
 	default:
 		m_error_label->SetLabel("");
@@ -609,8 +609,8 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 	range_slider->Bind(wxEVT_SCROLL_CHANGED, &GamepadPage::AdjustControlOption, parent);
 	wxStaticText* const range_label = new wxStaticText(this, -1, _("Range"));
 
-	m_bound_label = new wxStaticText(this, -1, wxT(""));
-	m_error_label = new wxStaticText(this, -1, wxT(""));
+	m_bound_label = new wxStaticText(this, -1, "");
+	m_error_label = new wxStaticText(this, -1, "");
 
 	wxBoxSizer* const range_sizer = new wxBoxSizer(wxHORIZONTAL);
 	range_sizer->Add(range_label, 0, wxCENTER|wxLEFT, 5);
@@ -963,7 +963,7 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 
 	wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Device"));
 
-	device_cbox = new wxComboBox(this, -1, wxT(""), wxDefaultPosition, wxSize(64,-1));
+	device_cbox = new wxComboBox(this, -1, "", wxDefaultPosition, wxSize(64,-1));
 	device_cbox->ToggleWindowStyle(wxTE_PROCESS_ENTER);
 
 	wxButton* refresh_button = new wxButton(this, -1, _("Refresh"), wxDefaultPosition, wxSize(60,-1));
@@ -985,7 +985,7 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 	clearall_button->Bind(wxEVT_BUTTON, &GamepadPage::ClearAll, this);
 	default_button->Bind(wxEVT_BUTTON, &GamepadPage::LoadDefaults, this);
 
-	profile_cbox = new wxComboBox(this, -1, wxT(""), wxDefaultPosition, wxSize(64,-1));
+	profile_cbox = new wxComboBox(this, -1, "", wxDefaultPosition, wxSize(64,-1));
 
 	wxButton* const pload_btn = new wxButton(this, -1, _("Load"), wxDefaultPosition, wxSize(48,-1));
 	wxButton* const psave_btn = new wxButton(this, -1, _("Save"), wxDefaultPosition, wxSize(48,-1));
@@ -1026,7 +1026,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	{
 		GamepadPage* gp = new GamepadPage(m_pad_notebook, m_plugin, i, this);
 		m_padpages.push_back(gp);
-		m_pad_notebook->AddPage(gp, wxString::Format(wxT("%s %u"), wxGetTranslation(StrToWxStr(m_plugin.gui_name)), 1+i));
+		m_pad_notebook->AddPage(gp, wxString::Format("%s %u", wxGetTranslation(StrToWxStr(m_plugin.gui_name)), 1+i));
 	}
 
 	m_pad_notebook->SetSelection(tab_num);

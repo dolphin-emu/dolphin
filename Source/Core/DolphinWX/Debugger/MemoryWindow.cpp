@@ -94,8 +94,8 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
 	sizerBig->Add(memview, 20, wxEXPAND);
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
-	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, _T("")));
-	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, _T("")));
+	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, ""));
+	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, ""));
 	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _("Set &Value")));
 
 	sizerRight->AddSpacer(5);
@@ -108,15 +108,15 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
 
 	sizerSearchType->Add(btnSearch = new wxButton(this, IDM_SEARCH, _("Search")));
-	sizerSearchType->Add(chkAscii = new wxCheckBox(this, IDM_ASCII, _T("&Ascii ")));
+	sizerSearchType->Add(chkAscii = new wxCheckBox(this, IDM_ASCII, "&Ascii "));
 	sizerSearchType->Add(chkHex = new wxCheckBox(this, IDM_HEX, _("&Hex")));
 	sizerRight->Add(sizerSearchType);
 	wxStaticBoxSizer* sizerDataTypes = new wxStaticBoxSizer(wxVERTICAL, this, _("Data Type"));
 
 	sizerDataTypes->SetMinSize(74, 40);
-	sizerDataTypes->Add(chk8 = new wxCheckBox(this, IDM_U8, _T("&U8")));
-	sizerDataTypes->Add(chk16 = new wxCheckBox(this, IDM_U16, _T("&U16")));
-	sizerDataTypes->Add(chk32 = new wxCheckBox(this, IDM_U32, _T("&U32")));
+	sizerDataTypes->Add(chk8 = new wxCheckBox(this, IDM_U8, "&U8"));
+	sizerDataTypes->Add(chk16 = new wxCheckBox(this, IDM_U16, "&U16"));
+	sizerDataTypes->Add(chk32 = new wxCheckBox(this, IDM_U32, "&U32"));
 	sizerRight->Add(sizerDataTypes);
 	SetSizer(sizerBig);
 	chkHex->SetValue(1); //Set defaults
@@ -163,13 +163,13 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 
 	if (!TryParse(std::string("0x") + str_addr, &addr))
 	{
-		PanicAlert("Invalid Address: %s", str_addr.c_str());
+		PanicAlertT("Invalid Address: %s", str_addr.c_str());
 		return;
 	}
 
 	if (!TryParse(std::string("0x") + str_val, &val))
 	{
-		PanicAlert("Invalid Value: %s", str_val.c_str());
+		PanicAlertT("Invalid Value: %s", str_val.c_str());
 		return;
 	}
 
@@ -416,7 +416,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 				//Match was found
 				wxMessageBox(_("A match was found. Placing viewer at the offset."));
 				wxChar tmpwxstr[128] = {0};
-				wxSprintf(tmpwxstr, _T("%08x"), i);
+				wxSprintf(tmpwxstr, "%08x", i);
 				wxString tmpwx(tmpwxstr);
 				addrbox->SetValue(tmpwx);
 				//memview->curAddress = i;

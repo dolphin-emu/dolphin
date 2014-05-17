@@ -182,7 +182,7 @@ void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)
 	if (arCode.name != "")
 	{
 		for (auto& op : arCode.ops)
-			EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), op.cmd_addr, op.value));
+			EditCheatCode->AppendText(wxString::Format("%08X %08X\n", op.cmd_addr, op.value));
 	}
 	else
 	{

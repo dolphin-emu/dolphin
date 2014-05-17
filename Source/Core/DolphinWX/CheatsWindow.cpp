@@ -121,7 +121,7 @@ void wxCheatsWindow::Init_ChildControls()
 	m_CheckBox_LogAR->Bind(wxEVT_CHECKBOX, &wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange, this);
 
 	m_CheckBox_LogAR->SetValue(ActionReplay::IsSelfLogging());
-	m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(100, -1), wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+	m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log, wxID_ANY, "", wxDefaultPosition, wxSize(100, -1), wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 
 	wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
 	HStrip1->Add(m_CheckBox_LogAR, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -203,11 +203,11 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 	// Search value radio buttons
 	value_x_radiobtn.rad_oldvalue = new wxRadioButton(this, -1, _("Previous Value"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-	value_x_radiobtn.rad_uservalue = new wxRadioButton(this, -1, wxT(""));
+	value_x_radiobtn.rad_uservalue = new wxRadioButton(this, -1, "");
 	value_x_radiobtn.rad_oldvalue->SetValue(true);
 
 	// search value textbox
-	textctrl_value_x = new wxTextCtrl(this, -1, wxT("0x0"), wxDefaultPosition, wxSize(96,-1));
+	textctrl_value_x = new wxTextCtrl(this, -1, "0x0", wxDefaultPosition, wxSize(96,-1));
 	textctrl_value_x->Bind(wxEVT_SET_FOCUS, &CheatSearchTab::ApplyFocus, this);
 
 	wxBoxSizer* const sizer_cheat_filter_text = new wxBoxSizer(wxHORIZONTAL);
@@ -539,7 +539,7 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 {
 	lbox_search_results->Clear();
 
-	wxString count_label = _("Count:") + wxString::Format(wxT(" %lu"),
+	wxString count_label = _("Count:") + wxString::Format(" %lu",
 		(unsigned long)search_results.size());
 	if (search_results.size() > MAX_CHEAT_SEARCH_RESULTS_DISPLAY)
 	{
@@ -566,12 +566,10 @@ void CheatSearchTab::UpdateCheatSearchResultsList()
 			// #elseif BIG_ENDIAN
 			// need to do some stuff in here (for 8 and 16bit) for bigendian
 			// #endif
-
-			static wxChar rowfmt[] = wxT("0x%08x    0x%0|x    %u/%i");
-			rowfmt[14] = (wxChar)(wxT('0') + search_type_size*2);
+			std::string rowfmt = StringFromFormat("0x%%08x    0x%%0%ux    %%u/%%i", search_type_size*2);
 
 			lbox_search_results->Append(
-				wxString::Format(rowfmt, result.address, display_value, display_value, display_value));
+				wxString::Format(rowfmt.c_str(), result.address, display_value, display_value, display_value));
 		}
 	}
 
@@ -598,11 +596,11 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	textctrl_name = new wxTextCtrl(this, -1, wxEmptyString, wxDefaultPosition, wxSize(256,-1));
 
 	wxStaticText* const label_code = new wxStaticText(this, -1, _("Code: "));
-	textctrl_code = new wxTextCtrl(this, -1, wxString::Format(wxT("0x%08x"), address));
+	textctrl_code = new wxTextCtrl(this, -1, wxString::Format("0x%08x", address));
 	textctrl_code->Disable();
 
 	wxStaticText* const label_value = new wxStaticText(this, -1, _("Value: "));
-	textctrl_value = new wxTextCtrl(this, -1, wxT("0"));
+	textctrl_value = new wxTextCtrl(this, -1, "0");
 
 	checkbox_use_hex = new wxCheckBox(this, -1, _("Use Hex"));
 	checkbox_use_hex->SetValue(true);
@@ -647,8 +645,8 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	}
 
 	//wxString full_code = textctrl_code->GetValue();
-	//full_code += wxT(' ');
-	//full_code += wxString::Format(wxT("0x%08x"), code_value);
+	//full_code += ' ';
+	//full_code += wxString::Format("0x%08x", code_value);
 
 	// create the new code
 	ActionReplay::ARCode new_cheat;

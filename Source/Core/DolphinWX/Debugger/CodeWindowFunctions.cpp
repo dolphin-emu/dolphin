@@ -152,7 +152,7 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _("Save code"),
-		StrToWxStr("Save the entire disassembled code. This may take a several seconds"
+		_("Save the entire disassembled code. This may take a several seconds"
 		" and may require between 50 and 100 MB of hard drive space. It will only save code"
 		" that are in the first 4 MB of memory, if you are debugging a game that load .rel"
 		" files with code to memory you may want to increase that to perhaps 8 MB, you can do"
@@ -198,10 +198,10 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 				Profiler::WriteProfileResults(filename);
 
 				wxFileType* filetype = nullptr;
-				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
+				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt")))
 				{
 					// From extension failed, trying with MIME type now
-					if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"))))
+					if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain")))
 						// MIME type failed, aborting mission
 						break;
 				}
@@ -227,7 +227,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_CLEARSYMBOLS:
-		if (!AskYesNo("Do you want to clear the list of symbol names?")) return;
+		if (!AskYesNoT("Do you want to clear the list of symbol names?")) return;
 		g_symbolDB.Clear();
 		Host_NotifyMapLoaded();
 		break;
@@ -279,7 +279,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			const wxString path = wxFileSelector(
 				_("Apply signature file"), wxEmptyString,
 				wxEmptyString, wxEmptyString,
-				_T("Dolphin Symbol Rename File (*.sym)|*.sym"),
+				"Dolphin Symbol Rename File (*.sym)|*.sym",
 				wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
 			if (!path.IsEmpty())
@@ -313,7 +313,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 			wxTextEntryDialog input_prefix(
 				this,
-				StrToWxStr("Only export symbols with prefix:\n(Blank for all symbols)"),
+				_("Only export symbols with prefix:\n(Blank for all symbols)"),
 				wxGetTextFromUserPromptStr,
 				wxEmptyString);
 
@@ -322,8 +322,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
 				wxString path = wxFileSelector(
-					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
-					_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_SAVE,
+					_("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
+					"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_SAVE,
 					this);
 				if (!path.IsEmpty())
 				{
@@ -337,8 +337,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_USESIGNATUREFILE:
 		{
 			wxString path = wxFileSelector(
-				_T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
-				_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+				_("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
+				"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 				this);
 			if (!path.IsEmpty())
 			{

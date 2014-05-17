@@ -610,7 +610,7 @@ void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&
 				{
 					if ((elem.virtualName == "nocopy") || elem.virtualName == "nomove")
 					{
-						PanicAlert("This save will likely require homebrew tools to copy to a real wii");
+						PanicAlertT("This save will likely require homebrew tools to copy to a real Wii.");
 					}
 
 					Directories.push_back(elem.physicalName);

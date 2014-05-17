@@ -308,8 +308,8 @@ void CGameListCtrl::Update()
 		InitBitmaps();
 
 		// add columns
-		InsertColumn(COLUMN_DUMMY,_T(""));
-		InsertColumn(COLUMN_PLATFORM, _T(""));
+		InsertColumn(COLUMN_DUMMY, "");
+		InsertColumn(COLUMN_PLATFORM, "");
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
 
@@ -317,7 +317,7 @@ void CGameListCtrl::Update()
 		// wii titles We show in the same column : company for GC games and
 		// description for wii/wad games
 		InsertColumn(COLUMN_NOTES, _("Notes"));
-		InsertColumn(COLUMN_COUNTRY, _T(""));
+		InsertColumn(COLUMN_COUNTRY, "");
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
 
@@ -1190,16 +1190,16 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		{
 			wxString FileType;
 			if (iso->GetPlatform() == GameListItem::WII_DISC)
-				FileType = _("All Wii ISO files (iso)") + wxString(wxT("|*.iso"));
+				FileType = _("All Wii ISO files (iso)") + "|*.iso";
 			else
-				FileType = _("All Gamecube GCM files (gcm)") + wxString(wxT("|*.gcm"));
+				FileType = _("All Gamecube GCM files (gcm)") + "|*.gcm";
 
 			path = wxFileSelector(
 					_("Save decompressed GCM/ISO"),
 					StrToWxStr(FilePath),
 					StrToWxStr(FileName) + FileType.After('*'),
 					wxEmptyString,
-					FileType + wxT("|") + wxGetTranslation(wxALL_FILES),
+					FileType + "|" + wxGetTranslation(wxALL_FILES),
 					wxFD_SAVE,
 					this);
 		}
@@ -1208,10 +1208,10 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 			path = wxFileSelector(
 					_("Save compressed GCM/ISO"),
 					StrToWxStr(FilePath),
-					StrToWxStr(FileName) + _T(".gcz"),
+					StrToWxStr(FileName) + ".gcz",
 					wxEmptyString,
 					_("All compressed GC/Wii ISO files (gcz)") +
-						wxString::Format(wxT("|*.gcz|%s"), wxGetTranslation(wxALL_FILES)),
+						wxString::Format("|*.gcz|%s", wxGetTranslation(wxALL_FILES)),
 					wxFD_SAVE,
 					this);
 		}
@@ -1325,7 +1325,7 @@ void CGameListCtrl::OnDropFiles(wxDropFilesEvent& event)
 		}
 
 		if (Movie::PlayInput(WxStrToStr(file.GetFullPath())))
-			main_frame->BootGame(std::string(""));
+			main_frame->BootGame("");
 	}
 	else if (!Core::IsRunning())
 	{

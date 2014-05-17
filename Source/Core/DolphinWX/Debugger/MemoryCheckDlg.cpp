@@ -23,7 +23,7 @@
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/MemoryCheckDlg.h"
 
-#define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, wxT(text))
+#define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, _(text))
 
 BEGIN_EVENT_TABLE(MemoryCheckDlg, wxDialog)
 	EVT_BUTTON(wxID_OK, MemoryCheckDlg::OnOK)
@@ -33,8 +33,8 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
 	: wxDialog(parent, wxID_ANY, _("Memory Check"))
 	, m_parent(parent)
 {
-	m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, wxT(""));
-	m_pEditEndAddress = new wxTextCtrl(this, wxID_ANY, wxT(""));
+	m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, "");
+	m_pEditEndAddress = new wxTextCtrl(this, wxID_ANY, "");
 	m_pWriteFlag = new wxCheckBox(this, wxID_ANY, _("Write"));
 	m_pWriteFlag->SetValue(true);
 	m_pReadFlag = new wxCheckBox(this, wxID_ANY, _("Read"));
@@ -43,17 +43,17 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
 	m_log_flag->SetValue(true);
 	m_break_flag = new wxCheckBox(this, wxID_ANY, _("Break"));
 
-	wxStaticBoxSizer *sAddressRangeBox = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Address Range"));
+	wxStaticBoxSizer *sAddressRangeBox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Address Range"));
 	sAddressRangeBox->Add(TEXT_BOX("Start"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 	sAddressRangeBox->Add(m_pEditStartAddress, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
 	sAddressRangeBox->Add(TEXT_BOX("End"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 	sAddressRangeBox->Add(m_pEditEndAddress, 1, wxALIGN_CENTER_VERTICAL);
 
-	wxStaticBoxSizer *sActionBox = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Action"));
+	wxStaticBoxSizer *sActionBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Action"));
 	sActionBox->Add(m_pWriteFlag);
 	sActionBox->Add(m_pReadFlag);
 
-	wxBoxSizer* sFlags = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Flags"));
+	wxBoxSizer* sFlags = new wxStaticBoxSizer(wxVERTICAL, this, _("Flags"));
 	sFlags->Add(m_log_flag);
 	sFlags->Add(m_break_flag);
 

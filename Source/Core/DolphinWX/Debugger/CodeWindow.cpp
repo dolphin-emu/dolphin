@@ -365,7 +365,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	wxMenu* pCoreMenu = new wxMenu;
 
 	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _("&Interpreter core"),
-		StrToWxStr("This is necessary to get break points"
+		_("This is necessary to get break points"
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
 		" slow, perhaps slower than 1 fps."),
 		wxITEM_CHECK);
@@ -433,7 +433,7 @@ void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 	boottopause->Check(bBootToPause);
 
 	wxMenuItem* automaticstart = pMenu->Append(IDM_AUTOMATICSTART, _("&Automatic start"),
-		StrToWxStr(
+		_(
 		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
 		" if you have not given it an elf file with the --elf command line. [This can be"
 		" convenient if you are bug-testing with a certain game and want to rebuild"
@@ -442,7 +442,7 @@ void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 		wxITEM_CHECK);
 	automaticstart->Check(bAutomaticStart);
 
-	pMenu->Append(IDM_FONTPICKER, _("&Font..."), wxEmptyString, wxITEM_NORMAL);
+	pMenu->Append(IDM_FONTPICKER, _("&Font..."));
 }
 
 // CPU Mode and JIT Menu
@@ -515,8 +515,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 
 		case IDM_SEARCHINSTRUCTION:
 		{
-			wxString str;
-			str = wxGetTextFromUser(_T(""), wxT("Op?"), wxEmptyString, this);
+			wxString str = wxGetTextFromUser("", _("Op?"), wxEmptyString, this);
 			for (u32 addr = 0x80000000; addr < 0x80100000; addr += 4)
 			{
 				const char *name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
@@ -585,7 +584,7 @@ void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 	toolBar->AddTool(IDM_GOTOPC,   _("Show PC"),   m_Bitmaps[Toolbar_GotoPC]);
 	toolBar->AddTool(IDM_SETPC,    _("Set PC"),    m_Bitmaps[Toolbar_SetPC]);
 	toolBar->AddSeparator();
-	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, _T("")));
+	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, ""));
 
 	toolBar->Realize();
 }

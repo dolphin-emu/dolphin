@@ -418,7 +418,7 @@ void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 
 			// Wasn't able to save the file, shit's whack, yo.
 			if (!result)
-				PanicAlert("Error saving file");
+				PanicAlertT("Error saving file");
 		}
 	}
 }

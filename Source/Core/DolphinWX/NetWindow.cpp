@@ -81,7 +81,7 @@ void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
 }
 
 NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list)
-	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR))
+	: wxFrame(parent, wxID_ANY, NETPLAY_TITLEBAR)
 	, m_game_list(game_list)
 {
 	IniFile inifile;
@@ -309,7 +309,7 @@ void NetPlaySetupDiag::OnQuit(wxCommandEvent&)
 
 NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game_list,
 		const std::string& game, const bool is_hosting)
-	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR))
+	: wxFrame(parent, wxID_ANY, NETPLAY_TITLEBAR)
 	, m_selected_game(game)
 	, m_start_btn(nullptr)
 	, m_game_list(game_list)
@@ -375,7 +375,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		bottom_szr->Add(m_start_btn);
 
 		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5 );
-		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, wxT("20")
+		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, "20"
 			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
 		padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDiag::OnAdjustBuffer, this);
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
@@ -426,7 +426,7 @@ void NetPlayDiag::OnChat(wxCommandEvent&)
 	if (s.Length())
 	{
 		netplay_client->SendChatMessage(WxStrToStr(s));
-		m_chat_text->AppendText(s.Prepend(wxT(" >> ")).Append(wxT('\n')));
+		m_chat_text->AppendText(s.Prepend(" >> ").Append('\n'));
 		m_chat_msg_text->Clear();
 	}
 }
@@ -520,7 +520,7 @@ void NetPlayDiag::OnAdjustBuffer(wxCommandEvent& event)
 	std::ostringstream ss;
 	ss << "< Pad Buffer: " << val << " >";
 	netplay_client->SendChatMessage(ss.str());
-	m_chat_text->AppendText(StrToWxStr(ss.str()).Append(wxT('\n')));
+	m_chat_text->AppendText(StrToWxStr(ss.str()).Append('\n'));
 }
 
 void NetPlayDiag::OnQuit(wxCommandEvent&)
@@ -574,7 +574,7 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 		std::string s;
 		chat_msgs.Pop(s);
 		//PanicAlert("message: %s", s.c_str());
-		m_chat_text->AppendText(StrToWxStr(s).Append(wxT('\n')));
+		m_chat_text->AppendText(StrToWxStr(s).Append('\n'));
 	}
 }
 
@@ -655,7 +655,7 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiim
 	for (unsigned int i=0; i<4; ++i)
 	{
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Pad ")) + (wxChar)(wxT('0')+i))),
+		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Pad ")) + (wxChar)('0'+i))),
 					    1, wxALIGN_CENTER_HORIZONTAL);
 
 		m_map_cbox[i] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
@@ -676,7 +676,7 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiim
 	for (unsigned int i=0; i<4; ++i)
 	{
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)(wxT('0')+i))),
+		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)('0'+i))),
 					    1, wxALIGN_CENTER_HORIZONTAL);
 
 		m_map_cbox[i+4] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);

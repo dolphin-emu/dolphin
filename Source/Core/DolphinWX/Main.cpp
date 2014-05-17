@@ -215,17 +215,15 @@ bool DolphinApp::OnInit()
 		return false;
 	}
 
-	UseDebugger = parser.Found(wxT("debugger"));
-	UseLogger = parser.Found(wxT("logger"));
-	LoadFile = parser.Found(wxT("exec"), &FileToLoad);
-	BatchMode = parser.Found(wxT("batch"));
-	selectVideoBackend = parser.Found(wxT("video_backend"),
-		&videoBackendName);
-	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
-		&audioEmulationName);
-	playMovie = parser.Found(wxT("movie"), &movieFile);
+	UseDebugger = parser.Found("debugger");
+	UseLogger = parser.Found("logger");
+	LoadFile = parser.Found("exec", &FileToLoad);
+	BatchMode = parser.Found("batch");
+	selectVideoBackend = parser.Found("video_backend", &videoBackendName);
+	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
+	playMovie = parser.Found("movie", &movieFile);
 
-	if (parser.Found(wxT("user"), &userPath))
+	if (parser.Found("user", &userPath))
 	{
 		File::CreateFullPath(WxStrToStr(userPath) + DIR_SEP);
 		File::GetUserPath(D_USER_IDX, userPath.ToStdString() + DIR_SEP);
@@ -426,7 +424,7 @@ void DolphinApp::InitLanguageSupport()
 		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetExeDirectory() + DIR_SEP "Languages"));
 #endif
 
-		m_locale->AddCatalog(wxT("dolphin-emu"));
+		m_locale->AddCatalog("dolphin-emu");
 
 		if (!m_locale->IsOk())
 		{
@@ -497,7 +495,7 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 	else
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
-		event.SetString(StrToWxStr(caption) + wxT(":") + StrToWxStr(text));
+		event.SetString(StrToWxStr(caption) + ":" + StrToWxStr(text));
 		event.SetInt(yes_no);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 		main_frame->panic_event.Wait();

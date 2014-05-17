@@ -141,7 +141,7 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 		// add codes to info listbox
 		for (const GeckoCode::Code& code : m_gcodes[sel].codes)
 		{
-			m_infobox.listbox_codes->Append(wxString::Format(wxT("%08X %08X"), code.address, code.data));
+			m_infobox.listbox_codes->Append(wxString::Format("%08X %08X", code.address, code.data));
 		}
 	}
 	else

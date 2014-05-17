@@ -36,11 +36,11 @@ void CBreakPointView::Update()
 {
 	ClearAll();
 
-	InsertColumn(0, wxT("Active"));
-	InsertColumn(1, wxT("Type"));
-	InsertColumn(2, wxT("Function"));
-	InsertColumn(3, wxT("Address"));
-	InsertColumn(4, wxT("Flags"));
+	InsertColumn(0, _("Active"));
+	InsertColumn(1, _("Type"));
+	InsertColumn(2, _("Function"));
+	InsertColumn(3, _("Address"));
+	InsertColumn(4, _("Flags"));
 
 	char szBuffer[64];
 	const BreakPoints::TBreakPoints& rBreakPoints = PowerPC::breakpoints.GetBreakPoints();
