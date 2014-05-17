@@ -860,7 +860,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		DWORD ifIndex = -1;
 		std::unique_ptr<MIB_IPFORWARDTABLE> forwardTable;
 		std::unique_ptr<MIB_IPADDRTABLE> ipTable;
-		
+
 		forwardTableSize = 0;
 		if (GetIpForwardTable(nullptr, &forwardTableSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
 		{
