@@ -320,6 +320,11 @@ void CheckExceptions()
 	// set to exception type entry point
 	//NPC = 0x00000x00;
 
+	// TODO(delroth): Exception priority is completely wrong here: depending on
+	// the instruction class, exceptions should be executed in a given order,
+	// which is very different from the one arbitrarily chosen here. See §6.1.5
+	// in 6xx_pem.pdf.
+
 	if (exceptions & EXCEPTION_ISI)
 	{
 		SRR0 = NPC;
@@ -396,7 +401,7 @@ void CheckExceptions()
 	}
 
 	// EXTERNAL INTERRUPT
-	else if (MSR & 0x0008000) //hacky...the exception shouldn't be generated if EE isn't set...
+	else if (MSR & 0x0008000)  // Handling is delayed until MSR.EE=1.
 	{
 		if (exceptions & EXCEPTION_EXTERNAL_INT)
 		{
