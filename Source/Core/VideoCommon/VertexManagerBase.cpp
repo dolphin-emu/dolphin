@@ -28,7 +28,7 @@ bool VertexManager::IsFlushed;
 
 static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
-	PRIMITIVE_TRIANGLES, // GX_DRAW_NONE
+	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS_2
 	PRIMITIVE_TRIANGLES, // GX_DRAW_TRIANGLES
 	PRIMITIVE_TRIANGLES, // GX_DRAW_TRIANGLE_STRIP
 	PRIMITIVE_TRIANGLES, // GX_DRAW_TRIANGLE_FAN
@@ -93,6 +93,7 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 		switch (primitive)
 		{
 		case GX_DRAW_QUADS:
+		case GX_DRAW_QUADS_2:
 			return index_len / 5 * 4;
 		case GX_DRAW_TRIANGLES:
 			return index_len / 4 * 3;
@@ -118,6 +119,7 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 		switch (primitive)
 		{
 		case GX_DRAW_QUADS:
+		case GX_DRAW_QUADS_2:
 			return index_len / 6 * 4;
 		case GX_DRAW_TRIANGLES:
 			return index_len;
