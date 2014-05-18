@@ -611,7 +611,8 @@ void CCodeWindow::UpdateButtonStates()
 	wxAuiToolBar* ToolBar = GetToolBar();
 
 	// Toolbar
-	if (!ToolBar) return;
+	if (!ToolBar)
+		return;
 
 	if (!Initialized)
 	{
@@ -633,8 +634,7 @@ void CCodeWindow::UpdateButtonStates()
 	}
 
 	ToolBar->EnableTool(IDM_STEP, Initialized && Stepping);
-
-	if (ToolBar) ToolBar->Realize();
+	ToolBar->Realize();
 
 	// Menu bar
 	// ------------------
