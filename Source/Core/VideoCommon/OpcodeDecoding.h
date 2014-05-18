@@ -22,15 +22,17 @@
 #define GX_PRIMITIVE_SHIFT          3
 #define GX_VAT_MASK                 0x07
 
-//these are defined 1/8th of their real values and without their top bit
+// These values are the values extracted using GX_PRIMITIVE_MASK
+// and GX_PRIMITIVE_SHIFT.
+// GX_DRAW_QUADS_2 behaves the same way as GX_DRAW_QUADS.
 #define GX_DRAW_QUADS               0x0   // 0x80
+#define GX_DRAW_QUADS_2             0x1   // 0x88
 #define GX_DRAW_TRIANGLES           0x2   // 0x90
 #define GX_DRAW_TRIANGLE_STRIP      0x3   // 0x98
 #define GX_DRAW_TRIANGLE_FAN        0x4   // 0xA0
 #define GX_DRAW_LINES               0x5   // 0xA8
 #define GX_DRAW_LINE_STRIP          0x6   // 0xB0
 #define GX_DRAW_POINTS              0x7   // 0xB8
-#define GX_DRAW_NONE                0x1;  // This is a fake value to used in the backends
 
 extern bool g_bRecordFifoData;
 

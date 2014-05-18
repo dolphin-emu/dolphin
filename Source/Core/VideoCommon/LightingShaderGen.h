@@ -41,7 +41,7 @@ struct LightingUidData
 template<class T>
 static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, const char* lightsColName, const char* lightsName, int coloralpha)
 {
-	const LitChannel& chan = (litchan_index > 1) ? xfregs.alpha[litchan_index-2] : xfregs.color[litchan_index];
+	const LitChannel& chan = (litchan_index > 1) ? xfmem.alpha[litchan_index-2] : xfmem.color[litchan_index];
 	const char* swizzle = (coloralpha == 1) ? "xyz" : (coloralpha == 2) ? "w" : "xyzw";
 	const char* swizzle_components = (coloralpha == 1) ? "3" : (coloralpha == 2) ? "" : "4";
 
@@ -117,14 +117,14 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 template<class T>
 static void GenerateLightingShader(T& object, LightingUidData& uid_data, int components, const char* materialsName, const char* lightsColName, const char* lightsName, const char* inColorName, const char* dest)
 {
-	for (unsigned int j = 0; j < xfregs.numChan.numColorChans; j++)
+	for (unsigned int j = 0; j < xfmem.numChan.numColorChans; j++)
 	{
-		const LitChannel& color = xfregs.color[j];
-		const LitChannel& alpha = xfregs.alpha[j];
+		const LitChannel& color = xfmem.color[j];
+		const LitChannel& alpha = xfmem.alpha[j];
 
 		object.Write("{\n");
 
-		uid_data.matsource |= xfregs.color[j].matsource << j;
+		uid_data.matsource |= xfmem.color[j].matsource << j;
 		if (color.matsource) // from vertex
 		{
 			if (components & (VB_HAS_COL0 << j))
@@ -139,10 +139,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			object.Write("int4 mat = %s[%d];\n", materialsName, j+2);
 		}
 
-		uid_data.enablelighting |= xfregs.color[j].enablelighting << j;
+		uid_data.enablelighting |= xfmem.color[j].enablelighting << j;
 		if (color.enablelighting)
 		{
-			uid_data.ambsource |= xfregs.color[j].ambsource << j;
+			uid_data.ambsource |= xfmem.color[j].ambsource << j;
 			if (color.ambsource) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j) )
@@ -166,7 +166,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		}
 
 		// check if alpha is different
-		uid_data.matsource |= xfregs.alpha[j].matsource << (j+2);
+		uid_data.matsource |= xfmem.alpha[j].matsource << (j+2);
 		if (alpha.matsource != color.matsource)
 		{
 			if (alpha.matsource) // from vertex
@@ -183,10 +183,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			}
 		}
 
-		uid_data.enablelighting |= xfregs.alpha[j].enablelighting << (j+2);
+		uid_data.enablelighting |= xfmem.alpha[j].enablelighting << (j+2);
 		if (alpha.enablelighting)
 		{
-			uid_data.ambsource |= xfregs.alpha[j].ambsource << (j+2);
+			uid_data.ambsource |= xfmem.alpha[j].ambsource << (j+2);
 			if (alpha.ambsource) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j) )
@@ -255,7 +255,8 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 					GenerateLightShader<T>(object, uid_data, i, lit_index, lightsColName, lightsName, coloralpha);
 			}
 		}
-		object.Write("%s%d = float4(mat * clamp(lacc, 0, 255) / 255) / 255.0;\n", dest, j);
+		object.Write("lacc = clamp(lacc, 0, 255);");
+		object.Write("%s%d = float4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n", dest, j);
 		object.Write("}\n");
 	}
 }

@@ -31,6 +31,7 @@ private:
 	template <bool pr> static u16* AddStrip(u16 *Iptr, u32 numVerts, u32 index);
 	template <bool pr> static u16* AddFan(u16 *Iptr, u32 numVerts, u32 index);
 	template <bool pr> static u16* AddQuads(u16 *Iptr, u32 numVerts, u32 index);
+	template <bool pr> static u16* AddQuads_nonstandard(u16 *Iptr, u32 numVerts, u32 index);
 
 	// Lines
 	static u16* AddLineList(u16 *Iptr, u32 numVerts, u32 index);

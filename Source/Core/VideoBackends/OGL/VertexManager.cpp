@@ -59,7 +59,6 @@ void VertexManager::CreateDeviceObjects()
 	s_indexBuffer = StreamBuffer::Create(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
 	m_index_buffers = s_indexBuffer->m_buffer;
 
-	m_CurrentVertexFmt = nullptr;
 	m_last_vao = 0;
 }
 

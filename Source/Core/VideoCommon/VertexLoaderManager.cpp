@@ -126,14 +126,6 @@ void RunVertices(int vtx_attr_group, int primitive, int count)
 	RefreshLoader(vtx_attr_group)->RunVertices(vtx_attr_group, primitive, count);
 }
 
-void SkipVertices(int vtx_attr_group, int count)
-{
-	if (!count)
-		return;
-	u32 stride = RefreshLoader(vtx_attr_group)->GetVertexSize();
-	DataSkip(count * stride);
-}
-
 int GetVertexSize(int vtx_attr_group)
 {
 	return RefreshLoader(vtx_attr_group)->GetVertexSize();
