@@ -177,7 +177,7 @@ void CJitWindow::Compare(u32 em_address)
 		if (st.isFirstBlockOfFunction)
 			sptr += sprintf(sptr, "(first block of function)\n");
 		if (st.isLastBlockOfFunction)
-			sptr += sprintf(sptr, "(first block of function)\n");
+			sptr += sprintf(sptr, "(last block of function)\n");
 
 		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
 
