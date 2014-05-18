@@ -181,7 +181,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	[sbt release];
 }
 
-bool WiimoteScanner::IsReady() const
+bool WiimoteScanner::IsReady()
 {
 	// TODO: only return true when a BT device is present
 	return true;

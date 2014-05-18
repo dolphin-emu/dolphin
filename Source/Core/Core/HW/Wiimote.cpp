@@ -48,6 +48,7 @@ void Initialize(void* const hwnd, bool wait)
 
 	g_plugin.LoadConfig(false);
 
+	WiimoteReal::g_wiimote_scanner.SetHwnd(hwnd);
 	WiimoteReal::Initialize(wait);
 
 	// reload Wiimotes with our settings

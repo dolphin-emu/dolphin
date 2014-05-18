@@ -68,6 +68,8 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+
 // Resources
 
 extern "C" {
@@ -591,6 +593,12 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 		// Actually trigger the close now
 		Close(true);
 		return 0;
+	}
+	else if (nMsg == WM_TOSHIBA_BLUETOOTH)
+	{
+		// Handle Toshiba Bluetooth messages
+		WiimoteReal::g_wiimote_scanner.ToshibaMessage((DWORD)wParam, (DWORD)lParam);
+		return 1;
 	}
 	else
 	{

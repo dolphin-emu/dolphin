@@ -25,7 +25,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	found_board = nullptr;
 }
 
-bool WiimoteScanner::IsReady() const
+bool WiimoteScanner::IsReady()
 {
 	return false;
 }
