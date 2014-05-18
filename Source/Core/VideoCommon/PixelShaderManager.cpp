@@ -77,7 +77,7 @@ void PixelShaderManager::SetConstants()
 			//bpmem.fogRange.Base.Center : center of the viewport in x axis. observation: bpmem.fogRange.Base.Center = realcenter + 342;
 			int center = ((u32)bpmem.fogRange.Base.Center) - 342;
 			// normalize center to make calculations easy
-			float ScreenSpaceCenter = center / (2.0f * xfregs.viewport.wd);
+			float ScreenSpaceCenter = center / (2.0f * xfmem.viewport.wd);
 			ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
 			//bpmem.fogRange.K seems to be  a table of precalculated coefficients for the adjust factor
 			//observations: bpmem.fogRange.K[0].LO appears to be the lowest value and bpmem.fogRange.K[4].HI the largest
@@ -86,7 +86,7 @@ void PixelShaderManager::SetConstants()
 			// so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
 			// TODO: Shouldn't this be EFBToScaledXf?
 			constants.fogf[0][0] = ScreenSpaceCenter;
-			constants.fogf[0][1] = (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd));
+			constants.fogf[0][1] = (float)Renderer::EFBToScaledX((int)(2.0f * xfmem.viewport.wd));
 			constants.fogf[0][2] = bpmem.fogRange.K[4].HI / 256.0f;
 		}
 		else
@@ -108,7 +108,7 @@ void PixelShaderManager::SetConstants()
 			// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 			int istart = nLightsChanged[0] / 0x10;
 			int iend = (nLightsChanged[1] + 15) / 0x10;
-			const float* xfmemptr = (const float*)&xfmem[0x10 * istart + XFMEM_LIGHTS];
+			const float* xfmemptr = (const float*)&xfmem.lights[0x10 * istart];
 
 			for (int i = istart; i < iend; ++i)
 			{
@@ -141,8 +141,8 @@ void PixelShaderManager::SetConstants()
 
 	if (s_bViewPortChanged)
 	{
-		constants.zbias[1][0] = xfregs.viewport.farZ;
-		constants.zbias[1][1] = xfregs.viewport.zRange;
+		constants.zbias[1][0] = xfmem.viewport.farZ;
+		constants.zbias[1][1] = xfmem.viewport.zRange;
 		dirty = true;
 		s_bViewPortChanged = false;
 	}

@@ -487,16 +487,16 @@ void Renderer::SetViewport()
 	// [5] = 16777215 * farz
 
 	// D3D crashes for zero viewports
-	if (xfregs.viewport.wd == 0 || xfregs.viewport.ht == 0)
+	if (xfmem.viewport.wd == 0 || xfmem.viewport.ht == 0)
 		return;
 
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	float X = Renderer::EFBToScaledXf(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff);
-	float Y = Renderer::EFBToScaledYf(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff);
-	float Wd = Renderer::EFBToScaledXf(2.0f * xfregs.viewport.wd);
-	float Ht = Renderer::EFBToScaledYf(-2.0f * xfregs.viewport.ht);
+	float X = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff);
+	float Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
+	float Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	float Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
 	if (Wd < 0.0f)
 	{
 		X += Wd;
@@ -516,8 +516,8 @@ void Renderer::SetViewport()
 
 	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
-										0.f,  // (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
-										1.f); //  xfregs.viewport.farZ / 16777216.0f;
+										0.f,  // (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+										1.f); //  xfmem.viewport.farZ / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
 }
 

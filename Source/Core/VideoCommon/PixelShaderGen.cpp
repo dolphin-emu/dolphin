@@ -24,14 +24,14 @@ static const char *tevKSelTableC[] =
 	"223,223,223",  // 7_8 = 0x01
 	"191,191,191",  // 3_4 = 0x02
 	"159,159,159",  // 5_8 = 0x03
-	"127,127,127",  // 1_2 = 0x04
-	"95,95,95",     // 3_8 = 0x05
-	"63,63,63",     // 1_4 = 0x06
-	"31,31,31",     // 1_8 = 0x07
-	"ERROR1", // 0x08
-	"ERROR2", // 0x09
-	"ERROR3", // 0x0a
-	"ERROR4", // 0x0b
+	"128,128,128",  // 1_2 = 0x04
+	"96,96,96",     // 3_8 = 0x05
+	"64,64,64",     // 1_4 = 0x06
+	"32,32,32",     // 1_8 = 0x07
+	"0,0,0",        // INVALID = 0x08
+	"0,0,0",        // INVALID = 0x09
+	"0,0,0",        // INVALID = 0x0a
+	"0,0,0",        // INVALID = 0x0b
 	I_KCOLORS"[0].rgb", // K0 = 0x0C
 	I_KCOLORS"[1].rgb", // K1 = 0x0D
 	I_KCOLORS"[2].rgb", // K2 = 0x0E
@@ -60,18 +60,18 @@ static const char *tevKSelTableA[] =
 	"223",  // 7_8 = 0x01
 	"191",  // 3_4 = 0x02
 	"159",  // 5_8 = 0x03
-	"127",  // 1_2 = 0x04
-	"95",   // 3_8 = 0x05
-	"63",   // 1_4 = 0x06
-	"31",   // 1_8 = 0x07
-	"ERROR5", // 0x08
-	"ERROR6", // 0x09
-	"ERROR7", // 0x0a
-	"ERROR8", // 0x0b
-	"ERROR9", // 0x0c
-	"ERROR10", // 0x0d
-	"ERROR11", // 0x0e
-	"ERROR12", // 0x0f
+	"128",  // 1_2 = 0x04
+	"96",   // 3_8 = 0x05
+	"64",   // 1_4 = 0x06
+	"32",   // 1_8 = 0x07
+	"0",    // INVALID = 0x08
+	"0",    // INVALID = 0x09
+	"0",    // INVALID = 0x0a
+	"0",    // INVALID = 0x0b
+	"0",    // INVALID = 0x0c
+	"0",    // INVALID = 0x0d
+	"0",    // INVALID = 0x0e
+	"0",    // INVALID = 0x0f
 	I_KCOLORS"[0].r", // K0_R = 0x10
 	I_KCOLORS"[1].r", // K1_R = 0x11
 	I_KCOLORS"[2].r", // K2_R = 0x12
@@ -105,7 +105,7 @@ static const char *tevCInputTable[] =
 	"rastemp.rgb",       // RASC,
 	"rastemp.aaa",       // RASA,
 	"int3(255,255,255)", // ONE
-	"int3(127,127,127)", // HALF
+	"int3(128,128,128)", // HALF
 	"konsttemp.rgb",     // KONST
 	"int3(0,0,0)",       // ZERO
 };
@@ -294,7 +294,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
-		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 		{
 			out.Write("centroid in float3 uv%d;\n", i);
 		}
@@ -370,8 +370,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			out.Write("\tint2 fixpoint_uv%d = iround(", i);
 			// optional perspective divides
-			uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
-			if (xfregs.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
+			uid_data.texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
+			if (xfmem.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
 			{
 				out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
 			}

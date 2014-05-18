@@ -160,8 +160,8 @@ void VertexManager::Draw(UINT stride)
 	{
 		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
-		float vpWidth = 2.0f * xfregs.viewport.wd;
-		float vpHeight = -2.0f * xfregs.viewport.ht;
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
 
 		bool texOffsetEnable[8];
 
@@ -184,8 +184,8 @@ void VertexManager::Draw(UINT stride)
 	{
 		float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
-		float vpWidth = 2.0f * xfregs.viewport.wd;
-		float vpHeight = -2.0f * xfregs.viewport.ht;
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
 
 		bool texOffsetEnable[8];
 

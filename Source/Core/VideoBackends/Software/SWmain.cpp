@@ -115,7 +115,7 @@ void VideoSoftware::DoState(PointerWrap& p)
 	EfbInterface::DoState(p);
 	OpcodeDecoder::DoState(p);
 	Clipper::DoState(p);
-	p.Do(swxfregs);
+	p.Do(xfmem);
 	p.Do(bpmem);
 	p.DoPOD(swstats);
 

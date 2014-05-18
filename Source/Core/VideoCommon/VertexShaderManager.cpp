@@ -131,10 +131,10 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 
 	// TODO: ceil, floor or just cast to int?
 	// TODO: Directly use the floats instead of rounding them?
-	float intendedX = xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff;
-	float intendedY = xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff;
-	float intendedWd = 2.0f * xfregs.viewport.wd;
-	float intendedHt = -2.0f * xfregs.viewport.ht;
+	float intendedX = xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff;
+	float intendedY = xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff;
+	float intendedWd = 2.0f * xfmem.viewport.wd;
+	float intendedHt = -2.0f * xfmem.viewport.ht;
 
 	if (intendedWd < 0.f)
 	{
@@ -167,8 +167,7 @@ void VertexShaderManager::Init()
 {
 	Dirty();
 
-	memset(&xfregs, 0, sizeof(xfregs));
-	memset(xfmem, 0, sizeof(xfmem));
+	memset(&xfmem, 0, sizeof(xfmem));
 	memset(&constants, 0 , sizeof(constants));
 	ResetView();
 
@@ -216,7 +215,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
 		int endn = (nTransformMatricesChanged[1] + 3) / 4;
-		memcpy(constants.transformmatrices[startn], &xfmem[startn * 4], (endn - startn) * 16);
+		memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
 	}
@@ -227,7 +226,7 @@ void VertexShaderManager::SetConstants()
 		int endn = (nNormalMatricesChanged[1] + 2) / 3;
 		for (int i=startn; i<endn; i++)
 		{
-			memcpy(constants.normalmatrices[i], &xfmem[XFMEM_NORMALMATRICES + 3*i], 12);
+			memcpy(constants.normalmatrices[i], &xfmem.normalMatrices[3*i], 12);
 		}
 		dirty = true;
 		nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
@@ -237,7 +236,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nPostTransformMatricesChanged[0] / 4;
 		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
-		memcpy(constants.posttransformmatrices[startn], &xfmem[XFMEM_POSTMATRICES + startn * 4], (endn - startn) * 16);
+		memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
@@ -248,7 +247,7 @@ void VertexShaderManager::SetConstants()
 		// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 		int istart = nLightsChanged[0] / 0x10;
 		int iend = (nLightsChanged[1] + 15) / 0x10;
-		const float* xfmemptr = (const float*)&xfmem[0x10 * istart + XFMEM_LIGHTS];
+		const float* xfmemptr = (const float*)&xfmem.lights[0x10 * istart];
 
 		for (int i = istart; i < iend; ++i)
 		{
@@ -286,7 +285,7 @@ void VertexShaderManager::SetConstants()
 		{
 			if (nMaterialsChanged & (1 << i))
 			{
-				u32 data = *(xfregs.ambColor + i);
+				u32 data = xfmem.ambColor[i];
 				constants.materials[i][0] = (data >> 24) & 0xFF;
 				constants.materials[i][1] = (data >> 16) & 0xFF;
 				constants.materials[i][2] = (data >>  8) & 0xFF;
@@ -298,7 +297,7 @@ void VertexShaderManager::SetConstants()
 		{
 			if (nMaterialsChanged & (1 << (i + 2)))
 			{
-				u32 data = *(xfregs.matColor + i);
+				u32 data = xfmem.matColor[i];
 				constants.materials[i+2][0] = (data >> 24) & 0xFF;
 				constants.materials[i+2][1] = (data >> 16) & 0xFF;
 				constants.materials[i+2][2] = (data >>  8) & 0xFF;
@@ -314,8 +313,8 @@ void VertexShaderManager::SetConstants()
 	{
 		bPosNormalMatrixChanged = false;
 
-		const float *pos = (const float *)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
-		const float *norm = (const float *)xfmem + XFMEM_NORMALMATRICES + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
+		const float *pos = (const float *)xfmem.posMatrices + MatrixIndexA.PosNormalMtxIdx * 4;
+		const float *norm = (const float *)xfmem.normalMatrices + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
 
 		memcpy(constants.posnormalmatrix, pos, 3*16);
 		memcpy(constants.posnormalmatrix[3], norm, 12);
@@ -329,8 +328,10 @@ void VertexShaderManager::SetConstants()
 		bTexMatricesChanged[0] = false;
 		const float *fptrs[] =
 		{
-			(const float *)xfmem + MatrixIndexA.Tex0MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex1MtxIdx * 4,
-			(const float *)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex3MtxIdx * 4
+			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex0MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex1MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex2MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex3MtxIdx * 4]
 		};
 
 		for (int i = 0; i < 4; ++i)
@@ -344,8 +345,10 @@ void VertexShaderManager::SetConstants()
 	{
 		bTexMatricesChanged[1] = false;
 		const float *fptrs[] = {
-			(const float *)xfmem + MatrixIndexB.Tex4MtxIdx * 4, (const float *)xfmem + MatrixIndexB.Tex5MtxIdx * 4,
-			(const float *)xfmem + MatrixIndexB.Tex6MtxIdx * 4, (const float *)xfmem + MatrixIndexB.Tex7MtxIdx * 4
+			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex4MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex5MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex6MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex7MtxIdx * 4]
 		};
 
 		for (int i = 0; i < 4; ++i)
@@ -358,8 +361,8 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
-		constants.depthparams[0] = xfregs.viewport.farZ / 16777216.0f;
-		constants.depthparams[1] = xfregs.viewport.zRange / 16777216.0f;
+		constants.depthparams[0] = xfmem.viewport.farZ / 16777216.0f;
+		constants.depthparams[1] = xfmem.viewport.zRange / 16777216.0f;
 
 		// The console GPU places the pixel center at 7/12 unless antialiasing
 		// is enabled, while D3D and OpenGL place it at 0.5. See the comment
@@ -367,8 +370,8 @@ void VertexShaderManager::SetConstants()
 		// NOTE: If we ever emulate antialiasing, the sample locations set by
 		// BP registers 0x01-0x04 need to be considered here.
 		const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
-		const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfregs.viewport.wd);
-		const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfregs.viewport.ht);
+		const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.wd);
+		const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
 		constants.depthparams[2] = pixel_center_correction * pixel_size_x;
 		constants.depthparams[3] = pixel_center_correction * pixel_size_y;
 		dirty = true;
@@ -387,9 +390,9 @@ void VertexShaderManager::SetConstants()
 	{
 		bProjectionChanged = false;
 
-		float *rawProjection = xfregs.projection.rawProjection;
+		float *rawProjection = xfmem.projection.rawProjection;
 
-		switch (xfregs.projection.type)
+		switch (xfmem.projection.type)
 		{
 		case GX_PERSPECTIVE:
 
@@ -483,12 +486,12 @@ void VertexShaderManager::SetConstants()
 			break;
 
 		default:
-			ERROR_LOG(VIDEO, "Unknown projection type: %d", xfregs.projection.type);
+			ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
 		}
 
 		PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
 
-		if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo ) && xfregs.projection.type == GX_PERSPECTIVE)
+		if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo ) && xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			Matrix44 mtxA;
 			Matrix44 mtxB;

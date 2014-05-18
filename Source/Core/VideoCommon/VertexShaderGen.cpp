@@ -44,13 +44,13 @@ static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
 	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 0, "COLOR", 0);
 	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 1, "COLOR", 1);
 
-	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 		DefineVSOutputStructMember(object, api_type, "float3", "tex", i, "TEXCOORD", i);
 
-	DefineVSOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfregs.numTexGen.numTexGens);
+	DefineVSOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
 
 	if (g_ActiveConfig.bEnablePixelLighting)
-		DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfregs.numTexGen.numTexGens + 1);
+		DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
 
 	object.Write("};\n");
 }
@@ -78,8 +78,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	if (is_writing_shadercode)
 		text[sizeof(text) - 1] = 0x7C;  // canary
 
-	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
-	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
+	_assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
+	_assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
 
 	// uniforms
 	if (api_type == API_OPENGL)
@@ -101,7 +101,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	GenerateVSOutputStruct(out, api_type);
 
-	uid_data.numTexGens = xfregs.numTexGen.numTexGens;
+	uid_data.numTexGens = xfmem.numTexGen.numTexGens;
 	uid_data.components = components;
 	uid_data.pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
@@ -132,7 +132,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		// Let's set up attributes
 		for (size_t i = 0; i < 8; ++i)
 		{
-			if (i < xfregs.numTexGen.numTexGens)
+			if (i < xfmem.numTexGen.numTexGens)
 			{
 				out.Write("centroid out  float3 uv%d;\n", i);
 			}
@@ -220,8 +220,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			"float3 ldir, h;\n"
 			"float dist, dist2, attn;\n");
 
-	uid_data.numColorChans = xfregs.numChan.numColorChans;
-	if (xfregs.numChan.numColorChans == 0)
+	uid_data.numColorChans = xfmem.numChan.numColorChans;
+	if (xfmem.numChan.numColorChans == 0)
 	{
 		if (components & VB_HAS_COL0)
 			out.Write("o.colors_0 = color0;\n");
@@ -231,7 +231,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHT_COLORS, I_LIGHTS, "color", "o.colors_");
 
-	if (xfregs.numChan.numColorChans < 2)
+	if (xfmem.numChan.numColorChans < 2)
 	{
 		if (components & VB_HAS_COL1)
 			out.Write("o.colors_1 = color1;\n");
@@ -244,18 +244,18 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	/*bool texGenSpecialCase =
 		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
 		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
-		(xfregs.texcoords[0].texmtxinfo.inputform == XF_TEXINPUT_AB11);
+		(xfmem.texcoords[0].texmtxinfo.inputform == XF_TEXINPUT_AB11);
 		*/
 
 	// transform texcoords
 	out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
-	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 	{
-		TexMtxInfo& texinfo = xfregs.texMtxInfo[i];
+		TexMtxInfo& texinfo = xfmem.texMtxInfo[i];
 
 		out.Write("{\n");
 		out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
-		uid_data.texMtxInfo[i].sourcerow = xfregs.texMtxInfo[i].sourcerow;
+		uid_data.texMtxInfo[i].sourcerow = xfmem.texMtxInfo[i].sourcerow;
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
@@ -294,7 +294,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		}
 
 		// first transformation
-		uid_data.texMtxInfo[i].texgentype = xfregs.texMtxInfo[i].texgentype;
+		uid_data.texMtxInfo[i].texgentype = xfmem.texMtxInfo[i].texgentype;
 		switch (texinfo.texgentype)
 		{
 			case XF_TEXGEN_EMBOSS_MAP: // calculate tex coords into bump map
@@ -302,15 +302,15 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				if (components & (VB_HAS_NRM1|VB_HAS_NRM2))
 				{
 					// transform the light dir into tangent space
-					uid_data.texMtxInfo[i].embosslightshift = xfregs.texMtxInfo[i].embosslightshift;
-					uid_data.texMtxInfo[i].embosssourceshift = xfregs.texMtxInfo[i].embosssourceshift;
+					uid_data.texMtxInfo[i].embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
+					uid_data.texMtxInfo[i].embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
 					out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(I_LIGHTS, texinfo.embosslightshift));
 					out.Write("o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i, texinfo.embosssourceshift);
 				}
 				else
 				{
 					_assert_(0); // should have normals
-					uid_data.texMtxInfo[i].embosssourceshift = xfregs.texMtxInfo[i].embosssourceshift;
+					uid_data.texMtxInfo[i].embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
 					out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
 				}
 
@@ -325,7 +325,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				break;
 			case XF_TEXGEN_REGULAR:
 			default:
-				uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
+				uid_data.texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
 				if (components & (VB_HAS_TEXMTXIDX0<<i))
 				{
 					out.Write("int tmp = int(tex%d.z);\n", i);
@@ -344,13 +344,13 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				break;
 		}
 
-		uid_data.dualTexTrans_enabled = xfregs.dualTexTrans.enabled;
+		uid_data.dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
 		// CHECKME: does this only work for regular tex gen types?
-		if (xfregs.dualTexTrans.enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
+		if (xfmem.dualTexTrans.enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
 		{
-			const PostMtxInfo& postInfo = xfregs.postMtxInfo[i];
+			const PostMtxInfo& postInfo = xfmem.postMtxInfo[i];
 
-			uid_data.postMtxInfo[i].index = xfregs.postMtxInfo[i].index;
+			uid_data.postMtxInfo[i].index = xfmem.postMtxInfo[i].index;
 			int postidx = postInfo.index;
 			out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES"[%d];\n"
 				"float4 P1 = " I_POSTTRANSFORMMATRICES"[%d];\n"
@@ -368,7 +368,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			}
 			else
 			{
-				uid_data.postMtxInfo[i].normalize = xfregs.postMtxInfo[i].normalize;
+				uid_data.postMtxInfo[i].normalize = xfmem.postMtxInfo[i].normalize;
 				if (postInfo.normalize)
 					out.Write("o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
 
@@ -432,9 +432,10 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		// Will look better when we bind uniforms in GLSL 1.3
 		// clipPos/w needs to be done in pixel shader, not here
 
-		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 			out.Write(" uv%d.xyz =  o.tex%d;\n", i, i);
 		out.Write("  clipPos = o.clipPos;\n");
+
 		if (g_ActiveConfig.bEnablePixelLighting)
 			out.Write("  Normal = o.Normal;\n");
 
