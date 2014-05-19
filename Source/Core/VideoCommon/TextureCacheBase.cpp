@@ -19,11 +19,9 @@
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-enum
-{
-	TEXTURE_KILL_THRESHOLD = 200,
-	RENDER_TARGET_KILL_THRESHOLD = 3,
-};
+static const u64 TEXHASH_INVALID = 0;
+static const int TEXTURE_KILL_THRESHOLD = 200;
+static const int RENDER_TARGET_KILL_THRESHOLD = 3;
 
 TextureCache *g_texture_cache;
 
