@@ -728,10 +728,12 @@ void ExecuteCommand()
 
 					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
 					{
-						// Make the virtual DVD drive much faster than a physical drive if
-						// the user requests it; most games aren't very sensitive to the speed,
-						// and everyone likes shorter load times.
-						ticksUntilTC /= 8;
+						// Make sure fast disc speed performs "instant" reads; in addition
+						// to being used to speed up games, fast disc speed is used as a
+						// workaround for crashes in certain games, including Star Wars
+						// Rogue Leader.
+						FinishExecuteRead();
+						return;
 					}
 
 					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
