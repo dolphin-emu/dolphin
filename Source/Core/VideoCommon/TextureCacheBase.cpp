@@ -128,25 +128,6 @@ void TextureCache::Cleanup()
 	}
 }
 
-void TextureCache::InvalidateRange(u32 start_address, u32 size)
-{
-	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
-	while (iter != tcend)
-	{
-		if (iter->second->OverlapsMemoryRange(start_address, size))
-		{
-			delete iter->second;
-			textures.erase(iter++);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-}
-
 void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 {
 	TexCache::iterator
