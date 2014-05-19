@@ -174,9 +174,6 @@
     <ClInclude Include="GLExtensions\GLExtensions.h">
       <Filter>GLExtensions</Filter>
     </ClInclude>
-    <ClInclude Include="GLExtensions\NV_framebuffer_multisample_coverage.h">
-      <Filter>GLExtensions</Filter>
-    </ClInclude>
     <ClInclude Include="GLExtensions\NV_primitive_restart.h">
       <Filter>GLExtensions</Filter>
     </ClInclude>

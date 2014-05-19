@@ -711,6 +711,12 @@ PFNGLGETSYNCIVPROC glGetSynciv;
 PFNGLISSYNCPROC glIsSync;
 PFNGLWAITSYNCPROC glWaitSync;
 
+// ARB_texture_multisample
+PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
+PFNGLTEXIMAGE3DMULTISAMPLEPROC glTexImage3DMultisample;
+PFNGLGETMULTISAMPLEFVPROC glGetMultisamplefv;
+PFNGLSAMPLEMASKIPROC glSampleMaski;
+
 // ARB_ES2_compatibility
 PFNGLCLEARDEPTHFPROC glClearDepthf;
 PFNGLDEPTHRANGEFPROC glDepthRangef;
@@ -743,9 +749,6 @@ PFNGLDRAWELEMENTSBASEVERTEXPROC glDrawElementsBaseVertex;
 PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC glDrawElementsInstancedBaseVertex;
 PFNGLDRAWRANGEELEMENTSBASEVERTEXPROC glDrawRangeElementsBaseVertex;
 PFNGLMULTIDRAWELEMENTSBASEVERTEXPROC glMultiDrawElementsBaseVertex;
-
-// NV_framebuffer_multisample_coverage
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLECOVERAGENVPROC glRenderbufferStorageMultisampleCoverageNV;
 
 // ARB_sample_shading
 PFNGLMINSAMPLESHADINGARBPROC glMinSampleShadingARB;
@@ -1493,6 +1496,12 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glIsSync,         "GL_ARB_sync"),
 	GLFUNC_REQUIRES(glWaitSync,       "GL_ARB_sync"),
 
+	// ARB_texture_multisample
+	GLFUNC_REQUIRES(glTexImage2DMultisample, "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glTexImage3DMultisample, "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glGetMultisamplefv,      "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glSampleMaski,           "GL_ARB_texture_multisample"),
+
 	// ARB_ES2_compatibility
 	GLFUNC_REQUIRES(glClearDepthf,              "GL_ARB_ES2_compatibility"),
 	GLFUNC_REQUIRES(glDepthRangef,              "GL_ARB_ES2_compatibility"),
@@ -1525,9 +1534,6 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glDrawElementsInstancedBaseVertex, "GL_ARB_draw_elements_base_vertex"),
 	GLFUNC_REQUIRES(glDrawRangeElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
 	GLFUNC_REQUIRES(glMultiDrawElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
-
-	// NV_framebuffer_multisample_coverage
-	GLFUNC_REQUIRES(glRenderbufferStorageMultisampleCoverageNV, "GL_NV_framebuffer_multisample_coverage"),
 
 	// ARB_sample_shading
 	GLFUNC_REQUIRES(glMinSampleShadingARB, "GL_ARB_sample_shading"),
