@@ -27,8 +27,6 @@ public:
 
 	struct TCacheEntryBase
 	{
-#define TEXHASH_INVALID 0
-
 		// common members
 		u32 addr;
 		u32 size_in_bytes;

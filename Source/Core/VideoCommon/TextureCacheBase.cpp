@@ -22,10 +22,8 @@
 // ugly
 extern int frameCount;
 
-enum
-{
-	TEXTURE_KILL_THRESHOLD = 200,
-};
+static const u64 TEXHASH_INVALID = 0;
+static const int TEXTURE_KILL_THRESHOLD = 200;
 
 TextureCache *g_texture_cache;
 
