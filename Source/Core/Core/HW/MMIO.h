@@ -105,7 +105,7 @@ public:
 	// Note that for reads we cannot simply return the read value because C++
 	// allows overloading only with parameter types, not return types.
 #define READ_FUNC(Size) \
-	void Read(u32 addr, u##Size* val) const \
+	void Read(u32 addr, u##Size* val) \
 	{ \
 		u32 id = UniqueID(addr) / sizeof (u##Size); \
 		*val = m_Read##Size##Handlers[id].Read(addr); \
@@ -114,7 +114,7 @@ public:
 #undef READ_FUNC
 
 #define WRITE_FUNC(Size) \
-	void Write(u32 addr, u##Size val) const \
+	void Write(u32 addr, u##Size val) \
 	{ \
 		u32 id = UniqueID(addr) / sizeof (u##Size); \
 		m_Write##Size##Handlers[id].Write(addr, val); \
@@ -133,11 +133,11 @@ public:
 	// value. This second variant is needed because C++ doesn't do overloads
 	// based on return type but only based on argument types.
 #define GET_HANDLERS_FUNC(Type, Size) \
-	const Type##Handler<u##Size>& GetHandlerFor##Type##Size(u32 addr) const \
+	Type##Handler<u##Size>& GetHandlerFor##Type##Size(u32 addr) \
 	{ \
 		return m_##Type##Size##Handlers[UniqueID(addr) / sizeof (u##Size)]; \
 	} \
-	void GetHandlerFor##Type(u32 addr, const Type##Handler<u##Size>** h) const \
+	void GetHandlerFor##Type(u32 addr, Type##Handler<u##Size>** h) \
 	{ \
 		*h = &GetHandlerFor##Type##Size(addr); \
 	}
@@ -147,8 +147,8 @@ public:
 
 	// Dummy 64 bits variants of these functions. While 64 bits MMIO access is
 	// not supported, we need these in order to make the code compile.
-	void Read(u32 addr, u64* val) const { _dbg_assert_(MEMMAP, 0); }
-	void Write(u32 addr, u64 val) const { _dbg_assert_(MEMMAP, 0); }
+	void Read(u32 addr, u64* val) { _dbg_assert_(MEMMAP, 0); }
+	void Write(u32 addr, u64 val) { _dbg_assert_(MEMMAP, 0); }
 
 private:
 	// These arrays contain the handlers for each MMIO access type: read/write

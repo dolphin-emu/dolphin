@@ -115,10 +115,16 @@ public:
 	~ReadHandler();
 
 	// Entry point for read handling method visitors.
-	void Visit(ReadHandlingMethodVisitor<T>& visitor) const;
+	void Visit(ReadHandlingMethodVisitor<T>& visitor);
 
-	T Read(u32 addr) const
+	T Read(u32 addr)
 	{
+		// Check if the handler has already been initialized. For real
+		// handlers, this will always be the case, so this branch should be
+		// easily predictable.
+		if (!m_Method)
+			InitializeInvalid();
+
 		return m_ReadFunc(addr);
 	}
 
@@ -127,6 +133,13 @@ public:
 	void ResetMethod(ReadHandlingMethod<T>* method);
 
 private:
+	// Initialize this handler to an invalid handler. Done lazily to avoid
+	// useless initialization of thousands of unused handler objects.
+	void InitializeInvalid()
+	{
+		ResetMethod(InvalidRead<T>());
+	}
+
 	std::unique_ptr<ReadHandlingMethod<T>> m_Method;
 	std::function<T(u32)> m_ReadFunc;
 };
@@ -142,10 +155,16 @@ public:
 	~WriteHandler();
 
 	// Entry point for write handling method visitors.
-	void Visit(WriteHandlingMethodVisitor<T>& visitor) const;
+	void Visit(WriteHandlingMethodVisitor<T>& visitor);
 
-	void Write(u32 addr, T val) const
+	void Write(u32 addr, T val)
 	{
+		// Check if the handler has already been initialized. For real
+		// handlers, this will always be the case, so this branch should be
+		// easily predictable.
+		if (!m_Method)
+			InitializeInvalid();
+
 		m_WriteFunc(addr, val);
 	}
 
@@ -155,6 +174,13 @@ public:
 	void ResetMethod(WriteHandlingMethod<T>* method);
 
 private:
+	// Initialize this handler to an invalid handler. Done lazily to avoid
+	// useless initialization of thousands of unused handler objects.
+	void InitializeInvalid()
+	{
+		ResetMethod(InvalidWrite<T>());
+	}
+
 	std::unique_ptr<WriteHandlingMethod<T>> m_Method;
 	std::function<void(u32, T)> m_WriteFunc;
 };
