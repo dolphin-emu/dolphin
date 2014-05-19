@@ -288,18 +288,20 @@ int main(int argc, char* argv[])
 	[NSApp finishLaunching];
 #endif
 	int ch, help = 0;
+	char* filename = nullptr;
 	struct option longopts[] = {
 		{ "exec",    no_argument, nullptr, 'e' },
 		{ "help",    no_argument, nullptr, 'h' },
 		{ "version", no_argument, nullptr, 'v' },
-		{ nullptr,      0,           nullptr,  0  }
+		{ nullptr, 0, nullptr, 0 }
 	};
 
-	while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1)
+	while ((ch = getopt_long(argc, argv, "e:h?v", longopts, 0)) != -1)
 	{
 		switch (ch)
 		{
 		case 'e':
+			filename = optarg;
 			break;
 		case 'h':
 		case '?':
@@ -311,14 +313,14 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (help == 1 || argc == optind)
+	if (help || !filename)
 	{
 		fprintf(stderr, "%s\n\n", scm_rev_str);
 		fprintf(stderr, "A multi-platform Gamecube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
-		fprintf(stderr, "  -e, --exec   Load the specified file\n");
-		fprintf(stderr, "  -h, --help   Show this help message\n");
-		fprintf(stderr, "  -v, --help   Print version and exit\n");
+		fprintf(stderr, "  -e, --exec    Load the specified file\n");
+		fprintf(stderr, "  -h, --help    Show this help message\n");
+		fprintf(stderr, "  -v, --version Print version and exit\n");
 		return 1;
 	}
 
@@ -337,7 +339,7 @@ int main(int argc, char* argv[])
 #endif
 
 	// No use running the loop when booting fails
-	if (BootManager::BootCore(argv[optind]))
+	if (BootManager::BootCore(filename))
 	{
 #if USE_EGL
 		while (GLWin.platform == EGL_PLATFORM_NONE)
