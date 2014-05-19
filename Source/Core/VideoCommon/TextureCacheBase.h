@@ -92,7 +92,6 @@ public:
 	static void Invalidate();
 	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
-	static void ClearRenderTargets(); // currently only used by OGL
 	static bool Find(u32 start_address, u64 hash);
 
 	virtual TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
@@ -128,7 +127,6 @@ private:
 		bool s_texfmt_overlay;
 		bool s_texfmt_overlay_center;
 		bool s_hires_textures;
-		bool s_copy_cache_enable;
 	} backup_config;
 };
 

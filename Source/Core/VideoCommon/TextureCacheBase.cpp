@@ -100,19 +100,12 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 
 			invalidate_texture_cache_requested = false;
 		}
-
-		// TODO: Probably shouldn't clear all render targets here, just mark them dirty or something.
-		if (config.bEFBCopyCacheEnable != backup_config.s_copy_cache_enable) // TODO: not sure if this is needed?
-		{
-			g_texture_cache->ClearRenderTargets();
-		}
 	}
 
 	backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
 	backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
 	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
 	backup_config.s_hires_textures = config.bHiresTextures;
-	backup_config.s_copy_cache_enable = config.bEFBCopyCacheEnable;
 }
 
 void TextureCache::Cleanup()
@@ -191,26 +184,6 @@ bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 r
 		return false;
 
 	return true;
-}
-
-void TextureCache::ClearRenderTargets()
-{
-	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
-
-	while (iter != tcend)
-	{
-		if (iter->second->type == TCET_EC_VRAM)
-		{
-			delete iter->second;
-			textures.erase(iter++);
-		}
-		else
-		{
-			++iter;
-		}
-	}
 }
 
 bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels)
