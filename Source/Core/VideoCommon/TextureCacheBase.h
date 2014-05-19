@@ -87,7 +87,10 @@ public:
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
 
 	static void OnConfigChanged(VideoConfig& config);
-	static void Cleanup();
+
+	// Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,
+	// frameCount is the current frame number.
+	static void Cleanup(int frameCount);
 
 	static void Invalidate();
 	static void InvalidateRange(u32 start_address, u32 size);

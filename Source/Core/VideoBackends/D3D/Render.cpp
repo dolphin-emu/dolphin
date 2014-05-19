@@ -851,7 +851,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	OSD::DrawMessages();
 	D3D::EndFrame();
 
-	TextureCache::Cleanup();
+	TextureCache::Cleanup(frameCount);
 
 	// Enable configuration changes
 	UpdateActiveConfig();

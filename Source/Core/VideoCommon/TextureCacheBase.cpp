@@ -22,6 +22,7 @@
 static const u64 TEXHASH_INVALID = 0;
 static const int TEXTURE_KILL_THRESHOLD = 200;
 static const int RENDER_TARGET_KILL_THRESHOLD = 3;
+static const u64 FRAMECOUNT_INVALID = 0;
 
 TextureCache *g_texture_cache;
 
@@ -136,13 +137,17 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 	backup_config.s_efb_mono_depth = config.bStereoEFBMonoDepth;
 }
 
-void TextureCache::Cleanup()
+void TextureCache::Cleanup(int _frameCount)
 {
 	TexCache::iterator iter = textures.begin();
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount &&
+		if(iter->second->frameCount == FRAMECOUNT_INVALID)
+		{
+			iter->second->frameCount = _frameCount;
+		}
+		if (_frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount &&
 		    // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
 		    !iter->second->IsEfbCopy())
 		{
@@ -159,7 +164,7 @@ void TextureCache::Cleanup()
 	{
 		auto rt = render_target_pool[i];
 
-		if (frameCount > RENDER_TARGET_KILL_THRESHOLD + rt->frameCount)
+		if (_frameCount > RENDER_TARGET_KILL_THRESHOLD + rt->frameCount)
 		{
 			delete rt;
 			render_target_pool[i] = render_target_pool.back();
@@ -277,7 +282,7 @@ static u32 CalculateLevelSize(u32 level_0_size, u32 level)
 // Used by TextureCache::Load
 static TextureCache::TCacheEntryBase* ReturnEntry(unsigned int stage, TextureCache::TCacheEntryBase* entry)
 {
-	entry->frameCount = frameCount;
+	entry->frameCount = FRAMECOUNT_INVALID;
 	entry->Bind(stage);
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
@@ -873,7 +878,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		entry->type = TCET_EC_VRAM;
 	}
 
-	entry->frameCount = frameCount;
+	entry->frameCount = FRAMECOUNT_INVALID;
 
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 }
