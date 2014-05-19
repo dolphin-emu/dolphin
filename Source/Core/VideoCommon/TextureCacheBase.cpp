@@ -79,10 +79,15 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 {
 	if (g_texture_cache)
 	{
-		// TODO: Invalidating texcache is really stupid in some of these cases
-		if (config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
+		if (// This affects the hash, so we have to invalidate everything.
+			config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
+
+			// We want the format to be displayed on all textures, not only on new textures.
 			config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
 			config.bTexFmtOverlayCenter != backup_config.s_texfmt_overlay_center ||
+
+			// Without invalidation, we'd only display the overlay / custom
+			// texture for new textures.
 			config.bHiresTextures != backup_config.s_hires_textures ||
 			invalidate_texture_cache_requested)
 		{
