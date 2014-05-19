@@ -175,10 +175,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	glBindTexture(GL_TEXTURE_2D_ARRAY, entry.texture);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, tex_levels - 1);
 
-	entry.Load(width, height, expanded_width, 0);
-
-	// This isn't needed as Load() also reset the stage in the end
-	//TextureCache::SetStage();
+	TextureCache::SetStage();
 
 	return &entry;
 }

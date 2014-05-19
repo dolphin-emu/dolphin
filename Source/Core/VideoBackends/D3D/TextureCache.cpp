@@ -87,24 +87,18 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 {
 	D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
 	D3D11_CPU_ACCESS_FLAG cpu_access = (D3D11_CPU_ACCESS_FLAG)0;
-	D3D11_SUBRESOURCE_DATA srdata, *data = nullptr;
 
 	if (tex_levels == 1)
 	{
 		usage = D3D11_USAGE_DYNAMIC;
 		cpu_access = D3D11_CPU_ACCESS_WRITE;
-
-		srdata.pSysMem = TextureCache::temp;
-		srdata.SysMemPitch = 4 * expanded_width;
-
-		data = &srdata;
 	}
 
 	const D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM,
 		width, height, 1, tex_levels, D3D11_BIND_SHADER_RESOURCE, usage, cpu_access);
 
 	ID3D11Texture2D *pTexture;
-	const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, data, &pTexture);
+	const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
 	CHECK(SUCCEEDED(hr), "Create texture of the TextureCache");
 
 	TCacheEntry* const entry = new TCacheEntry(new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
@@ -115,9 +109,6 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");
 
 	SAFE_RELEASE(pTexture);
-
-	if (tex_levels != 1)
-		entry->Load(width, height, expanded_width, 0);
 
 	return entry;
 }
