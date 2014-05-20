@@ -420,8 +420,13 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_TEV_KSEL+5:// Texture Environment Swap Mode Table 5
 	case BPMEM_TEV_KSEL+6:// Texture Environment Swap Mode Table 6
 	case BPMEM_TEV_KSEL+7:// Texture Environment Swap Mode Table 7
-	case BPMEM_BP_MASK:   // This Register can be used to limit to which bits of BP registers is actually written to. the mask is
-						  // only valid for the next BP command, and will reset itself.
+
+	/* This Register can be used to limit to which bits of BP registers is
+	 * actually written to. The mask is only valid for the next BP write,
+	 * and will reset itself afterwards. It's handled as a special case in
+	 * LoadBPReg. */
+	case BPMEM_BP_MASK:
+
 	case BPMEM_IND_IMASK: // Index Mask ?
 	case BPMEM_REVBITS: // Always set to 0x0F when GX_InitRevBits() is called.
 		break;
