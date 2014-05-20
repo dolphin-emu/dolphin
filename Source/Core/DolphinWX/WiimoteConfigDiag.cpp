@@ -100,7 +100,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 
 
 	// "Real wiimotes" controls
-	wxButton* const refresh_btn = new wxButton(this, -1, _("Refresh"));
+	refresh_btn = new wxButton(this, -1, _("Refresh"));
 	refresh_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::RefreshRealWiimotes, this);
 
 	wxStaticBoxSizer* const real_wiimotes_group = new wxStaticBoxSizer(wxVERTICAL, this, _("Real Wiimotes"));
@@ -237,7 +237,9 @@ void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& ev)
 
 void WiimoteConfigDiag::RefreshRealWiimotes(wxCommandEvent&)
 {
+	refresh_btn->Disable();
 	WiimoteReal::Refresh();
+	refresh_btn->Enable();
 }
 
 void WiimoteConfigDiag::SelectSource(wxCommandEvent& event)

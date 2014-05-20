@@ -134,9 +134,9 @@ PToshiba_BluetoothFreeMemory Toshiba_BluetoothFreeMemory = nullptr;
 PToshiba_BluetoothDisconnect Toshiba_BluetoothDisconnect = nullptr;
 PToshiba_BluetoothStartSearching Toshiba_BluetoothStartSearching = nullptr;
 PToshiba_BluetoothConnectHID Toshiba_BluetoothConnectHID = nullptr;
-PToshiba_BluetoothClearPIN Toshiba_BluetoothClearPIN = nullptr;
+PToshiba_BluetoothClearPIN Toshiba_BluetoothClearPIN = nullptr, Toshiba_BluetoothClearPIN2 = nullptr;
 PToshiba_BluetoothSetPIN Toshiba_BluetoothSetPIN = nullptr;
-
+PToshiba_BluetoothAddRemoteDevice Toshiba_BluetoothAddRemoteDevice = nullptr;
 
 HINSTANCE hid_lib = nullptr;
 HINSTANCE bthprops_lib = nullptr;
@@ -222,7 +222,9 @@ inline void init_lib()
 			Toshiba_BluetoothStartSearching = (PToshiba_BluetoothStartSearching)GetProcAddress(tosbtapi_lib, "BtDiscoverRemoteDevice2");
 			Toshiba_BluetoothConnectHID = (PToshiba_BluetoothConnectHID)GetProcAddress(tosbtapi_lib, "BtConnectHID");
 			Toshiba_BluetoothClearPIN = (PToshiba_BluetoothClearPIN)GetProcAddress(tosbtapi_lib, "BtClearAutoReplyPinCode");
+			Toshiba_BluetoothClearPIN2 = (PToshiba_BluetoothClearPIN)GetProcAddress(tosbtapi_lib, "BtClearAutoReplyPinCode2");
 			Toshiba_BluetoothSetPIN = (PToshiba_BluetoothSetPIN)GetProcAddress(tosbtapi_lib, "BtSetAutoReplyPinCode");
+			Toshiba_BluetoothAddRemoteDevice = (PToshiba_BluetoothAddRemoteDevice)GetProcAddress(tosbtapi_lib, "BtAddRemoteDevice");
 
 			if (!Toshiba_BluetoothInitAPI || !Toshiba_BluetoothStartSearching || !Toshiba_BluetoothConnectHID)
 			{
@@ -292,12 +294,26 @@ void WiimoteScanner::InitToshiba()
 void WiimoteScanner::ToshibaMessage(DWORD wParam, DWORD lParam) {
 	switch (wParam) {
 	case TOSHIBA_BLUETOOTH_SEARCH_FINISHED:
-	case TOSHIBA_BLUETOOTH_SEARCH_ERROR:
+		//WARN_LOG(WIIMOTE, "Search Finished %x\n", lParam);
 		m_ToshibaBusySearching = false;
 		break;
+	case TOSHIBA_BLUETOOTH_SEARCH_ERROR:
+		WARN_LOG(WIIMOTE, "Toshiba Bluetooth Search Error %x\n", lParam);
+		break;
 	case TOSHIBA_BLUETOOTH_CONNECT_HID_FINISHED:
-	case TOSHIBA_BLUETOOTH_CONNECT_HID_ERROR:
+		//WARN_LOG(WIIMOTE, "Connect HID Finished %x\n", lParam);
 		m_ToshibaBusyConnecting = false;
+		break;
+	case TOSHIBA_BLUETOOTH_CONNECT_HID_ERROR:
+		WARN_LOG(WIIMOTE, "Toshiba Bluetooth Connect HID Error %x\n", lParam);
+		m_ToshibaConnectionSucceeded = false;
+		break;
+	case TOSHIBA_BLUETOOTH_CONNECT_HID_CONNECTED:
+		m_ToshibaConnectionSucceeded = true;
+		//WARN_LOG(WIIMOTE, "Connect HID Connected %x\n", lParam);
+		break;
+	default:
+		//WARN_LOG(WIIMOTE, "Toshiba Message %x: %x\n", wParam, lParam);
 		break;
 	}
 }
@@ -328,7 +344,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	{
 		int error = 0;
 		m_ToshibaBusySearching = true;
-		Toshiba_BluetoothStartSearching(pDeviceList, 0, error, (HWND)m_hwnd, WM_TOSHIBA_BLUETOOTH, 0);
+		BOOL result = Toshiba_BluetoothStartSearching(pDeviceList, 0x40000000, error, (HWND)m_hwnd, WM_TOSHIBA_BLUETOOTH, 0);
 		if (error)
 			m_ToshibaBusySearching = false;
 		while (m_ToshibaBusySearching) {
@@ -336,24 +352,40 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		}
 		m_ToshibaBusyConnecting = false;
 		for (int i = 0; pDeviceList && i < pDeviceList->deviceCount; i++) {
+			WARN_LOG(WIIMOTE, "Device %d: '%s', %x, %x, %x\n", i, pDeviceList->device[i].name, pDeviceList->device[i].status, pDeviceList->device[i].ClassOfDevice, pDeviceList->device[i].unknown2);
 			if (IsValidBluetoothName(pDeviceList->device[i].name)) {
 #if defined(AUTHENTICATE_WIIMOTES)
 				if (Toshiba_BluetoothSetPIN) {
 					char WiimotePin[7];
 					WiimotePin[6] = 0;
-					for (int j = 0; j < 6; j++)
-						WiimotePin[5 - j] = ToshibaBluetoothAdapterAddr[j];
-					Toshiba_BluetoothSetPIN(pDeviceList->device[i].BluetoothAddress, WiimotePin, 6, error);
+					// This isn't working for me now. I managed to do it once before in Delphi though, and I think this is what I did.
+					for (int j = 0; j < 6; j++) {
+						WiimotePin[5 - j] = pDeviceList->device[i].BluetoothAddress[j];
+						//WiimotePin[5 - j] = ToshibaBluetoothAdapterAddr[j];
+					}
+					result = Toshiba_BluetoothSetPIN(pDeviceList->device[i].BluetoothAddress, WiimotePin, 6, error);
+					WARN_LOG(WIIMOTE, "Toshiba_BluetoothSetPIN %02x:%02x:%02x:%02x:%02x:%02x  Result %x, %d\n",
+						(unsigned char)WiimotePin[5], (unsigned char)WiimotePin[4], (unsigned char)WiimotePin[3], (unsigned char)WiimotePin[2], (unsigned char)WiimotePin[1], (unsigned char)WiimotePin[0],
+						result, error);
 				}
 #endif
 				m_ToshibaBusyConnecting = true;
-				Toshiba_BluetoothConnectHID(pDeviceList->device[i].BluetoothAddress, error, (HWND)m_hwnd, WM_TOSHIBA_BLUETOOTH, i);
-				if (error)
+				m_ToshibaConnectionSucceeded = false;
+				result = Toshiba_BluetoothConnectHID(pDeviceList->device[i].BluetoothAddress, error, (HWND)m_hwnd, WM_TOSHIBA_BLUETOOTH, 0x400 + i);
+				WARN_LOG(WIIMOTE, "Toshiba_BluetoothConnectHID Result %x, %d\n", result, error);
+				if (error || !result)
 					m_ToshibaBusyConnecting = false;
+				while (m_ToshibaBusyConnecting) {
+					wxYield();
+				}
+				if (!m_ToshibaConnectionSucceeded) {
+					// Failed. Either the Wiimote timed out and stopped being discoverable,
+					// or this Wiimote has never been manually connected so it is not listed in the Bluetooth Settings window.
+					PanicAlertT("Failed to connect to Wiimote, maybe it timed out?\nAlso the Wiimote first needs to be manually connected once in Bluetooth Settings before this works.\n"
+						"Double click on the Bluetooth icon in the system tray, then click New Connection, and follow the instructions.\nThen you never need to do that again, and Dolphin's connecting will work." );
+				}
+
 			}
-		}
-		while (m_ToshibaBusyConnecting) {
-			wxYield();
 		}
 		SLEEP(500);
 	}

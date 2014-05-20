@@ -171,7 +171,7 @@ public:
 	void ToshibaMessage(DWORD wParam, DWORD lParam);
 private:
 	bool m_toshiba_started;
-	volatile bool m_ToshibaBusySearching, m_ToshibaBusyConnecting;
+	volatile bool m_ToshibaBusySearching, m_ToshibaBusyConnecting, m_ToshibaConnectionSucceeded;
 #elif defined(__linux__) && HAVE_BLUEZ
 	int device_id;
 	int device_sock;
