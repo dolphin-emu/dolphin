@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -12,6 +12,7 @@
 #include <ctime>
 #include <unordered_map>
 #include <unordered_set>
+#include <wx/app.h>
 #include <windows.h>
 // The following Windows headers MUST be included after windows.h.
 #include <BluetoothAPIs.h> //NOLINT
@@ -26,6 +27,18 @@
 //#define AUTHENTICATE_WIIMOTES
 #define SHARE_WRITE_WIIMOTES
 
+#define TOSHIBA_BLUETOOTH_SEARCH_ERROR    0x600000
+#define TOSHIBA_BLUETOOTH_SEARCH_STARTING 0x600001
+#define TOSHIBA_BLUETOOTH_SEARCH_FOUND    0x600080
+#define TOSHIBA_BLUETOOTH_SEARCH_FINISHED 0x6000FF
+#define TOSHIBA_BLUETOOTH_CONNECT_HID_ERROR     0xB00300
+#define TOSHIBA_BLUETOOTH_CONNECT_HID_STARTING  0xB00301
+#define TOSHIBA_BLUETOOTH_CONNECT_HID_CONNECTED 0xB00380
+#define TOSHIBA_BLUETOOTH_CONNECT_HID_FINISHED  0xB003FF
+#define TOSHIBA_BLUETOOTH_CONNECTION_CHANGED 0x10100000
+#define TOSHIBA_BLUETOOTH_UNKNOWN	0x11000019 // don't know what this means, but I got it after TOSHIBA_BLUETOOTH_CONNECTION_CHANGED 2, after starting search
+
+
 typedef struct _HIDD_ATTRIBUTES
 {
 	ULONG   Size;
@@ -33,6 +46,36 @@ typedef struct _HIDD_ATTRIBUTES
 	USHORT  ProductID;
 	USHORT  VersionNumber;
 } HIDD_ATTRIBUTES, *PHIDD_ATTRIBUTES;
+
+#pragma pack(push)
+#pragma pack(1)
+typedef BYTE TToshibaBluetoothAddress[6]; // in reverse order from Microsoft
+
+typedef struct {
+	DWORD status;
+	TToshibaBluetoothAddress BluetoothAddress;
+	DWORD ClassOfDevice;
+	char name[248];
+	WORD unknown2;
+} TToshibaBluetoothDevice, *PToshibaBluetoothDevice;
+
+typedef struct {
+	int deviceCount;
+	TToshibaBluetoothDevice device[7];
+} TToshibaBluetoothDeviceList, *PToshibaBluetoothDeviceList;
+
+typedef struct {
+	TToshibaBluetoothAddress BluetoothAddress;
+	BYTE LMPVersion;
+	WORD LMPSubVersion;
+	BYTE HCIVersion;
+	WORD Manufacturer; // http://www.bluetooth.org/apps/content/?doc_id=49708
+	WORD HCIRevision;
+	BYTE unknown[16];
+	BYTE junk[1024]; // I don't know how big this struct is!
+} TToshibaBluetoothAdapter, *PToshibaBluetoothAdapter;
+#pragma pack(pop)
+
 
 typedef VOID (__stdcall *PHidD_GetHidGuid)(LPGUID);
 typedef BOOLEAN (__stdcall *PHidD_GetAttributes)(HANDLE, PHIDD_ATTRIBUTES);
@@ -51,6 +94,21 @@ typedef DWORD (__stdcall *PBth_BluetoothSetServiceState)(HANDLE, const BLUETOOTH
 typedef DWORD (__stdcall *PBth_BluetoothAuthenticateDevice)(HWND, HANDLE, BLUETOOTH_DEVICE_INFO*, PWCHAR, ULONG);
 typedef DWORD (__stdcall *PBth_BluetoothEnumerateInstalledServices)(HANDLE, BLUETOOTH_DEVICE_INFO*, DWORD*, GUID*);
 
+typedef BOOL (__cdecl *PToshiba_BluetoothInitAPI)(HWND WindowHandle, char *ApplicationName, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothShutdownAPI)(int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothAdapterGetInfo)(void *pBluetoothAdapterInfo, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothNotify)(DWORD EventMask /* 0 to stop */, int &error, HWND WindowHandle, DWORD MessageNumber);
+typedef BOOL (__cdecl *PToshiba_BluetoothFreeMemory)(void *p);
+typedef BOOL (__cdecl *PToshiba_BluetoothDisconnect)(WORD ChannelID, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothStartSearching)(PToshibaBluetoothDeviceList &pDeviceList, DWORD flags, int &error, HWND WindowHandle, DWORD MessageNumber, LPARAM lParam);
+typedef BOOL (__cdecl *PToshiba_BluetoothCancelSearching)(int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothGetRemoteName)(TToshibaBluetoothAddress BluetoothAddress, char *RemoteName, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothAddRemoteDevice)(PToshibaBluetoothDeviceList pDeviceList, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothConnectHID)(TToshibaBluetoothAddress BluetoothAddress, int &error, HWND WindowHandle, DWORD MessageNumber, LPARAM lParam);
+typedef BOOL (__cdecl *PToshiba_BluetoothClearPIN)(TToshibaBluetoothAddress BluetoothAddress, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothSetPIN)(TToshibaBluetoothAddress BluetoothAddress, char *PinCode, int PinLength, int &error);
+
+
 PHidD_GetHidGuid HidD_GetHidGuid = nullptr;
 PHidD_GetAttributes HidD_GetAttributes = nullptr;
 PHidD_SetOutputReport HidD_SetOutputReport = nullptr;
@@ -68,10 +126,26 @@ PBth_BluetoothSetServiceState Bth_BluetoothSetServiceState = nullptr;
 PBth_BluetoothAuthenticateDevice Bth_BluetoothAuthenticateDevice = nullptr;
 PBth_BluetoothEnumerateInstalledServices Bth_BluetoothEnumerateInstalledServices = nullptr;
 
+PToshiba_BluetoothInitAPI Toshiba_BluetoothInitAPI = nullptr;
+PToshiba_BluetoothShutdownAPI Toshiba_BluetoothShutdownAPI = nullptr, Toshiba_LaunchBluetoothManagerInSystemTray = nullptr;
+PToshiba_BluetoothAdapterGetInfo Toshiba_BluetoothAdapterGetInfo = nullptr;
+PToshiba_BluetoothNotify Toshiba_BluetoothNotify = nullptr;
+PToshiba_BluetoothFreeMemory Toshiba_BluetoothFreeMemory = nullptr;
+PToshiba_BluetoothDisconnect Toshiba_BluetoothDisconnect = nullptr;
+PToshiba_BluetoothStartSearching Toshiba_BluetoothStartSearching = nullptr;
+PToshiba_BluetoothConnectHID Toshiba_BluetoothConnectHID = nullptr;
+PToshiba_BluetoothClearPIN Toshiba_BluetoothClearPIN = nullptr, Toshiba_BluetoothClearPIN2 = nullptr;
+PToshiba_BluetoothSetPIN Toshiba_BluetoothSetPIN = nullptr;
+PToshiba_BluetoothAddRemoteDevice Toshiba_BluetoothAddRemoteDevice = nullptr;
+
 HINSTANCE hid_lib = nullptr;
 HINSTANCE bthprops_lib = nullptr;
+HINSTANCE tosbtapi_lib = nullptr;
 
 static int initialized = 0;
+static bool hasToshiba = false;
+PToshibaBluetoothDeviceList pDeviceList = nullptr;
+TToshibaBluetoothAddress ToshibaBluetoothAdapterAddr;
 
 std::unordered_map<BTH_ADDR, std::time_t> g_connect_times;
 
@@ -105,31 +179,61 @@ inline void init_lib()
 		bthprops_lib = LoadLibrary(_T("bthprops.cpl"));
 		if (!bthprops_lib)
 		{
-			PanicAlertT("Failed to load bthprops.cpl! Connecting real Wiimotes won't work and Dolphin might crash unexpectedly!");
-			return;
+			PanicAlertT("Failed to load bthprops.cpl! Connecting real Wiimotes with the Microsoft Bluetooth Stack won't work and Dolphin might crash unexpectedly!");
 		}
-
-		Bth_BluetoothFindDeviceClose = (PBth_BluetoothFindDeviceClose)GetProcAddress(bthprops_lib, "BluetoothFindDeviceClose");
-		Bth_BluetoothFindFirstDevice = (PBth_BluetoothFindFirstDevice)GetProcAddress(bthprops_lib, "BluetoothFindFirstDevice");
-		Bth_BluetoothFindFirstRadio = (PBth_BluetoothFindFirstRadio)GetProcAddress(bthprops_lib, "BluetoothFindFirstRadio");
-		Bth_BluetoothFindNextDevice = (PBth_BluetoothFindNextDevice)GetProcAddress(bthprops_lib, "BluetoothFindNextDevice");
-		Bth_BluetoothFindNextRadio = (PBth_BluetoothFindNextRadio)GetProcAddress(bthprops_lib, "BluetoothFindNextRadio");
-		Bth_BluetoothFindRadioClose = (PBth_BluetoothFindRadioClose)GetProcAddress(bthprops_lib, "BluetoothFindRadioClose");
-		Bth_BluetoothGetRadioInfo = (PBth_BluetoothGetRadioInfo)GetProcAddress(bthprops_lib, "BluetoothGetRadioInfo");
-		Bth_BluetoothRemoveDevice = (PBth_BluetoothRemoveDevice)GetProcAddress(bthprops_lib, "BluetoothRemoveDevice");
-		Bth_BluetoothSetServiceState = (PBth_BluetoothSetServiceState)GetProcAddress(bthprops_lib, "BluetoothSetServiceState");
-		Bth_BluetoothAuthenticateDevice = (PBth_BluetoothAuthenticateDevice)GetProcAddress(bthprops_lib, "BluetoothAuthenticateDevice");
-		Bth_BluetoothEnumerateInstalledServices = (PBth_BluetoothEnumerateInstalledServices)GetProcAddress(bthprops_lib, "BluetoothEnumerateInstalledServices");
-
-		if (!Bth_BluetoothFindDeviceClose || !Bth_BluetoothFindFirstDevice ||
-		    !Bth_BluetoothFindFirstRadio || !Bth_BluetoothFindNextDevice ||
-		    !Bth_BluetoothFindNextRadio || !Bth_BluetoothFindRadioClose ||
-		    !Bth_BluetoothGetRadioInfo || !Bth_BluetoothRemoveDevice ||
-		    !Bth_BluetoothSetServiceState || !Bth_BluetoothAuthenticateDevice ||
-		    !Bth_BluetoothEnumerateInstalledServices)
+		else
 		{
-			PanicAlertT("Failed to load bthprops.cpl! Connecting real Wiimotes won't work and Dolphin might crash unexpectedly!");
-			return;
+			Bth_BluetoothFindDeviceClose = (PBth_BluetoothFindDeviceClose)GetProcAddress(bthprops_lib, "BluetoothFindDeviceClose");
+			Bth_BluetoothFindFirstDevice = (PBth_BluetoothFindFirstDevice)GetProcAddress(bthprops_lib, "BluetoothFindFirstDevice");
+			Bth_BluetoothFindFirstRadio = (PBth_BluetoothFindFirstRadio)GetProcAddress(bthprops_lib, "BluetoothFindFirstRadio");
+			Bth_BluetoothFindNextDevice = (PBth_BluetoothFindNextDevice)GetProcAddress(bthprops_lib, "BluetoothFindNextDevice");
+			Bth_BluetoothFindNextRadio = (PBth_BluetoothFindNextRadio)GetProcAddress(bthprops_lib, "BluetoothFindNextRadio");
+			Bth_BluetoothFindRadioClose = (PBth_BluetoothFindRadioClose)GetProcAddress(bthprops_lib, "BluetoothFindRadioClose");
+			Bth_BluetoothGetRadioInfo = (PBth_BluetoothGetRadioInfo)GetProcAddress(bthprops_lib, "BluetoothGetRadioInfo");
+			Bth_BluetoothRemoveDevice = (PBth_BluetoothRemoveDevice)GetProcAddress(bthprops_lib, "BluetoothRemoveDevice");
+			Bth_BluetoothSetServiceState = (PBth_BluetoothSetServiceState)GetProcAddress(bthprops_lib, "BluetoothSetServiceState");
+			Bth_BluetoothAuthenticateDevice = (PBth_BluetoothAuthenticateDevice)GetProcAddress(bthprops_lib, "BluetoothAuthenticateDevice");
+			Bth_BluetoothEnumerateInstalledServices = (PBth_BluetoothEnumerateInstalledServices)GetProcAddress(bthprops_lib, "BluetoothEnumerateInstalledServices");
+
+			if (!Bth_BluetoothFindDeviceClose || !Bth_BluetoothFindFirstDevice ||
+				!Bth_BluetoothFindFirstRadio || !Bth_BluetoothFindNextDevice ||
+				!Bth_BluetoothFindNextRadio || !Bth_BluetoothFindRadioClose ||
+				!Bth_BluetoothGetRadioInfo || !Bth_BluetoothRemoveDevice ||
+				!Bth_BluetoothSetServiceState || !Bth_BluetoothAuthenticateDevice ||
+				!Bth_BluetoothEnumerateInstalledServices)
+			{
+				PanicAlertT("Failed to load functions from bthprops.cpl! Connecting real Wiimotes with the Microsoft Bluetooth Stack won't work and Dolphin might crash unexpectedly!");
+			}
+		}
+		tosbtapi_lib = LoadLibrary(_T("TosBtAPI.dll"));
+		if (!tosbtapi_lib)
+		{
+			WARN_LOG(WIIMOTE, "Failed to load TosBtAPI.dll. If you have a Toshiba laptop or Bluetooth dongle, install the Toshiba Bluetooth stack to enable Toshiba Bluetooth support.");
+		}
+		else
+		{
+			Toshiba_BluetoothInitAPI = (PToshiba_BluetoothInitAPI)GetProcAddress(tosbtapi_lib, "BtOpenAPI");
+			Toshiba_BluetoothShutdownAPI = (PToshiba_BluetoothShutdownAPI)GetProcAddress(tosbtapi_lib, "BtCloseAPI");
+			Toshiba_BluetoothAdapterGetInfo = (PToshiba_BluetoothAdapterGetInfo)GetProcAddress(tosbtapi_lib, "BtGetLocalInfo2");
+			Toshiba_BluetoothNotify = (PToshiba_BluetoothNotify)GetProcAddress(tosbtapi_lib, "BtNotifyEvent");
+			Toshiba_BluetoothFreeMemory = (PToshiba_BluetoothFreeMemory)GetProcAddress(tosbtapi_lib, "BtMemFree");
+			Toshiba_BluetoothDisconnect = (PToshiba_BluetoothDisconnect)GetProcAddress(tosbtapi_lib, "BtDisconnect");
+			Toshiba_LaunchBluetoothManagerInSystemTray = (PToshiba_BluetoothShutdownAPI)GetProcAddress(tosbtapi_lib, "BtExecBtMng");
+			Toshiba_BluetoothStartSearching = (PToshiba_BluetoothStartSearching)GetProcAddress(tosbtapi_lib, "BtDiscoverRemoteDevice2");
+			Toshiba_BluetoothConnectHID = (PToshiba_BluetoothConnectHID)GetProcAddress(tosbtapi_lib, "BtConnectHID");
+			Toshiba_BluetoothClearPIN = (PToshiba_BluetoothClearPIN)GetProcAddress(tosbtapi_lib, "BtClearAutoReplyPinCode");
+			Toshiba_BluetoothClearPIN2 = (PToshiba_BluetoothClearPIN)GetProcAddress(tosbtapi_lib, "BtClearAutoReplyPinCode2");
+			Toshiba_BluetoothSetPIN = (PToshiba_BluetoothSetPIN)GetProcAddress(tosbtapi_lib, "BtSetAutoReplyPinCode");
+			Toshiba_BluetoothAddRemoteDevice = (PToshiba_BluetoothAddRemoteDevice)GetProcAddress(tosbtapi_lib, "BtAddRemoteDevice");
+
+			if (!Toshiba_BluetoothInitAPI || !Toshiba_BluetoothStartSearching || !Toshiba_BluetoothConnectHID)
+			{
+				WARN_LOG(WIIMOTE, "Failed to load needed functions from TosBtAPI.dll. If you have a Toshiba laptop or Bluetooth dongle, install the Toshiba Bluetooth stack to enable Toshiba Bluetooth support.");
+			}
+			else
+			{
+				hasToshiba = true;
+			}
 		}
 
 		initialized = true;
@@ -169,6 +273,52 @@ WiimoteScanner::~WiimoteScanner()
 #endif
 }
 
+void WiimoteScanner::InitToshiba()
+{
+	if (m_toshiba_started)
+		return;
+	char RemoteName[8192];
+	int error = 0;
+	BOOL result = Toshiba_BluetoothInitAPI((HWND)m_hwnd, "Dolphin", error);
+	if (error)
+		WARN_LOG(WIIMOTE, "Toshiba_BluetoothInitAPI: result %d, error %d", result, error);
+	else
+		m_toshiba_started = true;
+	if (Toshiba_LaunchBluetoothManagerInSystemTray)
+		Toshiba_LaunchBluetoothManagerInSystemTray(error);
+	if (Toshiba_BluetoothAdapterGetInfo)
+		result = Toshiba_BluetoothAdapterGetInfo(RemoteName, error);
+	memcpy(ToshibaBluetoothAdapterAddr, RemoteName, 6);
+}
+
+void WiimoteScanner::ToshibaMessage(DWORD wParam, DWORD lParam) {
+	switch (wParam) {
+	case TOSHIBA_BLUETOOTH_SEARCH_FINISHED:
+		//WARN_LOG(WIIMOTE, "Search Finished %x\n", lParam);
+		m_ToshibaBusySearching = false;
+		break;
+	case TOSHIBA_BLUETOOTH_SEARCH_ERROR:
+		WARN_LOG(WIIMOTE, "Toshiba Bluetooth Search Error %x\n", lParam);
+		break;
+	case TOSHIBA_BLUETOOTH_CONNECT_HID_FINISHED:
+		//WARN_LOG(WIIMOTE, "Connect HID Finished %x\n", lParam);
+		m_ToshibaBusyConnecting = false;
+		break;
+	case TOSHIBA_BLUETOOTH_CONNECT_HID_ERROR:
+		WARN_LOG(WIIMOTE, "Toshiba Bluetooth Connect HID Error %x\n", lParam);
+		m_ToshibaConnectionSucceeded = false;
+		break;
+	case TOSHIBA_BLUETOOTH_CONNECT_HID_CONNECTED:
+		m_ToshibaConnectionSucceeded = true;
+		//WARN_LOG(WIIMOTE, "Connect HID Connected %x\n", lParam);
+		break;
+	default:
+		//WARN_LOG(WIIMOTE, "Toshiba Message %x: %x\n", wParam, lParam);
+		break;
+	}
+}
+
+
 void WiimoteScanner::Update()
 {
 	bool forgot_some = false;
@@ -190,6 +340,55 @@ void WiimoteScanner::Update()
 // Returns the total number of found and connected wiimotes.
 void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimote* & found_board)
 {
+	if (hasToshiba)
+	{
+		int error = 0;
+		m_ToshibaBusySearching = true;
+		BOOL result = Toshiba_BluetoothStartSearching(pDeviceList, 0x40000000, error, (HWND)m_hwnd, WM_TOSHIBA_BLUETOOTH, 0);
+		if (error)
+			m_ToshibaBusySearching = false;
+		while (m_ToshibaBusySearching) {
+			wxYield();
+		}
+		m_ToshibaBusyConnecting = false;
+		for (int i = 0; pDeviceList && i < pDeviceList->deviceCount; i++) {
+			WARN_LOG(WIIMOTE, "Device %d: '%s', %x, %x, %x\n", i, pDeviceList->device[i].name, pDeviceList->device[i].status, pDeviceList->device[i].ClassOfDevice, pDeviceList->device[i].unknown2);
+			if (IsValidBluetoothName(pDeviceList->device[i].name)) {
+#if defined(AUTHENTICATE_WIIMOTES)
+				if (Toshiba_BluetoothSetPIN) {
+					char WiimotePin[7];
+					WiimotePin[6] = 0;
+					// This isn't working for me now. I managed to do it once before in Delphi though, and I think this is what I did.
+					for (int j = 0; j < 6; j++) {
+						WiimotePin[5 - j] = pDeviceList->device[i].BluetoothAddress[j];
+						//WiimotePin[5 - j] = ToshibaBluetoothAdapterAddr[j];
+					}
+					result = Toshiba_BluetoothSetPIN(pDeviceList->device[i].BluetoothAddress, WiimotePin, 6, error);
+					WARN_LOG(WIIMOTE, "Toshiba_BluetoothSetPIN %02x:%02x:%02x:%02x:%02x:%02x  Result %x, %d\n",
+						(unsigned char)WiimotePin[5], (unsigned char)WiimotePin[4], (unsigned char)WiimotePin[3], (unsigned char)WiimotePin[2], (unsigned char)WiimotePin[1], (unsigned char)WiimotePin[0],
+						result, error);
+				}
+#endif
+				m_ToshibaBusyConnecting = true;
+				m_ToshibaConnectionSucceeded = false;
+				result = Toshiba_BluetoothConnectHID(pDeviceList->device[i].BluetoothAddress, error, (HWND)m_hwnd, WM_TOSHIBA_BLUETOOTH, 0x400 + i);
+				WARN_LOG(WIIMOTE, "Toshiba_BluetoothConnectHID Result %x, %d\n", result, error);
+				if (error || !result)
+					m_ToshibaBusyConnecting = false;
+				while (m_ToshibaBusyConnecting) {
+					wxYield();
+				}
+				if (!m_ToshibaConnectionSucceeded) {
+					// Failed. Either the Wiimote timed out and stopped being discoverable,
+					// or this Wiimote has never been manually connected so it is not listed in the Bluetooth Settings window.
+					PanicAlertT("Failed to connect to Wiimote, maybe it timed out?\nAlso the Wiimote first needs to be manually connected once in Bluetooth Settings before this works.\n"
+						"Double click on the Bluetooth icon in the system tray, then click New Connection, and follow the instructions.\nThen you never need to do that again, and Dolphin's connecting will work." );
+				}
+
+			}
+		}
+		SLEEP(500);
+	}
 	ProcessWiimotes(true, [](HANDLE hRadio, const BLUETOOTH_RADIO_INFO& rinfo, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 	{
 		ForgetWiimote(btdi);
@@ -437,8 +636,9 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 	CloseHandle(dev_handle);
 }
 
-bool WiimoteScanner::IsReady() const
+bool WiimoteScanner::IsReady()
 {
+	InitToshiba();
 	// TODO: don't search for a radio each time
 
 	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
@@ -454,7 +654,7 @@ bool WiimoteScanner::IsReady() const
 	}
 	else
 	{
-		return false;
+		return hasToshiba;
 	}
 }
 

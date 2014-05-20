@@ -402,6 +402,11 @@ unsigned int CalculateWantedBB()
 	return wanted_bb;
 }
 
+void WiimoteScanner::SetHwnd(const void *hwnd)
+{
+	m_hwnd = hwnd;
+}
+
 void WiimoteScanner::WantWiimotes(bool do_want)
 {
 	m_want_wiimotes = do_want;
@@ -415,6 +420,9 @@ void WiimoteScanner::WantBB(bool do_want)
 
 void WiimoteScanner::StartScanning()
 {
+#ifdef _WIN32
+	InitToshiba();
+#endif
 	if (!m_run_thread)
 	{
 		m_run_thread = true;

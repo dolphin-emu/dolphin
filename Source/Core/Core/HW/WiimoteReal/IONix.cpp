@@ -35,7 +35,7 @@ WiimoteScanner::WiimoteScanner()
 	}
 }
 
-bool WiimoteScanner::IsReady() const
+bool WiimoteScanner::IsReady()
 {
 	return device_sock > 0;
 }
