@@ -43,6 +43,7 @@ void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xf
 {
 	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc, gamma);
 }
+
 void BPWritten(const BPCmd& bp)
 {
 	/*
@@ -90,17 +91,15 @@ void BPWritten(const BPCmd& bp)
 	switch (bp.address)
 	{
 	case BPMEM_GENMODE: // Set the Generation Mode
-		{
-			PRIM_LOG("genmode: texgen=%d, col=%d, multisampling=%d, tev=%d, cullmode=%d, ind=%d, zfeeze=%d",
-			         (u32)bpmem.genMode.numtexgens, (u32)bpmem.genMode.numcolchans,
-			         (u32)bpmem.genMode.multisampling, (u32)bpmem.genMode.numtevstages+1, (u32)bpmem.genMode.cullmode,
-			         (u32)bpmem.genMode.numindstages, (u32)bpmem.genMode.zfreeze);
+		PRIM_LOG("genmode: texgen=%d, col=%d, multisampling=%d, tev=%d, cullmode=%d, ind=%d, zfeeze=%d",
+		         (u32)bpmem.genMode.numtexgens, (u32)bpmem.genMode.numcolchans,
+		         (u32)bpmem.genMode.multisampling, (u32)bpmem.genMode.numtevstages+1, (u32)bpmem.genMode.cullmode,
+		         (u32)bpmem.genMode.numindstages, (u32)bpmem.genMode.zfreeze);
 
-			// Only call SetGenerationMode when cull mode changes.
-			if (bp.changes & 0xC000)
-				SetGenerationMode();
-			break;
-		}
+		// Only call SetGenerationMode when cull mode changes.
+		if (bp.changes & 0xC000)
+			SetGenerationMode();
+		break;
 	case BPMEM_IND_MTXA: // Index Matrix Changed
 	case BPMEM_IND_MTXB:
 	case BPMEM_IND_MTXC:
@@ -139,41 +138,38 @@ void BPWritten(const BPCmd& bp)
 		SetDepthMode();
 		break;
 	case BPMEM_BLENDMODE: // Blending Control
+		if (bp.changes & 0xFFFF)
 		{
-			if (bp.changes & 0xFFFF)
-			{
-				PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d",
-				         (int)bpmem.blendmode.blendenable, (int)bpmem.blendmode.logicopenable, (int)bpmem.blendmode.colorupdate,
-				         (int)bpmem.blendmode.alphaupdate, (int)bpmem.blendmode.dstfactor, (int)bpmem.blendmode.srcfactor,
-				         (int)bpmem.blendmode.subtract, (int)bpmem.blendmode.logicmode);
+			PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d",
+			         (int)bpmem.blendmode.blendenable, (int)bpmem.blendmode.logicopenable, (int)bpmem.blendmode.colorupdate,
+			         (int)bpmem.blendmode.alphaupdate, (int)bpmem.blendmode.dstfactor, (int)bpmem.blendmode.srcfactor,
+			         (int)bpmem.blendmode.subtract, (int)bpmem.blendmode.logicmode);
 
-				// Set LogicOp Blending Mode
-				if (bp.changes & 0xF002) // logicopenable | logicmode
-					SetLogicOpMode();
+			// Set LogicOp Blending Mode
+			if (bp.changes & 0xF002) // logicopenable | logicmode
+				SetLogicOpMode();
 
-				// Set Dithering Mode
-				if (bp.changes & 4) // dither
-					SetDitherMode();
+			// Set Dithering Mode
+			if (bp.changes & 4) // dither
+				SetDitherMode();
 
-				// Set Blending Mode
-				if (bp.changes & 0xFF1) // blendenable | alphaupdate | dstfactor | srcfactor | subtract
-					SetBlendMode();
-
-				// Set Color Mask
-				if (bp.changes & 0x18) // colorupdate | alphaupdate
-					SetColorMask();
-			}
-			break;
-		}
-	case BPMEM_CONSTANTALPHA: // Set Destination Alpha
-		{
-			PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
-			if (bp.changes & 0xFF)
-				PixelShaderManager::SetDestAlpha();
-			if (bp.changes & 0x100)
+			// Set Blending Mode
+			if (bp.changes & 0xFF1) // blendenable | alphaupdate | dstfactor | srcfactor | subtract
 				SetBlendMode();
-			break;
+
+			// Set Color Mask
+			if (bp.changes & 0x18) // colorupdate | alphaupdate
+				SetColorMask();
 		}
+		break;
+	case BPMEM_CONSTANTALPHA: // Set Destination Alpha
+		PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
+		if (bp.changes & 0xFF)
+			PixelShaderManager::SetDestAlpha();
+		if (bp.changes & 0x100)
+			SetBlendMode();
+		break;
+
 	// This is called when the game is done drawing the new frame (eg: like in DX: Begin(); Draw(); End();)
 	// Triggers an interrupt on the PPC side so that the game knows when the GPU has finished drawing.
 	// Tokens are similar.
@@ -329,8 +325,8 @@ void BPWritten(const BPCmd& bp)
 			const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
 			PRIM_LOG("ztex op=%s, type=%s", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
 			#endif
-			break;
 		}
+		break;
 	// ----------------------------------
 	// Display Copy Filtering Control - GX_SetCopyFilter(u8 aa,u8 sample_pattern[12][2],u8 vf,u8 vfilter[7])
 	// Fields: Destination, Frame2Field, Gamma, Source
@@ -403,23 +399,26 @@ void BPWritten(const BPCmd& bp)
 
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
 	case BPMEM_COPYYSCALE:    // Display Copy Y Scale
-	case BPMEM_IREF:          /* 24 RID
-								 21 BC3 - Ind. Tex Stage 3 NTexCoord
-								 18 BI3 - Ind. Tex Stage 3 NTexMap
-								 15 BC2 - Ind. Tex Stage 2 NTexCoord
-								 12 BI2 - Ind. Tex Stage 2 NTexMap
-								 9 BC1 - Ind. Tex Stage 1 NTexCoord
-								 6 BI1 - Ind. Tex Stage 1 NTexMap
-								 3 BC0 - Ind. Tex Stage 0 NTexCoord
-								 0 BI0 - Ind. Tex Stage 0 NTexMap*/
-	case BPMEM_TEV_KSEL:  // Texture Environment Swap Mode Table 0
-	case BPMEM_TEV_KSEL+1:// Texture Environment Swap Mode Table 1
-	case BPMEM_TEV_KSEL+2:// Texture Environment Swap Mode Table 2
-	case BPMEM_TEV_KSEL+3:// Texture Environment Swap Mode Table 3
-	case BPMEM_TEV_KSEL+4:// Texture Environment Swap Mode Table 4
-	case BPMEM_TEV_KSEL+5:// Texture Environment Swap Mode Table 5
-	case BPMEM_TEV_KSEL+6:// Texture Environment Swap Mode Table 6
-	case BPMEM_TEV_KSEL+7:// Texture Environment Swap Mode Table 7
+
+	/* 24 RID
+	 * 21 BC3 - Ind. Tex Stage 3 NTexCoord
+	 * 18 BI3 - Ind. Tex Stage 3 NTexMap
+	 * 15 BC2 - Ind. Tex Stage 2 NTexCoord
+	 * 12 BI2 - Ind. Tex Stage 2 NTexMap
+	 * 9 BC1 - Ind. Tex Stage 1 NTexCoord
+	 * 6 BI1 - Ind. Tex Stage 1 NTexMap
+	 * 3 BC0 - Ind. Tex Stage 0 NTexCoord
+	 * 0 BI0 - Ind. Tex Stage 0 NTexMap */
+	case BPMEM_IREF:
+
+	case BPMEM_TEV_KSEL:   // Texture Environment Swap Mode Table 0
+	case BPMEM_TEV_KSEL+1: // Texture Environment Swap Mode Table 1
+	case BPMEM_TEV_KSEL+2: // Texture Environment Swap Mode Table 2
+	case BPMEM_TEV_KSEL+3: // Texture Environment Swap Mode Table 3
+	case BPMEM_TEV_KSEL+4: // Texture Environment Swap Mode Table 4
+	case BPMEM_TEV_KSEL+5: // Texture Environment Swap Mode Table 5
+	case BPMEM_TEV_KSEL+6: // Texture Environment Swap Mode Table 6
+	case BPMEM_TEV_KSEL+7: // Texture Environment Swap Mode Table 7
 
 	/* This Register can be used to limit to which bits of BP registers is
 	 * actually written to. The mask is only valid for the next BP write,
@@ -482,10 +481,10 @@ void BPWritten(const BPCmd& bp)
 		}
 		break;
 
-		// ------------------------------------------------
-		// On Default, we try to look for other things
-		// before we give up and say its an unknown opcode
-		// ------------------------------------------------
+	// ------------------------------------------------
+	// On Default, we try to look for other things
+	// before we give up and say its an unknown opcode
+	// ------------------------------------------------
 	default:
 		switch (bp.address & 0xFC)  // Texture sampler filter
 		{
@@ -645,8 +644,8 @@ void BPWritten(const BPCmd& bp)
 				WARN_LOG(VIDEO, "Unknown BP opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue);
 				break;
 			}
+		}
 	}
-}
 }
 
 // Called when loading a saved state.
