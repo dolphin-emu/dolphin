@@ -34,11 +34,22 @@ void SetGenerationMode()
 
 void SetScissor()
 {
-	const int xoff = bpmem.scissorOffset.x * 2 - 342;
-	const int yoff = bpmem.scissorOffset.y * 2 - 342;
+	/* NOTE: the minimum value here for the scissor rect and offset is -342.
+	 * GX internally adds on an offset of 342 to both the offset and scissor
+	 * coords to ensure that the register was always unsigned.
+	 *
+	 * The code that was here before tried to "undo" this offset, but
+	 * since we always take the difference, the +342 added to both
+	 * sides cancels out. */
 
-	EFBRectangle rc (bpmem.scissorTL.x - xoff - 342, bpmem.scissorTL.y - yoff - 342,
-					bpmem.scissorBR.x - xoff - 341, bpmem.scissorBR.y - yoff - 341);
+	/* The scissor offset is always even, so to save space, the scissor offset
+	 * register is scaled down by 2. So, if somebody calls
+	 * GX_SetScissorBoxOffset(20, 20); the registers will be set to 10, 10. */
+	const int xoff = bpmem.scissorOffset.x * 2;
+	const int yoff = bpmem.scissorOffset.y * 2;
+
+	EFBRectangle rc (bpmem.scissorTL.x - xoff,     bpmem.scissorTL.y - yoff,
+	                 bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
 
 	if (rc.left < 0) rc.left = 0;
 	if (rc.top < 0) rc.top = 0;
@@ -79,8 +90,9 @@ void SetColorMask()
 	g_renderer->SetColorMask();
 }
 
-void CopyEFB(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
-	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+void CopyEFB(u32 dstAddr, const EFBRectangle& srcRect,
+	     unsigned int dstFormat, PEControl::PixelFormat srcFormat,
+	     bool isIntensity, bool scaleByHalf)
 {
 	// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (g_ActiveConfig.bEFBCopyEnable)
@@ -210,33 +222,6 @@ skip:
 	DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", static_cast<int>(new_format), static_cast<int>(bpmem.zcontrol.zformat));
 
 	Renderer::StorePixelFormat(new_format);
-}
-
-bool GetConfig(const int &type)
-{
-	switch (type)
-	{
-	case CONFIG_ISWII:
-		return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	case CONFIG_DISABLEFOG:
-		return g_ActiveConfig.bDisableFog;
-	case CONFIG_SHOWEFBREGIONS:
-		return g_ActiveConfig.bShowEFBCopyRegions;
-	default:
-		PanicAlert("GetConfig Error: Unknown Config Type!");
-		return false;
-	}
-}
-
-u8 *GetPointer(const u32 &address)
-{
-	return Memory::GetPointer(address);
-}
-
-// Never used. All backends call SetSamplerState in VertexManager::Flush
-void SetTextureMode(const BPCmd &bp)
-{
-	g_renderer->SetSamplerState(bp.address & 3, (bp.address & 0xE0) == 0xA0);
 }
 
 void SetInterlacingMode(const BPCmd &bp)
