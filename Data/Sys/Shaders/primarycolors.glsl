@@ -35,7 +35,8 @@ void main()
 		}
 	}
 
-	if (c0.r > c0.b && c0.g > c0.b){
+	if (c0.r > c0.b && c0.g > c0.b)
+	{
 		if (c0.r < c0.g + 0.05 && c0.g < c0.r + 0.05)
 		{
 			red = 0.7;
@@ -64,12 +65,14 @@ void main()
 			blue = 0.7;
 			green = 0.7;
 		}
-		else if (c0.g > c0.b + 0.05){
+		else if (c0.g > c0.b + 0.05)
+		{
 			red = 0.05;
 			blue = 0.05;
 			green = 0.7;
 		}
-		else if (c0.b > c0.g + 0.05){
+		else if (c0.b > c0.g + 0.05)
+		{
 			red = 0.05;
 			blue = 0.7;
 			green = 0.05;
