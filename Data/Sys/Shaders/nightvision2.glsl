@@ -50,10 +50,13 @@ void main()
 	// neccessary to make the darkened area rounded
 	// instead of rhombus-shaped.
 	float sqrt = x / 10.0;
-	while((sqrt*sqrt) < x) sqrt+=0.1;
+
+	while ((sqrt*sqrt) < x)
+		sqrt+=0.1;
 	x = sqrt;
 	sqrt = y / 10.0;
-	while((sqrt*sqrt) < y) sqrt+=0.1;
+	while ((sqrt*sqrt) < y)
+		sqrt+=0.1;
 	y = sqrt;
 
 	x *= 2.0;
