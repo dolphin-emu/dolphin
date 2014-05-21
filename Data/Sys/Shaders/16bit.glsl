@@ -12,8 +12,8 @@ void main()
 	float pixelSize = 3.0;
 
 	float red	= 0.0;
-	float green = 0.0;
-	float blue  = 0.0;
+	float green	= 0.0;
+	float blue	= 0.0;
 
 	vec2 pos = floor(uv0 * resolution.xy / pixelSize) * pixelSize * resolution.zw;
 
