@@ -57,7 +57,7 @@ void main()
 		 {
 			if (count == 1)
 			{
-				if(colorN >= 0.1)
+				if (colorN >= 0.1)
 					blue = 0.01;
 				else
 					blue = colorN;
@@ -67,14 +67,14 @@ void main()
 			else
 				blue = colorN ;
 			
-			 bb = true;
+			bb = true;
 		}
 
 		if (c0.g <= colorN && c0.g >= colorB && gg == false)
 		{
 			if (count == 1)
 			{
-				if(colorN >= 0.1)
+				if (colorN >= 0.1)
 					green = 0.01;
 				else
 					green = colorN;
@@ -88,7 +88,7 @@ void main()
 
 		colorB = float(count / numColors);
 
-		if(rr == true && bb == true && gg == true)
+		if (rr == true && bb == true && gg == true)
 			break;
 	}
 
