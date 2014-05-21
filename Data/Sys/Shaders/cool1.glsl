@@ -20,5 +20,6 @@ void main()
 		blue = c0.r;
 		green = c0.r;
 	}
+
 	ocol0 = vec4(red, green, blue, 1.0);
 }
