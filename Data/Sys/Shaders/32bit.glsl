@@ -10,9 +10,9 @@ void main()
 	//Change this number to increase the pixel size.
 	float pixelSize = 2.0;
 
-	float red   = 0.0;
-	float green = 0.0;
-	float blue  = 0.0;
+	float red	= 0.0;
+	float green	= 0.0;
+	float blue	= 0.0;
 
 	vec2 pos = floor(uv0 * resolution.xy / pixelSize) * pixelSize * resolution.zw;
 
