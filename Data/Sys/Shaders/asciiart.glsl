@@ -84,7 +84,8 @@ void main()
 		vec4 diff = a*a*ff + 2.0*a*b*f - 2.0*a*b*ff - 2.0*a*ft + b*b *(-2.0*f + ff + float(char_pixels)) + 2.0*b*ft - 2.0*b*t + tt;
 		float diff_f = dot(diff, vec4(1.0, 1.0, 1.0, 1.0));
 
-		if (diff_f < mindiff) {
+		if (diff_f < mindiff)
+		{
 			mindiff = diff_f;
 			minc = float(i);
 			mina = a;
