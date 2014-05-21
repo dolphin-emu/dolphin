@@ -7,7 +7,7 @@ void main()
 {
 	vec4 c0 = texture(samp9, uv0);
 	float red	= 0.0;
-	float green = 0.0;
+	float green	= 0.0;
 
 	if (c0.r < 0.35 || c0.b > 0.35)
 		green = c0.g + (c0.b / 2.0);
