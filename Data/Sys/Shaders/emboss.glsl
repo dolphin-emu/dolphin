@@ -16,7 +16,7 @@ void main()
 	float blue	= c0.b;
 	float alpha	= c0.a;
 
-	red		= y2 + (1.0 - y);
+	red	= y2 + (1.0 - y);
 	green	= y2 + (1.0 - y);
 	blue	= y2 + (1.0 - y);
 
