@@ -7,8 +7,8 @@ void main()
 {
 	float4 c0 = texture(samp9, uv0).rgba;
 	float red	= 0.0;
-	float green = 0.0;
-	float blue  = 0.0;
+	float green	= 0.0;
+	float blue	= 0.0;
 
 	if (c0.r > 0.25)
 		red = c0.r;
