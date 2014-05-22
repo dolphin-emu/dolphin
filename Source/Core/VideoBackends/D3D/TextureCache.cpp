@@ -34,23 +34,17 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
-	// TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
-	static bool warn_once = true;
-	if (level && warn_once)
-	{
-		WARN_LOG(VIDEO, "Dumping individual LOD not supported by D3D11 backend!");
-		warn_once = false;
-		return false;
-	}
-
 	ID3D11Texture2D* pNewTexture = nullptr;
 	ID3D11Texture2D* pSurface = texture->GetTex();
 	D3D11_TEXTURE2D_DESC desc;
 	pSurface->GetDesc(&desc);
 
 	desc.BindFlags = 0;
-	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 	desc.Usage = D3D11_USAGE_STAGING;
+	desc.Width = std::max(desc.Width>>level,1u);
+	desc.Height = std::max(desc.Height>>level,1u);
+	desc.MipLevels = 1;
 
 	HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, &pNewTexture);
 
@@ -58,18 +52,17 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 
 	if (SUCCEEDED(hr) && pNewTexture)
 	{
-		D3D::context->CopyResource(pNewTexture, pSurface);
+		D3D::context->CopySubresourceRegion(pNewTexture,0,0,0,0, pSurface,level,nullptr);
 
 		D3D11_MAPPED_SUBRESOURCE map;
-		HRESULT hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
+		HRESULT hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ, 0, &map);
 		if (SUCCEEDED(hr))
 		{
-			saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, desc.Width, desc.Height);
+			saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, desc.Width, desc.Height,1u);
 			D3D::context->Unmap(pNewTexture, 0);
 		}
 		SAFE_RELEASE(pNewTexture);
 	}
-
 	return saved_png;
 }
 

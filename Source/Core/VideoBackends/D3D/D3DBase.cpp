@@ -7,6 +7,9 @@
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoBackends/D3D/GfxState.h"
 #include "VideoCommon/VideoConfig.h"
+#include "Common/Hash.h"
+
+#include <unordered_map>
 
 namespace DX11
 {
@@ -30,7 +33,7 @@ namespace D3D
 {
 
 ID3D11Device* device = nullptr;
-ID3D11DeviceContext* context = nullptr;
+WrapDeviceContext context;
 IDXGISwapChain* swapchain = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
@@ -305,7 +308,7 @@ HRESULT Create(HWND wnd)
 		SAFE_RELEASE(swapchain);
 		return E_FAIL;
 	}
-	SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
+	SetDebugObjectName( (ID3D11DeviceChild*) context, "device context" );
 	SAFE_RELEASE(factory);
 	SAFE_RELEASE(output);
 	SAFE_RELEASE(adapter);
@@ -337,6 +340,8 @@ HRESULT Create(HWND wnd)
 	return S_OK;
 }
 
+void ReleaseStates();
+
 void Close()
 {
 	// release all bound resources
@@ -346,6 +351,7 @@ void Close()
 	SAFE_DELETE(stateman);
 	context->Flush();  // immediately destroy device objects
 
+	ReleaseStates();
 	SAFE_RELEASE(context);
 	ULONG references = device->Release();
 	if (references)
@@ -414,6 +420,86 @@ unsigned int GetMaxTextureSize()
 	}
 }
 
+std::unordered_map<u64, ID3D11BlendState*> bstates_;
+std::unordered_map<u64, ID3D11SamplerState*> sstates_;
+std::unordered_map<u64, ID3D11RasterizerState*> rstates_;
+std::unordered_map<u64, ID3D11DepthStencilState*> dstates_;
+
+ID3D11RasterizerState*   GetRasterizerState( D3D11_RASTERIZER_DESC const& desc, char const* debugNameOnCreation ) {
+	auto crc = GetCRC32( (u8 const*)&desc, sizeof( desc ), 0 );
+	auto it = rstates_.find( crc );
+	if ( it != rstates_.end() ) {
+		return it->second;
+	}
+	ID3D11RasterizerState* state;
+	auto hr = D3D::device->CreateRasterizerState( &desc, &state );
+	if ( FAILED( hr ) ) 
+		PanicAlert( "Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__ );
+	D3D::SetDebugObjectName( state, debugNameOnCreation );
+	rstates_.emplace( crc, state );
+	return state;
+}
+
+ID3D11BlendState*        GetBlendState( D3D11_BLEND_DESC const& desc, char const* debugNameOnCreation ) {
+	auto crc = GetCRC32( (u8 const*)&desc, sizeof( desc ), 0 );
+	auto it = bstates_.find( crc );
+	if ( it != bstates_.end() ) {
+		return it->second;
+	}
+	ID3D11BlendState* state;
+	auto hr = D3D::device->CreateBlendState( &desc, &state );
+	if ( FAILED( hr ) ) 
+		PanicAlert( "Failed to create blend state at %s %d\n", __FILE__, __LINE__ );
+	D3D::SetDebugObjectName( state, debugNameOnCreation );
+	bstates_.emplace( crc, state );
+	return state;
+}
+
+ID3D11DepthStencilState* GetDepthStencilState( D3D11_DEPTH_STENCIL_DESC const& desc, char const* debugNameOnCreation ) {
+	auto crc = GetCRC32( (u8 const*)&desc, sizeof( desc ), 0 );
+	auto it = dstates_.find( crc );
+	if ( it != dstates_.end() ) {
+		return it->second;
+	}
+	ID3D11DepthStencilState* state;
+	auto hr = D3D::device->CreateDepthStencilState( &desc, &state );
+	if ( FAILED( hr ) ) 
+		PanicAlert( "Failed to create depth stencil state at %s %d\n", __FILE__, __LINE__ );
+	D3D::SetDebugObjectName( state, debugNameOnCreation );
+	dstates_.emplace( crc, state );
+	return state;
+}
+
+ID3D11SamplerState*      GetSamplerState( D3D11_SAMPLER_DESC const& desc, char const* debugNameOnCreation ) {
+	auto crc = GetCRC32( (u8 const*)&desc, sizeof( desc ), 0 );
+	auto it = sstates_.find( crc );
+	if ( it != sstates_.end() ) {
+		return it->second;
+	}
+	ID3D11SamplerState* state;
+	auto hr = D3D::device->CreateSamplerState( &desc, &state );
+	if ( FAILED( hr ) ) 
+		PanicAlert( "Failed to create sampler state at %s %d\n", __FILE__, __LINE__ );
+	D3D::SetDebugObjectName( state, debugNameOnCreation );
+	sstates_.emplace( crc, state );
+	return state;
+}
+
+void ReleaseStates() {
+	for( auto & state : sstates_ )
+		state.second->Release();
+	for( auto & state : dstates_ )
+		state.second->Release();
+	for( auto & state : bstates_ )
+		state.second->Release();
+	for( auto & state : rstates_ )
+		state.second->Release();
+	sstates_.clear();
+	dstates_.clear();
+	bstates_.clear();
+	rstates_.clear();
+}
+
 void Reset()
 {
 	// release all back buffer references
@@ -432,6 +518,7 @@ void Reset()
 	if (FAILED(hr))
 	{
 		MessageBox(hWnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+		ReleaseStates();
 		SAFE_RELEASE(device);
 		SAFE_RELEASE(context);
 		SAFE_RELEASE(swapchain);

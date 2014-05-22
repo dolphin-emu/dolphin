@@ -16,23 +16,6 @@ namespace DX11
 namespace D3D
 {
 
-template<typename T> class AutoState
-{
-public:
-	AutoState(const T* object);
-	AutoState(const AutoState<T> &source);
-	~AutoState();
-
-	const inline T* GetPtr() const { return state; }
-
-private:
-	const T* state;
-};
-
-typedef AutoState<ID3D11BlendState> AutoBlendState;
-typedef AutoState<ID3D11DepthStencilState> AutoDepthStencilState;
-typedef AutoState<ID3D11RasterizerState> AutoRasterizerState;
-
 class StateManager
 {
 public:
@@ -52,9 +35,12 @@ public:
 	void Apply();
 
 private:
-	std::stack<AutoBlendState> blendstates;
-	std::stack<AutoDepthStencilState> depthstates;
-	std::stack<AutoRasterizerState> raststates;
+	template < typename T >
+	using StackWithVector = std::stack<T,std::vector<T>>;
+
+	StackWithVector<ID3D11BlendState const *> blendstates;
+	StackWithVector<ID3D11DepthStencilState const *> depthstates;
+	StackWithVector<ID3D11RasterizerState const *> raststates;
 	ID3D11BlendState* cur_blendstate;
 	ID3D11DepthStencilState* cur_depthstate;
 	ID3D11RasterizerState* cur_raststate;

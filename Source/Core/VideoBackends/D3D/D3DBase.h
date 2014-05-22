@@ -8,8 +8,10 @@
 #include <d3dcompiler.h>
 #include <dxgi.h>
 #include <vector>
+#include <array>
 
 #include "Common/Common.h"
+#include "D3DWrapDeviceContext.h"
 
 namespace DX11
 {
@@ -39,7 +41,7 @@ HRESULT Create(HWND wnd);
 void Close();
 
 extern ID3D11Device* device;
-extern ID3D11DeviceContext* context;
+extern WrapDeviceContext context;
 extern IDXGISwapChain* swapchain;
 extern bool bFrameInProgress;
 
@@ -58,6 +60,11 @@ bool BGRATexturesSupported();
 
 unsigned int GetMaxTextureSize();
 
+ID3D11RasterizerState*   GetRasterizerState( D3D11_RASTERIZER_DESC const&, char const* debugNameOnCreation = nullptr);
+ID3D11BlendState*        GetBlendState( D3D11_BLEND_DESC const&, char const* debugNameOnCreation = nullptr);
+ID3D11DepthStencilState* GetDepthStencilState( D3D11_DEPTH_STENCIL_DESC const&, char const* debugNameOnCreation = nullptr);
+ID3D11SamplerState*      GetSamplerState( D3D11_SAMPLER_DESC const&, char const* debugNameOnCreation = nullptr);
+
 // Ihis function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,
 // e.g. when listing up all resources who have unreleased references.
@@ -67,7 +74,8 @@ void SetDebugObjectName(T resource, const char* name)
 	static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
 		"resource must be convertible to ID3D11DeviceChild*");
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen(name), name);
+	if (name)
+		resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen(name), name);
 #endif
 }
 
