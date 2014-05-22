@@ -388,19 +388,7 @@ void Interpreter::fdivsx(UGeckoInstruction _inst)
 void Interpreter::fresx(UGeckoInstruction _inst)
 {
 	double b = rPS0(_inst.FB);
-	double one_over = ForceSingle(1.0 / b);
-	// this is based on the real hardware tests
-	if (b != 0.0 && IsINF(one_over))
-	{
-		if (one_over > 0)
-			riPS0(_inst.FD) = riPS1(_inst.FD) = MAX_SINGLE;
-		else
-			riPS0(_inst.FD) = riPS1(_inst.FD) = MIN_SINGLE;
-	}
-	else
-	{
-		rPS0(_inst.FD) = rPS1(_inst.FD) = one_over;
-	}
+	rPS0(_inst.FD) = rPS1(_inst.FD) = ApproximateReciprocal(b);
 	if (b == 0.0)
 	{
 		SetFPException(FPSCR_ZX);

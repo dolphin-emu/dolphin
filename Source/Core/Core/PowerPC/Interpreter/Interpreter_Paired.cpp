@@ -178,22 +178,8 @@ void Interpreter::ps_res(UGeckoInstruction _inst)
 	{
 		SetFPException(FPSCR_ZX);
 	}
-	rPS0(_inst.FD) = ForceSingle(1.0 / a);
-	if (a != 0.0 && IsINF(rPS0(_inst.FD)))
-	{
-		if (rPS0(_inst.FD) > 0)
-			riPS0(_inst.FD) = MAX_SINGLE; // largest finite single
-		else
-			riPS0(_inst.FD) = MIN_SINGLE; // most negative finite single
-	}
-	rPS1(_inst.FD) = ForceSingle(1.0 / b);
-	if (b != 0.0 && IsINF(rPS1(_inst.FD)))
-	{
-		if (rPS1(_inst.FD) > 0)
-			riPS1(_inst.FD) = MAX_SINGLE;
-		else
-			riPS1(_inst.FD) = MIN_SINGLE;
-	}
+	rPS0(_inst.FD) = ApproximateReciprocal(a);
+	rPS1(_inst.FD) = ApproximateReciprocal(b);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
