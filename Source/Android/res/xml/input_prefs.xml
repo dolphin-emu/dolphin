@@ -2,14 +2,50 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                   android:title="@string/input_settings">
 
-    <Preference
-        android:key="inputOverlayConfigPref"
-        android:summary="@string/input_overlay_layout_desc"
-        android:title="@string/input_overlay_layout">
-        <intent
-            android:targetPackage="org.dolphinemu.dolphinemu"
-            android:targetClass="org.dolphinemu.dolphinemu.settings.input.overlayconfig.OverlayConfigActivity"/>
-    </Preference>
+    <PreferenceScreen
+        android:key="input_overlay"
+        android:title="@string/input_overlay">
+        <Preference
+            android:key="inputOverlayConfigPref"
+            android:summary="@string/input_overlay_layout_desc"
+            android:title="@string/input_overlay_layout">
+            <intent
+                android:targetPackage="org.dolphinemu.dolphinemu"
+                android:targetClass="org.dolphinemu.dolphinemu.settings.input.overlayconfig.OverlayConfigActivity"/>
+        </Preference>
+        <PreferenceScreen
+            android:key="enable_overlay_buttons"
+            android:summary="@string/enable_overlay_buttons_desc"
+            android:title="@string/enable_overlay_buttons">
+            <CheckBoxPreference 
+                android:key="drawOverlayA"
+                android:title="@string/button_a"/>
+            <CheckBoxPreference 
+                android:key="drawOverlayB"
+                android:title="@string/button_b"/>
+            <CheckBoxPreference 
+                android:key="drawOverlayX"
+                android:title="@string/button_x"/>
+            <CheckBoxPreference 
+                android:key="drawOverlayY"
+                android:title="@string/button_y"/>
+            <CheckBoxPreference 
+                android:key="drawOverlayZ"
+                android:title="@string/button_z"/>
+            <CheckBoxPreference 
+                android:key="drawOverlayStart"
+                android:title="@string/button_start"/>
+            <CheckBoxPreference 
+                android:key="drawOverlayL"
+                android:title="@string/trigger_left"/>
+            <CheckBoxPreference 
+                android:key="drawOverlayR"
+                android:title="@string/trigger_right"/>
+            <CheckBoxPreference 
+                android:key="drawOverlayStickMain"
+                android:title="@string/main_stick"/>
+        </PreferenceScreen>
+    </PreferenceScreen>
 
     <!-- Gamecube controller bindings -->
     <PreferenceScreen

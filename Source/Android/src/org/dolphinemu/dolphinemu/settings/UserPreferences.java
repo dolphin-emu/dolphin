@@ -36,7 +36,7 @@ public final class UserPreferences
 		// Add the settings.
 		editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "3"));
 		editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True"));
-		editor.putBoolean("fastmemPref", getConfig("Dolphin.ini", "Core", "Fastmem", "False").equals("True"));
+		editor.putBoolean("fastmemPref",  getConfig("Dolphin.ini", "Core", "Fastmem", "False").equals("True"));
 
 		editor.putString("gpuPref",               getConfig("Dolphin.ini", "Core", "GFXBackend", "Software Renderer"));
 		editor.putBoolean("showFPS",              getConfig("gfx_opengl.ini", "Settings", "ShowFPS", "False").equals("True"));
