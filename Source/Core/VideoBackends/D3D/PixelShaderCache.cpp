@@ -342,13 +342,10 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
 	if (PixelShaderManager::dirty)
 	{
-		D3D11_MAPPED_SUBRESOURCE map;
-		D3D::context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
-		D3D::context->Unmap(pscbuf, 0);
 		PixelShaderManager::dirty = false;
-
-		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants));
+		u32 sz = sizeof(PixelShaderConstants);
+		D3D::context->UpdateSubresource(pscbuf, 0, nullptr, &PixelShaderManager::constants, sz, 0);
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sz);
 	}
 	return pscbuf;
 }
@@ -365,8 +362,8 @@ public:
 
 void PixelShaderCache::Init()
 {
-	unsigned int cbsize = ((sizeof(PixelShaderConstants))&(~0xf))+0x10; // must be a multiple of 16
-	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+	unsigned int cbsize = (sizeof(PixelShaderConstants) + 0xF) & ~0xF; // must be a multiple of 16
+	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT, 0);
 	D3D::device->CreateBuffer(&cbdesc, nullptr, &pscbuf);
 	CHECK(pscbuf!=nullptr, "Create pixel shader constant buffer");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)pscbuf, "pixel shader constant buffer used to emulate the GX pipeline");

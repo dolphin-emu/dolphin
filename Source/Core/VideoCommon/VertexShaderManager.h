@@ -34,6 +34,7 @@ public:
 	static void RotateView(float x, float y);
 	static void ResetView();
 
-	static VertexShaderConstants constants;
+	// We have to align the constants for efficient backend usage
+	static GC_ALIGNED16(VertexShaderConstants) constants;
 	static bool dirty;
 };

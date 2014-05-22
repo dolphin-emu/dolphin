@@ -45,10 +45,7 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
 	if (VertexShaderManager::dirty)
 	{
-		D3D11_MAPPED_SUBRESOURCE map;
-		D3D::context->Map(vscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
-		D3D::context->Unmap(vscbuf, 0);
+		D3D::context->UpdateSubresource(vscbuf, 0, nullptr, &VertexShaderManager::constants, sizeof(VertexShaderConstants), 0);
 		VertexShaderManager::dirty = false;
 
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(VertexShaderConstants));
@@ -116,7 +113,7 @@ void VertexShaderCache::Init()
 	};
 
 	unsigned int cbsize = ((sizeof(VertexShaderConstants))&(~0xf))+0x10; // must be a multiple of 16
-	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT, 0);
 	HRESULT hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &vscbuf);
 	CHECK(hr==S_OK, "Create vertex shader constant buffer (size=%u)", cbsize);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)vscbuf, "vertex shader constant buffer used to emulate the GX pipeline");

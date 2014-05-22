@@ -42,6 +42,7 @@ public:
 	static void InvalidateXFRange(int start, int end);
 	static void SetMaterialColorChanged(int index, u32 color);
 
-	static PixelShaderConstants constants;
+	// We have to align the constants for efficient backend usage
+	static GC_ALIGNED16(PixelShaderConstants) constants;
 	static bool dirty;
 };
