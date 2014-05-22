@@ -28,7 +28,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/Jit64IL/JitILAsm.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -50,7 +50,7 @@ private:
 	TrampolineCache trampolines;
 
 public:
-	JitILAsmRoutineManager asm_routines;
+	Jit64AsmRoutineManager asm_routines;
 
 	JitIL() {}
 	~JitIL() {}

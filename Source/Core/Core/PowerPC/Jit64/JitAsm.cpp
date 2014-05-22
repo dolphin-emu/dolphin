@@ -28,8 +28,6 @@ static bool enableDebug = false;
 //RBX - Base pointer of memory
 //R15 - Pointer to array of block pointers
 
-Jit64AsmRoutineManager asm_routines;
-
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.

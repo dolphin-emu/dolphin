@@ -166,17 +166,32 @@ void JitArm::WriteRfiExitDestInR(ARMReg Reg)
 	Cleanup();
 	DoDownCount();
 
-	MOVI2R(Reg, (u32)asm_routines.testExceptions);
-	B(Reg);
+	ARMReg A = gpr.GetReg(false);
+
+	LDR(A, R9, PPCSTATE_OFF(pc));
+	STR(A, R9, PPCSTATE_OFF(npc));
+		QuickCallFunction(A, (void*)&PowerPC::CheckExceptions);
+	LDR(A, R9, PPCSTATE_OFF(npc));
+	STR(A, R9, PPCSTATE_OFF(pc));
 	gpr.Unlock(Reg); // This was locked in the instruction beforehand
+
+	MOVI2R(A, (u32)asm_routines.dispatcher);
+	B(A);
 }
 void JitArm::WriteExceptionExit()
 {
-	ARMReg A = gpr.GetReg(false);
 	Cleanup();
 	DoDownCount();
 
-	MOVI2R(A, (u32)asm_routines.testExceptions);
+	ARMReg A = gpr.GetReg(false);
+
+	LDR(A, R9, PPCSTATE_OFF(pc));
+	STR(A, R9, PPCSTATE_OFF(npc));
+		QuickCallFunction(A, (void*)&PowerPC::CheckExceptions);
+	LDR(A, R9, PPCSTATE_OFF(npc));
+	STR(A, R9, PPCSTATE_OFF(pc));
+
+	MOVI2R(A, (u32)asm_routines.dispatcher);
 	B(A);
 }
 void JitArm::WriteExit(u32 destination)
@@ -360,8 +375,17 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		TST(A, Shift);
 		SetCC(CC_EQ);
 		STR(C, R9, PPCSTATE_OFF(pc));
-		MOVI2R(A, (u32)asm_routines.fpException);
+
+		LDR(A, R9, PPCSTATE_OFF(Exceptions));
+		ORR(A, A, EXCEPTION_FPU_UNAVAILABLE);
+		STR(A, R9, PPCSTATE_OFF(Exceptions));
+			QuickCallFunction(A, (void*)&PowerPC::CheckExceptions);
+		LDR(A, R9, PPCSTATE_OFF(npc));
+		STR(A, R9, PPCSTATE_OFF(pc));
+
+		MOVI2R(A, (u32)asm_routines.dispatcher);
 		B(A);
+
 		SetCC();
 		gpr.Unlock(A, C);
 	}

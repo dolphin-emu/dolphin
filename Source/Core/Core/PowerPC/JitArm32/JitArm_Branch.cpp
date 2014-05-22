@@ -138,8 +138,7 @@ void JitArm::bx(UGeckoInstruction inst)
 		BL(R14);
 		MOVI2R(R14, js.compilerPC);
 		STR(R14, R9, PPCSTATE_OFF(pc));
-		MOVI2R(R14, (u32)asm_routines.testExceptions);
-		B(R14);
+		WriteExceptionExit();
 	}
 	WriteExit(destination);
 }

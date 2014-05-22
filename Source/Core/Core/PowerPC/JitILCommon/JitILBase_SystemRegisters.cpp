@@ -148,7 +148,8 @@ void JitILBase::mcrf(UGeckoInstruction inst)
 
 void JitILBase::crXX(UGeckoInstruction inst)
 {
-	// Ported from Jit_SystemRegister.cpp
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff)
 
 	// Get bit CRBA in EAX aligned with bit CRBD
 	const int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);

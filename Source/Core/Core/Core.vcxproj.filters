@@ -641,9 +641,6 @@
     <ClCompile Include="PowerPC\Jit64IL\JitIL_Tables.cpp">
       <Filter>PowerPC\JitIL</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64IL\JitILAsm.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
@@ -1189,9 +1186,6 @@
       <Filter>PowerPC\JitIL</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64IL\JitIL_Tables.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\Jit64IL\JitILAsm.h">
       <Filter>PowerPC\JitIL</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64\JitRegCache.h">

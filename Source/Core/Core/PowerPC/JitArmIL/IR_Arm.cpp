@@ -604,8 +604,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit, u32 exitAddress) {
 			Jit->BL(R14);
 			Jit->MOVI2R(R14, InstLoc);
 			Jit->STR(R14, R9, PPCSTATE_OFF(pc));
-			Jit->MOVI2R(R14, (u32)Jit->GetAsmRoutines()->testExceptions);
-			Jit->B(R14);
+			Jit->WriteExceptionExit();
 			break;
 		}
 		case InterpreterBranch: {
