@@ -143,7 +143,10 @@ void VertexManager::Draw(UINT stride)
 
 	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
-		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		auto pt = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+		          D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP :
+		          D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		D3D::context->IASetPrimitiveTopology(pt);
 		D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
