@@ -53,30 +53,36 @@ typedef struct _HIDD_ATTRIBUTES
 
 #pragma pack(push)
 #pragma pack(1)
-typedef BYTE TToshibaBluetoothAddress[6]; // in reverse order from Microsoft
+// in reverse order from Microsoft
+typedef BYTE TToshibaBluetoothAddress[6];
 
-typedef struct {
+typedef struct
+{
 	DWORD status;
-	TToshibaBluetoothAddress BluetoothAddress;
-	DWORD ClassOfDevice;
+	TToshibaBluetoothAddress bluetooth_address;
+	DWORD class_of_device;
 	char name[248];
 	WORD unknown2;
 } TToshibaBluetoothDevice, *PToshibaBluetoothDevice;
 
-typedef struct {
-	int deviceCount;
+typedef struct
+{
+	int device_count;
 	TToshibaBluetoothDevice device[7];
 } TToshibaBluetoothDeviceList, *PToshibaBluetoothDeviceList;
 
-typedef struct {
-	TToshibaBluetoothAddress BluetoothAddress;
-	BYTE LMPVersion;
-	WORD LMPSubVersion;
-	BYTE HCIVersion;
-	WORD Manufacturer; // http://www.bluetooth.org/apps/content/?doc_id=49708
-	WORD HCIRevision;
+typedef struct
+{
+	TToshibaBluetoothAddress bluetooth_address;
+	BYTE lmp_version;
+	WORD lmp_subversion;
+	BYTE hci_version;
+	// See http://www.bluetooth.org/apps/content/?doc_id=49708 for a list of manufacturers
+	WORD manufacturer; 
+	WORD hci_revision;
 	BYTE unknown[16];
-	BYTE junk[1024]; // I don't know how big this struct is!
+	BYTE junk[1024];
+	// I don't know how big this struct is!
 } TToshibaBluetoothAdapter, *PToshibaBluetoothAdapter;
 #pragma pack(pop)
 
@@ -98,19 +104,19 @@ typedef DWORD (__stdcall *PBth_BluetoothSetServiceState)(HANDLE, const BLUETOOTH
 typedef DWORD (__stdcall *PBth_BluetoothAuthenticateDevice)(HWND, HANDLE, BLUETOOTH_DEVICE_INFO*, PWCHAR, ULONG);
 typedef DWORD (__stdcall *PBth_BluetoothEnumerateInstalledServices)(HANDLE, BLUETOOTH_DEVICE_INFO*, DWORD*, GUID*);
 
-typedef BOOL (__cdecl *PToshiba_BluetoothInitAPI)(HWND WindowHandle, char *ApplicationName, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothInitAPI)(HWND window_handle, char *application_name, int &error);
 typedef BOOL (__cdecl *PToshiba_BluetoothShutdownAPI)(int &error);
-typedef BOOL (__cdecl *PToshiba_BluetoothAdapterGetInfo)(void *pBluetoothAdapterInfo, int &error);
-typedef BOOL (__cdecl *PToshiba_BluetoothNotify)(DWORD EventMask /* 0 to stop */, int &error, HWND WindowHandle, DWORD MessageNumber);
+typedef BOOL (__cdecl *PToshiba_BluetoothAdapterGetInfo)(void *p_bluetooth_adapter_info, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothNotify)(DWORD event_mask /* 0 to stop */, int &error, HWND window_handle, DWORD message_number);
 typedef BOOL (__cdecl *PToshiba_BluetoothFreeMemory)(void *p);
-typedef BOOL (__cdecl *PToshiba_BluetoothDisconnect)(WORD ChannelID, int &error);
-typedef BOOL (__cdecl *PToshiba_BluetoothStartSearching)(PToshibaBluetoothDeviceList &pDeviceList, DWORD flags, int &error, HWND WindowHandle, DWORD MessageNumber, LPARAM lParam);
+typedef BOOL (__cdecl *PToshiba_BluetoothDisconnect)(WORD channel_id, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothStartSearching)(PToshibaBluetoothDeviceList &p_device_list, DWORD flags, int &error, HWND window_handle, DWORD message_number, LPARAM lparam);
 typedef BOOL (__cdecl *PToshiba_BluetoothCancelSearching)(int &error);
-typedef BOOL (__cdecl *PToshiba_BluetoothGetRemoteName)(TToshibaBluetoothAddress BluetoothAddress, char *RemoteName, int &error);
-typedef BOOL (__cdecl *PToshiba_BluetoothAddRemoteDevice)(PToshibaBluetoothDeviceList pDeviceList, int &error);
-typedef BOOL (__cdecl *PToshiba_BluetoothConnectHID)(TToshibaBluetoothAddress BluetoothAddress, int &error, HWND WindowHandle, DWORD MessageNumber, LPARAM lParam);
-typedef BOOL (__cdecl *PToshiba_BluetoothClearPIN)(TToshibaBluetoothAddress BluetoothAddress, int &error);
-typedef BOOL (__cdecl *PToshiba_BluetoothSetPIN)(TToshibaBluetoothAddress BluetoothAddress, char *PinCode, int PinLength, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothGetRemoteName)(TToshibaBluetoothAddress bluetooth_address, char *remote_name, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothAddRemoteDevice)(PToshibaBluetoothDeviceList p_device_list, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothConnectHID)(TToshibaBluetoothAddress bluetooth_address, int &error, HWND window_handle, DWORD message_number, LPARAM lparam);
+typedef BOOL (__cdecl *PToshiba_BluetoothClearPIN)(TToshibaBluetoothAddress bluetooth_address, int &error);
+typedef BOOL (__cdecl *PToshiba_BluetoothSetPIN)(TToshibaBluetoothAddress bluetooth_address, char *pin_code, int pin_length, int &error);
 
 
 PHidD_GetHidGuid HidD_GetHidGuid = nullptr;
@@ -148,9 +154,9 @@ HINSTANCE bthprops_lib = nullptr;
 HINSTANCE tosbtapi_lib = nullptr;
 
 static int initialized = 0;
-static bool hasToshiba = false;
-PToshibaBluetoothDeviceList pDeviceList = nullptr;
-TToshibaBluetoothAddress ToshibaBluetoothAdapterAddr;
+static bool g_has_toshiba = false;
+PToshibaBluetoothDeviceList g_device_list = nullptr;
+TToshibaBluetoothAddress g_toshiba_bluetooth_adapter_addr;
 
 std::unordered_map<BTH_ADDR, std::time_t> g_connect_times;
 
@@ -238,7 +244,7 @@ inline void init_lib()
 			}
 			else
 			{
-				hasToshiba = true;
+				g_has_toshiba = true;
 			}
 		}
 
@@ -266,11 +272,11 @@ LRESULT CALLBACK ToshibaBluetoothWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPA
 	switch (msg)
 	{
 	case WM_TOSHIBA_BLUETOOTH:
-		g_wiimote_scanner.ToshibaMessage((DWORD)wParam, (DWORD)lParam);
+		g_wiimote_scanner.ToshibaMessage(wParam, lParam);
 		return 0;
 	case WM_TIMER:
 		KillTimer(hWnd, wParam);
-		g_wiimote_scanner.ToshibaMessage(WM_TIMER, (DWORD)wParam);
+		g_wiimote_scanner.ToshibaMessage(WM_TIMER, wParam);
 		return 0;
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -299,13 +305,14 @@ void WiimoteScanner::ToshibaThreadFunc()
 	Common::SetCurrentThreadName("Toshiba MessagePump Thread");
 	NOTICE_LOG(WIIMOTE, "Toshiba Thread Function has started.");
 	// Create an invisible message window to handle Toshiba Bluetooth messages.
-	HINSTANCE hInst = GetModuleHandle(nullptr);
 	m_background_thread = GetCurrentThreadId();
 	MSG msg;
 	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	HINSTANCE h_inst = GetModuleHandle(nullptr);
 	m_background_window = CreateWindowEx(0, _T("DolphinToshibaBluetoothMessages"), _T("Dolphin Toshiba Bluetooth Messages 2"),
-		0, 0, 0, 0, 0, HWND_MESSAGE, nullptr, hInst, nullptr);
-	if (!m_background_window) {
+		0, 0, 0, 0, 0, HWND_MESSAGE, nullptr, h_inst, nullptr);
+	if (!m_background_window)
+	{
 		ERROR_LOG(WIIMOTE, "Creating Dolphin background Toshiba Bluetooth Messages window failed. Toshiba Bluetooth stack will not be supported.");
 		return;
 	}
@@ -330,7 +337,7 @@ void WiimoteScanner::ToshibaThreadFunc()
 
 void WiimoteScanner::ShutdownToshiba()
 {
-	if (!hasToshiba)
+	if (!g_has_toshiba)
 	{
 		return;
 	}
@@ -348,12 +355,12 @@ void WiimoteScanner::ShutdownToshiba()
 		m_toshiba_thread.join();
 	}
 	m_toshiba_started = false;
-	hasToshiba = false;
+	g_has_toshiba = false;
 }
 
 void WiimoteScanner::InitToshiba()
 {
-	if (!hasToshiba || m_toshiba_started)
+	if (!g_has_toshiba || m_toshiba_started)
 	{
 		return;
 	}
@@ -392,49 +399,63 @@ void WiimoteScanner::InitToshiba()
 	{
 	}
 
-	char RemoteName[8192];
 	int error = 0;
 	BOOL result = Toshiba_BluetoothInitAPI(m_foreground_window, "Dolphin", error);
 	if (error)
+	{
 		WARN_LOG(WIIMOTE, "Toshiba_BluetoothInitAPI: result %d, error %d", result, error);
+	}
 	else
+	{
 		m_toshiba_started = true;
+	}
 	Toshiba_BluetoothNotify(0xFFFFFFFF, error, m_foreground_window, WM_TOSHIBA_BLUETOOTH);
 	if (Toshiba_LaunchBluetoothManagerInSystemTray)
+	{
 		Toshiba_LaunchBluetoothManagerInSystemTray(error);
+	}
 	if (Toshiba_BluetoothAdapterGetInfo)
-		result = Toshiba_BluetoothAdapterGetInfo(RemoteName, error);
-	memcpy(ToshibaBluetoothAdapterAddr, RemoteName, 6);
+	{
+		char remote_name[8192];
+		result = Toshiba_BluetoothAdapterGetInfo(remote_name, error);
+		memcpy(g_toshiba_bluetooth_adapter_addr, remote_name, 6);
+	}
+	else
+	{
+		ZeroMemory(g_toshiba_bluetooth_adapter_addr, 6);
+	}
 }
 
-void WiimoteScanner::ToshibaMessage(DWORD wParam, DWORD lParam) {
-	switch (wParam) {
+void WiimoteScanner::ToshibaMessage(WPARAM wparam, LPARAM lparam)
+{
+	switch (wparam)
+	{
 	case TOSHIBA_BLUETOOTH_SEARCH_FINISHED:
-		WARN_LOG(WIIMOTE, "Search Finished %x\n", lParam);
-		m_ToshibaBusySearching = false;
+		WARN_LOG(WIIMOTE, "Search Finished %x\n", lparam);
+		m_toshiba_busy_searching = false;
 		break;
 	case TOSHIBA_BLUETOOTH_SEARCH_ERROR:
-		WARN_LOG(WIIMOTE, "Toshiba Bluetooth Search Error %x\n", lParam);
+		WARN_LOG(WIIMOTE, "Toshiba Bluetooth Search Error %x\n", lparam);
 		break;
 	case TOSHIBA_BLUETOOTH_CONNECT_HID_FINISHED:
-		WARN_LOG(WIIMOTE, "Connect HID Finished %x\n", lParam);
-		m_ToshibaBusyConnecting = false;
+		WARN_LOG(WIIMOTE, "Connect HID Finished %x\n", lparam);
+		m_toshiba_busy_connecting = false;
 		break;
 	case TOSHIBA_BLUETOOTH_CONNECT_HID_ERROR:
-		WARN_LOG(WIIMOTE, "Toshiba Bluetooth Connect HID Error %x\n", lParam);
-		m_ToshibaConnectionSucceeded = false;
+		WARN_LOG(WIIMOTE, "Toshiba Bluetooth Connect HID Error %x\n", lparam);
+		m_toshiba_connection_succeeded = false;
 		break;
 	case TOSHIBA_BLUETOOTH_CONNECT_HID_CONNECTED:
-		m_ToshibaConnectionSucceeded = true;
-		WARN_LOG(WIIMOTE, "Connect HID Connected %x\n", lParam);
+		m_toshiba_connection_succeeded = true;
+		WARN_LOG(WIIMOTE, "Connect HID Connected %x\n", lparam);
 		break;
 	case WM_TIMER:
 		WARN_LOG(WIIMOTE, "Timed out waiting for Toshiba Bluetooth Stack\n");
-		m_ToshibaBusySearching = false;
-		m_ToshibaBusyConnecting = false;
+		m_toshiba_busy_searching = false;
+		m_toshiba_busy_connecting = false;
 		break;
 	default:
-		WARN_LOG(WIIMOTE, "Toshiba Message %x: %x\n", wParam, lParam);
+		WARN_LOG(WIIMOTE, "Toshiba Message %x: %x\n", wparam, lparam);
 		break;
 	}
 }
@@ -462,7 +483,7 @@ void WiimoteScanner::Update()
 // Note: Toshiba stack will only work if either called from the same thread as InitToshiba, or m_run_thread is true.
 void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimote* & found_board)
 {
-	if (hasToshiba)
+	if (g_has_toshiba)
 	{
 		HWND hwnd = m_background_window;
 		bool foreground = (GetCurrentThreadId() == m_foreground_thread);
@@ -471,17 +492,17 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 			hwnd = m_foreground_window;
 		}
 		int error = 0;
-		m_ToshibaBusySearching = true;
-		BOOL result = Toshiba_BluetoothStartSearching(pDeviceList, 0x40000000, error, hwnd, WM_TOSHIBA_BLUETOOTH, 0);
+		m_toshiba_busy_searching = true;
+		BOOL result = Toshiba_BluetoothStartSearching(g_device_list, 0x40000000, error, hwnd, WM_TOSHIBA_BLUETOOTH, 0);
 		WARN_LOG(WIIMOTE, "Toshiba_BluetoothStartSearching Result %x, %d\n", result, error);
 		if (error)
 		{
-			m_ToshibaBusySearching = false;
+			m_toshiba_busy_searching = false;
 		}
 		else if (foreground)
 		{
 			MSG msg;
-			while (m_ToshibaBusySearching)
+			while (m_toshiba_busy_searching)
 			{
 				if (PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE) != 0)
 				{
@@ -492,44 +513,47 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		}
 		else 
 		{
-			while (m_run_thread && m_ToshibaBusySearching)
+			while (m_run_thread && m_toshiba_busy_searching)
 			{
 				Sleep(100);
 			}
 		}
 
 		WARN_LOG(WIIMOTE, "FindWiimotes: Search loop finished");
-		m_ToshibaBusyConnecting = false;
-		for (int i = 0; (foreground || m_run_thread) && pDeviceList && i < pDeviceList->deviceCount; ++i) {
-			WARN_LOG(WIIMOTE, "Device %d: '%s', %x, %x, %x\n", i, pDeviceList->device[i].name, pDeviceList->device[i].status, pDeviceList->device[i].ClassOfDevice, pDeviceList->device[i].unknown2);
-			if (IsValidBluetoothName(pDeviceList->device[i].name)) {
+		m_toshiba_busy_connecting = false;
+		for (int i = 0; (foreground || m_run_thread) && g_device_list && i < g_device_list->device_count; ++i)
+		{
+			WARN_LOG(WIIMOTE, "Device %d: '%s', %x, %x, %x\n", i, g_device_list->device[i].name, g_device_list->device[i].status, g_device_list->device[i].class_of_device, g_device_list->device[i].unknown2);
+			if (IsValidBluetoothName(g_device_list->device[i].name))
+			{
 #if defined(AUTHENTICATE_WIIMOTES)
 				if (Toshiba_BluetoothSetPIN) {
-					char WiimotePin[7];
-					WiimotePin[6] = 0;
+					char wiimote_pin[7];
+					wiimote_pin[6] = 0;
 					// This isn't working for me now. I managed to do it once before in Delphi though, and I think this is what I did.
-					for (int j = 0; j < 6; j++) {
-						WiimotePin[5 - j] = pDeviceList->device[i].BluetoothAddress[j];
-						//WiimotePin[5 - j] = ToshibaBluetoothAdapterAddr[j];
+					for (int j = 0; j < 6; ++j) {
+						wiimote_pin[5 - j] = g_device_list->device[i].bluetooth_address[j];
+						//wiimote_pin[5 - j] = g_toshiba_bluetooth_adapter_addr[j];
 					}
-					result = Toshiba_BluetoothSetPIN(pDeviceList->device[i].BluetoothAddress, WiimotePin, 6, error);
+					result = Toshiba_BluetoothSetPIN(g_device_list->device[i].bluetooth_address, wiimote_pin, 6, error);
 					WARN_LOG(WIIMOTE, "Toshiba_BluetoothSetPIN %02x:%02x:%02x:%02x:%02x:%02x  Result %x, %d\n",
-						(unsigned char)WiimotePin[5], (unsigned char)WiimotePin[4], (unsigned char)WiimotePin[3], (unsigned char)WiimotePin[2], (unsigned char)WiimotePin[1], (unsigned char)WiimotePin[0],
+						(unsigned char)wiimote_pin[5], (unsigned char)wiimote_pin[4], (unsigned char)wiimote_pin[3],
+						(unsigned char)wiimote_pin[2], (unsigned char)wiimote_pin[1], (unsigned char)wiimote_pin[0],
 						result, error);
 				}
 #endif
-				m_ToshibaBusyConnecting = true;
-				m_ToshibaConnectionSucceeded = false;
-				result = Toshiba_BluetoothConnectHID(pDeviceList->device[i].BluetoothAddress, error, hwnd, WM_TOSHIBA_BLUETOOTH, 0x400 + i);
+				m_toshiba_busy_connecting = true;
+				m_toshiba_connection_succeeded = false;
+				result = Toshiba_BluetoothConnectHID(g_device_list->device[i].bluetooth_address, error, hwnd, WM_TOSHIBA_BLUETOOTH, 0x400 + i);
 				WARN_LOG(WIIMOTE, "Toshiba_BluetoothConnectHID Result %x, %d\n", result, error);
 				if (error || !result)
 				{
-					m_ToshibaBusyConnecting = false;
+					m_toshiba_busy_connecting = false;
 				}
 				else if (foreground)
 				{
 					MSG msg;
-					while (m_ToshibaBusyConnecting)
+					while (m_toshiba_busy_connecting)
 					{
 						if (PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE) != 0)
 						{
@@ -539,12 +563,12 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 				}
 				else
 				{
-					while (m_run_thread && m_ToshibaBusyConnecting)
+					while (m_run_thread && m_toshiba_busy_connecting)
 					{
 						Sleep(100);
 					}
 				}
-				if (!m_ToshibaConnectionSucceeded) {
+				if (!m_toshiba_connection_succeeded) {
 					// Failed. Either the Wiimote timed out and stopped being discoverable,
 					// or this Wiimote has never been manually connected so it is not listed in the Bluetooth Settings window.
 					NOTICE_LOG(WIIMOTE, "Failed to connect to Wiimote, maybe it timed out?\nAlso the Wiimote first needs to be manually connected once in Bluetooth Settings before this works.\n"
@@ -823,7 +847,7 @@ bool WiimoteScanner::IsReady()
 	}
 	else
 	{
-		return hasToshiba;
+		return g_has_toshiba;
 	}
 }
 
