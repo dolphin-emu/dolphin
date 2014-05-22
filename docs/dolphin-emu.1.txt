@@ -1,0 +1,99 @@
+// To get a roff man page: a2x -f manpage dolphin-emu.1.txt
+
+DOLPHIN-EMU(1)
+==============
+:doctype:    manpage
+:man source: Dolphin Emulator
+:man manual: Dolphin Emulator
+
+
+NAME
+----
+dolphin-emu - Wii / GameCube / Triforce emulator
+
+
+SYNOPSIS
+--------
+*dolphin-emu* ['OPTIONS']
+
+
+DESCRIPTION
+-----------
+Dolphin is a GameCube / GameCube emulator with support for HD rendering, networked multiplayer, TAS (tool-assisted speedruns), video recording, and more.
+
+
+GETTING STARTED
+---------------
+Just run Dolphin without arguments. It has a GUI.
+
+
+OPTIONS
+-------
+*-A, --audio_emulation*='BACKEND'::
+    Select audio emulation backend.
+    - *LLE*: low-level emulation
+    - *HLE*: high-level emulation (default unless overridden by game-specific presets)
+
+*-b, --batch*::
+    Don't refresh the game list and exit after a game has stopped. Useful in combination with *-e*.
+
+*-d, --debugger*::
+    Enable the debugger GUI.
+
+*-e, --exec*='FILE'::
+    Run a disk image or executable. Required in no-GUI builds.
+    Supported formats: ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD, DFF, TMD.
+
+*-h, --help*::
+    Display help text similar to this man page.
+
+*-l, --logger*::
+    Show log window.
+
+*-m, --movie*='MOVIE'::
+    Run a previously recorded TAS movie.
+
+*-U, --user*='PATH'::
+    Set path of the user-specific configuration directory (default: $HOME/.dolphin-emu).
+
+*-V, --video_backend*='BACKEND'::
+    Select video backend.
+    - *OGL*: OpenGL
+    - *D3D*: Direct3D (Windows only)
+    - *FIXME*: software renderer (very slow)
+
+
+ENVIRONMENT
+-----------
+*DOLPHIN_EGL_PLATFORM*::
+    Force an OpenGL rendering platform. Possible values (if enabled at compile time) in order of automatic detection preference:
+    - *wayland*
+    - *x11*
+    ::
+    Has no effect on Android.
+
+
+BUGS
+----
+Bug reports can be submitted on Google Code: https://code.google.com/p/dolphin-emu/issues/list.
+Please make sure to try a recent development build first.
+
+
+AUTHOR
+------
+Dolphin was started by F|RES and ector in 2003.
+After the source code was released under GPLv2 in 2008,
+many people contributed to it:
+https://github.com/dolphin-emu/dolphin/graphs/contributors.
+
+
+RESOURCES
+---------
+- Website, Forum, Wiki: https://dolphin-emu.org
+- Git repository: https://github.com/dolphin-emu/dolphin
+- Issue tracker: https://code.google.com/p/dolphin-emu/issues/list
+
+
+COPYING
+-------
+Dolphin is licensed under the GPLv2.

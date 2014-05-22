@@ -1,0 +1,220 @@
+'\" t
+.\"     Title: dolphin-emu
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 05/22/2014
+.\"    Manual: Dolphin Emulator
+.\"    Source: Dolphin Emulator
+.\"  Language: English
+.\"
+.TH "DOLPHIN\-EMU" "1" "05/22/2014" "Dolphin Emulator" "Dolphin Emulator"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+dolphin-emu \- Wii / GameCube / Triforce emulator
+.SH "SYNOPSIS"
+.sp
+\fBdolphin\-emu\fR [\fIOPTIONS\fR]
+.SH "DESCRIPTION"
+.sp
+Dolphin is a GameCube / GameCube emulator with support for HD rendering, networked multiplayer, TAS (tool\-assisted speedruns), video recording, and more\&.
+.SH "GETTING STARTED"
+.sp
+Just run Dolphin without arguments\&. It has a GUI\&.
+.SH "OPTIONS"
+.PP
+\fB\-A, \-\-audio_emulation\fR=\fIBACKEND\fR
+.RS 4
+Select audio emulation backend\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBLLE\fR: low\-level emulation
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBHLE\fR: high\-level emulation (default unless overridden by game\-specific presets)
+.RE
+.RE
+.PP
+\fB\-b, \-\-batch\fR
+.RS 4
+Don\(cqt refresh the game list and exit after a game has stopped\&. Useful in combination with
+\fB\-e\fR\&.
+.RE
+.PP
+\fB\-d, \-\-debugger\fR
+.RS 4
+Enable the debugger GUI\&.
+.RE
+.PP
+\fB\-e, \-\-exec\fR=\fIFILE\fR
+.RS 4
+Run a disk image or executable\&. Required in no\-GUI builds\&. Supported formats: ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD, DFF, TMD\&.
+.RE
+.PP
+\fB\-h, \-\-help\fR
+.RS 4
+Display help text similar to this man page\&.
+.RE
+.PP
+\fB\-l, \-\-logger\fR
+.RS 4
+Show log window\&.
+.RE
+.PP
+\fB\-m, \-\-movie\fR=\fIMOVIE\fR
+.RS 4
+Run a previously recorded TAS movie\&.
+.RE
+.PP
+\fB\-U, \-\-user\fR=\fIPATH\fR
+.RS 4
+Set path of the user\-specific configuration directory (default: $HOME/\&.dolphin\-emu)\&.
+.RE
+.PP
+\fB\-V, \-\-video_backend\fR=\fIBACKEND\fR
+.RS 4
+Select video backend\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBOGL\fR: OpenGL
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBD3D\fR: Direct3D (Windows only)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBFIXME\fR: software renderer (very slow)
+.RE
+.RE
+.SH "ENVIRONMENT"
+.PP
+\fBDOLPHIN_EGL_PLATFORM\fR
+.RS 4
+Force an OpenGL rendering platform\&. Possible values (if enabled at compile time) in order of automatic detection preference:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBwayland\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBx11\fR
+.RE
+.RE
+.PP
+.RS 4
+Has no effect on Android\&.
+.RE
+.SH "BUGS"
+.sp
+Bug reports can be submitted on Google Code: https://code\&.google\&.com/p/dolphin\-emu/issues/list\&. Please make sure to try a recent development build first\&.
+.SH "AUTHOR"
+.sp
+Dolphin was started by F|RES and ector in 2003\&. After the source code was released under GPLv2 in 2008, many people contributed to it: https://github\&.com/dolphin\-emu/dolphin/graphs/contributors\&.
+.SH "RESOURCES"
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Website, Forum, Wiki:
+https://dolphin\-emu\&.org
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Git repository:
+https://github\&.com/dolphin\-emu/dolphin
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Issue tracker:
+https://code\&.google\&.com/p/dolphin\-emu/issues/list
+.RE
+.SH "COPYING"
+.sp
+Dolphin is licensed under the GPLv2\&.

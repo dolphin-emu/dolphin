@@ -1,7 +1,7 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.5)
 
 option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
@@ -784,7 +784,10 @@ add_subdirectory(Source)
 if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
 endif()
-if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin"))
+if((${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin"))
+	include(GNUInstallDirs)
+	install(FILES docs/dolphin-emu.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/dolphin-emu.1)
+else()
 	install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
