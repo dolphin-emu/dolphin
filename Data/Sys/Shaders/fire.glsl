@@ -6,15 +6,13 @@ in vec2 uv0;
 void main()
 {
 	vec4 c0 = texture(samp9, uv0);
-	float red   = 0.0;
-	float green = 0.0;
-	float blue  = 0.0;
+	float red	= 0.0;
+	float green	= 0.0;
+	float blue	= 0.0;
 
 	red = c0.r;
 
-
-	if (c0.r > 0.0)
-	if (c0.g > c0.r)
+	if (c0.r > 0.0 && c0.g > c0.r)
 		green = (c0.g - (c0.g - c0.r)) / 3.0;
 
 	if (c0.b > 0.0 && c0.r < 0.25)
