@@ -419,7 +419,6 @@ void Interpreter::frsqrtex(UGeckoInstruction _inst)
 	}
 	else
 	{
-#ifdef VERY_ACCURATE_FP
 		if (b == 0.0)
 		{
 			SetFPException(FPSCR_ZX);
@@ -442,11 +441,6 @@ void Interpreter::frsqrtex(UGeckoInstruction _inst)
 			outa |= frsqrtex_lut[idx] >> 12;
 			riPS0(_inst.FD) = ((u64)outa << 32) + (u64)outb;
 		}
-#else
-		if (b == 0.0)
-			SetFPException(FPSCR_ZX);
-		rPS0(_inst.FD) = ForceDouble(1.0 / sqrt(b));
-#endif
 	}
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
