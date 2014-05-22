@@ -527,11 +527,13 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 			if (IsValidBluetoothName(g_device_list->device[i].name))
 			{
 #if defined(AUTHENTICATE_WIIMOTES)
-				if (Toshiba_BluetoothSetPIN) {
+				if (Toshiba_BluetoothSetPIN)
+				{
 					char wiimote_pin[7];
 					wiimote_pin[6] = 0;
 					// This isn't working for me now. I managed to do it once before in Delphi though, and I think this is what I did.
-					for (int j = 0; j < 6; ++j) {
+					for (int j = 0; j < 6; ++j)
+					{
 						wiimote_pin[5 - j] = g_device_list->device[i].bluetooth_address[j];
 						//wiimote_pin[5 - j] = g_toshiba_bluetooth_adapter_addr[j];
 					}
@@ -568,7 +570,8 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 						Sleep(100);
 					}
 				}
-				if (!m_toshiba_connection_succeeded) {
+				if (!m_toshiba_connection_succeeded)
+				{
 					// Failed. Either the Wiimote timed out and stopped being discoverable,
 					// or this Wiimote has never been manually connected so it is not listed in the Bluetooth Settings window.
 					NOTICE_LOG(WIIMOTE, "Failed to connect to Wiimote, maybe it timed out?\nAlso the Wiimote first needs to be manually connected once in Bluetooth Settings before this works.\n"
