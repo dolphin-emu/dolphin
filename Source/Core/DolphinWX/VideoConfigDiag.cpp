@@ -51,7 +51,7 @@ SettingCheckBox::BoolSetting(wxWindow* parent, const wxString& label, const wxSt
 {
 	SetToolTip(tooltip);
 	SetValue(m_setting ^ m_reverse);
-	Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &SettingCheckBox::UpdateValue, this);
+	Bind(wxEVT_CHECKBOX, &SettingCheckBox::UpdateValue, this);
 }
 
 template <>
@@ -62,7 +62,7 @@ SettingRadioButton::BoolSetting(wxWindow* parent, const wxString& label, const w
 {
 	SetToolTip(tooltip);
 	SetValue(m_setting ^ m_reverse);
-	Bind(wxEVT_COMMAND_RADIOBUTTON_SELECTED, &SettingRadioButton::UpdateValue, this);
+	Bind(wxEVT_RADIOBUTTON, &SettingRadioButton::UpdateValue, this);
 }
 
 SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num, const wxString choices[], long style)
@@ -71,7 +71,7 @@ SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& too
 {
 	SetToolTip(tooltip);
 	Select(m_setting);
-	Bind(wxEVT_COMMAND_CHOICE_SELECTED, &SettingChoice::UpdateValue, this);
+	Bind(wxEVT_CHOICE, &SettingChoice::UpdateValue, this);
 }
 
 void SettingChoice::UpdateValue(wxCommandEvent& ev)
@@ -241,7 +241,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetDisplayName())));
-	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
+	choice_backend->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_Backend, this);
 
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
 	szr_basic->Add(choice_backend, 1, 0, 0);
@@ -284,7 +284,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		wxStaticText* const label_display_resolution = new wxStaticText(page_general, wxID_ANY, _("Fullscreen resolution:"));
 		choice_display_resolution = new wxChoice(page_general, wxID_ANY, wxDefaultPosition, wxDefaultSize, res_list);
 		RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
-		choice_display_resolution->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_DisplayResolution, this);
+		choice_display_resolution->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_DisplayResolution, this);
 
 		choice_display_resolution->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution));
 
@@ -391,7 +391,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// AF
 	{
-	const wxString af_choices[] = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
+	const wxString af_choices[] = {"1x", "2x", "4x", "8x", "16x"};
 	szr_enh->Add(new wxStaticText(page_enh, -1, _("Anisotropic Filtering:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	szr_enh->Add(CreateChoice(page_enh, vconfig.iMaxAnisotropy, wxGetTranslation(af_desc), 5, af_choices));
 	}
@@ -413,7 +413,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		else
 			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
 
-		choice_ppshader->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_PPShader, this);
+		choice_ppshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_PPShader, this);
 
 		szr_enh->Add(new wxStaticText(page_enh, -1, _("Post-Processing Effect:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_enh->Add(choice_ppshader);
@@ -478,7 +478,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// TODO: Use wxSL_MIN_MAX_LABELS or wxSL_VALUE_LABEL with wx 2.9.1
 	wxSlider* const stc_slider = new wxSlider(page_hacks, wxID_ANY, 0, 0, 2, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_BOTTOM);
-	stc_slider->Bind(wxEVT_COMMAND_SLIDER_UPDATED, &VideoConfigDiag::Event_Stc, this);
+	stc_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_Stc, this);
 	RegisterControl(stc_slider, wxGetTranslation(stc_desc));
 
 	if (vconfig.iSafeTextureCache_ColorSamples == 0) stc_slider->SetValue(0);
@@ -575,7 +575,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxCheckBox* const cb_prog_scan = new wxCheckBox(page_advanced, wxID_ANY, _("Enable Progressive Scan"));
 	RegisterControl(cb_prog_scan, wxGetTranslation(prog_scan_desc));
-	cb_prog_scan->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &VideoConfigDiag::Event_ProgressiveScan, this);
+	cb_prog_scan->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_ProgressiveScan, this);
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		cb_prog_scan->Disable();
 
@@ -597,7 +597,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"));
-	btn_close->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &VideoConfigDiag::Event_ClickClose, this);
+	btn_close->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ClickClose, this);
 
 	Bind(wxEVT_CLOSE_WINDOW, &VideoConfigDiag::Event_Close, this);
 

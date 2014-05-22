@@ -57,29 +57,29 @@ void LogConfigWindow::CreateGUIControls()
 		wxLevelsUse.Add(wxLevels[i]);
 	m_verbosity = new wxRadioBox(this, wxID_ANY, _("Verbosity"),
 			wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0, wxRA_SPECIFY_ROWS);
-	m_verbosity->Bind(wxEVT_COMMAND_RADIOBOX_SELECTED, &LogConfigWindow::OnVerbosityChange, this);
+	m_verbosity->Bind(wxEVT_RADIOBOX, &LogConfigWindow::OnVerbosityChange, this);
 
 	// Options
 	m_writeFileCB = new wxCheckBox(this, wxID_ANY, _("Write to File"));
-	m_writeFileCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteFileChecked, this);
+	m_writeFileCB->Bind(wxEVT_CHECKBOX, &LogConfigWindow::OnWriteFileChecked, this);
 	m_writeConsoleCB = new wxCheckBox(this, wxID_ANY, _("Write to Console"));
-	m_writeConsoleCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteConsoleChecked, this);
+	m_writeConsoleCB->Bind(wxEVT_CHECKBOX, &LogConfigWindow::OnWriteConsoleChecked, this);
 	m_writeWindowCB = new wxCheckBox(this, wxID_ANY, _("Write to Window"));
-	m_writeWindowCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteWindowChecked, this);
+	m_writeWindowCB->Bind(wxEVT_CHECKBOX, &LogConfigWindow::OnWriteWindowChecked, this);
 	m_writeDebuggerCB = nullptr;
 #ifdef _MSC_VER
 	if (IsDebuggerPresent())
 	{
 		m_writeDebuggerCB = new wxCheckBox(this, wxID_ANY, _("Write to Debugger"));
-		m_writeDebuggerCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteDebuggerChecked, this);
+		m_writeDebuggerCB->Bind(wxEVT_CHECKBOX, &LogConfigWindow::OnWriteDebuggerChecked, this);
 	}
 #endif
 
 	wxButton *btn_toggle_all = new wxButton(this, wxID_ANY, _("Toggle All Log Types"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-	btn_toggle_all->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &LogConfigWindow::OnToggleAll, this);
+	btn_toggle_all->Bind(wxEVT_BUTTON, &LogConfigWindow::OnToggleAll, this);
 	m_checks = new wxCheckListBox(this, wxID_ANY);
-	m_checks->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &LogConfigWindow::OnLogCheck, this);
+	m_checks->Bind(wxEVT_CHECKLISTBOX, &LogConfigWindow::OnLogCheck, this);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 		m_checks->Append(StrToWxStr(m_LogManager->GetFullName((LogTypes::LOG_TYPE)i)));
 

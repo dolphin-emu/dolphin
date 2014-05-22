@@ -147,7 +147,7 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 	{
 #if wxUSE_CLIPBOARD
 		case IDM_COPYADDRESS:
-			wxTheClipboard->SetData(new wxTextDataObject(wxString::Format(_T("%08x"), selection)));
+			wxTheClipboard->SetData(new wxTextDataObject(wxString::Format("%08x", selection)));
 			break;
 
 		case IDM_COPYHEX:
@@ -189,18 +189,18 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 {
 	// popup menu
 	wxMenu* menu = new wxMenu;
-	//menu.Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
+	//menu.Append(IDM_GOTOINMEMVIEW, _("&Goto in mem view"));
 #if wxUSE_CLIPBOARD
-	menu->Append(IDM_COPYADDRESS, StrToWxStr("Copy &address"));
-	menu->Append(IDM_COPYHEX, StrToWxStr("Copy &hex"));
+	menu->Append(IDM_COPYADDRESS, _("Copy &address"));
+	menu->Append(IDM_COPYHEX, _("Copy &hex"));
 #endif
-	menu->Append(IDM_TOGGLEMEMORY, StrToWxStr("Toggle &memory"));
+	menu->Append(IDM_TOGGLEMEMORY, _("Toggle &memory"));
 
 	wxMenu* viewAsSubMenu = new wxMenu;
-	viewAsSubMenu->Append(IDM_VIEWASFP, StrToWxStr("FP value"));
-	viewAsSubMenu->Append(IDM_VIEWASASCII, StrToWxStr("ASCII"));
-	viewAsSubMenu->Append(IDM_VIEWASHEX, StrToWxStr("Hex"));
-	menu->AppendSubMenu(viewAsSubMenu, StrToWxStr("View As:"));
+	viewAsSubMenu->Append(IDM_VIEWASFP, _("FP value"));
+	viewAsSubMenu->Append(IDM_VIEWASASCII, "ASCII");
+	viewAsSubMenu->Append(IDM_VIEWASHEX, _("Hex"));
+	menu->AppendSubMenu(viewAsSubMenu, _("View As:"));
 
 	PopupMenu(menu);
 }
@@ -209,14 +209,14 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 {
 	wxPaintDC dc(this);
 	wxRect rc = GetClientRect();
-	wxFont hFont(_T("Courier"));
+	wxFont hFont("Courier");
 	hFont.SetFamily(wxFONTFAMILY_TELETYPE);
 
 	wxCoord w,h;
-	dc.GetTextExtent(_T("0WJyq"),&w,&h,nullptr,nullptr,&hFont);
+	dc.GetTextExtent("0WJyq", &w, &h, nullptr, nullptr, &hFont);
 	if (h > rowHeight)
 		rowHeight = h;
-	dc.GetTextExtent(_T("0WJyq"),&w,&h,nullptr,nullptr,&DebuggerFont);
+	dc.GetTextExtent("0WJyq", &w, &h, nullptr, nullptr, &DebuggerFont);
 	if (h > rowHeight)
 		rowHeight = h;
 
@@ -225,7 +225,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	else
 		dc.SetFont(DebuggerFont);
 
-	dc.GetTextExtent(_T("W"),&w,&h);
+	dc.GetTextExtent("W", &w, &h);
 	int fontSize = w;
 	int textPlacement = 17 + 9 * fontSize;
 
@@ -233,15 +233,15 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	int width   = rc.width;
 	int numRows = (rc.height / rowHeight) / 2 + 2;
 	dc.SetBackgroundMode(wxTRANSPARENT);
-	const wxChar* bgColor = _T("#ffffff");
+	const wxColour bgColor = *wxWHITE;
 	wxPen nullPen(bgColor);
-	wxPen currentPen(_T("#000000"));
-	wxPen selPen(_T("#808080")); // gray
+	wxPen currentPen(*wxBLACK_PEN);
+	wxPen selPen(*wxGREY_PEN);
 	nullPen.SetStyle(wxTRANSPARENT);
 
-	wxBrush currentBrush(_T("#FFEfE8")); // light gray
-	wxBrush pcBrush(_T("#70FF70")); // green
-	wxBrush mcBrush(_T("#1133FF")); // blue
+	wxBrush currentBrush(*wxLIGHT_GREY_BRUSH);
+	wxBrush pcBrush(*wxGREEN_BRUSH);
+	wxBrush mcBrush(*wxBLUE_BRUSH);
 	wxBrush bgBrush(bgColor);
 	wxBrush nullBrush(bgColor);
 	nullBrush.SetStyle(wxTRANSPARENT);
@@ -259,9 +259,9 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		int rowY1 = rc.height / 2 + rowHeight * row - rowHeight / 2;
 		int rowY2 = rc.height / 2 + rowHeight * row + rowHeight / 2;
 
-		wxString temp = wxString::Format(_T("%08x"), address);
+		wxString temp = wxString::Format("%08x", address);
 		u32 col = debugger->GetColor(address);
-		wxBrush rowBrush(wxColor(col >> 16, col >> 8, col));
+		wxBrush rowBrush(wxColour(col >> 16, col >> 8, col));
 		dc.SetBrush(nullBrush);
 		dc.SetPen(nullPen);
 		dc.DrawRectangle(0, rowY1, 16, rowY2);
@@ -278,16 +278,16 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
 		dc.DrawRectangle(16, rowY1, width, rowY2 - 1);
 		dc.SetBrush(currentBrush);
-		dc.SetTextForeground(_T("#600000"));
+		dc.SetTextForeground("#600000"); // Dark red
 		dc.DrawText(temp, 17, rowY1);
 
 		if (viewAsType != VIEWAS_HEX)
 		{
 			char mem[256];
 			debugger->GetRawMemoryString(memory, address, mem, 256);
-			dc.SetTextForeground(_T("#000080"));
+			dc.SetTextForeground(wxTheColourDatabase->Find("NAVY"));
 			dc.DrawText(StrToWxStr(mem), 17+fontSize*(8), rowY1);
-			dc.SetTextForeground(_T("#000000"));
+			dc.SetTextForeground(*wxBLACK);
 		}
 
 		if (debugger->IsAlive())
@@ -371,7 +371,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			if (desc[0] == 0)
 				strcpy(desc, debugger->GetDescription(address).c_str());
 
-			dc.SetTextForeground(_T("#0000FF"));
+			dc.SetTextForeground(*wxBLUE);
 
 			if (strlen(desc))
 				dc.DrawText(StrToWxStr(desc), 17+fontSize*((8+8+8+30)*2), rowY1);

@@ -55,10 +55,10 @@ wxString CRegTable::GetValue(int row, int col)
 		switch (col)
 		{
 		case 0: return StrToWxStr(GetGPRName(row));
-		case 1: return wxString::Format(wxT("%08x"), GPR(row));
+		case 1: return wxString::Format("%08x", GPR(row));
 		case 2: return StrToWxStr(GetFPRName(row));
-		case 3: return wxString::Format(wxT("%016llx"), riPS0(row));
-		case 4: return wxString::Format(wxT("%016llx"), riPS1(row));
+		case 3: return wxString::Format("%016llx", riPS0(row));
+		case 4: return wxString::Format("%016llx", riPS1(row));
 		default: return wxEmptyString;
 		}
 	}
@@ -69,7 +69,7 @@ wxString CRegTable::GetValue(int row, int col)
 			switch (col)
 			{
 			case 0: return StrToWxStr(special_reg_names[row - 32]);
-			case 1: return wxString::Format(wxT("%08x"), GetSpecialRegValue(row - 32));
+			case 1: return wxString::Format("%08x", GetSpecialRegValue(row - 32));
 			default: return wxEmptyString;
 			}
 		}
@@ -144,7 +144,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 {
 	wxGridCellAttr *attr = new wxGridCellAttr();
 
-	attr->SetBackgroundColour(wxColour(wxT("#FFFFFF")));  //wxWHITE
+	attr->SetBackgroundColour(*wxWHITE);
 	attr->SetFont(DebuggerFont);
 
 	switch (col)
@@ -169,7 +169,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 	case 4: red = row < 32 ? m_CachedFRegHasChanged[row][col-3] : false; break;
 	}
 
-	attr->SetTextColour(red ? wxColor(wxT("#FF0000")) : wxColor(wxT("#000000")));
+	attr->SetTextColour(red ? *wxRED : *wxBLACK);
 	attr->IncRef();
 	return attr;
 }

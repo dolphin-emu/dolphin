@@ -153,7 +153,7 @@ void GFXDebuggerPanel::CreateGUIControls()
 	m_pButtonPauseAtNextFrame = new wxButton(this, ID_PAUSE_AT_NEXT_FRAME, _("Go to Next Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Next Frame"));
 	m_pButtonCont = new wxButton(this, ID_CONT, _("Continue"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Continue"));
 
-	m_pCount = new wxTextCtrl(this, ID_COUNT, wxT("1"), wxDefaultPosition, wxSize(50,25), wxTE_RIGHT, wxDefaultValidator, _("Count"));
+	m_pCount = new wxTextCtrl(this, ID_COUNT, "1", wxDefaultPosition, wxSize(50,25), wxTE_RIGHT, wxDefaultValidator, _("Count"));
 
 	m_pPauseAtList = new wxChoice(this, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, nullptr,0,wxDefaultValidator, _("PauseAtList"));
 	for (int i=0; i<numPauseEventMap; i++)

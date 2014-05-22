@@ -127,7 +127,7 @@ void CLogWindow::CreateGUIControls()
 	m_FontChoice->Append(_("Selected font"));
 
 	DefaultFont = GetFont();
-	MonoSpaceFont.SetNativeFontInfoUserDesc(_T("lucida console windows-1252"));
+	MonoSpaceFont.SetNativeFontInfoUserDesc("lucida console windows-1252");
 	LogFont.push_back(DefaultFont);
 	LogFont.push_back(MonoSpaceFont);
 	LogFont.push_back(DebuggerFont);
@@ -312,7 +312,7 @@ void CLogWindow::UpdateLog()
 				break;
 
 			case WARNING_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
+				m_Log->SetDefaultStyle(wxTextAttr(*wxYELLOW));
 				break;
 
 			case NOTICE_LEVEL:

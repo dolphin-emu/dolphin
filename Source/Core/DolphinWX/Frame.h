@@ -73,7 +73,7 @@ class CRenderFrame : public wxFrame
 	public:
 		CRenderFrame(wxFrame* parent,
 			wxWindowID id = wxID_ANY,
-			const wxString& title = wxT("Dolphin"),
+			const wxString& title = "Dolphin",
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
@@ -92,7 +92,7 @@ class CFrame : public CRenderFrame
 public:
 	CFrame(wxFrame* parent,
 		wxWindowID id = wxID_ANY,
-		const wxString& title = wxT("Dolphin"),
+		const wxString& title = "Dolphin",
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		bool _UseDebugger = false,
@@ -243,7 +243,7 @@ private:
 	void OnFloatingPageSize(wxSizeEvent& event);
 	void DoFloatNotebookPage(wxWindowID Id);
 	wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
-			const wxString& title = wxT(""),
+			const wxString& title = "",
 			wxWindow * = nullptr);
 	wxString AuiFullscreen, AuiCurrent;
 	void AddPane();

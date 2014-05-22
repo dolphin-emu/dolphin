@@ -148,7 +148,7 @@ void CFrame::CreateMenu()
 	fileMenu->AppendSeparator();
 	fileMenu->Append(IDM_BROWSE, _("&Browse for ISOs..."));
 	fileMenu->AppendSeparator();
-	fileMenu->Append(wxID_EXIT, _("E&xit") + wxString(wxT("\tAlt+F4")));
+	fileMenu->Append(wxID_EXIT, _("E&xit") + wxString("\tAlt+F4"));
 	m_MenuBar->Append(fileMenu, _("&File"));
 
 	// Emulation menu
@@ -176,7 +176,7 @@ void CFrame::CreateMenu()
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
 	for (int i = 0; i < 10; i++)
-		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format(wxT("%i"), i), wxEmptyString, wxITEM_RADIO);
+		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format("%i", i), wxEmptyString, wxITEM_RADIO);
 	skippingMenu->Check(IDM_FRAMESKIP0 + SConfig::GetInstance().m_FrameSkip, true);
 	Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
 
@@ -237,7 +237,7 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
 
 	toolsMenu->Append(IDM_MENU_INSTALLWAD, _("Install WAD"));
-	UpdateWiiMenuChoice(toolsMenu->Append(IDM_LOAD_WII_MENU, wxT("Dummy string to keep wxw happy")));
+	UpdateWiiMenuChoice(toolsMenu->Append(IDM_LOAD_WII_MENU, "Dummy string to keep wxw happy"));
 
 	toolsMenu->Append(IDM_FIFOPLAYER, _("Fifo Player"));
 
@@ -455,9 +455,9 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = _("Load State...");
 			break;
 
-		case HK_SAVE_FIRST_STATE: Label = wxString("Save Oldest State"); break;
-		case HK_UNDO_LOAD_STATE: Label = wxString("Undo Load State"); break;
-		case HK_UNDO_SAVE_STATE: Label = wxString("Undo Save State"); break;
+		case HK_SAVE_FIRST_STATE: Label = _("Save Oldest State"); break;
+		case HK_UNDO_LOAD_STATE: Label = _("Undo Load State"); break;
+		case HK_UNDO_SAVE_STATE: Label = _("Undo Save State"); break;
 
 		default:
 			Label = wxString::Format(_("Undefined %i"), Id);
@@ -540,7 +540,7 @@ void CFrame::RecreateToolbar()
 	PopulateToolbar(m_ToolBar);
 
 	m_Mgr->AddPane(m_ToolBar, wxAuiPaneInfo().
-				Name(wxT("TBMain")).Caption(wxT("TBMain")).
+				Name("TBMain").Caption("TBMain").
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
 
@@ -550,14 +550,14 @@ void CFrame::RecreateToolbar()
 		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
 
 		m_Mgr->AddPane(m_ToolBarDebug, wxAuiPaneInfo().
-				Name(wxT("TBDebug")).Caption(wxT("TBDebug")).
+				Name("TBDebug").Caption("TBDebug").
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
 
 		m_ToolBarAui = new wxAuiToolBar(this, ID_TOOLBAR_AUI, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
 		PopulateToolbarAui(m_ToolBarAui);
 		m_Mgr->AddPane(m_ToolBarAui, wxAuiPaneInfo().
-				Name(wxT("TBAui")).Caption(wxT("TBAui")).
+				Name("TBAui").Caption("TBAui").
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
 	}
@@ -650,7 +650,7 @@ void CFrame::DoOpen(bool Boot)
 			_("Select the file to load"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			_("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") +
-			wxString::Format(wxT("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad;*.dff;*.tmd|%s"),
+			wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad;*.dff;*.tmd|%s",
 				wxGetTranslation(wxALL_FILES)),
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 			this);
@@ -748,7 +748,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 	}
 
 	if (Movie::BeginRecordingInput(controllers))
-		BootGame(std::string(""));
+		BootGame("");
 }
 
 void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
@@ -757,7 +757,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 			_("Select The Recording File"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			_("Dolphin TAS Movies (*.dtm)") +
-				wxString::Format(wxT("|*.dtm|%s"), wxGetTranslation(wxALL_FILES)),
+				wxString::Format("|*.dtm|%s", wxGetTranslation(wxALL_FILES)),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
@@ -772,7 +772,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 	}
 
 	if (Movie::PlayInput(WxStrToStr(path)))
-		BootGame(std::string(""));
+		BootGame("");
 }
 
 void CFrame::OnRecordExport(wxCommandEvent& WXUNUSED (event))
@@ -806,7 +806,7 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 	else
 	{
 		// Core is uninitialized, start the game
-		BootGame(std::string(""));
+		BootGame("");
 	}
 }
 
@@ -1143,10 +1143,10 @@ void CFrame::DoStop()
 		m_RenderParent = nullptr;
 
 		// Clean framerate indications from the status bar.
-		GetStatusBar()->SetStatusText(wxT(" "), 0);
+		GetStatusBar()->SetStatusText(" ", 0);
 
 		// Clear wiimote connection status from the status bar.
-		GetStatusBar()->SetStatusText(wxT(" "), 1);
+		GetStatusBar()->SetStatusText(" ", 1);
 
 		// If batch mode was specified on the command-line, exit now.
 		if (m_bBatchMode)
@@ -1176,7 +1176,7 @@ void CFrame::DoRecordingSave()
 			_("Select The Recording File"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			_("Dolphin TAS Movies (*.dtm)") +
-				wxString::Format(wxT("|*.dtm|%s"), wxGetTranslation(wxALL_FILES)),
+				wxString::Format("|*.dtm|%s", wxGetTranslation(wxALL_FILES)),
 			wxFD_SAVE | wxFD_PREVIEW | wxFD_OVERWRITE_PROMPT,
 			this);
 
@@ -1312,7 +1312,7 @@ void CFrame::ClearStatusBar()
 {
 	if (this->GetStatusBar()->IsEnabled())
 	{
-		this->GetStatusBar()->SetStatusText(wxT(""),0);
+		this->GetStatusBar()->SetStatusText("", 0);
 	}
 }
 
@@ -1407,7 +1407,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 		wxString path = wxFileSelector(
 			_("Select a Wii WAD file to install"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			_T("Wii WAD file (*.wad)|*.wad"),
+			"Wii WAD file (*.wad)|*.wad",
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 		fileName = WxStrToStr(path);
@@ -1474,8 +1474,8 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 	if (Core::IsRunning() && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-		wxString msg(wxString::Format(wxT("Wiimote %i %s"), wm_idx + 1,
-					connect ? wxT("Connected") : wxT("Disconnected")));
+		wxString msg(wxString::Format(_("Wiimote %i %s"), wm_idx + 1,
+					connect ? _("Connected") : _("Disconnected")));
 		Core::DisplayMessage(WxStrToStr(msg), 3000);
 		Host_UpdateMainFrame();
 	}
@@ -1511,7 +1511,7 @@ void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED (event))
 		_("Select the state to load"),
 		wxEmptyString, wxEmptyString, wxEmptyString,
 		_("All Save States (sav, s##)") +
-			wxString::Format(wxT("|*.sav;*.s??|%s"), wxGetTranslation(wxALL_FILES)),
+			wxString::Format("|*.sav;*.s??|%s", wxGetTranslation(wxALL_FILES)),
 		wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 		this);
 
@@ -1525,7 +1525,7 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 		_("Select the state to save"),
 		wxEmptyString, wxEmptyString, wxEmptyString,
 		_("All Save States (sav, s##)") +
-			wxString::Format(wxT("|*.sav;*.s??|%s"), wxGetTranslation(wxALL_FILES)),
+			wxString::Format("|*.sav;*.s??|%s", wxGetTranslation(wxALL_FILES)),
 		wxFD_SAVE,
 		this);
 
@@ -1853,21 +1853,21 @@ void CFrame::DoToggleToolbar(bool _show)
 {
 	if (_show)
 	{
-		m_Mgr->GetPane(wxT("TBMain")).Show();
+		m_Mgr->GetPane("TBMain").Show();
 		if (g_pCodeWindow)
 		{
-			m_Mgr->GetPane(wxT("TBDebug")).Show();
-			m_Mgr->GetPane(wxT("TBAui")).Show();
+			m_Mgr->GetPane("TBDebug").Show();
+			m_Mgr->GetPane("TBAui").Show();
 		}
 		m_Mgr->Update();
 	}
 	else
 	{
-		m_Mgr->GetPane(wxT("TBMain")).Hide();
+		m_Mgr->GetPane("TBMain").Hide();
 		if (g_pCodeWindow)
 		{
-			m_Mgr->GetPane(wxT("TBDebug")).Hide();
-			m_Mgr->GetPane(wxT("TBAui")).Hide();
+			m_Mgr->GetPane("TBDebug").Hide();
+			m_Mgr->GetPane("TBAui").Hide();
 		}
 		m_Mgr->Update();
 	}

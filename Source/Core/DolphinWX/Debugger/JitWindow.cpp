@@ -54,9 +54,9 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 {
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sizerSplit = new wxBoxSizer(wxHORIZONTAL);
-	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, _T("(ppc)"),
+	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, "(ppc)",
 				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
-	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, _T("(x86)"),
+	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, "(x86)",
 				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
 	sizerBig->Add(block_list = new JitBlockList(this, IDM_BLOCKLIST,
 				wxDefaultPosition, wxSize(100, 140),
@@ -66,7 +66,7 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	// sizerBig->Add(memview, 5, wxEXPAND);
 	// sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
 	sizerBig->Add(button_refresh = new wxButton(this, IDM_REFRESH_LIST, _("&Refresh")));
-	// sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
+	// sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, ""));
 	// sizerRight->Add(new wxButton(this, IDM_SETPC, _("S&et PC")));
 
 	SetSizer(sizerBig);
@@ -115,9 +115,8 @@ void CJitWindow::Compare(u32 em_address)
 		// Do not merge this "if" with the above - block_num changes inside it.
 		if (block_num < 0)
 		{
-			ppc_box->SetValue(StrToWxStr(StringFromFormat("(non-code address: %08x)",
-							em_address)));
-			x86_box->SetValue(StrToWxStr(StringFromFormat("(no translation)")));
+			ppc_box->SetValue(_(StringFromFormat("(non-code address: %08x)", em_address)));
+			x86_box->SetValue(_("(no translation)"));
 			delete[] xDis;
 			return;
 		}
@@ -178,7 +177,7 @@ void CJitWindow::Compare(u32 em_address)
 		if (st.isFirstBlockOfFunction)
 			sptr += sprintf(sptr, "(first block of function)\n");
 		if (st.isLastBlockOfFunction)
-			sptr += sprintf(sptr, "(first block of function)\n");
+			sptr += sprintf(sptr, "(last block of function)\n");
 
 		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
 

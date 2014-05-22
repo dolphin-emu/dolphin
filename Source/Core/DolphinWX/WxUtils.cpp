@@ -35,14 +35,14 @@ void Explore(const std::string& path)
 	wxString wxPath = StrToWxStr(path);
 #ifndef _WIN32
 	// Default to file
-	if (! wxPath.Contains(wxT("://")))
+	if (! wxPath.Contains("://"))
 	{
-		wxPath = wxT("file://") + wxPath;
+		wxPath = "file://" + wxPath;
 	}
 #endif
 
 #ifdef __WXGTK__
-	wxPath.Replace(wxT(" "), wxT("\\ "));
+	wxPath.Replace(" ", "\\ ");
 #endif
 
 	if (! ::wxLaunchDefaultBrowser(wxPath))

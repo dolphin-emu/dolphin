@@ -354,11 +354,11 @@ CFrame::CFrame(wxFrame* parent,
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
 	m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
-			.Name(_T("Pane 0")).Caption(_T("Pane 0")).PaneBorder(false)
+			.Name("Pane 0").Caption("Pane 0").PaneBorder(false)
 			.CaptionVisible(false).Layer(0).Center().Show());
 	if (!g_pCodeWindow)
 		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo()
-				.Name(_T("Pane 1")).Caption(_("Logging")).CaptionVisible(true)
+				.Name("Pane 1").Caption(_("Logging")).CaptionVisible(true)
 				.Layer(0).FloatingSize(wxSize(600, 350)).CloseButton(true).Hide());
 	AuiFullscreen = m_Mgr->SavePerspective();
 
@@ -400,7 +400,7 @@ CFrame::CFrame(wxFrame* parent,
 	m_Mgr->Update();
 
 	#ifdef _WIN32
-		SetToolTip(wxT(""));
+		SetToolTip("");
 		GetToolTip()->SetAutoPop(25000);
 	#endif
 
@@ -565,8 +565,8 @@ void CFrame::OnResize(wxSizeEvent& event)
 	}
 
 	// Make sure the logger pane is a sane size
-	if (!g_pCodeWindow && m_LogWindow && m_Mgr->GetPane(_T("Pane 1")).IsShown() &&
-			!m_Mgr->GetPane(_T("Pane 1")).IsFloating() &&
+	if (!g_pCodeWindow && m_LogWindow && m_Mgr->GetPane("Pane 1").IsShown() &&
+			!m_Mgr->GetPane("Pane 1").IsFloating() &&
 			(m_LogWindow->x > GetClientRect().GetWidth() ||
 			 m_LogWindow->y > GetClientRect().GetHeight()))
 		ShowResizePane();
@@ -679,17 +679,17 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 			(SConfig::GetInstance().m_InterfaceLogWindow ||
 			 SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
-			!m_Mgr->GetPane(wxT("Pane 1")).IsFloating())
+			!m_Mgr->GetPane("Pane 1").IsFloating())
 	{
-		switch (m_Mgr->GetPane(wxT("Pane 1")).dock_direction)
+		switch (m_Mgr->GetPane("Pane 1").dock_direction)
 		{
 			case wxAUI_DOCK_LEFT:
 			case wxAUI_DOCK_RIGHT:
-				log_width = m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth();
+				log_width = m_Mgr->GetPane("Pane 1").rect.GetWidth();
 				break;
 			case wxAUI_DOCK_TOP:
 			case wxAUI_DOCK_BOTTOM:
-				log_height = m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight();
+				log_height = m_Mgr->GetPane("Pane 1").rect.GetHeight();
 				break;
 		}
 	}
@@ -770,7 +770,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	else
 	{
 		// Game started by double click
-		BootGame(std::string(""));
+		BootGame("");
 	}
 }
 
@@ -966,7 +966,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 						int cmd = GetCmdForHotkey(i);
 						if (cmd >= 0)
 						{
-							wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, cmd);
+							wxCommandEvent evt(wxEVT_MENU, cmd);
 							wxMenuItem *item = GetMenuBar()->FindItem(cmd);
 							if (item && item->IsCheckable())
 							{

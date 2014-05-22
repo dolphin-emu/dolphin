@@ -116,8 +116,8 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					if (GROUP_TYPE_STICK == g->control_group->type)
 					{
 						// outline and fill colors
-						wxBrush LightGrayBrush(_T("#dddddd"));
-						wxPen LightGrayPen(_T("#bfbfbf"));
+						wxBrush LightGrayBrush("#dddddd");
+						wxPen LightGrayPen("#bfbfbf");
 						dc.SetBrush(LightGrayBrush);
 						dc.SetPen(LightGrayPen);
 
@@ -273,7 +273,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						else
 						{
 							unsigned char amt = 255 - g->control_group->controls[n]->control_ref->State() * 128;
-							dc.SetBrush(wxBrush(wxColor(amt, amt, amt)));
+							dc.SetBrush(wxBrush(wxColour(amt, amt, amt)));
 						}
 						dc.DrawRectangle(n * 12, 0, 14, 12);
 
@@ -391,7 +391,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 			// box outline
 			// Windows XP color
-			dc.SetPen(wxPen(_T("#7f9db9")));
+			dc.SetPen(wxPen("#7f9db9"));
 			dc.SetBrush(*wxTRANSPARENT_BRUSH);
 			dc.DrawRectangle(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
 

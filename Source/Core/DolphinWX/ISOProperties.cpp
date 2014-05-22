@@ -258,11 +258,11 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		m_Lang->Disable();
 	}
 
-	wxString temp = _T("0x") + StrToWxStr(OpenISO->GetMakerID());
+	wxString temp = "0x" + StrToWxStr(OpenISO->GetMakerID());
 	m_MakerID->SetValue(temp);
-	m_Revision->SetValue(wxString::Format(wxT("%u"), OpenISO->GetRevision()));
+	m_Revision->SetValue(wxString::Format("%u", OpenISO->GetRevision()));
 	m_Date->SetValue(StrToWxStr(OpenISO->GetApploaderDate()));
-	m_FST->SetValue(wxString::Format(wxT("%u"), OpenISO->GetFSTSize()));
+	m_FST->SetValue(wxString::Format("%u", OpenISO->GetFSTSize()));
 
 	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
 	if (!IsWad)
@@ -677,7 +677,7 @@ void CISOProperties::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
 {
 	wxString dirHome;
 
-	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format(wxT("%s.png"), m_GameID->GetLabel().c_str()),
+	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format("%s.png", m_GameID->GetLabel().c_str()),
 		wxALL_FILES_PATTERN, wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 	if (dialog.ShowModal() == wxID_OK)
 	{
@@ -745,7 +745,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	while (m_Treectrl->GetItemParent(m_Treectrl->GetSelection()) != m_Treectrl->GetRootItem())
 	{
 		wxString temp = m_Treectrl->GetItemText(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
-		File = temp + wxT(DIR_SEP_CHR) + File;
+		File = temp + DIR_SEP_CHR + File;
 
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 	}
@@ -818,7 +818,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	// Extraction
 	for (u32 i = index[0]; i < index[1]; i++)
 	{
-		dialog.SetTitle(wxString::Format(wxT("%s : %d%%"), dialogTitle.c_str(),
+		dialog.SetTitle(wxString::Format("%s : %d%%", dialogTitle.c_str(),
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
 
 		dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i]->m_FullPath)));
@@ -882,7 +882,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	while (m_Treectrl->GetItemParent(m_Treectrl->GetSelection()) != m_Treectrl->GetRootItem())
 	{
 		wxString temp = m_Treectrl->GetItemText(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
-		Directory = temp + wxT(DIR_SEP_CHR) + Directory;
+		Directory = temp + DIR_SEP_CHR + Directory;
 
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 	}
@@ -1164,10 +1164,10 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename)
 		[NSString stringWithUTF8String: filename.c_str()]
 		withApplication: @"TextEdit"];
 #else
-	wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("ini"));
+	wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("ini");
 	if (filetype == nullptr) // From extension failed, trying with MIME type now
 	{
-		filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"));
+		filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain");
 		if (filetype == nullptr) // MIME type failed, aborting mission
 		{
 			PanicAlertT("Filetype 'ini' is unknown! Will not open!");
@@ -1409,7 +1409,7 @@ void CISOProperties::ActionReplayList_Save()
 			lines.push_back("$" + code.name);
 			for (const ActionReplay::AREntry& op : code.ops)
 			{
-				lines.push_back(WxStrToStr(wxString::Format(wxT("%08X %08X"), op.cmd_addr, op.value)));
+				lines.push_back(WxStrToStr(wxString::Format("%08X %08X", op.cmd_addr, op.value)));
 			}
 		}
 		++index;

@@ -121,7 +121,6 @@ static const wxLanguage langIds[] =
 #define EXIDEV_AM_BB_STR    _trans("AM-Baseboard")
 #define EXIDEV_GECKO_STR    "USBGecko"
 
-#define WXSTR_TRANS(a)      wxString(wxGetTranslation(wxT(a)))
 #ifdef WIN32
 //only used with xgettext to be picked up as translatable string.
 //win32 does not have wx on its path, the provided wxALL_FILES
@@ -268,7 +267,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_Framelimit.Add(_("Auto"));
 	arrayStringFor_Framelimit.Add(_("Audio"));
 	for (int i = 10; i <= 120; i += 5) // from 10 to 120
-		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
+		arrayStringFor_Framelimit.Add(wxString::Format("%i", i));
 
 	// Emulator Engine
 	for (const CPUCore& CPUCores_a : CPUCores)
@@ -295,8 +294,8 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_WiiSensBarPos.Add(_("Top"));
 
 	// Aspect ratio
-	arrayStringFor_WiiAspectRatio.Add(wxT("4:3"));
-	arrayStringFor_WiiAspectRatio.Add(wxT("16:9"));
+	arrayStringFor_WiiAspectRatio.Add("4:3");
+	arrayStringFor_WiiAspectRatio.Add("16:9");
 
 	// Wii Language arrayStrings
 	arrayStringFor_WiiSystemLang = arrayStringFor_GCSystemLang;
@@ -375,7 +374,7 @@ void CConfigMain::InitializeGUIValues()
 	// Audio
 	VolumeSlider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
 	VolumeSlider->SetValue(SConfig::GetInstance().m_Volume);
-	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), SConfig::GetInstance().m_Volume));
+	VolumeText->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
 	DSPThread->SetValue(startup_params.bDSPThread);
 	DumpAudio->SetValue(SConfig::GetInstance().m_DumpAudio ? true : false);
 	DPL2Decoder->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
@@ -629,7 +628,7 @@ void CConfigMain::CreateGUIControls()
 	theme_selection->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
 	// std::function = avoid error on msvc
-	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, std::function<void(wxEvent&)>([theme_selection](wxEvent&)
+	theme_selection->Bind(wxEVT_CHOICE, std::function<void(wxEvent&)>([theme_selection](wxEvent&)
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = WxStrToStr(theme_selection->GetStringSelection());
 		main_frame->InitBitmaps();
@@ -658,11 +657,11 @@ void CConfigMain::CreateGUIControls()
 	DumpAudio = new wxCheckBox(AudioPage, ID_DUMP_AUDIO, _("Dump Audio"));
 	DPL2Decoder = new wxCheckBox(AudioPage, ID_DPL2DECODER, _("Dolby Pro Logic II decoder"));
 	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
-	VolumeText = new wxStaticText(AudioPage, wxID_ANY, wxT(""));
+	VolumeText = new wxStaticText(AudioPage, wxID_ANY, "");
 	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition, wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 	Latency = new wxSpinCtrl(AudioPage, ID_LATENCY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
 
-	Latency->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &CConfigMain::AudioSettingsChanged, this);
+	Latency->Bind(wxEVT_SPINCTRL, &CConfigMain::AudioSettingsChanged, this);
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
@@ -709,13 +708,13 @@ void CConfigMain::CreateGUIControls()
 	wxStaticText* GCEXIDeviceText[3];
 	GCEXIDeviceText[0] = TEXT_BOX(GamecubePage, _("Slot A"));
 	GCEXIDeviceText[1] = TEXT_BOX(GamecubePage, _("Slot B"));
-	GCEXIDeviceText[2] = TEXT_BOX(GamecubePage, wxT("SP1"));
+	GCEXIDeviceText[2] = TEXT_BOX(GamecubePage, "SP1");
 	GCEXIDevice[0] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTA);
 	GCEXIDevice[1] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTB);
 	GCEXIDevice[2] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SP1);
-	GCMemcardPath[0] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTA_PATH, wxT("..."),
+	GCMemcardPath[0] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTA_PATH, "...",
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-	GCMemcardPath[1] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTB_PATH, wxT("..."),
+	GCMemcardPath[1] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTB_PATH, "...",
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
 	//SI Devices
@@ -810,11 +809,11 @@ void CConfigMain::CreateGUIControls()
 	RemoveISOPath->Enable(false);
 
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, _("Choose a default ISO:"),
-		_("All GC/Wii images (gcm, iso, wbfs, ciso, gcz)") + wxString::Format(wxT("|*.gcm;*.iso;*.wbfs;*.ciso;*.gcz|%s"), wxGetTranslation(wxALL_FILES)),
+		_("All GC/Wii images (gcm, iso, wbfs, ciso, gcz)") + wxString::Format("|*.gcm;*.iso;*.wbfs;*.ciso;*.gcz|%s", wxGetTranslation(wxALL_FILES)),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 	ApploaderPath = new wxFilePickerCtrl(PathsPage, ID_APPLOADERPATH, wxEmptyString, _("Choose file to use as apploader: (applies to discs constructed from directories only)"),
-		_("apploader (.img)") + wxString::Format(wxT("|*.img|%s"), wxGetTranslation(wxALL_FILES)),
+		_("apploader (.img)") + wxString::Format("|*.img|%s", wxGetTranslation(wxALL_FILES)),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 	NANDRoot = new wxDirPickerCtrl(PathsPage, ID_NANDROOT, wxEmptyString, _("Choose a NAND root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 
@@ -954,7 +953,7 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	case ID_VOLUME:
 		SConfig::GetInstance().m_Volume = VolumeSlider->GetValue();
 		AudioCommon::UpdateSoundStream();
-		VolumeText->SetLabel(wxString::Format(wxT("%d %%"), VolumeSlider->GetValue()));
+		VolumeText->SetLabel(wxString::Format("%d %%", VolumeSlider->GetValue()));
 		break;
 
 	case ID_DSPTHREAD:
@@ -1056,9 +1055,9 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 	std::string filename = WxStrToStr(wxFileSelector(
 		_("Choose a file to open"),
 		StrToWxStr(File::GetUserPath(D_GCUSER_IDX)),
-		isSlotA ? wxT(GC_MEMCARDA) : wxT(GC_MEMCARDB),
+		isSlotA ? GC_MEMCARDA : GC_MEMCARDB,
 		wxEmptyString,
-		_("Gamecube Memory Cards (*.raw,*.gcp)") + wxString(wxT("|*.raw;*.gcp"))));
+		_("Gamecube Memory Cards (*.raw,*.gcp)") + "|*.raw;*.gcp"));
 
 	if (!filename.empty())
 	{
@@ -1112,17 +1111,17 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
 {
 	SIDevices tempType;
-	if (!deviceName.compare(WXSTR_TRANS(SIDEV_STDCONT_STR)))
+	if (!deviceName.compare(_(SIDEV_STDCONT_STR)))
 		tempType = SIDEVICE_GC_CONTROLLER;
-	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_STEERING_STR)))
+	else if (!deviceName.compare(_(SIDEV_STEERING_STR)))
 		tempType = SIDEVICE_GC_STEERING;
-	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_DANCEMAT_STR)))
+	else if (!deviceName.compare(_(SIDEV_DANCEMAT_STR)))
 		tempType = SIDEVICE_DANCEMAT;
-	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_BONGO_STR)))
+	else if (!deviceName.compare(_(SIDEV_BONGO_STR)))
 		tempType = SIDEVICE_GC_TARUKONGA;
-	else if (!deviceName.compare(wxT(SIDEV_GBA_STR)))
+	else if (!deviceName.compare(SIDEV_GBA_STR))
 		tempType = SIDEVICE_GC_GBA;
-	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_AM_BB_STR)))
+	else if (!deviceName.compare(_(SIDEV_AM_BB_STR)))
 		tempType = SIDEVICE_AM_BASEBOARD;
 	else
 		tempType = SIDEVICE_NONE;
@@ -1140,17 +1139,17 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 {
 	TEXIDevices tempType;
 
-	if (!deviceName.compare(WXSTR_TRANS(EXIDEV_MEMCARD_STR)))
+	if (!deviceName.compare(_(EXIDEV_MEMCARD_STR)))
 		tempType = EXIDEVICE_MEMORYCARD;
-	else if (!deviceName.compare(WXSTR_TRANS(EXIDEV_MIC_STR)))
+	else if (!deviceName.compare(_(EXIDEV_MIC_STR)))
 		tempType = EXIDEVICE_MIC;
-	else if (!deviceName.compare(wxT(EXIDEV_BBA_STR)))
+	else if (!deviceName.compare(EXIDEV_BBA_STR))
 		tempType = EXIDEVICE_ETH;
-	else if (!deviceName.compare(WXSTR_TRANS(EXIDEV_AM_BB_STR)))
+	else if (!deviceName.compare(_(EXIDEV_AM_BB_STR)))
 		tempType = EXIDEVICE_AM_BASEBOARD;
-	else if (!deviceName.compare(wxT(EXIDEV_GECKO_STR)))
+	else if (!deviceName.compare(EXIDEV_GECKO_STR))
 		tempType = EXIDEVICE_GECKO;
-	else if (!deviceName.compare(WXSTR_TRANS(DEV_NONE_STR)))
+	else if (!deviceName.compare(_(DEV_NONE_STR)))
 		tempType = EXIDEVICE_NONE;
 	else
 		tempType = EXIDEVICE_DUMMY;
@@ -1199,7 +1198,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		u8 country_code = GetSADRCountryCode(wii_system_lang);
 		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
 		{
-			PanicAlert("Failed to update country code in SYSCONF");
+			PanicAlertT("Failed to update country code in SYSCONF");
 		}
 		break;
 	}

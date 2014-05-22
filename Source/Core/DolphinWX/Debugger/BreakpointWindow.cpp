@@ -49,27 +49,27 @@ public:
 		m_Bitmaps[Toolbar_Add_BP] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_breakpoint_png).ConvertToImage().Rescale(24, 24));
 		m_Bitmaps[Toolbar_Add_MC] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_memcheck_png).ConvertToImage().Rescale(24, 24));
 
-		AddTool(ID_DELETE, wxT("Delete"), m_Bitmaps[Toolbar_Delete]);
-		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::OnDelete, parent, ID_DELETE);
+		AddTool(ID_DELETE, _("Delete"), m_Bitmaps[Toolbar_Delete]);
+		Bind(wxEVT_TOOL, &CBreakPointWindow::OnDelete, parent, ID_DELETE);
 
-		AddTool(ID_CLEAR, wxT("Clear"), m_Bitmaps[Toolbar_Delete]);
-		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::OnClear, parent, ID_CLEAR);
+		AddTool(ID_CLEAR, _("Clear"), m_Bitmaps[Toolbar_Delete]);
+		Bind(wxEVT_TOOL, &CBreakPointWindow::OnClear, parent, ID_CLEAR);
 
-		AddTool(ID_ADDBP, wxT("+BP"), m_Bitmaps[Toolbar_Add_BP]);
-		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::OnAddBreakPoint, parent, ID_ADDBP);
+		AddTool(ID_ADDBP, "+BP", m_Bitmaps[Toolbar_Add_BP]);
+		Bind(wxEVT_TOOL, &CBreakPointWindow::OnAddBreakPoint, parent, ID_ADDBP);
 
 		// Add memory breakpoints if you can use them
 		if (Memory::AreMemoryBreakpointsActivated())
 		{
-			AddTool(ID_ADDMC, wxT("+MC"), m_Bitmaps[Toolbar_Add_MC]);
-			Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::OnAddMemoryCheck, parent, ID_ADDMC);
+			AddTool(ID_ADDMC, "+MC", m_Bitmaps[Toolbar_Add_MC]);
+			Bind(wxEVT_TOOL, &CBreakPointWindow::OnAddMemoryCheck, parent, ID_ADDMC);
 		}
 
-		AddTool(ID_LOAD, wxT("Load"), m_Bitmaps[Toolbar_Delete]);
-		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::LoadAll, parent, ID_LOAD);
+		AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_Delete]);
+		Bind(wxEVT_TOOL, &CBreakPointWindow::LoadAll, parent, ID_LOAD);
 
-		AddTool(ID_SAVE, wxT("Save"), m_Bitmaps[Toolbar_Delete]);
-		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::Event_SaveAll, parent, ID_SAVE);
+		AddTool(ID_SAVE, _("Save"), m_Bitmaps[Toolbar_Delete]);
+		Bind(wxEVT_TOOL, &CBreakPointWindow::Event_SaveAll, parent, ID_SAVE);
 	}
 
 private:
