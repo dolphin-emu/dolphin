@@ -160,7 +160,8 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	// VR Sixense Razer hydra support
 	// Left controller will be nunchuck: stick=stick, LB (or 1)=C, LT (or 2)=Z
 	TAllHydraControllers hydra;
-	if (g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0)
+	if (g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 &&
+		hydra.controller[0].enabled)
 	{
 		int left = 0, right = 1;
 		if ((hydra.controller[left].buttons & HYDRA_BUTTON_BUMPER) || (hydra.controller[left].buttons & HYDRA_BUTTON_1))

@@ -400,7 +400,8 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 	// VR Sixense Razer hydra fixed button mapping
 	// START = A, RT/RB = B, 1 = 1, 2 = 2, 3 = -, 4 = +, stick = DPad/Home
 	TAllHydraControllers hydra;
-	if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0)
+	if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 &&
+		hydra.controller[1].enabled)
 	{
 		int left = 0, right = 1;
 		if (hydra.controller[right].buttons & HYDRA_BUTTON_START) m_status.buttons |= Wiimote::BUTTON_A;
@@ -454,7 +455,8 @@ void Wiimote::GetAccelData(u8* const data)
 #ifdef _WIN32
 	// VR Sixense Razer hydra support
 	TAllHydraControllers hydra;
-	if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 && !hydra.controller[1].docked)
+	if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 && 
+		hydra.controller[1].enabled && !hydra.controller[1].docked)
 	{
 		// This works for the 2D hand cursor rotation, but I don't know if it's right for 3D rotations.
 		m_accel.x = -hydra.controller[1].rotation_matrix[0][1];
@@ -564,7 +566,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		// in milimetres right, up, and into screen from base orb
 		static float hydra_ir_center_x = -300.0f, hydra_ir_center_y = -30.0f, hydra_ir_center_z = -300;
 		TAllHydraControllers hydra;
-		if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 && !hydra.controller[1].docked) {
+		if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 && 
+			hydra.controller[1].enabled && !hydra.controller[1].docked) {
 			int left = 0, right = 1;
 			if (hydra.controller[left].buttons & HYDRA_BUTTON_START)
 			{
