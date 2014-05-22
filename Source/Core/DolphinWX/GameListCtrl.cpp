@@ -393,16 +393,22 @@ void CGameListCtrl::Update()
 
 wxString NiceSizeFormat(u64 _size)
 {
+	// Return a pretty filesize string from byte count.
+	// e.g. 1134278 -> "1.08 MiB"
+
 	const char* const unit_symbols[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"};
 
+	// Find largest power of 2 less than _size.
+	// div 10 to get largest named unit less than _size
+	// 10 == log2(1024) (number of B in a KiB, KiB in a MiB, etc)
 	const u64 unit = Log2(std::max<u64>(_size, 1)) / 10;
 	const u64 unit_size = (1 << (unit * 10));
 
-	// ugly rounding integer math
-	const u64 value = (_size + unit_size / 2) / unit_size;
-	const u64 frac = (_size % unit_size * 10 + unit_size / 2) / unit_size % 10;
-
-	return StrToWxStr(StringFromFormat("%" PRIu64 ".%" PRIu64 " %s", value, frac, unit_symbols[unit]));
+	// mul 1000 for 3 decimal places, add 5 to round up, div 10 for 2 decimal places
+	std::string value = std::to_string((_size * 1000 / unit_size + 5) / 10);
+	// Insert decimal point.
+	value.insert(value.size() - 2, ".");
+	return StrToWxStr(StringFromFormat("%s %s", value.c_str(), unit_symbols[unit]));
 }
 
 void CGameListCtrl::InsertItemInReportView(long _Index)
