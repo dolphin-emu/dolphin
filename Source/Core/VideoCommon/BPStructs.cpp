@@ -274,7 +274,7 @@ static void BPWritten(const BPCmd& bp)
 				ptr = Memory::GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);
 
 			if (ptr)
-				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
+				memcpy(texMem + tlutTMemAddr, ptr, tlutXferCount);
 			else
 				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tmem_config.tlut_src, bpmem.tmem_config.tlut_src << 5, (bpmem.tmem_config.tlut_src & 0xFFFFF)<< 5);
 

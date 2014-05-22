@@ -13,16 +13,6 @@
 #include "Common/MathUtil.h"
 #include "VideoCommon/VideoBackendBase.h"
 
-#if defined(_MSC_VER) && _M_X86_32
-void * memcpy_amd(void *dest, const void *src, size_t n);
-unsigned char memcmp_mmx(const void* src1, const void* src2, int cmpsize);
-#define memcpy_gc memcpy_amd
-#define memcmp_gc memcmp_mmx
-#else
-#define memcpy_gc memcpy
-#define memcmp_gc memcmp
-#endif
-
 // These are accurate (disregarding AA modes).
 enum
 {
