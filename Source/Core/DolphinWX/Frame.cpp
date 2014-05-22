@@ -594,12 +594,6 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 		Close(true);
 		return 0;
 	}
-	else if (nMsg == WM_TOSHIBA_BLUETOOTH)
-	{
-		// Handle Toshiba Bluetooth messages
-		WiimoteReal::g_wiimote_scanner.ToshibaMessage((DWORD)wParam, (DWORD)lParam);
-		return 1;
-	}
 	else
 	{
 		return wxFrame::MSWWindowProc(nMsg, wParam, lParam);

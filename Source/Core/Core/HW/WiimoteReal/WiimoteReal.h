@@ -18,9 +18,6 @@
 
 #include "InputCommon/InputConfig.h"
 
-// This can be whatever custom windows message you want, I picked it at random. WM_APP = 0x8000
-#define WM_TOSHIBA_BLUETOOTH 0x8000 + 1042
-
 typedef std::vector<u8> Report;
 
 namespace WiimoteReal
@@ -138,8 +135,6 @@ public:
 	WiimoteScanner();
 	~WiimoteScanner();
 
-	void SetHwnd(const void *hwnd);
-
 	bool IsReady();
 
 	void WantWiimotes(bool do_want);
@@ -153,6 +148,11 @@ public:
 	// function called when not looking for more wiimotes
 	void Update();
 
+#if defined(_WIN32)
+	void ToshibaMessage(DWORD wParam, DWORD lParam);
+	void ShutdownToshiba();
+#endif
+
 private:
 	void ThreadFunc();
 
@@ -162,16 +162,17 @@ private:
 	volatile bool m_want_wiimotes;
 	volatile bool m_want_bb;
 
-	const void *m_hwnd;
-
 #if defined(_WIN32)
 	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb);
+	void ToshibaThreadFunc();
 	void InitToshiba();
-public:
-	void ToshibaMessage(DWORD wParam, DWORD lParam);
-private:
+	HWND m_foreground_window, m_background_window;
+	DWORD m_foreground_thread, m_background_thread;
 	bool m_toshiba_started;
+	volatile bool m_toshiba_window_created;
 	volatile bool m_ToshibaBusySearching, m_ToshibaBusyConnecting, m_ToshibaConnectionSucceeded;
+	std::thread m_toshiba_thread;
+
 #elif defined(__linux__) && HAVE_BLUEZ
 	int device_id;
 	int device_sock;

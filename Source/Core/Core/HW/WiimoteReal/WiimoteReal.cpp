@@ -402,11 +402,6 @@ unsigned int CalculateWantedBB()
 	return wanted_bb;
 }
 
-void WiimoteScanner::SetHwnd(const void *hwnd)
-{
-	m_hwnd = hwnd;
-}
-
 void WiimoteScanner::WantWiimotes(bool do_want)
 {
 	m_want_wiimotes = do_want;
@@ -648,6 +643,10 @@ void Shutdown(void)
 
 	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		HandleWiimoteDisconnect(i);
+
+#ifdef _WIN32
+	g_wiimote_scanner.ShutdownToshiba();
+#endif
 }
 
 void Resume()
