@@ -2,10 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#ifdef _WIN32
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#endif
 
 #include "InputCommon/UDPWiimote.h"
 #include "InputCommon/UDPWrapper.h"
+#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
 
 namespace WiimoteEmu
 {
@@ -152,6 +155,27 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 			accel.z = z;
 		}
 	}
+
+#ifdef _WIN32
+	// VR Sixense Razer hydra support
+	// Left controller will be nunchuck: stick=stick, LB (or 1)=C, LT (or 2)=Z
+	TAllHydraControllers hydra;
+	if (g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0)
+	{
+		int left = 0, right = 1;
+		if ((hydra.controller[left].buttons & HYDRA_BUTTON_BUMPER) || (hydra.controller[left].buttons & HYDRA_BUTTON_1))
+			ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_C;
+		if (hydra.controller[left].trigger > 0.25f || (hydra.controller[left].buttons & HYDRA_BUTTON_2))
+			ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_Z;
+		ncdata->jx = u8(0x80 + hydra.controller[left].stick_x * 127);
+		ncdata->jy = u8(0x80 + hydra.controller[left].stick_y * 127);
+
+		// This works for the 2D hand cursor rotation, but I don't know if it's right for 3D rotations.
+		accel.x = -hydra.controller[left].rotation_matrix[0][1];
+		accel.y = hydra.controller[left].rotation_matrix[2][1];
+		accel.z = hydra.controller[left].rotation_matrix[1][1];
+	}
+#endif
 
 	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, *(accel_cal*)&reg.calibration, accel);
 }

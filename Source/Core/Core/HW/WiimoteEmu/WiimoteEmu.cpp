@@ -23,6 +23,10 @@
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
+#ifdef _WIN32
+#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
+#endif
+
 namespace
 {
 // :)
@@ -392,6 +396,39 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
 		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
 	}
+#ifdef _WIN32
+	// VR Sixense Razer hydra fixed button mapping
+	// START = A, RT/RB = B, 1 = 1, 2 = 2, 3 = -, 4 = +, stick = DPad/Home
+	TAllHydraControllers hydra;
+	if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0)
+	{
+		int left = 0, right = 1;
+		if (hydra.controller[right].buttons & HYDRA_BUTTON_START) m_status.buttons |= Wiimote::BUTTON_A;
+		if (hydra.controller[right].buttons & HYDRA_BUTTON_1) m_status.buttons |= Wiimote::BUTTON_ONE;
+		if (hydra.controller[right].buttons & HYDRA_BUTTON_2) m_status.buttons |= Wiimote::BUTTON_TWO;
+		if (hydra.controller[right].buttons & HYDRA_BUTTON_3) m_status.buttons |= Wiimote::BUTTON_MINUS;
+		if (hydra.controller[right].buttons & HYDRA_BUTTON_4) m_status.buttons |= Wiimote::BUTTON_PLUS;
+		if ((hydra.controller[right].buttons & HYDRA_BUTTON_BUMPER) || (hydra.controller[right].trigger > 0.25))
+			m_status.buttons |= Wiimote::BUTTON_B;
+		if (hydra.controller[right].buttons & HYDRA_BUTTON_STICK) m_status.buttons |= Wiimote::BUTTON_HOME;
+
+		if (m_options->settings[1]->value != 0)
+		{
+			// VR pretend wiimote is sideways for sideways games (1 and 2 actually are sideways)
+			if (hydra.controller[right].stick_x > 0.5f) m_status.buttons |= Wiimote::PAD_DOWN;
+			else if (hydra.controller[right].stick_x < -0.5f) m_status.buttons |= Wiimote::PAD_UP;
+			if (hydra.controller[right].stick_y > 0.5f) m_status.buttons |= Wiimote::PAD_RIGHT;
+			else if (hydra.controller[right].stick_y < -0.5f) m_status.buttons |= Wiimote::PAD_LEFT;
+		}
+		else
+		{
+			if (hydra.controller[right].stick_x > 0.5f) m_status.buttons |= Wiimote::PAD_RIGHT;
+			else if (hydra.controller[right].stick_x < -0.5f) m_status.buttons |= Wiimote::PAD_LEFT;
+			if (hydra.controller[right].stick_y > 0.5f) m_status.buttons |= Wiimote::PAD_UP;
+			else if (hydra.controller[right].stick_y < -0.5f) m_status.buttons |= Wiimote::PAD_DOWN;
+		}
+	}
+#endif
 }
 
 void Wiimote::GetCoreData(u8* const data)
@@ -413,6 +450,51 @@ void Wiimote::GetAccelData(u8* const data)
 
 	// ----TILT----
 	EmulateTilt(&m_accel, m_tilt, has_focus, is_sideways, is_upright);
+
+#ifdef _WIN32
+	// VR Sixense Razer hydra support
+	TAllHydraControllers hydra;
+	if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 && !hydra.controller[1].docked)
+	{
+		// This works for the 2D hand cursor rotation, but I don't know if it's right for 3D rotations.
+		m_accel.x = -hydra.controller[1].rotation_matrix[0][1];
+		m_accel.y = hydra.controller[1].rotation_matrix[2][1];
+		m_accel.z = hydra.controller[1].rotation_matrix[1][1];
+		// Calculate accelerations from position, currently using real-world time (is that best?)
+		static s64 oldtime = 0;
+		s64 newtime, pf;
+		float t = 0;
+		QueryPerformanceCounter((LARGE_INTEGER *)&newtime);
+		if (oldtime != 0 && newtime > oldtime)
+		{
+			// in metres and seconds in world space, right, up, and out from the screen 
+			static float oldx = 0.0f, oldy = 0.0f, oldz = 0.0f, old_vx = 0.0f, old_vy = 0.0f, old_vz = 0.0f, ax = 0.0f, ay = 0.0f, az = 0.0f;
+			float x, y, z, vx, vy, vz;
+			QueryPerformanceFrequency((LARGE_INTEGER *)&pf);
+			t = (float)(newtime - oldtime) / pf;
+			x = hydra.controller[1].position[0]/1000;
+			y = hydra.controller[1].position[1]/1000;
+			z = hydra.controller[1].position[2]/1000;
+			vx = (x - oldx) / t;
+			vy = (y - oldy) / t;
+			vz = (z - oldz) / t;
+			ax = (vx - old_vx) / t;
+			ay = (vy - old_vy) / t;
+			az = (vz - old_vz) / t;
+			oldx = x;
+			oldy = y;
+			oldz = z;
+			old_vx = vx;
+			old_vy = vy;
+			old_vz = vz;
+			// Convert from metres per second per second to Gs.
+			m_accel.x += ax / 9.8f;
+			m_accel.y += ay / 9.8f;
+			m_accel.z += az / 9.8f;
+		}
+		oldtime = newtime;
+	}
+#endif
 
 	// ----SWING----
 	// ----SHAKE----
@@ -477,6 +559,25 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 
 		m_ir->GetState(&xx, &yy, &zz, true);
 		UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
+
+#ifdef _WIN32
+		// in milimetres right, up, and into screen from base orb
+		static float hydra_ir_center_x = -300.0f, hydra_ir_center_y = -30.0f, hydra_ir_center_z = -300;
+		TAllHydraControllers hydra;
+		if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 && !hydra.controller[1].docked) {
+			int left = 0, right = 1;
+			if (hydra.controller[left].buttons & HYDRA_BUTTON_START)
+			{
+				hydra_ir_center_x = hydra.controller[right].position[0];
+				hydra_ir_center_y = hydra.controller[right].position[1];
+				hydra_ir_center_z = -hydra.controller[right].position[2];
+				NOTICE_LOG(WIIMOTE, "Razer Hydra IR centre set to: %5.1fcm right, %5.1fcm up, %5.1fcm in", hydra_ir_center_x/10.0f, hydra_ir_center_y/10.0f, hydra_ir_center_z/10.0f);
+			}
+			xx = (hydra.controller[right].position[0] - hydra_ir_center_x) / 150;
+			yy = (hydra.controller[right].position[1] - hydra_ir_center_y) / 150;
+			zz = (-hydra.controller[right].position[2] - hydra_ir_center_z) / 300;
+		}
+#endif
 
 		Vertex v[4];
 

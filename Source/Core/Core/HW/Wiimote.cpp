@@ -12,6 +12,9 @@
 
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#ifdef _WIN32
+#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
+#endif
 
 namespace Wiimote
 {
@@ -33,11 +36,25 @@ void Shutdown()
 	WiimoteReal::Stop();
 
 	g_controller_interface.Shutdown();
+
+#ifdef _WIN32
+	// VR Razer Hydra or Sixense STEM
+	if (g_sixense_initialized && Hydra_Exit)
+	{
+		g_sixense_initialized = false;
+		Hydra_Exit();
+	}
+#endif
 }
 
 // if plugin isn't initialized, init and load config
 void Initialize(void* const hwnd, bool wait)
 {
+#ifdef _WIN32
+	// VR Sixense Razer Hydra or STEM
+	InitSixenseLib();
+#endif
+
 	// add 4 wiimotes
 	for (unsigned int i = WIIMOTE_CHAN_0; i<MAX_BBMOTES; ++i)
 		g_plugin.controllers.push_back(new WiimoteEmu::Wiimote(i));
