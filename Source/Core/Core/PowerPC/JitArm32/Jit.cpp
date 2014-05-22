@@ -300,8 +300,6 @@ void JitArm::Break(UGeckoInstruction inst)
 const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
 {
 	int blockSize = code_buf->GetSize();
-	// Memory exception on instruction fetch
-	bool memory_exception = false;
 
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
@@ -316,15 +314,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		PanicAlert("ERROR: Compiling at 0. LR=%08x CTR=%08x", LR, CTR);
 	}
 
-	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
-	{
-		if (!Memory::TranslateAddress(em_address, Memory::FLAG_OPCODE))
-		{
-			// Memory exception occurred during instruction fetch
-			memory_exception = true;
-		}
-	}
-
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
@@ -335,8 +324,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	u32 nextPC = em_address;
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	if (!memory_exception)
-		nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
+	nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -478,8 +466,9 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 				}
 		}
 	}
-	if (memory_exception)
+	if (code_block.m_memory_exception)
 		BKPT(0x500);
+
 	if (code_block.m_broken)
 	{
 		printf("Broken Block going to 0x%08x\n", nextPC);

@@ -124,6 +124,9 @@ struct CodeBlock
 
 	// Are we a broken block?
 	bool m_broken;
+
+	// Did we have a memory_exception?
+	bool m_memory_exception;
 };
 
 class PPCAnalyzer
