@@ -6,6 +6,7 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
+#include "Core/PowerPC/LUT_frsqrtex.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 using namespace MathUtil;
@@ -327,5 +328,36 @@ inline double ApproximateReciprocal(double val)
 	int i = (int)(mantissa >> 37);
 	vali = sign | exponent;
 	vali |= (long long)(expected_base[i / 1024] - (expected_dec[i / 1024] * (i % 1024) + 1) / 2) << 29;
+	return valf;
+}
+
+inline double ApproximateReciprocalSquareRoot(double val)
+{
+	if (val < 0)
+		return PPC_NAN;
+	if (val == 0.0)
+		return INFINITY;
+
+	union
+	{
+		double valf;
+		u64 vali;
+	};
+	valf = val;
+
+	u32 fsa = vali >> 32;
+	u32 idx = (fsa >> 5) % (sizeof(frsqrtex_lut) / sizeof(frsqrtex_lut[0]));
+
+	s32 e = fsa >> (32 - 12);
+	e &= 2047;
+	e -= 1023;
+	s32 oe = -((e + 1) / 2);
+	oe -= ((e + 1) & 1);
+
+	u32 outb = frsqrtex_lut[idx] << 20;
+	u32 outa = ((oe + 1023) & 2047) << 20;
+	outa |= frsqrtex_lut[idx] >> 12;
+
+	vali = ((u64)outa << 32) + (u64)outb;
 	return valf;
 }

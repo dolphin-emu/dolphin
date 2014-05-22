@@ -18,7 +18,6 @@
 #endif
 
 #include "Common/MathUtil.h"
-#include "Core/PowerPC/LUT_frsqrtex.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
@@ -403,33 +402,12 @@ void Interpreter::frsqrtex(UGeckoInstruction _inst)
 	if (b < 0.0)
 	{
 		SetFPException(FPSCR_VXSQRT);
-		rPS0(_inst.FD) = PPC_NAN;
 	}
-	else
+	else if (b == 0.0)
 	{
-		if (b == 0.0)
-		{
-			SetFPException(FPSCR_ZX);
-			riPS0(_inst.FD) = 0x7ff0000000000000;
-		}
-		else
-		{
-			u32 fsa = Common::swap32(Common::swap64(riPS0(_inst.FB)));
-			u32 fsb = Common::swap32(Common::swap64(riPS0(_inst.FB)) >> 32);
-			u32 idx=(fsa >> 5) % (sizeof(frsqrtex_lut) / sizeof(frsqrtex_lut[0]));
-
-			s32 e = fsa >> (32-12);
-			e &= 2047;
-			e -= 1023;
-			s32 oe =- ((e + 1) / 2);
-			oe -= ((e + 1) & 1);
-
-			u32 outb = frsqrtex_lut[idx] << 20;
-			u32 outa = ((oe + 1023) & 2047) << 20;
-			outa |= frsqrtex_lut[idx] >> 12;
-			riPS0(_inst.FD) = ((u64)outa << 32) + (u64)outb;
-		}
+		SetFPException(FPSCR_ZX);
 	}
+	rPS0(_inst.FD) = ApproximateReciprocalSquareRoot(b);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }

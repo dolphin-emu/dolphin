@@ -186,35 +186,18 @@ void Interpreter::ps_res(UGeckoInstruction _inst)
 
 void Interpreter::ps_rsqrte(UGeckoInstruction _inst)
 {
-	// this code is based on the real hardware tests
 	if (rPS0(_inst.FB) == 0.0 || rPS1(_inst.FB) == 0.0)
 	{
 		SetFPException(FPSCR_ZX);
 	}
-	// PS0
-	if (rPS0(_inst.FB) < 0.0)
+
+	if (rPS0(_inst.FB) < 0.0 || rPS1(_inst.FB) < 0.0)
 	{
 		SetFPException(FPSCR_VXSQRT);
-		rPS0(_inst.FD) = PPC_NAN;
 	}
-	else
-	{
-		rPS0(_inst.FD) = 1.0 / sqrt(rPS0(_inst.FB));
-		u32 t = ConvertToSingle(riPS0(_inst.FD));
-		rPS0(_inst.FD) = *(float*)&t;
-	}
-	// PS1
-	if (rPS1(_inst.FB) < 0.0)
-	{
-		SetFPException(FPSCR_VXSQRT);
-		rPS1(_inst.FD) = PPC_NAN;
-	}
-	else
-	{
-		rPS1(_inst.FD) = 1.0 / sqrt(rPS1(_inst.FB));
-		u32 t = ConvertToSingle(riPS1(_inst.FD));
-		rPS1(_inst.FD) = *(float*)&t;
-	}
+
+	rPS0(_inst.FD) = ApproximateReciprocalSquareRoot(rPS0(_inst.FB));
+	rPS1(_inst.FD) = ApproximateReciprocalSquareRoot(rPS1(_inst.FB));
 
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
