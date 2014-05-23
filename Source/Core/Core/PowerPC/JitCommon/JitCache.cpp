@@ -376,30 +376,6 @@ using namespace Gen;
 				block_map.erase(it1, it2);
 			}
 		}
-
-		// invalidate iCache.
-		// icbi can be called with any address, so we should check
-		if ((address & ~JIT_ICACHE_MASK) != 0x80000000 && (address & ~JIT_ICACHE_MASK) != 0x00000000 &&
-			(address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
-			(address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (address & ~JIT_ICACHEEX_MASK) != 0x10000000)
-		{
-			return;
-		}
-		if (address & JIT_ICACHE_VMEM_BIT)
-		{
-			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
-		}
-		else if (address & JIT_ICACHE_EXRAM_BIT)
-		{
-			u32 cacheaddr = address & JIT_ICACHEEX_MASK;
-			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
-		}
-		else
-		{
-			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
-		}
 	}
 	void JitBlockCache::WriteLinkBlock(u8* location, const u8* address)
 	{
