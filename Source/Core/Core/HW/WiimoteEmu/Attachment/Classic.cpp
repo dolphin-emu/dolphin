@@ -4,6 +4,10 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 
+#ifdef _WIN32
+#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
+#endif
+
 namespace WiimoteEmu
 {
 
@@ -124,6 +128,109 @@ void Classic::GetState(u8* const data, const bool focus)
 		// dpad
 		m_dpad->GetState(&ccdata->bt, classic_dpad_bitmasks);
 	}
+
+#ifdef _WIN32
+	// VR Sixense Razer hydra support
+	if (HydraUpdate() && g_hydra.c[0].enabled)
+	{
+		const int left = 0, right = 1;
+		// L is analog so must be Trigger, therefore ZL is left bumper.
+		// Unfortunately this is the opposite layout from the Classic Controller Pro.
+		if (g_hydra.c[left].buttons & HYDRA_BUTTON_BUMPER)
+		{
+			ccdata->bt |= Classic::BUTTON_ZL;
+		}
+		// The hydra doesn't have a DPad, so use the buttons on the left controller.
+		// Imagine the controllers are tilted inwards like a Classic Controller Pro.
+		// Therefore 3 is at the top.
+		if (g_hydra.c[left].buttons & HYDRA_BUTTON_3)
+		{
+			ccdata->bt |= Classic::PAD_UP;
+		}
+		if (g_hydra.c[left].buttons & HYDRA_BUTTON_2)
+		{
+			ccdata->bt |= Classic::PAD_DOWN;
+		}
+		if (g_hydra.c[left].buttons & HYDRA_BUTTON_1)
+		{
+			ccdata->bt |= Classic::PAD_LEFT;
+		}
+		if (g_hydra.c[left].buttons & HYDRA_BUTTON_4)
+		{
+			ccdata->bt |= Classic::PAD_RIGHT;
+		}
+		// Left Start = - button
+		if (g_hydra.c[left].buttons & HYDRA_BUTTON_START)
+		{
+			ccdata->bt |= Classic::BUTTON_MINUS;
+		}
+		if (!g_hydra.c[left].docked)
+		{
+			// Left analog stick
+			ccdata->lx = (u8)(31.5f + g_hydra.c[left].stick_x * 31.5f);
+			ccdata->ly = (u8)(31.5f + g_hydra.c[left].stick_y * 31.5f);
+			// Left analog trigger = L
+			u8 trigger = (u8)(g_hydra.c[left].trigger * 31);
+			ccdata->lt1 = trigger;
+			ccdata->lt2 = trigger >> 3;
+			if (g_hydra.c[left].trigger > 0.9)
+			{
+				ccdata->bt |= Classic::TRIGGER_L;
+			}
+		}
+		// Right controller
+		if (g_hydra.c[right].enabled && !g_hydra.c[right].docked)
+		{
+			// Right analog stick
+			u8 x = u8(15.5f + g_hydra.c[right].stick_x * 15.5f);
+			u8 y = u8(15.5f + g_hydra.c[right].stick_y * 15.5f);
+			ccdata->rx1 = x;
+			ccdata->rx2 = x >> 1;
+			ccdata->rx3 = x >> 3;
+			ccdata->ry = y;
+			// Right analog trigger = R
+			u8 trigger = (u8)(g_hydra.c[right].trigger * 31);
+			ccdata->rt = trigger;
+			if (g_hydra.c[right].trigger > 0.9)
+			{
+				ccdata->bt |= Classic::TRIGGER_R;
+			}
+		}
+		// Right stick in = Home button
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_STICK)
+		{
+			ccdata->bt |= Classic::BUTTON_HOME;
+		}
+		// Right Start = + button
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_START)
+		{
+			ccdata->bt |= Classic::BUTTON_PLUS;
+		}
+		// Imagine controllers are tilted inwards like holding a Classic Controller Pro.
+		// Therefore 1 = b, 2 = a, 3 = y, 4 = x
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_1)
+		{
+			ccdata->bt |= Classic::BUTTON_B;
+		}
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_2)
+		{
+			ccdata->bt |= Classic::BUTTON_A;
+		}
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_3)
+		{
+			ccdata->bt |= Classic::BUTTON_Y;
+		}
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_4)
+		{
+			ccdata->bt |= Classic::BUTTON_X;
+		}
+		// R is analog so must be Trigger, therefore ZR is right bumper.
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_BUMPER)
+		{
+			ccdata->bt |= Classic::BUTTON_ZL;
+		}
+	}
+#endif
 
 	// flip button bits
 	ccdata->bt ^= 0xFFFF;

@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifdef _WIN32
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
-#endif
 
 #include "InputCommon/UDPWiimote.h"
 #include "InputCommon/UDPWrapper.h"
+#ifdef _WIN32
 #include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
+#endif
 
 namespace WiimoteEmu
 {
@@ -159,7 +159,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 #ifdef _WIN32
 	// VR Sixense Razer hydra support
 	// Left controller will be nunchuck: stick=stick, LB (or 1)=C, LT (or 2)=Z
-	if (g_sixense_initialized && HydraUpdate() && g_hydra.c[0].enabled)
+	if (HydraUpdate() && g_hydra.c[0].enabled)
 	{
 		const int left = 0, right = 1;
 		if ((g_hydra.c[left].buttons & HYDRA_BUTTON_BUMPER) || (g_hydra.c[left].buttons & HYDRA_BUTTON_1))

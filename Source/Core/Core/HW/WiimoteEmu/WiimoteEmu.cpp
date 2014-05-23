@@ -410,29 +410,93 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 	if (this->m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled)
 	{
 		const int left = 0, right = 1;
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_START) m_status.buttons |= Wiimote::BUTTON_A;
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_1) m_status.buttons |= Wiimote::BUTTON_ONE;
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_2) m_status.buttons |= Wiimote::BUTTON_TWO;
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_3) m_status.buttons |= Wiimote::BUTTON_MINUS;
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_4) m_status.buttons |= Wiimote::BUTTON_PLUS;
-		if ((g_hydra.c[right].buttons & HYDRA_BUTTON_BUMPER) || (g_hydra.c[right].trigger > 0.25))
-			m_status.buttons |= Wiimote::BUTTON_B;
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_STICK) m_status.buttons |= Wiimote::BUTTON_HOME;
-
-		if (m_options->settings[1]->value != 0)
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_START)
 		{
-			// VR pretend wiimote is sideways for sideways games (1 and 2 actually are sideways)
-			if (g_hydra.c[right].stick_x > 0.5f) m_status.buttons |= Wiimote::PAD_DOWN;
-			else if (g_hydra.c[right].stick_x < -0.5f) m_status.buttons |= Wiimote::PAD_UP;
-			if (g_hydra.c[right].stick_y > 0.5f) m_status.buttons |= Wiimote::PAD_RIGHT;
-			else if (g_hydra.c[right].stick_y < -0.5f) m_status.buttons |= Wiimote::PAD_LEFT;
+			m_status.buttons |= Wiimote::BUTTON_A;
+		}
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_1)
+		{
+			m_status.buttons |= Wiimote::BUTTON_ONE;
+		}
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_2)
+		{
+			m_status.buttons |= Wiimote::BUTTON_TWO;
+		}
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_3)
+		{
+			m_status.buttons |= Wiimote::BUTTON_MINUS;
+		}
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_4)
+		{
+			m_status.buttons |= Wiimote::BUTTON_PLUS;
+		}
+		if ((g_hydra.c[right].buttons & HYDRA_BUTTON_BUMPER) || (g_hydra.c[right].trigger > 0.25))
+		{
+			m_status.buttons |= Wiimote::BUTTON_B;
+		}
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_STICK)
+		{
+			m_status.buttons |= Wiimote::BUTTON_HOME;
+			// In the IR section this button also recenters the IR pointer.
+			// That makes sense because the Home screen is guaranteed to have a pointer,
+			// is easy to get out of by pressing Home again, and is rarely pressed.
+		}
+
+		// If the left Hydra is docked, or an extension is plugged in then just
+		// hold the right Hydra sideways yourself. Otherwise in sideways mode 
+		// with no extension use the left hydra for DPad, A, and B.
+		if (m_options->settings[1]->value != 0 && 
+			m_extension->active_extension <= 0 &&
+			g_hydra.c[left].enabled && !g_hydra.c[left].docked)
+		{
+			if (g_hydra.c[left].stick_x > 0.5f || g_hydra.c[right].stick_x > 0.5f)
+			{
+				m_status.buttons |= Wiimote::PAD_DOWN;
+			}
+			else if (g_hydra.c[left].stick_x < -0.5f || g_hydra.c[right].stick_x < -0.5f)
+			{
+				m_status.buttons |= Wiimote::PAD_UP;
+			}
+			if (g_hydra.c[left].buttons & HYDRA_BUTTON_3)
+			{
+				NOTICE_LOG(WIIMOTE, "%lf, %lf", g_hydra.c[left].stick_x, g_hydra.c[left].stick_y);
+			}
+
+			if (g_hydra.c[left].stick_y > 0.5f || g_hydra.c[right].stick_y > 0.5f)
+			{
+				m_status.buttons |= Wiimote::PAD_RIGHT;
+			}
+			else if (g_hydra.c[left].stick_y < -0.5f || g_hydra.c[right].stick_y < -0.5f)
+			{
+				m_status.buttons |= Wiimote::PAD_LEFT;
+			}
+			if ((g_hydra.c[left].buttons & HYDRA_BUTTON_BUMPER) || (g_hydra.c[left].trigger > 0.25))
+			{
+				m_status.buttons |= Wiimote::BUTTON_B;
+			}
+			if (g_hydra.c[left].buttons & HYDRA_BUTTON_START)
+			{
+				m_status.buttons |= Wiimote::BUTTON_A;
+			}
 		}
 		else
 		{
-			if (g_hydra.c[right].stick_x > 0.5f) m_status.buttons |= Wiimote::PAD_RIGHT;
-			else if (g_hydra.c[right].stick_x < -0.5f) m_status.buttons |= Wiimote::PAD_LEFT;
-			if (g_hydra.c[right].stick_y > 0.5f) m_status.buttons |= Wiimote::PAD_UP;
-			else if (g_hydra.c[right].stick_y < -0.5f) m_status.buttons |= Wiimote::PAD_DOWN;
+			if (g_hydra.c[right].stick_x > 0.5f)
+			{
+				m_status.buttons |= Wiimote::PAD_RIGHT;
+			}
+			else if (g_hydra.c[right].stick_x < -0.5f)
+			{
+				m_status.buttons |= Wiimote::PAD_LEFT;
+			}
+			if (g_hydra.c[right].stick_y > 0.5f)
+			{
+				m_status.buttons |= Wiimote::PAD_UP;
+			}
+			else if (g_hydra.c[right].stick_y < -0.5f)
+			{
+				m_status.buttons |= Wiimote::PAD_DOWN;
+			}
 		}
 	}
 #endif
@@ -459,22 +523,55 @@ void Wiimote::GetAccelData(u8* const data, u8* const core)
 	EmulateTilt(&m_accel, m_tilt, has_focus, is_sideways, is_upright);
 
 #ifdef _WIN32
-	float rel_acc[3];
 	// VR Sixense Razer hydra support
 	if (this->m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled && !g_hydra.c[1].docked)
 	{
+		const int left = 0, right = 1;
 		// Note that here X means to the CONTROLLER'S left, Y means to the CONTROLLER'S tail, and Z means to the CONTROLLER'S top! 
 		// Tilt sensing.
-		m_accel.x = -g_hydra.c[1].rotation_matrix[0][1];
-		m_accel.z = g_hydra.c[1].rotation_matrix[1][1];
-		m_accel.y = g_hydra.c[1].rotation_matrix[2][1];
+		// If the left Hydra is docked, or an extension is plugged in then just
+		// hold the right Hydra sideways yourself. Otherwise in sideways mode 
+		// with no extension pitch is controlled by the angle between the hydras.
+		if (m_options->settings[1]->value != 0 &&
+			m_extension->active_extension <= 0 &&
+			g_hydra.c[left].enabled && !g_hydra.c[left].docked)
+		{
+			// angle between the hydras
+			float x = g_hydra.c[right].position[0] - g_hydra.c[left].position[0];
+			float y = g_hydra.c[right].position[1] - g_hydra.c[left].position[1];
+			float dist = sqrtf(x*x + y*y);
+			x = x / dist;
+			y = y / dist;
+			m_accel.y = y;
+			float tail_up = g_hydra.c[right].rotation_matrix[2][1];
+			float stick_up = g_hydra.c[right].rotation_matrix[1][1];
+			float len = sqrtf(tail_up*tail_up + stick_up*stick_up);
+			if (len == 0)
+			{
+				// neither the tail or the stick is up, the side is up
+				m_accel.x = 0;
+				m_accel.z = 0;
+			}
+			else
+			{
+				m_accel.x = x * tail_up / len;
+				m_accel.z = x * stick_up / len;
+			}
+		}
+		else
+		{
+			m_accel.x = -g_hydra.c[right].rotation_matrix[0][1];
+			m_accel.z = g_hydra.c[right].rotation_matrix[1][1];
+			m_accel.y = g_hydra.c[right].rotation_matrix[2][1];
+		}
 
 		// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
+		float rel_acc[3];
 		for (int i = 0; i < 3; ++i)
 		{
-			rel_acc[i] = g_hydra_state[1].a[0] * g_hydra.c[1].rotation_matrix[i][0]
-				 + g_hydra_state[1].a[1] * g_hydra.c[1].rotation_matrix[i][1]
-				 + g_hydra_state[1].a[2] * g_hydra.c[1].rotation_matrix[i][2];
+			rel_acc[i] = g_hydra_state[right].a[0] * g_hydra.c[right].rotation_matrix[i][0]
+				 + g_hydra_state[right].a[1] * g_hydra.c[right].rotation_matrix[i][1]
+				 + g_hydra_state[right].a[2] * g_hydra.c[right].rotation_matrix[i][2];
 		}
 
 		// Convert from metres per second per second to G's, and to Wiimote's coordinate system.
