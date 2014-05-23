@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <limits>
+
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
@@ -307,7 +309,8 @@ inline double ApproximateReciprocal(double val)
 
 	// Special case 0
 	if (mantissa == 0 && exponent == 0)
-		return sign ? -INFINITY : INFINITY;
+		return sign ? -std::numeric_limits<double>::infinity() :
+		               std::numeric_limits<double>::infinity();
 	// Special case NaN-ish numbers
 	if (exponent == (0x7FFLL << 52))
 	{
@@ -364,17 +367,22 @@ inline double ApproximateReciprocalSquareRoot(double val)
 
 	// Special case 0
 	if (mantissa == 0 && exponent == 0)
-		return sign ? -INFINITY : INFINITY;
+		return sign ? -std::numeric_limits<double>::infinity() :
+		               std::numeric_limits<double>::infinity();
 	// Special case NaN-ish numbers
 	if (exponent == (0x7FFLL << 52))
 	{
 		if (mantissa == 0)
-			return sign ? NAN : 0.0;
+		{
+			if (sign)
+				return std::numeric_limits<double>::quiet_NaN();
+			return 0.0;
+		}
 		return 0.0 + valf;
 	}
 	// Negative numbers return NaN
 	if (sign)
-		return NAN;
+		return std::numeric_limits<double>::quiet_NaN();
 
 	if (!exponent)
 	{
