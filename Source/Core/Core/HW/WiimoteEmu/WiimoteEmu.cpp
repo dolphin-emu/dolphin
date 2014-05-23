@@ -84,13 +84,21 @@ const ReportFeatures reporting_mode_features[] =
 	{ 0, 0, 0, 0, 23 },
 };
 
-void FillRawAccelFromGForceData(wm_accel& raw_accel,
+// Convert accelerometer readings in G's to 8-bit calibrated values and 2-bit Nunchuk-format LSB values (preserving buttons).
+void FillRawAccelFromGForceData(wm_accel& raw_accel, u8 &lsb,
 	const accel_cal& calib,
 	const WiimoteEmu::AccelData& accel)
 {
-	raw_accel.x = (u8)trim(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
-	raw_accel.y = (u8)trim(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
-	raw_accel.z = (u8)trim(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+	lsb &= 3;
+	u32 temp = trim10bit(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
+	raw_accel.x = (u8)(temp >> 2);
+	lsb |= (temp & 3) << 2;
+	temp = trim10bit(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
+	raw_accel.y = (u8)(temp >> 2);
+	lsb |= (temp & 3) << 4;
+	temp = trim10bit(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+	raw_accel.z = (u8)(temp >> 2);
+	lsb |= (temp & 3) << 6;
 }
 
 void EmulateShake(AccelData* const accel
@@ -399,34 +407,32 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 #ifdef _WIN32
 	// VR Sixense Razer hydra fixed button mapping
 	// START = A, RT/RB = B, 1 = 1, 2 = 2, 3 = -, 4 = +, stick = DPad/Home
-	TAllHydraControllers hydra;
-	if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 &&
-		hydra.controller[1].enabled)
+	if (this->m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled)
 	{
-		int left = 0, right = 1;
-		if (hydra.controller[right].buttons & HYDRA_BUTTON_START) m_status.buttons |= Wiimote::BUTTON_A;
-		if (hydra.controller[right].buttons & HYDRA_BUTTON_1) m_status.buttons |= Wiimote::BUTTON_ONE;
-		if (hydra.controller[right].buttons & HYDRA_BUTTON_2) m_status.buttons |= Wiimote::BUTTON_TWO;
-		if (hydra.controller[right].buttons & HYDRA_BUTTON_3) m_status.buttons |= Wiimote::BUTTON_MINUS;
-		if (hydra.controller[right].buttons & HYDRA_BUTTON_4) m_status.buttons |= Wiimote::BUTTON_PLUS;
-		if ((hydra.controller[right].buttons & HYDRA_BUTTON_BUMPER) || (hydra.controller[right].trigger > 0.25))
+		const int left = 0, right = 1;
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_START) m_status.buttons |= Wiimote::BUTTON_A;
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_1) m_status.buttons |= Wiimote::BUTTON_ONE;
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_2) m_status.buttons |= Wiimote::BUTTON_TWO;
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_3) m_status.buttons |= Wiimote::BUTTON_MINUS;
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_4) m_status.buttons |= Wiimote::BUTTON_PLUS;
+		if ((g_hydra.c[right].buttons & HYDRA_BUTTON_BUMPER) || (g_hydra.c[right].trigger > 0.25))
 			m_status.buttons |= Wiimote::BUTTON_B;
-		if (hydra.controller[right].buttons & HYDRA_BUTTON_STICK) m_status.buttons |= Wiimote::BUTTON_HOME;
+		if (g_hydra.c[right].buttons & HYDRA_BUTTON_STICK) m_status.buttons |= Wiimote::BUTTON_HOME;
 
 		if (m_options->settings[1]->value != 0)
 		{
 			// VR pretend wiimote is sideways for sideways games (1 and 2 actually are sideways)
-			if (hydra.controller[right].stick_x > 0.5f) m_status.buttons |= Wiimote::PAD_DOWN;
-			else if (hydra.controller[right].stick_x < -0.5f) m_status.buttons |= Wiimote::PAD_UP;
-			if (hydra.controller[right].stick_y > 0.5f) m_status.buttons |= Wiimote::PAD_RIGHT;
-			else if (hydra.controller[right].stick_y < -0.5f) m_status.buttons |= Wiimote::PAD_LEFT;
+			if (g_hydra.c[right].stick_x > 0.5f) m_status.buttons |= Wiimote::PAD_DOWN;
+			else if (g_hydra.c[right].stick_x < -0.5f) m_status.buttons |= Wiimote::PAD_UP;
+			if (g_hydra.c[right].stick_y > 0.5f) m_status.buttons |= Wiimote::PAD_RIGHT;
+			else if (g_hydra.c[right].stick_y < -0.5f) m_status.buttons |= Wiimote::PAD_LEFT;
 		}
 		else
 		{
-			if (hydra.controller[right].stick_x > 0.5f) m_status.buttons |= Wiimote::PAD_RIGHT;
-			else if (hydra.controller[right].stick_x < -0.5f) m_status.buttons |= Wiimote::PAD_LEFT;
-			if (hydra.controller[right].stick_y > 0.5f) m_status.buttons |= Wiimote::PAD_UP;
-			else if (hydra.controller[right].stick_y < -0.5f) m_status.buttons |= Wiimote::PAD_DOWN;
+			if (g_hydra.c[right].stick_x > 0.5f) m_status.buttons |= Wiimote::PAD_RIGHT;
+			else if (g_hydra.c[right].stick_x < -0.5f) m_status.buttons |= Wiimote::PAD_LEFT;
+			if (g_hydra.c[right].stick_y > 0.5f) m_status.buttons |= Wiimote::PAD_UP;
+			else if (g_hydra.c[right].stick_y < -0.5f) m_status.buttons |= Wiimote::PAD_DOWN;
 		}
 	}
 #endif
@@ -443,7 +449,7 @@ void Wiimote::GetCoreData(u8* const data)
 	*(wm_core*)data |= m_status.buttons;
 }
 
-void Wiimote::GetAccelData(u8* const data)
+void Wiimote::GetAccelData(u8* const data, u8* const core)
 {
 	const bool has_focus = HAS_FOCUS;
 	const bool is_sideways = m_options->settings[1]->value != 0;
@@ -453,48 +459,28 @@ void Wiimote::GetAccelData(u8* const data)
 	EmulateTilt(&m_accel, m_tilt, has_focus, is_sideways, is_upright);
 
 #ifdef _WIN32
+	float rel_acc[3];
 	// VR Sixense Razer hydra support
-	TAllHydraControllers hydra;
-	if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 && 
-		hydra.controller[1].enabled && !hydra.controller[1].docked)
+	if (this->m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled && !g_hydra.c[1].docked)
 	{
-		// This works for the 2D hand cursor rotation, but I don't know if it's right for 3D rotations.
-		m_accel.x = -hydra.controller[1].rotation_matrix[0][1];
-		m_accel.y = hydra.controller[1].rotation_matrix[2][1];
-		m_accel.z = hydra.controller[1].rotation_matrix[1][1];
-		// Calculate accelerations from position, currently using real-world time (is that best?)
-		static s64 oldtime = 0;
-		s64 newtime, pf;
-		float t = 0;
-		QueryPerformanceCounter((LARGE_INTEGER *)&newtime);
-		if (oldtime != 0 && newtime > oldtime)
+		// Note that here X means to the CONTROLLER'S left, Y means to the CONTROLLER'S tail, and Z means to the CONTROLLER'S top! 
+		// Tilt sensing.
+		m_accel.x = -g_hydra.c[1].rotation_matrix[0][1];
+		m_accel.z = g_hydra.c[1].rotation_matrix[1][1];
+		m_accel.y = g_hydra.c[1].rotation_matrix[2][1];
+
+		// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
+		for (int i = 0; i < 3; ++i)
 		{
-			// in metres and seconds in world space, right, up, and out from the screen 
-			static float oldx = 0.0f, oldy = 0.0f, oldz = 0.0f, old_vx = 0.0f, old_vy = 0.0f, old_vz = 0.0f, ax = 0.0f, ay = 0.0f, az = 0.0f;
-			float x, y, z, vx, vy, vz;
-			QueryPerformanceFrequency((LARGE_INTEGER *)&pf);
-			t = (float)(newtime - oldtime) / pf;
-			x = hydra.controller[1].position[0]/1000;
-			y = hydra.controller[1].position[1]/1000;
-			z = hydra.controller[1].position[2]/1000;
-			vx = (x - oldx) / t;
-			vy = (y - oldy) / t;
-			vz = (z - oldz) / t;
-			ax = (vx - old_vx) / t;
-			ay = (vy - old_vy) / t;
-			az = (vz - old_vz) / t;
-			oldx = x;
-			oldy = y;
-			oldz = z;
-			old_vx = vx;
-			old_vy = vy;
-			old_vz = vz;
-			// Convert from metres per second per second to Gs.
-			m_accel.x += ax / 9.8f;
-			m_accel.y += ay / 9.8f;
-			m_accel.z += az / 9.8f;
+			rel_acc[i] = g_hydra_state[1].a[0] * g_hydra.c[1].rotation_matrix[i][0]
+				 + g_hydra_state[1].a[1] * g_hydra.c[1].rotation_matrix[i][1]
+				 + g_hydra_state[1].a[2] * g_hydra.c[1].rotation_matrix[i][2];
 		}
-		oldtime = newtime;
+
+		// Convert from metres per second per second to G's, and to Wiimote's coordinate system.
+		m_accel.x -= rel_acc[0] / 9.8f;
+		m_accel.z += rel_acc[1] / 9.8f;
+		m_accel.y += rel_acc[2] / 9.8f;
 	}
 #endif
 
@@ -507,8 +493,13 @@ void Wiimote::GetAccelData(u8* const data)
 		UDPTLayer::GetAcceleration(m_udp, &m_accel);
 	}
 
-	FillRawAccelFromGForceData(*(wm_accel*)data, *(accel_cal*)&m_eeprom[0x16], m_accel);
+	u8 lsb = 0;
+	FillRawAccelFromGForceData(*(wm_accel*)data, lsb, *(accel_cal*)&m_eeprom[0x16], m_accel);
+	// Move the least significant bits of the accelerometer data into the right places in the buttons field.
+	// lsb is currently in nunchuk format. Assume little-endian (the rest of Dolphin does too).
+	*(wm_core*)core |= ((lsb << 3) && 0x0060) | ((lsb << 8) && 0x2000) | ((lsb << 7) && 0x4000);
 }
+
 #define kCutoffFreq 5.0f
 inline void LowPassFilter(double & var, double newval, double period)
 {
@@ -563,22 +554,24 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
 
 #ifdef _WIN32
-		// in milimetres right, up, and into screen from base orb
+		// VR Sixense Razer Hydra
+		// Use right Hydra's position as IR pointer.
+		// These are in millimetres right, up, and into screen from the base orb.
 		static float hydra_ir_center_x = -300.0f, hydra_ir_center_y = -30.0f, hydra_ir_center_z = -300;
-		TAllHydraControllers hydra;
-		if (this->m_index == 0 && g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 && 
-			hydra.controller[1].enabled && !hydra.controller[1].docked) {
-			int left = 0, right = 1;
-			if (hydra.controller[left].buttons & HYDRA_BUTTON_START)
+		if (this->m_index == 0 && HydraUpdate() && 
+			g_hydra.c[1].enabled && !g_hydra.c[1].docked)
+		{
+			const int left = 0, right = 1;
+			if (g_hydra.c[left].buttons & HYDRA_BUTTON_START)
 			{
-				hydra_ir_center_x = hydra.controller[right].position[0];
-				hydra_ir_center_y = hydra.controller[right].position[1];
-				hydra_ir_center_z = -hydra.controller[right].position[2];
+				hydra_ir_center_x = g_hydra.c[right].position[0];
+				hydra_ir_center_y = g_hydra.c[right].position[1];
+				hydra_ir_center_z = -g_hydra.c[right].position[2];
 				NOTICE_LOG(WIIMOTE, "Razer Hydra IR centre set to: %5.1fcm right, %5.1fcm up, %5.1fcm in", hydra_ir_center_x/10.0f, hydra_ir_center_y/10.0f, hydra_ir_center_z/10.0f);
 			}
-			xx = (hydra.controller[right].position[0] - hydra_ir_center_x) / 150;
-			yy = (hydra.controller[right].position[1] - hydra_ir_center_y) / 150;
-			zz = (-hydra.controller[right].position[2] - hydra_ir_center_z) / 300;
+			xx = (g_hydra.c[right].position[0] - hydra_ir_center_x) / 150;
+			yy = (g_hydra.c[right].position[1] - hydra_ir_center_y) / 150;
+			zz = (-g_hydra.c[right].position[2] - hydra_ir_center_z) / 300;
 		}
 #endif
 
@@ -770,7 +763,7 @@ void Wiimote::Update()
 
 		// acceleration
 		if (rptf.accel)
-			GetAccelData(data + rptf.accel);
+			GetAccelData(data + rptf.accel, data + rptf.core);
 
 		// IR
 		if (rptf.ir)

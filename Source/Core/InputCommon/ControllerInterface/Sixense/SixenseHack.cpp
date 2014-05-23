@@ -1,0 +1,104 @@
+#include <Windows.h>
+#include "SixenseHack.h"
+#include "Common/Common.h"
+
+typedef int(__cdecl *PHydra_Init)();
+typedef int(__cdecl *PHydra_Exit)();
+typedef int(__cdecl *PHydra_GetAllNewestData)(TAllHydraControllers *all_controllers);
+
+PHydra_Init Hydra_Init = nullptr;
+PHydra_Exit Hydra_Exit = nullptr;
+PHydra_GetAllNewestData Hydra_GetAllNewestData = nullptr;
+
+static HMODULE g_sixense_lib = nullptr;
+
+bool g_sixense_initialized = false;
+static THydraControllerState g_old[2];
+THydraControllerState g_hydra_state[2];
+static TAllHydraControllers g_oldhydra;
+TAllHydraControllers g_hydra;
+
+void InitSixenseLib()
+{
+	if (!g_sixense_initialized)
+	{
+#ifdef _WIN64
+		g_sixense_lib = LoadLibrary(_T("sixense_x64.dll"));
+#else
+		g_sixense_lib = LoadLibrary(_T("sixense.dll"));
+#endif
+
+		if (!g_sixense_lib)
+		{
+#ifdef _WIN64
+			WARN_LOG(WIIMOTE, "Failed to load sixense_x64.dll. Razer Hydra and Sixense STEM will not be supported.");
+#else
+			WARN_LOG(WIIMOTE, "Failed to load sixense.dll. Razer Hydra and Sixense STEM will not be supported.");
+#endif
+			return;
+		}
+
+		Hydra_Init = (PHydra_Init)GetProcAddress(g_sixense_lib, "sixenseInit");
+		Hydra_Exit = (PHydra_Exit)GetProcAddress(g_sixense_lib, "sixenseExit");
+		Hydra_GetAllNewestData = (PHydra_GetAllNewestData)GetProcAddress(g_sixense_lib, "sixenseGetAllNewestData");
+		if (!Hydra_Init || !Hydra_GetAllNewestData)
+		{
+			ERROR_LOG(WIIMOTE, "Failed to load minimum needed sixense dll functions. Razer Hydra and Sixense STEM will not be supported.");
+			return;
+		}
+		if (Hydra_Init()!=0)
+		{
+			ERROR_LOG(WIIMOTE, "Hydra_Init() function failed. Razer Hydra and Sixense STEM will not be supported.");
+			return;
+		}
+		HydraUpdate();
+
+		g_sixense_initialized = true;
+		NOTICE_LOG(WIIMOTE, "Sixense Razer Hydra initialized.");
+	}
+}
+
+void HydraUpdateController(int hand)
+{
+	float t;
+	// Get time since last update. Razer Hydra is locked to 60Hz.
+	s16 frames = (s16)g_hydra.c[hand].sequence_number - (s16)g_oldhydra.c[hand].sequence_number;
+	if (frames < 0)
+	{
+		frames += 256;
+	}
+	t = frames/60.0f;
+	for (int axis = 0; axis < 3; ++axis)
+	{
+		g_hydra_state[hand].t = t;
+		// get smoothed position
+		g_hydra_state[hand].p[axis] = (g_hydra.c[hand].position[axis] + g_oldhydra.c[hand].position[axis]) / 2000;
+		// get velocity
+		g_hydra_state[hand].v[axis] = (g_hydra_state[hand].p[axis] - g_old[hand].p[axis]) / t;
+		// get acceleration
+		g_hydra_state[hand].a[axis] = (g_hydra_state[hand].v[axis] - g_old[hand].v[axis]) / t;
+	}
+	g_old[hand] = g_hydra_state[hand];
+}
+
+bool HydraUpdate()
+{
+	if (!g_sixense_initialized || Hydra_GetAllNewestData(&g_hydra) != 0)
+	{
+		return false;
+	}
+	bool changed = false;
+	for (int i = 0; i < 2; ++i)
+	{
+		if (g_hydra.c[i].enabled && g_hydra.c[i].sequence_number != g_oldhydra.c[i].sequence_number)
+		{
+			changed = true;
+			HydraUpdateController(i);
+		}
+	}
+	if (changed)
+	{
+		g_oldhydra = g_hydra;
+	}
+	return true;
+}

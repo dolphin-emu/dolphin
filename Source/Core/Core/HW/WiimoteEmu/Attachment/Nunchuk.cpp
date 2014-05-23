@@ -159,26 +159,42 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 #ifdef _WIN32
 	// VR Sixense Razer hydra support
 	// Left controller will be nunchuck: stick=stick, LB (or 1)=C, LT (or 2)=Z
-	TAllHydraControllers hydra;
-	if (g_sixense_initialized && Hydra_GetAllNewestData(&hydra) == 0 &&
-		hydra.controller[0].enabled)
+	if (g_sixense_initialized && HydraUpdate() && g_hydra.c[0].enabled)
 	{
-		int left = 0, right = 1;
-		if ((hydra.controller[left].buttons & HYDRA_BUTTON_BUMPER) || (hydra.controller[left].buttons & HYDRA_BUTTON_1))
+		const int left = 0, right = 1;
+		if ((g_hydra.c[left].buttons & HYDRA_BUTTON_BUMPER) || (g_hydra.c[left].buttons & HYDRA_BUTTON_1))
 			ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_C;
-		if (hydra.controller[left].trigger > 0.25f || (hydra.controller[left].buttons & HYDRA_BUTTON_2))
+		if (g_hydra.c[left].trigger > 0.25f || (g_hydra.c[left].buttons & HYDRA_BUTTON_2))
 			ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_Z;
-		ncdata->jx = u8(0x80 + hydra.controller[left].stick_x * 127);
-		ncdata->jy = u8(0x80 + hydra.controller[left].stick_y * 127);
+		ncdata->jx = u8(0x80 + g_hydra.c[left].stick_x * 127);
+		ncdata->jy = u8(0x80 + g_hydra.c[left].stick_y * 127);
 
-		// This works for the 2D hand cursor rotation, but I don't know if it's right for 3D rotations.
-		accel.x = -hydra.controller[left].rotation_matrix[0][1];
-		accel.y = hydra.controller[left].rotation_matrix[2][1];
-		accel.z = hydra.controller[left].rotation_matrix[1][1];
+		if (!g_hydra.c[left].docked)
+		{
+			// Note that here X means to the CONTROLLER'S left, Y means to the CONTROLLER'S tail, and Z means to the CONTROLLER'S top! 
+			// Tilt sensing.
+			accel.x = -g_hydra.c[left].rotation_matrix[0][1];
+			accel.z = g_hydra.c[left].rotation_matrix[1][1];
+			accel.y = g_hydra.c[left].rotation_matrix[2][1];
+
+			// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
+			float rel_acc[3];
+			for (int i = 0; i < 3; ++i)
+			{
+				rel_acc[i] = g_hydra_state[left].a[0] * g_hydra.c[left].rotation_matrix[i][0]
+				           + g_hydra_state[left].a[1] * g_hydra.c[left].rotation_matrix[i][1]
+				           + g_hydra_state[left].a[2] * g_hydra.c[left].rotation_matrix[i][2];
+			}
+
+			// Convert from metres per second per second to G's, and to Wiimote's coordinate system.
+			accel.x -= rel_acc[0] / 9.8f;
+			accel.z += rel_acc[1] / 9.8f;
+			accel.y += rel_acc[2] / 9.8f;
+		}
 	}
 #endif
 
-	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, *(accel_cal*)&reg.calibration, accel);
+	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, ncdata->bt, *(accel_cal*)&reg.calibration, accel);
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
