@@ -72,10 +72,11 @@ class JitBaseBlockCache
 	int num_blocks;
 	std::multimap<u32, int> links_to;
 	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
-	std::bitset<0x20000000 / 32> valid_block;
+	std::vector<bool> valid_block;
 	enum
 	{
-		MAX_NUM_BLOCKS = 65536*2
+		MAX_NUM_BLOCKS = 65536*2,
+		VALID_BLOCK_MASK_SIZE = 0x20000000 / 32,
 	};
 
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;

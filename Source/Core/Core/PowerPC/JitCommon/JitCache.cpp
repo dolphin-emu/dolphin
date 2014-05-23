@@ -108,7 +108,10 @@ using namespace Gen;
 		}
 		links_to.clear();
 		block_map.clear();
-		valid_block.reset();
+
+		valid_block.clear();
+		valid_block.resize(VALID_BLOCK_MASK_SIZE, false);
+
 		num_blocks = 0;
 		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
 	}
@@ -349,7 +352,7 @@ using namespace Gen;
 		// Optimize the common case of length == 32 which is used by Interpreter::dcb*
 		bool destroy_block = true;
 		if (length == 32)
-	{
+		{
 			if (!valid_block[pAddr / 32])
 				destroy_block = false;
 			else
@@ -362,7 +365,7 @@ using namespace Gen;
 		{
 			std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1;
 			while (it2 != block_map.end() && it2->first.second < pAddr + length)
-		{
+			{
 				JitBlock &b = blocks[it2->second];
 				*GetICachePtr(b.originalAddress) = JIT_ICACHE_INVALID_WORD;
 				DestroyBlock(it2->second, true);
@@ -372,30 +375,6 @@ using namespace Gen;
 			{
 				block_map.erase(it1, it2);
 			}
-		}
-
-		// invalidate iCache.
-		// icbi can be called with any address, so we should check
-		if ((address & ~JIT_ICACHE_MASK) != 0x80000000 && (address & ~JIT_ICACHE_MASK) != 0x00000000 &&
-			(address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
-			(address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (address & ~JIT_ICACHEEX_MASK) != 0x10000000)
-		{
-			return;
-		}
-		if (address & JIT_ICACHE_VMEM_BIT)
-		{
-			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
-		}
-		else if (address & JIT_ICACHE_EXRAM_BIT)
-		{
-			u32 cacheaddr = address & JIT_ICACHEEX_MASK;
-			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
-		}
-		else
-		{
-			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
 		}
 	}
 	void JitBlockCache::WriteLinkBlock(u8* location, const u8* address)
