@@ -41,7 +41,7 @@ macro(add_dolphin_library lib srcs libs)
 		add_dependencies(${lib} pch)
 		set_source_files_properties(
 			${srcs} PROPERTIES
-			COMPILE_FLAGS "-include ${pch_out_filename}"
+			COMPILE_FLAGS "-include '${pch_out_filename}'"
 			OBJECT_DEPENDS "${pch_lib_filename}")
 	endif(ENABLE_PCH)
 endmacro(add_dolphin_library)
