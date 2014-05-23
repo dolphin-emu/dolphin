@@ -22,7 +22,7 @@
         android:layout_width="fill_parent"
         android:layout_height="26dip"
 
-        android:textColor="#aaaaaa"
+        android:textColor="#bbbbbb"
 
         android:layout_toRightOf="@id/ListItemIcon"
         android:layout_alignParentBottom="true"
@@ -39,8 +39,11 @@
         android:layout_height="wrap_content"
 
         android:fontFamily="sans-serif-light"
-        android:textSize="20sp"
-        android:textColor="#333333"
+        android:textSize="22sp"
+        android:textColor="#555555"
+
+        android:singleLine="true"
+        android:ellipsize="end"
 
         android:layout_toRightOf="@id/ListItemIcon"
         android:layout_alignParentRight="true"
