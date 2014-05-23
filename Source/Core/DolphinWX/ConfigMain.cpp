@@ -882,6 +882,8 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	{
 	// Core - Basic
 	case ID_CPUTHREAD:
+		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+			return;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = CPUThread->IsChecked();
 		break;
 	case ID_IDLESKIP:

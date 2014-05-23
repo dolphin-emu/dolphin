@@ -888,6 +888,8 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 // Prepare the GUI to start the game.
 void CFrame::StartGame(const std::string& filename)
 {
+	if (m_bGameLoading)
+		return;
 	m_bGameLoading = true;
 
 	if (m_ToolBar)
