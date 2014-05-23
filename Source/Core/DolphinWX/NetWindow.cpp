@@ -335,6 +335,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	m_chat_msg_text = new wxTextCtrl(panel, wxID_ANY, wxEmptyString
 		, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 	m_chat_msg_text->Bind(wxEVT_TEXT_ENTER, &NetPlayDiag::OnChat, this);
+	m_chat_msg_text->SetMaxLength(2000);
 
 	wxButton* const chat_msg_btn = new wxButton(panel, wxID_ANY, _("Send"));
 	chat_msg_btn->Bind(wxEVT_BUTTON, &NetPlayDiag::OnChat, this);
@@ -425,6 +426,8 @@ void NetPlayDiag::OnChat(wxCommandEvent&)
 
 	if (s.Length())
 	{
+		if (s.Length() > 2000)
+			s.erase(2000);
 		netplay_client->SendChatMessage(WxStrToStr(s));
 		m_chat_text->AppendText(s.Prepend(" >> ").Append('\n'));
 		m_chat_msg_text->Clear();
