@@ -298,14 +298,15 @@ inline double ApproximateReciprocal(double val)
 		0x11a, 0x11a, 0x108, 0x106,
 	};
 
-	union {
+	union
+	{
 		double valf;
-		long long vali;
+		s64 vali;
 	};
 	valf = val;
-	long long mantissa = vali & ((1LL << 52) - 1);
-	long long sign = vali & (1ULL << 63);
-	long long exponent = vali & (0x7FFLL << 52);
+	s64 mantissa = vali & ((1LL << 52) - 1);
+	s64 sign = vali & (1ULL << 63);
+	s64 exponent = vali & (0x7FFLL << 52);
 
 	// Special case 0
 	if (mantissa == 0 && exponent == 0)
@@ -329,7 +330,7 @@ inline double ApproximateReciprocal(double val)
 
 	int i = (int)(mantissa >> 37);
 	vali = sign | exponent;
-	vali |= (long long)(expected_base[i / 1024] - (expected_dec[i / 1024] * (i % 1024) + 1) / 2) << 29;
+	vali |= (s64)(expected_base[i / 1024] - (expected_dec[i / 1024] * (i % 1024) + 1) / 2) << 29;
 	return valf;
 }
 
@@ -356,14 +357,15 @@ inline double ApproximateReciprocalSquareRoot(double val)
 		0x261, 0x243, 0x226, 0x20b,
 	};
 
-	union {
+	union
+	{
 		double valf;
-		long long vali;
+		s64 vali;
 	};
 	valf = val;
-	long long mantissa = vali & ((1LL << 52) - 1);
-	long long sign = vali & (1ULL << 63);
-	long long exponent = vali & (0x7FFLL << 52);
+	s64 mantissa = vali & ((1LL << 52) - 1);
+	s64 sign = vali & (1ULL << 63);
+	s64 exponent = vali & (0x7FFLL << 52);
 
 	// Special case 0
 	if (mantissa == 0 && exponent == 0)
@@ -402,6 +404,6 @@ inline double ApproximateReciprocalSquareRoot(double val)
 	int i = (int)(mantissa >> 37);
 	vali = sign | exponent;
 	int index = i / 2048 + (odd_exponent ? 16 : 0);
-	vali |= (long long)(expected_base[index] - expected_dec[index] * (i % 2048)) << 26;
+	vali |= (s64)(expected_base[index] - expected_dec[index] * (i % 2048)) << 26;
 	return valf;
 }
