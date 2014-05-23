@@ -108,7 +108,7 @@ using namespace Gen;
 		}
 		links_to.clear();
 		block_map.clear();
-		
+
 		valid_block.clear();
 		valid_block.resize(VALID_BLOCK_MASK_SIZE, false);
 
