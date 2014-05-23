@@ -101,21 +101,6 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::frsqrtex(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	int d = inst.FD;
-	int b = inst.FB;
-	fpr.Lock(b, d);
-	fpr.BindToRegister(d, true, true);
-	MOVSD(XMM0, M((void *)&one_const));
-	SQRTSD(XMM1, fpr.R(b));
-	DIVSD(XMM0, R(XMM1));
-	MOVSD(fpr.R(d), XMM0);
-	fpr.UnlockAll();
-}
-
 void Jit64::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

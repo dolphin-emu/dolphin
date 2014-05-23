@@ -394,7 +394,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit, u32 exitAddress) {
 		case FSMul:
 		case FSAdd:
 		case FSSub:
-		case FSRSqrt:
 		case FDMul:
 		case FDAdd:
 		case FDSub:

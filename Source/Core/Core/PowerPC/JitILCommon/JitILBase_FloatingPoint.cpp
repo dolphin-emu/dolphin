@@ -9,8 +9,7 @@ void JitILBase::fp_arith_s(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 &&
-	                inst.SUBOP5 != 21 && inst.SUBOP5 != 26))
+	if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21))
 	{
 		FallBackToInterpreter(inst);
 		return;
@@ -34,12 +33,6 @@ void JitILBase::fp_arith_s(UGeckoInstruction inst)
 		break;
 	case 25: //mul
 		val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
-		break;
-	case 26: //rsqrte
-		val = ibuild.EmitLoadFReg(inst.FB);
-		val = ibuild.EmitDoubleToSingle(val);
-		val = ibuild.EmitFSRSqrt(val);
-		val = ibuild.EmitDupSingleToMReg(val);
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
