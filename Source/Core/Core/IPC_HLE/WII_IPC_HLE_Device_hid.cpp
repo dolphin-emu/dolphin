@@ -329,11 +329,20 @@ bool CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
 
 void CWII_IPC_HLE_Device_hid::ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, const struct libusb_device_descriptor *src)
 {
-	memcpy(dest,src,sizeof(WiiHIDDeviceDescriptor));
-	dest->bcdUSB = Common::swap16(dest->bcdUSB);
-	dest->idVendor = Common::swap16(dest->idVendor);
-	dest->idProduct = Common::swap16(dest->idProduct);
-	dest->bcdDevice = Common::swap16(dest->bcdDevice);
+	dest->bLength            = src->bLength;
+	dest->bDescriptorType    = src->bDescriptorType;
+	dest->bcdUSB             = Common::swap16(src->bcdUSB);
+	dest->bDeviceClass       = src->bDeviceClass;
+	dest->bDeviceSubClass    = src->bDeviceSubClass;
+	dest->bDeviceProtocol    = src->bDeviceProtocol;
+	dest->bMaxPacketSize0    = src->bMaxPacketSize0;
+	dest->idVendor           = Common::swap16(src->idVendor);
+	dest->idProduct          = Common::swap16(src->idProduct);
+	dest->bcdDevice          = Common::swap16(src->bcdDevice);
+	dest->iManufacturer      = src->iManufacturer;
+	dest->iProduct           = src->iProduct;
+	dest->iSerialNumber      = src->iSerialNumber;
+	dest->bNumConfigurations = src->bNumConfigurations;
 }
 
 void CWII_IPC_HLE_Device_hid::ConvertConfigToWii(WiiHIDConfigDescriptor *dest, const struct libusb_config_descriptor *src)
