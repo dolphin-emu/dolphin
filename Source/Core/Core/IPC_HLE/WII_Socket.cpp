@@ -568,8 +568,9 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 
 s32 WiiSockMan::DeleteSocket(s32 s)
 {
-	s32 ReturnValue = WiiSockets[s].CloseFd();
-	WiiSockets.erase(s);
+	auto it = WiiSockets.find(s);
+	s32 ReturnValue = it->second.CloseFd();
+	WiiSockets.erase(it);
 	return ReturnValue;
 }
 
@@ -581,20 +582,23 @@ void WiiSockMan::Update()
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 	FD_ZERO(&except_fds);
-	for (auto& entry : WiiSockets)
+
+	auto endSocks = end(WiiSockets);
+	for (auto it = begin(WiiSockets); it!=endSocks;)
 	{
-		WiiSocket& sock = entry.second;
+		WiiSocket& sock = it->second;
 		if (sock.IsValid())
 		{
 			FD_SET(sock.fd, &read_fds);
 			FD_SET(sock.fd, &write_fds);
 			FD_SET(sock.fd, &except_fds);
 			nfds = max(nfds, sock.fd+1);
+			++it;
 		}
 		else
 		{
 			// Good time to clean up invalid sockets.
-			WiiSockets.erase(sock.fd);
+			it = WiiSockets.erase(it);
 		}
 	}
 	s32 ret = select(nfds, &read_fds, &write_fds, &except_fds, &t);
