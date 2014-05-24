@@ -192,12 +192,9 @@ public:
 
 };
 
-class WiiSockMan
+class WiiSockMan : public ::NonCopyable
 {
 public:
-	WiiSockMan() = default;
-	WiiSockMan(WiiSockMan const&) = delete;
-	void operator=(WiiSockMan const&) = delete;
 
 	static s32 GetNetErrorCode(s32 ret, std::string caller, bool isRW);
 	static char* DecodeError(s32 ErrorCode);
@@ -240,6 +237,8 @@ public:
 			it->second.DoSock(CommandAddress, type);
 		}
 	}
+private:
+	WiiSockMan() = default;
 
 	std::unordered_map<s32, WiiSocket> WiiSockets;
 

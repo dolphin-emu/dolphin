@@ -584,7 +584,8 @@ void WiiSockMan::Update()
 	FD_ZERO(&except_fds);
 
 	auto endSocks = end(WiiSockets);
-	for (auto it = begin(WiiSockets); it!=endSocks;)
+	auto it = begin(WiiSockets);
+	while (it != endSocks)
 	{
 		WiiSocket& sock = it->second;
 		if (sock.IsValid())
