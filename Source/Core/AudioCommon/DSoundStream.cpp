@@ -29,7 +29,7 @@ bool DSound::CreateBuffer()
 
 	// Fill out DSound buffer description.
 	dsbdesc.dwSize  = sizeof(DSBUFFERDESC);
-	dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_CTRLVOLUME | DSBCAPS_GLOBALFOCUS;
+	dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_CTRLVOLUME | DSBCAPS_GLOBALFOCUS | DSBCAPS_CTRLPOSITIONNOTIFY;
 	dsbdesc.dwBufferBytes = bufferSize = BUFSIZE;
 	dsbdesc.lpwfxFormat = (WAVEFORMATEX *)&pcmwf;
 	dsbdesc.guid3DAlgorithm = DS3DALG_DEFAULT;
@@ -39,6 +39,20 @@ bool DSound::CreateBuffer()
 	{
 		dsBuffer->SetCurrentPosition(0);
 		dsBuffer->SetVolume(m_volume);
+
+		soundSyncEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("DSound Buffer Notification"));
+
+		IDirectSoundNotify *dsnotify;
+		dsBuffer->QueryInterface(IID_IDirectSoundNotify, (void**)&dsnotify);
+		DSBPOSITIONNOTIFY notify_positions[3];
+		for (unsigned i = 0; i < ARRAYSIZE(notify_positions); ++i)
+		{
+			notify_positions[i].dwOffset = i * (BUFSIZE / ARRAYSIZE(notify_positions));
+			notify_positions[i].hEventNotify = soundSyncEvent;
+		}
+		dsnotify->SetNotificationPositions(ARRAYSIZE(notify_positions), notify_positions);
+		dsnotify->Release();
+
 		return true;
 	}
 	else
@@ -103,7 +117,7 @@ void DSound::SoundLoop()
 			WriteDataToBuffer(lastPos, (char*)realtimeBuffer, numBytesToRender);
 			lastPos = ModBufferSize(lastPos + numBytesToRender);
 		}
-		soundSyncEvent.Wait();
+		WaitForSingleObject(soundSyncEvent, INFINITE);
 	}
 }
 
@@ -136,11 +150,6 @@ void DSound::SetVolume(int volume)
 		dsBuffer->SetVolume(m_volume);
 }
 
-void DSound::Update()
-{
-	soundSyncEvent.Set();
-}
-
 void DSound::Clear(bool mute)
 {
 	m_muted = mute;
@@ -162,11 +171,12 @@ void DSound::Stop()
 {
 	threadData = 1;
 	// kick the thread if it's waiting
-	soundSyncEvent.Set();
+	SetEvent(soundSyncEvent);
 
 	thread.join();
 	dsBuffer->Stop();
 	dsBuffer->Release();
 	ds->Release();
+	CloseHandle(soundSyncEvent);
 }
 

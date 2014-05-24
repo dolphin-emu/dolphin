@@ -13,14 +13,14 @@
 #include <mmsystem.h>
 #include <dsound.h>
 
-#define BUFSIZE (1024 * 8 * 4)
+#define BUFSIZE (256 * 8 * 4)
 #endif
 
 class DSound final : public SoundStream
 {
 #ifdef _WIN32
 	std::thread thread;
-	Common::Event soundSyncEvent;
+	HANDLE soundSyncEvent;
 	void  *hWnd;
 
 	IDirectSound8* ds;
@@ -66,7 +66,6 @@ public:
 	virtual void Stop();
 	virtual void Clear(bool mute);
 	static bool isValid() { return true; }
-	virtual void Update();
 
 #else
 public:
