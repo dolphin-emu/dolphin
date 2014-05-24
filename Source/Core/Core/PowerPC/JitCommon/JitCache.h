@@ -6,6 +6,7 @@
 
 #include <bitset>
 #include <map>
+#include <memory>
 #include <vector>
 
 #include "Core/PowerPC/Gekko.h"
@@ -64,6 +65,40 @@ struct JitBlock
 
 typedef void (*CompiledCode)();
 
+// This is essentially just an std::bitset, but Visual Studia 2013's
+// implementation of std::bitset is slow.
+class ValidBlockBitSet final
+{
+	enum
+	{
+		VALID_BLOCK_MASK_SIZE = 0x20000000 / 32,
+		VALID_BLOCK_ALLOC_ELEMENTS = VALID_BLOCK_MASK_SIZE / 32
+	};
+	std::unique_ptr<u32[]> m_valid_block;
+
+public:
+	ValidBlockBitSet()
+	{
+		m_valid_block.reset(new u32[VALID_BLOCK_ALLOC_ELEMENTS]);
+		ClearAll();
+	}
+	void Set(u32 bit)
+	{
+		m_valid_block[bit / 32] |= 1u << (bit % 32);
+	}
+	void Clear(u32 bit)
+	{
+		m_valid_block[bit / 32] &= ~(1u << (bit % 32));
+	}
+	void ClearAll()
+	{
+		memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS);
+	}
+	bool Test(u32 bit)
+	{
+		return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0;
+	}
+};
 
 class JitBaseBlockCache
 {
@@ -72,11 +107,11 @@ class JitBaseBlockCache
 	int num_blocks;
 	std::multimap<u32, int> links_to;
 	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
-	std::vector<bool> valid_block;
+	ValidBlockBitSet valid_block;
+
 	enum
 	{
 		MAX_NUM_BLOCKS = 65536*2,
-		VALID_BLOCK_MASK_SIZE = 0x20000000 / 32,
 	};
 
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
