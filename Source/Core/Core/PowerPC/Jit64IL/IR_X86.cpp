@@ -674,7 +674,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case FSMul:
 		case FSAdd:
 		case FSSub:
-		case FSRSqrt:
 		case FDMul:
 		case FDAdd:
 		case FDSub:
@@ -1433,14 +1432,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case FSSub: {
 			if (!thisUsed) break;
 			fregEmitBinInst(RI, I, &JitIL::SUBSS);
-			break;
-		}
-		case FSRSqrt: {
-			if (!thisUsed) break;
-			X64Reg reg = fregURegWithoutMov(RI, I);
-			Jit->RSQRTSS(reg, fregLocForInst(RI, getOp1(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
 			break;
 		}
 		case FDMul: {

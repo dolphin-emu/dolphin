@@ -112,41 +112,6 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-// ps_res and ps_rsqrte
-void Jit64::ps_recip(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
-	OpArg divisor;
-	int d = inst.FD;
-	int b = inst.FB;
-	fpr.Lock(d, b);
-	fpr.BindToRegister(d, (d == b));
-	switch (inst.SUBOP5)
-	{
-	case 24:
-		// ps_res
-		divisor = fpr.R(b);
-		break;
-	case 26:
-		// ps_rsqrte
-		SQRTPD(XMM0, fpr.R(b));
-		divisor = R(XMM0);
-		break;
-	}
-	MOVAPD(XMM1, M((void*)&psOneOne));
-	DIVPD(XMM1, divisor);
-	MOVAPD(fpr.R(d), XMM1);
-	fpr.UnlockAll();
-}
-
 //add a, b, c
 
 //mov a, b

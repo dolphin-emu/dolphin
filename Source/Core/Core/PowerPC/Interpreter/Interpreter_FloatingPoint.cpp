@@ -18,7 +18,6 @@
 #endif
 
 #include "Common/MathUtil.h"
-#include "Core/PowerPC/LUT_frsqrtex.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
@@ -388,19 +387,7 @@ void Interpreter::fdivsx(UGeckoInstruction _inst)
 void Interpreter::fresx(UGeckoInstruction _inst)
 {
 	double b = rPS0(_inst.FB);
-	double one_over = ForceSingle(1.0 / b);
-	// this is based on the real hardware tests
-	if (b != 0.0 && IsINF(one_over))
-	{
-		if (one_over > 0)
-			riPS0(_inst.FD) = riPS1(_inst.FD) = MAX_SINGLE;
-		else
-			riPS0(_inst.FD) = riPS1(_inst.FD) = MIN_SINGLE;
-	}
-	else
-	{
-		rPS0(_inst.FD) = rPS1(_inst.FD) = one_over;
-	}
+	rPS0(_inst.FD) = rPS1(_inst.FD) = ApproximateReciprocal(b);
 	if (b == 0.0)
 	{
 		SetFPException(FPSCR_ZX);
@@ -415,39 +402,12 @@ void Interpreter::frsqrtex(UGeckoInstruction _inst)
 	if (b < 0.0)
 	{
 		SetFPException(FPSCR_VXSQRT);
-		rPS0(_inst.FD) = PPC_NAN;
 	}
-	else
+	else if (b == 0.0)
 	{
-#ifdef VERY_ACCURATE_FP
-		if (b == 0.0)
-		{
-			SetFPException(FPSCR_ZX);
-			riPS0(_inst.FD) = 0x7ff0000000000000;
-		}
-		else
-		{
-			u32 fsa = Common::swap32(Common::swap64(riPS0(_inst.FB)));
-			u32 fsb = Common::swap32(Common::swap64(riPS0(_inst.FB)) >> 32);
-			u32 idx=(fsa >> 5) % (sizeof(frsqrtex_lut) / sizeof(frsqrtex_lut[0]));
-
-			s32 e = fsa >> (32-12);
-			e &= 2047;
-			e -= 1023;
-			s32 oe =- ((e + 1) / 2);
-			oe -= ((e + 1) & 1);
-
-			u32 outb = frsqrtex_lut[idx] << 20;
-			u32 outa = ((oe + 1023) & 2047) << 20;
-			outa |= frsqrtex_lut[idx] >> 12;
-			riPS0(_inst.FD) = ((u64)outa << 32) + (u64)outb;
-		}
-#else
-		if (b == 0.0)
-			SetFPException(FPSCR_ZX);
-		rPS0(_inst.FD) = ForceDouble(1.0 / sqrt(b));
-#endif
+		SetFPException(FPSCR_ZX);
 	}
+	rPS0(_inst.FD) = ApproximateReciprocalSquareRoot(b);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }

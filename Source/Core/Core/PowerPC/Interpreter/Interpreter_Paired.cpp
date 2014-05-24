@@ -178,57 +178,26 @@ void Interpreter::ps_res(UGeckoInstruction _inst)
 	{
 		SetFPException(FPSCR_ZX);
 	}
-	rPS0(_inst.FD) = ForceSingle(1.0 / a);
-	if (a != 0.0 && IsINF(rPS0(_inst.FD)))
-	{
-		if (rPS0(_inst.FD) > 0)
-			riPS0(_inst.FD) = MAX_SINGLE; // largest finite single
-		else
-			riPS0(_inst.FD) = MIN_SINGLE; // most negative finite single
-	}
-	rPS1(_inst.FD) = ForceSingle(1.0 / b);
-	if (b != 0.0 && IsINF(rPS1(_inst.FD)))
-	{
-		if (rPS1(_inst.FD) > 0)
-			riPS1(_inst.FD) = MAX_SINGLE;
-		else
-			riPS1(_inst.FD) = MIN_SINGLE;
-	}
+	rPS0(_inst.FD) = ApproximateReciprocal(a);
+	rPS1(_inst.FD) = ApproximateReciprocal(b);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_rsqrte(UGeckoInstruction _inst)
 {
-	// this code is based on the real hardware tests
 	if (rPS0(_inst.FB) == 0.0 || rPS1(_inst.FB) == 0.0)
 	{
 		SetFPException(FPSCR_ZX);
 	}
-	// PS0
-	if (rPS0(_inst.FB) < 0.0)
+
+	if (rPS0(_inst.FB) < 0.0 || rPS1(_inst.FB) < 0.0)
 	{
 		SetFPException(FPSCR_VXSQRT);
-		rPS0(_inst.FD) = PPC_NAN;
 	}
-	else
-	{
-		rPS0(_inst.FD) = 1.0 / sqrt(rPS0(_inst.FB));
-		u32 t = ConvertToSingle(riPS0(_inst.FD));
-		rPS0(_inst.FD) = *(float*)&t;
-	}
-	// PS1
-	if (rPS1(_inst.FB) < 0.0)
-	{
-		SetFPException(FPSCR_VXSQRT);
-		rPS1(_inst.FD) = PPC_NAN;
-	}
-	else
-	{
-		rPS1(_inst.FD) = 1.0 / sqrt(rPS1(_inst.FB));
-		u32 t = ConvertToSingle(riPS1(_inst.FD));
-		rPS1(_inst.FD) = *(float*)&t;
-	}
+
+	rPS0(_inst.FD) = ApproximateReciprocalSquareRoot(rPS0(_inst.FB));
+	rPS1(_inst.FD) = ApproximateReciprocalSquareRoot(rPS1(_inst.FB));
 
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();

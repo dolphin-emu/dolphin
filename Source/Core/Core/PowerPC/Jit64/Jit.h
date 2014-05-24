@@ -168,12 +168,10 @@ public:
 	void ps_arith(UGeckoInstruction inst); //aggregate
 	void ps_mergeXX(UGeckoInstruction inst);
 	void ps_maddXX(UGeckoInstruction inst);
-	void ps_recip(UGeckoInstruction inst);
 	void ps_sum(UGeckoInstruction inst);
 	void ps_muls(UGeckoInstruction inst);
 
 	void fp_arith(UGeckoInstruction inst);
-	void frsqrtex(UGeckoInstruction inst);
 
 	void fcmpx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
