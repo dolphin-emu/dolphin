@@ -321,7 +321,8 @@ inline double ApproximateReciprocal(double val)
 	}
 	// Special case small inputs
 	if (exponent < (895LL << 52))
-		return sign ? -FLT_MAX : FLT_MAX;
+		return sign ? -std::numeric_limits<float>::max() :
+		               std::numeric_limits<float>::max();
 	// Special case large inputs
 	if (exponent >= (1149LL << 52))
 		return sign ? -0.0f : 0.0f;
