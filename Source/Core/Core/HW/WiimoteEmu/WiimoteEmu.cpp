@@ -449,24 +449,19 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 			m_extension->active_extension <= 0 &&
 			g_hydra.c[left].enabled && !g_hydra.c[left].docked)
 		{
-			if (g_hydra.c[left].stick_x > 0.5f || g_hydra.c[right].stick_x > 0.5f)
+			if (g_hydra_state[left].jx > 0.5f || g_hydra_state[right].jx > 0.5f)
 			{
 				m_status.buttons |= Wiimote::PAD_DOWN;
 			}
-			else if (g_hydra.c[left].stick_x < -0.5f || g_hydra.c[right].stick_x < -0.5f)
+			else if (g_hydra_state[left].jx < -0.5f || g_hydra_state[right].jx < -0.5f)
 			{
 				m_status.buttons |= Wiimote::PAD_UP;
 			}
-			if (g_hydra.c[left].buttons & HYDRA_BUTTON_3)
-			{
-				NOTICE_LOG(WIIMOTE, "%lf, %lf", g_hydra.c[left].stick_x, g_hydra.c[left].stick_y);
-			}
-
-			if (g_hydra.c[left].stick_y > 0.5f || g_hydra.c[right].stick_y > 0.5f)
+			if (g_hydra_state[left].jy > 0.5f || g_hydra_state[right].jy > 0.5f)
 			{
 				m_status.buttons |= Wiimote::PAD_RIGHT;
 			}
-			else if (g_hydra.c[left].stick_y < -0.5f || g_hydra.c[right].stick_y < -0.5f)
+			else if (g_hydra_state[left].jy < -0.5f || g_hydra_state[right].jy < -0.5f)
 			{
 				m_status.buttons |= Wiimote::PAD_LEFT;
 			}
@@ -481,19 +476,19 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 		}
 		else
 		{
-			if (g_hydra.c[right].stick_x > 0.5f)
+			if (g_hydra_state[right].jx > 0.5f)
 			{
 				m_status.buttons |= Wiimote::PAD_RIGHT;
 			}
-			else if (g_hydra.c[right].stick_x < -0.5f)
+			else if (g_hydra_state[right].jx < -0.5f)
 			{
 				m_status.buttons |= Wiimote::PAD_LEFT;
 			}
-			if (g_hydra.c[right].stick_y > 0.5f)
+			if (g_hydra_state[right].jy > 0.5f)
 			{
 				m_status.buttons |= Wiimote::PAD_UP;
 			}
-			else if (g_hydra.c[right].stick_y < -0.5f)
+			else if (g_hydra_state[right].jy < -0.5f)
 			{
 				m_status.buttons |= Wiimote::PAD_DOWN;
 			}
@@ -527,6 +522,15 @@ void Wiimote::GetAccelData(u8* const data, u8* const core)
 	if (this->m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled && !g_hydra.c[1].docked)
 	{
 		const int left = 0, right = 1;
+		// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
+		float rel_acc[3];
+		for (int i = 0; i < 3; ++i)
+		{
+			rel_acc[i] = g_hydra_state[right].a[0] * g_hydra.c[right].rotation_matrix[i][0]
+				+ g_hydra_state[right].a[1] * g_hydra.c[right].rotation_matrix[i][1]
+				+ g_hydra_state[right].a[2] * g_hydra.c[right].rotation_matrix[i][2];
+		}
+
 		// Note that here X means to the CONTROLLER'S left, Y means to the CONTROLLER'S tail, and Z means to the CONTROLLER'S top! 
 		// Tilt sensing.
 		// If the left Hydra is docked, or an extension is plugged in then just
@@ -557,27 +561,24 @@ void Wiimote::GetAccelData(u8* const data, u8* const core)
 				m_accel.x = x * tail_up / len;
 				m_accel.z = x * stick_up / len;
 			}
+
+			// Convert rel acc from m/s/s to G's, and to sideways Wiimote's coordinate system.
+			m_accel.x += rel_acc[2] / 9.8f;
+			m_accel.z += rel_acc[1] / 9.8f;
+			m_accel.y -= rel_acc[0] / 9.8f;
 		}
 		else
 		{
+			// Tilt sensing.
 			m_accel.x = -g_hydra.c[right].rotation_matrix[0][1];
 			m_accel.z = g_hydra.c[right].rotation_matrix[1][1];
 			m_accel.y = g_hydra.c[right].rotation_matrix[2][1];
-		}
 
-		// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
-		float rel_acc[3];
-		for (int i = 0; i < 3; ++i)
-		{
-			rel_acc[i] = g_hydra_state[right].a[0] * g_hydra.c[right].rotation_matrix[i][0]
-				 + g_hydra_state[right].a[1] * g_hydra.c[right].rotation_matrix[i][1]
-				 + g_hydra_state[right].a[2] * g_hydra.c[right].rotation_matrix[i][2];
+			// Convert rel acc from m/s/s to G's, and to Wiimote's coordinate system.
+			m_accel.x -= rel_acc[0] / 9.8f;
+			m_accel.z += rel_acc[1] / 9.8f;
+			m_accel.y += rel_acc[2] / 9.8f;
 		}
-
-		// Convert from metres per second per second to G's, and to Wiimote's coordinate system.
-		m_accel.x -= rel_acc[0] / 9.8f;
-		m_accel.z += rel_acc[1] / 9.8f;
-		m_accel.y += rel_acc[2] / 9.8f;
 	}
 #endif
 
@@ -659,7 +660,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 			g_hydra.c[1].enabled && !g_hydra.c[1].docked)
 		{
 			const int left = 0, right = 1;
-			if (g_hydra.c[left].buttons & HYDRA_BUTTON_START)
+			// The home button (right stick in) also recenters the IR. 
+			if (g_hydra.c[right].buttons & HYDRA_BUTTON_STICK)
 			{
 				hydra_ir_center_x = g_hydra.c[right].position[0];
 				hydra_ir_center_y = g_hydra.c[right].position[1];

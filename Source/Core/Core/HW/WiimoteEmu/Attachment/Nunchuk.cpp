@@ -166,8 +166,8 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 			ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_C;
 		if (g_hydra.c[left].trigger > 0.25f || (g_hydra.c[left].buttons & HYDRA_BUTTON_2))
 			ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_Z;
-		ncdata->jx = u8(0x80 + g_hydra.c[left].stick_x * 127);
-		ncdata->jy = u8(0x80 + g_hydra.c[left].stick_y * 127);
+		ncdata->jx = u8(0x80 + g_hydra_state[left].jx * 127);
+		ncdata->jy = u8(0x80 + g_hydra_state[left].jy * 127);
 
 		if (!g_hydra.c[left].docked)
 		{

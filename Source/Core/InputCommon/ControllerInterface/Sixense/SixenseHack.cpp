@@ -22,20 +22,23 @@ void InitSixenseLib()
 {
 	if (!g_sixense_initialized)
 	{
-#ifdef _WIN64
-		g_sixense_lib = LoadLibrary(_T("sixense_x64.dll"));
-#else
-		g_sixense_lib = LoadLibrary(_T("sixense.dll"));
-#endif
-
 		if (!g_sixense_lib)
 		{
 #ifdef _WIN64
-			WARN_LOG(WIIMOTE, "Failed to load sixense_x64.dll. Razer Hydra and Sixense STEM will not be supported.");
+			g_sixense_lib = LoadLibrary(_T("sixense_x64.dll"));
 #else
-			WARN_LOG(WIIMOTE, "Failed to load sixense.dll. Razer Hydra and Sixense STEM will not be supported.");
+			g_sixense_lib = LoadLibrary(_T("sixense.dll"));
 #endif
-			return;
+
+			if (!g_sixense_lib)
+			{
+#ifdef _WIN64
+				WARN_LOG(WIIMOTE, "Failed to load sixense_x64.dll. Razer Hydra and Sixense STEM will not be supported.");
+#else
+				WARN_LOG(WIIMOTE, "Failed to load sixense.dll. Razer Hydra and Sixense STEM will not be supported.");
+#endif
+				return;
+			}
 		}
 
 		Hydra_Init = (PHydra_Init)GetProcAddress(g_sixense_lib, "sixenseInit");
@@ -51,10 +54,14 @@ void InitSixenseLib()
 			ERROR_LOG(WIIMOTE, "Hydra_Init() function failed. Razer Hydra and Sixense STEM will not be supported.");
 			return;
 		}
+		ZeroMemory(g_hydra_state, 2*sizeof(g_hydra_state[0]));
+		ZeroMemory(g_old, 2 * sizeof(g_old[0]));
+		ZeroMemory(&g_hydra, sizeof(g_hydra));
+		ZeroMemory(&g_oldhydra, sizeof(g_oldhydra));
 		HydraUpdate();
 
 		g_sixense_initialized = true;
-		NOTICE_LOG(WIIMOTE, "Sixense Razer Hydra initialized.");
+		NOTICE_LOG(WIIMOTE, "Sixense Razer Hydra driver initialized.");
 	}
 }
 
@@ -78,6 +85,32 @@ void HydraUpdateController(int hand)
 		// get acceleration
 		g_hydra_state[hand].a[axis] = (g_hydra_state[hand].v[axis] - g_old[hand].v[axis]) / t;
 	}
+	// As soon as we remove hydra from its dock, recalibrate joystick centre (if possible).
+	if (g_oldhydra.c[hand].docked && (!g_hydra.c[hand].docked) &&
+		fabs(g_hydra.c[hand].stick_x) < 1.0f && fabs(g_hydra.c[hand].stick_y) < 1.0f)
+	{
+		g_hydra_state[hand].jcx = g_hydra.c[hand].stick_x;
+		g_hydra_state[hand].jcy = g_hydra.c[hand].stick_y;
+		NOTICE_LOG(WIIMOTE, "Hydra %d analog stick recalibrated to (%5.2f, %5.2f)", hand, g_hydra_state[hand].jcx, g_hydra_state[hand].jcy);
+	}
+	// Return calibrated joystick values.
+	if (g_hydra.c[hand].stick_x <= g_hydra_state[hand].jcx)
+	{
+		g_hydra_state[hand].jx = (g_hydra.c[hand].stick_x - g_hydra_state[hand].jcx) / (g_hydra_state[hand].jcx - -1.0f);
+	}
+	else
+	{
+		g_hydra_state[hand].jx = (g_hydra.c[hand].stick_x - g_hydra_state[hand].jcx) / (1.0f - g_hydra_state[hand].jcx);
+	}
+	if (g_hydra.c[hand].stick_y <= g_hydra_state[hand].jcy)
+	{
+		g_hydra_state[hand].jy = (g_hydra.c[hand].stick_y - g_hydra_state[hand].jcy) / (g_hydra_state[hand].jcy - -1.0f);
+	}
+	else
+	{
+		g_hydra_state[hand].jy = (g_hydra.c[hand].stick_y - g_hydra_state[hand].jcy) / (1.0f - g_hydra_state[hand].jcy);
+	}
+	// Save current state as old state for next time.
 	g_old[hand] = g_hydra_state[hand];
 }
 

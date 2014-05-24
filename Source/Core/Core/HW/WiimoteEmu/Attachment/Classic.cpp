@@ -167,8 +167,8 @@ void Classic::GetState(u8* const data, const bool focus)
 		if (!g_hydra.c[left].docked)
 		{
 			// Left analog stick
-			ccdata->lx = (u8)(31.5f + g_hydra.c[left].stick_x * 31.5f);
-			ccdata->ly = (u8)(31.5f + g_hydra.c[left].stick_y * 31.5f);
+			ccdata->lx = (u8)(31.5f + g_hydra_state[left].jx * 31.5f);
+			ccdata->ly = (u8)(31.5f + g_hydra_state[left].jy * 31.5f);
 			// Left analog trigger = L
 			u8 trigger = (u8)(g_hydra.c[left].trigger * 31);
 			ccdata->lt1 = trigger;
@@ -182,8 +182,8 @@ void Classic::GetState(u8* const data, const bool focus)
 		if (g_hydra.c[right].enabled && !g_hydra.c[right].docked)
 		{
 			// Right analog stick
-			u8 x = u8(15.5f + g_hydra.c[right].stick_x * 15.5f);
-			u8 y = u8(15.5f + g_hydra.c[right].stick_y * 15.5f);
+			u8 x = u8(15.5f + g_hydra_state[right].jx * 15.5f);
+			u8 y = u8(15.5f + g_hydra_state[right].jy * 15.5f);
 			ccdata->rx1 = x;
 			ccdata->rx2 = x >> 1;
 			ccdata->rx3 = x >> 3;

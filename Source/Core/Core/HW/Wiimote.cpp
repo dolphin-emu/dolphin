@@ -41,6 +41,7 @@ void Shutdown()
 	// VR Razer Hydra or Sixense STEM
 	if (g_sixense_initialized && Hydra_Exit)
 	{
+		NOTICE_LOG(WIIMOTE, "Sixense Razer Hydra driver shutting down.");
 		g_sixense_initialized = false;
 		Hydra_Exit();
 	}

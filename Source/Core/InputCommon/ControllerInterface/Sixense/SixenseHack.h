@@ -37,6 +37,7 @@ typedef struct
 typedef struct
 {
 	float p[3], v[3], a[3], t;
+	float jx, jy, jcx, jcy;
 } THydraControllerState;
 
 #ifdef _WIN32
