@@ -67,14 +67,15 @@ void InitSixenseLib()
 
 void HydraUpdateController(int hand)
 {
-	float t;
+	// buttons which have changed state to pressed (but haven't been read yet)
+	g_hydra_state[hand].pressed |= g_hydra.c[hand].buttons & ~g_oldhydra.c[hand].buttons;
 	// Get time since last update. Razer Hydra is locked to 60Hz.
 	s16 frames = (s16)g_hydra.c[hand].sequence_number - (s16)g_oldhydra.c[hand].sequence_number;
 	if (frames < 0)
 	{
 		frames += 256;
 	}
-	t = frames/60.0f;
+	float t = frames/60.0f;
 	for (int axis = 0; axis < 3; ++axis)
 	{
 		g_hydra_state[hand].t = t;

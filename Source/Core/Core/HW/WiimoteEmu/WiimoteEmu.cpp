@@ -23,6 +23,8 @@
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
+
 #ifdef _WIN32
 #include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
 #endif
@@ -445,7 +447,7 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 		// If the left Hydra is docked, or an extension is plugged in then just
 		// hold the right Hydra sideways yourself. Otherwise in sideways mode 
 		// with no extension use the left hydra for DPad, A, and B.
-		if (m_options->settings[1]->value != 0 && 
+		if (m_options->settings[1]->value != 0 &&
 			m_extension->active_extension <= 0 &&
 			g_hydra.c[left].enabled && !g_hydra.c[left].docked)
 		{
@@ -492,6 +494,12 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 			{
 				m_status.buttons |= Wiimote::PAD_DOWN;
 			}
+		}
+		// Left hydra stick cycles through extensions: Wiimote, Sideways, Nunchuk, Classic
+		if (g_hydra_state[left].pressed & HYDRA_BUTTON_STICK)
+		{
+			g_hydra_state[left].pressed &= ~HYDRA_BUTTON_STICK;
+			CycleThroughExtensions();
 		}
 	}
 #endif
@@ -661,8 +669,9 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		{
 			const int left = 0, right = 1;
 			// The home button (right stick in) also recenters the IR. 
-			if (g_hydra.c[right].buttons & HYDRA_BUTTON_STICK)
+			if (g_hydra_state[right].pressed & HYDRA_BUTTON_STICK)
 			{
+				g_hydra_state[right].pressed &= ~HYDRA_BUTTON_STICK;
 				hydra_ir_center_x = g_hydra.c[right].position[0];
 				hydra_ir_center_y = g_hydra.c[right].position[1];
 				hydra_ir_center_z = -g_hydra.c[right].position[2];
@@ -1136,6 +1145,55 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 	// set nunchuk defaults
 	m_extension->attachments[1]->LoadDefaults(ciface);
+}
+
+// Switch between Wiimote, Sideways Wiimote, Wiimote+Nunchuk, Wiimote+Classic.
+void Wiimote::CycleThroughExtensions()
+{
+	switch (m_extension->active_extension)
+	{
+	case -1:
+		// special temporary flag, don't change it
+		break;
+	case 0:
+		// if vertical Wiimote, switch to Wiimote
+		if (m_options->settings[2]->value != 0)
+		{
+			m_extension->switch_extension = 0;
+			m_options->settings[1]->value = 0;
+			m_options->settings[2]->value = 0;
+			OSD::AddMessage("Controller: Wiimote", 5000);
+		}
+		// if Wiimote, switch to sideways Wiimote
+		else if (m_options->settings[1]->value == 0)
+		{
+			m_extension->switch_extension = 0;
+			m_options->settings[1]->value = 1;
+			m_options->settings[2]->value = 0;
+			OSD::AddMessage("Controller: Sideways Wiimote", 5000);
+		}
+		// if Sideways Wiimote, switch to Wiimote+Nunchuk (not sideways)
+		else
+		{
+			m_extension->switch_extension = 1;
+			m_options->settings[1]->value = 0;
+			m_options->settings[2]->value = 0;
+			OSD::AddMessage("Controller: Wiimote + Nunchuk", 5000);
+		}
+		break;
+	case 1:
+		// if Wiimote+Nunchuk, switch to Wiimote+Classic		
+		m_extension->switch_extension = 2;
+		OSD::AddMessage("Controller: Classic Controller", 5000);
+		break;
+	default:
+		// if anything else (Wiimote+Classic, guitar, drums, etc.) switch to Wiimote (not sideways)
+		m_extension->switch_extension = 0;
+		m_options->settings[1]->value = 0;
+		m_options->settings[2]->value = 0;
+		OSD::AddMessage("Controller: Wiimote", 5000);
+		break;
+	}
 }
 
 }
