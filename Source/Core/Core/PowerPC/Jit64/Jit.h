@@ -190,6 +190,7 @@ public:
 
 	void fmaddXX(UGeckoInstruction inst);
 	void fsign(UGeckoInstruction inst);
+	void fselx(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst); //stw sth stb
 	void rlwinmx(UGeckoInstruction inst);
 	void rlwimix(UGeckoInstruction inst);
