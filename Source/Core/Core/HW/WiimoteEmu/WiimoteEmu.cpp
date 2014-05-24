@@ -409,7 +409,7 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 #ifdef _WIN32
 	// VR Sixense Razer hydra fixed button mapping
 	// START = A, RT/RB = B, 1 = 1, 2 = 2, 3 = -, 4 = +, stick = DPad/Home
-	if (this->m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled)
+	if (m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled)
 	{
 		const int left = 0, right = 1;
 		if (g_hydra.c[right].buttons & HYDRA_BUTTON_START)
@@ -527,7 +527,7 @@ void Wiimote::GetAccelData(u8* const data, u8* const core)
 
 #ifdef _WIN32
 	// VR Sixense Razer hydra support
-	if (this->m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled && !g_hydra.c[1].docked)
+	if (m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled && !g_hydra.c[1].docked)
 	{
 		const int left = 0, right = 1;
 		// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
@@ -664,7 +664,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		// Use right Hydra's position as IR pointer.
 		// These are in millimetres right, up, and into screen from the base orb.
 		static float hydra_ir_center_x = -300.0f, hydra_ir_center_y = -30.0f, hydra_ir_center_z = -300;
-		if (this->m_index == 0 && HydraUpdate() && 
+		if (m_index == 0 && HydraUpdate() && 
 			g_hydra.c[1].enabled && !g_hydra.c[1].docked)
 		{
 			const int left = 0, right = 1;

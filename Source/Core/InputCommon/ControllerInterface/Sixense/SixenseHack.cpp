@@ -1,6 +1,6 @@
 #include <Windows.h>
-#include "SixenseHack.h"
 #include "Common/Common.h"
+#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
 
 typedef int(__cdecl *PHydra_Init)();
 typedef int(__cdecl *PHydra_Exit)();

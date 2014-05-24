@@ -88,16 +88,20 @@ void EmulateSwing(AccelData* const accel
 
 inline double trim(double a)
 {
-	if (a<=0) return 0;
-	if (a>=255) return 255;
+	if (a<=0)
+		return 0;
+	if (a>=255)
+		return 255;
 	return a;
 }
 
 // Convert a float with values between 0 and 255 into a 10bit integer. 
 inline u32 trim10bit(double a)
 {
-	if (a <= 0) return 0;
-	if (a*4 >= 1023) return 1023;
+	if (a <= 0)
+		return 0;
+	if (a*4 >= 1023)
+		return 1023;
 	return (u32)a*4;
 }
 

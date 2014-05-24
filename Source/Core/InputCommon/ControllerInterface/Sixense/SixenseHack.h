@@ -6,15 +6,18 @@
 
 #include "Common/CommonTypes.h"
 
-#define HYDRA_BUTTON_START		0x001
-#define HYDRA_BUTTON_UNKNOWN1	0x002
-#define HYDRA_BUTTON_UNKNOWN2	0x004
-#define HYDRA_BUTTON_3			0x008
-#define HYDRA_BUTTON_4			0x010
-#define HYDRA_BUTTON_1			0x020
-#define HYDRA_BUTTON_2			0x040
-#define HYDRA_BUTTON_BUMPER		0x080
-#define HYDRA_BUTTON_STICK		0x100
+enum
+{
+	HYDRA_BUTTON_START     = 0x001,
+	HYDRA_BUTTON_UNKNOWN1  = 0x002,
+	HYDRA_BUTTON_UNKNOWN2  = 0x004,
+	HYDRA_BUTTON_3         = 0x008,
+	HYDRA_BUTTON_4         = 0x010,
+	HYDRA_BUTTON_1         = 0x020,
+	HYDRA_BUTTON_2         = 0x040,
+	HYDRA_BUTTON_BUMPER    = 0x080,
+	HYDRA_BUTTON_STICK     = 0x100,
+};
 
 typedef struct
 {
@@ -63,8 +66,6 @@ typedef int(*PHydra_Init)();
 typedef int(*PHydra_Exit)();
 typedef int(*PHydra_GetAllNewestData)(TAllHydraControllers *all_controllers);
 
-#define InitSixenseLib()
-
 void InitSixenseLib();
 bool g_sixense_initialized = false;
 PHydra_Exit Hydra_Exit = nullptr;
@@ -73,6 +74,7 @@ PHydra_GetAllNewestData Hydra_GetAllNewestData = nullptr;
 THydraControllerState g_hydra_state[2];
 TAllHydraControllers g_hydra;
 
+// dummy function stubs:
 inline void InitSixenseLib()
 {
 }
