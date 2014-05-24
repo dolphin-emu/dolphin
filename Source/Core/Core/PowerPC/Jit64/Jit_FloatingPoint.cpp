@@ -10,7 +10,6 @@
 
 static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 static const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-static const double one_const = 1.0f;
 
 void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg))
 {
@@ -105,14 +104,20 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
+
 	int d = inst.FD;
 	int b = inst.FB;
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d, true, true);
-	MOVSD(XMM0, M((void *)&one_const));
-	SQRTSD(XMM1, fpr.R(b));
-	DIVSD(XMM0, R(XMM1));
-	MOVSD(fpr.R(d), XMM0);
+	fpr.BindToRegister(d, d == b, true);
+	CVTSD2SS(XMM0, fpr.R(b));
+	RSQRTSS(XMM0, R(XMM0));
+	CVTSS2SD(fpr.RX(d), R(XMM0));
 	fpr.UnlockAll();
 }
 
