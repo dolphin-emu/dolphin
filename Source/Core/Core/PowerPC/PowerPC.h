@@ -39,7 +39,6 @@ struct GC_ALIGNED64(PowerPCState)
 	u32 pc;     // program counter
 	u32 npc;
 
-	u32 cr;            // flags
 	u8 cr_fast[8];     // Possibly reorder to 0, 2, 4, 8, 1, 3, 5, 7 so that we can make Compact and Expand super fast?
 
 	u32 msr;    // machine specific register
@@ -101,8 +100,8 @@ void Stop();
 CPUState GetState();
 volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern declaration to easily be able to find all direct accesses throughout the code.
 
-void CompactCR();
-void ExpandCR();
+u32 CompactCR();
+void ExpandCR(u32 cr);
 
 void OnIdle(u32 _uThreadAddr);
 void OnIdleIL();
@@ -171,13 +170,11 @@ inline void SetCRBit(int bit, int value) {
 
 // SetCR and GetCR are fairly slow. Should be avoided if possible.
 inline void SetCR(u32 new_cr) {
-	PowerPC::ppcState.cr = new_cr;
-	PowerPC::ExpandCR();
+	PowerPC::ExpandCR(new_cr);
 }
 
 inline u32 GetCR() {
-	PowerPC::CompactCR();
-	return PowerPC::ppcState.cr;
+	return PowerPC::CompactCR();
 }
 
 // SetCarry/GetCarry may speed up soon.
