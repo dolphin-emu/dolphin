@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -14,6 +14,7 @@
 
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
 #include "Core/HW/WiimoteEmu/UDPTLayer.h"
+#include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
@@ -24,10 +25,6 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
-
-#ifdef _WIN32
-#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
-#endif
 
 namespace
 {
@@ -301,8 +298,8 @@ Wiimote::Wiimote( const unsigned int index )
 	// extension
 	groups.emplace_back(m_extension = new Extension(_trans("Extension")));
 	m_extension->attachments.emplace_back(new WiimoteEmu::None(m_reg_ext));
-	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
-	m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext, index));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext, index));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Guitar(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
@@ -405,104 +402,13 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 		m_buttons->GetState(&m_status.buttons, button_bitmasks);
 		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
 		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
-	}
-#ifdef _WIN32
-	// VR Sixense Razer hydra fixed button mapping
-	// START = A, RT/RB = B, 1 = 1, 2 = 2, 3 = -, 4 = +, stick = DPad/Home
-	if (m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled)
-	{
-		const int left = 0, right = 1;
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_START)
+		bool cycle_extension = false;
+		HydraTLayer::GetButtons(m_index, is_sideways, m_extension->active_extension > 0, &m_status.buttons, &cycle_extension);
+		if (cycle_extension)
 		{
-			m_status.buttons |= Wiimote::BUTTON_A;
-		}
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_1)
-		{
-			m_status.buttons |= Wiimote::BUTTON_ONE;
-		}
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_2)
-		{
-			m_status.buttons |= Wiimote::BUTTON_TWO;
-		}
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_3)
-		{
-			m_status.buttons |= Wiimote::BUTTON_MINUS;
-		}
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_4)
-		{
-			m_status.buttons |= Wiimote::BUTTON_PLUS;
-		}
-		if ((g_hydra.c[right].buttons & HYDRA_BUTTON_BUMPER) || (g_hydra.c[right].trigger > 0.25))
-		{
-			m_status.buttons |= Wiimote::BUTTON_B;
-		}
-		if (g_hydra.c[right].buttons & HYDRA_BUTTON_STICK)
-		{
-			m_status.buttons |= Wiimote::BUTTON_HOME;
-			// In the IR section this button also recenters the IR pointer.
-			// That makes sense because the Home screen is guaranteed to have a pointer,
-			// is easy to get out of by pressing Home again, and is rarely pressed.
-		}
-
-		// If the left Hydra is docked, or an extension is plugged in then just
-		// hold the right Hydra sideways yourself. Otherwise in sideways mode 
-		// with no extension use the left hydra for DPad, A, and B.
-		if (m_options->settings[1]->value != 0 &&
-			m_extension->active_extension <= 0 &&
-			g_hydra.c[left].enabled && !g_hydra.c[left].docked)
-		{
-			if (g_hydra_state[left].jx > 0.5f || g_hydra_state[right].jx > 0.5f)
-			{
-				m_status.buttons |= Wiimote::PAD_DOWN;
-			}
-			else if (g_hydra_state[left].jx < -0.5f || g_hydra_state[right].jx < -0.5f)
-			{
-				m_status.buttons |= Wiimote::PAD_UP;
-			}
-			if (g_hydra_state[left].jy > 0.5f || g_hydra_state[right].jy > 0.5f)
-			{
-				m_status.buttons |= Wiimote::PAD_RIGHT;
-			}
-			else if (g_hydra_state[left].jy < -0.5f || g_hydra_state[right].jy < -0.5f)
-			{
-				m_status.buttons |= Wiimote::PAD_LEFT;
-			}
-			if ((g_hydra.c[left].buttons & HYDRA_BUTTON_BUMPER) || (g_hydra.c[left].trigger > 0.25))
-			{
-				m_status.buttons |= Wiimote::BUTTON_B;
-			}
-			if (g_hydra.c[left].buttons & HYDRA_BUTTON_START)
-			{
-				m_status.buttons |= Wiimote::BUTTON_A;
-			}
-		}
-		else
-		{
-			if (g_hydra_state[right].jx > 0.5f)
-			{
-				m_status.buttons |= Wiimote::PAD_RIGHT;
-			}
-			else if (g_hydra_state[right].jx < -0.5f)
-			{
-				m_status.buttons |= Wiimote::PAD_LEFT;
-			}
-			if (g_hydra_state[right].jy > 0.5f)
-			{
-				m_status.buttons |= Wiimote::PAD_UP;
-			}
-			else if (g_hydra_state[right].jy < -0.5f)
-			{
-				m_status.buttons |= Wiimote::PAD_DOWN;
-			}
-		}
-		// Left hydra stick cycles through extensions: Wiimote, Sideways, Nunchuk, Classic
-		if (g_hydra_state[left].pressed & HYDRA_BUTTON_STICK)
-		{
-			g_hydra_state[left].pressed &= ~HYDRA_BUTTON_STICK;
 			CycleThroughExtensions();
 		}
 	}
-#endif
 }
 
 void Wiimote::GetCoreData(u8* const data)
@@ -525,70 +431,8 @@ void Wiimote::GetAccelData(u8* const data, u8* const core)
 	// ----TILT----
 	EmulateTilt(&m_accel, m_tilt, has_focus, is_sideways, is_upright);
 
-#ifdef _WIN32
-	// VR Sixense Razer hydra support
-	if (m_index == 0 && HydraUpdate() && g_hydra.c[1].enabled && !g_hydra.c[1].docked)
-	{
-		const int left = 0, right = 1;
-		// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
-		float rel_acc[3];
-		for (int i = 0; i < 3; ++i)
-		{
-			rel_acc[i] = g_hydra_state[right].a[0] * g_hydra.c[right].rotation_matrix[i][0]
-				+ g_hydra_state[right].a[1] * g_hydra.c[right].rotation_matrix[i][1]
-				+ g_hydra_state[right].a[2] * g_hydra.c[right].rotation_matrix[i][2];
-		}
-
-		// Note that here X means to the CONTROLLER'S left, Y means to the CONTROLLER'S tail, and Z means to the CONTROLLER'S top! 
-		// Tilt sensing.
-		// If the left Hydra is docked, or an extension is plugged in then just
-		// hold the right Hydra sideways yourself. Otherwise in sideways mode 
-		// with no extension pitch is controlled by the angle between the hydras.
-		if (m_options->settings[1]->value != 0 &&
-			m_extension->active_extension <= 0 &&
-			g_hydra.c[left].enabled && !g_hydra.c[left].docked)
-		{
-			// angle between the hydras
-			float x = g_hydra.c[right].position[0] - g_hydra.c[left].position[0];
-			float y = g_hydra.c[right].position[1] - g_hydra.c[left].position[1];
-			float dist = sqrtf(x*x + y*y);
-			x = x / dist;
-			y = y / dist;
-			m_accel.y = y;
-			float tail_up = g_hydra.c[right].rotation_matrix[2][1];
-			float stick_up = g_hydra.c[right].rotation_matrix[1][1];
-			float len = sqrtf(tail_up*tail_up + stick_up*stick_up);
-			if (len == 0)
-			{
-				// neither the tail or the stick is up, the side is up
-				m_accel.x = 0;
-				m_accel.z = 0;
-			}
-			else
-			{
-				m_accel.x = x * tail_up / len;
-				m_accel.z = x * stick_up / len;
-			}
-
-			// Convert rel acc from m/s/s to G's, and to sideways Wiimote's coordinate system.
-			m_accel.x += rel_acc[2] / 9.8f;
-			m_accel.z += rel_acc[1] / 9.8f;
-			m_accel.y -= rel_acc[0] / 9.8f;
-		}
-		else
-		{
-			// Tilt sensing.
-			m_accel.x = -g_hydra.c[right].rotation_matrix[0][1];
-			m_accel.z = g_hydra.c[right].rotation_matrix[1][1];
-			m_accel.y = g_hydra.c[right].rotation_matrix[2][1];
-
-			// Convert rel acc from m/s/s to G's, and to Wiimote's coordinate system.
-			m_accel.x -= rel_acc[0] / 9.8f;
-			m_accel.z += rel_acc[1] / 9.8f;
-			m_accel.y += rel_acc[2] / 9.8f;
-		}
-	}
-#endif
+	// Tilt and motion
+	HydraTLayer::GetAcceleration(m_index, is_sideways, m_extension && m_extension->active_extension > 0, &m_accel);
 
 	// ----SWING----
 	// ----SHAKE----
@@ -658,30 +502,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 
 		m_ir->GetState(&xx, &yy, &zz, true);
 		UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
-
-#ifdef _WIN32
-		// VR Sixense Razer Hydra
-		// Use right Hydra's position as IR pointer.
-		// These are in millimetres right, up, and into screen from the base orb.
-		static float hydra_ir_center_x = -300.0f, hydra_ir_center_y = -30.0f, hydra_ir_center_z = -300;
-		if (m_index == 0 && HydraUpdate() && 
-			g_hydra.c[1].enabled && !g_hydra.c[1].docked)
-		{
-			const int left = 0, right = 1;
-			// The home button (right stick in) also recenters the IR. 
-			if (g_hydra_state[right].pressed & HYDRA_BUTTON_STICK)
-			{
-				g_hydra_state[right].pressed &= ~HYDRA_BUTTON_STICK;
-				hydra_ir_center_x = g_hydra.c[right].position[0];
-				hydra_ir_center_y = g_hydra.c[right].position[1];
-				hydra_ir_center_z = -g_hydra.c[right].position[2];
-				NOTICE_LOG(WIIMOTE, "Razer Hydra IR centre set to: %5.1fcm right, %5.1fcm up, %5.1fcm in", hydra_ir_center_x/10.0f, hydra_ir_center_y/10.0f, hydra_ir_center_z/10.0f);
-			}
-			xx = (g_hydra.c[right].position[0] - hydra_ir_center_x) / 150;
-			yy = (g_hydra.c[right].position[1] - hydra_ir_center_y) / 150;
-			zz = (-g_hydra.c[right].position[2] - hydra_ir_center_z) / 300;
-		}
-#endif
+		HydraTLayer::GetIR(m_index, &xx, &yy, &zz);
 
 		Vertex v[4];
 

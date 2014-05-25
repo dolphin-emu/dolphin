@@ -41,7 +41,7 @@ typedef struct
 {
 	float p[3], v[3], a[3], t;
 	float jx, jy, jcx, jcy;
-	u32 pressed;
+	u32 pressed, released;
 } THydraControllerState;
 
 #ifdef _WIN32

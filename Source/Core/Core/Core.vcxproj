@@ -165,6 +165,7 @@
     <ClCompile Include="HW\WiimoteEmu\Attachment\Turntable.cpp" />
     <ClCompile Include="HW\WiimoteEmu\EmuSubroutines.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Encryption.cpp" />
+    <ClCompile Include="HW\WiimoteEmu\HydraTLayer.cpp" />
     <ClCompile Include="HW\WiimoteEmu\Speaker.cpp" />
     <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp" />
     <ClCompile Include="HW\WiimoteReal\IOWin.cpp" />
@@ -359,6 +360,7 @@
     <ClInclude Include="HW\WiimoteEmu\Attachment\Nunchuk.h" />
     <ClInclude Include="HW\WiimoteEmu\Attachment\Turntable.h" />
     <ClInclude Include="HW\WiimoteEmu\Encryption.h" />
+    <ClInclude Include="HW\WiimoteEmu\HydraTLayer.h" />
     <ClInclude Include="HW\WiimoteEmu\MatrixMath.h" />
     <ClInclude Include="HW\WiimoteEmu\UDPTLayer.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h" />

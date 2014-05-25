@@ -50,6 +50,9 @@
     <ClCompile Include="ControllerInterface\Sixense\SixenseHack.cpp">
       <Filter>ControllerInterface\Sixense</Filter>
     </ClCompile>
+    <ClCompile Include="ControllerInterface\Sixense\RazerHydra.cpp">
+      <Filter>ControllerInterface\Sixense</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu.h" />
@@ -83,6 +86,9 @@
       <Filter>ControllerInterface\ForceFeedback</Filter>
     </ClInclude>
     <ClInclude Include="ControllerInterface\Sixense\SixenseHack.h">
+      <Filter>ControllerInterface\Sixense</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\Sixense\RazerHydra.h">
       <Filter>ControllerInterface\Sixense</Filter>
     </ClInclude>
   </ItemGroup>

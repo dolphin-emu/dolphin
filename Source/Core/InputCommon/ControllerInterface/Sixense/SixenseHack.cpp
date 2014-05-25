@@ -69,6 +69,7 @@ void HydraUpdateController(int hand)
 {
 	// buttons which have changed state to pressed (but haven't been read yet)
 	g_hydra_state[hand].pressed |= g_hydra.c[hand].buttons & ~g_oldhydra.c[hand].buttons;
+	g_hydra_state[hand].released |= g_oldhydra.c[hand].buttons & ~g_hydra.c[hand].buttons;
 	// Get time since last update. Razer Hydra is locked to 60Hz.
 	s16 frames = (s16)g_hydra.c[hand].sequence_number - (s16)g_oldhydra.c[hand].sequence_number;
 	if (frames < 0)
@@ -87,12 +88,20 @@ void HydraUpdateController(int hand)
 		g_hydra_state[hand].a[axis] = (g_hydra_state[hand].v[axis] - g_old[hand].v[axis]) / t;
 	}
 	// As soon as we remove hydra from its dock, recalibrate joystick centre (if possible).
-	if (g_oldhydra.c[hand].docked && (!g_hydra.c[hand].docked) &&
-		fabs(g_hydra.c[hand].stick_x) < 1.0f && fabs(g_hydra.c[hand].stick_y) < 1.0f)
+	if (g_oldhydra.c[hand].docked && !g_hydra.c[hand].docked)
 	{
-		g_hydra_state[hand].jcx = g_hydra.c[hand].stick_x;
-		g_hydra_state[hand].jcy = g_hydra.c[hand].stick_y;
-		NOTICE_LOG(WIIMOTE, "Hydra %d analog stick recalibrated to (%5.2f, %5.2f)", hand, g_hydra_state[hand].jcx, g_hydra_state[hand].jcy);
+		if (fabs(g_hydra.c[hand].stick_x) < 1.0f && fabs(g_hydra.c[hand].stick_y) < 1.0f)
+		{
+			g_hydra_state[hand].jcx = g_hydra.c[hand].stick_x;
+			g_hydra_state[hand].jcy = g_hydra.c[hand].stick_y;
+			NOTICE_LOG(WIIMOTE, "Hydra %d analog stick recalibrated to (%5.2f, %5.2f)", hand, g_hydra_state[hand].jcx, g_hydra_state[hand].jcy);
+			MessageBeep(MB_ICONASTERISK);
+		}
+		else
+		{
+			ERROR_LOG(WIIMOTE, "Unable to recalibrate Hydra %d because joypos=(%5.2f, %5.2f)", hand, g_hydra.c[hand].stick_x, g_hydra.c[hand].stick_y);
+			MessageBeep(0xFFFFFFFF);
+		}
 	}
 	// Return calibrated joystick values.
 	if (g_hydra.c[hand].stick_x <= g_hydra_state[hand].jcx)

@@ -1,13 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
 #include "Core/Host.h"
+#include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/GCPadEmu.h"
-
-#ifdef _WIN32
-#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
-#endif
 
 const u16 button_bitmasks[] =
 {
@@ -99,10 +96,6 @@ void GCPad::GetInput(SPADStatus* const pad)
 		// buttons
 		m_buttons->GetState(&pad->button, button_bitmasks);
 
-		// set analog A/B analog to full or w/e, prolly not needed
-		if (pad->button & PAD_BUTTON_A) pad->analogA = 0xFF;
-		if (pad->button & PAD_BUTTON_B) pad->analogB = 0xFF;
-
 		// dpad
 		m_dpad->GetState(&pad->button, dpad_bitmasks);
 
@@ -113,85 +106,13 @@ void GCPad::GetInput(SPADStatus* const pad)
 		// triggers
 		m_triggers->GetState(&pad->button, trigger_bitmasks, &pad->triggerLeft, 0xFF);
 
-#ifdef _WIN32
-		// VR Sixense Razer hydra support
-		if (HydraUpdate() && g_hydra.c[0].enabled && !g_hydra.c[0].docked)
-		{
-			const int left = 0, right = 1;
-			if (g_hydra.c[left].buttons & HYDRA_BUTTON_BUMPER || g_hydra.c[right].buttons & HYDRA_BUTTON_BUMPER)
-			{
-				pad->button |= PAD_TRIGGER_Z;
-			}
-			// The hydra doesn't have a DPad, so use the buttons on the left controller.
-			// Imagine the controllers are tilted inwards.
-			// Therefore 3 is at the top.
-			if (g_hydra.c[left].buttons & HYDRA_BUTTON_3)
-			{
-				pad->button |= PAD_BUTTON_UP;
-			}
-			if (g_hydra.c[left].buttons & HYDRA_BUTTON_2)
-			{
-				pad->button |= PAD_BUTTON_DOWN;
-			}
-			if (g_hydra.c[left].buttons & HYDRA_BUTTON_1)
-			{
-				pad->button |= PAD_BUTTON_LEFT;
-			}
-			if (g_hydra.c[left].buttons & HYDRA_BUTTON_4)
-			{
-				pad->button |= PAD_BUTTON_RIGHT;
-			}
-			{
-				// Left analog stick
-				pad->stickX = (u8)(0x80 + g_hydra_state[left].jx * 127);
-				pad->stickY = (u8)(0x80 + g_hydra_state[left].jy * 127);
-				// Left analog trigger = L
-				pad->triggerLeft = (u8)(g_hydra.c[left].trigger * 255);
-				if (g_hydra.c[left].trigger > 0.9)
-				{
-					pad->button |= PAD_TRIGGER_L;
-				}
-			}
-			// Right controller
-			if (g_hydra.c[right].enabled && !g_hydra.c[right].docked)
-			{
-				// Right analog stick
-				pad->substickX = (u8)(0x80 + g_hydra_state[right].jx * 127);
-				pad->substickY = (u8)(0x80 + g_hydra_state[right].jy * 127);
-				// Right analog trigger = R
-				pad->triggerRight = (u8)(g_hydra.c[right].trigger * 255);
-				if (g_hydra.c[right].trigger > 0.9)
-				{
-					pad->button |= PAD_TRIGGER_R;
-				}
-			}
-			// Right Start = START/Pause button
-			if (g_hydra.c[right].buttons & HYDRA_BUTTON_START)
-			{
-				pad->button |= PAD_BUTTON_START;
-			}
-			// 1 = b, 2 = a, 3 = y, 4 = x
-			if (g_hydra.c[right].buttons & HYDRA_BUTTON_1)
-			{
-				pad->button |= PAD_BUTTON_B;
-			}
-			if (g_hydra.c[right].buttons & HYDRA_BUTTON_2)
-			{
-				pad->button |= PAD_BUTTON_A;
-			}
-			if (g_hydra.c[right].buttons & HYDRA_BUTTON_3)
-			{
-				pad->button |= PAD_BUTTON_Y;
-			}
-			if (g_hydra.c[right].buttons & HYDRA_BUTTON_4)
-			{
-				pad->button |= PAD_BUTTON_X;
-			}
-			// set analog A/B analog to full or w/e, prolly not needed
-			if (pad->button & PAD_BUTTON_A) pad->analogA = 0xFF;
-			if (pad->button & PAD_BUTTON_B) pad->analogB = 0xFF;
-		}
-#endif
+		HydraTLayer::GetGameCube(m_index, &pad->button, &pad->stickX, &pad->stickY, &pad->substickX, &pad->substickY, &pad->triggerLeft, &pad->triggerRight);
+
+		// set analog A/B analog to full or w/e, prolly not needed
+		if (pad->button & PAD_BUTTON_A)
+			pad->analogA = 0xFF;
+		if (pad->button & PAD_BUTTON_B)
+			pad->analogB = 0xFF;
 
 	}
 	else

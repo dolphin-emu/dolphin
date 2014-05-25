@@ -1,14 +1,12 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 
 #include "InputCommon/UDPWiimote.h"
 #include "InputCommon/UDPWrapper.h"
-#ifdef _WIN32
-#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
-#endif
 
 namespace WiimoteEmu
 {
@@ -34,8 +32,8 @@ static const u8 nunchuk_button_bitmasks[] =
 	Nunchuk::BUTTON_Z,
 };
 
-Nunchuk::Nunchuk(UDPWrapper *wrp, WiimoteEmu::ExtensionReg& _reg)
-	: Attachment(_trans("Nunchuk"), _reg) , m_udpWrap(wrp)
+Nunchuk::Nunchuk(UDPWrapper *wrp, WiimoteEmu::ExtensionReg& _reg, int index)
+	: Attachment(_trans("Nunchuk"), _reg), m_udpWrap(wrp), m_index(index)
 {
 	// buttons
 	groups.emplace_back(m_buttons = new Buttons("Buttons"));
@@ -95,6 +93,8 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	ncdata->jx = u8(trim(state[0]));
 	ncdata->jy = u8(trim(state[1]));
 
+	HydraTLayer::GetNunchuk(m_index, &ncdata->jx, &ncdata->jy, &ncdata->bt);
+
 	if (ncdata->jx != cal.jx.center || ncdata->jy != cal.jy.center)
 	{
 		if (ncdata->jy == cal.jy.center)
@@ -113,6 +113,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 
 	// tilt
 	EmulateTilt(&accel, m_tilt, focus);
+	HydraTLayer::GetNunchukAcceleration(m_index, &accel);
 
 	if (focus)
 	{
@@ -155,44 +156,6 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 			accel.z = z;
 		}
 	}
-
-#ifdef _WIN32
-	// VR Sixense Razer hydra support
-	// Left controller will be nunchuck: stick=stick, LB (or 1)=C, LT (or 2)=Z
-	if (HydraUpdate() && g_hydra.c[0].enabled)
-	{
-		const int left = 0, right = 1;
-		if ((g_hydra.c[left].buttons & HYDRA_BUTTON_BUMPER) || (g_hydra.c[left].buttons & HYDRA_BUTTON_1))
-			ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_C;
-		if (g_hydra.c[left].trigger > 0.25f || (g_hydra.c[left].buttons & HYDRA_BUTTON_2))
-			ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_Z;
-		ncdata->jx = u8(0x80 + g_hydra_state[left].jx * 127);
-		ncdata->jy = u8(0x80 + g_hydra_state[left].jy * 127);
-
-		if (!g_hydra.c[left].docked)
-		{
-			// Note that here X means to the CONTROLLER'S left, Y means to the CONTROLLER'S tail, and Z means to the CONTROLLER'S top! 
-			// Tilt sensing.
-			accel.x = -g_hydra.c[left].rotation_matrix[0][1];
-			accel.z = g_hydra.c[left].rotation_matrix[1][1];
-			accel.y = g_hydra.c[left].rotation_matrix[2][1];
-
-			// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
-			float rel_acc[3];
-			for (int i = 0; i < 3; ++i)
-			{
-				rel_acc[i] = g_hydra_state[left].a[0] * g_hydra.c[left].rotation_matrix[i][0]
-				           + g_hydra_state[left].a[1] * g_hydra.c[left].rotation_matrix[i][1]
-				           + g_hydra_state[left].a[2] * g_hydra.c[left].rotation_matrix[i][2];
-			}
-
-			// Convert from metres per second per second to G's, and to Wiimote's coordinate system.
-			accel.x -= rel_acc[0] / 9.8f;
-			accel.z += rel_acc[1] / 9.8f;
-			accel.y += rel_acc[2] / 9.8f;
-		}
-	}
-#endif
 
 	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, ncdata->bt, *(accel_cal*)&reg.calibration, accel);
 }
