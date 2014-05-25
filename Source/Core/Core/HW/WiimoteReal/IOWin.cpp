@@ -71,7 +71,7 @@ PBth_BluetoothEnumerateInstalledServices Bth_BluetoothEnumerateInstalledServices
 HINSTANCE hid_lib = nullptr;
 HINSTANCE bthprops_lib = nullptr;
 
-static int initialized = 0;
+static bool initialized = false;
 
 std::unordered_map<BTH_ADDR, std::time_t> g_connect_times;
 
