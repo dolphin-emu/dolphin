@@ -237,7 +237,7 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
 {
-	const u8 *src = GetCachePtr() + (_CacheAddr & 0x3FFFF);
+	const u8 *src = m_pL1Cache + (_CacheAddr & 0x3FFFF);
 	u8 *dst = GetPointer(_MemAddr);
 
 	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
@@ -257,7 +257,7 @@ void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlo
 void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlocks)
 {
 	const u8 *src = GetPointer(_MemAddr);
-	u8 *dst = GetCachePtr() + (_CacheAddr & 0x3FFFF);
+	u8 *dst = m_pL1Cache + (_CacheAddr & 0x3FFFF);
 
 	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
 	{
@@ -333,7 +333,7 @@ u8 *GetPointer(const u32 _Address)
 
 	case 0xe:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
-			return GetCachePtr() + (_Address & L1_CACHE_MASK);
+			return m_pL1Cache + (_Address & L1_CACHE_MASK);
 		else
 			break;
 
