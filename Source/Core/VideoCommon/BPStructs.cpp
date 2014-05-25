@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
@@ -658,7 +659,7 @@ void LoadBPReg(u32 value0)
 	BPWritten(bp);
 }
 
-void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size_t desc_size)
+void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 {
 	const char* no_yes[2] = { "No", "Yes" };
 
@@ -667,7 +668,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 	{
 	 // Macro to set the register name and make sure it was written correctly via compile time assertion
 	#define SetRegName(reg) \
-		snprintf(name, name_size, #reg); \
+		*name = #reg; \
 		(void)(reg);
 
 	case BPMEM_GENMODE: // 0x00
@@ -691,7 +692,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 		{
 			SetRegName(BPMEM_EFB_TL);
 			X10Y10 left_top; left_top.hex = cmddata;
-			snprintf(desc, desc_size, "Left: %d\nTop: %d", left_top.x, left_top.y);
+			*desc = StringFromFormat("Left: %d\nTop: %d", left_top.x, left_top.y);
 		}
 		break;
 
@@ -702,18 +703,18 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			const char* dstfactors[] = { "0", "1", "src_color", "1-src_color", "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha" };
 			const char* srcfactors[] = { "0", "1", "dst_color", "1-dst_color", "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha" };
 			const char* logicmodes[] = { "0", "s & d", "s & ~d", "s", "~s & d", "d", "s ^ d", "s | d", "~(s | d)", "~(s ^ d)", "~d", "s | ~d", "~s", "~s | d", "~(s & d)", "1" };
-			snprintf(desc, desc_size, "Enable: %s\n"
-									"Logic ops: %s\n"
-									"Dither: %s\n"
-									"Color write: %s\n"
-									"Alpha write: %s\n"
-									"Dest factor: %s\n"
-									"Source factor: %s\n"
-									"Subtract: %s\n"
-									"Logic mode: %s\n",
-									no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
-									no_yes[mode.colorupdate], no_yes[mode.alphaupdate], dstfactors[mode.dstfactor],
-									srcfactors[mode.srcfactor], no_yes[mode.subtract], logicmodes[mode.logicmode]);
+			*desc = StringFromFormat("Enable: %s\n"
+			                         "Logic ops: %s\n"
+			                         "Dither: %s\n"
+			                         "Color write: %s\n"
+			                         "Alpha write: %s\n"
+			                         "Dest factor: %s\n"
+			                         "Source factor: %s\n"
+			                         "Subtract: %s\n"
+			                         "Logic mode: %s\n",
+			                         no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
+			                         no_yes[mode.colorupdate], no_yes[mode.alphaupdate], dstfactors[mode.dstfactor],
+			                         srcfactors[mode.srcfactor], no_yes[mode.subtract], logicmodes[mode.logicmode]);
 		}
 		break;
 
@@ -723,10 +724,10 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			PEControl config; config.hex = cmddata;
 			const char* pixel_formats[] = { "RGB8_Z24", "RGBA6_Z24", "RGB565_Z16", "Z24", "Y8", "U8", "V8", "YUV420" };
 			const char* zformats[] = { "linear", "compressed (near)", "compressed (mid)", "compressed (far)", "inv linear", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)" };
-			snprintf(desc, desc_size, "EFB pixel format: %s\n"
-									"Depth format: %s\n"
-									"Early depth test: %s\n",
-									pixel_formats[config.pixel_format], zformats[config.zformat], no_yes[config.early_ztest]);
+			*desc = StringFromFormat("EFB pixel format: %s\n"
+			                         "Depth format: %s\n"
+			                         "Early depth test: %s\n",
+			                         pixel_formats[config.pixel_format], zformats[config.zformat], no_yes[config.early_ztest]);
 		}
 		break;
 
@@ -735,61 +736,61 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			// TODO: Misleading name, should be BPMEM_EFB_WH instead
 			SetRegName(BPMEM_EFB_BR);
 			X10Y10 width_height; width_height.hex = cmddata;
-			snprintf(desc, desc_size, "Width: %d\nHeight: %d", width_height.x+1, width_height.y+1);
+			*desc = StringFromFormat("Width: %d\nHeight: %d", width_height.x+1, width_height.y+1);
 		}
 		break;
 
 	case BPMEM_EFB_ADDR: // 0x4B
 		SetRegName(BPMEM_EFB_ADDR);
-		snprintf(desc, desc_size, "Target address (32 byte aligned): 0x%06X", cmddata << 5);
+		*desc = StringFromFormat("Target address (32 byte aligned): 0x%06X", cmddata << 5);
 		break;
 
 	case BPMEM_COPYYSCALE: // 0x4E
 		SetRegName(BPMEM_COPYYSCALE);
-		snprintf(desc, desc_size, "Scaling factor (XFB copy only): 0x%X (%f or inverted %f)", cmddata, (float)cmddata/256.f, 256.f/(float)cmddata);
+		*desc = StringFromFormat("Scaling factor (XFB copy only): 0x%X (%f or inverted %f)", cmddata, (float)cmddata/256.f, 256.f/(float)cmddata);
 		break;
 
 	case BPMEM_CLEAR_AR: // 0x4F
 		SetRegName(BPMEM_CLEAR_AR);
-		snprintf(desc, desc_size, "Alpha: 0x%02X\nRed: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
+		*desc = StringFromFormat("Alpha: 0x%02X\nRed: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
 		break;
 
 	case BPMEM_CLEAR_GB: // 0x50
 		SetRegName(BPMEM_CLEAR_GB);
-		snprintf(desc, desc_size, "Green: 0x%02X\nBlue: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
+		*desc = StringFromFormat("Green: 0x%02X\nBlue: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
 		break;
 
 	case BPMEM_CLEAR_Z: // 0x51
 		SetRegName(BPMEM_CLEAR_Z);
-		snprintf(desc, desc_size, "Z value: 0x%06X", cmddata);
+		*desc = StringFromFormat("Z value: 0x%06X", cmddata);
 		break;
 
 	case BPMEM_TRIGGER_EFB_COPY: // 0x52
 		{
 			SetRegName(BPMEM_TRIGGER_EFB_COPY);
 			UPE_Copy copy; copy.Hex = cmddata;
-			snprintf(desc, desc_size, "Clamping: %s\n"
-								"Converting from RGB to YUV: %s\n"
-								"Target pixel format: 0x%X\n"
-								"Gamma correction: %s\n"
-								"Mipmap filter: %s\n"
-								"Vertical scaling: %s\n"
-								"Clear: %s\n"
-								"Frame to field: 0x%01X\n"
-								"Copy to XFB: %s\n"
-								"Intensity format: %s\n"
-								"Automatic color conversion: %s",
-								(copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ? "Top only" : (copy.clamp1) ? "Bottom only" : "None",
-								no_yes[copy.yuv],
-								copy.tp_realFormat(),
-								(copy.gamma==0)?"1.0":(copy.gamma==1)?"1.7":(copy.gamma==2)?"2.2":"Invalid value 0x3?",
-								no_yes[copy.half_scale],
-								no_yes[copy.scale_invert],
-								no_yes[copy.clear],
-								(u32)copy.frame_to_field,
-								no_yes[copy.copy_to_xfb],
-								no_yes[copy.intensity_fmt],
-								no_yes[copy.auto_conv]);
+			*desc = StringFromFormat("Clamping: %s\n"
+			                         "Converting from RGB to YUV: %s\n"
+			                         "Target pixel format: 0x%X\n"
+			                         "Gamma correction: %s\n"
+			                         "Mipmap filter: %s\n"
+			                         "Vertical scaling: %s\n"
+			                         "Clear: %s\n"
+			                         "Frame to field: 0x%01X\n"
+			                         "Copy to XFB: %s\n"
+			                         "Intensity format: %s\n"
+			                         "Automatic color conversion: %s",
+			                         (copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ? "Top only" : (copy.clamp1) ? "Bottom only" : "None",
+			                         no_yes[copy.yuv],
+			                         copy.tp_realFormat(),
+			                         (copy.gamma==0)?"1.0":(copy.gamma==1)?"1.7":(copy.gamma==2)?"2.2":"Invalid value 0x3?",
+			                         no_yes[copy.half_scale],
+			                         no_yes[copy.scale_invert],
+			                         no_yes[copy.clear],
+			                         (u32)copy.frame_to_field,
+			                         no_yes[copy.copy_to_xfb],
+			                         no_yes[copy.intensity_fmt],
+			                         no_yes[copy.auto_conv]);
 		}
 		break;
 
@@ -814,7 +815,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 		{
 			SetRegName(BPMEM_TX_SETIMAGE3);
 			TexImage3 teximg; teximg.hex = cmddata;
-			snprintf(desc, desc_size, "Source address (32 byte aligned): 0x%06X", teximg.image_base << 5);
+			*desc = StringFromFormat("Source address (32 byte aligned): 0x%06X", teximg.image_base << 5);
 		}
 		break;
 
@@ -850,18 +851,18 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			const char* tevop[] = { "add", "sub" };
 			const char* tevscale[] = { "1", "2", "4", "0.5" };
 			const char* tevout[] = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
-			snprintf(desc, desc_size, "tev stage: %d\n"
-									"a: %s\n"
-									"b: %s\n"
-									"c: %s\n"
-									"d: %s\n"
-									"bias: %s\n"
-									"op: %s\n"
-									"clamp: %s\n"
-									"scale factor: %s\n"
-									"dest: %s\n",
-									(data[0] - BPMEM_TEV_COLOR_ENV)/2, tevin[cc.a], tevin[cc.b], tevin[cc.c], tevin[cc.d],
-									tevbias[cc.bias], tevop[cc.op], no_yes[cc.clamp], tevscale[cc.shift], tevout[cc.dest]);
+			*desc = StringFromFormat("Tev stage: %d\n"
+			                         "a: %s\n"
+			                         "b: %s\n"
+			                         "c: %s\n"
+			                         "d: %s\n"
+			                         "Bias: %s\n"
+			                         "Op: %s\n"
+			                         "Clamp: %s\n"
+			                         "Scale factor: %s\n"
+			                         "Dest: %s\n",
+			                         (data[0] - BPMEM_TEV_COLOR_ENV)/2, tevin[cc.a], tevin[cc.b], tevin[cc.c], tevin[cc.d],
+			                         tevbias[cc.bias], tevop[cc.op], no_yes[cc.clamp], tevscale[cc.shift], tevout[cc.dest]);
 			break;
 		}
 
@@ -893,21 +894,21 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			const char* tevop[] = { "add", "sub" };
 			const char* tevscale[] = { "1", "2", "4", "0.5" };
 			const char* tevout[] = { "prev", "c0", "c1", "c2" };
-			snprintf(desc, desc_size, "tev stage: %d\n"
-									"a: %s\n"
-									"b: %s\n"
-									"c: %s\n"
-									"d: %s\n"
-									"bias: %s\n"
-									"op: %s\n"
-									"clamp: %s\n"
-									"scale factor: %s\n"
-									"dest: %s\n"
-									"ras sel: %d\n"
-									"tex sel: %d\n",
-									(data[0] - BPMEM_TEV_ALPHA_ENV)/2, tevin[ac.a], tevin[ac.b], tevin[ac.c], tevin[ac.d],
-									tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp], tevscale[ac.shift], tevout[ac.dest],
-									ac.rswap, ac.tswap);
+			*desc = StringFromFormat("Tev stage: %d\n"
+			                         "a: %s\n"
+			                         "b: %s\n"
+			                         "c: %s\n"
+			                         "d: %s\n"
+			                         "Bias: %s\n"
+			                         "Op: %s\n"
+			                         "Clamp: %s\n"
+			                         "Scale factor: %s\n"
+			                         "Dest: %s\n"
+			                         "Ras sel: %d\n"
+			                         "Tex sel: %d\n",
+			                         (data[0] - BPMEM_TEV_ALPHA_ENV)/2, tevin[ac.a], tevin[ac.b], tevin[ac.c], tevin[ac.d],
+			                         tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp], tevscale[ac.shift], tevout[ac.dest],
+			                         ac.rswap, ac.tswap);
 			break;
 		}
 
@@ -917,10 +918,10 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 				AlphaTest test; test.hex = cmddata;
 				const char* functions[] = { "NEVER", "LESS", "EQUAL", "LEQUAL", "GREATER", "NEQUAL", "GEQUAL", "ALWAYS" };
 				const char* logic[] = { "AND", "OR", "XOR", "XNOR" };
-				snprintf(desc, desc_size, "test 1: %s (ref: %#02x)\n"
-										"test 2: %s (ref: %#02x)\n"
-										"logic: %s\n",
-										functions[test.comp0], (int)test.ref0, functions[test.comp1], (int)test.ref1, logic[test.logic]);
+				*desc = StringFromFormat("Test 1: %s (ref: %#02x)\n"
+				                         "Test 2: %s (ref: %#02x)\n"
+				                         "Logic: %s\n",
+				                         functions[test.comp0], (int)test.ref0, functions[test.comp1], (int)test.ref1, logic[test.logic]);
 				break;
 			}
 
