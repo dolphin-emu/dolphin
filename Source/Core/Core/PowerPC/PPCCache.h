@@ -6,8 +6,6 @@
 
 #include "Common/CommonTypes.h"
 
-#define FAST_ICACHE
-
 namespace PowerPC
 {
 
@@ -29,11 +27,9 @@ namespace PowerPC
 		u32 way_from_valid[255];
 		u32 way_from_plru[128];
 
-#ifdef FAST_ICACHE
 		u8 lookup_table[1<<20];
 		u8 lookup_table_ex[1<<21];
 		u8 lookup_table_vmem[1<<20];
-#endif
 
 		InstructionCache();
 		u32 ReadInstruction(u32 addr);
