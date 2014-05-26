@@ -143,6 +143,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 					iso2->GetCompany() : iso2->GetDescription(indexOther);
 				return strcasecmp(cmp1.c_str(), cmp2.c_str()) * t;
 			}
+		case CGameListCtrl::COLUMN_ID:
+			 return strcasecmp(iso1->GetUniqueID().c_str(), iso2->GetUniqueID().c_str()) * t;
 		case CGameListCtrl::COLUMN_COUNTRY:
 			if (iso1->GetCountry() > iso2->GetCountry())
 				return  1 * t;
@@ -317,6 +319,7 @@ void CGameListCtrl::Update()
 		// wii titles We show in the same column : company for GC games and
 		// description for wii/wad games
 		InsertColumn(COLUMN_NOTES, _("Notes"));
+		InsertColumn(COLUMN_ID, _("ID"));
 		InsertColumn(COLUMN_COUNTRY, "");
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
@@ -331,8 +334,9 @@ void CGameListCtrl::Update()
 		SetColumnWidth(COLUMN_DUMMY,0);
 		SetColumnWidth(COLUMN_PLATFORM, 35 + platform_padding);
 		SetColumnWidth(COLUMN_BANNER, 96 + platform_padding);
-		SetColumnWidth(COLUMN_TITLE, 200 + platform_padding);
-		SetColumnWidth(COLUMN_NOTES, 200 + platform_padding);
+		SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
+		SetColumnWidth(COLUMN_NOTES, 150 + platform_padding);
+		SetColumnWidth(COLUMN_ID, 75 + platform_padding);
 		SetColumnWidth(COLUMN_COUNTRY, 32 + platform_padding);
 		SetColumnWidth(COLUMN_EMULATION_STATE, 50 + platform_padding);
 
@@ -458,6 +462,9 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// File size
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
+
+	// Game ID
+	SetItem(_Index, COLUMN_ID, rISOFile.GetUniqueID(), -1);
 
 	// Background color
 	SetBackgroundColor();
@@ -1285,7 +1292,8 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ GetColumnWidth(COLUMN_COUNTRY)
 			+ GetColumnWidth(COLUMN_SIZE)
 			+ GetColumnWidth(COLUMN_EMULATION_STATE)
-			+ GetColumnWidth(COLUMN_PLATFORM));
+			+ GetColumnWidth(COLUMN_PLATFORM)
+			+ GetColumnWidth(COLUMN_ID));
 
 		// We hide the Notes column if the window is too small
 		if (resizable > 400)
