@@ -176,14 +176,14 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		{
 			u32 val = (u32)gpr.R(a).offset + (s32)inst.SIMM_16;
 			opAddress = Imm32(val);
-			if (update && !js.memcheck)
+			if (update)
 				gpr.SetImmediate32(a, val);
 		}
 		else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !js.memcheck)
 		{
 			u32 val = (u32)gpr.R(a).offset + (u32)gpr.R(b).offset;
 			opAddress = Imm32(val);
-			if (update && !js.memcheck)
+			if (update)
 				gpr.SetImmediate32(a, val);
 		}
 		else

@@ -324,12 +324,8 @@ void Jit64::lfsx(UGeckoInstruction inst)
 #else
 		MOVD_xmm(XMM0, MComplex(RBX, EAX, SCALE_1, 0));
 #endif
-		MEMCHECK_START
-
 		PSHUFB(XMM0, M((void *)bswapShuffle1x4));
 		ConvertSingleToDouble(s, XMM0);
-
-		MEMCHECK_END
 	} else {
 		SafeLoadToReg(EAX, R(EAX), 32, 0, RegistersInUse(), false);
 
