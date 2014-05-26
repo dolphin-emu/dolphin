@@ -268,8 +268,18 @@ s32 DSPAssembler::ParseValue(const char *str)
 	return val;
 }
 
-// Modifies both src and dst!
-// What does it do, really??
+// This function splits the given src string into three parts:
+// - Text before the first opening ('(') parenthesis
+// - Text within the first and last opening ('(') and closing (')') parentheses.
+// - If text follows after these parentheses, then this is what is returned from the function.
+//
+// Note that the first opening parenthesis and the last closing parenthesis are discarded from the string.
+// For example: Say "Test (string) 1234" is the string passed in as src.
+//
+// - src will become "Test "
+// - dst will become "string"
+// - Returned string from the function will be " 1234"
+//
 char *DSPAssembler::FindBrackets(char *src, char *dst)
 {
 	s32 len = (s32) strlen(src);
