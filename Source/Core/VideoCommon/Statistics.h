@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -69,10 +70,8 @@ struct Statistics
 	void ResetFrame();
 	static void SwapDL();
 
-	// Yeah, this is unsafe, but we really don't wanna faff around allocating
-	// buffers here.
-	static char *ToString(char *ptr);
-	static char *ToStringProj(char *ptr);
+	static std::string ToString();
+	static std::string ToStringProj();
 };
 
 extern Statistics stats;

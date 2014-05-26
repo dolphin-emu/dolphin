@@ -680,19 +680,18 @@ void Renderer::DrawDebugInfo()
 {
 	// Reset viewport for drawing text
 	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+
 	// Draw various messages on the screen, like FPS, statistics, etc.
-	char debugtext_buffer[8192];
-	char *p = debugtext_buffer;
-	p[0] = 0;
+	std::string debug_info;
 
 	if (g_ActiveConfig.bShowFPS)
-		p+=sprintf(p, "FPS: %d\n", s_fps);
+		debug_info += StringFromFormat("FPS: %d\n", s_fps);
 
 	if (SConfig::GetInstance().m_ShowLag)
-		p+=sprintf(p, "Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 
 	if (g_ActiveConfig.bShowInputDisplay)
-		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
+		debug_info += Movie::GetInputDisplay();
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{
@@ -815,16 +814,16 @@ void Renderer::DrawDebugInfo()
 	}
 
 	if (g_ActiveConfig.bOverlayStats)
-		p = Statistics::ToString(p);
+		debug_info += Statistics::ToString();
 
 	if (g_ActiveConfig.bOverlayProjStats)
-		p = Statistics::ToStringProj(p);
+		debug_info += Statistics::ToStringProj();
 
-	// Render a shadow, and then the text.
-	if (p != debugtext_buffer)
+	if (!debug_info.empty())
 	{
-		Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
-		Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
+		// Render a shadow, and then the text.
+		Renderer::RenderText(debug_info, 21, 21, 0xDD000000);
+		Renderer::RenderText(debug_info, 20, 20, 0xFF00FFFF);
 	}
 }
 
