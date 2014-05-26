@@ -38,7 +38,6 @@ struct JitBlock
 	u32 codeSize;
 	u32 originalSize;
 	int runCount;  // for profiling.
-	int flags;
 
 	bool invalid;
 

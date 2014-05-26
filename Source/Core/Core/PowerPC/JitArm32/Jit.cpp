@@ -333,8 +333,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
-	js.block_flags = 0;
-	js.cancel = false;
 
 	u32 nextPC = em_address;
 	// Analyze the block, collect all instructions it is made of (including inlining,
@@ -409,7 +407,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
 	js.skipnext = false;
-	js.blockSize = code_block.m_num_instructions;
 	js.compilerPC = nextPC;
 
 	const int DEBUG_OUTPUT = 0;
@@ -499,7 +496,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		WriteExit(nextPC);
 	}
 
-	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
 	b->originalSize = code_block.m_num_instructions;
 	FlushIcache();

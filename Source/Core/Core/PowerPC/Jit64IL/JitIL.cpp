@@ -521,7 +521,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
-	js.cancel = false;
 	jit->js.numLoadStoreInst = 0;
 	jit->js.numFloatingPointInst = 0;
 

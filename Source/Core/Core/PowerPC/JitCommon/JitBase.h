@@ -54,9 +54,7 @@ protected:
 		u32 compilerPC;
 		u32 next_compilerPC;
 		u32 blockStart;
-		bool cancel;
 		UGeckoInstruction next_inst;  // for easy peephole opt.
-		int blockSize;
 		int instructionNumber;
 		int downcountAmount;
 		u32 numLoadStoreInst;
@@ -64,11 +62,8 @@ protected:
 
 		bool firstFPInstructionFound;
 		bool isLastInstruction;
-		bool forceUnsafeLoad;
 		bool memcheck;
 		bool skipnext;
-		bool broken_block;
-		int block_flags;
 
 		int fifoBytesThisBlock;
 

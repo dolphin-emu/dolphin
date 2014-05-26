@@ -422,8 +422,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
-	js.block_flags = 0;
-	js.cancel = false;
 	jit->js.numLoadStoreInst = 0;
 	jit->js.numFloatingPointInst = 0;
 
@@ -478,7 +476,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
 	js.skipnext = false;
-	js.blockSize = code_block.m_num_instructions;
 	js.compilerPC = nextPC;
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -639,9 +636,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.skipnext = false;
 			i++; // Skip next instruction
 		}
-
-		if (js.cancel)
-			break;
 	}
 
 	u32 function = HLE::GetFunctionIndex(js.blockStart);
@@ -683,7 +677,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		WriteExit(nextPC);
 	}
 
-	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
 	b->originalSize = code_block.m_num_instructions;
 
