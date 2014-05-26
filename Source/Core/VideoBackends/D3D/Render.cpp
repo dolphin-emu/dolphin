@@ -4,6 +4,7 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <string>
 #include <strsafe.h>
 
 #include "Common/Timer.h"
@@ -872,9 +873,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 			}
 			else
 			{
-				char msg [255];
-				sprintf_s(msg,255, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), s_recordWidth, s_recordHeight);
+				std::string msg = StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+					File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), s_recordWidth, s_recordHeight);
+
 				OSD::AddMessage(msg, 2000);
 			}
 		}
@@ -912,37 +913,29 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
 	{
-		char fps[20];
-		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
+		std::string fps = StringFromFormat("FPS: %d\n", s_fps);
 		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
 	if (SConfig::GetInstance().m_ShowLag)
 	{
-		char lag[10];
-		StringCchPrintfA(lag, 10, "Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+		std::string lag = StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
 	}
 
 	if (g_ActiveConfig.bShowInputDisplay)
 	{
-		char inputDisplay[1000];
-		StringCchPrintfA(inputDisplay, 1000, Movie::GetInputDisplay().c_str());
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, inputDisplay);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Movie::GetInputDisplay());
 	}
 	Renderer::DrawDebugText();
 
 	if (g_ActiveConfig.bOverlayStats)
 	{
-		char buf[32768];
-		Statistics::ToString(buf);
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, buf);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToString());
 	}
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
-		char buf[32768];
-		Statistics::ToStringProj(buf);
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, buf);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToStringProj());
 	}
 
 	OSD::DrawMessages();
