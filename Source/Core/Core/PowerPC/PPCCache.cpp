@@ -59,11 +59,9 @@ namespace PowerPC
 	{
 		memset(valid, 0, sizeof(valid));
 		memset(plru, 0, sizeof(plru));
-#ifdef FAST_ICACHE
 		memset(lookup_table, 0xff, sizeof(lookup_table));
 		memset(lookup_table_ex, 0xff, sizeof(lookup_table_ex));
 		memset(lookup_table_vmem, 0xff, sizeof(lookup_table_vmem));
-#endif
 		JitInterface::ClearSafe();
 	}
 
@@ -83,7 +81,6 @@ namespace PowerPC
 			return;
 		// invalidates the whole set
 		u32 set = (addr >> 5) & 0x7f;
-#ifdef FAST_ICACHE
 		for (int i = 0; i < 8; i++)
 			if (valid[set] & (1<<i))
 			{
@@ -94,7 +91,6 @@ namespace PowerPC
 				else
 					lookup_table[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
 			}
-#endif
 		valid[set] = 0;
 		JitInterface::InvalidateICache(addr & ~0x1f, 32);
 	}
@@ -105,7 +101,7 @@ namespace PowerPC
 			return Memory::ReadUnchecked_U32(addr);
 		u32 set = (addr >> 5) & 0x7f;
 		u32 tag = addr >> 12;
-#ifdef FAST_ICACHE
+
 		u32 t;
 		if (addr & ICACHE_VMEM_BIT)
 		{
@@ -119,15 +115,7 @@ namespace PowerPC
 		{
 			t = lookup_table[(addr>>5) & 0xfffff];
 		}
-#else
-		u32 t = 0xff;
-		for (u32 i = 0; i < 8; i++)
-			if (tags[set][i] == tag && (valid[set] & (1<<i)))
-			{
-				t = i;
-				break;
-			}
-#endif
+
 		if (t == 0xff) // load to the cache
 		{
 			if (HID0.ILOCK) // instruction cache is locked
@@ -140,7 +128,6 @@ namespace PowerPC
 			// load
 			u8 *p = Memory::GetPointer(addr & ~0x1f);
 			memcpy(data[set][t], p, 32);
-#ifdef FAST_ICACHE
 			if (valid[set] & (1<<t))
 			{
 				if (tags[set][t] & (ICACHE_VMEM_BIT >> 12))
@@ -157,7 +144,6 @@ namespace PowerPC
 				lookup_table_ex[(addr>>5) & 0x1fffff] = t;
 			else
 				lookup_table[(addr>>5) & 0xfffff] = t;
-#endif
 			tags[set][t] = tag;
 			valid[set] |= 1<<t;
 		}

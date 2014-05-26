@@ -71,7 +71,7 @@ inline u64 bswap(u64 val) {return Common::swap64(val);}
 
 
 // Nasty but necessary. Super Mario Galaxy pointer relies on this stuff.
-u32 EFB_Read(const u32 addr)
+static u32 EFB_Read(const u32 addr)
 {
 	u32 var = 0;
 	// Convert address to coordinates. It's possible that this should be done
@@ -89,6 +89,8 @@ u32 EFB_Read(const u32 addr)
 
 	return var;
 }
+
+static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 
 template <typename T>
 inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_address, Memory::XCheckTLBFlag flag)
@@ -232,6 +234,9 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 /* These functions are primarily called by the Interpreter functions and are routed to the correct
    location through ReadFromHardware and WriteToHardware */
 // ----------------
+
+static void GenerateISIException(u32 effective_address);
+
 u32 Read_Opcode(u32 _Address)
 {
 	if (_Address == 0x00000000)
@@ -550,7 +555,7 @@ union UPTE2
 	u32 Hex;
 };
 
-void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
+static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 {
 	if (_bWrite)
 		PowerPC::ppcState.spr[SPR_DSISR] = PPC_EXC_DSISR_PAGE | PPC_EXC_DSISR_STORE;
@@ -563,7 +568,7 @@ void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 }
 
 
-void GenerateISIException(u32 _EffectiveAddress)
+static void GenerateISIException(u32 _EffectiveAddress)
 {
 	// Address of instruction could not be translated
 	NPC = _EffectiveAddress;

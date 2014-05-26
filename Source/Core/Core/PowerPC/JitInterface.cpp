@@ -211,7 +211,6 @@ namespace JitInterface
 
 	u32 Read_Opcode_JIT(u32 _Address)
 	{
-	#ifdef FAST_ICACHE
 		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
 		{
 			_Address = Memory::TranslateAddress(_Address, Memory::FLAG_OPCODE);
@@ -228,9 +227,6 @@ namespace JitInterface
 			inst = Memory::ReadUnchecked_U32(_Address);
 		else
 			inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
-	#else
-		u32 inst = Memory::ReadUnchecked_U32(_Address);
-	#endif
 		return inst;
 	}
 
