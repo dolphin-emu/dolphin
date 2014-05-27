@@ -26,22 +26,13 @@ void UDPWrapper::LoadConfig(IniFile::Section *sec, const std::string& defdev, co
 	ControlGroup::LoadConfig(sec, defdev, base);
 
 	std::string group(base + name + "/");
-
-	int _updAccel, _updIR, _updButt, _udpEn, _updNun, _updNunAccel;
-	sec->Get(group + "Enable", &_udpEn, 0);
+	sec->Get(group + "Enable", &udpEn, false);
 	sec->Get(group + "Port", &port, DefaultPort(index));
-	sec->Get(group + "Update_Accel", &_updAccel, 1);
-	sec->Get(group + "Update_IR", &_updIR, 1);
-	sec->Get(group + "Update_Butt", &_updButt, 1);
-	sec->Get(group + "Update_Nunchuk", &_updNun, 1);
-	sec->Get(group + "Update_NunchukAccel", &_updNunAccel, 0);
-
-	udpEn       = (_udpEn > 0);
-	updAccel    = (_updAccel > 0);
-	updIR       = (_updIR > 0);
-	updButt     = (_updButt > 0);
-	updNun      = (_updNun > 0);
-	updNunAccel = (_updNunAccel > 0);
+	sec->Get(group + "Update_Accel", &updAccel, true);
+	sec->Get(group + "Update_IR", &updIR, true);
+	sec->Get(group + "Update_Butt", &updButt, true);
+	sec->Get(group + "Update_Nunchuk", &updNun, true);
+	sec->Get(group + "Update_NunchukAccel", &updNunAccel, false);
 
 	Refresh();
 }
@@ -52,13 +43,13 @@ void UDPWrapper::SaveConfig(IniFile::Section *sec, const std::string& defdev, co
 	ControlGroup::SaveConfig(sec, defdev, base);
 
 	std::string group(base + name + "/");
-	sec->Set(group + "Enable", (int)udpEn, 0);
+	sec->Set(group + "Enable", udpEn, false);
 	sec->Set(group + "Port", port, DefaultPort(index));
-	sec->Set(group + "Update_Accel", (int)updAccel, 1);
-	sec->Set(group + "Update_IR", (int)updIR, 1);
-	sec->Set(group + "Update_Butt", (int)updButt, 1);
-	sec->Set(group + "Update_Nunchuk", (int)updNun, 1);
-	sec->Set(group + "Update_NunchukAccel", (int)updNunAccel, 0);
+	sec->Set(group + "Update_Accel", updAccel, true);
+	sec->Set(group + "Update_IR", updIR, true);
+	sec->Set(group + "Update_Butt", updButt, true);
+	sec->Set(group + "Update_Nunchuk", updNun, true);
+	sec->Set(group + "Update_NunchukAccel", updNunAccel, false);
 }
 
 
