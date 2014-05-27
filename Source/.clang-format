@@ -38,7 +38,7 @@ ColumnLimit:     120
 #Standard:        Cpp11
 IndentWidth:     4
 TabWidth:        4
-UseTab:          Always 
+UseTab:          ForIndentation 
 BreakBeforeBraces: Allman
 #IndentFunctionDeclarationAfterType: false
 #SpacesInParentheses: false
