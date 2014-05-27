@@ -70,8 +70,7 @@ void UDPWrapper::Refresh()
 	{
 		if (inst->getPort() == port)
 		{
-			delete inst;
-			inst = new UDPWiimote(port, "Dolphin-Emu", index); //TODO: Changeable display name
+			inst.reset(new UDPWiimote(port, "Dolphin-Emu", index)); //TODO: Changeable display name
 		}
 		return;
 	}
@@ -79,16 +78,14 @@ void UDPWrapper::Refresh()
 	if (!udpEn)
 	{
 		if (inst)
-			delete inst;
-		inst = nullptr;
+			inst.reset();
+
 		return;
 	}
 
-	inst = new UDPWiimote(port, "Dolphin-Emu", index);
+	inst.reset(new UDPWiimote(port, "Dolphin-Emu", index));
 }
 
 UDPWrapper::~UDPWrapper()
 {
-	if (inst)
-		delete inst;
 }

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "Common/Common.h"
@@ -14,7 +15,7 @@
 class UDPWrapper : public ControllerEmu::ControlGroup
 {
 public:
-	UDPWiimote * inst;
+	std::unique_ptr<UDPWiimote> inst;
 	int index;
 	bool updIR, updAccel, updButt, updNun, updNunAccel, udpEn; //upd from update and udp from... well... UDP
 	std::string port;
