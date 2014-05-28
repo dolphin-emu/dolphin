@@ -153,7 +153,16 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	rpac >> player.name;
 
 	// give new client first available id
-	player.pid = (PlayerId)(m_players.size() + 1);
+	PlayerId pid = 1;
+	for (auto i = m_players.begin(); i != m_players.end(); ++i)
+	{
+		if (i->second.pid == pid)
+		{
+			pid++;
+			i = m_players.begin();
+		}
+	}
+	player.pid = pid;
 
 	// try to automatically assign new user a pad
 	for (PadMapping& mapping : m_pad_map)
