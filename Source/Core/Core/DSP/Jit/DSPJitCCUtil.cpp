@@ -13,7 +13,6 @@ using namespace Gen;
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
 {
-#if _M_X86_64
 	OpArg sr_reg;
 	gpr.getReg(DSP_REG_SR,sr_reg);
 	//	// 0x04
@@ -50,21 +49,18 @@ void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
 	OR(16, sr_reg, Imm16(SR_TOP2BITS));
 	SetJumpTarget(cC);
 	gpr.putReg(DSP_REG_SR);
-#endif
 }
 
 // In: RAX: s64 _Value
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register64(Gen::X64Reg val)
 {
-#if _M_X86_64
 //	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 	OpArg sr_reg;
 	gpr.getReg(DSP_REG_SR,sr_reg);
 	AND(16, sr_reg, Imm16(~SR_CMP_MASK));
 	gpr.putReg(DSP_REG_SR);
 	Update_SR_Register(val);
-#endif
 }
 
 // In: (val): s64 _Value
@@ -72,7 +68,6 @@ void DSPEmitter::Update_SR_Register64(Gen::X64Reg val)
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl)
 {
-#if _M_X86_64
 	OpArg sr_reg;
 	gpr.getReg(DSP_REG_SR,sr_reg);
 	//	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
@@ -101,7 +96,6 @@ void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl)
 
 	gpr.putReg(DSP_REG_SR);
 	Update_SR_Register(val);
-#endif
 }
 
 // In: (val): s64 _Value
@@ -109,7 +103,6 @@ void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl)
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register64_Carry2(X64Reg val, X64Reg carry_ovfl)
 {
-#if _M_X86_64
 	OpArg sr_reg;
 	gpr.getReg(DSP_REG_SR,sr_reg);
 	//	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
@@ -138,7 +131,6 @@ void DSPEmitter::Update_SR_Register64_Carry2(X64Reg val, X64Reg carry_ovfl)
 	gpr.putReg(DSP_REG_SR);
 
 	Update_SR_Register();
-#endif
 }
 
 //void DSPEmitter::Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
@@ -155,7 +147,6 @@ void DSPEmitter::Update_SR_Register64_Carry2(X64Reg val, X64Reg carry_ovfl)
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register16(X64Reg val)
 {
-#if _M_X86_64
 	OpArg sr_reg;
 	gpr.getReg(DSP_REG_SR,sr_reg);
 	AND(16, sr_reg, Imm16(~SR_CMP_MASK));
@@ -190,14 +181,12 @@ void DSPEmitter::Update_SR_Register16(X64Reg val)
 	SetJumpTarget(notThree);
 	SetJumpTarget(cC);
 	gpr.putReg(DSP_REG_SR);
-#endif
 }
 
 // In: RAX: s64 _Value
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
 {
-#if _M_X86_64
 	OpArg sr_reg;
 	gpr.getReg(DSP_REG_SR,sr_reg);
 	AND(16, sr_reg, Imm16(~SR_CMP_MASK));
@@ -215,7 +204,6 @@ void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
 	//	if ((((u16)_Value >> 14) == 0) || (((u16)_Value >> 14) == 3))
 	//AND(32, R(val), Imm32(0xc0000000));
 	Update_SR_Register16(val);
-#endif
 }
 
 //void DSPEmitter::Update_SR_LZ(bool value) {

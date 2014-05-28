@@ -401,15 +401,9 @@ void DSPEmitter::CompileDispatcher()
 
 
 	// Execute block. Cycles executed returned in EAX.
-#if _M_X86_32
-	MOVZX(32, 16, ECX, M(&g_dsp.pc));
-	MOV(32, R(EBX), ImmPtr(blocks));
-	JMPptr(MComplex(EBX, ECX, SCALE_4, 0));
-#else
-	MOVZX(64, 16, ECX, M(&g_dsp.pc));//for clarity, use 64 here.
+	MOVZX(64, 16, ECX, M(&g_dsp.pc));
 	MOV(64, R(RBX), ImmPtr(blocks));
 	JMPptr(MComplex(RBX, RCX, SCALE_8, 0));
-#endif
 
 	returnDispatcher = GetCodePtr();
 

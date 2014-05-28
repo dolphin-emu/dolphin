@@ -17,7 +17,6 @@ using namespace Gen;
 // In: RCX = s16 a, RAX = s16 b
 void DSPEmitter::multiply()
 {
-#if _M_X86_64
 //	prod = (s16)a * (s16)b; //signed
 	IMUL(64, R(ECX));
 
@@ -32,35 +31,30 @@ void DSPEmitter::multiply()
 	SetJumpTarget(noMult2);
 	gpr.putReg(DSP_REG_SR, false);
 //	return prod;
-#endif
 }
 
 // Returns s64 in RAX
 // Clobbers RDX
 void DSPEmitter::multiply_add()
 {
-#if _M_X86_64
 //	s64 prod = dsp_get_long_prod() + dsp_get_multiply_prod(a, b, sign);
 	multiply();
 	MOV(64, R(RDX), R(RAX));
 	get_long_prod();
 	ADD(64, R(RAX), R(RDX));
 //	return prod;
-#endif
 }
 
 // Returns s64 in RAX
 // Clobbers RDX
 void DSPEmitter::multiply_sub()
 {
-#if _M_X86_64
 //	s64 prod = dsp_get_long_prod() - dsp_get_multiply_prod(a, b, sign);
 	multiply();
 	MOV(64, R(RDX), R(RAX));
 	get_long_prod();
 	SUB(64, R(RAX), R(RDX));
 //	return prod;
-#endif
 }
 
 // Only MULX family instructions have unsigned/mixed support.
@@ -69,7 +63,6 @@ void DSPEmitter::multiply_sub()
 // Returns s64 in RAX
 void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
 {
-#if _M_X86_64
 //	s64 result;
 
 //	if ((axh0==0) && (axh1==0))
@@ -141,7 +134,6 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
 	SetJumpTarget(noMult2);
 	gpr.putReg(DSP_REG_SR, false);
 //	return prod;
-#endif
 }
 
 //----
@@ -169,7 +161,6 @@ void DSPEmitter::clrp(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::tstprod(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	if (FlagsNeeded())
 	{
 //		s64 prod = dsp_get_long_prod();
@@ -177,9 +168,6 @@ void DSPEmitter::tstprod(const UDSPInstruction opc)
 //		Update_SR_Register64(prod);
 		Update_SR_Register64();
 	}
-#else
-	Default(opc);
-#endif
 }
 
 //----
@@ -191,7 +179,6 @@ void DSPEmitter::tstprod(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::movp(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 dreg = (opc >> 8) & 0x1;
 
 //	s64 acc = dsp_get_long_prod();
@@ -203,9 +190,6 @@ void DSPEmitter::movp(const UDSPInstruction opc)
 	{
 		Update_SR_Register64();
 	}
-#else
-	Default(opc);
-#endif
 }
 
 // MOVNP $acD
@@ -216,7 +200,6 @@ void DSPEmitter::movp(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::movnp(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 dreg = (opc >> 8) & 0x1;
 
 //	s64 acc = -dsp_get_long_prod();
@@ -229,9 +212,6 @@ void DSPEmitter::movnp(const UDSPInstruction opc)
 	{
 		Update_SR_Register64();
 	}
-#else
-	Default(opc);
-#endif
 }
 
 // MOVPZ $acD
@@ -242,7 +222,6 @@ void DSPEmitter::movnp(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::movpz(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 dreg = (opc >> 8) & 0x01;
 
 //	s64 acc = dsp_get_long_prod_round_prodl();
@@ -254,9 +233,6 @@ void DSPEmitter::movpz(const UDSPInstruction opc)
 	{
 		Update_SR_Register64();
 	}
-#else
-	Default(opc);
-#endif
 }
 
 // ADDPAXZ $acD, $axS
@@ -267,7 +243,6 @@ void DSPEmitter::movpz(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::addpaxz(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 dreg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
 
@@ -299,9 +274,6 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
 		set_long_acc(dreg, RAX);
 	}
 	gpr.putXReg(tmp1);
-#else
-	Default(opc);
-#endif
 }
 
 //----
@@ -311,16 +283,12 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
 // Multiply $ax0.h by $ax0.h
 void DSPEmitter::mulaxh(const UDSPInstruction opc)
 {
-#if _M_X86_64
 //	s64 prod = dsp_multiply(dsp_get_ax_h(0), dsp_get_ax_h(0));
 	dsp_op_read_reg(DSP_REG_AXH0, RCX, SIGN);
 	MOV(64, R(RAX), R(RCX));
 	multiply();
 //	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
 
 //----
@@ -331,7 +299,6 @@ void DSPEmitter::mulaxh(const UDSPInstruction opc)
 // $axS.h of secondary accumulator $axS (treat them both as signed).
 void DSPEmitter::mul(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 sreg  = (opc >> 11) & 0x1;
 
 //	u16 axl = dsp_get_ax_l(sreg);
@@ -342,9 +309,6 @@ void DSPEmitter::mul(const UDSPInstruction opc)
 	multiply();
 //	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
 
 // MULAC $axS.l, $axS.h, $acR
@@ -356,7 +320,6 @@ void DSPEmitter::mul(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::mulac(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 rreg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 11) & 0x1;
 
@@ -382,9 +345,6 @@ void DSPEmitter::mulac(const UDSPInstruction opc)
 	{
 		Update_SR_Register64();
 	}
-#else
-	Default(opc);
-#endif
 }
 
 // MULMV $axS.l, $axS.h, $acR
@@ -396,7 +356,6 @@ void DSPEmitter::mulac(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::mulmv(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 rreg  = (opc >> 8) & 0x1;
 
 //	s64 acc = dsp_get_long_prod();
@@ -411,9 +370,6 @@ void DSPEmitter::mulmv(const UDSPInstruction opc)
 	{
 		Update_SR_Register64();
 	}
-#else
-	Default(opc);
-#endif
 }
 
 // MULMVZ $axS.l, $axS.h, $acR
@@ -426,7 +382,6 @@ void DSPEmitter::mulmv(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::mulmvz(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 rreg = (opc >> 8) & 0x1;
 
 //	s64 acc = dsp_get_long_prod_round_prodl();
@@ -439,9 +394,6 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
 	{
 		Update_SR_Register64(RDX);
 	}
-#else
-	Default(opc);
-#endif
 }
 
 //----
@@ -452,7 +404,6 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
 // Part is selected by S and T bits. Zero selects low part, one selects high part.
 void DSPEmitter::mulx(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 treg = ((opc >> 11) & 0x1);
 	u8 sreg = ((opc >> 12) & 0x1);
 
@@ -464,9 +415,6 @@ void DSPEmitter::mulx(const UDSPInstruction opc)
 	multiply_mulx(sreg, treg);
 //	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
 
 // MULXAC $ax0.S, $ax1.T, $acR
@@ -478,7 +426,6 @@ void DSPEmitter::mulx(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::mulxac(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 rreg = (opc >> 8) & 0x1;
 	u8 treg = (opc >> 11) & 0x1;
 	u8 sreg = (opc >> 12) & 0x1;
@@ -506,9 +453,6 @@ void DSPEmitter::mulxac(const UDSPInstruction opc)
 		Update_SR_Register64(tmp1);
 	}
 	gpr.putXReg(tmp1);
-#else
-	Default(opc);
-#endif
 }
 
 // MULXMV $ax0.S, $ax1.T, $acR
@@ -520,7 +464,6 @@ void DSPEmitter::mulxac(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::mulxmv(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 rreg = ((opc >> 8) & 0x1);
 	u8 treg = (opc >> 11) & 0x1;
 	u8 sreg = (opc >> 12) & 0x1;
@@ -546,9 +489,6 @@ void DSPEmitter::mulxmv(const UDSPInstruction opc)
 		Update_SR_Register64(tmp1);
 	}
 	gpr.putXReg(tmp1);
-#else
-	Default(opc);
-#endif
 }
 
 // MULXMV $ax0.S, $ax1.T, $acR
@@ -561,7 +501,6 @@ void DSPEmitter::mulxmv(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::mulxmvz(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 rreg  = (opc >> 8) & 0x1;
 	u8 treg = (opc >> 11) & 0x1;
 	u8 sreg = (opc >> 12) & 0x1;
@@ -587,9 +526,6 @@ void DSPEmitter::mulxmvz(const UDSPInstruction opc)
 		Update_SR_Register64(tmp1);
 	}
 	gpr.putXReg(tmp1);
-#else
-	Default(opc);
-#endif
 }
 
 //----
@@ -600,7 +536,6 @@ void DSPEmitter::mulxmvz(const UDSPInstruction opc)
 // secondary accumulator $axS (treat them both as signed).
 void DSPEmitter::mulc(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 treg = (opc >> 11) & 0x1;
 	u8 sreg = (opc >> 12) & 0x1;
 
@@ -612,9 +547,6 @@ void DSPEmitter::mulc(const UDSPInstruction opc)
 	multiply();
 //	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
 
 // MULCAC $acS.m, $axT.h, $acR
@@ -626,7 +558,6 @@ void DSPEmitter::mulc(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::mulcac(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 rreg = (opc >> 8) & 0x1;
 	u8 treg  = (opc >> 11) & 0x1;
 	u8 sreg  = (opc >> 12) & 0x1;
@@ -653,9 +584,6 @@ void DSPEmitter::mulcac(const UDSPInstruction opc)
 	{
 		Update_SR_Register64();
 	}
-#else
-	Default(opc);
-#endif
 }
 
 // MULCMV $acS.m, $axT.h, $acR
@@ -668,7 +596,6 @@ void DSPEmitter::mulcac(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::mulcmv(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 rreg = (opc >> 8) & 0x1;
 	u8 treg  = (opc >> 11) & 0x1;
 	u8 sreg  = (opc >> 12) & 0x1;
@@ -692,9 +619,6 @@ void DSPEmitter::mulcmv(const UDSPInstruction opc)
 	{
 		Update_SR_Register64();
 	}
-#else
-	Default(opc);
-#endif
 }
 
 // MULCMVZ $acS.m, $axT.h, $acR
@@ -708,7 +632,6 @@ void DSPEmitter::mulcmv(const UDSPInstruction opc)
 // flags out: --xx xx0x
 void DSPEmitter::mulcmvz(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 rreg = (opc >> 8) & 0x1;
 	u8 treg  = (opc >> 11) & 0x1;
 	u8 sreg  = (opc >> 12) & 0x1;
@@ -732,9 +655,6 @@ void DSPEmitter::mulcmvz(const UDSPInstruction opc)
 	{
 		Update_SR_Register64();
 	}
-#else
-	Default(opc);
-#endif
 }
 
 //----
@@ -746,7 +666,6 @@ void DSPEmitter::mulcmvz(const UDSPInstruction opc)
 // signed) and add result to product register.
 void DSPEmitter::maddx(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 treg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
 
@@ -758,9 +677,6 @@ void DSPEmitter::maddx(const UDSPInstruction opc)
 	multiply_add();
 	//	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
 
 // MSUBX $(0x18+S*2), $(0x19+T*2)
@@ -770,7 +686,6 @@ void DSPEmitter::maddx(const UDSPInstruction opc)
 // signed) and subtract result from product register.
 void DSPEmitter::msubx(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 treg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
 
@@ -782,9 +697,6 @@ void DSPEmitter::msubx(const UDSPInstruction opc)
 	multiply_sub();
 	//	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
 
 // MADDC $acS.m, $axT.h
@@ -794,7 +706,6 @@ void DSPEmitter::msubx(const UDSPInstruction opc)
 // register.
 void DSPEmitter::maddc(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 treg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
 
@@ -806,9 +717,6 @@ void DSPEmitter::maddc(const UDSPInstruction opc)
 	multiply_add();
 //	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
 
 // MSUBC $acS.m, $axT.h
@@ -818,7 +726,6 @@ void DSPEmitter::maddc(const UDSPInstruction opc)
 // product register.
 void DSPEmitter::msubc(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 treg = (opc >> 8) & 0x1;
 	u8 sreg = (opc >> 9) & 0x1;
 
@@ -830,9 +737,6 @@ void DSPEmitter::msubc(const UDSPInstruction opc)
 	multiply_sub();
 //	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
 
 // MADD $axS.l, $axS.h
@@ -842,7 +746,6 @@ void DSPEmitter::msubc(const UDSPInstruction opc)
 // result to product register.
 void DSPEmitter::madd(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 sreg = (opc >> 8) & 0x1;
 
 //	u16 axl = dsp_get_ax_l(sreg);
@@ -853,9 +756,6 @@ void DSPEmitter::madd(const UDSPInstruction opc)
 	multiply_add();
 //	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
 
 // MSUB $axS.l, $axS.h
@@ -865,7 +765,6 @@ void DSPEmitter::madd(const UDSPInstruction opc)
 // subtract result from product register.
 void DSPEmitter::msub(const UDSPInstruction opc)
 {
-#if _M_X86_64
 	u8 sreg = (opc >> 8) & 0x1;
 
 //	u16 axl = dsp_get_ax_l(sreg);
@@ -876,7 +775,4 @@ void DSPEmitter::msub(const UDSPInstruction opc)
 	multiply_sub();
 //	dsp_set_long_prod(prod);
 	set_long_prod();
-#else
-	Default(opc);
-#endif
 }
