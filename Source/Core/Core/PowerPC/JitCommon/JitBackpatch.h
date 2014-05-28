@@ -33,16 +33,6 @@ const int BACKPATCH_SIZE = 5;
 		#define CTX_R14 R14
 		#define CTX_R15 R15
 		#define CTX_RIP Rip
-	#elif _M_X86_32
-		#define CTX_EAX Eax
-		#define CTX_EBX Ebx
-		#define CTX_ECX Ecx
-		#define CTX_EDX Edx
-		#define CTX_EDI Edi
-		#define CTX_ESI Esi
-		#define CTX_EBP Ebp
-		#define CTX_ESP Esp
-		#define CTX_EIP Eip
 	#else
 		#error No context definition for OS
 	#endif
@@ -68,17 +58,6 @@ const int BACKPATCH_SIZE = 5;
 		#define CTX_R14 __r14
 		#define CTX_R15 __r15
 		#define CTX_RIP __rip
-	#elif _M_X86_32
-		typedef x86_thread_state32_t SContext;
-		#define CTX_EAX __eax
-		#define CTX_EBX __ebx
-		#define CTX_ECX __ecx
-		#define CTX_EDX __edx
-		#define CTX_EDI __edi
-		#define CTX_ESI __esi
-		#define CTX_EBP __ebp
-		#define CTX_ESP __esp
-		#define CTX_EIP __eip
 	#else
 		#error No context definition for OS
 	#endif
@@ -104,32 +83,6 @@ const int BACKPATCH_SIZE = 5;
 		#define CTX_R14 gregs[REG_R14]
 		#define CTX_R15 gregs[REG_R15]
 		#define CTX_RIP gregs[REG_RIP]
-	#elif _M_X86_32
-		#ifdef ANDROID
-		#include <asm/sigcontext.h>
-		typedef sigcontext SContext;
-		#define CTX_EAX eax
-		#define CTX_EBX ebx
-		#define CTX_ECX ecx
-		#define CTX_EDX edx
-		#define CTX_EDI edi
-		#define CTX_ESI esi
-		#define CTX_EBP ebp
-		#define CTX_ESP esp
-		#define CTX_EIP eip
-		#else
-		#include <ucontext.h>
-		typedef mcontext_t SContext;
-		#define CTX_EAX gregs[REG_EAX]
-		#define CTX_EBX gregs[REG_EBX]
-		#define CTX_ECX gregs[REG_ECX]
-		#define CTX_EDX gregs[REG_EDX]
-		#define CTX_EDI gregs[REG_EDI]
-		#define CTX_ESI gregs[REG_ESI]
-		#define CTX_EBP gregs[REG_EBP]
-		#define CTX_ESP gregs[REG_ESP]
-		#define CTX_EIP gregs[REG_EIP]
-		#endif
 	#elif _M_ARM_32
 		// Add others if required.
 		typedef struct sigcontext SContext;
@@ -158,16 +111,6 @@ const int BACKPATCH_SIZE = 5;
 		#define CTX_R14 __gregs[_REG_R14]
 		#define CTX_R15 __gregs[_REG_R15]
 		#define CTX_RIP __gregs[_REG_RIP]
-	#elif _M_X86_32
-		#define CTX_EAX __gregs[__REG_EAX]
-		#define CTX_EBX __gregs[__REG_EBX]
-		#define CTX_ECX __gregs[__REG_ECX]
-		#define CTX_EDX __gregs[__REG_EDX]
-		#define CTX_EDI __gregs[__REG_EDI]
-		#define CTX_ESI __gregs[__REG_ESI]
-		#define CTX_EBP __gregs[__REG_EBP]
-		#define CTX_ESP __gregs[__REG_ESP]
-		#define CTX_EIP __gregs[__REG_EIP]
 	#else
 		#error No context definition for OS
 	#endif
@@ -192,16 +135,6 @@ const int BACKPATCH_SIZE = 5;
 		#define CTX_R14 mc_r14
 		#define CTX_R15 mc_r15
 		#define CTX_RIP mc_rip
-	#elif _M_X86_32
-		#define CTX_EAX mc_eax
-		#define CTX_EBX mc_ebx
-		#define CTX_ECX mc_ecx
-		#define CTX_EDX mc_edx
-		#define CTX_EDI mc_edi
-		#define CTX_ESI mc_esi
-		#define CTX_EBP mc_ebp
-		#define CTX_ESP mc_esp
-		#define CTX_EIP mc_eip
 	#else
 		#error No context definition for OS
 	#endif
@@ -233,8 +166,6 @@ static inline u64 *ContextRN(SContext* ctx, int n)
 	};
 	return (u64 *) ((char *) ctx + offsets[n]);
 }
-#elif _M_X86_32
-#define CTX_PC CTX_EIP
 #endif
 
 class TrampolineCache : public Gen::X64CodeBlock

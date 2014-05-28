@@ -41,12 +41,7 @@ void EmuCodeBlock::SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src
 
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
-#if _M_X86_64
 	MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
-#else
-	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
-	MOVZX(32, accessSize, reg_value, MDisp(reg_addr, (u32)Memory::base + offset));
-#endif
 	if (accessSize == 32)
 	{
 		BSWAP(32, reg_value);
@@ -68,18 +63,12 @@ void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int acc
 
 void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset)
 {
-#if _M_X86_64
 	MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
-#else
-	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
-	MOVZX(32, accessSize, reg_value, MDisp(reg_addr, (u32)Memory::base + offset));
-#endif
 }
 
 u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend)
 {
 	u8 *result;
-#if _M_X86_64
 	if (opAddress.IsSimpleReg())
 	{
 		// Deal with potential wraparound.  (This is just a heuristic, and it would
@@ -109,27 +98,6 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 		else
 			MOVZX(64, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
 	}
-#else
-	if (opAddress.IsImm())
-	{
-		result = GetWritableCodePtr();
-		if (accessSize == 8 && signExtend)
-			MOVSX(32, accessSize, reg_value, M(Memory::base + (((u32)opAddress.offset + offset) & Memory::MEMVIEW32_MASK)));
-		else
-			MOVZX(32, accessSize, reg_value, M(Memory::base + (((u32)opAddress.offset + offset) & Memory::MEMVIEW32_MASK)));
-	}
-	else
-	{
-		if (!opAddress.IsSimpleReg(reg_value))
-			MOV(32, R(reg_value), opAddress);
-		AND(32, R(reg_value), Imm32(Memory::MEMVIEW32_MASK));
-		result = GetWritableCodePtr();
-		if (accessSize == 8 && signExtend)
-			MOVSX(32, accessSize, reg_value, MDisp(reg_value, (u32)Memory::base + offset));
-		else
-			MOVZX(32, accessSize, reg_value, MDisp(reg_value, (u32)Memory::base + offset));
-	}
-#endif
 
 	switch (accessSize)
 	{
@@ -281,7 +249,6 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	{
 		registersInUse &= ~(1 << RAX | 1 << reg_value);
 	}
-#if _M_X86_64
 	if (!Core::g_CoreStartupParameter.bMMU &&
 	    Core::g_CoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
@@ -296,7 +263,6 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		registersInUseAtLoc[mov] = registersInUse;
 	}
 	else
-#endif
 	{
 		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
@@ -411,7 +377,6 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 	if (accessSize == 8 && reg_value >= 4) {
 		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
 	}
-#if _M_X86_64
 	result = GetWritableCodePtr();
 	OpArg dest = MComplex(RBX, reg_addr, SCALE_1, offset);
 	if (swap)
@@ -431,15 +396,6 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 	{
 		MOV(accessSize, dest, R(reg_value));
 	}
-#else
-	if (swap)
-	{
-		BSWAP(accessSize, reg_value);
-	}
-	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
-	result = GetWritableCodePtr();
-	MOV(accessSize, MDisp(reg_addr, (u32)Memory::base + offset), R(reg_value));
-#endif
 	return result;
 }
 
@@ -447,7 +403,6 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags)
 {
 	registersInUse &= ~(1 << RAX);
-#if _M_X86_64
 	if (!Core::g_CoreStartupParameter.bMMU &&
 	    Core::g_CoreStartupParameter.bFastmem &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
@@ -468,7 +423,6 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 		registersInUseAtLoc[mov] = registersInUse;
 		return;
 	}
-#endif
 
 	if (offset)
 		ADD(32, R(reg_addr), Imm32((u32)offset));
@@ -517,17 +471,10 @@ void EmuCodeBlock::SafeWriteF32ToReg(X64Reg xmm_value, X64Reg reg_addr, s32 offs
 
 void EmuCodeBlock::WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 address, bool swap)
 {
-#if _M_X86_64
 	if (swap)
 		SwapAndStore(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
 	else
 		MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), R(arg));
-#else
-	if (swap)
-		SwapAndStore(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), arg);
-	else
-		MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), R(arg));
-#endif
 }
 
 void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm) {
@@ -553,17 +500,10 @@ static u64 GC_ALIGNED16(temp64);
 
 static const float GC_ALIGNED16(m_zero[]) = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-#if _M_X86_64
 static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0, 0x0000000000400000);
 static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi64x(0, 0x000000007f800000);
 static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi64x(0, 0x0008000000000000);
 static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi64x(0, 0x7ff0000000000000);
-#else
-static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi32(0, 0, 0x00000000, 0x00400000);
-static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi32(0, 0, 0x00000000, 0x7f800000);
-static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi32(0, 0, 0x00080000, 0x00000000);
-static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi32(0, 0, 0x7ff00000, 0x00000000);
-#endif
 
 // Since the following float conversion functions are used in non-arithmetic PPC float instructions,
 // they must convert floats bitexact and never flush denormals to zero or turn SNaNs into QNaNs.
@@ -578,19 +518,11 @@ static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi32(0, 0, 0x7ff00
 //#define MORE_ACCURATE_DOUBLETOSINGLE
 #ifdef MORE_ACCURATE_DOUBLETOSINGLE
 
-#if _M_X86_64
 static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi64x(0, 0x000fffffffffffff);
 static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0, 0x8000000000000000);
 static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi64x(0, 0x0010000000000000);
 static const __m128i GC_ALIGNED16(double_top_two_bits) = _mm_set_epi64x(0, 0xc000000000000000);
 static const __m128i GC_ALIGNED16(double_bottom_bits)  = _mm_set_epi64x(0, 0x07ffffffe0000000);
-#else
-static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi32(0, 0, 0x000fffff, 0xffffffff);
-static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi32(0, 0, 0x80000000, 0x00000000);
-static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi32(0, 0, 0x00100000, 0x00000000);
-static const __m128i GC_ALIGNED16(double_top_two_bits) = _mm_set_epi32(0, 0, 0xc0000000, 0x00000000);
-static const __m128i GC_ALIGNED16(double_bottom_bits)  = _mm_set_epi32(0, 0, 0x07ffffff, 0xe0000000);
-#endif
 
 // This is the same algorithm used in the interpreter (and actual hardware)
 // The documentation states that the conversion of a double with an outside the
