@@ -7,7 +7,7 @@
 #include <math.h>
 #include <Windows.h>
 
-void EnableXSaveWorkaround()
+int __cdecl EnableXSaveWorkaround()
 {
 	// Some Windows environments may have hardware support for AVX/FMA,
 	// but the OS does not support it. The CRT math library does not support
@@ -20,6 +20,8 @@ void EnableXSaveWorkaround()
 	{
 		_set_FMA3_enable(0);
 	}
+
+	return 0;
 }
 
 // Create a segment which is recognized by the linker to be part of the CRT
