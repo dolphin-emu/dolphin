@@ -332,19 +332,42 @@ void CGameListCtrl::Update()
 
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_DUMMY,0);
-		SetColumnWidth(COLUMN_PLATFORM, 35 + platform_padding);
-		SetColumnWidth(COLUMN_BANNER, 96 + platform_padding);
+		if(SConfig::GetInstance().m_showSystem)
+			SetColumnWidth(COLUMN_PLATFORM, 35 + platform_padding);
+		else SetColumnWidth(COLUMN_PLATFORM, 0);
+
+		if (SConfig::GetInstance().m_showBanner)
+			SetColumnWidth(COLUMN_BANNER, 96 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_BANNER, 0);
+
 		SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
-		SetColumnWidth(COLUMN_NOTES, 150 + platform_padding);
-		SetColumnWidth(COLUMN_ID, 75 + platform_padding);
-		SetColumnWidth(COLUMN_COUNTRY, 32 + platform_padding);
-		SetColumnWidth(COLUMN_EMULATION_STATE, 50 + platform_padding);
+
+		if (SConfig::GetInstance().m_showNotes)
+			SetColumnWidth(COLUMN_NOTES, 150 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_NOTES, 0);
+
+		if (SConfig::GetInstance().m_showID)
+			SetColumnWidth(COLUMN_ID, 75 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_ID, 0);
+
+		if (SConfig::GetInstance().m_showRegion)
+			SetColumnWidth(COLUMN_COUNTRY, 32 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_COUNTRY, 0);
+
+		if (SConfig::GetInstance().m_showState)
+			SetColumnWidth(COLUMN_EMULATION_STATE, 50 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_EMULATION_STATE, 0);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
 		{
 			InsertItemInReportView(i);
-			if (m_ISOFiles[i]->IsCompressed())
+			if (SConfig::GetInstance().m_ColorCompressed && m_ISOFiles[i]->IsCompressed())
 				SetItemTextColour(i, wxColour(0xFF0000));
 		}
 
@@ -1285,21 +1308,27 @@ void CGameListCtrl::AutomaticColumnWidth()
 	{
 		SetColumnWidth(0, rc.GetWidth());
 	}
-	else if (GetColumnCount() > 4)
+	else
 	{
-		int resizable = rc.GetWidth() - (
-			GetColumnWidth(COLUMN_BANNER)
-			+ GetColumnWidth(COLUMN_COUNTRY)
-			+ GetColumnWidth(COLUMN_SIZE)
-			+ GetColumnWidth(COLUMN_EMULATION_STATE)
-			+ GetColumnWidth(COLUMN_PLATFORM)
-			+ GetColumnWidth(COLUMN_ID));
+		int resizable = rc.GetWidth();
+
+		if (SConfig::GetInstance().m_showSystem)resizable -= GetColumnWidth(COLUMN_PLATFORM);
+		if (SConfig::GetInstance().m_showBanner)resizable -= GetColumnWidth(COLUMN_BANNER);
+		if (SConfig::GetInstance().m_showID)resizable -= GetColumnWidth(COLUMN_ID);
+		if (SConfig::GetInstance().m_showRegion)resizable -= GetColumnWidth(COLUMN_COUNTRY);
+		if (SConfig::GetInstance().m_showSize)resizable -= GetColumnWidth(COLUMN_SIZE);
+		if (SConfig::GetInstance().m_showState)resizable -= GetColumnWidth(COLUMN_EMULATION_STATE);
 
 		// We hide the Notes column if the window is too small
 		if (resizable > 400)
 		{
-			SetColumnWidth(COLUMN_TITLE, resizable / 2);
-			SetColumnWidth(COLUMN_NOTES, resizable / 2);
+			if (SConfig::GetInstance().m_showNotes){
+				SetColumnWidth(COLUMN_TITLE, resizable / 2);
+				SetColumnWidth(COLUMN_NOTES, resizable / 2);
+			}
+			else{
+				SetColumnWidth(COLUMN_TITLE, resizable);
+			}
 		}
 		else
 		{

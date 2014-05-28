@@ -343,6 +343,7 @@ private:
 	void OnRenderParentResize(wxSizeEvent& event);
 	bool RendererIsFullscreen();
 	void StartGame(const std::string& filename);
+	void OnChangeColumnsVisible(wxCommandEvent& event);
 
 	// Event table
 	DECLARE_EVENT_TABLE();

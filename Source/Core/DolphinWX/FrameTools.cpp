@@ -318,6 +318,26 @@ void CFrame::CreateMenu()
 	viewMenu->AppendCheckItem(IDM_LISTDRIVES, _("Show Drives"));
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
 	viewMenu->Append(IDM_PURGECACHE, _("Purge Cache"));
+
+	wxMenu *columnsMenu = new wxMenu;
+	viewMenu->AppendSubMenu(columnsMenu, _("Select Columns"));
+	columnsMenu->AppendCheckItem(IDM_SHOW_SYSTEM, _("Platform"));
+	columnsMenu->Check(IDM_SHOW_SYSTEM, SConfig::GetInstance().m_showSystem);
+	columnsMenu->AppendCheckItem(IDM_SHOW_BANNER, _("Banner"));
+	columnsMenu->Check(IDM_SHOW_BANNER, SConfig::GetInstance().m_showBanner);
+	columnsMenu->AppendCheckItem(IDM_SHOW_NOTES, _("Notes"));
+	columnsMenu->Check(IDM_SHOW_NOTES, SConfig::GetInstance().m_showNotes);
+	columnsMenu->AppendCheckItem(IDM_SHOW_ID, _("Game ID"));
+	columnsMenu->Check(IDM_SHOW_ID, SConfig::GetInstance().m_showID);
+	columnsMenu->AppendCheckItem(IDM_SHOW_REGION, _("Region"));
+	columnsMenu->Check(IDM_SHOW_REGION, SConfig::GetInstance().m_showRegion);
+	columnsMenu->AppendCheckItem(IDM_SHOW_SIZE, _("Filesize"));
+	columnsMenu->Check(IDM_SHOW_SIZE, SConfig::GetInstance().m_showSize);
+	columnsMenu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
+	columnsMenu->Check(IDM_SHOW_STATE, SConfig::GetInstance().m_showState);
+
+
+
 	m_MenuBar->Append(viewMenu, _("&View"));
 
 	if (g_pCodeWindow)
@@ -1883,4 +1903,22 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 		GetStatusBar()->Hide();
 
 	this->SendSizeEvent();
+}
+
+void CFrame::OnChangeColumnsVisible(wxCommandEvent& event){
+	switch (event.GetId()){
+	case IDM_SHOW_SYSTEM: 
+		SConfig::GetInstance().m_showSystem = !SConfig::GetInstance().m_showSystem; 
+		
+		break;
+	case IDM_SHOW_BANNER: SConfig::GetInstance().m_showBanner = !SConfig::GetInstance().m_showBanner; break;
+	case IDM_SHOW_NOTES: SConfig::GetInstance().m_showNotes = !SConfig::GetInstance().m_showNotes; break;
+	case IDM_SHOW_ID: SConfig::GetInstance().m_showID = !SConfig::GetInstance().m_showID; break;
+	case IDM_SHOW_REGION: SConfig::GetInstance().m_showRegion = !SConfig::GetInstance().m_showRegion; break;
+	case IDM_SHOW_SIZE: SConfig::GetInstance().m_showSize = !SConfig::GetInstance().m_showSize; break;
+	case IDM_SHOW_STATE: SConfig::GetInstance().m_showState = !SConfig::GetInstance().m_showState; break;
+	default: return;
+	}
+	m_GameListCtrl->Update();
+	SConfig::GetInstance().SaveSettings();
 }
