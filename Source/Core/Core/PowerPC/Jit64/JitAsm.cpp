@@ -37,11 +37,10 @@ void Jit64AsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
-#if _M_X86_64
+
 	// Two statically allocated registers.
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
 	MOV(64, R(R15), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
-#endif
 
 	const u8* outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
@@ -85,12 +84,9 @@ void Jit64AsmRoutineManager::Generate()
 				no_mem = J_CC(CC_NZ);
 			}
 			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-#if _M_X86_32
-			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCache));
-#else
 			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCache));
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
-#endif
+
 			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
 				exit_mem = J();
@@ -101,12 +97,9 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
 				FixupBranch no_vmem = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-#if _M_X86_32
-				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCacheVMEM));
-#else
 				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
 				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
-#endif
+
 				if (Core::g_CoreStartupParameter.bWii) exit_vmem = J();
 				SetJumpTarget(no_vmem);
 			}
@@ -115,12 +108,9 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHEEX_MASK));
-#if _M_X86_32
-				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCacheEx));
-#else
 				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheEx));
 				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
-#endif
+
 				SetJumpTarget(no_exram);
 			}
 			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
@@ -136,24 +126,13 @@ void Jit64AsmRoutineManager::Generate()
 					ADD(32, M(&PowerPC::ppcState.DebugCount), Imm8(1));
 				}
 				//grab from list and jump to it
-#if _M_X86_32
-				MOV(32, R(EDX), ImmPtr(jit->GetBlockCache()->GetCodePointers()));
-				JMPptr(MComplex(EDX, EAX, 4, 0));
-#else
 				JMPptr(MComplex(R15, RAX, 8, 0));
-#endif
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
-#if _M_X86_32
-			ABI_AlignStack(4);
-			PUSH(32, M(&PowerPC::ppcState.pc));
-			CALL(reinterpret_cast<void *>(&Jit));
-			ABI_RestoreStack(4);
-#else
 			MOV(32, R(ABI_PARAM1), M(&PowerPC::ppcState.pc));
 			CALL((void *)&Jit);
-#endif
+
 			JMP(dispatcherNoCheck); // no point in special casing this
 
 		SetJumpTarget(bail);
