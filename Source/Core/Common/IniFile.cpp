@@ -347,9 +347,16 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 		char templine[MAX_BYTES];
 		std::string line;
 		if (in.getline(templine, MAX_BYTES))
+		{
 			line = templine;
+		}
 		else
-			return false;
+		{
+			if (in.eof())
+				return true;
+			else
+				return false;
+		}
 
 #ifndef _WIN32
 		// Check for CRLF eol and convert it to LF
