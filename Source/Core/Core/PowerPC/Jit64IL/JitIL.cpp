@@ -346,11 +346,7 @@ static void ImHere()
 	{
 		if (!f)
 		{
-#if _M_X86_64
 			f.Open("log64.txt", "w");
-#else
-			f.Open("log32.txt", "w");
-#endif
 		}
 		fprintf(f.GetHandle(), "%08x r0: %08x r5: %08x r6: %08x\n", PC, PowerPC::ppcState.gpr[0],
 			PowerPC::ppcState.gpr[5], PowerPC::ppcState.gpr[6]);
