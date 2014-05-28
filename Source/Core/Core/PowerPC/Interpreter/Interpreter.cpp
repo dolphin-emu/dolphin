@@ -92,7 +92,7 @@ void Trace( UGeckoInstruction &instCode )
 int Interpreter::SingleStepInner(void)
 {
 	static UGeckoInstruction instCode;
-	u32 function = m_EndBlock ? HLE::GetFunctionIndex(PC) : 0; // Check for HLE functions after branches
+	u32 function = HLE::GetFunctionIndex(PC);
 	if (function != 0)
 	{
 		int type = HLE::GetFunctionTypeByIndex(function);
