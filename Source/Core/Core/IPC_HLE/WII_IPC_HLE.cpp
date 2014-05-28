@@ -76,9 +76,9 @@ IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
 typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue; // ppc -> arm
 static ipc_msg_queue reply_queue;   // arm -> ppc
-static std::mutex s_reply_queue;
 
 static int enque_reply;
+static int enque_request;
 
 static u64 last_reply_time;
 
@@ -87,8 +87,14 @@ static u64 last_reply_time;
 //       Please search for examples of this being called elsewhere.
 void EnqueReplyCallback(u64 userdata, int)
 {
-	std::lock_guard<std::mutex> lk(s_reply_queue);
 	reply_queue.push_back((u32)userdata);
+	Update();
+}
+
+void EnqueRequestCallback(u64 userdata, int)
+{
+	request_queue.push_back((u32)userdata);
+	Update();
 }
 
 void Init()
@@ -134,11 +140,13 @@ void Init()
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, "_Unimplemented_Device_"); i++;
 
 	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
+	enque_request = CoreTiming::RegisterEvent("IPCRequest", EnqueRequestCallback);
 }
 
 void Reset(bool _bHard)
 {
 	CoreTiming::RemoveAllEvents(enque_reply);
+	CoreTiming::RemoveAllEvents(enque_request);
 
 	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
@@ -175,12 +183,8 @@ void Reset(bool _bHard)
 		g_DeviceMap.erase(g_DeviceMap.begin(), g_DeviceMap.end());
 	}
 	request_queue.clear();
+	reply_queue.clear();
 
-	// lock due to using reply_queue
-	{
-		std::lock_guard<std::mutex> lk(s_reply_queue);
-		reply_queue.clear();
-	}
 	last_reply_time = 0;
 }
 
@@ -264,8 +268,6 @@ IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName
 
 void DoState(PointerWrap &p)
 {
-	std::lock_guard<std::mutex> lk(s_reply_queue);
-
 	p.Do(request_queue);
 	p.Do(reply_queue);
 	p.Do(last_reply_time);
@@ -537,6 +539,11 @@ void ExecuteCommand(u32 _Address)
 		// Ensure replies happen in order, fairly ugly
 		// Without this, tons of games fail now that DI commands have different reply delays
 		int reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
+		if (!reply_delay)
+		{
+			int delay_us = 250;
+			reply_delay = SystemTimers::GetTicksPerSecond() / 1000000 * delay_us;
+		}
 
 		const s64 ticks_til_last_reply = last_reply_time - CoreTiming::GetTicks();
 
@@ -555,7 +562,7 @@ void ExecuteCommand(u32 _Address)
 // Happens AS SOON AS IPC gets a new pointer!
 void EnqRequest(u32 _Address)
 {
-	request_queue.push_back(_Address);
+	CoreTiming::ScheduleEvent(1000, enque_request, _Address);
 }
 
 // Called when IOS module has some reply
@@ -567,14 +574,17 @@ void EnqReply(u32 _Address, int cycles_in_future)
 	CoreTiming::ScheduleEvent(cycles_in_future, enque_reply, _Address);
 }
 
+void EnqReply_Threadsafe(u32 _Address, int cycles_in_future)
+{
+	CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, enque_reply, _Address);
+}
+
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp
 // Takes care of routing ipc <-> ipc HLE
 void Update()
 {
 	if (!WII_IPCInterface::IsReady())
 		return;
-
-	UpdateDevices();
 
 	if (request_queue.size())
 	{
@@ -583,21 +593,15 @@ void Update()
 		u32 command = request_queue.front();
 		request_queue.pop_front();
 		ExecuteCommand(command);
-
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
-		Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
-#endif
+		return;
 	}
 
-	// lock due to using reply_queue
+	if (reply_queue.size())
 	{
-		std::lock_guard<std::mutex> lk(s_reply_queue);
-		if (reply_queue.size())
-		{
-			WII_IPCInterface::GenerateReply(reply_queue.front());
-			INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
-			reply_queue.pop_front();
-		}
+		WII_IPCInterface::GenerateReply(reply_queue.front());
+		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
+		reply_queue.pop_front();
+		return;
 	}
 }
 
@@ -606,9 +610,9 @@ void UpdateDevices()
 	// Check if a hardware device must be updated
 	for (const auto& entry : g_DeviceMap)
 	{
-		if (entry.second->IsOpened() && entry.second->Update())
+		if (entry.second->IsOpened())
 		{
-			break;
+			entry.second->Update();
 		}
 	}
 }
