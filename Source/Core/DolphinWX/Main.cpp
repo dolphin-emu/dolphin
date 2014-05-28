@@ -49,6 +49,7 @@
 #include "DolphinWX/Debugger/JitWindow.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VR.h"
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
@@ -289,6 +290,7 @@ bool DolphinApp::OnInit()
 	LogManager::Init();
 	SConfig::Init();
 	VideoBackend::PopulateList();
+	InitVR();
 	WiimoteReal::LoadSettings();
 
 	if (selectVideoBackend && videoBackendName != wxEmptyString)

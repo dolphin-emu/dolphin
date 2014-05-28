@@ -35,6 +35,7 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 namespace DX11
 {
@@ -968,6 +969,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
+
+	NewVRFrame();
 
 	// resize the back buffers NOW to avoid flickering
 	if (xfbchanged ||

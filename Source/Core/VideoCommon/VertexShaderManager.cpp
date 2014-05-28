@@ -16,6 +16,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
 
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
@@ -389,133 +390,181 @@ void VertexShaderManager::SetConstants()
 	if (bProjectionChanged)
 	{
 		bProjectionChanged = false;
+		SetProjectionConstants();
+	}
+}
 
-		float *rawProjection = xfmem.projection.rawProjection;
+void VertexShaderManager::SetProjectionConstants()
+{
+	float *rawProjection = xfmem.projection.rawProjection;
 
-		switch (xfmem.projection.type)
+	switch (xfmem.projection.type)
+	{
+	case GX_PERSPECTIVE:
+
+		g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
+		g_fProjectionMatrix[1] = 0.0f;
+		g_fProjectionMatrix[2] = rawProjection[1];
+		g_fProjectionMatrix[3] = 0.0f;
+
+		g_fProjectionMatrix[4] = 0.0f;
+		g_fProjectionMatrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
+		g_fProjectionMatrix[6] = rawProjection[3];
+		g_fProjectionMatrix[7] = 0.0f;
+
+		g_fProjectionMatrix[8] = 0.0f;
+		g_fProjectionMatrix[9] = 0.0f;
+		g_fProjectionMatrix[10] = rawProjection[4];
+
+		g_fProjectionMatrix[11] = rawProjection[5];
+
+		g_fProjectionMatrix[12] = 0.0f;
+		g_fProjectionMatrix[13] = 0.0f;
+		// donkopunchstania suggested the GC GPU might round differently
+		// He had thus changed this to -(1 + epsilon) to fix clipping issues.
+		// I (neobrain) don't think his conjecture is true and thus reverted his change.
+		g_fProjectionMatrix[14] = -1.0f;
+		g_fProjectionMatrix[15] = 0.0f;
+
+		SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);
+		SETSTAT_FT(stats.gproj_1, g_fProjectionMatrix[1]);
+		SETSTAT_FT(stats.gproj_2, g_fProjectionMatrix[2]);
+		SETSTAT_FT(stats.gproj_3, g_fProjectionMatrix[3]);
+		SETSTAT_FT(stats.gproj_4, g_fProjectionMatrix[4]);
+		SETSTAT_FT(stats.gproj_5, g_fProjectionMatrix[5]);
+		SETSTAT_FT(stats.gproj_6, g_fProjectionMatrix[6]);
+		SETSTAT_FT(stats.gproj_7, g_fProjectionMatrix[7]);
+		SETSTAT_FT(stats.gproj_8, g_fProjectionMatrix[8]);
+		SETSTAT_FT(stats.gproj_9, g_fProjectionMatrix[9]);
+		SETSTAT_FT(stats.gproj_10, g_fProjectionMatrix[10]);
+		SETSTAT_FT(stats.gproj_11, g_fProjectionMatrix[11]);
+		SETSTAT_FT(stats.gproj_12, g_fProjectionMatrix[12]);
+		SETSTAT_FT(stats.gproj_13, g_fProjectionMatrix[13]);
+		SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix[14]);
+		SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix[15]);
+		break;
+
+	case GX_ORTHOGRAPHIC:
+
+		g_fProjectionMatrix[0] = rawProjection[0];
+		g_fProjectionMatrix[1] = 0.0f;
+		g_fProjectionMatrix[2] = 0.0f;
+		g_fProjectionMatrix[3] = rawProjection[1];
+
+		g_fProjectionMatrix[4] = 0.0f;
+		g_fProjectionMatrix[5] = rawProjection[2];
+		g_fProjectionMatrix[6] = 0.0f;
+		g_fProjectionMatrix[7] = rawProjection[3];
+
+		g_fProjectionMatrix[8] = 0.0f;
+		g_fProjectionMatrix[9] = 0.0f;
+		g_fProjectionMatrix[10] = (g_ProjHack1.value + rawProjection[4]) * ((g_ProjHack1.sign == 0) ? 1.0f : g_ProjHack1.sign);
+		g_fProjectionMatrix[11] = (g_ProjHack2.value + rawProjection[5]) * ((g_ProjHack2.sign == 0) ? 1.0f : g_ProjHack2.sign);
+
+		g_fProjectionMatrix[12] = 0.0f;
+		g_fProjectionMatrix[13] = 0.0f;
+
+		g_fProjectionMatrix[14] = 0.0f;
+		g_fProjectionMatrix[15] = 1.0f;
+
+		SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
+		SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
+		SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix[2]);
+		SETSTAT_FT(stats.g2proj_3, g_fProjectionMatrix[3]);
+		SETSTAT_FT(stats.g2proj_4, g_fProjectionMatrix[4]);
+		SETSTAT_FT(stats.g2proj_5, g_fProjectionMatrix[5]);
+		SETSTAT_FT(stats.g2proj_6, g_fProjectionMatrix[6]);
+		SETSTAT_FT(stats.g2proj_7, g_fProjectionMatrix[7]);
+		SETSTAT_FT(stats.g2proj_8, g_fProjectionMatrix[8]);
+		SETSTAT_FT(stats.g2proj_9, g_fProjectionMatrix[9]);
+		SETSTAT_FT(stats.g2proj_10, g_fProjectionMatrix[10]);
+		SETSTAT_FT(stats.g2proj_11, g_fProjectionMatrix[11]);
+		SETSTAT_FT(stats.g2proj_12, g_fProjectionMatrix[12]);
+		SETSTAT_FT(stats.g2proj_13, g_fProjectionMatrix[13]);
+		SETSTAT_FT(stats.g2proj_14, g_fProjectionMatrix[14]);
+		SETSTAT_FT(stats.g2proj_15, g_fProjectionMatrix[15]);
+		SETSTAT_FT(stats.proj_0, rawProjection[0]);
+		SETSTAT_FT(stats.proj_1, rawProjection[1]);
+		SETSTAT_FT(stats.proj_2, rawProjection[2]);
+		SETSTAT_FT(stats.proj_3, rawProjection[3]);
+		SETSTAT_FT(stats.proj_4, rawProjection[4]);
+		SETSTAT_FT(stats.proj_5, rawProjection[5]);
+		break;
+
+	default:
+		ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
+	}
+
+	PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
+
+	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
+	if (g_has_hmd && xfmem.projection.type == GX_PERSPECTIVE)
+	{
+		Matrix44 projMtx;
+		Matrix44 rotatedMtx;
+		Matrix44 mtxA, mtxB, mtxView;
+		//VR Normal Oculus Rift Headtracking
+		Matrix44::Set(projMtx, g_fProjectionMatrix);
+		UpdateHeadTrackingIfNeeded();
+		//VR sometimes yaw needs to be inverted for games that use a flipped x axis
+		// (ActionGirlz even uses flipped matrices and non-flipped matrices in the same frame)
+		if (rawProjection[0]<0 || rawProjection[2]<0)
 		{
-		case GX_PERSPECTIVE:
-
-			g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
-			g_fProjectionMatrix[1] = 0.0f;
-			g_fProjectionMatrix[2] = rawProjection[1];
-			g_fProjectionMatrix[3] = 0.0f;
-
-			g_fProjectionMatrix[4] = 0.0f;
-			g_fProjectionMatrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
-			g_fProjectionMatrix[6] = rawProjection[3];
-			g_fProjectionMatrix[7] = 0.0f;
-
-			g_fProjectionMatrix[8] = 0.0f;
-			g_fProjectionMatrix[9] = 0.0f;
-			g_fProjectionMatrix[10] = rawProjection[4];
-
-			g_fProjectionMatrix[11] = rawProjection[5];
-
-			g_fProjectionMatrix[12] = 0.0f;
-			g_fProjectionMatrix[13] = 0.0f;
-			// donkopunchstania suggested the GC GPU might round differently
-			// He had thus changed this to -(1 + epsilon) to fix clipping issues.
-			// I (neobrain) don't think his conjecture is true and thus reverted his change.
-			g_fProjectionMatrix[14] = -1.0f;
-			g_fProjectionMatrix[15] = 0.0f;
-
-			SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);
-			SETSTAT_FT(stats.gproj_1, g_fProjectionMatrix[1]);
-			SETSTAT_FT(stats.gproj_2, g_fProjectionMatrix[2]);
-			SETSTAT_FT(stats.gproj_3, g_fProjectionMatrix[3]);
-			SETSTAT_FT(stats.gproj_4, g_fProjectionMatrix[4]);
-			SETSTAT_FT(stats.gproj_5, g_fProjectionMatrix[5]);
-			SETSTAT_FT(stats.gproj_6, g_fProjectionMatrix[6]);
-			SETSTAT_FT(stats.gproj_7, g_fProjectionMatrix[7]);
-			SETSTAT_FT(stats.gproj_8, g_fProjectionMatrix[8]);
-			SETSTAT_FT(stats.gproj_9, g_fProjectionMatrix[9]);
-			SETSTAT_FT(stats.gproj_10, g_fProjectionMatrix[10]);
-			SETSTAT_FT(stats.gproj_11, g_fProjectionMatrix[11]);
-			SETSTAT_FT(stats.gproj_12, g_fProjectionMatrix[12]);
-			SETSTAT_FT(stats.gproj_13, g_fProjectionMatrix[13]);
-			SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix[14]);
-			SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix[15]);
-			break;
-
-		case GX_ORTHOGRAPHIC:
-
-			g_fProjectionMatrix[0] = rawProjection[0];
-			g_fProjectionMatrix[1] = 0.0f;
-			g_fProjectionMatrix[2] = 0.0f;
-			g_fProjectionMatrix[3] = rawProjection[1];
-
-			g_fProjectionMatrix[4] = 0.0f;
-			g_fProjectionMatrix[5] = rawProjection[2];
-			g_fProjectionMatrix[6] = 0.0f;
-			g_fProjectionMatrix[7] = rawProjection[3];
-
-			g_fProjectionMatrix[8] = 0.0f;
-			g_fProjectionMatrix[9] = 0.0f;
-			g_fProjectionMatrix[10] = (g_ProjHack1.value + rawProjection[4]) * ((g_ProjHack1.sign == 0) ? 1.0f : g_ProjHack1.sign);
-			g_fProjectionMatrix[11] = (g_ProjHack2.value + rawProjection[5]) * ((g_ProjHack2.sign == 0) ? 1.0f : g_ProjHack2.sign);
-
-			g_fProjectionMatrix[12] = 0.0f;
-			g_fProjectionMatrix[13] = 0.0f;
-
-			g_fProjectionMatrix[14] = 0.0f;
-			g_fProjectionMatrix[15] = 1.0f;
-
-			SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
-			SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
-			SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix[2]);
-			SETSTAT_FT(stats.g2proj_3, g_fProjectionMatrix[3]);
-			SETSTAT_FT(stats.g2proj_4, g_fProjectionMatrix[4]);
-			SETSTAT_FT(stats.g2proj_5, g_fProjectionMatrix[5]);
-			SETSTAT_FT(stats.g2proj_6, g_fProjectionMatrix[6]);
-			SETSTAT_FT(stats.g2proj_7, g_fProjectionMatrix[7]);
-			SETSTAT_FT(stats.g2proj_8, g_fProjectionMatrix[8]);
-			SETSTAT_FT(stats.g2proj_9, g_fProjectionMatrix[9]);
-			SETSTAT_FT(stats.g2proj_10, g_fProjectionMatrix[10]);
-			SETSTAT_FT(stats.g2proj_11, g_fProjectionMatrix[11]);
-			SETSTAT_FT(stats.g2proj_12, g_fProjectionMatrix[12]);
-			SETSTAT_FT(stats.g2proj_13, g_fProjectionMatrix[13]);
-			SETSTAT_FT(stats.g2proj_14, g_fProjectionMatrix[14]);
-			SETSTAT_FT(stats.g2proj_15, g_fProjectionMatrix[15]);
-			SETSTAT_FT(stats.proj_0, rawProjection[0]);
-			SETSTAT_FT(stats.proj_1, rawProjection[1]);
-			SETSTAT_FT(stats.proj_2, rawProjection[2]);
-			SETSTAT_FT(stats.proj_3, rawProjection[3]);
-			SETSTAT_FT(stats.proj_4, rawProjection[4]);
-			SETSTAT_FT(stats.proj_5, rawProjection[5]);
-			break;
-
-		default:
-			ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
-		}
-
-		PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
-
-		if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo ) && xfmem.projection.type == GX_PERSPECTIVE)
-		{
-			Matrix44 mtxA;
-			Matrix44 mtxB;
-			Matrix44 viewMtx;
-
-			Matrix44::Translate(mtxA, s_fViewTranslationVector);
-			Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
-			Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
-			Matrix44::Set(mtxB, g_fProjectionMatrix);
-			Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
-			Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
-			memcpy(constants.projection, mtxB.data, 4*16);
+			Matrix44::Set(mtxView, g_head_tracking_matrix.data);
+			if (rawProjection[0]<0)
+			{
+				// flip all the x axis values, except x squared (data[0])
+				//Needed for Action Girlz Racing, Backyard Baseball
+				mtxView.data[1] *= -1;
+				mtxView.data[2] *= -1;
+				mtxView.data[3] *= -1;
+				mtxView.data[4] *= -1;
+				mtxView.data[8] *= -1;
+				mtxView.data[12] *= -1;
+			}
+			if (rawProjection[2]<0)
+			{
+				// flip all the y axis values, except y squared (data[5])
+				// Needed for ABBA
+				mtxView.data[1] *= -1;
+				mtxView.data[4] *= -1;
+				mtxView.data[6] *= -1;
+				mtxView.data[7] *= -1;
+				mtxView.data[9] *= -1;
+				mtxView.data[13] *= -1;
+			}
+			Matrix44::Multiply(projMtx, mtxView, rotatedMtx);
 		}
 		else
 		{
-			Matrix44 projMtx;
-			Matrix44::Set(projMtx, g_fProjectionMatrix);
-
-			Matrix44 correctedMtx;
-			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-			memcpy(constants.projection, correctedMtx.data, 4*16);
+			Matrix44::Multiply(projMtx, g_head_tracking_matrix, rotatedMtx);
 		}
-		dirty = true;
+		memcpy(constants.projection, rotatedMtx.data, 4 * 16);
 	}
+	else if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo) && xfmem.projection.type == GX_PERSPECTIVE)
+	{
+		Matrix44 mtxA;
+		Matrix44 mtxB;
+		Matrix44 viewMtx;
+
+		Matrix44::Translate(mtxA, s_fViewTranslationVector);
+		Matrix44::LoadMatrix33(mtxB, s_viewRotationMatrix);
+		Matrix44::Multiply(mtxB, mtxA, viewMtx); // view = rotation x translation
+		Matrix44::Set(mtxB, g_fProjectionMatrix);
+		Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
+		Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
+		memcpy(constants.projection, mtxB.data, 4 * 16);
+	}
+	else
+	{
+		Matrix44 projMtx;
+		Matrix44::Set(projMtx, g_fProjectionMatrix);
+
+		Matrix44 correctedMtx;
+		Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
+		memcpy(constants.projection, correctedMtx.data, 4 * 16);
+	}
+	dirty = true;
 }
 
 void VertexShaderManager::InvalidateXFRange(int start, int end)

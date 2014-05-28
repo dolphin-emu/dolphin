@@ -145,6 +145,18 @@ void Matrix33::RotateY(Matrix33 &mtx, float rad)
 	mtx.data[6] = -s;
 	mtx.data[8] = c;
 }
+// VR roll
+void Matrix33::RotateZ(Matrix33 &mtx, float rad)
+{
+	float s = sin(rad);
+	float c = cos(rad);
+	memset(mtx.data, 0, sizeof(mtx.data));
+	mtx.data[0] = c;
+	mtx.data[1] = -s;
+	mtx.data[3] = s;
+	mtx.data[4] = c;
+	mtx.data[8] = 1;
+}
 
 void Matrix33::Multiply(const Matrix33 &a, const Matrix33 &b, Matrix33 &result)
 {

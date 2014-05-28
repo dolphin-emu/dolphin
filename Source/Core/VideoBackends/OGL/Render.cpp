@@ -46,6 +46,7 @@
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "DolphinWX/WxUtils.h"
@@ -1605,6 +1606,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
+
+	NewVRFrame();
 
 	// Clear framebuffer
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
