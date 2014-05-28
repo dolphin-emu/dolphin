@@ -58,7 +58,10 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		// if gui has lock (messing with controls), skip this input cycle
 		// center axes and return
-		memset(&_pPADStatus->stickX, 0x80, 4);
+		_pPADStatus->stickX = 0x80;
+		_pPADStatus->stickY = 0x80;
+		_pPADStatus->substickX = 0x80;
+		_pPADStatus->substickY = 0x80;
 		return;
 	}
 

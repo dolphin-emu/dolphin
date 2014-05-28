@@ -112,7 +112,10 @@ void GCPad::GetInput(SPADStatus* const pad)
 	else
 	{
 		// center sticks
-		memset(&pad->stickX, 0x80, 4);
+		pad->stickX = 0x80;
+		pad->stickY = 0x80;
+		pad->substickX = 0x80;
+		pad->substickY = 0x80;
 	}
 }
 
