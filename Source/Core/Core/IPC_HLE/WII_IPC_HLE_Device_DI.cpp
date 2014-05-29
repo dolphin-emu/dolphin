@@ -107,19 +107,17 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 			_dbg_assert_msg_(WII_IPC_DVD, CommandBuffer.InBuffer[1].m_Address == 0, "DVDLowOpenPartition with ticket");
 			_dbg_assert_msg_(WII_IPC_DVD, CommandBuffer.InBuffer[2].m_Address == 0, "DVDLowOpenPartition with cert chain");
 
-			// Get TMD offset for requested partition...
-			u64 const TMDOffset = ((u64)Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address + 4) << 2 ) + 0x2c0;
+			u64 const partition_offset = ((u64)Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address + 4) << 2);
+			VolumeHandler::GetVolume()->ChangePartition(partition_offset);
 
-			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: TMDOffset 0x%016" PRIx64, TMDOffset);
-
-			static u32 const TMDsz = 0x208; //CommandBuffer.PayloadBuffer[0].m_Size;
-			u8 pTMD[TMDsz];
+			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
 			// Read TMD to the buffer
-			VolumeHandler::RAWReadToPtr(pTMD, TMDOffset, TMDsz);
-
-			Memory::CopyToEmu(CommandBuffer.PayloadBuffer[0].m_Address, pTMD, TMDsz);
-			WII_IPC_HLE_Interface::ES_DIVerify(pTMD, TMDsz);
+			u8 pTMD[0x800];
+			u32 tmdSz;
+			VolumeHandler::GetVolume()->GetTMD(pTMD, &tmdSz);
+			Memory::CopyToEmu(CommandBuffer.PayloadBuffer[0].m_Address, pTMD, tmdSz);
+			WII_IPC_HLE_Interface::ES_DIVerify(pTMD, tmdSz);
 
 			ReturnValue = 1;
 		}

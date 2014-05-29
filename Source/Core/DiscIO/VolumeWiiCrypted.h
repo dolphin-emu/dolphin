@@ -41,6 +41,8 @@ public:
 	bool SupportsIntegrityCheck() const override { return true; }
 	bool CheckIntegrity() const override;
 
+	bool ChangePartition(u64 offset) override;
+
 private:
 	std::unique_ptr<IBlobReader> m_pReader;
 	std::unique_ptr<aes_context> m_AES_ctx;

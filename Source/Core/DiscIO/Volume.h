@@ -34,6 +34,8 @@ public:
 	virtual bool CheckIntegrity() const { return false; }
 	virtual bool IsDiscTwo() const { return false; }
 
+	virtual bool ChangePartition(u64 offset) { return false; }
+
 	// Increment CACHE_REVISION if values are changed (ISOFile.cpp)
 	enum ECountry
 	{
