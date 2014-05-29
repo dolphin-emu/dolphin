@@ -328,9 +328,6 @@ void IniFile::SortSections()
 
 bool IniFile::Load(const std::string& filename, bool keep_current_data)
 {
-	// Maximum number of letters in a line
-	static const int MAX_BYTES = 1024*32;
-
 	if (!keep_current_data)
 		sections.clear();
 	// first section consists of the comments before the first real section
@@ -339,18 +336,15 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 	std::ifstream in;
 	OpenFStream(in, filename, std::ios::in);
 
-	if (in.fail()) return false;
+	if (in.fail())
+		return false;
 
 	Section* current_section = nullptr;
 	while (!in.eof())
 	{
-		char templine[MAX_BYTES];
 		std::string line;
-		if (in.getline(templine, MAX_BYTES))
-		{
-			line = templine;
-		}
-		else
+
+		if (!std::getline(in, line))
 		{
 			if (in.eof())
 				return true;
