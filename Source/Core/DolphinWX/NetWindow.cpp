@@ -546,7 +546,10 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 	while (std::getline(ss, tmps))
 		m_player_lbox->Append(StrToWxStr(tmps));
 
-	m_player_lbox->SetSelection(selection);
+	const int count = m_player_lbox->GetCount();
+
+	if (selection < count)
+		m_player_lbox->SetSelection(selection);
 
 	switch (event.GetId())
 	{
