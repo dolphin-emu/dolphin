@@ -76,14 +76,22 @@ IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
 typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue; // ppc -> arm
 static ipc_msg_queue reply_queue;   // arm -> ppc
+static ipc_msg_queue ack_queue;   // arm -> ppc
 
 static int event_enqueue_reply;
 static int event_enqueue_request;
 
 static u64 last_reply_time;
 
+static const u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x100000000ULL;
 static void EnqueueReplyCallback(u64 userdata, int)
 {
+	if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
+	{
+		ack_queue.push_back((u32)userdata);
+		Update();
+		return;
+	}
 	reply_queue.push_back((u32)userdata);
 	Update();
 }
@@ -576,6 +584,12 @@ void EnqueueReply_Threadsafe(u32 address, int cycles_in_future)
 	CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, event_enqueue_reply, address);
 }
 
+void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)
+{
+	CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue_reply,
+	                          address | ENQUEUE_ACKNOWLEDGEMENT_FLAG);
+}
+
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp
 // Takes care of routing ipc <-> ipc HLE
 void Update()
@@ -598,6 +612,14 @@ void Update()
 		WII_IPCInterface::GenerateReply(reply_queue.front());
 		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
 		reply_queue.pop_front();
+		return;
+	}
+
+	if (ack_queue.size())
+	{
+		WII_IPCInterface::GenerateAck(ack_queue.front());
+		WARN_LOG(WII_IPC_HLE, "<<-- Double-ack to IPC Request @ 0x%08x", ack_queue.front());
+		ack_queue.pop_front();
 		return;
 	}
 }
