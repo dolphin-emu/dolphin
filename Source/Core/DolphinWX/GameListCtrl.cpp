@@ -143,6 +143,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 					iso2->GetCompany() : iso2->GetDescription(indexOther);
 				return strcasecmp(cmp1.c_str(), cmp2.c_str()) * t;
 			}
+		case CGameListCtrl::COLUMN_ID:
+			 return strcasecmp(iso1->GetUniqueID().c_str(), iso2->GetUniqueID().c_str()) * t;
 		case CGameListCtrl::COLUMN_COUNTRY:
 			if (iso1->GetCountry() > iso2->GetCountry())
 				return  1 * t;
@@ -317,6 +319,7 @@ void CGameListCtrl::Update()
 		// wii titles We show in the same column : company for GC games and
 		// description for wii/wad games
 		InsertColumn(COLUMN_NOTES, _("Notes"));
+		InsertColumn(COLUMN_ID, _("ID"));
 		InsertColumn(COLUMN_COUNTRY, "");
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
@@ -329,18 +332,42 @@ void CGameListCtrl::Update()
 
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_DUMMY,0);
-		SetColumnWidth(COLUMN_PLATFORM, 35 + platform_padding);
-		SetColumnWidth(COLUMN_BANNER, 96 + platform_padding);
-		SetColumnWidth(COLUMN_TITLE, 200 + platform_padding);
-		SetColumnWidth(COLUMN_NOTES, 200 + platform_padding);
-		SetColumnWidth(COLUMN_COUNTRY, 32 + platform_padding);
-		SetColumnWidth(COLUMN_EMULATION_STATE, 50 + platform_padding);
+		if(SConfig::GetInstance().m_showSystem)
+			SetColumnWidth(COLUMN_PLATFORM, 35 + platform_padding);
+		else SetColumnWidth(COLUMN_PLATFORM, 0);
+
+		if (SConfig::GetInstance().m_showBanner)
+			SetColumnWidth(COLUMN_BANNER, 96 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_BANNER, 0);
+
+		SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
+
+		if (SConfig::GetInstance().m_showNotes)
+			SetColumnWidth(COLUMN_NOTES, 150 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_NOTES, 0);
+
+		if (SConfig::GetInstance().m_showID)
+			SetColumnWidth(COLUMN_ID, 75 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_ID, 0);
+
+		if (SConfig::GetInstance().m_showRegion)
+			SetColumnWidth(COLUMN_COUNTRY, 32 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_COUNTRY, 0);
+
+		if (SConfig::GetInstance().m_showState)
+			SetColumnWidth(COLUMN_EMULATION_STATE, 50 + platform_padding);
+		else
+			SetColumnWidth(COLUMN_EMULATION_STATE, 0);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
 		{
 			InsertItemInReportView(i);
-			if (m_ISOFiles[i]->IsCompressed())
+			if (SConfig::GetInstance().m_ColorCompressed && m_ISOFiles[i]->IsCompressed())
 				SetItemTextColour(i, wxColour(0xFF0000));
 		}
 
@@ -458,6 +485,9 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// File size
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
+
+	// Game ID
+	SetItem(_Index, COLUMN_ID, rISOFile.GetUniqueID(), -1);
 
 	// Background color
 	SetBackgroundColor();
@@ -1278,20 +1308,27 @@ void CGameListCtrl::AutomaticColumnWidth()
 	{
 		SetColumnWidth(0, rc.GetWidth());
 	}
-	else if (GetColumnCount() > 4)
+	else
 	{
-		int resizable = rc.GetWidth() - (
-			GetColumnWidth(COLUMN_BANNER)
-			+ GetColumnWidth(COLUMN_COUNTRY)
-			+ GetColumnWidth(COLUMN_SIZE)
-			+ GetColumnWidth(COLUMN_EMULATION_STATE)
-			+ GetColumnWidth(COLUMN_PLATFORM));
+		int resizable = rc.GetWidth();
+
+		if (SConfig::GetInstance().m_showSystem)resizable -= GetColumnWidth(COLUMN_PLATFORM);
+		if (SConfig::GetInstance().m_showBanner)resizable -= GetColumnWidth(COLUMN_BANNER);
+		if (SConfig::GetInstance().m_showID)resizable -= GetColumnWidth(COLUMN_ID);
+		if (SConfig::GetInstance().m_showRegion)resizable -= GetColumnWidth(COLUMN_COUNTRY);
+		if (SConfig::GetInstance().m_showSize)resizable -= GetColumnWidth(COLUMN_SIZE);
+		if (SConfig::GetInstance().m_showState)resizable -= GetColumnWidth(COLUMN_EMULATION_STATE);
 
 		// We hide the Notes column if the window is too small
 		if (resizable > 400)
 		{
-			SetColumnWidth(COLUMN_TITLE, resizable / 2);
-			SetColumnWidth(COLUMN_NOTES, resizable / 2);
+			if (SConfig::GetInstance().m_showNotes){
+				SetColumnWidth(COLUMN_TITLE, resizable / 2);
+				SetColumnWidth(COLUMN_NOTES, resizable / 2);
+			}
+			else{
+				SetColumnWidth(COLUMN_TITLE, resizable);
+			}
 		}
 		else
 		{

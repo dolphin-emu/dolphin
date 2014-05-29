@@ -72,6 +72,16 @@ struct SConfig : NonCopyable
 	int m_ListSort;
 	int m_ListSort2;
 
+	bool m_showSystem;
+	bool m_showBanner;
+	bool m_showNotes;
+	bool m_showID;
+	bool m_showRegion;
+	bool m_showSize;
+	bool m_showState;
+
+	bool m_ColorCompressed;
+
 	std::string m_WirelessMac;
 	bool m_PauseMovie;
 	bool m_ShowLag;
