@@ -789,16 +789,18 @@ void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
 	wxString newLabel;
 	if (*cmddata == GX_LOAD_BP_REG)
 	{
-		char name[64]="\0", desc[512]="\0";
-		GetBPRegInfo(cmddata+1, name, sizeof(name), desc, sizeof(desc));
+		std::string name;
+		std::string desc;
+		GetBPRegInfo(cmddata+1, &name, &desc);
+
 		newLabel = _("BP register ");
-		newLabel += (name[0] != '\0') ? StrToWxStr(name) : wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1));
+		newLabel += (name.empty()) ? wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1)) : StrToWxStr(name);
 		newLabel += ":\n";
 
-		if (desc[0] != '\0')
-			newLabel += StrToWxStr(desc);
-		else
+		if (desc.empty())
 			newLabel += _("No description available");
+		else
+			newLabel += StrToWxStr(desc);
 	}
 	else if (*cmddata == GX_LOAD_CP_REG)
 	{
