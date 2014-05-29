@@ -721,7 +721,7 @@ void XEmitter::SETcc(CCFlags flag, OpArg dest)
 {
 	if (dest.IsImm()) _assert_msg_(DYNA_REC, 0, "SETcc - Imm argument");
 	dest.operandReg = 0;
-	dest.WriteRex(this, 0, 0);
+	dest.WriteRex(this, 0, 8);
 	Write8(0x0F);
 	Write8(0x90 + (u8)flag);
 	dest.WriteRest(this);
