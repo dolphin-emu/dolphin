@@ -583,6 +583,18 @@ void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
 	}
 }
 
+void NetPlayServer::KickPlayer(u8 player)
+{
+	for (auto& current_player : m_players)
+	{
+		if (current_player.second.pid == player)
+		{
+			current_player.second.socket.Close();
+			return;
+		}
+	}
+}
+
 #ifdef USE_UPNP
 #include <miniwget.h>
 #include <miniupnpc.h>
