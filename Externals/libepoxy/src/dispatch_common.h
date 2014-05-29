@@ -27,7 +27,7 @@
 #define PLATFORM_HAS_EGL 0
 #define PLATFORM_HAS_GLX 0
 #define PLATFORM_HAS_WGL 1
-#define EPOXY_IMPORTEXPORT __declspec(dllexport)
+#define EPOXY_IMPORTEXPORT
 #elif defined(__APPLE__)
 #define PLATFORM_HAS_EGL 0
 #define PLATFORM_HAS_GLX 0
@@ -57,9 +57,7 @@
 #endif
 
 #ifndef PUBLIC
-#  ifdef _WIN32
-#    define PUBLIC __declspec(dllexport)
-#  elif (defined(__GNUC__) && __GNUC__ >= 4) || (defined(__SUNPRO_C) && (__SUNPRO_C >= 0x590))
+#  if (defined(__GNUC__) && __GNUC__ >= 4) || (defined(__SUNPRO_C) && (__SUNPRO_C >= 0x590))
 #    define PUBLIC __attribute__((visibility("default")))
 #  else
 #    define PUBLIC
@@ -181,8 +179,6 @@ void gl_init_dispatch_table(void);
 void gl_switch_to_dispatch_table(void);
 void wgl_init_dispatch_table(void);
 void wgl_switch_to_dispatch_table(void);
-extern uint32_t gl_tls_index, gl_tls_size;
-extern uint32_t wgl_tls_index, wgl_tls_size;
 
 #define wglMakeCurrent_unwrapped epoxy_wglMakeCurrent_unwrapped
 #define wglMakeContextCurrentARB_unwrapped epoxy_wglMakeContextCurrentARB_unwrapped

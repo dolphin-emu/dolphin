@@ -23,7 +23,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -56,12 +56,4 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
-  <ItemGroup>
-    <DataDirFiles Include="$(SolutionDir)..\Data\**\*.*" />
-    <EpoxyDll Include="$(BuildRootDir)$(Platform)\$(Configuration)\libepoxy\bin\*.dll" />
-  </ItemGroup>
-  <Target Name="AfterBuild" Inputs="@(EpoxyDll)" Outputs="@(EpoxyDll -> '$(BinaryOutputDir)%(Filename)%(Extension)')">
-    <Message Text="Copying libepoxy .dll" Importance="High" />
-    <Copy SourceFiles="@(EpoxyDll)" DestinationFolder="$(BinaryOutputDir)" />
-  </Target>
  </Project>

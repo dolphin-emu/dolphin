@@ -82,6 +82,9 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Externals\libepoxy\libepoxy.vcxproj">
+      <Project>{4d680514-c2ce-4313-b994-5a25bdb2629a}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Externals\wxWidgets3\build\msw\wx_base.vcxproj">
       <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>
     </ProjectReference>

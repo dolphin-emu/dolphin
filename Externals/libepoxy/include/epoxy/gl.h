@@ -68,7 +68,7 @@ extern "C" {
 #endif
 
 #ifndef EPOXY_IMPORTEXPORT
-#define EPOXY_IMPORTEXPORT __declspec(dllimport)
+#define EPOXY_IMPORTEXPORT
 #endif
 
 #ifndef GLAPI

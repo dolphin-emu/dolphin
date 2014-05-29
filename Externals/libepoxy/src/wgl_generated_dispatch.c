@@ -1648,13 +1648,13 @@ static struct dispatch_table resolver_table = {
     .wglWaitForSbcOML = epoxy_wglWaitForSbcOML_dispatch_table_rewrite_ptr,
 };
 
-uint32_t wgl_tls_index;
-uint32_t wgl_tls_size = sizeof(struct dispatch_table);
+__declspec(thread)
+struct dispatch_table wgl_tls_dispatch_table;
 
 static struct dispatch_table *
 get_dispatch_table(void)
 {
-	return TlsGetValue(wgl_tls_index);
+    return &wgl_tls_dispatch_table;
 }
 
 void
