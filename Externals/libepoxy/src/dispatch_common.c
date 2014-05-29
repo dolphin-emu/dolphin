@@ -162,11 +162,13 @@ struct api {
     long begin_count;
 };
 
+#ifdef _WIN32
+static struct api api;
+#else
 static struct api api = {
-#ifndef _WIN32
     .mutex = PTHREAD_MUTEX_INITIALIZER,
-#endif
 };
+#endif
 
 static bool library_initialized;
 
@@ -175,6 +177,7 @@ static EGLenum
 epoxy_egl_get_current_gl_context_api(void);
 #endif
 
+#ifndef _WIN32
 static void
 library_init(void) __attribute__((constructor));
 
@@ -183,6 +186,7 @@ library_init(void)
 {
     library_initialized = true;
 }
+#endif
 
 static bool
 get_dlopen_handle(void **handle, const char *lib_name, bool exit_on_fail)
@@ -190,11 +194,11 @@ get_dlopen_handle(void **handle, const char *lib_name, bool exit_on_fail)
     if (*handle)
         return true;
 
-    if (!library_initialized) {
-        fprintf(stderr,
-                "Attempting to dlopen() while in the dynamic linker.\n");
-        abort();
-    }
+    //if (!library_initialized) {
+    //    fprintf(stderr,
+    //            "Attempting to dlopen() while in the dynamic linker.\n");
+    //    abort();
+    //}
 
 #ifdef _WIN32
     *handle = LoadLibraryA(lib_name);
@@ -294,7 +298,7 @@ epoxy_gl_version(void)
     return epoxy_internal_gl_version(0);
 }
 
-PUBLIC int
+int
 epoxy_conservative_gl_version(void)
 {
     if (api.begin_count)

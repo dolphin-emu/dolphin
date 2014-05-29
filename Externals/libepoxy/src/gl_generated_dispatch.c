@@ -2875,7 +2875,7 @@ struct dispatch_table {
 };
 
 #if USING_DISPATCH_TABLE
-static inline struct dispatch_table *
+static struct dispatch_table *
 get_dispatch_table(void);
 
 #endif
@@ -7648,7 +7648,7 @@ static void *gl_provider_resolver(const char *name,
 }
 
 static void *
-gl_single_resolver(enum gl_provider provider, uint16_t entrypoint_offset) __attribute__((noinline));
+gl_single_resolver(enum gl_provider provider, uint16_t entrypoint_offset);
 
 static void *
 gl_single_resolver(enum gl_provider provider, uint16_t entrypoint_offset)
@@ -46010,7 +46010,7 @@ static struct dispatch_table resolver_table = {
 uint32_t gl_tls_index;
 uint32_t gl_tls_size = sizeof(struct dispatch_table);
 
-static inline struct dispatch_table *
+static struct dispatch_table *
 get_dispatch_table(void)
 {
 	return TlsGetValue(gl_tls_index);

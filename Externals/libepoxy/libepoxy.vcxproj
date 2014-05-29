@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\dispatch_common.c" />
+    <ClCompile Include="src\dispatch_wgl.c" />
+    <ClCompile Include="src\gl_generated_dispatch.c" />
+    <ClCompile Include="src\wgl_generated_dispatch.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\epoxy\gl.h" />
+    <ClInclude Include="include\epoxy\gl_generated.h" />
+    <ClInclude Include="include\epoxy\wgl.h" />
+    <ClInclude Include="include\epoxy\wgl_generated.h" />
+    <ClInclude Include="src\dispatch_common.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4D680514-C2CE-4313-B994-5A25BDB2629A}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\Source\VSProps\Base.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ItemGroup>
+    <DataDirFiles Include="$(SolutionDir)..\Data\**\*.*" />
+    <EpoxyDll Include="$(BuildRootDir)$(Platform)\$(Configuration)\libepoxy\bin\*.dll" />
+  </ItemGroup>
+  <Target Name="AfterBuild" Inputs="@(EpoxyDll)" Outputs="@(EpoxyDll -> '$(BinaryOutputDir)%(Filename)%(Extension)')">
+    <Message Text="Copying libepoxy .dll" Importance="High" />
+    <Copy SourceFiles="@(EpoxyDll)" DestinationFolder="$(BinaryOutputDir)" />
+  </Target>
+ </Project>

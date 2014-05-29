@@ -58,12 +58,9 @@ extern "C" {
 #define KHRONOS_APICALL
 
 #else
-#ifndef APIENTRY
-#define APIENTRY __stdcall
-#endif
 
 #ifndef GLAPIENTRY
-#define GLAPIENTRY APIENTRY
+#define GLAPIENTRY __stdcall
 #endif
 
 #ifndef EPOXY_CALLSPEC
@@ -83,19 +80,15 @@ extern "C" {
 
 #endif /* _WIN32 */
 
-#ifndef APIENTRYP
-#define APIENTRYP APIENTRY *
-#endif
-
 #ifndef GLAPIENTRYP
 #define GLAPIENTRYP GLAPIENTRY *
 #endif
 
 #include "epoxy/gl_generated.h"
 
-bool epoxy_has_gl_extension(const char *extension);
-bool epoxy_is_desktop_gl(void);
-int epoxy_gl_version(void);
+EPOXY_IMPORTEXPORT bool epoxy_has_gl_extension(const char *extension);
+EPOXY_IMPORTEXPORT bool epoxy_is_desktop_gl(void);
+EPOXY_IMPORTEXPORT int epoxy_gl_version(void);
 
 #ifdef __cplusplus
 } /* extern "C" */

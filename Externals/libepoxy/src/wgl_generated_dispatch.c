@@ -152,7 +152,7 @@ struct dispatch_table {
 };
 
 #if USING_DISPATCH_TABLE
-static inline struct dispatch_table *
+static struct dispatch_table *
 get_dispatch_table(void);
 
 #endif
@@ -514,7 +514,7 @@ static void *wgl_provider_resolver(const char *name,
 }
 
 static void *
-wgl_single_resolver(enum wgl_provider provider, uint16_t entrypoint_offset) __attribute__((noinline));
+wgl_single_resolver(enum wgl_provider provider, uint16_t entrypoint_offset);
 
 static void *
 wgl_single_resolver(enum wgl_provider provider, uint16_t entrypoint_offset)
@@ -917,8 +917,7 @@ epoxy_wglGetDefaultProcAddress_resolver(void)
     static const enum wgl_provider providers[] = {
         wgl_provider_terminator
     };
-    static const uint16_t entrypoints[] = {
-    };
+    static const uint16_t entrypoints[] = { 0 };
     return wgl_provider_resolver(entrypoint_strings + 1483 /* "wglGetDefaultProcAddress" */,
                                 providers, entrypoints);
 }
@@ -1376,7 +1375,7 @@ GEN_THUNKS_RET(BOOL, wglBindTexImageARB, (HPBUFFERARB hPbuffer, int iBuffer), (h
 GEN_THUNKS_RET(BOOL, wglBindVideoCaptureDeviceNV, (UINT uVideoSlot, HVIDEOINPUTDEVICENV hDevice), (uVideoSlot, hDevice))
 GEN_THUNKS_RET(BOOL, wglBindVideoDeviceNV, (HDC hDC, unsigned int uVideoSlot, HVIDEOOUTPUTDEVICENV hVideoDevice, const int * piAttribList), (hDC, uVideoSlot, hVideoDevice, piAttribList))
 GEN_THUNKS_RET(BOOL, wglBindVideoImageNV, (HPVIDEODEV hVideoDevice, HPBUFFERARB hPbuffer, int iVideoBuffer), (hVideoDevice, hPbuffer, iVideoBuffer))
-GEN_THUNKS_RET(VOID, wglBlitContextFramebufferAMD, (HGLRC dstCtx, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter), (dstCtx, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter))
+GEN_THUNKS(wglBlitContextFramebufferAMD, (HGLRC dstCtx, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter), (dstCtx, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter))
 GEN_THUNKS_RET(BOOL, wglChoosePixelFormatARB, (HDC hdc, const int * piAttribIList, const FLOAT * pfAttribFList, UINT nMaxFormats, int * piFormats, UINT * nNumFormats), (hdc, piAttribIList, pfAttribFList, nMaxFormats, piFormats, nNumFormats))
 GEN_THUNKS_RET(BOOL, wglChoosePixelFormatEXT, (HDC hdc, const int * piAttribIList, const FLOAT * pfAttribFList, UINT nMaxFormats, int * piFormats, UINT * nNumFormats), (hdc, piAttribIList, pfAttribFList, nMaxFormats, piFormats, nNumFormats))
 GEN_THUNKS_RET(BOOL, wglCopyContext, (HGLRC hglrcSrc, HGLRC hglrcDst, UINT mask), (hglrcSrc, hglrcDst, mask))
@@ -1402,11 +1401,11 @@ GEN_THUNKS_RET(BOOL, wglDXUnlockObjectsNV, (HANDLE hDevice, GLint count, HANDLE 
 GEN_THUNKS_RET(BOOL, wglDXUnregisterObjectNV, (HANDLE hDevice, HANDLE hObject), (hDevice, hObject))
 GEN_THUNKS_RET(BOOL, wglDelayBeforeSwapNV, (HDC hDC, GLfloat seconds), (hDC, seconds))
 GEN_THUNKS_RET(BOOL, wglDeleteAssociatedContextAMD, (HGLRC hglrc), (hglrc))
-GEN_THUNKS_RET(VOID, wglDeleteBufferRegionARB, (HANDLE hRegion), (hRegion))
+GEN_THUNKS(wglDeleteBufferRegionARB, (HANDLE hRegion), (hRegion))
 GEN_THUNKS_RET(BOOL, wglDeleteContext, (HGLRC oldContext), (oldContext))
 GEN_THUNKS_RET(BOOL, wglDeleteDCNV, (HDC hdc), (hdc))
 GEN_THUNKS_RET(BOOL, wglDescribeLayerPlane, (HDC hDc, int pixelFormat, int layerPlane, UINT nBytes, const LAYERPLANEDESCRIPTOR * plpd), (hDc, pixelFormat, layerPlane, nBytes, plpd))
-GEN_THUNKS_RET(VOID, wglDestroyDisplayColorTableEXT, (GLushort id), (id))
+GEN_THUNKS(wglDestroyDisplayColorTableEXT, (GLushort id), (id))
 GEN_THUNKS_RET(BOOL, wglDestroyImageBufferI3D, (HDC hDC, LPVOID pAddress), (hDC, pAddress))
 GEN_THUNKS_RET(BOOL, wglDestroyPbufferARB, (HPBUFFERARB hPbuffer), (hPbuffer))
 GEN_THUNKS_RET(BOOL, wglDestroyPbufferEXT, (HPBUFFEREXT hPbuffer), (hPbuffer))
@@ -1652,7 +1651,7 @@ static struct dispatch_table resolver_table = {
 uint32_t wgl_tls_index;
 uint32_t wgl_tls_size = sizeof(struct dispatch_table);
 
-static inline struct dispatch_table *
+static struct dispatch_table *
 get_dispatch_table(void)
 {
 	return TlsGetValue(wgl_tls_index);
