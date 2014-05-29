@@ -539,14 +539,29 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 	std::string tmps;
 	netplay_client->GetPlayerList(tmps, m_playerids);
 
-	const int selection = m_player_lbox->GetSelection();
+	wxString selection;
+	if (m_player_lbox->GetSelection() != wxNOT_FOUND)
+		selection = m_player_lbox->GetString(m_player_lbox->GetSelection());
 
 	m_player_lbox->Clear();
 	std::istringstream ss(tmps);
 	while (std::getline(ss, tmps))
 		m_player_lbox->Append(StrToWxStr(tmps));
 
-	m_player_lbox->SetSelection(selection);
+	// remove ping from selection string, in case it has changed
+	selection.erase(selection.find_last_of("|") + 1);
+
+	if (selection.Length() > 0)
+	{
+		for (unsigned int i = 0; i < m_player_lbox->GetCount(); ++i)
+		{
+			if (selection == m_player_lbox->GetString(i).Mid(0, selection.Length()))
+			{
+				m_player_lbox->SetSelection(i);
+				break;
+			}
+		}
+	}
 
 	switch (event.GetId())
 	{
