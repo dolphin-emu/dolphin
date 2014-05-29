@@ -18,19 +18,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\dispatch_common.c" />
-    <ClCompile Include="src\dispatch_wgl.c" />
-    <ClCompile Include="src\gl_generated_dispatch.c" />
-    <ClCompile Include="src\wgl_generated_dispatch.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\epoxy\gl.h" />
-    <ClInclude Include="include\epoxy\gl_generated.h" />
-    <ClInclude Include="include\epoxy\wgl.h" />
-    <ClInclude Include="include\epoxy\wgl_generated.h" />
-    <ClInclude Include="src\dispatch_common.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4D680514-C2CE-4313-B994-5A25BDB2629A}</ProjectGuid>
   </PropertyGroup>
@@ -54,9 +41,21 @@
     <Import Project="..\..\Source\VSProps\Base.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="src\dispatch_common.c" />
+    <ClCompile Include="src\dispatch_wgl.c" />
+    <ClCompile Include="src\gl_generated_dispatch.c" />
+    <ClCompile Include="src\wgl_generated_dispatch.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\epoxy\gl.h" />
+    <ClInclude Include="include\epoxy\gl_generated.h" />
+    <ClInclude Include="include\epoxy\wgl.h" />
+    <ClInclude Include="include\epoxy\wgl_generated.h" />
+    <ClInclude Include="src\dispatch_common.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
   <ItemGroup>
     <DataDirFiles Include="$(SolutionDir)..\Data\**\*.*" />
     <EpoxyDll Include="$(BuildRootDir)$(Platform)\$(Configuration)\libepoxy\bin\*.dll" />
