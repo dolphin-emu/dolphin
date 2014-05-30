@@ -28,15 +28,6 @@ TEST(CommonFuncs, CrashMacro)
 	EXPECT_DEATH({ Crash(); }, "");
 }
 
-TEST(CommonFuncs, MinMax)
-{
-	EXPECT_EQ(4, min(4, 5));
-	EXPECT_EQ(-1, min(-1, 1));
-
-	EXPECT_EQ(5, max(4, 5));
-	EXPECT_EQ(1, max(-1, 1));
-}
-
 TEST(CommonFuncs, Swap)
 {
 	EXPECT_EQ(0xf0, Common::swap8(0xf0));

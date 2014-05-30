@@ -104,7 +104,7 @@ bool CFileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::stri
 	while (remainingSize)
 	{
 		// Limit read size to 128 MB
-		size_t readSize = (size_t)min(remainingSize, (u64)0x08000000);
+		size_t readSize = std::min<size_t>(remainingSize, (u64)0x08000000);
 
 		std::vector<u8> buffer(readSize);
 

@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/ChunkFile.h"
 #include "Common/Common.h"
 
@@ -544,7 +546,7 @@ int GetTicksToNextSIPoll()
 	else if (!g_Poll.Y)
 		return SystemTimers::GetTicksPerSecond() / 60;
 
-	return min(VideoInterface::GetTicksPerFrame() / g_Poll.Y, VideoInterface::GetTicksPerLine() * g_Poll.X);
+	return std::min(VideoInterface::GetTicksPerFrame() / g_Poll.Y, VideoInterface::GetTicksPerLine() * g_Poll.X);
 }
 
 } // end of namespace SerialInterface

@@ -12,8 +12,9 @@
 #define _WIN32_IE       0x0500
 #define _RICHEDIT_VER   0x0100
 
-#define WIN32_LEAN_AND_MEAN
-#include <wx/wx.h> // wxWidgets
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX            // Don't include windows min/max definitions
+#include <wx/wx.h>          // wxWidgets
 
 #if _M_X86_32
 

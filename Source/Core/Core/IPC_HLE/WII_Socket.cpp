@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
@@ -589,7 +591,7 @@ void WiiSockMan::Update()
 			FD_SET(sock.fd, &read_fds);
 			FD_SET(sock.fd, &write_fds);
 			FD_SET(sock.fd, &except_fds);
-			nfds = max(nfds, sock.fd+1);
+			nfds = std::max(nfds, sock.fd+1);
 		}
 		else
 		{

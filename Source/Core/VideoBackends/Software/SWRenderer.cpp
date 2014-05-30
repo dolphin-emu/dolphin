@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/Common.h"
 #include "Core/Core.h"
 #include "VideoBackends/OGL/GLUtil.h"
@@ -180,14 +182,14 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 
 			// We do the inverse BT.601 conversion for YCbCr to RGB
 			// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y1              + 1.596f * V));
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y1 - 0.392f * U - 0.813f * V));
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y1 + 2.017f * U             ));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y1              + 1.596f * V));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y1 - 0.392f * U - 0.813f * V));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y1 + 2.017f * U             ));
 			TexturePointer[offset++] = 255;
 
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y2              + 1.596f * V));
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y2 - 0.392f * U - 0.813f * V));
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y2 + 2.017f * U             ));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y2              + 1.596f * V));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y2 - 0.392f * U - 0.813f * V));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y2 + 2.017f * U             ));
 			TexturePointer[offset++] = 255;
 		}
 		xfb += fbWidth;
