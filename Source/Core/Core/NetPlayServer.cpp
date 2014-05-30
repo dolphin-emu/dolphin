@@ -114,15 +114,8 @@ void NetPlayServer::ThreadFunc()
 	}
 
 	// close listening socket and client sockets
-	{
-	std::map<sf::SocketTCP, Client>::reverse_iterator
-		i = m_players.rbegin(),
-		e = m_players.rend();
-	for ( ; i!=e; ++i)
-		i->second.socket.Close();
-	}
-
-	return;
+	for (auto& player_entry : m_players)
+		player_entry.second.socket.Close();
 }
 
 // called from ---NETPLAY--- thread
