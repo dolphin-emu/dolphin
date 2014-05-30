@@ -11,10 +11,10 @@
 #endif
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
 
@@ -239,27 +239,30 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		"\tfloat4 " I_FOGF"[2];\n"
 		"};\n");
 
-	if (ApiType == API_OPENGL)
+	if (g_ActiveConfig.bEnablePixelLighting)
 	{
-		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
-	}
-	else
-	{
-		out.Write("cbuffer VSBlock : register(b1) {\n");
-	}
-	out.Write(
-		"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
-		"\tfloat4 " I_PROJECTION"[4];\n"
-		"\tint4 " I_MATERIALS"[4];\n"
-		"\tint4 " I_LIGHT_COLORS"[8];\n"
-		"\tfloat4 " I_LIGHTS"[32];\n"
-		"\tfloat4 " I_TEXMATRICES"[24];\n"
-		"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
-		"\tfloat4 " I_NORMALMATRICES"[32];\n"
-		"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
-		"\tfloat4 " I_DEPTHPARAMS";\n"
-		"};\n");
+		out.Write("%s", s_lighting_struct);
 
+		if (ApiType == API_OPENGL)
+		{
+			out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
+		}
+		else
+		{
+			out.Write("cbuffer VSBlock : register(b1) {\n");
+		}
+		out.Write(
+			"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
+			"\tfloat4 " I_PROJECTION"[4];\n"
+			"\tint4 " I_MATERIALS"[4];\n"
+			"\tLight " I_LIGHTS"[8];\n"
+			"\tfloat4 " I_TEXMATRICES"[24];\n"
+			"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
+			"\tfloat4 " I_NORMALMATRICES"[32];\n"
+			"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
+			"\tfloat4 " I_DEPTHPARAMS";\n"
+			"};\n");
+	}
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
 
@@ -372,11 +375,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 				"\tfloat3 ldir, h;\n"
 				"\tfloat dist, dist2, attn;\n");
 
+		// TODO: Our current constant usage code isn't able to handle more than one buffer.
+		//       So we can't mark the VS constant as used here. But keep them here as reference.
 		//out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
 		//out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
 		//out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
 		uid_data.components = components;
-		GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHT_COLORS, I_LIGHTS, "colors_", "colors_");
+		GenerateLightingShader<T>(out, uid_data.lighting, components, "colors_", "colors_");
 	}
 
 	// HACK to handle cases where the tex gen is not enabled

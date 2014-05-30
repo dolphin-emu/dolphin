@@ -9,20 +9,6 @@
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoCommon.h"
 
-#define I_COLORS        "color"
-#define I_KCOLORS       "k"
-#define I_ALPHA         "alphaRef"
-#define I_TEXDIMS       "texdim"
-#define I_ZBIAS         "czbias"
-#define I_INDTEXSCALE   "cindscale"
-#define I_INDTEXMTX     "cindmtx"
-#define I_FOGCOLOR      "cfogcolor"
-#define I_FOGI          "cfogi"
-#define I_FOGF          "cfogf"
-#define I_PLIGHT_COLORS "cPLightColors"
-#define I_PLIGHTS       "cPLights"
-#define I_PMATERIALS    "cPmtrl"
-
 // TODO: get rid of them as they aren't used
 #define C_COLORMATRIX   0                   // 0
 #define C_COLORS        0                   // 0
