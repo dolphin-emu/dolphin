@@ -237,11 +237,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		"\tint4 " I_FOGCOLOR";\n"
 		"\tint4 " I_FOGI";\n"
 		"\tfloat4 " I_FOGF"[2];\n"
-
-		// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
-		"\tint4 " I_PLIGHT_COLORS"[8];\n"
-		"\tfloat4 " I_PLIGHTS"[32];\n"
-		"\tint4 " I_PMATERIALS"[4];\n"
 		"};\n");
 
 	if (ApiType == API_OPENGL)
@@ -377,9 +372,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 				"\tfloat3 ldir, h;\n"
 				"\tfloat dist, dist2, attn;\n");
 
-		out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
-		out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
-		out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
+		//out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
+		//out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
+		//out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
 		uid_data.components = components;
 		GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHT_COLORS, I_LIGHTS, "colors_", "colors_");
 	}

@@ -15,7 +15,6 @@ void XFMemWritten(u32 transferSize, u32 baseAddress)
 {
 	VertexManager::Flush();
 	VertexShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
-	PixelShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
 void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
@@ -61,7 +60,6 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 				{
 					VertexManager::Flush();
 					VertexShaderManager::SetMaterialColorChanged(chan, newValue);
-					PixelShaderManager::SetMaterialColorChanged(chan, newValue);
 				}
 				break;
 			}
@@ -74,7 +72,6 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 				{
 					VertexManager::Flush();
 					VertexShaderManager::SetMaterialColorChanged(chan + 2, newValue);
-					PixelShaderManager::SetMaterialColorChanged(chan + 2, newValue);
 				}
 				break;
 			}
