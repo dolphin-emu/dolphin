@@ -170,11 +170,10 @@ static struct api api = {
 };
 #endif
 
-static bool library_initialized =
 #ifdef _WIN32
-true;
+static bool library_initialized = true;
 #else
-false;
+static bool library_initialized = false;
 #endif
 
 #if PLATFORM_HAS_EGL
