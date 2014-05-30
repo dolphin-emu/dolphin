@@ -81,6 +81,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	_assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
 
+	out.Write("%s", s_lighting_struct);
+
 	// uniforms
 	if (api_type == API_OPENGL)
 		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
@@ -90,8 +92,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
 		"\tfloat4 " I_PROJECTION"[4];\n"
 		"\tint4 " I_MATERIALS"[4];\n"
-		"\tint4 " I_LIGHT_COLORS"[8];\n"
-		"\tfloat4 " I_LIGHTS"[32];\n"
+		"\tLight " I_LIGHTS"[8];\n"
 		"\tfloat4 " I_TEXMATRICES"[24];\n"
 		"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
 		"\tfloat4 " I_NORMALMATRICES"[32];\n"
@@ -229,7 +230,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
 	}
 
-	GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHT_COLORS, I_LIGHTS, "color", "o.colors_");
+	GenerateLightingShader<T>(out, uid_data.lighting, components, "color", "o.colors_");
 
 	if (xfmem.numChan.numColorChans < 2)
 	{
@@ -304,7 +305,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 					// transform the light dir into tangent space
 					uid_data.texMtxInfo[i].embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
 					uid_data.texMtxInfo[i].embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-					out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(I_LIGHTS, texinfo.embosslightshift));
+					out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(texinfo.embosslightshift));
 					out.Write("o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i, texinfo.embosssourceshift);
 				}
 				else

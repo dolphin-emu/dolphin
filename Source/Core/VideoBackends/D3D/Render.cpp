@@ -1088,7 +1088,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	}
 
 	ID3D11Buffer* const_buffers[2] = {PixelShaderCache::GetConstantBuffer(), VertexShaderCache::GetConstantBuffer()};
-	D3D::context->PSSetConstantBuffers(0, 2, const_buffers);
+	D3D::context->PSSetConstantBuffers(0, 1 + g_ActiveConfig.bEnablePixelLighting, const_buffers);
 	D3D::context->VSSetConstantBuffers(0, 1, const_buffers+1);
 
 	D3D::context->PSSetShader(PixelShaderCache::GetActiveShader(), nullptr, 0);
