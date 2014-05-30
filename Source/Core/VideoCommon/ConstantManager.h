@@ -21,11 +21,6 @@ struct PixelShaderConstants
 	int4 fogcolor;
 	int4 fogi;
 	float4 fogf[2];
-
-	// For pixel lighting
-	int4 plight_colors[8];
-	float4 plights[32];
-	int4 pmaterials[4];
 };
 
 struct VertexShaderConstants

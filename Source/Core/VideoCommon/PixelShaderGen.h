@@ -36,10 +36,7 @@
 #define C_FOGI          (C_FOGCOLOR + 1)    //28
 #define C_FOGF          (C_FOGI + 1)        //29
 
-#define C_PLIGHT_COLORS (C_FOGF + 2)
-#define C_PLIGHTS       (C_PLIGHT_COLORS + 8)
-#define C_PMATERIALS    (C_PLIGHTS + 32)
-#define C_PENVCONST_END (C_PMATERIALS + 4)
+#define C_PENVCONST_END (C_FOGF + 2)
 
 // Different ways to achieve rendering with destination alpha
 enum DSTALPHA_MODE
