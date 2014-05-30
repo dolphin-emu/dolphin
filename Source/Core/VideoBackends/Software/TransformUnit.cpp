@@ -210,7 +210,7 @@ inline float SafeDivide(float n, float d)
 
 void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, Vec3 &lightCol)
 {
-	const LightPointer *light = (const LightPointer*)&xfmem.lights[0x10*lightNum];
+	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
 
 	if (!(chan.attnfunc & 1))
 	{
@@ -295,7 +295,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, float &lightCol)
 {
-	const LightPointer *light = (const LightPointer*)&xfmem.lights[0x10*lightNum];
+	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
 
 	if (!(chan.attnfunc & 1))
 	{
@@ -476,7 +476,7 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool s
 			break;
 		case XF_TEXGEN_EMBOSS_MAP:
 			{
-				const LightPointer *light = (const LightPointer*)&xfmem.lights[0x10*texinfo.embosslightshift];
+				const LightPointer *light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
 
 				Vec3 ldir = (light->pos - dst->mvPosition).normalized();
 				float d1 = ldir * dst->normal[1];

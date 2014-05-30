@@ -23,7 +23,7 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 	// fix lights so invalid values don't trash the lighting computations
 	if (baseAddress <= 0x067f && topAddress >= 0x0604)
 	{
-		u32* x = xfmem.lights;
+		u32* x = (u32*)xfmem.lights;
 
 		// go through all lights
 		for (int light = 0; light < 8; light++)
