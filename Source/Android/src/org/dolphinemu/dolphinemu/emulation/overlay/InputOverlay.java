@@ -123,14 +123,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		{
 			if (button.getBounds().contains((int)event.getX(), (int)event.getY()))
 			{
-				NativeLibrary.onTouchEvent(0, button.getId(), buttonState);
+				NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), buttonState);
 			}
 			else
 			{
 				// Because the above code only changes the state for the button that is being touched, sliding off the
 				// button does not allow for it to be released. Release the button as soon as the touch coordinates leave
 				// the button bounds.
-				NativeLibrary.onTouchEvent(0, button.getId(), ButtonState.RELEASED);
+				NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
 			}
 		}
 
@@ -142,7 +142,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			float[] axises = joystick.getAxisValues();
 
 			for (int i = 0; i < 4; i++)
-				NativeLibrary.onTouchAxisEvent(0, axisIDs[i], axises[i]);
+				NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
 		}
 
 		return true;

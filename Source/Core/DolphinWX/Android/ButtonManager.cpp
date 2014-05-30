@@ -9,11 +9,9 @@
 
 namespace ButtonManager
 {
-	// Pair key is padID, BUTTONTYPE
-	std::map<std::pair<int, int>, Button*> m_buttons;
-	std::map<std::pair<int, int>, Axis*> m_axises;
+	const std::string touchScreenKey = "Touchscreen";
 	std::unordered_map<std::string, InputDevice*> m_controllers;
-	const char* configStrings[] = {
+	std::vector<std::string> configStrings = {
 		"InputA",
 		"InputB",
 		"InputStart",
@@ -35,7 +33,28 @@ namespace ButtonManager
 		"InputL",
 		"InputR"
 	};
-	const int configStringNum = 20;
+	std::vector<ButtonType> configTypes = {
+		BUTTON_A,
+		BUTTON_B,
+		BUTTON_START,
+		BUTTON_X,
+		BUTTON_Y,
+		BUTTON_Z,
+		BUTTON_UP,
+		BUTTON_DOWN,
+		BUTTON_LEFT,
+		BUTTON_RIGHT,
+		STICK_MAIN_UP,
+		STICK_MAIN_DOWN,
+		STICK_MAIN_LEFT,
+		STICK_MAIN_RIGHT,
+		STICK_C_UP,
+		STICK_C_DOWN,
+		STICK_C_LEFT,
+		STICK_C_RIGHT,
+		TRIGGER_L,
+		TRIGGER_R
+	};
 
 	void AddBind(std::string dev, sBind *bind)
 	{
@@ -51,35 +70,35 @@ namespace ButtonManager
 
 	void Init()
 	{
-		// Initialize our touchscreen buttons
+		// Initialize our touchScreenKey buttons
 		for (int a = 0; a < 4; ++a)
 		{
-			m_buttons[std::make_pair(a, BUTTON_A)] = new Button();
-			m_buttons[std::make_pair(a, BUTTON_B)] = new Button();
-			m_buttons[std::make_pair(a, BUTTON_START)] = new Button();
-			m_buttons[std::make_pair(a, BUTTON_X)] = new Button();
-			m_buttons[std::make_pair(a, BUTTON_Y)] = new Button();
-			m_buttons[std::make_pair(a, BUTTON_Z)] = new Button();
-			m_buttons[std::make_pair(a, BUTTON_UP)] = new Button();
-			m_buttons[std::make_pair(a, BUTTON_DOWN)] = new Button();
-			m_buttons[std::make_pair(a, BUTTON_LEFT)] = new Button();
-			m_buttons[std::make_pair(a, BUTTON_RIGHT)] = new Button();
+			AddBind(touchScreenKey, new sBind(a, BUTTON_A, BIND_BUTTON, BUTTON_A, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, BUTTON_B, BIND_BUTTON, BUTTON_B, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, BUTTON_START, BIND_BUTTON, BUTTON_START, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, BUTTON_X, BIND_BUTTON, BUTTON_X, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, BUTTON_Y, BIND_BUTTON, BUTTON_Y, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, BUTTON_Z, BIND_BUTTON, BUTTON_Z, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, BUTTON_UP, BIND_BUTTON, BUTTON_UP, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, BUTTON_DOWN, BIND_BUTTON, BUTTON_DOWN, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, BUTTON_LEFT, BIND_BUTTON, BUTTON_LEFT, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, BUTTON_RIGHT, BIND_BUTTON, BUTTON_RIGHT, 1.0f));
 
-			m_axises[std::make_pair(a, STICK_MAIN_UP)] = new Axis();
-			m_axises[std::make_pair(a, STICK_MAIN_DOWN)] = new Axis();
-			m_axises[std::make_pair(a, STICK_MAIN_LEFT)] = new Axis();
-			m_axises[std::make_pair(a, STICK_MAIN_RIGHT)] = new Axis();
-			m_axises[std::make_pair(a, STICK_C_UP)] = new Axis();
-			m_axises[std::make_pair(a, STICK_C_DOWN)] = new Axis();
-			m_axises[std::make_pair(a, STICK_C_LEFT)] = new Axis();
-			m_axises[std::make_pair(a, STICK_C_RIGHT)] = new Axis();
-			m_buttons[std::make_pair(a, TRIGGER_L)] = new Button();
-			m_buttons[std::make_pair(a, TRIGGER_R)] = new Button();
+			AddBind(touchScreenKey, new sBind(a, STICK_MAIN_UP, BIND_AXIS, STICK_MAIN_UP, -1.0f));
+			AddBind(touchScreenKey, new sBind(a, STICK_MAIN_DOWN, BIND_AXIS, STICK_MAIN_DOWN, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, STICK_MAIN_LEFT, BIND_AXIS, STICK_MAIN_LEFT, -1.0f));
+			AddBind(touchScreenKey, new sBind(a, STICK_MAIN_RIGHT, BIND_AXIS, STICK_MAIN_RIGHT, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, STICK_C_UP, BIND_AXIS, STICK_C_UP, -1.0f));
+			AddBind(touchScreenKey, new sBind(a, STICK_C_DOWN, BIND_AXIS, STICK_C_DOWN, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, STICK_C_LEFT, BIND_AXIS, STICK_C_LEFT, -1.0f));
+			AddBind(touchScreenKey, new sBind(a, STICK_C_RIGHT, BIND_AXIS, STICK_C_RIGHT, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, TRIGGER_L, BIND_AXIS, TRIGGER_L, 1.0f));
+			AddBind(touchScreenKey, new sBind(a, TRIGGER_R, BIND_AXIS, TRIGGER_R, 1.0f));
 		}
 		// Init our controller bindings
 		IniFile ini;
 		ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"));
-		for (int a = 0; a < configStringNum; ++a)
+		for (u32 a = 0; a < configStrings.size(); ++a)
 		{
 			for (int padID = 0; padID < 4; ++padID)
 			{
@@ -89,7 +108,7 @@ namespace ButtonManager
 				int bindnum;
 				char dev[128];
 				bool hasbind = false;
-				char modifier = 0;
+				char modifier = '+';
 				std::string value;
 				ini.Get("Android", config.str(), &value, "None");
 				if (value == "None")
@@ -107,14 +126,14 @@ namespace ButtonManager
 					sscanf(value.c_str(), "Device '%[^\']'-Button %d", dev, &bindnum);
 				}
 				if (hasbind)
-					AddBind(std::string(dev), new sBind(padID, (ButtonType)a, type, bindnum, modifier == '-' ? -1.0f : 1.0f));
+					AddBind(std::string(dev), new sBind(padID, configTypes[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
 			}
 		}
 
 	}
 	bool GetButtonPressed(int padID, ButtonType button)
 	{
-		bool pressed = m_buttons[std::make_pair(padID, button)]->Pressed();
+		bool pressed = m_controllers[touchScreenKey]->ButtonValue(padID, button);
 
 		for (const auto& ctrl : m_controllers)
 			pressed |= ctrl.second->ButtonValue(padID, button);
@@ -123,19 +142,17 @@ namespace ButtonManager
 	}
 	float GetAxisValue(int padID, ButtonType axis)
 	{
-		float value = m_axises[std::make_pair(padID, axis)]->AxisValue();
-		auto it = m_controllers.begin();
-		if (it == m_controllers.end())
-			return value;
-		return value != 0.0f ? value : it->second->AxisValue(padID, axis);
-	}
-	void TouchEvent(int padID, ButtonType button, int action)
-	{
-		m_buttons[std::make_pair(padID, button)]->SetState(action ? BUTTON_PRESSED : BUTTON_RELEASED);
-	}
-	void TouchAxisEvent(int padID, ButtonType axis, float value)
-	{
-		m_axises[std::make_pair(padID, axis)]->SetValue(value);
+		float value = m_controllers[touchScreenKey]->AxisValue(padID, axis);
+		if (value == 0.0f)
+		{
+			for (const auto& ctrl : m_controllers)
+			{
+				value = ctrl.second->AxisValue(padID, axis);
+				if (value != 0.0f)
+					return value;
+			}
+		}
+		return value;
 	}
 	void GamepadEvent(std::string dev, int button, int action)
 	{
@@ -161,50 +178,58 @@ namespace ButtonManager
 	}
 	void Shutdown()
 	{
-		for (const auto& button : m_buttons)
-			delete button.second;
 		for (const auto& controller : m_controllers)
 			delete controller.second;
 		m_controllers.clear();
-		m_buttons.clear();
 	}
 
 	// InputDevice
 	void InputDevice::PressEvent(int button, int action)
 	{
-		if (_inputbinds.find(button) == _inputbinds.end())
-			return;
-		_buttons[_inputbinds[button]->_buttontype] = action == 0 ? true : false;
+		for (const auto& binding : _inputbinds)
+		{
+			if (binding.second->_bind == button)
+			{
+				if (binding.second->_bindtype == BIND_BUTTON)
+					_buttons[binding.second->_buttontype] = action == BUTTON_PRESSED ? true : false;
+				else
+					_axises[binding.second->_buttontype] = action == BUTTON_PRESSED ? 1.0f : 0.0f;
+			}
+		}
 	}
 	void InputDevice::AxisEvent(int axis, float value)
 	{
-		if (_inputbinds.find(axis) == _inputbinds.end())
-			return;
-		_axises[_inputbinds[axis]->_buttontype] = value;
+		for (const auto& binding : _inputbinds)
+		{
+			if (binding.second->_bind == axis)
+			{
+				if (binding.second->_bindtype == BIND_AXIS)
+					_axises[binding.second->_buttontype] = value;
+				else
+					_buttons[binding.second->_buttontype] = value > 0.5f ? true : false;
+			}
+		}
 	}
 	bool InputDevice::ButtonValue(int padID, ButtonType button)
 	{
-		auto it = _binds.find(button);
-		if (it == _binds.end())
+		const auto& binding = _inputbinds.find(std::make_pair(padID, button));
+		if (binding == _inputbinds.end())
 			return false;
-		if (it->second->_padID != padID)
-			return false;
-		if (it->second->_bindtype == BIND_BUTTON)
-			return _buttons[it->second->_buttontype];
+
+		if (binding->second->_bindtype == BIND_BUTTON)
+			return _buttons[binding->second->_buttontype];
 		else
-			return AxisValue(padID, button);
+			return (_axises[binding->second->_buttontype] * binding->second->_neg) > 0.5f;
 	}
 	float InputDevice::AxisValue(int padID, ButtonType axis)
 	{
-		auto it = _binds.find(axis);
-		if (it == _binds.end())
+		const auto& binding = _inputbinds.find(std::make_pair(padID, axis));
+		if (binding == _inputbinds.end())
 			return 0.0f;
-		if (it->second->_padID != padID)
-			return 0.0f;
-		if (it->second->_bindtype == BIND_BUTTON)
-			return ButtonValue(padID, axis);
-		else
-			return _axises[it->second->_buttontype] * it->second->_neg;
-	}
 
+		if (binding->second->_bindtype == BIND_AXIS)
+			return _axises[binding->second->_buttontype] * binding->second->_neg;
+		else
+			return _buttons[binding->second->_buttontype] == BUTTON_PRESSED ? 1.0f : 0.0f;
+	}
 }

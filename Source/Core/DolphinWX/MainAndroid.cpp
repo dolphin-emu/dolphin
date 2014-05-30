@@ -236,14 +236,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulatio
 	Core::Stop();
 	updateMainFrameEvent.Set(); // Kick the waiting event
 }
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchEvent(JNIEnv *env, jobject obj, jint padID, jint Button, jint Action)
-{
-	ButtonManager::TouchEvent(padID, (ButtonManager::ButtonType)Button, Action);
-}
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchAxisEvent(JNIEnv *env, jobject obj, jint padID, jint Button, jfloat Action)
-{
-	ButtonManager::TouchAxisEvent(padID, (ButtonManager::ButtonType)Button, Action);
-}
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Button, jint Action)
 {
 	ButtonManager::GamepadEvent(GetJString(env, jDevice), Button, Action);
