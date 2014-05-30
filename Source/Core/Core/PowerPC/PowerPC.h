@@ -38,7 +38,20 @@ struct GC_ALIGNED64(PowerPCState)
 	u32 pc;     // program counter
 	u32 npc;
 
-	u8 cr_fast[8];     // Possibly reorder to 0, 2, 4, 8, 1, 3, 5, 7 so that we can make Compact and Expand super fast?
+	// Optimized CR implementation. Instead of storing CR in its PowerPC format
+	// (4 bit value, SO/EQ/LT/GT), we store instead a 64 bit value for each of
+	// the 8 CR register parts. This 64 bit value follows this format:
+	//   - SO iff. bit 61 is set
+	//   - EQ iff. lower 32 bits == 0
+	//   - GT iff. (s64)cr_val > 0
+	//   - LT iff. bit 62 is set
+	//
+	// This has the interesting property that sign-extending the result of an
+	// operation from 32 to 64 bits results in a 64 bit value that works as a
+	// CR value. Checking each part of CR is also fast, as it is equivalent to
+	// testing one bit or the low 32 bit part of a register. And CR can still
+	// be manipulated bit by bit fairly easily.
+	u64 cr_val[8];
 
 	u32 msr;    // machine specific register
 	u32 fpscr;  // floating point flags/status bits
@@ -149,27 +162,54 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 
 }  // namespace
 
-// Fast CR system - store them in single bytes instead of nibbles to not have to
-// mask/shift them out.
+// Convert between PPC and internal representation of CR.
+inline u64 PPCCRToInternal(u8 value)
+{
+	u64 cr_val = 0x100000000;
+	// SO
+	cr_val |= (u64)!!(value & 1) << 61;
+	// EQ
+	cr_val |= (u64)!(value & 2);
+	// GT
+	cr_val |= (u64)!(value & 4) << 63;
+	// LT
+	cr_val |= (u64)!!(value & 8) << 62;
 
-// These are intended to stay fast, probably become faster, and are not likely to slow down much if at all.
+	return cr_val;
+}
+
+// Warning: these CR operations are fairly slow since they need to convert from
+// PowerPC format (4 bit) to our internal 64 bit format. See the definition of
+// ppcState.cr_val for more explanations.
 inline void SetCRField(int cr_field, int value) {
-	PowerPC::ppcState.cr_fast[cr_field] = value;
+	PowerPC::ppcState.cr_val[cr_field] = PPCCRToInternal(value);
 }
 
 inline u32 GetCRField(int cr_field) {
-	return PowerPC::ppcState.cr_fast[cr_field];
+	u64 cr_val = PowerPC::ppcState.cr_val[cr_field];
+	u32 ppc_cr = 0;
+
+	// SO
+	ppc_cr |= !!(cr_val & (1ull << 61));
+	// EQ
+	ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << 1;
+	// GT
+	ppc_cr |= ((s64)cr_val > 0) << 2;
+	// LT
+	ppc_cr |= !!(cr_val & (1ull << 62)) << 3;
+
+	return ppc_cr;
 }
 
 inline u32 GetCRBit(int bit) {
-	return (PowerPC::ppcState.cr_fast[bit >> 2] >> (3 - (bit & 3))) & 1;
+	return (GetCRField(bit >> 2) >> (3 - (bit & 3))) & 1;
 }
 
 inline void SetCRBit(int bit, int value) {
 	if (value & 1)
-		PowerPC::ppcState.cr_fast[bit >> 2] |= 0x8 >> (bit & 3);
+		SetCRField(bit >> 2, GetCRField(bit >> 2) | (0x8 >> (bit & 3)));
 	else
-		PowerPC::ppcState.cr_fast[bit >> 2] &= ~(0x8 >> (bit & 3));
+		SetCRField(bit >> 2, GetCRField(bit >> 2) & ~(0x8 >> (bit & 3)));
 }
 
 // SetCR and GetCR are fairly slow. Should be avoided if possible.

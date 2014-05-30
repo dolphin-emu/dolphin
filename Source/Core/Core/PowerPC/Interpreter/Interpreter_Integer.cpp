@@ -4,32 +4,22 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-void Interpreter::Helper_UpdateCR0(u32 _uValue)
+void Interpreter::Helper_UpdateCR0(u32 value)
 {
-	u32 new_cr0;
-	int sValue = (int)_uValue;
-	if (sValue > 0)
-		new_cr0 = 0x4;
-	else if (sValue < 0)
-		new_cr0 = 0x8;
-	else
-		new_cr0 = 0x2;
-	new_cr0 |= GetXER_SO();
-	SetCRField(0, new_cr0);
+	s64 sign_extended = (s64)(s32)value;
+	u64 cr_val = (u64)sign_extended;
+	cr_val = (cr_val & ~(1ull << 61)) | ((u64)GetXER_SO() << 61);
+
+	PowerPC::ppcState.cr_val[0] = cr_val;
 }
 
-void Interpreter::Helper_UpdateCRx(int _x, u32 _uValue)
+void Interpreter::Helper_UpdateCRx(int idx, u32 value)
 {
-	u32 new_crX;
-	int sValue = (int)_uValue;
-	if (sValue > 0)
-		new_crX = 0x4;
-	else if (sValue < 0)
-		new_crX = 0x8;
-	else
-		new_crX = 0x2;
-	new_crX |= GetXER_SO();
-	SetCRField(_x, new_crX);
+	s64 sign_extended = (s64)(s32)value;
+	u64 cr_val = (u64)sign_extended;
+	cr_val = (cr_val & ~(1ull << 61)) | ((u64)GetXER_SO() << 61);
+
+	PowerPC::ppcState.cr_val[idx] = cr_val;
 }
 
 u32 Interpreter::Helper_Carry(u32 _uValue1, u32 _uValue2)

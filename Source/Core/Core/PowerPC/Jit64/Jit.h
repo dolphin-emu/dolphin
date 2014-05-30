@@ -106,6 +106,16 @@ public:
 	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
 
+	// Reads a given bit of a given CR register part. Clobbers ABI_PARAM1,
+	// don't forget to xlock it before.
+	void GetCRFieldBit(int field, int bit, Gen::X64Reg out);
+	// Clobbers ABI_PARAM1 and ABI_PARAM2, xlock them before.
+	void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
+
+	// Generates a branch that will check if a given bit of a CR register part
+	// is set or not.
+	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
+
 	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 	typedef u32 (*Operation)(u32 a, u32 b);
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
