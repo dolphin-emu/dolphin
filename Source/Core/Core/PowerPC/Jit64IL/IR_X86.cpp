@@ -763,7 +763,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			if (!thisUsed) break;
 			X64Reg reg = regFindFreeReg(RI);
 			unsigned ppcreg = *I >> 8;
-			Jit->MOVZX(32, 8, reg, M(&PowerPC::ppcState.cr_fast[ppcreg]));
+			// TODO(delroth): unbreak
+			//Jit->MOVZX(32, 8, reg, M(&PowerPC::ppcState.cr_fast[ppcreg]));
 			RI.regs[reg] = I;
 			break;
 		}
@@ -816,7 +817,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
 			unsigned ppcreg = *I >> 16;
 			// CAUTION: uses 8-bit reg!
-			Jit->MOV(8, M(&PowerPC::ppcState.cr_fast[ppcreg]), R(ECX));
+			// TODO(delroth): Unbreak.
+			//Jit->MOV(8, M(&PowerPC::ppcState.cr_fast[ppcreg]), R(ECX));
 			regNormalRegClear(RI, I);
 			break;
 		}

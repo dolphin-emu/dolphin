@@ -237,26 +237,33 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 		pGreater = J_CC(CC_B);
 	}
 
-	// Equal
-	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2));
+	// Read the documentation about cr_val in PowerPC.h to understand these
+	// magic values.
+
+	// Equal: !GT (bit 63 set), !LT (bit 62 not set), !SO (bit 61 not set), EQ
+	// (bits 31-0 not set).
+	MOV(64, R(RAX), Imm64(0x8000000000000000));
 	continue1 = J();
 
-	// NAN
+	// NAN: !GT (bit 63 set), !LT (bit 62 not set), SO (bit 61 set), !EQ (bit 0
+	// set).
 	SetJumpTarget(pNaN);
-	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x1));
+	MOV(64, R(RAX), Imm64(0xA000000000000001));
 
 	if (a != b)
 	{
 		continue2 = J();
 
-		// Greater Than
+		// Greater Than: GT (bit 63 not set), !LT (bit 62 not set), !SO (bit 61
+		// not set), !EQ (bit 0 set).
 		SetJumpTarget(pGreater);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));
+		MOV(64, R(RAX), Imm64(0x0000000000000001));
 		continue3 = J();
 
-		// Less Than
+		// Less Than: !GT (bit 63 set), LT (bit 62 set), !SO (bit 61 not set),
+		// !EQ (bit 0 set).
 		SetJumpTarget(pLesser);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));
+		MOV(64, R(RAX), Imm64(0xC000000000000001));
 	}
 
 	SetJumpTarget(continue1);
@@ -266,6 +273,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 		SetJumpTarget(continue3);
 	}
 
+	MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
 	fpr.UnlockAll();
 }
 

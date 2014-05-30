@@ -41,10 +41,10 @@ PPCDebugInterface debug_interface;
 
 u32 CompactCR()
 {
-	u32 new_cr = ppcState.cr_fast[0] << 28;
-	for (int i = 1; i < 8; i++)
+	u32 new_cr = 0;
+	for (int i = 0; i < 8; i++)
 	{
-		new_cr |= ppcState.cr_fast[i] << (28 - i * 4);
+		new_cr |= GetCRField(i) << (28 - i * 4);
 	}
 	return new_cr;
 }
@@ -53,7 +53,7 @@ void ExpandCR(u32 cr)
 {
 	for (int i = 0; i < 8; i++)
 	{
-		ppcState.cr_fast[i] = (cr >> (28 - i * 4)) & 0xF;
+		SetCRField(i, (cr >> (28 - i * 4)) & 0xF);
 	}
 }
 
@@ -99,7 +99,8 @@ static void ResetRegisters()
 	ppcState.pc = 0;
 	ppcState.npc = 0;
 	ppcState.Exceptions = 0;
-	((u64*)(&ppcState.cr_fast[0]))[0] = 0;
+	for (auto& v : ppcState.cr_val)
+		v = 0x8000000000000001;
 
 	TL = 0;
 	TU = 0;

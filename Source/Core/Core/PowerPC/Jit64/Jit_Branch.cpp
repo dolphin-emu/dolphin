@@ -117,11 +117,8 @@ void Jit64::bcx(UGeckoInstruction inst)
 	FixupBranch pConditionDontBranch;
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
 	{
-		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
-			pConditionDontBranch = J_CC(CC_Z, true);
-		else
-			pConditionDontBranch = J_CC(CC_NZ, true);
+		pConditionDontBranch = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
+		                                        !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 	}
 
 	if (inst.LK)
@@ -179,14 +176,8 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		// BO_2 == 001zy -> b if false
 		// BO_2 == 011zy -> b if true
 
-		// Ripped from bclrx
-		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		Gen::CCFlags branch;
-		if (inst.BO_2 & BO_BRANCH_IF_TRUE)
-			branch = CC_Z;
-		else
-			branch = CC_NZ;
-		FixupBranch b = J_CC(branch, true);
+		FixupBranch b = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
+		                                 !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 		MOV(32, R(EAX), M(&CTR));
 		AND(32, R(EAX), Imm32(0xFFFFFFFC));
 		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
@@ -222,11 +213,8 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	FixupBranch pConditionDontBranch;
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
 	{
-		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
-			pConditionDontBranch = J_CC(CC_Z, true);
-		else
-			pConditionDontBranch = J_CC(CC_NZ, true);
+		pConditionDontBranch = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
+		                                        !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 	}
 
 		// This below line can be used to prove that blr "eats flags" in practice.
