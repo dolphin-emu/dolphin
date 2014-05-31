@@ -93,8 +93,6 @@ public:
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 
-	void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
-	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void GenerateCarry(Gen::X64Reg temp_reg);
 
 	void tri_op(int d, int a, int b, bool reversible, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));

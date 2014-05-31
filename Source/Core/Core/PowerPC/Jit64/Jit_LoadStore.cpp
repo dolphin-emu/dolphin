@@ -314,38 +314,6 @@ void Jit64::stX(UGeckoInstruction inst)
 			}
 		}
 
-		// Optimized stack access?
-		if (accessSize == 32 && !gpr.R(a).IsImm() && a == 1 && js.st.isFirstBlockOfFunction && jo.optimizeStack)
-		{
-			gpr.FlushLockX(ABI_PARAM1);
-			MOV(32, R(ABI_PARAM1), gpr.R(a));
-			MOV(32, R(EAX), gpr.R(s));
-			SwapAndStore(accessSize, MComplex(RBX, ABI_PARAM1, SCALE_1, (u32)offset), EAX);
-			if (update && offset)
-			{
-				gpr.Lock(a);
-				gpr.KillImmediate(a, true, true);
-				ADD(32, gpr.R(a), Imm32(offset));
-				gpr.UnlockAll();
-			}
-			gpr.UnlockAllX();
-			return;
-		}
-
-		/* // TODO - figure out why Beyond Good and Evil hates this
-		#if defined(_WIN32) && _M_X86_64
-		if (accessSize == 32 && !update)
-		{
-		// Fast and daring - requires 64-bit
-		MOV(32, R(EAX), gpr.R(s));
-		gpr.BindToRegister(a, true, false);
-		SwapAndStore(32, MComplex(RBX, gpr.RX(a), SCALE_1, (u32)offset), EAX);
-		return;
-		}
-		#endif*/
-
-		//Still here? Do regular path.
-
 		gpr.FlushLockX(ECX, EDX);
 		gpr.Lock(s, a);
 		MOV(32, R(EDX), gpr.R(a));
