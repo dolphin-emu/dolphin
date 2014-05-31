@@ -559,16 +559,17 @@ static void BPWritten(const BPCmd& bp)
 	case BPMEM_TEV_REGISTER_H+4:
 	case BPMEM_TEV_REGISTER_L+6: // Reg 4
 	case BPMEM_TEV_REGISTER_H+6:
-		// some games only send the _L part, so always update
-		// there actually are 2 register behind each of these
-		// addresses, selected by the type bit.
+		// some games only send the _L part ( or maybe the H_, problem is same ),
+		// and BP only have one set of color components, so it is impossible to
+		// update the full color just like the old comment states, as the other two value may be the ones from the d instead of kd
+		// and vice versa. We then just assume that the game is doing it right.
 		{
 			// don't compare with changes!
 			int num = (bp.address >> 1) & 0x3;
 			if ((bp.address & 1) == 0)
-				PixelShaderManager::SetColorChanged(bpmem.tevregs[num].type_ra, num);
+				PixelShaderManager::SetColorChangedRA(bpmem.tevregs[num].type_ra, num);
 			else
-				PixelShaderManager::SetColorChanged(bpmem.tevregs[num].type_bg, num);
+				PixelShaderManager::SetColorChangedBG(bpmem.tevregs[num].type_bg, num);
 		}
 		return;
 	default:

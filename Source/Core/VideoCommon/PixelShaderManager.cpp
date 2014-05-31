@@ -31,14 +31,10 @@ void PixelShaderManager::Dirty()
 	s_bViewPortChanged = true;
 	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
 
-	SetColorChanged(0, 0);
-	SetColorChanged(0, 1);
-	SetColorChanged(0, 2);
-	SetColorChanged(0, 3);
-	SetColorChanged(1, 0);
-	SetColorChanged(1, 1);
-	SetColorChanged(1, 2);
-	SetColorChanged(1, 3);
+	// we cannot update d and kd on Dirty ( called on Init and on State Load )
+	// because the bp registers do not have all the information to do it,
+	// assume that constants that is also serialized is valid and set dirty to true at the end of the function is enough.
+
 	SetAlpha();
 	SetDestAlpha();
 	SetZTextureBias();
@@ -59,6 +55,7 @@ void PixelShaderManager::Dirty()
 	SetTexCoordChanged(7);
 	SetFogColorChanged();
 	SetFogParamChanged();
+	dirty = true;
 }
 
 void PixelShaderManager::Shutdown()
@@ -148,16 +145,24 @@ void PixelShaderManager::SetConstants()
 	}
 }
 
-void PixelShaderManager::SetColorChanged(int type, int num)
+void PixelShaderManager::SetColorChangedRA(int type, int num)
 {
 	int4* c = type ? constants.kcolors : constants.colors;
 	c[num][0] = bpmem.tevregs[num].red;
 	c[num][3] = bpmem.tevregs[num].alpha;
+	dirty = true;
+
+	PRIM_LOG("pixel %scolor%d: *%d %d %d *%d\n", type?"k":"", num, c[num][0], c[num][1], c[num][2], c[num][3]);
+}
+
+void PixelShaderManager::SetColorChangedBG(int type, int num)
+{
+	int4* c = type ? constants.kcolors : constants.colors;
 	c[num][2] = bpmem.tevregs[num].blue;
 	c[num][1] = bpmem.tevregs[num].green;
 	dirty = true;
 
-	PRIM_LOG("pixel %scolor%d: %d %d %d %d\n", type?"k":"", num, c[num][0], c[num][1], c[num][2], c[num][3]);
+	PRIM_LOG("pixel %scolor%d: %d *%d *%d %d\n", type?"k":"", num, c[num][0], c[num][1], c[num][2], c[num][3]);
 }
 
 void PixelShaderManager::SetAlpha()
