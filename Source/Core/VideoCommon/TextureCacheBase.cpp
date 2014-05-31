@@ -152,7 +152,7 @@ void TextureCache::Cleanup(int _frameCount)
 		    !iter->second->IsEfbCopy())
 		{
 			delete iter->second;
-			textures.erase(iter++);
+			iter = textures.erase(iter);
 		}
 		else
 		{
