@@ -533,16 +533,6 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 a
 #endif
 }
 
-void EmuCodeBlock::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
-{
-#if _M_X86_64
-	MOV(32, R(RAX), Imm32(address));
-	MOVSS(MComplex(RBX, RAX, 1, 0), xmm_reg);
-#else
-	MOVSS(M((void*)((u32)Memory::base + (address & Memory::MEMVIEW32_MASK))), xmm_reg);
-#endif
-}
-
 void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm) {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jit->jo.accurateSinglePrecision)

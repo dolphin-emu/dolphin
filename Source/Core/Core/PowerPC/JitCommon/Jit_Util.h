@@ -50,7 +50,6 @@ public:
 	void SafeWriteF32ToReg(Gen::X64Reg xmm_value, Gen::X64Reg reg_addr, s32 offset, u32 registersInUse, int flags = 0);
 
 	void WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 address, bool swap = false);
-	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void JitClearCA();
 	void JitSetCA();
 	void JitClearCAOV(bool oe);
