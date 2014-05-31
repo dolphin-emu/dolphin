@@ -383,15 +383,16 @@ void Jit64::lmw(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
 
+	// TODO: This doesn't handle rollback on DSI correctly
 	gpr.FlushLockX(ECX);
-	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
+	MOV(32, R(ECX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
-		ADD(32, R(EAX), gpr.R(inst.RA));
+		ADD(32, R(ECX), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
-		LoadAndSwap(32, ECX, MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4));
+		SafeLoadToReg(EAX, R(ECX), 32, (i - inst.RD) * 4, RegistersInUse(), false);
 		gpr.BindToRegister(i, false, true);
-		MOV(32, gpr.R(i), R(ECX));
+		MOV(32, gpr.R(i), R(EAX));
 	}
 	gpr.UnlockAllX();
 }
@@ -401,14 +402,16 @@ void Jit64::stmw(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
 
+	// TODO: This doesn't handle rollback on DSI correctly
 	gpr.FlushLockX(ECX);
-	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
-	if (inst.RA)
-		ADD(32, R(EAX), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
+		if (inst.RA)
+			MOV(32, R(EAX), gpr.R(inst.RA));
+		else
+			XOR(32, R(EAX), R(EAX));
 		MOV(32, R(ECX), gpr.R(i));
-		SwapAndStore(32, MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4), ECX);
+		SafeWriteRegToReg(ECX, EAX, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, RegistersInUse());
 	}
 	gpr.UnlockAllX();
 }
