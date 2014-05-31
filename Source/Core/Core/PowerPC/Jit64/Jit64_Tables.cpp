@@ -88,7 +88,7 @@ static GekkoOPTemplate primarytable[] =
 	{51, &Jit64::FallBackToInterpreter}, //"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
 
 	{52, &Jit64::stfs},                  //"stfs",  OPTYPE_STOREFP, FL_IN_A}},
-	{53, &Jit64::stfs},                  //"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
+	{53, &Jit64::FallBackToInterpreter}, //"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 	{54, &Jit64::stfd},                  //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
 	{55, &Jit64::FallBackToInterpreter}, //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 
