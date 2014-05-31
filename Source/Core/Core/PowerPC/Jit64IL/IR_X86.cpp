@@ -1118,7 +1118,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
-			RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
+			RI.Jit->SafeLoadToReg(ECX, R(ECX), 32, 0, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
 			Jit->MOVD_xmm(reg, R(ECX));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1127,30 +1127,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case LoadDouble: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
-			if (cpu_info.bSSSE3) {
-				static const u32 GC_ALIGNED16(maskSwapa64_1[4]) =
-				{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
-#if _M_X86_64
-				// TODO: Remove regEnsureInReg() and use ECX
-				X64Reg address = regEnsureInReg(RI, getOp1(I));
-				Jit->MOVQ_xmm(reg, MComplex(RBX, address, SCALE_1, 0));
-#else
-				X64Reg address = regBinLHSReg(RI, I);
-				Jit->AND(32, R(address), Imm32(Memory::MEMVIEW32_MASK));
-				Jit->MOVQ_xmm(reg, MDisp(address, (u32)Memory::base));
-#endif
-				Jit->PSHUFB(reg, M((void*)maskSwapa64_1));
-			} else {
-				const OpArg loc = regLocForInst(RI, getOp1(I));
-				Jit->MOV(32, R(ECX), loc);
-				Jit->ADD(32, R(ECX), Imm8(4));
-				RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
-				Jit->MOVD_xmm(reg, R(ECX));
-				Jit->MOV(32, R(ECX), loc);
-				RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
-				Jit->MOVD_xmm(XMM0, R(ECX));
-				Jit->PUNPCKLDQ(reg, R(XMM0));
-			}
+			const OpArg loc = regLocForInst(RI, getOp1(I));
+			Jit->MOV(32, R(ECX), loc);
+			RI.Jit->SafeLoadToReg(RCX, R(ECX), 64, 0, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			Jit->MOVQ_xmm(reg, R(RCX));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
 			break;
@@ -1196,67 +1176,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		}
 		case StoreDouble: {
 			regSpill(RI, EAX);
-			// Please fix the following code
-			// if SafeWriteRegToReg() is modified.
-			u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-			if (Core::g_CoreStartupParameter.bMMU ||
-				Core::g_CoreStartupParameter.bTLBHack) {
-				mem_mask |= Memory::ADDR_MASK_MEM1;
-			}
-#ifdef ENABLE_MEM_CHECK
-			if (Core::g_CoreStartupParameter.bEnableDebugging)
-			{
-				mem_mask |= Memory::EXRAM_MASK;
-			}
-#endif
-			Jit->TEST(32, regLocForInst(RI, getOp2(I)), Imm32(mem_mask));
-			FixupBranch safe = Jit->J_CC(CC_NZ);
-				// Fast routine
-				if (cpu_info.bSSSE3) {
-					static const u32 GC_ALIGNED16(maskSwapa64_1[4]) =
-					{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
 
-					X64Reg value = fregBinLHSRegWithMov(RI, I);
-					Jit->PSHUFB(value, M((void*)maskSwapa64_1));
-					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-#if _M_X86_64
-					Jit->MOVQ_xmm(MComplex(RBX, ECX, SCALE_1, 0), value);
-#else
-					Jit->AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-					Jit->MOVQ_xmm(MDisp(ECX, (u32)Memory::base), value);
-#endif
-				} else {
-					regSpill(RI, EAX);
-					OpArg loc = fregLocForInst(RI, getOp1(I));
-					if (!loc.IsSimpleReg() || !(RI.IInfo[I - RI.FirstI] & 4)) {
-						Jit->MOVAPD(XMM0, loc);
-						loc = R(XMM0);
-					}
-					Jit->MOVD_xmm(R(EAX), loc.GetSimpleReg());
-					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-					RI.Jit->UnsafeWriteRegToReg(EAX, ECX, 32, 4);
-
-					Jit->PSRLQ(loc.GetSimpleReg(), 32);
-					Jit->MOVD_xmm(R(EAX), loc.GetSimpleReg());
-					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-					RI.Jit->UnsafeWriteRegToReg(EAX, ECX, 32, 0);
-				}
-			FixupBranch exit = Jit->J(true);
-			Jit->SetJumpTarget(safe);
-				// Safe but slow routine
-				OpArg value = fregLocForInst(RI, getOp1(I));
-				OpArg address = regLocForInst(RI, getOp2(I));
-				Jit->MOVAPD(XMM0, value);
-				Jit->PSRLQ(XMM0, 32);
-				Jit->MOVD_xmm(R(EAX), XMM0);
-				Jit->MOV(32, R(ECX), address);
-				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
-
-				Jit->MOVAPD(XMM0, value);
-				Jit->MOVD_xmm(R(EAX), XMM0);
-				Jit->MOV(32, R(ECX), address);
-				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 4, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
-			Jit->SetJumpTarget(exit);
+			OpArg value = fregLocForInst(RI, getOp1(I));
+			OpArg address = regLocForInst(RI, getOp2(I));
+			Jit->MOVAPD(XMM0, value);
+			Jit->MOVQ_xmm(R(RAX), XMM0);
+			Jit->MOV(32, R(ECX), address);
+			RI.Jit->SafeWriteRegToReg(RAX, ECX, 64, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
 
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
