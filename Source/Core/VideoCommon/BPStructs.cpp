@@ -560,9 +560,9 @@ static void BPWritten(const BPCmd& bp)
 	case BPMEM_TEV_REGISTER_L+6: // Reg 4
 	case BPMEM_TEV_REGISTER_H+6:
 		// some games only send the _L part ( or maybe the H_, problem is same ),
-		// and BP only have one set of color components, so it is impossible to
-		// update the full color just like the old comment states, as the other two value may be the ones from the d instead of kd
-		// and vice versa. We then just assume that the game is doing it right.
+		// and BP only have one set of color components, but it is impossible to
+		// update the full color just like the previous code did, as the other two values may be for d instead of kd
+		// and vice versa ( type_ra != type_bg ). We then just assume that the game is doing it right.
 		{
 			// don't compare with changes!
 			int num = (bp.address >> 1) & 0x3;
