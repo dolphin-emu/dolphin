@@ -328,37 +328,6 @@ void SetFinish()
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 
-//This function is used in CommandProcessor when write CTRL_REGISTER and the new fifo is attached.
-void ResetSetFinish()
-{
-	//if SetFinish happened but PE_CTRL_REGISTER not, I reset the interrupt else
-	//remove event from the queue
-	if (g_bSignalFinishInterrupt)
-	{
-		UpdateFinishInterrupt(false);
-		g_bSignalFinishInterrupt = false;
-	}
-	else
-	{
-		CoreTiming::RemoveEvent(et_SetFinishOnMainThread);
-	}
-	CommandProcessor::interruptFinishWaiting = false;
-}
-
-void ResetSetToken()
-{
-	if (g_bSignalTokenInterrupt)
-	{
-		UpdateTokenInterrupt(false);
-		g_bSignalTokenInterrupt = 0;
-	}
-	else
-	{
-		CoreTiming::RemoveEvent(et_SetTokenOnMainThread);
-	}
-	CommandProcessor::interruptTokenWaiting = false;
-}
-
 UPEAlphaReadReg GetAlphaReadMode()
 {
 	return m_AlphaRead;

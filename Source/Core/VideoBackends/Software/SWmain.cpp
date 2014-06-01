@@ -362,16 +362,6 @@ bool VideoSoftware::Video_IsPossibleWaitingSetDrawDone(void)
 	return false;
 }
 
-bool VideoSoftware::Video_IsHiWatermarkActive(void)
-{
-	return false;
-}
-
-
-void VideoSoftware::Video_AbortFrame(void)
-{
-}
-
 void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
 {
 	SWCommandProcessor::RegisterMMIO(mmio, base);
