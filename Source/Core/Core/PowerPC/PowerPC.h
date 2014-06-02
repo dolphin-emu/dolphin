@@ -28,7 +28,6 @@ enum CoreMode
 // This contains the entire state of the emulated PowerPC "Gekko" CPU.
 struct GC_ALIGNED64(PowerPCState)
 {
-	u32 mojs[128];  // Try to isolate the regs from other variables in the cache.
 	u32 gpr[32];    // General purpose registers. r1 = stack pointer.
 
 	// The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
