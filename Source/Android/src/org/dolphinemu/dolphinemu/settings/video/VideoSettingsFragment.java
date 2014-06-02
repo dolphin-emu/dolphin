@@ -63,7 +63,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		//
 		// Set available post processing shaders
 		//
-		File[] shaders = new File(Environment.getExternalStorageDirectory()+ File.separator+"dolphin-emu"+ File.separator+"Shaders").listFiles();
+
 		List<CharSequence> shader_names = new ArrayList<CharSequence>();
 		List<CharSequence> shader_values = new ArrayList<CharSequence>();
 
@@ -71,16 +71,21 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		shader_names.add("Disabled");
 		shader_values.add("");
 
-		for (File file : shaders)
+		File shaders_folder = new File(Environment.getExternalStorageDirectory()+ File.separator+"dolphin-emu"+ File.separator+"Shaders");
+		if (shaders_folder.exists())
 		{
-			if (file.isFile())
+			File[] shaders = shaders_folder.listFiles();
+			for (File file : shaders)
 			{
-				String filename = file.getName();
-				if (filename.contains(".glsl"))
+				if (file.isFile())
 				{
-					// Strip the extension and put it in to the list
-					shader_names.add(filename.substring(0, filename.lastIndexOf('.')));
-					shader_values.add(filename.substring(0, filename.lastIndexOf('.')));
+					String filename = file.getName();
+					if (filename.contains(".glsl"))
+					{
+						// Strip the extension and put it in to the list
+						shader_names.add(filename.substring(0, filename.lastIndexOf('.')));
+						shader_values.add(filename.substring(0, filename.lastIndexOf('.')));
+					}
 				}
 			}
 		}
