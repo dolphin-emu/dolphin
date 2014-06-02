@@ -518,8 +518,14 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 mtxView;
 		NOTICE_LOG(VR, "hfov=%8.4f    vfov=%8.4f      znear=%8.4f or %8.4f   zfar=%8.4f or %8.4f", hfov, vfov, znear, zn2, zfar, zf2);
 		Matrix44::Set(projMtx, g_fProjectionMatrix);
+		if (g_has_vr920)
+		{
+			// 32 degrees HFOV, 4:3 aspect ratio
+			projMtx.data[0 * 4 + 0] = 1.0f/tan(32.0f/2.0f * 3.1415926535f/180.0f);
+			projMtx.data[1 * 4 + 1] = 4.0f/3.0f * projMtx.data[0 * 4 + 0];
+		} 
 #ifdef HAVE_OCULUSSDK
-		if (g_has_rift)
+		else if (g_has_rift)
 		{
 			ovrMatrix4f proj = ovrMatrix4f_Projection(g_eye_fov[0], znear, zfar, false);
 			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj.M[0][0], proj.M[0][1], proj.M[0][2], proj.M[0][3]);
