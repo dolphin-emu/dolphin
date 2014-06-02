@@ -211,10 +211,21 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
 	int d = inst.FD;
 	int b = inst.FB;
+
+	if (d == b)
+		return;
+
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d, true, true);
-	MOVSD(XMM0, fpr.R(b));
-	MOVSD(fpr.R(d), XMM0);
+
+	// We don't need to load d, but if it is loaded, we need to mark it as dirty.
+	if (fpr.IsBound(d))
+		fpr.BindToRegister(d);
+
+	// b needs to be in a register because "MOVSD reg, mem" sets the upper bits (64+) to zero and we don't want that.
+	fpr.BindToRegister(b, true, false);
+
+	MOVSD(fpr.R(d), fpr.RX(b));
+
 	fpr.UnlockAll();
 }
 
