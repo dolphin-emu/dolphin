@@ -97,7 +97,6 @@ void InterpretDisplayList(u32 address, u32 size)
 		{
 			Decode();
 		}
-		INCSTAT(stats.numDListsCalled);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap

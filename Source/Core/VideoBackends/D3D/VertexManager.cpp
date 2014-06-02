@@ -145,7 +145,7 @@ void VertexManager::Draw(UINT stride)
 	{
 		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		INCSTAT(stats.thisFrame.numDrawCalls);
 	}
 	else if (current_primitive_type == PRIMITIVE_LINES)
 	{
@@ -165,7 +165,7 @@ void VertexManager::Draw(UINT stride)
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+			INCSTAT(stats.thisFrame.numDrawCalls);
 
 			D3D::context->GSSetShader(nullptr, nullptr, 0);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
@@ -189,7 +189,7 @@ void VertexManager::Draw(UINT stride)
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+			INCSTAT(stats.thisFrame.numDrawCalls);
 
 			D3D::context->GSSetShader(nullptr, nullptr, 0);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
