@@ -123,6 +123,7 @@ void SHADER::Bind()
 {
 	if (CurrentProgram != glprogid)
 	{
+		INCSTAT(stats.thisFrame.numShaderChanges);
 		glUseProgram(glprogid);
 		CurrentProgram = glprogid;
 	}
