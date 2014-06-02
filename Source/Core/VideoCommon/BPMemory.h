@@ -11,88 +11,88 @@
 
 #pragma pack(4)
 
-#define BPMEM_GENMODE          0x00
+#define BPMEM_GENMODE           0x00
 #define BPMEM_DISPLAYCOPYFILTER 0x01 // 0x01 + 4
-#define BPMEM_IND_MTXA         0x06 // 0x06 + (3 * 3)
-#define BPMEM_IND_MTXB         0x07 // 0x07 + (3 * 3)
-#define BPMEM_IND_MTXC         0x08 // 0x08 + (3 * 3)
-#define BPMEM_IND_IMASK        0x0F
-#define BPMEM_IND_CMD          0x10 // 0x10 + 16
-#define BPMEM_SCISSORTL        0x20
-#define BPMEM_SCISSORBR        0x21
-#define BPMEM_LINEPTWIDTH      0x22
-#define BPMEM_PERF0_TRI        0x23
-#define BPMEM_PERF0_QUAD       0x24
-#define BPMEM_RAS1_SS0         0x25
-#define BPMEM_RAS1_SS1         0x26
-#define BPMEM_IREF             0x27
-#define BPMEM_TREF             0x28 // 0x28 + 8
-#define BPMEM_SU_SSIZE         0x30 // 0x30 + (2 * 8)
-#define BPMEM_SU_TSIZE         0x31 // 0x31 + (2 * 8)
-#define BPMEM_ZMODE            0x40
-#define BPMEM_BLENDMODE        0x41
-#define BPMEM_CONSTANTALPHA    0x42
-#define BPMEM_ZCOMPARE         0x43
-#define BPMEM_FIELDMASK        0x44
-#define BPMEM_SETDRAWDONE      0x45
-#define BPMEM_BUSCLOCK0        0x46
-#define BPMEM_PE_TOKEN_ID      0x47
-#define BPMEM_PE_TOKEN_INT_ID  0x48
-#define BPMEM_EFB_TL           0x49
-#define BPMEM_EFB_BR           0x4A
-#define BPMEM_EFB_ADDR         0x4B
-#define BPMEM_MIPMAP_STRIDE    0x4D
-#define BPMEM_COPYYSCALE       0x4E
-#define BPMEM_CLEAR_AR         0x4F
-#define BPMEM_CLEAR_GB         0x50
-#define BPMEM_CLEAR_Z          0x51
-#define BPMEM_TRIGGER_EFB_COPY 0x52
-#define BPMEM_COPYFILTER0      0x53
-#define BPMEM_COPYFILTER1      0x54
-#define BPMEM_CLEARBBOX1       0x55
-#define BPMEM_CLEARBBOX2       0x56
-#define BPMEM_CLEAR_PIXEL_PERF 0x57
-#define BPMEM_REVBITS          0x58
-#define BPMEM_SCISSOROFFSET    0x59
-#define BPMEM_PRELOAD_ADDR     0x60
-#define BPMEM_PRELOAD_TMEMEVEN 0x61
-#define BPMEM_PRELOAD_TMEMODD  0x62
-#define BPMEM_PRELOAD_MODE     0x63
-#define BPMEM_LOADTLUT0        0x64
-#define BPMEM_LOADTLUT1        0x65
-#define BPMEM_TEXINVALIDATE    0x66
-#define BPMEM_PERF1            0x67
-#define BPMEM_FIELDMODE        0x68
-#define BPMEM_BUSCLOCK1        0x69
-#define BPMEM_TX_SETMODE0      0x80 // 0x80 + 4
-#define BPMEM_TX_SETMODE1      0x84 // 0x84 + 4
-#define BPMEM_TX_SETIMAGE0     0x88 // 0x88 + 4
-#define BPMEM_TX_SETIMAGE1     0x8C // 0x8C + 4
-#define BPMEM_TX_SETIMAGE2     0x90 // 0x90 + 4
-#define BPMEM_TX_SETIMAGE3     0x94 // 0x94 + 4
-#define BPMEM_TX_SETTLUT       0x98 // 0x98 + 4
-#define BPMEM_TX_SETMODE0_4    0xA0 // 0xA0 + 4
-#define BPMEM_TX_SETMODE1_4    0xA4 // 0xA4 + 4
-#define BPMEM_TX_SETIMAGE0_4   0xA8 // 0xA8 + 4
-#define BPMEM_TX_SETIMAGE1_4   0xAC // 0xA4 + 4
-#define BPMEM_TX_SETIMAGE2_4   0xB0 // 0xB0 + 4
-#define BPMEM_TX_SETIMAGE3_4   0xB4 // 0xB4 + 4
-#define BPMEM_TX_SETLUT_4      0xB8 // 0xB8 + 4
-#define BPMEM_TEV_COLOR_ENV    0xC0 // 0xC0 + (2 * 16)
-#define BPMEM_TEV_ALPHA_ENV    0xC1 // 0xC1 + (2 * 16)
-#define BPMEM_TEV_REGISTER_L   0xE0 // 0xE0 + (2 * 4)
-#define BPMEM_TEV_REGISTER_H   0xE1 // 0xE1 + (2 * 4)
-#define BPMEM_FOGRANGE         0xE8 // 0xE8 + 6
-#define BPMEM_FOGPARAM0        0xEE
-#define BPMEM_FOGBMAGNITUDE    0xEF
-#define BPMEM_FOGBEXPONENT     0xF0
-#define BPMEM_FOGPARAM3        0xF1
-#define BPMEM_FOGCOLOR         0xF2
-#define BPMEM_ALPHACOMPARE     0xF3
-#define BPMEM_BIAS             0xF4
-#define BPMEM_ZTEX2            0xF5
-#define BPMEM_TEV_KSEL         0xF6 // 0xF6 + 8
-#define BPMEM_BP_MASK          0xFE
+#define BPMEM_IND_MTXA          0x06 // 0x06 + (3 * 3)
+#define BPMEM_IND_MTXB          0x07 // 0x07 + (3 * 3)
+#define BPMEM_IND_MTXC          0x08 // 0x08 + (3 * 3)
+#define BPMEM_IND_IMASK         0x0F
+#define BPMEM_IND_CMD           0x10 // 0x10 + 16
+#define BPMEM_SCISSORTL         0x20
+#define BPMEM_SCISSORBR         0x21
+#define BPMEM_LINEPTWIDTH       0x22
+#define BPMEM_PERF0_TRI         0x23
+#define BPMEM_PERF0_QUAD        0x24
+#define BPMEM_RAS1_SS0          0x25
+#define BPMEM_RAS1_SS1          0x26
+#define BPMEM_IREF              0x27
+#define BPMEM_TREF              0x28 // 0x28 + 8
+#define BPMEM_SU_SSIZE          0x30 // 0x30 + (2 * 8)
+#define BPMEM_SU_TSIZE          0x31 // 0x31 + (2 * 8)
+#define BPMEM_ZMODE             0x40
+#define BPMEM_BLENDMODE         0x41
+#define BPMEM_CONSTANTALPHA     0x42
+#define BPMEM_ZCOMPARE          0x43
+#define BPMEM_FIELDMASK         0x44
+#define BPMEM_SETDRAWDONE       0x45
+#define BPMEM_BUSCLOCK0         0x46
+#define BPMEM_PE_TOKEN_ID       0x47
+#define BPMEM_PE_TOKEN_INT_ID   0x48
+#define BPMEM_EFB_TL            0x49
+#define BPMEM_EFB_BR            0x4A
+#define BPMEM_EFB_ADDR          0x4B
+#define BPMEM_MIPMAP_STRIDE     0x4D
+#define BPMEM_COPYYSCALE        0x4E
+#define BPMEM_CLEAR_AR          0x4F
+#define BPMEM_CLEAR_GB          0x50
+#define BPMEM_CLEAR_Z           0x51
+#define BPMEM_TRIGGER_EFB_COPY  0x52
+#define BPMEM_COPYFILTER0       0x53
+#define BPMEM_COPYFILTER1       0x54
+#define BPMEM_CLEARBBOX1        0x55
+#define BPMEM_CLEARBBOX2        0x56
+#define BPMEM_CLEAR_PIXEL_PERF  0x57
+#define BPMEM_REVBITS           0x58
+#define BPMEM_SCISSOROFFSET     0x59
+#define BPMEM_PRELOAD_ADDR      0x60
+#define BPMEM_PRELOAD_TMEMEVEN  0x61
+#define BPMEM_PRELOAD_TMEMODD   0x62
+#define BPMEM_PRELOAD_MODE      0x63
+#define BPMEM_LOADTLUT0         0x64
+#define BPMEM_LOADTLUT1         0x65
+#define BPMEM_TEXINVALIDATE     0x66
+#define BPMEM_PERF1             0x67
+#define BPMEM_FIELDMODE         0x68
+#define BPMEM_BUSCLOCK1         0x69
+#define BPMEM_TX_SETMODE0       0x80 // 0x80 + 4
+#define BPMEM_TX_SETMODE1       0x84 // 0x84 + 4
+#define BPMEM_TX_SETIMAGE0      0x88 // 0x88 + 4
+#define BPMEM_TX_SETIMAGE1      0x8C // 0x8C + 4
+#define BPMEM_TX_SETIMAGE2      0x90 // 0x90 + 4
+#define BPMEM_TX_SETIMAGE3      0x94 // 0x94 + 4
+#define BPMEM_TX_SETTLUT        0x98 // 0x98 + 4
+#define BPMEM_TX_SETMODE0_4     0xA0 // 0xA0 + 4
+#define BPMEM_TX_SETMODE1_4     0xA4 // 0xA4 + 4
+#define BPMEM_TX_SETIMAGE0_4    0xA8 // 0xA8 + 4
+#define BPMEM_TX_SETIMAGE1_4    0xAC // 0xA4 + 4
+#define BPMEM_TX_SETIMAGE2_4    0xB0 // 0xB0 + 4
+#define BPMEM_TX_SETIMAGE3_4    0xB4 // 0xB4 + 4
+#define BPMEM_TX_SETTLUT_4      0xB8 // 0xB8 + 4
+#define BPMEM_TEV_COLOR_ENV     0xC0 // 0xC0 + (2 * 16)
+#define BPMEM_TEV_ALPHA_ENV     0xC1 // 0xC1 + (2 * 16)
+#define BPMEM_TEV_REGISTER_L    0xE0 // 0xE0 + (2 * 4)
+#define BPMEM_TEV_REGISTER_H    0xE1 // 0xE1 + (2 * 4)
+#define BPMEM_FOGRANGE          0xE8 // 0xE8 + 6
+#define BPMEM_FOGPARAM0         0xEE
+#define BPMEM_FOGBMAGNITUDE     0xEF
+#define BPMEM_FOGBEXPONENT      0xF0
+#define BPMEM_FOGPARAM3         0xF1
+#define BPMEM_FOGCOLOR          0xF2
+#define BPMEM_ALPHACOMPARE      0xF3
+#define BPMEM_BIAS              0xF4
+#define BPMEM_ZTEX2             0xF5
+#define BPMEM_TEV_KSEL          0xF6 // 0xF6 + 8
+#define BPMEM_BP_MASK           0xFE
 
 
 // Tev/combiner things

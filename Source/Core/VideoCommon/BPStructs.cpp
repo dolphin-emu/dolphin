@@ -545,7 +545,7 @@ static void BPWritten(const BPCmd& bp)
 	// BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
 	// -------------------------------
 	case BPMEM_TX_SETTLUT:
-	case BPMEM_TX_SETLUT_4:
+	case BPMEM_TX_SETTLUT_4:
 		return;
 
 	// ---------------------------------------------------
@@ -1112,10 +1112,10 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 	case BPMEM_TX_SETTLUT+1:
 	case BPMEM_TX_SETTLUT+2:
 	case BPMEM_TX_SETTLUT+3:
-	case BPMEM_TX_SETLUT_4: // 0xB8
-	case BPMEM_TX_SETLUT_4+1:
-	case BPMEM_TX_SETLUT_4+2:
-	case BPMEM_TX_SETLUT_4+3:
+	case BPMEM_TX_SETTLUT_4: // 0xB8
+	case BPMEM_TX_SETTLUT_4+1:
+	case BPMEM_TX_SETTLUT_4+2:
+	case BPMEM_TX_SETTLUT_4+3:
 		SetRegName(BPMEM_TX_SETTLUT);
 		// TODO: Description
 		break;
