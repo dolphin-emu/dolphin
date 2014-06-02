@@ -8,13 +8,6 @@
 
 using namespace Gen;
 
-enum GrabMode
-{
-	M_READ = 1,
-	M_WRITE = 2,
-	M_READWRITE = 3,
-};
-
 struct PPCCachedReg
 {
 	OpArg location;
@@ -41,16 +34,11 @@ class RegCache
 {
 private:
 	bool locks[32];
-	bool saved_locks[32];
-	bool saved_xlocks[NUMXREGS];
 
 protected:
 	bool xlocks[NUMXREGS];
 	PPCCachedReg regs[32];
 	X64CachedReg xregs[NUMXREGS];
-
-	PPCCachedReg saved_regs[32];
-	X64CachedReg saved_xregs[NUMXREGS];
 
 	virtual const int *GetAllocationOrder(int &count) = 0;
 
@@ -113,9 +101,6 @@ public:
 
 
 	X64Reg GetFreeXReg();
-
-	void SaveState();
-	void LoadState();
 };
 
 class GPRRegCache : public RegCache

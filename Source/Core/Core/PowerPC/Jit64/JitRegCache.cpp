@@ -13,12 +13,8 @@ RegCache::RegCache() : emit(nullptr)
 {
 	memset(locks, 0, sizeof(locks));
 	memset(xlocks, 0, sizeof(xlocks));
-	memset(saved_locks, 0, sizeof(saved_locks));
-	memset(saved_xlocks, 0, sizeof(saved_xlocks));
 	memset(regs, 0, sizeof(regs));
 	memset(xregs, 0, sizeof(xregs));
-	memset(saved_regs, 0, sizeof(saved_regs));
-	memset(saved_xregs, 0, sizeof(saved_xregs));
 }
 
 void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
@@ -115,22 +111,6 @@ X64Reg RegCache::GetFreeXReg()
 	//Still no dice? Die!
 	_assert_msg_(DYNA_REC, 0, "Regcache ran out of regs");
 	return (X64Reg) -1;
-}
-
-void RegCache::SaveState()
-{
-	memcpy(saved_locks, locks, sizeof(locks));
-	memcpy(saved_xlocks, xlocks, sizeof(xlocks));
-	memcpy(saved_regs, regs, sizeof(regs));
-	memcpy(saved_xregs, xregs, sizeof(xregs));
-}
-
-void RegCache::LoadState()
-{
-	memcpy(xlocks, saved_xlocks, sizeof(xlocks));
-	memcpy(locks, saved_locks, sizeof(locks));
-	memcpy(regs, saved_regs, sizeof(regs));
-	memcpy(xregs, saved_xregs, sizeof(xregs));
 }
 
 void RegCache::FlushR(X64Reg reg)
