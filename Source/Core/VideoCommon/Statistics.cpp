@@ -27,27 +27,28 @@ void Statistics::SwapDL()
 std::string Statistics::ToString()
 {
 	std::string str;
-	str += StringFromFormat("Textures created: %i\n",stats.numTexturesCreated);
+	str += StringFromFormat("Textures created: %i\n", stats.numTexturesCreated);
 	str += StringFromFormat("Textures alive: %i\n", stats.numTexturesAlive);
 	str += StringFromFormat("pshaders created: %i\n", stats.numPixelShadersCreated);
-	str += StringFromFormat("pshaders alive: %i\n",stats.numPixelShadersAlive);
-	str += StringFromFormat("vshaders created: %i\n",stats.numVertexShadersCreated);
-	str += StringFromFormat("vshaders alive: %i\n",stats.numVertexShadersAlive);
-	str += StringFromFormat("dlists called: %i\n",stats.thisFrame.numDListsCalled);
-	str += StringFromFormat("Primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
-	str += StringFromFormat("Draw calls:       %i\n",stats.thisFrame.numDrawCalls);
-	str += StringFromFormat("Primitives: %i\n",stats.thisFrame.numPrims);
-	str += StringFromFormat("Primitives (DL): %i\n",stats.thisFrame.numDLPrims);
-	str += StringFromFormat("XF loads: %i\n",stats.thisFrame.numXFLoads);
-	str += StringFromFormat("XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
-	str += StringFromFormat("CP loads: %i\n",stats.thisFrame.numCPLoads);
-	str += StringFromFormat("CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
-	str += StringFromFormat("BP loads: %i\n",stats.thisFrame.numBPLoads);
-	str += StringFromFormat("BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
-	str += StringFromFormat("Vertex streamed: %i kB\n",stats.thisFrame.bytesVertexStreamed/1024);
-	str += StringFromFormat("Index streamed: %i kB\n",stats.thisFrame.bytesIndexStreamed/1024);
-	str += StringFromFormat("Uniform streamed: %i kB\n",stats.thisFrame.bytesUniformStreamed/1024);
-	str += StringFromFormat("Vertex Loaders: %i\n",stats.numVertexLoaders);
+	str += StringFromFormat("pshaders alive: %i\n", stats.numPixelShadersAlive);
+	str += StringFromFormat("vshaders created: %i\n", stats.numVertexShadersCreated);
+	str += StringFromFormat("vshaders alive: %i\n", stats.numVertexShadersAlive);
+	str += StringFromFormat("shaders changes: %i\n", stats.thisFrame.numShaderChanges);
+	str += StringFromFormat("dlists called: %i\n", stats.thisFrame.numDListsCalled);
+	str += StringFromFormat("Primitive joins: %i\n", stats.thisFrame.numPrimitiveJoins);
+	str += StringFromFormat("Draw calls: %i\n", stats.thisFrame.numDrawCalls);
+	str += StringFromFormat("Primitives: %i\n", stats.thisFrame.numPrims);
+	str += StringFromFormat("Primitives (DL): %i\n", stats.thisFrame.numDLPrims);
+	str += StringFromFormat("XF loads: %i\n", stats.thisFrame.numXFLoads);
+	str += StringFromFormat("XF loads (DL): %i\n", stats.thisFrame.numXFLoadsInDL);
+	str += StringFromFormat("CP loads: %i\n", stats.thisFrame.numCPLoads);
+	str += StringFromFormat("CP loads (DL): %i\n", stats.thisFrame.numCPLoadsInDL);
+	str += StringFromFormat("BP loads: %i\n", stats.thisFrame.numBPLoads);
+	str += StringFromFormat("BP loads (DL): %i\n", stats.thisFrame.numBPLoadsInDL);
+	str += StringFromFormat("Vertex streamed: %i kB\n", stats.thisFrame.bytesVertexStreamed/1024);
+	str += StringFromFormat("Index streamed: %i kB\n", stats.thisFrame.bytesIndexStreamed/1024);
+	str += StringFromFormat("Uniform streamed: %i kB\n", stats.thisFrame.bytesUniformStreamed/1024);
+	str += StringFromFormat("Vertex Loaders: %i\n", stats.numVertexLoaders);
 
 	std::string vertex_list;
 	VertexLoaderManager::AppendListToString(&vertex_list);
