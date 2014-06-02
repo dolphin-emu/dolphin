@@ -31,16 +31,11 @@ std::string Statistics::ToString()
 	str += StringFromFormat("Textures alive: %i\n", stats.numTexturesAlive);
 	str += StringFromFormat("pshaders created: %i\n", stats.numPixelShadersCreated);
 	str += StringFromFormat("pshaders alive: %i\n",stats.numPixelShadersAlive);
-	str += StringFromFormat("pshaders (unique, delete cache first): %i\n",stats.numUniquePixelShaders);
 	str += StringFromFormat("vshaders created: %i\n",stats.numVertexShadersCreated);
 	str += StringFromFormat("vshaders alive: %i\n",stats.numVertexShadersAlive);
-	str += StringFromFormat("dlists called:    %i\n",stats.numDListsCalled);
-	str += StringFromFormat("dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
-	str += StringFromFormat("dlists alive:     %i\n",stats.numDListsAlive);
+	str += StringFromFormat("dlists called: %i\n",stats.thisFrame.numDListsCalled);
 	str += StringFromFormat("Primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
 	str += StringFromFormat("Draw calls:       %i\n",stats.thisFrame.numDrawCalls);
-	str += StringFromFormat("Indexed draw calls: %i\n",stats.thisFrame.numIndexedDrawCalls);
-	str += StringFromFormat("Buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
 	str += StringFromFormat("Primitives: %i\n",stats.thisFrame.numPrims);
 	str += StringFromFormat("Primitives (DL): %i\n",stats.thisFrame.numDLPrims);
 	str += StringFromFormat("XF loads: %i\n",stats.thisFrame.numXFLoads);
