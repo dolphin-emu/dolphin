@@ -104,17 +104,14 @@ void Jit64::bcx(UGeckoInstruction inst)
 
 	// USES_CR
 
-	gpr.Flush();
-	fpr.Flush();
-
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
 		SUB(32, M(&CTR), Imm8(1));
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
-			pCTRDontBranch = J_CC(CC_NZ);
+			pCTRDontBranch = J_CC(CC_NZ, true);
 		else
-			pCTRDontBranch = J_CC(CC_Z);
+			pCTRDontBranch = J_CC(CC_Z, true);
 	}
 
 	FixupBranch pConditionDontBranch;
@@ -122,9 +119,9 @@ void Jit64::bcx(UGeckoInstruction inst)
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
 		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
-			pConditionDontBranch = J_CC(CC_Z);
+			pConditionDontBranch = J_CC(CC_Z, true);
 		else
-			pConditionDontBranch = J_CC(CC_NZ);
+			pConditionDontBranch = J_CC(CC_NZ, true);
 	}
 
 	if (inst.LK)
@@ -135,6 +132,9 @@ void Jit64::bcx(UGeckoInstruction inst)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
+
+	gpr.Flush(false);
+	fpr.Flush(false);
 	WriteExit(destination);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -143,7 +143,11 @@ void Jit64::bcx(UGeckoInstruction inst)
 		SetJumpTarget( pCTRDontBranch );
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush();
+		fpr.Flush();
 		WriteExit(js.compilerPC + 4);
+	}
 }
 
 void Jit64::bcctrx(UGeckoInstruction inst)
