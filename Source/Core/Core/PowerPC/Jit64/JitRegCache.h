@@ -12,6 +12,7 @@ struct PPCCachedReg
 {
 	OpArg location;
 	bool away;  // value not in source register
+	bool locked;
 };
 
 struct X64CachedReg
@@ -19,6 +20,7 @@ struct X64CachedReg
 	int ppcReg;
 	bool dirty;
 	bool free;
+	bool locked;
 };
 
 typedef int XReg;
@@ -32,11 +34,7 @@ typedef int PReg;
 
 class RegCache
 {
-private:
-	bool locks[32];
-
 protected:
-	bool xlocks[NUMXREGS];
 	PPCCachedReg regs[32];
 	X64CachedReg xregs[NUMXREGS];
 
@@ -91,7 +89,7 @@ public:
 
 	bool IsFreeX(int xreg) const
 	{
-		return xregs[xreg].free && !xlocks[xreg];
+		return xregs[xreg].free && !xregs[xreg].locked;
 	}
 
 	bool IsBound(int preg) const

@@ -11,8 +11,6 @@ using namespace PowerPC;
 
 RegCache::RegCache() : emit(nullptr)
 {
-	memset(locks, 0, sizeof(locks));
-	memset(xlocks, 0, sizeof(xlocks));
 	memset(regs, 0, sizeof(regs));
 	memset(xregs, 0, sizeof(xregs));
 }
@@ -23,7 +21,7 @@ void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 	{
 		xregs[i].free = true;
 		xregs[i].dirty = false;
-		xlocks[i] = false;
+		xregs[i].locked = false;
 	}
 	for (int i = 0; i < 32; i++)
 	{
@@ -51,34 +49,34 @@ void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 // these are powerpc reg indices
 void RegCache::Lock(int p1, int p2, int p3, int p4)
 {
-	locks[p1] = true;
-	if (p2 != 0xFF) locks[p2] = true;
-	if (p3 != 0xFF) locks[p3] = true;
-	if (p4 != 0xFF) locks[p4] = true;
+	regs[p1].locked = true;
+	if (p2 != 0xFF) regs[p2].locked = true;
+	if (p3 != 0xFF) regs[p3].locked = true;
+	if (p4 != 0xFF) regs[p4].locked = true;
 }
 
 // these are x64 reg indices
 void RegCache::LockX(int x1, int x2, int x3, int x4)
 {
-	if (xlocks[x1]) {
+	if (xregs[x1].locked) {
 		PanicAlert("RegCache: x %i already locked!", x1);
 	}
-	xlocks[x1] = true;
-	if (x2 != 0xFF) xlocks[x2] = true;
-	if (x3 != 0xFF) xlocks[x3] = true;
-	if (x4 != 0xFF) xlocks[x4] = true;
+	xregs[x1].locked = true;
+	if (x2 != 0xFF) xregs[x2].locked = true;
+	if (x3 != 0xFF) xregs[x3].locked = true;
+	if (x4 != 0xFF) xregs[x4].locked = true;
 }
 
 void RegCache::UnlockAll()
 {
-	for (auto& lock : locks)
-		lock = false;
+	for (auto& reg : regs)
+		reg.locked = false;
 }
 
 void RegCache::UnlockAllX()
 {
-	for (auto& xlock : xlocks)
-		xlock = false;
+	for (auto& xreg : xregs)
+		xreg.locked = false;
 }
 
 X64Reg RegCache::GetFreeXReg()
@@ -88,7 +86,7 @@ X64Reg RegCache::GetFreeXReg()
 	for (int i = 0; i < aCount; i++)
 	{
 		X64Reg xr = (X64Reg)aOrder[i];
-		if (!xlocks[xr] && xregs[xr].free)
+		if (!xregs[xr].locked && xregs[xr].free)
 		{
 			return (X64Reg)xr;
 		}
@@ -99,10 +97,10 @@ X64Reg RegCache::GetFreeXReg()
 	for (int i = 0; i < aCount; i++)
 	{
 		X64Reg xr = (X64Reg)aOrder[i];
-		if (xlocks[xr])
+		if (xregs[xr].locked)
 			continue;
 		int preg = xregs[xr].ppcReg;
-		if (!locks[preg])
+		if (!regs[preg].locked)
 		{
 			StoreFromRegister(preg);
 			return xr;
@@ -132,7 +130,7 @@ int RegCache::SanityCheck() const
 			if (regs[i].location.IsSimpleReg())
 			{
 				Gen::X64Reg simple = regs[i].location.GetSimpleReg();
-				if (xlocks[simple])
+				if (xregs[simple].locked)
 					return 1;
 				if (xregs[simple].ppcReg != i)
 					return 2;
@@ -238,7 +236,7 @@ void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 	{
 		X64Reg xr = GetFreeXReg();
 		if (xregs[xr].dirty) PanicAlert("Xreg already dirty");
-		if (xlocks[xr]) PanicAlert("GetFreeXReg returned locked register");
+		if (xregs[xr].locked) PanicAlert("GetFreeXReg returned locked register");
 		xregs[xr].free = false;
 		xregs[xr].ppcReg = i;
 		xregs[xr].dirty = makeDirty || regs[i].location.IsImm();
@@ -262,7 +260,7 @@ void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 		xregs[RX(i)].dirty |= makeDirty;
 	}
 
-	if (xlocks[RX(i)])
+	if (xregs[RX(i)].locked)
 	{
 		PanicAlert("Seriously WTF, this reg should have been flushed");
 	}
@@ -346,13 +344,13 @@ void RegCache::Flush()
 {
 	for (int i = 0; i < NUMXREGS; i++)
 	{
-		if (xlocks[i])
+		if (xregs[i].locked)
 			PanicAlert("Someone forgot to unlock X64 reg %i.", i);
 	}
 
 	for (int i = 0; i < 32; i++)
 	{
-		if (locks[i])
+		if (regs[i].locked)
 		{
 			PanicAlert("Someone forgot to unlock PPC reg %i (X64 reg %i).", i, RX(i));
 		}
