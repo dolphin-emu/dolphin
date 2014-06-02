@@ -1513,30 +1513,8 @@ void XEmitter::PSRAD(X64Reg reg, int shift) {
 	Write8(shift);
 }
 
-void XEmitter::PSHUFB(X64Reg dest, OpArg arg) {
-	if (!cpu_info.bSSSE3) {
-		PanicAlert("Trying to use PSHUFB on a system that doesn't support it. Bad programmer.");
-	}
-	Write8(0x66);
-	arg.operandReg = dest;
-	arg.WriteRex(this, 0, 0);
-	Write8(0x0f);
-	Write8(0x38);
-	Write8(0x00);
-	arg.WriteRest(this);
-}
-
-void XEmitter::PTEST(X64Reg dest, OpArg arg) {
-	if (!cpu_info.bSSE4_1) {
-		PanicAlert("Trying to use PTEST on a system that doesn't support it. Nobody hears your screams.");
-	}
-	Write8(0x66);
-	Write8(0x0f);
-	Write8(0x38);
-	Write8(0x17);
-	arg.operandReg = dest;
-	arg.WriteRest(this);
-}
+void XEmitter::PSHUFB(X64Reg dest, OpArg arg)   {WriteSSEOp(64, 0x3800, true, dest, arg);}
+void XEmitter::PTEST(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0x3817, true, dest, arg);}
 
 void XEmitter::PAND(X64Reg dest, OpArg arg)     {WriteSSEOp(64, 0xDB, true, dest, arg);}
 void XEmitter::PANDN(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xDF, true, dest, arg);}
