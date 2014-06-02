@@ -252,7 +252,9 @@ private:
 	void WriteShift(int bits, OpArg dest, OpArg &shift, int ext);
 	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
 	void WriteMXCSR(OpArg arg, int ext);
-	void WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	// The 0x0F opcode byte is implied, everything else needs to be
+	// included in sseOp in big-endian byte order (for easy reading).
+	void WriteSSEOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0, int destBits = 0);
 	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteFloatLoadStore(int bits, FloatOp op, OpArg arg);

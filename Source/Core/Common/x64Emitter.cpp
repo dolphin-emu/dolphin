@@ -1238,16 +1238,23 @@ void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a)
 }
 
 
-void XEmitter::WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes)
+void XEmitter::WriteSSEOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes, int destBits)
 {
 	if (size == 64 && packed)
 		Write8(0x66); //this time, override goes upwards
 	if (!packed)
 		Write8(size == 64 ? 0xF2 : 0xF3);
 	arg.operandReg = regOp;
-	arg.WriteRex(this, 0, 0);
+	arg.WriteRex(this, destBits, 0);
+	// All SSE opcodes begin with 0x0F so it's implied here.
 	Write8(0x0F);
-	Write8(sseOp);
+	if (sseOp > 0xFF)
+	{
+		// Currently, only 0x38 and 0x3A are used as secondary escape byte.
+		_assert_msg_(DYNA_REC, ((sseOp >> 8) & 0xFD) == 0x38, "Invalid SSE opcode: 0F%04x", sseOp);
+		Write8((sseOp >> 8) & 0xFF);
+	}
+	Write8(sseOp & 0xFF);
 	arg.WriteRest(this, extrabytes);
 }
 
