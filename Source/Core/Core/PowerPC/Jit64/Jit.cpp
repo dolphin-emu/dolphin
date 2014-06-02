@@ -468,8 +468,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	// Start up the register allocators
 	// They use the information in gpa/fpa to preload commonly used registers.
-	gpr.Start(js.gpa);
-	fpr.Start(js.fpa);
+	gpr.Start();
+	fpr.Start();
 
 	js.downcountAmount = 0;
 	if (!Core::g_CoreStartupParameter.bEnableDebugging)

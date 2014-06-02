@@ -48,7 +48,7 @@ public:
 	RegCache();
 
 	virtual ~RegCache() {}
-	virtual void Start(PPCAnalyst::BlockRegStats &stats) = 0;
+	void Start();
 
 	void DiscardRegContentsIfCached(int preg);
 	void SetEmitter(XEmitter *emitter) {emit = emitter;}
@@ -106,7 +106,6 @@ public:
 class GPRRegCache : public RegCache
 {
 public:
-	void Start(PPCAnalyst::BlockRegStats &stats) override;
 	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) override;
 	void StoreFromRegister(int preg) override;
 	OpArg GetDefaultLocation(int reg) const override;
@@ -118,7 +117,6 @@ public:
 class FPURegCache : public RegCache
 {
 public:
-	void Start(PPCAnalyst::BlockRegStats &stats) override;
 	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) override;
 	void StoreFromRegister(int preg) override;
 	const int *GetAllocationOrder(int &count) override;

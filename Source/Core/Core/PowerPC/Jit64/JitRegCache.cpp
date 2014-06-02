@@ -13,7 +13,7 @@ RegCache::RegCache() : emit(nullptr)
 {
 }
 
-void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
+void RegCache::Start()
 {
 	for (auto& xreg : xregs)
 	{
@@ -161,16 +161,6 @@ void GPRRegCache::SetImmediate32(int preg, u32 immValue)
 	DiscardRegContentsIfCached(preg);
 	regs[preg].away = true;
 	regs[preg].location = Imm32(immValue);
-}
-
-void GPRRegCache::Start(PPCAnalyst::BlockRegStats &stats)
-{
-	RegCache::Start(stats);
-}
-
-void FPURegCache::Start(PPCAnalyst::BlockRegStats &stats)
-{
-	RegCache::Start(stats);
 }
 
 const int *GPRRegCache::GetAllocationOrder(int &count)
