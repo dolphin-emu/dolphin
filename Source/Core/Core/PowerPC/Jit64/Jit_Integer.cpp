@@ -386,8 +386,8 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		{
 			js.downcountAmount++;
 
-			gpr.Flush(FLUSH_ALL);
-			fpr.Flush(FLUSH_ALL);
+			gpr.Flush();
+			fpr.Flush();
 
 			int test_bit = 8 >> (js.next_inst.BI & 3);
 			u8 conditionResult = (js.next_inst.BO & BO_BRANCH_IF_TRUE) ? test_bit : 0;
@@ -485,8 +485,8 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			// if (rand() & 1)
 			//     std::swap(destination1, destination2), condition = !condition;
 
-			gpr.Flush(FLUSH_ALL);
-			fpr.Flush(FLUSH_ALL);
+			gpr.Flush();
+			fpr.Flush();
 			FixupBranch pLesser  = J_CC(less_than);
 			FixupBranch pGreater = J_CC(greater_than);
 			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2));  //  == 0
@@ -2182,8 +2182,8 @@ void Jit64::twx(UGeckoInstruction inst)
 
 	s32 a = inst.RA;
 
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 
 	if (inst.OPCD == 3) // twi
 		CMP(32, gpr.R(a), gpr.R(inst.RB));

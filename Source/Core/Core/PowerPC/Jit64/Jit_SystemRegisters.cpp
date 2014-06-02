@@ -102,8 +102,8 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	}
 	MOV(32, M(&MSR), gpr.R(inst.RS));
 	gpr.UnlockAll();
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 
 	// If some exceptions are pending and EE are now enabled, force checking
 	// external exceptions when going out of mtmsr in order to execute delayed

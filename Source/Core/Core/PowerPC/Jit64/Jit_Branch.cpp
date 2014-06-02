@@ -26,8 +26,8 @@ void Jit64::sc(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff)
 
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
 	LOCK();
 	OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_SYSCALL));
@@ -39,8 +39,8 @@ void Jit64::rfi(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff)
 
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 	// See Interpreter rfi for details
 	const u32 mask = 0x87C0FFFF;
 	const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
@@ -71,8 +71,8 @@ void Jit64::bx(UGeckoInstruction inst)
 		return;
 	}
 
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 
 	u32 destination;
 	if (inst.AA)
@@ -104,8 +104,8 @@ void Jit64::bcx(UGeckoInstruction inst)
 
 	// USES_CR
 
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
@@ -151,8 +151,8 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff)
 
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 
 	// bcctrx doesn't decrement and/or test CTR
 	_dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
@@ -202,8 +202,8 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff)
 
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR

@@ -362,7 +362,7 @@ void FPURegCache::StoreFromRegister(int i)
 	}
 }
 
-void RegCache::Flush(FlushMode mode)
+void RegCache::Flush()
 {
 	for (int i = 0; i < NUMXREGS; i++)
 	{

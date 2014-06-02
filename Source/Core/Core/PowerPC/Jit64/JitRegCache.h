@@ -7,10 +7,6 @@
 #include "Common/x64Emitter.h"
 
 using namespace Gen;
-enum FlushMode
-{
-	FLUSH_ALL
-};
 
 enum GrabMode
 {
@@ -79,8 +75,8 @@ public:
 		FlushR(reg1); FlushR(reg2);
 		LockX(reg1); LockX(reg2);
 	}
-	virtual void Flush(FlushMode mode);
-	virtual void Flush(PPCAnalyst::CodeOp *op) {Flush(FLUSH_ALL);}
+	virtual void Flush();
+	virtual void Flush(PPCAnalyst::CodeOp *op) {Flush();}
 	int SanityCheck() const;
 	void KillImmediate(int preg, bool doLoad, bool makeDirty);
 

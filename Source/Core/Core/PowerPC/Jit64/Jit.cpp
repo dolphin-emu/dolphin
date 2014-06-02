@@ -207,8 +207,8 @@ void Jit64::Shutdown()
 // This is only called by FallBackToInterpreter() in this file. It will execute an instruction with the interpreter functions.
 void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 {
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 	if (js.isLastInstruction)
 	{
 		MOV(32, M(&PC), Imm32(js.compilerPC));
@@ -230,8 +230,8 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
 
 void Jit64::HLEFunction(UGeckoInstruction _inst)
 {
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
 }
 
@@ -543,8 +543,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
 			{
-				gpr.Flush(FLUSH_ALL);
-				fpr.Flush(FLUSH_ALL);
+				gpr.Flush();
+				fpr.Flush();
 
 				//This instruction uses FPU - needs to add FP exception bailout
 				TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
@@ -564,8 +564,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			// Add an external exception check if the instruction writes to the FIFO.
 			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
 			{
-				gpr.Flush(FLUSH_ALL);
-				fpr.Flush(FLUSH_ALL);
+				gpr.Flush();
+				fpr.Flush();
 
 				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
 				FixupBranch clearInt = J_CC(CC_NZ, true);
@@ -587,8 +587,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
 			{
-				gpr.Flush(FLUSH_ALL);
-				fpr.Flush(FLUSH_ALL);
+				gpr.Flush();
+				fpr.Flush();
 
 				MOV(32, M(&PC), Imm32(ops[i].address));
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
@@ -604,8 +604,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
 				// In case we are about to jump to the dispatcher, flush regs
-				gpr.Flush(FLUSH_ALL);
-				fpr.Flush(FLUSH_ALL);
+				gpr.Flush();
+				fpr.Flush();
 
 				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
 				FixupBranch noMemException = J_CC(CC_Z, true);
@@ -672,8 +672,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (code_block.m_broken)
 	{
-		gpr.Flush(FLUSH_ALL);
-		fpr.Flush(FLUSH_ALL);
+		gpr.Flush();
+		fpr.Flush();
 		WriteExit(nextPC);
 	}
 
