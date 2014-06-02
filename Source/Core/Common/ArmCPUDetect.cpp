@@ -11,7 +11,7 @@
 #if !defined(BLACKBERRY) && !defined(IOS) && !defined(__SYMBIAN32__)
 const char procfile[] = "/proc/cpuinfo";
 
-char *GetCPUString()
+std::string GetCPUString()
 {
 	const char marker[] = "Hardware\t: ";
 	char *cpu_string = nullptr;
@@ -31,8 +31,10 @@ char *GetCPUString()
 		cpu_string = strndup(cpu_string, strlen(cpu_string) - 1); // Strip the newline
 		break;
 	}
-
-	return cpu_string;
+	if (cpu_string)
+		return std::string(cpu_string);
+	else
+		return "";
 }
 
 unsigned char GetCPUImplementer()
@@ -54,10 +56,9 @@ unsigned char GetCPUImplementer()
 		implementer_string = buf + sizeof(marker) - 1;
 		implementer_string = strndup(implementer_string, strlen(implementer_string) - 1); // Strip the newline
 		sscanf(implementer_string, "0x%02hhx", &implementer);
+		free(implementer_string);
 		break;
 	}
-
-	free(implementer_string);
 
 	return implementer;
 }
@@ -81,10 +82,9 @@ unsigned short GetCPUPart()
 		part_string = buf + sizeof(marker) - 1;
 		part_string = strndup(part_string, strlen(part_string) - 1); // Strip the newline
 		sscanf(part_string, "0x%03hx", &part);
+		free(part_string);
 		break;
 	}
-
-	free(part_string);
 
 	return part;
 }
@@ -156,9 +156,15 @@ void CPUInfo::Detect()
 	// Set some defaults here
 	// When ARMv8 cpus come out, these need to be updated.
 	HTT = false;
+#ifdef _M_ARM_64
+	OS64bit = true;
+	CPU64bit = true;
+	Mode64bit = true;
+#else
 	OS64bit = false;
 	CPU64bit = false;
 	Mode64bit = false;
+#endif
 	vendor = VENDOR_ARM;
 
 	// Get the information about the CPU
@@ -209,7 +215,7 @@ void CPUInfo::Detect()
 	bFP = false;
 	bASIMD = false;
 #else
-	strncpy(cpu_string, GetCPUString(), sizeof(cpu_string));
+	strncpy(cpu_string, GetCPUString().c_str(), sizeof(cpu_string));
 	bSwp = CheckCPUFeature("swp");
 	bHalf = CheckCPUFeature("half");
 	bThumb = CheckCPUFeature("thumb");
@@ -264,6 +270,7 @@ std::string CPUInfo::Summarize()
 	if (bVFPv4) sum += ", VFPv4";
 	if (bIDIVa) sum += ", IDIVa";
 	if (bIDIVt) sum += ", IDIVt";
+	if (CPU64bit) sum += ", 64-bit";
 
 	return sum;
 }
