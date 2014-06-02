@@ -70,9 +70,10 @@ public:
 
 	//TODO - instead of doload, use "read", "write"
 	//read only will not set dirty flag
-	virtual void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) = 0;
+	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true);
 	void StoreFromRegister(int preg);
 	virtual void StoreRegister(int preg, OpArg newLoc) = 0;
+	virtual void LoadRegister(int preg, X64Reg newLoc) = 0;
 
 	const OpArg &R(int preg) const {return regs[preg].location;}
 	X64Reg RX(int preg) const
@@ -107,8 +108,8 @@ public:
 class GPRRegCache : public RegCache
 {
 public:
-	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) override;
 	void StoreRegister(int preg, OpArg newLoc) override;
+	void LoadRegister(int preg, X64Reg newLoc) override;
 	OpArg GetDefaultLocation(int reg) const override;
 	const int *GetAllocationOrder(int &count) override;
 	void SetImmediate32(int preg, u32 immValue);
@@ -118,8 +119,8 @@ public:
 class FPURegCache : public RegCache
 {
 public:
-	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) override;
 	void StoreRegister(int preg, OpArg newLoc) override;
+	void LoadRegister(int preg, X64Reg newLoc) override;
 	const int *GetAllocationOrder(int &count) override;
 	OpArg GetDefaultLocation(int reg) const override;
 };

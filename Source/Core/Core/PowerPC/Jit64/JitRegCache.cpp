@@ -217,7 +217,7 @@ void RegCache::KillImmediate(int preg, bool doLoad, bool makeDirty)
 	}
 }
 
-void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
+void RegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 {
 	if (!regs[i].away && regs[i].location.IsImm())
 		PanicAlert("Bad immediate");
@@ -230,9 +230,8 @@ void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 		xregs[xr].free = false;
 		xregs[xr].ppcReg = i;
 		xregs[xr].dirty = makeDirty || regs[i].location.IsImm();
-		OpArg newloc = ::Gen::R(xr);
 		if (doLoad)
-			emit->MOV(32, newloc, regs[i].location);
+			LoadRegister(i, xr);
 		for (int j = 0; j < (int)regs.size(); j++)
 		{
 			if (i != j && regs[j].location.IsSimpleReg() && regs[j].location.GetSimpleReg() == xr)
@@ -241,7 +240,7 @@ void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 			}
 		}
 		regs[i].away = true;
-		regs[i].location = newloc;
+		regs[i].location = ::Gen::R(xr);
 	}
 	else
 	{
@@ -282,39 +281,23 @@ void RegCache::StoreFromRegister(int i)
 	}
 }
 
+void GPRRegCache::LoadRegister(int preg, X64Reg newLoc)
+{
+	emit->MOV(32, ::Gen::R(newLoc), regs[preg].location);
+}
+
 void GPRRegCache::StoreRegister(int preg, OpArg newLoc)
 {
 	emit->MOV(32, newLoc, regs[preg].location);
 }
 
-void FPURegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
+void FPURegCache::LoadRegister(int preg, X64Reg newLoc)
 {
-	_assert_msg_(DYNA_REC, !regs[i].location.IsImm(), "WTF - load - imm");
-	if (!regs[i].away)
+	if (!regs[preg].location.IsImm() && (regs[preg].location.offset & 0xF))
 	{
-		// Reg is at home in the memory register file. Let's pull it out.
-		X64Reg xr = GetFreeXReg();
-		_assert_msg_(DYNA_REC, xr < xregs.size(), "WTF - load - invalid reg");
-		xregs[xr].ppcReg = i;
-		xregs[xr].free = false;
-		xregs[xr].dirty = makeDirty;
-		OpArg newloc = ::Gen::R(xr);
-		if (doLoad)
-		{
-			if (!regs[i].location.IsImm() && (regs[i].location.offset & 0xF))
-			{
-				PanicAlert("WARNING - misaligned fp register location %i", i);
-			}
-			emit->MOVAPD(xr, regs[i].location);
-		}
-		regs[i].location = newloc;
-		regs[i].away = true;
+		PanicAlert("WARNING - misaligned fp register location %i", preg);
 	}
-	else
-	{
-		// There are no immediates in the FPR reg file, so we already had this in a register. Make dirty as necessary.
-		xregs[RX(i)].dirty |= makeDirty;
-	}
+	emit->MOVAPD(newLoc, regs[preg].location);
 }
 
 void FPURegCache::StoreRegister(int preg, OpArg newLoc)
