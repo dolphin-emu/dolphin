@@ -255,7 +255,7 @@ void RegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 	}
 }
 
-void RegCache::StoreFromRegister(int i)
+void RegCache::StoreFromRegister(int i, bool clearState)
 {
 	if (regs[i].away)
 	{
@@ -263,10 +263,13 @@ void RegCache::StoreFromRegister(int i)
 		if (regs[i].location.IsSimpleReg())
 		{
 			X64Reg xr = RX(i);
-			xregs[xr].free = true;
-			xregs[xr].ppcReg = -1;
 			doStore = xregs[xr].dirty;
-			xregs[xr].dirty = false;
+			if(clearState)
+			{
+				xregs[xr].free = true;
+				xregs[xr].ppcReg = -1;
+				xregs[xr].dirty = false;
+			}
 		}
 		else
 		{
@@ -276,8 +279,11 @@ void RegCache::StoreFromRegister(int i)
 		OpArg newLoc = GetDefaultLocation(i);
 		if (doStore)
 			StoreRegister(i, newLoc);
-		regs[i].location = newLoc;
-		regs[i].away = false;
+		if(clearState)
+		{
+			regs[i].location = newLoc;
+			regs[i].away = false;
+		}
 	}
 }
 
@@ -305,7 +311,7 @@ void FPURegCache::StoreRegister(int preg, OpArg newLoc)
 	emit->MOVAPD(newLoc, regs[preg].location.GetSimpleReg());
 }
 
-void RegCache::Flush()
+void RegCache::Flush(bool clearState)
 {
 	for (int i = 0; i < (int)xregs.size(); i++)
 	{
@@ -321,15 +327,9 @@ void RegCache::Flush()
 		}
 		if (regs[i].away)
 		{
-			if (regs[i].location.IsSimpleReg())
+			if (regs[i].location.IsSimpleReg() || regs[i].location.IsImm())
 			{
-				X64Reg xr = RX(i);
-				StoreFromRegister(i);
-				xregs[xr].dirty = false;
-			}
-			else if (regs[i].location.IsImm())
-			{
-				StoreFromRegister(i);
+				StoreFromRegister(i, clearState);
 			}
 			else
 			{

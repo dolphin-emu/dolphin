@@ -63,15 +63,15 @@ public:
 		FlushR(reg1); FlushR(reg2);
 		LockX(reg1); LockX(reg2);
 	}
-	virtual void Flush();
-	virtual void Flush(PPCAnalyst::CodeOp *op) {Flush();}
+	void Flush(bool clearState = true);
+	void Flush(PPCAnalyst::CodeOp *op) {Flush();}
 	int SanityCheck() const;
 	void KillImmediate(int preg, bool doLoad, bool makeDirty);
 
 	//TODO - instead of doload, use "read", "write"
 	//read only will not set dirty flag
 	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true);
-	void StoreFromRegister(int preg);
+	void StoreFromRegister(int preg, bool clearState = true);
 	virtual void StoreRegister(int preg, OpArg newLoc) = 0;
 	virtual void LoadRegister(int preg, X64Reg newLoc) = 0;
 
