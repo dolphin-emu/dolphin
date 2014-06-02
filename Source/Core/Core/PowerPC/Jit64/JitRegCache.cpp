@@ -11,22 +11,22 @@ using namespace PowerPC;
 
 RegCache::RegCache() : emit(nullptr)
 {
-	memset(regs, 0, sizeof(regs));
-	memset(xregs, 0, sizeof(xregs));
 }
 
 void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 {
-	for (int i = 0; i < NUMXREGS; i++)
+	for (auto& xreg : xregs)
 	{
-		xregs[i].free = true;
-		xregs[i].dirty = false;
-		xregs[i].locked = false;
+		xreg.free = true;
+		xreg.dirty = false;
+		xreg.locked = false;
+		xreg.ppcReg = -1;
 	}
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < (int)regs.size(); i++)
 	{
 		regs[i].location = GetDefaultLocation(i);
 		regs[i].away = false;
+		regs[i].locked = false;
 	}
 
 	// todo: sort to find the most popular regs
@@ -113,7 +113,7 @@ X64Reg RegCache::GetFreeXReg()
 
 void RegCache::FlushR(X64Reg reg)
 {
-	if (reg >= NUMXREGS)
+	if (reg >= xregs.size())
 		PanicAlert("Flushing non existent reg");
 	if (!xregs[reg].free)
 	{
@@ -123,7 +123,7 @@ void RegCache::FlushR(X64Reg reg)
 
 int RegCache::SanityCheck() const
 {
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < (int)regs.size(); i++)
 	{
 		if (regs[i].away)
 		{
@@ -243,7 +243,7 @@ void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 		OpArg newloc = ::Gen::R(xr);
 		if (doLoad)
 			emit->MOV(32, newloc, regs[i].location);
-		for (int j = 0; j < 32; j++)
+		for (int j = 0; j < (int)regs.size(); j++)
 		{
 			if (i != j && regs[j].location.IsSimpleReg() && regs[j].location.GetSimpleReg() == xr)
 			{
@@ -299,7 +299,7 @@ void FPURegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 	{
 		// Reg is at home in the memory register file. Let's pull it out.
 		X64Reg xr = GetFreeXReg();
-		_assert_msg_(DYNA_REC, xr < NUMXREGS, "WTF - load - invalid reg");
+		_assert_msg_(DYNA_REC, xr < xregs.size(), "WTF - load - invalid reg");
 		xregs[xr].ppcReg = i;
 		xregs[xr].free = false;
 		xregs[xr].dirty = makeDirty;
@@ -328,7 +328,7 @@ void FPURegCache::StoreFromRegister(int i)
 	if (regs[i].away)
 	{
 		X64Reg xr = regs[i].location.GetSimpleReg();
-		_assert_msg_(DYNA_REC, xr < NUMXREGS, "WTF - store - invalid reg");
+		_assert_msg_(DYNA_REC, xr < xregs.size(), "WTF - store - invalid reg");
 		OpArg newLoc = GetDefaultLocation(i);
 		if (xregs[xr].dirty)
 			emit->MOVAPD(newLoc, xr);
@@ -342,13 +342,13 @@ void FPURegCache::StoreFromRegister(int i)
 
 void RegCache::Flush()
 {
-	for (int i = 0; i < NUMXREGS; i++)
+	for (int i = 0; i < (int)xregs.size(); i++)
 	{
 		if (xregs[i].locked)
 			PanicAlert("Someone forgot to unlock X64 reg %i.", i);
 	}
 
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < (int)regs.size(); i++)
 	{
 		if (regs[i].locked)
 		{

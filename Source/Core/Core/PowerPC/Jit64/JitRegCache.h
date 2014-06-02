@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/x64Emitter.h"
 
 using namespace Gen;
@@ -35,8 +37,8 @@ typedef int PReg;
 class RegCache
 {
 protected:
-	PPCCachedReg regs[32];
-	X64CachedReg xregs[NUMXREGS];
+	std::array<PPCCachedReg, 32> regs;
+	std::array<X64CachedReg, NUMXREGS> xregs;
 
 	virtual const int *GetAllocationOrder(int &count) = 0;
 
