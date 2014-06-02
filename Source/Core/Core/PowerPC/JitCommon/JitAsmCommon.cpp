@@ -301,7 +301,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	PXOR(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M((void *)&m_255));
-	CVTTSS2SI(EAX, R(XMM0));
+	CVTTSS2SI(32, EAX, R(XMM0));
 	SafeWriteRegToReg(AL, ECX, 8, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
 
@@ -311,7 +311,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	MULSS(XMM0, R(XMM1));
 	MAXSS(XMM0, M((void *)&m_m128));
 	MINSS(XMM0, M((void *)&m_127));
-	CVTTSS2SI(EAX, R(XMM0));
+	CVTTSS2SI(32, EAX, R(XMM0));
 	SafeWriteRegToReg(AL, ECX, 8, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
 
@@ -322,7 +322,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	PXOR(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M((void *)&m_65535));
-	CVTTSS2SI(EAX, R(XMM0));
+	CVTTSS2SI(32, EAX, R(XMM0));
 	SafeWriteRegToReg(EAX, ECX, 16, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
 
@@ -332,7 +332,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	MULSS(XMM0, R(XMM1));
 	MAXSS(XMM0, M((void *)&m_m32768));
 	MINSS(XMM0, M((void *)&m_32767));
-	CVTTSS2SI(EAX, R(XMM0));
+	CVTTSS2SI(32, EAX, R(XMM0));
 	SafeWriteRegToReg(EAX, ECX, 16, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
 

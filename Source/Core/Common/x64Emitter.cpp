@@ -1405,14 +1405,16 @@ void XEmitter::CVTPD2PS(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5A, true, reg
 
 void XEmitter::CVTSD2SS(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5A, false, regOp, arg);}
 void XEmitter::CVTSS2SD(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x5A, false, regOp, arg);}
-void XEmitter::CVTSD2SI(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x2D, false, regOp, arg);}
+void XEmitter::CVTSS2SI(int bits, X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x2D, false, regOp, arg, 0, bits);}
+void XEmitter::CVTSD2SI(int bits, X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x2D, false, regOp, arg, 0, bits);}
 
 void XEmitter::CVTDQ2PD(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0xE6, false, regOp, arg);}
 void XEmitter::CVTDQ2PS(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x5B, true, regOp, arg);}
 void XEmitter::CVTPD2DQ(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0xE6, false, regOp, arg);}
 void XEmitter::CVTPS2DQ(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5B, true, regOp, arg);}
 
-void XEmitter::CVTTSS2SI(X64Reg xregdest, OpArg arg) {WriteSSEOp(32, 0x2C, false, xregdest, arg);}
+void XEmitter::CVTTSS2SI(int bits, X64Reg xregdest, OpArg arg) {WriteSSEOp(32, 0x2C, false, xregdest, arg, 0, bits);}
+void XEmitter::CVTTSD2SI(int bits, X64Reg xregdest, OpArg arg) {WriteSSEOp(64, 0x2C, false, xregdest, arg, 0, bits);}
 void XEmitter::CVTTPS2DQ(X64Reg xregdest, OpArg arg) {WriteSSEOp(32, 0x5B, false, xregdest, arg);}
 
 void XEmitter::MASKMOVDQU(X64Reg dest, X64Reg src)  {WriteSSEOp(64, sseMASKMOVDQU, true, dest, R(src));}
