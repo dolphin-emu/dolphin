@@ -113,6 +113,12 @@ static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
+#ifdef HAVE_OCULUSSDK
+// VR Oculus Rift related
+static ovrFrameTiming g_rift_frame_timing;
+static ovrPosef g_left_eye_pose, g_right_eye_pose;
+#endif
+
 int GetNumMSAASamples(int MSAAMode)
 {
 	int samples;
@@ -1311,6 +1317,17 @@ void DumpFrame(const std::vector<u8>& data, int w, int h)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
+#ifdef HAVE_OCULUSSDK
+	static bool first_rift_frame = true;
+	if (first_rift_frame && g_has_rift)
+	{
+		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
+		g_left_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Left);
+		g_right_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Right);
+		first_rift_frame = false;
+	}
+#endif
+
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
@@ -1404,6 +1421,27 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 			xfbSource->Draw(sourceRc, drawRc);
 		}
 	}
+#ifdef HAVE_OCULUSSDK
+	else if (g_has_rift)
+	{
+		TargetRectangle targetRc = ConvertEFBRectangle(rc);
+
+		// for msaa mode, we must resolve the efb content to non-msaa
+		FramebufferManager::ResolveAndGetRenderTarget(rc);
+
+		// Render to the framebuffer.
+		FramebufferManager::SetFramebuffer(0);
+
+		ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
+		ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
+
+		// Let OVR do distortion rendering, Present and flush/sync.
+		ovrHmd_EndFrame(hmd);
+
+
+
+	}
+#endif
 	else
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
@@ -1423,12 +1461,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 			GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 
-	PostProcessing::BlitToScreen();
+	if (!g_has_rift)
+		PostProcessing::BlitToScreen();
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	// Save screenshot
-	if (s_bScreenshot)
+	if (s_bScreenshot && !g_has_rift)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		SaveScreenshot(s_sScreenshotName, flipped_trc);
@@ -1439,7 +1478,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	// Frame dumps are handled a little differently in Windows
 	// Frame dumping disabled entirely on GLES3
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && !g_has_rift)
 	{
 #if defined _WIN32 || defined HAVE_LIBAV
 		if (g_ActiveConfig.bDumpFrames)
@@ -1585,7 +1624,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	if (XFBWrited)
 		s_fps = UpdateFPSCounter();
 	// ---------------------------------------------------------------------
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !g_has_rift)
 	{
 		GL_REPORT_ERRORD();
 
@@ -1603,11 +1642,21 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		GL_REPORT_ERRORD();
 	}
 	// Copy the rendered frame to the real window
-	GLInterface->Swap();
+	if (!g_has_rift)
+		GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
 
 	NewVRFrame();
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
+		
+		g_left_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Left);
+		g_right_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Right);
+	}
+#endif
 
 	// Clear framebuffer
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))

@@ -67,6 +67,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 // Resources
 
@@ -669,7 +670,7 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
 			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize ||
-			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
+			RendererIsFullscreen() || m_RenderFrame->IsMaximized() || g_has_hmd)
 		return;
 
 	int old_width, old_height, log_width = 0, log_height = 0;

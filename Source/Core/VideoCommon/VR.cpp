@@ -4,12 +4,12 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include "VideoCommon/VR920.h"
+#endif
 #ifdef HAVE_OCULUSSDK
+#include "Kernel/OVR_Types.h"
 #include "OVR_CAPI.h"
 #include "Kernel/OVR_Math.h"
-#endif
-
-#include "VideoCommon/VR920.h"
 #endif
 
 #include "Common/Common.h"
@@ -18,16 +18,17 @@
 #define M_PI 3.14159265358979323846
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / M_PI))
 
-#ifdef _WIN32
 #ifdef HAVE_OCULUSSDK
 ovrHmd hmd = nullptr;
 ovrHmdDesc hmdDesc;
-#endif
+ovrFovPort g_eye_fov[2];
+ovrEyeRenderDesc g_eye_render_desc[2];
 #endif
 
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
 bool g_new_tracking_frame = true;
 Matrix44 g_head_tracking_matrix;
+int g_hmd_window_width = 0, g_hmd_window_height = 0;
 
 void NewVRFrame()
 {
@@ -36,7 +37,6 @@ void NewVRFrame()
 
 void InitVR()
 {
-#ifdef _WIN32
 #ifdef HAVE_OCULUSSDK
 	ovr_Initialize();
 	hmd = ovrHmd_Create(0);
@@ -50,6 +50,11 @@ void InitVR()
 		{
 			g_has_rift = true;
 			g_has_hmd = true;
+			g_hmd_window_width = hmdDesc.Resolution.w;
+			g_hmd_window_height = hmdDesc.Resolution.h;
+			g_eye_fov[0] = hmdDesc.DefaultEyeFov[0];
+			g_eye_fov[1] = hmdDesc.DefaultEyeFov[1];
+
 			NOTICE_LOG(VR, "Oculus Rift head tracker started.");
 		}
 	}
@@ -57,15 +62,20 @@ void InitVR()
 #endif
 	{
 		WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
+#ifdef _WIN32
 		LoadVR920();
-		g_has_hmd |= g_has_vr920;
-	}
+		if (g_has_vr920)
+		{
+			g_has_hmd = true;
+			g_hmd_window_width = 800;
+			g_hmd_window_height = 600;
+		}
 #endif
+	}
 }
 
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw)
 {
-#ifdef _WIN32
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift && hmd)
 	{
@@ -84,8 +94,11 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw)
 	}
 	else
 #endif
+#ifdef _WIN32
 	if (g_has_vr920 && Vuzix_GetTracking)
+#endif
 	{
+#ifdef _WIN32
 		LONG y = 0, p = 0, r = 0;
 		if (Vuzix_GetTracking(&y, &p, &r) == ERROR_SUCCESS)
 		{
@@ -93,10 +106,8 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw)
 			*pitch = p * -180.0f / 32767.0f;
 			*roll = r * 180.0f / 32767.0f;
 		}
-	}
-#else
-	// Does nothing on other platforms yet.
 #endif
+	}
 }
 
 void UpdateHeadTrackingIfNeeded()

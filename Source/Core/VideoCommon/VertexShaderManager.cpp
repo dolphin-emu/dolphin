@@ -5,6 +5,12 @@
 #include <cmath>
 #include <sstream>
 
+#ifdef HAVE_OCULUSSDK
+#include "Kernel/OVR_Types.h"
+#include "OVR_CAPI.h"
+#include "Kernel/OVR_Math.h"
+#endif
+
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
@@ -500,11 +506,37 @@ void VertexShaderManager::SetProjectionConstants()
 	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
 	if (g_has_hmd && xfmem.projection.type == GX_PERSPECTIVE)
 	{
+		float *p = rawProjection;
+		float zfar = p[5] / p[4];
+		float znear = (1 + p[4] * zfar) / p[4];
+		float zn2 = p[5] / (p[4] - 1);
+		float zf2 = p[5] / (p[4] + 1);
+		float hfov = 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f;
+		float vfov = 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f;
 		Matrix44 projMtx;
 		Matrix44 rotatedMtx;
-		Matrix44 mtxA, mtxB, mtxView;
-		//VR Normal Oculus Rift Headtracking
+		Matrix44 mtxView;
+		NOTICE_LOG(VR, "hfov=%8.4f    vfov=%8.4f      znear=%8.4f or %8.4f   zfar=%8.4f or %8.4f", hfov, vfov, znear, zn2, zfar, zf2);
 		Matrix44::Set(projMtx, g_fProjectionMatrix);
+#ifdef HAVE_OCULUSSDK
+		if (g_has_rift)
+		{
+			ovrMatrix4f proj = ovrMatrix4f_Projection(g_eye_fov[0], znear, zfar, false);
+			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj.M[0][0], proj.M[0][1], proj.M[0][2], proj.M[0][3]);
+			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj.M[1][0], proj.M[1][1], proj.M[1][2], proj.M[1][3]);
+			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj.M[2][0], proj.M[2][1], proj.M[2][2], proj.M[2][3]);
+			WARN_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj.M[3][0], proj.M[3][1], proj.M[3][2], proj.M[3][3]);
+			NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtx.data[0 * 4 + 0], projMtx.data[0 * 4 + 1], projMtx.data[0 * 4 + 2], projMtx.data[0 * 4 + 3]);
+			NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtx.data[1*4+0], projMtx.data[1*4+1], projMtx.data[1*4+2], projMtx.data[1*4+3]);
+			NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtx.data[2*4+0], projMtx.data[2*4+1], projMtx.data[2*4+2], projMtx.data[2*4+3]);
+			NOTICE_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", projMtx.data[3*4+0], projMtx.data[3*4+1], projMtx.data[3*4+2], projMtx.data[3*4+3]);
+			projMtx.data[0 * 4 + 0] = proj.M[0][0];
+			projMtx.data[1 * 4 + 1] = proj.M[1][1];
+			projMtx.data[0 * 4 + 3] = proj.M[0][3];
+			projMtx.data[1 * 4 + 3] = proj.M[1][3];
+		}
+#endif
+		//VR Headtracking
 		UpdateHeadTrackingIfNeeded();
 		//VR sometimes yaw needs to be inverted for games that use a flipped x axis
 		// (ActionGirlz even uses flipped matrices and non-flipped matrices in the same frame)

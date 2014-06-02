@@ -4,11 +4,19 @@
 
 #pragma once
 
+#ifdef HAVE_OCULUSSDK
+#include "Kernel/OVR_Types.h"
+#include "OVR_CAPI.h"
+#include "OVR_CAPI_GL.h"
+#include "Kernel/OVR_Math.h"
+#endif
+
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 
 #include "VideoCommon/FramebufferManagerBase.h"
+#include "VideoCommon/VR.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM
@@ -89,6 +97,11 @@ public:
 	// Convert EFB content on pixel format change.
 	// convtype=0 -> rgb8->rgba6, convtype=2 -> rgba6->rgb8
 	static void ReinterpretPixelData(unsigned int convtype);
+
+	// Oculus Rift
+#ifdef HAVE_OCULUSSDK
+	static ovrGLTexture m_eye_texture[2];
+#endif
 
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;

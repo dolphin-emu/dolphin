@@ -2,6 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#ifdef _WIN32
+#include "VideoCommon/EmuWindow.h"
+#endif
+
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
@@ -11,6 +15,7 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VR.h"
 
 namespace OGL
 {
@@ -35,6 +40,10 @@ GLuint FramebufferManager::m_resolvedDepthTexture;
 // reinterpret pixel format
 SHADER FramebufferManager::m_pixel_format_shaders[2];
 
+// Oculus Rift
+#ifdef HAVE_OCULUSSDK
+ovrGLTexture FramebufferManager::m_eye_texture[2];
+#endif
 
 FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples)
 {
@@ -51,6 +60,22 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	m_targetHeight = targetHeight;
 
 	m_msaaSamples = msaaSamples;
+
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		ovrGLConfig cfg;
+		cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
+		cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
+		cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
+		cfg.OGL.Header.Multisample = 0;
+#ifdef _WIN32
+		cfg.OGL.Window = EmuWindow::GetWnd();
+#endif
+		ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Chromatic | ovrDistortionCap_TimeWarp, 
+			g_eye_fov, g_eye_render_desc);
+	}
+#endif
 
 	// The EFB can be set to different pixel formats by the game through the
 	// BPMEM_ZCOMPARE register (which should probably have a different name).
@@ -153,6 +178,22 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glClearColor(0.f, 0.f, 0.f, 1.f);
 	glClearDepthf(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		m_eye_texture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
+		m_eye_texture[0].OGL.Header.TextureSize.w = m_targetWidth;
+		m_eye_texture[0].OGL.Header.TextureSize.h = m_targetHeight;
+		m_eye_texture[0].OGL.Header.RenderViewport.Pos.x = 0;
+		m_eye_texture[0].OGL.Header.RenderViewport.Pos.y = 0;
+		m_eye_texture[0].OGL.Header.RenderViewport.Size.w = m_targetWidth;
+		m_eye_texture[0].OGL.Header.RenderViewport.Size.h = m_targetHeight;
+		m_eye_texture[0].OGL.TexId = m_efbColor;
+		m_eye_texture[1] = m_eye_texture[0];
+	}
+	// for now, use the same texture for both eyes
+#endif
 
 	// reinterpret pixel format
 	char vs[] =

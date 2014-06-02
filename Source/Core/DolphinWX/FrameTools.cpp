@@ -95,6 +95,7 @@ Core::GetWindowHandle().
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VR.h"
 
 #ifdef _WIN32
 #ifndef SM_XVIRTUALSCREEN
@@ -927,6 +928,11 @@ void CFrame::StartGame(const std::string& filename)
 
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+		// VR window must be a certain size for Head Mounted Displays
+		if (g_has_hmd)
+		{
+			size = wxSize(g_hmd_window_width, g_hmd_window_height);
+		}
 #ifdef _WIN32
 		// Out of desktop check
 		int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
