@@ -331,7 +331,7 @@ public:
 
 	FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
 	//void J_CC(CCFlags conditionCode, JumpTarget target);
-	void J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes = false);
+	void J_CC(CCFlags conditionCode, const u8* addr);
 
 	void SetJumpTarget(const FixupBranch &branch);
 

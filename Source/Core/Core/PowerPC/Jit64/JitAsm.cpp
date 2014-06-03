@@ -168,7 +168,7 @@ void Jit64AsmRoutineManager::Generate()
 		SetJumpTarget(noExtException);
 
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-		J_CC(CC_Z, outerLoop, true);
+		J_CC(CC_Z, outerLoop);
 
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
