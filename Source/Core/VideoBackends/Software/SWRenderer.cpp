@@ -3,8 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <string>
 
 #include "Common/Common.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/Software/RasterFont.h"
@@ -126,30 +128,28 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 
 void SWRenderer::DrawDebugText()
 {
-	char debugtext_buffer[8192];
-	char *p = debugtext_buffer;
-	p[0] = 0;
+	std::string debugtext;
 
 	if (g_SWVideoConfig.bShowStats)
 	{
-		p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
-		p+=sprintf(p,"Primitives: %i\n",swstats.thisFrame.numPrimatives);
-		p+=sprintf(p,"Vertices Loaded: %i\n",swstats.thisFrame.numVerticesLoaded);
+		debugtext += StringFromFormat("Objects:            %i\n", swstats.thisFrame.numDrawnObjects);
+		debugtext += StringFromFormat("Primitives:         %i\n", swstats.thisFrame.numPrimatives);
+		debugtext += StringFromFormat("Vertices Loaded:    %i\n", swstats.thisFrame.numVerticesLoaded);
 
-		p+=sprintf(p,"Triangles Input:   %i\n",swstats.thisFrame.numTrianglesIn);
-		p+=sprintf(p,"Triangles Rejected:   %i\n",swstats.thisFrame.numTrianglesRejected);
-		p+=sprintf(p,"Triangles Culled:   %i\n",swstats.thisFrame.numTrianglesCulled);
-		p+=sprintf(p,"Triangles Clipped:  %i\n",swstats.thisFrame.numTrianglesClipped);
-		p+=sprintf(p,"Triangles Drawn:   %i\n",swstats.thisFrame.numTrianglesDrawn);
+		debugtext += StringFromFormat("Triangles Input:    %i\n", swstats.thisFrame.numTrianglesIn);
+		debugtext += StringFromFormat("Triangles Rejected: %i\n", swstats.thisFrame.numTrianglesRejected);
+		debugtext += StringFromFormat("Triangles Culled:   %i\n", swstats.thisFrame.numTrianglesCulled);
+		debugtext += StringFromFormat("Triangles Clipped:  %i\n", swstats.thisFrame.numTrianglesClipped);
+		debugtext += StringFromFormat("Triangles Drawn:    %i\n", swstats.thisFrame.numTrianglesDrawn);
 
-		p+=sprintf(p,"Rasterized Pix:   %i\n",swstats.thisFrame.rasterizedPixels);
-		p+=sprintf(p,"TEV Pix In:   %i\n",swstats.thisFrame.tevPixelsIn);
-		p+=sprintf(p,"TEV Pix Out:   %i\n",swstats.thisFrame.tevPixelsOut);
+		debugtext += StringFromFormat("Rasterized Pix:     %i\n", swstats.thisFrame.rasterizedPixels);
+		debugtext += StringFromFormat("TEV Pix In:         %i\n", swstats.thisFrame.tevPixelsIn);
+		debugtext += StringFromFormat("TEV Pix Out:        %i\n", swstats.thisFrame.tevPixelsOut);
 	}
 
 	// Render a shadow, and then the text.
-	SWRenderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
-	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
+	SWRenderer::RenderText(debugtext.c_str(), 21, 21, 0xDD000000);
+	SWRenderer::RenderText(debugtext.c_str(), 20, 20, 0xFFFFFF00);
 }
 
 u8* SWRenderer::getColorTexture() {

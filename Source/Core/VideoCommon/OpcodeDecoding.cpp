@@ -219,22 +219,21 @@ u32 FifoCommandRunnable(u32 &command_size)
 		else
 		{
 			// TODO(Omega): Maybe dump FIFO to file on this error
-			char szTemp[1024];
-			sprintf(szTemp, "GFX FIFO: Unknown Opcode (0x%x).\n"
+			std::string temp = StringFromFormat(
+				"GFX FIFO: Unknown Opcode (0x%x).\n"
 				"This means one of the following:\n"
 				"* The emulated GPU got desynced, disabling dual core can help\n"
 				"* Command stream corrupted by some spurious memory bug\n"
 				"* This really is an unknown opcode (unlikely)\n"
 				"* Some other sort of bug\n\n"
 				"Dolphin will now likely crash or hang. Enjoy." , cmd_byte);
-			Host_SysMessage(szTemp);
-			INFO_LOG(VIDEO, "%s", szTemp);
+			Host_SysMessage(temp.c_str());
+			INFO_LOG(VIDEO, "%s", temp.c_str());
 			{
 				SCPFifoStruct &fifo = CommandProcessor::fifo;
 
-				char szTmp[512];
-				// sprintf(szTmp, "Illegal command %02x (at %08x)",cmd_byte,g_pDataReader->GetPtr());
-				sprintf(szTmp, "Illegal command %02x\n"
+				std::string tmp = StringFromFormat(
+					"Illegal command %02x\n"
 					"CPBase: 0x%08x\n"
 					"CPEnd: 0x%08x\n"
 					"CPHiWatermark: 0x%08x\n"
@@ -252,8 +251,8 @@ u32 FifoCommandRunnable(u32 &command_size)
 					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_BPInt ? "true" : "false"
 					,fifo.bFF_Breakpoint ? "true" : "false");
 
-				Host_SysMessage(szTmp);
-				INFO_LOG(VIDEO, "%s", szTmp);
+				Host_SysMessage(tmp.c_str());
+				INFO_LOG(VIDEO, "%s", tmp.c_str());
 			}
 		}
 		break;

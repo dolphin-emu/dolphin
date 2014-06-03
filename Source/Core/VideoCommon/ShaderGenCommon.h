@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "VideoCommon/VideoCommon.h"
 
 /**
@@ -179,14 +180,12 @@ public:
 			{
 				static int num_failures = 0;
 
-				char szTemp[MAX_PATH];
-				sprintf(szTemp, "%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-						dump_prefix,
-						++num_failures);
+				std::string temp = StringFromFormat("%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
+						dump_prefix, ++num_failures);
 
 				// TODO: Should also dump uids
 				std::ofstream file;
-				OpenFStream(file, szTemp, std::ios_base::out);
+				OpenFStream(file, temp, std::ios_base::out);
 				file << "Old shader code:\n" << old_code;
 				file << "\n\nNew shader code:\n" << new_code.GetBuffer();
 				file << "\n\nShader uid:\n";
@@ -206,9 +205,8 @@ public:
 					else
 						file << std::endl;
 				}
-				file.close();
 
-				ERROR_LOG(VIDEO, "%s shader uid mismatch! See %s for details", shader_type, szTemp);
+				ERROR_LOG(VIDEO, "%s shader uid mismatch! See %s for details", shader_type, temp.c_str());
 			}
 		}
 	}

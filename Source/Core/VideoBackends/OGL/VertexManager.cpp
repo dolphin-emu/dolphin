@@ -3,10 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <fstream>
+#include <string>
 #include <vector>
 
 #include "Common/FileUtil.h"
 #include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
 
 #include "VideoBackends/OGL/main.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -185,27 +187,26 @@ void VertexManager::vFlush(bool useDstAlpha)
 	{
 		// save the shaders
 		ProgramShaderCache::PCacheEntry prog = ProgramShaderCache::GetShaderProgram();
-		char strfile[255];
-		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
+		std::string filename = StringFromFormat("%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fps;
-		OpenFStream(fps, strfile, std::ios_base::out);
+		OpenFStream(fps, filename, std::ios_base::out);
 		fps << prog.shader.strpprog.c_str();
-		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
+
+		filename = StringFromFormat("%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fvs;
-		OpenFStream(fvs, strfile, std::ios_base::out);
+		OpenFStream(fvs, filename, std::ios_base::out);
 		fvs << prog.shader.strvprog.c_str();
 	}
 
 	if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
 	{
-		char str[128];
-		sprintf(str, "%starg%.3d.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
+		std::string filename = StringFromFormat("%starg%.3d.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		TargetRectangle tr;
 		tr.left = 0;
 		tr.right = Renderer::GetTargetWidth();
 		tr.top = 0;
 		tr.bottom = Renderer::GetTargetHeight();
-		g_renderer->SaveScreenshot(str, tr);
+		g_renderer->SaveScreenshot(filename, tr);
 	}
 #endif
 	g_Config.iSaveTargetId++;

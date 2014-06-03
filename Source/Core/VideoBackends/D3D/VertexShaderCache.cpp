@@ -2,8 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 
@@ -143,8 +146,7 @@ void VertexShaderCache::Init()
 	SETSTAT(stats.numVertexShadersCreated, 0);
 	SETSTAT(stats.numVertexShadersAlive, 0);
 
-	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+	std::string cache_filename = StringFromFormat("%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	VertexShaderCacheInserter inserter;
 	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);

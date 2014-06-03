@@ -68,30 +68,26 @@ public:
 class CNANDContentManager
 {
 public:
-
 	static CNANDContentManager& Access() { return m_Instance; }
 	u64 Install_WiiWAD(std::string &fileName);
 
 	const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
 	const INANDContentLoader& GetNANDLoader(u64 _titleId, bool forceReload = false);
 	bool RemoveTitle(u64 _titleID);
+
 private:
-
 	CNANDContentManager() {};
-
 	~CNANDContentManager();
 
 	static CNANDContentManager m_Instance;
 
 	typedef std::map<std::string, INANDContentLoader*> CNANDContentMap;
 	CNANDContentMap m_Map;
-
 };
 
 class CSharedContent
 {
 public:
-
 	static CSharedContent& AccessInstance() { return m_Instance; }
 
 	std::string GetFilenameFromSHA1(const u8* _pHash);
@@ -99,10 +95,7 @@ public:
 	void UpdateLocation();
 
 private:
-
-
 	CSharedContent();
-
 	virtual ~CSharedContent();
 
 #pragma pack(push,1)
@@ -114,7 +107,7 @@ private:
 #pragma pack(pop)
 
 	u32 lastID;
-	char contentMap[1024];
+	std::string contentMap;
 	std::vector<SElement> m_Elements;
 	static CSharedContent m_Instance;
 };
@@ -122,18 +115,15 @@ private:
 class cUIDsys
 {
 public:
-
 	static cUIDsys& AccessInstance() { return m_Instance; }
 
 	u32 GetUIDFromTitle(u64 _Title);
 	void AddTitle(u64 _Title);
 	void GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned = false);
 	void UpdateLocation();
+
 private:
-
-
 	cUIDsys();
-
 	virtual ~cUIDsys();
 
 #pragma pack(push,1)
@@ -143,8 +133,9 @@ private:
 		u8 UID[4];
 	};
 #pragma pack(pop)
+
 	u32 lastUID;
-	char uidSys[1024];
+	std::string uidSys;
 	std::vector<SElement> m_Elements;
 	static cUIDsys m_Instance;
 };

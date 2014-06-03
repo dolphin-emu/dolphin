@@ -6,6 +6,12 @@
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
+#include <string>
+
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/HW/VideoInterface.h" //for TargetRefreshRate
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/VideoConfig.h"
@@ -18,10 +24,6 @@
 #include <cstring>
 #include <vfw.h>
 #include <winerror.h>
-
-#include "Common/CommonPaths.h"
-#include "Common/FileUtil.h"
-#include "Common/Log.h"
 
 HWND m_emuWnd;
 LONG m_byteBuffer;
@@ -53,22 +55,23 @@ bool AVIDump::CreateFile()
 {
 	m_totalBytes = 0;
 	m_frameCount = 0;
-	char movie_file_name[255];
-	sprintf(movie_file_name, "%sframedump%d.avi", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), m_fileCount);
+
+	std::string movie_file_name = StringFromFormat("%sframedump%d.avi", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), m_fileCount);
+
 	// Create path
 	File::CreateFullPath(movie_file_name);
 
 	// Ask to delete file
 	if (File::Exists(movie_file_name))
 	{
-		if (AskYesNoT("Delete the existing file '%s'?", movie_file_name))
+		if (AskYesNoT("Delete the existing file '%s'?", movie_file_name.c_str()))
 			File::Delete(movie_file_name);
 	}
 
 	AVIFileInit();
-	NOTICE_LOG(VIDEO, "Opening AVI file (%s) for dumping", movie_file_name);
+	NOTICE_LOG(VIDEO, "Opening AVI file (%s) for dumping", movie_file_name.c_str());
 	// TODO: Make this work with AVIFileOpenW without it throwing REGDB_E_CLASSNOTREG
-	HRESULT hr = AVIFileOpenA(&m_file, movie_file_name, OF_WRITE | OF_CREATE, nullptr);
+	HRESULT hr = AVIFileOpenA(&m_file, movie_file_name.c_str(), OF_WRITE | OF_CREATE, nullptr);
 	if (FAILED(hr))
 	{
 		if (hr == AVIERR_BADFORMAT) NOTICE_LOG(VIDEO, "The file couldn't be read, indicating a corrupt file or an unrecognized format.");
@@ -203,10 +206,6 @@ bool AVIDump::SetVideoFormat()
 }
 
 #else
-
-#include "Common/FileUtil.h"
-#include "Common/Log.h"
-#include "Common/StringUtil.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

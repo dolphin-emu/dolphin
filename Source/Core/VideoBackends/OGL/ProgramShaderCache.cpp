@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
@@ -204,13 +205,14 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) {
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
+	{
 		static int counter = 0;
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-		SaveData(szTemp, vcode.GetBuffer());
-		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-		SaveData(szTemp, pcode.GetBuffer());
+		std::string filename =  StringFromFormat("%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+		SaveData(filename, vcode.GetBuffer());
+
+		filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+		SaveData(filename, pcode.GetBuffer());
 	}
 #endif
 
@@ -265,16 +267,16 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		GLchar* infoLog = new GLchar[length];
 		glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+
+		std::string filename = StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
 		std::ofstream file;
-		OpenFStream(file, szTemp, std::ios_base::out);
+		OpenFStream(file, filename, std::ios_base::out);
 		file << s_glsl_header << vcode << s_glsl_header << pcode << infoLog;
 		file.close();
 
 		if (linkStatus != GL_TRUE)
 			PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
-				szTemp,
+				filename.c_str(),
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version,
@@ -319,21 +321,20 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		GLchar* infoLog = new GLchar[length];
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "%s Shader info log:\n%s", type==GL_VERTEX_SHADER ? "VS" : "PS", infoLog);
-		char szTemp[MAX_PATH];
-		sprintf(szTemp,
-			"%sbad_%s_%04i.txt",
+
+		std::string filename = StringFromFormat("%sbad_%s_%04i.txt",
 			File::GetUserPath(D_DUMP_IDX).c_str(),
 			type==GL_VERTEX_SHADER ? "vs" : "ps",
 			num_failures++);
 		std::ofstream file;
-		OpenFStream(file, szTemp, std::ios_base::out);
+		OpenFStream(file, filename, std::ios_base::out);
 		file << s_glsl_header << code << infoLog;
 		file.close();
 
 		if (compileStatus != GL_TRUE)
 			PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
 				type==GL_VERTEX_SHADER ? "vertex" : "pixel",
-				szTemp,
+				filename.c_str(),
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version,
@@ -405,8 +406,7 @@ void ProgramShaderCache::Init(void)
 			if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 				File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-			char cache_filename[MAX_PATH];
-			sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+			std::string cache_filename = StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
 				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 
 			ProgramShaderCacheInserter inserter;
