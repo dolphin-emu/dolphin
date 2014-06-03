@@ -17,6 +17,7 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
@@ -203,8 +204,8 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 			int ratio = 0;
 			if (inpos != 0)
 				ratio = (int)(100 * position / inpos);
-			char temp[512];
-			sprintf(temp, "%i of %i blocks. Compression ratio %i%%", i, header.num_blocks, ratio);
+
+			std::string temp = StringFromFormat("%i of %i blocks. Compression ratio %i%%", i, header.num_blocks, ratio);
 			callback(temp, (float)i / (float)header.num_blocks, arg);
 		}
 

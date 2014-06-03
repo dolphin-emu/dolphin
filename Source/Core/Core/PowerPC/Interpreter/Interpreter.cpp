@@ -3,9 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <string>
 
 #include "PowerPCDisasm.h"
 
+#include "Common/StringUtil.h"
 #include "Core/Host.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
@@ -65,22 +67,18 @@ static void patches()
 
 int startTrace = 0;
 
-void Trace( UGeckoInstruction &instCode )
+void Trace(UGeckoInstruction& instCode)
 {
-	char reg[25]="";
 	std::string regs = "";
-	for (int i=0; i<32; i++)
+	for (int i = 0; i < 32; i++)
 	{
-		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
-		regs.append(reg);
+		regs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
 	}
 
-	char freg[25]="";
 	std::string fregs = "";
-	for (int i=0; i<32; i++)
+	for (int i = 0; i < 32; i++)
 	{
-		sprintf(freg, "f%02d: %08" PRIx64 " %08" PRIx64 " ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
-		fregs.append(freg);
+		fregs += StringFromFormat("f%02d: %08" PRIx64 " %08" PRIx64 " ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
 	}
 
 	char ppcInst[256];

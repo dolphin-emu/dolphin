@@ -1070,12 +1070,12 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 	WxUtils::Launch(wikiUrl);
 }
 
-void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
+void CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void* arg)
 {
 	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
 	wxString textString(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
 				m_currentFilename.c_str(), (int)m_currentItem+1,
-				(int)m_numberItem, text)));
+				(int)m_numberItem, text.c_str())));
 
 	((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
 }
@@ -1180,7 +1180,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	Update();
 }
 
-void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
+void CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg)
 {
 	((wxProgressDialog*)arg)->
 		Update((int)(percent*1000), StrToWxStr(text));
