@@ -141,43 +141,48 @@ void VertexManager::vFlush(bool useDstAlpha)
 	// Makes sure we can actually do Dual source blending
 	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
-	// If host supports GL_ARB_blend_func_extended, we can do dst alpha in
-	// the same pass as regular rendering.
-	if (useDstAlpha && dualSourcePossible)
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
 	{
-		ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
-	}
-	else
-	{
-		ProgramShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
-	}
+		if (eye) 
+			FramebufferManager::SwapRenderEye();
+		// If host supports GL_ARB_blend_func_extended, we can do dst alpha in
+		// the same pass as regular rendering.
+		if (useDstAlpha && dualSourcePossible)
+		{
+			ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
+		}
+		else
+		{
+			ProgramShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+		}
 
-	// upload global constants
-	ProgramShaderCache::UploadConstants();
+		// upload global constants
+		ProgramShaderCache::UploadConstants(eye);
 
-	// setup the pointers
-	g_nativeVertexFmt->SetupVertexPointers();
-	GL_REPORT_ERRORD();
-
-	Draw(stride);
-
-	// run through vertex groups again to set alpha
-	if (useDstAlpha && !dualSourcePossible)
-	{
-		ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
-
-		// only update alpha
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-
-		glDisable(GL_BLEND);
+		// setup the pointers
+		g_nativeVertexFmt->SetupVertexPointers();
+		GL_REPORT_ERRORD();
 
 		Draw(stride);
 
-		// restore color mask
-		g_renderer->SetColorMask();
+		// run through vertex groups again to set alpha
+		if (useDstAlpha && !dualSourcePossible)
+		{
+			ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
 
-		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
-			glEnable(GL_BLEND);
+			// only update alpha
+			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+
+			glDisable(GL_BLEND);
+
+			Draw(stride);
+
+			// restore color mask
+			g_renderer->SetColorMask();
+
+			if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
+				glEnable(GL_BLEND);
+		}
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

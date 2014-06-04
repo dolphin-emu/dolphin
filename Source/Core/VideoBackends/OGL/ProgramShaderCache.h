@@ -79,7 +79,7 @@ public:
 
 	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode);
 	static GLuint CompileSingleShader(GLuint type, const char *code);
-	static void UploadConstants();
+	static void UploadConstants(bool force_upload);
 
 	static void Init(void);
 	static void Shutdown(void);

@@ -127,14 +127,20 @@ void SHADER::Bind()
 	}
 }
 
-void ProgramShaderCache::UploadConstants()
+void ProgramShaderCache::UploadConstants(bool force_upload)
 {
-	if (PixelShaderManager::dirty || VertexShaderManager::dirty)
+	if (PixelShaderManager::dirty || VertexShaderManager::dirty || force_upload)
 	{
 		auto buffer = s_buffer->Map(s_ubo_buffer_size, s_ubo_align);
 
 		memcpy(buffer.first,
 			&PixelShaderManager::constants, sizeof(PixelShaderConstants));
+		
+		// Each eye needs its own projection matrix
+		if (FramebufferManager::m_stereo3d)
+		{
+			memcpy(VertexShaderManager::constants.projection, VertexShaderManager::constants_eye_projection[FramebufferManager::m_current_eye], 4 * 16);
+		}
 
 		memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
 			&VertexShaderManager::constants, sizeof(VertexShaderConstants));

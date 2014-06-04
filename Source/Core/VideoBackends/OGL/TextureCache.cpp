@@ -265,8 +265,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	// Make sure to resolve anything we need to read from.
 	const GLuint read_texture = (srcFormat == PEControl::Z24) ?
-		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
-		FramebufferManager::ResolveAndGetRenderTarget(srcRect);
+		FramebufferManager::ResolveAndGetDepthTarget(srcRect, 0) :
+		FramebufferManager::ResolveAndGetRenderTarget(srcRect, 0);
 
 	GL_REPORT_ERRORD();
 

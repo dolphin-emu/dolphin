@@ -969,8 +969,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 					g_renderer->ResetAPIState();
 
 					// Resolve our rectangle.
-					FramebufferManager::GetEFBDepthTexture(efbPixelRc);
-					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
+					FramebufferManager::GetEFBDepthTexture(efbPixelRc, 0);
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer(0));
 
 					g_renderer->RestoreAPIState();
 				}
@@ -1022,8 +1022,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 					g_renderer->ResetAPIState();
 
 					// Resolve our rectangle.
-					FramebufferManager::GetEFBColorTexture(efbPixelRc);
-					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
+					FramebufferManager::GetEFBColorTexture(efbPixelRc, 0);
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer(0));
 
 					g_renderer->RestoreAPIState();
 				}
@@ -1164,31 +1164,36 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	ResetAPIState();
 
-	// color
-	GLboolean const
-		color_mask = colorEnable ? GL_TRUE : GL_FALSE,
-		alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
-	glColorMask(color_mask,  color_mask,  color_mask,  alpha_mask);
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+	{
+		if (eye)
+			FramebufferManager::SwapRenderEye();
+		// color
+		GLboolean const
+			color_mask = colorEnable ? GL_TRUE : GL_FALSE,
+			alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
+		glColorMask(color_mask, color_mask, color_mask, alpha_mask);
 
-	glClearColor(
-		float((color >> 16) & 0xFF) / 255.0f,
-		float((color >> 8) & 0xFF) / 255.0f,
-		float((color >> 0) & 0xFF) / 255.0f,
-		float((color >> 24) & 0xFF) / 255.0f);
+		glClearColor(
+			float((color >> 16) & 0xFF) / 255.0f,
+			float((color >> 8) & 0xFF) / 255.0f,
+			float((color >> 0) & 0xFF) / 255.0f,
+			float((color >> 24) & 0xFF) / 255.0f);
 
-	// depth
-	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
+		// depth
+		glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-	glClearDepthf(float(z & 0xFFFFFF) / float(0xFFFFFF));
+		glClearDepthf(float(z & 0xFFFFFF) / float(0xFFFFFF));
 
-	// Update rect for clearing the picture
-	glEnable(GL_SCISSOR_TEST);
+		// Update rect for clearing the picture
+		glEnable(GL_SCISSOR_TEST);
 
-	TargetRectangle const targetRc = ConvertEFBRectangle(rc);
-	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+		TargetRectangle const targetRc = ConvertEFBRectangle(rc);
+		glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
 
-	// glColorMask/glDepthMask/glScissor affect glClear (glViewport does not)
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// glColorMask/glDepthMask/glScissor affect glClear (glViewport does not)
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 
 	RestoreAPIState();
 
@@ -1199,7 +1204,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
 	if (convtype == 0 || convtype == 2)
 	{
-		FramebufferManager::ReinterpretPixelData(convtype);
+		FramebufferManager::ReinterpretPixelData(convtype, 0);
 	}
 	else
 	{
@@ -1427,10 +1432,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
-		FramebufferManager::ResolveAndGetRenderTarget(rc);
+		FramebufferManager::ResolveAndGetRenderTarget(rc, 0);
+		FramebufferManager::ResolveAndGetRenderTarget(rc, 1);
 
-		// Render to the framebuffer.
-		FramebufferManager::SetFramebuffer(0);
+		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
+		PostProcessing::BindTargetFramebuffer();
 
 		ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
@@ -1447,13 +1453,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
-		FramebufferManager::ResolveAndGetRenderTarget(rc);
+		FramebufferManager::ResolveAndGetRenderTarget(rc, 0);
 
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
 		PostProcessing::BindTargetFramebuffer();
 
 		// always the non-msaa fbo
-		GLuint fb = s_MSAASamples>1?FramebufferManager::GetResolvedFramebuffer():FramebufferManager::GetEFBFramebuffer();
+		GLuint fb = s_MSAASamples>1?FramebufferManager::GetResolvedFramebuffer(0):FramebufferManager::GetEFBFramebuffer(0);
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, fb);
 		glBlitFramebuffer(targetRc.left, targetRc.bottom, targetRc.right, targetRc.top,
@@ -1661,8 +1667,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// Clear framebuffer
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
-		glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+		{
+			if (eye)
+				FramebufferManager::SwapRenderEye();
+			glClearColor(0, 0, 0, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		}
 		GL_REPORT_ERRORD();
 	}
 
@@ -1715,17 +1726,20 @@ void Renderer::ResetAPIState()
 void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
-	glEnable(GL_SCISSOR_TEST);
-	SetGenerationMode();
-	BPFunctions::SetScissor();
-	SetColorMask();
-	SetDepthMode();
-	SetBlendMode(true);
-	SetLogicOpMode();
-	SetViewport();
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+	{
+		glEnable(GL_SCISSOR_TEST);
+		SetGenerationMode();
+		BPFunctions::SetScissor();
+		SetColorMask();
+		SetDepthMode();
+		SetBlendMode(true);
+		SetLogicOpMode();
+		SetViewport();
 
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
-		glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
+		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+			glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
+	}
 
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
