@@ -4,6 +4,7 @@
 
 #ifdef _WIN32
 #include "VideoCommon/EmuWindow.h"
+#include "VideoCommon/VR920.h"
 #endif
 
 #include "Core/HW/Memmap.h"
@@ -179,9 +180,15 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glClearDepthf(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-#ifdef HAVE_OCULUSSDK
-	if (g_has_rift)
+	if (g_has_vr920)
 	{
+#ifdef _WIN32
+		VR920_StartStereo3D();
+#endif
+	}
+	else if (g_has_rift)
+	{
+#ifdef HAVE_OCULUSSDK
 		m_eye_texture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
 		m_eye_texture[0].OGL.Header.TextureSize.w = m_targetWidth;
 		m_eye_texture[0].OGL.Header.TextureSize.h = m_targetHeight;
@@ -191,9 +198,9 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		m_eye_texture[0].OGL.Header.RenderViewport.Size.h = m_targetHeight;
 		m_eye_texture[0].OGL.TexId = m_efbColor;
 		m_eye_texture[1] = m_eye_texture[0];
-	}
-	// for now, use the same texture for both eyes
+		// for now, use the same texture for both eyes
 #endif
+	}
 
 	// reinterpret pixel format
 	char vs[] =
@@ -273,6 +280,12 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 FramebufferManager::~FramebufferManager()
 {
+#ifdef _WIN32
+	if (g_has_vr920)
+	{
+		VR920_StopStereo3D();
+	}
+#endif
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	GLuint glObj[3];
