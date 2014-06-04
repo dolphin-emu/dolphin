@@ -37,6 +37,8 @@ VideoConfig::VideoConfig()
 	backend_info.bUseRGBATextures = false;
 	backend_info.bUseMinimalMipCount = false;
 	backend_info.bSupports3DVision = false;
+
+	fUnitsPerMetre = 1.0f;
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -201,6 +203,8 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "PH_ZFar", sPhackvalue[1]);
 	CHECK_SETTING("Video", "UseBBox", bUseBBox);
 	CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
+
+	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 
 	if (gfx_override_exists)
 		OSD::AddMessage("Warning: Opening the graphics configuration will reset settings and might cause issues!", 10000);

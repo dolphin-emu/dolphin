@@ -123,6 +123,9 @@ struct VideoConfig final
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
 
+	// VR
+	float fUnitsPerMetre;
+
 	//currently unused:
 	int iCompileDLsLevel;
 

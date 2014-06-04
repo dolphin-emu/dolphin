@@ -534,26 +534,50 @@ void VertexShaderManager::SetProjectionConstants()
 		{
 			ovrMatrix4f projLeft = ovrMatrix4f_Projection(g_eye_fov[0], znear, zfar, false);
 			ovrMatrix4f projRight = ovrMatrix4f_Projection(g_eye_fov[1], znear, zfar, false);
-			//WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj.M[0][0], proj.M[0][1], proj.M[0][2], proj.M[0][3]);
-			//WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj.M[1][0], proj.M[1][1], proj.M[1][2], proj.M[1][3]);
-			//WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj.M[2][0], proj.M[2][1], proj.M[2][2], proj.M[2][3]);
-			//WARN_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj.M[3][0], proj.M[3][1], proj.M[3][2], proj.M[3][3]);
-			//NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtx.data[0 * 4 + 0], projMtx.data[0 * 4 + 1], projMtx.data[0 * 4 + 2], projMtx.data[0 * 4 + 3]);
-			//NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtx.data[1*4+0], projMtx.data[1*4+1], projMtx.data[1*4+2], projMtx.data[1*4+3]);
-			//NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtx.data[2*4+0], projMtx.data[2*4+1], projMtx.data[2*4+2], projMtx.data[2*4+3]);
-			//NOTICE_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", projMtx.data[3*4+0], projMtx.data[3*4+1], projMtx.data[3*4+2], projMtx.data[3*4+3]);
-			projMtxLeft.data[0 * 4 + 0] = projLeft.M[0][0];
-			projMtxLeft.data[1 * 4 + 1] = projLeft.M[1][1];
-			projMtxLeft.data[0 * 4 + 3] = projLeft.M[0][3];
-			projMtxLeft.data[1 * 4 + 3] = projLeft.M[1][3];
+			float hfov2 = 2 * atan(1.0f / projLeft.M[0][0])*180.0f / 3.1415926535f;
+			float vfov2 = 2 * atan(1.0f / projLeft.M[1][1])*180.0f / 3.1415926535f;
+			float zfar2 = projLeft.M[2][3] / projLeft.M[2][2];
+			float znear2 = (1 + projLeft.M[2][2] * zfar) / projLeft.M[2][2];
+			WARN_LOG(VR, "hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov2, vfov2, znear2, zfar2);
+			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projLeft.M[0][0], projLeft.M[0][1], projLeft.M[0][2], projLeft.M[0][3]);
+			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projLeft.M[1][0], projLeft.M[1][1], projLeft.M[1][2], projLeft.M[1][3]);
+			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projLeft.M[2][0], projLeft.M[2][1], projLeft.M[2][2], projLeft.M[2][3]);
+			WARN_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", projLeft.M[3][0], projLeft.M[3][1], projLeft.M[3][2], projLeft.M[3][3]);
+			NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtxLeft.data[0 * 4 + 0], projMtxLeft.data[0 * 4 + 1], projMtxLeft.data[0 * 4 + 2], projMtxLeft.data[0 * 4 + 3]);
+			NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtxLeft.data[1*4+0], projMtxLeft.data[1*4+1], projMtxLeft.data[1*4+2], projMtxLeft.data[1*4+3]);
+			NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtxLeft.data[2*4+0], projMtxLeft.data[2*4+1], projMtxLeft.data[2*4+2], projMtxLeft.data[2*4+3]);
+			NOTICE_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", projMtxLeft.data[3*4+0], projMtxLeft.data[3*4+1], projMtxLeft.data[3*4+2], projMtxLeft.data[3*4+3]);
+			projMtxLeft.data[0 * 4 + 0] = projLeft.M[0][0]; // h fov
+			projMtxLeft.data[1 * 4 + 1] = projLeft.M[1][1]; // v fov
+			projMtxLeft.data[0 * 4 + 2] = projLeft.M[0][2] * projMtxLeft.data[3 * 4 + 2]; // h off-axis
+			projMtxLeft.data[1 * 4 + 2] = projLeft.M[1][2] * projMtxLeft.data[3 * 4 + 2]; // v off-axis
 			projMtxRight.data[0 * 4 + 0] = projRight.M[0][0];
 			projMtxRight.data[1 * 4 + 1] = projRight.M[1][1];
-			projMtxRight.data[0 * 4 + 3] = projRight.M[0][3];
-			projMtxRight.data[1 * 4 + 3] = projRight.M[1][3];
+			projMtxRight.data[0 * 4 + 2] = projRight.M[0][2] * projMtxRight.data[3 * 4 + 2];
+			projMtxRight.data[1 * 4 + 2] = projRight.M[1][2] * projMtxRight.data[3 * 4 + 2];
+			ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtxLeft.data[0 * 4 + 0], projMtxLeft.data[0 * 4 + 1], projMtxLeft.data[0 * 4 + 2], projMtxLeft.data[0 * 4 + 3]);
+			ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtxLeft.data[1 * 4 + 0], projMtxLeft.data[1 * 4 + 1], projMtxLeft.data[1 * 4 + 2], projMtxLeft.data[1 * 4 + 3]);
+			ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", projMtxLeft.data[2 * 4 + 0], projMtxLeft.data[2 * 4 + 1], projMtxLeft.data[2 * 4 + 2], projMtxLeft.data[2 * 4 + 3]);
+			ERROR_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", projMtxLeft.data[3 * 4 + 0], projMtxLeft.data[3 * 4 + 1], projMtxLeft.data[3 * 4 + 2], projMtxLeft.data[3 * 4 + 3]);
 		}
 #endif
+		const float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre;
 		//VR Headtracking
 		UpdateHeadTrackingIfNeeded();
+		Matrix44 mtxTranslationLeft, mtxTranslationRight;
+		float posLeft[3] = { 0, 0, 0 };
+		float posRight[3] = { 0, 0, 0 };
+		if (g_has_rift && g_ActiveConfig.bFreeLook)
+		{
+			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
+			posLeft[1] = g_eye_render_desc[0].ViewAdjust.y * UnitsPerMetre;
+			posLeft[2] = g_eye_render_desc[0].ViewAdjust.z * UnitsPerMetre;
+			posRight[0] = g_eye_render_desc[1].ViewAdjust.x * UnitsPerMetre;
+			posRight[1] = g_eye_render_desc[1].ViewAdjust.y * UnitsPerMetre;
+			posRight[2] = g_eye_render_desc[1].ViewAdjust.z * UnitsPerMetre;
+		}
+		Matrix44::Translate(mtxTranslationLeft, posLeft);
+		Matrix44::Translate(mtxTranslationRight, posRight);
 		//VR sometimes yaw needs to be inverted for games that use a flipped x axis
 		// (ActionGirlz even uses flipped matrices and non-flipped matrices in the same frame)
 		if (rawProjection[0]<0 || rawProjection[2]<0)
@@ -586,8 +610,8 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 		else
 		{
-			Matrix44::Multiply(projMtxLeft, g_head_tracking_matrix, rotatedMtxLeft);
-			Matrix44::Multiply(projMtxRight, g_head_tracking_matrix, rotatedMtxRight);
+			Matrix44::Multiply(projMtxLeft, mtxTranslationLeft, rotatedMtxLeft);
+			Matrix44::Multiply(projMtxRight, mtxTranslationRight, rotatedMtxRight);
 		}
 		memcpy(constants.projection, rotatedMtxLeft.data, 4 * 16);
 		memcpy(constants_eye_projection[0], rotatedMtxLeft.data, 4 * 16);

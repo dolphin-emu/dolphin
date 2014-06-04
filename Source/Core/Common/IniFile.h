@@ -116,6 +116,7 @@ public:
 	bool Get(const std::string& sectionName, const std::string& key, int* value, int defaultValue = 0);
 	bool Get(const std::string& sectionName, const std::string& key, u32* value, u32 defaultValue = 0);
 	bool Get(const std::string& sectionName, const std::string& key, bool* value, bool defaultValue = false);
+	bool Get(const std::string& sectionName, const std::string& key, float* value, float defaultValue = 0.0f);
 	bool Get(const std::string& sectionName, const std::string& key, std::vector<std::string>* values);
 	bool Get(const std::string& sectionName, const std::string& key, std::string* value, const std::string& defaultValue = NULL_STRING);
 

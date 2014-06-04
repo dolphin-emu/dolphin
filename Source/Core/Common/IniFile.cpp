@@ -461,6 +461,18 @@ bool IniFile::Get(const std::string& sectionName, const std::string& key, int* v
 	}
 }
 
+bool IniFile::Get(const std::string& sectionName, const std::string& key, float* value, float defaultValue)
+{
+	Section *section = GetSection(sectionName);
+	if (!section) {
+		*value = defaultValue;
+		return false;
+	}
+	else {
+		return section->Get(key, value, defaultValue);
+	}
+}
+
 bool IniFile::Get(const std::string& sectionName, const std::string& key, u32* value, u32 defaultValue)
 {
 	Section *section = GetSection(sectionName);
