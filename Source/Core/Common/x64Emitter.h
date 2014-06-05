@@ -576,6 +576,7 @@ public:
 
 	void CVTTSS2SI(X64Reg xregdest, OpArg arg);  // Yeah, destination really is a GPR like EAX!
 	void CVTTPS2DQ(X64Reg regOp, OpArg arg);
+	void CVTTPD2DQ(X64Reg regOp, OpArg arg);
 
 	// SSE2: Packed integer instructions
 	void PACKSSDW(X64Reg dest, OpArg arg);
