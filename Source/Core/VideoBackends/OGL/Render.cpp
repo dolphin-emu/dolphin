@@ -63,6 +63,7 @@
 #include "VideoCommon/AVIDump.h"
 #endif
 
+static bool g_first_rift_frame = true;
 
 void VideoConfig::UpdateProjectionHack()
 {
@@ -341,6 +342,7 @@ void InitDriverInfo()
 // Init functions
 Renderer::Renderer()
 {
+	g_first_rift_frame = true;
 	OSDInternalW = 0;
 	OSDInternalH = 0;
 
@@ -635,6 +637,27 @@ Renderer::~Renderer()
 
 void Renderer::Shutdown()
 {
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift && !g_first_rift_frame)
+	{
+		//TargetRectangle targetRc = ConvertEFBRectangle(rc);
+
+		// for msaa mode, we must resolve the efb content to non-msaa
+		//FramebufferManager::ResolveAndGetRenderTarget(rc, 0);
+		//FramebufferManager::ResolveAndGetRenderTarget(rc, 1);
+
+		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
+		PostProcessing::BindTargetFramebuffer();
+
+		ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
+		ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
+
+		// Let OVR do distortion rendering, Present and flush/sync.
+		ovrHmd_EndFrame(hmd);
+	}
+#endif
+	g_first_rift_frame = true;
+
 	delete g_framebuffer_manager;
 
 	g_Config.bRunning = false;
@@ -1323,13 +1346,12 @@ void DumpFrame(const std::vector<u8>& data, int w, int h)
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 #ifdef HAVE_OCULUSSDK
-	static bool first_rift_frame = true;
-	if (first_rift_frame && g_has_rift)
+	if (g_first_rift_frame && g_has_rift)
 	{
 		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
 		g_left_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Left);
 		g_right_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Right);
-		first_rift_frame = false;
+		g_first_rift_frame = false;
 	}
 #endif
 

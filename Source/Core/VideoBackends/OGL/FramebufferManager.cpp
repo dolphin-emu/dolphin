@@ -308,6 +308,14 @@ FramebufferManager::~FramebufferManager()
 		VR920_StopStereo3D();
 	}
 #endif
+#ifdef HAVE_OCULUSSDK
+	// Shut down rendering and release resources (by passing NULL)
+	if (g_has_rift)
+	{
+		ovrHmd_ConfigureRendering(hmd, nullptr, 0, g_eye_fov, g_eye_render_desc);
+	}
+#endif
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	m_current_eye = 0;
 
