@@ -104,7 +104,7 @@ PC_TexFormat GetHiresTex(const std::string& filename, unsigned int* pWidth, unsi
 	*pWidth = width;
 	*pHeight = height;
 
-	int offset = 0;
+	//int offset = 0;
 	PC_TexFormat returnTex = PC_TEX_FMT_NONE;
 
 	switch (texformat)

@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
+
 #include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/Thread.h"
@@ -687,7 +689,7 @@ void ExecuteCommand()
 					if (iDVDOffset + m_DILENGTH.Length - g_last_read_offset > 1024 * 1024)
 					{
 						// No buffer; just use the simple seek time + read time.
-						DEBUG_LOG(DVDINTERFACE, "Seeking %lld bytes", s64(g_last_read_offset) - s64(iDVDOffset));
+						DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes", s64(g_last_read_offset) - s64(iDVDOffset));
 						ticksUntilTC = disk_read_duration;
 						g_last_read_time = cur_time + ticksUntilTC;
 					}
@@ -707,19 +709,19 @@ void ExecuteCommand()
 
 						if (cur_time > buffer_fill_time)
 						{
-							DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %lld", s64(iDVDOffset));
+							DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %" PRId64, s64(iDVDOffset));
 							ticksUntilTC = buffer_read_duration;
 							g_last_read_time = buffer_fill_time;
 						}
 						else if (cur_time + disk_read_duration > buffer_fill_time)
 						{
-							DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %lld", s64(iDVDOffset));
+							DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %" PRId64, s64(iDVDOffset));
 							ticksUntilTC = std::max(buffer_fill_time - cur_time, buffer_read_duration);
 							g_last_read_time = buffer_fill_time;
 						}
 						else
 						{
-							DEBUG_LOG(DVDINTERFACE, "Short seek %lld bytes", s64(g_last_read_offset) - s64(iDVDOffset));
+							DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes", s64(g_last_read_offset) - s64(iDVDOffset));
 							ticksUntilTC = disk_read_duration;
 							g_last_read_time = cur_time + ticksUntilTC;
 						}
