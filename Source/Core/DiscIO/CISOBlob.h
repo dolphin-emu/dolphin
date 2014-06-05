@@ -31,7 +31,7 @@ struct CISOHeader
 	u8 map[CISO_MAP_SIZE];
 };
 
-class CISOFileReader : public IBlobReader
+class CISOFileReader final : public IBlobReader
 {
 public:
 	static CISOFileReader* Create(const std::string& filename);

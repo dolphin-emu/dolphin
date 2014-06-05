@@ -16,7 +16,7 @@ namespace DiscIO
 
 class IVolume;
 
-class CFileSystemGCWii : public IFileSystem
+class CFileSystemGCWii final : public IFileSystem
 {
 public:
 	CFileSystemGCWii(const IVolume* _rVolume);

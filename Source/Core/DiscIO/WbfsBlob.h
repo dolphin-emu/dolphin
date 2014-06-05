@@ -14,7 +14,7 @@
 namespace DiscIO
 {
 
-class WbfsFileReader : public IBlobReader
+class WbfsFileReader final : public IBlobReader
 {
 	WbfsFileReader(const std::string& filename);
 	~WbfsFileReader();

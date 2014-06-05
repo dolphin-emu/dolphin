@@ -43,7 +43,7 @@ struct CompressedBlobHeader // 32 bytes
 	u32 num_blocks;
 };
 
-class CompressedBlobReader : public SectorReader
+class CompressedBlobReader final : public SectorReader
 {
 public:
 	static CompressedBlobReader* Create(const std::string& filename);

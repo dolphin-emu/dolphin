@@ -19,7 +19,7 @@ namespace DiscIO
 
 class IBlobReader;
 
-class CVolumeWAD : public IVolume
+class CVolumeWAD final : public IVolume
 {
 public:
 	CVolumeWAD(IBlobReader* _pReader);

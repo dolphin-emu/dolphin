@@ -18,7 +18,7 @@
 namespace DiscIO
 {
 
-class DriveReader : public SectorReader
+class DriveReader final : public SectorReader
 {
 private:
 	DriveReader(const std::string& drive);

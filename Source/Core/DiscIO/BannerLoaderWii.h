@@ -15,16 +15,13 @@ namespace DiscIO
 
 class IVolume;
 
-class CBannerLoaderWii
-	: public IBannerLoader
+class CBannerLoaderWii final : public IBannerLoader
 {
 	public:
 
 		CBannerLoaderWii(DiscIO::IVolume *pVolume);
 
 		virtual ~CBannerLoaderWii();
-
-		virtual bool IsValid() override;
 
 		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) override;
 
@@ -60,10 +57,6 @@ class CBannerLoaderWii
 			u8  m_BannerTexture[TEXTURE_SIZE];
 			u8  m_IconTexture[8][ICON_SIZE];
 		} ;
-
-		u8* m_pBannerFile;
-
-		bool m_IsValid;
 
 		bool GetStringFromComments(const CommentIndex index, std::string& s);
 };

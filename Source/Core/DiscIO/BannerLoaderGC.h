@@ -19,14 +19,11 @@ namespace DiscIO
 
 class IFileSystem;
 
-class CBannerLoaderGC
-	: public IBannerLoader
+class CBannerLoaderGC final : public IBannerLoader
 {
 	public:
 		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume);
 		virtual ~CBannerLoaderGC();
-
-		virtual bool IsValid() override;
 
 		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) override;
 
@@ -79,10 +76,7 @@ class CBannerLoaderGC
 			return string_decoder(std::string(data, strnlen(data, sizeof(data))));
 		}
 
-		u8* m_pBannerFile;
-		bool m_IsValid;
 		BANNER_TYPE m_BNRType;
-
 		BANNER_TYPE getBannerType();
 
 		DiscIO::IVolume::ECountry const m_country;
