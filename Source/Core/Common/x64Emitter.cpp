@@ -1515,6 +1515,10 @@ void XEmitter::PSRAD(X64Reg reg, int shift) {
 	Write8(shift);
 }
 
+void XEmitter::BLENDPS(X64Reg reg, OpArg arg, u8 mask) {WriteSSEOp(64, 0x3A0C, true, reg, arg, 1); Write8(mask);}
+void XEmitter::BLENDPD(X64Reg reg, OpArg arg, u8 mask) {WriteSSEOp(64, 0x3A0D, true, reg, arg, 1); Write8(mask);}
+void XEmitter::BLENDVPD(X64Reg reg, OpArg arg)         {WriteSSEOp(64, 0x3815, true, reg, arg);}
+
 void XEmitter::PSHUFB(X64Reg dest, OpArg arg)   {WriteSSEOp(64, 0x3800, true, dest, arg);}
 void XEmitter::PTEST(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0x3817, true, dest, arg);}
 

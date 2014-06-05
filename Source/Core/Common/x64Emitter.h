@@ -593,6 +593,7 @@ public:
 
 	void PTEST(X64Reg dest, OpArg arg);
 	void PAND(X64Reg dest, OpArg arg);
+	// dest = !dest & arg
 	void PANDN(X64Reg dest, OpArg arg);
 	void PXOR(X64Reg dest, OpArg arg);
 	void POR(X64Reg dest, OpArg arg);
@@ -655,6 +656,10 @@ public:
 
 	void PSRAW(X64Reg reg, int shift);
 	void PSRAD(X64Reg reg, int shift);
+
+	void BLENDPS(X64Reg reg, OpArg arg, u8 mask);
+	void BLENDPD(X64Reg reg, OpArg arg, u8 mask);
+	void BLENDVPD(X64Reg reg, OpArg arg);
 
 	// AVX
 	void VADDSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
