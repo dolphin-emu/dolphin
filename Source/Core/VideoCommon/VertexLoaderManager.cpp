@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -33,11 +34,13 @@ struct hash<VertexLoaderUID>
 }
 
 typedef std::unordered_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
+typedef std::map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexLoaderMap;
 
 namespace VertexLoaderManager
 {
 
 static VertexLoaderMap g_VertexLoaderMap;
+static NativeVertexLoaderMap s_native_vertex_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
 void Init()
@@ -55,6 +58,7 @@ void Shutdown()
 		delete p.second;
 	}
 	g_VertexLoaderMap.clear();
+	s_native_vertex_map.clear();
 }
 
 namespace
@@ -129,6 +133,19 @@ void RunVertices(int vtx_attr_group, int primitive, int count)
 int GetVertexSize(int vtx_attr_group)
 {
 	return RefreshLoader(vtx_attr_group)->GetVertexSize();
+}
+
+NativeVertexFormat* GetNativeVertexFormat(const PortableVertexDeclaration& format, u32 components)
+{
+	auto& native = s_native_vertex_map[format];
+	if (!native)
+	{
+		auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
+		native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
+		native->m_components = components;
+		native->Initialize(format);
+	}
+	return native.get();
 }
 
 }  // namespace
