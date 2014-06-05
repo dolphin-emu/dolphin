@@ -10,8 +10,9 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Common/Log.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
+
 #include "Core/HW/VideoInterface.h" //for TargetRefreshRate
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/VideoConfig.h"

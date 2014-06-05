@@ -29,10 +29,10 @@
 #include <wx/aui/framemanager.h>
 
 #include "Common/Common.h"
-#include "Common/ConsoleListener.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/ConsoleListener.h"
+#include "Common/Logging/LogManager.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/WxUtils.h"
