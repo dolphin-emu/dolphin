@@ -46,7 +46,10 @@ protected:
 	size_t m_free_iterator;
 
 private:
-	static const u32 SYNC_POINTS = 16;
+	static const int SYNC_POINTS = 16;
+	inline int SLOT(size_t x) const { return x >> m_bit_per_slot; }
+	const int m_bit_per_slot;
+
 	GLsync fences[SYNC_POINTS];
 };
 

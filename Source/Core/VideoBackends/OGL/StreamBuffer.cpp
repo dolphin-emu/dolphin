@@ -23,7 +23,7 @@ static u32 genBuffer()
 }
 
 StreamBuffer::StreamBuffer(u32 type, size_t size)
-: m_buffer(genBuffer()), m_buffertype(type), m_size(size)
+: m_buffer(genBuffer()), m_buffertype(type), m_size(ROUND_UP_POW2(size)), m_bit_per_slot(Log2(ROUND_UP_POW2(size) / SYNC_POINTS))
 {
 	m_iterator = 0;
 	m_used_iterator = 0;
@@ -59,19 +59,20 @@ StreamBuffer::~StreamBuffer()
  * As ring buffers have an ugly behavoir on rollover, have fun to read this code ;)
  */
 
-#define SLOT(x) ((x)*SYNC_POINTS/m_size)
 void StreamBuffer::CreateFences()
 {
-	for (u32 i=0; i<SYNC_POINTS; i++)
+	for (int i=0; i<SYNC_POINTS; i++)
+	{
 		fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	}
 }
 void StreamBuffer::DeleteFences()
 {
-	for (size_t i = SLOT(m_free_iterator) + 1; i < SYNC_POINTS; i++)
+	for (int i = SLOT(m_free_iterator) + 1; i < SYNC_POINTS; i++)
 	{
 		glDeleteSync(fences[i]);
 	}
-	for (size_t i = 0; i < SLOT(m_iterator); i++)
+	for (int i = 0; i < SLOT(m_iterator); i++)
 	{
 		glDeleteSync(fences[i]);
 	}
@@ -79,14 +80,14 @@ void StreamBuffer::DeleteFences()
 void StreamBuffer::AllocMemory(size_t size)
 {
 	// insert waiting slots for used memory
-	for (size_t i = SLOT(m_used_iterator); i < SLOT(m_iterator); i++)
+	for (int i = SLOT(m_used_iterator); i < SLOT(m_iterator); i++)
 	{
 		fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	}
 	m_used_iterator = m_iterator;
 
 	// wait for new slots to end of buffer
-	for (size_t i = SLOT(m_free_iterator) + 1; i <= SLOT(m_iterator + size) && i < SYNC_POINTS; i++)
+	for (int i = SLOT(m_free_iterator) + 1; i <= SLOT(m_iterator + size) && i < SYNC_POINTS; i++)
 	{
 		glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
 		glDeleteSync(fences[i]);
@@ -97,7 +98,7 @@ void StreamBuffer::AllocMemory(size_t size)
 	if (m_iterator + size >= m_size) {
 
 		// insert waiting slots in unused space at the end of the buffer
-		for (size_t i = SLOT(m_used_iterator); i < SYNC_POINTS; i++)
+		for (int i = SLOT(m_used_iterator); i < SYNC_POINTS; i++)
 		{
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		}
@@ -106,7 +107,7 @@ void StreamBuffer::AllocMemory(size_t size)
 		m_used_iterator = m_iterator = 0; // offset 0 is always aligned
 
 		// wait for space at the start
-		for (u32 i = 0; i <= SLOT(m_iterator + size); i++)
+		for (int i = 0; i <= SLOT(m_iterator + size); i++)
 		{
 			glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
 			glDeleteSync(fences[i]);
@@ -114,7 +115,6 @@ void StreamBuffer::AllocMemory(size_t size)
 		m_free_iterator = m_iterator + size;
 	}
 }
-#undef SLOT
 
 void StreamBuffer::Align(u32 stride)
 {
