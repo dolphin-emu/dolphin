@@ -41,8 +41,8 @@ Make AA apply instantly during gameplay if possible
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
-#include "Common/LogManager.h"
 #include "Common/Thread.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

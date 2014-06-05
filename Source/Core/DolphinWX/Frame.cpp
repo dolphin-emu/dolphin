@@ -45,9 +45,9 @@
 #include <wx/aui/framemanager.h>
 
 #include "Common/Common.h"
-#include "Common/ConsoleListener.h"
 #include "Common/FileUtil.h"
 #include "Common/Thread.h"
+#include "Common/Logging/ConsoleListener.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

@@ -12,8 +12,8 @@
 #include <array>
 #endif
 
-#include "Common/ConsoleListener.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/ConsoleListener.h"
 
 ConsoleListener::ConsoleListener()
 {

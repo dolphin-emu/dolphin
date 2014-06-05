@@ -14,12 +14,12 @@
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/CPUDetect.h"
-#include "Common/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

@@ -4,7 +4,7 @@
 
 #include <map>
 
-#include "Common/LogManager.h"
+#include "Common/Logging/LogManager.h"
 #include "VideoCommon/DriverDetails.h"
 
 namespace DriverDetails

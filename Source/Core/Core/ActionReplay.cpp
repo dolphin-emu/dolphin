@@ -23,8 +23,8 @@
 #include <vector>
 
 #include "Common/Common.h"
-#include "Common/LogManager.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ActionReplay.h"
 #include "Core/ARDecrypt.h"

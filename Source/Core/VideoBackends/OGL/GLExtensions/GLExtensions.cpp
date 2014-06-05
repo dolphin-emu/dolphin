@@ -5,7 +5,7 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "Common/Log.h"
+#include "Common/Logging/Log.h"
 #include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 
 #if defined(__linux__) || defined(__APPLE__)

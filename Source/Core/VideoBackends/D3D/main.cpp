@@ -7,8 +7,8 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/LogManager.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
