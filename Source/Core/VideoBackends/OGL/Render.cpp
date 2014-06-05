@@ -110,6 +110,7 @@ static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
 static const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
 static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
+static bool s_efbCacheIsCleared = false;
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
 int GetNumMSAASamples(int MSAAMode)
@@ -615,6 +616,7 @@ Renderer::Renderer()
 			}
 	}
 	UpdateActiveConfig();
+	ClearEFBCache();
 }
 
 Renderer::~Renderer()
@@ -882,11 +884,11 @@ void Renderer::SetColorMask()
 
 void ClearEFBCache()
 {
-	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
-		s_efbCacheValid[0][i] = false;
-
-	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
-		s_efbCacheValid[1][i] = false;
+	if (!s_efbCacheIsCleared)
+	{
+		s_efbCacheIsCleared = true;
+		memset(s_efbCacheValid, 0, sizeof(s_efbCacheValid));
+	}
 }
 
 void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data)
@@ -916,6 +918,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 	}
 
 	s_efbCacheValid[cacheType][cacheRectIdx] = true;
+	s_efbCacheIsCleared = false;
 }
 
 // This function allows the CPU to directly access the EFB.
