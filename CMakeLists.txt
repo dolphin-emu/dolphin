@@ -670,7 +670,7 @@ endif()
 
 if(NOT DISABLE_WX AND NOT ANDROID)
 	include(FindwxWidgets OPTIONAL)
-	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
+	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv net)
 
 	if(wxWidgets_FOUND)
 		EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
