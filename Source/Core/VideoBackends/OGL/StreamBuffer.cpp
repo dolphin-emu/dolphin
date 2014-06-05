@@ -116,14 +116,6 @@ void StreamBuffer::AllocMemory(size_t size)
 	}
 }
 
-void StreamBuffer::Align(u32 stride)
-{
-	if (m_iterator && stride) {
-		m_iterator--;
-		m_iterator = m_iterator - (m_iterator % stride) + stride;
-	}
-}
-
 /* The usual way to stream data to the gpu.
  * Described here: https://www.opengl.org/wiki/Buffer_Object_Streaming#Unsynchronized_buffer_mapping
  * Just do unsync appends until the buffer is full.
@@ -142,8 +134,7 @@ public:
 	~MapAndOrphan() {
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
-		Align(stride);
+	std::pair<u8*, size_t> Map(size_t size) override {
 		if (m_iterator + size >= m_size) {
 			glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
 			m_iterator = 0;
@@ -180,8 +171,7 @@ public:
 		DeleteFences();
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
-		Align(stride);
+	std::pair<u8*, size_t> Map(size_t size) override {
 		AllocMemory(size);
 		u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
 			GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
@@ -230,8 +220,7 @@ public:
 		glBindBuffer(m_buffertype, 0);
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
-		Align(stride);
+	std::pair<u8*, size_t> Map(size_t size) override {
 		AllocMemory(size);
 		return std::make_pair(m_pointer + m_iterator, m_iterator);
 	}
@@ -271,8 +260,7 @@ public:
 		m_pointer = nullptr;
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
-		Align(stride);
+	std::pair<u8*, size_t> Map(size_t size) override {
 		AllocMemory(size);
 		return std::make_pair(m_pointer + m_iterator, m_iterator);
 	}
@@ -303,7 +291,7 @@ public:
 		delete [] m_pointer;
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
+	std::pair<u8*, size_t> Map(size_t size) override {
 		return std::make_pair(m_pointer, 0);
 	}
 
@@ -331,7 +319,7 @@ public:
 		delete [] m_pointer;
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
+	std::pair<u8*, size_t> Map(size_t size) override {
 		return std::make_pair(m_pointer, 0);
 	}
 

@@ -26,8 +26,18 @@ public:
 	 * Mapping invalidates the current buffer content,
 	 * so it isn't allowed to access the old content any more.
 	 */
-	virtual std::pair<u8*, size_t> Map(size_t size, u32 stride = 0) = 0;
+	virtual std::pair<u8*, size_t> Map(size_t size) = 0;
 	virtual void Unmap(size_t used_size) = 0;
+
+	inline std::pair<u8*, size_t> Map(size_t size, u32 stride)
+	{
+		u32 padding = m_iterator % stride;
+		if (padding)
+		{
+			m_iterator += stride - padding;
+		}
+		return Map(size);
+        }
 
 	const u32 m_buffer;
 
@@ -36,7 +46,6 @@ protected:
 	void CreateFences();
 	void DeleteFences();
 	void AllocMemory(size_t size);
-	void Align(u32 stride);
 
 	const u32 m_buffertype;
 	const size_t m_size;
