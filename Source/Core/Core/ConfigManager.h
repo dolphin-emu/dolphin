@@ -72,6 +72,18 @@ struct SConfig : NonCopyable
 	int m_ListSort;
 	int m_ListSort2;
 
+	// Game list column toggles
+	bool m_showSystemColumn;
+	bool m_showBannerColumn;
+	bool m_showNotesColumn;
+	bool m_showIDColumn;
+	bool m_showRegionColumn;
+	bool m_showSizeColumn;
+	bool m_showStateColumn;
+
+	// Toggles whether compressed titles show up in blue in the game list
+	bool m_ColorCompressed;
+
 	std::string m_WirelessMac;
 	bool m_PauseMovie;
 	bool m_ShowLag;

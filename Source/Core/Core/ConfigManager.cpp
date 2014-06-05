@@ -226,6 +226,16 @@ void SConfig::SaveSettings()
 	ini.Set("GameList", "ListSort",     m_ListSort);
 	ini.Set("GameList", "ListSortSecondary", m_ListSort2);
 
+	ini.Set("GameList", "ColorCompressed", m_ColorCompressed);
+
+	ini.Set("GameList", "ColumnPlatform", m_showSystemColumn);
+	ini.Set("GameList", "ColumnBanner", m_showBannerColumn);
+	ini.Set("GameList", "ColumnNotes", m_showNotesColumn);
+	ini.Set("GameList", "ColumnID", m_showIDColumn);
+	ini.Set("GameList", "ColumnRegion", m_showRegionColumn);
+	ini.Set("GameList", "ColumnSize", m_showSizeColumn);
+	ini.Set("GameList", "ColumnState", m_showStateColumn);
+
 	// Core
 	ini.Set("Core", "HLE_BS2",          m_LocalCoreStartupParameter.bHLE_BS2);
 	ini.Set("Core", "CPUCore",          m_LocalCoreStartupParameter.iCPUCore);
@@ -375,6 +385,18 @@ void SConfig::LoadSettings()
 		ini.Get("GameList", "ListUnknown",      &m_ListUnknown, true);
 		ini.Get("GameList", "ListSort",         &m_ListSort,       3);
 		ini.Get("GameList", "ListSortSecondary",&m_ListSort2,  0);
+
+		// Determines if compressed games display in blue
+		ini.Get("GameList", "ColorCompressed", &m_ColorCompressed, true);
+
+		// Gamelist columns toggles
+		ini.Get("GameList", "ColumnPlatform",   &m_showSystemColumn,  true);
+		ini.Get("GameList", "ColumnBanner",     &m_showBannerColumn,  true);
+		ini.Get("GameList", "ColumnNotes",      &m_showNotesColumn,   true);
+		ini.Get("GameList", "ColumnID",         &m_showIDColumn,      false);
+		ini.Get("GameList", "ColumnRegion",     &m_showRegionColumn,  true);
+		ini.Get("GameList", "ColumnSize",       &m_showSizeColumn,    true);
+		ini.Get("GameList", "ColumnState",      &m_showStateColumn,   true);
 
 		// Core
 		ini.Get("Core", "HLE_BS2",      &m_LocalCoreStartupParameter.bHLE_BS2, false);
