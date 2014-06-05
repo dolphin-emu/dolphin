@@ -76,6 +76,15 @@ struct PortableVertexDeclaration
 	AttributeFormat colors[2];
 	AttributeFormat texcoords[8];
 	AttributeFormat posmtx;
+
+	inline bool operator<(const PortableVertexDeclaration& b) const
+	{
+		return memcmp(this, &b, sizeof(PortableVertexDeclaration)) < 0;
+	}
+	inline bool operator==(const PortableVertexDeclaration& b) const
+	{
+		return memcmp(this, &b, sizeof(PortableVertexDeclaration)) == 0;
+	}
 };
 
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
