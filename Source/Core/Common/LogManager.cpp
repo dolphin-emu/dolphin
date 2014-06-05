@@ -82,7 +82,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::MEMCARD_MANAGER]    = new LogContainer("MemCard Manager", "MemCard Manager");
 	m_Log[LogTypes::NETPLAY]            = new LogContainer("NETPLAY",         "Netplay");
 
-	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX).c_str());
+	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX));
 	m_consoleLog = new ConsoleListener();
 	m_debuggerLog = new DebuggerLogListener();
 
@@ -130,7 +130,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	                                   Common::Timer::GetTimeFormatted().c_str(),
 	                                   file, line,
 	                                   LogTypes::LOG_LEVEL_TO_CHAR[(int)level],
-	                                   log->GetShortName(), temp);
+	                                   log->GetShortName().c_str(), temp);
 #ifdef ANDROID
 	Host_SysMessage(msg.c_str());
 #endif
@@ -148,12 +148,12 @@ void LogManager::Shutdown()
 	m_logManager = nullptr;
 }
 
-LogContainer::LogContainer(const char* shortName, const char* fullName, bool enable)
-	: m_enable(enable)
+LogContainer::LogContainer(const std::string& shortName, const std::string& fullName, bool enable)
+	: m_fullName(fullName),
+	  m_shortName(shortName),
+	  m_enable(enable),
+	  m_level(LogTypes::LWARNING)
 {
-	strncpy(m_fullName, fullName, 128);
-	strncpy(m_shortName, shortName, 32);
-	m_level = LogTypes::LWARNING;
 }
 
 // LogContainer
@@ -179,7 +179,7 @@ void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char *msg)
 	}
 }
 
-FileLogListener::FileLogListener(const char *filename)
+FileLogListener::FileLogListener(const std::string& filename)
 {
 	OpenFStream(m_logfile, filename, std::ios::app);
 	SetEnable(true);

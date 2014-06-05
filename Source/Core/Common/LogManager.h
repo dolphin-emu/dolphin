@@ -7,6 +7,7 @@
 #include <cstdarg>
 #include <fstream>
 #include <set>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/StdMutex.h"
@@ -27,7 +28,7 @@ public:
 class FileLogListener : public LogListener
 {
 public:
-	FileLogListener(const char *filename);
+	FileLogListener(const std::string& filename);
 
 	void Log(LogTypes::LOG_LEVELS, const char *msg) override;
 
@@ -52,10 +53,10 @@ public:
 class LogContainer
 {
 public:
-	LogContainer(const char* shortName, const char* fullName, bool enable = false);
+	LogContainer(const std::string& shortName, const std::string& fullName, bool enable = false);
 
-	const char* GetShortName() const { return m_shortName; }
-	const char* GetFullName() const { return m_fullName; }
+	std::string GetShortName() const { return m_shortName; }
+	std::string GetFullName() const { return m_fullName; }
 
 	void AddListener(LogListener* listener);
 	void RemoveListener(LogListener* listener);
@@ -72,8 +73,8 @@ public:
 	bool HasListeners() const { return !m_listeners.empty(); }
 
 private:
-	char m_fullName[128];
-	char m_shortName[32];
+	std::string m_fullName;
+	std::string m_shortName;
 	bool m_enable;
 	LogTypes::LOG_LEVELS m_level;
 	std::mutex m_listeners_lock;
@@ -115,12 +116,12 @@ public:
 		return m_Log[type]->IsEnabled();
 	}
 
-	const char* GetShortName(LogTypes::LOG_TYPE type) const
+	std::string GetShortName(LogTypes::LOG_TYPE type) const
 	{
 		return m_Log[type]->GetShortName();
 	}
 
-	const char* GetFullName(LogTypes::LOG_TYPE type) const
+	std::string GetFullName(LogTypes::LOG_TYPE type) const
 	{
 		return m_Log[type]->GetFullName();
 	}
