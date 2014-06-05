@@ -46,7 +46,8 @@ protected:
 	size_t m_free_iterator;
 
 private:
-	GLsync *fences;
+	static const u32 SYNC_POINTS = 16;
+	GLsync fences[SYNC_POINTS];
 };
 
 }

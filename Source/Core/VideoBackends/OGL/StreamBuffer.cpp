@@ -28,7 +28,6 @@ StreamBuffer::StreamBuffer(u32 type, size_t size)
 	m_iterator = 0;
 	m_used_iterator = 0;
 	m_free_iterator = 0;
-	fences = nullptr;
 }
 
 
@@ -61,10 +60,8 @@ StreamBuffer::~StreamBuffer()
  */
 
 #define SLOT(x) ((x)*SYNC_POINTS/m_size)
-static const u32 SYNC_POINTS = 16;
 void StreamBuffer::CreateFences()
 {
-	fences = new GLsync[SYNC_POINTS];
 	for (u32 i=0; i<SYNC_POINTS; i++)
 		fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }
@@ -78,7 +75,6 @@ void StreamBuffer::DeleteFences()
 	{
 		glDeleteSync(fences[i]);
 	}
-	delete [] fences;
 }
 void StreamBuffer::AllocMemory(size_t size)
 {
