@@ -29,6 +29,11 @@
 #include "Core/PowerPC/JitArm32/JitArm_Tables.h"
 #endif
 
+#if _M_ARM_64
+#include "Core/PowerPC/JitArm64/Jit.h"
+#include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
+#endif
+
 static bool bFakeVMEM = false;
 bool bMMU = false;
 
@@ -66,6 +71,13 @@ namespace JitInterface
 				break;
 			}
 			#endif
+			#if _M_ARM_64
+			case 4:
+			{
+				ptr = new JitArm64();
+				break;
+			}
+			#endif
 			default:
 			{
 				PanicAlert("Unrecognizable cpu_core: %d", core);
@@ -97,6 +109,13 @@ namespace JitInterface
 			case 3:
 			{
 				JitArmTables::InitTables();
+				break;
+			}
+			#endif
+			#if _M_ARM_64
+			case 4:
+			{
+				JitArm64Tables::InitTables();
 				break;
 			}
 			#endif

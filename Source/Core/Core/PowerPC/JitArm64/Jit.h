@@ -1,0 +1,99 @@
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#pragma once
+
+#include "Common/Arm64Emitter.h"
+
+#include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
+#include "Core/PowerPC/JitArm64/JitArm64Cache.h"
+#include "Core/PowerPC/JitArm64/JitAsm.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+
+#define PPCSTATE_OFF(elem) ((s64)&PowerPC::ppcState.elem - (s64)&PowerPC::ppcState)
+using namespace Arm64Gen;
+class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock
+{
+public:
+	JitArm64() : code_buffer(32000) {}
+	~JitArm64() {}
+
+	void Init();
+	void Shutdown();
+
+	JitBaseBlockCache *GetBlockCache() { return &blocks; }
+
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return NULL; }
+
+	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
+
+	void ClearCache();
+
+	CommonAsmRoutinesBase *GetAsmRoutines()
+	{
+		return &asm_routines;
+	}
+
+	void Run();
+	void SingleStep();
+
+	void Jit(u32 em_address);
+
+	const char *GetName()
+	{
+		return "JITARM64";
+	}
+
+	// OPCODES
+	void unknown_instruction(UGeckoInstruction inst);
+	void FallBackToInterpreter(UGeckoInstruction inst);
+	void DoNothing(UGeckoInstruction inst);
+	void HLEFunction(UGeckoInstruction inst);
+
+	void DynaRunTable4(UGeckoInstruction inst);
+	void DynaRunTable19(UGeckoInstruction inst);
+	void DynaRunTable31(UGeckoInstruction inst);
+	void DynaRunTable59(UGeckoInstruction inst);
+	void DynaRunTable63(UGeckoInstruction inst);
+
+	// Force break
+	void Break(UGeckoInstruction inst);
+
+	// Branch
+	void sc(UGeckoInstruction inst);
+	void rfi(UGeckoInstruction inst);
+	void bx(UGeckoInstruction inst);
+	void bcx(UGeckoInstruction inst);
+	void bcctrx(UGeckoInstruction inst);
+	void bclrx(UGeckoInstruction inst);
+
+	// System Registers
+	void mtmsr(UGeckoInstruction inst);
+
+	// LoadStore
+	void icbi(UGeckoInstruction inst);
+
+private:
+	Arm64GPRCache gpr;
+	Arm64FPRCache fpr;
+
+	JitArm64BlockCache blocks;
+	JitArm64AsmRoutineManager asm_routines;
+
+	PPCAnalyst::CodeBuffer code_buffer;
+
+	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
+
+	void DoDownCount();
+
+	// Exits
+	void WriteExit(u32 destination);
+	void WriteExceptionExit(ARM64Reg dest);
+	void WriteExitDestInR(ARM64Reg dest);
+
+	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
+};
+

@@ -69,6 +69,11 @@ struct BlockRegStats
 			   std::min(firstRead[reg], firstWrite[reg]);
 	}
 
+	bool IsUsed(int reg)
+	{
+		return (numReads[reg] + numWrites[reg]) > 0;
+	}
+
 	inline void SetInputRegister(int reg, short opindex)
 	{
 		if (firstRead[reg] == -1)
