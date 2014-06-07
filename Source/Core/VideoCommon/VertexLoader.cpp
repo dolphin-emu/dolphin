@@ -769,7 +769,7 @@ void VertexLoader::CompileVertexTranslator()
 	SUB(32, M(&loop_counter), Imm8(1));
 #endif
 
-	J_CC(CC_NZ, loop_start, true);
+	J_CC(CC_NZ, loop_start);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 #endif

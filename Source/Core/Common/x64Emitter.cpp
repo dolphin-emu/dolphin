@@ -447,26 +447,24 @@ FixupBranch XEmitter::J_CC(CCFlags conditionCode, bool force5bytes)
 	return branch;
 }
 
-void XEmitter::J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes)
+void XEmitter::J_CC(CCFlags conditionCode, const u8* addr)
 {
 	u64 fn = (u64)addr;
-	if (!force5Bytes)
+	s64 distance = (s64)(fn - ((u64)code + 2));
+	if (distance < -0x80 || distance >= 0x80)
 	{
-		s64 distance = (s64)(fn - ((u64)code + 2));
-		_assert_msg_(DYNA_REC, distance >= -0x80 && distance < 0x80, "Jump target too far away, needs force5Bytes = true");
-		//8 bits will do
-		Write8(0x70 + conditionCode);
-		Write8((u8)(s8)distance);
-	}
-	else
-	{
-		s64 distance = (s64)(fn - ((u64)code + 6));
+		distance = (s64)(fn - ((u64)code + 6));
 		_assert_msg_(DYNA_REC,
 		             distance >= -0x80000000LL && distance < 0x80000000LL,
-			         "Jump target too far away, needs indirect register");
+		             "Jump target too far away, needs indirect register");
 		Write8(0x0F);
 		Write8(0x80 + conditionCode);
 		Write32((u32)(s32)distance);
+	}
+	else
+	{
+		Write8(0x70 + conditionCode);
+		Write8((u8)(s8)distance);
 	}
 }
 
