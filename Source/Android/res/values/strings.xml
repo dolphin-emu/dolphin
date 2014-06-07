@@ -68,7 +68,7 @@
     <string name="input_settings">Input</string>
     <string name="input_overlay_layout">Input Overlay Layout</string>
     <string name="input_overlay_layout_desc">Button layout for the input overlay.</string>
-    <string name="gamecube_bindings">Gamecube Controller Bindings</string>
+    <string name="gamecube_bindings">GameCube Controller Bindings</string>
     <string name="controller_0">Controller 1</string>
     <string name="controller_1">Controller 2</string>
     <string name="controller_2">Controller 3</string>
@@ -82,7 +82,7 @@
     <string name="enable_wiimote">Enable Wiimote</string>
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_descrip">Press or move an input to bind it to %1$s.</string>
-    <!-- Gamecube buttons (May be shared with Wiimote stuff too) -->
+    <!-- GameCube buttons (May be shared with Wiimote stuff too) -->
     <string name="button_a">Button A</string>
     <string name="button_b">Button B</string>
     <string name="button_start">Button Start</string>

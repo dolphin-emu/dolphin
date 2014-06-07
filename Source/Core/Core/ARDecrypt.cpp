@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 // Most of the code in this file is from:
-// GCNcrypt - Gamecube AR Crypto Program
+// GCNcrypt - GameCube AR Crypto Program
 // Copyright (C) 2003-2004 Parasyte
 
 #include <algorithm>

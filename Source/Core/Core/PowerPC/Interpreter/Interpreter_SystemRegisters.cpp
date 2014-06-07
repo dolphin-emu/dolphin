@@ -209,7 +209,7 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
 
 	//TODO - check processor privilege level - many of these require privilege
 	//XER LR CTR are the only ones available in user mode, time base can be read too.
-	//Gamecube games always run in superuser mode, but hey....
+	//GameCube games always run in superuser mode, but hey....
 
 	switch (iIndex)
 	{
@@ -248,7 +248,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 
 	//TODO - check processor privilege level - many of these require privilege
 	//XER LR CTR are the only ones available in user mode, time base can be read too.
-	//Gamecube games always run in superuser mode, but hey....
+	//GameCube games always run in superuser mode, but hey....
 
 	//Our DMA emulation is highly inaccurate - instead of properly emulating the queue
 	//and so on, we simply make all DMA:s complete instantaneously.

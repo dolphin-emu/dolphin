@@ -85,7 +85,7 @@ namespace SystemTimers
 u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
 
 /*
-Gamecube                   MHz
+GameCube                   MHz
 flipper <-> ARAM bus:      81 (DSP)
 gekko <-> flipper bus:     162
 flipper <-> 1T-SRAM bus:   324

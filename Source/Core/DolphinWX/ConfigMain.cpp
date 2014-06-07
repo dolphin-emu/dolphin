@@ -278,7 +278,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_DSPEngine.Add(_("DSP LLE recompiler"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE interpreter (slow)"));
 
-	// Gamecube page
+	// GameCube page
 	// GC Language arrayStrings
 	arrayStringFor_GCSystemLang.Add(_("English"));
 	arrayStringFor_GCSystemLang.Add(_("German"));
@@ -385,11 +385,11 @@ void CConfigMain::InitializeGUIValues()
 	AddAudioBackends();
 
 
-	// Gamecube - IPL
+	// GameCube - IPL
 	GCSystemLang->SetSelection(startup_params.SelectedLanguage);
 	GCAlwaysHLE_BS2->SetValue(startup_params.bHLE_BS2);
 
-	// Gamecube - Devices
+	// GameCube - Devices
 	wxArrayString SlotDevices;
 		SlotDevices.Add(_(DEV_NONE_STR));
 		SlotDevices.Add(_(DEV_DUMMY_STR));
@@ -525,7 +525,7 @@ void CConfigMain::InitializeGUITooltips()
 	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended: might cause freezes)."));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 
-	// Gamecube - Devices
+	// GameCube - Devices
 	GCEXIDevice[2]->SetToolTip(_("Serial Port 1 - This is the port which devices such as the net adapter use"));
 
 	// Wii - Devices
@@ -556,7 +556,7 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(GeneralPage, _("General"));
 	Notebook->AddPage(DisplayPage, _("Interface"));
 	Notebook->AddPage(AudioPage, _("Audio"));
-	Notebook->AddPage(GamecubePage, _("Gamecube"));
+	Notebook->AddPage(GamecubePage, _("GameCube"));
 	Notebook->AddPage(WiiPage, _("Wii"));
 	Notebook->AddPage(PathsPage, _("Paths"));
 
@@ -699,7 +699,7 @@ void CConfigMain::CreateGUIControls()
 	AudioPage->SetSizerAndFit(sAudioPage);
 
 
-	// Gamecube page
+	// GameCube page
 	// IPL settings
 	GCSystemLang = new wxChoice(GamecubePage, ID_GC_SRAM_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_GCSystemLang);
 	GCAlwaysHLE_BS2 = new wxCheckBox(GamecubePage, ID_GC_ALWAYS_HLE_BS2, _("Skip BIOS"));
@@ -728,7 +728,7 @@ void CConfigMain::CreateGUIControls()
 	GCSIDevice[2] = new wxChoice(GamecubePage, ID_GC_SIDEVICE2);
 	GCSIDevice[3] = new wxChoice(GamecubePage, ID_GC_SIDEVICE3);
 
-	// Populate the Gamecube page
+	// Populate the GameCube page
 	sGamecubeIPLSettings = new wxGridBagSizer();
 	sGamecubeIPLSettings->Add(GCAlwaysHLE_BS2, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sGamecubeIPLSettings->Add(TEXT_BOX(GamecubePage, _("System Language:")),
@@ -1015,16 +1015,16 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 	int exidevice = 0;
 	switch (event.GetId())
 	{
-	// Gamecube - IPL
+	// GameCube - IPL
 	case ID_GC_SRAM_LNG:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = GCSystemLang->GetSelection();
 		bRefreshList = true;
 		break;
-	// Gamecube - IPL Settings
+	// GameCube - IPL Settings
 	case ID_GC_ALWAYS_HLE_BS2:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = GCAlwaysHLE_BS2->IsChecked();
 		break;
-	// Gamecube - Devices
+	// GameCube - Devices
 	case ID_GC_EXIDEVICE_SP1:
 		exidevice++;
 	case ID_GC_EXIDEVICE_SLOTB:
@@ -1057,7 +1057,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		StrToWxStr(File::GetUserPath(D_GCUSER_IDX)),
 		isSlotA ? GC_MEMCARDA : GC_MEMCARDB,
 		wxEmptyString,
-		_("Gamecube Memory Cards (*.raw,*.gcp)") + "|*.raw;*.gcp"));
+		_("GameCube Memory Cards (*.raw,*.gcp)") + "|*.raw;*.gcp"));
 
 	if (!filename.empty())
 	{

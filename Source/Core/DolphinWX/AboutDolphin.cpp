@@ -38,7 +38,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 				"Revision: %s\n"
 				"Compiled: %s @ %s\n"
 				"\n"
-				"Dolphin is a Gamecube/Wii emulator, which was\n"
+				"Dolphin is a GameCube/Wii emulator, which was\n"
 				"originally written by F|RES and ector.\n"
 				"Today Dolphin is an open source project with many\n"
 				"contributors, too many to list.\n"
@@ -58,7 +58,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 				"Thanks to hcs/destop for their GC ADPCM decoder.\n"
 				"\n"
 				"We are not affiliated with Nintendo in any way.\n"
-				"Gamecube and Wii are trademarks of Nintendo.\n"
+				"GameCube and Wii are trademarks of Nintendo.\n"
 				"The emulator should not be used to play games\n"
 				"you do not legally own."),
 		scm_desc_str, scm_branch_str, scm_rev_git_str, __DATE__, __TIME__);

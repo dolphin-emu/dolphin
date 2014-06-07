@@ -360,7 +360,7 @@ void CheckExceptions()
 	}
 	else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
 	{
-		//This happens a lot - Gamecube OS uses deferred FPU context switching
+		//This happens a lot - GameCube OS uses deferred FPU context switching
 		SRR0 = PC; // re-execute the instruction
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
