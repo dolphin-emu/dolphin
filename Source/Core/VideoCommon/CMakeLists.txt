@@ -20,8 +20,12 @@ set(SRCS	BPFunctions.cpp
 			PixelShaderManager.cpp
 			RenderBase.cpp
 			Statistics.cpp
+			TexelDecoder.cpp
 			TextureCacheBase.cpp
 			TextureConversionShader.cpp
+			TextureDecoder.cpp
+			TextureDecoderGeneric.cpp
+			TextureDecoderHelpers.cpp
 			VertexLoader.cpp
 			VertexLoaderManager.cpp
 			VertexLoader_Color.cpp
@@ -38,13 +42,8 @@ set(SRCS	BPFunctions.cpp
 			XFStructs.cpp)
 set(LIBS core png)
 
-if(NOT _M_GENERIC)
-	set(SRCS ${SRCS}	TextureDecoder_x64.cpp)
-else()
-	set(SRCS ${SRCS}	TextureDecoder_Generic.cpp)
-endif()
-if(NOT ${CL} STREQUAL CL-NOTFOUND)
-	list(APPEND LIBS ${CL})
+if(_M_X86)
+	set(SRCS ${SRCS} TextureDecoderX86.cpp)
 endif()
 
 if(wxWidgets_FOUND AND WIN32)

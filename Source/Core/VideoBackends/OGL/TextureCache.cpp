@@ -395,6 +395,9 @@ TextureCache::TextureCache()
 	s_ActiveTexture = -1;
 	for (auto& gtex : s_Textures)
 		gtex = -1;
+
+	m_texture_decoder = CreateTextureDecoder();
+	m_texture_decoder->SetTextureFormatOverlay(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 }
 
 

@@ -306,10 +306,10 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;
 
-	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+	int size_in_bytes = TextureDecoderTools::GetTextureSizeInBytes(width, height, format);
 
-	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
-	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;
+	u16 blkW = TextureDecoderTools::GetBlockWidthInTexels(format) - 1;
+	u16 blkH = TextureDecoderTools::GetBlockHeightInTexels(format) - 1;
 	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);
 
 	// only copy on cache line boundaries
@@ -327,7 +327,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		cacheBytes = 64;
 
 	int readStride = (expandedWidth * cacheBytes) /
-		TexDecoder_GetBlockWidthInTexels(format);
+		TextureDecoderTools::GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(source_texture,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
 		bScaleByHalf > 0 && !bFromZBuffer);

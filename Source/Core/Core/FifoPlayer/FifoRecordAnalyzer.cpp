@@ -271,9 +271,9 @@ void FifoRecordAnalyzer::WriteTexMapMemory(int texMap, u32 &writtenTexMaps)
 	u32 height = ti0.height + 1;
 	u32 imageBase = texUnit.texImage3[subTexmap].image_base << 5;
 
-	u32 fmtWidth = TexDecoder_GetBlockWidthInTexels(ti0.format) - 1;
-	u32 fmtHeight = TexDecoder_GetBlockHeightInTexels(ti0.format) - 1;
-	int fmtDepth = TexDecoder_GetTexelSizeInNibbles(ti0.format);
+	u32 fmtWidth = TextureDecoderTools::GetBlockWidthInTexels(ti0.format) - 1;
+	u32 fmtHeight = TextureDecoderTools::GetBlockHeightInTexels(ti0.format) - 1;
+	int fmtDepth = TextureDecoderTools::GetTexelSizeInNibbles(ti0.format);
 
 	// Round width and height up to the next block
 	width = (width + fmtWidth) & (~fmtWidth);

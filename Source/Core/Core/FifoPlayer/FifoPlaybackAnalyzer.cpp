@@ -277,13 +277,13 @@ void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
 	int width = (m_BpMem.copyTexSrcWH.x + 1) >> peCopy.half_scale;
 	int height = (m_BpMem.copyTexSrcWH.y + 1) >> peCopy.half_scale;
 
-	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
-	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;
+	u16 blkW = TextureDecoderTools::GetBlockWidthInTexels(format) - 1;
+	u16 blkH = TextureDecoderTools::GetBlockHeightInTexels(format) - 1;
 
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-	int sizeInBytes = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, format);
+	int sizeInBytes = TextureDecoderTools::GetTextureSizeInBytes(expandedWidth, expandedHeight, format);
 
 	StoreWrittenRegion(address, sizeInBytes);
 }
