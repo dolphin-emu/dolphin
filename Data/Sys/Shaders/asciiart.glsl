@@ -1,6 +1,6 @@
 // textures
-uniform sampler2D samp8;
-uniform sampler2D samp9;
+SAMPLER_BINDING(8) uniform sampler2D samp8;
+SAMPLER_BINDING(9) uniform sampler2D samp9;
 
 const int char_width = 8;
 const int char_height = 13;

@@ -204,7 +204,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		// Declare samplers
 		for (int i = 0; i < 8; ++i)
-			out.Write("uniform sampler2D samp%d;\n", i);
+			out.Write("SAMPLER_BINDING(%d) uniform sampler2D samp%d;\n", i, i);
 	}
 	else // D3D
 	{

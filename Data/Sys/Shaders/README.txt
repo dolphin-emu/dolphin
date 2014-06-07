@@ -1,5 +1,5 @@
 //dummy shader:
-uniform sampler2D samp9;
+SAMPLER_BINDING(9) uniform sampler2D samp9;
 
 out vec4 ocol0;
 in vec2 uv0;

@@ -61,12 +61,12 @@ static std::string GetGLSLVersionString()
 
 void SHADER::SetProgramVariables()
 {
-	// glsl shader must be bind to set samplers
-	Bind();
-
-	// Bind UBO
+	// Bind UBO and texture samplers
 	if (!g_ActiveConfig.backend_info.bSupportsBindingLayout)
 	{
+		// glsl shader must be bind to set samplers if we don't support binding layout
+		Bind();
+
 		GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
 		GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
 
@@ -74,20 +74,19 @@ void SHADER::SetProgramVariables()
 			glUniformBlockBinding(glprogid, PSBlock_id, 1);
 		if (VSBlock_id != -1)
 			glUniformBlockBinding(glprogid, VSBlock_id, 2);
+
+		// Bind Texture Sampler
+		for (int a = 0; a <= 9; ++a)
+		{
+			char name[8];
+			snprintf(name, 8, "samp%d", a);
+
+			// Still need to get sampler locations since we aren't binding them statically in the shaders
+			int loc = glGetUniformLocation(glprogid, name);
+			if (loc != -1)
+				glUniform1i(loc, a);
+		}
 	}
-
-	// Bind Texture Sampler
-	for (int a = 0; a <= 9; ++a)
-	{
-		char name[8];
-		snprintf(name, 8, "samp%d", a);
-
-		// Still need to get sampler locations since we aren't binding them statically in the shaders
-		int loc = glGetUniformLocation(glprogid, name);
-		if (loc != -1)
-			glUniform1i(loc, a);
-	}
-
 }
 
 void SHADER::SetProgramBindings()
@@ -479,6 +478,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n" // 420pack
 		"%s\n" // msaa
 		"%s\n" // sample shading
+		"%s\n" // Sampler binding
 
 		// Precision defines for GLSL ES
 		"%s\n"
@@ -509,6 +509,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		, (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ? "#extension GL_ARB_shading_language_420pack : enable" : ""
 		, (g_ogl_config.bSupportsMSAA && v < GLSL_150) ? "#extension GL_ARB_texture_multisample : enable" : ""
 		, (g_ogl_config.bSupportSampleShading) ? "#extension GL_ARB_sample_shading : enable" : ""
+		, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "#define SAMPLER_BINDING(x) layout(binding = x)" : "#define SAMPLER_BINDING(x)"
 
 		, v>=GLSLES_300 ? "precision highp float;" : ""
 		, v>=GLSLES_300 ? "precision highp int;" : ""
