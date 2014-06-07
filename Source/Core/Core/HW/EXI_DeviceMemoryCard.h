@@ -21,7 +21,6 @@ public:
 	CEXIMemoryCard(const int index);
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs) override;
-	void Update() override;
 	bool IsInterruptSet() override;
 	bool IsPresent() override;
 	void DoState(PointerWrap &p) override;
@@ -76,7 +75,6 @@ private:
 	int status;
 	u32 m_uPosition;
 	u8 programming_buffer[128];
-	u32 formatDelay;
 	bool m_bDirty;
 	//! memory card parameters
 	unsigned int nintendo_card_id, card_id;

@@ -105,14 +105,6 @@ IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 	return nullptr;
 }
 
-// Unused (?!)
-void Update()
-{
-	g_Channels[0]->Update();
-	g_Channels[1]->Update();
-	g_Channels[2]->Update();
-}
-
 void UpdateInterrupts()
 {
 	// Interrupts are mapped a bit strangely:
