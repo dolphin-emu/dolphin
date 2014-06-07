@@ -219,13 +219,6 @@ IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 	return nullptr;
 }
 
-void CEXIChannel::Update()
-{
-	// start the transfer
-	for (auto& device : m_pDevices)
-		device->Update();
-}
-
 void CEXIChannel::DoState(PointerWrap &p)
 {
 	p.DoPOD(m_Status);

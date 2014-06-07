@@ -102,7 +102,6 @@ public:
 	// Remove all devices
 	void RemoveDevices();
 
-	void Update();
 	bool IsCausingInterrupt();
 	void DoState(PointerWrap &p);
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock);

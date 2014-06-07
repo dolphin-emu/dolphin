@@ -60,7 +60,6 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
 	m_uPosition = 0;
 	memset(programming_buffer, 0, sizeof(programming_buffer));
-	formatDelay = 0;
 
 	//Nintendo Memory Card EXI IDs
 	//0x00000004 Memory Card 59     4Mbit
@@ -272,22 +271,6 @@ void CEXIMemoryCard::SetCS(int cs)
 	}
 }
 
-void CEXIMemoryCard::Update()
-{
-	if (formatDelay)
-	{
-		formatDelay--;
-
-		if (!formatDelay)
-		{
-			status |= MC_STATUS_READY;
-			status &= ~MC_STATUS_BUSY;
-
-			m_bInterruptSet = 1;
-		}
-	}
-}
-
 bool CEXIMemoryCard::IsInterruptSet()
 {
 	if (interruptSwitch)
@@ -481,7 +464,6 @@ void CEXIMemoryCard::DoState(PointerWrap &p)
 		p.Do(status);
 		p.Do(m_uPosition);
 		p.Do(programming_buffer);
-		p.Do(formatDelay);
 		p.Do(m_bDirty);
 		p.Do(address);
 
