@@ -109,30 +109,11 @@ using namespace Gen;
 		links_to.clear();
 		block_map.clear();
 
-		valid_block.clear();
-		valid_block.resize(VALID_BLOCK_MASK_SIZE, false);
+		valid_block.ClearAll();
 
 		num_blocks = 0;
 		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
 	}
-
-	void JitBaseBlockCache::ClearSafe()
-	{
-		memset(iCache, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
-		memset(iCacheEx, JIT_ICACHE_INVALID_BYTE, JIT_ICACHEEX_SIZE);
-		memset(iCacheVMEM, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
-	}
-
-	/*void JitBaseBlockCache::DestroyBlocksWithFlag(BlockFlag death_flag)
-	{
-		for (int i = 0; i < num_blocks; i++)
-		{
-			if (blocks[i].flags & death_flag)
-			{
-				DestroyBlock(i, false);
-			}
-		}
-	}*/
 
 	void JitBaseBlockCache::Reset()
 	{
@@ -183,7 +164,7 @@ using namespace Gen;
 		u32 pAddr = b.originalAddress & 0x1FFFFFFF;
 
 		for (u32 i = 0; i < (b.originalSize + 7) / 8; ++i)
-			valid_block[pAddr / 32 + i] = true;
+			valid_block.Set(pAddr / 32 + i);
 
 		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
 		if (block_link)
@@ -353,10 +334,10 @@ using namespace Gen;
 		bool destroy_block = true;
 		if (length == 32)
 		{
-			if (!valid_block[pAddr / 32])
+			if (!valid_block.Test(pAddr / 32))
 				destroy_block = false;
 			else
-				valid_block[pAddr / 32] = false;
+				valid_block.Clear(pAddr / 32);
 		}
 
 		// destroy JIT blocks
