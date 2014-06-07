@@ -23,17 +23,17 @@ class TextureDecoder
 	bool m_TexFmt_Overlay_Center;
 
 	// Private texture decoders
-	virtual void Decode_C4(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt) = 0;
-	virtual void Decode_C8(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt) = 0;
-	virtual void Decode_I4(u32 *dst, const u8 *src, int width, int height) = 0;
-	virtual void Decode_I8(u32 *dst, const u8 *src, int width, int height) = 0;
-	virtual void Decode_IA4(u32 *dst, const u8 *src, int width, int height) = 0;
-	virtual void Decode_IA8(u32 *dst, const u8 *src, int width, int height) = 0;
-	virtual void Decode_C14X2(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt) = 0;
-	virtual void Decode_RGB565(u32 *dst, const u8 *src, int width, int height) = 0;
-	virtual void Decode_RGB5A3(u32 *dst, const u8 *src, int width, int height) = 0;
-	virtual void Decode_RGBA8(u32 *dst, const u8 *src, int width, int height) = 0;
-	virtual void Decode_CMPR(u32 *dst, const u8 *src, int width, int height) = 0;
+	virtual PC_TexFormat Decode_C4(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt) = 0;
+	virtual PC_TexFormat Decode_C8(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt) = 0;
+	virtual PC_TexFormat Decode_I4(u32 *dst, const u8 *src, int width, int height) = 0;
+	virtual PC_TexFormat Decode_I8(u32 *dst, const u8 *src, int width, int height) = 0;
+	virtual PC_TexFormat Decode_IA4(u32 *dst, const u8 *src, int width, int height) = 0;
+	virtual PC_TexFormat Decode_IA8(u32 *dst, const u8 *src, int width, int height) = 0;
+	virtual PC_TexFormat Decode_C14X2(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt) = 0;
+	virtual PC_TexFormat Decode_RGB565(u32 *dst, const u8 *src, int width, int height) = 0;
+	virtual PC_TexFormat Decode_RGB5A3(u32 *dst, const u8 *src, int width, int height) = 0;
+	virtual PC_TexFormat Decode_RGBA8(u32 *dst, const u8 *src, int width, int height) = 0;
+	virtual PC_TexFormat Decode_CMPR(u32 *dst, const u8 *src, int width, int height) = 0;
 
 	public:
 	virtual ~TextureDecoder() {}
@@ -44,7 +44,7 @@ class TextureDecoder
 
 	// Calls our internal texture decoders
 	// Also puts the texture overlay upon the final texture image
-	virtual void Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt) final;
+	virtual PC_TexFormat Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt) final;
 };
 
 std::unique_ptr<TextureDecoder> CreateTextureDecoder();

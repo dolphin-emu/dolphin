@@ -119,48 +119,49 @@ void TextureDecoder::SetTextureFormatOverlay(bool enable, bool center)
 	m_TexFmt_Overlay_Center = center;
 }
 
-void TextureDecoder::Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+PC_TexFormat TextureDecoder::Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
+	PC_TexFormat ReturnValue = PC_TEX_FMT_NONE;
 	switch (texformat)
 	{
 	case GX_TF_C4:
-		Decode_C4((u32*)dst, src, width, height, tlutaddr, tlutfmt);
+		ReturnValue = Decode_C4((u32*)dst, src, width, height, tlutaddr, tlutfmt);
 		break;
 	case GX_TF_C8:
-		Decode_C8((u32*)dst, src, width, height, tlutaddr, tlutfmt);
+		ReturnValue = Decode_C8((u32*)dst, src, width, height, tlutaddr, tlutfmt);
 		break;
 	case GX_TF_I4:
-		Decode_I4((u32*)dst, src, width, height);
+		ReturnValue = Decode_I4((u32*)dst, src, width, height);
 		break;
 	case GX_TF_I8:  // speed critical
-		Decode_I8((u32*)dst, src, width, height);
+		ReturnValue = Decode_I8((u32*)dst, src, width, height);
 		break;
 	case GX_TF_IA4:
-		Decode_IA4((u32*)dst, src, width, height);
+		ReturnValue = Decode_IA4((u32*)dst, src, width, height);
 		break;
 	case GX_TF_IA8:
-		Decode_IA8((u32*)dst, src, width, height);
+		ReturnValue = Decode_IA8((u32*)dst, src, width, height);
 		break;
 	case GX_TF_C14X2:
-		Decode_C14X2((u32*)dst, src, width, height, tlutaddr, tlutaddr);
+		ReturnValue = Decode_C14X2((u32*)dst, src, width, height, tlutaddr, tlutaddr);
 		break;
 	case GX_TF_RGB565:
-		Decode_RGB565((u32*)dst, src, width, height);
+		ReturnValue = Decode_RGB565((u32*)dst, src, width, height);
 		break;
 	case GX_TF_RGB5A3:
-		Decode_RGB5A3((u32*)dst, src, width, height);
+		ReturnValue = Decode_RGB5A3((u32*)dst, src, width, height);
 		break;
 	case GX_TF_RGBA8:  // speed critical
-		Decode_RGBA8((u32*)dst, src, width, height);
+		ReturnValue = Decode_RGBA8((u32*)dst, src, width, height);
 		break;
 	case GX_TF_CMPR:  // speed critical
 		// The metroid games use this format almost exclusively.
-		Decode_CMPR((u32*)dst, src, width, height);
+		ReturnValue = Decode_CMPR((u32*)dst, src, width, height);
 		break;
 	}
 
 	if (!m_TexFmt_Overlay_Enable)
-		return;
+		return ReturnValue;
 
 	int w = std::min(width, 40);
 	int h = std::min(height, 10);
@@ -201,6 +202,7 @@ void TextureDecoder::Decode(u8 *dst, const u8 *src, int width, int height, int t
 		xoff += xcnt;
 		fmt++;
 	}
+	return ReturnValue;
 }
 
 // Texture format overlay data

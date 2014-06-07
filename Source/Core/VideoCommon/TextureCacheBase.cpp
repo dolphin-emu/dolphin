@@ -470,15 +470,13 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	{
 		if (!(texformat == GX_TF_RGBA8 && from_tmem))
 		{
-			m_texture_decoder->Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt);
+			pcfmt = m_texture_decoder->Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt);
 		}
 		else
 		{
 			u8* src_data_gb = &texMem[bpmem.tex[stage/4].texImage2[stage%4].tmem_odd * TMEM_LINE_SIZE];
-			TexelDecoder::DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
+			pcfmt = TexelDecoder::DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
 		}
-		// Format is always RGBA32 if we aren't using custom textures
-		pcfmt = PC_TEX_FMT_RGBA32;
 	}
 
 	u32 texLevels = use_mipmaps ? (maxlevel + 1) : 1;

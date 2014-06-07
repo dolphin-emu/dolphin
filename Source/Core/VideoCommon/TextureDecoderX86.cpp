@@ -80,7 +80,7 @@ inline void SetOpenMPThreadCount(int width, int height)
 }
 
 // x86 accelerated texture decoding
-void TextureDecoderX86::Decode_C4(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt)
+PC_TexFormat TextureDecoderX86::Decode_C4(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps8 = (width + 7) / 8;
@@ -111,8 +111,9 @@ void TextureDecoderX86::Decode_C4(u32 *dst, const u8 *src, int width, int height
 				for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
 					decodebytesC4RGB565_To_RGBA(dst + (y + iy) * width + x, src  + 4 * xStep, tlutaddr);
 	}
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_C8(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt)
+PC_TexFormat TextureDecoderX86::Decode_C8(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps8 = (width + 7) / 8;
@@ -144,8 +145,9 @@ void TextureDecoderX86::Decode_C8(u32 *dst, const u8 *src, int width, int height
 						decodebytesC8RGB565_To_RGBA(dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 
 	}
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_I4(u32 *dst, const u8 *src, int width, int height)
+PC_TexFormat TextureDecoderX86::Decode_I4(u32 *dst, const u8 *src, int width, int height)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps8 = (width + 7) / 8;
@@ -258,8 +260,9 @@ void TextureDecoderX86::Decode_I4(u32 *dst, const u8 *src, int width, int height
 					_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
 				}
 	}
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_I8(u32 *dst, const u8 *src, int width, int height)
+PC_TexFormat TextureDecoderX86::Decode_I8(u32 *dst, const u8 *src, int width, int height)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps8 = (width + 7) / 8;
@@ -374,8 +377,9 @@ void TextureDecoderX86::Decode_I8(u32 *dst, const u8 *src, int width, int height
 
 			}
 	}
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_IA4(u32 *dst, const u8 *src, int width, int height)
+PC_TexFormat TextureDecoderX86::Decode_IA4(u32 *dst, const u8 *src, int width, int height)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps8 = (width + 7) / 8;
@@ -385,8 +389,9 @@ void TextureDecoderX86::Decode_IA4(u32 *dst, const u8 *src, int width, int heigh
 			for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 				for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 					decodebytesIA4RGBA(dst + (y + iy) * width + x, src + 8 * xStep);
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_IA8(u32 *dst, const u8 *src, int width, int height)
+PC_TexFormat TextureDecoderX86::Decode_IA8(u32 *dst, const u8 *src, int width, int height)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps4 = (width + 3) / 4;
@@ -461,8 +466,9 @@ void TextureDecoderX86::Decode_IA8(u32 *dst, const u8 *src, int width, int heigh
 					_mm_storeu_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
 				}
 	}
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_C14X2(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt)
+PC_TexFormat TextureDecoderX86::Decode_C14X2(u32 *dst, const u8 *src, int width, int height, int tlutaddr, int tlutfmt)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps4 = (width + 3) / 4;
@@ -492,8 +498,9 @@ void TextureDecoderX86::Decode_C14X2(u32 *dst, const u8 *src, int width, int hei
 				for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 					decodebytesC14X2rgb565_To_RGBA(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
 	}
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_RGB565(u32 *dst, const u8 *src, int width, int height)
+PC_TexFormat TextureDecoderX86::Decode_RGB565(u32 *dst, const u8 *src, int width, int height)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps4 = (width + 3) / 4;
@@ -566,8 +573,9 @@ void TextureDecoderX86::Decode_RGB565(u32 *dst, const u8 *src, int width, int he
 				__m128i *ptr = (__m128i *)(dst + (y + iy) * width + x);
 				_mm_storeu_si128(ptr, abgr888x4);
 			}
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_RGB5A3(u32 *dst, const u8 *src, int width, int height)
+PC_TexFormat TextureDecoderX86::Decode_RGB5A3(u32 *dst, const u8 *src, int width, int height)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps4 = (width + 3) / 4;
@@ -781,8 +789,9 @@ void TextureDecoderX86::Decode_RGB5A3(u32 *dst, const u8 *src, int width, int he
 					}
 				}
 		}
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_RGBA8(u32 *dst, const u8 *src, int width, int height)
+PC_TexFormat TextureDecoderX86::Decode_RGBA8(u32 *dst, const u8 *src, int width, int height)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps4 = (width + 3) / 4;
@@ -918,8 +927,9 @@ void TextureDecoderX86::Decode_RGBA8(u32 *dst, const u8 *src, int width, int hei
 				_mm_storeu_si128(dst128, rgba11);
 			}
 	}
+	return PC_TEX_FMT_RGBA32;
 }
-void TextureDecoderX86::Decode_CMPR(u32 *dst, const u8 *src, int width, int height)
+PC_TexFormat TextureDecoderX86::Decode_CMPR(u32 *dst, const u8 *src, int width, int height)
 {
 	SetOpenMPThreadCount(width, height);
 	const int Wsteps8 = (width + 7) / 8;
@@ -1153,5 +1163,6 @@ void TextureDecoderX86::Decode_CMPR(u32 *dst, const u8 *src, int width, int heig
 			}
 		}
 	}
+	return PC_TEX_FMT_RGBA32;
 }
 

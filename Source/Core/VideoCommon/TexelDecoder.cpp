@@ -323,7 +323,7 @@ void DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* src_gb, int s
 	dst[2] = val_addr_gb[1]; // B
 }
 
-void DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height)
+PC_TexFormat DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height)
 {
 	// TODO for someone who cares: Make this less slow!
 	for (int y = 0; y < height; ++y)
@@ -332,6 +332,7 @@ void DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width,
 			DecodeTexelRGBA8FromTmem(dst, src_ar, src_gb, x, y, width-1);
 			dst += 4;
 		}
+	return PC_TEX_FMT_RGBA32;
 }
 
 
