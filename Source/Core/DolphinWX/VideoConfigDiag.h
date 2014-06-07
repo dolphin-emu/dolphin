@@ -20,6 +20,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreParameter.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -85,7 +86,7 @@ protected:
 		VideoBackend* new_backend = g_available_video_backends[ev.GetInt()];
 		if (g_video_backend != new_backend)
 		{
-			bool do_switch = true;
+			bool do_switch = Core::GetState() == Core::CORE_UNINITIALIZED;
 			if (new_backend->GetName() == "Software Renderer")
 			{
 				do_switch = (wxYES == wxMessageBox(_("Software rendering is an order of magnitude slower than using the other backends.\nIt's only useful for debugging purposes.\nDo you really want to enable software rendering? If unsure, select 'No'."),
