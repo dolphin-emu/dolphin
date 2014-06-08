@@ -36,7 +36,7 @@ struct ArraySizeImpl : public std::extent<T>
 #endif
 
 #if (defined __GNUC__ && !__GNUC_PREREQ(4,9)) && \
-    !defined __SSSE3__ && !defined _M_GENERIC
+    !defined __SSSE3__ && defined _M_X86
 #include <emmintrin.h>
 static __inline __m128i __attribute__((__always_inline__))
 _mm_shuffle_epi8(__m128i a, __m128i mask)
@@ -61,10 +61,10 @@ _mm_shuffle_epi8(__m128i a, __m128i mask)
 // go to debugger mode
 	#ifdef GEKKO
 		#define Crash()
-	#elif defined _M_GENERIC
-		#define Crash() { exit(1); }
-	#else
+	#elif defined _M_X86
 		#define Crash() {asm ("int $3");}
+	#else
+		#define Crash() { exit(1); }
 	#endif
 
 // GCC 4.8 defines all the rotate functions now
