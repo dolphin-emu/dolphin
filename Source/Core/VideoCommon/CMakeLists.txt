@@ -38,7 +38,7 @@ set(SRCS	BPFunctions.cpp
 			XFStructs.cpp)
 set(LIBS core png)
 
-if(NOT _M_GENERIC)
+if(_M_X86)
 	set(SRCS ${SRCS}	TextureDecoder_x64.cpp)
 else()
 	set(SRCS ${SRCS}	TextureDecoder_Generic.cpp)

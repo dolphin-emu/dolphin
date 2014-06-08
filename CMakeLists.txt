@@ -151,8 +151,6 @@ if(NOT ENABLE_GENERIC)
 		set(_M_ARM 1)
 		set(_M_ARM_32 1)
 		add_definitions(-D_M_ARM=1 -D_M_ARM_32=1)
-		# ARMv7 isn't a generic build anymore, this shouldn't need to be defined
-		set(ENABLE_GENERIC 1)
 		if(${ANDROID_NDK_ABI_NAME} MATCHES "armeabi-v7a")
 			add_definitions(-marm -march=armv7-a)
 		endif()
