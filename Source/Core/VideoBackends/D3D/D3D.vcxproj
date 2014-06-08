@@ -50,6 +50,7 @@
     <ClCompile Include="PointGeometryShader.cpp" />
     <ClCompile Include="PSTextureEncoder.cpp" />
     <ClCompile Include="Render.cpp" />
+    <ClCompile Include="StateCache.cpp" />
     <ClCompile Include="Television.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
@@ -72,6 +73,7 @@
     <ClInclude Include="PointGeometryShader.h" />
     <ClInclude Include="PSTextureEncoder.h" />
     <ClInclude Include="Render.h" />
+    <ClInclude Include="StateCache.h" />
     <ClInclude Include="Television.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="TextureEncoder.h" />
