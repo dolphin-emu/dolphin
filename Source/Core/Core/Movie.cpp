@@ -4,7 +4,9 @@
 
 #include <polarssl/md5.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/NandPaths.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -14,6 +16,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
+#include "Core/DSP/DSPCore.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/EXI_Channel.h"
@@ -63,6 +66,8 @@ u64 g_titleID = 0;
 unsigned char MD5[16];
 u8 bongos;
 u8 revision[20];
+u32 DSPiromHash = 0;
+u32 DSPcoefHash = 0;
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -709,6 +714,8 @@ void ReadHeader()
 	g_discChange = (char*) tmpHeader.discChange;
 	author = (char*) tmpHeader.author;
 	memcpy(MD5, tmpHeader.md5, 16);
+	DSPiromHash = tmpHeader.DSPiromHash;
+	DSPcoefHash = tmpHeader.DSPcoefHash;
 }
 
 bool PlayInput(const std::string& filename)
@@ -1134,6 +1141,8 @@ void SaveRecording(const std::string& filename)
 	memcpy(header.md5,MD5,16);
 	header.bongos = bongos;
 	memcpy(header.revision, revision, ArraySize(header.revision));
+	header.DSPiromHash = DSPiromHash;
+	header.DSPcoefHash = DSPcoefHash;
 
 	// TODO
 	header.uniqueID = 0;
@@ -1197,6 +1206,38 @@ void GetSettings()
 	{
 		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
 		revision[i] = tmp;
+	}
+	if (!bDSPHLE)
+	{
+		std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
+		std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
+
+		if (!File::Exists(irom_file))
+			irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
+		if (!File::Exists(coef_file))
+			coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
+		std::vector<u16> irom(DSP_IROM_SIZE);
+		File::IOFile file_irom(irom_file, "rb");
+
+		file_irom.ReadArray(irom.data(), DSP_IROM_SIZE);
+		file_irom.Close();
+		for (int i = 0; i < DSP_IROM_SIZE; i++)
+			irom[i] = Common::swap16(irom[i]);
+
+		std::vector<u16> coef(DSP_COEF_SIZE);
+		File::IOFile file_coef(coef_file, "rb");
+
+		file_coef.ReadArray(coef.data(), DSP_COEF_SIZE);
+		file_coef.Close();
+		for (int i = 0; i < DSP_COEF_SIZE; i++)
+			coef[i] = Common::swap16(coef[i]);
+		DSPiromHash = HashAdler32((u8*)irom.data(), DSP_IROM_BYTE_SIZE);
+		DSPcoefHash = HashAdler32((u8*)coef.data(), DSP_COEF_BYTE_SIZE);
+	}
+	else
+	{
+		DSPiromHash = 0;
+		DSPcoefHash = 0;
 	}
 }
 
