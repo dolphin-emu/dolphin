@@ -57,7 +57,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
 	iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false);
 	iniFile.Get("Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions, false);
-	iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
 	iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
 	iniFile.Get("Settings", "HiresTextures", &bHiresTextures, 0);
 	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
@@ -143,7 +142,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "UseXFB", bUseXFB);
 	CHECK_SETTING("Video_Settings", "UseRealXFB", bUseRealXFB);
 	CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
-	CHECK_SETTING("Video_Settings", "DLOptimize", iCompileDLsLevel);
 	CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
 	CHECK_SETTING("Video_Settings", "AnaglyphStereo", bAnaglyphStereo);
 	CHECK_SETTING("Video_Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
@@ -230,8 +228,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	iniFile.Set("Settings", "ShowInputDisplay", bShowInputDisplay);
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
 	iniFile.Set("Settings", "OverlayProjStats", bOverlayProjStats);
-	iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
-	iniFile.Set("Settings", "Show", iCompileDLsLevel);
 	iniFile.Set("Settings", "DumpTextures", bDumpTextures);
 	iniFile.Set("Settings", "HiresTextures", bHiresTextures);
 	iniFile.Set("Settings", "DumpEFBTarget", bDumpEFBTarget);

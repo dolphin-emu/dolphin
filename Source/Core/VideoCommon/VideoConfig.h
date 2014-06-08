@@ -123,9 +123,6 @@ struct VideoConfig final
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
 
-	//currently unused:
-	int iCompileDLsLevel;
-
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
 
