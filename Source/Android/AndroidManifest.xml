@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.dolphinemu.dolphinemu"
-    android:versionCode="13"
-    android:versionName="0.13"
+    android:versionCode="14"
+    android:versionName="0.14"
     android:installLocation="auto">
 
     <uses-sdk
