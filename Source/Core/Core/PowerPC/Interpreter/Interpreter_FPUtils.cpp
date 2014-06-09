@@ -406,18 +406,28 @@ u64 MaddDoublePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c,
 #endif
 }
 
-u64 DivSinglePrecision(u64 a, u64 b)
+u64 DivSinglePrecision(u64 double_a, u64 double_b)
 {
+	if (InputIsNan(double_a))
+		return HandleNaN(double_a);
+	if (InputIsNan(double_b))
+		return HandleNaN(double_b);
+
 	SetFI(0);
 	FPSCR.FR = 0;
-	return DoubleToU64(ForceSingle(U64ToDouble(a) / U64ToDouble(b)));
+	return DoubleToU64(ForceSingle(U64ToDouble(double_a) / U64ToDouble(double_b)));
 }
 
-u64 DivDoublePrecision(u64 a, u64 b)
+u64 DivDoublePrecision(u64 double_a, u64 double_b)
 {
+	if (InputIsNan(double_a))
+		return HandleNaN(double_a);
+	if (InputIsNan(double_b))
+		return HandleNaN(double_b);
+
 	SetFI(0);
 	FPSCR.FR = 0;
-	return DoubleToU64(ForceDouble(U64ToDouble(a) / U64ToDouble(b)));
+	return DoubleToU64(ForceDouble(U64ToDouble(double_a) / U64ToDouble(double_b)));
 }
 
 u64 RoundToSingle(u64 double_a)
