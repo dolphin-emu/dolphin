@@ -262,11 +262,11 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 	}
 	result.mantissa += aligned_b;
 
-	// OR low bits into the sticky bit.
-	if (result_low)
-		result.mantissa |= 1;
-
-	if (result.mantissa & (1ULL << 56))
+	if (result.mantissa == 0 && result_low == 0)
+	{
+		result.exponent = 0;
+	}
+	else if (result.mantissa & (1ULL << 56))
 	{
 		// If the upper part of the result is greater than 56 bits, shift right
 		// one bit.  (e.g. 1.5 + 1.5 = 3)
@@ -280,9 +280,15 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 		do
 		{
 			result.mantissa <<= 1;
+			result.mantissa |= result_low >> 63;
+			result_low <<= 1;
 			--result.exponent;
 		} while (!(result.mantissa & (1ULL << 55)));
 	}
+
+	// OR low bits into the sticky bit.
+	if (result_low)
+		result.mantissa |= 1;
 }
 
 static void MulCore(FPTemp a, FPTemp b, FPTemp &result, u64 &low)
@@ -338,6 +344,11 @@ static FPTemp MaddFPTemp(FPTemp a, FPTemp b, FPTemp c)
 	return result;
 }
 
+bool InputIsSpecial(u64 a)
+{
+	return (a & ~DOUBLE_SIGN) == 0 || (a & DOUBLE_EXP) == DOUBLE_EXP;
+}
+
 u64 AddSinglePrecision(u64 double_a, u64 double_b)
 {
 #ifdef VERY_ACCURATE_FP
@@ -346,6 +357,11 @@ u64 AddSinglePrecision(u64 double_a, u64 double_b)
 	if (InputIsNan(double_b))
 		return HandleNaN(double_b);
 
+	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
+	{
+		// TODO: Real impl
+		return DoubleToU64(ForceSingle(U64ToDouble(double_a) + U64ToDouble(double_b)));
+	}
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
 	FPTemp result = AddFPTemp(a, b);
@@ -367,6 +383,11 @@ u64 AddDoublePrecision(u64 double_a, u64 double_b)
 	if (InputIsNan(double_b))
 		return HandleNaN(double_b);
 
+	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
+	{
+		// TODO: Real impl
+		return DoubleToU64(ForceDouble(U64ToDouble(double_a) + U64ToDouble(double_b)));
+	}
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
 	FPTemp result = AddFPTemp(a, b);
@@ -388,6 +409,11 @@ u64 SubSinglePrecision(u64 double_a, u64 double_b)
 	if (InputIsNan(double_b))
 		return HandleNaN(double_b);
 
+	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
+	{
+		// TODO: Real impl
+		return DoubleToU64(ForceSingle(U64ToDouble(double_a) - U64ToDouble(double_b)));
+	}
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
 	b.sign = !b.sign;
@@ -409,6 +435,12 @@ u64 SubDoublePrecision(u64 double_a, u64 double_b)
 		return HandleNaN(double_a);
 	if (InputIsNan(double_b))
 		return HandleNaN(double_b);
+
+	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
+	{
+		// TODO: Real impl
+		return DoubleToU64(ForceDouble(U64ToDouble(double_a) - U64ToDouble(double_b)));
+	}
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -432,6 +464,12 @@ u64 MultiplySinglePrecision(u64 double_a, u64 double_b)
 	if (InputIsNan(double_b))
 		return HandleNaN(double_b);
 
+	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
+	{
+		// TODO: Real impl
+		return DoubleToU64(ForceSingle(U64ToDouble(double_a) * U64ToDouble(double_b)));
+	}
+
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
 	FPTemp result = MulFPTemp(a, b);
@@ -452,6 +490,12 @@ u64 MultiplyDoublePrecision(u64 double_a, u64 double_b)
 		return HandleNaN(double_a);
 	if (InputIsNan(double_b))
 		return HandleNaN(double_b);
+
+	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
+	{
+		// TODO: Real impl
+		return DoubleToU64(ForceDouble(U64ToDouble(double_a) * U64ToDouble(double_b)));
+	}
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -475,6 +519,15 @@ u64 MaddSinglePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c,
 		return HandleNaN(double_c);
 	if (InputIsNan(double_b))
 		return HandleNaN(double_b);
+
+	if (InputIsSpecial(double_a) || InputIsSpecial(double_b) || InputIsSpecial(double_c))
+	{
+		// TODO: Real impl
+		double result = U64ToDouble(double_a) * U64ToDouble(double_b);
+		result = result + (negate_c ? -U64ToDouble(double_c) : U64ToDouble(double_c));
+		result = negate_result ? -result : result;
+		return DoubleToU64(ForceSingle(result));
+	}
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -506,6 +559,15 @@ u64 MaddDoublePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c,
 		return HandleNaN(double_c);
 	if (InputIsNan(double_b))
 		return HandleNaN(double_b);
+
+	if (InputIsSpecial(double_a) || InputIsSpecial(double_b) || InputIsSpecial(double_c))
+	{
+		// TODO: Real impl
+		double result = U64ToDouble(double_a) * U64ToDouble(double_b);
+		result = result + (negate_c ? -U64ToDouble(double_c) : U64ToDouble(double_c));
+		result = negate_result ? -result : result;
+		return DoubleToU64(ForceDouble(result));
+	}
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -557,6 +619,11 @@ u64 RoundToSingle(u64 double_a)
 #ifdef VERY_ACCURATE_FP
 	if (InputIsNan(double_a))
 		return HandleNaN(double_a);
+
+	if (InputIsSpecial(double_a))
+	{
+		return DoubleToU64(ForceSingle(U64ToDouble(double_a)));
+	}
 
 	FPTemp a = DecomposeDouble(double_a);
 	u64 result_double = RoundFPTempToSingle(a);
