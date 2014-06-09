@@ -614,7 +614,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 	else
 	{
-		gx_state.blend.blend_enable = bpmem.blendmode.blendenable;
+		gx_state.blend.blend_enable = (u32)bpmem.blendmode.blendenable;
 		if (bpmem.blendmode.blendenable)
 		{
 			SetBlendOp(D3D11_BLEND_OP_ADD);
@@ -1213,15 +1213,15 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	}
 	else
 	{
-		gx_state.sampler[stage].min_filter = tm0.min_filter;
-		gx_state.sampler[stage].mag_filter = tm0.mag_filter;
+		gx_state.sampler[stage].min_filter = (u32)tm0.min_filter;
+		gx_state.sampler[stage].mag_filter = (u32)tm0.mag_filter;
 	}
 
-	gx_state.sampler[stage].wrap_s = tm0.wrap_s;
-	gx_state.sampler[stage].wrap_t = tm0.wrap_t;
-	gx_state.sampler[stage].max_lod = tm1.max_lod;
-	gx_state.sampler[stage].min_lod = tm1.min_lod;
-	gx_state.sampler[stage].lod_bias = tm0.lod_bias;
+	gx_state.sampler[stage].wrap_s = (u32)tm0.wrap_s;
+	gx_state.sampler[stage].wrap_t = (u32)tm0.wrap_t;
+	gx_state.sampler[stage].max_lod = (u32)tm1.max_lod;
+	gx_state.sampler[stage].min_lod = (u32)tm1.min_lod;
+	gx_state.sampler[stage].lod_bias = (s32)tm0.lod_bias;
 }
 
 void Renderer::SetInterlacingMode()

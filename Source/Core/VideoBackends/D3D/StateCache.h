@@ -6,6 +6,7 @@
 
 #include <unordered_map>
 
+#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/BPMemory.h"
@@ -15,43 +16,34 @@ namespace DX11
 
 union RasterizerState
 {
-	struct
-	{
-		u32 cull_mode : 2;
-		u32 wireframe : 1;
-	};
+	BitField<0, 2, D3D11_CULL_MODE> cull_mode;
+	BitField<2, 1, u32> wireframe;
 
 	u32 packed;
 };
 
 union BlendState
 {
-	struct
-	{
-		u32 blend_enable : 1;
-		u32 blend_op : 3;
-		u32 write_mask : 4;
-		u32 src_blend : 5;
-		u32 dst_blend : 5;
-		u32 use_dst_alpha : 1;
-	};
+	BitField<0, 1, u32> blend_enable;
+	BitField<1, 3, D3D11_BLEND_OP> blend_op;
+	BitField<4, 4, u32> write_mask;
+	BitField<8, 5, D3D11_BLEND> src_blend;
+	BitField<13, 5, D3D11_BLEND> dst_blend;
+	BitField<18, 1, u32> use_dst_alpha;
 
 	u32 packed;
 };
 
 union SamplerState
 {
-	struct
-	{
-		u64 min_filter : 3;
-		u64 mag_filter : 1;
-		u64 min_lod : 8;
-		u64 max_lod : 8;
-		s64 lod_bias : 8;
-		u64 wrap_s : 2;
-		u64 wrap_t : 2;
-		u64 max_anisotropy : 5;
-	};
+	BitField<0, 3, u64> min_filter;
+	BitField<3, 1, u64> mag_filter;
+	BitField<4, 8, u64> min_lod;
+	BitField<12, 8, u64> max_lod;
+	BitField<20, 8, s64> lod_bias;
+	BitField<28, 2, u64> wrap_s;
+	BitField<30, 2, u64> wrap_t;
+	BitField<32, 5, u64> max_anisotropy;
 
 	u64 packed;
 };

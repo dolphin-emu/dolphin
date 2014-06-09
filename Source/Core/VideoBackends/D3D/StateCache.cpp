@@ -38,7 +38,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 	if (state.max_anisotropy)
 	{
 		sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
-		sampdc.MaxAnisotropy = state.max_anisotropy;
+		sampdc.MaxAnisotropy = (u32)state.max_anisotropy;
 	}
 	else if (state.min_filter & 4) // linear min filter
 	{
@@ -114,13 +114,13 @@ ID3D11BlendState* StateCache::Get(BlendState state)
 	blenddc.AlphaToCoverageEnable = FALSE;
 	blenddc.IndependentBlendEnable = FALSE;
 	blenddc.RenderTarget[0].BlendEnable = state.blend_enable;
-	blenddc.RenderTarget[0].RenderTargetWriteMask = (D3D11_COLOR_WRITE_ENABLE)state.write_mask;
-	blenddc.RenderTarget[0].SrcBlend = (D3D11_BLEND)state.src_blend;
-	blenddc.RenderTarget[0].DestBlend = (D3D11_BLEND)state.dst_blend;
-	blenddc.RenderTarget[0].BlendOp = (D3D11_BLEND_OP)state.blend_op;
-	blenddc.RenderTarget[0].SrcBlendAlpha = (D3D11_BLEND)state.src_blend;
-	blenddc.RenderTarget[0].DestBlendAlpha = (D3D11_BLEND)state.dst_blend;
-	blenddc.RenderTarget[0].BlendOpAlpha = (D3D11_BLEND_OP)state.blend_op;
+	blenddc.RenderTarget[0].RenderTargetWriteMask = (u32)state.write_mask;
+	blenddc.RenderTarget[0].SrcBlend = state.src_blend;
+	blenddc.RenderTarget[0].DestBlend = state.dst_blend;
+	blenddc.RenderTarget[0].BlendOp = state.blend_op;
+	blenddc.RenderTarget[0].SrcBlendAlpha = state.src_blend;
+	blenddc.RenderTarget[0].DestBlendAlpha = state.dst_blend;
+	blenddc.RenderTarget[0].BlendOpAlpha = state.blend_op;
 
 	if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_COLOR)
 		blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
@@ -183,7 +183,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
 	}
 
 	D3D11_RASTERIZER_DESC rastdc = CD3D11_RASTERIZER_DESC(state.wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID,
-		(D3D11_CULL_MODE)state.cull_mode,
+		state.cull_mode,
 		false, 0, 0.f, 0, false, true, false, false);
 
 	ID3D11RasterizerState* res = nullptr;
