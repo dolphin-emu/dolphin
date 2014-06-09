@@ -74,20 +74,15 @@ inline void UpdateFPSCR()
 	FPSCR.FEX = 0; // we assume that "?E" bits are always 0
 }
 
+// Core PPC floating-point arithmetic functions
 u64 AddSinglePrecision(u64 a, u64 b);
 u64 AddDoublePrecision(u64 a, u64 b);
 u64 SubSinglePrecision(u64 a, u64 b);
 u64 SubDoublePrecision(u64 a, u64 b);
 u64 MultiplySinglePrecision(u64 a, u64 b);
 u64 MultiplyDoublePrecision(u64 a, u64 b);
-u64 MaddSinglePrecision(u64 a, u64 c, u64 b);
-u64 MaddDoublePrecision(u64 a, u64 c, u64 b);
-u64 MsubSinglePrecision(u64 a, u64 c, u64 b);
-u64 MsubDoublePrecision(u64 a, u64 c, u64 b);
-u64 NegMaddSinglePrecision(u64 a, u64 c, u64 b);
-u64 NegMaddDoublePrecision(u64 a, u64 c, u64 b);
-u64 NegMsubSinglePrecision(u64 a, u64 c, u64 b);
-u64 NegMsubDoublePrecision(u64 a, u64 c, u64 b);
+u64 MaddSinglePrecision(u64 a, u64 b, u64 c, bool negate_c, bool negate_result);
+u64 MaddDoublePrecision(u64 a, u64 b, u64 c, bool negate_c, bool negate_result);
 u64 DivSinglePrecision(u64 a, u64 b);
 u64 DivDoublePrecision(u64 a, u64 b);
 u64 RoundToSingle(u64 a);
