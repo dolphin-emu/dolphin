@@ -86,85 +86,8 @@ void Interpreter::ps_merge11(UGeckoInstruction _inst)
 // From here on, the real deal.
 void Interpreter::ps_div(UGeckoInstruction _inst)
 {
-	u32 ex_mask = 0;
-
-	// PS0
-	{
-		double a = rPS0(_inst.FA);
-		double b = rPS0(_inst.FB);
-		double &res = rPS0(_inst.FD);
-
-		if (a != a) res = a;
-		else if (b != b) res = b;
-		else
-		{
-			if (b == 0.0)
-			{
-				ex_mask |= FPSCR_ZX;
-				if (rPS0(_inst.FA) == 0.0)
-				{
-					ex_mask |= FPSCR_VXZDZ;
-					res = PPC_NAN;
-				}
-				else
-				{
-					res = ForceSingle(a / b);
-				}
-			}
-			else
-			{
-				if (IsINF(a) && IsINF(b))
-				{
-					ex_mask |= FPSCR_VXIDI;
-					res = PPC_NAN;
-				}
-				else
-				{
-					res = ForceSingle(a / b);
-				}
-			}
-		}
-	}
-
-	// PS1
-	{
-		double a = rPS1(_inst.FA);
-		double b = rPS1(_inst.FB);
-		double &res = rPS1(_inst.FD);
-
-		if (a != a) res = a;
-		else if (b != b) res = b;
-		else
-		{
-			if (b == 0.0)
-			{
-				ex_mask |= FPSCR_ZX;
-				if (rPS0(_inst.FA) == 0.0)
-				{
-					ex_mask |= FPSCR_VXZDZ;
-					res = PPC_NAN;
-				}
-				else
-				{
-					res = ForceSingle(a / b);
-				}
-			}
-			else
-			{
-				if (IsINF(a) && IsINF(b))
-				{
-					ex_mask |= FPSCR_VXIDI;
-					res = PPC_NAN;
-				}
-				else
-				{
-					res = ForceSingle(a / b);
-				}
-			}
-		}
-	}
-
-	SetFPException(ex_mask);
+	riPS1(_inst.FD) = DivSinglePrecision(riPS1(_inst.FA), riPS1(_inst.FB));
+	riPS0(_inst.FD) = DivSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
@@ -206,24 +129,24 @@ void Interpreter::ps_rsqrte(UGeckoInstruction _inst)
 
 void Interpreter::ps_sub(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
-	rPS1(_inst.FD) = ForceSingle(NI_sub(rPS1(_inst.FA), rPS1(_inst.FB)));
+	riPS1(_inst.FD) = SubSinglePrecision(riPS1(_inst.FA), riPS1(_inst.FB));
+	riPS0(_inst.FD) = SubSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_add(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle(NI_add(rPS0(_inst.FA), rPS0(_inst.FB)));
-	rPS1(_inst.FD) = ForceSingle(NI_add(rPS1(_inst.FA), rPS1(_inst.FB)));
+	riPS1(_inst.FD) = AddSinglePrecision(riPS1(_inst.FA), riPS1(_inst.FB));
+	riPS0(_inst.FD) = AddSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_mul(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle(NI_mul(rPS0(_inst.FA), rPS0(_inst.FC)));
-	rPS1(_inst.FD) = ForceSingle(NI_mul(rPS1(_inst.FA), rPS1(_inst.FC)));
+	riPS1(_inst.FD) = MultiplySinglePrecision(riPS1(_inst.FA), riPS1(_inst.FB));
+	riPS0(_inst.FD) = MultiplySinglePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
@@ -231,92 +154,88 @@ void Interpreter::ps_mul(UGeckoInstruction _inst)
 
 void Interpreter::ps_msub(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle(NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
-	rPS1(_inst.FD) = ForceSingle(NI_msub(rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB)));
+	riPS1(_inst.FD) = MsubSinglePrecision(riPS1(_inst.FA), riPS1(_inst.FC), riPS1(_inst.FB));
+	riPS0(_inst.FD) = MsubSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB));
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_madd(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle(NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
-	rPS1(_inst.FD) = ForceSingle(NI_madd(rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB)));
+	riPS1(_inst.FD) = MaddSinglePrecision(riPS1(_inst.FA), riPS1(_inst.FC), riPS1(_inst.FB));
+	riPS0(_inst.FD) = MaddSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB));
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_nmsub(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle( -NI_msub( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
-	rPS1(_inst.FD) = ForceSingle( -NI_msub( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
+	riPS1(_inst.FD) = NegMsubSinglePrecision(riPS1(_inst.FA), riPS1(_inst.FC), riPS1(_inst.FB));
+	riPS0(_inst.FD) = NegMsubSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB));
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_nmadd(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle( -NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
-	rPS1(_inst.FD) = ForceSingle( -NI_madd( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
+	riPS1(_inst.FD) = NegMaddSinglePrecision(riPS1(_inst.FA), riPS1(_inst.FC), riPS1(_inst.FB));
+	riPS0(_inst.FD) = NegMaddSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB));
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_sum0(UGeckoInstruction _inst)
 {
-	double p0 = ForceSingle(NI_add(rPS0(_inst.FA), rPS1(_inst.FB)));
-	double p1 = ForceSingle(rPS1(_inst.FC));
-	rPS0(_inst.FD) = p0;
-	rPS1(_inst.FD) = p1;
+	riPS0(_inst.FD) = AddSinglePrecision(riPS0(_inst.FA), riPS1(_inst.FB));
+	riPS1(_inst.FD) = riPS1(_inst.FC);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_sum1(UGeckoInstruction _inst)
 {
-	double p0 = ForceSingle(rPS0(_inst.FC));
-	double p1 = ForceSingle(NI_add(rPS0(_inst.FA), rPS1(_inst.FB)));
-	rPS0(_inst.FD) = p0;
-	rPS1(_inst.FD) = p1;
+	riPS1(_inst.FD) = AddSinglePrecision(riPS0(_inst.FA), riPS1(_inst.FB));
+	riPS0(_inst.FD) = riPS0(_inst.FC);
 	UpdateFPRF(rPS1(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_muls0(UGeckoInstruction _inst)
 {
-	double p0 = ForceSingle(NI_mul(rPS0(_inst.FA), rPS0(_inst.FC)));
-	double p1 = ForceSingle(NI_mul(rPS1(_inst.FA), rPS0(_inst.FC)));
-	rPS0(_inst.FD) = p0;
-	rPS1(_inst.FD) = p1;
+	u64 p0 = MultiplySinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC));
+	u64 p1 = MultiplySinglePrecision(riPS1(_inst.FA), riPS0(_inst.FC));
+	riPS0(_inst.FD) = p0;
+	riPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_muls1(UGeckoInstruction _inst)
 {
-	double p0 = ForceSingle(NI_mul(rPS0(_inst.FA), rPS1(_inst.FC)));
-	double p1 = ForceSingle(NI_mul(rPS1(_inst.FA), rPS1(_inst.FC)));
-	rPS0(_inst.FD) = p0;
-	rPS1(_inst.FD) = p1;
+	u64 p0 = MultiplySinglePrecision(riPS0(_inst.FA), riPS1(_inst.FC));
+	u64 p1 = MultiplySinglePrecision(riPS1(_inst.FA), riPS1(_inst.FC));
+	riPS0(_inst.FD) = p0;
+	riPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_madds0(UGeckoInstruction _inst)
 {
-	double p0 = ForceSingle( NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)) );
-	double p1 = ForceSingle( NI_madd( rPS1(_inst.FA), rPS0(_inst.FC), rPS1(_inst.FB)) );
-	rPS0(_inst.FD) = p0;
-	rPS1(_inst.FD) = p1;
+	u64 p0 = MaddSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB));
+	u64 p1 = MaddSinglePrecision(riPS1(_inst.FA), riPS0(_inst.FC), riPS1(_inst.FB));
+	riPS0(_inst.FD) = p0;
+	riPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::ps_madds1(UGeckoInstruction _inst)
 {
-	double p0 = ForceSingle( NI_madd( rPS0(_inst.FA), rPS1(_inst.FC), rPS0(_inst.FB)) );
-	double p1 = ForceSingle( NI_madd( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB)) );
-	rPS0(_inst.FD) = p0;
-	rPS1(_inst.FD) = p1;
+	u64 p0 = MaddSinglePrecision(riPS0(_inst.FA), riPS1(_inst.FC), riPS0(_inst.FB));
+	u64 p1 = MaddSinglePrecision(riPS1(_inst.FA), riPS1(_inst.FC), riPS1(_inst.FB));
+	riPS0(_inst.FD) = p0;
+	riPS1(_inst.FD) = p1;
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }

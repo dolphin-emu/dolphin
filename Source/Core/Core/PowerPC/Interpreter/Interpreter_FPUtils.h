@@ -74,6 +74,28 @@ inline void UpdateFPSCR()
 	FPSCR.FEX = 0; // we assume that "?E" bits are always 0
 }
 
+inline u64 DoubleToU64(double d)
+{
+	union
+	{
+		double dval;
+		u64 ival;
+	};
+	dval = d;
+	return ival;
+}
+
+inline double U64ToDouble(u64 d)
+{
+	union
+	{
+		double dval;
+		u64 ival;
+	};
+	ival = d;
+	return dval;
+}
+
 inline double ForceSingle(double _x)
 {
 	// convert to float...
@@ -95,111 +117,123 @@ inline double ForceDouble(double d)
 	return d;
 }
 
-// these functions allow globally modify operations behaviour
-// also, these may be used to set flags like FR, FI, OX, UX
-
-inline double NI_mul(const double a, const double b)
+inline u64 AddSinglePrecision(u64 a, u64 b)
 {
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (b != b) return b;
-	double t = a * b;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXIMZ);
-		return PPC_NAN;
-	}
-	return t;
-#else
-	return a * b;
-#endif
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceSingle(U64ToDouble(a) + U64ToDouble(b)));
 }
 
-inline double NI_add(const double a, const double b)
+inline u64 AddDoublePrecision(u64 a, u64 b)
 {
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (b != b) return b;
-	double t = a + b;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXISI);
-		return PPC_NAN;
-	}
-	return t;
-#else
-	return a + b;
-#endif
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceDouble(U64ToDouble(a) + U64ToDouble(b)));
 }
 
-inline double NI_sub(const double a, const double b)
+inline u64 SubSinglePrecision(u64 a, u64 b)
 {
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (b != b) return b;
-	double t = a - b;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXISI);
-		return PPC_NAN;
-	}
-	return t;
-#else
-	return a - b;
-#endif
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceSingle(U64ToDouble(a) - U64ToDouble(b)));
 }
 
-inline double NI_madd(const double a, const double b, const double c)
+inline u64 SubDoublePrecision(u64 a, u64 b)
 {
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (c != c) return c;
-	if (b != b) return b;
-	double t = a * b;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXIMZ);
-		return PPC_NAN;
-	}
-	t = t + c;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXISI);
-		return PPC_NAN;
-	}
-	return t;
-#else
-	return NI_add(NI_mul(a, b), c);
-#endif
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceDouble(U64ToDouble(a) - U64ToDouble(b)));
 }
 
-inline double NI_msub(const double a, const double b, const double c)
+inline u64 MultiplySinglePrecision(u64 a, u64 b)
 {
-//#ifdef VERY_ACCURATE_FP
-//  This code does not produce accurate fp!  NAN's are not calculated correctly, nor negative zero.
-//	The code is kept here for reference.
-//
-//	if (a != a) return a;
-//	if (c != c) return c;
-//	if (b != b) return b;
-//	double t = a * b;
-//	if (t != t)
-//	{
-//		SetFPException(FPSCR_VXIMZ);
-//		return PPC_NAN;
-//	}
-//
-//	t = t - c;
-//	if (t != t)
-//	{
-//		SetFPException(FPSCR_VXISI);
-//		return PPC_NAN;
-//	}
-//	return t;
-//#else
-//	This code does not calculate QNAN's correctly but calculates negative zero correctly.
-	return NI_sub(NI_mul(a, b), c);
-// #endif
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceSingle(U64ToDouble(a) * U64ToDouble(b)));
+}
+
+inline u64 MultiplyDoublePrecision(u64 a, u64 b)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceDouble(U64ToDouble(a) * U64ToDouble(b)));
+}
+
+inline u64 MaddSinglePrecision(u64 a, u64 b, u64 c)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceSingle(U64ToDouble(a) * U64ToDouble(b) + U64ToDouble(c)));
+}
+
+inline u64 MaddDoublePrecision(u64 a, u64 b, u64 c)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceDouble(U64ToDouble(a) * U64ToDouble(b) + U64ToDouble(c)));
+}
+
+inline u64 MsubSinglePrecision(u64 a, u64 b, u64 c)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceSingle(U64ToDouble(a) * U64ToDouble(b) - U64ToDouble(c)));
+}
+
+inline u64 MsubDoublePrecision(u64 a, u64 b, u64 c)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceDouble(U64ToDouble(a) * U64ToDouble(b) - U64ToDouble(c)));
+}
+
+inline u64 NegMaddSinglePrecision(u64 a, u64 b, u64 c)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceSingle(-(U64ToDouble(a) * U64ToDouble(b) + U64ToDouble(c))));
+}
+
+inline u64 NegMaddDoublePrecision(u64 a, u64 b, u64 c)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceDouble(-(U64ToDouble(a) * U64ToDouble(b) + U64ToDouble(c))));
+}
+
+inline u64 NegMsubSinglePrecision(u64 a, u64 b, u64 c)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceSingle(-(U64ToDouble(a) * U64ToDouble(b) - U64ToDouble(c))));
+}
+
+inline u64 NegMsubDoublePrecision(u64 a, u64 b, u64 c)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceDouble(-(U64ToDouble(a) * U64ToDouble(b) - U64ToDouble(c))));
+}
+
+inline u64 DivSinglePrecision(u64 a, u64 b)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceSingle(U64ToDouble(a) / U64ToDouble(b)));
+}
+
+inline u64 DivDoublePrecision(u64 a, u64 b)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceDouble(U64ToDouble(a) / U64ToDouble(b)));
+}
+
+inline u64 RoundToSingle(u64 a)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+	return DoubleToU64(ForceSingle(U64ToDouble(a)));
 }
 
 // used by stfsXX instructions and ps_rsqrte
