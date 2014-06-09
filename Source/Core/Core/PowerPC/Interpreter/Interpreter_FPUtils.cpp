@@ -60,13 +60,13 @@ static u64 StickyShiftRight(u64 a, u64 shift)
 // 64x64->128 unsigned multiply.
 static u64 UMul128(u64 a, u64 b, u64 *high)
 {
-#if 0 && defined _WIN32
+#if defined _WIN32
 	return _umul128(a, b, high);
 #else
 	// Generic, very inefficient implementation: use four 32x32->64 multiplies,
 	// and sum the result.
 	u64 low = (a & 0xFFFFFFFF) * (b & 0xFFFFFFFF);
-	u64 high = (a >> 32) * (b >> 32);
+	*high = (a >> 32) * (b >> 32);
 	u64 mid1 = (a >> 32) * (b & 0xFFFFFFFF);
 	u64 mid2 = (a & 0xFFFFFFFF) * (b >> 32);
 	u64 mid1_low = mid1 << 32;
@@ -79,7 +79,7 @@ static u64 UMul128(u64 a, u64 b, u64 *high)
 	low += mid2_low;
 	if (low < mid2_low)
 		*high += 1;
-	*high += mid2_high + mid2_high;
+	*high += mid1_high + mid2_high;
 	return low;
 #endif
 }
@@ -94,8 +94,24 @@ struct FPTemp
 static FPTemp DecomposeDouble(u64 double_a)
 {
 	FPTemp result;
-	result.mantissa = ((double_a & DOUBLE_FRAC) | (1ULL << 52)) << 3;
 	result.exponent = (double_a >> 52) & 0x7ff;
+	if (result.exponent == 0)
+	{
+		result.mantissa = (double_a & DOUBLE_FRAC) << 3;
+		if (result.mantissa != 0)
+		{
+			while (!(result.mantissa & (1ULL << 55)))
+			{
+				result.mantissa <<= 1;
+				result.exponent -= 1;
+			}
+			result.exponent += 1;
+		}
+	}
+	else
+	{
+		result.mantissa = ((double_a & DOUBLE_FRAC) | (1ULL << 52)) << 3;
+	}
 	result.sign = (double_a >> 63) != 0;
 	return result;
 }
@@ -129,15 +145,13 @@ static u64 RoundMantissa(u64 mantissa, bool sign)
 
 static u64 ConvertResultToDouble(u64 rounded_mantissa, int exponent, bool sign)
 {
-	if (rounded_mantissa & (1ULL << 56))
+	if (rounded_mantissa & (1ULL << 53))
 	{
-		if (rounded_mantissa != (1ULL << 56))
-			PanicAlert("Unexpected mantissa");
+		_dbg_assert_(POWERPC, rounded_mantissa == (1ULL << 53));
 		rounded_mantissa >>= 1;
 		exponent += 1;
 	}
-	if (rounded_mantissa >= (1ULL << 56))
-		PanicAlert("Unexpected mantissa");
+	_dbg_assert_(POWERPC, rounded_mantissa < (1ULL << 53));
 	if (exponent >= 0x7FF)
 	{
 		// Overflow: infinity
@@ -208,10 +222,14 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 	int exponent_diff = a.exponent - b.exponent;
 	u64 aligned_b = 0;
 	u64 aligned_b_low = 0;
-	if (exponent_diff < 64)
+	if (exponent_diff == 0)
+	{
+		aligned_b = b.mantissa;
+	}
+	else if (exponent_diff < 64)
 	{
 		aligned_b = b.mantissa >> exponent_diff;
-		aligned_b_low = StickyShiftRight(b_low, exponent_diff) | (aligned_b << (64 - exponent_diff));
+		aligned_b_low = StickyShiftRight(b_low, exponent_diff) | (b.mantissa << (64 - exponent_diff));
 	}
 	else if (exponent_diff < 128)
 	{
@@ -229,6 +247,10 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 			aligned_b -= 1;
 		}
 	}
+
+	// Copy exponent and sign from LHS.
+	result.exponent = a.exponent;
+	result.sign = a.sign;
 
 	// Sum the mantissas.
 	// (This is an 128-bit addition expanded over 64-bit operations.)
@@ -265,7 +287,6 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 
 static void MulCore(FPTemp a, FPTemp b, FPTemp &result, u64 &low)
 {
-	FPTemp result;
 	// Need exactly 57 bits of product in "high", so tweak operands.
 	// 57 == 53 bits of double mantissa + 3 guard bits +
 	//     1 extra in case the top result bit isn't 1.
@@ -435,7 +456,7 @@ u64 MultiplyDoublePrecision(u64 double_a, u64 double_b)
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
 	FPTemp result = MulFPTemp(a, b);
-	u64 result_double = RoundFPTempToSingle(result);
+	u64 result_double = RoundFPTempToDouble(result);
 
 	return result_double;
 #else
@@ -494,7 +515,7 @@ u64 MaddDoublePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c,
 	FPTemp result = MaddFPTemp(a, b, c);
 	if (negate_result)
 		result.sign = !result.sign;
-	u64 result_double = RoundFPTempToSingle(result);
+	u64 result_double = RoundFPTempToDouble(result);
 
 	return result_double;
 #else
