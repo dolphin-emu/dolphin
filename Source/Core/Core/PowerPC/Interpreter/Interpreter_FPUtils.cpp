@@ -100,12 +100,9 @@ static FPTemp DecomposeDouble(u64 double_a)
 		result.mantissa = (double_a & DOUBLE_FRAC) << 3;
 		if (result.mantissa != 0)
 		{
-			while (!(result.mantissa & (1ULL << 55)))
-			{
-				result.mantissa <<= 1;
-				result.exponent -= 1;
-			}
-			result.exponent += 1;
+			int shift = 55 - Log2(result.mantissa);
+			result.mantissa <<= shift;
+			result.exponent -= shift - 1;
 		}
 	}
 	else
@@ -220,8 +217,9 @@ static u64 InputIsNan(u64 a)
 	return (a & DOUBLE_EXP) == DOUBLE_EXP && (a & DOUBLE_FRAC) != 0;
 }
 
-// Core addition routine.  a_low contains the additional temporary bits\
-// if this computation is part of a madd.
+// Add two inputs.  a_low contains the additional temporary bits
+// if this computation is part of a madd. Each input is either a
+// normalized finite number or zero.
 static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 {
 	// Make sure the larger number is on the LHS; this simplifies aligning
@@ -282,7 +280,7 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 
 	if (result.mantissa == 0 && result_low == 0)
 	{
-		result.exponent = 0;
+		// Result is zero.
 	}
 	else if (result.mantissa & (1ULL << 56))
 	{
@@ -293,15 +291,18 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 	}
 	else if (!(result.mantissa & (1ULL << 55)))
 	{
-		// If the result is less than 56 bits, shift left until it is.
+		// If the result is less than 56 bits, shift left until it is 56 bits.
 		// (e.g. 2.0 - 1.5 = 0.5)
-		do
+		if (!result.mantissa)
 		{
-			result.mantissa <<= 1;
-			result.mantissa |= result_low >> 63;
-			result_low <<= 1;
-			--result.exponent;
-		} while (!(result.mantissa & (1ULL << 55)));
+			result.mantissa = result_low >> (64 - 54);
+			result_low <<= 54;
+			result.exponent -= 54;
+		}
+		int shift = 55 - Log2(result.mantissa);
+		result.mantissa = (result.mantissa << shift) | (result_low >> (64 - shift));
+		result_low <<= shift;
+		result.exponent -= shift;
 	}
 
 	// OR low bits into the sticky bit.
@@ -312,6 +313,9 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 		result.sign = FPSCR.RN == 3;
 }
 
+// Multiply two inputs.  Each input is either a normalized finite number
+// or zero. The output low contains addtional bits from the result mantissa
+// that don't fit into a 56-bit integer (necessary for madd).
 static void MulCore(FPTemp a, FPTemp b, FPTemp &result, u64 &low)
 {
 	// Need exactly 57 bits of product in "high", so tweak operands.
@@ -333,7 +337,7 @@ static void MulCore(FPTemp a, FPTemp b, FPTemp &result, u64 &low)
 		++result.exponent;
 	}
 
-	// Result sign is exclusive or of input signs.
+	// Result sign is XOR of input signs.
 	result.sign = a.sign ^ b.sign;
 }
 
@@ -380,6 +384,7 @@ enum PreprocessOperation
 	PreprocessMsub,
 	PreprocessNMadd,
 	PreprocessNMsub,
+	PreprocessRoundToSingle,
 };
 
 static u64 HandleNaN(u64 a)
@@ -431,9 +436,45 @@ static bool PreprocessMultiply(u64 double_a, u64 double_b, u64 &early_result)
 	return false;
 }
 
+// Preprocess inputs for unary ops
+bool PreprocessInput(u64 &double_a, u64 &early_result, PreprocessOperation op)
+{
+	SetFI(0);
+	FPSCR.FR = 0;
+
+	if (InputIsNan(double_a))
+	{
+		early_result = HandleNaN(double_a);
+		return true;
+	}
+
+	if (FPSCR.NI)
+	{
+		// Flush inputs to zero.
+		if (((double_a >> 52) & 0x7ff) == 0)
+			double_a &= DOUBLE_SIGN;
+	}
+
+	if (op == PreprocessRoundToSingle)
+	{
+		if ((double_a & DOUBLE_EXP) == DOUBLE_EXP)
+		{
+			// Infinity rounds to infinity.
+			early_result = double_a;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 // Preprocess inputs for binary ops
 bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, PreprocessOperation op)
 {
+	SetFI(0);
+	FPSCR.FR = 0;
+
 	if (InputIsNan(double_a))
 	{
 		early_result = HandleNaN(double_a);
@@ -497,6 +538,9 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 // Preprocess inputs for madd
 bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &double_c, u64 &early_result, PreprocessOperation op)
 {
+	SetFI(0);
+	FPSCR.FR = 0;
+
 	if (InputIsNan(double_a))
 	{
 		early_result = HandleNaN(double_a);
@@ -756,21 +800,9 @@ u64 DivDoublePrecision(u64 double_a, u64 double_b)
 u64 RoundToSingle(u64 double_a)
 {
 #ifdef VERY_ACCURATE_FP
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-
-	if (FPSCR.NI)
-	{
-		// Flush inputs to zero.
-		if (((double_a >> 52) & 0x7ff) == 0)
-			double_a &= DOUBLE_SIGN;
-	}
-
-	if ((double_a & DOUBLE_EXP) == DOUBLE_EXP)
-	{
-		// Infinity rounds to infinity.
-		return double_a;
-	}
+	u64 early_result;
+	if (PreprocessInput(double_a, early_result, PreprocessRoundToSingle))
+		return early_result;
 
 	FPTemp a = DecomposeDouble(double_a);
 	u64 result_double = RoundFPTempToSingle(a);
