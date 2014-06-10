@@ -155,9 +155,6 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff)
 
-	gpr.Flush();
-	fpr.Flush();
-
 	// bcctrx doesn't decrement and/or test CTR
 	_dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
 
@@ -166,6 +163,9 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		// BO_2 == 1z1zz -> b always
 
 		//NPC = CTR & 0xfffffffc;
+		gpr.Flush();
+		fpr.Flush();
+
 		MOV(32, R(EAX), M(&CTR));
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); // LR = PC + 4;
@@ -192,6 +192,9 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); // LR = PC + 4;
+
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
 		WriteExitDestInEAX();
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
