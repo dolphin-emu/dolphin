@@ -209,9 +209,6 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff)
 
-	gpr.Flush();
-	fpr.Flush();
-
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
@@ -242,6 +239,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	AND(32, R(EAX), Imm32(0xFFFFFFFC));
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+
+	gpr.Flush(FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FLUSH_MAINTAIN_STATE);
 	WriteExitDestInEAX();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
