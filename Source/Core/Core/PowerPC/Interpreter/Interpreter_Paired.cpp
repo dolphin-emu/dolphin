@@ -145,8 +145,8 @@ void Interpreter::ps_add(UGeckoInstruction _inst)
 
 void Interpreter::ps_mul(UGeckoInstruction _inst)
 {
-	riPS1(_inst.FD) = MultiplySinglePrecision(riPS1(_inst.FA), riPS1(_inst.FB));
-	riPS0(_inst.FD) = MultiplySinglePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
+	riPS1(_inst.FD) = MultiplySinglePrecision(riPS1(_inst.FA), riPS1(_inst.FC));
+	riPS0(_inst.FD) = MultiplySinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC));
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
