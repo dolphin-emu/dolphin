@@ -127,13 +127,13 @@ static u64 RoundMantissa(u64 mantissa, bool sign)
 		round_up = round_bits > ((rounded_mantissa & 1) ? 3 : 4);
 		break;
 	case 1:
-		round_up = true;
+		round_up = false;
 		break;
 	case 2:
-		round_up = sign && round_bits > 3;
+		round_up = !sign;
 		break;
 	case 3:
-		round_up = !sign && round_bits > 3;
+		round_up = sign;
 		break;
 	}
 	SetFI(round_bits != 0);
@@ -145,13 +145,20 @@ static u64 RoundMantissa(u64 mantissa, bool sign)
 
 static u64 ConvertResultToDouble(u64 rounded_mantissa, int exponent, bool sign)
 {
-	if (rounded_mantissa & (1ULL << 53))
+	// If we round to zero, output zero.
+	if (rounded_mantissa == 0)
+		exponent = 0;
+
+	// Renormalize after rounding
+	if (rounded_mantissa == (1ULL << 53))
 	{
-		_dbg_assert_(POWERPC, rounded_mantissa == (1ULL << 53));
-		rounded_mantissa >>= 1;
+		rounded_mantissa = 1ULL << 52;
 		exponent += 1;
 	}
+
 	_dbg_assert_(POWERPC, rounded_mantissa < (1ULL << 53));
+	_dbg_assert_(POWERPC, exponent == 0 || (rounded_mantissa & (1ULL << 52)));
+
 	if (exponent >= 0x7FF)
 	{
 		// Overflow: infinity
@@ -160,48 +167,57 @@ static u64 ConvertResultToDouble(u64 rounded_mantissa, int exponent, bool sign)
 		exponent = 0x7FF;
 		rounded_mantissa = 0;
 	}
-	if (exponent <= 0)
+
+	return ((u64)exponent << 52) | ((u64)sign << 63) | (rounded_mantissa & DOUBLE_FRAC);
+}
+
+static void DenormalizeMantissa(u64 &mantissa, int exponent, int &shift, int denormal_exponent)
+{
+	if (exponent <= denormal_exponent)
 	{
 		// Underflow: denormal
 		// TODO: Set UX where appropriate.
-		// TODO: Need to correctly round denormals.
 		if (FPSCR.NI)
 		{
 			// In non-IEEE mode, flush denormals to zero.
-			rounded_mantissa = 0;
+			mantissa = 0;
 		}
 		else
 		{
 			// Build denormal value
-			int shift = -exponent + 1;
+			shift = denormal_exponent - exponent + 1;
 			if (shift < 64)
-				rounded_mantissa >>= shift;
+				mantissa = StickyShiftRight(mantissa, shift);
 			else
-				rounded_mantissa = 0;
+				mantissa = 0;
 		}
-		exponent = 0;
 	}
-	return ((u64)exponent << 52) | ((u64)sign << 63) | (rounded_mantissa & DOUBLE_FRAC);
 }
 
 static u64 RoundFPTempToDouble(FPTemp a)
 {
+	int shift = 0;
+	DenormalizeMantissa(a.mantissa, a.exponent, shift, 0);
+	if (shift)
+		a.exponent = 0;
 	u64 rounded_mantissa = RoundMantissa(a.mantissa, a.sign);
 	return ConvertResultToDouble(rounded_mantissa, a.exponent, a.sign);
 }
 
 static u64 RoundFPTempToSingle(FPTemp a)
 {
-	// TODO: need to handle constrain exponent to single range.
-	u64 rounded_mantissa = StickyShiftRight(a.mantissa, 29);
-	rounded_mantissa = RoundMantissa(rounded_mantissa, a.sign);
-	rounded_mantissa <<= 29;
-	return ConvertResultToDouble(rounded_mantissa, a.exponent, a.sign);
+	int shift = 0;
+	DenormalizeMantissa(a.mantissa, a.exponent, shift, 896);
+	a.mantissa = StickyShiftRight(a.mantissa, 29);
+	a.mantissa = RoundMantissa(a.mantissa, a.sign);
+	if (29 + shift < 64)
+		a.mantissa <<= 29 + shift;
+	return ConvertResultToDouble(a.mantissa, a.exponent, a.sign);
 }
 
 static u64 InputIsNan(u64 a)
 {
-	return ((a >> 52) & 0x7ff) == 0x7ff && (a & DOUBLE_FRAC) != 0;
+	return (a & DOUBLE_EXP) == DOUBLE_EXP && (a & DOUBLE_FRAC) != 0;
 }
 
 // Core addition routine.  a_low contains the additional temporary bits\
@@ -210,9 +226,11 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 {
 	// Make sure the larger number is on the LHS; this simplifies aligning
 	// the operands.
+	// Note that the exponent doesn't mean anything if the mantissa is zero.
 	u64 b_low = 0;
-	if (b.exponent > a.exponent ||
-		(b.exponent == a.exponent && b.mantissa > a.mantissa))
+	if ((b.exponent > a.exponent && b.mantissa != 0) ||
+		(b.exponent == a.exponent && b.mantissa > a.mantissa) ||
+		(a.mantissa == 0 && b.mantissa != 0))
 	{
 		std::swap(a, b);
 		std::swap(a_low, b_low);
@@ -289,6 +307,9 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 	// OR low bits into the sticky bit.
 	if (result_low)
 		result.mantissa |= 1;
+
+	if (result.mantissa == 0)
+		result.sign = FPSCR.RN == 3;
 }
 
 static void MulCore(FPTemp a, FPTemp b, FPTemp &result, u64 &low)
