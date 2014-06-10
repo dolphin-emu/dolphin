@@ -954,9 +954,6 @@ void JitArm::twx(UGeckoInstruction inst)
 
 	s32 a = inst.RA;
 
-	gpr.Flush();
-	fpr.Flush();
-
 	ARMReg RA = gpr.GetReg();
 	ARMReg RB = gpr.GetReg();
 	MOV(RA, inst.TO);
@@ -1003,6 +1000,9 @@ void JitArm::twx(UGeckoInstruction inst)
 	SetJumpTarget(take4);
 	SetJumpTarget(take5);
 
+	gpr.Flush(FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FLUSH_MAINTAIN_STATE);
+
 	LDR(RA, R9, PPCSTATE_OFF(Exceptions));
 	MOVI2R(RB, EXCEPTION_PROGRAM); // XXX: Can be optimized
 	ORR(RA, RA, RB);
@@ -1016,7 +1016,12 @@ void JitArm::twx(UGeckoInstruction inst)
 	SetJumpTarget(exit5);
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush();
+		fpr.Flush();
+
 		WriteExit(js.compilerPC + 4);
+	}
 
 	gpr.Unlock(RA, RB);
 }

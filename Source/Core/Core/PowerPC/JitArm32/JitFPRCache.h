@@ -43,7 +43,7 @@ public:
 
 	ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
 	void Unlock(ARMReg V0);
-	void Flush();
+	void Flush(FlushMode mode = FLUSH_ALL);
 	ARMReg R0(u32 preg, bool preLoad = true); // Returns a cached register
 	ARMReg R1(u32 preg, bool preLoad = true);
 };

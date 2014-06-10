@@ -446,12 +446,14 @@ void JitArm::lXX(UGeckoInstruction inst)
 		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		ARMReg RD = gpr.R(d);
-		gpr.Flush();
-		fpr.Flush();
 
 		// if it's still 0, we can wait until the next event
 		TST(RD, RD);
 		FixupBranch noIdle = B_CC(CC_NEQ);
+
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
+
 		rA = gpr.GetReg();
 
 		MOVI2R(rA, (u32)&PowerPC::OnIdle);

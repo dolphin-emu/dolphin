@@ -29,6 +29,12 @@ enum RegType
 	REG_AWAY, // Bound to a register, but not preloaded
 };
 
+enum FlushMode
+{
+	FLUSH_ALL = 0,
+	FLUSH_MAINTAIN_STATE,
+};
+
 class OpArg
 {
 	private:
@@ -116,9 +122,8 @@ public:
 	void Start(PPCAnalyst::BlockRegStats &stats);
 
 	ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
-	void Unlock(ARMReg R0, ARMReg R1 = INVALID_REG, ARMReg R2 = INVALID_REG, ARMReg R3 =
-	INVALID_REG);
-	void Flush();
+	void Unlock(ARMReg R0, ARMReg R1 = INVALID_REG, ARMReg R2 = INVALID_REG, ARMReg R3 = INVALID_REG);
+	void Flush(FlushMode mode = FLUSH_ALL);
 	ARMReg R(u32 preg); // Returns a cached register
 	bool IsImm(u32 preg) { return regs[preg].GetType() == REG_IMM; }
 	u32 GetImm(u32 preg) { return regs[preg].GetImm(); }
