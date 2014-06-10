@@ -255,7 +255,7 @@ void RegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 	}
 }
 
-void RegCache::StoreFromRegister(int i, bool clearState)
+void RegCache::StoreFromRegister(int i, FlushMode mode)
 {
 	if (regs[i].away)
 	{
@@ -264,7 +264,7 @@ void RegCache::StoreFromRegister(int i, bool clearState)
 		{
 			X64Reg xr = RX(i);
 			doStore = xregs[xr].dirty;
-			if(clearState)
+			if(mode == FLUSH_ALL)
 			{
 				xregs[xr].free = true;
 				xregs[xr].ppcReg = -1;
@@ -279,7 +279,7 @@ void RegCache::StoreFromRegister(int i, bool clearState)
 		OpArg newLoc = GetDefaultLocation(i);
 		if (doStore)
 			StoreRegister(i, newLoc);
-		if(clearState)
+		if(mode == FLUSH_ALL)
 		{
 			regs[i].location = newLoc;
 			regs[i].away = false;
@@ -311,7 +311,7 @@ void FPURegCache::StoreRegister(int preg, OpArg newLoc)
 	emit->MOVAPD(newLoc, regs[preg].location.GetSimpleReg());
 }
 
-void RegCache::Flush(bool clearState)
+void RegCache::Flush(FlushMode mode)
 {
 	for (int i = 0; i < (int)xregs.size(); i++)
 	{
@@ -329,7 +329,7 @@ void RegCache::Flush(bool clearState)
 		{
 			if (regs[i].location.IsSimpleReg() || regs[i].location.IsImm())
 			{
-				StoreFromRegister(i, clearState);
+				StoreFromRegister(i, mode);
 			}
 			else
 			{

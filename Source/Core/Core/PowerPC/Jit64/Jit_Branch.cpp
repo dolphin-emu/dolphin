@@ -133,8 +133,8 @@ void Jit64::bcx(UGeckoInstruction inst)
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
 
-	gpr.Flush(false);
-	fpr.Flush(false);
+	gpr.Flush(FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FLUSH_MAINTAIN_STATE);
 	WriteExit(destination);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)

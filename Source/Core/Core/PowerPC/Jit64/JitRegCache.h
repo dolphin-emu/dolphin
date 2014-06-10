@@ -10,6 +10,12 @@
 
 using namespace Gen;
 
+enum FlushMode
+{
+	FLUSH_ALL,
+	FLUSH_MAINTAIN_STATE,
+};
+
 struct PPCCachedReg
 {
 	OpArg location;
@@ -63,7 +69,7 @@ public:
 		FlushR(reg1); FlushR(reg2);
 		LockX(reg1); LockX(reg2);
 	}
-	void Flush(bool clearState = true);
+	void Flush(FlushMode mode = FLUSH_ALL);
 	void Flush(PPCAnalyst::CodeOp *op) {Flush();}
 	int SanityCheck() const;
 	void KillImmediate(int preg, bool doLoad, bool makeDirty);
@@ -71,7 +77,7 @@ public:
 	//TODO - instead of doload, use "read", "write"
 	//read only will not set dirty flag
 	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true);
-	void StoreFromRegister(int preg, bool clearState = true);
+	void StoreFromRegister(int preg, FlushMode mode = FLUSH_ALL);
 	virtual void StoreRegister(int preg, OpArg newLoc) = 0;
 	virtual void LoadRegister(int preg, X64Reg newLoc) = 0;
 
