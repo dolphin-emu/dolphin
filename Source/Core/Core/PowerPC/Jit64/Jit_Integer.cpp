@@ -2182,9 +2182,6 @@ void Jit64::twx(UGeckoInstruction inst)
 
 	s32 a = inst.RA;
 
-	gpr.Flush();
-	fpr.Flush();
-
 	if (inst.OPCD == 3) // twi
 		CMP(32, gpr.R(a), gpr.R(inst.RB));
 	else // tw
@@ -2209,6 +2206,10 @@ void Jit64::twx(UGeckoInstruction inst)
 	}
 	LOCK();
 	OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_PROGRAM));
+
+	gpr.Flush(FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FLUSH_MAINTAIN_STATE);
+
 	WriteExceptionExit();
 
 	SetJumpTarget(dont_trap);
