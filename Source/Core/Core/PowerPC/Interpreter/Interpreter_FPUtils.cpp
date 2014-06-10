@@ -199,11 +199,6 @@ static u64 InputIsNan(u64 a)
 	return ((a >> 52) & 0x7ff) == 0x7ff && (a & DOUBLE_FRAC) != 0;
 }
 
-static u64 HandleNaN(u64 a)
-{
-	return a | (1ULL << 51);
-}
-
 // Core addition routine.  a_low contains the additional temporary bits\
 // if this computation is part of a madd.
 static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
@@ -349,19 +344,190 @@ bool InputIsSpecial(u64 a)
 	return (a & ~DOUBLE_SIGN) == 0 || (a & DOUBLE_EXP) == DOUBLE_EXP;
 }
 
+enum PreprocessOperation
+{
+	PreprocessAddition,
+	PreprocessSubtraction,
+	PreprocessMultiplication,
+	PreprocessDivision,
+	PreprocessMadd,
+	PreprocessMsub,
+	PreprocessNMadd,
+	PreprocessNMsub,
+};
+
+static u64 HandleNaN(u64 a)
+{
+	if (!(a & (1ULL << 51)))
+		SetFPException(FPSCR_VXSNAN);
+	return a | (1ULL << 51);
+}
+
+static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result)
+{
+	if (((double_a >> 52) & 0x7ff) == 0x7ff)
+	{
+		if (((double_b >> 52) & 0x7ff) == 0x7ff && double_a != double_b)
+		{
+			// infinity + -infinity = NaN
+			early_result = PPC_NAN_U64;
+			SetFPException(FPSCR_VXIDI);
+			return true;
+		}
+		// infinity + n = infinity
+		early_result = double_a;
+		return true;
+	}
+	if (((double_b >> 52) & 0x7ff) == 0x7ff)
+	{
+		// infinity + n = infinity
+		early_result = double_b;
+		return true;
+	}
+	return false;
+}
+
+static bool PreprocessMultiply(u64 double_a, u64 double_b, u64 &early_result)
+{
+	if (((double_a >> 52) & 0x7ff) == 0x7ff || ((double_b >> 52) & 0x7ff) == 0x7ff)
+	{
+		if ((double_a & ~DOUBLE_SIGN) == 0 || (double_b & ~DOUBLE_SIGN) == 0)
+		{
+			// infinity * 0 = NaN
+			SetFPException(FPSCR_VXIMZ);
+			early_result = PPC_NAN_U64;
+			return true;
+		}
+		// infinity * n = infinity
+		early_result = DOUBLE_EXP | ((double_a ^ double_b) & DOUBLE_SIGN);
+		return true;
+	}
+	return false;
+}
+
+// Preprocess inputs for binary ops
+bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, PreprocessOperation op)
+{
+	if (InputIsNan(double_a))
+	{
+		early_result = HandleNaN(double_a);
+		return true;
+	}
+	if (InputIsNan(double_b))
+	{
+		early_result = HandleNaN(double_b);
+		return true;
+	}
+
+	if (FPSCR.NI)
+	{
+		// Flush inputs to zero.
+		if (((double_a >> 52) & 0x7ff) == 0)
+			double_a &= DOUBLE_SIGN;
+
+		if (((double_b >> 52) & 0x7ff) == 0)
+			double_b &= DOUBLE_SIGN;
+	}
+
+	if (op == PreprocessSubtraction)
+		double_b ^= DOUBLE_SIGN;
+
+	if (op == PreprocessSubtraction || op == PreprocessAddition)
+	{
+		return PreprocessAdd(double_a, double_b, early_result);
+	}
+	else if (op == PreprocessMultiplication)
+	{
+		return PreprocessMultiply(double_a, double_b, early_result);
+	}
+	else if (op == PreprocessDivision)
+	{
+		if ((double_b & ~DOUBLE_SIGN) == 0)
+		{
+			if ((double_a & ~DOUBLE_SIGN) == 0)
+			{
+				// 0 / 0 = NaN
+				SetFPException(FPSCR_VXZDZ);
+				early_result = PPC_NAN_U64;
+				return true;
+			}
+			// n / 0 = infinity
+			FPSCR.ZX = 1;
+			early_result = DOUBLE_EXP | ((double_a ^ double_b) & DOUBLE_SIGN);
+			return true;
+		}
+		if (((double_a >> 52) & 0x7ff) == 0x7ff && ((double_b >> 52) & 0x7ff) == 0x7ff)
+		{
+			// infinity / infinity = NaN
+			SetFPException(FPSCR_VXIDI);
+			early_result = PPC_NAN_U64;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+// Preprocess inputs for madd
+bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &double_c, u64 &early_result, PreprocessOperation op)
+{
+	if (InputIsNan(double_a))
+	{
+		early_result = HandleNaN(double_a);
+		return true;
+	}
+	if (InputIsNan(double_c))
+	{
+		early_result = HandleNaN(double_c);
+		return true;
+	}
+	if (InputIsNan(double_b))
+	{
+		early_result = HandleNaN(double_b);
+		return true;
+	}
+
+	if (FPSCR.NI)
+	{
+		// Flush inputs to zero.
+		if (((double_a >> 52) & 0x7ff) == 0)
+			double_a &= DOUBLE_SIGN;
+
+		if (((double_b >> 52) & 0x7ff) == 0)
+			double_b &= DOUBLE_SIGN;
+
+		if (((double_c >> 52) & 0x7ff) == 0)
+			double_c &= DOUBLE_SIGN;
+	}
+
+	if (op == PreprocessMsub || op == PreprocessNMsub)
+		double_c ^= DOUBLE_SIGN;
+
+	early_result = 0;
+	if (PreprocessMultiply(double_a, double_b, early_result))
+	{
+		if (InputIsNan(early_result))
+			return true;
+	}
+	if (PreprocessAdd(early_result, double_c, early_result))
+	{
+		if (InputIsNan(early_result))
+			return true;
+	}
+
+	if (op == PreprocessNMadd || op == PreprocessNMsub)
+		early_result ^= DOUBLE_SIGN;
+
+	return (early_result & DOUBLE_EXP) == DOUBLE_EXP;
+}
+
 u64 AddSinglePrecision(u64 double_a, u64 double_b)
 {
 #ifdef VERY_ACCURATE_FP
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, early_result, PreprocessAddition))
+		return early_result;
 
-	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
-	{
-		// TODO: Real impl
-		return DoubleToU64(ForceSingle(U64ToDouble(double_a) + U64ToDouble(double_b)));
-	}
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
 	FPTemp result = AddFPTemp(a, b);
@@ -378,16 +544,10 @@ u64 AddSinglePrecision(u64 double_a, u64 double_b)
 u64 AddDoublePrecision(u64 double_a, u64 double_b)
 {
 #ifdef VERY_ACCURATE_FP
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, early_result, PreprocessAddition))
+		return early_result;
 
-	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
-	{
-		// TODO: Real impl
-		return DoubleToU64(ForceDouble(U64ToDouble(double_a) + U64ToDouble(double_b)));
-	}
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
 	FPTemp result = AddFPTemp(a, b);
@@ -404,19 +564,12 @@ u64 AddDoublePrecision(u64 double_a, u64 double_b)
 u64 SubSinglePrecision(u64 double_a, u64 double_b)
 {
 #ifdef VERY_ACCURATE_FP
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, early_result, PreprocessSubtraction))
+		return early_result;
 
-	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
-	{
-		// TODO: Real impl
-		return DoubleToU64(ForceSingle(U64ToDouble(double_a) - U64ToDouble(double_b)));
-	}
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
-	b.sign = !b.sign;
 	FPTemp result = AddFPTemp(a, b);
 	u64 result_double = RoundFPTempToSingle(result);
 
@@ -431,20 +584,12 @@ u64 SubSinglePrecision(u64 double_a, u64 double_b)
 u64 SubDoublePrecision(u64 double_a, u64 double_b)
 {
 #ifdef VERY_ACCURATE_FP
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
-
-	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
-	{
-		// TODO: Real impl
-		return DoubleToU64(ForceDouble(U64ToDouble(double_a) - U64ToDouble(double_b)));
-	}
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, early_result, PreprocessSubtraction))
+		return early_result;
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
-	b.sign = !b.sign;
 	FPTemp result = AddFPTemp(a, b);
 	u64 result_double = RoundFPTempToDouble(result);
 
@@ -459,16 +604,9 @@ u64 SubDoublePrecision(u64 double_a, u64 double_b)
 u64 MultiplySinglePrecision(u64 double_a, u64 double_b)
 {
 #ifdef VERY_ACCURATE_FP
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
-
-	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
-	{
-		// TODO: Real impl
-		return DoubleToU64(ForceSingle(U64ToDouble(double_a) * U64ToDouble(double_b)));
-	}
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, early_result, PreprocessMultiplication))
+		return early_result;
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -486,16 +624,9 @@ u64 MultiplySinglePrecision(u64 double_a, u64 double_b)
 u64 MultiplyDoublePrecision(u64 double_a, u64 double_b)
 {
 #ifdef VERY_ACCURATE_FP
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
-
-	if (InputIsSpecial(double_a) || InputIsSpecial(double_b))
-	{
-		// TODO: Real impl
-		return DoubleToU64(ForceDouble(U64ToDouble(double_a) * U64ToDouble(double_b)));
-	}
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, early_result, PreprocessMultiplication))
+		return early_result;
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -513,27 +644,18 @@ u64 MultiplyDoublePrecision(u64 double_a, u64 double_b)
 u64 MaddSinglePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c, bool negate_result)
 {
 #ifdef VERY_ACCURATE_FP
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_c))
-		return HandleNaN(double_c);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
-
-	if (InputIsSpecial(double_a) || InputIsSpecial(double_b) || InputIsSpecial(double_c))
-	{
-		// TODO: Real impl
-		double result = U64ToDouble(double_a) * U64ToDouble(double_b);
-		result = result + (negate_c ? -U64ToDouble(double_c) : U64ToDouble(double_c));
-		result = negate_result ? -result : result;
-		return DoubleToU64(ForceSingle(result));
-	}
+	PreprocessOperation op;
+	if (negate_c)
+		op = negate_result ? PreprocessNMsub : PreprocessMsub;
+	else
+		op = negate_result ? PreprocessNMadd : PreprocessMadd;
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, double_c, early_result, op))
+		return early_result;
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
 	FPTemp c = DecomposeDouble(double_c);
-	if (negate_c)
-		c.sign = !c.sign;
 	FPTemp result = MaddFPTemp(a, b, c);
 	if (negate_result)
 		result.sign = !result.sign;
@@ -553,27 +675,18 @@ u64 MaddSinglePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c,
 u64 MaddDoublePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c, bool negate_result)
 {
 #ifdef VERY_ACCURATE_FP
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_c))
-		return HandleNaN(double_c);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
-
-	if (InputIsSpecial(double_a) || InputIsSpecial(double_b) || InputIsSpecial(double_c))
-	{
-		// TODO: Real impl
-		double result = U64ToDouble(double_a) * U64ToDouble(double_b);
-		result = result + (negate_c ? -U64ToDouble(double_c) : U64ToDouble(double_c));
-		result = negate_result ? -result : result;
-		return DoubleToU64(ForceDouble(result));
-	}
+	PreprocessOperation op;
+	if (negate_c)
+		op = negate_result ? PreprocessNMsub : PreprocessMsub;
+	else
+		op = negate_result ? PreprocessNMadd : PreprocessMadd;
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, double_c, early_result, op))
+		return early_result;
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
 	FPTemp c = DecomposeDouble(double_c);
-	if (negate_c)
-		c.sign = !c.sign;
 	FPTemp result = MaddFPTemp(a, b, c);
 	if (negate_result)
 		result.sign = !result.sign;
@@ -592,11 +705,11 @@ u64 MaddDoublePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c,
 
 u64 DivSinglePrecision(u64 double_a, u64 double_b)
 {
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, early_result, PreprocessDivision))
+		return early_result;
 
+	// TODO: Figure out the best way to do this with integer math.
 	SetFI(0);
 	FPSCR.FR = 0;
 	return DoubleToU64(ForceSingle(U64ToDouble(double_a) / U64ToDouble(double_b)));
@@ -604,11 +717,11 @@ u64 DivSinglePrecision(u64 double_a, u64 double_b)
 
 u64 DivDoublePrecision(u64 double_a, u64 double_b)
 {
-	if (InputIsNan(double_a))
-		return HandleNaN(double_a);
-	if (InputIsNan(double_b))
-		return HandleNaN(double_b);
+	u64 early_result;
+	if (PreprocessInput(double_a, double_b, early_result, PreprocessDivision))
+		return early_result;
 
+	// TODO: Figure out the best way to do this with integer math.
 	SetFI(0);
 	FPSCR.FR = 0;
 	return DoubleToU64(ForceDouble(U64ToDouble(double_a) / U64ToDouble(double_b)));
@@ -620,9 +733,17 @@ u64 RoundToSingle(u64 double_a)
 	if (InputIsNan(double_a))
 		return HandleNaN(double_a);
 
-	if (InputIsSpecial(double_a))
+	if (FPSCR.NI)
 	{
-		return DoubleToU64(ForceSingle(U64ToDouble(double_a)));
+		// Flush inputs to zero.
+		if (((double_a >> 52) & 0x7ff) == 0)
+			double_a &= DOUBLE_SIGN;
+	}
+
+	if ((double_a & DOUBLE_EXP) == DOUBLE_EXP)
+	{
+		// Infinity rounds to infinity.
+		return double_a;
 	}
 
 	FPTemp a = DecomposeDouble(double_a);
