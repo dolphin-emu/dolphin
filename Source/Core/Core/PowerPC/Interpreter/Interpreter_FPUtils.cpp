@@ -155,12 +155,16 @@ static u64 ConvertResultToDouble(u64 rounded_mantissa, int exponent, bool sign)
 	if (exponent >= 0x7FF)
 	{
 		// Overflow: infinity
+		FPSCR.OX = 1;
+		SetFI(1);
 		exponent = 0x7FF;
 		rounded_mantissa = 0;
 	}
 	if (exponent <= 0)
 	{
 		// Underflow: denormal
+		// TODO: Set UX where appropriate.
+		// TODO: Need to correctly round denormals.
 		if (FPSCR.NI)
 		{
 			// In non-IEEE mode, flush denormals to zero.
@@ -188,6 +192,7 @@ static u64 RoundFPTempToDouble(FPTemp a)
 
 static u64 RoundFPTempToSingle(FPTemp a)
 {
+	// TODO: need to handle constrain exponent to single range.
 	u64 rounded_mantissa = StickyShiftRight(a.mantissa, 29);
 	rounded_mantissa = RoundMantissa(rounded_mantissa, a.sign);
 	rounded_mantissa <<= 29;
