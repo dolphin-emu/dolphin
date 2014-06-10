@@ -22,7 +22,7 @@ void RegCache::Start()
 		xreg.locked = false;
 		xreg.ppcReg = -1;
 	}
-	for (int i = 0; i < (int)regs.size(); i++)
+	for (size_t i = 0; i < regs.size(); i++)
 	{
 		regs[i].location = GetDefaultLocation(i);
 		regs[i].away = false;
@@ -264,7 +264,7 @@ void RegCache::StoreFromRegister(int i, FlushMode mode)
 		{
 			X64Reg xr = RX(i);
 			doStore = xregs[xr].dirty;
-			if(mode == FLUSH_ALL)
+			if (mode == FLUSH_ALL)
 			{
 				xregs[xr].free = true;
 				xregs[xr].ppcReg = -1;
@@ -279,7 +279,7 @@ void RegCache::StoreFromRegister(int i, FlushMode mode)
 		OpArg newLoc = GetDefaultLocation(i);
 		if (doStore)
 			StoreRegister(i, newLoc);
-		if(mode == FLUSH_ALL)
+		if (mode == FLUSH_ALL)
 		{
 			regs[i].location = newLoc;
 			regs[i].away = false;
@@ -313,17 +313,17 @@ void FPURegCache::StoreRegister(int preg, OpArg newLoc)
 
 void RegCache::Flush(FlushMode mode)
 {
-	for (int i = 0; i < (int)xregs.size(); i++)
+	for (size_t i = 0; i < xregs.size(); i++)
 	{
 		if (xregs[i].locked)
-			PanicAlert("Someone forgot to unlock X64 reg %i.", i);
+			PanicAlert("Someone forgot to unlock X64 reg %zu.", i);
 	}
 
-	for (int i = 0; i < (int)regs.size(); i++)
+	for (size_t i = 0; i < regs.size(); i++)
 	{
 		if (regs[i].locked)
 		{
-			PanicAlert("Someone forgot to unlock PPC reg %i (X64 reg %i).", i, RX(i));
+			PanicAlert("Someone forgot to unlock PPC reg %zu (X64 reg %i).", i, RX(i));
 		}
 		if (regs[i].away)
 		{
@@ -333,7 +333,7 @@ void RegCache::Flush(FlushMode mode)
 			}
 			else
 			{
-				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %i PC: %08x", i, PC);
+				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %zu PC: %08x", i, PC);
 			}
 		}
 	}
