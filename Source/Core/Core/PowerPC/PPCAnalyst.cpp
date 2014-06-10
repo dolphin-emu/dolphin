@@ -172,22 +172,11 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 				else
 				{
 					u32 target = EvaluateBranchTarget(instr, addr);
-					if (target != INVALID_TARGET)
+					if (target != INVALID_TARGET && instr.LK)
 					{
-						if (instr.LK)
-						{
-							//we found a branch-n-link!
-							func.calls.push_back(SCall(target, addr));
-							func.flags &= ~FFLAG_LEAF;
-						}
-						else
-						{
-							if (target > farthestInternalBranchTarget)
-							{
-								farthestInternalBranchTarget = target;
-							}
-							numInternalBranches++;
-						}
+						//we found a branch-n-link!
+						func.calls.push_back(SCall(target,addr));
+						func.flags &= ~FFLAG_LEAF;
 					}
 				}
 			}
