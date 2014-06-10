@@ -396,9 +396,9 @@ static u64 HandleNaN(u64 a)
 
 static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result)
 {
-	if (((double_a >> 52) & 0x7ff) == 0x7ff)
+	if ((double_a & DOUBLE_EXP) == DOUBLE_EXP)
 	{
-		if (((double_b >> 52) & 0x7ff) == 0x7ff && double_a != double_b)
+		if ((double_b & DOUBLE_EXP) == DOUBLE_EXP && double_a != double_b)
 		{
 			// infinity + -infinity = NaN
 			early_result = PPC_NAN_U64;
@@ -409,7 +409,7 @@ static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result)
 		early_result = double_a;
 		return true;
 	}
-	if (((double_b >> 52) & 0x7ff) == 0x7ff)
+	if ((double_b & DOUBLE_EXP) == DOUBLE_EXP)
 	{
 		// infinity + n = infinity
 		early_result = double_b;
@@ -420,7 +420,7 @@ static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result)
 
 static bool PreprocessMultiply(u64 double_a, u64 double_b, u64 &early_result)
 {
-	if (((double_a >> 52) & 0x7ff) == 0x7ff || ((double_b >> 52) & 0x7ff) == 0x7ff)
+	if ((double_a & DOUBLE_EXP) == DOUBLE_EXP || (double_b & DOUBLE_EXP) == DOUBLE_EXP)
 	{
 		if ((double_a & ~DOUBLE_SIGN) == 0 || (double_b & ~DOUBLE_SIGN) == 0)
 		{
@@ -451,7 +451,7 @@ bool PreprocessInput(u64 &double_a, u64 &early_result, PreprocessOperation op)
 	if (FPSCR.NI)
 	{
 		// Flush inputs to zero.
-		if (((double_a >> 52) & 0x7ff) == 0)
+		if ((double_a & DOUBLE_EXP) == 0)
 			double_a &= DOUBLE_SIGN;
 	}
 
@@ -489,10 +489,10 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 	if (FPSCR.NI)
 	{
 		// Flush inputs to zero.
-		if (((double_a >> 52) & 0x7ff) == 0)
+		if ((double_a & DOUBLE_EXP) == 0)
 			double_a &= DOUBLE_SIGN;
 
-		if (((double_b >> 52) & 0x7ff) == 0)
+		if ((double_b & DOUBLE_EXP) == 0)
 			double_b &= DOUBLE_SIGN;
 	}
 
@@ -523,9 +523,9 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 			early_result = DOUBLE_EXP | ((double_a ^ double_b) & DOUBLE_SIGN);
 			return true;
 		}
-		if (((double_a >> 52) & 0x7ff) == 0x7ff)
+		if ((double_a & DOUBLE_EXP) == DOUBLE_EXP)
 		{
-			if (((double_b >> 52) & 0x7ff) == 0x7ff)
+			if ((double_b & DOUBLE_EXP) == DOUBLE_EXP)
 			{
 				// infinity / infinity = NaN
 				SetFPException(FPSCR_VXIDI);
@@ -536,7 +536,7 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 			early_result = DOUBLE_EXP | ((double_a ^ double_b) & DOUBLE_SIGN);
 			return true;
 		}
-		if (((double_b >> 52) & 0x7ff) == 0x7ff)
+		if ((double_b & DOUBLE_EXP) == DOUBLE_EXP)
 		{
 			// n / infinity = 0
 			early_result = (double_a ^ double_b) & DOUBLE_SIGN;
@@ -572,13 +572,13 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &double_c, u64 &early_res
 	if (FPSCR.NI)
 	{
 		// Flush inputs to zero.
-		if (((double_a >> 52) & 0x7ff) == 0)
+		if ((double_a & DOUBLE_EXP) == 0)
 			double_a &= DOUBLE_SIGN;
 
-		if (((double_b >> 52) & 0x7ff) == 0)
+		if ((double_b & DOUBLE_EXP) == 0)
 			double_b &= DOUBLE_SIGN;
 
-		if (((double_c >> 52) & 0x7ff) == 0)
+		if ((double_c & DOUBLE_EXP) == 0)
 			double_c &= DOUBLE_SIGN;
 	}
 
