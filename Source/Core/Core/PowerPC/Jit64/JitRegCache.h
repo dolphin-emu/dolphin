@@ -4,25 +4,23 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/x64Emitter.h"
 
 using namespace Gen;
+
 enum FlushMode
 {
-	FLUSH_ALL
-};
-
-enum GrabMode
-{
-	M_READ = 1,
-	M_WRITE = 2,
-	M_READWRITE = 3,
+	FLUSH_ALL,
+	FLUSH_MAINTAIN_STATE,
 };
 
 struct PPCCachedReg
 {
 	OpArg location;
 	bool away;  // value not in source register
+	bool locked;
 };
 
 struct X64CachedReg
@@ -30,6 +28,7 @@ struct X64CachedReg
 	int ppcReg;
 	bool dirty;
 	bool free;
+	bool locked;
 };
 
 typedef int XReg;
@@ -43,18 +42,9 @@ typedef int PReg;
 
 class RegCache
 {
-private:
-	bool locks[32];
-	bool saved_locks[32];
-	bool saved_xlocks[NUMXREGS];
-
 protected:
-	bool xlocks[NUMXREGS];
-	PPCCachedReg regs[32];
-	X64CachedReg xregs[NUMXREGS];
-
-	PPCCachedReg saved_regs[32];
-	X64CachedReg saved_xregs[NUMXREGS];
+	std::array<PPCCachedReg, 32> regs;
+	std::array<X64CachedReg, NUMXREGS> xregs;
 
 	virtual const int *GetAllocationOrder(int &count) = 0;
 
@@ -64,7 +54,7 @@ public:
 	RegCache();
 
 	virtual ~RegCache() {}
-	virtual void Start(PPCAnalyst::BlockRegStats &stats) = 0;
+	void Start();
 
 	void DiscardRegContentsIfCached(int preg);
 	void SetEmitter(XEmitter *emitter) {emit = emitter;}
@@ -79,15 +69,17 @@ public:
 		FlushR(reg1); FlushR(reg2);
 		LockX(reg1); LockX(reg2);
 	}
-	virtual void Flush(FlushMode mode);
-	virtual void Flush(PPCAnalyst::CodeOp *op) {Flush(FLUSH_ALL);}
+	void Flush(FlushMode mode = FLUSH_ALL);
+	void Flush(PPCAnalyst::CodeOp *op) {Flush();}
 	int SanityCheck() const;
 	void KillImmediate(int preg, bool doLoad, bool makeDirty);
 
 	//TODO - instead of doload, use "read", "write"
 	//read only will not set dirty flag
-	virtual void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) = 0;
-	virtual void StoreFromRegister(int preg) = 0;
+	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true);
+	void StoreFromRegister(int preg, FlushMode mode = FLUSH_ALL);
+	virtual void StoreRegister(int preg, OpArg newLoc) = 0;
+	virtual void LoadRegister(int preg, X64Reg newLoc) = 0;
 
 	const OpArg &R(int preg) const {return regs[preg].location;}
 	X64Reg RX(int preg) const
@@ -107,7 +99,7 @@ public:
 
 	bool IsFreeX(int xreg) const
 	{
-		return xregs[xreg].free && !xlocks[xreg];
+		return xregs[xreg].free && !xregs[xreg].locked;
 	}
 
 	bool IsBound(int preg) const
@@ -117,17 +109,13 @@ public:
 
 
 	X64Reg GetFreeXReg();
-
-	void SaveState();
-	void LoadState();
 };
 
 class GPRRegCache : public RegCache
 {
 public:
-	void Start(PPCAnalyst::BlockRegStats &stats) override;
-	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) override;
-	void StoreFromRegister(int preg) override;
+	void StoreRegister(int preg, OpArg newLoc) override;
+	void LoadRegister(int preg, X64Reg newLoc) override;
 	OpArg GetDefaultLocation(int reg) const override;
 	const int *GetAllocationOrder(int &count) override;
 	void SetImmediate32(int preg, u32 immValue);
@@ -137,9 +125,8 @@ public:
 class FPURegCache : public RegCache
 {
 public:
-	void Start(PPCAnalyst::BlockRegStats &stats) override;
-	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) override;
-	void StoreFromRegister(int preg) override;
+	void StoreRegister(int preg, OpArg newLoc) override;
+	void LoadRegister(int preg, X64Reg newLoc) override;
 	const int *GetAllocationOrder(int &count) override;
 	OpArg GetDefaultLocation(int reg) const override;
 };

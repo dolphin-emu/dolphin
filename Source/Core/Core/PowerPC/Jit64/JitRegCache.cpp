@@ -11,28 +11,22 @@ using namespace PowerPC;
 
 RegCache::RegCache() : emit(nullptr)
 {
-	memset(locks, 0, sizeof(locks));
-	memset(xlocks, 0, sizeof(xlocks));
-	memset(saved_locks, 0, sizeof(saved_locks));
-	memset(saved_xlocks, 0, sizeof(saved_xlocks));
-	memset(regs, 0, sizeof(regs));
-	memset(xregs, 0, sizeof(xregs));
-	memset(saved_regs, 0, sizeof(saved_regs));
-	memset(saved_xregs, 0, sizeof(saved_xregs));
 }
 
-void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
+void RegCache::Start()
 {
-	for (int i = 0; i < NUMXREGS; i++)
+	for (auto& xreg : xregs)
 	{
-		xregs[i].free = true;
-		xregs[i].dirty = false;
-		xlocks[i] = false;
+		xreg.free = true;
+		xreg.dirty = false;
+		xreg.locked = false;
+		xreg.ppcReg = -1;
 	}
-	for (int i = 0; i < 32; i++)
+	for (size_t i = 0; i < regs.size(); i++)
 	{
 		regs[i].location = GetDefaultLocation(i);
 		regs[i].away = false;
+		regs[i].locked = false;
 	}
 
 	// todo: sort to find the most popular regs
@@ -55,34 +49,34 @@ void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 // these are powerpc reg indices
 void RegCache::Lock(int p1, int p2, int p3, int p4)
 {
-	locks[p1] = true;
-	if (p2 != 0xFF) locks[p2] = true;
-	if (p3 != 0xFF) locks[p3] = true;
-	if (p4 != 0xFF) locks[p4] = true;
+	regs[p1].locked = true;
+	if (p2 != 0xFF) regs[p2].locked = true;
+	if (p3 != 0xFF) regs[p3].locked = true;
+	if (p4 != 0xFF) regs[p4].locked = true;
 }
 
 // these are x64 reg indices
 void RegCache::LockX(int x1, int x2, int x3, int x4)
 {
-	if (xlocks[x1]) {
+	if (xregs[x1].locked) {
 		PanicAlert("RegCache: x %i already locked!", x1);
 	}
-	xlocks[x1] = true;
-	if (x2 != 0xFF) xlocks[x2] = true;
-	if (x3 != 0xFF) xlocks[x3] = true;
-	if (x4 != 0xFF) xlocks[x4] = true;
+	xregs[x1].locked = true;
+	if (x2 != 0xFF) xregs[x2].locked = true;
+	if (x3 != 0xFF) xregs[x3].locked = true;
+	if (x4 != 0xFF) xregs[x4].locked = true;
 }
 
 void RegCache::UnlockAll()
 {
-	for (auto& lock : locks)
-		lock = false;
+	for (auto& reg : regs)
+		reg.locked = false;
 }
 
 void RegCache::UnlockAllX()
 {
-	for (auto& xlock : xlocks)
-		xlock = false;
+	for (auto& xreg : xregs)
+		xreg.locked = false;
 }
 
 X64Reg RegCache::GetFreeXReg()
@@ -92,7 +86,7 @@ X64Reg RegCache::GetFreeXReg()
 	for (int i = 0; i < aCount; i++)
 	{
 		X64Reg xr = (X64Reg)aOrder[i];
-		if (!xlocks[xr] && xregs[xr].free)
+		if (!xregs[xr].locked && xregs[xr].free)
 		{
 			return (X64Reg)xr;
 		}
@@ -103,10 +97,10 @@ X64Reg RegCache::GetFreeXReg()
 	for (int i = 0; i < aCount; i++)
 	{
 		X64Reg xr = (X64Reg)aOrder[i];
-		if (xlocks[xr])
+		if (xregs[xr].locked)
 			continue;
 		int preg = xregs[xr].ppcReg;
-		if (!locks[preg])
+		if (!regs[preg].locked)
 		{
 			StoreFromRegister(preg);
 			return xr;
@@ -117,25 +111,9 @@ X64Reg RegCache::GetFreeXReg()
 	return (X64Reg) -1;
 }
 
-void RegCache::SaveState()
-{
-	memcpy(saved_locks, locks, sizeof(locks));
-	memcpy(saved_xlocks, xlocks, sizeof(xlocks));
-	memcpy(saved_regs, regs, sizeof(regs));
-	memcpy(saved_xregs, xregs, sizeof(xregs));
-}
-
-void RegCache::LoadState()
-{
-	memcpy(xlocks, saved_xlocks, sizeof(xlocks));
-	memcpy(locks, saved_locks, sizeof(locks));
-	memcpy(regs, saved_regs, sizeof(regs));
-	memcpy(xregs, saved_xregs, sizeof(xregs));
-}
-
 void RegCache::FlushR(X64Reg reg)
 {
-	if (reg >= NUMXREGS)
+	if (reg >= xregs.size())
 		PanicAlert("Flushing non existent reg");
 	if (!xregs[reg].free)
 	{
@@ -145,14 +123,14 @@ void RegCache::FlushR(X64Reg reg)
 
 int RegCache::SanityCheck() const
 {
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < (int)regs.size(); i++)
 	{
 		if (regs[i].away)
 		{
 			if (regs[i].location.IsSimpleReg())
 			{
 				Gen::X64Reg simple = regs[i].location.GetSimpleReg();
-				if (xlocks[simple])
+				if (xregs[simple].locked)
 					return 1;
 				if (xregs[simple].ppcReg != i)
 					return 2;
@@ -183,16 +161,6 @@ void GPRRegCache::SetImmediate32(int preg, u32 immValue)
 	DiscardRegContentsIfCached(preg);
 	regs[preg].away = true;
 	regs[preg].location = Imm32(immValue);
-}
-
-void GPRRegCache::Start(PPCAnalyst::BlockRegStats &stats)
-{
-	RegCache::Start(stats);
-}
-
-void FPURegCache::Start(PPCAnalyst::BlockRegStats &stats)
-{
-	RegCache::Start(stats);
 }
 
 const int *GPRRegCache::GetAllocationOrder(int &count)
@@ -249,7 +217,7 @@ void RegCache::KillImmediate(int preg, bool doLoad, bool makeDirty)
 	}
 }
 
-void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
+void RegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 {
 	if (!regs[i].away && regs[i].location.IsImm())
 		PanicAlert("Bad immediate");
@@ -258,14 +226,13 @@ void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 	{
 		X64Reg xr = GetFreeXReg();
 		if (xregs[xr].dirty) PanicAlert("Xreg already dirty");
-		if (xlocks[xr]) PanicAlert("GetFreeXReg returned locked register");
+		if (xregs[xr].locked) PanicAlert("GetFreeXReg returned locked register");
 		xregs[xr].free = false;
 		xregs[xr].ppcReg = i;
 		xregs[xr].dirty = makeDirty || regs[i].location.IsImm();
-		OpArg newloc = ::Gen::R(xr);
 		if (doLoad)
-			emit->MOV(32, newloc, regs[i].location);
-		for (int j = 0; j < 32; j++)
+			LoadRegister(i, xr);
+		for (int j = 0; j < (int)regs.size(); j++)
 		{
 			if (i != j && regs[j].location.IsSimpleReg() && regs[j].location.GetSimpleReg() == xr)
 			{
@@ -273,7 +240,7 @@ void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 			}
 		}
 		regs[i].away = true;
-		regs[i].location = newloc;
+		regs[i].location = ::Gen::R(xr);
 	}
 	else
 	{
@@ -282,13 +249,13 @@ void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 		xregs[RX(i)].dirty |= makeDirty;
 	}
 
-	if (xlocks[RX(i)])
+	if (xregs[RX(i)].locked)
 	{
 		PanicAlert("Seriously WTF, this reg should have been flushed");
 	}
 }
 
-void GPRRegCache::StoreFromRegister(int i)
+void RegCache::StoreFromRegister(int i, FlushMode mode)
 {
 	if (regs[i].away)
 	{
@@ -296,10 +263,13 @@ void GPRRegCache::StoreFromRegister(int i)
 		if (regs[i].location.IsSimpleReg())
 		{
 			X64Reg xr = RX(i);
-			xregs[xr].free = true;
-			xregs[xr].ppcReg = -1;
 			doStore = xregs[xr].dirty;
-			xregs[xr].dirty = false;
+			if (mode == FLUSH_ALL)
+			{
+				xregs[xr].free = true;
+				xregs[xr].ppcReg = -1;
+				xregs[xr].dirty = false;
+			}
 		}
 		else
 		{
@@ -308,89 +278,62 @@ void GPRRegCache::StoreFromRegister(int i)
 		}
 		OpArg newLoc = GetDefaultLocation(i);
 		if (doStore)
-			emit->MOV(32, newLoc, regs[i].location);
-		regs[i].location = newLoc;
-		regs[i].away = false;
-	}
-}
-
-void FPURegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
-{
-	_assert_msg_(DYNA_REC, !regs[i].location.IsImm(), "WTF - load - imm");
-	if (!regs[i].away)
-	{
-		// Reg is at home in the memory register file. Let's pull it out.
-		X64Reg xr = GetFreeXReg();
-		_assert_msg_(DYNA_REC, xr < NUMXREGS, "WTF - load - invalid reg");
-		xregs[xr].ppcReg = i;
-		xregs[xr].free = false;
-		xregs[xr].dirty = makeDirty;
-		OpArg newloc = ::Gen::R(xr);
-		if (doLoad)
+			StoreRegister(i, newLoc);
+		if (mode == FLUSH_ALL)
 		{
-			if (!regs[i].location.IsImm() && (regs[i].location.offset & 0xF))
-			{
-				PanicAlert("WARNING - misaligned fp register location %i", i);
-			}
-			emit->MOVAPD(xr, regs[i].location);
+			regs[i].location = newLoc;
+			regs[i].away = false;
 		}
-		regs[i].location = newloc;
-		regs[i].away = true;
-	}
-	else
-	{
-		// There are no immediates in the FPR reg file, so we already had this in a register. Make dirty as necessary.
-		xregs[RX(i)].dirty |= makeDirty;
 	}
 }
 
-void FPURegCache::StoreFromRegister(int i)
+void GPRRegCache::LoadRegister(int preg, X64Reg newLoc)
 {
-	_assert_msg_(DYNA_REC, !regs[i].location.IsImm(), "WTF - store - imm");
-	if (regs[i].away)
+	emit->MOV(32, ::Gen::R(newLoc), regs[preg].location);
+}
+
+void GPRRegCache::StoreRegister(int preg, OpArg newLoc)
+{
+	emit->MOV(32, newLoc, regs[preg].location);
+}
+
+void FPURegCache::LoadRegister(int preg, X64Reg newLoc)
+{
+	if (!regs[preg].location.IsImm() && (regs[preg].location.offset & 0xF))
 	{
-		X64Reg xr = regs[i].location.GetSimpleReg();
-		_assert_msg_(DYNA_REC, xr < NUMXREGS, "WTF - store - invalid reg");
-		OpArg newLoc = GetDefaultLocation(i);
-		if (xregs[xr].dirty)
-			emit->MOVAPD(newLoc, xr);
-		xregs[xr].free = true;
-		xregs[xr].dirty = false;
-		xregs[xr].ppcReg = -1;
-		regs[i].location = newLoc;
-		regs[i].away = false;
+		PanicAlert("WARNING - misaligned fp register location %i", preg);
 	}
+	emit->MOVAPD(newLoc, regs[preg].location);
+}
+
+void FPURegCache::StoreRegister(int preg, OpArg newLoc)
+{
+	emit->MOVAPD(newLoc, regs[preg].location.GetSimpleReg());
 }
 
 void RegCache::Flush(FlushMode mode)
 {
-	for (int i = 0; i < NUMXREGS; i++)
+	for (size_t i = 0; i < xregs.size(); i++)
 	{
-		if (xlocks[i])
-			PanicAlert("Someone forgot to unlock X64 reg %i.", i);
+		if (xregs[i].locked)
+			PanicAlert("Someone forgot to unlock X64 reg %zu.", i);
 	}
 
-	for (int i = 0; i < 32; i++)
+	for (size_t i = 0; i < regs.size(); i++)
 	{
-		if (locks[i])
+		if (regs[i].locked)
 		{
-			PanicAlert("Someone forgot to unlock PPC reg %i (X64 reg %i).", i, RX(i));
+			PanicAlert("Someone forgot to unlock PPC reg %zu (X64 reg %i).", i, RX(i));
 		}
 		if (regs[i].away)
 		{
-			if (regs[i].location.IsSimpleReg())
+			if (regs[i].location.IsSimpleReg() || regs[i].location.IsImm())
 			{
-				X64Reg xr = RX(i);
-				StoreFromRegister(i);
-				xregs[xr].dirty = false;
-			}
-			else if (regs[i].location.IsImm())
-			{
-				StoreFromRegister(i);
+				StoreFromRegister(i, mode);
 			}
 			else
 			{
-				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %i PC: %08x", i, PC);
+				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %zu PC: %08x", i, PC);
 			}
 		}
 	}
