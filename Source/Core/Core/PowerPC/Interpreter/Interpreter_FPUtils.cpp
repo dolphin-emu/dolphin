@@ -523,11 +523,23 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 			early_result = DOUBLE_EXP | ((double_a ^ double_b) & DOUBLE_SIGN);
 			return true;
 		}
-		if (((double_a >> 52) & 0x7ff) == 0x7ff && ((double_b >> 52) & 0x7ff) == 0x7ff)
+		if (((double_a >> 52) & 0x7ff) == 0x7ff)
 		{
-			// infinity / infinity = NaN
-			SetFPException(FPSCR_VXIDI);
-			early_result = PPC_NAN_U64;
+			if (((double_b >> 52) & 0x7ff) == 0x7ff)
+			{
+				// infinity / infinity = NaN
+				SetFPException(FPSCR_VXIDI);
+				early_result = PPC_NAN_U64;
+				return true;
+			}
+			// infinity / n = infinity
+			early_result = DOUBLE_EXP | ((double_a ^ double_b) & DOUBLE_SIGN);
+			return true;
+		}
+		if (((double_b >> 52) & 0x7ff) == 0x7ff)
+		{
+			// n / infinity = 0
+			early_result = (double_a ^ double_b) & DOUBLE_SIGN;
 			return true;
 		}
 	}
