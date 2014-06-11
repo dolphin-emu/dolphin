@@ -6,6 +6,7 @@
 
 #define VERY_ACCURATE_FP
 
+#ifndef VERY_ACCURATE_FP
 static u64 DoubleToU64(double d)
 {
 	union
@@ -48,6 +49,7 @@ static double ForceDouble(double d)
 	}
 	return d;
 }
+#endif
 
 static u64 StickyShiftRight(u64 a, u64 shift)
 {
