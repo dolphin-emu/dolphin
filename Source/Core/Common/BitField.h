@@ -147,7 +147,7 @@ public:
 		return *this;
 	}
 
-	__forceinline operator T() const
+	__forceinline T Value() const
 	{
 		if (std::numeric_limits<T>::is_signed)
 		{
@@ -158,6 +158,11 @@ public:
 		{
 			return (T)((storage & GetMask()) >> position);
 		}
+	}
+
+	__forceinline operator T() const
+	{
+		return Value();
 	}
 
 private:
