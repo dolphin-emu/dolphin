@@ -140,7 +140,7 @@ static u64 RoundMantissa(u64 mantissa, bool sign)
 	return rounded_mantissa;
 }
 
-static u64 ConvertResultToDouble(u64 rounded_mantissa, int exponent, bool sign)
+static u64 ConvertResultToDouble(u64 rounded_mantissa, int exponent, bool sign, int max_exponent)
 {
 	// If we round to zero, output zero.
 	if (rounded_mantissa == 0)
@@ -156,7 +156,7 @@ static u64 ConvertResultToDouble(u64 rounded_mantissa, int exponent, bool sign)
 	_dbg_assert_(POWERPC, rounded_mantissa < (1ULL << 53));
 	_dbg_assert_(POWERPC, exponent == 0 || (rounded_mantissa & (1ULL << 52)));
 
-	if (exponent >= 0x7FF)
+	if (exponent >= max_exponent)
 	{
 		// Overflow: infinity
 		FPSCR.OX = 1;
@@ -197,19 +197,19 @@ static u64 RoundFPTempToDouble(FPTemp a)
 	DenormalizeMantissa(a.mantissa, a.exponent, shift, 0);
 	if (shift)
 		a.exponent = 0;
-	u64 rounded_mantissa = RoundMantissa(a.mantissa, a.sign);
-	return ConvertResultToDouble(rounded_mantissa, a.exponent, a.sign);
+	a.mantissa = RoundMantissa(a.mantissa, a.sign);
+	return ConvertResultToDouble(a.mantissa, a.exponent, a.sign, 0x7FF);
 }
 
 static u64 RoundFPTempToSingle(FPTemp a)
 {
 	int shift = 0;
-	DenormalizeMantissa(a.mantissa, a.exponent, shift, 896);
+	DenormalizeMantissa(a.mantissa, a.exponent, shift, 0x380);
 	a.mantissa = StickyShiftRight(a.mantissa, 29);
 	a.mantissa = RoundMantissa(a.mantissa, a.sign);
 	if (29 + shift < 64)
 		a.mantissa <<= 29 + shift;
-	return ConvertResultToDouble(a.mantissa, a.exponent, a.sign);
+	return ConvertResultToDouble(a.mantissa, a.exponent, a.sign, 0x47F);
 }
 
 static u64 InputIsNan(u64 a)
@@ -402,7 +402,7 @@ static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result)
 		{
 			// infinity + -infinity = NaN
 			early_result = PPC_NAN_U64;
-			SetFPException(FPSCR_VXIDI);
+			SetFPException(FPSCR_VXISI);
 			return true;
 		}
 		// infinity + n = infinity
