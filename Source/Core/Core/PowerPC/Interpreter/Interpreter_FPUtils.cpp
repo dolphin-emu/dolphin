@@ -178,7 +178,8 @@ static void DenormalizeMantissa(u64 &mantissa, int exponent, int &shift, int den
 		if (FPSCR.NI)
 		{
 			// In non-IEEE mode, flush denormals to zero.
-			mantissa = 0;
+			// TODO: what happens in round-to-infinity modes?
+			mantissa = mantissa != 0 ? 1 : 0;
 		}
 		else
 		{
