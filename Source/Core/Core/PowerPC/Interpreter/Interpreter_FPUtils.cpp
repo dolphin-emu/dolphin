@@ -513,13 +513,6 @@ bool PreprocessInput(u64 &double_a, u64 &early_result, PreprocessOperation op)
 		return true;
 	}
 
-	if (FPSCR.NI)
-	{
-		// Flush inputs to zero.
-		if ((double_a & DOUBLE_EXP) == 0)
-			double_a &= DOUBLE_SIGN;
-	}
-
 	if (op == PreprocessRoundToSingle)
 	{
 		if ((double_a & DOUBLE_EXP) == DOUBLE_EXP)
@@ -539,16 +532,6 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 {
 	SetFI(0);
 	FPSCR.FR = 0;
-
-	if (FPSCR.NI)
-	{
-		// Flush inputs to zero.
-		if ((double_a & DOUBLE_EXP) == 0)
-			double_a &= DOUBLE_SIGN;
-
-		if ((double_b & DOUBLE_EXP) == 0)
-			double_b &= DOUBLE_SIGN;
-	}
 
 	if (op == PreprocessSubtraction || op == PreprocessAddition)
 	{
@@ -604,19 +587,6 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &double_c, u64 &early_res
 	SetFI(0);
 	FPSCR.FR = 0;
 
-	if (FPSCR.NI)
-	{
-		// Flush inputs to zero.
-		if ((double_a & DOUBLE_EXP) == 0)
-			double_a &= DOUBLE_SIGN;
-
-		if ((double_b & DOUBLE_EXP) == 0)
-			double_b &= DOUBLE_SIGN;
-
-		if ((double_c & DOUBLE_EXP) == 0)
-			double_c &= DOUBLE_SIGN;
-	}
-
 	// We have to be very careful here here to handle NaNs correctly.
 	// For multiple NaNs, the priority order for madd is mul LHS,
 	// add RHS, mul RHS.  0 * inf + SNaN sets two invalid operation flags.
@@ -648,12 +618,23 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &double_c, u64 &early_res
 	return (early_result & DOUBLE_EXP) == DOUBLE_EXP;
 }
 
+// Round a double to single-precision; assumes the input is zero, inf, or nan.
+static u64 RoundSpecialToSingle(u64 a)
+{
+	if (InputIsNan(a))
+	{
+		// Single-precision operations truncate NaNs to single-precision.
+		a &= ~((1 << 29) - 1);
+	}
+	return a;
+}
+
 u64 AddSinglePrecision(u64 double_a, u64 double_b)
 {
 #ifdef VERY_ACCURATE_FP
 	u64 early_result;
 	if (PreprocessInput(double_a, double_b, early_result, PreprocessAddition))
-		return early_result;
+		return RoundSpecialToSingle(early_result);
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -693,7 +674,7 @@ u64 SubSinglePrecision(u64 double_a, u64 double_b)
 #ifdef VERY_ACCURATE_FP
 	u64 early_result;
 	if (PreprocessInput(double_a, double_b, early_result, PreprocessSubtraction))
-		return early_result;
+		return RoundSpecialToSingle(early_result);
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -733,7 +714,7 @@ u64 MultiplySinglePrecision(u64 double_a, u64 double_b)
 #ifdef VERY_ACCURATE_FP
 	u64 early_result;
 	if (PreprocessInput(double_a, double_b, early_result, PreprocessMultiplication))
-		return early_result;
+		return RoundSpecialToSingle(early_result);
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -778,7 +759,7 @@ u64 MaddSinglePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c,
 		op = negate_result ? PreprocessNMadd : PreprocessMadd;
 	u64 early_result;
 	if (PreprocessInput(double_a, double_b, double_c, early_result, op))
-		return early_result;
+		return RoundSpecialToSingle(early_result);
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -835,7 +816,7 @@ u64 DivSinglePrecision(u64 double_a, u64 double_b)
 #ifdef VERY_ACCURATE_FP
 	u64 early_result;
 	if (PreprocessInput(double_a, double_b, early_result, PreprocessDivision))
-		return early_result;
+		return RoundSpecialToSingle(early_result);
 
 	FPTemp a = DecomposeDouble(double_a);
 	FPTemp b = DecomposeDouble(double_b);
@@ -875,7 +856,7 @@ u64 RoundToSingle(u64 double_a)
 #ifdef VERY_ACCURATE_FP
 	u64 early_result;
 	if (PreprocessInput(double_a, early_result, PreprocessRoundToSingle))
-		return early_result;
+		return RoundSpecialToSingle(early_result);
 
 	FPTemp a = DecomposeDouble(double_a);
 	u64 result_double = RoundFPTempToSingle(a);
