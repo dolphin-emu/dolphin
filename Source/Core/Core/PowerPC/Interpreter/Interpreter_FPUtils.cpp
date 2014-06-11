@@ -129,10 +129,10 @@ static u64 RoundMantissa(u64 mantissa, bool sign)
 		round_up = false;
 		break;
 	case 2:
-		round_up = !sign;
+		round_up = !sign && round_bits;
 		break;
 	case 3:
-		round_up = sign;
+		round_up = sign && round_bits;
 		break;
 	}
 	SetFI(round_bits != 0);
