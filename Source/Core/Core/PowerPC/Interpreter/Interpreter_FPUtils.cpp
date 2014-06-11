@@ -873,6 +873,13 @@ u64 RoundToSingle(u64 double_a)
 #endif
 }
 
+void UpdateFPRFDouble(u64 dvalue)
+{
+	// TODO: Move impl here
+	MathUtil::IntDouble value(dvalue);
+	FPSCR.FPRF = MathUtil::ClassifyDouble(value.d);
+}
+
 void UpdateFPRFSingle(u64 dvalue)
 {
 	// TODO: Move impl here

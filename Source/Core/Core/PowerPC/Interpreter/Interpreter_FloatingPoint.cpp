@@ -254,28 +254,28 @@ void Interpreter::fselx(UGeckoInstruction _inst)
 void Interpreter::frspx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS1(_inst.FD) = RoundToSingle(riPS0(_inst.FB));
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fmulx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = MultiplyDoublePrecision(riPS0(_inst.FA), riPS0(_inst.FC));
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 void Interpreter::fmulsx(UGeckoInstruction _inst)
 {
 	u64 value = MultiplySinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC));
 	riPS0(_inst.FD) = riPS1(_inst.FD) = value;
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fmaddx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = MaddDoublePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB), false, false);
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
@@ -283,14 +283,14 @@ void Interpreter::fmaddsx(UGeckoInstruction _inst)
 {
 	u64 value = MaddSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB), false, false);
 	riPS0(_inst.FD) = riPS1(_inst.FD) = value;
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::faddx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = AddDoublePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
@@ -304,14 +304,14 @@ void Interpreter::faddsx(UGeckoInstruction _inst)
 void Interpreter::fdivx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = DivDoublePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fdivsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS1(_inst.FD) = DivSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
@@ -324,7 +324,7 @@ void Interpreter::fresx(UGeckoInstruction _inst)
 	{
 		SetFPException(FPSCR_ZX);
 	}
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
@@ -340,14 +340,14 @@ void Interpreter::frsqrtex(UGeckoInstruction _inst)
 		SetFPException(FPSCR_ZX);
 	}
 	rPS0(_inst.FD) = ApproximateReciprocalSquareRoot(b);
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fmsubx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = MaddDoublePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB), true, false);
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
@@ -355,28 +355,28 @@ void Interpreter::fmsubsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS1(_inst.FD) =
 		MaddSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB), true, false);
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fnmaddx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = MaddDoublePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB), false, true);
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 void Interpreter::fnmaddsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS1(_inst.FD) =
 		MaddSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB), false, true);
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fnmsubx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = MaddDoublePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB), true, true);
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
@@ -385,21 +385,21 @@ void Interpreter::fnmsubsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS1(_inst.FD) =
 		MaddSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FC), riPS0(_inst.FB), true, true);
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fsubx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = SubDoublePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fsubsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS1(_inst.FD) = SubSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
@@ -412,6 +412,6 @@ void Interpreter::fsqrtx(UGeckoInstruction _inst)
 		FPSCR.VXSQRT = 1;
 	}
 	rPS0(_inst.FD) = sqrt(b);
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFDouble(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }

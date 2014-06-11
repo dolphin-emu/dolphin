@@ -86,6 +86,7 @@ u64 MaddDoublePrecision(u64 a, u64 b, u64 c, bool negate_c, bool negate_result);
 u64 DivSinglePrecision(u64 a, u64 b);
 u64 DivDoublePrecision(u64 a, u64 b);
 u64 RoundToSingle(u64 a);
+void UpdateFPRFDouble(u64 dvalue);
 void UpdateFPRFSingle(u64 dvalue);
 
 // used by stfsXX instructions and ps_rsqrte
