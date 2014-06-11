@@ -438,7 +438,7 @@ static u64 HandleNaN(u64 a)
 	return a | (1ULL << 51);
 }
 
-static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result, bool subtraction)
+static bool PreprocessAdd(u64 &double_a, u64 &double_b, u64 &early_result, bool subtraction)
 {
 	if (InputIsNan(double_a) || InputIsNan(double_b))
 	{
@@ -473,7 +473,7 @@ static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result, bool su
 	return false;
 }
 
-static bool PreprocessMultiply(u64 double_a, u64 double_b, u64 &early_result)
+static bool PreprocessMultiply(u64 &double_a, u64 &double_b, u64 &early_result)
 {
 	if (InputIsNan(double_a) || InputIsNan(double_b))
 	{
@@ -549,9 +549,6 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 		if ((double_b & DOUBLE_EXP) == 0)
 			double_b &= DOUBLE_SIGN;
 	}
-
-	if (op == PreprocessSubtraction)
-		double_b ^= DOUBLE_SIGN;
 
 	if (op == PreprocessSubtraction || op == PreprocessAddition)
 	{
