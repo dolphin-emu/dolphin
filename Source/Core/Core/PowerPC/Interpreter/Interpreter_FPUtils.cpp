@@ -217,6 +217,11 @@ static u64 InputIsNan(u64 a)
 	return (a & DOUBLE_EXP) == DOUBLE_EXP && (a & DOUBLE_FRAC) != 0;
 }
 
+static u64 InputIsSNan(u64 a)
+{
+	return (a & DOUBLE_EXP) == DOUBLE_EXP && (a & DOUBLE_FRAC) != 0 && !(a & (1ULL << 51));
+}
+
 // Add two inputs.  a_low contains the additional temporary bits
 // if this computation is part of a madd. Each input is either a
 // normalized finite number or zero.
@@ -369,11 +374,6 @@ static FPTemp MaddFPTemp(FPTemp a, FPTemp b, FPTemp c)
 	return result;
 }
 
-bool InputIsSpecial(u64 a)
-{
-	return (a & ~DOUBLE_SIGN) == 0 || (a & DOUBLE_EXP) == DOUBLE_EXP;
-}
-
 enum PreprocessOperation
 {
 	PreprocessAddition,
@@ -389,13 +389,22 @@ enum PreprocessOperation
 
 static u64 HandleNaN(u64 a)
 {
-	if (!(a & (1ULL << 51)))
-		SetFPException(FPSCR_VXSNAN);
 	return a | (1ULL << 51);
 }
 
-static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result)
+static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result, bool subtraction)
 {
+	if (InputIsNan(double_a) || InputIsNan(double_b))
+	{
+		if (InputIsSNan(double_a) || InputIsSNan(double_b))
+			SetFPException(FPSCR_VXSNAN);
+		early_result = HandleNaN(InputIsNan(double_a) ? double_a : double_b);
+		return true;
+	}
+
+	if (subtraction)
+		double_b ^= DOUBLE_SIGN;
+
 	if ((double_a & DOUBLE_EXP) == DOUBLE_EXP)
 	{
 		if ((double_b & DOUBLE_EXP) == DOUBLE_EXP && double_a != double_b)
@@ -420,6 +429,14 @@ static bool PreprocessAdd(u64 double_a, u64 double_b, u64 &early_result)
 
 static bool PreprocessMultiply(u64 double_a, u64 double_b, u64 &early_result)
 {
+	if (InputIsNan(double_a) || InputIsNan(double_b))
+	{
+		if (InputIsSNan(double_a) || InputIsSNan(double_b))
+			SetFPException(FPSCR_VXSNAN);
+		early_result = HandleNaN(InputIsNan(double_a) ? double_a : double_b);
+		return true;
+	}
+
 	if ((double_a & DOUBLE_EXP) == DOUBLE_EXP || (double_b & DOUBLE_EXP) == DOUBLE_EXP)
 	{
 		if ((double_a & ~DOUBLE_SIGN) == 0 || (double_b & ~DOUBLE_SIGN) == 0)
@@ -444,6 +461,8 @@ bool PreprocessInput(u64 &double_a, u64 &early_result, PreprocessOperation op)
 
 	if (InputIsNan(double_a))
 	{
+		if (InputIsSNan(double_a))
+			SetFPException(FPSCR_VXSNAN);
 		early_result = HandleNaN(double_a);
 		return true;
 	}
@@ -475,17 +494,6 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 	SetFI(0);
 	FPSCR.FR = 0;
 
-	if (InputIsNan(double_a))
-	{
-		early_result = HandleNaN(double_a);
-		return true;
-	}
-	if (InputIsNan(double_b))
-	{
-		early_result = HandleNaN(double_b);
-		return true;
-	}
-
 	if (FPSCR.NI)
 	{
 		// Flush inputs to zero.
@@ -501,7 +509,7 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 
 	if (op == PreprocessSubtraction || op == PreprocessAddition)
 	{
-		return PreprocessAdd(double_a, double_b, early_result);
+		return PreprocessAdd(double_a, double_b, early_result, op == PreprocessSubtraction);
 	}
 	else if (op == PreprocessMultiplication)
 	{
@@ -553,22 +561,6 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &double_c, u64 &early_res
 	SetFI(0);
 	FPSCR.FR = 0;
 
-	if (InputIsNan(double_a))
-	{
-		early_result = HandleNaN(double_a);
-		return true;
-	}
-	if (InputIsNan(double_c))
-	{
-		early_result = HandleNaN(double_c);
-		return true;
-	}
-	if (InputIsNan(double_b))
-	{
-		early_result = HandleNaN(double_b);
-		return true;
-	}
-
 	if (FPSCR.NI)
 	{
 		// Flush inputs to zero.
@@ -582,16 +574,26 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &double_c, u64 &early_res
 			double_c &= DOUBLE_SIGN;
 	}
 
-	if (op == PreprocessMsub || op == PreprocessNMsub)
-		double_c ^= DOUBLE_SIGN;
+	// We have to be very careful here here to handle NaNs correctly.
+	// For multiple NaNs, the priority order for madd is mul LHS,
+	// add RHS, mul RHS.  0 * inf + SNaN sets two invalid operation flags.
+	// We also have to preserve the sign of any NaN.
 
 	early_result = 0;
 	if (PreprocessMultiply(double_a, double_b, early_result))
 	{
 		if (InputIsNan(early_result))
+		{
+			if (InputIsSNan(double_c))
+				SetFPException(FPSCR_VXSNAN);
+			if (!InputIsNan(double_a) && InputIsNan(double_c))
+				early_result = HandleNaN(double_c);
 			return true;
+		}
 	}
-	if (PreprocessAdd(early_result, double_c, early_result))
+
+	bool subtraction = op == PreprocessMsub || op == PreprocessNMsub;
+	if (PreprocessAdd(early_result, double_c, early_result, subtraction))
 	{
 		if (InputIsNan(early_result))
 			return true;
