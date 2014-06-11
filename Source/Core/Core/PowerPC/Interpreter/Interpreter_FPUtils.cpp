@@ -159,7 +159,7 @@ static u64 ConvertResultToDouble(u64 rounded_mantissa, int exponent, bool sign, 
 	if (exponent >= max_exponent)
 	{
 		// Overflow: infinity
-		FPSCR.OX = 1;
+		SetFPException(FPSCR_OX);
 		SetFI(1);
 		exponent = 0x7FF;
 		rounded_mantissa = 0;
@@ -173,7 +173,6 @@ static void DenormalizeMantissa(u64 &mantissa, int exponent, int &shift, int den
 	if (exponent <= denormal_exponent)
 	{
 		// Underflow: denormal
-		// TODO: Set UX where appropriate.
 		if (FPSCR.NI)
 		{
 			// In non-IEEE mode, flush denormals to zero.
@@ -198,6 +197,8 @@ static u64 RoundFPTempToDouble(FPTemp a)
 	if (shift)
 		a.exponent = 0;
 	a.mantissa = RoundMantissa(a.mantissa, a.sign);
+	if (a.exponent == 0 && FPSCR.FI)
+		SetFPException(FPSCR_UX);
 	return ConvertResultToDouble(a.mantissa, a.exponent, a.sign, 0x7FF);
 }
 
@@ -209,6 +210,8 @@ static u64 RoundFPTempToSingle(FPTemp a)
 	a.mantissa = RoundMantissa(a.mantissa, a.sign);
 	if (29 + shift < 64)
 		a.mantissa <<= 29 + shift;
+	if (a.exponent <= 0x380 && FPSCR.FI)
+		SetFPException(FPSCR_UX);
 	return ConvertResultToDouble(a.mantissa, a.exponent, a.sign, 0x47F);
 }
 
@@ -344,6 +347,47 @@ static void MulCore(FPTemp a, FPTemp b, FPTemp &result, u64 &low)
 
 	// Result sign is XOR of input signs.
 	result.sign = a.sign ^ b.sign;
+}
+
+static FPTemp DivFPTemp(FPTemp a, FPTemp b)
+{
+	// Long division, one bit at a time, using 128-bit math.
+	// TODO: Newton-Raphson or something like that would probably be
+	// faster.
+	u64 d_high = b.mantissa, d_low = 0;
+	u64 r_high = a.mantissa, r_low = 0;
+	u64 q = 0;
+	for (unsigned i = 0; i < 57; ++i)
+	{
+		q <<= 1;
+		if (r_high > d_high || (r_high == d_high && r_low >= d_low))
+		{
+			q |= 1;
+			if (r_low < d_low)
+				r_high -= 1;
+			r_low -= d_low;
+			r_high -= d_high;
+		}
+		d_low = (d_low >> 1) | (d_high << 63);
+		d_high >>= 1;
+	}
+	if (r_high != 0 || r_low != 0)
+		q |= 1;
+
+	FPTemp result;
+	result.mantissa = q;
+	// The exponent of the result is the difference between the exponents.
+	result.exponent = a.exponent - b.exponent + 0x3ff - 1;
+	// The sign of the result is the XOR of the signs.
+	result.sign = a.sign ^ b.sign;
+	// The division can come up with either a 56-bit or 57-bit result;
+	// normalize to 56.
+	if (result.mantissa & (1ULL << 56))
+	{
+		result.mantissa = StickyShiftRight(result.mantissa, 1);
+		++result.exponent;
+	}
+	return result;
 }
 
 static FPTemp MulFPTemp(FPTemp a, FPTemp b)
@@ -527,7 +571,7 @@ bool PreprocessInput(u64 &double_a, u64 &double_b, u64 &early_result, Preprocess
 				return true;
 			}
 			// n / 0 = infinity
-			FPSCR.ZX = 1;
+			SetFPException(FPSCR_ZX);
 			early_result = DOUBLE_EXP | ((double_a ^ double_b) & DOUBLE_SIGN);
 			return true;
 		}
@@ -789,26 +833,42 @@ u64 MaddDoublePrecision(u64 double_a, u64 double_b, u64 double_c, bool negate_c,
 
 u64 DivSinglePrecision(u64 double_a, u64 double_b)
 {
+#ifdef VERY_ACCURATE_FP
 	u64 early_result;
 	if (PreprocessInput(double_a, double_b, early_result, PreprocessDivision))
 		return early_result;
 
-	// TODO: Figure out the best way to do this with integer math.
+	FPTemp a = DecomposeDouble(double_a);
+	FPTemp b = DecomposeDouble(double_b);
+	FPTemp result = DivFPTemp(a, b);
+	u64 result_double = RoundFPTempToSingle(result);
+
+	return result_double;
+#else
 	SetFI(0);
 	FPSCR.FR = 0;
 	return DoubleToU64(ForceSingle(U64ToDouble(double_a) / U64ToDouble(double_b)));
+#endif
 }
 
 u64 DivDoublePrecision(u64 double_a, u64 double_b)
 {
+#ifdef VERY_ACCURATE_FP
 	u64 early_result;
 	if (PreprocessInput(double_a, double_b, early_result, PreprocessDivision))
 		return early_result;
 
-	// TODO: Figure out the best way to do this with integer math.
+	FPTemp a = DecomposeDouble(double_a);
+	FPTemp b = DecomposeDouble(double_b);
+	FPTemp result = DivFPTemp(a, b);
+	u64 result_double = RoundFPTempToDouble(result);
+
+	return result_double;
+#else
 	SetFI(0);
 	FPSCR.FR = 0;
 	return DoubleToU64(ForceDouble(U64ToDouble(double_a) / U64ToDouble(double_b)));
+#endif
 }
 
 u64 RoundToSingle(u64 double_a)
