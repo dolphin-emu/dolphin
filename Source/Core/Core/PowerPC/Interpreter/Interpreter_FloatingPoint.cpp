@@ -297,7 +297,7 @@ void Interpreter::faddx(UGeckoInstruction _inst)
 void Interpreter::faddsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS1(_inst.FD) = AddSinglePrecision(riPS0(_inst.FA), riPS0(_inst.FB));
-	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRFSingle(riPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 

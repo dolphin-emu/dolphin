@@ -187,7 +187,7 @@ static void DenormalizeMantissa(u64 &mantissa, int exponent, int &shift, int den
 			if (shift < 64)
 				mantissa = StickyShiftRight(mantissa, shift);
 			else
-				mantissa = 0;
+				mantissa = mantissa != 0 ? 1 : 0;
 		}
 	}
 }
@@ -260,6 +260,10 @@ static void AddCore(FPTemp a, u64 a_low, FPTemp b, FPTemp &result)
 	else if (exponent_diff < 128)
 	{
 		aligned_b_low = StickyShiftRight(b.mantissa, (exponent_diff - 64));
+	}
+	else if (b.mantissa || b_low)
+	{
+		aligned_b_low = 1;
 	}
 
 	if (a.sign != b.sign)
@@ -867,4 +871,11 @@ u64 RoundToSingle(u64 double_a)
 	FPSCR.FR = 0;
 	return DoubleToU64(ForceSingle(U64ToDouble(double_a)));
 #endif
+}
+
+void UpdateFPRFSingle(u64 dvalue)
+{
+	// TODO: Move impl here
+	MathUtil::IntDouble value(dvalue);
+	FPSCR.FPRF = MathUtil::ClassifyFloat((float)value.d);
 }
