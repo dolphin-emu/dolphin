@@ -142,80 +142,85 @@ static u64 RoundMantissa(u64 mantissa, bool sign)
 	return rounded_mantissa;
 }
 
-static u64 ConvertResultToDouble(u64 rounded_mantissa, int exponent, bool sign, int max_exponent)
+static u64 RoundFPTemp(FPTemp a, bool single)
 {
-	// If we round to zero, output zero.
-	if (rounded_mantissa == 0)
-		exponent = 0;
+	// IF there is no mantissa, just return early; the result is exactly zero.
+	if (!a.mantissa)
+		return (u64)a.sign << 63;
 
-	// Renormalize after rounding
-	if (rounded_mantissa == (1ULL << 53))
+	int denormal_exponent = single ? 0x380 : 0;
+	if (FPSCR.NI && a.exponent <= denormal_exponent)
 	{
-		rounded_mantissa = 1ULL << 52;
-		exponent += 1;
+		// In non-IEEE mode, flush denormals to zero.
+		SetFI(1);
+		SetFPException(FPSCR_UX);
+		return (u64)a.sign << 63;
 	}
+
+	int shift = 0;
+	if (a.exponent <= denormal_exponent)
+	{
+		// Build denormal value
+		shift = denormal_exponent - a.exponent + 1;
+		if (shift < 64)
+			a.mantissa = StickyShiftRight(a.mantissa, shift);
+		else
+			a.mantissa = 1;
+
+		// Zero out the exponent if the result representation is denormal.
+		if (!single)
+			a.exponent = 0;
+	}
+	// Round singles to single precision.
+	if (single)
+		a.mantissa = StickyShiftRight(a.mantissa, 29);
+
+	a.mantissa = RoundMantissa(a.mantissa, a.sign);
+
+	// Underflow occurs when the result is denormal and inexact.
+	// This is true even if the rounded result is not denormal.
+	if (a.exponent <= denormal_exponent && FPSCR.FI)
+		SetFPException(FPSCR_UX);
+
+	// If we round to zero, output zero.
+	if (a.mantissa == 0)
+		a.exponent = 0;
+
+	// Renormalize singles.
+	if (single && 29 + shift < 64)
+		a.mantissa <<= 29 + shift;
 
 	_dbg_assert_(POWERPC, rounded_mantissa < (1ULL << 53));
 	_dbg_assert_(POWERPC, exponent == 0 || (rounded_mantissa & (1ULL << 52)));
 
-	if (exponent >= max_exponent)
+	// Renormalize after rounding
+	if (a.mantissa == (1ULL << 53))
+	{
+		a.mantissa = 1ULL << 52;
+		a.exponent += 1;
+	}
+
+	int max_exponent = single ? 0x47F : 0x7FF;
+	if (a.exponent >= max_exponent)
 	{
 		// Overflow: infinity
 		SetFPException(FPSCR_OX);
 		SetFI(1);
-		exponent = 0x7FF;
-		rounded_mantissa = 0;
+		a.exponent = 0x7FF;
+		a.mantissa = 0;
 	}
 
-	return ((u64)exponent << 52) | ((u64)sign << 63) | (rounded_mantissa & DOUBLE_FRAC);
-}
-
-static void DenormalizeMantissa(u64 &mantissa, int exponent, int &shift, int denormal_exponent)
-{
-	if (exponent <= denormal_exponent)
-	{
-		// Underflow: denormal
-		if (FPSCR.NI)
-		{
-			// In non-IEEE mode, flush denormals to zero.
-			// TODO: what happens in round-to-infinity modes?
-			mantissa = mantissa != 0 ? 1 : 0;
-		}
-		else
-		{
-			// Build denormal value
-			shift = denormal_exponent - exponent + 1;
-			if (shift < 64)
-				mantissa = StickyShiftRight(mantissa, shift);
-			else
-				mantissa = mantissa != 0 ? 1 : 0;
-		}
-	}
+	return ((u64)a.exponent << 52) | ((u64)a.sign << 63) | (a.mantissa & DOUBLE_FRAC);
 }
 
 static u64 RoundFPTempToDouble(FPTemp a)
 {
-	int shift = 0;
-	DenormalizeMantissa(a.mantissa, a.exponent, shift, 0);
-	if (shift)
-		a.exponent = 0;
-	a.mantissa = RoundMantissa(a.mantissa, a.sign);
-	if (a.exponent == 0 && FPSCR.FI)
-		SetFPException(FPSCR_UX);
-	return ConvertResultToDouble(a.mantissa, a.exponent, a.sign, 0x7FF);
+	return RoundFPTemp(a, false);
 }
 
 static u64 RoundFPTempToSingle(FPTemp a)
 {
-	int shift = 0;
-	DenormalizeMantissa(a.mantissa, a.exponent, shift, 0x380);
-	a.mantissa = StickyShiftRight(a.mantissa, 29);
-	a.mantissa = RoundMantissa(a.mantissa, a.sign);
-	if (29 + shift < 64)
-		a.mantissa <<= 29 + shift;
-	if (a.exponent <= 0x380 && FPSCR.FI)
-		SetFPException(FPSCR_UX);
-	return ConvertResultToDouble(a.mantissa, a.exponent, a.sign, 0x47F);
+	return RoundFPTemp(a, true);
 }
 
 static u64 InputIsNan(u64 a)
