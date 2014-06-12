@@ -74,133 +74,20 @@ inline void UpdateFPSCR()
 	FPSCR.FEX = 0; // we assume that "?E" bits are always 0
 }
 
-inline double ForceSingle(double _x)
-{
-	// convert to float...
-	float x = (float) _x;
-	if (!cpu_info.bFlushToZero && FPSCR.NI)
-	{
-		x = FlushToZero(x);
-	}
-	// ...and back to double:
-	return x;
-}
-
-inline double ForceDouble(double d)
-{
-	if (!cpu_info.bFlushToZero && FPSCR.NI)
-	{
-		d = FlushToZero(d);
-	}
-	return d;
-}
-
-// these functions allow globally modify operations behaviour
-// also, these may be used to set flags like FR, FI, OX, UX
-
-inline double NI_mul(const double a, const double b)
-{
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (b != b) return b;
-	double t = a * b;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXIMZ);
-		return PPC_NAN;
-	}
-	return t;
-#else
-	return a * b;
-#endif
-}
-
-inline double NI_add(const double a, const double b)
-{
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (b != b) return b;
-	double t = a + b;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXISI);
-		return PPC_NAN;
-	}
-	return t;
-#else
-	return a + b;
-#endif
-}
-
-inline double NI_sub(const double a, const double b)
-{
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (b != b) return b;
-	double t = a - b;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXISI);
-		return PPC_NAN;
-	}
-	return t;
-#else
-	return a - b;
-#endif
-}
-
-inline double NI_madd(const double a, const double b, const double c)
-{
-#ifdef VERY_ACCURATE_FP
-	if (a != a) return a;
-	if (c != c) return c;
-	if (b != b) return b;
-	double t = a * b;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXIMZ);
-		return PPC_NAN;
-	}
-	t = t + c;
-	if (t != t)
-	{
-		SetFPException(FPSCR_VXISI);
-		return PPC_NAN;
-	}
-	return t;
-#else
-	return NI_add(NI_mul(a, b), c);
-#endif
-}
-
-inline double NI_msub(const double a, const double b, const double c)
-{
-//#ifdef VERY_ACCURATE_FP
-//  This code does not produce accurate fp!  NAN's are not calculated correctly, nor negative zero.
-//	The code is kept here for reference.
-//
-//	if (a != a) return a;
-//	if (c != c) return c;
-//	if (b != b) return b;
-//	double t = a * b;
-//	if (t != t)
-//	{
-//		SetFPException(FPSCR_VXIMZ);
-//		return PPC_NAN;
-//	}
-//
-//	t = t - c;
-//	if (t != t)
-//	{
-//		SetFPException(FPSCR_VXISI);
-//		return PPC_NAN;
-//	}
-//	return t;
-//#else
-//	This code does not calculate QNAN's correctly but calculates negative zero correctly.
-	return NI_sub(NI_mul(a, b), c);
-// #endif
-}
+// Core PPC floating-point arithmetic functions
+u64 AddSinglePrecision(u64 a, u64 b);
+u64 AddDoublePrecision(u64 a, u64 b);
+u64 SubSinglePrecision(u64 a, u64 b);
+u64 SubDoublePrecision(u64 a, u64 b);
+u64 MultiplySinglePrecision(u64 a, u64 b);
+u64 MultiplyDoublePrecision(u64 a, u64 b);
+u64 MaddSinglePrecision(u64 a, u64 b, u64 c, bool negate_c, bool negate_result);
+u64 MaddDoublePrecision(u64 a, u64 b, u64 c, bool negate_c, bool negate_result);
+u64 DivSinglePrecision(u64 a, u64 b);
+u64 DivDoublePrecision(u64 a, u64 b);
+u64 RoundToSingle(u64 a);
+void UpdateFPRFDouble(u64 dvalue);
+void UpdateFPRFSingle(u64 dvalue);
 
 // used by stfsXX instructions and ps_rsqrte
 inline u32 ConvertToSingle(u64 x)

@@ -157,6 +157,7 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/Interpreter/Interpreter_Branch.cpp
 			PowerPC/Interpreter/Interpreter.cpp
 			PowerPC/Interpreter/Interpreter_FloatingPoint.cpp
+			PowerPC/Interpreter/Interpreter_FPUtils.cpp
 			PowerPC/Interpreter/Interpreter_Integer.cpp
 			PowerPC/Interpreter/Interpreter_LoadStore.cpp
 			PowerPC/Interpreter/Interpreter_LoadStorePaired.cpp

@@ -699,6 +699,9 @@
     <ClCompile Include="PowerPC\JitILCommon\IR.cpp">
       <Filter>PowerPC\JitILCommon</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\Interpreter\Interpreter_FPUtils.cpp">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
