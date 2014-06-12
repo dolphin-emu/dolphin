@@ -196,8 +196,8 @@ void Interpreter::ps_rsqrte(UGeckoInstruction _inst)
 		SetFPException(FPSCR_VXSQRT);
 	}
 
-	rPS0(_inst.FD) = ApproximateReciprocalSquareRoot(rPS0(_inst.FB));
-	rPS1(_inst.FD) = ApproximateReciprocalSquareRoot(rPS1(_inst.FB));
+	rPS0(_inst.FD) = ForceSingle(ApproximateReciprocalSquareRoot(rPS0(_inst.FB)));
+	rPS1(_inst.FD) = ForceSingle(ApproximateReciprocalSquareRoot(rPS1(_inst.FB)));
 
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
