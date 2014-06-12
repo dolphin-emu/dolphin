@@ -190,15 +190,15 @@ static u64 RoundFPTemp(FPTemp a, bool single)
 	if (single && 29 + shift < 64)
 		a.mantissa <<= 29 + shift;
 
-	_dbg_assert_(POWERPC, rounded_mantissa < (1ULL << 53));
-	_dbg_assert_(POWERPC, exponent == 0 || (rounded_mantissa & (1ULL << 52)));
-
 	// Renormalize after rounding
 	if (a.mantissa == (1ULL << 53))
 	{
 		a.mantissa = 1ULL << 52;
 		a.exponent += 1;
 	}
+
+	_dbg_assert_(POWERPC, a.mantissa < (1ULL << 53));
+	_dbg_assert_(POWERPC, a.exponent == 0 || (a.mantissa & (1ULL << 52)));
 
 	int max_exponent = single ? 0x47F : 0x7FF;
 	if (a.exponent >= max_exponent)
