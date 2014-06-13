@@ -186,7 +186,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 			branch = CC_Z;
 		else
 			branch = CC_NZ;
-		FixupBranch b = J_CC(branch, false);
+		FixupBranch b = J_CC(branch, true);
 		MOV(32, R(EAX), M(&CTR));
 		AND(32, R(EAX), Imm32(0xFFFFFFFC));
 		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
@@ -214,9 +214,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	{
 		SUB(32, M(&CTR), Imm8(1));
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
-			pCTRDontBranch = J_CC(CC_NZ);
+			pCTRDontBranch = J_CC(CC_NZ, true);
 		else
-			pCTRDontBranch = J_CC(CC_Z);
+			pCTRDontBranch = J_CC(CC_Z, true);
 	}
 
 	FixupBranch pConditionDontBranch;
@@ -224,9 +224,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
 		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
-			pConditionDontBranch = J_CC(CC_Z);
+			pConditionDontBranch = J_CC(CC_Z, true);
 		else
-			pConditionDontBranch = J_CC(CC_NZ);
+			pConditionDontBranch = J_CC(CC_NZ, true);
 	}
 
 		// This below line can be used to prove that blr "eats flags" in practice.
