@@ -43,7 +43,7 @@ void Jit64AsmRoutineManager::Generate()
 	MOV(64, R(R15), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
 #endif
 
-	outerLoop = GetCodePtr();
+	const u8* outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
 
@@ -159,7 +159,7 @@ void Jit64AsmRoutineManager::Generate()
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 
-		testExternalExceptions = GetCodePtr();
+		// Test external exceptions.
 		TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
 		FixupBranch noExtException = J_CC(CC_Z);
 		MOV(32, R(EAX), M(&PC));
@@ -170,11 +170,6 @@ void Jit64AsmRoutineManager::Generate()
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop);
 
-	//Landing pad for drec space
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();
-
-	breakpointBailout = GetCodePtr();
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
@@ -192,8 +187,6 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	GenFifoWrite(32);
 	fifoDirectWriteFloat = AlignCode4();
 	GenFifoFloatWrite();
-	fifoDirectWriteXmm64 = AlignCode4();
-	GenFifoXmm64Write();
 
 	GenQuantizedLoads();
 	GenQuantizedStores();
