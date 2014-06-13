@@ -7,7 +7,6 @@
 #include "AudioCommon/AOSoundStream.h"
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/CoreAudioSoundStream.h"
-#include "AudioCommon/DSoundStream.h"
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/NullSoundStream.h"
 #include "AudioCommon/OpenALStream.h"
@@ -40,8 +39,6 @@ namespace AudioCommon
 			soundStream = new OpenALStream(mixer);
 		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid())
 			soundStream = new NullSound(mixer);
-		else if (backend == BACKEND_DIRECTSOUND && DSound::isValid())
-			soundStream = new DSound(mixer, hWnd);
 		else if (backend == BACKEND_XAUDIO2)
 		{
 			if (XAudio2::isValid())
@@ -114,8 +111,6 @@ namespace AudioCommon
 
 		if (NullSound::isValid())
 			backends.push_back(BACKEND_NULLSOUND);
-		if (DSound::isValid())
-			backends.push_back(BACKEND_DIRECTSOUND);
 		if (XAudio2_7::isValid() || XAudio2::isValid())
 			backends.push_back(BACKEND_XAUDIO2);
 		if (AOSound::isValid())
