@@ -45,21 +45,21 @@ void CCPU::Run()
 reswitch:
 		switch (PowerPC::GetState())
 		{
-		case PowerPC::CPU_RUNNING:
+		case PowerPC::STATE_RUNNING:
 			//1: enter a fast runloop
 			PowerPC::RunLoop();
 			break;
 
-		case PowerPC::CPU_STEPPING:
+		case PowerPC::STATE_STEPPING:
 			m_csCpuOccupied.unlock();
 
 			//1: wait for step command..
 			m_StepEvent.Wait();
 
 			m_csCpuOccupied.lock();
-			if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
+			if (PowerPC::GetState() == PowerPC::STATE_POWERDOWN)
 				return;
-			if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
+			if (PowerPC::GetState() != PowerPC::STATE_STEPPING)
 				goto reswitch;
 
 			//3: do a step
@@ -74,7 +74,7 @@ reswitch:
 			Host_UpdateDisasmDialog();
 			break;
 
-		case PowerPC::CPU_POWERDOWN:
+		case PowerPC::STATE_POWERDOWN:
 			//1: Exit loop!!
 			return;
 		}
@@ -89,7 +89,7 @@ void CCPU::Stop()
 
 bool CCPU::IsStepping()
 {
-	return PowerPC::GetState() == PowerPC::CPU_STEPPING;
+	return PowerPC::GetState() == PowerPC::STATE_STEPPING;
 }
 
 void CCPU::Reset()
@@ -100,7 +100,7 @@ void CCPU::Reset()
 void CCPU::StepOpcode(Common::Event *event)
 {
 	m_StepEvent.Set();
-	if (PowerPC::GetState() == PowerPC::CPU_STEPPING)
+	if (PowerPC::GetState() == PowerPC::STATE_STEPPING)
 	{
 		m_SyncEvent = event;
 	}

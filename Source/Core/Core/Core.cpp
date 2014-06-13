@@ -424,7 +424,7 @@ void EmuThread()
 		// Spawn the CPU+GPU thread
 		g_cpu_thread = std::thread(cpuThreadFunc);
 
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		while (PowerPC::GetState() != PowerPC::STATE_POWERDOWN)
 		{
 			g_video_backend->PeekMessages();
 			Common::SleepCurrentThread(20);

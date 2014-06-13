@@ -64,9 +64,9 @@ bool FifoPlayer::Play()
 	LoadMemory();
 
 	// This loop replaces the CPU loop that occurs when a game is run
-	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+	while (PowerPC::GetState() != PowerPC::STATE_POWERDOWN)
 	{
-		if (PowerPC::GetState() == PowerPC::CPU_RUNNING)
+		if (PowerPC::GetState() == PowerPC::STATE_RUNNING)
 		{
 			if (m_CurrentFrame >= m_FrameRangeEnd)
 			{
