@@ -380,7 +380,7 @@ int main(int argc, char* argv[])
 		[event release];
 		[pool release];
 #else
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		while (PowerPC::GetState() != PowerPC::STATE_POWERDOWN)
 			updateMainFrameEvent.Wait();
 #endif
 	}
