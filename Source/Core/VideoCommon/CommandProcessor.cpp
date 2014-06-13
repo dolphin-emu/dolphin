@@ -40,12 +40,7 @@ u16 m_bboxright;
 u16 m_bboxbottom;
 u16 m_tokenReg;
 
-static bool bProcessFifoToLoWatermark = false;
-static bool bProcessFifoAllDistance = false;
-
 volatile bool isPossibleWaitingSetDrawDone = false;
-volatile bool isHiWatermarkActive = false;
-volatile bool isLoWatermarkActive = false;
 volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
@@ -75,10 +70,6 @@ void DoState(PointerWrap &p)
 	p.Do(m_tokenReg);
 	p.Do(fifo);
 
-	p.Do(bProcessFifoToLoWatermark);
-	p.Do(bProcessFifoAllDistance);
-	p.Do(isHiWatermarkActive);
-	p.Do(isLoWatermarkActive);
 	p.Do(isPossibleWaitingSetDrawDone);
 	p.Do(interruptSet);
 	p.Do(interruptWaiting);
@@ -110,8 +101,6 @@ void Init()
 	m_tokenReg = 0;
 
 	memset(&fifo,0,sizeof(fifo));
-	fifo.CPCmdIdle  = 1;
-	fifo.CPReadIdle = 1;
 	fifo.bFF_Breakpoint = 0;
 	fifo.bFF_HiWatermark = 0;
 	fifo.bFF_HiWatermarkInt = 0;
@@ -123,11 +112,7 @@ void Init()
 	interruptFinishWaiting = false;
 	interruptTokenWaiting = false;
 
-	bProcessFifoToLoWatermark = false;
-	bProcessFifoAllDistance = false;
 	isPossibleWaitingSetDrawDone = false;
-	isHiWatermarkActive = false;
-	isLoWatermarkActive = false;
 
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
@@ -365,12 +350,6 @@ void UpdateInterruptsFromVideoBackend(u64 userdata)
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
-// This is called by the ProcessorInterface when PI_FIFO_RESET is written to.
-void AbortFrame()
-{
-
-}
-
 void SetCpStatus(bool isCPUThread)
 {
 	// overflow & underflow check
@@ -411,9 +390,6 @@ void SetCpStatus(bool isCPUThread)
 
 	bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
 
-	isHiWatermarkActive = ovfInt && m_CPCtrlReg.GPReadEnable;
-	isLoWatermarkActive = undfInt && m_CPCtrlReg.GPReadEnable;
-
 	if (interrupt != interruptSet && !interruptWaiting)
 	{
 		u64 userdata = interrupt?1:0;
@@ -443,17 +419,6 @@ void SetCpStatus(bool isCPUThread)
 	}
 }
 
-void ProcessFifoToLoWatermark()
-{
-	if (IsOnThread())
-	{
-		while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
-			fifo.CPReadWriteDistance > fifo.CPLoWatermark && !AtBreakpoint())
-			Common::YieldCPU();
-	}
-	bProcessFifoToLoWatermark = false;
-}
-
 void ProcessFifoAllDistance()
 {
 	if (IsOnThread())
@@ -462,7 +427,6 @@ void ProcessFifoAllDistance()
 			fifo.CPReadWriteDistance && !AtBreakpoint())
 			Common::YieldCPU();
 	}
-	bProcessFifoAllDistance = false;
 }
 
 void ProcessFifoEvents()
@@ -538,15 +502,10 @@ void SetCpControlRegister()
 
 }
 
-// NOTE: The implementation of this function should be correct, but we intentionally aren't using it at the moment.
-// We don't emulate proper GP timing anyway at the moment, so this code would just slow down emulation.
+// NOTE: We intentionally don't emulate this function at the moment.
+// We don't emulate proper GP timing anyway at the moment, so it would just slow down emulation.
 void SetCpClearRegister()
 {
-	// if (IsOnThread())
-	// {
-	//     if (!m_CPClearReg.ClearFifoUnderflow && m_CPClearReg.ClearFifoOverflow)
-	//         bProcessFifoToLoWatermark = true;
-	// }
 }
 
 void Update()

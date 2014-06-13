@@ -302,16 +302,6 @@ bool VideoBackendHardware::Video_IsPossibleWaitingSetDrawDone()
 	return CommandProcessor::isPossibleWaitingSetDrawDone;
 }
 
-bool VideoBackendHardware::Video_IsHiWatermarkActive()
-{
-	return CommandProcessor::isHiWatermarkActive;
-}
-
-void VideoBackendHardware::Video_AbortFrame()
-{
-	CommandProcessor::AbortFrame();
-}
-
 void VideoBackendHardware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
 {
 	CommandProcessor::RegisterMMIO(mmio, base);

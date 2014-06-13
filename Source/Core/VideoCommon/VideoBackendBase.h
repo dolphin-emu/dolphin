@@ -51,9 +51,6 @@ struct SCPFifoStruct
 	volatile u32 bFF_BPInt;
 	volatile u32 bFF_Breakpoint;
 
-	volatile u32 CPCmdIdle;
-	volatile u32 CPReadIdle;
-
 	volatile u32 bFF_LoWatermarkInt;
 	volatile u32 bFF_HiWatermarkInt;
 
@@ -105,8 +102,6 @@ public:
 	virtual void Video_GatherPipeBursted() = 0;
 
 	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
-	virtual bool Video_IsHiWatermarkActive() = 0;
-	virtual void Video_AbortFrame() = 0;
 
 	// Registers MMIO handlers for the CommandProcessor registers.
 	virtual void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) = 0;
@@ -154,8 +149,6 @@ class VideoBackendHardware : public VideoBackend
 	void Video_GatherPipeBursted() override;
 
 	bool Video_IsPossibleWaitingSetDrawDone() override;
-	bool Video_IsHiWatermarkActive() override;
-	void Video_AbortFrame() override;
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 
