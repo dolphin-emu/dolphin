@@ -2194,7 +2194,7 @@ void Jit64::twx(UGeckoInstruction inst)
 	{
 		if (inst.TO & (1 << i))
 		{
-			FixupBranch f = J_CC(conditions[i]);
+			FixupBranch f = J_CC(conditions[i], true);
 			fixups.push_back(f);
 		}
 	}
