@@ -17,7 +17,7 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
-#ifndef _M_GENERIC
+#ifdef _M_X86
 #ifndef __APPLE__
 #define USE_VERTEX_LOADER_JIT
 #endif
