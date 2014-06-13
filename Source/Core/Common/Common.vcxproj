@@ -81,6 +81,7 @@
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StdBasicString.h" />
     <ClInclude Include="StdConditionVariable.h" />
     <ClInclude Include="StdMakeUnique.h" />
     <ClInclude Include="StdMutex.h" />

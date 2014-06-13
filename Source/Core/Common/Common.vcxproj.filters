@@ -41,6 +41,7 @@
     <ClInclude Include="Network.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
+    <ClInclude Include="StdBasicString.h" />
     <ClInclude Include="StdConditionVariable.h" />
     <ClInclude Include="StdMakeUnique.h" />
     <ClInclude Include="StdMutex.h" />
