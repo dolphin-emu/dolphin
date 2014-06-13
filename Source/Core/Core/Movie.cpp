@@ -143,9 +143,9 @@ void FrameUpdate()
 	}
 
 	// ("framestop") the only purpose of this is to cause interpreter/jit Run() to return temporarily.
-	// after that we set it back to CPU_RUNNING and continue as normal.
+	// after that we set it back to STATE_RUNNING and continue as normal.
 	if (g_bFrameStop)
-		*PowerPC::GetStatePtr() = PowerPC::CPU_STEPPING;
+		*PowerPC::GetStatePtr() = PowerPC::STATE_STEPPING;
 
 	if (g_framesToSkip)
 		FrameSkipping();
