@@ -314,7 +314,7 @@ int main(int argc, char* argv[])
 	if (help == 1 || argc == optind)
 	{
 		fprintf(stderr, "%s\n\n", scm_rev_str);
-		fprintf(stderr, "A multi-platform Gamecube/Wii emulator\n\n");
+		fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
 		fprintf(stderr, "  -e, --exec   Load the specified file\n");
 		fprintf(stderr, "  -h, --help   Show this help message\n");

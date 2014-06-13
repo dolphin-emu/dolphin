@@ -18,7 +18,7 @@ namespace BPFunctions
 {
 // ----------------------------------------------
 // State translation lookup tables
-// Reference: Yet Another Gamecube Documentation
+// Reference: Yet Another GameCube Documentation
 // ----------------------------------------------
 
 

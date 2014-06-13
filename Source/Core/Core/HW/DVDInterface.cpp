@@ -21,7 +21,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 
-// A Gamecube disc can be read at somewhere between
+// A GameCube disc can be read at somewhere between
 // 2 and 3MB/sec, depending on the location on disk.  Wii disks
 // not yet tested.
 static const u32 DISC_TRANSFER_RATE_GC = 3 * 1024 * 1024;

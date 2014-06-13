@@ -448,7 +448,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	std::string const name = rISOFile.GetName(SelectedLanguage);
 	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
-	// We show the company string on Gamecube only
+	// We show the company string on GameCube only
 	// On Wii we show the description instead as the company string is empty
 	std::string const notes = (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
 		rISOFile.GetCompany() : rISOFile.GetDescription(SelectedLanguage);
@@ -1205,7 +1205,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 			if (iso->GetPlatform() == GameListItem::WII_DISC)
 				FileType = _("All Wii ISO files (iso)") + "|*.iso";
 			else
-				FileType = _("All Gamecube GCM files (gcm)") + "|*.gcm";
+				FileType = _("All GameCube GCM files (gcm)") + "|*.gcm";
 
 			path = wxFileSelector(
 					_("Save decompressed GCM/ISO"),

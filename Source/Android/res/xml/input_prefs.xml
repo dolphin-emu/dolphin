@@ -11,7 +11,7 @@
             android:targetClass="org.dolphinemu.dolphinemu.settings.input.overlayconfig.OverlayConfigActivity"/>
     </Preference>
 
-    <!-- Gamecube controller bindings -->
+    <!-- GameCube controller bindings -->
     <PreferenceScreen
         android:key="gamecube_bindings"
         android:title="@string/gamecube_bindings">

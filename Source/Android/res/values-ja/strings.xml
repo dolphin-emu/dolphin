@@ -82,7 +82,7 @@
     <string name="enable_wiimote">Wiiリモコンを有効</string>
     <string name="input_binding">入力バインディング</string>
     <string name="input_binding_descrip">%1$sにバインドするための入力を移動または押してください。</string>
-    <!-- Gamecube buttons (May be shared with Wiimote stuff too) -->
+    <!-- GameCube buttons (May be shared with Wiimote stuff too) -->
     <string name="button_a">Aボタン</string>
     <string name="button_b">Bボタン</string>
     <string name="button_start">スタートボタン</string>

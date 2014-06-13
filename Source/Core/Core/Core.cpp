@@ -199,7 +199,7 @@ bool Init()
 	g_CoreStartupParameter = _CoreParameter;
 
 	INFO_LOG(OSREPORT, "Starting core = %s mode",
-		g_CoreStartupParameter.bWii ? "Wii" : "Gamecube");
+		g_CoreStartupParameter.bWii ? "Wii" : "GameCube");
 	INFO_LOG(OSREPORT, "CPU Thread separate = %s",
 		g_CoreStartupParameter.bCPUThread ? "Yes" : "No");
 

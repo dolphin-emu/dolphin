@@ -563,9 +563,9 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 	// The interface for this is extremely silly.
 	//
 	// Imagine a physical device that links three Gamecubes together
-	// and emulates NetPlay that way. Which Gamecube controls which
+	// and emulates NetPlay that way. Which GameCube controls which
 	// in-game controllers can be configured on the device (m_pad_map)
-	// but which sockets on each individual Gamecube should be used
+	// but which sockets on each individual GameCube should be used
 	// to control which players? The solution that Dolphin uses is
 	// that we hardcode the knowledge that they go in order, so if
 	// you have a 3P game with three gamecubes, then every single

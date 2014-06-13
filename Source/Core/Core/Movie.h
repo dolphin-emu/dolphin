@@ -29,7 +29,7 @@ enum PlayMode
 	MODE_PLAYING
 };
 
-// Gamecube Controller State
+// GameCube Controller State
 #pragma pack(push,1)
 struct ControllerState
 {

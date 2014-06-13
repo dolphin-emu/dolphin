@@ -44,9 +44,9 @@ extern const unsigned char sfont_raw[][9*10];
  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
 
 
-// Gamecube/Wii texture decoder
+// GameCube/Wii texture decoder
 
-// Decodes all known Gamecube/Wii texture formats.
+// Decodes all known GameCube/Wii texture formats.
 // by ector
 
 int TexDecoder_GetTexelSizeInNibbles(int format)

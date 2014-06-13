@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-// High-level emulation for the AX Gamecube UCode.
+// High-level emulation for the AX GameCube UCode.
 //
 // TODO:
 //  * Depop support
