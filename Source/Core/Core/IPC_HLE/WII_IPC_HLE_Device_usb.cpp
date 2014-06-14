@@ -24,7 +24,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::EnqueueReply(u32 CommandAddress)
 	// The original hardware overwrites the command type with the async reply type.
 	Memory::Write_U32(IPC_REP_ASYNC, CommandAddress);
 
-	WII_IPC_HLE_Interface::EnqReply(CommandAddress);
+	WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
 }
 
 // The device class
