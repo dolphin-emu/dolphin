@@ -32,10 +32,10 @@
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
 
-#define JITDISABLE(setting)                     \
-	if (Core::g_CoreStartupParameter.bJITOff || \
-		Core::g_CoreStartupParameter.setting)   \
-	{ FallBackToInterpreter(inst); return; }
+#define FALLBACK_IF(cond) do { if (cond) { FallBackToInterpreter(inst); return; } } while (0)
+
+#define JITDISABLE(setting) FALLBACK_IF(Core::g_CoreStartupParameter.bJITOff || \
+                                        Core::g_CoreStartupParameter.setting)
 
 class JitBase : public CPUCoreBase
 {

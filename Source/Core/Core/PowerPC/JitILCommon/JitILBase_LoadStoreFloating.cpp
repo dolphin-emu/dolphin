@@ -12,13 +12,8 @@
 void JitILBase::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
 
@@ -34,13 +29,8 @@ void JitILBase::lfs(UGeckoInstruction inst)
 void JitILBase::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
 
@@ -56,13 +46,8 @@ void JitILBase::lfd(UGeckoInstruction inst)
 void JitILBase::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	IREmitter::InstLoc val  = ibuild.EmitLoadFReg(inst.RS);
@@ -79,13 +64,8 @@ void JitILBase::stfd(UGeckoInstruction inst)
 void JitILBase::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	IREmitter::InstLoc val  = ibuild.EmitLoadFReg(inst.RS);
@@ -103,13 +83,8 @@ void JitILBase::stfs(UGeckoInstruction inst)
 void JitILBase::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	IREmitter::InstLoc val  = ibuild.EmitLoadFReg(inst.RS);
@@ -125,13 +100,8 @@ void JitILBase::stfsx(UGeckoInstruction inst)
 void JitILBase::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB), val;
 

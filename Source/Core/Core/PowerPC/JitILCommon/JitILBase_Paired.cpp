@@ -8,13 +8,8 @@
 void JitILBase::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc || (inst.SUBOP5 != 21 && inst.SUBOP5 != 20 && inst.SUBOP5 != 25))
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc || (inst.SUBOP5 != 21 && inst.SUBOP5 != 20 && inst.SUBOP5 != 25));
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	IREmitter::InstLoc rhs;
@@ -47,17 +42,11 @@ void JitILBase::ps_sum(UGeckoInstruction inst)
 	// TODO: This operation strikes me as a bit strange...
 	// perhaps we can optimize it depending on the users?
 	// TODO: ps_sum breaks Sonic Colours (black screen)
-	FallBackToInterpreter(inst);
-	return;
+	FALLBACK_IF(true);
 
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc || inst.SUBOP5 != 10)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc || inst.SUBOP5 != 10);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	IREmitter::InstLoc temp;
@@ -76,13 +65,8 @@ void JitILBase::ps_sum(UGeckoInstruction inst)
 void JitILBase::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	IREmitter::InstLoc rhs = ibuild.EmitLoadFReg(inst.FC);
@@ -105,13 +89,8 @@ void JitILBase::ps_muls(UGeckoInstruction inst)
 void JitILBase::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	IREmitter::InstLoc val = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FA));
 	IREmitter::InstLoc rhs = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
@@ -142,13 +121,8 @@ void JitILBase::ps_mergeXX(UGeckoInstruction inst)
 void JitILBase::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA), op2, op3;
 	val = ibuild.EmitCompactMRegToPacked(val);

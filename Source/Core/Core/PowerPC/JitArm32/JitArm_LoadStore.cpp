@@ -127,7 +127,7 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 void JitArm::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	u32 a = inst.RA, b = inst.RB, s = inst.RS;
 	s32 offset = inst.SIMM_16;
@@ -331,7 +331,7 @@ void JitArm::SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int 
 void JitArm::lXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
 	s32 offset = inst.SIMM_16;
@@ -475,13 +475,8 @@ void JitArm::lXX(UGeckoInstruction inst)
 void JitArm::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (!Core::g_CoreStartupParameter.bFastmem)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(!Core::g_CoreStartupParameter.bFastmem);
 
 	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();
@@ -506,13 +501,8 @@ void JitArm::lmw(UGeckoInstruction inst)
 void JitArm::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (!Core::g_CoreStartupParameter.bFastmem)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(!Core::g_CoreStartupParameter.bFastmem);
 
 	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();
@@ -538,17 +528,13 @@ void JitArm::stmw(UGeckoInstruction inst)
 void JitArm::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
 	// will be the same.
 	// dcbt = 0x7c00022c
-	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c);
 }
 
 void JitArm::icbi(UGeckoInstruction inst)

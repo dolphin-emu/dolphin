@@ -17,20 +17,8 @@
 void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
-	if (!inst.RA)
-	{
-		// TODO: Support these cases if it becomes necessary.
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStorePairedOff);
+	FALLBACK_IF(js.memcheck || !inst.RA);
 
 	bool update = inst.OPCD == 61;
 
@@ -73,19 +61,8 @@ void Jit64::psq_st(UGeckoInstruction inst)
 void Jit64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
-	if (!inst.RA)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStorePairedOff);
+	FALLBACK_IF(js.memcheck || !inst.RA);
 
 	bool update = inst.OPCD == 57;
 	int offset = inst.SIMM_12;
