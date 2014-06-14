@@ -15,7 +15,7 @@
 
 #define LOW_WATERMARK   1280 // 40 ms
 #define MAX_FREQ_SHIFT  200  // per 32000 Hz
-#define CONTROL_FACTOR  0.2  // in freq_shift per fifo size offset
+#define CONTROL_FACTOR  0.2f // in freq_shift per fifo size offset
 #define CONTROL_AVG     32
 
 class CMixer {
