@@ -29,7 +29,6 @@
 
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/EmuWindow.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -58,7 +57,8 @@ unsigned int VideoBackend::PeekMessages()
 
 void VideoBackend::UpdateFPSDisplay(const std::string& text)
 {
-	EmuWindow::SetWindowText(StringFromFormat("%s | D3D | %s", scm_rev_str, text.c_str()));
+	std::string str = StringFromFormat("%s | D3D | %s", scm_rev_str, text.c_str());
+	SetWindowTextA((HWND)m_window_handle, str.c_str());
 }
 
 std::string VideoBackend::GetName() const
@@ -147,6 +147,9 @@ void VideoBackend::ShowConfig(void *_hParent)
 
 bool VideoBackend::Initialize(void *&window_handle)
 {
+	if (window_handle == nullptr)
+		return false;
+
 	InitializeShared();
 	InitBackendInfo();
 
@@ -158,12 +161,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
-	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));
-	if (window_handle == nullptr)
-	{
-		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
-		return false;
-	}
+	m_window_handle = window_handle;
 
 	s_BackendInitialized = true;
 
@@ -178,7 +176,7 @@ void VideoBackend::Video_Prepare()
 	s_swapRequested = FALSE;
 
 	// internal interfaces
-	g_renderer = new Renderer;
+	g_renderer = new Renderer(m_window_handle);
 	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
 	g_perf_query = new PerfQuery;

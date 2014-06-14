@@ -80,7 +80,6 @@ Make AA apply instantly during gameplay if possible
 
 #ifdef _WIN32
 #include "Common/IniFile.h"
-#include "VideoCommon/EmuWindow.h"
 #endif
 
 #if defined(HAVE_WX) && HAVE_WX

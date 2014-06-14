@@ -32,9 +32,6 @@
     <ClCompile Include="Debugger.cpp">
       <Filter>Base</Filter>
     </ClCompile>
-    <ClCompile Include="EmuWindow.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
     <ClCompile Include="FramebufferManagerBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
@@ -148,9 +145,6 @@
     <ClInclude Include="VideoCommon.h" />
     <ClInclude Include="VideoConfig.h" />
     <ClInclude Include="Debugger.h">
-      <Filter>Base</Filter>
-    </ClInclude>
-    <ClInclude Include="EmuWindow.h">
       <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="FramebufferManagerBase.h">
