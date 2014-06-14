@@ -76,11 +76,7 @@ public:
 	}
 
 	const char *GetName() override {
-#if _M_X86_64
 		return "JIT64IL";
-#else
-		return "JIT32IL";
-#endif
 	}
 
 	// Run!
