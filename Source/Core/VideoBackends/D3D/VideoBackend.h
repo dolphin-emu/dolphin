@@ -21,6 +21,8 @@ class VideoBackend : public VideoBackendHardware
 
 	void UpdateFPSDisplay(const std::string&) override;
 	unsigned int PeekMessages() override;
+
+	void* m_window_handle;
 };
 
 }

@@ -51,7 +51,6 @@
     <ClCompile Include="CPMemory.cpp" />
     <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="DriverDetails.cpp" />
-    <ClCompile Include="EmuWindow.cpp" />
     <ClCompile Include="Fifo.cpp" />
     <ClCompile Include="FPSCounter.cpp" />
     <ClCompile Include="FramebufferManagerBase.cpp" />
@@ -98,7 +97,6 @@
     <ClInclude Include="DataReader.h" />
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="DriverDetails.h" />
-    <ClInclude Include="EmuWindow.h" />
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
     <ClInclude Include="FramebufferManagerBase.h" />
