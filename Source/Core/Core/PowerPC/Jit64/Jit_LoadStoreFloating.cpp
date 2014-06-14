@@ -30,15 +30,11 @@ u64 GC_ALIGNED16(temp64);
 void Jit64::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
+	JITDISABLE(bJITLoadStoreFloatingOff);
 
 	int d = inst.RD;
 	int a = inst.RA;
-	if (!a)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(!a);
 
 	s32 offset = (s32)(s16)inst.SIMM_16;
 
@@ -59,21 +55,11 @@ void Jit64::lfs(UGeckoInstruction inst)
 void Jit64::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck || !inst.RA);
 
 	int d = inst.RD;
 	int a = inst.RA;
-	if (!a)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
 
 	s32 offset = (s32)(s16)inst.SIMM_16;
 	gpr.FlushLockX(ABI_PARAM1);
@@ -132,21 +118,11 @@ void Jit64::lfd(UGeckoInstruction inst)
 void Jit64::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(js.memcheck || !inst.RA);
 
 	int s = inst.RS;
 	int a = inst.RA;
-	if (!a)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 	if (Core::g_CoreStartupParameter.bMMU ||
@@ -221,18 +197,14 @@ void Jit64::stfd(UGeckoInstruction inst)
 void Jit64::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
+	JITDISABLE(bJITLoadStoreFloatingOff);
 
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
 	int a = inst.RA;
 	s32 offset = (s32)(s16)inst.SIMM_16;
 
-	if (!a || update)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(!a || update);
 
 	fpr.BindToRegister(s, true, false);
 	ConvertDoubleToSingle(XMM0, fpr.RX(s));
@@ -284,7 +256,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 void Jit64::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
+	JITDISABLE(bJITLoadStoreFloatingOff);
 
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 	gpr.FlushLockX(ABI_PARAM1);
@@ -307,7 +279,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 void Jit64::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff)
+	JITDISABLE(bJITLoadStoreFloatingOff);
 
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)

@@ -73,20 +73,11 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 void Jit64::fp_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF);
 
 	bool single = inst.OPCD == 59;
 	switch (inst.SUBOP5)
@@ -103,20 +94,11 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 void Jit64::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF);
 
 	bool single_precision = inst.OPCD == 59;
 
@@ -166,13 +148,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 void Jit64::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int b = inst.FB;
@@ -200,13 +177,8 @@ void Jit64::fsign(UGeckoInstruction inst)
 void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int b = inst.FB;
@@ -231,13 +203,8 @@ void Jit64::fmrx(UGeckoInstruction inst)
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (jo.fpAccurateFcmp)
-	{
-		FallBackToInterpreter(inst); // turn off from debugger
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(jo.fpAccurateFcmp);
 
 	//bool ordered = inst.SUBOP10 == 32;
 	int a   = inst.FA;
@@ -300,5 +267,3 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 
 	fpr.UnlockAll();
 }
-
-

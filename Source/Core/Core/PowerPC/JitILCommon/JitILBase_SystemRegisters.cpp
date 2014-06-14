@@ -9,15 +9,14 @@
 void JitILBase::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
 	switch (iIndex)
 	{
 		case SPR_TL:
 		case SPR_TU:
-			FallBackToInterpreter(inst);
-			return;
+			FALLBACK_IF(true);
 		case SPR_LR:
 			ibuild.EmitStoreLink(ibuild.EmitLoadGReg(inst.RD));
 			return;
@@ -39,22 +38,20 @@ void JitILBase::mtspr(UGeckoInstruction inst)
 			ibuild.EmitStoreSRR(ibuild.EmitLoadGReg(inst.RD), iIndex - SPR_SRR0);
 			return;
 		default:
-			FallBackToInterpreter(inst);
-			return;
+			FALLBACK_IF(true);
 	}
 }
 
 void JitILBase::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(bJITSystemRegistersOff)
+		JITDISABLE(bJITSystemRegistersOff);
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	switch (iIndex)
 	{
 	case SPR_TL:
 	case SPR_TU:
-		FallBackToInterpreter(inst);
-		return;
+		FALLBACK_IF(true);
 	case SPR_LR:
 		ibuild.EmitStoreGReg(ibuild.EmitLoadLink(), inst.RD);
 		return;
@@ -72,8 +69,7 @@ void JitILBase::mfspr(UGeckoInstruction inst)
 		ibuild.EmitStoreGReg(ibuild.EmitLoadGQR(iIndex - SPR_GQR0), inst.RD);
 		return;
 	default:
-		FallBackToInterpreter(inst);
-		return;
+		FALLBACK_IF(true);
 	}
 }
 
@@ -92,21 +88,21 @@ void JitILBase::mtmsr(UGeckoInstruction inst)
 void JitILBase::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(bJITSystemRegistersOff)
+		JITDISABLE(bJITSystemRegistersOff);
 		ibuild.EmitStoreGReg(ibuild.EmitLoadMSR(), inst.RD);
 }
 
 void JitILBase::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 		mfspr(inst);
 }
 
 void JitILBase::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	IREmitter::InstLoc d = ibuild.EmitIntConst(0);
 	for (int i = 0; i < 8; ++i)
@@ -120,7 +116,7 @@ void JitILBase::mfcr(UGeckoInstruction inst)
 void JitILBase::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
 	for (int i = 0; i < 8; ++i)
@@ -138,7 +134,7 @@ void JitILBase::mtcrf(UGeckoInstruction inst)
 void JitILBase::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	if (inst.CRFS != inst.CRFD)
 	{
@@ -149,7 +145,7 @@ void JitILBase::mcrf(UGeckoInstruction inst)
 void JitILBase::crXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	// Get bit CRBA in EAX aligned with bit CRBD
 	const int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);

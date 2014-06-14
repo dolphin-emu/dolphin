@@ -233,7 +233,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 void Jit64::reg_imm(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	u32 d = inst.RD, a = inst.RA, s = inst.RS;
 	switch (inst.OPCD)
 	{
@@ -298,8 +298,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	case 12: regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, false, true); break; //addic
 	case 13: regimmop(d, a, true, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, true, true); break; //addic_rc
 	default:
-		FallBackToInterpreter(inst);
-		break;
+		FALLBACK_IF(true);
 	}
 }
 
@@ -307,7 +306,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 {
 	// USES_CR
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int b = inst.RB;
 	int crf = inst.CRFD;
@@ -553,7 +552,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 void Jit64::boolX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, s = inst.RS, b = inst.RB;
 	_dbg_assert_msg_(DYNA_REC, inst.OPCD == 31, "Invalid boolX");
 
@@ -816,7 +815,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 void Jit64::extsbx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, s = inst.RS;
 
 	if (gpr.R(s).IsImm())
@@ -844,7 +843,7 @@ void Jit64::extsbx(UGeckoInstruction inst)
 void Jit64::extshx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, s = inst.RS;
 
 	if (gpr.R(s).IsImm())
@@ -872,7 +871,7 @@ void Jit64::extshx(UGeckoInstruction inst)
 void Jit64::subfic(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, d = inst.RD;
 	gpr.Lock(a, d);
 	gpr.BindToRegister(d, a == d, true);
@@ -923,7 +922,7 @@ void Jit64::subfic(UGeckoInstruction inst)
 void Jit64::subfcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, (d == a || d == b), true);
@@ -955,7 +954,7 @@ void Jit64::subfcx(UGeckoInstruction inst)
 void Jit64::subfex(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, (d == a || d == b), true);
@@ -993,7 +992,7 @@ void Jit64::subfmex(UGeckoInstruction inst)
 {
 	// USES_XER
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, d = inst.RD;
 	gpr.Lock(a, d);
 	gpr.BindToRegister(d, d == a);
@@ -1017,7 +1016,7 @@ void Jit64::subfzex(UGeckoInstruction inst)
 {
 	// USES_XER
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, d = inst.RD;
 
 	gpr.Lock(a, d);
@@ -1042,7 +1041,7 @@ void Jit64::subfzex(UGeckoInstruction inst)
 void Jit64::subfx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
@@ -1092,7 +1091,7 @@ void Jit64::subfx(UGeckoInstruction inst)
 void Jit64::mulli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, d = inst.RD;
 	u32 imm = inst.SIMM_16;
 
@@ -1139,7 +1138,7 @@ void Jit64::mulli(UGeckoInstruction inst)
 void Jit64::mullwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
@@ -1215,7 +1214,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
 void Jit64::mulhwux(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
@@ -1246,7 +1245,7 @@ void Jit64::mulhwux(UGeckoInstruction inst)
 void Jit64::divwux(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
@@ -1403,7 +1402,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 void Jit64::divwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
@@ -1477,7 +1476,7 @@ void Jit64::divwx(UGeckoInstruction inst)
 void Jit64::addx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
@@ -1538,7 +1537,7 @@ void Jit64::addex(UGeckoInstruction inst)
 {
 	// USES_XER
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	if ((d == a) || (d == b))
@@ -1575,7 +1574,7 @@ void Jit64::addex(UGeckoInstruction inst)
 void Jit64::addcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	if ((d == a) || (d == b))
@@ -1612,7 +1611,7 @@ void Jit64::addmex(UGeckoInstruction inst)
 {
 	// USES_XER
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, d = inst.RD;
 
 	if (d == a)
@@ -1650,7 +1649,7 @@ void Jit64::addzex(UGeckoInstruction inst)
 {
 	// USES_XER
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, d = inst.RD;
 
 	if (d == a)
@@ -1687,7 +1686,7 @@ void Jit64::addzex(UGeckoInstruction inst)
 void Jit64::rlwinmx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int s = inst.RS;
 	if (gpr.R(s).IsImm())
@@ -1754,7 +1753,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 void Jit64::rlwimix(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int s = inst.RS;
 
@@ -1840,7 +1839,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 void Jit64::rlwnmx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 
 	u32 mask = Helper_Mask(inst.MB, inst.ME);
@@ -1876,7 +1875,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
 void Jit64::negx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int d = inst.RD;
 
@@ -1914,7 +1913,7 @@ void Jit64::negx(UGeckoInstruction inst)
 void Jit64::srwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int b = inst.RB;
 	int s = inst.RS;
@@ -1966,7 +1965,7 @@ void Jit64::srwx(UGeckoInstruction inst)
 void Jit64::slwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int b = inst.RB;
 	int s = inst.RS;
@@ -2032,7 +2031,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 {
 	// USES_XER
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int b = inst.RB;
 	int s = inst.RS;
@@ -2089,7 +2088,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 void Jit64::srawix(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int s = inst.RS;
 	int amount = inst.SH;
@@ -2118,8 +2117,7 @@ void Jit64::srawix(UGeckoInstruction inst)
 	else
 	{
 		// FIXME
-		FallBackToInterpreter(inst);
-		return;
+		FALLBACK_IF(true);
 
 		gpr.Lock(a, s);
 		JitClearCA();
@@ -2142,7 +2140,7 @@ void Jit64::srawix(UGeckoInstruction inst)
 void Jit64::cntlzwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int s = inst.RS;
 
@@ -2178,7 +2176,7 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
 void Jit64::twx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	s32 a = inst.RA;
 
