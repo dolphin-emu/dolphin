@@ -632,7 +632,7 @@ void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue, IPCCommandTyp
 	// Return value
 	Memory::Write_U32(ReturnValue, CommandAddress + 4);
 
-	WII_IPC_HLE_Interface::EnqReply(CommandAddress);
+	WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
 }
 
 

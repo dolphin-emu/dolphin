@@ -998,7 +998,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			Memory::Write_U32(IPC_CMD_IOCTLV, _CommandAddress + 8);
 
 			// Generate a reply to the IPC command
-			WII_IPC_HLE_Interface::EnqReply(_CommandAddress, 0);
+			WII_IPC_HLE_Interface::EnqueueReply(_CommandAddress, 0);
 
 			return false;
 		}

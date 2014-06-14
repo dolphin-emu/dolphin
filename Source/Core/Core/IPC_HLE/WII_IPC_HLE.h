@@ -62,8 +62,8 @@ void UpdateDevices();
 
 void ExecuteCommand(u32 _Address);
 
-void EnqRequest(u32 _Address);
-void EnqReply(u32 _Address, int cycles_in_future = 0);
-void EnqReply_Threadsafe(u32 _Address, int cycles_in_future = 0);
+void EnqueueRequest(u32 address);
+void EnqueueReply(u32 address, int cycles_in_future = 0);
+void EnqueueReply_Threadsafe(u32 address, int cycles_in_future = 0);
 
 } // end of namespace WII_IPC_HLE_Interface

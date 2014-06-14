@@ -77,21 +77,18 @@ typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue; // ppc -> arm
 static ipc_msg_queue reply_queue;   // arm -> ppc
 
-static int enque_reply;
-static int enque_request;
+static int event_enqueue_reply;
+static int event_enqueue_request;
 
 static u64 last_reply_time;
 
-// NOTE: Only call this if you have correctly handled
-//       CommandAddress+0 and CommandAddress+8.
-//       Please search for examples of this being called elsewhere.
-void EnqueReplyCallback(u64 userdata, int)
+static void EnqueueReplyCallback(u64 userdata, int)
 {
 	reply_queue.push_back((u32)userdata);
 	Update();
 }
 
-void EnqueRequestCallback(u64 userdata, int)
+static void EnqueueRequestCallback(u64 userdata, int)
 {
 	request_queue.push_back((u32)userdata);
 	Update();
@@ -139,14 +136,14 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/usb/oh1"); i++;
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, "_Unimplemented_Device_"); i++;
 
-	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
-	enque_request = CoreTiming::RegisterEvent("IPCRequest", EnqueRequestCallback);
+	event_enqueue_reply = CoreTiming::RegisterEvent("IPCReply", EnqueueReplyCallback);
+	event_enqueue_request = CoreTiming::RegisterEvent("IPCRequest", EnqueueRequestCallback);
 }
 
 void Reset(bool _bHard)
 {
-	CoreTiming::RemoveAllEvents(enque_reply);
-	CoreTiming::RemoveAllEvents(enque_request);
+	CoreTiming::RemoveAllEvents(event_enqueue_reply);
+	CoreTiming::RemoveAllEvents(event_enqueue_request);
 
 	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
@@ -555,28 +552,28 @@ void ExecuteCommand(u32 _Address)
 		last_reply_time = CoreTiming::GetTicks() + reply_delay;
 
 		// Generate a reply to the IPC command
-		EnqReply(_Address, reply_delay);
+		EnqueueReply(_Address, reply_delay);
 	}
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
-void EnqRequest(u32 _Address)
+void EnqueueRequest(u32 address)
 {
-	CoreTiming::ScheduleEvent(1000, enque_request, _Address);
+	CoreTiming::ScheduleEvent(1000, event_enqueue_request, address);
 }
 
 // Called when IOS module has some reply
 // NOTE: Only call this if you have correctly handled
 //       CommandAddress+0 and CommandAddress+8.
 //       Please search for examples of this being called elsewhere.
-void EnqReply(u32 _Address, int cycles_in_future)
+void EnqueueReply(u32 address, int cycles_in_future)
 {
-	CoreTiming::ScheduleEvent(cycles_in_future, enque_reply, _Address);
+	CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue_reply, address);
 }
 
-void EnqReply_Threadsafe(u32 _Address, int cycles_in_future)
+void EnqueueReply_Threadsafe(u32 address, int cycles_in_future)
 {
-	CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, enque_reply, _Address);
+	CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, event_enqueue_reply, address);
 }
 
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp

@@ -158,7 +158,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::ComplexWrite<u32>([](u32, u32 val) {
 			ctrl.ppc(val);
 			if (ctrl.X1)
-				WII_IPC_HLE_Interface::EnqRequest(ppc_msg);
+				WII_IPC_HLE_Interface::EnqueueRequest(ppc_msg);
 			WII_IPC_HLE_Interface::Update();
 			CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
 		})
