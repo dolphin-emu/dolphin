@@ -5,7 +5,7 @@
 #pragma once
 
 #define SLIDER_TICK_COUNT    100
-#define DETECT_WAIT_TIME     1500
+#define DETECT_WAIT_TIME     5000
 #define PREVIEW_UPDATE_TIME  25
 
 // might have to change this setup for wiimote
@@ -216,6 +216,7 @@ public:
 	wxComboBox* device_cbox;
 
 	std::vector<ControlGroupBox*> control_groups;
+	std::vector<ControlButton*>   control_buttons;
 
 protected:
 
@@ -226,6 +227,7 @@ private:
 	ControlDialog*           m_control_dialog;
 	InputConfigDialog* const m_config_dialog;
 	InputPlugin &m_plugin;
+	bool DetectButton(ControlButton* button);
 };
 
 class InputConfigDialog : public wxDialog
