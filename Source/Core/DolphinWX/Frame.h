@@ -50,24 +50,6 @@ class wxListEvent;
 class wxMenuItem;
 class wxWindow;
 
-// The CPanel class to receive MSWWindowProc messages from the video backend.
-class CPanel : public wxPanel
-{
-	public:
-		CPanel(
-			wxWindow* parent,
-			wxWindowID id = wxID_ANY
-			);
-
-	private:
-		DECLARE_EVENT_TABLE();
-
-		#ifdef _WIN32
-			// Receive WndProc messages
-			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
-		#endif
-};
-
 class CRenderFrame : public wxFrame
 {
 	public:
