@@ -145,32 +145,11 @@ bool cInterfaceWGL::ClearCurrent()
 void cInterfaceWGL::Update()
 {
 	RECT rcWindow;
-	HWND parent = GetParent((HWND)m_window_handle);
-	if (!parent)
-	{
-		// We are not rendering to a child window - use client size.
-		GetClientRect((HWND)m_window_handle, &rcWindow);
-	}
-	else
-	{
-		// We are rendering to a child window - use parent size.
-		GetWindowRect(parent, &rcWindow);
-	}
+	GetClientRect((HWND)m_window_handle, &rcWindow);
 
 	// Get the new window width and height
-	// See below for documentation
-	int width = rcWindow.right - rcWindow.left;
-	int height = rcWindow.bottom - rcWindow.top;
-
-	// If we are rendering to a child window
-	if (GetParent((HWND)m_window_handle) != 0 &&
-			(s_backbuffer_width != width || s_backbuffer_height != height) &&
-			width >= 4 && height >= 4)
-	{
-		::MoveWindow((HWND)m_window_handle, 0, 0, width, height, FALSE);
-		s_backbuffer_width = width;
-		s_backbuffer_height = height;
-	}
+	s_backbuffer_width = rcWindow.right - rcWindow.left;
+	s_backbuffer_height = rcWindow.bottom - rcWindow.top;
 }
 
 // Close backend
