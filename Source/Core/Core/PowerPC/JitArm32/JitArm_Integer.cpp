@@ -170,7 +170,7 @@ void JitArm::subfic(UGeckoInstruction inst)
 		// Flags act exactly like subtracting from 0
 		SUBS(gpr.R(d), gpr.R(d), gpr.R(a));
 		// Output carry is inverted
-		SetCC(CC_CC);
+		SetCC(CC_CS);
 			ORR(tmp, tmp, mask);
 		SetCC();
 		STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
