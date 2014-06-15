@@ -177,7 +177,7 @@ private:
 	CGameListCtrl* m_GameListCtrl;
 	wxPanel* m_Panel;
 	CRenderFrame* m_RenderFrame;
-	wxPanel* m_RenderParent;
+	wxWindow* m_RenderParent;
 	CLogWindow* m_LogWindow;
 	LogConfigWindow* m_LogConfigWindow;
 	FifoPlayerDlg* m_FifoPlayerDlg;
