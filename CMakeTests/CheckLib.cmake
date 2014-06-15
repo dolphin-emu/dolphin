@@ -55,8 +55,8 @@ endmacro()
 
 macro(check_libav)
 	if(PKG_CONFIG_FOUND)
-		pkg_check_modules(LIBAV libavcodec>=53.35.0 libavformat>=53.21.0
-			libswscale>=2.1.0 libavutil>=51.22.1)
+		pkg_check_modules(LIBAV libavcodec>=55.52.102 libavformat>=55.33.100
+			libswscale>=2.5.102 libavutil>=52.66.100)
 	else()
 		message("pkg-config is required to check for libav/ffmpeg")
 	endif()
