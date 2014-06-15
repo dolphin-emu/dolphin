@@ -104,15 +104,11 @@ void JitArm::FinalizeCarry(ARMReg reg)
 	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
 	gpr.Unlock(tmp);
 }
-// Wrong - prevents WW from loading in to a game and also inverted intro logos
+
 void JitArm::subfic(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
-
-	// FIXME
-	FallBackToInterpreter(inst);
-	return;
 
 	int a = inst.RA, d = inst.RD;
 
@@ -127,8 +123,7 @@ void JitArm::subfic(UGeckoInstruction inst)
 			BIC(tmp, tmp, mask);
 			// Flags act exactly like subtracting from 0
 			RSBS(gpr.R(d), gpr.R(d), 0);
-			// Output carry is inverted
-			SetCC(CC_CC);
+			SetCC(CC_CS);
 				ORR(tmp, tmp, mask);
 			SetCC();
 			STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
