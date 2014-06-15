@@ -78,57 +78,6 @@ extern "C" {
 #include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
 };
 
-#ifdef _WIN32
-// I could not use FindItemByHWND() instead of this, it crashed on that occasion I used it */
-HWND MSWGetParent_(HWND Parent)
-{
-	return GetParent(Parent);
-}
-#endif
-
-// ---------------
-// The CPanel class to receive MSWWindowProc messages from the video backend.
-
-BEGIN_EVENT_TABLE(CPanel, wxPanel)
-END_EVENT_TABLE()
-
-CPanel::CPanel(
-			wxWindow *parent,
-			wxWindowID id
-			)
-	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, 0) // disables wxTAB_TRAVERSAL because it was breaking hotkeys
-{
-}
-
-#ifdef _WIN32
-	WXLRESULT CPanel::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
-	{
-		switch (nMsg)
-		{
-		case WM_USER:
-			switch (wParam)
-			{
-			case WM_USER_STOP:
-				main_frame->DoStop();
-				break;
-
-			case WM_USER_SETCURSOR:
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
-					SetCursor(wxCURSOR_BLANK);
-				else
-					SetCursor(wxNullCursor);
-				break;
-			}
-			break;
-
-		default:
-			// By default let wxWidgets do what it normally does with this event
-			return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
-		}
-		return 0;
-	}
-#endif
 
 CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
 		const wxPoint& pos, const wxSize& size, long style)
@@ -210,6 +159,23 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 						break;
 				default:
 					return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+			}
+			break;
+
+		case WM_USER:
+			switch (wParam)
+			{
+			case WM_USER_STOP:
+				main_frame->DoStop();
+				break;
+
+			case WM_USER_SETCURSOR:
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+					main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
+					SetCursor(wxCURSOR_BLANK);
+				else
+					SetCursor(wxNullCursor);
+				break;
 			}
 			break;
 
@@ -384,7 +350,7 @@ CFrame::CFrame(wxFrame* parent,
 	// ---------------
 	// Main panel
 	// This panel is the parent for rendering and it holds the gamelistctrl
-	m_Panel = new CPanel(this, IDM_MPANEL);
+	m_Panel = new wxPanel(this, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 
 	m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
 			wxDefaultPosition, wxDefaultSize,
