@@ -143,8 +143,7 @@ void DoState(PointerWrap &p)
 static void GenerateAudioInterrupt();
 static void UpdateInterrupts();
 static void IncreaseSampleCount(const u32 _uAmount);
-void ReadStreamBlock(s16* _pPCM);
-u64 GetAIPeriod();
+static u64 GetAIPeriod();
 int et_AI;
 
 void Init()
@@ -305,6 +304,11 @@ u64 GetAIPeriod()
 	if (period == 0)
 		period = 32000 * g_CPUCyclesPerSample;
 	return period;
+}
+
+bool IsAISPlaying()
+{
+	return m_Control.PSTAT;
 }
 
 } // end of namespace AudioInterface
