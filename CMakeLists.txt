@@ -332,7 +332,8 @@ if(ANDROID)
 	add_definitions(-DUSE_EGL=1)
 endif()
 
-include_directories(Externals/GL)
+include_directories(Externals/EGL)
+include_directories(Externals/KHR)
 
 # For now Wayland and EGL are tied to each other.
 # The alternative would be an shm path
@@ -542,6 +543,18 @@ else(ZLIB_FOUND)
 	add_subdirectory(Externals/zlib)
 	include_directories(Externals/zlib)
 endif(ZLIB_FOUND)
+
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
+	check_lib(EPOXY epoxy epoxy/gl.h QUIET)
+endif()
+if(EPOXY_FOUND)
+	message("Using shared libepoxy")
+else()
+	message("Using static libepoxy from Externals")
+	add_subdirectory(Externals/libepoxy)
+	include_directories(Externals/libepoxy/include)
+	set(EPOXY epoxy)
+endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
 	check_lib(LZO lzo2 lzo/lzo1x.h QUIET)

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <epoxy/glx.h>
 
 #include "DolphinWX/GLInterface/InterfaceBase.h"
 #include "DolphinWX/GLInterface/X11_Util.h"

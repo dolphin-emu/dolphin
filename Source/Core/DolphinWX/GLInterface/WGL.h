@@ -5,6 +5,8 @@
 #pragma once
 
 #include <string>
+#include <epoxy/wgl.h>
+
 #include "DolphinWX/GLInterface/InterfaceBase.h"
 
 class cInterfaceWGL : public cInterfaceBase
