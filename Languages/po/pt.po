@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-02-17 08:17+0000\n"
+"PO-Revision-Date: 2014-06-07 08:16+0000\n"
 "Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
 "Language-Team: Portuguese (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/pt/)\n"
@@ -49,10 +49,9 @@ msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" Ficheiro GCM/ISO inválido, ou não é um ISO de GC/Wii."
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:403
-#, fuzzy, c-format
+#, c-format
 msgid "\"%s\" is too long for the filename, max length is 0x44 + \\0"
 msgstr ""
-"%s é demasiado longo para um nome de ficheiro, o máximo de caracteres é 45"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:209
 #, c-format
@@ -610,8 +609,8 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
-msgstr "Todos os ficheiros Gamecube GCM (gcm)"
+msgid "All GameCube GCM files (gcm)"
+msgstr "Todos os ficheiros GameCube GCM (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
 #: Source/Core/DolphinWX/FrameTools.cpp:1547
@@ -1262,11 +1261,11 @@ msgstr "Não foi possível iniciar o backend %s."
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "Não foi possível ler \"%s\". Não há um disco na unidade, ou não é um backup "
-"de GC/Wii.  Tenha atenção que discos de jogos originais Gamecube ou Wii não "
+"de GC/Wii.  Tenha atenção que discos de jogos originais GameCube ou Wii não "
 "serão lidos na maioria das unidades de DVD."
 
 #: Source/Core/Core/CoreParameter.cpp:298
@@ -1647,7 +1646,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1667,7 +1666,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -2606,9 +2605,9 @@ msgid "Forward port (UPnP)"
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:528
-#, fuzzy, c-format
+#, c-format
 msgid "Found %u results for '"
-msgstr "Encontrados %d resultados para '"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:80
 #, c-format
@@ -2716,26 +2715,26 @@ msgstr "Definições específicas por jogo"
 msgid "GameConfig"
 msgstr "Configuração de Jogo"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
-msgstr "Gamecube"
+msgid "GameCube"
+msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
-msgstr "Definições de Comando &Gamecube"
+msgid "GameCube &Pad Settings"
+msgstr "Definições de Comando &GameCube"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
-msgstr "Cartões de memória Gamecube (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
+msgstr "Cartões de memória GameCube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
-msgstr "Definições de Comando Gamecube"
+msgid "GameCube Pad settings"
+msgstr "Definições de Comando GameCube"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -5957,15 +5956,3 @@ msgstr "Correcção zNear: "
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:578
 msgid "| OR"
 msgstr "| OU"
-
-#~ msgid "Console"
-#~ msgstr "Consola"
-
-#~ msgid "Extra Parameter"
-#~ msgstr "Parâmetro Extra"
-
-#~ msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-#~ msgstr "Parâmetro Extra apenas útil em \"Metroid: Other M\"."
-
-#~ msgid "Show &Console"
-#~ msgstr "Mostrar &Consola"

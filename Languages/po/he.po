@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-02-17 08:17+0000\n"
+"PO-Revision-Date: 2014-06-07 08:16+0000\n"
 "Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
 "Language-Team: Hebrew (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/he/)\n"
@@ -578,7 +578,7 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
+msgid "All GameCube GCM files (gcm)"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
@@ -1202,7 +1202,7 @@ msgstr ""
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 
@@ -1559,7 +1559,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1579,7 +1579,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -2527,25 +2527,25 @@ msgstr ""
 msgid "GameConfig"
 msgstr ""
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
+msgid "GameCube"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
+msgid "GameCube &Pad Settings"
 msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
+msgid "GameCube Pad settings"
+msgstr ""
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
 msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384

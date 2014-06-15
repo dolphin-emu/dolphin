@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the dolphin-emu package.
 #
 # Translators:
-# khiav <khiav1118@yahoo.com.tw>, 2011
+# khiav kn <khiav1118@yahoo.com.tw>, 2011
 # Ryan Zhou <sentret_c@sina.cn>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-02-17 08:17+0000\n"
+"PO-Revision-Date: 2014-06-07 08:16+0000\n"
 "Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/projects/p/dolphin-"
 "emu/language/zh_TW/)\n"
@@ -49,9 +49,9 @@ msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" 為無效的 GCM/ISO 檔案，或非 GC/Wii ISO。"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:403
-#, fuzzy, c-format
+#, c-format
 msgid "\"%s\" is too long for the filename, max length is 0x44 + \\0"
-msgstr "%s 做為檔名太長了，最多允許 45 個位元"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:209
 #, c-format
@@ -601,8 +601,8 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
-msgstr "所有 Gamecube GCM 檔案 (gcm)"
+msgid "All GameCube GCM files (gcm)"
+msgstr "所有 GameCube GCM 檔案 (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
 #: Source/Core/DolphinWX/FrameTools.cpp:1547
@@ -1233,11 +1233,11 @@ msgstr "無法初始化 backend %s。"
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "無法讀取 \"%s\"。光碟機中沒有放入遊戲光碟，或是光碟並非為 GC/Wii 的備份檔案。"
-"請注意，原始的 Gamecube 及 Wii 光碟在大多數的 PC DVD 光碟機中是無法被正常讀取"
+"請注意，原始的 GameCube 及 Wii 光碟在大多數的 PC DVD 光碟機中是無法被正常讀取"
 "的。"
 
 #: Source/Core/Core/CoreParameter.cpp:298
@@ -1600,7 +1600,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1620,7 +1620,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -2587,26 +2587,26 @@ msgstr "遊戲規格設定"
 msgid "GameConfig"
 msgstr "遊戲設定"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
-msgstr "Gamecube"
+msgid "GameCube"
+msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
-msgstr "Gamecube 控制器設定(&P)"
+msgid "GameCube &Pad Settings"
+msgstr "GameCube 控制器設定(&P)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
-msgstr "Gamecube 記憶卡 (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
+msgstr "GameCube 記憶卡 (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
-msgstr "Gamecube 控制器設定"
+msgid "GameCube Pad settings"
+msgstr "GameCube 控制器設定"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -5705,15 +5705,3 @@ msgstr "zNear 修正："
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:578
 msgid "| OR"
 msgstr "| 或"
-
-#~ msgid "Console"
-#~ msgstr "控制台"
-
-#~ msgid "Extra Parameter"
-#~ msgstr "額外參數"
-
-#~ msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-#~ msgstr "僅在 ''銀河戰士：另一個 M'' 中有效的額外參數。"
-
-#~ msgid "Show &Console"
-#~ msgstr "顯示控制台(&C)"

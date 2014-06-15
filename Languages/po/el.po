@@ -11,8 +11,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-03-08 11:34+0000\n"
-"Last-Translator: link_to_the_past <kostamarino@gmail.com>\n"
+"PO-Revision-Date: 2014-06-07 08:16+0000\n"
+"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
 "Language-Team: Greek (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/el/)\n"
 "Language: el\n"
@@ -51,11 +51,9 @@ msgstr ""
 "Το \"%s\" είναι ένα μη έγκυρο αρχείο GCM/ISO, ή δεν είναι ένα ISO GC/Wii."
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:403
-#, fuzzy, c-format
+#, c-format
 msgid "\"%s\" is too long for the filename, max length is 0x44 + \\0"
 msgstr ""
-"Το %s είναι πολύ μεγάλο για όνομα αρχείου, ο μέγιστος αριθμός χαρακτήρων "
-"είναι 45"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:209
 #, c-format
@@ -634,8 +632,8 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Όλες οι εικόνες GC/Wii (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
-msgstr "Όλα τα αρχεία Gamecube GCM (gcm)"
+msgid "All GameCube GCM files (gcm)"
+msgstr "Όλα τα αρχεία GameCube GCM (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
 #: Source/Core/DolphinWX/FrameTools.cpp:1547
@@ -1291,12 +1289,12 @@ msgstr "Αποτυχία εκκίνησης backend %s"
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "Δεν μπόρεσε να γίνει ανάγνωση \"%s\".  Δεν υπάρχει δίσκος στον οδηγό, ή δεν "
 "είναι ένα αντίγραφο εικόνας GC/Wii.\n"
-" Σημειώστε πως αυθεντικοί Gamecube και Wii δίσκοι δεν μπορούν να αναγνωστούν "
+" Σημειώστε πως αυθεντικοί GameCube και Wii δίσκοι δεν μπορούν να αναγνωστούν "
 "από τους περισσότερους PC DVD οδηγούς."
 
 #: Source/Core/Core/CoreParameter.cpp:298
@@ -1691,7 +1689,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1711,7 +1709,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -1722,7 +1720,7 @@ msgstr ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Το Dolphin είναι ένας Gamecube/Wii εξομοιωτής, ο οποίος\n"
+"Το Dolphin είναι ένας GameCube/Wii εξομοιωτής, ο οποίος\n"
 "γράφτηκε αρχικά από τον F|RES και τον ector.\n"
 "Σήμερα το Dolphin είναι ένα έργο ανοιχτού κώδικα με πολλούς\n"
 "να συνεισφέρουν, πάρα πολλούς για να αναφερθούν εδώ.\n"
@@ -1743,7 +1741,7 @@ msgstr ""
 "Ευχαριστούμε τους hcs/destop για τον GC ADPCM decoder.\n"
 "\n"
 "Εμείς δεν συνδεόμαστε με την Nintendo με οποιονδήποτε τρόπο.\n"
-"Gamecube και Wii είναι εμπορικά σήματα της Nintendo.\n"
+"GameCube και Wii είναι εμπορικά σήματα της Nintendo.\n"
 "Ο εξομοιωτής δεν πρέπει να χρησιμοποιηθεί για να παίξετε\n"
 " παιχνίδια τα οποία δεν κατέχετε νόμιμα."
 
@@ -2707,9 +2705,9 @@ msgid "Forward port (UPnP)"
 msgstr "Προώθηση θύρας (UPnP)"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:528
-#, fuzzy, c-format
+#, c-format
 msgid "Found %u results for '"
-msgstr "Βρέθηκαν %d αποτελέσματα για '"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:80
 #, c-format
@@ -2817,26 +2815,26 @@ msgstr "Ρυθμίσεις Συγκεκριμένου Παιχνιδιού"
 msgid "GameConfig"
 msgstr "Ρυθμίσεις Παιχνιδιού"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "GameCube αρχεία αποθήκευσης(*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
-msgstr "Gamecube"
+msgid "GameCube"
+msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
-msgstr "Ρυθμίσεις Gamecube &Pad"
+msgid "GameCube &Pad Settings"
+msgstr "Ρυθμίσεις GameCube &Pad"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
-msgstr "Κάρτες Μνήμης Gamecube (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
+msgstr "Κάρτες Μνήμης GameCube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
-msgstr "Ρυθμίσεις Χειριστηρίου Gamecube"
+msgid "GameCube Pad settings"
+msgstr "Ρυθμίσεις Χειριστηρίου GameCube"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "GameCube αρχεία αποθήκευσης(*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -3020,9 +3018,8 @@ msgid "Hybrid Wiimote"
 msgstr "Υβριδικό Wiimote"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:322
-#, fuzzy
 msgid "ID"
-msgstr "D"
+msgstr ""
 
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:679
 #, c-format
@@ -4160,9 +4157,9 @@ msgid "Partition %i"
 msgstr "Κατάτμηση %i"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:922
-#, fuzzy, c-format
+#, c-format
 msgid "Partition doesn't exist: %d"
-msgstr "Η κατάτμηση δεν υπάρχει: %u"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:380
 msgid "Patches"
@@ -4825,9 +4822,8 @@ msgid "Settings..."
 msgstr "Ρυθμίσεις..."
 
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:227
-#, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "SetupWiiMem: Αδυναμία δημιουργίας αρχείου ρυθμίσεων"
+msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -6204,51 +6200,3 @@ msgstr "zNear Διόρθωση: "
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:578
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%08X:  "
-#~ msgstr "%08X: "
-
-#~ msgid "'"
-#~ msgstr "'"
-
-#~ msgid "0x44"
-#~ msgstr "0x44"
-
-#~ msgid "A"
-#~ msgstr "A"
-
-#~ msgid "B"
-#~ msgstr "B"
-
-#~ msgid "C"
-#~ msgstr "C"
-
-#~ msgid "CP reg"
-#~ msgstr "CP reg"
-
-#~ msgid "Console"
-#~ msgstr "Κονσόλα"
-
-#~ msgid "Extra Parameter"
-#~ msgstr "Επιπλέον Παράμετρος"
-
-#~ msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-#~ msgstr "Η Επιπλέον Παράμετρος είναι χρήσιμη μόνο στο ''Metroid: Other M''."
-
-#~ msgid "GX_CMD_INVL_VC"
-#~ msgstr "GX_CMD_INVL_VC"
-
-#~ msgid "JITIL experimental recompiler"
-#~ msgstr "JITIL πειραματικός recompiler"
-
-#~ msgid "Limit by FPS"
-#~ msgstr "Περιορισμός με βάση τα Καρέ"
-
-#~ msgid "NOP"
-#~ msgstr "NOP"
-
-#~ msgid "Show &Console"
-#~ msgstr "Εμφάνιση &Κονσόλας"
-
-#~ msgid "XF reg"
-#~ msgstr "XF reg"

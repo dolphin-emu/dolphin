@@ -7,12 +7,13 @@
 # Jordi Coma <jordicoma22@gmail.com>, 2011
 # Puniasterus <puniasterus@gmail.com>, 2013-2014
 # Puniasterus <puniasterus@gmail.com>, 2013
+# Puniasterus <puniasterus@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-04-01 11:13+0000\n"
+"PO-Revision-Date: 2014-06-07 09:08+0000\n"
 "Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
 "Language-Team: Catalan (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ca/)\n"
@@ -54,8 +55,7 @@ msgstr "\"%s\" no és un fitxer GCM/ISO valid, o no és una ISO GC/Wii."
 #, fuzzy, c-format
 msgid "\"%s\" is too long for the filename, max length is 0x44 + \\0"
 msgstr ""
-"%s és massa llarg per al nom de l'arxiu, el nombre de caràcters màxim és de "
-"45"
+"%s és massa llarg pel nom de l'arxiu, el nombre de caràcters màxim és de 45"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:209
 #, c-format
@@ -645,7 +645,7 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Totes les imatges GC/Wii (gcm, iso, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
+msgid "All GameCube GCM files (gcm)"
 msgstr "Tots els fitxers GameCube GCM (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
@@ -1298,11 +1298,11 @@ msgstr "No s'ha pogut inicialitzar el suport %s."
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "No s'ha pogut llegir \"%s\". No hi ha disc a la unitat, o no hi ha copia GC/"
-"Wii. Els discs originals de Gamecube i Wii no es poden llegir per la majoria "
+"Wii. Els discs originals de GameCube i Wii no es poden llegir per la majoria "
 "de lectors DVD."
 
 #: Source/Core/Core/CoreParameter.cpp:298
@@ -1694,7 +1694,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1714,7 +1714,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -1725,7 +1725,7 @@ msgstr ""
 "Revisió: %s\n"
 "Compilat: %s @ %s\n"
 "\n"
-"Dolphin és un emulador de Gamecube/Wii, que va ser\n"
+"Dolphin és un emulador de GameCube/Wii, que va ser\n"
 "originalment escrit per F|RES i ector.\n"
 "Avui Dolphin és un projecte de codi obert amb molts\n"
 "contribuents, massa per fer-ne una llista.\n"
@@ -1745,7 +1745,7 @@ msgstr ""
 "Gràcies a hcs/destop pel seu descodificador GC ADPCM.\n"
 "\n"
 "No estem afiliats amb Nintendo de cap manera.\n"
-"Gamecube i Wii són marques comercials de Nintendo.\n"
+"GameCube i Wii són marques comercials de Nintendo.\n"
 "L'emulador no s'ha d'utilitzar per jugar jocs\n"
 "que no siguin legalment teus."
 
@@ -2812,26 +2812,26 @@ msgstr "Configuració de jocs específics"
 msgid "GameConfig"
 msgstr "Configuració de joc"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "Fitxers de guardat de GameCube (*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
-msgstr "Gamecube"
+msgid "GameCube"
+msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
-msgstr "Configuració control «&Gamecube»"
+msgid "GameCube &Pad Settings"
+msgstr "Configuració control «&GameCube»"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
 msgstr "Targetes de memòria per GameCube (*.raw, *.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
-msgstr "Configuració control Gamecube"
+msgid "GameCube Pad settings"
+msgstr "Configuració control GameCube"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "Fitxers de guardat de GameCube (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -4828,7 +4828,7 @@ msgstr "Configuració..."
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:227
 #, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "SetupWiiMem: No es pot crear l'arxiu de configuració"
+msgstr "SetupWiiMem: No es pot crear fitxer de configuració"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -6187,7 +6187,7 @@ msgid "| OR"
 msgstr "| O"
 
 #~ msgid "%08X:  "
-#~ msgstr "%08X:  "
+#~ msgstr "%08X:"
 
 #~ msgid "'"
 #~ msgstr "'"
@@ -6208,7 +6208,7 @@ msgstr "| O"
 #~ msgstr "Registre CP"
 
 #~ msgid "Cache Display Lists"
-#~ msgstr "Memòria cau de llistes de visualització"
+#~ msgstr "Llistes de memòria cau de pantalla"
 
 #~ msgid "Console"
 #~ msgstr "Consola"
@@ -6223,16 +6223,16 @@ msgstr "| O"
 #~ msgstr "GX_CMD_INVL_VC"
 
 #~ msgid "JITIL experimental recompiler"
-#~ msgstr "Recompilador experimental JITIL"
+#~ msgstr "Recompilador JITIL experimental"
 
 #~ msgid "Limit by FPS"
-#~ msgstr "Utilitzar FPS per limitar"
+#~ msgstr "Limitar per FPS"
 
 #~ msgid "NOP"
 #~ msgstr "NOP"
 
 #~ msgid "Show &Console"
-#~ msgstr "Mostrar &Consola"
+#~ msgstr "Mostrar &consola"
 
 #~ msgid "XF reg"
 #~ msgstr "Registre XF"
@@ -6245,8 +6245,8 @@ msgstr "| O"
 #~ "If unsure, leave this unchecked."
 #~ msgstr ""
 #~ "[EXPERIMENTAL]\n"
-#~ "Millora lleugerament la emulació guardant en memòria cau les llistes de "
-#~ "visualització.\n"
-#~ "Possiblement causa problemes.\n"
+#~ "Incrementa la velocitat d'emulació guardant les llistes de pantalla a la "
+#~ "memòria cau.\n"
+#~ "Pot provocar problemes.\n"
 #~ "\n"
-#~ "Si no n'estas segur, deixa-ho desmarcat."
+#~ "Si no n'estàs segur, deixa-ho desmarcat."

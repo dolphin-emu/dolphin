@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-03-29 15:34+0000\n"
+"PO-Revision-Date: 2014-06-13 12:29+0000\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: Korean (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ko/)\n"
@@ -51,7 +51,7 @@ msgstr "\"%s\"는 비적합 GCM/ISO 파일임, 혹은 GC/Wii ISO가 아님."
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:403
 #, fuzzy, c-format
 msgid "\"%s\" is too long for the filename, max length is 0x44 + \\0"
-msgstr "%s 는 너무 긴 파일이름 입니다, 최대 글자수는 45 입니다."
+msgstr "%s 는 너무 긴 파일명입니다, 최대 글자수는 45 입니다"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:209
 #, c-format
@@ -635,7 +635,7 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "모든 GC/Wii 이미지들 (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
+msgid "All GameCube GCM files (gcm)"
 msgstr "모든 게임큐브 GCM 파일들 (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
@@ -1285,7 +1285,7 @@ msgstr "백엔드 %s 를 초기화할 수 없었습니다"
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "\"%s\"를 읽을 수 없었습니다.  드라이브안에 디스크가 없음, 혹은 그것은 GC/Wii "
@@ -1678,7 +1678,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1698,7 +1698,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -2677,7 +2677,7 @@ msgstr "앞 포트(UPnP)"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:528
 #, fuzzy, c-format
 msgid "Found %u results for '"
-msgstr "%d 개 찾았습니다 '"
+msgstr "%d 결과를 찾았습니다 '"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:80
 #, c-format
@@ -2785,26 +2785,26 @@ msgstr "게임-상세 설정"
 msgid "GameConfig"
 msgstr "게임환경"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "게임큐브 게임저장 파일(*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
+msgid "GameCube"
 msgstr "게임큐브"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
+msgid "GameCube &Pad Settings"
 msgstr "게임큐브 패드 설정(&P)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
 msgstr "게임큐브 메모리 카드들 (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
+msgid "GameCube Pad settings"
 msgstr "게임큐브 패드 설정"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "게임큐브 게임저장 파일(*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -6147,7 +6147,7 @@ msgstr "| OR"
 #~ msgstr "C"
 
 #~ msgid "CP reg"
-#~ msgstr "CP 레지"
+#~ msgstr "CP reg"
 
 #~ msgid "Cache Display Lists"
 #~ msgstr "디스플레이 목록 캐쉬"
@@ -6159,7 +6159,7 @@ msgstr "| OR"
 #~ msgstr "추가 매개변수"
 
 #~ msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-#~ msgstr "추가 매개변수는 ''Metroid: Other M''에서만 유용합니다."
+#~ msgstr "추가 매개변수는 ''Metroid: Other M''에서만 쓸모있습니다."
 
 #~ msgid "GX_CMD_INVL_VC"
 #~ msgstr "GX_CMD_INVL_VC"
@@ -6174,10 +6174,10 @@ msgstr "| OR"
 #~ msgstr "NOP"
 
 #~ msgid "Show &Console"
-#~ msgstr "콘솔 보기(&C)"
+#~ msgstr "콘솔 보기 &C"
 
 #~ msgid "XF reg"
-#~ msgstr "XF 레지"
+#~ msgstr "XF reg"
 
 #~ msgid ""
 #~ "[EXPERIMENTAL]\n"
@@ -6187,7 +6187,7 @@ msgstr "| OR"
 #~ "If unsure, leave this unchecked."
 #~ msgstr ""
 #~ "[실험적]\n"
-#~ "화면표시 목록을 캐쉬함으로 에뮬레이션을 약간 속도향상시킵니다.\n"
-#~ "이슈들을 일으킬 수 있지만.\n"
+#~ "디스플레이 목록을 캐슁해서 에뮬레이션 속도를 약간 올립니다.\n"
+#~ "이슈들을 유발할 가능성은 있습니다.\n"
 #~ "\n"
 #~ "모르겠으면, 이것을 언체크로 두세요."

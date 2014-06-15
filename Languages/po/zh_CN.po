@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-05-30 09:55+0000\n"
+"PO-Revision-Date: 2014-06-14 12:03+0000\n"
 "Last-Translator: ZHANG Haitao <gaoboyuan8@qq.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/dolphin-"
 "emu/language/zh_CN/)\n"
@@ -53,7 +53,7 @@ msgstr "\"%s\" 不是一个有效的 GCM/ISO 文件，或者不是一个 GC/Wii 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:403
 #, fuzzy, c-format
 msgid "\"%s\" is too long for the filename, max length is 0x44 + \\0"
-msgstr "%s 作为文件名太长，最大字符数为45"
+msgstr "%s 这个文件名太长了，最大字符数是 45."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:209
 #, c-format
@@ -631,8 +631,8 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "所有 GC/Wii 镜像 (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
-msgstr "所有 Gamecube GCM 文件 (gcm)"
+msgid "All GameCube GCM files (gcm)"
+msgstr "所有 GameCube GCM 文件 (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
 #: Source/Core/DolphinWX/FrameTools.cpp:1547
@@ -967,7 +967,7 @@ msgid ""
 msgstr ""
 "无法将该文件用作存储卡。\n"
 "%s\n"
-"不是有效的Gamecube存储卡文件"
+"不是有效的 GameCube 存储卡文件。"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:1105
 msgid ""
@@ -1277,11 +1277,11 @@ msgstr "无法初始化后端 %s。"
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "无法读取\"%s\"。驱动器里没有光盘或不是 GC/Wii 备份。请注意多数 PC DVD 驱动器"
-"不能读取原始的 Gamecube 与 Wii 光盘。"
+"不能读取原始的 GameCube 与 Wii 光盘。"
 
 #: Source/Core/Core/CoreParameter.cpp:298
 #, c-format
@@ -1669,7 +1669,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1689,17 +1689,18 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
-"Dolphin %s 版权 (c) 2003-2013+ Dolphin 团队\n"
+"Dolphin %s\n"
+"版权 (c) 2003-2013+ Dolphin 团队\n"
 "\n"
 "版本: %s\n"
 "修订号: %s\n"
 "编译: %s @ %s\n"
 "\n"
-"Dolphin 是一款 Gamecube/Wii 模拟器，其原作者为 F|RES 和 ector。\n"
+"Dolphin 是一款 GameCube/Wii 模拟器，其原作者为 F|RES 和 ector。\n"
 "现在 Dolphin 是一个开源项目，贡献者之多列举不完。\n"
 "如果对本项目感兴趣，欢迎到我们的项目页面了解详情 http://code.google.com/p/"
 "dolphin-emu/ .\n"
@@ -1715,7 +1716,7 @@ msgstr ""
 "\n"
 "感谢 hcs/destop 的 GC ADPCM 解码器。\n"
 "\n"
-"我们与任天堂没有任何形式的关系。Gamecube 和 Wii 是任天堂的商标。\n"
+"我们与任天堂没有任何形式的关系。GameCube 和 Wii 是任天堂的商标。\n"
 "本模拟器不得用于运行您非法拥有的游戏。\n"
 "\n"
 "界面汉化: Sentret_C <sentret_c@sina.cn>, thegfw <thegfw@gmail.com>, "
@@ -2654,7 +2655,7 @@ msgstr "转发端口(UPnP)"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:528
 #, fuzzy, c-format
 msgid "Found %u results for '"
-msgstr "找到了 '的%d个结果"
+msgstr "找到了 '的 %d 个结果"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:80
 #, c-format
@@ -2762,26 +2763,26 @@ msgstr "特定游戏设置"
 msgid "GameConfig"
 msgstr "游戏配置"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "GameCube存档文件(*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
-msgstr "Gamecube"
+msgid "GameCube"
+msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
-msgstr "Gamecube 手柄设置(&P)"
+msgid "GameCube &Pad Settings"
+msgstr "GameCube 手柄设置(&P)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
-msgstr "Gamecube 存储卡 (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
+msgstr "GameCube 存储卡 (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
-msgstr "Gamecube 手柄设置"
+msgid "GameCube Pad settings"
+msgstr "GameCube 手柄设置"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "GameCube 存档文件 (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -4742,7 +4743,7 @@ msgstr "设置..."
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:227
 #, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "安装Wii内存：无法创建设置文件"
+msgstr "SetupWiiMem: 无法创建设置文件"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -6068,7 +6069,7 @@ msgid "| OR"
 msgstr "| 或"
 
 #~ msgid "%08X:  "
-#~ msgstr "%08X:  "
+#~ msgstr "%08X:"
 
 #~ msgid "'"
 #~ msgstr "'"
@@ -6095,10 +6096,10 @@ msgstr "| 或"
 #~ msgstr "控制台"
 
 #~ msgid "Extra Parameter"
-#~ msgstr "外部参数"
+#~ msgstr "附加参数"
 
 #~ msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-#~ msgstr "仅用于《银河战士：另一个M》的额外参数。"
+#~ msgstr "仅用于《银河战士：另一个M》的附加参数。"
 
 #~ msgid "GX_CMD_INVL_VC"
 #~ msgstr "GX_CMD_INVL_VC"
@@ -6107,7 +6108,7 @@ msgstr "| 或"
 #~ msgstr "JITIL 实验性重编译器"
 
 #~ msgid "Limit by FPS"
-#~ msgstr "依据 FPS 限速"
+#~ msgstr "按帧数 (FPS) 限制"
 
 #~ msgid "NOP"
 #~ msgstr "NOP"
@@ -6127,6 +6128,6 @@ msgstr "| 或"
 #~ msgstr ""
 #~ "[实验性]\n"
 #~ "通过缓存显示列表略微提高模拟速度。\n"
-#~ "另一方面也可能产生问题。\n"
+#~ "但也可能会产生问题。\n"
 #~ "\n"
-#~ "如果没有把握，请不要勾选此项。"
+#~ "如果不确定，请不要勾选此项。"

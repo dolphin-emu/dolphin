@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-02-19 21:24+0000\n"
+"PO-Revision-Date: 2014-06-09 21:10+0000\n"
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/cs/)\n"
@@ -636,8 +636,8 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Všechny obrazy GC/Wii (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
-msgstr "Všechny soubory Gamecube GCM )gcm)"
+msgid "All GameCube GCM files (gcm)"
+msgstr "Všechny soubory GameCube GCM )gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
 #: Source/Core/DolphinWX/FrameTools.cpp:1547
@@ -1288,7 +1288,7 @@ msgstr "Nelze spustit podpůrnou vrstvu %s."
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "\"%s\" nelze číst. Buď není v mechanice žádný disk, nebo toto není záloha GC/"
@@ -1685,7 +1685,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1705,7 +1705,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -1716,7 +1716,7 @@ msgstr ""
 "Revize: %s\n"
 "Sestaveno: %s %s\n"
 "\n"
-"Dolphin je emulátor Gamecube/Wii, který původně\n"
+"Dolphin je emulátor GameCube/Wii, který původně\n"
 "vytvořili uživatelé F|RES a ector.\n"
 "Dnes je Dolphin svobodný software s mnoha\n"
 "přispěvateli, příliš mnoho na to, aby zde byli všichni uvedeni.\n"
@@ -1736,7 +1736,7 @@ msgstr ""
 "Děkujeme uživatelům hcs/destop za jejich dekodér GC ADPCM.\n"
 "\n"
 "Nejsme nijak spjati s firmou Nintendo.\n"
-"Gamecube a Wii jsou obchodní značky firmy Nintendo.\n"
+"GameCube a Wii jsou obchodní značky firmy Nintendo.\n"
 "Emulátor je pouze pro studijní účely\n"
 "a neměl by být používán ke spuštění her,\n"
 "které legálně nevlastníte."
@@ -2800,26 +2800,26 @@ msgstr "Nastavení Konkrétní Hry"
 msgid "GameConfig"
 msgstr "Nastavení Hry"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "Soubory uložených her GameCube (*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
-msgstr "Gamecube"
+msgid "GameCube"
+msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
-msgstr "Nastavení Gamecube &Pad"
+msgid "GameCube &Pad Settings"
+msgstr "Nastavení GameCube &Pad"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
-msgstr "Paměťové karty Gamecube (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
+msgstr "Paměťové karty GameCube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
-msgstr "Gamecube Pad nastavení"
+msgid "GameCube Pad settings"
+msgstr "GameCube Pad nastavení"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "Soubory uložených her GameCube (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -6183,10 +6183,10 @@ msgstr "| NEBO"
 #~ msgstr "Konzole"
 
 #~ msgid "Extra Parameter"
-#~ msgstr "Extra Parametr"
+#~ msgstr "Dodatečný parametr"
 
 #~ msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-#~ msgstr "Extra Parametr užitečný pouze v ''Metroid: Other M''"
+#~ msgstr "Dodatečný parametr užitečný pouze v ''Metroid: Other M''."
 
 #~ msgid "GX_CMD_INVL_VC"
 #~ msgstr "GX_CMD_INVL_VC"
@@ -6201,7 +6201,7 @@ msgstr "| NEBO"
 #~ msgstr "NOP"
 
 #~ msgid "Show &Console"
-#~ msgstr "Zobrazit &Konzoli"
+#~ msgstr "Zobrazit &konzoli"
 
 #~ msgid "XF reg"
 #~ msgstr "XF reg"

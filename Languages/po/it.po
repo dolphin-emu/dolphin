@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-03-30 19:32+0000\n"
+"PO-Revision-Date: 2014-06-08 08:44+0000\n"
 "Last-Translator: Mewster <mewster@libero.it>\n"
 "Language-Team: Italian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/it/)\n"
@@ -647,8 +647,8 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Tutti i file immagine GC/Wii (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
-msgstr "Tutti i file Gamecube GCM (gcm)"
+msgid "All GameCube GCM files (gcm)"
+msgstr "Tutti i file GameCube GCM (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
 #: Source/Core/DolphinWX/FrameTools.cpp:1547
@@ -1305,7 +1305,7 @@ msgstr "Impossibile inizializzare il motore %s."
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "Impossibile leggere \"%s\". Nessun disco trovato nell'unità, oppure non è un "
@@ -1702,7 +1702,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1722,7 +1722,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -1733,7 +1733,7 @@ msgstr ""
 "Revisione: %s\n"
 "Compilato il: %s @ %s\n"
 "\n"
-"Dolphin è un emulatore Gamecube/Wii,\n"
+"Dolphin è un emulatore GameCube/Wii,\n"
 "originariamente creato da F|RES ed ector.\n"
 "Oggi Dolphin è un progetto open source dai tanti\n"
 "collaboratori, troppi per essere elencati.\n"
@@ -1754,7 +1754,7 @@ msgstr ""
 "Grazie a hcs/destop per i loro decoder GC ADPCM.\n"
 "\n"
 "Non siamo associati in alcun modo con Nintendo.\n"
-"Gamecube e Wii sono marchi di proprietà di Nintendo.\n"
+"GameCube e Wii sono marchi di proprietà di Nintendo.\n"
 "L'emulatore non dovrebbe essere utilizzato per giocare\n"
 "a giochi che non possiedi legalmente."
 
@@ -2827,26 +2827,26 @@ msgstr "Impostazioni Specifiche del Gioco"
 msgid "GameConfig"
 msgstr "Configurazione di Gioco"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "File Salvataggio GameCube (*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
+msgid "GameCube"
 msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
+msgid "GameCube &Pad Settings"
 msgstr "Impostazioni &Controlli GameCube"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
 msgstr "Schede di Memoria GameCube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
+msgid "GameCube Pad settings"
 msgstr "Impostazioni Controlli GameCube"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "File Salvataggio GameCube (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -6230,7 +6230,7 @@ msgstr "| OR"
 #~ msgstr "CP reg"
 
 #~ msgid "Cache Display Lists"
-#~ msgstr "Cache delle Display List"
+#~ msgstr "Cache della Display Lists"
 
 #~ msgid "Console"
 #~ msgstr "Console"
@@ -6239,13 +6239,13 @@ msgstr "| OR"
 #~ msgstr "Parametro Extra"
 
 #~ msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-#~ msgstr "Il Parametro Extra è utile solo in ''Metroid: Other M''."
+#~ msgstr "Parametro Extra utile solo in ''Metroid: Other M''."
 
 #~ msgid "GX_CMD_INVL_VC"
 #~ msgstr "GX_CMD_INVL_VC"
 
 #~ msgid "JITIL experimental recompiler"
-#~ msgstr "Ricompilatore sperimentale JITIL"
+#~ msgstr "Ricompilatore JITIL sperimentale"
 
 #~ msgid "Limit by FPS"
 #~ msgstr "Limita per FPS"
@@ -6267,7 +6267,7 @@ msgstr "| OR"
 #~ "If unsure, leave this unchecked."
 #~ msgstr ""
 #~ "[SPERIMENTALE]\n"
-#~ "Velocizza leggermente l'emulazione salvando in cache le display list.\n"
+#~ "Velocizza leggermente l'emulazione salvando in cache la display list.\n"
 #~ "Potrebbe causare dei problemi.\n"
 #~ "\n"
 #~ "Nel dubbio, lascia deselezionato."
