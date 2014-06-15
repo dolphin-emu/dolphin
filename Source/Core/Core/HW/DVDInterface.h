@@ -35,7 +35,6 @@ void ClearCoverInterrupt();
 bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength);
 // For AudioInterface
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples);
-extern bool g_bStream;
 
 
 // Not sure about endianness here. I'll just name them like this...

@@ -261,11 +261,9 @@ void TransferComplete(u64 userdata, int cyclesLate)
 		FinishExecuteRead();
 }
 
-void ReadDTKSamples(u64 userdata, int cyclesLate)
+static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
 {
-	static const int NUM_SAMPLES = 48000 / 1000 * 7;  // 7ms of 48kHz samples
-	short tempPCM[NUM_SAMPLES * 2];
-	unsigned samples_processed = 0;
+	u32 samples_processed = 0;
 	do
 	{
 		if (AudioPos >= CurrentStart + CurrentLength)
@@ -280,9 +278,7 @@ void ReadDTKSamples(u64 userdata, int cyclesLate)
 			if (AudioPos >= CurrentStart + CurrentLength)
 			{
 				g_bStream = false;
-				return;
 			}
-
 			break;
 		}
 
@@ -292,13 +288,36 @@ void ReadDTKSamples(u64 userdata, int cyclesLate)
 		AudioPos += sizeof(tempADPCM);
 		NGCADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
 		samples_processed += NGCADPCM::SAMPLES_PER_BLOCK;
-	} while (samples_processed < NUM_SAMPLES);
+	} while (samples_processed < num_samples);
 	for (unsigned i = 0; i < samples_processed * 2; ++i)
 	{
 		// TODO: Fix the mixer so it can accept non-byte-swapped samples.
 		tempPCM[i] = Common::swap16(tempPCM[i]);
 	}
+	return samples_processed;
+}
+
+void DTKStreamingCallback(u64 userdata, int cyclesLate)
+{
+	// Send audio to the mixer.
+	static const int NUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
+	short tempPCM[NUM_SAMPLES * 2];
+	unsigned samples_processed;
+	if (AudioInterface::IsAISPlaying())
+	{
+		samples_processed = ProcessDTKSamples(tempPCM, NUM_SAMPLES);
+	}
+	else
+	{
+		memset(tempPCM, 0, sizeof(tempPCM));
+		samples_processed = NUM_SAMPLES;
+	}
 	soundStream->GetMixer()->PushStreamingSamples(tempPCM, samples_processed);
+
+	// If we reached the end of the audio, stop.
+	if (!g_bStream)
+		return;
+
 	int ticks_to_dtk = int(SystemTimers::GetTicksPerSecond() * u64(samples_processed) / 48000);
 	CoreTiming::ScheduleEvent(ticks_to_dtk - cyclesLate, dtk);
 }
@@ -344,7 +363,7 @@ void Init()
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
 	tc = CoreTiming::RegisterEvent("TransferComplete", TransferComplete);
-	dtk = CoreTiming::RegisterEvent("StreamingTimer", ReadDTKSamples);
+	dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
 }
 
 void Shutdown()
