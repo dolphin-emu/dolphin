@@ -56,7 +56,6 @@
 #endif
 
 #ifdef _WIN32
-#include "VideoCommon/EmuWindow.h"
 #endif
 #if defined _WIN32 || defined HAVE_LIBAV
 #include "VideoCommon/AVIDump.h"
@@ -1461,7 +1460,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 				if (!bLastFrameDumped)
 				{
 					#ifdef _WIN32
-						bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
+						bAVIDumping = AVIDump::Start((HWND)((cInterfaceWGL*)GLInterface)->m_window_handle, w, h);
 					#else
 						bAVIDumping = AVIDump::Start(w, h);
 					#endif

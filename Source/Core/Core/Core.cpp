@@ -6,7 +6,6 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include "VideoCommon/EmuWindow.h"
 #endif
 
 #include "AudioCommon/AudioCommon.h"
@@ -266,10 +265,6 @@ void Stop()  // - Hammertime!
 	g_EmuThread.join(); // Wait for emuthread to close.
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
-
-#ifdef _WIN32
-	EmuWindow::Close();
-#endif
 
 	// Clear on screen messages that haven't expired
 	g_video_backend->Video_ClearMessages();

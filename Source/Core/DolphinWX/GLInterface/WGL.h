@@ -21,4 +21,6 @@ public:
 
 	void Update();
 	bool PeekMessages();
+
+	void* m_window_handle;
 };

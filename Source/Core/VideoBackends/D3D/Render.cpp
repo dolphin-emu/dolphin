@@ -26,7 +26,6 @@
 
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
-#include "VideoCommon/EmuWindow.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
@@ -178,7 +177,7 @@ void CreateScreenshotTexture(const TargetRectangle& rc)
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
 }
 
-Renderer::Renderer()
+Renderer::Renderer(void *&window_handle)
 {
 	int x, y, w_temp, h_temp;
 
@@ -186,7 +185,7 @@ Renderer::Renderer()
 
 	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
 
-	D3D::Create(EmuWindow::GetWnd());
+	D3D::Create((HWND)window_handle);
 
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
@@ -275,21 +274,8 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // size.
 bool Renderer::CheckForResize()
 {
-	while (EmuWindow::IsSizing())
-		Sleep(10);
-
-	if (EmuWindow::GetParentWnd())
-	{
-		// Re-stretch window to parent window size again, if it has a parent window.
-		RECT rcParentWindow;
-		GetWindowRect(EmuWindow::GetParentWnd(), &rcParentWindow);
-		int width = rcParentWindow.right - rcParentWindow.left;
-		int height = rcParentWindow.bottom - rcParentWindow.top;
-		if (width != Renderer::GetBackbufferWidth() || height != Renderer::GetBackbufferHeight())
-			MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
-	}
 	RECT rcWindow;
-	GetClientRect(EmuWindow::GetWnd(), &rcWindow);
+	GetClientRect(D3D::hWnd, &rcWindow);
 	int client_width = rcWindow.right - rcWindow.left;
 	int client_height = rcWindow.bottom - rcWindow.top;
 
@@ -866,7 +852,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		{
 			s_recordWidth = GetTargetRectangle().GetWidth();
 			s_recordHeight = GetTargetRectangle().GetHeight();
-			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
+			bAVIDumping = AVIDump::Start(D3D::hWnd, s_recordWidth, s_recordHeight);
 			if (!bAVIDumping)
 			{
 				PanicAlert("Error dumping frames to AVI.");
