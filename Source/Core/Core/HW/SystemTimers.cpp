@@ -165,7 +165,7 @@ void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		WII_IPC_HLE_Interface::Update();
+		WII_IPC_HLE_Interface::UpdateDevices();
 		CoreTiming::ScheduleEvent(IPC_HLE_PERIOD - cyclesLate, et_IPC_HLE);
 	}
 }

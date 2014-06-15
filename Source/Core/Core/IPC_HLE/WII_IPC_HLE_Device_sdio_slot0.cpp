@@ -22,7 +22,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::EnqueueReply(u32 CommandAddress, u32 Return
 
 	Memory::Write_U32(ReturnValue, CommandAddress + 4);
 
-	WII_IPC_HLE_Interface::EnqReply(CommandAddress);
+	WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
 }
 
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
