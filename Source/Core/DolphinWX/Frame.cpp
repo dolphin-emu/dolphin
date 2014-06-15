@@ -722,7 +722,11 @@ bool CFrame::RendererHasFocus()
 	if (m_RenderParent == nullptr)
 		return false;
 #ifdef _WIN32
-	if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
+	HWND window = GetForegroundWindow();
+	if (window == nullptr)
+		return false;
+
+	if (m_RenderFrame->GetHWND() == window)
 		return true;
 #else
 	wxWindow *window = wxWindow::FindFocus();
