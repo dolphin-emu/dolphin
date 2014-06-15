@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the dolphin-emu package.
 #
 # Translators:
-# Charles Fernando da Silva <eu.charles@hotmail.com>, 2013
+# Charles Fernando da Silva <eu.charles@hotmail.com>, 2013-2014
 # Dante Jr. <danteprojetos@gmail.com>, 2011
 # David Rodrigues <david.proweb@gmail.com>, 2014
 # Runo <i.am.runo@gmail.com>, 2013
@@ -16,8 +16,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-02-17 12:14+0000\n"
-"Last-Translator: David Rodrigues <david.proweb@gmail.com>\n"
+"PO-Revision-Date: 2014-06-07 14:46+0000\n"
+"Last-Translator: Charles Fernando da Silva <eu.charles@hotmail.com>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/projects/p/"
 "dolphin-emu/language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -58,7 +58,7 @@ msgstr ""
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:403
 #, fuzzy, c-format
 msgid "\"%s\" is too long for the filename, max length is 0x44 + \\0"
-msgstr "%s é muito longo para o nome do arquivo, o máximo de caractéres é 45"
+msgstr "%s é muito longo para o nome do arquivo, o máximo de caracteres é 45"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:209
 #, c-format
@@ -648,8 +648,8 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Todas as imagens CG/Wii (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
-msgstr "Todos os arquivos Gamecube CGM (gcm)"
+msgid "All GameCube GCM files (gcm)"
+msgstr "Todos os arquivos GameCube CGM (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
 #: Source/Core/DolphinWX/FrameTools.cpp:1547
@@ -1302,11 +1302,11 @@ msgstr "Não foi possível inicializar o Backend 5s. %s"
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "Não foi possível ler \"%s\". Não há nenhum disco no leitor, ou não é uma "
-"cópia de GC/Wii. Note que os discos originais de Gamecube e Wii não podem "
+"cópia de GC/Wii. Note que os discos originais de GameCube e Wii não podem "
 "ser lidos pela maioria dos leitores de DVD dos PCs."
 
 #: Source/Core/Core/CoreParameter.cpp:298
@@ -1699,7 +1699,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1719,7 +1719,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -1730,7 +1730,7 @@ msgstr ""
 "Revisão: %s\n"
 "Compilado em: %s @ %s\n"
 "\n"
-"Dolphin é um emulador de Gamecube/Wii emulator, escrito originalmente por F|"
+"Dolphin é um emulador de GameCube/Wii emulator, escrito originalmente por F|"
 "RES e ector.\n"
 "Atualmente o Dolphin é um projeto open source com vários contribuidores, "
 "muitos para listar.\n"
@@ -2814,26 +2814,26 @@ msgstr "Opções especificas do jogo"
 msgid "GameConfig"
 msgstr "Opçõesdojogo"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "Arquivos de Save do GameCube (*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
-msgstr "Gamecube"
+msgid "GameCube"
+msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
-msgstr "Configurações de &Controle de Gamecube"
+msgid "GameCube &Pad Settings"
+msgstr "Configurações de &Controle de GameCube"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
-msgstr "Memory Cards do Gamecube (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
+msgstr "Memory Cards do GameCube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
-msgstr "Configurações do controle de Gamecube"
+msgid "GameCube Pad settings"
+msgstr "Configurações do controle de GameCube"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "Arquivos de Save do GameCube (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -4823,7 +4823,7 @@ msgstr "Configurações..."
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:227
 #, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "SetupWiiMem: não foi possível criar arquivo de configuração"
+msgstr "SetupWiiMem: Não foi possível criar o arquivo de configurações"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -6204,7 +6204,7 @@ msgstr "| OR"
 #~ msgstr "CP reg"
 
 #~ msgid "Cache Display Lists"
-#~ msgstr "Armazenar lista de displays."
+#~ msgstr "Mostrar Lista de Cache"
 
 #~ msgid "Console"
 #~ msgstr "Console"
@@ -6241,7 +6241,8 @@ msgstr "| OR"
 #~ "If unsure, leave this unchecked."
 #~ msgstr ""
 #~ "[EXPERIMENTAL]\n"
-#~ "Acelera um pouco a emulação por armazenar a lista de displays.\n"
-#~ "Porém, possivelmente causa problemas.\n"
+#~ "Aumenta a velocidade da emulação fazendo um reservatório temporário de "
+#~ "Dysplay Lists.\n"
+#~ "Pode causar problemas.\n"
 #~ "\n"
-#~ "Em caso de dúvida, deixe isto desmarcado."
+#~ "Se estiver em dúvida, deixe isto desativado."

@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-04-24 09:24+0000\n"
+"PO-Revision-Date: 2014-06-10 16:44+0000\n"
 "Last-Translator: Anton <anton_r_3@hotmail.com>\n"
 "Language-Team: Swedish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sv/)\n"
@@ -641,8 +641,8 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Alla GC/Wii-bilder (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
-msgstr "Alla GCM-filer för Gamecube (gcm)"
+msgid "All GameCube GCM files (gcm)"
+msgstr "Alla GCM-filer för GameCube (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
 #: Source/Core/DolphinWX/FrameTools.cpp:1547
@@ -1296,7 +1296,7 @@ msgstr "Kunde inte initiera backend %s."
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "Kunde inte läsa \"%s\".  Det finns ingen skiva i läsaren, eller så är det "
@@ -1695,7 +1695,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1715,7 +1715,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -1726,7 +1726,7 @@ msgstr ""
 "Version: %s\n"
 "Kompilerad: %s kl %s\n"
 "\n"
-"Dolphin är en emulator för Gamecube/Wii, som\n"
+"Dolphin är en emulator för GameCube/Wii, som\n"
 "skrevs ursprungligen av F|RES och ector.\n"
 "Idag är Dolphin ett projekt med öppen källkod med\n"
 "många bidragsgivare, för många för att kunna räkna upp.\n"
@@ -1747,7 +1747,7 @@ msgstr ""
 "Tack till hcs/destop för deras GC ADPCM-dekoder.\n"
 "\n"
 "Vi har inget samröre med Nintendo på något sätt.\n"
-"Gamecube och Wii är varumärken som tillhör Nintendo.\n"
+"GameCube och Wii är varumärken som tillhör Nintendo.\n"
 "Emulatorn bör inte användas för att spela spel som\n"
 "du inte äger på ett lagligt sätt."
 
@@ -2709,7 +2709,7 @@ msgstr "Vidaresänd port (UPnP)"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:528
 #, fuzzy, c-format
 msgid "Found %u results for '"
-msgstr "Hittade %d resultat för '"
+msgstr "HIttade %d resultat för '"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:80
 #, c-format
@@ -2817,26 +2817,26 @@ msgstr "Spelspecifika inställningar"
 msgid "GameConfig"
 msgstr "Spelkonfig."
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "GameCube sparningsfiler (*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
+msgid "GameCube"
 msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
+msgid "GameCube &Pad Settings"
 msgstr "Inställningar för &GameCube-kontroller"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
 msgstr "GameCube-minneskort (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
+msgid "GameCube Pad settings"
 msgstr "Inställningar för GameCube-kontroller"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "GameCube sparningsfiler (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -6204,7 +6204,7 @@ msgstr "| ELLER"
 #~ msgstr "CP-register"
 
 #~ msgid "Cache Display Lists"
-#~ msgstr "Cachelagra visningslistor"
+#~ msgstr "Cachevisningslistor"
 
 #~ msgid "Console"
 #~ msgstr "Konsol"
@@ -6228,7 +6228,7 @@ msgstr "| ELLER"
 #~ msgstr "NOP"
 
 #~ msgid "Show &Console"
-#~ msgstr "Visa kommando&tolk"
+#~ msgstr "Visa &konsol"
 
 #~ msgid "XF reg"
 #~ msgstr "XF-register"
@@ -6241,7 +6241,7 @@ msgstr "| ELLER"
 #~ "If unsure, leave this unchecked."
 #~ msgstr ""
 #~ "[EXPERIMENTELL]\n"
-#~ "Snabbar upp emulatorn lite grann genom att cachelagra visningslistor.\n"
+#~ "Snabbar upp emulatorn lite grann genom att cacha visningslistan.\n"
 #~ "Kan möjligtvis orsaka fel.\n"
 #~ "\n"
 #~ "Om du är osäker kan du lämna detta omarkerat."

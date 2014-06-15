@@ -5,14 +5,15 @@
 # Translators:
 # Danbsky, 2011
 # Lioncash <mathew1800@gmail.com>, 2014
+# Lioncash <mathew1800@gmail.com>, 2014
 # DanbSky <smariojp@gmail.com>, 2013-2014
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-03-28 13:20+0000\n"
-"Last-Translator: DanbSky <smariojp@gmail.com>\n"
+"PO-Revision-Date: 2014-06-07 08:16+0000\n"
+"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
 "Language-Team: Japanese (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -50,9 +51,9 @@ msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" は無効なファイル、またはゲームキューブ／Wii のISOではありません"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:403
-#, fuzzy, c-format
+#, c-format
 msgid "\"%s\" is too long for the filename, max length is 0x44 + \\0"
-msgstr "%s はファイル名が長すぎます、45文字までに収めてください"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:209
 #, c-format
@@ -637,7 +638,7 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "全ての GC/Wii イメージ (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
+msgid "All GameCube GCM files (gcm)"
 msgstr "GC GCMファイル (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
@@ -1291,7 +1292,7 @@ msgstr "Could not initialize backend %s."
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "\"%s\" を読み込めませんでした。ディスクが入っていないか、GC/Wii のバックアッ"
@@ -1687,7 +1688,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1707,7 +1708,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -1718,7 +1719,7 @@ msgstr ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1738,7 +1739,7 @@ msgstr ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 
@@ -2688,9 +2689,9 @@ msgid "Forward port (UPnP)"
 msgstr "ポート開放を自動で設定 (UPnP)"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:528
-#, fuzzy, c-format
+#, c-format
 msgid "Found %u results for '"
-msgstr "検索結果：%d 件 '"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:80
 #, c-format
@@ -2798,26 +2799,26 @@ msgstr "固有設定"
 msgid "GameConfig"
 msgstr "ゲーム設定"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "GCセーブファイル(*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
+msgid "GameCube"
 msgstr "ゲームキューブ"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
+msgid "GameCube &Pad Settings"
 msgstr "ゲームキューブ入力設定(&P)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
 msgstr "メモリーカードファイル (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
+msgid "GameCube Pad settings"
 msgstr "ゲームキューブの入力設定を行います"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "GCセーブファイル(*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -2998,9 +2999,8 @@ msgid "Hybrid Wiimote"
 msgstr "Hybrid Wiimote"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:322
-#, fuzzy
 msgid "ID"
-msgstr "D"
+msgstr ""
 
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:679
 #, c-format
@@ -4124,9 +4124,9 @@ msgid "Partition %i"
 msgstr "パーティション %i"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:922
-#, fuzzy, c-format
+#, c-format
 msgid "Partition doesn't exist: %d"
-msgstr "パーティションが存在しません： %u"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:380
 msgid "Patches"
@@ -4795,9 +4795,8 @@ msgid "Settings..."
 msgstr "設定"
 
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:227
-#, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "SetupWiiMem: Cant create setting file"
+msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -6127,67 +6126,3 @@ msgstr "zNear 補正値："
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:578
 msgid "| OR"
 msgstr "| (...もしくは)"
-
-#~ msgid "%08X:  "
-#~ msgstr "%08X:  "
-
-#~ msgid "'"
-#~ msgstr "'"
-
-#~ msgid "0x44"
-#~ msgstr "0x44"
-
-#~ msgid "A"
-#~ msgstr "A"
-
-#~ msgid "B"
-#~ msgstr "B"
-
-#~ msgid "C"
-#~ msgstr "C"
-
-#~ msgid "CP reg"
-#~ msgstr "CP reg"
-
-#~ msgid "Cache Display Lists"
-#~ msgstr "Cache Display Lists"
-
-#~ msgid "Console"
-#~ msgstr "コンソール"
-
-#~ msgid "Extra Parameter"
-#~ msgstr "特殊パラメータ"
-
-#~ msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-#~ msgstr "『メトロイド Other M』のみに有用な設定です"
-
-#~ msgid "GX_CMD_INVL_VC"
-#~ msgstr "GX_CMD_INVL_VC"
-
-#~ msgid "JITIL experimental recompiler"
-#~ msgstr "JITIL experimental recompiler (実験的)"
-
-#~ msgid "Limit by FPS"
-#~ msgstr "FPSによる制限を有効化"
-
-#~ msgid "NOP"
-#~ msgstr "NOP"
-
-#~ msgid "Show &Console"
-#~ msgstr "コンソール(&C)"
-
-#~ msgid "XF reg"
-#~ msgstr "XF reg"
-
-#~ msgid ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Speeds up emulation a bit by caching display lists.\n"
-#~ "Possibly causes issues though.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "◆◆◆実験的機能◆◆◆\n"
-#~ "ディスプレイリストのキャッシュにより動作速度を向上させます。\n"
-#~ "このオプションは動作バグを引き起こす可能性があります。\n"
-#~ "\n"
-#~ "よく分からなければ、チェックを入れないでください。"

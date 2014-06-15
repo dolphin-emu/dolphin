@@ -17,7 +17,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-06-07 01:09+0200\n"
-"PO-Revision-Date: 2014-02-17 09:26+0000\n"
+"PO-Revision-Date: 2014-06-07 09:29+0000\n"
 "Last-Translator: Pascal <pascal2j-language@yahoo.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/fr/)\n"
@@ -652,7 +652,7 @@ msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Toutes les images GC/Wii (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1208
-msgid "All Gamecube GCM files (gcm)"
+msgid "All GameCube GCM files (gcm)"
 msgstr "Tous les fichiers GameCube GCM (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1533
@@ -1312,7 +1312,7 @@ msgstr "Impossible d'initialiser le moteur %s."
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
+"backup.  Please note that original GameCube and Wii discs cannot be read by "
 "most PC DVD drives."
 msgstr ""
 "Impossible de lire \"%s\".  Il n'y a pas de disque dans le lecteur, ou ce "
@@ -1710,7 +1710,7 @@ msgid ""
 "Revision: %s\n"
 "Compiled: %s @ %s\n"
 "\n"
-"Dolphin is a Gamecube/Wii emulator, which was\n"
+"Dolphin is a GameCube/Wii emulator, which was\n"
 "originally written by F|RES and ector.\n"
 "Today Dolphin is an open source project with many\n"
 "contributors, too many to list.\n"
@@ -1730,7 +1730,7 @@ msgid ""
 "Thanks to hcs/destop for their GC ADPCM decoder.\n"
 "\n"
 "We are not affiliated with Nintendo in any way.\n"
-"Gamecube and Wii are trademarks of Nintendo.\n"
+"GameCube and Wii are trademarks of Nintendo.\n"
 "The emulator should not be used to play games\n"
 "you do not legally own."
 msgstr ""
@@ -1741,7 +1741,7 @@ msgstr ""
 "Révision : %s\n"
 "Compilée le %s à %s\n"
 "\n"
-"Dolphin est un émulateur de Gamecube et Wii,\n"
+"Dolphin est un émulateur de GameCube et Wii,\n"
 "écrit au départ par F|RES et ector.\n"
 "Aujourd'hui, Dolphin est un projet open source ayant\n"
 "beaucoup de contributeurs, trop pour tous les citer.\n"
@@ -1761,7 +1761,7 @@ msgstr ""
 "Merci à hcs/destop pour leur décodeur GC ADPCM.\n"
 "\n"
 "Nous ne sommes en aucun cas affiliés à Nintendo.\n"
-"Gamecube et Wii sont des marques déposées de Nintendo.\n"
+"GameCube et Wii sont des marques déposées de Nintendo.\n"
 "L'émulateur ne doit pas être utilisé pour jouer à des jeux\n"
 "que vous ne possédez pas légalement."
 
@@ -2836,26 +2836,26 @@ msgstr "Paramètres spécifiques au jeu"
 msgid "GameConfig"
 msgstr "Config du Jeu"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:541
-msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "Fichiers de sauvegarde GameCube (*.gci;*.gcs;*.sav)"
-
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
-msgid "Gamecube"
+msgid "GameCube"
 msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
-msgid "Gamecube &Pad Settings"
+msgid "GameCube &Pad Settings"
 msgstr "Paramètres de la &manette GameCube"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:231
 #: Source/Core/DolphinWX/ConfigMain.cpp:1060
-msgid "Gamecube Memory Cards (*.raw,*.gcp)"
+msgid "GameCube Memory Cards (*.raw,*.gcp)"
 msgstr "Carte mémoires de GameCube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:524
-msgid "Gamecube Pad settings"
+msgid "GameCube Pad settings"
 msgstr "Paramètres de la manette GameCube"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:541
+msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
+msgstr "Fichiers de sauvegarde GameCube (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:384
 #: Source/Core/DolphinWX/CheatsWindow.cpp:139
@@ -4185,7 +4185,7 @@ msgstr "Partition %i"
 #: Source/Core/DolphinWX/ISOProperties.cpp:922
 #, fuzzy, c-format
 msgid "Partition doesn't exist: %d"
-msgstr "Cette partition n'existe pas : %u"
+msgstr "La partition n'existe pas : %u"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:380
 msgid "Patches"
@@ -4863,7 +4863,7 @@ msgstr "Configurer..."
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:227
 #, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "SetupWiiMem : Impossible de créer le fichier de paramètres"
+msgstr "SetupWiiMem: Impossible de créer le fichier de paramètres"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -6260,16 +6260,16 @@ msgstr "| OU"
 
 #~ msgid "Extra Parameter useful in ''Metroid: Other M'' only."
 #~ msgstr ""
-#~ "Paramètre supplémentaire utile dans ''Metroid: Other M'' uniquement."
+#~ "Paramètre supplémentaire utile dans  ''Metroid: Other M'' uniquement."
 
 #~ msgid "GX_CMD_INVL_VC"
 #~ msgstr "GX_CMD_INVL_VC"
 
 #~ msgid "JITIL experimental recompiler"
-#~ msgstr "Recompilateur expérimental JITIL"
+#~ msgstr "Recompilateur expérimental JIT"
 
 #~ msgid "Limit by FPS"
-#~ msgstr "Limiter par le nombre d'images/sec"
+#~ msgstr "Limiter par FPS"
 
 #~ msgid "NOP"
 #~ msgstr "NOP"
