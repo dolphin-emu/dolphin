@@ -181,8 +181,7 @@ ControllerEmu::Force::Force(const std::string& _name) : ControlGroup(_name, GROU
 	settings.emplace_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
 }
 
-ControllerEmu::Tilt::Tilt(const std::string& _name)
-	: ControlGroup(_name, GROUP_TYPE_TILT)
+ControllerEmu::Tilt::Tilt(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_TILT)
 {
 	memset(m_tilt, 0, sizeof(m_tilt));
 
