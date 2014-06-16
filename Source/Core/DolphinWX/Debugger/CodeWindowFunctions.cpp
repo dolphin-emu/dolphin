@@ -62,13 +62,14 @@ void CCodeWindow::Load()
 
 	// The font to override DebuggerFont with
 	std::string fontDesc;
-	ini.Get("General", "DebuggerFont", &fontDesc);
+
+	IniFile::Section* general = ini.GetOrCreateSection("General");
+	general->Get("DebuggerFont", &fontDesc);
+	general->Get("AutomaticStart", &bAutomaticStart, false);
+	general->Get("BootToPause", &bBootToPause, true);
+
 	if (!fontDesc.empty())
 		DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc));
-
-	// Boot to pause or not
-	ini.Get("General", "AutomaticStart", &bAutomaticStart, false);
-	ini.Get("General", "BootToPause", &bBootToPause, true);
 
 	const char* SettingName[] = {
 		"Log",
@@ -85,19 +86,19 @@ void CCodeWindow::Load()
 
 	// Decide what windows to show
 	for (int i = 0; i <= IDM_VIDEOWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get("ShowOnStart", SettingName[i], &bShowOnStart[i], false);
+		ini.GetOrCreateSection("ShowOnStart")->Get(SettingName[i], &bShowOnStart[i], false);
 
 	// Get notebook affiliation
-	std::string _Section = "P - " +
+	std::string section = "P - " +
 		((Parent->ActivePerspective < Parent->Perspectives.size())
 		? Parent->Perspectives[Parent->ActivePerspective].Name : "Perspective 1");
 
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get(_Section, SettingName[i], &iNbAffiliation[i], 0);
+		ini.GetOrCreateSection(section)->Get(SettingName[i], &iNbAffiliation[i], 0);
 
 	// Get floating setting
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get("Float", SettingName[i], &Parent->bFloatWindow[i], false);
+		ini.GetOrCreateSection("Float")->Get(SettingName[i], &Parent->bFloatWindow[i], false);
 }
 
 void CCodeWindow::Save()
@@ -105,11 +106,10 @@ void CCodeWindow::Save()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	ini.Set("General", "DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
-
-	// Boot to pause or not
-	ini.Set("General", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
-	ini.Set("General", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
+	IniFile::Section* general = ini.GetOrCreateSection("General");
+	general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
+	general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
+	general->Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
 
 	const char* SettingName[] = {
 		"Log",
@@ -126,16 +126,16 @@ void CCodeWindow::Save()
 
 	// Save windows settings
 	for (int i = IDM_LOGWINDOW; i <= IDM_VIDEOWINDOW; i++)
-		ini.Set("ShowOnStart", SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
+		ini.GetOrCreateSection("ShowOnStart")->Set(SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
 
 	// Save notebook affiliations
-	std::string _Section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
+	std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Set(_Section, SettingName[i], iNbAffiliation[i]);
+		ini.GetOrCreateSection(section)->Set(SettingName[i], iNbAffiliation[i]);
 
 	// Save floating setting
 	for (int i = IDM_LOGWINDOW_PARENT; i <= IDM_CODEWINDOW_PARENT; i++)
-		ini.Set("Float", SettingName[i - IDM_LOGWINDOW_PARENT], !!FindWindowById(i));
+		ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOGWINDOW_PARENT], !!FindWindowById(i));
 
 	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }

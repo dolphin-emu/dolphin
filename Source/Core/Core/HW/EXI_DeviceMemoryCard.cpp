@@ -81,7 +81,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	// Use a 16Mb (251 block) memory card for these games
 	bool useMC251;
 	IniFile gameIni = Core::g_CoreStartupParameter.LoadGameIni();
-	gameIni.Get("Core", "MemoryCard251", &useMC251, false);
+	gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
 	nintendo_card_id = MemCard2043Mb;
 	if (useMC251)
 	{

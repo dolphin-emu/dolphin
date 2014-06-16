@@ -98,7 +98,7 @@ void CPHackSettings::LoadPHackData()
 		if (!PHPresetsIni.Exists(sIndex, "Title"))
 			break;
 
-		PHPresetsIni.Get(sIndex, "Title", &sTemp);
+		PHPresetsIni.GetOrCreateSection(sIndex)->Get("Title", &sTemp);
 
 		if (sTemp.empty())
 			sTemp = WxStrToStr(_("(UNKNOWN)"));
@@ -129,13 +129,14 @@ void CPHackSettings::SetRefresh(wxCommandEvent& event)
 		index -= 2;
 		sIndex = std::to_string(index);
 
-		PHPresetsIni.Get(sIndex, "PH_SZNear", &bTemp);
+		IniFile::Section* proj_hack = PHPresetsIni.GetOrCreateSection(sIndex);
+		proj_hack->Get("PH_SZNear", &bTemp);
 		PHackSZNear->Set3StateValue((wxCheckBoxState)bTemp);
-		PHPresetsIni.Get(sIndex, "PH_SZFar", &bTemp);
+		proj_hack->Get("PH_SZFar", &bTemp);
 		PHackSZFar->Set3StateValue((wxCheckBoxState)bTemp);
-		PHPresetsIni.Get(sIndex, "PH_ZNear", &sTemp);
+		proj_hack->Get("PH_ZNear", &sTemp);
 		PHackZNear->SetValue(StrToWxStr(sTemp));
-		PHPresetsIni.Get(sIndex, "PH_ZFar", &sTemp);
+		proj_hack->Get("PH_ZFar", &sTemp);
 		PHackZFar->SetValue(StrToWxStr(sTemp));
 	}
 }

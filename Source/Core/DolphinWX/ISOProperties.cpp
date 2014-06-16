@@ -1019,9 +1019,9 @@ void CISOProperties::SetCheckboxValueFromGameini(const char* section, const char
 {
 	// Prefer local gameini value over default gameini value.
 	bool value;
-	if (GameIniLocal.Get(section, key, &value))
+	if (GameIniLocal.GetOrCreateSection(section)->Get(key, &value))
 		checkbox->Set3StateValue((wxCheckBoxState)value);
-	else if (GameIniDefault.Get(section, key, &value))
+	else if (GameIniDefault.GetOrCreateSection(section)->Get(key, &value))
 		checkbox->Set3StateValue((wxCheckBoxState)value);
 	else
 		checkbox->Set3StateValue(wxCHK_UNDETERMINED);
@@ -1042,34 +1042,39 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
 	SetCheckboxValueFromGameini("Video", "UseBBox", UseBBox);
 
+	IniFile::Section* default_video = GameIniDefault.GetOrCreateSection("Video");
+	IniFile::Section* local_video = GameIniLocal.GetOrCreateSection("Video");
+
 	// First set values from default gameini, then apply values from local gameini
 	int iTemp;
-	GameIniDefault.Get("Video", "ProjectionHack", &iTemp);
+	default_video->Get("ProjectionHack", &iTemp);
 	PHackEnable->SetValue(!!iTemp);
-	if (GameIniLocal.Get("Video", "ProjectionHack", &iTemp))
+	if (local_video->Get("ProjectionHack", &iTemp))
 		PHackEnable->SetValue(!!iTemp);
 
-	GameIniDefault.Get("Video", "PH_SZNear", &PHack_Data.PHackSZNear);
+	default_video->Get("PH_SZNear", &PHack_Data.PHackSZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZNear", &iTemp))
 		PHack_Data.PHackSZNear = !!iTemp;
-	GameIniDefault.Get("Video", "PH_SZFar", &PHack_Data.PHackSZFar);
+	default_video->Get("PH_SZFar", &PHack_Data.PHackSZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZFar", &iTemp))
 		PHack_Data.PHackSZFar = !!iTemp;
 
 	std::string sTemp;
-	GameIniDefault.Get("Video", "PH_ZNear", &PHack_Data.PHZNear);
+	default_video->Get("PH_ZNear", &PHack_Data.PHZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_ZNear", &sTemp))
 		PHack_Data.PHZNear = sTemp;
-	GameIniDefault.Get("Video", "PH_ZFar", &PHack_Data.PHZFar);
+	default_video->Get("PH_ZFar", &PHack_Data.PHZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_ZFar", &sTemp))
 		PHack_Data.PHZFar = sTemp;
 
-	GameIniDefault.Get("EmuState", "EmulationStateId", &iTemp, 0/*Not Set*/);
+
+	IniFile::Section* default_emustate = GameIniDefault.GetOrCreateSection("EmuState");
+	default_emustate->Get("EmulationStateId", &iTemp, 0/*Not Set*/);
 	EmuState->SetSelection(iTemp);
 	if (GameIniLocal.GetIfExists("EmuState", "EmulationStateId", &iTemp))
 		EmuState->SetSelection(iTemp);
 
-	GameIniDefault.Get("EmuState", "EmulationIssues", &sTemp);
+	default_emustate->Get("EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 		EmuIssues->SetValue(StrToWxStr(sTemp));
 	if (GameIniLocal.GetIfExists("EmuState", "EmulationIssues", &sTemp))
@@ -1092,13 +1097,13 @@ void CISOProperties::SaveGameIniValueFrom3StateCheckbox(const char* section, con
 	if (checkbox->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIniLocal.DeleteKey(section, key);
 	else if (!GameIniDefault.Exists(section, key))
-		GameIniLocal.Set(section, key, checkbox_val);
+		GameIniLocal.GetOrCreateSection(section)->Set(key, checkbox_val);
 	else
 	{
 		bool default_value;
-		GameIniDefault.Get(section, key, &default_value);
+		GameIniDefault.GetOrCreateSection(section)->Get(key, &default_value);
 		if (default_value != checkbox_val)
-			GameIniLocal.Set(section, key, checkbox_val);
+			GameIniLocal.GetOrCreateSection(section)->Set(key, checkbox_val);
 		else
 			GameIniLocal.DeleteKey(section, key);
 	}
@@ -1122,13 +1127,13 @@ bool CISOProperties::SaveGameConfig()
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
 			std::remove_reference<decltype((val))>::type tmp__; \
-			GameIniDefault.Get((section), (key), &tmp__); \
+			GameIniDefault.GetOrCreateSection((section))->Get((key), &tmp__); \
 			if ((val) != tmp__) \
-				GameIniLocal.Set((section), (key), (val)); \
+				GameIniLocal.GetOrCreateSection((section))->Set((key), (val)); \
 			else \
 				GameIniLocal.DeleteKey((section), (key)); \
 		} else if ((val) != (def)) \
-			GameIniLocal.Set((section), (key), (val)); \
+			GameIniLocal.GetOrCreateSection((section))->Set((key), (val)); \
 		else \
 			GameIniLocal.DeleteKey((section), (key)); \
 	} while (0)
