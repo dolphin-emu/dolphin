@@ -896,6 +896,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		bLastFrameDumped = false;
 	}
 
+	// Reset viewport for drawing text
+	vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
+	D3D::context->RSSetViewports(1, &vp);
+
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
 	{
