@@ -132,7 +132,7 @@ static void LoadSpeedhacks(const std::string& section, IniFile& ini)
 	for (const std::string& key : keys)
 	{
 		std::string value;
-		ini.Get(section, key, &value, "BOGUS");
+		ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
 		if (value != "BOGUS")
 		{
 			u32 address;

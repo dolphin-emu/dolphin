@@ -110,7 +110,7 @@ namespace ButtonManager
 				bool hasbind = false;
 				char modifier = '+';
 				std::string value;
-				ini.Get("Android", config.str(), &value, "None");
+				ini.GetOrCreateSection("Android")->Get(config.str(), &value, "None");
 				if (value == "None")
 					continue;
 				if (std::string::npos != value.find("Axis"))
