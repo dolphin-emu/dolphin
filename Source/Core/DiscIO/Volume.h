@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -20,7 +21,11 @@ public:
 	virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
 	virtual bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const = 0;
 	virtual bool GetTitleID(u8*) const { return false; }
-	virtual void GetTMD(u8*, u32 *_sz) const { *_sz=0; }
+	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const
+	{
+		*_sz = 0;
+		return std::unique_ptr<u8[]>();
+	}
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetRevisionSpecificUniqueID() const { return ""; }
 	virtual std::string GetMakerID() const = 0;

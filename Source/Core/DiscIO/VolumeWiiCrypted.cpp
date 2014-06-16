@@ -108,7 +108,7 @@ bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
 	// TitleID offset in tik is 0x1DC
 	return RAWRead(m_VolumeOffset + 0x1DC, 8, _pBuffer);
 }
-void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32 * _sz) const
+std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *_sz) const
 {
 	*_sz = 0;
 	u32 tmdSz,
@@ -118,8 +118,10 @@ void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32 * _sz) const
 	RAWRead(m_VolumeOffset + 0x2a8, sizeof(u32), (u8*)&tmdAddr);
 	tmdSz = Common::swap32(tmdSz);
 	tmdAddr = Common::swap32(tmdAddr) << 2;
-	RAWRead(m_VolumeOffset + tmdAddr, tmdSz, _pBuffer);
+	std::unique_ptr<u8[]> buf{new u8[tmdSz]};
+	RAWRead(m_VolumeOffset + tmdAddr, tmdSz, buf.get());
 	*_sz = tmdSz;
+	return buf;
 }
 
 std::string CVolumeWiiCrypted::GetUniqueID() const
