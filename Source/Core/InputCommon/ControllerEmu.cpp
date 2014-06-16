@@ -4,10 +4,6 @@
 
 #include "InputCommon/ControllerEmu.h"
 
-#if defined(HAVE_X11) && HAVE_X11
-#include <X11/Xlib.h>
-#endif
-
 void ControllerEmu::UpdateReferences(ControllerInterface& devi)
 {
 	for (auto& ctrlGroup : groups)
