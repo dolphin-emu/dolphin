@@ -58,7 +58,6 @@ struct SCPFifoStruct
 	volatile u32 bFF_HiWatermark;
 
 	// for GP watchdog hack
-	volatile u32 Fake_GPWDToken; // cicular incrementer
 	volatile u32 isGpuReadingData;
 };
 
@@ -80,7 +79,7 @@ public:
 	virtual std::string GetName() const = 0;
 	virtual std::string GetDisplayName() const { return GetName(); }
 
-	virtual void ShowConfig(void*) {}
+	virtual void ShowConfig(void*) = 0;
 
 	virtual void Video_Prepare() = 0;
 	virtual void Video_EnterLoop() = 0;
