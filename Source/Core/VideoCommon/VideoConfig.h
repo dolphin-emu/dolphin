@@ -44,8 +44,6 @@ enum EFBScale
 	SCALE_4X,
 };
 
-class IniFile;
-
 // NEVER inherit from this class.
 struct VideoConfig final
 {

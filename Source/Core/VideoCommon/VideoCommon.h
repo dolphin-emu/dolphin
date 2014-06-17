@@ -29,11 +29,6 @@ const u32 MAX_XFB_WIDTH = EFB_WIDTH;
 // that are next to each other in memory (TODO: handle that situation).
 const u32 MAX_XFB_HEIGHT = 574;
 
-// Logging
-// ----------
-void HandleGLError();
-
-
 // This structure should only be used to represent a rectangle in EFB
 // coordinates, where the origin is at the upper left and the frame dimensions
 // are 640 x 528.
