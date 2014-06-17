@@ -46,6 +46,11 @@ struct GC_ALIGNED64(PowerPCState)
 	// Exception management.
 	volatile u32 Exceptions;
 
+	// Downcount for determining when we need to do timing
+	// This isn't quite the right location for it, but it is here to accelerate the ARM JIT
+	// This variable should be inside of the CoreTiming namespace if we wanted to be correct.
+	int downcount;
+
 	u32 sr[16];  // Segment registers.
 
 	u32 DebugCount;

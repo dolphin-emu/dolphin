@@ -46,7 +46,7 @@ Common::FifoQueue<BaseEvent, false> tsQueue;
 // event pools
 Event *eventPool = nullptr;
 
-int downcount, slicelength;
+int slicelength;
 int maxSliceLength = MAX_SLICE_LENGTH;
 
 s64 globalTimer;
@@ -113,7 +113,7 @@ void UnregisterAllEvents()
 
 void Init()
 {
-	downcount = maxSliceLength;
+	PowerPC::ppcState.downcount = maxSliceLength;
 	slicelength = maxSliceLength;
 	globalTimer = 0;
 	idledCycles = 0;
@@ -173,7 +173,6 @@ void EventDoState(PointerWrap &p, BaseEvent* ev)
 void DoState(PointerWrap &p)
 {
 	std::lock_guard<std::mutex> lk(tsWriteLock);
-	p.Do(downcount);
 	p.Do(slicelength);
 	p.Do(globalTimer);
 	p.Do(idledCycles);
@@ -336,10 +335,10 @@ void SetMaximumSlice(int maximumSliceLength)
 
 void ForceExceptionCheck(int cycles)
 {
-	if (downcount > cycles)
+	if (PowerPC::ppcState.downcount > cycles)
 	{
-		slicelength -= (downcount - cycles); // Account for cycles already executed by adjusting the slicelength
-		downcount = cycles;
+		slicelength -= (PowerPC::ppcState.downcount - cycles); // Account for cycles already executed by adjusting the slicelength
+		PowerPC::ppcState.downcount = cycles;
 	}
 }
 
@@ -390,9 +389,9 @@ void Advance()
 {
 	MoveEvents();
 
-	int cyclesExecuted = slicelength - downcount;
+	int cyclesExecuted = slicelength - PowerPC::ppcState.downcount;
 	globalTimer += cyclesExecuted;
-	downcount = slicelength;
+	PowerPC::ppcState.downcount = slicelength;
 
 	while (first)
 	{
@@ -414,14 +413,14 @@ void Advance()
 	if (!first)
 	{
 		WARN_LOG(POWERPC, "WARNING - no events in queue. Setting downcount to 10000");
-		downcount += 10000;
+		PowerPC::ppcState.downcount += 10000;
 	}
 	else
 	{
 		slicelength = (int)(first->time - globalTimer);
 		if (slicelength > maxSliceLength)
 			slicelength = maxSliceLength;
-		downcount = slicelength;
+		PowerPC::ppcState.downcount = slicelength;
 	}
 
 	if (advanceCallback)
@@ -451,8 +450,8 @@ void Idle()
 		Common::YieldCPU();
 	}
 
-	idledCycles += downcount;
-	downcount = 0;
+	idledCycles += PowerPC::ppcState.downcount;
+	PowerPC::ppcState.downcount = 0;
 
 	Advance();
 }

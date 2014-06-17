@@ -199,7 +199,7 @@ void Interpreter::SingleStep()
 	SingleStepInner();
 
 	CoreTiming::slicelength = 1;
-	CoreTiming::downcount = 0;
+	PowerPC::ppcState.downcount = 0;
 	CoreTiming::Advance();
 
 	if (PowerPC::ppcState.Exceptions)
@@ -233,7 +233,7 @@ void Interpreter::Run()
 
 			// Debugging friendly version of inner loop. Tries to do the timing as similarly to the
 			// JIT as possible. Does not take into account that some instructions take multiple cycles.
-			while (CoreTiming::downcount > 0)
+			while (PowerPC::ppcState.downcount > 0)
 			{
 				m_EndBlock = false;
 				int i;
@@ -276,13 +276,13 @@ void Interpreter::Run()
 					}
 					SingleStepInner();
 				}
-				CoreTiming::downcount -= i;
+				PowerPC::ppcState.downcount -= i;
 			}
 		}
 		else
 		{
 			// "fast" version of inner loop. well, it's not so fast.
-			while (CoreTiming::downcount > 0)
+			while (PowerPC::ppcState.downcount > 0)
 			{
 				m_EndBlock = false;
 
@@ -291,7 +291,7 @@ void Interpreter::Run()
 				{
 					cycles += SingleStepInner();
 				}
-				CoreTiming::downcount -= cycles;
+				PowerPC::ppcState.downcount -= cycles;
 			}
 		}
 
