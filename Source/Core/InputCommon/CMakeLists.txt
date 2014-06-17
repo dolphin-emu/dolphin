@@ -1,7 +1,5 @@
 set(SRCS	ControllerEmu.cpp
 			InputConfig.cpp
-			UDPWiimote.cpp
-			UDPWrapper.cpp
 			ControllerInterface/ControllerInterface.cpp
 			ControllerInterface/Device.cpp
 			ControllerInterface/ExpressionParser.cpp)

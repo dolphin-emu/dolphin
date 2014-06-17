@@ -45,7 +45,6 @@
 #include "Common/MsgHandler.h"
 #include "Core/HW/Wiimote.h"
 #include "DolphinWX/InputConfigDiag.h"
-#include "DolphinWX/UDPConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
@@ -53,17 +52,9 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ExpressionParser.h"
 
-class UDPWrapper;
 class wxWindow;
 
 using namespace ciface::ExpressionParser;
-
-void GamepadPage::ConfigUDPWii(wxCommandEvent &event)
-{
-	UDPWrapper* const wrp = ((UDPConfigButton*)event.GetEventObject())->wrapper;
-	UDPConfigDiag diag(this, wrp);
-	diag.ShowModal();
-}
 
 void GamepadPage::ConfigExtension(wxCommandEvent& event)
 {
@@ -881,13 +872,6 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 
 			Add(attachments->wxcontrol, 0, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 3);
 			Add(configure_btn, 0, wxALL|wxEXPAND, 3);
-		}
-		break;
-	case GROUP_TYPE_UDPWII:
-		{
-			wxButton* const btn = new UDPConfigButton(parent, (UDPWrapper*)group);
-			btn->Bind(wxEVT_BUTTON, &GamepadPage::ConfigUDPWii, eventsink);
-			Add(btn, 0, wxALL|wxEXPAND, 3);
 		}
 		break;
 	default:

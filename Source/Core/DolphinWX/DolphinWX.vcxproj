@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -95,7 +95,6 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TASInputDlg.cpp" />
-    <ClCompile Include="UDPConfigDiag.cpp" />
     <ClCompile Include="VideoConfigDiag.cpp" />
     <ClCompile Include="WiimoteConfigDiag.cpp" />
     <ClCompile Include="WXInputBase.cpp" />
@@ -144,7 +143,6 @@
     <ClInclude Include="PHackSettings.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TASInputDlg.h" />
-    <ClInclude Include="UDPConfigDiag.h" />
     <ClInclude Include="VideoConfigDiag.h" />
     <ClInclude Include="WiimoteConfigDiag.h" />
     <ClInclude Include="WXInputBase.h" />

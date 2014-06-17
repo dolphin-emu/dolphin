@@ -13,7 +13,6 @@
 #include "Core/NetPlayClient.h"
 
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
-#include "Core/HW/WiimoteEmu/UDPTLayer.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
@@ -266,9 +265,6 @@ Wiimote::Wiimote( const unsigned int index )
 	for (auto& named_button : named_buttons)
 		m_buttons->controls.emplace_back(new ControlGroup::Input( named_button));
 
-	// udp
-	groups.emplace_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
-
 	// ir
 	groups.emplace_back(m_ir = new Cursor(_trans("IR")));
 
@@ -287,7 +283,7 @@ Wiimote::Wiimote( const unsigned int index )
 	// extension
 	groups.emplace_back(m_extension = new Extension(_trans("Extension")));
 	m_extension->attachments.emplace_back(new WiimoteEmu::None(m_reg_ext));
-	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Guitar(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
@@ -390,7 +386,6 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 		const bool is_sideways = m_options->settings[1]->value != 0;
 		m_buttons->GetState(&m_status.buttons, button_bitmasks);
 		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
-		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
 	}
 }
 
@@ -420,7 +415,6 @@ void Wiimote::GetAccelData(u8* const data)
 	{
 		EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
 		EmulateShake(&m_accel, m_shake, m_shake_step);
-		UDPTLayer::GetAcceleration(m_udp, &m_accel);
 	}
 
 	FillRawAccelFromGForceData(*(wm_accel*)data, *(accel_cal*)&m_eeprom[0x16], m_accel);
@@ -476,7 +470,6 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		LowPassFilter(ir_cos,ncos,1.0f/60);
 
 		m_ir->GetState(&xx, &yy, &zz, true);
-		UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
 
 		Vertex v[4];
 

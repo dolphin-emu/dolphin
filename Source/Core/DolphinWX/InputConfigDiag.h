@@ -29,7 +29,6 @@
 #include "InputCommon/ControllerInterface/Device.h"
 
 class InputPlugin;
-class UDPWrapper;
 class wxComboBox;
 class wxCommandEvent;
 class wxEvent;
@@ -147,16 +146,6 @@ public:
 	ControllerInterface::ControlReference* const control_reference;
 };
 
-class UDPConfigButton : public wxButton
-{
-public:
-	UDPWrapper* const wrapper;
-	UDPConfigButton(wxWindow* const parent, UDPWrapper * udp)
-		: wxButton(parent, -1, _("Configure"), wxDefaultPosition)
-		, wrapper(udp)
-	{}
-};
-
 class ControlGroupBox : public wxBoxSizer
 {
 public:
@@ -199,8 +188,6 @@ public:
 	void DetectControl(wxCommandEvent& event);
 
 	void ConfigExtension(wxCommandEvent& event);
-
-	void ConfigUDPWii(wxCommandEvent& event);
 
 	void SetDevice(wxCommandEvent& event);
 

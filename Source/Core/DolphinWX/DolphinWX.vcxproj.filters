@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="GUI">
@@ -152,9 +152,6 @@
     <ClCompile Include="TASInputDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="UDPConfigDiag.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="WiimoteConfigDiag.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -278,9 +275,6 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="TASInputDlg.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="UDPConfigDiag.h">
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="WiimoteConfigDiag.h">

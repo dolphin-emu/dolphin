@@ -89,7 +89,6 @@ if(wxWidgets_FOUND)
 				PHackSettings.cpp
 				PatchAddEdit.cpp
 				TASInputDlg.cpp
-				UDPConfigDiag.cpp
 				VideoConfigDiag.cpp
 				WXInputBase.cpp
 				WiimoteConfigDiag.cpp

@@ -4,9 +4,6 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 
-#include "InputCommon/UDPWiimote.h"
-#include "InputCommon/UDPWrapper.h"
-
 namespace WiimoteEmu
 {
 
@@ -31,8 +28,7 @@ static const u8 nunchuk_button_bitmasks[] =
 	Nunchuk::BUTTON_Z,
 };
 
-Nunchuk::Nunchuk(UDPWrapper *wrp, WiimoteEmu::ExtensionReg& _reg)
-	: Attachment(_trans("Nunchuk"), _reg) , m_udpWrap(wrp)
+Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"), _reg)
 {
 	// buttons
 	groups.emplace_back(m_buttons = new Buttons("Buttons"));
@@ -123,35 +119,6 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 
 	// flip the button bits :/
 	ncdata->bt ^= 0x03;
-
-	if (m_udpWrap->inst)
-	{
-		if (m_udpWrap->updNun)
-		{
-			u8 mask;
-			float x, y;
-			m_udpWrap->inst->getNunchuck(&x, &y, &mask);
-			// buttons
-			if (mask & UDPWM_NC)
-				ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_C;
-			if (mask & UDPWM_NZ)
-				ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_Z;
-			// stick
-			if (ncdata->jx == 0x80 && ncdata->jy == 0x80)
-			{
-				ncdata->jx = u8(0x80 + x*127);
-				ncdata->jy = u8(0x80 + y*127);
-			}
-		}
-		if (m_udpWrap->updNunAccel)
-		{
-			float x, y, z;
-			m_udpWrap->inst->getNunchuckAccel(&x, &y, &z);
-			accel.x = x;
-			accel.y = y;
-			accel.z = z;
-		}
-	}
 
 	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, *(accel_cal*)&reg.calibration, accel);
 }
