@@ -308,6 +308,10 @@ HRESULT Create(HWND wnd)
 		SAFE_RELEASE(swapchain);
 		return E_FAIL;
 	}
+
+	hr = factory->MakeWindowAssociation(wnd, DXGI_MWA_NO_WINDOW_CHANGES);
+	if (FAILED(hr)) MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+
 	SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
 	SAFE_RELEASE(factory);
 	SAFE_RELEASE(output);
