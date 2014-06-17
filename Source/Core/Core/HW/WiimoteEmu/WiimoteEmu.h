@@ -12,7 +12,6 @@
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "InputCommon/ControllerEmu.h"
-#include "InputCommon/UDPWrapper.h"
 
 // Registry sizes
 #define WIIMOTE_EEPROM_SIZE       (16*1024)
@@ -174,8 +173,6 @@ private:
 	const u8       m_index;
 
 	double ir_sin, ir_cos; //for the low pass filter
-
-	UDPWrapper* m_udp;
 
 	bool m_rumble_on;
 	bool m_speaker_mute;
