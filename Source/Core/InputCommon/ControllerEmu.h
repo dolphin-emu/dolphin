@@ -121,6 +121,7 @@ public:
 	class AnalogStick : public ControlGroup
 	{
 	public:
+		AnalogStick(const char* const _name);
 
 		template <typename C>
 		void GetState(C* const x, C* const y, const unsigned int base, const unsigned int range)
@@ -178,9 +179,6 @@ public:
 			*y = C(yy * range + base);
 			*x = C(xx * range + base);
 		}
-
-		AnalogStick(const char* const _name);
-
 	};
 
 	class Buttons : public ControlGroup
@@ -205,6 +203,7 @@ public:
 	class MixedTriggers : public ControlGroup
 	{
 	public:
+		MixedTriggers(const std::string& _name);
 
 		template <typename C, typename S>
 		void GetState(C* const digital, const C* bitmasks, S* analog, const unsigned int range)
@@ -223,14 +222,12 @@ public:
 				}
 			}
 		}
-
-		MixedTriggers(const std::string& _name);
-
 	};
 
 	class Triggers : public ControlGroup
 	{
 	public:
+		Triggers(const std::string& _name);
 
 		template <typename S>
 		void GetState(S* analog, const unsigned int range)
@@ -240,14 +237,12 @@ public:
 			for (unsigned int i=0; i<trig_count; ++i,++analog)
 				*analog = S(std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone) * range);
 		}
-
-		Triggers(const std::string& _name);
-
 	};
 
 	class Slider : public ControlGroup
 	{
 	public:
+		Slider(const std::string& _name);
 
 		template <typename S>
 		void GetState(S* const slider, const unsigned int range, const unsigned int base = 0)
@@ -260,9 +255,6 @@ public:
 			else
 				*slider = 0;
 		}
-
-		Slider(const std::string& _name);
-
 	};
 
 	class Force : public ControlGroup
