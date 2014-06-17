@@ -78,7 +78,6 @@ void SetFakeTBStartTicks(u64 val);
 
 void ForceExceptionCheck(int cycles);
 
-extern int downcount;
 extern int slicelength;
 
 }; // end of namespace
