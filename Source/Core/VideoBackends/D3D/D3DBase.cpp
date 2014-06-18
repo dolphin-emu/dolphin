@@ -266,16 +266,21 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.SampleDesc.Quality = 0;
 	swap_chain_desc.Windowed = TRUE;
 
+	DXGI_OUTPUT_DESC out_desc;
+	memset(&out_desc, 0, sizeof(out_desc));
+	output->GetDesc(&out_desc);
+
 	DXGI_MODE_DESC mode_desc;
 	memset(&mode_desc, 0, sizeof(mode_desc));
-	mode_desc.Width = xres;
-	mode_desc.Height = yres;
+	mode_desc.Width = out_desc.DesktopCoordinates.right - out_desc.DesktopCoordinates.left;
+	mode_desc.Height = out_desc.DesktopCoordinates.bottom - out_desc.DesktopCoordinates.top;
 	mode_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	mode_desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	hr = output->FindClosestMatchingMode(&mode_desc, &swap_chain_desc.BufferDesc, nullptr);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to find a supported video mode"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 
-	// forcing buffer resolution to xres and yres.. TODO: The new video mode might not actually be supported!
+	// forcing buffer resolution to xres and yres..
+	// this is not a problem as long as we're in windowed mode
 	swap_chain_desc.BufferDesc.Width = xres;
 	swap_chain_desc.BufferDesc.Height = yres;
 
