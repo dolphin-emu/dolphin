@@ -303,7 +303,7 @@ void DTKStreamingCallback(u64 userdata, int cyclesLate)
 	static const int NUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
 	short tempPCM[NUM_SAMPLES * 2];
 	unsigned samples_processed;
-	if (AudioInterface::IsAISPlaying())
+	if (g_bStream)
 	{
 		samples_processed = ProcessDTKSamples(tempPCM, NUM_SAMPLES);
 	}
@@ -314,27 +314,8 @@ void DTKStreamingCallback(u64 userdata, int cyclesLate)
 	}
 	soundStream->GetMixer()->PushStreamingSamples(tempPCM, samples_processed);
 
-	// If we reached the end of the audio, stop.
-	if (!g_bStream)
-		return;
-
 	int ticks_to_dtk = int(SystemTimers::GetTicksPerSecond() * u64(samples_processed) / 48000);
 	CoreTiming::ScheduleEvent(ticks_to_dtk - cyclesLate, dtk);
-}
-
-void StartDTKStreaming()
-{
-	// We wait 100ms before we actually start streaming to try to simulate
-	// seek time.  Not completely accurate, but better than starting the
-	// stream instantly.
-	g_bStream = true;
-	CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond() / 10, dtk);
-}
-
-void StopDTKStreaming()
-{
-	g_bStream = false;
-	CoreTiming::RemoveAllEvents(dtk);
 }
 
 void Init()
@@ -364,6 +345,8 @@ void Init()
 
 	tc = CoreTiming::RegisterEvent("TransferComplete", TransferComplete);
 	dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
+
+	CoreTiming::ScheduleEvent(0, dtk);
 }
 
 void Shutdown()
@@ -955,11 +938,11 @@ void ExecuteCommand()
 				CurrentStart = pos;
 				CurrentLength = length;
 				NGCADPCM::InitFilter();
-				StartDTKStreaming();
 			}
 
 			LoopStart = pos;
 			LoopLength = length;
+			g_bStream = (m_DICMDBUF[0].CMDBYTE1 == 0); // This command can start/stop the stream
 
 			// Stop stream
 			if (m_DICMDBUF[0].CMDBYTE1 == 1)
@@ -969,8 +952,6 @@ void ExecuteCommand()
 				LoopLength = 0;
 				CurrentStart = 0;
 				CurrentLength = 0;
-				if (g_bStream)
-					StopDTKStreaming();
 			}
 
 			WARN_LOG(DVDINTERFACE, "(Audio) Stream subcmd = %08x offset = %08x length=%08x",
@@ -1020,11 +1001,13 @@ void ExecuteCommand()
 		if (m_DICMDBUF[0].CMDBYTE1 == 1)
 		{
 			// TODO: What is this actually supposed to do?
+			g_bStream = true;
 			WARN_LOG(DVDINTERFACE, "(Audio): Audio enabled");
 		}
 		else
 		{
 			// TODO: What is this actually supposed to do?
+			g_bStream = false;
 			WARN_LOG(DVDINTERFACE, "(Audio): Audio disabled");
 		}
 		break;

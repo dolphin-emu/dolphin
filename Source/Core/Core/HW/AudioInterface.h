@@ -27,6 +27,4 @@ unsigned int GetAIDSampleRate();
 
 void GenerateAISInterrupt();
 
-bool IsAISPlaying();
-
 }  // namespace
