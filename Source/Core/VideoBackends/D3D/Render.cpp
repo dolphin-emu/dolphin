@@ -42,6 +42,8 @@ static u32 s_LastAA = 0;
 
 static Television s_television;
 
+static bool s_LastFS = false;
+
 ID3D11Buffer* access_efb_cbuf = nullptr;
 ID3D11BlendState* clearblendstates[4] = {nullptr};
 ID3D11DepthStencilState* cleardepthstates[3] = {nullptr};
@@ -936,6 +938,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	SetWindowSize(fbWidth, fbHeight);
 
 	const bool windowResized = CheckForResize();
+	const bool fullscreen = g_ActiveConfig.bFullscreen;
+	const bool fsChanged = s_LastFS != fullscreen;
 
 	bool xfbchanged = false;
 
@@ -954,13 +958,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// resize the back buffers NOW to avoid flickering
 	if (xfbchanged ||
 		windowResized ||
+		fsChanged ||
 		s_LastEFBScale != g_ActiveConfig.iEFBScale ||
 		s_LastAA != g_ActiveConfig.iMultisampleMode)
 	{
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
+		s_LastFS = g_ActiveConfig.bFullscreen;
 		PixelShaderCache::InvalidateMSAAShaders();
 
-		if (windowResized)
+		if (windowResized || fsChanged)
 		{
 			// TODO: Aren't we still holding a reference to the back buffer right now?
 			D3D::Reset();

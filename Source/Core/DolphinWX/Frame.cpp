@@ -1206,6 +1206,8 @@ void CFrame::DoFullscreen(bool bF)
 	{
 		m_RenderFrame->Raise();
 	}
+
+	g_Config.bFullscreen = bF;
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const
