@@ -24,15 +24,12 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 	: m_pBannerFile(nullptr)
 	, m_IsValid(false)
 {
-	char Filename[260];
 	u64 TitleID;
-
 	pVolume->GetTitleID((u8*)&TitleID);
-
 	TitleID = Common::swap64(TitleID);
 
-	sprintf(Filename, "%stitle/%08x/%08x/data/banner.bin",
-		    File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
+	std::string Filename = StringFromFormat("%stitle/%08x/%08x/data/banner.bin",
+		File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 
 	if (!File::Exists(Filename))
 	{
@@ -40,26 +37,26 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 		//           from the savefiles is very different from the banner.bin
 		//           inside opening.bnr
 #if 0
-		char bnrFilename[260], titleFolder[260];
-
 		// Creating title folder
-		sprintf(titleFolder, "%stitle/%08x/%08x/data/",
+		std::string titleFolder = StringFromFormat("%stitle/%08x/%08x/data/",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 		if (!File::Exists(titleFolder))
 			File::CreateFullPath(titleFolder);
 
 		// Extracting banner.bin from opening.bnr
-		sprintf(bnrFilename, "%stitle/%08x/%08x/data/opening.bnr",
+		std::string bnrFilename = StringFromFormat("%stitle/%08x/%08x/data/opening.bnr",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 
-		if (!_rFileSystem.ExportFile("opening.bnr", bnrFilename)) {
+		if (!_rFileSystem.ExportFile("opening.bnr", bnrFilename))
+		{
 			m_IsValid = false;
 			return;
 		}
 
 		CARCFile bnrArc (bnrFilename, 0x600);
 
-		if (!bnrArc.ExportFile("meta/banner.bin", Filename)) {
+		if (!bnrArc.ExportFile("meta/banner.bin", Filename))
+		{
 			m_IsValid = false;
 			return;
 		}

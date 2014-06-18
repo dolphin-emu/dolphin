@@ -2,8 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
 #include <vector>
 
+#include "Common/StringUtil.h"
 #include "Core/NetPlayServer.h"
 
 NetPlayServer::~NetPlayServer()
@@ -686,15 +688,12 @@ bool NetPlayServer::initUPnP()
 // Attempt to portforward!
 bool NetPlayServer::UPnPMapPort(const std::string& addr, const u16 port)
 {
-	char port_str[6] = { 0 };
-	int result;
-
 	if (m_upnp_mapped > 0)
 		UPnPUnmapPort(m_upnp_mapped);
 
-	sprintf(port_str, "%d", port);
-	result = UPNP_AddPortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype,
-	                             port_str, port_str, addr.c_str(),
+	std::string port_str = StringFromFormat("%d", port);
+	int result = UPNP_AddPortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype,
+	                             port_str.c_str(), port_str.c_str(), addr.c_str(),
 	                             (std::string("dolphin-emu TCP on ") + addr).c_str(),
 	                             "TCP", nullptr, nullptr);
 
@@ -716,11 +715,9 @@ bool NetPlayServer::UPnPMapPort(const std::string& addr, const u16 port)
 // --
 bool NetPlayServer::UPnPUnmapPort(const u16 port)
 {
-	char port_str[6] = { 0 };
-
-	sprintf(port_str, "%d", port);
+	std::string port_str = StringFromFormat("%d", port);
 	UPNP_DeletePortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype,
-	                       port_str, "TCP", nullptr);
+	                       port_str.c_str(), "TCP", nullptr);
 
 	return true;
 }

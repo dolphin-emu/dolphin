@@ -113,6 +113,6 @@ private:
 	static size_t m_currentItem;
 	static std::string m_currentFilename;
 	static size_t m_numberItem;
-	static void CompressCB(const char* text, float percent, void* arg);
-	static void MultiCompressCB(const char* text, float percent, void* arg);
+	static void CompressCB(const std::string& text, float percent, void* arg);
+	static void MultiCompressCB(const std::string& text, float percent, void* arg);
 };

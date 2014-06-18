@@ -108,15 +108,18 @@ void InitBackendInfo()
 		// TODO: These don't get updated on adapter change, yet
 		if (adapter_index == g_Config.iAdapter)
 		{
-			char buf[32];
-			std::vector<DXGI_SAMPLE_DESC> modes;
-			modes = DX11::D3D::EnumAAModes(ad);
+			std::string samples;
+			std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
-				if (i == 0) sprintf_s(buf, 32, _trans("None"));
-				else if (modes[i].Quality) sprintf_s(buf, 32, _trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
-				else sprintf_s(buf, 32, _trans("%d samples"), modes[i].Count);
-				g_Config.backend_info.AAModes.push_back(buf);
+				if (i == 0)
+					samples = _trans("None");
+				else if (modes[i].Quality)
+					samples = StringFromFormat(_trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
+				else
+					samples = StringFromFormat(_trans("%d samples"), modes[i].Count);
+
+				g_Config.backend_info.AAModes.push_back(samples);
 			}
 
 			// Requires the earlydepthstencil attribute (only available in shader model 5)
