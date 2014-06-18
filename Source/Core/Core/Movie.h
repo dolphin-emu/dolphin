@@ -64,6 +64,7 @@ extern u64 g_currentByte, g_totalBytes;
 extern u64 g_currentFrame, g_totalFrames;
 extern u64 g_currentLagCount, g_totalLagCount;
 extern u64 g_currentInputCount, g_totalInputCount;
+extern u64 g_currentTickCount, g_totalTickCount, g_tickCountAtLastInput;
 extern std::string g_discChange;
 
 extern u32 g_rerecords;
@@ -116,7 +117,8 @@ struct DTMHeader
 	u8 revision[20];        // Git hash
 	u32 DSPiromHash;
 	u32 DSPcoefHash;
-	u8 reserved2[19];       // Make heading 256 bytes, just because we can
+	u64 tickCount;	        // Number of ticks in the recording
+	u8 reserved2[11];       // Make heading 256 bytes, just because we can
 };
 static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
 

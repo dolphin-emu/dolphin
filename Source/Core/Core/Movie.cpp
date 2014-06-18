@@ -13,6 +13,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
@@ -54,6 +55,7 @@ u64 g_currentByte = 0, g_totalBytes = 0;
 u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
+u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
 bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
 bool bMemcard = false, g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
@@ -176,6 +178,7 @@ void Init()
 		GetSettings();
 		std::thread md5thread(GetMD5);
 		md5thread.detach();
+		g_tickCountAtLastInput = 0;
 	}
 
 	g_frameSkipCounter = g_framesToSkip;
@@ -201,7 +204,11 @@ void InputUpdate()
 {
 	g_currentInputCount++;
 	if (IsRecordingInput())
+	{
 		g_totalInputCount = g_currentInputCount;
+		g_totalTickCount += CoreTiming::GetTicks() - g_tickCountAtLastInput;
+		g_tickCountAtLastInput = CoreTiming::GetTicks();
+	}
 
 	if (IsPlayingInput() && g_currentInputCount == (g_totalInputCount -1) && SConfig::GetInstance().m_PauseMovie)
 		Core::SetState(Core::CORE_PAUSE);
@@ -421,6 +428,7 @@ bool BeginRecordingInput(int controllers)
 	g_currentFrame = g_totalFrames = 0;
 	g_currentLagCount = g_totalLagCount = 0;
 	g_currentInputCount = g_totalInputCount = 0;
+	g_totalTickCount = g_tickCountAtLastInput = 0;
 	if (NetPlay::IsNetPlayRunning())
 	{
 		bNetPlay = true;
@@ -745,6 +753,7 @@ bool PlayInput(const std::string& filename)
 	g_totalFrames = tmpHeader.frameCount;
 	g_totalLagCount = tmpHeader.lagCount;
 	g_totalInputCount = tmpHeader.inputCount;
+	g_totalTickCount = tmpHeader.tickCount;
 	g_currentFrame = 0;
 	g_currentLagCount = 0;
 	g_currentInputCount = 0;
@@ -786,6 +795,7 @@ void DoState(PointerWrap &p)
 	p.Do(g_currentLagCount);
 	p.Do(g_currentInputCount);
 	p.Do(g_bPolled);
+	p.Do(g_tickCountAtLastInput);
 	// other variables (such as g_totalBytes and g_totalFrames) are set in LoadInput
 }
 
@@ -834,6 +844,7 @@ void LoadInput(const std::string& filename)
 		g_totalFrames = tmpHeader.frameCount;
 		g_totalLagCount = tmpHeader.lagCount;
 		g_totalInputCount = tmpHeader.inputCount;
+		g_totalTickCount = tmpHeader.tickCount;
 
 		EnsureTmpInputSize((size_t)totalSavedBytes);
 		g_totalBytes = totalSavedBytes;
@@ -1143,6 +1154,7 @@ void SaveRecording(const std::string& filename)
 	memcpy(header.revision, revision, ArraySize(header.revision));
 	header.DSPiromHash = DSPiromHash;
 	header.DSPcoefHash = DSPcoefHash;
+	header.tickCount = g_totalTickCount;
 
 	// TODO
 	header.uniqueID = 0;
@@ -1276,7 +1288,7 @@ void GetMD5()
 
 void Shutdown()
 {
-	g_currentInputCount = g_totalInputCount = g_totalFrames = g_totalBytes = 0;
+	g_currentInputCount = g_totalInputCount = g_totalFrames = g_totalBytes = g_tickCountAtLastInput = 0;
 	delete [] tmpInput;
 	tmpInput = nullptr;
 	tmpInputAllocated = 0;
