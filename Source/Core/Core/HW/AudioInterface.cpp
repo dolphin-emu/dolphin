@@ -56,6 +56,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 #include "Core/CoreTiming.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
+#include "Core/HW/DVDInterface.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
@@ -202,6 +203,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				m_Control.PSTAT = tmpAICtrl.PSTAT;
 				g_LastCPUTime = CoreTiming::GetTicks();
 
+				// Tell Drive Interface to start/stop streaming
+				DVDInterface::g_bStream = tmpAICtrl.PSTAT;
+
 				CoreTiming::RemoveEvent(et_AI);
 				CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2), et_AI);
 			}
@@ -304,11 +308,6 @@ u64 GetAIPeriod()
 	if (period == 0)
 		period = 32000 * g_CPUCyclesPerSample;
 	return period;
-}
-
-bool IsAISPlaying()
-{
-	return m_Control.PSTAT;
 }
 
 } // end of namespace AudioInterface
