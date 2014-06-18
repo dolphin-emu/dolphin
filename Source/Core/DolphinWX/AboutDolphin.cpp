@@ -32,7 +32,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 			wxBitmap(iDolphinLogo));
 
 	const wxString Text = wxString::Format(_("Dolphin %s\n"
-				"Copyright (c) 2003-2013+ Dolphin Team\n"
+				"Copyright (c) 2003-2014+ Dolphin Team\n"
 				"\n"
 				"Branch: %s\n"
 				"Revision: %s\n"
@@ -43,7 +43,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 				"Today Dolphin is an open source project with many\n"
 				"contributors, too many to list.\n"
 				"If interested, just go check out the project page at\n"
-				"http://code.google.com/p/dolphin-emu/ .\n"
+				"https://github.com/dolphin-emu/dolphin/ .\n"
 				"\n"
 				"Special thanks to Bushing, Costis, CrowTRobo,\n"
 				"Marcan, Segher, Titanik, or9 and Hotquik for their\n"
