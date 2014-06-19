@@ -253,7 +253,8 @@ static void CpuThread()
 	}
 
 	#if _M_X86_64 || _M_ARM_32
-	if (_CoreParameter.bFastmem)
+	// No need to install the segfault handler when using the interpreter backend.
+	if (_CoreParameter.bFastmem && _CoreParameter.iCPUCore != CPU_INTERPRETER)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
 
