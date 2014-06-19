@@ -2,16 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <chrono>
 #include <cinttypes>
 #include <ctime>
 #include <string>
 
 #ifdef _WIN32
 #include <mmsystem.h>
-#include <sys/timeb.h>
 #include <windows.h>
-#else
-#include <sys/time.h>
 #endif
 
 #include "Common/CommonTypes.h"
@@ -23,13 +21,8 @@ namespace Common
 
 u32 Timer::GetTimeMs()
 {
-#ifdef _WIN32
-	return timeGetTime();
-#else
-	struct timeval t;
-	(void)gettimeofday(&t, nullptr);
-	return ((u32)(t.tv_sec * 1000 + t.tv_usec / 1000));
-#endif
+	return std::chrono::duration_cast<std::chrono::duration<u32, std::milli>>(
+	       std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
 // --------------------------------------------
@@ -87,10 +80,12 @@ u64 Timer::GetTimeElapsed()
 {
 	// If we have not started yet, return 1 (because then I don't
 	// have to change the FPS calculation in CoreRerecording.cpp .
-	if (m_StartTime == 0) return 1;
+	if (m_StartTime == 0)
+		return 1;
 
 	// Return the final timer time if the timer is stopped
-	if (!m_Running) return (m_LastTime - m_StartTime);
+	if (!m_Running)
+		return (m_LastTime - m_StartTime);
 
 	return (GetTimeMs() - m_StartTime);
 }
@@ -139,17 +134,17 @@ void Timer::RestoreResolution()
 // Get the number of seconds since January 1 1970
 u64 Timer::GetTimeSinceJan1970()
 {
-	time_t ltime;
-	time(&ltime);
-	return((u64)ltime);
+	return std::chrono::duration_cast<std::chrono::seconds>(
+	       std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 }
 
 u64 Timer::GetLocalTimeSinceJan1970()
 {
-	time_t sysTime, tzDiff, tzDST;
-	struct tm * gmTime;
+	time_t tzDiff, tzDST;
+	struct tm* gmTime;
 
-	time(&sysTime);
+	auto now = std::chrono::system_clock::now();
+	time_t sysTime = std::chrono::system_clock::to_time_t(now);
 
 	// Account for DST where needed
 	gmTime = localtime(&sysTime);
@@ -169,37 +164,25 @@ u64 Timer::GetLocalTimeSinceJan1970()
 // in the form 00:00:000.
 std::string Timer::GetTimeFormatted()
 {
-	time_t sysTime;
-	time(&sysTime);
+	auto nowOld = std::chrono::system_clock::now();
+	time_t sysTime = std::chrono::system_clock::to_time_t(nowOld);
+	struct tm* gmTime = localtime(&sysTime);
 
-	struct tm * gmTime = localtime(&sysTime);
-
-	char tmp[13];
-	strftime(tmp, 6, "%M:%S", gmTime);
+	std::string tmp = StringFromFormat("%02d:%02d", gmTime->tm_min, gmTime->tm_sec);
 
 	// Now tack on the milliseconds
-#ifdef _WIN32
-	struct timeb tp;
-	(void)::ftime(&tp);
-	return StringFromFormat("%s:%03i", tmp, tp.millitm);
-#else
-	struct timeval t;
-	(void)gettimeofday(&t, nullptr);
-	return StringFromFormat("%s:%03d", tmp, (int)(t.tv_usec / 1000));
-#endif
+	int millis = std::chrono::duration_cast<std::chrono::duration<int, std::milli>>(
+		std::chrono::system_clock::now().time_since_epoch()).count();
+
+	return StringFromFormat("%s:%03d", tmp.c_str(), millis);
 }
 
 // Returns a timestamp with decimals for precise time comparisons
 // ----------------
 double Timer::GetDoubleTime()
 {
-#ifdef _WIN32
-	struct timeb tp;
-	(void)::ftime(&tp);
-#else
-	struct timeval t;
-	(void)gettimeofday(&t, nullptr);
-#endif
+	auto time = std::chrono::high_resolution_clock::now().time_since_epoch();
+
 	// Get continuous timestamp
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();
 
@@ -207,18 +190,13 @@ double Timer::GetDoubleTime()
 	// sure that we are detecting actual actions, perhaps 60 seconds is
 	// enough really, but I leave a year of seconds anyway, in case the
 	// user's clock is incorrect or something like that.
-	TmpSeconds = TmpSeconds - (38 * 365 * 24 * 60 * 60);
+	TmpSeconds -= (38 * 365 * 24 * 60 * 60);
 
 	// Make a smaller integer that fits in the double
 	u32 Seconds = (u32)TmpSeconds;
-#ifdef _WIN32
-	double ms = tp.millitm / 1000.0 / 1000.0;
-#else
-	double ms = t.tv_usec / 1000000.0;
-#endif
-	double TmpTime = Seconds + ms;
 
-	return TmpTime;
+	double ms = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(time).count();
+	return Seconds + ms;
 }
 
 } // Namespace Common
