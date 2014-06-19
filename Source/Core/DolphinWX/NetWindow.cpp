@@ -355,6 +355,12 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	// player list
 	if (is_hosting)
 	{
+		m_player_lbox->Bind(wxEVT_LISTBOX, &NetPlayDiag::OnPlayerSelect, this);
+		m_kick_btn = new wxButton(panel, wxID_ANY, _("Kick Player"));
+		m_kick_btn->Bind(wxEVT_BUTTON, &NetPlayDiag::OnKick, this);
+		player_szr->Add(m_kick_btn, 0, wxEXPAND | wxTOP, 5);
+		m_kick_btn->Disable();
+
 		wxButton* const player_config_btn = new wxButton(panel, wxID_ANY, _("Configure Pads"));
 		player_config_btn->Bind(wxEVT_BUTTON, &NetPlayDiag::OnConfigPads, this);
 		player_szr->Add(player_config_btn, 0, wxEXPAND | wxTOP, 5);
@@ -633,6 +639,27 @@ void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 	pmd.ShowModal();
 	netplay_server->SetPadMapping(mapping);
 	netplay_server->SetWiimoteMapping(wiimotemapping);
+}
+
+void NetPlayDiag::OnKick(wxCommandEvent&)
+{
+	wxString selection = m_player_lbox->GetStringSelection();
+	unsigned long player = 0;
+	selection.Mid(selection.find_last_of("[") + 1, selection.find_last_of("]")).ToULong(&player);
+
+	netplay_server->KickPlayer((u8)player);
+
+	m_player_lbox->SetSelection(wxNOT_FOUND);
+	wxCommandEvent event;
+	OnPlayerSelect(event);
+}
+
+void NetPlayDiag::OnPlayerSelect(wxCommandEvent&)
+{
+	if (m_player_lbox->GetSelection() > 0)
+		m_kick_btn->Enable();
+	else
+		m_kick_btn->Disable();
 }
 
 bool NetPlayDiag::IsRecording()

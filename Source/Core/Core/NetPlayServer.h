@@ -41,6 +41,8 @@ public:
 
 	void AdjustPadBufferSize(unsigned int size);
 
+	void KickPlayer(u8 player);
+
 	bool is_connected;
 
 #ifdef USE_UPNP
