@@ -245,23 +245,26 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
 
-	// FIXME
-	FallBackToInterpreter(inst);
-	return;
+	if (Core::g_CoreStartupParameter.bDCBZOFF)
+		return;
+
+	if (Core::g_CoreStartupParameter.bMMU ||
+	    Core::g_CoreStartupParameter.bTLBHack)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
-	AND(32, R(EAX), Imm32(~31));
+
+	// Map from virtual to physical address, and round down to the nearest
+	// 32 bytes.
+	AND(32, R(EAX), Imm32(0x1FFFFFE0));
 	PXOR(XMM0, R(XMM0));
-#if _M_X86_64
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 0), XMM0);
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 16), XMM0);
-#else
-	AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-	MOVAPS(MDisp(EAX, (u32)Memory::base), XMM0);
-	MOVAPS(MDisp(EAX, (u32)Memory::base + 16), XMM0);
-#endif
 }
 
 void Jit64::stX(UGeckoInstruction inst)
