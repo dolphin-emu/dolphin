@@ -17,10 +17,167 @@
 #include "Core/PowerPC/JitArm32/JitFPRCache.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
+void JitArm::Helper_ClassifyDouble(ARMReg value, ARMReg classed)
+{
+	ARMReg fpscr = gpr.GetReg();
+	ARMReg fpscrBackup = gpr.GetReg();
+
+	// Grab our host fpscr register
+	VMRS(fpscr);
+	// Back it up
+	MOV(fpscrBackup, fpscr);
+
+	// Clear the trapping bits for IOE, DZE, OFE, UFE, IXE, IDE
+	// Also clear the cumulative exception bits
+	// Makes it easy by wiping the lower 16bits of the register
+	BFC(fpscr, 0, 16);
+
+	// Set the new FPSCR
+	VMSR(fpscr);
+
+	// Now let's classify that double!
+	ARMReg V0 = fpr.GetReg();
+	// Divide by itself to get all the exceptions possible
+	VDIV(V0, value, value);
+	fpr.Unlock(V0);
+
+	FixupBranch done1, done2, done3, done4, done5;
+
+	// Get fpscr so we can grab exception bits
+	VMRS(fpscr);
+	{
+		// Negative location is FPSCR[31]
+		Operand2 negative_location(2, 1);
+
+		// Zero location is FPSCR[30]
+		Operand2 zero_location(1, 1);
+
+		// Check if we are normalized
+		{
+			TST(fpscr, 0x40); // FPSCR[7](IDC) is 0 on normalized
+			FixupBranch notNormal = B_CC(CC_NEQ);
+				// Is normalized
+				// Are we positive or negative?
+				TST(fpscr, negative_location);
+				SetCC(CC_EQ); // Positive
+					MOV(classed, MathUtil::PPC_FPCLASS_PN);
+				SetCC(CC_NEQ); // Negative
+					MOV(classed, MathUtil::PPC_FPCLASS_NN);
+				SetCC();
+				done1 = B();
+			SetJumpTarget(notNormal);
+		}
+
+		// Check if we are a QNaN
+		{
+			TST(fpscr, 1); // FPSCR[0](IOC) is 1 on QNaN
+			FixupBranch notQNaN = B_CC(CC_EQ);
+				// Is QNaN
+				MOV(classed, MathUtil::PPC_FPCLASS_QNAN);
+				// Jump out
+				done2 = B();
+			SetJumpTarget(notQNaN);
+		}
+
+		// Check if we are denormalized
+		{
+			TST(fpscr, 0x40); // FPSCR[7](IDC) is 1 on denormal
+			FixupBranch notDenormal = B_CC(CC_EQ);
+				// Is denormal
+				// Are we positive or negative?
+				TST(fpscr, negative_location);
+				SetCC(CC_EQ); // Positive
+					MOV(classed, MathUtil::PPC_FPCLASS_PD);
+				SetCC(CC_NEQ); // Negative
+					MOV(classed, MathUtil::PPC_FPCLASS_ND);
+				SetCC();
+				done3 = B();
+			SetJumpTarget(notDenormal);
+		}
+
+		// Check if we are infinity
+		{
+			TST(fpscr, 2); // FPSCR[1](DZC) is 1 on Infinity
+			FixupBranch notInfinity = B_CC(CC_EQ);
+				// Is Infinity
+				// Are we positive or negative?
+				TST(fpscr, negative_location);
+				SetCC(CC_EQ); // Positive
+					MOV(classed, MathUtil::PPC_FPCLASS_PINF);
+				SetCC(CC_NEQ); // Negative
+					MOV(classed, MathUtil::PPC_FPCLASS_NINF);
+				SetCC();
+				done4 = B();
+			SetJumpTarget(notInfinity);
+		}
+
+		// Check if we are zero
+		{
+			TST(fpscr, zero_location); // FPSCR[30](Zero conditional) is 1 on Zero
+			FixupBranch notZero = B_CC(CC_EQ);
+				// Is Zero
+				// Are we positive or negative?
+				TST(fpscr, negative_location);
+				SetCC(CC_EQ); // Positive
+					MOV(classed, MathUtil::PPC_FPCLASS_PZ);
+				SetCC(CC_NEQ); // Negative
+					MOV(classed, MathUtil::PPC_FPCLASS_NZ);
+				SetCC();
+				done5 = B();
+			SetJumpTarget(notZero);
+		}
+	}
+
+	// If we hit nothing, we end up here
+	// Clear the register, no exceptions happened
+	EOR(classed, classed, classed);
+
+	// Exit jumps
+	SetJumpTarget(done1);
+	SetJumpTarget(done2);
+	SetJumpTarget(done3);
+	SetJumpTarget(done4);
+	SetJumpTarget(done5);
+
+	// Reset our host fpscr register
+	VMSR(fpscrBackup);
+
+	gpr.Unlock(fpscr, fpscrBackup);
+}
+
+void JitArm::Helper_UpdateFPRF(ARMReg value)
+{
+	if (!Core::g_CoreStartupParameter.bEnableFPRF)
+		return;
+
+	ARMReg classed = gpr.GetReg();
+	Helper_ClassifyDouble(value, classed);
+
+	ARMReg fpscrReg = gpr.GetReg();
+
+	LDR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+	BFI(fpscrReg, classed, 12, 5);
+	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+
+	gpr.Unlock(fpscrReg, classed);
+}
+
 void JitArm::Helper_UpdateCR1(ARMReg fpscr, ARMReg temp)
 {
 	UBFX(temp, fpscr, 28, 4);
 	STRB(temp, R9, PPCSTATE_OFF(cr_fast[1]));
+}
+
+void JitArm::Helper_UpdateCR1()
+{
+	ARMReg fpscrReg = gpr.GetReg();
+	ARMReg temp = gpr.GetReg();
+
+	LDR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+	UBFX(temp, fpscrReg, 28, 4);
+	STRB(temp, R9, PPCSTATE_OFF(cr_fast[1]));
+
+	gpr.Unlock(fpscrReg, temp);
 }
 
 void JitArm::fctiwx(UGeckoInstruction inst)
@@ -128,7 +285,6 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 	fpr.Unlock(V1);
 	fpr.Unlock(V2);
 }
-
 
 void JitArm::fctiwzx(UGeckoInstruction inst)
 {
@@ -345,16 +501,13 @@ void JitArm::fabsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VABS(vD, vB);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fnabsx(UGeckoInstruction inst)
@@ -362,17 +515,14 @@ void JitArm::fnabsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VABS(vD, vB);
 	VNEG(vD, vD);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fnegx(UGeckoInstruction inst)
@@ -380,28 +530,19 @@ void JitArm::fnegx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VNEG(vD, vB);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::faddsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
 
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
@@ -410,6 +551,9 @@ void JitArm::faddsx(UGeckoInstruction inst)
 
 	VADD(vD0, vA, vB);
 	VMOV(vD1, vD0);
+
+	Helper_UpdateFPRF(vD0);
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::faddx(UGeckoInstruction inst)
@@ -417,29 +561,20 @@ void JitArm::faddx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VADD(vD, vA, vB);
+
+	Helper_UpdateFPRF(vD);
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fsubsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
 
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
@@ -448,6 +583,9 @@ void JitArm::fsubsx(UGeckoInstruction inst)
 
 	VSUB(vD0, vA, vB);
 	VMOV(vD1, vD0);
+
+	Helper_UpdateFPRF(vD0);
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fsubx(UGeckoInstruction inst)
@@ -455,17 +593,14 @@ void JitArm::fsubx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VSUB(vD, vA, vB);
+
+	Helper_UpdateFPRF(vD);
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fmulsx(UGeckoInstruction inst)
@@ -509,16 +644,13 @@ void JitArm::fmrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VMOV(vD, vB);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fmaddsx(UGeckoInstruction inst)
@@ -557,12 +689,6 @@ void JitArm::fmaddx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
 	ARMReg vA0 = fpr.R0(a);
@@ -579,6 +705,9 @@ void JitArm::fmaddx(UGeckoInstruction inst)
 	VMOV(vD0, V0);
 
 	fpr.Unlock(V0);
+
+	Helper_UpdateFPRF(vD0);
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::fnmaddx(UGeckoInstruction inst)
@@ -587,12 +716,6 @@ void JitArm::fnmaddx(UGeckoInstruction inst)
 	JITDISABLE(bJITFloatingPointOff)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
 
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -608,19 +731,17 @@ void JitArm::fnmaddx(UGeckoInstruction inst)
 	VNEG(vD0, V0);
 
 	fpr.Unlock(V0);
+
+	Helper_UpdateFPRF(vD0);
+	if (inst.Rc) Helper_UpdateCR1();
 }
+
 void JitArm::fnmaddsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
 
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -638,6 +759,9 @@ void JitArm::fnmaddsx(UGeckoInstruction inst)
 	VNEG(vD1, V0);
 
 	fpr.Unlock(V0);
+
+	Helper_UpdateFPRF(vD0);
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 // XXX: Messes up Super Mario Sunshine title screen
@@ -676,12 +800,6 @@ void JitArm::fselx(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vC0 = fpr.R0(c);
@@ -696,6 +814,9 @@ void JitArm::fselx(UGeckoInstruction inst)
 	SetJumpTarget(GT0);
 	VMOV(vD0, vC0);
 	SetJumpTarget(EQ0);
+
+	// This is a binary instruction. Does not alter FPSCR
+	if (inst.Rc) Helper_UpdateCR1();
 }
 
 void JitArm::frsqrtex(UGeckoInstruction inst)
