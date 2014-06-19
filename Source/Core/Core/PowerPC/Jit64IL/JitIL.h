@@ -36,12 +36,6 @@
 #include "Core/PowerPC/JitILCommon/IR.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-#if _M_X86_64
-#define DISABLE64 \
-	{FallBackToInterpreter(inst); return;}
-#else
-#define DISABLE64
-#endif
 
 class JitIL : public JitILBase, public EmuCodeBlock
 {
@@ -82,11 +76,7 @@ public:
 	}
 
 	const char *GetName() override {
-#if _M_X86_64
 		return "JIT64IL";
-#else
-		return "JIT32IL";
-#endif
 	}
 
 	// Run!

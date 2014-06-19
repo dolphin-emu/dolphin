@@ -17,7 +17,7 @@
 void JitArm::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
@@ -51,8 +51,7 @@ void JitArm::mtspr(UGeckoInstruction inst)
 		break;
 
 	default:
-		FallBackToInterpreter(inst);
-		return;
+		FALLBACK_IF(true);
 	}
 
 	// OK, this is easy.
@@ -62,13 +61,13 @@ void JitArm::mtspr(UGeckoInstruction inst)
 void JitArm::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	mfspr(inst);
 }
 void JitArm::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	switch (iIndex)
@@ -77,8 +76,7 @@ void JitArm::mfspr(UGeckoInstruction inst)
 	case SPR_DEC:
 	case SPR_TL:
 	case SPR_TU:
-		FallBackToInterpreter(inst);
-		return;
+		FALLBACK_IF(true);
 	default:
 		ARMReg RD = gpr.R(inst.RD);
 		LDR(RD, R9, PPCSTATE_OFF(spr) + iIndex * 4);
@@ -89,7 +87,7 @@ void JitArm::mfspr(UGeckoInstruction inst)
 void JitArm::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	// USES_CR
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -109,7 +107,7 @@ void JitArm::mfcr(UGeckoInstruction inst)
 void JitArm::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	ARMReg rA = gpr.GetReg();
 
@@ -150,7 +148,7 @@ void JitArm::mtcrf(UGeckoInstruction inst)
 void JitArm::mtsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	STR(gpr.R(inst.RS), R9, PPCSTATE_OFF(sr[inst.SR]));
 }
@@ -158,14 +156,14 @@ void JitArm::mtsr(UGeckoInstruction inst)
 void JitArm::mfsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(sr[inst.SR]));
 }
 void JitArm::mcrxr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -186,7 +184,7 @@ void JitArm::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	// Don't interpret this, if we do we get thrown out
-	//JITDISABLE(bJITSystemRegistersOff)
+	//JITDISABLE(bJITSystemRegistersOff);
 
 	STR(gpr.R(inst.RS), R9, PPCSTATE_OFF(msr));
 
@@ -199,7 +197,7 @@ void JitArm::mtmsr(UGeckoInstruction inst)
 void JitArm::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(msr));
 }
@@ -207,7 +205,7 @@ void JitArm::mfmsr(UGeckoInstruction inst)
 void JitArm::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	ARMReg rA = gpr.GetReg();
 
 	if (inst.CRFS != inst.CRFD)
@@ -221,7 +219,7 @@ void JitArm::mcrf(UGeckoInstruction inst)
 void JitArm::crXXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();

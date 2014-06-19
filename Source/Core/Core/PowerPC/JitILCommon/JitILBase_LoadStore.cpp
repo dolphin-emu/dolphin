@@ -8,13 +8,8 @@
 void JitILBase::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA)
@@ -28,13 +23,8 @@ void JitILBase::lhax(UGeckoInstruction inst)
 void JitILBase::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
@@ -56,7 +46,7 @@ void JitILBase::lXz(UGeckoInstruction inst)
 void JitILBase::lbzu(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 	const IREmitter::InstLoc uAddress = ibuild.EmitAdd(ibuild.EmitLoadGReg(inst.RA), ibuild.EmitIntConst((int)inst.SIMM_16));
 	const IREmitter::InstLoc temp = ibuild.EmitLoad8(uAddress);
 	ibuild.EmitStoreGReg(temp, inst.RD);
@@ -66,13 +56,8 @@ void JitILBase::lbzu(UGeckoInstruction inst)
 void JitILBase::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
 
@@ -87,13 +72,8 @@ void JitILBase::lha(UGeckoInstruction inst)
 void JitILBase::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 
@@ -118,24 +98,19 @@ void JitILBase::lXzx(UGeckoInstruction inst)
 void JitILBase::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
 	// will be the same.
 	// dcbt = 0x7c00022c
-	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c);
 }
 
 // Zero cache line.
 void JitILBase::dcbz(UGeckoInstruction inst)
 {
-	FallBackToInterpreter(inst);
-	return;
+	FALLBACK_IF(true);
 
 	// TODO!
 #if 0
@@ -161,13 +136,8 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 void JitILBase::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	IREmitter::InstLoc value = ibuild.EmitLoadGReg(inst.RS);
@@ -189,13 +159,8 @@ void JitILBase::stX(UGeckoInstruction inst)
 void JitILBase::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	IREmitter::InstLoc value = ibuild.EmitLoadGReg(inst.RS);
@@ -218,13 +183,8 @@ void JitILBase::stXx(UGeckoInstruction inst)
 void JitILBase::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 
@@ -242,13 +202,8 @@ void JitILBase::lmw(UGeckoInstruction inst)
 void JitILBase::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-
-	if (js.memcheck)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 

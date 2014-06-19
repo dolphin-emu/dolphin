@@ -14,26 +14,14 @@
 void Jit64::lXXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	// Skip disabled JIT instructions
-	if (Core::g_CoreStartupParameter.bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87))
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-	if (Core::g_CoreStartupParameter.bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)))
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-	if (Core::g_CoreStartupParameter.bJITLoadStorelwzOff && (inst.OPCD == 32))
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(Core::g_CoreStartupParameter.bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
+	FALLBACK_IF(Core::g_CoreStartupParameter.bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
+	FALLBACK_IF(Core::g_CoreStartupParameter.bJITLoadStorelwzOff && (inst.OPCD == 32));
 
 	// Determine memory access size and sign extend
 	int accessSize = 0;
@@ -226,48 +214,37 @@ void Jit64::lXXx(UGeckoInstruction inst)
 void Jit64::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
 	// will be the same.
 	// dcbt = 0x7c00022c
-	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c);
 }
 
 // Zero cache line.
 void Jit64::dcbz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	// FIXME
-	FallBackToInterpreter(inst);
-	return;
+	FALLBACK_IF(true);
 
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
 	AND(32, R(EAX), Imm32(~31));
 	PXOR(XMM0, R(XMM0));
-#if _M_X86_64
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 0), XMM0);
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 16), XMM0);
-#else
-	AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-	MOVAPS(MDisp(EAX, (u32)Memory::base), XMM0);
-	MOVAPS(MDisp(EAX, (u32)Memory::base + 16), XMM0);
-#endif
 }
 
 void Jit64::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	int s = inst.RS;
 	int a = inst.RA;
@@ -343,13 +320,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			gpr.FlushLockX(ABI_PARAM1);
 			MOV(32, R(ABI_PARAM1), gpr.R(a));
 			MOV(32, R(EAX), gpr.R(s));
-#if _M_X86_64
 			SwapAndStore(accessSize, MComplex(RBX, ABI_PARAM1, SCALE_1, (u32)offset), EAX);
-#else
-			BSWAP(32, EAX);
-			AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
-			MOV(accessSize, MDisp(ABI_PARAM1, (u32)Memory::base + (u32)offset), R(EAX));
-#endif
 			if (update && offset)
 			{
 				gpr.Lock(a);
@@ -403,14 +374,11 @@ void Jit64::stX(UGeckoInstruction inst)
 void Jit64::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	int a = inst.RA, b = inst.RB, s = inst.RS;
-	if (!a || a == s || a == b)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(!a || a == s || a == b);
+
 	gpr.Lock(a, b, s);
 	gpr.FlushLockX(ECX, EDX);
 
@@ -445,9 +413,8 @@ void Jit64::stXx(UGeckoInstruction inst)
 void Jit64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
-#if _M_X86_64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
@@ -459,18 +426,13 @@ void Jit64::lmw(UGeckoInstruction inst)
 		MOV(32, gpr.R(i), R(ECX));
 	}
 	gpr.UnlockAllX();
-#else
-	FallBackToInterpreter(inst);
-	return;
-#endif
 }
 
 void Jit64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
-#if _M_X86_64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
@@ -481,10 +443,6 @@ void Jit64::stmw(UGeckoInstruction inst)
 		SwapAndStore(32, MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4), ECX);
 	}
 	gpr.UnlockAllX();
-#else
-	FallBackToInterpreter(inst);
-	return;
-#endif
 }
 
 void Jit64::icbi(UGeckoInstruction inst)
