@@ -538,15 +538,17 @@ void SetState(EState _State)
 
 EState GetState()
 {
+	if (g_bStopping)
+		return CORE_STOPPING;
+
 	if (g_bHwInit)
 	{
 		if (CCPU::IsStepping())
 			return CORE_PAUSE;
-		else if (g_bStopping)
-			return CORE_STOPPING;
 		else
 			return CORE_RUN;
 	}
+
 	return CORE_UNINITIALIZED;
 }
 
