@@ -186,6 +186,7 @@ private:
 	bool m_bTabSplit;
 	bool m_bNoDocking;
 	bool m_bGameLoading;
+	bool m_bClosing;
 
 	std::vector<std::string> drives;
 

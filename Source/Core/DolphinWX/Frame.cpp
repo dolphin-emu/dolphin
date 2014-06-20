@@ -352,7 +352,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
 	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bGameLoading(false)
+	, m_bGameLoading(false), m_bClosing(false)
 {
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
@@ -536,15 +536,18 @@ void CFrame::OnActive(wxActivateEvent& event)
 
 void CFrame::OnClose(wxCloseEvent& event)
 {
+	m_bClosing = true;
+
+	// Before closing the window we need to shut down the emulation core.
+	// We'll try to close this window again once that is done.
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		DoStop();
-		if (Core::GetState() != Core::CORE_UNINITIALIZED)
-			return;
-		UpdateGUI();
+		event.Veto();
+		return;
 	}
 
-	//Stop Dolphin from saving the minimized Xpos and Ypos
+	// Stop Dolphin from saving the minimized Xpos and Ypos
 	if (main_frame->IsIconized())
 		main_frame->Iconize(false);
 

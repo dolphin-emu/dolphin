@@ -832,9 +832,16 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnRenderParentClose(wxCloseEvent& event)
 {
-	DoStop();
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
-		event.Skip();
+	// Before closing the window we need to shut down the emulation core.
+	// We'll try to close this window again once that is done.
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		DoStop();
+		event.Veto();
+		return;
+	}
+
+	event.Skip();
 }
 
 void CFrame::OnRenderParentMove(wxMoveEvent& event)
@@ -1177,8 +1184,8 @@ void CFrame::OnStopped()
 	// Clear wiimote connection status from the status bar.
 	GetStatusBar()->SetStatusText(" ", 1);
 
-	// If batch mode was specified on the command-line, exit now.
-	if (m_bBatchMode)
+	// If batch mode was specified on the command-line or we were already closing, exit now.
+	if (m_bBatchMode || m_bClosing)
 		Close(true);
 
 	// If using auto size with render to main, reset the application size.
