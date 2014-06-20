@@ -425,6 +425,7 @@ CFrame::CFrame(wxFrame* parent,
 	Movie::SetInputManip(TASManipFunction);
 
 	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
+	Core::SetOnStoppedCallback(OnStoppedCallback);
 
 	// Setup perspectives
 	if (g_pCodeWindow)
@@ -692,6 +693,10 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case WM_USER_STOP:
 		DoStop();
 		break;
+
+	case IDM_STOPPED:
+		OnStopped();
+		break;
 	}
 }
 
@@ -900,6 +905,16 @@ void OnAfterLoadCallback()
 	if (main_frame)
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
+}
+
+void OnStoppedCallback()
+{
+	// warning: this gets called from the EmuThread, so we should only queue things to do on the proper thread
+	if (main_frame)
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_STOPPED);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 	}
 }

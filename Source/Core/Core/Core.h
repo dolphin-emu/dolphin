@@ -39,6 +39,7 @@ enum EState
 
 bool Init();
 void Stop();
+void Shutdown();
 
 std::string StopMessage(bool, std::string);
 
@@ -80,5 +81,9 @@ void UpdateTitle();
 // calls must be balanced (once with doLock true, then once with doLock false) but may be recursive.
 // the return value of the first call should be passed in as the second argument of the second call.
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
+
+// for calling back into UI code without introducing a dependency on it in core
+typedef void(*StoppedCallbackFunc)(void);
+void SetOnStoppedCallback(StoppedCallbackFunc callback);
 
 }  // namespace

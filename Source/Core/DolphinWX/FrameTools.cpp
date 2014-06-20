@@ -1120,72 +1120,77 @@ void CFrame::DoStop()
 
 		wxBeginBusyCursor();
 		BootManager::Stop();
-		wxEndBusyCursor();
-		confirmStop = false;
+	}
+}
+
+void CFrame::OnStopped()
+{
+	wxEndBusyCursor();
+
+	confirmStop = false;
 
 #if defined(HAVE_X11) && HAVE_X11
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
-		m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
+	m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
 
-		// Destroy the renderer frame when not rendering to main
-		m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
+	// Destroy the renderer frame when not rendering to main
+	m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 
-		// Keyboard
-		wxTheApp->Unbind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
-		wxTheApp->Unbind(wxEVT_KEY_UP, &CFrame::OnKeyUp, this);
+	// Keyboard
+	wxTheApp->Unbind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
+	wxTheApp->Unbind(wxEVT_KEY_UP, &CFrame::OnKeyUp, this);
 
-		// Mouse
-		wxTheApp->Unbind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
-		wxTheApp->Unbind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
-		wxTheApp->Unbind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
-		wxTheApp->Unbind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
-		wxTheApp->Unbind(wxEVT_MOTION, &CFrame::OnMouse, this);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxNullCursor);
-		DoFullscreen(false);
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-		{
-			m_RenderFrame->Destroy();
-		}
-		else
-		{
+	// Mouse
+	wxTheApp->Unbind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_MOTION, &CFrame::OnMouse, this);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		m_RenderParent->SetCursor(wxNullCursor);
+	DoFullscreen(false);
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	{
+		m_RenderFrame->Destroy();
+	}
+	else
+	{
 #if defined(__APPLE__)
-			// Disable the full screen button when not in a game.
-			NSView *view = (NSView *) m_RenderFrame->GetHandle();
-			NSWindow *window = [view window];
+		// Disable the full screen button when not in a game.
+		NSView *view = (NSView *)m_RenderFrame->GetHandle();
+		NSWindow *window = [view window];
 
-			[window setCollectionBehavior:NSWindowCollectionBehaviorDefault];
+		[window setCollectionBehavior : NSWindowCollectionBehaviorDefault];
 #endif
 
-			// Make sure the window is not longer set to stay on top
-			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
-		}
-		m_RenderParent = nullptr;
-
-		// Clean framerate indications from the status bar.
-		GetStatusBar()->SetStatusText(" ", 0);
-
-		// Clear wiimote connection status from the status bar.
-		GetStatusBar()->SetStatusText(" ", 1);
-
-		// If batch mode was specified on the command-line, exit now.
-		if (m_bBatchMode)
-			Close(true);
-
-		// If using auto size with render to main, reset the application size.
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize)
-			SetSize(SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth,
-					SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight);
-
-		m_GameListCtrl->Enable();
-		m_GameListCtrl->Show();
-		m_GameListCtrl->SetFocus();
-		UpdateGUI();
+		// Make sure the window is not longer set to stay on top
+		m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 	}
+	m_RenderParent = nullptr;
+
+	// Clean framerate indications from the status bar.
+	GetStatusBar()->SetStatusText(" ", 0);
+
+	// Clear wiimote connection status from the status bar.
+	GetStatusBar()->SetStatusText(" ", 1);
+
+	// If batch mode was specified on the command-line, exit now.
+	if (m_bBatchMode)
+		Close(true);
+
+	// If using auto size with render to main, reset the application size.
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize)
+		SetSize(SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth,
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight);
+
+	m_GameListCtrl->Enable();
+	m_GameListCtrl->Show();
+	m_GameListCtrl->SetFocus();
+	UpdateGUI();
 }
 
 void CFrame::DoRecordingSave()
