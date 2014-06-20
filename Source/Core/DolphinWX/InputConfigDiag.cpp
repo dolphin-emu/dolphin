@@ -512,8 +512,8 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 	{
 		btn->SetLabel(_("[ waiting ]"));
 
-		// apparently, this makes the "waiting" text work on Linux
-		wxTheApp->Yield();
+		// This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
+		wxTheApp->Yield(true);
 
 		std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 		Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
@@ -536,8 +536,8 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
 	{
 		btn->SetLabel(_("[ waiting ]"));
 
-		// apparently, this makes the "waiting" text work on Linux
-		wxTheApp->Yield();
+		// This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
+		wxTheApp->Yield(true);
 
 		std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 		Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);
