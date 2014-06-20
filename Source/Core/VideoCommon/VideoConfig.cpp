@@ -205,6 +205,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
 
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
+	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", fUnitsPerMetre, 100.0f / fUnitsPerMetre);
 
 	if (gfx_override_exists)
 		OSD::AddMessage("Warning: Opening the graphics configuration will reset settings and might cause issues!", 10000);

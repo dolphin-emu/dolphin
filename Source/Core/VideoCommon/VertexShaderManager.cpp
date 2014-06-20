@@ -560,7 +560,8 @@ void VertexShaderManager::SetProjectionConstants()
 			ERROR_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
 		}
 #endif
-		const float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre;
+		float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre;
+		NOTICE_LOG(VR, "%f Units Per Metre", UnitsPerMetre);
 		//VR Headtracking
 		UpdateHeadTrackingIfNeeded();
 		Matrix44 rotation_matrix;
@@ -593,6 +594,10 @@ void VertexShaderManager::SetProjectionConstants()
 			}
 		}
 
+		Matrix44 walk_matrix, look_matrix;
+		Matrix44::Translate(walk_matrix, s_fViewTranslationVector);
+		Matrix44::Multiply(rotation_matrix, walk_matrix, look_matrix); 
+
 		Matrix44 eye_pos_matrix_left, eye_pos_matrix_right;
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
@@ -609,8 +614,8 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44::Translate(eye_pos_matrix_right, posRight);
 
 		Matrix44 view_matrix_left, view_matrix_right;
-		Matrix44::Multiply(eye_pos_matrix_left, rotation_matrix, view_matrix_left);
-		Matrix44::Multiply(eye_pos_matrix_right, rotation_matrix, view_matrix_right);
+		Matrix44::Multiply(eye_pos_matrix_left, look_matrix, view_matrix_left);
+		Matrix44::Multiply(eye_pos_matrix_right, look_matrix, view_matrix_right);
 
 		Matrix44 final_matrix_left, final_matrix_right;
 		Matrix44::Multiply(proj_left, view_matrix_left, final_matrix_left);

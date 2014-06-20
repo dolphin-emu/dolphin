@@ -1036,6 +1036,22 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				break;
 			}
 		}
+		if (g_has_rift && event.GetModifiers() == wxMOD_SHIFT)
+		{
+			switch (event.GetKeyCode())
+			{
+			// Make everything 20% smaller (and closer)
+			case '-':
+				g_Config.fUnitsPerMetre *= 1.20f;
+				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
+				break;
+			// Make everything 20% bigger (and further)
+			case '=':
+				g_Config.fUnitsPerMetre /= 1.20f;
+				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
+				break;
+			}
+		}
 	}
 	else
 	{
