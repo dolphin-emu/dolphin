@@ -351,6 +351,9 @@ HRESULT Create(HWND wnd)
 
 void Close()
 {
+	// we can't release the swapchain while in fullscreen.
+	swapchain->SetFullscreenState(false, nullptr);
+
 	// release all bound resources
 	context->ClearState();
 	SAFE_RELEASE(backbuf);
