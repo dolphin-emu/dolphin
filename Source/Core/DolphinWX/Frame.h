@@ -123,6 +123,7 @@ public:
 	void InitBitmaps();
 	void DoPause();
 	void DoStop();
+	void OnStopped();
 	void DoRecordingSave();
 	void UpdateGUI();
 	void UpdateGameList();
@@ -353,6 +354,7 @@ private:
 int GetCmdForHotkey(unsigned int key);
 
 void OnAfterLoadCallback();
+void OnStoppedCallback();
 
 // For TASInputDlg
 void TASManipFunction(SPADStatus *PadStatus, int controllerID);

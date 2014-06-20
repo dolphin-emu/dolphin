@@ -37,6 +37,7 @@
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreParameter.h"
 #include "Core/Movie.h"
 #include "Core/HW/Wiimote.h"
@@ -455,6 +456,7 @@ int DolphinApp::OnExit()
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
+	Core::Shutdown();
 
 	delete m_locale;
 

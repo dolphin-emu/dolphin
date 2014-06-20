@@ -83,6 +83,7 @@ bool g_bStarted = false;
 void *g_pWindowHandle = nullptr;
 std::string g_stateFileName;
 std::thread g_EmuThread;
+static StoppedCallbackFunc s_onStoppedCb = nullptr;
 
 static std::thread g_cpu_thread;
 static bool g_requestRefreshInfo = false;
@@ -155,7 +156,7 @@ bool IsRunning()
 
 bool IsRunningAndStarted()
 {
-	return g_bStarted;
+	return g_bStarted && !g_bStopping;
 }
 
 bool IsRunningInCurrentThread()
@@ -191,8 +192,14 @@ bool Init()
 
 	if (g_EmuThread.joinable())
 	{
-		PanicAlertT("Emu Thread already running");
-		return false;
+		if (IsRunning())
+		{
+			PanicAlertT("Emu Thread already running");
+			return false;
+		}
+
+		// The Emu Thread was stopped, synchronize with it.
+		g_EmuThread.join();
 	}
 
 	g_CoreStartupParameter = _CoreParameter;
@@ -226,12 +233,8 @@ bool Init()
 // Called from GUI thread
 void Stop()  // - Hammertime!
 {
-	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
-	{
-		if (g_EmuThread.joinable())
-			g_EmuThread.join();
+	if (GetState() == CORE_STOPPING)
 		return;
-	}
 
 	const SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -258,28 +261,6 @@ void Stop()  // - Hammertime!
 
 		g_video_backend->Video_ExitLoop();
 	}
-
-	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
-
-	g_EmuThread.join(); // Wait for emuthread to close.
-
-	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
-
-	// Clear on screen messages that haven't expired
-	g_video_backend->Video_ClearMessages();
-
-	// Close the trace file
-	Core::StopTrace();
-
-	// Reload sysconf file in order to see changes committed during emulation
-	if (_CoreParameter.bWii)
-		SConfig::GetInstance().m_SYSCONF->Reload();
-
-	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
-	Movie::Shutdown();
-	PatchEngine::Shutdown();
-
-	g_bStopping = false;
 }
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
@@ -478,6 +459,8 @@ void EmuThread()
 		}
 	}
 
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
+
 	// Wait for g_cpu_thread to exit
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
 
@@ -510,6 +493,27 @@ void EmuThread()
 	Wiimote::Shutdown();
 	g_video_backend->Shutdown();
 	AudioCommon::ShutdownSoundStream();
+
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
+
+	// Clear on screen messages that haven't expired
+	g_video_backend->Video_ClearMessages();
+
+	// Close the trace file
+	Core::StopTrace();
+
+	// Reload sysconf file in order to see changes committed during emulation
+	if (_CoreParameter.bWii)
+		SConfig::GetInstance().m_SYSCONF->Reload();
+
+	INFO_LOG(CONSOLE, "Stop [Video Thread]\t\t---- Shutdown complete ----");
+	Movie::Shutdown();
+	PatchEngine::Shutdown();
+
+	g_bStopping = false;
+
+	if (s_onStoppedCb)
+		s_onStoppedCb();
 }
 
 // Set or get the running state
@@ -738,6 +742,17 @@ void UpdateTitle()
 	{
 		Host_UpdateTitle(TMessage);
 	}
+}
+
+void Shutdown()
+{
+	if (g_EmuThread.joinable())
+		g_EmuThread.join();
+}
+
+void SetOnStoppedCallback(StoppedCallbackFunc callback)
+{
+	s_onStoppedCb = callback;
 }
 
 } // Core
