@@ -64,7 +64,7 @@ extern u64 g_currentByte, g_totalBytes;
 extern u64 g_currentFrame, g_totalFrames;
 extern u64 g_currentLagCount, g_totalLagCount;
 extern u64 g_currentInputCount, g_totalInputCount;
-extern u64 g_currentTickCount, g_totalTickCount, g_tickCountAtLastInput;
+extern u64 g_totalTickCount, g_tickCountAtLastInput;
 extern std::string g_discChange;
 
 extern u32 g_rerecords;
