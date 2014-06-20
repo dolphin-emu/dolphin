@@ -937,7 +937,7 @@ void LoadInput(const std::string& filename)
 
 static void CheckInputEnd()
 {
-	if (g_currentFrame > g_totalFrames || g_currentByte >= g_totalBytes)
+	if (g_currentFrame > g_totalFrames || g_currentByte >= g_totalBytes || (CoreTiming::GetTicks() > g_totalTickCount && !IsRecordingInputFromSaveState()))
 	{
 		EndPlayInput(!g_bReadOnly);
 	}
