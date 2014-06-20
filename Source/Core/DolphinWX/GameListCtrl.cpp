@@ -1285,7 +1285,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 	{
 		SetColumnWidth(0, rc.GetWidth());
 	}
-	else
+	else if (GetColumnCount() > 0)
 	{
 
 		int resizable = rc.GetWidth() - (
