@@ -243,7 +243,10 @@ HRESULT Create(HWND wnd)
 	{
 		// try using the first one
 		hr = adapter->EnumOutputs(0, &output);
-		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate outputs"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
+		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate outputs!\n")
+		                                _T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
+		                                _T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
+		                                _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 	}
 
 	// get supported AA modes
