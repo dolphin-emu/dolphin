@@ -52,9 +52,9 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 		final GameListItem item = getItem(position);
 		if (item != null)
 		{
-			TextView title    = (TextView) convertView.findViewById(R.id.ListItemTitle);
-			TextView subtitle = (TextView) convertView.findViewById(R.id.ListItemSubTitle);
-			ImageView icon    = (ImageView) convertView.findViewById(R.id.ListItemIcon);
+			TextView title    = (TextView) convertView.findViewById(R.id.GameListItemTitle);
+			TextView subtitle = (TextView) convertView.findViewById(R.id.GameListItemSubTitle);
+			ImageView icon    = (ImageView) convertView.findViewById(R.id.GameListItemIcon);
 
 			if (title != null)
 				title.setText(item.getName());
