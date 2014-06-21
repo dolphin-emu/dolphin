@@ -152,8 +152,12 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	// The low part of MMIO regs for FIFO addresses needs to be aligned to 32
 	// bytes.
 	u32 fifo_addr_lo_regs[] = {
-		FIFO_BASE_LO, FIFO_END_LO, FIFO_WRITE_POINTER_LO,
-		FIFO_READ_POINTER_LO, FIFO_BP_LO, FIFO_RW_DISTANCE_LO,
+		CommandProcessor::FIFO_BASE_LO,
+		CommandProcessor::FIFO_END_LO,
+		CommandProcessor::FIFO_WRITE_POINTER_LO,
+		CommandProcessor::FIFO_READ_POINTER_LO,
+		CommandProcessor::FIFO_BP_LO,
+		CommandProcessor::FIFO_RW_DISTANCE_LO,
 	};
 	for (u32 reg : fifo_addr_lo_regs)
 	{
@@ -164,7 +168,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 	// The clear register needs to perform some more complicated operations on
 	// writes.
-	mmio->RegisterWrite(base | CLEAR_REGISTER,
+	mmio->RegisterWrite(base | CommandProcessor::CLEAR_REGISTER,
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			UCPClearReg tmpClear(val);
 
@@ -281,7 +285,7 @@ void SetStatus()
 
 	cpreg.status.ReadIdle = cpreg.readptr == cpreg.writeptr;
 
-	bool bpInt = cpreg.status.Breakpoint && cpreg.ctrl.BreakPointIntEnable;
+	bool bpInt = cpreg.status.Breakpoint && cpreg.ctrl.BPInt;
 	bool ovfInt = cpreg.status.OverflowHiWatermark && cpreg.ctrl.FifoOverflowIntEnable;
 	bool undfInt = cpreg.status.UnderflowLoWatermark && cpreg.ctrl.FifoUnderflowIntEnable;
 
