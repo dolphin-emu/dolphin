@@ -52,7 +52,6 @@
 #include "Core/CoreParameter.h"
 #include "Core/Movie.h"
 #include "Core/Boot/Boot.h"
-#include "Core/HW/DVDInterface.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -216,8 +215,6 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 		wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style), toolTip(nullptr)
 {
-	DragAcceptFiles(true);
-	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CGameListCtrl::OnDropFiles), nullptr, this);
 }
 
 CGameListCtrl::~CGameListCtrl()
@@ -1322,39 +1319,5 @@ void CGameListCtrl::UnselectAll()
 	for (int i=0; i<GetItemCount(); i++)
 	{
 		SetItemState(i, 0, wxLIST_STATE_SELECTED);
-	}
-}
-
-void CGameListCtrl::OnDropFiles(wxDropFilesEvent& event)
-{
-	if (event.GetNumberOfFiles() != 1)
-		return;
-	if (File::IsDirectory(WxStrToStr(event.GetFiles()[0])))
-		return;
-
-	wxFileName file = event.GetFiles()[0];
-
-	if (file.GetExt() == "dtm")
-	{
-		if (Core::IsRunning())
-			return;
-
-		if (!Movie::IsReadOnly())
-		{
-			// let's make the read-only flag consistent at the start of a movie.
-			Movie::SetReadOnly(true);
-			main_frame->GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
-		}
-
-		if (Movie::PlayInput(WxStrToStr(file.GetFullPath())))
-			main_frame->BootGame("");
-	}
-	else if (!Core::IsRunning())
-	{
-		main_frame->BootGame(WxStrToStr(file.GetFullPath()));
-	}
-	else
-	{
-		DVDInterface::ChangeDisc(WxStrToStr(file.GetFullPath()));
 	}
 }
