@@ -65,8 +65,6 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 			if (icon != null)
 			{
 				icon.setImageBitmap(item.getImage());
-				icon.getLayoutParams().width = (int) ((860 / context.getResources().getDisplayMetrics().density) + 0.5);
-				icon.getLayoutParams().height = (int)((340 / context.getResources().getDisplayMetrics().density) + 0.5);
 			}
 		}
 
