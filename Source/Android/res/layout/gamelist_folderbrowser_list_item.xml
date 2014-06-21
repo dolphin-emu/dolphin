@@ -7,8 +7,8 @@
 
     <ImageView
         android:id="@+id/ListItemIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
 
         tools:src="@drawable/ic_launcher"
 
