@@ -7,6 +7,9 @@
 package org.dolphinemu.dolphinemu.gamelist;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,9 +67,7 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 
 			if (icon != null)
 			{
-				icon.setImageBitmap(item.getImage());
-				icon.getLayoutParams().width = (int) ((860 / context.getResources().getDisplayMetrics().density) + 0.5);
-				icon.getLayoutParams().height = (int)((340 / context.getResources().getDisplayMetrics().density) + 0.5);
+				icon.setImageBitmap(scaleBannerImage(context, item.getImage()));
 			}
 		}
 
@@ -75,6 +76,21 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 			convertView.setBackgroundColor(0xFFE3E3E3);
 
 		return convertView;
+	}
+
+	private static Bitmap scaleBannerImage(Context ctx, Bitmap originalBitmap)
+	{
+		DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
+
+		final int originalWidth = originalBitmap.getWidth();
+		final int originalHeight = originalBitmap.getHeight();
+		final float scaleWidth = metrics.scaledDensity;
+		final float scaleHeight = metrics.scaledDensity;
+
+		Matrix scaleMatrix = new Matrix();
+		scaleMatrix.postScale(scaleWidth, scaleHeight);
+
+		return Bitmap.createBitmap(originalBitmap, 0, 0, originalWidth, originalHeight, scaleMatrix, true);
 	}
 }
 
