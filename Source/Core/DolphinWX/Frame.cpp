@@ -21,6 +21,7 @@
 #include <wx/chartype.h>
 #include <wx/defs.h>
 #include <wx/event.h>
+#include <wx/filename.h>
 #include <wx/frame.h>
 #include <wx/gdicmn.h>
 #include <wx/icon.h>
@@ -53,6 +54,7 @@
 #include "Core/CoreParameter.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
+#include "Core/HW/DVDInterface.h"
 
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
@@ -146,10 +148,34 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
 {
 	if (event.GetNumberOfFiles() != 1)
 		return;
-	if (File::IsDirectory(event.GetFiles()[0].ToStdString()))
+	if (File::IsDirectory(WxStrToStr(event.GetFiles()[0])))
 		return;
 
-	State::LoadAs(event.GetFiles()[0].ToStdString());
+	wxFileName file = event.GetFiles()[0];
+
+	if (file.GetExt() == "dtm")
+	{
+		if (Core::IsRunning())
+			return;
+
+		if (!Movie::IsReadOnly())
+		{
+			// let's make the read-only flag consistent at the start of a movie.
+			Movie::SetReadOnly(true);
+			main_frame->GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
+		}
+
+		if (Movie::PlayInput(WxStrToStr(file.GetFullPath())))
+			main_frame->BootGame("");
+	}
+	else if (!Core::IsRunning())
+	{
+		main_frame->BootGame(WxStrToStr(file.GetFullPath()));
+	}
+	else
+	{
+		DVDInterface::ChangeDisc(WxStrToStr(file.GetFullPath()));
+	}
 }
 
 #ifdef _WIN32
