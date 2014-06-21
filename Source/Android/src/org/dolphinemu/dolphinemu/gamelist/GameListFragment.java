@@ -107,7 +107,7 @@ public final class GameListFragment extends ListFragment
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
-		mGameAdapter = new GameListAdapter(getActivity(), R.layout.gamelist_folderbrowser_list_item);
+		mGameAdapter = new GameListAdapter(getActivity(), R.layout.gamelist_list_item);
 		rootView.setAdapter(mGameAdapter);
 
 		Fill();

@@ -5,4 +5,4 @@
     android:layout_height="match_parent"
     android:choiceMode="singleChoice"
     android:dividerHeight="1dp"
-    tools:listitem="@layout/gamelist_list_item"/>
+    tools:listitem="@layout/folderbrowser_list_item"/>
