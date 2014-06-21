@@ -424,6 +424,9 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 
 void LoadAs(const std::string& filename)
 {
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		return;
+
 	// Stop the core while we load the state
 	bool wasUnpaused = Core::PauseAndLock(true);
 
