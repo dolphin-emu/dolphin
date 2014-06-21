@@ -14,7 +14,6 @@
 
 static bool s_bFogRangeAdjustChanged;
 static bool s_bViewPortChanged;
-static int nLightsChanged[2]; // min,max
 
 PixelShaderConstants PixelShaderManager::constants;
 bool PixelShaderManager::dirty;
@@ -29,7 +28,6 @@ void PixelShaderManager::Dirty()
 {
 	s_bFogRangeAdjustChanged = true;
 	s_bViewPortChanged = true;
-	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
 
 	SetColorChanged(0, 0);
 	SetColorChanged(0, 1);
@@ -98,45 +96,6 @@ void PixelShaderManager::SetConstants()
 		dirty = true;
 
 		s_bFogRangeAdjustChanged = false;
-	}
-
-	if (g_ActiveConfig.bEnablePixelLighting)  // config check added because the code in here was crashing for me inside SetPSConstant4f
-	{
-		if (nLightsChanged[0] >= 0)
-		{
-			// TODO: Outdated comment
-			// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
-			int istart = nLightsChanged[0] / 0x10;
-			int iend = (nLightsChanged[1] + 15) / 0x10;
-			const float* xfmemptr = (const float*)&xfmem.lights[0x10 * istart];
-
-			for (int i = istart; i < iend; ++i)
-			{
-				u32 color = *(const u32*)(xfmemptr + 3);
-				constants.plight_colors[i][0] = (color >> 24) & 0xFF;
-				constants.plight_colors[i][1] = (color >> 16) & 0xFF;
-				constants.plight_colors[i][2] = (color >> 8)  & 0xFF;
-				constants.plight_colors[i][3] = (color)       & 0xFF;
-				xfmemptr += 4;
-
-				for (int j = 0; j < 4; ++j, xfmemptr += 3)
-				{
-					if (j == 1 &&
-						fabs(xfmemptr[0]) < 0.00001f &&
-						fabs(xfmemptr[1]) < 0.00001f &&
-						fabs(xfmemptr[2]) < 0.00001f)
-						// dist attenuation, make sure not equal to 0!!!
-						constants.plights[4*i+j][0] = 0.00001f;
-					else
-						constants.plights[4*i+j][0] = xfmemptr[0];
-					constants.plights[4*i+j][1] = xfmemptr[1];
-					constants.plights[4*i+j][2] = xfmemptr[2];
-				}
-			}
-			dirty = true;
-
-			nLightsChanged[0] = nLightsChanged[1] = -1;
-		}
 	}
 
 	if (s_bViewPortChanged)
@@ -302,38 +261,6 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
 		return;
 
 	s_bFogRangeAdjustChanged = true;
-}
-
-void PixelShaderManager::InvalidateXFRange(int start, int end)
-{
-	if (start < XFMEM_LIGHTS_END && end > XFMEM_LIGHTS)
-	{
-		int _start = start < XFMEM_LIGHTS ? XFMEM_LIGHTS : start-XFMEM_LIGHTS;
-		int _end = end < XFMEM_LIGHTS_END ? end-XFMEM_LIGHTS : XFMEM_LIGHTS_END-XFMEM_LIGHTS;
-
-		if (nLightsChanged[0] == -1 )
-		{
-			nLightsChanged[0] = _start;
-			nLightsChanged[1] = _end;
-		}
-		else
-		{
-			if (nLightsChanged[0] > _start) nLightsChanged[0] = _start;
-			if (nLightsChanged[1] < _end)   nLightsChanged[1] = _end;
-		}
-	}
-}
-
-void PixelShaderManager::SetMaterialColorChanged(int index, u32 color)
-{
-	if (g_ActiveConfig.bEnablePixelLighting)
-	{
-		constants.pmaterials[index][0] = (color >> 24) & 0xFF;
-		constants.pmaterials[index][1] = (color >> 16) & 0xFF;
-		constants.pmaterials[index][2] = (color >>  8) & 0xFF;
-		constants.pmaterials[index][3] = (color)       & 0xFF;
-		dirty = true;
-	}
 }
 
 void PixelShaderManager::DoState(PointerWrap &p)

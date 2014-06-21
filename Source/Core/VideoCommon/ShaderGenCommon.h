@@ -215,3 +215,25 @@ private:
 	std::map<UidT,std::string> m_shaders;
 	std::vector<UidT> m_uids;
 };
+
+// Constant variable names
+#define I_COLORS        "color"
+#define I_KCOLORS       "k"
+#define I_ALPHA         "alphaRef"
+#define I_TEXDIMS       "texdim"
+#define I_ZBIAS         "czbias"
+#define I_INDTEXSCALE   "cindscale"
+#define I_INDTEXMTX     "cindmtx"
+#define I_FOGCOLOR      "cfogcolor"
+#define I_FOGI          "cfogi"
+#define I_FOGF          "cfogf"
+
+#define I_POSNORMALMATRIX       "cpnmtx"
+#define I_PROJECTION            "cproj"
+#define I_MATERIALS             "cmtrl"
+#define I_LIGHTS                "clights"
+#define I_TEXMATRICES           "ctexmtx"
+#define I_TRANSFORMMATRICES     "ctrmtx"
+#define I_NORMALMATRICES        "cnmtx"
+#define I_POSTTRANSFORMMATRICES "cpostmtx"
+#define I_DEPTHPARAMS           "cDepth" // farZ, zRange

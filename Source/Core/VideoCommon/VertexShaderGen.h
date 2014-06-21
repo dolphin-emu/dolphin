@@ -28,19 +28,6 @@
 #define SHADER_TEXTURE7_ATTRIB  15
 
 
-
-// shader variables
-#define I_POSNORMALMATRIX       "cpnmtx"
-#define I_PROJECTION            "cproj"
-#define I_MATERIALS             "cmtrl"
-#define I_LIGHT_COLORS          "clight_colors"
-#define I_LIGHTS                "clights"
-#define I_TEXMATRICES           "ctexmtx"
-#define I_TRANSFORMMATRICES     "ctrmtx"
-#define I_NORMALMATRICES        "cnmtx"
-#define I_POSTTRANSFORMMATRICES "cpostmtx"
-#define I_DEPTHPARAMS           "cDepth" // farZ, zRange
-
 //TODO: get rid of them, they aren't used at all
 #define C_POSNORMALMATRIX        0
 #define C_PROJECTION            (C_POSNORMALMATRIX + 6)

@@ -247,32 +247,44 @@ void VertexShaderManager::SetConstants()
 		// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 		int istart = nLightsChanged[0] / 0x10;
 		int iend = (nLightsChanged[1] + 15) / 0x10;
-		const float* xfmemptr = (const float*)&xfmem.lights[0x10 * istart];
 
 		for (int i = istart; i < iend; ++i)
 		{
-			u32 color = *(const u32*)(xfmemptr + 3);
-			constants.light_colors[i][0] = (color >> 24) & 0xFF;
-			constants.light_colors[i][1] = (color >> 16) & 0xFF;
-			constants.light_colors[i][2] = (color >> 8)  & 0xFF;
-			constants.light_colors[i][3] = (color)       & 0xFF;
-			xfmemptr += 4;
+			const Light& light = xfmem.lights[i];
+			VertexShaderConstants::Light& dstlight = constants.lights[i];
 
-			for (int j = 0; j < 4; ++j, xfmemptr += 3)
+			// xfmem.light.color is packed as abgr in u8[4], so we have to swap the order
+			dstlight.color[0] = light.color[3];
+			dstlight.color[1] = light.color[2];
+			dstlight.color[2] = light.color[1];
+			dstlight.color[3] = light.color[0];
+
+			dstlight.cosatt[0] = light.cosatt[0];
+			dstlight.cosatt[1] = light.cosatt[1];
+			dstlight.cosatt[2] = light.cosatt[2];
+
+			if (fabs(light.distatt[0]) < 0.00001f &&
+			    fabs(light.distatt[1]) < 0.00001f &&
+			    fabs(light.distatt[2]) < 0.00001f)
 			{
-				if (j == 1 &&
-					fabs(xfmemptr[0]) < 0.00001f &&
-					fabs(xfmemptr[1]) < 0.00001f &&
-					fabs(xfmemptr[2]) < 0.00001f)
-				{
-					// dist attenuation, make sure not equal to 0!!!
-					constants.lights[4*i+j][0] = 0.00001f;
-				}
-				else
-					constants.lights[4*i+j][0] = xfmemptr[0];
-				constants.lights[4*i+j][1] = xfmemptr[1];
-				constants.lights[4*i+j][2] = xfmemptr[2];
+				// dist attenuation, make sure not equal to 0!!!
+				dstlight.distatt[0] = .00001f;
 			}
+			else
+			{
+				dstlight.distatt[0] = light.distatt[0];
+			}
+			dstlight.distatt[1] = light.distatt[1];
+			dstlight.distatt[2] = light.distatt[2];
+
+			dstlight.pos[0] = light.dpos[0];
+			dstlight.pos[1] = light.dpos[1];
+			dstlight.pos[2] = light.dpos[2];
+
+			// TODO: these likely have to be normalized
+			dstlight.dir[0] = light.ddir[0];
+			dstlight.dir[1] = light.ddir[1];
+			dstlight.dir[2] = light.ddir[2];
 		}
 		dirty = true;
 
