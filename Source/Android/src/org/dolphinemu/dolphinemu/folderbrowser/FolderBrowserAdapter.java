@@ -63,9 +63,9 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 
 			// Initialize the ViewHolder and store it.
 			viewHolder = new ViewHolder();
-			viewHolder.title    = (TextView)  convertView.findViewById(R.id.ListItemTitle);
-			viewHolder.subtitle = (TextView)  convertView.findViewById(R.id.ListItemSubTitle);
-			viewHolder.icon     = (ImageView) convertView.findViewById(R.id.ListItemIcon);
+			viewHolder.title    = (TextView)  convertView.findViewById(R.id.BrowserItemTitle);
+			viewHolder.subtitle = (TextView)  convertView.findViewById(R.id.BrowserItemSubTitle);
+			viewHolder.icon     = (ImageView) convertView.findViewById(R.id.BrowserItemIcon);
 			convertView.setTag(viewHolder);
 		}
 		else // Can recover the holder.
