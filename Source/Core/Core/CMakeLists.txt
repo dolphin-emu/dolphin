@@ -29,6 +29,7 @@ set(SRCS	ActionReplay.cpp
 			DSP/DSPAssembler.cpp
 			DSP/DSPDisassembler.cpp
 			DSP/DSPAccelerator.cpp
+			DSP/DSPCaptureLogger.cpp
 			DSP/DSPIntCCUtil.cpp
 			DSP/DSPIntExtOps.cpp
 			DSP/DSPHWInterface.cpp

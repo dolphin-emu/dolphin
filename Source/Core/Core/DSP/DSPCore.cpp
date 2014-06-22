@@ -42,40 +42,11 @@ DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
 bool init_hax = false;
 DSPEmitter *dspjit = nullptr;
+std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 Common::Event step_event;
 
-static bool LoadRom(const std::string& fname, int size_in_words, u16 *rom)
-{
-	File::IOFile pFile(fname, "rb");
-	const size_t size_in_bytes = size_in_words * sizeof(u16);
-	if (pFile)
-	{
-		pFile.ReadArray(rom, size_in_words);
-		pFile.Close();
-
-		// Byteswap the rom.
-		for (int i = 0; i < size_in_words; i++)
-			rom[i] = Common::swap16(rom[i]);
-
-		// Always keep ROMs write protected.
-		WriteProtectMemory(rom, size_in_bytes, false);
-		return true;
-	}
-
-	PanicAlertT(
-		"Failed to load DSP ROM:\t%s\n"
-		"\n"
-		"This file is required to use DSP LLE.\n"
-		"It is not included with Dolphin as it contains copyrighted data.\n"
-		"Use DSPSpy to dump the file from your physical console.\n"
-		"\n"
-		"You may use the DSP HLE engine which does not require ROM dumps.\n"
-		"(Choose it from the \"Audio\" tab of the configuration dialog.)", fname.c_str());
-	return false;
-}
-
 // Returns false if the hash fails and the user hits "Yes"
-static bool VerifyRoms(const std::string& irom_filename, const std::string& coef_filename)
+static bool VerifyRoms()
 {
 	struct DspRomHashes
 	{
@@ -136,7 +107,7 @@ static void DSPCore_FreeMemoryPages()
 	g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = nullptr;
 }
 
-bool DSPCore_Init(const std::string& irom_filename, const std::string& coef_filename, bool bUsingJIT)
+bool DSPCore_Init(const DSPInitOptions& opts)
 {
 	g_dsp.step_counter = 0;
 	cyclesLeft = 0;
@@ -148,14 +119,11 @@ bool DSPCore_Init(const std::string& irom_filename, const std::string& coef_file
 	g_dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
 	g_dsp.coef = (u16*)AllocateMemoryPages(DSP_COEF_BYTE_SIZE);
 
-	// Fill roms with zeros.
-	memset(g_dsp.irom, 0, DSP_IROM_BYTE_SIZE);
-	memset(g_dsp.coef, 0, DSP_COEF_BYTE_SIZE);
+	memcpy(g_dsp.irom, opts.irom_contents.data(), DSP_IROM_BYTE_SIZE);
+	memcpy(g_dsp.coef, opts.coef_contents.data(), DSP_COEF_BYTE_SIZE);
 
 	// Try to load real ROM contents.
-	if (!LoadRom(irom_filename, DSP_IROM_SIZE, g_dsp.irom) ||
-	    !LoadRom(coef_filename, DSP_COEF_SIZE, g_dsp.coef) ||
-	    !VerifyRoms(irom_filename, coef_filename))
+	if (!VerifyRoms())
 	{
 		DSPCore_FreeMemoryPages();
 		return false;
@@ -201,8 +169,10 @@ bool DSPCore_Init(const std::string& irom_filename, const std::string& coef_file
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	// Initialize JIT, if necessary
-	if (bUsingJIT)
+	if (opts.core_type == DSPInitOptions::CORE_JIT)
 		dspjit = new DSPEmitter();
+
+	g_dsp_cap.reset(opts.capture_logger);
 
 	core_state = DSPCORE_RUNNING;
 	return true;
@@ -220,6 +190,8 @@ void DSPCore_Shutdown()
 		dspjit = nullptr;
 	}
 	DSPCore_FreeMemoryPages();
+
+	g_dsp_cap.reset();
 }
 
 void DSPCore_Reset()
