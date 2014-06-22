@@ -36,16 +36,21 @@ bool InputPlugin::LoadConfig(bool isGC)
 			type = "Wiimote";
 			path = "Profiles/Wiimote/";
 		}
+
 		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", true);
+		IniFile::Section* control_section = game_ini.GetOrCreateSection("Controls");
+
 		for (int i = 0; i < 4; i++)
 		{
-			if (game_ini.Exists("Controls", type + "Profile" + num[i]))
+			if (control_section->Exists(type + "Profile" + num[i]))
 			{
-				if (game_ini.Get("Controls", type + "Profile" + num[i], &profile[i]))
+				if (control_section->Get(type + "Profile" + num[i], &profile[i]))
 				{
 					if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
+					{
 						useProfile[i] = true;
+					}
 					else
 					{
 						// TODO: Having a PanicAlert for this is dumb.

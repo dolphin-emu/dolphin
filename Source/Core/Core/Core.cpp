@@ -208,9 +208,8 @@ bool Init()
 	if (g_aspect_wide)
 	{
 		IniFile gameIni = _CoreParameter.LoadGameIni();
-		gameIni.Get("Wii", "Widescreen", &g_aspect_wide,
-			!!SConfig::GetInstance().m_SYSCONF->
-				GetData<u8>("IPL.AR"));
+		gameIni.GetOrCreateSection("Wii")->Get("Widescreen", &g_aspect_wide,
+		     !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	}
 
 	// g_pWindowHandle is first the m_Panel handle,
