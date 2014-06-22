@@ -14,24 +14,24 @@ void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out)
 {
 	switch (bit)
 	{
-	case 0:  // SO, check bit 61 set
+	case CR_SO_BIT:  // check bit 61 set
 		MOV(64, R(ABI_PARAM1), Imm64(1ull << 61));
 		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM1));
 		SETcc(CC_NZ, R(out));
 		break;
 
-	case 1:  // EQ, check bits 31-0 == 0
+	case CR_EQ_BIT:  // check bits 31-0 == 0
 		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm32(0));
 		SETcc(CC_Z, R(out));
 		break;
 
-	case 2:  // GT, check val > 0
+	case CR_GT_BIT:  // check val > 0
 		MOV(64, R(ABI_PARAM1), M(&PowerPC::ppcState.cr_val[field]));
 		TEST(64, R(ABI_PARAM1), R(ABI_PARAM1));
 		SETcc(CC_G, R(out));
 		break;
 
-	case 3:  // LT, check bit 62 set
+	case CR_LT_BIT:  // check bit 62 set
 		MOV(64, R(ABI_PARAM1), Imm64(1ull << 62));
 		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM1));
 		SETcc(CC_NZ, R(out));
@@ -51,21 +51,21 @@ void Jit64::SetCRFieldBit(int field, int bit, Gen::X64Reg in)
 	// New value is 0.
 	switch (bit)
 	{
-	case 0:  // !SO, unset bit 61
+	case CR_SO_BIT:  // unset bit 61
 		MOV(64, R(ABI_PARAM1), Imm64(~(1ull << 61)));
 		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
 		break;
 
-	case 1:  // !EQ, set bit 0 to 1
+	case CR_EQ_BIT:  // set bit 0 to 1
 		OR(8, R(ABI_PARAM2), Imm8(1));
 		break;
 
-	case 2:  // !GT, set bit 63
+	case CR_GT_BIT:  // !GT, set bit 63
 		MOV(64, R(ABI_PARAM1), Imm64(1ull << 63));
 		OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
 		break;
 
-	case 3:  // !LT, unset bit 62
+	case CR_LT_BIT:  // !LT, unset bit 62
 		MOV(64, R(ABI_PARAM1), Imm64(~(1ull << 62)));
 		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
 		break;
@@ -76,22 +76,22 @@ void Jit64::SetCRFieldBit(int field, int bit, Gen::X64Reg in)
 
 	switch (bit)
 	{
-	case 0:  // SO, set bit 61
+	case CR_SO_BIT:  // set bit 61
 		MOV(64, R(ABI_PARAM1), Imm64(1ull << 61));
 		OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
 		break;
 
-	case 1:  // EQ, set bits 31-0 to 0
+	case CR_EQ_BIT:  // set bits 31-0 to 0
 		MOV(64, R(ABI_PARAM1), Imm64(0xFFFFFFFF00000000));
 		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
 		break;
 
-	case 2:  // GT, unset bit 63
+	case CR_GT_BIT:  // unset bit 63
 		MOV(64, R(ABI_PARAM1), Imm64(~(1ull << 63)));
 		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
 		break;
 
-	case 3:  // LT, set bit 62
+	case CR_LT_BIT:  // set bit 62
 		MOV(64, R(ABI_PARAM1), Imm64(1ull << 62));
 		OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
 		break;
@@ -107,21 +107,21 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
 	switch (bit)
 	{
-	case 0:  // SO, check bit 61 set
+	case CR_SO_BIT:  // check bit 61 set
 		MOV(64, R(RAX), Imm64(1ull << 61));
 		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(RAX));
 		return J_CC(jump_if_set ? CC_NZ : CC_Z, true);
 
-	case 1:  // EQ, check bits 31-0 == 0
+	case CR_EQ_BIT:  // check bits 31-0 == 0
 		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm32(0));
 		return J_CC(jump_if_set ? CC_Z : CC_NZ, true);
 
-	case 2:  // GT, check val > 0
+	case CR_GT_BIT:  // check val > 0
 		MOV(64, R(RAX), M(&PowerPC::ppcState.cr_val[field]));
 		TEST(64, R(RAX), R(RAX));
 		return J_CC(jump_if_set ? CC_G : CC_LE, true);
 
-	case 3:  // LT, check bit 62 set
+	case CR_LT_BIT:  // check bit 62 set
 		MOV(64, R(RAX), Imm64(1ull << 62));
 		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(RAX));
 		return J_CC(jump_if_set ? CC_NZ : CC_Z, true);
@@ -369,19 +369,19 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 					// EQ
 					MOV(64, R(tmp), R(EAX));
 					NOT(64, R(tmp));
-					AND(64, R(tmp), Imm8(0x2));
+					AND(64, R(tmp), Imm8(CR_EQ));
 					OR(64, R(cr_val), R(tmp));
 
 					// GT
 					MOV(64, R(tmp), R(EAX));
 					NOT(64, R(tmp));
-					AND(64, R(tmp), Imm8(0x4));
+					AND(64, R(tmp), Imm8(CR_GT));
 					SHL(64, R(tmp), Imm8(63 - 2));
 					OR(64, R(cr_val), R(tmp));
 
 					// LT
 					MOV(64, R(tmp), R(EAX));
-					AND(64, R(tmp), Imm8(0x8));
+					AND(64, R(tmp), Imm8(CR_LT));
 					SHL(64, R(tmp), Imm8(62 - 3));
 					OR(64, R(cr_val), R(tmp));
 

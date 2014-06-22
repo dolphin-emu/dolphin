@@ -237,33 +237,22 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 		pGreater = J_CC(CC_B);
 	}
 
-	// Read the documentation about cr_val in PowerPC.h to understand these
-	// magic values.
-
-	// Equal: !GT (bit 63 set), !LT (bit 62 not set), !SO (bit 61 not set), EQ
-	// (bits 31-0 not set).
-	MOV(64, R(RAX), Imm64(0x8000000000000000));
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
 	continue1 = J();
 
-	// NAN: !GT (bit 63 set), !LT (bit 62 not set), SO (bit 61 set), !EQ (bit 0
-	// set).
 	SetJumpTarget(pNaN);
-	MOV(64, R(RAX), Imm64(0xA000000000000001));
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
 
 	if (a != b)
 	{
 		continue2 = J();
 
-		// Greater Than: GT (bit 63 not set), !LT (bit 62 not set), !SO (bit 61
-		// not set), !EQ (bit 0 set).
 		SetJumpTarget(pGreater);
-		MOV(64, R(RAX), Imm64(0x0000000000000001));
+		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_GT)));
 		continue3 = J();
 
-		// Less Than: !GT (bit 63 set), LT (bit 62 set), !SO (bit 61 not set),
-		// !EQ (bit 0 set).
 		SetJumpTarget(pLesser);
-		MOV(64, R(RAX), Imm64(0xC000000000000001));
+		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_LT)));
 	}
 
 	SetJumpTarget(continue1);
