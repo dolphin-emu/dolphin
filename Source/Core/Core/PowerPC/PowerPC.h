@@ -162,18 +162,27 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 
 }  // namespace
 
+enum CRBits
+{
+	CR_SO = 1,
+	CR_EQ = 2,
+	CR_GT = 4,
+	CR_LT = 8,
+
+	CR_SO_BIT = 0,
+	CR_EQ_BIT = 1,
+	CR_GT_BIT = 2,
+	CR_LT_BIT = 3,
+};
+
 // Convert between PPC and internal representation of CR.
 inline u64 PPCCRToInternal(u8 value)
 {
 	u64 cr_val = 0x100000000;
-	// SO
-	cr_val |= (u64)!!(value & 1) << 61;
-	// EQ
-	cr_val |= (u64)!(value & 2);
-	// GT
-	cr_val |= (u64)!(value & 4) << 63;
-	// LT
-	cr_val |= (u64)!!(value & 8) << 62;
+	cr_val |= (u64)!!(value & CR_SO) << 61;
+	cr_val |= (u64)!(value & CR_EQ);
+	cr_val |= (u64)!(value & CR_GT) << 63;
+	cr_val |= (u64)!!(value & CR_LT) << 62;
 
 	return cr_val;
 }

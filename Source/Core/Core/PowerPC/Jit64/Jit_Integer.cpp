@@ -315,20 +315,20 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		if (signedCompare)
 		{
 			if ((s32)gpr.R(a).offset == (s32)comparand.offset)
-				compareResult = 0x2;
+				compareResult = CR_EQ;
 			else if ((s32)gpr.R(a).offset > (s32)comparand.offset)
-				compareResult = 0x4;
+				compareResult = CR_GT;
 			else
-				compareResult = 0x8;
+				compareResult = CR_LT;
 		}
 		else
 		{
 			if ((u32)gpr.R(a).offset == (u32)comparand.offset)
-				compareResult = 0x2;
+				compareResult = CR_EQ;
 			else if ((u32)gpr.R(a).offset > (u32)comparand.offset)
-				compareResult = 0x4;
+				compareResult = CR_GT;
 			else
-				compareResult = 0x8;
+				compareResult = CR_LT;
 		}
 		MOV(64, R(RAX), Imm64(PPCCRToInternal(compareResult)));
 		MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
