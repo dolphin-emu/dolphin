@@ -3,22 +3,13 @@
 // Refer to the license.txt file included.
 
 #pragma once
+#include "Common/StdMakeUnique.h"
 
-#include "Common/Thread.h"
-
-// Data structure to be passed to the flushing thread.
-struct FlushData
-{
-	bool bExiting;
-	std::string filename;
-	u8 *memcardContent;
-	int memcardSize, memcardIndex;
-};
-
+class MemoryCardBase;
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-	CEXIMemoryCard(const int index);
+	CEXIMemoryCard(const int index, bool gciFolder);
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs) override;
 	bool IsInterruptSet() override;
@@ -26,8 +17,12 @@ public:
 	void DoState(PointerWrap &p) override;
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) override;
+	void DMARead(u32 _uAddr, u32 _uSize) override;
+	void DMAWrite(u32 _uAddr, u32 _uSize) override;
 
 private:
+	void setupGciFolder(u16 sizeMb);
+	void setupRawMemcard(u16 sizeMb);
 	// This is scheduled whenever a page write is issued. The this pointer is passed
 	// through the userdata parameter, so that it can then call Flush on the right card.
 	static void FlushCallback(u64 userdata, int cyclesLate);
@@ -63,7 +58,6 @@ private:
 		cmdChipErase        = 0xF4,
 	};
 
-	std::string m_strFilename;
 	int card_index;
 	int et_this_card, et_cmd_done;
 	//! memory card state
@@ -77,13 +71,10 @@ private:
 	u8 programming_buffer[128];
 	bool m_bDirty;
 	//! memory card parameters
-	unsigned int nintendo_card_id, card_id;
+	unsigned int card_id;
 	unsigned int address;
-	int memory_card_size; //! in bytes, must be power of 2.
-	u8 *memory_card_content;
-
-	FlushData flushData;
-	std::thread flushThread;
+	u32 memory_card_size;
+	std::unique_ptr<MemoryCardBase> memorycard;
 
 protected:
 	virtual void TransferByte(u8 &byte) override;

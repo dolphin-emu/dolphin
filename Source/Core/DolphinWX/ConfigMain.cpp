@@ -116,6 +116,7 @@ static const wxLanguage langIds[] =
 #define SIDEV_AM_BB_STR     _trans("AM-Baseboard")
 
 #define EXIDEV_MEMCARD_STR  _trans("Memory Card")
+#define EXIDEV_MEMDIR_STR   _trans("GCI Folder")
 #define EXIDEV_MIC_STR      _trans("Mic")
 #define EXIDEV_BBA_STR      "BBA"
 #define EXIDEV_AM_BB_STR    _trans("AM-Baseboard")
@@ -395,6 +396,8 @@ void CConfigMain::InitializeGUIValues()
 		SlotDevices.Add(_(DEV_DUMMY_STR));
 		SlotDevices.Add(_(EXIDEV_MEMCARD_STR));
 		SlotDevices.Add(_(EXIDEV_GECKO_STR));
+		SlotDevices.Add(_(EXIDEV_MEMDIR_STR));
+
 #if HAVE_PORTAUDIO
 		SlotDevices.Add(_(EXIDEV_MIC_STR));
 #endif
@@ -432,8 +435,11 @@ void CConfigMain::InitializeGUIValues()
 		case EXIDEVICE_MEMORYCARD:
 			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
 			break;
-		case EXIDEVICE_MIC:
+		case EXIDEVICE_MEMORYCARDFOLDER:
 			GCEXIDevice[i]->SetStringSelection(SlotDevices[4]);
+			break;
+		case EXIDEVICE_MIC:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[5]);
 			break;
 		case EXIDEVICE_ETH:
 			GCEXIDevice[i]->SetStringSelection(SP1Devices[2]);
@@ -1143,6 +1149,8 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 
 	if (!deviceName.compare(_(EXIDEV_MEMCARD_STR)))
 		tempType = EXIDEVICE_MEMORYCARD;
+	else if (!deviceName.compare(_(EXIDEV_MEMDIR_STR)))
+		tempType = EXIDEVICE_MEMORYCARDFOLDER;
 	else if (!deviceName.compare(_(EXIDEV_MIC_STR)))
 		tempType = EXIDEVICE_MIC;
 	else if (!deviceName.compare(EXIDEV_BBA_STR))

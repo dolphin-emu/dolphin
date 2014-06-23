@@ -137,6 +137,8 @@
     <ClCompile Include="HW\EXI_DeviceMemoryCard.cpp" />
     <ClCompile Include="HW\EXI_DeviceMic.cpp" />
     <ClCompile Include="HW\GCMemcard.cpp" />
+    <ClCompile Include="HW\GCMemcardDirectory.cpp" />
+    <ClCompile Include="HW\GCMemcardRaw.cpp" />
     <ClCompile Include="HW\GCPad.cpp" />
     <ClCompile Include="HW\GCPadEmu.cpp" />
     <ClCompile Include="HW\GPFifo.cpp" />
@@ -333,6 +335,8 @@
     <ClInclude Include="HW\EXI_DeviceMemoryCard.h" />
     <ClInclude Include="HW\EXI_DeviceMic.h" />
     <ClInclude Include="HW\GCMemcard.h" />
+    <ClInclude Include="HW\GCMemcardDirectory.h" />
+    <ClInclude Include="HW\GCMemcardRaw.h" />
     <ClInclude Include="HW\GCPad.h" />
     <ClInclude Include="HW\GCPadEmu.h" />
     <ClInclude Include="HW\GPFifo.h" />
