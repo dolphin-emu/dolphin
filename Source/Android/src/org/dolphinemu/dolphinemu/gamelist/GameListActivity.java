@@ -298,6 +298,13 @@ public final class GameListActivity extends Activity
 	@Override
 	public void onBackPressed()
 	{
-		SwitchPage(0);
+		if (mCurFragmentNum == 0)
+		{
+			finish();
+		}
+		else
+		{
+			SwitchPage(0);
+		}
 	}
 }
