@@ -38,10 +38,10 @@
     <ClCompile Include="D3DBase.cpp" />
     <ClCompile Include="D3DBlob.cpp" />
     <ClCompile Include="D3DShader.cpp" />
+    <ClCompile Include="D3DState.cpp" />
     <ClCompile Include="D3DTexture.cpp" />
     <ClCompile Include="D3DUtil.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
-    <ClCompile Include="GfxState.cpp" />
     <ClCompile Include="LineGeometryShader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NativeVertexFormat.cpp" />
@@ -50,7 +50,6 @@
     <ClCompile Include="PointGeometryShader.cpp" />
     <ClCompile Include="PSTextureEncoder.cpp" />
     <ClCompile Include="Render.cpp" />
-    <ClCompile Include="StateCache.cpp" />
     <ClCompile Include="Television.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
@@ -61,10 +60,10 @@
     <ClInclude Include="D3DBase.h" />
     <ClInclude Include="D3DBlob.h" />
     <ClInclude Include="D3DShader.h" />
+    <ClInclude Include="D3DState.h" />
     <ClInclude Include="D3DTexture.h" />
     <ClInclude Include="D3DUtil.h" />
     <ClInclude Include="FramebufferManager.h" />
-    <ClInclude Include="GfxState.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="LineGeometryShader.h" />
     <ClInclude Include="main.h" />
@@ -73,7 +72,6 @@
     <ClInclude Include="PointGeometryShader.h" />
     <ClInclude Include="PSTextureEncoder.h" />
     <ClInclude Include="Render.h" />
-    <ClInclude Include="StateCache.h" />
     <ClInclude Include="Television.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="TextureEncoder.h" />

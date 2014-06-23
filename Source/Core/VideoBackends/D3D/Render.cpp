@@ -16,12 +16,11 @@
 #include "Core/Movie.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
-#include "VideoBackends/D3D/GfxState.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
-#include "VideoBackends/D3D/StateCache.h"
 #include "VideoBackends/D3D/Television.h"
 #include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
