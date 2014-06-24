@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstring>
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
@@ -116,7 +117,7 @@ public:
 	Section* GetOrCreateSection(const std::string& section);
 
 private:
-	std::vector<Section> sections;
+	std::list<Section> sections;
 
 	const Section* GetSection(const std::string& section) const;
 	Section* GetSection(const std::string& section);
