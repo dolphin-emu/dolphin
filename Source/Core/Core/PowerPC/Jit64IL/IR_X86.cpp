@@ -1721,7 +1721,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 					case ICmpNe: flag = CC_E; break;
 					case ICmpUgt: flag = CC_BE; break;
 					case ICmpUlt: flag = CC_AE; break;
-					case ICmpUge: flag = CC_L; break;
+					case ICmpUge: flag = CC_B; break;
 					case ICmpUle: flag = CC_A; break;
 					case ICmpSgt: flag = CC_LE; break;
 					case ICmpSlt: flag = CC_GE; break;

@@ -356,6 +356,25 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 			return getOp1(Op1);
 		}
 	}
+	if (Opcode == FastCRGTSet)
+	{
+		if (getOpcode(*Op1) == ICmpCRSigned)
+			return EmitICmpSgt(getOp1(Op1), getOp2(Op1));
+		if (getOpcode(*Op1) == ICmpCRUnsigned)
+			return EmitICmpUgt(getOp1(Op1), getOp2(Op1));
+	}
+	if (Opcode == FastCRLTSet)
+	{
+		if (getOpcode(*Op1) == ICmpCRSigned)
+			return EmitICmpSlt(getOp1(Op1), getOp2(Op1));
+		if (getOpcode(*Op1) == ICmpCRUnsigned)
+			return EmitICmpUlt(getOp1(Op1), getOp2(Op1));
+	}
+	if (Opcode == FastCREQSet)
+	{
+		if (getOpcode(*Op1) == ICmpCRSigned || getOpcode(*Op1) == ICmpCRUnsigned)
+			return EmitICmpEq(getOp1(Op1), getOp2(Op1));
+	}
 
 	return EmitUOp(Opcode, Op1, extra);
 }
@@ -778,6 +797,35 @@ InstLoc IRBuilder::FoldOr(InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(Or, Op1, Op2);
 }
 
+static unsigned ICmpInverseOp(unsigned op)
+{
+	switch (op)
+	{
+	case ICmpEq:
+		return ICmpNe;
+	case ICmpNe:
+		return ICmpEq;
+	case ICmpUlt:
+		return ICmpUge;
+	case ICmpUgt:
+		return ICmpUle;
+	case ICmpUle:
+		return ICmpUgt;
+	case ICmpUge:
+		return ICmpUlt;
+	case ICmpSlt:
+		return ICmpSge;
+	case ICmpSgt:
+		return ICmpSle;
+	case ICmpSle:
+		return ICmpSgt;
+	case ICmpSge:
+		return ICmpSlt;
+	}
+	PanicAlert("Bad opcode");
+	return Nop;
+}
+
 InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
 	simplifyCommutative(Xor, Op1, Op2);
 
@@ -793,6 +841,11 @@ InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
 			unsigned RHS = GetImmValue(Op2) ^
 				       GetImmValue(getOp2(Op1));
 			return FoldXor(getOp1(Op1), EmitIntConst(RHS));
+		}
+		if (isICmp(getOpcode(*Op1)) && GetImmValue(Op2) == 1)
+		{
+			return FoldBiOp(ICmpInverseOp(getOpcode(*Op1)), getOp1(Op1), getOp2(Op1));
+
 		}
 	}
 
