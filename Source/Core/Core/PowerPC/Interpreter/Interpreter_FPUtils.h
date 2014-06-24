@@ -78,7 +78,7 @@ inline double ForceSingle(double _x)
 {
 	// convert to float...
 	float x = (float) _x;
-	if (!cpu_info.bFlushToZero && FPSCR.NI)
+	if (FPSCR.NI)
 	{
 		x = FlushToZero(x);
 	}
@@ -88,7 +88,7 @@ inline double ForceSingle(double _x)
 
 inline double ForceDouble(double d)
 {
-	if (!cpu_info.bFlushToZero && FPSCR.NI)
+	if (FPSCR.NI)
 	{
 		d = FlushToZero(d);
 	}

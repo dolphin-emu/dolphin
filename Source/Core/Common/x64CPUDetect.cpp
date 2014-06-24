@@ -183,8 +183,6 @@ void CPUInfo::Detect()
 		}
 	}
 
-	bFlushToZero = bSSE;
-
 	if (max_ex_fn >= 0x80000004) {
 		// Extract brand string
 		__cpuid(cpu_id, 0x80000002);
@@ -231,12 +229,7 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum(cpu_string);
 	if (bSSE) sum += ", SSE";
-	if (bSSE2)
-	{
-		sum += ", SSE2";
-		if (!bFlushToZero)
-			sum += " (but not DAZ!)";
-	}
+	if (bSSE2) sum += ", SSE2";
 	if (bSSE3) sum += ", SSE3";
 	if (bSSSE3) sum += ", SSSE3";
 	if (bSSE4_1) sum += ", SSE4.1";
