@@ -849,42 +849,6 @@ InstLoc IRBuilder::FoldBranchCond(InstLoc Op1, InstLoc Op2) {
 			return EmitBranchUncond(Op2);
 		return nullptr;
 	}
-	if (getOpcode(*Op1) == And &&
-	    isImm(*getOp2(Op1)) &&
-	    getOpcode(*getOp1(Op1)) == ICmpCRSigned) {
-		unsigned branchValue = GetImmValue(getOp2(Op1));
-		if (branchValue == 2)
-			return FoldBranchCond(EmitICmpEq(getOp1(getOp1(Op1)),
-					      getOp2(getOp1(Op1))), Op2);
-		if (branchValue == 4)
-			return FoldBranchCond(EmitICmpSgt(getOp1(getOp1(Op1)),
-					      getOp2(getOp1(Op1))), Op2);
-		if (branchValue == 8)
-			return FoldBranchCond(EmitICmpSlt(getOp1(getOp1(Op1)),
-					      getOp2(getOp1(Op1))), Op2);
-	}
-	if (getOpcode(*Op1) == Xor &&
-	    isImm(*getOp2(Op1))) {
-		InstLoc XOp1 = getOp1(Op1);
-		unsigned branchValue = GetImmValue(getOp2(Op1));
-		if (getOpcode(*XOp1) == And &&
-		    isImm(*getOp2(XOp1)) &&
-		    getOpcode(*getOp1(XOp1)) == ICmpCRSigned) {
-			unsigned innerBranchValue =
-				GetImmValue(getOp2(XOp1));
-			if (branchValue == innerBranchValue) {
-				if (branchValue == 2)
-					return FoldBranchCond(EmitICmpNe(getOp1(getOp1(XOp1)),
-						      getOp2(getOp1(XOp1))), Op2);
-				if (branchValue == 4)
-					return FoldBranchCond(EmitICmpSle(getOp1(getOp1(XOp1)),
-						      getOp2(getOp1(XOp1))), Op2);
-				if (branchValue == 8)
-					return FoldBranchCond(EmitICmpSge(getOp1(getOp1(XOp1)),
-						      getOp2(getOp1(XOp1))), Op2);
-			}
-		}
-	}
 	return EmitBiOp(BranchCond, Op1, Op2);
 }
 
@@ -965,38 +929,10 @@ InstLoc IRBuilder::FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
 }
 
 InstLoc IRBuilder::FoldICmpCRSigned(InstLoc Op1, InstLoc Op2) {
-	if (isImm(*Op1)) {
-		if (isImm(*Op2)) {
-			int c1 = (int)GetImmValue(Op1),
-			    c2 = (int)GetImmValue(Op2),
-			    result;
-			if (c1 == c2)
-				result = 2;
-			else if (c1 > c2)
-				result = 4;
-			else
-				result = 8;
-			return EmitIntConst(result);
-		}
-	}
 	return EmitBiOp(ICmpCRSigned, Op1, Op2);
 }
 
 InstLoc IRBuilder::FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2) {
-	if (isImm(*Op1)) {
-		if (isImm(*Op2)) {
-			unsigned int c1 = GetImmValue(Op1),
-			             c2 = GetImmValue(Op2),
-			             result;
-			if (c1 == c2)
-				result = 2;
-			else if (c1 > c2)
-				result = 4;
-			else
-				result = 8;
-			return EmitIntConst(result);
-		}
-	}
 	return EmitBiOp(ICmpCRUnsigned, Op1, Op2);
 }
 
