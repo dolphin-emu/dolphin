@@ -4,6 +4,7 @@
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -17,6 +18,7 @@
 #include "Core/HW/GCMemcardRaw.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Sram.h"
+#include "DiscIO/NANDContentLoader.h"
 
 #define MC_STATUS_BUSY              0x80
 #define MC_STATUS_UNLOCKED          0x40
@@ -100,8 +102,17 @@ void CEXIMemoryCard::setupGciFolder(u16 sizeMb)
 
 	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
 	auto strUniqueID = Core::g_CoreStartupParameter.m_strUniqueID;
+
 	u32 CurrentGameId = 0;
-	if (strUniqueID.length() >= 4)
+	if (strUniqueID == TITLEID_SYSMENU_STRING)
+	{
+		const DiscIO::INANDContentLoader & SysMenu_Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU, true);
+		if (SysMenu_Loader.IsValid())
+		{
+			CountryCode = DiscIO::CountrySwitch(SysMenu_Loader.GetCountryChar());
+		}
+	}
+	else if (strUniqueID.length() >= 4)
 	{
 		CountryCode = DiscIO::CountrySwitch(strUniqueID.at(3));
 		memcpy((u8 *)&CurrentGameId, strUniqueID.c_str(), 4);
