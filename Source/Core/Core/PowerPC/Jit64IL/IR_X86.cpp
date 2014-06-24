@@ -763,9 +763,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			regMarkUse(RI, I, getOp1(getOp1(I)), 1);
 			break;
 		case BranchCond: {
-			if (isICmp(*getOp1(I)) &&
-			    isImm(*getOp2(getOp1(I)))) {
+			if (isICmp(*getOp1(I))) {
 				regMarkUse(RI, I, getOp1(getOp1(I)), 1);
+				if (!isImm(*getOp2(getOp1(I))))
+					regMarkUse(RI, I, getOp2(getOp1(I)), 2);
 			} else {
 				regMarkUse(RI, I, getOp1(I), 1);
 			}
@@ -861,9 +862,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			break;
 		}
 		case StoreCR: {
-			Jit->MOV(64, R(RCX), regLocForInst(RI, getOp1(I)));
+			X64Reg reg = regEnsureInReg(RI, getOp1(I));
 			unsigned ppcreg = *I >> 16;
-			Jit->MOV(64, M(&PowerPC::ppcState.cr_val[ppcreg]), R(RCX));
+			Jit->MOV(64, M(&PowerPC::ppcState.cr_val[ppcreg]), R(reg));
 			regNormalRegClear(RI, I);
 			break;
 		}
@@ -1711,10 +1712,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		}
 
 		case BranchCond: {
-			if (isICmp(*getOp1(I)) &&
-			    isImm(*getOp2(getOp1(I)))) {
-				Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
-					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));
+			if (isICmp(*getOp1(I))) {
+				regEmitCmp(RI, getOp1(I));
 				CCFlags flag;
 				switch (getOpcode(*getOp1(I))) {
 					case ICmpEq: flag = CC_NE; break;
@@ -1734,7 +1733,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 				Jit->SetJumpTarget(cont);
 				if (RI.IInfo[I - RI.FirstI] & 4)
 					regClearInst(RI, getOp1(getOp1(I)));
-			} else {
+				if (RI.IInfo[I - RI.FirstI] & 8)
+					regClearInst(RI, getOp2(getOp1(I)));
+			}
+			else {
 				Jit->CMP(32, regLocForInst(RI, getOp1(I)), Imm8(0));
 				FixupBranch cont = Jit->J_CC(CC_Z);
 				regWriteExit(RI, getOp2(I));
