@@ -233,7 +233,7 @@ IniFile::Section* IniFile::GetOrCreateSection(const std::string& sectionName)
 	if (!section)
 	{
 		sections.push_back(Section(sectionName));
-		section = &sections[sections.size() - 1];
+		section = &sections.back();
 	}
 	return section;
 }
@@ -323,7 +323,7 @@ bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>*
 
 void IniFile::SortSections()
 {
-	std::sort(sections.begin(), sections.end());
+	sections.sort();
 }
 
 bool IniFile::Load(const std::string& filename, bool keep_current_data)
