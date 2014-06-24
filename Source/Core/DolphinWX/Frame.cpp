@@ -15,6 +15,7 @@
 #endif
 
 #include <cstddef>
+#include <fstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -152,6 +153,7 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
 		return;
 
 	wxFileName file = event.GetFiles()[0];
+	const std::string filepath = WxStrToStr(file.GetFullPath());
 
 	if (file.GetExt() == "dtm")
 	{
@@ -165,17 +167,35 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
 			main_frame->GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
 		}
 
-		if (Movie::PlayInput(WxStrToStr(file.GetFullPath())))
+		if (Movie::PlayInput(filepath))
 			main_frame->BootGame("");
 	}
 	else if (!Core::IsRunning())
 	{
-		main_frame->BootGame(WxStrToStr(file.GetFullPath()));
+		main_frame->BootGame(filepath);
+	}
+	else if (IsValidSavestateDropped(filepath) && Core::IsRunning())
+	{
+		State::LoadAs(filepath);
 	}
 	else
 	{
-		DVDInterface::ChangeDisc(WxStrToStr(file.GetFullPath()));
+		DVDInterface::ChangeDisc(filepath);
 	}
+}
+
+bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
+{
+	const int game_id_length = 6;
+	std::ifstream file(filepath, std::ios::in | std::ios::binary);
+
+	if (!file)
+		return false;
+
+	std::string internal_game_id(game_id_length, ' ');
+	file.read(&internal_game_id[0], game_id_length);
+
+	return internal_game_id == SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
 }
 
 #ifdef _WIN32
