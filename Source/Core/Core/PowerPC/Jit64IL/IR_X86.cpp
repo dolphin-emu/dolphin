@@ -85,7 +85,7 @@ static unsigned regReadUse(RegInfo& R, InstLoc I) {
 	return R.IInfo[I - R.FirstI] & 3;
 }
 
-static unsigned SlotSet[1000];
+static u64 SlotSet[1000];
 static u8 GC_ALIGNED16(FSlotSet[16*1000]);
 
 static OpArg regLocForSlot(RegInfo& RI, unsigned slot) {
@@ -107,7 +107,7 @@ static void regSpill(RegInfo& RI, X64Reg reg) {
 	unsigned slot = regGetSpill(RI, RI.regs[reg]);
 	if (!slot) {
 		slot = regCreateSpill(RI, RI.regs[reg]);
-		RI.Jit->MOV(32, regLocForSlot(RI, slot), R(reg));
+		RI.Jit->MOV(64, regLocForSlot(RI, slot), R(reg));
 	}
 	RI.regs[reg] = nullptr;
 }
@@ -621,6 +621,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case FPDup1:
 		case FSNeg:
 		case FDNeg:
+		case ConvertFromFastCR:
+		case ConvertToFastCR:
 			if (thisUsed)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
@@ -763,8 +765,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			if (!thisUsed) break;
 			X64Reg reg = regFindFreeReg(RI);
 			unsigned ppcreg = *I >> 8;
-			// TODO(delroth): unbreak
-			//Jit->MOVZX(32, 8, reg, M(&PowerPC::ppcState.cr_fast[ppcreg]));
+			Jit->MOV(64, R(reg), M(&PowerPC::ppcState.cr_val[ppcreg]));
 			RI.regs[reg] = I;
 			break;
 		}
@@ -814,11 +815,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			break;
 		}
 		case StoreCR: {
-			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
+			Jit->MOV(64, R(RCX), regLocForInst(RI, getOp1(I)));
 			unsigned ppcreg = *I >> 16;
-			// CAUTION: uses 8-bit reg!
-			// TODO(delroth): Unbreak.
-			//Jit->MOV(8, M(&PowerPC::ppcState.cr_fast[ppcreg]), R(ECX));
+			Jit->MOV(64, M(&PowerPC::ppcState.cr_val[ppcreg]), R(RCX));
 			regNormalRegClear(RI, I);
 			break;
 		}
@@ -1113,6 +1112,84 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->SetJumpTarget(continue1);
 			Jit->SetJumpTarget(continue2);
 			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case ConvertFromFastCR:
+		{
+			if (!thisUsed) break;
+			X64Reg cr_val = regUReg(RI, I);
+			Jit->MOV(64, R(cr_val), regLocForInst(RI, getOp1(I)));
+
+			Jit->XOR(32, R(EAX), R(EAX));
+
+			// SO: Bit 61 set.
+			Jit->MOV(64, R(RCX), R(cr_val));
+			Jit->SHR(64, R(RCX), Imm8(61));
+			Jit->AND(32, R(ECX), Imm8(1));
+			Jit->OR(32, R(EAX), R(ECX));
+
+			// EQ: Bits 31-0 == 0.
+			Jit->XOR(32, R(ECX), R(ECX));
+			Jit->TEST(32, R(cr_val), R(cr_val));
+			Jit->SETcc(CC_Z, R(ECX));
+			Jit->SHL(32, R(ECX), Imm8(1));
+			Jit->OR(32, R(EAX), R(ECX));
+
+			// GT: Value > 0.
+			Jit->XOR(32, R(ECX), R(ECX));
+			Jit->TEST(64, R(cr_val), R(cr_val));
+			Jit->SETcc(CC_G, R(ECX));
+			Jit->SHL(32, R(ECX), Imm8(2));
+			Jit->OR(32, R(EAX), R(ECX));
+
+			// LT: Bit 62 set.
+			Jit->MOV(64, R(ECX), R(cr_val));
+			Jit->SHR(64, R(ECX), Imm8(62 - 3));
+			Jit->AND(32, R(ECX), Imm8(0x8));
+			Jit->OR(32, R(EAX), R(ECX));
+
+			Jit->MOV(32, R(cr_val), R(EAX));
+			RI.regs[cr_val] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case ConvertToFastCR:
+		{
+			if (!thisUsed) break;
+			X64Reg cr_val = regUReg(RI, I);
+			Jit->MOV(64, R(cr_val), regLocForInst(RI, getOp1(I)));
+
+			Jit->MOV(64, R(RCX), Imm64(1ull << 32));
+
+			// SO
+			Jit->MOV(64, R(RAX), R(cr_val));
+			Jit->SHL(64, R(RAX), Imm8(63));
+			Jit->SHR(64, R(RAX), Imm8(63 - 61));
+			Jit->OR(64, R(RCX), R(RAX));
+
+			// EQ
+			Jit->MOV(64, R(RAX), R(cr_val));
+			Jit->NOT(64, R(RAX));
+			Jit->AND(64, R(RAX), Imm8(CR_EQ));
+			Jit->OR(64, R(RCX), R(RAX));
+
+			// GT
+			Jit->MOV(64, R(RAX), R(cr_val));
+			Jit->NOT(64, R(RAX));
+			Jit->AND(64, R(RAX), Imm8(CR_GT));
+			Jit->SHL(64, R(RAX), Imm8(63 - 2));
+			Jit->OR(64, R(RCX), R(RAX));
+
+			// LT
+			Jit->MOV(64, R(RAX), R(cr_val));
+			Jit->AND(64, R(RAX), Imm8(CR_LT));
+			Jit->SHL(64, R(RAX), Imm8(62 - 3));
+			Jit->OR(64, R(RCX), R(RAX));
+
+			Jit->MOV(64, R(cr_val), R(RCX));
+
+			RI.regs[cr_val] = I;
 			regNormalRegClear(RI, I);
 			break;
 		}

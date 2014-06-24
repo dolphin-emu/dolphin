@@ -12,7 +12,7 @@ static void ComputeRC(IREmitter::IRBuilder& ibuild, IREmitter::InstLoc val)
 {
 	IREmitter::InstLoc res =
 		ibuild.EmitICmpCRSigned(val, ibuild.EmitIntConst(0));
-	ibuild.EmitStoreCR(res, 0);
+	ibuild.EmitStoreCR(ibuild.EmitConvertToFastCR(res), 0);
 }
 
 void JitILBase::reg_imm(UGeckoInstruction inst)
@@ -114,7 +114,7 @@ void JitILBase::cmpXX(UGeckoInstruction inst)
 
 	js.downcountAmount++; //TODO: should this be somewhere else?
 
-	ibuild.EmitStoreCR(res, inst.CRFD);
+	ibuild.EmitStoreCR(ibuild.EmitConvertToFastCR(res), inst.CRFD);
 }
 
 void JitILBase::boolX(UGeckoInstruction inst)

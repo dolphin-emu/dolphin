@@ -33,6 +33,9 @@ enum Opcode {
 	Load8,  // These loads zext
 	Load16,
 	Load32,
+	// CR conversions
+	ConvertFromFastCR,
+	ConvertToFastCR,
 	// Branches
 	BranchUncond,
 	// Register store operators
@@ -372,6 +375,12 @@ public:
 	}
 	InstLoc EmitICmpCRUnsigned(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(ICmpCRUnsigned, op1, op2);
+	}
+	InstLoc EmitConvertFromFastCR(InstLoc op1) {
+		return FoldUOp(ConvertFromFastCR, op1);
+	}
+	InstLoc EmitConvertToFastCR(InstLoc op1) {
+		return FoldUOp(ConvertToFastCR, op1);
 	}
 	InstLoc EmitFallBackToInterpreter(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(FallBackToInterpreter, op1, op2);

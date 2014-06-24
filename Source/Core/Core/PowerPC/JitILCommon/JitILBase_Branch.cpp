@@ -66,6 +66,7 @@ static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruc
 	if ((inst.BO & 16) == 0)  // Test a CR bit
 	{
 		IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
+		CRReg = ibuild.EmitConvertFromFastCR(CRReg);
 		IREmitter::InstLoc CRCmp = ibuild.EmitIntConst(8 >> (inst.BI & 3));
 		CRTest = ibuild.EmitAnd(CRReg, CRCmp);
 		if (!(inst.BO & 8))
@@ -141,6 +142,7 @@ void JitILBase::bcctrx(UGeckoInstruction inst)
 	if ((inst.BO & 16) == 0)  // Test a CR bit
 	{
 		IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
+		CRReg = ibuild.EmitConvertFromFastCR(CRReg);
 		IREmitter::InstLoc CRCmp = ibuild.EmitIntConst(8 >> (inst.BI & 3));
 		test = ibuild.EmitAnd(CRReg, CRCmp);
 		if (!(inst.BO & 8))
