@@ -52,6 +52,7 @@
 #include "Core/CoreParameter.h"
 #include "Core/Movie.h"
 #include "Core/Boot/Boot.h"
+#include "Core/HW/DVDInterface.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -209,6 +210,7 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
 	EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
 	EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
+	EVT_MENU(IDM_LIST_CHANGEDISC, CGameListCtrl::OnChangeDisc)
 END_EVENT_TABLE()
 
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
@@ -903,6 +905,12 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			{
 				popupMenu->Append(IDM_LIST_INSTALLWAD, _("Install to Wii Menu"));
 			}
+			if (selected_iso->GetPlatform() == GameListItem::GAMECUBE_DISC ||
+				selected_iso->GetPlatform() == GameListItem::WII_DISC)
+			{
+				wxMenuItem* changeDiscItem = popupMenu->Append(IDM_LIST_CHANGEDISC, _("Change &Disc"));
+				changeDiscItem->Enable(Core::IsRunning());
+			}
 
 			PopupMenu(popupMenu);
 		}
@@ -1261,6 +1269,14 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		wxMessageBox(_("Dolphin was unable to complete the requested action."));
 
 	Update();
+}
+
+void CGameListCtrl::OnChangeDisc(wxCommandEvent& WXUNUSED(event))
+{
+	const GameListItem *iso = GetSelectedISO();
+	if (!iso || !Core::IsRunning())
+		return;
+	DVDInterface::ChangeDisc(WxStrToStr(iso->GetFileName()));
 }
 
 void CGameListCtrl::OnSize(wxSizeEvent& event)
