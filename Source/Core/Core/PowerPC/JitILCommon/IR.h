@@ -48,6 +48,11 @@ enum Opcode {
 	StoreFPRF,
 	StoreGQR,
 	StoreSRR,
+	// Branch conditions
+	FastCRSOSet,
+	FastCREQSet,
+	FastCRGTSet,
+	FastCRLTSet,
 	// Arbitrary interpreter instruction
 	FallBackToInterpreter,
 
@@ -77,6 +82,7 @@ enum Opcode {
 	ICmpSlt,
 	ICmpSge,
 	ICmpSle, // Opposite of sgt
+
 	// Memory store operators
 	Store8,
 	Store16,
@@ -381,6 +387,18 @@ public:
 	}
 	InstLoc EmitConvertToFastCR(InstLoc op1) {
 		return FoldUOp(ConvertToFastCR, op1);
+	}
+	InstLoc EmitFastCRSOSet(InstLoc op1) {
+		return FoldUOp(FastCRSOSet, op1);
+	}
+	InstLoc EmitFastCREQSet(InstLoc op1) {
+		return FoldUOp(FastCREQSet, op1);
+	}
+	InstLoc EmitFastCRLTSet(InstLoc op1) {
+		return FoldUOp(FastCRLTSet, op1);
+	}
+	InstLoc EmitFastCRGTSet(InstLoc op1) {
+		return FoldUOp(FastCRGTSet, op1);
 	}
 	InstLoc EmitFallBackToInterpreter(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(FallBackToInterpreter, op1, op2);

@@ -665,6 +665,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case FDNeg:
 		case ConvertFromFastCR:
 		case ConvertToFastCR:
+		case FastCRSOSet:
+		case FastCREQSet:
+		case FastCRGTSet:
+		case FastCRLTSet:
 			if (thisUsed)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
@@ -1206,6 +1210,52 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->MOV(64, R(cr_val), R(RCX));
 
 			RI.regs[cr_val] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case FastCRSOSet:
+		{
+			if (!thisUsed) break;
+			X64Reg reg = regUReg(RI, I);
+			Jit->MOV(64, R(RAX), Imm64(1ull << 61));
+			Jit->TEST(64, regLocForInst(RI, getOp1(I)), R(RAX));
+			Jit->SETcc(CC_NZ, R(AL));
+			Jit->MOVZX(32, 8, reg, R(AL));
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case FastCREQSet:
+		{
+			if (!thisUsed) break;
+			X64Reg reg = regUReg(RI, I);
+			Jit->CMP(32, regLocForInst(RI, getOp1(I)), Imm32(0));
+			Jit->SETcc(CC_Z, R(AL));
+			Jit->MOVZX(32, 8, reg, R(AL));
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case FastCRGTSet:
+		{
+			if (!thisUsed) break;
+			X64Reg reg = regUReg(RI, I);
+			Jit->CMP(64, regLocForInst(RI, getOp1(I)), Imm8(0));
+			Jit->SETcc(CC_G, R(AL));
+			Jit->MOVZX(32, 8, reg, R(AL));
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case FastCRLTSet:
+		{
+			if (!thisUsed) break;
+			X64Reg reg = regUReg(RI, I);
+			Jit->MOV(64, R(RAX), Imm64(1ull << 62));
+			Jit->TEST(64, regLocForInst(RI, getOp1(I)), R(RAX));
+			Jit->SETcc(CC_NZ, R(AL));
+			Jit->MOVZX(32, 8, reg, R(AL));
+			RI.regs[reg] = I;
 			regNormalRegClear(RI, I);
 			break;
 		}
