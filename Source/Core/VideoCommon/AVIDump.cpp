@@ -217,8 +217,8 @@ extern "C" {
 
 static AVFormatContext* s_format_context = nullptr;
 static AVStream* s_stream = nullptr;
-static AVFrame* s_bgr_frame = nullptr;
-static AVFrame* s_yuv_frame = nullptr;
+static AVFrame* s_src_frame = nullptr;
+static AVFrame* s_scaled_frame = nullptr;
 static uint8_t* s_yuv_buffer = nullptr;
 static SwsContext* s_sws_context = nullptr;
 static int s_width;
@@ -278,13 +278,13 @@ bool AVIDump::CreateFile()
 		return false;
 	}
 
-	s_bgr_frame = av_frame_alloc();
-	s_yuv_frame = av_frame_alloc();
+	s_src_frame = av_frame_alloc();
+	s_scaled_frame = av_frame_alloc();
 
 	s_size = avpicture_get_size(s_stream->codec->pix_fmt, s_width, s_height);
 
 	s_yuv_buffer = new uint8_t[s_size];
-	avpicture_fill((AVPicture*)s_yuv_frame, s_yuv_buffer, s_stream->codec->pix_fmt, s_width, s_height);
+	avpicture_fill((AVPicture*)s_scaled_frame, s_yuv_buffer, s_stream->codec->pix_fmt, s_width, s_height);
 
 	NOTICE_LOG(VIDEO, "Opening file %s for dumping", s_format_context->filename);
 	if (avio_open(&s_format_context->pb, s_format_context->filename, AVIO_FLAG_WRITE) < 0)
@@ -315,7 +315,7 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
-	avpicture_fill((AVPicture*)s_bgr_frame, const_cast<u8*>(data), AV_PIX_FMT_BGR24, width, height);
+	avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), AV_PIX_FMT_BGR24, width, height);
 
 	// Convert image from BGR24 to desired pixel format, and scale to initial
 	// width and height
@@ -324,15 +324,15 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	                                          s_width, s_height, s_stream->codec->pix_fmt,
 	                                          SWS_BICUBIC, nullptr, nullptr, nullptr)))
 	{
-		sws_scale(s_sws_context, s_bgr_frame->data, s_bgr_frame->linesize, 0,
-		          height, s_yuv_frame->data, s_yuv_frame->linesize);
+		sws_scale(s_sws_context, s_src_frame->data, s_src_frame->linesize, 0,
+		          height, s_scaled_frame->data, s_scaled_frame->linesize);
 	}
 
 	// Encode and write the image.
 	AVPacket pkt;
 	PreparePacket(&pkt);
 	int got_packet;
-	int error = avcodec_encode_video2(s_stream->codec, &pkt, s_yuv_frame, &got_packet);
+	int error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
 	while (!error && got_packet)
 	{
 		// Write the compressed frame in the media file.
@@ -369,8 +369,8 @@ void AVIDump::CloseFile()
 		s_yuv_buffer = nullptr;
 	}
 
-	av_frame_free(&s_bgr_frame);
-	av_frame_free(&s_yuv_frame);
+	av_frame_free(&s_src_frame);
+	av_frame_free(&s_scaled_frame);
 
 	if (s_format_context)
 	{
