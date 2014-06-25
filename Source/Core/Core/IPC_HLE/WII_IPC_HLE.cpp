@@ -76,21 +76,28 @@ IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
 typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue; // ppc -> arm
 static ipc_msg_queue reply_queue;   // arm -> ppc
+static ipc_msg_queue ack_queue;   // arm -> ppc
 
-static int event_enqueue_reply;
-static int event_enqueue_request;
+static int event_enqueue;
 
 static u64 last_reply_time;
 
-static void EnqueueReplyCallback(u64 userdata, int)
+static const u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
+static const u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
+static void EnqueueEventCallback(u64 userdata, int)
 {
-	reply_queue.push_back((u32)userdata);
-	Update();
-}
-
-static void EnqueueRequestCallback(u64 userdata, int)
-{
-	request_queue.push_back((u32)userdata);
+	if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
+	{
+		ack_queue.push_back((u32)userdata);
+	}
+	else if (userdata & ENQUEUE_REQUEST_FLAG)
+	{
+		request_queue.push_back((u32)userdata);
+	}
+	else
+	{
+		reply_queue.push_back((u32)userdata);
+	}
 	Update();
 }
 
@@ -136,14 +143,12 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/usb/oh1"); i++;
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, "_Unimplemented_Device_"); i++;
 
-	event_enqueue_reply = CoreTiming::RegisterEvent("IPCReply", EnqueueReplyCallback);
-	event_enqueue_request = CoreTiming::RegisterEvent("IPCRequest", EnqueueRequestCallback);
+	event_enqueue = CoreTiming::RegisterEvent("IPCEvent", EnqueueEventCallback);
 }
 
 void Reset(bool _bHard)
 {
-	CoreTiming::RemoveAllEvents(event_enqueue_reply);
-	CoreTiming::RemoveAllEvents(event_enqueue_request);
+	CoreTiming::RemoveAllEvents(event_enqueue);
 
 	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
@@ -559,7 +564,7 @@ void ExecuteCommand(u32 _Address)
 // Happens AS SOON AS IPC gets a new pointer!
 void EnqueueRequest(u32 address)
 {
-	CoreTiming::ScheduleEvent(1000, event_enqueue_request, address);
+	CoreTiming::ScheduleEvent(1000, event_enqueue, address | ENQUEUE_REQUEST_FLAG);
 }
 
 // Called when IOS module has some reply
@@ -568,12 +573,18 @@ void EnqueueRequest(u32 address)
 //       Please search for examples of this being called elsewhere.
 void EnqueueReply(u32 address, int cycles_in_future)
 {
-	CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue_reply, address);
+	CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue, address);
 }
 
 void EnqueueReply_Threadsafe(u32 address, int cycles_in_future)
 {
-	CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, event_enqueue_reply, address);
+	CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, event_enqueue, address);
+}
+
+void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)
+{
+	CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue,
+	                          address | ENQUEUE_ACKNOWLEDGEMENT_FLAG);
 }
 
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp
@@ -598,6 +609,14 @@ void Update()
 		WII_IPCInterface::GenerateReply(reply_queue.front());
 		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
 		reply_queue.pop_front();
+		return;
+	}
+
+	if (ack_queue.size())
+	{
+		WII_IPCInterface::GenerateAck(ack_queue.front());
+		WARN_LOG(WII_IPC_HLE, "<<-- Double-ack to IPC Request @ 0x%08x", ack_queue.front());
+		ack_queue.pop_front();
 		return;
 	}
 }

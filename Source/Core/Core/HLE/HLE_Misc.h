@@ -9,7 +9,5 @@ namespace HLE_Misc
 	void HLEPanicAlert();
 	void UnimplementedFunction();
 	void HBReload();
-	void OSBootDol();
-	void OSGetResetCode();
 	void HLEGeckoCodehandler();
 }

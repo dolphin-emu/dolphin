@@ -46,10 +46,6 @@ static const SPatch OSPatches[] =
 	// Name doesn't matter, installed in CBoot::BootUp()
 	{ "HBReload",             HLE_Misc::HBReload,              HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
-	// ES_LAUNCH
-	{ "__OSBootDol",          HLE_Misc::OSBootDol,             HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	{ "OSGetResetCode",       HLE_Misc::OSGetResetCode,        HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-
 	// Debug/OS Support
 	{ "OSPanic",              HLE_OS::HLE_OSPanic,             HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
 
