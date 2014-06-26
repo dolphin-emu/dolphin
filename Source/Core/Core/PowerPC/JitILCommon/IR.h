@@ -246,7 +246,8 @@ private:
 	unsigned ComputeKnownZeroBits(InstLoc I) const;
 
 public:
-	InstLoc EmitIntConst(unsigned value);
+	InstLoc EmitIntConst(unsigned value) { return EmitIntConst64(value); }
+	InstLoc EmitIntConst64(u64 value);
 	InstLoc EmitStoreLink(InstLoc val) {
 		return FoldUOp(StoreLink, val);
 	}
@@ -559,7 +560,8 @@ public:
 	InstLoc getFirstInst() { return InstList.data(); }
 	unsigned int getNumInsts() { return (unsigned int)InstList.size(); }
 	unsigned int ReadInst(InstLoc I) { return *I; }
-	unsigned int GetImmValue(InstLoc I) const;
+	unsigned int GetImmValue(InstLoc I) const { return (u32)GetImmValue64(I); }
+	u64 GetImmValue64(InstLoc I) const;
 	void SetMarkUsed(InstLoc I);
 	bool IsMarkUsed(InstLoc I) const;
 	void WriteToFile(u64 codeHash);
@@ -598,7 +600,7 @@ private:
 
 	std::vector<Inst> InstList; // FIXME: We must ensure this is continuous!
 	std::vector<bool> MarkUsed; // Used for IRWriter
-	std::vector<unsigned> ConstList;
+	std::vector<u64> ConstList;
 	InstLoc curReadPtr;
 	InstLoc GRegCache[32];
 	InstLoc GRegCacheStore[32];

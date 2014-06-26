@@ -1684,7 +1684,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case CInt16: {
 			if (!thisUsed) break;
 			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOV(32, R(reg), Imm32(ibuild->GetImmValue(I)));
+			u64 val = ibuild->GetImmValue64(I);
+			if ((u32)val == val)
+				Jit->MOV(32, R(reg), Imm32(val));
+			else if ((s32)val == val)
+				Jit->MOV(64, R(reg), Imm32(val));
+			else
+				Jit->MOV(64, R(reg), Imm64(val));
 			RI.regs[reg] = I;
 			break;
 		}

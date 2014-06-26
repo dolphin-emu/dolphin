@@ -362,6 +362,8 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 			return EmitICmpSgt(getOp1(Op1), getOp2(Op1));
 		if (getOpcode(*Op1) == ICmpCRUnsigned)
 			return EmitICmpUgt(getOp1(Op1), getOp2(Op1));
+		if (isImm(*Op1))
+			return EmitIntConst((s64)GetImmValue64(Op1) > 0);
 	}
 	if (Opcode == FastCRLTSet)
 	{
@@ -369,11 +371,15 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 			return EmitICmpSlt(getOp1(Op1), getOp2(Op1));
 		if (getOpcode(*Op1) == ICmpCRUnsigned)
 			return EmitICmpUlt(getOp1(Op1), getOp2(Op1));
+		if (isImm(*Op1))
+			return EmitIntConst(!!(GetImmValue64(Op1) & (1ull << 62)));
 	}
 	if (Opcode == FastCREQSet)
 	{
 		if (getOpcode(*Op1) == ICmpCRSigned || getOpcode(*Op1) == ICmpCRUnsigned)
 			return EmitICmpEq(getOp1(Op1), getOp2(Op1));
+		if (isImm(*Op1))
+			return EmitIntConst((GetImmValue64(Op1) & 0xFFFFFFFFU) == 0);
 	}
 
 	return EmitUOp(Opcode, Op1, extra);
@@ -982,10 +988,22 @@ InstLoc IRBuilder::FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
 }
 
 InstLoc IRBuilder::FoldICmpCRSigned(InstLoc Op1, InstLoc Op2) {
+	if (isImm(*Op1)) {
+		if (isImm(*Op2)) {
+			s64 diff = (s64)(s32)GetImmValue(Op1) - (s64)(s32)GetImmValue(Op2);
+			return EmitIntConst64((u64)diff);
+		}
+	}
 	return EmitBiOp(ICmpCRSigned, Op1, Op2);
 }
 
 InstLoc IRBuilder::FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2) {
+	if (isImm(*Op1)) {
+		if (isImm(*Op2)) {
+			u64 diff = (u64)GetImmValue(Op1) - (u64)GetImmValue(Op2);
+			return EmitIntConst64(diff);
+		}
+	}
 	return EmitBiOp(ICmpCRUnsigned, Op1, Op2);
 }
 
@@ -1045,7 +1063,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 	}
 }
 
-InstLoc IRBuilder::EmitIntConst(unsigned value) {
+InstLoc IRBuilder::EmitIntConst64(u64 value) {
 	InstLoc curIndex = InstList.data() + InstList.size();
 	InstList.push_back(CInt32 | ((unsigned int)ConstList.size() << 8));
 	MarkUsed.push_back(false);
@@ -1053,7 +1071,7 @@ InstLoc IRBuilder::EmitIntConst(unsigned value) {
 	return curIndex;
 }
 
-unsigned IRBuilder::GetImmValue(InstLoc I) const {
+u64 IRBuilder::GetImmValue64(InstLoc I) const {
 	return ConstList[*I >> 8];
 }
 
