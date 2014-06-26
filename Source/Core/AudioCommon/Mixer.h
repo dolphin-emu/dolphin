@@ -41,6 +41,7 @@ public:
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
 	virtual void PushStreamingSamples(const short* samples, unsigned int num_samples);
 	unsigned int GetSampleRate() const { return m_sampleRate; }
+	void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
 
 	void SetThrottle(bool use) { m_throttle = use;}
 
@@ -88,17 +89,23 @@ protected:
 			, m_indexW(0)
 			, m_indexR(0)
 			, m_numLeftI(0.0f)
+			, m_LVolume(256)
+			, m_RVolume(256)
 		{
 			memset(m_buffer, 0, sizeof(m_buffer));
 		}
 		void PushSamples(const short* samples, unsigned int num_samples);
 		unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
+		void SetVolume(unsigned int lvolume, unsigned int rvolume);
 	private:
 		CMixer *m_mixer;
 		unsigned m_input_sample_rate;
 		short m_buffer[MAX_SAMPLES * 2];
 		volatile u32 m_indexW;
 		volatile u32 m_indexR;
+		// Volume ranges from 0-256
+		volatile s32 m_LVolume;
+		volatile s32 m_RVolume;
 		float m_numLeftI;
 	};
 	MixerFifo m_dma_mixer;
