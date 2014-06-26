@@ -3,6 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <string>
+
+#if ANDROID
+#include <android/native_window_jni.h>
+#endif
+
 #include "Core/Host.h"
 #include "DolphinWX/GLInterface/GLInterface.h"
 

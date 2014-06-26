@@ -32,7 +32,6 @@ enum egl_platform {
 #include "DolphinWX/GLInterface/WGL.h"
 #elif HAVE_X11
 #include "DolphinWX/GLInterface/GLX.h"
-#include <GL/glx.h>
 #else
 #error Platform doesnt have a GLInterface
 #endif

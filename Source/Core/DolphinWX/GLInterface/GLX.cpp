@@ -11,9 +11,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);
-PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
-
 // Show the current FPS
 void cInterfaceGLX::UpdateFPSDisplay(const std::string& text)
 {
@@ -133,13 +130,7 @@ bool cInterfaceGLX::MakeCurrent()
 			GLWin.width, GLWin.height);
 	#endif
 
-	bool success = glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
-	if (success)
-	{
-		// load this function based on the current bound context
-		glXSwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)GLInterface->GetFuncAddress("glXSwapIntervalSGI");
-	}
-	return success;
+	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 }
 
 bool cInterfaceGLX::ClearCurrent()

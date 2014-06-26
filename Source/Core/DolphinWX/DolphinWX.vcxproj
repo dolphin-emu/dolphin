@@ -171,6 +171,9 @@
     <ProjectReference Include="..\..\..\Externals\Bochs_disasm\Bochs_disasm.vcxproj">
       <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\libepoxy\libepoxy.vcxproj">
+      <Project>{4d680514-c2ce-4313-b994-5a25bdb2629a}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\libpng\png\png.vcxproj">
       <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>

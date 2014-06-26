@@ -270,7 +270,7 @@ void InitDriverInfo()
 				// r3p0 - OpenGL ES 3.0 support
 				// r4p0 - Supports 'GL_EXT_shader_pixel_local_storage' extension.
 
-				if (GLExtensions::Supports("GL_EXT_shader_pixel_local_storage"))
+				if (epoxy_has_gl_extension("GL_EXT_shader_pixel_local_storage"))
 					version = 400;
 				else
 					version = 300;
@@ -345,13 +345,6 @@ Renderer::Renderer()
 	bool bSuccess = true;
 
 	// Init extension support.
-	if (!GLExtensions::Init())
-	{
-		// OpenGL 2.0 is required for all shader based drawings. There is no way to get this by extensions
-		PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
-		bSuccess = false;
-	}
-
 	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
 	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
 	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
@@ -380,7 +373,9 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLExtensions::Supports("GL_ARB_framebuffer_object"))
+	if (!(epoxy_has_gl_extension("GL_ARB_framebuffer_object") ||
+		(!epoxy_is_desktop_gl() && epoxy_gl_version () >= 30) ||
+		(epoxy_is_desktop_gl() && epoxy_gl_version() >= 30)))
 	{
 		// We want the ogl3 framebuffer instead of the ogl2 one for better blitting support.
 		// It's also compatible with the gles3 one.
@@ -389,7 +384,9 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLExtensions::Supports("GL_ARB_vertex_array_object"))
+	if (!(epoxy_has_gl_extension("GL_ARB_vertex_array_object") ||
+		(!epoxy_is_desktop_gl() && epoxy_gl_version () >= 30) ||
+		(epoxy_is_desktop_gl() && epoxy_gl_version() >= 30)))
 	{
 		// This extension is used to replace lots of pointer setting function.
 		// Also gles3 requires to use it.
@@ -398,7 +395,9 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLExtensions::Supports("GL_ARB_map_buffer_range"))
+	if (!(epoxy_has_gl_extension("GL_ARB_map_buffer_range") ||
+		(!epoxy_is_desktop_gl() && epoxy_gl_version () >= 30) ||
+		(epoxy_is_desktop_gl() && epoxy_gl_version() >= 30)))
 	{
 		// ogl3 buffer mapping for better streaming support.
 		// The ogl2 one also isn't in gles3.
@@ -407,7 +406,9 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLExtensions::Supports("GL_ARB_uniform_buffer_object"))
+	if (!(epoxy_has_gl_extension("GL_ARB_uniform_buffer_object") ||
+		(!epoxy_is_desktop_gl() && epoxy_gl_version () >= 30) ||
+		(epoxy_is_desktop_gl() && epoxy_gl_version() >= 31)))
 	{
 		// ubo allow us to keep the current constants on shader switches
 		// we also can stream them much nicer and pack into it whatever we want to
@@ -422,7 +423,9 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLExtensions::Supports("GL_ARB_sampler_objects") && bSuccess)
+	if (!(epoxy_has_gl_extension("GL_ARB_sampler_objects") ||
+		(!epoxy_is_desktop_gl() && epoxy_gl_version () >= 30) ||
+		(epoxy_is_desktop_gl() && epoxy_gl_version() >= 33)))
 	{
 		// Our sampler cache uses this extension. It could easyly be workaround and it's by far the
 		// highest requirement, but it seems that no driver lacks support for it.
@@ -435,30 +438,41 @@ Renderer::Renderer()
 	// OpenGL 3 doesn't provide GLES like float functions for depth.
 	// They are in core in OpenGL 4.1, so almost every driver should support them.
 	// But for the oldest ones, we provide fallbacks to the old double functions.
-	if (!GLExtensions::Supports("GL_ARB_ES2_compatibility") && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+	if (epoxy_has_gl_extension("GL_ARB_ES2_compatibility"))
 	{
 		glDepthRangef = DepthRangef;
 		glClearDepthf = ClearDepthf;
 	}
 
-	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
+	g_Config.backend_info.bSupportsDualSourceBlend = epoxy_has_gl_extension("GL_ARB_blend_func_extended") || epoxy_gl_version() >= 33;
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
-				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
-	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
+				((epoxy_is_desktop_gl() && epoxy_gl_version() >= 31) ||
+				(GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3) ||
+				epoxy_has_gl_extension("GL_NV_primitive_restart"));
+	g_Config.backend_info.bSupportsEarlyZ = epoxy_has_gl_extension("GL_ARB_shader_image_load_store");
 
 	// Desktop OpenGL supports the binding layout if it supports 420pack
 	// OpenGL ES 3.1 supports it implicitly without an extension
-	g_Config.backend_info.bSupportsBindingLayout = GLExtensions::Supports("GL_ARB_shading_language_420pack");
+	g_Config.backend_info.bSupportsBindingLayout = epoxy_has_gl_extension("GL_ARB_shading_language_420pack");
 
-	g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
-	g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
-	g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
-	g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex");
-	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage");
-	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
-	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
-	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
-	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
+	g_ogl_config.bSupportsGLSLCache = epoxy_has_gl_extension("GL_ARB_get_program_binary") ||
+				(epoxy_is_desktop_gl() && epoxy_gl_version() >= 41) ||
+				(GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3);
+	g_ogl_config.bSupportsGLPinnedMemory = epoxy_has_gl_extension("GL_AMD_pinned_memory");
+	g_ogl_config.bSupportsGLSync = epoxy_has_gl_extension("GL_ARB_sync") ||
+				(epoxy_is_desktop_gl() && epoxy_gl_version() >= 32) ||
+				(GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3);
+	g_ogl_config.bSupportsGLBaseVertex = epoxy_has_gl_extension("GL_ARB_draw_elements_base_vertex") ||
+				(epoxy_is_desktop_gl() && epoxy_gl_version() >= 32);
+	g_ogl_config.bSupportsGLBufferStorage = epoxy_has_gl_extension("GL_ARB_buffer_storage") ||
+				(epoxy_is_desktop_gl() && epoxy_gl_version() >= 44);
+	g_ogl_config.bSupportsMSAA = epoxy_has_gl_extension("GL_ARB_texture_multisample") ||
+				(GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3);
+	g_ogl_config.bSupportSampleShading = epoxy_has_gl_extension("GL_ARB_sample_shading") ||
+				(epoxy_is_desktop_gl() && epoxy_gl_version() >= 40);
+	g_ogl_config.bSupportOGL31 = epoxy_is_desktop_gl() && epoxy_gl_version() >= 31;
+	g_ogl_config.bSupportViewportFloat = epoxy_has_gl_extension("GL_ARB_viewport_array") ||
+				(epoxy_is_desktop_gl() && epoxy_gl_version() >= 41);
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
@@ -497,13 +511,13 @@ Renderer::Renderer()
 		}
 	}
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (GLExtensions::Supports("GL_KHR_debug"))
+	if (epoxy_has_gl_extension("GL_KHR_debug") || (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3))
 	{
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 		glDebugMessageCallback( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
-	else if (GLExtensions::Supports("GL_ARB_debug_output"))
+	else if (epoxy_has_gl_extension("GL_ARB_debug_output"))
 	{
 		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 		glDebugMessageCallbackARB( ErrorCallback, nullptr );
