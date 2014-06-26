@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/LogManager.h"
+#include "Common/Logging/LogManager.h"
 
 #ifdef _WIN32
 #include <windows.h>

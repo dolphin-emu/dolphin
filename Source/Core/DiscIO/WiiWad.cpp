@@ -8,8 +8,8 @@
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
-#include "Common/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/WiiWad.h"
 

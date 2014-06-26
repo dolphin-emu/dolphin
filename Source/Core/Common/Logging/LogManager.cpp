@@ -12,12 +12,12 @@
 #ifdef ANDROID
 #include "Core/Host.h"
 #endif
-#include "Common/ConsoleListener.h"
 #include "Common/FileUtil.h"
-#include "Common/Log.h"
-#include "Common/LogManager.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+#include "Common/Logging/ConsoleListener.h"
+#include "Common/Logging/Log.h"
+#include "Common/Logging/LogManager.h"
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		const char *file, int line, const char* fmt, ...)

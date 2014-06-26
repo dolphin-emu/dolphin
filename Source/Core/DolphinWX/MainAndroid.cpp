@@ -29,7 +29,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/LogManager.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

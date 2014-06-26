@@ -168,5 +168,5 @@ enum EMUSTATE_CHANGE
 
 #include "Common/CommonTypes.h" // IWYU pragma: export
 #include "Common/CommonFuncs.h" // IWYU pragma: export // NOLINT
-#include "Common/Log.h" // IWYU pragma: export
 #include "Common/MsgHandler.h" // IWYU pragma: export
+#include "Common/Logging/Log.h" // IWYU pragma: export

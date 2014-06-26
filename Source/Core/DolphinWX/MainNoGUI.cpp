@@ -11,7 +11,7 @@
 
 #include "Common/Common.h"
 #include "Common/Event.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"

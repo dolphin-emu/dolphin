@@ -18,11 +18,11 @@
 #include <wx/validate.h>
 #include <wx/windowid.h>
 
-#include "Common/ConsoleListener.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/Log.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/ConsoleListener.h"
+#include "Common/Logging/Log.h"
+#include "Common/Logging/LogManager.h"
 #include "DolphinWX/LogConfigWindow.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/WxUtils.h"

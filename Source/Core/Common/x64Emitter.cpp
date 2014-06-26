@@ -6,8 +6,8 @@
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
-#include "Common/Log.h"
 #include "Common/x64Emitter.h"
+#include "Common/Logging/Log.h"
 
 namespace Gen
 {
