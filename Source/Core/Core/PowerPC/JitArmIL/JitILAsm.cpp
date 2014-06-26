@@ -27,7 +27,6 @@ void JitArmILAsmRoutineManager::Generate()
 	// consumed by CALL.
 	SUB(_SP, _SP, 4);
 
-	MOVI2R(R0, (u32)&CoreTiming::downcount);
 	MOVI2R(R9, (u32)&PowerPC::ppcState.spr[0]);
 
 	FixupBranch skipToRealDispatcher = B();
