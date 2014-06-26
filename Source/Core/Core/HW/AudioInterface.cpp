@@ -50,6 +50,8 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
   TODO maybe the files should be merged?
 */
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
@@ -232,7 +234,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 	mmio->Register(base | AI_VOLUME_REGISTER,
 		MMIO::DirectRead<u32>(&m_Volume.hex),
-		MMIO::DirectWrite<u32>(&m_Volume.hex)
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			m_Volume.hex = val;
+			soundStream->GetMixer()->SetStreamingVolume(m_Volume.left, m_Volume.right);
+		})
 	);
 
 	mmio->Register(base | AI_SAMPLE_COUNTER,
