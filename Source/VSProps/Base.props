@@ -14,7 +14,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <!--
-    Opt-in to x64 compiler and tools. The environment will default back to x86 if x64 is not usable.
+    Opt-in to x64 compiler and tools.
     Unfortunately we can't set this property here, as it'll be overridden later. Instead, set it
     from commandline if you're interested in using x64 toolset
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -58,7 +58,6 @@
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/d2Zi+ /volatile:iso /D PSAPI_VERSION=1 /D _M_X86=1 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Platform)'=='Win32'">/D _ARCH_32=1 /D _M_X86_32=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Platform)'=='x64'">/D _ARCH_64=1 /D _M_X86_64=1 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <!--
@@ -92,8 +91,6 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <!--SSE2 is already the default on x64, setting it explicitly just generates a warning-->
-      <EnableEnhancedInstructionSet Condition="'$(Platform)'=='Win32'">StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <!--Link Base-->
     <Link>
