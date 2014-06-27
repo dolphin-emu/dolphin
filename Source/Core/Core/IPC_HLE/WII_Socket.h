@@ -192,7 +192,7 @@ public:
 
 };
 
-class WiiSockMan
+class WiiSockMan : public ::NonCopyable
 {
 public:
 	static s32 GetNetErrorCode(s32 ret, std::string caller, bool isRW);
@@ -222,7 +222,8 @@ public:
 	template <typename T>
 	void DoSock(s32 sock, u32 CommandAddress, T type)
 	{
-		if (WiiSockets.find(sock) == WiiSockets.end())
+		auto socket_entry = WiiSockets.find(sock);
+		if (socket_entry == WiiSockets.end())
 		{
 			IPCCommandType ct = static_cast<IPCCommandType>(Memory::Read_U32(CommandAddress));
 			ERROR_LOG(WII_IPC_NET,
@@ -232,15 +233,13 @@ public:
 		}
 		else
 		{
-			WiiSockets[sock].DoSock(CommandAddress, type);
+			socket_entry->second.DoSock(CommandAddress, type);
 		}
 	}
 
 private:
-	WiiSockMan() {};                   // Constructor? (the {} brackets) are needed here.
-	WiiSockMan(WiiSockMan const&);     // Don't Implement
-	void operator=(WiiSockMan const&); // Don't implement
-	std::unordered_map<s32, WiiSocket> WiiSockets;
+	WiiSockMan() = default;
 
+	std::unordered_map<s32, WiiSocket> WiiSockets;
 	s32 errno_last;
 };
