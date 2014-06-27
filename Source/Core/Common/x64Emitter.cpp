@@ -1286,9 +1286,7 @@ void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg) {
 }
 
 void XEmitter::MOVQ_xmm(OpArg arg, X64Reg src) {
-	if (arg.IsSimpleReg())
-		PanicAlert("Emitter: MOVQ_xmm doesn't support single registers as destination");
-	if (src > 7)
+	if (src > 7 || arg.IsSimpleReg())
 	{
 		// Alternate encoding
 		// This does not display correctly in MSVC's debugger, it thinks it's a MOVD
