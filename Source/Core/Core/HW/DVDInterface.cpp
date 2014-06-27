@@ -4,6 +4,8 @@
 
 #include <cinttypes>
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/Thread.h"
@@ -208,16 +210,13 @@ u32  g_ErrorCode = 0;
 bool g_bDiscInside = false;
 bool g_bStream = false;
 int  tc = 0;
+int  dtk = 0;
 
 static u64 g_last_read_offset;
 static u64 g_last_read_time;
 
 // GC-AM only
 static unsigned char media_buffer[0x40];
-
-// Needed because data and streaming audio access needs to be managed by the "drive"
-// (both requests can happen at the same time, audio takes precedence)
-static std::mutex dvdread_section;
 
 static int ejectDisc;
 static int insertDisc;
@@ -262,6 +261,63 @@ void TransferComplete(u64 userdata, int cyclesLate)
 		FinishExecuteRead();
 }
 
+static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
+{
+	u32 samples_processed = 0;
+	do
+	{
+		if (AudioPos >= CurrentStart + CurrentLength)
+		{
+			AudioPos = LoopStart;
+			CurrentStart = LoopStart;
+			CurrentLength = LoopLength;
+			NGCADPCM::InitFilter();
+			AudioInterface::GenerateAISInterrupt();
+
+			// If there isn't any audio to stream, stop streaming.
+			if (AudioPos >= CurrentStart + CurrentLength)
+			{
+				g_bStream = false;
+			}
+			break;
+		}
+
+		u8 tempADPCM[NGCADPCM::ONE_BLOCK_SIZE];
+		// TODO: What if we can't read from AudioPos?
+		VolumeHandler::ReadToPtr(tempADPCM, AudioPos, sizeof(tempADPCM));
+		AudioPos += sizeof(tempADPCM);
+		NGCADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
+		samples_processed += NGCADPCM::SAMPLES_PER_BLOCK;
+	} while (samples_processed < num_samples);
+	for (unsigned i = 0; i < samples_processed * 2; ++i)
+	{
+		// TODO: Fix the mixer so it can accept non-byte-swapped samples.
+		tempPCM[i] = Common::swap16(tempPCM[i]);
+	}
+	return samples_processed;
+}
+
+void DTKStreamingCallback(u64 userdata, int cyclesLate)
+{
+	// Send audio to the mixer.
+	static const int NUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
+	short tempPCM[NUM_SAMPLES * 2];
+	unsigned samples_processed;
+	if (g_bStream)
+	{
+		samples_processed = ProcessDTKSamples(tempPCM, NUM_SAMPLES);
+	}
+	else
+	{
+		memset(tempPCM, 0, sizeof(tempPCM));
+		samples_processed = NUM_SAMPLES;
+	}
+	soundStream->GetMixer()->PushStreamingSamples(tempPCM, samples_processed);
+
+	int ticks_to_dtk = int(SystemTimers::GetTicksPerSecond() * u64(samples_processed) / 48000);
+	CoreTiming::ScheduleEvent(ticks_to_dtk - cyclesLate, dtk);
+}
+
 void Init()
 {
 	m_DISR.Hex        = 0;
@@ -288,6 +344,9 @@ void Init()
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
 	tc = CoreTiming::RegisterEvent("TransferComplete", TransferComplete);
+	dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
+
+	CoreTiming::ScheduleEvent(0, dtk);
 }
 
 void Shutdown()
@@ -369,55 +428,7 @@ void ClearCoverInterrupt()
 
 bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
 {
-	// We won't need the crit sec when DTK streaming has been rewritten correctly.
-	std::lock_guard<std::mutex> lk(dvdread_section);
 	return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
-}
-
-bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
-{
-	_iNumSamples &= ~31;
-
-	if (AudioPos == 0)
-	{
-		memset(_pDestBuffer, 0, _iNumSamples); // probably __AI_SRC_INIT :P
-	}
-	else
-	{
-		std::lock_guard<std::mutex> lk(dvdread_section);
-		VolumeHandler::ReadToPtr(_pDestBuffer, AudioPos, _iNumSamples);
-	}
-
-	// loop check
-	if (g_bStream)
-	{
-		AudioPos += _iNumSamples;
-
-		if (AudioPos >= CurrentStart + CurrentLength)
-		{
-			if (LoopStart == 0)
-			{
-				AudioPos = 0;
-				CurrentStart = 0;
-				CurrentLength = 0;
-			}
-			else
-			{
-				AudioPos = LoopStart;
-				CurrentStart = LoopStart;
-				CurrentLength = LoopLength;
-			}
-			NGCADPCM::InitFilter();
-			AudioInterface::GenerateAISInterrupt();
-		}
-
-		//WARN_LOG(DVDINTERFACE,"ReadADPCM");
-		return true;
-	}
-	else
-	{
-		return false;
-	}
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -927,7 +938,6 @@ void ExecuteCommand()
 				CurrentStart = pos;
 				CurrentLength = length;
 				NGCADPCM::InitFilter();
-				g_bStream = true;
 			}
 
 			LoopStart = pos;
@@ -990,11 +1000,13 @@ void ExecuteCommand()
 	case DVDLowAudioBufferConfig:
 		if (m_DICMDBUF[0].CMDBYTE1 == 1)
 		{
+			// TODO: What is this actually supposed to do?
 			g_bStream = true;
 			WARN_LOG(DVDINTERFACE, "(Audio): Audio enabled");
 		}
 		else
 		{
+			// TODO: What is this actually supposed to do?
 			g_bStream = false;
 			WARN_LOG(DVDINTERFACE, "(Audio): Audio disabled");
 		}
