@@ -1127,6 +1127,7 @@ void CFrame::DoStop()
 
 		wxBeginBusyCursor();
 		BootManager::Stop();
+		UpdateGUI();
 	}
 }
 
@@ -1638,6 +1639,7 @@ void CFrame::UpdateGUI()
 	bool Initialized = Core::IsRunning();
 	bool Running = Core::GetState() == Core::CORE_RUN;
 	bool Paused = Core::GetState() == Core::CORE_PAUSE;
+	bool Stopping = Core::GetState() == Core::CORE_STOPPING;
 	bool RunningWii = Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	bool RunningGamecube = Initialized && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 
@@ -1784,8 +1786,8 @@ void CFrame::UpdateGUI()
 	{
 		// Game has been loaded, enable the pause button
 		if (m_ToolBar)
-			m_ToolBar->EnableTool(IDM_PLAY, true);
-		GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+			m_ToolBar->EnableTool(IDM_PLAY, !Stopping);
+		GetMenuBar()->FindItem(IDM_PLAY)->Enable(!Stopping);
 
 		// Reset game loading flag
 		m_bGameLoading = false;
