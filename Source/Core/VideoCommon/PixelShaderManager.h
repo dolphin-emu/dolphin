@@ -40,6 +40,7 @@ public:
 	static void SetFogParamChanged();
 	static void SetFogRangeAdjustChanged();
 
-	static PixelShaderConstants constants;
+	// We have to align the constants for efficient backend usage
+	static GC_ALIGNED16(PixelShaderConstants) constants;
 	static bool dirty;
 };

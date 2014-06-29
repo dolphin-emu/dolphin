@@ -86,7 +86,10 @@ void InitBackendInfo()
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
-	g_Config.backend_info.bSupportsPrimitiveRestart = true;
+
+	// primitive restart is not worth the effort, it has a less efficient index generation
+	// and a too much reset ratio over real primitives
+	g_Config.backend_info.bSupportsPrimitiveRestart = false;
 	g_Config.backend_info.bSupportsOversizedViewports = false;
 
 	IDXGIFactory* factory;
