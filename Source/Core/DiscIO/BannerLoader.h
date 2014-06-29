@@ -19,18 +19,27 @@ class IBannerLoader
 {
 public:
 	IBannerLoader()
+		: m_pBannerFile(nullptr)
+		, m_IsValid(false)
 	{}
 
 	virtual ~IBannerLoader()
 	{}
-
-	virtual bool IsValid() = 0;
 
 	virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
 
 	virtual std::vector<std::string> GetNames() = 0;
 	virtual std::string GetCompany() = 0;
 	virtual std::vector<std::string> GetDescriptions() = 0;
+
+	bool IsValid()
+	{
+		return m_IsValid;
+	}
+
+protected:
+	bool m_IsValid;
+	u8* m_pBannerFile;
 };
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume);

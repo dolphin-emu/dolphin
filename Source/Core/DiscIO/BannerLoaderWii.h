@@ -23,8 +23,6 @@ public:
 
 	virtual ~CBannerLoaderWii();
 
-	virtual bool IsValid() override;
-
 	virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) override;
 
 	virtual std::vector<std::string> GetNames() override;
@@ -57,11 +55,7 @@ private:
 		u16 m_Comment[2][COMMENT_SIZE];
 		u8  m_BannerTexture[TEXTURE_SIZE];
 		u8  m_IconTexture[8][ICON_SIZE];
-	} ;
-
-	u8* m_pBannerFile;
-
-	bool m_IsValid;
+	};
 
 	bool GetStringFromComments(const CommentIndex index, std::string& s);
 };
