@@ -21,8 +21,6 @@ namespace DiscIO
 {
 
 CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
-	: m_pBannerFile(nullptr)
-	, m_IsValid(false)
 {
 	u64 TitleID;
 	pVolume->GetTitleID((u8*)&TitleID);
@@ -93,11 +91,6 @@ CBannerLoaderWii::~CBannerLoaderWii()
 		delete [] m_pBannerFile;
 		m_pBannerFile = nullptr;
 	}
-}
-
-bool CBannerLoaderWii::IsValid()
-{
-	return m_IsValid;
 }
 
 std::vector<u32> CBannerLoaderWii::GetBanner(int* pWidth, int* pHeight)
