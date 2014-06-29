@@ -17,23 +17,20 @@ class IVolume;
 
 class IBannerLoader
 {
-	public:
+public:
+	IBannerLoader()
+	{}
 
-		IBannerLoader()
-		{}
+	virtual ~IBannerLoader()
+	{}
 
+	virtual bool IsValid() = 0;
 
-		virtual ~IBannerLoader()
-		{}
+	virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
 
-
-		virtual bool IsValid() = 0;
-
-		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
-
-		virtual std::vector<std::string> GetNames() = 0;
-		virtual std::string GetCompany() = 0;
-		virtual std::vector<std::string> GetDescriptions() = 0;
+	virtual std::vector<std::string> GetNames() = 0;
+	virtual std::string GetCompany() = 0;
+	virtual std::vector<std::string> GetDescriptions() = 0;
 };
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume);
