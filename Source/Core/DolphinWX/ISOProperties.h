@@ -205,7 +205,7 @@ private:
 			std::vector<const DiscIO::SFileInfo*> fileInfos,
 			const size_t _FirstIndex,
 			const size_t _LastIndex);
-	void ExportDir(const char* _rFullPath, const char* _rExportFilename,
+	void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
 			const int partitionNum = 0);
 
 	IniFile GameIniDefault;

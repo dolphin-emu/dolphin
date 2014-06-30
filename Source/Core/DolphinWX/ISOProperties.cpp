@@ -762,53 +762,47 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
-void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
+void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder, const int partitionNum)
 {
-	std::string exportName;
-	u32 index[2] = {0, 0};
-	std::vector<const DiscIO::SFileInfo *> fst;
-	DiscIO::IFileSystem *FS = nullptr;
+	DiscIO::IFileSystem* const fs = DiscIO::IsVolumeWiiDisc(OpenISO) ? WiiDisc[partitionNum].FileSystem : pFileSystem;
 
-	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	std::vector<const DiscIO::SFileInfo*> fst;
+	fs->GetFileList(fst);
+
+	u32 index = 0;
+	u32 size = 0;
+
+	// Extract all
+	if (_rFullPath.empty())
 	{
-		FS = WiiDisc.at(partitionNum).FileSystem;
+		index = 0;
+		size = (u32)fst.size();
+
+		fs->ExportApploader(_rExportFolder);
+		if (!DiscIO::IsVolumeWiiDisc(OpenISO))
+			fs->ExportDOL(_rExportFolder);
 	}
 	else
 	{
-		FS = pFileSystem;
-	}
-
-	FS->GetFileList(fst);
-
-	if (!_rFullPath) // Extract all
-	{
-		index[0] = 0;
-		index[1] = (u32)fst.size();
-
-		FS->ExportApploader(_rExportFolder);
-		if (!DiscIO::IsVolumeWiiDisc(OpenISO))
-			FS->ExportDOL(_rExportFolder);
-	}
-	else // Look for the dir we are going to extract
-	{
-		for (index[0] = 0; index[0] < fst.size(); index[0]++)
+		// Look for the dir we are going to extract
+		for (index = 0; index != fst.size(); ++index)
 		{
-			if (fst.at(index[0])->m_FullPath == _rFullPath)
+			if (fst[index]->m_FullPath == _rFullPath)
 			{
-				DEBUG_LOG(DISCIO, "Found the directory at %u", index[0]);
-				index[1] = (u32)fst.at(index[0])->m_FileSize;
+				DEBUG_LOG(DISCIO, "Found the directory at %u", index);
+				size = (u32)fst[index]->m_FileSize;
 				break;
 			}
 		}
 
-		DEBUG_LOG(DISCIO,"Directory found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
+		DEBUG_LOG(DISCIO,"Directory found from %u to %u\nextracting to:\n%s", index , size, _rExportFolder.c_str());
 	}
 
-	wxString dialogTitle = index[0] ? _("Extracting Directory") : _("Extracting All Files");
+	wxString dialogTitle = (index != 0) ? _("Extracting Directory") : _("Extracting All Files");
 	wxProgressDialog dialog(
 		dialogTitle,
 		_("Extracting..."),
-		index[1] - 1,
+		size - 1,
 		this,
 		wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
 		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
@@ -816,10 +810,10 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		);
 
 	// Extraction
-	for (u32 i = index[0]; i < index[1]; i++)
+	for (u32 i = index; i < size; i++)
 	{
 		dialog.SetTitle(wxString::Format("%s : %d%%", dialogTitle.c_str(),
-			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
+			(u32)(((float)(i - index) / (float)(size - index)) * 100)));
 
 		dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i]->m_FullPath)));
 
@@ -828,7 +822,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 
 		if (fst[i]->IsDirectory())
 		{
-			exportName = StringFromFormat("%s/%s/", _rExportFolder, fst[i]->m_FullPath.c_str());
+			const std::string exportName = StringFromFormat("%s/%s/", _rExportFolder.c_str(), fst[i]->m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
 			if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
@@ -845,10 +839,10 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		}
 		else
 		{
-			exportName = StringFromFormat("%s/%s", _rExportFolder, fst[i]->m_FullPath.c_str());
+			const std::string exportName = StringFromFormat("%s/%s", _rExportFolder.c_str(), fst[i]->m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
-			if (!File::Exists(exportName) && !FS->ExportFile(fst[i]->m_FullPath, exportName))
+			if (!File::Exists(exportName) && !fs->ExportFile(fst[i]->m_FullPath, exportName))
 			{
 				ERROR_LOG(DISCIO, "Could not export %s", exportName.c_str());
 			}
@@ -872,9 +866,9 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	{
 		if (DiscIO::IsVolumeWiiDisc(OpenISO))
 			for (u32 i = 0; i < WiiDisc.size(); i++)
-				ExportDir(nullptr, WxStrToStr(Path).c_str(), i);
+				ExportDir("", WxStrToStr(Path).c_str(), i);
 		else
-			ExportDir(nullptr, WxStrToStr(Path).c_str());
+			ExportDir("", WxStrToStr(Path).c_str());
 
 		return;
 	}
@@ -887,15 +881,17 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 	}
 
+	Directory += DIR_SEP_CHR;
+
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("/") - 1, 1));
 		Directory.Remove(0, Directory.find_first_of("/") + 1); // Remove "Partition x/"
-		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str(), partitionNum);
+		ExportDir(WxStrToStr(Directory), WxStrToStr(Path), partitionNum);
 	}
 	else
 	{
-		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str());
+		ExportDir(WxStrToStr(Directory), WxStrToStr(Path));
 	}
 }
 

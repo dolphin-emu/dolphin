@@ -192,26 +192,19 @@ size_t CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastInde
 	while (CurrentIndex < _LastIndex)
 	{
 		SFileInfo& rFileInfo = m_FileInfoVector[CurrentIndex];
-		int uOffset = rFileInfo.m_NameOffset & 0xFFFFFF;
+		int const uOffset = rFileInfo.m_NameOffset & 0xFFFFFF;
+
+		rFileInfo.m_FullPath = _szDirectory + &_szNameTable[uOffset];
 
 		// check next index
 		if (rFileInfo.IsDirectory())
 		{
-			if (_szDirectory.empty())
-				rFileInfo.m_FullPath += StringFromFormat("%s/", &_szNameTable[uOffset]);
-			else
-				rFileInfo.m_FullPath += StringFromFormat("%s%s/", _szDirectory.c_str(), &_szNameTable[uOffset]);
-
-			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);
+			rFileInfo.m_FullPath += '/';
+			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t)rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);
 		}
-		else // This is a filename
+		else
 		{
-			if (_szDirectory.empty())
-				rFileInfo.m_FullPath += StringFromFormat("%s", &_szNameTable[uOffset]);
-			else
-				rFileInfo.m_FullPath += StringFromFormat("%s%s", _szDirectory.c_str(), &_szNameTable[uOffset]);
-
-			CurrentIndex++;
+			++CurrentIndex;
 		}
 	}
 
