@@ -241,6 +241,11 @@ bool CBoot::BootUp()
 			// If we can't load the bootrom file we HLE it instead
 			EmulatedBS2(_StartupPara.bWii);
 		}
+		else
+		{
+			// Load patches if they weren't already
+			PatchEngine::LoadPatches();
+		}
 
 		// Scan for common HLE functions
 		if (_StartupPara.bSkipIdle && !_StartupPara.bEnableDebugging)
