@@ -9,6 +9,12 @@
 
 #include "Common/Common.h"
 
+inline float SignOf(float x)
+{
+	// VR 1 if x is positive, -1 if x is negative, or 0 if x is zero
+	return (float)((x > 0) - (x < 0));
+}
+
 namespace MathUtil
 {
 template<class T>

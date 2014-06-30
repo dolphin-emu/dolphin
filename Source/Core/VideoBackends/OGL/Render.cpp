@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include <SOIL/SOIL.h>
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
@@ -92,6 +93,8 @@ static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
 static SHADER s_ShowEFBCopyRegions;
+
+static GLuint g_man_texture = 0;
 
 static RasterFont* s_pfont = nullptr;
 
@@ -624,6 +627,23 @@ Renderer::Renderer()
 			}
 	}
 	UpdateActiveConfig();
+
+	{
+		/* load an image file directly as a new OpenGL texture */
+		unsigned char* img;
+		int width, height, channels;
+		/*	try to load the image	*/
+		img = SOIL_load_image((File::GetSysDirectory() + "man.png").c_str(), &width, &height, &channels, SOIL_LOAD_AUTO);
+		glGenTextures(1, &g_man_texture);
+		glActiveTexture(GL_TEXTURE0 + 9);
+		glBindTexture(GL_TEXTURE_2D, g_man_texture);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
+		SOIL_free_image_data(img);
+	}
 }
 
 Renderer::~Renderer()

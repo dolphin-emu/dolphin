@@ -15,6 +15,8 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
+void ClearDebugProj();
+
 #define M_PI 3.14159265358979323846
 #define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / M_PI))
 
@@ -33,6 +35,7 @@ int g_hmd_window_width = 0, g_hmd_window_height = 0;
 void NewVRFrame()
 {
 	g_new_tracking_frame = true;
+	ClearDebugProj();
 }
 
 void InitVR()

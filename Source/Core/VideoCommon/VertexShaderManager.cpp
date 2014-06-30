@@ -46,6 +46,172 @@ float4 VertexShaderManager::constants_eye_projection[2][4];
 
 bool VertexShaderManager::dirty;
 
+//VR Virtual Reality debugging variables
+int vr_render_eye = -1;
+int debug_viewportNum = 0;
+Viewport debug_vpList[64] = { 0 };
+int debug_projNum = 0;
+float debug_projList[64][7] = { 0 };
+bool debug_newScene = true, debug_nextScene = false;
+bool MetroidPrime_DrawingHelmet = false, MetroidPrime_DrawingVisor = false, MetroidPrime_DrawingScan = false;
+int MetroidPrime_65DegCount = 0, MetroidPrime_80DegCount = 0;
+int vr_widest_3d_projNum = -1;
+float vr_widest_3d_HFOV = 0;
+float vr_widest_3d_VFOV = 0;
+
+void ClearDebugProj() { //VR
+	debug_newScene = debug_nextScene;
+	if (debug_newScene)
+		NOTICE_LOG(VR, "***** New scene *****");
+	debug_nextScene = false;
+	debug_projNum = 0;
+	debug_viewportNum = 0;
+	// Metroid Prime hacks
+	MetroidPrime_65DegCount = 0;
+	MetroidPrime_80DegCount = 0;
+	MetroidPrime_DrawingHelmet = false;
+	MetroidPrime_DrawingVisor = false;
+	// General VR hacks
+	vr_widest_3d_projNum = -1;
+	vr_widest_3d_HFOV = 0;
+	vr_widest_3d_VFOV = 0;
+}
+void DoLogViewport(int j, Viewport &v) { //VR
+	NOTICE_LOG(VR, "  Viewport %d: (%g,%g) %gx%g; near=%g, far=%g", j, v.xOrig - v.wd - 342, v.yOrig + v.ht - 342, 2 * v.wd, -2 * v.ht, (v.farZ - v.zRange) / 16777216.0f, v.farZ / 16777216.0f);
+}
+void DoLogProj(int j, float p[]) { //VR
+	if (p[6] != 0) { // orthographic projection
+		//float right = p[0]-(p[0]*p[1]);
+		//float left = right - 2/p[0];
+
+		float left = -(p[1] + 1) / p[0];
+		float right = left + 2 / p[0];
+		float bottom = -(p[3] + 1) / p[2];
+		float top = bottom + 2 / p[2];
+		float znear = (p[5] + 1) / p[4];
+		float zfar = near + 2 / p[4];
+		NOTICE_LOG(VR, "%d: 2D: (%g, %g) to (%g, %g); z: %g to %g", j, left, top, right, bottom, znear, zfar);
+	}
+	else if (p[0] != 0 || p[2] != 0) { // perspective projection
+		float f = p[5] / p[4];
+		float n = f*p[4] / (p[4] - 1);
+		if (p[1] != 0.0f || p[3] != 0.0f) {
+			NOTICE_LOG(VR, "%d: OFF-AXIS Perspective: 2n/w=%.2f A=%.2f; 2n/h=%.2f B=%.2f; n=%.2f f=%.2f", j, p[0], p[1], p[2], p[3], p[4], p[5]);
+			NOTICE_LOG(VR, "	HFOV: %.2f    VFOV: %.2f   Aspect Ratio: 16:%.1f", 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f, 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f, 16 / (2 / p[0])*(2 / p[2]));
+		}
+		else {
+			NOTICE_LOG(VR, "%d: HFOV: %.2fdeg; VFOV: %.2fdeg; Aspect Ratio: 16:%.1f; near:%f, far:%f", j, 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f, 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f, 16 / (2 / p[0])*(2 / p[2]), n, f);
+		}
+	}
+	else { // invalid
+		NOTICE_LOG(VR, "%d: ZERO", j);
+	}
+}
+void LogProj(float p[]) { //VR
+	if (p[6] == 0) { // perspective projection
+		float vfov = (2 * atan(1.0f / p[2])*180.0f / 3.1415926535f);
+		float hfov = (2 * atan(1.0f / p[0])*180.0f / 3.1415926535f);
+		if (fabs(hfov)>vr_widest_3d_HFOV && fabs(hfov) <= 125 && (fabs(p[2]) != fabs(p[0]))) {
+			vr_widest_3d_projNum = debug_projNum;
+			vr_widest_3d_HFOV = fabs(hfov);
+			vr_widest_3d_VFOV = fabs(vfov);
+		}
+		if ((int)vfov == 65) { // helmet/hud is rendered in 65 degree vertical, but everything else is 55 degrees
+			MetroidPrime_65DegCount++;
+			if (MetroidPrime_65DegCount == 1) {
+				MetroidPrime_DrawingVisor = true;
+				MetroidPrime_DrawingHelmet = false;
+				MetroidPrime_DrawingScan = false;
+			}
+			else if (MetroidPrime_65DegCount == 2) {
+				float hfov = 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f;
+				if (hfov<81) {
+					MetroidPrime_80DegCount++;
+					MetroidPrime_DrawingVisor = false;
+					MetroidPrime_DrawingHelmet = false;
+					MetroidPrime_DrawingScan = true;
+				}
+				else {
+					MetroidPrime_DrawingVisor = false;
+					MetroidPrime_DrawingHelmet = true;
+					MetroidPrime_DrawingScan = false;
+				}
+			}
+			else if (MetroidPrime_65DegCount == 3 && MetroidPrime_80DegCount>0) {
+				MetroidPrime_DrawingVisor = false;
+				MetroidPrime_DrawingHelmet = false;
+				MetroidPrime_DrawingScan = true;
+			}
+			else if (MetroidPrime_65DegCount == 4 && MetroidPrime_80DegCount>0) {
+				MetroidPrime_DrawingVisor = false;
+				MetroidPrime_DrawingHelmet = true;
+				MetroidPrime_DrawingScan = false;
+			}
+			else {
+				MetroidPrime_DrawingVisor = false;
+				MetroidPrime_DrawingHelmet = false;
+				MetroidPrime_DrawingScan = false;
+			}
+		}
+		else {
+			MetroidPrime_DrawingVisor = false;
+			MetroidPrime_DrawingHelmet = false;
+			MetroidPrime_DrawingScan = false;
+		}
+	}
+	if (debug_projNum >= 64)
+		return;
+	if (!debug_newScene) {
+		for (int i = 0; i<7; i++) {
+			if (debug_projList[debug_projNum][i] != p[i]) {
+				debug_nextScene = true;
+				debug_projList[debug_projNum][i] = p[i];
+			}
+		}
+		// wait until next frame
+		//if (debug_newScene) {
+		//	INFO_LOG(VIDEO,"***** New scene *****");
+		//	for (int j=0; j<debug_projNum; j++) {
+		//		DoLogProj(j, debug_projList[j]);
+		//	}
+		//}
+	}
+	else {
+		debug_nextScene = false;
+		NOTICE_LOG(VR, "%f Units Per Metre", g_ActiveConfig.fUnitsPerMetre);
+		DoLogProj(debug_projNum, debug_projList[debug_projNum]);
+	}
+	debug_projNum++;
+}
+void LogViewport(Viewport &v) { //VR
+	if (debug_viewportNum >= 64)
+		return;
+	if (!debug_newScene) {
+		if (debug_vpList[debug_viewportNum].farZ != v.farZ ||
+			debug_vpList[debug_viewportNum].ht != v.ht ||
+			debug_vpList[debug_viewportNum].wd != v.wd ||
+			debug_vpList[debug_viewportNum].xOrig != v.xOrig ||
+			debug_vpList[debug_viewportNum].yOrig != v.yOrig ||
+			debug_vpList[debug_viewportNum].zRange != v.zRange) {
+			debug_nextScene = true;
+			debug_vpList[debug_viewportNum] = v;
+		}
+	}
+	else {
+		debug_nextScene = false;
+		DoLogViewport(debug_viewportNum, debug_vpList[debug_viewportNum]);
+	}
+	debug_viewportNum++;
+}
+
+void ScaleAndRotateOrtho(float p[], Matrix44& m, float xs, float ys) { //VR
+	// project first, then
+	// scale x coordinates by 16/9 or 12/9 (depending on most recent aspect ratio used for widest FOV 3D rendering)
+	// rotate them
+	// scale x coordinates by 9/16 or 9/12
+	// scale coordinates by scale
+}
+
 struct ProjectionHack
 {
 	float sign;
@@ -370,6 +536,7 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
+		LogViewport(xfmem.viewport);
 		constants.depthparams[0] = xfmem.viewport.farZ / 16777216.0f;
 		constants.depthparams[1] = xfmem.viewport.zRange / 16777216.0f;
 
@@ -398,6 +565,7 @@ void VertexShaderManager::SetConstants()
 	if (bProjectionChanged)
 	{
 		bProjectionChanged = false;
+		LogProj(xfmem.projection.rawProjection);
 		SetProjectionConstants();
 	}
 }
@@ -405,6 +573,7 @@ void VertexShaderManager::SetConstants()
 void VertexShaderManager::SetProjectionConstants()
 {
 	float *rawProjection = xfmem.projection.rawProjection;
+	static int LayerToHide = 0;
 
 	switch (xfmem.projection.type)
 	{
@@ -423,7 +592,6 @@ void VertexShaderManager::SetProjectionConstants()
 		g_fProjectionMatrix[8] = 0.0f;
 		g_fProjectionMatrix[9] = 0.0f;
 		g_fProjectionMatrix[10] = rawProjection[4];
-
 		g_fProjectionMatrix[11] = rawProjection[5];
 
 		g_fProjectionMatrix[12] = 0.0f;
@@ -450,6 +618,34 @@ void VertexShaderManager::SetProjectionConstants()
 		SETSTAT_FT(stats.gproj_13, g_fProjectionMatrix[13]);
 		SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix[14]);
 		SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix[15]);
+
+		if (MetroidPrime_DrawingHelmet) {
+			if (!vr_render_eye) {
+				g_fProjectionMatrix[0] *= 1.0f;
+				g_fProjectionMatrix[5] *= 2.0f;
+			}
+			else {
+				g_fProjectionMatrix[0] *= 1.5f;
+				g_fProjectionMatrix[5] *= 1.6f;
+			}
+		}
+		if (MetroidPrime_DrawingVisor) {
+			if (!vr_render_eye) {
+				g_fProjectionMatrix[0] *= 1.0f;
+				g_fProjectionMatrix[5] *= 1.3f;
+			}
+			else {
+				g_fProjectionMatrix[0] *= 1.5f;
+				g_fProjectionMatrix[5] *= 1.3f;
+			}
+		}
+
+		//VR Metroid Prime helmet hack test! Delete me!
+		// proj 13 = combat visor HUD (not including crosshair or target lock)
+		if (debug_projNum == LayerToHide) {
+			g_fProjectionMatrix[2] += 900000000.0f;
+			g_fProjectionMatrix[0] *= 900000000.0f;
+		}
 		break;
 
 	case GX_ORTHOGRAPHIC:
@@ -515,7 +711,7 @@ void VertexShaderManager::SetProjectionConstants()
 		float zf2 = p[5] / (p[4] + 1);
 		float hfov = 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f;
 		float vfov = 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f;
-		NOTICE_LOG(VR, "hfov=%8.4f    vfov=%8.4f      znear=%8.4f or %8.4f   zfar=%8.4f or %8.4f", hfov, vfov, znear, zn2, zfar, zf2);
+		//NOTICE_LOG(VR, "hfov=%8.4f    vfov=%8.4f      znear=%8.4f or %8.4f   zfar=%8.4f or %8.4f", hfov, vfov, znear, zn2, zfar, zf2);
 
 		Matrix44 proj_left, proj_right;
 		Matrix44::Set(proj_left, g_fProjectionMatrix);
@@ -537,31 +733,30 @@ void VertexShaderManager::SetProjectionConstants()
 			float vfov2 = 2 * atan(1.0f / rift_left.M[1][1])*180.0f / 3.1415926535f;
 			float zfar2 = rift_left.M[2][3] / rift_left.M[2][2];
 			float znear2 = (1 + rift_left.M[2][2] * zfar) / rift_left.M[2][2];
-			WARN_LOG(VR, "hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov2, vfov2, znear2, zfar2);
-			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[0][0], rift_left.M[0][1], rift_left.M[0][2], rift_left.M[0][3]);
-			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[1][0], rift_left.M[1][1], rift_left.M[1][2], rift_left.M[1][3]);
-			WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[2][0], rift_left.M[2][1], rift_left.M[2][2], rift_left.M[2][3]);
-			WARN_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", rift_left.M[3][0], rift_left.M[3][1], rift_left.M[3][2], rift_left.M[3][3]);
-			NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
-			NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
-			NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
-			NOTICE_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
-			proj_left.data[0 * 4 + 0] = rift_left.M[0][0]; // h fov
-			proj_left.data[1 * 4 + 1] = rift_left.M[1][1]; // v fov
-			proj_left.data[0 * 4 + 2] = rift_left.M[0][2]; // h off-axis
-			proj_left.data[1 * 4 + 2] = rift_left.M[1][2]; // v off-axis
-			proj_right.data[0 * 4 + 0] = rift_right.M[0][0];
-			proj_right.data[1 * 4 + 1] = rift_right.M[1][1];
-			proj_right.data[0 * 4 + 2] = rift_right.M[0][2];
-			proj_right.data[1 * 4 + 2] = rift_right.M[1][2];
-			ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
-			ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
-			ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
-			ERROR_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
+			//WARN_LOG(VR, "hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov2, vfov2, znear2, zfar2);
+			//WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[0][0], rift_left.M[0][1], rift_left.M[0][2], rift_left.M[0][3]);
+			//WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[1][0], rift_left.M[1][1], rift_left.M[1][2], rift_left.M[1][3]);
+			//WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[2][0], rift_left.M[2][1], rift_left.M[2][2], rift_left.M[2][3]);
+			//WARN_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", rift_left.M[3][0], rift_left.M[3][1], rift_left.M[3][2], rift_left.M[3][3]);
+			//NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
+			//NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
+			//NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
+			//NOTICE_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
+			proj_left.data[0 * 4 + 0] = rift_left.M[0][0] * SignOf(proj_left.data[0 * 4 + 0]); // h fov
+			proj_left.data[1 * 4 + 1] = rift_left.M[1][1] * SignOf(proj_left.data[1 * 4 + 1]); // v fov
+			proj_left.data[0 * 4 + 2] = rift_left.M[0][2] * SignOf(proj_left.data[0 * 4 + 0]); // h off-axis
+			proj_left.data[1 * 4 + 2] = rift_left.M[1][2] * SignOf(proj_left.data[1 * 4 + 1]); // v off-axis
+			proj_right.data[0 * 4 + 0] = rift_right.M[0][0] * SignOf(proj_right.data[0 * 4 + 0]);
+			proj_right.data[1 * 4 + 1] = rift_right.M[1][1] * SignOf(proj_right.data[1 * 4 + 1]);
+			proj_right.data[0 * 4 + 2] = rift_right.M[0][2] * SignOf(proj_right.data[0 * 4 + 0]);
+			proj_right.data[1 * 4 + 2] = rift_right.M[1][2] * SignOf(proj_right.data[1 * 4 + 1]);
+			//ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
+			//ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
+			//ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
+			//ERROR_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
 		}
 #endif
 		float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre;
-		NOTICE_LOG(VR, "%f Units Per Metre", UnitsPerMetre);
 		//VR Headtracking
 		UpdateHeadTrackingIfNeeded();
 		Matrix44 rotation_matrix;
@@ -623,6 +818,37 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants.projection, final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[0], final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[1], final_matrix_right.data, 4 * 16);
+		//Matrix44 mtxA, mtxB, mtxView;
+		//if (MetroidPrime_DrawingHelmet) {
+		//	if (vr_render_eye == 0) // mono
+		//		Matrix44::LoadIdentity(mtxA);
+		//	else { // 3D
+		//		float v[3] = { 8.0f, 0.3f, 3.0f }; // move camera left into left eye hole
+		//		if (vr_render_eye>0) v[0] = -v[0]; // or right
+		//		Matrix44::Translate(mtxA, v);
+		//	}
+		//	Matrix44::LoadIdentity(mtxB); // keep locked to head
+		//	Matrix44::Multiply(mtxB, mtxA, mtxView);
+		//	Matrix44::Set(projMtx, g_fProjectionMatrix);
+		//	Matrix44::Multiply(projMtx, mtxView, rotatedMtx);
+		//}
+		//else if (MetroidPrime_DrawingVisor) {
+		//	if (vr_render_eye == 0) // mono
+		//		Matrix44::LoadIdentity(mtxA);
+		//	else { // 3D
+		//		float v[3] = { 8.1f, 0.0f, 3.0f }; // move camera left into left eye hole
+		//		if (vr_render_eye>0) v[0] = -v[0]; // or right
+		//		Matrix44::Translate(mtxA, v);
+		//	}
+		//	Matrix44::LoadIdentity(mtxB); // keep locked to head
+		//	Matrix44::Multiply(mtxB, mtxA, mtxView);
+		//	Matrix44::Set(projMtx, g_fProjectionMatrix);
+		//	Matrix44::Multiply(projMtx, mtxView, rotatedMtx);
+		//}
+		//else { //VR Normal Oculus Rift Headtracking
+		//	Matrix44::Set(projMtx, g_fProjectionMatrix);
+		//	Matrix44::Multiply(projMtx, g_ActiveConfig.mHeadTracking, rotatedMtx);
+		//}
 	}
 	else if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo) && xfmem.projection.type == GX_PERSPECTIVE)
 	{
