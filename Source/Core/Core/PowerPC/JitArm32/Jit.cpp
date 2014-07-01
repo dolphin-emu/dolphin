@@ -244,7 +244,7 @@ void JitArm::Trace()
 	for (int i = 0; i < 32; i++)
 	{
 		char reg[50];
-		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
+		snprintf(reg, sizeof(reg), "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
 		strncat(regs, reg, sizeof(regs) - 1);
 	}
 #endif
@@ -253,7 +253,7 @@ void JitArm::Trace()
 	for (int i = 0; i < 32; i++)
 	{
 		char reg[50];
-		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
+		snprintf(reg, sizeof(reg), "f%02d: %016x ", i, riPS0(i));
 		strncat(fregs, reg, sizeof(fregs) - 1);
 	}
 #endif

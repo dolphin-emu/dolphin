@@ -937,7 +937,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		//u32 validAddress = Memory::Read_U32(BufferIn + 4);
 		//u32 src = Memory::Read_U32(BufferIn + 8);
 		char ip_s[16];
-		sprintf(ip_s, "%i.%i.%i.%i",
+		snprintf(ip_s, sizeof(ip_s), "%i.%i.%i.%i",
 			Memory::Read_U8(BufferIn + 8),
 			Memory::Read_U8(BufferIn + 8 + 1),
 			Memory::Read_U8(BufferIn + 8 + 2),

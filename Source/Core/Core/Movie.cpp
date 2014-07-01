@@ -474,7 +474,7 @@ bool BeginRecordingInput(int controllers)
 	return true;
 }
 
-static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str)
+static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str, const size_t STR_SIZE)
 {
 	if ((x <= 1 || x == 128 || x >= 255) &&
 	    (y <= 1 || y == 128 || y >= 255))
@@ -483,15 +483,15 @@ static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str)
 		{
 			if (x != 128 && y != 128)
 			{
-				sprintf(str, "%s:%s,%s", prefix, x<128?"LEFT":"RIGHT", y<128?"DOWN":"UP");
+				snprintf(str, STR_SIZE, "%s:%s,%s", prefix, x<128 ? "LEFT" : "RIGHT", y<128 ? "DOWN" : "UP");
 			}
 			else if (x != 128)
 			{
-				sprintf(str, "%s:%s", prefix, x<128?"LEFT":"RIGHT");
+				snprintf(str, STR_SIZE, "%s:%s", prefix, x<128 ? "LEFT" : "RIGHT");
 			}
 			else
 			{
-				sprintf(str, "%s:%s", prefix, y<128?"DOWN":"UP");
+				snprintf(str, STR_SIZE, "%s:%s", prefix, y<128 ? "DOWN" : "UP");
 			}
 		}
 		else
@@ -501,11 +501,11 @@ static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str)
 	}
 	else
 	{
-		sprintf(str, "%s:%d,%d", prefix, x, y);
+		snprintf(str, STR_SIZE, "%s:%d,%d", prefix, x, y);
 	}
 }
 
-static void Analog1DToString(u8 v, const char* prefix, char* str)
+static void Analog1DToString(u8 v, const char* prefix, char* str, const size_t STR_SIZE)
 {
 	if (v > 0)
 	{
@@ -515,7 +515,7 @@ static void Analog1DToString(u8 v, const char* prefix, char* str)
 		}
 		else
 		{
-			sprintf(str, "%s:%d", prefix, v);
+			snprintf(str, STR_SIZE, "%s:%d", prefix, v);
 		}
 	}
 	else
@@ -527,7 +527,7 @@ static void Analog1DToString(u8 v, const char* prefix, char* str)
 void SetInputDisplayString(ControllerState padState, int controllerID)
 {
 	char inp[70];
-	sprintf(inp, "P%d:", controllerID + 1);
+	snprintf(inp, sizeof(inp), "P%d:", controllerID + 1);
 	g_InputDisplay[controllerID] = inp;
 
 	if (g_padState.A)
@@ -552,16 +552,16 @@ void SetInputDisplayString(ControllerState padState, int controllerID)
 	if (g_padState.DPadRight)
 		g_InputDisplay[controllerID].append(" RIGHT");
 
-	Analog1DToString(g_padState.TriggerL, " L", inp);
+	Analog1DToString(g_padState.TriggerL, " L", inp, sizeof(inp));
 	g_InputDisplay[controllerID].append(inp);
 
-	Analog1DToString(g_padState.TriggerR, " R", inp);
+	Analog1DToString(g_padState.TriggerR, " R", inp, sizeof(inp));
 	g_InputDisplay[controllerID].append(inp);
 
-	Analog2DToString(g_padState.AnalogStickX, g_padState.AnalogStickY, " ANA", inp);
+	Analog2DToString(g_padState.AnalogStickX, g_padState.AnalogStickY, " ANA", inp, sizeof(inp));
 	g_InputDisplay[controllerID].append(inp);
 
-	Analog2DToString(g_padState.CStickX, g_padState.CStickY, " C", inp);
+	Analog2DToString(g_padState.CStickX, g_padState.CStickY, " C", inp, sizeof(inp));
 	g_InputDisplay[controllerID].append(inp);
 
 	g_InputDisplay[controllerID].append("\n");
@@ -572,7 +572,7 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 	int controllerID = remoteID + 4;
 
 	char inp[70];
-	sprintf(inp, "R%d:", remoteID + 1);
+	snprintf(inp, sizeof(inp), "R%d:", remoteID + 1);
 	g_InputDisplay[controllerID] = inp;
 
 	if (coreData)
@@ -605,13 +605,13 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 	if (accelData)
 	{
 		wm_accel* dt = (wm_accel*)accelData;
-		sprintf(inp, " ACC:%d,%d,%d", dt->x, dt->y, dt->z);
+		snprintf(inp, sizeof(inp), " ACC:%d,%d,%d", dt->x, dt->y, dt->z);
 		g_InputDisplay[controllerID].append(inp);
 	}
 
 	if (irData) // incomplete
 	{
-		sprintf(inp, " IR:%d,%d", ((u8*)irData)[0], ((u8*)irData)[1]);
+		snprintf(inp, sizeof(inp), " IR:%d,%d", ((u8*)irData)[0], ((u8*)irData)[1]);
 		g_InputDisplay[controllerID].append(inp);
 	}
 

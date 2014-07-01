@@ -476,7 +476,7 @@ void Host_SysMessage(const char *fmt, ...)
 	char msg[512];
 
 	va_start(list, fmt);
-	vsprintf(msg, fmt, list);
+	vsnprintf(msg, sizeof(msg), fmt, list);
 	va_end(list);
 
 	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;

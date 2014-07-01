@@ -153,7 +153,7 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 		case IDM_COPYHEX:
 			{
 			char temp[24];
-			sprintf(temp, "%08x", debugger->ReadExtraMemory(memory, selection));
+			snprintf(temp, sizeof(temp), "%08x", debugger->ReadExtraMemory(memory, selection));
 			wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
 			}
 			break;
@@ -298,7 +298,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			if (viewAsType == VIEWAS_FP)
 			{
 				float flt = *(float *)(&mem_data);
-				sprintf(dis, "f: %f", flt);
+				snprintf(dis, sizeof(dis), "f: %f", flt);
 			}
 			else if (viewAsType == VIEWAS_ASCII)
 			{
@@ -309,7 +309,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 				for (auto& word : a)
 					if (word == '\0')
 						word = ' ';
-				sprintf(dis, "%c%c%c%c", a[0], a[1], a[2], a[3]);
+				snprintf(dis, sizeof(dis), "%c%c%c%c", a[0], a[1], a[2], a[3]);
 			}
 			else if (viewAsType == VIEWAS_HEX)
 			{
@@ -332,21 +332,21 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 					switch (dataType)
 					{
 					case 0:
-						sprintf(buf, " %02X %02X %02X %02X",
+						snprintf(buf, sizeof(buf), " %02X %02X %02X %02X",
 							((word&0xff000000)>>24)&0xFF,
 							((word&0xff0000)>>16)&0xFF,
 							((word&0xff00)>>8)&0xFF,
 							word&0xff);
 						break;
 					case 1:
-						sprintf(buf, " %02X%02X %02X%02X",
+						snprintf(buf, sizeof(buf), " %02X%02X %02X%02X",
 							((word&0xff000000)>>24)&0xFF,
 							((word&0xff0000)>>16)&0xFF,
 							((word&0xff00)>>8)&0xFF,
 							word&0xff);
 						break;
 					case 2:
-						sprintf(buf, " %02X%02X%02X%02X",
+						snprintf(buf, sizeof(buf), " %02X%02X%02X%02X",
 							((word&0xff000000)>>24)&0xFF,
 							((word&0xff0000)>>16)&0xFF,
 							((word&0xff00)>>8)&0xFF,
@@ -359,7 +359,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			}
 			else
 			{
-				sprintf(dis, "INVALID VIEWAS TYPE");
+				snprintf(dis, sizeof(dis), "INVALID VIEWAS TYPE");
 			}
 
 			char desc[256] = "";

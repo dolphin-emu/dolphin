@@ -418,7 +418,7 @@ void etfprintf(FILE *file, const char *format, ...)
 {
 	va_list ap;
 	va_start(ap, format);
-	int len = vsprintf(g_uefbuf, format, ap);
+	int len = vsnprintf(g_uefbuf, sizeof(g_uefbuf), format, ap);
 	fwrite(g_uefbuf, 1, len, file);
 	va_end(ap);
 }

@@ -220,9 +220,9 @@ void DumpDSP_ROMs(const u16* rom, const u16* coef)
 {
 #ifdef HW_RVL
 	char filename[260] = {0};
-	sprintf(filename, "sd:/dsp_rom.bin");
+	snprintf(filename, sizeof(filename), "sd:/dsp_rom.bin");
 	FILE *fROM = fopen(filename, "wb");
-	sprintf(filename, "sd:/dsp_coef.bin");
+	snprintf(filename, sizeof(filename), "sd:/dsp_coef.bin");
 	FILE *fCOEF = fopen(filename, "wb");
 
 	if (fROM && fCOEF)
@@ -435,7 +435,7 @@ void dump_all_ucodes(bool fastmode)
 	char temp[100];
 	u32 written;
 
-	sprintf(filename, "sd:/dsp_dump_all.bin");
+	snprintf(filename, sizeof(filename), "sd:/dsp_dump_all.bin");
 	FILE *f2 = fopen(filename, "wb");
 	fclose(f2);
 
@@ -458,13 +458,13 @@ void dump_all_ucodes(bool fastmode)
 			handle_dsp_mail();
 		VIDEO_WaitVSync();
 
-		sprintf(filename, "sd:/dsp_dump_all.bin");
+		snprintf(filename, sizeof(filename), "sd:/dsp_dump_all.bin");
 		FILE *f2 = fopen(filename, "ab");
 
 		if (fastmode == false)
 		{
 			// Then write microcode dump to file
-			sprintf(filename, "sd:/dsp_dump%d.bin", UCodeToDump);
+			snprintf(filename, sizeof(filename), "sd:/dsp_dump%d.bin", UCodeToDump);
 			FILE *f = fopen(filename, "wb");
 			if (f)
 			{
@@ -497,7 +497,7 @@ void dump_all_ucodes(bool fastmode)
 
 			if (UCodeToDump < NUM_UCODES-1)
 			{
-				sprintf(temp, "Dump %d Successful. Wrote %d bytes, steps: %d", UCodeToDump+1, written, dsp_steps);
+				snprintf(temp, sizeof(temp), "Dump %d Successful. Wrote %d bytes, steps: %d", UCodeToDump+1, written, dsp_steps);
 				UpdateLastMessage(temp);
 			}
 			else {

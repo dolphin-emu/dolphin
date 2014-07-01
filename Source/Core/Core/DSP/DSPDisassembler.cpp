@@ -289,9 +289,9 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 		MakeLowerCase(opname);
 	char ext_buf[20];
 	if (extended)
-		sprintf(ext_buf, "%s%c%s", opname, settings_.ext_separator, opc_ext->name);
+		snprintf(ext_buf, sizeof(ext_buf), "%s%c%s", opname, settings_.ext_separator, opc_ext->name);
 	else
-		sprintf(ext_buf, "%s", opname);
+		snprintf(ext_buf, sizeof(ext_buf), "%s", opname);
 	if (settings_.lower_case_ops)
 		MakeLowerCase(ext_buf);
 

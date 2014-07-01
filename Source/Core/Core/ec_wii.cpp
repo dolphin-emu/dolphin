@@ -55,7 +55,7 @@ void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, c
 		NG_sig = default_NG_sig;
 	}
 
-	sprintf(name, "NG%08x", NG_id);
+	snprintf(name, sizeof(name), "NG%08x", NG_id);
 	make_blanksig_ec_cert(ng_cert_out, "Root-CA00000001-MS00000002", name, NG_priv, NG_key_id);
 	memcpy(ng_cert_out + 4, NG_sig, 60);
 }
@@ -93,8 +93,8 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 
 	memset(ap_cert_out+4, 0, 60);
 
-	sprintf(signer, "Root-CA00000001-MS00000002-NG%08x", NG_id);
-	sprintf(name, "AP%08x%08x", (u32)(title_id>>32), (u32)(title_id&0xffffffff));
+	snprintf(signer, sizeof(signer), "Root-CA00000001-MS00000002-NG%08x", NG_id);
+	snprintf(name, sizeof(name), "AP%08x%08x", (u32)(title_id>>32), (u32)(title_id&0xffffffff));
 	make_blanksig_ec_cert(ap_cert_out, signer, name, ap_priv, 0);
 
 	sha1(ap_cert_out + 0x80, 0x100, hash);

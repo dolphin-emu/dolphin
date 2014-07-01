@@ -383,7 +383,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 		tmpstr = new char[size+1];
 
 		tmp2 = &Dest.front();
-		sprintf(tmpstr, "%s", WxStrToStr(rawData).c_str());
+		snprintf(tmpstr, size + 1, "%s", WxStrToStr(rawData).c_str());
 
 		for (i = 0; i < size; i++)
 			tmp2[i] = tmpstr[i];

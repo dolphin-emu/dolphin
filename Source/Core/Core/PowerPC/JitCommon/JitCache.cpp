@@ -180,14 +180,14 @@ using namespace Gen;
 
 #if defined USE_OPROFILE && USE_OPROFILE
 		char buf[100];
-		sprintf(buf, "EmuCode%x", b.originalAddress);
+		snprintf(buf, sizeof(buf), "EmuCode%x", b.originalAddress);
 		const u8* blockStart = blockCodePointers[block_num];
 		op_write_native_code(agent, buf, (uint64_t)blockStart,
 		                     blockStart, b.codeSize);
 #endif
 
 #ifdef USE_VTUNE
-		sprintf(b.blockName, "EmuCode_0x%08x", b.originalAddress);
+		snprintf(b.blockName, sizeof(b.blockName), "EmuCode_0x%08x", b.originalAddress);
 
 		iJIT_Method_Load jmethod = {0};
 		jmethod.method_id = iJIT_GetNewMethodID();

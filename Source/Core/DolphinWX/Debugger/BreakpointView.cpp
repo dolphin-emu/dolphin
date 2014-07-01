@@ -61,7 +61,7 @@ void CBreakPointView::Update()
 				SetItem(Item, 2, temp);
 			}
 
-			sprintf(szBuffer, "%08x", rBP.iAddress);
+			snprintf(szBuffer, sizeof(szBuffer), "%08x", rBP.iAddress);
 			temp = StrToWxStr(szBuffer);
 			SetItem(Item, 3, temp);
 
@@ -85,7 +85,7 @@ void CBreakPointView::Update()
 			SetItem(Item, 2, temp);
 		}
 
-		sprintf(szBuffer, "%08x to %08x", rMemCheck.StartAddress, rMemCheck.EndAddress);
+		snprintf(szBuffer, sizeof(szBuffer), "%08x to %08x", rMemCheck.StartAddress, rMemCheck.EndAddress);
 		temp = StrToWxStr(szBuffer);
 		SetItem(Item, 3, temp);
 

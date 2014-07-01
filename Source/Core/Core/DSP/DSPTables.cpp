@@ -498,7 +498,7 @@ const char* pdname(u16 val)
 			return pdlabel.name;
 	}
 
-	sprintf(tmpstr, "0x%04x", val);
+	snprintf(tmpstr, sizeof(tmpstr),  "0x%04x", val);
 	return tmpstr;
 }
 

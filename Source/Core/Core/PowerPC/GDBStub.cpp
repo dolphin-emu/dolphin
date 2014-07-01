@@ -368,7 +368,7 @@ static void gdb_handle_signal()
 {
 	char bfr[128];
 	memset(bfr, 0, sizeof bfr);
-	sprintf(bfr, "T%02x%02x:%08x;%02x:%08x;", sig, 64, PC, 1, GPR(1));
+	snprintf(bfr, sizeof(bfr), "T%02x%02x:%08x;%02x:%08x;", sig, 64, PC, 1, GPR(1));
 	gdb_reply(bfr);
 }
 
