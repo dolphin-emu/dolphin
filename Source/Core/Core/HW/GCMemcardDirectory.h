@@ -14,7 +14,7 @@ class GCMemcardDirectory : public MemoryCardBase, NonCopyable
 {
 public:
 	GCMemcardDirectory(std::string directory, int slot = 0, u16 sizeMb = MemCard2043Mb, bool ascii = true,
-					   int region = 0, int gameId = 0);
+		DiscIO::IVolume::ECountry  card_region = DiscIO::IVolume::COUNTRY_EUROPE, int gameId = 0);
 	~GCMemcardDirectory() { Flush(true); }
 	void Flush(bool exiting = false) override;
 
@@ -25,7 +25,7 @@ public:
 	void DoState(PointerWrap &p) override;
 
 private:
-	int LoadGCI(std::string fileName, int region);
+	int LoadGCI(std::string fileName, DiscIO::IVolume::ECountry card_region);
 	inline s32 SaveAreaRW(u32 block, bool writing = false);
 	// s32 DirectoryRead(u32 offset, u32 length, u8* destaddress);
 	s32 DirectoryWrite(u32 destaddress, u32 length, u8 *srcaddress);

@@ -11,7 +11,8 @@
 
 const int NO_INDEX = -1;
 static const char *MC_HDR = "MC_SYSTEM_AREA";
-int GCMemcardDirectory::LoadGCI(std::string fileName, int region)
+
+int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry card_region)
 {
 	File::IOFile gcifile(fileName, "rb");
 	if (gcifile)
@@ -25,36 +26,31 @@ int GCMemcardDirectory::LoadGCI(std::string fileName, int region)
 			return NO_INDEX;
 		}
 
+		DiscIO::IVolume::ECountry gci_region;
 		// check region
 		switch (gci.m_gci_header.Gamecode[3])
 		{
 		case 'J':
-			if (region != DiscIO::IVolume::COUNTRY_JAPAN)
-			{
-				PanicAlertT("GCI save file was not loaded because it is the wrong region for this memory card:\n%s",
-							fileName.c_str());
-				return NO_INDEX;
-			}
+			gci_region = DiscIO::IVolume::COUNTRY_JAPAN;
 			break;
 		case 'E':
-			if (region != DiscIO::IVolume::COUNTRY_USA)
-			{
-				PanicAlertT("GCI save file was not loaded because it is the wrong region for this memory card:\n%s",
-							fileName.c_str());
-				return NO_INDEX;
-			}
+			gci_region = DiscIO::IVolume::COUNTRY_USA;
 			break;
 		case 'C':
 			// Used by Datel Action Replay Save
+			// can be on any regions card
+			gci_region = card_region;
 			break;
 		default:
-			if (region != DiscIO::IVolume::COUNTRY_EUROPE)
-			{
-				PanicAlertT("GCI save file was not loaded because it is the wrong region for this memory card:\n%s",
-							fileName.c_str());
-				return NO_INDEX;
-			}
+			gci_region = DiscIO::IVolume::COUNTRY_EUROPE;
 			break;
+		}
+
+		if (gci_region != card_region)
+		{
+			PanicAlertT("GCI save file was not loaded because it is the wrong region for this memory card:\n%s",
+				fileName.c_str());
+			return NO_INDEX;
 		}
 
 		std::string gci_filename = gci.m_gci_header.GCI_FileName();
@@ -117,7 +113,7 @@ int GCMemcardDirectory::LoadGCI(std::string fileName, int region)
 	return NO_INDEX;
 }
 
-GCMemcardDirectory::GCMemcardDirectory(std::string directory, int slot, u16 sizeMb, bool ascii, int region, int gameId)
+GCMemcardDirectory::GCMemcardDirectory(std::string directory, int slot, u16 sizeMb, bool ascii, DiscIO::IVolume::ECountry card_region, int gameId)
 	: MemoryCardBase(slot, sizeMb)
 	, m_GameId(gameId)
 	, m_LastBlock(-1)
@@ -148,7 +144,7 @@ GCMemcardDirectory::GCMemcardDirectory(std::string directory, int slot, u16 size
 							m_SaveDirectory.c_str());
 				break;
 			}
-			int index = LoadGCI(FST_Temp.children[j].physicalName, region);
+			int index = LoadGCI(FST_Temp.children[j].physicalName, card_region);
 			if (index != NO_INDEX)
 			{
 				m_loaded_saves.push_back(m_saves.at(index).m_gci_header.GCI_FileName());
@@ -222,7 +218,7 @@ s32 GCMemcardDirectory::Read(u32 address, s32 length, u8 *destaddress)
 s32 GCMemcardDirectory::Write(u32 destaddress, s32 length, u8 *srcaddress)
 {
 	if (length != 0x80)
-		ERROR_LOG(EXPANSIONINTERFACE, "WRITING TO %x, len %x", destaddress, length);
+		INFO_LOG(EXPANSIONINTERFACE, "WRITING TO %x, len %x", destaddress, length);
 	s32 block = destaddress / BLOCK_SIZE;
 	u32 offset = destaddress % BLOCK_SIZE;
 	s32 extra = 0; // used for write calls that are across multiple blocks
@@ -292,6 +288,7 @@ void GCMemcardDirectory::ClearBlock(u32 address)
 	}
 
 	u32 block = address / BLOCK_SIZE;
+	INFO_LOG(EXPANSIONINTERFACE, "clearing block %d", block);
 	switch (block)
 	{
 	case 0:
@@ -333,8 +330,9 @@ inline void GCMemcardDirectory::SyncSaves()
 
 	for (u32 i = 0; i < DIRLEN; ++i)
 	{
-		if (*(u32 *)&(current->Dir[i]) != 0xFFFFFFFF)
+		if (BE32(current->Dir[i].Gamecode) != 0xFFFFFFFF)
 		{
+			INFO_LOG(EXPANSIONINTERFACE, "Syncing Save %x", *(u32 *)&(current->Dir[i].Gamecode));
 			bool added = false;
 			while (i >= m_saves.size())
 			{
@@ -346,12 +344,38 @@ inline void GCMemcardDirectory::SyncSaves()
 			if (added || memcmp((u8 *)&(m_saves[i].m_gci_header), (u8 *)&(current->Dir[i]), DENTRY_SIZE))
 			{
 				m_saves[i].m_dirty = true;
+				u32 gamecode = BE32(m_saves[i].m_gci_header.Gamecode);
+				u32 newGameCode = BE32(current->Dir[i].Gamecode);
+				u32 old_start = BE16(m_saves[i].m_gci_header.FirstBlock);
+				u32 new_start = BE16(current->Dir[i].FirstBlock);
+
+				if ((gamecode != 0xFFFFFFFF)
+					&& (gamecode != newGameCode))
+				{
+					PanicAlertT("Game overwrote with another games save, data corruption ahead %x, %x ",
+						BE32(m_saves[i].m_gci_header.Gamecode), BE32(current->Dir[i].Gamecode));
+				}
 				memcpy((u8 *)&(m_saves[i].m_gci_header), (u8 *)&(current->Dir[i]), DENTRY_SIZE);
+				if (old_start != new_start)
+				{
+					INFO_LOG(EXPANSIONINTERFACE, "Save moved from %x to %x", old_start, new_start);
+					m_saves[i].m_used_blocks.clear();
+					m_saves[i].m_save_data.clear();
+				}
+				if (m_saves[i].m_used_blocks.size() == 0)
+				{
+					SetUsedBlocks(i);
+				}
 			}
 		}
 		else if ((i < m_saves.size()) && (*(u32 *)&(m_saves[i].m_gci_header) != 0xFFFFFFFF))
 		{
-			*(u32 *)&(m_saves[i].m_gci_header.Gamecode) = 0xFFFFFFF;
+			INFO_LOG(EXPANSIONINTERFACE, "Clearing and/or Deleting Save %x", BE32(m_saves[i].m_gci_header.Gamecode));
+			*(u32 *)&(m_saves[i].m_gci_header.Gamecode) = 0xFFFFFFFF;
+			m_saves[i].m_save_data.clear();
+			m_saves[i].m_used_blocks.clear();
+			m_saves[i].m_dirty = true;
+
 		}
 	}
 }
@@ -434,10 +458,10 @@ bool GCMemcardDirectory::SetUsedBlocks(int saveIndex)
 	}
 
 	u16 num_blocks = BE16(m_saves[saveIndex].m_gci_header.BlockCount);
-
-	if (m_saves[saveIndex].m_used_blocks.size() != num_blocks)
+	u16 blocksFromBat = (u16)m_saves[saveIndex].m_used_blocks.size();
+	if (blocksFromBat != num_blocks)
 	{
-		PanicAlertT("Warning BAT number of blocks does not match file header");
+		PanicAlertT("Warning BAT number of blocks %d does not match file header loaded %d", blocksFromBat, num_blocks);
 		return false;
 	}
 
