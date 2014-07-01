@@ -257,11 +257,6 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				CmdDoneLater(5000);
 			}
-
-			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
-			// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write.
-			CoreTiming::RemoveEvent(et_this_card);
-			CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
 			break;
 		}
 	}
@@ -478,6 +473,10 @@ IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
 void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 {
 	memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
+#ifdef _DEBUG
+	if ((address + _uSize) % BLOCK_SIZE == 0)
+		INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
+#endif
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -485,4 +484,19 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 {
 	memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
+
+	// At the end of writing to a block flush to disk
+	// memory card blocks are always(?) written as a whole,
+	// but the dma calls are by page size (0x200) at a time
+	// just in case this is the last block that the game will be writing for a while
+	if (((address + _uSize) % BLOCK_SIZE) == 0)
+	{
+		INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
+		// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
+		// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write
+		// Scheduling event is mainly for raw memory cards as the flush the whole 16MB to disk
+		// Flushing the gci folder is free in comparison
+		CoreTiming::RemoveEvent(et_this_card);
+		CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
+	}
 }
