@@ -333,24 +333,24 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 					{
 					case 0:
 						snprintf(buf, sizeof(buf), " %02X %02X %02X %02X",
-						((word&0xff000000)>>24)&0xFF,
-						((word&0xff0000)>>16)&0xFF,
-						((word&0xff00)>>8)&0xFF,
-						word&0xff);
+						         ((word&0xff000000)>>24)&0xFF,
+						         ((word&0xff0000)>>16)&0xFF,
+						         ((word&0xff00)>>8)&0xFF,
+						         word&0xff);
 						break;
 					case 1:
 						snprintf(buf, sizeof(buf), " %02X%02X %02X%02X",
-						((word&0xff000000)>>24)&0xFF,
-						((word&0xff0000)>>16)&0xFF,
-						((word&0xff00)>>8)&0xFF,
-						word&0xff);
+						         ((word&0xff000000)>>24)&0xFF,
+						         ((word&0xff0000)>>16)&0xFF,
+						         ((word&0xff00)>>8)&0xFF,
+						         word&0xff);
 						break;
 					case 2:
 						snprintf(buf, sizeof(buf), " %02X%02X%02X%02X",
-						((word&0xff000000)>>24)&0xFF,
-						((word&0xff0000)>>16)&0xFF,
-						((word&0xff00)>>8)&0xFF,
-						word&0xff);
+						         ((word&0xff000000)>>24)&0xFF,
+						         ((word&0xff0000)>>16)&0xFF,
+						         ((word&0xff00)>>8)&0xFF,
+						         word&0xff);
 						break;
 					}
 					strcat(dis, buf);
