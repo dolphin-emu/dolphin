@@ -219,6 +219,14 @@ void Matrix44::Translate(Matrix44 &mtx, const float vec[3])
 	mtx.data[11] = vec[2];
 }
 
+void Matrix44::Scale(Matrix44 &mtx, const float vec[3])
+{
+	LoadIdentity(mtx);
+	mtx.data[0] = vec[0];
+	mtx.data[5] = vec[1];
+	mtx.data[10] = vec[2];
+}
+
 void Matrix44::Multiply(const Matrix44 &a, const Matrix44 &b, Matrix44 &result)
 {
 	MatrixMul(4, a.data, b.data, result.data);
