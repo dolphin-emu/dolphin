@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -59,7 +60,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 	if (code1.size() != code2.size())
 		printf("Size difference! 1=%i 2=%i\n", (int)code1.size(), (int)code2.size());
 	u32 count_equal = 0;
-	const int min_size = (int)std::min(code1.size(), code2.size());
+	const int min_size = std::min<int>(code1.size(), code2.size());
 
 	AssemblerSettings settings;
 	DSPDisassembler disassembler(settings);
@@ -73,9 +74,9 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 		{
 			std::string line1, line2;
 			u16 pc = i;
-			disassembler.DisOpcode(&code1[0], 0x0000, 2, &pc, line1);
+			disassembler.DisassembleOpcode(&code1[0], 0x0000, 2, &pc, line1);
 			pc = i;
-			disassembler.DisOpcode(&code2[0], 0x0000, 2, &pc, line2);
+			disassembler.DisassembleOpcode(&code2[0], 0x0000, 2, &pc, line2);
 			printf("!! %04x : %04x vs %04x - %s  vs  %s\n", i, code1[i], code2[i], line1.c_str(), line2.c_str());
 		}
 	}
@@ -87,7 +88,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 		{
 			u16 pc = i;
 			std::string line;
-			disassembler.DisOpcode(&longest[0], 0x0000, 2, &pc, line);
+			disassembler.DisassembleOpcode(&longest[0], 0x0000, 2, &pc, line);
 			printf("!! %s\n", line.c_str());
 		}
 	}
