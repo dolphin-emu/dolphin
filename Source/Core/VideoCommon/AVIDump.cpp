@@ -71,11 +71,16 @@ bool AVIDump::CreateFile()
 	HRESULT hr = AVIFileOpenA(&m_file, movie_file_name, OF_WRITE | OF_CREATE, NULL);
 	if (FAILED(hr))
 	{
-		if (hr == AVIERR_BADFORMAT) NOTICE_LOG(VIDEO, "The file couldn't be read, indicating a corrupt file or an unrecognized format.");
-		if (hr == AVIERR_MEMORY)  NOTICE_LOG(VIDEO, "The file could not be opened because of insufficient memory.");
-		if (hr == AVIERR_FILEREAD) NOTICE_LOG(VIDEO, "A disk error occurred while reading the file.");
-		if (hr == AVIERR_FILEOPEN) NOTICE_LOG(VIDEO, "A disk error occurred while opening the file.");
-		if (hr == REGDB_E_CLASSNOTREG) NOTICE_LOG(VIDEO, "AVI class not registered");
+		if (hr == AVIERR_BADFORMAT)
+			NOTICE_LOG(VIDEO, "The file couldn't be read, indicating a corrupt file or an unrecognized format.");
+		if (hr == AVIERR_MEMORY)
+			NOTICE_LOG(VIDEO, "The file could not be opened because of insufficient memory.");
+		if (hr == AVIERR_FILEREAD)
+			NOTICE_LOG(VIDEO, "A disk error occurred while reading the file.");
+		if (hr == AVIERR_FILEOPEN)
+			NOTICE_LOG(VIDEO, "A disk error occurred while opening the file.");
+		if (hr == REGDB_E_CLASSNOTREG)
+			NOTICE_LOG(VIDEO, "AVI class not registered");
 		Stop();
 		return false;
 	}
@@ -167,7 +172,7 @@ void AVIDump::AddFrame(const u8* data, int w, int h)
 	if (m_totalBytes >= 2000000000)
 	{
 		CloseFile();
-		m_fileCount++;
+		++m_fileCount;
 		CreateFile();
 	}
 }
@@ -260,7 +265,11 @@ bool AVIDump::CreateFile()
 	}
 
 	s_Stream->codec->codec_id =
-		g_Config.bUseFFV1 ?  CODEC_ID_FFV1 : s_FormatContext->oformat->video_codec;
+	#ifndef CODEC_ID_FFV1
+		g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1 : s_FormatContext->oformat->video_codec;
+	#else
+		g_Config.bUseFFV1 ? CODEC_ID_FFV1    : s_FormatContext->oformat->video_codec;
+	#endif
 	s_Stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
 	s_Stream->codec->bit_rate = 400000;
 	s_Stream->codec->width = s_width;
@@ -276,8 +285,8 @@ bool AVIDump::CreateFile()
 		return false;
 	}
 
-	s_BGRFrame = avcodec_alloc_frame();
-	s_YUVFrame = avcodec_alloc_frame();
+	s_BGRFrame = av_frame_alloc();
+	s_YUVFrame = av_frame_alloc();
 
 	s_size = avpicture_get_size(s_Stream->codec->pix_fmt, s_width, s_height);
 
@@ -315,11 +324,12 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	}
 
 	// Encode and write the image
-	int outsize = avcodec_encode_video(s_Stream->codec, s_OutBuffer, s_size, s_YUVFrame);
+	AVPacket pkt;
+	int got_packet = 0;
+	int outsize = avcodec_encode_video2(s_Stream->codec, &pkt, s_YUVFrame, &got_packet);
 	while (outsize > 0)
 	{
-		AVPacket pkt;
-		av_init_packet(&pkt);
+		s_OutBuffer = pkt.data;
 
 		if (s_Stream->codec->coded_frame->pts != (unsigned int)AV_NOPTS_VALUE)
 			pkt.pts = av_rescale_q(s_Stream->codec->coded_frame->pts,
@@ -334,7 +344,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		av_interleaved_write_frame(s_FormatContext, &pkt);
 
 		// Encode delayed frames
-		outsize = avcodec_encode_video(s_Stream->codec, s_OutBuffer, s_size, NULL);
+		outsize = avcodec_encode_video2(s_Stream->codec, &pkt, s_YUVFrame, &got_packet);
 	}
 }
 
