@@ -107,7 +107,7 @@ struct DTMHeader
 	bool bEFBEmulateFormatChanges;
 	bool bUseXFB;
 	bool bUseRealXFB;
-	bool bMemcard;
+	u8   memcards;
 	bool bClearSave;        // Create a new memory card when playing back a movie if true
 	u8 bongos;
 	bool bSyncGPU;
@@ -136,7 +136,7 @@ bool IsJustStartingRecordingInputFromSaveState();
 bool IsJustStartingPlayingInputFromSaveState();
 bool IsPlayingInput();
 bool IsReadOnly();
-u64 GetRecordingStartTime();
+u64  GetRecordingStartTime();
 
 bool IsConfigSaved();
 bool IsDualCore();
@@ -144,9 +144,9 @@ bool IsProgressive();
 bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
-int GetCPUMode();
+int  GetCPUMode();
 bool IsStartingFromClearSave();
-bool IsUsingMemcard();
+bool IsUsingMemcard(int memcard);
 bool IsSyncGPU();
 void SetGraphicsConfig();
 void GetSettings();
