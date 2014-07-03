@@ -368,7 +368,7 @@ bool IsStartingFromClearSave()
 
 bool IsUsingMemcard(int memcard)
 {
-	return memcards & (1 << memcard);
+	return (memcards & (1 << memcard)) != 0;
 }
 bool IsSyncGPU()
 {
