@@ -58,7 +58,7 @@ u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
 bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
-bool bMemcard = false, g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
+bool g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
 std::string videoBackend = "unknown";
 int iCPUCore = 1;
 bool g_bDiscChange = false;
@@ -66,7 +66,7 @@ std::string g_discChange = "";
 std::string author = "";
 u64 g_titleID = 0;
 unsigned char MD5[16];
-u8 bongos;
+u8 bongos, memcards;
 u8 revision[20];
 u32 DSPiromHash = 0;
 u32 DSPcoefHash = 0;
@@ -365,9 +365,9 @@ bool IsStartingFromClearSave()
 	return g_bClearSave;
 }
 
-bool IsUsingMemcard()
+bool IsUsingMemcard(int memcard)
 {
-	return bMemcard;
+	return memcards & (1 << memcard);
 }
 bool IsSyncGPU()
 {
@@ -707,7 +707,7 @@ void ReadHeader()
 		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
 		iCPUCore = tmpHeader.CPUCore;
 		g_bClearSave = tmpHeader.bClearSave;
-		bMemcard = tmpHeader.bMemcard;
+		memcards = tmpHeader.memcards;
 		bongos = tmpHeader.bongos;
 		bSyncGPU = tmpHeader.bSyncGPU;
 		bNetPlay = tmpHeader.bNetPlay;
@@ -1143,7 +1143,7 @@ void SaveRecording(const std::string& filename)
 	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
-	header.bMemcard = bMemcard;
+	header.memcards = memcards;
 	header.bClearSave = g_bClearSave;
 	header.bSyncGPU = bSyncGPU;
 	header.bNetPlay = bNetPlay;
@@ -1212,7 +1212,8 @@ void GetSettings()
 	bNetPlay = NetPlay::IsNetPlayRunning();
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+	memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
+	memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
 	unsigned int tmp;
 	for (int i = 0; i < 20; ++i)
 	{
