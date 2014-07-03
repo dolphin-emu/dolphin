@@ -1,4 +1,4 @@
-# Translation of dolphin-emu.pot to LANGUAGE
+﻿# Translation of dolphin-emu.pot to LANGUAGE
 # Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
 #
@@ -6,6 +6,7 @@
 # Krzysztof Baszczok <baszta2@gmail.com>, 2011,2013
 # M T <michtrz@gmail.com>, 2014
 # Robert <Robert@10g.pl>, 2013
+# Bartłomiej Szymański <szymbar1513@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
@@ -24,7 +25,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/CheatsWindow.cpp:546
 msgid " (too many to display)"
-msgstr "(za dużo do wyświetlenia)"
+msgstr "(zbyt dużo do wyświetlenia)"
 
 #: Source/Core/DolphinWX/NetWindow.cpp:321
 #: Source/Core/DolphinWX/NetWindow.cpp:572
@@ -43,13 +44,13 @@ msgid ""
 " Create a new 16MB Memcard?"
 msgstr ""
 "\"%s\" nie istnieje.\n"
-"Stworzyć nową 16MB kartę pamięci?"
+"Stworzyć nową kartę pamięci 16MB?"
 
 #: Source/Core/Core/CoreParameter.cpp:146
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr ""
-"\"%s\" jest niewłaściwym plikiem GMC/ISO lub nie jest prawidłowym obrazem GC/"
+"\"%s\" jest niewłaściwym plikiem GMC/ISO, lub nie jest obrazem GC/"
 "Wii ISO"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:403
@@ -306,7 +307,7 @@ msgstr "(-)+zNear"
 
 #: Source/Core/DolphinWX/PHackSettings.cpp:104
 msgid "(UNKNOWN)"
-msgstr "(Nieznany)"
+msgstr "(NIEZNANY)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:404
 msgid "(off)"
@@ -318,7 +319,7 @@ msgstr "+ DODAJ"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:367
 msgid "1.5x Native (960x792)"
-msgstr "1.5x Native (960x792)"
+msgstr "1.5x Natywny (960x792)"
 
 #: Source/Core/DolphinWX/CheatsWindow.cpp:180
 msgid "16 bit"
@@ -326,15 +327,15 @@ msgstr "16 bitów"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:367
 msgid "1x Native (640x528)"
-msgstr "1x Native (640x528)"
+msgstr "1x Natywny (640x528)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:368
 msgid "2.5x Native (1600x1320)"
-msgstr "2.5x Native (1600x1320)"
+msgstr "2.5x Natywny (1600x1320)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:367
 msgid "2x Native (1280x1056)"
-msgstr "2x Native (1280x1056)"
+msgstr "2x Natywny (1280x1056)"
 
 #: Source/Core/DolphinWX/CheatsWindow.cpp:181
 msgid "32 bit"
@@ -342,15 +343,15 @@ msgstr "32 bity"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "3D Vision"
-msgstr "3D Vision"
+msgstr "Wizja 3D "
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:368
 msgid "3x Native (1920x1584)"
-msgstr "3x Native (1920x1584)"
+msgstr "3x Natywny (1920x1584)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:368
 msgid "4x Native (2560x2112)"
-msgstr "4x Native (2560x2112)"
+msgstr "4x Natywny (2560x2112)"
 
 #: Source/Core/DolphinWX/CheatsWindow.cpp:179
 msgid "8 bit"
@@ -438,7 +439,7 @@ msgstr "Kody AR"
 
 #: Source/Core/DolphinWX/AboutDolphin.h:21
 msgid "About Dolphin"
-msgstr "O Dolphin"
+msgstr "O Dolphinie"
 
 #: Source/Core/DolphinWX/UDPConfigDiag.cpp:31
 msgid "Acceleration"
@@ -602,7 +603,7 @@ msgstr ""
 "efekty, dokładną wartością będzie \"0.0002\".\n"
 "Wartości: (0->*/-Integer) lub (0->+/-FP[6 miejsc precyzji])\n"
 "\n"
-"Notka: Sprawdź LogWindow/Konsola dla ustwaionych wartości."
+"WAŻNE: Sprawdź LogWindow/Konsola dla ustwaionych wartości."
 
 #: Source/Core/DolphinWX/PHackSettings.cpp:58
 msgid ""
@@ -620,7 +621,7 @@ msgstr ""
 "efekty, dokładną wartością będzie \"0.0002\".\n"
 "Wartości: (0->*/-Integer) lub (0->+/-FP[6 miejsc precyzji])\n"
 "\n"
-"Notka: Sprawdź LogWindow/Konsola dla ustwaionych wartości."
+"WAŻNE: Sprawdź LogWindow/Konsola dla ustwaionych wartości."
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:827
 msgid "Adjust the analog control pressure required to activate buttons."
@@ -712,19 +713,19 @@ msgstr "Arabski"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:700
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
-msgstr "Czy jesteś pewny by usunąc \"%s\"?"
+msgstr "Czy jesteś pewny by usunąć \"%s\"?"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1031
 msgid ""
 "Are you sure you want to delete these files?\n"
 "They will be gone forever!"
 msgstr ""
-"Czy jesteś pewny by usunąc te pliki?\n"
+"Na pewno chcesz usunąć te pliki?\n"
 "Przepadną na zawsze!"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1022
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
-msgstr "Czy jesteś pewny by usunąc ten plik? Przepadnie na zawsze!"
+msgstr "Na pewno chcesz usunąć ten plik? Przepadnie na zawsze!"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:66
 msgid "Arm JIT (experimental)"
@@ -1549,7 +1550,7 @@ msgid ""
 "Detected attempt to read more data from the DVD than fit inside the out "
 "buffer. Clamp."
 msgstr ""
-"Wykryto próbę odczytu więcej danych z DVD niż mieści się w buforze "
+"Wykryto próbę odczytu większej ilości danych z DVD niż mieści się w buforze "
 "wyjściowym. Zapchało się."
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:161
@@ -1716,7 +1717,7 @@ msgid ""
 "you do not legally own."
 msgstr ""
 "Dolphin %s\n"
-"Prawa autorskie (c) 2003-2013+ Zespól Dolphin\n"
+"Prawa autorskie (c) 2003-2013+ Zespół Dolphin\n"
 "\n"
 "Gałąź: %s\n"
 "Rewizja: %s\n"
@@ -1725,7 +1726,7 @@ msgstr ""
 "Dolphin jest emulatorem GameCube/Wii, który został\n"
 "napisany przez F|RES i ector.\n"
 "Dzisiaj Dolphin jest projektem wolnego oprogramowania,\n"
-"do którego przyrzynają się wiele ochotników, których jest\n"
+"do którego przyczyna się wiele ochotników, których jest\n"
 "zbyt dużo aby ich wymienić.\n"
 "Jeżeli jesteś zainteresowany, to sprawdź stronę projektu na\n"
 "http://code.google.com/p/dolphin-emu/ .\n"
@@ -1744,7 +1745,7 @@ msgstr ""
 "\n"
 "W żaden sposób nie jesteśmy związani z Nintendo.\n"
 "GameCube i Wii są znakami towarowymi firmy Nintendo.\n"
-"Emulator nie powinny być używany z grami, których\n"
+"Emulator nie powinien być używany z grami, których\n"
 "legalnie nie posiadasz."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:212
@@ -1754,7 +1755,7 @@ msgstr "Ustawienia graficzne %s"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:352
 msgid "Dolphin &Web Site"
-msgstr "Dolphin strona &WWW"
+msgstr "Strona &WWW Dolphina"
 
 #: Source/Core/DolphinWX/ConfigMain.h:49
 msgid "Dolphin Configuration"
@@ -1910,7 +1911,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:206
 msgid "EUROPE"
-msgstr "Europa"
+msgstr "EUROPA"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:170
 msgid "Early Memory Updates"
@@ -1961,7 +1962,7 @@ msgid ""
 "\n"
 "If unsure, check virtual XFB emulation instead."
 msgstr ""
-"Emuluje XFB dokładnie.\n"
+"Emuluje XFB dokładniej.\n"
 "Spowalnia znacznie emulację i zabrania renderowania w wysokich "
 "rozdzielczościach, ale jest wymagane do prawidłowej emulacji niektórych "
 "gier.\n"
@@ -2030,15 +2031,15 @@ msgstr "Włącz cache"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:567
 msgid "Enable Cheats"
-msgstr "Włącz kody"
+msgstr "Włącz Cheaty"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:392
 msgid "Enable Dual Core"
-msgstr "Włącz 2 rdzenie"
+msgstr "Włącz 2 Rdzenie"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:565
 msgid "Enable Dual Core (speedup)"
-msgstr "Włącz 2 rdzenie (przyspieszenie)"
+msgstr "Włącz 2 Rdzenie (przyspieszenie)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:393
 msgid "Enable Idle Skipping"
@@ -2137,7 +2138,7 @@ msgstr ""
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
 msgstr ""
-"Włącza emulację Dolby Pro Logic II używając 5.1 surround. Tylko OpenAL."
+"Włącza emulację Dolby Pro Logic II używając 5.1 surround. Tylko backend OpenAL."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:107
 msgid ""
@@ -2301,7 +2302,7 @@ msgstr "Rozszerzenie"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:499
 msgid "External Frame Buffer"
-msgstr "External Frame Buffer"
+msgstr "Zewnętrzny Bufor Klatek"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:708
 msgid "Extract All Files..."
@@ -2405,7 +2406,7 @@ msgid ""
 "might crash unexpectedly!"
 msgstr ""
 "Błąd ładowania bthprops.cpl! Podłączenie prawdziwych Wiilotów nie będzie "
-"działać i Dolphin może niespodziewanie się zawiesic!"
+"działać i Dolphin może niespodziewanie się zawiesić!"
 
 #: Source/Core/Core/HW/WiimoteReal/IOWin.cpp:90
 #: Source/Core/Core/HW/WiimoteReal/IOWin.cpp:101
@@ -2414,7 +2415,7 @@ msgid ""
 "might crash unexpectedly!"
 msgstr ""
 "Błąd ładowania hid.dll! Podłączenie prawdziwych Wiilotów nie będzie działać "
-"i Dolphin może niespodziewanie się zawiesic!"
+"i Dolphin może niespodziewanie się zawiesić!"
 
 #: Source/Core/Core/Movie.cpp:790
 #, c-format
@@ -2635,7 +2636,7 @@ msgstr "Wymuś 4:3"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:572
 msgid "Force Console as NTSC-J"
-msgstr "Wymuś konsolę jako NTSC-J"
+msgstr "Wymuś tryb konsoli NTSC-J"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:425
 msgid "Force Texture Filtering"
@@ -3569,7 +3570,7 @@ msgstr "Logger Outputs"
 #: Source/Core/DolphinWX/Frame.cpp:362
 #: Source/Core/DolphinWX/CheatsWindow.cpp:141
 msgid "Logging"
-msgstr "Logging"
+msgstr "Logowanie"
 
 #: Source/Core/Core/NetPlayClient.cpp:356
 msgid "Lost connection to server!"
@@ -4392,7 +4393,7 @@ msgid ""
 "\n"
 "If unsure, select None."
 msgstr ""
-"Redukuje ilośc aliasingu powodowanego przez rasteryzowaną grafikę 3D.\n"
+"Redukuje moc aliasingu powodowanego przez rasteryzowaną grafikę 3D.\n"
 "Sprawia, że renderowany obraz jest bardziej wygładzony.\n"
 "Bardzo obniża szybkość emulacji i czasem powoduje błędy.\n"
 "\n"
@@ -4814,7 +4815,7 @@ msgstr "Krótka nazwa:"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:113
 msgid "Shoulder Buttons"
-msgstr "Przyciski tylnie"
+msgstr "Przyciski grzbietowe"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:259
 msgid "Show &Log"
@@ -5198,7 +5199,7 @@ msgstr "Szwedzki"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:276
 msgid "Swing"
-msgstr "Zamach"
+msgstr "Wymach"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:402
 msgid "Synchronize GPU thread"
@@ -5214,7 +5215,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:270
 msgid "Syntax error"
-msgstr ""
+msgstr "Błąd syntax"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:734
 #: Source/Core/DolphinWX/ConfigMain.cpp:788
@@ -5224,7 +5225,7 @@ msgstr "Język systemu:"
 #: Source/Core/DolphinWX/ISOProperties.cpp:239
 #: Source/Core/DolphinWX/ISOProperties.cpp:242
 msgid "TAIWAN"
-msgstr "Taiwan"
+msgstr "TAJWAN"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:166
 #: Source/Core/DolphinWX/TASInputDlg.h:31
@@ -5255,7 +5256,7 @@ msgstr "Zrób zdjęcie"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:114
 msgid "TaruKonga (Bongos)"
-msgstr "TaruKonga (Bongos)"
+msgstr "TaruKonga (Bongosy)"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:568
 msgid "Test"
@@ -5409,7 +5410,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:532
 msgid "This could cause slow down in Wii Menu and some games."
-msgstr "Może powodować spowolnienie w Wii Menu i niektórych grach."
+msgstr "Może powodować spowolnienie Wii Menu i niektórych gier."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:144
 msgid ""
@@ -5423,9 +5424,9 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Ta opcja pozwala na zmianę kamery w grze.\n"
-"Poruszaj myszką, trzymając prawy przycisk by obracać kamerą oraz środkowy "
-"przycisk by przesuwać.\n"
-"Trzymaj SHIFT oraz jeden z przycisków WSAD by przesunąć kamerę o określony "
+"Poruszaj myszką, trzymając prawy przycisk myszki, by obracać kamerą oraz "
+"środkowy przycisk by przesuwać.\n"
+"Przytrzymaj SHIFT oraz jeden z przycisków WSAD by przesunąć kamerę o określony "
 "krok odległości (SHIFT+0 szybciej, SHIFT+9 wolniej). Naciśnij SHIFT+R w celu "
 "zrestartowania kamery.\n"
 "\n"
@@ -5445,7 +5446,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:615
 msgid "This save will likely require homebrew tools to copy to a real Wii."
-msgstr ""
+msgstr "Ten zapis będzie wymagał narzędzi homebrew by przenieść dane do Wii."
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:511
 msgid ""
@@ -5569,7 +5570,7 @@ msgstr "Nieznany"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:797
 #, c-format
 msgid "UNKNOWN_%02X"
-msgstr "Nieznany_%X"
+msgstr "Nieznany_%02X"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:218
 msgid "USA"
@@ -6148,4 +6149,4 @@ msgstr "zNear Correction: "
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:578
 msgid "| OR"
-msgstr "| OR"
+msgstr "| ALBO"
