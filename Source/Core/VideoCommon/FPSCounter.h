@@ -4,9 +4,12 @@
 
 #pragma once
 
+namespace FPSCounter
+{
 // Initializes the FPS counter.
-void InitFPSCounter();
+void Initialize();
 
 // Called when a frame is rendered. Returns the value to be displayed on
 // screen as the FPS counter (updated every second).
-int UpdateFPSCounter();
+int Update();
+}

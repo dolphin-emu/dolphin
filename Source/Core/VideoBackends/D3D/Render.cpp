@@ -181,7 +181,7 @@ Renderer::Renderer(void *&window_handle)
 {
 	int x, y, w_temp, h_temp;
 
-	InitFPSCounter();
+	FPSCounter::Initialize();
 
 	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
 
@@ -954,7 +954,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	// update FPS counter
 	if (XFBWrited)
-		s_fps = UpdateFPSCounter();
+		s_fps = FPSCounter::Update();
 
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
