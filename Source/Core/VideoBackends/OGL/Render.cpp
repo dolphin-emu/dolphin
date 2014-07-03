@@ -340,7 +340,7 @@ Renderer::Renderer()
 	s_fps=0;
 	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
-	InitFPSCounter();
+	FPSCounter::Initialize();
 
 	bool bSuccess = true;
 
@@ -1584,7 +1584,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	}
 
 	if (XFBWrited)
-		s_fps = UpdateFPSCounter();
+		s_fps = FPSCounter::Update();
 	// ---------------------------------------------------------------------
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
