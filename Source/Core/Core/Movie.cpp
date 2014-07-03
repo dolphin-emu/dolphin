@@ -8,6 +8,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
@@ -474,7 +475,7 @@ bool BeginRecordingInput(int controllers)
 	return true;
 }
 
-static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str)
+static std::string Analog2DToString(u8 x, u8 y, const std::string& prefix)
 {
 	if ((x <= 1 || x == 128 || x >= 255) &&
 	    (y <= 1 || y == 128 || y >= 255))
@@ -483,52 +484,50 @@ static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str)
 		{
 			if (x != 128 && y != 128)
 			{
-				sprintf(str, "%s:%s,%s", prefix, x<128?"LEFT":"RIGHT", y<128?"DOWN":"UP");
+				return StringFromFormat("%s:%s,%s", prefix.c_str(), x<128?"LEFT":"RIGHT", y<128?"DOWN":"UP");
 			}
 			else if (x != 128)
 			{
-				sprintf(str, "%s:%s", prefix, x<128?"LEFT":"RIGHT");
+				return StringFromFormat("%s:%s", prefix.c_str(), x<128?"LEFT":"RIGHT");
 			}
 			else
 			{
-				sprintf(str, "%s:%s", prefix, y<128?"DOWN":"UP");
+				return StringFromFormat("%s:%s", prefix.c_str(), y<128?"DOWN":"UP");
 			}
 		}
 		else
 		{
-			str[0] = '\0';
+			return "";
 		}
 	}
 	else
 	{
-		sprintf(str, "%s:%d,%d", prefix, x, y);
+		return StringFromFormat("%s:%d,%d", prefix.c_str(), x, y);
 	}
 }
 
-static void Analog1DToString(u8 v, const char* prefix, char* str)
+static std::string Analog1DToString(u8 v, const std::string& prefix)
 {
 	if (v > 0)
 	{
 		if (v == 255)
 		{
-			strcpy(str, prefix);
+			return prefix;
 		}
 		else
 		{
-			sprintf(str, "%s:%d", prefix, v);
+			return StringFromFormat("%s:%d", prefix.c_str(), v);
 		}
 	}
 	else
 	{
-		str[0] = '\0';
+		return "";
 	}
 }
 
 void SetInputDisplayString(ControllerState padState, int controllerID)
 {
-	char inp[70];
-	sprintf(inp, "P%d:", controllerID + 1);
-	g_InputDisplay[controllerID] = inp;
+	g_InputDisplay[controllerID] = StringFromFormat("P%d:", controllerID + 1);
 
 	if (g_padState.A)
 		g_InputDisplay[controllerID].append(" A");
@@ -552,18 +551,10 @@ void SetInputDisplayString(ControllerState padState, int controllerID)
 	if (g_padState.DPadRight)
 		g_InputDisplay[controllerID].append(" RIGHT");
 
-	Analog1DToString(g_padState.TriggerL, " L", inp);
-	g_InputDisplay[controllerID].append(inp);
-
-	Analog1DToString(g_padState.TriggerR, " R", inp);
-	g_InputDisplay[controllerID].append(inp);
-
-	Analog2DToString(g_padState.AnalogStickX, g_padState.AnalogStickY, " ANA", inp);
-	g_InputDisplay[controllerID].append(inp);
-
-	Analog2DToString(g_padState.CStickX, g_padState.CStickY, " C", inp);
-	g_InputDisplay[controllerID].append(inp);
-
+	g_InputDisplay[controllerID].append(Analog1DToString(g_padState.TriggerL, " L"));
+	g_InputDisplay[controllerID].append(Analog1DToString(g_padState.TriggerR, " R"));
+	g_InputDisplay[controllerID].append(Analog2DToString(g_padState.AnalogStickX, g_padState.AnalogStickY, " ANA"));
+	g_InputDisplay[controllerID].append(Analog2DToString(g_padState.CStickX, g_padState.CStickY, " C"));
 	g_InputDisplay[controllerID].append("\n");
 }
 
@@ -571,9 +562,7 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 {
 	int controllerID = remoteID + 4;
 
-	char inp[70];
-	sprintf(inp, "R%d:", remoteID + 1);
-	g_InputDisplay[controllerID] = inp;
+	g_InputDisplay[controllerID] = StringFromFormat("R%d:", remoteID + 1);
 
 	if (coreData)
 	{
@@ -605,14 +594,14 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 	if (accelData)
 	{
 		wm_accel* dt = (wm_accel*)accelData;
-		sprintf(inp, " ACC:%d,%d,%d", dt->x, dt->y, dt->z);
-		g_InputDisplay[controllerID].append(inp);
+		std::string accel = StringFromFormat(" ACC:%d,%d,%d", dt->x, dt->y, dt->z);
+		g_InputDisplay[controllerID].append(accel);
 	}
 
 	if (irData) // incomplete
 	{
-		sprintf(inp, " IR:%d,%d", ((u8*)irData)[0], ((u8*)irData)[1]);
-		g_InputDisplay[controllerID].append(inp);
+		std::string ir = StringFromFormat(" IR:%d,%d", ((u8*)irData)[0], ((u8*)irData)[1]);
+		g_InputDisplay[controllerID].append(ir);
 	}
 
 	g_InputDisplay[controllerID].append("\n");
