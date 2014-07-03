@@ -1,20 +1,20 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
-#include "../../HW/Memmap.h"
 
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
-#include "MemoryUtil.h"
+#include "Common/ArmEmitter.h"
+#include "Common/MemoryUtil.h"
 
-#include "JitIL.h"
-#include "../JitCommon/JitCache.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitArmIL/JitIL.h"
+#include "Core/PowerPC/JitArmIL/JitILAsm.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
-#include "../../HW/GPFifo.h"
-#include "../../Core.h"
-
-#include "JitILAsm.h"
-#include "ArmEmitter.h"
+using namespace ArmGen;
 
 JitArmILAsmRoutineManager armil_asm_routines;
 void JitArmILAsmRoutineManager::Generate()
@@ -27,7 +27,6 @@ void JitArmILAsmRoutineManager::Generate()
 	// consumed by CALL.
 	SUB(_SP, _SP, 4);
 
-	MOVI2R(R0, (u32)&CoreTiming::downcount);
 	MOVI2R(R9, (u32)&PowerPC::ppcState.spr[0]);
 
 	FixupBranch skipToRealDispatcher = B();
@@ -73,17 +72,6 @@ void JitArmILAsmRoutineManager::Generate()
 
 		B(dispatcherNoCheck);
 
-		// fpException()
-		// Floating Point Exception Check, Jumped to if false
-		fpException = GetCodePtr();
-			LDR(R0, R9, PPCSTATE_OFF(Exceptions));
-			ORR(R0, R0, EXCEPTION_FPU_UNAVAILABLE);
-			STR(R0, R9, PPCSTATE_OFF(Exceptions));
-				QuickCallFunction(R14, (void*)&PowerPC::CheckExceptions);
-			LDR(R0, R9, PPCSTATE_OFF(npc));
-			STR(R0, R9, PPCSTATE_OFF(pc));
-		B(dispatcher);
-
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 		// XXX: In JIT64, Advance() gets called /after/ the exception checking
@@ -91,7 +79,6 @@ void JitArmILAsmRoutineManager::Generate()
 		QuickCallFunction(R14, (void*)&CoreTiming::Advance);
 
 		// Does exception checking
-		testExceptions = GetCodePtr();
 			LDR(R0, R9, PPCSTATE_OFF(pc));
 			STR(R0, R9, PPCSTATE_OFF(npc));
 				QuickCallFunction(R14, (void*)&PowerPC::CheckExceptions);

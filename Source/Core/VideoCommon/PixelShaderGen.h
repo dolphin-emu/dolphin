@@ -2,39 +2,27 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef GCOGL_PIXELSHADER_H
-#define GCOGL_PIXELSHADER_H
+#pragma once
 
-#include "VideoCommon.h"
-#include "ShaderGenCommon.h"
-#include "BPMemory.h"
-#include "LightingShaderGen.h"
-
-#define I_COLORS      "color"
-#define I_KCOLORS     "k"
-#define I_ALPHA       "alphaRef"
-#define I_TEXDIMS     "texdim"
-#define I_ZBIAS       "czbias"
-#define I_INDTEXSCALE "cindscale"
-#define I_INDTEXMTX   "cindmtx"
-#define I_FOG         "cfog"
-#define I_PLIGHTS     "cPLights"
-#define I_PMATERIALS  "cPmtrl"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/LightingShaderGen.h"
+#include "VideoCommon/ShaderGenCommon.h"
+#include "VideoCommon/VideoCommon.h"
 
 // TODO: get rid of them as they aren't used
-#define C_COLORMATRIX	0						// 0
-#define C_COLORS		0						// 0
-#define C_KCOLORS		(C_COLORS + 4)			// 4
-#define C_ALPHA			(C_KCOLORS + 4)			// 8
-#define C_TEXDIMS		(C_ALPHA + 1)			// 9
-#define C_ZBIAS			(C_TEXDIMS + 8)			//17
-#define C_INDTEXSCALE	(C_ZBIAS + 2)			//19
-#define C_INDTEXMTX		(C_INDTEXSCALE + 2)		//21
-#define C_FOG			(C_INDTEXMTX + 6)		//27
+#define C_COLORMATRIX   0                   // 0
+#define C_COLORS        0                   // 0
+#define C_KCOLORS       (C_COLORS + 4)      // 4
+#define C_ALPHA         (C_KCOLORS + 4)     // 8
+#define C_TEXDIMS       (C_ALPHA + 1)       // 9
+#define C_ZBIAS         (C_TEXDIMS + 8)     //17
+#define C_INDTEXSCALE   (C_ZBIAS + 2)       //19
+#define C_INDTEXMTX     (C_INDTEXSCALE + 2) //21
+#define C_FOGCOLOR      (C_INDTEXMTX + 6)   //27
+#define C_FOGI          (C_FOGCOLOR + 1)    //28
+#define C_FOGF          (C_FOGI + 1)        //29
 
-#define C_PLIGHTS		(C_FOG + 3)
-#define C_PMATERIALS	(C_PLIGHTS + 40)
-#define C_PENVCONST_END (C_PMATERIALS + 4)
+#define C_PENVCONST_END (C_FOGF + 2)
 
 // Different ways to achieve rendering with destination alpha
 enum DSTALPHA_MODE
@@ -141,5 +129,3 @@ typedef ShaderConstantProfile PixelShaderConstantProfile; // TODO: Obsolete
 void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
-
-#endif // GCOGL_PIXELSHADER_H

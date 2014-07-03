@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _SI_DEVICEGBA_H
-#define _SI_DEVICEGBA_H
+#pragma once
 
 #include "SFML/Network.hpp"
 
@@ -22,10 +21,10 @@ public:
 private:
 	enum EJoybusCmds
 	{
-		CMD_RESET	= 0xff,
-		CMD_STATUS	= 0x00,
-		CMD_READ	= 0x14,
-		CMD_WRITE	= 0x15
+		CMD_RESET  = 0xff,
+		CMD_STATUS = 0x00,
+		CMD_READ   = 0x14,
+		CMD_WRITE  = 0x15
 	};
 
 	sf::SocketTCP client;
@@ -44,5 +43,3 @@ public:
 	virtual bool GetData(u32& _Hi, u32& _Low) override { return true; }
 	virtual void SendCommand(u32 _Cmd, u8 _Poll) override {}
 };
-
-#endif

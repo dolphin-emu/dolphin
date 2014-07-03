@@ -4,12 +4,10 @@
 
 // Additional copyrights go to Duddie (c) 2005 (duddie@walla.com)
 
-#ifndef _DSPTABLES_H
-#define _DSPTABLES_H
+#pragma once
 
-//nclude "Common.h"
-#include "DSPEmitter.h"
-#include "DSPCommon.h"
+#include "Core/DSP/DSPCommon.h"
+#include "Core/DSP/DSPEmitter.h"
 
 // The non-ADDR ones that end with _D are the opposite one - if the bit specify
 // ACC0, then ACC_D will be ACC1.
@@ -20,37 +18,37 @@
 
 enum partype_t
 {
-	P_NONE		= 0x0000,
-	P_VAL		= 0x0001,
-	P_IMM		= 0x0002,
-	P_MEM		= 0x0003,
-	P_STR		= 0x0004,
-	P_ADDR_I	= 0x0005,
-	P_ADDR_D	= 0x0006,
-	P_REG		= 0x8000,
-	P_REG04		= P_REG | 0x0400, // IX
-	P_REG08		= P_REG | 0x0800,
-	P_REG18		= P_REG | 0x1800,
-	P_REGM18	= P_REG | 0x1810, // used in multiply instructions
-	P_REG19		= P_REG | 0x1900,
-	P_REGM19	= P_REG | 0x1910, // used in multiply instructions
-	P_REG1A		= P_REG | 0x1a80,
-	P_REG1C		= P_REG | 0x1c00,
-//	P_ACC		= P_REG | 0x1c10, // used for global accum (gcdsptool's value)
-	P_ACCL		= P_REG | 0x1c00, // used for low part of accum
-	P_ACCM		= P_REG | 0x1e00, // used for mid part of accum
+	P_NONE      = 0x0000,
+	P_VAL       = 0x0001,
+	P_IMM       = 0x0002,
+	P_MEM       = 0x0003,
+	P_STR       = 0x0004,
+	P_ADDR_I    = 0x0005,
+	P_ADDR_D    = 0x0006,
+	P_REG       = 0x8000,
+	P_REG04     = P_REG | 0x0400, // IX
+	P_REG08     = P_REG | 0x0800,
+	P_REG18     = P_REG | 0x1800,
+	P_REGM18    = P_REG | 0x1810, // used in multiply instructions
+	P_REG19     = P_REG | 0x1900,
+	P_REGM19    = P_REG | 0x1910, // used in multiply instructions
+	P_REG1A     = P_REG | 0x1a80,
+	P_REG1C     = P_REG | 0x1c00,
+	// P_ACC       = P_REG | 0x1c10, // used for global accum (gcdsptool's value)
+	P_ACCL      = P_REG | 0x1c00, // used for low part of accum
+	P_ACCM      = P_REG | 0x1e00, // used for mid part of accum
 	// The following are not in gcdsptool
-	P_ACCM_D	= P_REG | 0x1e80,
-	P_ACC		= P_REG | 0x2000, // used for full accum.
-	P_ACC_D		= P_REG | 0x2080,
-	P_AX		= P_REG | 0x2200,
-	P_REGS_MASK	= 0x03f80, // gcdsptool's value = 0x01f80
-	P_REF		= P_REG | 0x4000,
-	P_PRG		= P_REF | P_REG,
+	P_ACCM_D    = P_REG | 0x1e80,
+	P_ACC       = P_REG | 0x2000, // used for full accum.
+	P_ACC_D     = P_REG | 0x2080,
+	P_AX        = P_REG | 0x2200,
+	P_REGS_MASK = 0x03f80, // gcdsptool's value = 0x01f80
+	P_REF       = P_REG | 0x4000,
+	P_PRG       = P_REF | P_REG,
 
 	// The following seem like junk:
-	//	P_REG10		= P_REG | 0x1000,
-	//	P_AX_D		= P_REG | 0x2280,
+	// P_REG10     = P_REG | 0x1000,
+	// P_AX_D      = P_REG | 0x2280,
 };
 
 #define OPTABLE_SIZE 0xffff + 1
@@ -145,5 +143,3 @@ inline void ExecuteInstruction(const UDSPInstruction inst)
 		applyWriteBackLog();
 	}
 }
-
-#endif // _DSPTABLES_H

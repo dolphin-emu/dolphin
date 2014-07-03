@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 struct ID3D10Blob;
 
@@ -16,7 +16,7 @@ class D3DBlob
 {
 public:
 	// memory will be copied into an own buffer
-	D3DBlob(unsigned int blob_size, const u8* init_data = NULL);
+	D3DBlob(unsigned int blob_size, const u8* init_data = nullptr);
 
 	// d3dblob will be AddRef'd
 	D3DBlob(ID3D10Blob* d3dblob);

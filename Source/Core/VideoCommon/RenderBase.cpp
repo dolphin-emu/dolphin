@@ -12,33 +12,37 @@
 // Next frame, that one is scanned out and the other one gets the copy. = double buffering.
 // ---------------------------------------------------------------------------------------------
 
-
-#include "RenderBase.h"
-#include "Atomic.h"
-#include "BPMemory.h"
-#include "CommandProcessor.h"
-#include "CPMemory.h"
-#include "MainBase.h"
-#include "VideoConfig.h"
-#include "FramebufferManagerBase.h"
-#include "TextureCacheBase.h"
-#include "Fifo.h"
-#include "OpcodeDecoding.h"
-#include "Timer.h"
-#include "StringUtil.h"
-#include "Host.h"
-#include "XFMemory.h"
-#include "FifoPlayer/FifoRecorder.h"
-#include "AVIDump.h"
-
 #include <cmath>
 #include <string>
+
+#include "Common/Atomic.h"
+#include "Common/StringUtil.h"
+#include "Common/Timer.h"
+
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+
+#include "VideoCommon/AVIDump.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/FramebufferManagerBase.h"
+#include "VideoCommon/MainBase.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 // TODO: Move these out of here.
 int frameCount;
 int OSDChoice, OSDTime;
 
-Renderer *g_renderer = NULL;
+Renderer *g_renderer = nullptr;
 
 std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;
@@ -59,9 +63,8 @@ int Renderer::s_LastEFBScale;
 
 bool Renderer::s_skipSwap;
 bool Renderer::XFBWrited;
-bool Renderer::s_EnableDLCachingAfterRecording;
 
-unsigned int Renderer::prev_efb_format = (unsigned int)-1;
+PEControl::PixelFormat Renderer::prev_efb_format = PEControl::INVALID_FMT;
 unsigned int Renderer::efb_scale_numeratorX = 1;
 unsigned int Renderer::efb_scale_numeratorY = 1;
 unsigned int Renderer::efb_scale_denominatorX = 1;
@@ -86,7 +89,7 @@ Renderer::Renderer()
 Renderer::~Renderer()
 {
 	// invalidate previous efb format
-	prev_efb_format = (unsigned int)-1;
+	prev_efb_format = PEControl::INVALID_FMT;
 
 	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
@@ -99,7 +102,7 @@ Renderer::~Renderer()
 #endif
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidth, u32 fbHeight, float Gamma)
 {
 	CheckFifoRecording();
 
@@ -118,7 +121,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	}
 	else
 	{
-		g_renderer->Swap(xfbAddr, fbWidth, fbHeight,sourceRc,Gamma);
+		Swap(xfbAddr, fbWidth, fbHeight,sourceRc,Gamma);
 		Common::AtomicStoreRelease(s_swapRequested, false);
 	}
 }
@@ -235,7 +238,7 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 	return false;
 }
 
-void Renderer::SetScreenshot(const char *filename)
+void Renderer::SetScreenshot(const std::string& filename)
 {
 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 	s_sScreenshotName = filename;
@@ -285,7 +288,7 @@ void Renderer::DrawDebugText()
 	}
 
 	const char* ar_text = "";
-	switch(g_ActiveConfig.iAspectRatio)
+	switch (g_ActiveConfig.iAspectRatio)
 	{
 	case ASPECT_AUTO:
 		ar_text = "Auto";
@@ -340,11 +343,11 @@ void Renderer::DrawDebugText()
 	}
 
 	// Render a shadow
-	g_renderer->RenderText(final_cyan.c_str(), 21, 21, 0xDD000000);
-	g_renderer->RenderText(final_yellow.c_str(), 21, 21, 0xDD000000);
+	g_renderer->RenderText(final_cyan, 21, 21, 0xDD000000);
+	g_renderer->RenderText(final_yellow, 21, 21, 0xDD000000);
 	//and then the text
-	g_renderer->RenderText(final_cyan.c_str(), 20, 20, 0xFF00FFFF);
-	g_renderer->RenderText(final_yellow.c_str(), 20, 20, 0xFFFFFF00);
+	g_renderer->RenderText(final_cyan, 20, 20, 0xFF00FFFF);
+	g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
 
 // TODO: remove
@@ -439,7 +442,7 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 
 	// -----------------------------------------------------------------------
 	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
-	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
+	// Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
 	// ------------------
 	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop)
 	{
@@ -490,36 +493,42 @@ void Renderer::CheckFifoRecording()
 	{
 		if (!wasRecording)
 		{
-			// Disable display list caching because the recorder does not handle it
-			s_EnableDLCachingAfterRecording = g_ActiveConfig.bDlistCachingEnable;
-			g_ActiveConfig.bDlistCachingEnable = false;
-
 			RecordVideoMemory();
 		}
 
 		FifoRecorder::GetInstance().EndFrame(CommandProcessor::fifo.CPBase, CommandProcessor::fifo.CPEnd);
 	}
-	else if (wasRecording)
-	{
-		g_ActiveConfig.bDlistCachingEnable = s_EnableDLCachingAfterRecording;
-	}
 }
 
 void Renderer::RecordVideoMemory()
 {
-	u32 *bpMem = (u32*)&bpmem;
-	u32 cpMem[256];
-	u32 *xfMem = (u32*)xfmem;
-	u32 *xfRegs = (u32*)&xfregs;
+	u32 *bpmem_ptr = (u32*)&bpmem;
+	u32 cpmem[256];
+	// The FIFO recording format splits XF memory into xfmem and xfregs; follow
+	// that split here.
+	u32 *xfmem_ptr = (u32*)&xfmem;
+	u32 *xfregs_ptr = (u32*)&xfmem + FifoDataFile::XF_MEM_SIZE;
+	u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
-	memset(cpMem, 0, 256 * 4);
-	FillCPMemoryArray(cpMem);
+	memset(cpmem, 0, 256 * 4);
+	FillCPMemoryArray(cpmem);
 
-	FifoRecorder::GetInstance().SetVideoMemory(bpMem, cpMem, xfMem, xfRegs, sizeof(XFRegisters) / 4);
+	FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size);
 }
 
-void UpdateViewport()
+void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
-	if (xfregs.viewport.wd != 0 && xfregs.viewport.ht != 0)
-		g_renderer->UpdateViewport();
+	// TODO: merge more generic parts into VideoCommon
+	g_renderer->SwapImpl(xfbAddr, fbWidth, fbHeight, rc, Gamma);
+
+	frameCount++;
+	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
+
+	// Begin new frame
+	// Set default viewport and scissor, for the clear to work correctly
+	// New frame
+	stats.ResetFrame();
+
+	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
+	XFBWrited = false;
 }

@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PSTEXTUREENCODER_H
-#define _PSTEXTUREENCODER_H
+#pragma once
 
-#include "TextureEncoder.h"
+#include "VideoBackends/D3D/TextureEncoder.h"
 
 struct ID3D11Texture2D;
 struct ID3D11RenderTargetView;
@@ -33,8 +32,8 @@ public:
 	void Init();
 	void Shutdown();
 	size_t Encode(u8* dst, unsigned int dstFormat,
-		unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
-		bool scaleByHalf);
+	              PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+	              bool isIntensity, bool scaleByHalf);
 
 private:
 
@@ -55,15 +54,15 @@ private:
 	// Stuff only used in static-linking mode (SM4.0-compatible)
 
 	bool InitStaticMode();
-	bool SetStaticShader(unsigned int dstFormat, unsigned int srcFormat,
-		bool isIntensity, bool scaleByHalf);
+	bool SetStaticShader(unsigned int dstFormat,
+		PEControl::PixelFormat srcFormat, bool isIntensity, bool scaleByHalf);
 
 	typedef unsigned int ComboKey; // Key for a shader combination
 
-	ComboKey MakeComboKey(unsigned int dstFormat, unsigned int srcFormat,
-		bool isIntensity, bool scaleByHalf)
+	ComboKey MakeComboKey(unsigned int dstFormat,
+		PEControl::PixelFormat srcFormat, bool isIntensity, bool scaleByHalf)
 	{
-		return (dstFormat << 4) | (srcFormat << 2) | (isIntensity ? (1<<1) : 0)
+		return (dstFormat << 4) | (static_cast<int>(srcFormat) << 2) | (isIntensity ? (1<<1) : 0)
 			| (scaleByHalf ? (1<<0) : 0);
 	}
 
@@ -75,8 +74,8 @@ private:
 	// Microsoft fixes their bloody HLSL compiler)
 
 	bool InitDynamicMode();
-	bool SetDynamicShader(unsigned int dstFormat, unsigned int srcFormat,
-		bool isIntensity, bool scaleByHalf);
+	bool SetDynamicShader(unsigned int dstFormat,
+		PEControl::PixelFormat srcFormat, bool isIntensity, bool scaleByHalf);
 
 	ID3D11PixelShader* m_dynamicShader;
 	ID3D11ClassLinkage* m_classLinkage;
@@ -102,5 +101,3 @@ private:
 };
 
 }
-
-#endif

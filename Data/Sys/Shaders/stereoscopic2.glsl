@@ -10,23 +10,22 @@ uniform vec4 resolution;
 
 void main()
 {
-  float4 c0 = texture(samp9, uv0).rgba; // Source Color
-  float sep = 5;
-  float red   = c0.r;
-  float green = c0.g;
-  float blue  = c0.b;
+	// Source Color
+	float4 c0 = texture(samp9, uv0).rgba;
+	float sep = 5.0;
+	float red   = c0.r;
+	float green = c0.g;
+	float blue  = c0.b;
 
-  
-  // Left Eye (Amber)
-  float4 c2 = texture(samp9, uv0 + float2(sep,0)*resolution.zw).rgba;
-  float amber = (c2.r + c2.g) / 2;
-  red = max(c0.r, amber);
-  green = max(c0.g, amber);
+	// Left Eye (Amber)
+	float4 c2 = texture(samp9, uv0 + float2(sep,0.0)*resolution.zw).rgba;
+	float amber = (c2.r + c2.g) / 2.0;
+	red = max(c0.r, amber);
+	green = max(c0.g, amber);
 
-  // Right Eye (Blue)
-  float4 c1 = texture(samp9, uv0 + float2(-sep,0)*resolution.zw).rgba;
-  blue = max(c0.b, c1.b);
+	// Right Eye (Blue)
+	float4 c1 = texture(samp9, uv0 + float2(-sep,0.0)*resolution.zw).rgba;
+	blue = max(c0.b, c1.b);
 
-  
-  ocol0 = float4(red, green, blue, c0.a);
+	ocol0 = float4(red, green, blue, c0.a);
 }

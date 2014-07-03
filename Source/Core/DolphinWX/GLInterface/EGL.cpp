@@ -1,28 +1,13 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#include "Host.h"
-#include "RenderBase.h"
-
-#include "GLInterface.h"
-#include "EGL.h"
+#include "Core/Host.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
+#include "VideoCommon/RenderBase.h"
 
 // Show the current FPS
-void cInterfaceEGL::UpdateFPSDisplay(const char *text)
+void cInterfaceEGL::UpdateFPSDisplay(const std::string& text)
 {
 	Platform.UpdateFPSDisplay(text);
 }
@@ -35,7 +20,7 @@ void cInterfaceEGL::SwapInterval(int Interval)
 	eglSwapInterval(GLWin.egl_dpy, Interval);
 }
 
-void* cInterfaceEGL::GetFuncAddress(std::string name)
+void* cInterfaceEGL::GetFuncAddress(const std::string& name)
 {
 	return (void*)eglGetProcAddress(name.c_str());
 }
@@ -46,7 +31,7 @@ void cInterfaceEGL::DetectMode()
 		return;
 
 	EGLint num_configs;
-	EGLConfig *config = NULL;
+	EGLConfig *config = nullptr;
 	bool supportsGL = false, supportsGLES2 = false, supportsGLES3 = false;
 
 	// attributes for a visual in RGBA format with at least
@@ -58,7 +43,8 @@ void cInterfaceEGL::DetectMode()
 		EGL_NONE };
 
 	// Get how many configs there are
-	if (!eglChooseConfig( GLWin.egl_dpy, attribs, NULL, 0, &num_configs)) {
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, nullptr, 0, &num_configs))
+	{
 		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
 		goto err_exit;
 	}
@@ -101,25 +87,27 @@ err_exit:
 }
 
 // Create rendering window.
-//		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
+// Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceEGL::Create(void *&window_handle)
 {
 	const char *s;
 	EGLint egl_major, egl_minor;
 
-	if(!Platform.SelectDisplay())
+	if (!Platform.SelectDisplay())
 		return false;
 
 	GLWin.egl_dpy = Platform.EGLGetDisplay();
 
-	if (!GLWin.egl_dpy) {
+	if (!GLWin.egl_dpy)
+	{
 		INFO_LOG(VIDEO, "Error: eglGetDisplay() failed\n");
 		return false;
 	}
 
 	GLWin.platform = Platform.platform;
 
-	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor)) {
+	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor))
+	{
 		INFO_LOG(VIDEO, "Error: eglInitialize() failed\n");
 		return false;
 	}
@@ -143,11 +131,11 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		EGL_CONTEXT_CLIENT_VERSION, 2,
 		EGL_NONE
 	};
-	switch(s_opengl_mode)
+	switch (s_opengl_mode)
 	{
 		case MODE_OPENGL:
 			attribs[1] = EGL_OPENGL_BIT;
-			ctx_attribs[0] = EGL_NONE;	
+			ctx_attribs[0] = EGL_NONE;
 		break;
 		case MODE_OPENGLES2:
 			attribs[1] = EGL_OPENGL_ES2_BIT;
@@ -163,7 +151,8 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		break;
 	}
 
-	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs))
+	{
 		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
 		exit(1);
 	}
@@ -189,16 +178,17 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	INFO_LOG(VIDEO, "EGL_CLIENT_APIS = %s\n", s);
 
 	GLWin.egl_ctx = eglCreateContext(GLWin.egl_dpy, config, EGL_NO_CONTEXT, ctx_attribs );
-	if (!GLWin.egl_ctx) {
+	if (!GLWin.egl_ctx)
+	{
 		INFO_LOG(VIDEO, "Error: eglCreateContext failed\n");
 		exit(1);
 	}
 
 	GLWin.native_window = Platform.CreateWindow();
 
-	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config,
-				GLWin.native_window, NULL);
-	if (!GLWin.egl_surf) {
+	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.native_window, nullptr);
+	if (!GLWin.egl_surf)
+	{
 		INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
 		exit(1);
 	}
@@ -222,12 +212,12 @@ void cInterfaceEGL::Shutdown()
 	if (GLWin.egl_ctx)
 	{
 		eglMakeCurrent(GLWin.egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		if(!eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx))
+		if (!eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx))
 			NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
-		if(!eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf))
+		if (!eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf))
 			NOTICE_LOG(VIDEO, "Could not destroy window surface.");
-		if(!eglTerminate(GLWin.egl_dpy))
+		if (!eglTerminate(GLWin.egl_dpy))
 			NOTICE_LOG(VIDEO, "Could not destroy display connection.");
-		GLWin.egl_ctx = NULL;
+		GLWin.egl_ctx = nullptr;
 	}
 }

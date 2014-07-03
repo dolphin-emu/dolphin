@@ -2,16 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "NANDContentLoader.h"
-
-#include <algorithm>
-#include <cctype>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <functional>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 #include <polarssl/aes.h>
-#include "MathUtil.h"
-#include "FileUtil.h"
-#include "Log.h"
-#include "WiiWad.h"
-#include "StringUtil.h"
+
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/MathUtil.h"
+#include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
+
+#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/WiiWad.h"
 
 namespace DiscIO
 {
@@ -28,7 +38,7 @@ void CSharedContent::UpdateLocation()
 {
 	m_Elements.clear();
 	lastID = 0;
-	sprintf(contentMap, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX).c_str());
+	contentMap = StringFromFormat("%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX).c_str());
 
 	File::IOFile pFile(contentMap, "rb");
 	SElement Element;
@@ -48,11 +58,9 @@ std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
 	{
 		if (memcmp(_pHash, Element.SHA1Hash, 20) == 0)
 		{
-			char szFilename[1024];
-			sprintf(szFilename,  "%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX).c_str(),
-				Element.FileName[0], Element.FileName[1], Element.FileName[2], Element.FileName[3],
-				Element.FileName[4], Element.FileName[5], Element.FileName[6], Element.FileName[7]);
-			return szFilename;
+			return StringFromFormat("%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX).c_str(),
+			    Element.FileName[0], Element.FileName[1], Element.FileName[2], Element.FileName[3],
+			    Element.FileName[4], Element.FileName[5], Element.FileName[6], Element.FileName[7]);
 		}
 	}
 	return "unk";
@@ -60,13 +68,13 @@ std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
 
 std::string CSharedContent::AddSharedContent(const u8* _pHash)
 {
-	std::string szFilename = GetFilenameFromSHA1(_pHash);
-	if (strcasecmp(szFilename.c_str(), "unk") == 0)
+	std::string filename = GetFilenameFromSHA1(_pHash);
+
+	if (strcasecmp(filename.c_str(), "unk") == 0)
 	{
-		char tempFilename[1024], c_ID[9];
+		std::string id = StringFromFormat("%08x", lastID);
 		SElement Element;
-		sprintf(c_ID, "%08x", lastID);
-		memcpy(Element.FileName, c_ID, 8);
+		memcpy(Element.FileName, id.c_str(), 8);
 		memcpy(Element.SHA1Hash, _pHash, 20);
 		m_Elements.push_back(Element);
 
@@ -75,11 +83,11 @@ std::string CSharedContent::AddSharedContent(const u8* _pHash)
 		File::IOFile pFile(contentMap, "ab");
 		pFile.WriteArray(&Element, 1);
 
-		sprintf(tempFilename, "%sshared1/%s.app", File::GetUserPath(D_WIIUSER_IDX).c_str(), c_ID);
-		szFilename = tempFilename;
+		filename = StringFromFormat("%sshared1/%s.app", File::GetUserPath(D_WIIUSER_IDX).c_str(), id.c_str());
 		lastID++;
 	}
-	return szFilename;
+
+	return filename;
 }
 
 
@@ -87,12 +95,10 @@ std::string CSharedContent::AddSharedContent(const u8* _pHash)
 class CNANDContentLoader : public INANDContentLoader
 {
 public:
-
 	CNANDContentLoader(const std::string& _rName);
-
 	virtual ~CNANDContentLoader();
 
-	bool IsValid() const override	{ return m_Valid; }
+	bool IsValid() const override { return m_Valid; }
 	void RemoveTitle(void) const override;
 	u64 GetTitleID() const override  { return m_TitleID; }
 	u16 GetIosVersion() const override { return m_IosVersion; }
@@ -112,7 +118,6 @@ public:
 	u8 GetCountryChar() const override {return m_Country; }
 
 private:
-
 	bool m_Valid;
 	bool m_isWAD;
 	std::string m_Path;
@@ -138,8 +143,6 @@ private:
 };
 
 
-
-
 CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	: m_Valid(false)
 	, m_isWAD(false)
@@ -147,7 +150,7 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	, m_IosVersion(0x09)
 	, m_BootIndex(-1)
 	, m_TIKSize(0)
-	, m_TIK(NULL)
+	, m_TIK(nullptr)
 {
 	m_Valid = Initialize(_rName);
 }
@@ -162,7 +165,7 @@ CNANDContentLoader::~CNANDContentLoader()
 	if (m_TIK)
 	{
 		delete []m_TIK;
-		m_TIK = NULL;
+		m_TIK = nullptr;
 	}
 }
 
@@ -175,7 +178,7 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 			return &Content;
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 bool CNANDContentLoader::Initialize(const std::string& _rName)
@@ -184,8 +187,8 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		return false;
 	m_Path = _rName;
 	WiiWAD Wad(_rName);
-	u8* pDataApp = NULL;
-	u8* pTMD = NULL;
+	u8* pDataApp = nullptr;
+	u8* pTMD = nullptr;
 	u8 DecryptTitleKey[16];
 	u8 IV[16];
 	if (Wad.IsValid())
@@ -212,8 +215,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		File::IOFile pTMDFile(TMDFileName, "rb");
 		if (!pTMDFile)
 		{
-			WARN_LOG(DISCIO, "CreateFromDirectory: error opening %s",
-					 TMDFileName.c_str());
+			WARN_LOG(DISCIO, "CreateFromDirectory: error opening %s", TMDFileName.c_str());
 			return false;
 		}
 		u32 pTMDSize = (u32)File::GetSize(TMDFileName);
@@ -262,7 +264,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 			continue;
 		}
 
-		rContent.m_pData = NULL;
+		rContent.m_pData = nullptr;
 
 		if (rContent.m_Type & 0x8000)  // shared app
 		{
@@ -315,11 +317,9 @@ CNANDContentManager CNANDContentManager::m_Instance;
 
 CNANDContentManager::~CNANDContentManager()
 {
-	CNANDContentMap::iterator itr = m_Map.begin();
-	while (itr != m_Map.end())
+	for (auto& entry : m_Map)
 	{
-		delete itr->second;
-		++itr;
+		delete entry.second;
 	}
 	m_Map.clear();
 }
@@ -328,7 +328,7 @@ const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& 
 {
 	CNANDContentMap::iterator lb = m_Map.lower_bound(_rName);
 
-	if(lb == m_Map.end() || (m_Map.key_comp()(_rName, lb->first)))
+	if (lb == m_Map.end() || (m_Map.key_comp()(_rName, lb->first)))
 	{
 		m_Map.insert(lb, CNANDContentMap::value_type(_rName, new CNANDContentLoader(_rName)));
 	}
@@ -359,17 +359,16 @@ bool CNANDContentManager::RemoveTitle(u64 _titleID)
 void CNANDContentLoader::RemoveTitle() const
 {
 	INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
-	if(IsValid())
+	if (IsValid())
 	{
 		// remove tmd?
 		for (u32 i = 0; i < m_numEntries; i++)
 		{
-			char szFilename[1024];
 			if (!(m_Content[i].m_Type & 0x8000)) // skip shared apps
 			{
-				sprintf(szFilename, "%s%08x.app", Common::GetTitleContentPath(m_TitleID).c_str(), m_Content[i].m_ContentID);
-				INFO_LOG(DISCIO, "Delete %s", szFilename);
-				File::Delete(szFilename);
+				std::string filename = StringFromFormat("%s%08x.app", Common::GetTitleContentPath(m_TitleID).c_str(), m_Content[i].m_ContentID);
+				INFO_LOG(DISCIO, "Delete %s", filename.c_str());
+				File::Delete(filename);
 			}
 		}
 	}
@@ -384,7 +383,7 @@ void cUIDsys::UpdateLocation()
 {
 	m_Elements.clear();
 	lastUID = 0x00001000;
-	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
+	uidSys = StringFromFormat("%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
 
 	File::IOFile pFile(uidSys, "rb");
 	SElement Element;
@@ -403,7 +402,7 @@ void cUIDsys::UpdateLocation()
 		File::CreateFullPath(uidSys);
 		pFile.Open(uidSys, "wb");
 		if (!pFile.WriteArray(&Element, 1))
-			ERROR_LOG(DISCIO, "Failed to write to %s", uidSys);
+			ERROR_LOG(DISCIO, "Failed to write to %s", uidSys.c_str());
 	}
 }
 
@@ -483,15 +482,14 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 
 		pTMDFile.WriteBytes(Content.m_Header, INANDContentLoader::CONTENT_HEADER_SIZE);
 
-		char APPFileName[1024];
+		std::string APPFileName;
 		if (Content.m_Type & 0x8000) //shared
 		{
-			sprintf(APPFileName, "%s",
-				CSharedContent::AccessInstance().AddSharedContent(Content.m_SHA1Hash).c_str());
+			APPFileName = CSharedContent::AccessInstance().AddSharedContent(Content.m_SHA1Hash);
 		}
 		else
 		{
-			sprintf(APPFileName, "%s%08x.app", ContentPath.c_str(), Content.m_ContentID);
+			APPFileName = StringFromFormat("%s%08x.app", ContentPath.c_str(), Content.m_ContentID);
 		}
 
 		if (!File::Exists(APPFileName))
@@ -500,7 +498,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 			File::IOFile pAPPFile(APPFileName, "wb");
 			if (!pAPPFile)
 			{
-				PanicAlertT("WAD installation failed: error creating %s", APPFileName);
+				PanicAlertT("WAD installation failed: error creating %s", APPFileName.c_str());
 				return 0;
 			}
 
@@ -508,14 +506,9 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 		}
 		else
 		{
-			INFO_LOG(DISCIO, "Content %s already exists.", APPFileName);
+			INFO_LOG(DISCIO, "Content %s already exists.", APPFileName.c_str());
 		}
 	}
-
-	pTMDFile.Close();
-
-
-
 
 	//Extract and copy WAD's ticket to ticket directory
 	if (!Add_Ticket(TitleID, ContentLoader.GetTIK(), ContentLoader.GetTIKSize()))
@@ -525,7 +518,6 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	}
 
 	cUIDsys::AccessInstance().AddTitle(TitleID);
-
 
 	return TitleID;
 }

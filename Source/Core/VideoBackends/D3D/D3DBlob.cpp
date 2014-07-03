@@ -3,12 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <d3d11.h>
-#include "D3DBlob.h"
+
+#include "VideoBackends/D3D/D3DBlob.h"
 
 namespace DX11
 {
 
-D3DBlob::D3DBlob(unsigned int blob_size, const u8* init_data) : ref(1), size(blob_size), blob(NULL)
+D3DBlob::D3DBlob(unsigned int blob_size, const u8* init_data) : ref(1), size(blob_size), blob(nullptr)
 {
 	data = new u8[blob_size];
 	if (init_data) memcpy(data, init_data, size);

@@ -15,20 +15,21 @@
 // [OnLoad]
 // 0x80020394=dword,0x4e800020
 
+#include <algorithm>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <algorithm>
 
-#include "CommonPaths.h"
-#include "StringUtil.h"
-#include "PatchEngine.h"
-#include "HW/Memmap.h"
-#include "ActionReplay.h"
-#include "GeckoCode.h"
-#include "GeckoCodeConfig.h"
-#include "FileUtil.h"
-#include "ConfigManager.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ActionReplay.h"
+#include "Core/ConfigManager.h"
+#include "Core/GeckoCode.h"
+#include "Core/GeckoCodeConfig.h"
+#include "Core/PatchEngine.h"
+#include "Core/HW/Memmap.h"
 
 using namespace Common;
 
@@ -44,17 +45,15 @@ const char *PatchTypeStrings[] =
 
 std::vector<Patch> onFrame;
 std::map<u32, int> speedHacks;
-std::vector<std::string> discList;
 
-void LoadPatchSection(const char *section, std::vector<Patch> &patches,
-                      IniFile &globalIni, IniFile &localIni)
+void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni, IniFile& localIni)
 {
 	// Load the name of all enabled patches
-	std::string enabledSectionName = std::string(section) + "_Enabled";
+	std::string enabledSectionName = section + "_Enabled";
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
-	localIni.GetLines(enabledSectionName.c_str(), enabledLines);
-	for (auto& line : enabledLines)
+	localIni.GetLines(enabledSectionName, &enabledLines);
+	for (const std::string& line : enabledLines)
 	{
 		if (line.size() != 0 && line[0] == '$')
 		{
@@ -63,15 +62,15 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches,
 		}
 	}
 
-	IniFile* inis[] = {&globalIni, &localIni};
+	const IniFile* inis[2] = {&globalIni, &localIni};
 
-	for (size_t i = 0; i < ArraySize(inis); ++i)
+	for (const IniFile* ini : inis)
 	{
 		std::vector<std::string> lines;
 		Patch currentPatch;
-		inis[i]->GetLines(section, lines);
+		ini->GetLines(section, &lines);
 
-		for (auto line : lines)
+		for (std::string& line : lines)
 		{
 			if (line.size() == 0)
 				continue;
@@ -80,20 +79,24 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches,
 			{
 				// Take care of the previous code
 				if (currentPatch.name.size())
+				{
 					patches.push_back(currentPatch);
+				}
 				currentPatch.entries.clear();
 
 				// Set active and name
 				currentPatch.name = line.substr(1, line.size() - 1);
 				currentPatch.active = enabledNames.find(currentPatch.name) != enabledNames.end();
-				currentPatch.user_defined = (i == 1);
+				currentPatch.user_defined = (ini == &localIni);
 			}
 			else
 			{
 				std::string::size_type loc = line.find_first_of('=', 0);
 
 				if (loc != std::string::npos)
+				{
 					line[loc] = ':';
+				}
 
 				std::vector<std::string> items;
 				SplitString(line, ':', items);
@@ -108,39 +111,28 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches,
 					pE.type = PatchType(std::find(PatchTypeStrings, PatchTypeStrings + 3, items[1]) - PatchTypeStrings);
 					success &= (pE.type != (PatchType)3);
 					if (success)
+					{
 						currentPatch.entries.push_back(pE);
+					}
 				}
 			}
 		}
 
 		if (currentPatch.name.size() && currentPatch.entries.size())
+		{
 			patches.push_back(currentPatch);
+		}
 	}
 }
 
-static void LoadDiscList(const char *section, std::vector<std::string> &_discList, IniFile &ini)
-{
-	std::vector<std::string> lines;
-	if (!ini.GetLines(section, lines))
-		return;
-
-	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
-	{
-		std::string line = *iter;
-		if (line.size())
-			_discList.push_back(line);
-	}
-}
-
-static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFile &ini)
+static void LoadSpeedhacks(const std::string& section, IniFile& ini)
 {
 	std::vector<std::string> keys;
-	ini.GetKeys(section, keys);
-	for (std::vector<std::string>::const_iterator iter = keys.begin(); iter != keys.end(); ++iter)
+	ini.GetKeys(section, &keys);
+	for (const std::string& key : keys)
 	{
-		std::string key = *iter;
 		std::string value;
-		ini.Get(section, key.c_str(), &value, "BOGUS");
+		ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
 		if (value != "BOGUS")
 		{
 			u32 address;
@@ -148,7 +140,8 @@ static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFi
 			bool success = true;
 			success &= TryParse(key, &address);
 			success &= TryParse(value, &cycles);
-			if (success) {
+			if (success)
+			{
 				speedHacks[address] = (int)cycles;
 			}
 		}
@@ -178,21 +171,20 @@ void LoadPatches()
 	Gecko::LoadCodes(globalIni, localIni, gcodes);
 	Gecko::SetActiveCodes(gcodes);
 
-	LoadSpeedhacks("Speedhacks", speedHacks, merged);
-	LoadDiscList("DiscList", discList, merged);
+	LoadSpeedhacks("Speedhacks", merged);
 }
 
 void ApplyPatches(const std::vector<Patch> &patches)
 {
-	for (const auto& patch : patches)
+	for (const Patch& patch : patches)
 	{
 		if (patch.active)
 		{
-			for (std::vector<PatchEntry>::const_iterator iter2 = patch.entries.begin(); iter2 != patch.entries.end(); ++iter2)
+			for (const PatchEntry& entry : patch.entries)
 			{
-				u32 addr = iter2->address;
-				u32 value = iter2->value;
-				switch (iter2->type)
+				u32 addr = entry.address;
+				u32 value = entry.value;
+				switch (entry.type)
 				{
 				case PATCH_8BIT:
 					Memory::Write_U8((u8)value, addr);

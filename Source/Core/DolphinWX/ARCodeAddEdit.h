@@ -2,12 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __ARCODE_ADDEDIT_h__
-#define __ARCODE_ADDEDIT_h__
+#pragma once
 
-#include <wx/wx.h>
-#include <wx/spinctrl.h>
-#include "ISOProperties.h"
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
+class wxSpinButton;
+class wxSpinEvent;
+class wxTextCtrl;
+class wxWindow;
+
+namespace ActionReplay { struct ARCode; }
 
 class CARCodeAddEdit : public wxDialog
 {
@@ -40,4 +49,3 @@ class CARCodeAddEdit : public wxDialog
 		int selection;
 
 };
-#endif // __PATCH_ADDEDIT_h__

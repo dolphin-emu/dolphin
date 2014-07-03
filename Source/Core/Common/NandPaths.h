@@ -2,13 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __NANDPATHS_H__
-#define __NANDPATHS_H__
+#pragma once
 
 #include <string>
-#include "CommonTypes.h"
+#include <utility>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 
 #define TITLEID_SYSMENU 0x0000000100000002ull
+const static std::string TITLEID_SYSMENU_STRING = "0000000100000002";
 
 namespace Common
 {
@@ -23,5 +26,3 @@ namespace Common
 	bool CheckTitleTIK(u64 _titleID);
 	void ReadReplacements(replace_v& replacements);
 }
-#endif
-

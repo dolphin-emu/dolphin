@@ -2,10 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef MAIN_H
-#define MAIN_H
+#pragma once
 
-#include "Render.h"
-#include "MainBase.h"
-
-#endif
+#include "VideoBackends/D3D/Render.h"
+#include "VideoCommon/MainBase.h"

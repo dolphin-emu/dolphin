@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _LOOKUPTABLES_H
-#define _LOOKUPTABLES_H
+#pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
 inline u8 Convert3To8(u8 v)
 {
@@ -30,5 +29,3 @@ inline u8 Convert6To8(u8 v)
 	// Swizzle bits: 00123456 -> 12345612
 	return (v << 2) | (v >> 4);
 }
-
-#endif // _LOOKUPTABLES_H

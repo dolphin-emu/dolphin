@@ -2,14 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VOLUME_DIRECTORY
-#define _VOLUME_DIRECTORY
+#pragma once
 
 #include <map>
 #include <string>
+#include <vector>
 
-#include "FileUtil.h"
-#include "Volume.h"
+#include "Common/CommonTypes.h"
+#include "DiscIO/Volume.h"
+
+namespace File { struct FSTEntry; }
 
 //
 // --- this volume type is used for reading files directly from the hard drive ---
@@ -29,25 +31,25 @@ public:
 
 	static bool IsValidDirectory(const std::string& _rDirectory);
 
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
-	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
+	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
+	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
 
-	std::string GetUniqueID() const;
+	std::string GetUniqueID() const override;
 	void SetUniqueID(std::string _ID);
 
-	std::string GetMakerID() const;
+	std::string GetMakerID() const override;
 
-	std::vector<std::string> GetNames() const;
+	std::vector<std::string> GetNames() const override;
 	void SetName(std::string);
 
-	u32 GetFSTSize() const;
+	u32 GetFSTSize() const override;
 
-	std::string GetApploaderDate() const;
+	std::string GetApploaderDate() const override;
 
-	ECountry GetCountry() const;
+	ECountry GetCountry() const override;
 
-	u64 GetSize() const;
-	u64 GetRawSize() const;
+	u64 GetSize() const override;
+	u64 GetRawSize() const override;
 
 	void BuildFST();
 
@@ -142,5 +144,3 @@ private:
 };
 
 } // namespace
-
-#endif

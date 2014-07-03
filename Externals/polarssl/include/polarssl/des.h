@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 typedef UINT32 uint32_t;
 #else
@@ -48,6 +48,10 @@ typedef UINT32 uint32_t;
 #if !defined(POLARSSL_DES_ALT)
 // Regular implementation
 //
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          DES context structure
@@ -68,10 +72,6 @@ typedef struct
     uint32_t sk[96];            /*!<  3DES subkeys      */
 }
 des3_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          Set key parity on the given key to odd.
@@ -177,6 +177,7 @@ int des_crypt_ecb( des_context *ctx,
                     const unsigned char input[8],
                     unsigned char output[8] );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /**
  * \brief          DES-CBC buffer encryption/decryption
  *
@@ -193,6 +194,7 @@ int des_crypt_cbc( des_context *ctx,
                     unsigned char iv[8],
                     const unsigned char *input,
                     unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 /**
  * \brief          3DES-ECB block encryption/decryption
@@ -207,6 +209,7 @@ int des3_crypt_ecb( des3_context *ctx,
                      const unsigned char input[8],
                      unsigned char output[8] );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /**
  * \brief          3DES-CBC buffer encryption/decryption
  *
@@ -225,6 +228,7 @@ int des3_crypt_cbc( des3_context *ctx,
                      unsigned char iv[8],
                      const unsigned char *input,
                      unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #ifdef __cplusplus
 }

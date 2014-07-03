@@ -2,15 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "ChunkFile.h"
-
-#include "WII_IPC_HLE_Device_fs.h"
-#include "WII_IPC_HLE_Device_FileIO.h"
-#include "NandPaths.h"
 #include <algorithm>
+
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
+
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
 
 static Common::replace_v replacements;
@@ -66,7 +67,7 @@ void HLE_IPC_CreateVirtualFATFilesystem()
 }
 
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName)
-	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)	// not a real hardware
+	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false) // not a real hardware
 	, m_Mode(0)
 	, m_SeekPos(0)
 {
@@ -148,7 +149,7 @@ File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
 
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 {
-	u32 ReturnValue	= FS_RESULT_FATAL;
+	u32 ReturnValue = FS_RESULT_FATAL;
 	const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
 	const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
@@ -161,7 +162,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 
 		switch (Mode)
 		{
-			case 0:
+			case WII_SEEK_SET:
 			{
 				if ((SeekPosition >=0) && (SeekPosition <= fileSize))
 				{
@@ -170,7 +171,8 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 				}
 				break;
 			}
-			case 1:
+
+			case WII_SEEK_CUR:
 			{
 				s32 wantedPos = SeekPosition+m_SeekPos;
 				if (wantedPos >=0 && wantedPos <= fileSize)
@@ -180,9 +182,10 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 				}
 				break;
 			}
-			case 2:
+
+			case WII_SEEK_END:
 			{
-				s32 wantedPos = fileSize+m_SeekPos;
+				s32 wantedPos = SeekPosition+fileSize;
 				if (wantedPos >=0 && wantedPos <= fileSize)
 				{
 					m_SeekPos = wantedPos;
@@ -190,6 +193,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 				}
 				break;
 			}
+
 			default:
 			{
 				PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
@@ -210,8 +214,8 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 {
 	u32 ReturnValue = FS_EACCESS;
-	const u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Read to this memory address
-	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
+	const u32 Address = Memory::Read_U32(_CommandAddress + 0xC); // Read to this memory address
+	const u32 Size    = Memory::Read_U32(_CommandAddress + 0x10);
 
 
 	if (auto file = OpenFile())
@@ -249,9 +253,8 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 {
 	u32 ReturnValue = FS_EACCESS;
-	const u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
-	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
-
+	const u32 Address = Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
+	const u32 Size    = Memory::Read_U32(_CommandAddress + 0x10);
 
 	if (auto file = OpenFile())
 	{

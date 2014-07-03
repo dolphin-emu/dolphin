@@ -2,21 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SI.h"
-#include "SI_Device.h"
-#include "SI_DeviceGCSteeringWheel.h"
 
-#include "EXI_Device.h"
-#include "EXI_DeviceMic.h"
-
-#include "GCPad.h"
-
-#include "../Movie.h"
-
-#include "../CoreTiming.h"
-#include "SystemTimers.h"
-#include "ProcessorInterface.h"
-#include "../Core.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceMic.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI_DeviceGCSteeringWheel.h"
+#include "Core/HW/SystemTimers.h"
 
 // --- standard gamecube controller ---
 CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(SIDevices device, int _iDeviceNumber)
@@ -26,16 +23,16 @@ CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(SIDevices device, int _iDev
 	, m_LastButtonCombo(COMBO_NONE)
 {
 	memset(&m_Origin, 0, sizeof(SOrigin));
-	m_Origin.uCommand			= CMD_ORIGIN;
-	m_Origin.uOriginStickX		= 0x80; // center
-	m_Origin.uOriginStickY		= 0x80;
-	m_Origin.uSubStickStickX	= 0x80;
-	m_Origin.uSubStickStickY	= 0x80;
-	m_Origin.uTrigger_L			= 0x1F; // 0-30 is the lower deadzone
-	m_Origin.uTrigger_R			= 0x1F;
+	m_Origin.uCommand        = CMD_ORIGIN;
+	m_Origin.uOriginStickX   = 0x80; // center
+	m_Origin.uOriginStickY   = 0x80;
+	m_Origin.uSubStickStickX = 0x80;
+	m_Origin.uSubStickStickY = 0x80;
+	m_Origin.uTrigger_L      = 0x1F; // 0-30 is the lower deadzone
+	m_Origin.uTrigger_R      = 0x1F;
 
 	// Dunno if we need to do this, game/lib should set it?
-	m_Mode						= 0x03;
+	m_Mode                   = 0x03;
 }
 
 int CSIDevice_GCSteeringWheel::RunBuffer(u8* _pBuffer, int _iLength)
@@ -109,19 +106,19 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 	u32 netValues[2];
 	if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues))
 	{
-		_Hi  = netValues[0];	// first 4 bytes
-		_Low = netValues[1];	// last  4 bytes
+		_Hi  = netValues[0]; // first 4 bytes
+		_Low = netValues[1]; // last  4 bytes
 		return true;
 	}
 
 	Movie::SetPolledDevice();
 
-	if(Movie::IsPlayingInput())
+	if (Movie::IsPlayingInput())
 	{
 		Movie::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
 		Movie::InputUpdate();
 	}
-	else if(Movie::IsRecordingInput())
+	else if (Movie::IsRecordingInput())
 	{
 		Movie::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
 		Movie::InputUpdate();
@@ -139,51 +136,51 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 	// Low bits are packed differently per mode
 	if (m_Mode == 0 || m_Mode == 5 || m_Mode == 7)
 	{
-		_Low  = (u8)(PadStatus.analogB >> 4);					// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);		// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 8);	// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 12);	// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.substickY) << 16);			// All 8 bits
-		_Low |= (u32)((u8)(PadStatus.substickX) << 24);			// All 8 bits
+		_Low  = (u8)(PadStatus.analogB >> 4);                   // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);       // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 8);  // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 12);  // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.substickY) << 16);         // All 8 bits
+		_Low |= (u32)((u8)(PadStatus.substickX) << 24);         // All 8 bits
 	}
 	else if (m_Mode == 1)
 	{
-		_Low  = (u8)(PadStatus.analogB >> 4);					// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);		// Top 4 bits
-		_Low |= (u32)((u8)PadStatus.triggerRight << 8);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.triggerLeft << 16);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.substickY << 24);			// Top 4 bits
-		_Low |= (u32)((u8)PadStatus.substickX << 28);			// Top 4 bits
+		_Low  = (u8)(PadStatus.analogB >> 4);                   // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);       // Top 4 bits
+		_Low |= (u32)((u8)PadStatus.triggerRight << 8);         // All 8 bits
+		_Low |= (u32)((u8)PadStatus.triggerLeft << 16);         // All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 24);           // Top 4 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 28);           // Top 4 bits
 	}
 	else if (m_Mode == 2)
 	{
-		_Low  = (u8)(PadStatus.analogB);						// All 8 bits
-		_Low |= (u32)((u8)(PadStatus.analogA) << 8);			// All 8 bits
-		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 16);	// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 20);	// Top 4 bits
-		_Low |= (u32)((u8)PadStatus.substickY << 24);			// Top 4 bits
-		_Low |= (u32)((u8)PadStatus.substickX << 28);			// Top 4 bits
+		_Low  = (u8)(PadStatus.analogB);                        // All 8 bits
+		_Low |= (u32)((u8)(PadStatus.analogA) << 8);            // All 8 bits
+		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 16); // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 20);  // Top 4 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 24);           // Top 4 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 28);           // Top 4 bits
 	}
 	else if (m_Mode == 3)
 	{
 		// Analog A/B are always 0
-		_Low  = (u8)PadStatus.triggerRight;						// All 8 bits
-		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.substickY << 16);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.substickX << 24);			// All 8 bits
+		_Low  = (u8)PadStatus.triggerRight;                     // All 8 bits
+		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);          // All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 16);           // All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 24);           // All 8 bits
 	}
 	else if (m_Mode == 4)
 	{
-		_Low  = (u8)(PadStatus.analogB);						// All 8 bits
-		_Low |= (u32)((u8)(PadStatus.analogA) << 8);			// All 8 bits
+		_Low  = (u8)(PadStatus.analogB);                        // All 8 bits
+		_Low |= (u32)((u8)(PadStatus.analogA) << 8);            // All 8 bits
 		// triggerLeft/Right are always 0
-		_Low |= (u32)((u8)PadStatus.substickY << 16);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.substickX << 24);			// All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 16);           // All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 24);           // All 8 bits
 	}
 	else if (m_Mode == 6)
 	{
-		_Low  = (u8)PadStatus.triggerRight;						// All 8 bits
-		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);			// All 8 bits
+		_Low  = (u8)PadStatus.triggerRight;                     // All 8 bits
+		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);          // All 8 bits
 
 		// The GC Steering Wheel appears to have combined pedals
 		// (both the Accelerate and Brake pedals are mapped to a single axis)
@@ -219,12 +216,12 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 			}
 			else if (m_LastButtonCombo == COMBO_ORIGIN)
 			{
-				m_Origin.uOriginStickX		= PadStatus.stickX;
-				m_Origin.uOriginStickY		= PadStatus.stickY;
-				m_Origin.uSubStickStickX	= PadStatus.substickX;
-				m_Origin.uSubStickStickY	= PadStatus.substickY;
-				m_Origin.uTrigger_L			= PadStatus.triggerLeft;
-				m_Origin.uTrigger_R			= PadStatus.triggerRight;
+				m_Origin.uOriginStickX   = PadStatus.stickX;
+				m_Origin.uOriginStickY   = PadStatus.stickY;
+				m_Origin.uSubStickStickX = PadStatus.substickX;
+				m_Origin.uSubStickStickY = PadStatus.substickY;
+				m_Origin.uTrigger_L      = PadStatus.triggerLeft;
+				m_Origin.uTrigger_R      = PadStatus.triggerRight;
 			}
 			m_LastButtonCombo = COMBO_NONE;
 		}

@@ -82,7 +82,7 @@ void md2_starts( md2_context *ctx )
     ctx->left = 0;
 }
 
-static void md2_process( md2_context *ctx )
+void md2_process( md2_context *ctx )
 {
     int i, j;
     unsigned char t = 0;

@@ -2,22 +2,39 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
+#include <cstdio>
 #include <wx/artprov.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/listbox.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/thread.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+#include <wx/aui/auibar.h>
+#include <wx/aui/auibook.h>
+#include <wx/aui/framemanager.h>
 
-#include "../WxUtils.h"
-#include "StringUtil.h"
-#include "DSPDebugWindow.h"
-#include "DSPRegisterView.h"
-#include "CodeView.h"
-#include "MemoryView.h"
-#include "HW/DSPLLE/DSPSymbols.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+#include "Common/SymbolDB.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/HW/DSPLLE/DSPDebugInterface.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeView.h"
+#include "DolphinWX/Debugger/DSPDebugWindow.h"
+#include "DolphinWX/Debugger/DSPRegisterView.h"
+#include "DolphinWX/Debugger/MemoryView.h"
 
-DSPDebuggerLLE* m_DebuggerFrame = NULL;
+class wxWindow;
+
+DSPDebuggerLLE* m_DebuggerFrame = nullptr;
 
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
@@ -40,11 +57,11 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 
 	m_Toolbar = new wxAuiToolBar(this, ID_TOOLBAR,
 		wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
-	m_Toolbar->AddTool(ID_RUNTOOL, wxT("Pause"),
+	m_Toolbar->AddTool(ID_RUNTOOL, _("Pause"),
 		wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10,10)));
-	m_Toolbar->AddTool(ID_STEPTOOL, wxT("Step"),
+	m_Toolbar->AddTool(ID_STEPTOOL, _("Step"),
 		wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, wxSize(10,10)));
-	m_Toolbar->AddTool(ID_SHOWPCTOOL, wxT("Show PC"),
+	m_Toolbar->AddTool(ID_SHOWPCTOOL, _("Show PC"),
 		wxArtProvider::GetBitmap(wxART_GO_TO_PARENT, wxART_OTHER, wxSize(10,10)));
 	m_Toolbar->AddSeparator();
 	m_Toolbar->AddControl(new wxTextCtrl(m_Toolbar, ID_ADDRBOX, wxEmptyString,
@@ -52,7 +69,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	m_Toolbar->Realize();
 
 	m_SymbolList = new wxListBox(this, ID_SYMBOLLIST, wxDefaultPosition,
-		wxSize(140, 100), 0, NULL, wxLB_SORT);
+		wxSize(140, 100), 0, nullptr, wxLB_SORT);
 
 	m_MainNotebook = new wxAuiNotebook(this, wxID_ANY,
 		wxDefaultPosition, wxDefaultSize,
@@ -64,7 +81,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	m_CodeView->SetPlain();
 	code_sizer->Add(m_CodeView, 1, wxALL | wxEXPAND);
 	code_panel->SetSizer(code_sizer);
-	m_MainNotebook->AddPage(code_panel, wxT("Disasm"), true);
+	m_MainNotebook->AddPage(code_panel, _("Disassembly"), true);
 
 	wxPanel *mem_panel = new wxPanel(m_MainNotebook, wxID_ANY);
 	wxBoxSizer *mem_sizer = new wxBoxSizer(wxVERTICAL);
@@ -72,7 +89,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	m_MemView = new CMemoryView(&debug_interface, mem_panel);
 	mem_sizer->Add(m_MemView, 1, wxALL | wxEXPAND);
 	mem_panel->SetSizer(mem_sizer);
-	m_MainNotebook->AddPage(mem_panel, wxT("Mem"));
+	m_MainNotebook->AddPage(mem_panel, _("Memory"));
 
 	m_Regs = new DSPRegisterView(this, ID_DSP_REGS);
 
@@ -83,14 +100,14 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 
 	m_mgr.AddPane(m_SymbolList, wxAuiPaneInfo().
 		Left().CloseButton(false).
-		Caption(wxT("Symbols")).Dockable(true));
+		Caption(_("Symbols")).Dockable(true));
 
 	m_mgr.AddPane(m_MainNotebook, wxAuiPaneInfo().
-		Name(wxT("m_MainNotebook")).Center().
+		Name("m_MainNotebook").Center().
 		CloseButton(false).MaximizeButton(true));
 
 	m_mgr.AddPane(m_Regs, wxAuiPaneInfo().Right().
-		CloseButton(false).Caption(wxT("Registers")).
+		CloseButton(false).Caption(_("Registers")).
 		Dockable(true));
 
 	UpdateState();
@@ -101,7 +118,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 DSPDebuggerLLE::~DSPDebuggerLLE()
 {
 	m_mgr.UnInit();
-	m_DebuggerFrame = NULL;
+	m_DebuggerFrame = nullptr;
 }
 
 void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
@@ -172,14 +189,14 @@ void DSPDebuggerLLE::UpdateState()
 {
 	if (DSPCore_GetState() == DSPCORE_RUNNING)
 	{
-		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Pause"));
+		m_Toolbar->SetToolLabel(ID_RUNTOOL, _("Pause"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10,10)));
 		m_Toolbar->EnableTool(ID_STEPTOOL, false);
 	}
 	else
 	{
-		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Run"));
+		m_Toolbar->SetToolLabel(ID_RUNTOOL, _("Run"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_OTHER, wxSize(10,10)));
 		m_Toolbar->EnableTool(ID_STEPTOOL, true);
@@ -200,16 +217,15 @@ void DSPDebuggerLLE::UpdateDisAsmListView()
 
 void DSPDebuggerLLE::UpdateSymbolMap()
 {
-	if (g_dsp.dram == NULL)
+	if (g_dsp.dram == nullptr)
 		return;
 
-	m_SymbolList->Freeze();	// HyperIris: wx style fast filling
+	m_SymbolList->Freeze(); // HyperIris: wx style fast filling
 	m_SymbolList->Clear();
-	for (SymbolDB::XFuncMap::iterator iter = DSPSymbols::g_dsp_symbol_db.GetIterator();
-		 iter != DSPSymbols::g_dsp_symbol_db.End(); ++iter)
+	for (const auto& symbol : DSPSymbols::g_dsp_symbol_db.Symbols())
 	{
-		int idx = m_SymbolList->Append(StrToWxStr(iter->second.name));
-		m_SymbolList->SetClientData(idx, (void*)&iter->second);
+		int idx = m_SymbolList->Append(StrToWxStr(symbol.second.name));
+		m_SymbolList->SetClientData(idx, (void*)&symbol.second);
 	}
 	m_SymbolList->Thaw();
 }
@@ -219,7 +235,7 @@ void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
 	int index = m_SymbolList->GetSelection();
 	if (index >= 0) {
 		Symbol* pSymbol = static_cast<Symbol *>(m_SymbolList->GetClientData(index));
-		if (pSymbol != NULL)
+		if (pSymbol != nullptr)
 		{
 			if (pSymbol->type == Symbol::SYMBOL_FUNCTION)
 			{

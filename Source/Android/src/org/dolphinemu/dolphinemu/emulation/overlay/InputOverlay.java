@@ -94,7 +94,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	@Override
 	public void draw(Canvas canvas)
 	{
-		super.onDraw(canvas);
+		super.draw(canvas);
 
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
@@ -110,18 +110,27 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	@Override
 	public boolean onTouch(View v, MotionEvent event)
 	{
-		// Determine the button state to apply based on the MotionEvent action flag.
-		// TODO: This will not work when Axis support is added. Make sure to refactor this when that time comes
-		// The reason it won't work is that when moving an axis, you would get the event MotionEvent.ACTION_MOVE.
-		//
-		// TODO: Refactor this so we detect either Axis movements or button presses so we don't run two loops all the time.
-		//
-		int buttonState = (event.getAction() == MotionEvent.ACTION_DOWN) ? ButtonState.PRESSED : ButtonState.RELEASED;
-		// Check if there was a touch within the bounds of a drawable.
+		int pointerIndex = event.getActionIndex();
+
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
-			if (button.getBounds().contains((int)event.getX(), (int)event.getY()))
-				NativeLibrary.onTouchEvent(0, button.getId(), buttonState);
+			// Determine the button state to apply based on the MotionEvent action flag.
+			switch(event.getAction() & MotionEvent.ACTION_MASK)
+			{
+			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_POINTER_DOWN:
+			case MotionEvent.ACTION_MOVE:
+				// If a pointer enters the bounds of a button, press that button.
+				if (button.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.PRESSED);
+				break;
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_POINTER_UP:
+				// If a pointer ends, release the button it was pressing.
+				if (button.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+ 					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
+				break;
+			}
 		}
 
 
@@ -132,7 +141,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			float[] axises = joystick.getAxisValues();
 
 			for (int i = 0; i < 4; i++)
-				NativeLibrary.onTouchAxisEvent(0, axisIDs[i], axises[i]);
+				NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
 		}
 
 		return true;

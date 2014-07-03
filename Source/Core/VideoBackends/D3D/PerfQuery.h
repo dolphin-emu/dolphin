@@ -1,7 +1,8 @@
-#ifndef _PERFQUERY_H_
-#define _PERFQUERY_H_
+#pragma once
 
-#include "PerfQueryBase.h"
+#include <array>
+
+#include "VideoCommon/PerfQueryBase.h"
 
 namespace DX11 {
 
@@ -11,12 +12,12 @@ public:
 	PerfQuery();
 	~PerfQuery();
 
-	void EnableQuery(PerfQueryGroup type);
-	void DisableQuery(PerfQueryGroup type);
-	void ResetQuery();
-	u32 GetQueryResult(PerfQueryType type);
-	void FlushResults();
-	bool IsFlushed() const;
+	void EnableQuery(PerfQueryGroup type) override;
+	void DisableQuery(PerfQueryGroup type) override;
+	void ResetQuery() override;
+	u32 GetQueryResult(PerfQueryType type) override;
+	void FlushResults() override;
+	bool IsFlushed() const override;
 
 private:
 	struct ActiveQuery
@@ -33,7 +34,7 @@ private:
 	// when testing in SMS: 64 was too small, 128 was ok
 	static const int PERF_QUERY_BUFFER_SIZE = 512;
 
-	ActiveQuery m_query_buffer[PERF_QUERY_BUFFER_SIZE];
+	std::array<ActiveQuery, PERF_QUERY_BUFFER_SIZE> m_query_buffer;
 	int m_query_read_pos;
 
 	// TODO: sloppy
@@ -42,5 +43,3 @@ private:
 };
 
 } // namespace
-
-#endif // _PERFQUERY_H_

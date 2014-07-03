@@ -2,30 +2,34 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstdio>
+#include <cstring>
+#include <disasm.h>        // Bochs
+#include <PowerPCDisasm.h> // Bochs
 #include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/listbase.h>
+#include <wx/listctrl.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/listctrl.h>
-#include <wx/thread.h>
-#include <wx/listctrl.h>
+#include <wx/translation.h>
+#include <wx/window.h>
+#include <wx/windowid.h>
 
-#include "JitWindow.h"
-#include "HW/CPU.h"
-#include "PowerPC/PowerPC.h"
-#include "PowerPC/JitCommon/JitBase.h"
-#include "PowerPC/JitCommon/JitCache.h"
-#include "PowerPC/PPCAnalyst.h"
-#include "PowerPCDisasm.h"
-#include "disasm.h"
-
-#include "Debugger/PPCDebugInterface.h"
-#include "Debugger/Debugger_SymbolMap.h"
-
-#include "Core.h"
-#include "StringUtil.h"
-#include "LogManager.h"
-#include "../WxUtils.h"
-
-#include "../Globals.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/JitWindow.h"
 
 enum
 {
@@ -50,20 +54,20 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 {
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sizerSplit = new wxBoxSizer(wxHORIZONTAL);
-	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, _T("(ppc)"),
+	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, "(ppc)",
 				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
-	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, _T("(x86)"),
+	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, "(x86)",
 				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
 	sizerBig->Add(block_list = new JitBlockList(this, IDM_BLOCKLIST,
 				wxDefaultPosition, wxSize(100, 140),
 				wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING),
 				0, wxEXPAND);
 	sizerBig->Add(sizerSplit, 2, wxEXPAND);
-//	sizerBig->Add(memview, 5, wxEXPAND);
-//	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
+	// sizerBig->Add(memview, 5, wxEXPAND);
+	// sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
 	sizerBig->Add(button_refresh = new wxButton(this, IDM_REFRESH_LIST, _("&Refresh")));
-//	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
-//	sizerRight->Add(new wxButton(this, IDM_SETPC, _("S&et PC")));
+	// sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, ""));
+	// sizerRight->Add(new wxButton(this, IDM_SETPC, _("S&et PC")));
 
 	SetSizer(sizerBig);
 
@@ -111,9 +115,8 @@ void CJitWindow::Compare(u32 em_address)
 		// Do not merge this "if" with the above - block_num changes inside it.
 		if (block_num < 0)
 		{
-			ppc_box->SetValue(StrToWxStr(StringFromFormat("(non-code address: %08x)",
-							em_address)));
-			x86_box->SetValue(StrToWxStr(StringFromFormat("(no translation)")));
+			ppc_box->SetValue(_(StringFromFormat("(non-code address: %08x)", em_address)));
+			x86_box->SetValue(_("(no translation)"));
 			delete[] xDis;
 			return;
 		}
@@ -125,14 +128,13 @@ void CJitWindow::Compare(u32 em_address)
 
 	const u8 *code = (const u8 *)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
 	u64 disasmPtr = (u64)code;
-	int size = block->codeSize;
-	const u8 *end = code + size;
+	const u8 *end = code + block->codeSize;
 	char *sptr = (char*)xDis;
 
 	int num_x86_instructions = 0;
 	while ((u8*)disasmPtr < end)
 	{
-#ifdef _M_X64
+#if _M_X86_64
 		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
 #else
 		disasmPtr += x64disasm.disasm32(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
@@ -150,14 +152,17 @@ void CJitWindow::Compare(u32 em_address)
 	PPCAnalyst::BlockStats st;
 	PPCAnalyst::BlockRegStats gpa;
 	PPCAnalyst::BlockRegStats fpa;
-	bool broken_block = false;
-	u32 merged_addresses[32];
-	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
-	int size_of_merged_addresses;
-	if (PPCAnalyst::Flatten(ppc_addr, &size, &st, &gpa, &fpa, broken_block, &code_buffer, size, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses) != 0xffffffff)
+	PPCAnalyst::CodeBlock code_block;
+	PPCAnalyst::PPCAnalyzer analyzer;
+
+	code_block.m_stats = &st;
+	code_block.m_gpa = &gpa;
+	code_block.m_fpa = &fpa;
+
+	if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, block->codeSize) != 0xFFFFFFFF)
 	{
 		sptr = (char*)xDis;
-		for (int i = 0; i < size; i++)
+		for (u32 i = 0; i < code_block.m_num_instructions; i++)
 		{
 			const PPCAnalyst::CodeOp &op = code_buffer.codebuffer[i];
 			char temp[256];
@@ -172,14 +177,14 @@ void CJitWindow::Compare(u32 em_address)
 		if (st.isFirstBlockOfFunction)
 			sptr += sprintf(sptr, "(first block of function)\n");
 		if (st.isLastBlockOfFunction)
-			sptr += sprintf(sptr, "(first block of function)\n");
+			sptr += sprintf(sptr, "(last block of function)\n");
 
 		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
 
 		sptr += sprintf(sptr, "Num instr: PPC: %i  x86: %i  (blowup: %i%%)\n",
-				size, num_x86_instructions, 100 * (num_x86_instructions / size - 1));
+				code_block.m_num_instructions, num_x86_instructions, 100 * (num_x86_instructions / code_block.m_num_instructions - 1));
 		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n",
-				size * 4, block->codeSize, 100 * (block->codeSize / (4 * size) - 1));
+				code_block.m_num_instructions * 4, block->codeSize, 100 * (block->codeSize / (4 * code_block.m_num_instructions) - 1));
 
 		ppc_box->SetValue(StrToWxStr((char*)xDis));
 	}

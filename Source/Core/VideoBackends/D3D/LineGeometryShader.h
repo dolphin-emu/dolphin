@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _LINEGEOMETRYSHADER_H
-#define _LINEGEOMETRYSHADER_H
+#pragma once
 
-#include "VideoCommon.h"
+#include "VideoCommon/VideoCommon.h"
 
 struct ID3D11Buffer;
 struct ID3D11GeometryShader;
@@ -41,5 +40,3 @@ private:
 };
 
 }
-
-#endif

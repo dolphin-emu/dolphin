@@ -1,24 +1,13 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
+#pragma once
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
+#include <string>
 
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-#ifndef _INTERFACEGLX_H_
-#define _INTERFACEGLX_H_
-
-#include "X11_Util.h"
-#include "InterfaceBase.h"
+#include "DolphinWX/GLInterface/InterfaceBase.h"
+#include "DolphinWX/GLInterface/X11_Util.h"
 
 class cInterfaceGLX : public cInterfaceBase
 {
@@ -26,14 +15,12 @@ private:
 	cX11Window XWindow;
 public:
 	friend class cX11Window;
-	void SwapInterval(int Interval);
-	void Swap();
-	void UpdateFPSDisplay(const char *Text);
-	void* GetFuncAddress(std::string name);
-	bool Create(void *&window_handle);
-	bool MakeCurrent();
-	bool ClearCurrent();
-	void Shutdown();
+	void SwapInterval(int Interval) override;
+	void Swap() override;
+	void UpdateFPSDisplay(const std::string& text) override;
+	void* GetFuncAddress(const std::string& name) override;
+	bool Create(void *&window_handle) override;
+	bool MakeCurrent() override;
+	bool ClearCurrent() override;
+	void Shutdown() override;
 };
-#endif
-

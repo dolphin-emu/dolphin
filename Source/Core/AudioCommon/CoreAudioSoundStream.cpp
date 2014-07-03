@@ -4,7 +4,7 @@
 
 #include <CoreServices/CoreServices.h>
 
-#include "CoreAudioSoundStream.h"
+#include "AudioCommon/CoreAudioSoundStream.h"
 
 OSStatus CoreAudioSound::callback(void *inRefCon,
 	AudioUnitRenderActionFlags *ioActionFlags,
@@ -40,8 +40,8 @@ bool CoreAudioSound::Start()
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
-	component = FindNextComponent(NULL, &desc);
-	if (component == NULL) {
+	component = FindNextComponent(nullptr, &desc);
+	if (component == nullptr) {
 		ERROR_LOG(AUDIO, "error finding audio component");
 		return false;
 	}

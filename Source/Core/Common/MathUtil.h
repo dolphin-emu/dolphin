@@ -2,73 +2,97 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#pragma once
 
-#ifndef _MATH_UTIL_H_
-#define _MATH_UTIL_H_
-
-#include "Common.h"
-
+#include <cstdlib>
 #include <vector>
-#include "FPURoundMode.h"
+
+#include "Common/Common.h"
 
 namespace MathUtil
 {
+template<class T>
+inline void Clamp(T* val, const T& min, const T& max)
+{
+	if (*val < min)
+		*val = min;
+	else if (*val > max)
+		*val = max;
+}
+
+// The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
 
 static const u64 DOUBLE_SIGN = 0x8000000000000000ULL,
-	DOUBLE_EXP  = 0x7FF0000000000000ULL,
-	DOUBLE_FRAC = 0x000FFFFFFFFFFFFFULL,
-	DOUBLE_ZERO = 0x0000000000000000ULL;
+                 DOUBLE_EXP  = 0x7FF0000000000000ULL,
+                 DOUBLE_FRAC = 0x000FFFFFFFFFFFFFULL,
+                 DOUBLE_ZERO = 0x0000000000000000ULL,
+                 DOUBLE_QBIT = 0x0008000000000000ULL;
 
 static const u32 FLOAT_SIGN = 0x80000000,
-	FLOAT_EXP  = 0x7F800000,
-	FLOAT_FRAC = 0x007FFFFF,
-	FLOAT_ZERO = 0x00000000;
+                 FLOAT_EXP  = 0x7F800000,
+                 FLOAT_FRAC = 0x007FFFFF,
+                 FLOAT_ZERO = 0x00000000;
 
 union IntDouble {
 	double d;
 	u64 i;
+
+	explicit IntDouble(u64 _i) : i(_i) {}
+	explicit IntDouble(double _d) : d(_d) {}
 };
 union IntFloat {
 	float f;
 	u32 i;
+
+	explicit IntFloat(u32 _i) : i(_i) {}
+	explicit IntFloat(float _f) : f(_f) {}
 };
+
+inline bool IsINF(double d)
+{
+	IntDouble x(d);
+	return (x.i & ~DOUBLE_SIGN) == DOUBLE_EXP;
+}
 
 inline bool IsNAN(double d)
 {
-	IntDouble x; x.d = d;
-	return ( ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
-			 ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO) );
+	IntDouble x(d);
+	return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
+	       ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO);
 }
 
 inline bool IsQNAN(double d)
 {
-	IntDouble x; x.d = d;
-	return ( ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
-		     ((x.i & 0x0007fffffffffffULL) == 0x000000000000000ULL) &&
-		     ((x.i & 0x000800000000000ULL) == 0x000800000000000ULL) );
+	IntDouble x(d);
+	return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
+	       ((x.i & DOUBLE_QBIT) == DOUBLE_QBIT);
 }
 
 inline bool IsSNAN(double d)
 {
-	IntDouble x; x.d = d;
-	return( ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
-			((x.i & DOUBLE_FRAC) != DOUBLE_ZERO) &&
-			((x.i & 0x0008000000000000ULL) == DOUBLE_ZERO) );
+	IntDouble x(d);
+	return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) &&
+	       ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO) &&
+	       ((x.i & DOUBLE_QBIT) == DOUBLE_ZERO);
 }
 
 inline float FlushToZero(float f)
 {
-	IntFloat x; x.f = f;
+	IntFloat x(f);
 	if ((x.i & FLOAT_EXP) == 0)
+	{
 		x.i &= FLOAT_SIGN;  // turn into signed zero
+	}
 	return x.f;
 }
 
 inline double FlushToZero(double d)
 {
-	IntDouble x; x.d = d;
+	IntDouble x(d);
 	if ((x.i & DOUBLE_EXP) == 0)
+	{
 		x.i &= DOUBLE_SIGN;  // turn into signed zero
+	}
 	return x.d;
 }
 
@@ -139,22 +163,22 @@ inline double pow2(double x) {return x * x;}
 
 float MathFloatVectorSum(const std::vector<float>&);
 
-#define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
-#define ROUND_DOWN(x, a)	((x) & ~((a) - 1))
+#define ROUND_UP(x, a)   (((x) + (a) - 1) & ~((a) - 1))
+#define ROUND_DOWN(x, a) ((x) & ~((a) - 1))
 
 // Rounds down. 0 -> undefined
-inline u64 Log2(u64 val)
+inline int Log2(u64 val)
 {
 #if defined(__GNUC__)
 	return 63 - __builtin_clzll(val);
 
-#elif defined(_MSC_VER) && defined(_M_X64)
+#elif defined(_MSC_VER) && _ARCH_64
 	unsigned long result = -1;
 	_BitScanReverse64(&result, val);
 	return result;
 
 #else
-	u64 result = -1;
+	int result = -1;
 	while (val != 0)
 	{
 		val >>= 1;
@@ -197,5 +221,3 @@ public:
 
 	float data[16];
 };
-
-#endif // _MATH_UTIL_H_

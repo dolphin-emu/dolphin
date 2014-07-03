@@ -2,18 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <time.h>
+#include <cinttypes>
+#include <ctime>
+#include <string>
 
 #ifdef _WIN32
-#include <Windows.h>
 #include <mmsystem.h>
 #include <sys/timeb.h>
+#include <windows.h>
 #else
 #include <sys/time.h>
 #endif
 
-#include "Timer.h"
-#include "StringUtil.h"
+#include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
+#include "Common/Timer.h"
 
 namespace Common
 {
@@ -24,7 +27,7 @@ u32 Timer::GetTimeMs()
 	return timeGetTime();
 #else
 	struct timeval t;
-	(void)gettimeofday(&t, NULL);
+	(void)gettimeofday(&t, nullptr);
 	return ((u32)(t.tv_sec * 1000 + t.tv_usec / 1000));
 #endif
 }
@@ -113,7 +116,7 @@ std::string Timer::GetTimeElapsedFormatted() const
 	// Hours
 	u32 Hours = Minutes / 60;
 
-	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03i",
+	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03" PRIu64,
 		Hours, Minutes % 60, Seconds % 60, Milliseconds % 1000);
 	return TmpStr;
 }
@@ -150,13 +153,13 @@ u64 Timer::GetLocalTimeSinceJan1970()
 
 	// Account for DST where needed
 	gmTime = localtime(&sysTime);
-	if(gmTime->tm_isdst == 1)
+	if (gmTime->tm_isdst == 1)
 		tzDST = 3600;
 	else
 		tzDST = 0;
 
 	// Lazy way to get local time in sec
-	gmTime	= gmtime(&sysTime);
+	gmTime = gmtime(&sysTime);
 	tzDiff = sysTime - mktime(gmTime);
 
 	return (u64)(sysTime + tzDiff + tzDST);
@@ -167,27 +170,23 @@ u64 Timer::GetLocalTimeSinceJan1970()
 std::string Timer::GetTimeFormatted()
 {
 	time_t sysTime;
-	struct tm * gmTime;
-	char formattedTime[13];
-	char tmp[13];
-
 	time(&sysTime);
-	gmTime = localtime(&sysTime);
 
+	struct tm * gmTime = localtime(&sysTime);
+
+	char tmp[13];
 	strftime(tmp, 6, "%M:%S", gmTime);
 
 	// Now tack on the milliseconds
 #ifdef _WIN32
 	struct timeb tp;
 	(void)::ftime(&tp);
-	sprintf(formattedTime, "%s:%03i", tmp, tp.millitm);
+	return StringFromFormat("%s:%03i", tmp, tp.millitm);
 #else
 	struct timeval t;
-	(void)gettimeofday(&t, NULL);
-	sprintf(formattedTime, "%s:%03d", tmp, (int)(t.tv_usec / 1000));
+	(void)gettimeofday(&t, nullptr);
+	return StringFromFormat("%s:%03d", tmp, (int)(t.tv_usec / 1000));
 #endif
-
-	return std::string(formattedTime);
 }
 
 // Returns a timestamp with decimals for precise time comparisons
@@ -199,7 +198,7 @@ double Timer::GetDoubleTime()
 	(void)::ftime(&tp);
 #else
 	struct timeval t;
-	(void)gettimeofday(&t, NULL);
+	(void)gettimeofday(&t, nullptr);
 #endif
 	// Get continuous timestamp
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();

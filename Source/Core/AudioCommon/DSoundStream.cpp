@@ -7,8 +7,10 @@
 
 #include <windows.h>
 
-#include "AudioCommon.h"
-#include "DSoundStream.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/DSoundStream.h"
+#include "Common/StdThread.h"
+#include "Common/Thread.h"
 
 bool DSound::CreateBuffer()
 {
@@ -32,7 +34,7 @@ bool DSound::CreateBuffer()
 	dsbdesc.lpwfxFormat = (WAVEFORMATEX *)&pcmwf;
 	dsbdesc.guid3DAlgorithm = DS3DALG_DEFAULT;
 
-	HRESULT res = ds->CreateSoundBuffer(&dsbdesc, &dsBuffer, NULL);
+	HRESULT res = ds->CreateSoundBuffer(&dsbdesc, &dsBuffer, nullptr);
 	if (SUCCEEDED(res))
 	{
 		dsBuffer->SetCurrentPosition(0);
@@ -43,7 +45,7 @@ bool DSound::CreateBuffer()
 	{
 		// Failed.
 		PanicAlertT("Sound buffer creation failed: %08x", res);
-		dsBuffer = NULL;
+		dsBuffer = nullptr;
 		return false;
 	}
 }
@@ -121,7 +123,7 @@ bool DSound::Start()
 	dsBuffer->Lock(0, bufferSize, (void* *)&p1, &num1, 0, 0, DSBLOCK_ENTIREBUFFER);
 	memset(p1, 0, num1);
 	dsBuffer->Unlock(p1, num1, 0, 0);
-	thread = std::thread(std::mem_fun(&DSound::SoundLoop), this);
+	thread = std::thread(std::mem_fn(&DSound::SoundLoop), this);
 	return true;
 }
 
@@ -130,7 +132,7 @@ void DSound::SetVolume(int volume)
 	// This is in "dBA attenuation" from 0 to -10000, logarithmic
 	m_volume = (int)floor(log10((float)volume) * 5000.0f) - 10000;
 
-	if (dsBuffer != NULL)
+	if (dsBuffer != nullptr)
 		dsBuffer->SetVolume(m_volume);
 }
 
@@ -143,7 +145,7 @@ void DSound::Clear(bool mute)
 {
 	m_muted = mute;
 
-	if (dsBuffer != NULL)
+	if (dsBuffer != nullptr)
 	{
 		if (m_muted)
 		{

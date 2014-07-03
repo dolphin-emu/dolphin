@@ -2,12 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SetupUnit.h"
-
-#include "CPMemLoader.h"
-#include "OpcodeDecoder.h"
-#include "SWStatistics.h"
-#include "Clipper.h"
+#include "VideoBackends/Software/Clipper.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/OpcodeDecoder.h"
+#include "VideoBackends/Software/SetupUnit.h"
+#include "VideoBackends/Software/SWStatistics.h"
 
 
 void SetupUnit::Init(u8 primitiveType)
@@ -23,9 +22,13 @@ void SetupUnit::Init(u8 primitiveType)
 
 void SetupUnit::SetupVertex()
 {
-	switch(m_PrimType)
+	switch (m_PrimType)
 	{
 	case GX_DRAW_QUADS:
+		SetupQuad();
+		break;
+	case GX_DRAW_QUADS_2:
+		WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
 		SetupQuad();
 		break;
 	case GX_DRAW_TRIANGLES:

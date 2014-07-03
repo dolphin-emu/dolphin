@@ -1,52 +1,111 @@
-// Copyright (C) 2003-2009 Dolphin Project.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#include "../EXI_Device.h"
-#include "../EXI_DeviceEthernet.h"
+#include "Common/StringUtil.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceEthernet.h"
 
 bool CEXIETHERNET::Activate()
 {
-	return false;
+	if (IsActivated())
+		return true;
+
+	// Assumes TunTap OS X is installed, and /dev/tun0 is not in use
+	// and readable / writable by the logged-in user
+
+	if ((fd = open("/dev/tap0", O_RDWR)) < 0)
+	{
+		ERROR_LOG(SP1, "Couldn't open /dev/tap0, unable to init BBA");
+		return false;
+	}
+
+	readEnabled = false;
+
+	INFO_LOG(SP1, "BBA initialized.");
+	return true;
 }
 
 void CEXIETHERNET::Deactivate()
 {
+	close(fd);
+	fd = -1;
+
+	readEnabled = false;
+	if (readThread.joinable())
+		readThread.join();
 }
 
 bool CEXIETHERNET::IsActivated()
 {
-	return false;
+	return fd != -1;
 }
 
-bool CEXIETHERNET::SendFrame(u8 *, u32)
+bool CEXIETHERNET::SendFrame(u8* frame, u32 size)
 {
-	return false;
+	INFO_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
+
+	int writtenBytes = write(fd, frame, size);
+	if ((u32)writtenBytes != size)
+	{
+		ERROR_LOG(SP1, "SendFrame(): expected to write %d bytes, instead wrote %d",
+		          size, writtenBytes);
+		return false;
+	}
+	else
+	{
+		SendComplete();
+		return true;
+	}
+}
+
+void ReadThreadHandler(CEXIETHERNET* self)
+{
+	while (true)
+	{
+		if (self->fd < 0)
+			return;
+
+		fd_set rfds;
+		FD_ZERO(&rfds);
+		FD_SET(self->fd, &rfds);
+
+		struct timeval timeout;
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 50000;
+		if (select(self->fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
+			continue;
+
+		int readBytes = read(self->fd, self->mRecvBuffer, BBA_RECV_SIZE);
+		if (readBytes < 0)
+		{
+			ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
+		}
+		else if (self->readEnabled)
+		{
+			INFO_LOG(SP1, "Read data: %s", ArrayToString(self->mRecvBuffer, readBytes, 0x10).c_str());
+			self->mRecvBufferLength = readBytes;
+			self->RecvHandlePacket();
+		}
+	}
 }
 
 bool CEXIETHERNET::RecvInit()
 {
-	return false;
+	readThread = std::thread(ReadThreadHandler, this);
+	return true;
 }
 
 bool CEXIETHERNET::RecvStart()
 {
-	return false;
+	if (!readThread.joinable())
+		RecvInit();
+
+	readEnabled = true;
+	return true;
 }
 
 void CEXIETHERNET::RecvStop()
 {
+	readEnabled = false;
 }

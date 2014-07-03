@@ -1,44 +1,21 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#include "DInputJoystick.h"
-#include "DInput.h"
-
+#include <algorithm>
 #include <map>
 #include <sstream>
-#include <algorithm>
-
 #include <wbemidl.h>
-#include <oleauto.h>
+
+#include "InputCommon/ControllerInterface/DInput/DInput.h"
+#include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 
 namespace ciface
 {
 namespace DInput
 {
 
-// template instantiation
-template class Joystick::Force<DICONSTANTFORCE>;
-template class Joystick::Force<DIRAMPFORCE>;
-template class Joystick::Force<DIPERIODIC>;
-
-static const struct
-{
-	GUID guid;
-	const char* name;
-} force_type_names[] =
-{
-	{GUID_ConstantForce, "Constant"},	// DICONSTANTFORCE
-	{GUID_RampForce, "Ramp"},			// DIRAMPFORCE
-	{GUID_Square, "Square"},			// DIPERIODIC ...
-	{GUID_Sine, "Sine"},
-	{GUID_Triangle, "Triangle"},
-	{GUID_SawtoothUp, "Sawtooth Up"},
-	{GUID_SawtoothDown, "Sawtooth Down"},
-	//{GUID_Spring, "Spring"},			// DICUSTOMFORCE ... < I think
-	//{GUID_Damper, "Damper"},
-	//{GUID_Inertia, "Inertia"},
-	//{GUID_Friction, "Friction"},
-};
-
-#define DATA_BUFFER_SIZE	32
+#define DATA_BUFFER_SIZE 32
 
 //-----------------------------------------------------------------------------
 // Modified some MSDN code to get all the XInput device GUID.Data1 values in a vector,
@@ -47,100 +24,100 @@ static const struct
 void GetXInputGUIDS( std::vector<DWORD>& guids )
 {
 
-#define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
+#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=nullptr; } }
 
-	IWbemLocator*			pIWbemLocator  = NULL;
-	IEnumWbemClassObject*   pEnumDevices   = NULL;
-	IWbemClassObject*		pDevices[20]   = {0};
-	IWbemServices*			pIWbemServices = NULL;
-	BSTR					bstrNamespace  = NULL;
-	BSTR					bstrDeviceID   = NULL;
-	BSTR					bstrClassName  = NULL;
-	DWORD					uReturned	   = 0;
-	VARIANT					var;
-	HRESULT					hr;
+	IWbemLocator*           pIWbemLocator  = nullptr;
+	IEnumWbemClassObject*   pEnumDevices   = nullptr;
+	IWbemClassObject*       pDevices[20]   = {0};
+	IWbemServices*          pIWbemServices = nullptr;
+	BSTR                    bstrNamespace  = nullptr;
+	BSTR                    bstrDeviceID   = nullptr;
+	BSTR                    bstrClassName  = nullptr;
+	DWORD                   uReturned      = 0;
+	VARIANT                 var;
+	HRESULT                 hr;
 
 	// CoInit if needed
-	hr = CoInitialize(NULL);
+	hr = CoInitialize(nullptr);
 	bool bCleanupCOM = SUCCEEDED(hr);
 
 	// Create WMI
-	hr = CoCreateInstance( __uuidof(WbemLocator),
-						   NULL,
-						   CLSCTX_INPROC_SERVER,
-						   __uuidof(IWbemLocator),
-						   (LPVOID*) &pIWbemLocator);
-	if( FAILED(hr) || pIWbemLocator == NULL )
+	hr = CoCreateInstance(__uuidof(WbemLocator),
+	                      nullptr,
+	                      CLSCTX_INPROC_SERVER,
+	                      __uuidof(IWbemLocator),
+	                      (LPVOID*) &pIWbemLocator);
+	if (FAILED(hr) || pIWbemLocator == nullptr)
 		goto LCleanup;
 
-	bstrNamespace = SysAllocString( L"\\\\.\\root\\cimv2" );if( bstrNamespace == NULL ) goto LCleanup;
-	bstrClassName = SysAllocString( L"Win32_PNPEntity" );   if( bstrClassName == NULL ) goto LCleanup;
-	bstrDeviceID  = SysAllocString( L"DeviceID" );			if( bstrDeviceID == NULL )  goto LCleanup;
+	bstrNamespace = SysAllocString(L"\\\\.\\root\\cimv2"); if (bstrNamespace == nullptr) goto LCleanup;
+	bstrClassName = SysAllocString(L"Win32_PNPEntity");    if (bstrClassName == nullptr) goto LCleanup;
+	bstrDeviceID  = SysAllocString(L"DeviceID");           if (bstrDeviceID == nullptr)  goto LCleanup;
 
 	// Connect to WMI
-	hr = pIWbemLocator->ConnectServer( bstrNamespace, NULL, NULL, 0L, 0L, NULL, NULL, &pIWbemServices );
-	if( FAILED(hr) || pIWbemServices == NULL )
+	hr = pIWbemLocator->ConnectServer(bstrNamespace, nullptr, nullptr, 0L, 0L, nullptr, nullptr, &pIWbemServices);
+	if (FAILED(hr) || pIWbemServices == nullptr)
 		goto LCleanup;
 
 	// Switch security level to IMPERSONATE.
-	CoSetProxyBlanket( pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL,
-					   RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE );
+	CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, nullptr,
+	                  RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE);
 
-	hr = pIWbemServices->CreateInstanceEnum( bstrClassName, 0, NULL, &pEnumDevices );
-	if( FAILED(hr) || pEnumDevices == NULL )
+	hr = pIWbemServices->CreateInstanceEnum(bstrClassName, 0, nullptr, &pEnumDevices);
+	if (FAILED(hr) || pEnumDevices == nullptr)
 		goto LCleanup;
 
 	// Loop over all devices
-	while( true )
+	while (true)
 	{
 		// Get 20 at a time
-		hr = pEnumDevices->Next( 10000, 20, pDevices, &uReturned );
-		if( FAILED(hr) || uReturned == 0 )
+		hr = pEnumDevices->Next(10000, 20, pDevices, &uReturned);
+		if (FAILED(hr) || uReturned == 0)
 			break;
 
-		for( UINT iDevice=0; iDevice<uReturned; ++iDevice )
+		for (UINT iDevice = 0; iDevice < uReturned; ++iDevice)
 		{
 			// For each device, get its device ID
-			hr = pDevices[iDevice]->Get( bstrDeviceID, 0L, &var, NULL, NULL );
-			if( SUCCEEDED( hr ) && var.vt == VT_BSTR && var.bstrVal != NULL )
+			hr = pDevices[iDevice]->Get(bstrDeviceID, 0L, &var, nullptr, nullptr);
+			if (SUCCEEDED(hr) && var.vt == VT_BSTR && var.bstrVal != nullptr)
 			{
 				// Check if the device ID contains "IG_".  If it does, then it's an XInput device
-					// This information can not be found from DirectInput
-				if( wcsstr( var.bstrVal, L"IG_" ) )
+				// This information can not be found from DirectInput
+				if (wcsstr(var.bstrVal, L"IG_"))
 				{
 					// If it does, then get the VID/PID from var.bstrVal
 					DWORD dwPid = 0, dwVid = 0;
-					WCHAR* strVid = wcsstr( var.bstrVal, L"VID_" );
-					if( strVid && swscanf( strVid, L"VID_%4X", &dwVid ) != 1 )
+					WCHAR* strVid = wcsstr(var.bstrVal, L"VID_");
+					if (strVid && swscanf(strVid, L"VID_%4X", &dwVid) != 1)
 						dwVid = 0;
-					WCHAR* strPid = wcsstr( var.bstrVal, L"PID_" );
-					if( strPid && swscanf( strPid, L"PID_%4X", &dwPid ) != 1 )
+					WCHAR* strPid = wcsstr(var.bstrVal, L"PID_");
+					if (strPid && swscanf(strPid, L"PID_%4X", &dwPid) != 1)
 						dwPid = 0;
 
 					// Compare the VID/PID to the DInput device
-					DWORD dwVidPid = MAKELONG( dwVid, dwPid );
-					guids.push_back( dwVidPid );
+					DWORD dwVidPid = MAKELONG(dwVid, dwPid);
+					guids.push_back(dwVidPid);
 					//bIsXinputDevice = true;
 				}
 			}
-			SAFE_RELEASE( pDevices[iDevice] );
+			SAFE_RELEASE(pDevices[iDevice]);
 		}
 	}
 
 LCleanup:
-	if(bstrNamespace)
+	if (bstrNamespace)
 		SysFreeString(bstrNamespace);
-	if(bstrDeviceID)
+	if (bstrDeviceID)
 		SysFreeString(bstrDeviceID);
-	if(bstrClassName)
+	if (bstrClassName)
 		SysFreeString(bstrClassName);
-	for( UINT iDevice=0; iDevice<20; iDevice++ )
-		SAFE_RELEASE( pDevices[iDevice] );
-	SAFE_RELEASE( pEnumDevices );
-	SAFE_RELEASE( pIWbemLocator );
-	SAFE_RELEASE( pIWbemServices );
+	for (UINT iDevice = 0; iDevice < 20; iDevice++)
+		SAFE_RELEASE(pDevices[iDevice]);
+	SAFE_RELEASE(pEnumDevices);
+	SAFE_RELEASE(pIWbemLocator);
+	SAFE_RELEASE(pIWbemServices);
 
-	if( bCleanupCOM )
+	if (bCleanupCOM)
 		CoUninitialize();
 }
 
@@ -151,22 +128,19 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
 
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
-	std::map< std::basic_string<TCHAR>, int>	name_counts;
+	std::map< std::basic_string<TCHAR>, int> name_counts;
 
 	std::vector<DWORD> xinput_guids;
 	GetXInputGUIDS( xinput_guids );
 
-	std::list<DIDEVICEINSTANCE>::iterator
-		i = joysticks.begin(),
-		e = joysticks.end();
-	for ( ; i!=e; ++i )
+	for (DIDEVICEINSTANCE& joystick : joysticks)
 	{
 		// skip XInput Devices
-		if ( std::find( xinput_guids.begin(), xinput_guids.end(), i->guidProduct.Data1 ) != xinput_guids.end() )
+		if (std::find(xinput_guids.begin(), xinput_guids.end(), joystick.guidProduct.Data1) != xinput_guids.end())
 			continue;
 
 		LPDIRECTINPUTDEVICE8 js_device;
-		if (SUCCEEDED(idi8->CreateDevice(i->guidInstance, &js_device, NULL)))
+		if (SUCCEEDED(idi8->CreateDevice(joystick.guidInstance, &js_device, nullptr)))
 		{
 			if (SUCCEEDED(js_device->SetDataFormat(&c_dfDIJoystick)))
 			{
@@ -174,7 +148,7 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
 				{
 					//PanicAlert("SetCooperativeLevel(DISCL_EXCLUSIVE) failed!");
 					// fall back to non-exclusive mode, with no rumble
-					if (FAILED(js_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
+					if (FAILED(js_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 					{
 						//PanicAlert("SetCooperativeLevel failed!");
 						js_device->Release();
@@ -182,7 +156,7 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
 					}
 				}
 
-				Joystick* js = new Joystick(/*&*i, */js_device, name_counts[i->tszInstanceName]++);
+				Joystick* js = new Joystick(/*&*i, */js_device, name_counts[joystick.tszInstanceName]++);
 				// only add if it has some inputs/outputs
 				if (js->Inputs().size() || js->Outputs().size())
 					devices.push_back(js);
@@ -270,87 +244,11 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		}
 	}
 
-	// TODO: check for DIDC_FORCEFEEDBACK in devcaps?
-
-	// get supported ff effects
+	// force feedback
 	std::list<DIDEVICEOBJECTINSTANCE> objects;
-	m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS);
-	// got some ff axes or something
-	if ( objects.size() )
+	if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS)))
 	{
-		// temporary
-		DWORD rgdwAxes[2] = {DIJOFS_X, DIJOFS_Y};
-		LONG rglDirection[2] = {-200, 0};
-
-		DIEFFECT eff;
-		ZeroMemory(&eff, sizeof(eff));
-		eff.dwSize = sizeof(DIEFFECT);
-		eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-		eff.dwDuration = INFINITE;	// (4 * DI_SECONDS)
-		eff.dwSamplePeriod = 0;
-		eff.dwGain = DI_FFNOMINALMAX;
-		eff.dwTriggerButton = DIEB_NOTRIGGER;
-		eff.dwTriggerRepeatInterval = 0;
-		eff.cAxes = std::min((DWORD)1, (DWORD)objects.size());
-		eff.rgdwAxes = rgdwAxes;
-		eff.rglDirection = rglDirection;
-
-		// DIPERIODIC is the largest, so we'll use that
-		DIPERIODIC f;
-		eff.lpvTypeSpecificParams = &f;
-		ZeroMemory(&f, sizeof(f));
-
-		// doesn't seem needed
-		//DIENVELOPE env;
-		//eff.lpEnvelope = &env;
-		//ZeroMemory(&env, sizeof(env));
-		//env.dwSize = sizeof(env);
-
-		for (unsigned int f = 0; f < sizeof(force_type_names)/sizeof(*force_type_names); ++f)
-		{
-			// ugly if ladder
-			if (0 == f)
-			{
-				DICONSTANTFORCE  diCF = {-10000};
-				diCF.lMagnitude = DI_FFNOMINALMAX;
-				eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
-				eff.lpvTypeSpecificParams = &diCF;
-			}
-			else if (1 == f)
-			{
-				eff.cbTypeSpecificParams = sizeof(DIRAMPFORCE);
-			}
-			else
-			{
-				eff.cbTypeSpecificParams = sizeof(DIPERIODIC);
-			}
-
-			LPDIRECTINPUTEFFECT pEffect;
-			if (SUCCEEDED(m_device->CreateEffect(force_type_names[f].guid, &eff, &pEffect, NULL)))
-			{
-				m_state_out.push_back(EffectState(pEffect));
-
-				// ugly if ladder again :/
-				if (0 == f)
-					AddOutput(new ForceConstant(f, m_state_out.back()));
-				else if (1 == f)
-					AddOutput(new ForceRamp(f, m_state_out.back()));
-				else
-					AddOutput(new ForcePeriodic(f, m_state_out.back()));
-			}
-		}
-	}
-
-	// disable autocentering
-	if (Outputs().size())
-	{
-		DIPROPDWORD dipdw;
-		dipdw.diph.dwSize = sizeof( DIPROPDWORD );
-		dipdw.diph.dwHeaderSize = sizeof( DIPROPHEADER );
-		dipdw.diph.dwObj = 0;
-		dipdw.diph.dwHow = DIPH_DEVICE;
-		dipdw.dwData = DIPROPAUTOCENTER_OFF;
-		m_device->SetProperty( DIPROP_AUTOCENTER, &dipdw.diph );
+		InitForceFeedback(m_device, objects.size());
 	}
 
 	ClearInputState();
@@ -358,17 +256,6 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 
 Joystick::~Joystick()
 {
-	// release the ff effect iface's
-	std::list<EffectState>::iterator
-		i = m_state_out.begin(),
-		e = m_state_out.end();
-	for (; i!=e; ++i)
-	{
-		i->iface->Stop();
-		i->iface->Unload();
-		i->iface->Release();
-	}
-
 	m_device->Unacquire();
 	m_device->Release();
 }
@@ -377,7 +264,7 @@ void Joystick::ClearInputState()
 {
 	ZeroMemory(&m_state_in, sizeof(m_state_in));
 	// set hats to center
-	memset( m_state_in.rgdwPOV, 0xFF, sizeof(m_state_in.rgdwPOV) );
+	memset(m_state_in.rgdwPOV, 0xFF, sizeof(m_state_in.rgdwPOV));
 }
 
 std::string Joystick::GetName() const
@@ -440,45 +327,6 @@ bool Joystick::UpdateInput()
 	return SUCCEEDED(hr);
 }
 
-bool Joystick::UpdateOutput()
-{
-	size_t ok_count = 0;
-
-	DIEFFECT eff;
-	ZeroMemory(&eff, sizeof(eff));
-	eff.dwSize = sizeof(DIEFFECT);
-	eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-
-	std::list<EffectState>::iterator
-		i = m_state_out.begin(),
-		e = m_state_out.end();
-	for (; i!=e; ++i)
-	{
-		if (i->params)
-		{
-			if (i->size)
-			{
-				eff.cbTypeSpecificParams = i->size;
-				eff.lpvTypeSpecificParams = i->params;
-				// set params and start effect
-				ok_count += SUCCEEDED(i->iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START));
-			}
-			else
-			{
-				ok_count += SUCCEEDED(i->iface->Stop());
-			}
-
-			i->params = NULL;
-		}
-		else
-		{
-			++ok_count;
-		}
-	}
-
-	return (m_state_out.size() == ok_count);
-}
-
 // get name
 
 std::string Joystick::Button::GetName() const
@@ -516,12 +364,6 @@ std::string Joystick::Hat::GetName() const
 	return tmpstr;
 }
 
-template <typename P>
-std::string Joystick::Force<P>::GetName() const
-{
-	return force_type_names[m_index].name;
-}
-
 // get / set state
 
 ControlState Joystick::Axis::GetState() const
@@ -540,60 +382,8 @@ ControlState Joystick::Hat::GetState() const
 	// hat centered code from MSDN
 	if (0xFFFF == LOWORD(m_hat))
 		return 0;
+
 	return (abs((int)(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
-}
-
-void Joystick::ForceConstant::SetState(const ControlState state)
-{
-	const LONG new_val = LONG(10000 * state);
-
-	LONG &val = params.lMagnitude;
-	if (val != new_val)
-	{
-		val = new_val;
-		m_state.params = &params;	// tells UpdateOutput the state has changed
-
-		 // tells UpdateOutput to either start or stop the force
-		m_state.size = new_val ? sizeof(params) : 0;
-	}
-}
-
-void Joystick::ForceRamp::SetState(const ControlState state)
-{
-	const LONG new_val = LONG(10000 * state);
-
-	if (params.lStart != new_val)
-	{
-		params.lStart = params.lEnd = new_val;
-		m_state.params = &params;	// tells UpdateOutput the state has changed
-
-		 // tells UpdateOutput to either start or stop the force
-		m_state.size = new_val ? sizeof(params) : 0;
-	}
-}
-
-void Joystick::ForcePeriodic::SetState(const ControlState state)
-{
-	const LONG new_val = LONG(10000 * state);
-
-	DWORD &val = params.dwMagnitude;
-	if (val != new_val)
-	{
-		val = new_val;
-		//params.dwPeriod = 0;//DWORD(0.05 * DI_SECONDS);	// zero is working fine for me
-
-		m_state.params = &params;	// tells UpdateOutput the state has changed
-
-		 // tells UpdateOutput to either start or stop the force
-		m_state.size = new_val ? sizeof(params) : 0;
-	}
-}
-
-template <typename P>
-Joystick::Force<P>::Force(u8 index, EffectState& state)
-	: m_index(index), m_state(state)
-{
-	ZeroMemory(&params, sizeof(params));
 }
 
 }

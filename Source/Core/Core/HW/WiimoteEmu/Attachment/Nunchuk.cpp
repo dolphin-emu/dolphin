@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 
-#include "UDPWrapper.h"
-#include "UDPWiimote.h"
+#include "InputCommon/UDPWiimote.h"
+#include "InputCommon/UDPWrapper.h"
 
 namespace WiimoteEmu
 {
@@ -35,24 +35,24 @@ Nunchuk::Nunchuk(UDPWrapper *wrp, WiimoteEmu::ExtensionReg& _reg)
 	: Attachment(_trans("Nunchuk"), _reg) , m_udpWrap(wrp)
 {
 	// buttons
-	groups.push_back(m_buttons = new Buttons("Buttons"));
-	m_buttons->controls.push_back(new ControlGroup::Input("C"));
-	m_buttons->controls.push_back(new ControlGroup::Input("Z"));
+	groups.emplace_back(m_buttons = new Buttons("Buttons"));
+	m_buttons->controls.emplace_back(new ControlGroup::Input("C"));
+	m_buttons->controls.emplace_back(new ControlGroup::Input("Z"));
 
 	// stick
-	groups.push_back(m_stick = new AnalogStick("Stick"));
+	groups.emplace_back(m_stick = new AnalogStick("Stick"));
 
 	// swing
-	groups.push_back(m_swing = new Force("Swing"));
+	groups.emplace_back(m_swing = new Force("Swing"));
 
 	// tilt
-	groups.push_back(m_tilt = new Tilt("Tilt"));
+	groups.emplace_back(m_tilt = new Tilt("Tilt"));
 
 	// shake
-	groups.push_back(m_shake = new Buttons("Shake"));
-	m_shake->controls.push_back(new ControlGroup::Input("X"));
-	m_shake->controls.push_back(new ControlGroup::Input("Y"));
-	m_shake->controls.push_back(new ControlGroup::Input("Z"));
+	groups.emplace_back(m_shake = new Buttons("Shake"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("X"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
 
 	// set up register
 	// calibration
@@ -130,7 +130,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		{
 			u8 mask;
 			float x, y;
-			m_udpWrap->inst->getNunchuck(x, y, mask);
+			m_udpWrap->inst->getNunchuck(&x, &y, &mask);
 			// buttons
 			if (mask & UDPWM_NC)
 				ncdata->bt &= ~WiimoteEmu::Nunchuk::BUTTON_C;
@@ -146,7 +146,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		if (m_udpWrap->updNunAccel)
 		{
 			float x, y, z;
-			m_udpWrap->inst->getNunchuckAccel(x, y, z);
+			m_udpWrap->inst->getNunchuckAccel(&x, &y, &z);
 			accel.x = x;
 			accel.y = y;
 			accel.z = z;
@@ -159,24 +159,24 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
 	// ugly macroooo
-	#define set_control(group, num, str)	(group)->controls[num]->control_ref->expression = (str)
+	#define set_control(group, num, str)  (group)->controls[num]->control_ref->expression = (str)
 
 	// Stick
-	set_control(m_stick, 0, "W");	// up
-	set_control(m_stick, 1, "S");	// down
-	set_control(m_stick, 2, "A");	// left
-	set_control(m_stick, 3, "D");	// right
+	set_control(m_stick, 0, "W"); // up
+	set_control(m_stick, 1, "S"); // down
+	set_control(m_stick, 2, "A"); // left
+	set_control(m_stick, 3, "D"); // right
 
 	// Buttons
 #ifdef _WIN32
-	set_control(m_buttons, 0, "LCONTROL");	// C
-	set_control(m_buttons, 1, "LSHIFT");	// Z
+	set_control(m_buttons, 0, "LCONTROL");  // C
+	set_control(m_buttons, 1, "LSHIFT");    // Z
 #elif __APPLE__
-	set_control(m_buttons, 0, "Left Control");	// C
-	set_control(m_buttons, 1, "Left Shift");	// Z
+	set_control(m_buttons, 0, "Left Control"); // C
+	set_control(m_buttons, 1, "Left Shift");   // Z
 #else
-	set_control(m_buttons, 0, "Control_L");	// C
-	set_control(m_buttons, 1, "Shift_L");	// Z
+	set_control(m_buttons, 0, "Control_L"); // C
+	set_control(m_buttons, 1, "Shift_L");   // Z
 #endif
 }
 

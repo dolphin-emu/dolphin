@@ -2,14 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __ISOFILE_H_
-#define __ISOFILE_H_
+#pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "Volume.h"
-#include "VolumeCreator.h"
+#include "Common/Common.h"
+#include "DiscIO/Volume.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/image.h>
@@ -91,6 +90,3 @@ private:
 
 	std::string CreateCacheFilename();
 };
-
-
-#endif

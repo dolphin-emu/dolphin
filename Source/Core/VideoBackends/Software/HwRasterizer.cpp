@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "MemoryUtil.h"
+#include "Common/Common.h"
+#include "Common/MemoryUtil.h"
 
-#include <VideoCommon.h>
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/HwRasterizer.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
 
-#include "BPMemLoader.h"
-#include "HwRasterizer.h"
-#include "NativeVertexFormat.h"
-#include "DebugUtil.h"
+#include "VideoCommon/VideoCommon.h"
 
 #define TEMP_SIZE (1024*1024*4)
 
@@ -39,7 +39,7 @@ namespace HwRasterizer
 	{
 		// Color Vertices
 		static const char *fragcolText =
-			"#if GL_ES\n"
+			"#ifdef GL_ES\n"
 			"precision highp float;\n"
 			"#endif\n"
 			"varying vec4 TexCoordOut;\n"
@@ -48,7 +48,7 @@ namespace HwRasterizer
 			"}\n";
 		// Texture Vertices
 		static const char *fragtexText =
-			"#if GL_ES\n"
+			"#ifdef GL_ES\n"
 			"precision highp float;\n"
 			"#define texture2DRect texture2D\n"
 			"#define sampler2DRect sampler2D\n"
@@ -60,7 +60,7 @@ namespace HwRasterizer
 			"}\n";
 		// Clear shader
 		static const char *fragclearText =
-			"#if GL_ES\n"
+			"#ifdef GL_ES\n"
 			"precision highp float;\n"
 			"#endif\n"
 			"uniform vec4 Color;\n"
@@ -163,8 +163,8 @@ namespace HwRasterizer
 		// While GLES uses texture coordinates
 		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 		{
-			width = texUnit.texImage0[0].width;
-			height = texUnit.texImage0[0].height;
+			width = (float)texUnit.texImage0[0].width;
+			height = (float)texUnit.texImage0[0].height;
 		}
 		else
 		{

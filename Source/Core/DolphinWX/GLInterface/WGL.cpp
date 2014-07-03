@@ -2,22 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoConfig.h"
-#include "Host.h"
-#include "RenderBase.h"
+#include <string>
 
-#include "VertexShaderManager.h"
-#include "GLInterface.h"
-#include "WGL.h"
+#include "Core/Host.h"
 
-#include "EmuWindow.h"
-static HDC hDC = NULL;       // Private GDI Device Context
-static HGLRC hRC = NULL;     // Permanent Rendering Context
-static HINSTANCE dllHandle = NULL; // Handle to OpenGL32.dll 
+#include "DolphinWX/GLInterface/GLInterface.h"
+
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
+
+static HDC hDC = nullptr;       // Private GDI Device Context
+static HGLRC hRC = nullptr;     // Permanent Rendering Context
+static HINSTANCE dllHandle = nullptr; // Handle to OpenGL32.dll
 
 // typedef from wglext.h
 typedef BOOL(WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
-static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
+static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = nullptr;
 
 void cInterfaceWGL::SwapInterval(int Interval)
 {
@@ -31,12 +32,12 @@ void cInterfaceWGL::Swap()
 	SwapBuffers(hDC);
 }
 
-void* cInterfaceWGL::GetFuncAddress(std::string name)
+void* cInterfaceWGL::GetFuncAddress(const std::string& name)
 {
 	void* func = (void*)wglGetProcAddress((LPCSTR)name.c_str());
-	if (func == NULL)
+	if (func == nullptr)
 		func = (void*)GetProcAddress(dllHandle, (LPCSTR)name.c_str());
-	return func; 
+	return func;
 }
 
 // Draw messages on top of the screen
@@ -55,17 +56,18 @@ bool cInterfaceWGL::PeekMessages()
 }
 
 // Show the current FPS
-void cInterfaceWGL::UpdateFPSDisplay(const char *text)
+void cInterfaceWGL::UpdateFPSDisplay(const std::string& text)
 {
-	TCHAR temp[512];
-	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs"), text);
-	EmuWindow::SetWindowText(temp);
+	SetWindowTextA((HWND)m_window_handle, text.c_str());
 }
 
 // Create rendering window.
-//		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
+// Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceWGL::Create(void *&window_handle)
 {
+	if (window_handle == nullptr)
+		return false;
+
 	int _tx, _ty, _twidth, _theight;
 	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
 
@@ -73,19 +75,11 @@ bool cInterfaceWGL::Create(void *&window_handle)
 	s_backbuffer_width = _twidth;
 	s_backbuffer_height = _theight;
 
+	m_window_handle = window_handle;
+
 #ifdef _WIN32
 	dllHandle = LoadLibrary(TEXT("OpenGL32.dll"));
 #endif
-
-	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Please wait..."));
-	if (window_handle == NULL)
-	{
-		Host_SysMessage("failed to create window");
-		return false;
-	}
-
-	// Show the window
-	EmuWindow::Show();
 
 	PIXELFORMATDESCRIPTOR pfd =         // pfd Tells Windows How We Want Things To Be
 	{
@@ -111,7 +105,7 @@ bool cInterfaceWGL::Create(void *&window_handle)
 
 	int      PixelFormat;               // Holds The Results After Searching For A Match
 
-	if (!(hDC=GetDC(EmuWindow::GetWnd()))) {
+	if (!(hDC = GetDC((HWND)window_handle))) {
 		PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
 		return false;
 	}
@@ -128,51 +122,34 @@ bool cInterfaceWGL::Create(void *&window_handle)
 		return false;
 	}
 
-	// Grab the swap interval function pointer
-	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
-
 	return true;
 }
 
 bool cInterfaceWGL::MakeCurrent()
 {
-	return wglMakeCurrent(hDC, hRC) ? true : false;
+	bool success = wglMakeCurrent(hDC, hRC) ? true : false;
+	if (success)
+	{
+		// Grab the swap interval function pointer
+		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
+	}
+	return success;
 }
 
 bool cInterfaceWGL::ClearCurrent()
 {
-	return wglMakeCurrent(hDC, NULL) ? true : false;
+	return wglMakeCurrent(hDC, nullptr) ? true : false;
 }
 
 // Update window width, size and etc. Called from Render.cpp
 void cInterfaceWGL::Update()
 {
 	RECT rcWindow;
-	if (!EmuWindow::GetParentWnd())
-	{
-		// We are not rendering to a child window - use client size.
-		GetClientRect(EmuWindow::GetWnd(), &rcWindow);
-	}
-	else
-	{
-		// We are rendering to a child window - use parent size.
-		GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
-	}
+	GetClientRect((HWND)m_window_handle, &rcWindow);
 
 	// Get the new window width and height
-	// See below for documentation
-	int width = rcWindow.right - rcWindow.left;
-	int height = rcWindow.bottom - rcWindow.top;
-
-	// If we are rendering to a child window
-	if (EmuWindow::GetParentWnd() != 0 &&
-			(s_backbuffer_width != width || s_backbuffer_height != height) &&
-			width >= 4 && height >= 4)
-	{
-		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
-		s_backbuffer_width = width;
-		s_backbuffer_height = height;
-	}
+	s_backbuffer_width = rcWindow.right - rcWindow.left;
+	s_backbuffer_height = rcWindow.bottom - rcWindow.top;
 }
 
 // Close backend
@@ -180,19 +157,19 @@ void cInterfaceWGL::Shutdown()
 {
 	if (hRC)
 	{
-		if (!wglMakeCurrent(NULL, NULL))
+		if (!wglMakeCurrent(nullptr, nullptr))
 			NOTICE_LOG(VIDEO, "Could not release drawing context.");
 
 		if (!wglDeleteContext(hRC))
 			ERROR_LOG(VIDEO, "Attempt to release rendering context failed.");
 
-		hRC = NULL;
+		hRC = nullptr;
 	}
 
-	if (hDC && !ReleaseDC(EmuWindow::GetWnd(), hDC))
+	if (hDC && !ReleaseDC((HWND)m_window_handle, hDC))
 	{
 		ERROR_LOG(VIDEO, "Attempt to release device context failed.");
-		hDC = NULL;
+		hDC = nullptr;
 	}
 }
 

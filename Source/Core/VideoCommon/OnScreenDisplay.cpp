@@ -3,24 +3,25 @@
 // Refer to the license.txt file included.
 
 #include <list>
-
-#include "Common.h"
-
-#include "ConfigManager.h"
-#include "OnScreenDisplay.h"
-#include "RenderBase.h"
-#include "Timer.h"
-
 #include <map>
 #include <string>
+
+#include "Common/Common.h"
+#include "Common/Timer.h"
+
+#include "Core/ConfigManager.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/RenderBase.h"
+
 
 namespace OSD
 {
 
 struct Message
 {
-    Message() {}
-    Message(const std::string& s, u32 ts) : str(s), timestamp(ts) {}
+	Message() {}
+	Message(const std::string& s, u32 ts) : str(s), timestamp(ts) {}
 
 	std::string str;
 	u32 timestamp;
@@ -36,7 +37,7 @@ void AddMessage(const std::string& str, u32 ms)
 
 void DrawMessages()
 {
-	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages)
 		return;
 
 	int left = 25, top = 15;
@@ -55,8 +56,8 @@ void DrawMessages()
 
 		alpha <<= 24;
 
-		g_renderer->RenderText(it->str.c_str(), left + 1, top + 1, 0x000000 | alpha);
-		g_renderer->RenderText(it->str.c_str(), left, top, 0xffff30 | alpha);
+		g_renderer->RenderText(it->str, left + 1, top + 1, 0x000000 | alpha);
+		g_renderer->RenderText(it->str, left, top, 0xffff30 | alpha);
 		top += 15;
 
 		if (time_left <= 0)

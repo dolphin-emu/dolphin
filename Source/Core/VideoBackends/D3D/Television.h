@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TELEVISION_H
-#define _TELEVISION_H
+#pragma once
 
-#include "VideoCommon.h"
+#include "VideoCommon/VideoCommon.h"
 
 struct ID3D11Texture2D;
 struct ID3D11ShaderResourceView;
@@ -50,5 +49,3 @@ private:
 };
 
 }
-
-#endif

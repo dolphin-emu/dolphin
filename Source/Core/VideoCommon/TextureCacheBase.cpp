@@ -2,18 +2,22 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MemoryUtil.h"
+#include <algorithm>
+#include <string>
 
-#include "VideoConfig.h"
-#include "Statistics.h"
-#include "HiresTextures.h"
-#include "RenderBase.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
 
-#include "TextureCacheBase.h"
-#include "Debugger.h"
-#include "ConfigManager.h"
-#include "HW/Memmap.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Memmap.h"
+
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 // ugly
 extern int frameCount;
@@ -25,7 +29,7 @@ enum
 
 TextureCache *g_texture_cache;
 
-GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
+GC_ALIGNED16(u8 *TextureCache::temp) = nullptr;
 unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
@@ -46,8 +50,8 @@ TextureCache::TextureCache()
 
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 
-	if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
-		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+	if (g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
+		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
 
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 
@@ -61,23 +65,18 @@ void TextureCache::RequestInvalidateTextureCache()
 
 void TextureCache::Invalidate()
 {
-	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
-	for (; iter != tcend; ++iter)
-		delete iter->second;
-
+	for (auto& tex : textures)
+	{
+		delete tex.second;
+	}
 	textures.clear();
 }
 
 TextureCache::~TextureCache()
 {
 	Invalidate();
-	if (temp)
-	{
-		FreeAlignedMemory(temp);
-		temp = NULL;
-	}
+	FreeAlignedMemory(temp);
+	temp = nullptr;
 }
 
 void TextureCache::OnConfigChanged(VideoConfig& config)
@@ -93,8 +92,8 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 		{
 			g_texture_cache->Invalidate();
 
-			if(g_ActiveConfig.bHiresTextures)
-				HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+			if (g_ActiveConfig.bHiresTextures)
+				HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
 
 			SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 			TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
@@ -130,10 +129,9 @@ void TextureCache::Cleanup()
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		if (	frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount
-
-			// EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
-			&& ! iter->second->IsEfbCopy() )
+		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount &&
+            // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
+		    !iter->second->IsEfbCopy())
 		{
 			delete iter->second;
 			textures.erase(iter++);
@@ -172,7 +170,7 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 		tcend = textures.upper_bound(start_address + size);
 
 	if (iter != textures.begin())
-		iter--;
+		--iter;
 
 	for (; iter != tcend; ++iter)
 	{
@@ -231,36 +229,34 @@ bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsign
 		return false;
 
 	// Just checking if the necessary files exist, if they can't be loaded or have incorrect dimensions LODs will be black
-	char texBasePathTemp[MAX_PATH];
-	char texPathTemp[MAX_PATH];
-
-	sprintf(texBasePathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
+	std::string texBasePathTemp = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
 
 	for (unsigned int level = 1; level < levels; ++level)
 	{
-		sprintf(texPathTemp, "%s_mip%i", texBasePathTemp, level);
+		std::string texPathTemp = StringFromFormat("%s_mip%u", texBasePathTemp.c_str(), level);
 		if (!HiresTextures::HiresTexExists(texPathTemp))
 		{
 			if (level > 1)
-				WARN_LOG(VIDEO, "Couldn't find custom texture LOD with index %i (filename: %s), disabling custom LODs for this texture", level, texPathTemp);
+				WARN_LOG(VIDEO, "Couldn't find custom texture LOD with index %u (filename: %s), disabling custom LODs for this texture", level, texPathTemp.c_str());
 
 			return false;
 		}
 	}
+
 	return true;
 }
 
 PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height)
 {
-	char texPathTemp[MAX_PATH];
+	std::string texPathTemp;
 	unsigned int newWidth = 0;
 	unsigned int newHeight = 0;
 	u32 tex_hash_u32 = tex_hash & 0x00000000FFFFFFFFLL;
 
 	if (level == 0)
-		sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat);
+		texPathTemp = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat);
 	else
-		sprintf(texPathTemp, "%s_%08x_%i_mip%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat, level);
+		texPathTemp = StringFromFormat("%s_%08x_%i_mip%u", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat, level);
 
 	unsigned int required_size = 0;
 	PC_TexFormat ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, &required_size, texformat, temp_size, temp);
@@ -277,11 +273,11 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 	if (ret != PC_TEX_FMT_NONE)
 	{
 		if (level > 0 && (newWidth != width || newHeight != height))
-			ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.", newWidth, newHeight, texPathTemp, width, height);
+			ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.", newWidth, newHeight, texPathTemp.c_str(), width, height);
 		if (newWidth * height != newHeight * width)
-			ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. The aspect differs from the native size %dx%d.", newWidth, newHeight, texPathTemp, width, height);
+			ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. The aspect differs from the native size %dx%d.", newWidth, newHeight, texPathTemp.c_str(), width, height);
 		if (newWidth % width || newHeight % height)
-			WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. Please use an integer upscaling factor based on the native size %dx%d.", newWidth, newHeight, texPathTemp, width, height);
+			WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. Please use an integer upscaling factor based on the native size %dx%d.", newWidth, newHeight, texPathTemp.c_str(), width, height);
 
 		width = newWidth;
 		height = newHeight;
@@ -296,8 +292,8 @@ void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
 
 	// make sure that the directory exists
-	if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
-		File::CreateDir(szDir.c_str());
+	if (!File::Exists(szDir) || !File::IsDirectory(szDir))
+		File::CreateDir(szDir);
 
 	// For compatibility with old texture packs, don't print the LOD index for level 0.
 	 // TODO: TLUT format should actually be stored in filename? :/
@@ -339,7 +335,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	unsigned int const tlutaddr, int const tlutfmt, bool const use_mipmaps, unsigned int maxlevel, bool const from_tmem)
 {
 	if (0 == address)
-		return NULL;
+		return nullptr;
 
 	// TexelSizeInNibbles(format) * width * height / 16;
 	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat) - 1;
@@ -378,12 +374,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 		// NOTE: For non-paletted textures, texID is equal to the texture address.
-		//		A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
-		//		This (changing texID depending on the tlut_hash) is a trick to get around
-		//		an issue with Metroid Prime's fonts (it has multiple sets of fonts on each other
-		//		stored in a single texture and uses the palette to make different characters
-		//		visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
-		//		we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
+		//       A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
+		//       This (changing texID depending on the tlut_hash) is a trick to get around
+		//       an issue with Metroid Prime's fonts (it has multiple sets of fonts on each other
+		//       stored in a single texture and uses the palette to make different characters
+		//       visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
+		//       we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
 		//
 		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
 		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
@@ -392,7 +388,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 
 	// D3D doesn't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
 	// e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,1x1, so we limit the mipmap count to 6 there
-	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && max(expandedWidth, expandedHeight) >> maxlevel == 0)
+	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && std::max(expandedWidth, expandedHeight) >> maxlevel == 0)
 		--maxlevel;
 
 	TCacheEntryBase *entry = textures[texID];
@@ -426,9 +422,14 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if ((entry->type == TCET_NORMAL && width == entry->virtual_width && height == entry->virtual_height
-			&& full_format == entry->format && entry->num_mipmaps > maxlevel)
-			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == width && entry->native_height == height))
+		if ((entry->type == TCET_NORMAL &&
+		     width == entry->virtual_width &&
+		     height == entry->virtual_height &&
+		     full_format == entry->format &&
+		     entry->num_mipmaps > maxlevel) ||
+		    (entry->type == TCET_EC_DYNAMIC &&
+		     entry->native_width == width &&
+		     entry->native_height == height))
 		{
 			// reuse the texture
 		}
@@ -436,7 +437,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		{
 			// delete the texture and make a new one
 			delete entry;
-			entry = NULL;
+			entry = nullptr;
 		}
 	}
 
@@ -454,10 +455,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 				expandedHeight = height;
 
 				// If we thought we could reuse the texture before, make sure to pool it now!
-				if(entry)
+				if (entry)
 				{
 					delete entry;
-					entry = NULL;
+					entry = nullptr;
 				}
 			}
 			using_custom_texture = true;
@@ -485,7 +486,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	texLevels = (use_native_mips || using_custom_lods) ? texLevels : 1; // TODO: Should be forced to 1 for non-pow2 textures (e.g. efb copies with automatically adjusted IR)
 
 	// create the entry/texture
-	if (NULL == entry)
+	if (nullptr == entry)
 	{
 		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, expandedWidth, texLevels, pcfmt);
 
@@ -527,8 +528,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		{
 			src_data += texture_size;
 
-			const u8* ptr_even = NULL;
-			const u8* ptr_odd = NULL;
+			const u8* ptr_even = nullptr;
+			const u8* ptr_odd = nullptr;
 			if (from_tmem)
 			{
 				ptr_even = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE + texture_size];
@@ -573,46 +574,46 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	return ReturnEntry(stage, entry);
 }
 
-void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
 	// Emulation methods:
 	//
 	// - EFB to RAM:
-	//		Encodes the requested EFB data at its native resolution to the emulated RAM using shaders.
-	//		Load() decodes the data from there again (using TextureDecoder) if the EFB copy is being used as a texture again.
-	//		Advantage: CPU can read data from the EFB copy and we don't lose any important updates to the texture
-	//		Disadvantage: Encoding+decoding steps often are redundant because only some games read or modify EFB copies before using them as textures.
+	//      Encodes the requested EFB data at its native resolution to the emulated RAM using shaders.
+	//      Load() decodes the data from there again (using TextureDecoder) if the EFB copy is being used as a texture again.
+	//      Advantage: CPU can read data from the EFB copy and we don't lose any important updates to the texture
+	//      Disadvantage: Encoding+decoding steps often are redundant because only some games read or modify EFB copies before using them as textures.
 	//
 	// - EFB to texture:
-	//		Copies the requested EFB data to a texture object in VRAM, performing any color conversion using shaders.
-	//		Advantage:	Works for many games, since in most cases EFB copies aren't read or modified at all before being used as a texture again.
-	//					Since we don't do any further encoding or decoding here, this method is much faster.
-	//					It also allows enhancing the visual quality by doing scaled EFB copies.
+	//      Copies the requested EFB data to a texture object in VRAM, performing any color conversion using shaders.
+	//      Advantage: Works for many games, since in most cases EFB copies aren't read or modified at all before being used as a texture again.
+	//                 Since we don't do any further encoding or decoding here, this method is much faster.
+	//                 It also allows enhancing the visual quality by doing scaled EFB copies.
 	//
 	// - Hybrid EFB copies:
-	//		1a) Whenever this function gets called, encode the requested EFB data to RAM (like EFB to RAM)
-	//		1b) Set type to TCET_EC_DYNAMIC for all texture cache entries in the destination address range.
-	//			If EFB copy caching is enabled, further checks will (try to) prevent redundant EFB copies.
-	//		2) Check if a texture cache entry for the specified dstAddr already exists (i.e. if an EFB copy was triggered to that address before):
-	//		2a) Entry doesn't exist:
-	//			- Also copy the requested EFB data to a texture object in VRAM (like EFB to texture)
-	//			- Create a texture cache entry for the target (type = TCET_EC_VRAM)
-	//			- Store a hash of the encoded RAM data in the texcache entry.
-	//		2b) Entry exists AND type is TCET_EC_VRAM:
-	//			- Like case 2a, but reuse the old texcache entry instead of creating a new one.
-	//		2c) Entry exists AND type is TCET_EC_DYNAMIC:
-	//			- Only encode the texture to RAM (like EFB to RAM) and store a hash of the encoded data in the existing texcache entry.
-	//			- Do NOT copy the requested EFB data to a VRAM object. Reason: the texture is dynamic, i.e. the CPU is modifying it. Storing a VRAM copy is useless, because we'd always end up deleting it and reloading the data from RAM anyway.
-	//		3) If the EFB copy gets used as a texture, compare the source RAM hash with the hash you stored when encoding the EFB data to RAM.
-	//		3a) If the two hashes match AND type is TCET_EC_VRAM, reuse the VRAM copy you created
-	//		3b) If the two hashes differ AND type is TCET_EC_VRAM, screw your existing VRAM copy. Set type to TCET_EC_DYNAMIC.
-	//			Redecode the source RAM data to a VRAM object. The entry basically behaves like a normal texture now.
-	//		3c) If type is TCET_EC_DYNAMIC, treat the EFB copy like a normal texture.
-	//		Advantage: 	Non-dynamic EFB copies can be visually enhanced like with EFB to texture.
-	//					Compatibility is as good as EFB to RAM.
-	//		Disadvantage:	Slower than EFB to texture and often even slower than EFB to RAM.
-	//						EFB copy cache depends on accurate texture hashing being enabled. However, with accurate hashing you end up being as slow as without a copy cache anyway.
+	//      1a) Whenever this function gets called, encode the requested EFB data to RAM (like EFB to RAM)
+	//      1b) Set type to TCET_EC_DYNAMIC for all texture cache entries in the destination address range.
+	//          If EFB copy caching is enabled, further checks will (try to) prevent redundant EFB copies.
+	//      2) Check if a texture cache entry for the specified dstAddr already exists (i.e. if an EFB copy was triggered to that address before):
+	//      2a) Entry doesn't exist:
+	//          - Also copy the requested EFB data to a texture object in VRAM (like EFB to texture)
+	//          - Create a texture cache entry for the target (type = TCET_EC_VRAM)
+	//          - Store a hash of the encoded RAM data in the texcache entry.
+	//      2b) Entry exists AND type is TCET_EC_VRAM:
+	//          - Like case 2a, but reuse the old texcache entry instead of creating a new one.
+	//      2c) Entry exists AND type is TCET_EC_DYNAMIC:
+	//          - Only encode the texture to RAM (like EFB to RAM) and store a hash of the encoded data in the existing texcache entry.
+	//          - Do NOT copy the requested EFB data to a VRAM object. Reason: the texture is dynamic, i.e. the CPU is modifying it. Storing a VRAM copy is useless, because we'd always end up deleting it and reloading the data from RAM anyway.
+	//      3) If the EFB copy gets used as a texture, compare the source RAM hash with the hash you stored when encoding the EFB data to RAM.
+	//      3a) If the two hashes match AND type is TCET_EC_VRAM, reuse the VRAM copy you created
+	//      3b) If the two hashes differ AND type is TCET_EC_VRAM, screw your existing VRAM copy. Set type to TCET_EC_DYNAMIC.
+	//          Redecode the source RAM data to a VRAM object. The entry basically behaves like a normal texture now.
+	//      3c) If type is TCET_EC_DYNAMIC, treat the EFB copy like a normal texture.
+	//      Advantage: Non-dynamic EFB copies can be visually enhanced like with EFB to texture.
+	//                 Compatibility is as good as EFB to RAM.
+	//      Disadvantage: Slower than EFB to texture and often even slower than EFB to RAM.
+	//                    EFB copy cache depends on accurate texture hashing being enabled. However, with accurate hashing you end up being as slow as without a copy cache anyway.
 	//
 	// Disadvantage of all methods: Calling this function requires the GPU to perform a pipeline flush which stalls any further CPU processing.
 	//
@@ -624,9 +625,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f;
 	ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 255.0f;
 	unsigned int cbufid = -1;
-	bool efbHasAlpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool efbHasAlpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
-	if (srcFormat == PIXELFMT_Z24)
+	if (srcFormat == PEControl::Z24)
 	{
 		switch (dstFormat)
 		{
@@ -753,9 +754,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
 			ColorMask[0] = ColorMask[3] = 15.0f;
 			ColorMask[4] = ColorMask[7] = 1.0f / 15.0f;
-			
+
 			cbufid = 16;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 17;
@@ -763,9 +764,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			break;
 		case 3: // RA8
 			colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
-			
+
 			cbufid = 18;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 19;
@@ -774,9 +775,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 		case 7: // A8
 			colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
-			
+
 			cbufid = 20;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[0] = 1.0f;
 				fConstAdd[1] = 1.0f;
@@ -821,9 +822,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 31.0f;
 			ColorMask[3] = 7.0f;
 			ColorMask[7] = 1.0f / 7.0f;
-			
+
 			cbufid = 27;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 28;
@@ -831,9 +832,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			break;
 		case 6: // RGBA8
 			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-			
+
 			cbufid = 29;
-			if(!efbHasAlpha) {
+			if (!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 30;
@@ -867,11 +868,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		{
 			// remove it and recreate it as a render target
 			delete entry;
-			entry = NULL;
+			entry = nullptr;
 		}
 	}
 
-	if (NULL == entry)
+	if (nullptr == entry)
 	{
 		// create the texture
 		textures[dstAddr] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);

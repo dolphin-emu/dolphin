@@ -2,24 +2,25 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GeckoCodeConfig.h"
-
-#include "StringUtil.h"
-
-#include <vector>
-#include <string>
 #include <sstream>
+#include <string>
+#include <vector>
+
+#include "Common/StringUtil.h"
+
+#include "Core/GeckoCodeConfig.h"
 
 namespace Gecko
 {
 
 void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<GeckoCode>& gcodes)
 {
-	const IniFile* inis[] = {&globalIni, &localIni};
-	for (size_t i = 0; i < ArraySize(inis); ++i)
+	const IniFile* inis[2] = { &globalIni, &localIni };
+
+	for (const IniFile* ini : inis)
 	{
 		std::vector<std::string> lines;
-		inis[i]->GetLines("Gecko", lines, false);
+		ini->GetLines("Gecko", &lines, false);
 
 		GeckoCode gcode;
 
@@ -28,7 +29,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 			if (line.empty())
 				continue;
 
-			std::istringstream	ss(line);
+			std::istringstream ss(line);
 
 			switch ((line)[0])
 			{
@@ -40,11 +41,11 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 				if (gcode.name.size())
 					gcodes.push_back(gcode);
 				gcode = GeckoCode();
-				gcode.enabled = (1 == ss.tellg());	// silly
-				gcode.user_defined = i == 1;
+				gcode.enabled = (1 == ss.tellg());  // silly
+				gcode.user_defined = (ini == &localIni);
 				ss.seekg(1, std::ios_base::cur);
 				// read the code name
-				std::getline(ss, gcode.name, '[');	// stop at [ character (beginning of contributor name)
+				std::getline(ss, gcode.name, '[');  // stop at [ character (beginning of contributor name)
 				gcode.name = StripSpaces(gcode.name);
 				// read the code creator name
 				std::getline(ss, gcode.creator, ']');
@@ -71,19 +72,25 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 
 		// add the last code
 		if (gcode.name.size())
+		{
 			gcodes.push_back(gcode);
+		}
 
-		inis[i]->GetLines("Gecko_Enabled", lines, false);
+		ini->GetLines("Gecko_Enabled", &lines, false);
 
-		for (auto line : lines)
+		for (const std::string& line : lines)
 		{
 			if (line.size() == 0 || line[0] != '$')
+			{
 				continue;
+			}
 			std::string name = line.substr(1);
-			for (auto& ogcode : gcodes)
+			for (GeckoCode& ogcode : gcodes)
 			{
 				if (ogcode.name == name)
+				{
 					ogcode.enabled = true;
+				}
 			}
 		}
 	}
@@ -115,23 +122,17 @@ void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::string>& en
 	lines.push_back(name);
 
 	// save all the code lines
-	std::vector<GeckoCode::Code>::const_iterator
-		codes_iter = gcode.codes.begin(),
-		codes_end = gcode.codes.end();
-	for (; codes_iter!=codes_end; ++codes_iter)
+	for (const GeckoCode::Code& code : gcode.codes)
 	{
 		//ss << std::hex << codes_iter->address << ' ' << codes_iter->data;
 		//lines.push_back(StringFromFormat("%08X %08X", codes_iter->address, codes_iter->data));
-		lines.push_back(codes_iter->original_line);
+		lines.push_back(code.original_line);
 		//ss.clear();
 	}
 
 	// save the notes
-	std::vector<std::string>::const_iterator
-		notes_iter = gcode.notes.begin(),
-		notes_end = gcode.notes.end();
-	for (; notes_iter!=notes_end; ++notes_iter)
-		lines.push_back(std::string("*") + *notes_iter);
+	for (const std::string& note : gcode.notes)
+		lines.push_back(std::string("*") + note);
 }
 
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
@@ -139,12 +140,9 @@ void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 
-	std::vector<GeckoCode>::const_iterator
-		gcodes_iter = gcodes.begin(),
-		gcodes_end = gcodes.end();
-	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	for (const GeckoCode& geckoCode : gcodes)
 	{
-		SaveGeckoCode(lines, enabledLines, *gcodes_iter);
+		SaveGeckoCode(lines, enabledLines, geckoCode);
 	}
 
 	inifile.SetLines("Gecko", lines);

@@ -36,8 +36,9 @@
 
 #include <stdlib.h>
 
-#if defined _MSC_VER && !defined strcasecmp
-#define strcasecmp _stricmp
+#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
+    !defined(EFI32)
+#define strcasecmp  _stricmp
 #endif
 
 static const int supported_digests[] = {
@@ -54,16 +55,20 @@ static const int supported_digests[] = {
         POLARSSL_MD_MD5,
 #endif
 
+#if defined(POLARSSL_RIPEMD160_C)
+        POLARSSL_MD_RIPEMD160,
+#endif
+
 #if defined(POLARSSL_SHA1_C)
         POLARSSL_MD_SHA1,
 #endif
 
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
         POLARSSL_MD_SHA224,
         POLARSSL_MD_SHA256,
 #endif
 
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
         POLARSSL_MD_SHA384,
         POLARSSL_MD_SHA512,
 #endif
@@ -94,17 +99,21 @@ const md_info_t *md_info_from_string( const char *md_name )
     if( !strcasecmp( "MD5", md_name ) )
         return md_info_from_type( POLARSSL_MD_MD5 );
 #endif
+#if defined(POLARSSL_RIPEMD160_C)
+    if( !strcasecmp( "RIPEMD160", md_name ) )
+        return md_info_from_type( POLARSSL_MD_RIPEMD160 );
+#endif
 #if defined(POLARSSL_SHA1_C)
     if( !strcasecmp( "SHA1", md_name ) || !strcasecmp( "SHA", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA1 );
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
     if( !strcasecmp( "SHA224", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA224 );
     if( !strcasecmp( "SHA256", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA256 );
 #endif
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
     if( !strcasecmp( "SHA384", md_name ) )
         return md_info_from_type( POLARSSL_MD_SHA384 );
     if( !strcasecmp( "SHA512", md_name ) )
@@ -129,17 +138,21 @@ const md_info_t *md_info_from_type( md_type_t md_type )
         case POLARSSL_MD_MD5:
             return &md5_info;
 #endif
+#if defined(POLARSSL_RIPEMD160_C)
+        case POLARSSL_MD_RIPEMD160:
+            return &ripemd160_info;
+#endif
 #if defined(POLARSSL_SHA1_C)
         case POLARSSL_MD_SHA1:
             return &sha1_info;
 #endif
-#if defined(POLARSSL_SHA2_C)
+#if defined(POLARSSL_SHA256_C)
         case POLARSSL_MD_SHA224:
             return &sha224_info;
         case POLARSSL_MD_SHA256:
             return &sha256_info;
 #endif
-#if defined(POLARSSL_SHA4_C)
+#if defined(POLARSSL_SHA512_C)
         case POLARSSL_MD_SHA384:
             return &sha384_info;
         case POLARSSL_MD_SHA512:
@@ -290,6 +303,16 @@ int md_hmac( const md_info_t *md_info, const unsigned char *key, size_t keylen,
         return POLARSSL_ERR_MD_BAD_INPUT_DATA;
 
     md_info->hmac_func( key, keylen, input, ilen, output );
+
+    return 0;
+}
+
+int md_process( md_context_t *ctx, const unsigned char *data )
+{
+    if( ctx == NULL || ctx->md_info == NULL )
+        return POLARSSL_ERR_MD_BAD_INPUT_DATA;
+
+    ctx->md_info->process_func( ctx->md_ctx, data );
 
     return 0;
 }

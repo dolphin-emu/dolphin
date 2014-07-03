@@ -2,9 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTUREDECODER_H
-#define _TEXTUREDECODER_H
-#include "Hash.h"
+#pragma once
+
+#include "Common/Hash.h"
+
 enum
 {
 	TMEM_SIZE = 1024*1024,
@@ -76,5 +77,3 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* src_gb, int s, int t, int imageWidth);
 PC_TexFormat TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height);
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
-
-#endif

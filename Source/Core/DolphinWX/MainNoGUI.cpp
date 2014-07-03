@@ -2,40 +2,43 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <cstdarg>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 #include <getopt.h>
+#include <string>
 
-#include "Common.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/Event.h"
+#include "Common/Logging/LogManager.h"
+
+#include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreParameter.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 #if HAVE_X11
 #include <X11/keysym.h>
-#include "State.h"
-#include "X11Utils.h"
+#include "Core/State.h"
+#include "DolphinWX/X11Utils.h"
 #endif
 
 #if HAVE_WAYLAND
 #include <wayland-client.h>
-#include "GLInterface/GLInterface.h"
+#endif
+
+#ifdef USE_EGL
+#include "DolphinWX/GLInterface/GLInterface.h"
 #endif
 
 #ifdef __APPLE__
 #import <Cocoa/Cocoa.h>
 #endif
-
-#include "Core.h"
-#include "Host.h"
-#include "CPUDetect.h"
-#include "Thread.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/Wiimote.h"
-
-#include "VideoBackendBase.h"
-#include "ConfigManager.h"
-#include "LogManager.h"
-#include "BootManager.h"
 
 bool rendererHasFocus = true;
 bool running = true;
@@ -58,12 +61,12 @@ void Host_Message(int Id)
 
 void* Host_GetRenderHandle()
 {
-	return NULL;
+	return nullptr;
 }
 
-void* Host_GetInstance() { return NULL; }
+void* Host_GetInstance() { return nullptr; }
 
-void Host_UpdateTitle(const char* title){};
+void Host_UpdateTitle(const std::string& title){};
 
 void Host_UpdateLogDisplay(){}
 
@@ -76,11 +79,6 @@ void Host_UpdateMainFrame()
 
 void Host_UpdateBreakPointView(){}
 
-bool Host_GetKeyState(int keycode)
-{
-	return false;
-}
-
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
 	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
@@ -92,7 +90,7 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 void Host_RequestRenderWindowSize(int width, int height) {}
 void Host_SetStartupDebuggingParameters()
 {
-    SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	StartUp.bEnableDebugging = false;
 	StartUp.bBootToPause = false;
 }
@@ -106,7 +104,7 @@ void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
 void Host_SetWaitCursor(bool enable){}
 
-void Host_UpdateStatusBar(const char* _pText, int Filed){}
+void Host_UpdateStatusBar(const std::string& text, int filed){}
 
 void Host_SysMessage(const char *fmt, ...)
 {
@@ -118,10 +116,12 @@ void Host_SysMessage(const char *fmt, ...)
 	va_end(list);
 
 	size_t len = strlen(msg);
-	if (msg[len - 1] != '\n') {
+	if (msg[len - 1] != '\n')
+	{
 		msg[len - 1] = '\n';
 		msg[len] = '\0';
 	}
+
 	fprintf(stderr, "%s", msg);
 }
 
@@ -174,7 +174,7 @@ void X11_MainLoop()
 		for (int num_events = XPending(dpy); num_events > 0; num_events--)
 		{
 			XNextEvent(dpy, &event);
-			switch(event.type)
+			switch (event.type)
 			{
 				case KeyPress:
 					key = XLookupKeysym((XKeyEvent*)&event, 0);
@@ -265,7 +265,7 @@ void X11_MainLoop()
 void Wayland_MainLoop()
 {
 	// Wait for display to be initialized
-	while(!GLWin.wl_display)
+	while (!GLWin.wl_display)
 		usleep(20000);
 
 	GLWin.running = 1;
@@ -289,14 +289,16 @@ int main(int argc, char* argv[])
 #endif
 	int ch, help = 0;
 	struct option longopts[] = {
-		{ "exec",	no_argument,	NULL,	'e' },
-		{ "help",	no_argument,	NULL,	'h' },
-		{ "version",	no_argument,	NULL,	'v' },
-		{ NULL,		0,		NULL,	0 }
+		{ "exec",    no_argument, nullptr, 'e' },
+		{ "help",    no_argument, nullptr, 'h' },
+		{ "version", no_argument, nullptr, 'v' },
+		{ nullptr,      0,           nullptr,  0  }
 	};
 
-	while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1) {
-		switch (ch) {
+	while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1)
+	{
+		switch (ch)
+		{
 		case 'e':
 			break;
 		case 'h':
@@ -309,13 +311,14 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (help == 1 || argc == optind) {
+	if (help == 1 || argc == optind)
+	{
 		fprintf(stderr, "%s\n\n", scm_rev_str);
-		fprintf(stderr, "A multi-platform Gamecube/Wii emulator\n\n");
+		fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
-		fprintf(stderr, "  -e, --exec	Load the specified file\n");
-		fprintf(stderr, "  -h, --help	Show this help message\n");
-		fprintf(stderr, "  -v, --help	Print version and exit\n");
+		fprintf(stderr, "  -e, --exec   Load the specified file\n");
+		fprintf(stderr, "  -h, --help   Show this help message\n");
+		fprintf(stderr, "  -v, --help   Print version and exit\n");
 		return 1;
 	}
 
@@ -330,7 +333,7 @@ int main(int argc, char* argv[])
 	GLWin.platform = EGL_PLATFORM_NONE;
 #endif
 #if HAVE_WAYLAND
-	GLWin.wl_display = NULL;
+	GLWin.wl_display = nullptr;
 #endif
 
 	// No use running the loop when booting fails
@@ -346,7 +349,8 @@ int main(int argc, char* argv[])
 #endif
 #if HAVE_X11
 #if USE_EGL
-		if (GLWin.platform == EGL_PLATFORM_X11) {
+		if (GLWin.platform == EGL_PLATFORM_X11)
+		{
 #endif
 			XInitThreads();
 			X11_MainLoop();

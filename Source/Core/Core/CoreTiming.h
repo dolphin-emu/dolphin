@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CORETIMING_H
-#define _CORETIMING_H
+#pragma once
 
 // This is a system to schedule events into the emulated machine's future. Time is measured
 // in main CPU clock cycles.
@@ -18,11 +17,10 @@
 // inside callback:
 //   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
 
-#include "Common.h"
-
 #include <string>
 
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
 namespace CoreTiming
 {
@@ -38,7 +36,7 @@ u64 GetIdleTicks();
 void DoState(PointerWrap &p);
 
 // Returns the event_type identifier. if name is not unique, an existing event_type will be discarded.
-int RegisterEvent(const char *name, TimedCallback callback);
+int RegisterEvent(const std::string& name, TimedCallback callback);
 void UnregisterAllEvents();
 
 // userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from disk,
@@ -80,9 +78,6 @@ void SetFakeTBStartTicks(u64 val);
 
 void ForceExceptionCheck(int cycles);
 
-extern int downcount;
 extern int slicelength;
 
 }; // end of namespace
-
-#endif

@@ -2,34 +2,34 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
-#include "WII_IPC_HLE_Device_DI.h"
-#include "WII_IPC_HLE.h"
-
-#include "../HW/DVDInterface.h"
-#include "../HW/CPU.h"
-#include "../HW/Memmap.h"
-#include "../Core.h"
-#include "../VolumeHandler.h"
-#include "VolumeCreator.h"
-#include "Filesystem.h"
-#include "LogManager.h"
-#include "../HW/SystemTimers.h"
-
-#include "../../DiscIO/FileMonitor.h"
-
 #include <cinttypes>
+
+#include "Common/Common.h"
+#include "Common/Logging/LogManager.h"
+
+#include "Core/Core.h"
+#include "Core/VolumeHandler.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
+
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
+
+#include "DiscIO/FileMonitor.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeCreator.h"
 
 using namespace DVDInterface;
 
 
-#define DI_COVER_REG_INITIALIZED	0 // Should be 4, but doesn't work correctly...
-#define DI_COVER_REG_NO_DISC		1
+#define DI_COVER_REG_INITIALIZED  0 // Should be 4, but doesn't work correctly...
+#define DI_COVER_REG_NO_DISC      1
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	, m_pFileSystem(NULL)
+	, m_pFileSystem(nullptr)
 	, m_ErrorStatus(0)
 	, m_CoverStatus(DI_COVER_REG_NO_DISC)
 {}
@@ -39,7 +39,7 @@ CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 	if (m_pFileSystem)
 	{
 		delete m_pFileSystem;
-		m_pFileSystem = NULL;
+		m_pFileSystem = nullptr;
 	}
 }
 
@@ -61,7 +61,7 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 	if (m_pFileSystem)
 	{
 		delete m_pFileSystem;
-		m_pFileSystem = NULL;
+		m_pFileSystem = nullptr;
 	}
 	m_ErrorStatus = 0;
 	if (!_bForce)
@@ -72,11 +72,11 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 
 bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 {
-	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
-	u32 Command			= Memory::Read_U32(BufferIn) >> 24;
+	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 Command       = Memory::Read_U32(BufferIn) >> 24;
 
 	DEBUG_LOG(WII_IPC_DVD, "IOCtl Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
 		Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
@@ -93,7 +93,7 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 
 	// Prepare the out buffer(s) with zeros as a safety precaution
 	// to avoid returning bad values
-	for(u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
+	for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
 	{
 		Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
 			CommandBuffer.PayloadBuffer[i].m_Size);
@@ -148,7 +148,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	}
 
 	// Initializing a filesystem if it was just loaded
-	if(!m_pFileSystem && VolumeHandler::IsValid())
+	if (!m_pFileSystem && VolumeHandler::IsValid())
 	{
 		m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
 		m_CoverStatus |= DI_COVER_REG_INITIALIZED;
@@ -156,10 +156,10 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	}
 
 	// De-initializing a filesystem if the volume was unmounted
-	if(m_pFileSystem && !VolumeHandler::IsValid())
+	if (m_pFileSystem && !VolumeHandler::IsValid())
 	{
 		delete m_pFileSystem;
-		m_pFileSystem = NULL;
+		m_pFileSystem = nullptr;
 		m_CoverStatus |= DI_COVER_REG_NO_DISC;
 	}
 
@@ -201,19 +201,17 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			// Don't do anything if the log is unselected
 			if (LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
 			{
-				const char *pFilename = NULL;
 				if (m_pFileSystem)
-					pFilename = m_pFileSystem->GetFileName(DVDAddress);
-				if (pFilename != NULL)
 				{
+					const std::string filename = m_pFileSystem->GetFileName(DVDAddress);
+
 					INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%" PRIx64 ") - (DVDAddr: 0x%" PRIx64 ", Size: 0x%x)",
-						pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
-					FileMon::CheckFile(std::string(pFilename), (int)m_pFileSystem->GetFileSize(pFilename));
+						filename.c_str(), m_pFileSystem->GetFileSize(filename), DVDAddress, Size);
+					FileMon::CheckFile(filename, (int)m_pFileSystem->GetFileSize(filename));
 				}
 				else
 				{
-					INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unknown - (DVDAddr: 0x%" PRIx64 ", Size: 0x%x)",
-						DVDAddress, Size);
+					ERROR_LOG(WII_IPC_DVD, "Filesystem is invalid.");
 				}
 			}
 
@@ -294,13 +292,12 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			// * 0x460a0000 - 0x460a0008
 			// * 0x7ed40000 - 0x7ed40008
 			u32 DVDAddress32 = Memory::Read_U32(_BufferIn + 0x08);
-			if (!( (DVDAddress32 > 0x00000000 && DVDAddress32 < 0x00014000)
-				|| (((DVDAddress32 + Size) > 0x00000000) && (DVDAddress32 + Size) < 0x00014000)
-				|| (DVDAddress32 > 0x460a0000 && DVDAddress32 < 0x460a0008)
-				|| (((DVDAddress32 + Size) > 0x460a0000) && (DVDAddress32 + Size) < 0x460a0008)
-				|| (DVDAddress32 > 0x7ed40000 && DVDAddress32 < 0x7ed40008)
-				|| (((DVDAddress32 + Size) > 0x7ed40000) && (DVDAddress32 + Size) < 0x7ed40008)
-				))
+			if (!((DVDAddress32 > 0x00000000 && DVDAddress32 < 0x00014000) ||
+			      (((DVDAddress32 + Size) > 0x00000000) && (DVDAddress32 + Size) < 0x00014000) ||
+			      (DVDAddress32 > 0x460a0000 && DVDAddress32 < 0x460a0008) ||
+			      (((DVDAddress32 + Size) > 0x460a0000) && (DVDAddress32 + Size) < 0x460a0008) ||
+			      (DVDAddress32 > 0x7ed40000 && DVDAddress32 < 0x7ed40008) ||
+			      (((DVDAddress32 + Size) > 0x7ed40000) && (DVDAddress32 + Size) < 0x7ed40008)))
 			{
 				WARN_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: trying to read out of bounds @ %x", DVDAddress32);
 				m_ErrorStatus = ERROR_READY | ERROR_BLOCK_OOB;
@@ -317,7 +314,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				PanicAlertT("Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
 				Size = _BufferOutSize;
 			}
-			if(!VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
+			if (!VolumeHandler::RAWReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
 			{
 				PanicAlertT("DVDLowUnencryptedRead - Fatal Error: failed to read from volume");
 			}
@@ -339,18 +336,17 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case DVDLowSeek:
 		{
 			u64 DVDAddress = Memory::Read_U32(_BufferIn + 0x4) << 2;
-			const char *pFilename = NULL;
+
 			if (m_pFileSystem)
-				pFilename = m_pFileSystem->GetFileName(DVDAddress);
-			if (pFilename != NULL)
 			{
+				const std::string filename = m_pFileSystem->GetFileName(DVDAddress);
+
 				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: %s (0x%" PRIx64 ") - (DVDAddr: 0x%" PRIx64 ")",
-					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress);
+					filename.c_str(), m_pFileSystem->GetFileSize(filename), DVDAddress);
 			}
 			else
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: file unknown - (DVDAddr: 0x%" PRIx64 ")",
-					DVDAddress);
+				ERROR_LOG(WII_IPC_DVD, "Filesystem is invalid.");
 			}
 		}
 		break;
@@ -453,8 +449,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 {
-	u32 BufferIn	= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 Command		= Memory::Read_U32(BufferIn) >> 24;
+	u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 Command  = Memory::Read_U32(BufferIn) >> 24;
 
 	// Hacks below
 
@@ -468,27 +464,24 @@ int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 		// More than ~1150K "bytes / sec" hangs NSMBWii on boot.
 		// Less than ~800K "bytes / sec" hangs DKCR randomly (ok, probably not true)
 		return SystemTimers::GetTicksPerSecond() / 975000 * Size;
-		break;
 	}
 
 	case DVDLowClearCoverInterrupt:
 		// Less than ~1/155th of a second hangs Oregon Trail at "loading wheel".
 		// More than ~1/140th of a second hangs Resident Evil Archives: Resident Evil Zero.
 		return SystemTimers::GetTicksPerSecond() / 146;
-		break;
 
-//	case DVDLowAudioBufferConfig:
-//	case DVDLowInquiry:
-//	case DVDLowReadDiskID:
-//	case DVDLowWaitForCoverClose:
-//	case DVDLowGetCoverReg:
-//	case DVDLowGetCoverStatus:
-//	case DVDLowReset:
-//	case DVDLowClosePartition:
+	// case DVDLowAudioBufferConfig:
+	// case DVDLowInquiry:
+	// case DVDLowReadDiskID:
+	// case DVDLowWaitForCoverClose:
+	// case DVDLowGetCoverReg:
+	// case DVDLowGetCoverStatus:
+	// case DVDLowReset:
+	// case DVDLowClosePartition:
 	default:
 		// random numbers here!
 		// More than ~1/2000th of a second hangs DKCR with DSP HLE, maybe.
 		return SystemTimers::GetTicksPerSecond() / 15000;
-		break;
 	}
 }

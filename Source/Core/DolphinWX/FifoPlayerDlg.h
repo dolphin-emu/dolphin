@@ -2,15 +2,30 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __FIFO_PLAYER_DLG_h__
-#define __FIFO_PLAYER_DLG_h__
+#pragma once
 
+#include <cstddef>
 #include <vector>
-#include <wx/wx.h>
-#include <wx/notebook.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/string.h>
 
+#include "Common/CommonTypes.h"
+
+class wxButton;
+class wxCheckBox;
+class wxCommandEvent;
+class wxEvent;
+class wxEvtHandler;
+class wxListBox;
+class wxNotebook;
+class wxPaintEvent;
+class wxPanel;
 class wxSpinCtrl;
 class wxSpinEvent;
+class wxStaticText;
+class wxTextCtrl;
+class wxWindow;
 
 class FifoPlayerDlg : public wxDialog
 {
@@ -57,7 +72,7 @@ private:
 	wxString CreateRecordingFifoSizeLabel() const;
 	wxString CreateRecordingMemSizeLabel() const;
 	wxString CreateRecordingFrameCountLabel() const;
-	wxString CreateIntegerLabel(int size, const wxString& label) const;
+	wxString CreateIntegerLabel(size_t size, const wxString& label) const;
 
 	bool GetSaveButtonEnabled() const;
 
@@ -116,4 +131,3 @@ private:
 
 	s32 m_FramesToRecord;
 };
-#endif

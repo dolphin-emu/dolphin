@@ -2,14 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 //#define WIIMOTE_SPEAKER_DUMP
 #ifdef WIIMOTE_SPEAKER_DUMP
+#include <cstdlib>
 #include <fstream>
-#include "WaveFile.h"
-#include <stdlib.h>
-#include "FileUtil.h"
+#include "AudioCommon/WaveFile.h"
+#include "Common/FileUtil.h"
 #endif
 
 namespace WiimoteEmu
@@ -42,7 +42,8 @@ static s32 av_clip(s32 a, s32 amin, s32 amax)
 
 static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, u8 nibble)
 {
-	if(!s.step) {
+	if (!s.step)
+	{
 		s.predictor = 0;
 		s.step = 0;
 	}
@@ -85,7 +86,6 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 	}
 
 #ifdef WIIMOTE_SPEAKER_DUMP
-	std::stringstream name;
 	static int num = 0;
 
 	if (num == 0)

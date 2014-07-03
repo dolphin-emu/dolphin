@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef HLE_OS_H
-#define HLE_OS_H
+#pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace HLE_OS
 {
@@ -13,5 +12,3 @@ namespace HLE_OS
 	void HLE_write_console();
 	void HLE_OSPanic();
 }
-
-#endif

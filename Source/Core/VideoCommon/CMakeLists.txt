@@ -35,16 +35,13 @@ set(SRCS	BPFunctions.cpp
 			VideoConfig.cpp
 			VideoState.cpp
 			XFMemory.cpp
-			XFStructs.cpp
-			memcpy_amd.cpp)
+			XFStructs.cpp)
 set(LIBS core png)
 
-if(NOT _M_GENERIC)
-	set(SRCS ${SRCS}	TextureDecoder_x64.cpp
-						DLCache_x64.cpp)
+if(_M_X86)
+	set(SRCS ${SRCS}	TextureDecoder_x64.cpp)
 else()
-	set(SRCS ${SRCS}	TextureDecoder_Generic.cpp
-						DLCache_Generic.cpp)
+	set(SRCS ${SRCS}	TextureDecoder_Generic.cpp)
 endif()
 if(NOT ${CL} STREQUAL CL-NOTFOUND)
 	list(APPEND LIBS ${CL})

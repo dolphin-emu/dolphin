@@ -2,12 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __GECKOCODECONFIG_h__
-#define __GECKOCODECONFIG_h__
+#pragma once
 
-#include "GeckoCode.h"
+#include "Common/IniFile.h"
 
-#include "IniFile.h"
+#include "Core/GeckoCode.h"
 
 namespace Gecko
 {
@@ -16,5 +15,3 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes);
 
 };
-
-#endif

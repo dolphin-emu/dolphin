@@ -1,24 +1,25 @@
-#ifndef ALDEVICELIST_H
-#define ALDEVICELIST_H
+#pragma once
 
-#include "CommonTypes.h"
+#include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
+
 #ifdef _WIN32
 #pragma warning(disable: 4786)  //disable warning "identifier was truncated to
 								//'255' characters in the browser information"
 #endif
-#include <vector>
-#include <string>
 
 using namespace std;
 
 typedef struct
 {
-	string			strDeviceName;
-	s32				iMajorVersion;
-	s32				iMinorVersion;
-	u32	uiSourceCount;
-	vector<string>	*pvstrExtensions;
-	bool			bSelected;
+	string          strDeviceName;
+	s32             iMajorVersion;
+	s32             iMinorVersion;
+	u32             uiSourceCount;
+	vector<string>* pvstrExtensions;
+	bool            bSelected;
 } ALDEVICEINFO, *LPALDEVICEINFO;
 
 class ALDeviceList
@@ -47,5 +48,3 @@ public:
 private:
 	u32 GetMaxNumSources();
 };
-
-#endif // ALDEVICELIST_H

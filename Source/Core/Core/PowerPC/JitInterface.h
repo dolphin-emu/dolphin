@@ -2,8 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "ChunkFile.h"
-#include "CPUCoreBase.h"
+#pragma once
+
+#include <string>
+#include "Common/ChunkFile.h"
+#include "Core/PowerPC/CPUCoreBase.h"
 
 namespace JitInterface
 {
@@ -14,7 +17,7 @@ namespace JitInterface
 	CPUCoreBase *GetCore();
 
 	// Debugging
-	void WriteProfileResults(const char *filename);
+	void WriteProfileResults(const std::string& filename);
 
 	// Memory Utilities
 	bool IsInCodeSpace(u8 *ptr);

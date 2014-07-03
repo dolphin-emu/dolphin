@@ -15,18 +15,19 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "FPURoundMode.h"
+#include "Common/CommonTypes.h"
+#include "Common/FPURoundMode.h"
 
 // Generic, do nothing
 namespace FPURoundMode
 {
-	void SetRoundMode(u32 mode)
+	void SetRoundMode(int mode)
 	{
 	}
-	void SetPrecisionMode(u32 mode)
+	void SetPrecisionMode(PrecisionMode mode)
 	{
 	}
-	void SetSIMDMode(u32 mode, u32 nonIEEEMode)
+	void SetSIMDMode(int rounding_mode, bool non_ieee_mode)
 	{
 	}
 	void SaveSIMDState()

@@ -2,26 +2,30 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "Timer.h"
-#include "State.h"
-#include "Core.h"
-#include "ConfigManager.h"
-#include "StringUtil.h"
-#include "Thread.h"
-#include "CoreTiming.h"
-#include "Movie.h"
-#include "HW/Wiimote.h"
-#include "HW/DSP.h"
-#include "HW/HW.h"
-#include "HW/CPU.h"
-#include "PowerPC/JitCommon/JitBase.h"
-#include "VideoBackendBase.h"
-
 #include <lzo/lzo1x.h>
-#include "HW/Memmap.h"
-#include "HW/VideoInterface.h"
-#include "HW/SystemTimers.h"
+
+#include "Common/Common.h"
+#include "Common/Event.h"
+#include "Common/StdMutex.h"
+#include "Common/StdThread.h"
+#include "Common/StringUtil.h"
+#include "Common/Timer.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/State.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/HW.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace State
 {
@@ -45,7 +49,7 @@ static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
 static std::string g_last_filename;
 
-static CallbackFunc g_onAfterLoadCb = NULL;
+static CallbackFunc g_onAfterLoadCb = nullptr;
 
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
@@ -59,7 +63,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 21;
+static const u32 STATE_VERSION = 27;
 
 enum
 {
@@ -129,7 +133,7 @@ void SaveToBuffer(std::vector<u8>& buffer)
 {
 	bool wasUnpaused = Core::PauseAndLock(true);
 
-	u8* ptr = NULL;
+	u8* ptr = nullptr;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 
 	DoState(p);
@@ -182,9 +186,10 @@ std::map<double, int> GetSavedStates()
 	std::map<double, int> m;
 	for (int i = 1; i <= (int)NUM_STATES; i++)
 	{
-		if (File::Exists(MakeStateFilename(i)))
+		std::string filename = MakeStateFilename(i);
+		if (File::Exists(filename))
 		{
-			if (ReadHeader(MakeStateFilename(i), header))
+			if (ReadHeader(filename, header))
 			{
 				double d = Common::Timer::GetDoubleTime() - header.time;
 				// increase time until unique value is obtained
@@ -232,7 +237,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 	}
 
 	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
-		Movie::SaveRecording((filename + ".dtm").c_str());
+		Movie::SaveRecording(filename + ".dtm");
 	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
 		File::Delete(filename + ".dtm");
 
@@ -252,7 +257,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 	f.WriteArray(&header, 1);
 
-	if (0 != header.size)	// non-zero header size means the state is compressed
+	if (header.size != 0) // non-zero header size means the state is compressed
 	{
 		lzo_uint i = 0;
 		while (true)
@@ -282,13 +287,12 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 			i += cur_len;
 		}
 	}
-	else	// uncompressed
+	else // uncompressed
 	{
 		f.WriteBytes(buffer_data, buffer_size);
 	}
 
-	Core::DisplayMessage(StringFromFormat("Saved State to %s",
-		filename.c_str()).c_str(), 2000);
+	Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
 	g_compressAndDumpStateSyncEvent.Set();
 }
 
@@ -298,7 +302,7 @@ void SaveAs(const std::string& filename, bool wait)
 	bool wasUnpaused = Core::PauseAndLock(true);
 
 	// Measure the size of the buffer.
-	u8 *ptr = NULL;
+	u8 *ptr = nullptr;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 	DoState(p);
 	const size_t buffer_size = reinterpret_cast<size_t>(ptr);
@@ -338,7 +342,7 @@ void SaveAs(const std::string& filename, bool wait)
 	Core::PauseAndLock(false, wasUnpaused);
 }
 
-bool ReadHeader(const std::string filename, StateHeader& header)
+bool ReadHeader(const std::string& filename, StateHeader& header)
 {
 	Flush();
 	File::IOFile f(filename, "rb");
@@ -374,7 +378,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 
 	std::vector<u8> buffer;
 
-	if (0 != header.size)	// non-zero size means the state is compressed
+	if (header.size != 0) // non-zero size means the state is compressed
 	{
 		Core::DisplayMessage("Decompressing State...", 500);
 
@@ -390,7 +394,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 				break;
 
 			f.ReadBytes(out, cur_len);
-			const int res = lzo1x_decompress(out, cur_len, &buffer[i], &new_len, NULL);
+			const int res = lzo1x_decompress(out, cur_len, &buffer[i], &new_len, nullptr);
 			if (res != LZO_E_OK)
 			{
 				// This doesn't seem to happen anymore.
@@ -402,7 +406,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 			i += new_len;
 		}
 	}
-	else	// uncompressed
+	else // uncompressed
 	{
 		const size_t size = (size_t)(f.GetSize() - sizeof(StateHeader));
 		buffer.resize(size);
@@ -420,18 +424,11 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 
 void LoadAs(const std::string& filename)
 {
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		return;
+
 	// Stop the core while we load the state
 	bool wasUnpaused = Core::PauseAndLock(true);
-
-#if defined _DEBUG && defined _WIN32
-	// we use _CRTDBG_DELAY_FREE_MEM_DF (as a speed hack?),
-	// but it was causing us to leak gigantic amounts of memory here,
-	// enough that only a few savestates could be loaded before crashing,
-	// so let's disable it temporarily.
-	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-	if (g_loadDepth == 0)
-		_CrtSetDbgFlag(tmpflag & ~_CRTDBG_DELAY_FREE_MEM_DF);
-#endif
 
 	g_loadDepth++;
 
@@ -441,7 +438,7 @@ void LoadAs(const std::string& filename)
 		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 		SaveToBuffer(g_undo_load_buffer);
 		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-			Movie::SaveRecording((File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm").c_str());
+			Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
 		else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) +"undo.dtm"))
 			File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
 	}
@@ -468,9 +465,9 @@ void LoadAs(const std::string& filename)
 	{
 		if (loadedSuccessfully)
 		{
-			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()).c_str(), 2000);
+			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
 			if (File::Exists(filename + ".dtm"))
-				Movie::LoadInput((filename + ".dtm").c_str());
+				Movie::LoadInput(filename + ".dtm");
 			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())
 				Movie::EndPlayInput(false);
 		}
@@ -489,12 +486,6 @@ void LoadAs(const std::string& filename)
 		g_onAfterLoadCb();
 
 	g_loadDepth--;
-
-#if defined _DEBUG && defined _WIN32
-	// restore _CRTDBG_DELAY_FREE_MEM_DF
-	if (g_loadDepth == 0)
-		_CrtSetDbgFlag(tmpflag);
-#endif
 
 	// resume dat core
 	Core::PauseAndLock(false, wasUnpaused);
@@ -519,7 +510,7 @@ void VerifyAt(const std::string& filename)
 		DoState(p);
 
 		if (p.GetMode() == PointerWrap::MODE_VERIFY)
-			Core::DisplayMessage(StringFromFormat("Verified state at %s", filename.c_str()).c_str(), 2000);
+			Core::DisplayMessage(StringFromFormat("Verified state at %s", filename.c_str()), 2000);
 		else
 			Core::DisplayMessage("Unable to Verify : Can't verify state from other revisions !", 4000);
 	}
@@ -620,7 +611,7 @@ void UndoLoadState()
 		{
 			LoadFromBuffer(g_undo_load_buffer);
 			if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-				Movie::LoadInput((File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm").c_str());
+				Movie::LoadInput(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
 		}
 		else
 		{
@@ -636,7 +627,7 @@ void UndoLoadState()
 // Load the state that the last save state overwritten on
 void UndoSaveState()
 {
-		LoadAs((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str());
+	LoadAs(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav");
 }
 
 } // namespace State

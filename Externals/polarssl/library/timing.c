@@ -29,7 +29,7 @@
 
 #include "polarssl/timing.h"
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
 #include <windows.h>
 #include <winbase.h>
@@ -172,14 +172,15 @@ unsigned long hardclock( void )
 }
 #endif
 
-#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(_MSC_VER)
+#if !defined(POLARSSL_HAVE_HARDCLOCK) && defined(_MSC_VER) && \
+    !defined(EFIX64) && !defined(EFI32)
 
 #define POLARSSL_HAVE_HARDCLOCK
 
 unsigned long hardclock( void )
 {
     LARGE_INTEGER offset;
-    
+
 	QueryPerformanceCounter( &offset );
 
 	return (unsigned long)( offset.QuadPart );
@@ -211,7 +212,7 @@ unsigned long hardclock( void )
 
 volatile int alarmed = 0;
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
 unsigned long get_timer( struct hr_time *val, int reset )
 {

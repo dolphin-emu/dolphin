@@ -1,13 +1,16 @@
-#ifndef _CIFACE_DINPUT_KBM_H_
-#define _CIFACE_DINPUT_KBM_H_
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#include "../Device.h"
+#pragma once
 
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <Windows.h>
 #include <dinput.h>
+#include <windows.h>
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {
@@ -21,8 +24,8 @@ class KeyboardMouse : public Core::Device
 private:
 	struct State
 	{
-		BYTE			keyboard[256];
-		DIMOUSESTATE2	mouse;
+		BYTE          keyboard[256];
+		DIMOUSESTATE2 mouse;
 		struct
 		{
 			float x, y;
@@ -98,16 +101,14 @@ public:
 	std::string GetSource() const;
 
 private:
-	const LPDIRECTINPUTDEVICE8	m_kb_device;
-	const LPDIRECTINPUTDEVICE8	m_mo_device;
+	const LPDIRECTINPUTDEVICE8 m_kb_device;
+	const LPDIRECTINPUTDEVICE8 m_mo_device;
 
-	DWORD				m_last_update;
-	State				m_state_in;
-	unsigned char		m_state_out[3];	// NUM CAPS SCROLL
-	bool				m_current_state_out[3];	// NUM CAPS SCROLL
+	DWORD         m_last_update;
+	State         m_state_in;
+	unsigned char m_state_out[3];         // NUM CAPS SCROLL
+	bool          m_current_state_out[3]; // NUM CAPS SCROLL
 };
 
 }
 }
-
-#endif

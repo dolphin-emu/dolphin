@@ -2,17 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SWStatistics.h"
+#include "VideoBackends/Software/SWStatistics.h"
 
 SWStatistics swstats;
-
-template <class T>
-void Xchg(T& a, T&b)
-{
-	T c = a;
-	a = b;
-	b = c;
-}
 
 SWStatistics::SWStatistics()
 {

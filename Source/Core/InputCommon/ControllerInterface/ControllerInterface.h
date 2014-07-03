@@ -1,26 +1,27 @@
-#ifndef _DEVICEINTERFACE_H_
-#define _DEVICEINTERFACE_H_
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#include <vector>
-#include <string>
-#include <sstream>
-#include <map>
+#pragma once
+
 #include <algorithm>
+#include <map>
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include "Common.h"
-#include "Thread.h"
-#include "ExpressionParser.h"
-#include "Device.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
+#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/ExpressionParser.h"
 
 // enable disable sources
 #ifdef _WIN32
 	#define CIFACE_USE_XINPUT
 	#define CIFACE_USE_DINPUT
-	#define CIFACE_USE_SDL
 #endif
 #if defined(HAVE_X11) && HAVE_X11
 	#define CIFACE_USE_XLIB
-	#define CIFACE_USE_SDL
 	#if defined(HAVE_X11_XINPUT2) && HAVE_X11_XINPUT2
 		#define CIFACE_USE_X11_XINPUT2
 	#endif
@@ -31,28 +32,31 @@
 #ifdef ANDROID
 	#define CIFACE_USE_ANDROID
 #endif
+#if defined(HAVE_SDL) && HAVE_SDL
+	#define CIFACE_USE_SDL
+#endif
 
 using namespace ciface::Core;
 
 //
-//		ControllerInterface
+// ControllerInterface
 //
-// some crazy shit I made to control different device inputs and outputs
-// from lots of different sources, hopefully more easily
+// Some crazy shit I made to control different device inputs and outputs
+// from lots of different sources, hopefully more easily.
 //
 class ControllerInterface : public DeviceContainer
 {
 public:
 
 	//
-	//		ControlReference
+	// ControlReference
 	//
-	// these are what you create to actually use the inputs, InputReference or OutputReference
+	// These are what you create to actually use the inputs, InputReference or OutputReference.
 	//
-	// after being bound to devices and controls with ControllerInterface::UpdateReference,
-	//		each one can link to multiple devices and controls
-	//		when you change a ControlReference's expression,
-	//		you must use ControllerInterface::UpdateReference on it to rebind controls
+	// After being bound to devices and controls with ControllerInterface::UpdateReference,
+	// each one can link to multiple devices and controls
+	// when you change a ControlReference's expression,
+	// you must use ControllerInterface::UpdateReference on it to rebind controls
 	//
 	class ControlReference
 	{
@@ -62,15 +66,17 @@ public:
 		virtual Device::Control* Detect(const unsigned int ms, Device* const device) = 0;
 
 		ControlState range;
-		std::string			expression;
-		const bool			is_input;
+		std::string  expression;
+		const bool   is_input;
 		ciface::ExpressionParser::ExpressionParseStatus parse_error;
 
-		virtual ~ControlReference() {
+		virtual ~ControlReference()
+		{
 			delete parsed_expression;
 		}
 
-		int BoundCount() {
+		int BoundCount()
+		{
 			if (parsed_expression)
 				return parsed_expression->num_controls;
 			else
@@ -78,37 +84,37 @@ public:
 		}
 
 	protected:
-		ControlReference(const bool _is_input) : range(1), is_input(_is_input), parsed_expression(NULL) {}
+		ControlReference(const bool _is_input) : range(1), is_input(_is_input), parsed_expression(nullptr) {}
 		ciface::ExpressionParser::Expression *parsed_expression;
 	};
 
 	//
-	//		InputReference
+	// InputReference
 	//
-	// control reference for inputs
+	// Control reference for inputs
 	//
 	class InputReference : public ControlReference
 	{
 	public:
 		InputReference() : ControlReference(true) {}
-		ControlState State(const ControlState state);
-		Device::Control* Detect(const unsigned int ms, Device* const device);
+		ControlState State(const ControlState state) override;
+		Device::Control* Detect(const unsigned int ms, Device* const device) override;
 	};
 
 	//
-	//		OutputReference
+	// OutputReference
 	//
-	// control reference for outputs
+	// Control reference for outputs
 	//
 	class OutputReference : public ControlReference
 	{
 	public:
 		OutputReference() : ControlReference(false) {}
-		ControlState State(const ControlState state);
-		Device::Control* Detect(const unsigned int ms, Device* const device);
+		ControlState State(const ControlState state) override;
+		Device::Control* Detect(const unsigned int ms, Device* const device) override;
 	};
 
-	ControllerInterface() : m_is_init(false), m_hwnd(NULL) {}
+	ControllerInterface() : m_is_init(false), m_hwnd(nullptr) {}
 
 	void SetHwnd(void* const hwnd);
 	void Initialize();
@@ -122,10 +128,8 @@ public:
 	std::recursive_mutex update_lock;
 
 private:
-	bool					m_is_init;
-	void*					m_hwnd;
+	bool   m_is_init;
+	void*  m_hwnd;
 };
 
 extern ControllerInterface g_controller_interface;
-
-#endif

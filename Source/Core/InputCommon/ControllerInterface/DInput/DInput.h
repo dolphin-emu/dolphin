@@ -1,17 +1,19 @@
-#ifndef _CIFACE_DINPUT_H_
-#define _CIFACE_DINPUT_H_
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#include "../Device.h"
+#pragma once
 
 #define DINPUT_SOURCE_NAME "DInput"
 
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <Windows.h>
 #include <dinput.h>
-
 #include <list>
+#include <windows.h>
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {
@@ -27,5 +29,3 @@ void Init(std::vector<Core::Device*>& devices, HWND hwnd);
 
 }
 }
-
-#endif

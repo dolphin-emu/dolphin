@@ -2,24 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "../../HW/SystemTimers.h"
-#include "HW/ProcessorInterface.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SystemTimers.h"
 
-#include "Jit.h"
-#include "JitRegCache.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitRegCache.h"
 
 void Jit64::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	int d = inst.RD;
 
 	switch (iIndex)
 	{
-
 	case SPR_DMAU:
 
 	case SPR_SPRG0:
@@ -46,23 +45,11 @@ void Jit64::mtspr(UGeckoInstruction inst)
 	case SPR_GQR0 + 5:
 	case SPR_GQR0 + 6:
 	case SPR_GQR0 + 7:
-		// Prevent recompiler from compiling in old quantizer values.
-		// If the value changed, destroy all blocks using this quantizer
-		// This will create a little bit of block churn, but hopefully not too bad.
-		{
-			/*
-			MOV(32, R(EAX), M(&PowerPC::ppcState.spr[iIndex]));  // Load old value
-			CMP(32, R(EAX), gpr.R(inst.RD));
-			FixupBranch skip_destroy = J_CC(CC_E, false);
-			int gqr = iIndex - SPR_GQR0;
-			ABI_CallFunctionC(ProtectFunction(&Jit64::DestroyBlocksWithFlag, 1), (u32)BLOCK_USE_GQR0 << gqr);
-			SetJumpTarget(skip_destroy);*/
-		}
+		// These are safe to do the easy way, see the bottom of this function.
 		break;
-		// TODO - break block if quantizers are written to.
+
 	default:
-		Default(inst);
-		return;
+		FALLBACK_IF(true);
 	}
 
 	// OK, this is easy.
@@ -78,7 +65,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
 void Jit64::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	int d = inst.RD;
 	switch (iIndex)
@@ -91,8 +78,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	case SPR_PMC2:
 	case SPR_PMC3:
 	case SPR_PMC4:
-		Default(inst);
-		return;
+		FALLBACK_IF(true);
 	default:
 		gpr.Lock(d);
 		gpr.BindToRegister(d, false);
@@ -105,8 +91,8 @@ void Jit64::mfspr(UGeckoInstruction inst)
 void Jit64::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
- 	// Don't interpret this, if we do we get thrown out
-	//JITDISABLE(bJITSystemRegistersOff)
+	// Don't interpret this, if we do we get thrown out
+	//JITDISABLE(bJITSystemRegistersOff);
 	if (!gpr.R(inst.RS).IsImm())
 	{
 		gpr.Lock(inst.RS);
@@ -114,8 +100,8 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	}
 	MOV(32, M(&MSR), gpr.R(inst.RS));
 	gpr.UnlockAll();
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
+	gpr.Flush();
+	fpr.Flush();
 
 	// If some exceptions are pending and EE are now enabled, force checking
 	// external exceptions when going out of mtmsr in order to execute delayed
@@ -137,7 +123,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	SetJumpTarget(noExceptionsPending);
 	SetJumpTarget(eeDisabled);
 
-	WriteExit(js.compilerPC + 4, 0);
+	WriteExit(js.compilerPC + 4);
 
 	js.firstFPInstructionFound = false;
 }
@@ -145,7 +131,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 void Jit64::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	//Privileged?
 	gpr.Lock(inst.RD);
 	gpr.BindToRegister(inst.RD, false, true);
@@ -156,14 +142,14 @@ void Jit64::mfmsr(UGeckoInstruction inst)
 void Jit64::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	mfspr(inst);
 }
 
 void Jit64::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	// USES_CR
 	int d = inst.RD;
 	gpr.Lock(d);
@@ -183,7 +169,7 @@ void Jit64::mfcr(UGeckoInstruction inst)
 void Jit64::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	// USES_CR
 	u32 crm = inst.CRM;
@@ -222,7 +208,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 void Jit64::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	// USES_CR
 	if (inst.CRFS != inst.CRFD)
@@ -235,7 +221,7 @@ void Jit64::mcrf(UGeckoInstruction inst)
 void Jit64::mcrxr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	// USES_CR
 
@@ -251,7 +237,7 @@ void Jit64::mcrxr(UGeckoInstruction inst)
 void Jit64::crXXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	_dbg_assert_msg_(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
 	// USES_CR
@@ -274,42 +260,42 @@ void Jit64::crXXX(UGeckoInstruction inst)
 		SHR(8, R(ECX), Imm8(shiftB));
 
 	// Compute combined bit
-	switch(inst.SUBOP10)
+	switch (inst.SUBOP10)
 	{
-	case 33:	// crnor
+	case 33:  // crnor
 		OR(8, R(EAX), R(ECX));
 		NOT(8, R(EAX));
 		break;
 
-	case 129:	// crandc
+	case 129: // crandc
 		NOT(8, R(ECX));
 		AND(8, R(EAX), R(ECX));
 		break;
 
-	case 193:	// crxor
+	case 193: // crxor
 		XOR(8, R(EAX), R(ECX));
 		break;
 
-	case 225:	// crnand
+	case 225: // crnand
 		AND(8, R(EAX), R(ECX));
 		NOT(8, R(EAX));
 		break;
 
-	case 257:	// crand
+	case 257: // crand
 		AND(8, R(EAX), R(ECX));
 		break;
 
-	case 289:	// creqv
+	case 289: // creqv
 		XOR(8, R(EAX), R(ECX));
 		NOT(8, R(EAX));
 		break;
 
-	case 417:	// crorc
+	case 417: // crorc
 		NOT(8, R(ECX));
 		OR(8, R(EAX), R(ECX));
 		break;
 
-	case 449:	// cror
+	case 449: // cror
 		OR(8, R(EAX), R(ECX));
 		break;
 	}

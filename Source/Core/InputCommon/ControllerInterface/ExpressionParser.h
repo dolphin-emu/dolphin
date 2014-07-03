@@ -1,9 +1,11 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#ifndef _EXPRESSIONPARSER_H_
-#define _EXPRESSIONPARSER_H_
+#pragma once
 
 #include <string>
-#include "Device.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {
@@ -45,7 +47,7 @@ class ExpressionNode;
 class Expression
 {
 public:
-	Expression() : node(NULL) {}
+	Expression() : node(nullptr) {}
 	Expression(ExpressionNode *node);
 	~Expression();
 	ControlState GetValue();
@@ -65,5 +67,3 @@ ExpressionParseStatus ParseExpression(std::string expr, ControlFinder &finder, E
 
 }
 }
-
-#endif

@@ -2,16 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_NET_H_
-#define _WII_IPC_HLE_DEVICE_NET_H_
+#pragma once
 
-#include "WII_IPC_HLE_Device.h"
+#include "Common/FileUtil.h"
+#include "Common/Timer.h"
+
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
 #endif
-#include "Timer.h"
-#include "FileUtil.h"
 
 // data layout of the network configuration file (/shared2/sys/net/02/config.dat)
 // needed for /dev/net/ncd/manage
@@ -23,7 +23,7 @@ struct netcfg_proxy_t
 	u8 padding_1[2];
 	u8 proxy_name[255];
 	u8 padding_2;
-	u16 proxy_port;			// 0-34463
+	u16 proxy_port;        // 0-34463
 	u8 proxy_username[32];
 	u8 padding_3;
 	u8 proxy_password[32];
@@ -33,40 +33,40 @@ struct netcfg_connection_t
 {
 	enum
 	{
-		WIRED_IF			=   1, // 0: wifi 1: wired
-		DNS_DHCP			=   2, // 0: manual 1: DHCP
-		IP_DHCP				=   4, // 0: manual 1: DHCP
-		USE_PROXY			=  16,
-		CONNECTION_TEST_OK	=  32,
-		CONNECTION_SELECTED	= 128
+		WIRED_IF            =   1, // 0: wifi 1: wired
+		DNS_DHCP            =   2, // 0: manual 1: DHCP
+		IP_DHCP             =   4, // 0: manual 1: DHCP
+		USE_PROXY           =  16,
+		CONNECTION_TEST_OK  =  32,
+		CONNECTION_SELECTED = 128
 	};
 
 	enum
 	{
-		OPEN		= 0,
-		WEP64		= 1,
-		WEP128		= 2,
-		WPA_TKIP	= 4,
-		WPA2_AES	= 5,
-		WPA_AES		= 6
+		OPEN     = 0,
+		WEP64    = 1,
+		WEP128   = 2,
+		WPA_TKIP = 4,
+		WPA2_AES = 5,
+		WPA_AES  = 6
 	};
 
 	enum status
 	{
-		LINK_BUSY = 1,
-		LINK_NONE,
-		LINK_WIRED,
-		LINK_WIFI_DOWN,
-		LINK_WIFI_UP
+		LINK_BUSY      = 1,
+		LINK_NONE      = 2,
+		LINK_WIRED     = 3,
+		LINK_WIFI_DOWN = 4,
+		LINK_WIFI_UP   = 5
 	};
 
 	enum
 	{
-		PERM_NONE		= 0,
-		PERM_SEND_MAIL	= 1,
-		PERM_RECV_MAIL	= 2,
-		PERM_DOWNLOAD	= 4,
-		PERM_ALL		= PERM_SEND_MAIL | PERM_RECV_MAIL | PERM_DOWNLOAD
+		PERM_NONE      = 0,
+		PERM_SEND_MAIL = 1,
+		PERM_RECV_MAIL = 2,
+		PERM_DOWNLOAD  = 4,
+		PERM_ALL       = PERM_SEND_MAIL | PERM_RECV_MAIL | PERM_DOWNLOAD
 	};
 
 	// settings common to both wired and wireless connections
@@ -92,8 +92,8 @@ struct netcfg_connection_t
 	u8 padding_7[3];
 	u8 encryption;
 	u8 padding_8[3];
-	u8 key_length;		// length of key in bytes.  0x00 for WEP64 and WEP128.
-	u8 unknown;			// 0x00 or 0x01 toggled with a WPA-PSK (TKIP) and with a WEP entered with hex instead of ascii.
+	u8 key_length;      // length of key in bytes.  0x00 for WEP64 and WEP128.
+	u8 unknown;         // 0x00 or 0x01 toggled with a WPA-PSK (TKIP) and with a WEP entered with hex instead of ascii.
 	u8 padding_9;
 	u8 key[64];         // encryption key; for WEP, key is stored 4 times (20 bytes for WEP64 and 52 bytes for WEP128) then padded with 0x00
 	u8 padding_10[236];
@@ -119,36 +119,36 @@ struct network_config_t
 
 enum nwc24_err_t
 {
-	WC24_OK 					=   0,
-	WC24_ERR_FATAL				=  -1,
-	WC24_ERR_ID_NONEXISTANCE	= -34,
-	WC24_ERR_ID_GENERATED 		= -35,
-	WC24_ERR_ID_REGISTERED 		= -36,
-	WC24_ERR_ID_NOT_REGISTERED 	= -44,
+	WC24_OK                    =   0,
+	WC24_ERR_FATAL             =  -1,
+	WC24_ERR_ID_NONEXISTANCE   = -34,
+	WC24_ERR_ID_GENERATED      = -35,
+	WC24_ERR_ID_REGISTERED     = -36,
+	WC24_ERR_ID_NOT_REGISTERED = -44,
 };
 
 struct nwc24_config_t
 {
 	enum
 	{
-		NWC24_IDCS_INITIAL = 0,
-		NWC24_IDCS_GENERATED = 1,
+		NWC24_IDCS_INITIAL    = 0,
+		NWC24_IDCS_GENERATED  = 1,
 		NWC24_IDCS_REGISTERED = 2
 	};
 
 	enum
 	{
-		URL_COUNT = 0x05,
-		MAX_URL_LENGTH = 0x80,
-		MAX_EMAIL_LENGTH = 0x40,
+		URL_COUNT           = 0x05,
+		MAX_URL_LENGTH      = 0x80,
+		MAX_EMAIL_LENGTH    = 0x40,
 		MAX_PASSWORD_LENGTH = 0x20,
 	};
 
-	u32 magic;		/* 'WcCf' 0x57634366 */
-	u32 _unk_04;	/* must be 8 */
+	u32 magic;      /* 'WcCf' 0x57634366 */
+	u32 _unk_04;    /* must be 8 */
 	u64 nwc24_id;
 	u32 id_generation;
-	u32 creation_stage;	/* 0==not_generated;1==generated;2==registered; */
+	u32 creation_stage; /* 0==not_generated;1==generated;2==registered; */
 	char email[MAX_EMAIL_LENGTH];
 	char paswd[MAX_PASSWORD_LENGTH];
 	char mlchkid[0x24];
@@ -198,7 +198,7 @@ public:
 		SetEnableBooting(0);
 		SetEmail("@wii.com");
 
-		for(i=0; i<nwc24_config_t::URL_COUNT; i++)
+		for (i=0; i<nwc24_config_t::URL_COUNT; i++)
 		{
 			strncpy(config.http_urls[i], urls[i], nwc24_config_t::MAX_URL_LENGTH);
 		}
@@ -231,7 +231,7 @@ public:
 			else
 			{
 				s32 config_error = CheckNwc24Config();
-				if(config_error)
+				if (config_error)
 					ERROR_LOG(WII_IPC_WC24, "There is an error in the config for for WC24: %d", config_error);
 			}
 		}
@@ -255,7 +255,7 @@ public:
 
 	s32 CheckNwc24Config(void)
 	{
-		if (Magic() != 0x57634366)	/* 'WcCf' magic */
+		if (Magic() != 0x57634366) /* 'WcCf' magic */
 		{
 			ERROR_LOG(WII_IPC_WC24, "Magic mismatch");
 			return -14;
@@ -394,9 +394,9 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);
-	virtual bool IOCtl(u32 _CommandAddress);
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual bool IOCtl(u32 _CommandAddress) override;
 
 private:
 	enum
@@ -433,8 +433,8 @@ private:
 		MODEL_ELSE = 7
 	};
 
-	u8 GetAreaCode(const char * area);
-	u8 GetHardwareModel(const char * model);
+	u8 GetAreaCode(const std::string& area);
+	u8 GetHardwareModel(const std::string& model);
 
 	s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model, u8 area_code);
 
@@ -456,14 +456,14 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_kd_time()
 	{}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce)
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override
 	{
 		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
 		if (!_bForce)
@@ -471,11 +471,11 @@ public:
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress)
+	virtual bool IOCtl(u32 _CommandAddress) override
 	{
-		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
-		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+		u32 Parameter = Memory::Read_U32(_CommandAddress + 0x0C);
+		u32 BufferIn  = Memory::Read_U32(_CommandAddress + 0x10);
+		u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 
 		u32 result = 0;
 		u32 common_result = 0;
@@ -521,11 +521,11 @@ public:
 private:
 	enum
 	{
-		IOCTL_NW24_GET_UNIVERSAL_TIME	= 0x14,
-		IOCTL_NW24_SET_UNIVERSAL_TIME	= 0x15,
-		IOCTL_NW24_UNIMPLEMENTED		= 0x16,
-		IOCTL_NW24_SET_RTC_COUNTER		= 0x17,
-		IOCTL_NW24_GET_TIME_DIFF		= 0x18,
+		IOCTL_NW24_GET_UNIVERSAL_TIME = 0x14,
+		IOCTL_NW24_SET_UNIVERSAL_TIME = 0x15,
+		IOCTL_NW24_UNIMPLEMENTED      = 0x16,
+		IOCTL_NW24_SET_RTC_COUNTER    = 0x17,
+		IOCTL_NW24_GET_TIME_DIFF      = 0x18,
 	};
 
 	u64 rtc;
@@ -596,12 +596,12 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ip_top();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);
-	virtual bool IOCtl(u32 _CommandAddress);
-	virtual bool IOCtlV(u32 _CommandAddress);
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual bool IOCtl(u32 _CommandAddress) override;
+	virtual bool IOCtlV(u32 _CommandAddress) override;
 
-	virtual u32 Update();
+	virtual u32 Update() override;
 
 private:
 #ifdef _WIN32
@@ -620,21 +620,21 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);
-	virtual bool IOCtlV(u32 _CommandAddress);
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual bool IOCtlV(u32 _CommandAddress) override;
 
 private:
 	enum
 	{
-		IOCTLV_NCD_LOCKWIRELESSDRIVER		= 0x1,  // NCDLockWirelessDriver
-		IOCTLV_NCD_UNLOCKWIRELESSDRIVER		= 0x2,  // NCDUnlockWirelessDriver
-		IOCTLV_NCD_GETCONFIG				= 0x3,  // NCDiGetConfig
-		IOCTLV_NCD_SETCONFIG				= 0x4,  // NCDiSetConfig
-		IOCTLV_NCD_READCONFIG				= 0x5,
-		IOCTLV_NCD_WRITECONFIG				= 0x6,
-		IOCTLV_NCD_GETLINKSTATUS			= 0x7,  // NCDGetLinkStatus
-		IOCTLV_NCD_GETWIRELESSMACADDRESS	= 0x8,  // NCDGetWirelessMacAddress
+		IOCTLV_NCD_LOCKWIRELESSDRIVER    = 0x1,  // NCDLockWirelessDriver
+		IOCTLV_NCD_UNLOCKWIRELESSDRIVER  = 0x2,  // NCDUnlockWirelessDriver
+		IOCTLV_NCD_GETCONFIG             = 0x3,  // NCDiGetConfig
+		IOCTLV_NCD_SETCONFIG             = 0x4,  // NCDiSetConfig
+		IOCTLV_NCD_READCONFIG            = 0x5,
+		IOCTLV_NCD_WRITECONFIG           = 0x6,
+		IOCTLV_NCD_GETLINKSTATUS         = 0x7,  // NCDGetLinkStatus
+		IOCTLV_NCD_GETWIRELESSMACADDRESS = 0x8,  // NCDGetWirelessMacAddress
 	};
 
 	WiiNetConfig config;
@@ -648,31 +648,31 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_net_wd_command();
 
-	virtual bool Open(u32 CommandAddress, u32 Mode);
-	virtual bool Close(u32 CommandAddress, bool Force);
-	virtual bool IOCtlV(u32 CommandAddress);
+	virtual bool Open(u32 CommandAddress, u32 Mode) override;
+	virtual bool Close(u32 CommandAddress, bool Force) override;
+	virtual bool IOCtlV(u32 CommandAddress) override;
 
 private:
 	enum
 	{
-		IOCTLV_WD_GET_MODE			= 0x1001, // WD_GetMode
-		IOCTLV_WD_SET_LINKSTATE		= 0x1002, // WD_SetLinkState
-		IOCTLV_WD_GET_LINKSTATE		= 0x1003, // WD_GetLinkState
-		IOCTLV_WD_SET_CONFIG		= 0x1004, // WD_SetConfig
-		IOCTLV_WD_GET_CONFIG		= 0x1005, // WD_GetConfig
-		IOCTLV_WD_CHANGE_BEACON		= 0x1006, // WD_ChangeBeacon
-		IOCTLV_WD_DISASSOC			= 0x1007, // WD_DisAssoc
-		IOCTLV_WD_MP_SEND_FRAME		= 0x1008, // WD_MpSendFrame
-		IOCTLV_WD_SEND_FRAME		= 0x1009, // WD_SendFrame
-		IOCTLV_WD_SCAN				= 0x100a, // WD_Scan
-		IOCTLV_WD_CALL_WL			= 0x100c, // WD_CallWL
-		IOCTLV_WD_MEASURE_CHANNEL	= 0x100b, // WD_MeasureChannel
-		IOCTLV_WD_GET_LASTERROR		= 0x100d, // WD_GetLastError
-		IOCTLV_WD_GET_INFO			= 0x100e, // WD_GetInfo
-		IOCTLV_WD_CHANGE_GAMEINFO	= 0x100f, // WD_ChangeGameInfo
-		IOCTLV_WD_CHANGE_VTSF		= 0x1010, // WD_ChangeVTSF
-		IOCTLV_WD_RECV_FRAME		= 0x8000, // WD_ReceiveFrame
-		IOCTLV_WD_RECV_NOTIFICATION	= 0x8001  // WD_ReceiveNotification
+		IOCTLV_WD_GET_MODE          = 0x1001, // WD_GetMode
+		IOCTLV_WD_SET_LINKSTATE     = 0x1002, // WD_SetLinkState
+		IOCTLV_WD_GET_LINKSTATE     = 0x1003, // WD_GetLinkState
+		IOCTLV_WD_SET_CONFIG        = 0x1004, // WD_SetConfig
+		IOCTLV_WD_GET_CONFIG        = 0x1005, // WD_GetConfig
+		IOCTLV_WD_CHANGE_BEACON     = 0x1006, // WD_ChangeBeacon
+		IOCTLV_WD_DISASSOC          = 0x1007, // WD_DisAssoc
+		IOCTLV_WD_MP_SEND_FRAME     = 0x1008, // WD_MpSendFrame
+		IOCTLV_WD_SEND_FRAME        = 0x1009, // WD_SendFrame
+		IOCTLV_WD_SCAN              = 0x100a, // WD_Scan
+		IOCTLV_WD_CALL_WL           = 0x100c, // WD_CallWL
+		IOCTLV_WD_MEASURE_CHANNEL   = 0x100b, // WD_MeasureChannel
+		IOCTLV_WD_GET_LASTERROR     = 0x100d, // WD_GetLastError
+		IOCTLV_WD_GET_INFO          = 0x100e, // WD_GetInfo
+		IOCTLV_WD_CHANGE_GAMEINFO   = 0x100f, // WD_ChangeGameInfo
+		IOCTLV_WD_CHANGE_VTSF       = 0x1010, // WD_ChangeVTSF
+		IOCTLV_WD_RECV_FRAME        = 0x8000, // WD_ReceiveFrame
+		IOCTLV_WD_RECV_NOTIFICATION = 0x8001  // WD_ReceiveNotification
 	};
 
 	enum
@@ -733,5 +733,3 @@ private:
 	};
 #pragma pack(pop)
 };
-
-#endif

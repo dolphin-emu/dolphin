@@ -2,47 +2,44 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PPCDEBUGINTERFACE_H
-#define _PPCDEBUGINTERFACE_H
+#pragma once
 
 #include <string>
 
-#include "DebugInterface.h"
+#include "Common/DebugInterface.h"
 
 //wrapper between disasm control and Dolphin debugger
 
-class PPCDebugInterface : public DebugInterface
+class PPCDebugInterface final : public DebugInterface
 {
 public:
 	PPCDebugInterface(){}
-	virtual void disasm(unsigned int address, char *dest, int max_size) override;
-	virtual void getRawMemoryString(int memory, unsigned int address, char *dest, int max_size) override;
-	virtual int getInstructionSize(int /*instruction*/) override {return 4;}
-	virtual bool isAlive() override;
-	virtual bool isBreakpoint(unsigned int address) override;
-	virtual void setBreakpoint(unsigned int address) override;
-	virtual void clearBreakpoint(unsigned int address) override;
-	virtual void clearAllBreakpoints() override;
-	virtual void toggleBreakpoint(unsigned int address) override;
-	virtual bool isMemCheck(unsigned int address) override;
-	virtual void toggleMemCheck(unsigned int address) override;
-	virtual unsigned int readMemory(unsigned int address) override;
+	virtual void Disassemble(unsigned int address, char *dest, int max_size) override;
+	virtual void GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size) override;
+	virtual int GetInstructionSize(int /*instruction*/) override {return 4;}
+	virtual bool IsAlive() override;
+	virtual bool IsBreakpoint(unsigned int address) override;
+	virtual void SetBreakpoint(unsigned int address) override;
+	virtual void ClearBreakpoint(unsigned int address) override;
+	virtual void ClearAllBreakpoints() override;
+	virtual void ToggleBreakpoint(unsigned int address) override;
+	virtual void ClearAllMemChecks() override;
+	virtual bool IsMemCheck(unsigned int address) override;
+	virtual void ToggleMemCheck(unsigned int address) override;
+	virtual unsigned int ReadMemory(unsigned int address) override;
 
 	enum {
 		EXTRAMEM_ARAM = 1,
 	};
-	virtual unsigned int readExtraMemory(int memory, unsigned int address) override;
-	virtual unsigned int readInstruction(unsigned int address) override;
-	virtual unsigned int getPC() override;
-	virtual void setPC(unsigned int address) override;
-	virtual void step() override {}
-	virtual void breakNow() override;
-	virtual void runToBreakpoint() override;
-	virtual void insertBLR(unsigned int address, unsigned int value) override;
-	virtual int getColor(unsigned int address) override;
-	virtual std::string getDescription(unsigned int address) override;
-	virtual void showJitResults(u32 address) override;
+	virtual unsigned int ReadExtraMemory(int memory, unsigned int address) override;
+	virtual unsigned int ReadInstruction(unsigned int address) override;
+	virtual unsigned int GetPC() override;
+	virtual void SetPC(unsigned int address) override;
+	virtual void Step() override {}
+	virtual void BreakNow() override;
+	virtual void RunToBreakpoint() override;
+	virtual void InsertBLR(unsigned int address, unsigned int value) override;
+	virtual int GetColor(unsigned int address) override;
+	virtual std::string GetDescription(unsigned int address) override;
+	virtual void ShowJitResults(u32 address) override;
 };
-
-#endif
-

@@ -25,8 +25,7 @@
 
 #include "polarssl/config.h"
 
-#if defined(POLARSSL_PEM_C)
-
+#if defined(POLARSSL_PEM_PARSE_C) || defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
 #include "polarssl/base64.h"
 #include "polarssl/des.h"
@@ -34,14 +33,23 @@
 #include "polarssl/md5.h"
 #include "polarssl/cipher.h"
 
+#if defined(POLARSSL_MEMORY_C)
+#include "polarssl/memory.h"
+#else
+#define polarssl_malloc     malloc
+#define polarssl_free       free
+#endif
+
 #include <stdlib.h>
 
+#if defined(POLARSSL_PEM_PARSE_C)
 void pem_init( pem_context *ctx )
 {
     memset( ctx, 0, sizeof( pem_context ) );
 }
 
-#if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
+    ( defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C) )
 /*
  * Read a 16-byte hex string and convert it to binary
  */
@@ -176,21 +184,26 @@ static void pem_aes_decrypt( unsigned char aes_iv[16], unsigned int keylen,
 }
 #endif /* POLARSSL_AES_C */
 
-#endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
+#endif /* POLARSSL_MD5_C && POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_DES_C ) */
 
-int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigned char *data, const unsigned char *pwd, size_t pwdlen, size_t *use_len )
+int pem_read_buffer( pem_context *ctx, const char *header, const char *footer,
+                     const unsigned char *data, const unsigned char *pwd,
+                     size_t pwdlen, size_t *use_len )
 {
     int ret, enc;
     size_t len;
     unsigned char *buf;
     const unsigned char *s1, *s2, *end;
-#if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
+    ( defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C) )
     unsigned char pem_iv[16];
     cipher_type_t enc_alg = POLARSSL_CIPHER_NONE;
 #else
     ((void) pwd);
     ((void) pwdlen);
-#endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
+#endif /* POLARSSL_MD5_C && POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_DES_C ) */
 
     if( ctx == NULL )
         return( POLARSSL_ERR_PEM_BAD_INPUT_DATA );
@@ -220,7 +233,8 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
 
     if( memcmp( s1, "Proc-Type: 4,ENCRYPTED", 22 ) == 0 )
     {
-#if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
+    ( defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C) )
         enc++;
 
         s1 += 22;
@@ -271,7 +285,7 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
             s1 += 32;
         }
 #endif /* POLARSSL_AES_C */
-        
+
         if( enc_alg == POLARSSL_CIPHER_NONE )
             return( POLARSSL_ERR_PEM_UNKNOWN_ENC_ALG );
 
@@ -280,7 +294,8 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
         else return( POLARSSL_ERR_PEM_INVALID_DATA );
 #else
         return( POLARSSL_ERR_PEM_FEATURE_UNAVAILABLE );
-#endif /* POLARSSL_MD5_C && (POLARSSL_AES_C || POLARSSL_DES_C) */
+#endif /* POLARSSL_MD5_C && POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_DES_C ) */
     }
 
     len = 0;
@@ -289,21 +304,22 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
     if( ret == POLARSSL_ERR_BASE64_INVALID_CHARACTER )
         return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
 
-    if( ( buf = (unsigned char *) malloc( len ) ) == NULL )
+    if( ( buf = (unsigned char *) polarssl_malloc( len ) ) == NULL )
         return( POLARSSL_ERR_PEM_MALLOC_FAILED );
 
     if( ( ret = base64_decode( buf, &len, s1, s2 - s1 ) ) != 0 )
     {
-        free( buf );
+        polarssl_free( buf );
         return( POLARSSL_ERR_PEM_INVALID_DATA + ret );
     }
-    
+
     if( enc != 0 )
     {
-#if defined(POLARSSL_MD5_C) && (defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C))
+#if defined(POLARSSL_MD5_C) && defined(POLARSSL_CIPHER_MODE_CBC) &&         \
+    ( defined(POLARSSL_DES_C) || defined(POLARSSL_AES_C) )
         if( pwd == NULL )
         {
-            free( buf );
+            polarssl_free( buf );
             return( POLARSSL_ERR_PEM_PASSWORD_REQUIRED );
         }
 
@@ -323,16 +339,22 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
             pem_aes_decrypt( pem_iv, 32, buf, len, pwd, pwdlen );
 #endif /* POLARSSL_AES_C */
 
-        if( buf[0] != 0x30 || buf[1] != 0x82 ||
-            buf[4] != 0x02 || buf[5] != 0x01 )
+        /*
+         * The result will be ASN.1 starting with a SEQUENCE tag, with 1 to 3
+         * length bytes (allow 4 to be sure) in all known use cases.
+         *
+         * Use that as heurisitic to try detecting password mismatchs.
+         */
+        if( len <= 2 || buf[0] != 0x30 || buf[1] > 0x83 )
         {
-            free( buf );
+            polarssl_free( buf );
             return( POLARSSL_ERR_PEM_PASSWORD_MISMATCH );
         }
 #else
-        free( buf );
+        polarssl_free( buf );
         return( POLARSSL_ERR_PEM_FEATURE_UNAVAILABLE );
-#endif
+#endif /* POLARSSL_MD5_C && POLARSSL_CIPHER_MODE_CBC &&
+          ( POLARSSL_AES_C || POLARSSL_DES_C ) */
     }
 
     ctx->buf = buf;
@@ -344,12 +366,64 @@ int pem_read_buffer( pem_context *ctx, char *header, char *footer, const unsigne
 void pem_free( pem_context *ctx )
 {
     if( ctx->buf )
-        free( ctx->buf );
+        polarssl_free( ctx->buf );
 
     if( ctx->info )
-        free( ctx->info );
+        polarssl_free( ctx->info );
 
     memset( ctx, 0, sizeof( pem_context ) );
 }
+#endif /* POLARSSL_PEM_PARSE_C */
 
-#endif
+#if defined(POLARSSL_PEM_WRITE_C)
+int pem_write_buffer( const char *header, const char *footer,
+                      const unsigned char *der_data, size_t der_len,
+                      unsigned char *buf, size_t buf_len, size_t *olen )
+{
+    int ret;
+    unsigned char *encode_buf, *c, *p = buf;
+    size_t len = 0, use_len = 0;
+    size_t add_len = strlen( header ) + strlen( footer ) + ( use_len / 64 ) + 1;
+
+    base64_encode( NULL, &use_len, der_data, der_len );
+    if( use_len + add_len > buf_len )
+    {
+        *olen = use_len + add_len;
+        return( POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL );
+    }
+
+    if( ( encode_buf = polarssl_malloc( use_len ) ) == NULL )
+        return( POLARSSL_ERR_PEM_MALLOC_FAILED );
+
+    if( ( ret = base64_encode( encode_buf, &use_len, der_data,
+                               der_len ) ) != 0 )
+    {
+        polarssl_free( encode_buf );
+        return( ret );
+    }
+
+    memcpy( p, header, strlen( header ) );
+    p += strlen( header );
+    c = encode_buf;
+
+    while( use_len )
+    {
+        len = ( use_len > 64 ) ? 64 : use_len;
+        memcpy( p, c, len );
+        use_len -= len;
+        p += len;
+        c += len;
+        *p++ = '\n';
+    }
+
+    memcpy( p, footer, strlen( footer ) );
+    p += strlen( footer );
+
+    *p++ = '\0';
+    *olen = p - buf;
+
+    polarssl_free( encode_buf );
+    return( 0 );
+}
+#endif /* POLARSSL_PEM_WRITE_C */
+#endif /* POLARSSL_PEM_PARSE_C || POLARSSL_PEM_WRITE_C */

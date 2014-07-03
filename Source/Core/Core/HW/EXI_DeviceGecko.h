@@ -2,14 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXIDEVICE_GECKO_H
-#define _EXIDEVICE_GECKO_H
-
-#include "SFML/Network.hpp"
-#include "Thread.h"
+#pragma once
 
 #include <deque>
 #include <queue>
+
+#include <SFML/Network.hpp>
+
+#include "Common/Thread.h"
 
 class GeckoSockServer
 	: public sf::SocketTCP
@@ -29,17 +29,17 @@ public:
 	std::deque<u8> recv_fifo;
 
 private:
-	static int		client_count;
-	volatile bool	client_running;
+	static int    client_count;
+	volatile bool client_running;
 
 	// Only ever one server thread
 	static void GeckoConnectionWaiter();
 
-	static u16							server_port;
-	static volatile bool				server_running;
-	static std::thread					connectionThread;
-	static std::queue<sf::SocketTCP>	waiting_socks;
-	static std::mutex					connection_lock;
+	static u16                       server_port;
+	static volatile bool             server_running;
+	static std::thread               connectionThread;
+	static std::queue<sf::SocketTCP> waiting_socks;
+	static std::mutex                connection_lock;
 };
 
 class CEXIGecko
@@ -54,17 +54,14 @@ public:
 private:
 	enum
 	{
-		CMD_LED_OFF	= 0x7,
-		CMD_LED_ON	= 0x8,
-		CMD_INIT	= 0x9,
-		CMD_RECV	= 0xa,
-		CMD_SEND	= 0xb,
-		CMD_CHK_TX	= 0xc,
-		CMD_CHK_RX	= 0xd,
+		CMD_LED_OFF = 0x7,
+		CMD_LED_ON  = 0x8,
+		CMD_INIT    = 0x9,
+		CMD_RECV    = 0xa,
+		CMD_SEND    = 0xb,
+		CMD_CHK_TX  = 0xc,
+		CMD_CHK_RX  = 0xd,
 	};
 
 	static const u32 ident = 0x04700000;
 };
-
-#endif
-

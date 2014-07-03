@@ -2,16 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef PROGRAM_SHADER_CACHE_H_
-#define PROGRAM_SHADER_CACHE_H_
+#pragma once
 
-#include "GLUtil.h"
-
-#include "PixelShaderGen.h"
-#include "VertexShaderGen.h"
-
-#include "LinearDiskCache.h"
-#include "ConfigManager.h"
+#include "Common/LinearDiskCache.h"
+#include "Core/ConfigManager.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/VertexShaderGen.h"
 
 namespace OGL
 {
@@ -28,9 +25,9 @@ public:
 
 	bool operator <(const SHADERUID& r) const
 	{
-		if(puid < r.puid) return true;
-		if(r.puid < puid) return false;
-		if(vuid < r.vuid) return true;
+		if (puid < r.puid) return true;
+		if (r.puid < puid) return false;
+		if (vuid < r.vuid) return true;
 		return false;
 	}
 
@@ -40,9 +37,6 @@ public:
 	}
 };
 
-
-const int NUM_UNIFORMS = 19;
-extern const char *UniformNames[NUM_UNIFORMS];
 
 struct SHADER
 {
@@ -55,8 +49,6 @@ struct SHADER
 	GLuint glprogid; // opengl program id
 
 	std::string strvprog, strpprog;
-	GLint UniformLocations[NUM_UNIFORMS];
-	u32 UniformSize[NUM_UNIFORMS];
 
 	void SetProgramVariables();
 	void SetProgramBindings();
@@ -112,4 +104,3 @@ private:
 };
 
 }  // namespace OGL
-#endif

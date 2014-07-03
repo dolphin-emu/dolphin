@@ -33,7 +33,13 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"/>
+        <activity
+            android:name="org.dolphinemu.dolphinemu.about.AboutActivity"
+            android:theme="@android:style/Theme.Holo.Light" />
+
+        <activity
+            android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"
+            android:theme="@android:style/Theme.Holo.Light" />
 
         <activity
             android:name="org.dolphinemu.dolphinemu.emulation.EmulationActivity"
@@ -46,7 +52,8 @@
 
         <activity
             android:name="org.dolphinemu.dolphinemu.settings.PrefsActivity"
-            android:label="@string/settings" />
+            android:label="@string/settings"
+            android:theme="@android:style/Theme.Holo.Light" />
 
     </application>
 

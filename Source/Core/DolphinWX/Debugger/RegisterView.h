@@ -2,12 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __REGISTERVIEW_h__
-#define __REGISTERVIEW_h__
+#pragma once
 
+#include <cstring>
+#include <wx/defs.h>
 #include <wx/grid.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
 
-#include "Common.h"
+#include "Common/Common.h"
+
+class wxWindow;
 
 // New register view:
 // R0  0x8000000    F0   0.0000       F0_PS1 0.0000
@@ -40,12 +45,12 @@ public:
 		memset(m_CachedSpecialRegHasChanged, 0, sizeof(m_CachedSpecialRegHasChanged));
 		memset(m_CachedFRegHasChanged, 0, sizeof(m_CachedFRegHasChanged));
 	}
-    int GetNumberCols(void) {return 5;}
-    int GetNumberRows(void) {return 32 + NUM_SPECIALS;}
-	bool IsEmptyCell(int row, int col) {return row > 31 && col > 2;}
-    wxString GetValue(int row, int col);
-    void SetValue(int row, int col, const wxString &);
-	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind);
+    int GetNumberCols(void) override {return 5;}
+    int GetNumberRows(void) override {return 32 + NUM_SPECIALS;}
+	bool IsEmptyCell(int row, int col) override {return row > 31 && col > 2;}
+    wxString GetValue(int row, int col) override;
+    void SetValue(int row, int col, const wxString &) override;
+	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
 	void UpdateCachedRegs();
 
 private:
@@ -63,7 +68,5 @@ class CRegisterView : public wxGrid
 {
 public:
 	CRegisterView(wxWindow* parent, wxWindowID id);
-	void Update();
+	void Update() override;
 };
-
-#endif

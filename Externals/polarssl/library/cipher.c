@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -34,267 +34,80 @@
 #include "polarssl/cipher.h"
 #include "polarssl/cipher_wrap.h"
 
+#if defined(POLARSSL_GCM_C)
+#include "polarssl/gcm.h"
+#endif
+
 #include <stdlib.h>
 
-#if defined _MSC_VER && !defined strcasecmp
+#if defined(POLARSSL_ARC4_C) || defined(POLARSSL_CIPHER_NULL_CIPHER)
+#define POLARSSL_CIPHER_MODE_STREAM
+#endif
+
+#if defined(_MSC_VER) && !defined strcasecmp && !defined(EFIX64) && \
+    !defined(EFI32)
 #define strcasecmp _stricmp
 #endif
 
-static const int supported_ciphers[] = {
-
-#if defined(POLARSSL_AES_C)
-        POLARSSL_CIPHER_AES_128_CBC,
-        POLARSSL_CIPHER_AES_192_CBC,
-        POLARSSL_CIPHER_AES_256_CBC,
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        POLARSSL_CIPHER_AES_128_CFB128,
-        POLARSSL_CIPHER_AES_192_CFB128,
-        POLARSSL_CIPHER_AES_256_CFB128,
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        POLARSSL_CIPHER_AES_128_CTR,
-        POLARSSL_CIPHER_AES_192_CTR,
-        POLARSSL_CIPHER_AES_256_CTR,
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif /* defined(POLARSSL_AES_C) */
-
-#if defined(POLARSSL_CAMELLIA_C)
-        POLARSSL_CIPHER_CAMELLIA_128_CBC,
-        POLARSSL_CIPHER_CAMELLIA_192_CBC,
-        POLARSSL_CIPHER_CAMELLIA_256_CBC,
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        POLARSSL_CIPHER_CAMELLIA_128_CFB128,
-        POLARSSL_CIPHER_CAMELLIA_192_CFB128,
-        POLARSSL_CIPHER_CAMELLIA_256_CFB128,
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        POLARSSL_CIPHER_CAMELLIA_128_CTR,
-        POLARSSL_CIPHER_CAMELLIA_192_CTR,
-        POLARSSL_CIPHER_CAMELLIA_256_CTR,
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif /* defined(POLARSSL_CAMELLIA_C) */
-
-#if defined(POLARSSL_DES_C)
-        POLARSSL_CIPHER_DES_CBC,
-        POLARSSL_CIPHER_DES_EDE_CBC,
-        POLARSSL_CIPHER_DES_EDE3_CBC,
-#endif /* defined(POLARSSL_DES_C) */
-
-#if defined(POLARSSL_BLOWFISH_C)
-        POLARSSL_CIPHER_BLOWFISH_CBC,
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        POLARSSL_CIPHER_BLOWFISH_CFB64,
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        POLARSSL_CIPHER_BLOWFISH_CTR,
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif /* defined(POLARSSL_BLOWFISH_C) */
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-        POLARSSL_CIPHER_NULL,
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
-
-        0
-};
+static int supported_init = 0;
 
 const int *cipher_list( void )
 {
+    const cipher_definition_t *def;
+    int *type;
+
+    if( ! supported_init )
+    {
+        def = cipher_definitions;
+        type = supported_ciphers;
+
+        while( def->type != 0 )
+            *type++ = (*def++).type;
+
+        *type = 0;
+
+        supported_init = 1;
+    }
+
     return supported_ciphers;
 }
 
 const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type )
 {
-    /* Find static cipher information */
-    switch ( cipher_type )
-    {
-#if defined(POLARSSL_AES_C)
-        case POLARSSL_CIPHER_AES_128_CBC:
-            return &aes_128_cbc_info;
-        case POLARSSL_CIPHER_AES_192_CBC:
-            return &aes_192_cbc_info;
-        case POLARSSL_CIPHER_AES_256_CBC:
-            return &aes_256_cbc_info;
+    const cipher_definition_t *def;
 
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        case POLARSSL_CIPHER_AES_128_CFB128:
-            return &aes_128_cfb128_info;
-        case POLARSSL_CIPHER_AES_192_CFB128:
-            return &aes_192_cfb128_info;
-        case POLARSSL_CIPHER_AES_256_CFB128:
-            return &aes_256_cfb128_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+    for( def = cipher_definitions; def->info != NULL; def++ )
+        if( def->type == cipher_type )
+            return( def->info );
 
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        case POLARSSL_CIPHER_AES_128_CTR:
-            return &aes_128_ctr_info;
-        case POLARSSL_CIPHER_AES_192_CTR:
-            return &aes_192_ctr_info;
-        case POLARSSL_CIPHER_AES_256_CTR:
-            return &aes_256_ctr_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif
-
-#if defined(POLARSSL_CAMELLIA_C)
-        case POLARSSL_CIPHER_CAMELLIA_128_CBC:
-            return &camellia_128_cbc_info;
-        case POLARSSL_CIPHER_CAMELLIA_192_CBC:
-            return &camellia_192_cbc_info;
-        case POLARSSL_CIPHER_CAMELLIA_256_CBC:
-            return &camellia_256_cbc_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        case POLARSSL_CIPHER_CAMELLIA_128_CFB128:
-            return &camellia_128_cfb128_info;
-        case POLARSSL_CIPHER_CAMELLIA_192_CFB128:
-            return &camellia_192_cfb128_info;
-        case POLARSSL_CIPHER_CAMELLIA_256_CFB128:
-            return &camellia_256_cfb128_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        case POLARSSL_CIPHER_CAMELLIA_128_CTR:
-            return &camellia_128_ctr_info;
-        case POLARSSL_CIPHER_CAMELLIA_192_CTR:
-            return &camellia_192_ctr_info;
-        case POLARSSL_CIPHER_CAMELLIA_256_CTR:
-            return &camellia_256_ctr_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif
-
-#if defined(POLARSSL_DES_C)
-        case POLARSSL_CIPHER_DES_CBC:
-            return &des_cbc_info;
-        case POLARSSL_CIPHER_DES_EDE_CBC:
-            return &des_ede_cbc_info;
-        case POLARSSL_CIPHER_DES_EDE3_CBC:
-            return &des_ede3_cbc_info;
-#endif
-
-#if defined(POLARSSL_BLOWFISH_C)
-        case POLARSSL_CIPHER_BLOWFISH_CBC:
-            return &blowfish_cbc_info;
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-        case POLARSSL_CIPHER_BLOWFISH_CFB64:
-            return &blowfish_cfb64_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-        case POLARSSL_CIPHER_BLOWFISH_CTR:
-            return &blowfish_ctr_info;
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-
-#endif
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-        case POLARSSL_CIPHER_NULL:
-            return &null_cipher_info;
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
-
-        default:
-            return NULL;
-    }
+    return NULL;
 }
 
 const cipher_info_t *cipher_info_from_string( const char *cipher_name )
 {
+    const cipher_definition_t *def;
+
     if( NULL == cipher_name )
         return NULL;
 
-    /* Get the appropriate cipher information */
-#if defined(POLARSSL_CAMELLIA_C)
-    if( !strcasecmp( "CAMELLIA-128-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CBC );
-    if( !strcasecmp( "CAMELLIA-192-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CBC );
-    if( !strcasecmp( "CAMELLIA-256-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CBC );
+    for( def = cipher_definitions; def->info != NULL; def++ )
+        if( !  strcasecmp( def->info->name, cipher_name ) )
+            return( def->info );
 
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-    if( !strcasecmp( "CAMELLIA-128-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CFB128 );
-    if( !strcasecmp( "CAMELLIA-192-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CFB128 );
-    if( !strcasecmp( "CAMELLIA-256-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CFB128 );
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
+    return NULL;
+}
 
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-    if( !strcasecmp( "CAMELLIA-128-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_128_CTR );
-    if( !strcasecmp( "CAMELLIA-192-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_192_CTR );
-    if( !strcasecmp( "CAMELLIA-256-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_CAMELLIA_256_CTR );
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-#endif
+const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
+                                              int key_length,
+                                              const cipher_mode_t mode )
+{
+    const cipher_definition_t *def;
 
-#if defined(POLARSSL_AES_C)
-    if( !strcasecmp( "AES-128-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CBC );
-    if( !strcasecmp( "AES-192-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CBC );
-    if( !strcasecmp( "AES-256-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CBC );
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-    if( !strcasecmp( "AES-128-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CFB128 );
-    if( !strcasecmp( "AES-192-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CFB128 );
-    if( !strcasecmp( "AES-256-CFB128", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CFB128 );
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-    if( !strcasecmp( "AES-128-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_128_CTR );
-    if( !strcasecmp( "AES-192-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_192_CTR );
-    if( !strcasecmp( "AES-256-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_AES_256_CTR );
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-#endif
-
-#if defined(POLARSSL_DES_C)
-    if( !strcasecmp( "DES-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_DES_CBC );
-    if( !strcasecmp( "DES-EDE-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_DES_EDE_CBC );
-    if( !strcasecmp( "DES-EDE3-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_DES_EDE3_CBC );
-#endif
-
-#if defined(POLARSSL_BLOWFISH_C)
-    if( !strcasecmp( "BLOWFISH-CBC", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CBC );
-
-#if defined(POLARSSL_CIPHER_MODE_CFB)
-    if( !strcasecmp( "BLOWFISH-CFB64", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CFB64 );
-#endif /* defined(POLARSSL_CIPHER_MODE_CFB) */
-
-#if defined(POLARSSL_CIPHER_MODE_CTR)
-    if( !strcasecmp( "BLOWFISH-CTR", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_BLOWFISH_CTR );
-#endif /* defined(POLARSSL_CIPHER_MODE_CTR) */
-#endif
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( !strcasecmp( "NULL", cipher_name ) )
-        return cipher_info_from_type( POLARSSL_CIPHER_NULL );
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
+    for( def = cipher_definitions; def->info != NULL; def++ )
+        if( def->info->base->cipher == cipher_id &&
+            def->info->key_length == (unsigned) key_length &&
+            def->info->mode == mode )
+            return( def->info );
 
     return NULL;
 }
@@ -310,6 +123,17 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info )
         return POLARSSL_ERR_CIPHER_ALLOC_FAILED;
 
     ctx->cipher_info = cipher_info;
+
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
+    /*
+     * Ignore possible errors caused by a cipher mode that doesn't use padding
+     */
+#if defined(POLARSSL_CIPHER_PADDING_PKCS7)
+    (void) cipher_set_padding_mode( ctx, POLARSSL_PADDING_PKCS7 );
+#else
+    (void) cipher_set_padding_mode( ctx, POLARSSL_PADDING_NONE );
+#endif
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
 
     return 0;
 }
@@ -330,13 +154,11 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
     if( NULL == ctx || NULL == ctx->cipher_info )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
+    if( (int) ctx->cipher_info->key_length != key_length )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
     ctx->key_length = key_length;
     ctx->operation = operation;
-
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( ctx->cipher_info->mode == POLARSSL_MODE_NULL )
-        return 0;
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
 
     /*
      * For CFB and CTR mode always use the encryption key schedule
@@ -356,43 +178,112 @@ int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
     return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 }
 
-int cipher_reset( cipher_context_t *ctx, const unsigned char *iv )
+int cipher_set_iv( cipher_context_t *ctx,
+                   const unsigned char *iv, size_t iv_len )
 {
+    size_t actual_iv_size;
+
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == iv )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+    /* avoid buffer overflow in ctx->iv */
+    if( iv_len > POLARSSL_MAX_IV_LENGTH )
+        return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+
+    if( ctx->cipher_info->accepts_variable_iv_size )
+        actual_iv_size = iv_len;
+    else
+    {
+        actual_iv_size = ctx->cipher_info->iv_size;
+
+        /* avoid reading past the end of input buffer */
+        if( actual_iv_size > iv_len )
+            return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+    memcpy( ctx->iv, iv, actual_iv_size );
+    ctx->iv_size = actual_iv_size;
+
+    return 0;
+}
+
+int cipher_reset( cipher_context_t *ctx )
+{
+    if( NULL == ctx || NULL == ctx->cipher_info )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     ctx->unprocessed_len = 0;
 
-    memcpy( ctx->iv, iv, cipher_get_iv_size( ctx ) );
+    return 0;
+}
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+int cipher_update_ad( cipher_context_t *ctx,
+                      const unsigned char *ad, size_t ad_len )
+{
+    if( NULL == ctx || NULL == ctx->cipher_info )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+#if defined(POLARSSL_GCM_C)
+    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
+    {
+        return gcm_starts( (gcm_context *) ctx->cipher_ctx, ctx->operation,
+                           ctx->iv, ctx->iv_size, ad, ad_len );
+    }
+#endif
 
     return 0;
 }
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
         unsigned char *output, size_t *olen )
 {
     int ret;
-    size_t copy_len = 0;
 
-    if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen ||
-        input == output )
+    if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
     {
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
     *olen = 0;
 
-#if defined(POLARSSL_CIPHER_NULL_CIPHER)
-    if( ctx->cipher_info->mode == POLARSSL_MODE_NULL )
+    if( ctx->cipher_info->mode == POLARSSL_MODE_ECB )
     {
-        memcpy( output, input, ilen );
+        if( ilen != cipher_get_block_size( ctx ) )
+            return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+
         *olen = ilen;
+
+        if( 0 != ( ret = ctx->cipher_info->base->ecb_func( ctx->cipher_ctx,
+                    ctx->operation, input, output ) ) )
+        {
+            return ret;
+        }
+
         return 0;
     }
-#endif /* defined(POLARSSL_CIPHER_NULL_CIPHER) */
 
+#if defined(POLARSSL_GCM_C)
+    if( ctx->cipher_info->mode == POLARSSL_MODE_GCM )
+    {
+        *olen = ilen;
+        return gcm_update( (gcm_context *) ctx->cipher_ctx, ilen, input,
+                           output );
+    }
+#endif
+
+    if( input == output &&
+       ( ctx->unprocessed_len != 0 || ilen % cipher_get_block_size( ctx ) ) )
+    {
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     if( ctx->cipher_info->mode == POLARSSL_MODE_CBC )
     {
+        size_t copy_len = 0;
+
         /*
          * If there is not enough data for a full block, cache it.
          */
@@ -459,12 +350,15 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
             {
                 return ret;
             }
+
             *olen += ilen;
         }
 
         return 0;
     }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
     if( ctx->cipher_info->mode == POLARSSL_MODE_CFB )
     {
         if( 0 != ( ret = ctx->cipher_info->base->cfb_func( ctx->cipher_ctx,
@@ -478,7 +372,9 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
         return 0;
     }
+#endif
 
+#if defined(POLARSSL_CIPHER_MODE_CTR)
     if( ctx->cipher_info->mode == POLARSSL_MODE_CTR )
     {
         if( 0 != ( ret = ctx->cipher_info->base->ctr_func( ctx->cipher_ctx,
@@ -492,46 +388,201 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 
         return 0;
     }
+#endif
+
+#if defined(POLARSSL_CIPHER_MODE_STREAM)
+    if( ctx->cipher_info->mode == POLARSSL_MODE_STREAM )
+    {
+        if( 0 != ( ret = ctx->cipher_info->base->stream_func( ctx->cipher_ctx,
+                                                    ilen, input, output ) ) )
+        {
+            return ret;
+        }
+
+        *olen = ilen;
+
+        return 0;
+    }
+#endif
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
 
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
+#if defined(POLARSSL_CIPHER_PADDING_PKCS7)
+/*
+ * PKCS7 (and PKCS5) padding: fill with ll bytes, with ll = padding_len
+ */
 static void add_pkcs_padding( unsigned char *output, size_t output_len,
         size_t data_len )
 {
     size_t padding_len = output_len - data_len;
-    unsigned char i = 0;
+    unsigned char i;
 
     for( i = 0; i < padding_len; i++ )
         output[data_len + i] = (unsigned char) padding_len;
 }
 
-static int get_pkcs_padding( unsigned char *input, unsigned int input_len,
-        size_t *data_len)
+static int get_pkcs_padding( unsigned char *input, size_t input_len,
+        size_t *data_len )
 {
-    unsigned int i, padding_len = 0;
+    size_t i, pad_idx;
+    unsigned char padding_len, bad = 0;
 
     if( NULL == input || NULL == data_len )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
     padding_len = input[input_len - 1];
-
-    if( padding_len > input_len )
-        return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
-    for( i = input_len - padding_len; i < input_len; i++ )
-        if( input[i] != padding_len )
-            return POLARSSL_ERR_CIPHER_INVALID_PADDING;
-
     *data_len = input_len - padding_len;
+
+    /* Avoid logical || since it results in a branch */
+    bad |= padding_len > input_len;
+    bad |= padding_len == 0;
+
+    /* The number of bytes checked must be independent of padding_len,
+     * so pick input_len, which is usually 8 or 16 (one block) */
+    pad_idx = input_len - padding_len;
+    for( i = 0; i < input_len; i++ )
+        bad |= ( input[i] ^ padding_len ) * ( i >= pad_idx );
+
+    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+}
+#endif /* POLARSSL_CIPHER_PADDING_PKCS7 */
+
+#if defined(POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS)
+/*
+ * One and zeros padding: fill with 80 00 ... 00
+ */
+static void add_one_and_zeros_padding( unsigned char *output,
+                                       size_t output_len, size_t data_len )
+{
+    size_t padding_len = output_len - data_len;
+    unsigned char i = 0;
+
+    output[data_len] = 0x80;
+    for( i = 1; i < padding_len; i++ )
+        output[data_len + i] = 0x00;
+}
+
+static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
+                                      size_t *data_len )
+{
+    size_t i;
+    unsigned char done = 0, prev_done, bad;
+
+    if( NULL == input || NULL == data_len )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+    bad = 0xFF;
+    *data_len = 0;
+    for( i = input_len; i > 0; i-- )
+    {
+        prev_done = done;
+        done |= ( input[i-1] != 0 );
+        *data_len |= ( i - 1 ) * ( done != prev_done );
+        bad &= ( input[i-1] ^ 0x80 ) | ( done == prev_done );
+    }
+
+    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+
+}
+#endif /* POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS */
+
+#if defined(POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN)
+/*
+ * Zeros and len padding: fill with 00 ... 00 ll, where ll is padding length
+ */
+static void add_zeros_and_len_padding( unsigned char *output,
+                                       size_t output_len, size_t data_len )
+{
+    size_t padding_len = output_len - data_len;
+    unsigned char i = 0;
+
+    for( i = 1; i < padding_len; i++ )
+        output[data_len + i - 1] = 0x00;
+    output[output_len - 1] = (unsigned char) padding_len;
+}
+
+static int get_zeros_and_len_padding( unsigned char *input, size_t input_len,
+                                      size_t *data_len )
+{
+    size_t i, pad_idx;
+    unsigned char padding_len, bad = 0;
+
+    if( NULL == input || NULL == data_len )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+    padding_len = input[input_len - 1];
+    *data_len = input_len - padding_len;
+
+    /* Avoid logical || since it results in a branch */
+    bad |= padding_len > input_len;
+    bad |= padding_len == 0;
+
+    /* The number of bytes checked must be independent of padding_len */
+    pad_idx = input_len - padding_len;
+    for( i = 0; i < input_len - 1; i++ )
+        bad |= input[i] * ( i >= pad_idx );
+
+    return POLARSSL_ERR_CIPHER_INVALID_PADDING * (bad != 0);
+}
+#endif /* POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN */
+
+#if defined(POLARSSL_CIPHER_PADDING_ZEROS)
+/*
+ * Zero padding: fill with 00 ... 00
+ */
+static void add_zeros_padding( unsigned char *output,
+                               size_t output_len, size_t data_len )
+{
+    size_t i;
+
+    for( i = data_len; i < output_len; i++ )
+        output[i] = 0x00;
+}
+
+static int get_zeros_padding( unsigned char *input, size_t input_len,
+                              size_t *data_len )
+{
+    size_t i;
+    unsigned char done = 0, prev_done;
+
+    if( NULL == input || NULL == data_len )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+    *data_len = 0;
+    for( i = input_len; i > 0; i-- )
+    {
+        prev_done = done;
+        done |= ( input[i-1] != 0 );
+        *data_len |= i * ( done != prev_done );
+    }
 
     return 0;
 }
+#endif /* POLARSSL_CIPHER_PADDING_ZEROS */
 
-int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
+/*
+ * No padding: don't pad :)
+ *
+ * There is no add_padding function (check for NULL in cipher_finish)
+ * but a trivial get_padding function
+ */
+static int get_no_padding( unsigned char *input, size_t input_len,
+                              size_t *data_len )
 {
-    int ret = 0;
+    if( NULL == input || NULL == data_len )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
+    *data_len = input_len;
+
+    return 0;
+}
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
+
+int cipher_finish( cipher_context_t *ctx,
+                   unsigned char *output, size_t *olen )
+{
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
         return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
 
@@ -539,21 +590,48 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 
     if( POLARSSL_MODE_CFB == ctx->cipher_info->mode ||
         POLARSSL_MODE_CTR == ctx->cipher_info->mode ||
-        POLARSSL_MODE_NULL == ctx->cipher_info->mode )
+        POLARSSL_MODE_GCM == ctx->cipher_info->mode ||
+        POLARSSL_MODE_STREAM == ctx->cipher_info->mode )
     {
         return 0;
     }
 
+    if( POLARSSL_MODE_ECB == ctx->cipher_info->mode )
+    {
+        if( ctx->unprocessed_len != 0 )
+            return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+
+        return 0;
+    }
+
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     if( POLARSSL_MODE_CBC == ctx->cipher_info->mode )
     {
+        int ret = 0;
+
         if( POLARSSL_ENCRYPT == ctx->operation )
         {
-            add_pkcs_padding( ctx->unprocessed_data, cipher_get_iv_size( ctx ),
+            /* check for 'no padding' mode */
+            if( NULL == ctx->add_padding )
+            {
+                if( 0 != ctx->unprocessed_len )
+                    return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+
+                return 0;
+            }
+
+            ctx->add_padding( ctx->unprocessed_data, cipher_get_iv_size( ctx ),
                     ctx->unprocessed_len );
         }
         else if ( cipher_get_block_size( ctx ) != ctx->unprocessed_len )
         {
-            /* For decrypt operations, expect a full block */
+            /*
+             * For decrypt operations, expect a full block,
+             * or an empty block if no padding
+             */
+            if( NULL == ctx->add_padding && 0 == ctx->unprocessed_len )
+                return 0;
+
             return POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED;
         }
 
@@ -567,15 +645,127 @@ int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen)
 
         /* Set output size for decryption */
         if( POLARSSL_DECRYPT == ctx->operation )
-            return get_pkcs_padding( output, cipher_get_block_size( ctx ), olen );
+            return ctx->get_padding( output, cipher_get_block_size( ctx ),
+                                     olen );
 
         /* Set output size for encryption */
         *olen = cipher_get_block_size( ctx );
         return 0;
     }
+#else
+    ((void) output);
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
     return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
 }
+
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
+int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode )
+{
+    if( NULL == ctx ||
+        POLARSSL_MODE_CBC != ctx->cipher_info->mode )
+    {
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+    switch( mode )
+    {
+#if defined(POLARSSL_CIPHER_PADDING_PKCS7)
+    case POLARSSL_PADDING_PKCS7:
+        ctx->add_padding = add_pkcs_padding;
+        ctx->get_padding = get_pkcs_padding;
+        break;
+#endif
+#if defined(POLARSSL_CIPHER_PADDING_ONE_AND_ZEROS)
+    case POLARSSL_PADDING_ONE_AND_ZEROS:
+        ctx->add_padding = add_one_and_zeros_padding;
+        ctx->get_padding = get_one_and_zeros_padding;
+        break;
+#endif
+#if defined(POLARSSL_CIPHER_PADDING_ZEROS_AND_LEN)
+    case POLARSSL_PADDING_ZEROS_AND_LEN:
+        ctx->add_padding = add_zeros_and_len_padding;
+        ctx->get_padding = get_zeros_and_len_padding;
+        break;
+#endif
+#if defined(POLARSSL_CIPHER_PADDING_ZEROS)
+    case POLARSSL_PADDING_ZEROS:
+        ctx->add_padding = add_zeros_padding;
+        ctx->get_padding = get_zeros_padding;
+        break;
+#endif
+    case POLARSSL_PADDING_NONE:
+        ctx->add_padding = NULL;
+        ctx->get_padding = get_no_padding;
+        break;
+
+    default:
+        return POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+
+    return 0;
+}
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+int cipher_write_tag( cipher_context_t *ctx,
+                      unsigned char *tag, size_t tag_len )
+{
+    if( NULL == ctx || NULL == ctx->cipher_info || NULL == tag )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+    if( POLARSSL_ENCRYPT != ctx->operation )
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+#if defined(POLARSSL_GCM_C)
+    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
+        return gcm_finish( (gcm_context *) ctx->cipher_ctx, tag, tag_len );
+#endif
+
+    return 0;
+}
+ 
+int cipher_check_tag( cipher_context_t *ctx,
+                      const unsigned char *tag, size_t tag_len )
+{
+    int ret;
+
+    if( NULL == ctx || NULL == ctx->cipher_info ||
+        POLARSSL_DECRYPT != ctx->operation )
+    {
+        return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+#if defined(POLARSSL_GCM_C)
+    if( POLARSSL_MODE_GCM == ctx->cipher_info->mode )
+    {
+        unsigned char check_tag[16];
+        size_t i;
+        int diff;
+
+        if( tag_len > sizeof( check_tag ) )
+            return POLARSSL_ERR_CIPHER_BAD_INPUT_DATA;
+
+        if( 0 != ( ret = gcm_finish( (gcm_context *) ctx->cipher_ctx,
+                                     check_tag, tag_len ) ) )
+        {
+            return( ret );
+        }
+
+        /* Check the tag in "constant-time" */
+        for( diff = 0, i = 0; i < tag_len; i++ )
+            diff |= tag[i] ^ check_tag[i];
+
+        if( diff != 0 )
+            return( POLARSSL_ERR_CIPHER_AUTH_FAILED );
+
+        return( 0 );
+    }
+#endif
+
+    return( 0 );
+}
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 #if defined(POLARSSL_SELF_TEST)
 

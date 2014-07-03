@@ -2,14 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FBMANAGER_D3D_H_
-#define _FBMANAGER_D3D_H_
+#pragma once
 
 #include "d3d11.h"
 
-#include "FramebufferManagerBase.h"
-
-#include "D3DTexture.h"
+#include "VideoBackends/D3D/D3DTexture.h"
+#include "VideoCommon/FramebufferManagerBase.h"
 
 namespace DX11 {
 
@@ -51,9 +49,9 @@ struct XFBSource : public XFBSourceBase
 	~XFBSource() { tex->Release(); }
 
 	void Draw(const MathUtil::Rectangle<int> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc) const;
-	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
-	void CopyEFB(float Gamma);
+		const MathUtil::Rectangle<float> &drawrc) const override;
+	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
+	void CopyEFB(float Gamma) override;
 
 	D3DTexture2D* const tex;
 };
@@ -83,10 +81,10 @@ public:
 	}
 
 private:
-	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
-	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
+	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
+	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) override;
 
-	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma);
+	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 
 	static struct Efb
 	{
@@ -105,5 +103,3 @@ private:
 };
 
 }  // namespace DX11
-
-#endif

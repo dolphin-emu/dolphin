@@ -3,14 +3,13 @@
 // compile against the latest version and fall back to dynamically loading the
 // old DLL.
 
-#ifndef _CIFACE_XINPUT_H_
-#define _CIFACE_XINPUT_H_
-
-#include "../Device.h"
+#pragma once
 
 #define NOMINMAX
-#include <Windows.h>
+#include <windows.h>
 #include <XInput.h>
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 #ifndef XINPUT_DEVSUBTYPE_FLIGHT_STICK
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path and/or _WIN32_WINNT is wrong.
@@ -96,6 +95,3 @@ private:
 
 }
 }
-
-
-#endif

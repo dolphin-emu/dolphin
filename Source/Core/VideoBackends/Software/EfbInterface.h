@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EFB_INTERFACE_H_
-#define _EFB_INTERFACE_H_
+#pragma once
 
-#include "VideoCommon.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace EfbInterface
 {
@@ -52,6 +51,18 @@ namespace EfbInterface
 	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma);
 
 	void DoState(PointerWrap &p);
-}
 
-#endif
+	extern u32 perf_values[PQ_NUM_MEMBERS];
+	inline void IncPerfCounterQuadCount(PerfQueryType type)
+	{
+		// NOTE: hardware doesn't process individual pixels but quads instead.
+		// Current software renderer architecture works on pixels though, so
+		// we have this "quad" hack here to only increment the registers on
+		// every fourth rendered pixel
+		static u32 quad[PQ_NUM_MEMBERS];
+		if (++quad[type] != 3)
+			return;
+		quad[type] = 0;
+		++perf_values[type];
+	}
+}

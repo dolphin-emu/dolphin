@@ -2,12 +2,32 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "LogConfigWindow.h"
-#include "LogManager.h"
-#include "ConsoleListener.h"
-#include "LogWindow.h"
-#include "FileUtil.h"
-#include "WxUtils.h"
+#include <vector>
+#include <wx/anybutton.h>
+#include <wx/arrstr.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/checklst.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/radiobox.h>
+#include <wx/sizer.h>
+#include <wx/translation.h>
+#include <wx/validate.h>
+#include <wx/windowid.h>
+
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/Logging/ConsoleListener.h"
+#include "Common/Logging/Log.h"
+#include "Common/Logging/LogManager.h"
+#include "DolphinWX/LogConfigWindow.h"
+#include "DolphinWX/LogWindow.h"
+#include "DolphinWX/WxUtils.h"
+
+class wxWindow;
 
 LogConfigWindow::LogConfigWindow(wxWindow* parent, CLogWindow *log_window, wxWindowID id)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("Log Configuration"))
@@ -36,31 +56,30 @@ void LogConfigWindow::CreateGUIControls()
 	for (int i = 0; i < MAX_LOGLEVEL; ++i)
 		wxLevelsUse.Add(wxLevels[i]);
 	m_verbosity = new wxRadioBox(this, wxID_ANY, _("Verbosity"),
-			wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0,
-			wxRA_SPECIFY_ROWS, wxDefaultValidator);
-	m_verbosity->Bind(wxEVT_COMMAND_RADIOBOX_SELECTED, &LogConfigWindow::OnVerbosityChange, this);
+			wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0, wxRA_SPECIFY_ROWS);
+	m_verbosity->Bind(wxEVT_RADIOBOX, &LogConfigWindow::OnVerbosityChange, this);
 
 	// Options
 	m_writeFileCB = new wxCheckBox(this, wxID_ANY, _("Write to File"));
-	m_writeFileCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteFileChecked, this);
+	m_writeFileCB->Bind(wxEVT_CHECKBOX, &LogConfigWindow::OnWriteFileChecked, this);
 	m_writeConsoleCB = new wxCheckBox(this, wxID_ANY, _("Write to Console"));
-	m_writeConsoleCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteConsoleChecked, this);
+	m_writeConsoleCB->Bind(wxEVT_CHECKBOX, &LogConfigWindow::OnWriteConsoleChecked, this);
 	m_writeWindowCB = new wxCheckBox(this, wxID_ANY, _("Write to Window"));
-	m_writeWindowCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteWindowChecked, this);
-	m_writeDebuggerCB = NULL;
+	m_writeWindowCB->Bind(wxEVT_CHECKBOX, &LogConfigWindow::OnWriteWindowChecked, this);
+	m_writeDebuggerCB = nullptr;
 #ifdef _MSC_VER
 	if (IsDebuggerPresent())
 	{
 		m_writeDebuggerCB = new wxCheckBox(this, wxID_ANY, _("Write to Debugger"));
-		m_writeDebuggerCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteDebuggerChecked, this);
+		m_writeDebuggerCB->Bind(wxEVT_CHECKBOX, &LogConfigWindow::OnWriteDebuggerChecked, this);
 	}
 #endif
 
 	wxButton *btn_toggle_all = new wxButton(this, wxID_ANY, _("Toggle All Log Types"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-	btn_toggle_all->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &LogConfigWindow::OnToggleAll, this);
+	btn_toggle_all->Bind(wxEVT_BUTTON, &LogConfigWindow::OnToggleAll, this);
 	m_checks = new wxCheckListBox(this, wxID_ANY);
-	m_checks->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &LogConfigWindow::OnLogCheck, this);
+	m_checks->Bind(wxEVT_CHECKLISTBOX, &LogConfigWindow::OnLogCheck, this);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 		m_checks->Append(StrToWxStr(m_LogManager->GetFullName((LogTypes::LOG_TYPE)i)));
 
@@ -98,9 +117,11 @@ void LogConfigWindow::LoadSettings()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 
+	IniFile::Section* options = ini.GetOrCreateSection("Options");
+
 	// Retrieve the verbosity value from the config ini file.
 	int verbosity;
-	ini.Get("Options", "Verbosity", &verbosity, 0);
+	options->Get("Verbosity", &verbosity, 0);
 
 	// Ensure the verbosity level is valid.
 	if (verbosity < 1)
@@ -112,16 +133,16 @@ void LogConfigWindow::LoadSettings()
 	m_verbosity->SetSelection(verbosity - 1);
 
 	// Get the logger output settings from the config ini file.
-	ini.Get("Options", "WriteToFile", &m_writeFile, false);
+	options->Get("WriteToFile", &m_writeFile, false);
 	m_writeFileCB->SetValue(m_writeFile);
-	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
+	options->Get("WriteToConsole", &m_writeConsole, true);
 	m_writeConsoleCB->SetValue(m_writeConsole);
-	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
+	options->Get("WriteToWindow", &m_writeWindow, true);
 	m_writeWindowCB->SetValue(m_writeWindow);
 #ifdef _MSC_VER
 	if (IsDebuggerPresent())
 	{
-		ini.Get("Options", "WriteToDebugger", &m_writeDebugger, true);
+		options->Get("WriteToDebugger", &m_writeDebugger, true);
 		m_writeDebuggerCB->SetValue(m_writeDebugger);
 	}
 	else
@@ -135,7 +156,7 @@ void LogConfigWindow::LoadSettings()
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool log_enabled;
-		ini.Get("Logs", m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &log_enabled, true);
+		ini.GetOrCreateSection("Logs")->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &log_enabled, true);
 
 		if (log_enabled)
 			enableAll = false;
@@ -149,22 +170,20 @@ void LogConfigWindow::SaveSettings()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 
-	// Save the verbosity level.
-	ini.Set("Options", "Verbosity", m_verbosity->GetSelection() + 1);
-
-	// Save the enabled/disabled states of the logger outputs to the config ini.
-	ini.Set("Options", "WriteToFile", m_writeFile);
-	ini.Set("Options", "WriteToConsole", m_writeConsole);
-	ini.Set("Options", "WriteToWindow", m_writeWindow);
+	IniFile::Section* options = ini.GetOrCreateSection("Options");
+	options->Set("Verbosity", m_verbosity->GetSelection() + 1);
+	options->Set("WriteToFile", m_writeFile);
+	options->Set("WriteToConsole", m_writeConsole);
+	options->Set("WriteToWindow", m_writeWindow);
 #ifdef _MSC_VER
 	if (IsDebuggerPresent())
-		ini.Set("Options", "WriteToDebugger", m_writeDebugger);
+		options->Set("WriteToDebugger", m_writeDebugger);
 #endif
 
 	// Save all enabled/disabled states of the log types to the config ini.
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
-		ini.Set("Logs", m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
+		ini.GetOrCreateSection("Logs")->Set(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
 	}
 
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));

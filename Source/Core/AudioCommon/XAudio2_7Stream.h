@@ -13,8 +13,8 @@
 #pragma once
 
 #include <memory>
-#include "Thread.h"
-#include "SoundStream.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Event.h"
 
 #ifdef _WIN32
 
@@ -26,7 +26,7 @@ struct IXAudio2MasteringVoice;
 
 #endif
 
-class XAudio2_7 : public SoundStream
+class XAudio2_7 final : public SoundStream
 {
 #ifdef _WIN32
 
@@ -59,14 +59,13 @@ private:
 public:
 	XAudio2_7(CMixer *mixer);
 	virtual ~XAudio2_7();
- 
+
 	virtual bool Start();
 	virtual void Stop();
 
 	virtual void Update();
 	virtual void Clear(bool mute);
 	virtual void SetVolume(int volume);
-	virtual bool usesMixer() const;
 
 	static bool isValid() { return InitLibrary(); }
 

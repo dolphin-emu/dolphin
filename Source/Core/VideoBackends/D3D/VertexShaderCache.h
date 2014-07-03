@@ -2,15 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXSHADERCACHE_H
-#define _VERTEXSHADERCACHE_H
-
-#include "VertexShaderGen.h"
-
-#include "D3DBase.h"
-#include "D3DBlob.h"
+#pragma once
 
 #include <map>
+
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DBlob.h"
+
+#include "VideoCommon/VertexShaderGen.h"
 
 namespace DX11 {
 
@@ -41,7 +40,7 @@ private:
 
 		std::string code;
 
-		VSCacheEntry() : shader(NULL), bytecode(NULL) {}
+		VSCacheEntry() : shader(nullptr), bytecode(nullptr) {}
 		void SetByteCode(D3DBlob* blob)
 		{
 			SAFE_RELEASE(bytecode);
@@ -64,5 +63,3 @@ private:
 };
 
 }  // namespace DX11
-
-#endif  // _VERTEXSHADERCACHE_H

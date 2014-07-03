@@ -16,36 +16,26 @@
 
 // Settings
 // ----------
-#ifndef _JIT64_H
-#define _JIT64_H
+#pragma once
 
-#include "../JitCommon/JitBackpatch.h"
-#include "../JitCommon/JitBase.h"
-#include "../JitCommon/JitCache.h"
-#include "../JitCommon/Jit_Util.h"
-#include "../PowerPC.h"
-#include "../PPCAnalyst.h"
-#include "../PPCTables.h"
-#include "../../Core.h"
-#include "../../CoreTiming.h"
-#include "../../ConfigManager.h"
-#include "../../HW/Memmap.h"
-#include "../../HW/GPFifo.h"
-#include "JitAsm.h"
-#include "JitRegCache.h"
-#include "x64ABI.h"
-#include "x64Analyzer.h"
-#include "x64Emitter.h"
+#include "Common/x64ABI.h"
+#include "Common/x64Analyzer.h"
+#include "Common/x64Emitter.h"
 
-// Use these to control the instruction selection
-// #define INSTRUCTION_START Default(inst); return;
-// #define INSTRUCTION_START PPCTables::CountInstruction(inst);
-#define INSTRUCTION_START
-
-#define JITDISABLE(setting) \
-	if (Core::g_CoreStartupParameter.bJITOff || \
-	Core::g_CoreStartupParameter.setting) \
-	{Default(inst); return;}
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/JitCommon/JitBackpatch.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 class Jit64 : public Jitx86Base
 {
@@ -86,7 +76,7 @@ public:
 	}
 
 	const char *GetName() override {
-#ifdef _M_X64
+#if _M_X86_64
 		return "JIT64";
 #else
 		return "JIT32";
@@ -99,7 +89,7 @@ public:
 
 	// Utilities for use by opcodes
 
-	void WriteExit(u32 destination, int exit_num);
+	void WriteExit(u32 destination);
 	void WriteExitDestInEAX();
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
@@ -123,7 +113,7 @@ public:
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
-	void Default(UGeckoInstruction _inst);
+	void FallBackToInterpreter(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);
 
@@ -178,12 +168,10 @@ public:
 	void ps_arith(UGeckoInstruction inst); //aggregate
 	void ps_mergeXX(UGeckoInstruction inst);
 	void ps_maddXX(UGeckoInstruction inst);
-	void ps_recip(UGeckoInstruction inst);
 	void ps_sum(UGeckoInstruction inst);
 	void ps_muls(UGeckoInstruction inst);
 
 	void fp_arith(UGeckoInstruction inst);
-	void frsqrtex(UGeckoInstruction inst);
 
 	void fcmpx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
@@ -231,5 +219,3 @@ public:
 
 	void icbi(UGeckoInstruction inst);
 };
-
-#endif // _JIT64_H

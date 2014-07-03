@@ -2,13 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <wx/wx.h>
+#include <cstddef>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
 
-#include "RegisterWindow.h"
-#include "PowerPC/PowerPC.h"
-#include "RegisterView.h"
+#include "DolphinWX/Debugger/RegisterView.h"
+#include "DolphinWX/Debugger/RegisterWindow.h"
 
-extern const char* GetGRPName(unsigned int index);
+class wxWindow;
 
 BEGIN_EVENT_TABLE(CRegisterWindow, wxPanel)
 END_EVENT_TABLE()
@@ -18,7 +24,7 @@ CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id,
 		const wxPoint& position, const wxSize& size,
 		long style, const wxString& name)
 	: wxPanel(parent, id, position, size, style, name)
-	, m_GPRGridView(NULL)
+	, m_GPRGridView(nullptr)
 {
 	CreateGUIControls();
 }
@@ -35,6 +41,6 @@ void CRegisterWindow::CreateGUIControls()
 
 void CRegisterWindow::NotifyUpdate()
 {
-	if (m_GPRGridView != NULL)
+	if (m_GPRGridView != nullptr)
 		m_GPRGridView->Update();
 }

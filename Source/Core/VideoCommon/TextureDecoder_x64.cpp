@@ -2,16 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-//#include "VideoCommon.h" // to get debug logs
-
-#include "CPUDetect.h"
-#include "TextureDecoder.h"
-#include "VideoConfig.h"
-
-#include "LookUpTables.h"
-
+#include <algorithm>
 #include <cmath>
+
+#include "Common/Common.h"
+//#include "VideoCommon.h" // to get debug logs
+#include "Common/CPUDetect.h"
+
+#include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -44,9 +44,9 @@ extern const unsigned char sfont_raw[][9*10];
  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
 
 
-// Gamecube/Wii texture decoder
+// GameCube/Wii texture decoder
 
-// Decodes all known Gamecube/Wii texture formats.
+// Decodes all known GameCube/Wii texture formats.
 // by ector
 
 int TexDecoder_GetTexelSizeInNibbles(int format)
@@ -176,13 +176,6 @@ int TexDecoder_GetPaletteSize(int format)
 	default:
 		return 0;
 	}
-}
-
-static inline u32 decodeIA8(u16 val)
-{
-	int a = val >> 8;
-	int i = val & 0xFF;
-	return (a << 24) | (i << 16) | (i << 8) | i;
 }
 
 static inline u32 decode5A3(u16 val)
@@ -799,7 +792,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					{
 						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
 						u16 *s = (u16 *)(src + 8 * xStep);
-						for(int j = 0; j < 4; j++)
+						for (int j = 0; j < 4; j++)
 							*ptr++ = Common::swap16(*s++);
 					}
 
@@ -833,7 +826,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					{
 						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
 						u16 *s = (u16 *)(src + 8 * xStep);
-						for(int j = 0; j < 4; j++)
+						for (int j = 0; j < 4; j++)
 							*ptr++ = Common::swap16(*s++);
 					}
 		}
@@ -982,7 +975,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
 						decodebytesC4_5A3_To_rgba32(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
 		}
-		else if(tlutfmt == 0)
+		else if (tlutfmt == 0)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
@@ -1237,7 +1230,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 		}
-		else if(tlutfmt == 0)
+		else if (tlutfmt == 0)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
@@ -1478,7 +1471,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 									const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 3), _mm_srli_epi16(tmpbV, 2) );
 
 									//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-									const __m128i final = _mm_or_si128(	_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
+									const __m128i final = _mm_or_si128(_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
 														_mm_or_si128(_mm_slli_epi32(bV, 16), aVxff00));
 									_mm_storeu_si128( (__m128i*)newdst, final );
 								}
@@ -1508,7 +1501,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 									);
 
 									//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-									const __m128i final = _mm_or_si128(	_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
+									const __m128i final = _mm_or_si128(_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
 																_mm_or_si128(_mm_slli_epi32(bV, 16), _mm_slli_epi32(aV, 24)));
 									_mm_storeu_si128( (__m128i*)newdst, final );
 								}
@@ -1580,7 +1573,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 								const __m128i bV = _mm_or_si128( _mm_slli_epi16(tmpbV, 3), _mm_srli_epi16(tmpbV, 2) );
 
 								//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-								const __m128i final = _mm_or_si128(	_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
+								const __m128i final = _mm_or_si128(_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
 													_mm_or_si128(_mm_slli_epi32(bV, 16), aVxff00));
 
 								// write the final result:
@@ -1615,7 +1608,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 								);
 
 								//newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-								const __m128i final = _mm_or_si128(	_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
+								const __m128i final = _mm_or_si128(_mm_or_si128(rV,_mm_slli_epi32(gV, 8)),
 													_mm_or_si128(_mm_slli_epi32(bV, 16), _mm_slli_epi32(aV, 24)));
 
 								// write the final result:
@@ -1675,7 +1668,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						const __m128i rgba10 = _mm_shuffle_epi8(_mm_unpacklo_epi8(ar1,gb1),mask0312);
 						const __m128i rgba11 = _mm_shuffle_epi8(_mm_unpackhi_epi8(ar1,gb1),mask0312);
 
-						__m128i	*dst128 = (__m128i*)( dst + (y + 0) * width + x );
+						__m128i *dst128 = (__m128i*)( dst + (y + 0) * width + x );
 						_mm_storeu_si128(dst128, rgba00);
 						dst128 = (__m128i*)( dst + (y + 1) * width + x );
 						_mm_storeu_si128(dst128, rgba01);
@@ -1774,7 +1767,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						rgba10 = _mm_or_si128(r__a10, _gb_10);
 						rgba11 = _mm_or_si128(r__a11, _gb_11);
 						// Write em out!
-						__m128i	*dst128 = (__m128i*)( dst + (y + 0) * width + x );
+						__m128i *dst128 = (__m128i*)( dst + (y + 0) * width + x );
 						_mm_storeu_si128(dst128, rgba00);
 						dst128 = (__m128i*)( dst + (y + 1) * width + x );
 						_mm_storeu_si128(dst128, rgba01);
@@ -2045,8 +2038,8 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 	if ((!TexFmt_Overlay_Enable) || (retval == PC_TEX_FMT_NONE))
 		return retval;
 
-	int w = min(width, 40);
-	int h = min(height, 10);
+	int w = std::min(width, 40);
+	int h = std::min(height, 10);
 
 	int xoff = (width - w) >> 1;
 	int yoff = (height - h) >> 1;
@@ -2076,7 +2069,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 		{
 			for (int x=0; x < xcnt; x++)
 			{
-				switch(retval)
+				switch (retval)
 				{
 				case PC_TEX_FMT_I8:
 					{
@@ -2447,25 +2440,25 @@ PC_TexFormat TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 
 
 const char* texfmt[] = {
 	// pixel
-	"I4",		"I8",		"IA4",		"IA8",
-	"RGB565",	"RGB5A3",	"RGBA8",	"0x07",
-	"C4",		"C8",		"C14X2",	"0x0B",
-	"0x0C",		"0x0D",		"CMPR",		"0x0F",
+	"I4",      "I8",      "IA4",      "IA8",
+	"RGB565",  "RGB5A3",  "RGBA8",    "0x07",
+	"C4",      "C8",      "C14X2",    "0x0B",
+	"0x0C",    "0x0D",    "CMPR",     "0x0F",
 	// Z-buffer
-	"0x10",		"Z8",		"0x12",		"Z16",
-	"0x14",		"0x15",		"Z24X8",	"0x17",
-	"0x18",		"0x19",		"0x1A",		"0x1B",
-	"0x1C",		"0x1D",		"0x1E",		"0x1F",
+	"0x10",    "Z8",      "0x12",     "Z16",
+	"0x14",    "0x15",    "Z24X8",    "0x17",
+	"0x18",    "0x19",    "0x1A",     "0x1B",
+	"0x1C",    "0x1D",    "0x1E",     "0x1F",
 	// pixel + copy
-	"CR4",		"0x21",		"CRA4",		"CRA8",
-	"0x24",		"0x25",		"CYUVA8",	"CA8",
-	"CR8",		"CG8",		"CB8",		"CRG8",
-	"CGB8",		"0x2D",		"0x2E",		"0x2F",
+	"CR4",     "0x21",    "CRA4",    "CRA8",
+	"0x24",    "0x25",    "CYUVA8",  "CA8",
+	"CR8",     "CG8",     "CB8",     "CRG8",
+	"CGB8",    "0x2D",    "0x2E",    "0x2F",
 	// Z + copy
-	"CZ4",		"0x31",		"0x32",		"0x33",
-	"0x34",		"0x35",		"0x36",		"0x37",
-	"0x38",		"CZ8M",		"CZ8L",		"0x3B",
-	"CZ16L",	"0x3D",		"0x3E",		"0x3F",
+	"CZ4",     "0x31",    "0x32",    "0x33",
+	"0x34",    "0x35",    "0x36",    "0x37",
+	"0x38",    "CZ8M",    "CZ8L",    "0x3B",
+	"CZ16L",   "0x3D",    "0x3E",    "0x3F",
 };
 
 const unsigned char sfont_map[] = {

@@ -1,35 +1,23 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
+#include "Common/ArmEmitter.h"
+#include "Common/Common.h"
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCTables.h"
 
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-#include "Common.h"
-
-#include "../../Core.h"
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
-#include "../PPCTables.h"
-#include "ArmEmitter.h"
-
-#include "Jit.h"
-#include "JitRegCache.h"
-#include "JitAsm.h"
+#include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitArm32/JitAsm.h"
+#include "Core/PowerPC/JitArm32/JitRegCache.h"
 
 void JitArm::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
@@ -63,8 +51,7 @@ void JitArm::mtspr(UGeckoInstruction inst)
 		break;
 
 	default:
-		Default(inst);
-		return;
+		FALLBACK_IF(true);
 	}
 
 	// OK, this is easy.
@@ -74,13 +61,13 @@ void JitArm::mtspr(UGeckoInstruction inst)
 void JitArm::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	mfspr(inst);
 }
 void JitArm::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	switch (iIndex)
@@ -89,8 +76,7 @@ void JitArm::mfspr(UGeckoInstruction inst)
 	case SPR_DEC:
 	case SPR_TL:
 	case SPR_TU:
-		Default(inst);
-		return;
+		FALLBACK_IF(true);
 	default:
 		ARMReg RD = gpr.R(inst.RD);
 		LDR(RD, R9, PPCSTATE_OFF(spr) + iIndex * 4);
@@ -101,7 +87,7 @@ void JitArm::mfspr(UGeckoInstruction inst)
 void JitArm::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	// USES_CR
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -121,7 +107,7 @@ void JitArm::mfcr(UGeckoInstruction inst)
 void JitArm::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	ARMReg rA = gpr.GetReg();
 
@@ -162,7 +148,7 @@ void JitArm::mtcrf(UGeckoInstruction inst)
 void JitArm::mtsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	STR(gpr.R(inst.RS), R9, PPCSTATE_OFF(sr[inst.SR]));
 }
@@ -170,14 +156,14 @@ void JitArm::mtsr(UGeckoInstruction inst)
 void JitArm::mfsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(sr[inst.SR]));
 }
 void JitArm::mcrxr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -197,21 +183,21 @@ void JitArm::mcrxr(UGeckoInstruction inst)
 void JitArm::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
- 	// Don't interpret this, if we do we get thrown out
-	//JITDISABLE(bJITSystemRegistersOff)
+	// Don't interpret this, if we do we get thrown out
+	//JITDISABLE(bJITSystemRegistersOff);
 
 	STR(gpr.R(inst.RS), R9, PPCSTATE_OFF(msr));
 
 	gpr.Flush();
 	fpr.Flush();
 
-	WriteExit(js.compilerPC + 4, 0);
+	WriteExit(js.compilerPC + 4);
 }
 
 void JitArm::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(msr));
 }
@@ -219,7 +205,7 @@ void JitArm::mfmsr(UGeckoInstruction inst)
 void JitArm::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	ARMReg rA = gpr.GetReg();
 
 	if (inst.CRFS != inst.CRFD)
@@ -233,7 +219,7 @@ void JitArm::mcrf(UGeckoInstruction inst)
 void JitArm::crXXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -254,42 +240,42 @@ void JitArm::crXXX(UGeckoInstruction inst)
 		LSR(rB, rB, shiftB);
 
 	// Compute combined bit
-	switch(inst.SUBOP10)
+	switch (inst.SUBOP10)
 	{
-	case 33:	// crnor
+	case 33: // crnor
 		ORR(rA, rA, rB);
 		MVN(rA, rA);
 		break;
 
-	case 129:	// crandc
+	case 129: // crandc
 		MVN(rB, rB);
 		AND(rA, rA, rB);
 		break;
 
-	case 193:	// crxor
+	case 193: // crxor
 		EOR(rA, rA, rB);
 		break;
 
-	case 225:	// crnand
+	case 225: // crnand
 		AND(rA, rA, rB);
 		MVN(rA, rA);
 		break;
 
-	case 257:	// crand
+	case 257: // crand
 		AND(rA, rA, rB);
 		break;
 
-	case 289:	// creqv
+	case 289: // creqv
 		EOR(rA, rA, rB);
 		MVN(rA, rA);
 		break;
 
-	case 417:	// crorc
+	case 417: // crorc
 		MVN(rA, rA);
 		ORR(rA, rA, rB);
 		break;
 
-	case 449:	// cror
+	case 449: // cror
 		ORR(rA, rA, rB);
 		break;
 	}

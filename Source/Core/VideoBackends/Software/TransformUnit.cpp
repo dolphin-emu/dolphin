@@ -2,17 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include <algorithm>
+#include <cmath>
 
-#include <math.h>
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
 
-#include "TransformUnit.h"
-#include "XFMemLoader.h"
-#include "CPMemLoader.h"
-#include "BPMemLoader.h"
-#include "NativeVertexFormat.h"
-
-#include "Vec3.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
+#include "VideoBackends/Software/TransformUnit.h"
+#include "VideoBackends/Software/Vec3.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
 
 namespace TransformUnit
@@ -72,22 +73,22 @@ void MultipleVec3Ortho(const Vec3 &vec, const float *proj, Vec4 &result)
 
 void TransformPosition(const InputVertexData *src, OutputVertexData *dst)
 {
-	const float* mat = (const float*)&swxfregs.posMatrices[src->posMtx * 4];
+	const float* mat = (const float*)&xfmem.posMatrices[src->posMtx * 4];
 	MultiplyVec3Mat34(src->position, mat, dst->mvPosition);
 
-	if (swxfregs.projection.type == GX_PERSPECTIVE)
+	if (xfmem.projection.type == GX_PERSPECTIVE)
 	{
-		MultipleVec3Perspective(dst->mvPosition, swxfregs.projection.rawProjection, dst->projectedPosition);
+		MultipleVec3Perspective(dst->mvPosition, xfmem.projection.rawProjection, dst->projectedPosition);
 	}
 	else
 	{
-		MultipleVec3Ortho(dst->mvPosition, swxfregs.projection.rawProjection, dst->projectedPosition);
+		MultipleVec3Ortho(dst->mvPosition, xfmem.projection.rawProjection, dst->projectedPosition);
 	}
 }
 
 void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst)
 {
-	const float* mat = (const float*)&swxfregs.normalMatrices[(src->posMtx & 31)  * 3];
+	const float* mat = (const float*)&xfmem.normalMatrices[(src->posMtx & 31)  * 3];
 
 	if (nbt)
 	{
@@ -126,7 +127,7 @@ void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool spec
 			break;
 	}
 
-	const float *mat = (const float*)&swxfregs.posMatrices[srcVertex->texMtx[coordNum] * 4];
+	const float *mat = (const float*)&xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
 	Vec3 *dst = &dstVertex->texCoords[coordNum];
 
 	if (texinfo.projection == XF_TEXPROJ_ST)
@@ -146,13 +147,13 @@ void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool spec
 			MultiplyVec3Mat34(*src, mat, *dst);
 	}
 
-	if (swxfregs.dualTexTrans)
+	if (xfmem.dualTexTrans.enabled)
 	{
 		Vec3 tempCoord;
 
 		// normalize
-		const PostMtxInfo &postInfo = swxfregs.postMtxInfo[coordNum];
-		const float *postMat = (const float*)&swxfregs.postMatrices[postInfo.index * 4];
+		const PostMtxInfo &postInfo = xfmem.postMtxInfo[coordNum];
+		const float *postMat = (const float*)&xfmem.postMatrices[postInfo.index * 4];
 
 		if (specialCase)
 		{
@@ -202,11 +203,6 @@ inline void AddScaledIntegerColor(const u8 *src, float scale, Vec3 &dst)
 	dst.z += src[3] * scale;
 }
 
-inline float Clamp(float val, float a, float b)
-{
-	return val<a?a:val>b?b:val;
-}
-
 inline float SafeDivide(float n, float d)
 {
 	return (d==0) ? (n>0?1:0) : n/d;
@@ -214,7 +210,7 @@ inline float SafeDivide(float n, float d)
 
 void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, Vec3 &lightCol)
 {
-	const LightPointer *light = (const LightPointer*)&swxfregs.lights[0x10*lightNum];
+	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
 
 	if (!(chan.attnfunc & 1))
 	{
@@ -234,7 +230,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 			case LIGHTDIF_CLAMP:
 				{
 					Vec3 ldir = (light->pos - pos).normalized();
-					float diffuse = max(0.0f, ldir * normal);
+					float diffuse = std::max(0.0f, ldir * normal);
 					AddScaledIntegerColor(light->color, diffuse, lightCol);
 				}
 				break;
@@ -252,21 +248,21 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 			float dist2 = ldir.length2();
 			float dist = sqrtf(dist2);
 			ldir = ldir / dist;
-			attn = max(0.0f, ldir * light->dir);
+			attn = std::max(0.0f, ldir * light->dir);
 
 			float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
 			float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
-			attn = SafeDivide(max(0.0f, cosAtt), distAtt);
+			attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
 		}
 		else if (chan.attnfunc == 1) // specular
 		{
 			// donko - what is going on here?  655.36 is a guess but seems about right.
-			attn = (light->pos * normal) > -655.36 ? max(0.0f, (light->dir * normal)) : 0;
+			attn = (light->pos * normal) > -655.36 ? std::max(0.0f, (light->dir * normal)) : 0;
 			ldir.set(1.0f, attn, attn * attn);
 
-			float cosAtt = max(0.0f, light->cosatt * ldir);
+			float cosAtt = std::max(0.0f, light->cosatt * ldir);
 			float distAtt = light->distatt * ldir;
-			attn = SafeDivide(max(0.0f, cosAtt), distAtt);
+			attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
 		}
 		else
 		{
@@ -288,7 +284,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 			case LIGHTDIF_CLAMP:
 				{
-					float difAttn = max(0.0f, ldir * normal);
+					float difAttn = std::max(0.0f, ldir * normal);
 					AddScaledIntegerColor(light->color, attn * difAttn, lightCol);
 				}
 				break;
@@ -299,7 +295,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, float &lightCol)
 {
-	const LightPointer *light = (const LightPointer*)&swxfregs.lights[0x10*lightNum];
+	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
 
 	if (!(chan.attnfunc & 1))
 	{
@@ -319,7 +315,7 @@ void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 			case LIGHTDIF_CLAMP:
 				{
 					Vec3 ldir = (light->pos - pos).normalized();
-					float diffuse = max(0.0f, ldir * normal);
+					float diffuse = std::max(0.0f, ldir * normal);
 					lightCol += light->color[0] * diffuse;
 				}
 				break;
@@ -336,21 +332,21 @@ void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 			float dist2 = ldir.length2();
 			float dist = sqrtf(dist2);
 			ldir = ldir / dist;
-			attn = max(0.0f, ldir * light->dir);
+			attn = std::max(0.0f, ldir * light->dir);
 
 			float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
 			float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
-			attn = SafeDivide(max(0.0f, cosAtt), distAtt);
+			attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
 		}
 		else /* if (chan.attnfunc == 1) */ // specular
 		{
 			// donko - what is going on here?  655.36 is a guess but seems about right.
-			attn = (light->pos * normal) > -655.36 ? max(0.0f, (light->dir * normal)) : 0;
+			attn = (light->pos * normal) > -655.36 ? std::max(0.0f, (light->dir * normal)) : 0;
 			ldir.set(1.0f, attn, attn * attn);
 
 			float cosAtt = light->cosatt * ldir;
 			float distAtt = light->distatt * ldir;
-			attn = SafeDivide(max(0.0f, cosAtt), distAtt);
+			attn = SafeDivide(std::max(0.0f, cosAtt), distAtt);
 		}
 
 		switch (chan.diffusefunc)
@@ -367,7 +363,7 @@ void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 			case LIGHTDIF_CLAMP:
 				{
-					float difAttn = max(0.0f, ldir * normal);
+					float difAttn = std::max(0.0f, ldir * normal);
 					lightCol += light->color[0] * attn * difAttn;
 				}
 				break;
@@ -378,18 +374,18 @@ void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 
 void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 {
-	for (u32 chan = 0; chan < swxfregs.nNumChans; chan++)
+	for (u32 chan = 0; chan < xfmem.numChan.numColorChans; chan++)
 	{
 		// abgr
 		u8 matcolor[4];
 		u8 chancolor[4];
 
 		// color
-		LitChannel &colorchan = swxfregs.color[chan];
+		LitChannel &colorchan = xfmem.color[chan];
 		if (colorchan.matsource)
 			*(u32*)matcolor = *(u32*)src->color[chan];  // vertex
 		else
-			*(u32*)matcolor = swxfregs.matColor[chan];
+			*(u32*)matcolor = xfmem.matColor[chan];
 
 		if (colorchan.enablelighting)
 		{
@@ -403,7 +399,7 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 			}
 			else
 			{
-				u8 *ambColor = (u8*)&swxfregs.ambColor[chan];
+				u8 *ambColor = (u8*)&xfmem.ambColor[chan];
 				lightCol.x = ambColor[1];
 				lightCol.y = ambColor[2];
 				lightCol.z = ambColor[3];
@@ -416,10 +412,15 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 					LightColor(dst->mvPosition, dst->normal[0], i, colorchan, lightCol);
 			}
 
-			float inv = 1.0f / 255.0f;
-			chancolor[1] = (u8)(matcolor[1] * Clamp(lightCol.x * inv, 0.0f, 1.0f));
-			chancolor[2] = (u8)(matcolor[2] * Clamp(lightCol.y * inv, 0.0f, 1.0f));
-			chancolor[3] = (u8)(matcolor[3] * Clamp(lightCol.z * inv, 0.0f, 1.0f));
+			int light_x = int(lightCol.x);
+			int light_y = int(lightCol.y);
+			int light_z = int(lightCol.z);
+			MathUtil::Clamp(&light_x, 0, 255);
+			MathUtil::Clamp(&light_y, 0, 255);
+			MathUtil::Clamp(&light_z, 0, 255);
+			chancolor[1] = (matcolor[1] * (light_x + (light_x >> 7))) >> 8;
+			chancolor[2] = (matcolor[2] * (light_y + (light_y >> 7))) >> 8;
+			chancolor[3] = (matcolor[3] * (light_z + (light_z >> 7))) >> 8;
 		}
 		else
 		{
@@ -427,19 +428,19 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 		}
 
 		// alpha
-		LitChannel &alphachan = swxfregs.alpha[chan];
+		LitChannel &alphachan = xfmem.alpha[chan];
 		if (alphachan.matsource)
 			matcolor[0] = src->color[chan][0];  // vertex
 		else
-			matcolor[0] = swxfregs.matColor[chan] & 0xff;
+			matcolor[0] = xfmem.matColor[chan] & 0xff;
 
-		if (swxfregs.alpha[chan].enablelighting)
+		if (xfmem.alpha[chan].enablelighting)
 		{
 			float lightCol;
 			if (alphachan.ambsource)
 				lightCol = src->color[chan][0]; // vertex
 			else
-				lightCol = (float)(swxfregs.ambColor[chan] & 0xff);
+				lightCol = (float)(xfmem.ambColor[chan] & 0xff);
 
 			u8 mask = alphachan.GetFullLightMask();
 			for (int i = 0; i < 8; ++i)
@@ -448,7 +449,9 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 					LightAlpha(dst->mvPosition, dst->normal[0], i, alphachan, lightCol);
 			}
 
-			chancolor[0] = (u8)(matcolor[0] * Clamp(lightCol / 255.0f, 0.0f, 1.0f));
+			int light_a = int(lightCol);
+			MathUtil::Clamp(&light_a, 0, 255);
+			chancolor[0] = (matcolor[0] * (light_a + (light_a >> 7))) >> 8;
 		}
 		else
 		{
@@ -462,9 +465,9 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 
 void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool specialCase)
 {
-	for (u32 coordNum = 0; coordNum < swxfregs.numTexGens; coordNum++)
+	for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
 	{
-		const TexMtxInfo &texinfo = swxfregs.texMtxInfo[coordNum];
+		const TexMtxInfo &texinfo = xfmem.texMtxInfo[coordNum];
 
 		switch (texinfo.texgentype)
 		{
@@ -473,7 +476,7 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool s
 			break;
 		case XF_TEXGEN_EMBOSS_MAP:
 			{
-				const LightPointer *light = (const LightPointer*)&swxfregs.lights[0x10*texinfo.embosslightshift];
+				const LightPointer *light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
 
 				Vec3 ldir = (light->pos - dst->mvPosition).normalized();
 				float d1 = ldir * dst->normal[1];
@@ -503,7 +506,7 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool s
 		}
 	}
 
-	for (u32 coordNum = 0; coordNum < swxfregs.numTexGens; coordNum++)
+	for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
 	{
 		dst->texCoords[coordNum][0] *= (bpmem.texcoords[coordNum].s.scale_minus_1 + 1);
 		dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1 + 1);

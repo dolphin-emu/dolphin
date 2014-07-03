@@ -2,24 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPEMITTER_H
-#define _DSPEMITTER_H
+#pragma once
 
 #include <list>
 
-#include "DSPCommon.h"
-#include "x64ABI.h"
-#include "x64Emitter.h"
-#include "Jit/DSPJitRegCache.h"
+#include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
+
+#include "Core/DSP/DSPCommon.h"
+#include "Core/DSP/Jit/DSPJitRegCache.h"
 
 #define COMPILED_CODE_SIZE 2097152
-
-#define MAX_BLOCKS 0x10000
+#define MAX_BLOCKS         0x10000
 
 typedef u32 (*DSPCompiledCode)();
 typedef const u8 *Block;
 
-class DSPEmitter : public Gen::XCodeBlock, NonCopyable
+class DSPEmitter : public Gen::X64CodeBlock
 {
 public:
 	DSPEmitter();
@@ -42,10 +41,8 @@ public:
 
 	// CC Util
 	void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
-	void Update_SR_Register64_Carry(Gen::X64Reg val,
-					Gen::X64Reg carry_ovfl);
-	void Update_SR_Register64_Carry2(Gen::X64Reg val,
-					 Gen::X64Reg carry_ovfl);
+	void Update_SR_Register64_Carry(Gen::X64Reg val, Gen::X64Reg carry_ovfl);
+	void Update_SR_Register64_Carry2(Gen::X64Reg val, Gen::X64Reg carry_ovfl);
 	void Update_SR_Register16(Gen::X64Reg val = Gen::EAX);
 	void Update_SR_Register16_OverS32(Gen::X64Reg val = Gen::EAX);
 
@@ -286,7 +283,3 @@ private:
 	void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
 	void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 };
-
-
-#endif // _DSPEMITTER_H
-

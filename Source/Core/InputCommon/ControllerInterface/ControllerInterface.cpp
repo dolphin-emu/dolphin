@@ -1,32 +1,35 @@
-#include "ControllerInterface.h"
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#include "Common/Thread.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #if USE_EGL
-#include "GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
 #endif
 
 #ifdef CIFACE_USE_XINPUT
-	#include "XInput/XInput.h"
+	#include "InputCommon/ControllerInterface/XInput/XInput.h"
 #endif
 #ifdef CIFACE_USE_DINPUT
-	#include "DInput/DInput.h"
+	#include "InputCommon/ControllerInterface/DInput/DInput.h"
 #endif
 #ifdef CIFACE_USE_XLIB
-	#include "Xlib/Xlib.h"
+	#include "InputCommon/ControllerInterface/Xlib/Xlib.h"
 	#ifdef CIFACE_USE_X11_XINPUT2
-		#include "Xlib/XInput2.h"
+		#include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 	#endif
 #endif
 #ifdef CIFACE_USE_OSX
-	#include "OSX/OSX.h"
+	#include "InputCommon/ControllerInterface/OSX/OSX.h"
 #endif
 #ifdef CIFACE_USE_SDL
-	#include "SDL/SDL.h"
+	#include "InputCommon/ControllerInterface/SDL/SDL.h"
 #endif
 #ifdef CIFACE_USE_ANDROID
-	#include "Android/Android.h"
+	#include "InputCommon/ControllerInterface/Android/Android.h"
 #endif
-
-#include "Thread.h"
 
 using namespace ciface::ExpressionParser;
 
@@ -38,9 +41,9 @@ const float INPUT_DETECT_THRESHOLD = 0.55f;
 ControllerInterface g_controller_interface;
 
 //
-//		Init
+// Init
 //
-// detect devices and inputs outputs / will make refresh function later
+// Detect devices and inputs outputs / will make refresh function later
 //
 void ControllerInterface::Initialize()
 {
@@ -79,31 +82,26 @@ if (GLWin.platform == EGL_PLATFORM_X11) {
 }
 
 //
-//		DeInit
+// DeInit
 //
-// remove all devices/ call library cleanup functions
+// Remove all devices/ call library cleanup functions
 //
 void ControllerInterface::Shutdown()
 {
-	if (false == m_is_init)
+	if (!m_is_init)
 		return;
 
-	std::vector<Device*>::const_iterator
-		d = m_devices.begin(),
-		de = m_devices.end();
-	for ( ;d != de; ++d )
+	for (Device* d : m_devices)
 	{
-		std::vector<Device::Output*>::const_iterator
-			o = (*d)->Outputs().begin(),
-			oe = (*d)->Outputs().end();
-		// set outputs to ZERO before destroying device
-		for ( ;o!=oe; ++o)
-			(*o)->SetState(0);
-		// update output
-		(*d)->UpdateOutput();
+		// Set outputs to ZERO before destroying device
+		for (Device::Output* o : d->Outputs())
+			o->SetState(0);
 
-		//delete device
-		delete *d;
+		// Update output
+		d->UpdateOutput();
+
+		// Delete device
+		delete d;
 	}
 
 	m_devices.clear();
@@ -132,9 +130,9 @@ void ControllerInterface::Shutdown()
 }
 
 //
-//		SetHwnd
+// SetHwnd
 //
-// sets the hwnd used for some crap when initializing, use before calling Init
+// Sets the hwnd used for some crap when initializing, use before calling Init
 //
 void ControllerInterface::SetHwnd( void* const hwnd )
 {
@@ -142,9 +140,9 @@ void ControllerInterface::SetHwnd( void* const hwnd )
 }
 
 //
-//		UpdateInput
+// UpdateInput
 //
-// update input for all devices, return true if all devices returned successful
+// Update input for all devices, return true if all devices returned successful
 //
 bool ControllerInterface::UpdateInput(const bool force)
 {
@@ -153,16 +151,13 @@ bool ControllerInterface::UpdateInput(const bool force)
 	if (force)
 		lk.lock();
 	else if (!lk.try_lock())
-			return false;
+		return false;
 
 	size_t ok_count = 0;
 
-	std::vector<Device*>::const_iterator
-		d = m_devices.begin(),
-		e = m_devices.end();
-	for ( ;d != e; ++d )
+	for (Device* d : m_devices)
 	{
-		if ((*d)->UpdateInput())
+		if (d->UpdateInput())
 			++ok_count;
 		//else
 		// disabled. it might be causing problems
@@ -173,9 +168,9 @@ bool ControllerInterface::UpdateInput(const bool force)
 }
 
 //
-//		UpdateOutput
+// UpdateOutput
 //
-// update output for all devices, return true if all devices returned successful
+// Update output for all devices, return true if all devices returned successful
 //
 bool ControllerInterface::UpdateOutput(const bool force)
 {
@@ -188,9 +183,9 @@ bool ControllerInterface::UpdateOutput(const bool force)
 
 	size_t ok_count = 0;
 
-	for (auto d = m_devices.cbegin(); d != m_devices.cend(); ++d)
+	for (Device* d : m_devices)
 	{
-		if ((*d)->UpdateOutput())
+		if (d->UpdateOutput())
 			++ok_count;
 	}
 
@@ -198,9 +193,9 @@ bool ControllerInterface::UpdateOutput(const bool force)
 }
 
 //
-//		InputReference :: State
+// InputReference :: State
 //
-// get the state of an input reference
+// Gets the state of an input reference
 // override function for ControlReference::State ...
 //
 ControlState ControllerInterface::InputReference::State( const ControlState ignore )
@@ -212,11 +207,11 @@ ControlState ControllerInterface::InputReference::State( const ControlState igno
 }
 
 //
-//		OutputReference :: State
+// OutputReference :: State
 //
-// set the state of all binded outputs
-// overrides ControlReference::State .. combined them so i could make the gui simple / inputs == same as outputs one list
-// i was lazy and it works so watever
+// Set the state of all binded outputs
+// overrides ControlReference::State .. combined them so I could make the GUI simple / inputs == same as outputs one list
+// I was lazy and it works so watever
 //
 ControlState ControllerInterface::OutputReference::State(const ControlState state)
 {
@@ -226,30 +221,30 @@ ControlState ControllerInterface::OutputReference::State(const ControlState stat
 }
 
 //
-//		UpdateReference
+// UpdateReference
 //
-// updates a controlreference's binded devices/controls
+// Updates a controlreference's binded devices/controls
 // need to call this to re-parse a control reference's expression after changing it
 //
 void ControllerInterface::UpdateReference(ControllerInterface::ControlReference* ref
 	, const DeviceQualifier& default_device) const
 {
 	delete ref->parsed_expression;
-	ref->parsed_expression = NULL;
+	ref->parsed_expression = nullptr;
 
 	ControlFinder finder(*this, default_device, ref->is_input);
 	ref->parse_error = ParseExpression(ref->expression, finder, &ref->parsed_expression);
 }
 
 //
-//		InputReference :: Detect
+// InputReference :: Detect
 //
-// wait for input on all binded devices
+// Wait for input on all binded devices
 // supports not detecting inputs that were held down at the time of Detect start,
 // which is useful for those crazy flightsticks that have certain buttons that are always held down
 // or some crazy axes or something
 // upon input, return pointer to detected Control
-// else return NULL
+// else return nullptr
 //
 Device::Control* ControllerInterface::InputReference::Detect(const unsigned int ms, Device* const device)
 {
@@ -257,7 +252,7 @@ Device::Control* ControllerInterface::InputReference::Detect(const unsigned int 
 	std::vector<bool> states(device->Inputs().size());
 
 	if (device->Inputs().size() == 0)
-		return NULL;
+		return nullptr;
 
 	// get starting state of all inputs,
 	// so we can ignore those that were activated at time of Detect start
@@ -290,11 +285,11 @@ Device::Control* ControllerInterface::InputReference::Detect(const unsigned int 
 	}
 
 	// no input was detected
-	return NULL;
+	return nullptr;
 }
 
 //
-//		OutputReference :: Detect
+// OutputReference :: Detect
 //
 // Totally different from the inputReference detect / I have them combined so it was simpler to make the GUI.
 // The GUI doesn't know the difference between an input and an output / it's odd but I was lazy and it was easy
@@ -322,5 +317,5 @@ Device::Control* ControllerInterface::OutputReference::Detect(const unsigned int
 		State(0);
 		device->UpdateOutput();
 	}
-	return NULL;
+	return nullptr;
 }

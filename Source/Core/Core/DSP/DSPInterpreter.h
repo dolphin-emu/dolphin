@@ -2,15 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPINTERPRETER_H
-#define _DSPINTERPRETER_H
+#pragma once
 
-#include "DSPTables.h"
+#include "Core/DSP/DSPTables.h"
 
 #define DSP_REG_MASK    0x1f
 
-namespace DSPInterpreter {
-
+namespace DSPInterpreter
+{
 void Step();
 
 // See: DspIntBranch.cpp
@@ -152,5 +151,3 @@ void tstprod(const UDSPInstruction opc);
 void abs(const UDSPInstruction opc);
 
 }  // namespace
-
-#endif // _DSPINTERPRETER_H

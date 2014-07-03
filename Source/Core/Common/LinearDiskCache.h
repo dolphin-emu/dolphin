@@ -2,12 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#pragma once
 
-#ifndef _LINEAR_DISKCACHE
-#define _LINEAR_DISKCACHE
-
-#include "Common.h"
+#include <cstring>
 #include <fstream>
+#include <string>
+
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
 
 // On disk format:
 //header{
@@ -47,7 +49,7 @@ class LinearDiskCache
 {
 public:
 	// return number of read entries
-	u32 OpenAndRead(const char *filename, LinearDiskCacheReader<K, V> &reader)
+	u32 OpenAndRead(const std::string& filename, LinearDiskCacheReader<K, V> &reader)
 	{
 		using std::ios_base;
 
@@ -69,7 +71,7 @@ public:
 			// good header, read some key/value pairs
 			K key;
 
-			V *value = NULL;
+			V *value = nullptr;
 			u32 value_size;
 			u32 entry_number;
 
@@ -89,7 +91,7 @@ public:
 					Read(value, value_size) &&
 					Read(&entry_number) &&
 					entry_number == m_num_entries+1)
- 				{
+				{
 					reader.Read(key, value, value_size);
 				}
 				else
@@ -149,8 +151,8 @@ private:
 	{
 		char file_header[sizeof(Header)];
 
-		return (Read(file_header, sizeof(Header))
-			&& !memcmp((const char*)&m_header, file_header, sizeof(Header)));
+		return (Read(file_header, sizeof(Header)) &&
+		        !memcmp((const char*)&m_header, file_header, sizeof(Header)));
 	}
 
 	template <typename D>
@@ -184,5 +186,3 @@ private:
 	std::fstream m_file;
 	u32 m_num_entries;
 };
-
-#endif  // _LINEAR_DISKCACHE

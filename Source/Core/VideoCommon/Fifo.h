@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFO_H
-#define _FIFO_H
+#pragma once
 
-#include "Common.h"
-#include "VideoBackendBase.h"
+#include "Common/Common.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 class PointerWrap;
 
@@ -34,5 +33,3 @@ void Fifo_SetRendering(bool bEnabled);
 
 // Implemented by the Video Backend
 void VideoFifo_CheckAsyncRequest();
-
-#endif // _FIFO_H

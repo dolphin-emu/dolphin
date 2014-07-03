@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoConfigDiag.h"
-#include "VideoConfigDialog.h"
 
-#include "FileUtil.h"
-#include "Core.h"
+#include "Common/FileUtil.h"
+#include "Core/Core.h"
+#include "DolphinWX/VideoConfigDiag.h"
+#include "VideoBackends/Software/VideoConfigDialog.h"
 
 template <typename T>
 IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& setting, int minVal, int maxVal, long style) :
@@ -47,11 +47,10 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 	wxStaticText* const label_backend = new wxStaticText(page_general, wxID_ANY, _("Backend:"));
 	wxChoice* const choice_backend = new wxChoice(page_general, wxID_ANY, wxDefaultPosition);
 
-	std::vector<VideoBackend*>::const_iterator
-			it = g_available_video_backends.begin(),
-			itend = g_available_video_backends.end();
-	for (; it != itend; ++it)
-		choice_backend->AppendString(StrToWxStr((*it)->GetDisplayName()));
+	for (const VideoBackend* backend : g_available_video_backends)
+	{
+		choice_backend->AppendString(StrToWxStr(backend->GetDisplayName()));
+	}
 
 	// TODO: How to get the translated plugin name?
 	choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));

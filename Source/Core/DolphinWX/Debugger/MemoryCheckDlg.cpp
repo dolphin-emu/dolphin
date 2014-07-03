@@ -2,25 +2,39 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../WxUtils.h"
-#include "MemoryCheckDlg.h"
-#include "Common.h"
-#include "StringUtil.h"
-#include "PowerPC/PowerPC.h"
-#include "BreakpointWindow.h"
+#include <string>
+#include <wx/chartype.h>
+#include <wx/checkbox.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
 
-#define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, wxT(text), wxDefaultPosition, wxDefaultSize)
+#include "Common/BreakPoints.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
+#include "DolphinWX/Debugger/MemoryCheckDlg.h"
+
+#define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, _(text))
 
 BEGIN_EVENT_TABLE(MemoryCheckDlg, wxDialog)
 	EVT_BUTTON(wxID_OK, MemoryCheckDlg::OnOK)
 END_EVENT_TABLE()
 
 MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
-	: wxDialog(parent, wxID_ANY, _("Memory Check"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, _("Memory Check"))
 	, m_parent(parent)
 {
-	m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, wxT(""));
-	m_pEditEndAddress = new wxTextCtrl(this, wxID_ANY, wxT(""));
+	m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, "");
+	m_pEditEndAddress = new wxTextCtrl(this, wxID_ANY, "");
 	m_pWriteFlag = new wxCheckBox(this, wxID_ANY, _("Write"));
 	m_pWriteFlag->SetValue(true);
 	m_pReadFlag = new wxCheckBox(this, wxID_ANY, _("Read"));
@@ -29,17 +43,17 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
 	m_log_flag->SetValue(true);
 	m_break_flag = new wxCheckBox(this, wxID_ANY, _("Break"));
 
-	wxStaticBoxSizer *sAddressRangeBox = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Address Range"));
+	wxStaticBoxSizer *sAddressRangeBox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Address Range"));
 	sAddressRangeBox->Add(TEXT_BOX("Start"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 	sAddressRangeBox->Add(m_pEditStartAddress, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
 	sAddressRangeBox->Add(TEXT_BOX("End"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 	sAddressRangeBox->Add(m_pEditEndAddress, 1, wxALIGN_CENTER_VERTICAL);
 
-	wxStaticBoxSizer *sActionBox = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Action"));
+	wxStaticBoxSizer *sActionBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Action"));
 	sActionBox->Add(m_pWriteFlag);
 	sActionBox->Add(m_pReadFlag);
 
-	wxBoxSizer* sFlags = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Flags"));
+	wxBoxSizer* sFlags = new wxStaticBoxSizer(wxVERTICAL, this, _("Flags"));
 	sFlags->Add(m_log_flag);
 	sFlags->Add(m_break_flag);
 
@@ -67,9 +81,9 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
 
 	u32 StartAddress, EndAddress;
 	bool EndAddressOK = EndAddressString.Len() &&
-		AsciiToHex(WxStrToStr(EndAddressString).c_str(), EndAddress);
+		AsciiToHex(WxStrToStr(EndAddressString), EndAddress);
 
-	if (AsciiToHex(WxStrToStr(StartAddressString).c_str(), StartAddress) &&
+	if (AsciiToHex(WxStrToStr(StartAddressString), StartAddress) &&
 		(OnRead || OnWrite) && (Log || Break))
 	{
 		TMemCheck MemCheck;

@@ -2,13 +2,22 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __GECKOCODEDIAG_h__
-#define __GECKOCODEDIAG_h__
+#pragma once
 
-#include "GeckoCode.h"
-#include "GeckoCodeConfig.h"
+#include <string>
+#include <vector>
+#include <wx/panel.h>
 
-#include "wx/wx.h"
+#include "Core/GeckoCode.h"
+
+class IniFile;
+class wxButton;
+class wxCheckListBox;
+class wxCommandEvent;
+class wxListBox;
+class wxStaticText;
+class wxTextCtrl;
+class wxWindow;
 
 namespace Gecko
 {
@@ -37,19 +46,14 @@ private:
 	std::string m_gameid;
 
 	// wxwidgets stuff
-	wxCheckListBox	*m_listbox_gcodes;
+	wxCheckListBox* m_listbox_gcodes;
 	struct
 	{
-		wxStaticText	*label_name, *label_notes, *label_creator;
-		wxTextCtrl		*textctrl_notes;
-		wxListBox	*listbox_codes;
+		wxStaticText* label_name, *label_notes, *label_creator;
+		wxTextCtrl*   textctrl_notes;
+		wxListBox*    listbox_codes;
 	} m_infobox;
 	wxButton* btn_download;
 };
 
-
-
 }
-
-#endif
-

@@ -4,12 +4,13 @@
 
 #include <limits>
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "VertexLoader.h"
-#include "VertexLoader_Position.h"
-#include "VertexManagerBase.h"
-#include "CPUDetect.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoader_Position.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
 
 extern float posScale;
 extern TVtxAttr *pVtxAttr;
@@ -122,11 +123,11 @@ void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 
 static TPipelineFunction tableReadPosition[4][8][2] = {
 	{
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
 	},
 	{
 		{Pos_ReadDirect<u8, 2>, Pos_ReadDirect<u8, 3>,},

@@ -2,20 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "Thread.h"
-#include "Atomic.h"
-#include "ConfigManager.h"
-#include "Core.h"
-#include "CoreTiming.h"
-#include "HW/Memmap.h"
-#include "HW/ProcessorInterface.h"
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/FPURoundMode.h"
+#include "Common/MathUtil.h"
+#include "Common/Thread.h"
 
-#include "VideoBackend.h"
-#include "SWCommandProcessor.h"
-#include "ChunkFile.h"
-#include "MathUtil.h"
-#include "OpcodeDecoder.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+
+#include "VideoBackends/Software/OpcodeDecoder.h"
+#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/VideoBackend.h"
 
 
 namespace SWCommandProcessor
@@ -98,7 +101,7 @@ void Init()
 	interruptSet = false;
 	interruptWaiting = false;
 
-	g_pVideoData = 0;
+	g_pVideoData = nullptr;
 	g_bSkipCurrentFrame = false;
 }
 
@@ -124,147 +127,57 @@ void RunGpu()
 	}
 }
 
-void Read16(u16& _rReturnValue, const u32 _Address)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	u32 regAddr = (_Address & 0xFFF) >> 1;
-
-	DEBUG_LOG(COMMANDPROCESSOR, "(r): 0x%08x : 0x%08x", _Address, ((u16*)&cpreg)[regAddr]);
-
-	if (regAddr < 0x20)
-		_rReturnValue = ((u16*)&cpreg)[regAddr];
-	else
-		_rReturnValue = 0;
-}
-
-void Write16(const u16 _Value, const u32 _Address)
-{
-	INFO_LOG(COMMANDPROCESSOR, "(write16): 0x%04x @ 0x%08x",_Value,_Address);
-
-	switch (_Address & 0xFFF)
+	// Directly map reads and writes to the cpreg structure.
+	for (size_t i = 0; i < sizeof (cpreg) / sizeof (u16); ++i)
 	{
-	case STATUS_REGISTER:
-		{
-			ERROR_LOG(COMMANDPROCESSOR,"\t write to STATUS_REGISTER : %04x", _Value);
-		}
-		break;
+		u16* ptr = ((u16*)&cpreg) + i;
+		mmio->Register(base | (i * 2),
+			MMIO::DirectRead<u16>(ptr),
+			MMIO::DirectWrite<u16>(ptr)
+		);
+	}
 
-	case CTRL_REGISTER:
-		{
-			cpreg.ctrl.Hex = _Value;
+	// Bleh. Apparently SWCommandProcessor does not know about regs 0x40 to
+	// 0x64...
+	for (size_t i = 0x40; i < 0x64; ++i)
+	{
+		mmio->Register(base | i,
+			MMIO::Constant<u16>(0),
+			MMIO::Nop<u16>()
+		);
+	}
 
-			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
-			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | CPULINK %s | BP %s || BPIntEnable %s | OvF %s | UndF %s"
-				, cpreg.ctrl.GPReadEnable ?				"ON" : "OFF"
-				, cpreg.ctrl.GPLinkEnable ?				"ON" : "OFF"
-				, cpreg.ctrl.BPEnable ?					"ON" : "OFF"
-				, cpreg.ctrl.BreakPointIntEnable ?		"ON" : "OFF"
-				, cpreg.ctrl.FifoOverflowIntEnable ?	"ON" : "OFF"
-				, cpreg.ctrl.FifoUnderflowIntEnable ?	"ON" : "OFF"
-				);
-		}
-		break;
+	// The low part of MMIO regs for FIFO addresses needs to be aligned to 32
+	// bytes.
+	u32 fifo_addr_lo_regs[] = {
+		CommandProcessor::FIFO_BASE_LO,
+		CommandProcessor::FIFO_END_LO,
+		CommandProcessor::FIFO_WRITE_POINTER_LO,
+		CommandProcessor::FIFO_READ_POINTER_LO,
+		CommandProcessor::FIFO_BP_LO,
+		CommandProcessor::FIFO_RW_DISTANCE_LO,
+	};
+	for (u32 reg : fifo_addr_lo_regs)
+	{
+		mmio->RegisterWrite(base | reg,
+			MMIO::DirectWrite<u16>(((u16*)&cpreg) + (reg / 2), 0xFFE0)
+		);
+	}
 
-	case CLEAR_REGISTER:
-		{
-			UCPClearReg tmpClear(_Value);
+	// The clear register needs to perform some more complicated operations on
+	// writes.
+	mmio->RegisterWrite(base | CommandProcessor::CLEAR_REGISTER,
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			UCPClearReg tmpClear(val);
 
 			if (tmpClear.ClearFifoOverflow)
 				cpreg.status.OverflowHiWatermark = 0;
 			if (tmpClear.ClearFifoUnderflow)
 				cpreg.status.UnderflowLoWatermark = 0;
-
-			INFO_LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x",_Value);
-		}
-		break;
-
-	// Fifo Registers
-	case FIFO_TOKEN_REGISTER:
-		cpreg.token = _Value;
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_TOKEN_REGISTER : %04x", _Value);
-		break;
-
-	case FIFO_BASE_LO:
-		WriteLow ((u32 &)cpreg.fifobase, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_LO. FIFO base is : %08x", cpreg.fifobase);
-		break;
-	case FIFO_BASE_HI:
-		WriteHigh((u32 &)cpreg.fifobase, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_HI. FIFO base is : %08x", cpreg.fifobase);
-		break;
-	case FIFO_END_LO:
-		WriteLow ((u32 &)cpreg.fifoend, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_END_LO. FIFO end is : %08x", cpreg.fifoend);
-		break;
-	case FIFO_END_HI:
-		WriteHigh((u32 &)cpreg.fifoend, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_END_HI. FIFO end is : %08x", cpreg.fifoend);
-		break;
-
-	case FIFO_WRITE_POINTER_LO:
-		WriteLow ((u32 &)cpreg.writeptr, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_LO. write ptr is : %08x", cpreg.writeptr);
-		break;
-	case FIFO_WRITE_POINTER_HI:
-		WriteHigh ((u32 &)cpreg.writeptr, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_HI. write ptr is : %08x", cpreg.writeptr);
-		break;
-	case FIFO_READ_POINTER_LO:
-		WriteLow ((u32 &)cpreg.readptr, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_LO. read ptr is : %08x", cpreg.readptr);
-		break;
-	case FIFO_READ_POINTER_HI:
-		WriteHigh ((u32 &)cpreg.readptr, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_HI. read ptr is : %08x", cpreg.readptr);
-		break;
-
-	case FIFO_HI_WATERMARK_LO:
-		WriteLow ((u32 &)cpreg.hiwatermark, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_LO. hiwatermark is : %08x", cpreg.hiwatermark);
-		break;
-	case FIFO_HI_WATERMARK_HI:
-		WriteHigh ((u32 &)cpreg.hiwatermark, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_HI. hiwatermark is : %08x", cpreg.hiwatermark);
-		break;
-	case FIFO_LO_WATERMARK_LO:
-		WriteLow ((u32 &)cpreg.lowatermark, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_LO. lowatermark is : %08x", cpreg.lowatermark);
-		break;
-	case FIFO_LO_WATERMARK_HI:
-		WriteHigh ((u32 &)cpreg.lowatermark, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_HI. lowatermark is : %08x", cpreg.lowatermark);
-		break;
-
-	case FIFO_BP_LO:
-		WriteLow ((u32 &)cpreg.breakpt, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BP_LO. breakpoint is : %08x", cpreg.breakpt);
-		break;
-	case FIFO_BP_HI:
-		WriteHigh ((u32 &)cpreg.breakpt, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BP_HI. breakpoint is : %08x", cpreg.breakpt);
-		break;
-
-	case FIFO_RW_DISTANCE_LO:
-		WriteLow ((u32 &)cpreg.rwdistance, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_RW_DISTANCE_LO. rwdistance is : %08x", cpreg.rwdistance);
-		break;
-	case FIFO_RW_DISTANCE_HI:
-		WriteHigh ((u32 &)cpreg.rwdistance, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_RW_DISTANCE_HI. rwdistance is : %08x", cpreg.rwdistance);
-		break;
-	}
-
-	RunGpu();
-}
-
-void Read32(u32& _rReturnValue, const u32 _Address)
-{
-	_rReturnValue = 0;
-	_dbg_assert_msg_(COMMANDPROCESSOR, 0, "Read32 from CommandProcessor at 0x%08x", _Address);
-}
-
-void Write32(const u32 _Data, const u32 _Address)
-{
-	_dbg_assert_msg_(COMMANDPROCESSOR, 0, "Write32 at CommandProcessor at 0x%08x", _Address);
+		})
+	);
 }
 
 void STACKALIGN GatherPipeBursted()
@@ -372,7 +285,7 @@ void SetStatus()
 
 	cpreg.status.ReadIdle = cpreg.readptr == cpreg.writeptr;
 
-	bool bpInt = cpreg.status.Breakpoint && cpreg.ctrl.BreakPointIntEnable;
+	bool bpInt = cpreg.status.Breakpoint && cpreg.ctrl.BPInt;
 	bool ovfInt = cpreg.status.OverflowHiWatermark && cpreg.ctrl.FifoOverflowIntEnable;
 	bool undfInt = cpreg.status.UnderflowLoWatermark && cpreg.ctrl.FifoUnderflowIntEnable;
 

@@ -2,31 +2,35 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Boot.h"
-#include "../PowerPC/PowerPC.h"
-#include "../HLE/HLE.h"
-#include "../HW/Memmap.h"
-#include "../ConfigManager.h"
-#include "../PatchEngine.h"
-#include "../IPC_HLE/WII_IPC_HLE.h"
-#include "../IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
-
-#include "WiiWad.h"
-#include "NANDContentLoader.h"
-#include "FileUtil.h"
-#include "Boot_DOL.h"
-#include "Volume.h"
-#include "VolumeCreator.h"
-#include "CommonPaths.h"
-
 #include <memory>
+#include <string>
+
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
+#include "Common/StdMakeUnique.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/PatchEngine.h"
+#include "Core/Boot/Boot.h"
+#include "Core/Boot/Boot_DOL.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/WiiWad.h"
 
 static u32 state_checksum(u32 *buf, int len)
 {
 	u32 checksum = 0;
 	len = len>>2;
 
-	for(int i=0; i<len; i++)
+	for (int i=0; i<len; i++)
 	{
 		checksum += buf[i];
 	}
@@ -43,9 +47,8 @@ typedef struct {
 	u32 unknown[6];
 } StateFlags;
 
-bool CBoot::Boot_WiiWAD(const char* _pFilename)
+bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
-
 	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_STATE);
 
 	if (File::Exists(state_filename))
@@ -88,7 +91,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	// DOL
 	const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
-	if (pContent == NULL)
+	if (pContent == nullptr)
 		return false;
 
 	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
@@ -96,11 +99,11 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	std::unique_ptr<CDolLoader> pDolLoader;
 	if (pContent->m_pData)
 	{
-		pDolLoader.reset(new CDolLoader(pContent->m_pData, pContent->m_Size));
+		pDolLoader = std::make_unique<CDolLoader>(pContent->m_pData, pContent->m_Size);
 	}
 	else
 	{
-		pDolLoader.reset(new CDolLoader(pContent->m_Filename.c_str()));
+		pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
 	}
 	pDolLoader->Load();
 	PC = pDolLoader->GetEntryPoint() | 0x80000000;
@@ -117,7 +120,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	// Load patches and run startup patches
 	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_pFilename);
-	if (pVolume != NULL)
+	if (pVolume != nullptr)
 		PatchEngine::LoadPatches();
 
 	return true;

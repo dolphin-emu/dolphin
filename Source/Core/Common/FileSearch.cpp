@@ -2,20 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cstring>
 
-#include "Common.h"
-#include "CommonPaths.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
+#include "Common/StringUtil.h"
+
 #ifndef _WIN32
-#include <sys/types.h>
 #include <dirent.h>
 #else
 #include <windows.h>
 #endif
-
-#include <algorithm>
-
-#include "FileSearch.h"
-#include "StringUtil.h"
 
 
 CFileSearch::CFileSearch(const CFileSearch::XStringVector& _rSearchStrings, const CFileSearch::XStringVector& _rDirectories)
@@ -80,9 +78,9 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 	{
 		std::string found(dp->d_name);
 
-		if ((found != ".") && (found != "..")
-			&& (found.size() >= end_match.size())
-			&& std::equal(end_match.rbegin(), end_match.rend(), found.rbegin()))
+		if ((found != ".") && (found != "..") &&
+		    (found.size() >= end_match.size()) &&
+		    std::equal(end_match.rbegin(), end_match.rend(), found.rbegin()))
 		{
 			std::string full_name;
 			if (_strPath.c_str()[_strPath.size()-1] == DIR_SEP_CHR)

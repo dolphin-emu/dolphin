@@ -1,23 +1,17 @@
-
-#ifndef WIIMOTE_CONFIG_DIAG_H
-#define WIIMOTE_CONFIG_DIAG_H
-
-#include <wx/wx.h>
-#include <wx/listbox.h>
-#include <wx/textctrl.h>
-#include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/combobox.h>
-#include <wx/checkbox.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/spinctrl.h>
-
-#include "InputConfigDiag.h"
-#include "ConfigManager.h"
-#include <HW/Wiimote.h>
+#pragma once
 
 #include <map>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/windowid.h>
+
+#include "Common/SysConf.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Wiimote.h"
+
+class InputPlugin;
+class wxButton;
+class wxWindow;
 
 class WiimoteConfigDiag : public wxDialog
 {
@@ -67,7 +61,7 @@ public:
 private:
 	void Cancel(wxCommandEvent& event);
 
-	InputPlugin&	m_plugin;
+	InputPlugin& m_plugin;
 
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
 	unsigned int m_orig_wiimote_sources[MAX_BBMOTES];
@@ -75,6 +69,3 @@ private:
 	wxButton* wiimote_configure_bt[MAX_WIIMOTES];
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
 };
-
-
-#endif

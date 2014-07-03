@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_USB_KBD_H_
-#define _WII_IPC_HLE_DEVICE_USB_KBD_H_
+#pragma once
 
 class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device
 {
@@ -11,18 +10,18 @@ public:
 	CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName);
 	virtual ~CWII_IPC_HLE_Device_usb_kbd();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);
-	virtual bool Write(u32 _CommandAddress);
-	virtual bool IOCtl(u32 _CommandAddress);
-	virtual u32 Update();
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
+	virtual bool Write(u32 _CommandAddress) override;
+	virtual bool IOCtl(u32 _CommandAddress) override;
+	virtual u32 Update() override;
 
 private:
 	enum
 	{
-		MSG_KBD_CONNECT = 0,
-		MSG_KBD_DISCONNECT,
-		MSG_EVENT
+		MSG_KBD_CONNECT    = 0,
+		MSG_KBD_DISCONNECT = 1,
+		MSG_EVENT          = 2
 	};
 
 	#pragma pack(push, 1)
@@ -58,11 +57,9 @@ private:
 	enum
 	{
 		KBD_LAYOUT_QWERTY = 0,
-		KBD_LAYOUT_AZERTY
+		KBD_LAYOUT_AZERTY = 1
 	};
 	int m_KeyboardLayout;
 	static u8 m_KeyCodesQWERTY[256];
 	static u8 m_KeyCodesAZERTY[256];
 };
-
-#endif // _WII_IPC_HLE_DEVICE_USB_KBD_H_

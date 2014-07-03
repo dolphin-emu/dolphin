@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FRAMEBUFFERMANAGER_H_
-#define _FRAMEBUFFERMANAGER_H_
+#pragma once
 
-#include "GLUtil.h"
-#include "FramebufferManagerBase.h"
-#include "ProgramShaderCache.h"
-#include "Render.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
+
+#include "VideoCommon/FramebufferManagerBase.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM
@@ -60,7 +60,7 @@ struct XFBSource : public XFBSourceBase
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
-	FramebufferManager(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples);
+	FramebufferManager(int targetWidth, int targetHeight, int msaaSamples);
 	~FramebufferManager();
 
 	// To get the EFB in texture form, these functions may have to transfer
@@ -99,23 +99,22 @@ private:
 	static int m_targetWidth;
 	static int m_targetHeight;
 	static int m_msaaSamples;
-	static int m_msaaCoverageSamples;
+
+	static GLenum m_textureType;
 
 	static GLuint m_efbFramebuffer;
-	static GLuint m_efbColor; // Renderbuffer in MSAA mode; Texture otherwise
-	static GLuint m_efbDepth; // Renderbuffer in MSAA mode; Texture otherwise
+	static GLuint m_xfbFramebuffer;
+	static GLuint m_efbColor;
+	static GLuint m_efbDepth;
+	static GLuint m_efbColorSwap;// will be hot swapped with m_efbColor when reinterpreting EFB pixel formats
 
-	// Only used in MSAA mode and to convert pixel format
-	static GLuint m_resolvedFramebuffer; // will be hot swapped with m_efbColor on non-msaa pixel format change
+	// Only used in MSAA mode, TODO: try to avoid them
+	static GLuint m_resolvedFramebuffer;
 	static GLuint m_resolvedColorTexture;
 	static GLuint m_resolvedDepthTexture;
-
-	static GLuint m_xfbFramebuffer; // Only used in MSAA mode
 
 	// For pixel format draw
 	static SHADER m_pixel_format_shaders[2];
 };
 
 }  // namespace OGL
-
-#endif

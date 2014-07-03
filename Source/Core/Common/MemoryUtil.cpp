@@ -2,20 +2,22 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <cstdlib>
+#include <string>
 
-#include "Common.h"
-#include "MemoryUtil.h"
-#include "StringUtil.h"
+#include "Common/Common.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #include <psapi.h>
+#include "Common/StringUtil.h"
 #else
-#include <errno.h>
 #include <stdio.h>
+#include <sys/mman.h>
 #endif
 
-#if !defined(_WIN32) && defined(__x86_64__) && !defined(MAP_32BIT)
+#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
 #include <unistd.h>
 #define PAGE_MASK     (getpagesize() - 1)
 #define round_page(x) ((((unsigned long)(x)) + PAGE_MASK) & ~(PAGE_MASK))
@@ -29,8 +31,8 @@ void* AllocateExecutableMemory(size_t size, bool low)
 #if defined(_WIN32)
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
-	static char *map_hint = 0;
-#if defined(__x86_64__) && !defined(MAP_32BIT)
+	static char *map_hint = nullptr;
+#if defined(_M_X86_64) && !defined(MAP_32BIT)
 	// This OS has no flag to enforce allocation below the 4 GB boundary,
 	// but if we hint that we want a low address it is very likely we will
 	// get one.
@@ -42,7 +44,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 #endif
 	void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 		MAP_ANON | MAP_PRIVATE
-#if defined(__x86_64__) && defined(MAP_32BIT)
+#if defined(_M_X86_64) && defined(MAP_32BIT)
 		| (low ? MAP_32BIT : 0)
 #endif
 		, -1, 0);
@@ -50,18 +52,18 @@ void* AllocateExecutableMemory(size_t size, bool low)
 
 	// printf("Mapped executable memory at %p (size %ld)\n", ptr,
 	//	(unsigned long)size);
-	
+
 #if defined(__FreeBSD__)
 	if (ptr == MAP_FAILED)
 	{
-		ptr = NULL;
+		ptr = nullptr;
 #else
-	if (ptr == NULL)
+	if (ptr == nullptr)
 	{
-#endif	
+#endif
 		PanicAlert("Failed to allocate executable memory");
 	}
-#if !defined(_WIN32) && defined(__x86_64__) && !defined(MAP_32BIT)
+#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
 	else
 	{
 		if (low)
@@ -73,7 +75,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 	}
 #endif
 
-#if defined(_M_X64)
+#if _M_X86_64
 	if ((u64)ptr >= 0x80000000 && low == true)
 		PanicAlert("Executable memory ended up above 2GB!");
 #endif
@@ -86,14 +88,14 @@ void* AllocateMemoryPages(size_t size)
 #ifdef _WIN32
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
 #else
-	void* ptr = mmap(0, size, PROT_READ | PROT_WRITE,
+	void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE,
 			MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif
 
 	// printf("Mapped memory at %p (size %ld)\n", ptr,
 	//	(unsigned long)size);
 
-	if (ptr == NULL)
+	if (ptr == nullptr)
 		PanicAlert("Failed to allocate raw memory");
 
 	return ptr;
@@ -104,7 +106,7 @@ void* AllocateAlignedMemory(size_t size,size_t alignment)
 #ifdef _WIN32
 	void* ptr =  _aligned_malloc(size,alignment);
 #else
-	void* ptr = NULL;
+	void* ptr = nullptr;
 #ifdef ANDROID
 	ptr = memalign(alignment, size);
 #else
@@ -116,7 +118,7 @@ void* AllocateAlignedMemory(size_t size,size_t alignment)
 	// printf("Mapped memory at %p (size %ld)\n", ptr,
 	//	(unsigned long)size);
 
-	if (ptr == NULL)
+	if (ptr == nullptr)
 		PanicAlert("Failed to allocate aligned memory");
 
 	return ptr;
@@ -127,11 +129,10 @@ void FreeMemoryPages(void* ptr, size_t size)
 	if (ptr)
 	{
 #ifdef _WIN32
-	
 		if (!VirtualFree(ptr, 0, MEM_RELEASE))
+		{
 			PanicAlert("FreeMemoryPages failed!\n%s", GetLastErrorMsg());
-		ptr = NULL; // Is this our responsibility?
-	
+		}
 #else
 		munmap(ptr, size);
 #endif
@@ -143,9 +144,9 @@ void FreeAlignedMemory(void* ptr)
 	if (ptr)
 	{
 #ifdef _WIN32
-	_aligned_free(ptr);
+		_aligned_free(ptr);
 #else
-	free(ptr);
+		free(ptr);
 #endif
 	}
 }
@@ -184,7 +185,7 @@ std::string MemUsage()
 	// Print information about the memory usage of the process.
 
 	hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-	if (NULL == hProcess) return "MemUsage Error";
+	if (nullptr == hProcess) return "MemUsage Error";
 
 	if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
 		Ret = StringFromFormat("%s K", ThousandSeparate(pmc.WorkingSetSize / 1024, 7).c_str());

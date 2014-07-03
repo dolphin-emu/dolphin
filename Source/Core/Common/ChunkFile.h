@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef _POINTERWRAP_H_
-#define _POINTERWRAP_H_
+#pragma once
 
 // Extremely simple serialization framework.
 
@@ -15,20 +13,22 @@
 // - Zero backwards/forwards compatibility
 // - Serialization code for anything complex has to be manually written.
 
+#include <cstddef>
+#include <deque>
+#include <list>
 #include <map>
 #include <set>
-#include <vector>
-#include <list>
-#include <deque>
 #include <string>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
-#include "Common.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
 
 // ewww
 #if _LIBCPP_VERSION
-#define IsTriviallyCopyable(T) std::is_trivially_copyable<T>::value
+#define IsTriviallyCopyable(T) std::is_trivially_copyable<typename std::remove_volatile<T>::type>::value
 #elif __GNUC__
 #define IsTriviallyCopyable(T) std::has_trivial_copy_constructor<T>::value
 #elif _MSC_VER >= 1800
@@ -119,9 +119,9 @@ public:
 		case MODE_WRITE:
 		case MODE_MEASURE:
 		case MODE_VERIFY:
-			for (auto itr = x.begin(); itr != x.end(); ++itr)
+			for (V& val : x)
 			{
-				Do(*itr);
+				Do(val);
 			}
 			break;
 		}
@@ -206,7 +206,7 @@ public:
 	void DoLinkedList(LinkedListItem<T>*& list_start, LinkedListItem<T>** list_end=0)
 	{
 		LinkedListItem<T>* list_cur = list_start;
-		LinkedListItem<T>* prev = 0;
+		LinkedListItem<T>* prev = nullptr;
 
 		while (true)
 		{
@@ -220,7 +220,7 @@ public:
 				{
 					if (mode == MODE_READ)
 					{
-						cur->next = 0;
+						cur->next = nullptr;
 						list_cur = cur;
 						if (prev)
 							prev->next = cur;
@@ -239,13 +239,13 @@ public:
 				if (mode == MODE_READ)
 				{
 					if (prev)
-						prev->next = 0;
+						prev->next = nullptr;
 					if (list_end)
 						*list_end = prev;
 					if (list_cur)
 					{
 						if (list_start == list_cur)
-							list_start = 0;
+							list_start = nullptr;
 						do
 						{
 							LinkedListItem<T>* next = list_cur->next;
@@ -262,7 +262,7 @@ public:
 		}
 	}
 
-	void DoMarker(const char* prevName, u32 arbitraryNumber = 0x42)
+	void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)
 	{
 		u32 cookie = arbitraryNumber;
 		Do(cookie);
@@ -270,7 +270,7 @@ public:
 		if (mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
 		{
 			PanicAlertT("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load...",
-				prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
+				prevName.c_str(), cookie, cookie, arbitraryNumber, arbitraryNumber);
 			mode = PointerWrap::MODE_MEASURE;
 		}
 	}
@@ -306,7 +306,7 @@ private:
 
 	void DoVoid(void *data, u32 size)
 	{
-		for(u32 i = 0; i != size; ++i)
+		for (u32 i = 0; i != size; ++i)
 			DoByte(reinterpret_cast<u8*>(data)[i]);
 	}
 };
@@ -393,7 +393,7 @@ public:
 		}
 
 		// Get data
-		u8 *ptr = 0;
+		u8 *ptr = nullptr;
 		PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 		_class.DoState(p);
 		size_t const sz = (size_t)ptr;
@@ -431,5 +431,3 @@ private:
 		u32 ExpectedSize;
 	};
 };
-
-#endif  // _POINTERWRAP_H_

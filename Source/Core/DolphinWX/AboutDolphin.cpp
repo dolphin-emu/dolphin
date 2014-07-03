@@ -2,10 +2,24 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "AboutDolphin.h"
-#include "WxUtils.h"
-#include "resources/dolphin_logo.cpp"
+#include <wx/bitmap.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/mstream.h>
+#include <wx/sizer.h>
+#include <wx/statbmp.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
+#include "Common/Common.h"
+#include "DolphinWX/AboutDolphin.h"
+#include "DolphinWX/resources/dolphin_logo.cpp"
+
+class wxWindow;
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,
@@ -18,18 +32,18 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 			wxBitmap(iDolphinLogo));
 
 	const wxString Text = wxString::Format(_("Dolphin %s\n"
-				"Copyright (c) 2003-2013+ Dolphin Team\n"
+				"Copyright (c) 2003-2014+ Dolphin Team\n"
 				"\n"
 				"Branch: %s\n"
 				"Revision: %s\n"
 				"Compiled: %s @ %s\n"
 				"\n"
-				"Dolphin is a Gamecube/Wii emulator, which was\n"
+				"Dolphin is a GameCube/Wii emulator, which was\n"
 				"originally written by F|RES and ector.\n"
 				"Today Dolphin is an open source project with many\n"
 				"contributors, too many to list.\n"
 				"If interested, just go check out the project page at\n"
-				"http://code.google.com/p/dolphin-emu/ .\n"
+				"https://github.com/dolphin-emu/dolphin/ .\n"
 				"\n"
 				"Special thanks to Bushing, Costis, CrowTRobo,\n"
 				"Marcan, Segher, Titanik, or9 and Hotquik for their\n"
@@ -44,7 +58,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 				"Thanks to hcs/destop for their GC ADPCM decoder.\n"
 				"\n"
 				"We are not affiliated with Nintendo in any way.\n"
-				"Gamecube and Wii are trademarks of Nintendo.\n"
+				"GameCube and Wii are trademarks of Nintendo.\n"
 				"The emulator should not be used to play games\n"
 				"you do not legally own."),
 		scm_desc_str, scm_branch_str, scm_rev_git_str, __DATE__, __TIME__);

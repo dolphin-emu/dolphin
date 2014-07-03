@@ -2,13 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "MathUtil.h"
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
 
-#include "Interpreter.h"
-#include "Interpreter_FPUtils.h"
-
-#include "../JitInterface.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
 
 bool Interpreter::g_bReserve;
@@ -93,9 +92,9 @@ void Interpreter::lfs(UGeckoInstruction _inst)
 	u32 uTemp = Memory::Read_U32(Helper_Get_EA(_inst));
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 	{
-		double value = *(float*)&uTemp;
-		rPS0(_inst.FD) = value;
-		rPS1(_inst.FD) = value;
+		u64 value = ConvertToDouble(uTemp);
+		riPS0(_inst.FD) = value;
+		riPS1(_inst.FD) = value;
 	}
 }
 
@@ -105,9 +104,9 @@ void Interpreter::lfsu(UGeckoInstruction _inst)
 	u32 uTemp = Memory::Read_U32(uAddress);
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 	{
-		double value = *(float*)&uTemp;
-		rPS0(_inst.FD) = value;
-		rPS1(_inst.FD) = value;
+		u64 value = ConvertToDouble(uTemp);
+		riPS0(_inst.FD) = value;
+		riPS1(_inst.FD) = value;
 		m_GPR[_inst.RA] = uAddress;
 	}
 
@@ -119,9 +118,9 @@ void Interpreter::lfsux(UGeckoInstruction _inst)
 	u32 uTemp = Memory::Read_U32(uAddress);
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 	{
-		double value = *(float*)&uTemp;
-		rPS0(_inst.FD) = value;
-		rPS1(_inst.FD) = value;
+		u64 value = ConvertToDouble(uTemp);
+		riPS0(_inst.FD) = value;
+		riPS1(_inst.FD) = value;
 		m_GPR[_inst.RA] = uAddress;
 	}
 }
@@ -131,9 +130,9 @@ void Interpreter::lfsx(UGeckoInstruction _inst)
 	u32 uTemp = Memory::Read_U32(Helper_Get_EA_X(_inst));
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 	{
-		double value = *(float*)&uTemp;
-		rPS0(_inst.FD) = value;
-		rPS1(_inst.FD) = value;
+		u64 value = ConvertToDouble(uTemp);
+		riPS0(_inst.FD) = value;
+		riPS1(_inst.FD) = value;
 	}
 }
 
@@ -282,9 +281,6 @@ void Interpreter::stfdu(UGeckoInstruction _inst)
 
 void Interpreter::stfs(UGeckoInstruction _inst)
 {
-	//double value = rPS0(_inst.FS);
-	//float fTemp = (float)value;
-	//Memory::Write_U32(*(u32*)&fTemp, Helper_Get_EA(_inst));
 	Memory::Write_U32(ConvertToSingle(riPS0(_inst.FS)), Helper_Get_EA(_inst));
 }
 

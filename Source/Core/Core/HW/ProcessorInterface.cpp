@@ -2,18 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
+#include <cstdio>
 
-#include "Common.h"
-#include "Atomic.h"
-#include "ChunkFile.h"
-#include "../PowerPC/PowerPC.h"
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "CPU.h"
-#include "../CoreTiming.h"
-#include "ProcessorInterface.h"
-#include "GPFifo.h"
-#include "VideoBackendBase.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace ProcessorInterface
 {
@@ -21,15 +23,15 @@ namespace ProcessorInterface
 // Internal hardware addresses
 enum
 {
-	PI_INTERRUPT_CAUSE		= 0x00,
-	PI_INTERRUPT_MASK		= 0x04,
-	PI_FIFO_BASE			= 0x0C,
-	PI_FIFO_END				= 0x10,
-	PI_FIFO_WPTR			= 0x14,
-	PI_FIFO_RESET			= 0x18, // ??? - GXAbortFrame writes to it
-	PI_RESET_CODE			= 0x24,
-	PI_FLIPPER_REV			= 0x2C,
-	PI_FLIPPER_UNK			= 0x30 // BS1 writes 0x0245248A to it - prolly some bootstrap thing
+	PI_INTERRUPT_CAUSE = 0x00,
+	PI_INTERRUPT_MASK  = 0x04,
+	PI_FIFO_BASE       = 0x0C,
+	PI_FIFO_END        = 0x10,
+	PI_FIFO_WPTR       = 0x14,
+	PI_FIFO_RESET      = 0x18, // ??? - GXAbortFrame writes to it
+	PI_RESET_CODE      = 0x24,
+	PI_FLIPPER_REV     = 0x2C,
+	PI_FLIPPER_UNK     = 0x30 // BS1 writes 0x0245248A to it - prolly some bootstrap thing
 };
 
 
@@ -90,113 +92,67 @@ void Init()
 	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
 }
 
-void Read16(u16& _uReturnValue, const u32 _iAddress)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	u32 word;
-	Read32(word, _iAddress & ~3);
-	_uReturnValue = word >> (_iAddress & 3) ? 16 : 0;
-}
+	mmio->Register(base | PI_INTERRUPT_CAUSE,
+		MMIO::DirectRead<u32>(&m_InterruptCause),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			Common::AtomicAnd(m_InterruptCause, ~val);
+			UpdateException();
+		})
+	);
 
-void Read32(u32& _uReturnValue, const u32 _iAddress)
-{
-	//INFO_LOG(PROCESSORINTERFACE, "(r32) 0x%08x", _iAddress);
+	mmio->Register(base | PI_INTERRUPT_MASK,
+		MMIO::DirectRead<u32>(&m_InterruptMask),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			m_InterruptMask = val;
+			UpdateException();
+		})
+	);
 
-	switch(_iAddress & 0xFFF)
+	mmio->Register(base | PI_FIFO_BASE,
+		MMIO::DirectRead<u32>(&Fifo_CPUBase),
+		MMIO::DirectWrite<u32>(&Fifo_CPUBase, 0xFFFFFFE0)
+	);
+
+	mmio->Register(base | PI_FIFO_END,
+		MMIO::DirectRead<u32>(&Fifo_CPUEnd),
+		MMIO::DirectWrite<u32>(&Fifo_CPUEnd, 0xFFFFFFE0)
+	);
+
+	mmio->Register(base | PI_FIFO_WPTR,
+		MMIO::DirectRead<u32>(&Fifo_CPUWritePointer),
+		MMIO::DirectWrite<u32>(&Fifo_CPUWritePointer, 0xFFFFFFE0)
+	);
+
+	mmio->Register(base | PI_FIFO_RESET,
+		MMIO::InvalidRead<u32>(),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			WARN_LOG(PROCESSORINTERFACE, "Fifo reset (%08x)", val);
+		})
+	);
+
+	mmio->Register(base | PI_RESET_CODE,
+		MMIO::DirectRead<u32>(&m_ResetCode),
+		MMIO::DirectWrite<u32>(&m_ResetCode)
+	);
+
+	mmio->Register(base | PI_FLIPPER_REV,
+		MMIO::DirectRead<u32>(&m_FlipperRev),
+		MMIO::InvalidWrite<u32>()
+	);
+
+	// 16 bit reads are based on 32 bit reads.
+	for (int i = 0; i < 0x1000; i += 4)
 	{
-	case PI_INTERRUPT_CAUSE:
-		_uReturnValue = m_InterruptCause;
-		return;
-
-	case PI_INTERRUPT_MASK:
-		_uReturnValue = m_InterruptMask;
-		return;
-
-	case PI_FIFO_BASE:
-		DEBUG_LOG(PROCESSORINTERFACE, "Read CPU FIFO base, value = %08x", Fifo_CPUBase);
-		_uReturnValue = Fifo_CPUBase;
-		return;
-
-	case PI_FIFO_END:
-		DEBUG_LOG(PROCESSORINTERFACE, "Read CPU FIFO end, value = %08x", Fifo_CPUEnd);
-		_uReturnValue = Fifo_CPUEnd;
-		return;
-
-	case PI_FIFO_WPTR:
-		DEBUG_LOG(PROCESSORINTERFACE, "Read writepointer, value = %08x", Fifo_CPUWritePointer);
-		_uReturnValue = Fifo_CPUWritePointer;  //really writes in 32-byte chunks
-		// Monk's gcube does some crazy align trickery here.
-		return;
-
-	case PI_RESET_CODE:
-		INFO_LOG(PROCESSORINTERFACE, "Read reset code, 0x%08x", m_ResetCode);
-		_uReturnValue = m_ResetCode;
-		return;
-
-	case PI_FLIPPER_REV:
-		INFO_LOG(PROCESSORINTERFACE, "Read flipper rev, 0x%08x", m_FlipperRev);
-		_uReturnValue = m_FlipperRev;
-		return;
-
-	default:
-		ERROR_LOG(PROCESSORINTERFACE, "!!!!Unknown write!!!! 0x%08x", _iAddress);
-		break;
-	}
-
-	_uReturnValue = 0xAFFE0000;
-}
-
-void Write32(const u32 _uValue, const u32 _iAddress)
-{
-	//INFO_LOG(PROCESSORINTERFACE, "(w32) 0x%08x @ 0x%08x", _uValue, _iAddress);
-	switch(_iAddress & 0xFFF)
-	{
-	case PI_INTERRUPT_CAUSE:
-		Common::AtomicAnd(m_InterruptCause, ~_uValue); // writes turn them off
-		UpdateException();
-		return;
-
-	case PI_INTERRUPT_MASK:
-		m_InterruptMask = _uValue;
-		DEBUG_LOG(PROCESSORINTERFACE,"New Interrupt mask: %08x", m_InterruptMask);
-		UpdateException();
-		return;
-
-	case PI_FIFO_BASE:
-		Fifo_CPUBase = _uValue & 0xFFFFFFE0;
-		DEBUG_LOG(PROCESSORINTERFACE,"Fifo base = %08x", _uValue);
-		break;
-
-	case PI_FIFO_END:
-		Fifo_CPUEnd = _uValue & 0xFFFFFFE0;
-		DEBUG_LOG(PROCESSORINTERFACE,"Fifo end = %08x", _uValue);
-		break;
-
-	case PI_FIFO_WPTR:
-		Fifo_CPUWritePointer = _uValue & 0xFFFFFFE0;
-		DEBUG_LOG(PROCESSORINTERFACE,"Fifo writeptr = %08x", _uValue);
-		break;
-
-	case PI_FIFO_RESET:
-		//Abort the actual frame
-		//g_video_backend->Video_AbortFrame();
-		//Fifo_CPUWritePointer = Fifo_CPUBase; ??
-		//PanicAlert("Unknown write to PI_FIFO_RESET (%08x)", _uValue);
-		WARN_LOG(PROCESSORINTERFACE, "Fifo reset (%08x)", _uValue);
-		break;
-
-	case PI_RESET_CODE:
-		DEBUG_LOG(PROCESSORINTERFACE, "Write %08x to PI_RESET_CODE", _uValue);
-		m_ResetCode = _uValue;
-		break;
-
-	case PI_FLIPPER_UNK:
-		DEBUG_LOG(PROCESSORINTERFACE, "Write %08x to unknown PI register %08x", _uValue, _iAddress);
-		break;
-
-	default:
-		ERROR_LOG(PROCESSORINTERFACE,"!!!!Unknown PI write!!!! 0x%08x", _iAddress);
-		PanicAlert("Unknown write to PI: %08x", _iAddress);
-		break;
+		mmio->Register(base | i,
+			MMIO::ReadToLarger<u16>(mmio, base | i, 0),
+			MMIO::InvalidWrite<u16>()
+		);
+		mmio->Register(base | (i + 2),
+			MMIO::ReadToLarger<u16>(mmio, base | i, 16),
+			MMIO::InvalidWrite<u16>()
+		);
 	}
 }
 
@@ -212,23 +168,23 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 {
 	switch (_causemask)
 	{
-	case INT_CAUSE_PI:				return "INT_CAUSE_PI";
-	case INT_CAUSE_DI:				return "INT_CAUSE_DI";
-	case INT_CAUSE_RSW:				return "INT_CAUSE_RSW";
-	case INT_CAUSE_SI:				return "INT_CAUSE_SI";
-	case INT_CAUSE_EXI:				return "INT_CAUSE_EXI";
-	case INT_CAUSE_AI:				return "INT_CAUSE_AI";
-	case INT_CAUSE_DSP:				return "INT_CAUSE_DSP";
-	case INT_CAUSE_MEMORY:			return "INT_CAUSE_MEMORY";
-	case INT_CAUSE_VI:				return "INT_CAUSE_VI";
-	case INT_CAUSE_PE_TOKEN:		return "INT_CAUSE_PE_TOKEN";
-	case INT_CAUSE_PE_FINISH:		return "INT_CAUSE_PE_FINISH";
-	case INT_CAUSE_CP:				return "INT_CAUSE_CP";
-	case INT_CAUSE_DEBUG:			return "INT_CAUSE_DEBUG";
-	case INT_CAUSE_WII_IPC:			return "INT_CAUSE_WII_IPC";
-	case INT_CAUSE_HSP:				return "INT_CAUSE_HSP";
-	case INT_CAUSE_RST_BUTTON:		return "INT_CAUSE_RST_BUTTON";
-	default:						return "!!! ERROR-unknown Interrupt !!!";
+	case INT_CAUSE_PI:         return "INT_CAUSE_PI";
+	case INT_CAUSE_DI:         return "INT_CAUSE_DI";
+	case INT_CAUSE_RSW:        return "INT_CAUSE_RSW";
+	case INT_CAUSE_SI:         return "INT_CAUSE_SI";
+	case INT_CAUSE_EXI:        return "INT_CAUSE_EXI";
+	case INT_CAUSE_AI:         return "INT_CAUSE_AI";
+	case INT_CAUSE_DSP:        return "INT_CAUSE_DSP";
+	case INT_CAUSE_MEMORY:     return "INT_CAUSE_MEMORY";
+	case INT_CAUSE_VI:         return "INT_CAUSE_VI";
+	case INT_CAUSE_PE_TOKEN:   return "INT_CAUSE_PE_TOKEN";
+	case INT_CAUSE_PE_FINISH:  return "INT_CAUSE_PE_FINISH";
+	case INT_CAUSE_CP:         return "INT_CAUSE_CP";
+	case INT_CAUSE_DEBUG:      return "INT_CAUSE_DEBUG";
+	case INT_CAUSE_WII_IPC:    return "INT_CAUSE_WII_IPC";
+	case INT_CAUSE_HSP:        return "INT_CAUSE_HSP";
+	case INT_CAUSE_RST_BUTTON: return "INT_CAUSE_RST_BUTTON";
+	default:                   return "!!! ERROR-unknown Interrupt !!!";
 	}
 }
 

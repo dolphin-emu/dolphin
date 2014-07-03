@@ -2,10 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Filesystem.h"
-
-#include "VolumeCreator.h"
-#include "FileSystemGCWii.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/FileSystemGCWii.h"
 
 namespace DiscIO
 {
@@ -24,12 +22,12 @@ IFileSystem* CreateFileSystem(const IVolume* _rVolume)
 	IFileSystem* pFileSystem = new CFileSystemGCWii(_rVolume);
 
 	if (!pFileSystem)
-		return 0;
+		return nullptr;
 
 	if (!pFileSystem->IsValid())
 	{
 		delete pFileSystem;
-		pFileSystem = NULL;
+		pFileSystem = nullptr;
 	}
 
 	return pFileSystem;

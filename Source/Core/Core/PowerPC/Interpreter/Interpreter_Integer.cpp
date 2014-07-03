@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 void Interpreter::Helper_UpdateCR0(u32 _uValue)
 {
@@ -154,11 +154,11 @@ void Interpreter::twi(UGeckoInstruction _inst)
 
 	ERROR_LOG(POWERPC, "twi rA %x SIMM %x TO %0x", a, b, TO);
 
-	if (   ((a < b) && (TO & 0x10))
-		|| ((a > b) && (TO & 0x08))
-		|| ((a ==b) && (TO & 0x04))
-		|| (((u32)a <(u32)b) && (TO & 0x02))
-		|| (((u32)a >(u32)b) && (TO & 0x01)))
+	if (((a < b) && (TO & 0x10)) ||
+	    ((a > b) && (TO & 0x08)) ||
+	    ((a ==b) && (TO & 0x04)) ||
+	    (((u32)a <(u32)b) && (TO & 0x02)) ||
+	    (((u32)a >(u32)b) && (TO & 0x01)))
 	{
 		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_PROGRAM);
 		PowerPC::CheckExceptions();
@@ -217,7 +217,7 @@ void Interpreter::cmp(UGeckoInstruction _inst)
 	s32 a = (s32)m_GPR[_inst.RA];
 	s32 b = (s32)m_GPR[_inst.RB];
 	int fTemp = 0x8; // a < b
-		//	if (a < b)  fTemp = 0x8; else
+	// if (a < b)  fTemp = 0x8; else
 	if (a > b)  fTemp = 0x4;
 	else if (a == b) fTemp = 0x2;
 	if (GetXER_SO()) PanicAlert("cmp getting overflow flag"); // fTemp |= 0x1
@@ -230,7 +230,7 @@ void Interpreter::cmpl(UGeckoInstruction _inst)
 	u32 b = m_GPR[_inst.RB];
 	u32 fTemp = 0x8; // a < b
 
-		//	if (a < b)  fTemp = 0x8;else
+	// if (a < b)  fTemp = 0x8;else
 	if (a > b)  fTemp = 0x4;
 	else if (a == b) fTemp = 0x2;
 	if (GetXER_SO()) PanicAlert("cmpl getting overflow flag"); // fTemp |= 0x1;
@@ -382,11 +382,11 @@ void Interpreter::tw(UGeckoInstruction _inst)
 
 	ERROR_LOG(POWERPC, "tw rA %0x rB %0x TO %0x", a, b, TO);
 
-	if (   ((a < b) && (TO & 0x10))
-		|| ((a > b) && (TO & 0x08))
-		|| ((a ==b) && (TO & 0x04))
-		|| (((u32)a <(u32)b) && (TO & 0x02))
-		|| (((u32)a >(u32)b) && (TO & 0x01)))
+	if (((a < b) && (TO & 0x10)) ||
+	    ((a > b) && (TO & 0x08)) ||
+	    ((a ==b) && (TO & 0x04)) ||
+	    (((u32)a <(u32)b) && (TO & 0x02)) ||
+	    (((u32)a >(u32)b) && (TO & 0x01)))
 	{
 		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_PROGRAM);
 		PowerPC::CheckExceptions();

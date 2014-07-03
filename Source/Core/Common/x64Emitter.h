@@ -4,11 +4,14 @@
 
 // WARNING - THIS LIBRARY IS NOT THREAD SAFE!!!
 
-#ifndef _DOLPHIN_INTEL_CODEGEN_
-#define _DOLPHIN_INTEL_CODEGEN_
+#pragma once
 
-#include "Common.h"
-#include "MemoryUtil.h"
+#include <cstddef>
+#include <cstring>
+#include <functional>
+
+#include "Common/CodeBlock.h"
+#include "Common/Common.h"
 
 namespace Gen
 {
@@ -43,10 +46,10 @@ enum CCFlags
 {
 	CC_O   = 0,
 	CC_NO  = 1,
-	CC_B   = 2, CC_C  = 2, CC_NAE = 2,
-	CC_NB  = 3, CC_NC = 3, CC_AE  = 3,
+	CC_B   = 2, CC_C   = 2, CC_NAE = 2,
+	CC_NB  = 3, CC_NC  = 3, CC_AE  = 3,
 	CC_Z   = 4, CC_E   = 4,
-	CC_NZ  = 5,	CC_NE  = 5,
+	CC_NZ  = 5, CC_NE  = 5,
 	CC_BE  = 6, CC_NA  = 6,
 	CC_NBE = 7, CC_A   = 7,
 	CC_S   = 8,
@@ -98,6 +101,12 @@ enum NormalOp {
 	nrmXCHG,
 };
 
+enum FloatOp {
+	floatLD = 0,
+	floatST = 2,
+	floatSTP = 3,
+};
+
 class XEmitter;
 
 // RIP addressing does not benefit from micro op fusion on Core arch
@@ -116,6 +125,7 @@ struct OpArg
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVex(XEmitter* emit, int size, int packed, Gen::X64Reg regOp1, X64Reg regOp2) const;
 	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=(X64Reg)0xFF, bool warn_64bit_offset = true) const;
+	void WriteFloatModRM(XEmitter *emit, FloatOp op);
 	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
 	u64 offset;  // use RIP-relative as much as possible - 64-bit immediates are not available.
@@ -162,8 +172,8 @@ private:
 	u16 indexReg;
 };
 
-inline OpArg M(void *ptr)	    {return OpArg((u64)ptr, (int)SCALE_RIP);}
-inline OpArg R(X64Reg value)	{return OpArg(0, SCALE_NONE, value);}
+inline OpArg M(const void *ptr) {return OpArg((u64)ptr, (int)SCALE_RIP);}
+inline OpArg R(X64Reg value)    {return OpArg(0, SCALE_NONE, value);}
 inline OpArg MatR(X64Reg value) {return OpArg(0, SCALE_ATREG, value);}
 inline OpArg MDisp(X64Reg value, int offset) {
 	return OpArg((u32)offset, SCALE_ATREG, value);
@@ -184,13 +194,13 @@ inline OpArg Imm8 (u8 imm)  {return OpArg(imm, SCALE_IMM8);}
 inline OpArg Imm16(u16 imm) {return OpArg(imm, SCALE_IMM16);} //rarely used
 inline OpArg Imm32(u32 imm) {return OpArg(imm, SCALE_IMM32);}
 inline OpArg Imm64(u64 imm) {return OpArg(imm, SCALE_IMM64);}
-#ifdef _M_X64
-inline OpArg ImmPtr(void* imm) {return Imm64((u64)imm);}
+#ifdef _ARCH_64
+inline OpArg ImmPtr(const void* imm) {return Imm64((u64)imm);}
 #else
-inline OpArg ImmPtr(void* imm) {return Imm32((u32)imm);}
+inline OpArg ImmPtr(const void* imm) {return Imm32((u32)imm);}
 #endif
 inline u32 PtrOffset(void* ptr, void* base) {
-#ifdef _M_X64
+#ifdef _ARCH_64
 	s64 distance = (s64)ptr-(s64)base;
 	if (distance >= 0x80000000LL ||
 	    distance < -0x80000000LL) {
@@ -245,6 +255,7 @@ private:
 	void WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteFloatLoadStore(int bits, FloatOp op, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 protected:
@@ -254,7 +265,7 @@ protected:
 	inline void Write64(u64 value) {*(u64*)code = (value); code += 8;}
 
 public:
-	XEmitter() { code = NULL; }
+	XEmitter() { code = nullptr; }
 	XEmitter(u8 *code_ptr) { code = code_ptr; }
 	virtual ~XEmitter() {}
 
@@ -279,7 +290,7 @@ public:
 	void INT3();
 
 	// Do nothing
-	void NOP(int count = 1); //nop padding - TODO: fast nop slides, for amd and intel (check their manuals)
+	void NOP(size_t count = 1);
 
 	// Save energy in wait-loops on P4 only. Probably not too useful.
 	void PAUSE();
@@ -320,7 +331,7 @@ public:
 
 	FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
 	//void J_CC(CCFlags conditionCode, JumpTarget target);
-	void J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes = false);
+	void J_CC(CCFlags conditionCode, const u8* addr);
 
 	void SetJumpTarget(const FixupBranch &branch);
 
@@ -416,6 +427,9 @@ public:
 	void MOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //automatically uses MOVSXD if necessary
 	void MOVZX(int dbits, int sbits, X64Reg dest, OpArg src);
 
+	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
+	void MOVBE(int dbits, const OpArg& dest, const OpArg& src);
+
 	// WARNING - These two take 11-13 cycles and are VectorPath! (AMD64)
 	void STMXCSR(OpArg memloc);
 	void LDMXCSR(OpArg memloc);
@@ -425,6 +439,28 @@ public:
 	void REP();
 	void REPNE();
 
+	// x87
+	enum x87StatusWordBits {
+		x87_InvalidOperation = 0x1,
+		x87_DenormalizedOperand = 0x2,
+		x87_DivisionByZero = 0x4,
+		x87_Overflow = 0x8,
+		x87_Underflow = 0x10,
+		x87_Precision = 0x20,
+		x87_StackFault = 0x40,
+		x87_ErrorSummary = 0x80,
+		x87_C0 = 0x100,
+		x87_C1 = 0x200,
+		x87_C2 = 0x400,
+		x87_TopOfStack = 0x2000 | 0x1000 | 0x800,
+		x87_C3 = 0x4000,
+		x87_FPUBusy = 0x8000,
+	};
+
+	void FLD(int bits, OpArg src);
+	void FST(int bits, OpArg dest);
+	void FSTP(int bits, OpArg dest);
+	void FNSTSW_AX();
 	void FWAIT();
 
 	// SSE/SSE2: Floating point arithmetic
@@ -447,14 +483,6 @@ public:
 	// SSE/SSE2: Floating point bitwise (yes)
 	void CMPSS(X64Reg regOp, OpArg arg, u8 compare);
 	void CMPSD(X64Reg regOp, OpArg arg, u8 compare);
-	void ANDSS(X64Reg regOp, OpArg arg);
-	void ANDSD(X64Reg regOp, OpArg arg);
-	void ANDNSS(X64Reg regOp, OpArg arg);
-	void ANDNSD(X64Reg regOp, OpArg arg);
-	void ORSS(X64Reg regOp, OpArg arg);
-	void ORSD(X64Reg regOp, OpArg arg);
-	void XORSS(X64Reg regOp, OpArg arg);
-	void XORSD(X64Reg regOp, OpArg arg);
 
 	// SSE/SSE2: Floating point packed arithmetic (x4 for float, x2 for double)
 	void ADDPS(X64Reg regOp, OpArg arg);
@@ -559,6 +587,7 @@ public:
 	void PUNPCKLWD(X64Reg dest, const OpArg &arg);
 	void PUNPCKLDQ(X64Reg dest, const OpArg &arg);
 
+	void PTEST(X64Reg dest, OpArg arg);
 	void PAND(X64Reg dest, OpArg arg);
 	void PANDN(X64Reg dest, OpArg arg);
 	void PXOR(X64Reg dest, OpArg arg);
@@ -614,6 +643,7 @@ public:
 	void PSRLW(X64Reg reg, int shift);
 	void PSRLD(X64Reg reg, int shift);
 	void PSRLQ(X64Reg reg, int shift);
+	void PSRLQ(X64Reg reg, OpArg arg);
 
 	void PSLLW(X64Reg reg, int shift);
 	void PSLLD(X64Reg reg, int shift);
@@ -628,6 +658,8 @@ public:
 	void VMULSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VDIVSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
 	void RTDSC();
 
@@ -643,9 +675,11 @@ public:
 	// These will destroy the 1 or 2 first "parameter regs".
 	void ABI_CallFunctionC(void *func, u32 param1);
 	void ABI_CallFunctionCC(void *func, u32 param1, u32 param2);
+	void ABI_CallFunctionCP(void *func, u32 param1, void *param2);
 	void ABI_CallFunctionCCC(void *func, u32 param1, u32 param2, u32 param3);
 	void ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *param3);
 	void ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2,u32 param3, void *param4);
+	void ABI_CallFunctionPC(void *func, void *param1, u32 param2);
 	void ABI_CallFunctionPPC(void *func, void *param1, void *param2,u32 param3);
 	void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2);
 	void ABI_CallFunctionA(void *func, const Gen::OpArg &arg1);
@@ -667,7 +701,7 @@ public:
 	void ABI_AlignStack(unsigned int frameSize, bool noProlog = false);
 	void ABI_RestoreStack(unsigned int frameSize, bool noProlog = false);
 
-	#ifdef _M_IX86
+	#if _M_X86_32
 	inline int ABI_GetNumXMMRegs() { return 8; }
 	#else
 	inline int ABI_GetNumXMMRegs() { return 16; }
@@ -679,7 +713,7 @@ public:
 	void CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
 	void CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5);
 
-#if defined(_M_IX86)
+#if _M_X86_32
 
 	#define CallCdeclFunction3_I(a,b,c,d) CallCdeclFunction3((void *)(a), (b), (c), (d))
 	#define CallCdeclFunction4_I(a,b,c,d,e) CallCdeclFunction4((void *)(a), (b), (c), (d), (e))
@@ -709,70 +743,36 @@ public:
 	#define DECLARE_IMPORT(x) extern "C" void *__imp_##x
 
 #endif
-};  // class XEmitter
 
-
-// Everything that needs to generate X86 code should inherit from this.
-// You get memory management for free, plus, you can use all the MOV etc functions without
-// having to prefix them with gen-> or something similar.
-class XCodeBlock : public XEmitter
-{
-protected:
-	u8 *region;
-	size_t region_size;
-
-public:
-	XCodeBlock() : region(NULL), region_size(0) {}
-	virtual ~XCodeBlock() { if (region) FreeCodeSpace(); }
-
-	// Call this before you generate any code.
-	void AllocCodeSpace(int size)
+	// Utility to generate a call to a std::function object.
+	//
+	// Unfortunately, calling operator() directly is undefined behavior in C++
+	// (this method might be a thunk in the case of multi-inheritance) so we
+	// have to go through a trampoline function.
+	template <typename T, typename... Args>
+	static void CallLambdaTrampoline(const std::function<T(Args...)>* f,
+	                                 Args... args)
 	{
-		region_size = size;
-		region = (u8*)AllocateExecutableMemory(region_size);
-		SetCodePtr(region);
+		(*f)(args...);
 	}
 
-	// Always clear code space with breakpoints, so that if someone accidentally executes
-	// uninitialized, it just breaks into the debugger.
-	void ClearCodeSpace()
+	template <typename T, typename... Args>
+	void ABI_CallLambdaC(const std::function<T(Args...)>* f, u32 p1)
+	{
+		// Double casting is required by VC++ for some reason.
+		auto trampoline = (void(*)())&XEmitter::CallLambdaTrampoline<T, Args...>;
+		ABI_CallFunctionPC((void*)trampoline, const_cast<void*>((const void*)f), p1);
+	}
+};  // class XEmitter
+
+class X64CodeBlock : public CodeBlock<XEmitter>
+{
+private:
+	void PoisonMemory() override
 	{
 		// x86/64: 0xCC = breakpoint
 		memset(region, 0xCC, region_size);
-		ResetCodePtr();
-	}
-
-	// Call this when shutting down. Don't rely on the destructor, even though it'll do the job.
-	void FreeCodeSpace()
-	{
-		FreeMemoryPages(region, region_size);
-		region = NULL;
-		region_size = 0;
-	}
-
-	bool IsInSpace(u8 *ptr)
-	{
-		return ptr >= region && ptr < region + region_size;
-	}
-
-	// Cannot currently be undone. Will write protect the entire code region.
-	// Start over if you need to change the code (call FreeCodeSpace(), AllocCodeSpace()).
-	void WriteProtect()
-	{
-		WriteProtectMemory(region, region_size, true);
-	}
-
-	void ResetCodePtr()
-	{
-		SetCodePtr(region);
-	}
-
-	size_t GetSpaceLeft() const
-	{
-		return region_size - (GetCodePtr() - region);
 	}
 };
 
 }  // namespace
-
-#endif // _DOLPHIN_INTEL_CODEGEN_

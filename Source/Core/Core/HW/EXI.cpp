@@ -2,17 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "ChunkFile.h"
-#include "../ConfigManager.h"
-#include "../CoreTiming.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "ProcessorInterface.h"
-#include "../PowerPC/PowerPC.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/Sram.h"
+#include "Core/PowerPC/PowerPC.h"
 
-#include "EXI.h"
-#include "Sram.h"
-#include "../Movie.h"
 SRAM g_SRAM;
 
 namespace ExpansionInterface
@@ -28,15 +29,15 @@ void Init()
 		g_Channels[i] = new CEXIChannel(i);
 
 	if (Movie::IsPlayingInput() && Movie::IsUsingMemcard() && Movie::IsConfigSaved())
-		g_Channels[0]->AddDevice(EXIDEVICE_MEMORYCARD,	0); // SlotA
-	else if(Movie::IsPlayingInput() && !Movie::IsUsingMemcard() && Movie::IsConfigSaved())
-		g_Channels[0]->AddDevice(EXIDEVICE_NONE,		0); // SlotA
+		g_Channels[0]->AddDevice(EXIDEVICE_MEMORYCARD, 0); // SlotA
+	else if (Movie::IsPlayingInput() && !Movie::IsUsingMemcard() && Movie::IsConfigSaved())
+		g_Channels[0]->AddDevice(EXIDEVICE_NONE,       0); // SlotA
 	else
-		g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[0],	0); // SlotA
-	g_Channels[0]->AddDevice(EXIDEVICE_MASKROM,						1);
-	g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[2],	2); // Serial Port 1
-	g_Channels[1]->AddDevice(SConfig::GetInstance().m_EXIDevice[1],	0); // SlotB
-	g_Channels[2]->AddDevice(EXIDEVICE_AD16,						0);
+		g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[0], 0); // SlotA
+	g_Channels[0]->AddDevice(EXIDEVICE_MASKROM,                         1);
+	g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[2],     2); // Serial Port 1
+	g_Channels[1]->AddDevice(SConfig::GetInstance().m_EXIDevice[1],     0); // SlotB
+	g_Channels[2]->AddDevice(EXIDEVICE_AD16,                            0);
 
 	changeDevice = CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
 }
@@ -46,7 +47,7 @@ void Shutdown()
 	for (auto& channel : g_Channels)
 	{
 		delete channel;
-		channel = NULL;
+		channel = nullptr;
 	}
 }
 
@@ -62,6 +63,19 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 		channel->PauseAndLock(doLock, unpauseOnUnlock);
 }
 
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+{
+	for (int i = 0; i < MAX_EXI_CHANNELS; ++i)
+	{
+		_dbg_assert_(EXPANSIONINTERFACE, g_Channels[i] != nullptr);
+		// Each channel has 5 32 bit registers assigned to it. We offset the
+		// base that we give to each channel for registration.
+		//
+		// Be careful: this means the base is no longer aligned on a page
+		// boundary and using "base | FOO" is not valid!
+		g_Channels[i]->RegisterMMIO(mmio, base + 5 * 4 * i);
+	}
+}
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 {
@@ -88,47 +102,7 @@ IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 		if (device)
 			return device;
 	}
-	return NULL;
-}
-
-// Unused (?!)
-void Update()
-{
-	g_Channels[0]->Update();
-	g_Channels[1]->Update();
-	g_Channels[2]->Update();
-}
-
-void Read32(u32& _uReturnValue, const u32 _iAddress)
-{
-	// TODO 0xfff00000 is mapped to EXI -> mapped to first MB of maskrom
-	u32 iAddr = _iAddress & 0x3FF;
-	u32 iRegister = (iAddr >> 2) % 5;
-	u32 iChannel = (iAddr >> 2) / 5;
-
-	_dbg_assert_(EXPANSIONINTERFACE, iChannel < MAX_EXI_CHANNELS);
-
-	if (iChannel < MAX_EXI_CHANNELS)
-	{
-		g_Channels[iChannel]->Read32(_uReturnValue, iRegister);
-	}
-	else
-	{
-		_uReturnValue = 0;
-	}
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	// TODO 0xfff00000 is mapped to EXI -> mapped to first MB of maskrom
-	u32 iAddr = _iAddress & 0x3FF;
-	u32 iRegister = (iAddr >> 2) % 5;
-	u32 iChannel = (iAddr >> 2) / 5;
-
-	_dbg_assert_(EXPANSIONINTERFACE, iChannel < MAX_EXI_CHANNELS);
-
-	if (iChannel < MAX_EXI_CHANNELS)
-		g_Channels[iChannel]->Write32(_iValue, iRegister);
+	return nullptr;
 }
 
 void UpdateInterrupts()

@@ -2,20 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Debugger_SymbolMap.h"
-#include "DebugInterface.h"
-#include "PPCDebugInterface.h"
 #include "PowerPCDisasm.h"
-#include "../Host.h"
-#include "../Core.h"
-#include "../HW/CPU.h"
-#include "../HW/DSP.h"
-#include "../HW/Memmap.h"
-#include "../PowerPC/PowerPC.h"
-#include "../PowerPC/JitCommon/JitBase.h"
-#include "../PowerPC/PPCSymbolDB.h"
 
-void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size)
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+
+void PPCDebugInterface::Disassemble(unsigned int address, char *dest, int max_size)
 {
 	// Memory::ReadUnchecked_U32 seemed to crash on shutdown
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN) return;
@@ -43,13 +43,13 @@ void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 	}
 }
 
-void PPCDebugInterface::getRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
+void PPCDebugInterface::GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		if (memory || Memory::IsRAMAddress(address, true, true))
 		{
-			snprintf(dest, max_size, "%08X%s", readExtraMemory(memory, address), memory ? " (ARAM)" : "");
+			snprintf(dest, max_size, "%08X%s", ReadExtraMemory(memory, address), memory ? " (ARAM)" : "");
 		}
 		else
 		{
@@ -62,12 +62,12 @@ void PPCDebugInterface::getRawMemoryString(int memory, unsigned int address, cha
 	}
 }
 
-unsigned int PPCDebugInterface::readMemory(unsigned int address)
+unsigned int PPCDebugInterface::ReadMemory(unsigned int address)
 {
 	return Memory::ReadUnchecked_U32(address);
 }
 
-unsigned int PPCDebugInterface::readExtraMemory(int memory, unsigned int address)
+unsigned int PPCDebugInterface::ReadExtraMemory(int memory, unsigned int address)
 {
 	switch (memory)
 	{
@@ -75,42 +75,45 @@ unsigned int PPCDebugInterface::readExtraMemory(int memory, unsigned int address
 		return Memory::ReadUnchecked_U32(address);
 	case 1:
 		return (DSP::ReadARAM(address)     << 24) |
-			   (DSP::ReadARAM(address + 1) << 16) |
-			   (DSP::ReadARAM(address + 2) << 8) |
-			   (DSP::ReadARAM(address + 3));
+		       (DSP::ReadARAM(address + 1) << 16) |
+		       (DSP::ReadARAM(address + 2) << 8) |
+		       (DSP::ReadARAM(address + 3));
 	default:
 		return 0;
 	}
 }
 
-unsigned int PPCDebugInterface::readInstruction(unsigned int address)
+unsigned int PPCDebugInterface::ReadInstruction(unsigned int address)
 {
 	return Memory::Read_Instruction(address);
 }
 
-bool PPCDebugInterface::isAlive()
+bool PPCDebugInterface::IsAlive()
 {
 	return Core::GetState() != Core::CORE_UNINITIALIZED;
 }
 
-bool PPCDebugInterface::isBreakpoint(unsigned int address)
+bool PPCDebugInterface::IsBreakpoint(unsigned int address)
 {
 	return PowerPC::breakpoints.IsAddressBreakPoint(address);
 }
 
-void PPCDebugInterface::setBreakpoint(unsigned int address)
+void PPCDebugInterface::SetBreakpoint(unsigned int address)
 {
 	PowerPC::breakpoints.Add(address);
 }
 
-void PPCDebugInterface::clearBreakpoint(unsigned int address)
+void PPCDebugInterface::ClearBreakpoint(unsigned int address)
 {
 	PowerPC::breakpoints.Remove(address);
 }
 
-void PPCDebugInterface::clearAllBreakpoints() {}
+void PPCDebugInterface::ClearAllBreakpoints()
+{
+	PowerPC::breakpoints.Clear();
+}
 
-void PPCDebugInterface::toggleBreakpoint(unsigned int address)
+void PPCDebugInterface::ToggleBreakpoint(unsigned int address)
 {
 	if (PowerPC::breakpoints.IsAddressBreakPoint(address))
 		PowerPC::breakpoints.Remove(address);
@@ -118,16 +121,21 @@ void PPCDebugInterface::toggleBreakpoint(unsigned int address)
 		PowerPC::breakpoints.Add(address);
 }
 
-bool PPCDebugInterface::isMemCheck(unsigned int address)
+void PPCDebugInterface::ClearAllMemChecks()
 {
-	return (Memory::AreMemoryBreakpointsActivated()
-		&& PowerPC::memchecks.GetMemCheck(address));
+	PowerPC::memchecks.Clear();
 }
 
-void PPCDebugInterface::toggleMemCheck(unsigned int address)
+bool PPCDebugInterface::IsMemCheck(unsigned int address)
 {
-	if (Memory::AreMemoryBreakpointsActivated()
-		&& !PowerPC::memchecks.GetMemCheck(address))
+	return (Memory::AreMemoryBreakpointsActivated() &&
+	        PowerPC::memchecks.GetMemCheck(address));
+}
+
+void PPCDebugInterface::ToggleMemCheck(unsigned int address)
+{
+	if (Memory::AreMemoryBreakpointsActivated() &&
+	    !PowerPC::memchecks.GetMemCheck(address))
 	{
 		// Add Memory Check
 		TMemCheck MemCheck;
@@ -140,18 +148,17 @@ void PPCDebugInterface::toggleMemCheck(unsigned int address)
 		MemCheck.Break = true;
 
 		PowerPC::memchecks.Add(MemCheck);
-
 	}
 	else
 		PowerPC::memchecks.Remove(address);
 }
 
-void PPCDebugInterface::insertBLR(unsigned int address, unsigned int value)
+void PPCDebugInterface::InsertBLR(unsigned int address, unsigned int value)
 {
 	Memory::Write_U32(value, address);
 }
 
-void PPCDebugInterface::breakNow()
+void PPCDebugInterface::BreakNow()
 {
 	CCPU::Break();
 }
@@ -160,7 +167,7 @@ void PPCDebugInterface::breakNow()
 // =======================================================
 // Separate the blocks with colors.
 // -------------
-int PPCDebugInterface::getColor(unsigned int address)
+int PPCDebugInterface::GetColor(unsigned int address)
 {
 	if (!Memory::IsRAMAddress(address, true, true))
 		return 0xeeeeee;
@@ -183,27 +190,27 @@ int PPCDebugInterface::getColor(unsigned int address)
 // =============
 
 
-std::string PPCDebugInterface::getDescription(unsigned int address)
+std::string PPCDebugInterface::GetDescription(unsigned int address)
 {
 	return g_symbolDB.GetDescription(address);
 }
 
-unsigned int PPCDebugInterface::getPC()
+unsigned int PPCDebugInterface::GetPC()
 {
 	return PowerPC::ppcState.pc;
 }
 
-void PPCDebugInterface::setPC(unsigned int address)
+void PPCDebugInterface::SetPC(unsigned int address)
 {
 	PowerPC::ppcState.pc = address;
 }
 
-void PPCDebugInterface::showJitResults(unsigned int address)
+void PPCDebugInterface::ShowJitResults(unsigned int address)
 {
 	Host_ShowJitResults(address);
 }
 
-void PPCDebugInterface::runToBreakpoint()
+void PPCDebugInterface::RunToBreakpoint()
 {
 
 }

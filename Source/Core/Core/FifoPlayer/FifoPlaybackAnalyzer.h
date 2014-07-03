@@ -2,14 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFOPLAYBACKANALYZER_H_
-#define _FIFOPLAYBACKANALYZER_H_
-
-#include "FifoAnalyzer.h"
-#include "FifoDataFile.h"
+#pragma once
 
 #include <string>
 #include <vector>
+
+#include "Core/FifoPlayer/FifoAnalyzer.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
 
 struct AnalyzedFrameInfo
 {
@@ -47,5 +46,3 @@ private:
 	BPMemory m_BpMem;
 	FifoAnalyzer::CPMemory m_CpMem;
 };
-
-#endif

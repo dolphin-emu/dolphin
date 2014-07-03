@@ -1,14 +1,17 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
-#include "../JitILCommon/IR.h"
-#include "../PPCTables.h"
-#include "../../CoreTiming.h"
-#include "../../HW/Memmap.h"
-#include "JitILAsm.h"
-#include "JitIL.h"
-#include "ArmEmitter.h"
-#include "../../Core.h"
+
+#include <algorithm>
+
+#include "Common/ArmEmitter.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/JitArmIL/JitIL.h"
+#include "Core/PowerPC/JitArmIL/JitILAsm.h"
+#include "Core/PowerPC/JitILCommon/IR.h"
 
 using namespace IREmitter;
 using namespace ArmGen;
@@ -49,7 +52,7 @@ static void regMarkUse(RegInfo& R, InstLoc I, InstLoc Op, unsigned OpNum) {
 	unsigned& info = R.IInfo[Op - R.FirstI];
 	if (info == 0) R.IInfo[I - R.FirstI] |= 1 << (OpNum + 1);
 	if (info < 2) info++;
-	R.lastUsed[Op - R.FirstI] = max(R.lastUsed[Op - R.FirstI], I);
+	R.lastUsed[Op - R.FirstI] = std::max(R.lastUsed[Op - R.FirstI], I);
 }
 static void regClearInst(RegInfo& RI, InstLoc I) {
 	for (int i = 0; i < RegAllocSize; i++)
@@ -156,14 +159,15 @@ static ARMReg regEnsureInReg(RegInfo& RI, InstLoc I) {
 
 static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	if (isImm(*dest)) {
-		RI.Jit->WriteExit(RI.Build->GetImmValue(dest), RI.exitNumber++);
+		RI.exitNumber++;
+		RI.Jit->WriteExit(RI.Build->GetImmValue(dest));
 	} else {
 		RI.Jit->WriteExitDestInReg(regLocForInst(RI, dest));
 	}
 }
 static void regStoreInstToPPCState(RegInfo& RI, unsigned width, InstLoc I, s32 offset) {
 	void (JitArmIL::*op)(ARMReg, ARMReg, Operand2, bool);
-	switch(width)
+	switch (width)
 	{
 		case 32:
 			op = &JitArmIL::STR;
@@ -281,7 +285,7 @@ static void regEmitCmp(RegInfo& RI, InstLoc I) {
 	}
 }
 
-static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
+static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit, u32 exitAddress) {
 	RegInfo RI(Jit, ibuild->getFirstInst(), ibuild->getNumInsts());
 	RI.Build = ibuild;
 
@@ -308,7 +312,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 		case LoadGQR:
 		case BlockEnd:
 		case BlockStart:
-		case InterpreterFallback:
+		case FallBackToInterpreter:
 		case SystemCall:
 		case RFIExit:
 		case InterpreterBranch:
@@ -392,7 +396,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 		case FSMul:
 		case FSAdd:
 		case FSSub:
-		case FSRSqrt:
 		case FDMul:
 		case FDAdd:
 		case FDSub:
@@ -569,7 +572,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 			RI.regs[reg] = I;
 			break;
 		}
-		case InterpreterFallback: {
+		case FallBackToInterpreter: {
 			unsigned InstCode = ibuild->GetImmValue(getOp1(I));
 			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			// There really shouldn't be anything live across an
@@ -602,8 +605,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 			Jit->BL(R14);
 			Jit->MOVI2R(R14, InstLoc);
 			Jit->STR(R14, R9, PPCSTATE_OFF(pc));
-			Jit->MOVI2R(R14, (u32)Jit->GetAsmRoutines()->testExceptions);
-			Jit->B(R14);
+			Jit->WriteExceptionExit();
 			break;
 		}
 		case InterpreterBranch: {
@@ -733,10 +735,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 		}
 	}
 
-	Jit->WriteExit(jit->js.curBlock->exitAddress[0], 0);
+	Jit->WriteExit(exitAddress);
 	Jit->BKPT(0x111);
 
 }
-void JitArmIL::WriteCode() {
-	DoWriteCode(&ibuild, this);
+void JitArmIL::WriteCode(u32 exitAddress) {
+	DoWriteCode(&ibuild, this, exitAddress);
 }

@@ -45,12 +45,12 @@
 #include "polarssl/des.h"
 #endif
 
-static int pkcs12_parse_pbe_params( unsigned char **p,
-                                    const unsigned char *end,
+static int pkcs12_parse_pbe_params( asn1_buf *params,
                                     asn1_buf *salt, int *iterations )
 {
     int ret;
-    size_t len = 0;
+    unsigned char **p = &params->p;
+    const unsigned char *end = params->p + params->len;
 
     /*
      *  pkcs-12PbeParams ::= SEQUENCE {
@@ -59,13 +59,9 @@ static int pkcs12_parse_pbe_params( unsigned char **p,
      *  }
      *
      */
-    if( ( ret = asn1_get_tag( p, end, &len,
-            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT + ret );
-    }
-
-    end = *p + len;
+    if( params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
+        return( POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
 
     if( ( ret = asn1_get_tag( p, end, &salt->len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_PKCS12_PBE_INVALID_FORMAT + ret );
@@ -91,16 +87,12 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
     int ret, iterations;
     asn1_buf salt;
     size_t i;
-    unsigned char *p, *end;
     unsigned char unipwd[258];
 
     memset(&salt, 0, sizeof(asn1_buf));
     memset(&unipwd, 0, sizeof(unipwd));
 
-    p = pbe_params->p;
-    end = p + pbe_params->len;
-
-    if( ( ret = pkcs12_parse_pbe_params( &p, end, &salt, &iterations ) ) != 0 )
+    if( ( ret = pkcs12_parse_pbe_params( pbe_params, &salt, &iterations ) ) != 0 )
         return( ret );
 
     for(i = 0; i < pwdlen; i++)
@@ -187,24 +179,30 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
     }
 
     if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
-        return( ret );
+        goto exit;
 
-    if( ( ret = cipher_setkey( &cipher_ctx, key, keylen, mode ) ) != 0 )
-        return( ret );
+    if( ( ret = cipher_setkey( &cipher_ctx, key, 8 * keylen, mode ) ) != 0 )
+        goto exit;
 
-    if( ( ret = cipher_reset( &cipher_ctx, iv ) ) != 0 )
-        return( ret );
+    if( ( ret = cipher_set_iv( &cipher_ctx, iv, cipher_info->iv_size ) ) != 0 )
+        goto exit;
+
+    if( ( ret = cipher_reset( &cipher_ctx ) ) != 0 )
+        goto exit;
 
     if( ( ret = cipher_update( &cipher_ctx, data, len,
                                 output, &olen ) ) != 0 )
     {
-        return( ret );
+        goto exit;
     }
 
     if( ( ret = cipher_finish( &cipher_ctx, output + olen, &olen ) ) != 0 )
-        return( POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH );
+        ret = POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH;
 
-    return( 0 );
+exit:
+    cipher_free_ctx( &cipher_ctx );
+
+    return( ret );
 }
 
 static void pkcs12_fill_buffer( unsigned char *data, size_t data_len,
@@ -268,25 +266,25 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
     {
         // Calculate hash( diversifier || salt_block || pwd_block )
         if( ( ret = md_starts( &md_ctx ) ) != 0 )
-            return( ret );
+            goto exit;
 
         if( ( ret = md_update( &md_ctx, diversifier, v ) ) != 0 )
-            return( ret );
+            goto exit;
 
         if( ( ret = md_update( &md_ctx, salt_block, v ) ) != 0 )
-            return( ret );
+            goto exit;
 
         if( ( ret = md_update( &md_ctx, pwd_block, v ) ) != 0 )
-            return( ret );
+            goto exit;
 
         if( ( ret = md_finish( &md_ctx, hash_output ) ) != 0 )
-            return( ret );
+            goto exit;
 
         // Perform remaining ( iterations - 1 ) recursive hash calculations
-        for( i = 1; i < iterations; i++ )
+        for( i = 1; i < (size_t) iterations; i++ )
         {
             if( ( ret = md( md_info, hash_output, hlen, hash_output ) ) != 0 )
-                return( ret );
+                goto exit;
         }
 
         use_len = ( datalen > hlen ) ? hlen : datalen;
@@ -324,7 +322,12 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
         }
     }
 
-    return( 0 );
+    ret = 0;
+
+exit:
+    md_free_ctx( &md_ctx );
+
+    return( ret );
 }
 
 #endif /* POLARSSL_PKCS12_C */

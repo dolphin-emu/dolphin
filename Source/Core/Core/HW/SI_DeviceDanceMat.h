@@ -2,12 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _SI_DEVICEDANCEMAT_H
-#define _SI_DEVICEDANCEMAT_H
+#pragma once
 
-#include "SI_Device.h"
-#include "GCPadStatus.h"
-
+#include "Core/HW/SI_Device.h"
+#include "InputCommon/GCPadStatus.h"
 
 // standard gamecube controller
 class CSIDevice_DanceMat : public ISIDevice
@@ -17,16 +15,16 @@ private:
 	// Commands
 	enum EBufferCommands
 	{
-		CMD_RESET		= 0x00,
-		CMD_DIRECT		= 0x40,
-		CMD_ORIGIN		= 0x41,
-		CMD_RECALIBRATE	= 0x42,
+		CMD_RESET       = 0x00,
+		CMD_DIRECT      = 0x40,
+		CMD_ORIGIN      = 0x41,
+		CMD_RECALIBRATE = 0x42,
 	};
 
 	struct SOrigin
 	{
 		u8 uCommand;// Maybe should be button bits?
-		u8 unk_1;	// ..and this would be the other half
+		u8 unk_1;   // ..and this would be the other half
 		u8 uOriginStickX;
 		u8 uOriginStickY;
 		u8 uSubStickStickX;
@@ -49,13 +47,13 @@ private:
 		u32 Hex;
 		struct
 		{
-			u32 Parameter1	:	8;
-			u32 Parameter2	:	8;
-			u32 Command		:	8;
-			u32				:	8;
+			u32 Parameter1 : 8;
+			u32 Parameter2 : 8;
+			u32 Command    : 8;
+			u32            : 8;
 		};
-		UCommand()				{Hex = 0;}
-		UCommand(u32 _iValue)	{Hex = _iValue;}
+		UCommand()            {Hex = 0;}
+		UCommand(u32 _iValue) {Hex = _iValue;}
 	};
 
 	enum EButtonCombo
@@ -101,5 +99,3 @@ public:
 	// Savestate support
 	virtual void DoState(PointerWrap& p) override;
 };
-
-#endif

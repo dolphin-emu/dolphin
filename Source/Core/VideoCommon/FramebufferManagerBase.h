@@ -1,10 +1,8 @@
-
-#ifndef _FRAMEBUFFERMANAGERBASE_H
-#define _FRAMEBUFFERMANAGERBASE_H
+#pragma once
 
 #include <list>
 
-#include "VideoCommon.h"
+#include "VideoCommon/VideoCommon.h"
 
 inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 {
@@ -60,7 +58,7 @@ public:
 protected:
 	struct VirtualXFB
 	{
-		VirtualXFB() : xfbSource(NULL) {}
+		VirtualXFB() : xfbSource(nullptr) {}
 
 		// Address and size in GameCube RAM
 		u32 xfbAddr;
@@ -98,5 +96,3 @@ private:
 };
 
 extern FramebufferManagerBase *g_framebuffer_manager;
-
-#endif

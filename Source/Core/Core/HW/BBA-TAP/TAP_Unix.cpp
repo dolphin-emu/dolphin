@@ -1,23 +1,10 @@
-// Copyright (C) 2003-2009 Dolphin Project.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#include "StringUtil.h"
-#include "../EXI_Device.h"
-#include "../EXI_DeviceEthernet.h"
+#include "Common/StringUtil.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceEthernet.h"
 
 #ifdef __linux__
 #include <fcntl.h>
@@ -133,7 +120,7 @@ void ReadThreadHandler(CEXIETHERNET* self)
 		struct timeval timeout;
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 50000;
-		if (select(self->fd + 1, &rfds, NULL, NULL, &timeout) <= 0)
+		if (select(self->fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
 			continue;
 
 		int readBytes = read(self->fd, self->mRecvBuffer, BBA_RECV_SIZE);

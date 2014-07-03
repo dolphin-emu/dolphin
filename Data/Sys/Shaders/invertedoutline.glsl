@@ -7,8 +7,8 @@ uniform vec4 resolution;
 
 void main()
 {
-  float4 c0 = texture(samp9, uv0);
-  float4 c1 = texture(samp9, uv0 + float2(5,5)*resolution.zw);
+	float4 c0 = texture(samp9, uv0);
+	float4 c1 = texture(samp9, uv0 + float2(5,5)*resolution.zw);
 
-  ocol0 = c0 - c1;
+	ocol0 = c0 - c1;
 }

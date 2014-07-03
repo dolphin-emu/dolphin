@@ -2,21 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONTROLLEREMU_H_
-#define _CONTROLLEREMU_H_
+#pragma once
 
 // windows crap
 #define NOMINMAX
 
-#include <cmath>
-#include <vector>
-#include <string>
 #include <algorithm>
+#include <cmath>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "GCPadStatus.h"
-
-#include "ControllerInterface/ControllerInterface.h"
-#include "IniFile.h"
+#include "Common/IniFile.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #define sign(x) ((x)?(x)<0?-1:1:0)
 
@@ -42,7 +41,7 @@ enum
 	SETTING_SQUARE,
 };
 
-const char * const named_directions[] =
+const char* const named_directions[] =
 {
 	"Up",
 	"Down",
@@ -61,13 +60,13 @@ public:
 		class Control
 		{
 		protected:
-			Control(ControllerInterface::ControlReference* const _ref, const char * const _name)
-				: control_ref(_ref), name(_name){}
-		public:
+			Control(ControllerInterface::ControlReference* const _ref, const std::string& _name)
+				: control_ref(_ref), name(_name) {}
 
-			virtual ~Control();
-			ControllerInterface::ControlReference*		const control_ref;
-			const char * const		name;
+		public:
+			virtual ~Control() {}
+			std::unique_ptr<ControllerInterface::ControlReference> const control_ref;
+			const std::string name;
 
 		};
 
@@ -75,49 +74,47 @@ public:
 		{
 		public:
 
-			Input(const char * const _name)
+			Input(const std::string& _name)
 				: Control(new ControllerInterface::InputReference, _name) {}
-
 		};
 
 		class Output : public Control
 		{
 		public:
 
-			Output(const char * const _name)
+			Output(const std::string& _name)
 				: Control(new ControllerInterface::OutputReference, _name) {}
-
 		};
 
 		class Setting
 		{
 		public:
 
-			Setting(const char* const _name, const ControlState def_value
-				, const unsigned int _low = 0, const unsigned int _high = 100 )
+			Setting(const std::string& _name, const ControlState def_value
+				, const unsigned int _low = 0, const unsigned int _high = 100)
 				: name(_name)
 				, value(def_value)
 				, default_value(def_value)
 				, low(_low)
 				, high(_high){}
 
-			const char* const	name;
-			ControlState		value;
-			const ControlState	default_value;
-			const unsigned int	low, high;
+			const std::string   name;
+			ControlState        value;
+			const ControlState  default_value;
+			const unsigned int  low, high;
 		};
 
-		ControlGroup(const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}
-		virtual ~ControlGroup();
+		ControlGroup(const std::string& _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}
+		virtual ~ControlGroup() {}
 
 		virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 		virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 
-		const char* const			name;
-		const unsigned int			type;
+		const std::string     name;
+		const unsigned int    type;
 
-		std::vector< Control* >		controls;
-		std::vector< Setting* >		settings;
+		std::vector<std::unique_ptr<Control>> controls;
+		std::vector<std::unique_ptr<Setting>> settings;
 
 	};
 
@@ -189,19 +186,17 @@ public:
 	class Buttons : public ControlGroup
 	{
 	public:
-		Buttons(const char* const _name);
+		Buttons(const std::string& _name);
 
 		template <typename C>
 		void GetState(C* const buttons, const C* bitmasks)
 		{
-			std::vector<Control*>::iterator
-				i = controls.begin(),
-				e = controls.end();
-
-			for (; i!=e; ++i, ++bitmasks)
+			for (auto& control : controls)
 			{
-				if ((*i)->control_ref->State() > settings[0]->value) // threshold
+				if (control->control_ref->State() > settings[0]->value) // threshold
 					*buttons |= *bitmasks;
+
+				bitmasks++;
 			}
 		}
 
@@ -229,7 +224,7 @@ public:
 			}
 		}
 
-		MixedTriggers(const char* const _name);
+		MixedTriggers(const std::string& _name);
 
 	};
 
@@ -246,7 +241,7 @@ public:
 				*analog = S(std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone) * range);
 		}
 
-		Triggers(const char* const _name);
+		Triggers(const std::string& _name);
 
 	};
 
@@ -266,14 +261,14 @@ public:
 				*slider = 0;
 		}
 
-		Slider(const char* const _name);
+		Slider(const std::string& _name);
 
 	};
 
 	class Force : public ControlGroup
 	{
 	public:
-		Force(const char* const _name);
+		Force(const std::string& _name);
 
 		template <typename C, typename R>
 		void GetState(C* axis, const u8 base, const R range)
@@ -287,18 +282,19 @@ public:
 					tmpf = ((state - (deadzone * sign(state))) / (1 - deadzone));
 
 				float &ax = m_swing[i >> 1];
-				*axis++	= (C)((tmpf - ax) * range + base);
+				*axis++ = (C)((tmpf - ax) * range + base);
 				ax = tmpf;
 			}
 		}
+
 	private:
-		float	m_swing[3];
+		float m_swing[3];
 	};
 
 	class Tilt : public ControlGroup
 	{
 	public:
-		Tilt(const char* const _name);
+		Tilt(const std::string& _name);
 
 		template <typename C, typename R>
 		void GetState(C* const x, C* const y, const unsigned int base, const R range, const bool step = true)
@@ -370,14 +366,15 @@ public:
 			*y = C(m_tilt[1] * angle * range + base);
 			*x = C(m_tilt[0] * angle * range + base);
 		}
+
 	private:
-		float	m_tilt[2];
+		float m_tilt[2];
 	};
 
 	class Cursor : public ControlGroup
 	{
 	public:
-		Cursor(const char* const _name);
+		Cursor(const std::string& _name);
 
 		template <typename C>
 		void GetState(C* const x, C* const y, C* const z, const bool adjusted = false)
@@ -415,27 +412,28 @@ public:
 			}
 		}
 
-		float	m_z;
+		float m_z;
 	};
 
 	class Extension : public ControlGroup
 	{
 	public:
-		Extension(const char* const _name)
+		Extension(const std::string& _name)
 			: ControlGroup(_name, GROUP_TYPE_EXTENSION)
 			, switch_extension(0)
 			, active_extension(0) {}
-		~Extension();
+
+		~Extension() {}
 
 		void GetState(u8* const data, const bool focus = true);
 
-		std::vector<ControllerEmu*>		attachments;
+		std::vector<std::unique_ptr<ControllerEmu>> attachments;
 
-		int	switch_extension;
-		int	active_extension;
+		int switch_extension;
+		int active_extension;
 	};
 
-	virtual ~ControllerEmu();
+	virtual ~ControllerEmu() {}
 
 	virtual std::string GetName() const = 0;
 
@@ -447,10 +445,7 @@ public:
 
 	void UpdateReferences(ControllerInterface& devi);
 
-	std::vector< ControlGroup* >		groups;
+	std::vector<std::unique_ptr<ControlGroup>> groups;
 
-	DeviceQualifier	default_device;
+	DeviceQualifier default_device;
 };
-
-
-#endif

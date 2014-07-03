@@ -2,58 +2,62 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "Hash.h"
-#include "DSP/DSPAnalyzer.h"
-#include "DSP/DSPCore.h"
-#include "DSP/DSPHost.h"
-#include "DSPSymbols.h"
-#include "DSPLLETools.h"
-#include "../DSP.h"
-#include "../../ConfigManager.h"
-#include "../../PowerPC/PowerPC.h"
-#include "Host.h"
-#include "OnScreenDisplay.h"
+#include "Common/Common.h"
+#include "Common/Hash.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHost.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPLLE/DSPLLETools.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 // The user of the DSPCore library must supply a few functions so that the
 // emulation core can access the environment it runs in. If the emulation
 // core isn't used, for example in an asm/disasm tool, then most of these
 // can be stubbed out.
 
-u8 DSPHost_ReadHostMemory(u32 addr)
+namespace DSPHost
+{
+
+u8 ReadHostMemory(u32 addr)
 {
 	return DSP::ReadARAM(addr);
 }
 
-void DSPHost_WriteHostMemory(u8 value, u32 addr)
+void WriteHostMemory(u8 value, u32 addr)
 {
 	DSP::WriteARAM(value, addr);
 }
 
-void DSPHost_OSD_AddMessage(const std::string& str, u32 ms)
+void OSD_AddMessage(const std::string& str, u32 ms)
 {
 	OSD::AddMessage(str, ms);
 }
 
-bool DSPHost_OnThread()
+bool OnThread()
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	return  _CoreParameter.bDSPThread;
 }
 
-bool DSPHost_Wii()
+bool IsWiiHost()
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	return  _CoreParameter.bWii;
 }
 
-void DSPHost_InterruptRequest()
+void InterruptRequest()
 {
 	// Fire an interrupt on the PPC ASAP.
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
-void DSPHost_CodeLoaded(const u8 *ptr, int size)
+void CodeLoaded(const u8 *ptr, int size)
 {
 	g_dsp.iram_crc = HashEctor(ptr, size);
 
@@ -92,7 +96,7 @@ void DSPHost_CodeLoaded(const u8 *ptr, int size)
 	// Always add the ROM.
 	DSPSymbols::AutoDisassembly(0x8000, 0x9000);
 
-	DSPHost_UpdateDebugger();
+	UpdateDebugger();
 
 	if (dspjit)
 		dspjit->ClearIRAM();
@@ -100,7 +104,9 @@ void DSPHost_CodeLoaded(const u8 *ptr, int size)
 	DSPAnalyzer::Analyze();
 }
 
-void DSPHost_UpdateDebugger()
+void UpdateDebugger()
 {
 	Host_RefreshDSPDebuggerWindow();
+}
+
 }

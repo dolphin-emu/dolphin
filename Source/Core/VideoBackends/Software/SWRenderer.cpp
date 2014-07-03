@@ -2,17 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include <algorithm>
+#include <string>
 
-#include "../OGL/GLUtil.h"
-#include "Core.h"
-#include "ImageWrite.h"
-#include "RasterFont.h"
-#include "SWRenderer.h"
-#include "SWStatistics.h"
-#include "SWCommandProcessor.h"
-
-#include "OnScreenDisplay.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+#include "Core/Core.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/Software/RasterFont.h"
+#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWRenderer.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 static GLuint s_RenderTarget = 0;
 
@@ -30,7 +32,7 @@ static std::string s_sScreenshotName;
 
 // Rasterfont isn't compatible with GLES
 // degasus: I think it does, but I can't test it
-RasterFont* s_pfont = NULL;
+RasterFont* s_pfont = nullptr;
 
 void SWRenderer::Init()
 {
@@ -46,14 +48,14 @@ void SWRenderer::Shutdown()
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 		delete s_pfont;
-		s_pfont = 0;
+		s_pfont = nullptr;
 	}
 }
 
 void CreateShaders()
 {
 	static const char *fragShaderText =
-		"#if GL_ES\n"
+		"#ifdef GL_ES\n"
 		"precision highp float;\n"
 		"#endif\n"
 		"varying vec2 TexCoordOut;\n"
@@ -62,7 +64,7 @@ void CreateShaders()
 		"	gl_FragColor = texture2D(Texture, TexCoordOut);\n"
 		"}\n";
 	static const char *vertShaderText =
-		"#if GL_ES\n"
+		"#ifdef GL_ES\n"
 		"precision highp float;\n"
 		"#endif\n"
 		"attribute vec4 pos;\n"
@@ -126,30 +128,28 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 
 void SWRenderer::DrawDebugText()
 {
-	char debugtext_buffer[8192];
-	char *p = debugtext_buffer;
-	p[0] = 0;
+	std::string debugtext;
 
 	if (g_SWVideoConfig.bShowStats)
 	{
-		p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
-		p+=sprintf(p,"Primitives: %i\n",swstats.thisFrame.numPrimatives);
-		p+=sprintf(p,"Vertices Loaded: %i\n",swstats.thisFrame.numVerticesLoaded);
+		debugtext += StringFromFormat("Objects:            %i\n", swstats.thisFrame.numDrawnObjects);
+		debugtext += StringFromFormat("Primitives:         %i\n", swstats.thisFrame.numPrimatives);
+		debugtext += StringFromFormat("Vertices Loaded:    %i\n", swstats.thisFrame.numVerticesLoaded);
 
-		p+=sprintf(p,"Triangles Input:   %i\n",swstats.thisFrame.numTrianglesIn);
-		p+=sprintf(p,"Triangles Rejected:   %i\n",swstats.thisFrame.numTrianglesRejected);
-		p+=sprintf(p,"Triangles Culled:   %i\n",swstats.thisFrame.numTrianglesCulled);
-		p+=sprintf(p,"Triangles Clipped:  %i\n",swstats.thisFrame.numTrianglesClipped);
-		p+=sprintf(p,"Triangles Drawn:   %i\n",swstats.thisFrame.numTrianglesDrawn);
+		debugtext += StringFromFormat("Triangles Input:    %i\n", swstats.thisFrame.numTrianglesIn);
+		debugtext += StringFromFormat("Triangles Rejected: %i\n", swstats.thisFrame.numTrianglesRejected);
+		debugtext += StringFromFormat("Triangles Culled:   %i\n", swstats.thisFrame.numTrianglesCulled);
+		debugtext += StringFromFormat("Triangles Clipped:  %i\n", swstats.thisFrame.numTrianglesClipped);
+		debugtext += StringFromFormat("Triangles Drawn:    %i\n", swstats.thisFrame.numTrianglesDrawn);
 
-		p+=sprintf(p,"Rasterized Pix:   %i\n",swstats.thisFrame.rasterizedPixels);
-		p+=sprintf(p,"TEV Pix In:   %i\n",swstats.thisFrame.tevPixelsIn);
-		p+=sprintf(p,"TEV Pix Out:   %i\n",swstats.thisFrame.tevPixelsOut);
+		debugtext += StringFromFormat("Rasterized Pix:     %i\n", swstats.thisFrame.rasterizedPixels);
+		debugtext += StringFromFormat("TEV Pix In:         %i\n", swstats.thisFrame.tevPixelsIn);
+		debugtext += StringFromFormat("TEV Pix Out:        %i\n", swstats.thisFrame.tevPixelsOut);
 	}
 
 	// Render a shadow, and then the text.
-	SWRenderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
-	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
+	SWRenderer::RenderText(debugtext.c_str(), 21, 21, 0xDD000000);
+	SWRenderer::RenderText(debugtext.c_str(), 20, 20, 0xFFFFFF00);
 }
 
 u8* SWRenderer::getColorTexture() {
@@ -162,7 +162,7 @@ void SWRenderer::swapColorTexture() {
 
 void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight)
 {
-	if(fbWidth*fbHeight > 640*568) {
+	if (fbWidth*fbHeight > 640*568) {
 		ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
 		return;
 	}
@@ -182,14 +182,14 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 
 			// We do the inverse BT.601 conversion for YCbCr to RGB
 			// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y1              + 1.596f * V));
-			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y1 - 0.392f * U - 0.813f * V));
-			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y1 + 2.017f * U             ));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y1              + 1.596f * V));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y1 - 0.392f * U - 0.813f * V));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y1 + 2.017f * U             ));
 			TexturePointer[offset++] = 255;
 
-			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2              + 1.596f * V));
-			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2 - 0.392f * U - 0.813f * V));
-			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2 + 2.017f * U             ));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y2              + 1.596f * V));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y2 - 0.392f * U - 0.813f * V));
+			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y2 + 2.017f * U             ));
 			TexturePointer[offset++] = 255;
 		}
 		xfb += fbWidth;

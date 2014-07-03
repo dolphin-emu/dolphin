@@ -1,7 +1,6 @@
-#ifndef _PERFQUERY_BASE_H_
-#define _PERFQUERY_BASE_H_
+#pragma once
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 enum PerfQueryType
 {
@@ -30,7 +29,7 @@ public:
 
 	// Checks if performance queries are enabled in the gameini configuration.
 	// NOTE: Called from CPU+GPU thread
-	bool ShouldEmulate() const;
+	static bool ShouldEmulate();
 
 	// Begin querying the specified value for the following host GPU commands
 	virtual void EnableQuery(PerfQueryGroup type) {}
@@ -54,5 +53,3 @@ public:
 };
 
 extern PerfQueryBase* g_perf_query;
-
-#endif // _PERFQUERY_H_

@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTURECONVERTER_H_
-#define _TEXTURECONVERTER_H_
+#pragma once
 
-#include "VideoCommon.h"
-#include "GLUtil.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace OGL
 {
@@ -30,5 +29,3 @@ int EncodeToRamFromTexture(u32 address, GLuint source_texture, bool bFromZBuffer
 }
 
 }  // namespace OGL
-
-#endif // _TEXTURECONVERTER_H_

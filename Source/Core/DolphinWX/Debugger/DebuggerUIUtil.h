@@ -2,11 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DEBUGGER_UI_UTIL_H
-#define _DEBUGGER_UI_UTIL_H
+#pragma once
 
-#include <wx/wx.h>
+#include <wx/font.h>
 
 extern wxFont DebuggerFont;
-
-#endif

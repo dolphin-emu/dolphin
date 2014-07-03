@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef WIIMOTE_HID_H
-#define WIIMOTE_HID_H
+#pragma once
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 // what is this ?
 #ifdef _MSC_VER
@@ -176,10 +175,10 @@ struct wm_report
 		u8 data[0];
 		struct
 		{
-			u8 rumble : 1;	// enable/disable rumble
+			u8 rumble : 1; // enable/disable rumble
 			// only valid for certain reports
-			u8 ack : 1;		// respond with an ack
-			u8 enable : 1;	// enable/disable certain features
+			u8 ack    : 1; // respond with an ack
+			u8 enable : 1; // enable/disable certain features
 		};
 	};
 };
@@ -233,7 +232,7 @@ struct wm_status_report
 struct wm_write_data
 {
 	u8 rumble : 1;
-	u8 space : 2;	//see WM_SPACE_*
+	u8 space : 2; //see WM_SPACE_*
 	u8 : 5;
 	u8 address[3];
 	u8 size;
@@ -252,7 +251,7 @@ struct wm_acknowledge
 struct wm_read_data
 {
 	u8 rumble : 1;
-	u8 space : 2;	//see WM_SPACE_*
+	u8 space : 2; //see WM_SPACE_*
 	u8 : 5;
 	u8 address[3];
 	u16 size;
@@ -267,7 +266,7 @@ struct wm_read_data
 struct wm_read_data_reply
 {
 	wm_core buttons;
-	u8 error : 4;	//see WM_RDERR_*
+	u8 error : 4; //see WM_RDERR_*
 	u8 size : 4;
 	u16 address;
 	u8 data[16];
@@ -348,8 +347,8 @@ struct wm_speaker_data
 // Custom structs
 
 /**
- *	@struct accel_t
- *	@brief Accelerometer struct. For any device with an accelerometer.
+ * @struct accel_t
+ * @brief Accelerometer struct. For any device with an accelerometer.
  */
 struct accel_cal
 {
@@ -382,23 +381,23 @@ struct cc_trigger
 
 struct nu_cal
 {
-	wm_accel cal_zero;		// zero calibration
+	wm_accel cal_zero; // zero calibration
 	u8 pad1;
-	wm_accel cal_g;			// g size
+	wm_accel cal_g;    // g size
 	u8 pad2;
-	nu_js jx;				//
-	nu_js jy;				//
+	nu_js jx;
+	nu_js jy;
 	u8 sum[2];
 };
 
 struct cc_cal
 {
-	nu_js Lx;				//
-	nu_js Ly;				//
-	nu_js Rx;				//
-	nu_js Ry;				//
-	cc_trigger Tl;			//
-	cc_trigger Tr;			//
+	nu_js Lx;
+	nu_js Ly;
+	nu_js Rx;
+	nu_js Ry;
+	cc_trigger Tl;
+	cc_trigger Tr;
 };
 
 struct gh3_cal
@@ -408,5 +407,3 @@ struct gh3_cal
 };
 
 #pragma pack(pop)
-
-#endif	//WIIMOTE_HID_H

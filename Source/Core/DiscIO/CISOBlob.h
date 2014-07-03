@@ -2,16 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CISO_BLOB_H
-#define _CISO_BLOB_H
+#pragma once
 
-#include "Blob.h"
-#include "FileUtil.h"
+#include <cstdio>
+#include <string>
+
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "DiscIO/Blob.h"
 
 namespace DiscIO
 {
 
-bool IsCISOBlob(const char* filename);
+bool IsCISOBlob(const std::string& filename);
 
 static const u32 CISO_HEADER_SIZE = 0x8000;
 static const u32 CISO_MAP_SIZE = CISO_HEADER_SIZE - sizeof(u32) - sizeof(char) * 4;
@@ -31,11 +34,11 @@ struct CISOHeader
 class CISOFileReader : public IBlobReader
 {
 public:
-	static CISOFileReader* Create(const char* filename);
+	static CISOFileReader* Create(const std::string& filename);
 
-	u64 GetDataSize() const;
-	u64 GetRawSize() const;
-	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
+	u64 GetDataSize() const override;
+	u64 GetRawSize() const override;
+	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
 	CISOFileReader(std::FILE* file);
@@ -50,5 +53,3 @@ private:
 };
 
 }  // namespace
-
-#endif  // _FILE_BLOB_H

@@ -8,32 +8,33 @@
 // However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
 // may be redirected here (for example to Read_U32()).
 
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/MemArena.h"
+#include "Common/MemoryUtil.h"
 
-#include "Common.h"
-#include "MemoryUtil.h"
-#include "MemArena.h"
-#include "ChunkFile.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/MemoryInterface.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/VideoInterface.h"
+#include "Core/HW/WII_IPC.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
-#include "Memmap.h"
-#include "../Core.h"
-#include "../PowerPC/PowerPC.h"
-#include "../PowerPC/JitCommon/JitBase.h"
-#include "../HLE/HLE.h"
-#include "CPU.h"
-#include "ProcessorInterface.h"
-#include "DSP.h"
-#include "DVDInterface.h"
-#include "GPFifo.h"
-#include "VideoInterface.h"
-#include "SI.h"
-#include "EXI.h"
-#include "AudioInterface.h"
-#include "MemoryInterface.h"
-#include "WII_IOB.h"
-#include "WII_IPC.h"
-#include "../ConfigManager.h"
-#include "../Debugger/Debugger_SymbolMap.h"
-#include "VideoBackendBase.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace Memory
 {
@@ -53,7 +54,7 @@ bool bMMU = false;
 // Init() declarations
 // ----------------
 // Store the MemArena here
-u8*	base = NULL;
+u8* base = nullptr;
 
 // The MemArena class
 MemArena g_arena;
@@ -83,230 +84,32 @@ u8 *m_pVirtualUncachedEXRAM; // wii only
 u8 *m_pVirtualL1Cache;
 u8 *m_pVirtualFakeVMEM;
 
-// =================================
-// Read and write shortcuts
-// ----------------
-writeFn8  hwWrite8 [NUMHWMEMFUN];
-writeFn16 hwWrite16[NUMHWMEMFUN];
-writeFn32 hwWrite32[NUMHWMEMFUN];
-writeFn64 hwWrite64[NUMHWMEMFUN];
+// MMIO mapping object.
+MMIO::Mapping* mmio_mapping;
 
-readFn8   hwRead8 [NUMHWMEMFUN];
-readFn16  hwRead16[NUMHWMEMFUN];
-readFn32  hwRead32[NUMHWMEMFUN];
-readFn64  hwRead64[NUMHWMEMFUN];
-
-writeFn8  hwWriteWii8 [NUMHWMEMFUN];
-writeFn16 hwWriteWii16[NUMHWMEMFUN];
-writeFn32 hwWriteWii32[NUMHWMEMFUN];
-writeFn64 hwWriteWii64[NUMHWMEMFUN];
-
-readFn8   hwReadWii8 [NUMHWMEMFUN];
-readFn16  hwReadWii16[NUMHWMEMFUN];
-readFn32  hwReadWii32[NUMHWMEMFUN];
-readFn64  hwReadWii64[NUMHWMEMFUN];
-
-// Default read and write functions
-template <class T>
-void HW_Default_Write(const T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Write%lu %08x", (unsigned long)sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
-
-template <class T>
-void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Read%lu %08x", (unsigned long)sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
-
-#define HW_PAGE_SHIFT 10
-#define HW_PAGE_SIZE (1 << HW_PAGE_SHIFT)
-#define HW_PAGE_MASK (HW_PAGE_SHIFT - 1)
-
-template <class T, u8 *P> void HW_Read_Memory(T &_Data, const u32 _Address)
+void InitMMIO(MMIO::Mapping* mmio)
 {
-	_Data = *(T *)&P[_Address & HW_PAGE_MASK];
+	g_video_backend->RegisterCPMMIO(mmio, 0xCC000000);
+	PixelEngine::RegisterMMIO(mmio, 0xCC001000);
+	VideoInterface::RegisterMMIO(mmio, 0xCC002000);
+	ProcessorInterface::RegisterMMIO(mmio, 0xCC003000);
+	MemoryInterface::RegisterMMIO(mmio, 0xCC004000);
+	DSP::RegisterMMIO(mmio, 0xCC005000);
+	DVDInterface::RegisterMMIO(mmio, 0xCC006000);
+	SerialInterface::RegisterMMIO(mmio, 0xCC006400);
+	ExpansionInterface::RegisterMMIO(mmio, 0xCC006800);
+	AudioInterface::RegisterMMIO(mmio, 0xCC006C00);
 }
 
-template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address)
+void InitMMIOWii(MMIO::Mapping* mmio)
 {
-	*(T *)&P[_Address & HW_PAGE_MASK] = _Data;
-}
+	InitMMIO(mmio);
 
-// Create shortcuts to the hardware devices' read and write functions.
-// This can be seen as an alternative to a switch() or if() table.
-#define BLOCKSIZE 4
-#define CP_START		0x00 //0x0000 >> 10
-#define WII_IPC_START	0x00 //0x0000 >> 10
-#define PE_START		0x04 //0x1000 >> 10
-#define VI_START		0x08 //0x2000 >> 10
-#define PI_START		0x0C //0x3000 >> 10
-#define MI_START		0x10 //0x4000 >> 10
-#define DSP_START		0x14 //0x5000 >> 10
-#define DVD_START		0x18 //0x6000 >> 10
-#define SI_START		0x19 //0x6400 >> 10
-#define EI_START		0x1A //0x6800 >> 10
-#define AUDIO_START		0x1B //0x6C00 >> 10
-#define GP_START		0x20 //0x8000 >> 10
-
-void InitHWMemFuncs()
-{
-	for (int i = 0; i < NUMHWMEMFUN; i++)
-	{
-		hwWrite8 [i] = HW_Default_Write<u8>;
-		hwWrite16[i] = HW_Default_Write<u16>;
-		hwWrite32[i] = HW_Default_Write<u32>;
-		hwWrite64[i] = HW_Default_Write<u64>;
-		hwRead8  [i] = HW_Default_Read<u8&>;
-		hwRead16 [i] = HW_Default_Read<u16&>;
-		hwRead32 [i] = HW_Default_Read<u32&>;
-		hwRead64 [i] = HW_Default_Read<u64&>;
-
-		// To prevent Dolphin from crashing when accidentally running Wii
-		// executables in GC mode (or running malicious GC executables...)
-		hwWriteWii8 [i] = HW_Default_Write<u8>;
-		hwWriteWii16[i] = HW_Default_Write<u16>;
-		hwWriteWii32[i] = HW_Default_Write<u32>;
-		hwWriteWii64[i] = HW_Default_Write<u64>;
-		hwReadWii8  [i] = HW_Default_Read<u8&>;
-		hwReadWii16 [i] = HW_Default_Read<u16&>;
-		hwReadWii32 [i] = HW_Default_Read<u32&>;
-		hwReadWii64 [i] = HW_Default_Read<u64&>;
-	}
-
-	for (int i = 0; i < BLOCKSIZE; i++)
-	{
-		hwRead16 [CP_START+i] = g_video_backend->Video_CPRead16();
-		hwWrite16[CP_START+i] = g_video_backend->Video_CPWrite16();
-
-		hwRead16 [PE_START+i] = g_video_backend->Video_PERead16();
-		hwWrite16[PE_START+i] = g_video_backend->Video_PEWrite16();
-		hwWrite32[PE_START+i] = g_video_backend->Video_PEWrite32();
-
-		hwRead8  [VI_START+i] = VideoInterface::Read8;
-		hwRead16 [VI_START+i] = VideoInterface::Read16;
-		hwRead32 [VI_START+i] = VideoInterface::Read32;
-		hwWrite16[VI_START+i] = VideoInterface::Write16;
-		hwWrite32[VI_START+i] = VideoInterface::Write32;
-
-		hwRead16 [PI_START+i] = ProcessorInterface::Read16;
-		hwRead32 [PI_START+i] = ProcessorInterface::Read32;
-		hwWrite32[PI_START+i] = ProcessorInterface::Write32;
-
-		hwRead16 [MI_START+i] = MemoryInterface::Read16;
-		hwRead32 [MI_START+i] = MemoryInterface::Read32;
-		hwWrite32[MI_START+i] = MemoryInterface::Write32;
-		hwWrite16[MI_START+i] = MemoryInterface::Write16;
-
-		hwRead16 [DSP_START+i] = DSP::Read16;
-		hwWrite16[DSP_START+i] = DSP::Write16;
-		hwRead32 [DSP_START+i] = DSP::Read32;
-		hwWrite32[DSP_START+i] = DSP::Write32;
-	}
-
-	hwRead32 [DVD_START] = DVDInterface::Read32;
-	hwWrite32[DVD_START] = DVDInterface::Write32;
-
-	hwRead32 [SI_START] = SerialInterface::Read32;
-	hwWrite32[SI_START] = SerialInterface::Write32;
-
-	hwRead32 [EI_START] = ExpansionInterface::Read32;
-	hwWrite32[EI_START] = ExpansionInterface::Write32;
-
-	hwRead32 [AUDIO_START] = AudioInterface::Read32;
-	hwWrite32[AUDIO_START] = AudioInterface::Write32;
-
-	hwWrite8 [GP_START] = GPFifo::Write8;
-	hwWrite16[GP_START] = GPFifo::Write16;
-	hwWrite32[GP_START] = GPFifo::Write32;
-	hwWrite64[GP_START] = GPFifo::Write64;
-}
-
-
-void InitHWMemFuncsWii()
-{
-	for (int i = 0; i < NUMHWMEMFUN; i++)
-	{
-		hwWrite8 [i] = HW_Default_Write<u8>;
-		hwWrite16[i] = HW_Default_Write<u16>;
-		hwWrite32[i] = HW_Default_Write<u32>;
-		hwWrite64[i] = HW_Default_Write<u64>;
-		hwRead8  [i] = HW_Default_Read<u8&>;
-		hwRead16 [i] = HW_Default_Read<u16&>;
-		hwRead32 [i] = HW_Default_Read<u32&>;
-		hwRead64 [i] = HW_Default_Read<u64&>;
-
-		hwWriteWii8 [i] = HW_Default_Write<u8>;
-		hwWriteWii16[i] = HW_Default_Write<u16>;
-		hwWriteWii32[i] = HW_Default_Write<u32>;
-		hwWriteWii64[i] = HW_Default_Write<u64>;
-		hwReadWii8  [i] = HW_Default_Read<u8&>;
-		hwReadWii16 [i] = HW_Default_Read<u16&>;
-		hwReadWii32 [i] = HW_Default_Read<u32&>;
-		hwReadWii64 [i] = HW_Default_Read<u64&>;
-	}
-
-	// MI, PI, DSP are still mapped to 0xCCxxxxxx
-	for (int i = 0; i < BLOCKSIZE; i++)
-	{
-		hwRead16 [CP_START+i] = g_video_backend->Video_CPRead16();
-		hwWrite16[CP_START+i] = g_video_backend->Video_CPWrite16();
-
-		hwRead16 [PE_START+i] = g_video_backend->Video_PERead16();
-		hwWrite16[PE_START+i] = g_video_backend->Video_PEWrite16();
-		hwWrite32[PE_START+i] = g_video_backend->Video_PEWrite32();
-
-		hwRead16 [PI_START+i] = ProcessorInterface::Read16;
-		hwRead32 [PI_START+i] = ProcessorInterface::Read32;
-		hwWrite32[PI_START+i] = ProcessorInterface::Write32;
-
-		hwRead8  [VI_START+i] = VideoInterface::Read8;
-		hwRead16 [VI_START+i] = VideoInterface::Read16;
-		hwRead32 [VI_START+i] = VideoInterface::Read32;
-		hwWrite16[VI_START+i] = VideoInterface::Write16;
-		hwWrite32[VI_START+i] = VideoInterface::Write32;
-
-		hwRead16 [MI_START+i] = MemoryInterface::Read16;
-		hwRead32 [MI_START+i] = MemoryInterface::Read32;
-		hwWrite32[MI_START+i] = MemoryInterface::Write32;
-		hwWrite16[MI_START+i] = MemoryInterface::Write16;
-
-		hwRead16 [DSP_START+i] = DSP::Read16;
-		hwWrite16[DSP_START+i] = DSP::Write16;
-		hwRead32 [DSP_START+i] = DSP::Read32;
-		hwWrite32[DSP_START+i] = DSP::Write32;
-	}
-
-	hwWrite8 [GP_START] = GPFifo::Write8;
-	hwWrite16[GP_START] = GPFifo::Write16;
-	hwWrite32[GP_START] = GPFifo::Write32;
-	hwWrite64[GP_START] = GPFifo::Write64;
-
-	for (int i = 0; i < BLOCKSIZE; i++)
-	{
-		hwReadWii32[WII_IPC_START+i] = WII_IPCInterface::Read32;
-		hwWriteWii32[WII_IPC_START+i] = WII_IPCInterface::Write32;
-	}
-
-	hwRead32	[DVD_START] = DVDInterface::Read32;
-	hwReadWii32	[DVD_START] = DVDInterface::Read32;
-	hwWrite32	[DVD_START] = DVDInterface::Write32;
-	hwWriteWii32[DVD_START] = DVDInterface::Write32;
-
-	hwRead32	[SI_START] = SerialInterface::Read32;
-	hwReadWii32	[SI_START] = SerialInterface::Read32;
-	hwWrite32	[SI_START] = SerialInterface::Write32;
-	hwWriteWii32[SI_START] = SerialInterface::Write32;
-
-	hwRead32	[EI_START] = ExpansionInterface::Read32;
-	hwReadWii32	[EI_START] = ExpansionInterface::Read32;
-	hwWrite32	[EI_START] = ExpansionInterface::Write32;
-	hwWriteWii32[EI_START] = ExpansionInterface::Write32;
-
-	// [F|RES] i thought this doesn't exist anymore
-	hwRead32	[AUDIO_START] = AudioInterface::Read32;
-	hwReadWii32	[AUDIO_START] = AudioInterface::Read32;
-	hwWrite32	[AUDIO_START] = AudioInterface::Write32;
-	hwWriteWii32[AUDIO_START] = AudioInterface::Write32;
-}
-
-writeFn32 GetHWWriteFun32(const u32 _Address)
-{
-	return hwWrite32[(_Address >> HWSHIFT) & (NUMHWMEMFUN-1)];
+	WII_IPCInterface::RegisterMMIO(mmio, 0xCD000000);
+	DVDInterface::RegisterMMIO(mmio, 0xCD006000);
+	SerialInterface::RegisterMMIO(mmio, 0xCD006400);
+	ExpansionInterface::RegisterMMIO(mmio, 0xCD006800);
+	AudioInterface::RegisterMMIO(mmio, 0xCD006C00);
 }
 
 bool IsInitialized()
@@ -319,21 +122,21 @@ bool IsInitialized()
 static const MemoryView views[] =
 {
 	{&m_pRAM,      &m_pPhysicalRAM,          0x00000000, RAM_SIZE, 0},
-	{NULL,         &m_pVirtualCachedRAM,     0x80000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
-	{NULL,         &m_pVirtualUncachedRAM,   0xC0000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
+	{nullptr,         &m_pVirtualCachedRAM,     0x80000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
+	{nullptr,         &m_pVirtualUncachedRAM,   0xC0000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
 
 //  Don't map any memory for the EFB. We want all access to this area to go
 //  through the hardware access handlers.
-#ifndef _M_X64
-//	{&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
+#if _ARCH_32
+// {&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
 #endif
 	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},
 
 	{&m_pFakeVMEM, &m_pVirtualFakeVMEM,      0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
 
 	{&m_pEXRAM,    &m_pPhysicalEXRAM,        0x10000000, EXRAM_SIZE, MV_WII_ONLY},
-	{NULL,         &m_pVirtualCachedEXRAM,   0x90000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
-	{NULL,         &m_pVirtualUncachedEXRAM, 0xD0000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+	{nullptr,         &m_pVirtualCachedEXRAM,   0x90000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+	{nullptr,         &m_pVirtualUncachedEXRAM, 0xD0000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
 };
 static const int num_views = sizeof(views) / sizeof(MemoryView);
 
@@ -348,10 +151,12 @@ void Init()
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	base = MemoryMap_Setup(views, num_views, flags, &g_arena);
 
+	mmio_mapping = new MMIO::Mapping();
+
 	if (wii)
-		InitHWMemFuncsWii();
+		InitMMIOWii(mmio_mapping);
 	else
-		InitHWMemFuncs();
+		InitMMIO(mmio_mapping);
 
 	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p (mirrors at 0 @ %p, 0x80000000 @ %p , 0xC0000000 @ %p)",
 		m_pRAM, m_pPhysicalRAM, m_pVirtualCachedRAM, m_pVirtualUncachedRAM);
@@ -362,7 +167,7 @@ void DoState(PointerWrap &p)
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
-//	p.DoArray(m_pVirtualEFB, EFB_SIZE);
+	//p.DoArray(m_pVirtualEFB, EFB_SIZE);
 	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
 	p.DoMarker("Memory RAM");
 	if (bFakeVMEM)
@@ -381,7 +186,8 @@ void Shutdown()
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSpace();
-	base = NULL;
+	base = nullptr;
+	delete mmio_mapping;
 	INFO_LOG(MEMMAP, "Memory system shut down.");
 }
 
@@ -418,7 +224,7 @@ void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t _iSize)
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 {
 	u8 *ptr = GetPointer(_Address);
-	if (ptr != NULL)
+	if (ptr != nullptr)
 	{
 		memset(ptr,_iValue,_iLength);
 	}
@@ -431,10 +237,10 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
 {
-	const u8 *src = GetCachePtr() + (_CacheAddr & 0x3FFFF);
+	const u8 *src = m_pL1Cache + (_CacheAddr & 0x3FFFF);
 	u8 *dst = GetPointer(_MemAddr);
 
-	if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
 	{
 		memcpy(dst, src, 32 * _iNumBlocks);
 	}
@@ -451,9 +257,9 @@ void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlo
 void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlocks)
 {
 	const u8 *src = GetPointer(_MemAddr);
-	u8 *dst = GetCachePtr() + (_CacheAddr & 0x3FFFF);
+	u8 *dst = m_pL1Cache + (_CacheAddr & 0x3FFFF);
 
-	if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
 	{
 		memcpy(dst, src, 32 * _iNumBlocks);
 	}
@@ -527,7 +333,7 @@ u8 *GetPointer(const u32 _Address)
 
 	case 0xe:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
-			return GetCachePtr() + (_Address & L1_CACHE_MASK);
+			return m_pL1Cache + (_Address & L1_CACHE_MASK);
 		else
 			break;
 
@@ -538,7 +344,7 @@ u8 *GetPointer(const u32 _Address)
 
 	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", _Address, PC, LR);
 
-	return NULL;
+	return nullptr;
 }
 
 

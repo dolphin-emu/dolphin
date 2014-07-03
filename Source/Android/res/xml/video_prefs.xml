@@ -28,6 +28,11 @@
             android:summary="@string/anisotropic_filtering_descrip"
             android:title="@string/anisotropic_filtering"/>
 
+        <ListPreference
+            android:key="postProcessingShader"
+            android:summary="@string/postprocessing_shader_descrip"
+            android:title="@string/postprocessing_shader"/>
+
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="scaledEFBCopy"
@@ -105,12 +110,6 @@
 
         <!-- Other Hacks -->
         <PreferenceCategory android:title="@string/other">
-
-            <CheckBoxPreference
-                android:defaultValue="false"
-                android:key="cacheDisplayLists"
-                android:summary="@string/cache_display_lists_descrip"
-                android:title="@string/cache_display_lists"/>
 
             <CheckBoxPreference
                 android:defaultValue="false"

@@ -45,7 +45,8 @@ public final class UserPreferences
 		editor.putString("internalResolution",     getConfig("gfx_opengl.ini", "Settings", "EFBScale", "2") );
 		editor.putString("FSAA",                   getConfig("gfx_opengl.ini", "Settings", "MSAA", "0"));
 		editor.putString("anisotropicFiltering",   getConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", "0"));
-		editor.putBoolean("scaledEFBCopy",         getConfig("gfx_opengl.ini", "Hacks", "EFBScaleCopy", "True").equals("True"));
+		editor.putString("postProcessingShader",   getConfig("gfx_opengl.ini", "Enhancements", "PostProcessingShader", ""));
+		editor.putBoolean("scaledEFBCopy",         getConfig("gfx_opengl.ini", "Hacks", "EFBScaledCopy", "True").equals("True"));
 		editor.putBoolean("perPixelLighting",      getConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", "False").equals("True"));
 		editor.putBoolean("forceTextureFiltering", getConfig("gfx_opengl.ini", "Enhancements", "ForceFiltering", "False").equals("True"));
 		editor.putBoolean("disableFog",            getConfig("gfx_opengl.ini", "Settings", "DisableFog", "False").equals("True"));
@@ -91,7 +92,6 @@ public final class UserPreferences
 			editor.putString("externalFrameBuffer", "Real");
 		}
 
-		editor.putBoolean("cacheDisplayLists",       getConfig("gfx_opengl.ini", "Hacks", "DlistCachingEnable", "False").equals("True"));
 		editor.putBoolean("disableDestinationAlpha", getConfig("gfx_opengl.ini", "Settings", "DstAlphaPass", "False").equals("True"));
 		editor.putBoolean("fastDepthCalculation",    getConfig("gfx_opengl.ini", "Settings", "FastDepthCalc", "True").equals("True"));
 
@@ -139,16 +139,13 @@ public final class UserPreferences
 		boolean ignoreFormatChanges = prefs.getBoolean("ignoreFormatChanges", false);
 
 		// EFB copy method to use.
-		String efbCopyMethod = prefs.getString("efbCopyMethod", "Off");
+		String efbCopyMethod = prefs.getString("efbCopyMethod", "Texture");
 
 		// Texture cache accuracy. Falls back to "Fast" up error.
 		String textureCacheAccuracy = prefs.getString("textureCacheAccuracy", "128");
 
 		// External frame buffer emulation. Falls back to disabled upon error.
 		String externalFrameBuffer = prefs.getString("externalFrameBuffer", "Disabled");
-
-		// Whether or not display list caching is enabled.
-		boolean dlistCachingEnabled = prefs.getBoolean("cacheDisplayLists", false);
 
 		// Whether or not to disable destination alpha.
 		boolean disableDstAlphaPass = prefs.getBoolean("disableDestinationAlpha", false);
@@ -164,6 +161,9 @@ public final class UserPreferences
 
 		// Anisotropic Filtering Level. Falls back to 1x upon error.
 		String anisotropicFiltLevel = prefs.getString("anisotropicFiltering", "0");
+
+		// Post processing shader setting
+		String postProcessing = prefs.getString("postProcessingShader", "");
 
 		// Whether or not Scaled EFB copies are used.
 		boolean usingScaledEFBCopy = prefs.getBoolean("scaledEFBCopy", true);
@@ -234,7 +234,6 @@ public final class UserPreferences
 			NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "UseRealXFB", "True");
 		}
 
-		NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "DlistCachingEnable", dlistCachingEnabled ? "True" : "False");
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "DstAlphaPass", disableDstAlphaPass ? "True" : "False");
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "FastDepthCalc", useFastDepthCalc ? "True" : "False");
 
@@ -242,6 +241,7 @@ public final class UserPreferences
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EFBScale", internalResolution);
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "MSAA", FSAALevel);
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", anisotropicFiltLevel);
+		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "PostProcessingShader", postProcessing);
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBScaledCopy", usingScaledEFBCopy ? "True" : "False");
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", usingPerPixelLighting ? "True" : "False");
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "ForceFiltering", isForcingTextureFiltering ? "True" : "False");

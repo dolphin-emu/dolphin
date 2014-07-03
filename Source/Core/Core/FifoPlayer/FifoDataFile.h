@@ -2,11 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFODATAFILE_H_
-#define _FIFODATAFILE_H_
+#pragma once
 
-#include "Common.h"
+#include <string>
 #include <vector>
+
+#include "Common/Common.h"
 
 namespace File
 {
@@ -17,10 +18,10 @@ struct MemoryUpdate
 {
 	enum Type
 	{
-		TEXTURE_MAP = 0x01,
-		XF_DATA = 0x02,
+		TEXTURE_MAP   = 0x01,
+		XF_DATA       = 0x02,
 		VERTEX_STREAM = 0x04,
-		TMEM = 0x08,
+		TMEM          = 0x08,
 	};
 
 	u32 fifoPosition;
@@ -65,10 +66,10 @@ public:
 	u32 *GetXFRegs() { return m_XFRegs; }
 
 	void AddFrame(const FifoFrameInfo &frameInfo);
-	const FifoFrameInfo &GetFrame(int frame) const { return m_Frames[frame]; }
-	int GetFrameCount() { return (int)m_Frames.size(); }
+	const FifoFrameInfo &GetFrame(size_t frame) const { return m_Frames[frame]; }
+	size_t GetFrameCount() { return m_Frames.size(); }
 
-	bool Save(const char *filename);
+	bool Save(const std::string& filename);
 
 	static FifoDataFile *Load(const std::string &filename, bool flagsOnly);
 
@@ -95,5 +96,3 @@ private:
 
 	std::vector<FifoFrameInfo> m_Frames;
 };
-
-#endif

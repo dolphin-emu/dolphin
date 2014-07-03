@@ -1,26 +1,12 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
+#pragma once
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#ifndef _JITARMREGCACHE_H
-#define _JITARMREGCACHE_H
-
-#include "ArmEmitter.h"
-#include "../Gekko.h"
-#include "../PPCAnalyst.h"
+#include "Common/ArmEmitter.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 using namespace ArmGen;
 // This ARM Register cache actually pre loads the most used registers before
@@ -41,6 +27,12 @@ enum RegType
 	REG_REG, // Reg type is register
 	REG_IMM, // Reg is really a IMM
 	REG_AWAY, // Bound to a register, but not preloaded
+};
+
+enum FlushMode
+{
+	FLUSH_ALL = 0,
+	FLUSH_MAINTAIN_STATE,
 };
 
 class OpArg
@@ -130,17 +122,11 @@ public:
 	void Start(PPCAnalyst::BlockRegStats &stats);
 
 	ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
-	void Unlock(ARMReg R0, ARMReg R1 = INVALID_REG, ARMReg R2 = INVALID_REG, ARMReg R3 =
-	INVALID_REG);
-	void Flush();
+	void Unlock(ARMReg R0, ARMReg R1 = INVALID_REG, ARMReg R2 = INVALID_REG, ARMReg R3 = INVALID_REG);
+	void Flush(FlushMode mode = FLUSH_ALL);
 	ARMReg R(u32 preg); // Returns a cached register
 	bool IsImm(u32 preg) { return regs[preg].GetType() == REG_IMM; }
 	u32 GetImm(u32 preg) { return regs[preg].GetImm(); }
 	void SetImmediate(u32 preg, u32 imm);
 	ARMReg BindToRegister(u32 preg);
 };
-
-
-
-
-#endif

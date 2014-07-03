@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _NATIVEVERTEXFORMAT_H
-#define _NATIVEVERTEXFORMAT_H
+#pragma once
 
-#include "Vec3.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "VideoBackends/Software/Vec3.h"
 
 #ifdef WIN32
 #define LOADERDECL __cdecl
@@ -93,5 +92,3 @@ struct OutputVertexData
 	}
 
 };
-
-#endif

@@ -5,14 +5,14 @@
 // This file contains a generic symbol map implementation. For CPU-specific
 // magic, derive and extend.
 
-#ifndef _SYMBOL_DB_H
-#define _SYMBOL_DB_H
+#pragma once
 
-#include <string>
 #include <map>
+#include <string>
+#include <utility>
 #include <vector>
 
-#include "Common.h"
+#include "Common/Common.h"
 
 struct SCall
 {
@@ -56,12 +56,12 @@ struct Symbol
 
 enum
 {
-	FFLAG_TIMERINSTRUCTIONS=(1<<0),
-	FFLAG_LEAF=(1<<1),
-	FFLAG_ONLYCALLSNICELEAFS=(1<<2),
-	FFLAG_EVIL=(1<<3),
-	FFLAG_RFI=(1<<4),
-	FFLAG_STRAIGHT=(1<<5)
+	FFLAG_TIMERINSTRUCTIONS  = (1<<0),
+	FFLAG_LEAF               = (1<<1),
+	FFLAG_ONLYCALLSNICELEAFS = (1<<2),
+	FFLAG_EVIL               = (1<<3),
+	FFLAG_RFI                = (1<<4),
+	FFLAG_STRAIGHT           = (1<<5)
 };
 
 
@@ -79,31 +79,25 @@ protected:
 public:
 	SymbolDB() {}
 	virtual ~SymbolDB() {}
-	virtual Symbol *GetSymbolFromAddr(u32 addr) { return 0; }
-	virtual Symbol *AddFunction(u32 startAddr) { return 0;}
+	virtual Symbol *GetSymbolFromAddr(u32 addr) { return nullptr; }
+	virtual Symbol *AddFunction(u32 startAddr) { return nullptr; }
 
 	void AddCompleteSymbol(const Symbol &symbol);
 
-	Symbol *GetSymbolFromName(const char *name);
-	Symbol *GetSymbolFromHash(u32 hash) {
+	Symbol* GetSymbolFromName(const std::string& name);
+	Symbol* GetSymbolFromHash(u32 hash)
+	{
 		XFuncPtrMap::iterator iter = checksumToFunction.find(hash);
 		if (iter != checksumToFunction.end())
 			return iter->second;
 		else
-			return 0;
+			return nullptr;
 	}
 
-	const XFuncMap &Symbols() const {return functions;}
-	XFuncMap &AccessSymbols() {return functions;}
-
-	// deprecated
-	XFuncMap::iterator GetIterator() { return functions.begin(); }
-	XFuncMap::const_iterator GetConstIterator() { return functions.begin(); }
-	XFuncMap::iterator End() { return functions.end(); }
+	const XFuncMap &Symbols() const { return functions; }
+	XFuncMap &AccessSymbols() { return functions; }
 
 	void Clear(const char *prefix = "");
 	void List();
 	void Index();
 };
-
-#endif

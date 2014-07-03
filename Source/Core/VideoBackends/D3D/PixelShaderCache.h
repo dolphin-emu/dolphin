@@ -4,11 +4,10 @@
 
 #pragma once
 
-#include "PixelShaderGen.h"
-
 #include <d3d11.h>
-
 #include <map>
+
+#include "VideoCommon/PixelShaderGen.h"
 
 enum DSTALPHA_MODE;
 
@@ -43,7 +42,7 @@ private:
 
 		std::string code;
 
-		PSCacheEntry() : shader(NULL) {}
+		PSCacheEntry() : shader(nullptr) {}
 		void Destroy() { SAFE_RELEASE(shader); }
 	};
 

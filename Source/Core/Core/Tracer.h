@@ -2,9 +2,4 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TRACER_H_
-#define _TRACER_H_
-
-
-#endif
-
+#pragma once

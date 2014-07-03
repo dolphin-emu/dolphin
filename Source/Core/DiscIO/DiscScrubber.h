@@ -11,12 +11,12 @@
 
 // Note: the technique is inspired by Wiiscrubber, but much simpler - intentionally :)
 
-#ifndef DISC_SCRUBBER_H
-#define DISC_SCRUBBER_H
+#pragma once
 
-#include "CommonTypes.h"
-#include "Blob.h"
+#include <string>
+#include "Common/CommonTypes.h"
 
+namespace File { class IOFile; }
 
 namespace DiscIO
 {
@@ -24,12 +24,10 @@ namespace DiscIO
 namespace DiscScrubber
 {
 
-bool SetupScrub(const char* filename, int block_size);
+bool SetupScrub(const std::string& filename, int block_size);
 void GetNextBlock(File::IOFile& in, u8* buffer);
 void Cleanup();
 
 } // namespace DiscScrubber
 
 } // namespace DiscIO
-
-#endif  // DISC_SCRUBBER_H

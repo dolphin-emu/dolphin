@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MailHandler.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 
 CMailHandler::CMailHandler()
 {

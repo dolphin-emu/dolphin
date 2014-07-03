@@ -2,11 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __REGISTERWINDOW_h__
-#define __REGISTERWINDOW_h__
+#pragma once
+
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
 class CRegisterView;
-class IniFile;
+class wxWindow;
 
 class CRegisterWindow
 	: public wxPanel
@@ -33,5 +40,3 @@ private:
 	CRegisterView* m_GPRGridView;
 	void CreateGUIControls();
 };
-
-#endif

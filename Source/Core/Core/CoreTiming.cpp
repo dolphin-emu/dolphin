@@ -2,16 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <vector>
 #include <cinttypes>
+#include <string>
+#include <vector>
 
-#include "Thread.h"
-#include "PowerPC/PowerPC.h"
-#include "CoreTiming.h"
-#include "Core.h"
-#include "StringUtil.h"
-#include "VideoBackendBase.h"
-#include "FifoQueue.h"
+#include "Common/FifoQueue.h"
+#include "Common/StringUtil.h"
+#include "Common/Thread.h"
+
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 #define MAX_SLICE_LENGTH 20000
 
@@ -21,7 +24,7 @@ namespace CoreTiming
 struct EventType
 {
 	TimedCallback callback;
-	const char *name;
+	std::string name;
 };
 
 std::vector<EventType> event_types;
@@ -41,9 +44,9 @@ static std::mutex tsWriteLock;
 Common::FifoQueue<BaseEvent, false> tsQueue;
 
 // event pools
-Event *eventPool = 0;
+Event *eventPool = nullptr;
 
-int downcount, slicelength;
+int slicelength;
 int maxSliceLength = MAX_SLICE_LENGTH;
 
 s64 globalTimer;
@@ -57,11 +60,11 @@ u64 fakeTBStartTicks;
 int ev_lost;
 
 
-void (*advanceCallback)(int cyclesExecuted) = NULL;
+void (*advanceCallback)(int cyclesExecuted) = nullptr;
 
 Event* GetNewEvent()
 {
-	if(!eventPool)
+	if (!eventPool)
 		return new Event;
 
 	Event* ev = eventPool;
@@ -77,7 +80,7 @@ void FreeEvent(Event* ev)
 
 static void EmptyTimedCallback(u64 userdata, int cyclesLate) {}
 
-int RegisterEvent(const char *name, TimedCallback callback)
+int RegisterEvent(const std::string& name, TimedCallback callback)
 {
 	EventType type;
 	type.name = name;
@@ -87,9 +90,9 @@ int RegisterEvent(const char *name, TimedCallback callback)
 	// we want event type names to remain unique so that we can use them for serialization.
 	for (auto& event_type : event_types)
 	{
-		if (!strcmp(name, event_type.name))
+		if (name == event_type.name)
 		{
-			WARN_LOG(POWERPC, "Discarded old event type \"%s\" because a new type with the same name was registered.", name);
+			WARN_LOG(POWERPC, "Discarded old event type \"%s\" because a new type with the same name was registered.", name.c_str());
 			// we don't know if someone might be holding on to the type index,
 			// so we gut the old event type instead of actually removing it.
 			event_type.name = "_discarded_event";
@@ -110,7 +113,7 @@ void UnregisterAllEvents()
 
 void Init()
 {
-	downcount = maxSliceLength;
+	PowerPC::ppcState.downcount = maxSliceLength;
 	slicelength = maxSliceLength;
 	globalTimer = 0;
 	idledCycles = 0;
@@ -125,7 +128,7 @@ void Shutdown()
 	ClearPendingEvents();
 	UnregisterAllEvents();
 
-	while(eventPool)
+	while (eventPool)
 	{
 		Event *ev = eventPool;
 		eventPool = ev->next;
@@ -152,7 +155,7 @@ void EventDoState(PointerWrap &p, BaseEvent* ev)
 		bool foundMatch = false;
 		for (unsigned int i = 0; i < event_types.size(); ++i)
 		{
-			if (!strcmp(name.c_str(), event_types[i].name))
+			if (name == event_types[i].name)
 			{
 				ev->type = i;
 				foundMatch = true;
@@ -170,7 +173,6 @@ void EventDoState(PointerWrap &p, BaseEvent* ev)
 void DoState(PointerWrap &p)
 {
 	std::lock_guard<std::mutex> lk(tsWriteLock);
-	p.Do(downcount);
 	p.Do(slicelength);
 	p.Do(globalTimer);
 	p.Do(idledCycles);
@@ -212,7 +214,7 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 // in which case the event will get handled immediately, before returning.
 void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 {
-	if(Core::IsCPUThread())
+	if (Core::IsCPUThread())
 	{
 		event_types[event_type].callback(userdata, 0);
 	}
@@ -234,12 +236,12 @@ void ClearPendingEvents()
 
 void AddEventToQueue(Event* ne)
 {
-	Event* prev = NULL;
+	Event* prev = nullptr;
 	Event** pNext = &first;
-	for(;;)
+	for (;;)
 	{
 		Event*& next = *pNext;
-		if(!next || ne->time < next->time)
+		if (!next || ne->time < next->time)
 		{
 			ne->next = next;
 			next = ne;
@@ -285,7 +287,7 @@ void RemoveEvent(int event_type)
 	if (!first)
 		return;
 
-	while(first)
+	while (first)
 	{
 		if (first->type == event_type)
 		{
@@ -333,10 +335,10 @@ void SetMaximumSlice(int maximumSliceLength)
 
 void ForceExceptionCheck(int cycles)
 {
-	if (downcount > cycles)
+	if (PowerPC::ppcState.downcount > cycles)
 	{
-		slicelength -= (downcount - cycles); // Account for cycles already executed by adjusting the slicelength
-		downcount = cycles;
+		slicelength -= (PowerPC::ppcState.downcount - cycles); // Account for cycles already executed by adjusting the slicelength
+		PowerPC::ppcState.downcount = cycles;
 	}
 }
 
@@ -387,16 +389,16 @@ void Advance()
 {
 	MoveEvents();
 
-	int cyclesExecuted = slicelength - downcount;
+	int cyclesExecuted = slicelength - PowerPC::ppcState.downcount;
 	globalTimer += cyclesExecuted;
-	downcount = slicelength;
+	PowerPC::ppcState.downcount = slicelength;
 
 	while (first)
 	{
 		if (first->time <= globalTimer)
 		{
-//			LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
-//				event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
+			//LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
+			//             event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
 			Event* evt = first;
 			first = first->next;
 			event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
@@ -411,14 +413,14 @@ void Advance()
 	if (!first)
 	{
 		WARN_LOG(POWERPC, "WARNING - no events in queue. Setting downcount to 10000");
-		downcount += 10000;
+		PowerPC::ppcState.downcount += 10000;
 	}
 	else
 	{
 		slicelength = (int)(first->time - globalTimer);
 		if (slicelength > maxSliceLength)
 			slicelength = maxSliceLength;
-		downcount = slicelength;
+		PowerPC::ppcState.downcount = slicelength;
 	}
 
 	if (advanceCallback)
@@ -448,8 +450,8 @@ void Idle()
 		Common::YieldCPU();
 	}
 
-	idledCycles += downcount;
-	downcount = 0;
+	idledCycles += PowerPC::ppcState.downcount;
+	PowerPC::ppcState.downcount = 0;
 
 	Advance();
 }
@@ -465,11 +467,9 @@ std::string GetScheduledEventsSummary()
 		if (t >= event_types.size())
 			PanicAlertT("Invalid event type %i", t);
 
-		const char *name = event_types[ptr->type].name;
-		if (!name)
-			name = "[unknown]";
+		const std::string& name = event_types[ptr->type].name;
 
-		text += StringFromFormat("%s : %i %08x%08x\n", event_types[ptr->type].name, ptr->time, ptr->userdata >> 32, ptr->userdata);
+		text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", name.c_str(), ptr->time, ptr->userdata);
 		ptr = ptr->next;
 	}
 	return text;

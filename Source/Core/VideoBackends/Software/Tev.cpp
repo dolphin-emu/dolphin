@@ -2,18 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
-#include "Tev.h"
-#include "EfbInterface.h"
-#include "TextureSampler.h"
-#include "XFMemLoader.h"
-#include "SWPixelEngine.h"
-#include "SWStatistics.h"
-#include "SWVideoConfig.h"
-#include "DebugUtil.h"
-
 #include <cmath>
+
+#include "Common/Common.h"
+
+#include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoBackends/Software/Tev.h"
+#include "VideoBackends/Software/TextureSampler.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
 #ifdef _DEBUG
 #define ALLOW_TEV_DUMPS 1
@@ -24,17 +23,19 @@
 void Tev::Init()
 {
 	FixedConstants[0] = 0;
-	FixedConstants[1] = 31;
-	FixedConstants[2] = 63;
-	FixedConstants[3] = 95;
-	FixedConstants[4] = 127;
+	FixedConstants[1] = 32;
+	FixedConstants[2] = 64;
+	FixedConstants[3] = 96;
+	FixedConstants[4] = 128;
 	FixedConstants[5] = 159;
 	FixedConstants[6] = 191;
 	FixedConstants[7] = 223;
 	FixedConstants[8] = 255;
 
-	for (int i = 0; i < 4; i++)
-		Zero16[i] = 0;
+	for (s16& comp : Zero16)
+	{
+		comp = 0;
+	}
 
 	m_ColorInputLUT[0][RED_INP] = &Reg[0][RED_C]; m_ColorInputLUT[0][GRN_INP] = &Reg[0][GRN_C]; m_ColorInputLUT[0][BLU_INP] = &Reg[0][BLU_C]; // prev.rgb
 	m_ColorInputLUT[1][RED_INP] = &Reg[0][ALP_C]; m_ColorInputLUT[1][GRN_INP] = &Reg[0][ALP_C]; m_ColorInputLUT[1][BLU_INP] = &Reg[0][ALP_C]; // prev.aaa
@@ -53,14 +54,14 @@ void Tev::Init()
 	m_ColorInputLUT[14][RED_INP] = &StageKonst[RED_C]; m_ColorInputLUT[14][GRN_INP] = &StageKonst[GRN_C]; m_ColorInputLUT[14][BLU_INP] = &StageKonst[BLU_C]; // konst
 	m_ColorInputLUT[15][RED_INP] = &FixedConstants[0]; m_ColorInputLUT[15][GRN_INP] = &FixedConstants[0]; m_ColorInputLUT[15][BLU_INP] = &FixedConstants[0]; // zero
 
-	m_AlphaInputLUT[0] = Reg[0]; // prev
-	m_AlphaInputLUT[1] = Reg[1]; // c0
-	m_AlphaInputLUT[2] = Reg[2]; // c1
-	m_AlphaInputLUT[3] = Reg[3]; // c2
-	m_AlphaInputLUT[4] = TexColor; // tex
-	m_AlphaInputLUT[5] = RasColor; // ras
-	m_AlphaInputLUT[6] = StageKonst; // konst
-	m_AlphaInputLUT[7] = Zero16; // zero
+	m_AlphaInputLUT[0] = &Reg[0][ALP_C]; // prev
+	m_AlphaInputLUT[1] = &Reg[1][ALP_C]; // c0
+	m_AlphaInputLUT[2] = &Reg[2][ALP_C]; // c1
+	m_AlphaInputLUT[3] = &Reg[3][ALP_C]; // c2
+	m_AlphaInputLUT[4] = &TexColor[ALP_C]; // tex
+	m_AlphaInputLUT[5] = &RasColor[ALP_C]; // ras
+	m_AlphaInputLUT[6] = &StageKonst[ALP_C]; // konst
+	m_AlphaInputLUT[7] = &Zero16[ALP_C]; // zero
 
 	for (int comp = 0; comp < 4; comp++)
 	{
@@ -73,10 +74,20 @@ void Tev::Init()
 		m_KonstLUT[6][comp] = &FixedConstants[2];
 		m_KonstLUT[7][comp] = &FixedConstants[1];
 
-		m_KonstLUT[12][comp] = &KonstantColors[0][comp];
-		m_KonstLUT[13][comp] = &KonstantColors[1][comp];
-		m_KonstLUT[14][comp] = &KonstantColors[2][comp];
-		m_KonstLUT[15][comp] = &KonstantColors[3][comp];
+		// These are "invalid" values, not meant to be used. On hardware,
+		// they all output zero.
+		for (int i = 8; i < 16; ++i)
+		{
+			m_KonstLUT[i][comp] = &FixedConstants[0];
+		}
+
+		if (comp != ALP_C)
+		{
+			m_KonstLUT[12][comp] = &KonstantColors[0][comp];
+			m_KonstLUT[13][comp] = &KonstantColors[1][comp];
+			m_KonstLUT[14][comp] = &KonstantColors[2][comp];
+			m_KonstLUT[15][comp] = &KonstantColors[3][comp];
+		}
 
 		m_KonstLUT[16][comp] = &KonstantColors[0][RED_C];
 		m_KonstLUT[17][comp] = &KonstantColors[1][RED_C];
@@ -119,12 +130,12 @@ inline s16 Clamp255(s16 in)
 
 inline s16 Clamp1024(s16 in)
 {
-		return in>1023?1023:(in<-1024?-1024:in);
+	return in>1023?1023:(in<-1024?-1024:in);
 }
 
 void Tev::SetRasColor(int colorChan, int swaptable)
 {
-	switch(colorChan)
+	switch (colorChan)
 	{
 	case 0: // Color0
 		{
@@ -148,274 +159,192 @@ void Tev::SetRasColor(int colorChan, int swaptable)
 		break;
 		case 5: // alpha bump
 		{
-			for(int i = 0; i < 4; i++)
-				RasColor[i] = AlphaBump;
+			for (s16& comp : RasColor)
+			{
+				comp = AlphaBump;
+			}
 		}
 		break;
 	case 6: // alpha bump normalized
 		{
 			u8 normalized = AlphaBump | AlphaBump >> 5;
-			for(int i = 0; i < 4; i++)
-				RasColor[i] = normalized;
+			for (s16& comp : RasColor)
+			{
+				comp = normalized;
+			}
 		}
 		break;
 	default: // zero
 		{
-			for(int i = 0; i < 4; i++)
-				RasColor[i] = 0;
+			for (s16& comp : RasColor)
+			{
+				comp = 0;
+			}
 		}
 		break;
 	}
 }
 
-void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner &cc)
+void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner &cc, const InputRegType inputs[4])
 {
-	InputRegType InputReg;
-
 	for (int i = 0; i < 3; i++)
 	{
-		InputReg.a = *m_ColorInputLUT[cc.a][i];
-		InputReg.b = *m_ColorInputLUT[cc.b][i];
-		InputReg.c = *m_ColorInputLUT[cc.c][i];
-		InputReg.d = *m_ColorInputLUT[cc.d][i];
+		const InputRegType& InputReg = inputs[BLU_C + i];
 
 		u16 c = InputReg.c + (InputReg.c >> 7);
 
 		s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
-		temp = cc.op?(-temp >> 8):(temp >> 8);
+		temp <<= m_ScaleLShiftLUT[cc.shift];
+		temp += (cc.shift == 3) ? 0 : (cc.op == 1) ? 127 : 128;
+		temp >>= 8;
+		temp = cc.op ? -temp : temp;
 
-		s32 result = InputReg.d + temp + m_BiasLUT[cc.bias];
-		result = result << m_ScaleLShiftLUT[cc.shift];
+		s32 result = ((InputReg.d + m_BiasLUT[cc.bias]) << m_ScaleLShiftLUT[cc.shift]) + temp;
 		result = result >> m_ScaleRShiftLUT[cc.shift];
 
 		Reg[cc.dest][BLU_C + i] = result;
 	}
 }
 
-void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc)
+void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc, const InputRegType inputs[4])
 {
-	int cmp = (cc.shift<<1)|cc.op|8; // comparemode stored here
+	for (int i = BLU_C; i <= RED_C; i++)
+	{
+		switch ((cc.shift<<1)|cc.op|8)  // encoded compare mode
+		{
+		case TEVCMP_R8_GT:
+			Reg[cc.dest][i] = inputs[i].d + ((inputs[RED_C].a > inputs[RED_C].b) ? inputs[i].c : 0);
+			break;
 
-	u32 a;
-	u32 b;
+		case TEVCMP_R8_EQ:
+			Reg[cc.dest][i] = inputs[i].d + ((inputs[RED_C].a == inputs[RED_C].b) ? inputs[i].c : 0);
+			break;
 
-	InputRegType InputReg;
+		case TEVCMP_GR16_GT:
+			{
+				u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+				u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+				Reg[cc.dest][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
+			}
+			break;
 
-	switch(cmp) {
-	case TEVCMP_R8_GT:
-		{
-			a = *m_ColorInputLUT[cc.a][RED_INP] & 0xff;
-			b = *m_ColorInputLUT[cc.b][RED_INP] & 0xff;
-			for (int i = 0; i < 3; i++)
+		case TEVCMP_GR16_EQ:
 			{
-				InputReg.c = *m_ColorInputLUT[cc.c][i];
-				InputReg.d = *m_ColorInputLUT[cc.d][i];
-				Reg[cc.dest][BLU_C + i] = InputReg.d + ((a > b) ? InputReg.c : 0);
+				u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+				u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+				Reg[cc.dest][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
 			}
-		}
-		break;
+			break;
 
-	case TEVCMP_R8_EQ:
-		{
-			a = *m_ColorInputLUT[cc.a][RED_INP] & 0xff;
-			b = *m_ColorInputLUT[cc.b][RED_INP] & 0xff;
-			for (int i = 0; i < 3; i++)
+		case TEVCMP_BGR24_GT:
 			{
-				InputReg.c = *m_ColorInputLUT[cc.c][i];
-				InputReg.d = *m_ColorInputLUT[cc.d][i];
-				Reg[cc.dest][BLU_C + i] = InputReg.d + ((a == b) ? InputReg.c : 0);
+				u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+				u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+				Reg[cc.dest][i] = inputs[i].d + ((a > b) ? inputs[i].c : 0);
 			}
-		}
-		break;
-	case TEVCMP_GR16_GT:
-		{
-			a = ((*m_ColorInputLUT[cc.a][GRN_INP] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_INP] & 0xff);
-			b = ((*m_ColorInputLUT[cc.b][GRN_INP] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_INP] & 0xff);
-			for (int i = 0; i < 3; i++)
+			break;
+
+		case TEVCMP_BGR24_EQ:
 			{
-				InputReg.c = *m_ColorInputLUT[cc.c][i];
-				InputReg.d = *m_ColorInputLUT[cc.d][i];
-				Reg[cc.dest][BLU_C + i] = InputReg.d + ((a > b) ? InputReg.c : 0);
+				u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+				u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+				Reg[cc.dest][i] = inputs[i].d + ((a == b) ? inputs[i].c : 0);
 			}
+			break;
+
+		case TEVCMP_RGB8_GT:
+			Reg[cc.dest][i] = inputs[i].d + ((inputs[i].a > inputs[i].b) ? inputs[i].c : 0);
+			break;
+
+		case TEVCMP_RGB8_EQ:
+			Reg[cc.dest][i] = inputs[i].d + ((inputs[i].a == inputs[i].b) ? inputs[i].c : 0);
+			break;
 		}
-		break;
-	case TEVCMP_GR16_EQ:
-		{
-			a = ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_INP] & 0xff);
-			b = ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_INP] & 0xff);
-			for (int i = 0; i < 3; i++)
-			{
-				InputReg.c = *m_ColorInputLUT[cc.c][i];
-				InputReg.d = *m_ColorInputLUT[cc.d][i];
-				Reg[cc.dest][BLU_C + i] = InputReg.d + ((a == b) ? InputReg.c : 0);
-			}
-		}
-		break;
-	case TEVCMP_BGR24_GT:
-		{
-			a = ((*m_ColorInputLUT[cc.a][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_INP] & 0xff);
-			b = ((*m_ColorInputLUT[cc.b][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_INP] & 0xff);
-			for (int i = 0; i < 3; i++)
-			{
-				InputReg.c = *m_ColorInputLUT[cc.c][i];
-				InputReg.d = *m_ColorInputLUT[cc.d][i];
-				Reg[cc.dest][BLU_C + i] = InputReg.d + ((a > b) ? InputReg.c : 0);
-			}
-		}
-		break;
-	case TEVCMP_BGR24_EQ:
-		{
-			a = ((*m_ColorInputLUT[cc.a][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.a][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.a][RED_INP] & 0xff);
-			b = ((*m_ColorInputLUT[cc.b][BLU_C] & 0xff) << 16) | ((*m_ColorInputLUT[cc.b][GRN_C] & 0xff) << 8) | (*m_ColorInputLUT[cc.b][RED_INP] & 0xff);
-			for (int i = 0; i < 3; i++)
-			{
-				InputReg.c = *m_ColorInputLUT[cc.c][i];
-				InputReg.d = *m_ColorInputLUT[cc.d][i];
-				Reg[cc.dest][BLU_C + i] = InputReg.d + ((a == b) ? InputReg.c : 0);
-			}
-		}
-		break;
-	case TEVCMP_RGB8_GT:
-		for (int i = 0; i < 3; i++)
-		{
-			InputReg.a = *m_ColorInputLUT[cc.a][i];
-			InputReg.b = *m_ColorInputLUT[cc.b][i];
-			InputReg.c = *m_ColorInputLUT[cc.c][i];
-			InputReg.d = *m_ColorInputLUT[cc.d][i];
-			Reg[cc.dest][BLU_C + i] = InputReg.d + ((InputReg.a > InputReg.b) ? InputReg.c : 0);
-		}
-		break;
-	case TEVCMP_RGB8_EQ:
-		for (int i = 0; i < 3; i++)
-		{
-			InputReg.a = *m_ColorInputLUT[cc.a][i];
-			InputReg.b = *m_ColorInputLUT[cc.b][i];
-			InputReg.c = *m_ColorInputLUT[cc.c][i];
-			InputReg.d = *m_ColorInputLUT[cc.d][i];
-			Reg[cc.dest][BLU_C + i] = InputReg.d + ((InputReg.a == InputReg.b) ? InputReg.c : 0);
-		}
-		break;
 	}
 }
 
-void Tev::DrawAlphaRegular(TevStageCombiner::AlphaCombiner &ac)
+void Tev::DrawAlphaRegular(TevStageCombiner::AlphaCombiner &ac, const InputRegType inputs[4])
 {
-	InputRegType InputReg;
-
-	InputReg.a = m_AlphaInputLUT[ac.a][ALP_C];
-	InputReg.b = m_AlphaInputLUT[ac.b][ALP_C];
-	InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
-	InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
+	const InputRegType& InputReg = inputs[ALP_C];
 
 	u16 c = InputReg.c + (InputReg.c >> 7);
 
 	s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
-	temp = ac.op?(-temp >> 8):(temp >> 8);
+	temp <<= m_ScaleLShiftLUT[ac.shift];
+	temp += (ac.shift != 3) ? 0 : (ac.op == 1) ? 127 : 128;
+	temp = ac.op ? (-temp >> 8) : (temp >> 8);
 
-	s32 result = InputReg.d + temp + m_BiasLUT[ac.bias];
-	result = result << m_ScaleLShiftLUT[ac.shift];
+	s32 result = ((InputReg.d + m_BiasLUT[ac.bias]) << m_ScaleLShiftLUT[ac.shift]) + temp;
 	result = result >> m_ScaleRShiftLUT[ac.shift];
 
 	Reg[ac.dest][ALP_C] = result;
 }
 
-void Tev::DrawAlphaCompare(TevStageCombiner::AlphaCombiner &ac)
+void Tev::DrawAlphaCompare(TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4])
 {
-	int cmp = (ac.shift<<1)|ac.op|8; // comparemode stored here
-
-	u32 a;
-	u32 b;
-
-	InputRegType InputReg;
-
-	switch(cmp) {
+	switch ((ac.shift<<1)|ac.op|8)  // encoded compare mode
+	{
 	case TEVCMP_R8_GT:
-		{
-			a = m_AlphaInputLUT[ac.a][RED_C] & 0xff;
-			b = m_AlphaInputLUT[ac.b][RED_C] & 0xff;
-			InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
-			InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
-			Reg[ac.dest][ALP_C] = InputReg.d + ((a > b) ? InputReg.c : 0);
-		}
+		Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((inputs[RED_C].a > inputs[RED_C].b) ? inputs[ALP_C].c : 0);
 		break;
 
 	case TEVCMP_R8_EQ:
-		{
-			a = m_AlphaInputLUT[ac.a][RED_C] & 0xff;
-			b = m_AlphaInputLUT[ac.b][RED_C] & 0xff;
-			InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
-			InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
-			Reg[ac.dest][ALP_C] = InputReg.d + ((a == b) ? InputReg.c : 0);
-		}
+		Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((inputs[RED_C].a == inputs[RED_C].b) ? inputs[ALP_C].c : 0);
 		break;
+
 	case TEVCMP_GR16_GT:
 		{
-			a = ((m_AlphaInputLUT[ac.a][GRN_C] & 0xff) << 8) | (m_AlphaInputLUT[ac.a][RED_C] & 0xff);
-			b = ((m_AlphaInputLUT[ac.b][GRN_C] & 0xff) << 8) | (m_AlphaInputLUT[ac.b][RED_C] & 0xff);
-			InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
-			InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
-			Reg[ac.dest][ALP_C] = InputReg.d + ((a > b) ? InputReg.c : 0);
+			u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+			u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+			Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
 		}
 		break;
+
 	case TEVCMP_GR16_EQ:
 		{
-			a = ((m_AlphaInputLUT[ac.a][GRN_C] & 0xff) << 8) | (m_AlphaInputLUT[ac.a][RED_C] & 0xff);
-			b = ((m_AlphaInputLUT[ac.b][GRN_C] & 0xff) << 8) | (m_AlphaInputLUT[ac.b][RED_C] & 0xff);
-			InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
-			InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
-			Reg[ac.dest][ALP_C] = InputReg.d + ((a == b) ? InputReg.c : 0);
+			u32 a = (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+			u32 b = (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+			Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
 		}
 		break;
+
 	case TEVCMP_BGR24_GT:
 		{
-			a = ((m_AlphaInputLUT[ac.a][BLU_C] & 0xff) << 16) | ((m_AlphaInputLUT[ac.a][GRN_C] & 0xff) << 8) | (m_AlphaInputLUT[ac.a][RED_C] & 0xff);
-			b = ((m_AlphaInputLUT[ac.b][BLU_C] & 0xff) << 16) | ((m_AlphaInputLUT[ac.b][GRN_C] & 0xff) << 8) | (m_AlphaInputLUT[ac.b][RED_C] & 0xff);
-			InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
-			InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
-			Reg[ac.dest][ALP_C] = InputReg.d + ((a > b) ? InputReg.c : 0);
+			u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+			u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+			Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a > b) ? inputs[ALP_C].c : 0);
 		}
 		break;
+
 	case TEVCMP_BGR24_EQ:
 		{
-			a = ((m_AlphaInputLUT[ac.a][BLU_C] & 0xff) << 16) | ((m_AlphaInputLUT[ac.a][GRN_C] & 0xff) << 8) | (m_AlphaInputLUT[ac.a][RED_C] & 0xff);
-			b = ((m_AlphaInputLUT[ac.b][BLU_C] & 0xff) << 16) | ((m_AlphaInputLUT[ac.b][GRN_C] & 0xff) << 8) | (m_AlphaInputLUT[ac.b][RED_C] & 0xff);
-			InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
-			InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
-			Reg[ac.dest][ALP_C] = InputReg.d + ((a == b) ? InputReg.c : 0);
+			u32 a = (inputs[BLU_C].a << 16) | (inputs[GRN_C].a << 8) | inputs[RED_C].a;
+			u32 b = (inputs[BLU_C].b << 16) | (inputs[GRN_C].b << 8) | inputs[RED_C].b;
+			Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((a == b) ? inputs[ALP_C].c : 0);
 		}
 		break;
+
 	case TEVCMP_A8_GT:
-		{
-			InputReg.a = m_AlphaInputLUT[ac.a][ALP_C];
-			InputReg.b = m_AlphaInputLUT[ac.b][ALP_C];
-			InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
-			InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
-			Reg[ac.dest][ALP_C] = InputReg.d + ((InputReg.a > InputReg.b) ? InputReg.c : 0);
-		}
+		Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((inputs[ALP_C].a > inputs[ALP_C].b) ? inputs[ALP_C].c : 0);
 		break;
+
 	case TEVCMP_A8_EQ:
-		{
-			InputReg.a = m_AlphaInputLUT[ac.a][ALP_C];
-			InputReg.b = m_AlphaInputLUT[ac.b][ALP_C];
-			InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
-			InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
-			Reg[ac.dest][ALP_C] = InputReg.d + ((InputReg.a == InputReg.b) ? InputReg.c : 0);
-		}
+		Reg[ac.dest][ALP_C] = inputs[ALP_C].d + ((inputs[ALP_C].a == inputs[ALP_C].b) ? inputs[ALP_C].c : 0);
 		break;
 	}
 }
 
-static bool AlphaCompare(int alpha, int ref, int comp)
+static bool AlphaCompare(int alpha, int ref, AlphaTest::CompareMode comp)
 {
-	switch(comp) {
-	case ALPHACMP_ALWAYS:  return true;
-	case ALPHACMP_NEVER:   return false;
-	case ALPHACMP_LEQUAL:  return alpha <= ref;
-	case ALPHACMP_LESS:    return alpha < ref;
-	case ALPHACMP_GEQUAL:  return alpha >= ref;
-	case ALPHACMP_GREATER: return alpha > ref;
-	case ALPHACMP_EQUAL:   return alpha == ref;
-	case ALPHACMP_NEQUAL:  return alpha != ref;
+	switch (comp) {
+	case AlphaTest::ALWAYS:  return true;
+	case AlphaTest::NEVER:   return false;
+	case AlphaTest::LEQUAL:  return alpha <= ref;
+	case AlphaTest::LESS:    return alpha < ref;
+	case AlphaTest::GEQUAL:  return alpha >= ref;
+	case AlphaTest::GREATER: return alpha > ref;
+	case AlphaTest::EQUAL:   return alpha == ref;
+	case AlphaTest::NEQUAL:  return alpha != ref;
 	}
 	return true;
 }
@@ -470,7 +399,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 		case ITBA_OFF:
 			AlphaBump = 0;
 			break;
-			case ITBA_S:
+		case ITBA_S:
 			AlphaBump = indmap[TextureSampler::ALP_SMP];
 			break;
 		case ITBA_T:
@@ -489,7 +418,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 	bias[2] = indirect.bias&4?biasValue:0;
 
 	// format
-	switch(indirect.fmt)
+	switch (indirect.fmt)
 	{
 		case ITF_8:
 			indcoord[0] = indmap[TextureSampler::ALP_SMP] + bias[0];
@@ -520,9 +449,9 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 			return;
 	}
 
-	s64 indtevtrans[2] = { 0,0 };
+	s32 indtevtrans[2] = { 0,0 };
 
-	// matrix multiply
+	// matrix multiply - results might overflow, but we don't care since we only use the lower 24 bits of the result.
 	int indmtxid = indirect.mid & 3;
 	if (indmtxid)
 	{
@@ -536,19 +465,21 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 		switch (indirect.mid & 12)
 		{
 			case 0:
-				shift = 3 + (17 - scale);
-				indtevtrans[0] = indmtx.col0.ma * indcoord[0] + indmtx.col1.mc * indcoord[1] + indmtx.col2.me * indcoord[2];
-				indtevtrans[1] = indmtx.col0.mb * indcoord[0] + indmtx.col1.md * indcoord[1] + indmtx.col2.mf * indcoord[2];
+				// matrix values are S0.10, output format is S17.7, so divide by 8
+				shift = (17 - scale);
+				indtevtrans[0] = (indmtx.col0.ma * indcoord[0] + indmtx.col1.mc * indcoord[1] + indmtx.col2.me * indcoord[2]) >> 3;
+				indtevtrans[1] = (indmtx.col0.mb * indcoord[0] + indmtx.col1.md * indcoord[1] + indmtx.col2.mf * indcoord[2]) >> 3;
 				break;
 			case 4: // s matrix
-				shift = 8 + (17 - scale);
-				indtevtrans[0] = s * indcoord[0];
-				indtevtrans[1] = t * indcoord[0];
+				// s is S17.7, matrix elements are divided by 256, output is S17.7, so divide by 256. - TODO: Maybe, since s is actually stored as S24, we should divide by 256*64?
+				shift = (17 - scale);
+				indtevtrans[0] = s * indcoord[0] / 256;
+				indtevtrans[1] = t * indcoord[0] / 256;
 				break;
 			case 8: // t matrix
-				shift = 8 + (17 - scale);
-				indtevtrans[0] = s * indcoord[1];
-				indtevtrans[1] = t * indcoord[1];
+				shift = (17 - scale);
+				indtevtrans[0] = s * indcoord[1] / 256;
+				indtevtrans[1] = t * indcoord[1] / 256;
 				break;
 			default:
 				return;
@@ -595,10 +526,12 @@ void Tev::Draw()
 #if ALLOW_TEV_DUMPS
 		if (g_SWVideoConfig.bDumpTevStages)
 		{
-			u8 stage[4] = { IndirectTex[stageNum][TextureSampler::ALP_SMP],
-							IndirectTex[stageNum][TextureSampler::BLU_SMP],
-							IndirectTex[stageNum][TextureSampler::GRN_SMP],
-							255};
+			u8 stage[4] = {
+				IndirectTex[stageNum][TextureSampler::ALP_SMP],
+				IndirectTex[stageNum][TextureSampler::BLU_SMP],
+				IndirectTex[stageNum][TextureSampler::GRN_SMP],
+				255
+			};
 			DebugUtil::DrawTempBuffer(stage, INDIRECT + stageNum);
 		}
 #endif
@@ -654,10 +587,23 @@ void Tev::Draw()
 		SetRasColor(order.getColorChan(stageOdd), ac.rswap * 2);
 
 		// combine inputs
+		InputRegType inputs[4];
+		for (int i = 0; i < 3; i++)
+		{
+			inputs[BLU_C + i].a = *m_ColorInputLUT[cc.a][i];
+			inputs[BLU_C + i].b = *m_ColorInputLUT[cc.b][i];
+			inputs[BLU_C + i].c = *m_ColorInputLUT[cc.c][i];
+			inputs[BLU_C + i].d = *m_ColorInputLUT[cc.d][i];
+		}
+		inputs[ALP_C].a = *m_AlphaInputLUT[ac.a];
+		inputs[ALP_C].b = *m_AlphaInputLUT[ac.b];
+		inputs[ALP_C].c = *m_AlphaInputLUT[ac.c];
+		inputs[ALP_C].d = *m_AlphaInputLUT[ac.d];
+
 		if (cc.bias != 3)
-			DrawColorRegular(cc);
+			DrawColorRegular(cc, inputs);
 		else
-			DrawColorCompare(cc);
+			DrawColorCompare(cc, inputs);
 
 		if (cc.clamp)
 		{
@@ -673,9 +619,9 @@ void Tev::Draw()
 		}
 
 		if (ac.bias != 3)
-			DrawAlphaRegular(ac);
+			DrawAlphaRegular(ac, inputs);
 		else
-			DrawAlphaCompare(ac);
+			DrawAlphaCompare(ac, inputs);
 
 		if (ac.clamp)
 			Reg[ac.dest][ALP_C] = Clamp255(Reg[ac.dest][ALP_C]);
@@ -746,14 +692,14 @@ void Tev::Draw()
 
 		}
 
-		if(bpmem.fogRange.Base.Enabled)
+		if (bpmem.fogRange.Base.Enabled)
 		{
 			// TODO: This is untested and should definitely be checked against real hw.
 			// - No idea if offset is really normalized against the viewport width or against the projection matrix or yet something else
 			// - scaling of the "k" coefficient isn't clear either.
 
 			// First, calculate the offset from the viewport center (normalized to 0..1)
-			float offset = (Position[0] - (bpmem.fogRange.Base.Center - 342)) / (float)swxfregs.viewport.wd;
+			float offset = (Position[0] - (bpmem.fogRange.Base.Center - 342)) / (float)xfmem.viewport.wd;
 
 			// Based on that, choose the index such that points which are far away from the z-axis use the 10th "k" value and such that central points use the first value.
 			float floatindex = 9.f - std::abs(offset) * 9.f;
@@ -809,12 +755,12 @@ void Tev::Draw()
 	if (late_ztest && bpmem.zmode.testenable)
 	{
 		// TODO: Check against hw if these values get incremented even if depth testing is disabled
-		SWPixelEngine::pereg.IncZInputQuadCount(false);
+		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT);
 
 		if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
 			return;
 
-		SWPixelEngine::pereg.IncZOutputQuadCount(false);
+		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT);
 	}
 
 #if ALLOW_TEV_DUMPS
@@ -838,7 +784,7 @@ void Tev::Draw()
 #endif
 
 	INCSTAT(swstats.thisFrame.tevPixelsOut);
-	SWPixelEngine::pereg.IncBlendInputQuadCount();
+	EfbInterface::IncPerfCounterQuadCount(PQ_BLEND_INPUT);
 
 	EfbInterface::BlendTev(Position[0], Position[1], output);
 }

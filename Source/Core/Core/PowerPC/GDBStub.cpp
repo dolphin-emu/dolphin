@@ -1,27 +1,13 @@
-// Copyright (C) 2010 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // Originally written by Sven Peter <sven@fail0verflow.com> for anergistic.
 
-#include "GDBStub.h"
-
+#include <fcntl.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #include <unistd.h>
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -32,17 +18,17 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif
-#include <stdarg.h>
 
-#include "Host.h"
+#include "Core/Host.h"
+#include "Core/PowerPC/GDBStub.h"
 
-#define		GDB_BFR_MAX	10000
-#define		GDB_MAX_BP	10
+#define GDB_BFR_MAX  10000
+#define GDB_MAX_BP   10
 
-#define		GDB_STUB_START	'$'
-#define		GDB_STUB_END	'#'
-#define		GDB_STUB_ACK	'+'
-#define		GDB_STUB_NAK	'-'
+#define GDB_STUB_START '$'
+#define GDB_STUB_END   '#'
+#define GDB_STUB_ACK   '+'
+#define GDB_STUB_NAK   '-'
 
 
 static int tmpsock = -1;
@@ -130,7 +116,7 @@ static u8 gdb_calc_chksum()
 	u8 *ptr = cmd_bfr;
 	u8 c = 0;
 
-	while(len-- > 0)
+	while (len-- > 0)
 		c += *ptr++;
 
 	return c;
@@ -148,7 +134,7 @@ static gdb_bp_t *gdb_bp_ptr(u32 type)
 		case GDB_BP_TYPE_A:
 			return bp_x;
 		default:
-			return NULL;
+			return nullptr;
 	}
 }
 
@@ -158,15 +144,15 @@ static gdb_bp_t *gdb_bp_empty_slot(u32 type)
 	u32 i;
 
 	p = gdb_bp_ptr(type);
-	if (p == NULL)
-		return NULL;
+	if (p == nullptr)
+		return nullptr;
 
 	for (i = 0; i < GDB_MAX_BP; i++) {
 		if (p[i].active == 0)
 			return &p[i];
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 static gdb_bp_t *gdb_bp_find(u32 type, u32 addr, u32 len)
@@ -175,8 +161,8 @@ static gdb_bp_t *gdb_bp_find(u32 type, u32 addr, u32 len)
 	u32 i;
 
 	p = gdb_bp_ptr(type);
-	if (p == NULL)
-		return NULL;
+	if (p == nullptr)
+		return nullptr;
 
 	for (i = 0; i < GDB_MAX_BP; i++) {
 		if (p[i].active == 1 &&
@@ -185,7 +171,7 @@ static gdb_bp_t *gdb_bp_find(u32 type, u32 addr, u32 len)
 			return &p[i];
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 static void gdb_bp_remove(u32 type, u32 addr, u32 len)
@@ -194,12 +180,12 @@ static void gdb_bp_remove(u32 type, u32 addr, u32 len)
 
 	do {
 		p = gdb_bp_find(type, addr, len);
-		if (p != NULL) {
+		if (p != nullptr) {
 			DEBUG_LOG(GDB_STUB, "gdb: removed a breakpoint: %08x bytes at %08x\n", len, addr);
 			p->active = 0;
 			memset(p, 0, sizeof(gdb_bp_t));
 		}
-	} while (p != NULL);
+	} while (p != nullptr);
 }
 
 static int gdb_bp_check(u32 addr, u32 type)
@@ -208,7 +194,7 @@ static int gdb_bp_check(u32 addr, u32 type)
 	u32 i;
 
 	p = gdb_bp_ptr(type);
-	if (p == NULL)
+	if (p == nullptr)
 		return 0;
 
 	for (i = 0; i < GDB_MAX_BP; i++) {
@@ -302,7 +288,7 @@ static int gdb_data_available() {
 	t.tv_sec = 0;
 	t.tv_usec = 20;
 
-	if (select(sock + 1, fds, NULL, NULL, &t) < 0)
+	if (select(sock + 1, fds, nullptr, nullptr, &t) < 0)
 	{
 		ERROR_LOG(GDB_STUB, "select failed");
 		return 0;
@@ -320,7 +306,7 @@ static void gdb_reply(const char *reply)
 	u8 *ptr;
 	int n;
 
-	if(!gdb_active())
+	if (!gdb_active())
 		return;
 
 	memset(cmd_bfr, 0, sizeof cmd_bfr);
@@ -343,7 +329,8 @@ static void gdb_reply(const char *reply)
 
 	ptr = cmd_bfr;
 	left = cmd_len + 4;
-	while (left > 0) {
+	while (left > 0)
+	{
 		n = send(sock, ptr, left, 0);
 		if (n < 0)
 		{
@@ -492,13 +479,13 @@ static void gdb_read_registers()
 		wbe32hex(bufptr + i*8, riPS0(i));
 	}
 	bufptr += 32 * 8;
-	wbe32hex(bufptr, PC); 		bufptr += 4;
-	wbe32hex(bufptr, MSR); 		bufptr += 4;
-	wbe32hex(bufptr, GetCR()); 	bufptr += 4;
-	wbe32hex(bufptr, LR); 		bufptr += 4;
+	wbe32hex(bufptr, PC);      bufptr += 4;
+	wbe32hex(bufptr, MSR);     bufptr += 4;
+	wbe32hex(bufptr, GetCR()); bufptr += 4;
+	wbe32hex(bufptr, LR);      bufptr += 4;
 
 
-	wbe32hex(bufptr, CTR); 		bufptr += 4;
+	wbe32hex(bufptr, CTR);     bufptr += 4;
 	wbe32hex(bufptr, PowerPC::ppcState.spr[SPR_XER]); bufptr += 4;
 	// MQ register not used.
 	wbe32hex(bufptr, 0x0BADC0DE); bufptr += 4;
@@ -645,7 +632,7 @@ bool gdb_add_bp(u32 type, u32 addr, u32 len)
 {
 	gdb_bp_t *bp;
 	bp = gdb_bp_empty_slot(type);
-	if (bp == NULL)
+	if (bp == nullptr)
 		return false;
 
 	bp->active = 1;
@@ -733,14 +720,15 @@ static void gdb_remove_bp()
 
 void gdb_handle_exception()
 {
-	while (gdb_active()) {
-		if(!gdb_data_available())
+	while (gdb_active())
+	{
+		if (!gdb_data_available())
 			continue;
 		gdb_read_command();
 		if (cmd_len == 0)
 			continue;
 
-		switch(cmd_bfr[0]) {
+		switch (cmd_bfr[0]) {
 			case 'q':
 				gdb_handle_query();
 				break;
@@ -841,10 +829,10 @@ void gdb_init(u32 port)
 
 	saddr_client.sin_addr.s_addr = ntohl(saddr_client.sin_addr.s_addr);
 	/*if (((saddr_client.sin_addr.s_addr >> 24) & 0xff) != 127 ||
-	 *	    ((saddr_client.sin_addr.s_addr >> 16) & 0xff) !=   0 ||
-	 *	    ((saddr_client.sin_addr.s_addr >>  8) & 0xff) !=   0 ||
-	 *	    ((saddr_client.sin_addr.s_addr >>  0) & 0xff) !=   1)
-	 *		ERROR_LOG(GDB_STUB, "gdb: incoming connection not from localhost");
+	 *      ((saddr_client.sin_addr.s_addr >> 16) & 0xff) !=   0 ||
+	 *      ((saddr_client.sin_addr.s_addr >>  8) & 0xff) !=   0 ||
+	 *      ((saddr_client.sin_addr.s_addr >>  0) & 0xff) !=   1)
+	 *      ERROR_LOG(GDB_STUB, "gdb: incoming connection not from localhost");
 	 */
 	close(tmpsock);
 	tmpsock = -1;

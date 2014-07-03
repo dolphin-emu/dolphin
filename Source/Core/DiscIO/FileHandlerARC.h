@@ -2,14 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ARC_FILE_H
-#define _ARC_FILE_H
+#pragma once
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
-#include "CommonTypes.h"
-#include "Filesystem.h"
+#include "Common/CommonTypes.h"
+#include "DiscIO/Filesystem.h"
 
 namespace DiscIO
 {
@@ -47,11 +47,8 @@ class CARCFile
 
 		bool ParseBuffer();
 
-		size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, const char* _szNameTable);
+		size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const std::string& _szDirectory, const char* _szNameTable);
 
-		const SFileInfo* FindFileInfo(std::string _rFullPath) const;
+		const SFileInfo* FindFileInfo(const std::string& _rFullPath) const;
 };
 } // namespace
-
-#endif
-

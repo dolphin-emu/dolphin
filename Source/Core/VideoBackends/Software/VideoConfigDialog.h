@@ -2,25 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VIDEOSOFTWARE_CONFIG_DIAG_H_
-#define _VIDEOSOFTWARE_CONFIG_DIAG_H_
+#pragma once
 
-#include <vector>
 #include <string>
-
-#include "SWVideoConfig.h"
-#include "VideoBackendBase.h"
-#include "ConfigManager.h"
-
-#include <wx/wx.h>
-#include <wx/textctrl.h>
+#include <vector>
 #include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/combobox.h>
 #include <wx/checkbox.h>
+#include <wx/combobox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/wx.h>
+
+#include "Core/ConfigManager.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 class VideoConfigDialog : public wxDialog
 {
@@ -48,5 +46,3 @@ protected:
 	SWVideoConfig& vconfig;
 	std::string ininame;
 };
-
-#endif

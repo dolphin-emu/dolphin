@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CPUCOREBASE_H
-#define _CPUCOREBASE_H
+#pragma once
 
 class CPUCoreBase
 {
@@ -17,5 +16,3 @@ public:
 	virtual void SingleStep() = 0;
 	virtual const char *GetName() = 0;
 };
-
-#endif

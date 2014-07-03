@@ -2,17 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _THREAD_H_
-#define _THREAD_H_
+#pragma once
 
-#include "StdConditionVariable.h"
-#include "StdMutex.h"
-#include "StdThread.h"
+#include <cstdio>
+#include <cstring>
 
 // Don't include common.h here as it will break LogManager
-#include "CommonTypes.h"
-#include <stdio.h>
-#include <string.h>
+#include "Common/CommonTypes.h"
+#include "Common/StdConditionVariable.h"
+#include "Common/StdMutex.h"
+#include "Common/StdThread.h"
 
 // This may not be defined outside _WIN32
 #ifndef _WIN32
@@ -32,45 +31,6 @@ int CurrentThreadId();
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask);
 void SetCurrentThreadAffinity(u32 mask);
-
-class Event
-{
-public:
-	Event()
-		: is_set(false)
-	{}
-
-	void Set()
-	{
-		std::lock_guard<std::mutex> lk(m_mutex);
-		if (!is_set)
-		{
-			is_set = true;
-			m_condvar.notify_one();
-		}
-	}
-
-	void Wait()
-	{
-		std::unique_lock<std::mutex> lk(m_mutex);
-		m_condvar.wait(lk, [&]{ return is_set; });
-		is_set = false;
-	}
-
-	void Reset()
-	{
-		std::unique_lock<std::mutex> lk(m_mutex);
-		// no other action required, since wait loops on 
-		// the predicate and any lingering signal will get 
-		// cleared on the first iteration
-		is_set = false;
-	}
-
-private:
-	volatile bool is_set;
-	std::condition_variable m_condvar;
-	std::mutex m_mutex;
-};
 
 // TODO: doesn't work on windows with (count > 2)
 class Barrier
@@ -109,7 +69,7 @@ private:
 };
 
 void SleepCurrentThread(int ms);
-void SwitchCurrentThread();	// On Linux, this is equal to sleep 1ms
+void SwitchCurrentThread(); // On Linux, this is equal to sleep 1ms
 
 // Use this function during a spin-wait to make the current thread
 // relax while another thread is working. This may be more efficient
@@ -122,5 +82,3 @@ inline void YieldCPU()
 void SetCurrentThreadName(const char *name);
 
 } // namespace Common
-
-#endif // _THREAD_H_

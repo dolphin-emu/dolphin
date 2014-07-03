@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_DI_H_
-#define _WII_IPC_HLE_DEVICE_DI_H_
+#pragma once
 
-#include "WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 namespace DiscIO
 {
@@ -21,13 +20,13 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_di();
 
-	bool Open(u32 _CommandAddress, u32 _Mode);
-	bool Close(u32 _CommandAddress, bool _bForce);
+	bool Open(u32 _CommandAddress, u32 _Mode) override;
+	bool Close(u32 _CommandAddress, bool _bForce) override;
 
-	bool IOCtl(u32 _CommandAddress);
-	bool IOCtlV(u32 _CommandAddress);
+	bool IOCtl(u32 _CommandAddress) override;
+	bool IOCtlV(u32 _CommandAddress) override;
 
-	int GetCmdDelay(u32);
+	int GetCmdDelay(u32) override;
 
 private:
 
@@ -38,5 +37,3 @@ private:
 	// This flag seems to only be reset with poweron/off, not sure
 	u32 m_CoverStatus;
 };
-
-#endif

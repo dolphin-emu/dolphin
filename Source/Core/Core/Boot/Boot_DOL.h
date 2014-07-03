@@ -2,20 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BOOT_DOL_H
-#define _BOOT_DOL_H
+#pragma once
 
-#include "CommonTypes.h"
+#include <string>
+
+#include "Common/CommonTypes.h"
 
 class CDolLoader
 {
 public:
-	CDolLoader(const char* _szFilename);
+	CDolLoader(const std::string& filename);
 	CDolLoader(u8* _pBuffer, u32 _Size);
 	~CDolLoader();
 
-	bool IsWii()		{ return m_isWii; }
-	u32 GetEntryPoint()	{ return m_dolheader.entryPoint; }
+	bool IsWii()        { return m_isWii; }
+	u32 GetEntryPoint() { return m_dolheader.entryPoint; }
 
 	// Load into emulated memory
 	void Load();
@@ -23,8 +24,8 @@ public:
 private:
 	enum
 	{
-		DOL_NUM_TEXT	= 7,
-		DOL_NUM_DATA	= 11
+		DOL_NUM_TEXT = 7,
+		DOL_NUM_DATA = 11
 	};
 
 	struct SDolHeader
@@ -53,5 +54,3 @@ private:
 	// Copy sections to internal buffers
 	void Initialize(u8* _pBuffer, u32 _Size);
 };
-
-#endif

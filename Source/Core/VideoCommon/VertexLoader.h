@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXLOADER_H
-#define _VERTEXLOADER_H
+#pragma once
 
 // Top vertex loaders
 // Metroid Prime: P I16-flt N I16-s16 T0 I16-u16 T1 i16-flt
@@ -11,13 +10,18 @@
 #include <algorithm>
 #include <string>
 
-#include "Common.h"
+#include "Common/Common.h"
+#include "Common/x64Emitter.h"
 
-#include "CPMemory.h"
-#include "DataReader.h"
-#include "NativeVertexFormat.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/DataReader.h"
+#include "VideoCommon/NativeVertexFormat.h"
 
-#include "x64Emitter.h"
+#ifdef _M_X86
+#ifndef __APPLE__
+#define USE_VERTEX_LOADER_JIT
+#endif
+#endif
 
 class VertexLoaderUID
 {
@@ -84,7 +88,7 @@ private:
 
 // ARMTODO: This should be done in a better way
 #ifndef _M_GENERIC
-class VertexLoader : public Gen::XCodeBlock, NonCopyable
+class VertexLoader : public Gen::X64CodeBlock
 #else
 class VertexLoader
 #endif
@@ -95,22 +99,14 @@ public:
 
 	int GetVertexSize() const {return m_VertexSize;}
 
-	int SetupRunVertices(int vtx_attr_group, int primitive, int const count);
+	void SetupRunVertices(int vtx_attr_group, int primitive, int const count);
 	void RunVertices(int vtx_attr_group, int primitive, int count);
-	void RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data);
 
 	// For debugging / profiling
 	void AppendToString(std::string *dest) const;
 	int GetNumLoadedVerts() const { return m_numLoadedVertices; }
 
 private:
-	enum
-	{
-		NRM_ZERO = 0,
-		NRM_ONE = 1,
-		NRM_THREE = 3,
-	};
-
 	int m_VertexSize;      // number of bytes of a raw GC vertex. Computed by CompileVertexTranslator.
 
 	// GC vertex format
@@ -121,9 +117,11 @@ private:
 	NativeVertexFormat *m_NativeFmt;
 	int native_stride;
 
-	// Pipeline. To be JIT compiled in the future.
+#ifndef USE_VERTEX_LOADER_JIT
+	// Pipeline.
 	TPipelineFunction m_PipelineStages[64];  // TODO - figure out real max. it's lower.
 	int m_numPipelineStages;
+#endif
 
 	const u8 *m_compiledCode;
 
@@ -141,5 +139,3 @@ private:
 	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
 #endif
 };
-
-#endif

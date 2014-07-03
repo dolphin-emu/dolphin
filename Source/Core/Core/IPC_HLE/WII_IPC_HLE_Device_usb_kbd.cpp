@@ -2,11 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../ConfigManager.h"
-#include "../Core.h" // Local core functions
-#include "WII_IPC_HLE_Device_usb.h"
-#include "WII_IPC_HLE_Device_usb_kbd.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h" // Local core functions
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -24,14 +25,16 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	ini.Get("USB Keyboard", "Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
+	ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
-	for(int i = 0; i < 256; i++)
-		m_OldKeyBuffer[i] = false;
+	for (bool& pressed : m_OldKeyBuffer)
+	{
+		pressed = false;
+	}
 
 	m_OldModifiers = 0x00;
 
-	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, NULL));
+	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, nullptr));
 	Memory::Write_U32(m_DeviceID, _CommandAddress+4);
 	m_Active = true;
 	return true;
@@ -59,7 +62,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 {
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 
 	if (SConfig::GetInstance().m_WiiKeyboard && !m_MessageQueue.empty())
 	{
@@ -87,7 +90,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
 u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 {
 	if (!SConfig::GetInstance().m_WiiKeyboard || !m_Active)
-		return false;
+		return 0;
 
 	u8 Modifiers = 0x00;
 	u8 PressedKeys[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};

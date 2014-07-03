@@ -9,14 +9,13 @@
 // This is another part of the emu that needs cleaning - Core.cpp really has
 // too much random junk inside.
 
-#ifndef _CORE_H
-#define _CORE_H
+#pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "CommonTypes.h"
-#include "CoreParameter.h"
+#include "Common/CommonTypes.h"
+#include "Core/CoreParameter.h"
 
 namespace Core
 {
@@ -25,7 +24,8 @@ namespace Core
 // TODO: kill, use SConfig instead
 extern SCoreStartupParameter g_CoreStartupParameter;
 
-extern bool isTabPressed;
+bool GetIsFramelimiterTempDisabled();
+void SetIsFramelimiterTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
 
@@ -60,12 +60,7 @@ void* GetWindowHandle();
 void StartTrace(bool write);
 
 // This displays messages in a user-visible way.
-void DisplayMessage(const char *message, int time_in_ms);
-
-inline void DisplayMessage(const std::string &message, int time_in_ms)
-{
-	DisplayMessage(message.c_str(), time_in_ms);
-}
+void DisplayMessage(const std::string& message, int time_in_ms);
 
 std::string GetStateFileName();
 void SetStateFileName(std::string val);
@@ -87,6 +82,3 @@ void UpdateTitle();
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 
 }  // namespace
-
-#endif
-

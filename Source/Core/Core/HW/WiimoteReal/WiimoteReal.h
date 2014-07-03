@@ -2,23 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef WIIMOTE_REAL_H
-#define WIIMOTE_REAL_H
+#pragma once
 
 #include <functional>
 #include <vector>
 
-#include "WiimoteRealBase.h"
-#include "ChunkFile.h"
-#include "Thread.h"
-#include "FifoQueue.h"
-#include "Timer.h"
+#include "Common/ChunkFile.h"
+#include "Common/FifoQueue.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
 
-#include "../Wiimote.h"
-#include "../WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteRealBase.h"
 
-#include "../InputCommon/InputConfig.h"
+#include "InputCommon/InputConfig.h"
 
 typedef std::vector<u8> Report;
 
@@ -84,22 +82,22 @@ public:
 	bool m_connected;
 	CFRunLoopRef m_wiimote_thread_run_loop;
 #elif defined(__linux__) && HAVE_BLUEZ
-	bdaddr_t bdaddr;					// Bluetooth address
-	int cmd_sock;						// Command socket
-	int int_sock;						// Interrupt socket
+	bdaddr_t bdaddr;                    // Bluetooth address
+	int cmd_sock;                       // Command socket
+	int int_sock;                       // Interrupt socket
 	int wakeup_pipe_w, wakeup_pipe_r;
 
 #elif defined(_WIN32)
-	std::basic_string<TCHAR> devicepath;	// Unique wiimote reference
-	//ULONGLONG btaddr;					// Bluetooth address
-	HANDLE dev_handle;					// HID handle
-	OVERLAPPED hid_overlap_read, hid_overlap_write;	// Overlap handle
-	enum win_bt_stack_t stack;			// Type of bluetooth stack to use
+	std::basic_string<TCHAR> devicepath; // Unique wiimote reference
+	//ULONGLONG btaddr;                  // Bluetooth address
+	HANDLE dev_handle;                   // HID handle
+	OVERLAPPED hid_overlap_read, hid_overlap_write; // Overlap handle
+	enum win_bt_stack_t stack;           // Type of bluetooth stack to use
 #endif
 
 protected:
 	Report m_last_input_report;
-	u16	m_channel;
+	u16 m_channel;
 
 private:
 	void ClearReadQueue();
@@ -125,8 +123,8 @@ private:
 	std::mutex                m_thread_ready_mutex;
 	std::condition_variable   m_thread_ready_cond;
 
-	Common::FifoQueue<Report>	m_read_reports;
-	Common::FifoQueue<Report>	m_write_reports;
+	Common::FifoQueue<Report> m_read_reports;
+	Common::FifoQueue<Report> m_write_reports;
 
 	Common::Timer m_last_audio_report;
 };
@@ -185,5 +183,3 @@ bool IsValidBluetoothName(const std::string& name);
 bool IsBalanceBoardName(const std::string& name);
 
 }; // WiimoteReal
-
-#endif

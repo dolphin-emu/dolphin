@@ -2,12 +2,25 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __PATCH_ADDEDIT_h__
-#define __PATCH_ADDEDIT_h__
+#pragma once
 
-#include <wx/wx.h>
-#include <wx/spinctrl.h>
-#include "ISOProperties.h"
+#include <vector>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
+#include "Core/PatchEngine.h"
+
+class wxButton;
+class wxRadioBox;
+class wxSpinButton;
+class wxSpinEvent;
+class wxStaticBoxSizer;
+class wxTextCtrl;
+class wxWindow;
 
 class CPatchAddEdit : public wxDialog
 {
@@ -56,4 +69,3 @@ class CPatchAddEdit : public wxDialog
 		std::vector<PatchEngine::PatchEntry>::iterator itCurEntry;
 
 };
-#endif // __PATCH_ADDEDIT_h__

@@ -1,8 +1,10 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#ifndef CONDITION_VARIABLE_H_
-#define CONDITION_VARIABLE_H_
+#pragma once
 
-#define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
+#define GCC_VER(x,y,z)  ((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 
 #ifndef __has_include
@@ -12,7 +14,7 @@
 #if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
 
 // GCC 4.4 provides <condition_variable>
-#include <condition_variable>
+#include <condition_variable> // IWYU pragma: export
 
 #elif __has_include(<condition_variable>) && !ANDROID
 
@@ -21,26 +23,24 @@
 //
 // We work around this issue by undefining and redefining _.
 
-#undef _
-#include <condition_variable>
-#define _(s) wxGetTranslation((s))
+#include <condition_variable> // IWYU pragma: export
 
 #elif _MSC_VER >= 1700
 
 // The standard implementation is included since VS2012
-#include <condition_variable>
+#include <condition_variable> // IWYU pragma: export
 
 #else
 
 // partial std::condition_variable implementation for win32/pthread
 
-#include "StdMutex.h"
+#include "Common/StdMutex.h"
 
 #if (_MSC_VER >= 1600) || (GCC_VERSION >= GCC_VER(4,3,0) && __GXX_EXPERIMENTAL_CXX0X__)
 #define USE_RVALUE_REFERENCES
 #endif
 
-#if defined(_WIN32) && defined(_M_X64)
+#if defined(_WIN32) && _M_X86_64
 #define USE_CONDITION_VARIABLES
 #elif defined(_WIN32)
 #define USE_EVENTS
@@ -72,9 +72,9 @@ public:
 #if defined(_WIN32) && defined(USE_CONDITION_VARIABLES)
 		InitializeConditionVariable(&m_handle);
 #elif defined(_WIN32)
-		m_handle = CreateEvent(NULL, false, false, NULL);
+		m_handle = CreateEvent(nullptr, false, false, nullptr);
 #else
-		pthread_cond_init(&m_handle, NULL);
+		pthread_cond_init(&m_handle, nullptr);
 #endif
 	}
 
@@ -171,5 +171,4 @@ private:
 
 }
 
-#endif
 #endif

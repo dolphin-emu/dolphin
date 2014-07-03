@@ -2,36 +2,39 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "Thread.h"
+#include "AudioCommon/AudioCommon.h"
 
-#include "../DSPEmulator.h"
-#include "../PowerPC/PowerPC.h"
-#include "../Host.h"
-#include "../Core.h"
-#include "CPU.h"
-#include "DSP.h"
-#include "Movie.h"
+#include "Common/Common.h"
+#include "Common/Event.h"
+#include "Common/StdMutex.h"
 
-#include "VideoBackendBase.h"
+#include "Core/Core.h"
+#include "Core/DSPEmulator.h"
+#include "Core/Host.h"
+#include "Core/Movie.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DSP.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace
 {
 	static Common::Event m_StepEvent;
-	static Common::Event *m_SyncEvent = NULL;
+	static Common::Event *m_SyncEvent = nullptr;
 	static std::mutex m_csCpuOccupied;
 }
 
 void CCPU::Init(int cpu_core)
 {
 	PowerPC::Init(cpu_core);
-	m_SyncEvent = NULL;
+	m_SyncEvent = nullptr;
 }
 
 void CCPU::Shutdown()
 {
 	PowerPC::Shutdown();
-	m_SyncEvent = NULL;
+	m_SyncEvent = nullptr;
 }
 
 void CCPU::Run()
@@ -68,7 +71,7 @@ reswitch:
 			if (m_SyncEvent)
 			{
 				m_SyncEvent->Set();
-				m_SyncEvent = NULL;
+				m_SyncEvent = nullptr;
 			}
 			Host_UpdateDisasmDialog();
 			break;
@@ -112,14 +115,14 @@ void CCPU::EnableStepping(const bool _bStepping)
 		PowerPC::Pause();
 		m_StepEvent.Reset();
 		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PAUSE);
-		DSP::GetDSPEmulator()->DSP_ClearAudioBuffer(true);
+		AudioCommon::ClearAudioBuffer(true);
 	}
 	else
 	{
 		PowerPC::Start();
 		m_StepEvent.Set();
 		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PLAY);
-		DSP::GetDSPEmulator()->DSP_ClearAudioBuffer(false);
+		AudioCommon::ClearAudioBuffer(false);
 	}
 }
 

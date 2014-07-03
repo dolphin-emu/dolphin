@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Turntable.h"
-
+#include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 
 namespace WiimoteEmu
 {
@@ -33,23 +32,23 @@ static const char* const turntable_button_names[] =
 Turntable::Turntable(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Turntable"), _reg)
 {
 	// buttons
-	groups.push_back(m_buttons = new Buttons("Buttons"));
+	groups.emplace_back(m_buttons = new Buttons("Buttons"));
 	for (auto& turntable_button_name : turntable_button_names)
-		m_buttons->controls.push_back(new ControlGroup::Input(turntable_button_name));
+		m_buttons->controls.emplace_back(new ControlGroup::Input(turntable_button_name));
 
 	// turntables
-	groups.push_back(m_left_table = new Slider(_trans("Table Left")));
-	groups.push_back(m_right_table = new Slider(_trans("Table Right")));
+	groups.emplace_back(m_left_table = new Slider(_trans("Table Left")));
+	groups.emplace_back(m_right_table = new Slider(_trans("Table Right")));
 
 	// stick
-	groups.push_back(m_stick = new AnalogStick("Stick"));
+	groups.emplace_back(m_stick = new AnalogStick("Stick"));
 
 	// effect dial
-	groups.push_back(m_effect_dial = new Triggers(_trans("Effect")));
-	m_effect_dial->controls.push_back(new ControlGroup::Input(_trans("Dial")));
+	groups.emplace_back(m_effect_dial = new Triggers(_trans("Effect")));
+	m_effect_dial->controls.emplace_back(new ControlGroup::Input(_trans("Dial")));
 
 	// crossfade
-	groups.push_back(m_crossfade = new Slider(_trans("Crossfade")));
+	groups.emplace_back(m_crossfade = new Slider(_trans("Crossfade")));
 
 	// set up register
 	// id

@@ -2,15 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "BannerLoader.h"
-#include "BannerLoaderWii.h"
-#include "BannerLoaderGC.h"
+#include <cstddef>
 
-#include "VolumeCreator.h"
-#include "FileUtil.h"
+#include "DiscIO/BannerLoader.h"
+#include "DiscIO/BannerLoaderGC.h"
+#include "DiscIO/BannerLoaderWii.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeCreator.h"
 
 namespace DiscIO
 {
+
+class IBannerLoader;
+class IVolume;
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume)
 {
@@ -23,7 +27,7 @@ IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVo
 		return new CBannerLoaderGC(_rFileSystem, pVolume);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 } // namespace

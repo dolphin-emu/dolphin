@@ -1,8 +1,10 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#ifndef MUTEX_H_
-#define MUTEX_H_
+#pragma once
 
-#define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
+#define GCC_VER(x,y,z) ((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 
 #ifndef __has_include
@@ -11,15 +13,15 @@
 
 #if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
 // GCC 4.4 provides <mutex>
-#include <mutex>
+#include <mutex> // IWYU pragma: export
 #elif __has_include(<mutex>) && !ANDROID
 // Clang + libc++
-#include <mutex>
+#include <mutex> // IWYU pragma: export
 
 #elif _MSC_VER >= 1700
 
 // The standard implementation is included since VS2012
-#include <mutex>
+#include <mutex> // IWYU pragma: export
 
 #else
 
@@ -42,7 +44,7 @@
 #define USE_RVALUE_REFERENCES
 #endif
 
-#if defined(_WIN32) && defined(_M_X64)
+#if defined(_WIN32) && _M_X86_64
 #define USE_SRWLOCKS
 #endif
 
@@ -141,7 +143,7 @@ public:
 #ifdef _WIN32
 		InitializeSRWLock(&m_handle);
 #else
-		pthread_mutex_init(&m_handle, NULL);
+		pthread_mutex_init(&m_handle, nullptr);
 #endif
 	}
 
@@ -192,7 +194,7 @@ private:
 };
 
 #else
-typedef recursive_mutex mutex;	// just use CriticalSections
+typedef recursive_mutex mutex; // just use CriticalSections
 
 #endif
 
@@ -236,7 +238,7 @@ public:
 	typedef Mutex mutex_type;
 
 	unique_lock()
-		: pm(NULL), owns(false)
+		: pm(nullptr), owns(false)
 	{}
 
 	/*explicit*/ unique_lock(mutex_type& m)
@@ -288,11 +290,11 @@ public:
 	unique_lock(const unique_lock&) /*= delete*/;
 
 	unique_lock(unique_lock&& other)
-		: pm(NULL), owns(false)
+		: pm(nullptr), owns(false)
 	{
 #else
 	unique_lock(const unique_lock& u)
-		: pm(NULL), owns(false)
+		: pm(nullptr), owns(false)
 	{
 		// ugly const_cast to get around lack of rvalue references
 		unique_lock& other = const_cast<unique_lock&>(u);
@@ -333,7 +335,7 @@ public:
 	{
 		auto const ret = mutex();
 
-		pm = NULL;
+		pm = nullptr;
 		owns = false;
 
 		return ret;
@@ -343,11 +345,6 @@ public:
 	{
 		return owns;
 	}
-
-	//explicit operator bool () const
-	//{
-	//	return owns_lock();
-	//}
 
 	mutex_type* mutex() const
 	{
@@ -367,5 +364,4 @@ void swap(unique_lock<Mutex>& x, unique_lock<Mutex>& y)
 
 }
 
-#endif
 #endif

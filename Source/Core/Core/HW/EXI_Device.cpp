@@ -2,19 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Memmap.h"
 
-#include "EXI_Device.h"
-#include "EXI_DeviceIPL.h"
-#include "EXI_DeviceMemoryCard.h"
-#include "EXI_DeviceAD16.h"
-#include "EXI_DeviceMic.h"
-#include "EXI_DeviceEthernet.h"
-#include "EXI_DeviceAMBaseboard.h"
-#include "EXI_DeviceGecko.h"
-
-#include "../Core.h"
-#include "../ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceAD16.h"
+#include "Core/HW/EXI_DeviceAMBaseboard.h"
+#include "Core/HW/EXI_DeviceEthernet.h"
+#include "Core/HW/EXI_DeviceGecko.h"
+#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/EXI_DeviceMemoryCard.h"
+#include "Core/HW/EXI_DeviceMic.h"
+#include "Core/HW/Memmap.h"
 
 
 // --- interface IEXIDevice ---
@@ -43,7 +42,7 @@ u32 IEXIDevice::ImmRead(u32 _uSize)
 
 void IEXIDevice::DMAWrite(u32 _uAddr, u32 _uSize)
 {
-//	_dbg_assert_(EXPANSIONINTERFACE, 0);
+	// _dbg_assert_(EXPANSIONINTERFACE, 0);
 	while (_uSize--)
 	{
 		u8 uByte = Memory::Read_U8(_uAddr++);
@@ -53,7 +52,7 @@ void IEXIDevice::DMAWrite(u32 _uAddr, u32 _uSize)
 
 void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize)
 {
-//	_dbg_assert_(EXPANSIONINTERFACE, 0);
+	// _dbg_assert_(EXPANSIONINTERFACE, 0);
 	while (_uSize--)
 	{
 		u8 uByte = 0;
@@ -81,17 +80,17 @@ public:
 
 	virtual ~CEXIDummy(){}
 
-	void ImmWrite(u32 data, u32 size) override	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x", m_strName.c_str(), data);}
-	u32  ImmRead (u32 size) override				{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
-	void DMAWrite(u32 addr, u32 size) override	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
-	void DMARead (u32 addr, u32 size) override	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
+	void ImmWrite(u32 data, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x", m_strName.c_str(), data);}
+	u32  ImmRead (u32 size) override           {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
+	void DMAWrite(u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
+	void DMARead (u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
 };
 
 
 // F A C T O R Y
 IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 {
-	IEXIDevice* result = NULL;
+	IEXIDevice* result = nullptr;
 
 	switch (device_type)
 	{
@@ -100,9 +99,13 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 		break;
 
 	case EXIDEVICE_MEMORYCARD:
-		result = new CEXIMemoryCard(channel_num);
+	case EXIDEVICE_MEMORYCARDFOLDER:
+	{
+		bool gci_folder = (device_type == EXIDEVICE_MEMORYCARDFOLDER);
+		result = new CEXIMemoryCard(channel_num, gci_folder);
+		device_type = EXIDEVICE_MEMORYCARD;
 		break;
-
+	}
 	case EXIDEVICE_MASKROM:
 		result = new CEXIIPL();
 		break;
@@ -133,7 +136,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 		break;
 	}
 
-	if (result != NULL)
+	if (result != nullptr)
 		result->m_deviceType = device_type;
 
 	return result;

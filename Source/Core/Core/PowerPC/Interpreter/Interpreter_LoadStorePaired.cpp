@@ -2,92 +2,89 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Interpreter.h"
-#include "Interpreter_FPUtils.h"
+#include "Common/MathUtil.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
 // dequantize table
 const float m_dequantizeTable[] =
 {
-	1.0 / (1 <<  0),	1.0 / (1 <<  1),	1.0 / (1 <<  2),	1.0 / (1 <<  3),
-	1.0 / (1 <<  4),	1.0 / (1 <<  5),	1.0 / (1 <<  6),	1.0 / (1 <<  7),
-	1.0 / (1 <<  8),	1.0 / (1 <<  9),	1.0 / (1 << 10),	1.0 / (1 << 11),
-	1.0 / (1 << 12),	1.0 / (1 << 13),	1.0 / (1 << 14),	1.0 / (1 << 15),
-	1.0 / (1 << 16),	1.0 / (1 << 17),	1.0 / (1 << 18),	1.0 / (1 << 19),
-	1.0 / (1 << 20),	1.0 / (1 << 21),	1.0 / (1 << 22),	1.0 / (1 << 23),
-	1.0 / (1 << 24),	1.0 / (1 << 25),	1.0 / (1 << 26),	1.0 / (1 << 27),
-	1.0 / (1 << 28),	1.0 / (1 << 29),	1.0 / (1 << 30),	1.0 / (1 << 31),
-	(1ULL << 32),	(1 << 31),	(1 << 30),	(1 << 29),
-	(1 << 28),	(1 << 27),	(1 << 26),	(1 << 25),
-	(1 << 24),	(1 << 23),	(1 << 22),	(1 << 21),
-	(1 << 20),	(1 << 19),	(1 << 18),	(1 << 17),
-	(1 << 16),	(1 << 15),	(1 << 14),	(1 << 13),
-	(1 << 12),	(1 << 11),	(1 << 10),	(1 <<  9),
-	(1 <<  8),	(1 <<  7),	(1 <<  6),	(1 <<  5),
-	(1 <<  4),	(1 <<  3),	(1 <<  2),	(1 <<  1),
+	1.0 / (1 <<  0), 1.0 / (1 <<  1), 1.0 / (1 <<  2), 1.0 / (1 <<  3),
+	1.0 / (1 <<  4), 1.0 / (1 <<  5), 1.0 / (1 <<  6), 1.0 / (1 <<  7),
+	1.0 / (1 <<  8), 1.0 / (1 <<  9), 1.0 / (1 << 10), 1.0 / (1 << 11),
+	1.0 / (1 << 12), 1.0 / (1 << 13), 1.0 / (1 << 14), 1.0 / (1 << 15),
+	1.0 / (1 << 16), 1.0 / (1 << 17), 1.0 / (1 << 18), 1.0 / (1 << 19),
+	1.0 / (1 << 20), 1.0 / (1 << 21), 1.0 / (1 << 22), 1.0 / (1 << 23),
+	1.0 / (1 << 24), 1.0 / (1 << 25), 1.0 / (1 << 26), 1.0 / (1 << 27),
+	1.0 / (1 << 28), 1.0 / (1 << 29), 1.0 / (1 << 30), 1.0 / (1 << 31),
+	(1ULL << 32), (1 << 31), (1 << 30), (1 << 29),
+	(1 << 28),    (1 << 27), (1 << 26), (1 << 25),
+	(1 << 24),    (1 << 23), (1 << 22), (1 << 21),
+	(1 << 20),    (1 << 19), (1 << 18), (1 << 17),
+	(1 << 16),    (1 << 15), (1 << 14), (1 << 13),
+	(1 << 12),    (1 << 11), (1 << 10), (1 <<  9),
+	(1 <<  8),    (1 <<  7), (1 <<  6), (1 <<  5),
+	(1 <<  4),    (1 <<  3), (1 <<  2), (1 <<  1),
 };
 
 // quantize table
 const float m_quantizeTable[] =
 {
-	(1 <<  0),	(1 <<  1),	(1 <<  2),	(1 <<  3),
-	(1 <<  4),	(1 <<  5),	(1 <<  6),	(1 <<  7),
-	(1 <<  8),	(1 <<  9),	(1 << 10),	(1 << 11),
-	(1 << 12),	(1 << 13),	(1 << 14),	(1 << 15),
-	(1 << 16),	(1 << 17),	(1 << 18),	(1 << 19),
-	(1 << 20),	(1 << 21),	(1 << 22),	(1 << 23),
-	(1 << 24),	(1 << 25),	(1 << 26),	(1 << 27),
-	(1 << 28),	(1 << 29),	(1 << 30),	(1 << 31),
-	1.0 / (1ULL << 32),	1.0 / (1 << 31),	1.0 / (1 << 30),	1.0 / (1 << 29),
-	1.0 / (1 << 28),	1.0 / (1 << 27),	1.0 / (1 << 26),	1.0 / (1 << 25),
-	1.0 / (1 << 24),	1.0 / (1 << 23),	1.0 / (1 << 22),	1.0 / (1 << 21),
-	1.0 / (1 << 20),	1.0 / (1 << 19),	1.0 / (1 << 18),	1.0 / (1 << 17),
-	1.0 / (1 << 16),	1.0 / (1 << 15),	1.0 / (1 << 14),	1.0 / (1 << 13),
-	1.0 / (1 << 12),	1.0 / (1 << 11),	1.0 / (1 << 10),	1.0 / (1 <<  9),
-	1.0 / (1 <<  8),	1.0 / (1 <<  7),	1.0 / (1 <<  6),	1.0 / (1 <<  5),
-	1.0 / (1 <<  4),	1.0 / (1 <<  3),	1.0 / (1 <<  2),	1.0 / (1 <<  1),
+	(1 <<  0),  (1 <<  1),  (1 <<  2),  (1 <<  3),
+	(1 <<  4),  (1 <<  5),  (1 <<  6),  (1 <<  7),
+	(1 <<  8),  (1 <<  9),  (1 << 10),  (1 << 11),
+	(1 << 12),  (1 << 13),  (1 << 14),  (1 << 15),
+	(1 << 16),  (1 << 17),  (1 << 18),  (1 << 19),
+	(1 << 20),  (1 << 21),  (1 << 22),  (1 << 23),
+	(1 << 24),  (1 << 25),  (1 << 26),  (1 << 27),
+	(1 << 28),  (1 << 29),  (1 << 30),  (1 << 31),
+	1.0 / (1ULL << 32), 1.0 / (1 << 31), 1.0 / (1 << 30), 1.0 / (1 << 29),
+	1.0 / (1 << 28),    1.0 / (1 << 27), 1.0 / (1 << 26), 1.0 / (1 << 25),
+	1.0 / (1 << 24),    1.0 / (1 << 23), 1.0 / (1 << 22), 1.0 / (1 << 21),
+	1.0 / (1 << 20),    1.0 / (1 << 19), 1.0 / (1 << 18), 1.0 / (1 << 17),
+	1.0 / (1 << 16),    1.0 / (1 << 15), 1.0 / (1 << 14), 1.0 / (1 << 13),
+	1.0 / (1 << 12),    1.0 / (1 << 11), 1.0 / (1 << 10), 1.0 / (1 <<  9),
+	1.0 / (1 <<  8),    1.0 / (1 <<  7), 1.0 / (1 <<  6), 1.0 / (1 <<  5),
+	1.0 / (1 <<  4),    1.0 / (1 <<  3), 1.0 / (1 <<  2), 1.0 / (1 <<  1),
 };
 
-template <class T>
-inline T CLAMP(T a, T bottom, T top) {
-	if (a > top) return top;
-	if (a < bottom) return bottom;
-	return a;
-}
-
-void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue,
-					 const EQuantizeType _quantizeType, const unsigned int _uScale)
+void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const EQuantizeType _quantizeType, const unsigned int _uScale)
 {
 	switch (_quantizeType)
 	{
 	case QUANTIZE_FLOAT:
-		Memory::Write_U32( ConvertToSingleFTZ( *(u64*)&_fValue ), _Addr );
+		Memory::Write_U32(ConvertToSingleFTZ(*(u64*)&_fValue), _Addr);
 		break;
 
 	// used for THP player
 	case QUANTIZE_U8:
 		{
-			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], 0.0f, 255.0f);
+			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			MathUtil::Clamp(&fResult, 0.0f, 255.0f);
 			Memory::Write_U8((u8)fResult, _Addr);
 		}
 		break;
 
 	case QUANTIZE_U16:
 		{
-			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], 0.0f, 65535.0f);
+			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			MathUtil::Clamp(&fResult, 0.0f, 65535.0f);
 			Memory::Write_U16((u16)fResult, _Addr);
 		}
 		break;
 
 	case QUANTIZE_S8:
 		{
-			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], -128.0f, 127.0f);
+			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			MathUtil::Clamp(&fResult, -128.0f, 127.0f);
 			Memory::Write_U8((u8)(s8)fResult, _Addr);
 		}
 		break;
 
 	case QUANTIZE_S16:
 		{
-			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], -32768.0f, 32767.0f);
+			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			MathUtil::Clamp(&fResult, -32768.0f, 32767.0f);
 			Memory::Write_U16((u16)(s16)fResult, _Addr);
 		}
 		break;
@@ -98,12 +95,11 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue,
 	}
 }
 
-float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType,
-									 const unsigned int _uScale)
+float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType, const unsigned int _uScale)
 {
 	// dequantize the value
 	float fResult;
-	switch(_quantizeType)
+	switch (_quantizeType)
 	{
 	case QUANTIZE_FLOAT:
 		{

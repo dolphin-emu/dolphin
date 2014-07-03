@@ -2,12 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ATOMIC_WIN32_H_
-#define _ATOMIC_WIN32_H_
+// IWYU pragma: private, include "Common/Atomic.h"
 
-#include "Common.h"
+#pragma once
+
 #include <intrin.h>
 #include <Windows.h>
+
+#include "Common/Common.h"
 
 // Atomic operations are performed in a single step by the CPU. It is
 // impossible for other threads to see the operation "half-done."
@@ -79,5 +81,3 @@ inline T* AtomicExchangeAcquire(T* volatile& loc, U newval) {
 }
 
 }
-
-#endif

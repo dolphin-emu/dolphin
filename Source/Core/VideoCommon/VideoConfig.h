@@ -9,29 +9,30 @@
 // at the start of every frame. Noone should ever change members of g_ActiveConfig
 // directly.
 
-#ifndef _VIDEO_CONFIG_H_
-#define _VIDEO_CONFIG_H_
+#pragma once
 
-#include "Common.h"
-#include "VideoCommon.h"
-
-#include <vector>
 #include <string>
+#include <vector>
+
+#include "Common/Common.h"
+#include "VideoCommon/VideoCommon.h"
 
 // Log in two categories, and save three other options in the same byte
-#define CONF_LOG			1
-#define CONF_PRIMLOG		2
-#define CONF_SAVETARGETS	8
-#define CONF_SAVESHADERS	16
+#define CONF_LOG          1
+#define CONF_PRIMLOG      2
+#define CONF_SAVETARGETS  8
+#define CONF_SAVESHADERS  16
 
-enum AspectMode {
-	ASPECT_AUTO = 0,
+enum AspectMode
+{
+	ASPECT_AUTO       = 0,
 	ASPECT_FORCE_16_9 = 1,
-	ASPECT_FORCE_4_3 = 2,
-	ASPECT_STRETCH = 3,
+	ASPECT_FORCE_4_3  = 2,
+	ASPECT_STRETCH    = 3,
 };
 
-enum EFBScale {
+enum EFBScale
+{
 	SCALE_FORCE_INTEGRAL = -1,
 	SCALE_AUTO,
 	SCALE_AUTO_INTEGRAL,
@@ -43,16 +44,14 @@ enum EFBScale {
 	SCALE_4X,
 };
 
-class IniFile;
-
 // NEVER inherit from this class.
-struct VideoConfig
+struct VideoConfig final
 {
 	VideoConfig();
-	void Load(const char *ini_file);
+	void Load(const std::string& ini_file);
 	void GameIniLoad();
 	void VerifyValidity();
-	void Save(const char *ini_file);
+	void Save(const std::string& ini_file);
 	void UpdateProjectionHack();
 	bool IsVSync();
 
@@ -105,7 +104,6 @@ struct VideoConfig
 
 	// Hacks
 	bool bEFBAccessEnable;
-	bool bDlistCachingEnable;
 	bool bPerfQueriesEnable;
 
 	bool bEFBCopyEnable;
@@ -114,7 +112,7 @@ struct VideoConfig
 	bool bCopyEFBToTexture;
 	bool bCopyEFBScaled;
 	int iSafeTextureCache_ColorSamples;
-	int iPhackvalue[4];
+	int iPhackvalue[3];
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
 	bool bUseBBox;
@@ -122,9 +120,6 @@ struct VideoConfig
 	bool bFastDepthCalc;
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
-
-	//currently unused:
-	int iCompileDLsLevel;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
@@ -146,14 +141,10 @@ struct VideoConfig
 		bool bUseMinimalMipCount;
 		bool bSupports3DVision;
 		bool bSupportsDualSourceBlend;
-		bool bSupportsFormatReinterpretation;
-		bool bSupportsPixelLighting;
 		bool bSupportsPrimitiveRestart;
-		bool bSupportsSeparateAlphaFunction;
 		bool bSupportsOversizedViewports;
-		bool bSupportsGLSLUBO; // needed by PixelShaderGen, so must stay in VideoCommon
 		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
-		bool bSupportShadingLanguage420pack; // needed by ShaderGen, so must stay in VideoCommon
+		bool bSupportsBindingLayout; // Needed by ShaderGen, so must stay in VideoCommon
 	} backend_info;
 
 	// Utility
@@ -168,5 +159,3 @@ extern VideoConfig g_ActiveConfig;
 
 // Called every frame.
 void UpdateActiveConfig();
-
-#endif  // _VIDEO_CONFIG_H_

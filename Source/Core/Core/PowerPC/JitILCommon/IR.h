@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef IR_H
-#define IR_H
+#pragma once
 
-#include "x64Emitter.h"
 #include <vector>
+
+#include "Common/x64Emitter.h"
 
 namespace IREmitter {
 enum Opcode {
@@ -46,7 +46,7 @@ enum Opcode {
 	StoreGQR,
 	StoreSRR,
 	// Arbitrary interpreter instruction
-	InterpreterFallback,
+	FallBackToInterpreter,
 
 	// Binary operators
 	// Commutative integer operators
@@ -66,14 +66,14 @@ enum Opcode {
 	ICmpCRUnsigned, // CR for unsigned int compare
 	ICmpEq,         // One if equal, zero otherwise
 	ICmpNe,
-	ICmpUgt,	// One if op1 > op2, zero otherwise
+	ICmpUgt, // One if op1 > op2, zero otherwise
 	ICmpUlt,
 	ICmpUge,
 	ICmpUle,
-	ICmpSgt,	// One if op1 > op2, zero otherwise
+	ICmpSgt, // One if op1 > op2, zero otherwise
 	ICmpSlt,
 	ICmpSge,
-	ICmpSle,	// Opposite of sgt
+	ICmpSle, // Opposite of sgt
 	// Memory store operators
 	Store8,
 	Store16,
@@ -113,7 +113,6 @@ enum Opcode {
 	FSAdd,
 	FSSub,
 	FSNeg,
-	FSRSqrt,
 	FPAdd,
 	FPMul,
 	FPSub,
@@ -148,9 +147,9 @@ enum Opcode {
 	RFIExit,
 	InterpreterBranch,
 
-	IdleBranch,	   // branch operation belonging to idle loop
+	IdleBranch,    // branch operation belonging to idle loop
 	ShortIdleLoop, // Idle loop seen in homebrew like wii mahjong,
-		       // just a branch
+	               // just a branch
 
 	// used for exception checking, at least until someone
 	// has a better idea of integrating it
@@ -227,7 +226,7 @@ private:
 	InstLoc FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldDoubleBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
 
-	InstLoc FoldInterpreterFallback(InstLoc Op1, InstLoc Op2);
+	InstLoc FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2);
 
 	InstLoc FoldZeroOp(unsigned Opcode, unsigned extra);
 	InstLoc FoldUOp(unsigned OpCode, InstLoc Op1,
@@ -374,8 +373,8 @@ public:
 	InstLoc EmitICmpCRUnsigned(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(ICmpCRUnsigned, op1, op2);
 	}
-	InstLoc EmitInterpreterFallback(InstLoc op1, InstLoc op2) {
-		return FoldBiOp(InterpreterFallback, op1, op2);
+	InstLoc EmitFallBackToInterpreter(InstLoc op1, InstLoc op2) {
+		return FoldBiOp(FallBackToInterpreter, op1, op2);
 	}
 	InstLoc EmitInterpreterBranch() {
 		return FoldZeroOp(InterpreterBranch, 0);
@@ -464,9 +463,6 @@ public:
 	InstLoc EmitFSNeg(InstLoc op1) {
 		return FoldUOp(FSNeg, op1);
 	}
-	InstLoc EmitFSRSqrt(InstLoc op1) {
-		return FoldUOp(FSRSqrt, op1);
-	}
 	InstLoc EmitFDMul(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(FDMul, op1, op2);
 	}
@@ -547,26 +543,26 @@ public:
 		MarkUsed.clear();
 		MarkUsed.reserve(100000);
 		for (unsigned i = 0; i < 32; i++) {
-			GRegCache[i] = 0;
-			GRegCacheStore[i] = 0;
-			FRegCache[i] = 0;
-			FRegCacheStore[i] = 0;
+			GRegCache[i] = nullptr;
+			GRegCacheStore[i] = nullptr;
+			FRegCache[i] = nullptr;
+			FRegCacheStore[i] = nullptr;
 		}
-		CarryCache = 0;
-		CarryCacheStore = 0;
+		CarryCache = nullptr;
+		CarryCacheStore = nullptr;
 		for (unsigned i = 0; i < 8; i++) {
-			CRCache[i] = 0;
-			CRCacheStore[i] = 0;
+			CRCache[i] = nullptr;
+			CRCacheStore[i] = nullptr;
 		}
-		CTRCache = 0;
-		CTRCacheStore = 0;
+		CTRCache = nullptr;
+		CTRCacheStore = nullptr;
 	}
 
 	IRBuilder() { Reset(); }
 
 private:
 	IRBuilder(IRBuilder&); // DO NOT IMPLEMENT
-	unsigned isSameValue(InstLoc Op1, InstLoc Op2) const;
+	bool isSameValue(InstLoc Op1, InstLoc Op2) const;
 	unsigned getComplexity(InstLoc I) const;
 	unsigned getNumberOfOperands(InstLoc I) const;
 	void simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2);
@@ -574,7 +570,7 @@ private:
 	InstLoc isNeg(InstLoc I) const;
 
 	std::vector<Inst> InstList; // FIXME: We must ensure this is continuous!
-	std::vector<bool> MarkUsed;	// Used for IRWriter
+	std::vector<bool> MarkUsed; // Used for IRWriter
 	std::vector<unsigned> ConstList;
 	InstLoc curReadPtr;
 	InstLoc GRegCache[32];
@@ -590,5 +586,3 @@ private:
 };
 
 };
-
-#endif

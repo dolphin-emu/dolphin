@@ -2,12 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef MEMORYVIEW_H_
-#define MEMORYVIEW_H_
+#pragma once
 
-#include "DebuggerUIUtil.h"
-#include "Common.h"
-#include "DebugInterface.h"
+#include <wx/control.h>
+#include <wx/event.h>
+
+#include "Common/CommonTypes.h"
+
+class DebugInterface;
+class wxWindow;
 
 class CMemoryView : public wxControl
 {
@@ -28,8 +31,8 @@ public:
 		curAddress = addr;
 		Refresh();
 	}
-	int dataType;	// u8,u16,u32
-	int curAddress;	// Will be accessed by parent
+	int dataType;   // u8,u16,u32
+	int curAddress; // Will be accessed by parent
 
 private:
 	int YToAddress(int y);
@@ -57,5 +60,3 @@ private:
 
 	DECLARE_EVENT_TABLE()
 };
-
-#endif // MEMORYVIEW_H_

@@ -2,24 +2,37 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "../ConfigManager.h"
+#include <vector>
 
-#include "SDCardUtil.h"
+#include "Common/Common.h"
+#include "Common/SDCardUtil.h"
 
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device_sdio_slot0.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 
-#include "../HW/CPU.h"
-#include "../HW/Memmap.h"
-#include "../Core.h"
+void CWII_IPC_HLE_Device_sdio_slot0::EnqueueReply(u32 CommandAddress, u32 ReturnValue)
+{
+	// IOS seems to write back the command that was responded to, this class does not
+	// overwrite the command so it is safe to read.
+	Memory::Write_U32(Memory::Read_U32(CommandAddress), CommandAddress + 8);
+	// The original hardware overwrites the command type with the async reply type.
+	Memory::Write_U32(IPC_REP_ASYNC, CommandAddress);
+
+	Memory::Write_U32(ReturnValue, CommandAddress + 4);
+
+	WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
+}
 
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 	, m_Status(CARD_NOT_EXIST)
 	, m_BlockLength(0)
 	, m_BusWidth(0)
-	, m_Card(NULL)
+	, m_Card(nullptr)
 {}
 
 void CWII_IPC_HLE_Device_sdio_slot0::DoState(PointerWrap& p)
@@ -40,8 +53,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
 	if ((SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_INSERT) ||
 		(!SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_REMOVE))
 	{
-		Memory::Write_U32(m_event.type, m_event.addr + 4);
-		WII_IPC_HLE_Interface::EnqReply(m_event.addr);
+		EnqueueReply(m_event.addr, m_event.type);
 		m_event.addr = 0;
 		m_event.type = EVENT_NONE;
 	}
@@ -54,7 +66,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
 	if (!m_Card)
 	{
 		WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
-		if (SDCardCreate(128, filename.c_str()))
+		if (SDCardCreate(128, filename))
 		{
 			WARN_LOG(WII_IPC_SD, "Successfully created %s", filename.c_str());
 			m_Card.Open(filename, "r+b");
@@ -97,17 +109,18 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 {
 	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
 
-	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
 	// As a safety precaution we fill the out buffer with zeros to avoid
 	// returning nonsense values
 	Memory::Memset(BufferOut, 0, BufferOutSize);
 
 	u32 ReturnValue = 0;
-	switch (Cmd) {
+	switch (Cmd)
+	{
 	case IOCTL_WRITEHCR:
 		{
 		u32 reg = Memory::Read_U32(BufferIn);
@@ -203,10 +216,10 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 	}
 
-// 	INFO_LOG(WII_IPC_SD, "InBuffer");
-// 	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
-// 	INFO_LOG(WII_IPC_SD, "OutBuffer");
-// 	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
+	// INFO_LOG(WII_IPC_SD, "InBuffer");
+	// DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
+	// INFO_LOG(WII_IPC_SD, "OutBuffer");
+	// DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
 
 	if (ReturnValue == RET_EVENT_REGISTER)
 	{
@@ -222,8 +235,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		// release returns 0
 		// unknown sd int
 		// technically we do it out of order, oh well
-		Memory::Write_U32(EVENT_INVALID, m_event.addr + 4);
-		WII_IPC_HLE_Interface::EnqReply(m_event.addr);
+		EnqueueReply(m_event.addr, EVENT_INVALID);
 		m_event.addr = 0;
 		m_event.type = EVENT_NONE;
 		Memory::Write_U32(0, _CommandAddress + 0x4);
@@ -244,14 +256,14 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 
 	// Prepare the out buffer(s) with zeros as a safety precaution
 	// to avoid returning bad values
-	for(u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
+	for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
 	{
 		Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
 			CommandBuffer.PayloadBuffer[i].m_Size);
 	}
 
 	u32 ReturnValue = 0;
-	switch(CommandBuffer.Parameter) {
+	switch (CommandBuffer.Parameter) {
 	case IOCTLV_SENDCMD:
 		INFO_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address));
 		ReturnValue = ExecuteCommand(
@@ -273,8 +285,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 }
 
 u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize,
-												   u32 _rwBuffer, u32 _rwBufferSize,
-												   u32 _BufferOut, u32 _BufferOutSize)
+                                                   u32 _rwBuffer, u32 _rwBufferSize,
+                                                   u32 _BufferOut, u32 _BufferOutSize)
 {
 	// The game will send us a SendCMD with this information. To be able to read and write
 	// to a file we need to prepare a 0x10 byte output buffer as response.
@@ -291,14 +303,14 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 	} req;
 
 	req.command = Memory::Read_U32(_BufferIn + 0);
-	req.type	= Memory::Read_U32(_BufferIn + 4);
-	req.resp	= Memory::Read_U32(_BufferIn + 8);
-	req.arg		= Memory::Read_U32(_BufferIn + 12);
-	req.blocks	= Memory::Read_U32(_BufferIn + 16);
-	req.bsize	= Memory::Read_U32(_BufferIn + 20);
-	req.addr	= Memory::Read_U32(_BufferIn + 24);
-	req.isDMA	= Memory::Read_U32(_BufferIn + 28);
-	req.pad0	= Memory::Read_U32(_BufferIn + 32);
+	req.type    = Memory::Read_U32(_BufferIn + 4);
+	req.resp    = Memory::Read_U32(_BufferIn + 8);
+	req.arg     = Memory::Read_U32(_BufferIn + 12);
+	req.blocks  = Memory::Read_U32(_BufferIn + 16);
+	req.bsize   = Memory::Read_U32(_BufferIn + 20);
+	req.addr    = Memory::Read_U32(_BufferIn + 24);
+	req.isDMA   = Memory::Read_U32(_BufferIn + 28);
+	req.pad0    = Memory::Read_U32(_BufferIn + 32);
 
 	// Note: req.addr is the virtual address of _rwBuffer
 
@@ -332,7 +344,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 	case SEND_CSD:
 		DEBUG_LOG(WII_IPC_SD, "SEND_CSD");
 		// <WntrMute> shuffle2_, OCR: 0x80ff8000 CID: 0x38a00000 0x480032d5 0x3c608030 0x8803d420
-		//	CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
+		// CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
 
 		// Values used currently are from lpfaint99
 		Memory::Write_U32(0x80168000, _BufferOut);
@@ -386,14 +398,14 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			if (!m_Card.Seek(req.arg, SEEK_SET))
 				ERROR_LOG(WII_IPC_SD, "Seek failed WTF");
 
-			u8* const buffer = new u8[size];
+			std::vector<u8> buffer(size);
 
-			if (m_Card.ReadBytes(buffer, req.bsize * req.blocks))
+			if (m_Card.ReadBytes(buffer.data(), size))
 			{
 				u32 i;
 				for (i = 0; i < size; ++i)
 				{
-					Memory::Write_U8((u8)buffer[i], req.addr++);
+					Memory::Write_U8(buffer[i], req.addr++);
 				}
 				DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", _rwBufferSize, i);
 			}
@@ -403,8 +415,6 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 					ferror(m_Card.GetHandle()), feof(m_Card.GetHandle()));
 				ret = RET_FAIL;
 			}
-
-			delete[] buffer;
 		}
 		}
 		Memory::Write_U32(0x900, _BufferOut);
@@ -424,21 +434,19 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			if (!m_Card.Seek(req.arg, SEEK_SET))
 				ERROR_LOG(WII_IPC_SD, "fseeko failed WTF");
 
-			u8* buffer = new u8[size];
+			std::vector<u8> buffer(size);
 
 			for (u32 i = 0; i < size; ++i)
 			{
 				buffer[i] = Memory::Read_U8(req.addr++);
 			}
 
-			if (!m_Card.WriteBytes(buffer, req.bsize * req.blocks))
+			if (!m_Card.WriteBytes(buffer.data(), size))
 			{
 				ERROR_LOG(WII_IPC_SD, "Write Failed - error: %i, eof: %i",
 					ferror(m_Card.GetHandle()), feof(m_Card.GetHandle()));
 				ret = RET_FAIL;
 			}
-
-			delete[] buffer;
 		}
 		}
 		Memory::Write_U32(0x900, _BufferOut);

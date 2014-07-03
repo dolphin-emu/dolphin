@@ -3,7 +3,7 @@
    filename:     opcodes.h
    project:      GameCube DSP Tool (gcdsp)
    created:      2005.03.04
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie
 
@@ -23,10 +23,9 @@
 
    ====================================================================*/
 
-#ifndef _GDSP_EXT_OP_H
-#define _GDSP_EXT_OP_H
+#pragma once
 
-#include "DSPTables.h"
+#include "Core/DSP/DSPTables.h"
 
 // Extended opcode support.
 // Many opcode have the lower 0xFF (some only 0x7f) free - there, an opcode extension
@@ -64,5 +63,3 @@ void nop(const UDSPInstruction opc);
 
 } // end namespace Ext
 } // end namespace DSPinterpeter
-
-#endif

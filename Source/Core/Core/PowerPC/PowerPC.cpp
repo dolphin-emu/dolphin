@@ -2,25 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "Atomic.h"
-#include "MathUtil.h"
-#include "ChunkFile.h"
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/FPURoundMode.h"
+#include "Common/MathUtil.h"
 
-#include "../HW/Memmap.h"
-#include "../HW/CPU.h"
-#include "../Core.h"
-#include "../CoreTiming.h"
-#include "../HW/SystemTimers.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Host.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
 
-#include "Interpreter/Interpreter.h"
-#include "PowerPC.h"
-#include "PPCTables.h"
-#include "CPUCoreBase.h"
-#include "JitInterface.h"
+#include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#include "../Host.h"
-#include "HW/EXI.h"
 
 CPUCoreBase *cpu_core_base;
 
@@ -38,21 +39,21 @@ BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
 
-void CompactCR()
+u32 CompactCR()
 {
 	u32 new_cr = ppcState.cr_fast[0] << 28;
 	for (int i = 1; i < 8; i++)
 	{
 		new_cr |= ppcState.cr_fast[i] << (28 - i * 4);
 	}
-	ppcState.cr = new_cr;
+	return new_cr;
 }
 
-void ExpandCR()
+void ExpandCR(u32 cr)
 {
 	for (int i = 0; i < 8; i++)
 	{
-		ppcState.cr_fast[i] = (ppcState.cr >> (28 - i * 4)) & 0xF;
+		ppcState.cr_fast[i] = (cr >> (28 - i * 4)) & 0xF;
 	}
 }
 
@@ -62,13 +63,13 @@ void DoState(PointerWrap &p)
 	// it changes registers even in MODE_MEASURE (which is suspicious and seems like it could cause desyncs)
 	// and because the values it's changing have been added to CoreTiming::DoState, so it might conflict to mess with them here.
 
-//	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
-//	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
+	// rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
+	// *((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
 
 	p.DoPOD(ppcState);
 
-//	SystemTimers::DecrementerSet();
-//	SystemTimers::TimeBaseSet();
+	// SystemTimers::DecrementerSet();
+	// SystemTimers::TimeBaseSet();
 
 	JitInterface::DoState(p);
 }
@@ -94,7 +95,6 @@ void ResetRegisters()
 	ppcState.spr[SPR_ECID_M] = 0x1840c00d;
 	ppcState.spr[SPR_ECID_L] = 0x82bb08e8;
 
-	ppcState.cr = 0;
 	ppcState.fpscr = 0;
 	ppcState.pc = 0;
 	ppcState.npc = 0;
@@ -115,7 +115,6 @@ void Init(int cpu_core)
 {
 	FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
 
-	memset(ppcState.mojs, 0, sizeof(ppcState.mojs));
 	memset(ppcState.sr, 0, sizeof(ppcState.sr));
 	ppcState.DebugCount = 0;
 	ppcState.dtlb_last = 0;
@@ -168,7 +167,7 @@ void Shutdown()
 {
 	JitInterface::Shutdown();
 	interpreter->Shutdown();
-	cpu_core_base = NULL;
+	cpu_core_base = nullptr;
 	state = CPU_POWERDOWN;
 }
 
@@ -319,6 +318,11 @@ void CheckExceptions()
 	// set to exception type entry point
 	//NPC = 0x00000x00;
 
+	// TODO(delroth): Exception priority is completely wrong here: depending on
+	// the instruction class, exceptions should be executed in a given order,
+	// which is very different from the one arbitrarily chosen here. See §6.1.5
+	// in 6xx_pem.pdf.
+
 	if (exceptions & EXCEPTION_ISI)
 	{
 		SRR0 = NPC;
@@ -356,8 +360,8 @@ void CheckExceptions()
 	}
 	else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
 	{
-		//This happens a lot - Gamecube OS uses deferred FPU context switching
-		SRR0 = PC;	// re-execute the instruction
+		//This happens a lot - GameCube OS uses deferred FPU context switching
+		SRR0 = PC; // re-execute the instruction
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
@@ -395,7 +399,7 @@ void CheckExceptions()
 	}
 
 	// EXTERNAL INTERRUPT
-	else if (MSR & 0x0008000) //hacky...the exception shouldn't be generated if EE isn't set...
+	else if (MSR & 0x0008000)  // Handling is delayed until MSR.EE=1.
 	{
 		if (exceptions & EXCEPTION_EXTERNAL_INT)
 		{

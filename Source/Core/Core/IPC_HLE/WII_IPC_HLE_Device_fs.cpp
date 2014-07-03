@@ -2,22 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "CommonPaths.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 
-#include "WII_IPC_HLE_Device_fs.h"
-#include "WII_IPC_HLE_Device_FileIO.h"
+#include "Core/VolumeHandler.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
-#include "StringUtil.h"
-#include "FileSearch.h"
-#include "FileUtil.h"
-#include "NandPaths.h"
-#include "ChunkFile.h"
-#include "../HW/SystemTimers.h"
-
-#include "../VolumeHandler.h"
-
-#define MAX_NAME				(12)
+#define MAX_NAME  12
 
 static Common::replace_v replacements;
 
@@ -37,7 +35,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	{
 		std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
 		File::DeleteDirRecursively(Path);
-		File::CreateDir(Path.c_str());
+		File::CreateDir(Path);
 	}
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -59,8 +57,7 @@ bool CWII_IPC_HLE_Device_fs::Close(u32 _CommandAddress, bool _bForce)
 static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
 {
 	u64 sizeOfFiles = 0;
-	const std::vector<File::FSTEntry>& children = parentEntry.children;
-	for (const auto& entry : children)
+	for (const File::FSTEntry& entry : parentEntry.children)
 	{
 		if (entry.isDirectory)
 			sizeOfFiles += ComputeTotalFileSize(entry);
@@ -77,13 +74,13 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 	// Prepare the out buffer(s) with zeros as a safety precaution
 	// to avoid returning bad values
-	for(u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
+	for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
 	{
 		Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
 			CommandBuffer.PayloadBuffer[i].m_Size);
 	}
 
-	switch(CommandBuffer.Parameter)
+	switch (CommandBuffer.Parameter)
 	{
 	case IOCTLV_READ_DIR:
 		{
@@ -141,15 +138,15 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 						break;
 
 					std::string name, ext;
-					SplitPath(FileSearch.GetFileNames()[i], NULL, &name, &ext);
+					SplitPath(FileSearch.GetFileNames()[i], nullptr, &name, &ext);
 					std::string FileName = name + ext;
 
 					// Decode entities of invalid file system characters so that
 					// games (such as HP:HBP) will be able to find what they expect.
-					for (Common::replace_v::const_iterator it = replacements.begin(); it != replacements.end(); ++it)
+					for (const Common::replace_t& r : replacements)
 					{
-						for (size_t j = 0; (j = FileName.find(it->second, j)) != FileName.npos; ++j)
-							FileName.replace(j, it->second.length(), 1, it->first);
+						for (size_t j = 0; (j = FileName.find(r.second, j)) != FileName.npos; ++j)
+							FileName.replace(j, r.second.length(), 1, r.first);
 					}
 
 					strcpy(pFilename, FileName.c_str());
@@ -256,7 +253,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress)
 
 s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
 {
-	switch(_Parameter)
+	switch (_Parameter)
 	{
 	case IOCTL_GET_STATS:
 		{
@@ -268,13 +265,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			NANDStat fs;
 
 			//TODO: scrape the real amounts from somewhere...
-			fs.BlockSize	= 0x4000;
-			fs.FreeUserBlocks	= 0x5DEC;
-			fs.UsedUserBlocks	= 0x1DD4;
-			fs.FreeSysBlocks	= 0x10;
-			fs.UsedSysBlocks	= 0x02F0;
-			fs.Free_INodes	= 0x146B;
-			fs.Used_Inodes	= 0x0394;
+			fs.BlockSize      = 0x4000;
+			fs.FreeUserBlocks = 0x5DEC;
+			fs.UsedUserBlocks = 0x1DD4;
+			fs.FreeSysBlocks  = 0x10;
+			fs.UsedSysBlocks  = 0x02F0;
+			fs.Free_INodes    = 0x146B;
+			fs.Used_Inodes    = 0x0394;
 
 			*(NANDStat*)Memory::GetPointer(_BufferOut) = fs;
 
@@ -336,10 +333,10 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			u32 OwnerID = 0;
 			u16 GroupID = 0x3031; // this is also known as makercd, 01 (0x3031) for nintendo and 08 (0x3038) for MH3 etc
 			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn), 64);
-			u8 OwnerPerm = 0x3;		// read/write
-			u8 GroupPerm = 0x3;		// read/write
-			u8 OtherPerm = 0x3;		// read/write
-			u8 Attributes = 0x00;	// no attributes
+			u8 OwnerPerm = 0x3;   // read/write
+			u8 GroupPerm = 0x3;   // read/write
+			u8 OtherPerm = 0x3;   // read/write
+			u8 Attributes = 0x00; // no attributes
 			if (File::IsDirectory(Filename))
 			{
 				INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR Directory %s - all permission flags are set", Filename.c_str());
@@ -361,13 +358,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			if (_BufferOutSize == 76)
 			{
 				u32 Addr = _BufferOut;
-				Memory::Write_U32(OwnerID, Addr);										Addr += 4;
-				Memory::Write_U16(GroupID, Addr);										Addr += 2;
-				memcpy(Memory::GetPointer(Addr), Memory::GetPointer(_BufferIn), 64);	Addr += 64;
-				Memory::Write_U8(OwnerPerm, Addr);										Addr += 1;
-				Memory::Write_U8(GroupPerm, Addr);										Addr += 1;
-				Memory::Write_U8(OtherPerm, Addr);										Addr += 1;
-				Memory::Write_U8(Attributes, Addr);										Addr += 1;
+				Memory::Write_U32(OwnerID, Addr);                                    Addr += 4;
+				Memory::Write_U16(GroupID, Addr);                                    Addr += 2;
+				memcpy(Memory::GetPointer(Addr), Memory::GetPointer(_BufferIn), 64); Addr += 64;
+				Memory::Write_U8(OwnerPerm, Addr);                                   Addr += 1;
+				Memory::Write_U8(GroupPerm, Addr);                                   Addr += 1;
+				Memory::Write_U8(OtherPerm, Addr);                                   Addr += 1;
+				Memory::Write_U8(Attributes, Addr);                                  Addr += 1;
 			}
 
 			return FS_RESULT_OK;
@@ -508,10 +505,11 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		File::DeleteDirRecursively(Path);
-		File::CreateDir(Path.c_str());
+		File::CreateDir(Path);
 
 		//now restore from the stream
-		while(1) {
+		while (1)
+		{
 			char type = 0;
 			p.Do(type);
 			if (!type)
@@ -519,11 +517,11 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 			std::string filename;
 			p.Do(filename);
 			std::string name = Path + DIR_SEP + filename;
-			switch(type)
+			switch (type)
 			{
 			case 'd':
 			{
-				File::CreateDir(name.c_str());
+				File::CreateDir(name);
 				break;
 			}
 			case 'f':
@@ -534,7 +532,8 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				File::IOFile handle(name, "wb");
 				char buf[65536];
 				u32 count = size;
-				while(count > 65536) {
+				while (count > 65536)
+				{
 					p.DoArray(&buf[0], 65536);
 					handle.WriteArray(&buf[0], 65536);
 					count -= 65536;
@@ -556,7 +555,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 		todo.insert(todo.end(), parentEntry.children.begin(),
 			    parentEntry.children.end());
 
-		while(!todo.empty())
+		while (!todo.empty())
 		{
 			File::FSTEntry &entry = todo.front();
 			std::string name = entry.physicalName;
@@ -577,7 +576,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				File::IOFile handle(entry.physicalName, "rb");
 				char buf[65536];
 				u32 count = size;
-				while(count > 65536) {
+				while (count > 65536) {
 					handle.ReadArray(&buf[0], 65536);
 					p.DoArray(&buf[0], 65536);
 					count -= 65536;

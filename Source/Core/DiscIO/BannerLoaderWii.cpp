@@ -2,32 +2,32 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
 #include <algorithm>
+#include <cstddef>
+#include <cstdio>
+#include <string>
+#include <vector>
 
-#include "CommonTypes.h"
-#include "ColorUtil.h"
-#include "BannerLoaderWii.h"
-#include "VolumeCreator.h"
-#include "FileUtil.h"
-#include "FileHandlerARC.h"
+#include "Common/ColorUtil.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
+#include "DiscIO/BannerLoaderWii.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {
 
 CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
-	: m_pBannerFile(NULL)
-	, m_IsValid(false)
 {
-	char Filename[260];
 	u64 TitleID;
-
 	pVolume->GetTitleID((u8*)&TitleID);
-
 	TitleID = Common::swap64(TitleID);
 
-	sprintf(Filename, "%stitle/%08x/%08x/data/banner.bin",
-		    File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
+	std::string Filename = StringFromFormat("%stitle/%08x/%08x/data/banner.bin",
+		File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 
 	if (!File::Exists(Filename))
 	{
@@ -35,26 +35,26 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 		//           from the savefiles is very different from the banner.bin
 		//           inside opening.bnr
 #if 0
-		char bnrFilename[260], titleFolder[260];
-
 		// Creating title folder
-		sprintf(titleFolder, "%stitle/%08x/%08x/data/",
+		std::string titleFolder = StringFromFormat("%stitle/%08x/%08x/data/",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
-		if(!File::Exists(titleFolder))
+		if (!File::Exists(titleFolder))
 			File::CreateFullPath(titleFolder);
 
 		// Extracting banner.bin from opening.bnr
-		sprintf(bnrFilename, "%stitle/%08x/%08x/data/opening.bnr",
+		std::string bnrFilename = StringFromFormat("%stitle/%08x/%08x/data/opening.bnr",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 
-		if(!_rFileSystem.ExportFile("opening.bnr", bnrFilename)) {
+		if (!_rFileSystem.ExportFile("opening.bnr", bnrFilename))
+		{
 			m_IsValid = false;
 			return;
 		}
 
 		CARCFile bnrArc (bnrFilename, 0x600);
 
-		if(!bnrArc.ExportFile("meta/banner.bin", Filename)) {
+		if (!bnrArc.ExportFile("meta/banner.bin", Filename))
+		{
 			m_IsValid = false;
 			return;
 		}
@@ -89,13 +89,8 @@ CBannerLoaderWii::~CBannerLoaderWii()
 	if (m_pBannerFile)
 	{
 		delete [] m_pBannerFile;
-		m_pBannerFile = NULL;
+		m_pBannerFile = nullptr;
 	}
-}
-
-bool CBannerLoaderWii::IsValid()
-{
-	return m_IsValid;
 }
 
 std::vector<u32> CBannerLoaderWii::GetBanner(int* pWidth, int* pHeight)
@@ -116,7 +111,7 @@ bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::stri
 		auto const banner = reinterpret_cast<const SWiiBanner*>(m_pBannerFile);
 		auto const src_ptr = banner->m_Comment[index];
 
-		// Trim at first NULL
+		// Trim at first nullptr
 		auto const length = std::find(src_ptr, src_ptr + COMMENT_SIZE, 0x0) - src_ptr;
 
 		std::wstring src;

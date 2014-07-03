@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonTypes.h"
-#include "SWVideoConfig.h"
+#include "Common/CommonTypes.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
 
-#ifndef _STATISTICS_H
-#define _STATISTICS_H
+#pragma once
 
 struct SWStatistics
 {
@@ -46,5 +45,3 @@ extern SWStatistics swstats;
 #define ADDSTAT(a,b) ;
 #define SETSTAT(a,x) ;
 #endif
-
-#endif  // _STATISTICS_H

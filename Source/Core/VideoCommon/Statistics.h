@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonTypes.h"
-#include "VideoCommon.h"
+#pragma once
+
+#include <string>
 #include <vector>
 
-#ifndef _STATISTICS_H
-#define _STATISTICS_H
+#include "Common/CommonTypes.h"
+#include "VideoCommon/VideoCommon.h"
 
 struct Statistics
 {
@@ -19,16 +20,7 @@ struct Statistics
 	int numTexturesCreated;
 	int numTexturesAlive;
 
-	int numRenderTargetsCreated;
-	int numRenderTargetsAlive;
-
-	int numDListsCalled;
-	int numDListsCreated;
-	int numDListsAlive;
-
 	int numVertexLoaders;
-
-	int numUniquePixelShaders;
 
 	float proj_0, proj_1, proj_2, proj_3, proj_4, proj_5;
 	float gproj_0, gproj_1, gproj_2, gproj_3, gproj_4, gproj_5;
@@ -49,15 +41,12 @@ struct Statistics
 		int numCPLoadsInDL;
 		int numXFLoadsInDL;
 
-		int numDLs;
 		int numPrims;
 		int numDLPrims;
 		int numShaderChanges;
 
 		int numPrimitiveJoins;
 		int numDrawCalls;
-		int numIndexedDrawCalls;
-		int numBufferSplits;
 
 		int numDListsCalled;
 
@@ -69,10 +58,8 @@ struct Statistics
 	void ResetFrame();
 	static void SwapDL();
 
-	// Yeah, this is unsafe, but we really don't wanna faff around allocating
-	// buffers here.
-	static char *ToString(char *ptr);
-	static char *ToStringProj(char *ptr);
+	static std::string ToString();
+	static std::string ToStringProj();
 };
 
 extern Statistics stats;
@@ -91,5 +78,3 @@ extern Statistics stats;
 #define ADDSTAT(a,b) ;
 #define SETSTAT(a,x) ;
 #endif
-
-#endif  // _STATISTICS_H

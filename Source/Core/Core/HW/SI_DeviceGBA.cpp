@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SI_Device.h"
-#include "SI_DeviceGBA.h"
+#include <queue>
+
+#include "Common/Thread.h"
+#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI_DeviceGBA.h"
 
 #include "SFML/Network.hpp"
-#include "Thread.h"
-#include <queue>
 
 static std::thread connectionThread;
 static std::queue<sf::SocketTCP> waiting_socks;
@@ -56,7 +57,7 @@ bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
 
 	std::lock_guard<std::mutex> lk(cs_gba);
 
-	if (waiting_socks.size())
+	if (!waiting_socks.empty())
 	{
 		sock_to_fill = waiting_socks.front();
 		waiting_socks.pop();

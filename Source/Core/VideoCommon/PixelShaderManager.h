@@ -2,13 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PIXELSHADERMANAGER_H
-#define _PIXELSHADERMANAGER_H
+#pragma once
 
-#include "BPMemory.h"
-#include "XFMemory.h"
-#include "PixelShaderGen.h"
-#include "ConstantManager.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/ConstantManager.h"
+#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/XFMemory.h"
 
 class PointerWrap;
 
@@ -40,12 +39,7 @@ public:
 	static void SetFogColorChanged();
 	static void SetFogParamChanged();
 	static void SetFogRangeAdjustChanged();
-	static void InvalidateXFRange(int start, int end);
-	static void SetMaterialColorChanged(int index, u32 color);
 
 	static PixelShaderConstants constants;
 	static bool dirty;
 };
-
-
-#endif // _PIXELSHADERMANAGER_H

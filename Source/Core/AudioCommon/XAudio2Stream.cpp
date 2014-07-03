@@ -3,8 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <xaudio2.h>
-#include "AudioCommon.h"
-#include "XAudio2Stream.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/XAudio2Stream.h"
+#include "Common/Event.h"
 
 #ifndef XAUDIO2_DLL
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path.
@@ -62,16 +63,16 @@ StreamingVoiceContext::StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer,
 {
 	WAVEFORMATEXTENSIBLE wfx = {};
 
-	wfx.Format.wFormatTag		= WAVE_FORMAT_EXTENSIBLE;
-	wfx.Format.nSamplesPerSec	= m_mixer->GetSampleRate();
-	wfx.Format.nChannels		= 2;
-	wfx.Format.wBitsPerSample	= 16;
-	wfx.Format.nBlockAlign		= wfx.Format.nChannels*wfx.Format.wBitsPerSample / 8;
-	wfx.Format.nAvgBytesPerSec	= wfx.Format.nSamplesPerSec * wfx.Format.nBlockAlign;
-	wfx.Format.cbSize			= sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
+	wfx.Format.wFormatTag       = WAVE_FORMAT_EXTENSIBLE;
+	wfx.Format.nSamplesPerSec   = m_mixer->GetSampleRate();
+	wfx.Format.nChannels        = 2;
+	wfx.Format.wBitsPerSample   = 16;
+	wfx.Format.nBlockAlign      = wfx.Format.nChannels*wfx.Format.wBitsPerSample / 8;
+	wfx.Format.nAvgBytesPerSec  = wfx.Format.nSamplesPerSec * wfx.Format.nBlockAlign;
+	wfx.Format.cbSize           = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
 	wfx.Samples.wValidBitsPerSample = 16;
-	wfx.dwChannelMask			= SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
-	wfx.SubFormat				= KSDATAFORMAT_SUBTYPE_PCM;
+	wfx.dwChannelMask           = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+	wfx.SubFormat               = KSDATAFORMAT_SUBTYPE_PCM;
 
 	// create source voice
 	HRESULT hr;
@@ -158,7 +159,7 @@ XAudio2::XAudio2(CMixer *mixer)
 	: SoundStream(mixer)
 	, m_mastering_voice(nullptr)
 	, m_volume(1.0f)
-	, m_cleanup_com(SUCCEEDED(CoInitializeEx(NULL, COINIT_MULTITHREADED)))
+	, m_cleanup_com(SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
 {
 }
 
@@ -217,11 +218,11 @@ void XAudio2::Update()
 	//static int xi = 0;
 	//if (100000 == ++xi)
 	//{
-	//	xi = 0;
-	//	XAUDIO2_PERFORMANCE_DATA perfData;
-	//	pXAudio2->GetPerformanceData(&perfData);
-	//	NOTICE_LOG(DSPHLE, "XAudio2 latency (samples): %i", perfData.CurrentLatencyInSamples);
-	//	NOTICE_LOG(DSPHLE, "XAudio2	total glitches: %i", perfData.GlitchesSinceEngineStarted);
+	//    xi = 0;
+	//    XAUDIO2_PERFORMANCE_DATA perfData;
+	//    pXAudio2->GetPerformanceData(&perfData);
+	//    NOTICE_LOG(DSPHLE, "XAudio2 latency (samples): %i", perfData.CurrentLatencyInSamples);
+	//    NOTICE_LOG(DSPHLE, "XAudio2 total glitches: %i", perfData.GlitchesSinceEngineStarted);
 	//}
 }
 
@@ -250,7 +251,7 @@ void XAudio2::Stop()
 		m_mastering_voice = nullptr;
 	}
 
-	m_xaudio2.reset();	// release interface
+	m_xaudio2.reset(); // release interface
 
 	if (m_xaudio2_dll)
 	{

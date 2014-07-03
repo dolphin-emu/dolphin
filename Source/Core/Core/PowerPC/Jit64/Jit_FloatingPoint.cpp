@@ -2,16 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
 
-#include "Jit.h"
-#include "JitRegCache.h"
-#include "CPUDetect.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitRegCache.h"
 
 static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 static const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-static const double GC_ALIGNED16(psOneOne2[2]) = {1.0, 1.0};
-static const double one_const = 1.0f;
 
 void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg))
 {
@@ -19,7 +17,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 	if (d == a)
 	{
 		fpr.BindToRegister(d, true);
-		if(!single)
+		if (!single)
 		{
 			fpr.BindToRegister(b, true, false);
 		}
@@ -30,7 +28,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 		if (reversible)
 		{
 			fpr.BindToRegister(d, true);
-			if(!single)
+			if (!single)
 			{
 				fpr.BindToRegister(a, true, false);
 			}
@@ -48,7 +46,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 	{
 		// Sources different from d, can use rather quick solution
 		fpr.BindToRegister(d, !single);
-		if(!single)
+		if (!single)
 		{
 			fpr.BindToRegister(b, true, false);
 		}
@@ -75,15 +73,11 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 void Jit64::fp_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF) {
-		Default(inst); return;
-	}
+	FALLBACK_IF(inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF);
 
 	bool single = inst.OPCD == 59;
 	switch (inst.SUBOP5)
@@ -97,32 +91,14 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::frsqrtex(UGeckoInstruction inst)
-{
-       INSTRUCTION_START
-       JITDISABLE(bJITFloatingPointOff)
-       int d = inst.FD;
-       int b = inst.FB;
-       fpr.Lock(b, d);
-       fpr.BindToRegister(d, true, true);
-       MOVSD(XMM0, M((void *)&one_const));
-       SQRTSD(XMM1, fpr.R(b));
-       DIVSD(XMM0, R(XMM1));
-       MOVSD(fpr.R(d), XMM0);
-       fpr.UnlockAll();
-}
-
 void Jit64::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF) {
-		Default(inst); return;
-	}
+	FALLBACK_IF(inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF);
 
 	bool single_precision = inst.OPCD == 59;
 
@@ -146,12 +122,12 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	case 30: //nmsub
 		MULSD(XMM0, fpr.R(c));
 		SUBSD(XMM0, fpr.R(b));
-		XORPD(XMM0, M((void*)&psSignBits2));
+		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
 	case 31: //nmadd
 		MULSD(XMM0, fpr.R(c));
 		ADDSD(XMM0, fpr.R(b));
-		XORPD(XMM0, M((void*)&psSignBits2));
+		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
 	}
 	fpr.BindToRegister(d, false);
@@ -172,10 +148,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 void Jit64::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int b = inst.FB;
@@ -184,13 +158,13 @@ void Jit64::fsign(UGeckoInstruction inst)
 	MOVSD(XMM0, fpr.R(b));
 	switch (inst.SUBOP10) {
 	case 40:  // fnegx
-		XORPD(XMM0, M((void*)&psSignBits2));
+		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
 	case 264: // fabsx
-		ANDPD(XMM0, M((void*)&psAbsMask2));
+		PAND(XMM0, M((void*)&psAbsMask2));
 		break;
 	case 136: // fnabs
-		ORPD(XMM0, M((void*)&psSignBits2));
+		POR(XMM0, M((void*)&psSignBits2));
 		break;
 	default:
 		PanicAlert("fsign bleh");
@@ -203,31 +177,39 @@ void Jit64::fsign(UGeckoInstruction inst)
 void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
 	int d = inst.FD;
 	int b = inst.FB;
+
+	if (d == b)
+		return;
+
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d, true, true);
-	MOVSD(XMM0, fpr.R(b));
-	MOVSD(fpr.R(d), XMM0);
+
+	// We don't need to load d, but if it is loaded, we need to mark it as dirty.
+	if (fpr.IsBound(d))
+		fpr.BindToRegister(d);
+
+	// b needs to be in a register because "MOVSD reg, mem" sets the upper bits (64+) to zero and we don't want that.
+	fpr.BindToRegister(b, true, false);
+
+	MOVSD(fpr.R(d), fpr.RX(b));
+
 	fpr.UnlockAll();
 }
 
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	if (jo.fpAccurateFcmp) {
-		Default(inst); return; // turn off from debugger
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(jo.fpAccurateFcmp);
 
 	//bool ordered = inst.SUBOP10 == 32;
-	int a	= inst.FA;
-	int b	= inst.FB;
-	int crf	= inst.CRFD;
+	int a   = inst.FA;
+	int b   = inst.FB;
+	int crf = inst.CRFD;
 
 	fpr.Lock(a,b);
 	fpr.BindToRegister(b, true);
@@ -245,7 +227,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	}
 
 	// if (B != B) or (A != A), goto NaN's jump target
-	pNaN    	 = J_CC(CC_P);
+	pNaN = J_CC(CC_P);
 
 	if (a != b)
 	{
@@ -285,5 +267,3 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 
 	fpr.UnlockAll();
 }
-
-

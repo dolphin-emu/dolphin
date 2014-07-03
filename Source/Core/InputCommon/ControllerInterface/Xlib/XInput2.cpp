@@ -2,10 +2,10 @@
 // Licensed under the GNU General Public License, version 2 or higher.
 // Refer to the license.txt file included.
 
-
-#include "XInput2.h"
-#include <X11/XKBlib.h>
 #include <cmath>
+#include <X11/XKBlib.h>
+
+#include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
 // This is an input plugin using the XInput 2.0 extension to the X11 protocol,
 // loosely based on the old XLib plugin. (Has nothing to do with the XInput
@@ -30,7 +30,7 @@
 // Mouse axis control output is simply divided by this number. In practice,
 // that just means you can use a smaller "dead zone" if you bind axis controls
 // to a joystick. No real need to make this customizable.
-#define MOUSE_AXIS_SENSITIVITY		8.0f
+#define MOUSE_AXIS_SENSITIVITY 8.0f
 
 // The mouse axis controls use a weighted running average. Each frame, the new
 // value is the average of the old value and the amount of relative mouse
@@ -38,7 +38,7 @@
 // MOUSE_AXIS_SMOOTHING:1 compared to the new value. Increasing
 // MOUSE_AXIS_SMOOTHING makes the controls smoother, decreasing it makes them
 // more responsive. This might be useful as a user-customizable option.
-#define MOUSE_AXIS_SMOOTHING		1.5f
+#define MOUSE_AXIS_SMOOTHING 1.5f
 
 namespace ciface
 {
@@ -48,9 +48,7 @@ namespace XInput2
 // This function will add zero or more KeyboardMouse objects to devices.
 void Init(std::vector<Core::Device*>& devices, void* const hwnd)
 {
-	Display* dpy;
-
-	dpy = XOpenDisplay(NULL);
+	Display* dpy = XOpenDisplay(nullptr);
 
 	// xi_opcode is important; it will be used to identify XInput events by
 	// the polling loop in UpdateInput.
@@ -68,9 +66,9 @@ void Init(std::vector<Core::Device*>& devices, void* const hwnd)
 
 	// register all master devices with Dolphin
 
-	XIDeviceInfo*	all_masters;
-	XIDeviceInfo*	current_master;
-	int				num_masters;
+	XIDeviceInfo* all_masters;
+	XIDeviceInfo* current_master;
+	int           num_masters;
 
 	all_masters = XIQueryDevice(dpy, XIAllMasterDevices, &num_masters);
 
@@ -94,7 +92,6 @@ void Init(std::vector<Core::Device*>& devices, void* const hwnd)
 void KeyboardMouse::SelectEventsForDevice(Window window, XIEventMask *mask, int deviceid)
 {
 	// Set the event mask for the master device.
-
 	mask->deviceid = deviceid;
 	XISelectEvents(m_display, window, mask, 1);
 
@@ -104,9 +101,9 @@ void KeyboardMouse::SelectEventsForDevice(Window window, XIEventMask *mask, int 
 	// devices) emit those. For keyboard devices, selecting slaves avoids
 	// dealing with key focus.
 
-	XIDeviceInfo*	all_slaves;
-	XIDeviceInfo*	current_slave;
-	int				num_slaves;
+	XIDeviceInfo* all_slaves;
+	XIDeviceInfo* current_slave;
+	int           num_slaves;
 
 	all_slaves = XIQueryDevice(m_display, XIAllDevices, &num_slaves);
 
@@ -132,7 +129,7 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
 	// which it can individually filter to get just the events it's interested
 	// in. So be aware that each KeyboardMouse object actually has its own X11
 	// "context."
-	m_display = XOpenDisplay(NULL);
+	m_display = XOpenDisplay(nullptr);
 
 	int min_keycode, max_keycode;
 	XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
@@ -142,8 +139,8 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
 	name = std::string(pointer_device->name);
 	XIFreeDeviceInfo(pointer_device);
 
-	XIEventMask		mask;
-	unsigned char	mask_buf[(XI_LASTEVENT + 7)/8];
+	XIEventMask   mask;
+	unsigned char mask_buf[(XI_LASTEVENT + 7)/8];
 
 	mask.mask_len = sizeof(mask_buf);
 	mask.mask = mask_buf;
@@ -329,7 +326,7 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 	// 0x0110ffff is the top of the unicode character range according
 	// to keysymdef.h although it is probably more than we need.
 	if (keysym == NoSymbol || keysym > 0x0110ffff ||
-		XKeysymToString(keysym) == NULL)
+		XKeysymToString(keysym) == nullptr)
 		m_keyname = std::string();
 	else
 		m_keyname = std::string(XKeysymToString(keysym));

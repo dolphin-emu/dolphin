@@ -37,9 +37,6 @@ if(NOT ANDROID)
 		if(SDL_FOUND)
 			# Using shared SDL
 			set(LIBS	${LIBS} ${SDL_LIBRARY})
-		else(SDL_FOUND)
-			# Using static SDL from Externals
-			set(LIBS	${LIBS} SDL)
 		endif()
 	endif()
 else()
@@ -141,6 +138,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		${CORESERV_LIBRARY}
 		${IOB_LIBRARY}
 		${IOK_LIBRARY}
+		${FORCEFEEDBACK}
 		)
 	if(wxWidgets_FOUND)
 		list(APPEND LIBS
@@ -203,6 +201,9 @@ if(ANDROID)
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/
+	)
+	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
+		COMMAND cp ARGS -r ${CMAKE_SOURCE_DIR}/Data/Sys/Shaders ${CMAKE_SOURCE_DIR}/Source/Android/assets/
 	)
 else()
 	add_executable(${DOLPHIN_EXE} ${SRCS})

@@ -6,16 +6,16 @@
 // Purpose: uncompress the dumps from costis GC-Debugger tool
 //
 //
-#ifndef _DUMP_H
-#define _DUMP_H
+#pragma once
 
-#include "Common.h"
+#include <string>
+#include "Common/Common.h"
 
 class CDump
 {
 public:
 
-	CDump(const char* _szFilename);
+	CDump(const std::string& filename);
 	~CDump();
 
 	int GetNumberOfSteps();
@@ -25,9 +25,9 @@ public:
 private:
 	enum
 	{
-		OFFSET_GPR		= 0x4,
-		OFFSET_PC		= 0x194,
-		STRUCTUR_SIZE	= 0x2BC
+		OFFSET_GPR    = 0x4,
+		OFFSET_PC     = 0x194,
+		STRUCTUR_SIZE = 0x2BC
 	};
 
 	u8 *m_pData;
@@ -36,5 +36,3 @@ private:
 
 	u32 Read32(u32 _pos);
 };
-
-#endif

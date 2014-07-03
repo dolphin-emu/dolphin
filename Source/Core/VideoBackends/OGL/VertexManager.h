@@ -2,12 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXMANAGER_H_
-#define _VERTEXMANAGER_H_
+#pragma once
 
-#include "CPMemory.h"
-
-#include "VertexManagerBase.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/VertexManagerBase.h"
 
 namespace OGL
 {
@@ -41,14 +39,11 @@ public:
 	GLuint m_index_buffers;
 	GLuint m_last_vao;
 protected:
-	virtual void ResetBuffer(u32 stride);
+	virtual void ResetBuffer(u32 stride) override;
 private:
 	void Draw(u32 stride);
-	void vFlush() override;
+	void vFlush(bool useDstAlpha) override;
 	void PrepareDrawBuffers(u32 stride);
-	NativeVertexFormat *m_CurrentVertexFmt;
 };
 
 }
-
-#endif  // _VERTEXMANAGER_H_

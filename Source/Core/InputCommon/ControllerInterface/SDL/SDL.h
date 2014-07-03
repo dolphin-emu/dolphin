@@ -1,11 +1,15 @@
-#ifndef _CIFACE_SDL_H_
-#define _CIFACE_SDL_H_
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#include "../Device.h"
+#pragma once
 
 #include <list>
 
 #include <SDL.h>
+
+#include "InputCommon/ControllerInterface/Device.h"
+
 
 #if SDL_VERSION_ATLEAST(1, 3, 0)
 	#define USE_SDL_HAPTIC
@@ -13,9 +17,9 @@
 
 #ifdef USE_SDL_HAPTIC
 	#include <SDL_haptic.h>
-	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
+	#define SDL_INIT_FLAGS  SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
 #else
-	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK
+	#define SDL_INIT_FLAGS  SDL_INIT_JOYSTICK
 #endif
 
 namespace ciface
@@ -34,9 +38,9 @@ private:
 	{
 		EffectIDState() : effect(SDL_HapticEffect()), id(-1), changed(false) {}
 
-		SDL_HapticEffect	effect;
-		int					id;
-		bool				changed;
+		SDL_HapticEffect effect;
+		int              id;
+		bool             changed;
 	};
 #endif
 
@@ -79,9 +83,9 @@ private:
 	class ConstantEffect : public Output
 	{
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		ConstantEffect(EffectIDState& effect) : m_effect(effect) {}
-		void SetState(ControlState state);
+		void SetState(ControlState state) override;
 	private:
 		EffectIDState& m_effect;
 	};
@@ -89,9 +93,9 @@ private:
 	class RampEffect : public Output
 	{
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		RampEffect(EffectIDState& effect) : m_effect(effect) {}
-		void SetState(ControlState state);
+		void SetState(ControlState state) override;
 	private:
 		EffectIDState& m_effect;
 	};
@@ -99,9 +103,9 @@ private:
 	class SineEffect : public Output
 	{
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		SineEffect(EffectIDState& effect) : m_effect(effect) {}
-		void SetState(ControlState state);
+		void SetState(ControlState state) override;
 	private:
 		EffectIDState& m_effect;
 	};
@@ -121,9 +125,9 @@ private:
 	class TriangleEffect : public Output
 	{
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		TriangleEffect(EffectIDState& effect) : m_effect(effect) {}
-		void SetState(ControlState state);
+		void SetState(ControlState state) override;
 	private:
 		EffectIDState& m_effect;
 	};
@@ -141,17 +145,15 @@ public:
 	std::string GetSource() const override;
 
 private:
-	SDL_Joystick* const			m_joystick;
-	const int					m_sdl_index;
-	const unsigned int			m_index;
+	SDL_Joystick* const      m_joystick;
+	const int                m_sdl_index;
+	const unsigned int       m_index;
 
 #ifdef USE_SDL_HAPTIC
-	std::list<EffectIDState>	m_state_out;
-	SDL_Haptic*					m_haptic;
+	std::list<EffectIDState> m_state_out;
+	SDL_Haptic*              m_haptic;
 #endif
 };
 
 }
 }
-
-#endif

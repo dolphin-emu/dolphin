@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Base">
@@ -26,14 +26,10 @@
   <ItemGroup>
     <ClCompile Include="CommandProcessor.cpp" />
     <ClCompile Include="DriverDetails.cpp" />
-    <ClCompile Include="memcpy_amd.cpp" />
     <ClCompile Include="PixelEngine.cpp" />
     <ClCompile Include="VideoBackendBase.cpp" />
     <ClCompile Include="VideoConfig.cpp" />
     <ClCompile Include="Debugger.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
-    <ClCompile Include="EmuWindow.cpp">
       <Filter>Base</Filter>
     </ClCompile>
     <ClCompile Include="FramebufferManagerBase.cpp">
@@ -84,9 +80,6 @@
     <ClCompile Include="TextureConversionShader.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
-    <ClCompile Include="TextureDecoder_x64.cpp">
-      <Filter>Shader Generators</Filter>
-    </ClCompile>
     <ClCompile Include="VertexShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
@@ -120,9 +113,6 @@
     <ClCompile Include="VideoState.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="DLCache_x64.cpp">
-      <Filter>Vertex Loading</Filter>
-    </ClCompile>
     <ClCompile Include="VertexLoader.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
@@ -142,6 +132,9 @@
       <Filter>Vertex Loading</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="TextureDecoder_x64.cpp">
+      <Filter>Decoding</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -152,9 +145,6 @@
     <ClInclude Include="VideoCommon.h" />
     <ClInclude Include="VideoConfig.h" />
     <ClInclude Include="Debugger.h">
-      <Filter>Base</Filter>
-    </ClInclude>
-    <ClInclude Include="EmuWindow.h">
       <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="FramebufferManagerBase.h">
@@ -251,9 +241,6 @@
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="DataReader.h">
-      <Filter>Vertex Loading</Filter>
-    </ClInclude>
-    <ClInclude Include="DLCache.h">
       <Filter>Vertex Loading</Filter>
     </ClInclude>
     <ClInclude Include="VertexLoader.h">

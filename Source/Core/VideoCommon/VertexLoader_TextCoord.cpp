@@ -2,12 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "VertexLoader.h"
-#include "VertexLoader_TextCoord.h"
-#include "VertexManagerBase.h"
-#include "CPUDetect.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoader_TextCoord.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
+
 
 #if _M_SSE >= 0x401
 #include <smmintrin.h>
@@ -130,11 +132,11 @@ void LOADERDECL TexCoord_ReadIndex_Float2_SSSE3()
 
 static TPipelineFunction tableReadTexCoord[4][8][2] = {
 	{
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
+		{nullptr, nullptr,},
 	},
 	{
 		{TexCoord_ReadDirect<u8, 1>,  TexCoord_ReadDirect<u8, 2>,},

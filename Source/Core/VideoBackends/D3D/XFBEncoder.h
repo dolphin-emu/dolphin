@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _XFBENCODER_H
-#define _XFBENCODER_H
+#pragma once
 
-#include "VideoCommon.h"
+#include "VideoCommon/VideoCommon.h"
 
 struct ID3D11Texture2D;
 struct ID3D11RenderTargetView;
@@ -51,5 +50,3 @@ private:
 };
 
 }
-
-#endif

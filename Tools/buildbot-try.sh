@@ -28,8 +28,11 @@ shortrev=$(git describe --always --long --dirty=+ | sed 's/-g[0-9a-f]*\(+*\)$/\1
 
 author=$(grep try_username "$opt_file" | cut -d "'" -f 2)
 
+baserev=$(git merge-base HEAD origin/master)
+
 echo "Branch name: $branchname"
 echo "Change author: $author"
 echo "Short rev: $shortrev"
+echo "Base rev: $baserev"
 
-buildbot try --properties=branchname=$branchname,author=$author,shortrev=$shortrev $*
+git diff -r $baserev | buildbot try --properties=branchname=$branchname,author=$author,shortrev=$shortrev --diff=- -p1 --baserev $baserev $*

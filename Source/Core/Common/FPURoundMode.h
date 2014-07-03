@@ -1,42 +1,36 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
+#pragma once
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-#ifndef FPU_ROUND_MODE_H_
-#define FPU_ROUND_MODE_H_
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 namespace FPURoundMode
 {
-	enum RoundModes
+	// TODO: MSVC currently produces broken code:
+	// https://connect.microsoft.com/VisualStudio/feedback/details/828892/vc-2013-miscompilation-with-enums-and-bit-fields
+	// Once that is fixed, change types in SetRoundMode(), SetSIMDMode(), and in UReg_FPSCR to 'RoundMode'.
+
+	enum RoundMode
 	{
 		ROUND_NEAR = 0,
-		ROUND_CHOP,
-		ROUND_UP,
-		ROUND_DOWN
+		ROUND_CHOP = 1,
+		ROUND_UP   = 2,
+		ROUND_DOWN = 3
 	};
-	enum PrecisionModes {
+	enum PrecisionMode
+	{
 		PREC_24 = 0,
-		PREC_53,
-		PREC_64
+		PREC_53 = 1,
+		PREC_64 = 2
 	};
-	void SetRoundMode(u32 mode);
 
-	void SetPrecisionMode(u32 mode);
+	void SetRoundMode(int mode);
 
-	void SetSIMDMode(u32 roundingMode, u32 nonIEEEMode);
+	void SetPrecisionMode(PrecisionMode mode);
+
+	void SetSIMDMode(int rounding_mode, bool non_ieee_mode);
 
 /*
  * There are two different flavors of float to int conversion:
@@ -49,4 +43,3 @@ namespace FPURoundMode
 	void LoadSIMDState();
 	void LoadDefaultSIMDState();
 }
-#endif

@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <math.h>
+#include <cmath>
 #include <limits>
 
 #ifdef _WIN32
@@ -17,10 +17,9 @@
 #undef _interlockedbittestandreset64
 #endif
 
-#include "Interpreter.h"
-#include "Interpreter_FPUtils.h"
-#include "MathUtil.h"
-#include "../LUT_frsqrtex.h"
+#include "Common/MathUtil.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
 using namespace MathUtil;
 
@@ -28,34 +27,41 @@ void UpdateSSEState();
 
 // Extremely rare - actually, never seen.
 // Star Wars : Rogue Leader spams that at some point :|
-void Interpreter::Helper_UpdateCR1(double _fValue)
+void Interpreter::Helper_UpdateCR1()
 {
 	SetCRField(1, (FPSCR.FX << 4) | (FPSCR.FEX << 3) | (FPSCR.VX << 2) | FPSCR.OX);
 }
 
-void Interpreter::fcmpo(UGeckoInstruction _inst)
+void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa, double fb)
 {
-	double fa = rPS0(_inst.FA);
-	double fb = rPS0(_inst.FB);
-
 	int compareResult;
 
-	if (fa < fb)				compareResult = 8;
-	else if (fa > fb)           compareResult = 4;
-	else if (fa == fb)          compareResult = 2;
-	else
+	if (fa < fb)
+	{
+		compareResult = FPCC::FL;
+	}
+	else if (fa > fb)
+	{
+		compareResult = FPCC::FG;
+	}
+	else if (fa == fb)
+	{
+		compareResult = FPCC::FE;
+	}
+	else // NaN
 	{
 		FPSCR.FX = 1;
-		compareResult = 1;
+		compareResult = FPCC::FU;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
 			SetFPException(FPSCR_VXSNAN);
 			if (FPSCR.VE == 0)
+			{
 				SetFPException(FPSCR_VXVC);
+			}
 		}
-		else
+		else // QNaN
 		{
-			//if (IsQNAN(fa) || IsQNAN(fb)) // this is always true
 			SetFPException(FPSCR_VXVC);
 		}
 	}
@@ -64,26 +70,43 @@ void Interpreter::fcmpo(UGeckoInstruction _inst)
 	SetCRField(_inst.CRFD, compareResult);
 }
 
-void Interpreter::fcmpu(UGeckoInstruction _inst)
+void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double fa, double fb)
 {
-	double fa = rPS0(_inst.FA);
-	double fb = rPS0(_inst.FB);
-
 	int compareResult;
 
-	if (fa < fb)            compareResult = 8;
-	else if (fa > fb)       compareResult = 4;
-	else if (fa == fb)		compareResult = 2;
+	if (fa < fb)
+	{
+		compareResult = FPCC::FL;
+	}
+	else if (fa > fb)
+	{
+		compareResult = FPCC::FG;
+	}
+	else if (fa == fb)
+	{
+		compareResult = FPCC::FE;
+	}
 	else
 	{
-		compareResult = 1;
+		compareResult = FPCC::FU;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
+			FPSCR.FX = 1;
 			SetFPException(FPSCR_VXSNAN);
 		}
 	}
 	FPSCR.FPRF = compareResult;
 	SetCRField(_inst.CRFD, compareResult);
+}
+
+void Interpreter::fcmpo(UGeckoInstruction _inst)
+{
+	Helper_FloatCompareOrdered(_inst, rPS0(_inst.FA), rPS0(_inst.FB));
+}
+
+void Interpreter::fcmpu(UGeckoInstruction _inst)
+{
+	Helper_FloatCompareUnordered(_inst, rPS0(_inst.FA), rPS0(_inst.FB));
 }
 
 // Apply current rounding mode
@@ -148,7 +171,7 @@ void Interpreter::fctiwx(UGeckoInstruction _inst)
 	if (value == 0 && ( (*(u64*)&b) & DOUBLE_SIGN ))
 		riPS0(_inst.FD) |= 0x100000000ull;
 	if (_inst.Rc)
-		Helper_UpdateCR1(rPS0(_inst.FD));
+		Helper_UpdateCR1();
 }
 
 // Always round toward zero
@@ -192,42 +215,42 @@ void Interpreter::fctiwzx(UGeckoInstruction _inst)
 	if (value == 0 && ( (*(u64*)&b) & DOUBLE_SIGN ))
 		riPS0(_inst.FD) |= 0x100000000ull;
 	if (_inst.Rc)
-		Helper_UpdateCR1(rPS0(_inst.FD));
+		Helper_UpdateCR1();
 }
 
 void Interpreter::fmrx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB);
 	// This is a binary instruction. Does not alter FPSCR
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fabsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = fabs(rPS0(_inst.FB));
 	// This is a binary instruction. Does not alter FPSCR
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fnabsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) | (1ULL << 63);
 	// This is a binary instruction. Does not alter FPSCR
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fnegx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) ^ (1ULL << 63);
 	// This is a binary instruction. Does not alter FPSCR
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fselx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = (rPS0(_inst.FA) >= -0.0) ? rPS0(_inst.FC) : rPS0(_inst.FB);
 	// This is a binary instruction. Does not alter FPSCR
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 // !!! warning !!!
@@ -251,7 +274,7 @@ void Interpreter::fmulx(UGeckoInstruction _inst)
 	FPSCR.FI = 0; // are these flags important?
 	FPSCR.FR = 0;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 void Interpreter::fmulsx(UGeckoInstruction _inst)
 {
@@ -261,7 +284,7 @@ void Interpreter::fmulsx(UGeckoInstruction _inst)
 	FPSCR.FI = 0;
 	FPSCR.FR = 0;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fmaddx(UGeckoInstruction _inst)
@@ -269,7 +292,7 @@ void Interpreter::fmaddx(UGeckoInstruction _inst)
 	double result = ForceDouble(NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
 	rPS0(_inst.FD) = result;
 	UpdateFPRF(result);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fmaddsx(UGeckoInstruction _inst)
@@ -279,7 +302,7 @@ void Interpreter::fmaddsx(UGeckoInstruction _inst)
 	FPSCR.FI = d_value != rPS0(_inst.FD);
 	FPSCR.FR = 0;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 
@@ -287,13 +310,13 @@ void Interpreter::faddx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(NI_add(rPS0(_inst.FA), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 void Interpreter::faddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_add(rPS0(_inst.FA), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fdivx(UGeckoInstruction _inst)
@@ -325,7 +348,7 @@ void Interpreter::fdivx(UGeckoInstruction _inst)
 	}
 	UpdateFPRF(rPS0(_inst.FD));
 	// FR,FI,OX,UX???
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 void Interpreter::fdivsx(UGeckoInstruction _inst)
 {
@@ -357,32 +380,20 @@ void Interpreter::fdivsx(UGeckoInstruction _inst)
 	}
 	rPS0(_inst.FD) = rPS1(_inst.FD) = res;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 // Single precision only.
 void Interpreter::fresx(UGeckoInstruction _inst)
 {
 	double b = rPS0(_inst.FB);
-	double one_over = ForceSingle(1.0 / b);
-	// this is based on the real hardware tests
-	if (b != 0.0 && IsINF(one_over))
-	{
-		if (one_over > 0)
-			riPS0(_inst.FD) = riPS1(_inst.FD) = MAX_SINGLE;
-		else
-			riPS0(_inst.FD) = riPS1(_inst.FD) = MIN_SINGLE;
-	}
-	else
-	{
-		rPS0(_inst.FD) = rPS1(_inst.FD) = one_over;
-	}
+	rPS0(_inst.FD) = rPS1(_inst.FD) = ApproximateReciprocal(b);
 	if (b == 0.0)
 	{
 		SetFPException(FPSCR_ZX);
 	}
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::frsqrtex(UGeckoInstruction _inst)
@@ -391,48 +402,21 @@ void Interpreter::frsqrtex(UGeckoInstruction _inst)
 	if (b < 0.0)
 	{
 		SetFPException(FPSCR_VXSQRT);
-		rPS0(_inst.FD) = PPC_NAN;
 	}
-	else
+	else if (b == 0.0)
 	{
-#ifdef VERY_ACCURATE_FP
-		if (b == 0.0)
-		{
-			SetFPException(FPSCR_ZX);
-			riPS0(_inst.FD) = 0x7ff0000000000000;
-		}
-		else
-		{
-			u32 fsa = Common::swap32(Common::swap64(riPS0(_inst.FB)));
-			u32 fsb = Common::swap32(Common::swap64(riPS0(_inst.FB)) >> 32);
-			u32 idx=(fsa >> 5) % (sizeof(frsqrtex_lut) / sizeof(frsqrtex_lut[0]));
-
-			s32 e = fsa >> (32-12);
-			e &= 2047;
-			e -= 1023;
-			s32 oe =- ((e + 1) / 2);
-			oe -= ((e + 1) & 1);
-
-			u32 outb = frsqrtex_lut[idx] << 20;
-			u32 outa = ((oe + 1023) & 2047) << 20;
-			outa |= frsqrtex_lut[idx] >> 12;
-			riPS0(_inst.FD) = ((u64)outa << 32) + (u64)outb;
-		}
-#else
-		if (b == 0.0)
-			SetFPException(FPSCR_ZX);
-		rPS0(_inst.FD) = ForceDouble(1.0 / sqrt(b));
-#endif
+		SetFPException(FPSCR_ZX);
 	}
+	rPS0(_inst.FD) = ApproximateReciprocalSquareRoot(b);
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fmsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(NI_msub( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fmsubsx(UGeckoInstruction _inst)
@@ -440,28 +424,28 @@ void Interpreter::fmsubsx(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		ForceSingle( NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fnmaddx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 void Interpreter::fnmaddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		ForceSingle(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fnmsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 // fnmsubsx does not handle QNAN properly - see NI_msub
@@ -470,21 +454,21 @@ void Interpreter::fnmsubsx(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		ForceSingle(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	UpdateFPRF(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fsqrtx(UGeckoInstruction _inst)
@@ -497,5 +481,5 @@ void Interpreter::fsqrtx(UGeckoInstruction _inst)
 	}
 	rPS0(_inst.FD) = sqrt(b);
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1();
 }

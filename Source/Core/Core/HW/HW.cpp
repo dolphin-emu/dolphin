@@ -2,27 +2,28 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "../Core.h"
-#include "HW.h"
-#include "../PowerPC/PowerPC.h"
-#include "CPU.h"
-#include "DSP.h"
-#include "DVDInterface.h"
-#include "EXI.h"
-#include "GPFifo.h"
-#include "Memmap.h"
-#include "ProcessorInterface.h"
-#include "SI.h"
-#include "AudioInterface.h"
-#include "VideoInterface.h"
-#include "WII_IPC.h"
-#include "../ConfigManager.h"
-#include "../CoreTiming.h"
-#include "SystemTimers.h"
-#include "../IPC_HLE/WII_IPC_HLE.h"
-#include "../State.h"
-#include "../PowerPC/PPCAnalyst.h"
+#include "Common/Common.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/State.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/HW.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
+#include "Core/HW/WII_IPC.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 namespace HW
 {
@@ -38,11 +39,11 @@ namespace HW
 		VideoInterface::Init();
 		SerialInterface::Init();
 		ProcessorInterface::Init();
+		ExpansionInterface::Init(); // Needs to be initialized before Memory
 		Memory::Init();
 		DSP::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE);
 		DVDInterface::Init();
 		GPFifo::Init();
-		ExpansionInterface::Init();
 		CCPU::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore);
 		SystemTimers::Init();
 

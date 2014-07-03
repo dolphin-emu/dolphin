@@ -22,7 +22,8 @@
 #ifndef _POWERPC_DISASM
 #define _POWERPC_DISASM
 
-void DisassembleGekko(unsigned int opcode, unsigned int curInstAddr, char *dest, int max_size);
-const char *GetGRPName(unsigned int index);
+void DisassembleGekko(unsigned int opcode, unsigned int curInstAddr, char* dest, int max_size);
+const char* GetGPRName(unsigned int index);
+const char* GetFPRName(unsigned int index);
 
 #endif

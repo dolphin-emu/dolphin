@@ -1,15 +1,20 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#include "DInputKeyboardMouse.h"
-#include "DInput.h"
+#include <algorithm>
+
+#include "InputCommon/ControllerInterface/DInput/DInput.h"
+#include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 
 	// (lower would be more sensitive) user can lower sensitivity by setting range
 	// seems decent here ( at 8 ), I don't think anyone would need more sensitive than this
 	// and user can lower it much farther than they would want to with the range
-#define MOUSE_AXIS_SENSITIVITY		8
+#define MOUSE_AXIS_SENSITIVITY   8
 
 	// if input hasn't been received for this many ms, mouse input will be skipped
 	// otherwise it is just some crazy value
-#define DROP_INPUT_TIME				250
+#define DROP_INPUT_TIME          250
 
 namespace ciface
 {
@@ -18,17 +23,17 @@ namespace DInput
 
 static const struct
 {
-	const BYTE			code;
-	const char* const	name;
+	const BYTE        code;
+	const char* const name;
 } named_keys[] =
 {
-#include "NamedKeys.h"
+#include "InputCommon/ControllerInterface/DInput/NamedKeys.h" // NOLINT
 };
 
 static const struct
 {
-	const BYTE			code;
-	const char* const	name;
+	const BYTE        code;
+	const char* const name;
 } named_lights[] =
 {
 	{ VK_NUMLOCK, "NUM LOCK" },
@@ -47,20 +52,20 @@ void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& de
 	// if that's dumb, I will make a VirtualDevice class that just uses ranges of inputs/outputs from other devices
 	// so there can be a separated Keyboard and mouse, as well as combined KeyboardMouse
 
-	LPDIRECTINPUTDEVICE8 kb_device = NULL;
-	LPDIRECTINPUTDEVICE8 mo_device = NULL;
+	LPDIRECTINPUTDEVICE8 kb_device = nullptr;
+	LPDIRECTINPUTDEVICE8 mo_device = nullptr;
 
-	if (SUCCEEDED(idi8->CreateDevice( GUID_SysKeyboard, &kb_device, NULL)))
+	if (SUCCEEDED(idi8->CreateDevice( GUID_SysKeyboard, &kb_device, nullptr)))
 	{
 		if (SUCCEEDED(kb_device->SetDataFormat(&c_dfDIKeyboard)))
 		{
-			if (SUCCEEDED(kb_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
+			if (SUCCEEDED(kb_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 			{
-				if (SUCCEEDED(idi8->CreateDevice( GUID_SysMouse, &mo_device, NULL )))
+				if (SUCCEEDED(idi8->CreateDevice( GUID_SysMouse, &mo_device, nullptr )))
 				{
 					if (SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)))
 					{
-						if (SUCCEEDED(mo_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
+						if (SUCCEEDED(mo_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 						{
 							devices.push_back(new KeyboardMouse(kb_device, mo_device));
 							return;
@@ -133,7 +138,6 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIREC
 
 void GetMousePos(float* const x, float* const y)
 {
-	unsigned int win_width = 2, win_height = 2;
 	POINT point = { 1, 1 };
 	GetCursorPos(&point);
 	// Get the cursor position relative to the upper left corner of the rendering window
@@ -143,8 +147,8 @@ void GetMousePos(float* const x, float* const y)
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	// Width and height is the size of the rendering window
-	win_width = rect.right - rect.left;
-	win_height = rect.bottom - rect.top;
+	unsigned int win_width = rect.right - rect.left;
+	unsigned int win_height = rect.bottom - rect.top;
 
 	// Return the mouse position as a range from -1 to 1
 	*x = (float)point.x / (float)win_width * 2 - 1;
@@ -215,12 +219,12 @@ bool KeyboardMouse::UpdateOutput()
 	{
 		bool want_on = false;
 		if (m_state_out[i])
-			want_on = m_state_out[i] > GetTickCount() % 255 ;	// light should flash when output is 0.5
+			want_on = m_state_out[i] > GetTickCount() % 255 ; // light should flash when output is 0.5
 
 		// lights are set to their original state when output is zero
 		if (want_on ^ m_current_state_out[i])
 		{
-			kbinputs.push_back(KInput(named_lights[i].code));		// press
+			kbinputs.push_back(KInput(named_lights[i].code));       // press
 			kbinputs.push_back(KInput(named_lights[i].code, true)); // release
 
 			m_current_state_out[i] ^= 1;

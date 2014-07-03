@@ -2,34 +2,38 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "DebugInterface.h"
-#include "BreakPoints.h"
-#include "../Core/PowerPC/JitCommon/JitBase.h"
-
 #include <sstream>
-#include <algorithm>
+#include <string>
+#include <vector>
+
+#include "Common/BreakPoints.h"
+#include "Common/Common.h"
+#include "Common/DebugInterface.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {
-	for (auto& bp : m_BreakPoints)
+	for (const TBreakPoint& bp : m_BreakPoints)
 		if (bp.iAddress == _iAddress)
 			return true;
+
 	return false;
 }
 
 bool BreakPoints::IsTempBreakPoint(u32 _iAddress)
 {
-	for (auto& bp : m_BreakPoints)
+	for (const TBreakPoint& bp : m_BreakPoints)
 		if (bp.iAddress == _iAddress && bp.bTemporary)
 			return true;
+
 	return false;
 }
 
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 {
 	TBreakPointsStr bps;
-	for (const auto& bp : m_BreakPoints)
+	for (const TBreakPoint& bp : m_BreakPoints)
 	{
 		if (!bp.bTemporary)
 		{
@@ -44,7 +48,7 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 
 void BreakPoints::AddFromStrings(const TBreakPointsStr& bpstrs)
 {
-	for (const auto& bpstr : bpstrs)
+	for (const std::string& bpstr : bpstrs)
 	{
 		TBreakPoint bp;
 		std::stringstream ss;
@@ -84,7 +88,7 @@ void BreakPoints::Add(u32 em_address, bool temp)
 
 void BreakPoints::Remove(u32 em_address)
 {
-	for (TBreakPoints::iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
+	for (auto i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
 	{
 		if (i->iAddress == em_address)
 		{
@@ -100,12 +104,10 @@ void BreakPoints::Clear()
 {
 	if (jit)
 	{
-		std::for_each(m_BreakPoints.begin(), m_BreakPoints.end(),
-			[](const TBreakPoint& bp)
-			{
-				jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
-			}
-		);
+		for (const TBreakPoint& bp : m_BreakPoints)
+		{
+			jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
+		}
 	}
 
 	m_BreakPoints.clear();
@@ -114,7 +116,7 @@ void BreakPoints::Clear()
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {
 	TMemChecksStr mcs;
-	for (const auto& bp : m_MemChecks)
+	for (const TMemCheck& bp : m_MemChecks)
 	{
 		std::stringstream mc;
 		mc << std::hex << bp.StartAddress;
@@ -129,17 +131,17 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
 
 void MemChecks::AddFromStrings(const TMemChecksStr& mcstrs)
 {
-	for (const auto& mcstr : mcstrs)
+	for (const std::string& mcstr : mcstrs)
 	{
 		TMemCheck mc;
 		std::stringstream ss;
 		ss << std::hex << mcstr;
 		ss >> mc.StartAddress;
-		mc.bRange	= mcstr.find("n") != mcstr.npos;
-		mc.OnRead	= mcstr.find("r") != mcstr.npos;
-		mc.OnWrite	= mcstr.find("w") != mcstr.npos;
-		mc.Log		= mcstr.find("l") != mcstr.npos;
-		mc.Break	= mcstr.find("p") != mcstr.npos;
+		mc.bRange  = mcstr.find("n") != mcstr.npos;
+		mc.OnRead  = mcstr.find("r") != mcstr.npos;
+		mc.OnWrite = mcstr.find("w") != mcstr.npos;
+		mc.Log     = mcstr.find("l") != mcstr.npos;
+		mc.Break   = mcstr.find("p") != mcstr.npos;
 		if (mc.bRange)
 			ss >> mc.EndAddress;
 		else
@@ -150,13 +152,13 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mcstrs)
 
 void MemChecks::Add(const TMemCheck& _rMemoryCheck)
 {
-	if (GetMemCheck(_rMemoryCheck.StartAddress) == 0)
+	if (GetMemCheck(_rMemoryCheck.StartAddress) == nullptr)
 		m_MemChecks.push_back(_rMemoryCheck);
 }
 
 void MemChecks::Remove(u32 _Address)
 {
-	for (TMemChecks::iterator i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
+	for (auto i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
 	{
 		if (i->StartAddress == _Address)
 		{
@@ -168,7 +170,7 @@ void MemChecks::Remove(u32 _Address)
 
 TMemCheck *MemChecks::GetMemCheck(u32 address)
 {
-	for (auto& bp : m_MemChecks)
+	for (TMemCheck& bp : m_MemChecks)
 	{
 		if (bp.bRange)
 		{
@@ -176,27 +178,29 @@ TMemCheck *MemChecks::GetMemCheck(u32 address)
 				return &(bp);
 		}
 		else if (bp.StartAddress == address)
+		{
 			return &(bp);
+		}
 	}
 
 	// none found
-	return 0;
+	return nullptr;
 }
 
-void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr,
-						bool write, int size, u32 pc)
+void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc)
 {
 	if ((write && OnWrite) || (!write && OnRead))
 	{
 		if (Log)
 		{
 			INFO_LOG(MEMMAP, "CHK %08x (%s) %s%i %0*x at %08x (%s)",
-				pc, debug_interface->getDescription(pc).c_str(),
+				pc, debug_interface->GetDescription(pc).c_str(),
 				write ? "Write" : "Read", size*8, size*2, iValue, addr,
-				debug_interface->getDescription(addr).c_str()
+				debug_interface->GetDescription(addr).c_str()
 				);
 		}
+
 		if (Break)
-			debug_interface->breakNow();
+			debug_interface->BreakNow();
 	}
 }

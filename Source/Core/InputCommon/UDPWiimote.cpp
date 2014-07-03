@@ -1,5 +1,19 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#include "UDPWiimote.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <functional>
+#include <list>
+#include <string>
+
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+
+#include "InputCommon/UDPWiimote.h"
 
 #ifdef _WIN32
 
@@ -38,15 +52,6 @@
 
 #endif
 
-#include "Thread.h"
-#include "Timer.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <list>
-#include <functional>
 
 struct UDPWiimote::_d
 {
@@ -59,16 +64,16 @@ struct UDPWiimote::_d
 
 int UDPWiimote::noinst = 0;
 
-UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
-	port(_port), displayName(name),
-	d(new _d) ,x(0),y(0),z(1.0f),naX(0),naY(0),naZ(-1.0f),nunX(0),nunY(0),
-	pointerX(1001.0f/2),pointerY(0),nunMask(0),mask(0),index(_index), int_port(atoi(_port))
+UDPWiimote::UDPWiimote(const std::string& _port, const std::string& name, int _index) :
+	port(_port), displayName(name),	d(new _d),
+	waX(0), waY(0), waZ(1), naX(0), naY(0), naZ(-1), nunX(0), nunY(0),
+	pointerX(1001.0f / 2), pointerY(0), nunMask(0), wiimoteMask(0), index(_index), int_port(atoi(_port.c_str()))
 {
 
 	static bool sranded=false;
 	if (!sranded)
 	{
-		srand((unsigned int)time(0));
+		srand((unsigned int)time(nullptr));
 		sranded=true;
 	}
 	bcastMagic=rand() & 0xFFFF;
@@ -103,7 +108,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 		return;
 	}
 
-	if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0)
+	if ((rv = getaddrinfo(nullptr, _port.c_str(), &hints, &servinfo)) != 0)
 	{
 		cleanup;
 		err=-1;
@@ -111,7 +116,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	}
 
 	// loop through all the results and bind to everything we can
-	for(p = servinfo; p != NULL; p = p->ai_next)
+	for (p = servinfo; p != nullptr; p = p->ai_next)
 	{
 		sock_t sock;
 		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK)
@@ -141,7 +146,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	initBroadcastIPv6();
 
 	std::lock_guard<std::mutex> lk(d->termLock);
-	d->thread = std::thread(std::mem_fun(&UDPWiimote::mainThread), this);
+	d->thread = std::thread(std::mem_fn(&UDPWiimote::mainThread), this);
 
 	return;
 }
@@ -187,7 +192,7 @@ void UDPWiimote::mainThread()
 
 		lk.unlock(); //VERY hacky. don't like it
 		if (d->exit) return;
-		int rt=select(maxfd,&fds,NULL,NULL,&timeout);
+		int rt=select(maxfd,&fds,nullptr,nullptr,&timeout);
 		if (d->exit) return;
 		lk.lock();
 		if (d->exit) return;
@@ -256,9 +261,9 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 	if (bf[0] != 0xde)
 		return -1;
 	//if (bf[1]==0)
-	//	time=0;
+	//    time=0;
 	//if (bf[1]<time) //NOT LONGER NEEDED TO ALLOW MULTIPLE IPHONES ON A SINGLE PORT
-	//	return -1;
+	//    return -1;
 	//time=bf[1];
 	u32 *p=(u32*)(&bf[3]);
 	if (bf[2] & ACCEL_FLAG)
@@ -270,9 +275,9 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 		ux=(double)((s32)ntohl(*p)); p++;
 		uy=(double)((s32)ntohl(*p)); p++;
 		uz=(double)((s32)ntohl(*p)); p++;
-		x=ux/1048576; //packet accel data
-		y=uy/1048576;
-		z=uz/1048576;
+		waX=ux/1048576; //packet accel data
+		waY=uy/1048576;
+		waZ=uz/1048576;
 	}
 
 	if (bf[2] & BUTT_FLAG)
@@ -280,7 +285,7 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 		if ((size-(((u8*)p)-bf)) < 4)
 			return -1;
 
-		mask=ntohl(*p); p++;
+		wiimoteMask = ntohl(*p); p++;
 	}
 
 	if (bf[2] & IR_FLAG)
@@ -383,52 +388,52 @@ void UDPWiimote::broadcastPresence()
 	broadcastIPv6(bf,7+slen);
 }
 
-void UDPWiimote::getAccel(float &_x, float &_y, float &_z)
+void UDPWiimote::getAccel(float* x, float* y, float* z)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x=(float)x;
-	_y=(float)y;
-	_z=(float)z;
+	*x = (float)waX;
+	*y = (float)waY;
+	*z = (float)waZ;
 }
 
 u32 UDPWiimote::getButtons()
 {
 	u32 msk;
 	std::lock_guard<std::mutex> lk(d->mutex);
-	msk=mask;
+	msk = wiimoteMask;
 	return msk;
 }
 
-void UDPWiimote::getIR(float &_x, float &_y)
+void UDPWiimote::getIR(float* x, float* y)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x=(float)pointerX;
-	_y=(float)pointerY;
+	*x = (float)pointerX;
+	*y = (float)pointerY;
 }
 
-void UDPWiimote::getNunchuck(float &_x, float &_y, u8 &_mask)
+void UDPWiimote::getNunchuck(float* x, float* y, u8* mask)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x=(float)nunX;
-	_y=(float)nunY;
-	_mask=nunMask;
+	*x = (float)nunX;
+	*y = (float)nunY;
+	*mask = nunMask;
 }
 
-void UDPWiimote::getNunchuckAccel(float &_x, float &_y, float &_z)
+void UDPWiimote::getNunchuckAccel(float* x, float* y, float* z)
 {
 	std::lock_guard<std::mutex> lk(d->mutex);
-	_x=(float)naX;
-	_y=(float)naY;
-	_z=(float)naZ;
+	*x = (float)naX;
+	*y = (float)naY;
+	*z = (float)naZ;
 }
 
-const char * UDPWiimote::getPort()
+const std::string& UDPWiimote::getPort()
 {
-	return port.c_str();
+	return port;
 }
 
-void UDPWiimote::changeName(const char * name)
+void UDPWiimote::changeName(const std::string& name)
 {
 	std::lock_guard<std::mutex> lk(d->nameMutex);
-	displayName=name;
+	displayName = name;
 }

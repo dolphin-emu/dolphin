@@ -9,6 +9,7 @@
 #define _WIN32_IE 0x0500       // Default value is 0x0400
 #endif
 */
-#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX            // Don't include windows min/max definitions
 
 #include <algorithm>

@@ -1,10 +1,9 @@
-#ifndef _CIFACE_XLIB_H_
-#define _CIFACE_XLIB_H_
+#pragma once
 
-#include "../Device.h"
-
-#include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <X11/Xlib.h>
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {
@@ -31,24 +30,24 @@ private:
 	{
 		friend class KeyboardMouse;
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		Key(Display* display, KeyCode keycode, const char* keyboard);
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
-		std::string	m_keyname;
-		Display* const	m_display;
+		std::string       m_keyname;
+		Display* const    m_display;
 		const char* const m_keyboard;
-		const KeyCode	m_keycode;
+		const KeyCode     m_keycode;
 	};
 
 	class Button : public Input
 	{
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		Button(unsigned int index, unsigned int& buttons)
 			: m_buttons(buttons), m_index(index) {}
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
 		const unsigned int& m_buttons;
@@ -58,36 +57,34 @@ private:
 	class Cursor : public Input
 	{
 	public:
-		std::string GetName() const;
-		bool IsDetectable() { return false; }
+		std::string GetName() const override;
+		bool IsDetectable() override { return false; }
 		Cursor(u8 index, bool positive, const float& cursor)
 			: m_cursor(cursor), m_index(index), m_positive(positive) {}
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
 		const float& m_cursor;
-		const u8 m_index;
-		const bool m_positive;
+		const u8     m_index;
+		const bool   m_positive;
 	};
 
 public:
-	bool UpdateInput();
-	bool UpdateOutput();
+	bool UpdateInput() override;
+	bool UpdateOutput() override;
 
 	KeyboardMouse(Window window);
 	~KeyboardMouse();
 
-	std::string GetName() const;
-	std::string GetSource() const;
-	int GetId() const;
+	std::string GetName() const override;
+	std::string GetSource() const override;
+	int GetId() const override;
 
 private:
-	Window m_window;
+	Window   m_window;
 	Display* m_display;
-	State m_state;
+	State    m_state;
 };
 
 }
 }
-
-#endif

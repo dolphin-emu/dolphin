@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VEC3_H
-#define _VEC3_H
+#pragma once
 
-#include <stdlib.h>
-#include <math.h>
-#include "ChunkFile.h"
+#include <cmath>
+#include <cstdlib>
+
+#include "Common/ChunkFile.h"
 
 class Vec3
 {
@@ -106,5 +106,3 @@ public:
 		p.Do(z);
 	}
 };
-
-#endif

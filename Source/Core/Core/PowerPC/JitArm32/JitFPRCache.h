@@ -1,27 +1,13 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
+#pragma once
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#ifndef _JITARMFPRCACHE_H
-#define _JITARMFPRCACHE_H
-
-#include "ArmEmitter.h"
-#include "../Gekko.h"
-#include "../PPCAnalyst.h"
-#include "JitRegCache.h"
+#include "Common/ArmEmitter.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/JitArm32/JitRegCache.h"
 
 #define ARMFPUREGS 32
 using namespace ArmGen;
@@ -57,8 +43,7 @@ public:
 
 	ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
 	void Unlock(ARMReg V0);
-	void Flush();
+	void Flush(FlushMode mode = FLUSH_ALL);
 	ARMReg R0(u32 preg, bool preLoad = true); // Returns a cached register
 	ARMReg R1(u32 preg, bool preLoad = true);
 };
-#endif

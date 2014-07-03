@@ -1,24 +1,10 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
+#pragma once
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#ifndef _NATIVEVERTEXFORMAT_H
-#define _NATIVEVERTEXFORMAT_H
-
-#include "Common.h"
+#include "Common/Common.h"
 
 // m_components
 enum
@@ -65,28 +51,31 @@ typedef void (LOADERDECL *TPipelineFunction)();
 
 enum VarType
 {
-	VAR_BYTE,
-	VAR_UNSIGNED_BYTE,
-	VAR_SHORT,
-	VAR_UNSIGNED_SHORT,
-	VAR_FLOAT,
+	VAR_UNSIGNED_BYTE,  // GX_U8  = 0
+	VAR_BYTE,           // GX_S8  = 1
+	VAR_UNSIGNED_SHORT, // GX_U16 = 2
+	VAR_SHORT,          // GX_S16 = 3
+	VAR_FLOAT,          // GX_F32 = 4
+};
+
+struct AttributeFormat
+{
+	VarType type;
+	int components;
+	int offset;
+	bool enable;
+	bool integer;
 };
 
 struct PortableVertexDeclaration
 {
 	int stride;
 
-	int num_normals;
-	int normal_offset[3];
-	VarType normal_gl_type;
-	int normal_gl_size;
-	VarType color_gl_type;  // always GL_UNSIGNED_BYTE
-	int color_offset[2];
-	VarType texcoord_gl_type[8];
-	//int texcoord_gl_size[8];
-	int texcoord_offset[8];
-	int texcoord_size[8];
-	int posmtx_offset;
+	AttributeFormat position;
+	AttributeFormat normals[3];
+	AttributeFormat colors[2];
+	AttributeFormat texcoords[8];
+	AttributeFormat posmtx;
 };
 
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
@@ -113,5 +102,3 @@ protected:
 
 	u32 vertex_stride;
 };
-
-#endif  // _NATIVEVERTEXFORMAT_H

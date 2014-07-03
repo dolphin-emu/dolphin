@@ -2,10 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h> // System
+#include <cstdarg>
+#include <cstdio>
+#include <string>
 
-#include "Common.h" // Local
-#include "StringUtil.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
 
 bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style);
 static MsgAlertHandler msg_handler = DefaultMsgHandler;
@@ -54,7 +56,7 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 		crit_caption = str_translator(_trans("Critical"));
 	}
 
-	switch(Style)
+	switch (Style)
 	{
 		case INFORMATION:
 			caption = info_caption;

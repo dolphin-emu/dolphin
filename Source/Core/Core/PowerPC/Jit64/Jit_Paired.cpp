@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "Jit.h"
-#include "JitRegCache.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitRegCache.h"
 
 // TODO
 // ps_madds0
@@ -16,19 +16,18 @@
 
 static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-static const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
 
 void Jit64::ps_mr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
+
 	int d = inst.FD;
 	int b = inst.FB;
 	if (d == b)
 		return;
+
 	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), fpr.R(b));
 }
@@ -39,11 +38,9 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	// but we need -0 = +0
 
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
-	if (inst.Rc) {
-		Default(inst); return;
-	}
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
@@ -51,13 +48,13 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 
 	fpr.Lock(a, b, c, d);
 	MOVAPD(XMM0, fpr.R(a));
-	XORPD(XMM1, R(XMM1));
+	PXOR(XMM1, R(XMM1));
 	// XMM0 = XMM0 < 0 ? all 1s : all 0s
 	CMPPD(XMM0, R(XMM1), LT);
 	MOVAPD(XMM1, R(XMM0));
-	ANDPD(XMM0, fpr.R(b));
-	ANDNPD(XMM1, fpr.R(c));
-	ORPD(XMM0, R(XMM1));
+	PAND(XMM0, fpr.R(b));
+	PANDN(XMM1, fpr.R(c));
+	POR(XMM0, R(XMM1));
 	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), R(XMM0));
 	fpr.UnlockAll();
@@ -66,10 +63,9 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 void Jit64::ps_sign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
+
 	int d = inst.FD;
 	int b = inst.FB;
 
@@ -87,47 +83,16 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	switch (inst.SUBOP10)
 	{
 	case 40: //neg
-		XORPD(fpr.RX(d), M((void*)&psSignBits));
+		PXOR(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	case 136: //nabs
-		ORPD(fpr.RX(d), M((void*)&psSignBits));
+		POR(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	case 264: //abs
-		ANDPD(fpr.RX(d), M((void*)&psAbsMask));
+		PAND(fpr.RX(d), M((void*)&psAbsMask));
 		break;
 	}
 
-	fpr.UnlockAll();
-}
-
-// ps_res and ps_rsqrte
-void Jit64::ps_recip(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
-	OpArg divisor;
-	int d = inst.FD;
-	int b = inst.FB;
-	fpr.Lock(d, b);
-	fpr.BindToRegister(d, (d == b));
-	switch (inst.SUBOP5)
-	{
-	case 24:
-		// ps_res
-		divisor = fpr.R(b);
-		break;
-	case 26:
-		// ps_rsqrte
-		SQRTPD(XMM0, fpr.R(b));
-		divisor = R(XMM0);
-		break;
-	}
-	MOVAPD(XMM1, M((void*)&psOneOne));
-	DIVPD(XMM1, divisor);
-	MOVAPD(fpr.R(d), XMM1);
 	fpr.UnlockAll();
 }
 
@@ -184,10 +149,9 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X6
 void Jit64::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
+
 	switch (inst.SUBOP5)
 	{
 	case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD); break; //div
@@ -202,11 +166,11 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 void Jit64::ps_sum(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
+	JITDISABLE(bJITPairedOff);
+
 	// TODO: (inst.SUBOP5 == 10) breaks Sonic Colours (black screen)
-	if (inst.Rc || (inst.SUBOP5 == 10)) {
-		Default(inst); return;
-	}
+	FALLBACK_IF(inst.Rc || (inst.SUBOP5 == 10));
+
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
@@ -244,10 +208,9 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 void Jit64::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
+
 	int d = inst.FD;
 	int a = inst.FA;
 	int c = inst.FC;
@@ -283,10 +246,9 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
+
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
@@ -320,10 +282,9 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 void Jit64::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
+
 	int a = inst.FA;
 	int b = inst.FB;
 	int c = inst.FC;
@@ -355,16 +316,16 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	case 30: //nmsub
 		MULPD(XMM0, fpr.R(c));
 		SUBPD(XMM0, fpr.R(b));
-		XORPD(XMM0, M((void*)&psSignBits));
+		PXOR(XMM0, M((void*)&psSignBits));
 		break;
 	case 31: //nmadd
 		MULPD(XMM0, fpr.R(c));
 		ADDPD(XMM0, fpr.R(b));
-		XORPD(XMM0, M((void*)&psSignBits));
+		PXOR(XMM0, M((void*)&psSignBits));
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_maddXX WTF!!!");
-		//Default(inst);
+		//FallBackToInterpreter(inst);
 		//fpr.UnlockAll();
 		return;
 	}

@@ -2,12 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _SI_DEVICEGCSTEERINGWHEEL_H
-#define _SI_DEVICEGCSTEERINGWHEEL_H
+#pragma once
 
-#include "SI_Device.h"
-#include "GCPadStatus.h"
-
+#include "Core/HW/SI_Device.h"
+#include "InputCommon/GCPadStatus.h"
 
 // standard gamecube controller
 class CSIDevice_GCSteeringWheel : public ISIDevice
@@ -17,16 +15,16 @@ private:
 	// Commands
 	enum EBufferCommands
 	{
-		CMD_RESET		= 0x00,
-		CMD_ORIGIN		= 0x41,
-		CMD_RECALIBRATE	= 0x42,
-		CMD_MOTOR_OFF	= 0xff,
+		CMD_RESET       = 0x00,
+		CMD_ORIGIN      = 0x41,
+		CMD_RECALIBRATE = 0x42,
+		CMD_MOTOR_OFF   = 0xff,
 	};
 
 	struct SOrigin
 	{
 		u8 uCommand;// Maybe should be button bits?
-		u8 unk_1;	// ..and this would be the other half
+		u8 unk_1;   // ..and this would be the other half
 		u8 uOriginStickX;
 		u8 uOriginStickY;
 		u8 uSubStickStickX;
@@ -50,13 +48,13 @@ private:
 		u32 Hex;
 		struct
 		{
-			u32 Parameter1	:	8;
-			u32 Parameter2	:	8;
-			u32 Command		:	8;
-			u32				:	8;
+			u32 Parameter1 : 8;
+			u32 Parameter2 : 8;
+			u32 Command    : 8;
+			u32            : 8;
 		};
-		UCommand()				{Hex = 0;}
-		UCommand(u32 _iValue)	{Hex = _iValue;}
+		UCommand()            {Hex = 0;}
+		UCommand(u32 _iValue) {Hex = _iValue;}
 	};
 
 	enum EButtonCombo
@@ -87,20 +85,18 @@ public:
 	CSIDevice_GCSteeringWheel(SIDevices device, int _iDeviceNumber);
 
 	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength);
+	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
 
 	// Send and Receive pad input from network
 	static bool NetPlay_GetInput(u8 numPAD, SPADStatus status, u32 *PADStatus);
 	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
 
 	// Return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low);
+	virtual bool GetData(u32& _Hi, u32& _Low) override;
 
 	// Send a command directly
-	virtual void SendCommand(u32 _Cmd, u8 _Poll);
+	virtual void SendCommand(u32 _Cmd, u8 _Poll) override;
 
 	// Savestate support
-	virtual void DoState(PointerWrap& p);
+	virtual void DoState(PointerWrap& p) override;
 };
-
-#endif

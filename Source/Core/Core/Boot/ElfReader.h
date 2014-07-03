@@ -2,17 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ELFREADER_H
-#define _ELFREADER_H
+#pragma once
 
-#include "ElfTypes.h"
+#include "Core/Boot/ElfTypes.h"
 
 enum KnownElfTypes
 {
 	KNOWNELF_PSP = 0,
-	KNOWNELF_DS = 1,
+	KNOWNELF_DS  = 1,
 	KNOWNELF_GBA = 2,
-	KNOWNELF_GC = 3,
+	KNOWNELF_GC  = 3,
 };
 
 typedef int SectionID;
@@ -52,11 +51,11 @@ public:
 	const u8 *GetSectionDataPtr(int section) const
 	{
 		if (section < 0 || section >= header->e_shnum)
-			return 0;
+			return nullptr;
 		if (sections[section].sh_type != SHT_NOBITS)
 			return GetPtr(sections[section].sh_offset);
 		else
-			return 0;
+			return nullptr;
 	}
 	bool IsCodeSection(int section) const
 	{
@@ -67,13 +66,10 @@ public:
 		return GetPtr(segments[segment].p_offset);
 	}
 	u32 GetSectionAddr(SectionID section) const { return sectionAddrs[section]; }
-	int GetSectionSize(SectionID section) const { return sections[section].sh_size;	}
+	int GetSectionSize(SectionID section) const { return sections[section].sh_size; }
 	SectionID GetSectionByName(const char *name, int firstSection = 0) const; //-1 for not found
 
 	bool DidRelocate() {
 		return bRelocate;
 	}
 };
-
-#endif
-

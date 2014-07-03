@@ -2,7 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include <cstddef>
+#include <cstring>
+#include <errno.h>
 
 // Neither Android nor OS X support TLS
 #if  defined(__APPLE__) || (ANDROID && __clang__)
@@ -19,9 +21,9 @@ const char* GetLastErrorMsg()
 #ifdef _WIN32
 	static __declspec(thread) char err_str[buff_size] = {};
 
-	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
+	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, GetLastError(),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		err_str, buff_size, NULL);
+		err_str, buff_size, nullptr);
 #else
 	static __thread char err_str[buff_size] = {};
 

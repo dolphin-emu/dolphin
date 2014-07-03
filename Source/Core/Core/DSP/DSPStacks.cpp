@@ -3,7 +3,7 @@
    filename:     gdsp_registers.cpp
    project:      GCemu
    created:      2004-6-18
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie & Tratax
 
@@ -23,10 +23,10 @@
 
    ====================================================================*/
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "DSPCore.h"
-#include "DSPStacks.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPStacks.h"
 
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
 

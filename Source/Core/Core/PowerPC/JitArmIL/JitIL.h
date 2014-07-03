@@ -1,25 +1,19 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JITARMIL_H
-#define _JITARMIL_H
+#pragma once
 
-#include "../PPCAnalyst.h"
-#include "ArmEmitter.h"
-#include "../JitArm32/JitArmCache.h"
-#include "../JitILCommon/JitILBase.h"
-#include "../JitILCommon/IR.h"
-#include "../JitCommon/JitBase.h"
-#include "JitILAsm.h"
-
-#define JITDISABLE(setting) \
-	if (Core::g_CoreStartupParameter.bJITOff || \
-		Core::g_CoreStartupParameter.setting) \
-		{Default(inst); return;}
+#include "Common/ArmEmitter.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/JitArm32/JitArmCache.h"
+#include "Core/PowerPC/JitArmIL/JitILAsm.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitILCommon/IR.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 #define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0]))
-class JitArmIL : public JitILBase, public ArmGen::ARMXCodeBlock
+class JitArmIL : public JitILBase, public ArmGen::ARMCodeBlock
 {
 private:
 	JitArmBlockCache blocks;
@@ -43,7 +37,7 @@ public:
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return NULL; }
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return nullptr; }
 
 	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 
@@ -64,15 +58,15 @@ public:
 	void Run();
 	void SingleStep();
 	//
-	void WriteCode();
-	void WriteExit(u32 destination, int exit_num);
-	void WriteExitDestInReg(ARMReg Reg);
-	void WriteRfiExitDestInR(ARMReg Reg);
+	void WriteCode(u32 exitAddress);
+	void WriteExit(u32 destination);
+	void WriteExitDestInReg(ArmGen::ARMReg Reg);
+	void WriteRfiExitDestInR(ArmGen::ARMReg Reg);
 	void WriteExceptionExit();
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction inst);
-	void Default(UGeckoInstruction inst);
+	void FallBackToInterpreter(UGeckoInstruction inst);
 	void DoNothing(UGeckoInstruction inst);
 	void HLEFunction(UGeckoInstruction inst);
 	void Break(UGeckoInstruction inst);
@@ -84,10 +78,10 @@ public:
 	void DynaRunTable63(UGeckoInstruction inst);
 
 	// Binary ops
-	void BIN_AND(ARMReg reg, Operand2 op2);
-	void BIN_XOR(ARMReg reg, Operand2 op2);
-	void BIN_OR(ARMReg reg, Operand2 op2);
-	void BIN_ADD(ARMReg reg, Operand2 op2);
+	void BIN_AND(ArmGen::ARMReg reg, ArmGen::Operand2 op2);
+	void BIN_XOR(ArmGen::ARMReg reg, ArmGen::Operand2 op2);
+	void BIN_OR(ArmGen::ARMReg reg, ArmGen::Operand2 op2);
+	void BIN_ADD(ArmGen::ARMReg reg, ArmGen::Operand2 op2);
 
 	// Branches
 	void bx(UGeckoInstruction inst);
@@ -95,5 +89,3 @@ public:
 	void bclrx(UGeckoInstruction inst);
 	void bcctrx(UGeckoInstruction inst);
 };
-
-#endif

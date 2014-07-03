@@ -2,18 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoBackendBase.h"
-
 // TODO: ugly
 #ifdef _WIN32
-#include "../VideoBackends/D3D/VideoBackend.h"
+#include "VideoBackends/D3D/VideoBackend.h"
 #endif
-#include "../VideoBackends/OGL/VideoBackend.h"
-#include "../VideoBackends/Software/VideoBackend.h"
+#include "VideoBackends/OGL/VideoBackend.h"
+#include "VideoBackends/Software/VideoBackend.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 std::vector<VideoBackend*> g_available_video_backends;
-VideoBackend* g_video_backend = NULL;
-static VideoBackend* s_default_backend = NULL;
+VideoBackend* g_video_backend = nullptr;
+static VideoBackend* s_default_backend = nullptr;
 
 #ifdef _WIN32
 #include <windows.h>
@@ -36,7 +36,7 @@ static bool IsGteVista()
 
 void VideoBackend::PopulateList()
 {
-	VideoBackend* backends[4] = { NULL };
+	VideoBackend* backends[4] = { nullptr };
 
 	// OGL > D3D11 > SW
 #if !defined(USE_GLES) || USE_GLES3
@@ -48,7 +48,7 @@ void VideoBackend::PopulateList()
 #endif
 	g_available_video_backends.push_back(backends[3] = new SW::VideoSoftware);
 
-	for (auto& backend : backends)
+	for (VideoBackend* backend : backends)
 	{
 		if (backend)
 		{
@@ -69,10 +69,10 @@ void VideoBackend::ClearList()
 
 void VideoBackend::ActivateBackend(const std::string& name)
 {
-	if (name.length() == 0) // If NULL, set it to the default backend (expected behavior)
+	if (name.length() == 0) // If nullptr, set it to the default backend (expected behavior)
 		g_video_backend = s_default_backend;
 
-	for (std::vector<VideoBackend*>::const_iterator it = g_available_video_backends.begin(); it != g_available_video_backends.end(); ++it)
-		if (name == (*it)->GetName())
-			g_video_backend = *it;
+	for (VideoBackend* backend : g_available_video_backends)
+		if (name == backend->GetName())
+			g_video_backend = backend;
 }

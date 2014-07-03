@@ -1,27 +1,34 @@
+#pragma once
 
-#ifndef _CONFIG_DIAG_H_
-#define _CONFIG_DIAG_H_
-
-#include <vector>
-#include <string>
+#include <cstddef>
 #include <map>
-
-#include "ConfigManager.h"
-#include "VideoConfig.h"
-#include "Core.h"
-
-#include <wx/wx.h>
-#include <wx/textctrl.h>
-#include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/combobox.h>
+#include <string>
+#include <vector>
 #include <wx/checkbox.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
+#include <wx/choice.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/msgdlg.h>
+#include <wx/radiobut.h>
 #include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/window.h>
 
-#include "MsgHandler.h"
-#include "WxUtils.h"
+#include "Common/CommonTypes.h"
+#include "Common/SysConf.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreParameter.h"
+#include "DolphinWX/WxUtils.h"
+#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
+
+class wxBoxSizer;
+class wxControl;
+class wxPanel;
 
 template <typename W>
 class BoolSetting : public W
@@ -62,7 +69,7 @@ typedef IntegerSetting<u32> U32Setting;
 class SettingChoice : public wxChoice
 {
 public:
-	SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num = 0, const wxString choices[] = NULL, long style = 0);
+	SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num = 0, const wxString choices[] = nullptr, long style = 0);
 	void UpdateValue(wxCommandEvent& ev);
 private:
 	int &m_setting;
@@ -79,7 +86,7 @@ protected:
 		VideoBackend* new_backend = g_available_video_backends[ev.GetInt()];
 		if (g_video_backend != new_backend)
 		{
-			bool do_switch = true;
+			bool do_switch = Core::GetState() == Core::CORE_UNINITIALIZED;
 			if (new_backend->GetName() == "Software Renderer")
 			{
 				do_switch = (wxYES == wxMessageBox(_("Software rendering is an order of magnitude slower than using the other backends.\nIt's only useful for debugging purposes.\nDo you really want to enable software rendering? If unsure, select 'No'."),
@@ -148,9 +155,6 @@ protected:
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 
-		// pixel lighting
-		pixel_lighting->Enable(vconfig.backend_info.bSupportsPixelLighting);
-
 		// 3D vision
 		_3d_vision->Enable(vconfig.backend_info.bSupports3DVision);
 		_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
@@ -159,9 +163,6 @@ protected:
 		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
 		efbcopy_ram->Enable(vconfig.bEFBCopyEnable);
 		cache_efb_copies->Enable(vconfig.bEFBCopyEnable && !vconfig.bCopyEFBToTexture);
-
-		// EFB format change emulation
-		emulate_efb_format_changes->Enable(vconfig.backend_info.bSupportsFormatReinterpretation);
 
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
@@ -172,7 +173,7 @@ protected:
 
 	// Creates controls and connects their enter/leave window events to Evt_Enter/LeaveControl
 	SettingCheckBox* CreateCheckBox(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
-	SettingChoice* CreateChoice(wxWindow* parent, int& setting, const wxString& description, int num = 0, const wxString choices[] = NULL, long style = 0);
+	SettingChoice* CreateChoice(wxWindow* parent, int& setting, const wxString& description, int num = 0, const wxString choices[] = nullptr, long style = 0);
 	SettingRadioButton* CreateRadioButton(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
 
 	// Same as above but only connects enter/leave window events
@@ -187,14 +188,11 @@ protected:
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
 
-	SettingCheckBox* pixel_lighting;
-
 	SettingCheckBox* _3d_vision;
 
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;
 	SettingCheckBox* cache_efb_copies;
-	SettingCheckBox* emulate_efb_format_changes;
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;
@@ -205,5 +203,3 @@ protected:
 	VideoConfig &vconfig;
 	std::string ininame;
 };
-
-#endif

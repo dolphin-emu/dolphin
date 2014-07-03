@@ -2,15 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPHLE_H
-#define _DSPHLE_H
+#pragma once
 
-#include "AudioCommon.h"
-#include "SoundStream.h"
-#include "MailHandler.h"
-#include "../../DSPEmulator.h"
+#include "Core/DSPEmulator.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 
-class IUCode;
+class UCodeInterface;
 
 class DSPHLE : public DSPEmulator {
 public:
@@ -29,27 +27,22 @@ public:
 	virtual unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox) override;
 	virtual unsigned short DSP_ReadControlRegister() override;
 	virtual unsigned short DSP_WriteControlRegister(unsigned short) override;
-	virtual void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples) override;
 	virtual void DSP_Update(int cycles) override;
 	virtual void DSP_StopSoundStream() override;
-	virtual void DSP_ClearAudioBuffer(bool mute) override;
 	virtual u32 DSP_UpdateRate() override;
 
 	CMailHandler& AccessMailHandler() { return m_MailHandler; }
 
 	// Formerly DSPHandler
-	IUCode *GetUCode();
+	UCodeInterface *GetUCode();
 	void SetUCode(u32 _crc);
 	void SwapUCode(u32 _crc);
 
 private:
 	void SendMailToDSP(u32 _uMail);
-	void InitMixer();
 
 	// Declarations and definitions
 	bool m_bWii;
-
-	bool m_InitMixer;
 
 	// Fake mailbox utility
 	struct DSPState
@@ -70,14 +63,12 @@ private:
 	};
 	DSPState m_dspState;
 
-	IUCode* m_pUCode;
-	IUCode* m_lastUCode;
+	UCodeInterface* m_pUCode;
+	UCodeInterface* m_lastUCode;
 
-	UDSPControl m_DSPControl;
+	DSP::UDSPControl m_DSPControl;
 	CMailHandler m_MailHandler;
 
 	bool m_bHalt;
 	bool m_bAssertInt;
 };
-
-#endif  // _DSPHLE_H

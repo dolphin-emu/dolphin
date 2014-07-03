@@ -1,20 +1,20 @@
+#include "Common/Common.h"
 
-#include "Common.h"
-
-#include "Statistics.h"
-#include "OpcodeDecoding.h"
-#include "IndexGenerator.h"
-#include "VertexShaderManager.h"
-#include "PixelShaderManager.h"
-#include "NativeVertexFormat.h"
-#include "TextureCacheBase.h"
-#include "RenderBase.h"
-#include "BPStructs.h"
-#include "XFMemory.h"
-
-#include "VertexManagerBase.h"
-#include "MainBase.h"
-#include "VideoConfig.h"
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/MainBase.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 VertexManager *g_vertex_manager;
 
@@ -28,7 +28,7 @@ bool VertexManager::IsFlushed;
 
 static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
-	PRIMITIVE_TRIANGLES, // GX_DRAW_NONE
+	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS_2
 	PRIMITIVE_TRIANGLES, // GX_DRAW_TRIANGLES
 	PRIMITIVE_TRIANGLES, // GX_DRAW_TRIANGLE_STRIP
 	PRIMITIVE_TRIANGLES, // GX_DRAW_TRIANGLE_FAN
@@ -66,7 +66,7 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 	{
 		Flush();
 
-		if(count > IndexGenerator::GetRemainingIndices())
+		if (count > IndexGenerator::GetRemainingIndices())
 			ERROR_LOG(VIDEO, "Too little remaining index values. Use 32-bit or reset them on flush.");
 		if (count > GetRemainingIndices(primitive))
 			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all indices! "
@@ -77,7 +77,7 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 	}
 
 	// need to alloc new buffer
-	if(IsFlushed)
+	if (IsFlushed)
 	{
 		g_vertex_manager->ResetBuffer(stride);
 		IsFlushed = false;
@@ -88,11 +88,12 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 {
 	u32 index_len = MAXIBUFFERSIZE - IndexGenerator::GetIndexLen();
 
-	if(g_Config.backend_info.bSupportsPrimitiveRestart)
+	if (g_Config.backend_info.bSupportsPrimitiveRestart)
 	{
 		switch (primitive)
 		{
 		case GX_DRAW_QUADS:
+		case GX_DRAW_QUADS_2:
 			return index_len / 5 * 4;
 		case GX_DRAW_TRIANGLES:
 			return index_len / 4 * 3;
@@ -118,6 +119,7 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 		switch (primitive)
 		{
 		case GX_DRAW_QUADS:
+		case GX_DRAW_QUADS_2:
 			return index_len / 6 * 4;
 		case GX_DRAW_TRIANGLES:
 			return index_len;
@@ -140,17 +142,6 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 	}
 }
 
-void VertexManager::AddVertices(int primitive, u32 numVertices)
-{
-	if (numVertices <= 0)
-		return;
-
-	ADDSTAT(stats.thisFrame.numPrims, numVertices);
-	INCSTAT(stats.thisFrame.numPrimitiveJoins);
-
-	IndexGenerator::AddIndices(primitive, numVertices);
-}
-
 void VertexManager::Flush()
 {
 	if (IsFlushed) return;
@@ -161,31 +152,31 @@ void VertexManager::Flush()
 	VideoFifo_CheckEFBAccess();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGen.numTexGens,
-		xfregs.numChan.numColorChans, xfregs.dualTexTrans.enabled, bpmem.ztex2.op,
-		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
+	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens,
+		xfmem.numChan.numColorChans, xfmem.dualTexTrans.enabled, bpmem.ztex2.op,
+		(int)bpmem.blendmode.colorupdate, (int)bpmem.blendmode.alphaupdate, (int)bpmem.zmode.updateenable);
 
-	for (unsigned int i = 0; i < xfregs.numChan.numColorChans; ++i)
+	for (unsigned int i = 0; i < xfmem.numChan.numColorChans; ++i)
 	{
-		LitChannel* ch = &xfregs.color[i];
+		LitChannel* ch = &xfmem.color[i];
 		PRIM_LOG("colchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
-		ch = &xfregs.alpha[i];
+		ch = &xfmem.alpha[i];
 		PRIM_LOG("alpchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
 	}
 
-	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 	{
-		TexMtxInfo tinfo = xfregs.texMtxInfo[i];
+		TexMtxInfo tinfo = xfmem.texMtxInfo[i];
 		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP) tinfo.hex &= 0x7ff;
 		if (tinfo.texgentype != XF_TEXGEN_REGULAR) tinfo.projection = 0;
 
 		PRIM_LOG("txgen%d: proj=%d, input=%d, gentype=%d, srcrow=%d, embsrc=%d, emblght=%d, postmtx=%d, postnorm=%d",
 			i, tinfo.projection, tinfo.inputform, tinfo.texgentype, tinfo.sourcerow, tinfo.embosssourceshift, tinfo.embosslightshift,
-			xfregs.postMtxInfo[i].index, xfregs.postMtxInfo[i].normalize);
+			xfmem.postMtxInfo[i].index, xfmem.postMtxInfo[i].normalize);
 	}
 
-	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphatest=0x%x", bpmem.genMode.numtevstages+1, bpmem.genMode.numindstages,
-		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alpha_test.hex>>16)&0xff);
+	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphatest=0x%x", (int)bpmem.genMode.numtevstages+1, (int)bpmem.genMode.numindstages,
+		(int)bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alpha_test.hex>>16)&0xff);
 #endif
 
 	u32 usedtextures = 0;
@@ -227,8 +218,18 @@ void VertexManager::Flush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
-	// TODO: need to merge more stuff into VideoCommon
-	g_vertex_manager->vFlush();
+	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass &&
+	                   bpmem.dstalpha.enable &&
+	                   bpmem.blendmode.alphaupdate &&
+	                   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
+	if (PerfQueryBase::ShouldEmulate())
+		g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+	g_vertex_manager->vFlush(useDstAlpha);
+	if (PerfQueryBase::ShouldEmulate())
+		g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+
+	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	IsFlushed = true;
 }

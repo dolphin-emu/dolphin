@@ -2,12 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DebuggerUIUtil.h"
-#include "RegisterView.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/ProcessorInterface.h"
-#include "IniFile.h"
-#include "../WxUtils.h"
+#include <wx/chartype.h>
+#include <wx/colour.h>
+#include <wx/defs.h>
+#include <wx/grid.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
+
+#include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include "DolphinWX/Debugger/RegisterView.h"
+
+class wxWindow;
 
 // F-zero 80005e60 wtf??
 
@@ -44,10 +55,10 @@ wxString CRegTable::GetValue(int row, int col)
 		switch (col)
 		{
 		case 0: return StrToWxStr(GetGPRName(row));
-		case 1: return wxString::Format(wxT("%08x"), GPR(row));
+		case 1: return wxString::Format("%08x", GPR(row));
 		case 2: return StrToWxStr(GetFPRName(row));
-		case 3: return wxString::Format(wxT("%016llx"), riPS0(row));
-		case 4: return wxString::Format(wxT("%016llx"), riPS1(row));
+		case 3: return wxString::Format("%016llx", riPS0(row));
+		case 4: return wxString::Format("%016llx", riPS1(row));
 		default: return wxEmptyString;
 		}
 	}
@@ -57,8 +68,8 @@ wxString CRegTable::GetValue(int row, int col)
 		{
 			switch (col)
 			{
-			case 0:	return StrToWxStr(special_reg_names[row - 32]);
-			case 1: return wxString::Format(wxT("%08x"), GetSpecialRegValue(row - 32));
+			case 0: return StrToWxStr(special_reg_names[row - 32]);
+			case 1: return wxString::Format("%08x", GetSpecialRegValue(row - 32));
 			default: return wxEmptyString;
 			}
 		}
@@ -79,9 +90,9 @@ static void SetSpecialRegValue(int reg, u32 value)
 	case 6: PowerPC::ppcState.spr[SPR_SRR0] = value; break;
 	case 7: PowerPC::ppcState.spr[SPR_SRR1] = value; break;
 	case 8: PowerPC::ppcState.Exceptions = value; break;
-// Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system aware?
-// 	case 9: return ProcessorInterface::GetMask();
-// 	case 10: return ProcessorInterface::GetCause();
+	// Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system aware?
+	// case 9: return ProcessorInterface::GetMask();
+	// case 10: return ProcessorInterface::GetCause();
 	default: return;
 	}
 }
@@ -133,7 +144,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 {
 	wxGridCellAttr *attr = new wxGridCellAttr();
 
-	attr->SetBackgroundColour(wxColour(wxT("#FFFFFF")));  //wxWHITE
+	attr->SetBackgroundColour(*wxWHITE);
 	attr->SetFont(DebuggerFont);
 
 	switch (col)
@@ -158,7 +169,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 	case 4: red = row < 32 ? m_CachedFRegHasChanged[row][col-3] : false; break;
 	}
 
-	attr->SetTextColour(red ? wxColor(wxT("#FF0000")) : wxColor(wxT("#000000")));
+	attr->SetTextColour(red ? *wxRED : *wxBLACK);
 	attr->IncRef();
 	return attr;
 }

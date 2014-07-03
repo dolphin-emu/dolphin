@@ -2,14 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __GECKOCODE_h__
-#define __GECKOCODE_h__
+#pragma once
 
-#include "Common.h"
-
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
+
+#include "Common/Common.h"
 
 namespace Gecko
 {
@@ -31,9 +30,9 @@ namespace Gecko
 			u32 GetAddress() const;
 		};
 
-		std::vector<Code>	codes;
-		std::string		name, creator;
-		std::vector<std::string>	notes;
+		std::vector<Code> codes;
+		std::string name, creator;
+		std::vector<std::string> notes;
 
 		bool enabled;
 		bool user_defined;
@@ -46,6 +45,4 @@ namespace Gecko
 	bool RunActiveCodes();
 	void RunCodeHandler();
 
-}	// namespace Gecko
-
-#endif
+} // namespace Gecko

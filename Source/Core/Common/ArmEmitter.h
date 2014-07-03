@@ -1,31 +1,19 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // WARNING - THIS LIBRARY IS NOT THREAD SAFE!!!
 
-#ifndef _DOLPHIN_ARM_CODEGEN_
-#define _DOLPHIN_ARM_CODEGEN_
+#pragma once
 
-#include "Common.h"
-#include "MemoryUtil.h"
+#include <vector>
+
+#include "Common/CodeBlock.h"
+#include "Common/Common.h"
+
 #if defined(__SYMBIAN32__) || defined(PANDORA)
 #include <signal.h>
 #endif
-#include <vector>
 
 #undef _IP
 #undef R0
@@ -132,7 +120,7 @@ private:
 	OpType Type;
 
 	// IMM types
-	u8	Rotation; // Only for u8 values
+	u8 Rotation; // Only for u8 values
 
 	// Register types
 	u8 IndexOrShift;
@@ -173,7 +161,7 @@ public:
 
 	Operand2(ARMReg base, ShiftType type, u8 shift)// For IMM shifted register
 	{
-		if(shift == 32) shift = 0;
+		if (shift == 32) shift = 0;
 		switch (type)
 		{
 		case ST_LSL:
@@ -210,7 +198,7 @@ public:
 	}
 	u32 GetData()
 	{
-		switch(Type)
+		switch (Type)
 		{
 		case TYPE_IMM:
 			return Imm12Mod(); // This'll need to be changed later
@@ -316,9 +304,9 @@ bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool *negated);
 // Use this only when you know imm can be made into an Operand2.
 Operand2 AssumeMakeOperand2(u32 imm);
 
-inline Operand2 R(ARMReg Reg)	{ return Operand2(Reg, TYPE_REG); }
-inline Operand2 IMM(u32 Imm)	{ return Operand2(Imm, TYPE_IMM); }
-inline Operand2 Mem(void *ptr)	{ return Operand2((u32)ptr, TYPE_IMM); }
+inline Operand2 R(ARMReg Reg)  { return Operand2(Reg, TYPE_REG); }
+inline Operand2 IMM(u32 Imm)   { return Operand2(Imm, TYPE_IMM); }
+inline Operand2 Mem(void *ptr) { return Operand2((u32)ptr, TYPE_IMM); }
 //usage: struct {int e;} s; STRUCT_OFFSET(s,e)
 #define STRUCT_OFF(str,elem) ((u32)((u32)&(str).elem-(u32)&(str)))
 
@@ -488,8 +476,8 @@ public:
 	void UDIV(ARMReg dest, ARMReg dividend, ARMReg divisor);
 	void SDIV(ARMReg dest, ARMReg dividend, ARMReg divisor);
 
-	void MUL (ARMReg dest,	ARMReg src, ARMReg op2);
-	void MULS(ARMReg dest,	ARMReg src, ARMReg op2);
+	void MUL (ARMReg dest, ARMReg src, ARMReg op2);
+	void MULS(ARMReg dest, ARMReg src, ARMReg op2);
 
 	void UMULL(ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
 	void UMULLS(ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
@@ -613,7 +601,7 @@ private:
 
 	void VREVX(u32 size, u32 Size, ARMReg Vd, ARMReg Vm);
 
-public:		
+public:
 	NEONXEmitter(ARMXEmitter *emit)
 		: _emit(emit)
 	{}
@@ -712,78 +700,18 @@ public:
 	void VST1(u32 Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
 };
 
-// Everything that needs to generate X86 code should inherit from this.
-// You get memory management for free, plus, you can use all the MOV etc functions without
-// having to prefix them with gen-> or something similar.
-class ARMXCodeBlock : public ARMXEmitter
+class ARMCodeBlock : public CodeBlock<ARMXEmitter>
 {
-protected:
-	u8 *region;
-	size_t region_size;
-
-public:
-	ARMXCodeBlock() : region(NULL), region_size(0) {}
-	virtual ~ARMXCodeBlock() { if (region) FreeCodeSpace(); }
-
-	// Call this before you generate any code.
-	void AllocCodeSpace(int size)
+private:
+	void PoisonMemory() override
 	{
-		region_size = size;
-		region = (u8*)AllocateExecutableMemory(region_size);
-		SetCodePtr(region);
-	}
-
-	// Always clear code space with breakpoints, so that if someone accidentally executes
-	// uninitialized, it just breaks into the debugger.
-	void ClearCodeSpace()
-	{
-		// x86/64: 0xCC = breakpoint
-		memset(region, 0xCC, region_size);
-		ResetCodePtr();
-	}
-
-	// Call this when shutting down. Don't rely on the destructor, even though it'll do the job.
-	void FreeCodeSpace()
-	{
-#ifndef __SYMBIAN32__
-		FreeMemoryPages(region, region_size);
-#endif
-		region = NULL;
-		region_size = 0;
-	}
-
-	bool IsInSpace(u8 *ptr)
-	{
-		return ptr >= region && ptr < region + region_size;
-	}
-
-	// Cannot currently be undone. Will write protect the entire code region.
-	// Start over if you need to change the code (call FreeCodeSpace(), AllocCodeSpace()).
-	void WriteProtect()
-	{
-		WriteProtectMemory(region, region_size, true);
-	}
-	void UnWriteProtect()
-	{
-		UnWriteProtectMemory(region, region_size, false);
-	}
-
-	void ResetCodePtr()
-	{
-		SetCodePtr(region);
-	}
-
-	size_t GetSpaceLeft() const
-	{
-		return region_size - (GetCodePtr() - region);
-	}
-
-	u8 *GetBasePtr() {
-		return region;
-	}
-
-	size_t GetOffset(u8 *ptr) {
-		return ptr - region;
+		u32* ptr = (u32*)region;
+		u32* maxptr = (u32*)region + region_size;
+		// If our memory isn't a multiple of u32 then this won't write the last remaining bytes with anything
+		// Less than optimal, but there would be nothing we could do but throw a runtime warning anyway.
+		// ARM: 0x01200070 = BKPT 0
+		while (ptr < maxptr)
+			*ptr++ = 0x01200070;
 	}
 };
 
@@ -796,5 +724,3 @@ extern const VFPEnc VFPOps[16][2];
 extern const char *VFPOpNames[16];
 
 }  // namespace
-
-#endif // _DOLPHIN_INTEL_CODEGEN_

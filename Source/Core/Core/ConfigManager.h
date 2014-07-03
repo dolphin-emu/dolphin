@@ -2,27 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONFIGMANAGER_H
-#define _CONFIGMANAGER_H
+#pragma once
 
 #include <string>
 #include <vector>
 
-#include "Boot/Boot.h"
-#include "HW/EXI_Device.h"
-#include "HW/SI_Device.h"
-#include "SysConf.h"
+#include "Common/SysConf.h"
+#include "Core/Boot/Boot.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/SI_Device.h"
 
 // DSP Backend Types
-#define BACKEND_NULLSOUND	_trans("No audio output")
-#define BACKEND_ALSA		"ALSA"
-#define BACKEND_AOSOUND		"AOSound"
-#define BACKEND_COREAUDIO	"CoreAudio"
-#define BACKEND_DIRECTSOUND	"DSound"
-#define BACKEND_OPENAL		"OpenAL"
-#define BACKEND_PULSEAUDIO	"Pulse"
-#define BACKEND_XAUDIO2		"XAudio2"
-#define BACKEND_OPENSLES	"OpenSLES"
+#define BACKEND_NULLSOUND   _trans("No audio output")
+#define BACKEND_ALSA        "ALSA"
+#define BACKEND_AOSOUND     "AOSound"
+#define BACKEND_COREAUDIO   "CoreAudio"
+#define BACKEND_DIRECTSOUND "DSound"
+#define BACKEND_OPENAL      "OpenAL"
+#define BACKEND_PULSEAUDIO  "Pulse"
+#define BACKEND_XAUDIO2     "XAudio2"
+#define BACKEND_OPENSLES    "OpenSLES"
 struct SConfig : NonCopyable
 {
 	// Wii Devices
@@ -51,13 +50,12 @@ struct SConfig : NonCopyable
 	int m_InterfaceLanguage;
 	// framelimit choose
 	unsigned int m_Framelimit;
-	bool b_UseFPS;
 	// other interface settings
 	bool m_InterfaceToolbar;
 	bool m_InterfaceStatusbar;
 	bool m_InterfaceLogWindow;
 	bool m_InterfaceLogConfigWindow;
-	bool m_InterfaceConsole;
+	bool m_InterfaceExtendedFPSInfo;
 
 	bool m_ListDrives;
 	bool m_ListWad;
@@ -74,13 +72,27 @@ struct SConfig : NonCopyable
 	int m_ListSort;
 	int m_ListSort2;
 
+	// Game list column toggles
+	bool m_showSystemColumn;
+	bool m_showBannerColumn;
+	bool m_showNotesColumn;
+	bool m_showIDColumn;
+	bool m_showRegionColumn;
+	bool m_showSizeColumn;
+	bool m_showStateColumn;
+
+	// Toggles whether compressed titles show up in blue in the game list
+	bool m_ColorCompressed;
+
 	std::string m_WirelessMac;
 	bool m_PauseMovie;
 	bool m_ShowLag;
 	std::string m_strMovieAuthor;
+	unsigned int m_FrameSkip;
 
 	// DSP settings
-	bool m_EnableJIT;
+	bool m_DSPEnableJIT;
+	bool m_DSPCaptureLog;
 	bool m_DumpAudio;
 	int m_Volume;
 	std::string sBackend;
@@ -103,8 +115,25 @@ private:
 	SConfig();
 	~SConfig();
 
+	void SaveGeneralSettings(IniFile& ini);
+	void SaveInterfaceSettings(IniFile& ini);
+	void SaveDisplaySettings(IniFile& ini);
+	void SaveHotkeySettings(IniFile& ini);
+	void SaveGameListSettings(IniFile& ini);
+	void SaveCoreSettings(IniFile& ini);
+	void SaveDSPSettings(IniFile& ini);
+	void SaveMovieSettings(IniFile& ini);
+	void SaveFifoPlayerSettings(IniFile& ini);
+
+	void LoadGeneralSettings(IniFile& ini);
+	void LoadInterfaceSettings(IniFile& ini);
+	void LoadDisplaySettings(IniFile& ini);
+	void LoadHotkeySettings(IniFile& ini);
+	void LoadGameListSettings(IniFile& ini);
+	void LoadCoreSettings(IniFile& ini);
+	void LoadDSPSettings(IniFile& ini);
+	void LoadMovieSettings(IniFile& ini);
+	void LoadFifoPlayerSettings(IniFile& ini);
+
 	static SConfig* m_Instance;
 };
-
-#endif // endif config manager
-

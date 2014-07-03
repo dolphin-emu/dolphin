@@ -2,18 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFOFILESTRUCT_H_
-#define _FIFOFILESTRUCT_H_
+#pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace FifoFileStruct
 {
 
 enum
 {
-	FILE_ID = 0x0d01f1f0,
-	VERSION_NUMBER = 1,
+	FILE_ID            = 0x0d01f1f0,
+	VERSION_NUMBER     = 1,
 	MIN_LOADER_VERSION = 1,
 };
 
@@ -68,5 +67,3 @@ struct FileMemoryUpdate
 #pragma pack(pop)
 
 }
-
-#endif

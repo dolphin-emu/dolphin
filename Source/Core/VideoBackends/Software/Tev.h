@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEV_H_
-#define _TEV_H_
+#pragma once
 
-#include "BPMemLoader.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "VideoBackends/Software/BPMemLoader.h"
 
 class Tev
 {
@@ -61,10 +60,10 @@ class Tev
 
 	void SetRasColor(int colorChan, int swaptable);
 
-	void DrawColorRegular(TevStageCombiner::ColorCombiner &cc);
-	void DrawColorCompare(TevStageCombiner::ColorCombiner &cc);
-	void DrawAlphaRegular(TevStageCombiner::AlphaCombiner &ac);
-	void DrawAlphaCompare(TevStageCombiner::AlphaCombiner &ac);
+	void DrawColorRegular(TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4]);
+	void DrawColorCompare(TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4]);
+	void DrawAlphaRegular(TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4]);
+	void DrawAlphaCompare(TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4]);
 
 	void Indirect(unsigned int stageNum, s32 s, s32 t);
 
@@ -87,5 +86,3 @@ public:
 
 	void DoState(PointerWrap &p);
 };
-
-#endif

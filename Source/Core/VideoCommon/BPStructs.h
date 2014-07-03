@@ -2,13 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BPSTRUCTS_H_
-#define _BPSTRUCTS_H_
+#pragma once
 
-#include "BPMemory.h"
+#include "VideoCommon/BPMemory.h"
 
 void BPInit();
 void LoadBPReg(u32 value0);
 void BPReload();
-
-#endif // _BPSTRUCTS_H_

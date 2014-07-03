@@ -5,75 +5,26 @@
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
 // Should give a very noticeable speed boost to paired single heavy code.
 
-#include "Common.h"
-#include "CPUDetect.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
 
-#include "Jit.h"
-#include "JitAsm.h"
-#include "JitRegCache.h"
-
-const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
-
-//static u64 GC_ALIGNED16(temp64); // unused?
-
-// TODO(ector): Improve 64-bit version
-#if 0
-static void WriteDual32(u64 value, u32 address)
-{
-	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
-	Memory::Write_U32((u32)(value >> 32), address);
-	Memory::Write_U32((u32)value, address + 4);
-}
-#endif
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64/JitRegCache.h"
 
 // The big problem is likely instructions that set the quantizers in the same block.
 // We will have to break block after quantizers are written to.
 void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	if (js.memcheck) { Default(inst); return; }
-
-	if (!inst.RA)
-	{
-		// TODO: Support these cases if it becomes necessary.
-		Default(inst);
-		return;
-	}
+	JITDISABLE(bJITLoadStorePairedOff);
+	FALLBACK_IF(js.memcheck || !inst.RA);
 
 	bool update = inst.OPCD == 61;
 
 	int offset = inst.SIMM_12;
 	int a = inst.RA;
 	int s = inst.RS; // Fp numbers
-
-	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
-#if 0
-	u16 store_gqr = gqr.Hex & 0xFFFF;
-
-	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
-	int stScale = gqr.ST_SCALE;
-
-	// Is this specialization still worth it? Let's keep it for now. It's probably
-	// not very risky since a game most likely wouldn't use the same code to process
-	// floats as integers (but you never know....).
-	if (stType == QUANTIZE_FLOAT)
-	{
-		if (gpr.R(a).IsImm() && !update && cpu_info.bSSSE3)
-		{
-			u32 addr = (u32)(gpr.R(a).offset + offset);
-			if (addr == 0xCC008000) {
-				// Writing to FIFO. Let's do fast method.
-				CVTPD2PS(XMM0, fpr.R(s));
-				PSHUFB(XMM0, M((void*)&pbswapShuffle2x4));
-				CALL((void*)asm_routines.fifoDirectWriteXmm64);
-				js.fifoBytesThisBlock += 8;
-				return;
-			}
-		}
-	}
-#endif
 
 	gpr.FlushLockX(EAX, EDX);
 	gpr.FlushLockX(ECX);
@@ -88,14 +39,14 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + inst.I]));
 	MOVZX(32, 8, EDX, R(AL));
 	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32] without a base register!
-#ifdef _M_IX86
+#if _M_X86_32
 	int addr_scale = SCALE_4;
 #else
 	int addr_scale = SCALE_8;
 #endif
 	if (inst.W) {
 		// One value
-		XORPS(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
+		PXOR(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
 		CVTSD2SS(XMM0, fpr.R(s));
 		CALLptr(MScaled(EDX, addr_scale, (u32)(u64)asm_routines.singleStoreQuantized));
 	} else {
@@ -110,17 +61,8 @@ void Jit64::psq_st(UGeckoInstruction inst)
 void Jit64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	if (js.memcheck) { Default(inst); return; }
-
-	if (!inst.RA)
-	{
-		Default(inst);
-		return;
-	}
-
-	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
+	JITDISABLE(bJITLoadStorePairedOff);
+	FALLBACK_IF(js.memcheck || !inst.RA);
 
 	bool update = inst.OPCD == 57;
 	int offset = inst.SIMM_12;
@@ -139,7 +81,7 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	MOVZX(32, 8, EDX, R(AL));
 	if (inst.W)
 		OR(32, R(EDX), Imm8(8));
-#ifdef _M_IX86
+#if _M_X86_32
 	int addr_scale = SCALE_4;
 #else
 	int addr_scale = SCALE_8;
@@ -148,11 +90,11 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	CALLptr(MScaled(EDX, addr_scale, (u32)(u64)asm_routines.pairedLoadQuantized));
 	ABI_RestoreStack(0);
 
-//	MEMCHECK_START // FIXME: MMU does not work here because of unsafe memory access
+	// MEMCHECK_START // FIXME: MMU does not work here because of unsafe memory access
 
 	CVTPS2PD(fpr.RX(inst.RS), R(XMM0));
 
-//	MEMCHECK_END
+	// MEMCHECK_END
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();

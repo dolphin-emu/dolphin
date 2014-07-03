@@ -2,11 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h" // for Common::swap
-#include "FileUtil.h"
-#include "DSP/DSPCore.h"
-#include "DSPLLEGlobals.h"
 #include <cinttypes>
+
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+
+#include "Core/DSP/DSPCore.h"
+#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
 
 #if PROFILE
 

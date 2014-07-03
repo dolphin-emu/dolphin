@@ -2,18 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+#pragma once
 
-#include "Thread.h"
-#include "FileUtil.h"
-#include "IniFile.h"
-
-#include "ControllerInterface/ControllerInterface.h"
-#include "ControllerEmu.h"
-
-#include <vector>
 #include <map>
+#include <vector>
+
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/Thread.h"
+
+#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 // InputPlugin isn't a very good name anymore since it's used by GCPad/Wiimote
 // which are not even plugins anymore.
@@ -30,13 +29,11 @@ public:
 	bool LoadConfig(bool isGC);
 	void SaveConfig();
 
-	std::vector< ControllerEmu* >	controllers;
+	std::vector<ControllerEmu*>  controllers;
 
-	std::recursive_mutex controls_lock;		// for changing any control references
+	std::recursive_mutex controls_lock; // for changing any control references
 
-	const char * const		ini_name;
-	const char * const		gui_name;
-	const char * const		profile_name;
+	const char* const ini_name;
+	const char* const gui_name;
+	const char* const profile_name;
 };
-
-#endif

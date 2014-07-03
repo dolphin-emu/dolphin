@@ -2,10 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FifoDataFile.h"
-#include "FifoFileStruct.h"
+#include <algorithm>
+#include <string>
 
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/FifoPlayer/FifoFileStruct.h"
 
 using namespace FifoFileStruct;
 using namespace std;
@@ -41,7 +44,7 @@ void FifoDataFile::AddFrame(const FifoFrameInfo &frameInfo)
 	m_Frames.push_back(frameInfo);
 }
 
-bool FifoDataFile::Save(const char *filename)
+bool FifoDataFile::Save(const std::string& filename)
 {
 	File::IOFile file;
 	if (!file.Open(filename, "wb"))
@@ -52,8 +55,7 @@ bool FifoDataFile::Save(const char *filename)
 
 	// Add space for frame list
 	u64 frameListOffset = file.Tell();
-	for (size_t i = 0; i < m_Frames.size(); i++)
-		PadFile(sizeof(FileFrameInfo), file);
+	PadFile(m_Frames.size() * sizeof(FileFrameInfo), file);
 
 	u64 bpMemOffset = file.Tell();
 	file.WriteArray(m_BPMem, BP_MEM_SIZE);
@@ -130,7 +132,7 @@ FifoDataFile *FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 	File::IOFile file;
 	file.Open(filename, "rb");
 	if (!file)
-		return NULL;
+		return nullptr;
 
 	FileHeader header;
 	file.ReadBytes(&header, sizeof(header));
@@ -138,7 +140,7 @@ FifoDataFile *FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 	if (header.fileId != FILE_ID || header.min_loader_version > VERSION_NUMBER)
 	{
 		file.Close();
-		return NULL;
+		return nullptr;
 	}
 
 	FifoDataFile* dataFile = new FifoDataFile;
@@ -194,12 +196,10 @@ FifoDataFile *FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 	return dataFile;
 }
 
-void FifoDataFile::PadFile(u32 numBytes, File::IOFile &file)
+void FifoDataFile::PadFile(u32 numBytes, File::IOFile& file)
 {
-	FILE *handle = file.GetHandle();
-
-	for (u32 i = 0; i < numBytes; ++i)
-		fputc(0, handle);
+	const u8 zero = 0;
+	fwrite(&zero, sizeof(zero), numBytes, file.GetHandle());
 }
 
 void FifoDataFile::SetFlag(u32 flag, bool set)
@@ -219,8 +219,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates
 {
 	// Add space for memory update list
 	u64 updateListOffset = file.Tell();
-	for (size_t i = 0; i < memUpdates.size(); i++)
-		PadFile(sizeof(FileMemoryUpdate), file);
+	PadFile(memUpdates.size() * sizeof(FileMemoryUpdate), file);
 
 	for (unsigned int i = 0; i < memUpdates.size(); ++i)
 	{

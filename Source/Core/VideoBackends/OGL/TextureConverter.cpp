@@ -4,18 +4,24 @@
 
 // Fast image conversion using OpenGL shaders.
 
-#include "TextureConverter.h"
-#include "TextureConversionShader.h"
-#include "TextureCache.h"
-#include "ProgramShaderCache.h"
-#include "FramebufferManager.h"
-#include "Globals.h"
-#include "VideoConfig.h"
-#include "ImageWrite.h"
-#include "Render.h"
-#include "FileUtil.h"
-#include "HW/Memmap.h"
-#include "DriverDetails.h"
+#include <string>
+
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
+#include "Core/HW/Memmap.h"
+
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/TextureCache.h"
+#include "VideoBackends/OGL/TextureConverter.h"
+
+#include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/VideoConfig.h"
+
 
 namespace OGL
 {
@@ -26,8 +32,8 @@ namespace TextureConverter
 using OGL::TextureCache;
 
 static GLuint s_texConvFrameBuffer[2] = {0,0};
-static GLuint s_srcTexture = 0;			// for decoding from RAM
-static GLuint s_dstTexture = 0;		// for encoding to RAM
+static GLuint s_srcTexture = 0; // for decoding from RAM
+static GLuint s_dstTexture = 0; // for encoding to RAM
 
 const int renderBufferWidth = 1024;
 const int renderBufferHeight = 1024;
@@ -44,7 +50,7 @@ static int s_encodingUniforms[NUM_ENCODING_PROGRAMS];
 
 static GLuint s_PBO = 0; // for readback with different strides
 
-void CreatePrograms()
+static void CreatePrograms()
 {
 	/* TODO: Accuracy Improvements
 	 *
@@ -64,7 +70,7 @@ void CreatePrograms()
 	 */
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *VProgramRgbToYuyv =
-		"VARYOUT vec2 uv0;\n"
+		"out vec2 uv0;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"uniform sampler2D samp9;\n"
 		"void main()\n"
@@ -75,7 +81,7 @@ void CreatePrograms()
 		"}\n";
 	const char *FProgramRgbToYuyv =
 		"uniform sampler2D samp9;\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
@@ -106,14 +112,14 @@ void CreatePrograms()
 		"}\n";
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2D samp9;\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	ivec2 uv = ivec2(gl_FragCoord.xy);\n"
 			// We switch top/bottom here. TODO: move this to screen blit.
 		"	ivec2 ts = textureSize(samp9, 0);\n"
-		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x/2, ts.y-uv.y-1), 0);\n"
+		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x>>1, ts.y-uv.y-1), 0);\n"
 		"	float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
 		"	float yComp = 1.164 * (y - 0.0625);\n"
 		"	float uComp = c0.g - 0.5;\n"
@@ -126,7 +132,7 @@ void CreatePrograms()
 	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgramYuyvToRgb, FProgramYuyvToRgb);
 }
 
-SHADER &GetOrCreateEncodingShader(u32 format)
+static SHADER &GetOrCreateEncodingShader(u32 format)
 {
 	if (format > NUM_ENCODING_PROGRAMS)
 	{
@@ -142,10 +148,9 @@ SHADER &GetOrCreateEncodingShader(u32 format)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)
 		{
 			static int counter = 0;
-			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+			std::string filename = StringFromFormat("%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 
-			SaveData(szTemp, shader);
+			SaveData(filename, shader);
 		}
 #endif
 
@@ -175,9 +180,9 @@ void Init()
 	glGenTextures(1, &s_dstTexture);
 	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	
-	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_dstTexture, 0);
 	FramebufferManager::SetFramebuffer(0);
@@ -207,7 +212,7 @@ void Shutdown()
 	s_texConvFrameBuffer[1] = 0;
 }
 
-void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
+static void EncodeToRamUsingShader(GLuint srcTexture,
 						u8* destAddr, int dstWidth, int dstHeight, int readStride,
 						bool linearFilter)
 {
@@ -257,8 +262,8 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 		// in this way, we only have one vram->ram transfer, but maybe a bigger
 		// cpu overhead because of the pbo
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, s_PBO);
-		glBufferData(GL_PIXEL_PACK_BUFFER, dstSize, NULL, GL_STREAM_READ);
-		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+		glBufferData(GL_PIXEL_PACK_BUFFER, dstSize, nullptr, GL_STREAM_READ);
+		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
 		u8* pbo = (u8*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, dstSize, GL_MAP_READ_BIT);
 
 		for (int i = 0; i < readLoops; i++)
@@ -319,18 +324,13 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		source.left, source.top,
 		expandedWidth, bScaleByHalf ? 2 : 1);
 
-	TargetRectangle scaledSource;
-	scaledSource.top = 0;
-	scaledSource.bottom = expandedHeight;
-	scaledSource.left = 0;
-	scaledSource.right = expandedWidth / samples;
 	int cacheBytes = 32;
 	if ((format & 0x0f) == 6)
 		cacheBytes = 64;
 
 	int readStride = (expandedWidth * cacheBytes) /
 		TexDecoder_GetBlockWidthInTexels(format);
-	EncodeToRamUsingShader(source_texture, scaledSource,
+	EncodeToRamUsingShader(source_texture,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
 		bScaleByHalf > 0 && !bFromZBuffer);
 	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
@@ -348,7 +348,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	// We enable linear filtering, because the gamecube does filtering in the vertical direction when
 	// yscale is enabled.
 	// Otherwise we get jaggies when a game uses yscaling (most PAL games)
-	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);
+	EncodeToRamUsingShader(srcTexture, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();

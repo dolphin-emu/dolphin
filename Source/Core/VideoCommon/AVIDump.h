@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _AVIDUMP_H
-#define _AVIDUMP_H
+#pragma once
 
 #ifdef _WIN32
 #include <windows.h>
@@ -11,7 +10,7 @@
 #include <stdint.h>
 #endif
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 class AVIDump
 {
@@ -32,5 +31,3 @@ class AVIDump
 
 		static void Stop();
 };
-
-#endif // _AVIDUMP_H

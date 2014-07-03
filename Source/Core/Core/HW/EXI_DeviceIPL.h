@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXIDEVICE_IPL_H
-#define _EXIDEVICE_IPL_H
+#pragma once
 
-#include "EXI_Device.h"
-#include "Sram.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/Sram.h"
 
 class CEXIIPL : public IEXIDevice
 {
@@ -14,9 +13,9 @@ public:
 	CEXIIPL();
 	virtual ~CEXIIPL();
 
-	virtual void SetCS(int _iCS);
-	bool IsPresent();
-	void DoState(PointerWrap &p);
+	virtual void SetCS(int _iCS) override;
+	bool IsPresent() override;
+	void DoState(PointerWrap &p) override;
 
 	static u32 GetGCTime();
 	static u32 NetPlay_GetGCTime();
@@ -32,16 +31,16 @@ private:
 
 	enum
 	{
-		REGION_RTC		= 0x200000,
-		REGION_SRAM		= 0x200001,
-		REGION_UART		= 0x200100,
-		REGION_UART_UNK	= 0x200103,
-		REGION_BARNACLE	= 0x200113,
-		REGION_WRTC0	= 0x210000,
-		REGION_WRTC1	= 0x210001,
-		REGION_WRTC2	= 0x210008,
-		REGION_EUART_UNK= 0x300000,
-		REGION_EUART	= 0x300001
+		REGION_RTC       = 0x200000,
+		REGION_SRAM      = 0x200001,
+		REGION_UART      = 0x200100,
+		REGION_UART_UNK  = 0x200103,
+		REGION_BARNACLE  = 0x200113,
+		REGION_WRTC0     = 0x210000,
+		REGION_WRTC1     = 0x210001,
+		REGION_WRTC2     = 0x210008,
+		REGION_EUART_UNK = 0x300000,
+		REGION_EUART     = 0x300001
 	};
 
 	// Region
@@ -63,12 +62,9 @@ private:
 	int m_count;
 	bool m_FontsLoaded;
 
-	virtual void TransferByte(u8 &_uByte);
+	virtual void TransferByte(u8 &_uByte) override;
 	bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
 	u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
 
 	void LoadFileToIPL(std::string filename, u32 offset);
 };
-
-#endif
-

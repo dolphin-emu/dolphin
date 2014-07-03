@@ -14,12 +14,12 @@
 #undef _interlockedbittestandreset64
 #endif
 
-#include "CPUDetect.h"
-#include "Interpreter.h"
-#include "Interpreter_FPUtils.h"
-#include "FPURoundMode.h"
-#include "../../HW/GPFifo.h"
-#include "../../HW/SystemTimers.h"
+#include "Common/CPUDetect.h"
+#include "Common/FPURoundMode.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
 /*
 
@@ -49,7 +49,7 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 	}
 
 	// Set SSE rounding mode and denormal handling
-	FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
+	FPURoundMode::SetSIMDMode(fp.RN, fp.NI);
 }
 
 void Interpreter::mtfsb0x(UGeckoInstruction _inst)
@@ -209,7 +209,7 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
 
 	//TODO - check processor privilege level - many of these require privilege
 	//XER LR CTR are the only ones available in user mode, time base can be read too.
-	//Gamecube games always run in superuser mode, but hey....
+	//GameCube games always run in superuser mode, but hey....
 
 	switch (iIndex)
 	{
@@ -248,12 +248,12 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 
 	//TODO - check processor privilege level - many of these require privilege
 	//XER LR CTR are the only ones available in user mode, time base can be read too.
-	//Gamecube games always run in superuser mode, but hey....
+	//GameCube games always run in superuser mode, but hey....
 
 	//Our DMA emulation is highly inaccurate - instead of properly emulating the queue
 	//and so on, we simply make all DMA:s complete instantaneously.
 
-	switch(iIndex)
+	switch (iIndex)
 	{
 	case SPR_TL:
 	case SPR_TU:
@@ -293,28 +293,10 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 		}
 		break;
 	case SPR_HID2: // HID2
-		{
-			UReg_HID2 old_hid2;
-			old_hid2.Hex = oldValue;
-
-			//if (HID2.LCE && !old_hid2.LCE)
-			//	PanicAlert("Locked cache enabled!");
-
-			if (HID2.PSE == 0)
-				PanicAlert("WARNING: PSE (paired single enable) in HID2 was unset");
-
-			//	bool WriteGatherPipeEnable = (bool)HID2.WPE; //TODO?
-			//	bool LockedCacheEnable = (bool)HID2.LCE;
-			//	int DMAQueueLength = HID2.DMAQL; // Ignore - our DMA:s are instantaneous
-			//	bool PairedSingleEnable = HID2.PSE;
-			//	bool QuantizeEnable = HID2.LSQE;
-			//TODO(ector): Protect LC memory if LCE is false.
-			//TODO(ector): Honor PSE.
-
-			//_assert_msg_(POWERPC, WriteGatherPipeEnable, "Write gather pipe not enabled!");
-			//if ((HID2.PSE == 0))
-			//	MessageBox(NULL, "PSE in HID2 is set", "Warning", MB_OK);
-		}
+		// TODO: generate illegal instruction for paired inst if PSE or LSQE
+		// not set.
+		// TODO: disable write gather pipe if WPE not set
+		// TODO: emulate locked cache and DMA bits.
 		break;
 
 	case SPR_WPAR:
@@ -468,6 +450,6 @@ void Interpreter::mffsx(UGeckoInstruction _inst)
 	// TODO(ector): grab all overflow flags etc and set them in FPSCR
 
 	UpdateFPSCR();
-	riPS0(_inst.FD)	= (u64)FPSCR.Hex;
+	riPS0(_inst.FD) = (u64)FPSCR.Hex;
 	if (_inst.Rc) PanicAlert("mffsx: inst_.Rc");
 }

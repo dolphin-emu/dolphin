@@ -5,8 +5,8 @@
 #include <functional>
 #include <string.h>
 
-#include "AOSoundStream.h"
-#include "Mixer.h"
+#include "AudioCommon/AOSoundStream.h"
+#include "AudioCommon/Mixer.h"
 
 #if defined(HAVE_AO) && HAVE_AO
 
@@ -22,7 +22,7 @@ void AOSound::SoundLoop()
 	format.rate = m_mixer->GetSampleRate();
 	format.byte_format = AO_FMT_LITTLE;
 
-	device = ao_open_live(default_driver, &format, NULL /* no options */);
+	device = ao_open_live(default_driver, &format, nullptr /* no options */);
 	if (!device)
 	{
 		PanicAlertT("AudioCommon: Error opening AO device.\n");
@@ -50,7 +50,7 @@ bool AOSound::Start()
 {
 	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
 
-	thread = std::thread(std::mem_fun(&AOSound::SoundLoop), this);
+	thread = std::thread(std::mem_fn(&AOSound::SoundLoop), this);
 	return true;
 }
 
@@ -73,7 +73,7 @@ void AOSound::Stop()
 
 	ao_shutdown();
 
-	device = NULL;
+	device = nullptr;
 	}
 }
 

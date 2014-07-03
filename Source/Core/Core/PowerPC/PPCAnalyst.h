@@ -2,18 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PPCANALYST_H
-#define _PPCANALYST_H
+#pragma once
 
 #include <algorithm>
-#include <vector>
-#include <map>
-
 #include <cstdlib>
+#include <map>
 #include <string>
+#include <vector>
 
-#include "Common.h"
-#include "PPCTables.h"
+#include "Common/Common.h"
+#include "Core/PowerPC/PPCTables.h"
 
 class PPCSymbolDB;
 struct Symbol;
@@ -66,18 +64,31 @@ struct BlockRegStats
 		return std::max(lastRead[reg], lastWrite[reg]) -
 			   std::min(firstRead[reg], firstWrite[reg]);}
 
-	inline void SetInputRegister(int reg, short opindex) {
+	inline void SetInputRegister(int reg, short opindex)
+	{
 		if (firstRead[reg] == -1)
 			firstRead[reg] = (short)(opindex);
 		lastRead[reg] = (short)(opindex);
 		numReads[reg]++;
 	}
 
-	inline void SetOutputRegister(int reg, short opindex) {
+	inline void SetOutputRegister(int reg, short opindex)
+	{
 		if (firstWrite[reg] == -1)
 			firstWrite[reg] = (short)(opindex);
 		lastWrite[reg] = (short)(opindex);
 		numWrites[reg]++;
+	}
+
+	inline void Clear()
+	{
+		for (int i = 0; i < 32; ++i)
+		{
+			firstRead[i] = -1;
+			firstWrite[i] = -1;
+			numReads[i] = 0;
+			numWrites[i] = 0;
+		}
 	}
 };
 
@@ -96,15 +107,79 @@ public:
 
 };
 
-u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
-			BlockRegStats *fpa, bool &broken_block, CodeBuffer *buffer,
-			int blockSize, u32* merged_addresses,
-			int capacity_of_merged_addresses, int& size_of_merged_addresses);
+struct CodeBlock
+{
+	// Beginning PPC address.
+	u32 m_address;
+
+	// Number of instructions
+	// Gives us the size of the block.
+	u32 m_num_instructions;
+
+	// Some basic statistics about the block.
+	BlockStats *m_stats;
+
+	// Register statistics about the block.
+	BlockRegStats *m_gpa, *m_fpa;
+
+	// Are we a broken block?
+	bool m_broken;
+
+	// Did we have a memory_exception?
+	bool m_memory_exception;
+};
+
+class PPCAnalyzer
+{
+private:
+
+	void ReorderInstructions(u32 instructions, CodeOp *code);
+	void SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index);
+
+	// Options
+	u32 m_options;
+public:
+
+	enum AnalystOption
+	{
+		// Conditional branch continuing
+		// If the JIT core supports conditional branches within the blocks
+		// Block will end on unconditional branch or other ENDBLOCK flagged instruction.
+		// Requires JIT support to be enabled.
+		OPTION_CONDITIONAL_CONTINUE = (1 << 0),
+
+		// If there is a unconditional branch that jumps to a leaf function then inline it.
+		// Might require JIT intervention to support it correctly.
+		// Requires JITBLock support for inlined code
+		// XXX: NOT COMPLETE
+		OPTION_LEAF_INLINE = (1 << 1),
+
+		// Complex blocks support jumping backwards on to themselves.
+		// Happens commonly in loops, pretty complex to support.
+		// May require register caches to use register usage metrics.
+		// XXX: NOT COMPLETE
+		OPTION_COMPLEX_BLOCK = (1 << 2),
+
+		// Similar to complex blocks.
+		// Instead of jumping backwards, this jumps forwards within the block.
+		// Requires JIT support to work.
+		// XXX: NOT COMPLETE
+		OPTION_FORWARD_JUMP = (1 << 3),
+	};
+
+
+	PPCAnalyzer() : m_options(0) {}
+
+	// Option setting/getting
+	void SetOption(AnalystOption option) { m_options |= option; }
+	void ClearOption(AnalystOption option) { m_options &= ~(option); }
+	bool HasOption(AnalystOption option) { return !!(m_options & option); }
+
+	u32 Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize);
+};
+
 void LogFunctionCall(u32 addr);
 void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db);
 bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
 
 }  // namespace
-
-#endif
-

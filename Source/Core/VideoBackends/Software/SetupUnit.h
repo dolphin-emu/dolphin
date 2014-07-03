@@ -2,13 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#pragma once
 
-#ifndef _SETUPUNIT_H_
-#define _SETUPUNIT_H_
-
-#include "Common.h"
-#include "NativeVertexFormat.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
 
 class SetupUnit
 {
@@ -35,5 +33,3 @@ public:
 	void SetupVertex();
 	void DoState(PointerWrap &p);
 };
-
-#endif

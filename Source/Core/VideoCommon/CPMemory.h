@@ -2,47 +2,46 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CPMEMORY_H
-#define _CPMEMORY_H
+#pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
 // Vertex array numbers
 enum
 {
-	ARRAY_POSITION	= 0,
-	ARRAY_NORMAL	= 1,
-	ARRAY_COLOR		= 2,
-	ARRAY_COLOR2	= 3,
-	ARRAY_TEXCOORD0	= 4,
+	ARRAY_POSITION  = 0,
+	ARRAY_NORMAL    = 1,
+	ARRAY_COLOR     = 2,
+	ARRAY_COLOR2    = 3,
+	ARRAY_TEXCOORD0 = 4,
 };
 
 // Vertex components
 enum
 {
 	NOT_PRESENT = 0,
-	DIRECT		= 1,
-	INDEX8		= 2,
-	INDEX16		= 3,
+	DIRECT      = 1,
+	INDEX8      = 2,
+	INDEX16     = 3,
 };
 
 enum
 {
-	FORMAT_UBYTE		= 0,	// 2 Cmp
-	FORMAT_BYTE			= 1,	// 3 Cmp
-	FORMAT_USHORT		= 2,
-	FORMAT_SHORT		= 3,
-	FORMAT_FLOAT		= 4,
+	FORMAT_UBYTE   = 0, // 2 Cmp
+	FORMAT_BYTE    = 1, // 3 Cmp
+	FORMAT_USHORT  = 2,
+	FORMAT_SHORT   = 3,
+	FORMAT_FLOAT   = 4,
 };
 
 enum
 {
-	FORMAT_16B_565		= 0,	// NA
-	FORMAT_24B_888		= 1,
-	FORMAT_32B_888x		= 2,
-	FORMAT_16B_4444		= 3,
-	FORMAT_24B_6666		= 4,
-	FORMAT_32B_8888		= 5,
+	FORMAT_16B_565  = 0, // NA
+	FORMAT_24B_888  = 1,
+	FORMAT_32B_888x = 2,
+	FORMAT_16B_4444 = 3,
+	FORMAT_24B_6666 = 4,
+	FORMAT_32B_8888 = 5,
 };
 
 enum
@@ -60,33 +59,33 @@ union TVtxDesc
 	{
 		// 0: not present
 		// 1: present
-		u32 PosMatIdx	: 1;
-		u32 Tex0MatIdx	: 1;
-		u32 Tex1MatIdx	: 1;
-		u32 Tex2MatIdx	: 1;
-		u32 Tex3MatIdx	: 1;
-		u32 Tex4MatIdx	: 1;
-		u32 Tex5MatIdx	: 1;
-		u32 Tex6MatIdx	: 1;
-		u32 Tex7MatIdx	: 1;
+		u32 PosMatIdx   : 1;
+		u32 Tex0MatIdx  : 1;
+		u32 Tex1MatIdx  : 1;
+		u32 Tex2MatIdx  : 1;
+		u32 Tex3MatIdx  : 1;
+		u32 Tex4MatIdx  : 1;
+		u32 Tex5MatIdx  : 1;
+		u32 Tex6MatIdx  : 1;
+		u32 Tex7MatIdx  : 1;
 
 		// 00: not present
 		// 01: direct
 		// 10: 8 bit index
 		// 11: 16 bit index
-		u32 Position	: 2;
-		u32 Normal		: 2;
-		u32 Color0		: 2;
-		u32 Color1		: 2;
-		u32 Tex0Coord	: 2;
-		u32 Tex1Coord	: 2;
-		u32 Tex2Coord	: 2;
-		u32 Tex3Coord	: 2;
-		u32 Tex4Coord	: 2;
-		u32 Tex5Coord	: 2;
-		u32 Tex6Coord	: 2;
-		u32 Tex7Coord	: 2;
-		u32				:31;
+		u32 Position    : 2;
+		u32 Normal      : 2;
+		u32 Color0      : 2;
+		u32 Color1      : 2;
+		u32 Tex0Coord   : 2;
+		u32 Tex1Coord   : 2;
+		u32 Tex2Coord   : 2;
+		u32 Tex3Coord   : 2;
+		u32 Tex4Coord   : 2;
+		u32 Tex5Coord   : 2;
+		u32 Tex6Coord   : 2;
+		u32 Tex7Coord   : 2;
+		u32             :31;
 	};
 
 	struct
@@ -101,25 +100,25 @@ union UVAT_group0
 	struct
 	{
 		// 0:8
-		u32 PosElements			: 1;
-		u32 PosFormat			: 3;
-		u32 PosFrac				: 5;
+		u32 PosElements         : 1;
+		u32 PosFormat           : 3;
+		u32 PosFrac             : 5;
 		// 9:12
-		u32 NormalElements		: 1;
-		u32 NormalFormat		: 3;
+		u32 NormalElements      : 1;
+		u32 NormalFormat        : 3;
 		// 13:16
-		u32 Color0Elements		: 1;
-		u32 Color0Comp			: 3;
+		u32 Color0Elements      : 1;
+		u32 Color0Comp          : 3;
 		// 17:20
-		u32 Color1Elements		: 1;
-		u32 Color1Comp			: 3;
+		u32 Color1Elements      : 1;
+		u32 Color1Comp          : 3;
 		// 21:29
-		u32 Tex0CoordElements	: 1;
-		u32 Tex0CoordFormat		: 3;
-		u32 Tex0Frac			: 5;
+		u32 Tex0CoordElements   : 1;
+		u32 Tex0CoordFormat     : 3;
+		u32 Tex0Frac            : 5;
 		// 30:31
-		u32 ByteDequant			: 1;
-		u32 NormalIndex3		: 1;
+		u32 ByteDequant         : 1;
+		u32 NormalIndex3        : 1;
 	};
 };
 
@@ -129,22 +128,22 @@ union UVAT_group1
 	struct
 	{
 		// 0:8
-		u32 Tex1CoordElements	: 1;
-		u32 Tex1CoordFormat		: 3;
-		u32 Tex1Frac			: 5;
+		u32 Tex1CoordElements   : 1;
+		u32 Tex1CoordFormat     : 3;
+		u32 Tex1Frac            : 5;
 		// 9:17
-		u32 Tex2CoordElements	: 1;
-		u32 Tex2CoordFormat		: 3;
-		u32 Tex2Frac			: 5;
+		u32 Tex2CoordElements   : 1;
+		u32 Tex2CoordFormat     : 3;
+		u32 Tex2Frac            : 5;
 		// 18:26
-		u32 Tex3CoordElements	: 1;
-		u32 Tex3CoordFormat		: 3;
-		u32 Tex3Frac			: 5;
+		u32 Tex3CoordElements   : 1;
+		u32 Tex3CoordFormat     : 3;
+		u32 Tex3Frac            : 5;
 		// 27:30
-		u32 Tex4CoordElements	: 1;
-		u32 Tex4CoordFormat		: 3;
+		u32 Tex4CoordElements   : 1;
+		u32 Tex4CoordFormat     : 3;
 		//
-		u32						: 1;
+		u32                     : 1;
 	};
 };
 
@@ -154,19 +153,19 @@ union UVAT_group2
 	struct
 	{
 		// 0:4
-		u32 Tex4Frac			: 5;
+		u32 Tex4Frac          : 5;
 		// 5:13
-		u32 Tex5CoordElements	: 1;
-		u32 Tex5CoordFormat		: 3;
-		u32 Tex5Frac			: 5;
+		u32 Tex5CoordElements : 1;
+		u32 Tex5CoordFormat   : 3;
+		u32 Tex5Frac          : 5;
 		// 14:22
-		u32 Tex6CoordElements	: 1;
-		u32 Tex6CoordFormat		: 3;
-		u32 Tex6Frac			: 5;
+		u32 Tex6CoordElements : 1;
+		u32 Tex6CoordFormat   : 3;
+		u32 Tex6Frac          : 5;
 		// 23:31
-		u32 Tex7CoordElements	: 1;
-		u32 Tex7CoordFormat		: 3;
-		u32 Tex7Frac			: 5;
+		u32 Tex7CoordElements : 1;
+		u32 Tex7CoordFormat   : 3;
+		u32 Tex7Frac          : 5;
 	};
 };
 
@@ -253,5 +252,3 @@ void LoadCPReg(u32 SubCmd, u32 Value);
 
 // Fills memory with data from CP regs
 void FillCPMemoryArray(u32 *memory);
-
-#endif // _CPMEMORY_H

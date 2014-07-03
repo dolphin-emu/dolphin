@@ -1,8 +1,10 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#ifndef STD_THREAD_H_
-#define STD_THREAD_H_
+#pragma once
 
-#define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
+#define GCC_VER(x,y,z) ((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 
 #ifndef __has_include
@@ -14,15 +16,15 @@
 #ifndef _GLIBCXX_USE_SCHED_YIELD
 #define _GLIBCXX_USE_SCHED_YIELD
 #endif
-#include <thread>
+#include <thread> // IWYU pragma: export
 #elif __has_include(<thread>) && !ANDROID
 // Clang + libc++
-#include <thread>
+#include <thread> // IWYU pragma: export
 
 #elif _MSC_VER >= 1700
 
 // The standard implementation is included since VS2012
-#include <thread>
+#include <thread> // IWYU pragma: export
 
 #else
 
@@ -191,7 +193,7 @@ public:
 		WaitForSingleObject(m_handle, INFINITE);
 		detach();
 #else
-		pthread_join(m_id.m_thread, NULL);
+		pthread_join(m_id.m_thread, nullptr);
 		m_id = id();
 #endif
 	}
@@ -236,9 +238,9 @@ private:
 	void StartThread(F* param)
 	{
 #ifdef USE_BEGINTHREADEX
-		m_handle = (HANDLE)_beginthreadex(NULL, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
+		m_handle = (HANDLE)_beginthreadex(nullptr, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
 #elif defined(_WIN32)
-		m_handle = CreateThread(NULL, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
+		m_handle = CreateThread(nullptr, 0, &RunAndDelete<F>, param, 0, &m_id.m_thread);
 #else
 		pthread_attr_t attr;
 		pthread_attr_init(&attr);
@@ -309,9 +311,9 @@ inline thread::id get_id()
 #endif
 }
 
-}	// namespace this_thread
+} // namespace this_thread
 
-}	// namespace std
+} // namespace std
 
 #undef USE_RVALUE_REFERENCES
 #undef USE_BEGINTHREADEX
@@ -319,5 +321,4 @@ inline thread::id get_id()
 #undef THREAD_RETURN
 #undef THREAD_HANDLE
 
-#endif
 #endif

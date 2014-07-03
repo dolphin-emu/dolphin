@@ -2,17 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __GAMELIST_CTRL_H_
-#define __GAMELIST_CTRL_H_
+#pragma once
 
-#include <memory>
+#include <cstddef>
+#include <string>
 #include <vector>
 
+#include <wx/event.h>
+#include <wx/gdicmn.h>
 #include <wx/listctrl.h>
+#include <wx/string.h>
 #include <wx/tipwin.h>
+#include <wx/windowid.h>
 
-#include "ISOFile.h"
-#include "MemoryCards/WiiSaveCrypted.h"
+#include "DolphinWX/ISOFile.h"
+
+class wxListEvent;
+class wxWindow;
 
 class wxEmuStateTip : public wxTipWindow
 {
@@ -32,7 +38,7 @@ public:
 	CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
 	~CGameListCtrl();
 
-	void Update();
+	void Update() override;
 
 	void BrowseForDirectory();
 	const GameListItem *GetSelectedISO();
@@ -45,6 +51,7 @@ public:
 		COLUMN_BANNER,
 		COLUMN_TITLE,
 		COLUMN_NOTES,
+		COLUMN_ID,
 		COLUMN_COUNTRY,
 		COLUMN_SIZE,
 		COLUMN_EMULATION_STATE,
@@ -60,7 +67,7 @@ private:
 
 	void ClearIsoFiles()
 	{
-		while (!m_ISOFiles.empty())	// so lazy
+		while (!m_ISOFiles.empty()) // so lazy
 		{
 			delete m_ISOFiles.back();
 			m_ISOFiles.pop_back();
@@ -97,7 +104,7 @@ private:
 	void OnMultiCompressGCM(wxCommandEvent& event);
 	void OnMultiDecompressGCM(wxCommandEvent& event);
 	void OnInstallWAD(wxCommandEvent& event);
-	void OnDropFiles(wxDropFilesEvent& event);
+	void OnChangeDisc(wxCommandEvent& event);
 
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();
@@ -106,9 +113,6 @@ private:
 	static size_t m_currentItem;
 	static std::string m_currentFilename;
 	static size_t m_numberItem;
-	static void CompressCB(const char* text, float percent, void* arg);
-	static void MultiCompressCB(const char* text, float percent, void* arg);
+	static void CompressCB(const std::string& text, float percent, void* arg);
+	static void MultiCompressCB(const std::string& text, float percent, void* arg);
 };
-
-#endif
-

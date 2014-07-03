@@ -12,6 +12,22 @@
     <string name="build_revision">ビルドのバージョン</string>
     <string name="supports_gles3">サポートのOpenGL ES 3</string>
     <string name="supports_neon">サポートのNEON</string>
+    <string name="general">一般</string>
+    <string name="cpu">CPU</string>
+    <string name="gles_two">GLES 2</string>
+    <string name="gles_three">GLES 3</string>
+    <string name="desktop_gl">OpenGL</string>
+
+    <!-- About Menu - CPU Info -->
+    <string name="cpu_abi_one">CPU ABI 1</string>
+    <string name="cpu_abi_two">CPU ABI 2</string>
+    <string name="cpu_info">CPU情報</string>
+    <string name="cpu_type">CPUタイプ</string>
+    <string name="cpu_features">CPUの命令セットと機能</string>
+    <string name="num_cores">CPUコア</string>
+    <string name="cpu_implementer">CPUの実装</string>
+    <string name="cpu_hardware">ハードウェア</string>
+    <string name="unknown_part_num">不明 (%1$d)。 我々はそれを文書化することができますので、この番号を報告してください。 </string>
 
     <!-- Folder Browser -->
     <string name="current_dir">現在のディレクトリ： %1$s</string>
@@ -63,9 +79,10 @@
     <string name="wiimote_2">Wiiリモコン2</string>
     <string name="wiimote_3">Wiiリモコン3</string>
     <string name="wiimote_4">Wiiリモコン4</string>
+    <string name="enable_wiimote">Wiiリモコンを有効</string>
     <string name="input_binding">入力バインディング</string>
     <string name="input_binding_descrip">%1$sにバインドするための入力を移動または押してください。</string>
-    <!-- Gamecube buttons (May be shared with Wiimote stuff too) -->
+    <!-- GameCube buttons (May be shared with Wiimote stuff too) -->
     <string name="button_a">Aボタン</string>
     <string name="button_b">Bボタン</string>
     <string name="button_start">スタートボタン</string>
@@ -140,6 +157,8 @@
     <string name="FSAA_descrip">3Dグラフィックスをラスタライズによって生じるエイリアシングの量が減少。 レンダリングされた画像はあまりギザギザになります。 抽選でエミュレーション速度を下げます。問題を引き起こす可能性があります。</string>
     <string name="anisotropic_filtering">異方性フィルタリング</string>
     <string name="anisotropic_filtering_descrip">異方性フィルタリングを適用します。 奥行きのあるテクスチャをより精細に描画することが出来ます。 特定のゲームでは描画バグの原因になることがあります。</string>
+    <string name="postprocessing_shader">ポストプロセッシングシェーダー</string>
+    <string name="postprocessing_shader_descrip">フレーム終了後の後処理効果を適用する。</string>
     <string name="scaled_efb_copy">Scaled EFB Copy</string>
     <string name="scaled_efb_copy_descrip">テクスチャエフェクトを表示するために作成されたテクスチャの品質を著しく向上させます。 特に高解像度出力時に効果が大きく出ます。 動作速度は少々低下し、まれに描画バグの原因にもなることもあります。</string>
     <string name="per_pixel_lighting">Per-Pixel Lighting</string>
@@ -170,8 +189,6 @@
     <string name="external_frame_buffer_descrip">XFBをエミュレート方法を決定。</string>
     <string name="external_frame_buffer_virtual">バーチャル</string>
     <string name="external_frame_buffer_real">実機</string>
-    <string name="cache_display_lists">Cache Display Lists</string>
-    <string name="cache_display_lists_descrip">ディスプレイリストをキャッシュすることによりエミュレーション速度を向上。</string>
     <string name="disable_destination_alpha">Disable Destination Alpha</string>
     <string name="disable_destination_alpha_descrip">多くのタイトルで画面効果に使用されている、アルファ透過処理をスキップ 。</string>
     <string name="fast_depth_calculation">高速奥行き計算</string>

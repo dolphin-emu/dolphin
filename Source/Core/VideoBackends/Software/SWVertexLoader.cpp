@@ -2,22 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "SWVertexLoader.h"
-#include "VertexLoader_Position.h"
-#include "VertexLoader_Normal.h"
-#include "VertexLoader_Color.h"
-#include "VertexLoader_TextCoord.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/SetupUnit.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVertexLoader.h"
+#include "VideoBackends/Software/TransformUnit.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
-#include "CPMemLoader.h"
-#include "XFMemLoader.h"
-
-#include "TransformUnit.h"
-#include "SetupUnit.h"
-#include "SWStatistics.h"
-#include "VertexManagerBase.h"
-#include "DataReader.h"
+#include "VideoCommon/DataReader.h"
+#include "VideoCommon/VertexLoader_Color.h"
+#include "VideoCommon/VertexLoader_Normal.h"
+#include "VideoCommon/VertexLoader_Position.h"
+#include "VideoCommon/VertexLoader_TextCoord.h"
+#include "VideoCommon/VertexManagerBase.h"
 
 // Vertex loaders read these
 extern int tcIndex;
@@ -41,7 +40,7 @@ SWVertexLoader::SWVertexLoader() :
 SWVertexLoader::~SWVertexLoader()
 {
 	delete m_SetupUnit;
-	m_SetupUnit = NULL;
+	m_SetupUnit = nullptr;
 }
 
 void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
@@ -90,21 +89,21 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	m_VertexSize = 0;
 
 	// Reset pipeline
-	m_positionLoader = NULL;
-	m_normalLoader = NULL;
+	m_positionLoader = nullptr;
+	m_normalLoader = nullptr;
 	m_NumAttributeLoaders = 0;
 
 	// Reset vertex
 	// matrix index from xf regs or cp memory?
-	if (swxfregs.MatrixIndexA.PosNormalMtxIdx != MatrixIndexA.PosNormalMtxIdx ||
-		swxfregs.MatrixIndexA.Tex0MtxIdx != MatrixIndexA.Tex0MtxIdx ||
-		swxfregs.MatrixIndexA.Tex1MtxIdx != MatrixIndexA.Tex1MtxIdx ||
-		swxfregs.MatrixIndexA.Tex2MtxIdx != MatrixIndexA.Tex2MtxIdx ||
-		swxfregs.MatrixIndexA.Tex3MtxIdx != MatrixIndexA.Tex3MtxIdx ||
-		swxfregs.MatrixIndexB.Tex4MtxIdx != MatrixIndexB.Tex4MtxIdx ||
-		swxfregs.MatrixIndexB.Tex5MtxIdx != MatrixIndexB.Tex5MtxIdx ||
-		swxfregs.MatrixIndexB.Tex6MtxIdx != MatrixIndexB.Tex6MtxIdx ||
-		swxfregs.MatrixIndexB.Tex7MtxIdx != MatrixIndexB.Tex7MtxIdx)
+	if (xfmem.MatrixIndexA.PosNormalMtxIdx != MatrixIndexA.PosNormalMtxIdx ||
+		xfmem.MatrixIndexA.Tex0MtxIdx != MatrixIndexA.Tex0MtxIdx ||
+		xfmem.MatrixIndexA.Tex1MtxIdx != MatrixIndexA.Tex1MtxIdx ||
+		xfmem.MatrixIndexA.Tex2MtxIdx != MatrixIndexA.Tex2MtxIdx ||
+		xfmem.MatrixIndexA.Tex3MtxIdx != MatrixIndexA.Tex3MtxIdx ||
+		xfmem.MatrixIndexB.Tex4MtxIdx != MatrixIndexB.Tex4MtxIdx ||
+		xfmem.MatrixIndexB.Tex5MtxIdx != MatrixIndexB.Tex5MtxIdx ||
+		xfmem.MatrixIndexB.Tex6MtxIdx != MatrixIndexB.Tex6MtxIdx ||
+		xfmem.MatrixIndexB.Tex7MtxIdx != MatrixIndexB.Tex7MtxIdx)
 	{
 		WARN_LOG(VIDEO, "Matrix indices don't match");
 
@@ -115,15 +114,15 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	}
 
 #if(1)
-	m_Vertex.posMtx = swxfregs.MatrixIndexA.PosNormalMtxIdx;
-	m_Vertex.texMtx[0] = swxfregs.MatrixIndexA.Tex0MtxIdx;
-	m_Vertex.texMtx[1] = swxfregs.MatrixIndexA.Tex1MtxIdx;
-	m_Vertex.texMtx[2] = swxfregs.MatrixIndexA.Tex2MtxIdx;
-	m_Vertex.texMtx[3] = swxfregs.MatrixIndexA.Tex3MtxIdx;
-	m_Vertex.texMtx[4] = swxfregs.MatrixIndexB.Tex4MtxIdx;
-	m_Vertex.texMtx[5] = swxfregs.MatrixIndexB.Tex5MtxIdx;
-	m_Vertex.texMtx[6] = swxfregs.MatrixIndexB.Tex6MtxIdx;
-	m_Vertex.texMtx[7] = swxfregs.MatrixIndexB.Tex7MtxIdx;
+	m_Vertex.posMtx = xfmem.MatrixIndexA.PosNormalMtxIdx;
+	m_Vertex.texMtx[0] = xfmem.MatrixIndexA.Tex0MtxIdx;
+	m_Vertex.texMtx[1] = xfmem.MatrixIndexA.Tex1MtxIdx;
+	m_Vertex.texMtx[2] = xfmem.MatrixIndexA.Tex2MtxIdx;
+	m_Vertex.texMtx[3] = xfmem.MatrixIndexA.Tex3MtxIdx;
+	m_Vertex.texMtx[4] = xfmem.MatrixIndexB.Tex4MtxIdx;
+	m_Vertex.texMtx[5] = xfmem.MatrixIndexB.Tex5MtxIdx;
+	m_Vertex.texMtx[6] = xfmem.MatrixIndexB.Tex6MtxIdx;
+	m_Vertex.texMtx[7] = xfmem.MatrixIndexB.Tex7MtxIdx;
 #else
 	m_Vertex.posMtx = MatrixIndexA.PosNormalMtxIdx;
 	m_Vertex.texMtx[0] = MatrixIndexA.Tex0MtxIdx;
@@ -165,7 +164,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		m_normalLoader = VertexLoader_Normal::GetFunction(g_VtxDesc.Normal,
 			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
 
-		if (m_normalLoader == 0)
+		if (m_normalLoader == nullptr)
 		{
 			ERROR_LOG(VIDEO, "VertexLoader_Normal::GetFunction returned zero!");
 		}
@@ -177,17 +176,17 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		switch (colDesc[i])
 		{
 		case NOT_PRESENT:
-			m_colorLoader[i] = NULL;
+			m_colorLoader[i] = nullptr;
 			break;
 		case DIRECT:
 			switch (colComp[i])
 			{
-			case FORMAT_16B_565:	m_VertexSize += 2; m_colorLoader[i] = (Color_ReadDirect_16b_565); break;
-			case FORMAT_24B_888:	m_VertexSize += 3; m_colorLoader[i] = (Color_ReadDirect_24b_888); break;
-			case FORMAT_32B_888x:	m_VertexSize += 4; m_colorLoader[i] = (Color_ReadDirect_32b_888x); break;
-			case FORMAT_16B_4444:	m_VertexSize += 2; m_colorLoader[i] = (Color_ReadDirect_16b_4444); break;
-			case FORMAT_24B_6666:	m_VertexSize += 3; m_colorLoader[i] = (Color_ReadDirect_24b_6666); break;
-			case FORMAT_32B_8888:	m_VertexSize += 4; m_colorLoader[i] = (Color_ReadDirect_32b_8888); break;
+			case FORMAT_16B_565:  m_VertexSize += 2; m_colorLoader[i] = (Color_ReadDirect_16b_565); break;
+			case FORMAT_24B_888:  m_VertexSize += 3; m_colorLoader[i] = (Color_ReadDirect_24b_888); break;
+			case FORMAT_32B_888x: m_VertexSize += 4; m_colorLoader[i] = (Color_ReadDirect_32b_888x); break;
+			case FORMAT_16B_4444: m_VertexSize += 2; m_colorLoader[i] = (Color_ReadDirect_16b_4444); break;
+			case FORMAT_24B_6666: m_VertexSize += 3; m_colorLoader[i] = (Color_ReadDirect_24b_6666); break;
+			case FORMAT_32B_8888: m_VertexSize += 4; m_colorLoader[i] = (Color_ReadDirect_32b_8888); break;
 			default: _assert_(0); break;
 			}
 			AddAttributeLoader(LoadColor, i);
@@ -196,12 +195,12 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 			m_VertexSize += 1;
 			switch (colComp[i])
 			{
-			case FORMAT_16B_565:	m_colorLoader[i] = (Color_ReadIndex8_16b_565); break;
-			case FORMAT_24B_888:	m_colorLoader[i] = (Color_ReadIndex8_24b_888); break;
-			case FORMAT_32B_888x:	m_colorLoader[i] = (Color_ReadIndex8_32b_888x); break;
-			case FORMAT_16B_4444:	m_colorLoader[i] = (Color_ReadIndex8_16b_4444); break;
-			case FORMAT_24B_6666:	m_colorLoader[i] = (Color_ReadIndex8_24b_6666); break;
-			case FORMAT_32B_8888:	m_colorLoader[i] = (Color_ReadIndex8_32b_8888); break;
+			case FORMAT_16B_565:  m_colorLoader[i] = (Color_ReadIndex8_16b_565); break;
+			case FORMAT_24B_888:  m_colorLoader[i] = (Color_ReadIndex8_24b_888); break;
+			case FORMAT_32B_888x: m_colorLoader[i] = (Color_ReadIndex8_32b_888x); break;
+			case FORMAT_16B_4444: m_colorLoader[i] = (Color_ReadIndex8_16b_4444); break;
+			case FORMAT_24B_6666: m_colorLoader[i] = (Color_ReadIndex8_24b_6666); break;
+			case FORMAT_32B_8888: m_colorLoader[i] = (Color_ReadIndex8_32b_8888); break;
 			default: _assert_(0); break;
 			}
 			AddAttributeLoader(LoadColor, i);
@@ -210,12 +209,12 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 			m_VertexSize += 2;
 			switch (colComp[i])
 			{
-			case FORMAT_16B_565:	m_colorLoader[i] = (Color_ReadIndex16_16b_565); break;
-			case FORMAT_24B_888:	m_colorLoader[i] = (Color_ReadIndex16_24b_888); break;
-			case FORMAT_32B_888x:	m_colorLoader[i] = (Color_ReadIndex16_32b_888x); break;
-			case FORMAT_16B_4444:	m_colorLoader[i] = (Color_ReadIndex16_16b_4444); break;
-			case FORMAT_24B_6666:	m_colorLoader[i] = (Color_ReadIndex16_24b_6666); break;
-			case FORMAT_32B_8888:	m_colorLoader[i] = (Color_ReadIndex16_32b_8888); break;
+			case FORMAT_16B_565:  m_colorLoader[i] = (Color_ReadIndex16_16b_565); break;
+			case FORMAT_24B_888:  m_colorLoader[i] = (Color_ReadIndex16_24b_888); break;
+			case FORMAT_32B_888x: m_colorLoader[i] = (Color_ReadIndex16_32b_888x); break;
+			case FORMAT_16B_4444: m_colorLoader[i] = (Color_ReadIndex16_16b_4444); break;
+			case FORMAT_24B_6666: m_colorLoader[i] = (Color_ReadIndex16_24b_6666); break;
+			case FORMAT_32B_8888: m_colorLoader[i] = (Color_ReadIndex16_32b_8888); break;
 			default: _assert_(0); break;
 			}
 			AddAttributeLoader(LoadColor, i);
@@ -243,7 +242,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	m_TexGenSpecialCase =
 		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
 		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
-		(swxfregs.texMtxInfo[0].projection == XF_TEXPROJ_ST);
+		(xfmem.texMtxInfo[0].projection == XF_TEXPROJ_ST);
 
 	m_SetupUnit->Init(primitiveType);
 }

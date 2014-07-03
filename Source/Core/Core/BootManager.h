@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BOOTMANAGER_H
-#define _BOOTMANAGER_H
+#pragma once
 
 #include <string>
 
@@ -15,5 +14,3 @@ bool BootCore(const std::string& _rFilename);
 
 void Stop();
 };
-
-#endif

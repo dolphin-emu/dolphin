@@ -2,22 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "BPFunctions.h"
-#include "Common.h"
-#include "RenderBase.h"
-#include "TextureCacheBase.h"
-#include "VertexManagerBase.h"
-#include "VertexShaderManager.h"
-#include "VideoConfig.h"
-#include "HW/Memmap.h"
-#include "ConfigManager.h"
+#include "Common/Common.h"
 
-const bool renderFog = false;
+#include "Core/ConfigManager.h"
+#include "Core/HW/Memmap.h"
+
+#include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
+
 namespace BPFunctions
 {
 // ----------------------------------------------
 // State translation lookup tables
-// Reference: Yet Another Gamecube Documentation
+// Reference: Yet Another GameCube Documentation
 // ----------------------------------------------
 
 
@@ -33,11 +34,22 @@ void SetGenerationMode()
 
 void SetScissor()
 {
-	const int xoff = bpmem.scissorOffset.x * 2 - 342;
-	const int yoff = bpmem.scissorOffset.y * 2 - 342;
+	/* NOTE: the minimum value here for the scissor rect and offset is -342.
+	 * GX internally adds on an offset of 342 to both the offset and scissor
+	 * coords to ensure that the register was always unsigned.
+	 *
+	 * The code that was here before tried to "undo" this offset, but
+	 * since we always take the difference, the +342 added to both
+	 * sides cancels out. */
 
-	EFBRectangle rc (bpmem.scissorTL.x - xoff - 342, bpmem.scissorTL.y - yoff - 342,
-					bpmem.scissorBR.x - xoff - 341, bpmem.scissorBR.y - yoff - 341);
+	/* The scissor offset is always even, so to save space, the scissor offset
+	 * register is scaled down by 2. So, if somebody calls
+	 * GX_SetScissorBoxOffset(20, 20); the registers will be set to 10, 10. */
+	const int xoff = bpmem.scissorOffset.x * 2;
+	const int yoff = bpmem.scissorOffset.y * 2;
+
+	EFBRectangle rc (bpmem.scissorTL.x - xoff,     bpmem.scissorTL.y - yoff,
+	                 bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
 
 	if (rc.left < 0) rc.left = 0;
 	if (rc.top < 0) rc.top = 0;
@@ -47,8 +59,7 @@ void SetScissor()
 	if (rc.left > rc.right) rc.right = rc.left;
 	if (rc.top > rc.bottom) rc.bottom = rc.top;
 
-	TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
-	g_renderer->SetScissorRect(trc);
+	g_renderer->SetScissorRect(rc);
 }
 
 void SetLineWidth()
@@ -79,10 +90,11 @@ void SetColorMask()
 	g_renderer->SetColorMask();
 }
 
-void CopyEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
-	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+void CopyEFB(u32 dstAddr, const EFBRectangle& srcRect,
+	     unsigned int dstFormat, PEControl::PixelFormat srcFormat,
+	     bool isIntensity, bool scaleByHalf)
 {
-	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
+	// bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
 	if (g_ActiveConfig.bEFBCopyEnable)
 	{
 		TextureCache::CopyRenderTargetToTexture(dstAddr, dstFormat, srcFormat,
@@ -111,11 +123,12 @@ void ClearScreen(const EFBRectangle &rc)
 	bool colorEnable = bpmem.blendmode.colorupdate;
 	bool alphaEnable = bpmem.blendmode.alphaupdate;
 	bool zEnable = bpmem.zmode.updateenable;
+	auto pixel_format = bpmem.zcontrol.pixel_format;
 
 	// (1): Disable unused color channels
-	if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB8_Z24 ||
-		bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16 ||
-		bpmem.zcontrol.pixel_format == PIXELFMT_Z24)
+	if (pixel_format == PEControl::RGB8_Z24 ||
+		pixel_format == PEControl::RGB565_Z16 ||
+		pixel_format == PEControl::Z24)
 	{
 		alphaEnable = false;
 	}
@@ -126,11 +139,11 @@ void ClearScreen(const EFBRectangle &rc)
 		u32 z = bpmem.clearZValue;
 
 		// (2) drop additional accuracy
-		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+		if (pixel_format == PEControl::RGBA6_Z24)
 		{
 			color = RGBA8ToRGBA6ToRGBA8(color);
 		}
-		else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		else if (pixel_format == PEControl::RGB565_Z16)
 		{
 			color = RGBA8ToRGB565ToRGBA8(color);
 			z = Z24ToZ16ToZ24(z);
@@ -152,45 +165,44 @@ void OnPixelFormatChange()
 	 * Since we are always using an RGBA8 buffer though, this causes issues in some games.
 	 * Thus, we reinterpret the old EFB data with the new format here.
 	 */
-	if (!g_ActiveConfig.bEFBEmulateFormatChanges ||
-		!g_ActiveConfig.backend_info.bSupportsFormatReinterpretation)
+	if (!g_ActiveConfig.bEFBEmulateFormatChanges)
 		return;
 
-	u32 old_format = Renderer::GetPrevPixelFormat();
-	u32 new_format = bpmem.zcontrol.pixel_format;
+	auto old_format = Renderer::GetPrevPixelFormat();
+	auto new_format = bpmem.zcontrol.pixel_format;
 
 	// no need to reinterpret pixel data in these cases
-	if (new_format == old_format || old_format == (unsigned int)-1)
+	if (new_format == old_format || old_format == PEControl::INVALID_FMT)
 		goto skip;
 
 	// Check for pixel format changes
 	switch (old_format)
 	{
-		case PIXELFMT_RGB8_Z24:
-		case PIXELFMT_Z24:
+		case PEControl::RGB8_Z24:
+		case PEControl::Z24:
 			// Z24 and RGB8_Z24 are treated equal, so just return in this case
-			if (new_format == PIXELFMT_RGB8_Z24 || new_format == PIXELFMT_Z24)
+			if (new_format == PEControl::RGB8_Z24 || new_format == PEControl::Z24)
 				goto skip;
 
-			if (new_format == PIXELFMT_RGBA6_Z24)
+			if (new_format == PEControl::RGBA6_Z24)
 				convtype = 0;
-			else if (new_format == PIXELFMT_RGB565_Z16)
+			else if (new_format == PEControl::RGB565_Z16)
 				convtype = 1;
 			break;
 
-		case PIXELFMT_RGBA6_Z24:
-			if (new_format == PIXELFMT_RGB8_Z24 ||
-				new_format == PIXELFMT_Z24)
+		case PEControl::RGBA6_Z24:
+			if (new_format == PEControl::RGB8_Z24 ||
+				new_format == PEControl::Z24)
 				convtype = 2;
-			else if (new_format == PIXELFMT_RGB565_Z16)
+			else if (new_format == PEControl::RGB565_Z16)
 				convtype = 3;
 			break;
 
-		case PIXELFMT_RGB565_Z16:
-			if (new_format == PIXELFMT_RGB8_Z24 ||
-				new_format == PIXELFMT_Z24)
+		case PEControl::RGB565_Z16:
+			if (new_format == PEControl::RGB8_Z24 ||
+				new_format == PEControl::Z24)
 				convtype = 4;
-			else if (new_format == PIXELFMT_RGBA6_Z24)
+			else if (new_format == PEControl::RGBA6_Z24)
 				convtype = 5;
 			break;
 
@@ -200,43 +212,16 @@ void OnPixelFormatChange()
 
 	if (convtype == -1)
 	{
-		ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d\n", old_format, new_format);
+		ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d\n", static_cast<int>(old_format), static_cast<int>(new_format));
 		goto skip;
 	}
 
 	g_renderer->ReinterpretPixelData(convtype);
 
 skip:
-	DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", new_format, bpmem.zcontrol.zformat);
+	DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", static_cast<int>(new_format), static_cast<int>(bpmem.zcontrol.zformat));
 
 	Renderer::StorePixelFormat(new_format);
-}
-
-bool GetConfig(const int &type)
-{
-	switch (type)
-	{
-	case CONFIG_ISWII:
-		return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	case CONFIG_DISABLEFOG:
-		return g_ActiveConfig.bDisableFog;
-	case CONFIG_SHOWEFBREGIONS:
-		return g_ActiveConfig.bShowEFBCopyRegions;
-	default:
-		PanicAlert("GetConfig Error: Unknown Config Type!");
-		return false;
-	}
-}
-
-u8 *GetPointer(const u32 &address)
-{
-	return Memory::GetPointer(address);
-}
-
-// Never used. All backends call SetSamplerState in VertexManager::Flush
-void SetTextureMode(const BPCmd &bp)
-{
-	g_renderer->SetSamplerState(bp.address & 3, (bp.address & 0xE0) == 0xA0);
 }
 
 void SetInterlacingMode(const BPCmd &bp)

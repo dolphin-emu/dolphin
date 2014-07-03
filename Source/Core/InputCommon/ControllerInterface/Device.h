@@ -1,11 +1,13 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#ifndef _DEVICE_H_
-#define _DEVICE_H_
+#pragma once
 
 #include <string>
 #include <vector>
 
-#include "Common.h"
+#include "Common/Common.h"
 
 // idk in case I wanted to change it to double or something, idk what's best
 typedef float ControlState;
@@ -19,9 +21,9 @@ namespace Core
 class DeviceQualifier;
 
 //
-//		Device
+// Device
 //
-// a device class
+// A device class
 //
 class Device
 {
@@ -30,24 +32,24 @@ public:
 	class Output;
 
 	//
-	//		Control
+	// Control
 	//
-	//  control includes inputs and outputs
+	// Control includes inputs and outputs
 	//
-	class Control		// input or output
+	class Control // input or output
 	{
 	public:
 		virtual std::string GetName() const = 0;
 		virtual ~Control() {}
 
-		virtual Input* ToInput() { return NULL; }
-		virtual Output* ToOutput() { return NULL; }
+		virtual Input* ToInput() { return nullptr; }
+		virtual Output* ToOutput() { return nullptr; }
 	};
 
 	//
-	//		Input
+	// Input
 	//
-	// an input on a device
+	// An input on a device
 	//
 	class Input : public Control
 	{
@@ -57,13 +59,13 @@ public:
 
 		virtual ControlState GetState() const = 0;
 
-		Input* ToInput() { return this; }
+		Input* ToInput() override { return this; }
 	};
 
 	//
-	//		Output
+	// Output
 	//
-	// an output on a device
+	// An output on a device
 	//
 	class Output : public Control
 	{
@@ -72,7 +74,7 @@ public:
 
 		virtual void SetState(ControlState state) = 0;
 
-		Output* ToOutput() { return this; }
+		Output* ToOutput() override { return this; }
 	};
 
 	virtual ~Device();
@@ -102,12 +104,12 @@ protected:
 			: m_low(*low), m_high(*high)
 		{}
 
-		ControlState GetState() const
+		ControlState GetState() const override
 		{
 			return (1 + m_high.GetState() - m_low.GetState()) / 2;
 		}
 
-		std::string GetName() const
+		std::string GetName() const override
 		{
 			return m_low.GetName() + *m_high.GetName().rbegin();
 		}
@@ -126,15 +128,15 @@ protected:
 	}
 
 private:
-	std::vector<Input*>		m_inputs;
-	std::vector<Output*>	m_outputs;
+	std::vector<Input*>  m_inputs;
+	std::vector<Output*> m_outputs;
 };
 
 //
-//		DeviceQualifier
+// DeviceQualifier
 //
-// device qualifier used to match devices
-// currently has ( source, id, name ) properties which match a device
+// Device qualifier used to match devices.
+// Currently has ( source, id, name ) properties which match a device
 //
 class DeviceQualifier
 {
@@ -148,9 +150,9 @@ public:
 	bool operator==(const DeviceQualifier& devq) const;
 	bool operator==(const Device* const dev) const;
 
-	std::string		source;
-	int				cid;
-	std::string		name;
+	std::string  source;
+	int          cid;
+	std::string  name;
 };
 
 class DeviceContainer
@@ -167,5 +169,3 @@ protected:
 
 }
 }
-
-#endif

@@ -3,12 +3,13 @@
 // Refer to the license.txt file included.
 
 #ifdef ANDROID
-#include "Common.h"
 #include <assert.h>
-#include "OpenSLESStream.h"
 
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
+
+#include "AudioCommon/OpenSLESStream.h"
+#include "Common/Common.h"
 
 // engine interfaces
 static SLObjectItf engineObject;
@@ -16,7 +17,7 @@ static SLEngineItf engineEngine;
 static SLObjectItf outputMixObject;
 
 // buffer queue player interfaces
-static SLObjectItf bqPlayerObject = NULL;
+static SLObjectItf bqPlayerObject = nullptr;
 static SLPlayItf bqPlayerPlay;
 static SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
 static SLMuteSoloItf bqPlayerMuteSolo;
@@ -31,7 +32,7 @@ static int curBuffer = 0;
 
 static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
 	assert(bq == bqPlayerBufferQueue);
-	assert(NULL == context);
+	assert(nullptr == context);
 
 	short *nextBuffer = buffer[curBuffer];
 	int nextSize = sizeof(buffer[0]);
@@ -44,7 +45,7 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
 	_assert_msg_(AUDIO, SL_RESULT_SUCCESS == result, "Couldn't enqueue audio stream.");
 
 
-	curBuffer ^= 1;	// Switch buffer
+	curBuffer ^= 1; // Switch buffer
 	// Render to the fresh buffer
 	g_mixer->Mix(reinterpret_cast<short *>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
 }
@@ -52,7 +53,7 @@ bool OpenSLESStream::Start()
 {
 	SLresult result;
 	// create engine
-	result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL);
+	result = slCreateEngine(&engineObject, 0, nullptr, 0, nullptr, nullptr);
 	assert(SL_RESULT_SUCCESS == result);
 	result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
 	assert(SL_RESULT_SUCCESS == result);
@@ -78,7 +79,7 @@ bool OpenSLESStream::Start()
 
 	// configure audio sink
 	SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
-	SLDataSink audioSnk = {&loc_outmix, NULL};
+	SLDataSink audioSnk = {&loc_outmix, nullptr};
 
 	// create audio player
 	const SLInterfaceID ids[2] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
@@ -93,7 +94,7 @@ bool OpenSLESStream::Start()
 	result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE,
 		&bqPlayerBufferQueue);
 	assert(SL_RESULT_SUCCESS == result);
-	result = (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, bqPlayerCallback, NULL);
+	result = (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, bqPlayerCallback, nullptr);
 	assert(SL_RESULT_SUCCESS == result);
 	result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
 	assert(SL_RESULT_SUCCESS == result);
@@ -112,22 +113,22 @@ bool OpenSLESStream::Start()
 
 void OpenSLESStream::Stop()
 {
-	if (bqPlayerObject != NULL) {
+	if (bqPlayerObject != nullptr) {
 		(*bqPlayerObject)->Destroy(bqPlayerObject);
-		bqPlayerObject = NULL;
-		bqPlayerPlay = NULL;
-		bqPlayerBufferQueue = NULL;
-		bqPlayerMuteSolo = NULL;
-		bqPlayerVolume = NULL;
+		bqPlayerObject = nullptr;
+		bqPlayerPlay = nullptr;
+		bqPlayerBufferQueue = nullptr;
+		bqPlayerMuteSolo = nullptr;
+		bqPlayerVolume = nullptr;
 	}
-	if (outputMixObject != NULL) {
+	if (outputMixObject != nullptr) {
 		(*outputMixObject)->Destroy(outputMixObject);
-		outputMixObject = NULL;
+		outputMixObject = nullptr;
 	}
-	if (engineObject != NULL) {
+	if (engineObject != nullptr) {
 		(*engineObject)->Destroy(engineObject);
-		engineObject = NULL;
-		engineEngine = NULL;
+		engineObject = nullptr;
+		engineEngine = nullptr;
 	}
 }
 #endif

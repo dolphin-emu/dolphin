@@ -2,13 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GLOBALS_H_
-#define _GLOBALS_H_
+#pragma once
 
-#include "Common.h"
-#include "VideoConfig.h"
-#include "main.h"
+#include "Common/Common.h"
 
-#include "VideoCommon.h"
+#include "VideoBackends/D3D/main.h"
 
-#endif // _GLOBALS_H_
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"

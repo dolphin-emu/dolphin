@@ -1,9 +1,13 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#include <sstream>
+
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
-#include "OSXJoystick.h"
-
-#include <sstream>
+#include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 
 namespace ciface
 {
@@ -15,6 +19,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 	: m_device(device)
 	, m_device_name(name)
 	, m_index(index)
+	, m_ff_device(nullptr)
 {
 	// Buttons
 	NSDictionary *buttonDict =
@@ -34,7 +39,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 		{
 			IOHIDElementRef e =
 			(IOHIDElementRef)CFArrayGetValueAtIndex(buttons, i);
-			//DeviceElementDebugPrint(e, NULL);
+			//DeviceElementDebugPrint(e, nullptr);
 
 			AddInput(new Button(e, m_device));
 		}
@@ -57,7 +62,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 		{
 			IOHIDElementRef e =
 			(IOHIDElementRef)CFArrayGetValueAtIndex(axes, i);
-			//DeviceElementDebugPrint(e, NULL);
+			//DeviceElementDebugPrint(e, nullptr);
 
 			if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch) {
 				AddInput(new Hat(e, m_device, Hat::up));
@@ -71,14 +76,23 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 		}
 		CFRelease(axes);
 	}
+
+	// Force Feedback
+	FFCAPABILITIES ff_caps;
+	if (SUCCEEDED(ForceFeedback::FFDeviceAdapter::Create(IOHIDDeviceGetService(m_device), &m_ff_device)) &&
+		SUCCEEDED(FFDeviceGetForceFeedbackCapabilities(m_ff_device->m_device, &ff_caps)))
+	{
+		InitForceFeedback(m_ff_device, ff_caps.numFfAxes);
+	}
+}
+
+Joystick::~Joystick()
+{
+	if (m_ff_device)
+		m_ff_device->Release();
 }
 
 bool Joystick::UpdateInput()
-{
-	return true;
-}
-
-bool Joystick::UpdateOutput()
 {
 	return true;
 }

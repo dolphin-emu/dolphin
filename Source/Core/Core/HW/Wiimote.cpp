@@ -2,22 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "Wiimote.h"
-#include "WiimoteReal/WiimoteReal.h"
-#include "WiimoteEmu/WiimoteEmu.h"
-#include "Movie.h"
-#include "../ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Movie.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
-#include "ControllerInterface/ControllerInterface.h"
-
-#include "../InputCommon/InputConfig.h"
+#include "InputCommon/InputConfig.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace Wiimote
 {
 
 static InputPlugin g_plugin(WIIMOTE_INI_NAME, _trans("Wiimote"), "Wiimote");
+static int s_last_number = 4;
+
 InputPlugin *GetPlugin()
 {
 	return &g_plugin;
@@ -25,11 +26,10 @@ InputPlugin *GetPlugin()
 
 void Shutdown()
 {
-	std::vector<ControllerEmu*>::const_iterator
-		i = g_plugin.controllers.begin(),
-		e = g_plugin.controllers.end();
-	for ( ; i!=e; ++i )
-		delete *i;
+	for (const ControllerEmu* i : g_plugin.controllers)
+	{
+		delete i;
+	}
 	g_plugin.controllers.clear();
 
 	WiimoteReal::Stop();
@@ -117,13 +117,12 @@ void Update(int _number)
 	// TODO: change this to a try_to_lock, and make it give empty input on failure
 	std::lock_guard<std::recursive_mutex> lk(g_plugin.controls_lock);
 
-	static int _last_number = 4;
-	if (_number <= _last_number)
+	if (_number <= s_last_number)
 	{
 		g_controller_interface.UpdateOutput();
 		g_controller_interface.UpdateInput();
 	}
-	_last_number = _number;
+	s_last_number = _number;
 
 	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->Update();
@@ -157,6 +156,7 @@ void DoState(u8 **ptr, PointerWrap::Mode mode)
 	// TODO:
 
 	PointerWrap p(ptr, mode);
+	p.Do(s_last_number);
 	for (unsigned int i=0; i<MAX_BBMOTES; ++i)
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[i])->DoState(p);
 }

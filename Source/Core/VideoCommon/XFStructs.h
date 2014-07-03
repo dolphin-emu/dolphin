@@ -2,9 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _XFSTRUCTS_H
-#define _XFSTRUCTS_H
+#pragma once
 
-#include "XFMemory.h"
-
-#endif // _XFSTRUCTS_H
+#include "VideoCommon/XFMemory.h"

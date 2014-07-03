@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ATTACHMENT_EMU_H_
-#define _ATTACHMENT_EMU_H_
+#pragma once
 
-#include "ControllerEmu.h"
-#include "../WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/ControllerEmu.h"
 
 namespace WiimoteEmu
 {
@@ -14,14 +13,14 @@ namespace WiimoteEmu
 class Attachment : public ControllerEmu
 {
 public:
-	Attachment( const char* const _name, WiimoteEmu::ExtensionReg& _reg );
+	Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg);
 
-	virtual void GetState( u8* const data, const bool focus = true ) {}
+	virtual void GetState(u8* const data, const bool focus = true) {}
 	void Reset();
 	std::string GetName() const override;
 
-	const char*	const			name;
-	WiimoteEmu::ExtensionReg&	reg;
+	const char* const         name;
+	WiimoteEmu::ExtensionReg& reg;
 
 	u8 id[6];
 	u8 calibration[0x10];
@@ -30,9 +29,7 @@ public:
 class None : public Attachment
 {
 public:
-	None( WiimoteEmu::ExtensionReg& _reg );
+	None(WiimoteEmu::ExtensionReg& _reg);
 };
 
 }
-
-#endif

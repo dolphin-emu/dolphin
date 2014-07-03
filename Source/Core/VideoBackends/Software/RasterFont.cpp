@@ -2,12 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../OGL/GLUtil.h"
-
 #include <string.h>
 
-#include "RasterFont.h"
-// globals
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/Software/RasterFont.h"
 
 const GLubyte rasters[][13] = {
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},

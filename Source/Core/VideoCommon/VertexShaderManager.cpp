@@ -2,24 +2,22 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "VideoConfig.h"
-#include "MathUtil.h"
-
 #include <cmath>
 #include <sstream>
 
-#include "Statistics.h"
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
-#include "VertexShaderGen.h"
-#include "VertexShaderManager.h"
-#include "BPMemory.h"
-#include "CPMemory.h"
-#include "XFMemory.h"
-#include "VideoCommon.h"
-#include "VertexManagerBase.h"
-
-#include "RenderBase.h"
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 // track changes
@@ -53,7 +51,6 @@ namespace
 // Control Variables
 static ProjectionHack g_ProjHack1;
 static ProjectionHack g_ProjHack2;
-static bool g_ProjHack3;
 } // Namespace
 
 float PHackValue(std::string sValue)
@@ -92,7 +89,6 @@ void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 {
 	float fhackvalue1 = 0, fhackvalue2 = 0;
 	float fhacksign1 = 1.0, fhacksign2 = 1.0;
-	bool bProjHack3 = false;
 	const char *sTemp[2];
 
 	if (iPhackvalue[0] == 1)
@@ -110,17 +106,11 @@ void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 		fhackvalue2 = PHackValue(sPhackvalue[1]);
 		NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", fhackvalue2, sTemp[1]);
 
-		sTemp[0] = "DISABLED";
-		bProjHack3 = (iPhackvalue[3] == 1) ? true : bProjHack3;
-		if (bProjHack3)
-			sTemp[0] = "ENABLED";
-		NOTICE_LOG(VIDEO, "- Extra Parameter: %s", sTemp[0]);
 	}
 
 	// Set the projections hacks
 	g_ProjHack1 = ProjectionHack(fhacksign1, fhackvalue1);
 	g_ProjHack2 = ProjectionHack(fhacksign2, fhackvalue2);
-	g_ProjHack3 = bProjHack3;
 }
 
 
@@ -141,46 +131,43 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 
 	// TODO: ceil, floor or just cast to int?
 	// TODO: Directly use the floats instead of rounding them?
-	float intendedX = xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff;
-	float intendedY = xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff;
-	float intendedWd = 2.0f * xfregs.viewport.wd;
-	float intendedHt = -2.0f * xfregs.viewport.ht;
-	
-        if (intendedWd < 0.f)
-        {
-                intendedX += intendedWd;
-                intendedWd = -intendedWd;
-        }
-        if (intendedHt < 0.f)
-        {
-                intendedY += intendedHt;
-                intendedHt = -intendedHt;
-        }
+	float intendedX = xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff;
+	float intendedY = xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff;
+	float intendedWd = 2.0f * xfmem.viewport.wd;
+	float intendedHt = -2.0f * xfmem.viewport.ht;
+
+	if (intendedWd < 0.f)
+	{
+		intendedX += intendedWd;
+		intendedWd = -intendedWd;
+	}
+	if (intendedHt < 0.f)
+	{
+		intendedY += intendedHt;
+		intendedHt = -intendedHt;
+	}
 
 	// fit to EFB size
-        float X = (intendedX >= 0.f) ? intendedX : 0.f;
-        float Y = (intendedY >= 0.f) ? intendedY : 0.f;
-        float Wd = (X + intendedWd <= EFB_WIDTH) ? intendedWd : (EFB_WIDTH - X);
-        float Ht = (Y + intendedHt <= EFB_HEIGHT) ? intendedHt : (EFB_HEIGHT - Y);
-	
+	float X = (intendedX >= 0.f) ? intendedX : 0.f;
+	float Y = (intendedY >= 0.f) ? intendedY : 0.f;
+	float Wd = (X + intendedWd <= EFB_WIDTH) ? intendedWd : (EFB_WIDTH - X);
+	float Ht = (Y + intendedHt <= EFB_HEIGHT) ? intendedHt : (EFB_HEIGHT - Y);
+
 	Matrix44::LoadIdentity(result);
 	if (Wd == 0 || Ht == 0)
 		return;
-	
+
 	result.data[4*0+0] = intendedWd / Wd;
 	result.data[4*0+3] = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
 	result.data[4*1+1] = intendedHt / Ht;
 	result.data[4*1+3] = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
 }
 
-void UpdateViewport();
-
 void VertexShaderManager::Init()
 {
 	Dirty();
 
-	memset(&xfregs, 0, sizeof(xfregs));
-	memset(xfmem, 0, sizeof(xfmem));
+	memset(&xfmem, 0, sizeof(xfmem));
 	memset(&constants, 0 , sizeof(constants));
 	ResetView();
 
@@ -228,7 +215,7 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
 		int endn = (nTransformMatricesChanged[1] + 3) / 4;
-		memcpy(constants.transformmatrices[startn], &xfmem[startn * 4], (endn - startn) * 16);
+		memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
 	}
@@ -237,9 +224,9 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nNormalMatricesChanged[0] / 3;
 		int endn = (nNormalMatricesChanged[1] + 2) / 3;
-		for(int i=startn; i<endn; i++)
+		for (int i=startn; i<endn; i++)
 		{
-			memcpy(constants.normalmatrices[i], &xfmem[XFMEM_NORMALMATRICES + 3*i], 12);
+			memcpy(constants.normalmatrices[i], &xfmem.normalMatrices[3*i], 12);
 		}
 		dirty = true;
 		nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
@@ -249,42 +236,55 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nPostTransformMatricesChanged[0] / 4;
 		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
-		memcpy(constants.posttransformmatrices[startn], &xfmem[XFMEM_POSTMATRICES + startn * 4], (endn - startn) * 16);
+		memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4], (endn - startn) * 16);
 		dirty = true;
 		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
 
 	if (nLightsChanged[0] >= 0)
 	{
+		// TODO: Outdated comment
 		// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 		int istart = nLightsChanged[0] / 0x10;
 		int iend = (nLightsChanged[1] + 15) / 0x10;
-		const float* xfmemptr = (const float*)&xfmem[0x10 * istart + XFMEM_LIGHTS];
 
 		for (int i = istart; i < iend; ++i)
 		{
-			u32 color = *(const u32*)(xfmemptr + 3);
-			constants.lights[5*i][0] = ((color >> 24) & 0xFF) / 255.0f;
-			constants.lights[5*i][1] = ((color >> 16) & 0xFF) / 255.0f;
-			constants.lights[5*i][2] = ((color >> 8)  & 0xFF) / 255.0f;
-			constants.lights[5*i][3] = ((color)       & 0xFF) / 255.0f;
-			xfmemptr += 4;
+			const Light& light = xfmem.lights[i];
+			VertexShaderConstants::Light& dstlight = constants.lights[i];
 
-			for (int j = 0; j < 4; ++j, xfmemptr += 3)
+			// xfmem.light.color is packed as abgr in u8[4], so we have to swap the order
+			dstlight.color[0] = light.color[3];
+			dstlight.color[1] = light.color[2];
+			dstlight.color[2] = light.color[1];
+			dstlight.color[3] = light.color[0];
+
+			dstlight.cosatt[0] = light.cosatt[0];
+			dstlight.cosatt[1] = light.cosatt[1];
+			dstlight.cosatt[2] = light.cosatt[2];
+
+			if (fabs(light.distatt[0]) < 0.00001f &&
+			    fabs(light.distatt[1]) < 0.00001f &&
+			    fabs(light.distatt[2]) < 0.00001f)
 			{
-				if (j == 1 &&
-					fabs(xfmemptr[0]) < 0.00001f &&
-					fabs(xfmemptr[1]) < 0.00001f &&
-					fabs(xfmemptr[2]) < 0.00001f)
-				{
-					// dist attenuation, make sure not equal to 0!!!
-					constants.lights[5*i+j+1][0] = 0.00001f;
-				}
-				else
-					constants.lights[5*i+j+1][0] = xfmemptr[0];
-				constants.lights[5*i+j+1][1] = xfmemptr[1];
-				constants.lights[5*i+j+1][2] = xfmemptr[2];
+				// dist attenuation, make sure not equal to 0!!!
+				dstlight.distatt[0] = .00001f;
 			}
+			else
+			{
+				dstlight.distatt[0] = light.distatt[0];
+			}
+			dstlight.distatt[1] = light.distatt[1];
+			dstlight.distatt[2] = light.distatt[2];
+
+			dstlight.pos[0] = light.dpos[0];
+			dstlight.pos[1] = light.dpos[1];
+			dstlight.pos[2] = light.dpos[2];
+
+			// TODO: these likely have to be normalized
+			dstlight.dir[0] = light.ddir[0];
+			dstlight.dir[1] = light.ddir[1];
+			dstlight.dir[2] = light.ddir[2];
 		}
 		dirty = true;
 
@@ -297,11 +297,11 @@ void VertexShaderManager::SetConstants()
 		{
 			if (nMaterialsChanged & (1 << i))
 			{
-				u32 data = *(xfregs.ambColor + i);
-				constants.materials[i][0] = ((data >> 24) & 0xFF) / 255.0f;
-				constants.materials[i][1] = ((data >> 16) & 0xFF) / 255.0f;
-				constants.materials[i][2] = ((data >>  8) & 0xFF) / 255.0f;
-				constants.materials[i][3] = ( data        & 0xFF) / 255.0f;
+				u32 data = xfmem.ambColor[i];
+				constants.materials[i][0] = (data >> 24) & 0xFF;
+				constants.materials[i][1] = (data >> 16) & 0xFF;
+				constants.materials[i][2] = (data >>  8) & 0xFF;
+				constants.materials[i][3] =  data        & 0xFF;
 			}
 		}
 
@@ -309,11 +309,11 @@ void VertexShaderManager::SetConstants()
 		{
 			if (nMaterialsChanged & (1 << (i + 2)))
 			{
-				u32 data = *(xfregs.matColor + i);
-				constants.materials[i+2][0] = ((data >> 24) & 0xFF) / 255.0f;
-				constants.materials[i+2][1] = ((data >> 16) & 0xFF) / 255.0f;
-				constants.materials[i+2][2] = ((data >>  8) & 0xFF) / 255.0f;
-				constants.materials[i+2][3] = ( data        & 0xFF) / 255.0f;
+				u32 data = xfmem.matColor[i];
+				constants.materials[i+2][0] = (data >> 24) & 0xFF;
+				constants.materials[i+2][1] = (data >> 16) & 0xFF;
+				constants.materials[i+2][2] = (data >>  8) & 0xFF;
+				constants.materials[i+2][3] =  data        & 0xFF;
 			}
 		}
 		dirty = true;
@@ -325,8 +325,8 @@ void VertexShaderManager::SetConstants()
 	{
 		bPosNormalMatrixChanged = false;
 
-		const float *pos = (const float *)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
-		const float *norm = (const float *)xfmem + XFMEM_NORMALMATRICES + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
+		const float *pos = (const float *)xfmem.posMatrices + MatrixIndexA.PosNormalMtxIdx * 4;
+		const float *norm = (const float *)xfmem.normalMatrices + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
 
 		memcpy(constants.posnormalmatrix, pos, 3*16);
 		memcpy(constants.posnormalmatrix[3], norm, 12);
@@ -340,8 +340,10 @@ void VertexShaderManager::SetConstants()
 		bTexMatricesChanged[0] = false;
 		const float *fptrs[] =
 		{
-			(const float *)xfmem + MatrixIndexA.Tex0MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex1MtxIdx * 4,
-			(const float *)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex3MtxIdx * 4
+			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex0MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex1MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex2MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex3MtxIdx * 4]
 		};
 
 		for (int i = 0; i < 4; ++i)
@@ -355,8 +357,10 @@ void VertexShaderManager::SetConstants()
 	{
 		bTexMatricesChanged[1] = false;
 		const float *fptrs[] = {
-			(const float *)xfmem + MatrixIndexB.Tex4MtxIdx * 4, (const float *)xfmem + MatrixIndexB.Tex5MtxIdx * 4,
-			(const float *)xfmem + MatrixIndexB.Tex6MtxIdx * 4, (const float *)xfmem + MatrixIndexB.Tex7MtxIdx * 4
+			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex4MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex5MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex6MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex7MtxIdx * 4]
 		};
 
 		for (int i = 0; i < 4; ++i)
@@ -369,17 +373,28 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
-		constants.depthparams[0] = xfregs.viewport.farZ / 16777216.0f;
-		constants.depthparams[1] = xfregs.viewport.zRange / 16777216.0f;
+		constants.depthparams[0] = xfmem.viewport.farZ / 16777216.0f;
+		constants.depthparams[1] = xfmem.viewport.zRange / 16777216.0f;
+
+		// The console GPU places the pixel center at 7/12 unless antialiasing
+		// is enabled, while D3D and OpenGL place it at 0.5. See the comment
+		// in VertexShaderGen.cpp for details.
+		// NOTE: If we ever emulate antialiasing, the sample locations set by
+		// BP registers 0x01-0x04 need to be considered here.
+		const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
+		const float pixel_size_x = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.wd);
+		const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
+		constants.depthparams[2] = pixel_center_correction * pixel_size_x;
+		constants.depthparams[3] = pixel_center_correction * pixel_size_y;
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
-		UpdateViewport();
-		
+		g_renderer->SetViewport();
+
 		// Update projection if the viewport isn't 1:1 useable
-		if(!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
+		if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			bProjectionChanged = true;			
+			bProjectionChanged = true;
 		}
 	}
 
@@ -387,9 +402,9 @@ void VertexShaderManager::SetConstants()
 	{
 		bProjectionChanged = false;
 
-		float *rawProjection = xfregs.projection.rawProjection;
+		float *rawProjection = xfmem.projection.rawProjection;
 
-		switch(xfregs.projection.type)
+		switch (xfmem.projection.type)
 		{
 		case GX_PERSPECTIVE:
 
@@ -455,15 +470,8 @@ void VertexShaderManager::SetConstants()
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
 
-			/*
-			projection hack for metroid other m...attempt to remove black projection layer from cut scenes.
-			g_fProjectionMatrix[15] = 1.0f was the default setting before
-			this hack was added...setting g_fProjectionMatrix[14] to -1 might make the hack more stable, needs more testing.
-			Only works for OGL and DX9...this is not helping DX11
-			*/
-
 			g_fProjectionMatrix[14] = 0.0f;
-			g_fProjectionMatrix[15] = (g_ProjHack3 && rawProjection[0] == 2.0f ? 0.0f : 1.0f);  //causes either the efb copy or bloom layer not to show if proj hack enabled
+			g_fProjectionMatrix[15] = 1.0f;
 
 			SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
 			SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
@@ -490,12 +498,12 @@ void VertexShaderManager::SetConstants()
 			break;
 
 		default:
-			ERROR_LOG(VIDEO, "Unknown projection type: %d", xfregs.projection.type);
+			ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
 		}
 
 		PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
 
-		if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo ) && xfregs.projection.type == GX_PERSPECTIVE)
+		if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo ) && xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			Matrix44 mtxA;
 			Matrix44 mtxB;

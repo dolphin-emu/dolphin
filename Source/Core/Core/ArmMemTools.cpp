@@ -1,36 +1,23 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
-#include <stdio.h>
+#include <cstdio>
 #include <signal.h>
 #ifdef ANDROID
 #include <asm/sigcontext.h>
 #else
-#include <sys/ucontext.h>   // Look in here for the context definition.
 #include <execinfo.h>
+#include <sys/ucontext.h>   // Look in here for the context definition.
 #endif
 
-#include "Common.h"
-#include "MemTools.h"
-#include "HW/Memmap.h"
-#include "PowerPC/PowerPC.h"
-#include "PowerPC/JitInterface.h"
-#include "PowerPC/JitCommon/JitBase.h"
+#include "Common/Common.h"
+#include "Core/MemTools.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 namespace EMM
 {
@@ -94,6 +81,6 @@ void InstallExceptionHandler()
 	sa.sa_sigaction = &sigsegv_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
-	sigaction(SIGSEGV, &sa, NULL);
+	sigaction(SIGSEGV, &sa, nullptr);
 }
 }  // namespace

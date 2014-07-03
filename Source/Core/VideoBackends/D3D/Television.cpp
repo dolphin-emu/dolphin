@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Television.h"
-
-#include "VideoConfig.h"
-#include "D3DBase.h"
-#include "D3DShader.h"
-#include "D3DUtil.h"
-#include "VertexShaderCache.h"
-#include "HW/Memmap.h"
 #include <vector>
+
+#include "Core/HW/Memmap.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/Television.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
@@ -59,7 +59,7 @@ static const char YUYV_DECODER_PS[] =
 ;
 
 Television::Television()
-	: m_yuyvTexture(NULL), m_yuyvTextureSRV(NULL), m_pShader(NULL)
+	: m_yuyvTexture(nullptr), m_yuyvTextureSRV(nullptr), m_pShader(nullptr)
 { }
 
 void Television::Init()
@@ -99,7 +99,7 @@ void Television::Init()
 	// Create YUYV-decoding pixel shader
 
 	m_pShader = D3D::CompileAndCreatePixelShader(YUYV_DECODER_PS, sizeof(YUYV_DECODER_PS));
-	CHECK(m_pShader != NULL, "compile and create yuyv decoder pixel shader");
+	CHECK(m_pShader != nullptr, "compile and create yuyv decoder pixel shader");
 	D3D::SetDebugObjectName(m_pShader, "yuyv decoder pixel shader");
 
 	// Create sampler state and set border color

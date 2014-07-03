@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DriverDetails.h"
-#include "SamplerCache.h"
+#include "VideoBackends/OGL/SamplerCache.h"
+#include "VideoCommon/DriverDetails.h"
 
 namespace OGL
 {

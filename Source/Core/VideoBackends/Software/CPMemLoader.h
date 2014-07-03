@@ -2,13 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CPMEMLOADER_H_
-#define _CPMEMLOADER_H_
+#pragma once
 
-
-#include "Common.h"
-#include "CPMemory.h"
+#include "Common/Common.h"
+#include "VideoCommon/CPMemory.h"
 
 void SWLoadCPReg(u32 sub_cmd, u32 value);
-
-#endif

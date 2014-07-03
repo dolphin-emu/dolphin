@@ -3,7 +3,7 @@
    filename:     gdsp_interface.h
    project:      GCemu
    created:      2004-6-18
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie & Tratax
 
@@ -23,10 +23,9 @@
 
    ====================================================================*/
 
-#ifndef _GDSP_INTERFACE_H
-#define _GDSP_INTERFACE_H
+#pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1
@@ -41,5 +40,3 @@ void gdsp_ifx_init();
 
 void gdsp_ifx_write(u32 addr, u32 val);
 u16  gdsp_ifx_read(u16 addr);
-
-#endif

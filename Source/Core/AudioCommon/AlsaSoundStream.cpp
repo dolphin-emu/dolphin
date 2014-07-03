@@ -4,15 +4,15 @@
 
 #include <functional>
 
-#include "Common.h"
-#include "Thread.h"
-#include "AlsaSoundStream.h"
+#include "AudioCommon/AlsaSoundStream.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
 
 #define FRAME_COUNT_MIN 256
 #define BUFFER_SIZE_MAX 8192
 #define BUFFER_SIZE_BYTES (BUFFER_SIZE_MAX*2*2)
 
-AlsaSound::AlsaSound(CMixer *mixer) : SoundStream(mixer), thread_data(0), handle(NULL), frames_to_deliver(FRAME_COUNT_MIN)
+AlsaSound::AlsaSound(CMixer *mixer) : SoundStream(mixer), thread_data(0), handle(nullptr), frames_to_deliver(FRAME_COUNT_MIN)
 {
 	mix_buffer = new u8[BUFFER_SIZE_BYTES];
 }
@@ -24,7 +24,7 @@ AlsaSound::~AlsaSound()
 
 bool AlsaSound::Start()
 {
-	thread = std::thread(std::mem_fun(&AlsaSound::SoundLoop), this);
+	thread = std::thread(std::mem_fn(&AlsaSound::SoundLoop), this);
 	thread_data = 0;
 	return true;
 }
@@ -204,11 +204,11 @@ bool AlsaSound::AlsaInit()
 
 void AlsaSound::AlsaShutdown()
 {
-	if (handle != NULL)
+	if (handle != nullptr)
 	{
 		snd_pcm_drop(handle);
 		snd_pcm_close(handle);
-		handle = NULL;
+		handle = nullptr;
 	}
 }
 

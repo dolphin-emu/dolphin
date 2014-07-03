@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="ControllerInterface">
@@ -7,11 +7,11 @@
     <Filter Include="ControllerInterface\DInput">
       <UniqueIdentifier>{0289ef91-50f5-4c16-9fa4-ff4c4d8208e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ControllerInterface\SDL">
-      <UniqueIdentifier>{770bf6f3-b0c3-4731-be52-46f54b4cb319}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ControllerInterface\XInput">
       <UniqueIdentifier>{07bad1aa-7e03-4f5c-ade2-a44857c5cbc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\ForceFeedback">
+      <UniqueIdentifier>{e10ce316-283c-4be0-848d-578dec2b6404}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -31,9 +31,6 @@
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp">
       <Filter>ControllerInterface\XInput</Filter>
     </ClCompile>
-    <ClCompile Include="ControllerInterface\SDL\SDL.cpp">
-      <Filter>ControllerInterface\SDL</Filter>
-    </ClCompile>
     <ClCompile Include="ControllerInterface\Device.cpp">
       <Filter>ControllerInterface</Filter>
     </ClCompile>
@@ -44,6 +41,9 @@
       <Filter>ControllerInterface</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp">
+      <Filter>ControllerInterface\ForceFeedback</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu.h" />
@@ -63,9 +63,6 @@
     <ClInclude Include="ControllerInterface\XInput\XInput.h">
       <Filter>ControllerInterface\XInput</Filter>
     </ClInclude>
-    <ClInclude Include="ControllerInterface\SDL\SDL.h">
-      <Filter>ControllerInterface\SDL</Filter>
-    </ClInclude>
     <ClInclude Include="ControllerInterface\ControllerInterface.h">
       <Filter>ControllerInterface</Filter>
     </ClInclude>
@@ -76,6 +73,9 @@
       <Filter>ControllerInterface</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h">
+      <Filter>ControllerInterface\ForceFeedback</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

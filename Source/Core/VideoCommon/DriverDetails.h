@@ -2,17 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 #pragma once
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 namespace DriverDetails
 {
 	// Enum of supported operating systems
-	enum OS 
+	enum OS
 	{
-		OS_ALL = (1 << 0),
+		OS_ALL     = (1 << 0),
 		OS_WINDOWS = (1 << 1),
-		OS_LINUX = (1 << 2),
-		OS_OSX = (1 << 3),
+		OS_LINUX   = (1 << 2),
+		OS_OSX     = (1 << 3),
 		OS_ANDROID = (1 << 4),
 	};
 	// Enum of known vendors
@@ -36,21 +36,21 @@ namespace DriverDetails
 	enum Driver
 	{
 		DRIVER_ALL = 0,
-		DRIVER_NVIDIA, // Official Nvidia, including mobile GPU
-		DRIVER_NOUVEAU, // OSS nouveau
-		DRIVER_ATI, // Official ATI
-		DRIVER_R600, // OSS Radeon
-		DRIVER_INTEL, // Official Intel
-		DRIVER_I965, // OSS Intel
-		DRIVER_ARM_4XX, // Official Mali driver
-		DRIVER_ARM_T6XX, // Official Mali driver
-		DRIVER_LIMA, // OSS Mali driver
+		DRIVER_NVIDIA,       // Official Nvidia, including mobile GPU
+		DRIVER_NOUVEAU,      // OSS nouveau
+		DRIVER_ATI,          // Official ATI
+		DRIVER_R600,         // OSS Radeon
+		DRIVER_INTEL,        // Official Intel
+		DRIVER_I965,         // OSS Intel
+		DRIVER_ARM_MIDGARD,  // Official Mali driver
+		DRIVER_ARM_UTGARD,   // Official Mali driver
+		DRIVER_LIMA,         // OSS Mali driver
 		DRIVER_QUALCOMM_3XX, // Official Adreno driver 3xx
 		DRIVER_QUALCOMM_2XX, // Official Adreno driver 2xx
-		DRIVER_FREEDRENO, // OSS Adreno driver
-		DRIVER_IMGTEC, // OSS PowerVR driver
-		DRIVER_VIVANTE, // Official vivante driver
-		DRIVER_UNKNOWN // Unknown driver, default to official hardware driver
+		DRIVER_FREEDRENO,    // OSS Adreno driver
+		DRIVER_IMGTEC,       // OSS PowerVR driver
+		DRIVER_VIVANTE,      // Official vivante driver
+		DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 	};
 
 	// Enum of known bugs
@@ -132,13 +132,13 @@ namespace DriverDetails
 		// The driver stalls in each instance no matter what you do
 		// Apparently Mali and Adreno share code in this regard since it was wrote by the same person.
 		BUG_BROKENBUFFERSTREAM,
-		// Bug: GLSL ES 3.0 textureSize causes abort 
+		// Bug: GLSL ES 3.0 textureSize causes abort
 		// Affected devices: Adreno a3xx
 		// Started Version: -1 (Noticed in v53)
-		// Ended Version: -1
+		// Ended Version: 66
 		// If a shader includes a textureSize function call then the shader compiler will call abort()
 		BUG_BROKENTEXTURESIZE,
-		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams 
+		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams
 		// Affected devices: Geforce 4xx+
 		// Started Version: -1
 		// Ended Version: 332.21
@@ -165,6 +165,15 @@ namespace DriverDetails
 		// TODO: some windows AMD driver/gpu combination seems also affected
 		//       but as they all support pinned memory, it doesn't matter
 		BUG_BROKENUNSYNCMAPPING,
+		// Bug: Adreno now rotates the framebuffer on blit a full 180 degrees
+		// Affected devices: Adreno
+		// Started Version: v53 (dev drivers)
+		// Ended Version: -1
+		// Qualcomm is a super pro company that has recently updated their development drivers
+		// These drivers are available to the Nexus 5 and report as v53
+		// Qualcomm in their infinite wisdom thought it was a good idea to rotate the framebuffer 180 degrees on glBlit
+		// This bug allows us to work around that rotation by rotating it the right way around again.
+		BUG_ROTATEDFRAMEBUFFER,
 	};
 
 	// Initializes our internal vendor, device family, and driver version

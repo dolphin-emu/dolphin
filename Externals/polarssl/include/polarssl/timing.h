@@ -3,7 +3,7 @@
  *
  * \brief Portable interface to the CPU cycle counter
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,6 +27,10 @@
 #ifndef POLARSSL_TIMING_H
 #define POLARSSL_TIMING_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          timer structure
  */
@@ -34,10 +38,6 @@ struct hr_time
 {
     unsigned char opaque[32];
 };
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 extern volatile int alarmed;
 

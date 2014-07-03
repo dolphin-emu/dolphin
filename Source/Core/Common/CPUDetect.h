@@ -4,8 +4,7 @@
 
 
 // Detect the cpu, so we'll know which optimizations to use
-#ifndef _CPUDETECT_H_
-#define _CPUDETECT_H_
+#pragma once
 
 #include <string>
 
@@ -45,6 +44,7 @@ struct CPUInfo
 	bool bAES;
 	// FXSAVE/FXRSTOR
 	bool bFXSR;
+	bool bMOVBE;
 	// This flag indicates that the hardware supports some mode
 	// in which denormal inputs _and_ outputs are automatically set to (signed) zero.
 	// TODO: ARM
@@ -77,7 +77,6 @@ struct CPUInfo
 
 	// Turn the cpu info into a string we can show
 	std::string Summarize();
-	bool IsUnsafe();
 
 private:
 	// Detects the various cpu features
@@ -85,5 +84,3 @@ private:
 };
 
 extern CPUInfo cpu_info;
-
-#endif // _CPUDETECT_H_

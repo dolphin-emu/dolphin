@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _RASTERFONT_H_
-#define _RASTERFONT_H_
+#pragma once
 
 class RasterFont
 {
@@ -13,8 +12,8 @@ public:
 	static int debug;
 
 	// some useful constants
-	enum	{char_width = 10};
-	enum	{char_height = 15};
+	enum {char_width = 10};
+	enum {char_height = 15};
 
 	// and the happy helper functions
 	void printString(const char *s, double x, double y, double z=0.0);
@@ -26,5 +25,3 @@ private:
 	char *temp_buffer;
 	enum {TEMP_BUFFER_SIZE = 64 * 1024};
 };
-
-#endif // _RASTERFONT_H_

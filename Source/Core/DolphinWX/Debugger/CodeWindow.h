@@ -2,20 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef CODEWINDOW_H_
-#define CODEWINDOW_H_
+#pragma once
 
-#include <wx/dialog.h>
-#include <wx/textctrl.h>
-#include <wx/listbox.h>
-#include <wx/artprov.h>
+#include <wx/bitmap.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
-#include "Thread.h"
-#include "CoreParameter.h"
-
-// GUI global
-#include "../Globals.h"
-#include "../Frame.h"
+#include "Common/CommonTypes.h"
+#include "Common/Event.h"
+#include "DolphinWX/Globals.h"
 
 class CFrame;
 class CRegisterWindow;
@@ -25,6 +25,12 @@ class CJitWindow;
 class CCodeView;
 class DSPDebuggerLLE;
 class GFXDebuggerPanel;
+struct SCoreStartupParameter;
+
+class wxAuiToolBar;
+class wxListBox;
+class wxMenu;
+class wxMenuBar;
 
 class CCodeWindow
 	: public wxPanel
@@ -56,10 +62,9 @@ class CCodeWindow
 		bool JITBlockLinking();
 		void JumpToAddress(u32 _Address);
 
-		void Update();
+		void Update() override;
 		void NotifyMapLoaded();
-		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter,
-			   	wxMenuBar *pMenuBar);
+		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 		void CreateMenuOptions(wxMenu *pMenu);
 		void CreateMenuSymbols(wxMenuBar *pMenuBar);
 		void RecreateToolbar(wxAuiToolBar*);
@@ -141,5 +146,3 @@ class CCodeWindow
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif // CODEWINDOW_H_

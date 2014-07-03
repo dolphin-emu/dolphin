@@ -2,11 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "../PowerPC/PowerPC.h"
-#include "MemoryInterface.h"
+#include "Core/HW/MemoryInterface.h"
+#include "Core/HW/MMIO.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace MemoryInterface
 {
@@ -14,67 +15,199 @@ namespace MemoryInterface
 // internal hardware addresses
 enum
 {
-	MEM_CHANNEL0_HI		= 0x000,
-	MEM_CHANNEL0_LO		= 0x002,
-	MEM_CHANNEL1_HI		= 0x004,
-	MEM_CHANNEL1_LO		= 0x006,
-	MEM_CHANNEL2_HI		= 0x008,
-	MEM_CHANNEL2_LO		= 0x00A,
-	MEM_CHANNEL3_HI		= 0x00C,
-	MEM_CHANNEL3_LO		= 0x00E,
-	MEM_CHANNEL_CTRL	= 0x010
+	MI_REGION0_FIRST    = 0x000,
+	MI_REGION0_LAST     = 0x002,
+	MI_REGION1_FIRST    = 0x004,
+	MI_REGION1_LAST     = 0x006,
+	MI_REGION2_FIRST    = 0x008,
+	MI_REGION2_LAST     = 0x00A,
+	MI_REGION3_FIRST    = 0x00C,
+	MI_REGION3_LAST     = 0x00E,
+	MI_PROT_TYPE        = 0x010,
+	MI_IRQMASK          = 0x01C,
+	MI_IRQFLAG          = 0x01E,
+	MI_UNKNOWN1         = 0x020,
+	MI_PROT_ADDR_LO     = 0x022,
+	MI_PROT_ADDR_HI     = 0x024,
+	MI_TIMER0_HI        = 0x032,
+	MI_TIMER0_LO        = 0x034,
+	MI_TIMER1_HI        = 0x036,
+	MI_TIMER1_LO        = 0x038,
+	MI_TIMER2_HI        = 0x03A,
+	MI_TIMER2_LO        = 0x03C,
+	MI_TIMER3_HI        = 0x03E,
+	MI_TIMER3_LO        = 0x040,
+	MI_TIMER4_HI        = 0x042,
+	MI_TIMER4_LO        = 0x044,
+	MI_TIMER5_HI        = 0x046,
+	MI_TIMER5_LO        = 0x048,
+	MI_TIMER6_HI        = 0x04A,
+	MI_TIMER6_LO        = 0x04C,
+	MI_TIMER7_HI        = 0x04E,
+	MI_TIMER7_LO        = 0x050,
+	MI_TIMER8_HI        = 0x052,
+	MI_TIMER8_LO        = 0x054,
+	MI_TIMER9_HI        = 0x056,
+	MI_TIMER9_LO        = 0x058,
+	MI_UNKNOWN2         = 0x05A,
+};
+
+union MIRegion
+{
+	u32 hex;
+	struct { u16 first_page; u16 last_page; };
+};
+
+union MIProtType
+{
+	u16 hex;
+	struct
+	{
+		u16 reg0 : 2;
+		u16 reg1 : 2;
+		u16 reg2 : 2;
+		u16 reg3 : 2;
+		u16 : 8;
+	};
+};
+
+union MIIRQMask
+{
+	u16 hex;
+	struct
+	{
+		u16 reg0 : 1;
+		u16 reg1 : 1;
+		u16 reg2 : 1;
+		u16 reg3 : 1;
+		u16 all_regs : 1;
+		u16 : 11;
+	};
+};
+
+union MIIRQFlag
+{
+	u16 hex;
+	struct
+	{
+		u16 reg0 : 1;
+		u16 reg1 : 1;
+		u16 reg2 : 1;
+		u16 reg3 : 1;
+		u16 all_regs : 1;
+		u16 : 11;
+	};
+};
+
+union MIProtAddr
+{
+	u32 hex;
+	struct { u16 lo; u16 hi; };
+	struct
+	{
+		u32 : 5;
+		u32 addr : 25;
+		u32 : 2;
+	};
+};
+
+union MITimer
+{
+	u32 hex;
+	struct { u16 lo; u16 hi; };
 };
 
 struct MIMemStruct
 {
-	u32 Channel0_Addr;
-	u32 Channel1_Addr;
-	u32 Channel2_Addr;
-	u32 Channel3_Addr;
-	u32 Channel_Ctrl;
+	MIRegion regions[4];
+	MIProtType prot_type;
+	MIIRQMask irq_mask;
+	MIIRQFlag irq_flag;
+	u16 unknown1;
+	MIProtAddr prot_addr;
+	MITimer timers[10];
+	u16 unknown2;
 };
 
 // STATE_TO_SAVE
-static MIMemStruct miMem;
+static MIMemStruct g_mi_mem;
 
 void DoState(PointerWrap &p)
 {
-	p.Do(miMem);
+	p.Do(g_mi_mem);
 }
 
-void Read16(u16& _uReturnValue, const u32 _iAddress)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	//0x30 -> 0x5a : gp memory metrics
-	INFO_LOG(MEMMAP, "(r16) 0x%04x @ 0x%08x", 0, _iAddress);
-	_uReturnValue = 0;
-}
-
-void Read32(u32& _uReturnValue, const u32 _iAddress)
-{
-	INFO_LOG(MEMMAP, "(r32) 0x%08x @ 0x%08x", 0, _iAddress);
-	_uReturnValue = 0;
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	INFO_LOG(MEMMAP, "(w32) 0x%08x @ 0x%08x", _iValue, _iAddress);
-}
-
-//TODO : check
-void Write16(const u16 _iValue, const u32 _iAddress)
-{
-	INFO_LOG(MEMMAP, "(w16) 0x%04x @ 0x%08x", _iValue, _iAddress);
-	switch(_iAddress & 0xFFF)
+	for (int i = MI_REGION0_FIRST; i <= MI_REGION3_LAST; i += 4)
 	{
-	case MEM_CHANNEL0_HI: miMem.Channel0_Addr = (miMem.Channel0_Addr & 0xFFFF) | (_iValue<<16); return;
-	case MEM_CHANNEL0_LO: miMem.Channel0_Addr = (miMem.Channel0_Addr & 0xFFFF0000) | (_iValue); return;
-	case MEM_CHANNEL1_HI: miMem.Channel1_Addr = (miMem.Channel1_Addr & 0xFFFF) | (_iValue<<16); return;
-	case MEM_CHANNEL1_LO: miMem.Channel1_Addr = (miMem.Channel1_Addr & 0xFFFF0000) | (_iValue); return;
-	case MEM_CHANNEL2_HI: miMem.Channel2_Addr = (miMem.Channel2_Addr & 0xFFFF) | (_iValue<<16); return;
-	case MEM_CHANNEL2_LO: miMem.Channel2_Addr = (miMem.Channel2_Addr & 0xFFFF0000) | (_iValue); return;
-	case MEM_CHANNEL3_HI: miMem.Channel3_Addr = (miMem.Channel3_Addr & 0xFFFF) | (_iValue<<16); return;
-	case MEM_CHANNEL3_LO: miMem.Channel3_Addr = (miMem.Channel3_Addr & 0xFFFF0000) | (_iValue); return;
-	case MEM_CHANNEL_CTRL: miMem.Channel_Ctrl = _iValue; return;
+		auto& region = g_mi_mem.regions[i / 4];
+		mmio->Register(base | i,
+			MMIO::DirectRead<u16>(&region.first_page),
+			MMIO::DirectWrite<u16>(&region.first_page)
+		);
+		mmio->Register(base | (i + 2),
+			MMIO::DirectRead<u16>(&region.last_page),
+			MMIO::DirectWrite<u16>(&region.last_page)
+		);
+	}
+
+	mmio->Register(base | MI_PROT_TYPE,
+		MMIO::DirectRead<u16>(&g_mi_mem.prot_type.hex),
+		MMIO::DirectWrite<u16>(&g_mi_mem.prot_type.hex)
+	);
+
+	mmio->Register(base | MI_IRQMASK,
+		MMIO::DirectRead<u16>(&g_mi_mem.irq_mask.hex),
+		MMIO::DirectWrite<u16>(&g_mi_mem.irq_mask.hex)
+	);
+
+	mmio->Register(base | MI_IRQFLAG,
+		MMIO::DirectRead<u16>(&g_mi_mem.irq_flag.hex),
+		MMIO::DirectWrite<u16>(&g_mi_mem.irq_flag.hex)
+	);
+
+	mmio->Register(base | MI_UNKNOWN1,
+		MMIO::DirectRead<u16>(&g_mi_mem.unknown1),
+		MMIO::DirectWrite<u16>(&g_mi_mem.unknown1)
+	);
+
+	// The naming is confusing here: the registed contains the lower part of
+	// the address (hence MI_..._LO but this is still the high part of the
+	// overall register.
+	mmio->Register(base | MI_PROT_ADDR_LO,
+		MMIO::DirectRead<u16>(&g_mi_mem.prot_addr.hi),
+		MMIO::DirectWrite<u16>(&g_mi_mem.prot_addr.hi)
+	);
+	mmio->Register(base | MI_PROT_ADDR_HI,
+		MMIO::DirectRead<u16>(&g_mi_mem.prot_addr.lo),
+		MMIO::DirectWrite<u16>(&g_mi_mem.prot_addr.lo)
+	);
+
+	for (int i = 0; i < 10; ++i)
+	{
+		auto& timer = g_mi_mem.timers[i];
+		mmio->Register(base | (MI_TIMER0_HI + 4 * i),
+			MMIO::DirectRead<u16>(&timer.hi),
+			MMIO::DirectWrite<u16>(&timer.hi)
+		);
+		mmio->Register(base | (MI_TIMER0_LO + 4 * i),
+			MMIO::DirectRead<u16>(&timer.lo),
+			MMIO::DirectWrite<u16>(&timer.lo)
+		);
+	}
+
+	mmio->Register(base | MI_UNKNOWN2,
+		MMIO::DirectRead<u16>(&g_mi_mem.unknown2),
+		MMIO::DirectWrite<u16>(&g_mi_mem.unknown2)
+	);
+
+	for (int i = 0; i < 0x1000; i += 4)
+	{
+		mmio->Register(base | i,
+			MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
+			MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2))
+		);
 	}
 }
 

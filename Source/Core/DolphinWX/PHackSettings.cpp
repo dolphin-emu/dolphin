@@ -2,10 +2,29 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonPaths.h"
-#include "PHackSettings.h"
-#include "ConfigManager.h"
-#include "WxUtils.h"
+#include <cstdio>
+#include <string>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/PHackSettings.h"
+#include "DolphinWX/WxUtils.h"
+
+class wxWindow;
 
 extern PHackData PHack_Data;
 
@@ -18,9 +37,8 @@ CPHackSettings::CPHackSettings(wxWindow* parent, wxWindowID id, const wxString& 
 	: wxDialog(parent, id, title, position, size, style)
 {
 	CreateGUIControls();
-	std::string _iniFilename;
-	_iniFilename = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP "PH_PRESETS.ini";
-	PHPresetsIni.Load(_iniFilename.c_str());
+	std::string _iniFilename = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP "PH_PRESETS.ini";
+	PHPresetsIni.Load(_iniFilename);
 	PHPresetsIni.SortSections();
 
 	LoadPHackData();
@@ -45,8 +63,6 @@ void CPHackSettings::CreateGUIControls()
 	PHackZFar->SetToolTip(_("Adds the specified value to zFar Parameter.\nTwo ways to express the floating point values.\nExample: entering '\'200'\' or '\'0.0002'\' directly, it produces equal effects, the acquired value will be '\'0.0002'\'.\nValues: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n\nNOTE: Check LogWindow/Console for the acquired values."));
 	PHackSZFar = new wxCheckBox(this, ID_PHACK_SZFAR, _("(-)+zFar"));
 	PHackSZFar->SetToolTip(_("Changes sign to zFar Parameter (after correction)"));
-	PHackExP = new wxCheckBox(this, ID_PHACK_EXP, _("Extra Parameter"));
-	PHackExP->SetToolTip(_("Extra Parameter useful in '\'Metroid: Other M'\' only."));
 
 	wxStaticBoxSizer *sbPHackSettings = new wxStaticBoxSizer(wxVERTICAL, this, _("Parameters"));
 	wxFlexGridSizer *szrPHackSettings = new wxFlexGridSizer(3, 5, 5);
@@ -57,7 +73,6 @@ void CPHackSettings::CreateGUIControls()
 	szrPHackSettings->Add(PHackZFarText, 0, wxALIGN_CENTER_VERTICAL);
 	szrPHackSettings->Add(PHackZFar, 1, wxEXPAND);
 	szrPHackSettings->Add(PHackSZFar, 0, wxEXPAND|wxLEFT, 5);
-	szrPHackSettings->Add(PHackExP, 0, wxEXPAND|wxTOP|wxBOTTOM, 5);
 
 	wxBoxSizer* sPHack = new wxBoxSizer(wxVERTICAL);
 	sPHack->Add(PHackChoiceText, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5);
@@ -72,27 +87,31 @@ void CPHackSettings::CreateGUIControls()
 void CPHackSettings::LoadPHackData()
 {
 	std::string sTemp;
-	char sIndex[15];
+	std::string sIndex;
 
 	PHackChoice->Clear();
 	PHackChoice->Append(_("[Custom]"));
-	for (int i=0 ;  ; i++)
+	for (int i = 0; ; i++)
 	{
-		sprintf(sIndex,"%d",i);
+		sIndex = std::to_string(i);
+
 		if (!PHPresetsIni.Exists(sIndex, "Title"))
 			break;
-		PHPresetsIni.Get(sIndex, "Title", &sTemp);
+
+		PHPresetsIni.GetOrCreateSection(sIndex)->Get("Title", &sTemp);
+
 		if (sTemp.empty())
-			sTemp = wxString(_("(UNKNOWN)")).char_str();
+			sTemp = WxStrToStr(_("(UNKNOWN)"));
+
 		if (i == 0)
 			PHackChoice->Append(StrToWxStr("-------------"));
+
 		PHackChoice->Append(StrToWxStr(sTemp));
 	}
 	PHackChoice->Select(0);
 
 	PHackSZNear->Set3StateValue((wxCheckBoxState)PHack_Data.PHackSZNear);
 	PHackSZFar->Set3StateValue((wxCheckBoxState)PHack_Data.PHackSZFar);
-	PHackExP->Set3StateValue((wxCheckBoxState)PHack_Data.PHackExP);
 
 	PHackZNear->SetValue(StrToWxStr(PHack_Data.PHZNear));
 	PHackZFar->SetValue(StrToWxStr(PHack_Data.PHZFar));
@@ -102,22 +121,22 @@ void CPHackSettings::SetRefresh(wxCommandEvent& event)
 {
 	bool bTemp;
 	std::string sTemp;
-	char sIndex[15];
+	std::string sIndex;
+
 	int index = event.GetSelection();
 	if (index > 1)
 	{
 		index -= 2;
-		sprintf(sIndex,"%d", index);
+		sIndex = std::to_string(index);
 
-		PHPresetsIni.Get(sIndex, "PH_SZNear", &bTemp);
+		IniFile::Section* proj_hack = PHPresetsIni.GetOrCreateSection(sIndex);
+		proj_hack->Get("PH_SZNear", &bTemp);
 		PHackSZNear->Set3StateValue((wxCheckBoxState)bTemp);
-		PHPresetsIni.Get(sIndex, "PH_SZFar", &bTemp);
+		proj_hack->Get("PH_SZFar", &bTemp);
 		PHackSZFar->Set3StateValue((wxCheckBoxState)bTemp);
-		PHPresetsIni.Get(sIndex, "PH_ExtraParam", &bTemp);
-		PHackExP->Set3StateValue((wxCheckBoxState)bTemp);
-		PHPresetsIni.Get(sIndex, "PH_ZNear", &sTemp);
+		proj_hack->Get("PH_ZNear", &sTemp);
 		PHackZNear->SetValue(StrToWxStr(sTemp));
-		PHPresetsIni.Get(sIndex, "PH_ZFar", &sTemp);
+		proj_hack->Get("PH_ZFar", &sTemp);
 		PHackZFar->SetValue(StrToWxStr(sTemp));
 	}
 }
@@ -126,7 +145,6 @@ void CPHackSettings::SavePHackData(wxCommandEvent& event)
 {
 	PHack_Data.PHackSZNear = PHackSZNear->GetValue();
 	PHack_Data.PHackSZFar = PHackSZFar->GetValue();
-	PHack_Data.PHackExP = PHackExP->GetValue();
 
 	PHack_Data.PHZNear = PHackZNear->GetValue().char_str();
 	PHack_Data.PHZFar = PHackZFar->GetValue().char_str();

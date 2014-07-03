@@ -35,12 +35,12 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "Clipper.h"
-#include "Rasterizer.h"
-#include "NativeVertexFormat.h"
-#include "XFMemLoader.h"
-#include "BPMemLoader.h"
-#include "SWStatistics.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/Clipper.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
+#include "VideoBackends/Software/Rasterizer.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
 
 namespace Clipper
@@ -67,8 +67,8 @@ namespace Clipper
 
 	void SetViewOffset()
 	{
-		m_ViewOffset[0] = swxfregs.viewport.xOrig - 342;
-		m_ViewOffset[1] = swxfregs.viewport.yOrig - 342;
+		m_ViewOffset[0] = xfmem.viewport.xOrig - 342;
+		m_ViewOffset[1] = xfmem.viewport.yOrig - 342;
 	}
 
 
@@ -179,7 +179,7 @@ namespace Clipper
 
 		if (mask != 0)
 		{
-			for(int i = 0; i < 3; i += 3)
+			for (int i = 0; i < 3; i += 3)
 			{
 				int vlist[2][2*6+1];
 				int *inlist = vlist[0], *outlist = vlist[1];
@@ -273,7 +273,7 @@ namespace Clipper
 
 		bool backface;
 
-		if(!CullTest(v0, v1, v2, backface))
+		if (!CullTest(v0, v1, v2, backface))
 			return;
 
 		int indices[NUM_INDICES] = { 0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
@@ -296,10 +296,10 @@ namespace Clipper
 
 		ClipTriangle(indices, numIndices);
 
-		for(int i = 0; i+3 <= numIndices; i+=3)
+		for (int i = 0; i+3 <= numIndices; i+=3)
 		{
 			_assert_(i < NUM_INDICES);
-			if(indices[i] != SKIP_FLAG)
+			if (indices[i] != SKIP_FLAG)
 			{
 				PerspectiveDivide(Vertices[indices[i]]);
 				PerspectiveDivide(Vertices[indices[i+1]]);
@@ -339,7 +339,7 @@ namespace Clipper
 
 		ClipLine(indices);
 
-		if(indices[0] != SKIP_FLAG)
+		if (indices[0] != SKIP_FLAG)
 		{
 			OutputVertexData *v0 = Vertices[indices[0]];
 			OutputVertexData *v1 = Vertices[indices[1]];
@@ -353,16 +353,16 @@ namespace Clipper
 			float screenDx = 0;
 			float screenDy = 0;
 
-			if(fabsf(dx) > fabsf(dy))
+			if (fabsf(dx) > fabsf(dy))
 			{
-				if(dx > 0)
+				if (dx > 0)
 					screenDy = bpmem.lineptwidth.linesize / -12.0f;
 				else
 					screenDy = bpmem.lineptwidth.linesize / 12.0f;
 			}
 			else
 			{
-				if(dy > 0)
+				if (dy > 0)
 					screenDx = bpmem.lineptwidth.linesize / 12.0f;
 				else
 					screenDx = bpmem.lineptwidth.linesize / -12.0f;
@@ -389,7 +389,7 @@ namespace Clipper
 		mask &= CalcClipMask(v1);
 		mask &= CalcClipMask(v2);
 
-		if(mask)
+		if (mask)
 		{
 			INCSTAT(swstats.thisFrame.numTrianglesRejected)
 			return false;
@@ -430,9 +430,9 @@ namespace Clipper
 		Vec3 &screen = vertex->screenPosition;
 
 		float wInverse = 1.0f/projected.w;
-		screen.x = projected.x * wInverse * swxfregs.viewport.wd + m_ViewOffset[0];
-		screen.y = projected.y * wInverse * swxfregs.viewport.ht + m_ViewOffset[1];
-		screen.z = projected.z * wInverse * swxfregs.viewport.zRange + swxfregs.viewport.farZ;
+		screen.x = projected.x * wInverse * xfmem.viewport.wd + m_ViewOffset[0];
+		screen.y = projected.y * wInverse * xfmem.viewport.ht + m_ViewOffset[1];
+		screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 	}
 
 }

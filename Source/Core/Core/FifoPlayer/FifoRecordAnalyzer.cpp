@@ -2,22 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FifoAnalyzer.h"
-#include "FifoRecordAnalyzer.h"
-#include "FifoRecorder.h"
+#include <algorithm>
 
-#include "Core.h"
-#include "HW/Memmap.h"
+#include "Core/Core.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
+#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/HW/Memmap.h"
 
-#include "OpcodeDecoding.h"
-#include "TextureDecoder.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/TextureDecoder.h"
 
 using namespace FifoAnalyzer;
 
 
 FifoRecordAnalyzer::FifoRecordAnalyzer() :
 	m_DrawingObject(false),
-	m_BpMem(NULL)
+	m_BpMem(nullptr)
 {
 }
 
@@ -290,8 +291,8 @@ void FifoRecordAnalyzer::WriteTexMapMemory(int texMap, u32 &writtenTexMaps)
 		width >>= 1;
 		height >>= 1;
 
-		width = max(width, fmtWidth);
-		height = max(height, fmtHeight);
+		width = std::max(width, fmtWidth);
+		height = std::max(height, fmtHeight);
 		u32 size = (width * height * fmtDepth) >> 1;
 
 		textureSize += size;

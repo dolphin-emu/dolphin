@@ -2,34 +2,24 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSP_DEBUGGER_LLE_H
-#define _DSP_DEBUGGER_LLE_H
+#pragma once
 
-// general things
-#include <iostream>
-#include <vector>
-#include <list>
-#include <map>
-#include <algorithm>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/panel.h>
+#include <wx/windowid.h>
+#include <wx/aui/framemanager.h>
 
-#include <wx/wx.h>
-#include <wx/frame.h>
-#include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/statbox.h>
-#include <wx/sizer.h>
-#include <wx/listctrl.h>
-#include <wx/statline.h>
-#include <wx/aui/aui.h>
-
-#include "DSP/disassemble.h"
-#include "DSP/DSPInterpreter.h"
-#include "DSP/DSPMemoryMap.h"
-#include "HW/DSPLLE/DSPDebugInterface.h"
+#include "Common/CommonTypes.h"
+#include "Core/HW/DSPLLE/DSPDebugInterface.h"
 
 class DSPRegisterView;
 class CCodeView;
 class CMemoryView;
+class wxAuiNotebook;
+class wxAuiToolBar;
+class wxListBox;
+class wxWindow;
 
 class DSPDebuggerLLE : public wxPanel
 {
@@ -37,7 +27,7 @@ public:
 	DSPDebuggerLLE(wxWindow *parent, wxWindowID id = wxID_ANY);
 	virtual ~DSPDebuggerLLE();
 
-	void Update();
+	void Update() override;
 
 private:
 	DECLARE_EVENT_TABLE();
@@ -85,5 +75,3 @@ private:
 };
 
 extern DSPDebuggerLLE* m_DebuggerFrame;
-
-#endif //_DSP_DEBUGGER_LLE_H

@@ -2,16 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FileUtil.h"
-#include "SysConf.h"
-
 #include <cinttypes>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <vector>
+
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/SysConf.h"
 
 SysConf::SysConf()
 	: m_IsValid(false)
 {
 	m_FilenameDefault = File::GetUserPath(F_WIISYSCONF_IDX);
-	m_IsValid = LoadFromFile(m_FilenameDefault.c_str());
+	m_IsValid = LoadFromFile(m_FilenameDefault);
 }
 
 SysConf::~SysConf()
@@ -25,13 +30,13 @@ SysConf::~SysConf()
 
 void SysConf::Clear()
 {
-	for (std::vector<SSysConfEntry>::const_iterator i = m_Entries.begin();
-			i < m_Entries.end() - 1; i++)
+	for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
 		delete [] i->data;
+
 	m_Entries.clear();
 }
 
-bool SysConf::LoadFromFile(const char *filename)
+bool SysConf::LoadFromFile(const std::string& filename)
 {
 	// Basic check
 	if (!File::Exists(filename))
@@ -51,7 +56,9 @@ bool SysConf::LoadFromFile(const char *filename)
 			return true;
 		}
 		else
+		{
 			return false;
+		}
 	}
 
 	File::IOFile f(filename, "rb");
@@ -85,8 +92,7 @@ bool SysConf::LoadFromFileInternal(FILE *fh)
 	}
 
 	// Last offset is an invalid entry. We ignore it throughout this class
-	for (std::vector<SSysConfEntry>::iterator i = m_Entries.begin();
-			i < m_Entries.end() - 1; i++)
+	for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
 	{
 		SSysConfEntry& curEntry = *i;
 		f.Seek(curEntry.offset, SEEK_SET);
@@ -300,7 +306,7 @@ void SysConf::GenerateSysConf()
 	items[26].data[0] = 0x01;
 
 
-	for (auto& item : items)
+	for (const SSysConfEntry& item : items)
 		m_Entries.push_back(item);
 
 	File::CreateFullPath(m_FilenameDefault);
@@ -358,12 +364,11 @@ void SysConf::GenerateSysConf()
 	m_Filename = m_FilenameDefault;
 }
 
-bool SysConf::SaveToFile(const char *filename)
+bool SysConf::SaveToFile(const std::string& filename)
 {
 	File::IOFile f(filename, "r+b");
 
-	for (std::vector<SSysConfEntry>::iterator i = m_Entries.begin();
-			i < m_Entries.end() - 1; i++)
+	for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
 	{
 		// Seek to after the name of this entry
 		f.Seek(i->offset + i->nameLength + 1, SEEK_SET);
@@ -391,7 +396,8 @@ bool SysConf::Save()
 {
 	if (!m_IsValid)
 		return false;
-	return SaveToFile(m_Filename.c_str());
+
+	return SaveToFile(m_Filename);
 }
 
 void SysConf::UpdateLocation()
@@ -414,6 +420,6 @@ bool SysConf::Reload()
 
 	std::string& filename = m_Filename.empty() ? m_FilenameDefault : m_Filename;
 
-	m_IsValid = LoadFromFile(filename.c_str());
+	m_IsValid = LoadFromFile(filename);
 	return m_IsValid;
 }

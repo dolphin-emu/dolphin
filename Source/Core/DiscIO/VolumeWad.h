@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VOLUME_WAD
-#define _VOLUME_WAD
+#pragma once
 
-#include "Volume.h"
-#include "Blob.h"
-#include "NANDContentLoader.h"
+#include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
+#include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
 // Some of this code might look redundant with the CNANDContentLoader class, however,
@@ -15,22 +16,25 @@
 
 namespace DiscIO
 {
+
+class IBlobReader;
+
 class CVolumeWAD : public IVolume
 {
 public:
 	CVolumeWAD(IBlobReader* _pReader);
 	~CVolumeWAD();
-	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
-	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const { return false; }
-	bool GetTitleID(u8* _pBuffer) const;
-	std::string GetUniqueID() const;
-	std::string GetMakerID() const;
-	std::vector<std::string> GetNames() const;
-	u32 GetFSTSize() const					{ return 0; }
-	std::string GetApploaderDate() const	{ return "0"; }
-	ECountry GetCountry() const;
-	u64 GetSize() const;
-	u64 GetRawSize() const;
+	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const override;
+	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const override { return false; }
+	bool GetTitleID(u8* _pBuffer) const override;
+	std::string GetUniqueID() const override;
+	std::string GetMakerID() const override;
+	std::vector<std::string> GetNames() const override;
+	u32 GetFSTSize() const override               { return 0; }
+	std::string GetApploaderDate() const override { return "0"; }
+	ECountry GetCountry() const override;
+	u64 GetSize() const override;
+	u64 GetRawSize() const override;
 
 private:
 	IBlobReader* m_pReader;
@@ -39,5 +43,3 @@ private:
 };
 
 } // namespace
-
-#endif

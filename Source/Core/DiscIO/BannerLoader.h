@@ -2,39 +2,46 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BANNER_LOADER_H_
-#define _BANNER_LOADER_H_
+#pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "Filesystem.h"
+#include "Common/CommonTypes.h"
 
 namespace DiscIO
 {
+
+class IFileSystem;
+class IVolume;
+
 class IBannerLoader
 {
-	public:
+public:
+	IBannerLoader()
+		: m_pBannerFile(nullptr)
+		, m_IsValid(false)
+	{}
 
-		IBannerLoader()
-		{}
+	virtual ~IBannerLoader()
+	{}
 
+	virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
 
-		virtual ~IBannerLoader()
-		{}
+	virtual std::vector<std::string> GetNames() = 0;
+	virtual std::string GetCompany() = 0;
+	virtual std::vector<std::string> GetDescriptions() = 0;
 
+	bool IsValid()
+	{
+		return m_IsValid;
+	}
 
-		virtual bool IsValid() = 0;
-
-		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
-
-		virtual std::vector<std::string> GetNames() = 0;
-		virtual std::string GetCompany() = 0;
-		virtual std::vector<std::string> GetDescriptions() = 0;
+protected:
+	bool m_IsValid;
+	u8* m_pBannerFile;
 };
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume);
-} // namespace
 
-#endif
-
+}  // namespace DiscIO

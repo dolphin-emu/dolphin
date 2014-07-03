@@ -2,39 +2,61 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <vector>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <mutex>
 #include <string>
+#include <utility>
+#include <wx/app.h>
+#include <wx/buffer.h>
+#include <wx/chartype.h>
+#include <wx/cmdline.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/imagpng.h>
+#include <wx/intl.h>
+#include <wx/language.h>
+#include <wx/msgdlg.h>
+#include <wx/setup.h>
+#include <wx/string.h>
+#include <wx/thread.h>
+#include <wx/timer.h>
+#include <wx/translation.h>
+#include <wx/utils.h>
+#include <wx/window.h>
 
-#include "Common.h"
-#include "CommonPaths.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/CPUDetect.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/Thread.h"
+#include "Common/Logging/LogManager.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/CoreParameter.h"
+#include "Core/Movie.h"
+#include "Core/HW/Wiimote.h"
+
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/Main.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/JitWindow.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
 #endif
 
-#include "CPUDetect.h"
-#include "IniFile.h"
-#include "FileUtil.h"
-
-#include "Host.h" // Core
-#include "HW/Wiimote.h"
-
-#include "WxUtils.h"
-#include "Globals.h" // Local
-#include "Main.h"
-#include "ConfigManager.h"
-#include "Debugger/CodeWindow.h"
-#include "Debugger/JitWindow.h"
-#include "ExtendedTrace.h"
-#include "BootManager.h"
-#include "Frame.h"
-
-#include "VideoBackendBase.h"
-
-#include <wx/intl.h>
-
 #ifdef _WIN32
 #include <shellapi.h>
+#include "Common/ExtendedTrace.h"
 
 #ifndef SM_XVIRTUALSCREEN
 #define SM_XVIRTUALSCREEN 76
@@ -54,6 +76,8 @@
 #ifdef __APPLE__
 #import <AppKit/AppKit.h>
 #endif
+
+class wxFrame;
 
 // Nvidia drivers >= v302 will check if the application exports a global
 // variable named NvOptimusEnablement to know if it should run the app in high
@@ -75,11 +99,10 @@ BEGIN_EVENT_TABLE(DolphinApp, wxApp)
 	EVT_END_SESSION(DolphinApp::OnEndSession)
 END_EVENT_TABLE()
 
-#include <wx/stdpaths.h>
 bool wxMsgAlert(const char*, const char*, bool, int);
 std::string wxStringTranslator(const char *);
 
-CFrame* main_frame = NULL;
+CFrame* main_frame = nullptr;
 
 #ifdef WIN32
 //Has no error handling.
@@ -95,7 +118,7 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	//dumpCurrentDate(file);
 	etfprintf(file.GetHandle(), "Unhandled Exception\n  Code: 0x%08X\n",
 		e->ExceptionRecord->ExceptionCode);
-#ifndef _M_X64
+#if _M_X86_32
 	STACKTRACE2(file.GetHandle(), e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
 #else
 	STACKTRACE2(file.GetHandle(), e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
@@ -181,7 +204,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0
+			wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
 
@@ -192,28 +215,20 @@ bool DolphinApp::OnInit()
 		return false;
 	}
 
-	UseDebugger = parser.Found(wxT("debugger"));
-	UseLogger = parser.Found(wxT("logger"));
-	LoadFile = parser.Found(wxT("exec"), &FileToLoad);
-	BatchMode = parser.Found(wxT("batch"));
-	selectVideoBackend = parser.Found(wxT("video_backend"),
-		&videoBackendName);
-	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
-		&audioEmulationName);
-	playMovie = parser.Found(wxT("movie"), &movieFile);
+	UseDebugger = parser.Found("debugger");
+	UseLogger = parser.Found("logger");
+	LoadFile = parser.Found("exec", &FileToLoad);
+	BatchMode = parser.Found("batch");
+	selectVideoBackend = parser.Found("video_backend", &videoBackendName);
+	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
+	playMovie = parser.Found("movie", &movieFile);
 
-	if (parser.Found(wxT("user"), &userPath))
+	if (parser.Found("user", &userPath))
 	{
 		File::CreateFullPath(WxStrToStr(userPath) + DIR_SEP);
 		File::GetUserPath(D_USER_IDX, userPath.ToStdString() + DIR_SEP);
 	}
 #endif // wxUSE_CMDLINE_PARSER
-
-#if defined _DEBUG && defined _WIN32
-	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-	tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
-	_CrtSetDbgFlag(tmpflag);
-#endif
 
 	// Register message box and translation handlers
 	RegisterMsgAlertHandler(&wxMsgAlert);
@@ -304,11 +319,11 @@ bool DolphinApp::OnInit()
 	if (File::Exists("www.dolphin-emulator.com.txt"))
 	{
 		File::Delete("www.dolphin-emulator.com.txt");
-		MessageBox(NULL,
+		MessageBox(nullptr,
 				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
 				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
 				   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
-		ShellExecute(NULL, L"open", L"http://dolphin-emu.org/?ref=badver", NULL, NULL, SW_SHOWDEFAULT);
+		ShellExecute(nullptr, L"open", L"http://dolphin-emu.org/?ref=badver", nullptr, nullptr, SW_SHOWDEFAULT);
 		exit(0);
 	}
 #endif
@@ -328,7 +343,7 @@ bool DolphinApp::OnInit()
 		y = wxDefaultCoord;
 #endif
 
-	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY,
+	main_frame = new CFrame((wxFrame*)nullptr, wxID_ANY,
 				StrToWxStr(scm_rev_str),
 				wxPoint(x, y), wxSize(w, h),
 				UseDebugger, BatchMode, UseLogger);
@@ -349,21 +364,21 @@ void DolphinApp::MacOpenFile(const wxString &fileName)
 	FileToLoad = fileName;
 	LoadFile = true;
 
-	if (m_afterinit == NULL)
+	if (m_afterinit == nullptr)
 		main_frame->BootGame(WxStrToStr(FileToLoad));
 }
 
 void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 {
 	delete m_afterinit;
-	m_afterinit = NULL;
+	m_afterinit = nullptr;
 
 	if (!BatchMode)
 		main_frame->UpdateGameList();
 
 	if (playMovie && movieFile != wxEmptyString)
 	{
-		if (Movie::PlayInput(movieFile.char_str()))
+		if (Movie::PlayInput(WxStrToStr(movieFile)))
 		{
 			if (LoadFile && FileToLoad != wxEmptyString)
 			{
@@ -398,10 +413,10 @@ void DolphinApp::InitLanguageSupport()
 
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
+	ini.GetOrCreateSection("Interface")->Get("Language", &language, wxLANGUAGE_DEFAULT);
 
 	// Load language if possible, fall back to system default otherwise
-	if(wxLocale::IsAvailable(language))
+	if (wxLocale::IsAvailable(language))
 	{
 		m_locale = new wxLocale(language);
 
@@ -409,9 +424,9 @@ void DolphinApp::InitLanguageSupport()
 		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetExeDirectory() + DIR_SEP "Languages"));
 #endif
 
-		m_locale->AddCatalog(wxT("dolphin-emu"));
+		m_locale->AddCatalog("dolphin-emu");
 
-		if(!m_locale->IsOk())
+		if (!m_locale->IsOk())
 		{
 			PanicAlertT("Error loading selected language. Falling back to system default.");
 			delete m_locale;
@@ -480,7 +495,7 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 	else
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
-		event.SetString(StrToWxStr(caption) + wxT(":") + StrToWxStr(text));
+		event.SetString(StrToWxStr(caption) + ":" + StrToWxStr(text));
 		event.SetInt(yes_no);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 		main_frame->panic_event.Wait();
@@ -515,7 +530,7 @@ void* Host_GetInstance()
 #else
 void* Host_GetInstance()
 {
-	return NULL;
+	return nullptr;
 }
 #endif
 
@@ -579,7 +594,7 @@ void Host_UpdateMainFrame()
 	}
 }
 
-void Host_UpdateTitle(const char* title)
+void Host_UpdateTitle(const std::string& title)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
 	event.SetString(StrToWxStr(title));
@@ -595,25 +610,6 @@ void Host_UpdateBreakPointView()
 	{
 		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
-}
-
-bool Host_GetKeyState(int keycode)
-{
-#ifdef _WIN32
-	return (0 != GetAsyncKeyState(keycode));
-#elif defined __WXGTK__
-	std::unique_lock<std::recursive_mutex> lk(main_frame->keystate_lock, std::try_to_lock);
-	if (!lk.owns_lock())
-		return false;
-
-	bool key_pressed;
-	if (!wxIsMainThread()) wxMutexGuiEnter();
-	key_pressed = wxGetKeyState(wxKeyCode(keycode));
-	if (!wxIsMainThread()) wxMutexGuiLeave();
-	return key_pressed;
-#else
-	return wxGetKeyState(wxKeyCode(keycode));
-#endif
 }
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
@@ -645,11 +641,11 @@ void Host_SetStartupDebuggingParameters()
 	StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
 }
 
-void Host_UpdateStatusBar(const char* _pText, int Field)
+void Host_UpdateStatusBar(const std::string& text, int Field)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 	// Set the event string
-	event.SetString(StrToWxStr(_pText));
+	event.SetString(StrToWxStr(text));
 	// Update statusbar field
 	event.SetInt(Field);
 	// Post message
@@ -665,7 +661,7 @@ void Host_SetWiiMoteConnectionState(int _State)
 
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 
-	switch(_State)
+	switch (_State)
 	{
 	case 0: event.SetString(_("Not connected")); break;
 	case 1: event.SetString(_("Connecting...")); break;

@@ -2,35 +2,41 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <fcntl.h>
+#include <limits.h>
+#include <string>
+#include <vector>
+#include <sys/stat.h>
 
-#include "CommonPaths.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 
 #ifdef _WIN32
-#include <windows.h>
-#include <shlobj.h>    // for SHGetFolderPath
-#include <shellapi.h>
 #include <commdlg.h>   // for GetSaveFileName
-#include <io.h>
 #include <direct.h>    // getcwd
+#include <io.h>
+#include <shellapi.h>
+#include <shlobj.h>    // for SHGetFolderPath
+#include <windows.h>
 #else
-#include <sys/param.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <libgen.h>
+#include <stdlib.h>
+#include <unistd.h>
 #endif
-#include <fcntl.h>
 
 #if defined(__APPLE__)
+#include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
-#include <CoreFoundation/CFBundle.h>
+#include <sys/param.h>
 #endif
-
-#include <algorithm>
-#include <sys/stat.h>
 
 #ifndef S_ISDIR
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)
@@ -144,7 +150,7 @@ bool CreateDir(const std::string &path)
 {
 	INFO_LOG(COMMON, "CreateDir: directory %s", path.c_str());
 #ifdef _WIN32
-	if (::CreateDirectory(UTF8ToTStr(path).c_str(), NULL))
+	if (::CreateDirectory(UTF8ToTStr(path).c_str(), nullptr))
 		return true;
 	DWORD error = GetLastError();
 	if (error == ERROR_ALREADY_EXISTS)
@@ -244,7 +250,7 @@ bool Rename(const std::string &srcFilename, const std::string &destFilename)
 	auto df = UTF8ToTStr(destFilename);
 	// The Internet seems torn about whether ReplaceFile is atomic or not.
 	// Hopefully it's atomic enough...
-	if (ReplaceFile(df.c_str(), sf.c_str(), NULL, REPLACEFILE_IGNORE_MERGE_ERRORS, NULL, NULL))
+	if (ReplaceFile(df.c_str(), sf.c_str(), nullptr, REPLACEFILE_IGNORE_MERGE_ERRORS, nullptr, nullptr))
 		return true;
 	// Might have failed because the destination doesn't exist.
 	if (GetLastError() == ERROR_FILE_NOT_FOUND)
@@ -475,7 +481,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 		FSTEntry entry;
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
-	struct dirent dirent, *result = NULL;
+	struct dirent dirent, *result = nullptr;
 
 	DIR *dirp = opendir(directory.c_str());
 	if (!dirp)
@@ -496,7 +502,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 		entry.physicalName = directory;
 		entry.physicalName += DIR_SEP + entry.virtualName;
 
-		if (IsDirectory(entry.physicalName.c_str()))
+		if (IsDirectory(entry.physicalName))
 		{
 			entry.isDirectory = true;
 			// is a directory, lets go inside
@@ -543,7 +549,7 @@ bool DeleteDirRecursively(const std::string &directory)
 	{
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
-	struct dirent dirent, *result = NULL;
+	struct dirent dirent, *result = nullptr;
 	DIR *dirp = opendir(directory.c_str());
 	if (!dirp)
 		return false;
@@ -617,7 +623,7 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 	{
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
-	struct dirent dirent, *result = NULL;
+	struct dirent dirent, *result = nullptr;
 	DIR *dirp = opendir(source_path.c_str());
 	if (!dirp) return;
 
@@ -654,11 +660,11 @@ std::string GetCurrentDir()
 {
 	char *dir;
 	// Get the current working directory (getcwd uses malloc)
-	if (!(dir = __getcwd(NULL, 0))) {
+	if (!(dir = __getcwd(nullptr, 0))) {
 
 		ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s",
 				GetLastErrorMsg());
-		return NULL;
+		return nullptr;
 	}
 	std::string strDir = dir;
 	free(dir);
@@ -676,11 +682,11 @@ std::string GetTempFilenameForAtomicWrite(const std::string &path)
 	std::string abs = path;
 #ifdef _WIN32
 	TCHAR absbuf[MAX_PATH];
-	if (_tfullpath(absbuf, UTF8ToTStr(path).c_str(), MAX_PATH) != NULL)
+	if (_tfullpath(absbuf, UTF8ToTStr(path).c_str(), MAX_PATH) != nullptr)
 		abs = TStrToUTF8(absbuf);
 #else
 	char absbuf[PATH_MAX];
-	if (realpath(path.c_str(), absbuf) != NULL)
+	if (realpath(path.c_str(), absbuf) != nullptr)
 		abs = absbuf;
 #endif
 	return abs + ".xxx";
@@ -709,7 +715,7 @@ std::string& GetExeDirectory()
 	if (DolphinPath.empty())
 	{
 		TCHAR Dolphin_exe_Path[2048];
-		GetModuleFileName(NULL, Dolphin_exe_Path, 2048);
+		GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
 		DolphinPath = TStrToUTF8(Dolphin_exe_Path);
 		DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
 	}
@@ -761,14 +767,14 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 		HKEY hkey;
 		DWORD local = 0;
 		TCHAR configPath[MAX_PATH] = {0};
-		if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), NULL, KEY_QUERY_VALUE, &hkey) == ERROR_SUCCESS)
+		if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), 0, KEY_QUERY_VALUE, &hkey) == ERROR_SUCCESS)
 		{
 			DWORD size = 4;
-			if (RegQueryValueEx(hkey, TEXT("LocalUserConfig"), NULL, NULL, reinterpret_cast<LPBYTE>(&local), &size) != ERROR_SUCCESS)
+			if (RegQueryValueEx(hkey, TEXT("LocalUserConfig"), nullptr, nullptr, reinterpret_cast<LPBYTE>(&local), &size) != ERROR_SUCCESS)
 				local = 0;
 
 			size = MAX_PATH;
-			if (RegQueryValueEx(hkey, TEXT("UserConfigPath"), NULL, NULL, (LPBYTE)configPath, &size) != ERROR_SUCCESS)
+			if (RegQueryValueEx(hkey, TEXT("UserConfigPath"), nullptr, nullptr, (LPBYTE)configPath, &size) != ERROR_SUCCESS)
 				configPath[0] = 0;
 			RegCloseKey(hkey);
 		}
@@ -777,7 +783,7 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 
 		// Get Program Files path in case we need it.
 		TCHAR my_documents[MAX_PATH];
-		bool my_documents_found = SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, my_documents));
+		bool my_documents_found = SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_MYDOCUMENTS, nullptr, SHGFP_TYPE_CURRENT, my_documents));
 
 		if (local) // Case 1-2
 			paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
@@ -803,37 +809,37 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 				getenv("PWD") : "") + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
 #endif
 
-		paths[D_GCUSER_IDX]			= paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
-		paths[D_WIIROOT_IDX]		= paths[D_USER_IDX] + WII_USER_DIR;
-		paths[D_WIIUSER_IDX]		= paths[D_WIIROOT_IDX] + DIR_SEP;
-		paths[D_CONFIG_IDX]			= paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
-		paths[D_GAMESETTINGS_IDX]	= paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
-		paths[D_MAPS_IDX]			= paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
-		paths[D_CACHE_IDX]			= paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
-		paths[D_SHADERCACHE_IDX]	= paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
-		paths[D_SHADERS_IDX]		= paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
-		paths[D_STATESAVES_IDX]		= paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
-		paths[D_SCREENSHOTS_IDX]	= paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
-		paths[D_HIRESTEXTURES_IDX]	= paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
-		paths[D_DUMP_IDX]			= paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
-		paths[D_DUMPFRAMES_IDX]		= paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-		paths[D_DUMPAUDIO_IDX]		= paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-		paths[D_DUMPTEXTURES_IDX]	= paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-		paths[D_DUMPDSP_IDX]		= paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
-		paths[D_LOGS_IDX]			= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
-		paths[D_MAILLOGS_IDX]		= paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
-		paths[D_WIISYSCONF_IDX]		= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
-		paths[D_WIIWC24_IDX]		= paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
-		paths[D_THEMES_IDX]			= paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
-		paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
-		paths[F_DEBUGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
-		paths[F_LOGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + LOGGER_CONFIG;
-		paths[F_MAINLOG_IDX]		= paths[D_LOGS_IDX] + MAIN_LOG;
-		paths[F_WIISYSCONF_IDX]		= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
-		paths[F_RAMDUMP_IDX]		= paths[D_DUMP_IDX] + RAM_DUMP;
-		paths[F_ARAMDUMP_IDX]		= paths[D_DUMP_IDX] + ARAM_DUMP;
-		paths[F_FAKEVMEMDUMP_IDX]	= paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
-		paths[F_GCSRAM_IDX]			= paths[D_GCUSER_IDX] + GC_SRAM;
+		paths[D_GCUSER_IDX]         = paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
+		paths[D_WIIROOT_IDX]        = paths[D_USER_IDX] + WII_USER_DIR;
+		paths[D_WIIUSER_IDX]        = paths[D_WIIROOT_IDX] + DIR_SEP;
+		paths[D_CONFIG_IDX]         = paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
+		paths[D_GAMESETTINGS_IDX]   = paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
+		paths[D_MAPS_IDX]           = paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
+		paths[D_CACHE_IDX]          = paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
+		paths[D_SHADERCACHE_IDX]    = paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
+		paths[D_SHADERS_IDX]        = paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
+		paths[D_STATESAVES_IDX]     = paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
+		paths[D_SCREENSHOTS_IDX]    = paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
+		paths[D_HIRESTEXTURES_IDX]  = paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
+		paths[D_DUMP_IDX]           = paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
+		paths[D_DUMPFRAMES_IDX]     = paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+		paths[D_DUMPAUDIO_IDX]      = paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
+		paths[D_DUMPTEXTURES_IDX]   = paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
+		paths[D_DUMPDSP_IDX]        = paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
+		paths[D_LOGS_IDX]           = paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
+		paths[D_MAILLOGS_IDX]       = paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
+		paths[D_WIISYSCONF_IDX]     = paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
+		paths[D_WIIWC24_IDX]        = paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
+		paths[D_THEMES_IDX]         = paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
+		paths[F_DOLPHINCONFIG_IDX]  = paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+		paths[F_DEBUGGERCONFIG_IDX] = paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
+		paths[F_LOGGERCONFIG_IDX]   = paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+		paths[F_MAINLOG_IDX]        = paths[D_LOGS_IDX] + MAIN_LOG;
+		paths[F_WIISYSCONF_IDX]     = paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
+		paths[F_RAMDUMP_IDX]        = paths[D_DUMP_IDX] + RAM_DUMP;
+		paths[F_ARAMDUMP_IDX]       = paths[D_DUMP_IDX] + ARAM_DUMP;
+		paths[F_FAKEVMEMDUMP_IDX]   = paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
+		paths[F_GCSRAM_IDX]         = paths[D_GCUSER_IDX] + GC_SRAM;
 	}
 
 	if (!newPath.empty())
@@ -851,72 +857,72 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 		switch (DirIDX)
 		{
 		case D_WIIROOT_IDX:
-			paths[D_WIIUSER_IDX] = paths[D_WIIROOT_IDX] + DIR_SEP;
-			paths[D_WIISYSCONF_IDX]	= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP;
-			paths[F_WIISYSCONF_IDX]	= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
+			paths[D_WIIUSER_IDX]    = paths[D_WIIROOT_IDX] + DIR_SEP;
+			paths[D_WIISYSCONF_IDX] = paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP;
+			paths[F_WIISYSCONF_IDX] = paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
 			break;
 
 		case D_USER_IDX:
-			paths[D_GCUSER_IDX]				= paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
-			paths[D_WIIROOT_IDX]			= paths[D_USER_IDX] + WII_USER_DIR;
-			paths[D_WIIUSER_IDX]			= paths[D_WIIROOT_IDX] + DIR_SEP;
-			paths[D_CONFIG_IDX]				= paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
-			paths[D_GAMESETTINGS_IDX]		= paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
-			paths[D_MAPS_IDX]				= paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
-			paths[D_CACHE_IDX]				= paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
-			paths[D_SHADERCACHE_IDX]		= paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
-			paths[D_SHADERS_IDX]			= paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
-			paths[D_STATESAVES_IDX]			= paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
-			paths[D_SCREENSHOTS_IDX]		= paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
-			paths[D_HIRESTEXTURES_IDX]		= paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
-			paths[D_DUMP_IDX]				= paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
-			paths[D_DUMPFRAMES_IDX]			= paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-			paths[D_DUMPAUDIO_IDX]			= paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-			paths[D_DUMPTEXTURES_IDX]		= paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-			paths[D_DUMPDSP_IDX]			= paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
-			paths[D_LOGS_IDX]				= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
-			paths[D_MAILLOGS_IDX]			= paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
-			paths[D_WIISYSCONF_IDX]			= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
-			paths[D_THEMES_IDX]				= paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
-			paths[F_DOLPHINCONFIG_IDX]		= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
-			paths[F_DEBUGGERCONFIG_IDX]		= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
-			paths[F_LOGGERCONFIG_IDX]		= paths[D_CONFIG_IDX] + LOGGER_CONFIG;
-			paths[F_MAINLOG_IDX]			= paths[D_LOGS_IDX] + MAIN_LOG;
-			paths[F_WIISYSCONF_IDX]			= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
-			paths[F_RAMDUMP_IDX]			= paths[D_DUMP_IDX] + RAM_DUMP;
-			paths[F_ARAMDUMP_IDX]			= paths[D_DUMP_IDX] + ARAM_DUMP;
-			paths[F_FAKEVMEMDUMP_IDX]		= paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
-			paths[F_GCSRAM_IDX]				= paths[D_GCUSER_IDX] + GC_SRAM;
+			paths[D_GCUSER_IDX]         = paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
+			paths[D_WIIROOT_IDX]        = paths[D_USER_IDX] + WII_USER_DIR;
+			paths[D_WIIUSER_IDX]        = paths[D_WIIROOT_IDX] + DIR_SEP;
+			paths[D_CONFIG_IDX]         = paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
+			paths[D_GAMESETTINGS_IDX]   = paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
+			paths[D_MAPS_IDX]           = paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
+			paths[D_CACHE_IDX]          = paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
+			paths[D_SHADERCACHE_IDX]    = paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
+			paths[D_SHADERS_IDX]        = paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
+			paths[D_STATESAVES_IDX]     = paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
+			paths[D_SCREENSHOTS_IDX]    = paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
+			paths[D_HIRESTEXTURES_IDX]  = paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
+			paths[D_DUMP_IDX]           = paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
+			paths[D_DUMPFRAMES_IDX]     = paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+			paths[D_DUMPAUDIO_IDX]      = paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
+			paths[D_DUMPTEXTURES_IDX]   = paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
+			paths[D_DUMPDSP_IDX]        = paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
+			paths[D_LOGS_IDX]           = paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
+			paths[D_MAILLOGS_IDX]       = paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
+			paths[D_WIISYSCONF_IDX]     = paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
+			paths[D_THEMES_IDX]         = paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
+			paths[F_DOLPHINCONFIG_IDX]  = paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+			paths[F_DEBUGGERCONFIG_IDX] = paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
+			paths[F_LOGGERCONFIG_IDX]   = paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+			paths[F_MAINLOG_IDX]        = paths[D_LOGS_IDX] + MAIN_LOG;
+			paths[F_WIISYSCONF_IDX]     = paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
+			paths[F_RAMDUMP_IDX]        = paths[D_DUMP_IDX] + RAM_DUMP;
+			paths[F_ARAMDUMP_IDX]       = paths[D_DUMP_IDX] + ARAM_DUMP;
+			paths[F_FAKEVMEMDUMP_IDX]   = paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
+			paths[F_GCSRAM_IDX]         = paths[D_GCUSER_IDX] + GC_SRAM;
 			break;
 
 		case D_CONFIG_IDX:
-			paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
-			paths[F_DEBUGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
-			paths[F_LOGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+			paths[F_DOLPHINCONFIG_IDX]  = paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+			paths[F_DEBUGGERCONFIG_IDX] = paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
+			paths[F_LOGGERCONFIG_IDX]   = paths[D_CONFIG_IDX] + LOGGER_CONFIG;
 			break;
 
 		case D_GCUSER_IDX:
-			paths[F_GCSRAM_IDX]			= paths[D_GCUSER_IDX] + GC_SRAM;
+			paths[F_GCSRAM_IDX]         = paths[D_GCUSER_IDX] + GC_SRAM;
 			break;
 
 		case D_DUMP_IDX:
-			paths[D_DUMPFRAMES_IDX]		= paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-			paths[D_DUMPAUDIO_IDX]		= paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-			paths[D_DUMPTEXTURES_IDX]	= paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-			paths[D_DUMPDSP_IDX]		= paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
-			paths[F_RAMDUMP_IDX]		= paths[D_DUMP_IDX] + RAM_DUMP;
-			paths[F_ARAMDUMP_IDX]		= paths[D_DUMP_IDX] + ARAM_DUMP;
-			paths[F_FAKEVMEMDUMP_IDX]	= paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
+			paths[D_DUMPFRAMES_IDX]     = paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+			paths[D_DUMPAUDIO_IDX]      = paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
+			paths[D_DUMPTEXTURES_IDX]   = paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
+			paths[D_DUMPDSP_IDX]        = paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
+			paths[F_RAMDUMP_IDX]        = paths[D_DUMP_IDX] + RAM_DUMP;
+			paths[F_ARAMDUMP_IDX]       = paths[D_DUMP_IDX] + ARAM_DUMP;
+			paths[F_FAKEVMEMDUMP_IDX]   = paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
 			break;
 		case D_LOGS_IDX:
-			paths[D_MAILLOGS_IDX]		= paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
-			paths[F_MAINLOG_IDX]		= paths[D_LOGS_IDX] + MAIN_LOG;
+			paths[D_MAILLOGS_IDX]       = paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
+			paths[F_MAINLOG_IDX]        = paths[D_LOGS_IDX] + MAIN_LOG;
 		}
 
-		paths[D_WIIUSER_IDX] = paths[D_WIIROOT_IDX] + DIR_SEP;
-		paths[D_WIIWC24_IDX] = paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
-		paths[D_WIISYSCONF_IDX]	= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP;
-		paths[F_WIISYSCONF_IDX]	= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
+		paths[D_WIIUSER_IDX]    = paths[D_WIIROOT_IDX] + DIR_SEP;
+		paths[D_WIIWC24_IDX]    = paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
+		paths[D_WIISYSCONF_IDX] = paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP;
+		paths[F_WIISYSCONF_IDX] = paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
 	}
 
 	return paths[DirIDX];
@@ -933,12 +939,12 @@ std::string GetThemeDir(const std::string& theme_name)
 	return dir;
 }
 
-bool WriteStringToFile(const std::string &str, const char *filename)
+bool WriteStringToFile(const std::string &str, const std::string& filename)
 {
 	return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());
 }
 
-bool ReadFileToString(const char *filename, std::string &str)
+bool ReadFileToString(const std::string& filename, std::string &str)
 {
 	File::IOFile file(filename, "rb");
 	auto const f = file.GetHandle();
@@ -954,7 +960,7 @@ bool ReadFileToString(const char *filename, std::string &str)
 }
 
 IOFile::IOFile()
-	: m_file(NULL), m_good(true)
+	: m_file(nullptr), m_good(true)
 {}
 
 IOFile::IOFile(std::FILE* file)
@@ -962,7 +968,7 @@ IOFile::IOFile(std::FILE* file)
 {}
 
 IOFile::IOFile(const std::string& filename, const char openmode[])
-	: m_file(NULL), m_good(true)
+	: m_file(nullptr), m_good(true)
 {
 	Open(filename, openmode);
 }
@@ -973,7 +979,7 @@ IOFile::~IOFile()
 }
 
 IOFile::IOFile(IOFile&& other)
-	: m_file(NULL), m_good(true)
+	: m_file(nullptr), m_good(true)
 {
 	Swap(other);
 }
@@ -1008,14 +1014,14 @@ bool IOFile::Close()
 	if (!IsOpen() || 0 != std::fclose(m_file))
 		m_good = false;
 
-	m_file = NULL;
+	m_file = nullptr;
 	return m_good;
 }
 
 std::FILE* IOFile::ReleaseHandle()
 {
 	std::FILE* const ret = m_file;
-	m_file = NULL;
+	m_file = nullptr;
 	return ret;
 }
 

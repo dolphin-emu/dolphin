@@ -6,43 +6,31 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <string.h>
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
 
-#include "../Common.h"
-#include "tools.h"
+#include "Common/Common.h"
+#include "Common/Crypto/bn.h"
+#include "Common/Crypto/ec.h"
+
 // y**2 + x*y = x**3 + x + b
-/*
-static u8 ec_b[30] =
+UNUSED static const u8 ec_b[30] =
 	{0x00,0x66,0x64,0x7e,0xde,0x6c,0x33,0x2c,0x7f,0x8c,0x09,0x23,0xbb,0x58,0x21
 	,0x3b,0x33,0x3b,0x20,0xe9,0xce,0x42,0x81,0xfe,0x11,0x5f,0x7d,0x8f,0x90,0xad};
-*/
 
 // order of the addition group of points
-static u8 ec_N[30] =
+static const u8 ec_N[30] =
 	{0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 	,0x13,0xe9,0x74,0xe7,0x2f,0x8a,0x69,0x22,0x03,0x1d,0x26,0x03,0xcf,0xe0,0xd7};
 
 // base point
-static u8 ec_G[60] =
+static const u8 ec_G[60] =
 	{0x00,0xfa,0xc9,0xdf,0xcb,0xac,0x83,0x13,0xbb,0x21,0x39,0xf1,0xbb,0x75,0x5f
 	,0xef,0x65,0xbc,0x39,0x1f,0x8b,0x36,0xf8,0xf8,0xeb,0x73,0x71,0xfd,0x55,0x8b
 	,0x01,0x00,0x6a,0x08,0xa4,0x19,0x03,0x35,0x06,0x78,0xe5,0x85,0x28,0xbe,0xbf
 	,0x8a,0x0b,0xef,0xf8,0x67,0xa7,0xca,0x36,0x71,0x6f,0x7e,0x01,0xf8,0x10,0x52};
-
-/*static void elt_print(char *name, u8 *a)
-{
-	u32 i;
-
-	printf("%s = ", name);
-
-	for (i = 0; i < 30; i++)
-		printf("%02x", a[i]);
-
-	printf("\n");
-}*/
 
 static void elt_copy(u8 *d, const u8 *a)
 {
@@ -54,7 +42,7 @@ static void elt_zero(u8 *d)
 	memset(d, 0, 30);
 }
 
-static int elt_is_zero(u8 *d)
+static int elt_is_zero(const u8 *d)
 {
 	u32 i;
 
@@ -65,7 +53,7 @@ static int elt_is_zero(u8 *d)
 	return 1;
 }
 
-static void elt_add(u8 *d, u8 *a, u8 *b)
+static void elt_add(u8 *d, const u8 *a, const u8 *b)
 {
 	u32 i;
 
@@ -73,7 +61,7 @@ static void elt_add(u8 *d, u8 *a, u8 *b)
 		d[i] = a[i] ^ b[i];
 }
 
-static void elt_mul_x(u8 *d, u8 *a)
+static void elt_mul_x(u8 *d, const u8 *a)
 {
 	u8 carry, x, y;
 	u32 i;
@@ -91,7 +79,7 @@ static void elt_mul_x(u8 *d, u8 *a)
 	d[20] ^= carry << 2;
 }
 
-static void elt_mul(u8 *d, u8 *a, u8 *b)
+static void elt_mul(u8 *d, const u8 *a, const u8 *b)
 {
 	u32 i, n;
 	u8 mask;
@@ -115,9 +103,9 @@ static void elt_mul(u8 *d, u8 *a, u8 *b)
 }
 
 static const u8 square[16] =
-{0x00,0x01,0x04,0x05,0x10,0x11,0x14,0x15,0x40,0x41,0x44,0x45,0x50,0x51,0x54,0x55};
+	{0x00,0x01,0x04,0x05,0x10,0x11,0x14,0x15,0x40,0x41,0x44,0x45,0x50,0x51,0x54,0x55};
 
-static void elt_square_to_wide(u8 *d, u8 *a)
+static void elt_square_to_wide(u8 *d, const u8 *a)
 {
 	u32 i;
 
@@ -152,7 +140,7 @@ static void wide_reduce(u8 *d)
 	d[30] &= 1;
 }
 
-static void elt_square(u8 *d, u8 *a)
+static void elt_square(u8 *d, const u8 *a)
 {
 	u8 wide[60];
 
@@ -162,7 +150,7 @@ static void elt_square(u8 *d, u8 *a)
 	elt_copy(d, wide + 30);
 }
 
-static void itoh_tsujii(u8 *d, u8 *a, u8 *b, u32 j)
+static void itoh_tsujii(u8 *d, const u8 *a, const u8 *b, u32 j)
 {
 	u8 t[30];
 
@@ -175,7 +163,7 @@ static void itoh_tsujii(u8 *d, u8 *a, u8 *b, u32 j)
 	elt_mul(d, t, b);
 }
 
-static void elt_inv(u8 *d, u8 *a)
+static void elt_inv(u8 *d, const u8 *a)
 {
 	u8 t[30];
 	u8 s[30];
@@ -193,7 +181,7 @@ static void elt_inv(u8 *d, u8 *a)
 	elt_square(d, s);
 }
 
-/*static int point_is_on_curve(u8 *p)
+UNUSED static int point_is_on_curve(u8 *p)
 {
 	u8 s[30], t[30];
 	u8 *x, *y;
@@ -216,16 +204,17 @@ static void elt_inv(u8 *d, u8 *a)
 
 	return elt_is_zero(s);
 }
-*/
-static int point_is_zero(u8 *p)
+
+static int point_is_zero(const u8 *p)
 {
 	return elt_is_zero(p) && elt_is_zero(p + 30);
 }
 
-static void point_double(u8 *r, u8 *p)
+static void point_double(u8 *r, const u8 *p)
 {
 	u8 s[30], t[30];
-	u8 *px, *py, *rx, *ry;
+	const u8 *px, *py;
+	u8 *rx, *ry;
 
 	px = p;
 	py = p + 30;
@@ -254,10 +243,11 @@ static void point_double(u8 *r, u8 *p)
 	elt_add(ry, ry, t);
 }
 
-static void point_add(u8 *r, u8 *p, u8 *q)
+static void point_add(u8 *r, const u8 *p, const u8 *q)
 {
 	u8 s[30], t[30], u[30];
-	u8 *px, *py, *qx, *qy, *rx, *ry;
+	const u8 *px, *py, *qx, *qy;
+	u8 *rx, *ry;
 
 	px = p;
 	py = p + 30;
@@ -307,7 +297,7 @@ static void point_add(u8 *r, u8 *p, u8 *q)
 	elt_add(ry, s, rx);
 }
 
-void point_mul(u8 *d, const u8 *a, u8 *b)	// a is bignum
+void point_mul(u8 *d, const u8 *a, const u8 *b) // a is bignum
 {
 	u32 i;
 	u8 mask;
@@ -323,18 +313,18 @@ void point_mul(u8 *d, const u8 *a, u8 *b)	// a is bignum
 		}
 }
 
-void silly_random(u8 * rndArea, u8 count)
+static void silly_random(u8 * rndArea, u8 count)
 {
 	u16 i;
-	srand((unsigned) (time(NULL)));
+	srand((unsigned) (time(nullptr)));
 
-	for(i=0;i<count;i++)
+	for (i=0;i<count;i++)
 	{
 		rndArea[i]=rand();
 	}
 }
 
-void generate_ecdsa(u8 *R, u8 *S, const u8 *k, u8 *hash)
+void generate_ecdsa(u8 *R, u8 *S, const u8 *k, const u8 *hash)
 {
 	u8 e[30];
 	u8 kk[30];
@@ -372,7 +362,7 @@ void generate_ecdsa(u8 *R, u8 *S, const u8 *k, u8 *hash)
 	bn_mul(S, minv, kk, ec_N, 30);
 }
 
-int check_ecdsa(u8 *Q, u8 *R, u8 *S, u8 *hash)
+UNUSED static int check_ecdsa(u8 *Q, u8 *R, u8 *S, const u8 *hash)
 {
 	u8 Sinv[30];
 	u8 e[30];

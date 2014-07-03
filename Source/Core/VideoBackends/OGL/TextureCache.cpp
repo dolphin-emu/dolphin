@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <vector>
 #include <cmath>
-
-
 #include <fstream>
+#include <vector>
+
 #ifdef _WIN32
 #define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
 #define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
@@ -19,24 +18,26 @@
 #undef _interlockedbittestandreset64
 #endif
 
-#include "BPStructs.h"
-#include "CommonPaths.h"
-#include "FileUtil.h"
-#include "FramebufferManager.h"
-#include "Globals.h"
-#include "Hash.h"
-#include "HiresTextures.h"
-#include "HW/Memmap.h"
-#include "ImageWrite.h"
-#include "MemoryUtil.h"
-#include "ProgramShaderCache.h"
-#include "Render.h"
-#include "Statistics.h"
-#include "StringUtil.h"
-#include "TextureCache.h"
-#include "TextureConverter.h"
-#include "TextureDecoder.h"
-#include "VideoConfig.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/Hash.h"
+#include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
+
+#include "Core/HW/Memmap.h"
+
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/TextureCache.h"
+#include "VideoBackends/OGL/TextureConverter.h"
+
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {
@@ -53,7 +54,7 @@ static u32 s_DepthCbufid;
 static u32 s_Textures[8];
 static u32 s_ActiveTexture;
 
-bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
+bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
 	if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
 		return false;
@@ -82,8 +83,8 @@ TextureCache::TCacheEntry::~TCacheEntry()
 {
 	if (texture)
 	{
-		for(auto& gtex : s_Textures)
-			if(gtex == texture)
+		for (auto& gtex : s_Textures)
+			if (gtex == texture)
 				gtex = 0;
 		glDeleteTextures(1, &texture);
 		texture = 0;
@@ -119,7 +120,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	}
 }
 
-bool TextureCache::TCacheEntry::Save(const std::string filename, unsigned int level)
+bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
 	return SaveTexture(filename, GL_TEXTURE_2D, texture, virtual_width, virtual_height, level);
 }
@@ -240,7 +241,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, nullptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glGenFramebuffers(1, &entry->framebuffer);
@@ -256,14 +257,14 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-	unsigned int srcFormat, const EFBRectangle& srcRect,
+	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
 	g_renderer->ResetAPIState(); // reset any game specific settings
 
 	// Make sure to resolve anything we need to read from.
-	const GLuint read_texture = (srcFormat == PIXELFMT_Z24) ?
+	const GLuint read_texture = (srcFormat == PEControl::Z24) ?
 		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
 		FramebufferManager::ResolveAndGetRenderTarget(srcRect);
 
@@ -280,20 +281,23 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
-		if(srcFormat == PIXELFMT_Z24) {
+		if (srcFormat == PEControl::Z24)
+		{
 			s_DepthMatrixProgram.Bind();
-			if(s_DepthCbufid != cbufid)
+			if (s_DepthCbufid != cbufid)
 				glUniform4fv(s_DepthMatrixUniform, 5, colmat);
 			s_DepthCbufid = cbufid;
-		} else {
+		}
+		else
+		{
 			s_ColorMatrixProgram.Bind();
-			if(s_ColorCbufid != cbufid)
+			if (s_ColorCbufid != cbufid)
 				glUniform4fv(s_ColorMatrixUniform, 7, colmat);
 			s_ColorCbufid = cbufid;
 		}
 
 		TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
-		glUniform4f(srcFormat == PIXELFMT_Z24 ? s_DepthCopyPositionUniform : s_ColorCopyPositionUniform,
+		glUniform4f(srcFormat == PEControl::Z24 ? s_DepthCopyPositionUniform : s_ColorCopyPositionUniform,
 			R.left, R.top, R.right, R.bottom);
 		GL_REPORT_ERRORD();
 
@@ -307,7 +311,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		int encoded_size = TextureConverter::EncodeToRamFromTexture(
 			addr,
 			read_texture,
-			srcFormat == PIXELFMT_Z24,
+			srcFormat == PEControl::Z24,
 			isIntensity,
 			dstFormat,
 			scaleByHalf,
@@ -344,7 +348,7 @@ TextureCache::TextureCache()
 	const char *pColorMatrixProg =
 		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[7];\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
@@ -356,7 +360,7 @@ TextureCache::TextureCache()
 	const char *pDepthMatrixProg =
 		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[5];\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
@@ -367,7 +371,7 @@ TextureCache::TextureCache()
 		"}\n";
 
 	const char *VProgram =
-		"VARYOUT vec2 uv0;\n"
+		"out vec2 uv0;\n"
 		"uniform sampler2D samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"void main()\n"
@@ -389,7 +393,7 @@ TextureCache::TextureCache()
 	s_DepthCopyPositionUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "copy_position");
 
 	s_ActiveTexture = -1;
-	for(auto& gtex : s_Textures)
+	for (auto& gtex : s_Textures)
 		gtex = -1;
 }
 
@@ -407,7 +411,7 @@ void TextureCache::DisableStage(unsigned int stage)
 void TextureCache::SetStage ()
 {
 	// -1 is the initial value as we don't know which testure should be bound
-	if(s_ActiveTexture != (u32)-1)
+	if (s_ActiveTexture != (u32)-1)
 		glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
 

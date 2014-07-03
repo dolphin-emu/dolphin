@@ -5,11 +5,10 @@
 
 // This file holds global data for DolphinWx and DebuggerWx
 
+#pragma once
 
-#ifndef _WX_GLOBALS_H
-#define _WX_GLOBALS_H
-
-#include "Common.h"
+#include <cstddef>
+#include <wx/event.h>
 
 enum
 {
@@ -91,6 +90,7 @@ enum
 	IDM_NETPLAY,
 	IDM_RESTART,
 	IDM_CHANGEDISC,
+	IDM_LIST_CHANGEDISC,
 	IDM_PROPERTIES,
 	IDM_GAMEWIKI,
 	IDM_LOAD_WII_MENU,
@@ -119,7 +119,7 @@ enum
 
 	IDM_HELPWEBSITE, // Help menu
 	IDM_HELPONLINEDOCS,
-	IDM_HELPGOOGLECODE,
+	IDM_HELPGITHUB,
 
 	IDM_CONFIG_GFX_BACKEND,
 	IDM_CONFIG_DSP_EMULATOR,
@@ -131,7 +131,6 @@ enum
 	// Views
 	IDM_LOGWINDOW,
 	IDM_LOGCONFIGWINDOW,
-	IDM_CONSOLEWINDOW,
 	IDM_REGISTERWINDOW,
 	IDM_BREAKPOINTWINDOW,
 	IDM_MEMORYWINDOW,
@@ -140,10 +139,19 @@ enum
 	IDM_VIDEOWINDOW,
 	IDM_CODEWINDOW,
 
+	// List Column Title Toggles
+	IDM_SHOW_SYSTEM,
+	IDM_SHOW_BANNER,
+	IDM_SHOW_NOTES,
+	IDM_SHOW_ID,
+	IDM_SHOW_REGION,
+	IDM_SHOW_SIZE,
+	IDM_SHOW_STATE,
+
+
 	// Float Window IDs
 	IDM_LOGWINDOW_PARENT,
 	IDM_LOGCONFIGWINDOW_PARENT,
-	IDM_CONSOLEWINDOW_PARENT,
 	IDM_REGISTERWINDOW_PARENT,
 	IDM_BREAKPOINTWINDOW_PARENT,
 	IDM_MEMORYWINDOW_PARENT,
@@ -155,7 +163,6 @@ enum
 	// Float popup menu IDs
 	IDM_FLOAT_LOGWINDOW,
 	IDM_FLOAT_LOGCONFIGWINDOW,
-	IDM_FLOAT_CONSOLEWINDOW,
 	IDM_FLOAT_REGISTERWINDOW,
 	IDM_FLOAT_BREAKPOINTWINDOW,
 	IDM_FLOAT_MEMORYWINDOW,
@@ -255,31 +262,12 @@ enum
 	LIST_CTRL = 1000
 };
 
-#include <wx/wx.h>
-#include <wx/toolbar.h>
-#include <wx/log.h>
-#include <wx/image.h>
-#include <wx/aboutdlg.h>
-#include <wx/filedlg.h>
-#include <wx/spinctrl.h>
-#include <wx/srchctrl.h>
-#include <wx/listctrl.h>
-#include <wx/progdlg.h>
-#include <wx/imagpng.h>
-#include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/choice.h>
-#include <wx/cmdline.h>
-#include <wx/busyinfo.h>
-
 // custom message macro
 #define EVT_HOST_COMMAND(id, fn) \
 	DECLARE_EVENT_TABLE_ENTRY(\
 			wxEVT_HOST_COMMAND, id, wxID_ANY, \
 			(wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent(wxCommandEventFunction, &fn), \
-			(wxObject*) NULL \
+			(wxObject*) nullptr \
 			),
 
 extern const wxEventType wxEVT_HOST_COMMAND;
-
-#endif // _WX_GLOBALS_H

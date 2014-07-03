@@ -2,19 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
 #if HAVE_PORTAUDIO
 
-#include "../CoreTiming.h"
-#include "SystemTimers.h"
-
-#include "EXI_Device.h"
-#include "EXI_DeviceMic.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceMic.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/SystemTimers.h"
 
 #include <portaudio.h>
-
-#include "GCPad.h"
 
 void CEXIMic::StreamLog(const char *msg)
 {
@@ -179,7 +177,7 @@ void CEXIMic::SetCS(int cs)
 void CEXIMic::UpdateNextInterruptTicks()
 {
 	next_int_ticks = CoreTiming::GetTicks() +
-		(SystemTimers::GetTicksPerSecond() / sample_rate) *	buff_size_samples;
+		(SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
 }
 
 bool CEXIMic::IsInterruptSet()
@@ -203,8 +201,8 @@ void CEXIMic::TransferByte(u8 &byte)
 {
 	if (m_position == 0)
 	{
-		command = byte;	// first byte is command
-		byte = 0xFF;	// would be tristate, but we don't care.
+		command = byte; // first byte is command
+		byte = 0xFF;    // would be tristate, but we don't care.
 		m_position++;
 		return;
 	}

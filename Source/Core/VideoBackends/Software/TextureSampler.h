@@ -2,11 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTURESAMPLER_H_
-#define _TEXTURESAMPLER_H_
+#pragma once
 
-
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace TextureSampler
 {
@@ -16,6 +14,3 @@ namespace TextureSampler
 
 	enum { RED_SMP, GRN_SMP, BLU_SMP, ALP_SMP };
 }
-
-
-#endif

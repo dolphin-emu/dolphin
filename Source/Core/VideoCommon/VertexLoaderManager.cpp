@@ -6,13 +6,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include "VideoCommon.h"
-#include "Statistics.h"
+#include "Core/HW/Memmap.h"
 
-#include "VertexShaderManager.h"
-#include "VertexLoader.h"
-#include "VertexLoaderManager.h"
-#include "HW/Memmap.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
 
 static int s_attr_dirty;  // bitfield
 
@@ -43,8 +43,8 @@ static VertexLoaderMap g_VertexLoaderMap;
 void Init()
 {
 	MarkAllDirty();
-	for (auto& vertexLoader : g_VertexLoaders)
-		vertexLoader = NULL;
+	for (VertexLoader*& vertexLoader : g_VertexLoaders)
+		vertexLoader = nullptr;
 	RecomputeCachedArraybases();
 }
 
@@ -75,19 +75,19 @@ void AppendListToString(std::string *dest)
 	std::vector<entry> entries;
 
 	size_t total_size = 0;
-	for (VertexLoaderMap::const_iterator iter = g_VertexLoaderMap.begin(); iter != g_VertexLoaderMap.end(); ++iter)
+	for (const auto& map_entry : g_VertexLoaderMap)
 	{
 		entry e;
-		iter->second->AppendToString(&e.text);
-		e.num_verts = iter->second->GetNumLoadedVerts();
+		map_entry.second->AppendToString(&e.text);
+		e.num_verts = map_entry.second->GetNumLoadedVerts();
 		entries.push_back(e);
 		total_size += e.text.size() + 1;
 	}
 	sort(entries.begin(), entries.end());
 	dest->reserve(dest->size() + total_size);
-	for (std::vector<entry>::const_iterator iter = entries.begin(); iter != entries.end(); ++iter)
+	for (const entry& entry : entries)
 	{
-		dest->append(iter->text);
+		dest->append(entry.text);
 	}
 }
 
@@ -96,7 +96,7 @@ void MarkAllDirty()
 	s_attr_dirty = 0xff;
 }
 
-static void RefreshLoader(int vtx_attr_group)
+static VertexLoader* RefreshLoader(int vtx_attr_group)
 {
 	if ((s_attr_dirty >> vtx_attr_group) & 1)
 	{
@@ -116,29 +116,19 @@ static void RefreshLoader(int vtx_attr_group)
 		}
 	}
 	s_attr_dirty &= ~(1 << vtx_attr_group);
+	return g_VertexLoaders[vtx_attr_group];
 }
 
 void RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	if (!count)
 		return;
-
-	RefreshLoader(vtx_attr_group);
-	g_VertexLoaders[vtx_attr_group]->RunVertices(vtx_attr_group, primitive, count);
-}
-
-void RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data)
-{
-	if (!count || !Data)
-		return;
-	RefreshLoader(vtx_attr_group);
-	g_VertexLoaders[vtx_attr_group]->RunCompiledVertices(vtx_attr_group, primitive, count,Data);
+	RefreshLoader(vtx_attr_group)->RunVertices(vtx_attr_group, primitive, count);
 }
 
 int GetVertexSize(int vtx_attr_group)
 {
-	RefreshLoader(vtx_attr_group);
-	return g_VertexLoaders[vtx_attr_group]->GetVertexSize();
+	return RefreshLoader(vtx_attr_group)->GetVertexSize();
 }
 
 }  // namespace

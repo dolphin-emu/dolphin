@@ -1,18 +1,17 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "../../ConfigManager.h"
-#include "../PowerPC.h"
-#include "../PPCTables.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/JitArmIL/JitIL.h"
 
-#include "JitIL.h"
-
-#include "../../HW/Memmap.h"
-
-#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
+// FIXME
+#define NORMALBRANCH_START FallBackToInterpreter(inst); ibuild.EmitInterpreterBranch(); return;
 //#define NORMALBRANCH_START
 
 void JitArmIL::bx(UGeckoInstruction inst)
@@ -117,7 +116,7 @@ void JitArmIL::bcx(UGeckoInstruction inst)
 	IREmitter::InstLoc Test = TestBranch(ibuild, inst);
 
 	u32 destination;
-	if(inst.AA)
+	if (inst.AA)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);

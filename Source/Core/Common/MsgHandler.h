@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _MSGHANDLER_H_
-#define _MSGHANDLER_H_
+#pragma once
 
 #include <string>
 
@@ -69,5 +68,3 @@ void SetEnableAlert(bool enable);
 	#define AskYesNoT(format, ...) ;
 	#define CriticalAlertT(format, ...) ;
 #endif
-
-#endif // _MSGHANDLER_H_

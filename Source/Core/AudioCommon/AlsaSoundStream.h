@@ -2,37 +2,32 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ALSA_SOUND_STREAM_H
-#define _ALSA_SOUND_STREAM_H
+#pragma once
 
 #if defined(HAVE_ALSA) && HAVE_ALSA
 #include <alsa/asoundlib.h>
 #endif
 
-#include "Common.h"
-#include "SoundStream.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
 
-#include "Thread.h"
-
-class AlsaSound : public SoundStream
+class AlsaSound final : public SoundStream
 {
 #if defined(HAVE_ALSA) && HAVE_ALSA
 public:
 	AlsaSound(CMixer *mixer);
 	virtual ~AlsaSound();
 
-	virtual bool Start();
-	virtual void SoundLoop();
-	virtual void Stop();
+	virtual bool Start() override;
+	virtual void SoundLoop() override;
+	virtual void Stop() override;
 
 	static bool isValid() {
 		return true;
 	}
-	virtual bool usesMixer() const {
-		return true;
-	}
 
-	virtual void Update();
+	virtual void Update() override;
 
 private:
 	bool AlsaInit();
@@ -52,6 +47,3 @@ public:
 	AlsaSound(CMixer *mixer) : SoundStream(mixer) {}
 #endif
 };
-
-#endif
-

@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FifoAnalyzer.h"
-#include "FifoDataFile.h"
-#include "FifoPlaybackAnalyzer.h"
+#include "Common/Common.h"
 
-#include "Common.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 
-#include "OpcodeDecoding.h"
-#include "TextureDecoder.h"
-#include "VertexLoader.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VertexLoader.h"
 
 using namespace std;
 using namespace FifoAnalyzer;
@@ -49,7 +49,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 	frameInfo.clear();
 	frameInfo.resize(file->GetFrameCount());
 
-	for (int frameIdx = 0; frameIdx < file->GetFrameCount(); ++frameIdx)
+	for (size_t frameIdx = 0; frameIdx < file->GetFrameCount(); ++frameIdx)
 	{
 		const FifoFrameInfo& frame = file->GetFrame(frameIdx);
 		AnalyzedFrameInfo& analyzed = frameInfo[frameIdx];
@@ -59,8 +59,10 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 		u32 cmdStart = 0;
 		u32 nextMemUpdate = 0;
 
+#if LOG_FIFO_CMDS
 		// Debugging
 		vector<CmdData> prevCmds;
+#endif
 
 		while (cmdStart < frame.fifoDataSize)
 		{
@@ -75,7 +77,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 
 			u32 cmdSize = DecodeCommand(&frame.fifoData[cmdStart]);
 
-#if (LOG_FIFO_CMDS)
+#if LOG_FIFO_CMDS
 			CmdData cmdData;
 			cmdData.offset = cmdStart;
 			cmdData.ptr = &frame.fifoData[cmdStart];
@@ -118,7 +120,7 @@ void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrame
 	for (const auto& range : m_WrittenMemory)
 	{
 		if (range.begin < end &&
-			range.end > begin)
+		    range.end > begin)
 		{
 			s32 preSize = range.begin - begin;
 			s32 postSize = end - range.end;
@@ -157,7 +159,7 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
 
 	int cmd = ReadFifo8(data);
 
-	switch(cmd)
+	switch (cmd)
 	{
 	case GX_NOP:
 	case 0x44:
@@ -210,7 +212,9 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
 			FifoAnalyzer::LoadBPReg(bp, m_BpMem);
 
 			if (bp.address == BPMEM_TRIGGER_EFB_COPY)
+			{
 				StoreEfbCopyRegion();
+			}
 		}
 		break;
 
@@ -242,7 +246,7 @@ void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
 	UPE_Copy peCopy = m_BpMem.triggerEFBCopy;
 
 	u32 copyfmt = peCopy.tp_realFormat();
-	bool bFromZBuffer = m_BpMem.zcontrol.pixel_format == PIXELFMT_Z24;
+	bool bFromZBuffer = m_BpMem.zcontrol.pixel_format == PEControl::Z24;
 	u32 address = bpmem.copyTexDest << 5;
 
 	u32 format = copyfmt;
@@ -256,9 +260,13 @@ void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
 	{
 		format |= _GX_TF_ZTF;
 		if (copyfmt == 11)
+		{
 			format = GX_TF_Z16;
+		}
 		else if (format < GX_TF_Z8 || format > GX_TF_Z24X8)
+		{
 			format |= _GX_TF_CTF;
+		}
 	}
 	else
 	{

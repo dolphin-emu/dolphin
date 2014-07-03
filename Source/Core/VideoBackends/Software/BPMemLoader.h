@@ -2,15 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BPMEMLOADER_H_
-#define _BPMEMLOADER_H_
+#pragma once
 
 
-#include "Common.h"
-#include "BPMemory.h"
+#include "Common/Common.h"
+#include "VideoCommon/BPMemory.h"
 
 void InitBPMemory();
 void SWBPWritten(int address, int newvalue);
 void SWLoadBPReg(u32 value);
-
-#endif

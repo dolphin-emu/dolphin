@@ -2,12 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _SOUNDSTREAM_H_
-#define _SOUNDSTREAM_H_
+#pragma once
 
-#include "Common.h"
-#include "Mixer.h"
-#include "WaveFile.h"
+#include "AudioCommon/Mixer.h"
+#include "AudioCommon/WaveFile.h"
+#include "Common/Common.h"
 
 class SoundStream
 {
@@ -55,5 +54,3 @@ public:
 		}
 	}
 };
-
-#endif // _SOUNDSTREAM_H_

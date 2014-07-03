@@ -2,22 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef CODEVIEW_H_
-#define CODEVIEW_H_
+#pragma once
 
 #define wxUSE_XPM_IN_MSW 1
 #define USE_XPM_BITMAPS 1
 
-#include <wx/wx.h>
-
-#include "Common.h"
-
 #include <vector>
+
+#include <wx/control.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/windowid.h>
+
+#include "Common/Common.h"
 
 DECLARE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE, -1);
 
 class DebugInterface;
 class SymbolDB;
+class wxPaintDC;
+class wxWindow;
 
 class CCodeView : public wxControl
 {
@@ -81,5 +85,3 @@ private:
 
 	DECLARE_EVENT_TABLE()
 };
-
-#endif /*CODEVIEW_H_*/

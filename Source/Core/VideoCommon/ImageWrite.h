@@ -2,13 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _IMAGEWRITE_H
-#define _IMAGEWRITE_H
+#pragma once
 
-#include "Common.h"
+#include <string>
+#include "Common/Common.h"
 
-bool SaveData(const char* filename, const char* pdata);
-bool TextureToPng(u8* data, int row_stride, const std::string filename, int width, int height, bool saveAlpha = true);
-
-#endif  // _IMAGEWRITE_H
-
+bool SaveData(const std::string& filename, const char* pdata);
+bool TextureToPng(u8* data, int row_stride, const std::string& filename, int width, int height, bool saveAlpha = true);

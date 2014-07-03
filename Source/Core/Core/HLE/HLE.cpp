@@ -2,20 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "HLE.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HLE/HLE_Misc.h"
+#include "Core/HLE/HLE_OS.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 
-#include "../PowerPC/PowerPC.h"
-#include "../PowerPC/PPCSymbolDB.h"
-#include "../HW/Memmap.h"
-#include "../Debugger/Debugger_SymbolMap.h"
-
-#include "HLE_OS.h"
-#include "HLE_Misc.h"
-#include "IPC_HLE/WII_IPC_HLE_Device_es.h"
-#include "ConfigManager.h"
-#include "Core.h"
 
 namespace HLE
 {
@@ -40,35 +39,31 @@ struct SPatch
 
 static const SPatch OSPatches[] =
 {
-	{ "FAKE_TO_SKIP_0",		HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
+	{ "FAKE_TO_SKIP_0",       HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
-	{ "PanicAlert",			HLE_Misc::HLEPanicAlert, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "PanicAlert",           HLE_Misc::HLEPanicAlert,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
 
 	// Name doesn't matter, installed in CBoot::BootUp()
-	{ "HBReload",			HLE_Misc::HBReload, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-
-	// ES_LAUNCH
-	{ "__OSBootDol",		HLE_Misc::OSBootDol, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	{ "OSGetResetCode",		HLE_Misc::OSGetResetCode, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
+	{ "HBReload",             HLE_Misc::HBReload,              HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
 	// Debug/OS Support
-	{ "OSPanic",			HLE_OS::HLE_OSPanic, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "OSPanic",              HLE_OS::HLE_OSPanic,             HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
 
-	{ "OSReport",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "DEBUGPrint",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "WUD_DEBUGPrint",		HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "vprintf",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "printf",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "puts",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // gcc-optimized printf?
-	{ "___blank(char *,...)",	HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used for early init things (normally)
-	{ "___blank",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "__write_console",		HLE_OS::HLE_write_console, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used by sysmenu (+more?)
-	{ "GeckoCodehandler",		HLE_Misc::HLEGeckoCodehandler, HLE_HOOK_START, HLE_TYPE_GENERIC },
+	{ "OSReport",             HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "DEBUGPrint",           HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "WUD_DEBUGPrint",       HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "vprintf",              HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "printf",               HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "puts",                 HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // gcc-optimized printf?
+	{ "___blank(char *,...)", HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used for early init things (normally)
+	{ "___blank",             HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "__write_console",      HLE_OS::HLE_write_console,       HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used by sysmenu (+more?)
+	{ "GeckoCodehandler",     HLE_Misc::HLEGeckoCodehandler,   HLE_HOOK_START,   HLE_TYPE_GENERIC },
 };
 
 static const SPatch OSBreakPoints[] =
 {
-	{ "FAKE_TO_SKIP_0",		HLE_Misc::UnimplementedFunction },
+	{ "FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction },
 };
 
 void Patch(u32 addr, const char *hle_func_name)
@@ -89,7 +84,7 @@ void PatchFunctions()
 	for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
 	{
 		Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
-		if (symbol > 0)
+		if (symbol)
 		{
 			for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
 			{
@@ -104,7 +99,7 @@ void PatchFunctions()
 		for (size_t i = 1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
 		{
 			Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
-			if (symbol > 0)
+			if (symbol)
 			{
 				PowerPC::breakpoints.Add(symbol->address, false);
 				INFO_LOG(OSHLE, "Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
@@ -112,7 +107,7 @@ void PatchFunctions()
 		}
 	}
 
-	//    CBreakPoints::AddBreakPoint(0x8000D3D0, false);
+	// CBreakPoints::AddBreakPoint(0x8000D3D0, false);
 }
 
 void Execute(u32 _CurrentPC, u32 _Instruction)
@@ -127,7 +122,7 @@ void Execute(u32 _CurrentPC, u32 _Instruction)
 		PanicAlert("HLE system tried to call an undefined HLE function %i.", FunctionIndex);
 	}
 
-	//	_dbg_assert_msg_(HLE,NPC == LR, "Broken HLE function (doesn't set NPC)", OSPatches[pos].m_szPatchName);
+	// _dbg_assert_msg_(HLE,NPC == LR, "Broken HLE function (doesn't set NPC)", OSPatches[pos].m_szPatchName);
 }
 
 u32 GetFunctionIndex(u32 addr)
@@ -157,10 +152,11 @@ bool IsEnabled(int flags)
 	return true;
 }
 
-u32 UnPatch(std::string patchName)
+u32 UnPatch(const std::string& patchName)
 {
-	Symbol *symbol = g_symbolDB.GetSymbolFromName(patchName.c_str());
-	if (symbol > 0)
+	Symbol* symbol = g_symbolDB.GetSymbolFromName(patchName);
+
+	if (symbol)
 	{
 		for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
 		{
@@ -169,6 +165,7 @@ u32 UnPatch(std::string patchName)
 		}
 		return symbol->address;
 	}
+
 	return 0;
 }
 

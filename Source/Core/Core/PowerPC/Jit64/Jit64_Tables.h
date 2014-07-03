@@ -2,16 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef JIT64_TABLES_H
-#define JIT64_TABLES_H
+#pragma once
 
-#include "../Gekko.h"
-#include "../PPCTables.h"
-#include "../Jit64/Jit.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 
 namespace Jit64Tables
 {
 	void CompileInstruction(PPCAnalyst::CodeOp & op);
 	void InitTables();
 }
-#endif

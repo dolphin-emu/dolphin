@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // This is a test program for running code on the Wii DSP, with full control over input
 // and automatic compare with output. VERY useful for figuring out what those little
@@ -64,7 +51,7 @@
 // Used for communications with the DSP, such as dumping registers etc.
 u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000)));
 
-static void *xfb = NULL;
+static void *xfb = nullptr;
 void (*reboot)() = (void(*)())0x80001800;
 GXRModeObj *rmode;
 
@@ -237,19 +224,23 @@ void DumpDSP_ROMs(const u16* rom, const u16* coef)
 	FILE *fROM = fopen(filename, "wb");
 	sprintf(filename, "sd:/dsp_coef.bin");
 	FILE *fCOEF = fopen(filename, "wb");
+
 	if (fROM && fCOEF)
 	{
 		fwrite(MEM_PHYSICAL_TO_K0(rom), 0x2000, 1, fROM);
-		fclose(fROM);
+		fwrite(MEM_PHYSICAL_TO_K0(coef), 0x1000, 1, fCOEF);
 
- 		fwrite(MEM_PHYSICAL_TO_K0(coef), 0x1000, 1, fCOEF);
- 		fclose(fCOEF);
 		UpdateLastMessage("DSP ROMs dumped to SD");
 	}
 	else
 	{
 		UpdateLastMessage("SD Write Error");
 	}
+
+	if (fROM)
+		fclose(fROM);
+	if (fCOEF)
+		fclose(fCOEF);
 #else
 	// Allow to connect to gdb (dump ram... :s)
 	_break();
@@ -535,7 +526,7 @@ void InitGeneral()
 
 	// Obtain the preferred video mode from the system
 	// This will correspond to the settings in the Wii menu
-	rmode = VIDEO_GetPreferredMode(NULL);
+	rmode = VIDEO_GetPreferredMode(nullptr);
 
 	// Allocate memory for the display in the uncached region
 	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
@@ -695,7 +686,7 @@ int main()
 #endif
 		{
 			curUcode++;
-			if(curUcode == NUM_UCODES)
+			if (curUcode == NUM_UCODES)
 				curUcode = 0;
 
 			// Reset step counters since we're in a new ucode.

@@ -2,9 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DSPDebugWindow.h"
-#include "DSPRegisterView.h"
-#include "../WxUtils.h"
+#include <wx/chartype.h>
+#include <wx/colour.h>
+#include <wx/defs.h>
+#include <wx/gdicmn.h>
+#include <wx/grid.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
+
+#include "Common/CommonTypes.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPTables.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/DSPRegisterView.h"
+
+class wxWindow;
 
 wxString CDSPRegTable::GetValue(int row, int col)
 {
@@ -13,7 +25,7 @@ wxString CDSPRegTable::GetValue(int row, int col)
 		switch (col)
 		{
 		case 0: return StrToWxStr(pdregname(row));
-		case 1: return wxString::Format(wxT("0x%04x"), DSPCore_ReadRegister(row));
+		case 1: return wxString::Format("0x%04x", DSPCore_ReadRegister(row));
 		default: return wxEmptyString;
 		}
 	}
@@ -44,7 +56,7 @@ wxGridCellAttr *CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKi
 {
 	wxGridCellAttr *attr = new wxGridCellAttr();
 
-	attr->SetBackgroundColour(wxColour(wxT("#FFFFFF")));
+	attr->SetBackgroundColour(*wxWHITE);
 
 	switch (col)
 	{
@@ -57,7 +69,7 @@ wxGridCellAttr *CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKi
 	}
 
 	if (col == 1)
-		attr->SetTextColour(m_CachedRegHasChanged[row] ? wxColor(wxT("#FF0000")) : wxColor(wxT("#000000")));
+		attr->SetTextColour(m_CachedRegHasChanged[row] ? *wxRED : *wxBLACK);
 
 	attr->IncRef();
 	return attr;

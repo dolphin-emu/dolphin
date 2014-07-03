@@ -2,18 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoConfig.h"
-#include "MemoryUtil.h"
-#include "Thread.h"
-#include "Atomic.h"
-#include "OpcodeDecoding.h"
-#include "CommandProcessor.h"
-#include "PixelEngine.h"
-#include "ChunkFile.h"
-#include "Fifo.h"
-#include "HW/Memmap.h"
-#include "Core.h"
-#include "CoreTiming.h"
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/FPURoundMode.h"
+#include "Common/MemoryUtil.h"
+#include "Common/Thread.h"
+
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
+
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/VideoConfig.h"
 
 volatile bool g_bSkipCurrentFrame = false;
 extern u8* g_pVideoData;
@@ -67,6 +70,7 @@ void Fifo_Shutdown()
 {
 	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
 	FreeMemoryPages(videoBuffer, FIFO_SIZE);
+	videoBuffer = nullptr;
 }
 
 u8* GetVideoBufferStartPtr()
@@ -91,7 +95,7 @@ void ExitGpuLoop()
 	// This should break the wait loop in CPU thread
 	CommandProcessor::fifo.bFF_GPReadEnable = false;
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
-	while(fifo.isGpuReadingData) Common::YieldCPU();
+	while (fifo.isGpuReadingData) Common::YieldCPU();
 	// Terminate GPU thread loop
 	GpuRunningState = false;
 	EmuRunningState = true;
@@ -176,7 +180,7 @@ void RunGpuLoop()
 
 				Common::AtomicStore(fifo.CPReadPointer, readPtr);
 				Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
-				if((GetVideoBufferEndPtr() - g_pVideoData) == 0)
+				if ((GetVideoBufferEndPtr() - g_pVideoData) == 0)
 					Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 			}
 

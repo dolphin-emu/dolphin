@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXIDEVICE_H
-#define _EXIDEVICE_H
+#pragma once
 
-#include "CommonTypes.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 
 enum TEXIDevices
 {
@@ -18,6 +17,8 @@ enum TEXIDevices
 	EXIDEVICE_ETH,
 	EXIDEVICE_AM_BASEBOARD,
 	EXIDEVICE_GECKO,
+	EXIDEVICE_MEMORYCARDFOLDER, // Only used when creating a device by EXIDevice_Create
+	                            // Converted to EXIDEVICE_MEMORYCARD internally
 	EXIDEVICE_NONE = (u8)-1
 };
 
@@ -41,10 +42,7 @@ public:
 	virtual void SetCS(int) {}
 	virtual void DoState(PointerWrap&) {}
 	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) {}
-	virtual IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) { return (device_type == m_deviceType) ? this : NULL; }
-
-	// Update
-	virtual void Update() {}
+	virtual IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) { return (device_type == m_deviceType) ? this : nullptr; }
 
 	// Is generating interrupt ?
 	virtual bool IsInterruptSet() {return false;}
@@ -56,5 +54,3 @@ public:
 };
 
 extern IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
-
-#endif

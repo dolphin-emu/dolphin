@@ -2,24 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "RenderBase.h"
-
-#include "D3DBase.h"
-#include "D3DUtil.h"
-#include "FramebufferManager.h"
-#include "PixelShaderCache.h"
-#include "TextureCache.h"
-#include "VertexShaderCache.h"
-#include "TextureEncoder.h"
-#include "PSTextureEncoder.h"
-#include "HW/Memmap.h"
-#include "VideoConfig.h"
-#include "ImageWrite.h"
+#include "Core/HW/Memmap.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/PixelShaderCache.h"
+#include "VideoBackends/D3D/PSTextureEncoder.h"
+#include "VideoBackends/D3D/TextureCache.h"
+#include "VideoBackends/D3D/TextureEncoder.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
 
-static TextureEncoder* g_encoder = NULL;
+static TextureEncoder* g_encoder = nullptr;
 const size_t MAX_COPY_BUFFERS = 32;
 ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
 
@@ -33,7 +32,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
 }
 
-bool TextureCache::TCacheEntry::Save(const std::string filename, unsigned int level)
+bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
 	// TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
 	static bool warn_once = true;
@@ -44,7 +43,7 @@ bool TextureCache::TCacheEntry::Save(const std::string filename, unsigned int le
 		return false;
 	}
 
-	ID3D11Texture2D* pNewTexture = NULL;
+	ID3D11Texture2D* pNewTexture = nullptr;
 	ID3D11Texture2D* pSurface = texture->GetTex();
 	D3D11_TEXTURE2D_DESC desc;
 	pSurface->GetDesc(&desc);
@@ -53,7 +52,7 @@ bool TextureCache::TCacheEntry::Save(const std::string filename, unsigned int le
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
 	desc.Usage = D3D11_USAGE_STAGING;
 
-	HRESULT hr = D3D::device->CreateTexture2D(&desc, NULL, &pNewTexture);
+	HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, &pNewTexture);
 
 	bool saved_png = false;
 
@@ -86,7 +85,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 {
 	D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
 	D3D11_CPU_ACCESS_FLAG cpu_access = (D3D11_CPU_ACCESS_FLAG)0;
-	D3D11_SUBRESOURCE_DATA srdata, *data = NULL;
+	D3D11_SUBRESOURCE_DATA srdata, *data = nullptr;
 
 	if (tex_levels == 1)
 	{
@@ -122,7 +121,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-	unsigned int srcFormat, const EFBRectangle& srcRect,
+	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
@@ -135,7 +134,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		D3D::context->RSSetViewports(1, &vp);
 
 		// set transformation
-		if (NULL == efbcopycbuf[cbufid])
+		if (nullptr == efbcopycbuf[cbufid])
 		{
 			const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(28 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
 			D3D11_SUBRESOURCE_DATA data;
@@ -156,13 +155,13 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		else
 			D3D::SetPointCopySampler();
 
-		D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), NULL);
+		D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
 
 		// Create texture copy
 		D3D::drawShadedTexQuad(
-			(srcFormat == PIXELFMT_Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
+			(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
 			&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-			(srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
+			(srcFormat == PEControl::Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
 			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
@@ -209,7 +208,7 @@ TextureCache::~TextureCache()
 
 	g_encoder->Shutdown();
 	delete g_encoder;
-	g_encoder = NULL;
+	g_encoder = nullptr;
 }
 
 }

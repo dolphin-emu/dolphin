@@ -2,27 +2,24 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
-#include "DataReader.h"
-
-#include "OpcodeDecoder.h"
-#include "BPMemLoader.h"
-#include "CPMemLoader.h"
-#include "XFMemLoader.h"
-#include "SWVertexLoader.h"
-#include "SWStatistics.h"
-#include "DebugUtil.h"
-#include "SWCommandProcessor.h"
-#include "CPMemLoader.h"
-#include "SWVideoConfig.h"
-#include "HW/Memmap.h"
+#include "Common/Common.h"
+#include "Core/HW/Memmap.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/OpcodeDecoder.h"
+#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVertexLoader.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoBackends/Software/XFMemLoader.h"
+#include "VideoCommon/DataReader.h"
 
 typedef void (*DecodingFunction)(u32);
 
 namespace OpcodeDecoder
 {
-static DecodingFunction currentFunction = NULL;
+static DecodingFunction currentFunction = nullptr;
 static u32 minCommandSize;
 static u16 streamSize;
 static u16 streamAddress;
@@ -142,7 +139,7 @@ void DecodeStandard(u32 bufferSize)
 		DebugUtil::OnObjectBegin();
 	}
 #endif
-	switch(Cmd)
+	switch (Cmd)
 	{
 	case GX_NOP:
 		break;
@@ -191,8 +188,8 @@ void DecodeStandard(u32 bufferSize)
 		// zelda 4 swords calls it and checks the metrics registers after that
 		break;
 
-	case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)
-		DEBUG_LOG(VIDEO, "Invalidate	(vertex cache?)");
+	case GX_CMD_INVL_VC:// Invalidate (vertex cache?)
+		DEBUG_LOG(VIDEO, "Invalidate  (vertex cache?)");
 		break;
 
 	case GX_LOAD_BP_REG: //0x61
@@ -204,7 +201,7 @@ void DecodeStandard(u32 bufferSize)
 
 	// draw primitives
 	default:
-		if (Cmd & 0x80)
+		if ((Cmd & 0xC0) == 0x80)
 		{
 			u8 vatIndex = Cmd & GX_VAT_MASK;
 			u8 primitiveType = (Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT;
@@ -253,7 +250,7 @@ bool CommandRunnable(u32 iBufferSize)
 		u8 Cmd = DataPeek8(0);
 		u32 minSize = 1;
 
-		switch(Cmd)
+		switch (Cmd)
 		{
 		case GX_LOAD_CP_REG: //0x08
 			minSize = 6;
@@ -286,7 +283,7 @@ bool CommandRunnable(u32 iBufferSize)
 
 		// draw primitives
 		default:
-			if (Cmd & 0x80)
+			if ((Cmd & 0xC0) == 0x80)
 				minSize = 3;
 			break;
 		}

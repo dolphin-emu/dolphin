@@ -1,28 +1,15 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <string>
 
-#include "Common.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
 
-#include "../../HW/Memmap.h"
-#include "Jit.h"
-#include "../JitCommon/JitBackpatch.h"
-#include "StringUtil.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitCommon/JitBackpatch.h"
 
 // This generates some fairly heavy trampolines, but:
 // 1) It's really necessary. We don't know anything about the context.
@@ -90,7 +77,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 
 	if (!DisamLoadStore(Value, rD, accessSize, Store))
 	{
-		printf("Invalid backpatch at location 0x%08x(0x%08x)\n", ctx->CTX_PC, Value);
+		printf("Invalid backpatch at location 0x%08lx(0x%08x)\n", ctx->CTX_PC, Value);
 		exit(0);
 	}
 

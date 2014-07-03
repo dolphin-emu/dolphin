@@ -2,15 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _UCODES_H
-#define _UCODES_H
+#pragma once
 
-#include "Common.h"
-#include "ChunkFile.h"
-#include "Thread.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
 
-#include "../DSPHLE.h"
-#include "../../Memmap.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
 
 #define UCODE_ROM                   0x00000000
 #define UCODE_INIT_AUDIO_SYSTEM     0x00000001
@@ -18,72 +17,71 @@
 
 class CMailHandler;
 
-inline bool ExramRead(u32 _uAddress)
+inline bool ExramRead(u32 address)
 {
-	if (_uAddress & 0x10000000)
+	if (address & 0x10000000)
 		return true;
 	else
 		return false;
 }
 
-inline u8 HLEMemory_Read_U8(u32 _uAddress)
+inline u8 HLEMemory_Read_U8(u32 address)
 {
-	if (ExramRead(_uAddress))
-		return Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK];
+	if (ExramRead(address))
+		return Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
 	else
-		return Memory::m_pRAM[_uAddress & Memory::RAM_MASK];
+		return Memory::m_pRAM[address & Memory::RAM_MASK];
 }
 
-inline u16 HLEMemory_Read_U16(u32 _uAddress)
+inline u16 HLEMemory_Read_U16(u32 address)
 {
-	if (ExramRead(_uAddress))
-		return Common::swap16(*(u16*)&Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK]);
+	if (ExramRead(address))
+		return Common::swap16(*(u16*)&Memory::m_pEXRAM[address & Memory::EXRAM_MASK]);
 	else
-		return Common::swap16(*(u16*)&Memory::m_pRAM[_uAddress & Memory::RAM_MASK]);
+		return Common::swap16(*(u16*)&Memory::m_pRAM[address & Memory::RAM_MASK]);
 }
 
-inline u32 HLEMemory_Read_U32(u32 _uAddress)
+inline u32 HLEMemory_Read_U32(u32 address)
 {
-	if (ExramRead(_uAddress))
-		return Common::swap32(*(u32*)&Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK]);
+	if (ExramRead(address))
+		return Common::swap32(*(u32*)&Memory::m_pEXRAM[address & Memory::EXRAM_MASK]);
 	else
-		return Common::swap32(*(u32*)&Memory::m_pRAM[_uAddress & Memory::RAM_MASK]);
+		return Common::swap32(*(u32*)&Memory::m_pRAM[address & Memory::RAM_MASK]);
 }
 
-inline void* HLEMemory_Get_Pointer(u32 _uAddress)
+inline void* HLEMemory_Get_Pointer(u32 address)
 {
-	if (ExramRead(_uAddress))
-		return &Memory::m_pEXRAM[_uAddress & Memory::EXRAM_MASK];
+	if (ExramRead(address))
+		return &Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
 	else
-		return &Memory::m_pRAM[_uAddress & Memory::RAM_MASK];
+		return &Memory::m_pRAM[address & Memory::RAM_MASK];
 }
 
-class IUCode
+class UCodeInterface
 {
 public:
-	IUCode(DSPHLE *dsphle, u32 _crc)
-		: m_rMailHandler(dsphle->AccessMailHandler())
-		, m_UploadSetupInProgress(false)
-		, m_DSPHLE(dsphle)
-		, m_CRC(_crc)
-		, m_NextUCode()
-		, m_NextUCode_steps(0)
-		, m_NeedsResumeMail(false)
+	UCodeInterface(DSPHLE *dsphle, u32 crc)
+		: m_mail_handler(dsphle->AccessMailHandler())
+		, m_upload_setup_in_progress(false)
+		, m_dsphle(dsphle)
+		, m_crc(crc)
+		, m_next_ucode()
+		, m_next_ucode_steps(0)
+		, m_needs_resume_mail(false)
 	{}
 
-	virtual ~IUCode()
+	virtual ~UCodeInterface()
 	{}
 
-	virtual void HandleMail(u32 _uMail) = 0;
+	virtual void HandleMail(u32 mail) = 0;
 
 	// Cycles are out of the 81/121mhz the DSP runs at.
 	virtual void Update(int cycles) = 0;
-	virtual void MixAdd(short* buffer, int size) {}
 	virtual u32 GetUpdateMs() = 0;
 
 	virtual void DoState(PointerWrap &p) { DoStateShared(p); }
 
-	static u32 GetCRC(IUCode* pUCode) { return pUCode ? pUCode->m_CRC : UCODE_NULL; }
+	static u32 GetCRC(UCodeInterface* ucode) { return ucode ? ucode->m_crc : UCODE_NULL; }
 
 protected:
 	void PrepareBootUCode(u32 mail);
@@ -95,32 +93,31 @@ protected:
 
 	void DoStateShared(PointerWrap &p);
 
-	CMailHandler& m_rMailHandler;
-	std::mutex m_csMix;
+	CMailHandler& m_mail_handler;
 
 	enum EDSP_Codes
 	{
-		DSP_INIT        = 0xDCD10000,
-		DSP_RESUME      = 0xDCD10001,
-		DSP_YIELD       = 0xDCD10002,
-		DSP_DONE        = 0xDCD10003,
-		DSP_SYNC        = 0xDCD10004,
-		DSP_FRAME_END   = 0xDCD10005,
+		DSP_INIT      = 0xDCD10000,
+		DSP_RESUME    = 0xDCD10001,
+		DSP_YIELD     = 0xDCD10002,
+		DSP_DONE      = 0xDCD10003,
+		DSP_SYNC      = 0xDCD10004,
+		DSP_FRAME_END = 0xDCD10005,
 	};
 
 	// UCode is forwarding mails to PrepareBootUCode
-	// UCode only needs to set this to true, IUCode will set to false when done!
-	bool m_UploadSetupInProgress;
+	// UCode only needs to set this to true, UCodeInterface will set to false when done!
+	bool m_upload_setup_in_progress;
 
 	// Need a pointer back to DSPHLE to switch ucodes.
-	DSPHLE *m_DSPHLE;
+	DSPHLE *m_dsphle;
 
 	// used for reconstruction when loading saves,
 	// and for variations within certain ucodes.
-	u32 m_CRC;
+	u32 m_crc;
 
 private:
-	struct SUCode
+	struct NextUCodeInfo
 	{
 		u32 mram_dest_addr;
 		u16 mram_size;
@@ -133,12 +130,10 @@ private:
 		u16 dram_size;
 		u16 dram_dest;
 	};
-	SUCode	m_NextUCode;
-	int	m_NextUCode_steps;
+	NextUCodeInfo m_next_ucode;
+	int m_next_ucode_steps;
 
-	bool m_NeedsResumeMail;
+	bool m_needs_resume_mail;
 };
 
-extern IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii);
-
-#endif
+extern UCodeInterface* UCodeFactory(u32 crc, DSPHLE *dsphle, bool wii);

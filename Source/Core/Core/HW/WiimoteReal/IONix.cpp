@@ -1,27 +1,14 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/l2cap.h>
 
-#include "Common.h"
-#include "WiimoteReal.h"
+#include "Common/Common.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteReal
 {
@@ -32,7 +19,7 @@ WiimoteScanner::WiimoteScanner()
 	, device_sock(-1)
 {
 	// Get the id of the first bluetooth device.
-	device_id = hci_get_route(NULL);
+	device_id = hci_get_route(nullptr);
 	if (device_id < 0)
 	{
 		NOTICE_LOG(WIIMOTE, "Bluetooth not found.");
@@ -70,10 +57,10 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	int const max_infos = 255;
 	inquiry_info scan_infos[max_infos] = {};
 	auto* scan_infos_ptr = scan_infos;
-	found_board = NULL;
+	found_board = nullptr;
 
 	// Scan for bluetooth devices
-	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, NULL, &scan_infos_ptr, IREQ_CACHE_FLUSH);
+	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, nullptr, &scan_infos_ptr, IREQ_CACHE_FLUSH);
 	if (found_devices < 0)
 	{
 		ERROR_LOG(WIIMOTE, "Error searching for bluetooth devices.");
@@ -117,7 +104,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 				auto* const wm = new Wiimote;
 				wm->bdaddr = scan_infos[i].bdaddr;
-				if(IsBalanceBoardName(name))
+				if (IsBalanceBoardName(name))
 				{
 					found_board = wm;
 					NOTICE_LOG(WIIMOTE, "Found balance board (%s).", bdaddr_str);
@@ -224,7 +211,7 @@ int Wiimote::IORead(u8* buf)
 	FD_SET(int_sock, &fds);
 	FD_SET(wakeup_pipe_r, &fds);
 
-	if (select(int_sock + 1, &fds, NULL, NULL, NULL) == -1)
+	if (select(int_sock + 1, &fds, nullptr, nullptr, nullptr) == -1)
 	{
 		ERROR_LOG(WIIMOTE, "Unable to select wiimote %i input socket.", index + 1);
 		return -1;

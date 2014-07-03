@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MemoryUtil.h"
+#include "Common/MemoryUtil.h"
 
-#include "Jit.h"
-#include "JitAsm.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
 
 using namespace Gen;
 
@@ -28,8 +28,6 @@ static bool enableDebug = false;
 //RBX - Base pointer of memory
 //R15 - Pointer to array of block pointers
 
-Jit64AsmRoutineManager asm_routines;
-
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
@@ -39,13 +37,13 @@ void Jit64AsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
-#ifndef _M_IX86
+#if _M_X86_64
 	// Two statically allocated registers.
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
 	MOV(64, R(R15), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
 #endif
 
-	outerLoop = GetCodePtr();
+	const u8* outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
 
@@ -87,7 +85,7 @@ void Jit64AsmRoutineManager::Generate()
 				no_mem = J_CC(CC_NZ);
 			}
 			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-#ifdef _M_IX86
+#if _M_X86_32
 			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCache));
 #else
 			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCache));
@@ -103,7 +101,7 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
 				FixupBranch no_vmem = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-#ifdef _M_IX86
+#if _M_X86_32
 				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCacheVMEM));
 #else
 				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
@@ -117,7 +115,7 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHEEX_MASK));
-#ifdef _M_IX86
+#if _M_X86_32
 				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCacheEx));
 #else
 				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheEx));
@@ -138,7 +136,7 @@ void Jit64AsmRoutineManager::Generate()
 					ADD(32, M(&PowerPC::ppcState.DebugCount), Imm8(1));
 				}
 				//grab from list and jump to it
-#ifdef _M_IX86
+#if _M_X86_32
 				MOV(32, R(EDX), ImmPtr(jit->GetBlockCache()->GetCodePointers()));
 				JMPptr(MComplex(EDX, EAX, 4, 0));
 #else
@@ -147,7 +145,7 @@ void Jit64AsmRoutineManager::Generate()
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
-#ifdef _M_IX86
+#if _M_X86_32
 			ABI_AlignStack(4);
 			PUSH(32, M(&PowerPC::ppcState.pc));
 			CALL(reinterpret_cast<void *>(&Jit));
@@ -161,7 +159,7 @@ void Jit64AsmRoutineManager::Generate()
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 
-		testExternalExceptions = GetCodePtr();
+		// Test external exceptions.
 		TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
 		FixupBranch noExtException = J_CC(CC_Z);
 		MOV(32, R(EAX), M(&PC));
@@ -170,13 +168,8 @@ void Jit64AsmRoutineManager::Generate()
 		SetJumpTarget(noExtException);
 
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-		J_CC(CC_Z, outerLoop, true);
+		J_CC(CC_Z, outerLoop);
 
-	//Landing pad for drec space
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();
-
-	breakpointBailout = GetCodePtr();
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
@@ -194,8 +187,6 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	GenFifoWrite(32);
 	fifoDirectWriteFloat = AlignCode4();
 	GenFifoFloatWrite();
-	fifoDirectWriteXmm64 = AlignCode4();
-	GenFifoXmm64Write();
 
 	GenQuantizedLoads();
 	GenQuantizedStores();

@@ -2,27 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_STM_H_
-#define _WII_IPC_HLE_DEVICE_STM_H_
+#pragma once
 
-#include "WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 enum
 {
-	IOCTL_STM_EVENTHOOK			= 0x1000,
-	IOCTL_STM_GET_IDLEMODE		= 0x3001,
-	IOCTL_STM_RELEASE_EH		= 0x3002,
-	IOCTL_STM_HOTRESET			= 0x2001,
-	IOCTL_STM_HOTRESET_FOR_PD	= 0x2002,
-	IOCTL_STM_SHUTDOWN			= 0x2003,
-	IOCTL_STM_IDLE				= 0x2004,
-	IOCTL_STM_WAKEUP			= 0x2005,
-	IOCTL_STM_VIDIMMING			= 0x5001,
-	IOCTL_STM_LEDFLASH			= 0x6001,
-	IOCTL_STM_LEDMODE			= 0x6002,
-	IOCTL_STM_READVER			= 0x7001,
-	IOCTL_STM_READDDRREG		= 0x4001,
-	IOCTL_STM_READDDRREG2		= 0x4002,
+	IOCTL_STM_EVENTHOOK       = 0x1000,
+	IOCTL_STM_GET_IDLEMODE    = 0x3001,
+	IOCTL_STM_RELEASE_EH      = 0x3002,
+	IOCTL_STM_HOTRESET        = 0x2001,
+	IOCTL_STM_HOTRESET_FOR_PD = 0x2002,
+	IOCTL_STM_SHUTDOWN        = 0x2003,
+	IOCTL_STM_IDLE            = 0x2004,
+	IOCTL_STM_WAKEUP          = 0x2005,
+	IOCTL_STM_VIDIMMING       = 0x5001,
+	IOCTL_STM_LEDFLASH        = 0x6001,
+	IOCTL_STM_LEDMODE         = 0x6002,
+	IOCTL_STM_READVER         = 0x7001,
+	IOCTL_STM_READDDRREG      = 0x4001,
+	IOCTL_STM_READDDRREG2     = 0x4002,
 };
 
 // The /dev/stm/immediate
@@ -37,7 +36,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_stm_immediate()
 	{}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -45,7 +44,7 @@ public:
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce)
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override
 	{
 		INFO_LOG(WII_IPC_STM, "STM immediate: Close");
 		if (!_bForce)
@@ -54,20 +53,20 @@ public:
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress)
+	virtual bool IOCtl(u32 _CommandAddress) override
 	{
-		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
-		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-		u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
+		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+		u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+		u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+		u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
 		// Prepare the out buffer(s) with zeroes as a safety precaution
 		// to avoid returning bad values
 		Memory::Memset(BufferOut, 0, BufferOutSize);
 		u32 ReturnValue = 0;
 
-		switch(Parameter)
+		switch (Parameter)
 		{
 		case IOCTL_STM_RELEASE_EH:
 			INFO_LOG(WII_IPC_STM, "%s - IOCtl:", GetDeviceName().c_str());
@@ -126,14 +125,14 @@ public:
 	{
 	}
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override
 	{
 		Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 		m_Active = true;
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress, bool _bForce)
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override
 	{
 		m_EventHookAddress = 0;
 
@@ -144,13 +143,13 @@ public:
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress)
+	virtual bool IOCtl(u32 _CommandAddress) override
 	{
-		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
-		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-		u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
+		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+		u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+		u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+		u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
 		// Prepare the out buffer(s) with zeros as a safety precaution
 		// to avoid returning bad values
@@ -189,5 +188,3 @@ public:
 	// STATE_TO_SAVE
 	u32 m_EventHookAddress;
 };
-
-#endif

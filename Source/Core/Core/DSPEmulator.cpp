@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DSPEmulator.h"
+#include "Core/DSPEmulator.h"
 
-#include "HW/DSPLLE/DSPLLE.h"
-#include "HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPLLE/DSPLLE.h"
 
 DSPEmulator *CreateDSPEmulator(bool HLE)
 {

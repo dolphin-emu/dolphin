@@ -3,7 +3,7 @@
  *
  * \brief Run-time version information
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -38,19 +38,23 @@
  * Major, Minor, Patchlevel
  */
 #define POLARSSL_VERSION_MAJOR  1
-#define POLARSSL_VERSION_MINOR  2
-#define POLARSSL_VERSION_PATCH  8
+#define POLARSSL_VERSION_MINOR  3
+#define POLARSSL_VERSION_PATCH  4
 
 /**
  * The single version number has the following structure:
  *    MMNNPP00
  *    Major version | Minor version | Patch version
  */
-#define POLARSSL_VERSION_NUMBER         0x01020800
-#define POLARSSL_VERSION_STRING         "1.2.8"
-#define POLARSSL_VERSION_STRING_FULL    "PolarSSL 1.2.8"
+#define POLARSSL_VERSION_NUMBER         0x01030400
+#define POLARSSL_VERSION_STRING         "1.3.4"
+#define POLARSSL_VERSION_STRING_FULL    "PolarSSL 1.3.4"
 
 #if defined(POLARSSL_VERSION_C)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Get the version number.
@@ -75,6 +79,10 @@ void version_get_string( char *string );
  *                  (Should be at least 18 bytes in size)
  */
 void version_get_string_full( char *string );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* POLARSSL_VERSION_C */
 

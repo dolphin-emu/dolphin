@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GCPAD_H_INCLUDED__
-#define _GCPAD_H_INCLUDED__
+#pragma once
 
 #define PAD_ERR_NONE            0
 #define PAD_ERR_NO_CONTROLLER   -1
@@ -27,16 +26,14 @@
 
 typedef struct
 {
-	unsigned short	button;                 // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
-	unsigned char	stickX;                 // 0 <= stickX       <= 255
-	unsigned char	stickY;                 // 0 <= stickY       <= 255
-	unsigned char	substickX;              // 0 <= substickX    <= 255
-	unsigned char	substickY;              // 0 <= substickY    <= 255
-	unsigned char	triggerLeft;            // 0 <= triggerLeft  <= 255
-	unsigned char	triggerRight;           // 0 <= triggerRight <= 255
-	unsigned char	analogA;                // 0 <= analogA      <= 255
-	unsigned char	analogB;                // 0 <= analogB      <= 255
-	signed char		err;                    // one of PAD_ERR_* number
+	unsigned short button;                 // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
+	unsigned char  stickX;                 // 0 <= stickX       <= 255
+	unsigned char  stickY;                 // 0 <= stickY       <= 255
+	unsigned char  substickX;              // 0 <= substickX    <= 255
+	unsigned char  substickY;              // 0 <= substickY    <= 255
+	unsigned char  triggerLeft;            // 0 <= triggerLeft  <= 255
+	unsigned char  triggerRight;           // 0 <= triggerRight <= 255
+	unsigned char  analogA;                // 0 <= analogA      <= 255
+	unsigned char  analogB;                // 0 <= analogB      <= 255
+	signed char    err;                    // one of PAD_ERR_* number
 } SPADStatus;
-
-#endif

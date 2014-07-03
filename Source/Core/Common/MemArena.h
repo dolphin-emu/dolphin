@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#pragma once
 
-#ifndef _MEMARENA_H_
-#define _MEMARENA_H_
+#include <cstddef>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-#include "Common.h"
+#include "Common/Common.h"
 
 // This class lets you create a block of anonymous RAM, and then arbitrarily map views into it.
 // Multiple views can mirror the same section of the block, which makes it very convenient for emulating
@@ -54,5 +54,3 @@ struct MemoryView
 // a passed-in list of MemoryView structures.
 u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
 void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
-
-#endif // _MEMARENA_H_

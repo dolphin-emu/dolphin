@@ -12,6 +12,22 @@
     <string name="build_revision">Build Revision</string>
     <string name="supports_gles3">Supports OpenGL ES 3</string>
     <string name="supports_neon">Supports NEON</string>
+    <string name="general">General</string>
+    <string name="cpu">CPU</string>
+    <string name="gles_two">GLES 2</string>
+    <string name="gles_three">GLES 3</string>
+    <string name="desktop_gl">OpenGL</string>
+
+    <!-- About Menu - CPU Info -->
+    <string name="cpu_abi_one">CPU ABI 1</string>
+    <string name="cpu_abi_two">CPU ABI 2</string>
+    <string name="cpu_info">CPU Info</string>
+    <string name="cpu_type">CPU Type</string>
+    <string name="cpu_features">CPU Features</string>
+    <string name="num_cores">Number of Cores</string>
+    <string name="cpu_implementer">CPU Implementer</string>
+    <string name="cpu_hardware">Hardware</string>
+    <string name="unknown_part_num">Unknown (%1$d). Please report this number so it can be documented!</string>
 
     <!-- Folder Browser -->
     <string name="current_dir">Current Dir: %1$s</string>
@@ -52,7 +68,7 @@
     <string name="input_settings">Input</string>
     <string name="input_overlay_layout">Input Overlay Layout</string>
     <string name="input_overlay_layout_desc">Button layout for the input overlay.</string>
-    <string name="gamecube_bindings">Gamecube Controller Bindings</string>
+    <string name="gamecube_bindings">GameCube Controller Bindings</string>
     <string name="controller_0">Controller 1</string>
     <string name="controller_1">Controller 2</string>
     <string name="controller_2">Controller 3</string>
@@ -66,7 +82,7 @@
     <string name="enable_wiimote">Enable Wiimote</string>
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_descrip">Press or move an input to bind it to %1$s.</string>
-    <!-- Gamecube buttons (May be shared with Wiimote stuff too) -->
+    <!-- GameCube buttons (May be shared with Wiimote stuff too) -->
     <string name="button_a">Button A</string>
     <string name="button_b">Button B</string>
     <string name="button_start">Button Start</string>
@@ -141,6 +157,8 @@
     <string name="FSAA_descrip">Reduces the amount of aliasing caused by rasterizing 3D graphics. This makes the rendered picture look less blocky. Heavily decreases emulation speed and sometimes causes issues.</string>
     <string name="anisotropic_filtering">Anisotropic Filtering</string>
     <string name="anisotropic_filtering_descrip">Enhances visual quality of textures that are at oblique viewing angles. Might cause issues in a small number of games.</string>
+    <string name="postprocessing_shader">Post Processing Shader</string>
+    <string name="postprocessing_shader_descrip">Apply a post-processing effect after finishing a frame.</string>
     <string name="scaled_efb_copy">Scaled EFB Copy</string>
     <string name="scaled_efb_copy_descrip">Greatly increases quality of textures generated using render to texture effects. Raising the internal resolution will improve the effect of this setting. Slightly decreases performance and possibly causes issues (although unlikely).</string>
     <string name="per_pixel_lighting">Per-Pixel Lighting</string>
@@ -171,8 +189,6 @@
     <string name="external_frame_buffer_descrip">Determines how the XFB will be emulated.</string>
     <string name="external_frame_buffer_virtual">Virtual</string>
     <string name="external_frame_buffer_real">Real</string>
-    <string name="cache_display_lists">Cache Display Lists</string>
-    <string name="cache_display_lists_descrip">Speeds up emulation a bit by caching display lists.</string>
     <string name="disable_destination_alpha">Disable Destination Alpha</string>
     <string name="disable_destination_alpha_descrip">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
     <string name="fast_depth_calculation">Fast Depth Calculation</string>

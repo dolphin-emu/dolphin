@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONSTANTMANAGER_H
-#define _CONSTANTMANAGER_H
+#pragma once
 
 // all constant buffer attributes must be 16 bytes aligned, so this are the only allowed components:
 typedef float float4[4];
@@ -12,26 +11,31 @@ typedef s32 int4[4];
 
 struct PixelShaderConstants
 {
-	float4 colors[4];
-	float4 kcolors[4];
-	float4 alpha;
+	int4 colors[4];
+	int4 kcolors[4];
+	int4 alpha;
 	float4 texdims[8];
-	float4 zbias[2];
-	float4 indtexscale[2];
-	float4 indtexmtx[6];
-	float4 fog[3];
-
-	// For pixel lighting
-	float4 plights[40];
-	float4 pmaterials[4];
+	int4 zbias[2];
+	int4 indtexscale[2];
+	int4 indtexmtx[6];
+	int4 fogcolor;
+	int4 fogi;
+	float4 fogf[2];
 };
 
 struct VertexShaderConstants
 {
 	float4 posnormalmatrix[6];
 	float4 projection[4];
-	float4 materials[4];
-	float4 lights[40];
+	int4 materials[4];
+	struct Light
+	{
+		int4 color;
+		float4 cosatt;
+		float4 distatt;
+		float4 pos;
+		float4 dir;
+	} lights [8];
 	float4 texmatrices[24];
 	float4 transformmatrices[64];
 	float4 normalmatrices[32];
@@ -39,4 +43,3 @@ struct VertexShaderConstants
 	float4 depthparams;
 };
 
-#endif

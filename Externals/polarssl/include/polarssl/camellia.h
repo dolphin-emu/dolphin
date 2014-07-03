@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 typedef UINT32 uint32_t;
 #else
@@ -48,6 +48,10 @@ typedef UINT32 uint32_t;
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          CAMELLIA context structure
  */
@@ -57,10 +61,6 @@ typedef struct
     uint32_t rk[68];            /*!<  CAMELLIA round keys    */
 }
 camellia_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          CAMELLIA key schedule (encryption)
@@ -99,6 +99,7 @@ int camellia_crypt_ecb( camellia_context *ctx,
                     const unsigned char input[16],
                     unsigned char output[16] );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /**
  * \brief          CAMELLIA-CBC buffer encryption/decryption
  *                 Length should be a multiple of the block
@@ -119,7 +120,9 @@ int camellia_crypt_cbc( camellia_context *ctx,
                     unsigned char iv[16],
                     const unsigned char *input,
                     unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
+#if defined(POLARSSL_CIPHER_MODE_CFB)
 /**
  * \brief          CAMELLIA-CFB128 buffer encryption/decryption
  *
@@ -134,7 +137,7 @@ int camellia_crypt_cbc( camellia_context *ctx,
  * \param iv       initialization vector (updated after use)
  * \param input    buffer holding the input data
  * \param output   buffer holding the output data
- * 
+ *
  * \return         0 if successful, or POLARSSL_ERR_CAMELLIA_INVALID_INPUT_LENGTH
  */
 int camellia_crypt_cfb128( camellia_context *ctx,
@@ -144,7 +147,9 @@ int camellia_crypt_cfb128( camellia_context *ctx,
                        unsigned char iv[16],
                        const unsigned char *input,
                        unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CFB */
 
+#if defined(POLARSSL_CIPHER_MODE_CTR)
 /**
  * \brief               CAMELLIA-CTR buffer encryption/decryption
  *
@@ -154,6 +159,7 @@ int camellia_crypt_cfb128( camellia_context *ctx,
  * both encryption and decryption. So a context initialized with
  * camellia_setkey_enc() for both CAMELLIA_ENCRYPT and CAMELLIA_DECRYPT.
  *
+ * \param ctx           CAMELLIA context
  * \param length        The length of the data
  * \param nc_off        The offset in the current stream_block (for resuming
  *                      within current cipher stream). The offset pointer to
@@ -173,6 +179,7 @@ int camellia_crypt_ctr( camellia_context *ctx,
                        unsigned char stream_block[16],
                        const unsigned char *input,
                        unsigned char *output );
+#endif /* POLARSSL_CIPHER_MODE_CTR */
 
 #ifdef __cplusplus
 }

@@ -4,16 +4,16 @@
 
 #include <functional>
 
-#include "EXI_Device.h"
-#include "EXI_DeviceGecko.h"
-#include "../Core.h"
+#include "Core/Core.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceGecko.h"
 
-u16							GeckoSockServer::server_port;
-int							GeckoSockServer::client_count;
-std::thread					GeckoSockServer::connectionThread;
-volatile bool				GeckoSockServer::server_running;
-std::queue<sf::SocketTCP>	GeckoSockServer::waiting_socks;
-std::mutex					GeckoSockServer::connection_lock;
+u16                       GeckoSockServer::server_port;
+int                       GeckoSockServer::client_count;
+std::thread               GeckoSockServer::connectionThread;
+volatile bool             GeckoSockServer::server_running;
+std::queue<sf::SocketTCP> GeckoSockServer::waiting_socks;
+std::mutex                GeckoSockServer::connection_lock;
 
 GeckoSockServer::GeckoSockServer()
 	: client_running(false)
@@ -77,7 +77,7 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 
 	std::lock_guard<std::mutex> lk(connection_lock);
 
-	if (waiting_socks.size())
+	if (!waiting_socks.empty())
 	{
 		sock_to_fill = waiting_socks.front();
 		if (clientThread.joinable())
@@ -88,7 +88,7 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 			recv_fifo = std::deque<u8>();
 			send_fifo = std::deque<u8>();
 		}
-		clientThread = std::thread(std::mem_fun(&GeckoSockServer::ClientThread), this);
+		clientThread = std::thread(std::mem_fn(&GeckoSockServer::ClientThread), this);
 		client_count++;
 		waiting_socks.pop();
 		sock_filled = true;
@@ -136,7 +136,7 @@ void GeckoSockServer::ClientThread()
 			if (client.Send(&packet[0], packet.size()) == sf::Socket::Disconnected)
 				client_running = false;
 		}
-		}	// unlock transfer
+		} // unlock transfer
 
 		if (did_nothing)
 			Common::YieldCPU();

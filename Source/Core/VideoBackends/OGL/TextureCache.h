@@ -2,16 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTUREMNGR_H_
-#define _TEXTUREMNGR_H_
+#pragma once
 
 #include <map>
 
-#include "VideoCommon.h"
-#include "GLUtil.h"
-#include "BPStructs.h"
-
-#include "TextureCacheBase.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace OGL
 {
@@ -45,12 +43,12 @@ private:
 			unsigned int expanded_width, unsigned int level) override;
 
 		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-			unsigned int srcFormat, const EFBRectangle& srcRect,
+			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 			const float *colmat) override;
 
 		void Bind(unsigned int stage) override;
-		bool Save(const std::string filename, unsigned int level);
+		bool Save(const std::string& filename, unsigned int level) override;
 	};
 
 	~TextureCache();
@@ -61,8 +59,6 @@ private:
 	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) override;
 };
 
-bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level);
+bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level);
 
 }
-
-#endif // _TEXTUREMNGR_H_

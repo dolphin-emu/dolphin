@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "LookUpTables.h"
-#include "VertexLoader.h"
-#include "VertexLoader_Color.h"
-#include "VertexManagerBase.h"
+#include "Common/Common.h"
+
+#include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoader_Color.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
 
 #define RSHIFT 0
 #define GSHIFT 8
@@ -29,11 +30,11 @@ __forceinline void _SetCol(u32 val)
 //BARG -> AABBGGRR
 __forceinline void _SetCol4444(u16 val)
 {
-	u32 col = (val & 0xF0);				// col  = 000000R0;
-	col |=    (val & 0xF ) << 12;		// col |= 0000G000;
-	col |= (((u32)val) & 0xF000) << 8;	// col |= 00B00000;
-	col |= (((u32)val) & 0x0F00) << 20;	// col |= A0000000;
-	col |= col >> 4;					// col =  A0B0G0R0 | 0A0B0G0R;
+	u32 col = (val & 0xF0);             // col  = 000000R0;
+	col |=    (val & 0xF ) << 12;       // col |= 0000G000;
+	col |= (((u32)val) & 0xF000) << 8;  // col |= 00B00000;
+	col |= (((u32)val) & 0x0F00) << 20; // col |= A0000000;
+	col |= col >> 4;                    // col =  A0B0G0R0 | 0A0B0G0R;
 	_SetCol(col);
 }
 
@@ -100,9 +101,9 @@ void LOADERDECL Color_ReadDirect_24b_6666()
 // F|RES: i am not 100 percent sure, but the colElements seems to be important for rendering only
 // at least it fixes mario party 4
 //
-//	if (colElements[colIndex])
-//	else
-//		col |= 0xFF<<ASHIFT;
+//  if (colElements[colIndex])
+//  else
+//      col |= 0xFF<<ASHIFT;
 //
 void LOADERDECL Color_ReadDirect_32b_8888()
 {

@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JIT_ABI_H_
-#define _JIT_ABI_H_
+#pragma once
 
-#include "Common.h"
+#include "Common/x64Emitter.h"
 
 // x86/x64 ABI:s, and helpers to help follow them when JIT-ing code.
 // All convensions return values in EAX (+ possibly EDX).
@@ -32,7 +31,7 @@
 // Callee-save:  RBX RBP R12 R13 R14 R15
 // Parameters:   RDI RSI RDX RCX R8 R9
 
-#ifdef _M_IX86 // 32 bit calling convention, shared by all
+#if _M_X86_32 // 32 bit calling convention, shared by all
 
 // 32-bit don't pass parameters in regs, but these are convenient to have anyway when we have to
 // choose regs to put stuff in.
@@ -76,7 +75,3 @@
 #endif // WIN32
 
 #endif // X86
-
-#endif  // _JIT_ABI_H_
-
-

@@ -2,16 +2,32 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "IniFile.h"
-#include "DebuggerPanel.h"
-#include "FileUtil.h"
-#include "../../Core/ConfigManager.h"
+#include <cstddef>
+#include <string>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/choice.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/msgdlg.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
+#include <wx/validate.h>
+#include <wx/windowid.h>
 
-#include "VideoConfig.h"
-#include "TextureCacheBase.h"
-#include "PixelShaderGen.h"
-#include "VertexShaderGen.h"
-#include "NativeVertexFormat.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreParameter.h"
+#include "DolphinWX/Debugger/DebuggerPanel.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/TextureCacheBase.h"
+
+class wxWindow;
 
 BEGIN_EVENT_TABLE(GFXDebuggerPanel, wxPanel)
 	EVT_CLOSE(GFXDebuggerPanel::OnClose)
@@ -46,7 +62,7 @@ GFXDebuggerPanel::GFXDebuggerPanel(wxWindow *parent, wxWindowID id, const wxPoin
 
 GFXDebuggerPanel::~GFXDebuggerPanel()
 {
-	g_pdebugger = NULL;
+	g_pdebugger = nullptr;
 	GFXDebuggerPauseFlag = false;
 }
 
@@ -67,14 +83,16 @@ void GFXDebuggerPanel::SaveSettings() const
 	// weird values, perhaps because of some conflict with the rendering window
 
 	// TODO: get the screen resolution and make limits from that
-	if (GetPosition().x < 1000 && GetPosition().y < 1000
-							   && GetSize().GetWidth() < 1000
-							   && GetSize().GetHeight() < 1000)
+	if (GetPosition().x < 1000 &&
+	    GetPosition().y < 1000 &&
+	    GetSize().GetWidth() < 1000 &&
+	    GetSize().GetHeight() < 1000)
 	{
-		file.Set("VideoWindow", "x", GetPosition().x);
-		file.Set("VideoWindow", "y", GetPosition().y);
-		file.Set("VideoWindow", "w", GetSize().GetWidth());
-		file.Set("VideoWindow", "h", GetSize().GetHeight());
+		IniFile::Section* video_window = file.GetOrCreateSection("VideoWindow");
+		video_window->Set("x", GetPosition().x);
+		video_window->Set("y", GetPosition().y);
+		video_window->Set("w", GetSize().GetWidth());
+		video_window->Set("h", GetSize().GetHeight());
 	}
 
 	file.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
@@ -85,11 +103,17 @@ void GFXDebuggerPanel::LoadSettings()
 	IniFile file;
 	file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	int x = 100, y = 100, w = 100, h = 100;
-	file.Get("VideoWindow", "x", &x, GetPosition().x);
-	file.Get("VideoWindow", "y", &y, GetPosition().y);
-	file.Get("VideoWindow", "w", &w, GetSize().GetWidth());
-	file.Get("VideoWindow", "h", &h, GetSize().GetHeight());
+	int x = 100;
+	int y = 100;
+	int w = 100;
+	int h = 100;
+
+	IniFile::Section* video_window = file.GetOrCreateSection("VideoWindow");
+	video_window->Get("x", &x, GetPosition().x);
+	video_window->Get("y", &y, GetPosition().y);
+	video_window->Get("w", &w, GetSize().GetWidth());
+	video_window->Get("h", &h, GetSize().GetHeight());
+
 	SetSize(x, y, w, h);
 }
 
@@ -104,26 +128,26 @@ static PauseEventMap* pauseEventMap;
 void GFXDebuggerPanel::CreateGUIControls()
 {
 	static PauseEventMap map[] = {
-		{NEXT_FRAME,				_("Frame")},
-		{NEXT_FLUSH,				_("Flush")},
+		{NEXT_FRAME,                _("Frame")},
+		{NEXT_FLUSH,                _("Flush")},
 
-		{NEXT_PIXEL_SHADER_CHANGE,	_("Pixel Shader")},
-		{NEXT_VERTEX_SHADER_CHANGE,	_("Vertex Shader")},
-		{NEXT_TEXTURE_CHANGE,		_("Texture")},
-		{NEXT_NEW_TEXTURE,			_("New Texture")},
+		{NEXT_PIXEL_SHADER_CHANGE,  _("Pixel Shader")},
+		{NEXT_VERTEX_SHADER_CHANGE, _("Vertex Shader")},
+		{NEXT_TEXTURE_CHANGE,       _("Texture")},
+		{NEXT_NEW_TEXTURE,          _("New Texture")},
 
-		{NEXT_XFB_CMD,				_("XFB Cmd")},
-		{NEXT_EFB_CMD,				_("EFB Cmd")},
+		{NEXT_XFB_CMD,              _("XFB Cmd")},
+		{NEXT_EFB_CMD,              _("EFB Cmd")},
 
-		{NEXT_MATRIX_CMD,			_("Matrix Cmd")},
-		{NEXT_VERTEX_CMD,			_("Vertex Cmd")},
-		{NEXT_TEXTURE_CMD,			_("Texture Cmd")},
-		{NEXT_LIGHT_CMD,			_("Light Cmd")},
-		{NEXT_FOG_CMD,				_("Fog Cmd")},
+		{NEXT_MATRIX_CMD,           _("Matrix Cmd")},
+		{NEXT_VERTEX_CMD,           _("Vertex Cmd")},
+		{NEXT_TEXTURE_CMD,          _("Texture Cmd")},
+		{NEXT_LIGHT_CMD,            _("Light Cmd")},
+		{NEXT_FOG_CMD,              _("Fog Cmd")},
 
-		{NEXT_SET_TLUT,				_("TLUT Cmd")},
+		{NEXT_SET_TLUT,             _("TLUT Cmd")},
 
-		{NEXT_ERROR,				_("Error")}
+		{NEXT_ERROR,                _("Error")}
 	};
 	pauseEventMap = map;
 	const int numPauseEventMap = sizeof(map)/sizeof(PauseEventMap);
@@ -136,9 +160,9 @@ void GFXDebuggerPanel::CreateGUIControls()
 	m_pButtonPauseAtNextFrame = new wxButton(this, ID_PAUSE_AT_NEXT_FRAME, _("Go to Next Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Next Frame"));
 	m_pButtonCont = new wxButton(this, ID_CONT, _("Continue"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Continue"));
 
-	m_pCount = new wxTextCtrl(this, ID_COUNT, wxT("1"), wxDefaultPosition, wxSize(50,25), wxTE_RIGHT, wxDefaultValidator, _("Count"));
+	m_pCount = new wxTextCtrl(this, ID_COUNT, "1", wxDefaultPosition, wxSize(50,25), wxTE_RIGHT, wxDefaultValidator, _("Count"));
 
-	m_pPauseAtList = new wxChoice(this, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, NULL,0,wxDefaultValidator, _("PauseAtList"));
+	m_pPauseAtList = new wxChoice(this, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, nullptr,0,wxDefaultValidator, _("PauseAtList"));
 	for (int i=0; i<numPauseEventMap; i++)
 	{
 		m_pPauseAtList->Append(pauseEventMap[i].ListStr);
@@ -152,7 +176,7 @@ void GFXDebuggerPanel::CreateGUIControls()
 	m_pButtonClearVertexShaderCache = new wxButton(this, ID_CLEAR_VERTEX_SHADER_CACHE, _("Clear V Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear V Shaders"));
 	m_pButtonClearPixelShaderCache = new wxButton(this, ID_CLEAR_PIXEL_SHADER_CACHE, _("Clear P Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Clear P Shaders"));
 
-	m_pDumpList = new wxChoice(this, ID_DUMP_LIST, wxDefaultPosition, wxSize(120,25), 0, NULL, 0 ,wxDefaultValidator, _("DumpList"));
+	m_pDumpList = new wxChoice(this, ID_DUMP_LIST, wxDefaultPosition, wxSize(120,25), 0, nullptr, 0 ,wxDefaultValidator, _("DumpList"));
 	m_pDumpList->Insert(_("Pixel Shader"),0);
 	m_pDumpList->Append(_("Vertex Shader"));
 	m_pDumpList->Append(_("Pixel Shader Constants"));
@@ -261,50 +285,50 @@ void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 	switch (m_pDumpList->GetSelection())
 	{
 		case 0: // Pixel Shader
-			DumpPixelShader(dump_path.c_str());
+			DumpPixelShader(dump_path);
 			break;
 
 		case 1: // Vertex Shader
-			DumpVertexShader(dump_path.c_str());
+			DumpVertexShader(dump_path);
 			break;
 
 		case 2: // Pixel Shader Constants
-			DumpPixelShaderConstants(dump_path.c_str());
+			DumpPixelShaderConstants(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 3: // Vertex Shader Constants
-			DumpVertexShaderConstants(dump_path.c_str());
+			DumpVertexShaderConstants(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 4: // Textures
-			DumpTextures(dump_path.c_str());
+			DumpTextures(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 5: // Frame Buffer
-			DumpFrameBuffer(dump_path.c_str());
+			DumpFrameBuffer(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 6: // Geometry
-			DumpGeometry(dump_path.c_str());
+			DumpGeometry(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 7: // Vertex Description
-			DumpVertexDecl(dump_path.c_str());
+			DumpVertexDecl(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 8: // Vertex Matrices
-			DumpMatrices(dump_path.c_str());
+			DumpMatrices(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 
 		case 9: // Statistics
-			DumpStats(dump_path.c_str());
+			DumpStats(dump_path);
 			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
 			break;
 	}

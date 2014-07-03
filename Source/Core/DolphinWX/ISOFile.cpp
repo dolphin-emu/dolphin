@@ -2,27 +2,37 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
+#include <cstdio>
+#include <cstring>
 #include <string>
 #include <vector>
-#include <wx/mstream.h>
+#include <wx/bitmap.h>
+#include <wx/filefn.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/string.h>
 
-#include "Common.h"
-#include "CommonPaths.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/Hash.h"
+#include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 
-#include "Globals.h"
-#include "FileUtil.h"
-#include "ISOFile.h"
-#include "StringUtil.h"
-#include "Hash.h"
-#include "IniFile.h"
-#include "WxUtils.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreParameter.h"
+#include "Core/Boot/Boot.h"
 
-#include "Filesystem.h"
-#include "BannerLoader.h"
-#include "FileSearch.h"
-#include "CompressedBlob.h"
-#include "ChunkFile.h"
-#include "ConfigManager.h"
+#include "DiscIO/BannerLoader.h"
+#include "DiscIO/CompressedBlob.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
+
+#include "DolphinWX/ISOFile.h"
+#include "DolphinWX/WxUtils.h"
 
 static const u32 CACHE_REVISION = 0x115;
 
@@ -47,7 +57,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	{
 		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
 
-		if (pVolume != NULL)
+		if (pVolume != nullptr)
 		{
 			if (!DiscIO::IsVolumeWadFile(pVolume))
 				m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
@@ -63,18 +73,18 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
-			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
+			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName);
 			m_IsDiscTwo = pVolume->IsDiscTwo();
 			m_Revision = pVolume->GetRevision();
 
 			// check if we can get some info from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
-			if (pFileSystem != NULL || m_Platform == WII_WAD)
+			if (pFileSystem != nullptr || m_Platform == WII_WAD)
 			{
 				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, pVolume);
 
-				if (pBannerLoader != NULL)
+				if (pBannerLoader != nullptr)
 				{
 					if (pBannerLoader->IsValid())
 					{
@@ -117,8 +127,10 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		IniFile ini;
 		ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + m_UniqueID + ".ini");
 		ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_UniqueID + ".ini", true);
-		ini.Get("EmuState", "EmulationStateId", &m_emu_state);
-		ini.Get("EmuState", "EmulationIssues", &m_issues);
+
+		IniFile::Section* emu_state = ini.GetOrCreateSection("EmuState");
+		emu_state->Get("EmulationStateId", &m_emu_state);
+		emu_state->Get("EmulationIssues", &m_issues);
 	}
 
 	if (!m_pImage.empty())
@@ -188,7 +200,7 @@ std::string GameListItem::CreateCacheFilename()
 
 	// Filename.extension_HashOfFolderPath_Size.cache
 	// Append hash to prevent ISO name-clashing in different folders.
-	Filename.append(StringFromFormat("%s_%x_%zx.cache",
+	Filename.append(StringFromFormat("%s_%x_%" PRIx64 ".cache",
 		extension.c_str(), HashFletcher((const u8 *)LegalPathname.c_str(), LegalPathname.size()),
 		File::GetSize(m_FileName)));
 
@@ -260,7 +272,7 @@ std::string GameListItem::GetName(int _index) const
 	if (name.empty())
 	{
 		// No usable name, return filename (better than nothing)
-		SplitPath(GetFileName(), NULL, &name, NULL);
+		SplitPath(GetFileName(), nullptr, &name, nullptr);
 	}
 
 	return name;
@@ -268,32 +280,31 @@ std::string GameListItem::GetName(int _index) const
 
 const std::string GameListItem::GetWiiFSPath() const
 {
-	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(m_FileName);
+	DiscIO::IVolume *iso = DiscIO::CreateVolumeFromFilename(m_FileName);
 	std::string ret;
 
-	if (Iso == NULL)
+	if (iso == nullptr)
 		return ret;
 
-	if (DiscIO::IsVolumeWiiDisc(Iso) || DiscIO::IsVolumeWadFile(Iso))
+	if (DiscIO::IsVolumeWiiDisc(iso) || DiscIO::IsVolumeWadFile(iso))
 	{
-		char Path[250];
-		u64 Title;
+		u64 title;
 
-		Iso->GetTitleID((u8*)&Title);
-		Title = Common::swap64(Title);
+		iso->GetTitleID((u8*)&title);
+		title = Common::swap64(title);
 
-		sprintf(Path, "%stitle/%08x/%08x/data/",
-				File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(Title>>32), (u32)Title);
+		const std::string path = StringFromFormat("%stitle/%08x/%08x/data/",
+				File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(title>>32), (u32)title);
 
-		if (!File::Exists(Path))
-			File::CreateFullPath(Path);
+		if (!File::Exists(path))
+			File::CreateFullPath(path);
 
-		if (Path[0] == '.')
-			ret = WxStrToStr(wxGetCwd()) + std::string(Path).substr(strlen(ROOT_DIR));
+		if (path[0] == '.')
+			ret = WxStrToStr(wxGetCwd()) + path.substr(strlen(ROOT_DIR));
 		else
-			ret = std::string(Path);
+			ret = path;
 	}
-	delete Iso;
+	delete iso;
 
 	return ret;
 }

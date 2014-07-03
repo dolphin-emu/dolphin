@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "NullSoundStream.h"
-#include "../Core/HW/SystemTimers.h"
-#include "../Core/HW/AudioInterface.h"
+#include "AudioCommon/NullSoundStream.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/SystemTimers.h"
 
 void NullSound::SoundLoop()
 {

@@ -1,38 +1,26 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <map>
 
-#include "Common.h"
-#include "../../HLE/HLE.h"
-#include "../../Core.h"
-#include "../../PatchEngine.h"
-#include "../../CoreTiming.h"
-#include "../../ConfigManager.h"
-#include "../PowerPC.h"
-#include "../Profiler.h"
-#include "../PPCTables.h"
-#include "../PPCAnalyst.h"
-#include "../../HW/Memmap.h"
-#include "../../HW/GPFifo.h"
-#include "Jit.h"
-#include "JitArm_Tables.h"
-#include "ArmEmitter.h"
-#include "../JitInterface.h"
+#include "Common/ArmEmitter.h"
+#include "Common/Common.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/PatchEngine.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitArm32/JitArm_Tables.h"
 
 using namespace ArmGen;
 using namespace PowerPC;
@@ -52,6 +40,11 @@ void JitArm::Init()
 	fpr.Init(this);
 	jo.enableBlocklink = true;
 	jo.optimizeGatherPipe = true;
+
+	code_block.m_stats = &js.st;
+	code_block.m_gpa = &js.gpa;
+	code_block.m_fpa = &js.fpa;
+	analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
 }
 
 void JitArm::ClearCache()
@@ -67,7 +60,7 @@ void JitArm::Shutdown()
 	asm_routines.Shutdown();
 }
 
-// This is only called by Default() in this file. It will execute an instruction with the interpreter functions.
+// This is only called by FallBackToInterpreter() in this file. It will execute an instruction with the interpreter functions.
 void JitArm::WriteCallInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush();
@@ -82,7 +75,7 @@ void JitArm::unknown_instruction(UGeckoInstruction inst)
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void JitArm::Default(UGeckoInstruction _inst)
+void JitArm::FallBackToInterpreter(UGeckoInstruction _inst)
 {
 	WriteCallInterpreter(_inst.hex);
 }
@@ -141,22 +134,19 @@ void JitArm::Cleanup()
 void JitArm::DoDownCount()
 {
 	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	MOVI2R(rA, (u32)&CoreTiming::downcount);
-	LDR(rB, rA);
-	if(js.downcountAmount < 255) // We can enlarge this if we used rotations
+	LDR(rA, R9, PPCSTATE_OFF(downcount));
+	if (js.downcountAmount < 255) // We can enlarge this if we used rotations
 	{
-		SUBS(rB, rB, js.downcountAmount);
-		STR(rB, rA);
+		SUBS(rA, rA, js.downcountAmount);
 	}
 	else
 	{
-		ARMReg rC = gpr.GetReg(false);
-		MOVI2R(rC, js.downcountAmount);
-		SUBS(rB, rB, rC);
-		STR(rB, rA);
+		ARMReg rB = gpr.GetReg(false);
+		MOVI2R(rB, js.downcountAmount);
+		SUBS(rA, rA, rB);
 	}
-	gpr.Unlock(rA, rB);
+	STR(rA, R9, PPCSTATE_OFF(downcount));
+	gpr.Unlock(rA);
 }
 void JitArm::WriteExitDestInR(ARMReg Reg)
 {
@@ -173,36 +163,53 @@ void JitArm::WriteRfiExitDestInR(ARMReg Reg)
 	Cleanup();
 	DoDownCount();
 
-	MOVI2R(Reg, (u32)asm_routines.testExceptions);
-	B(Reg);
+	ARMReg A = gpr.GetReg(false);
+
+	LDR(A, R9, PPCSTATE_OFF(pc));
+	STR(A, R9, PPCSTATE_OFF(npc));
+		QuickCallFunction(A, (void*)&PowerPC::CheckExceptions);
+	LDR(A, R9, PPCSTATE_OFF(npc));
+	STR(A, R9, PPCSTATE_OFF(pc));
 	gpr.Unlock(Reg); // This was locked in the instruction beforehand
+
+	MOVI2R(A, (u32)asm_routines.dispatcher);
+	B(A);
 }
 void JitArm::WriteExceptionExit()
 {
-	ARMReg A = gpr.GetReg(false);
 	Cleanup();
 	DoDownCount();
 
-	MOVI2R(A, (u32)asm_routines.testExceptions);
+	ARMReg A = gpr.GetReg(false);
+
+	LDR(A, R9, PPCSTATE_OFF(pc));
+	STR(A, R9, PPCSTATE_OFF(npc));
+		QuickCallFunction(A, (void*)&PowerPC::CheckExceptions);
+	LDR(A, R9, PPCSTATE_OFF(npc));
+	STR(A, R9, PPCSTATE_OFF(pc));
+
+	MOVI2R(A, (u32)asm_routines.dispatcher);
 	B(A);
 }
-void JitArm::WriteExit(u32 destination, int exit_num)
+void JitArm::WriteExit(u32 destination)
 {
 	Cleanup();
 
 	DoDownCount();
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
-	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
+	JitBlock::LinkData linkData;
+	linkData.exitAddress = destination;
+	linkData.exitPtrs = GetWritableCodePtr();
+	linkData.linkStatus = false;
 
 	// Link opportunity!
-	int block = blocks.GetBlockNumberFromStartAddress(destination);
-	if (block >= 0 && jo.enableBlocklink)
+	int block;
+	if (jo.enableBlocklink && (block = blocks.GetBlockNumberFromStartAddress(destination)) >= 0)
 	{
 		// It exists! Joy of joy!
 		B(blocks.GetBlock(block)->checkedEntry);
-		b->linkStatus[exit_num] = true;
+		linkData.linkStatus = true;
 	}
 	else
 	{
@@ -212,6 +219,8 @@ void JitArm::WriteExit(u32 destination, int exit_num)
 		MOVI2R(A, (u32)asm_routines.dispatcher);
 		B(A);
 	}
+
+	b->linkData.push_back(linkData);
 }
 
 void STACKALIGN JitArm::Run()
@@ -236,7 +245,7 @@ void JitArm::Trace()
 	{
 		char reg[50];
 		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
-		strncat(regs, reg, 500);
+		strncat(regs, reg, sizeof(regs) - 1);
 	}
 #endif
 
@@ -245,7 +254,7 @@ void JitArm::Trace()
 	{
 		char reg[50];
 		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
-		strncat(fregs, reg, 750);
+		strncat(fregs, reg, sizeof(fregs) - 1);
 	}
 #endif
 
@@ -258,27 +267,27 @@ void JitArm::Trace()
 void JitArm::PrintDebug(UGeckoInstruction inst, u32 level)
 {
 	if (level > 0)
-	printf("Start: %08x OP '%s' Info\n", (u32)GetCodePtr(),  PPCTables::GetInstructionName(inst));
+		WARN_LOG(DYNA_REC, "Start: %08x OP '%s' Info", (u32)GetCodePtr(),  PPCTables::GetInstructionName(inst));
 	if (level > 1)
 	{
 		GekkoOPInfo* Info = GetOpInfo(inst.hex);
-		printf("\tOuts\n");
+		WARN_LOG(DYNA_REC, "\tOuts");
 		if (Info->flags & FL_OUT_A)
-			printf("\t-OUT_A: %x\n", inst.RA);
-		if(Info->flags & FL_OUT_D)
-			printf("\t-OUT_D: %x\n", inst.RD);
-		printf("\tIns\n");
+			WARN_LOG(DYNA_REC, "\t-OUT_A: %x", inst.RA);
+		if (Info->flags & FL_OUT_D)
+			WARN_LOG(DYNA_REC, "\t-OUT_D: %x", inst.RD);
+		WARN_LOG(DYNA_REC, "\tIns");
 		// A, AO, B, C, S
-		if(Info->flags & FL_IN_A)
-			printf("\t-IN_A: %x\n", inst.RA);
-		if(Info->flags & FL_IN_A0)
-			printf("\t-IN_A0: %x\n", inst.RA);
-		if(Info->flags & FL_IN_B)
-			printf("\t-IN_B: %x\n", inst.RB);
-		if(Info->flags & FL_IN_C)
-			printf("\t-IN_C: %x\n", inst.RC);
-		if(Info->flags & FL_IN_S)
-			printf("\t-IN_S: %x\n", inst.RS);
+		if (Info->flags & FL_IN_A)
+			WARN_LOG(DYNA_REC, "\t-IN_A: %x", inst.RA);
+		if (Info->flags & FL_IN_A0)
+			WARN_LOG(DYNA_REC, "\t-IN_A0: %x", inst.RA);
+		if (Info->flags & FL_IN_B)
+			WARN_LOG(DYNA_REC, "\t-IN_B: %x", inst.RB);
+		if (Info->flags & FL_IN_C)
+			WARN_LOG(DYNA_REC, "\t-IN_C: %x", inst.RC);
+		if (Info->flags & FL_IN_S)
+			WARN_LOG(DYNA_REC, "\t-IN_S: %x", inst.RS);
 	}
 }
 
@@ -303,17 +312,11 @@ void JitArm::Break(UGeckoInstruction inst)
 const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
 {
 	int blockSize = code_buf->GetSize();
-	// Memory exception on instruction fetch
-	bool memory_exception = false;
-
-	// A broken block is a block that does not end in a branch
-	bool broken_block = false;
 
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
 		blockSize = 1;
-		broken_block = true;
 		Trace();
 	}
 
@@ -323,35 +326,16 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		PanicAlert("ERROR: Compiling at 0. LR=%08x CTR=%08x", LR, CTR);
 	}
 
-	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
-	{
-		if (!Memory::TranslateAddress(em_address, Memory::FLAG_OPCODE))
-		{
-			// Memory exception occurred during instruction fetch
-			memory_exception = true;
-		}
-	}
-
-
-	int size = 0;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
-	js.block_flags = 0;
-	js.cancel = false;
 
+	u32 nextPC = em_address;
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	u32 nextPC = em_address;
-	u32 merged_addresses[32];
-	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
-	int size_of_merged_addresses = 0;
-	if (!memory_exception)
-	{
-		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
-		nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses);
-	}
+	nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
+
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
 	const u8 *start = GetCodePtr();
@@ -372,7 +356,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	const u8 *normalEntry = GetCodePtr();
 	b->normalEntry = normalEntry;
 
-	if(ImHereDebug)
+	if (ImHereDebug)
 		QuickCallFunction(R14, (void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 
 	if (js.fpa.any)
@@ -386,8 +370,17 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		TST(A, Shift);
 		SetCC(CC_EQ);
 		STR(C, R9, PPCSTATE_OFF(pc));
-		MOVI2R(A, (u32)asm_routines.fpException);
+
+		LDR(A, R9, PPCSTATE_OFF(Exceptions));
+		ORR(A, A, EXCEPTION_FPU_UNAVAILABLE);
+		STR(A, R9, PPCSTATE_OFF(Exceptions));
+			QuickCallFunction(A, (void*)&PowerPC::CheckExceptions);
+		LDR(A, R9, PPCSTATE_OFF(npc));
+		STR(A, R9, PPCSTATE_OFF(pc));
+
+		MOVI2R(A, (u32)asm_routines.dispatcher);
 		B(A);
+
 		SetCC();
 		gpr.Unlock(A, C);
 	}
@@ -406,28 +399,28 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
 	js.downcountAmount = 0;
+
 	if (!Core::g_CoreStartupParameter.bEnableDebugging)
-	{
-		for (int i = 0; i < size_of_merged_addresses; ++i)
-		{
-			const u32 address = merged_addresses[i];
-			js.downcountAmount += PatchEngine::GetSpeedhackCycles(address);
-		}
-	}
+		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
 	js.skipnext = false;
-	js.blockSize = size;
 	js.compilerPC = nextPC;
+
+	const int DEBUG_OUTPUT = 0;
+
+	if (DEBUG_OUTPUT)
+		WARN_LOG(DYNA_REC, "-------0x%08x-------", em_address);
+
 	// Translate instructions
-	for (int i = 0; i < (int)size; i++)
+	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{
 		js.compilerPC = ops[i].address;
 		js.op = &ops[i];
 		js.instructionNumber = i;
 		const GekkoOPInfo *opinfo = ops[i].opinfo;
-		js.downcountAmount += (opinfo->numCyclesMinusOne + 1);
+		js.downcountAmount += opinfo->numCycles;
 
-		if (i == (int)size - 1)
+		if (i == (code_block.m_num_instructions - 1))
 		{
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
@@ -476,7 +469,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		}
 		if (!ops[i].skip)
 		{
-				PrintDebug(ops[i].inst, 0);
+				PrintDebug(ops[i].inst, DEBUG_OUTPUT);
 				if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 				{
 					// Don't do this yet
@@ -491,17 +484,17 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 				}
 		}
 	}
-	if (memory_exception)
+	if (code_block.m_memory_exception)
 		BKPT(0x500);
-	if	(broken_block)
+
+	if (code_block.m_broken)
 	{
 		printf("Broken Block going to 0x%08x\n", nextPC);
-		WriteExit(nextPC, 0);
+		WriteExit(nextPC);
 	}
 
-	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
-	b->originalSize = size;
+	b->originalSize = code_block.m_num_instructions;
 	FlushIcache();
 	return start;
 }

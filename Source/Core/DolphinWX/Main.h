@@ -2,23 +2,30 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __MAIN_H_
-#define __MAIN_H_
+#pragma once
 
-#include "Frame.h"
+#include <wx/app.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/string.h>
+
+class CFrame;
+class wxLocale;
+class wxTimer;
+class wxTimerEvent;
 
 // Define a new application
-class CFrame;
 class DolphinApp : public wxApp
 {
 public:
 	CFrame* GetCFrame();
 
 private:
-	bool OnInit();
-	int OnExit();
-	void OnFatalException();
-	bool Initialize(int& c, wxChar **v);
+	bool OnInit() override;
+	int OnExit() override;
+	void OnFatalException() override;
+	bool Initialize(int& c, wxChar **v) override;
 	void InitLanguageSupport();
 	void MacOpenFile(const wxString &fileName);
 
@@ -37,5 +44,3 @@ private:
 };
 
 DECLARE_APP(DolphinApp);
-
-#endif

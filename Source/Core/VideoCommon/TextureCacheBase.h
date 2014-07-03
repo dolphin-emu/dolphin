@@ -2,17 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTURECACHEBASE_H
-#define _TEXTURECACHEBASE_H
+#pragma once
 
 #include <map>
 
-#include "VideoCommon.h"
-#include "TextureDecoder.h"
-#include "BPMemory.h"
-#include "Thread.h"
+#include "Common/CommonTypes.h"
+#include "Common/Thread.h"
 
-#include "CommonTypes.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoCommon.h"
 
 struct VideoConfig;
 
@@ -22,8 +21,8 @@ public:
 	enum TexCacheEntryType
 	{
 		TCET_NORMAL,
-		TCET_EC_VRAM,		// EFB copy which sits in VRAM and is ready to be used
-		TCET_EC_DYNAMIC,	// EFB copy which sits in RAM and needs to be decoded before being used
+		TCET_EC_VRAM,    // EFB copy which sits in VRAM and is ready to be used
+		TCET_EC_DYNAMIC, // EFB copy which sits in RAM and needs to be decoded before being used
 	};
 
 	struct TCacheEntryBase
@@ -73,12 +72,12 @@ public:
 		virtual ~TCacheEntryBase();
 
 		virtual void Bind(unsigned int stage) = 0;
-		virtual bool Save(const std::string filename, unsigned int level) = 0;
+		virtual bool Save(const std::string& filename, unsigned int level) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
 		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
-			unsigned int srcFormat, const EFBRectangle& srcRect,
+			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 			const float *colmat) = 0;
 
@@ -95,7 +94,7 @@ public:
 	static void Invalidate();
 	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
-	static void ClearRenderTargets();	// currently only used by OGL
+	static void ClearRenderTargets(); // currently only used by OGL
 	static bool Find(u32 start_address, u64 hash);
 
 	virtual TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
@@ -104,7 +103,7 @@ public:
 
 	static TCacheEntryBase* Load(unsigned int stage, u32 address, unsigned int width, unsigned int height,
 		int format, unsigned int tlutaddr, int tlutfmt, bool use_mipmaps, unsigned int maxlevel, bool from_tmem);
-	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
+	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
 	static void RequestInvalidateTextureCache();
@@ -140,5 +139,3 @@ private:
 };
 
 extern TextureCache *g_texture_cache;
-
-#endif

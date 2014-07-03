@@ -2,25 +2,24 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _NETPLAY_H
-#define _NETPLAY_H
-
-#include "Common.h"
-#include "CommonTypes.h"
-#include "Thread.h"
-#include "Timer.h"
-
-#include <SFML/Network.hpp>
-
-#include "NetPlayProto.h"
-#include "GCPadStatus.h"
+#pragma once
 
 #include <functional>
 #include <map>
 #include <queue>
 #include <sstream>
 
-#include "FifoQueue.h"
+#include <SFML/Network.hpp>
+
+#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/FifoQueue.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+
+#include "Core/NetPlayProto.h"
+
+#include "InputCommon/GCPadStatus.h"
 
 class NetPad
 {
@@ -52,10 +51,10 @@ public:
 class Player
 {
  public:
-	PlayerId		pid;
-	std::string		name;
-	std::string		revision;
-	u32                     ping;
+	PlayerId    pid;
+	std::string name;
+	std::string revision;
+	u32         ping;
 };
 
 class NetPlayClient
@@ -96,26 +95,26 @@ protected:
 		std::recursive_mutex players, send;
 	} m_crit;
 
-	Common::FifoQueue<NetPad>		m_pad_buffer[4];
-	Common::FifoQueue<NetWiimote>	m_wiimote_buffer[4];
+	Common::FifoQueue<NetPad>     m_pad_buffer[4];
+	Common::FifoQueue<NetWiimote> m_wiimote_buffer[4];
 
-	NetPlayUI*		m_dialog;
-	sf::SocketTCP	m_socket;
-	std::thread		m_thread;
-	sf::Selector<sf::SocketTCP>		m_selector;
+	NetPlayUI*    m_dialog;
+	sf::SocketTCP m_socket;
+	std::thread   m_thread;
+	sf::Selector<sf::SocketTCP> m_selector;
 
-	std::string		m_selected_game;
-	volatile bool	m_is_running;
-	volatile bool	m_do_loop;
+	std::string   m_selected_game;
+	volatile bool m_is_running;
+	volatile bool m_do_loop;
 
-	unsigned int	m_target_buffer_size;
+	unsigned int  m_target_buffer_size;
 
-	Player*		m_local_player;
+	Player* m_local_player;
 
-	u32		m_current_game;
+	u32 m_current_game;
 
-	PadMapping	m_pad_map[4];
-	PadMapping	m_wiimote_map[4];
+	PadMapping m_pad_map[4];
+	PadMapping m_wiimote_map[4];
 
 	bool m_is_recording;
 
@@ -125,11 +124,9 @@ private:
 	void SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw);
 	unsigned int OnData(sf::Packet& packet);
 
-	PlayerId		m_pid;
-	std::map<PlayerId, Player>	m_players;
+	PlayerId m_pid;
+	std::map<PlayerId, Player> m_players;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
-
-#endif

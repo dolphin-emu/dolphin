@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _HLE_H
-#define _HLE_H
+#pragma once
 
 #include <map>
-#include "CommonTypes.h"
+
+#include "Common/CommonTypes.h"
 
 namespace HLE
 {
@@ -29,7 +29,7 @@ namespace HLE
 	void PatchFunctions();
 
 	void Patch(u32 pc, const char *func_name);
-	u32 UnPatch(std::string patchName);
+	u32 UnPatch(const std::string& patchName);
 	void Execute(u32 _CurrentPC, u32 _Instruction);
 
 	u32 GetFunctionIndex(u32 em_address);
@@ -40,6 +40,3 @@ namespace HLE
 
 	static std::map<u32, u32> orig_instruction;
 }
-
-#endif
-

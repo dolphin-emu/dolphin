@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _OSD_H_
-#define _OSD_H_
+#pragma once
 
 #include <functional>
 #include <string>
@@ -27,5 +26,3 @@ typedef std::function<void()> Callback;
 void AddCallback(CallbackType type, Callback cb);
 void DoCallbacks(CallbackType type);
 }  // namespace OSD
-
-#endif // _OSD_H_

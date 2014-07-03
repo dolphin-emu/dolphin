@@ -2,36 +2,39 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SI_Device.h"
-#include "SI_DeviceGCController.h"
-#include "SI_DeviceGCSteeringWheel.h"
-#include "SI_DeviceDanceMat.h"
-#include "SI_DeviceGBA.h"
-#include "SI_DeviceAMBaseboard.h"
+#include <string>
+
+#include "Common/StringUtil.h"
+#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI_DeviceAMBaseboard.h"
+#include "Core/HW/SI_DeviceDanceMat.h"
+#include "Core/HW/SI_DeviceGBA.h"
+#include "Core/HW/SI_DeviceGCController.h"
+#include "Core/HW/SI_DeviceGCSteeringWheel.h"
 
 
 // --- interface ISIDevice ---
 int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 {
 #ifdef _DEBUG
-	DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", ISIDevice::m_iDeviceNumber,_iLength);
+	DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", ISIDevice::m_iDeviceNumber, _iLength);
 
-	char szTemp[256] = "";
+	std::string temp;
 	int num = 0;
-	while(num < _iLength)
+
+	while (num < _iLength)
 	{
-		char szTemp2[128] = "";
-		sprintf(szTemp2, "0x%02x ", _pBuffer[num^3]);
-		strcat(szTemp, szTemp2);
+		temp += StringFromFormat("0x%02x ", _pBuffer[num^3]);
 		num++;
 
 		if ((num % 8) == 0)
 		{
-			DEBUG_LOG(SERIALINTERFACE, "%s", szTemp);
-			szTemp[0] = '\0';
+			DEBUG_LOG(SERIALINTERFACE, "%s", temp.c_str());
+			temp.clear();
 		}
 	}
-	DEBUG_LOG(SERIALINTERFACE, "%s", szTemp);
+
+	DEBUG_LOG(SERIALINTERFACE, "%s", temp.c_str());
 #endif
 	return 0;
 };

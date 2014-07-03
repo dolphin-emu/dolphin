@@ -2,18 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "InputConfig.h"
-#include "CommonPaths.h"
-#include "../Core/ConfigManager.h"
-#include "../Core/HW/Wiimote.h"
+#include "Common/CommonPaths.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Wiimote.h"
+#include "InputCommon/InputConfig.h"
 
 InputPlugin::~InputPlugin()
 {
 	// delete pads
-	std::vector<ControllerEmu*>::const_iterator i = controllers.begin(),
-		e = controllers.end();
-	for ( ; i != e; ++i )
-		delete *i;
+	for (ControllerEmu* pad : controllers)
+		delete pad;
 }
 
 bool InputPlugin::LoadConfig(bool isGC)
@@ -38,19 +36,26 @@ bool InputPlugin::LoadConfig(bool isGC)
 			type = "Wiimote";
 			path = "Profiles/Wiimote/";
 		}
+
 		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", true);
+		IniFile::Section* control_section = game_ini.GetOrCreateSection("Controls");
+
 		for (int i = 0; i < 4; i++)
 		{
-			if (game_ini.Exists("Controls", (type + "Profile" + num[i]).c_str()))
+			if (control_section->Exists(type + "Profile" + num[i]))
 			{
-				game_ini.Get("Controls", (type + "Profile" + num[i]).c_str(), &profile[i]);
-				if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
-					useProfile[i] = true;
-				else
+				if (control_section->Get(type + "Profile" + num[i], &profile[i]))
 				{
-					// TODO: Having a PanicAlert for this is dumb.
-					PanicAlertT("Selected controller profile does not exist");
+					if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
+					{
+						useProfile[i] = true;
+					}
+					else
+					{
+						// TODO: Having a PanicAlert for this is dumb.
+						PanicAlertT("Selected controller profile does not exist");
+					}
 				}
 			}
 		}
@@ -58,25 +63,26 @@ bool InputPlugin::LoadConfig(bool isGC)
 
 	if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini"))
 	{
-		std::vector< ControllerEmu* >::const_iterator
-			i = controllers.begin(),
-			e = controllers.end();
-		for (int n = 0; i!=e; ++i, ++n)
+		int n = 0;
+		for (ControllerEmu* pad : controllers)
 		{
-			// load settings from ini
+			// Load settings from ini
 			if (useProfile[n])
 			{
 				IniFile profile_ini;
 				profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
-				(*i)->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
+				pad->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
 			}
 			else
 			{
-				(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
+				pad->LoadConfig(inifile.GetOrCreateSection(pad->GetName()));
 			}
 
-			// update refs
-			(*i)->UpdateReferences(g_controller_interface);
+			// Update refs
+			pad->UpdateReferences(g_controller_interface);
+
+			// Next profile
+			n++;
 		}
 		return true;
 	}
@@ -95,10 +101,8 @@ void InputPlugin::SaveConfig()
 	IniFile inifile;
 	inifile.Load(ini_filename);
 
-	std::vector< ControllerEmu* >::const_iterator i = controllers.begin(),
-		e = controllers.end();
-	for ( ; i!=e; ++i )
-		(*i)->SaveConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
+	for (ControllerEmu* pad : controllers)
+		pad->SaveConfig(inifile.GetOrCreateSection(pad->GetName()));
 
 	inifile.Save(ini_filename);
 }

@@ -4,32 +4,32 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <string>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-#include "JitInterface.h"
-#include "JitCommon/JitBase.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
-#ifndef _M_GENERIC
-#include "Jit64IL/JitIL.h"
-#include "Jit64/Jit.h"
-#include "Jit64/Jit64_Tables.h"
-#include "Jit64IL/JitIL_Tables.h"
+#if _M_X86
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/Jit64_Tables.h"
+#include "Core/PowerPC/Jit64IL/JitIL.h"
+#include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 #endif
 
-#ifdef _M_ARM
-#include "JitArm32/Jit.h"
-#include "JitArm32/JitArm_Tables.h"
-#include "JitArmIL/JitIL.h"
-#include "JitArmIL/JitIL_Tables.h"
+#if _M_ARM_32
+#include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitArm32/JitArm_Tables.h"
+#include "Core/PowerPC/JitArmIL/JitIL.h"
+#include "Core/PowerPC/JitArmIL/JitIL_Tables.h"
 #endif
-
-#include "Profiler.h"
-#include "PPCSymbolDB.h"
-#include "HW/Memmap.h"
-#include "ConfigManager.h"
 
 bool bFakeVMEM = false;
 bool bMMU = false;
@@ -39,17 +39,17 @@ namespace JitInterface
 	void DoState(PointerWrap &p)
 	{
 		if (jit && p.GetMode() == PointerWrap::MODE_READ)
-			jit->GetBlockCache()->ClearSafe();
+			jit->GetBlockCache()->Clear();
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
 		bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true;
 		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
-		CPUCoreBase *ptr = NULL;
-		switch(core)
+		CPUCoreBase *ptr = nullptr;
+		switch (core)
 		{
-			#ifndef _M_GENERIC
+			#if _M_X86
 			case 1:
 			{
 				ptr = new Jit64();
@@ -61,7 +61,7 @@ namespace JitInterface
 				break;
 			}
 			#endif
-			#ifdef _M_ARM
+			#if _M_ARM_32
 			case 3:
 			{
 				ptr = new JitArm();
@@ -76,9 +76,8 @@ namespace JitInterface
 			default:
 			{
 				PanicAlert("Unrecognizable cpu_core: %d", core);
-				jit = NULL;
-				return NULL;
-				break;
+				jit = nullptr;
+				return nullptr;
 			}
 		}
 		jit = static_cast<JitBase*>(ptr);
@@ -87,9 +86,9 @@ namespace JitInterface
 	}
 	void InitTables(int core)
 	{
-		switch(core)
+		switch (core)
 		{
-			#ifndef _M_GENERIC
+			#if _M_X86
 			case 1:
 			{
 				Jit64Tables::InitTables();
@@ -101,7 +100,7 @@ namespace JitInterface
 				break;
 			}
 			#endif
-			#ifdef _M_ARM
+			#if _M_ARM_32
 			case 3:
 			{
 				JitArmTables::InitTables();
@@ -125,10 +124,10 @@ namespace JitInterface
 		return jit;
 	}
 
-	void WriteProfileResults(const char *filename)
+	void WriteProfileResults(const std::string& filename)
 	{
 		// Can't really do this with no jit core available
-		#ifndef _M_GENERIC
+		#if _M_X86
 
 		std::vector<BlockStat> stats;
 		stats.reserve(jit->GetBlockCache()->GetNumBlocks());
@@ -159,7 +158,7 @@ namespace JitInterface
 		File::IOFile f(filename, "w");
 		if (!f)
 		{
-			PanicAlert("Failed to open %s", filename);
+			PanicAlert("Failed to open %s", filename.c_str());
 			return;
 		}
 		fprintf(f.GetHandle(), "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
@@ -200,8 +199,12 @@ namespace JitInterface
 	}
 	void ClearSafe()
 	{
+		// This clear is "safe" in the sense that it's okay to run from
+		// inside a JIT'ed block: it clears the instruction cache, but not
+		// the JIT'ed code.
+		// TODO: There's probably a better way to handle this situation.
 		if (jit)
-			jit->GetBlockCache()->ClearSafe();
+			jit->GetBlockCache()->Clear();
 	}
 
 	void InvalidateICache(u32 address, u32 size)
@@ -212,7 +215,6 @@ namespace JitInterface
 
 	u32 Read_Opcode_JIT(u32 _Address)
 	{
-	#ifdef FAST_ICACHE
 		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
 		{
 			_Address = Memory::TranslateAddress(_Address, Memory::FLAG_OPCODE);
@@ -229,9 +231,6 @@ namespace JitInterface
 			inst = Memory::ReadUnchecked_U32(_Address);
 		else
 			inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
-	#else
-		u32 inst = Memory::ReadUnchecked_U32(_Address);
-	#endif
 		return inst;
 	}
 
@@ -241,7 +240,7 @@ namespace JitInterface
 		{
 			jit->Shutdown();
 			delete jit;
-			jit = NULL;
+			jit = nullptr;
 		}
 	}
 }

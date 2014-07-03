@@ -2,21 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXI_DEVICEMIC_H
-#define _EXI_DEVICEMIC_H
+#pragma once
 
 #if HAVE_PORTAUDIO
 
-#include "StdMutex.h"
+#include "Common/StdMutex.h"
 
 class CEXIMic : public IEXIDevice
 {
 public:
 	CEXIMic(const int index);
 	virtual ~CEXIMic();
-	void SetCS(int cs);
-	bool IsInterruptSet();
-	bool IsPresent();
+	void SetCS(int cs) override;
+	bool IsInterruptSet() override;
+	bool IsPresent() override;
 
 private:
 	static u8 const exi_id[];
@@ -26,11 +25,11 @@ private:
 
 	enum
 	{
-		cmdID			= 0x00,
-		cmdGetStatus	= 0x40,
-		cmdSetStatus	= 0x80,
-		cmdGetBuffer	= 0x20,
-		cmdReset		= 0xFF,
+		cmdID        = 0x00,
+		cmdGetStatus = 0x40,
+		cmdSetStatus = 0x80,
+		cmdGetBuffer = 0x20,
+		cmdReset     = 0xFF,
 	};
 
 	int slot;
@@ -43,15 +42,15 @@ private:
 		u8 U8[2];
 		struct
 		{
-			u16	out			:4; // MICSet/GetOut...???
-			u16 id			:1; // Used for MICGetDeviceID (always 0)
-			u16 button_unk	:3; // Button bits which appear unused
-			u16 button		:1; // The actual button on the mic
-			u16 buff_ovrflw	:1; // Ring buffer wrote over bytes which weren't read by console
-			u16 gain		:1; // Gain: 0dB or 15dB
-			u16 sample_rate	:2; // Sample rate, 00-11025, 01-22050, 10-44100, 11-??
-			u16 buff_size	:2; // Ring buffer size in bytes, 00-32, 01-64, 10-128, 11-???
-			u16 is_active	:1; // If we are sampling or not
+			u16 out         : 4; // MICSet/GetOut...???
+			u16 id          : 1; // Used for MICGetDeviceID (always 0)
+			u16 button_unk  : 3; // Button bits which appear unused
+			u16 button      : 1; // The actual button on the mic
+			u16 buff_ovrflw : 1; // Ring buffer wrote over bytes which weren't read by console
+			u16 gain        : 1; // Gain: 0dB or 15dB
+			u16 sample_rate : 2; // Sample rate, 00-11025, 01-22050, 10-44100, 11-??
+			u16 buff_size   : 2; // Ring buffer size in bytes, 00-32, 01-64, 10-128, 11-???
+			u16 is_active   : 1; // If we are sampling or not
 		};
 	};
 
@@ -94,7 +93,7 @@ public:
 	int samples_avail;
 
 protected:
-	virtual void TransferByte(u8 &byte);
+	virtual void TransferByte(u8 &byte) override;
 };
 
 #else // HAVE_PORTAUDIO
@@ -106,5 +105,3 @@ public:
 };
 
 #endif
-
-#endif // _EXI_DEVICEMIC_H

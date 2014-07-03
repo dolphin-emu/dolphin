@@ -37,7 +37,7 @@
 #define POLARSSL_HAVE_X86
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 typedef INT32 int32_t;
 #else
@@ -59,7 +59,7 @@ extern "C" {
 /**
  * \brief          PadLock detection routine
  *
- * \param          The feature to detect
+ * \param feature  The feature to detect
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */

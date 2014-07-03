@@ -2,18 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <iostream> // System: For std
+#pragma once
 
-#include "Common.h" // Common: For u64
+#include <string>
 
+#include "Common/CommonTypes.h"
 
 namespace FileMon
 {
 
-void ShowSound(std::string File);
-void ReadGC(std::string File);
-void CheckFile(std::string File, u64 Size);
-void FindFilename(u64 Offset);
+bool IsSoundFile(const std::string& filename);
+void ReadGC(const std::string& file);
+void CheckFile(const std::string& file, u64 size);
+void FindFilename(u64 offset);
 void Close();
 
 }

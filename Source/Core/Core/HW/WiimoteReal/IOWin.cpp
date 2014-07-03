@@ -2,26 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <algorithm>
-#include <unordered_map>
-#include <ctime>
-#include <unordered_set>
-
-#include <windows.h>
-#include <dbt.h>
-#include <setupapi.h>
-
-#include "Common.h"
-#include "WiimoteReal.h"
-#include "StringUtil.h"
-
 // Used for pair up
 #undef NTDDI_VERSION
-#define NTDDI_VERSION	NTDDI_WINXPSP2
-#include <bthdef.h>
-#include <BluetoothAPIs.h>
+#define NTDDI_VERSION  NTDDI_WINXPSP2
+
+#include <algorithm>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <unordered_map>
+#include <unordered_set>
+#include <windows.h>
+// The following Windows headers MUST be included after windows.h.
+#include <BluetoothAPIs.h> //NOLINT
+#include <dbt.h>           //NOLINT
+#include <setupapi.h>      //NOLINT
+
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 //#define AUTHENTICATE_WIIMOTES
 #define SHARE_WRITE_WIIMOTES
@@ -49,29 +49,29 @@ typedef DWORD (__stdcall *PBth_BluetoothGetRadioInfo)(HANDLE, PBLUETOOTH_RADIO_I
 typedef DWORD (__stdcall *PBth_BluetoothRemoveDevice)(const BLUETOOTH_ADDRESS*);
 typedef DWORD (__stdcall *PBth_BluetoothSetServiceState)(HANDLE, const BLUETOOTH_DEVICE_INFO*, const GUID*, DWORD);
 typedef DWORD (__stdcall *PBth_BluetoothAuthenticateDevice)(HWND, HANDLE, BLUETOOTH_DEVICE_INFO*, PWCHAR, ULONG);
-typedef DWORD (__stdcall *PBth_BluetoothEnumerateInstalledServices)(HANDLE,	BLUETOOTH_DEVICE_INFO*, DWORD*, GUID*);
+typedef DWORD (__stdcall *PBth_BluetoothEnumerateInstalledServices)(HANDLE, BLUETOOTH_DEVICE_INFO*, DWORD*, GUID*);
 
-PHidD_GetHidGuid HidD_GetHidGuid = NULL;
-PHidD_GetAttributes HidD_GetAttributes = NULL;
-PHidD_SetOutputReport HidD_SetOutputReport = NULL;
-PHidD_GetProductString HidD_GetProductString = NULL;
+PHidD_GetHidGuid HidD_GetHidGuid = nullptr;
+PHidD_GetAttributes HidD_GetAttributes = nullptr;
+PHidD_SetOutputReport HidD_SetOutputReport = nullptr;
+PHidD_GetProductString HidD_GetProductString = nullptr;
 
-PBth_BluetoothFindDeviceClose Bth_BluetoothFindDeviceClose = NULL;
-PBth_BluetoothFindFirstDevice Bth_BluetoothFindFirstDevice = NULL;
-PBth_BluetoothFindFirstRadio Bth_BluetoothFindFirstRadio = NULL;
-PBth_BluetoothFindNextDevice Bth_BluetoothFindNextDevice = NULL;
-PBth_BluetoothFindNextRadio Bth_BluetoothFindNextRadio = NULL;
-PBth_BluetoothFindRadioClose Bth_BluetoothFindRadioClose = NULL;
-PBth_BluetoothGetRadioInfo Bth_BluetoothGetRadioInfo = NULL;
-PBth_BluetoothRemoveDevice Bth_BluetoothRemoveDevice = NULL;
-PBth_BluetoothSetServiceState Bth_BluetoothSetServiceState = NULL;
-PBth_BluetoothAuthenticateDevice Bth_BluetoothAuthenticateDevice = NULL;
-PBth_BluetoothEnumerateInstalledServices Bth_BluetoothEnumerateInstalledServices = NULL;
+PBth_BluetoothFindDeviceClose Bth_BluetoothFindDeviceClose = nullptr;
+PBth_BluetoothFindFirstDevice Bth_BluetoothFindFirstDevice = nullptr;
+PBth_BluetoothFindFirstRadio Bth_BluetoothFindFirstRadio = nullptr;
+PBth_BluetoothFindNextDevice Bth_BluetoothFindNextDevice = nullptr;
+PBth_BluetoothFindNextRadio Bth_BluetoothFindNextRadio = nullptr;
+PBth_BluetoothFindRadioClose Bth_BluetoothFindRadioClose = nullptr;
+PBth_BluetoothGetRadioInfo Bth_BluetoothGetRadioInfo = nullptr;
+PBth_BluetoothRemoveDevice Bth_BluetoothRemoveDevice = nullptr;
+PBth_BluetoothSetServiceState Bth_BluetoothSetServiceState = nullptr;
+PBth_BluetoothAuthenticateDevice Bth_BluetoothAuthenticateDevice = nullptr;
+PBth_BluetoothEnumerateInstalledServices Bth_BluetoothEnumerateInstalledServices = nullptr;
 
-HINSTANCE hid_lib = NULL;
-HINSTANCE bthprops_lib = NULL;
+HINSTANCE hid_lib = nullptr;
+HINSTANCE bthprops_lib = nullptr;
 
-static int initialized = 0;
+static bool initialized = false;
 
 std::unordered_map<BTH_ADDR, std::time_t> g_connect_times;
 
@@ -96,7 +96,7 @@ inline void init_lib()
 		HidD_SetOutputReport = (PHidD_SetOutputReport)GetProcAddress(hid_lib, "HidD_SetOutputReport");
 		HidD_GetProductString = (PHidD_GetProductString)GetProcAddress(hid_lib, "HidD_GetProductString");
 		if (!HidD_GetHidGuid || !HidD_GetAttributes ||
-			!HidD_SetOutputReport || !HidD_GetProductString)
+		    !HidD_SetOutputReport || !HidD_GetProductString)
 		{
 			PanicAlertT("Failed to load hid.dll! Connecting real Wiimotes won't work and Dolphin might crash unexpectedly!");
 			return;
@@ -122,11 +122,11 @@ inline void init_lib()
 		Bth_BluetoothEnumerateInstalledServices = (PBth_BluetoothEnumerateInstalledServices)GetProcAddress(bthprops_lib, "BluetoothEnumerateInstalledServices");
 
 		if (!Bth_BluetoothFindDeviceClose || !Bth_BluetoothFindFirstDevice ||
-			!Bth_BluetoothFindFirstRadio || !Bth_BluetoothFindNextDevice ||
-			!Bth_BluetoothFindNextRadio || !Bth_BluetoothFindRadioClose ||
-			!Bth_BluetoothGetRadioInfo || !Bth_BluetoothRemoveDevice ||
-			!Bth_BluetoothSetServiceState || !Bth_BluetoothAuthenticateDevice ||
-			!Bth_BluetoothEnumerateInstalledServices)
+		    !Bth_BluetoothFindFirstRadio || !Bth_BluetoothFindNextDevice ||
+		    !Bth_BluetoothFindNextRadio || !Bth_BluetoothFindRadioClose ||
+		    !Bth_BluetoothGetRadioInfo || !Bth_BluetoothRemoveDevice ||
+		    !Bth_BluetoothSetServiceState || !Bth_BluetoothAuthenticateDevice ||
+		    !Bth_BluetoothEnumerateInstalledServices)
 		{
 			PanicAlertT("Failed to load bthprops.cpl! Connecting real Wiimotes won't work and Dolphin might crash unexpectedly!");
 			return;
@@ -201,22 +201,22 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	HidD_GetHidGuid(&device_id);
 
 	// Get all hid devices connected
-	HDEVINFO const device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
+	HDEVINFO const device_info = SetupDiGetClassDevs(&device_id, nullptr, nullptr, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
 
 	SP_DEVICE_INTERFACE_DATA device_data;
 	device_data.cbSize = sizeof(device_data);
-	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
+	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = nullptr;
 
-	for (int index = 0; SetupDiEnumDeviceInterfaces(device_info, NULL, &device_id, index, &device_data); ++index)
+	for (int index = 0; SetupDiEnumDeviceInterfaces(device_info, nullptr, &device_id, index, &device_data); ++index)
 	{
 		// Get the size of the data block required
 		DWORD len;
-		SetupDiGetDeviceInterfaceDetail(device_info, &device_data, NULL, 0, &len, NULL);
+		SetupDiGetDeviceInterfaceDetail(device_info, &device_data, nullptr, 0, &len, nullptr);
 		detail_data = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(len);
 		detail_data->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
 		// Query the data for this device
-		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
+		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, nullptr, nullptr))
 		{
 			auto const wm = new Wiimote;
 			wm->devicepath = detail_data->DevicePath;
@@ -244,13 +244,13 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 	// Don't mind me, just a random sleep to fix stuff on Windows
 	//if (!wiimotes.empty())
-	//	SLEEP(2000);
+	//    SLEEP(2000);
 
 }
 int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, size_t size, int attempts)
 {
 	OVERLAPPED hid_overlap_write = OVERLAPPED();
-	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
+	hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
 	enum win_bt_stack_t stack = MSBT_STACK_UNKNOWN;
 
 	DWORD written = 0;
@@ -287,7 +287,7 @@ int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, size_t size, int at
 int CheckDeviceType_Read(HANDLE &dev_handle, u8* buf, int attempts)
 {
 	OVERLAPPED hid_overlap_read = OVERLAPPED();
-	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
+	hid_overlap_read.hEvent = CreateEvent(nullptr, true, false, nullptr);
 	int read = 0;
 	for (; attempts>0; --attempts)
 	{
@@ -316,10 +316,10 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 #endif
 
 	HANDLE dev_handle = CreateFile(devicepath.c_str(),
-								GENERIC_READ | GENERIC_WRITE,
-								FILE_SHARE_READ | FILE_SHARE_WRITE,
-								NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED,
-								NULL);
+	                               GENERIC_READ | GENERIC_WRITE,
+	                               FILE_SHARE_READ | FILE_SHARE_WRITE,
+	                               nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED,
+	                               nullptr);
 	if (dev_handle == INVALID_HANDLE_VALUE)
 		return;
 	// enable to only check for official nintendo wiimotes/bb's
@@ -331,7 +331,6 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 		(attrib.VendorID == 0x057e) &&
 		(attrib.ProductID == 0x0306)))
 	{
-		int rc = 0;
 		// max_cycles insures we are never stuck here due to bad coding...
 		int max_cycles = 20;
 		u8 buf[MAX_PAYLOAD] = {0};
@@ -343,19 +342,19 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 		u8 const disable_enc_pt1_report[MAX_PAYLOAD] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_WRITE_DATA, 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
 		u8 const disable_enc_pt2_report[MAX_PAYLOAD] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_WRITE_DATA, 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
 
-		rc = CheckDeviceType_Write(dev_handle,
-									disable_enc_pt1_report,
-									sizeof(disable_enc_pt1_report),
-									1);
-		rc = CheckDeviceType_Write(dev_handle,
-									disable_enc_pt2_report,
-									sizeof(disable_enc_pt2_report),
-									1);
+		CheckDeviceType_Write(dev_handle,
+		                      disable_enc_pt1_report,
+		                      sizeof(disable_enc_pt1_report),
+		                      1);
+		CheckDeviceType_Write(dev_handle,
+		                      disable_enc_pt2_report,
+		                      sizeof(disable_enc_pt2_report),
+		                      1);
 
-		rc = CheckDeviceType_Write(dev_handle,
-									req_status_report,
-									sizeof(req_status_report),
-									1);
+		int rc = CheckDeviceType_Write(dev_handle,
+		                               req_status_report,
+		                               sizeof(req_status_report),
+		                               1);
 
 		while (rc > 0 && --max_cycles > 0)
 		{
@@ -411,15 +410,15 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 						// 0x020420A40000ULL means balance board.
 						u64 ext_type = (*(u64*)&wrdr->data[0]);
 						// DEBUG_LOG(WIIMOTE,
-						//		  "CheckDeviceType: GOT EXT TYPE %llX",
-						//		  ext_type);
+						//           "CheckDeviceType: GOT EXT TYPE %llX",
+						//           ext_type);
 						is_bb = (ext_type == 0x020420A40000ULL);
 					}
 					else
 					{
 						ERROR_LOG(WIIMOTE,
-								  "CheckDeviceType: GOT UNREQUESTED ADDRESS %X",
-								  Common::swap16(wrdr->address));
+						          "CheckDeviceType: GOT UNREQUESTED ADDRESS %X",
+						          Common::swap16(wrdr->address));
 					}
 					// force end
 					rc = -1;
@@ -448,7 +447,7 @@ bool WiimoteScanner::IsReady() const
 	HANDLE hRadio;
 	HBLUETOOTH_RADIO_FIND hFindRadio = Bth_BluetoothFindFirstRadio(&radioParam, &hRadio);
 
-	if (NULL != hFindRadio)
+	if (nullptr != hFindRadio)
 	{
 		Bth_BluetoothFindRadioClose(hFindRadio);
 		return true;
@@ -481,7 +480,7 @@ bool Wiimote::ConnectInternal()
 
 	dev_handle = CreateFile(devicepath.c_str(),
 		GENERIC_READ | GENERIC_WRITE, open_flags,
-		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+		nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr);
 
 	if (dev_handle == INVALID_HANDLE_VALUE)
 	{
@@ -550,10 +549,10 @@ void Wiimote::InitInternal()
 	stack = MSBT_STACK_UNKNOWN;
 
 	hid_overlap_read = OVERLAPPED();
-	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
+	hid_overlap_read.hEvent = CreateEvent(nullptr, true, false, nullptr);
 
 	hid_overlap_write = OVERLAPPED();
-	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
+	hid_overlap_write.hEvent = CreateEvent(nullptr, true, false, nullptr);
 }
 
 void Wiimote::TeardownInternal()
@@ -621,7 +620,7 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 		}
 	}
 
-	WiimoteEmu::Spy(NULL, buf, bytes + 1);
+	WiimoteEmu::Spy(nullptr, buf, bytes + 1);
 
 	return bytes + 1;
 }
@@ -643,7 +642,7 @@ int Wiimote::IORead(u8* buf)
 
 int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len)
 {
-	WiimoteEmu::Spy(NULL, buf, len);
+	WiimoteEmu::Spy(nullptr, buf, len);
 
 	switch (stack)
 	{
@@ -681,7 +680,6 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 			}
 
 			return result;
-			break;
 		}
 		case MSBT_STACK_BLUESOLEIL:
 		{
@@ -764,7 +762,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 			{
 				// btdi.szName is sometimes missing it's content - it's a bt feature..
 				DEBUG_LOG(WIIMOTE, "Authenticated %i connected %i remembered %i ",
-						btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
+				          btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
 
 				if (IsValidBluetoothName(UTF16ToUTF8(btdi.szName)))
 				{
@@ -774,7 +772,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 				if (false == Bth_BluetoothFindNextDevice(hFindDevice, &btdi))
 				{
 					Bth_BluetoothFindDeviceClose(hFindDevice);
-					hFindDevice = NULL;
+					hFindDevice = nullptr;
 				}
 			}
 		}
@@ -782,7 +780,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 		if (false == Bth_BluetoothFindNextRadio(hFindRadio, &hRadio))
 		{
 			Bth_BluetoothFindRadioClose(hFindRadio);
-			hFindRadio = NULL;
+			hFindRadio = nullptr;
 		}
 	}
 }
@@ -807,16 +805,18 @@ bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO& radio_info, BLUETO
 		auto const& wm_addr = btdi.Address.rgBytes;
 
 		NOTICE_LOG(WIIMOTE, "Found Wiimote (%02x:%02x:%02x:%02x:%02x:%02x). Enabling HID service.",
-			wm_addr[0], wm_addr[1], wm_addr[2], wm_addr[3], wm_addr[4], wm_addr[5]);
+		           wm_addr[0], wm_addr[1], wm_addr[2], wm_addr[3], wm_addr[4], wm_addr[5]);
 
 #if defined(AUTHENTICATE_WIIMOTES)
 		// Authenticate
 		auto const& radio_addr = radio_info.address.rgBytes;
-		const DWORD auth_result = Bth_BluetoothAuthenticateDevice(NULL, hRadio, &btdi,
-			std::vector<WCHAR>(radio_addr, radio_addr + 6).data(), 6);
+		const DWORD auth_result = Bth_BluetoothAuthenticateDevice(nullptr, hRadio, &btdi,
+		                                                          std::vector<WCHAR>(radio_addr, radio_addr + 6).data(), 6);
 
 		if (ERROR_SUCCESS != auth_result)
+		{
 			ERROR_LOG(WIIMOTE, "AttachWiimote: BluetoothAuthenticateDevice returned %08x", auth_result);
+		}
 
 		DWORD pcServices = 16;
 		GUID guids[16];
@@ -824,18 +824,24 @@ bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO& radio_info, BLUETO
 		const DWORD srv_result = Bth_BluetoothEnumerateInstalledServices(hRadio, &btdi, &pcServices, guids);
 
 		if (ERROR_SUCCESS != srv_result)
+		{
 			ERROR_LOG(WIIMOTE, "AttachWiimote: BluetoothEnumerateInstalledServices returned %08x", srv_result);
+		}
 #endif
 		// Activate service
 		const DWORD hr = Bth_BluetoothSetServiceState(hRadio, &btdi,
-			&HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
+		                                              &HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
 
 		g_connect_times[btdi.Address.ullLong] = std::time(nullptr);
 
 		if (FAILED(hr))
+		{
 			ERROR_LOG(WIIMOTE, "AttachWiimote: BluetoothSetServiceState returned %08x", hr);
+		}
 		else
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -851,8 +857,8 @@ bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 		auto const avoid_forget_seconds = 5.0;
 
 		auto pair_time = g_connect_times.find(btdi.Address.ullLong);
-		if (pair_time == g_connect_times.end()
-			|| std::difftime(time(nullptr), pair_time->second) >= avoid_forget_seconds)
+		if (pair_time == g_connect_times.end() ||
+		    std::difftime(time(nullptr), pair_time->second) >= avoid_forget_seconds)
 		{
 			// Make Windows forget about device so it will re-find it if visible.
 			// This is also required to detect a disconnect for some reason..

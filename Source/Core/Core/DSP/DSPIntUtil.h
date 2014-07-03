@@ -3,7 +3,7 @@
    filename:     gdsp_opcodes_helper.h
    project:      GameCube DSP Tool (gcdsp)
    created:      2005.03.04
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie
 
@@ -23,15 +23,14 @@
 
    ====================================================================*/
 
-#ifndef _DSP_INT_UTIL_H
-#define _DSP_INT_UTIL_H
+#pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "DSPInterpreter.h"
-#include "DSPCore.h"
-#include "DSPMemoryMap.h"
-#include "DSPStacks.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/DSPStacks.h"
 
 
 // ---------------------------------------------------------------------------------------
@@ -381,5 +380,3 @@ inline s16 dsp_get_ax_h(int _reg)
 {
 	return (s16)g_dsp.r.ax[_reg].h;
 }
-
-#endif

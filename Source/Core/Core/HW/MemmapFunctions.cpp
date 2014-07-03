@@ -15,18 +15,19 @@
 // Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-#include "Atomic.h"
+#include "Common/Atomic.h"
+#include "Common/Common.h"
 
-#include "GPFifo.h"
-#include "Memmap.h"
-#include "WII_IOB.h"
-#include "../Core.h"
-#include "../PowerPC/PowerPC.h"
-#include "VideoBackendBase.h"
+#include "Core/Core.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/MMIO.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 #ifdef USE_GDBSTUB
-#include "../PowerPC/GDBStub.h"
+#include "Core/PowerPC/GDBStub.h"
 #endif
 
 namespace Memory
@@ -35,15 +36,15 @@ namespace Memory
 // EFB RE
 /*
 GXPeekZ
-80322de8: rlwinm	r0, r3, 2, 14, 29 (0003fffc)   a =  x << 2 & 0x3fffc
-80322dec: oris	r0, r0, 0xC800                     a |= 0xc8000000
-80322df0: rlwinm	r3, r0, 0, 20, 9 (ffc00fff)    x = a & 0xffc00fff
-80322df4: rlwinm	r0, r4, 12, 4, 19 (0ffff000)   a = (y << 12) & 0x0ffff000;
-80322df8: or	r0, r3, r0                         a |= x;
-80322dfc: rlwinm	r0, r0, 0, 10, 7 (ff3fffff)    a &= 0xff3fffff
-80322e00: oris	r3, r0, 0x0040                     x = a | 0x00400000
-80322e04: lwz	r0, 0 (r3)						   r0 = *r3
-80322e08: stw	r0, 0 (r5)						   z =
+80322de8: rlwinm    r0, r3, 2, 14, 29 (0003fffc)   a =  x << 2 & 0x3fffc
+80322dec: oris      r0, r0, 0xC800                 a |= 0xc8000000
+80322df0: rlwinm    r3, r0, 0, 20, 9 (ffc00fff)    x = a & 0xffc00fff
+80322df4: rlwinm    r0, r4, 12, 4, 19 (0ffff000)   a = (y << 12) & 0x0ffff000;
+80322df8: or        r0, r3, r0                     a |= x;
+80322dfc: rlwinm    r0, r0, 0, 10, 7 (ff3fffff)    a &= 0xff3fffff
+80322e00: oris      r3, r0, 0x0040                 x = a | 0x00400000
+80322e04: lwz       r0, 0 (r3)                     r0 = *r3
+80322e08: stw       r0, 0 (r5)                     z =
 80322e0c: blr
 */
 
@@ -61,28 +62,6 @@ extern u8 *m_pEFB;
 extern bool m_IsInitialized;
 extern bool bFakeVMEM;
 
-// Read and write shortcuts
-
-// It appears that some clever games use stfd to write 64 bits to the fifo. Hence the hwWrite64.
-
-extern writeFn8  hwWrite8 [NUMHWMEMFUN];
-extern writeFn16 hwWrite16[NUMHWMEMFUN];
-extern writeFn32 hwWrite32[NUMHWMEMFUN];
-extern writeFn64 hwWrite64[NUMHWMEMFUN];
-
-extern readFn8   hwRead8 [NUMHWMEMFUN];
-extern readFn16  hwRead16[NUMHWMEMFUN];
-extern readFn32  hwRead32[NUMHWMEMFUN];
-
-extern writeFn8  hwWriteWii8 [NUMHWMEMFUN];
-extern writeFn16 hwWriteWii16[NUMHWMEMFUN];
-extern writeFn32 hwWriteWii32[NUMHWMEMFUN];
-extern writeFn64 hwWriteWii64[NUMHWMEMFUN];
-
-extern readFn8   hwReadWii8 [NUMHWMEMFUN];
-extern readFn16  hwReadWii16[NUMHWMEMFUN];
-extern readFn32  hwReadWii32[NUMHWMEMFUN];
-
 // Overloaded byteswap functions, for use within the templated functions below.
 inline u8 bswap(u8 val)   {return val;}
 inline u16 bswap(u16 val) {return Common::swap16(val);}
@@ -91,44 +70,8 @@ inline u64 bswap(u64 val) {return Common::swap64(val);}
 // =================
 
 
-// Read and write
-// ----------------
-// The read and write macros that direct us to the right functions
-
-// All these little inline functions are needed because we can't paste symbols together in templates
-// like we can in macros.
-inline void hwRead(u8 &var, u32 addr)  {hwRead8 [(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwRead(u16 &var, u32 addr) {hwRead16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwRead(u32 &var, u32 addr) {hwRead32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwRead(u64 &var, u32 addr) {PanicAlert("hwRead: There's no 64-bit HW read. %08x", addr);}
-
-inline void hwWrite(u8 var, u32 addr)  {hwWrite8[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWrite(u16 var, u32 addr) {hwWrite16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWrite(u32 var, u32 addr) {hwWrite32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWrite(u64 var, u32 addr) {hwWrite64[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-
-inline void hwReadWii(u8 &var, u32 addr)  {hwReadWii8 [(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwReadWii(u16 &var, u32 addr) {hwReadWii16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwReadWii(u32 &var, u32 addr) {hwReadWii32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwReadWii(u64 &var, u32 addr) {PanicAlert("hwReadWii: There's no 64-bit HW read. %08x", addr);}
-
-inline void hwWriteWii(u8 var, u32 addr)  {hwWriteWii8[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWriteWii(u16 var, u32 addr) {hwWriteWii16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWriteWii(u32 var, u32 addr) {hwWriteWii32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWriteWii(u64 var, u32 addr) {hwWriteWii64[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-
-inline void hwReadIOBridge(u8 &var, u32 addr)  {WII_IOBridge::Read8(var, addr);}
-inline void hwReadIOBridge(u16 &var, u32 addr) {WII_IOBridge::Read16(var, addr);}
-inline void hwReadIOBridge(u32 &var, u32 addr) {WII_IOBridge::Read32(var, addr);}
-inline void hwReadIOBridge(u64 &var, u32 addr) {PanicAlert("hwReadIOBridge: There's no 64-bit HW read. %08x", addr);}
-
-inline void hwWriteIOBridge(u8 var, u32 addr)  {WII_IOBridge::Write8(var, addr);}
-inline void hwWriteIOBridge(u16 var, u32 addr) {WII_IOBridge::Write16(var, addr);}
-inline void hwWriteIOBridge(u32 var, u32 addr) {WII_IOBridge::Write32(var, addr);}
-inline void hwWriteIOBridge(u64 var, u32 addr) {PanicAlert("hwWriteIOBridge: There's no 64-bit HW write. %08x", addr);}
-
 // Nasty but necessary. Super Mario Galaxy pointer relies on this stuff.
-u32 EFB_Read(const u32 addr)
+static u32 EFB_Read(const u32 addr)
 {
 	u32 var = 0;
 	// Convert address to coordinates. It's possible that this should be done
@@ -147,6 +90,8 @@ u32 EFB_Read(const u32 addr)
 	return var;
 }
 
+static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
+
 template <typename T>
 inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_address, Memory::XCheckTLBFlag flag)
 {
@@ -155,20 +100,8 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 	{
 		if (em_address < 0xcc000000)
 			_var = EFB_Read(em_address);
-		else if (em_address <= 0xcc009000)
-			hwRead(_var, em_address);
-		/* WIIMODE */
-		else if (((em_address & 0xFF000000) == 0xCD000000) &&
-			(em_address <= 0xcd009000))
-			hwReadWii(_var, em_address);
-		else if (((em_address & 0xFFF00000) == 0xCD800000) &&
-			(em_address <= 0xCD809000))
-			hwReadIOBridge(_var, em_address);
 		else
-		{
-			/* Disabled because the debugger makes trouble with */
-			/*_dbg_assert_(MEMMAP,0); */
-		}
+			mmio_mapping->Read(em_address, &_var);
 	}
 	else if (((em_address & 0xF0000000) == 0x80000000) ||
 		((em_address & 0xF0000000) == 0xC0000000) ||
@@ -216,13 +149,14 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 {
 	// First, let's check for FIFO writes, since they are probably the most common
 	// reason we end up in this function:
-	if (em_address == 0xCC008000)
+	if ((em_address & 0xFFFFF000) == 0xCC008000)
 	{
-		switch (sizeof(T)) {
-		case 1:	GPFifo::Write8((u8)data, em_address); return;
-		case 2:	GPFifo::Write16((u16)data, em_address); return;
-		case 4:	GPFifo::Write32((u32)data, em_address); return;
-		case 8:	GPFifo::Write64((u64)data, em_address); return;
+		switch (sizeof(T))
+		{
+		case 1: GPFifo::Write8((u8)data, em_address); return;
+		case 2: GPFifo::Write16((u16)data, em_address); return;
+		case 4: GPFifo::Write32((u32)data, em_address); return;
+		case 8: GPFifo::Write64((u64)data, em_address); return;
 		}
 	}
 	if ((em_address & 0xC8000000) == 0xC8000000)
@@ -245,28 +179,10 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 			}
 			return;
 		}
-		else if (em_address <= 0xcc009000)
-		{
-			hwWrite(data, em_address);
-			return;
-		}
-		/* WIIMODE */
-		else if (((em_address & 0xFF000000) == 0xCD000000) &&
-			(em_address <= 0xcd009000))
-		{
-				hwWriteWii(data,em_address);
-				return;
-		}
-		else if (((em_address & 0xFFF00000) == 0xCD800000) &&
-			(em_address <= 0xCD809000))
-		{
-				hwWriteIOBridge(data,em_address);
-				return;
-		}
 		else
 		{
-			ERROR_LOG(MEMMAP, "hwwrite [%08x] := %08x (PC: %08x)", em_address, (u32)data, PC);
-			_dbg_assert_msg_(MEMMAP,0,"Memory - Unknown HW address %08x", em_address);
+			mmio_mapping->Write(em_address, data);
+			return;
 		}
 	}
 	else if (((em_address & 0xF0000000) == 0x80000000) ||
@@ -318,6 +234,9 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 /* These functions are primarily called by the Interpreter functions and are routed to the correct
    location through ReadFromHardware and WriteToHardware */
 // ----------------
+
+static void GenerateISIException(u32 effective_address);
+
 u32 Read_Opcode(u32 _Address)
 {
 	if (_Address == 0x00000000)
@@ -554,23 +473,23 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 // *********************************************************************************
 
 /*
-*	PearPC
-*	ppc_mmu.cc
+* PearPC
+* ppc_mmu.cc
 *
-*	Copyright (C) 2003, 2004 Sebastian Biallas (sb@biallas.net)
+* Copyright (C) 2003, 2004 Sebastian Biallas (sb@biallas.net)
 *
-*	This program is free software; you can redistribute it and/or modify
-*	it under the terms of the GNU General Public License version 2 as
-*	published by the Free Software Foundation.
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License version 2 as
+* published by the Free Software Foundation.
 *
-*	This program is distributed in the hope that it will be useful,
-*	but WITHOUT ANY WARRANTY; without even the implied warranty of
-*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*	GNU General Public License for more details.
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
 *
-*	You should have received a copy of the GNU General Public License
-*	along with this program; if not, write to the Free Software
-*	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 
@@ -591,8 +510,8 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 
 #define EA_SR(v)         (((v)>>28)&0xf)
 #define EA_PageIndex(v)  (((v)>>12)&0xffff)
-#define EA_Offset(v)	((v)&0xfff)
-#define EA_API(v)		(((v)>>22)&0x3f)
+#define EA_Offset(v)     ((v)&0xfff)
+#define EA_API(v)        (((v)>>22)&0x3f)
 
 #define PA_RPN(v)        (((v)>>12)&0xfffff)
 #define PA_Offset(v)     ((v)&0xfff)
@@ -636,7 +555,7 @@ union UPTE2
 	u32 Hex;
 };
 
-void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
+static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 {
 	if (_bWrite)
 		PowerPC::ppcState.spr[SPR_DSISR] = PPC_EXC_DSISR_PAGE | PPC_EXC_DSISR_STORE;
@@ -649,7 +568,7 @@ void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 }
 
 
-void GenerateISIException(u32 _EffectiveAddress)
+static void GenerateISIException(u32 _EffectiveAddress)
 {
 	// Address of instruction could not be translated
 	NPC = _EffectiveAddress;
@@ -715,14 +634,14 @@ u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 {
 #ifdef FAST_TLB_CACHE
 	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
-	if(tlbe[0].tag == (vpa & ~0xfff) && !(tlbe[0].flags & TLB_FLAG_INVALID))
+	if (tlbe[0].tag == (vpa & ~0xfff) && !(tlbe[0].flags & TLB_FLAG_INVALID))
 	{
 		tlbe[0].flags |= TLB_FLAG_MOST_RECENT;
 		tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
 		*paddr = tlbe[0].paddr | (vpa & 0xfff);
 		return 1;
 	}
-	if(tlbe[1].tag == (vpa & ~0xfff) && !(tlbe[1].flags & TLB_FLAG_INVALID))
+	if (tlbe[1].tag == (vpa & ~0xfff) && !(tlbe[1].flags & TLB_FLAG_INVALID))
 	{
 		tlbe[1].flags |= TLB_FLAG_MOST_RECENT;
 		tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
@@ -764,7 +683,7 @@ void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 {
 #ifdef FAST_TLB_CACHE
 	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
-	if((tlbe[0].flags & TLB_FLAG_MOST_RECENT) == 0)
+	if ((tlbe[0].flags & TLB_FLAG_MOST_RECENT) == 0)
 	{
 		tlbe[0].flags = TLB_FLAG_MOST_RECENT;
 		tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
@@ -802,20 +721,20 @@ void InvalidateTLBEntry(u32 vpa)
 {
 #ifdef FAST_TLB_CACHE
 	tlb_entry *tlbe = tlb[0][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
-	if(tlbe[0].tag == (vpa & ~0xfff))
+	if (tlbe[0].tag == (vpa & ~0xfff))
 	{
 		tlbe[0].flags |= TLB_FLAG_INVALID;
 	}
-	if(tlbe[1].tag == (vpa & ~0xfff))
+	if (tlbe[1].tag == (vpa & ~0xfff))
 	{
 		tlbe[1].flags |= TLB_FLAG_INVALID;
 	}
 	tlb_entry *tlbe_i = tlb[1][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
-	if(tlbe_i[0].tag == (vpa & ~0xfff))
+	if (tlbe_i[0].tag == (vpa & ~0xfff))
 	{
 		tlbe_i[0].flags |= TLB_FLAG_INVALID;
 	}
-	if(tlbe_i[1].tag == (vpa & ~0xfff))
+	if (tlbe_i[1].tag == (vpa & ~0xfff))
 	{
 		tlbe_i[1].flags |= TLB_FLAG_INVALID;
 	}
@@ -847,10 +766,10 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 
 	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)];
 
-	u32 offset = EA_Offset(_Address);			// 12 bit
-	u32 page_index = EA_PageIndex(_Address);	// 16 bit
-	u32 VSID = SR_VSID(sr);						// 24 bit
-	u32 api = EA_API(_Address);					//  6 bit (part of page_index)
+	u32 offset = EA_Offset(_Address);        // 12 bit
+	u32 page_index = EA_PageIndex(_Address); // 16 bit
+	u32 VSID = SR_VSID(sr);                  // 24 bit
+	u32 api = EA_API(_Address);              //  6 bit (part of page_index)
 
 	u8* pRAM = GetPointer(0);
 

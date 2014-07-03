@@ -2,21 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "JitILBase.h"
+#include "Common/Common.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 void JitILBase::fp_arith_s(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 &&
-	                inst.SUBOP5 != 21 && inst.SUBOP5 != 26)) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21));
+
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF) {
-		Default(inst); return;
-	}
+	FALLBACK_IF(inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF);
+
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	switch (inst.SUBOP5)
 	{
@@ -28,12 +25,6 @@ void JitILBase::fp_arith_s(UGeckoInstruction inst)
 		break;
 	case 25: //mul
 		val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
-		break;
-	case 26: //rsqrte
-		val = ibuild.EmitLoadFReg(inst.FB);
-		val = ibuild.EmitDoubleToSingle(val);
-		val = ibuild.EmitFSRSqrt(val);
-		val = ibuild.EmitDupSingleToMReg(val);
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
@@ -51,14 +42,12 @@ void JitILBase::fp_arith_s(UGeckoInstruction inst)
 void JitILBase::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF) {
-		Default(inst); return;
-	}
+	FALLBACK_IF(inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF);
+
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
 	if (inst.SUBOP5 & 1)
@@ -79,10 +68,9 @@ void JitILBase::fmaddXX(UGeckoInstruction inst)
 void JitILBase::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
-		Default(inst); return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FB);
 	val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
 	ibuild.EmitStoreFReg(val, inst.FD);
@@ -91,7 +79,7 @@ void JitILBase::fmrx(UGeckoInstruction inst)
 void JitILBase::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
+	JITDISABLE(bJITFloatingPointOff);
 	IREmitter::InstLoc lhs, rhs, res;
 	lhs = ibuild.EmitLoadFReg(inst.FA);
 	rhs = ibuild.EmitLoadFReg(inst.FB);
@@ -104,9 +92,9 @@ void JitILBase::fcmpx(UGeckoInstruction inst)
 void JitILBase::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-	Default(inst);
-	return;
+	JITDISABLE(bJITFloatingPointOff);
+
+	FALLBACK_IF(true);
 
 	// TODO
 	switch (inst.SUBOP10) {

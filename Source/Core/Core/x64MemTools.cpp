@@ -2,22 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
-#ifdef __APPLE__
-#include "Thread.h"
-#endif
-
+#include <cstdio>
 #include <vector>
 
-#include "Common.h"
-#include "MemTools.h"
-#include "HW/Memmap.h"
-#include "PowerPC/PowerPC.h"
-#include "PowerPC/JitInterface.h"
-#ifndef _M_GENERIC
-#include "PowerPC/JitCommon/JitBase.h"
+#ifdef __APPLE__
+#include "Common/Thread.h"
 #endif
-#include "x64Analyzer.h"
+
+#include "Common/Common.h"
+#include "Common/x64Analyzer.h"
+
+#include "Core/MemTools.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#ifndef _M_GENERIC
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#endif
 
 namespace EMM
 {
@@ -50,7 +51,7 @@ bool DoFault(u64 bad_address, SContext *ctx)
 
 	u64 memspace_bottom = (u64)Memory::base;
 	u64 memspace_top = memspace_bottom +
-#ifdef _M_X64
+#if _ARCH_64
 		0x100000000ULL;
 #else
 		0x40000000;
@@ -88,9 +89,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
 
-			//Where in the x86 code are we?
-			PVOID codeAddr = pPtrs->ExceptionRecord->ExceptionAddress;
-			unsigned char *codePtr = (unsigned char*)codeAddr;
+			// virtual address of the inaccessible data
 			u64 badAddress = (u64)pPtrs->ExceptionRecord->ExceptionInformation[1];
 			CONTEXT *ctx = pPtrs->ContextRecord;
 
@@ -103,7 +102,6 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 				// Let's not prevent debugging.
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
-
 		}
 
 	case EXCEPTION_STACK_OVERFLOW:
@@ -133,7 +131,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 void InstallExceptionHandler()
 {
-#ifdef _M_X64
+#if _M_X86_64
 	// Make sure this is only called once per process execution
 	// Instead, could make a Uninstall function, but whatever..
 	static bool handlerInstalled = false;
@@ -155,7 +153,7 @@ void CheckKR(const char* name, kern_return_t kr)
 	}
 }
 
-#ifdef _M_X64
+#if _M_X86_64
 void ExceptionThread(mach_port_t port)
 {
 	Common::SetCurrentThreadName("Mach exception thread");
@@ -185,7 +183,7 @@ void ExceptionThread(mach_port_t port)
 	#pragma pack()
 	memset(&msg_in, 0xee, sizeof(msg_in));
 	memset(&msg_out, 0xee, sizeof(msg_out));
-	mach_msg_header_t *send_msg = NULL;
+	mach_msg_header_t *send_msg = nullptr;
 	mach_msg_size_t send_size = 0;
 	mach_msg_option_t option = MACH_RCV_MSG;
 	while (1)
@@ -250,7 +248,7 @@ void ExceptionThread(mach_port_t port)
 
 void InstallExceptionHandler()
 {
-#ifdef _M_IX86
+#if _M_X86_32
 	PanicAlertT("InstallExceptionHandler called, but this platform does not yet support it.");
 #else
 	mach_port_t port;
@@ -301,15 +299,15 @@ void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 
 void InstallExceptionHandler()
 {
-#ifdef _M_IX86
+#if _M_X86_32
 	PanicAlertT("InstallExceptionHandler called, but this platform does not yet support it.");
 #else
 	struct sigaction sa;
-	sa.sa_handler = 0;
+	sa.sa_handler = nullptr;
 	sa.sa_sigaction = &sigsegv_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
-	sigaction(SIGSEGV, &sa, NULL);
+	sigaction(SIGSEGV, &sa, nullptr);
 #endif
 }
 

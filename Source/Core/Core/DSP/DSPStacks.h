@@ -3,7 +3,7 @@
    filename:     gdsp_registers.h
    project:      GCemu
    created:      2004-6-18
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie & Tratax
 
@@ -23,12 +23,9 @@
 
    ====================================================================*/
 
-#ifndef _DSP_STACKS_H
-#define _DSP_STACKS_H
+#pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
 void dsp_reg_store_stack(int stack_reg, u16 val);
 u16 dsp_reg_load_stack(int stack_reg);
-
-#endif

@@ -2,27 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VIDEOCOMMON_H
-#define _VIDEOCOMMON_H
+#pragma once
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
-#include "Common.h"
-#include "MathUtil.h"
-#include "VideoBackendBase.h"
-
-#if defined(_MSC_VER) && !defined(__x86_64__) && !defined(_M_X64)
-void * memcpy_amd(void *dest, const void *src, size_t n);
-unsigned char memcmp_mmx(const void* src1, const void* src2, int cmpsize);
-#define memcpy_gc memcpy_amd
-#define memcmp_gc memcmp_mmx
-#else
-#define memcpy_gc memcpy
-#define memcmp_gc memcmp
-#endif
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 // These are accurate (disregarding AA modes).
 enum
@@ -39,11 +28,6 @@ const u32 MAX_XFB_WIDTH = EFB_WIDTH;
 // vertical scaling by the EFB copy operation or copying to multiple XFB's
 // that are next to each other in memory (TODO: handle that situation).
 const u32 MAX_XFB_HEIGHT = 574;
-
-// Logging
-// ----------
-void HandleGLError();
-
 
 // This structure should only be used to represent a rectangle in EFB
 // coordinates, where the origin is at the upper left and the frame dimensions
@@ -85,8 +69,8 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 typedef enum
 {
 	API_OPENGL = 1,
-	API_D3D = 2,
-	API_NONE = 3
+	API_D3D    = 2,
+	API_NONE   = 3
 } API_TYPE;
 
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
@@ -132,5 +116,3 @@ inline unsigned int GetPow2(unsigned int val)
 		++ret;
 	return ret;
 }
-
-#endif  // _VIDEOCOMMON_H

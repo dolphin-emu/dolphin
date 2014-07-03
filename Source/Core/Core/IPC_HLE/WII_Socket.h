@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_SOCKET_H_
-#define _WII_SOCKET_H_
-
+#pragma once
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -41,20 +39,20 @@ typedef struct pollfd pollfd_t;
 #include <errno.h>
 #endif
 
-#include <algorithm>    // std::for_each
-#include <unordered_map>
-#include <stdio.h>
-#include <string>
+#include <algorithm>
+#include <cstdio>
 #include <list>
+#include <string>
+#include <unordered_map>
 
-#include "FileUtil.h"
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device_net.h"
-#include "WII_IPC_HLE_Device_net_ssl.h"
+#include "Common/FileUtil.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 
 enum {
-	SO_MSG_OOB		= 0x01,
-	SO_MSG_PEEK		= 0x02,
+	SO_MSG_OOB      = 0x01,
+	SO_MSG_PEEK     = 0x02,
 	SO_MSG_NONBLOCK = 0x04,
 };
 enum {
@@ -147,23 +145,24 @@ struct WiiInAddr
 
 struct WiiSockAddr
 {
-    u8 len;
-    u8 family;
-    u8 data[6];
+	u8 len;
+	u8 family;
+	u8 data[6];
 };
 
 struct WiiSockAddrIn
 {
-    u8 len;
-    u8 family;
-    u16 port;
-    WiiInAddr addr;
+	u8 len;
+	u8 family;
+	u16 port;
+	WiiInAddr addr;
 };
 #pragma pack(pop)
 
 class WiiSocket
 {
-	struct sockop{
+	struct sockop
+	{
 		u32 _CommandAddress;
 		bool is_ssl;
 		union
@@ -178,71 +177,69 @@ private:
 	std::list<sockop> pending_sockops;
 
 	friend class WiiSockMan;
-	void setFd(s32 s);
-	s32 closeFd();
-	s32 _fcntl(u32 cmd, u32 arg);
+	void SetFd(s32 s);
+	s32 CloseFd();
+	s32 FCntl(u32 cmd, u32 arg);
 
-	void doSock(u32 _CommandAddress, NET_IOCTL type);
-	void doSock(u32 _CommandAddress, SSL_IOCTL type);
-	void update(bool read, bool write, bool except);
-	bool valid() {return fd >= 0;}
+	void DoSock(u32 _CommandAddress, NET_IOCTL type);
+	void DoSock(u32 _CommandAddress, SSL_IOCTL type);
+	void Update(bool read, bool write, bool except);
+	bool IsValid() {return fd >= 0;}
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
-	void operator=(WiiSocket const&);	// Don't implement
+	void operator=(WiiSocket const&); // Don't implement
 
 };
 
-class WiiSockMan
+class WiiSockMan : public ::NonCopyable
 {
 public:
-	static s32 getNetErrorCode(s32 ret, std::string caller, bool isRW);
+	static s32 GetNetErrorCode(s32 ret, std::string caller, bool isRW);
 	static char* DecodeError(s32 ErrorCode);
 
-	static WiiSockMan& getInstance()
+	static WiiSockMan& GetInstance()
 	{
 		static WiiSockMan instance; // Guaranteed to be destroyed.
-		return instance;			// Instantiated on first use.
+		return instance;            // Instantiated on first use.
 	}
 	void Update();
-	static void EnqueueReply(u32 CommandAddress, s32 ReturnValue);
+	static void EnqueueReply(u32 CommandAddress, s32 ReturnValue, IPCCommandType CommandType);
 	static void Convert(WiiSockAddrIn const & from, sockaddr_in& to);
 	static void Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrlen=-1);
 	// NON-BLOCKING FUNCTIONS
-	s32 newSocket(s32 af, s32 type, s32 protocol);
-	void addSocket(s32 fd);
-	s32 delSocket(s32 s);
-	s32 getLastNetError() {return errono_last;}
-	void setLastNetError(s32 error) {errono_last = error;}
+	s32 NewSocket(s32 af, s32 type, s32 protocol);
+	void AddSocket(s32 fd);
+	s32 DeleteSocket(s32 s);
+	s32 GetLastNetError() { return errno_last; }
+	void SetLastNetError(s32 error) { errno_last = error; }
 
-	void clean()
+	void Clean()
 	{
 		WiiSockets.clear();
 	}
 
 	template <typename T>
-	void doSock(s32 sock, u32 CommandAddress, T type)
+	void DoSock(s32 sock, u32 CommandAddress, T type)
 	{
-		if (WiiSockets.find(sock) == WiiSockets.end())
+		auto socket_entry = WiiSockets.find(sock);
+		if (socket_entry == WiiSockets.end())
 		{
+			IPCCommandType ct = static_cast<IPCCommandType>(Memory::Read_U32(CommandAddress));
 			ERROR_LOG(WII_IPC_NET,
-				"doSock: Error, fd not found (%08x, %08X, %08X)",
+				"DoSock: Error, fd not found (%08x, %08X, %08X)",
 				sock, CommandAddress, type);
-			EnqueueReply(CommandAddress, -SO_EBADF);
+			EnqueueReply(CommandAddress, -SO_EBADF, ct);
 		}
 		else
 		{
-			WiiSockets[sock].doSock(CommandAddress, type);
+			socket_entry->second.DoSock(CommandAddress, type);
 		}
 	}
 
 private:
-	WiiSockMan() {};                   // Constructor? (the {} brackets) are needed here.
-	WiiSockMan(WiiSockMan const&);     // Don't Implement
-	void operator=(WiiSockMan const&); // Don't implement
+	WiiSockMan() = default;
+
 	std::unordered_map<s32, WiiSocket> WiiSockets;
-
-	s32 errono_last;
+	s32 errno_last;
 };
-
-#endif

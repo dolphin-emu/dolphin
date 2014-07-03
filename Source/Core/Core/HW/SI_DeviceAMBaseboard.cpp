@@ -2,13 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Core/HW/GCPad.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI_DeviceAMBaseboard.h"
 
-#include "SI.h"
-#include "SI_Device.h"
-#include "SI_DeviceAMBaseboard.h"
-
-#include "GCPadStatus.h"
-#include "GCPad.h"
+#include "InputCommon/GCPadStatus.h"
 
 // where to put baseboard debug
 #define AMBASEBOARDDEBUG OSREPORT
@@ -91,14 +90,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 	ISIDevice::RunBuffer(_pBuffer, _iLength);
 
 	int iPosition = 0;
-	while(iPosition < _iLength)
+	while (iPosition < _iLength)
 	{
 		// read the command
 		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
 		iPosition++;
 
 		// handle it
-		switch(command)
+		switch (command)
 		{
 		case CMD_RESET: // returns ID and dip switches
 			{

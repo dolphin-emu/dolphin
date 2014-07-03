@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ACTIONREPLAY_H_
-#define _ACTIONREPLAY_H_
+#pragma once
 
-#include "IniFile.h"
+#include "Common/IniFile.h"
 
 namespace ActionReplay
 {
@@ -28,7 +27,7 @@ struct ARCode
 
 void RunAllActive();
 bool RunCode(const ARCode &arcode);
-void LoadCodes(IniFile &globalini, IniFile &localIni, bool forceLoad);
+void LoadCodes(const IniFile &globalini, const IniFile &localIni, bool forceLoad);
 void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalini, IniFile &localIni);
 size_t GetCodeListSize();
 ARCode GetARCode(size_t index);
@@ -38,5 +37,3 @@ void EnableSelfLogging(bool enable);
 const std::vector<std::string> &GetSelfLog();
 bool IsSelfLogging();
 }  // namespace
-
-#endif // _ACTIONREPLAY_H_

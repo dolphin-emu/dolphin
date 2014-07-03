@@ -77,38 +77,41 @@ integer code are more aggresively combining blocks and dead condition
 register elimination, which should be very helpful for small blocks.
 
 TODO (in no particular order):
-JIT for misc remaining FP instructions
-JIT for bcctrx
-Misc optimizations for FP instructions
-Inter-block dead register elimination; this seems likely to have large
-	performance benefits, although I'm not completely sure.
-Inter-block inlining; also likely to have large performance benefits.
-	The tricky parts are deciding which blocks to inline, and that the
-	IR can't really deal with branches whose destination is in the
-	the middle of a generated block.
-Specialized slw/srw/sraw; I think there are some tricks that could
-	have a non-trivial effect, and there are significantly shorter
-	implementations for 64-bit involving abusing 64-bit shifts.
-64-bit compat (it should only be a few tweaks to register allocation and
-	the load/store code)
-Scheduling to reduce register pressure: PowerPC	compilers like to push
-	uses far away from definitions, but it's rather unfriendly to modern
-	x86 processors, which are short on registers and extremely good at
-	instruction reordering.
-Common subexpression elimination
-Optimize load/store of sum using complex addressing (partially implemented)
-Loop optimizations (loop-carried registers, LICM)
-Code refactoring/cleanup
-Investigate performance of the JIT itself; this doesn't affect
-	framerates significantly, but it does take a visible amount
-	of time for a complicated piece of code like a video decoder
-	to compile.
-Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
-	use a spare segment register, and expand the backpatch solution
-	to work in all the relevant situations.  On 64-bit, the existing
-	fast memory solution should basically work.  An alternative
-	would be to figure out a heuristic for what loads actually
-	vary their "type", and special-case them.
+- JIT for misc remaining FP instructions
+- JIT for bcctrx
+- Misc optimizations for FP instructions
+- Inter-block dead register elimination; this seems likely to have large
+  performance benefits, although I'm not completely sure.
+
+- Inter-block inlining; also likely to have large performance benefits.
+  The tricky parts are deciding which blocks to inline, and that the
+  IR can't really deal with branches whose destination is in the
+  the middle of a generated block.
+
+- Specialized slw/srw/sraw; I think there are some tricks that could
+  have a non-trivial effect, and there are significantly shorter
+  implementations for 64-bit involving abusing 64-bit shifts.
+  64-bit compat (it should only be a few tweaks to register allocation and the load/store code)
+
+- Scheduling to reduce register pressure: PowerPCcompilers like to push
+  uses far away from definitions, but it's rather unfriendly to modern
+  x86 processors, which are short on registers and extremely good at instruction reordering.
+
+- Common subexpression elimination
+- Optimize load/store of sum using complex addressing (partially implemented)
+- Loop optimizations (loop-carried registers, LICM)
+- Code refactoring/cleanup
+
+- Investigate performance of the JIT itself; this doesn't affect
+  framerates significantly, but it does take a visible amount
+  of time for a complicated piece of code like a video decoder to compile.
+
+- Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
+  use a spare segment register, and expand the backpatch solution
+  to work in all the relevant situations.  On 64-bit, the existing
+  fast memory solution should basically work.  An alternative
+  would be to figure out a heuristic for what loads actually
+  vary their "type", and special-case them.
 
 */
 
@@ -117,16 +120,20 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 #endif
 
 #include <algorithm>
-#include <memory>
 #include <cinttypes>
 #include <ctime>
+#include <memory>
 #include <set>
-#include "IR.h"
-#include "../PPCTables.h"
-#include "../../CoreTiming.h"
-#include "../../HW/Memmap.h"
-#include "../../HW/GPFifo.h"
-#include "../../Core.h"
+#include <string>
+
+#include "Common/StdMakeUnique.h"
+#include "Common/StringUtil.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/JitILCommon/IR.h"
 using namespace Gen;
 
 namespace IREmitter {
@@ -257,7 +264,7 @@ InstLoc IRBuilder::FoldZeroOp(unsigned Opcode, unsigned extra) {
 		return FRegCache[extra];
 	}
 	if (Opcode == LoadFRegDENToZero) {
-		FRegCacheStore[extra] = 0; // prevent previous store operation from zapping
+		FRegCacheStore[extra] = nullptr; // prevent previous store operation from zapping
 		FRegCache[extra] = EmitZeroOp(LoadFRegDENToZero, extra);
 		return FRegCache[extra];
 	}
@@ -840,7 +847,7 @@ InstLoc IRBuilder::FoldBranchCond(InstLoc Op1, InstLoc Op2) {
 	if (isImm(*Op1)) {
 		if (GetImmValue(Op1))
 			return EmitBranchUncond(Op2);
-		return 0;
+		return nullptr;
 	}
 	if (getOpcode(*Op1) == And &&
 	    isImm(*getOp2(Op1)) &&
@@ -993,22 +1000,22 @@ InstLoc IRBuilder::FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(ICmpCRUnsigned, Op1, Op2);
 }
 
-InstLoc IRBuilder::FoldInterpreterFallback(InstLoc Op1, InstLoc Op2) {
+InstLoc IRBuilder::FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2) {
 	for (unsigned i = 0; i < 32; i++) {
-		GRegCache[i] = 0;
-		GRegCacheStore[i] = 0;
-		FRegCache[i] = 0;
-		FRegCacheStore[i] = 0;
+		GRegCache[i] = nullptr;
+		GRegCacheStore[i] = nullptr;
+		FRegCache[i] = nullptr;
+		FRegCacheStore[i] = nullptr;
 	}
-	CarryCache = 0;
-	CarryCacheStore = 0;
+	CarryCache = nullptr;
+	CarryCacheStore = nullptr;
 	for (unsigned i = 0; i < 8; i++) {
-		CRCache[i] = 0;
-		CRCacheStore[i] = 0;
+		CRCache[i] = nullptr;
+		CRCacheStore[i] = nullptr;
 	}
-	CTRCache = 0;
-	CTRCacheStore = 0;
-	return EmitBiOp(InterpreterFallback, Op1, Op2);
+	CTRCache = nullptr;
+	CTRCacheStore = nullptr;
+	return EmitBiOp(FallBackToInterpreter, Op1, Op2);
 }
 
 InstLoc IRBuilder::FoldDoubleBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
@@ -1043,7 +1050,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 			return FoldICmp(Opcode, Op1, Op2);
 		case ICmpCRSigned: return FoldICmpCRSigned(Op1, Op2);
 		case ICmpCRUnsigned: return FoldICmpCRUnsigned(Op1, Op2);
-		case InterpreterFallback: return FoldInterpreterFallback(Op1, Op2);
+		case FallBackToInterpreter: return FoldFallBackToInterpreter(Op1, Op2);
 		case FDMul: case FDAdd: case FDSub: return FoldDoubleBiOp(Opcode, Op1, Op2);
 		default: return EmitBiOp(Opcode, Op1, Op2, extra);
 	}
@@ -1071,7 +1078,7 @@ bool IRBuilder::IsMarkUsed(InstLoc I) const {
 	return MarkUsed[i];
 }
 
-unsigned IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) const {
+bool IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) const {
 	if (Op1 == Op2) {
 		return true;
 	}
@@ -1123,8 +1130,8 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const {
 		numberOfOperands[CInt32] = 0;
 
 		static unsigned ZeroOp[] = {LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
-		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, Not, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FSRSqrt, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
-		static unsigned BiOp[] = {BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, InterpreterFallback, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
+		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, Not, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
+		static unsigned BiOp[] = {BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, FallBackToInterpreter, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
 		for (auto& op : ZeroOp) {
 			numberOfOperands[op] = 0;
 		}
@@ -1206,19 +1213,18 @@ InstLoc IRBuilder::isNeg(InstLoc I) const {
 		return getOp2(I);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 // TODO: Move the following code to a separated file.
 struct Writer
 {
 	File::IOFile file;
-	Writer() : file(NULL)
+	Writer() : file(nullptr)
 	{
-		char buffer[1024];
-		sprintf(buffer, "JitIL_IR_%d.txt", (int)time(NULL));
-		file.Open(buffer, "w");
-		setvbuf(file.GetHandle(), NULL, _IOFBF, 1024 * 1024);
+		std::string filename = StringFromFormat("JitIL_IR_%d.txt", (int)time(nullptr));
+		file.Open(filename, "w");
+		setvbuf(file.GetHandle(), nullptr, _IOFBF, 1024 * 1024);
 	}
 
 	virtual ~Writer() {}
@@ -1231,7 +1237,7 @@ static const std::string opcodeNames[] = {
 	"LoadMSR", "LoadGQR", "SExt8", "SExt16", "BSwap32", "BSwap16", "Cntlzw",
 	"Not", "Load8", "Load16", "Load32", "BranchUncond", "StoreGReg",
 	"StoreCR", "StoreLink", "StoreCarry", "StoreCTR", "StoreMSR", "StoreFPRF",
-	"StoreGQR", "StoreSRR", "InterpreterFallback", "Add", "Mul", "And", "Or",
+	"StoreGQR", "StoreSRR", "FallBackToInterpreter", "Add", "Mul", "And", "Or",
 	"Xor", "MulHighUnsigned", "Sub", "Shl", "Shrl", "Sarl", "Rol",
 	"ICmpCRSigned", "ICmpCRUnsigned", "ICmpEq", "ICmpNe", "ICmpUgt",
 	"ICmpUlt", "ICmpUge", "ICmpUle", "ICmpSgt", "ICmpSlt", "ICmpSge",
@@ -1249,7 +1255,7 @@ static const std::string opcodeNames[] = {
 	"Tramp", "BlockStart", "BlockEnd", "Int3",
 };
 static const unsigned alwaysUsedList[] = {
-	InterpreterFallback, StoreGReg, StoreCR, StoreLink, StoreCTR, StoreMSR,
+	FallBackToInterpreter, StoreGReg, StoreCR, StoreLink, StoreCTR, StoreMSR,
 	StoreGQR, StoreSRR, StoreCarry, StoreFPRF, Load8, Load16, Load32, Store8,
 	Store16, Store32, StoreSingle, StoreDouble, StorePaired, StoreFReg, FDCmpCR,
 	BlockStart, BlockEnd, IdleBranch, BranchCond, BranchUncond, ShortIdleLoop,
@@ -1276,7 +1282,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 	_assert_(sizeof(opcodeNames) / sizeof(opcodeNames[0]) == Int3 + 1);
 
 	if (!writer.get()) {
-		writer = std::unique_ptr<Writer>(new Writer);
+		writer = std::make_unique<Writer>();
 	}
 
 	FILE* const file = writer->file.GetHandle();
@@ -1292,7 +1298,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 			alwaysUseds.find(opcode) != alwaysUseds.end();
 
 		// Line number
-		fprintf(file, "%4d", i);
+		fprintf(file, "%4u", i);
 
 		if (!thisUsed) {
 			fprintf(file, "%*c", 32, ' ');

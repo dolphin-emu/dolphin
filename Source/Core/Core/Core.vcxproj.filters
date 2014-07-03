@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="ActionReplay">
@@ -103,9 +103,6 @@
     <Filter Include="HW %28Flipper/Hollywood%29\VI - Video Interface">
       <UniqueIdentifier>{fa27e799-34c8-440a-9de3-6720df6022e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\Wii IO Bridge">
-      <UniqueIdentifier>{a6444fcf-11b7-42d3-859f-cfe23fe83e9d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\Wii IPC">
       <UniqueIdentifier>{2b41ab45-ba8c-45dc-92cc-9107c1fa3e36}</UniqueIdentifier>
     </Filter>
@@ -140,7 +137,6 @@
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
-    <ClCompile Include="Console.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreParameter.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
@@ -186,10 +182,10 @@
     <ClCompile Include="Debugger\PPCDebugInterface.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntArithmetic.cpp">
+    <ClCompile Include="DSP\DSPIntArithmetic.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntBranch.cpp">
+    <ClCompile Include="DSP\DSPIntBranch.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="DSP\DSPIntCCUtil.cpp">
@@ -201,13 +197,13 @@
     <ClCompile Include="DSP\DSPIntExtOps.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntLoadStore.cpp">
+    <ClCompile Include="DSP\DSPIntLoadStore.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntMisc.cpp">
+    <ClCompile Include="DSP\DSPIntMisc.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\DspIntMultiplier.cpp">
+    <ClCompile Include="DSP\DSPIntMultiplier.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Jit\DSPJitArithmetic.cpp">
@@ -315,43 +311,40 @@
     <ClCompile Include="HW\DVDInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_AX.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\AX.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_AXWii.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\AXWii.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_CARD.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\CARD.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_GBA.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\GBA.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_InitAudioSystem.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\INIT.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_ROM.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\ROM.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_Zelda.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\Zelda.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_Zelda_ADPCM.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaADPCM.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_Zelda_Synth.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaSynth.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DSPHLE\UCodes\UCode_Zelda_Voice.cpp">
+    <ClCompile Include="HW\DSPHLE\UCodes\ZeldaVoice.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\UCodes.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPHLE\DSPHLE.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClCompile>
-    <ClCompile Include="HW\DSPHLE\HLEMixer.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPHLE\MailHandler.cpp">
@@ -415,6 +408,12 @@
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\GCMemcard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCMemcardDirectory.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCMemcardRaw.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
     <ClCompile Include="HW\GCPad.cpp">
@@ -492,9 +491,6 @@
     <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
     </ClCompile>
-    <ClCompile Include="HW\WII_IOB.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IO Bridge</Filter>
-    </ClCompile>
     <ClCompile Include="HW\WII_IPC.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>
     </ClCompile>
@@ -510,13 +506,13 @@
     <ClCompile Include="HW\MemmapFunctions.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
+    <ClCompile Include="HW\MMIO.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
     <ClCompile Include="HW\SystemTimers.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\assemble.cpp">
-      <Filter>DSPCore</Filter>
-    </ClCompile>
-    <ClCompile Include="DSP\disassemble.cpp">
+    <ClCompile Include="DSP\DSPAssembler.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
     <ClCompile Include="DSP\DSPAccelerator.cpp">
@@ -525,10 +521,16 @@
     <ClCompile Include="DSP\DSPAnalyzer.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
+    <ClCompile Include="DSP\DSPCaptureLogger.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
     <ClCompile Include="DSP\DSPCodeUtil.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
     <ClCompile Include="DSP\DSPCore.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\DSPDisassembler.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
     <ClCompile Include="DSPEmulator.cpp">
@@ -648,9 +650,6 @@
     <ClCompile Include="PowerPC\Jit64IL\JitIL_Tables.cpp">
       <Filter>PowerPC\JitIL</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64IL\JitILAsm.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
@@ -713,7 +712,6 @@
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="ConfigManager.h" />
-    <ClInclude Include="Console.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreParameter.h" />
     <ClInclude Include="CoreTiming.h" />
@@ -845,40 +843,37 @@
     <ClInclude Include="HW\DVDInterface.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_AX.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\AX.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_AX_Voice.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\AXVoice.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_AXStructs.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\AXStructs.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_AXWii.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\AXWii.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_CARD.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\CARD.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_GBA.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\GBA.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_InitAudioSystem.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\INIT.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_ROM.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\ROM.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DSPHLE\UCodes\UCode_Zelda.h">
+    <ClInclude Include="HW\DSPHLE\UCodes\Zelda.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\UCodes\UCodes.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\DSPHLE.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\DSPHLE\HLEMixer.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\MailHandler.h">
@@ -942,6 +937,12 @@
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCMemcard.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCMemcardDirectory.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCMemcardRaw.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCPadEmu.h">
@@ -1022,9 +1023,6 @@
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WII_IOB.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IO Bridge</Filter>
-    </ClInclude>
     <ClInclude Include="HW\WII_IPC.h">
       <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>
     </ClInclude>
@@ -1037,13 +1035,16 @@
     <ClInclude Include="HW\Memmap.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
+    <ClInclude Include="HW\MMIO.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\MMIOHandlers.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
     <ClInclude Include="HW\SystemTimers.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\assemble.h">
-      <Filter>DSPCore</Filter>
-    </ClInclude>
-    <ClInclude Include="DSP\disassemble.h">
+    <ClInclude Include="DSP\DSPAssembler.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPAccelerator.h">
@@ -1055,6 +1056,9 @@
     <ClInclude Include="DSP\DSPBreakpoints.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
+    <ClInclude Include="DSP\DSPCaptureLogger.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
     <ClInclude Include="DSP\DSPCodeUtil.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
@@ -1062,6 +1066,9 @@
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPCore.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPDisassembler.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSPEmulator.h">
@@ -1197,9 +1204,6 @@
       <Filter>PowerPC\JitIL</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64IL\JitIL_Tables.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\Jit64IL\JitILAsm.h">
       <Filter>PowerPC\JitIL</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64\JitRegCache.h">

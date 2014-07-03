@@ -2,14 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "GCPadStatus.h"
+#include "Common/Common.h"
 
-#include "ControllerInterface/ControllerInterface.h"
-#include "GCPadEmu.h"
-#include "../ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/GCPadEmu.h"
 
-#include "../../InputCommon/InputConfig.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 
 namespace Pad
 {
@@ -57,7 +58,10 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		// if gui has lock (messing with controls), skip this input cycle
 		// center axes and return
-		memset(&_pPADStatus->stickX, 0x80, 4);
+		_pPADStatus->stickX = 0x80;
+		_pPADStatus->stickY = 0x80;
+		_pPADStatus->substickX = 0x80;
+		_pPADStatus->substickY = 0x80;
 		return;
 	}
 

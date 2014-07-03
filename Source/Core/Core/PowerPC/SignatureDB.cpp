@@ -2,15 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "PPCAnalyst.h"
-#include "../HW/Memmap.h"
-#include "FileUtil.h"
+#include <string>
 
-#include "SignatureDB.h"
-#include "PPCSymbolDB.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
 
-namespace {
+#include "Core/HW/Memmap.h"
+
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/SignatureDB.h"
+
+namespace
+{
 
 // On-disk format for SignatureDB entries.
 struct FuncDesc
@@ -22,7 +26,7 @@ struct FuncDesc
 
 }  // namespace
 
-bool SignatureDB::Load(const char *filename)
+bool SignatureDB::Load(const std::string& filename)
 {
 	File::IOFile f(filename, "rb");
 	if (!f)
@@ -46,7 +50,7 @@ bool SignatureDB::Load(const char *filename)
 	return true;
 }
 
-bool SignatureDB::Save(const char *filename)
+bool SignatureDB::Save(const std::string& filename)
 {
 	File::IOFile f(filename, "wb");
 	if (!f)
@@ -56,13 +60,13 @@ bool SignatureDB::Save(const char *filename)
 	}
 	u32 fcount = (u32)database.size();
 	f.WriteArray(&fcount, 1);
-	for (FuncDB::const_iterator iter = database.begin(); iter != database.end(); ++iter)
+	for (const auto& entry : database)
 	{
 		FuncDesc temp;
 		memset(&temp, 0, sizeof(temp));
-		temp.checkSum = iter->first;
-		temp.size = iter->second.size;
-		strncpy(temp.name, iter->second.name.c_str(), 127);
+		temp.checkSum = entry.first;
+		temp.size = entry.second.size;
+		strncpy(temp.name, entry.second.name.c_str(), 127);
 		f.WriteArray(&temp, 1);
 	}
 
@@ -71,7 +75,7 @@ bool SignatureDB::Save(const char *filename)
 }
 
 //Adds a known function to the hash database
-u32 SignatureDB::Add(u32 startAddr, u32 size, const char *name)
+u32 SignatureDB::Add(u32 startAddr, u32 size, const std::string& name)
 {
 	u32 hash = ComputeCodeChecksum(startAddr, startAddr + size);
 
@@ -82,14 +86,15 @@ u32 SignatureDB::Add(u32 startAddr, u32 size, const char *name)
 	FuncDB::iterator iter = database.find(hash);
 	if (iter == database.end())
 		database[hash] = temp_dbfunc;
+
 	return hash;
 }
 
 void SignatureDB::List()
 {
-	for (FuncDB::iterator iter = database.begin(); iter != database.end(); ++iter)
+	for (const auto& entry : database)
 	{
-		INFO_LOG(OSHLE, "%s : %i bytes, hash = %08x", iter->second.name.c_str(), iter->second.size, iter->first);
+		INFO_LOG(OSHLE, "%s : %i bytes, hash = %08x", entry.second.name.c_str(), entry.second.size, entry.first);
 	}
 	INFO_LOG(OSHLE, "%lu functions known in current database.",
 		(unsigned long)database.size());
@@ -102,39 +107,39 @@ void SignatureDB::Clear()
 
 void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 {
-	for (FuncDB::const_iterator iter = database.begin(); iter != database.end(); ++iter)
+	for (const auto& entry : database)
 	{
-		u32 hash = iter->first;
+		u32 hash = entry.first;
 		Symbol *function = symbol_db->GetSymbolFromHash(hash);
 		if (function)
 		{
 			// Found the function. Let's rename it according to the symbol file.
-			if (iter->second.size == (unsigned int)function->size)
+			if (entry.second.size == (unsigned int)function->size)
 			{
-				function->name = iter->second.name;
-				INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", iter->second.name.c_str(), function->address, function->size);
+				function->name = entry.second.name;
+				INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", entry.second.name.c_str(), function->address, function->size);
 			}
 			else
 			{
-				function->name = iter->second.name;
-				ERROR_LOG(OSHLE, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!", iter->second.name.c_str(), function->address, function->size, iter->second.size);
+				function->name = entry.second.name;
+				ERROR_LOG(OSHLE, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!",
+				          entry.second.name.c_str(), function->address, function->size, entry.second.size);
 			}
 		}
 	}
 	symbol_db->Index();
 }
 
-void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
+void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const std::string& prefix)
 {
-	std::string prefix_str(prefix);
-	for (PPCSymbolDB::XFuncMap::const_iterator iter = symbol_db->GetConstIterator(); iter != symbol_db->End(); ++iter)
+	for (const auto& symbol : symbol_db->Symbols())
 	{
-		if ((iter->second.name.substr(0, prefix_str.size()) == prefix_str) || prefix_str.empty())
+		if ((symbol.second.name.substr(0, prefix.size()) == prefix) || prefix.empty())
 		{
 			DBFunc temp_dbfunc;
-			temp_dbfunc.name = iter->second.name;
-			temp_dbfunc.size = iter->second.size;
-			database[iter->second.hash] = temp_dbfunc;
+			temp_dbfunc.name = symbol.second.name;
+			temp_dbfunc.size = symbol.second.size;
+			database[symbol.second.hash] = temp_dbfunc;
 		}
 	}
 }

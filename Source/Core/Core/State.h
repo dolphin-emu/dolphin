@@ -5,8 +5,7 @@
 
 // Emulator state saving support.
 
-#ifndef _STATE_H_
-#define _STATE_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -30,7 +29,7 @@ void Shutdown();
 
 void EnableCompression(bool compression);
 
-bool ReadHeader(const std::string filename, StateHeader& header);
+bool ReadHeader(const std::string& filename, StateHeader& header);
 
 // These don't happen instantly - they get scheduled as events.
 // ...But only if we're not in the main cpu thread.
@@ -62,5 +61,3 @@ typedef void(*CallbackFunc)(void);
 void SetOnAfterLoadCallback(CallbackFunc callback);
 
 }
-
-#endif

@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _COREPARAMETER_H
-#define _COREPARAMETER_H
+#pragma once
 
-#include "IniFile.h"
 #include <string>
+
+#include "Common/IniFile.h"
 
 enum Hotkey
 {
@@ -38,6 +38,7 @@ enum Hotkey
 	HK_TOGGLE_AR,
 	HK_TOGGLE_EFBCOPIES,
 	HK_TOGGLE_FOG,
+	HK_TOGGLE_THROTTLE,
 
 	HK_INCREASE_FRAME_LIMIT,
 	HK_DECREASE_FRAME_LIMIT,
@@ -213,5 +214,3 @@ struct SCoreStartupParameter
 	IniFile LoadLocalGameIni() const;
 	IniFile LoadGameIni() const;
 };
-
-#endif

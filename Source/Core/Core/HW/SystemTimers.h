@@ -15,10 +15,9 @@
 // Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _SYSTEMTIMERS_H
-#define _SYSTEMTIMERS_H
+#pragma once
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 namespace SystemTimers
 {
@@ -36,5 +35,3 @@ void TimeBaseSet();
 u64 GetFakeTimeBase();
 
 }
-
-#endif

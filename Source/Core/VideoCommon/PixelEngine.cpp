@@ -6,19 +6,18 @@
 // http://developer.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "ChunkFile.h"
-#include "Atomic.h"
-#include "CoreTiming.h"
-#include "ConfigManager.h"
-
-#include "PixelEngine.h"
-#include "RenderBase.h"
-#include "CommandProcessor.h"
-#include "HW/ProcessorInterface.h"
-#include "DLCache.h"
-#include "State.h"
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/State.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace PixelEngine
 {
@@ -28,10 +27,10 @@ union UPEZConfReg
 	u16 Hex;
 	struct
 	{
-		u16 ZCompEnable		: 1; // Z Comparator Enable
-		u16 Function		: 3;
-		u16 ZUpdEnable		: 1;
-		u16					: 11;
+		u16 ZCompEnable : 1; // Z Comparator Enable
+		u16 Function    : 3;
+		u16 ZUpdEnable  : 1;
+		u16             : 11;
 	};
 };
 
@@ -40,15 +39,15 @@ union UPEAlphaConfReg
 	u16 Hex;
 	struct
 	{
-		u16 BMMath			: 1; // GX_BM_BLEND || GX_BM_SUBSTRACT
-		u16 BMLogic			: 1; // GX_BM_LOGIC
-		u16 Dither			: 1;
-		u16 ColorUpdEnable	: 1;
-		u16 AlphaUpdEnable	: 1;
-		u16 DstFactor		: 3;
-		u16 SrcFactor		: 3;
-		u16 Substract		: 1; // Additive mode by default
-		u16 BlendOperator	: 4;
+		u16 BMMath         : 1; // GX_BM_BLEND || GX_BM_SUBSTRACT
+		u16 BMLogic        : 1; // GX_BM_LOGIC
+		u16 Dither         : 1;
+		u16 ColorUpdEnable : 1;
+		u16 AlphaUpdEnable : 1;
+		u16 DstFactor      : 3;
+		u16 SrcFactor      : 3;
+		u16 Substract      : 1; // Additive mode by default
+		u16 BlendOperator  : 4;
 	};
 };
 
@@ -57,9 +56,9 @@ union UPEDstAlphaConfReg
 	u16 Hex;
 	struct
 	{
-		u16 DstAlpha		: 8;
-		u16 Enable			: 1;
-		u16					: 7;
+		u16 DstAlpha : 8;
+		u16 Enable   : 1;
+		u16          : 7;
 	};
 };
 
@@ -68,8 +67,8 @@ union UPEAlphaModeConfReg
 	u16 Hex;
 	struct
 	{
-		u16 Threshold		: 8;
-		u16 CompareMode		: 8;
+		u16 Threshold   : 8;
+		u16 CompareMode : 8;
 	};
 };
 
@@ -78,11 +77,11 @@ union UPECtrlReg
 {
 	struct
 	{
-		u16 PETokenEnable	:	1;
-		u16 PEFinishEnable	:	1;
-		u16 PEToken			:	1; // write only
-		u16 PEFinish		:	1; // write only
-		u16					:	12;
+		u16 PETokenEnable  : 1;
+		u16 PEFinishEnable : 1;
+		u16 PEToken        : 1; // write only
+		u16 PEFinish       : 1; // write only
+		u16                : 12;
 	};
 	u16 Hex;
 	UPECtrlReg() {Hex = 0; }
@@ -90,13 +89,13 @@ union UPECtrlReg
 };
 
 // STATE_TO_SAVE
-static UPEZConfReg			m_ZConf;
-static UPEAlphaConfReg		m_AlphaConf;
-static UPEDstAlphaConfReg	m_DstAlphaConf;
-static UPEAlphaModeConfReg	m_AlphaModeConf;
-static UPEAlphaReadReg		m_AlphaRead;
-static UPECtrlReg			m_Control;
-//static u16					m_Token; // token value most recently encountered
+static UPEZConfReg         m_ZConf;
+static UPEAlphaConfReg     m_AlphaConf;
+static UPEDstAlphaConfReg  m_DstAlphaConf;
+static UPEAlphaModeConfReg m_AlphaModeConf;
+static UPEAlphaReadReg     m_AlphaRead;
+static UPECtrlReg          m_Control;
+//static u16                 m_Token; // token value most recently encountered
 
 volatile u32 g_bSignalTokenInterrupt;
 volatile u32 g_bSignalFinishInterrupt;
@@ -112,8 +111,8 @@ bool bbox_active;
 
 enum
 {
-	INT_CAUSE_PE_TOKEN    =  0x200, // GP Token
-	INT_CAUSE_PE_FINISH   =  0x400, // GP Finished
+	INT_CAUSE_PE_TOKEN  = 0x200, // GP Token
+	INT_CAUSE_PE_FINISH = 0x400, // GP Finished
 };
 
 void DoState(PointerWrap &p)
@@ -165,175 +164,92 @@ void Init()
 	bbox_active = false;
 }
 
-void Read16(u16& _uReturnValue, const u32 _iAddress)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	DEBUG_LOG(PIXELENGINE, "(r16) 0x%08x", _iAddress);
-	switch (_iAddress & 0xFFF)
+	// Directly mapped registers.
+	struct {
+		u32 addr;
+		u16* ptr;
+	} directly_mapped_vars[] = {
+		{ PE_ZCONF, &m_ZConf.Hex },
+		{ PE_ALPHACONF, &m_AlphaConf.Hex },
+		{ PE_DSTALPHACONF, &m_DstAlphaConf.Hex },
+		{ PE_ALPHAMODE, &m_AlphaModeConf.Hex },
+		{ PE_ALPHAREAD, &m_AlphaRead.Hex },
+	};
+	for (auto& mapped_var : directly_mapped_vars)
 	{
-		// CPU Direct Access EFB Raster State Config
-	case PE_ZCONF:
-		_uReturnValue = m_ZConf.Hex;
-		INFO_LOG(PIXELENGINE, "(r16) ZCONF");
-		break;
-	case PE_ALPHACONF:
-		// Most games read this early. no idea why.
-		_uReturnValue = m_AlphaConf.Hex;
-		INFO_LOG(PIXELENGINE, "(r16) ALPHACONF");
-		break;
-	case PE_DSTALPHACONF:
-		_uReturnValue = m_DstAlphaConf.Hex;
-		INFO_LOG(PIXELENGINE, "(r16) DSTALPHACONF");
-		break;
-	case PE_ALPHAMODE:
-		_uReturnValue = m_AlphaModeConf.Hex;
-		INFO_LOG(PIXELENGINE, "(r16) ALPHAMODE");
-		break;
-	case PE_ALPHAREAD:
-		_uReturnValue = m_AlphaRead.Hex;
-		WARN_LOG(PIXELENGINE, "(r16) ALPHAREAD");
-		break;
-
-	case PE_CTRL_REGISTER:
-		_uReturnValue = m_Control.Hex;
-		INFO_LOG(PIXELENGINE, "(r16) CTRL_REGISTER : %04x", _uReturnValue);
-		break;
-
-	case PE_TOKEN_REG:
-		_uReturnValue = Common::AtomicLoad(*(volatile u32*)&CommandProcessor::fifo.PEToken);
-		INFO_LOG(PIXELENGINE, "(r16) TOKEN_REG : %04x", _uReturnValue);
-		break;
-
-	// BBox
-	case PE_BBOX_LEFT:
-	case PE_BBOX_RIGHT:
-	case PE_BBOX_TOP:
-	case PE_BBOX_BOTTOM:
-		_uReturnValue = bbox[(_iAddress >> 1) & 3];
-		bbox_active = false;
-		break;
-
-	// NOTE(neobrain): only PE_PERF_ZCOMP_OUTPUT is implemented in D3D11, but the other values shouldn't be contradictionary to the value of that register (i.e. INPUT registers should always be greater or equal to their corresponding OUTPUT registers).
-	case PE_PERF_ZCOMP_INPUT_ZCOMPLOC_L:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_INPUT_ZCOMPLOC) & 0xFFFF;
-		break;
-
-	case PE_PERF_ZCOMP_INPUT_ZCOMPLOC_H:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_INPUT_ZCOMPLOC) >> 16;
-		break;
-
-	case PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_L:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_OUTPUT_ZCOMPLOC) & 0xFFFF;
-		break;
-
-	case PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_H:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_OUTPUT_ZCOMPLOC) >> 16;
-		break;
-
-	case PE_PERF_ZCOMP_INPUT_L:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_INPUT) & 0xFFFF;
-		break;
-
-	case PE_PERF_ZCOMP_INPUT_H:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_INPUT) >> 16;
-		break;
-
-	case PE_PERF_ZCOMP_OUTPUT_L:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_OUTPUT) & 0xFFFF;
-		break;
-
-	case PE_PERF_ZCOMP_OUTPUT_H:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_OUTPUT) >> 16;
-		break;
-
-	case PE_PERF_BLEND_INPUT_L:
-		// Super Mario Sunshine uses this register in episode 6 of Sirena Beach:
-		// The amount of remaining goop is determined by checking how many pixels reach the blending stage.
-		// Once this register falls below a particular value (around 0x90), the game regards the challenge finished.
-		// In very old builds, Dolphin only returned 0. That caused the challenge to be immediately finished without any goop being cleaned (the timer just didn't even start counting from 3:00:00).
-		// Later builds returned 1 for the high register. That caused the timer to actually count down, but made the challenge unbeatable because the game always thought you didn't clear any goop at all.
-		// Note that currently this functionality is only implemented in the D3D11 backend.
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_BLEND_INPUT) & 0xFFFF;
-		break;
-
-	case PE_PERF_BLEND_INPUT_H:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_BLEND_INPUT) >> 16;
-		break;
-
-	case PE_PERF_EFB_COPY_CLOCKS_L:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_EFB_COPY_CLOCKS) & 0xFFFF;
-		break;
-
-	case PE_PERF_EFB_COPY_CLOCKS_H:
-		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_EFB_COPY_CLOCKS) >> 16;
-		break;
-
-	default:
-		INFO_LOG(PIXELENGINE, "(r16) unknown @ %08x", _iAddress);
-		_uReturnValue = 1;
-		break;
+		mmio->Register(base | mapped_var.addr,
+			MMIO::DirectRead<u16>(mapped_var.ptr),
+			MMIO::DirectWrite<u16>(mapped_var.ptr)
+		);
 	}
 
-}
-
-void Write16(const u16 _iValue, const u32 _iAddress)
-{
-	switch (_iAddress & 0xFFF)
+	// Performance queries registers: read only, need to call the video backend
+	// to get the results.
+	struct {
+		u32 addr;
+		PerfQueryType pqtype;
+	} pq_regs[] = {
+		{ PE_PERF_ZCOMP_INPUT_ZCOMPLOC_L, PQ_ZCOMP_INPUT_ZCOMPLOC },
+		{ PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_L, PQ_ZCOMP_OUTPUT_ZCOMPLOC },
+		{ PE_PERF_ZCOMP_INPUT_L, PQ_ZCOMP_INPUT },
+		{ PE_PERF_ZCOMP_OUTPUT_L, PQ_ZCOMP_OUTPUT },
+		{ PE_PERF_BLEND_INPUT_L, PQ_BLEND_INPUT },
+		{ PE_PERF_EFB_COPY_CLOCKS_L, PQ_EFB_COPY_CLOCKS },
+	};
+	for (auto& pq_reg : pq_regs)
 	{
-		// CPU Direct Access EFB Raster State Config
-	case PE_ZCONF:
-		m_ZConf.Hex = _iValue;
-		INFO_LOG(PIXELENGINE, "(w16) ZCONF: %02x", _iValue);
-		break;
-	case PE_ALPHACONF:
-		m_AlphaConf.Hex = _iValue;
-		INFO_LOG(PIXELENGINE, "(w16) ALPHACONF: %02x", _iValue);
-		break;
-	case PE_DSTALPHACONF:
-		m_DstAlphaConf.Hex = _iValue;
-		INFO_LOG(PIXELENGINE, "(w16) DSTALPHACONF: %02x", _iValue);
-		break;
-	case PE_ALPHAMODE:
-		m_AlphaModeConf.Hex = _iValue;
-		INFO_LOG(PIXELENGINE, "(w16) ALPHAMODE: %02x", _iValue);
-		break;
-	case PE_ALPHAREAD:
-		m_AlphaRead.Hex = _iValue;
-		INFO_LOG(PIXELENGINE, "(w16) ALPHAREAD: %02x", _iValue);
-		break;
+		mmio->Register(base | pq_reg.addr,
+			MMIO::ComplexRead<u16>([pq_reg](u32) {
+				return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) & 0xFFFF;
+			}),
+			MMIO::InvalidWrite<u16>()
+		);
+		mmio->Register(base | (pq_reg.addr + 2),
+			MMIO::ComplexRead<u16>([pq_reg](u32) {
+				return g_video_backend->Video_GetQueryResult(pq_reg.pqtype) >> 16;
+			}),
+			MMIO::InvalidWrite<u16>()
+		);
+	}
 
-	case PE_CTRL_REGISTER:
-		{
-			UPECtrlReg tmpCtrl(_iValue);
+	// Control register
+	mmio->Register(base | PE_CTRL_REGISTER,
+		MMIO::DirectRead<u16>(&m_Control.Hex),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			UPECtrlReg tmpCtrl(val);
 
-			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = 0;
-			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = 0;
+			if (tmpCtrl.PEToken)  g_bSignalTokenInterrupt = 0;
+			if (tmpCtrl.PEFinish) g_bSignalFinishInterrupt = 0;
 
 			m_Control.PETokenEnable  = tmpCtrl.PETokenEnable;
 			m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
-			m_Control.PEToken = 0;		// this flag is write only
-			m_Control.PEFinish = 0;		// this flag is write only
+			m_Control.PEToken = 0;  // this flag is write only
+			m_Control.PEFinish = 0; // this flag is write only
 
-			DEBUG_LOG(PIXELENGINE, "(w16) CTRL_REGISTER: 0x%04x", _iValue);
+			DEBUG_LOG(PIXELENGINE, "(w16) CTRL_REGISTER: 0x%04x", val);
 			UpdateInterrupts();
-		}
-		break;
+		})
+	);
 
-	case PE_TOKEN_REG:
-		PanicAlert("(w16) WTF? PowerPC program wrote token: %i", _iValue);
-		//only the gx pipeline is supposed to be able to write here
-		//g_token = _iValue;
-		break;
+	// Token register, readonly.
+	mmio->Register(base | PE_TOKEN_REG,
+		MMIO::DirectRead<u16>(&CommandProcessor::fifo.PEToken),
+		MMIO::InvalidWrite<u16>()
+	);
 
-	default:
-		WARN_LOG(PIXELENGINE, "(w16) unknown %04x @ %08x", _iValue, _iAddress);
-		break;
+	// BBOX registers, readonly and need to update a flag.
+	for (int i = 0; i < 4; ++i)
+	{
+		mmio->Register(base | (PE_BBOX_LEFT + 2 * i),
+			MMIO::ComplexRead<u16>([i](u32) {
+				bbox_active = false;
+				return bbox[i];
+			}),
+			MMIO::InvalidWrite<u16>()
+		);
 	}
-
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	WARN_LOG(PIXELENGINE, "(w32) 0x%08x @ 0x%08x IGNORING...",_iValue,_iAddress);
 }
 
 bool AllowIdleSkipping()
@@ -363,8 +279,8 @@ void UpdateFinishInterrupt(bool active)
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
-//			  Think about the right order between tokenVal and tokenINT... one day maybe.
-//			  Cleanup++
+//            Think about the right order between tokenVal and tokenINT... one day maybe.
+//            Cleanup++
 
 // Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)
@@ -380,7 +296,6 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 		UpdateInterrupts();
 	}
 	CommandProcessor::interruptTokenWaiting = false;
-	IncrementCheckContextId();
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
@@ -402,7 +317,6 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 
 	CommandProcessor::interruptTokenWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
-	IncrementCheckContextId();
 }
 
 // SetFinish
@@ -412,37 +326,11 @@ void SetFinish()
 	CommandProcessor::interruptFinishWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
-	IncrementCheckContextId();
 }
 
-//This function is used in CommandProcessor when write CTRL_REGISTER and the new fifo is attached.
-void ResetSetFinish()
+UPEAlphaReadReg GetAlphaReadMode()
 {
-	//if SetFinish happened but PE_CTRL_REGISTER not, I reset the interrupt else
-	//remove event from the queue
-	if (g_bSignalFinishInterrupt)
-	{
-		UpdateFinishInterrupt(false);
-		g_bSignalFinishInterrupt = false;
-	}
-	else
-	{
-		CoreTiming::RemoveEvent(et_SetFinishOnMainThread);
-	}
-	CommandProcessor::interruptFinishWaiting = false;
+	return m_AlphaRead;
 }
 
-void ResetSetToken()
-{
-	if (g_bSignalTokenInterrupt)
-	{
-		UpdateTokenInterrupt(false);
-		g_bSignalTokenInterrupt = 0;
-	}
-	else
-	{
-		CoreTiming::RemoveEvent(et_SetTokenOnMainThread);
-	}
-	CommandProcessor::interruptTokenWaiting = false;
-}
 } // end of namespace PixelEngine

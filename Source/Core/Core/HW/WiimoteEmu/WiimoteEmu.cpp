@@ -4,30 +4,24 @@
 
 #include <cmath>
 
-#include "Attachment/Classic.h"
-#include "Attachment/Nunchuk.h"
-#include "Attachment/Guitar.h"
-#include "Attachment/Drums.h"
-#include "Attachment/Turntable.h"
+#include "Common/Common.h"
+#include "Common/Timer.h"
 
-#include "WiimoteEmu.h"
-#include "WiimoteHid.h"
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 
-#include "../WiimoteReal/WiimoteReal.h"
-
-#include "Timer.h"
-#include "Common.h"
-#include "../../Host.h"
-#include "../../ConfigManager.h"
-
-#include "UDPTLayer.h"
-
-inline double round(double x) { return (x-floor(x))>0.5 ? ceil(x) : floor(x); } //because damn MSVSC doesen't comply to C99
-
-#include "MatrixMath.h"
-
-#include "../../Movie.h"
-#include "NetPlayClient.h"
+#include "Core/HW/WiimoteEmu/MatrixMath.h"
+#include "Core/HW/WiimoteEmu/UDPTLayer.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
+#include "Core/HW/WiimoteEmu/Attachment/Drums.h"
+#include "Core/HW/WiimoteEmu/Attachment/Guitar.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace
 {
@@ -44,7 +38,7 @@ namespace WiimoteEmu
 static const u8 eeprom_data_0[] = {
 	// IR, maybe more
 	// assuming last 2 bytes are checksum
-	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00,	// messing up the checksum on purpose
+	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00, // messing up the checksum on purpose
 	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00,
 	// Accelerometer
 	// 0g x,y,z, 1g x,y,z, idk, last byte is a checksum
@@ -131,7 +125,7 @@ void EmulateTilt(AccelData* const accel
 	// 180 degrees
 	tilt_group->GetState(&roll, &pitch, 0, focus ? PI : 0);
 
-	unsigned int	ud = 0, lr = 0, fb = 0;
+	unsigned int ud = 0, lr = 0, fb = 0;
 
 	// some notes that no one will understand but me :p
 	// left, forward, up
@@ -156,7 +150,7 @@ void EmulateTilt(AccelData* const accel
 	(&accel->x)[fb] = sin(pitch)*sgn[fb];
 }
 
-#define SWING_INTENSITY		2.5f//-uncalibrated(aprox) 0x40-calibrated
+#define SWING_INTENSITY  2.5f//-uncalibrated(aprox) 0x40-calibrated
 
 void EmulateSwing(AccelData* const accel
 	, ControllerEmu::Force* const swing_group
@@ -169,9 +163,9 @@ void EmulateSwing(AccelData* const accel
 	u8 axis_map[3];
 
 	// determine which axis is which direction
-	axis_map[0] = upright ? (sideways ? 0 : 1) : 2;	// up/down
-	axis_map[1] = sideways;	// left|right
-	axis_map[2] = upright ? 2 : (sideways ? 0 : 1);	// forward/backward
+	axis_map[0] = upright ? (sideways ? 0 : 1) : 2; // up/down
+	axis_map[1] = sideways; // left|right
+	axis_map[2] = upright ? 2 : (sideways ? 0 : 1); // forward/backward
 
 	// some orientations have up as positive, some as negative
 	// same with forward
@@ -252,7 +246,7 @@ void Wiimote::Reset()
 	memset(m_shake_step, 0, sizeof(m_shake_step));
 
 	// clear read request queue
-	while (m_read_requests.size())
+	while (!m_read_requests.empty())
 	{
 		delete[] m_read_requests.front().data;
 		m_read_requests.pop();
@@ -263,58 +257,58 @@ Wiimote::Wiimote( const unsigned int index )
 	: m_index(index)
 	, ir_sin(0)
 	, ir_cos(1)
-//	, m_sound_stream( NULL )
+// , m_sound_stream( nullptr )
 {
 	// ---- set up all the controls ----
 
 	// buttons
-	groups.push_back(m_buttons = new Buttons("Buttons"));
+	groups.emplace_back(m_buttons = new Buttons("Buttons"));
 	for (auto& named_button : named_buttons)
-		m_buttons->controls.push_back(new ControlGroup::Input( named_button));
+		m_buttons->controls.emplace_back(new ControlGroup::Input( named_button));
 
 	// udp
-	groups.push_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
+	groups.emplace_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
 
 	// ir
-	groups.push_back(m_ir = new Cursor(_trans("IR")));
+	groups.emplace_back(m_ir = new Cursor(_trans("IR")));
 
 	// swing
-	groups.push_back(m_swing = new Force(_trans("Swing")));
+	groups.emplace_back(m_swing = new Force(_trans("Swing")));
 
 	// tilt
-	groups.push_back(m_tilt = new Tilt(_trans("Tilt")));
+	groups.emplace_back(m_tilt = new Tilt(_trans("Tilt")));
 
 	// shake
-	groups.push_back(m_shake = new Buttons(_trans("Shake")));
-	m_shake->controls.push_back(new ControlGroup::Input("X"));
-	m_shake->controls.push_back(new ControlGroup::Input("Y"));
-	m_shake->controls.push_back(new ControlGroup::Input("Z"));
+	groups.emplace_back(m_shake = new Buttons(_trans("Shake")));
+	m_shake->controls.emplace_back(new ControlGroup::Input("X"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
 
 	// extension
-	groups.push_back(m_extension = new Extension(_trans("Extension")));
-	m_extension->attachments.push_back(new WiimoteEmu::None(m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Classic(m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Guitar(m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Drums(m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Turntable(m_reg_ext));
+	groups.emplace_back(m_extension = new Extension(_trans("Extension")));
+	m_extension->attachments.emplace_back(new WiimoteEmu::None(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Guitar(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
 
-	m_extension->settings.push_back(new ControlGroup::Setting(_trans("Motion Plus"), 0, 0, 1));
+	m_extension->settings.emplace_back(new ControlGroup::Setting(_trans("Motion Plus"), 0, 0, 1));
 
 	// rumble
-	groups.push_back(m_rumble = new ControlGroup(_trans("Rumble")));
-	m_rumble->controls.push_back(new ControlGroup::Output(_trans("Motor")));
+	groups.emplace_back(m_rumble = new ControlGroup(_trans("Rumble")));
+	m_rumble->controls.emplace_back(new ControlGroup::Output(_trans("Motor")));
 
 	// dpad
-	groups.push_back(m_dpad = new Buttons("D-Pad"));
+	groups.emplace_back(m_dpad = new Buttons("D-Pad"));
 	for (auto& named_direction : named_directions)
-		m_dpad->controls.push_back(new ControlGroup::Input(named_direction));
+		m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
 
 	// options
-	groups.push_back( m_options = new ControlGroup(_trans("Options")));
-	m_options->settings.push_back(new ControlGroup::Setting(_trans("Background Input"), false));
-	m_options->settings.push_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
-	m_options->settings.push_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
+	groups.emplace_back( m_options = new ControlGroup(_trans("Options")));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Background Input"), false));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
 
 	// TODO: This value should probably be re-read if SYSCONF gets changed
 	m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;
@@ -329,7 +323,7 @@ std::string Wiimote::GetName() const
 }
 
 // if windows is focused or background input is enabled
-#define HAS_FOCUS	(Host_RendererHasFocus() || (m_options->settings[0]->value != 0))
+#define HAS_FOCUS  (Host_RendererHasFocus() || (m_options->settings[0]->value != 0))
 
 bool Wiimote::Step()
 {
@@ -345,13 +339,13 @@ bool Wiimote::Step()
 	m_rumble->controls[0]->control_ref->State(m_rumble_on);
 
 	// when a movie is active, this button status update is disabled (moved), because movies only record data reports.
-	if(!(Movie::IsPlayingInput() || Movie::IsRecordingInput()) || NetPlay::IsNetPlayRunning())
+	if (!(Movie::IsPlayingInput() || Movie::IsRecordingInput()) || NetPlay::IsNetPlayRunning())
 	{
 		UpdateButtonsStatus(has_focus);
 	}
 
 	// check if there is a read data request
-	if (m_read_requests.size())
+	if (!m_read_requests.empty())
 	{
 		ReadRequest& rr = m_read_requests.front();
 		// send up to 16 bytes to the wii
@@ -403,7 +397,7 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 void Wiimote::GetCoreData(u8* const data)
 {
 	// when a movie is active, the button update happens here instead of Wiimote::Step, to avoid potential desync issues.
-	if(Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::IsNetPlayRunning())
+	if (Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::IsNetPlayRunning())
 	{
 		UpdateButtonsStatus(HAS_FOCUS);
 	}
@@ -469,9 +463,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 				nsin=0;
 				ncos=1;
 			}
-		//	PanicAlert("%d %d %d\nx:%f\nz:%f\nsin:%f\ncos:%f",accel->x,accel->y,accel->z,ax,az,sin,cos);
-			//PanicAlert("%d %d %d\n%d %d %d\n%d %d %d",accel->x,accel->y,accel->z,calib->zero_g.x,calib->zero_g.y,calib->zero_g.z,
-			//	calib->one_g.x,calib->one_g.y,calib->one_g.z);
+			// PanicAlert("%d %d %d\nx:%f\nz:%f\nsin:%f\ncos:%f",accel->x,accel->y,accel->z,ax,az,sin,cos);
+			// PanicAlert("%d %d %d\n%d %d %d\n%d %d %d",accel->x,accel->y,accel->z,calib->zero_g.x,calib->zero_g.y,calib->zero_g.z, calib->one_g.x,calib->one_g.y,calib->one_g.z);
 		}
 		else
 		{
@@ -512,12 +505,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 #define printmatrix(m) PanicAlert("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",m[0][0],m[0][1],m[0][2],m[0][3],m[1][0],m[1][1],m[1][2],m[1][3],m[2][0],m[2][1],m[2][2],m[2][3],m[3][0],m[3][1],m[3][2],m[3][3])
 		Matrix rot,tot;
 		static Matrix scale;
-		static bool isscale=false;
-		if (!isscale)
-		{
-			MatrixScale(scale,1,camWidth/camHeight,1);
-			//MatrixIdentity(scale);
-		}
+		MatrixScale(scale,1,camWidth/camHeight,1);
+		//MatrixIdentity(scale);
 		MatrixRotationByZ(rot,ir_sin,ir_cos);
 		//MatrixIdentity(rot);
 		MatrixMultiply(tot,scale,rot);
@@ -527,12 +516,12 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 			MatrixTransformVertex(tot,v[i]);
 			if ((v[i].x<-1)||(v[i].x>1)||(v[i].y<-1)||(v[i].y>1))
 				continue;
-			x[i]=(u16)round((v[i].x+1)/2*(camWidth-1));
-			y[i]=(u16)round((v[i].y+1)/2*(camHeight-1));
+			x[i] = (u16)lround((v[i].x+1)/2*(camWidth-1));
+			y[i] = (u16)lround((v[i].y+1)/2*(camHeight-1));
 		}
-	//	PanicAlert("%f %f\n%f %f\n%f %f\n%f %f\n%d %d\n%d %d\n%d %d\n%d %d",
-	//		v[0].x,v[0].y,v[1].x,v[1].y,v[2].x,v[2].y,v[3].x,v[3].y,
-	//		x[0],y[0],x[1],y[1],x[2],y[2],x[3],y[38]);
+		// PanicAlert("%f %f\n%f %f\n%f %f\n%f %f\n%d %d\n%d %d\n%d %d\n%d %d",
+		//      v[0].x,v[0].y,v[1].x,v[1].y,v[2].x,v[2].y,v[3].x,v[3].y,
+		//      x[0],y[0],x[1],y[1],x[2],y[2],x[3],y[38]);
 	}
 	// Fill report with valid data when full handshake was done
 	if (m_reg_ir.data[0x30])
@@ -653,13 +642,10 @@ void Wiimote::Update()
 	u8 data[MAX_PAYLOAD];
 	memset(data, 0, sizeof(data));
 
-	// figure out what data we need
-	s8 rptf_size = MAX_PAYLOAD;
-
 	Movie::SetPolledDevice();
 
 	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
-	rptf_size = rptf.size;
+	s8 rptf_size = rptf.size;
 	if (Movie::IsPlayingInput() && Movie::PlayWiimote(m_index, data, rptf, m_reg_ir.mode))
 	{
 		if (rptf.core)
@@ -895,25 +881,25 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
 	ControllerEmu::LoadDefaults(ciface);
 
-	#define set_control(group, num, str)	(group)->controls[num]->control_ref->expression = (str)
+	#define set_control(group, num, str) (group)->controls[num]->control_ref->expression = (str)
 
 	// Buttons
 #if defined HAVE_X11 && HAVE_X11
-	set_control(m_buttons, 0, "Click 1");		// A
-	set_control(m_buttons, 1, "Click 3");		// B
+	set_control(m_buttons, 0, "Click 1"); // A
+	set_control(m_buttons, 1, "Click 3"); // B
 #else
-	set_control(m_buttons, 0, "Click 0");		// A
-	set_control(m_buttons, 1, "Click 1");		// B
+	set_control(m_buttons, 0, "Click 0"); // A
+	set_control(m_buttons, 1, "Click 1"); // B
 #endif
-	set_control(m_buttons, 2, "1");		// 1
-	set_control(m_buttons, 3, "2");		// 2
-	set_control(m_buttons, 4, "Q");		// -
-	set_control(m_buttons, 5, "E");		// +
+	set_control(m_buttons, 2, "1"); // 1
+	set_control(m_buttons, 3, "2"); // 2
+	set_control(m_buttons, 4, "Q"); // -
+	set_control(m_buttons, 5, "E"); // +
 
 #ifdef _WIN32
-	set_control(m_buttons, 6, "RETURN");		// Home
+	set_control(m_buttons, 6, "RETURN"); // Home
 #else
-	set_control(m_buttons, 6, "Return");		// Home
+	set_control(m_buttons, 6, "Return"); // Home
 #endif
 
 	// Shake
@@ -928,20 +914,20 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 	// DPad
 #ifdef _WIN32
-	set_control(m_dpad, 0, "UP");		// Up
-	set_control(m_dpad, 1, "DOWN");		// Down
-	set_control(m_dpad, 2, "LEFT");		// Left
-	set_control(m_dpad, 3, "RIGHT");	// Right
+	set_control(m_dpad, 0, "UP");    // Up
+	set_control(m_dpad, 1, "DOWN");  // Down
+	set_control(m_dpad, 2, "LEFT");  // Left
+	set_control(m_dpad, 3, "RIGHT"); // Right
 #elif __APPLE__
-	set_control(m_dpad, 0, "Up Arrow");		// Up
-	set_control(m_dpad, 1, "Down Arrow");	// Down
-	set_control(m_dpad, 2, "Left Arrow");	// Left
-	set_control(m_dpad, 3, "Right Arrow");	// Right
+	set_control(m_dpad, 0, "Up Arrow");    // Up
+	set_control(m_dpad, 1, "Down Arrow");  // Down
+	set_control(m_dpad, 2, "Left Arrow");  // Left
+	set_control(m_dpad, 3, "Right Arrow"); // Right
 #else
-	set_control(m_dpad, 0, "Up");		// Up
-	set_control(m_dpad, 1, "Down");		// Down
-	set_control(m_dpad, 2, "Left");		// Left
-	set_control(m_dpad, 3, "Right");	// Right
+	set_control(m_dpad, 0, "Up");    // Up
+	set_control(m_dpad, 1, "Down");  // Down
+	set_control(m_dpad, 2, "Left");  // Left
+	set_control(m_dpad, 3, "Right"); // Right
 #endif
 
 	// ugly stuff

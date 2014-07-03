@@ -2,14 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTUREENCODER_H_
-#define _TEXTUREENCODER_H_
+#pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace TextureEncoder
 {
 	void Encode(u8 *dest_ptr);
 }
-
-#endif

@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef VERTEXLOADER_TEXCOORD_H
-#define VERTEXLOADER_TEXCOORD_H
+#pragma once
 
-#include "NativeVertexFormat.h"
+#include "VideoCommon/NativeVertexFormat.h"
 
 class VertexLoader_TextCoord
 {
@@ -24,5 +23,3 @@ public:
 	// It is important to synchronize tcIndex.
 	static TPipelineFunction GetDummyFunction();
 };
-
-#endif

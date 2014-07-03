@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
 
-#include "DSPCore.h"
-#include "DSPHost.h"
-#include "DSPHWInterface.h"
-#include "DSPInterpreter.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHost.h"
+#include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPInterpreter.h"
 
 // The hardware adpcm decoder :)
 static s16 ADPCM_Step(u32& _rSamplePos)
@@ -16,7 +17,7 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 
 	if (((_rSamplePos) & 15) == 0)
 	{
-		g_dsp.ifx_regs[DSP_PRED_SCALE] = DSPHost_ReadHostMemory((_rSamplePos & ~15) >> 1);
+		g_dsp.ifx_regs[DSP_PRED_SCALE] = DSPHost::ReadHostMemory((_rSamplePos & ~15) >> 1);
 		_rSamplePos += 2;
 	}
 
@@ -27,8 +28,8 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 	s32 coef2 = pCoefTable[coef_idx * 2 + 1];
 
 	int temp = (_rSamplePos & 1) ?
-		   (DSPHost_ReadHostMemory(_rSamplePos >> 1) & 0xF) :
-		   (DSPHost_ReadHostMemory(_rSamplePos >> 1) >> 4);
+	       (DSPHost::ReadHostMemory(_rSamplePos >> 1) & 0xF) :
+	       (DSPHost::ReadHostMemory(_rSamplePos >> 1) >> 4);
 
 	if (temp >= 8)
 		temp -= 16;
@@ -36,11 +37,7 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 	// 0x400 = 0.5  in 11-bit fixed point
 	int val = (scale * temp) + ((0x400 + coef1 * (s16)g_dsp.ifx_regs[DSP_YN1] + coef2 * (s16)g_dsp.ifx_regs[DSP_YN2]) >> 11);
 
-	// Clamp values.
-	if (val > 0x7FFF)
-		val = 0x7FFF;
-	else if (val < -0x7FFF)
-		val = -0x7FFF;
+	MathUtil::Clamp(&val, -0x7FFF, 0x7FFF);
 
 	g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 	g_dsp.ifx_regs[DSP_YN1] = val;
@@ -59,13 +56,14 @@ u16 dsp_read_aram_d3()
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 	u16 val = 0;
 
-	switch (g_dsp.ifx_regs[DSP_FORMAT]) {
+	switch (g_dsp.ifx_regs[DSP_FORMAT])
+	{
 		case 0x5:   // u8 reads
-			val = DSPHost_ReadHostMemory(Address);
+			val = DSPHost::ReadHostMemory(Address);
 			Address++;
 			break;
 		case 0x6:   // u16 reads
-			val = (DSPHost_ReadHostMemory(Address*2) << 8) | DSPHost_ReadHostMemory(Address*2 + 1);
+			val = (DSPHost::ReadHostMemory(Address*2) << 8) | DSPHost::ReadHostMemory(Address*2 + 1);
 			Address++;
 			break;
 		default:
@@ -92,10 +90,11 @@ void dsp_write_aram_d3(u16 value)
 	// Zelda TP WII writes non-stop to 0x10000000-0x1000001f (non-zero values too)
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 
-	switch (g_dsp.ifx_regs[DSP_FORMAT]) {
+	switch (g_dsp.ifx_regs[DSP_FORMAT])
+	{
 		case 0xA:   // u16 writes
-			DSPHost_WriteHostMemory(value >> 8, Address*2);
-			DSPHost_WriteHostMemory(value & 0xFF, Address*2 + 1);
+			DSPHost::WriteHostMemory(value >> 8, Address*2);
+			DSPHost::WriteHostMemory(value & 0xFF, Address*2 + 1);
 			Address++;
 			break;
 		default:
@@ -125,13 +124,13 @@ u16 dsp_read_accelerator()
 			val = ADPCM_Step(Address);
 			break;
 		case 0x0A:  // 16-bit PCM audio
-			val = (DSPHost_ReadHostMemory(Address*2) << 8) | DSPHost_ReadHostMemory(Address*2 + 1);
+			val = (DSPHost::ReadHostMemory(Address*2) << 8) | DSPHost::ReadHostMemory(Address*2 + 1);
 			g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 			g_dsp.ifx_regs[DSP_YN1] = val;
 			Address++;
 			break;
 		case 0x19:  // 8-bit PCM audio
-			val = DSPHost_ReadHostMemory(Address) << 8;
+			val = DSPHost::ReadHostMemory(Address) << 8;
 			g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 			g_dsp.ifx_regs[DSP_YN1] = val;
 			Address++;

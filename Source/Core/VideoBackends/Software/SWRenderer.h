@@ -2,19 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _RENDERER_H_
-#define _RENDERER_H_
+#pragma once
 
-#include "CommonTypes.h"
-#include "EfbInterface.h"
-#include "Thread.h"
+#include "Common/CommonTypes.h"
+#include "Common/Thread.h"
+#include "VideoBackends/Software/EfbInterface.h"
 
 namespace SWRenderer
-{	
+{
 	void Init();
 	void Prepare();
 	void Shutdown();
-	
+
 	void SetScreenshot(const char *_szFilename);
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugText();
@@ -27,5 +26,3 @@ namespace SWRenderer
 	void Swap(u32 fbWidth, u32 fbHeight);
 	void SwapBuffer();
 }
-
-#endif

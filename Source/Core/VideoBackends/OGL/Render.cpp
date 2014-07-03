@@ -2,65 +2,63 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Globals.h"
-#include "Thread.h"
-#include "Atomic.h"
-
-#include <vector>
+#include <cinttypes>
 #include <cmath>
 #include <cstdio>
-#include <cinttypes>
+#include <string>
+#include <vector>
 
-#include "GLUtil.h"
+#include "Common/Atomic.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Movie.h"
+
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/main.h"
+#include "VideoBackends/OGL/PostProcessing.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/RasterFont.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/SamplerCache.h"
+#include "VideoBackends/OGL/StreamBuffer.h"
+#include "VideoBackends/OGL/TextureCache.h"
+#include "VideoBackends/OGL/TextureConverter.h"
+#include "VideoBackends/OGL/VertexManager.h"
+
+#include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
+
 #if defined(HAVE_WX) && HAVE_WX
-#include "WxUtils.h"
+#include "DolphinWX/WxUtils.h"
 #endif
-
-#include "FileUtil.h"
 
 #ifdef _WIN32
 #include <mmsystem.h>
 #endif
 
-#include "CommonPaths.h"
-#include "DriverDetails.h"
-#include "VideoConfig.h"
-#include "Statistics.h"
-#include "ImageWrite.h"
-#include "PixelEngine.h"
-#include "Render.h"
-#include "BPStructs.h"
-#include "TextureCache.h"
-#include "RasterFont.h"
-#include "VertexShaderGen.h"
-#include "DLCache.h"
-#include "ProgramShaderCache.h"
-#include "VertexShaderManager.h"
-#include "VertexLoaderManager.h"
-#include "VertexLoader.h"
-#include "PostProcessing.h"
-#include "TextureConverter.h"
-#include "OnScreenDisplay.h"
-#include "Timer.h"
-#include "StringUtil.h"
-#include "FramebufferManager.h"
-#include "Fifo.h"
-#include "Debugger.h"
-#include "Core.h"
-#include "Movie.h"
-#include "BPFunctions.h"
-#include "FPSCounter.h"
-#include "ConfigManager.h"
-#include "VertexManager.h"
-#include "SamplerCache.h"
-#include "StreamBuffer.h"
-
-#include "main.h" // Local
 #ifdef _WIN32
-#include "EmuWindow.h"
 #endif
 #if defined _WIN32 || defined HAVE_LIBAV
-#include "AVIDump.h"
+#include "VideoCommon/AVIDump.h"
 #endif
 
 
@@ -79,10 +77,6 @@ enum MultisampleMode {
 	MULTISAMPLE_2X,
 	MULTISAMPLE_4X,
 	MULTISAMPLE_8X,
-	MULTISAMPLE_CSAA_8X,
-	MULTISAMPLE_CSAA_8XQ,
-	MULTISAMPLE_CSAA_16X,
-	MULTISAMPLE_CSAA_16XQ,
 	MULTISAMPLE_SSAA_4X,
 };
 
@@ -96,11 +90,10 @@ static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
 static SHADER s_ShowEFBCopyRegions;
 
-static RasterFont* s_pfont = NULL;
+static RasterFont* s_pfont = nullptr;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
-static int s_MSAACoverageSamples = 0;
 static int s_LastMultisampleMode = 0;
 
 static u32 s_blendMode;
@@ -116,6 +109,7 @@ static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
 static const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
 static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
+static bool s_efbCacheIsCleared = false;
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
 int GetNumMSAASamples(int MSAAMode)
@@ -132,15 +126,11 @@ int GetNumMSAASamples(int MSAAMode)
 			break;
 
 		case MULTISAMPLE_4X:
-		case MULTISAMPLE_CSAA_8X:
-		case MULTISAMPLE_CSAA_16X:
 		case MULTISAMPLE_SSAA_4X:
 			samples = 4;
 			break;
 
 		case MULTISAMPLE_8X:
-		case MULTISAMPLE_CSAA_8XQ:
-		case MULTISAMPLE_CSAA_16XQ:
 			samples = 8;
 			break;
 
@@ -148,51 +138,26 @@ int GetNumMSAASamples(int MSAAMode)
 			samples = 1;
 	}
 
-	if(samples <= g_ogl_config.max_samples) return samples;
+	if (samples <= g_ogl_config.max_samples) return samples;
 
 	// TODO: move this to InitBackendInfo
 	OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", samples, g_ogl_config.max_samples), 10000);
 	return g_ogl_config.max_samples;
 }
 
-int GetNumMSAACoverageSamples(int MSAAMode)
-{
-	int samples;
-	switch (g_ActiveConfig.iMultisampleMode)
-	{
-		case MULTISAMPLE_CSAA_8X:
-		case MULTISAMPLE_CSAA_8XQ:
-			samples = 8;
-			break;
-
-		case MULTISAMPLE_CSAA_16X:
-		case MULTISAMPLE_CSAA_16XQ:
-			samples = 16;
-			break;
-
-		default:
-			samples = 0;
-	}
-	if(g_ogl_config.bSupportCoverageMSAA || samples == 0) return samples;
-
-	// TODO: move this to InitBackendInfo
-	OSD::AddMessage("CSAA Anti Aliasing isn't supported by your GPU.", 10000);
-	return 0;
-}
-
 void ApplySSAASettings() {
 	// GLES3 doesn't support SSAA
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
-		if(g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X) {
-			if(g_ogl_config.bSupportSampleShading) {
+		if (g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X) {
+			if (g_ogl_config.bSupportSampleShading) {
 				glEnable(GL_SAMPLE_SHADING_ARB);
 				glMinSampleShadingARB(s_MSAASamples);
 			} else {
 				// TODO: move this to InitBackendInfo
 				OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
 			}
-		} else if(g_ogl_config.bSupportSampleShading) {
+		} else if (g_ogl_config.bSupportSampleShading) {
 			glDisable(GL_SAMPLE_SHADING_ARB);
 		}
 	}
@@ -203,7 +168,7 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 	const char *s_source;
 	const char *s_type;
 
-	switch(source)
+	switch (source)
 	{
 		case GL_DEBUG_SOURCE_API_ARB:             s_source = "API"; break;
 		case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:   s_source = "Window System"; break;
@@ -213,7 +178,7 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 		case GL_DEBUG_SOURCE_OTHER_ARB:           s_source = "Other"; break;
 		default:                                  s_source = "Unknown"; break;
 	}
-	switch(type)
+	switch (type)
 	{
 		case GL_DEBUG_TYPE_ERROR_ARB:               s_type = "Error"; break;
 		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB: s_type = "Deprecated"; break;
@@ -223,7 +188,7 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 		case GL_DEBUG_TYPE_OTHER_ARB:               s_type = "Other"; break;
 		default:                                    s_type = "Unknown"; break;
 	}
-	switch(severity)
+	switch (severity)
 	{
 		case GL_DEBUG_SEVERITY_HIGH_ARB:   ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 		case GL_DEBUG_SEVERITY_MEDIUM_ARB: WARN_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
@@ -278,7 +243,7 @@ void InitDriverInfo()
 		vendor = DriverDetails::VENDOR_VIVANTE;
 
 	// Get device family and driver version...if we care about it
-	switch(vendor)
+	switch (vendor)
 	{
 		case DriverDetails::VENDOR_QUALCOMM:
 		{
@@ -291,18 +256,39 @@ void InitDriverInfo()
 		}
 		break;
 		case DriverDetails::VENDOR_ARM:
-			if (std::string::npos != srenderer.find("Mali-T6"))
-				driver = DriverDetails::DRIVER_ARM_T6XX;
-			else if(std::string::npos != srenderer.find("Mali-4"))
-				driver = DriverDetails::DRIVER_ARM_4XX;
+			// Currently the Mali-T line has two families in it.
+			// Mali-T6xx and Mali-T7xx
+			// These two families are similar enough that they share bugs in their drivers.
+			if (std::string::npos != srenderer.find("Mali-T"))
+			{
+				driver = DriverDetails::DRIVER_ARM_MIDGARD;
+				// Mali drivers provide no way to explicitly find out what video driver is running.
+				// This is similar to how we can't find the Nvidia driver version in Windows.
+				// Good thing is that ARM introduces a new video driver about once every two years so we can
+				// find the driver version by the features it exposes.
+				// r2p0 - No OpenGL ES 3.0 support (We don't support this)
+				// r3p0 - OpenGL ES 3.0 support
+				// r4p0 - Supports 'GL_EXT_shader_pixel_local_storage' extension.
+
+				if (GLExtensions::Supports("GL_EXT_shader_pixel_local_storage"))
+					version = 400;
+				else
+					version = 300;
+			}
+			else if (std::string::npos != srenderer.find("Mali-4") ||
+			         std::string::npos != srenderer.find("Mali-3") ||
+			         std::string::npos != srenderer.find("Mali-2"))
+			{
+				driver = DriverDetails::DRIVER_ARM_UTGARD;
+			}
 		break;
 		case DriverDetails::VENDOR_MESA:
 		{
-			if(svendor == "nouveau")
+			if (svendor == "nouveau")
 				driver = DriverDetails::DRIVER_NOUVEAU;
-			else if(svendor == "Intel Open Source Technology Center")
+			else if (svendor == "Intel Open Source Technology Center")
 				driver = DriverDetails::DRIVER_I965;
-			else if(std::string::npos != srenderer.find("AMD") || std::string::npos != srenderer.find("ATI"))
+			else if (std::string::npos != srenderer.find("AMD") || std::string::npos != srenderer.find("ATI"))
 				driver = DriverDetails::DRIVER_R600;
 
 			int major = 0;
@@ -331,6 +317,9 @@ void InitDriverInfo()
 			int glrelease = 0;
 			int major = 0;
 			int minor = 0;
+			// TODO: this is known to be broken on windows
+			// nvidia seems to have removed their driver version from this string, so we can't get it.
+			// hopefully we'll never have to workaround nvidia bugs
 			sscanf(g_ogl_config.gl_version, "%d.%d.%d NVIDIA %d.%d", &glmajor, &glminor, &glrelease, &major, &minor);
 			version = 100*major + minor;
 		}
@@ -369,7 +358,7 @@ Renderer::Renderer()
 	g_ogl_config.glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
 
 	InitDriverInfo();
-	
+
 	// check for the max vertex attributes
 	GLint numvertexattribs = 0;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
@@ -418,6 +407,21 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
+	if (!GLExtensions::Supports("GL_ARB_uniform_buffer_object"))
+	{
+		// ubo allow us to keep the current constants on shader switches
+		// we also can stream them much nicer and pack into it whatever we want to
+		PanicAlert("GPU: OGL ERROR: Need GL_ARB_uniform_buffer_object.\n"
+				"GPU: Does your video card support OpenGL 3.1?");
+		bSuccess = false;
+	}
+	else if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
+	{
+		PanicAlert("Buggy GPU driver detected.\n"
+				"Please either install the closed-source GPU driver or update your Mesa 3D version.");
+		bSuccess = false;
+	}
+
 	if (!GLExtensions::Supports("GL_ARB_sampler_objects") && bSuccess)
 	{
 		// Our sampler cache uses this extension. It could easyly be workaround and it's by far the
@@ -438,39 +442,51 @@ Renderer::Renderer()
 	}
 
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
-	g_Config.backend_info.bSupportsGLSLUBO = GLExtensions::Supports("GL_ARB_uniform_buffer_object") && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS);
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
-	g_Config.backend_info.bSupportShadingLanguage420pack = GLExtensions::Supports("GL_ARB_shading_language_420pack");
+
+	// Desktop OpenGL supports the binding layout if it supports 420pack
+	// OpenGL ES 3.1 supports it implicitly without an extension
+	g_Config.backend_info.bSupportsBindingLayout = GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
 	g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
 	g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
 	g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
 	g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex");
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage");
-	g_ogl_config.bSupportCoverageMSAA = GLExtensions::Supports("GL_NV_framebuffer_multisample_coverage");
+	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
-		g_ogl_config.eSupportedGLSLVersion = GLSLES3;
+	{
+		if (strstr(g_ogl_config.glsl_version, "3.0"))
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
+		}
+		else
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
+			g_Config.backend_info.bSupportsBindingLayout = true;
+		}
+	}
 	else
 	{
-		if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
+		if (strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
 		{
 			PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
 					"GPU: Does your video card support OpenGL 3.0?\n"
 					"GPU: Your driver supports GLSL %s", g_ogl_config.glsl_version);
 			bSuccess = false;
 		}
-		else if(strstr(g_ogl_config.glsl_version, "1.30"))
+		else if (strstr(g_ogl_config.glsl_version, "1.30"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 		}
-		else if(strstr(g_ogl_config.glsl_version, "1.40"))
+		else if (strstr(g_ogl_config.glsl_version, "1.40"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
@@ -483,20 +499,20 @@ Renderer::Renderer()
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (GLExtensions::Supports("GL_KHR_debug"))
 	{
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
-		glDebugMessageCallback( ErrorCallback, NULL );
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+		glDebugMessageCallback( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
 	else if (GLExtensions::Supports("GL_ARB_debug_output"))
 	{
-		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
-		glDebugMessageCallbackARB( ErrorCallback, NULL );
+		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
+		glDebugMessageCallbackARB( ErrorCallback, nullptr );
 		glEnable( GL_DEBUG_OUTPUT );
 	}
 #endif
 	int samples;
 	glGetIntegerv(GL_SAMPLES, &samples);
-	if(samples > 1)
+	if (samples > 1)
 	{
 		// MSAA on default framebuffer isn't working because of glBlitFramebuffer.
 		// It also isn't useful as we don't render anything to the default framebuffer.
@@ -515,16 +531,8 @@ Renderer::Renderer()
 	}
 
 	glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
-	if(g_ogl_config.max_samples < 1)
+	if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
 		g_ogl_config.max_samples = 1;
-
-	if(g_Config.backend_info.bSupportsGLSLUBO && DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
-	{
-		g_Config.backend_info.bSupportsGLSLUBO = false;
-		ERROR_LOG(VIDEO, "Buggy driver detected. Disable UBO");
-		OSD::AddMessage("Major performance warning: Buggy GPU driver detected.", 20000);
-		OSD::AddMessage("Please either install the closed-source GPU driver or update your Mesa 3D version.", 20000);
-	}
 
 	UpdateActiveConfig();
 
@@ -533,9 +541,8 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
 
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
 			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
 			g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
@@ -543,13 +550,12 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
 			g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
-			g_ogl_config.bSupportCoverageMSAA ? "" : "CSAA ",
+			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA "
 			);
 
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
-	s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
 	ApplySSAASettings();
 
 	// Decide framebuffer size
@@ -592,12 +598,12 @@ Renderer::Renderer()
 	glBlendColor(0, 0, 0, 0.5f);
 	glClearDepthf(1.0f);
 
-	if(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+	if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
 	{
 		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 			glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
 		else
-			if(g_ogl_config.bSupportOGL31)
+			if (g_ogl_config.bSupportOGL31)
 			{
 				glEnable(GL_PRIMITIVE_RESTART);
 				glPrimitiveRestartIndex(65535);
@@ -609,6 +615,7 @@ Renderer::Renderer()
 			}
 	}
 	UpdateActiveConfig();
+	ClearEFBCache();
 }
 
 Renderer::~Renderer()
@@ -632,7 +639,7 @@ void Renderer::Shutdown()
 	s_ShowEFBCopyRegions_VBO = 0;
 
 	delete s_pfont;
-	s_pfont = 0;
+	s_pfont = nullptr;
 	s_ShowEFBCopyRegions.Destroy();
 }
 
@@ -640,19 +647,19 @@ void Renderer::Init()
 {
 	// Initialize the FramebufferManager
 	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
-			s_MSAASamples, s_MSAACoverageSamples);
+			s_MSAASamples);
 
 	s_pfont = new RasterFont();
 
 	ProgramShaderCache::CompileShader(s_ShowEFBCopyRegions,
-		"ATTRIN vec2 rawpos;\n"
-		"ATTRIN vec3 color0;\n"
-		"VARYOUT vec4 c;\n"
+		"in vec2 rawpos;\n"
+		"in vec3 color0;\n"
+		"out vec4 c;\n"
 		"void main(void) {\n"
 		"	gl_Position = vec4(rawpos, 0.0, 1.0);\n"
 		"	c = vec4(color0, 1.0);\n"
 		"}\n",
-		"VARYIN vec4 c;\n"
+		"in vec4 c;\n"
 		"out vec4 ocol0;\n"
 		"void main(void) {\n"
 		"	ocol0 = c;\n"
@@ -664,9 +671,9 @@ void Renderer::Init()
 	glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
 	glBindVertexArray( s_ShowEFBCopyRegions_VAO );
 	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, NULL);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, nullptr);
 	glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB);
-	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
+	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)nullptr+2);
 }
 
 // Create On-Screen-Messages
@@ -674,19 +681,18 @@ void Renderer::DrawDebugInfo()
 {
 	// Reset viewport for drawing text
 	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+
 	// Draw various messages on the screen, like FPS, statistics, etc.
-	char debugtext_buffer[8192];
-	char *p = debugtext_buffer;
-	p[0] = 0;
+	std::string debug_info;
 
 	if (g_ActiveConfig.bShowFPS)
-		p+=sprintf(p, "FPS: %d\n", s_fps);
+		debug_info += StringFromFormat("FPS: %d\n", s_fps);
 
 	if (SConfig::GetInstance().m_ShowLag)
-		p+=sprintf(p, "Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 
 	if (g_ActiveConfig.bShowInputDisplay)
-		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
+		debug_info += Movie::GetInputDisplay();
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{
@@ -696,22 +702,21 @@ void Renderer::DrawDebugInfo()
 		// 2*Coords + 3*Color
 		u32 length = stats.efb_regions.size() * sizeof(GLfloat) * (2+3)*2*6;
 		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
-		glBufferData(GL_ARRAY_BUFFER, length, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, length, nullptr, GL_STREAM_DRAW);
 		GLfloat *Vertices = (GLfloat*)glMapBufferRange(GL_ARRAY_BUFFER, 0, length, GL_MAP_WRITE_BIT);
 
 		// Draw EFB copy regions rectangles
 		int a = 0;
 		GLfloat color[3] = {0.0f, 1.0f, 1.0f};
 
-		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin();
-			it != stats.efb_regions.end(); ++it)
+		for (const EFBRectangle& rect : stats.efb_regions)
 		{
 			GLfloat halfWidth = EFB_WIDTH / 2.0f;
 			GLfloat halfHeight = EFB_HEIGHT / 2.0f;
-			GLfloat x =  (GLfloat) -1.0f + ((GLfloat)it->left / halfWidth);
-			GLfloat y =  (GLfloat) 1.0f - ((GLfloat)it->top / halfHeight);
-			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)it->right / halfWidth);
-			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)it->bottom / halfHeight);
+			GLfloat x =  (GLfloat) -1.0f + ((GLfloat)rect.left / halfWidth);
+			GLfloat y =  (GLfloat) 1.0f - ((GLfloat)rect.top / halfHeight);
+			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)rect.right / halfWidth);
+			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)rect.bottom / halfHeight);
 
 			Vertices[a++] = x;
 			Vertices[a++] = y;
@@ -810,20 +815,20 @@ void Renderer::DrawDebugInfo()
 	}
 
 	if (g_ActiveConfig.bOverlayStats)
-		p = Statistics::ToString(p);
+		debug_info += Statistics::ToString();
 
 	if (g_ActiveConfig.bOverlayProjStats)
-		p = Statistics::ToStringProj(p);
+		debug_info += Statistics::ToStringProj();
 
-	// Render a shadow, and then the text.
-	if (p != debugtext_buffer)
+	if (!debug_info.empty())
 	{
-		Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
-		Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
+		// Render a shadow, and then the text.
+		Renderer::RenderText(debug_info, 21, 21, 0xDD000000);
+		Renderer::RenderText(debug_info, 20, 20, 0xFF00FFFF);
 	}
 }
 
-void Renderer::RenderText(const char *text, int left, int top, u32 color)
+void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
 	const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
@@ -856,9 +861,10 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
-void Renderer::SetScissorRect(const TargetRectangle& rc)
+void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-	glScissor(rc.left, rc.bottom, rc.GetWidth(), rc.GetHeight());
+	TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
+	glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
 }
 
 void Renderer::SetColorMask()
@@ -869,7 +875,7 @@ void Renderer::SetColorMask()
 	{
 		if (bpmem.blendmode.colorupdate)
 			ColorMask = GL_TRUE;
-		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24))
 			AlphaMask = GL_TRUE;
 	}
 	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
@@ -877,11 +883,11 @@ void Renderer::SetColorMask()
 
 void ClearEFBCache()
 {
-	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
-		s_efbCacheValid[0][i] = false;
-
-	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
-		s_efbCacheValid[1][i] = false;
+	if (!s_efbCacheIsCleared)
+	{
+		s_efbCacheIsCleared = true;
+		memset(s_efbCacheValid, 0, sizeof(s_efbCacheValid));
+	}
 }
 
 void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data)
@@ -911,6 +917,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 	}
 
 	s_efbCacheValid[cacheType][cacheRectIdx] = true;
+	s_efbCacheIsCleared = false;
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -918,15 +925,15 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 // and EFB pokes (which will change the color or depth of a pixel).
 //
 // The behavior of EFB peeks can only be modified by:
-//	- GX_PokeAlphaRead
+// - GX_PokeAlphaRead
 // The behavior of EFB pokes can be modified by:
-//	- GX_PokeAlphaMode (TODO)
-//	- GX_PokeAlphaUpdate (TODO)
-//	- GX_PokeBlendMode (TODO)
-//	- GX_PokeColorUpdate (TODO)
-//	- GX_PokeDither (TODO)
-//	- GX_PokeDstAlpha (TODO)
-//	- GX_PokeZMode (TODO)
+// - GX_PokeAlphaMode (TODO)
+// - GX_PokeAlphaUpdate (TODO)
+// - GX_PokeBlendMode (TODO)
+// - GX_PokeColorUpdate (TODO)
+// - GX_PokeDither (TODO)
+// - GX_PokeDstAlpha (TODO)
+// - GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
 	u32 cacheRectIdx = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_WIDTH
@@ -981,7 +988,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// Scale the 32-bit value returned by glReadPixels to a 24-bit
 			// value (GC uses a 24-bit Z-buffer).
 			// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-			if(bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+			if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 			{
 				// if Z is in 16 bit format you must return a 16 bit integer
 				z = z >> 16;
@@ -1037,33 +1044,66 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			color = s_efbCache[1][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect];
 
 			// check what to do with the alpha channel (GX_PokeAlphaRead)
-			PixelEngine::UPEAlphaReadReg alpha_read_mode;
-			PixelEngine::Read16((u16&)alpha_read_mode, PE_ALPHAREAD);
+			PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
 
-			if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+			if (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24)
 			{
 				color = RGBA8ToRGBA6ToRGBA8(color);
 			}
-			else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+			else if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 			{
 				color = RGBA8ToRGB565ToRGBA8(color);
 			}
-			if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
+			if (bpmem.zcontrol.pixel_format != PEControl::RGBA6_Z24)
 			{
 				color |= 0xFF000000;
 			}
-			if(alpha_read_mode.ReadMode == 2) return color; // GX_READ_NONE
-			else if(alpha_read_mode.ReadMode == 1) return (color | 0xFF000000); // GX_READ_FF
+			if (alpha_read_mode.ReadMode == 2) return color; // GX_READ_NONE
+			else if (alpha_read_mode.ReadMode == 1) return (color | 0xFF000000); // GX_READ_FF
 			else /*if(alpha_read_mode.ReadMode == 0)*/ return (color & 0x00FFFFFF); // GX_READ_00
 		}
 
 	case POKE_COLOR:
-	case POKE_Z:
-		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
-		// the exact location. Note: EFB pokes are susceptible to Z-buffering
-		// and perhaps blending.
-		//WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
+	{
+		ResetAPIState();
+
+		glClearColor(float((poke_data >> 16) & 0xFF) / 255.0f,
+		             float((poke_data >>  8) & 0xFF) / 255.0f,
+		             float((poke_data >>  0) & 0xFF) / 255.0f,
+		             float((poke_data >> 24) & 0xFF) / 255.0f);
+
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(targetPixelRc.left, targetPixelRc.bottom, targetPixelRc.GetWidth(), targetPixelRc.GetHeight());
+
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		RestoreAPIState();
+
+		// TODO: Could just update the EFB cache with the new value
+		ClearEFBCache();
+
 		break;
+	}
+
+	case POKE_Z:
+	{
+		ResetAPIState();
+
+		glDepthMask(GL_TRUE);
+		glClearDepthf(float(poke_data & 0xFFFFFF) / float(0xFFFFFF));
+
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(targetPixelRc.left, targetPixelRc.bottom, targetPixelRc.GetWidth(), targetPixelRc.GetHeight());
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		RestoreAPIState();
+
+		// TODO: Could just update the EFB cache with the new value
+		ClearEFBCache();
+
+		break;
+	}
 
 	default:
 		break;
@@ -1072,8 +1112,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	return 0;
 }
 
-// Called from VertexShaderManager
-void Renderer::UpdateViewport()
+void Renderer::SetViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -1087,12 +1126,12 @@ void Renderer::UpdateViewport()
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	// TODO: ceil, floor or just cast to int?
-	float X = EFBToScaledXf(xfregs.viewport.xOrig - xfregs.viewport.wd - (float)scissorXOff);
-	float Y = EFBToScaledYf((float)EFB_HEIGHT - xfregs.viewport.yOrig + xfregs.viewport.ht + (float)scissorYOff);
-	float Width = EFBToScaledXf(2.0f * xfregs.viewport.wd);
-	float Height = EFBToScaledYf(-2.0f * xfregs.viewport.ht);
-	float GLNear = (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
-	float GLFar = xfregs.viewport.farZ / 16777216.0f;
+	float X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
+	float Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
+	float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+	float GLNear = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+	float GLFar = xfmem.viewport.farZ / 16777216.0f;
 	if (Width < 0)
 	{
 		X += Width;
@@ -1105,7 +1144,7 @@ void Renderer::UpdateViewport()
 	}
 
 	// Update the view port
-	if(g_ogl_config.bSupportViewportFloat)
+	if (g_ogl_config.bSupportViewportFloat)
 	{
 		glViewportIndexedf(0, X, Y, Width, Height);
 	}
@@ -1167,7 +1206,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 {
 	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
 	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
-	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
 	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
@@ -1239,18 +1278,18 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		// adjust alpha factors
 		if (useDualSource)
 		{
-			srcidx = GX_BL_ONE;
-			dstidx = GX_BL_ZERO;
+			srcidx = BlendMode::ONE;
+			dstidx = BlendMode::ZERO;
 		}
 		else
 		{
 			// we can't use GL_DST_COLOR or GL_ONE_MINUS_DST_COLOR for source in alpha channel so use their alpha equivalent instead
-			if (srcidx == GX_BL_DSTCLR) srcidx = GX_BL_DSTALPHA;
-			if (srcidx == GX_BL_INVDSTCLR) srcidx = GX_BL_INVDSTALPHA;
+			if (srcidx == BlendMode::DSTCLR) srcidx = BlendMode::DSTALPHA;
+			if (srcidx == BlendMode::INVDSTCLR) srcidx = BlendMode::INVDSTALPHA;
 
 			// we can't use GL_SRC_COLOR or GL_ONE_MINUS_SRC_COLOR for destination in alpha channel so use their alpha equivalent instead
-			if (dstidx == GX_BL_SRCCLR) dstidx = GX_BL_SRCALPHA;
-			if (dstidx == GX_BL_INVSRCCLR) dstidx = GX_BL_INVSRCALPHA;
+			if (dstidx == BlendMode::SRCCLR) dstidx = BlendMode::SRCALPHA;
+			if (dstidx == BlendMode::INVSRCCLR) dstidx = BlendMode::INVSRCALPHA;
 		}
 		GLenum srcFactorAlpha = glSrcFactors[srcidx];
 		GLenum dstFactorAlpha = glDestFactors[dstidx];
@@ -1271,7 +1310,7 @@ void DumpFrame(const std::vector<u8>& data, int w, int h)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
+void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
@@ -1296,18 +1335,23 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	TargetRectangle flipped_trc = GetTargetRectangle();
 
-	// Flip top and bottom for some reason; TODO: Fix the code to suck less?
-	int tmp = flipped_trc.top;
-	flipped_trc.top = flipped_trc.bottom;
-	flipped_trc.bottom = tmp;
+	if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
+	{
+		std::swap(flipped_trc.left, flipped_trc.right);
+	}
+	else
+	{
+		// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+		std::swap(flipped_trc.top, flipped_trc.bottom);
+	}
 
 	GL_REPORT_ERRORD();
 
 	// Copy the framebuffer to screen.
 
-	const XFBSourceBase* xfbSource = NULL;
+	const XFBSourceBase* xfbSource = nullptr;
 
-	if(g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 	{
 		// Render to the real/postprocessing buffer now.
 		PostProcessing::BindTargetFramebuffer();
@@ -1416,7 +1460,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 				if (!bLastFrameDumped)
 				{
 					#ifdef _WIN32
-						bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
+						bAVIDumping = AVIDump::Start((HWND)((cInterfaceWGL*)GLInterface)->m_window_handle, w, h);
 					#else
 						bAVIDumping = AVIDump::Start(w, h);
 					#endif
@@ -1426,7 +1470,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 					{
 						OSD::AddMessage(StringFromFormat(
 									"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h).c_str(), 2000);
+									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
 					}
 				}
 				if (bAVIDumping)
@@ -1475,7 +1519,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 						OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 					else
 					{
-						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h).c_str(), 2000);
+						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
 					}
 				}
 				if (pFrameDump)
@@ -1531,12 +1575,11 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 		{
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
-			s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
 			ApplySSAASettings();
 
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
-				s_MSAASamples, s_MSAACoverageSamples);
+				s_MSAASamples);
 		}
 	}
 
@@ -1573,24 +1616,14 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 		GL_REPORT_ERRORD();
 	}
 
-	if(s_vsync != g_ActiveConfig.IsVSync())
+	if (s_vsync != g_ActiveConfig.IsVSync())
 	{
 		s_vsync = g_ActiveConfig.IsVSync();
 		GLInterface->SwapInterval(s_vsync);
 	}
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
-	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
-
-	frameCount++;
-
-	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
-
-	// Begin new frame
-	// Set default viewport and scissor, for the clear to work correctly
-	// New frame
-	stats.ResetFrame();
 
 	// Render to the framebuffer.
 	FramebufferManager::SetFramebuffer(0);
@@ -1609,8 +1642,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// Renderer::SetZBufferRender();
 	// SaveTexture("tex.png", GL_TEXTURE_2D, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
-	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
-	XFBWrited = false;
 
 	// Invalidate EFB cache
 	ClearEFBCache();
@@ -1641,7 +1672,7 @@ void Renderer::RestoreAPIState()
 	SetDepthMode();
 	SetBlendMode(true);
 	SetLogicOpMode();
-	UpdateViewport();
+	SetViewport();
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 		glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
@@ -1741,7 +1772,7 @@ void Renderer::SetDitherMode()
 
 void Renderer::SetLineWidth()
 {
-	float fratio = xfregs.viewport.wd != 0 ?
+	float fratio = xfmem.viewport.wd != 0 ?
 		((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
 	if (bpmem.lineptwidth.linesize > 0)
 		// scale by ratio of widths
@@ -1769,9 +1800,9 @@ void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width)
 	// Flip image upside down. Damn OpenGL.
 	for (int y = 0; y < h / 2; ++y)
 	{
-		for(int x = 0; x < w; ++x)
+		for (int x = 0; x < w; ++x)
 		{
-			for (auto delta = 0; delta < pixel_width; ++delta)
+			for (int delta = 0; delta < pixel_width; ++delta)
 				std::swap(data[(y * w + x) * pixel_width + delta], data[((h - 1 - y) * w + x) * pixel_width + delta]);
 		}
 	}

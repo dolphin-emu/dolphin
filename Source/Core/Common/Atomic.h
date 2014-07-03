@@ -2,18 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ATOMIC_H_
-#define _ATOMIC_H_
+#pragma once
 
 #ifdef _WIN32
 
-#include "Atomic_Win32.h"
+#include "Common/Atomic_Win32.h" // IWYU pragma: export
 
 #else
 
 // GCC-compatible compiler assumed!
-#include "Atomic_GCC.h"
-
-#endif
+#include "Common/Atomic_GCC.h" // IWYU pragma: export
 
 #endif

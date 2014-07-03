@@ -3,7 +3,7 @@
    filename:     gdsp_interpreter.cpp
    project:      GCemu
    created:      2004-6-18
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie & Tratax
 
@@ -23,64 +23,35 @@
 
    ====================================================================*/
 
-#include "Common.h"
-#include "Hash.h"
-#include "Thread.h"
-#include "DSPCore.h"
-#include "DSPEmitter.h"
-#include "DSPHost.h"
-#include "DSPAnalyzer.h"
-#include "MemoryUtil.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/Event.h"
+#include "Common/FileUtil.h"
+#include "Common/Hash.h"
+#include "Common/MemoryUtil.h"
 
-#include "DSPHWInterface.h"
-#include "DSPIntUtil.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/DSPHost.h"
+#include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPIntUtil.h"
 
 SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;
 DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
 bool init_hax = false;
-DSPEmitter *dspjit = NULL;
+DSPEmitter *dspjit = nullptr;
+std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 Common::Event step_event;
 
-static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
-{
-	File::IOFile pFile(fname, "rb");
-	const size_t size_in_bytes = size_in_words * sizeof(u16);
-	if (pFile)
-	{
-		pFile.ReadArray(rom, size_in_words);
-		pFile.Close();
-
-		// Byteswap the rom.
-		for (int i = 0; i < size_in_words; i++)
-			rom[i] = Common::swap16(rom[i]);
-
-		// Always keep ROMs write protected.
-		WriteProtectMemory(rom, size_in_bytes, false);
-		return true;
-	}
-
-	PanicAlertT(
-		"Failed to load DSP ROM:\t%s\n"
-		"\n"
-		"This file is required to use DSP LLE.\n"
-		"It is not included with Dolphin as it contains copyrighted data.\n"
-		"Use DSPSpy to dump the file from your physical console.\n"
-		"\n"
-		"You may use the DSP HLE engine which does not require ROM dumps.\n"
-		"(Choose it from the \"Audio\" tab of the configuration dialog.)", fname);
-	return false;
-}
-
-// Returns false iff the hash fails and the user hits "Yes"
-static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
+// Returns false if the hash fails and the user hits "Yes"
+static bool VerifyRoms()
 {
 	struct DspRomHashes
 	{
-		u32 hash_irom;		// dsp_rom.bin
-		u32 hash_drom;		// dsp_coef.bin
+		u32 hash_irom; // dsp_rom.bin
+		u32 hash_drom; // dsp_coef.bin
 	} KNOWN_ROMS[] = {
 		// Official Nintendo ROM
 		{ 0x66f334fe, 0xf3b93527 },
@@ -114,15 +85,14 @@ static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
 
 	if (rom_idx == 1)
 	{
-		DSPHost_OSD_AddMessage("You are using an old free DSP ROM made by the Dolphin Team.", 6000);
-		DSPHost_OSD_AddMessage("Only games using the Zelda UCode will work correctly.", 6000);
+		DSPHost::OSD_AddMessage("You are using an old free DSP ROM made by the Dolphin Team.", 6000);
+		DSPHost::OSD_AddMessage("Only games using the Zelda UCode will work correctly.", 6000);
 	}
-
-	if (rom_idx == 2)
+	else if (rom_idx == 2)
 	{
-		DSPHost_OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
-		DSPHost_OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
-		DSPHost_OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.\n", 8000);
+		DSPHost::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
+		DSPHost::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
+		DSPHost::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.\n", 8000);
 	}
 
 	return true;
@@ -134,29 +104,26 @@ static void DSPCore_FreeMemoryPages()
 	FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
 	FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
 	FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
+	g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = nullptr;
 }
 
-bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
-				  bool bUsingJIT)
+bool DSPCore_Init(const DSPInitOptions& opts)
 {
 	g_dsp.step_counter = 0;
 	cyclesLeft = 0;
 	init_hax = false;
-	dspjit = NULL;
+	dspjit = nullptr;
 
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
 	g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
 	g_dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
 	g_dsp.coef = (u16*)AllocateMemoryPages(DSP_COEF_BYTE_SIZE);
 
-	// Fill roms with zeros.
-	memset(g_dsp.irom, 0, DSP_IROM_BYTE_SIZE);
-	memset(g_dsp.coef, 0, DSP_COEF_BYTE_SIZE);
+	memcpy(g_dsp.irom, opts.irom_contents.data(), DSP_IROM_BYTE_SIZE);
+	memcpy(g_dsp.coef, opts.coef_contents.data(), DSP_COEF_BYTE_SIZE);
 
 	// Try to load real ROM contents.
-	if (!LoadRom(irom_filename, DSP_IROM_SIZE, g_dsp.irom) ||
-			!LoadRom(coef_filename, DSP_COEF_SIZE, g_dsp.coef) ||
-			!VerifyRoms(irom_filename, coef_filename))
+	if (!VerifyRoms())
 	{
 		DSPCore_FreeMemoryPages();
 		return false;
@@ -202,8 +169,10 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	// Initialize JIT, if necessary
-	if(bUsingJIT)
+	if (opts.core_type == DSPInitOptions::CORE_JIT)
 		dspjit = new DSPEmitter();
+
+	g_dsp_cap.reset(opts.capture_logger);
 
 	core_state = DSPCORE_RUNNING;
 	return true;
@@ -216,11 +185,13 @@ void DSPCore_Shutdown()
 
 	core_state = DSPCORE_STOP;
 
-	if(dspjit) {
+	if (dspjit) {
 		delete dspjit;
-		dspjit = NULL;
+		dspjit = nullptr;
 	}
 	DSPCore_FreeMemoryPages();
+
+	g_dsp_cap.reset();
 }
 
 void DSPCore_Reset()
@@ -338,7 +309,7 @@ int DSPCore_RunCycles(int cycles)
 			DSPInterpreter::Step();
 			cycles--;
 
-			DSPHost_UpdateDebugger();
+			DSPHost::UpdateDebugger();
 			break;
 		case DSPCORE_STOP:
 			break;
@@ -354,7 +325,7 @@ void DSPCore_SetState(DSPCoreState new_state)
 	if (new_state == DSPCORE_RUNNING)
 		step_event.Set();
 	// Sleep(10);
-	DSPHost_UpdateDebugger();
+	DSPHost::UpdateDebugger();
 }
 
 DSPCoreState DSPCore_GetState()
@@ -377,7 +348,7 @@ void CompileCurrent()
 	while (retry)
 	{
 		retry = false;
-		for(u16 i = 0x0000; i < 0xffff; ++i)
+		for (u16 i = 0x0000; i < 0xffff; ++i)
 		{
 			if (!dspjit->unresolvedJumps[i].empty())
 			{
@@ -392,7 +363,7 @@ void CompileCurrent()
 
 u16 DSPCore_ReadRegister(int reg)
 {
-	switch(reg)
+	switch (reg)
 	{
 	case DSP_REG_AR0:
 	case DSP_REG_AR1:
@@ -443,7 +414,7 @@ u16 DSPCore_ReadRegister(int reg)
 
 void DSPCore_WriteRegister(int reg, u16 val)
 {
-	switch(reg)
+	switch (reg)
 	{
 	case DSP_REG_AR0:
 	case DSP_REG_AR1:

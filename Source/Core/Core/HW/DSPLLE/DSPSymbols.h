@@ -2,13 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPSYMBOLS_H
-#define _DSPSYMBOLS_H
+#pragma once
 
-#include "Common.h"
-#include "SymbolDB.h"
+#include <string>
 
-namespace DSPSymbols {
+#include "Common/Common.h"
+#include "Common/SymbolDB.h"
+
+namespace DSPSymbols
+{
 
 class DSPSymbolDB : public SymbolDB
 {
@@ -22,7 +24,7 @@ public:
 
 extern DSPSymbolDB g_dsp_symbol_db;
 
-bool ReadAnnotatedAssembly(const char *filename);
+bool ReadAnnotatedAssembly(const std::string& filename);
 void AutoDisassembly(u16 start_addr, u16 end_addr);
 
 void Clear();
@@ -33,6 +35,3 @@ int Line2Addr(int line);   // -1 for not found
 const char *GetLineText(int line);
 
 }  // namespace DSPSymbols
-
-#endif
-

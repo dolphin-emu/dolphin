@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Classic.h"
-
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 
 namespace WiimoteEmu
 {
@@ -56,23 +55,23 @@ static const u16 classic_dpad_bitmasks[] =
 Classic::Classic(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Classic"), _reg)
 {
 	// buttons
-	groups.push_back(m_buttons = new Buttons("Buttons"));
+	groups.emplace_back(m_buttons = new Buttons("Buttons"));
 	for (auto& classic_button_name : classic_button_names)
-		m_buttons->controls.push_back(new ControlGroup::Input(classic_button_name));
+		m_buttons->controls.emplace_back(new ControlGroup::Input(classic_button_name));
 
 	// sticks
-	groups.push_back(m_left_stick = new AnalogStick(_trans("Left Stick")));
-	groups.push_back(m_right_stick = new AnalogStick(_trans("Right Stick")));
+	groups.emplace_back(m_left_stick = new AnalogStick(_trans("Left Stick")));
+	groups.emplace_back(m_right_stick = new AnalogStick(_trans("Right Stick")));
 
 	// triggers
-	groups.push_back(m_triggers = new MixedTriggers("Triggers"));
+	groups.emplace_back(m_triggers = new MixedTriggers("Triggers"));
 	for (auto& classic_trigger_name : classic_trigger_names)
-		m_triggers->controls.push_back(new ControlGroup::Input(classic_trigger_name));
+		m_triggers->controls.emplace_back(new ControlGroup::Input(classic_trigger_name));
 
 	// dpad
-	groups.push_back(m_dpad = new Buttons("D-Pad"));
+	groups.emplace_back(m_dpad = new Buttons("D-Pad"));
 	for (auto& named_direction : named_directions)
-		m_dpad->controls.push_back(new ControlGroup::Input(named_direction));
+		m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
 
 	// set up register
 	// calibration

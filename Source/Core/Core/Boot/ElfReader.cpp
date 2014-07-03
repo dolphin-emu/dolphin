@@ -4,11 +4,12 @@
 
 #include <string>
 
-#include "Common.h"
-#include "../Debugger/Debugger_SymbolMap.h"
-#include "../HW/Memmap.h"
-#include "../PowerPC/PPCSymbolDB.h"
-#include "ElfReader.h"
+#include "Common/Common.h"
+
+#include "Core/Boot/ElfReader.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 
 void bswap(Elf32_Word &w) {w = Common::swap32(w);}
 void bswap(Elf32_Half &w) {w = Common::swap16(w);}
@@ -81,7 +82,7 @@ ElfReader::ElfReader(void *ptr)
 const char *ElfReader::GetSectionName(int section) const
 {
 	if (sections[section].sh_type == SHT_NULL)
-		return NULL;
+		return nullptr;
 
 	int nameOffset = sections[section].sh_name;
 	char *ptr = (char*)GetSectionDataPtr(header->e_shstrndx);
@@ -89,7 +90,7 @@ const char *ElfReader::GetSectionName(int section) const
 	if (ptr)
 		return ptr + nameOffset;
 	else
-		return NULL;
+		return nullptr;
 }
 
 bool ElfReader::LoadInto(u32 vaddr)
@@ -180,7 +181,7 @@ SectionID ElfReader::GetSectionByName(const char *name, int firstSection) const
 	{
 		const char *secname = GetSectionName(i);
 
-		if (secname != NULL && strcmp(name, secname) == 0)
+		if (secname != nullptr && strcmp(name, secname) == 0)
 			return i;
 	}
 	return -1;

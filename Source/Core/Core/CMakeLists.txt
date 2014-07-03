@@ -2,7 +2,6 @@ set(SRCS	ActionReplay.cpp
 			ARDecrypt.cpp
 			BootManager.cpp
 			ConfigManager.cpp
-			Console.cpp
 			Core.cpp
 			CoreParameter.cpp
 			CoreTiming.cpp
@@ -27,20 +26,21 @@ set(SRCS	ActionReplay.cpp
 			Debugger/Debugger_SymbolMap.cpp
 			Debugger/Dump.cpp
 			Debugger/PPCDebugInterface.cpp
-			DSP/assemble.cpp
-			DSP/disassemble.cpp
+			DSP/DSPAssembler.cpp
+			DSP/DSPDisassembler.cpp
 			DSP/DSPAccelerator.cpp
+			DSP/DSPCaptureLogger.cpp
 			DSP/DSPIntCCUtil.cpp
 			DSP/DSPIntExtOps.cpp
 			DSP/DSPHWInterface.cpp
 			DSP/DSPMemoryMap.cpp
 			DSP/DSPStacks.cpp
 			DSP/DSPAnalyzer.cpp
-			DSP/DspIntArithmetic.cpp
-			DSP/DspIntBranch.cpp
-			DSP/DspIntLoadStore.cpp
-			DSP/DspIntMisc.cpp
-			DSP/DspIntMultiplier.cpp
+			DSP/DSPIntArithmetic.cpp
+			DSP/DSPIntBranch.cpp
+			DSP/DSPIntLoadStore.cpp
+			DSP/DSPIntMisc.cpp
+			DSP/DSPIntMultiplier.cpp
 			DSP/DSPEmitter.cpp
 			DSP/DSPCodeUtil.cpp
 			DSP/LabelMap.cpp
@@ -68,18 +68,17 @@ set(SRCS	ActionReplay.cpp
 			HW/AudioInterface.cpp
 			HW/CPU.cpp
 			HW/DSP.cpp
-			HW/DSPHLE/UCodes/UCode_AX.cpp
-			HW/DSPHLE/UCodes/UCode_AXWii.cpp
-			HW/DSPHLE/UCodes/UCode_CARD.cpp
-			HW/DSPHLE/UCodes/UCode_InitAudioSystem.cpp
-			HW/DSPHLE/UCodes/UCode_ROM.cpp
+			HW/DSPHLE/UCodes/AX.cpp
+			HW/DSPHLE/UCodes/AXWii.cpp
+			HW/DSPHLE/UCodes/CARD.cpp
+			HW/DSPHLE/UCodes/GBA.cpp
+			HW/DSPHLE/UCodes/INIT.cpp
+			HW/DSPHLE/UCodes/ROM.cpp
 			HW/DSPHLE/UCodes/UCodes.cpp
-			HW/DSPHLE/UCodes/UCode_GBA.cpp
-			HW/DSPHLE/UCodes/UCode_Zelda.cpp
-			HW/DSPHLE/UCodes/UCode_Zelda_ADPCM.cpp
-			HW/DSPHLE/UCodes/UCode_Zelda_Voice.cpp
-			HW/DSPHLE/UCodes/UCode_Zelda_Synth.cpp
-			HW/DSPHLE/HLEMixer.cpp
+			HW/DSPHLE/UCodes/Zelda.cpp
+			HW/DSPHLE/UCodes/ZeldaADPCM.cpp
+			HW/DSPHLE/UCodes/ZeldaSynth.cpp
+			HW/DSPHLE/UCodes/ZeldaVoice.cpp
 			HW/DSPHLE/MailHandler.cpp
 			HW/DSPHLE/DSPHLE.cpp
 			HW/DSPLLE/DSPDebugInterface.cpp
@@ -100,6 +99,8 @@ set(SRCS	ActionReplay.cpp
 			HW/EXI_DeviceMemoryCard.cpp
 			HW/EXI_DeviceMic.cpp
 			HW/GCMemcard.cpp
+			HW/GCMemcardDirectory.cpp
+			HW/GCMemcardRaw.cpp
 			HW/GCPad.cpp
 			HW/GCPadEmu.cpp
 			HW/GPFifo.cpp
@@ -107,6 +108,7 @@ set(SRCS	ActionReplay.cpp
 			HW/Memmap.cpp
 			HW/MemmapFunctions.cpp
 			HW/MemoryInterface.cpp
+			HW/MMIO.cpp
 			HW/ProcessorInterface.cpp
 			HW/SI.cpp
 			HW/SI_DeviceAMBaseboard.cpp
@@ -119,7 +121,6 @@ set(SRCS	ActionReplay.cpp
 			HW/StreamADPCM.cpp
 			HW/SystemTimers.cpp
 			HW/VideoInterface.cpp
-			HW/WII_IOB.cpp
 			HW/WII_IPC.cpp
 			HW/Wiimote.cpp
 			HW/WiimoteEmu/WiimoteEmu.cpp
@@ -178,11 +179,10 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/JitILCommon/JitILBase_Integer.cpp
 			)
 
-if(NOT _M_GENERIC)
+if(_M_X86)
 	set(SRCS ${SRCS}
 			x64MemTools.cpp
 			PowerPC/Jit64IL/IR_X86.cpp
-			PowerPC/Jit64IL/JitILAsm.cpp
 			PowerPC/Jit64IL/JitIL.cpp
 			PowerPC/Jit64IL/JitIL_Tables.cpp
 			PowerPC/Jit64/Jit64_Tables.cpp
@@ -201,7 +201,7 @@ if(NOT _M_GENERIC)
 			PowerPC/JitCommon/JitAsmCommon.cpp
 			PowerPC/JitCommon/Jit_Util.cpp)
 endif()
-if(_M_ARM)
+if(_M_ARM_32)
 	set(SRCS ${SRCS}
 			ArmMemTools.cpp
 			PowerPC/JitArm32/Jit.cpp

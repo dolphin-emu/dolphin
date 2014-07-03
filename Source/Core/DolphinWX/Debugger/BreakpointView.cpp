@@ -2,15 +2,27 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <wx/wx.h>
+#include <cstddef>
+#include <cstdio>
 
-#include "BreakpointView.h"
-#include "DebuggerUIUtil.h"
-#include "Debugger/Debugger_SymbolMap.h"
-#include "PowerPC/PPCSymbolDB.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/Memmap.h"
-#include "../WxUtils.h"
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/gdicmn.h>
+#include <wx/listbase.h>
+#include <wx/listctrl.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
+
+#include "Common/BreakPoints.h"
+#include "Common/CommonTypes.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/BreakpointView.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
+
+class wxWindow;
+struct Symbol;
 
 CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id)
 	: wxListCtrl(parent, id, wxDefaultPosition, wxDefaultSize,
@@ -24,11 +36,11 @@ void CBreakPointView::Update()
 {
 	ClearAll();
 
-	InsertColumn(0, wxT("Active"));
-	InsertColumn(1, wxT("Type"));
-	InsertColumn(2, wxT("Function"));
-	InsertColumn(3, wxT("Address"));
-	InsertColumn(4, wxT("Flags"));
+	InsertColumn(0, _("Active"));
+	InsertColumn(1, _("Type"));
+	InsertColumn(2, _("Function"));
+	InsertColumn(3, _("Address"));
+	InsertColumn(4, _("Flags"));
 
 	char szBuffer[64];
 	const BreakPoints::TBreakPoints& rBreakPoints = PowerPC::breakpoints.GetBreakPoints();

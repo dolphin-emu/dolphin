@@ -2,21 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FifoDataFile.h"
-#include "FifoPlayer.h"
+#include <algorithm>
 
-#include "Common.h"
-#include "ConfigManager.h"
-#include "Core.h"
-#include "CoreTiming.h"
-#include "Host.h"
-
-#include "HW/GPFifo.h"
-#include "HW/Memmap.h"
-#include "HW/SystemTimers.h"
-#include "PowerPC/PowerPC.h"
-
-#include "BPMemory.h"
+#include "Common/Common.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Host.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "VideoCommon/BPMemory.h"
 
 FifoPlayer::~FifoPlayer()
 {
@@ -40,13 +39,13 @@ bool FifoPlayer::Open(const std::string& filename)
 	if (m_FileLoadedCb)
 		m_FileLoadedCb();
 
-	return (m_File != NULL);
+	return (m_File != nullptr);
 }
 
 void FifoPlayer::Close()
 {
 	delete m_File;
-	m_File = NULL;
+	m_File = nullptr;
 
 	m_FrameRangeStart = 0;
 	m_FrameRangeEnd = 0;
@@ -75,7 +74,7 @@ bool FifoPlayer::Play()
 				{
 					m_CurrentFrame = m_FrameRangeStart;
 
-					CoreTiming::downcount = 0;
+					PowerPC::ppcState.downcount = 0;
 					CoreTiming::Advance();
 				}
 				else
@@ -159,9 +158,9 @@ FifoPlayer::FifoPlayer() :
 	m_ObjectRangeStart(0),
 	m_ObjectRangeEnd(10000),
 	m_EarlyMemoryUpdates(false),
-	m_FileLoadedCb(NULL),
-	m_FrameWrittenCb(NULL),
-	m_File(NULL)
+	m_FileLoadedCb(nullptr),
+	m_FrameWrittenCb(nullptr),
+	m_File(nullptr)
 {
 	m_Loop = SConfig::GetInstance().m_LocalCoreStartupParameter.bLoopFifoReplay;
 }
@@ -260,7 +259,7 @@ void FifoPlayer::WriteAllMemoryUpdates()
 {
 	_assert_(m_File);
 
-	for (int frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
+	for (size_t frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
 	{
 		const FifoFrameInfo &frame = m_File->GetFrame(frameNum);
 		for (auto& update : frame.memoryUpdates)
@@ -272,7 +271,7 @@ void FifoPlayer::WriteAllMemoryUpdates()
 
 void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 {
-	u8 *mem = NULL;
+	u8 *mem = nullptr;
 
 	if (memUpdate.address & 0x10000000)
 		mem = &Memory::m_pEXRAM[memUpdate.address & Memory::EXRAM_MASK];
@@ -302,15 +301,15 @@ void FifoPlayer::WriteFifo(u8 *data, u32 start, u32 end)
 		u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
 		m_ElapsedCycles = elapsedCycles;
 
-		CoreTiming::downcount -= cyclesUsed;
+		PowerPC::ppcState.downcount -= cyclesUsed;
 		CoreTiming::Advance();
 	}
 }
 
 void FifoPlayer::SetupFifo()
 {
-	WriteCP(0x02, 0);	// disable read, BP, interrupts
-	WriteCP(0x04, 7);	// clear overflow, underflow, metrics
+	WriteCP(0x02, 0); // disable read, BP, interrupts
+	WriteCP(0x04, 7); // clear overflow, underflow, metrics
 
 	const FifoFrameInfo& frame = m_File->GetFrame(m_CurrentFrame);
 
@@ -344,7 +343,7 @@ void FifoPlayer::SetupFifo()
 	FlushWGP();
 	WritePI(20, frame.fifoStart);
 
-	WriteCP(0x02, 17);	// enable read & GP link
+	WriteCP(0x02, 17); // enable read & GP link
 }
 
 void FifoPlayer::LoadMemory()

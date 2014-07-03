@@ -1,9 +1,7 @@
+#pragma once
 
-#ifndef _VERTEXMANAGERBASE_H
-#define _VERTEXMANAGERBASE_H
-
-#include "Common.h"
 #include <vector>
+#include "Common/Common.h"
 
 class NativeVertexFormat;
 class PointerWrap;
@@ -31,8 +29,6 @@ public:
 	VertexManager();
 	// needs to be virtual for DX11's dtor
 	virtual ~VertexManager();
-
-	static void AddVertices(int _primitive, u32 _numVertices);
 
 	static u8 *s_pCurBufferPointer;
 	static u8 *s_pBaseBufferPointer;
@@ -62,9 +58,7 @@ private:
 
 	//virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp
-	virtual void vFlush() = 0;
+	virtual void vFlush(bool useDstAlpha) = 0;
 };
 
 extern VertexManager *g_vertex_manager;
-
-#endif

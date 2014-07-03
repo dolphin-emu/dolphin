@@ -2,11 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "ConfigManager.h"
-#include "Core.h"
-#include "FifoRecorder.h"
-#include "Thread.h"
-#include "HW/Memmap.h"
+#include <algorithm>
+
+#include "Common/Thread.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/HW/Memmap.h"
 
 static FifoRecorder instance;
 static std::recursive_mutex sMutex;
@@ -18,13 +20,13 @@ FifoRecorder::FifoRecorder() :
 	m_WasRecording(false),
 	m_RequestedRecordingEnd(false),
 	m_RecordFramesRemaining(0),
-	m_FinishedCb(NULL),
-	m_File(NULL),
+	m_FinishedCb(nullptr),
+	m_File(nullptr),
 	m_SkipNextData(true),
 	m_SkipFutureData(true),
 	m_FrameEnded(false),
-	m_Ram(NULL),
-	m_ExRam(NULL)
+	m_Ram(nullptr),
+	m_ExRam(nullptr)
 {
 }
 

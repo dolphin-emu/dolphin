@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSP_BREAKPOINTS
-#define _DSP_BREAKPOINTS
+#pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
 // super fast breakpoints for a limited range.
 // To be used interchangeably with the BreakPoints class.
@@ -60,5 +59,3 @@ public:
 private:
 	u8 b[65536];
 };
-
-#endif

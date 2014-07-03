@@ -2,40 +2,37 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/CPUDetect.h"
+#include "Common/Event.h"
+#include "Common/IniFile.h"
+#include "Common/StdMutex.h"
+#include "Common/StdThread.h"
+#include "Common/Logging/LogManager.h"
 
-#include "Common.h"
-#include "CommonPaths.h"
-#include "Atomic.h"
-#include "CommonTypes.h"
-#include "LogManager.h"
-#include "Thread.h"
-#include "ChunkFile.h"
-#include "IniFile.h"
-#include "ConfigManager.h"
-#include "CPUDetect.h"
-#include "Core.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/DSP/DSPCaptureLogger.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPDisassembler.h"
+#include "Core/DSP/DSPHost.h"
+#include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPTables.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/Memmap.h"
 
-#include "DSPLLEGlobals.h" // Local
-#include "DSP/DSPHost.h"
-#include "DSP/DSPInterpreter.h"
-#include "DSP/DSPHWInterface.h"
-#include "DSP/disassemble.h"
-#include "DSPSymbols.h"
-#include "Host.h"
-
-#include "AudioCommon.h"
-#include "Mixer.h"
-
-#include "DSP/DSPTables.h"
-#include "DSP/DSPCore.h"
-#include "DSPLLE.h"
-#include "../Memmap.h"
-#include "../AudioInterface.h"
+#include "Core/HW/DSPLLE/DSPLLE.h"
+#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
 
 
-DSPLLE::DSPLLE() {
-	soundStream = NULL;
-	m_InitMixer = false;
+DSPLLE::DSPLLE()
+{
 	m_bIsRunning = false;
 	m_cycle_count = 0;
 }
@@ -76,29 +73,11 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.DoArray(g_dsp.iram, DSP_IRAM_SIZE);
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 	if (p.GetMode() == PointerWrap::MODE_READ)
-		DSPHost_CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
+		DSPHost::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
 	p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
 	p.Do(cyclesLeft);
 	p.Do(init_hax);
 	p.Do(m_cycle_count);
-
-	bool prevInitMixer = m_InitMixer;
-	p.Do(m_InitMixer);
-	if (prevInitMixer != m_InitMixer && p.GetMode() == PointerWrap::MODE_READ)
-	{
-		if (m_InitMixer)
-		{
-			InitMixer();
-			AudioCommon::PauseAndLock(true);
-		}
-		else
-		{
-			AudioCommon::PauseAndLock(false);
-			soundStream->Stop();
-			delete soundStream;
-			soundStream = NULL;
-		}
-	}
 }
 
 // Regular thread
@@ -130,13 +109,28 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 	}
 }
 
-bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
+static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 {
-	m_hWnd = hWnd;
-	m_bWii = bWii;
-	m_bDSPThread = bDSPThread;
-	m_InitMixer = false;
+	std::string bytes;
+	if (!File::ReadFileToString(filename, bytes))
+		return false;
 
+	if (bytes.size() != size_in_bytes)
+	{
+		ERROR_LOG(DSPLLE, "%s has a wrong size (%u, expected %u)",
+		          filename.c_str(), (u32)bytes.size(), size_in_bytes);
+		return false;
+	}
+
+	const u16* words = reinterpret_cast<const u16*>(bytes.c_str());
+	for (u32 i = 0; i < size_in_bytes / 2; ++i)
+		rom[i] = Common::swap16(words[i]);
+
+	return true;
+}
+
+static bool FillDSPInitOptions(DSPInitOptions* opts)
+{
 	std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
 	std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
 
@@ -144,7 +138,33 @@ bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 		irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
 	if (!File::Exists(coef_file))
 		coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
-	if (!DSPCore_Init(irom_file.c_str(), coef_file.c_str(), AudioCommon::UseJIT()))
+
+	if (!LoadDSPRom(opts->irom_contents.data(), irom_file, DSP_IROM_BYTE_SIZE))
+		return false;
+	if (!LoadDSPRom(opts->coef_contents.data(), coef_file, DSP_COEF_BYTE_SIZE))
+		return false;
+
+	opts->core_type = SConfig::GetInstance().m_DSPEnableJIT ?
+		DSPInitOptions::CORE_JIT : DSPInitOptions::CORE_INTERPRETER;
+
+	if (SConfig::GetInstance().m_DSPCaptureLog)
+	{
+		const std::string pcap_path = File::GetUserPath(D_DUMPDSP_IDX) + "dsp.pcap";
+		opts->capture_logger = new PCAPDSPCaptureLogger(pcap_path);
+	}
+
+	return true;
+}
+
+bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
+{
+	m_bWii = bWii;
+	m_bDSPThread = bDSPThread;
+
+	DSPInitOptions opts;
+	if (!FillDSPInitOptions(&opts))
+		return false;
+	if (!DSPCore_Init(opts))
 		return false;
 
 	g_dsp.cpu_ram = Memory::GetPointer(0);
@@ -176,31 +196,11 @@ void DSPLLE::DSP_StopSoundStream()
 
 void DSPLLE::Shutdown()
 {
-	AudioCommon::ShutdownSoundStream();
 	DSPCore_Shutdown();
-}
-
-void DSPLLE::InitMixer()
-{
-	unsigned int AISampleRate, DACSampleRate;
-	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-	delete soundStream;
-	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, 48000), m_hWnd);
-	if(!soundStream) PanicAlert("Error starting up sound stream");
-	// Mixer is initialized
-	m_InitMixer = true;
 }
 
 u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 {
-	UDSPControl Temp(_uFlag);
-	if (!m_InitMixer)
-	{
-		if (!Temp.DSPHalt)
-		{
-			InitMixer();
-		}
-	}
 	DSPInterpreter::WriteCR(_uFlag);
 
 	// Check if the CPU has set an external interrupt (CR_EXTERNAL_INT)
@@ -324,34 +324,8 @@ u32 DSPLLE::DSP_UpdateRate()
 	return 12600; // TO BE TWEAKED
 }
 
-void DSPLLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
-{
-	if (!soundStream)
-		return;
-
-	CMixer *pMixer = soundStream->GetMixer();
-
-	if (pMixer && address)
-	{
-		address &= (address & 0x10000000) ? 0x13ffffff : 0x01ffffff;
-		const short *samples = (const short *)&g_dsp.cpu_ram[address];
-		pMixer->PushSamples(samples, num_samples);
-	}
-
-	soundStream->Update();
-}
-
-void DSPLLE::DSP_ClearAudioBuffer(bool mute)
-{
-	if (soundStream)
-		soundStream->Clear(mute);
-}
-
 void DSPLLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
-	if (doLock || unpauseOnUnlock)
-		DSP_ClearAudioBuffer(doLock);
-
 	if (doLock)
 		m_csDSPThreadActive.lock();
 	else

@@ -1,39 +1,25 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
+#include "Common/ArmEmitter.h"
+#include "Common/Common.h"
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCTables.h"
 
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#include "Common.h"
-
-#include "../../Core.h"
-#include "../PowerPC.h"
-#include "../../ConfigManager.h"
-#include "../../CoreTiming.h"
-#include "../PPCTables.h"
-#include "ArmEmitter.h"
-#include "../../HW/Memmap.h"
-
-
-#include "Jit.h"
-#include "JitRegCache.h"
-#include "JitAsm.h"
+#include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitArm32/JitAsm.h"
+#include "Core/PowerPC/JitArm32/JitRegCache.h"
 
 void JitArm::UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 {
 	// All this gets replaced on backpatch
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 	BIC(dest, dest, mask); // 1
 	MOVI2R(R14, (u32)Memory::base, false); // 2-3
 	ADD(dest, dest, R14); // 4
@@ -103,7 +89,7 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 	if (regOffset != -1)
 		RB = gpr.R(regOffset);
 	ARMReg RS = gpr.R(value);
-	switch(accessSize)
+	switch (accessSize)
 	{
 		case 32:
 			MOVI2R(rA, (u32)&Memory::Write_U32);
@@ -117,11 +103,18 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 	}
 	MOV(rB, RS);
 	if (regOffset == -1)
+	{
 		MOVI2R(rC, offset);
+		if (dest != -1)
+			ADD(rC, rC, RA);
+	}
 	else
-		MOV(rC, RB);
-	if (dest != -1)
-		ADD(rC, rC, RA);
+	{
+		if (dest != -1)
+			ADD(rC, RA, RB);
+		else
+			MOV(rC, RB);
+	}
 
 	PUSH(4, R0, R1, R2, R3);
 	MOV(R0, rB);
@@ -134,16 +127,15 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 void JitArm::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	u32 a = inst.RA, b = inst.RB, s = inst.RS;
 	s32 offset = inst.SIMM_16;
 	u32 accessSize = 0;
 	s32 regOffset = -1;
-	bool zeroA = true;
 	bool update = false;
 	bool fastmem = false;
-	switch(inst.OPCD)
+	switch (inst.OPCD)
 	{
 		case 45: // sthu
 			update = true;
@@ -154,7 +146,6 @@ void JitArm::stX(UGeckoInstruction inst)
 			switch (inst.SUBOP10)
 			{
 				case 183: // stwux
-					zeroA = false;
 					update = true;
 				case 151: // stwx
 					fastmem = true;
@@ -162,14 +153,12 @@ void JitArm::stX(UGeckoInstruction inst)
 					regOffset = b;
 				break;
 				case 247: // stbux
-					zeroA = false;
 					update = true;
 				case 215: // stbx
 					accessSize = 8;
 					regOffset = b;
 				break;
 				case 439: // sthux
-					zeroA = false;
 					update = true;
 				case 407: // sthx
 					accessSize = 16;
@@ -189,7 +178,7 @@ void JitArm::stX(UGeckoInstruction inst)
 			accessSize = 8;
 		break;
 	}
-	SafeStoreFromReg(fastmem, zeroA ? a ? a : -1 : a, s, regOffset, accessSize, offset);
+	SafeStoreFromReg(fastmem, update ? a : (a ? a : -1), s, regOffset, accessSize, offset);
 	if (update)
 	{
 		ARMReg rA = gpr.GetReg();
@@ -199,34 +188,49 @@ void JitArm::stX(UGeckoInstruction inst)
 			RB = gpr.R(regOffset);
 		// Check for DSI exception prior to writing back address
 		LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-		CMP(rA, EXCEPTION_DSI);
-		FixupBranch DoNotWrite = B_CC(CC_EQ);
+		TST(rA, EXCEPTION_DSI);
+		FixupBranch DoNotWrite = B_CC(CC_NEQ);
 		if (a)
 		{
 			if (regOffset == -1)
+			{
 				MOVI2R(rA, offset);
+				ADD(RA, RA, rA);
+			}
 			else
-				MOV(rA, RB);
-			ADD(RA, RA, rA);
+			{
+				ADD(RA, RA, RB);
+			}
 		}
 		else
+		{
 			if (regOffset == -1)
 				MOVI2R(RA, (u32)offset);
 			else
 				MOV(RA, RB);
+		}
 		SetJumpTarget(DoNotWrite);
 		gpr.Unlock(rA);
 	}
 }
 
-void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
+void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offsetReg, s32 offset)
 {
 	ARMReg rA = gpr.GetReg();
-	MOVI2R(rA, offset, false); // -3
-	ADD(addr, addr, rA); // - 1
+	if (offsetReg == -1)
+	{
+		MOVI2R(rA, offset, false); // -3
+		ADD(addr, addr, rA); // - 1
+	}
+	else
+	{
+		NOP(2); // -3, -2
+		// offsetReg is preloaded here
+		ADD(addr, addr, gpr.R(offsetReg)); // -1
+	}
 
 	// All this gets replaced on backpatch
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 	BIC(addr, addr, mask); // 1
 	MOVI2R(rA, (u32)Memory::base, false); // 2-3
 	ADD(addr, addr, rA); // 4
@@ -262,26 +266,37 @@ void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offse
 void JitArm::SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse)
 {
 	ARMReg RD = gpr.R(dest);
+
 	if (Core::g_CoreStartupParameter.bFastmem && fastmem)
 	{
+		// Preload for fastmem
+		if (offsetReg != -1)
+			gpr.R(offsetReg);
+
 		if (addr != -1)
 			MOV(R10, gpr.R(addr));
 		else
 			MOV(R10, 0);
 
-		UnsafeLoadToReg(RD, R10, accessSize, offset);
+		UnsafeLoadToReg(RD, R10, accessSize, offsetReg, offset);
 		return;
 	}
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
 
 	if (offsetReg == -1)
+	{
 		MOVI2R(rA, offset);
+		if (addr != -1)
+			ADD(rA, rA, gpr.R(addr));
+	}
 	else
-		MOV(rA, gpr.R(offsetReg));
-
-	if (addr != -1)
-		ADD(rA, rA, gpr.R(addr));
+	{
+		if (addr != -1)
+			ADD(rA, gpr.R(addr), gpr.R(offsetReg));
+		else
+			MOV(rA, gpr.R(offsetReg));
+	}
 
 	switch (accessSize)
 	{
@@ -316,46 +331,44 @@ void JitArm::SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int 
 void JitArm::lXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
 	s32 offset = inst.SIMM_16;
 	u32 accessSize = 0;
 	s32 offsetReg = -1;
-	bool zeroA = true;
 	bool update = false;
 	bool signExtend = false;
 	bool reverse = false;
 	bool fastmem = false;
 
-	switch(inst.OPCD)
+	switch (inst.OPCD)
 	{
 		case 31:
-			switch(inst.SUBOP10)
+			switch (inst.SUBOP10)
 			{
 				case 55: // lwzux
-					zeroA = false;
 					update = true;
 				case 23: // lwzx
+					fastmem = true;
 					accessSize = 32;
 					offsetReg = b;
 				break;
 				case 119: //lbzux
-					zeroA = false;
 					update = true;
 				case 87: // lbzx
+					fastmem = true;
 					accessSize = 8;
 					offsetReg = b;
 				break;
 				case 311: // lhzux
-					zeroA = false;
 					update = true;
 				case 279: // lhzx
+					fastmem = true;
 					accessSize = 16;
 					offsetReg = b;
 				break;
 				case 375: // lhaux
-					zeroA = false;
 					update = true;
 				case 343: // lhax
 					accessSize = 16;
@@ -373,28 +386,24 @@ void JitArm::lXX(UGeckoInstruction inst)
 			}
 		break;
 		case 33: // lwzu
-			zeroA = false;
 			update = true;
 		case 32: // lwz
 			fastmem = true;
 			accessSize = 32;
 		break;
 		case 35: // lbzu
-			zeroA = false;
 			update = true;
 		case 34: // lbz
 			fastmem = true;
 			accessSize = 8;
 		break;
 		case 41: // lhzu
-			zeroA = false;
 			update = true;
 		case 40: // lhz
 			fastmem = true;
 			accessSize = 16;
 		break;
 		case 43: // lhau
-			zeroA = false;
 			update = true;
 		case 42: // lha
 			signExtend = true;
@@ -406,20 +415,24 @@ void JitArm::lXX(UGeckoInstruction inst)
 	ARMReg rA = gpr.GetReg(false);
 
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
+	TST(rA, EXCEPTION_DSI);
+	FixupBranch DoNotLoad = B_CC(CC_NEQ);
 
-	SafeLoadToReg(fastmem, d, zeroA ? a ? a : -1 : a, offsetReg, accessSize, offset, signExtend, reverse);
+	SafeLoadToReg(fastmem, d, update ? a : (a ? a : -1), offsetReg, accessSize, offset, signExtend, reverse);
 
 	if (update)
 	{
-		rA = gpr.GetReg(false);
 		ARMReg RA = gpr.R(a);
 		if (offsetReg == -1)
+		{
+			rA = gpr.GetReg(false);
 			MOVI2R(rA, offset);
+			ADD(RA, RA, rA);
+		}
 		else
-			MOV(RA, gpr.R(offsetReg));
-		ADD(RA, RA, rA);
+		{
+			ADD(RA, RA, gpr.R(offsetReg));
+		}
 	}
 
 	SetJumpTarget(DoNotLoad);
@@ -433,12 +446,14 @@ void JitArm::lXX(UGeckoInstruction inst)
 		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		ARMReg RD = gpr.R(d);
-		gpr.Flush();
-		fpr.Flush();
 
 		// if it's still 0, we can wait until the next event
 		TST(RD, RD);
 		FixupBranch noIdle = B_CC(CC_NEQ);
+
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
+
 		rA = gpr.GetReg();
 
 		MOVI2R(rA, (u32)&PowerPC::OnIdle);
@@ -453,7 +468,6 @@ void JitArm::lXX(UGeckoInstruction inst)
 		//js.compilerPC += 8;
 		return;
 	}
-
 }
 
 // Some games use this heavily in video codecs
@@ -461,10 +475,8 @@ void JitArm::lXX(UGeckoInstruction inst)
 void JitArm::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-	if (!Core::g_CoreStartupParameter.bFastmem){
-		Default(inst); return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(!Core::g_CoreStartupParameter.bFastmem);
 
 	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();
@@ -472,7 +484,7 @@ void JitArm::lmw(UGeckoInstruction inst)
 	MOVI2R(rA, inst.SIMM_16);
 	if (a)
 		ADD(rA, rA, gpr.R(a));
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 	BIC(rA, rA, mask); // 3
 	MOVI2R(rB, (u32)Memory::base, false); // 4-5
 	ADD(rA, rA, rB); // 6
@@ -489,10 +501,8 @@ void JitArm::lmw(UGeckoInstruction inst)
 void JitArm::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
-	if (!Core::g_CoreStartupParameter.bFastmem){
-		Default(inst); return;
-	}
+	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(!Core::g_CoreStartupParameter.bFastmem);
 
 	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();
@@ -501,7 +511,7 @@ void JitArm::stmw(UGeckoInstruction inst)
 	MOVI2R(rA, inst.SIMM_16);
 	if (a)
 		ADD(rA, rA, gpr.R(a));
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	Operand2 mask(2, 1); // ~(Memory::MEMVIEW32_MASK)
 	BIC(rA, rA, mask); // 3
 	MOVI2R(rB, (u32)Memory::base, false); // 4-5
 	ADD(rA, rA, rB); // 6
@@ -514,23 +524,22 @@ void JitArm::stmw(UGeckoInstruction inst)
 	}
 	gpr.Unlock(rA, rB, rC);
 }
+
 void JitArm::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff)
+	JITDISABLE(bJITLoadStoreOff);
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
 	// will be the same.
 	// dcbt = 0x7c00022c
-	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
-	{
-		Default(inst); return;
-	}
+	FALLBACK_IF((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c);
 }
+
 void JitArm::icbi(UGeckoInstruction inst)
 {
-	Default(inst);
-	WriteExit(js.compilerPC + 4, 0);
+	FallBackToInterpreter(inst);
+	WriteExit(js.compilerPC + 4);
 }
 

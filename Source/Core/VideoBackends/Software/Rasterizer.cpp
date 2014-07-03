@@ -2,17 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include <algorithm>
 
-#include "Rasterizer.h"
-#include "HwRasterizer.h"
-#include "EfbInterface.h"
-#include "BPMemLoader.h"
-#include "XFMemLoader.h"
-#include "Tev.h"
-#include "SWPixelEngine.h"
-#include "SWStatistics.h"
-#include "SWVideoConfig.h"
+#include "Common/Common.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/HwRasterizer.h"
+#include "VideoBackends/Software/Rasterizer.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoBackends/Software/Tev.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
 
 #define BLOCK_SIZE 2
@@ -54,12 +54,12 @@ void DoState(PointerWrap &p)
 {
 	ZSlope.DoState(p);
 	WSlope.DoState(p);
-	for (auto& ColorSlope : ColorSlopes)
-		for (int n=0; n<4; ++n)
-			ColorSlope[n].DoState(p);
-	for (auto& TexSlope : TexSlopes)
-		for (int n=0; n<3; ++n)
-			TexSlope[n].DoState(p);
+	for (auto& color_slopes_1d : ColorSlopes)
+		for (Slope& color_slope : color_slopes_1d)
+			color_slope.DoState(p);
+	for (auto& tex_slopes_1d : TexSlopes)
+		for (Slope& tex_slope : tex_slopes_1d)
+			tex_slope.DoState(p);
 	p.Do(vertex0X);
 	p.Do(vertex0Y);
 	p.Do(vertexOffsetX);
@@ -86,17 +86,9 @@ inline int iround(float x)
 {
 	int t;
 
-#if defined(_WIN32) && !defined(_M_X64)
-	__asm
-	{
-		fld  x
-		fistp t
-	}
-#else
 	t = (int)x;
-	if((x - t) >= 0.5)
+	if ((x - t) >= 0.5)
 		return t + 1;
-#endif
 
 	return t;
 }
@@ -138,14 +130,14 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	if (bpmem.UseEarlyDepthTest() && g_SWVideoConfig.bZComploc)
 	{
 		// TODO: Test if perf regs are incremented even if test is disabled
-		SWPixelEngine::pereg.IncZInputQuadCount(true);
+		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
 		if (bpmem.zmode.testenable)
 		{
 			// early z
 			if (!EfbInterface::ZCompare(x, y, z))
 				return;
 		}
-		SWPixelEngine::pereg.IncZOutputQuadCount(true);
+		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT_ZCOMPLOC);
 	}
 
 	RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
@@ -157,7 +149,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	//  colors
 	for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
 	{
-		for(int comp = 0; comp < 4; comp++)
+		for (int comp = 0; comp < 4; comp++)
 		{
 			u16 color = (u16)ColorSlopes[i][comp].GetValue(dx, dy);
 
@@ -240,12 +232,12 @@ inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
 		float *uv1 = rasterBlock.Pixel[1][0].Uv[texcoord];
 		float *uv2 = rasterBlock.Pixel[0][1].Uv[texcoord];
 
-		sDelta = max(fabsf(uv0[0] - uv1[0]), fabsf(uv0[0] - uv2[0]));
-		tDelta = max(fabsf(uv0[1] - uv1[1]), fabsf(uv0[1] - uv2[1]));
+		sDelta = std::max(fabsf(uv0[0] - uv1[0]), fabsf(uv0[0] - uv2[0]));
+		tDelta = std::max(fabsf(uv0[1] - uv1[1]), fabsf(uv0[1] - uv2[1]));
 	}
 
 	// get LOD in s28.4
-	lod = FixedLog2(max(sDelta, tDelta));
+	lod = FixedLog2(std::max(sDelta, tDelta));
 
 	// bias is s2.5
 	int bias = tm0.lod_bias;
@@ -279,7 +271,7 @@ void BuildBlock(s32 blockX, s32 blockY)
 			for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
 			{
 				float projection = invW;
-				if (swxfregs.texMtxInfo[i].projection)
+				if (xfmem.texMtxInfo[i].projection)
 				{
 					float q = TexSlopes[i][2].GetValue(dx, dy) * invW;
 					if (q != 0.0f)
@@ -307,7 +299,7 @@ void BuildBlock(s32 blockX, s32 blockY)
 	{
 		int stageOdd = i&1;
 		TwoTevStageOrders &order = bpmem.tevorders[i >> 1];
-		if(order.getEnable(stageOdd))
+		if (order.getEnable(stageOdd))
 		{
 			u32 texmap = order.getTexMap(stageOdd);
 			u32 texcoord = order.getTexCoord(stageOdd);
@@ -327,7 +319,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 		return;
 	}
 
-	// adapted from http://www.devmaster.net/forums/showthread.php?t=1884
+	// adapted from http://devmaster.net/posts/6145/advanced-rasterization
 
 	// 28.4 fixed-pou32 coordinates. rounded to nearest and adjusted to match hardware output
 	// could also take floor and adjust -8
@@ -358,16 +350,16 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	const s32 FDY31 = DY31 << 4;
 
 	// Bounding rectangle
-	s32 minx = (min(min(X1, X2), X3) + 0xF) >> 4;
-	s32 maxx = (max(max(X1, X2), X3) + 0xF) >> 4;
-	s32 miny = (min(min(Y1, Y2), Y3) + 0xF) >> 4;
-	s32 maxy = (max(max(Y1, Y2), Y3) + 0xF) >> 4;
+	s32 minx = (std::min(std::min(X1, X2), X3) + 0xF) >> 4;
+	s32 maxx = (std::max(std::max(X1, X2), X3) + 0xF) >> 4;
+	s32 miny = (std::min(std::min(Y1, Y2), Y3) + 0xF) >> 4;
+	s32 maxy = (std::max(std::max(Y1, Y2), Y3) + 0xF) >> 4;
 
 	// scissor
-	minx = max(minx, scissorLeft);
-	maxx = min(maxx, scissorRight);
-	miny = max(miny, scissorTop);
-	maxy = min(maxy, scissorBottom);
+	minx = std::max(minx, scissorLeft);
+	maxx = std::min(maxx, scissorRight);
+	miny = std::max(miny, scissorTop);
+	maxy = std::min(maxy, scissorBottom);
 
 	if (minx >= maxx || miny >= maxy)
 		return;
@@ -392,15 +384,15 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	if (!bpmem.genMode.zfreeze || !g_SWVideoConfig.bZFreeze)
 		InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
-	for(unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
+	for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
 	{
-		for(int comp = 0; comp < 4; comp++)
+		for (int comp = 0; comp < 4; comp++)
 			InitSlope(&ColorSlopes[i][comp], v0->color[i][comp], v1->color[i][comp], v2->color[i][comp], fltdx31, fltdx12, fltdy12, fltdy31);
 	}
 
-	for(unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
+	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
 	{
-		for(int comp = 0; comp < 3; comp++)
+		for (int comp = 0; comp < 3; comp++)
 			InitSlope(&TexSlopes[i][comp], v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1], v2->texCoords[i][comp] * w[2], fltdx31, fltdx12, fltdy12, fltdy31);
 	}
 
@@ -414,14 +406,14 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	s32 C3 = DY31 * X3 - DX31 * Y3;
 
 	// Correct for fill convention
-	if(DY12 < 0 || (DY12 == 0 && DX12 > 0)) C1++;
-	if(DY23 < 0 || (DY23 == 0 && DX23 > 0)) C2++;
-	if(DY31 < 0 || (DY31 == 0 && DX31 > 0)) C3++;
+	if (DY12 < 0 || (DY12 == 0 && DX12 > 0)) C1++;
+	if (DY23 < 0 || (DY23 == 0 && DX23 > 0)) C2++;
+	if (DY31 < 0 || (DY31 == 0 && DX31 > 0)) C3++;
 
 	// Loop through blocks
-	for(s32 y = miny; y < maxy; y += BLOCK_SIZE)
+	for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
 	{
-		for(s32 x = minx; x < maxx; x += BLOCK_SIZE)
+		for (s32 x = minx; x < maxx; x += BLOCK_SIZE)
 		{
 			// Corners of block
 			s32 x0 = x << 4;
@@ -449,17 +441,17 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 			int c = (c00 << 0) | (c10 << 1) | (c01 << 2) | (c11 << 3);
 
 			// Skip block when outside an edge
-			if(a == 0x0 || b == 0x0 || c == 0x0)
+			if (a == 0x0 || b == 0x0 || c == 0x0)
 				continue;
 
 			BuildBlock(x, y);
 
 			// Accept whole block when totally covered
-			if(a == 0xF && b == 0xF && c == 0xF)
+			if (a == 0xF && b == 0xF && c == 0xF)
 			{
-				for(s32 iy = 0; iy < BLOCK_SIZE; iy++)
+				for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
 				{
-					for(s32 ix = 0; ix < BLOCK_SIZE; ix++)
+					for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
 					{
 						Draw(x + ix, y + iy, ix, iy);
 					}
@@ -471,15 +463,15 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 				s32 CY2 = C2 + DX23 * y0 - DY23 * x0;
 				s32 CY3 = C3 + DX31 * y0 - DY31 * x0;
 
-				for(s32 iy = 0; iy < BLOCK_SIZE; iy++)
+				for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
 				{
 					s32 CX1 = CY1;
 					s32 CX2 = CY2;
 					s32 CX3 = CY3;
 
-					for(s32 ix = 0; ix < BLOCK_SIZE; ix++)
+					for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
 					{
-						if(CX1 > 0 && CX2 > 0 && CX3 > 0)
+						if (CX1 > 0 && CX2 > 0 && CX3 > 0)
 						{
 							Draw(x + ix, y + iy, ix, iy);
 						}

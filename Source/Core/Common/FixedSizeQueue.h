@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#pragma once
 
-#ifndef _FIXED_SIZE_QUEUE_H_
-#define _FIXED_SIZE_QUEUE_H_
+#include <cstddef>
 
 // STL-look-a-like interface, but name is mixed case to distinguish it clearly from the
 // real STL classes.
@@ -22,7 +22,7 @@ class FixedSizeQueue
 	int count;  // sacrifice 4 bytes for a simpler implementation. may optimize away in the future.
 
 	// Make copy constructor private for now.
-	FixedSizeQueue(FixedSizeQueue &other) {	}
+	FixedSizeQueue(FixedSizeQueue &other) {}
 
 public:
 	FixedSizeQueue()
@@ -70,6 +70,3 @@ public:
 		return count;
 	}
 };
-
-#endif // _FIXED_SIZE_QUEUE_H_
-

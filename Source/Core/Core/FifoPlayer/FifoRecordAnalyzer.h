@@ -2,14 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFORECORDANALYZER_H_
-#define _FIFORECORDANALYZER_H_
+#pragma once
 
-#include "FifoAnalyzer.h"
+#include "Common/Common.h"
 
-#include "Common.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
 
-#include "BPMemory.h"
+#include "VideoCommon/BPMemory.h"
 
 class FifoRecordAnalyzer
 {
@@ -40,5 +39,3 @@ private:
 	BPMemory *m_BpMem;
 	FifoAnalyzer::CPMemory m_CpMem;
 };
-
-#endif

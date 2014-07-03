@@ -2,20 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <cstring>
+#include <string>
 #include <vector>
 
 #include <polarssl/aes.h>
 
-#include "VolumeCreator.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
 
-#include "Volume.h"
-#include "VolumeDirectory.h"
-#include "VolumeGC.h"
-#include "VolumeWiiCrypted.h"
-#include "VolumeWad.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDirectory.h"
+#include "DiscIO/VolumeGC.h"
+#include "DiscIO/VolumeWad.h"
+#include "DiscIO/VolumeWiiCrypted.h"
 
-#include "Hash.h"
-#include "StringUtil.h"
 
 namespace DiscIO
 {
@@ -71,9 +74,9 @@ EDiscType GetDiscType(IBlobReader& _rReader);
 
 IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionGroup, u32 _VolumeNum)
 {
-	IBlobReader* pReader = CreateBlobReader(_rFilename.c_str());
-	if (pReader == NULL)
-		return NULL;
+	IBlobReader* pReader = CreateBlobReader(_rFilename);
+	if (pReader == nullptr)
+		return nullptr;
 
 	switch (GetDiscType(*pReader))
 	{
@@ -91,7 +94,7 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 
 			IVolume* pVolume = CreateVolumeFromCryptedWiiImage(*pReader, _PartitionGroup, 0, _VolumeNum, region == 'K');
 
-			if (pVolume == NULL)
+			if (pVolume == nullptr)
 			{
 				delete pReader;
 			}
@@ -103,16 +106,16 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 		case DISC_TYPE_UNK:
 		default:
 			std::string Filename, ext;
-			SplitPath(_rFilename, NULL, &Filename, &ext);
+			SplitPath(_rFilename, nullptr, &Filename, &ext);
 			Filename += ext;
 			NOTICE_LOG(DISCIO, "%s does not have the Magic word for a gcm, wiidisc or wad file\n"
 						"Set Log Verbosity to Warning and attempt to load the game again to view the values", Filename.c_str());
 			delete pReader;
-			return NULL;
+			return nullptr;
 	}
 
 	// unreachable code
-	return NULL;
+	return nullptr;
 }
 
 IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii, const std::string& _rApploader, const std::string& _rDOL)
@@ -120,7 +123,7 @@ IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii,
 	if (CVolumeDirectory::IsValidDirectory(_rDirectory))
 		return new CVolumeDirectory(_rDirectory, _bIsWii, _rApploader, _rDOL);
 
-	return NULL;
+	return nullptr;
 }
 
 bool IsVolumeWiiDisc(const IVolume *_rVolume)
@@ -129,7 +132,7 @@ bool IsVolumeWiiDisc(const IVolume *_rVolume)
 	_rVolume->Read(0x18, 4, (u8*)&MagicWord);
 
 	return (Common::swap32(MagicWord) == 0x5D1C9EA3);
-	//Gamecube 0xc2339f3d
+	//GameCube 0xc2339f3d
 }
 
 bool IsVolumeWadFile(const IVolume *_rVolume)
@@ -149,7 +152,7 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 
 	// Check if we're looking for a valid partition
 	if ((int)_VolumeNum != -1 && _VolumeNum > numPartitions)
-		return NULL;
+		return nullptr;
 
 	#ifdef _WIN32
 	struct SPartition
@@ -167,14 +170,14 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 	SPartitionGroup PartitionGroup[4];
 
 	// read all partitions
-	for (u32 x = 0; x < 4; x++)
+	for (SPartitionGroup& group : PartitionGroup)
 	{
 		for (u32 i = 0; i < numPartitions; i++)
 		{
 			SPartition Partition;
 			Partition.Offset = ((u64)Reader.Read32(PartitionsOffset + (i * 8) + 0)) << 2;
 			Partition.Type   = Reader.Read32(PartitionsOffset + (i * 8) + 4);
-			PartitionGroup[x].PartitionsVec.push_back(Partition);
+			group.PartitionsVec.push_back(Partition);
 		}
 	}
 
@@ -214,7 +217,7 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 EDiscType GetDiscType(IBlobReader& _rReader)

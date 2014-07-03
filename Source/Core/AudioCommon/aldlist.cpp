@@ -22,8 +22,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "Common.h"
-#include "aldlist.h"
+#include "AudioCommon/aldlist.h"
+#include "Common/Common.h"
 #ifdef _WIN32
 #include "../../../Externals/OpenAL/include/al.h"
 #include "../../../Externals/OpenAL/include/alc.h"
@@ -41,11 +41,7 @@
  */
 ALDeviceList::ALDeviceList()
 {
-	ALDEVICEINFO	ALDeviceInfo;
-	char *devices;
-	s32 index;
-	const char *defaultDeviceName = NULL;
-	const char *actualDeviceName = NULL;
+	ALDEVICEINFO ALDeviceInfo;
 
 	// DeviceInfo vector stores, for each enumerated device, it's device name, selection status, spec version #, and extension support
 	vDeviceInfo.clear();
@@ -54,14 +50,13 @@ ALDeviceList::ALDeviceList()
 	defaultDeviceIndex = 0;
 
 	// grab function pointers for 1.0-API functions, and if successful proceed to enumerate all devices
-	//if (LoadOAL10Library(NULL, &ALFunction) == TRUE) {
-		if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
+	//if (LoadOAL10Library(nullptr, &ALFunction) == TRUE) {
+		if (alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
 		{
-			devices = (char *)alcGetString(NULL, ALC_DEVICE_SPECIFIER);
-			defaultDeviceName = (char *)alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
-			index = 0;
-			// go through device list (each device terminated with a single NULL, list terminated with double NULL)
-			while (devices != NULL && strlen(devices) > 0)
+			const char *devices = alcGetString(nullptr, ALC_DEVICE_SPECIFIER);
+			const char *defaultDeviceName = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
+			// go through device list (each device terminated with a single nullptr, list terminated with double nullptr)
+			for (s32 index = 0; devices != nullptr && strlen(devices) > 0; index++, devices += strlen(devices) + 1)
 			{
 				if (strcmp(defaultDeviceName, devices) == 0)
 				{
@@ -70,12 +65,12 @@ ALDeviceList::ALDeviceList()
 				ALCdevice *device = alcOpenDevice(devices);
 				if (device)
 				{
-					ALCcontext *context = alcCreateContext(device, NULL);
+					ALCcontext *context = alcCreateContext(device, nullptr);
 					if (context)
 					{
 						alcMakeContextCurrent(context);
 						// if new actual device name isn't already in the list, then add it...
-						actualDeviceName = alcGetString(device, ALC_DEVICE_SPECIFIER);
+						const char *actualDeviceName = alcGetString(device, ALC_DEVICE_SPECIFIER);
 						bool bNewName = true;
 						for (s32 i = 0; i < GetNumDevices(); i++)
 						{
@@ -84,7 +79,7 @@ ALDeviceList::ALDeviceList()
 								bNewName = false;
 							}
 						}
-						if ((bNewName) && (actualDeviceName != NULL) && (strlen(actualDeviceName) > 0))
+						if ((bNewName) && (actualDeviceName != nullptr) && (strlen(actualDeviceName) > 0))
 						{
 							ALDeviceInfo.bSelected = true;
 							ALDeviceInfo.strDeviceName = actualDeviceName;
@@ -125,13 +120,11 @@ ALDeviceList::ALDeviceList()
 
 							vDeviceInfo.push_back(ALDeviceInfo);
 						}
-						alcMakeContextCurrent(NULL);
+						alcMakeContextCurrent(nullptr);
 						alcDestroyContext(context);
 					}
 					alcCloseDevice(device);
 				}
-				devices += strlen(devices) + 1;
-				index += 1;
 			}
 		}
 	//}
@@ -170,7 +163,7 @@ char * ALDeviceList::GetDeviceName(s32 index)
 	if (index < GetNumDevices())
 		return (char *)vDeviceInfo[index].strDeviceName.c_str();
 	else
-		return NULL;
+		return nullptr;
 }
 
 /*

@@ -2,16 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "PSTextureEncoder.h"
-
-#include "D3DBase.h"
-#include "D3DShader.h"
-#include "GfxState.h"
-#include "BPMemory.h"
-#include "FramebufferManager.h"
-#include "Render.h"
-#include "HW/Memmap.h"
-#include "TextureCache.h"
+#include "Core/HW/Memmap.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/GfxState.h"
+#include "VideoBackends/D3D/PSTextureEncoder.h"
+#include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3D/TextureCache.h"
 
 // "Static mode" will compile a new EFB encoder shader for every combination of
 // encoding configurations. It's compatible with Shader Model 4.
@@ -144,19 +142,19 @@ static const char EFB_ENCODE_PS[] =
 "}\n"
 
 "uint Float8ToUint3(float v) {\n"
-	"return (uint)(v*255.0) >> 5;\n"
+	"return (uint)round(v*255.0) >> 5;\n"
 "}\n"
 
 "uint Float8ToUint4(float v) {\n"
-	"return (uint)(v*255.0) >> 4;\n"
+	"return (uint)round(v*255.0) >> 4;\n"
 "}\n"
 
 "uint Float8ToUint5(float v) {\n"
-	"return (uint)(v*255.0) >> 3;\n"
+	"return (uint)round(v*255.0) >> 3;\n"
 "}\n"
 
 "uint Float8ToUint6(float v) {\n"
-	"return (uint)(v*255.0) >> 2;\n"
+	"return (uint)round(v*255.0) >> 2;\n"
 "}\n"
 
 "uint EncodeRGB5A3(float4 pixel) {\n"
@@ -428,10 +426,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
-		"255*float4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
-		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
-		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
+		"round(255*float4(sample0.r, sample4.r, sample8.r, sampleC.r)),\n"
+		"round(255*float4(sample1.r, sample5.r, sample9.r, sampleD.r)),\n"
+		"round(255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r)),\n"
+		"round(255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -508,10 +506,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
-		"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-		"255*float4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
-		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		"round(255*float4(sample0.a, sample2.a, sample4.a, sample6.a)),\n"
+		"round(255*float4(sample0.r, sample2.r, sample4.r, sample6.r)),\n"
+		"round(255*float4(sample1.a, sample3.a, sample5.a, sample7.a)),\n"
+		"round(255*float4(sample1.r, sample3.r, sample5.r, sample7.r))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -586,20 +584,20 @@ static const char EFB_ENCODE_PS[] =
 	"{\n"
 		// First cache line gets AR
 		"dw4 = UINT4_8888_BE(\n"
-			"255*float4(sample0.a, sample2.a, sample4.a, sample6.a),\n"
-			"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-			"255*float4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
-			"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+			"round(255*float4(sample0.a, sample2.a, sample4.a, sample6.a)),\n"
+			"round(255*float4(sample0.r, sample2.r, sample4.r, sample6.r)),\n"
+			"round(255*float4(sample1.a, sample3.a, sample5.a, sample7.a)),\n"
+			"round(255*float4(sample1.r, sample3.r, sample5.r, sample7.r))\n"
 			");\n"
 	"}\n"
 	"else\n"
 	"{\n"
 		// Second cache line gets GB
 		"dw4 = UINT4_8888_BE(\n"
-			"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-			"255*float4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
-			"255*float4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
-			"255*float4(sample1.b, sample3.b, sample5.b, sample7.b)\n"
+			"round(255*float4(sample0.g, sample2.g, sample4.g, sample6.g)),\n"
+			"round(255*float4(sample0.b, sample2.b, sample4.b, sample6.b)),\n"
+			"round(255*float4(sample1.g, sample3.g, sample5.g, sample7.g)),\n"
+			"round(255*float4(sample1.b, sample3.b, sample5.b, sample7.b))\n"
 			");\n"
 	"}\n"
 
@@ -631,10 +629,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.a, sample4.a, sample8.a, sampleC.a),\n"
-		"255*float4(sample1.a, sample5.a, sample9.a, sampleD.a),\n"
-		"255*float4(sample2.a, sample6.a, sampleA.a, sampleE.a),\n"
-		"255*float4(sample3.a, sample7.a, sampleB.a, sampleF.a)\n"
+		"round(255*float4(sample0.a, sample4.a, sample8.a, sampleC.a)),\n"
+		"round(255*float4(sample1.a, sample5.a, sample9.a, sampleD.a)),\n"
+		"round(255*float4(sample2.a, sample6.a, sampleA.a, sampleE.a)),\n"
+		"round(255*float4(sample3.a, sample7.a, sampleB.a, sampleF.a))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -665,10 +663,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.r, sample4.r, sample8.r, sampleC.r),\n"
-		"255*float4(sample1.r, sample5.r, sample9.r, sampleD.r),\n"
-		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
-		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
+		"round(255*float4(sample0.r, sample4.r, sample8.r, sampleC.r)),\n"
+		"round(255*float4(sample1.r, sample5.r, sample9.r, sampleD.r)),\n"
+		"round(255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r)),\n"
+		"round(255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -700,10 +698,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.g, sample4.g, sample8.g, sampleC.g),\n"
-		"255*float4(sample1.g, sample5.g, sample9.g, sampleD.g),\n"
-		"255*float4(sample2.g, sample6.g, sampleA.g, sampleE.g),\n"
-		"255*float4(sample3.g, sample7.g, sampleB.g, sampleF.g)\n"
+		"round(255*float4(sample0.g, sample4.g, sample8.g, sampleC.g)),\n"
+		"round(255*float4(sample1.g, sample5.g, sample9.g, sampleD.g)),\n"
+		"round(255*float4(sample2.g, sample6.g, sampleA.g, sampleE.g)),\n"
+		"round(255*float4(sample3.g, sample7.g, sampleB.g, sampleF.g))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -734,10 +732,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.b, sample4.b, sample8.b, sampleC.b),\n"
-		"255*float4(sample1.b, sample5.b, sample9.b, sampleD.b),\n"
-		"255*float4(sample2.b, sample6.b, sampleA.b, sampleE.b),\n"
-		"255*float4(sample3.b, sample7.b, sampleB.b, sampleF.b)\n"
+		"round(255*float4(sample0.b, sample4.b, sample8.b, sampleC.b)),\n"
+		"round(255*float4(sample1.b, sample5.b, sample9.b, sampleD.b)),\n"
+		"round(255*float4(sample2.b, sample6.b, sampleA.b, sampleE.b)),\n"
+		"round(255*float4(sample3.b, sample7.b, sampleB.b, sampleF.b))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -760,10 +758,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-		"255*float4(sample0.r, sample2.r, sample4.r, sample6.r),\n"
-		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
-		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
+		"round(255*float4(sample0.g, sample2.g, sample4.g, sample6.g)),\n"
+		"round(255*float4(sample0.r, sample2.r, sample4.r, sample6.r)),\n"
+		"round(255*float4(sample1.g, sample3.g, sample5.g, sample7.g)),\n"
+		"round(255*float4(sample1.r, sample3.r, sample5.r, sample7.r))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -787,10 +785,10 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
 
 	"uint4 dw4 = UINT4_8888_BE(\n"
-		"255*float4(sample0.b, sample2.b, sample4.b, sample6.b),\n"
-		"255*float4(sample0.g, sample2.g, sample4.g, sample6.g),\n"
-		"255*float4(sample1.b, sample3.b, sample5.b, sample7.b),\n"
-		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g)\n"
+		"round(255*float4(sample0.b, sample2.b, sample4.b, sample6.b)),\n"
+		"round(255*float4(sample0.g, sample2.g, sample4.g, sample6.g)),\n"
+		"round(255*float4(sample1.b, sample3.b, sample5.b, sample7.b)),\n"
+		"round(255*float4(sample1.g, sample3.g, sample5.g, sample7.g))\n"
 		");\n"
 
 	"return dw4;\n"
@@ -850,21 +848,21 @@ static const char EFB_ENCODE_PS[] =
 ;
 
 PSTextureEncoder::PSTextureEncoder()
-	: m_ready(false), m_out(NULL), m_outRTV(NULL), m_outStage(NULL),
-	m_encodeParams(NULL),
-	m_quad(NULL), m_vShader(NULL), m_quadLayout(NULL),
-	m_efbEncodeBlendState(NULL), m_efbEncodeDepthState(NULL),
-	m_efbEncodeRastState(NULL), m_efbSampler(NULL),
-	m_dynamicShader(NULL), m_classLinkage(NULL)
+	: m_ready(false), m_out(nullptr), m_outRTV(nullptr), m_outStage(nullptr),
+	m_encodeParams(nullptr),
+	m_quad(nullptr), m_vShader(nullptr), m_quadLayout(nullptr),
+	m_efbEncodeBlendState(nullptr), m_efbEncodeDepthState(nullptr),
+	m_efbEncodeRastState(nullptr), m_efbSampler(nullptr),
+	m_dynamicShader(nullptr), m_classLinkage(nullptr)
 {
 	for (size_t i = 0; i < 4; ++i)
-		m_fetchClass[i] = NULL;
+		m_fetchClass[i] = nullptr;
 	for (size_t i = 0; i < 2; ++i)
-		m_scaledFetchClass[i] = NULL;
+		m_scaledFetchClass[i] = nullptr;
 	for (size_t i = 0; i < 2; ++i)
-		m_intensityClass[i] = NULL;
+		m_intensityClass[i] = nullptr;
 	for (size_t i = 0; i < 16; ++i)
-		m_generatorClass[i] = NULL;
+		m_generatorClass[i] = nullptr;
 }
 
 static const D3D11_INPUT_ELEMENT_DESC QUAD_LAYOUT_DESC[] = {
@@ -889,7 +887,7 @@ void PSTextureEncoder::Init()
 	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
 		DXGI_FORMAT_R32G32B32A32_UINT,
 		EFB_WIDTH, EFB_HEIGHT/4, 1, 1, D3D11_BIND_RENDER_TARGET);
-	hr = D3D::device->CreateTexture2D(&t2dd, NULL, &m_out);
+	hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_out);
 	CHECK(SUCCEEDED(hr), "create efb encode output texture");
 	D3D::SetDebugObjectName(m_out, "efb encoder output texture");
 
@@ -906,7 +904,7 @@ void PSTextureEncoder::Init()
 	t2dd.Usage = D3D11_USAGE_STAGING;
 	t2dd.BindFlags = 0;
 	t2dd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	hr = D3D::device->CreateTexture2D(&t2dd, NULL, &m_outStage);
+	hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_outStage);
 	CHECK(SUCCEEDED(hr), "create efb encode output staging buffer");
 	D3D::SetDebugObjectName(m_outStage, "efb encoder output staging buffer");
 
@@ -914,7 +912,7 @@ void PSTextureEncoder::Init()
 
 	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(EFBEncodeParams),
 		D3D11_BIND_CONSTANT_BUFFER);
-	hr = D3D::device->CreateBuffer(&bd, NULL, &m_encodeParams);
+	hr = D3D::device->CreateBuffer(&bd, nullptr, &m_encodeParams);
 	CHECK(SUCCEEDED(hr), "create efb encode params buffer");
 	D3D::SetDebugObjectName(m_encodeParams, "efb encoder params buffer");
 
@@ -930,14 +928,14 @@ void PSTextureEncoder::Init()
 
 	// Create vertex shader
 
-	D3DBlob* bytecode = NULL;
+	D3DBlob* bytecode = nullptr;
 	if (!D3D::CompileVertexShader(EFB_ENCODE_VS, sizeof(EFB_ENCODE_VS), &bytecode))
 	{
 		ERROR_LOG(VIDEO, "EFB encode vertex shader failed to compile");
 		return;
 	}
 
-	hr = D3D::device->CreateVertexShader(bytecode->Data(), bytecode->Size(), NULL, &m_vShader);
+	hr = D3D::device->CreateVertexShader(bytecode->Data(), bytecode->Size(), nullptr, &m_vShader);
 	CHECK(SUCCEEDED(hr), "create efb encode vertex shader");
 	D3D::SetDebugObjectName(m_vShader, "efb encoder vertex shader");
 
@@ -1012,10 +1010,9 @@ void PSTextureEncoder::Shutdown()
 	SAFE_RELEASE(m_classLinkage);
 	SAFE_RELEASE(m_dynamicShader);
 
-	for (ComboMap::iterator it = m_staticShaders.begin();
-		it != m_staticShaders.end(); ++it)
+	for (auto& it : m_staticShaders)
 	{
-		SAFE_RELEASE(it->second);
+		SAFE_RELEASE(it.second);
 	}
 	m_staticShaders.clear();
 
@@ -1033,8 +1030,8 @@ void PSTextureEncoder::Shutdown()
 }
 
 size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
-	unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
-	bool scaleByHalf)
+	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+	bool isIntensity, bool scaleByHalf)
 {
 	if (!m_ready) // Make sure we initialized OK
 		return 0;
@@ -1086,7 +1083,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	if (SetStaticShader(dstFormat, srcFormat, isIntensity, scaleByHalf))
 #endif
 	{
-		D3D::context->VSSetShader(m_vShader, NULL, 0);
+		D3D::context->VSSetShader(m_vShader, nullptr, 0);
 
 		D3D::stateman->PushBlendState(m_efbEncodeBlendState);
 		D3D::stateman->PushDepthState(m_efbEncodeDepthState);
@@ -1118,13 +1115,13 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		params.TexTop = float(targetRect.top) / g_renderer->GetTargetHeight();
 		params.TexRight = float(targetRect.right) / g_renderer->GetTargetWidth();
 		params.TexBottom = float(targetRect.bottom) / g_renderer->GetTargetHeight();
-		D3D::context->UpdateSubresource(m_encodeParams, 0, NULL, &params, 0, 0);
+		D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &params, 0, 0);
 
 		D3D::context->VSSetConstantBuffers(0, 1, &m_encodeParams);
 
-		D3D::context->OMSetRenderTargets(1, &m_outRTV, NULL);
+		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
 
-		ID3D11ShaderResourceView* pEFB = (srcFormat == PIXELFMT_Z24) ?
+		ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
 			FramebufferManager::GetEFBDepthTexture()->GetSRV() :
 			// FIXME: Instead of resolving EFB, it would be better to pick out a
 			// single sample from each pixel. The game may break if it isn't
@@ -1146,13 +1143,13 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 		// Clean up state
 
-		IUnknown* nullDummy = NULL;
+		IUnknown* nullDummy = nullptr;
 
 		D3D::context->PSSetSamplers(0, 1, (ID3D11SamplerState**)&nullDummy);
 		D3D::context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
 		D3D::context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
 
-		D3D::context->OMSetRenderTargets(0, NULL, NULL);
+		D3D::context->OMSetRenderTargets(0, nullptr, nullptr);
 
 		D3D::context->VSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
 
@@ -1160,8 +1157,8 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		D3D::stateman->PopDepthState();
 		D3D::stateman->PopBlendState();
 
-		D3D::context->PSSetShader(NULL, NULL, 0);
-		D3D::context->VSSetShader(NULL, NULL, 0);
+		D3D::context->PSSetShader(nullptr, nullptr, 0);
+		D3D::context->VSSetShader(nullptr, nullptr, 0);
 
 		// Transfer staging buffer to GameCube/Wii RAM
 
@@ -1210,10 +1207,10 @@ static const char* INTENSITY_FUNC_NAMES[2] = {
 	"Intensity_0", "Intensity_1"
 };
 
-bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcFormat,
+bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, PEControl::PixelFormat srcFormat,
 	bool isIntensity, bool scaleByHalf)
 {
-	size_t fetchNum = srcFormat;
+	size_t fetchNum = static_cast<size_t>(srcFormat);
 	size_t scaledFetchNum = scaleByHalf ? 1 : 0;
 	size_t intensityNum = isIntensity ? 1 : 0;
 	size_t generatorNum = dstFormat;
@@ -1223,7 +1220,7 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 	ComboMap::iterator it = m_staticShaders.find(key);
 	if (it == m_staticShaders.end())
 	{
-		const char* generatorFuncName = NULL;
+		const char* generatorFuncName = nullptr;
 		switch (generatorNum)
 		{
 		case 0x0: generatorFuncName = "Generate_0"; break;
@@ -1241,34 +1238,34 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 		case 0xC: generatorFuncName = "Generate_C"; break;
 		default:
 			WARN_LOG(VIDEO, "No generator available for dst format 0x%X; aborting", generatorNum);
-			m_staticShaders[key] = NULL;
+			m_staticShaders[key] = nullptr;
 			return false;
 		}
 
 		INFO_LOG(VIDEO, "Compiling efb encoding shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d",
-			dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
+			dstFormat, static_cast<int>(srcFormat), isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 
 		// Shader permutation not found, so compile it
-		D3DBlob* bytecode = NULL;
+		D3DBlob* bytecode = nullptr;
 		D3D_SHADER_MACRO macros[] = {
 			{ "IMP_FETCH", FETCH_FUNC_NAMES[fetchNum] },
 			{ "IMP_SCALEDFETCH", SCALEDFETCH_FUNC_NAMES[scaledFetchNum] },
 			{ "IMP_INTENSITY", INTENSITY_FUNC_NAMES[intensityNum] },
 			{ "IMP_GENERATOR", generatorFuncName },
-			{ NULL, NULL }
+			{ nullptr, nullptr }
 		};
 		if (!D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), &bytecode, macros))
 		{
 			WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d failed to compile",
-				dstFormat, srcFormat, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
+				dstFormat, static_cast<int>(srcFormat), isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 			// Add dummy shader to map to prevent trying to compile over and
 			// over again
-			m_staticShaders[key] = NULL;
+			m_staticShaders[key] = nullptr;
 			return false;
 		}
 
 		ID3D11PixelShader* newShader;
-		HRESULT hr = D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), NULL, &newShader);
+		HRESULT hr = D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), nullptr, &newShader);
 		CHECK(SUCCEEDED(hr), "create efb encoder pixel shader");
 
 		it = m_staticShaders.insert(std::make_pair(key, newShader)).first;
@@ -1279,7 +1276,7 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, unsigned int srcF
 	{
 		if (it->second)
 		{
-			D3D::context->PSSetShader(it->second, NULL, 0);
+			D3D::context->PSSetShader(it->second, nullptr, 0);
 			return true;
 		}
 		else
@@ -1294,11 +1291,11 @@ bool PSTextureEncoder::InitDynamicMode()
 	HRESULT hr;
 
 	D3D_SHADER_MACRO macros[] = {
-		{ "DYNAMIC_MODE", NULL },
-		{ NULL, NULL }
+		{ "DYNAMIC_MODE", nullptr },
+		{ nullptr, nullptr }
 	};
 
-	D3DBlob* bytecode = NULL;
+	D3DBlob* bytecode = nullptr;
 	if (!D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), &bytecode, macros))
 	{
 		ERROR_LOG(VIDEO, "EFB encode pixel shader failed to compile");
@@ -1315,14 +1312,14 @@ bool PSTextureEncoder::InitDynamicMode()
 
 	// Use D3DReflect
 
-	ID3D11ShaderReflection* reflect = NULL;
+	ID3D11ShaderReflection* reflect = nullptr;
 	hr = PD3DReflect(bytecode->Data(), bytecode->Size(), IID_ID3D11ShaderReflection, (void**)&reflect);
 	CHECK(SUCCEEDED(hr), "reflect on efb encoder shader");
 
 	// Get number of slots and create dynamic linkage array
 
 	UINT numSlots = reflect->GetNumInterfaceSlots();
-	m_linkageArray.resize(numSlots, NULL);
+	m_linkageArray.resize(numSlots, nullptr);
 
 	// Get interface slots
 
@@ -1344,13 +1341,13 @@ bool PSTextureEncoder::InitDynamicMode()
 	// Class instances will be created at the time they are used
 
 	for (size_t i = 0; i < 4; ++i)
-		m_fetchClass[i] = NULL;
+		m_fetchClass[i] = nullptr;
 	for (size_t i = 0; i < 2; ++i)
-		m_scaledFetchClass[i] = NULL;
+		m_scaledFetchClass[i] = nullptr;
 	for (size_t i = 0; i < 2; ++i)
-		m_intensityClass[i] = NULL;
+		m_intensityClass[i] = nullptr;
 	for (size_t i = 0; i < 16; ++i)
-		m_generatorClass[i] = NULL;
+		m_generatorClass[i] = nullptr;
 
 	reflect->Release();
 	bytecode->Release();
@@ -1371,16 +1368,16 @@ static const char* INTENSITY_CLASS_NAMES[2] = {
 };
 
 bool PSTextureEncoder::SetDynamicShader(unsigned int dstFormat,
-	unsigned int srcFormat, bool isIntensity, bool scaleByHalf)
+	PEControl::PixelFormat srcFormat, bool isIntensity, bool scaleByHalf)
 {
-	size_t fetchNum = srcFormat;
+	size_t fetchNum = static_cast<size_t>(srcFormat);
 	size_t scaledFetchNum = scaleByHalf ? 1 : 0;
 	size_t intensityNum = isIntensity ? 1 : 0;
 	size_t generatorNum = dstFormat;
 
 	// FIXME: Not all the possible generators are available as classes yet.
 	// When dynamic mode is usable, implement them.
-	const char* generatorName = NULL;
+	const char* generatorName = nullptr;
 	switch (generatorNum)
 	{
 	case 0x4: generatorName = "cGenerator_4"; break;
@@ -1440,7 +1437,7 @@ bool PSTextureEncoder::SetDynamicShader(unsigned int dstFormat,
 		m_linkageArray[m_generatorSlot] = m_generatorClass[generatorNum];
 
 	D3D::context->PSSetShader(m_dynamicShader,
-		m_linkageArray.empty() ? NULL : &m_linkageArray[0],
+		m_linkageArray.empty() ? nullptr : &m_linkageArray[0],
 		(UINT)m_linkageArray.size());
 
 	return true;

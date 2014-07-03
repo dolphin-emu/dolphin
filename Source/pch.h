@@ -1,5 +1,3 @@
-#include "Common.h"
-#include "Thread.h"
 #include <algorithm>
 #include <array>
 #include <assert.h>
@@ -56,3 +54,6 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+
+#include "Common/Common.h"
+#include "Common/Thread.h"

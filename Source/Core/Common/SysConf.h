@@ -2,11 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __SYSCONF_MANAGER_h__
-#define __SYSCONF_MANAGER_h__
+#pragma once
 
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
 #include <string>
 #include <vector>
+
+#include "Common/Common.h"
 
 // This class is meant to edit the values in a given Wii SYSCONF file
 // It currently does not add/remove/rearrange sections,
@@ -55,7 +59,7 @@ struct SSysConfEntry
 	{
 		if (buffer)
 		{
-			memcpy(data, buffer, min<u16>(bufferSize, dataLength));
+			memcpy(data, buffer, std::min<u16>(bufferSize, dataLength));
 			return true;
 		}
 		return false;
@@ -80,7 +84,7 @@ public:
 		}
 
 		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-		for (; index < m_Entries.end() - 1; index++)
+		for (; index < m_Entries.end() - 1; ++index)
 		{
 			if (strcmp(index->name, sectionName) == 0)
 				break;
@@ -103,7 +107,7 @@ public:
 		}
 
 		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-		for (; index < m_Entries.end() - 1; index++)
+		for (; index < m_Entries.end() - 1; ++index)
 		{
 			if (strcmp(index->name, sectionName) == 0)
 				break;
@@ -123,7 +127,7 @@ public:
 			return false;
 
 		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-		for (; index < m_Entries.end() - 1; index++)
+		for (; index < m_Entries.end() - 1; ++index)
 		{
 			if (strcmp(index->name, sectionName) == 0)
 				break;
@@ -144,7 +148,7 @@ public:
 			return false;
 
 		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-		for (; index < m_Entries.end() - 1; index++)
+		for (; index < m_Entries.end() - 1; ++index)
 		{
 			if (strcmp(index->name, sectionName) == 0)
 				break;
@@ -160,8 +164,8 @@ public:
 	}
 
 	bool Save();
-	bool SaveToFile(const char* filename);
-	bool LoadFromFile(const char* filename);
+	bool SaveToFile(const std::string& filename);
+	bool LoadFromFile(const std::string& filename);
 	bool Reload();
 	// This function is used when the NAND root is changed
 	void UpdateLocation();
@@ -176,5 +180,3 @@ private:
 	std::vector<SSysConfEntry> m_Entries;
 	bool m_IsValid;
 };
-
-#endif // __SYSCONF_MANAGER_h__

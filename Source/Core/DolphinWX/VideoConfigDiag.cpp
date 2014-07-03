@@ -1,11 +1,37 @@
-#include "VideoConfigDiag.h"
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+#include <wx/arrstr.h>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/control.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/radiobut.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/window.h>
 
-#include "FileUtil.h"
-#include "TextureCacheBase.h"
-#include "Core.h"
-#include "Frame.h"
-
-#include <wx/intl.h>
+#include "Common/FileUtil.h"
+#include "Common/SysConf.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreParameter.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/VideoConfigDiag.h"
+#include "DolphinWX/WxUtils.h"
+#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef __APPLE__
 #include <ApplicationServices/ApplicationServices.h>
@@ -25,7 +51,7 @@ SettingCheckBox::BoolSetting(wxWindow* parent, const wxString& label, const wxSt
 {
 	SetToolTip(tooltip);
 	SetValue(m_setting ^ m_reverse);
-	Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &SettingCheckBox::UpdateValue, this);
+	Bind(wxEVT_CHECKBOX, &SettingCheckBox::UpdateValue, this);
 }
 
 template <>
@@ -36,7 +62,7 @@ SettingRadioButton::BoolSetting(wxWindow* parent, const wxString& label, const w
 {
 	SetToolTip(tooltip);
 	SetValue(m_setting ^ m_reverse);
-	Bind(wxEVT_COMMAND_RADIOBUTTON_SELECTED, &SettingRadioButton::UpdateValue, this);
+	Bind(wxEVT_RADIOBUTTON, &SettingRadioButton::UpdateValue, this);
 }
 
 SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num, const wxString choices[], long style)
@@ -45,7 +71,7 @@ SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& too
 {
 	SetToolTip(tooltip);
 	Select(m_setting);
-	Bind(wxEVT_COMMAND_CHOICE_SELECTED, &SettingChoice::UpdateValue, this);
+	Bind(wxEVT_CHOICE, &SettingChoice::UpdateValue, this);
 }
 
 void SettingChoice::UpdateValue(wxCommandEvent& ev)
@@ -61,7 +87,7 @@ void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 
 void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 {
-	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
+	g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
 
 	EndModal(wxID_OK);
 }
@@ -117,7 +143,6 @@ wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n
 #endif
 wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera.\nMove the mouse while holding the right mouse button to pan and while holding the middle button to move.\nHold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+0 to move faster and SHIFT+9 to move slower). Press SHIFT+R to reset the camera.\n\nIf unsure, leave this unchecked.");
 wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.\n\nIf unsure, leave this unchecked.");
-wxString dlc_desc = wxTRANSLATE("[EXPERIMENTAL]\nSpeeds up emulation a bit by caching display lists.\nPossibly causes issues though.\n\nIf unsure, leave this unchecked.");
 wxString omp_desc = wxTRANSLATE("Use multiple threads to decode textures.\nMight result in a speedup (especially on CPUs with more than two cores).\n\nIf unsure, leave this unchecked.");
 wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
 wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nSometimes also increases visual quality.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
@@ -136,7 +161,7 @@ wxArrayString GetListOfResolutions()
 	dmi.dmSize = sizeof(dmi);
 	std::vector<std::string> resos;
 
-	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
+	while (EnumDisplaySettings(nullptr, iModeNum++, &dmi) != 0)
 	{
 		char res[100];
 		sprintf(res, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
@@ -152,7 +177,7 @@ wxArrayString GetListOfResolutions()
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->AddResolutions(retlist);
 #elif defined(__APPLE__)
-	CFArrayRef modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
+	CFArrayRef modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), nullptr);
 	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
 	{
 		std::stringstream res;
@@ -184,20 +209,19 @@ wxArrayString GetListOfResolutions()
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
-		wxString::Format(_("Dolphin %s Graphics Configuration"), wxGetTranslation(StrToWxStr(title))),
-		wxDefaultPosition, wxDefaultSize)
+		wxString::Format(_("Dolphin %s Graphics Configuration"), wxGetTranslation(StrToWxStr(title))))
 	, vconfig(g_Config)
 	, ininame(_ininame)
 {
-	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
+	vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
 
 	Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
-	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);
+	wxNotebook* const notebook = new wxNotebook(this, -1);
 
 	// -- GENERAL --
 	{
-	wxPanel* const page_general = new wxPanel(notebook, -1, wxDefaultPosition);
+	wxPanel* const page_general = new wxPanel(notebook, -1);
 	notebook->AddPage(page_general, _("General"));
 	wxBoxSizer* const szr_general = new wxBoxSizer(wxVERTICAL);
 
@@ -208,17 +232,16 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// backend
 	{
 	wxStaticText* const label_backend = new wxStaticText(page_general, wxID_ANY, _("Backend:"));
-	choice_backend = new wxChoice(page_general, wxID_ANY, wxDefaultPosition);
+	choice_backend = new wxChoice(page_general, wxID_ANY);
 	RegisterControl(choice_backend, wxGetTranslation(backend_desc));
 
-	std::vector<VideoBackend*>::const_iterator
-			it = g_available_video_backends.begin(),
-			itend = g_available_video_backends.end();
-	for (; it != itend; ++it)
-		choice_backend->AppendString(wxGetTranslation(StrToWxStr((*it)->GetDisplayName())));
+	for (const VideoBackend* backend : g_available_video_backends)
+	{
+		choice_backend->AppendString(wxGetTranslation(StrToWxStr(backend->GetDisplayName())));
+	}
 
 	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetDisplayName())));
-	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
+	choice_backend->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_Backend, this);
 
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
 	szr_basic->Add(choice_backend, 1, 0, 0);
@@ -235,11 +258,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 		wxChoice* const choice_adapter = CreateChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_desc));
 
-		std::vector<std::string>::const_iterator
-			it = vconfig.backend_info.Adapters.begin(),
-			itend = vconfig.backend_info.Adapters.end();
-		for (; it != itend; ++it)
-			choice_adapter->AppendString(StrToWxStr(*it));
+		for (const std::string& adapter : vconfig.backend_info.Adapters)
+		{
+			choice_adapter->AppendString(StrToWxStr(adapter));
+		}
 
 		choice_adapter->Select(vconfig.iAdapter);
 
@@ -262,7 +284,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		wxStaticText* const label_display_resolution = new wxStaticText(page_general, wxID_ANY, _("Fullscreen resolution:"));
 		choice_display_resolution = new wxChoice(page_general, wxID_ANY, wxDefaultPosition, wxDefaultSize, res_list);
 		RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
-		choice_display_resolution->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_DisplayResolution, this);
+		choice_display_resolution->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_DisplayResolution, this);
 
 		choice_display_resolution->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution));
 
@@ -332,7 +354,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// -- ENHANCEMENTS --
 	{
-	wxPanel* const page_enh = new wxPanel(notebook, -1, wxDefaultPosition);
+	wxPanel* const page_enh = new wxPanel(notebook, -1);
 	notebook->AddPage(page_enh, _("Enhancements"));
 	wxBoxSizer* const szr_enh_main = new wxBoxSizer(wxVERTICAL);
 
@@ -357,11 +379,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	text_aamode = new wxStaticText(page_enh, -1, _("Anti-Aliasing:"));
 	choice_aamode = CreateChoice(page_enh, vconfig.iMultisampleMode, wxGetTranslation(aa_desc));
 
-	std::vector<std::string>::const_iterator
-		it = vconfig.backend_info.AAModes.begin(),
-		itend = vconfig.backend_info.AAModes.end();
-	for (; it != itend; ++it)
-		choice_aamode->AppendString(wxGetTranslation(StrToWxStr(*it)));
+	for (const std::string& mode : vconfig.backend_info.AAModes)
+	{
+		choice_aamode->AppendString(wxGetTranslation(StrToWxStr(mode)));
+	}
 
 	choice_aamode->Select(vconfig.iMultisampleMode);
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -370,7 +391,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// AF
 	{
-	const wxString af_choices[] = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
+	const wxString af_choices[] = {"1x", "2x", "4x", "8x", "16x"};
 	szr_enh->Add(new wxStaticText(page_enh, -1, _("Anisotropic Filtering:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	szr_enh->Add(CreateChoice(page_enh, vconfig.iMaxAnisotropy, wxGetTranslation(af_desc), 5, af_choices));
 	}
@@ -378,22 +399,21 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// postproc shader
 	if (vconfig.backend_info.PPShaders.size())
 	{
-		wxChoice *const choice_ppshader = new wxChoice(page_enh, -1, wxDefaultPosition);
+		wxChoice *const choice_ppshader = new wxChoice(page_enh, -1);
 		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
 		choice_ppshader->AppendString(_("(off)"));
 
-		std::vector<std::string>::const_iterator
-			it = vconfig.backend_info.PPShaders.begin(),
-			itend = vconfig.backend_info.PPShaders.end();
-		for (; it != itend; ++it)
-			choice_ppshader->AppendString(StrToWxStr(*it));
+		for (const std::string& shader : vconfig.backend_info.PPShaders)
+		{
+			choice_ppshader->AppendString(StrToWxStr(shader));
+		}
 
 		if (vconfig.sPostProcessingShader.empty())
 			choice_ppshader->Select(0);
 		else
 			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
 
-		choice_ppshader->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_PPShader, this);
+		choice_ppshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_PPShader, this);
 
 		szr_enh->Add(new wxStaticText(page_enh, -1, _("Post-Processing Effect:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_enh->Add(choice_ppshader);
@@ -401,7 +421,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// Scaled copy, PL, Bilinear filter, 3D Vision
 	szr_enh->Add(CreateCheckBox(page_enh, _("Scaled EFB Copy"), wxGetTranslation(scaled_efb_copy_desc), vconfig.bCopyEFBScaled));
-	szr_enh->Add(pixel_lighting = CreateCheckBox(page_enh, _("Per-Pixel Lighting"), wxGetTranslation(pixel_lighting_desc), vconfig.bEnablePixelLighting));
+	szr_enh->Add(CreateCheckBox(page_enh, _("Per-Pixel Lighting"), wxGetTranslation(pixel_lighting_desc), vconfig.bEnablePixelLighting));
 	szr_enh->Add(CreateCheckBox(page_enh, _("Force Texture Filtering"), wxGetTranslation(force_filtering_desc), vconfig.bForceFiltering));
 
 	szr_enh->Add(CreateCheckBox(page_enh, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack));
@@ -426,15 +446,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// -- SPEED HACKS --
 	{
-	wxPanel* const page_hacks = new wxPanel(notebook, -1, wxDefaultPosition);
+	wxPanel* const page_hacks = new wxPanel(notebook, -1);
 	notebook->AddPage(page_hacks, _("Hacks"));
 	wxBoxSizer* const szr_hacks = new wxBoxSizer(wxVERTICAL);
 
 	// - EFB hacks
 	wxStaticBoxSizer* const szr_efb = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Embedded Frame Buffer"));
-
-	// format change emulation
-	emulate_efb_format_changes = CreateCheckBox(page_hacks, _("Ignore Format Changes"), wxGetTranslation(efb_emulate_format_changes_desc), vconfig.bEFBEmulateFormatChanges, true);
 
 	// EFB copies
 	wxStaticBoxSizer* const group_efbcopy = new wxStaticBoxSizer(wxHORIZONTAL, page_hacks, _("EFB Copies"));
@@ -451,7 +468,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	group_efbcopy->Add(cache_efb_copies, 0, wxRIGHT, 5);
 
 	szr_efb->Add(CreateCheckBox(page_hacks, _("Skip EFB Access from CPU"), wxGetTranslation(efb_access_desc), vconfig.bEFBAccessEnable, true), 0, wxBOTTOM | wxLEFT, 5);
-	szr_efb->Add(emulate_efb_format_changes, 0, wxBOTTOM | wxLEFT, 5);
+	szr_efb->Add(CreateCheckBox(page_hacks, _("Ignore Format Changes"), wxGetTranslation(efb_emulate_format_changes_desc), vconfig.bEFBEmulateFormatChanges, true), 0, wxBOTTOM | wxLEFT, 5);
 	szr_efb->Add(group_efbcopy, 0, wxEXPAND | wxALL, 5);
 	szr_hacks->Add(szr_efb, 0, wxEXPAND | wxALL, 5);
 
@@ -461,7 +478,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// TODO: Use wxSL_MIN_MAX_LABELS or wxSL_VALUE_LABEL with wx 2.9.1
 	wxSlider* const stc_slider = new wxSlider(page_hacks, wxID_ANY, 0, 0, 2, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_BOTTOM);
-	stc_slider->Bind(wxEVT_COMMAND_SLIDER_UPDATED, &VideoConfigDiag::Event_Stc, this);
+	stc_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_Stc, this);
 	RegisterControl(stc_slider, wxGetTranslation(stc_desc));
 
 	if (vconfig.iSafeTextureCache_ColorSamples == 0) stc_slider->SetValue(0);
@@ -490,12 +507,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	group_xfb->Add(virtual_xfb, 0, wxRIGHT, 5);
 	group_xfb->Add(real_xfb, 0, wxRIGHT, 5);
 	szr_hacks->Add(group_xfb, 0, wxEXPAND | wxALL, 5);
-	}	// xfb
+	} // xfb
 
 	// - other hacks
 	{
 	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
-	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Destination Alpha"), wxGetTranslation(disable_dstalpha_desc), vconfig.bDstAlphaPass));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Depth Calculation"), wxGetTranslation(fast_depth_calc_desc), vconfig.bFastDepthCalc));
@@ -512,7 +528,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// -- ADVANCED --
 	{
-	wxPanel* const page_advanced = new wxPanel(notebook, -1, wxDefaultPosition);
+	wxPanel* const page_advanced = new wxPanel(notebook, -1);
 	notebook->AddPage(page_advanced, _("Advanced"));
 	wxBoxSizer* const szr_advanced = new wxBoxSizer(wxVERTICAL);
 
@@ -559,7 +575,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxCheckBox* const cb_prog_scan = new wxCheckBox(page_advanced, wxID_ANY, _("Enable Progressive Scan"));
 	RegisterControl(cb_prog_scan, wxGetTranslation(prog_scan_desc));
-	cb_prog_scan->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &VideoConfigDiag::Event_ProgressiveScan, this);
+	cb_prog_scan->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_ProgressiveScan, this);
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		cb_prog_scan->Disable();
 
@@ -580,8 +596,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	page_advanced->SetSizerAndFit(szr_advanced);
 	}
 
-	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"), wxDefaultPosition);
-	btn_close->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &VideoConfigDiag::Event_ClickClose, this);
+	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"));
+	btn_close->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ClickClose, this);
 
 	Bind(wxEVT_CLOSE_WINDOW, &VideoConfigDiag::Event_Close, this);
 

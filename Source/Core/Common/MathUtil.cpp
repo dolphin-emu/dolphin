@@ -2,10 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MathUtil.h"
-
 #include <cmath>
+#include <cstring>
 #include <numeric>
+
+#include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 namespace MathUtil
 {
@@ -13,8 +15,7 @@ namespace MathUtil
 u32 ClassifyDouble(double dvalue)
 {
 	// TODO: Optimize the below to be as fast as possible.
-	IntDouble value;
-	value.d = dvalue;
+	IntDouble value(dvalue);
 	u64 sign = value.i & DOUBLE_SIGN;
 	u64 exp  = value.i & DOUBLE_EXP;
 	if (exp > DOUBLE_ZERO && exp < DOUBLE_EXP)
@@ -53,8 +54,7 @@ u32 ClassifyDouble(double dvalue)
 u32 ClassifyFloat(float fvalue)
 {
 	// TODO: Optimize the below to be as fast as possible.
-	IntFloat value;
-	value.f = fvalue;
+	IntFloat value(fvalue);
 	u32 sign = value.i & FLOAT_SIGN;
 	u32 exp  = value.i & FLOAT_EXP;
 	if (exp > FLOAT_ZERO && exp < FLOAT_EXP)
@@ -193,7 +193,7 @@ void Matrix44::LoadMatrix33(Matrix44 &mtx, const Matrix33 &m33)
 
 void Matrix44::Set(Matrix44 &mtx, const float mtxArray[16])
 {
-	for(int i = 0; i < 16; ++i)
+	for (int i = 0; i < 16; ++i)
 	{
 		mtx.data[i] = mtxArray[i];
 	}

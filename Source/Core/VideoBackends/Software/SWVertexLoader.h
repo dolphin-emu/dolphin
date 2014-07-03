@@ -2,14 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXLOADER_H_
-#define _VERTEXLOADER_H_
+#pragma once
 
-#include "Common.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "NativeVertexFormat.h"
-#include "CPMemLoader.h"
-#include "ChunkFile.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
 
 class SetupUnit;
 
@@ -59,5 +58,3 @@ public:
 	void LoadVertex();
 	void DoState(PointerWrap &p);
 };
-
-#endif

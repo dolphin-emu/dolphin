@@ -2,14 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_HID_H_
-#define _WII_IPC_HLE_DEVICE_HID_H_
+#pragma once
 
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device.h"
 #include <libusb.h>
-#include "Thread.h"
 #include <list>
+
+#include "Common/Thread.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 #define HID_ID_MASK 0x0000FFFFFFFFFFFF
 #define MAX_HID_INTERFACES 1
@@ -25,12 +25,11 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_hid();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);
-	virtual u32 Update();
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual bool IOCtlV(u32 _CommandAddress);
-	virtual bool IOCtl(u32 _CommandAddress);
+	virtual bool IOCtlV(u32 _CommandAddress) override;
+	virtual bool IOCtl(u32 _CommandAddress) override;
 
 private:
 	enum
@@ -50,60 +49,60 @@ private:
 	typedef struct
 	{
 		 u8 bLength;
-		 u8 bDescriptorType;
+		u8 bDescriptorType;
 		u16 bcdUSB;
-		 u8 bDeviceClass;
-		 u8 bDeviceSubClass;
-		 u8 bDeviceProtocol;
-		 u8 bMaxPacketSize0;
+		u8 bDeviceClass;
+		u8 bDeviceSubClass;
+		u8 bDeviceProtocol;
+		u8 bMaxPacketSize0;
 		u16 idVendor;
 		u16 idProduct;
 		u16 bcdDevice;
-		 u8 iManufacturer;
-		 u8 iProduct;
-		 u8 iSerialNumber;
-		 u8 bNumConfigurations;
-		 u8 pad[2];
+		u8 iManufacturer;
+		u8 iProduct;
+		u8 iSerialNumber;
+		u8 bNumConfigurations;
+		u8 pad[2];
 	} WiiHIDDeviceDescriptor;
 
 	typedef struct
 	{
-		 u8 bLength;
-		 u8 bDescriptorType;
+		u8 bLength;
+		u8 bDescriptorType;
 		u16 wTotalLength;
-		 u8 bNumInterfaces;
-		 u8 bConfigurationValue;
-		 u8 iConfiguration;
-		 u8 bmAttributes;
-		 u8 MaxPower;
-		 u8 pad[3];
+		u8 bNumInterfaces;
+		u8 bConfigurationValue;
+		u8 iConfiguration;
+		u8 bmAttributes;
+		u8 MaxPower;
+		u8 pad[3];
 	} WiiHIDConfigDescriptor;
 
 	typedef struct
 	{
-		 u8 bLength;
-		 u8 bDescriptorType;
-		 u8 bInterfaceNumber;
-		 u8 bAlternateSetting;
-		 u8 bNumEndpoints;
-		 u8 bInterfaceClass;
-		 u8 bInterfaceSubClass;
-		 u8 bInterfaceProtocol;
-		 u8 iInterface;
-		 u8 pad[3];
+		u8 bLength;
+		u8 bDescriptorType;
+		u8 bInterfaceNumber;
+		u8 bAlternateSetting;
+		u8 bNumEndpoints;
+		u8 bInterfaceClass;
+		u8 bInterfaceSubClass;
+		u8 bInterfaceProtocol;
+		u8 iInterface;
+		u8 pad[3];
 	} WiiHIDInterfaceDescriptor;
 
 	typedef struct
 	{
-		 u8 bLength;
-		 u8 bDescriptorType;
-		 u8 bEndpointAddress;
-		 u8 bmAttributes;
+		u8 bLength;
+		u8 bDescriptorType;
+		u8 bEndpointAddress;
+		u8 bmAttributes;
 		u16 wMaxPacketSize;
-		 u8 bInterval;
-		 u8 bRefresh;
-		 u8 bSynchAddress;
-		 u8 pad[1];
+		u8 bInterval;
+		u8 bRefresh;
+		u8 bSynchAddress;
+		u8 pad[1];
 	} WiiHIDEndpointDescriptor;
 
 	u32 deviceCommandAddress;
@@ -138,5 +137,3 @@ private:
 
 	std::list<_hidevent> event_list;
 };
-
-#endif

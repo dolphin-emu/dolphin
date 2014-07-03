@@ -1,11 +1,9 @@
-
-#ifndef INCLUDE_SAMPLER_CACHE_H_
-#define INCLUDE_SAMPLER_CACHE_H_
+#pragma once
 
 #include <map>
 
-#include "Render.h"
-#include "GLUtil.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/Render.h"
 
 namespace OGL
 {
@@ -76,5 +74,3 @@ private:
 extern SamplerCache *g_sampler_cache;
 
 }
-
-#endif

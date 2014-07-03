@@ -2,34 +2,33 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ELFTYPES_H
-#define _ELFTYPES_H
+#pragma once
 
 // ELF Header Constants
 
 // File type
 enum ElfType
 {
-	ET_NONE        =0,
-	ET_REL         =1,
-	ET_EXEC        =2,
-	ET_DYN         =3,
-	ET_CORE        =4,
-	ET_LOPROC =0xFF00,
-	ET_HIPROC =0xFFFF,
+	ET_NONE   = 0,
+	ET_REL    = 1,
+	ET_EXEC   = 2,
+	ET_DYN    = 3,
+	ET_CORE   = 4,
+	ET_LOPROC = 0xFF00,
+	ET_HIPROC = 0xFFFF,
 };
 
 // Machine/Architecture
 enum ElfMachine
 {
-	EM_NONE  =0,
-	EM_M32   =1,
-	EM_SPARC =2,
-	EM_386   =3,
-	EM_68K   =4,
-	EM_88K   =5,
-	EM_860   =7,
-	EM_MIPS  =8
+	EM_NONE  = 0,
+	EM_M32   = 1,
+	EM_SPARC = 2,
+	EM_386   = 3,
+	EM_68K   = 4,
+	EM_88K   = 5,
+	EM_860   = 7,
+	EM_MIPS  = 8
 };
 
 // File version
@@ -101,10 +100,10 @@ enum ElfMachine
 // Section flags
 enum ElfSectionFlags
 {
-	SHF_WRITE     =0x1,
-	SHF_ALLOC     =0x2,
-	SHF_EXECINSTR =0x4,
-	SHF_MASKPROC  =0xF0000000,
+	SHF_WRITE     = 0x1,
+	SHF_ALLOC     = 0x2,
+	SHF_EXECINSTR = 0x4,
+	SHF_MASKPROC  = 0xF0000000,
 };
 
 // Symbol binding
@@ -280,6 +279,3 @@ struct Elf32_Dyn
 		Elf32_Addr d_ptr;
 	} d_un;
 };
-
-#endif
-

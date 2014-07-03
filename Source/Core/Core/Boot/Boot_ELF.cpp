@@ -2,14 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../PowerPC/PowerPC.h"
-#include "Boot.h"
-#include "../HLE/HLE.h"
-#include "Boot_ELF.h"
-#include "ElfReader.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
 
-bool CBoot::IsElfWii(const char *filename)
+#include "Core/Boot/Boot.h"
+#include "Core/Boot/Boot_ELF.h"
+#include "Core/Boot/ElfReader.h"
+#include "Core/HLE/HLE.h"
+#include "Core/PowerPC/PowerPC.h"
+
+bool CBoot::IsElfWii(const std::string& filename)
 {
 	/* We already check if filename existed before we called this function, so
 	   there is no need for another check, just read the file right away */
@@ -54,7 +55,7 @@ bool CBoot::IsElfWii(const char *filename)
 }
 
 
-bool CBoot::Boot_ELF(const char *filename)
+bool CBoot::Boot_ELF(const std::string& filename)
 {
 	const u64 filesize = File::GetSize(filename);
 	u8 *mem = new u8[(size_t)filesize];

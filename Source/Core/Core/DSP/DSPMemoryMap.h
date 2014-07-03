@@ -3,7 +3,7 @@
    filename:     gdsp_memory.h
    project:      GCemu
    created:      2004-6-18
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie & Tratax
 
@@ -23,12 +23,12 @@
 
    ====================================================================*/
 
-#ifndef _GDSP_MEMORY_H
-#define _GDSP_MEMORY_H
+#pragma once
 
-#include "Common.h"
-#include "DSPInterpreter.h"
-#include "DSPCore.h"
+#include "Common/Common.h"
+
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPInterpreter.h"
 
 u16  dsp_imem_read(u16 addr);
 void dsp_dmem_write(u16 addr, u16 val);
@@ -51,5 +51,3 @@ inline void dsp_skip_inst()
 {
 	g_dsp.pc += opTable[dsp_peek_code()]->size;
 }
-
-#endif

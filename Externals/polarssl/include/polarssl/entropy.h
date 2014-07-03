@@ -31,7 +31,20 @@
 
 #include "config.h"
 
-#include "sha4.h"
+#if defined(POLARSSL_SHA512_C)
+#include "sha512.h"
+#define POLARSSL_ENTROPY_SHA512_ACCUMULATOR
+#else
+#if defined(POLARSSL_SHA256_C)
+#define POLARSSL_ENTROPY_SHA256_ACCUMULATOR
+#include "sha256.h"
+#endif
+#endif
+
+#if defined(POLARSSL_THREADING_C)
+#include "threading.h"
+#endif
+
 #if defined(POLARSSL_HAVEGE_C)
 #include "havege.h"
 #endif
@@ -45,7 +58,11 @@
 #define ENTROPY_MAX_GATHER      128     /**< Maximum amount requested from entropy sources */
 #endif /* !POLARSSL_CONFIG_OPTIONS  */
 
+#if defined(POLARSSL_ENTROPY_SHA512_ACCUMULATOR)
 #define ENTROPY_BLOCK_SIZE      64      /**< Block size of entropy accumulator (SHA-512) */
+#else
+#define ENTROPY_BLOCK_SIZE      32      /**< Block size of entropy accumulator (SHA-256) */
+#endif
 
 #define ENTROPY_SOURCE_MANUAL   ENTROPY_MAX_SOURCES
 
@@ -64,7 +81,8 @@ extern "C" {
  * \return          0 if no critical failures occurred,
  *                  POLARSSL_ERR_ENTROPY_SOURCE_FAILED otherwise
  */
-typedef int (*f_source_ptr)(void *, unsigned char *, size_t, size_t *);
+typedef int (*f_source_ptr)(void *data, unsigned char *output, size_t len,
+                            size_t *olen);
 
 /**
  * \brief           Entropy source state
@@ -81,13 +99,20 @@ source_state;
 /**
  * \brief           Entropy context structure
  */
-typedef struct 
+typedef struct
 {
-    sha4_context    accumulator;
+#if defined(POLARSSL_ENTROPY_SHA512_ACCUMULATOR)
+    sha512_context  accumulator;
+#else
+    sha256_context  accumulator;
+#endif
     int             source_count;
     source_state    source[ENTROPY_MAX_SOURCES];
 #if defined(POLARSSL_HAVEGE_C)
     havege_state    havege_data;
+#endif
+#if defined(POLARSSL_THREADING_C)
+    threading_mutex_t mutex;    /*!< mutex                  */
 #endif
 }
 entropy_context;
@@ -98,6 +123,13 @@ entropy_context;
  * \param ctx       Entropy context to initialize
  */
 void entropy_init( entropy_context *ctx );
+
+/**
+ * \brief           Free the data in the context
+ *
+ * \param ctx       Entropy context to free
+ */
+void entropy_free( entropy_context *ctx );
 
 /**
  * \brief           Adds an entropy source to poll
@@ -125,6 +157,7 @@ int entropy_gather( entropy_context *ctx );
 
 /**
  * \brief           Retrieve entropy from the accumulator (Max ENTROPY_BLOCK_SIZE)
+ *                  (Thread-safe if POLARSSL_THREADING_C is enabled)
  *
  * \param data      Entropy context
  * \param output    Buffer to fill

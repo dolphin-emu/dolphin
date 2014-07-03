@@ -2,21 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
-#include <wx/wx.h>
+#include <string>
+#include <wx/bitmap.h>
+#include <wx/chartype.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/mstream.h>
 #include <wx/string.h>
+#include <wx/utils.h>
 
-#include "WxUtils.h"
+#include "DolphinWX/WxUtils.h"
 
 #ifdef __APPLE__
 #import <AppKit/AppKit.h>
 #endif
 
-namespace WxUtils {
+namespace WxUtils
+{
 
 // Launch a file according to its mime type
-void Launch(const char *filename)
+void Launch(const std::string& filename)
 {
 	if (! ::wxLaunchDefaultBrowser(StrToWxStr(filename)))
 	{
@@ -25,19 +30,19 @@ void Launch(const char *filename)
 }
 
 // Launch an file explorer window on a certain path
-void Explore(const char *path)
+void Explore(const std::string& path)
 {
 	wxString wxPath = StrToWxStr(path);
 #ifndef _WIN32
 	// Default to file
-	if (! wxPath.Contains(wxT("://")))
+	if (! wxPath.Contains("://"))
 	{
-		wxPath = wxT("file://") + wxPath;
+		wxPath = "file://" + wxPath;
 	}
 #endif
 
 #ifdef __WXGTK__
-	wxPath.Replace(wxT(" "), wxT("\\ "));
+	wxPath.Replace(" ", "\\ ");
 #endif
 
 	if (! ::wxLaunchDefaultBrowser(wxPath))
@@ -50,12 +55,18 @@ double GetCurrentBitmapLogicalScale()
 {
 #ifdef __APPLE__
 	// wx doesn't expose this itself, unfortunately.
-    if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
+	if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
 	{
-        return [[NSScreen mainScreen] backingScaleFactor];
+		return [[NSScreen mainScreen] backingScaleFactor];
 	}
 #endif
 	return 1.0;
+}
+
+wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
+{
+	wxMemoryInputStream is(data, length);
+	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
 }
 
 }  // namespace

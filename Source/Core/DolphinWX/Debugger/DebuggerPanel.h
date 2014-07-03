@@ -2,12 +2,22 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GFX_DEBUGGER_PANEL_H_
-#define _GFX_DEBUGGER_PANEL_H_
+#pragma once
 
-#include <wx/wx.h>
-#include <wx/notebook.h>
-#include "Debugger.h"
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
+#include "VideoCommon/Debugger.h"
+
+class wxButton;
+class wxChoice;
+class wxTextCtrl;
+class wxWindow;
 
 class GFXDebuggerPanel : public wxPanel, public GFXDebuggerBase
 {
@@ -30,29 +40,29 @@ public:
 	bool bSaveTargets;
 	bool bSaveShaders;
 
-	void OnPause();
+	void OnPause() override;
 
 	// Called from GFX thread once the GFXDebuggerPauseFlag spin lock has finished
-	void OnContinue();
+	void OnContinue() override;
 
 private:
 	DECLARE_EVENT_TABLE();
 
-	wxPanel *m_MainPanel;
+	wxPanel*    m_MainPanel;
 
-	wxButton	*m_pButtonPause;
-	wxButton	*m_pButtonPauseAtNext;
-	wxButton	*m_pButtonPauseAtNextFrame;
-	wxButton	*m_pButtonCont;
-	wxChoice	*m_pPauseAtList;
-	wxButton	*m_pButtonDump;
-	wxChoice	*m_pDumpList;
-	wxButton	*m_pButtonUpdateScreen;
-	wxButton	*m_pButtonClearScreen;
-	wxButton	*m_pButtonClearTextureCache;
-	wxButton	*m_pButtonClearVertexShaderCache;
-	wxButton	*m_pButtonClearPixelShaderCache;
-	wxTextCtrl	*m_pCount;
+	wxButton*   m_pButtonPause;
+	wxButton*   m_pButtonPauseAtNext;
+	wxButton*   m_pButtonPauseAtNextFrame;
+	wxButton*   m_pButtonCont;
+	wxChoice*   m_pPauseAtList;
+	wxButton*   m_pButtonDump;
+	wxChoice*   m_pDumpList;
+	wxButton*   m_pButtonUpdateScreen;
+	wxButton*   m_pButtonClearScreen;
+	wxButton*   m_pButtonClearTextureCache;
+	wxButton*   m_pButtonClearVertexShaderCache;
+	wxButton*   m_pButtonClearPixelShaderCache;
+	wxTextCtrl* m_pCount;
 
 
 	// TODO: Prefix with GFX_
@@ -96,5 +106,3 @@ private:
 	void OnClearPixelShaderCacheButton(wxCommandEvent& event);
 	void OnCountEnter(wxCommandEvent& event);
 };
-
-#endif // _GFX_DEBUGGER_PANEL_H_

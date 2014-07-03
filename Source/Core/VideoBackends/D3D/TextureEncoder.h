@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTUREENCODER_H
-#define _TEXTUREENCODER_H
+#pragma once
 
-#include "VideoCommon.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace DX11
 {
@@ -112,11 +112,9 @@ public:
 	virtual void Shutdown() = 0;
 	// Returns size in bytes of encoded block of memory
 	virtual size_t Encode(u8* dst, unsigned int dstFormat,
-		unsigned int srcFormat, const EFBRectangle& srcRect, bool isIntensity,
-		bool scaleByHalf) = 0;
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+		bool isIntensity, bool scaleByHalf) = 0;
 
 };
 
 }
-
-#endif

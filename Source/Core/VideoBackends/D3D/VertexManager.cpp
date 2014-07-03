@@ -2,22 +2,22 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "D3DBase.h"
-#include "PixelShaderCache.h"
-#include "VertexManager.h"
-#include "VertexShaderCache.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/PixelShaderCache.h"
+#include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3D/VertexManager.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
 
-#include "BPMemory.h"
-#include "Debugger.h"
-#include "IndexGenerator.h"
-#include "MainBase.h"
-#include "PixelShaderManager.h"
-#include "RenderBase.h"
-#include "Render.h"
-#include "Statistics.h"
-#include "TextureCacheBase.h"
-#include "VertexShaderManager.h"
-#include "VideoConfig.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/MainBase.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
@@ -41,8 +41,8 @@ void VertexManager::CreateDeviceObjects()
 	m_vertex_buffers = new PID3D11Buffer[MAX_VBUFFER_COUNT];
 	for (m_current_index_buffer = 0; m_current_index_buffer < MAX_VBUFFER_COUNT; m_current_index_buffer++)
 	{
-		m_index_buffers[m_current_index_buffer] = NULL;
-		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, NULL, &m_index_buffers[m_current_index_buffer])),
+		m_index_buffers[m_current_index_buffer] = nullptr;
+		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, nullptr, &m_index_buffers[m_current_index_buffer])),
 		"Failed to create index buffer.");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_index_buffers[m_current_index_buffer], "index buffer of VertexManager");
 	}
@@ -50,8 +50,8 @@ void VertexManager::CreateDeviceObjects()
 	bufdesc.ByteWidth = VBUFFER_SIZE;
 	for (m_current_vertex_buffer = 0; m_current_vertex_buffer < MAX_VBUFFER_COUNT; m_current_vertex_buffer++)
 	{
-		m_vertex_buffers[m_current_vertex_buffer] = NULL;
-		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, NULL, &m_vertex_buffers[m_current_vertex_buffer])),
+		m_vertex_buffers[m_current_vertex_buffer] = nullptr;
+		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, nullptr, &m_vertex_buffers[m_current_vertex_buffer])),
 		"Failed to create vertex buffer.");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_vertex_buffers[m_current_vertex_buffer], "Vertex buffer of VertexManager");
 	}
@@ -145,14 +145,14 @@ void VertexManager::Draw(UINT stride)
 	{
 		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		INCSTAT(stats.thisFrame.numDrawCalls);
 	}
 	else if (current_primitive_type == PRIMITIVE_LINES)
 	{
 		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
-		float vpWidth = 2.0f * xfregs.viewport.wd;
-		float vpHeight = -2.0f * xfregs.viewport.ht;
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
 
 		bool texOffsetEnable[8];
 
@@ -165,9 +165,9 @@ void VertexManager::Draw(UINT stride)
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+			INCSTAT(stats.thisFrame.numDrawCalls);
 
-			D3D::context->GSSetShader(NULL, NULL, 0);
+			D3D::context->GSSetShader(nullptr, nullptr, 0);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}
@@ -175,8 +175,8 @@ void VertexManager::Draw(UINT stride)
 	{
 		float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
-		float vpWidth = 2.0f * xfregs.viewport.wd;
-		float vpHeight = -2.0f * xfregs.viewport.ht;
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
 
 		bool texOffsetEnable[8];
 
@@ -189,19 +189,16 @@ void VertexManager::Draw(UINT stride)
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+			INCSTAT(stats.thisFrame.numDrawCalls);
 
-			D3D::context->GSSetShader(NULL, NULL, 0);
+			D3D::context->GSSetShader(nullptr, nullptr, 0);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}
 }
 
-void VertexManager::vFlush()
+void VertexManager::vFlush(bool useDstAlpha)
 {
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-		bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-
 	if (!PixelShaderCache::SetShader(
 		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
 		g_nativeVertexFmt->m_components))
@@ -219,11 +216,7 @@ void VertexManager::vFlush()
 	g_nativeVertexFmt->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);
 
-	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw(stride);
-	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-
-	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	g_renderer->RestoreState();
 }

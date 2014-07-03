@@ -16,18 +16,17 @@
 	   0x10 - 0x1a leads to a 0x22 Input report
    0x30 - 0x3f   Input    This file: Update() */
 
-#include <vector>
-#include <string>
 #include <fstream>
+#include <string>
+#include <vector>
 
-#include "Common.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
 
-#include "WiimoteEmu.h"
-#include "WiimoteHid.h"
-#include "../WiimoteReal/WiimoteReal.h"
-
-#include "Attachment/Attachment.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteEmu
 {
@@ -68,7 +67,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 	u8 data[32] = {};
 	memcpy(data, data_, size_);
 
-	switch(data[1])
+	switch (data[1])
 	{
 	case WM_RUMBLE:
 		size = 1;
@@ -110,7 +109,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		u32 address = Common::swap24(wd->address);
 		address &= ~0x010000;
 
-		switch(data[2] >> 0x01)
+		switch (data[2] >> 0x01)
 		{
 		case WM_SPACE_EEPROM:
 			if (logCom) Name.append(" REG_EEPROM"); break;
@@ -118,19 +117,19 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		case WM_SPACE_REGS2: {
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = NULL;
+			void *region_ptr = nullptr;
 			int region_size = 0;
 
-			switch(data[3])
+			switch (data[3])
 			{
 			case 0xa2:
 				if (logCom)
 				{
 					Name.append(" REG_SPEAKER");
-					if(data[6] == 7)
+					if (data[6] == 7)
 					{
 						//INFO_LOG(CONSOLE, "Sound configuration:");
-						if(data[8] == 0x00)
+						if (data[8] == 0x00)
 						{
 							//memcpy(&SampleValue, &data[9], 2);
 							//NOTICE_LOG(CONSOLE, "    Data format: 4-bit ADPCM (%i Hz)", 6000000 / SampleValue);
@@ -174,7 +173,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 				memcpy((u8*)region_ptr + region_offset, wd->data, wd->size);
 			// save key
 			if (region_offset >= 0x40 && region_offset <= 0x4c) {
-				if(!emu)
+				if (!emu)
 					wiimote_gen_key(&wm->m_ext_key, wm->m_reg_ext.encryption_key);
 				INFO_LOG(CONSOLE, "Writing key: %s", ArrayToString((u8*)&wm->m_ext_key, sizeof(wm->m_ext_key), 0, 30).c_str());
 			}
@@ -201,11 +200,11 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		address &= 0xFEFFFF;
 		u16 size = Common::swap16(rd->size);
 		u8 *const block = new u8[size];
-		void *region_ptr = NULL;
+		void *region_ptr = nullptr;
 
 		dataRep.push(((data[2]>>1)<<16) + ((data[3])<<8) + addressLO);
 
-		switch(data[2]>>1)
+		switch (data[2]>>1)
 		{
 		case WM_SPACE_EEPROM:
 			if (logCom) Name.append(" REG_EEPROM");
@@ -217,7 +216,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			// ignore second byte for extension area
 			if (address>>16 == 0xA4) address &= 0xFF00FF;
 			const u8 region_offset = (u8)address;
-			switch(data[3])
+			switch (data[3])
 			{
 			case 0xa2:
 				if (logCom) Name.append(" REG_SPEAKER");
@@ -301,7 +300,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		wm_read_data_reply* const rdr = (wm_read_data_reply*)(data2 + 2);
 
 		bool decrypted = false;
-		if(!dataRep.empty())
+		if (!dataRep.empty())
 		{
 			dataReply[0] = (dataRep.front()>>16)&0x00FF;
 			dataReply[1] = (dataRep.front()>>8)&0x00FF;
@@ -309,14 +308,14 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			dataRep.pop();
 		}
 
-		switch(dataReply[0])
+		switch (dataReply[0])
 		{
 		case WM_SPACE_EEPROM:
 			if (logCom)
 				Name.append(" REG_EEPROM");
 			// Wiimote calibration
-			if(data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10) {
-				if(data[6] == 0x10) {
+			if (data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10) {
+				if (data[6] == 0x10) {
 					accel_cal* calib = (accel_cal*)&rdr->data[6];
 					ERROR_LOG(CONSOLE, "Wiimote calibration:");
 					//SERROR_LOG(CONSOLE, "%s", ArrayToString(rdr->data, rdr->size).c_str());
@@ -335,7 +334,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 		case WM_SPACE_REGS1:
 		case WM_SPACE_REGS2:
-			switch(dataReply[1])
+			switch (dataReply[1])
 			{
 			case 0xa2: if (logCom) Name.append(" REG_SPEAKER"); break;
 			case 0xa4: if (logCom) Name.append(" REG_EXT"); break;
@@ -361,24 +360,24 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 		//if(!wm->GetMotionPlusActive() && ((u8*)&wm->m_reg_ext)[0xf0] == 0xaa) {
 
-		//	SWARN_LOG(CONSOLE, "key %s", ArrayToString(((u8*)&wm->m_ext_key), sizeof(wm->m_ext_key), 0, 30).c_str());
-		//	SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
-		//	wiimote_decrypt(&wm->m_ext_key, rdr->data, dataReply[2]&0xffff, rdr->size+1);
-		//	SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
-		//	decrypted = true;
+			// SWARN_LOG(CONSOLE, "key %s", ArrayToString(((u8*)&wm->m_ext_key), sizeof(wm->m_ext_key), 0, 30).c_str());
+			// SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
+			// wiimote_decrypt(&wm->m_ext_key, rdr->data, dataReply[2]&0xffff, rdr->size+1);
+			// SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
+			// decrypted = true;
 		//}
 
 		// save data
 		if (!emu && !rdr->error)
 		{
 			//if (dataReply[1] == 0xa4 && wm->GetMotionPlusActive())
-				//memcpy(&((u8*)&wm->m_reg_motion_plus)[rdr->address>>8], rdr->data, rdr->size+1);
+			//    memcpy(&((u8*)&wm->m_reg_motion_plus)[rdr->address>>8], rdr->data, rdr->size+1);
 			//if (dataReply[1] == 0xa4 && !wm->GetMotionPlusActive())
 			//if (dataReply[1] == 0xa4)
-			//	memcpy(&((u8*)&wm->m_reg_ext)[rdr->address>>8], rdr->data, rdr->size+1);
+			//    memcpy(&((u8*)&wm->m_reg_ext)[rdr->address>>8], rdr->data, rdr->size+1);
 			//if (!wm->GetMotionPlusActive() && wm->GetMotionPlusAttached())
 			//if (dataReply[1] == 0xa6)
-			//	memcpy(&((u8*)&wm->m_reg_motion_plus)[rdr->address>>8], rdr->data, rdr->size+1);
+			//    memcpy(&((u8*)&wm->m_reg_motion_plus)[rdr->address>>8], rdr->data, rdr->size+1);
 			//INFO_LOG(CONSOLE, "Saving[0x%2x:0x%2x]: %s", dataReply[1], rdr->address>>8, ArrayToString(rdr->data, rdr->size+1).c_str());
 		}
 
@@ -388,53 +387,55 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		}
 
 		// Nunchuck calibration
-		if(data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
+		if (data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
 		{
 			// log
 			//TmpData = StringFromFormat("Read[%s] (enc): %s", (Emu ? "Emu" : "Real"), ArrayToString(data, size + 2).c_str());
 
 			// decrypt
 			//if(((u8*)&wm->m_reg_ext)[0xf0] == 0xaa) {
-			//	wiimote_decrypt(&wm->m_ext_key, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
+			//    wiimote_decrypt(&wm->m_ext_key, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
 
-			//if (wm->m_extension->name == "NUNCHUCK") {
-			//	INFO_LOG(CONSOLE, "\nGame got the Nunchuck calibration:\n");
-			//	INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 0]);
-			//	INFO_LOG(CONSOLE, "Cal_zero.y: %i\n", data[7 + 1]);
-			//	INFO_LOG(CONSOLE, "Cal_zero.z: %i\n",  data[7 + 2]);
-			//	INFO_LOG(CONSOLE, "Cal_g.x: %i\n", data[7 + 4]);
-			//	INFO_LOG(CONSOLE, "Cal_g.y: %i\n",  data[7 + 5]);
-			//	INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 + 6]);
-			//	INFO_LOG(CONSOLE, "Js.Max.x: %i\n",  data[7 + 8]);
-			//	INFO_LOG(CONSOLE, "Js.Min.x: %i\n",  data[7 + 9]);
-			//	INFO_LOG(CONSOLE, "Js.Center.x: %i\n", data[7 + 10]);
-			//	INFO_LOG(CONSOLE, "Js.Max.y: %i\n",  data[7 + 11]);
-			//	INFO_LOG(CONSOLE, "Js.Min.y: %i\n",  data[7 + 12]);
-			//	INFO_LOG(CONSOLE, "JS.Center.y: %i\n\n", data[7 + 13]);
+			//if (wm->m_extension->name == "NUNCHUCK")
+			//{
+				// INFO_LOG(CONSOLE, "\nGame got the Nunchuck calibration:\n");
+				// INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 0]);
+				// INFO_LOG(CONSOLE, "Cal_zero.y: %i\n", data[7 + 1]);
+				// INFO_LOG(CONSOLE, "Cal_zero.z: %i\n",  data[7 + 2]);
+				// INFO_LOG(CONSOLE, "Cal_g.x: %i\n", data[7 + 4]);
+				// INFO_LOG(CONSOLE, "Cal_g.y: %i\n",  data[7 + 5]);
+				// INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 + 6]);
+				// INFO_LOG(CONSOLE, "Js.Max.x: %i\n",  data[7 + 8]);
+				// INFO_LOG(CONSOLE, "Js.Min.x: %i\n",  data[7 + 9]);
+				// INFO_LOG(CONSOLE, "Js.Center.x: %i\n", data[7 + 10]);
+				// INFO_LOG(CONSOLE, "Js.Max.y: %i\n",  data[7 + 11]);
+				// INFO_LOG(CONSOLE, "Js.Min.y: %i\n",  data[7 + 12]);
+				// INFO_LOG(CONSOLE, "JS.Center.y: %i\n\n", data[7 + 13]);
 			//}
-			//else // g_Config.bClassicControllerConnected {
-			//	INFO_LOG(CONSOLE, "\nGame got the Classic Controller calibration:\n");
-			//	INFO_LOG(CONSOLE, "Lx.Max: %i\n", data[7 + 0]);
-			//	INFO_LOG(CONSOLE, "Lx.Min: %i\n", data[7 + 1]);
-			//	INFO_LOG(CONSOLE, "Lx.Center: %i\n",  data[7 + 2]);
-			//	INFO_LOG(CONSOLE, "Ly.Max: %i\n", data[7 + 3]);
-			//	INFO_LOG(CONSOLE, "Ly.Min: %i\n",  data[7 + 4]);
-			//	INFO_LOG(CONSOLE, "Ly.Center: %i\n",  data[7 + 5]);
-			//	INFO_LOG(CONSOLE, "Rx.Max.x: %i\n",  data[7 + 6]);
-			//	INFO_LOG(CONSOLE, "Rx.Min.x: %i\n",  data[7 + 7]);
-			//	INFO_LOG(CONSOLE, "Rx.Center.x: %i\n", data[7 + 8]);
-			//	INFO_LOG(CONSOLE, "Ry.Max.y: %i\n",  data[7 + 9]);
-			//	INFO_LOG(CONSOLE, "Ry.Min: %i\n",  data[7 + 10]);
-			//	INFO_LOG(CONSOLE, "Ry.Center: %i\n\n", data[7 + 11]);
-			//	INFO_LOG(CONSOLE, "Lt.Neutral: %i\n",  data[7 + 12]);
-			//	INFO_LOG(CONSOLE, "Rt.Neutral %i\n\n", data[7 + 13]);
+			//else // g_Config.bClassicControllerConnected
+			//{
+				// INFO_LOG(CONSOLE, "\nGame got the Classic Controller calibration:\n");
+				// INFO_LOG(CONSOLE, "Lx.Max: %i\n", data[7 + 0]);
+				// INFO_LOG(CONSOLE, "Lx.Min: %i\n", data[7 + 1]);
+				// INFO_LOG(CONSOLE, "Lx.Center: %i\n",  data[7 + 2]);
+				// INFO_LOG(CONSOLE, "Ly.Max: %i\n", data[7 + 3]);
+				// INFO_LOG(CONSOLE, "Ly.Min: %i\n",  data[7 + 4]);
+				// INFO_LOG(CONSOLE, "Ly.Center: %i\n",  data[7 + 5]);
+				// INFO_LOG(CONSOLE, "Rx.Max.x: %i\n",  data[7 + 6]);
+				// INFO_LOG(CONSOLE, "Rx.Min.x: %i\n",  data[7 + 7]);
+				// INFO_LOG(CONSOLE, "Rx.Center.x: %i\n", data[7 + 8]);
+				// INFO_LOG(CONSOLE, "Ry.Max.y: %i\n",  data[7 + 9]);
+				// INFO_LOG(CONSOLE, "Ry.Min: %i\n",  data[7 + 10]);
+				// INFO_LOG(CONSOLE, "Ry.Center: %i\n\n", data[7 + 11]);
+				// INFO_LOG(CONSOLE, "Lt.Neutral: %i\n",  data[7 + 12]);
+				// INFO_LOG(CONSOLE, "Rt.Neutral %i\n\n", data[7 + 13]);
 			//}
 
 			// save values
 			if (!emu)
 			{
 				// Save to registry
-				if(data[7 + 0] != 0xff)
+				if (data[7 + 0] != 0xff)
 				{
 					//memcpy((u8*)&wm->m_reg_ext.calibration, &data[7], 0x10);
 					//memcpy((u8*)&wm->m_reg_ext.unknown3, &data[7], 0x10);
@@ -447,7 +448,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 				//WiimoteEmu::UpdateEeprom();
 			}
 			// third party Nunchuck
-			else if(data[7] == 0xff)
+			else if (data[7] == 0xff)
 			{
 				//memcpy(wm->m_reg_ext + 0x20, WiimoteEmu::wireless_nunchuck_calibration, sizeof(WiimoteEmu::wireless_nunchuck_calibration));
 				//memcpy(wm->m_reg_ext + 0x30, WiimoteEmu::wireless_nunchuck_calibration, sizeof(WiimoteEmu::wireless_nunchuck_calibration));
@@ -459,7 +460,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 		if (dataReply[1] == 0xa4 || dataReply[1] == 0xa6)
 		{
-			if(rdr->error == 7 || rdr->error == 8)
+			if (rdr->error == 7 || rdr->error == 8)
 			{
 				WARN_LOG(CONSOLE, "R%s[0x%02x 0x%02x]: e-%d", decrypted?"*":"", dataReply[1], rdr->address>>8, rdr->error);
 			}
@@ -852,7 +853,7 @@ void Wiimote::HandleExtensionSwap()
 			m_extension->active_extension = m_extension->switch_extension;
 
 		// reset register
-		((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension])->Reset();
+		((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension].get())->Reset();
 	}
 }
 
@@ -947,7 +948,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 				address &= 0xFF00FF;
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = NULL;
+			void *region_ptr = nullptr;
 			int region_size = 0;
 
 			switch (address >> 16)
@@ -1092,7 +1093,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				address &= 0xFF00FF;
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = NULL;
+			void *region_ptr = nullptr;
 			int region_size = 0;
 
 			switch (address >> 16)
@@ -1257,7 +1258,7 @@ void Wiimote::DoState(PointerWrap& p)
 		if (p.mode == PointerWrap::MODE_READ)
 		{
 			//clear
-			while (m_read_requests.size())
+			while (!m_read_requests.empty())
 				m_read_requests.pop();
 
 			p.Do(size);

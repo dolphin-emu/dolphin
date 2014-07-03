@@ -2,45 +2,56 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "CommonPaths.h"
-
+#include <cstddef>
+#include <istream>
+#include <string>
+#include <utility>
+#include <vector>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/filedlg.h>
+#include <wx/font.h>
+#include <wx/fontdata.h>
 #include <wx/fontdlg.h>
+#include <wx/listbox.h>
+#include <wx/menu.h>
+#include <wx/menuitem.h>
 #include <wx/mimetype.h>
+#include <wx/string.h>
+#include <wx/textdlg.h>
+#include <wx/translation.h>
+#include <wx/utils.h>
 
-#include "Host.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/SymbolDB.h"
 
-#include "DebuggerUIUtil.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/Boot/Boot.h"
+#include "Core/HLE/HLE.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
-#include "../WxUtils.h"
-#include "RegisterWindow.h"
-#include "BreakpointWindow.h"
-#include "MemoryWindow.h"
-#include "JitWindow.h"
-#include "DebuggerPanel.h"
-#include "DSPDebugWindow.h"
-#include "FileUtil.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/DebuggerPanel.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include "DolphinWX/Debugger/DSPDebugWindow.h"
+#include "DolphinWX/Debugger/JitWindow.h"
+#include "DolphinWX/Debugger/MemoryWindow.h"
+#include "DolphinWX/Debugger/RegisterWindow.h"
 
-#include "CodeWindow.h"
-#include "CodeView.h"
-
-#include "Core.h"
-#include "HLE/HLE.h"
-#include "Boot/Boot.h"
-#include "LogManager.h"
-#include "HW/CPU.h"
-#include "PowerPC/PowerPC.h"
-#include "Debugger/PPCDebugInterface.h"
-#include "Debugger/Debugger_SymbolMap.h"
-#include "PowerPC/PPCAnalyst.h"
-#include "PowerPC/Profiler.h"
-#include "PowerPC/PPCSymbolDB.h"
-#include "PowerPC/SignatureDB.h"
-#include "PowerPC/PPCTables.h"
-#include "PowerPC/JitCommon/JitBase.h"
-#include "PowerPC/JitCommon/JitCache.h" // for ClearCache()
-
-#include "ConfigManager.h"
 
 // Save and load settings
 // -----------------------------
@@ -51,13 +62,14 @@ void CCodeWindow::Load()
 
 	// The font to override DebuggerFont with
 	std::string fontDesc;
-	ini.Get("General", "DebuggerFont", &fontDesc);
+
+	IniFile::Section* general = ini.GetOrCreateSection("General");
+	general->Get("DebuggerFont", &fontDesc);
+	general->Get("AutomaticStart", &bAutomaticStart, false);
+	general->Get("BootToPause", &bBootToPause, true);
+
 	if (!fontDesc.empty())
 		DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc));
-
-	// Boot to pause or not
-	ini.Get("General", "AutomaticStart", &bAutomaticStart, false);
-	ini.Get("General", "BootToPause", &bBootToPause, true);
 
 	const char* SettingName[] = {
 		"Log",
@@ -74,19 +86,19 @@ void CCodeWindow::Load()
 
 	// Decide what windows to show
 	for (int i = 0; i <= IDM_VIDEOWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get("ShowOnStart", SettingName[i], &bShowOnStart[i], false);
+		ini.GetOrCreateSection("ShowOnStart")->Get(SettingName[i], &bShowOnStart[i], false);
 
 	// Get notebook affiliation
-	std::string _Section = "P - " +
+	std::string section = "P - " +
 		((Parent->ActivePerspective < Parent->Perspectives.size())
 		? Parent->Perspectives[Parent->ActivePerspective].Name : "Perspective 1");
 
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get(_Section.c_str(), SettingName[i], &iNbAffiliation[i], 0);
+		ini.GetOrCreateSection(section)->Get(SettingName[i], &iNbAffiliation[i], 0);
 
 	// Get floating setting
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get("Float", SettingName[i], &Parent->bFloatWindow[i], false);
+		ini.GetOrCreateSection("Float")->Get(SettingName[i], &Parent->bFloatWindow[i], false);
 }
 
 void CCodeWindow::Save()
@@ -94,12 +106,10 @@ void CCodeWindow::Save()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	ini.Set("General", "DebuggerFont",
-		   	WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
-
-	// Boot to pause or not
-	ini.Set("General", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
-	ini.Set("General", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
+	IniFile::Section* general = ini.GetOrCreateSection("General");
+	general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
+	general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
+	general->Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
 
 	const char* SettingName[] = {
 		"Log",
@@ -116,16 +126,16 @@ void CCodeWindow::Save()
 
 	// Save windows settings
 	for (int i = IDM_LOGWINDOW; i <= IDM_VIDEOWINDOW; i++)
-		ini.Set("ShowOnStart", SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
+		ini.GetOrCreateSection("ShowOnStart")->Set(SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
 
 	// Save notebook affiliations
-	std::string _Section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
+	std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Set(_Section.c_str(), SettingName[i], iNbAffiliation[i]);
+		ini.GetOrCreateSection(section)->Set(SettingName[i], iNbAffiliation[i]);
 
 	// Save floating setting
 	for (int i = IDM_LOGWINDOW_PARENT; i <= IDM_CODEWINDOW_PARENT; i++)
-		ini.Set("Float", SettingName[i - IDM_LOGWINDOW_PARENT], !!FindWindowById(i));
+		ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOGWINDOW_PARENT], !!FindWindowById(i));
 
 	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }
@@ -142,7 +152,7 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _("Save code"),
-		StrToWxStr("Save the entire disassembled code. This may take a several seconds"
+		_("Save the entire disassembled code. This may take a several seconds"
 		" and may require between 50 and 100 MB of hard drive space. It will only save code"
 		" that are in the first 4 MB of memory, if you are debugging a game that load .rel"
 		" files with code to memory you may want to increase that to perhaps 8 MB, you can do"
@@ -170,7 +180,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 	{
 	case IDM_PROFILEBLOCKS:
 		Core::SetState(Core::CORE_PAUSE);
-		if (jit != NULL)
+		if (jit != nullptr)
 			jit->ClearCache();
 		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
 		Core::SetState(Core::CORE_RUN);
@@ -181,23 +191,23 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
 		if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::MODE_JIT)
 		{
-			if (jit != NULL)
+			if (jit != nullptr)
 			{
 				std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
 				File::CreateFullPath(filename);
-				Profiler::WriteProfileResults(filename.c_str());
+				Profiler::WriteProfileResults(filename);
 
-				wxFileType* filetype = NULL;
-				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
+				wxFileType* filetype = nullptr;
+				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt")))
 				{
 					// From extension failed, trying with MIME type now
-					if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"))))
+					if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain")))
 						// MIME type failed, aborting mission
 						break;
 				}
 				wxString OpenCommand;
 				OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
-				if(!OpenCommand.IsEmpty())
+				if (!OpenCommand.IsEmpty())
 					wxExecute(OpenCommand, wxEXEC_SYNC);
 			}
 		}
@@ -217,7 +227,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_CLEARSYMBOLS:
-		if(!AskYesNo("Do you want to clear the list of symbol names?")) return;
+		if (!AskYesNoT("Do you want to clear the list of symbol names?")) return;
 		g_symbolDB.Clear();
 		Host_NotifyMapLoaded();
 		break;
@@ -225,7 +235,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 		PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
 		SignatureDB db;
-		if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+		if (db.Load(File::GetSysDirectory() + TOTALDB))
 		{
 			db.Apply(&g_symbolDB);
 			Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);
@@ -245,23 +255,23 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			g_symbolDB.Clear();
 			PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
 			SignatureDB db;
-			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+			if (db.Load(File::GetSysDirectory() + TOTALDB))
 				db.Apply(&g_symbolDB);
 			Parent->StatusBarMessage("'%s' not found, scanning for common functions instead", writable_map_file.c_str());
 		}
 		else
 		{
-			g_symbolDB.LoadMap(existing_map_file.c_str());
+			g_symbolDB.LoadMap(existing_map_file);
 			Parent->StatusBarMessage("Loaded symbols from '%s'", existing_map_file.c_str());
 		}
 		HLE::PatchFunctions();
 		NotifyMapLoaded();
 		break;
 	case IDM_SAVEMAPFILE:
-		g_symbolDB.SaveMap(writable_map_file.c_str());
+		g_symbolDB.SaveMap(writable_map_file);
 		break;
 	case IDM_SAVEMAPFILEWITHCODES:
-		g_symbolDB.SaveMap(writable_map_file.c_str(), true);
+		g_symbolDB.SaveMap(writable_map_file, true);
 		break;
 
 	case IDM_RENAME_SYMBOLS:
@@ -269,7 +279,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			const wxString path = wxFileSelector(
 				_("Apply signature file"), wxEmptyString,
 				wxEmptyString, wxEmptyString,
-				_T("Dolphin Symbol Rename File (*.sym)|*.sym"),
+				"Dolphin Symbol Rename File (*.sym)|*.sym",
 				wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
 			if (!path.IsEmpty())
@@ -303,7 +313,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 			wxTextEntryDialog input_prefix(
 				this,
-				StrToWxStr("Only export symbols with prefix:\n(Blank for all symbols)"),
+				_("Only export symbols with prefix:\n(Blank for all symbols)"),
 				wxGetTextFromUserPromptStr,
 				wxEmptyString);
 
@@ -312,14 +322,14 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
 				wxString path = wxFileSelector(
-					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
-					_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_SAVE,
+					_("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
+					"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_SAVE,
 					this);
 				if (!path.IsEmpty())
 				{
 					SignatureDB db;
-					db.Initialize(&g_symbolDB, prefix.c_str());
-					db.Save(WxStrToStr(path).c_str());
+					db.Initialize(&g_symbolDB, prefix);
+					db.Save(WxStrToStr(path));
 				}
 			}
 		}
@@ -327,13 +337,13 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_USESIGNATUREFILE:
 		{
 			wxString path = wxFileSelector(
-				_T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
-				_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+				_("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
+				"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 				this);
 			if (!path.IsEmpty())
 			{
 				SignatureDB db;
-				db.Load(WxStrToStr(path).c_str());
+				db.Load(WxStrToStr(path));
 				db.Apply(&g_symbolDB);
 			}
 		}
@@ -352,12 +362,12 @@ void CCodeWindow::NotifyMapLoaded()
 
 	g_symbolDB.FillInCallers();
 	//symbols->Show(false); // hide it for faster filling
-	symbols->Freeze();	// HyperIris: wx style fast filling
+	symbols->Freeze(); // HyperIris: wx style fast filling
 	symbols->Clear();
-	for (PPCSymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); ++iter)
+	for (const auto& symbol : g_symbolDB.Symbols())
 	{
-		int idx = symbols->Append(StrToWxStr(iter->second.name));
-		symbols->SetClientData(idx, (void*)&iter->second);
+		int idx = symbols->Append(StrToWxStr(symbol.second.name));
+		symbols->SetClientData(idx, (void*)&symbol.second);
 	}
 	symbols->Thaw();
 	//symbols->Show(true);
@@ -369,11 +379,11 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 	int index = symbols->GetSelection();
 	if (index >= 0) {
 		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
-		if (pSymbol != NULL)
+		if (pSymbol != nullptr)
 		{
-			if(pSymbol->type == Symbol::SYMBOL_DATA)
+			if (pSymbol->type == Symbol::SYMBOL_DATA)
 			{
-				if(m_MemoryWindow)// && m_MemoryWindow->IsVisible())
+				if (m_MemoryWindow)// && m_MemoryWindow->IsVisible())
 					m_MemoryWindow->JumpToAddress(pSymbol->address);
 			}
 			else
@@ -408,8 +418,6 @@ void CCodeWindow::OpenPages()
 		Parent->ToggleLogWindow(true);
 	if (bShowOnStart[IDM_LOGCONFIGWINDOW - IDM_LOGWINDOW])
 		Parent->ToggleLogConfigWindow(true);
-	if (bShowOnStart[IDM_CONSOLEWINDOW - IDM_LOGWINDOW])
-		Parent->ToggleConsole(true);
 	if (bShowOnStart[IDM_REGISTERWINDOW - IDM_LOGWINDOW])
 		ToggleRegisterWindow(true);
 	if (bShowOnStart[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW])
@@ -428,8 +436,8 @@ void CCodeWindow::ToggleCodeWindow(bool bShow)
 {
 	if (bShow)
 		Parent->DoAddPage(this,
-			   	iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW]);
 	else // Hide
 		Parent->DoRemovePage(this);
 }
@@ -440,15 +448,15 @@ void CCodeWindow::ToggleRegisterWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_RegisterWindow)
-		   	m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
+			m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
 		Parent->DoAddPage(m_RegisterWindow,
-			   	iNbAffiliation[IDM_REGISTERWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_REGISTERWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_REGISTERWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_REGISTERWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
 		Parent->DoRemovePage(m_RegisterWindow, false);
-		m_RegisterWindow = NULL;
+		m_RegisterWindow = nullptr;
 	}
 }
 
@@ -458,15 +466,15 @@ void CCodeWindow::ToggleBreakPointWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_BreakpointWindow)
-		   	m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
+			m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
 		Parent->DoAddPage(m_BreakpointWindow,
-			   	iNbAffiliation[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
 		Parent->DoRemovePage(m_BreakpointWindow, false);
-		m_BreakpointWindow = NULL;
+		m_BreakpointWindow = nullptr;
 	}
 }
 
@@ -476,15 +484,15 @@ void CCodeWindow::ToggleMemoryWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_MemoryWindow)
-		   	m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
+			m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
 		Parent->DoAddPage(m_MemoryWindow,
-			   	iNbAffiliation[IDM_MEMORYWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_MEMORYWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_MEMORYWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_MEMORYWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
 		Parent->DoRemovePage(m_MemoryWindow, false);
-		m_MemoryWindow = NULL;
+		m_MemoryWindow = nullptr;
 	}
 }
 
@@ -494,15 +502,15 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_JitWindow)
-		   	m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
+			m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
 		Parent->DoAddPage(m_JitWindow,
-			   	iNbAffiliation[IDM_JITWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_JITWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_JITWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_JITWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
 		Parent->DoRemovePage(m_JitWindow, false);
-		m_JitWindow = NULL;
+		m_JitWindow = nullptr;
 	}
 }
 
@@ -513,15 +521,15 @@ void CCodeWindow::ToggleSoundWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_SoundWindow)
-		   	m_SoundWindow = new DSPDebuggerLLE(Parent, IDM_SOUNDWINDOW);
+			m_SoundWindow = new DSPDebuggerLLE(Parent, IDM_SOUNDWINDOW);
 		Parent->DoAddPage(m_SoundWindow,
-			   	iNbAffiliation[IDM_SOUNDWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_SOUNDWINDOW - IDM_LOGWINDOW]);
+		       iNbAffiliation[IDM_SOUNDWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_SOUNDWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
 		Parent->DoRemovePage(m_SoundWindow, false);
-		m_SoundWindow = NULL;
+		m_SoundWindow = nullptr;
 	}
 }
 
@@ -531,14 +539,14 @@ void CCodeWindow::ToggleVideoWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_VideoWindow)
-		   	m_VideoWindow = new GFXDebuggerPanel(Parent, IDM_VIDEOWINDOW);
+			m_VideoWindow = new GFXDebuggerPanel(Parent, IDM_VIDEOWINDOW);
 		Parent->DoAddPage(m_VideoWindow,
-			   	iNbAffiliation[IDM_VIDEOWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_VIDEOWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
 		Parent->DoRemovePage(m_VideoWindow, false);
-		m_VideoWindow = NULL;
+		m_VideoWindow = nullptr;
 	}
 }

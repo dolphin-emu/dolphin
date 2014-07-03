@@ -1,30 +1,31 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
-#include "Common.h"
 
-#include "../../Core.h"
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
-#include "../PPCTables.h"
-#include "ArmEmitter.h"
+#include "Common/ArmEmitter.h"
+#include "Common/Common.h"
 
-#include "Jit.h"
-#include "JitRegCache.h"
-#include "JitAsm.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCTables.h"
+
+#include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitArm32/JitAsm.h"
+#include "Core/PowerPC/JitArm32/JitRegCache.h"
 
 void JitArm::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	bool update = inst.OPCD == 57;
-	s32 offset = inst.SIMM_12;
+	JITDISABLE(bJITLoadStorePairedOff);
 
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
+	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+
+	bool update = inst.OPCD == 57;
+	s32 offset = inst.SIMM_12;
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 16, 3); // Type
@@ -56,13 +57,14 @@ void JitArm::psq_l(UGeckoInstruction inst)
 void JitArm::psq_lx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
+	JITDISABLE(bJITLoadStorePairedOff);
 
-	bool update = inst.SUBOP10 == 38;
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
+	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+
+	bool update = inst.SUBOP10 == 38;
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.Ix]));
 	UBFX(R12, R11, 16, 3); // Type
@@ -104,15 +106,15 @@ void JitArm::psq_lx(UGeckoInstruction inst)
 void JitArm::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	bool update = inst.OPCD == 61;
-	s32 offset = inst.SIMM_12;
+	JITDISABLE(bJITLoadStorePairedOff);
 
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
+	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+
+	bool update = inst.OPCD == 61;
+	s32 offset = inst.SIMM_12;
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 0, 3); // Type
@@ -149,14 +151,14 @@ void JitArm::psq_st(UGeckoInstruction inst)
 void JitArm::psq_stx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	bool update = inst.SUBOP10 == 39;
+	JITDISABLE(bJITLoadStorePairedOff);
 
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
+	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+
+	bool update = inst.SUBOP10 == 39;
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 0, 3); // Type

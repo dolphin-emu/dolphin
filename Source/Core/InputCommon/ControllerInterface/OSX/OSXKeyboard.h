@@ -1,6 +1,12 @@
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#pragma once
+
 #include <IOKit/hid/IOHIDLib.h>
 
-#include "../Device.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {
@@ -17,10 +23,11 @@ private:
 		Key(IOHIDElementRef element, IOHIDDeviceRef device);
 		ControlState GetState() const;
 	private:
-		const IOHIDElementRef	m_element;
-		const IOHIDDeviceRef	m_device;
-		std::string		m_name;
+		const IOHIDElementRef m_element;
+		const IOHIDDeviceRef  m_device;
+		std::string           m_name;
 	};
+
 	class Cursor : public Input
 	{
 	public:
@@ -30,9 +37,10 @@ private:
 		ControlState GetState() const;
 	private:
 		const float& m_axis;
-		const u8 m_index;
-		const bool m_positive;
+		const u8     m_index;
+		const bool   m_positive;
 	};
+
 	class Button : public Input
 	{
 	public:
@@ -60,11 +68,11 @@ private:
 		float x, y;
 	} m_cursor;
 
-	const IOHIDDeviceRef	m_device;
-	const std::string	m_device_name;
-	int		m_index;
-	uint32_t m_windowid;
-	unsigned char m_mousebuttons[3];
+	const IOHIDDeviceRef m_device;
+	const std::string    m_device_name;
+	int                  m_index;
+	uint32_t             m_windowid;
+	unsigned char        m_mousebuttons[3];
 };
 
 }

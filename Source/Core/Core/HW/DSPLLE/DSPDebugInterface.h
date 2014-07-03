@@ -2,39 +2,37 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPDEBUGINTERFACE_H
-#define _DSPDEBUGINTERFACE_H
+#pragma once
 
 #include <string>
 #include <string.h>
 
-#include "DebugInterface.h"
-#include "Common.h"
+#include "Common/Common.h"
+#include "Common/DebugInterface.h"
 
-class DSPDebugInterface : public DebugInterface
+class DSPDebugInterface final : public DebugInterface
 {
 public:
 	DSPDebugInterface(){}
-	virtual void disasm(unsigned int address, char *dest, int max_size);
-	virtual void getRawMemoryString(int memory, unsigned int address, char *dest, int max_size);
-	virtual int getInstructionSize(int instruction) {return 1;}
-	virtual bool isAlive();
-	virtual bool isBreakpoint(unsigned int address);
-	virtual void setBreakpoint(unsigned int address);
-	virtual void clearBreakpoint(unsigned int address);
-	virtual void clearAllBreakpoints();
-	virtual void toggleBreakpoint(unsigned int address);
-	virtual bool isMemCheck(unsigned int address);
-	virtual void toggleMemCheck(unsigned int address);
-	virtual unsigned int readMemory(unsigned int address);
-	virtual unsigned int readInstruction(unsigned int address);
-	virtual unsigned int getPC();
-	virtual void setPC(unsigned int address);
-	virtual void step() {}
-	virtual void runToBreakpoint();
-	virtual void insertBLR(unsigned int address, unsigned int value);
-	virtual int getColor(unsigned int address);
-	virtual std::string getDescription(unsigned int address);
+	virtual void Disassemble(unsigned int address, char *dest, int max_size) override;
+	virtual void GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size) override;
+	virtual int GetInstructionSize(int instruction) override { return 1; }
+	virtual bool IsAlive() override;
+	virtual bool IsBreakpoint(unsigned int address) override;
+	virtual void SetBreakpoint(unsigned int address) override;
+	virtual void ClearBreakpoint(unsigned int address) override;
+	virtual void ClearAllBreakpoints() override;
+	virtual void ToggleBreakpoint(unsigned int address) override;
+	virtual void ClearAllMemChecks() override;
+	virtual bool IsMemCheck(unsigned int address) override;
+	virtual void ToggleMemCheck(unsigned int address) override;
+	virtual unsigned int ReadMemory(unsigned int address) override;
+	virtual unsigned int ReadInstruction(unsigned int address) override;
+	virtual unsigned int GetPC() override;
+	virtual void SetPC(unsigned int address) override;
+	virtual void Step() override {}
+	virtual void RunToBreakpoint() override;
+	virtual void InsertBLR(unsigned int address, unsigned int value) override;
+	virtual int GetColor(unsigned int address) override;
+	virtual std::string GetDescription(unsigned int address) override;
 };
-
-#endif  // _DSPDEBUGINTERFACE_H

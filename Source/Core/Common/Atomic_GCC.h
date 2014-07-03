@@ -2,10 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ATOMIC_GCC_H_
-#define _ATOMIC_GCC_H_
+// IWYU pragma: private, include "Common/Atomic.h"
 
-#include "Common.h"
+#pragma once
+
+#include "Common/Common.h"
 
 // Atomic operations are performed in a single step by the CPU. It is
 // impossible for other threads to see the operation "half-done."
@@ -44,7 +45,8 @@ inline void AtomicOr(volatile u32& target, u32 value) {
 	__sync_or_and_fetch(&target, value);
 }
 
-#ifdef __clang__
+// Support clang versions older than 3.4.
+#if __clang__ && !__has_feature(cxx_atomic)
 template <typename T>
 _Atomic(T)* ToC11Atomic(volatile T* loc)
 {
@@ -86,5 +88,3 @@ inline T* AtomicExchangeAcquire(T* volatile& loc, U newval) {
 }
 
 }
-
-#endif

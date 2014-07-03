@@ -5,14 +5,14 @@
 #pragma once
 
 #include <algorithm>
-#include <vector>
 #include <queue>
+#include <vector>
 
-#include "hci.h"
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device.h"
-#include "WII_IPC_HLE_WiiMote.h"
-#include "../HW/Wiimote.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/hci.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
 struct SQueuedEvent
 {
@@ -50,13 +50,15 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress, bool _bForce);
+	virtual bool Open(u32 _CommandAddress, u32 _Mode) override;
+	virtual bool Close(u32 _CommandAddress, bool _bForce) override;
 
-	virtual bool IOCtlV(u32 _CommandAddress);
-	virtual bool IOCtl(u32 _CommandAddress);
+	virtual bool IOCtlV(u32 _CommandAddress) override;
+	virtual bool IOCtl(u32 _CommandAddress) override;
 
-	virtual u32 Update();
+	virtual u32 Update() override;
+
+	static void EnqueueReply(u32 CommandAddress);
 
 	// Send ACL data back to bt stack
 	void SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size);
@@ -69,24 +71,24 @@ public:
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
 
-	void DoState(PointerWrap &p);
+	void DoState(PointerWrap &p) override;
 
 	void NetPlay_WiimoteUpdate(int _number);
 
 private:
 	enum USBIOCtl
 	{
-		USBV0_IOCTL_CTRLMSG		= 0,
-		USBV0_IOCTL_BLKMSG		= 1,
-		USBV0_IOCTL_INTRMSG		= 2,
+		USBV0_IOCTL_CTRLMSG = 0,
+		USBV0_IOCTL_BLKMSG  = 1,
+		USBV0_IOCTL_INTRMSG = 2,
 	};
 
 	enum USBEndpoint
 	{
-		HCI_CTRL		= 0x00,
-		HCI_EVENT		= 0x81,
-		ACL_DATA_IN		= 0x82,
-		ACL_DATA_OUT	= 0x02
+		HCI_CTRL     = 0x00,
+		HCI_EVENT    = 0x81,
+		ACL_DATA_IN  = 0x82,
+		ACL_DATA_OUT = 0x02
 	};
 
 	struct SHCICommandMessage
@@ -112,8 +114,8 @@ private:
 		{
 			if (m_address)
 			{
-				u32 InBufferNum		= Memory::Read_U32(m_address + 0x10);
-				u32 BufferVector	= Memory::Read_U32(m_address + 0x18);
+				u32 InBufferNum  = Memory::Read_U32(m_address + 0x10);
+				u32 BufferVector = Memory::Read_U32(m_address + 0x18);
 				m_buffer = Memory::Read_U32(
 					BufferVector + InBufferNum * sizeof(SIOCtlVBuffer::SBuffer));
 			}
@@ -218,7 +220,7 @@ private:
 	// Execute HCI Message
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
 
-	// OGF 0x01	Link control commands and return parameters
+	// OGF 0x01 - Link control commands and return parameters
 	void CommandWriteInquiryMode(u8* _Input);
 	void CommandWritePageScanType(u8* _Input);
 	void CommandHostBufferSize(u8* _Input);
@@ -237,11 +239,11 @@ private:
 	void CommandDeleteStoredLinkKey(u8* _Input);
 	void CommandChangeConPacketType(u8* _Input);
 
-	// OGF 0x02	Link policy commands and return parameters
+	// OGF 0x02 - Link policy commands and return parameters
 	void CommandWriteLinkPolicy(u8* _Input);
 	void CommandSniffMode(u8* _Input);
 
-	// OGF 0x03	Host Controller and Baseband commands and return parameters
+	// OGF 0x03 - Host Controller and Baseband commands and return parameters
 	void CommandReset(u8* _Input);
 	void CommandWriteLocalName(u8* _Input);
 	void CommandWritePageTimeOut(u8* _Input);
@@ -253,13 +255,13 @@ private:
 	void CommandWriteInquiryScanType(u8* _Input);
 	void CommandWriteLinkSupervisionTimeout(u8* _Input);
 
-	// OGF 0x04	Informational commands and return parameters
+	// OGF 0x04 - Informational commands and return parameters
 	void CommandReadBufferSize(u8* _Input);
 	void CommandReadLocalVer(u8* _Input);
 	void CommandReadLocalFeatures(u8* _Input);
 	void CommandReadBDAdrr(u8* _Input);
 
-	// OGF 0x3F Vendor specific
+	// OGF 0x3F - Vendor specific
 	void CommandVendorSpecific_FC4C(u8* _Input, u32 _Size);
 	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);
 

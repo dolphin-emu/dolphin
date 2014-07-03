@@ -2,12 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Filesystem.h"
-#include "VolumeCreator.h"
-#include "FileUtil.h"
-#include "DiscScrubber.h"
-
+#include <algorithm>
 #include <cinttypes>
+#include <cstddef>
+#include <cstdio>
+#include <string>
+#include <vector>
+
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "DiscIO/DiscScrubber.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
 
 namespace DiscIO
 {
@@ -17,7 +24,7 @@ namespace DiscScrubber
 
 #define CLUSTER_SIZE 0x8000
 
-u8* m_FreeTable = NULL;
+u8* m_FreeTable = nullptr;
 u64 m_FileSize;
 u64 m_BlockCount;
 u32 m_BlockSize;
@@ -25,7 +32,7 @@ int m_BlocksPerCluster;
 bool m_isScrubbing = false;
 
 std::string m_Filename;
-IVolume* m_Disc = NULL;
+IVolume* m_Disc = nullptr;
 
 struct SPartitionHeader
 {
@@ -74,10 +81,10 @@ bool ParsePartitionData(SPartition& _rPartition);
 u32 GetDOLSize(u64 _DOLOffset);
 
 
-bool SetupScrub(const char* filename, int block_size)
+bool SetupScrub(const std::string& filename, int block_size)
 {
 	bool success = true;
-	m_Filename = std::string(filename);
+	m_Filename = filename;
 	m_BlockSize = block_size;
 
 	if (CLUSTER_SIZE % m_BlockSize != 0)
@@ -95,7 +102,7 @@ bool SetupScrub(const char* filename, int block_size)
 
 	// Warn if not DVD5 or DVD9 size
 	if (numClusters != 0x23048 && numClusters != 0x46090)
-		WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename, numClusters);
+		WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename.c_str(), numClusters);
 
 	// Table of free blocks
 	m_FreeTable = new u8[numClusters];
@@ -105,7 +112,7 @@ bool SetupScrub(const char* filename, int block_size)
 	success = ParseDisc();
 	// Done with it; need it closed for the next part
 	delete m_Disc;
-	m_Disc = NULL;
+	m_Disc = nullptr;
 	m_BlockCount = 0;
 
 	// Let's not touch the file if we've failed up to here :p
@@ -139,7 +146,7 @@ void GetNextBlock(File::IOFile& in, u8* buffer)
 void Cleanup()
 {
 	if (m_FreeTable) delete[] m_FreeTable;
-	m_FreeTable = NULL;
+	m_FreeTable = nullptr;
 	m_FileSize = 0;
 	m_BlockCount = 0;
 	m_BlockSize = 0;
@@ -238,7 +245,7 @@ bool ParseDisc()
 
 		for (auto& rPartition : PartitionGroup[x].PartitionsVec)
 		{
-			const SPartitionHeader& rHeader	= rPartition.Header;
+			const SPartitionHeader& rHeader = rPartition.Header;
 
 			MarkAsUsed(rPartition.Offset, 0x2c0);
 
@@ -267,7 +274,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 	IVolume *OldVolume = m_Disc;
 
 	// Ready some stuff
-	m_Disc = CreateVolumeFromFilename(m_Filename.c_str(), _rPartition.GroupNumber, _rPartition.Number);
+	m_Disc = CreateVolumeFromFilename(m_Filename, _rPartition.GroupNumber, _rPartition.Number);
 	IFileSystem *FileSystem = CreateFileSystem(m_Disc);
 
 	if (!FileSystem)
@@ -310,7 +317,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 		// Go through the filesystem and mark entries as used
 		for (size_t currentFile = 0; currentFile < numFiles; currentFile++)
 		{
-			DEBUG_LOG(DISCIO, "%s", currentFile ? (*Files.at(currentFile)).m_FullPath : "/");
+			DEBUG_LOG(DISCIO, "%s", currentFile ? (*Files.at(currentFile)).m_FullPath.c_str() : "/");
 			// Just 1byte for directory? - it will end up reserving a cluster this way
 			if ((*Files.at(currentFile)).m_NameOffset & 0x1000000)
 				MarkAsUsedE(_rPartition.Offset

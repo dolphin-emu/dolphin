@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../DSPAnalyzer.h"
-#include "../DSPEmitter.h"
-#include "../DSPMemoryMap.h"
-#include "../DSPStacks.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/DSPStacks.h"
 
 using namespace Gen;
 
@@ -21,7 +21,7 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 
 	emitter.dsp_op_read_reg(DSP_REG_SR, EAX);
 
-	switch(cond)
+	switch (cond)
 	{
 	case 0x0: // GE - Greater Equal
 	case 0x1: // L - Less
@@ -95,7 +95,7 @@ static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 	// Jump directly to the called block if it has already been compiled.
 	if (!(dest >= emitter.startAddr && dest <= emitter.compilePC))
 	{
-		if (emitter.blockLinks[dest] != 0 )
+		if (emitter.blockLinks[dest] != nullptr )
 		{
 			emitter.gpr.flushRegs();
 			// Check if we have enough cycles to execute the next block

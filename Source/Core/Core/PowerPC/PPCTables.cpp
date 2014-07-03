@@ -3,16 +3,17 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <vector>
 #include <cinttypes>
+#include <vector>
 
-#include "Common.h"
-#include "PPCTables.h"
-#include "StringUtil.h"
-#include "FileUtil.h"
-#include "Interpreter/Interpreter.h"
-#include "Interpreter/Interpreter_Tables.h"
-#include "JitInterface.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 
 GekkoOPInfo *m_infoTable[64];
 GekkoOPInfo *m_infoTable4[1024];
@@ -30,7 +31,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
-		switch(table)
+		switch (table)
 		{
 		case 4:  return m_infoTable4[_inst.SUBOP10];
 		case 19: return m_infoTable19[_inst.SUBOP10];
@@ -39,7 +40,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 		case 63: return m_infoTable63[_inst.SUBOP10];
 		default:
 			_assert_msg_(POWERPC,0,"GetOpInfo - invalid subtable op %08x @ %08x", _inst.hex, PC);
-			return 0;
+			return nullptr;
 		}
 	}
 	else
@@ -47,7 +48,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
 		{
 			_assert_msg_(POWERPC,0,"GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
-			return 0;
+			return nullptr;
 		}
 		return m_infoTable[_inst.OPCD];
 	}
@@ -59,7 +60,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
-		switch(table)
+		switch (table)
 		{
 		case 4:  return Interpreter::m_opTable4[_inst.SUBOP10];
 		case 19: return Interpreter::m_opTable19[_inst.SUBOP10];
@@ -68,7 +69,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 		case 63: return Interpreter::m_opTable63[_inst.SUBOP10];
 		default:
 			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid subtable op %08x @ %08x", _inst.hex, PC);
-			return 0;
+			return nullptr;
 		}
 	}
 	else
@@ -76,7 +77,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
 		{
 			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid op %08x @ %08x", _inst.hex, PC);
-			return 0;
+			return nullptr;
 		}
 		return Interpreter::m_opTable[_inst.OPCD];
 	}
@@ -88,24 +89,24 @@ bool UsesFPU(UGeckoInstruction _inst)
 {
 	switch (_inst.OPCD)
 	{
-	case 04:	// PS
+	case 04: // PS
 		return _inst.SUBOP10 != 1014;
 
-	case 48:	// lfs
-	case 49:	// lfsu
-	case 50:	// lfd
-	case 51:	// lfdu
-	case 52:	// stfs
-	case 53:	// stfsu
-	case 54:	// stfd
-	case 55:	// stfdu
-	case 56:	// psq_l
-	case 57:	// psq_lu
+	case 48: // lfs
+	case 49: // lfsu
+	case 50: // lfd
+	case 51: // lfdu
+	case 52: // stfs
+	case 53: // stfsu
+	case 54: // stfd
+	case 55: // stfdu
+	case 56: // psq_l
+	case 57: // psq_lu
 
-	case 59:	// FPU-sgl
-	case 60:	// psq_st
-	case 61:	// psq_stu
-	case 63:	// FPU-dbl
+	case 59: // FPU-sgl
+	case 60: // psq_st
+	case 61: // psq_stu
+	case 63: // FPU-dbl
 		return true;
 
 	case 31:
@@ -160,13 +161,13 @@ namespace {
 const char *GetInstructionName(UGeckoInstruction _inst)
 {
 	const GekkoOPInfo *info = GetOpInfo(_inst);
-	return info ? info->opname : 0;
+	return info ? info->opname : nullptr;
 }
 
 bool IsValidInstruction(UGeckoInstruction _inst)
 {
 	const GekkoOPInfo *info = GetOpInfo(_inst);
-	return info != 0;
+	return info != nullptr;
 }
 
 void CountInstruction(UGeckoInstruction _inst)
@@ -188,7 +189,7 @@ void PrintInstructionRunCounts()
 		GekkoOPInfo *pInst = m_allInstructions[i];
 		temp.emplace_back(pInst->opname, pInst->runCount);
 	}
-	std::sort(temp.begin(), temp.end(), 
+	std::sort(temp.begin(), temp.end(),
 		[](const OpInfo &a, const OpInfo &b)
 		{
 			return a.second > b.second;
@@ -231,7 +232,7 @@ void LogCompiledInstructions()
 	}
 
 #ifdef OPLOG
-	f.Open(StringFromFormat("%s" OP_TO_LOG "_at.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
+	f.Open(StringFromFormat("%s" OP_TO_LOG "_at%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (auto& rsplocation : rsplocations)
 	{
 		fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocation);

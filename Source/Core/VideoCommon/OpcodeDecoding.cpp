@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 //DL facts:
-//	Ikaruga uses (nearly) NO display lists!
+//  Ikaruga uses (nearly) NO display lists!
 //  Zelda WW uses TONS of display lists
 //  Zelda TP uses almost 100% display lists except menus (we like this!)
 //  Super Mario Galaxy has nearly all geometry and more than half of the state in DLs (great!)
@@ -12,30 +12,26 @@
 // while interpreting them, and hope that the vertex format doesn't change, though, if you do it right
 // when they are called. The reason is that the vertex format affects the sizes of the vertices.
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "OpcodeDecoding.h"
-#include "CommandProcessor.h"
-#include "CPUDetect.h"
-#include "Core.h"
-#include "Host.h"
-#include "HW/Memmap.h"
-#include "FifoPlayer/FifoRecorder.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/HW/Memmap.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/DataReader.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
-#include "VertexLoaderManager.h"
 
-#include "Statistics.h"
-
-#include "XFMemory.h"
-#include "CPMemory.h"
-#include "BPMemory.h"
-
-#include "Fifo.h"
-#include "DataReader.h"
-
-#include "VideoConfig.h"
-
-u8* g_pVideoData = 0;
+u8* g_pVideoData = nullptr;
 bool g_bRecordFifoData = false;
 
 #if _M_SSE >= 0x301
@@ -89,7 +85,7 @@ void InterpretDisplayList(u32 address, u32 size)
 	u8* startAddress = Memory::GetPointer(address);
 
 	// Avoid the crash if Memory::GetPointer failed ..
-	if (startAddress != 0)
+	if (startAddress != nullptr)
 	{
 		g_pVideoData = startAddress;
 
@@ -101,7 +97,6 @@ void InterpretDisplayList(u32 address, u32 size)
 		{
 			Decode();
 		}
-		INCSTAT(stats.numDListsCalled);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -110,15 +105,6 @@ void InterpretDisplayList(u32 address, u32 size)
 
 	// reset to the old pointer
 	g_pVideoData = old_pVideoData;
-}
-
-// Defer to backend-specific DL cache.
-extern bool HandleDisplayList(u32 address, u32 size);
-
-void ExecuteDisplayList(u32 address, u32 size)
-{
-	if (!HandleDisplayList(address, size))
-		InterpretDisplayList(address, size);
 }
 
 u32 FifoCommandRunnable(u32 &command_size)
@@ -214,7 +200,7 @@ u32 FifoCommandRunnable(u32 &command_size)
 		break;
 
 	default:
-		if (cmd_byte & 0x80)
+		if ((cmd_byte & 0xC0) == 0x80)
 		{
 			// check if we can read the header
 			if (buffer_size >= 3)
@@ -232,22 +218,21 @@ u32 FifoCommandRunnable(u32 &command_size)
 		else
 		{
 			// TODO(Omega): Maybe dump FIFO to file on this error
-			char szTemp[1024];
-			sprintf(szTemp, "GFX FIFO: Unknown Opcode (0x%x).\n"
+			std::string temp = StringFromFormat(
+				"GFX FIFO: Unknown Opcode (0x%x).\n"
 				"This means one of the following:\n"
 				"* The emulated GPU got desynced, disabling dual core can help\n"
 				"* Command stream corrupted by some spurious memory bug\n"
 				"* This really is an unknown opcode (unlikely)\n"
 				"* Some other sort of bug\n\n"
 				"Dolphin will now likely crash or hang. Enjoy." , cmd_byte);
-			Host_SysMessage(szTemp);
-			INFO_LOG(VIDEO, "%s", szTemp);
+			Host_SysMessage(temp.c_str());
+			INFO_LOG(VIDEO, "%s", temp.c_str());
 			{
 				SCPFifoStruct &fifo = CommandProcessor::fifo;
 
-				char szTmp[512];
-				// sprintf(szTmp, "Illegal command %02x (at %08x)",cmd_byte,g_pDataReader->GetPtr());
-				sprintf(szTmp, "Illegal command %02x\n"
+				std::string tmp = StringFromFormat(
+					"Illegal command %02x\n"
 					"CPBase: 0x%08x\n"
 					"CPEnd: 0x%08x\n"
 					"CPHiWatermark: 0x%08x\n"
@@ -265,8 +250,8 @@ u32 FifoCommandRunnable(u32 &command_size)
 					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_BPInt ? "true" : "false"
 					,fifo.bFF_Breakpoint ? "true" : "false");
 
-				Host_SysMessage(szTmp);
-				INFO_LOG(VIDEO, "%s", szTmp);
+				Host_SysMessage(tmp.c_str());
+				INFO_LOG(VIDEO, "%s", tmp.c_str());
 			}
 		}
 		break;
@@ -337,7 +322,7 @@ static void Decode()
 		{
 			u32 address = DataReadU32();
 			u32 count = DataReadU32();
-			ExecuteDisplayList(address, count);
+			InterpretDisplayList(address, count);
 		}
 		break;
 
@@ -359,7 +344,7 @@ static void Decode()
 
 	// draw primitives
 	default:
-		if (cmd_byte & 0x80)
+		if ((cmd_byte & 0xC0) == 0x80)
 		{
 			// load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();
@@ -447,7 +432,7 @@ static void DecodeSemiNop()
 
 	// draw primitives
 	default:
-		if (cmd_byte & 0x80)
+		if ((cmd_byte & 0xC0) == 0x80)
 		{
 			// load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();

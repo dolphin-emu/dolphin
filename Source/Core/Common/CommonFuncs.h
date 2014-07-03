@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _COMMONFUNCS_H_
-#define _COMMONFUNCS_H_
+#pragma once
 
 #ifdef _WIN32
 #define SLEEP(x) Sleep(x)
@@ -12,9 +11,10 @@
 #define SLEEP(x) usleep(x*1000)
 #endif
 
+#include <clocale>
 #include <cstddef>
 #include <type_traits>
-#include "Common.h"
+#include "Common/CommonTypes.h"
 
 // Will fail to compile on a non-array:
 // TODO: make this a function when constexpr is available
@@ -29,14 +29,14 @@ struct ArraySizeImpl : public std::extent<T>
 #define b8(x)   ( b4(x) | ( b4(x) >> 4) )
 #define b16(x)  ( b8(x) | ( b8(x) >> 8) )
 #define b32(x)  (b16(x) | (b16(x) >>16) )
-#define ROUND_UP_POW2(x)	(b32(x - 1) + 1)
+#define ROUND_UP_POW2(x)  (b32(x - 1) + 1)
 
-#ifndef __GNUC_PREREQ 
-	#define __GNUC_PREREQ(a, b) 0 
+#ifndef __GNUC_PREREQ
+	#define __GNUC_PREREQ(a, b) 0
 #endif
 
-#if (defined __GNUC__ && !__GNUC_PREREQ(4,9))  \
-	&& !defined __SSSE3__ && !defined _M_GENERIC
+#if (defined __GNUC__ && !__GNUC_PREREQ(4,9)) && \
+    !defined __SSSE3__ && defined _M_X86
 #include <emmintrin.h>
 static __inline __m128i __attribute__((__always_inline__))
 _mm_shuffle_epi8(__m128i a, __m128i mask)
@@ -61,10 +61,10 @@ _mm_shuffle_epi8(__m128i a, __m128i mask)
 // go to debugger mode
 	#ifdef GEKKO
 		#define Crash()
-	#elif defined _M_GENERIC
-		#define Crash() { exit(1); }
-	#else
+	#elif defined _M_X86
 		#define Crash() {asm ("int $3");}
+	#else
+		#define Crash() { exit(1); }
 	#endif
 
 // GCC 4.8 defines all the rotate functions now
@@ -106,13 +106,13 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 	#define freelocale _free_locale
 	#define newlocale(mask, locale, base) _create_locale(mask, locale)
 
-	#define LC_GLOBAL_LOCALE	((locale_t)-1)
-	#define LC_ALL_MASK			LC_ALL
-	#define LC_COLLATE_MASK		LC_COLLATE
-	#define LC_CTYPE_MASK		LC_CTYPE
-	#define LC_MONETARY_MASK	LC_MONETARY
-	#define LC_NUMERIC_MASK		LC_NUMERIC
-	#define LC_TIME_MASK		LC_TIME
+	#define LC_GLOBAL_LOCALE    ((locale_t)-1)
+	#define LC_ALL_MASK         LC_ALL
+	#define LC_COLLATE_MASK     LC_COLLATE
+	#define LC_CTYPE_MASK       LC_CTYPE
+	#define LC_MONETARY_MASK    LC_MONETARY
+	#define LC_NUMERIC_MASK     LC_NUMERIC
+	#define LC_TIME_MASK        LC_TIME
 
 	inline locale_t uselocale(locale_t new_locale)
 	{
@@ -122,18 +122,18 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 		// Retrieve the current thread-specific locale
 		locale_t old_locale = bIsPerThread ? _get_current_locale() : LC_GLOBAL_LOCALE;
 
-		if(new_locale == LC_GLOBAL_LOCALE)
+		if (new_locale == LC_GLOBAL_LOCALE)
 		{
 			// Restore the global locale
 			_configthreadlocale(_DISABLE_PER_THREAD_LOCALE);
 		}
-		else if(new_locale != NULL)
+		else if (new_locale != nullptr)
 		{
 			// Configure the thread to set the locale only for this thread
 			_configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
 
 			// Set all locale categories
-			for(int i = LC_MIN; i <= LC_MAX; i++)
+			for (int i = LC_MIN; i <= LC_MAX; i++)
 				setlocale(i, new_locale->locinfo->lc_category[i].locale);
 		}
 
@@ -148,7 +148,7 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 	#define fstat64 _fstat64
 	#define fileno _fileno
 
-	#if _M_IX86
+	#if _M_X86_32
 		#define Crash() {__asm int 3}
 	#else
 extern "C" {
@@ -157,15 +157,6 @@ extern "C" {
 		#define Crash() {DebugBreak();}
 	#endif // M_IX86
 #endif // WIN32 ndef
-
-// Dolphin's min and max functions
-#undef min
-#undef max
-
-template<class T>
-inline T min(const T& a, const T& b) {return a > b ? b : a;}
-template<class T>
-inline T max(const T& a, const T& b) {return a > b ? a : b;}
 
 // Generic function to get last error message.
 // Call directly after the command or use the error num.
@@ -188,7 +179,7 @@ inline u32 swap24(const u8* _data) {return (_data[0] << 16) | (_data[1] << 8) | 
 inline u16 swap16(u16 _data) {return _byteswap_ushort(_data);}
 inline u32 swap32(u32 _data) {return _byteswap_ulong (_data);}
 inline u64 swap64(u64 _data) {return _byteswap_uint64(_data);}
-#elif _M_ARM
+#elif _M_ARM_32
 inline u16 swap16 (u16 _data) { u32 data = _data; __asm__ ("rev16 %0, %1\n" : "=l" (data) : "l" (data)); return (u16)data;}
 inline u32 swap32 (u32 _data) {__asm__ ("rev %0, %1\n" : "=l" (_data) : "l" (_data)); return _data;}
 inline u64 swap64(u64 _data) {return ((u64)swap32(_data) << 32) | swap32(_data >> 32);}
@@ -253,5 +244,3 @@ inline T FromBigEndian(T data)
 }
 
 }  // Namespace Common
-
-#endif // _COMMONFUNCS_H_

@@ -2,12 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTURECONVERSIONSHADER_H_
-#define _TEXTURECONVERSIONSHADER_H_
+#pragma once
 
-#include "Common.h"
-#include "TextureDecoder.h"
-#include "VideoCommon.h"
+#include "Common/Common.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace TextureConversionShader
 {
@@ -16,6 +15,3 @@ u16 GetEncodedSampleCount(u32 format);
 const char *GenerateEncodingShader(u32 format, API_TYPE ApiType = API_OPENGL);
 
 }
-
-#endif // _TEXTURECONVERSIONSHADER_H_
-

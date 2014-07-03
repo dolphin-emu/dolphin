@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PATCHENGINE_H
-#define _PATCHENGINE_H
+#pragma once
 
-#include "IniFile.h"
+#include <string>
+#include "Common/IniFile.h"
 
 namespace PatchEngine
 {
@@ -37,7 +37,7 @@ struct Patch
 };
 
 int GetSpeedhackCycles(const u32 addr);
-void LoadPatchSection(const char *section, std::vector<Patch> &patches,
+void LoadPatchSection(const std::string& section, std::vector<Patch> &patches,
                       IniFile &globalIni, IniFile &localIni);
 void LoadPatches();
 void ApplyFramePatches();
@@ -65,5 +65,3 @@ inline int GetPatchTypeCharLength(PatchType type)
 }
 
 }  // namespace
-
-#endif //_PATCHENGINE_H

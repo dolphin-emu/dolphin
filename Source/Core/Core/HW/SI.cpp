@@ -2,19 +2,22 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "ChunkFile.h"
-#include "../ConfigManager.h"
-#include "../CoreTiming.h"
-#include "../Movie.h"
-#include "../NetPlayProto.h"
+#include <algorithm>
 
-#include "SystemTimers.h"
-#include "ProcessorInterface.h"
-#include "VideoInterface.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "SI.h"
-#include "SI_DeviceGBA.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/SI_DeviceGBA.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
+
 
 namespace SerialInterface
 {
@@ -27,30 +30,30 @@ void UpdateInterrupts();
 // SI Interrupt Types
 enum SIInterruptType
 {
-	INT_RDSTINT		= 0,
-	INT_TCINT		= 1,
+	INT_RDSTINT = 0,
+	INT_TCINT   = 1,
 };
 static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);
 
 // SI Internal Hardware Addresses
 enum
 {
-	SI_CHANNEL_0_OUT	= 0x00,
-	SI_CHANNEL_0_IN_HI	= 0x04,
-	SI_CHANNEL_0_IN_LO	= 0x08,
-	SI_CHANNEL_1_OUT	= 0x0C,
-	SI_CHANNEL_1_IN_HI	= 0x10,
-	SI_CHANNEL_1_IN_LO	= 0x14,
-	SI_CHANNEL_2_OUT	= 0x18,
-	SI_CHANNEL_2_IN_HI	= 0x1C,
-	SI_CHANNEL_2_IN_LO	= 0x20,
-	SI_CHANNEL_3_OUT	= 0x24,
-	SI_CHANNEL_3_IN_HI	= 0x28,
-	SI_CHANNEL_3_IN_LO	= 0x2C,
-	SI_POLL				= 0x30,
-	SI_COM_CSR			= 0x34,
-	SI_STATUS_REG		= 0x38,
-	SI_EXI_CLOCK_COUNT	= 0x3C,
+	SI_CHANNEL_0_OUT   = 0x00,
+	SI_CHANNEL_0_IN_HI = 0x04,
+	SI_CHANNEL_0_IN_LO = 0x08,
+	SI_CHANNEL_1_OUT   = 0x0C,
+	SI_CHANNEL_1_IN_HI = 0x10,
+	SI_CHANNEL_1_IN_LO = 0x14,
+	SI_CHANNEL_2_OUT   = 0x18,
+	SI_CHANNEL_2_IN_HI = 0x1C,
+	SI_CHANNEL_2_IN_LO = 0x20,
+	SI_CHANNEL_3_OUT   = 0x24,
+	SI_CHANNEL_3_IN_HI = 0x28,
+	SI_CHANNEL_3_IN_LO = 0x2C,
+	SI_POLL            = 0x30,
+	SI_COM_CSR         = 0x34,
+	SI_STATUS_REG      = 0x38,
+	SI_EXI_CLOCK_COUNT = 0x3C,
 };
 
 // SI Channel Output
@@ -59,10 +62,10 @@ union USIChannelOut
 	u32 Hex;
 	struct
 	{
-		u32 OUTPUT1	:	8;
-		u32 OUTPUT0	:	8;
-		u32 CMD		:	8;
-		u32			:	8;
+		u32 OUTPUT1 : 8;
+		u32 OUTPUT0 : 8;
+		u32 CMD     : 8;
+		u32         : 8;
 	};
 };
 
@@ -72,12 +75,12 @@ union USIChannelIn_Hi
 	u32 Hex;
 	struct
 	{
-		u32 INPUT3		:	8;
-		u32 INPUT2		:	8;
-		u32 INPUT1		:	8;
-		u32 INPUT0		:	6;
-		u32 ERRLATCH	:	1; // 0: no error  1: Error latched. Check SISR.
-		u32 ERRSTAT		:	1; // 0: no error  1: error on last transfer
+		u32 INPUT3   : 8;
+		u32 INPUT2   : 8;
+		u32 INPUT1   : 8;
+		u32 INPUT0   : 6;
+		u32 ERRLATCH : 1; // 0: no error  1: Error latched. Check SISR.
+		u32 ERRSTAT  : 1; // 0: no error  1: error on last transfer
 	};
 };
 
@@ -87,20 +90,20 @@ union USIChannelIn_Lo
 	u32 Hex;
 	struct
 	{
-		u32 INPUT7		:	8;
-		u32 INPUT6		:	8;
-		u32 INPUT5		:	8;
-		u32 INPUT4		:	8;
+		u32 INPUT7 : 8;
+		u32 INPUT6 : 8;
+		u32 INPUT5 : 8;
+		u32 INPUT4 : 8;
 	};
 };
 
 // SI Channel
 struct SSIChannel
 {
-	USIChannelOut	m_Out;
+	USIChannelOut   m_Out;
 	USIChannelIn_Hi m_InHi;
 	USIChannelIn_Lo m_InLo;
-	ISIDevice*		m_pDevice;
+	ISIDevice*      m_pDevice;
 };
 
 // SI Poll: Controls how often a device is polled
@@ -109,17 +112,17 @@ union USIPoll
 	u32 Hex;
 	struct
 	{
-		u32 VBCPY3	:	1;  // 1: write to output buffer only on vblank
-		u32 VBCPY2	:	1;
-		u32 VBCPY1	:	1;
-		u32 VBCPY0	:	1;
-		u32 EN3		:	1;  // Enable polling of channel
-		u32 EN2		:	1;  //  does not affect communication RAM transfers
-		u32 EN1		:	1;
-		u32 EN0		:	1;
-		u32 Y		:	8;  // Polls per frame
-		u32 X		:	10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
-		u32			:	6;
+		u32 VBCPY3  : 1;  // 1: write to output buffer only on vblank
+		u32 VBCPY2  : 1;
+		u32 VBCPY1  : 1;
+		u32 VBCPY0  : 1;
+		u32 EN3     : 1;  // Enable polling of channel
+		u32 EN2     : 1;  //  does not affect communication RAM transfers
+		u32 EN1     : 1;
+		u32 EN0     : 1;
+		u32 Y       : 8;  // Polls per frame
+		u32 X       : 10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
+		u32         : 6;
 	};
 };
 
@@ -129,22 +132,22 @@ union USIComCSR
 	u32 Hex;
 	struct
 	{
-		u32 TSTART		:	1; // write: start transfer  read: transfer status
-		u32 CHANNEL		:	2; // determines which SI channel will be used on the communication interface.
-		u32				:	3;
-		u32 CALLBEN		:	1; // Callback enable
-		u32 CMDEN		:	1; // Command enable?
-		u32 INLNGTH		:	7;
-		u32				:	1;
-		u32 OUTLNGTH	:	7; // Communication Channel Output Length in bytes
-		u32				:	1;
-		u32 CHANEN		:	1; // Channel enable?
-		u32 CHANNUM		:	2; // Channel number?
-		u32 RDSTINTMSK	:	1; // Read Status Interrupt Status Mask
-		u32 RDSTINT		:	1; // Read Status Interrupt Status
-		u32 COMERR		:	1; // Communication Error (set 0)
-		u32 TCINTMSK	:	1; // Transfer Complete Interrupt Mask
-		u32 TCINT		:	1; // Transfer Complete Interrupt
+		u32 TSTART     : 1; // write: start transfer  read: transfer status
+		u32 CHANNEL    : 2; // determines which SI channel will be used on the communication interface.
+		u32            : 3;
+		u32 CALLBEN    : 1; // Callback enable
+		u32 CMDEN      : 1; // Command enable?
+		u32 INLNGTH    : 7;
+		u32            : 1;
+		u32 OUTLNGTH   : 7; // Communication Channel Output Length in bytes
+		u32            : 1;
+		u32 CHANEN     : 1; // Channel enable?
+		u32 CHANNUM    : 2; // Channel number?
+		u32 RDSTINTMSK : 1; // Read Status Interrupt Status Mask
+		u32 RDSTINT    : 1; // Read Status Interrupt Status
+		u32 COMERR     : 1; // Communication Error (set 0)
+		u32 TCINTMSK   : 1; // Transfer Complete Interrupt Mask
+		u32 TCINT      : 1; // Transfer Complete Interrupt
 	};
 	USIComCSR() {Hex = 0;}
 	USIComCSR(u32 _hex) {Hex = _hex;}
@@ -156,35 +159,35 @@ union USIStatusReg
 	u32 Hex;
 	struct
 	{
-		u32 UNRUN3	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		u32 OVRUN3	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		u32 COLL3	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		u32 NOREP3	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		u32 WRST3	:	1; // (R) 1: buffer channel0 not copied
-		u32 RDST3	:	1; // (R) 1: new Data available
-		u32			:	2; // 7:6
-		u32 UNRUN2	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		u32 OVRUN2	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		u32 COLL2	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		u32 NOREP2	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		u32 WRST2	:	1; // (R) 1: buffer channel0 not copied
-		u32 RDST2	:	1; // (R) 1: new Data available
-		u32			:	2; // 15:14
-		u32 UNRUN1	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		u32 OVRUN1	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		u32 COLL1	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		u32 NOREP1	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		u32 WRST1	:	1; // (R) 1: buffer channel0 not copied
-		u32 RDST1	:	1; // (R) 1: new Data available
-		u32			:	2; // 23:22
-		u32 UNRUN0	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		u32 OVRUN0	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		u32 COLL0	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		u32 NOREP0	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		u32 WRST0	:	1; // (R) 1: buffer channel0 not copied
-		u32 RDST0	:	1; // (R) 1: new Data available
-		u32			:	1;
-		u32 WR		:	1; // (RW) write 1 start copy, read 0 copy done
+		u32 UNRUN3  : 1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN3  : 1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL3   : 1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP3  : 1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST3   : 1; // (R) 1: buffer channel0 not copied
+		u32 RDST3   : 1; // (R) 1: new Data available
+		u32         : 2; // 7:6
+		u32 UNRUN2  : 1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN2  : 1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL2   : 1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP2  : 1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST2   : 1; // (R) 1: buffer channel0 not copied
+		u32 RDST2   : 1; // (R) 1: new Data available
+		u32         : 2; // 15:14
+		u32 UNRUN1  : 1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN1  : 1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL1   : 1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP1  : 1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST1   : 1; // (R) 1: buffer channel0 not copied
+		u32 RDST1   : 1; // (R) 1: new Data available
+		u32         : 2; // 23:22
+		u32 UNRUN0  : 1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN0  : 1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL0   : 1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP0  : 1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST0   : 1; // (R) 1: buffer channel0 not copied
+		u32 RDST0   : 1; // (R) 1: new Data available
+		u32         : 1;
+		u32 WR      : 1; // (RW) write 1 start copy, read 0 copy done
 	};
 	USIStatusReg() {Hex = 0;}
 	USIStatusReg(u32 _hex) {Hex = _hex;}
@@ -196,22 +199,22 @@ union USIEXIClockCount
 	u32 Hex;
 	struct
 	{
-		u32 LOCK	:	1; // 1: prevents CPU from setting EXI clock to 32MHz
-		u32			:	0;
+		u32 LOCK : 1; // 1: prevents CPU from setting EXI clock to 32MHz
+		u32      : 0;
 	};
 };
 
 // STATE_TO_SAVE
-static SSIChannel			g_Channel[MAX_SI_CHANNELS];
-static USIPoll				g_Poll;
-static USIComCSR			g_ComCSR;
-static USIStatusReg			g_StatusReg;
-static USIEXIClockCount		g_EXIClockCount;
-static u8					g_SIBuffer[128];
+static SSIChannel       g_Channel[MAX_SI_CHANNELS];
+static USIPoll          g_Poll;
+static USIComCSR        g_ComCSR;
+static USIStatusReg     g_StatusReg;
+static USIEXIClockCount g_EXIClockCount;
+static u8               g_SIBuffer[128];
 
 void DoState(PointerWrap &p)
 {
-	for(int i = 0; i < MAX_SI_CHANNELS; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 	{
 		p.Do(g_Channel[i].m_InHi.Hex);
 		p.Do(g_Channel[i].m_InLo.Hex);
@@ -222,12 +225,12 @@ void DoState(PointerWrap &p)
 		p.Do(type);
 		ISIDevice* pSaveDevice = (type == pDevice->GetDeviceType()) ? pDevice : SIDevice_Create(type, i);
 		pSaveDevice->DoState(p);
-		if(pSaveDevice != pDevice)
+		if (pSaveDevice != pDevice)
 		{
 			// if we had to create a temporary device, discard it if we're not loading.
 			// also, if no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created.
-			if(p.GetMode() != PointerWrap::MODE_READ ||
+			if (p.GetMode() != PointerWrap::MODE_READ ||
 				(!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
 			{
 				delete pSaveDevice;
@@ -281,199 +284,99 @@ void Shutdown()
 	GBAConnectionWaiter_Shutdown();
 }
 
-void Read32(u32& _uReturnValue, const u32 _iAddress)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	// SIBuffer
-	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
-		(_iAddress >= 0xCD006480 && _iAddress < 0xCD006500))
+	// Register SI buffer direct accesses.
+	for (int i = 0; i < 0x80; i += 4)
+		mmio->Register(base | (0x80 + i),
+			MMIO::DirectRead<u32>((u32*)&g_SIBuffer[i]),
+			MMIO::DirectWrite<u32>((u32*)&g_SIBuffer[i])
+		);
+
+	// In and out for the 4 SI channels.
+	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
-		_uReturnValue = *(u32*)&g_SIBuffer[_iAddress & 0x7F];
-		return;
+		// We need to clear the RDST bit for the SI channel when reading.
+		// CH0 -> Bit 24 + 5
+		// CH1 -> Bit 16 + 5
+		// CH2 -> Bit 8 + 5
+		// CH3 -> Bit 0 + 5
+		int rdst_bit = 8 * (3 - i) + 5;
+
+		mmio->Register(base | (SI_CHANNEL_0_OUT + 0xC * i),
+			MMIO::DirectRead<u32>(&g_Channel[i].m_Out.Hex),
+			MMIO::DirectWrite<u32>(&g_Channel[i].m_Out.Hex)
+		);
+		mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
+			MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
+				g_StatusReg.Hex &= ~(1 << rdst_bit);
+				UpdateInterrupts();
+				return g_Channel[i].m_InHi.Hex;
+			}),
+			MMIO::DirectWrite<u32>(&g_Channel[i].m_InHi.Hex)
+		);
+		mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
+			MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
+				g_StatusReg.Hex &= ~(1 << rdst_bit);
+				UpdateInterrupts();
+				return g_Channel[i].m_InLo.Hex;
+			}),
+			MMIO::DirectWrite<u32>(&g_Channel[i].m_InLo.Hex)
+		);
 	}
 
-	// error if not changed in the switch
-	_uReturnValue = 0xdeadbeef;
+	mmio->Register(base | SI_POLL,
+		MMIO::DirectRead<u32>(&g_Poll.Hex),
+		MMIO::DirectWrite<u32>(&g_Poll.Hex)
+	);
 
-	// registers
-	switch (_iAddress & 0x3FF)
-	{
-	//////////////////////////////////////////////////////////////////////////
-	// Channel 0
-	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_0_OUT:
-		_uReturnValue = g_Channel[0].m_Out.Hex;
-		break;
+	mmio->Register(base | SI_COM_CSR,
+		MMIO::DirectRead<u32>(&g_ComCSR.Hex),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			USIComCSR tmpComCSR(val);
 
-	case SI_CHANNEL_0_IN_HI:
-		g_StatusReg.RDST0 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[0].m_InHi.Hex;
-		break;
-
-	case SI_CHANNEL_0_IN_LO:
-		g_StatusReg.RDST0 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[0].m_InLo.Hex;
-		break;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Channel 1
-	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_1_OUT:
-		_uReturnValue = g_Channel[1].m_Out.Hex;
-		break;
-
-	case SI_CHANNEL_1_IN_HI:
-		g_StatusReg.RDST1 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[1].m_InHi.Hex;
-		break;
-
-	case SI_CHANNEL_1_IN_LO:
-		g_StatusReg.RDST1 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[1].m_InLo.Hex;
-		break;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Channel 2
-	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_2_OUT:
-		_uReturnValue = g_Channel[2].m_Out.Hex;
-		break;
-
-	case SI_CHANNEL_2_IN_HI:
-		g_StatusReg.RDST2 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[2].m_InHi.Hex;
-		break;
-
-	case SI_CHANNEL_2_IN_LO:
-		g_StatusReg.RDST2 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[2].m_InLo.Hex;
-		break;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Channel 3
-	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_3_OUT:
-		_uReturnValue = g_Channel[3].m_Out.Hex;
-		break;
-
-	case SI_CHANNEL_3_IN_HI:
-		g_StatusReg.RDST3 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[3].m_InHi.Hex;
-		break;
-
-	case SI_CHANNEL_3_IN_LO:
-		g_StatusReg.RDST3 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[3].m_InLo.Hex;
-		break;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Other
-	//////////////////////////////////////////////////////////////////////////
-	case SI_POLL:				_uReturnValue = g_Poll.Hex; break;
-	case SI_COM_CSR:			_uReturnValue = g_ComCSR.Hex; break;
-	case SI_STATUS_REG:			_uReturnValue = g_StatusReg.Hex; break;
-
-	case SI_EXI_CLOCK_COUNT:	_uReturnValue = g_EXIClockCount.Hex; break;
-
-	default:
-		INFO_LOG(SERIALINTERFACE, "(r32-unk): 0x%08x", _iAddress);
-		_dbg_assert_(SERIALINTERFACE,0);
-		break;
-	}
-
-	DEBUG_LOG(SERIALINTERFACE, "(r32) 0x%08x - 0x%08x", _iAddress, _uReturnValue);
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	DEBUG_LOG(SERIALINTERFACE, "(w32) 0x%08x @ 0x%08x", _iValue, _iAddress);
-
-	// SIBuffer
-	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
-		(_iAddress >= 0xCD006480 && _iAddress < 0xCD006500))
-	{
-		*(u32*)&g_SIBuffer[_iAddress & 0x7F] = _iValue;
-		return;
-	}
-
-	// registers
-	switch (_iAddress & 0x3FF)
-	{
-	case SI_CHANNEL_0_OUT:		g_Channel[0].m_Out.Hex = _iValue; break;
-	case SI_CHANNEL_0_IN_HI:	g_Channel[0].m_InHi.Hex = _iValue; break;
-	case SI_CHANNEL_0_IN_LO:	g_Channel[0].m_InLo.Hex = _iValue; break;
-	case SI_CHANNEL_1_OUT:		g_Channel[1].m_Out.Hex = _iValue; break;
-	case SI_CHANNEL_1_IN_HI:	g_Channel[1].m_InHi.Hex = _iValue; break;
-	case SI_CHANNEL_1_IN_LO:	g_Channel[1].m_InLo.Hex = _iValue; break;
-	case SI_CHANNEL_2_OUT:		g_Channel[2].m_Out.Hex = _iValue; break;
-	case SI_CHANNEL_2_IN_HI:	g_Channel[2].m_InHi.Hex = _iValue; break;
-	case SI_CHANNEL_2_IN_LO:	g_Channel[2].m_InLo.Hex = _iValue; break;
-	case SI_CHANNEL_3_OUT:		g_Channel[3].m_Out.Hex = _iValue; break;
-	case SI_CHANNEL_3_IN_HI:	g_Channel[3].m_InHi.Hex = _iValue; break;
-	case SI_CHANNEL_3_IN_LO:	g_Channel[3].m_InLo.Hex = _iValue; break;
-
-	case SI_POLL:
-		INFO_LOG(SERIALINTERFACE, "Wrote Poll: X=%03d Y=%03d %s%s%s%s%s%s%s%s",
-			g_Poll.X, g_Poll.Y,
-			g_Poll.EN0 ? "EN0 ":" ", g_Poll.EN1 ? "EN1 ":" ",
-			g_Poll.EN2 ? "EN2 ":" ", g_Poll.EN3 ? "EN3 ":" ",
-			g_Poll.VBCPY0 ? "VBCPY0 ":" ", g_Poll.VBCPY1 ? "VBCPY1 ":" ",
-			g_Poll.VBCPY2 ? "VBCPY2 ":" ", g_Poll.VBCPY3 ? "VBCPY3 ":" ");
-		g_Poll.Hex = _iValue;
-		break;
-
-	case SI_COM_CSR:
-		{
-			USIComCSR tmpComCSR(_iValue);
-
-			g_ComCSR.CHANNEL	= tmpComCSR.CHANNEL;
-			g_ComCSR.INLNGTH	= tmpComCSR.INLNGTH;
-			g_ComCSR.OUTLNGTH	= tmpComCSR.OUTLNGTH;
+			g_ComCSR.CHANNEL    = tmpComCSR.CHANNEL;
+			g_ComCSR.INLNGTH    = tmpComCSR.INLNGTH;
+			g_ComCSR.OUTLNGTH   = tmpComCSR.OUTLNGTH;
 			g_ComCSR.RDSTINTMSK = tmpComCSR.RDSTINTMSK;
-			g_ComCSR.TCINTMSK	= tmpComCSR.TCINTMSK;
+			g_ComCSR.TCINTMSK   = tmpComCSR.TCINTMSK;
 
-			g_ComCSR.COMERR		= 0;
+			g_ComCSR.COMERR     = 0;
 
-			if (tmpComCSR.RDSTINT)	g_ComCSR.RDSTINT = 0;
-			if (tmpComCSR.TCINT)	g_ComCSR.TCINT = 0;
+			if (tmpComCSR.RDSTINT) g_ComCSR.RDSTINT = 0;
+			if (tmpComCSR.TCINT)   g_ComCSR.TCINT = 0;
 
 			// be careful: run si-buffer after updating the INT flags
-			if (tmpComCSR.TSTART)	RunSIBuffer();
+			if (tmpComCSR.TSTART)  RunSIBuffer();
 			UpdateInterrupts();
-		}
-		break;
+		})
+	);
 
-	case SI_STATUS_REG:
-		{
-			USIStatusReg tmpStatus(_iValue);
+	mmio->Register(base | SI_STATUS_REG,
+		MMIO::DirectRead<u32>(&g_StatusReg.Hex),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			USIStatusReg tmpStatus(val);
 
-			// clear bits ( if(tmp.bit) SISR.bit=0 )
-			if (tmpStatus.NOREP0)	g_StatusReg.NOREP0 = 0;
-			if (tmpStatus.COLL0)	g_StatusReg.COLL0 = 0;
-			if (tmpStatus.OVRUN0)	g_StatusReg.OVRUN0 = 0;
-			if (tmpStatus.UNRUN0)	g_StatusReg.UNRUN0 = 0;
+			// clear bits ( if (tmp.bit) SISR.bit=0 )
+			if (tmpStatus.NOREP0) g_StatusReg.NOREP0 = 0;
+			if (tmpStatus.COLL0)  g_StatusReg.COLL0 = 0;
+			if (tmpStatus.OVRUN0) g_StatusReg.OVRUN0 = 0;
+			if (tmpStatus.UNRUN0) g_StatusReg.UNRUN0 = 0;
 
-			if (tmpStatus.NOREP1)	g_StatusReg.NOREP1 = 0;
-			if (tmpStatus.COLL1)	g_StatusReg.COLL1 = 0;
-			if (tmpStatus.OVRUN1)	g_StatusReg.OVRUN1 = 0;
-			if (tmpStatus.UNRUN1)	g_StatusReg.UNRUN1 = 0;
+			if (tmpStatus.NOREP1) g_StatusReg.NOREP1 = 0;
+			if (tmpStatus.COLL1)  g_StatusReg.COLL1 = 0;
+			if (tmpStatus.OVRUN1) g_StatusReg.OVRUN1 = 0;
+			if (tmpStatus.UNRUN1) g_StatusReg.UNRUN1 = 0;
 
-			if (tmpStatus.NOREP2)	g_StatusReg.NOREP2 = 0;
-			if (tmpStatus.COLL2)	g_StatusReg.COLL2 = 0;
-			if (tmpStatus.OVRUN2)	g_StatusReg.OVRUN2 = 0;
-			if (tmpStatus.UNRUN2)	g_StatusReg.UNRUN2 = 0;
+			if (tmpStatus.NOREP2) g_StatusReg.NOREP2 = 0;
+			if (tmpStatus.COLL2)  g_StatusReg.COLL2 = 0;
+			if (tmpStatus.OVRUN2) g_StatusReg.OVRUN2 = 0;
+			if (tmpStatus.UNRUN2) g_StatusReg.UNRUN2 = 0;
 
-			if (tmpStatus.NOREP3)	g_StatusReg.NOREP3 = 0;
-			if (tmpStatus.COLL3)	g_StatusReg.COLL3 = 0;
-			if (tmpStatus.OVRUN3)	g_StatusReg.OVRUN3 = 0;
-			if (tmpStatus.UNRUN3)	g_StatusReg.UNRUN3 = 0;
+			if (tmpStatus.NOREP3) g_StatusReg.NOREP3 = 0;
+			if (tmpStatus.COLL3)  g_StatusReg.COLL3 = 0;
+			if (tmpStatus.OVRUN3) g_StatusReg.OVRUN3 = 0;
+			if (tmpStatus.UNRUN3) g_StatusReg.UNRUN3 = 0;
 
 			// send command to devices
 			if (tmpStatus.WR)
@@ -489,21 +392,13 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 				g_StatusReg.WRST2 = 0;
 				g_StatusReg.WRST3 = 0;
 			}
-		}
-		break;
+		})
+	);
 
-	case SI_EXI_CLOCK_COUNT:
-		g_EXIClockCount.Hex = _iValue;
-		break;
-
-	case 0x80: // Bogus? never seen it with ma own eyes
-		INFO_LOG(SERIALINTERFACE, "WII something at 0xCD006480");
-		break;
-
-	default:
-		_dbg_assert_(SERIALINTERFACE, 0);
-		break;
-	}
+	mmio->Register(base | SI_EXI_CLOCK_COUNT,
+		MMIO::DirectRead<u32>(&g_EXIClockCount.Hex),
+		MMIO::DirectWrite<u32>(&g_EXIClockCount.Hex)
+	);
 }
 
 void UpdateInterrupts()
@@ -516,8 +411,8 @@ void UpdateInterrupts()
 		g_ComCSR.RDSTINT = 0;
 
 	// check if we have to generate an interrupt
-	if ((g_ComCSR.RDSTINT	& g_ComCSR.RDSTINTMSK) ||
-		(g_ComCSR.TCINT		& g_ComCSR.TCINTMSK))
+	if ((g_ComCSR.RDSTINT & g_ComCSR.RDSTINTMSK) ||
+		(g_ComCSR.TCINT   & g_ComCSR.TCINTMSK))
 	{
 		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, true);
 	}
@@ -529,10 +424,10 @@ void UpdateInterrupts()
 
 void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 {
-	switch(_SIInterrupt)
+	switch (_SIInterrupt)
 	{
-	case INT_RDSTINT:	g_ComCSR.RDSTINT = 1; break;
-	case INT_TCINT:		g_ComCSR.TCINT = 1; break;
+	case INT_RDSTINT: g_ComCSR.RDSTINT = 1; break;
+	case INT_TCINT:   g_ComCSR.TCINT = 1; break;
 	}
 
 	UpdateInterrupts();
@@ -541,7 +436,7 @@ void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 void RemoveDevice(int _iDeviceNumber)
 {
 	delete g_Channel[_iDeviceNumber].m_pDevice;
-	g_Channel[_iDeviceNumber].m_pDevice = NULL;
+	g_Channel[_iDeviceNumber].m_pDevice = nullptr;
 }
 
 void AddDevice(ISIDevice* pDevice)
@@ -651,7 +546,7 @@ int GetTicksToNextSIPoll()
 	else if (!g_Poll.Y)
 		return SystemTimers::GetTicksPerSecond() / 60;
 
-	return min(VideoInterface::GetTicksPerFrame() / g_Poll.Y, VideoInterface::GetTicksPerLine() * g_Poll.X);
+	return std::min(VideoInterface::GetTicksPerFrame() / g_Poll.Y, VideoInterface::GetTicksPerLine() * g_Poll.X);
 }
 
 } // end of namespace SerialInterface

@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXLOADERMANAGER_H
-#define _VERTEXLOADERMANAGER_H
+#pragma once
 
-#include "Common.h"
 #include <string>
+
+#include "Common/Common.h"
 
 namespace VertexLoaderManager
 {
@@ -17,12 +17,9 @@ namespace VertexLoaderManager
 
 	int GetVertexSize(int vtx_attr_group);
 	void RunVertices(int vtx_attr_group, int primitive, int count);
-	void RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data);
 
 	// For debugging
 	void AppendListToString(std::string *dest);
 };
 
 void RecomputeCachedArraybases();
-
-#endif  // _VERTEXLOADERMANAGER_H

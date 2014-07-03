@@ -1,0 +1,7 @@
+add_dolphin_test(BitFieldTest BitFieldTest.cpp common)
+add_dolphin_test(CommonFuncsTest CommonFuncsTest.cpp common)
+add_dolphin_test(EventTest EventTest.cpp common)
+add_dolphin_test(FifoQueueTest FifoQueueTest.cpp common)
+add_dolphin_test(FixedSizeQueueTest FixedSizeQueueTest.cpp common)
+add_dolphin_test(FlagTest FlagTest.cpp common)
+add_dolphin_test(MathUtilTest MathUtilTest.cpp common)
