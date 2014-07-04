@@ -13,9 +13,6 @@
 
 using namespace Gen;
 
-static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-static u32 GC_ALIGNED16(float_buffer);
-
 void EmuCodeBlock::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
 {
 	if (cpu_info.bMOVBE)
