@@ -88,9 +88,9 @@ protected:
 			, m_input_sample_rate(sample_rate)
 			, m_indexW(0)
 			, m_indexR(0)
-			, m_numLeftI(0.0f)
 			, m_LVolume(256)
 			, m_RVolume(256)
+			, m_numLeftI(0.0f)
 		{
 			memset(m_buffer, 0, sizeof(m_buffer));
 		}
