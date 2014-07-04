@@ -346,7 +346,7 @@ StreamBuffer* StreamBuffer::Create(u32 type, u32 size)
 	// Prefer the syncing buffers over the orphaning one
 	if (g_ogl_config.bSupportsGLSync)
 	{
-		// pinned memory is much faster on amd cards
+		// pinned memory is much faster than buffer storage on amd cards
 		if (g_ogl_config.bSupportsGLPinnedMemory &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER))
 			return new PinnedMemory(type, size);
