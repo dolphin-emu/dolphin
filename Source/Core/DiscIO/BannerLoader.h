@@ -19,8 +19,8 @@ class IBannerLoader
 {
 public:
 	IBannerLoader()
-		: m_pBannerFile(nullptr)
-		, m_IsValid(false)
+		: m_IsValid(false)
+		, m_pBannerFile(nullptr)
 	{}
 
 	virtual ~IBannerLoader()
