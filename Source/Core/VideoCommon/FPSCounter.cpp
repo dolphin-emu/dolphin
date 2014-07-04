@@ -2,41 +2,43 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/FileUtil.h"
-#include "Common/Timer.h"
+#include <fstream>
 
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+#include "Common/Timer.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace FPSCounter
+{
 #define FPS_REFRESH_INTERVAL 1000
 
 static unsigned int s_counter = 0;
 static unsigned int s_fps = 0;
 static unsigned int s_fps_last_counter = 0;
 static unsigned long s_last_update_time = 0;
-static File::IOFile s_bench_file;
+static std::ofstream s_bench_file;
 
-void InitFPSCounter()
+void Initialize()
 {
 	s_counter = s_fps_last_counter = 0;
 	s_fps = 0;
 	s_last_update_time = Common::Timer::GetTimeMs();
 
-	if (s_bench_file.IsOpen())
-		s_bench_file.Close();
+	if (s_bench_file.is_open())
+		s_bench_file.close();
 }
 
 static void LogFPSToFile(unsigned long val)
 {
-	if (!s_bench_file.IsOpen())
-		s_bench_file.Open(File::GetUserPath(D_LOGS_IDX) + "fps.txt", "w");
+	if (!s_bench_file.is_open())
+		s_bench_file.open(File::GetUserPath(D_LOGS_IDX) + "fps.txt");
 
-	char buffer[256];
-	snprintf(buffer, 256, "%lu\n", val);
-	s_bench_file.WriteArray(buffer, strlen(buffer));
+	s_bench_file << StringFromFormat("%lu\n", val);
 }
 
-int UpdateFPSCounter()
+int Update()
 {
 	if (Common::Timer::GetTimeMs() - s_last_update_time >= FPS_REFRESH_INTERVAL)
 	{
@@ -49,4 +51,5 @@ int UpdateFPSCounter()
 
 	s_counter++;
 	return s_fps;
+}
 }

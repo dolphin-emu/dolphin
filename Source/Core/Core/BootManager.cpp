@@ -219,10 +219,13 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
 		StartUp.iCPUCore = Movie::GetCPUMode();
 		StartUp.bSyncGPU = Movie::IsSyncGPU();
-		if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+		for (int i = 0; i < 2; ++i)
 		{
-			if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw"))
-				File::Delete(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw");
+			if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+			{
+				if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B")))
+					File::Delete(File::GetUserPath(D_GCUSER_IDX) + StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B"));
+			}
 		}
 	}
 

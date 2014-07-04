@@ -8,6 +8,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
@@ -58,7 +59,7 @@ u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
 bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
-bool bMemcard = false, g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
+bool g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
 std::string videoBackend = "unknown";
 int iCPUCore = 1;
 bool g_bDiscChange = false;
@@ -66,7 +67,7 @@ std::string g_discChange = "";
 std::string author = "";
 u64 g_titleID = 0;
 unsigned char MD5[16];
-u8 bongos;
+u8 bongos, memcards;
 u8 revision[20];
 u32 DSPiromHash = 0;
 u32 DSPcoefHash = 0;
@@ -365,9 +366,9 @@ bool IsStartingFromClearSave()
 	return g_bClearSave;
 }
 
-bool IsUsingMemcard()
+bool IsUsingMemcard(int memcard)
 {
-	return bMemcard;
+	return (memcards & (1 << memcard)) != 0;
 }
 bool IsSyncGPU()
 {
@@ -474,7 +475,7 @@ bool BeginRecordingInput(int controllers)
 	return true;
 }
 
-static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str, const size_t STR_SIZE)
+static std::string Analog2DToString(u8 x, u8 y, const std::string& prefix)
 {
 	if ((x <= 1 || x == 128 || x >= 255) &&
 	    (y <= 1 || y == 128 || y >= 255))
@@ -483,52 +484,50 @@ static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str, const si
 		{
 			if (x != 128 && y != 128)
 			{
-				snprintf(str, STR_SIZE, "%s:%s,%s", prefix, x<128 ? "LEFT" : "RIGHT", y<128 ? "DOWN" : "UP");
+				return StringFromFormat("%s:%s,%s", prefix.c_str(), x<128?"LEFT":"RIGHT", y<128?"DOWN":"UP");
 			}
 			else if (x != 128)
 			{
-				snprintf(str, STR_SIZE, "%s:%s", prefix, x<128 ? "LEFT" : "RIGHT");
+				return StringFromFormat("%s:%s", prefix.c_str(), x<128?"LEFT":"RIGHT");
 			}
 			else
 			{
-				snprintf(str, STR_SIZE, "%s:%s", prefix, y<128 ? "DOWN" : "UP");
+				return StringFromFormat("%s:%s", prefix.c_str(), y<128?"DOWN":"UP");
 			}
 		}
 		else
 		{
-			str[0] = '\0';
+			return "";
 		}
 	}
 	else
 	{
-		snprintf(str, STR_SIZE, "%s:%d,%d", prefix, x, y);
+		return StringFromFormat("%s:%d,%d", prefix.c_str(), x, y);
 	}
 }
 
-static void Analog1DToString(u8 v, const char* prefix, char* str, const size_t STR_SIZE)
+static std::string Analog1DToString(u8 v, const std::string& prefix)
 {
 	if (v > 0)
 	{
 		if (v == 255)
 		{
-			strcpy(str, prefix);
+			return prefix;
 		}
 		else
 		{
-			snprintf(str, STR_SIZE, "%s:%d", prefix, v);
+			return StringFromFormat("%s:%d", prefix.c_str(), v);
 		}
 	}
 	else
 	{
-		str[0] = '\0';
+		return "";
 	}
 }
 
 void SetInputDisplayString(ControllerState padState, int controllerID)
 {
-	char inp[70];
-	snprintf(inp, sizeof(inp), "P%d:", controllerID + 1);
-	g_InputDisplay[controllerID] = inp;
+	g_InputDisplay[controllerID] = StringFromFormat("P%d:", controllerID + 1);
 
 	if (g_padState.A)
 		g_InputDisplay[controllerID].append(" A");
@@ -552,18 +551,10 @@ void SetInputDisplayString(ControllerState padState, int controllerID)
 	if (g_padState.DPadRight)
 		g_InputDisplay[controllerID].append(" RIGHT");
 
-	Analog1DToString(g_padState.TriggerL, " L", inp, sizeof(inp));
-	g_InputDisplay[controllerID].append(inp);
-
-	Analog1DToString(g_padState.TriggerR, " R", inp, sizeof(inp));
-	g_InputDisplay[controllerID].append(inp);
-
-	Analog2DToString(g_padState.AnalogStickX, g_padState.AnalogStickY, " ANA", inp, sizeof(inp));
-	g_InputDisplay[controllerID].append(inp);
-
-	Analog2DToString(g_padState.CStickX, g_padState.CStickY, " C", inp, sizeof(inp));
-	g_InputDisplay[controllerID].append(inp);
-
+	g_InputDisplay[controllerID].append(Analog1DToString(g_padState.TriggerL, " L"));
+	g_InputDisplay[controllerID].append(Analog1DToString(g_padState.TriggerR, " R"));
+	g_InputDisplay[controllerID].append(Analog2DToString(g_padState.AnalogStickX, g_padState.AnalogStickY, " ANA"));
+	g_InputDisplay[controllerID].append(Analog2DToString(g_padState.CStickX, g_padState.CStickY, " C"));
 	g_InputDisplay[controllerID].append("\n");
 }
 
@@ -571,9 +562,7 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 {
 	int controllerID = remoteID + 4;
 
-	char inp[70];
-	snprintf(inp, sizeof(inp), "R%d:", remoteID + 1);
-	g_InputDisplay[controllerID] = inp;
+	g_InputDisplay[controllerID] = StringFromFormat("R%d:", remoteID + 1);
 
 	if (coreData)
 	{
@@ -605,14 +594,14 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 	if (accelData)
 	{
 		wm_accel* dt = (wm_accel*)accelData;
-		snprintf(inp, sizeof(inp), " ACC:%d,%d,%d", dt->x, dt->y, dt->z);
-		g_InputDisplay[controllerID].append(inp);
+		std::string accel = StringFromFormat(" ACC:%d,%d,%d", dt->x, dt->y, dt->z);
+		g_InputDisplay[controllerID].append(accel);
 	}
 
 	if (irData) // incomplete
 	{
-		snprintf(inp, sizeof(inp), " IR:%d,%d", ((u8*)irData)[0], ((u8*)irData)[1]);
-		g_InputDisplay[controllerID].append(inp);
+		std::string ir = StringFromFormat(" IR:%d,%d", ((u8*)irData)[0], ((u8*)irData)[1]);
+		g_InputDisplay[controllerID].append(ir);
 	}
 
 	g_InputDisplay[controllerID].append("\n");
@@ -707,7 +696,7 @@ void ReadHeader()
 		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
 		iCPUCore = tmpHeader.CPUCore;
 		g_bClearSave = tmpHeader.bClearSave;
-		bMemcard = tmpHeader.bMemcard;
+		memcards = tmpHeader.memcards;
 		bongos = tmpHeader.bongos;
 		bSyncGPU = tmpHeader.bSyncGPU;
 		bNetPlay = tmpHeader.bNetPlay;
@@ -1143,7 +1132,7 @@ void SaveRecording(const std::string& filename)
 	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
-	header.bMemcard = bMemcard;
+	header.memcards = memcards;
 	header.bClearSave = g_bClearSave;
 	header.bSyncGPU = bSyncGPU;
 	header.bNetPlay = bNetPlay;
@@ -1212,7 +1201,8 @@ void GetSettings()
 	bNetPlay = NetPlay::IsNetPlayRunning();
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+	memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
+	memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
 	unsigned int tmp;
 	for (int i = 0; i < 20; ++i)
 	{
