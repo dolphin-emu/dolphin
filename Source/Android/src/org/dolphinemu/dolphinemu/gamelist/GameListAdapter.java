@@ -7,6 +7,7 @@
 package org.dolphinemu.dolphinemu.gamelist;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -75,7 +76,21 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 		{
 			holder.title.setText(item.getName());
 			holder.subtitle.setText(item.getData());
-			holder.icon.setImageBitmap(item.getImage());
+
+			Bitmap icon = item.getImage();
+
+			if (icon != null)
+			{
+				holder.icon.setImageBitmap(item.getImage());
+			}
+			else
+			{
+				holder.icon.setImageResource(R.drawable.no_banner);
+			}
+
+			String subtitle = String.format(context.getString(R.string.file_size_gib), item.getFilesize());
+
+			holder.subtitle.setText(subtitle);
 		}
 
 		// Make every other game in the list grey

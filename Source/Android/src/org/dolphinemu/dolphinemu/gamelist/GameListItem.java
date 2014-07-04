@@ -45,25 +45,7 @@ public final class GameListItem implements Comparable<GameListItem>
 		if (!file.isDirectory() && !path.isEmpty())
 		{
 			int[] Banner = NativeLibrary.GetBanner(path);
-			if (Banner[0] == 0)
-			{
-				try
-				{
-					// Open the no banner icon.
-					InputStream noBannerPath = ctx.getAssets().open("NoBanner.png");
-
-					// Decode the bitmap.
-					image = BitmapFactory.decodeStream(noBannerPath);
-
-					// Scale the bitmap to match other banners.
-					image = Bitmap.createScaledBitmap(image, 96, 32, false);
-				}
-				catch (IOException e)
-				{
-					Log.e("GameListItem", e.toString());
-				}
-			}
-			else
+			if (Banner[0] != 0)
 			{
 				image = Bitmap.createBitmap(Banner, 96, 32, Bitmap.Config.ARGB_8888);
 			}
