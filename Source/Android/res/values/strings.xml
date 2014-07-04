@@ -34,6 +34,7 @@
     <string name="parent_directory">Parent Directory</string>
     <string name="file_size">File Size: %1$s</string>
 
+
     <!-- Game List Activity -->
     <string name="clear_game_list">Clear game list</string>
     <string name="clear_game_list_confirm">Do you want to clear the game list?</string>
@@ -41,6 +42,8 @@
     <string name="browse_folder">Browse Folder</string>
     <string name="settings">Settings</string>
     <string name="about">About</string>
+    <string name="file_size_gib">File Size: %.2f GiB</string>
+    <string name="file_size_mib">File Size: %.2f MiB</string>
 
     <!-- Game List Activity - Device Compatibility AlertDialog -->
     <string name="device_compat_warning">Device Compatibility Warning</string>

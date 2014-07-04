@@ -24,6 +24,9 @@ import org.dolphinemu.dolphinemu.R;
  */
 public final class GameListAdapter extends ArrayAdapter<GameListItem>
 {
+	private static final float BYTES_PER_GIB = 1024 * 1024 * 1024;
+	private static final float BYTES_PER_MIB = 1024 * 1024;
+
 	private final Context context;
 	private final int id;
 
@@ -75,20 +78,31 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 		if (item != null)
 		{
 			holder.title.setText(item.getName());
-			holder.subtitle.setText(item.getData());
 
 			Bitmap icon = item.getImage();
 
 			if (icon != null)
 			{
-				holder.icon.setImageBitmap(item.getImage());
+				holder.icon.setImageBitmap(icon);
 			}
 			else
 			{
 				holder.icon.setImageResource(R.drawable.no_banner);
 			}
 
-			String subtitle = String.format(context.getString(R.string.file_size_gib), item.getFilesize());
+			float fileSize = item.getFilesize() / BYTES_PER_GIB;
+
+			String subtitle;
+
+			if (fileSize >= 1.0f)
+			{
+				subtitle = String.format(context.getString(R.string.file_size_gib), fileSize);
+			}
+			else
+			{
+				fileSize = item.getFilesize() / BYTES_PER_MIB;
+				subtitle = String.format(context.getString(R.string.file_size_mib), fileSize);
+			}
 
 			holder.subtitle.setText(subtitle);
 		}
