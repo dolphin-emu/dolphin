@@ -41,6 +41,8 @@
     <string name="browse_folder">フォルダの参照</string>
     <string name="settings">設定</string>
     <string name="about">について</string>
+    <string name="file_size_gib">ファイルサイズ: %.2f GiB</string>
+    <string name="file_size_mib">ファイルサイズ: %.2f MiB</string>
 
     <!-- Game List Activity - Device Compatibility AlertDialog -->
     <string name="device_compat_warning">デバイスの互換性の警告</string>
