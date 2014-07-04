@@ -218,12 +218,6 @@ if(_M_ARM_32)
 			PowerPC/JitArm32/JitArm_LoadStorePaired.cpp
 			PowerPC/JitArm32/JitArm_SystemRegisters.cpp
 			PowerPC/JitArm32/JitArm_LoadStoreFloating.cpp
-			#JitArmIL
-			PowerPC/JitArmIL/JitIL.cpp
-			PowerPC/JitArmIL/JitILAsm.cpp
-			PowerPC/JitArmIL/JitIL_Tables.cpp
-			PowerPC/JitArmIL/JitIL_Branch.cpp
-			PowerPC/JitArmIL/IR_Arm.cpp
 			)
 endif()
 
