@@ -749,7 +749,7 @@ bool PlayInput(const std::string& filename)
 
 	g_playMode = MODE_PLAYING;
 
-	g_totalBytes = g_recordfd.GetSize() - 256;
+	g_totalBytes = g_recordfd.GetSize() - sizeof(DTMHeader);
 	EnsureTmpInputSize((size_t)g_totalBytes);
 	g_recordfd.ReadArray(tmpInput, (size_t)g_totalBytes);
 	g_currentByte = 0;
@@ -819,7 +819,7 @@ void LoadInput(const std::string& filename)
 	if (Core::g_CoreStartupParameter.bWii)
 		ChangeWiiPads(true);
 
-	u64 totalSavedBytes = t_record.GetSize() - 256;
+	u64 totalSavedBytes = t_record.GetSize() - sizeof(DTMHeader);
 
 	bool afterEnd = false;
 	if (g_currentByte > totalSavedBytes)
@@ -846,7 +846,8 @@ void LoadInput(const std::string& filename)
 		}
 		else if (g_currentByte > g_totalBytes)
 		{
-			PanicAlertT("Warning: You loaded a save that's after the end of the current movie. (byte %u > %u) (frame %u > %u). You should load another save before continuing, or load this state with read-only mode off.", (u32)g_currentByte+256, (u32)g_totalBytes+256, (u32)g_currentFrame, (u32)g_totalFrames);
+			PanicAlertT("Warning: You loaded a save that's after the end of the current movie. (byte %u > %u) (frame %u > %u). You should load another save before continuing, or load this state with read-only mode off.",
+				(u32)(g_currentByte + sizeof(DTMHeader)), (u32)(g_totalBytes + sizeof(DTMHeader)), (u32)g_currentFrame, (u32)g_totalFrames);
 		}
 		else if (g_currentByte > 0 && g_totalBytes > 0)
 		{
@@ -863,7 +864,9 @@ void LoadInput(const std::string& filename)
 					if (IsUsingWiimote(0))
 					{
 						// TODO: more detail
-						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i+256, i+256);
+						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %u (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.",
+							(u32)(i + sizeof(DTMHeader)), (u32)(i + sizeof(DTMHeader)));
+
 						memcpy(tmpInput, movInput, g_currentByte);
 					}
 					else
