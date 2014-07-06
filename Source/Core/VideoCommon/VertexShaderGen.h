@@ -27,20 +27,6 @@
 #define SHADER_TEXTURE6_ATTRIB  14
 #define SHADER_TEXTURE7_ATTRIB  15
 
-
-//TODO: get rid of them, they aren't used at all
-#define C_POSNORMALMATRIX        0
-#define C_PROJECTION            (C_POSNORMALMATRIX + 6)
-#define C_MATERIALS             (C_PROJECTION + 4)
-#define C_LIGHT_COLORS          (C_MATERIALS + 4)
-#define C_LIGHTS                (C_LIGHT_COLORS + 8)
-#define C_TEXMATRICES           (C_LIGHTS + 32)
-#define C_TRANSFORMMATRICES     (C_TEXMATRICES + 24)
-#define C_NORMALMATRICES        (C_TRANSFORMMATRICES + 64)
-#define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES + 32)
-#define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
-#define C_VENVCONST_END         (C_DEPTHPARAMS + 1)
-
 #pragma pack(1)
 
 struct vertex_shader_uid_data
