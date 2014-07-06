@@ -268,7 +268,7 @@ private:
 	template <typename T>
 	void DoContainer(T& x)
 	{
-		size_t size = x.size();
+		u32 size = (u32)x.size();
 		Do(size);
 		x.resize(size);
 
