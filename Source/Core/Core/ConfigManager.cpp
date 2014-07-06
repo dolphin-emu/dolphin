@@ -237,6 +237,7 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 	display->Set("RenderWindowAutoSize", m_LocalCoreStartupParameter.bRenderWindowAutoSize);
 	display->Set("KeepWindowOnTop", m_LocalCoreStartupParameter.bKeepWindowOnTop);
 	display->Set("ProgressiveScan", m_LocalCoreStartupParameter.bProgressive);
+	display->Set("AdapterSelection", m_LocalCoreStartupParameter.bAdapterSelection);
 	display->Set("DisableScreenSaver", m_LocalCoreStartupParameter.bDisableScreenSaver);
 	display->Set("ForceNTSCJ", m_LocalCoreStartupParameter.bForceNTSCJ);
 }
@@ -435,6 +436,7 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 	display->Get("RenderWindowHeight",   &m_LocalCoreStartupParameter.iRenderWindowHeight,     480);
 	display->Get("RenderWindowAutoSize", &m_LocalCoreStartupParameter.bRenderWindowAutoSize,   false);
 	display->Get("KeepWindowOnTop",      &m_LocalCoreStartupParameter.bKeepWindowOnTop,        false);
+	display->Get("AdapterSelection",     &m_LocalCoreStartupParameter.bAdapterSelection,       false);
 	display->Get("ProgressiveScan",      &m_LocalCoreStartupParameter.bProgressive,            false);
 	display->Get("DisableScreenSaver",   &m_LocalCoreStartupParameter.bDisableScreenSaver,     true);
 	display->Get("ForceNTSCJ",           &m_LocalCoreStartupParameter.bForceNTSCJ,             false);
