@@ -98,6 +98,7 @@ wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally
 wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
 #endif
 wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf unsure, use the first one.");
+wxString adapter_select_desc = wxTRANSLATE("Enables graphic adapter selection.\n\nIf not using more than one GPU or playing on a laptop, leave this unchecked.");
 wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, use your desktop resolution.\nIf still unsure, use the highest resolution which works for you.");
 wxString use_fullscreen_desc = wxTRANSLATE("Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a render window will be created instead.\n\nIf unsure, leave this unchecked.");
 wxString auto_window_size_desc = wxTRANSLATE("Automatically adjusts the window size to your internal resolution.\n\nIf unsure, leave this unchecked.");
@@ -254,7 +255,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	// adapter (D3D only)
-	if (vconfig.backend_info.Adapters.size())
+	//First we check if there are more than one adapters, then we check if the user enabled the adapter selection
+	if (vconfig.backend_info.Adapters.size() && SConfig::GetInstance().m_LocalCoreStartupParameter.bAdapterSelection)
 	{
 		wxChoice* const choice_adapter = CreateChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_desc));
 
@@ -267,8 +269,18 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 		szr_basic->Add(new wxStaticText(page_general, -1, _("Adapter:")), 1, wxALIGN_CENTER_VERTICAL, 5);
 		szr_basic->Add(choice_adapter, 1, 0, 0);
-	}
 
+		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		{
+			choice_adapter->Disable();
+		}
+	}
+	else
+	{
+		//If the selection is disabled, always use the first adapter
+		//Is required to not make Dolphin crash when disabling the selection and a not working input is still set
+		vconfig.iAdapter = 0;
+	}
 
 	// - display
 	wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, 5, 5);
@@ -571,13 +583,34 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_misc->Add(CreateCheckBox(page_advanced, _("Show Input Display"), wxGetTranslation(show_input_display_desc), vconfig.bShowInputDisplay));
 	szr_misc->Add(CreateCheckBox(page_advanced, _("Crop"), wxGetTranslation(crop_desc), vconfig.bCrop));
 
+	//Adapter Selection
+	//Only show this when D3D11 is activated
+	if (vconfig.backend_info.Adapters.size())
+	{
+		wxCheckBox* const cb_enable_adapter_selection = new wxCheckBox(page_advanced, wxID_ANY, _("Enable Adapter selection"));
+		RegisterControl(cb_enable_adapter_selection, wxGetTranslation(adapter_select_desc));
+		cb_enable_adapter_selection->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_AdapterSelection, this);
+
+		cb_enable_adapter_selection->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bAdapterSelection);
+
+		//Disable selection while the emulator is running
+		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		{
+			cb_enable_adapter_selection->Disable();
+		}
+		szr_misc->Add(cb_enable_adapter_selection);
+	}
+
 	// Progressive Scan
 	{
 	wxCheckBox* const cb_prog_scan = new wxCheckBox(page_advanced, wxID_ANY, _("Enable Progressive Scan"));
 	RegisterControl(cb_prog_scan, wxGetTranslation(prog_scan_desc));
 	cb_prog_scan->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_ProgressiveScan, this);
+
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
 		cb_prog_scan->Disable();
+	}
 
 	cb_prog_scan->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);
 	// A bit strange behavior, but this needs to stay in sync with the main progressive boolean; TODO: Is this still necessary?

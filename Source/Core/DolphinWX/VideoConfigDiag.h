@@ -116,6 +116,14 @@ protected:
 	}
 	void Event_Adapter(wxCommandEvent &ev) { ev.Skip(); } // TODO
 
+	void Event_AdapterSelection(wxCommandEvent &ev)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bAdapterSelection = ev.IsChecked();
+		Close();
+		g_video_backend->ShowConfig(GetParent());
+		ev.Skip();
+	}
+
 	void Event_DisplayResolution(wxCommandEvent &ev);
 
 	void Event_ProgressiveScan(wxCommandEvent &ev)
