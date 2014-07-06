@@ -359,7 +359,7 @@ void CGameListCtrl::Update()
 		OnColumnClick(event);
 		sorted = true;
 
-		SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
+		SetColumnWidth(COLUMN_SIZE, SConfig::GetInstance().m_showSizeColumn ? wxLIST_AUTOSIZE : 0);
 	}
 	else
 	{
