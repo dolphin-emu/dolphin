@@ -553,7 +553,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 	dsp->Get("Backend", &sBackend, BACKEND_NULLSOUND);
 #endif
 	dsp->Get("Volume", &m_Volume, 100);
-    dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 }
 
 void SConfig::LoadFifoPlayerSettings(IniFile& ini)
