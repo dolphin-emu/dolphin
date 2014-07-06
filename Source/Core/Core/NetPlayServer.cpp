@@ -548,7 +548,7 @@ bool NetPlayServer::StartGame(const std::string &path)
 	spac << (MessageId)NP_MSG_START_GAME;
 	spac << m_current_game;
 	spac << m_settings.m_CPUthread;
-	spac << m_settings.m_CPUcore;
+	spac << (u8)m_settings.m_CPUcore;
 	spac << m_settings.m_DSPEnableJIT;
 	spac << m_settings.m_DSPHLE;
 	spac << m_settings.m_WriteToMemcard;
