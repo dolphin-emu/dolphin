@@ -475,8 +475,8 @@ void CWiiSaveCrypted::do_sig()
 		0x05, 0xB8, 0xA8, 0x90, 0x1F, 0xA8, 0x2A, 0x0E, 0x4E, 0x76, 0xEF, 0x44, 0x72, 0x99, 0xF8
 	};
 
-	sprintf(signer, "Root-CA00000001-MS00000002");
-	sprintf(name, "NG%08x", NG_id);
+	snprintf(signer, sizeof(signer), "Root-CA00000001-MS00000002");
+	snprintf(name, sizeof(name), "NG%08x", NG_id);
 	make_ec_cert(ng_cert, NG_sig, signer, name, NG_priv, NG_key_id);
 
 
@@ -485,8 +485,8 @@ void CWiiSaveCrypted::do_sig()
 
 	memset(ap_sig, 81, sizeof ap_sig); // temp
 
-	sprintf(signer, "Root-CA00000001-MS00000002-NG%08x", NG_id);
-	sprintf(name, "AP%08x%08x", 1, 2);
+	snprintf(signer, sizeof(signer), "Root-CA00000001-MS00000002-NG%08x", NG_id);
+	snprintf(name, sizeof(name), "AP%08x%08x", 1, 2);
 	make_ec_cert(ap_cert, ap_sig, signer, name, ap_priv, 0);
 
 	sha1(ap_cert + 0x80, 0x100, hash);
@@ -554,7 +554,7 @@ bool CWiiSaveCrypted::getPaths(bool forExport)
 	if (forExport)
 	{
 		char GameID[5];
-		sprintf(GameID, "%c%c%c%c",
+		snprintf(GameID, sizeof(GameID), "%c%c%c%c",
 			(u8)(m_TitleID >> 24) & 0xFF, (u8)(m_TitleID >> 16) & 0xFF,
 			(u8)(m_TitleID >>  8) & 0xFF, (u8)m_TitleID & 0xFF);
 

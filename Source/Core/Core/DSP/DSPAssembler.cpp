@@ -332,14 +332,15 @@ u32 DSPAssembler::ParseExpression(const char *ptr)
 	char *pbuf;
 	s32 val = 0;
 
-	char *d_buffer = (char *)malloc(1024);
-	char *s_buffer = (char *)malloc(1024);
+	const size_t SIZE = 1024;
+	char *d_buffer = (char *)malloc(SIZE);
+	char *s_buffer = (char *)malloc(SIZE);
 	strcpy(s_buffer, ptr);
 
 	while ((pbuf = FindBrackets(s_buffer, d_buffer)) != nullptr)
 	{
 		val = ParseExpression(d_buffer);
-		sprintf(d_buffer, "%s%d%s", s_buffer, val, pbuf);
+		snprintf(d_buffer, SIZE, "%s%d%s", s_buffer, val, pbuf);
 		strcpy(s_buffer, d_buffer);
 	}
 
@@ -376,7 +377,7 @@ u32 DSPAssembler::ParseExpression(const char *ptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) + ParseExpression(pbuf+1);
-		sprintf(d_buffer, "%d", val);
+		snprintf(d_buffer, SIZE, "%d", val);
 	}
 
 	while ((pbuf = strstr(d_buffer, "-")) != nullptr)
@@ -388,35 +389,35 @@ u32 DSPAssembler::ParseExpression(const char *ptr)
 			val = 0x10000 + (val & 0xffff); // ATTENTION: avoid a terrible bug!!! number cannot write with '-' in sprintf
 			fprintf(stderr, "WARNING: Number Underflow at Line: %d \n", code_line);
 		}
-		sprintf(d_buffer, "%d", val);
+		snprintf(d_buffer, SIZE, "%d", val);
 	}
 
 	while ((pbuf = strstr(d_buffer, "*")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) * ParseExpression(pbuf+1);
-		sprintf(d_buffer, "%d", val);
+		snprintf(d_buffer, SIZE, "%d", val);
 	}
 
 	while ((pbuf = strstr(d_buffer, "/")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) / ParseExpression(pbuf+1);
-		sprintf(d_buffer, "%d", val);
+		snprintf(d_buffer, SIZE, "%d", val);
 	}
 
 	while ((pbuf = strstr(d_buffer, "|")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) | ParseExpression(pbuf+1);
-		sprintf(d_buffer, "%d", val);
+		snprintf(d_buffer, SIZE, "%d", val);
 	}
 
 	while ((pbuf = strstr(d_buffer, "&")) != nullptr)
 	{
 		*pbuf = 0x0;
 		val = ParseExpression(d_buffer) & ParseExpression(pbuf+1);
-		sprintf(d_buffer, "%d", val);
+		snprintf(d_buffer, SIZE, "%d", val);
 	}
 
 	val = ParseValue(d_buffer);

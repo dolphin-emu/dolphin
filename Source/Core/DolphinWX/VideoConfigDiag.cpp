@@ -164,7 +164,7 @@ wxArrayString GetListOfResolutions()
 	while (EnumDisplaySettings(nullptr, iModeNum++, &dmi) != 0)
 	{
 		char res[100];
-		sprintf(res, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
+		snprintf(res, sizeof(res), "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
 		std::string strRes(res);
 		// Only add unique resolutions
 		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())

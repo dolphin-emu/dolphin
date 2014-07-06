@@ -241,7 +241,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		case IDM_COPYHEX:
 			{
 				char temp[24];
-				sprintf(temp, "%08x", debugger->ReadInstruction(selection));
+				snprintf(temp, sizeof(temp), "%08x", debugger->ReadInstruction(selection));
 				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
 			}
 			break;
@@ -493,7 +493,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 					branches[numBranches].src = rowY1 + rowHeight / 2;
 					branches[numBranches].srcAddr = address / align;
 					branches[numBranches++].dst = (int)(rowY1 + ((s64)(u32)offs - (s64)(u32)address) * rowHeight / align + rowHeight / 2);
-					sprintf(desc, "-->%s", debugger->GetDescription(offs).c_str());
+					snprintf(desc, sizeof(desc), "-->%s", debugger->GetDescription(offs).c_str());
 					dc.SetTextForeground(wxTheColourDatabase->Find("PURPLE")); // the -> arrow illustrations are purple
 				}
 				else

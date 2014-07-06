@@ -260,7 +260,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									msg.addData(1);
 									{
 										char buffer[12];
-										sprintf(buffer, "JVS-node %02x", node);
+										snprintf(buffer, sizeof(buffer), "JVS-node %02x", node);
 										//msg.addData(buffer);
 										msg.addData("JAMMA I/O CONTROLLER");
 									}

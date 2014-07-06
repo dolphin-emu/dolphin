@@ -34,7 +34,7 @@ inline void CON_Printf(const int x, const int y, const char* fmt, ...)
 
 	va_list marker;
 	va_start(marker,fmt);
-	vsprintf(tmpbuf, fmt, marker);
+	vsnprintf(tmpbuf, sizeof(tmpbuf), fmt, marker);
 	va_end(marker);
 
 	printf("\x1b[%d;%dH%s", y, x, tmpbuf);

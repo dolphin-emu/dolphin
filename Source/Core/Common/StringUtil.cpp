@@ -197,7 +197,7 @@ bool TryParse(const std::string &str, bool *const output)
 std::string StringFromInt(int value)
 {
 	char temp[16];
-	sprintf(temp, "%i", value);
+	snprintf(temp, sizeof(temp), "%i", value);
 	return temp;
 }
 

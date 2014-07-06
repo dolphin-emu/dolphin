@@ -112,7 +112,7 @@ void Host_SysMessage(const char *fmt, ...)
 	char msg[512];
 
 	va_start(list, fmt);
-	vsprintf(msg, fmt, list);
+	vsnprintf(msg, sizeof(msg), fmt, list);
 	va_end(list);
 
 	size_t len = strlen(msg);

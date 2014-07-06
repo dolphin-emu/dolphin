@@ -803,7 +803,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			if (emu_state > 0 && emu_state < 6)
 			{
 				char temp[2048];
-				sprintf(temp, "^ %s%s%s", emuState[emu_state - 1],
+				snprintf(temp, sizeof(temp), "^ %s%s%s", emuState[emu_state - 1],
 						issues.size() > 0 ? " :\n" : "", issues.c_str());
 				toolTip = new wxEmuStateTip(this, StrToWxStr(temp), &toolTip);
 			}

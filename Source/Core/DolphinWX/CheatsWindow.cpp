@@ -334,7 +334,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 			m_Label_Codename->SetLabel(_("Name: ") + StrToWxStr(code.name));
 			char text[CHAR_MAX];
 			char* numcodes = text;
-			sprintf(numcodes, "Number of Codes: %lu", (unsigned long)code.ops.size());
+			snprintf(numcodes, sizeof(text), "Number of Codes: %lu", (unsigned long)code.ops.size());
 			m_Label_NumCodes->SetLabel(StrToWxStr(numcodes));
 			m_ListBox_CodesList->Clear();
 
@@ -342,7 +342,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 			{
 				char text2[CHAR_MAX];
 				char* ops = text2;
-				sprintf(ops, "%08x %08x", entry.cmd_addr, entry.value);
+				snprintf(ops, sizeof(text2), "%08x %08x", entry.cmd_addr, entry.value);
 				m_ListBox_CodesList->Append(StrToWxStr(ops));
 			}
 		}
