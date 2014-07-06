@@ -117,12 +117,6 @@ static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-#ifdef HAVE_OCULUSSDK
-// VR Oculus Rift related
-static ovrFrameTiming g_rift_frame_timing;
-static ovrPosef g_left_eye_pose, g_right_eye_pose;
-#endif
-
 int GetNumMSAASamples(int MSAAMode)
 {
 	int samples;

@@ -1002,7 +1002,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
 		{
-			static float debugSpeed = 1.0f;
+			static float debugSpeed = 0.1f;
 			switch (event.GetKeyCode())
 			{
 			case '9':
@@ -1012,22 +1012,22 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				debugSpeed *= 2.0f;
 				break;
 			case 'W':
-				VertexShaderManager::TranslateView(0.0f, debugSpeed);
+				VertexShaderManager::TranslateView(0.0f, debugSpeed*g_Config.fUnitsPerMetre);
 				break;
 			case 'S':
-				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+				VertexShaderManager::TranslateView(0.0f, -debugSpeed*g_Config.fUnitsPerMetre);
 				break;
 			case 'A':
-				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+				VertexShaderManager::TranslateView(debugSpeed*g_Config.fUnitsPerMetre, 0.0f);
 				break;
 			case 'D':
-				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+				VertexShaderManager::TranslateView(-debugSpeed*g_Config.fUnitsPerMetre, 0.0f);
 				break;
 			case 'Q':
-				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed*g_Config.fUnitsPerMetre);
 				break;
 			case 'E':
-				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed*g_Config.fUnitsPerMetre);
 				break;
 			case 'R':
 				VertexShaderManager::ResetView();
@@ -1036,7 +1036,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				break;
 			}
 		}
-		if (g_has_rift && event.GetModifiers() == wxMOD_SHIFT)
+		if (g_has_hmd && event.GetModifiers() == wxMOD_SHIFT)
 		{
 			switch (event.GetKeyCode())
 			{
@@ -1049,6 +1049,38 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			case '=':
 				g_Config.fUnitsPerMetre /= 1.20f;
 				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
+				break;
+			// Make HUD 10cm thinner
+			case '[':
+				if (g_Config.fHudThickness <= 0.01f)
+					g_Config.fHudThickness = 0;
+				else if (g_Config.fHudThickness <= 0.1f)
+					g_Config.fHudThickness -= 0.01f;
+				else
+					g_Config.fHudThickness -= 0.1f;
+				NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
+				break;
+			// Make HUD 10cm thicker
+			case ']':
+				if (g_Config.fHudThickness < 0.01f)
+					g_Config.fHudThickness = 0.01f;
+				else if (g_Config.fHudThickness < 0.1f)
+					g_Config.fHudThickness += 0.01f;
+				else
+					g_Config.fHudThickness += 0.1f;
+				NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
+				break;
+				// Move HUD in 10cm
+			case ',':
+				g_Config.fHudDistance -= 0.1f;
+				if (g_Config.fHudDistance <= 0)
+					g_Config.fHudDistance = 0;
+				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
+				break;
+				// Move HUD out 10cm
+			case '.':
+				g_Config.fHudDistance += 0.1f;
+				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
 				break;
 			}
 		}

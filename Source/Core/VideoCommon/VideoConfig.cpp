@@ -39,6 +39,10 @@ VideoConfig::VideoConfig()
 	backend_info.bSupports3DVision = false;
 
 	fUnitsPerMetre = 1.0f;
+	// in metres
+	fHudDistance = 1.5f;
+	fHudThickness = 0.5f;
+
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -204,8 +208,13 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "UseBBox", bUseBBox);
 	CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
 
+	fUnitsPerMetre = 1.0f;
+	fHudDistance = 1.5f;
+	fHudThickness = 0.5f;
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
-	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", fUnitsPerMetre, 100.0f / fUnitsPerMetre);
+	CHECK_SETTING("VR", "HudThickness", fHudThickness);
+	CHECK_SETTING("VR", "HudDistance", fHudDistance);
+	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick", fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
 
 	if (gfx_override_exists)
 		OSD::AddMessage("Warning: Opening the graphics configuration will reset settings and might cause issues!", 10000);

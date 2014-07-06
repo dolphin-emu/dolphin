@@ -157,7 +157,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 		}
 
 		// upload global constants
-		ProgramShaderCache::UploadConstants(eye);
+		ProgramShaderCache::UploadConstants(eye!=0);
 
 		// setup the pointers
 		g_nativeVertexFmt->SetupVertexPointers();

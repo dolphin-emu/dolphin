@@ -125,6 +125,8 @@ struct VideoConfig final
 
 	// VR
 	float fUnitsPerMetre;
+	float fHudThickness;
+	float fHudDistance;
 
 	//currently unused:
 	int iCompileDLsLevel;

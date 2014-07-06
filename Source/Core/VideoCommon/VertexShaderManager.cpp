@@ -197,6 +197,7 @@ void LogProj(float p[]) { //VR
 	else {
 		debug_nextScene = false;
 		NOTICE_LOG(VR, "%f Units Per Metre", g_ActiveConfig.fUnitsPerMetre);
+		NOTICE_LOG(VR, "HUD is %.1fm away and %.1fm thick", g_ActiveConfig.fHudDistance, g_ActiveConfig.fHudThickness);
 		DoLogProj(debug_projNum, debug_projList[debug_projNum]);
 	}
 	debug_projNum++;
@@ -901,9 +902,18 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 
 		Matrix44 box_matrix, walk_matrix, look_matrix;
-		Matrix44::Translate(walk_matrix, s_fViewTranslationVector);
-		if (debug_newScene)
-			NOTICE_LOG(VR, "walk pos = %f, %f, %f", s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
+		float pos[3];
+		for (int i = 0; i < 3; ++i)
+			pos[i] = s_fViewTranslationVector[i] + g_head_tracking_position[i]*UnitsPerMetre;
+		static int x = 0;
+		x++;
+		Matrix44::Translate(walk_matrix, pos);
+		if (x>10)
+		{
+			x = 0;
+//			NOTICE_LOG(VR, "walk pos = %f, %f, %f", s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
+			ERROR_LOG(VR, "head pos = %5.0fcm, %5.0fcm, %5.0fcm, walk %5.1f, %5.1f, %5.1f", 100 * g_head_tracking_position[0], 100 * g_head_tracking_position[1], 100 * g_head_tracking_position[2], s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
+		}
 
 		if (xfmem.projection.type == GX_PERSPECTIVE)
 		{
@@ -918,8 +928,8 @@ void VertexShaderManager::SetProjectionConstants()
 				NOTICE_LOG(VR, "2D: hacky test");
 
 			// Give the 2D layer a 3D effect if different parts of the 2D layer are rendered at different z coordinates
-			float HudThickness = 0.5f * UnitsPerMetre;  // the 2D layer is actually a 3D box this many game units thick
-			float HudDistance = 1.5f * UnitsPerMetre;   // depth 0 on the HUD should be this far away
+			float HudThickness = g_ActiveConfig.fHudThickness * UnitsPerMetre;  // the 2D layer is actually a 3D box this many game units thick
+			float HudDistance = g_ActiveConfig.fHudDistance * UnitsPerMetre;   // depth 0 on the HUD should be this far away
 
 			// Now that we know how far away the box is, and what FOV it should fill, we can work out the width and height in game units
 			float HudWidth = 2.0f * tanf(hfov / 2.0f * 3.14159f / 180.0f) * HudDistance;
@@ -1041,6 +1051,7 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 eye_pos_matrix_left, eye_pos_matrix_right;
 		float posLeft[3] = { 0, 0, 0 };
 		float posRight[3] = { 0, 0, 0 };
+#ifdef HAVE_OCULUSSDK
 		if (g_has_rift)
 		{
 			posLeft[0] = g_eye_render_desc[0].ViewAdjust.x * UnitsPerMetre;
@@ -1050,6 +1061,7 @@ void VertexShaderManager::SetProjectionConstants()
 			posRight[1] = g_eye_render_desc[1].ViewAdjust.y * UnitsPerMetre;
 			posRight[2] = g_eye_render_desc[1].ViewAdjust.z * UnitsPerMetre;
 		}
+#endif
 		Matrix44::Translate(eye_pos_matrix_left, posLeft);
 		Matrix44::Translate(eye_pos_matrix_right, posRight);
 

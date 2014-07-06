@@ -14,22 +14,23 @@
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
+#include "VideoCommon/VR.h"
 
 void ClearDebugProj();
-
-#define M_PI 3.14159265358979323846
-#define RADIANS_TO_DEGREES(rad) ((float) rad * (float) (180.0 / M_PI))
 
 #ifdef HAVE_OCULUSSDK
 ovrHmd hmd = nullptr;
 ovrHmdDesc hmdDesc;
 ovrFovPort g_eye_fov[2];
 ovrEyeRenderDesc g_eye_render_desc[2];
+ovrFrameTiming g_rift_frame_timing;
+ovrPosef g_left_eye_pose, g_right_eye_pose;
 #endif
 
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
 bool g_new_tracking_frame = true;
 Matrix44 g_head_tracking_matrix;
+float g_head_tracking_position[3];
 int g_hmd_window_width = 0, g_hmd_window_height = 0;
 
 void NewVRFrame()
@@ -41,6 +42,7 @@ void NewVRFrame()
 void InitVR()
 {
 #ifdef HAVE_OCULUSSDK
+	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
 	ovr_Initialize();
 	hmd = ovrHmd_Create(0);
 	if (hmd)
@@ -77,22 +79,23 @@ void InitVR()
 	}
 }
 
-void ReadHmdOrientation(float *roll, float *pitch, float *yaw)
+void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)
 {
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift && hmd)
 	{
-		//float predictionDelta = in_sensorPrediction.GetFloat() * (1.0f / 1000.0f);
-		// Query the HMD for the sensor state at a given time. "0.0" means "most recent time".
-		ovrSensorState ss = ovrHmd_GetSensorState(hmd, 0.0);
+		ovrSensorState ss = ovrHmd_GetSensorState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
 		if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
 		{
-			OVR::Transformf pose = ss.Recorded.Pose; // don't use prediction, currently prediction is like random noise.
-			float y = 0.0f, p = 0.0f, r = 0.0f;
-			pose.Rotation.GetEulerAngles<OVR::Axis_Y, OVR::Axis_X, OVR::Axis_Z>(&y, &p, &r);
+			OVR::Transformf pose = ss.Predicted.Pose;
+			float ya = 0.0f, p = 0.0f, r = 0.0f;
+			pose.Rotation.GetEulerAngles<OVR::Axis_Y, OVR::Axis_X, OVR::Axis_Z>(&ya, &p, &r);
 			*roll = -RADIANS_TO_DEGREES(r);  // ???
 			*pitch = -RADIANS_TO_DEGREES(p); // should be degrees down
-			*yaw = -RADIANS_TO_DEGREES(y);   // should be degrees right
+			*yaw = -RADIANS_TO_DEGREES(ya);   // should be degrees right
+			*x = pose.Translation.x;
+			*y = pose.Translation.y;
+			*z = pose.Translation.z;
 		}
 	}
 	else
@@ -102,12 +105,15 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw)
 #endif
 	{
 #ifdef _WIN32
-		LONG y = 0, p = 0, r = 0;
-		if (Vuzix_GetTracking(&y, &p, &r) == ERROR_SUCCESS)
+		LONG ya = 0, p = 0, r = 0;
+		if (Vuzix_GetTracking(&ya, &p, &r) == ERROR_SUCCESS)
 		{
-			*yaw = -y * 180.0f / 32767.0f;
+			*yaw = -ya * 180.0f / 32767.0f;
 			*pitch = p * -180.0f / 32767.0f;
 			*roll = r * 180.0f / 32767.0f;
+			*x = 0;
+			*y = 0;
+			*z = 0;
 		}
 #endif
 	}
@@ -117,16 +123,19 @@ void UpdateHeadTrackingIfNeeded()
 {
 	if (g_new_tracking_frame)
 	{
-		float roll = 0, pitch = 0, yaw = 0;
-		ReadHmdOrientation(&roll, &pitch, &yaw);
-		Matrix33 m, yp, y, p, r;
-		Matrix33::LoadIdentity(y);
-		Matrix33::RotateY(y, yaw*3.14159f / 180.0f);
+		float x = 0, y = 0, z = 0, roll = 0, pitch = 0, yaw = 0;
+		ReadHmdOrientation(&roll, &pitch, &yaw, &x, &y, &z);
+		g_head_tracking_position[0] = -x;
+		g_head_tracking_position[1] = -y;
+		g_head_tracking_position[2] = 0.06f-z;
+		Matrix33 m, yp, ya, p, r;
+		Matrix33::LoadIdentity(ya);
+		Matrix33::RotateY(ya, DEGREES_TO_RADIANS(yaw));
 		Matrix33::LoadIdentity(p);
-		Matrix33::RotateX(p, pitch*3.14159f / 180.0f);
-		Matrix33::Multiply(p, y, yp);
+		Matrix33::RotateX(p, DEGREES_TO_RADIANS(pitch));
+		Matrix33::Multiply(p, ya, yp);
 		Matrix33::LoadIdentity(r);
-		Matrix33::RotateZ(r, roll*3.14159f / 180.0f);
+		Matrix33::RotateZ(r, DEGREES_TO_RADIANS(roll));
 		Matrix33::Multiply(r, yp, m);
 		Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
 		g_new_tracking_frame = false;
