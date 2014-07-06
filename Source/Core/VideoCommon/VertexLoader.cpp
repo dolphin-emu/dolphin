@@ -463,7 +463,6 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_compiledCode = nullptr;
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
-	m_NativeFmt = nullptr;
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
@@ -488,7 +487,6 @@ VertexLoader::~VertexLoader()
 	#ifdef USE_VERTEX_LOADER_JIT
 	FreeCodeSpace();
 	#endif
-	delete m_NativeFmt;
 }
 
 void VertexLoader::CompileVertexTranslator()
@@ -773,9 +771,7 @@ void VertexLoader::CompileVertexTranslator()
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 #endif
-	m_NativeFmt = g_vertex_manager->CreateNativeVertexFormat();
-	m_NativeFmt->m_components = components;
-	m_NativeFmt->Initialize(vtx_decl);
+	m_NativeFmt = VertexLoaderManager::GetNativeVertexFormat(vtx_decl, components);
 }
 
 void VertexLoader::WriteCall(TPipelineFunction func)
@@ -825,9 +821,6 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	// Flush if our vertex format is different from the currently set.
 	if (g_nativeVertexFmt != nullptr && g_nativeVertexFmt != m_NativeFmt)
 	{
-		// We really must flush here. It's possible that the native representations
-		// of the two vtx formats are the same, but we have no way to easily check that
-		// now.
 		VertexManager::Flush();
 		// Also move the Set() here?
 	}
