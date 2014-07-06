@@ -7,6 +7,7 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -125,9 +126,8 @@ void VideoConfig::GameIniLoad()
 #define CHECK_SETTING(section, key, var) do { \
 		decltype(var) temp = var; \
 		if (iniFile.GetIfExists(section, key, &var) && var != temp) { \
-			char buf[256]; \
-			snprintf(buf, sizeof(buf), "Note: Option \"%s\" is overridden by game ini.", key); \
-			OSD::AddMessage(buf, 7500); \
+			std::string msg = StringFromFormat("Note: Option \"%s\" is overridden by game ini.", key); \
+			OSD::AddMessage(msg, 7500); \
 			gfx_override_exists = true; \
 		} \
 	} while (0)
