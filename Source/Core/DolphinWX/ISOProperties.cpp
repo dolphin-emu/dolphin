@@ -41,6 +41,8 @@
 #include <wx/panel.h>
 #include <wx/progdlg.h>
 #include <wx/sizer.h>
+#include <wx/spinbutt.h>
+#include <wx/spinctrl.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
@@ -376,6 +378,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxNotebook* const m_Notebook = new wxNotebook(this, ID_NOTEBOOK);
 	wxPanel* const m_GameConfig = new wxPanel(m_Notebook, ID_GAMECONFIG);
 	m_Notebook->AddPage(m_GameConfig, _("GameConfig"));
+	wxPanel* const m_VR = new wxPanel(m_Notebook, ID_VR);
+	m_Notebook->AddPage(m_VR, _("VR"));
 	wxPanel* const m_PatchPage = new wxPanel(m_Notebook, ID_PATCH_PAGE);
 	m_Notebook->AddPage(m_PatchPage, _("Patches"));
 	wxPanel* const m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE);
@@ -384,6 +388,48 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_Notebook->AddPage(m_geckocode_panel, _("Gecko Codes"));
 	wxPanel* const m_Information = new wxPanel(m_Notebook, ID_INFORMATION);
 	m_Notebook->AddPage(m_Information, _("Info"));
+
+	// VR
+	wxBoxSizer* const sVRPage = new wxBoxSizer(wxVERTICAL);
+	m_VR->SetSizer(sVRPage);
+	wxStaticBoxSizer * const sbVR = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("Game-Specific VR Settings"));
+	sVRPage->Add(sbVR, 0, wxEXPAND | wxALL, 5);
+	wxStaticText* const OverrideTextVR = new wxStaticText(m_VR, wxID_ANY, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."));
+	sbVR->Add(OverrideTextVR, 0, wxEXPAND | wxALL, 5);
+	wxGridBagSizer *sVRGrid = new wxGridBagSizer();
+	sbVR->Add(sVRGrid, 0, wxEXPAND);
+
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Units per metre:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	UnitsPerMetre = new wxSpinCtrlDouble(m_VR, ID_UNITS_PER_METRE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.0000001, 10000000, 1.0, 0.5);
+	sVRGrid->Add(UnitsPerMetre, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("game units")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Distance:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	HudDistance = new wxSpinCtrlDouble(m_VR, ID_HUD_DISTANCE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, 1.5, 0.1);
+	sVRGrid->Add(HudDistance, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Thickness:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	HudThickness = new wxSpinCtrlDouble(m_VR, ID_HUD_THICKNESS, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 0.5, 0.1);
+	sVRGrid->Add(HudThickness, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera forward:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	CameraForward = new wxSpinCtrlDouble(m_VR, ID_CAMERA_FORWARD, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, 0, 0.1);
+	sVRGrid->Add(CameraForward, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	arrayStringFor_EmuState.Add(_("Not Set"));
+	arrayStringFor_EmuState.Add(_("Broken"));
+	arrayStringFor_EmuState.Add(_("Intro"));
+	arrayStringFor_EmuState.Add(_("In Game"));
+	arrayStringFor_EmuState.Add(_("Playable"));
+	arrayStringFor_EmuState.Add(_("Perfect"));
+	VRState = new wxChoice(m_VR, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState);
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("VR state:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sVRGrid->Add(VRState, wxGBPosition(4, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	VRIssues = new wxTextCtrl(m_VR, ID_EMU_ISSUES, wxEmptyString);
+	sbVR->Add(VRIssues, 0, wxEXPAND);
 
 	// GameConfig editing - Overrides and emulation state
 	wxStaticText* const OverrideText = new wxStaticText(m_GameConfig, wxID_ANY, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."));
@@ -422,12 +468,14 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	wxBoxSizer* const sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const EmuStateText = new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State: "));
+#if 0
 	arrayStringFor_EmuState.Add(_("Not Set"));
 	arrayStringFor_EmuState.Add(_("Broken"));
 	arrayStringFor_EmuState.Add(_("Intro"));
 	arrayStringFor_EmuState.Add(_("In Game"));
 	arrayStringFor_EmuState.Add(_("Playable"));
 	arrayStringFor_EmuState.Add(_("Perfect"));
+#endif
 	EmuState = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState);
 	EmuIssues = new wxTextCtrl(m_GameConfig, ID_EMU_ISSUES, wxEmptyString);
 
@@ -1076,6 +1124,38 @@ void CISOProperties::LoadGameConfig()
 		EmuIssues->SetValue(StrToWxStr(sTemp));
 
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
+
+	float fTemp;
+	if (GameIniDefault.GetIfExists("VR", "UnitsPerMetre", &fTemp))
+		UnitsPerMetre->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "UnitsPerMetre", &fTemp))
+		UnitsPerMetre->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "HudDistance", &fTemp))
+		HudDistance->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "HudDistance", &fTemp))
+		HudDistance->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "HudThickness", &fTemp))
+		HudThickness->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "HudThickness", &fTemp))
+		HudThickness->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "CameraForward", &fTemp))
+		CameraForward->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "CameraForward", &fTemp))
+		CameraForward->SetValue(fTemp);
+
+	GameIniDefault.Get("VR", "EmulationStateId", &iTemp, 0/*Not Set*/);
+	VRState->SetSelection(iTemp);
+	if (GameIniLocal.GetIfExists("VR", "EmulationStateId", &iTemp))
+		VRState->SetSelection(iTemp);
+
+	GameIniDefault.Get("VR", "VRIssues", &sTemp);
+	if (!sTemp.empty())
+		VRIssues->SetValue(StrToWxStr(sTemp));
+	if (GameIniLocal.GetIfExists("VR", "VRIssues", &sTemp))
+		VRIssues->SetValue(StrToWxStr(sTemp));
 
 	PatchList_Load();
 	ActionReplayList_Load();

@@ -25,6 +25,7 @@ class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
 class wxChoice;
+class wxSpinCtrlDouble;
 class wxStaticBitmap;
 class wxTextCtrl;
 class wxTreeCtrl;
@@ -88,6 +89,15 @@ private:
 	wxButton *AddSpeedhack;
 	wxButton *RemoveSpeedhack;
 
+	// VR
+	wxSpinCtrlDouble* UnitsPerMetre;
+	wxSpinCtrlDouble* HudDistance;
+	wxSpinCtrlDouble* HudThickness;
+	wxSpinCtrlDouble* CameraForward;
+	wxChoice *VRState;
+	wxTextCtrl *VRIssues;
+
+
 	wxTextCtrl *m_Name;
 	wxTextCtrl *m_GameID;
 	wxTextCtrl *m_Country;
@@ -115,6 +125,11 @@ private:
 
 		ID_NOTEBOOK,
 		ID_GAMECONFIG,
+		ID_VR,
+		ID_UNITS_PER_METRE,
+		ID_HUD_DISTANCE,
+		ID_HUD_THICKNESS,
+		ID_CAMERA_FORWARD,
 		ID_PATCH_PAGE,
 		ID_ARCODE_PAGE,
 		ID_SPEEDHACK_PAGE,
