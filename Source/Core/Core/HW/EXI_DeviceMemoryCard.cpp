@@ -33,6 +33,8 @@ void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 	// note that userdata is forbidden to be a pointer, due to the implementation of EventDoState
 	int card_index = (int)userdata;
 	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	if (pThis == nullptr)
+		pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
 	if (pThis && pThis->memorycard)
 		pThis->memorycard->Flush();
 }
@@ -41,6 +43,8 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 {
 	int card_index = (int)userdata;
 	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	if (pThis == nullptr)
+		pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
 	if (pThis)
 		pThis->CmdDone();
 }
