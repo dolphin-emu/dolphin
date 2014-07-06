@@ -822,9 +822,10 @@ void LoadInput(const std::string& filename)
 	u64 totalSavedBytes = t_record.GetSize() - 256;
 
 	bool afterEnd = false;
+	// This can only happen if the user manually deletes data from the dtm.
 	if (g_currentByte > totalSavedBytes)
 	{
-		//PanicAlertT("Warning: You loaded a save whose movie ends before the current frame in the save (byte %u < %u) (frame %u < %u). You should load another save before continuing.", (u32)totalSavedBytes+256, (u32)g_currentByte+256, (u32)tmpHeader.frameCount, (u32)g_currentFrame);
+		PanicAlertT("Warning: You loaded a save whose movie ends before the current frame in the save (byte %u < %u) (frame %u < %u). You should load another save before continuing.", (u32)totalSavedBytes+256, (u32)g_currentByte+256, (u32)tmpHeader.frameCount, (u32)g_currentFrame);
 		afterEnd = true;
 	}
 
@@ -846,6 +847,7 @@ void LoadInput(const std::string& filename)
 		}
 		else if (g_currentByte > g_totalBytes)
 		{
+			afterEnd = true;
 			PanicAlertT("Warning: You loaded a save that's after the end of the current movie. (byte %u > %u) (frame %u > %u). You should load another save before continuing, or load this state with read-only mode off.", (u32)g_currentByte+256, (u32)g_totalBytes+256, (u32)g_currentFrame, (u32)g_totalFrames);
 		}
 		else if (g_currentByte > 0 && g_totalBytes > 0)
