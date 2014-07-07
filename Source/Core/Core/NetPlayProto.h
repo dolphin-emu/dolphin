@@ -6,13 +6,13 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-
+#include "Core/CoreParameter.h"
 #include "Core/HW/EXI_Device.h"
 
 struct NetSettings
 {
 	bool m_CPUthread;
-	int m_CPUcore;
+	CPUBackend m_CPUcore;
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
 	bool m_WriteToMemcard;
@@ -28,7 +28,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<u8> NetWiimote;
 
-#define NETPLAY_VERSION  "Dolphin NetPlay 2014-01-08"
+#define NETPLAY_VERSION  "Dolphin NetPlay 2014-08-25"
 
 const int NETPLAY_INITIAL_GCTIME = 1272737767;
 

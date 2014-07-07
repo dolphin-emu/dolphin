@@ -61,7 +61,7 @@ static bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgress
 bool g_bClearSave = false;
 static bool bSyncGPU = false, bNetPlay = false;
 static std::string videoBackend = "unknown";
-static int iCPUCore = 1;
+static CPUBackend iCPUCore = CPU_JIT_X64;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
 static std::string author = "";
@@ -356,7 +356,7 @@ bool IsFastDiscSpeed()
 	return bFastDiscSpeed;
 }
 
-int GetCPUMode()
+CPUBackend GetCPUMode()
 {
 	return iCPUCore;
 }
@@ -694,7 +694,7 @@ void ReadHeader()
 		bProgressive = tmpHeader.bProgressive;
 		bDSPHLE = tmpHeader.bDSPHLE;
 		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-		iCPUCore = tmpHeader.CPUCore;
+		iCPUCore = (CPUBackend)tmpHeader.CPUCore;
 		g_bClearSave = tmpHeader.bClearSave;
 		memcards = tmpHeader.memcards;
 		bongos = tmpHeader.bongos;
