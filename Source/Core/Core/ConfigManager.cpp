@@ -479,11 +479,11 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 
 	core->Get("HLE_BS2",      &m_LocalCoreStartupParameter.bHLE_BS2, false);
 #ifdef _M_X86
-	core->Get("CPUCore",      (int*)&m_LocalCoreStartupParameter.iCPUCore, CPU_JIT_X64);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 1);
 #elif _M_ARM_32
-	core->Get("CPUCore",      (int*)&m_LocalCoreStartupParameter.iCPUCore, CPU_JIT_ARM);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 3);
 #else
-	core->Get("CPUCore",      (int*)&m_LocalCoreStartupParameter.iCPUCore, CPU_INTERPRETER);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 0);
 #endif
 	core->Get("Fastmem",           &m_LocalCoreStartupParameter.bFastmem,      true);
 	core->Get("DSPThread",         &m_LocalCoreStartupParameter.bDSPThread,    false);
