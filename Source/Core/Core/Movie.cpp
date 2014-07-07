@@ -61,7 +61,7 @@ u64 g_recordingStartTime; // seconds since 1970 that recording started
 bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
 bool g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
 std::string videoBackend = "unknown";
-CPUBackend iCPUCore = CPU_JIT_X64;
+int iCPUCore = 1;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
 std::string author = "";
@@ -143,9 +143,9 @@ void FrameUpdate()
 	}
 
 	// ("framestop") the only purpose of this is to cause interpreter/jit Run() to return temporarily.
-	// after that we set it back to STATE_RUNNING and continue as normal.
+	// after that we set it back to CPU_RUNNING and continue as normal.
 	if (g_bFrameStop)
-		*PowerPC::GetStatePtr() = PowerPC::STATE_STEPPING;
+		*PowerPC::GetStatePtr() = PowerPC::CPU_STEPPING;
 
 	if (g_framesToSkip)
 		FrameSkipping();
@@ -356,7 +356,7 @@ bool IsFastDiscSpeed()
 	return bFastDiscSpeed;
 }
 
-CPUBackend GetCPUMode()
+int GetCPUMode()
 {
 	return iCPUCore;
 }
