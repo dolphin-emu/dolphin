@@ -230,7 +230,7 @@ void CConfigMain::SetSelectedTab(int tab)
 // Used to restrict changing of some options while emulator is running
 void CConfigMain::UpdateGUI()
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Disable the Core stuff on GeneralPage
 		CPUThread->Disable();
@@ -669,7 +669,7 @@ void CConfigMain::CreateGUIControls()
 
 	Latency->Bind(wxEVT_SPINCTRL, &CConfigMain::AudioSettingsChanged, this);
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		Latency->Disable();
 		BackendSelection->Disable();
@@ -888,7 +888,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	{
 	// Core - Basic
 	case ID_CPUTHREAD:
-		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		if (Core::IsRunning())
 			return;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = CPUThread->IsChecked();
 		break;
@@ -1099,7 +1099,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		{
 			strMemcard = filename;
 
-			if (Core::GetState() != Core::CORE_UNINITIALIZED)
+			if (Core::IsRunning())
 			{
 				// Change memcard to the new file
 				ExpansionInterface::ChangeDevice(
@@ -1136,7 +1136,7 @@ void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
 
 	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Change plugged device! :D
 		SerialInterface::ChangeDevice(tempType, deviceNum);
@@ -1172,7 +1172,7 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 
 	SConfig::GetInstance().m_EXIDevice[deviceNum] = tempType;
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Change plugged device! :D
 		ExpansionInterface::ChangeDevice(

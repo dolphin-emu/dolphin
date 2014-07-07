@@ -802,7 +802,7 @@ void CFrame::OnRecordExport(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Core is initialized and emulator is running
 		if (UseDebugger)
@@ -1581,7 +1581,7 @@ void CFrame::OnLoadLastState(wxCommandEvent& event)
 
 void CFrame::OnSaveFirstState(wxCommandEvent& WXUNUSED(event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 		State::SaveFirstSaved();
 }
 

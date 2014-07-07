@@ -219,7 +219,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 {
 	Parent->ClearStatusBar();
 
-	if (Core::GetState() == Core::CORE_UNINITIALIZED) return;
+	if (!Core::IsRunning()) return;
 
 	std::string existing_map_file, writable_map_file;
 	bool map_exists = CBoot::FindMapFile(&existing_map_file,

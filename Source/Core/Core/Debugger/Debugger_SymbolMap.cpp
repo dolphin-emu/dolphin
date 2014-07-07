@@ -69,8 +69,7 @@ void WalkTheStack(const std::function<void(u32)>& stack_step)
 // instead of "pointing ahead"
 bool GetCallstack(std::vector<CallstackEntry> &output)
 {
-	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
-	    !Memory::IsRAMAddress(PowerPC::ppcState.gpr[1]))
+	if (!Core::IsRunning() || !Memory::IsRAMAddress(PowerPC::ppcState.gpr[1]))
 		return false;
 
 	if (LR == 0)

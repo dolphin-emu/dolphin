@@ -217,7 +217,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 
 		case WM_CLOSE:
 			// Let Core finish initializing before accepting any WM_CLOSE messages
-			if (Core::GetState() == Core::CORE_UNINITIALIZED) break;
+			if (!Core::IsRunning()) break;
 			// Use default action otherwise
 
 		default:
@@ -722,7 +722,7 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
-	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
+	if (!Core::IsRunning() ||
 			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize ||
 			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
@@ -1109,8 +1109,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 void CFrame::OnKeyUp(wxKeyEvent& event)
 {
-	if(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			(RendererHasFocus() || TASInputHasFocus()))
+	if(Core::IsRunning() && (RendererHasFocus() || TASInputHasFocus()))
 	{
 		if (IsHotkey(event, HK_TOGGLE_THROTTLE))
 		{
