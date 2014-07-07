@@ -77,8 +77,9 @@ static DataReadU32xNfunc DataReadU32xFuncs[16] = {
 
 static u32 Decode(bool skipped_frame);
 
-static void InterpretDisplayList(u32 address, u32 size, bool skipped_frame)
+static u32 InterpretDisplayList(u32 address, u32 size, bool skipped_frame)
 {
+	u32 cycles = 0;
 	u8* old_pVideoData = g_pVideoData;
 	u8* start_address = Memory::GetPointer(address);
 
@@ -93,7 +94,7 @@ static void InterpretDisplayList(u32 address, u32 size, bool skipped_frame)
 		u8* end = g_pVideoData + size;
 		while (g_pVideoData < end)
 		{
-			Decode(skipped_frame);
+			cycles += Decode(skipped_frame);
 		}
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
@@ -103,6 +104,8 @@ static void InterpretDisplayList(u32 address, u32 size, bool skipped_frame)
 
 	// reset to the old pointer
 	g_pVideoData = old_pVideoData;
+
+	return cycles;
 }
 
 static u32 Decode(bool skipped_frame)
@@ -182,8 +185,7 @@ static u32 Decode(bool skipped_frame)
 			DataSkip(1); // cmd
 			u32 address = DataReadU32();
 			u32 count = DataReadU32();
-			InterpretDisplayList(address, count, skipped_frame);
-			cycles = 45;  // This is unverified
+			cycles = InterpretDisplayList(address, count, skipped_frame);
 		}
 		break;
 
