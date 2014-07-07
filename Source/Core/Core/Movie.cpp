@@ -382,7 +382,7 @@ bool IsNetPlayRecording()
 
 void ChangePads(bool instantly)
 {
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+	if (!Core::IsRunning())
 		return;
 
 	int controllers = 0;
