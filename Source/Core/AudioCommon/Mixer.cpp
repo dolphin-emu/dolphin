@@ -113,7 +113,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider
 
 	memset(samples, 0, num_samples * 2 * sizeof(short));
 
-	if (PowerPC::GetState() != PowerPC::STATE_RUNNING)
+	if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
 	{
 		// Silence
 		return num_samples;
@@ -138,7 +138,7 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
 		while (num_samples * 2 + ((indexW - Common::AtomicLoad(m_indexR)) & INDEX_MASK) >= MAX_SAMPLES * 2)
 		{
-			if (*PowerPC::GetStatePtr() != PowerPC::STATE_RUNNING || soundStream->IsMuted())
+			if (*PowerPC::GetStatePtr() != PowerPC::CPU_RUNNING || soundStream->IsMuted())
 				break;
 			// Shortcut key for Throttle Skipping
 			if (Core::GetIsFramelimiterTempDisabled())

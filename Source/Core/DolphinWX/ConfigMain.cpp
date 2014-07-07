@@ -32,7 +32,6 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreParameter.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/EXI.h"
@@ -58,17 +57,17 @@
 
 struct CPUCore
 {
-	CPUBackend CPUid;
+	int CPUid;
 	const char *name;
 };
 const CPUCore CPUCores[] = {
-	{CPU_INTERPRETER, wxTRANSLATE("Interpreter (VERY slow)")},
+	{0, wxTRANSLATE("Interpreter (VERY slow)")},
 #ifdef _M_ARM
-	{CPU_JIT_ARM, wxTRANSLATE("Arm JIT (experimental)")},
-	{CPU_JIT_IL_ARM, wxTRANSLATE("Arm JITIL (experimental)")},
+	{3, wxTRANSLATE("Arm JIT (experimental)")},
+	{4, wxTRANSLATE("Arm JITIL (experimental)")},
 #else
-	{CPU_JIT_X64, wxTRANSLATE("JIT Recompiler (recommended)")},
-	{CPU_JIT_IL_X64, wxTRANSLATE("JITIL Recompiler (slower, experimental)")},
+	{1, wxTRANSLATE("JIT Recompiler (recommended)")},
+	{2, wxTRANSLATE("JITIL Recompiler (slower, experimental)")},
 #endif
 };
 
@@ -908,7 +907,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = CPUCores[CPUEngine->GetSelection()].CPUid;
 		if (main_frame->g_pCodeWindow)
 			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER,
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore == CPU_INTERPRETER);
+				SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore?false:true);
 		break;
 	case ID_NTSCJ:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ = _NTSCJ->IsChecked();

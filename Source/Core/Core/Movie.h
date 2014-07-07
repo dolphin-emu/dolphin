@@ -8,7 +8,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/Common.h"
-#include "Core/CoreParameter.h"
+
 #include "InputCommon/GCPadStatus.h"
 
 namespace WiimoteEmu
@@ -99,7 +99,7 @@ struct DTMHeader
 	bool bProgressive;
 	bool bDSPHLE;
 	bool bFastDiscSpeed;
-	CPUBackend CPUCore;
+	u8  CPUCore;            // 0 = interpreter, 1 = JIT, 2 = JITIL
 	bool bEFBAccessEnable;
 	bool bEFBCopyEnable;
 	bool bCopyEFBToTexture;
@@ -144,7 +144,7 @@ bool IsProgressive();
 bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
-CPUBackend GetCPUMode();
+int  GetCPUMode();
 bool IsStartingFromClearSave();
 bool IsUsingMemcard(int memcard);
 bool IsSyncGPU();
