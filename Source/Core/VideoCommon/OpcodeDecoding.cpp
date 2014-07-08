@@ -34,8 +34,9 @@
 u8* g_pVideoData = nullptr;
 bool g_bRecordFifoData = false;
 
+typedef void (*DataReadU32xNfunc)(u32 *buf);
 #if _M_SSE >= 0x301
-DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
+static DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
 	DataReadU32xN_SSSE3<1>,
 	DataReadU32xN_SSSE3<2>,
 	DataReadU32xN_SSSE3<3>,
@@ -55,7 +56,7 @@ DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
 };
 #endif
 
-DataReadU32xNfunc DataReadU32xFuncs[16] = {
+static DataReadU32xNfunc DataReadU32xFuncs[16] = {
 	DataReadU32xN<1>,
 	DataReadU32xN<2>,
 	DataReadU32xN<3>,

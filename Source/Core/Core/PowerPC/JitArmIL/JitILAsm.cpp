@@ -16,7 +16,6 @@
 
 using namespace ArmGen;
 
-JitArmILAsmRoutineManager armil_asm_routines;
 void JitArmILAsmRoutineManager::Generate()
 {
 	enterCode = GetCodePtr();

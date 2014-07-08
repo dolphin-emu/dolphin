@@ -41,8 +41,6 @@ namespace SWCommandProcessor
 		u32 breakpt;            // 0x3c
 	};
 
-	extern CPReg cpreg;
-
 	// Init
 	void Init();
 	void Shutdown();

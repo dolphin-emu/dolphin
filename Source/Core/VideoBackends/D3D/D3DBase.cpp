@@ -21,7 +21,7 @@ HINSTANCE hDXGIDll = nullptr;
 int dxgi_dll_ref = 0;
 
 typedef HRESULT (WINAPI* D3D11CREATEDEVICEANDSWAPCHAIN)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, CONST DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
-D3D11CREATEDEVICE PD3D11CreateDevice = nullptr;
+static D3D11CREATEDEVICE PD3D11CreateDevice = nullptr;
 D3D11CREATEDEVICEANDSWAPCHAIN PD3D11CreateDeviceAndSwapChain = nullptr;
 HINSTANCE hD3DDll = nullptr;
 int d3d_dll_ref = 0;
@@ -31,7 +31,7 @@ namespace D3D
 
 ID3D11Device* device = nullptr;
 ID3D11DeviceContext* context = nullptr;
-IDXGISwapChain* swapchain = nullptr;
+static IDXGISwapChain* swapchain = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
 HWND hWnd;

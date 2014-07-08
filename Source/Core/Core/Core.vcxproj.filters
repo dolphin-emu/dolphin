@@ -602,9 +602,6 @@
     <ClCompile Include="PowerPC\JitInterface.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\LUT_frsqrtex.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\PowerPC.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
@@ -1159,9 +1156,6 @@
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitInterface.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\LUT_frsqrtex.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\PowerPC.h">

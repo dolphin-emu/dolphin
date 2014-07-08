@@ -10,7 +10,6 @@ namespace Profiler
 {
 
 bool g_ProfileBlocks;
-bool g_ProfileInstructions;
 
 void WriteProfileResults(const std::string& filename)
 {

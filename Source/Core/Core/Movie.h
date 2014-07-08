@@ -49,25 +49,13 @@ static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes")
 #pragma pack(pop)
 
 // Global declarations
-extern bool g_bFrameStep, g_bPolled, g_bReadOnly, g_bDiscChange, g_bClearSave;
-extern PlayMode g_playMode;
+extern bool g_bDiscChange, g_bClearSave;
 extern u64 g_titleID;
 
-extern u32 g_framesToSkip, g_frameSkipCounter;
-
-extern u8 g_numPads;
-extern ControllerState *g_padStates;
-extern char g_playingFile[256];
-extern std::string g_recordFile;
-
-extern u64 g_currentByte, g_totalBytes;
 extern u64 g_currentFrame, g_totalFrames;
-extern u64 g_currentLagCount, g_totalLagCount;
+extern u64 g_currentLagCount;
 extern u64 g_currentInputCount, g_totalInputCount;
-extern u64 g_totalTickCount, g_tickCountAtLastInput;
 extern std::string g_discChange;
-
-extern u32 g_rerecords;
 
 #pragma pack(push,1)
 struct DTMHeader
