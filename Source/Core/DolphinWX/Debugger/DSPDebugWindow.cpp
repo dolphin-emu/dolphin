@@ -35,7 +35,7 @@
 
 class wxWindow;
 
-DSPDebuggerLLE* m_DebuggerFrame = nullptr;
+static DSPDebuggerLLE* m_DebuggerFrame = nullptr;
 
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)

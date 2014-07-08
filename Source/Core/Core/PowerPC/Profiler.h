@@ -58,7 +58,6 @@ struct BlockStat
 namespace Profiler
 {
 extern bool g_ProfileBlocks;
-extern bool g_ProfileInstructions;
 
 void WriteProfileResults(const std::string& filename);
 }

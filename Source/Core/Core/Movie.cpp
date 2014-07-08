@@ -39,24 +39,25 @@ static std::mutex cs_frameSkip;
 
 namespace Movie {
 
-bool g_bFrameStep = false;
+static bool g_bFrameStep = false;
 static bool g_bFrameStop = false;
-bool g_bReadOnly = true;
-u32 g_rerecords = 0;
-PlayMode g_playMode = MODE_NONE;
+static bool g_bReadOnly = true;
+static u32 g_rerecords = 0;
+static PlayMode g_playMode = MODE_NONE;
 
-u32 g_framesToSkip = 0, g_frameSkipCounter = 0;
+static u32 g_framesToSkip = 0, g_frameSkipCounter = 0;
 
-u8 g_numPads = 0;
+static u8 g_numPads = 0;
 static ControllerState g_padState;
 static DTMHeader tmpHeader;
 static u8* tmpInput = nullptr;
 static size_t tmpInputAllocated = 0;
-u64 g_currentByte = 0, g_totalBytes = 0;
+static u64 g_currentByte = 0, g_totalBytes = 0;
 u64 g_currentFrame = 0, g_totalFrames = 0; // VI
-u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
+u64 g_currentLagCount = 0;
+static u64 g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
-u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
+static u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
 static u64 g_recordingStartTime; // seconds since 1970 that recording started
 static bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
 bool g_bClearSave = false;
@@ -74,7 +75,7 @@ static u32 DSPiromHash = 0;
 static u32 DSPcoefHash = 0;
 
 static bool g_bRecordingFromSaveState = false;
-bool g_bPolled = false;
+static bool g_bPolled = false;
 static int g_currentSaveVersion = 0;
 
 static std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";

@@ -68,8 +68,6 @@ struct ExtensionReg
 	u8 constant_id[6];
 };
 
-extern const ReportFeatures reporting_mode_features[];
-
 void FillRawAccelFromGForceData(wm_accel& raw_accel,
 	const accel_cal& calib,
 	const WiimoteEmu::AccelData& accel);

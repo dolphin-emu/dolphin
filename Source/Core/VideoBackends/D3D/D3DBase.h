@@ -40,7 +40,6 @@ void Close();
 
 extern ID3D11Device* device;
 extern ID3D11DeviceContext* context;
-extern IDXGISwapChain* swapchain;
 extern HWND hWnd;
 extern bool bFrameInProgress;
 
@@ -77,7 +76,6 @@ void SetDebugObjectName(T resource, const char* name)
 typedef HRESULT (WINAPI *CREATEDXGIFACTORY)(REFIID, void**);
 extern CREATEDXGIFACTORY PCreateDXGIFactory;
 typedef HRESULT (WINAPI *D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
-extern D3D11CREATEDEVICE PD3D11CreateDevice;
 
 typedef HRESULT (WINAPI *D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
 extern D3DREFLECT PD3DReflect;

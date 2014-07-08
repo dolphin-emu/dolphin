@@ -44,7 +44,7 @@ static int et_UpdateInterrupts;
 static volatile bool interruptSet;
 static volatile bool interruptWaiting;
 
-CPReg cpreg; // shared between gfx and emulator thread
+static CPReg cpreg; // shared between gfx and emulator thread
 
 void DoState(PointerWrap &p)
 {
