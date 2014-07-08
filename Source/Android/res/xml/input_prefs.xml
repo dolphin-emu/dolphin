@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                   android:title="@string/input_settings">
-
-    <Preference
-        android:key="inputOverlayConfigPref"
-        android:summary="@string/input_overlay_layout_desc"
-        android:title="@string/input_overlay_layout">
-        <intent
-            android:targetPackage="org.dolphinemu.dolphinemu"
-            android:targetClass="org.dolphinemu.dolphinemu.settings.input.overlayconfig.OverlayConfigActivity"/>
-    </Preference>
+    <PreferenceScreen
+        android:key="input_overlay"
+        android:title="@string/input_overlay"
+        android:summary="@string/input_overlay_desc">
+        <Preference
+            android:key="inputOverlayConfigPref"
+            android:summary="@string/input_overlay_layout_desc"
+            android:title="@string/input_overlay_layout">
+            <intent
+                android:targetPackage="org.dolphinemu.dolphinemu"
+                android:targetClass="org.dolphinemu.dolphinemu.settings.input.overlayconfig.OverlayConfigActivity"/>
+        </Preference>
+        <SeekBarPreference
+           android:key="controls_size"
+           android:title="@string/controls_size"
+           android:defaultValue="25"
+           android:max="75">
+       </SeekBarPreference>
+    </PreferenceScreen>
 
     <!-- GameCube controller bindings -->
     <PreferenceScreen
