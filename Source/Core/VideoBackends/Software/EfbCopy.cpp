@@ -14,6 +14,7 @@
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/TextureEncoder.h"
+#include "VideoCommon/Fifo.h"
 
 static const float s_gammaLUT[] =
 {

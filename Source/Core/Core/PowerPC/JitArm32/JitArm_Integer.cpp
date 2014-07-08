@@ -14,8 +14,6 @@
 #include "Core/PowerPC/JitArm32/JitAsm.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
-extern u32 Helper_Mask(u8 mb, u8 me);
-
 // Assumes that Sign and Zero flags were set by the last operation. Preserves all flags and registers.
 // Jit64 ComputerRC is signed
 // JIT64 GenerateRC is unsigned

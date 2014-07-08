@@ -35,6 +35,7 @@
 #include "VideoBackends/Software/VideoConfigDialog.h"
 #endif // HAVE_WX
 
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/XFMemory.h"

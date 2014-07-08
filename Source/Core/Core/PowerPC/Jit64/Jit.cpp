@@ -142,11 +142,6 @@ ps_adds1
 
 static int CODE_SIZE = 1024*1024*32;
 
-namespace CPUCompare
-{
-	extern u32 m_BlockStart;
-}
-
 void Jit64::Init()
 {
 	jo.optimizeStack = true;

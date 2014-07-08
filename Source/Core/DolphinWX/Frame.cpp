@@ -61,6 +61,7 @@
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/LogWindow.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/TASInputDlg.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
@@ -87,9 +88,6 @@ HWND MSWGetParent_(HWND Parent)
 
 // ---------------
 // The CPanel class to receive MSWWindowProc messages from the video backend.
-
-extern CFrame* main_frame;
-
 
 BEGIN_EVENT_TABLE(CPanel, wxPanel)
 END_EVENT_TABLE()

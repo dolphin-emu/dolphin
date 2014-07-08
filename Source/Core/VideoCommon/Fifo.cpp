@@ -13,13 +13,13 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VideoConfig.h"
 
 volatile bool g_bSkipCurrentFrame = false;
-extern u8* g_pVideoData;
 
 namespace
 {

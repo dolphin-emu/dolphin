@@ -22,6 +22,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/VideoBackendBase.h"
@@ -52,15 +53,6 @@ GXPeekZ
 // =================================
 // From Memmap.cpp
 // ----------------
-
-// Pointers to low memory
-extern u8 *m_pFakeVMEM;
-extern u8 *m_pEXRAM;  // Wii
-extern u8 *m_pEFB;
-
-// Init
-extern bool m_IsInitialized;
-extern bool bFakeVMEM;
 
 // Overloaded byteswap functions, for use within the templated functions below.
 inline u8 bswap(u8 val)   {return val;}

@@ -16,11 +16,9 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-
-// internal state for loading vertices
-extern NativeVertexFormat *g_nativeVertexFmt;
 
 namespace DX11
 {

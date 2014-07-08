@@ -71,8 +71,6 @@ const CPUCore CPUCores[] = {
 #endif
 };
 
-extern CFrame* main_frame;
-
 // keep these in sync with CConfigMain::InitializeGUILists
 static const wxLanguage langIds[] =
 {

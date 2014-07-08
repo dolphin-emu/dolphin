@@ -916,7 +916,7 @@ u32 EncodeVm(ARMReg Vm)
 }
 
 // Double/single, Neon
-extern const VFPEnc VFPOps[16][2] = {
+const VFPEnc VFPOps[16][2] = {
 	{{0xE0, 0xA0}, {  -1,   -1}}, // 0: VMLA
 	{{0xE1, 0xA4}, {  -1,   -1}}, // 1: VNMLA
 	{{0xE0, 0xA4}, {  -1,   -1}}, // 2: VMLS

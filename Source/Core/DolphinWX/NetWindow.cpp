@@ -42,6 +42,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/ISOFile.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -56,7 +57,6 @@ END_EVENT_TABLE()
 
 static NetPlayServer* netplay_server = nullptr;
 static NetPlayClient* netplay_client = nullptr;
-extern CFrame* main_frame;
 NetPlayDiag *NetPlayDiag::npd = nullptr;
 
 static std::string BuildGameName(const GameListItem& game)

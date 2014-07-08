@@ -21,9 +21,6 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 
-
-extern int frameCount;
-
 namespace DX11
 {
 

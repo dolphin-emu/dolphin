@@ -84,8 +84,6 @@ size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
 static bool sorted = false;
 
-extern CFrame* main_frame;
-
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
                                 long sortData = CGameListCtrl::COLUMN_TITLE)
 {

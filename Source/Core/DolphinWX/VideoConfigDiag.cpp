@@ -28,6 +28,7 @@
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
 #include "DolphinWX/Frame.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -36,8 +37,6 @@
 #ifdef __APPLE__
 #include <ApplicationServices/ApplicationServices.h>
 #endif
-
-extern CFrame* main_frame;
 
 // template instantiation
 template class BoolSetting<wxCheckBox>;
