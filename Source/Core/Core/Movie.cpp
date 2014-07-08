@@ -444,7 +444,7 @@ bool BeginRecordingInput(int controllers)
 		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			bongos |= (1 << i);
 
-	if (Core::IsRunning())
+	if (Core::IsRunningAndStarted())
 	{
 		if (File::Exists(tmpStateFilename))
 			File::Delete(tmpStateFilename);
