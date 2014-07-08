@@ -18,6 +18,7 @@
 #include "Core/HW/GCMemcardRaw.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/SystemTimers.h"
 #include "DiscIO/NANDContentLoader.h"
 
 #define MC_STATUS_BUSY              0x80
@@ -27,6 +28,12 @@
 #define MC_STATUS_PROGRAMEERROR     0x08
 #define MC_STATUS_READY             0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
+
+// These are rough estimates based on GameCube video evidence of memory card "speeds"
+// This will need to be refined, and perhaps the idea behind the speed thing is wrong
+// But it works with (near?) perfect speed as far as saving goes
+static const float MC_TRANSFER_RATE_WRITE = 22.0f * 1024.0f;
+static const float MC_TRANSFER_RATE_READ = 73.84f * 1024.0f;
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
@@ -257,26 +264,47 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				//???
 
-				CmdDoneLater(5000);
+				if (address >= MC_DATA_FILES)
+					CmdDoneLater(BLOCK_SIZE * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE));
+				else
+					CmdDoneLater(5000);
 			}
 			break;
 
 		case cmdChipErase:
 			if (m_uPosition > 2)
 			{
-				// TODO: Investigate on HW, I (LPFaint99) believe that this only erases the system area (Blocks 0-4)
-				memorycard->ClearAll();
+				// Clear only the system blocks
+				for (int i = 0; i < 5; i++)
+					memorycard->ClearBlock(BLOCK_SIZE * i);
+
 				status &= ~MC_STATUS_BUSY;
 				m_bDirty = true;
+
+				if (address >= MC_DATA_FILES)
+					CmdDoneLater((BLOCK_SIZE * 5) * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE));
+				else
+					CmdDoneLater(5000);
+			}
+			break;
+
+		case cmdReadArray:
+			if (m_uPosition > 8)
+			{
+				// Each read is 512 bytes
+				if (address >= MC_DATA_FILES)
+					CmdDoneLater(512 * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ));
+				else
+					CmdDoneLater(5000);
 			}
 			break;
 
 		case cmdPageProgram:
-			if (m_uPosition >= 5)
+			if (m_uPosition > 4)
 			{
 				int count = m_uPosition - 5;
 				int i=0;
-				status &= ~0x80;
+				status &= ~MC_STATUS_BUSY;
 
 				while (count--)
 				{
@@ -285,7 +313,11 @@ void CEXIMemoryCard::SetCS(int cs)
 					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
 				}
 
-				CmdDoneLater(5000);
+				// Each write is 128 bytes
+				if (address >= MC_DATA_FILES)
+					CmdDoneLater(128 * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE));
+				else
+					CmdDoneLater(5000);
 			}
 			break;
 		}
