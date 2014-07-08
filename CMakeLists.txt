@@ -197,6 +197,7 @@ if(NOT MSVC)
 	check_and_add_flag(LOGICAL_OP -Wlogical-op)
 	check_and_add_flag(SHADOW -Wshadow)
 	check_and_add_flag(INIT_SELF -Winit-self)
+	check_and_add_flag(MISSING_DECLARATIONS -Wmissing-declarations)
 endif(NOT MSVC)
 
 # gcc uses some optimizations which might break stuff without this flag
