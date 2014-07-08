@@ -91,7 +91,7 @@ void ZeldaUCode::Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do
 	PB.CurSampleFrac = position & 0xFFFF;
 }
 
-void UpdateSampleCounters10(ZeldaVoicePB &PB)
+static void UpdateSampleCounters10(ZeldaVoicePB &PB)
 {
 	PB.RemLength = PB.Length - PB.RestartPos;
 	PB.CurAddr = PB.StartAddr + (PB.RestartPos << 1);
@@ -149,7 +149,7 @@ clear_buffer:
 	PB.CurAddr += rem_samples << 1;
 }
 
-void UpdateSampleCounters8(ZeldaVoicePB &PB)
+static void UpdateSampleCounters8(ZeldaVoicePB &PB)
 {
 	PB.RemLength = PB.Length - PB.RestartPos;
 	PB.CurAddr = PB.StartAddr + PB.RestartPos;

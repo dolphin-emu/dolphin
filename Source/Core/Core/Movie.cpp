@@ -82,7 +82,7 @@ std::string g_InputDisplay[8];
 
 ManipFunction mfunc = nullptr;
 
-void EnsureTmpInputSize(size_t bound)
+static void EnsureTmpInputSize(size_t bound)
 {
 	if (tmpInputAllocated >= bound)
 		return;
@@ -525,7 +525,7 @@ static std::string Analog1DToString(u8 v, const std::string& prefix)
 	}
 }
 
-void SetInputDisplayString(ControllerState padState, int controllerID)
+static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
 	g_InputDisplay[controllerID] = StringFromFormat("P%d:", controllerID + 1);
 
@@ -558,7 +558,7 @@ void SetInputDisplayString(ControllerState padState, int controllerID)
 	g_InputDisplay[controllerID].append("\n");
 }
 
-void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelData, u8* const irData)
+static void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelData, u8* const irData)
 {
 	int controllerID = remoteID + 4;
 

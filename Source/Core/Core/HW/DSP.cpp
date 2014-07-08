@@ -207,7 +207,7 @@ void Update_DSP_WriteRegister();
 
 int et_GenerateDSPInterrupt;
 
-void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
+static void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 {
 	GenerateDSPInterrupt((DSPInterruptType)(userdata&0xFFFF), (bool)((userdata>>16) & 1));
 }

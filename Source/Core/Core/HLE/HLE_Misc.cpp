@@ -11,6 +11,7 @@
 #include "Core/Host.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HLE/HLE_Misc.h"
 #include "Core/HLE/HLE_OS.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"

@@ -68,7 +68,7 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 	code_handler_installed = false;
 }
 
-bool InstallCodeHandler()
+static bool InstallCodeHandler()
 {
 	u32 codelist_location = 0x800028B8; // Debugger on location (0x800022A8 = Debugger off, using codehandleronly.bin)
 	std::string data;

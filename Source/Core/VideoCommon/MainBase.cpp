@@ -66,7 +66,7 @@ void VideoBackendHardware::Video_SetRendering(bool bEnabled)
 }
 
 // Run from the graphics thread (from Fifo.cpp)
-void VideoFifo_CheckSwapRequest()
+static void VideoFifo_CheckSwapRequest()
 {
 	if (g_ActiveConfig.bUseXFB)
 	{
@@ -177,7 +177,7 @@ static bool QueryResultIsReady()
 	return !s_perf_query_requested || s_FifoShuttingDown;
 }
 
-void VideoFifo_CheckPerfQueryRequest()
+static void VideoFifo_CheckPerfQueryRequest()
 {
 	if (s_perf_query_requested)
 	{

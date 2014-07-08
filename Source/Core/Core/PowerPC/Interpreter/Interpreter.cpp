@@ -67,7 +67,7 @@ static void patches()
 
 int startTrace = 0;
 
-void Trace(UGeckoInstruction& instCode)
+static void Trace(UGeckoInstruction& instCode)
 {
 	std::string regs = "";
 	for (int i = 0; i < 32; i++)

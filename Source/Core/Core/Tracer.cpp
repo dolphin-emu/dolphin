@@ -7,6 +7,7 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 
+#include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/Tracer.h"
 #include "Core/PowerPC/PowerPC.h"

@@ -11,7 +11,7 @@
 
 namespace UDPTLayer
 {
-	void GetButtons(UDPWrapper * m , wm_core * butt)
+	static void GetButtons(UDPWrapper * m , wm_core * butt)
 	{
 		if (!(m->inst)) return;
 		if (!(m->updButt)) return;
@@ -29,7 +29,7 @@ namespace UDPTLayer
 		*butt |= (mask & UDPWM_BR) ? WiimoteEmu::Wiimote::PAD_RIGHT : 0;
 	}
 
-	void GetAcceleration(UDPWrapper * m , WiimoteEmu::AccelData * const data)
+	static void GetAcceleration(UDPWrapper * m , WiimoteEmu::AccelData * const data)
 	{
 		if (!(m->inst)) return;
 		if (!(m->updAccel)) return;
@@ -40,7 +40,7 @@ namespace UDPTLayer
 		data->z = z;
 	}
 
-	void GetIR( UDPWrapper * m, float * x,  float * y,  float * z)
+	static void GetIR( UDPWrapper * m, float * x,  float * y,  float * z)
 	{
 		if (!(m->inst)) return;
 		if (!(m->updIR)) return;

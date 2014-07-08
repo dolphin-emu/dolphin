@@ -74,7 +74,7 @@ void DoState(PointerWrap &p)
 	JitInterface::DoState(p);
 }
 
-void ResetRegisters()
+static void ResetRegisters()
 {
 	memset(ppcState.ps, 0, sizeof(ppcState.ps));
 	memset(ppcState.gpr, 0, sizeof(ppcState.gpr));

@@ -52,7 +52,7 @@ void SWRenderer::Shutdown()
 	}
 }
 
-void CreateShaders()
+static void CreateShaders()
 {
 	static const char *fragShaderText =
 		"#ifdef GL_ES\n"

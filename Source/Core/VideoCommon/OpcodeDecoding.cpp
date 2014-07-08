@@ -74,9 +74,6 @@ DataReadU32xNfunc DataReadU32xFuncs[16] = {
 	DataReadU32xN<16>
 };
 
-extern u8* GetVideoBufferStartPtr();
-extern u8* GetVideoBufferEndPtr();
-
 static void Decode();
 
 void InterpretDisplayList(u32 address, u32 size)
@@ -107,7 +104,7 @@ void InterpretDisplayList(u32 address, u32 size)
 	g_pVideoData = old_pVideoData;
 }
 
-u32 FifoCommandRunnable(u32 &command_size)
+static u32 FifoCommandRunnable(u32 &command_size)
 {
 	u32 cycleTime = 0;
 	u32 buffer_size = (u32)(GetVideoBufferEndPtr() - g_pVideoData);
@@ -267,7 +264,7 @@ u32 FifoCommandRunnable(u32 &command_size)
 	return cycleTime;
 }
 
-u32 FifoCommandRunnable()
+static u32 FifoCommandRunnable()
 {
 	u32 command_size = 0;
 	return FifoCommandRunnable(command_size);

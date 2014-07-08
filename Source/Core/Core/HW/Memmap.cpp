@@ -87,7 +87,7 @@ u8 *m_pVirtualFakeVMEM;
 // MMIO mapping object.
 MMIO::Mapping* mmio_mapping;
 
-void InitMMIO(MMIO::Mapping* mmio)
+static void InitMMIO(MMIO::Mapping* mmio)
 {
 	g_video_backend->RegisterCPMMIO(mmio, 0xCC000000);
 	PixelEngine::RegisterMMIO(mmio, 0xCC001000);
@@ -101,7 +101,7 @@ void InitMMIO(MMIO::Mapping* mmio)
 	AudioInterface::RegisterMMIO(mmio, 0xCC006C00);
 }
 
-void InitMMIOWii(MMIO::Mapping* mmio)
+static void InitMMIOWii(MMIO::Mapping* mmio)
 {
 	InitMMIO(mmio);
 

@@ -174,7 +174,7 @@ void LoadPatches()
 	LoadSpeedhacks("Speedhacks", merged);
 }
 
-void ApplyPatches(const std::vector<Patch> &patches)
+static void ApplyPatches(const std::vector<Patch> &patches)
 {
 	for (const Patch& patch : patches)
 	{

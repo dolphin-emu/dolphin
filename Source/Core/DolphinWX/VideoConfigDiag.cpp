@@ -150,7 +150,7 @@ wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, 
 
 
 // Search for available resolutions - TODO: Move to Common?
-wxArrayString GetListOfResolutions()
+static wxArrayString GetListOfResolutions()
 {
 	wxArrayString retlist;
 	retlist.Add("Auto");

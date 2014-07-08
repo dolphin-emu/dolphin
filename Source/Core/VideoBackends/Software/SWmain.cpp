@@ -62,7 +62,7 @@ std::string VideoSoftware::GetName() const
 	return _trans("Software Renderer");
 }
 
-void *DllDebugger(void *_hParent, bool Show)
+static void *DllDebugger(void *_hParent, bool Show)
 {
 	return nullptr;
 }

@@ -37,7 +37,7 @@ __forceinline void LOG_TEX<2>()
 extern int tcIndex;
 extern float tcScale[8];
 
-void LOADERDECL TexCoord_Read_Dummy()
+static void LOADERDECL TexCoord_Read_Dummy()
 {
 	tcIndex++;
 }

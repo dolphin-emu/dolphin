@@ -123,7 +123,7 @@ void make_blanksig_ec_cert(u8 *cert_out, const char *signer, const char *name, c
 // remote_public_key is a pointer to the remote party's public key (0x3c bytes)
 // NG_priv is the device-unique private key to use
 // if NG_priv is nullptr, default builtin will be used
-void get_shared_secret(u8* shared_secret_out, u8* remote_public_key, u8* NG_priv)
+static void get_shared_secret(u8* shared_secret_out, u8* remote_public_key, u8* NG_priv)
 {
 	if (NG_priv==nullptr)
 	{

@@ -700,7 +700,7 @@ static u32 ParseCont(u8* pCont)
 }
 
 
-int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
+static int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 {
 	u32 attribOffset = 0;
 	CBigEndianBuffer attribList(pAttribIDList);

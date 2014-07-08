@@ -62,7 +62,7 @@ int ev_lost;
 
 void (*advanceCallback)(int cyclesExecuted) = nullptr;
 
-Event* GetNewEvent()
+static Event* GetNewEvent()
 {
 	if (!eventPool)
 		return new Event;
@@ -72,7 +72,7 @@ Event* GetNewEvent()
 	return ev;
 }
 
-void FreeEvent(Event* ev)
+static void FreeEvent(Event* ev)
 {
 	ev->next = eventPool;
 	eventPool = ev;
@@ -136,7 +136,7 @@ void Shutdown()
 	}
 }
 
-void EventDoState(PointerWrap &p, BaseEvent* ev)
+static void EventDoState(PointerWrap &p, BaseEvent* ev)
 {
 	p.Do(ev->time);
 
@@ -234,7 +234,7 @@ void ClearPendingEvents()
 	}
 }
 
-void AddEventToQueue(Event* ne)
+static void AddEventToQueue(Event* ne)
 {
 	Event* prev = nullptr;
 	Event** pNext = &first;

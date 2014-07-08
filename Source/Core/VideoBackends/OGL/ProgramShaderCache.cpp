@@ -39,7 +39,7 @@ UidChecker<VertexShaderUid,VertexShaderCode> ProgramShaderCache::vertex_uid_chec
 
 static char s_glsl_header[1024] = "";
 
-std::string GetGLSLVersionString()
+static std::string GetGLSLVersionString()
 {
 	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
 	switch(v)
