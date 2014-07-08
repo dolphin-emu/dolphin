@@ -45,11 +45,11 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 	// The offset of the press while moving the button
 	private float moveOffsetX, moveOffsetY;
 
+	// Retrieve screen dimensions.
+	private DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+
 	private Drawable resizeDrawable(Drawable image, float scale)
 	{
-		// Retrieve screen dimensions.
-		DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-
 		Bitmap b = ((BitmapDrawable)image).getBitmap();
 		Bitmap bitmapResized = Bitmap.createScaledBitmap(b,
 				(int)(displayMetrics.heightPixels * scale),
@@ -115,6 +115,16 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 			{
 				setX(getX() + event.getX() - moveOffsetX);
 				setY(getY() + event.getY() - moveOffsetY);
+
+				if (getX() < 0)
+					setX(0);
+				if (getX() > displayMetrics.widthPixels - getWidth())
+					setX(displayMetrics.widthPixels - getWidth());
+				if (getY() < 0)
+					setY(0);
+				if (getY() > displayMetrics.heightPixels - getHeight())
+					setY(displayMetrics.heightPixels - getHeight());
+
 				return true;
 			}
 
