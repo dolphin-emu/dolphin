@@ -658,11 +658,7 @@ const GameListItem *CGameListCtrl::GetISO(size_t index) const
 }
 
 CGameListCtrl *caller;
-#if wxCHECK_VERSION(2, 9, 0)
 int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
-#else // 2.8.x
-int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
-#endif
 {
 	// return 1 if item1 > item2
 	// return -1 if item1 < item2
