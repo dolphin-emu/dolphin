@@ -30,8 +30,8 @@
 namespace HLE_Misc
 {
 
-std::string args;
-u32 argsPtr;
+static std::string args;
+static u32 argsPtr;
 
 // If you just want to kill a function, one of the three following are usually appropriate.
 // According to the PPC ABI, the return value is always in r3.

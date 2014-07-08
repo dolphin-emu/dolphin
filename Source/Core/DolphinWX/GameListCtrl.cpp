@@ -82,7 +82,7 @@
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
-bool sorted = false;
+static bool sorted = false;
 
 extern CFrame* main_frame;
 
@@ -657,7 +657,7 @@ const GameListItem *CGameListCtrl::GetISO(size_t index) const
 		return nullptr;
 }
 
-CGameListCtrl *caller;
+static CGameListCtrl *caller;
 static int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 	// return 1 if item1 > item2

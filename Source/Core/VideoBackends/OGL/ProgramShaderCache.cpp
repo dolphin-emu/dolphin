@@ -29,7 +29,7 @@ s32 ProgramShaderCache::s_ubo_align;
 static StreamBuffer *s_buffer;
 static int num_failures = 0;
 
-LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
+static LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
 static GLuint CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;

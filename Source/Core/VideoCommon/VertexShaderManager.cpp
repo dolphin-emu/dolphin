@@ -18,7 +18,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-float GC_ALIGNED16(g_fProjectionMatrix[16]);
+static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;

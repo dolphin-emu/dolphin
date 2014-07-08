@@ -221,7 +221,7 @@ namespace JitILProfiler
 			}
 		}
 	};
-	std::unique_ptr<JitILProfilerFinalizer> finalizer;
+	static std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
 		finalizer = std::make_unique<JitILProfilerFinalizer>();

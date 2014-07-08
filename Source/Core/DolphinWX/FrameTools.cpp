@@ -119,7 +119,7 @@ extern "C" {
 class InputPlugin;
 class wxFrame;
 
-bool confirmStop = false;
+static bool confirmStop = false;
 
 // Create menu items
 // ---------------------

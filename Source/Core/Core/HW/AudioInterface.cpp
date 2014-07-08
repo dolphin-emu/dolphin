@@ -147,7 +147,7 @@ static void GenerateAudioInterrupt();
 static void UpdateInterrupts();
 static void IncreaseSampleCount(const u32 _uAmount);
 static u64 GetAIPeriod();
-int et_AI;
+static int et_AI;
 
 void Init()
 {

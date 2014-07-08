@@ -65,7 +65,7 @@ static void patches()
 	}*/
 }
 
-int startTrace = 0;
+static int startTrace = 0;
 
 static void Trace(UGeckoInstruction& instCode)
 {

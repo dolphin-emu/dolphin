@@ -21,7 +21,7 @@ namespace ExpansionInterface
 
 static int changeDevice;
 
-CEXIChannel *g_Channels[MAX_EXI_CHANNELS];
+static CEXIChannel *g_Channels[MAX_EXI_CHANNELS];
 void Init()
 {
 	initSRAM();

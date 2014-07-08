@@ -17,7 +17,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
 
-std::mutex crit_netplay_client;
+static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
 NetSettings g_NetPlaySettings;
 

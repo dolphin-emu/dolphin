@@ -25,11 +25,11 @@
 namespace FileMon
 {
 
-DiscIO::IVolume *OpenISO = nullptr;
-DiscIO::IFileSystem *pFileSystem = nullptr;
-std::vector<const DiscIO::SFileInfo *> GCFiles;
-std::string ISOFile = "", CurrentFile = "";
-bool FileAccess = true;
+static DiscIO::IVolume *OpenISO = nullptr;
+static DiscIO::IFileSystem *pFileSystem = nullptr;
+static std::vector<const DiscIO::SFileInfo *> GCFiles;
+static std::string ISOFile = "", CurrentFile = "";
+static bool FileAccess = true;
 
 // Filtered files
 bool IsSoundFile(const std::string& filename)

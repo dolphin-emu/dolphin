@@ -67,7 +67,7 @@ void VideoConfig::UpdateProjectionHack()
 	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
-int OSDInternalW, OSDInternalH;
+static int OSDInternalW, OSDInternalH;
 
 namespace OGL
 {

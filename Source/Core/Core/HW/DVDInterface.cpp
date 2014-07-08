@@ -206,11 +206,11 @@ static u32 CurrentStart;
 static u32 LoopLength;
 static u32 CurrentLength;
 
-u32  g_ErrorCode = 0;
-bool g_bDiscInside = false;
+static u32  g_ErrorCode = 0;
+static bool g_bDiscInside = false;
 bool g_bStream = false;
-int  tc = 0;
-int  dtk = 0;
+static int  tc = 0;
+static int  dtk = 0;
 
 static u64 g_last_read_offset;
 static u64 g_last_read_time;

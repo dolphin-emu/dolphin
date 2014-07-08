@@ -33,14 +33,14 @@ enum
 // STATE_TO_SAVE
 // variables
 
-const int commandBufferSize = 1024 * 1024;
-const int maxCommandBufferWrite = commandBufferSize - GATHER_PIPE_SIZE;
-u8 commandBuffer[commandBufferSize];
-u32 readPos;
-u32 writePos;
-int et_UpdateInterrupts;
-volatile bool interruptSet;
-volatile bool interruptWaiting;
+static const int commandBufferSize = 1024 * 1024;
+static const int maxCommandBufferWrite = commandBufferSize - GATHER_PIPE_SIZE;
+static u8 commandBuffer[commandBufferSize];
+static u32 readPos;
+static u32 writePos;
+static int et_UpdateInterrupts;
+static volatile bool interruptSet;
+static volatile bool interruptWaiting;
 
 CPReg cpreg; // shared between gfx and emulator thread
 

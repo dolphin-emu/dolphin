@@ -18,9 +18,9 @@ namespace ActionReplay
 {
 
 // Alphanumeric filter for text<->bin conversion
-const char *filter = "0123456789ABCDEFGHJKMNPQRTUVWXYZILOS";
+static const char *filter = "0123456789ABCDEFGHJKMNPQRTUVWXYZILOS";
 
-u32 genseeds[0x20];
+static u32 genseeds[0x20];
 
 const u8 gentable0[0x38] = {
 	0x39, 0x31, 0x29, 0x21, 0x19, 0x11, 0x09, 0x01,

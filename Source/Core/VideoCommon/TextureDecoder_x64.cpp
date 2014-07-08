@@ -32,8 +32,8 @@
 #pragma clang diagnostic ignored "-Wshadow"
 #endif
 
-bool TexFmt_Overlay_Enable=false;
-bool TexFmt_Overlay_Center=false;
+static bool TexFmt_Overlay_Enable=false;
+static bool TexFmt_Overlay_Center=false;
 
 extern const char* texfmt[];
 extern const unsigned char sfont_map[];

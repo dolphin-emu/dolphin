@@ -14,7 +14,7 @@
 #include "VideoCommon/PixelEngine.h"
 
 
-u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
+static u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
 
 namespace EfbInterface
 {

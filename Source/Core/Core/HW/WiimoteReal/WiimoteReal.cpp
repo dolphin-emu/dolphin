@@ -29,7 +29,7 @@ void TryToConnectWiimote(Wiimote*);
 void HandleWiimoteDisconnect(int index);
 void DoneWithWiimote(int index);
 
-bool g_real_wiimotes_initialized = false;
+static bool g_real_wiimotes_initialized = false;
 
 std::recursive_mutex g_refresh_lock;
 

@@ -45,7 +45,7 @@ bool GeckoCode::Compare(GeckoCode compare) const
 
 static bool code_handler_installed = false;
 // the currently active codes
-std::vector<GeckoCode> active_codes;
+static std::vector<GeckoCode> active_codes;
 static std::mutex active_codes_lock;
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
