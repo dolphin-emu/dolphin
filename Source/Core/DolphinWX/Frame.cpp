@@ -142,7 +142,7 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 	SetIcon(IconTemp);
 
 	DragAcceptFiles(true);
-	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CRenderFrame::OnDropFiles), nullptr, this);
+	Bind(wxEVT_DROP_FILES, &CRenderFrame::OnDropFiles, this);
 }
 
 void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
