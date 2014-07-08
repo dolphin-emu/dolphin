@@ -189,7 +189,7 @@ void XFBEncoder::Init()
 	// Create vertex shader
 
 	D3DBlob* bytecode = nullptr;
-	if (!D3D::CompileVertexShader(XFB_ENCODE_VS, sizeof(XFB_ENCODE_VS), &bytecode))
+	if (!D3D::CompileVertexShader(XFB_ENCODE_VS, &bytecode))
 	{
 		ERROR_LOG(VIDEO, "XFB encode vertex shader failed to compile");
 		return;
@@ -211,7 +211,7 @@ void XFBEncoder::Init()
 
 	// Create pixel shader
 
-	m_pShader = D3D::CompileAndCreatePixelShader(XFB_ENCODE_PS, sizeof(XFB_ENCODE_PS));
+	m_pShader = D3D::CompileAndCreatePixelShader(XFB_ENCODE_PS);
 	if (!m_pShader)
 	{
 		ERROR_LOG(VIDEO, "XFB encode pixel shader failed to compile");

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBlob.h"
 
@@ -20,20 +22,14 @@ namespace D3D
 	ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, unsigned int len);
 
 	// The returned bytecode buffers should be Release()d.
-	bool CompileVertexShader(const char* code, unsigned int len,
-		D3DBlob** blob);
-	bool CompileGeometryShader(const char* code, unsigned int len,
-		D3DBlob** blob, const D3D_SHADER_MACRO* pDefines = nullptr);
-	bool CompilePixelShader(const char* code, unsigned int len,
-		D3DBlob** blob, const D3D_SHADER_MACRO* pDefines = nullptr);
+	bool CompileVertexShader(const std::string& code, D3DBlob** blob);
+	bool CompileGeometryShader(const std::string& code, D3DBlob** blob, const D3D_SHADER_MACRO* pDefines = nullptr);
+	bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADER_MACRO* pDefines = nullptr);
 
 	// Utility functions
-	ID3D11VertexShader* CompileAndCreateVertexShader(const char* code,
-		unsigned int len);
-	ID3D11GeometryShader* CompileAndCreateGeometryShader(const char* code,
-		unsigned int len, const D3D_SHADER_MACRO* pDefines = nullptr);
-	ID3D11PixelShader* CompileAndCreatePixelShader(const char* code,
-		unsigned int len);
+	ID3D11VertexShader* CompileAndCreateVertexShader(const std::string& code);
+	ID3D11GeometryShader* CompileAndCreateGeometryShader(const std::string& code, const D3D_SHADER_MACRO* pDefines = nullptr);
+	ID3D11PixelShader* CompileAndCreatePixelShader(const std::string& code);
 
 	inline ID3D11VertexShader* CreateVertexShaderFromByteCode(D3DBlob* bytecode)
 	{ return CreateVertexShaderFromByteCode(bytecode->Data(), bytecode->Size()); }
@@ -43,11 +39,19 @@ namespace D3D
 	{ return CreatePixelShaderFromByteCode(bytecode->Data(), bytecode->Size()); }
 
 	inline ID3D11VertexShader* CompileAndCreateVertexShader(D3DBlob* code)
-	{ return CompileAndCreateVertexShader((const char*)code->Data(), code->Size()); }
+	{
+		return CompileAndCreateVertexShader((const char*)code->Data());
+	}
+
 	inline ID3D11GeometryShader* CompileAndCreateGeometryShader(D3DBlob* code, const D3D_SHADER_MACRO* pDefines = nullptr)
-	{ return CompileAndCreateGeometryShader((const char*)code->Data(), code->Size(), pDefines); }
+	{
+		return CompileAndCreateGeometryShader((const char*)code->Data(), pDefines);
+	}
+
 	inline ID3D11PixelShader* CompileAndCreatePixelShader(D3DBlob* code)
-	{ return CompileAndCreatePixelShader((const char*)code->Data(), code->Size()); }
+	{
+		return CompileAndCreatePixelShader((const char*)code->Data());
+	}
 }
 
 }  // namespace DX11

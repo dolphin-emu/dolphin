@@ -186,7 +186,7 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 			{ "NUM_TEXCOORDS", numTexCoordsStr.c_str() },
 			{ nullptr, nullptr }
 		};
-		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code.GetBuffer(), unsigned int(strlen(code.GetBuffer())), macros);
+		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code.GetBuffer(), macros);
 		if (!newShader)
 		{
 			WARN_LOG(VIDEO, "Line geometry shader for components 0x%.08X failed to compile", components);
