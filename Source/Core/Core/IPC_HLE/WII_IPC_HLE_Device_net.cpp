@@ -50,8 +50,6 @@ typedef struct pollfd pollfd_t;
 #include <errno.h>
 #endif
 
-extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
-
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName)

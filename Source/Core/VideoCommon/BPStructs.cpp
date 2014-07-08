@@ -11,6 +11,7 @@
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPStructs.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -23,8 +24,6 @@
 #include "VideoCommon/VideoConfig.h"
 
 using namespace BPFunctions;
-
-extern volatile bool g_bSkipCurrentFrame;
 
 static const float s_gammaLUT[] =
 {

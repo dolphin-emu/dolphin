@@ -29,9 +29,6 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-// internal state for loading vertices
-extern NativeVertexFormat *g_nativeVertexFmt;
-
 namespace OGL
 {
 //This are the initially requested size for the buffers expressed in bytes

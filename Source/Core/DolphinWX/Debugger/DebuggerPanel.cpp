@@ -43,12 +43,6 @@ BEGIN_EVENT_TABLE(GFXDebuggerPanel, wxPanel)
 	EVT_BUTTON(ID_CLEAR_PIXEL_SHADER_CACHE,GFXDebuggerPanel::OnClearPixelShaderCacheButton)
 END_EVENT_TABLE()
 
-// From VideoCommon
-extern GFXDebuggerBase *g_pdebugger;
-extern volatile bool GFXDebuggerPauseFlag;
-extern volatile PauseEvent GFXDebuggerToPauseAtNext;
-extern volatile int GFXDebuggerEventToPauseCount;
-
 GFXDebuggerPanel::GFXDebuggerPanel(wxWindow *parent, wxWindowID id, const wxPoint &position,
 									const wxSize& size, long style, const wxString &title)
 	: wxPanel(parent, id, position, size, style, title)

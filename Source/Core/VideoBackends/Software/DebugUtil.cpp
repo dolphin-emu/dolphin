@@ -15,6 +15,7 @@
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/TextureSampler.h"
 
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/ImageWrite.h"
 
 

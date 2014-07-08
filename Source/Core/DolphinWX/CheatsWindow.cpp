@@ -44,13 +44,12 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GeckoCodeDiag.h"
 #include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 class wxWindow;
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY  256
-extern std::vector<ActionReplay::ARCode> arCodes;
-extern CFrame* main_frame;
 
 // meh
 static wxCheatsWindow *g_cheat_window;

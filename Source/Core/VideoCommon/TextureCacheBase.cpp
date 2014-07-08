@@ -19,9 +19,6 @@
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-// ugly
-extern int frameCount;
-
 enum
 {
 	TEXTURE_KILL_THRESHOLD = 200,

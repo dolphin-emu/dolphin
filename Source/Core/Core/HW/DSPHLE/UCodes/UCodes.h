@@ -136,4 +136,4 @@ private:
 	bool m_needs_resume_mail;
 };
 
-extern UCodeInterface* UCodeFactory(u32 crc, DSPHLE *dsphle, bool wii);
+UCodeInterface* UCodeFactory(u32 crc, DSPHLE *dsphle, bool wii);
