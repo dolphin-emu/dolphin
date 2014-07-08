@@ -23,6 +23,15 @@
 #endif
 #endif
 
+// They are used for the communication with the loader functions
+extern NativeVertexFormat *g_nativeVertexFmt;
+extern int tcIndex;
+extern int colIndex;
+extern TVtxAttr* pVtxAttr;
+extern int colElements[2];
+extern float posScale;
+extern float tcScale[8];
+
 class VertexLoaderUID
 {
 	u32 vid[5];

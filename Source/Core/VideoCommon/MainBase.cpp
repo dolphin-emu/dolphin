@@ -22,8 +22,8 @@ volatile u32 s_swapRequested = false;
 u32 s_efbAccessRequested = false;
 volatile u32 s_FifoShuttingDown = false;
 
-std::condition_variable s_perf_query_cond;
-std::mutex s_perf_query_lock;
+static std::condition_variable s_perf_query_cond;
+static std::mutex s_perf_query_lock;
 static volatile bool s_perf_query_requested;
 
 static volatile struct

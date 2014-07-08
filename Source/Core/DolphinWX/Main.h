@@ -15,6 +15,8 @@ class wxLocale;
 class wxTimer;
 class wxTimerEvent;
 
+extern CFrame* main_frame;
+
 // Define a new application
 class DolphinApp : public wxApp
 {

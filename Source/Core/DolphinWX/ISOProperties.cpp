@@ -87,10 +87,10 @@ struct WiiPartition
 	DiscIO::IFileSystem *FileSystem;
 	std::vector<const DiscIO::SFileInfo *> Files;
 };
-std::vector<WiiPartition> WiiDisc;
+static std::vector<WiiPartition> WiiDisc;
 
-DiscIO::IVolume *OpenISO = nullptr;
-DiscIO::IFileSystem *pFileSystem = nullptr;
+static DiscIO::IVolume *OpenISO = nullptr;
+static DiscIO::IFileSystem *pFileSystem = nullptr;
 
 std::vector<PatchEngine::Patch> onFrame;
 std::vector<ActionReplay::ARCode> arCodes;

@@ -175,7 +175,7 @@ static ARAM_Info g_ARAM_Info;
 static u16 g_AR_MODE;
 static u16 g_AR_REFRESH;
 
-DSPEmulator *dsp_emulator;
+static DSPEmulator *dsp_emulator;
 
 static int dsp_slice = 0;
 static bool dsp_is_lle = false;
@@ -205,7 +205,7 @@ void WriteARAM(u8 _iValue, u32 _iAddress);
 bool Update_DSP_ReadRegister();
 void Update_DSP_WriteRegister();
 
-int et_GenerateDSPInterrupt;
+static int et_GenerateDSPInterrupt;
 
 static void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 {

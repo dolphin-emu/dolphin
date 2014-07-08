@@ -32,23 +32,23 @@ static inline s32 FixedLog2(float f)
 
 namespace Rasterizer
 {
-Slope ZSlope;
-Slope WSlope;
-Slope ColorSlopes[2][4];
-Slope TexSlopes[8][3];
+static Slope ZSlope;
+static Slope WSlope;
+static Slope ColorSlopes[2][4];
+static Slope TexSlopes[8][3];
 
-s32 vertex0X;
-s32 vertex0Y;
-float vertexOffsetX;
-float vertexOffsetY;
+static s32 vertex0X;
+static s32 vertex0Y;
+static float vertexOffsetX;
+static float vertexOffsetY;
 
-s32 scissorLeft = 0;
-s32 scissorTop = 0;
-s32 scissorRight = 0;
-s32 scissorBottom = 0;
+static s32 scissorLeft = 0;
+static s32 scissorTop = 0;
+static s32 scissorRight = 0;
+static s32 scissorBottom = 0;
 
-Tev tev;
-RasterBlock rasterBlock;
+static Tev tev;
+static RasterBlock rasterBlock;
 
 void DoState(PointerWrap &p)
 {

@@ -47,10 +47,10 @@ namespace Clipper
 {
 	enum { NUM_CLIPPED_VERTICES = 33, NUM_INDICES = NUM_CLIPPED_VERTICES + 3 };
 
-	float m_ViewOffset[2];
+	static float m_ViewOffset[2];
 
-	OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
-	OutputVertexData *Vertices[NUM_INDICES];
+	static OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
+	static OutputVertexData *Vertices[NUM_INDICES];
 
 	void DoState(PointerWrap &p)
 	{

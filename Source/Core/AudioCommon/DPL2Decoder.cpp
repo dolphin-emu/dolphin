@@ -23,18 +23,18 @@
 #define M_SQRT1_2 0.70710678118654752440
 #endif
 
-int olddelay = -1;
-unsigned int oldfreq = 0;
-unsigned int dlbuflen;
-int cyc_pos;
-float l_fwr, r_fwr, lpr_fwr, lmr_fwr;
-std::vector<float> fwrbuf_l, fwrbuf_r;
-float adapt_l_gain, adapt_r_gain, adapt_lpr_gain, adapt_lmr_gain;
-std::vector<float> lf, rf, lr, rr, cf, cr;
-float LFE_buf[256];
-unsigned int lfe_pos;
-float *filter_coefs_lfe;
-unsigned int len125;
+static int olddelay = -1;
+static unsigned int oldfreq = 0;
+static unsigned int dlbuflen;
+static int cyc_pos;
+static float l_fwr, r_fwr, lpr_fwr, lmr_fwr;
+static std::vector<float> fwrbuf_l, fwrbuf_r;
+static float adapt_l_gain, adapt_r_gain, adapt_lpr_gain, adapt_lmr_gain;
+static std::vector<float> lf, rf, lr, rr, cf, cr;
+static float LFE_buf[256];
+static unsigned int lfe_pos;
+static float *filter_coefs_lfe;
+static unsigned int len125;
 
 template<class T,class _ftype_t> static _ftype_t dotproduct(int count,const T *buf,const _ftype_t *coefficients)
 {

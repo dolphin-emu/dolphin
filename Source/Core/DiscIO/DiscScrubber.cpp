@@ -24,15 +24,15 @@ namespace DiscScrubber
 
 #define CLUSTER_SIZE 0x8000
 
-u8* m_FreeTable = nullptr;
-u64 m_FileSize;
-u64 m_BlockCount;
-u32 m_BlockSize;
-int m_BlocksPerCluster;
-bool m_isScrubbing = false;
+static u8* m_FreeTable = nullptr;
+static u64 m_FileSize;
+static u64 m_BlockCount;
+static u32 m_BlockSize;
+static int m_BlocksPerCluster;
+static bool m_isScrubbing = false;
 
-std::string m_Filename;
-IVolume* m_Disc = nullptr;
+static std::string m_Filename;
+static IVolume* m_Disc = nullptr;
 
 struct SPartitionHeader
 {
@@ -67,7 +67,7 @@ struct SPartitionGroup
 	u64 PartitionsOffset;
 	std::vector<SPartition> PartitionsVec;
 };
-SPartitionGroup PartitionGroup[4];
+static SPartitionGroup PartitionGroup[4];
 
 
 void MarkAsUsed(u64 _Offset, u64 _Size);

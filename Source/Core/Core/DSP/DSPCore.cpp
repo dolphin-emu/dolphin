@@ -38,12 +38,12 @@
 
 SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;
-DSPCoreState core_state = DSPCORE_STOP;
+static DSPCoreState core_state = DSPCORE_STOP;
 u16 cyclesLeft = 0;
 bool init_hax = false;
 DSPEmitter *dspjit = nullptr;
 std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
-Common::Event step_event;
+static Common::Event step_event;
 
 // Returns false if the hash fails and the user hits "Yes"
 static bool VerifyRoms()

@@ -36,7 +36,7 @@ TextureCache::TexCache TextureCache::textures;
 
 TextureCache::BackupConfig TextureCache::backup_config;
 
-bool invalidate_texture_cache_requested;
+static bool invalidate_texture_cache_requested;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {

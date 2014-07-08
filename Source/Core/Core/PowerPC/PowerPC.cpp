@@ -30,10 +30,10 @@ namespace PowerPC
 
 // STATE_TO_SAVE
 PowerPCState GC_ALIGNED16(ppcState);
-volatile CPUState state = CPU_STEPPING;
+static volatile CPUState state = CPU_STEPPING;
 
 Interpreter * const interpreter = Interpreter::getInstance();
-CoreMode mode;
+static CoreMode mode;
 
 BreakPoints breakpoints;
 MemChecks memchecks;

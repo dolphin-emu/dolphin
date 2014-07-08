@@ -101,7 +101,7 @@ static u32 arm_irq_masks;
 
 static u32 sensorbar_power; // do we need to care about this?
 
-int updateInterrupts;
+static int updateInterrupts;
 
 void DoState(PointerWrap &p)
 {

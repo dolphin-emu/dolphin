@@ -26,8 +26,6 @@
 
 class wxWindow;
 
-extern PHackData PHack_Data;
-
 BEGIN_EVENT_TABLE(CPHackSettings, wxDialog)
 	EVT_CHOICE(ID_PHACK_CHOICE, CPHackSettings::SetRefresh)
 	EVT_BUTTON(wxID_OK, CPHackSettings::SavePHackData)

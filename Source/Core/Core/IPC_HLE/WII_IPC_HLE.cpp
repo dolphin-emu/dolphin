@@ -61,16 +61,16 @@ namespace WII_IPC_HLE_Interface
 {
 
 typedef std::map<u32, IWII_IPC_HLE_Device*> TDeviceMap;
-TDeviceMap g_DeviceMap;
+static TDeviceMap g_DeviceMap;
 
 // STATE_TO_SAVE
 typedef std::map<u32, std::string> TFileNameMap;
 
 #define IPC_MAX_FDS 0x18
 #define ES_MAX_COUNT 2
-IWII_IPC_HLE_Device* g_FdMap[IPC_MAX_FDS];
-bool es_inuse[ES_MAX_COUNT];
-IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
+static IWII_IPC_HLE_Device* g_FdMap[IPC_MAX_FDS];
+static bool es_inuse[ES_MAX_COUNT];
+static IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
 
 
 typedef std::deque<u32> ipc_msg_queue;

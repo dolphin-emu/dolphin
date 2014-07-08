@@ -18,7 +18,7 @@
 namespace HiresTextures
 {
 
-std::map<std::string, std::string> textureMap;
+static std::map<std::string, std::string> textureMap;
 
 void Init(const std::string& gameCode)
 {

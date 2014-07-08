@@ -1574,10 +1574,10 @@ const GLFunc gl_function_array[] =
 namespace GLExtensions
 {
 	// Private members and functions
-	bool _isES3;
-	bool _isES;
-	u32 _GLVersion;
-	std::unordered_map<std::string, bool> m_extension_list;
+	static bool _isES3;
+	static bool _isES;
+	static u32 _GLVersion;
+	static std::unordered_map<std::string, bool> m_extension_list;
 
 	// Private initialization functions
 	bool InitFunctionPointers();

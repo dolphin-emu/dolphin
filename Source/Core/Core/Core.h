@@ -17,6 +17,9 @@
 #include "Common/CommonTypes.h"
 #include "Core/CoreParameter.h"
 
+// TODO: ugly, remove
+extern bool g_aspect_wide;
+
 namespace Core
 {
 

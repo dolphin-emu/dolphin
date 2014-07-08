@@ -37,8 +37,8 @@ DSPLLE::DSPLLE()
 	m_cycle_count = 0;
 }
 
-Common::Event dspEvent;
-Common::Event ppcEvent;
+static Common::Event dspEvent;
+static Common::Event ppcEvent;
 
 void DSPLLE::DoState(PointerWrap &p)
 {
