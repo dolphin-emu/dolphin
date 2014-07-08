@@ -66,7 +66,7 @@ inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
 inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
 
 
-void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
+static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
 	UpdateInterrupts(userdata);
 }
@@ -219,7 +219,7 @@ void UpdateInterruptsFromVideoBackend(u64 userdata)
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
-void ReadFifo()
+static void ReadFifo()
 {
 	bool canRead = cpreg.readptr != cpreg.writeptr && writePos < (int)maxCommandBufferWrite;
 	bool atBreakpoint = AtBreakpoint();
@@ -256,7 +256,7 @@ void ReadFifo()
 	}
 }
 
-void SetStatus()
+static void SetStatus()
 {
 	// overflow check
 	if (cpreg.rwdistance > cpreg.hiwatermark)

@@ -211,7 +211,7 @@ void SetInterrupt(u32 _causemask, bool _bSet)
 	UpdateException();
 }
 
-void SetResetButton(bool _bSet)
+static void SetResetButton(bool _bSet)
 {
 	if (_bSet)
 		Common::AtomicAnd(m_InterruptCause, ~INT_CAUSE_RST_BUTTON);

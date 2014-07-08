@@ -8,7 +8,7 @@
 
 #include "InputCommon/UDPWrapper.h"
 
-const std::string DefaultPort(const int index)
+static const std::string DefaultPort(const int index)
 {
 	static std::string s;
 	s = "443";

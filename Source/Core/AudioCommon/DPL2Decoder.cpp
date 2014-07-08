@@ -83,7 +83,7 @@ template<class T> static T firfilter(const T *buf, int pos, int len, int count, 
 // n window length
 // w buffer for the window parameters
 */
-void hamming(int n, float* w)
+static void hamming(int n, float* w)
 {
 	int      i;
 	float k = float(2*M_PI/((float)(n-1))); // 2*pi/(N-1)
@@ -110,7 +110,7 @@ opt   beta constant used only when designing using kaiser windows
 
 returns 0 if OK, -1 if fail
 */
-float* design_fir(unsigned int *n, float* fc, float opt)
+static float* design_fir(unsigned int *n, float* fc, float opt)
 {
 	unsigned int  o   = *n & 1;              // Indicator for odd filter length
 	unsigned int  end = ((*n + 1) >> 1) - o; // Loop end
@@ -165,7 +165,7 @@ float* design_fir(unsigned int *n, float* fc, float opt)
 	return w;
 }
 
-void onSeek(void)
+static void onSeek(void)
 {
 	l_fwr = r_fwr = lpr_fwr = lmr_fwr = 0;
 	std::fill(fwrbuf_l.begin(), fwrbuf_l.end(), 0.0f);
@@ -181,7 +181,7 @@ void onSeek(void)
 	memset(LFE_buf, 0, sizeof(LFE_buf));
 }
 
-void done(void)
+static void done(void)
 {
 	onSeek();
 	if (filter_coefs_lfe)
@@ -191,7 +191,7 @@ void done(void)
 	filter_coefs_lfe = nullptr;
 }
 
-float* calc_coefficients_125Hz_lowpass(int rate)
+static float* calc_coefficients_125Hz_lowpass(int rate)
 {
 	len125 = 256;
 	float f = 125.0f / (rate / 2);
@@ -204,7 +204,7 @@ float* calc_coefficients_125Hz_lowpass(int rate)
 	return coeffs;
 }
 
-float passive_lock(float x)
+static float passive_lock(float x)
 {
 	static const float MATAGCLOCK = 0.2f;  /* AGC range (around 1) where the matrix behaves passively */
 	const float x1 = x - 1;
@@ -212,7 +212,7 @@ float passive_lock(float x)
 	return x1 - x1 / (1 + ax1s * ax1s) + 1;
 }
 
-void matrix_decode(const float *in, const int k, const int il,
+static void matrix_decode(const float *in, const int k, const int il,
 	const int ir, bool decode_rear,
 	const int _dlbuflen,
 	float _l_fwr, float _r_fwr,

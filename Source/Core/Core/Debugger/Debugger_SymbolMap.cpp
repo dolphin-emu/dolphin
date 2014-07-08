@@ -37,12 +37,12 @@ void AddAutoBreakpoints()
 }
 
 // Returns true if the address is not a valid RAM address or NULL.
-bool IsStackBottom(u32 addr)
+static bool IsStackBottom(u32 addr)
 {
 	return !addr || !Memory::IsRAMAddress(addr);
 }
 
-void WalkTheStack(const std::function<void(u32)>& stack_step)
+static void WalkTheStack(const std::function<void(u32)>& stack_step)
 {
 	if (!IsStackBottom(PowerPC::ppcState.gpr[1]))
 	{

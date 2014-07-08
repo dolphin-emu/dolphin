@@ -169,7 +169,7 @@ namespace Clipper
 		}														\
 	}
 
-	void ClipTriangle(int *indices, int &numIndices)
+	static void ClipTriangle(int *indices, int &numIndices)
 	{
 		int mask = 0;
 
@@ -218,7 +218,7 @@ namespace Clipper
 		}
 	}
 
-	void ClipLine(int *indices)
+	static void ClipLine(int *indices)
 	{
 		int mask = 0;
 		int clip_mask[2] = { 0, 0 };
@@ -310,7 +310,7 @@ namespace Clipper
 		}
 	}
 
-	void CopyVertex(OutputVertexData *dst, OutputVertexData *src, float dx, float dy, unsigned int sOffset)
+	static void CopyVertex(OutputVertexData *dst, OutputVertexData *src, float dx, float dy, unsigned int sOffset)
 	{
 		dst->screenPosition.x = src->screenPosition.x + dx;
 		dst->screenPosition.y = src->screenPosition.y + dy;

@@ -139,13 +139,13 @@ u32 GetTicksPerSecond()
 	return CPU_CORE_CLOCK;
 }
 
-u32 ConvertMillisecondsToTicks(u32 _Milliseconds)
+static u32 ConvertMillisecondsToTicks(u32 _Milliseconds)
 {
 	return GetTicksPerSecond() / 1000 * _Milliseconds;
 }
 
 // DSP/CPU timeslicing.
-void DSPCallback(u64 userdata, int cyclesLate)
+static void DSPCallback(u64 userdata, int cyclesLate)
 {
 	//splits up the cycle budget in case lle is used
 	//for hle, just gives all of the slice to hle
@@ -153,7 +153,7 @@ void DSPCallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
-void AudioDMACallback(u64 userdata, int cyclesLate)
+static void AudioDMACallback(u64 userdata, int cyclesLate)
 {
 	int fields = VideoInterface::GetNumFields();
 	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32 * fields);
@@ -161,7 +161,7 @@ void AudioDMACallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
 
-void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
+static void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
@@ -170,25 +170,25 @@ void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 	}
 }
 
-void VICallback(u64 userdata, int cyclesLate)
+static void VICallback(u64 userdata, int cyclesLate)
 {
 	VideoInterface::Update();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine() - cyclesLate, et_VI);
 }
 
-void SICallback(u64 userdata, int cyclesLate)
+static void SICallback(u64 userdata, int cyclesLate)
 {
 	SerialInterface::UpdateDevices();
 	CoreTiming::ScheduleEvent(SerialInterface::GetTicksToNextSIPoll() - cyclesLate, et_SI);
 }
 
-void CPCallback(u64 userdata, int cyclesLate)
+static void CPCallback(u64 userdata, int cyclesLate)
 {
 	CommandProcessor::Update();
 	CoreTiming::ScheduleEvent(CP_PERIOD - cyclesLate, et_CP);
 }
 
-void DecrementerCallback(u64 userdata, int cyclesLate)
+static void DecrementerCallback(u64 userdata, int cyclesLate)
 {
 	PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
 	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DECREMENTER);
@@ -224,7 +224,7 @@ u64 GetFakeTimeBase()
 	return CoreTiming::GetFakeTBStartValue() + ((CoreTiming::GetTicks() - CoreTiming::GetFakeTBStartTicks()) / TIMER_RATIO);
 }
 
-void PatchEngineCallback(u64 userdata, int cyclesLate)
+static void PatchEngineCallback(u64 userdata, int cyclesLate)
 {
 	// Patch mem and run the Action Replay
 	PatchEngine::ApplyFramePatches();
@@ -232,7 +232,7 @@ void PatchEngineCallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_PatchEngine);
 }
 
-void ThrottleCallback(u64 last_time, int cyclesLate)
+static void ThrottleCallback(u64 last_time, int cyclesLate)
 {
 	u32 time = Common::Timer::GetTimeMs();
 

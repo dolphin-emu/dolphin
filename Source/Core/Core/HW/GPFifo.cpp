@@ -155,7 +155,7 @@ void FastWrite64(const u64 _iValue)
 	m_gatherPipeCount += 8;
 }
 
-void FastWriteEnd()
+static void FastWriteEnd()
 {
 	CheckGatherPipe();
 }

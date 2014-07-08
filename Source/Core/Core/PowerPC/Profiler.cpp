@@ -4,6 +4,7 @@
 
 #include <string>
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/Profiler.h"
 
 namespace Profiler
 {

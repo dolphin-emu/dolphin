@@ -458,7 +458,7 @@ void AddDevice(const SIDevices _device, int _iDeviceNumber)
 	AddDevice(pDevice);
 }
 
-void SetNoResponse(u32 channel)
+static void SetNoResponse(u32 channel)
 {
 	// raise the NO RESPONSE error
 	switch (channel)

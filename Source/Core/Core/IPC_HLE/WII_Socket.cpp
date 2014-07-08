@@ -34,7 +34,7 @@ char* WiiSockMan::DecodeError(s32 ErrorCode)
 #endif
 }
 
-s32 TranslateErrorCode(s32 native_error, bool isRW)
+static s32 TranslateErrorCode(s32 native_error, bool isRW)
 {
 	switch (native_error)
 	{

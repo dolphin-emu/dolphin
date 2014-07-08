@@ -97,7 +97,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 }
 
 // used by the SaveGeckoCodes function
-void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::string>& enabledLines, const GeckoCode& gcode)
+static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::string>& enabledLines, const GeckoCode& gcode)
 {
 	if (gcode.enabled)
 		enabledLines.push_back("$" + gcode.name);

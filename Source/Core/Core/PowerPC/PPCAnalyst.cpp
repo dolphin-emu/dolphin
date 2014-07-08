@@ -192,7 +192,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 
 // Second pass analysis, done after the first pass is done for all functions
 // so we have more information to work with
-void AnalyzeFunction2(Symbol *func)
+static void AnalyzeFunction2(Symbol *func)
 {
 	u32 flags = func->flags;
 
@@ -214,7 +214,7 @@ void AnalyzeFunction2(Symbol *func)
 }
 
 // IMPORTANT - CURRENTLY ASSUMES THAT A IS A COMPARE
-bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
+static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 {
 	const GekkoOPInfo *b_info = b.opinfo;
 	int b_flags = b_info->flags;
@@ -273,7 +273,7 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 // called by another function. Therefore, let's scan the
 // entire space for bl operations and find what functions
 // get called.
-void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func_db)
+static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 {
 	for (u32 addr = startAddr; addr < endAddr; addr+=4)
 	{
@@ -304,7 +304,7 @@ void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 	}
 }
 
-void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
+static void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 {
 	vector<u32> funcAddrs;
 

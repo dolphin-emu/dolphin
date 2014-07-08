@@ -241,7 +241,7 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
-void DumpArray(const std::string& filename, const u8* data, size_t length)
+static void DumpArray(const std::string& filename, const u8* data, size_t length)
 {
 	if (data)
 	{

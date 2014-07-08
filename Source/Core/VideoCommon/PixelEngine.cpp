@@ -252,7 +252,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	}
 }
 
-bool AllowIdleSkipping()
+static bool AllowIdleSkipping()
 {
 	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
 }

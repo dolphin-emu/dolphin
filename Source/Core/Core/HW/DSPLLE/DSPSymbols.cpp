@@ -75,7 +75,7 @@ Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 	return nullptr;
 }
 
-void DisassembleRange(u16 start, u16 end)
+static void DisassembleRange(u16 start, u16 end)
 {
 	// TODO: ?
 }

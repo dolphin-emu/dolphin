@@ -35,8 +35,6 @@
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
 
-extern void nop(const UDSPInstruction opc);
-
 DSPDisassembler::DSPDisassembler(const AssemblerSettings &settings)
 	: settings_(settings)
 {

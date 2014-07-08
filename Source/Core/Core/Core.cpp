@@ -139,7 +139,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 	}
 }
 
-void Callback_DebuggerBreak()
+static void Callback_DebuggerBreak()
 {
 	CCPU::Break();
 }
@@ -264,7 +264,7 @@ void Stop()  // - Hammertime!
 }
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
-void CpuThread()
+static void CpuThread()
 {
 	const SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -310,7 +310,7 @@ void CpuThread()
 	return;
 }
 
-void FifoPlayerThread()
+static void FifoPlayerThread()
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 

@@ -103,7 +103,7 @@ std::string VideoBackend::GetDisplayName() const
 		return "OpenGL";
 }
 
-void GetShaders(std::vector<std::string> &shaders)
+static void GetShaders(std::vector<std::string> &shaders)
 {
 	std::set<std::string> already_found;
 
@@ -138,7 +138,7 @@ void GetShaders(std::vector<std::string> &shaders)
 	std::sort(shaders.begin(), shaders.end());
 }
 
-void InitBackendInfo()
+static void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_OPENGL;
 	g_Config.backend_info.bUseRGBATextures = true;

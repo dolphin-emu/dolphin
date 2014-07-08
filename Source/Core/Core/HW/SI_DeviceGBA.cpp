@@ -17,7 +17,7 @@ namespace { volatile bool server_running; }
 
 // --- GameBoy Advance "Link Cable" ---
 
-void GBAConnectionWaiter()
+static void GBAConnectionWaiter()
 {
 	server_running = true;
 
@@ -51,7 +51,7 @@ void GBAConnectionWaiter_Shutdown()
 		connectionThread.join();
 }
 
-bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
+static bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
 {
 	bool sock_filled = false;
 
