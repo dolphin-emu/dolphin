@@ -747,6 +747,9 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 {
+	if ((!Core::IsRunningAndStarted() && Core::IsRunning()) || Movie::IsRecordingInput() || Movie::IsPlayingInput())
+		return;
+
 	int controllers = 0;
 
 	if (Movie::IsReadOnly())
