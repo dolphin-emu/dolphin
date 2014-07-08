@@ -39,6 +39,17 @@ private:
 	// Variant of CmdDone which schedules an event later in the future to complete the command.
 	void CmdDoneLater(u64 cycles);
 
+	// Memory card data layout
+	enum
+	{
+		MC_DATA_HEADER = 0x0000,
+		MC_DATA_DIRECTORY = 0x2000,
+		MC_DATA_DIRECTORYBACKUP = 0x4000,
+		MC_DATA_BLOCKALLOCMAP = 0x6000,
+		MC_DATA_BLOCKALLOCMAPBACKUP = 0x8000,
+		MC_DATA_FILES = 0xA000,
+	};
+
 	enum
 	{
 		cmdNintendoID       = 0x00,
