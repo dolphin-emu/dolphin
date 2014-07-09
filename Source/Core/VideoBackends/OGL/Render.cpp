@@ -36,7 +36,6 @@
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
@@ -85,7 +84,6 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
 static SHADER s_ShowEFBCopyRegions;
@@ -340,7 +338,6 @@ Renderer::Renderer()
 	s_fps=0;
 	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
-	FPSCounter::Initialize();
 
 	bool bSuccess = true;
 
@@ -1583,8 +1580,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		}
 	}
 
-	if (XFBWrited)
-		s_fps = FPSCounter::Update();
 	// ---------------------------------------------------------------------
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{

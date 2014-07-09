@@ -150,6 +150,8 @@ protected:
 	static bool s_skipSwap;
 	static bool XFBWrited;
 
+	static unsigned int s_fps;
+
 private:
 	static PEControl::PixelFormat prev_efb_format;
 	static unsigned int efb_scale_numeratorX;
