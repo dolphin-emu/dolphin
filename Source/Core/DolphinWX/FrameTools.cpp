@@ -969,7 +969,7 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderFrame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnRenderParentClose, this);
 		m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
 		m_RenderFrame->Bind(wxEVT_MOVE, &CFrame::OnRenderParentMove, this);
-		m_RenderParent = new CPanel(m_RenderFrame, wxID_ANY);
+		m_RenderParent = new wxPanel(m_RenderFrame, wxID_ANY);
 		m_RenderFrame->Show();
 	}
 
