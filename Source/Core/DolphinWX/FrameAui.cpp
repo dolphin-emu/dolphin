@@ -33,6 +33,7 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Core/ConfigManager.h"
@@ -733,13 +734,6 @@ void CFrame::OnSelectPerspective(wxCommandEvent& event)
 	DoLoadPerspective();
 }
 
-static int Limit(int i, int Low, int High)
-{
-	if (i < Low) return Low;
-	if (i > High) return High;
-	return i;
-}
-
 void CFrame::SetPaneSize()
 {
 	if (Perspectives.size() <= ActivePerspective)
@@ -764,8 +758,8 @@ void CFrame::SetPaneSize()
 				H = Perspectives[ActivePerspective].Height[j];
 
 			// Check limits
-			W = Limit(W, 5, 95);
-			H = Limit(H, 5, 95);
+			MathUtil::Clamp<u32>(&W, 5, 95);
+			MathUtil::Clamp<u32>(&H, 5, 95);
 
 			// Convert percentages to pixel lengths
 			W = (W * iClientX) / 100;
