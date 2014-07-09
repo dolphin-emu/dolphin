@@ -34,6 +34,12 @@ void Initialize()
 		s_bench_file.close();
 }
 
+void Shutdown()
+{
+	if (s_bench_file.is_open())
+		s_bench_file.close();
+}
+
 static void LogRenderTimeToFile(u64 val)
 {
 	if (!s_bench_file.is_open())
@@ -49,6 +55,7 @@ int Update()
 		s_update_time.Update();
 		s_fps = s_counter - s_fps_last_counter;
 		s_fps_last_counter = s_counter;
+		s_bench_file.flush();
 	}
 
 	if (g_ActiveConfig.bLogRenderTimeToFile)

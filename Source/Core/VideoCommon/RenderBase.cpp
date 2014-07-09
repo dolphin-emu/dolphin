@@ -105,6 +105,8 @@ Renderer::~Renderer()
 	if (pFrameDump.IsOpen())
 		pFrameDump.Close();
 #endif
+
+	FPSCounter::Shutdown();
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidth, u32 fbHeight, float Gamma)
