@@ -50,42 +50,23 @@ class wxListEvent;
 class wxMenuItem;
 class wxWindow;
 
-// The CPanel class to receive MSWWindowProc messages from the video backend.
-class CPanel : public wxPanel
-{
-	public:
-		CPanel(
-			wxWindow* parent,
-			wxWindowID id = wxID_ANY
-			);
-
-	private:
-		DECLARE_EVENT_TABLE();
-
-		#ifdef _WIN32
-			// Receive WndProc messages
-			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
-		#endif
-};
-
 class CRenderFrame : public wxFrame
 {
-	public:
-		CRenderFrame(wxFrame* parent,
-			wxWindowID id = wxID_ANY,
-			const wxString& title = "Dolphin",
-			const wxPoint& pos = wxDefaultPosition,
-			const wxSize& size = wxDefaultSize,
-			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
+public:
+	CRenderFrame(wxFrame* parent,
+		wxWindowID id = wxID_ANY,
+		const wxString& title = "Dolphin",
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
-	private:
-		void OnDropFiles(wxDropFilesEvent& event);
-		static bool IsValidSavestateDropped(const std::string& filepath);
-		#ifdef _WIN32
-			// Receive WndProc messages
-			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
-		#endif
-
+private:
+	void OnDropFiles(wxDropFilesEvent& event);
+	static bool IsValidSavestateDropped(const std::string& filepath);
+	#ifdef _WIN32
+		// Receive WndProc messages
+		WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
+	#endif
 };
 
 class CFrame : public CRenderFrame
