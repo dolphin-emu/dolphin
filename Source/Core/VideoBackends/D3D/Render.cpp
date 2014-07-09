@@ -27,7 +27,6 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
@@ -37,8 +36,6 @@
 
 namespace DX11
 {
-
-static int s_fps = 0;
 
 static u32 s_LastAA = 0;
 
@@ -180,8 +177,6 @@ void CreateScreenshotTexture(const TargetRectangle& rc)
 Renderer::Renderer(void *&window_handle)
 {
 	int x, y, w_temp, h_temp;
-
-	FPSCounter::Initialize();
 
 	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
 
@@ -951,10 +946,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		FramebufferManagerBase::SetLastXfbWidth(w);
 		FramebufferManagerBase::SetLastXfbHeight(h);
 	}
-
-	// update FPS counter
-	if (XFBWrited)
-		s_fps = FPSCounter::Update();
 
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();

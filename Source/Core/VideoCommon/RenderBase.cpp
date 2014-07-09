@@ -29,6 +29,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/MainBase.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -64,6 +65,8 @@ int Renderer::s_LastEFBScale;
 bool Renderer::s_skipSwap;
 bool Renderer::XFBWrited;
 
+unsigned int Renderer::s_fps = 0;
+
 PEControl::PixelFormat Renderer::prev_efb_format = PEControl::INVALID_FMT;
 unsigned int Renderer::efb_scale_numeratorX = 1;
 unsigned int Renderer::efb_scale_numeratorY = 1;
@@ -84,6 +87,8 @@ Renderer::Renderer()
 
 	OSDChoice = 0;
 	OSDTime = 0;
+
+	FPSCounter::Initialize();
 }
 
 Renderer::~Renderer()
@@ -520,6 +525,9 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& 
 {
 	// TODO: merge more generic parts into VideoCommon
 	g_renderer->SwapImpl(xfbAddr, fbWidth, fbHeight, rc, Gamma);
+
+	if (XFBWrited)
+		s_fps = FPSCounter::Update();
 
 	frameCount++;
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
