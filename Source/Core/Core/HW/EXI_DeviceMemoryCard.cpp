@@ -132,6 +132,36 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 	case DiscIO::IVolume::COUNTRY_USA:
 		strDirectoryName += USA_DIR DIR_SEP;
 		break;
+	case DiscIO::IVolume::COUNTRY_UNKNOWN:
+	{
+		// The current game's region is not passed down to the EXI device level.
+		// Usually, we can retrieve the region from Core::g_CoreStartupParameter.m_strUniqueId.
+		// The Wii System Menu requires a lookup based on the version number.
+		// This is not possible in some cases ( e.g. FIFO logs, homebrew elf/dol files).
+		// Instead, we then lookup the region from the memory card name
+		// Earlier in the boot process the region is added to the memory card name (This is done by the function checkMemcardPath)
+		// For now take advantage of this.
+		// Future options:
+		// 			Set memory card directory path in the checkMemcardPath function.
+		// 	or		Add region to Core::g_CoreStartupParameter.
+		// 	or		Pass region down to the EXI device creation.
+
+		std::string memcardFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
+		std::string region = memcardFilename.substr(memcardFilename.size() - 7, 3);
+		if (region == JAP_DIR)
+		{
+			CountryCode = DiscIO::IVolume::COUNTRY_JAPAN;
+			ascii = false;
+			strDirectoryName += JAP_DIR DIR_SEP;
+			break;
+		}
+		else if (region == USA_DIR)
+		{
+			CountryCode = DiscIO::IVolume::COUNTRY_USA;
+			strDirectoryName += USA_DIR DIR_SEP;
+			break;
+		}
+	}
 	default:
 		CountryCode = DiscIO::IVolume::COUNTRY_EUROPE;
 		strDirectoryName += EUR_DIR DIR_SEP;
