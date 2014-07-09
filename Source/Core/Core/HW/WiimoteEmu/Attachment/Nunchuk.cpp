@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 
 #include "InputCommon/UDPWiimote.h"
@@ -31,8 +32,8 @@ static const u8 nunchuk_button_bitmasks[] =
 	Nunchuk::BUTTON_Z,
 };
 
-Nunchuk::Nunchuk(UDPWrapper *wrp, WiimoteEmu::ExtensionReg& _reg)
-	: Attachment(_trans("Nunchuk"), _reg) , m_udpWrap(wrp)
+Nunchuk::Nunchuk(UDPWrapper *wrp, WiimoteEmu::ExtensionReg& _reg, int index)
+	: Attachment(_trans("Nunchuk"), _reg), m_udpWrap(wrp), m_index(index)
 {
 	// buttons
 	groups.emplace_back(m_buttons = new Buttons("Buttons"));
@@ -92,6 +93,8 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	ncdata->jx = u8(trim(state[0]));
 	ncdata->jy = u8(trim(state[1]));
 
+	HydraTLayer::GetNunchuk(m_index, &ncdata->jx, &ncdata->jy, &ncdata->bt);
+
 	if (ncdata->jx != cal.jx.center || ncdata->jy != cal.jy.center)
 	{
 		if (ncdata->jy == cal.jy.center)
@@ -110,6 +113,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 
 	// tilt
 	EmulateTilt(&accel, m_tilt, focus);
+	HydraTLayer::GetNunchukAcceleration(m_index, &accel);
 
 	if (focus)
 	{
@@ -153,7 +157,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		}
 	}
 
-	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, *(accel_cal*)&reg.calibration, accel);
+	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, ncdata->bt, *(accel_cal*)&reg.calibration, accel);
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)

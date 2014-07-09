@@ -1,7 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 
 namespace WiimoteEmu
@@ -52,7 +53,8 @@ static const u16 classic_dpad_bitmasks[] =
 	Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT, Classic::PAD_RIGHT
 };
 
-Classic::Classic(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Classic"), _reg)
+Classic::Classic(WiimoteEmu::ExtensionReg& _reg, int index)
+	: Attachment(_trans("Classic"), _reg), m_index(index)
 {
 	// buttons
 	groups.emplace_back(m_buttons = new Buttons("Buttons"));
@@ -123,7 +125,9 @@ void Classic::GetState(u8* const data, const bool focus)
 		m_buttons->GetState(&ccdata->bt, classic_button_bitmasks);
 		// dpad
 		m_dpad->GetState(&ccdata->bt, classic_dpad_bitmasks);
+		HydraTLayer::GetClassic(m_index, ccdata);
 	}
+
 
 	// flip button bits
 	ccdata->bt ^= 0xFFFF;

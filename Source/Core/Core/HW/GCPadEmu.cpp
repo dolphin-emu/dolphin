@@ -1,8 +1,9 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
 #include "Core/Host.h"
+#include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/GCPadEmu.h"
 
 const u16 button_bitmasks[] =
@@ -95,10 +96,6 @@ void GCPad::GetInput(SPADStatus* const pad)
 		// buttons
 		m_buttons->GetState(&pad->button, button_bitmasks);
 
-		// set analog A/B analog to full or w/e, prolly not needed
-		if (pad->button & PAD_BUTTON_A) pad->analogA = 0xFF;
-		if (pad->button & PAD_BUTTON_B) pad->analogB = 0xFF;
-
 		// dpad
 		m_dpad->GetState(&pad->button, dpad_bitmasks);
 
@@ -108,6 +105,15 @@ void GCPad::GetInput(SPADStatus* const pad)
 
 		// triggers
 		m_triggers->GetState(&pad->button, trigger_bitmasks, &pad->triggerLeft, 0xFF);
+
+		HydraTLayer::GetGameCube(m_index, &pad->button, &pad->stickX, &pad->stickY, &pad->substickX, &pad->substickY, &pad->triggerLeft, &pad->triggerRight);
+
+		// set analog A/B analog to full or w/e, prolly not needed
+		if (pad->button & PAD_BUTTON_A)
+			pad->analogA = 0xFF;
+		if (pad->button & PAD_BUTTON_B)
+			pad->analogB = 0xFF;
+
 	}
 	else
 	{

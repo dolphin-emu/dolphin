@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -14,6 +14,7 @@
 
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
 #include "Core/HW/WiimoteEmu/UDPTLayer.h"
+#include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
@@ -22,6 +23,8 @@
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
 
 namespace
 {
@@ -80,13 +83,21 @@ const ReportFeatures reporting_mode_features[] =
 	{ 0, 0, 0, 0, 23 },
 };
 
-void FillRawAccelFromGForceData(wm_accel& raw_accel,
+// Convert accelerometer readings in G's to 8-bit calibrated values and 2-bit Nunchuk-format LSB values (preserving buttons).
+void FillRawAccelFromGForceData(wm_accel& raw_accel, u8 &lsb,
 	const accel_cal& calib,
 	const WiimoteEmu::AccelData& accel)
 {
-	raw_accel.x = (u8)trim(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
-	raw_accel.y = (u8)trim(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
-	raw_accel.z = (u8)trim(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+	lsb &= 3;
+	u32 temp = trim10bit(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
+	raw_accel.x = (u8)(temp >> 2);
+	lsb |= (temp & 3) << 2;
+	temp = trim10bit(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
+	raw_accel.y = (u8)(temp >> 2);
+	lsb |= (temp & 3) << 4;
+	temp = trim10bit(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+	raw_accel.z = (u8)(temp >> 2);
+	lsb |= (temp & 3) << 6;
 }
 
 void EmulateShake(AccelData* const accel
@@ -287,8 +298,8 @@ Wiimote::Wiimote( const unsigned int index )
 	// extension
 	groups.emplace_back(m_extension = new Extension(_trans("Extension")));
 	m_extension->attachments.emplace_back(new WiimoteEmu::None(m_reg_ext));
-	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
-	m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext, index));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext, index));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Guitar(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
@@ -391,6 +402,12 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 		m_buttons->GetState(&m_status.buttons, button_bitmasks);
 		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
 		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
+		bool cycle_extension = false;
+		HydraTLayer::GetButtons(m_index, is_sideways, m_extension->active_extension > 0, &m_status.buttons, &cycle_extension);
+		if (cycle_extension)
+		{
+			CycleThroughExtensions();
+		}
 	}
 }
 
@@ -405,7 +422,7 @@ void Wiimote::GetCoreData(u8* const data)
 	*(wm_core*)data |= m_status.buttons;
 }
 
-void Wiimote::GetAccelData(u8* const data)
+void Wiimote::GetAccelData(u8* const data, u8* const core)
 {
 	const bool has_focus = HAS_FOCUS;
 	const bool is_sideways = m_options->settings[1]->value != 0;
@@ -413,6 +430,9 @@ void Wiimote::GetAccelData(u8* const data)
 
 	// ----TILT----
 	EmulateTilt(&m_accel, m_tilt, has_focus, is_sideways, is_upright);
+
+	// Tilt and motion
+	HydraTLayer::GetAcceleration(m_index, is_sideways, m_extension && m_extension->active_extension > 0, &m_accel);
 
 	// ----SWING----
 	// ----SHAKE----
@@ -423,8 +443,13 @@ void Wiimote::GetAccelData(u8* const data)
 		UDPTLayer::GetAcceleration(m_udp, &m_accel);
 	}
 
-	FillRawAccelFromGForceData(*(wm_accel*)data, *(accel_cal*)&m_eeprom[0x16], m_accel);
+	u8 lsb = 0;
+	FillRawAccelFromGForceData(*(wm_accel*)data, lsb, *(accel_cal*)&m_eeprom[0x16], m_accel);
+	// Move the least significant bits of the accelerometer data into the right places in the buttons field.
+	// lsb is currently in nunchuk format. Assume little-endian (the rest of Dolphin does too).
+	*(wm_core*)core |= ((lsb << 3) && 0x0060) | ((lsb << 8) && 0x2000) | ((lsb << 7) && 0x4000);
 }
+
 #define kCutoffFreq 5.0f
 inline void LowPassFilter(double & var, double newval, double period)
 {
@@ -477,6 +502,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 
 		m_ir->GetState(&xx, &yy, &zz, true);
 		UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
+		HydraTLayer::GetIR(m_index, &xx, &yy, &zz);
 
 		Vertex v[4];
 
@@ -662,7 +688,7 @@ void Wiimote::Update()
 
 		// acceleration
 		if (rptf.accel)
-			GetAccelData(data + rptf.accel);
+			GetAccelData(data + rptf.accel, data + rptf.core);
 
 		// IR
 		if (rptf.ir)
@@ -936,6 +962,55 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 	// set nunchuk defaults
 	m_extension->attachments[1]->LoadDefaults(ciface);
+}
+
+// Switch between Wiimote, Sideways Wiimote, Wiimote+Nunchuk, Wiimote+Classic.
+void Wiimote::CycleThroughExtensions()
+{
+	switch (m_extension->active_extension)
+	{
+	case -1:
+		// special temporary flag, don't change it
+		break;
+	case 0:
+		// if vertical Wiimote, switch to Wiimote
+		if (m_options->settings[2]->value != 0)
+		{
+			m_extension->switch_extension = 0;
+			m_options->settings[1]->value = 0;
+			m_options->settings[2]->value = 0;
+			OSD::AddMessage("Controller: Wiimote", 5000);
+		}
+		// if Wiimote, switch to sideways Wiimote
+		else if (m_options->settings[1]->value == 0)
+		{
+			m_extension->switch_extension = 0;
+			m_options->settings[1]->value = 1;
+			m_options->settings[2]->value = 0;
+			OSD::AddMessage("Controller: Sideways Wiimote", 5000);
+		}
+		// if Sideways Wiimote, switch to Wiimote+Nunchuk (not sideways)
+		else
+		{
+			m_extension->switch_extension = 1;
+			m_options->settings[1]->value = 0;
+			m_options->settings[2]->value = 0;
+			OSD::AddMessage("Controller: Wiimote + Nunchuk", 5000);
+		}
+		break;
+	case 1:
+		// if Wiimote+Nunchuk, switch to Wiimote+Classic		
+		m_extension->switch_extension = 2;
+		OSD::AddMessage("Controller: Classic Controller", 5000);
+		break;
+	default:
+		// if anything else (Wiimote+Classic, guitar, drums, etc.) switch to Wiimote (not sideways)
+		m_extension->switch_extension = 0;
+		m_options->settings[1]->value = 0;
+		m_options->settings[2]->value = 0;
+		OSD::AddMessage("Controller: Wiimote", 5000);
+		break;
+	}
 }
 
 }

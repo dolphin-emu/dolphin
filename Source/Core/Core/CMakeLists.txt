@@ -132,6 +132,7 @@ set(SRCS	ActionReplay.cpp
 			HW/WiimoteEmu/Attachment/Turntable.cpp
 			HW/WiimoteEmu/EmuSubroutines.cpp
 			HW/WiimoteEmu/Encryption.cpp
+			HW/WiimoteEmu/HydraTLayer.cpp
 			HW/WiimoteEmu/Speaker.cpp
 			HW/WiimoteReal/WiimoteReal.cpp
 			IPC_HLE/ICMPLin.cpp
