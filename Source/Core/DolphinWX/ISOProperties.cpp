@@ -267,7 +267,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
 	if (!IsWad)
 	{
-		ChangeBannerDetails((int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+		ChangeBannerDetails(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
 	}
 	else
 	{
@@ -539,7 +539,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Lang.Add(_("Spanish"));
 	arrayStringFor_Lang.Add(_("Italian"));
 	arrayStringFor_Lang.Add(_("Dutch"));
-	int language = (int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	int language = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	if (IsWad)
 	{
 		arrayStringFor_Lang.Insert(_("Japanese"), 0);
