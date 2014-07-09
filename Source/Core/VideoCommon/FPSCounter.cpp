@@ -17,7 +17,7 @@ namespace FPSCounter
 static unsigned int s_counter = 0;
 static unsigned int s_fps = 0;
 static unsigned int s_fps_last_counter = 0;
-static unsigned long s_last_update_time = 0;
+static Common::Timer s_update_time;
 static std::ofstream s_bench_file;
 
 static Common::Timer s_render_time;
@@ -27,8 +27,8 @@ void Initialize()
 {
 	s_counter = s_fps_last_counter = 0;
 	s_fps = 0;
-	s_last_update_time = Common::Timer::GetTimeMs();
 
+	s_update_time.Update();
 	s_render_time.Update();
 
 	if (s_bench_file.is_open())
@@ -55,9 +55,9 @@ static void LogRenderTimeToFile(u64 val)
 
 int Update()
 {
-	if (Common::Timer::GetTimeMs() - s_last_update_time >= FPS_REFRESH_INTERVAL)
+	if (s_update_time.GetTimeDifference() >= FPS_REFRESH_INTERVAL)
 	{
-		s_last_update_time = Common::Timer::GetTimeMs();
+		s_update_time.Update();
 		s_fps = s_counter - s_fps_last_counter;
 		s_fps_last_counter = s_counter;
 		if (g_ActiveConfig.bLogFPSToFile)
