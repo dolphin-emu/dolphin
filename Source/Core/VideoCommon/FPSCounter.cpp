@@ -39,7 +39,7 @@ static void LogRenderTimeToFile(u64 val)
 	if (!s_bench_file.is_open())
 		s_bench_file.open(File::GetUserPath(D_LOGS_IDX) + "render_time.txt");
 
-	s_bench_file << StringFromFormat("%lu\n", val);
+	s_bench_file << val << std::endl;
 }
 
 int Update()
