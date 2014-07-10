@@ -382,7 +382,7 @@ bool IsNetPlayRecording()
 
 void ChangePads(bool instantly)
 {
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+	if (!Core::IsRunning())
 		return;
 
 	int controllers = 0;
@@ -444,7 +444,7 @@ bool BeginRecordingInput(int controllers)
 		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			bongos |= (1 << i);
 
-	if (Core::IsRunning())
+	if (Core::IsRunningAndStarted())
 	{
 		if (File::Exists(tmpStateFilename))
 			File::Delete(tmpStateFilename);

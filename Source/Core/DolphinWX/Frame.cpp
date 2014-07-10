@@ -217,7 +217,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 
 		case WM_CLOSE:
 			// Let Core finish initializing before accepting any WM_CLOSE messages
-			if (Core::GetState() == Core::CORE_UNINITIALIZED) break;
+			if (!Core::IsRunning()) break;
 			// Use default action otherwise
 
 		default:
@@ -352,7 +352,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
 	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bGameLoading(false)
+	, m_bGameLoading(false), m_bClosing(false)
 {
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
@@ -425,6 +425,7 @@ CFrame::CFrame(wxFrame* parent,
 	Movie::SetInputManip(TASManipFunction);
 
 	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
+	Core::SetOnStoppedCallback(OnStoppedCallback);
 
 	// Setup perspectives
 	if (g_pCodeWindow)
@@ -535,15 +536,18 @@ void CFrame::OnActive(wxActivateEvent& event)
 
 void CFrame::OnClose(wxCloseEvent& event)
 {
+	m_bClosing = true;
+
+	// Before closing the window we need to shut down the emulation core.
+	// We'll try to close this window again once that is done.
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		DoStop();
-		if (Core::GetState() != Core::CORE_UNINITIALIZED)
-			return;
-		UpdateGUI();
+		event.Veto();
+		return;
 	}
 
-	//Stop Dolphin from saving the minimized Xpos and Ypos
+	// Stop Dolphin from saving the minimized Xpos and Ypos
 	if (main_frame->IsIconized())
 		main_frame->Iconize(false);
 
@@ -692,6 +696,10 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case WM_USER_STOP:
 		DoStop();
 		break;
+
+	case IDM_STOPPED:
+		OnStopped();
+		break;
 	}
 }
 
@@ -714,7 +722,7 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
-	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
+	if (!Core::IsRunning() ||
 			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize ||
 			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
@@ -900,6 +908,16 @@ void OnAfterLoadCallback()
 	if (main_frame)
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
+}
+
+void OnStoppedCallback()
+{
+	// warning: this gets called from the EmuThread, so we should only queue things to do on the proper thread
+	if (main_frame)
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_STOPPED);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 	}
 }
@@ -1091,8 +1109,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 void CFrame::OnKeyUp(wxKeyEvent& event)
 {
-	if(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			(RendererHasFocus() || TASInputHasFocus()))
+	if(Core::IsRunning() && (RendererHasFocus() || TASInputHasFocus()))
 	{
 		if (IsHotkey(event, HK_TOGGLE_THROTTLE))
 		{

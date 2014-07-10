@@ -246,7 +246,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
 	szr_basic->Add(choice_backend, 1, 0, 0);
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		label_backend->Disable();
 		choice_backend->Disable();
@@ -291,7 +291,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_display->Add(label_display_resolution, 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_display->Add(choice_display_resolution);
 
-		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		if (Core::IsRunning())
 		{
 			label_display_resolution->Disable();
 			choice_display_resolution->Disable();
@@ -328,9 +328,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_other->Add(CreateCheckBox(page_general, _("Hide Mouse Cursor"), wxGetTranslation(hide_mouse_cursor_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor));
 	szr_other->Add(render_to_main_cb = CreateCheckBox(page_general, _("Render to Main Window"), wxGetTranslation(render_to_main_win_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain));
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 		render_to_main_cb->Disable();
-
 	}
 
 
@@ -576,7 +575,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxCheckBox* const cb_prog_scan = new wxCheckBox(page_advanced, wxID_ANY, _("Enable Progressive Scan"));
 	RegisterControl(cb_prog_scan, wxGetTranslation(prog_scan_desc));
 	cb_prog_scan->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_ProgressiveScan, this);
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 		cb_prog_scan->Disable();
 
 	cb_prog_scan->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);

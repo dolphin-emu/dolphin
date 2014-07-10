@@ -123,6 +123,7 @@ public:
 	void InitBitmaps();
 	void DoPause();
 	void DoStop();
+	void OnStopped();
 	void DoRecordingSave();
 	void UpdateGUI();
 	void UpdateGameList();
@@ -185,6 +186,7 @@ private:
 	bool m_bTabSplit;
 	bool m_bNoDocking;
 	bool m_bGameLoading;
+	bool m_bClosing;
 
 	std::vector<std::string> drives;
 
@@ -353,6 +355,7 @@ private:
 int GetCmdForHotkey(unsigned int key);
 
 void OnAfterLoadCallback();
+void OnStoppedCallback();
 
 // For TASInputDlg
 void TASManipFunction(SPADStatus *PadStatus, int controllerID);

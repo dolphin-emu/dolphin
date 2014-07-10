@@ -131,7 +131,7 @@ void Host_SetWiiMoteConnectionState(int _State) {}
 void X11_MainLoop()
 {
 	bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
-	while (Core::GetState() == Core::CORE_UNINITIALIZED)
+	while (!Core::IsRunning())
 		updateMainFrameEvent.Wait();
 
 	Display *dpy = XOpenDisplay(0);
