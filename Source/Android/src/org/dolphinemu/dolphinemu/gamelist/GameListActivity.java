@@ -24,6 +24,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import org.dolphinemu.dolphinemu.AssetCopyService;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.about.AboutActivity;
@@ -103,10 +104,15 @@ public final class GameListActivity extends Activity
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-		// Display the game list fragment on activity creation,
-		// but only if no previous states have been saved. 
+
+		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
 		{
+			// Copy assets into appropriate locations.
+			Intent copyAssets = new Intent(this, AssetCopyService.class);
+			startService(copyAssets);
+
+			// Display the game list fragment.
 			final GameListFragment gameList = new GameListFragment();
 			FragmentTransaction ft = getFragmentManager().beginTransaction();
 			ft.replace(R.id.content_frame, gameList);
