@@ -328,6 +328,10 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 		          height, s_scaled_frame->data, s_scaled_frame->linesize);
 	}
 
+	s_scaled_frame->format = s_stream->codec->pix_fmt;
+	s_scaled_frame->width = s_width;
+	s_scaled_frame->height = s_height;
+
 	// Encode and write the image.
 	AVPacket pkt;
 	PreparePacket(&pkt);
