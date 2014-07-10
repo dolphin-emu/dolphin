@@ -305,110 +305,45 @@ bool RenameSync(const std::string &srcFilename, const std::string &destFilename)
 // copies file srcFilename to destFilename, returns true on success
 bool Copy(const std::string &srcFilename, const std::string &destFilename)
 {
-	INFO_LOG(COMMON, "Copy: %s --> %s",
-			srcFilename.c_str(), destFilename.c_str());
-#ifdef _WIN32
-	if (CopyFile(UTF8ToTStr(srcFilename).c_str(), UTF8ToTStr(destFilename).c_str(), FALSE))
-		return true;
+	INFO_LOG(COMMON, "Copy: %s --> %s", srcFilename.c_str(), destFilename.c_str());
 
-	ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s",
-			srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
-	return false;
-#else
+	std::ifstream source(srcFilename, std::ios::binary);
+	std::ofstream dest(destFilename, std::ios::out | std::ios::binary);
 
-	// buffer size
-#define BSIZE 1024
-
-	char buffer[BSIZE];
-
-	// Open input file
-	FILE *input = fopen(srcFilename.c_str(), "rb");
-	if (!input)
+	if (!source)
 	{
-		ERROR_LOG(COMMON, "Copy: input failed %s --> %s: %s",
-				srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
+		ERROR_LOG(COMMON, "Copy: Could not open file %s.", srcFilename.c_str());
 		return false;
 	}
 
-	// open output file
-	FILE *output = fopen(destFilename.c_str(), "wb");
-	if (!output)
+	if (!dest)
 	{
-		fclose(input);
-		ERROR_LOG(COMMON, "Copy: output failed %s --> %s: %s",
-				srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
+		ERROR_LOG(COMMON, "Copy: Could not create output file %s.", destFilename.c_str());
 		return false;
 	}
 
-	// copy loop
-	while (!feof(input))
-	{
-		// read input
-		int rnum = fread(buffer, sizeof(char), BSIZE, input);
-		if (rnum != BSIZE)
-		{
-			if (ferror(input) != 0)
-			{
-				ERROR_LOG(COMMON,
-						"Copy: failed reading from source, %s --> %s: %s",
-						srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
-				goto bail;
-			}
-		}
-
-		// write output
-		int wnum = fwrite(buffer, sizeof(char), rnum, output);
-		if (wnum != rnum)
-		{
-			ERROR_LOG(COMMON,
-					"Copy: failed writing to output, %s --> %s: %s",
-					srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
-			goto bail;
-		}
-	}
-	// close files
-	fclose(input);
-	fclose(output);
+	dest << source.rdbuf();
 	return true;
-bail:
-	if (input)
-		fclose(input);
-	if (output)
-		fclose(output);
-	return false;
-#endif
 }
 
 // Returns the size of filename (64bit)
 u64 GetSize(const std::string &filename)
 {
-	if (!Exists(filename))
+	std::ifstream file(filename, std::ios::binary | std::ios::ate);
+
+	if (!file)
 	{
-		WARN_LOG(COMMON, "GetSize: failed %s: No such file", filename.c_str());
+		ERROR_LOG(COMMON, "GetSize: failed %s: No such file", filename.c_str());
 		return 0;
 	}
 
 	if (IsDirectory(filename))
 	{
-		WARN_LOG(COMMON, "GetSize: failed %s: is a directory", filename.c_str());
+		ERROR_LOG(COMMON, "GetSize: failed %s: is a directory", filename.c_str());
 		return 0;
 	}
 
-	struct stat64 buf;
-#ifdef _WIN32
-	if (_tstat64(UTF8ToTStr(filename).c_str(), &buf) == 0)
-#else
-	if (stat64(filename.c_str(), &buf) == 0)
-#endif
-	{
-		DEBUG_LOG(COMMON, "GetSize: %s: %lld",
-				filename.c_str(), (long long)buf.st_size);
-		return buf.st_size;
-	}
-
-	ERROR_LOG(COMMON, "GetSize: Stat failed %s: %s",
-			filename.c_str(), GetLastErrorMsg());
-	return 0;
+	return file.tellg();
 }
 
 // Overloaded GetSize, accepts file descriptor
