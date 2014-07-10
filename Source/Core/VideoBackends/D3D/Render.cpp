@@ -939,7 +939,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	const bool windowResized = CheckForResize();
 	const bool fullscreen = g_ActiveConfig.bFullscreen;
-	const bool fsChanged = s_LastFS != fullscreen;
+
+	bool fsChanged = s_LastFS != fullscreen;
+
+	BOOL fsState;
+	if (SUCCEEDED(D3D::swapchain->GetFullscreenState(&fsState, nullptr)) && !!fsState != fullscreen)
+	{
+		// We should be in fullscreen, but we're not. Restore it when we regain focus.
+		fsChanged = Host_RendererHasFocus();
+	}
 
 	bool xfbchanged = false;
 
