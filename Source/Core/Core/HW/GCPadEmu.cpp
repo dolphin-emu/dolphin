@@ -87,7 +87,7 @@ std::string GCPad::GetName() const
 	return std::string("GCPad") + char('1'+m_index);
 }
 
-void GCPad::GetInput(SPADStatus* const pad)
+void GCPad::GetInput(GCPadStatus* const pad)
 {
 	// if window has focus or background input enabled
 	if (Host_RendererHasFocus() || m_options[0].settings[0]->value)

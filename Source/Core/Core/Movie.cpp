@@ -607,7 +607,7 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 	g_InputDisplay[controllerID].append("\n");
 }
 
-void CheckPadStatus(SPADStatus *PadStatus, int controllerID)
+void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 {
 	g_padState.A         = ((PadStatus->button & PAD_BUTTON_A) != 0);
 	g_padState.B         = ((PadStatus->button & PAD_BUTTON_B) != 0);
@@ -635,7 +635,7 @@ void CheckPadStatus(SPADStatus *PadStatus, int controllerID)
 	SetInputDisplayString(g_padState, controllerID);
 }
 
-void RecordInput(SPADStatus *PadStatus, int controllerID)
+void RecordInput(GCPadStatus* PadStatus, int controllerID)
 {
 	if (!IsRecordingInput() || !IsUsingPad(controllerID))
 		return;
@@ -934,7 +934,7 @@ static void CheckInputEnd()
 	}
 }
 
-void PlayController(SPADStatus *PadStatus, int controllerID)
+void PlayController(GCPadStatus* PadStatus, int controllerID)
 {
 	// Correct playback is entirely dependent on the emulator polling the controllers
 	// in the same order done during recording
@@ -950,7 +950,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 	// dtm files don't save the mic button or error bit. not sure if they're actually used, but better safe than sorry
 	signed char e = PadStatus->err;
-	memset(PadStatus, 0, sizeof(SPADStatus));
+	memset(PadStatus, 0, sizeof(GCPadStatus));
 	PadStatus->err = e;
 
 
@@ -1172,7 +1172,7 @@ void SetInputManip(ManipFunction func)
 	mfunc = func;
 }
 
-void CallInputManip(SPADStatus *PadStatus, int controllerID)
+void CallInputManip(GCPadStatus* PadStatus, int controllerID)
 {
 	if (mfunc)
 		(*mfunc)(PadStatus, controllerID);

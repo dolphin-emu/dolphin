@@ -358,5 +358,5 @@ void OnAfterLoadCallback();
 void OnStoppedCallback();
 
 // For TASInputDlg
-void TASManipFunction(SPADStatus *PadStatus, int controllerID);
+void TASManipFunction(GCPadStatus* PadStatus, int controllerID);
 bool TASInputHasFocus();

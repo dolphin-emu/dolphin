@@ -25,7 +25,7 @@ class NetPad
 {
 public:
 	NetPad();
-	NetPad(const SPADStatus* const);
+	NetPad(const GCPadStatus* const);
 
 	u32 nHi;
 	u32 nLo;
@@ -78,7 +78,7 @@ public:
 
 	// Send and receive pads values
 	bool WiimoteUpdate(int _number, u8* data, const u8 size);
-	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
+	bool GetNetPads(const u8 pad_nb, const GCPadStatus* const, NetPad* const netvalues);
 
 	u8 LocalPadToInGamePad(u8 localPad);
 	u8 InGamePadToLocalPad(u8 localPad);
