@@ -13,7 +13,7 @@ class Guitar : public Attachment
 {
 public:
 	Guitar(WiimoteEmu::ExtensionReg& _reg);
-	void GetState(u8* const data, const bool focus) override;
+	void GetState(u8* const data) override;
 
 	enum
 	{

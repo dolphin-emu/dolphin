@@ -60,7 +60,7 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"),
 	memset(m_shake_step, 0, sizeof(m_shake_step));
 }
 
-void Nunchuk::GetState(u8* const data, const bool focus)
+void Nunchuk::GetState(u8* const data)
 {
 	wm_extension* const ncdata = (wm_extension*)data;
 	ncdata->bt = 0;
@@ -96,26 +96,17 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 			ncdata->jx = cal.jx.center + 1;
 	}
 
-	if (!focus)
-	{
-		ncdata->jx = cal.jx.center;
-		ncdata->jy = cal.jy.center;
-	}
-
 	AccelData accel;
 
 	// tilt
-	EmulateTilt(&accel, m_tilt, focus);
+	EmulateTilt(&accel, m_tilt);
 
-	if (focus)
-	{
-		// swing
-		EmulateSwing(&accel, m_swing);
-		// shake
-		EmulateShake(&accel, m_shake, m_shake_step);
-		// buttons
-		m_buttons->GetState(&ncdata->bt, nunchuk_button_bitmasks);
-	}
+	// swing
+	EmulateSwing(&accel, m_swing);
+	// shake
+	EmulateShake(&accel, m_shake, m_shake_step);
+	// buttons
+	m_buttons->GetState(&ncdata->bt, nunchuk_button_bitmasks);
 
 	// flip the button bits :/
 	ncdata->bt ^= 0x03;

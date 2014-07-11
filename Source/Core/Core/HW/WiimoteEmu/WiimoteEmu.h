@@ -77,7 +77,7 @@ void EmulateShake(AccelData* const accel_data
 
 void EmulateTilt(AccelData* const accel
 	 , ControllerEmu::Tilt* const tilt_group
-	 , const bool focus, const bool sideways = false, const bool upright = false);
+	 , const bool sideways = false, const bool upright = false);
 
 void EmulateSwing(AccelData* const accel
 	 , ControllerEmu::Force* const tilt_group
@@ -128,7 +128,7 @@ protected:
 	bool Step();
 	void HidOutputReport(const wm_report* const sr, const bool send_ack = true);
 	void HandleExtensionSwap();
-	void UpdateButtonsStatus(bool has_focus);
+	void UpdateButtonsStatus();
 
 	void GetCoreData(u8* const data);
 	void GetAccelData(u8* const data);
