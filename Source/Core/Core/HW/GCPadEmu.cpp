@@ -92,6 +92,8 @@ void GCPad::GetInput(GCPadStatus* const pad)
 	// if window has focus or background input enabled
 	if (Host_RendererHasFocus() || m_options[0].settings[0]->value)
 	{
+		double x, y, triggers[2];
+
 		// buttons
 		m_buttons->GetState(&pad->button, button_bitmasks);
 
@@ -103,11 +105,18 @@ void GCPad::GetInput(GCPadStatus* const pad)
 		m_dpad->GetState(&pad->button, dpad_bitmasks);
 
 		// sticks
-		m_main_stick->GetState(&pad->stickX, &pad->stickY, 0x80, 127);
-		m_c_stick->GetState(&pad->substickX, &pad->substickY, 0x80, 127);
+		m_main_stick->GetState(&x, &y);
+		pad->stickX = 0x7F + (x * 0x80);
+		pad->stickY = 0x7F + (y * 0x80);
+
+		m_c_stick->GetState(&x, &y);
+		pad->substickX = 0x7F + (x * 0x80);
+		pad->substickY = 0x7F + (y * 0x80);
 
 		// triggers
-		m_triggers->GetState(&pad->button, trigger_bitmasks, &pad->triggerLeft, 0xFF);
+		m_triggers->GetState(&pad->button, trigger_bitmasks, triggers);
+		pad->triggerLeft = triggers[0] * 0xFF;
+		pad->triggerRight = triggers[1] * 0xFF;
 	}
 	else
 	{

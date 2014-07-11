@@ -73,20 +73,28 @@ void Guitar::GetState(u8* const data, const bool focus)
 
 	// stick
 	{
-	u8 x, y;
-	m_stick->GetState(&x, &y, 0x20, focus ? 0x1F /*0x15*/ : 0);
+	double x, y;
+	if (focus)
+	{
+		m_stick->GetState(&x, &y);
+	}
+	else
+	{
+		x = 0;
+		y = 0;
+	}
 
-	gdata->sx = x;
-	gdata->sy = y;
+	gdata->sx = (x * 0x1F) + 0x20;
+	gdata->sy = (y * 0x1F) + 0x20;
 	}
 
 	// TODO: touch bar, probably not
 	gdata->tb = 0x0F; // not touched
 
 	// whammy bar
-	u8 whammy;
-	m_whammy->GetState(&whammy, 0x1F);
-	gdata->whammy = whammy;
+	double whammy;
+	m_whammy->GetState(&whammy);
+	gdata->whammy = whammy * 0x1F;
 
 	if (focus)
 	{
