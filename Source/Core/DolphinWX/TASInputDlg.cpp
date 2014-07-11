@@ -242,7 +242,7 @@ void TASInputDlg::ResetValues()
 	wx_start_button->SetValue(false);
 }
 
-void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
+void TASInputDlg::GetKeyBoardInput(GCPadStatus* PadStatus)
 {
 	if (PadStatus->stickX != 128)
 	{
@@ -471,7 +471,7 @@ void TASInputDlg::SetLandRTriggers()
 		rTrig = wx_r_s->GetValue();
 }
 
-void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
+void TASInputDlg::GetValues(GCPadStatus* PadStatus, int controllerID)
 {
 	if (!IsShown())
 		return;

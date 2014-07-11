@@ -47,7 +47,7 @@ void Initialize(void* const hwnd)
 	g_plugin.LoadConfig(true);
 }
 
-void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
+void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 {
 	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
 	_pPADStatus->err = PAD_ERR_NONE;
