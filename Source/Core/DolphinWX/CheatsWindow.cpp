@@ -529,7 +529,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 void CheatSearchTab::ApplyFocus(wxEvent& ev)
 {
-	ev.Skip(true);
+	ev.Skip();
 	value_x_radiobtn.rad_uservalue->SetValue(true);
 }
 

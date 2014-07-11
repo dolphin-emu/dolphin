@@ -222,7 +222,7 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 		JumpToAddress(addr);
 	}
 
-	event.Skip(1);
+	event.Skip();
 }
 
 void CCodeWindow::OnCallstackListChange(wxCommandEvent& event)
