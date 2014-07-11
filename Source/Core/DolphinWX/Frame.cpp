@@ -922,7 +922,7 @@ void OnStoppedCallback()
 	}
 }
 
-void TASManipFunction(SPADStatus *PadStatus, int controllerID)
+void TASManipFunction(GCPadStatus* PadStatus, int controllerID)
 {
 	if (main_frame)
 		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus, controllerID);

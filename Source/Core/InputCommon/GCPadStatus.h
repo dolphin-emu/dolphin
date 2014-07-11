@@ -24,7 +24,7 @@
 #define PAD_BUTTON_Y            0x0800
 #define PAD_BUTTON_START        0x1000
 
-typedef struct
+struct GCPadStatus
 {
 	unsigned short button;                 // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
 	unsigned char  stickX;                 // 0 <= stickX       <= 255
@@ -36,4 +36,4 @@ typedef struct
 	unsigned char  analogA;                // 0 <= analogA      <= 255
 	unsigned char  analogB;                // 0 <= analogB      <= 255
 	signed char    err;                    // one of PAD_ERR_* number
-} SPADStatus;
+};

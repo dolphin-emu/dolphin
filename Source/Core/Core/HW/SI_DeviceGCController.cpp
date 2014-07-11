@@ -106,7 +106,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 //  |_ ERR_STATUS (error on last GetData or SendCmd?)
 bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
-	SPADStatus PadStatus;
+	GCPadStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
 
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
