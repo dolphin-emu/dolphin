@@ -29,6 +29,20 @@
 
 class wxTimerEvent;
 
+static void DrawCenteredRectangle(wxDC &dc, int x, int y, int w, int h)
+{
+	x -= w / 2;
+	y -= h / 2;
+	dc.DrawRectangle(x, y, w, h);
+}
+
+#define COORD_VIS_SIZE 4
+
+static void DrawCoordinate(wxDC &dc, int x, int y)
+{
+	DrawCenteredRectangle(dc, x, y, COORD_VIS_SIZE, COORD_VIS_SIZE);
+}
+
 static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 {
 	switch (g->control_group->type)
@@ -145,22 +159,17 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 		// raw dot
 		dc.SetPen(*wxGREY_PEN);
 		dc.SetBrush(*wxGREY_BRUSH);
-		// i like the dot better than the cross i think
-		dc.DrawRectangle(xx - 2, yy - 2, 4, 4);
-		//dc.DrawRectangle(xx-1, 64-yy-4, 2, 8);
-		//dc.DrawRectangle(xx-4, 64-yy-1, 8, 2);
+		DrawCoordinate(dc, xx, yy);
 
 		// adjusted dot
 		if (x!=32 || y!=32)
 		{
 			dc.SetPen(*wxRED_PEN);
 			dc.SetBrush(*wxRED_BRUSH);
-			dc.DrawRectangle(x-2, 64-y-2, 4, 4);
-			// i like the dot better than the cross i think
-			//dc.DrawRectangle(x-1, 64-y-4, 2, 8);
-			//dc.DrawRectangle(x-4, 64-y-1, 8, 2);
+			// XXX: The adjusted values flip the Y axis to be in the format
+			// the Wii expects. Should this be in WiimoteEmu.cpp instead?
+			DrawCoordinate(dc, x, 64 - y);
 		}
-
 	}
 	break;
 	case GROUP_TYPE_FORCE :
