@@ -279,10 +279,13 @@ HRESULT Create(HWND wnd)
 	hr = output->FindClosestMatchingMode(&mode_desc, &swap_chain_desc.BufferDesc, nullptr);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to find a supported video mode"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 
-	// forcing buffer resolution to xres and yres..
-	// this is not a problem as long as we're in windowed mode
-	swap_chain_desc.BufferDesc.Width = xres;
-	swap_chain_desc.BufferDesc.Height = yres;
+	if (swap_chain_desc.Windowed)
+	{
+		// forcing buffer resolution to xres and yres..
+		// this is not a problem as long as we're in windowed mode
+		swap_chain_desc.BufferDesc.Width = xres;
+		swap_chain_desc.BufferDesc.Height = yres;
+	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	// Creating debug devices can sometimes fail if the user doesn't have the correct
