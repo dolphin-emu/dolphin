@@ -94,12 +94,24 @@ public:
 				, value(def_value)
 				, default_value(def_value)
 				, low(_low)
-				, high(_high){}
+				, high(_high)
+				, is_virtual(false) {}
 
 			const std::string   name;
 			ControlState        value;
 			const ControlState  default_value;
 			const unsigned int  low, high;
+			bool                is_virtual;
+
+			virtual void SetValue(ControlState new_value)
+			{
+				value = new_value;
+			}
+
+			virtual ControlState GetValue()
+			{
+				return value;
+			}
 		};
 
 		ControlGroup(const std::string& _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}

@@ -43,6 +43,8 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 	// settings
 	for (auto& s : settings)
 	{
+		if (s->is_virtual)
+			continue;
 		sec->Get(group + s->name, &s->value, s->default_value * 100);
 		s->value /= 100;
 	}
@@ -99,7 +101,11 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::s
 	std::string group(base + name); group += "/";
 
 	for (auto& s : settings)
+	{
+		if (s->is_virtual)
+			continue;
 		sec->Set(group + s->name, s->value*100.0f, s->default_value*100.0f);
+	}
 
 	for (auto& c : controls)
 	{
