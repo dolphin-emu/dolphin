@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -111,6 +112,25 @@ public:
 			virtual ControlState GetValue()
 			{
 				return value;
+			}
+		};
+
+		class BackgroundInputSetting : public Setting
+		{
+		public:
+			BackgroundInputSetting(const std::string &_name) : Setting(_name, false)
+			{
+				is_virtual = true;
+			}
+
+			void SetValue(ControlState new_value) override
+			{
+				SConfig::GetInstance().m_BackgroundInput = new_value;
+			}
+
+			ControlState GetValue() override
+			{
+				return SConfig::GetInstance().m_BackgroundInput;
 			}
 		};
 
