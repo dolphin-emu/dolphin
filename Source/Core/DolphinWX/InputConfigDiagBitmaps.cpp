@@ -60,15 +60,15 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 	{
 		// this is starting to be a mess combining all these in one case
 
-		float x = 0, y = 0, z = 0;
+		double x = 0, y = 0, z = 0;
 
 		switch (g->control_group->type)
 		{
 		case GROUP_TYPE_STICK :
-			((ControllerEmu::AnalogStick*)g->control_group)->GetState(&x, &y, 0, 1);
+			((ControllerEmu::AnalogStick*)g->control_group)->GetState(&x, &y);
 			break;
 		case GROUP_TYPE_TILT :
-			((ControllerEmu::Tilt*)g->control_group)->GetState(&x, &y, 0, 1);
+			((ControllerEmu::Tilt*)g->control_group)->GetState(&x, &y);
 			break;
 		case GROUP_TYPE_CURSOR :
 			((ControllerEmu::Cursor*)g->control_group)->GetState(&x, &y, &z);
@@ -177,12 +177,12 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 	break;
 	case GROUP_TYPE_FORCE :
 	{
-		float raw_dot[3];
-		float adj_dot[3];
+		double raw_dot[3];
+		double adj_dot[3];
 		const float deadzone = g->control_group->settings[0]->value;
 
 		// adjusted
-		((ControllerEmu::Force*)g->control_group)->GetState(adj_dot, 0, 1);
+		((ControllerEmu::Force*)g->control_group)->GetState(adj_dot);
 
 		// raw
 		for (unsigned int i=0; i<3; ++i)
@@ -287,8 +287,8 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 		dc.SetPen(*wxGREY_PEN);
 		ControlState deadzone =  g->control_group->settings[0]->value;
 
-		unsigned int* const trigs = new unsigned int[trigger_count];
-		((ControllerEmu::Triggers*)g->control_group)->GetState(trigs, 64);
+		double* const trigs = new double[trigger_count];
+		((ControllerEmu::Triggers*)g->control_group)->GetState(trigs);
 
 		for (unsigned int n = 0; n < trigger_count; ++n)
 		{
@@ -305,7 +305,7 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 
 			// deadzone affected
 			dc.SetBrush(*wxRED_BRUSH);
-			dc.DrawRectangle(0, n*12, trigs[n], 14);
+			dc.DrawRectangle(0, n*12, trigs[n]*64, 14);
 
 			// text
 			dc.DrawText(StrToWxStr(g->control_group->controls[n]->name), 3, n*12 + 1);
@@ -363,12 +363,13 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 		dc.SetBrush(*wxGREY_BRUSH);
 		dc.DrawRectangle(31 + state * 30, 0, 2, 14);
 
-		((ControllerEmu::Slider*)g->control_group)->GetState(&state, 1);
+		double adj_state;
+		((ControllerEmu::Slider*)g->control_group)->GetState(&adj_state);
 		if (state)
 		{
 			dc.SetPen(*wxRED_PEN);
 			dc.SetBrush(*wxRED_BRUSH);
-			dc.DrawRectangle(31 + state * 30, 0, 2, 14);
+			dc.DrawRectangle(31 + adj_state * 30, 0, 2, 14);
 		}
 
 		// deadzone box

@@ -120,9 +120,20 @@ void EmulateTilt(AccelData* const accel
 	, ControllerEmu::Tilt* const tilt_group
 	, const bool focus, const bool sideways, const bool upright)
 {
-	float roll, pitch;
+	double roll, pitch;
 	// 180 degrees
-	tilt_group->GetState(&roll, &pitch, 0, focus ? PI : 0);
+	if (focus)
+	{
+		tilt_group->GetState(&roll, &pitch);
+	}
+	else
+	{
+		roll = 0.0;
+		pitch = 0.0;
+	}
+
+	roll *= PI;
+	pitch *= PI;
 
 	unsigned int ud = 0, lr = 0, fb = 0;
 
@@ -144,7 +155,7 @@ void EmulateTilt(AccelData* const accel
 	if (!sideways && upright)
 		sgn[ud] *= -1;
 
-	(&accel->x)[ud] = (sin((PI / 2) - std::max(fabsf(roll), fabsf(pitch))))*sgn[ud];
+	(&accel->x)[ud] = (sin((PI / 2) - std::max(fabs(roll), fabs(pitch))))*sgn[ud];
 	(&accel->x)[lr] = -sin(roll)*sgn[lr];
 	(&accel->x)[fb] = sin(pitch)*sgn[fb];
 }
@@ -155,8 +166,8 @@ void EmulateSwing(AccelData* const accel
 	, ControllerEmu::Force* const swing_group
 	, const bool sideways, const bool upright)
 {
-	float swing[3];
-	swing_group->GetState(swing, 0, SWING_INTENSITY);
+	double swing[3];
+	swing_group->GetState(swing);
 
 	s8 g_dir[3] = {-1, -1, -1};
 	u8 axis_map[3];
@@ -174,7 +185,7 @@ void EmulateSwing(AccelData* const accel
 		g_dir[axis_map[0]] *= -1;
 
 	for (unsigned int i=0; i<3; ++i)
-		(&accel->x)[axis_map[i]] += swing[i] * g_dir[i];
+		(&accel->x)[axis_map[i]] += swing[i] * g_dir[i] * SWING_INTENSITY;
 }
 
 const u16 button_bitmasks[] =
@@ -436,7 +447,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 
 	if (has_focus)
 	{
-		float xx = 10000, yy = 0, zz = 0;
+		double xx = 10000, yy = 0, zz = 0;
 		double nsin,ncos;
 
 		if (use_accel)

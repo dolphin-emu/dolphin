@@ -60,11 +60,19 @@ void Drums::GetState(u8* const data, const bool focus)
 
 	// stick
 	{
-	u8 x, y;
-	m_stick->GetState(&x, &y, 0x20, focus ? 0x1F /*0x15*/ : 0);
+	double x, y;
+	if (focus)
+	{
+		m_stick->GetState(&x, &y);
+	}
+	else
+	{
+		x = 0.0;
+		y = 0.0;
+	}
 
-	ddata->sx = x;
-	ddata->sy = y;
+	ddata->sx = (x * 0x1F) + 0x20;
+	ddata->sx = (y * 0x1F) + 0x20;
 	}
 
 	// TODO: softness maybe

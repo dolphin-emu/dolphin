@@ -66,8 +66,8 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	ncdata->bt = 0;
 
 	// stick
-	ControlState state[2];
-	m_stick->GetState(&state[0], &state[1], 0, 1);
+	double state[2];
+	m_stick->GetState(&state[0], &state[1]);
 
 	nu_cal &cal = *(nu_cal*)&reg.calibration;
 	nu_js cal_js[2];
@@ -75,7 +75,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	cal_js[1] = cal.jy;
 
 	for (int i = 0; i < 2; i++) {
-		ControlState &s = state[i];
+		double &s = state[i];
 		nu_js c = cal_js[i];
 		if (s < 0)
 			s = s * abs(c.min - c.center) + c.center;

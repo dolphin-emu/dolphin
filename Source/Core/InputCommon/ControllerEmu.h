@@ -121,8 +121,7 @@ public:
 	public:
 		AnalogStick(const char* const _name);
 
-		template <typename C>
-		void GetState(C* const x, C* const y, const unsigned int base, const unsigned int range)
+		void GetState(double* const x, double* const y)
 		{
 			ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
 			ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
@@ -152,8 +151,8 @@ public:
 			yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
 			xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
 
-			*y = C(yy * range + base);
-			*x = C(xx * range + base);
+			*y = yy;
+			*x = xx;
 		}
 	};
 
@@ -181,20 +180,19 @@ public:
 	public:
 		MixedTriggers(const std::string& _name);
 
-		template <typename C, typename S>
-		void GetState(C* const digital, const C* bitmasks, S* analog, const unsigned int range)
+		void GetState(u16 *const digital, const u16* bitmasks, double* analog)
 		{
 			const unsigned int trig_count = ((unsigned int) (controls.size() / 2));
 			for (unsigned int i=0; i<trig_count; ++i,++bitmasks,++analog)
 			{
 				if (controls[i]->control_ref->State() > settings[0]->value) //threshold
 				{
-					*analog = range;
+					*analog = 1.0;
 					*digital |= *bitmasks;
 				}
 				else
 				{
-					*analog = S(controls[i+trig_count]->control_ref->State() * range);
+					*analog = controls[i+trig_count]->control_ref->State();
 				}
 			}
 		}
@@ -205,13 +203,12 @@ public:
 	public:
 		Triggers(const std::string& _name);
 
-		template <typename S>
-		void GetState(S* analog, const unsigned int range)
+		void GetState(double* analog)
 		{
 			const unsigned int trig_count = ((unsigned int) (controls.size()));
 			const ControlState deadzone = settings[0]->value;
 			for (unsigned int i=0; i<trig_count; ++i,++analog)
-				*analog = S(std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone) * range);
+				*analog = std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone);
 		}
 	};
 
@@ -220,14 +217,13 @@ public:
 	public:
 		Slider(const std::string& _name);
 
-		template <typename S>
-		void GetState(S* const slider, const unsigned int range, const unsigned int base = 0)
+		void GetState(double* const slider)
 		{
 			const float deadzone = settings[0]->value;
 			const float state = controls[1]->control_ref->State() - controls[0]->control_ref->State();
 
 			if (fabsf(state) > deadzone)
-				*slider = (S)((state - (deadzone * sign(state))) / (1 - deadzone) * range + base);
+				*slider = (state - (deadzone * sign(state))) / (1 - deadzone);
 			else
 				*slider = 0;
 		}
@@ -238,8 +234,7 @@ public:
 	public:
 		Force(const std::string& _name);
 
-		template <typename C, typename R>
-		void GetState(C* axis, const u8 base, const R range)
+		void GetState(double* axis)
 		{
 			const float deadzone = settings[0]->value;
 			for (unsigned int i=0; i<6; i+=2)
@@ -250,7 +245,7 @@ public:
 					tmpf = ((state - (deadzone * sign(state))) / (1 - deadzone));
 
 				float &ax = m_swing[i >> 1];
-				*axis++ = (C)((tmpf - ax) * range + base);
+				*axis++ = (tmpf - ax);
 				ax = tmpf;
 			}
 		}
@@ -264,8 +259,7 @@ public:
 	public:
 		Tilt(const std::string& _name);
 
-		template <typename C, typename R>
-		void GetState(C* const x, C* const y, const unsigned int base, const R range, const bool step = true)
+		void GetState(double* const x, double* const y, const bool step = true)
 		{
 			// this is all a mess
 
@@ -324,8 +318,8 @@ public:
 					m_tilt[1] = std::max(m_tilt[1] - 0.1f, yy);
 			}
 
-			*y = C(m_tilt[1] * angle * range + base);
-			*x = C(m_tilt[0] * angle * range + base);
+			*y = m_tilt[1] * angle;
+			*x = m_tilt[0] * angle;
 		}
 
 	private:
@@ -337,8 +331,7 @@ public:
 	public:
 		Cursor(const std::string& _name);
 
-		template <typename C>
-		void GetState(C* const x, C* const y, C* const z, const bool adjusted = false)
+		void GetState(double* const x, double* const y, double* const z, const bool adjusted = false)
 		{
 			const float zz = controls[4]->control_ref->State() - controls[5]->control_ref->State();
 
