@@ -150,6 +150,7 @@ void SConfig::SaveSettings()
 	SaveCoreSettings(ini);
 	SaveMovieSettings(ini);
 	SaveDSPSettings(ini);
+	SaveInputSettings(ini);
 	SaveFifoPlayerSettings(ini);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -329,6 +330,13 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
 
+void SConfig::SaveInputSettings(IniFile& ini)
+{
+	IniFile::Section* input = ini.GetOrCreateSection("Input");
+
+	input->Set("BackgroundInput", m_BackgroundInput);
+}
+
 void SConfig::SaveFifoPlayerSettings(IniFile& ini)
 {
 	IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
@@ -350,6 +358,7 @@ void SConfig::LoadSettings()
 	LoadCoreSettings(ini);
 	LoadMovieSettings(ini);
 	LoadDSPSettings(ini);
+	LoadInputSettings(ini);
 	LoadFifoPlayerSettings(ini);
 
 	m_SYSCONF = new SysConf();
@@ -554,6 +563,13 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #endif
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+}
+
+void SConfig::LoadInputSettings(IniFile& ini)
+{
+	IniFile::Section* input = ini.GetOrCreateSection("Input");
+
+	input->Get("BackgroundInput", &m_BackgroundInput, false);
 }
 
 void SConfig::LoadFifoPlayerSettings(IniFile& ini)

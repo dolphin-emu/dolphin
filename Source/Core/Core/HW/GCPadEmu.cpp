@@ -79,7 +79,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
 	// options
 	groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
-	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Background Input"), false));
+	m_options->settings.emplace_back(new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
 }
 
 std::string GCPad::GetName() const
