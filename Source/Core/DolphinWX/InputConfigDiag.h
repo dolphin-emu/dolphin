@@ -69,25 +69,25 @@ public:
 class PadSettingSpin : public PadSetting
 {
 public:
-	PadSettingSpin(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting)
-		: PadSetting(new wxSpinCtrl(parent, -1, wxEmptyString, wxDefaultPosition
-			, wxSize(54, -1), 0, setting->low, setting->high, (int)(setting->value * 100)))
-			, value(setting->value) {}
+	PadSettingSpin(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const _setting)
+		: PadSetting(new wxSpinCtrl(parent, -1, wxEmptyString, wxDefaultPosition,
+					    wxSize(54, -1), 0, _setting->low, _setting->high, (int)(_setting->value * 100)))
+		, setting(_setting) {}
 
 	void UpdateGUI() override;
 	void UpdateValue() override;
 
-	ControlState& value;
+	ControllerEmu::ControlGroup::Setting* const setting;
 };
 
 class PadSettingCheckBox : public PadSetting
 {
 public:
-	PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const std::string& label);
+	PadSettingCheckBox(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting);
 	void UpdateGUI() override;
 	void UpdateValue() override;
 
-	ControlState& value;
+	ControllerEmu::ControlGroup::Setting* const setting;
 };
 
 class GamepadPage;
