@@ -1070,17 +1070,37 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 					g_Config.fHudThickness += 0.1f;
 				NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
 				break;
-				// Move HUD in 10cm
+			// Move HUD in 10cm
 			case ',':
 				g_Config.fHudDistance -= 0.1f;
 				if (g_Config.fHudDistance <= 0)
 					g_Config.fHudDistance = 0;
 				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
 				break;
-				// Move HUD out 10cm
+			// Move HUD out 10cm
 			case '.':
 				g_Config.fHudDistance += 0.1f;
 				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
+				break;
+			// Move camera back 10cm
+			case ';':
+				g_Config.fCameraForward -= 0.1f;
+				NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
+				break;
+			// Move camera forward 10cm
+			case 'P':
+				g_Config.fCameraForward += 0.1f;
+				NOTICE_LOG(VR, "Camera is %5.1fm (%5.0fcm) forward", g_Config.fCameraForward, g_Config.fCameraForward * 100);
+				break;
+			// Pitch camera up 5 degrees
+			case 'O':
+				g_Config.fCameraPitch += 5.0f;
+				NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
+				break;
+			// Pitch camera down 5 degrees
+			case 'L':
+				g_Config.fCameraPitch -= 5.0f;
+				NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
 				break;
 			}
 		}

@@ -905,6 +905,7 @@ void VertexShaderManager::SetProjectionConstants()
 		float pos[3];
 		for (int i = 0; i < 3; ++i)
 			pos[i] = s_fViewTranslationVector[i] + g_head_tracking_position[i]*UnitsPerMetre;
+		pos[2] += g_ActiveConfig.fCameraForward * UnitsPerMetre;
 		static int x = 0;
 		x++;
 		Matrix44::Translate(walk_matrix, pos);
@@ -927,13 +928,45 @@ void VertexShaderManager::SetProjectionConstants()
 			if (debug_newScene)
 				NOTICE_LOG(VR, "2D: hacky test");
 
-			// Give the 2D layer a 3D effect if different parts of the 2D layer are rendered at different z coordinates
-			float HudThickness = g_ActiveConfig.fHudThickness * UnitsPerMetre;  // the 2D layer is actually a 3D box this many game units thick
-			float HudDistance = g_ActiveConfig.fHudDistance * UnitsPerMetre;   // depth 0 on the HUD should be this far away
+			float HudWidth, HudHeight, HudThickness, HudDistance, HudUp, CameraForward, AimDistance;
+
+			// 2D Screen
+			if (vr_widest_3d_HFOV <= 0)
+			{
+				HudThickness = g_ActiveConfig.fScreenThickness * UnitsPerMetre;
+				HudDistance = g_ActiveConfig.fScreenDistance * UnitsPerMetre;
+				HudHeight = g_ActiveConfig.fScreenHeight * UnitsPerMetre;
+				HudHeight = g_ActiveConfig.fScreenHeight * UnitsPerMetre;
+				if (g_aspect_wide)
+					HudWidth = HudHeight * (float)16 / 9;
+				else
+					HudWidth = HudHeight * (float)4 / 3;
+				CameraForward = 0;
+				HudUp = g_ActiveConfig.fScreenUp * UnitsPerMetre;
+				AimDistance = HudDistance;
+			}
+			else
+			// HUD over 3D world
+			{
+				// Give the 2D layer a 3D effect if different parts of the 2D layer are rendered at different z coordinates
+				HudThickness = g_ActiveConfig.fHudThickness * UnitsPerMetre;  // the 2D layer is actually a 3D box this many game units thick
+				HudDistance = g_ActiveConfig.fHudDistance * UnitsPerMetre;   // depth 0 on the HUD should be this far away
+				HudUp = 0;
+				CameraForward = g_ActiveConfig.fCameraForward * UnitsPerMetre;
+				// When moving the camera forward, correct the size of the HUD so that aiming is correct at AimDistance
+				AimDistance = g_ActiveConfig.fAimDistance * UnitsPerMetre;
+				if (AimDistance <= 0)
+					AimDistance = HudDistance;
+				HudWidth = 2.0f * tanf(DEGREES_TO_RADIANS(hfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
+				HudHeight = 2.0f * tanf(DEGREES_TO_RADIANS(vfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
+			}
+
+
 
 			// Now that we know how far away the box is, and what FOV it should fill, we can work out the width and height in game units
-			float HudWidth = 2.0f * tanf(hfov / 2.0f * 3.14159f / 180.0f) * HudDistance;
-			float HudHeight = 2.0f * tanf(vfov / 2.0f * 3.14159f / 180.0f) * HudDistance;
+			// Note: the HUD won't line up exactly (except at AimDistance) if CameraForward is non-zero 
+			//float HudWidth = 2.0f * tanf(hfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
+			//float HudHeight = 2.0f * tanf(vfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
 
 			float left2D = -(rawProjection[1] + 1) / rawProjection[0];
 			float right2D = left2D + 2 / rawProjection[0];
@@ -963,8 +996,8 @@ void VertexShaderManager::SetProjectionConstants()
 				scale[2] = HudThickness / (zFar2D - zNear2D); // Scale 2D z values into 3D game units so it is the right thickness
 			}
 			position[0] = scale[0] * (-(right2D + left2D) / 2.0f); // shift it left into the centre of the view
-			position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f); // shift it up into the centre of the view;
-			position[2] = -HudDistance;
+			position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + HudUp; // shift it up into the centre of the view;
+			position[2] = -HudDistance -CameraForward;
 			Matrix44 scale_matrix, position_matrix, box_matrix, temp_matrix;
 			Matrix44::Scale(scale_matrix, scale);
 			Matrix44::Translate(position_matrix, position);

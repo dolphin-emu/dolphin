@@ -127,6 +127,15 @@ struct VideoConfig final
 	float fUnitsPerMetre;
 	float fHudThickness;
 	float fHudDistance;
+	float fCameraForward;
+	float fCameraPitch;
+	float fAimDistance;
+	float fScreenHeight;
+	float fScreenThickness;
+	float fScreenDistance;
+	float fScreenRight;
+	float fScreenUp;
+	float fScreenPitch;
 
 	//currently unused:
 	int iCompileDLsLevel;

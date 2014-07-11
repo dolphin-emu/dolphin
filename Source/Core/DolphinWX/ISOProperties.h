@@ -94,6 +94,14 @@ private:
 	wxSpinCtrlDouble* HudDistance;
 	wxSpinCtrlDouble* HudThickness;
 	wxSpinCtrlDouble* CameraForward;
+	wxSpinCtrlDouble* CameraPitch;
+	wxSpinCtrlDouble* AimDistance;
+	wxSpinCtrlDouble* ScreenHeight;
+	wxSpinCtrlDouble* ScreenDistance;
+	wxSpinCtrlDouble* ScreenThickness;
+	wxSpinCtrlDouble* ScreenUp;
+	wxSpinCtrlDouble* ScreenRight;
+	wxSpinCtrlDouble* ScreenPitch;
 	wxChoice *VRState;
 	wxTextCtrl *VRIssues;
 
@@ -130,6 +138,14 @@ private:
 		ID_HUD_DISTANCE,
 		ID_HUD_THICKNESS,
 		ID_CAMERA_FORWARD,
+		ID_CAMERA_PITCH,
+		ID_AIM_DISTANCE,
+		ID_SCREEN_HEIGHT,
+		ID_SCREEN_DISTANCE,
+		ID_SCREEN_THICKNESS,
+		ID_SCREEN_RIGHT,
+		ID_SCREEN_UP,
+		ID_SCREEN_PITCH,
 		ID_PATCH_PAGE,
 		ID_ARCODE_PAGE,
 		ID_SPEEDHACK_PAGE,

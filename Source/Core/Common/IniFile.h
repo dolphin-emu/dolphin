@@ -102,6 +102,9 @@ public:
 	void Set(const std::string& sectionName, const std::string& key, int newValue) {
 		GetOrCreateSection(sectionName)->Set(key, newValue);
 	}
+	void Set(const std::string& sectionName, const std::string& key, float newValue) {
+		GetOrCreateSection(sectionName)->Set(key, newValue);
+	}
 	void Set(const std::string& sectionName, const std::string& key, u32 newValue) {
 		GetOrCreateSection(sectionName)->Set(key, newValue);
 	}

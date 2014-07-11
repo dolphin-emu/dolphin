@@ -396,28 +396,78 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sVRPage->Add(sbVR, 0, wxEXPAND | wxALL, 5);
 	wxStaticText* const OverrideTextVR = new wxStaticText(m_VR, wxID_ANY, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."));
 	sbVR->Add(OverrideTextVR, 0, wxEXPAND | wxALL, 5);
+	wxStaticBoxSizer * const sb3D = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("3D World"));
+	sbVR->Add(sb3D, 0, wxEXPAND | wxALL, 5);
+	wxGridBagSizer *s3DGrid = new wxGridBagSizer();
+	sb3D->Add(s3DGrid, 0, wxEXPAND);
+
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Units per metre:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	UnitsPerMetre = new wxSpinCtrlDouble(m_VR, ID_UNITS_PER_METRE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.0000001, 10000000, 1.0, 0.5);
+	s3DGrid->Add(UnitsPerMetre, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("game units")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Distance:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	HudDistance = new wxSpinCtrlDouble(m_VR, ID_HUD_DISTANCE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, 1.5, 0.1);
+	s3DGrid->Add(HudDistance, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Thickness:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	HudThickness = new wxSpinCtrlDouble(m_VR, ID_HUD_THICKNESS, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 0.5, 0.1);
+	s3DGrid->Add(HudThickness, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera forward:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	CameraForward = new wxSpinCtrlDouble(m_VR, ID_CAMERA_FORWARD, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, 0, 0.1);
+	s3DGrid->Add(CameraForward, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera pitch:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	CameraPitch = new wxSpinCtrlDouble(m_VR, ID_CAMERA_PITCH, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, 0, 0.1);
+	s3DGrid->Add(CameraPitch, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("degrees up")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Aim distance:")), wxGBPosition(5, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	AimDistance = new wxSpinCtrlDouble(m_VR, ID_AIM_DISTANCE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, 7, 0.1);
+	s3DGrid->Add(AimDistance, wxGBPosition(5, 1), wxDefaultSpan, wxALL, 5);
+	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(5, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	wxStaticBoxSizer * const sb2D = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("2D Screens"));
+	sbVR->Add(sb2D, 0, wxEXPAND | wxALL, 5);
+	wxGridBagSizer *s2DGrid = new wxGridBagSizer();
+	sb2D->Add(s2DGrid, 0, wxEXPAND);
+
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Height:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	ScreenHeight = new wxSpinCtrlDouble(m_VR, ID_SCREEN_HEIGHT, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, 2.0, 0.1);
+	s2DGrid->Add(ScreenHeight, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Distance:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	ScreenDistance = new wxSpinCtrlDouble(m_VR, ID_SCREEN_DISTANCE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, 1.5, 0.1);
+	s2DGrid->Add(ScreenDistance, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Thickness:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	ScreenThickness = new wxSpinCtrlDouble(m_VR, ID_SCREEN_THICKNESS, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 0.5, 0.1);
+	s2DGrid->Add(ScreenThickness, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Up:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	ScreenUp = new wxSpinCtrlDouble(m_VR, ID_SCREEN_UP, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, 0, 0.1);
+	s2DGrid->Add(ScreenUp, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Right:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	ScreenRight = new wxSpinCtrlDouble(m_VR, ID_SCREEN_RIGHT, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, 0, 0.1);
+	s2DGrid->Add(ScreenRight, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Pitch:")), wxGBPosition(5, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	ScreenPitch = new wxSpinCtrlDouble(m_VR, ID_SCREEN_PITCH, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, 0, 5);
+	s2DGrid->Add(ScreenPitch, wxGBPosition(5, 1), wxDefaultSpan, wxALL, 5);
+	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("degrees")), wxGBPosition(5, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
 	wxGridBagSizer *sVRGrid = new wxGridBagSizer();
 	sbVR->Add(sVRGrid, 0, wxEXPAND);
-
-	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Units per metre:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	UnitsPerMetre = new wxSpinCtrlDouble(m_VR, ID_UNITS_PER_METRE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.0000001, 10000000, 1.0, 0.5);
-	sVRGrid->Add(UnitsPerMetre, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("game units")), wxGBPosition(0, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-
-	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Distance:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	HudDistance = new wxSpinCtrlDouble(m_VR, ID_HUD_DISTANCE, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0.01, 10000, 1.5, 0.1);
-	sVRGrid->Add(HudDistance, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
-	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-
-	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("HUD Thickness:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	HudThickness = new wxSpinCtrlDouble(m_VR, ID_HUD_THICKNESS, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 0.5, 0.1);
-	sVRGrid->Add(HudThickness, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
-	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-
-	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera forward:")), wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	CameraForward = new wxSpinCtrlDouble(m_VR, ID_CAMERA_FORWARD, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, 0, 0.1);
-	sVRGrid->Add(CameraForward, wxGBPosition(3, 1), wxDefaultSpan, wxALL, 5);
-	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	arrayStringFor_EmuState.Add(_("Not Set"));
 	arrayStringFor_EmuState.Add(_("Broken"));
@@ -426,8 +476,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_EmuState.Add(_("Playable"));
 	arrayStringFor_EmuState.Add(_("Perfect"));
 	VRState = new wxChoice(m_VR, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState);
-	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("VR state:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sVRGrid->Add(VRState, wxGBPosition(4, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sVRGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("VR state:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sVRGrid->Add(VRState, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	VRIssues = new wxTextCtrl(m_VR, ID_EMU_ISSUES, wxEmptyString);
 	sbVR->Add(VRIssues, 0, wxEXPAND);
 
@@ -1146,6 +1196,46 @@ void CISOProperties::LoadGameConfig()
 	if (GameIniLocal.GetIfExists("VR", "CameraForward", &fTemp))
 		CameraForward->SetValue(fTemp);
 
+	if (GameIniDefault.GetIfExists("VR", "CameraPitch", &fTemp))
+		CameraPitch->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "CameraPitch", &fTemp))
+		CameraPitch->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "AimDistance", &fTemp))
+		AimDistance->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "AimDistance", &fTemp))
+		AimDistance->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "ScreenHeight", &fTemp))
+		ScreenHeight->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "ScreenHeight", &fTemp))
+		ScreenHeight->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "ScreenDistance", &fTemp))
+		ScreenDistance->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "ScreenDistance", &fTemp))
+		ScreenDistance->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "ScreenThickness", &fTemp))
+		ScreenThickness->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "ScreenThickness", &fTemp))
+		ScreenThickness->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "ScreenUp", &fTemp))
+		ScreenUp->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "ScreenUp", &fTemp))
+		ScreenUp->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "ScreenRight", &fTemp))
+		ScreenRight->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "ScreenRight", &fTemp))
+		ScreenRight->SetValue(fTemp);
+
+	if (GameIniDefault.GetIfExists("VR", "ScreenPitch", &fTemp))
+		ScreenPitch->SetValue(fTemp);
+	if (GameIniLocal.GetIfExists("VR", "ScreenPitch", &fTemp))
+		ScreenPitch->SetValue(fTemp);
+
 	GameIniDefault.Get("VR", "EmulationStateId", &iTemp, 0/*Not Set*/);
 	VRState->SetSelection(iTemp);
 	if (GameIniLocal.GetIfExists("VR", "EmulationStateId", &iTemp))
@@ -1222,6 +1312,22 @@ bool CISOProperties::SaveGameConfig()
 
 	std::string emu_issues = EmuIssues->GetValue().ToStdString();
 	SAVE_IF_NOT_DEFAULT("EmuState", "EmulationIssues", emu_issues, "");
+
+	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)UnitsPerMetre->GetValue(), 1.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)HudDistance->GetValue(), 1.5f);
+	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)HudThickness->GetValue(), 0.5f);
+	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)CameraForward->GetValue(), 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)CameraPitch->GetValue(), 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)AimDistance->GetValue(), 7.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenHeight", (float)ScreenHeight->GetValue(), 2.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenDistance", (float)ScreenDistance->GetValue(), 1.5f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenThickness", (float)ScreenThickness->GetValue(), 0.5f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenUp", (float)ScreenUp->GetValue(), 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)ScreenRight->GetValue(), 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)ScreenPitch->GetValue(), 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "VRStateId", VRState->GetSelection(), 0);
+	emu_issues = VRIssues->GetValue().ToStdString();
+	SAVE_IF_NOT_DEFAULT("VR", "VRIssues", emu_issues, "");
 
 	PatchList_Save();
 	ActionReplayList_Save();

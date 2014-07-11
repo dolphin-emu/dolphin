@@ -211,9 +211,28 @@ void VideoConfig::GameIniLoad()
 	fUnitsPerMetre = 1.0f;
 	fHudDistance = 1.5f;
 	fHudThickness = 0.5f;
+	fCameraForward = 0.0f;
+	fCameraPitch = 0.0f;
+	fAimDistance = 7.0f;
+	fScreenHeight = 2.0f;
+	fScreenDistance = 1.5f;
+	fScreenThickness = 1.0f;
+	fScreenRight = 0.0f;
+	fScreenUp = 0.0f;
+	fScreenPitch = 0.0f;
+
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
+	CHECK_SETTING("VR", "CameraForward", fCameraForward);
+	CHECK_SETTING("VR", "CameraPitch", fCameraPitch);
+	CHECK_SETTING("VR", "AimDistance", fAimDistance);
+	CHECK_SETTING("VR", "ScreenHeight", fScreenHeight);
+	CHECK_SETTING("VR", "ScreenThickness", fScreenThickness);
+	CHECK_SETTING("VR", "ScreenDistance", fScreenDistance);
+	CHECK_SETTING("VR", "ScreenRight", fScreenRight);
+	CHECK_SETTING("VR", "ScreenUp", fScreenUp);
+	CHECK_SETTING("VR", "ScreenPitch", fScreenPitch);
 	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick", fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
 
 	if (gfx_override_exists)
