@@ -140,8 +140,6 @@ ControllerEmu::AnalogStick::AnalogStick(const char* const _name) : ControlGroup(
 
 	settings.emplace_back(new Setting(_trans("Radius"), 0.7f, 0, 100));
 	settings.emplace_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
-	settings.emplace_back(new Setting(_trans("Square Stick"), 0));
-
 }
 
 ControllerEmu::Buttons::Buttons(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_BUTTONS)
