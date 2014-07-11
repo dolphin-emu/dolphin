@@ -99,7 +99,7 @@ void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 		Host_UpdateBreakPointView();
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void CMemoryView::OnMouseMove(wxMouseEvent& event)
@@ -122,7 +122,7 @@ void CMemoryView::OnMouseMove(wxMouseEvent& event)
 			OnMouseDownL(event);
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void CMemoryView::OnMouseUpL(wxMouseEvent& event)
@@ -134,7 +134,7 @@ void CMemoryView::OnMouseUpL(wxMouseEvent& event)
 		Refresh();
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void CMemoryView::OnPopupMenu(wxCommandEvent& event)
@@ -182,7 +182,7 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 #if wxUSE_CLIPBOARD
 	wxTheClipboard->Close();
 #endif
-	event.Skip(true);
+	event.Skip();
 }
 
 void CMemoryView::OnMouseDownR(wxMouseEvent& event)
