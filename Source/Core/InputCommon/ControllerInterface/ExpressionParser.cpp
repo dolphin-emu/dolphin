@@ -228,12 +228,12 @@ public:
 
 	virtual ControlState GetValue() override
 	{
-		return control->ToInput()->GetState();
+		return control->ToInput()->GetGatedState();
 	}
 
 	virtual void SetValue(ControlState value) override
 	{
-		control->ToOutput()->SetState(value);
+		control->ToOutput()->SetGatedState(value);
 	}
 
 	virtual int CountNumControls() override
