@@ -27,13 +27,10 @@ public:
 
 	struct TCacheEntryBase
 	{
-#define TEXHASH_INVALID 0
-
 		// common members
 		u32 addr;
 		u32 size_in_bytes;
 		u64 hash;
-		//u32 pal_hash;
 		u32 format;
 
 		enum TexCacheEntryType type;
@@ -62,10 +59,9 @@ public:
 			virtual_height = _virtual_height;
 		}
 
-		void SetHashes(u64 _hash/*, u32 _pal_hash*/)
+		void SetHashes(u64 _hash)
 		{
 			hash = _hash;
-			//pal_hash = _pal_hash;
 		}
 
 
@@ -81,7 +77,7 @@ public:
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 			const float *colmat) = 0;
 
-		int IntersectsMemoryRange(u32 range_address, u32 range_size) const;
+		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
 		bool IsEfbCopy() { return (type == TCET_EC_VRAM || type == TCET_EC_DYNAMIC); }
 	};
@@ -89,12 +85,13 @@ public:
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
 
 	static void OnConfigChanged(VideoConfig& config);
-	static void Cleanup();
+
+	// Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,
+	// frameCount is the current frame number.
+	static void Cleanup(int frameCount);
 
 	static void Invalidate();
-	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
-	static void ClearRenderTargets(); // currently only used by OGL
 	static bool Find(u32 start_address, u64 hash);
 
 	virtual TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
@@ -127,14 +124,9 @@ private:
 	static struct BackupConfig
 	{
 		int s_colorsamples;
-		bool s_copy_efb_to_texture;
-		bool s_copy_efb_scaled;
-		bool s_copy_efb;
-		int s_efb_scale;
 		bool s_texfmt_overlay;
 		bool s_texfmt_overlay_center;
 		bool s_hires_textures;
-		bool s_copy_cache_enable;
 	} backup_config;
 };
 

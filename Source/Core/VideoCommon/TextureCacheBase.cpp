@@ -19,13 +19,9 @@
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-// ugly
-extern int frameCount;
-
-enum
-{
-	TEXTURE_KILL_THRESHOLD = 200,
-};
+static const u64 TEXHASH_INVALID = 0;
+static const int TEXTURE_KILL_THRESHOLD = 200;
+static const u64 FRAMECOUNT_INVALID = 0;
 
 TextureCache *g_texture_cache;
 
@@ -36,7 +32,7 @@ TextureCache::TexCache TextureCache::textures;
 
 TextureCache::BackupConfig TextureCache::backup_config;
 
-bool invalidate_texture_cache_requested;
+static bool invalidate_texture_cache_requested;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -83,10 +79,15 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 {
 	if (g_texture_cache)
 	{
-		// TODO: Invalidating texcache is really stupid in some of these cases
-		if (config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
+		if (// This affects the hash, so we have to invalidate everything.
+			config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
+
+			// We want the format to be displayed on all textures, not only on new textures.
 			config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
 			config.bTexFmtOverlayCenter != backup_config.s_texfmt_overlay_center ||
+
+			// Without invalidation, we'd only display the overlay / custom
+			// texture for new textures.
 			config.bHiresTextures != backup_config.s_hires_textures ||
 			invalidate_texture_cache_requested)
 		{
@@ -100,61 +101,30 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 
 			invalidate_texture_cache_requested = false;
 		}
-
-		// TODO: Probably shouldn't clear all render targets here, just mark them dirty or something.
-		if (config.bEFBCopyCacheEnable != backup_config.s_copy_cache_enable || // TODO: not sure if this is needed?
-			config.bCopyEFBToTexture != backup_config.s_copy_efb_to_texture ||
-			config.bCopyEFBScaled != backup_config.s_copy_efb_scaled ||
-			config.bEFBCopyEnable != backup_config.s_copy_efb ||
-			config.iEFBScale != backup_config.s_efb_scale)
-		{
-			g_texture_cache->ClearRenderTargets();
-		}
 	}
 
 	backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
-	backup_config.s_copy_efb_to_texture = config.bCopyEFBToTexture;
-	backup_config.s_copy_efb_scaled = config.bCopyEFBScaled;
-	backup_config.s_copy_efb = config.bEFBCopyEnable;
-	backup_config.s_efb_scale = config.iEFBScale;
 	backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
 	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
 	backup_config.s_hires_textures = config.bHiresTextures;
-	backup_config.s_copy_cache_enable = config.bEFBCopyCacheEnable;
 }
 
-void TextureCache::Cleanup()
+void TextureCache::Cleanup(int frameCount)
 {
 	TexCache::iterator iter = textures.begin();
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
+		if(iter->second->frameCount == FRAMECOUNT_INVALID)
+		{
+			iter->second->frameCount = frameCount;
+		}
 		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount &&
-            // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
+		    // EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
 		    !iter->second->IsEfbCopy())
 		{
 			delete iter->second;
-			textures.erase(iter++);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-}
-
-void TextureCache::InvalidateRange(u32 start_address, u32 size)
-{
-	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
-	while (iter != tcend)
-	{
-		const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
-		if (0 == rangePosition)
-		{
-			delete iter->second;
-			textures.erase(iter++);
+			iter = textures.erase(iter);
 		}
 		else
 		{
@@ -174,8 +144,7 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 
 	for (; iter != tcend; ++iter)
 	{
-		const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
-		if (0 == rangePosition)
+		if (iter->second->OverlapsMemoryRange(start_address, size))
 		{
 			iter->second->SetHashes(TEXHASH_INVALID);
 		}
@@ -192,35 +161,15 @@ bool TextureCache::Find(u32 start_address, u64 hash)
 	return false;
 }
 
-int TextureCache::TCacheEntryBase::IntersectsMemoryRange(u32 range_address, u32 range_size) const
+bool TextureCache::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u32 range_size) const
 {
 	if (addr + size_in_bytes < range_address)
-		return -1;
+		return false;
 
 	if (addr >= range_address + range_size)
-		return 1;
+		return false;
 
-	return 0;
-}
-
-void TextureCache::ClearRenderTargets()
-{
-	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
-
-	while (iter != tcend)
-	{
-		if (iter->second->type == TCET_EC_VRAM)
-		{
-			delete iter->second;
-			textures.erase(iter++);
-		}
-		else
-		{
-			++iter;
-		}
-	}
+	return true;
 }
 
 bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels)
@@ -322,7 +271,7 @@ static u32 CalculateLevelSize(u32 level_0_size, u32 level)
 // Used by TextureCache::Load
 static TextureCache::TCacheEntryBase* ReturnEntry(unsigned int stage, TextureCache::TCacheEntryBase* entry)
 {
-	entry->frameCount = frameCount;
+	entry->frameCount = FRAMECOUNT_INVALID;
 	entry->Bind(stage);
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
@@ -346,7 +295,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	const unsigned int nativeW = width;
 	const unsigned int nativeH = height;
 
-	u32 texID = address;
 	// Hash assigned to texcache entry (also used to generate filenames used for texture dumping and custom texture lookup)
 	u64 tex_hash = TEXHASH_INVALID;
 	u64 tlut_hash = TEXHASH_INVALID;
@@ -372,17 +320,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	{
 		const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
 		tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-		// NOTE: For non-paletted textures, texID is equal to the texture address.
-		//       A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
-		//       This (changing texID depending on the tlut_hash) is a trick to get around
-		//       an issue with Metroid Prime's fonts (it has multiple sets of fonts on each other
-		//       stored in a single texture and uses the palette to make different characters
-		//       visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
-		//       we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
-		//
-		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
-		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
 		tex_hash ^= tlut_hash;
 	}
 
@@ -391,16 +328,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && std::max(expandedWidth, expandedHeight) >> maxlevel == 0)
 		--maxlevel;
 
-	TCacheEntryBase *entry = textures[texID];
+	TCacheEntryBase *entry = textures[address];
 	if (entry)
 	{
-		// 1. Calculate reference hash:
-		// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
-		if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
-			tex_hash = TEXHASH_INVALID;
-
-		// 2. a) For EFB copies, only the hash and the texture address need to match
-		if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
+		// 1. For EFB copies, only the texture address need to match. For hybrid copies, also the hash must match.
+		if (entry->IsEfbCopy() && (tex_hash == entry->hash || TEXHASH_INVALID == entry->hash) && address == entry->addr)
 		{
 			entry->type = TCET_EC_VRAM;
 
@@ -410,7 +342,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 			return ReturnEntry(stage, entry);
 		}
 
-		// 2. b) For normal textures, all texture parameters need to match
+		// 2. For normal textures, all texture parameters need to match
 		if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
 			entry->num_mipmaps > maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
 		{
@@ -488,7 +420,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	// create the entry/texture
 	if (nullptr == entry)
 	{
-		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, expandedWidth, texLevels, pcfmt);
+		textures[address] = entry = g_texture_cache->CreateTexture(width, height, expandedWidth, texLevels, pcfmt);
 
 		// Sometimes, we can get around recreating a texture if only the number of mip levels changes
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
@@ -884,7 +816,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		entry->type = TCET_EC_VRAM;
 	}
 
-	entry->frameCount = frameCount;
+	entry->frameCount = FRAMECOUNT_INVALID;
 
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 }

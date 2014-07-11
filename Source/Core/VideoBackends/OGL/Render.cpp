@@ -1623,7 +1623,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	}
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
-	TextureCache::Cleanup();
+	TextureCache::Cleanup(frameCount);
 
 	// Render to the framebuffer.
 	FramebufferManager::SetFramebuffer(0);
