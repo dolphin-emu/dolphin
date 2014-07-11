@@ -140,24 +140,21 @@ public:
 				xx = (fabsf(xx)>deadzone) * sign(xx) * (m + deadzone/2);
 			}
 
-			if (radius != 1 || deadzone)
-			{
-				ControlState ang = atan2(yy, xx);
-				ControlState ang_sin = sin(ang);
-				ControlState ang_cos = cos(ang);
+			ControlState ang = atan2(yy, xx);
+			ControlState ang_sin = sin(ang);
+			ControlState ang_cos = cos(ang);
 
-				ControlState dist = sqrt(xx*xx + yy*yy);
+			ControlState dist = sqrt(xx*xx + yy*yy);
 
-				// dead zone code
-				dist = std::max(0.0f, dist - deadzone);
-				dist /= (1 - deadzone);
+			// dead zone code
+			dist = std::max(0.0f, dist - deadzone);
+			dist /= (1 - deadzone);
 
-				// radius
-				dist *= radius;
+			// radius
+			dist *= radius;
 
-				yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
-				xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
-			}
+			yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
+			xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
 
 			*y = C(yy * range + base);
 			*x = C(xx * range + base);
@@ -292,34 +289,31 @@ public:
 			}
 
 			// deadzone / circle stick code
-			if (deadzone || circle)
-			{
-				// this section might be all wrong, but its working good enough, I think
+			// this section might be all wrong, but its working good enough, I think
 
-				ControlState ang = atan2(yy, xx);
-				ControlState ang_sin = sin(ang);
-				ControlState ang_cos = cos(ang);
+			ControlState ang = atan2(yy, xx);
+			ControlState ang_sin = sin(ang);
+			ControlState ang_cos = cos(ang);
 
-				// the amt a full square stick would have at current angle
-				ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
+			// the amt a full square stick would have at current angle
+			ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
 
-				// the amt a full stick would have that was (user setting circular) at current angle
-				// I think this is more like a pointed circle rather than a rounded square like it should be
-				ControlState stick_full = (square_full * (1 - circle)) + (circle);
+			// the amt a full stick would have that was (user setting circular) at current angle
+			// I think this is more like a pointed circle rather than a rounded square like it should be
+			ControlState stick_full = (square_full * (1 - circle)) + (circle);
 
-				ControlState dist = sqrt(xx*xx + yy*yy);
+			ControlState dist = sqrt(xx*xx + yy*yy);
 
-				// dead zone code
-				dist = std::max(0.0f, dist - deadzone * stick_full);
-				dist /= (1 - deadzone);
+			// dead zone code
+			dist = std::max(0.0f, dist - deadzone * stick_full);
+			dist /= (1 - deadzone);
 
-				// circle stick code
-				ControlState amt = dist / stick_full;
-				dist += (square_full - 1) * amt * circle;
+			// circle stick code
+			ControlState amt = dist / stick_full;
+			dist += (square_full - 1) * amt * circle;
 
-				yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
-				xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
-			}
+			yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
+			xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
 
 			// this is kinda silly here
 			// gui being open will make this happen 2x as fast, o well
