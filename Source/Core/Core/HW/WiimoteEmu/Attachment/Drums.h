@@ -13,7 +13,7 @@ class Drums : public Attachment
 {
 public:
 	Drums(WiimoteEmu::ExtensionReg& _reg);
-	void GetState(u8* const data, const bool focus) override;
+	void GetState(u8* const data) override;
 
 	enum
 	{

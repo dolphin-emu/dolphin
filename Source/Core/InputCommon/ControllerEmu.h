@@ -411,7 +411,7 @@ public:
 
 		~Extension() {}
 
-		void GetState(u8* const data, const bool focus = true);
+		void GetState(u8* const data);
 
 		std::vector<std::unique_ptr<ControllerEmu>> attachments;
 

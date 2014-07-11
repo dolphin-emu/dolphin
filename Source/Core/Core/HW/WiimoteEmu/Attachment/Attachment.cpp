@@ -42,7 +42,7 @@ void Attachment::Reset()
 
 }
 
-void ControllerEmu::Extension::GetState(u8* const data, const bool focus)
+void ControllerEmu::Extension::GetState(u8* const data)
 {
-	((WiimoteEmu::Attachment*)attachments[active_extension].get())->GetState(data, focus);
+	((WiimoteEmu::Attachment*)attachments[active_extension].get())->GetState(data);
 }

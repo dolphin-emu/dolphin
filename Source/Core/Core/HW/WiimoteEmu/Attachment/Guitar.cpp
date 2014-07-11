@@ -64,7 +64,7 @@ Guitar::Guitar(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Guitar"), _r
 	memcpy(&id, guitar_id, sizeof(guitar_id));
 }
 
-void Guitar::GetState(u8* const data, const bool focus)
+void Guitar::GetState(u8* const data)
 {
 	wm_guitar_extension* const gdata = (wm_guitar_extension*)data;
 	gdata->bt = 0;
@@ -74,15 +74,7 @@ void Guitar::GetState(u8* const data, const bool focus)
 	// stick
 	{
 	double x, y;
-	if (focus)
-	{
-		m_stick->GetState(&x, &y);
-	}
-	else
-	{
-		x = 0;
-		y = 0;
-	}
+	m_stick->GetState(&x, &y);
 
 	gdata->sx = (x * 0x1F) + 0x20;
 	gdata->sy = (y * 0x1F) + 0x20;
@@ -96,15 +88,12 @@ void Guitar::GetState(u8* const data, const bool focus)
 	m_whammy->GetState(&whammy);
 	gdata->whammy = whammy * 0x1F;
 
-	if (focus)
-	{
-		// buttons
-		m_buttons->GetState(&gdata->bt, guitar_button_bitmasks);
-		// frets
-		m_frets->GetState(&gdata->bt, guitar_fret_bitmasks);
-		// strum
-		m_strum->GetState(&gdata->bt, guitar_strum_bitmasks);
-	}
+	// buttons
+	m_buttons->GetState(&gdata->bt, guitar_button_bitmasks);
+	// frets
+	m_frets->GetState(&gdata->bt, guitar_fret_bitmasks);
+	// strum
+	m_strum->GetState(&gdata->bt, guitar_strum_bitmasks);
 
 	// flip button bits
 	gdata->bt ^= 0xFFFF;

@@ -51,7 +51,7 @@ Drums::Drums(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Drums"), _reg)
 	memcpy(&id, drums_id, sizeof(drums_id));
 }
 
-void Drums::GetState(u8* const data, const bool focus)
+void Drums::GetState(u8* const data)
 {
 	wm_drums_extension* const ddata = (wm_drums_extension*)data;
 	ddata->bt = 0;
@@ -61,15 +61,7 @@ void Drums::GetState(u8* const data, const bool focus)
 	// stick
 	{
 	double x, y;
-	if (focus)
-	{
-		m_stick->GetState(&x, &y);
-	}
-	else
-	{
-		x = 0.0;
-		y = 0.0;
-	}
+	m_stick->GetState(&x, &y);
 
 	ddata->sx = (x * 0x1F) + 0x20;
 	ddata->sx = (y * 0x1F) + 0x20;
@@ -79,13 +71,10 @@ void Drums::GetState(u8* const data, const bool focus)
 	data[2] = 0xFF;
 	data[3] = 0xFF;
 
-	if (focus)
-	{
-		// buttons
-		m_buttons->GetState(&ddata->bt, drum_button_bitmasks);
-		// pads
-		m_pads->GetState(&ddata->bt, drum_pad_bitmasks);
-	}
+	// buttons
+	m_buttons->GetState(&ddata->bt, drum_button_bitmasks);
+	// pads
+	m_pads->GetState(&ddata->bt, drum_pad_bitmasks);
 
 	// flip button bits
 	ddata->bt ^= 0xFFFF;

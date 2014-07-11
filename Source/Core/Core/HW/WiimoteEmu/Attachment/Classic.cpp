@@ -80,7 +80,7 @@ Classic::Classic(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Classic"),
 	memcpy(&id, classic_id, sizeof(classic_id));
 }
 
-void Classic::GetState(u8* const data, const bool focus)
+void Classic::GetState(u8* const data)
 {
 	wm_classic_extension* const ccdata = (wm_classic_extension*)data;
 	ccdata->bt = 0;
@@ -90,15 +90,7 @@ void Classic::GetState(u8* const data, const bool focus)
 	// left stick
 	{
 	double x, y;
-	if (focus)
-	{
-		m_left_stick->GetState(&x, &y);
-	}
-	else
-	{
-		x = 0.0;
-		y = 0.0;
-	}
+	m_left_stick->GetState(&x, &y);
 
 	ccdata->lx = (x * 0x1F) + 0x20;
 	ccdata->ly = (y * 0x1F) + 0x20;
@@ -108,15 +100,7 @@ void Classic::GetState(u8* const data, const bool focus)
 	{
 	double x, y;
 	u8 x_, y_;
-	if (focus)
-	{
-		m_right_stick->GetState(&x, &y);
-	}
-	else
-	{
-		x = 0.0;
-		y = 0.0;
-	}
+	m_right_stick->GetState(&x, &y);
 
 	x_ = (x * 0x1F) + 0x20;
 	y_ = (y * 0x1F) + 0x20;
@@ -141,13 +125,10 @@ void Classic::GetState(u8* const data, const bool focus)
 	ccdata->rt = rt;
 	}
 
-	if (focus)
-	{
-		// buttons
-		m_buttons->GetState(&ccdata->bt, classic_button_bitmasks);
-		// dpad
-		m_dpad->GetState(&ccdata->bt, classic_dpad_bitmasks);
-	}
+	// buttons
+	m_buttons->GetState(&ccdata->bt, classic_button_bitmasks);
+	// dpad
+	m_dpad->GetState(&ccdata->bt, classic_dpad_bitmasks);
 
 	// flip button bits
 	ccdata->bt ^= 0xFFFF;
