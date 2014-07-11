@@ -179,57 +179,65 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 	{
 		float raw_dot[3];
 		float adj_dot[3];
-		const float deadzone = 32 * g->control_group->settings[0]->value;
+		const float deadzone = g->control_group->settings[0]->value;
 
 		// adjusted
-		((ControllerEmu::Force*)g->control_group)->GetState(adj_dot, 32.0, 32-1.5);
+		((ControllerEmu::Force*)g->control_group)->GetState(adj_dot, 0, 1);
 
 		// raw
 		for (unsigned int i=0; i<3; ++i)
 		{
-			raw_dot[i] = g->control_group->controls[i*2 + 1]->control_ref->State()
-				- g->control_group->controls[i*2]->control_ref->State();
-			raw_dot[i] *= 32 - 1; raw_dot[i] += 32;
+			raw_dot[i] = (g->control_group->controls[i*2 + 1]->control_ref->State() -
+				      g->control_group->controls[i*2]->control_ref->State());
 		}
 
 		// deadzone rect for forward/backward visual
 		dc.SetBrush(*wxLIGHT_GREY_BRUSH);
 		dc.SetPen(*wxLIGHT_GREY_PEN);
-		dc.DrawRectangle(0, 32 - deadzone, 64, deadzone * 2);
+		int deadzone_height = deadzone * VIS_BITMAP_SIZE;
+		DrawCenteredRectangle(dc, 0, VIS_BITMAP_SIZE / 2, VIS_BITMAP_SIZE, deadzone_height);
+
+#define LINE_HEIGHT 2
+		int line_y;
 
 		// raw forward/background line
 		dc.SetPen(*wxGREY_PEN);
 		dc.SetBrush(*wxGREY_BRUSH);
-		dc.DrawRectangle(0, raw_dot[2] - 1, 64, 2);
+		line_y = VIS_COORD(raw_dot[2]);
+		DrawCenteredRectangle(dc, VIS_BITMAP_SIZE / 2, line_y, VIS_BITMAP_SIZE, LINE_HEIGHT);
 
 		// adjusted forward/background line
-		if (adj_dot[2]!=32)
+		if (adj_dot[2] != 0.0)
 		{
 			dc.SetPen(*wxRED_PEN);
 			dc.SetBrush(*wxRED_BRUSH);
-			dc.DrawRectangle(0, adj_dot[2] - 1, 64, 2);
+			line_y = VIS_COORD(adj_dot[2]);
+			DrawCenteredRectangle(dc, VIS_BITMAP_SIZE / 2, line_y, VIS_BITMAP_SIZE, LINE_HEIGHT);
 		}
 
-		// a rectangle, for looks i guess
+#define DEADZONE_RECT_SIZE 32
+
+		// empty deadzone square
 		dc.SetBrush(*wxWHITE_BRUSH);
 		dc.SetPen(*wxLIGHT_GREY_PEN);
-		dc.DrawRectangle(16, 16, 32, 32);
+		DrawCenteredRectangle(dc, VIS_BITMAP_SIZE / 2, VIS_BITMAP_SIZE / 2, DEADZONE_RECT_SIZE, DEADZONE_RECT_SIZE);
 
 		// deadzone square
 		dc.SetBrush(*wxLIGHT_GREY_BRUSH);
-		dc.DrawRectangle(32 - deadzone, 32 - deadzone, deadzone * 2, deadzone * 2);
+		int dz_size = (deadzone * DEADZONE_RECT_SIZE);
+		DrawCenteredRectangle(dc, VIS_BITMAP_SIZE / 2, VIS_BITMAP_SIZE / 2, dz_size, dz_size);
 
 		// raw dot
 		dc.SetPen(*wxGREY_PEN);
 		dc.SetBrush(*wxGREY_BRUSH);
-		dc.DrawRectangle(raw_dot[1] - 2, raw_dot[0] - 2, 4, 4);
+		DrawCoordinate(dc, raw_dot[1], raw_dot[0]);
 
 		// adjusted dot
-		if (adj_dot[1]!=32 || adj_dot[0]!=32)
+		if (adj_dot[1] != 0 && adj_dot[0] != 0)
 		{
 			dc.SetPen(*wxRED_PEN);
 			dc.SetBrush(*wxRED_BRUSH);
-			dc.DrawRectangle(adj_dot[1]-2, adj_dot[0]-2, 4, 4);
+			DrawCoordinate(dc, adj_dot[1], adj_dot[0]);
 		}
 
 	}
