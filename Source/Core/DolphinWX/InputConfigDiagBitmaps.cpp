@@ -36,11 +36,18 @@ static void DrawCenteredRectangle(wxDC &dc, int x, int y, int w, int h)
 	dc.DrawRectangle(x, y, w, h);
 }
 
+#define VIS_BITMAP_SIZE 64
+
+#define VIS_NORMALIZE(a) ((a / 2.0) + 0.5)
+#define VIS_COORD(a) ((VIS_NORMALIZE(a)) * VIS_BITMAP_SIZE)
+
 #define COORD_VIS_SIZE 4
 
-static void DrawCoordinate(wxDC &dc, int x, int y)
+static void DrawCoordinate(wxDC &dc, double x, double y)
 {
-	DrawCenteredRectangle(dc, x, y, COORD_VIS_SIZE, COORD_VIS_SIZE);
+	int xc = VIS_COORD(x);
+	int yc = VIS_COORD(y);
+	DrawCenteredRectangle(dc, xc, yc, COORD_VIS_SIZE, COORD_VIS_SIZE);
 }
 
 static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
@@ -54,31 +61,19 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 		// this is starting to be a mess combining all these in one case
 
 		float x = 0, y = 0, z = 0;
-		float xx, yy;
 
 		switch (g->control_group->type)
 		{
 		case GROUP_TYPE_STICK :
-			((ControllerEmu::AnalogStick*)g->control_group)->GetState(&x, &y, 32.0, 32-1.5);
+			((ControllerEmu::AnalogStick*)g->control_group)->GetState(&x, &y, 0, 1);
 			break;
 		case GROUP_TYPE_TILT :
-			((ControllerEmu::Tilt*)g->control_group)->GetState(&x, &y, 32.0, 32-1.5);
+			((ControllerEmu::Tilt*)g->control_group)->GetState(&x, &y, 0, 1);
 			break;
 		case GROUP_TYPE_CURSOR :
 			((ControllerEmu::Cursor*)g->control_group)->GetState(&x, &y, &z);
-			x *= (32-1.5); x+= 32;
-			y *= (32-1.5); y+= 32;
 			break;
 		}
-
-		xx = g->control_group->controls[3]->control_ref->State();
-		xx -= g->control_group->controls[2]->control_ref->State();
-		yy = g->control_group->controls[1]->control_ref->State();
-		yy -= g->control_group->controls[0]->control_ref->State();
-		xx *= 32 - 1; xx += 32;
-		yy *= 32 - 1; yy += 32;
-
-		// draw the shit
 
 		// ir cursor forward movement
 		if (GROUP_TYPE_CURSOR == g->control_group->type)
@@ -157,18 +152,26 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 		}
 
 		// raw dot
+		{
+		float xx, yy;
+		xx = g->control_group->controls[3]->control_ref->State();
+		xx -= g->control_group->controls[2]->control_ref->State();
+		yy = g->control_group->controls[1]->control_ref->State();
+		yy -= g->control_group->controls[0]->control_ref->State();
+
 		dc.SetPen(*wxGREY_PEN);
 		dc.SetBrush(*wxGREY_BRUSH);
 		DrawCoordinate(dc, xx, yy);
+		}
 
 		// adjusted dot
-		if (x!=32 || y!=32)
+		if (x != 0 && y != 0)
 		{
 			dc.SetPen(*wxRED_PEN);
 			dc.SetBrush(*wxRED_BRUSH);
 			// XXX: The adjusted values flip the Y axis to be in the format
 			// the Wii expects. Should this be in WiimoteEmu.cpp instead?
-			DrawCoordinate(dc, x, 64 - y);
+			DrawCoordinate(dc, x, -y);
 		}
 	}
 	break;
