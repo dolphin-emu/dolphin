@@ -111,7 +111,7 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
 		ToggleBreakpoint(YToAddress(y));
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void CCodeView::ToggleBreakpoint(u32 address)
@@ -143,7 +143,7 @@ void CCodeView::OnMouseMove(wxMouseEvent& event)
 		}
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void CCodeView::RaiseEvent()
@@ -163,7 +163,7 @@ void CCodeView::OnMouseUpL(wxMouseEvent& event)
 		Refresh();
 	}
 	RaiseEvent();
-	event.Skip(true);
+	event.Skip();
 }
 
 u32 CCodeView::AddrToBranch(u32 addr)
@@ -330,7 +330,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 #if wxUSE_CLIPBOARD
 	wxTheClipboard->Close();
 #endif
-	event.Skip(true);
+	event.Skip();
 }
 
 void CCodeView::OnMouseUpR(wxMouseEvent& event)
@@ -357,7 +357,7 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	menu->Append(IDM_INSERTNOP, _("Insert &nop"));
 	menu->Append(IDM_PATCHALERT, _("Patch alert"));
 	PopupMenu(menu);
-	event.Skip(true);
+	event.Skip();
 }
 
 void CCodeView::OnErase(wxEraseEvent& event)

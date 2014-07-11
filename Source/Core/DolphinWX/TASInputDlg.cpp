@@ -806,8 +806,7 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 
 	sliderX->SetValue(*x);
 	sliderY->SetValue(256 - *y);
-	event.Skip(true);
-
+	event.Skip();
 }
 
 void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
@@ -863,7 +862,7 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 
 	sliderX->SetValue(*x);
 	sliderY->SetValue(256 - *y);
-	event.Skip(true);
+	event.Skip();
 }
 
 void TASInputDlg::SetTurboFalse(wxMouseEvent& event)
@@ -922,7 +921,7 @@ void TASInputDlg::SetTurboFalse(wxMouseEvent& event)
 			return;
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void TASInputDlg::SetTurbo(wxMouseEvent& event)

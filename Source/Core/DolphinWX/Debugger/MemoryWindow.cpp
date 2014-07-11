@@ -191,7 +191,7 @@ void CMemoryWindow::OnAddrBoxChange(wxCommandEvent& event)
 		memview->Center(addr & ~3);
 	}
 
-	event.Skip(1);
+	event.Skip();
 }
 
 void CMemoryWindow::Update()
