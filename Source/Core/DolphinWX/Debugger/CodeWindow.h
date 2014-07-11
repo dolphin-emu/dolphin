@@ -60,7 +60,7 @@ class CCodeWindow
 		bool AutomaticStart();
 		bool JITNoBlockCache();
 		bool JITBlockLinking();
-		void JumpToAddress(u32 _Address);
+		bool JumpToAddress(u32 address);
 
 		void Update() override;
 		void NotifyMapLoaded();
