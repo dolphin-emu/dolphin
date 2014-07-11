@@ -87,7 +87,7 @@ END_EVENT_TABLE()
 // Class
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *parent,
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
-	: wxPanel((wxWindow*)parent, id, position, size, style, name)
+	: wxPanel(parent, id, position, size, style, name)
 	, Parent(parent)
 	, m_RegisterWindow(nullptr)
 	, m_BreakpointWindow(nullptr)
