@@ -196,7 +196,7 @@ inline void boxfilterRGB_to_xx8(u8 *src, u8 &x1, u8 &x2, int comp1, int comp2)
 	x2 = x16_2 >> 2;
 }
 
-void SetBlockDimensions(int blkWidthLog2, int blkHeightLog2, u16 &sBlkCount, u16 &tBlkCount, u16 &sBlkSize, u16 &tBlkSize)
+static void SetBlockDimensions(int blkWidthLog2, int blkHeightLog2, u16 &sBlkCount, u16 &tBlkCount, u16 &sBlkSize, u16 &tBlkSize)
 {
 	// if half_scale is 1 then the size is cut in half
 	u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
@@ -209,7 +209,7 @@ void SetBlockDimensions(int blkWidthLog2, int blkHeightLog2, u16 &sBlkCount, u16
 	tBlkSize = 1 << blkHeightLog2;
 }
 
-void SetSpans(int sBlkSize, int tBlkSize, s32 &tSpan, s32 &sBlkSpan, s32 &tBlkSpan, s32 &writeStride)
+static void SetSpans(int sBlkSize, int tBlkSize, s32 &tSpan, s32 &sBlkSpan, s32 &tBlkSpan, s32 &writeStride)
 {
 	// width is 1 less than the number of pixels of width
 	u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
@@ -253,7 +253,7 @@ void SetSpans(int sBlkSize, int tBlkSize, s32 &tSpan, s32 &sBlkSpan, s32 &tBlkSp
 			dstBlockStart += writeStride;					\
 		}													\
 
-void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
+static void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -490,7 +490,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 }
 
 
-void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
+static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -725,7 +725,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 	}
 }
 
-void EncodeRGB8(u8 *dst, u8 *src, u32 format)
+static void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -939,7 +939,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 	}
 }
 
-void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
+static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -1170,7 +1170,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 	}
 }
 
-void EncodeZ24(u8 *dst, u8 *src, u32 format)
+static void EncodeZ24(u8 *dst, u8 *src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -1274,7 +1274,7 @@ void EncodeZ24(u8 *dst, u8 *src, u32 format)
 	}
 }
 
-void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
+static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 {
 	u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
 	s32 tSpan, sBlkSpan, tBlkSpan, writeStride;

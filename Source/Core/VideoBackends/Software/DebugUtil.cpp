@@ -15,6 +15,7 @@
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/TextureSampler.h"
 
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/ImageWrite.h"
 
 
@@ -51,7 +52,7 @@ void Shutdown()
 	}
 }
 
-void SaveTexture(const std::string& filename, u32 texmap, s32 mip)
+static void SaveTexture(const std::string& filename, u32 texmap, s32 mip)
 {
 	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
 	u8 subTexmap = texmap & 3;
@@ -82,7 +83,7 @@ void GetTextureRGBA(u8 *dst, u32 texmap, s32 mip, u32 width, u32 height)
 	}
 }
 
-s32 GetMaxTextureLod(u32 texmap)
+static s32 GetMaxTextureLod(u32 texmap)
 {
 	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
 	u8 subTexmap = texmap & 3;
@@ -130,7 +131,7 @@ void DumpActiveTextures()
 	}
 }
 
-void DumpEfb(const std::string& filename)
+static void DumpEfb(const std::string& filename)
 {
 	u8 *data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
 	u8 *writePtr = data;
@@ -153,7 +154,7 @@ void DumpEfb(const std::string& filename)
 	delete[] data;
 }
 
-void DumpDepth(const std::string& filename)
+static void DumpDepth(const std::string& filename)
 {
 	u8 *data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
 	u8 *writePtr = data;

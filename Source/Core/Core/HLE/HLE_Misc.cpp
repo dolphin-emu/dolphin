@@ -11,6 +11,7 @@
 #include "Core/Host.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HLE/HLE_Misc.h"
 #include "Core/HLE/HLE_OS.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
@@ -29,8 +30,7 @@
 namespace HLE_Misc
 {
 
-std::string args;
-u32 argsPtr;
+static std::string args;
 
 // If you just want to kill a function, one of the three following are usually appropriate.
 // According to the PPC ABI, the return value is always in r3.

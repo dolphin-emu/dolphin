@@ -223,7 +223,6 @@
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp" />
     <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
-    <ClCompile Include="PowerPC\LUT_frsqrtex.cpp" />
     <ClCompile Include="PowerPC\PowerPC.cpp" />
     <ClCompile Include="PowerPC\PPCAnalyst.cpp" />
     <ClCompile Include="PowerPC\PPCCache.cpp" />
@@ -409,7 +408,6 @@
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />
     <ClInclude Include="PowerPC\JitCommon\Jit_Util.h" />
     <ClInclude Include="PowerPC\JitInterface.h" />
-    <ClInclude Include="PowerPC\LUT_frsqrtex.h" />
     <ClInclude Include="PowerPC\PowerPC.h" />
     <ClInclude Include="PowerPC\PPCAnalyst.h" />
     <ClInclude Include="PowerPC\PPCCache.h" />

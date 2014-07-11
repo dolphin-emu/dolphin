@@ -32,23 +32,23 @@ static inline s32 FixedLog2(float f)
 
 namespace Rasterizer
 {
-Slope ZSlope;
-Slope WSlope;
-Slope ColorSlopes[2][4];
-Slope TexSlopes[8][3];
+static Slope ZSlope;
+static Slope WSlope;
+static Slope ColorSlopes[2][4];
+static Slope TexSlopes[8][3];
 
-s32 vertex0X;
-s32 vertex0Y;
-float vertexOffsetX;
-float vertexOffsetY;
+static s32 vertex0X;
+static s32 vertex0Y;
+static float vertexOffsetX;
+static float vertexOffsetY;
 
-s32 scissorLeft = 0;
-s32 scissorTop = 0;
-s32 scissorRight = 0;
-s32 scissorBottom = 0;
+static s32 scissorLeft = 0;
+static s32 scissorTop = 0;
+static s32 scissorRight = 0;
+static s32 scissorBottom = 0;
 
-Tev tev;
-RasterBlock rasterBlock;
+static Tev tev;
+static RasterBlock rasterBlock;
 
 void DoState(PointerWrap &p)
 {
@@ -183,7 +183,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	tev.Draw();
 }
 
-void InitTriangle(float X1, float Y1, s32 xi, s32 yi)
+static void InitTriangle(float X1, float Y1, s32 xi, s32 yi)
 {
 	vertex0X = xi;
 	vertex0Y = yi;
@@ -195,7 +195,7 @@ void InitTriangle(float X1, float Y1, s32 xi, s32 yi)
 	vertexOffsetY = ((float)yi - Y1) + adjust;
 }
 
-void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, float DX12, float DY12, float DY31)
+static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, float DX12, float DY12, float DY31)
 {
 	float DF31 = f3 - f1;
 	float DF21 = f2 - f1;
@@ -253,7 +253,7 @@ inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
 	lod = CLAMP(lod, (s32)tm1.min_lod, (s32)tm1.max_lod);
 }
 
-void BuildBlock(s32 blockX, s32 blockY)
+static void BuildBlock(s32 blockX, s32 blockY)
 {
 	for (s32 yi = 0; yi < BLOCK_SIZE; yi++)
 	{

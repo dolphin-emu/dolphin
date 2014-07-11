@@ -52,6 +52,10 @@ enum TextureFormat
 	GX_CTF_Z16L  = 0xC | _GX_TF_ZTF | _GX_TF_CTF,
 };
 
+extern const char* texfmt[];
+extern const unsigned char sfont_map[];
+extern const unsigned char sfont_raw[][9*10];
+
 int TexDecoder_GetTexelSizeInNibbles(int format);
 int TexDecoder_GetTextureSizeInBytes(int width, int height, int format);
 int TexDecoder_GetBlockWidthInTexels(u32 format);

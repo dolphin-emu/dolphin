@@ -35,6 +35,7 @@
 #include "VideoBackends/Software/VideoConfigDialog.h"
 #endif // HAVE_WX
 
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/XFMemory.h"
@@ -62,7 +63,7 @@ std::string VideoSoftware::GetName() const
 	return _trans("Software Renderer");
 }
 
-void *DllDebugger(void *_hParent, bool Show)
+static void *DllDebugger(void *_hParent, bool Show)
 {
 	return nullptr;
 }

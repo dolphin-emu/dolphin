@@ -53,4 +53,4 @@ public:
 	TEXIDevices m_deviceType;
 };
 
-extern IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
+IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);

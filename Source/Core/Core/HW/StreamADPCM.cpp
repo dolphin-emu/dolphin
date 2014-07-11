@@ -13,7 +13,7 @@ static s32 histl2;
 static s32 histr1;
 static s32 histr2;
 
-s16 ADPDecodeSample(s32 bits, s32 q, s32& hist1, s32& hist2)
+static s16 ADPDecodeSample(s32 bits, s32 q, s32& hist1, s32& hist2)
 {
 	s32 hist = 0;
 	switch (q >> 4)

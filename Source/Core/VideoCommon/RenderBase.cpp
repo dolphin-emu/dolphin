@@ -40,7 +40,8 @@
 
 // TODO: Move these out of here.
 int frameCount;
-int OSDChoice, OSDTime;
+int OSDChoice;
+static int OSDTime;
 
 Renderer *g_renderer = nullptr;
 
@@ -349,9 +350,6 @@ void Renderer::DrawDebugText()
 	g_renderer->RenderText(final_cyan, 20, 20, 0xFF00FFFF);
 	g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
-
-// TODO: remove
-extern bool g_aspect_wide;
 
 void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 {

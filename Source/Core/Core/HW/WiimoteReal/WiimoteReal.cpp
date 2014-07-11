@@ -29,7 +29,7 @@ void TryToConnectWiimote(Wiimote*);
 void HandleWiimoteDisconnect(int index);
 void DoneWithWiimote(int index);
 
-bool g_real_wiimotes_initialized = false;
+static bool g_real_wiimotes_initialized = false;
 
 std::recursive_mutex g_refresh_lock;
 
@@ -254,7 +254,7 @@ bool Wiimote::Write()
 	return false;
 }
 
-bool IsDataReport(const Report& rpt)
+static bool IsDataReport(const Report& rpt)
 {
 	return rpt.size() >= 2 && rpt[1] >= WM_REPORT_CORE;
 }
@@ -373,7 +373,7 @@ void Wiimote::EmuPause()
 	NOTICE_LOG(WIIMOTE, "Pausing Wiimote data reporting.");
 }
 
-unsigned int CalculateConnectedWiimotes()
+static unsigned int CalculateConnectedWiimotes()
 {
 	unsigned int connected_wiimotes = 0;
 	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
@@ -383,7 +383,7 @@ unsigned int CalculateConnectedWiimotes()
 	return connected_wiimotes;
 }
 
-unsigned int CalculateWantedWiimotes()
+static unsigned int CalculateWantedWiimotes()
 {
 	// Figure out how many real Wiimotes are required
 	unsigned int wanted_wiimotes = 0;
@@ -394,7 +394,7 @@ unsigned int CalculateWantedWiimotes()
 	return wanted_wiimotes;
 }
 
-unsigned int CalculateWantedBB()
+static unsigned int CalculateWantedBB()
 {
 	unsigned int wanted_bb = 0;
 	if (WIIMOTE_SRC_REAL & g_wiimote_sources[WIIMOTE_BALANCE_BOARD] && !g_wiimotes[WIIMOTE_BALANCE_BOARD])
@@ -431,7 +431,7 @@ void WiimoteScanner::StopScanning()
 	}
 }
 
-void CheckForDisconnectedWiimotes()
+static void CheckForDisconnectedWiimotes()
 {
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 

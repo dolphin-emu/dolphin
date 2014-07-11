@@ -7,16 +7,17 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 
+#include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/Tracer.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace Core {
 
-File::IOFile tracefile;
+static File::IOFile tracefile;
 
-bool bReadTrace = false;
-bool bWriteTrace = false;
+static bool bReadTrace = false;
+static bool bWriteTrace = false;
 
 void StartTrace(bool write)
 {

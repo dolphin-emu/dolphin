@@ -14,6 +14,7 @@
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/TextureEncoder.h"
+#include "VideoCommon/Fifo.h"
 
 static const float s_gammaLUT[] =
 {
@@ -25,7 +26,7 @@ static const float s_gammaLUT[] =
 
 namespace EfbCopy
 {
-	void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	static void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 	{
 		GLInterface->Update(); // update the render window position and the backbuffer size
 
@@ -61,7 +62,7 @@ namespace EfbCopy
 		}
 	}
 
-	void CopyToRam()
+	static void CopyToRam()
 	{
 		if (!g_SWVideoConfig.bHwRasterizer)
 		{
@@ -71,7 +72,7 @@ namespace EfbCopy
 		}
 	}
 
-	void ClearEfb()
+	static void ClearEfb()
 	{
 		u32 clearColor = (bpmem.clearcolorAR & 0xff) << 24 | bpmem.clearcolorGB << 8 | (bpmem.clearcolorAR & 0xff00) >> 8;
 

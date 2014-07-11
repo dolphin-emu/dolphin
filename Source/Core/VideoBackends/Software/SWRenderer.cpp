@@ -32,7 +32,7 @@ static std::string s_sScreenshotName;
 
 // Rasterfont isn't compatible with GLES
 // degasus: I think it does, but I can't test it
-RasterFont* s_pfont = nullptr;
+static RasterFont* s_pfont = nullptr;
 
 void SWRenderer::Init()
 {
@@ -52,7 +52,7 @@ void SWRenderer::Shutdown()
 	}
 }
 
-void CreateShaders()
+static void CreateShaders()
 {
 	static const char *fragShaderText =
 		"#ifdef GL_ES\n"

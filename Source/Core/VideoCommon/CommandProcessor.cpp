@@ -24,21 +24,21 @@
 namespace CommandProcessor
 {
 
-int et_UpdateInterrupts;
+static int et_UpdateInterrupts;
 
 // TODO(ector): Warn on bbox read/write
 
 // STATE_TO_SAVE
 SCPFifoStruct fifo;
-UCPStatusReg m_CPStatusReg;
-UCPCtrlReg  m_CPCtrlReg;
-UCPClearReg m_CPClearReg;
+static UCPStatusReg m_CPStatusReg;
+static UCPCtrlReg  m_CPCtrlReg;
+static UCPClearReg m_CPClearReg;
 
-u16 m_bboxleft;
-u16 m_bboxtop;
-u16 m_bboxright;
-u16 m_bboxbottom;
-u16 m_tokenReg;
+static u16 m_bboxleft;
+static u16 m_bboxtop;
+static u16 m_bboxright;
+static u16 m_bboxbottom;
+static u16 m_tokenReg;
 
 volatile bool isPossibleWaitingSetDrawDone = false;
 volatile bool interruptSet= false;
@@ -48,12 +48,12 @@ volatile bool interruptFinishWaiting = false;
 
 volatile u32 VITicks = CommandProcessor::m_cpClockOrigin;
 
-bool IsOnThread()
+static bool IsOnThread()
 {
 	return SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
 }
 
-void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
+static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
 	UpdateInterrupts(userdata);
 }

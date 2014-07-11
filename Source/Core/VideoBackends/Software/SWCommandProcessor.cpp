@@ -20,6 +20,8 @@
 #include "VideoBackends/Software/SWCommandProcessor.h"
 #include "VideoBackends/Software/VideoBackend.h"
 
+#include "VideoCommon/DataReader.h"
+#include "VideoCommon/Fifo.h"
 
 namespace SWCommandProcessor
 {
@@ -33,16 +35,16 @@ enum
 // STATE_TO_SAVE
 // variables
 
-const int commandBufferSize = 1024 * 1024;
-const int maxCommandBufferWrite = commandBufferSize - GATHER_PIPE_SIZE;
-u8 commandBuffer[commandBufferSize];
-u32 readPos;
-u32 writePos;
-int et_UpdateInterrupts;
-volatile bool interruptSet;
-volatile bool interruptWaiting;
+static const int commandBufferSize = 1024 * 1024;
+static const int maxCommandBufferWrite = commandBufferSize - GATHER_PIPE_SIZE;
+static u8 commandBuffer[commandBufferSize];
+static u32 readPos;
+static u32 writePos;
+static int et_UpdateInterrupts;
+static volatile bool interruptSet;
+static volatile bool interruptWaiting;
 
-CPReg cpreg; // shared between gfx and emulator thread
+static CPReg cpreg; // shared between gfx and emulator thread
 
 void DoState(PointerWrap &p)
 {
@@ -66,7 +68,7 @@ inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
 inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
 
 
-void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
+static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
 	UpdateInterrupts(userdata);
 }
@@ -219,7 +221,7 @@ void UpdateInterruptsFromVideoBackend(u64 userdata)
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
-void ReadFifo()
+static void ReadFifo()
 {
 	bool canRead = cpreg.readptr != cpreg.writeptr && writePos < (int)maxCommandBufferWrite;
 	bool atBreakpoint = AtBreakpoint();
@@ -256,7 +258,7 @@ void ReadFifo()
 	}
 }
 
-void SetStatus()
+static void SetStatus()
 {
 	// overflow check
 	if (cpreg.rwdistance > cpreg.hiwatermark)

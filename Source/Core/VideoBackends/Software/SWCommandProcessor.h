@@ -11,9 +11,6 @@
 class PointerWrap;
 namespace MMIO { class Mapping; }
 
-extern volatile bool g_bSkipCurrentFrame;
-extern u8* g_pVideoData;
-
 namespace SWCommandProcessor
 {
 	using UCPStatusReg = CommandProcessor::UCPStatusReg;
@@ -43,8 +40,6 @@ namespace SWCommandProcessor
 		u32 readptr;            // 0x38
 		u32 breakpt;            // 0x3c
 	};
-
-	extern CPReg cpreg;
 
 	// Init
 	void Init();

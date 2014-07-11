@@ -23,18 +23,18 @@
 #define M_SQRT1_2 0.70710678118654752440
 #endif
 
-int olddelay = -1;
-unsigned int oldfreq = 0;
-unsigned int dlbuflen;
-int cyc_pos;
-float l_fwr, r_fwr, lpr_fwr, lmr_fwr;
-std::vector<float> fwrbuf_l, fwrbuf_r;
-float adapt_l_gain, adapt_r_gain, adapt_lpr_gain, adapt_lmr_gain;
-std::vector<float> lf, rf, lr, rr, cf, cr;
-float LFE_buf[256];
-unsigned int lfe_pos;
-float *filter_coefs_lfe;
-unsigned int len125;
+static int olddelay = -1;
+static unsigned int oldfreq = 0;
+static unsigned int dlbuflen;
+static int cyc_pos;
+static float l_fwr, r_fwr, lpr_fwr, lmr_fwr;
+static std::vector<float> fwrbuf_l, fwrbuf_r;
+static float adapt_l_gain, adapt_r_gain, adapt_lpr_gain, adapt_lmr_gain;
+static std::vector<float> lf, rf, lr, rr, cf, cr;
+static float LFE_buf[256];
+static unsigned int lfe_pos;
+static float *filter_coefs_lfe;
+static unsigned int len125;
 
 template<class T,class _ftype_t> static _ftype_t dotproduct(int count,const T *buf,const _ftype_t *coefficients)
 {
@@ -83,7 +83,7 @@ template<class T> static T firfilter(const T *buf, int pos, int len, int count, 
 // n window length
 // w buffer for the window parameters
 */
-void hamming(int n, float* w)
+static void hamming(int n, float* w)
 {
 	int      i;
 	float k = float(2*M_PI/((float)(n-1))); // 2*pi/(N-1)
@@ -110,7 +110,7 @@ opt   beta constant used only when designing using kaiser windows
 
 returns 0 if OK, -1 if fail
 */
-float* design_fir(unsigned int *n, float* fc, float opt)
+static float* design_fir(unsigned int *n, float* fc, float opt)
 {
 	unsigned int  o   = *n & 1;              // Indicator for odd filter length
 	unsigned int  end = ((*n + 1) >> 1) - o; // Loop end
@@ -165,7 +165,7 @@ float* design_fir(unsigned int *n, float* fc, float opt)
 	return w;
 }
 
-void onSeek(void)
+static void onSeek(void)
 {
 	l_fwr = r_fwr = lpr_fwr = lmr_fwr = 0;
 	std::fill(fwrbuf_l.begin(), fwrbuf_l.end(), 0.0f);
@@ -181,7 +181,7 @@ void onSeek(void)
 	memset(LFE_buf, 0, sizeof(LFE_buf));
 }
 
-void done(void)
+static void done(void)
 {
 	onSeek();
 	if (filter_coefs_lfe)
@@ -191,7 +191,7 @@ void done(void)
 	filter_coefs_lfe = nullptr;
 }
 
-float* calc_coefficients_125Hz_lowpass(int rate)
+static float* calc_coefficients_125Hz_lowpass(int rate)
 {
 	len125 = 256;
 	float f = 125.0f / (rate / 2);
@@ -204,7 +204,7 @@ float* calc_coefficients_125Hz_lowpass(int rate)
 	return coeffs;
 }
 
-float passive_lock(float x)
+static float passive_lock(float x)
 {
 	static const float MATAGCLOCK = 0.2f;  /* AGC range (around 1) where the matrix behaves passively */
 	const float x1 = x - 1;
@@ -212,7 +212,7 @@ float passive_lock(float x)
 	return x1 - x1 / (1 + ax1s * ax1s) + 1;
 }
 
-void matrix_decode(const float *in, const int k, const int il,
+static void matrix_decode(const float *in, const int k, const int il,
 	const int ir, bool decode_rear,
 	const int _dlbuflen,
 	float _l_fwr, float _r_fwr,

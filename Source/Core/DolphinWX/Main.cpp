@@ -39,6 +39,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
+#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/HW/Wiimote.h"
 

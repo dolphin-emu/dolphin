@@ -82,9 +82,7 @@
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
-bool sorted = false;
-
-extern CFrame* main_frame;
+static bool sorted = false;
 
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
                                 long sortData = CGameListCtrl::COLUMN_TITLE)
@@ -183,7 +181,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	return 0;
 }
 
-bool operator < (const GameListItem &one, const GameListItem &other)
+static bool operator < (const GameListItem &one, const GameListItem &other)
 {
 	return CompareGameListItems(&one, &other) < 0;
 }
@@ -394,7 +392,7 @@ void CGameListCtrl::Update()
 	SetFocus();
 }
 
-wxString NiceSizeFormat(u64 _size)
+static wxString NiceSizeFormat(u64 _size)
 {
 	// Return a pretty filesize string from byte count.
 	// e.g. 1134278 -> "1.08 MiB"
@@ -472,7 +470,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	SetItemData(_Index, ItemIndex);
 }
 
-wxColour blend50(const wxColour& c1, const wxColour& c2)
+static wxColour blend50(const wxColour& c1, const wxColour& c2)
 {
 	unsigned char r,g,b,a;
 	r = c1.Red()/2   + c2.Red()/2;
@@ -657,8 +655,8 @@ const GameListItem *CGameListCtrl::GetISO(size_t index) const
 		return nullptr;
 }
 
-CGameListCtrl *caller;
-int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+static CGameListCtrl *caller;
+static int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 	// return 1 if item1 > item2
 	// return -1 if item1 < item2

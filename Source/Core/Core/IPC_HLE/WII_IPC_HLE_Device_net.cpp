@@ -50,8 +50,6 @@ typedef struct pollfd pollfd_t;
 #include <errno.h>
 #endif
 
-extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
-
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName)
@@ -308,13 +306,13 @@ s32 CWII_IPC_HLE_Device_net_kd_request::NWC24MakeUserID(u64* nwc24_id, u32 holly
 	return WC24_OK;
 }
 
-void SaveMacAddress(u8* mac)
+static void SaveMacAddress(u8* mac)
 {
 	SConfig::GetInstance().m_WirelessMac = MacAddressToString(mac);
 	SConfig::GetInstance().SaveSettings();
 }
 
-void GetMacAddress(u8* mac)
+static void GetMacAddress(u8* mac)
 {
 	// Parse MAC address from config, and generate a new one if it doesn't
 	// exist or can't be parsed.

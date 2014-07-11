@@ -51,7 +51,6 @@ static int loop_counter;
 // Vertex loaders read these. Although the scale ones should be baked into the shader.
 int tcIndex;
 int colIndex;
-TVtxAttr* pVtxAttr;
 int colElements[2];
 float posScale;
 float tcScale[8];
@@ -84,13 +83,13 @@ static const float fractionTable[32] = {
 
 using namespace Gen;
 
-void LOADERDECL PosMtx_ReadDirect_UByte()
+static void LOADERDECL PosMtx_ReadDirect_UByte()
 {
 	s_curposmtx = DataReadU8() & 0x3f;
 	PRIM_LOG("posmtx: %d, ", s_curposmtx);
 }
 
-void LOADERDECL PosMtx_Write()
+static void LOADERDECL PosMtx_Write()
 {
 	DataWrite<u8>(s_curposmtx);
 	DataWrite<u8>(0);
@@ -101,7 +100,7 @@ void LOADERDECL PosMtx_Write()
 	s_curposmtx = (u8) MatrixIndexA.PosNormalMtxIdx;
 }
 
-void LOADERDECL UpdateBoundingBoxPrepare()
+static void LOADERDECL UpdateBoundingBoxPrepare()
 {
 	if (!PixelEngine::bbox_active)
 		return;
@@ -112,7 +111,7 @@ void LOADERDECL UpdateBoundingBoxPrepare()
 	VertexManager::s_pCurBufferPointer = (u8*)s_bbox_vertex_buffer;
 }
 
-inline bool UpdateBoundingBoxVars()
+static inline bool UpdateBoundingBoxVars()
 {
 	switch (s_bbox_primitive)
 	{
@@ -198,7 +197,7 @@ inline bool UpdateBoundingBoxVars()
 	}
 }
 
-void LOADERDECL UpdateBoundingBox()
+static void LOADERDECL UpdateBoundingBox()
 {
 	if (!PixelEngine::bbox_active)
 		return;
@@ -431,25 +430,25 @@ void LOADERDECL UpdateBoundingBox()
 	PixelEngine::bbox[3] = (bottom > PixelEngine::bbox[3]) ? bottom : PixelEngine::bbox[3];
 }
 
-void LOADERDECL TexMtx_ReadDirect_UByte()
+static void LOADERDECL TexMtx_ReadDirect_UByte()
 {
 	s_curtexmtx[s_texmtxread] = DataReadU8() & 0x3f;
 	PRIM_LOG("texmtx%d: %d, ", s_texmtxread, s_curtexmtx[s_texmtxread]);
 	s_texmtxread++;
 }
 
-void LOADERDECL TexMtx_Write_Float()
+static void LOADERDECL TexMtx_Write_Float()
 {
 	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
-void LOADERDECL TexMtx_Write_Float2()
+static void LOADERDECL TexMtx_Write_Float2()
 {
 	DataWrite(0.f);
 	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
-void LOADERDECL TexMtx_Write_Float4()
+static void LOADERDECL TexMtx_Write_Float4()
 {
 	DataWrite(0.f);
 	DataWrite(0.f);
@@ -837,7 +836,6 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	m_VtxAttr.texCoord[6].Frac = g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
 	m_VtxAttr.texCoord[7].Frac = g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
 
-	pVtxAttr = &m_VtxAttr;
 	posScale = fractionTable[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components & VB_HAS_UVALL)
 		for (int i = 0; i < 8; i++)

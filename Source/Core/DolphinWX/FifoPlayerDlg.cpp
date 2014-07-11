@@ -52,7 +52,7 @@ DEFINE_EVENT_TYPE(FRAME_WRITTEN_EVENT)
 
 using namespace std;
 
-std::recursive_mutex sMutex;
+static std::recursive_mutex sMutex;
 wxEvtHandler *volatile FifoPlayerDlg::m_EvtHandler = nullptr;
 
 FifoPlayerDlg::FifoPlayerDlg(wxWindow * const parent) :

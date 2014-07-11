@@ -46,7 +46,7 @@ void HLE_GeneralDebugPrint()
 	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());
 }
 
-void HLE_VPrintf()
+static void HLE_VPrintf()
 {
 	std::string ReportMessage;
 	u32 r4 = GPR(4);
@@ -66,7 +66,7 @@ void HLE_VPrintf()
 	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());
 }
 // Generalized func for just printing string pointed to by r3.
-void HLE_GeneralDebugPrintWithInt()
+static void HLE_GeneralDebugPrintWithInt()
 {
 	std::string ReportMessage;
 	GetStringVA(ReportMessage, 5);

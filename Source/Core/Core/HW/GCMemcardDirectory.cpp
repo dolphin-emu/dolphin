@@ -10,7 +10,7 @@
 #include "DiscIO/Volume.h"
 
 const int NO_INDEX = -1;
-const char *MC_HDR = "MC_SYSTEM_AREA";
+static const char *MC_HDR = "MC_SYSTEM_AREA";
 int GCMemcardDirectory::LoadGCI(std::string fileName, int region)
 {
 	File::IOFile gcifile(fileName, "rb");

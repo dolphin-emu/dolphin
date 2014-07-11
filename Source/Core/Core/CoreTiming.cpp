@@ -27,7 +27,7 @@ struct EventType
 	std::string name;
 };
 
-std::vector<EventType> event_types;
+static std::vector<EventType> event_types;
 
 struct BaseEvent
 {
@@ -41,28 +41,28 @@ typedef LinkedListItem<BaseEvent> Event;
 // STATE_TO_SAVE
 static Event *first;
 static std::mutex tsWriteLock;
-Common::FifoQueue<BaseEvent, false> tsQueue;
+static Common::FifoQueue<BaseEvent, false> tsQueue;
 
 // event pools
-Event *eventPool = nullptr;
+static Event *eventPool = nullptr;
 
 int slicelength;
-int maxSliceLength = MAX_SLICE_LENGTH;
+static int maxSliceLength = MAX_SLICE_LENGTH;
 
-s64 globalTimer;
-s64 idledCycles;
+static s64 globalTimer;
+static s64 idledCycles;
 
-u32 fakeDecStartValue;
-u64 fakeDecStartTicks;
-u64 fakeTBStartValue;
-u64 fakeTBStartTicks;
+static u32 fakeDecStartValue;
+static u64 fakeDecStartTicks;
+static u64 fakeTBStartValue;
+static u64 fakeTBStartTicks;
 
-int ev_lost;
+static int ev_lost;
 
 
-void (*advanceCallback)(int cyclesExecuted) = nullptr;
+static void (*advanceCallback)(int cyclesExecuted) = nullptr;
 
-Event* GetNewEvent()
+static Event* GetNewEvent()
 {
 	if (!eventPool)
 		return new Event;
@@ -72,7 +72,7 @@ Event* GetNewEvent()
 	return ev;
 }
 
-void FreeEvent(Event* ev)
+static void FreeEvent(Event* ev)
 {
 	ev->next = eventPool;
 	eventPool = ev;
@@ -136,7 +136,7 @@ void Shutdown()
 	}
 }
 
-void EventDoState(PointerWrap &p, BaseEvent* ev)
+static void EventDoState(PointerWrap &p, BaseEvent* ev)
 {
 	p.Do(ev->time);
 
@@ -234,7 +234,7 @@ void ClearPendingEvents()
 	}
 }
 
-void AddEventToQueue(Event* ne)
+static void AddEventToQueue(Event* ne)
 {
 	Event* prev = nullptr;
 	Event** pNext = &first;

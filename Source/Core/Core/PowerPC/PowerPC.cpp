@@ -30,10 +30,10 @@ namespace PowerPC
 
 // STATE_TO_SAVE
 PowerPCState GC_ALIGNED16(ppcState);
-volatile CPUState state = CPU_STEPPING;
+static volatile CPUState state = CPU_STEPPING;
 
 Interpreter * const interpreter = Interpreter::getInstance();
-CoreMode mode;
+static CoreMode mode;
 
 BreakPoints breakpoints;
 MemChecks memchecks;
@@ -74,7 +74,7 @@ void DoState(PointerWrap &p)
 	JitInterface::DoState(p);
 }
 
-void ResetRegisters()
+static void ResetRegisters()
 {
 	memset(ppcState.ps, 0, sizeof(ppcState.ps));
 	memset(ppcState.gpr, 0, sizeof(ppcState.gpr));

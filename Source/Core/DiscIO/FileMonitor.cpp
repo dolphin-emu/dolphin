@@ -17,6 +17,7 @@
 #include "Core/Core.h"
 #include "Core/Boot/Boot.h"
 
+#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -24,11 +25,11 @@
 namespace FileMon
 {
 
-DiscIO::IVolume *OpenISO = nullptr;
-DiscIO::IFileSystem *pFileSystem = nullptr;
-std::vector<const DiscIO::SFileInfo *> GCFiles;
-std::string ISOFile = "", CurrentFile = "";
-bool FileAccess = true;
+static DiscIO::IVolume *OpenISO = nullptr;
+static DiscIO::IFileSystem *pFileSystem = nullptr;
+static std::vector<const DiscIO::SFileInfo *> GCFiles;
+static std::string ISOFile = "", CurrentFile = "";
+static bool FileAccess = true;
 
 // Filtered files
 bool IsSoundFile(const std::string& filename)

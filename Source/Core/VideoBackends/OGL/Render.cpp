@@ -67,7 +67,7 @@ void VideoConfig::UpdateProjectionHack()
 	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
-int OSDInternalW, OSDInternalH;
+static int OSDInternalW, OSDInternalH;
 
 namespace OGL
 {
@@ -112,7 +112,7 @@ static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static bool s_efbCacheIsCleared = false;
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-int GetNumMSAASamples(int MSAAMode)
+static int GetNumMSAASamples(int MSAAMode)
 {
 	int samples;
 	switch (MSAAMode)
@@ -145,7 +145,7 @@ int GetNumMSAASamples(int MSAAMode)
 	return g_ogl_config.max_samples;
 }
 
-void ApplySSAASettings() {
+static void ApplySSAASettings() {
 	// GLES3 doesn't support SSAA
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
@@ -163,7 +163,7 @@ void ApplySSAASettings() {
 	}
 }
 
-void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
+static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
 	const char *s_source;
 	const char *s_type;
@@ -198,16 +198,16 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 }
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
-void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
+static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 {
 	glDepthRange(neardepth, fardepth);
 }
-void GLAPIENTRY ClearDepthf(GLfloat depthval)
+static void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
 }
 
-void InitDriverInfo()
+static void InitDriverInfo()
 {
 	std::string svendor = std::string(g_ogl_config.gl_vendor);
 	std::string srenderer = std::string(g_ogl_config.gl_renderer);
@@ -1299,7 +1299,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
-void DumpFrame(const std::vector<u8>& data, int w, int h)
+static void DumpFrame(const std::vector<u8>& data, int w, int h)
 {
 #if defined(HAVE_LIBAV) || defined(_WIN32)
 		if (g_ActiveConfig.bDumpFrames && !data.empty())

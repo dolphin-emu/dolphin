@@ -66,9 +66,9 @@ namespace Core
 {
 
 // Declarations and definitions
-Common::Timer Timer;
-volatile u32 DrawnFrame = 0;
-u32 DrawnVideo = 0;
+static Common::Timer Timer;
+static volatile u32 DrawnFrame = 0;
+static u32 DrawnVideo = 0;
 
 // Function forwarding
 const char *Callback_ISOName(void);
@@ -77,12 +77,12 @@ void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _
 // Function declarations
 void EmuThread();
 
-bool g_bStopping = false;
-bool g_bHwInit = false;
-bool g_bStarted = false;
-void *g_pWindowHandle = nullptr;
-std::string g_stateFileName;
-std::thread g_EmuThread;
+static bool g_bStopping = false;
+static bool g_bHwInit = false;
+static bool g_bStarted = false;
+static void *g_pWindowHandle = nullptr;
+static std::string g_stateFileName;
+static std::thread g_EmuThread;
 static StoppedCallbackFunc s_onStoppedCb = nullptr;
 
 static std::thread g_cpu_thread;
@@ -139,7 +139,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 	}
 }
 
-void Callback_DebuggerBreak()
+static void Callback_DebuggerBreak()
 {
 	CCPU::Break();
 }
@@ -264,7 +264,7 @@ void Stop()  // - Hammertime!
 }
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
-void CpuThread()
+static void CpuThread()
 {
 	const SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -310,7 +310,7 @@ void CpuThread()
 	return;
 }
 
-void FifoPlayerThread()
+static void FifoPlayerThread()
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 

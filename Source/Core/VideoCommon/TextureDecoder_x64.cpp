@@ -32,12 +32,8 @@
 #pragma clang diagnostic ignored "-Wshadow"
 #endif
 
-bool TexFmt_Overlay_Enable=false;
-bool TexFmt_Overlay_Center=false;
-
-extern const char* texfmt[];
-extern const unsigned char sfont_map[];
-extern const unsigned char sfont_raw[][9*10];
+static bool TexFmt_Overlay_Enable=false;
+static bool TexFmt_Overlay_Center=false;
 
 // TRAM
 // STATE_TO_SAVE
@@ -521,7 +517,7 @@ inline u32 makeRGBA(int r, int g, int b, int a)
 	return (a<<24)|(b<<16)|(g<<8)|r;
 }
 
-void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
+static void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 {
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
 	// Needs more speed.
@@ -564,7 +560,7 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 	}
 }
 
-void decodeDXTBlockRGBA(u32 *dst, const DXTBlock *src, int pitch)
+static void decodeDXTBlockRGBA(u32 *dst, const DXTBlock *src, int pitch)
 {
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
 	// Needs more speed.
@@ -689,7 +685,7 @@ inline void SetOpenMPThreadCount(int width, int height)
 //TODO: to save memory, don't blindly convert everything to argb8888
 //also ARGB order needs to be swapped later, to accommodate modern hardware better
 //need to add DXT support too
-PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+static PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
 	SetOpenMPThreadCount(width, height);
 
@@ -956,7 +952,7 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
-PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+static PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
 	SetOpenMPThreadCount(width, height);
 

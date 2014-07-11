@@ -221,7 +221,7 @@ namespace JitILProfiler
 			}
 		}
 	};
-	std::unique_ptr<JitILProfilerFinalizer> finalizer;
+	static std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
 		finalizer = std::make_unique<JitILProfilerFinalizer>();
@@ -233,11 +233,6 @@ namespace JitILProfiler
 };
 
 static int CODE_SIZE = 1024*1024*32;
-
-namespace CPUCompare
-{
-	extern u32 m_BlockStart;
-}
 
 void JitIL::Init()
 {

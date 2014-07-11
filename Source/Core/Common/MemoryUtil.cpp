@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/MemoryUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>

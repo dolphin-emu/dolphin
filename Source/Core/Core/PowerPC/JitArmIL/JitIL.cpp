@@ -25,10 +25,7 @@ using namespace ArmGen;
 using namespace PowerPC;
 
 static int CODE_SIZE = 1024*1024*32;
-namespace CPUCompare
-{
-	extern u32 m_BlockStart;
-}
+
 void JitArmIL::Init()
 {
 	AllocCodeSpace(CODE_SIZE);

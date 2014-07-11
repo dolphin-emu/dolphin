@@ -25,7 +25,7 @@ namespace EMM
 
 #if (defined __APPLE__ || defined __linux__ || defined __FreeBSD__) && !defined(ANDROID)
 #include <execinfo.h>
-void print_trace(const char * msg)
+static void print_trace(const char * msg)
 {
 	void *array[100];
 	size_t size;
@@ -41,7 +41,7 @@ void print_trace(const char * msg)
 }
 #endif
 
-bool DoFault(u64 bad_address, SContext *ctx)
+static bool DoFault(u64 bad_address, SContext *ctx)
 {
 	if (!JitInterface::IsInCodeSpace((u8*) ctx->CTX_PC))
 	{
@@ -269,7 +269,7 @@ void InstallExceptionHandler()
 
 #elif !defined(ANDROID)
 
-void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
+static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 {
 #ifndef _M_GENERIC
 	if (sig != SIGSEGV)

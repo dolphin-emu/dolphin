@@ -92,9 +92,6 @@ __forceinline u32 DataReadU32()
 	return DataRead<u32>();
 }
 
-typedef void (*DataReadU32xNfunc)(u32 *buf);
-extern DataReadU32xNfunc DataReadU32xFuncs[16];
-
 #if _M_SSE >= 0x301
 const __m128i bs_mask = _mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL, 0x04050607L, 0x00010203L);
 

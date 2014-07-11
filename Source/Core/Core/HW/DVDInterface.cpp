@@ -206,11 +206,11 @@ static u32 CurrentStart;
 static u32 LoopLength;
 static u32 CurrentLength;
 
-u32  g_ErrorCode = 0;
-bool g_bDiscInside = false;
+static u32  g_ErrorCode = 0;
+static bool g_bDiscInside = false;
 bool g_bStream = false;
-int  tc = 0;
-int  dtk = 0;
+static int  tc = 0;
+static int  dtk = 0;
 
 static u64 g_last_read_offset;
 static u64 g_last_read_time;
@@ -255,7 +255,7 @@ void DoState(PointerWrap &p)
 	p.Do(g_last_read_time);
 }
 
-void TransferComplete(u64 userdata, int cyclesLate)
+static void TransferComplete(u64 userdata, int cyclesLate)
 {
 	if (m_DICR.TSTART)
 		FinishExecuteRead();
@@ -297,7 +297,7 @@ static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
 	return samples_processed;
 }
 
-void DTKStreamingCallback(u64 userdata, int cyclesLate)
+static void DTKStreamingCallback(u64 userdata, int cyclesLate)
 {
 	// Send audio to the mixer.
 	static const int NUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples

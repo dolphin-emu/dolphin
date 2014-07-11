@@ -43,8 +43,8 @@ const char *PatchTypeStrings[] =
 	"dword",
 };
 
-std::vector<Patch> onFrame;
-std::map<u32, int> speedHacks;
+static std::vector<Patch> onFrame;
+static std::map<u32, int> speedHacks;
 
 void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni, IniFile& localIni)
 {
@@ -174,7 +174,7 @@ void LoadPatches()
 	LoadSpeedhacks("Speedhacks", merged);
 }
 
-void ApplyPatches(const std::vector<Patch> &patches)
+static void ApplyPatches(const std::vector<Patch> &patches)
 {
 	for (const Patch& patch : patches)
 	{

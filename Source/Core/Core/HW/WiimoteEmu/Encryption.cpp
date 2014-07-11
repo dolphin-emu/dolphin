@@ -192,7 +192,7 @@ static inline u8 ror8(const u8 a, const u8 b)
 }
 
 
-void genkey(const u8* const rand, const u8 idx, u8* const key)
+static void genkey(const u8* const rand, const u8 idx, u8* const key)
 {
 	const u8* const ans = ans_tbl[idx];
 	u8 t0[10];
@@ -209,7 +209,7 @@ void genkey(const u8* const rand, const u8 idx, u8* const key)
 }
 
 
-void gentabs(const u8* const rand, const u8* const key, const u8 idx, u8* const ft, u8* const sb)
+static void gentabs(const u8* const rand, const u8* const key, const u8 idx, u8* const ft, u8* const sb)
 {
 	ft[0] = sboxes[idx][key[4]] ^ sboxes[(idx+1)%8][rand[3]];
 	ft[1] = sboxes[idx][key[2]] ^ sboxes[(idx+1)%8][rand[5]];

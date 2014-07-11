@@ -54,7 +54,7 @@ static const u8 eeprom_data_16D0[] = {
 	0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13
 };
 
-const ReportFeatures reporting_mode_features[] =
+static const ReportFeatures reporting_mode_features[] =
 {
 	//0x30: Core Buttons
 	{ 2, 0, 0, 0, 4 },

@@ -170,10 +170,10 @@ void Jit64::ComputeRC(const Gen::OpArg & arg)
 	}
 }
 
-u32 Add(u32 a, u32 b) {return a + b;}
-u32 Or (u32 a, u32 b) {return a | b;}
-u32 And(u32 a, u32 b) {return a & b;}
-u32 Xor(u32 a, u32 b) {return a ^ b;}
+static u32 Add(u32 a, u32 b) {return a + b;}
+static u32 Or (u32 a, u32 b) {return a | b;}
+static u32 And(u32 a, u32 b) {return a & b;}
+static u32 Xor(u32 a, u32 b) {return a ^ b;}
 
 void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc, bool carry)
 {

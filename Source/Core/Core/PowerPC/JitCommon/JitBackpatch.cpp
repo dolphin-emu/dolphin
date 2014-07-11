@@ -19,8 +19,6 @@
 
 using namespace Gen;
 
-extern u8 *trampolineCodePtr;
-
 #if _M_X86_64
 static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	u64 code_addr = (u64)codePtr;

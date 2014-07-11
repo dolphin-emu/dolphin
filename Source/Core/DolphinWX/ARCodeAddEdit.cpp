@@ -25,11 +25,10 @@
 #include "Core/ActionReplay.h"
 #include "Core/ARDecrypt.h"
 #include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
 
 class wxWindow;
-
-extern std::vector<ActionReplay::ARCode> arCodes;
 
 BEGIN_EVENT_TABLE(CARCodeAddEdit, wxDialog)
 	EVT_BUTTON(wxID_OK, CARCodeAddEdit::SaveCheatData)

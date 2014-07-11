@@ -1574,16 +1574,16 @@ const GLFunc gl_function_array[] =
 namespace GLExtensions
 {
 	// Private members and functions
-	bool _isES3;
-	bool _isES;
-	u32 _GLVersion;
-	std::unordered_map<std::string, bool> m_extension_list;
+	static bool _isES3;
+	static bool _isES;
+	static u32 _GLVersion;
+	static std::unordered_map<std::string, bool> m_extension_list;
 
 	// Private initialization functions
 	bool InitFunctionPointers();
 
 	// Initializes the extension list the old way
-	void InitExtensionList21()
+	static void InitExtensionList21()
 	{
 		const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
 		std::string tmp(extensions);
@@ -1593,7 +1593,7 @@ namespace GLExtensions
 			m_extension_list[tmp] = true;
 	}
 
-	void InitExtensionList()
+	static void InitExtensionList()
 	{
 		m_extension_list.clear();
 		if (_isES3)
@@ -1730,7 +1730,7 @@ namespace GLExtensions
 		for (GLint i = 0; i < NumExtension; ++i)
 			m_extension_list[std::string((const char*)glGetStringi(GL_EXTENSIONS, i))] = true;
 	}
-	void InitVersion()
+	static void InitVersion()
 	{
 		GLint major, minor;
 		glGetIntegerv(GL_MAJOR_VERSION, &major);
@@ -1743,7 +1743,7 @@ namespace GLExtensions
 			_GLVersion = 330; // Get all the fun things
 	}
 
-	void* GetFuncAddress(std::string name, void **func)
+	static void* GetFuncAddress(std::string name, void **func)
 	{
 		*func = GLInterface->GetFuncAddress(name);
 		if (*func == nullptr)
@@ -1792,7 +1792,7 @@ namespace GLExtensions
 	}
 
 	// Private initialization functions
-	bool HasFeatures(const std::string& extensions)
+	static bool HasFeatures(const std::string& extensions)
 	{
 		bool result = true;
 		std::string tmp;

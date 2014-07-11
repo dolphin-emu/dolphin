@@ -18,7 +18,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-float GC_ALIGNED16(g_fProjectionMatrix[16]);
+static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -53,7 +53,7 @@ static ProjectionHack g_ProjHack1;
 static ProjectionHack g_ProjHack2;
 } // Namespace
 
-float PHackValue(std::string sValue)
+static float PHackValue(std::string sValue)
 {
 	float f = 0;
 	bool fp = false;

@@ -7,7 +7,7 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-void innerFlush(FlushData *data)
+static void innerFlush(FlushData *data)
 {
 	File::IOFile pFile(data->filename, "r+b");
 	if (!pFile)

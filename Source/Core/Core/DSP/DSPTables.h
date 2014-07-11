@@ -54,6 +54,8 @@ enum partype_t
 #define OPTABLE_SIZE 0xffff + 1
 #define EXT_OPTABLE_SIZE 0xff + 1
 
+void nop(const UDSPInstruction opc);
+
 typedef void (*dspIntFunc)(const UDSPInstruction);
 typedef void (DSPEmitter::*dspJitFunc)(const UDSPInstruction);
 

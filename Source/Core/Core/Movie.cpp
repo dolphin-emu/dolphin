@@ -35,54 +35,56 @@
 // The chunk to allocate movie data in multiples of.
 #define DTM_BASE_LENGTH (1024)
 
-std::mutex cs_frameSkip;
+static std::mutex cs_frameSkip;
 
 namespace Movie {
 
-bool g_bFrameStep = false;
-bool g_bFrameStop = false;
-bool g_bReadOnly = true;
-u32 g_rerecords = 0;
-PlayMode g_playMode = MODE_NONE;
+static bool g_bFrameStep = false;
+static bool g_bFrameStop = false;
+static bool g_bReadOnly = true;
+static u32 g_rerecords = 0;
+static PlayMode g_playMode = MODE_NONE;
 
-u32 g_framesToSkip = 0, g_frameSkipCounter = 0;
+static u32 g_framesToSkip = 0, g_frameSkipCounter = 0;
 
-u8 g_numPads = 0;
-ControllerState g_padState;
-DTMHeader tmpHeader;
-u8* tmpInput = nullptr;
-size_t tmpInputAllocated = 0;
-u64 g_currentByte = 0, g_totalBytes = 0;
+static u8 g_numPads = 0;
+static ControllerState g_padState;
+static DTMHeader tmpHeader;
+static u8* tmpInput = nullptr;
+static size_t tmpInputAllocated = 0;
+static u64 g_currentByte = 0, g_totalBytes = 0;
 u64 g_currentFrame = 0, g_totalFrames = 0; // VI
-u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
+u64 g_currentLagCount = 0;
+static u64 g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
-u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
-u64 g_recordingStartTime; // seconds since 1970 that recording started
-bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
-bool g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
-std::string videoBackend = "unknown";
-int iCPUCore = 1;
+static u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
+static u64 g_recordingStartTime; // seconds since 1970 that recording started
+static bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
+bool g_bClearSave = false;
+static bool bSyncGPU = false, bNetPlay = false;
+static std::string videoBackend = "unknown";
+static int iCPUCore = 1;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
-std::string author = "";
+static std::string author = "";
 u64 g_titleID = 0;
-unsigned char MD5[16];
-u8 bongos, memcards;
-u8 revision[20];
-u32 DSPiromHash = 0;
-u32 DSPcoefHash = 0;
+static unsigned char MD5[16];
+static u8 bongos, memcards;
+static u8 revision[20];
+static u32 DSPiromHash = 0;
+static u32 DSPcoefHash = 0;
 
-bool g_bRecordingFromSaveState = false;
-bool g_bPolled = false;
-int g_currentSaveVersion = 0;
+static bool g_bRecordingFromSaveState = false;
+static bool g_bPolled = false;
+static int g_currentSaveVersion = 0;
 
-std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
+static std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
 
-std::string g_InputDisplay[8];
+static std::string g_InputDisplay[8];
 
-ManipFunction mfunc = nullptr;
+static ManipFunction mfunc = nullptr;
 
-void EnsureTmpInputSize(size_t bound)
+static void EnsureTmpInputSize(size_t bound)
 {
 	if (tmpInputAllocated >= bound)
 		return;
@@ -525,7 +527,7 @@ static std::string Analog1DToString(u8 v, const std::string& prefix)
 	}
 }
 
-void SetInputDisplayString(ControllerState padState, int controllerID)
+static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
 	g_InputDisplay[controllerID] = StringFromFormat("P%d:", controllerID + 1);
 
@@ -558,7 +560,7 @@ void SetInputDisplayString(ControllerState padState, int controllerID)
 	g_InputDisplay[controllerID].append("\n");
 }
 
-void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelData, u8* const irData)
+static void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelData, u8* const irData)
 {
 	int controllerID = remoteID + 4;
 

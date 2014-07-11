@@ -19,42 +19,42 @@
 namespace TransformUnit
 {
 
-void MultiplyVec2Mat24(const Vec3 &vec, const float *mat, Vec3 &result)
+static void MultiplyVec2Mat24(const Vec3 &vec, const float *mat, Vec3 &result)
 {
 	result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] + mat[3];
 	result.y = mat[4] * vec.x + mat[5] * vec.y + mat[6] + mat[7];
 	result.z = 1.0f;
 }
 
-void MultiplyVec2Mat34(const Vec3 &vec, const float *mat, Vec3 &result)
+static void MultiplyVec2Mat34(const Vec3 &vec, const float *mat, Vec3 &result)
 {
 	result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] + mat[3];
 	result.y = mat[4] * vec.x + mat[5] * vec.y + mat[6] + mat[7];
 	result.z = mat[8] * vec.x + mat[9] * vec.y + mat[10] + mat[11];
 }
 
-void MultiplyVec3Mat33(const Vec3 &vec, const float *mat, Vec3 &result)
+static void MultiplyVec3Mat33(const Vec3 &vec, const float *mat, Vec3 &result)
 {
 	result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] * vec.z;
 	result.y = mat[3] * vec.x + mat[4] * vec.y + mat[5] * vec.z;
 	result.z = mat[6] * vec.x + mat[7] * vec.y + mat[8] * vec.z;
 }
 
-void MultiplyVec3Mat24(const Vec3 &vec, const float *mat, Vec3 &result)
+static void MultiplyVec3Mat24(const Vec3 &vec, const float *mat, Vec3 &result)
 {
 	result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] * vec.z + mat[3];
 	result.y = mat[4] * vec.x + mat[5] * vec.y + mat[6] * vec.z + mat[7];
 	result.z = 1.0f;
 }
 
-void MultiplyVec3Mat34(const Vec3 &vec, const float *mat, Vec3 &result)
+static void MultiplyVec3Mat34(const Vec3 &vec, const float *mat, Vec3 &result)
 {
 	result.x = mat[0] * vec.x + mat[1] * vec.y + mat[2] * vec.z + mat[3];
 	result.y = mat[4] * vec.x + mat[5] * vec.y + mat[6] * vec.z + mat[7];
 	result.z = mat[8] * vec.x + mat[9] * vec.y + mat[10] * vec.z + mat[11];
 }
 
-void MultipleVec3Perspective(const Vec3 &vec, const float *proj, Vec4 &result)
+static void MultipleVec3Perspective(const Vec3 &vec, const float *proj, Vec4 &result)
 {
 	result.x = proj[0] * vec.x + proj[1] * vec.z;
 	result.y = proj[2] * vec.y + proj[3] * vec.z;
@@ -63,7 +63,7 @@ void MultipleVec3Perspective(const Vec3 &vec, const float *proj, Vec4 &result)
 	result.w = -vec.z;
 }
 
-void MultipleVec3Ortho(const Vec3 &vec, const float *proj, Vec4 &result)
+static void MultipleVec3Ortho(const Vec3 &vec, const float *proj, Vec4 &result)
 {
 	result.x = proj[0] * vec.x + proj[1];
 	result.y = proj[2] * vec.y + proj[3];
@@ -104,7 +104,7 @@ void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst
 	}
 }
 
-void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool specialCase, const InputVertexData *srcVertex, OutputVertexData *dstVertex)
+static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool specialCase, const InputVertexData *srcVertex, OutputVertexData *dstVertex)
 {
 	const Vec3 *src;
 	switch (texinfo.sourcerow)
@@ -208,7 +208,7 @@ inline float SafeDivide(float n, float d)
 	return (d==0) ? (n>0?1:0) : n/d;
 }
 
-void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, Vec3 &lightCol)
+static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, Vec3 &lightCol)
 {
 	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
 
@@ -293,7 +293,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 	}
 }
 
-void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, float &lightCol)
+static void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChannel &chan, float &lightCol)
 {
 	const LightPointer *light = (const LightPointer*)&xfmem.lights[lightNum];
 

@@ -19,6 +19,7 @@
 #include <wx/windowid.h>
 
 #include "Common/IniFile.h"
+#include "Core/ActionReplay.h"
 
 class GameListItem;
 class wxButton;
@@ -32,6 +33,8 @@ class wxWindow;
 namespace DiscIO { struct SFileInfo; }
 namespace Gecko { class CodeConfigPanel; }
 
+extern std::vector<ActionReplay::ARCode> arCodes;
+
 struct PHackData
 {
 	bool PHackSZNear;
@@ -39,6 +42,7 @@ struct PHackData
 	std::string PHZNear;
 	std::string PHZFar;
 };
+extern PHackData PHack_Data;
 
 class CISOProperties : public wxDialog
 {

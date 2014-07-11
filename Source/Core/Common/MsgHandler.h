@@ -22,7 +22,7 @@ typedef std::string (*StringTranslator)(const char* text);
 void RegisterMsgAlertHandler(MsgAlertHandler handler);
 void RegisterStringTranslator(StringTranslator translator);
 
-extern bool MsgAlert(bool yes_no, int Style, const char* format, ...)
+bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 #ifdef __GNUC__
 	__attribute__((format(printf, 3, 4)))
 #endif

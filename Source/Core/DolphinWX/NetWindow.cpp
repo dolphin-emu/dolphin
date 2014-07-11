@@ -42,6 +42,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/ISOFile.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -56,10 +57,9 @@ END_EVENT_TABLE()
 
 static NetPlayServer* netplay_server = nullptr;
 static NetPlayClient* netplay_client = nullptr;
-extern CFrame* main_frame;
 NetPlayDiag *NetPlayDiag::npd = nullptr;
 
-std::string BuildGameName(const GameListItem& game)
+static std::string BuildGameName(const GameListItem& game)
 {
 	// Lang needs to be consistent
 	auto const lang = 0;
@@ -74,7 +74,7 @@ std::string BuildGameName(const GameListItem& game)
 		return name + " (" + game.GetUniqueID() + ")";
 }
 
-void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
+static void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
 {
 	for (u32 i = 0 ; auto game = game_list.GetISO(i); ++i)
 		game_lbox->Append(StrToWxStr(BuildGameName(*game)));

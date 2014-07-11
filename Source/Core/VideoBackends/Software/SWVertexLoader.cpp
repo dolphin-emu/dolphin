@@ -12,19 +12,12 @@
 #include "VideoBackends/Software/XFMemLoader.h"
 
 #include "VideoCommon/DataReader.h"
+#include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
 #include "VideoCommon/VertexManagerBase.h"
-
-// Vertex loaders read these
-extern int tcIndex;
-extern int colIndex;
-extern int colElements[2];
-extern float posScale;
-extern float tcScale[8];
-
 
 SWVertexLoader::SWVertexLoader() :
 	m_VertexSize(0),

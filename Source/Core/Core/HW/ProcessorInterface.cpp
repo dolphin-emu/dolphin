@@ -43,10 +43,10 @@ u32 Fifo_CPUBase;
 u32 Fifo_CPUEnd;
 u32 Fifo_CPUWritePointer;
 
-u32 m_Fifo_Reset;
-u32 m_ResetCode;
-u32 m_FlipperRev;
-u32 m_Unknown;
+static u32 m_Fifo_Reset;
+static u32 m_ResetCode;
+static u32 m_FlipperRev;
+static u32 m_Unknown;
 
 
 // ID and callback for scheduling reset button presses/releases
@@ -211,7 +211,7 @@ void SetInterrupt(u32 _causemask, bool _bSet)
 	UpdateException();
 }
 
-void SetResetButton(bool _bSet)
+static void SetResetButton(bool _bSet)
 {
 	if (_bSet)
 		Common::AtomicAnd(m_InterruptCause, ~INT_CAUSE_RST_BUTTON);

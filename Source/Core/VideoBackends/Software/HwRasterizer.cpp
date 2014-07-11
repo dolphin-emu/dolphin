@@ -16,11 +16,11 @@
 
 namespace HwRasterizer
 {
-	float efbHalfWidth;
-	float efbHalfHeight;
-	bool hasTexture;
+	static float efbHalfWidth;
+	static float efbHalfHeight;
+	static bool hasTexture;
 
-	u8 *temp;
+	static u8 *temp;
 
 	// Programs
 	static GLuint colProg, texProg, clearProg;
@@ -35,7 +35,7 @@ namespace HwRasterizer
 	// Clear shader
 	static GLint clear_apos = -1, clear_ucol = -1;
 
-	void CreateShaders()
+	static void CreateShaders()
 	{
 		// Color Vertices
 		static const char *fragcolText =
@@ -155,7 +155,7 @@ namespace HwRasterizer
 		GL_REPORT_ERRORD();
 	}
 	static float width, height;
-	void LoadTexture()
+	static void LoadTexture()
 	{
 		FourTexUnits &texUnit = bpmem.tex[0];
 		u32 imageAddr = texUnit.texImage3[0].image_base;
@@ -199,7 +199,7 @@ namespace HwRasterizer
 		glDisable(GL_BLEND);
 	}
 
-	void DrawColorVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
+	static void DrawColorVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
 	{
 		float x0 = (v0->screenPosition.x / efbHalfWidth) - 1.0f;
 		float y0 = 1.0f - (v0->screenPosition.y / efbHalfHeight);
@@ -249,7 +249,7 @@ namespace HwRasterizer
 		GL_REPORT_ERRORD();
 	}
 
-	void DrawTextureVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
+	static void DrawTextureVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
 	{
 		float x0 = (v0->screenPosition.x / efbHalfWidth) - 1.0f;
 		float y0 = 1.0f - (v0->screenPosition.y / efbHalfHeight);

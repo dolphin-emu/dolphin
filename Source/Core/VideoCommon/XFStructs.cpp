@@ -11,13 +11,13 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
-void XFMemWritten(u32 transferSize, u32 baseAddress)
+static void XFMemWritten(u32 transferSize, u32 baseAddress)
 {
 	VertexManager::Flush();
 	VertexShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
-void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
+static void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 {
 	u32 address = baseAddress;
 	u32 dataIndex = 0;

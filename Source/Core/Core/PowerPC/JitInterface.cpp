@@ -31,7 +31,7 @@
 #include "Core/PowerPC/JitArmIL/JitIL_Tables.h"
 #endif
 
-bool bFakeVMEM = false;
+static bool bFakeVMEM = false;
 bool bMMU = false;
 
 namespace JitInterface

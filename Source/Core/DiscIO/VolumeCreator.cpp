@@ -14,6 +14,7 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
 #include "DiscIO/VolumeDirectory.h"
 #include "DiscIO/VolumeGC.h"
 #include "DiscIO/VolumeWad.h"
