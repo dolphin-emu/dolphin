@@ -124,21 +124,12 @@ public:
 		template <typename C>
 		void GetState(C* const x, C* const y, const unsigned int base, const unsigned int range)
 		{
-			// this is all a mess
-
 			ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
 			ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
 			ControlState radius = settings[SETTING_RADIUS]->value;
 			ControlState deadzone = settings[SETTING_DEADZONE]->value;
 			ControlState m = controls[4]->control_ref->State();
-
-			// modifier code
-			if (m)
-			{
-				yy = (fabsf(yy)>deadzone) * sign(yy) * (m + deadzone/2);
-				xx = (fabsf(xx)>deadzone) * sign(xx) * (m + deadzone/2);
-			}
 
 			ControlState ang = atan2(yy, xx);
 			ControlState ang_sin = sin(ang);
@@ -152,6 +143,11 @@ public:
 
 			// radius
 			dist *= radius;
+
+			// The modifier halves the distance by 50%, which is useful
+			// for keyboard controls.
+			if (m)
+				dist *= 0.5;
 
 			yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
 			xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
@@ -281,13 +277,6 @@ public:
 			auto const angle = settings[2]->value / 1.8f;
 			ControlState m = controls[4]->control_ref->State();
 
-			// modifier code
-			if (m)
-			{
-				yy = (fabsf(yy)>deadzone) * sign(yy) * (m + deadzone/2);
-				xx = (fabsf(xx)>deadzone) * sign(xx) * (m + deadzone/2);
-			}
-
 			// deadzone / circle stick code
 			// this section might be all wrong, but its working good enough, I think
 
@@ -311,6 +300,9 @@ public:
 			// circle stick code
 			ControlState amt = dist / stick_full;
 			dist += (square_full - 1) * amt * circle;
+
+			if (m)
+				dist *= 0.5;
 
 			yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
 			xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
