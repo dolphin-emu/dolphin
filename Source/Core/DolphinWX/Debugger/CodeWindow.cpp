@@ -195,10 +195,18 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 	Parent->UpdateGUI();
 }
 
-void CCodeWindow::JumpToAddress(u32 _Address)
+bool CCodeWindow::JumpToAddress(u32 address)
 {
-	codeview->Center(_Address);
-	UpdateLists();
+	// Jump to anywhere in memory
+	if (address <= 0xFFFFFFFF)
+	{
+		codeview->Center(address);
+		UpdateLists();
+
+		return true;
+	}
+
+	return false;
 }
 
 void CCodeWindow::OnCodeViewChange(wxCommandEvent &event)
@@ -208,19 +216,26 @@ void CCodeWindow::OnCodeViewChange(wxCommandEvent &event)
 
 void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 {
-	if (!GetToolBar()) return;
+	if (!GetToolBar())
+		return;
 
 	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
-	wxString txt = pAddrCtrl->GetValue();
+	wxString txt = pAddrCtrl->GetValue().Strip(wxString::stripType::both);
 
-	std::string text(WxStrToStr(txt));
-	text = StripSpaces(text);
-	if (text.size() == 8)
+	bool success = false;
+	unsigned long addr;
+	if (txt.ToULong(&addr, 16))
 	{
-		u32 addr;
-		sscanf(text.c_str(), "%08x", &addr);
-		JumpToAddress(addr);
+		if (JumpToAddress(addr))
+			success = true;
 	}
+
+	if (success)
+		pAddrCtrl->SetBackgroundColour(wxNullColour);
+	else
+		pAddrCtrl->SetBackgroundColour(*wxRED);
+
+	pAddrCtrl->Refresh();
 
 	event.Skip();
 }
