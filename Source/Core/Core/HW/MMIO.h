@@ -75,25 +75,24 @@ public:
 	//
 	// Example usages can be found in just about any HW/ module in Dolphin's
 	// codebase.
-#define REGISTER_FUNCS(Size) \
-	void RegisterRead(u32 addr, ReadHandlingMethod<u##Size>* read) \
-	{ \
-		u32 id = UniqueID(addr) / sizeof (u##Size); \
-		m_Read##Size##Handlers[id].ResetMethod(read); \
-	} \
-	void RegisterWrite(u32 addr, WriteHandlingMethod<u##Size>* write) \
-	{ \
-		u32 id = UniqueID(addr) / sizeof (u##Size); \
-		m_Write##Size##Handlers[id].ResetMethod(write); \
-	} \
-	void Register(u32 addr, ReadHandlingMethod<u##Size>* read, \
-	              WriteHandlingMethod<u##Size>* write) \
-	{ \
-		RegisterRead(addr, read); \
-		RegisterWrite(addr, write); \
+	template<typename Unit>
+	void RegisterRead(u32 addr, ReadHandlingMethod<Unit>* read)
+	{
+		GetHandlerForRead<Unit>(addr).ResetMethod(read);
 	}
-	REGISTER_FUNCS(8) REGISTER_FUNCS(16) REGISTER_FUNCS(32)
-#undef REGISTER_FUNCS
+
+	template<typename Unit>
+	void RegisterWrite(u32 addr, WriteHandlingMethod<Unit>* write)
+	{
+		GetHandlerForWrite<Unit>(addr).ResetMethod(write);
+	}
+
+	template<typename Unit>
+	void Register(u32 addr, ReadHandlingMethod<Unit>* read, WriteHandlingMethod<Unit>* write)
+	{
+		RegisterRead(addr, read);
+		RegisterWrite(addr, write);
+	}
 
 	// Direct read/write interface.
 	//
@@ -101,54 +100,34 @@ public:
 	// address. They are used by the Memory:: access functions, which are
 	// called in interpreter mode, from Dolphin's own code, or from JIT'd code
 	// where the access address could not be predicted.
-	//
-	// Note that for reads we cannot simply return the read value because C++
-	// allows overloading only with parameter types, not return types.
-#define READ_FUNC(Size) \
-	void Read(u32 addr, u##Size* val) \
-	{ \
-		u32 id = UniqueID(addr) / sizeof (u##Size); \
-		*val = m_Read##Size##Handlers[id].Read(addr); \
+	template<typename Unit>
+	Unit Read(u32 addr)
+	{
+		return GetHandlerForRead<Unit>(addr).Read(addr);
 	}
-	READ_FUNC(8) READ_FUNC(16) READ_FUNC(32)
-#undef READ_FUNC
 
-#define WRITE_FUNC(Size) \
-	void Write(u32 addr, u##Size val) \
-	{ \
-		u32 id = UniqueID(addr) / sizeof (u##Size); \
-		m_Write##Size##Handlers[id].Write(addr, val); \
+	template<typename Unit>
+	void Write(u32 addr, Unit val)
+	{
+		GetHandlerForWrite<Unit>(addr).Write(addr, val);
 	}
-	WRITE_FUNC(8) WRITE_FUNC(16) WRITE_FUNC(32)
-#undef WRITE_FUNC
 
 	// Handlers access interface.
 	//
 	// Use when you care more about how to access the MMIO register for an
 	// address than the current value of that register. For example, this is
 	// what could be used to implement fast MMIO accesses in Dolphin's JIT.
-	//
-	// Two variants of each GetHandler function are provided: one that returns
-	// the handler directly and one that has a pointer parameter to return the
-	// value. This second variant is needed because C++ doesn't do overloads
-	// based on return type but only based on argument types.
-#define GET_HANDLERS_FUNC(Type, Size) \
-	Type##Handler<u##Size>& GetHandlerFor##Type##Size(u32 addr) \
-	{ \
-		return m_##Type##Size##Handlers[UniqueID(addr) / sizeof (u##Size)]; \
-	} \
-	void GetHandlerFor##Type(u32 addr, Type##Handler<u##Size>** h) \
-	{ \
-		*h = &GetHandlerFor##Type##Size(addr); \
+	template<typename Unit>
+	ReadHandler<Unit>& GetHandlerForRead(u32 addr)
+	{
+		return GetReadHandler<Unit>(UniqueID(addr) / sizeof(Unit));
 	}
-	GET_HANDLERS_FUNC(Read, 8) GET_HANDLERS_FUNC(Read, 16) GET_HANDLERS_FUNC(Read, 32)
-	GET_HANDLERS_FUNC(Write, 8) GET_HANDLERS_FUNC(Write, 16) GET_HANDLERS_FUNC(Write, 32)
-#undef GET_HANDLERS_FUNC
 
-	// Dummy 64 bits variants of these functions. While 64 bits MMIO access is
-	// not supported, we need these in order to make the code compile.
-	void Read(u32 addr, u64* val) { _dbg_assert_(MEMMAP, 0); }
-	void Write(u32 addr, u64 val) { _dbg_assert_(MEMMAP, 0); }
+	template<typename Unit>
+	WriteHandler<Unit>& GetHandlerForWrite(u32 addr)
+	{
+		return GetWriteHandler<Unit>(UniqueID(addr) / sizeof(Unit));
+	}
 
 private:
 	// These arrays contain the handlers for each MMIO access type: read/write
@@ -159,11 +138,71 @@ private:
 	// Each array contains NUM_MMIOS / sizeof (AccessType) because larger
 	// access types mean less possible adresses (assuming aligned only
 	// accesses).
-#define HANDLERS(Size) \
-	std::array<ReadHandler<u##Size>, NUM_MMIOS / sizeof (u##Size)> m_Read##Size##Handlers; \
-	std::array<WriteHandler<u##Size>, NUM_MMIOS / sizeof (u##Size)> m_Write##Size##Handlers;
-	HANDLERS(8) HANDLERS(16) HANDLERS(32)
-#undef HANDLERS
+	template<typename Unit>
+	struct HandlerArray
+	{
+		using Read = std::array<ReadHandler<Unit>, NUM_MMIOS / sizeof(Unit)>;
+		using Write = std::array<WriteHandler<Unit>, NUM_MMIOS / sizeof(Unit)>;
+	};
+
+	HandlerArray<u8>::Read m_read_handlers8;
+	HandlerArray<u16>::Read m_read_handlers16;
+	HandlerArray<u32>::Read m_read_handlers32;
+
+	HandlerArray<u8>::Write m_write_handlers8;
+	HandlerArray<u16>::Write m_write_handlers16;
+	HandlerArray<u32>::Write m_write_handlers32;
+
+	// Getter functions for the handler arrays.
+	//
+	// TODO:
+	// It would be desirable to clean these methods up using tuples, i.e. doing something like
+	//
+	//     auto handlers = std::tie(m_read_handlers8, m_read_handlers16, m_read_handlers32);
+	//     return std::get<Unit>(handlers)[index];
+	//
+	// However, we cannot use this currently because of a compiler bug in clang, presumably related
+	// to http://llvm.org/bugs/show_bug.cgi?id=18345, due to which the above code makes the compiler
+	// exceed the template recursion depth.
+	// As a workaround, we cast all handlers to the requested one's type. This cast will
+	// compile to a NOP for the returned member variable, but it's necessary to get this
+	// code to compile at all.
+	template<typename Unit>
+	ReadHandler<Unit>& GetReadHandler(size_t index)
+	{
+		static_assert(std::is_same<Unit, u8>::value || std::is_same<Unit, u16>::value || std::is_same<Unit, u32>::value, "Invalid unit used");
+		using ArrayType = typename HandlerArray<Unit>::Read;
+		ArrayType& handler = *(std::is_same<Unit,u8>::value ? (ArrayType*)&m_read_handlers8
+		                                                    : std::is_same<Unit,u16>::value ? (ArrayType*)&m_read_handlers16
+		                                                                                    : (ArrayType*)&m_read_handlers32);
+		return handler[index];
+	}
+
+	template<typename Unit>
+	WriteHandler<Unit>& GetWriteHandler(size_t index)
+	{
+		static_assert(std::is_same<Unit, u8>::value || std::is_same<Unit, u16>::value || std::is_same<Unit, u32>::value, "Invalid unit used");
+		using ArrayType = typename HandlerArray<Unit>::Write;
+		ArrayType& handler = *(std::is_same<Unit,u8>::value ? (ArrayType*)&m_write_handlers8
+		                                                    : std::is_same<Unit,u16>::value ? (ArrayType*)&m_write_handlers16
+		                                                                                    : (ArrayType*)&m_write_handlers32);
+		return handler[index];
+	}
 };
+
+// Dummy 64 bits variants of these functions. While 64 bits MMIO access is
+// not supported, we need these in order to make the code compile.
+template<>
+inline u64 Mapping::Read<u64>(u32 addr)
+{
+    _dbg_assert_(MEMMAP, 0);
+    return 0;
+}
+
+template<>
+inline void Mapping::Write(u32 addr, u64 val)
+{
+    _dbg_assert_(MEMMAP, 0);
+}
 
 }

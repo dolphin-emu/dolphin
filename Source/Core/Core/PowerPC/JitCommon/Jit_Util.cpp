@@ -253,21 +253,21 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 		{
 			MMIOReadCodeGenerator<u8> gen(this, registers_in_use, reg_value,
 			                              address, sign_extend);
-			mmio->GetHandlerForRead8(address).Visit(gen);
+			mmio->GetHandlerForRead<u8>(address).Visit(gen);
 			break;
 		}
 	case 16:
 		{
 			MMIOReadCodeGenerator<u16> gen(this, registers_in_use, reg_value,
 			                               address, sign_extend);
-			mmio->GetHandlerForRead16(address).Visit(gen);
+			mmio->GetHandlerForRead<u16>(address).Visit(gen);
 			break;
 		}
 	case 32:
 		{
 			MMIOReadCodeGenerator<u32> gen(this, registers_in_use, reg_value,
 			                               address, sign_extend);
-			mmio->GetHandlerForRead32(address).Visit(gen);
+			mmio->GetHandlerForRead<u32>(address).Visit(gen);
 			break;
 		}
 	}
