@@ -92,7 +92,7 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 		if (em_address < 0xcc000000)
 			_var = EFB_Read(em_address);
 		else
-			mmio_mapping->Read(em_address, &_var);
+			_var = mmio_mapping->Read<T>(em_address);
 	}
 	else if (((em_address & 0xF0000000) == 0x80000000) ||
 		((em_address & 0xF0000000) == 0xC0000000) ||
