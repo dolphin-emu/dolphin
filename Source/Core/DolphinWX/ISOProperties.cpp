@@ -422,7 +422,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(3, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Camera pitch:")), wxGBPosition(4, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	CameraPitch = new wxSpinCtrlDouble(m_VR, ID_CAMERA_PITCH, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, 0, 0.1);
+	CameraPitch = new wxSpinCtrlDouble(m_VR, ID_CAMERA_PITCH, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -180, 360, 0, 1);
 	s3DGrid->Add(CameraPitch, wxGBPosition(4, 1), wxDefaultSpan, wxALL, 5);
 	s3DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("degrees up")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
@@ -462,7 +462,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("metres")), wxGBPosition(4, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("Screen Pitch:")), wxGBPosition(5, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	ScreenPitch = new wxSpinCtrlDouble(m_VR, ID_SCREEN_PITCH, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -10000, 10000, 0, 5);
+	ScreenPitch = new wxSpinCtrlDouble(m_VR, ID_SCREEN_PITCH, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, -180, 360, 0, 1);
 	s2DGrid->Add(ScreenPitch, wxGBPosition(5, 1), wxDefaultSpan, wxALL, 5);
 	s2DGrid->Add(new wxStaticText(m_VR, wxID_ANY, _("degrees")), wxGBPosition(5, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
@@ -1236,9 +1236,9 @@ void CISOProperties::LoadGameConfig()
 	if (GameIniLocal.GetIfExists("VR", "ScreenPitch", &fTemp))
 		ScreenPitch->SetValue(fTemp);
 
-	GameIniDefault.Get("VR", "EmulationStateId", &iTemp, 0/*Not Set*/);
+	GameIniDefault.Get("VR", "VRStateId", &iTemp, 0/*Not Set*/);
 	VRState->SetSelection(iTemp);
-	if (GameIniLocal.GetIfExists("VR", "EmulationStateId", &iTemp))
+	if (GameIniLocal.GetIfExists("VR", "VRStateId", &iTemp))
 		VRState->SetSelection(iTemp);
 
 	GameIniDefault.Get("VR", "VRIssues", &sTemp);

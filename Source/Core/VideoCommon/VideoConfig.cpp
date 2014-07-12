@@ -239,6 +239,48 @@ void VideoConfig::GameIniLoad()
 		OSD::AddMessage("Warning: Opening the graphics configuration will reset settings and might cause issues!", 10000);
 }
 
+void VideoConfig::GameIniSave()
+{
+	// Load game ini
+	std::string GameIniFileDefault = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefault;
+	std::string GameIniFileDefaultRevisionSpecific = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefaultRevisionSpecific;
+	std::string GameIniFileLocal = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal;
+
+	IniFile GameIniDefault, GameIniLocal;
+	GameIniDefault.Load(GameIniFileDefault);
+	if (GameIniFileDefaultRevisionSpecific != "")
+		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
+	GameIniLocal.Load(GameIniFileLocal);
+
+	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
+		if (GameIniDefault.Exists((section), (key))) { \
+			std::remove_reference<decltype((val))>::type tmp__; \
+			GameIniDefault.Get((section), (key), &tmp__); \
+			if ((val) != tmp__) \
+				GameIniLocal.Set((section), (key), (val)); \
+			else \
+				GameIniLocal.DeleteKey((section), (key)); \
+		} else if ((val) != (def)) \
+			GameIniLocal.Set((section), (key), (val)); \
+		else \
+			GameIniLocal.DeleteKey((section), (key)); \
+	} while (0)
+
+	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)fUnitsPerMetre, 1.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, 1.5f);
+	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, 0.5f);
+	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)fCameraForward, 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)fCameraPitch, 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)fAimDistance, 7.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenHeight", (float)fScreenHeight, 2.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenDistance", (float)fScreenDistance, 1.5f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenThickness", (float)fScreenThickness, 0.5f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenUp", (float)fScreenUp, 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, 0.0f);
+	GameIniLocal.Save(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal);
+}
+
 void VideoConfig::VerifyValidity()
 {
 	// TODO: Check iMaxAnisotropy value

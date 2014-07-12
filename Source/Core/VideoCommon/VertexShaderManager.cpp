@@ -867,8 +867,12 @@ void VertexShaderManager::SetProjectionConstants()
 #endif
 		//VR Headtracking
 		UpdateHeadTrackingIfNeeded();
-		Matrix44 rotation_matrix;
-		Matrix44::Set(rotation_matrix, g_head_tracking_matrix.data);
+		Matrix44 rotation_matrix, pitch_matrix;
+		Matrix33 pitch_matrix33;
+		Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch));
+		Matrix44::LoadMatrix33(pitch_matrix, pitch_matrix33);
+		Matrix44::Multiply(g_head_tracking_matrix, pitch_matrix, rotation_matrix);
+		//Matrix44::Set(rotation_matrix, g_head_tracking_matrix.data);
 		//VR sometimes yaw needs to be inverted for games that use a flipped x axis
 		// (ActionGirlz even uses flipped matrices and non-flipped matrices in the same frame)
 		if (xfmem.projection.type == GX_PERSPECTIVE)
@@ -901,7 +905,7 @@ void VertexShaderManager::SetProjectionConstants()
 			}
 		}
 
-		Matrix44 box_matrix, walk_matrix, look_matrix;
+		Matrix44 walk_matrix, look_matrix;
 		float pos[3];
 		for (int i = 0; i < 3; ++i)
 			pos[i] = s_fViewTranslationVector[i] + g_head_tracking_position[i]*UnitsPerMetre;
@@ -1006,79 +1010,6 @@ void VertexShaderManager::SetProjectionConstants()
 			Matrix44::Multiply(rotation_matrix, walk_matrix, temp_matrix);
 			Matrix44::Multiply(position_matrix, scale_matrix, box_matrix);
 			Matrix44::Multiply(temp_matrix, box_matrix, look_matrix);
-		}
-		else
-		{
-			// Give the 2D layer a 3D effect if different parts of the 2D layer are rendered at different z coordinates
-			float HudThickness = 10.5f * zNear3D;  // the 2D layer is actually a 3D box this many game units thick
-			if (debug_newScene)
-				NOTICE_LOG(VR, "2D: HudThickness = %f", HudThickness);
-
-			float zFar2D = rawProjection[5] / rawProjection[4];
-			float zNear2D = (1 + rawProjection[4] * zFar2D) / rawProjection[4];
-			if (debug_newScene)
-				NOTICE_LOG(VR, "2D: zFar2D = %f, zNear2D = %f", zFar2D, zNear2D);
-			float scale[3]; // width, height, and depth of box in game units divided by 2D width, height, and depth 
-			float position[3]; // position of front of box relative to the camera, in game units 
-			if (rawProjection[4] == 0 || zFar2D == zNear2D) {
-				scale[2] = 0; // The 2D layer was flat, so we make it flat instead of a box to avoid dividing by zero
-			}
-			else {
-				scale[2] = HudThickness / (zFar2D - zNear2D); // Scale 2D z values into 3D game units so it is the right thickness
-			}
-			if (debug_newScene)
-				NOTICE_LOG(VR, "2D: %f / (%f - %f) = z scale = %f", HudThickness, zFar2D, zNear2D, scale[2]);
-			position[2] = zNear3D * 5; // Change this to suit! 2*znear is usually about a metre away, I expect.
-
-			// Now that we know how far away the box is, and what FOV it should fill, we can work out the width and height in game units
-			float HudWidth = 2.0f * tanf(hfov / 2.0f * 3.14159f / 180.0f) * position[2];
-			float HudHeight = 2.0f * tanf(vfov / 2.0f * 3.14159f / 180.0f) * position[2];
-			if (debug_newScene)
-			{
-				NOTICE_LOG(VR, "2D: at z distance = %f, width = %f, height = %f to get fov %f x %f", position[2], HudWidth, HudHeight, hfov, vfov);
-				NOTICE_LOG(VR, "HUD size: %f x %f x %f units", HudWidth, HudHeight, HudThickness);
-			}
-
-			float left2D = -(rawProjection[1] + 1) / rawProjection[0];
-			float right2D = left2D + 2 / rawProjection[0];
-			if (rawProjection[0] == 0 || right2D == left2D) {
-				scale[0] = 0;
-			}
-			else {
-				scale[0] = HudWidth / (right2D - left2D);
-			}
-			position[0] = scale[0] * (-(right2D + left2D) / 2.0f); // shift it left into the centre of the view
-			if (debug_newScene)
-				NOTICE_LOG(VR, "2D: left2D = %f, right2D = %f, 2D width = %f, 3D width = %f, so x scale = %f, x = %f", left2D, right2D, right2D-left2D, HudWidth, scale[0], position[0]);
-
-			float bottom2D = -(rawProjection[3] + 1) / rawProjection[2];
-			float top2D = bottom2D + 2 / rawProjection[2];
-			if (rawProjection[2] == 0 || top2D == bottom2D) {
-				scale[1] = 0;
-			}
-			else {
-				scale[1] = HudHeight / (top2D - bottom2D); // note that positive means up in 3D
-			}
-			position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f); // shift it down into the centre of the view
-			if (debug_newScene)
-				NOTICE_LOG(VR, "2D: top2D = %f, bottom2D = %f, 2D height = %f, 3D height = %f, so y scale = %f, y = %f", top2D, bottom2D, top2D - bottom2D, HudHeight, scale[1], position[1]);
-
-			scale[0] = scale[0];
-			scale[1] = scale[1];
-			scale[2] = scale[2];
-			position[0] = position[0];
-			position[1] = position[1];
-			position[2] = -position[2];
-			if (debug_newScene)
-				WARN_LOG(VIDEO, "scale=%g, %g, %g   pos=%g, %g, %g", scale[0], scale[1], scale[2], position[0], position[1], position[2]);
-			Matrix44 scaleMatrix, positionMatrix, temp_matrix;
-			Matrix44::Scale(scaleMatrix, scale);
-			Matrix44::Translate(positionMatrix, position);
-			Matrix44::Multiply(positionMatrix, scaleMatrix, box_matrix);
-			//Matrix44::Multiply(scaleMatrix, positionMatrix, box_matrix);
-			//Matrix44::Multiply(walk_matrix, box_matrix, temp_matrix);
-			//Matrix44::Multiply(rotation_matrix, temp_matrix, look_matrix);
-			Matrix44::Multiply(box_matrix, walk_matrix, look_matrix);
 		}
 
 		Matrix44 eye_pos_matrix_left, eye_pos_matrix_right;

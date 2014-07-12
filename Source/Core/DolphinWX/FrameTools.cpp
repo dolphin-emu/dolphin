@@ -95,6 +95,7 @@ Core::GetWindowHandle().
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
 #ifdef _WIN32
@@ -1093,7 +1094,32 @@ void CFrame::DoStop()
 				return;
 			}
 		}
+		// Save VR game-specific settings
+		if (g_has_hmd)
+		{
+			Core::EState state = Core::GetState();
+			Core::SetState(Core::CORE_PAUSE);
+			wxMessageDialog m_StopDlg(
+				this,
+				_("Do you want to save these VR settings for this game?")
+				+ wxString::Format("\n%5.2f units per metre,"
+					"\nHUD %5.1fm away, %5.1fm thick, aim distance %5.1fm"
+					"\nCamera %5.1fm forward, %5.0f degrees up.", 
+					g_Config.fUnitsPerMetre, 
+					g_Config.fHudDistance, g_Config.fHudThickness, g_Config.fAimDistance, 
+					g_Config.fCameraForward, g_Config.fCameraPitch),
+				_("Please confirm..."),
+				wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
+				wxDefaultPosition);
 
+			int Ret = m_StopDlg.ShowModal();
+			if (Ret == wxID_YES)
+			{
+				// save VR settings
+				g_Config.GameIniSave();
+			}
+
+		}
 		// TODO: Show the author/description dialog here
 		if (Movie::IsRecordingInput())
 			DoRecordingSave();
