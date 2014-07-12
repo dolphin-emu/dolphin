@@ -271,54 +271,6 @@ void decodeDXTBlockRGBA(u32 *dst, const DXTBlock *src, int pitch)
 	}
 }
 
-static PC_TexFormat GetPCFormatFromTLUTFormat(int tlutfmt)
-{
-	switch (tlutfmt)
-	{
-	case 0: return PC_TEX_FMT_IA8;    // IA8
-	case 1: return PC_TEX_FMT_RGB565; // RGB565
-	case 2: return PC_TEX_FMT_BGRA32; // RGB5A3: This TLUT format requires
-									  // extra work to decode.
-	}
-	return PC_TEX_FMT_NONE; // Error
-}
-
-PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
-{
-	switch (texformat)
-	{
-	case GX_TF_C4:
-		return GetPCFormatFromTLUTFormat(tlutfmt);
-	case GX_TF_I4:
-		return PC_TEX_FMT_IA8;
-	case GX_TF_I8:  // speed critical
-		return PC_TEX_FMT_IA8;
-	case GX_TF_C8:
-		return GetPCFormatFromTLUTFormat(tlutfmt);
-	case GX_TF_IA4:
-		return PC_TEX_FMT_IA4_AS_IA8;
-	case GX_TF_IA8:
-		return PC_TEX_FMT_IA8;
-	case GX_TF_C14X2:
-		return GetPCFormatFromTLUTFormat(tlutfmt);
-	case GX_TF_RGB565:
-		return PC_TEX_FMT_RGB565;
-	case GX_TF_RGB5A3:
-		return PC_TEX_FMT_BGRA32;
-	case GX_TF_RGBA8:  // speed critical
-		return PC_TEX_FMT_BGRA32;
-	case GX_TF_CMPR:  // speed critical
-		// The metroid games use this format almost exclusively.
-		{
-			return PC_TEX_FMT_BGRA32;
-		}
-	}
-
-	// The "copy" texture formats, too?
-	return PC_TEX_FMT_NONE;
-}
-
-
 // JSD 01/06/11:
 // TODO: we really should ensure BOTH the source and destination addresses are aligned to 16-byte boundaries to
 // squeeze out a little more performance. _mm_loadu_si128/_mm_storeu_si128 is slower than _mm_load_si128/_mm_store_si128
