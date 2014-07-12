@@ -103,8 +103,8 @@ struct DXTBlock
 	u8 lines[4];
 };
 
-//inline void decodebytesC4(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
-inline void decodebytesC4_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
+//static inline void decodebytesC4(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
+static inline void decodebytesC4_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
 {
 	u16 *tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 4; x++)
@@ -115,7 +115,7 @@ inline void decodebytesC4_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC4_5A3_To_rgba32(u32 *dst, const u8 *src, int tlutaddr)
+static inline void decodebytesC4_5A3_To_rgba32(u32 *dst, const u8 *src, int tlutaddr)
 {
 	u16 *tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 4; x++)
@@ -126,7 +126,7 @@ inline void decodebytesC4_5A3_To_rgba32(u32 *dst, const u8 *src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC4_To_Raw16(u16* dst, const u8* src, int tlutaddr)
+static inline void decodebytesC4_To_Raw16(u16* dst, const u8* src, int tlutaddr)
 {
 	u16* tlut = (u16*)(texMem+tlutaddr);
 	for (int x = 0; x < 4; x++)
@@ -137,7 +137,7 @@ inline void decodebytesC4_To_Raw16(u16* dst, const u8* src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC4IA8_To_RGBA(u32* dst, const u8* src, int tlutaddr)
+static inline void decodebytesC4IA8_To_RGBA(u32* dst, const u8* src, int tlutaddr)
 {
 	u16* tlut = (u16*)(texMem+tlutaddr);
 	for (int x = 0; x < 4; x++)
@@ -148,7 +148,7 @@ inline void decodebytesC4IA8_To_RGBA(u32* dst, const u8* src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC4RGB565_To_RGBA(u32* dst, const u8* src, int tlutaddr)
+static inline void decodebytesC4RGB565_To_RGBA(u32* dst, const u8* src, int tlutaddr)
 {
 	u16* tlut = (u16*)(texMem+tlutaddr);
 	for (int x = 0; x < 4; x++)
@@ -159,8 +159,8 @@ inline void decodebytesC4RGB565_To_RGBA(u32* dst, const u8* src, int tlutaddr)
 	}
 }
 
-//inline void decodebytesC8(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
-inline void decodebytesC8_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
+//static inline void decodebytesC8(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
+static inline void decodebytesC8_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
 {
 	u16 *tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 8; x++)
@@ -170,7 +170,7 @@ inline void decodebytesC8_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC8_5A3_To_RGBA32(u32 *dst, const u8 *src, int tlutaddr)
+static inline void decodebytesC8_5A3_To_RGBA32(u32 *dst, const u8 *src, int tlutaddr)
 {
 	u16 *tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 8; x++)
@@ -180,7 +180,7 @@ inline void decodebytesC8_5A3_To_RGBA32(u32 *dst, const u8 *src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC8IA8_To_RGBA(u32* dst, const u8* src, int tlutaddr)
+static inline void decodebytesC8IA8_To_RGBA(u32* dst, const u8* src, int tlutaddr)
 {
 	u16* tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 8; x++)
@@ -189,7 +189,7 @@ inline void decodebytesC8IA8_To_RGBA(u32* dst, const u8* src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC8RGB565_To_RGBA(u32* dst, const u8* src, int tlutaddr)
+static inline void decodebytesC8RGB565_To_RGBA(u32* dst, const u8* src, int tlutaddr)
 {
 	u16* tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 8; x++)
@@ -198,7 +198,7 @@ inline void decodebytesC8RGB565_To_RGBA(u32* dst, const u8* src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC14X2_5A3_To_BGRA32(u32 *dst, const u16 *src, int tlutaddr)
+static inline void decodebytesC14X2_5A3_To_BGRA32(u32 *dst, const u16 *src, int tlutaddr)
 {
 	u16 *tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 4; x++)
@@ -208,7 +208,7 @@ inline void decodebytesC14X2_5A3_To_BGRA32(u32 *dst, const u16 *src, int tlutadd
 	}
 }
 
-inline void decodebytesC14X2_5A3_To_RGBA(u32 *dst, const u16 *src, int tlutaddr)
+static inline void decodebytesC14X2_5A3_To_RGBA(u32 *dst, const u16 *src, int tlutaddr)
 {
 	u16 *tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 4; x++)
@@ -218,7 +218,7 @@ inline void decodebytesC14X2_5A3_To_RGBA(u32 *dst, const u16 *src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC14X2IA8_To_RGBA(u32* dst, const u16* src, int tlutaddr)
+static inline void decodebytesC14X2IA8_To_RGBA(u32* dst, const u16* src, int tlutaddr)
 {
 	u16* tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 4; x++)
@@ -228,7 +228,7 @@ inline void decodebytesC14X2IA8_To_RGBA(u32* dst, const u16* src, int tlutaddr)
 	}
 }
 
-inline void decodebytesC14X2rgb565_To_RGBA(u32* dst, const u16* src, int tlutaddr)
+static inline void decodebytesC14X2rgb565_To_RGBA(u32* dst, const u16* src, int tlutaddr)
 {
 	u16* tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 4; x++)
@@ -238,7 +238,7 @@ inline void decodebytesC14X2rgb565_To_RGBA(u32* dst, const u16* src, int tlutadd
 	}
 }
 
-inline void decodebytesIA4RGBA(u32 *dst, const u8 *src)
+static inline void decodebytesIA4RGBA(u32 *dst, const u8 *src)
 {
 	for (int x = 0; x < 8; x++)
 	{
@@ -249,7 +249,7 @@ inline void decodebytesIA4RGBA(u32 *dst, const u8 *src)
 	}
 }
 
-inline void decodebytesRGB5A3rgba(u32 *dst, const u16 *src)
+static inline void decodebytesRGB5A3rgba(u32 *dst, const u16 *src)
 {
 #if 0
 	for (int x = 0; x < 4; x++)
@@ -262,7 +262,7 @@ inline void decodebytesRGB5A3rgba(u32 *dst, const u16 *src)
 #endif
 }
 
-inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 * src2)
+static inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 * src2)
 {
 #if 0
 	for (int x = 0; x < 4; x++) {
@@ -276,7 +276,7 @@ inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 * src2)
 #endif
 }
 
-inline u32 makeRGBA(int r, int g, int b, int a)
+static inline u32 makeRGBA(int r, int g, int b, int a)
 {
 	return (a<<24)|(b<<16)|(g<<8)|r;
 }
@@ -326,7 +326,7 @@ static void decodeDXTBlockRGBA(u32 *dst, const DXTBlock *src, int pitch)
 }
 #endif
 
-inline void SetOpenMPThreadCount(int width, int height)
+static inline void SetOpenMPThreadCount(int width, int height)
 {
 #ifdef _OPENMP
 	// Don't use multithreading in small Textures
