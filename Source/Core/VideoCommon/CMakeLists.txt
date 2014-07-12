@@ -22,6 +22,7 @@ set(SRCS	BPFunctions.cpp
 			Statistics.cpp
 			TextureCacheBase.cpp
 			TextureConversionShader.cpp
+			TextureDecoder_Common.cpp
 			VertexLoader.cpp
 			VertexLoaderManager.cpp
 			VertexLoader_Color.cpp
