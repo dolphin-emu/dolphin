@@ -1512,6 +1512,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 
 	hci_read_stored_link_key_rp Reply;
 	Reply.status = 0x00;
+	Reply.num_keys_read = 0;
 	Reply.max_num_keys = 255;
 
 	if (ReadStoredLinkKey->read_all == 1)
