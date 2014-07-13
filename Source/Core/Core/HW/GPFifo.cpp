@@ -155,9 +155,4 @@ void FastWrite64(const u64 _iValue)
 	m_gatherPipeCount += 8;
 }
 
-static void FastWriteEnd()
-{
-	CheckGatherPipe();
-}
-
 } // end of namespace GPFifo

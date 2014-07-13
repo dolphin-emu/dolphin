@@ -139,11 +139,6 @@ u32 GetTicksPerSecond()
 	return CPU_CORE_CLOCK;
 }
 
-static u32 ConvertMillisecondsToTicks(u32 _Milliseconds)
-{
-	return GetTicksPerSecond() / 1000 * _Milliseconds;
-}
-
 // DSP/CPU timeslicing.
 static void DSPCallback(u64 userdata, int cyclesLate)
 {

@@ -63,11 +63,6 @@ std::string VideoSoftware::GetName() const
 	return _trans("Software Renderer");
 }
 
-static void *DllDebugger(void *_hParent, bool Show)
-{
-	return nullptr;
-}
-
 void VideoSoftware::ShowConfig(void *_hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX

@@ -23,24 +23,6 @@
 namespace EMM
 {
 
-#if (defined __APPLE__ || defined __linux__ || defined __FreeBSD__) && !defined(ANDROID)
-#include <execinfo.h>
-static void print_trace(const char * msg)
-{
-	void *array[100];
-	size_t size;
-	char **strings;
-	size_t i;
-
-	size = backtrace(array, 100);
-	strings = backtrace_symbols(array, size);
-	printf("%s Obtained %u stack frames.\n", msg, (unsigned int)size);
-	for (i = 0; i < size; i++)
-		printf("--> %s\n", strings[i]);
-	free(strings);
-}
-#endif
-
 static bool DoFault(u64 bad_address, SContext *ctx)
 {
 	if (!JitInterface::IsInCodeSpace((u8*) ctx->CTX_PC))

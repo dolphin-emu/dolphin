@@ -161,6 +161,7 @@ static void ApplySSAASettings() {
 	}
 }
 
+#if defined(_DEBUG) || defined(DEBUGFAST)
 static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
 	const char *s_source;
@@ -194,6 +195,7 @@ static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLe
 		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
 }
+#endif
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
 static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
