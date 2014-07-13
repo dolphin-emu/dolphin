@@ -75,8 +75,6 @@ static DataReadU32xNfunc DataReadU32xFuncs[16] = {
 	DataReadU32xN<16>
 };
 
-static u32 Decode(bool skipped_frame);
-
 static u32 InterpretDisplayList(u32 address, u32 size, bool skipped_frame)
 {
 	u32 cycles = 0;
@@ -91,11 +89,7 @@ static u32 InterpretDisplayList(u32 address, u32 size, bool skipped_frame)
 		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		u8* end = g_pVideoData + size;
-		while (g_pVideoData < end)
-		{
-			cycles += Decode(skipped_frame);
-		}
+		cycles = OpcodeDecoder_Run(skipped_frame);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
