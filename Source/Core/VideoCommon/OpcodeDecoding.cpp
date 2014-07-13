@@ -77,7 +77,7 @@ static DataReadU32xNfunc DataReadU32xFuncs[16] = {
 
 static u32 Decode(bool skipped_frame);
 
-static void InterpretDisplayList(u32 address, u32 size)
+static void InterpretDisplayList(u32 address, u32 size, bool skipped_frame)
 {
 	u8* old_pVideoData = g_pVideoData;
 	u8* start_address = Memory::GetPointer(address);
@@ -93,7 +93,7 @@ static void InterpretDisplayList(u32 address, u32 size)
 		u8* end = g_pVideoData + size;
 		while (g_pVideoData < end)
 		{
-			Decode(false);
+			Decode(skipped_frame);
 		}
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
@@ -168,27 +168,21 @@ static u32 Decode(bool skipped_frame)
 	case GX_LOAD_INDX_D: // used for lights
 		if (buffer_size < 5)
 			return 0;
+
 		DataSkip(1); // cmd
 		LoadIndexedXF(DataReadU32(), 8 | (cmd >> 3));
 		cycles = 6; // TODO
 		break;
 
 	case GX_CMD_CALL_DL:
-		if (buffer_size < 9)
-			return 0;
+		{
+			if (buffer_size < 9)
+				return 0;
 
-		if (skipped_frame)
-		{
-			// Hm, wonder if any games put tokens in display lists - in that case,
-			// we'll have to parse them too.
-			DataSkip(9); // cmd, address, count
-		}
-		else
-		{
 			DataSkip(1); // cmd
 			u32 address = DataReadU32();
 			u32 count = DataReadU32();
-			InterpretDisplayList(address, count);
+			InterpretDisplayList(address, count, skipped_frame);
 			cycles = 45;  // This is unverified
 		}
 		break;
