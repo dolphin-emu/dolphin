@@ -181,11 +181,6 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	return 0;
 }
 
-static bool operator < (const GameListItem &one, const GameListItem &other)
-{
-	return CompareGameListItems(&one, &other) < 0;
-}
-
 BEGIN_EVENT_TABLE(wxEmuStateTip, wxTipWindow)
 	EVT_KEY_DOWN(wxEmuStateTip::OnKeyDown)
 END_EVENT_TABLE()

@@ -252,11 +252,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	}
 }
 
-static bool AllowIdleSkipping()
-{
-	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
-}
-
 void UpdateInterrupts()
 {
 	// check if there is a token-interrupt

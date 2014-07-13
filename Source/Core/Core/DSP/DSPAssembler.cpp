@@ -167,13 +167,6 @@ static char *skip_spaces(char *ptr)
 	return ptr;
 }
 
-static const char *skip_spaces(const char *ptr)
-{
-	while (*ptr == ' ')
-		ptr++;
-	return ptr;
-}
-
 // Parse a standalone value - it can be a number in one of several formats or a label.
 s32 DSPAssembler::ParseValue(const char *str)
 {

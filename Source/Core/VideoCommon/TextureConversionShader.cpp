@@ -349,30 +349,6 @@ static void WriteRGB5A3Encoder(char*& p,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-static void WriteRGBA4443Encoder(char*& p,API_TYPE ApiType)
-{
-	WriteSwizzler(p, GX_TF_RGB5A3, ApiType);
-
-	WRITE(p, "  float4 texSample;\n");
-	WRITE(p, "  float4 color0;\n");
-	WRITE(p, "  float4 color1;\n");
-
-	WriteSampleColor(p, "rgba", "texSample", 0, ApiType);
-	WriteToBitDepth(p, 3, "texSample.a", "color0.b");
-	WriteToBitDepth(p, 4, "texSample.r", "color1.b");
-	WriteToBitDepth(p, 4, "texSample.g", "color0.g");
-	WriteToBitDepth(p, 4, "texSample.b", "color1.g");
-
-	WriteSampleColor(p, "rgba", "texSample", 1, ApiType);
-	WriteToBitDepth(p, 3, "texSample.a", "color0.r");
-	WriteToBitDepth(p, 4, "texSample.r", "color1.r");
-	WriteToBitDepth(p, 4, "texSample.g", "color0.a");
-	WriteToBitDepth(p, 4, "texSample.b", "color1.a");
-
-	WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
-	WriteEncoderEnd(p, ApiType);
-}
-
 static void WriteRGBA8Encoder(char*& p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_RGBA8, ApiType);

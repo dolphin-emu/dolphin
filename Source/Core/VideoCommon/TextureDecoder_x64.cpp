@@ -560,6 +560,7 @@ static void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 	}
 }
 
+#ifdef CHECK
 static void decodeDXTBlockRGBA(u32 *dst, const DXTBlock *src, int pitch)
 {
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
@@ -602,6 +603,7 @@ static void decodeDXTBlockRGBA(u32 *dst, const DXTBlock *src, int pitch)
 		dst += pitch;
 	}
 }
+#endif
 
 #if 0   // TODO - currently does not handle transparency correctly and causes problems when texture dimensions are not multiples of 8
 static void copyDXTBlock(u8* dst, const u8* src)
