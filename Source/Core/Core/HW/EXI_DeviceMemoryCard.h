@@ -30,25 +30,20 @@ private:
 	// Scheduled when a command that required delayed end signaling is done.
 	static void CmdDoneCallback(u64 userdata, int cyclesLate);
 
+	// Scheduled when memory card is done transferring data
+	static void TransferCompleteCallback(u64 userdata, int cyclesLate);
+
 	// Flushes the memory card contents to disk.
 	void Flush(bool exiting = false);
 
 	// Signals that the command that was previously executed is now done.
 	void CmdDone();
 
+	// Signals that the transfer that was previously executed is now done.
+	void TransferComplete();
+
 	// Variant of CmdDone which schedules an event later in the future to complete the command.
 	void CmdDoneLater(u64 cycles);
-
-	// Memory card data layout
-	enum
-	{
-		MC_DATA_HEADER = 0x0000,
-		MC_DATA_DIRECTORY = 0x2000,
-		MC_DATA_DIRECTORYBACKUP = 0x4000,
-		MC_DATA_BLOCKALLOCMAP = 0x6000,
-		MC_DATA_BLOCKALLOCMAPBACKUP = 0x8000,
-		MC_DATA_FILES = 0xA000,
-	};
 
 	enum
 	{
@@ -70,7 +65,7 @@ private:
 	};
 
 	int card_index;
-	int et_this_card, et_cmd_done;
+	int et_this_card, et_cmd_done, et_transfer_complete;
 	//! memory card state
 
 	// STATE_TO_SAVE

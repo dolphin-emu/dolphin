@@ -80,9 +80,6 @@ private:
 
 	std::unique_ptr<IEXIDevice> m_pDevices[NUM_DEVICES];
 
-	// Since channels operate a bit differently from each other
-	u32 m_ChannelId;
-
 	int updateInterrupts;
 
 	static void UpdateInterrupts(u64 userdata, int cyclesLate);
@@ -96,6 +93,8 @@ public:
 
 	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
+	void SendTransferComplete();
+
 	void AddDevice(const TEXIDevices device_type, const int device_num);
 	void AddDevice(IEXIDevice* pDevice, const int device_num, bool notifyPresenceChanged=true);
 
@@ -108,4 +107,7 @@ public:
 
 	// This should only be used to transition interrupts from SP1 to Channel 2
 	void SetEXIINT(bool exiint) { m_Status.EXIINT = !!exiint; }
+
+	// Since channels operate a bit differently from each other
+	u32 m_ChannelId;
 };

@@ -5,6 +5,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/EXI_Channel.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceAD16.h"
 #include "Core/HW/EXI_DeviceAMBaseboard.h"
@@ -88,7 +89,7 @@ public:
 
 
 // F A C T O R Y
-IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
+IEXIDevice* EXIDevice_Create(TEXIDevices device_type, CEXIChannel* channel)
 {
 	IEXIDevice* result = nullptr;
 
@@ -102,7 +103,8 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 	case EXIDEVICE_MEMORYCARDFOLDER:
 	{
 		bool gci_folder = (device_type == EXIDEVICE_MEMORYCARDFOLDER);
-		result = new CEXIMemoryCard(channel_num, gci_folder);
+		device_type = EXIDEVICE_MEMORYCARD;
+		result = new CEXIMemoryCard(channel->m_ChannelId, gci_folder);
 		break;
 	}
 	case EXIDEVICE_MASKROM:
@@ -114,7 +116,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 		break;
 
 	case EXIDEVICE_MIC:
-		result = new CEXIMic(channel_num);
+		result = new CEXIMic(channel->m_ChannelId);
 		break;
 
 	case EXIDEVICE_ETH:
@@ -137,6 +139,8 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 
 	if (result != nullptr)
 		result->m_deviceType = device_type;
+
+	result->m_channel = channel;
 
 	return result;
 }

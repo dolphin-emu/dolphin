@@ -7,6 +7,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
+class CEXIChannel;
+
 enum TEXIDevices
 {
 	EXIDEVICE_DUMMY,
@@ -48,9 +50,12 @@ public:
 	virtual bool IsInterruptSet() {return false;}
 	virtual ~IEXIDevice() {}
 
+	// Pointer to channel attached to the device
+	CEXIChannel* m_channel;
+
 	// for savestates. storing it here seemed cleaner than requiring each implementation to report its type.
 	// I know this class is set up like an interface, but no code requires it to be strictly such.
 	TEXIDevices m_deviceType;
 };
 
-IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
+IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, CEXIChannel* channel);
