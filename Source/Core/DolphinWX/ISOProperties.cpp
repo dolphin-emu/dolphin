@@ -971,8 +971,7 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 	int PartitionNum = wxAtoi(PartitionName.Mid(PartitionName.find_first_of("0123456789"), 1));
 	const WiiPartition& Partition = WiiDisc[PartitionNum];
 
-	wxProgressDialog* dialog = new wxProgressDialog(
-		_("Checking integrity..."), _("Working..."), 1000, this,
+	wxProgressDialog dialog(_("Checking integrity..."), _("Working..."), 1000, this,
 		wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH
 	);
 
@@ -981,11 +980,11 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 
 	while (thread.IsAlive())
 	{
-		dialog->Pulse();
+		dialog.Pulse();
 		wxThread::Sleep(50);
 	}
 
-	delete dialog;
+	dialog.Destroy();
 
 	if (!thread.Wait())
 	{
