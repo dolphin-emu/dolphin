@@ -31,7 +31,7 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 		m_Status.CHIP_SELECT = 1;
 
 	for (auto& device : m_pDevices)
-		device.reset(EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId));
+		device.reset(EXIDevice_Create(EXIDEVICE_NONE, this));
 
 	updateInterrupts = CoreTiming::RegisterEvent("EXIInterrupt", UpdateInterrupts);
 }
@@ -123,7 +123,6 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 						case EXI_READWRITE: pDevice->ImmReadWrite(m_ImmData, m_Control.TLEN + 1); break;
 						default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI Imm: Unknown transfer type %i", m_Control.RW);
 					}
-					m_Control.TSTART = 0;
 				}
 				else
 				{
@@ -134,14 +133,12 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 						case EXI_WRITE: pDevice->DMAWrite(m_DMAMemoryAddress, m_DMALength); break;
 						default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI DMA: Unknown transfer type %i", m_Control.RW);
 					}
-					m_Control.TSTART = 0;
 				}
 
-				if (!m_Control.TSTART) // completed !
-				{
-					m_Status.TCINT = 1;
-					CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
-				}
+				m_Control.TSTART = 0;
+
+				if (pDevice->m_deviceType != EXIDEVICE_MEMORYCARD)
+					SendTransferComplete();
 			}
 		})
 	);
@@ -152,6 +149,12 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	);
 }
 
+void CEXIChannel::SendTransferComplete()
+{
+	m_Status.TCINT = 1;
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
+}
+
 void CEXIChannel::RemoveDevices()
 {
 	for (auto& device : m_pDevices)
@@ -160,7 +163,7 @@ void CEXIChannel::RemoveDevices()
 
 void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 {
-	IEXIDevice* pNewDevice = EXIDevice_Create(device_type, m_ChannelId);
+	IEXIDevice* pNewDevice = EXIDevice_Create(device_type, this);
 	AddDevice(pNewDevice, device_num);
 }
 
@@ -232,7 +235,7 @@ void CEXIChannel::DoState(PointerWrap &p)
 		IEXIDevice* pDevice = m_pDevices[d].get();
 		TEXIDevices type = pDevice->m_deviceType;
 		p.Do(type);
-		IEXIDevice* pSaveDevice = (type == pDevice->m_deviceType) ? pDevice : EXIDevice_Create(type, m_ChannelId);
+		IEXIDevice* pSaveDevice = (type == pDevice->m_deviceType) ? pDevice : EXIDevice_Create(type, this);
 		pSaveDevice->DoState(p);
 		if (pSaveDevice != pDevice)
 		{

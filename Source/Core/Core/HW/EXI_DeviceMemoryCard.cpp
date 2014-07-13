@@ -11,6 +11,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
 #include "Core/HW/EXI.h"
+#include "Core/HW/EXI_Channel.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceMemoryCard.h"
 #include "Core/HW/GCMemcard.h"
@@ -29,11 +30,8 @@
 #define MC_STATUS_READY             0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
 
-// These are rough estimates based on GameCube video evidence of memory card "speeds"
-// This will need to be refined, and perhaps the idea behind the speed thing is wrong
-// But it works with (near?) perfect speed as far as saving goes
-static const float MC_TRANSFER_RATE_WRITE = 22.0f * 1024.0f;
-static const float MC_TRANSFER_RATE_READ = 73.84f * 1024.0f;
+static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
+static const u32 MC_TRANSFER_RATE_WRITE = (u32)(96.125f * 1024.0f);
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
@@ -56,6 +54,16 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 		pThis->CmdDone();
 }
 
+void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, int cyclesLate)
+{
+	int card_index = (int)userdata;
+	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	if (pThis == nullptr)
+		pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
+	if (pThis)
+		pThis->TransferComplete();
+}
+
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	: card_index(index)
 	, m_bDirty(false)
@@ -63,6 +71,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
 	et_this_card = CoreTiming::RegisterEvent((index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
 	et_cmd_done = CoreTiming::RegisterEvent((index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
+	et_transfer_complete = CoreTiming::RegisterEvent((index == 0) ? "memcardTransferCompleteB" : "memcardTransferCompleteB", TransferCompleteCallback);
 
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -236,6 +245,17 @@ void CEXIMemoryCard::CmdDone()
 	m_bDirty = true;
 }
 
+void CEXIMemoryCard::TransferComplete()
+{
+	// Transfer complete, send interrupt
+	m_channel->SendTransferComplete();
+
+	// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
+	// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write.
+	CoreTiming::RemoveEvent(et_this_card);
+	CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
+}
+
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
 	CoreTiming::RemoveEvent(et_cmd_done);
@@ -264,47 +284,26 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				//???
 
-				if (address >= MC_DATA_FILES)
-					CmdDoneLater(BLOCK_SIZE * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE));
-				else
-					CmdDoneLater(5000);
+				CmdDoneLater(5000);
 			}
 			break;
 
 		case cmdChipErase:
 			if (m_uPosition > 2)
 			{
-				// Clear only the system blocks
-				for (int i = 0; i < 5; i++)
-					memorycard->ClearBlock(BLOCK_SIZE * i);
-
+				// TODO: Investigate on HW, I (LPFaint99) believe that this only erases the system area (Blocks 0-4)
+				memorycard->ClearAll();
 				status &= ~MC_STATUS_BUSY;
 				m_bDirty = true;
-
-				if (address >= MC_DATA_FILES)
-					CmdDoneLater((BLOCK_SIZE * 5) * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE));
-				else
-					CmdDoneLater(5000);
-			}
-			break;
-
-		case cmdReadArray:
-			if (m_uPosition > 8)
-			{
-				// Each read is 512 bytes
-				if (address >= MC_DATA_FILES)
-					CmdDoneLater(512 * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ));
-				else
-					CmdDoneLater(5000);
 			}
 			break;
 
 		case cmdPageProgram:
-			if (m_uPosition > 4)
+			if (m_uPosition >= 5)
 			{
 				int count = m_uPosition - 5;
 				int i=0;
-				status &= ~MC_STATUS_BUSY;
+				status &= ~0x80;
 
 				while (count--)
 				{
@@ -313,11 +312,7 @@ void CEXIMemoryCard::SetCS(int cs)
 					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
 				}
 
-				// Each write is 128 bytes
-				if (address >= MC_DATA_FILES)
-					CmdDoneLater(128 * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE));
-				else
-					CmdDoneLater(5000);
+				CmdDoneLater(5000);
 			}
 			break;
 		}
@@ -535,10 +530,7 @@ IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
 void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 {
 	memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
-#ifdef _DEBUG
-	if ((address + _uSize) % BLOCK_SIZE == 0)
-		INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
-#endif
+	CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ), et_transfer_complete, (u64)card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -546,19 +538,5 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 {
 	memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
-
-	// At the end of writing to a block flush to disk
-	// memory card blocks are always(?) written as a whole,
-	// but the dma calls are by page size (0x200) at a time
-	// just in case this is the last block that the game will be writing for a while
-	if (((address + _uSize) % BLOCK_SIZE) == 0)
-	{
-		INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
-		// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
-		// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write
-		// Scheduling event is mainly for raw memory cards as the flush the whole 16MB to disk
-		// Flushing the gci folder is free in comparison
-		CoreTiming::RemoveEvent(et_this_card);
-		CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
-	}
+	CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE), et_transfer_complete, (u64)card_index);
 }
