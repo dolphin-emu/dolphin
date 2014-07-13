@@ -75,11 +75,6 @@ Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 	return nullptr;
 }
 
-static void DisassembleRange(u16 start, u16 end)
-{
-	// TODO: ?
-}
-
 bool ReadAnnotatedAssembly(const std::string& filename)
 {
 	File::IOFile f(filename, "r");

@@ -139,11 +139,6 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 	}
 }
 
-static void Callback_DebuggerBreak()
-{
-	CCPU::Break();
-}
-
 void *GetWindowHandle()
 {
 	return g_pWindowHandle;

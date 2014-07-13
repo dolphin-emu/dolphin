@@ -6,8 +6,6 @@
 
 #include "Common/CommonTypes.h"
 
-void point_mul(u8 *d, const u8 *a, const u8 *b);
-
 void generate_ecdsa(u8 *R, u8 *S, const u8 *k, const u8 *hash);
 
 void ec_priv_to_pub(const u8 *k, u8 *Q);
