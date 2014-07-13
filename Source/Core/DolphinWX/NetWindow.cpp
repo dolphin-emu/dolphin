@@ -428,14 +428,15 @@ NetPlayDiag::~NetPlayDiag()
 
 void NetPlayDiag::OnChat(wxCommandEvent&)
 {
-	wxString s = m_chat_msg_text->GetValue();
+	wxString text = m_chat_msg_text->GetValue();
 
-	if (s.Length())
+	if (!text.empty())
 	{
-		if (s.Length() > 2000)
-			s.erase(2000);
-		netplay_client->SendChatMessage(WxStrToStr(s));
-		m_chat_text->AppendText(s.Prepend(" >> ").Append('\n'));
+		if (text.length() > 2000)
+			text.erase(2000);
+
+		netplay_client->SendChatMessage(WxStrToStr(text));
+		m_chat_text->AppendText(text.Prepend(" >> ").Append('\n'));
 		m_chat_msg_text->Clear();
 	}
 }
@@ -557,11 +558,11 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 	// remove ping from selection string, in case it has changed
 	selection.erase(selection.find_last_of("|") + 1);
 
-	if (selection.Length() > 0)
+	if (!selection.empty())
 	{
 		for (unsigned int i = 0; i < m_player_lbox->GetCount(); ++i)
 		{
-			if (selection == m_player_lbox->GetString(i).Mid(0, selection.Length()))
+			if (selection == m_player_lbox->GetString(i).Mid(0, selection.length()))
 			{
 				m_player_lbox->SetSelection(i);
 				break;
