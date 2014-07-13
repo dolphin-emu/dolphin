@@ -385,11 +385,11 @@ int main(int argc, char* argv[])
 #endif
 	}
 
+	Core::Shutdown();
 	WiimoteReal::Shutdown();
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
-	Core::Shutdown();
 
 	return 0;
 }
