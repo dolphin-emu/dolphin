@@ -196,8 +196,8 @@ void LogProj(float p[]) { //VR
 	}
 	else {
 		debug_nextScene = false;
-		NOTICE_LOG(VR, "%f Units Per Metre", g_ActiveConfig.fUnitsPerMetre);
-		NOTICE_LOG(VR, "HUD is %.1fm away and %.1fm thick", g_ActiveConfig.fHudDistance, g_ActiveConfig.fHudThickness);
+		INFO_LOG(VR, "%f Units Per Metre", g_ActiveConfig.fUnitsPerMetre);
+		INFO_LOG(VR, "HUD is %.1fm away and %.1fm thick", g_ActiveConfig.fHudDistance, g_ActiveConfig.fHudThickness);
 		DoLogProj(debug_projNum, debug_projList[debug_projNum]);
 	}
 	debug_projNum++;
@@ -728,10 +728,8 @@ void VertexShaderManager::SetProjectionConstants()
 	float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre;
 
 	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
-	if (g_has_hmd  && g_ActiveConfig.bFreeLook)
+	if (g_has_hmd)
 	{
-		if (debug_newScene)
-			NOTICE_LOG(VR, "==== g_has_hmd ====");
 		float *p = rawProjection;
 		// near clipping plane in game units
 		float zfar, znear, zNear3D, hfov, vfov;
@@ -746,7 +744,7 @@ void VertexShaderManager::SetProjectionConstants()
 			hfov = 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f;
 			vfov = 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f;
 			if (debug_newScene)
-				NOTICE_LOG(VR, "Real 3D scene: hfov=%8.4f    vfov=%8.4f      znear=%8.4f or %8.4f   zfar=%8.4f or %8.4f", hfov, vfov, znear, zn2, zfar, zf2);
+				INFO_LOG(VR, "Real 3D scene: hfov=%8.4f    vfov=%8.4f      znear=%8.4f or %8.4f   zfar=%8.4f or %8.4f", hfov, vfov, znear, zn2, zfar, zf2);
 		}
 		// 2D layer we will turn into a 3D scene
 		else
@@ -757,7 +755,7 @@ void VertexShaderManager::SetProjectionConstants()
 				hfov = vr_widest_3d_HFOV;
 				vfov = vr_widest_3d_VFOV;
 				if (debug_newScene)
-					NOTICE_LOG(VR, "2D to fit 3D world: hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov, vfov, znear, zfar);
+					INFO_LOG(VR, "2D to fit 3D world: hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov, vfov, znear, zfar);
 			}
 			else { // default, if no 3D in scene
 				znear = 0.5f*UnitsPerMetre; // 50cm
@@ -768,12 +766,12 @@ void VertexShaderManager::SetProjectionConstants()
 				else
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 3.0f / 4.0f); //  2D screen is meant to be 4:3 aspect ratio, make it the same width but taller
 				if (debug_newScene)
-					NOTICE_LOG(VR, "Only 2D Projecting: %g x %g, n=%g f=%g", hfov, vfov, znear, zfar);
+					INFO_LOG(VR, "Only 2D Projecting: %g x %g, n=%g f=%g", hfov, vfov, znear, zfar);
 			}
 			zNear3D = znear;
 			znear /= 40;
 			if (debug_newScene)
-				NOTICE_LOG(VR, "2D: zNear3D = %f, znear = %f", zNear3D, znear);
+				INFO_LOG(VR, "2D: zNear3D = %f, znear = %f", zNear3D, znear);
 			g_fProjectionMatrix[0] = 1.0f;
 			g_fProjectionMatrix[1] = 0.0f;
 			g_fProjectionMatrix[2] = 0.0f;
@@ -789,7 +787,7 @@ void VertexShaderManager::SetProjectionConstants()
 			g_fProjectionMatrix[10] = -znear / (zfar - znear);
 			g_fProjectionMatrix[11] = -zfar*znear / (zfar - znear);
 			if (debug_newScene)
-				NOTICE_LOG(VR, "2D: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
+				INFO_LOG(VR, "2D: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
@@ -818,7 +816,7 @@ void VertexShaderManager::SetProjectionConstants()
 		else if (g_has_rift)
 		{
 			if (debug_newScene)
-				NOTICE_LOG(VR, "g_has_rift");
+				INFO_LOG(VR, "g_has_rift");
 			ovrMatrix4f rift_left = ovrMatrix4f_Projection(g_eye_fov[0], znear, zfar, true);
 			ovrMatrix4f rift_right = ovrMatrix4f_Projection(g_eye_fov[1], znear, zfar, true);
 			if (xfmem.projection.type != GX_PERSPECTIVE)
@@ -836,16 +834,16 @@ void VertexShaderManager::SetProjectionConstants()
 			if (debug_newScene)
 			{
 				// yellow = Oculus's suggestion
-				WARN_LOG(VR, "hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov2, vfov2, znear2, zfar2);
-				WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[0][0], rift_left.M[0][1], rift_left.M[0][2], rift_left.M[0][3]);
-				WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[1][0], rift_left.M[1][1], rift_left.M[1][2], rift_left.M[1][3]);
-				WARN_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[2][0], rift_left.M[2][1], rift_left.M[2][2], rift_left.M[2][3]);
-				WARN_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", rift_left.M[3][0], rift_left.M[3][1], rift_left.M[3][2], rift_left.M[3][3]);
+				DEBUG_LOG(VR, "hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov2, vfov2, znear2, zfar2);
+				DEBUG_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[0][0], rift_left.M[0][1], rift_left.M[0][2], rift_left.M[0][3]);
+				DEBUG_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[1][0], rift_left.M[1][1], rift_left.M[1][2], rift_left.M[1][3]);
+				DEBUG_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", rift_left.M[2][0], rift_left.M[2][1], rift_left.M[2][2], rift_left.M[2][3]);
+				DEBUG_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", rift_left.M[3][0], rift_left.M[3][1], rift_left.M[3][2], rift_left.M[3][3]);
 				// green = Game's suggestion
-				NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
-				NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
-				NOTICE_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
-				NOTICE_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
+				INFO_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
+				INFO_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
+				INFO_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
+				INFO_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
 			}
 			// red = my combination
 			proj_left.data[0 * 4 + 0] = rift_left.M[0][0] * SignOf(proj_left.data[0 * 4 + 0]); // h fov
@@ -858,21 +856,25 @@ void VertexShaderManager::SetProjectionConstants()
 			proj_right.data[1 * 4 + 2] = rift_right.M[1][2] * SignOf(proj_right.data[1 * 4 + 1]);
 			if (debug_newScene)
 			{
-				ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
-				ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
-				ERROR_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
-				ERROR_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
+				DEBUG_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[0 * 4 + 0], proj_left.data[0 * 4 + 1], proj_left.data[0 * 4 + 2], proj_left.data[0 * 4 + 3]);
+				DEBUG_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[1 * 4 + 0], proj_left.data[1 * 4 + 1], proj_left.data[1 * 4 + 2], proj_left.data[1 * 4 + 3]);
+				DEBUG_LOG(VR, "[%8.4f %8.4f %8.4f   %8.4f]", proj_left.data[2 * 4 + 0], proj_left.data[2 * 4 + 1], proj_left.data[2 * 4 + 2], proj_left.data[2 * 4 + 3]);
+				DEBUG_LOG(VR, "{%8.4f %8.4f %8.4f   %8.4f}", proj_left.data[3 * 4 + 0], proj_left.data[3 * 4 + 1], proj_left.data[3 * 4 + 2], proj_left.data[3 * 4 + 3]);
 			}
 		}
 #endif
 		//VR Headtracking
 		UpdateHeadTrackingIfNeeded();
+		float extra_pitch;
+		if (xfmem.projection.type == GX_PERSPECTIVE || vr_widest_3d_HFOV > 0)
+			extra_pitch = g_ActiveConfig.fCameraPitch;
+		else
+			extra_pitch = g_ActiveConfig.fScreenPitch;
 		Matrix44 rotation_matrix, pitch_matrix;
 		Matrix33 pitch_matrix33;
-		Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(g_ActiveConfig.fCameraPitch));
+		Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
 		Matrix44::LoadMatrix33(pitch_matrix, pitch_matrix33);
 		Matrix44::Multiply(g_head_tracking_matrix, pitch_matrix, rotation_matrix);
-		//Matrix44::Set(rotation_matrix, g_head_tracking_matrix.data);
 		//VR sometimes yaw needs to be inverted for games that use a flipped x axis
 		// (ActionGirlz even uses flipped matrices and non-flipped matrices in the same frame)
 		if (xfmem.projection.type == GX_PERSPECTIVE)
@@ -880,7 +882,7 @@ void VertexShaderManager::SetProjectionConstants()
 			if (rawProjection[0]<0)
 			{
 				if (debug_newScene)
-					NOTICE_LOG(VR, "flipped X");
+					INFO_LOG(VR, "flipped X");
 				// flip all the x axis values, except x squared (data[0])
 				//Needed for Action Girlz Racing, Backyard Baseball
 				rotation_matrix.data[1] *= -1;
@@ -893,7 +895,7 @@ void VertexShaderManager::SetProjectionConstants()
 			if (rawProjection[2]<0)
 			{
 				if (debug_newScene)
-					NOTICE_LOG(VR, "flipped Y");
+					INFO_LOG(VR, "flipped Y");
 				// flip all the y axis values, except y squared (data[5])
 				// Needed for ABBA
 				rotation_matrix.data[1] *= -1;
@@ -917,20 +919,20 @@ void VertexShaderManager::SetProjectionConstants()
 		{
 			x = 0;
 //			NOTICE_LOG(VR, "walk pos = %f, %f, %f", s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
-			ERROR_LOG(VR, "head pos = %5.0fcm, %5.0fcm, %5.0fcm, walk %5.1f, %5.1f, %5.1f", 100 * g_head_tracking_position[0], 100 * g_head_tracking_position[1], 100 * g_head_tracking_position[2], s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
+			INFO_LOG(VR, "head pos = %5.0fcm, %5.0fcm, %5.0fcm, walk %5.1f, %5.1f, %5.1f", 100 * g_head_tracking_position[0], 100 * g_head_tracking_position[1], 100 * g_head_tracking_position[2], s_fViewTranslationVector[0], s_fViewTranslationVector[1], s_fViewTranslationVector[2]);
 		}
 
 		if (xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			if (debug_newScene)
-				NOTICE_LOG(VR, "3D: do normally");
+				INFO_LOG(VR, "3D: do normally");
 			Matrix44::Multiply(rotation_matrix, walk_matrix, look_matrix);
 		}
 		else
 		if (xfmem.projection.type != GX_PERSPECTIVE)
 		{
 			if (debug_newScene)
-				NOTICE_LOG(VR, "2D: hacky test");
+				INFO_LOG(VR, "2D: hacky test");
 
 			float HudWidth, HudHeight, HudThickness, HudDistance, HudUp, CameraForward, AimDistance;
 

@@ -871,6 +871,19 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
 		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
 	}
+	else if (bFullscreen && g_has_hmd)
+	{
+		DEVMODE dmScreenSettings;
+		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
+		dmScreenSettings.dmPelsWidth = g_hmd_window_width;
+		dmScreenSettings.dmPelsHeight = g_hmd_window_height;
+		dmScreenSettings.dmBitsPerPel = 32;
+		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
+		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+	}
 	else
 	{
 		// Change to default resolution

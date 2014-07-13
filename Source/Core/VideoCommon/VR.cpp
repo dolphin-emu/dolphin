@@ -14,6 +14,7 @@
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
+#include "Core/ConfigManager.h"
 #include "VideoCommon/VR.h"
 
 void ClearDebugProj();
@@ -31,7 +32,12 @@ bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
 bool g_new_tracking_frame = true;
 Matrix44 g_head_tracking_matrix;
 float g_head_tracking_position[3];
-int g_hmd_window_width = 0, g_hmd_window_height = 0;
+int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
+const char *g_hmd_device_name = nullptr;
+
+#ifdef _WIN32
+static char hmd_device_name[MAX_PATH] = "";
+#endif
 
 void NewVRFrame()
 {
@@ -41,6 +47,7 @@ void NewVRFrame()
 
 void InitVR()
 {
+	g_hmd_device_name = nullptr;
 #ifdef HAVE_OCULUSSDK
 	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
 	ovr_Initialize();
@@ -59,7 +66,20 @@ void InitVR()
 			g_hmd_window_height = hmdDesc.Resolution.h;
 			g_eye_fov[0] = hmdDesc.DefaultEyeFov[0];
 			g_eye_fov[1] = hmdDesc.DefaultEyeFov[1];
-
+			g_hmd_window_x = hmdDesc.WindowsPos.x;
+			g_hmd_window_y = hmdDesc.WindowsPos.y;
+#ifdef _WIN32
+			g_hmd_device_name = hmdDesc.DisplayDeviceName;
+			const char *p;
+			if (g_hmd_device_name && (p = strstr(g_hmd_device_name, "\\Monitor")))
+			{
+				size_t n = p - g_hmd_device_name;
+				if (n >= MAX_PATH)
+					n = MAX_PATH - 1;
+				g_hmd_device_name = strncpy(hmd_device_name, g_hmd_device_name, n);
+				hmd_device_name[n] = '\0';
+			}
+#endif
 			NOTICE_LOG(VR, "Oculus Rift head tracker started.");
 		}
 	}
@@ -74,9 +94,19 @@ void InitVR()
 			g_has_hmd = true;
 			g_hmd_window_width = 800;
 			g_hmd_window_height = 600;
+			// Todo: find vr920
+			g_hmd_window_x = 0;
+			g_hmd_window_y = 0;
 		}
 #endif
 	}
+	SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution = 
+		StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = g_hmd_window_x;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = g_hmd_window_y;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = g_hmd_window_width;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = g_hmd_window_height;
+	SConfig::GetInstance().m_special_case = true;
 }
 
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)

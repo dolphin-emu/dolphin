@@ -32,6 +32,7 @@
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 #ifdef __APPLE__
 #include <ApplicationServices/ApplicationServices.h>
@@ -150,18 +151,20 @@ wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, 
 
 
 // Search for available resolutions - TODO: Move to Common?
+// No, now it depends on VR to know which display to check, so don't move it to Common.
+// g_hmd_device_name will be nullptr unless there is a VR display attached.
 wxArrayString GetListOfResolutions()
 {
 	wxArrayString retlist;
 	retlist.Add("Auto");
 #ifdef _WIN32
 	DWORD iModeNum = 0;
-	DEVMODE dmi;
+	DEVMODEA dmi;
 	ZeroMemory(&dmi, sizeof(dmi));
 	dmi.dmSize = sizeof(dmi);
 	std::vector<std::string> resos;
 
-	while (EnumDisplaySettings(nullptr, iModeNum++, &dmi) != 0)
+	while (EnumDisplaySettingsA(g_hmd_device_name, iModeNum++, &dmi) != 0)
 	{
 		char res[100];
 		sprintf(res, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
@@ -172,7 +175,6 @@ wxArrayString GetListOfResolutions()
 			resos.push_back(strRes);
 			retlist.Add(StrToWxStr(res));
 		}
-		ZeroMemory(&dmi, sizeof(dmi));
 	}
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->AddResolutions(retlist);

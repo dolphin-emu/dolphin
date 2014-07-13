@@ -197,13 +197,17 @@ void SConfig::SaveSettings()
 	}
 
 	// Display
-	ini.Set("Display", "FullscreenResolution", m_LocalCoreStartupParameter.strFullscreenResolution);
+	if (!m_special_case)
+		ini.Set("Display", "FullscreenResolution", m_LocalCoreStartupParameter.strFullscreenResolution);
 	ini.Set("Display", "Fullscreen",           m_LocalCoreStartupParameter.bFullscreen);
 	ini.Set("Display", "RenderToMain",         m_LocalCoreStartupParameter.bRenderToMain);
-	ini.Set("Display", "RenderWindowXPos",     m_LocalCoreStartupParameter.iRenderWindowXPos);
-	ini.Set("Display", "RenderWindowYPos",     m_LocalCoreStartupParameter.iRenderWindowYPos);
-	ini.Set("Display", "RenderWindowWidth",    m_LocalCoreStartupParameter.iRenderWindowWidth);
-	ini.Set("Display", "RenderWindowHeight",   m_LocalCoreStartupParameter.iRenderWindowHeight);
+	if (!m_special_case)
+	{
+		ini.Set("Display", "RenderWindowXPos", m_LocalCoreStartupParameter.iRenderWindowXPos);
+		ini.Set("Display", "RenderWindowYPos", m_LocalCoreStartupParameter.iRenderWindowYPos);
+		ini.Set("Display", "RenderWindowWidth", m_LocalCoreStartupParameter.iRenderWindowWidth);
+		ini.Set("Display", "RenderWindowHeight", m_LocalCoreStartupParameter.iRenderWindowHeight);
+	}
 	ini.Set("Display", "RenderWindowAutoSize", m_LocalCoreStartupParameter.bRenderWindowAutoSize);
 	ini.Set("Display", "KeepWindowOnTop",      m_LocalCoreStartupParameter.bKeepWindowOnTop);
 	ini.Set("Display", "ProgressiveScan",      m_LocalCoreStartupParameter.bProgressive);

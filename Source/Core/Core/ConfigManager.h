@@ -86,6 +86,10 @@ struct SConfig : NonCopyable
 
 	SysConf* m_SYSCONF;
 
+	// For special cases, don't save the window position and resolution.
+	// eg. an Oculus Rift window wouldn't be suitable for normal non-VR gaming.
+	bool m_special_case;
+
 	// save settings
 	void SaveSettings();
 
