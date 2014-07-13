@@ -66,8 +66,6 @@ int Renderer::s_LastEFBScale;
 bool Renderer::s_skipSwap;
 bool Renderer::XFBWrited;
 
-unsigned int Renderer::s_fps = 0;
-
 PEControl::PixelFormat Renderer::prev_efb_format = PEControl::INVALID_FMT;
 unsigned int Renderer::efb_scale_numeratorX = 1;
 unsigned int Renderer::efb_scale_numeratorY = 1;
@@ -88,8 +86,6 @@ Renderer::Renderer()
 
 	OSDChoice = 0;
 	OSDTime = 0;
-
-	FPSCounter::Initialize();
 }
 
 Renderer::~Renderer()
@@ -106,8 +102,6 @@ Renderer::~Renderer()
 	if (pFrameDump.IsOpen())
 		pFrameDump.Close();
 #endif
-
-	FPSCounter::Shutdown();
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidth, u32 fbHeight, float Gamma)
@@ -527,7 +521,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& 
 	g_renderer->SwapImpl(xfbAddr, fbWidth, fbHeight, rc, Gamma);
 
 	if (XFBWrited)
-		s_fps = FPSCounter::Update();
+		g_renderer->m_fps_counter.Update();
 
 	frameCount++;
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);

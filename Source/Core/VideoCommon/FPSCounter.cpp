@@ -10,61 +10,44 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/VideoConfig.h"
 
-namespace FPSCounter
-{
 #define FPS_REFRESH_INTERVAL 1000
 
-static unsigned int s_counter = 0;
-static unsigned int s_fps = 0;
-static unsigned int s_fps_last_counter = 0;
-static Common::Timer s_update_time;
-
-static Common::Timer s_render_time;
-static std::ofstream s_bench_file;
-
-void Initialize()
+FPSCounter::FPSCounter()
 {
-	s_counter = s_fps_last_counter = 0;
-	s_fps = 0;
-
-	s_update_time.Update();
-	s_render_time.Update();
-
-	if (s_bench_file.is_open())
-		s_bench_file.close();
+	m_update_time.Update();
+	m_render_time.Update();
 }
 
-void Shutdown()
+FPSCounter::~FPSCounter()
 {
-	if (s_bench_file.is_open())
-		s_bench_file.close();
+	if (m_bench_file.is_open())
+		m_bench_file.close();
 }
 
-static void LogRenderTimeToFile(u64 val)
+void FPSCounter::LogRenderTimeToFile(u64 val)
 {
-	if (!s_bench_file.is_open())
-		s_bench_file.open(File::GetUserPath(D_LOGS_IDX) + "render_time.txt");
+	if (!m_bench_file.is_open())
+		m_bench_file.open(File::GetUserPath(D_LOGS_IDX) + "render_time.txt");
 
-	s_bench_file << val << std::endl;
+	m_bench_file << val << std::endl;
 }
 
-int Update()
+int FPSCounter::Update()
 {
-	if (s_update_time.GetTimeDifference() >= FPS_REFRESH_INTERVAL)
+	if (m_update_time.GetTimeDifference() >= FPS_REFRESH_INTERVAL)
 	{
-		s_update_time.Update();
-		s_fps = s_counter - s_fps_last_counter;
-		s_fps_last_counter = s_counter;
-		s_bench_file.flush();
+		m_update_time.Update();
+		m_fps = m_counter - m_fps_last_counter;
+		m_fps_last_counter = m_counter;
+		m_bench_file.flush();
 	}
 
 	if (g_ActiveConfig.bLogRenderTimeToFile)
 	{
-		LogRenderTimeToFile(s_render_time.GetTimeDifference());
-		s_render_time.Update();
+		LogRenderTimeToFile(m_render_time.GetTimeDifference());
+		m_render_time.Update();
 	}
 
-	s_counter++;
-	return s_fps;
-}
+	m_counter++;
+	return m_fps;
 }
