@@ -453,11 +453,11 @@ void DolphinApp::OnEndSession(wxCloseEvent& event)
 
 int DolphinApp::OnExit()
 {
+	Core::Shutdown();
 	WiimoteReal::Shutdown();
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
-	Core::Shutdown();
 
 	delete m_locale;
 
