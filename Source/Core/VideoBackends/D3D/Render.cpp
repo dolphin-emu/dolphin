@@ -27,6 +27,7 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
@@ -898,7 +899,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
 	{
-		std::string fps = StringFromFormat("FPS: %d\n", s_fps);
+		std::string fps = StringFromFormat("FPS: %d\n", m_fps_counter.m_fps);
 		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
