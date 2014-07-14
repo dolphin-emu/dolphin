@@ -44,7 +44,7 @@ namespace EfbCopy
 			else
 			{
 				// Ask SWRenderer for the next color texture
-				u8 *colorTexture = SWRenderer::getColorTexture();
+				u8 *colorTexture = SWRenderer::getNextColorTexture();
 
 				EfbInterface::BypassXFB(colorTexture, fbWidth, fbHeight, sourceRc, Gamma);
 
