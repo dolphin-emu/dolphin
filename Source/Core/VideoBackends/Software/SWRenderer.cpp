@@ -182,14 +182,14 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 
 			// We do the inverse BT.601 conversion for YCbCr to RGB
 			// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y1              + 1.596f * V));
-			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y1 - 0.392f * U - 0.813f * V));
-			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y1 + 2.017f * U             ));
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y1              + 1.596f * V), 0, 255);
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255);
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y1 + 2.017f * U             ), 0, 255);
 			TexturePointer[offset++] = 255;
 
-			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y2              + 1.596f * V));
-			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y2 - 0.392f * U - 0.813f * V));
-			TexturePointer[offset++] = std::min<u8>(255.0f, std::max(0.0f, 1.164f * Y2 + 2.017f * U             ));
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y2              + 1.596f * V), 0, 255);
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y2 - 0.392f * U - 0.813f * V), 0, 255);
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y2 + 2.017f * U             ), 0, 255);
 			TexturePointer[offset++] = 255;
 		}
 		xfb += fbWidth;
