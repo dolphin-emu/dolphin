@@ -28,7 +28,7 @@
 
 // This avoids a harmless warning from a system header in Clang;
 // see http://llvm.org/bugs/show_bug.cgi?id=16093
-#ifdef __clang__ && __clang_major__ * 100 + __clang_minor__ < 304
+#ifdef __clang__ && (__clang_major__ * 100 + __clang_minor__ < 304)
 #pragma clang diagnostic ignored "-Wshadow"
 #endif
 
