@@ -55,7 +55,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("Crop", &bCrop, false);
 	settings->Get("UseXFB", &bUseXFB, 0);
 	settings->Get("UseRealXFB", &bUseRealXFB, 0);
-	settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,128);
+	settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,512);
 	settings->Get("ShowFPS", &bShowFPS, false);
 	settings->Get("LogRenderTimeToFile", &bLogRenderTimeToFile, false);
 	settings->Get("ShowInputDisplay", &bShowInputDisplay, false);
