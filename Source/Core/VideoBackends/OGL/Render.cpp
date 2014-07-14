@@ -1358,6 +1358,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		// Render to the real/postprocessing buffer now.
 		PostProcessing::BindTargetFramebuffer();
 
+		// Clear framebuffer
+		if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
+		{
+			glClearColor(0, 0, 0, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			GL_REPORT_ERRORD();
+		}
+
 		// draw each xfb source
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
@@ -1416,6 +1424,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
 		PostProcessing::BindTargetFramebuffer();
+
+		// Clear framebuffer
+		if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
+		{
+			glClearColor(0, 0, 0, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			GL_REPORT_ERRORD();
+		}
 
 		// always the non-msaa fbo
 		GLuint fb = s_MSAASamples>1?FramebufferManager::GetResolvedFramebuffer():FramebufferManager::GetEFBFramebuffer();
@@ -1609,14 +1625,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
-
-	// Clear framebuffer
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
-	{
-		glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		GL_REPORT_ERRORD();
-	}
 
 	if (s_vsync != g_ActiveConfig.IsVSync())
 	{
