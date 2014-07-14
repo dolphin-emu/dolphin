@@ -232,6 +232,9 @@ void VideoSoftware::Video_EndField()
 		}
 	}
 
+	// Dump frame if needed
+	DebugUtil::OnFrameEnd(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+
 	// Ideally we would just move all the OpenGL context stuff to the CPU thread,
 	// but this gets messy when the hardware rasterizer is enabled.
 	// And neobrain loves his hardware rasterizer.

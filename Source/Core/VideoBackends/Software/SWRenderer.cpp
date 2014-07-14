@@ -152,8 +152,12 @@ void SWRenderer::DrawDebugText()
 	SWRenderer::RenderText(debugtext.c_str(), 20, 20, 0xFFFFFF00);
 }
 
-u8* SWRenderer::getColorTexture() {
+u8* SWRenderer::getNextColorTexture() {
 	return s_xfbColorTexture[!s_currentColorTexture];
+}
+
+u8* SWRenderer::getCurrentColorTexture() {
+	return s_xfbColorTexture[s_currentColorTexture];
 }
 
 void SWRenderer::swapColorTexture() {
@@ -168,7 +172,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 	}
 
 	u32 offset = 0;
-	u8 *TexturePointer = getColorTexture();
+	u8 *TexturePointer = getNextColorTexture();
 
 	for (u16 y = 0; y < fbHeight; y++)
 	{
@@ -202,7 +206,7 @@ void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
 {
 	GLInterface->Update(); // just updates the render window position and the backbuffer size
 	if (!g_SWVideoConfig.bHwRasterizer)
-		SWRenderer::DrawTexture(s_xfbColorTexture[s_currentColorTexture], fbWidth, fbHeight);
+		SWRenderer::DrawTexture(getCurrentColorTexture(), fbWidth, fbHeight);
 
 	swstats.frameCount++;
 	SWRenderer::SwapBuffer();
