@@ -464,13 +464,13 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 		return;
 
 	// TODO: Limited to even str lengths...
-	if (str_search_val.Length() && str_search_val.Length() % 2)
+	if (!str_search_val.empty() && str_search_val.length() % 2)
 	{
 		m_numResultsText->SetLabel(_("Invalid search string (only even string lengths supported)"));
 		return;
 	}
 
-	unsigned int const val_length = str_search_val.Length() / 2;
+	unsigned int const val_length = str_search_val.length() / 2;
 	std::vector<u8> search_val(val_length);
 	for (unsigned int i = 0; i < val_length; ++i)
 	{

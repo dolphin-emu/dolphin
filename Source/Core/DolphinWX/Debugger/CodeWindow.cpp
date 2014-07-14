@@ -220,7 +220,9 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 		return;
 
 	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
-	wxString txt = pAddrCtrl->GetValue().Strip(wxString::stripType::both);
+
+	// Trim leading and trailing whitespace.
+	wxString txt = pAddrCtrl->GetValue().Trim().Trim(false);
 
 	bool success = false;
 	unsigned long addr;
