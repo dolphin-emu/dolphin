@@ -134,7 +134,7 @@ static void CreatePrograms()
 
 static SHADER &GetOrCreateEncodingShader(u32 format)
 {
-	if (format > NUM_ENCODING_PROGRAMS)
+	if (format >= NUM_ENCODING_PROGRAMS)
 	{
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
 		return s_encodingPrograms[0];
