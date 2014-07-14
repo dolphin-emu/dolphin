@@ -20,6 +20,14 @@ inline void Clamp(T* val, const T& min, const T& max)
 		*val = max;
 }
 
+template<class T>
+inline T Clamp(const T val, const T& min, const T& max)
+{
+	T ret = val;
+	Clamp(&ret, min, max);
+	return ret;
+}
+
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
 
 static const u64 DOUBLE_SIGN = 0x8000000000000000ULL,
