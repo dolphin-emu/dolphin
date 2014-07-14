@@ -866,9 +866,9 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	{
 		if (DiscIO::IsVolumeWiiDisc(OpenISO))
 			for (u32 i = 0; i < WiiDisc.size(); i++)
-				ExportDir("", WxStrToStr(Path).c_str(), i);
+				ExportDir("", WxStrToStr(Path), i);
 		else
-			ExportDir("", WxStrToStr(Path).c_str());
+			ExportDir("", WxStrToStr(Path));
 
 		return;
 	}
