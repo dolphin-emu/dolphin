@@ -9,5 +9,5 @@
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 
 // The default font
-wxFont DebuggerFont = wxFont(9, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+wxFont DebuggerFont = wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, "monospace");
 
