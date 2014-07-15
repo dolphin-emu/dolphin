@@ -31,6 +31,9 @@ void UpdateInterrupts();
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate);
 void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num);
+
+CEXIChannel* GetChannel(u32 index);
+
 IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1);
 
 } // end of namespace ExpansionInterface

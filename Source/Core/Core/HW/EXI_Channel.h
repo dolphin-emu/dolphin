@@ -80,9 +80,13 @@ private:
 
 	std::unique_ptr<IEXIDevice> m_pDevices[NUM_DEVICES];
 
+	// Since channels operate a bit differently from each other
+	u32 m_ChannelId;
+
 	int updateInterrupts;
 
 	static void UpdateInterrupts(u64 userdata, int cyclesLate);
+
 public:
 	// get device
 	IEXIDevice* GetDevice(const u8 _CHIP_SELECT);
@@ -107,7 +111,4 @@ public:
 
 	// This should only be used to transition interrupts from SP1 to Channel 2
 	void SetEXIINT(bool exiint) { m_Status.EXIINT = !!exiint; }
-
-	// Since channels operate a bit differently from each other
-	u32 m_ChannelId;
 };

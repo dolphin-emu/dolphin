@@ -7,8 +7,6 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
-class CEXIChannel;
-
 enum TEXIDevices
 {
 	EXIDEVICE_DUMMY,
@@ -40,6 +38,8 @@ public:
 	virtual void DMAWrite(u32 _uAddr, u32 _uSize);
 	virtual void DMARead (u32 _uAddr, u32 _uSize);
 
+	virtual bool UseDelayedTransferCompletion() {return false;}
+
 	virtual bool IsPresent() {return false;}
 	virtual void SetCS(int) {}
 	virtual void DoState(PointerWrap&) {}
@@ -50,12 +50,9 @@ public:
 	virtual bool IsInterruptSet() {return false;}
 	virtual ~IEXIDevice() {}
 
-	// Pointer to channel attached to the device
-	CEXIChannel* m_channel;
-
 	// for savestates. storing it here seemed cleaner than requiring each implementation to report its type.
 	// I know this class is set up like an interface, but no code requires it to be strictly such.
 	TEXIDevices m_deviceType;
 };
 
-IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, CEXIChannel* channel);
+IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);

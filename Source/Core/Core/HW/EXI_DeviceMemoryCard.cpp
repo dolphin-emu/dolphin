@@ -71,7 +71,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
 	et_this_card = CoreTiming::RegisterEvent((index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
 	et_cmd_done = CoreTiming::RegisterEvent((index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
-	et_transfer_complete = CoreTiming::RegisterEvent((index == 0) ? "memcardTransferCompleteB" : "memcardTransferCompleteB", TransferCompleteCallback);
+	et_transfer_complete = CoreTiming::RegisterEvent((index == 0) ? "memcardTransferCompleteA" : "memcardTransferCompleteB", TransferCompleteCallback);
 
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -231,6 +231,11 @@ CEXIMemoryCard::~CEXIMemoryCard()
 	memorycard.reset();
 }
 
+bool CEXIMemoryCard::UseDelayedTransferCompletion()
+{
+	return true;
+}
+
 bool CEXIMemoryCard::IsPresent()
 {
 	return true;
@@ -248,12 +253,7 @@ void CEXIMemoryCard::CmdDone()
 void CEXIMemoryCard::TransferComplete()
 {
 	// Transfer complete, send interrupt
-	m_channel->SendTransferComplete();
-
-	// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
-	// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write.
-	CoreTiming::RemoveEvent(et_this_card);
-	CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
+	ExpansionInterface::GetChannel(card_index)->SendTransferComplete();
 }
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
@@ -530,6 +530,13 @@ IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
 void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 {
 	memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
+
+#ifdef _DEBUG
+	if ((address + _uSize) % BLOCK_SIZE == 0)
+		INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
+#endif
+
+	// Schedule transfer complete later based on read speed
 	CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ), et_transfer_complete, (u64)card_index);
 }
 
@@ -538,5 +545,22 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 {
 	memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
+
+	// At the end of writing to a block flush to disk
+	// memory card blocks are always(?) written as a whole,
+	// but the dma calls are by page size (0x200) at a time
+	// just in case this is the last block that the game will be writing for a while
+	if (((address + _uSize) % BLOCK_SIZE) == 0)
+	{
+		INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
+		// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
+		// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write
+		// Scheduling event is mainly for raw memory cards as the flush the whole 16MB to disk
+		// Flushing the gci folder is free in comparison
+		CoreTiming::RemoveEvent(et_this_card);
+		CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
+	}
+
+	// Schedule transfer complete later based on write speed
 	CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE), et_transfer_complete, (u64)card_index);
 }

@@ -13,6 +13,7 @@ public:
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs) override;
 	bool IsInterruptSet() override;
+	bool UseDelayedTransferCompletion() override;
 	bool IsPresent() override;
 	void DoState(PointerWrap &p) override;
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
