@@ -13,7 +13,7 @@ class Classic : public Attachment
 {
 public:
 	Classic(WiimoteEmu::ExtensionReg& _reg);
-	void GetState(u8* const data, const bool focus) override;
+	void GetState(u8* const data) override;
 
 	enum
 	{

@@ -45,7 +45,6 @@
 #include "Common/MsgHandler.h"
 #include "Core/HW/Wiimote.h"
 #include "DolphinWX/InputConfigDiag.h"
-#include "DolphinWX/UDPConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
@@ -53,17 +52,9 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ExpressionParser.h"
 
-class UDPWrapper;
 class wxWindow;
 
 using namespace ciface::ExpressionParser;
-
-void GamepadPage::ConfigUDPWii(wxCommandEvent &event)
-{
-	UDPWrapper* const wrp = ((UDPConfigButton*)event.GetEventObject())->wrapper;
-	UDPConfigDiag diag(this, wrp);
-	diag.ShowModal();
-}
 
 void GamepadPage::ConfigExtension(wxCommandEvent& event)
 {
@@ -113,32 +104,32 @@ void PadSettingExtension::UpdateValue()
 	extension->switch_extension = ((wxChoice*)wxcontrol)->GetSelection();
 }
 
-PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const std::string& label)
-	: PadSetting(new wxCheckBox(parent, -1, wxGetTranslation(StrToWxStr(label))))
-	, value(_value)
+PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const _setting)
+	: PadSetting(new wxCheckBox(parent, -1, wxGetTranslation(StrToWxStr(_setting->name))))
+	, setting(_setting)
 {
 	UpdateGUI();
 }
 
 void PadSettingCheckBox::UpdateGUI()
 {
-	((wxCheckBox*)wxcontrol)->SetValue(value > 0);
+	((wxCheckBox*)wxcontrol)->SetValue(setting->GetValue());
 }
 
 void PadSettingCheckBox::UpdateValue()
 {
 	// 0.01 so its saved to the ini file as just 1. :(
-	value = 0.01 * ((wxCheckBox*)wxcontrol)->GetValue();
+	setting->SetValue(0.01 * ((wxCheckBox*)wxcontrol)->GetValue());
 }
 
 void PadSettingSpin::UpdateGUI()
 {
-	((wxSpinCtrl*)wxcontrol)->SetValue((int)(value * 100));
+	((wxSpinCtrl*)wxcontrol)->SetValue((int)(setting->GetValue() * 100));
 }
 
 void PadSettingSpin::UpdateValue()
 {
-	value = float(((wxSpinCtrl*)wxcontrol)->GetValue()) / 100;
+	setting->SetValue(float(((wxSpinCtrl*)wxcontrol)->GetValue()) / 100);
 }
 
 ControlDialog::ControlDialog(GamepadPage* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref)
@@ -883,19 +874,12 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			Add(configure_btn, 0, wxALL|wxEXPAND, 3);
 		}
 		break;
-	case GROUP_TYPE_UDPWII:
-		{
-			wxButton* const btn = new UDPConfigButton(parent, (UDPWrapper*)group);
-			btn->Bind(wxEVT_BUTTON, &GamepadPage::ConfigUDPWii, eventsink);
-			Add(btn, 0, wxALL|wxEXPAND, 3);
-		}
-		break;
 	default:
 		{
 			//options
 			for (auto& groupSetting : group->settings)
 			{
-				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting->value, groupSetting->name);
+				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
 				setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
 				options.push_back(setting_cbox);
 

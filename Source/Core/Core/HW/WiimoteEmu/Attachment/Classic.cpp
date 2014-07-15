@@ -80,7 +80,7 @@ Classic::Classic(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Classic"),
 	memcpy(&id, classic_id, sizeof(classic_id));
 }
 
-void Classic::GetState(u8* const data, const bool focus)
+void Classic::GetState(u8* const data)
 {
 	wm_classic_extension* const ccdata = (wm_classic_extension*)data;
 	ccdata->bt = 0;
@@ -89,41 +89,46 @@ void Classic::GetState(u8* const data, const bool focus)
 
 	// left stick
 	{
-	u8 x, y;
-	m_left_stick->GetState(&x, &y, 0x20, focus ? 0x1F /*0x15*/ : 0);
+	double x, y;
+	m_left_stick->GetState(&x, &y);
 
-	ccdata->lx = x;
-	ccdata->ly = y;
+	ccdata->lx = (x * 0x1F) + 0x20;
+	ccdata->ly = (y * 0x1F) + 0x20;
 	}
 
 	// right stick
 	{
-	u8 x, y;
-	m_right_stick->GetState(&x, &y, 0x10, focus ? 0x0F /*0x0C*/ : 0);
+	double x, y;
+	u8 x_, y_;
+	m_right_stick->GetState(&x, &y);
 
-	ccdata->rx1 = x;
-	ccdata->rx2 = x >> 1;
-	ccdata->rx3 = x >> 3;
-	ccdata->ry = y;
+	x_ = (x * 0x1F) + 0x20;
+	y_ = (y * 0x1F) + 0x20;
+
+	ccdata->rx1 = x_;
+	ccdata->rx2 = x_ >> 1;
+	ccdata->rx3 = x_ >> 3;
+	ccdata->ry = y_;
 	}
 
 	//triggers
 	{
-	u8 trigs[2];
-	m_triggers->GetState(&ccdata->bt, classic_trigger_bitmasks, trigs, focus ? 0x1F : 0);
+	double trigs[2] = { 0, 0 };
+	u8 lt, rt;
+	m_triggers->GetState(&ccdata->bt, classic_trigger_bitmasks, trigs);
 
-	ccdata->lt1 = trigs[0];
-	ccdata->lt2 = trigs[0] >> 3;
-	ccdata->rt = trigs[1];
+	lt = trigs[0] * 0x1F;
+	rt = trigs[1] * 0x1F;
+
+	ccdata->lt1 = lt;
+	ccdata->lt2 = lt >> 3;
+	ccdata->rt = rt;
 	}
 
-	if (focus)
-	{
-		// buttons
-		m_buttons->GetState(&ccdata->bt, classic_button_bitmasks);
-		// dpad
-		m_dpad->GetState(&ccdata->bt, classic_dpad_bitmasks);
-	}
+	// buttons
+	m_buttons->GetState(&ccdata->bt, classic_button_bitmasks);
+	// dpad
+	m_dpad->GetState(&ccdata->bt, classic_dpad_bitmasks);
 
 	// flip button bits
 	ccdata->bt ^= 0xFFFF;

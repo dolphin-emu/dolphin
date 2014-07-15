@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -48,8 +48,6 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="UDPWiimote.cpp" />
-    <ClCompile Include="UDPWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu.h" />
@@ -64,8 +62,6 @@
     <ClInclude Include="GCPadStatus.h" />
     <ClInclude Include="InputConfig.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="UDPWiimote.h" />
-    <ClInclude Include="UDPWrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
