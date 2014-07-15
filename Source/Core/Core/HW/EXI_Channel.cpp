@@ -31,7 +31,7 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 		m_Status.CHIP_SELECT = 1;
 
 	for (auto& device : m_pDevices)
-		device.reset(EXIDevice_Create(EXIDEVICE_NONE, this));
+		device.reset(EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId));
 
 	updateInterrupts = CoreTiming::RegisterEvent("EXIInterrupt", UpdateInterrupts);
 }
@@ -137,7 +137,8 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 				m_Control.TSTART = 0;
 
-				if (pDevice->m_deviceType != EXIDEVICE_MEMORYCARD)
+				// Check if device needs specific timing, otherwise just complete transfer immediately
+				if (!pDevice->UseDelayedTransferCompletion())
 					SendTransferComplete();
 			}
 		})
@@ -163,7 +164,7 @@ void CEXIChannel::RemoveDevices()
 
 void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 {
-	IEXIDevice* pNewDevice = EXIDevice_Create(device_type, this);
+	IEXIDevice* pNewDevice = EXIDevice_Create(device_type, m_ChannelId);
 	AddDevice(pNewDevice, device_num);
 }
 
@@ -235,7 +236,7 @@ void CEXIChannel::DoState(PointerWrap &p)
 		IEXIDevice* pDevice = m_pDevices[d].get();
 		TEXIDevices type = pDevice->m_deviceType;
 		p.Do(type);
-		IEXIDevice* pSaveDevice = (type == pDevice->m_deviceType) ? pDevice : EXIDevice_Create(type, this);
+		IEXIDevice* pSaveDevice = (type == pDevice->m_deviceType) ? pDevice : EXIDevice_Create(type, m_ChannelId);
 		pSaveDevice->DoState(p);
 		if (pSaveDevice != pDevice)
 		{
