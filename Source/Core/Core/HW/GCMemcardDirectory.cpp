@@ -316,7 +316,7 @@ void GCMemcardDirectory::ClearBlock(u32 address)
 		if (m_LastBlock == -1)
 			return;
 	}
-	((GCMBlock *)m_LastBlockAddress)->erase();
+	((GCMBlock *)m_LastBlockAddress)->Erase();
 }
 
 inline void GCMemcardDirectory::SyncSaves()
