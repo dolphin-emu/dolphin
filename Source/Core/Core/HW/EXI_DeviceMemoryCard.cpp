@@ -88,11 +88,11 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 
 	if (gciFolder)
 	{
-		setupGciFolder(sizeMb);
+		SetupGciFolder(sizeMb);
 	}
 	else
 	{
-		setupRawMemcard(sizeMb);
+		SetupRawMemcard(sizeMb);
 	}
 
 	memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
@@ -101,7 +101,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	SetCardFlashID(header, card_index);
 }
 
-void CEXIMemoryCard::setupGciFolder(u16 sizeMb)
+void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
 
 	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
@@ -163,7 +163,7 @@ void CEXIMemoryCard::setupGciFolder(u16 sizeMb)
 													  CountryCode, CurrentGameId);
 }
 
-void CEXIMemoryCard::setupRawMemcard(u16 sizeMb)
+void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
 {
 	std::string filename =
 		(card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
@@ -208,7 +208,7 @@ void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 void CEXIMemoryCard::SetCS(int cs)
 {
 	// So that memory card won't be invalidated during flushing
-	memorycard->joinThread();
+	memorycard->JoinThread();
 
 	if (cs)  // not-selected to selected
 	{
@@ -432,7 +432,7 @@ void CEXIMemoryCard::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	{
 		// we don't exactly have anything to pause,
 		// but let's make sure the flush thread isn't running.
-		memorycard->joinThread();
+		memorycard->JoinThread();
 	}
 }
 

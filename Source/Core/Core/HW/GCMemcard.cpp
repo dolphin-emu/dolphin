@@ -188,10 +188,10 @@ GCMemcard::GCMemcard(const std::string &filename, bool forceCreation, bool ascii
 
 	mcdFile.Close();
 
-	initDirBatPointers();
+	InitDirBatPointers();
 }
 
-void GCMemcard::initDirBatPointers()
+void GCMemcard::InitDirBatPointers()
 {
 	if (BE16(dir.UpdateCounter) > (BE16(dir_backup.UpdateCounter)))
 	{
@@ -1237,7 +1237,7 @@ bool GCMemcard::Format(bool ascii, u16 SizeMb)
 	mc_data_blocks.clear();
 	mc_data_blocks.resize(maxBlock - MC_FST_BLOCKS);
 
-	initDirBatPointers();
+	InitDirBatPointers();
 	m_valid = true;
 
 	return Save();

@@ -63,7 +63,7 @@ union SRAM
 	};
 };
 #pragma pack(pop)
-void initSRAM();
+void InitSRAM();
 void SetCardFlashID(u8* buffer, u8 card_index);
 
 extern SRAM sram_dump;

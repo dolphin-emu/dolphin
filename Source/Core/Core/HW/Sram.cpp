@@ -57,7 +57,7 @@ SRAM sram_dump_german = {{
 }};
 #endif
 
-void initSRAM()
+void InitSRAM()
 {
 	File::IOFile file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM, "rb");
 	if (file)

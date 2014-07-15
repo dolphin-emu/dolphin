@@ -6,9 +6,7 @@
 
 #pragma once
 
-// ===================================================
-/* They key structure to use with wiimote_gen_key() */
-// ----------------
+// The key structure to use with WiimoteGenerateKey()
 struct wiimote_key
 {
 	u8 ft[8];
@@ -16,7 +14,7 @@ struct wiimote_key
 };
 
 
-void wiimote_encrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len);
-void wiimote_decrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len);
+void WiimoteEncrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len);
+void WiimoteDecrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len);
 
-void wiimote_gen_key(wiimote_key* const key, const u8* const keydata);
+void WiimoteGenerateKey(wiimote_key* const key, const u8* const keydata);

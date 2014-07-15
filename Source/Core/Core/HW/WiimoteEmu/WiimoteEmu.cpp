@@ -602,7 +602,7 @@ void Wiimote::GetExtData(u8* const data)
 	}
 
 	if (0xAA == m_reg_ext.encryption)
-		wiimote_encrypt(&m_ext_key, data, 0x00, sizeof(wm_extension));
+		WiimoteEncrypt(&m_ext_key, data, 0x00, sizeof(wm_extension));
 }
 
 void Wiimote::Update()
