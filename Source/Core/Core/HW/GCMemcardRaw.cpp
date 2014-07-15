@@ -75,7 +75,7 @@ MemoryCard::~MemoryCard()
 	delete[] memory_card_content;
 }
 
-void MemoryCard::joinThread()
+void MemoryCard::JoinThread()
 {
 	if (flushThread.joinable())
 	{

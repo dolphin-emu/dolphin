@@ -24,7 +24,7 @@ static int changeDevice;
 static CEXIChannel *g_Channels[MAX_EXI_CHANNELS];
 void Init()
 {
-	initSRAM();
+	InitSRAM();
 	for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
 		g_Channels[i] = new CEXIChannel(i);
 

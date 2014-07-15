@@ -76,7 +76,7 @@ public:
 	virtual void ClearBlock(u32 address) = 0;
 	virtual void ClearAll() = 0;
 	virtual void DoState(PointerWrap &p) = 0;
-	virtual void joinThread() {};
+	virtual void JoinThread() {};
 	u32 GetCardId() { return nintendo_card_id; }
 
 protected:
@@ -87,8 +87,16 @@ protected:
 
 struct GCMBlock
 {
-	GCMBlock() { erase(); }
-	void erase() { memset(block, 0xFF, BLOCK_SIZE); }
+	GCMBlock()
+	{
+		Erase();
+	}
+
+	void Erase()
+	{
+		memset(block, 0xFF, BLOCK_SIZE);
+	}
+
 	u8 block[BLOCK_SIZE];
 };
 
@@ -325,7 +333,7 @@ private:
 	std::vector<GCMBlock> mc_data_blocks;
 
 	u32 ImportGciInternal(FILE* gcih, const std::string& inputFile, const std::string &outputFile);
-	void initDirBatPointers();
+	void InitDirBatPointers();
 
 public:
 

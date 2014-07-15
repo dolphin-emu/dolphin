@@ -29,7 +29,7 @@ public:
 	void ClearBlock(u32 address) override;
 	void ClearAll() override;
 	void DoState(PointerWrap &p) override;
-	void joinThread() override;
+	void JoinThread() override;
 
 private:
 	u8 *memory_card_content;
