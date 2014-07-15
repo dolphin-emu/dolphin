@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <algorithm>
 #include <string>
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
 #include "Core/HW/EXI_DeviceIPL.h"
@@ -156,9 +158,29 @@ struct DEntry
 	DEntry() { memset(this, 0xFF, DENTRY_SIZE); }
 	std::string GCI_FileName() const
 	{
-		return std::string((char *)Makercode, 2) + '-' + std::string((char *)Gamecode, 4) + '-' + (char *)Filename +
-			   ".gci";
+		std::string filename = std::string((char *)Makercode, 2) + '-' + std::string((char *)Gamecode, 4) + '-' + (char *)Filename +
+			".gci";
+		static Common::replace_v replacements;
+		if (replacements.size() == 0)
+		{
+			Common::ReadReplacements(replacements);
+			// Cannot add \r to replacements file due to it being a line ending char
+			// / might be ok, but we need to verify that this is only used on filenames
+			// as it is a dir_sep
+			replacements.push_back(std::make_pair('\r', std::string("__0d__")));
+			replacements.push_back(std::make_pair('/', std::string("__2f__")));
+
+		}
+
+		// Replaces chars that FAT32 can't support with strings defined in /sys/replace
+		for (auto& replacement : replacements)
+		{
+			for (size_t j = 0; (j = filename.find(replacement.first, j)) != filename.npos; ++j)
+				filename.replace(j, 1, replacement.second);
+		}
+		return filename;
 	}
+
 	u8 Gamecode[4];     //0x00       0x04    Gamecode
 	u8 Makercode[2];    //0x04      0x02    Makercode
 	u8 Unused1;         //0x06      0x01    reserved/unused (always 0xff, has no effect)
