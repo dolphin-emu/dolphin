@@ -23,7 +23,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 public final class GameListItem implements Comparable<GameListItem>
 {
 	private String name;
-	private final String data;
+	private long  filesize;
 	private final String path;
 	private Bitmap image;
 
@@ -32,38 +32,20 @@ public final class GameListItem implements Comparable<GameListItem>
 	 * 
 	 * @param ctx  The current {@link Context}
 	 * @param name The name of this GameListItem.
-	 * @param data The subtitle for this GameListItem
+	 * @param filesize The filesize for this GameListItem, in GiB
 	 * @param path The file path for the game represented by this GameListItem.
 	 */
-	public GameListItem(Context ctx, String name, String data, String path)
+	public GameListItem(Context ctx, String name, long filesize, String path)
 	{
 		this.name = name;
-		this.data = data;
+		this.filesize = filesize;
 		this.path = path;
 
 		File file = new File(path);
 		if (!file.isDirectory() && !path.isEmpty())
 		{
 			int[] Banner = NativeLibrary.GetBanner(path);
-			if (Banner[0] == 0)
-			{
-				try
-				{
-					// Open the no banner icon.
-					InputStream noBannerPath = ctx.getAssets().open("NoBanner.png");
-
-					// Decode the bitmap.
-					image = BitmapFactory.decodeStream(noBannerPath);
-
-					// Scale the bitmap to match other banners.
-					image = Bitmap.createScaledBitmap(image, 96, 32, false);
-				}
-				catch (IOException e)
-				{
-					Log.e("GameListItem", e.toString());
-				}
-			}
-			else
+			if (Banner[0] != 0)
 			{
 				image = Bitmap.createBitmap(Banner, 96, 32, Bitmap.Config.ARGB_8888);
 			}
@@ -83,13 +65,13 @@ public final class GameListItem implements Comparable<GameListItem>
 	}
 
 	/**
-	 * Gets the subtitle of this GameListItem.
+	 * Gets the filesize of this GameListItem, in GiB.
 	 * 
-	 * @return the subtitle of this GameListItem.
+	 * @return the filesize of this GameListItem.
 	 */
-	public String getData()
+	public long getFilesize()
 	{
-		return data;
+		return filesize;
 	}
 
 	/**
