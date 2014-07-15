@@ -182,7 +182,7 @@ CEXIMemoryCard::~CEXIMemoryCard()
 {
 	CoreTiming::RemoveEvent(et_this_card);
 	memorycard->Flush(true);
-	memorycard.release();
+	memorycard.reset();
 }
 
 bool CEXIMemoryCard::IsPresent()

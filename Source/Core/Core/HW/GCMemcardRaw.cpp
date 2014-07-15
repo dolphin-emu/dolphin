@@ -69,6 +69,12 @@ MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb)
 	}
 }
 
+MemoryCard::~MemoryCard()
+{
+	Flush(true);
+	delete[] memory_card_content;
+}
+
 void MemoryCard::joinThread()
 {
 	if (flushThread.joinable())

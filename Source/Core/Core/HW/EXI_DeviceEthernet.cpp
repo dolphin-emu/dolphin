@@ -53,9 +53,9 @@ CEXIETHERNET::~CEXIETHERNET()
 {
 	Deactivate();
 
-	delete tx_fifo;
-	delete mBbaMem;
-	delete mRecvBuffer;
+	delete[] tx_fifo;
+	delete[] mBbaMem;
+	delete[] mRecvBuffer;
 }
 
 void CEXIETHERNET::SetCS(int cs)
