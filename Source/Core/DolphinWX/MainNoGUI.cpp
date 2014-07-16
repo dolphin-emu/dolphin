@@ -95,6 +95,11 @@ void Host_SetStartupDebuggingParameters()
 	StartUp.bBootToPause = false;
 }
 
+bool Host_UIHasFocus()
+{
+	return false;
+}
+
 bool Host_RendererHasFocus()
 {
 	return rendererHasFocus;
