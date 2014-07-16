@@ -753,7 +753,29 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 
 bool CFrame::RendererHasFocus()
 {
-	// RendererHasFocus should return true any time any one of our
+	if (m_RenderParent == nullptr)
+		return false;
+#ifdef _WIN32
+	if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
+		return true;
+#else
+	wxWindow *window = wxWindow::FindFocus();
+	if (window == nullptr)
+		return false;
+	// Why these different cases?
+	if (m_RenderParent == window ||
+	    m_RenderParent == window->GetParent() ||
+	    m_RenderParent->GetParent() == window->GetParent())
+	{
+		return true;
+	}
+#endif
+	return false;
+}
+
+bool CFrame::UIHasFocus()
+{
+	// UIHasFocus should return true any time any one of our UI
 	// windows has the focus, including any dialogs or other windows.
 	//
 	// wxGetActiveWindow() returns the current wxWindow which has
