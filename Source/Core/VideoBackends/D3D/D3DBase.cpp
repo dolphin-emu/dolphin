@@ -440,9 +440,6 @@ void Reset()
 	// release all back buffer references
 	SAFE_RELEASE(backbuf);
 
-	// apply fullscreen state
-	D3D::swapchain->SetFullscreenState(g_ActiveConfig.bFullscreen, nullptr);
-
 	// resize swapchain buffers
 	RECT client;
 	GetClientRect(hWnd, &client);

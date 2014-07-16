@@ -975,11 +975,18 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		s_LastAA != g_ActiveConfig.iMultisampleMode)
 	{
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
-		s_last_fullscreen_mode = fullscreen;
 		PixelShaderCache::InvalidateMSAAShaders();
 
 		if (windowResized || fullscreen_changed)
 		{
+			// apply fullscreen state
+			if (fullscreen_changed)
+			{
+				s_last_fullscreen_mode = fullscreen;
+				D3D::swapchain->SetFullscreenState(fullscreen, nullptr);
+				Host_RequestFullscreen(fullscreen);
+			}
+
 			// TODO: Aren't we still holding a reference to the back buffer right now?
 			D3D::Reset();
 			SAFE_RELEASE(s_screenshot_texture);

@@ -640,6 +640,11 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		}
 		break;
 
+	case IDM_FULLSCREENREQUEST:
+		if (m_RenderFrame != nullptr)
+			m_RenderFrame->ShowFullScreen(event.GetInt() == 0 ? false : true);
+		break;
+
 	case WM_USER_CREATE:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
@@ -1185,7 +1190,18 @@ void CFrame::DoFullscreen(bool bF)
 		[window toggleFullScreen:nil];
 	}
 #else
-	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
+	if (bF)
+	{
+		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
+	}
+	else if (!g_ActiveConfig.backend_info.bSupportsExclusiveFullscreen ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain ||
+		g_ActiveConfig.bForceBorderlessFullscreen)
+	{
+		// Exiting exclusive fullscreen should be done from a Renderer callback.
+		// Therefore we don't exit fullscreen from here if we support exclusive mode.
+		m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
+	}
 #endif
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)

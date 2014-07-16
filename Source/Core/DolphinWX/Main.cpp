@@ -627,6 +627,13 @@ void Host_RequestRenderWindowSize(int width, int height)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
+void Host_RequestFullscreen(bool fullscreen)
+{
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FULLSCREENREQUEST);
+	event.SetInt(fullscreen ? 1 : 0);
+	main_frame->GetEventHandler()->AddPendingEvent(event);
+}
+
 void Host_SetStartupDebuggingParameters()
 {
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
