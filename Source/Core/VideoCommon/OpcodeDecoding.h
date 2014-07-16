@@ -39,4 +39,3 @@ extern bool g_bRecordFifoData;
 void OpcodeDecoder_Init();
 void OpcodeDecoder_Shutdown();
 u32 OpcodeDecoder_Run(bool skipped_frame);
-void InterpretDisplayList(u32 address, u32 size);
