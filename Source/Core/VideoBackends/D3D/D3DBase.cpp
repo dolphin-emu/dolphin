@@ -314,6 +314,9 @@ HRESULT Create(HWND wnd)
 		return E_FAIL;
 	}
 
+	// prevent DXGI from responding to Alt+Enter, unfortunately DXGI_MWA_NO_ALT_ENTER
+	// does not work so we disable all monitoring of window messages. However this
+	// may make it more difficult for DXGI to handle display mode changes.
 	hr = factory->MakeWindowAssociation(wnd, DXGI_MWA_NO_WINDOW_CHANGES);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 

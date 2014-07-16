@@ -42,7 +42,7 @@ static u32 s_LastAA = 0;
 
 static Television s_television;
 
-static bool s_LastFS = false;
+static bool s_last_fullscreen_mode = false;
 
 ID3D11Buffer* access_efb_cbuf = nullptr;
 ID3D11BlendState* clearblendstates[4] = {nullptr};
@@ -940,13 +940,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	const bool windowResized = CheckForResize();
 	const bool fullscreen = g_ActiveConfig.bFullscreen;
 
-	bool fsChanged = s_LastFS != fullscreen;
+	bool fullscreen_changed = s_last_fullscreen_mode != fullscreen;
 
-	BOOL fsState;
-	if (SUCCEEDED(D3D::swapchain->GetFullscreenState(&fsState, nullptr)) && !!fsState != fullscreen)
+	BOOL fullscreen_state;
+	if (SUCCEEDED(D3D::swapchain->GetFullscreenState(&fullscreen_state, nullptr)))
 	{
-		// We should be in fullscreen, but we're not. Restore it when we regain focus.
-		fsChanged = Host_RendererHasFocus();
+		if (!!fullscreen_state != fullscreen)
+		{
+			// We should be in fullscreen, but we're not. Restore it when we regain focus.
+			fullscreen_changed = Host_RendererHasFocus();
+		}
 	}
 
 	bool xfbchanged = false;
@@ -966,15 +969,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// resize the back buffers NOW to avoid flickering
 	if (xfbchanged ||
 		windowResized ||
-		fsChanged ||
+		fullscreen_changed ||
 		s_LastEFBScale != g_ActiveConfig.iEFBScale ||
 		s_LastAA != g_ActiveConfig.iMultisampleMode)
 	{
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
-		s_LastFS = g_ActiveConfig.bFullscreen;
+		s_last_fullscreen_mode = fullscreen;
 		PixelShaderCache::InvalidateMSAAShaders();
 
-		if (windowResized || fsChanged)
+		if (windowResized || fullscreen_changed)
 		{
 			// TODO: Aren't we still holding a reference to the back buffer right now?
 			D3D::Reset();
