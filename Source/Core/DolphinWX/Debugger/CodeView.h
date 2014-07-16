@@ -30,6 +30,7 @@ public:
 			wxWindow* parent, wxWindowID Id = wxID_ANY);
 	void OnPaint(wxPaintEvent& event);
 	void OnErase(wxEraseEvent& event);
+	void OnScrollWheel(wxMouseEvent& event);
 	void OnMouseDown(wxMouseEvent& event);
 	void OnMouseMove(wxMouseEvent& event);
 	void OnMouseUpL(wxMouseEvent& event);

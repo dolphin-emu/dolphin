@@ -56,6 +56,7 @@ enum
 BEGIN_EVENT_TABLE(CCodeView, wxControl)
 	EVT_ERASE_BACKGROUND(CCodeView::OnErase)
 	EVT_PAINT(CCodeView::OnPaint)
+	EVT_MOUSEWHEEL(CCodeView::OnScrollWheel)
 	EVT_LEFT_DOWN(CCodeView::OnMouseDown)
 	EVT_LEFT_UP(CCodeView::OnMouseUpL)
 	EVT_MOTION(CCodeView::OnMouseMove)
@@ -111,6 +112,24 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
 		ToggleBreakpoint(YToAddress(y));
 	}
 
+	event.Skip();
+}
+
+void CCodeView::OnScrollWheel(wxMouseEvent& event)
+{
+	const bool scroll_down = (event.GetWheelRotation() < 0);
+	const int num_lines = event.GetLinesPerAction();
+
+	if (scroll_down)
+	{
+		curAddress += num_lines;
+	}
+	else
+	{
+		curAddress -= num_lines;
+	}
+
+	Refresh();
 	event.Skip();
 }
 
