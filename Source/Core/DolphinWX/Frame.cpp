@@ -773,6 +773,19 @@ bool CFrame::RendererHasFocus()
 	return false;
 }
 
+bool CFrame::UIHasFocus()
+{
+	// UIHasFocus should return true any time any one of our UI
+	// windows has the focus, including any dialogs or other windows.
+	//
+	// wxGetActiveWindow() returns the current wxWindow which has
+	// focus. If it's not one of our windows, then it will return
+	// null.
+
+	wxWindow *focusWindow = wxGetActiveWindow();
+	return (focusWindow != nullptr);
+}
+
 void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 {
 	// Show all platforms and regions if...

@@ -98,6 +98,11 @@ void Host_SetStartupDebuggingParameters()
 {
 }
 
+bool Host_UIHasFocus()
+{
+	return true;
+}
+
 bool Host_RendererHasFocus()
 {
 	return true;

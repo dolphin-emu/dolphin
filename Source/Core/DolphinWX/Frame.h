@@ -138,6 +138,7 @@ public:
 	void OnRenderParentClose(wxCloseEvent& event);
 	void OnRenderParentMove(wxMoveEvent& event);
 	bool RendererHasFocus();
+	bool UIHasFocus();
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);

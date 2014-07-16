@@ -678,6 +678,11 @@ void Host_SetWiiMoteConnectionState(int _State)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
+bool Host_UIHasFocus()
+{
+	return main_frame->UIHasFocus();
+}
+
 bool Host_RendererHasFocus()
 {
 	return main_frame->RendererHasFocus();
