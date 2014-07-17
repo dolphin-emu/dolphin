@@ -519,27 +519,26 @@ static void BeginField(FieldType field)
 	u32 fbHeight = m_VerticalTimingRegister.ACV * (field == FIELD_PROGRESSIVE ? 1 : 2);
 	u32 xfbAddr;
 
-	// NTSC and PAL have opposite field orders.
-	if (m_DisplayControlRegister.FMT == 1) // PAL
+	// Only the top field is valid in progressive mode.
+	if (field == FieldType::FIELD_PROGRESSIVE)
 	{
-		// But the PAL ports of some games are poorly programmed and don't use correct ordering.
-		// Zelda: Wind Waker and Simpsons Hit & Run are exampes of this, there are probally more.
-		// PAL Wind Waker also runs at 30fps instead of 25.
-		if (field == FieldType::FIELD_PROGRESSIVE || GetXFBAddressBottom() != (GetXFBAddressTop() - 1280))
-		{
-			WARN_LOG(VIDEOINTERFACE, "PAL game is trying to use incorrect (NTSC) field ordering");
-			// Lets kindly fix this for them.
-			xfbAddr = GetXFBAddressTop();
-
-			// TODO: PAL Simpsons Hit & Run now has a green line at the bottom when Real XFB is used.
-			// Might be a bug later on in our code, or a bug in the actual game.
-		}
-		else
-		{
-			xfbAddr = GetXFBAddressBottom();
-		}
-	} else {
 		xfbAddr = GetXFBAddressTop();
+	}
+	else
+	{
+		// If we are displaying an interlaced field, we convert it to a progressive field
+		// by simply using the whole XFB, which 99% of the time contains a whole progressive
+		// frame.
+
+		// All known NTSC games use the top/odd field as the upper field but
+		// PAL games are known to whimsically arrange the fields in either order.
+		// So to work out which field is pointing to the top of the progressive XFB we check
+		// which field has the lower PRB value in the VBlank Timing Registers.
+
+		if(m_VBlankTimingOdd.PRB < m_VBlankTimingEven.PRB)
+			xfbAddr = GetXFBAddressTop();
+		else
+			xfbAddr = GetXFBAddressBottom();
 	}
 
 	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
