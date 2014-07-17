@@ -558,7 +558,7 @@ namespace EfbInterface
 
 	// Like CopyToXFB, but we copy directly into the opengl colour texture without going via GameCube main memory or doing a yuyv conversion
 	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma) {
-		if (fbWidth*fbHeight > 640*568) {
+		if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT) {
 			ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
 			return;
 		}
