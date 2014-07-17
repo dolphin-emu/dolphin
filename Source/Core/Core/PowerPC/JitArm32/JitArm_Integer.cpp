@@ -14,42 +14,27 @@
 #include "Core/PowerPC/JitArm32/JitAsm.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
-// Assumes that Sign and Zero flags were set by the last operation. Preserves all flags and registers.
-// Jit64 ComputerRC is signed
-// JIT64 GenerateRC is unsigned
-void JitArm::GenerateRC(int cr) {
+void JitArm::ComputeRC(ARMReg value, int cr) {
 	ARMReg rB = gpr.GetReg();
 
-	MOV(rB, 0x4); // Result > 0
-	SetCC(CC_EQ); MOV(rB, 0x2); // Result == 0
-	SetCC(CC_MI); MOV(rB, 0x8); // Result < 0
-	SetCC();
+	Operand2 ASRReg(value, ST_ASR, 31);
 
-	STRB(rB, R9, PPCSTATE_OFF(cr_fast) + cr);
-	gpr.Unlock(rB);
-}
-void JitArm::ComputeRC(int cr) {
-	ARMReg rB = gpr.GetReg();
+	STR(value, R9, PPCSTATE_OFF(cr_val[cr]));
+	MOV(rB, ASRReg);
+	STR(rB, R9, PPCSTATE_OFF(cr_val[cr]) + sizeof(u32));
 
-	MOV(rB, 0x2); // Result == 0
-	SetCC(CC_LT); MOV(rB, 0x8); // Result < 0
-	SetCC(CC_GT); MOV(rB, 0x4); // Result > 0
-	SetCC();
-
-	STRB(rB, R9, PPCSTATE_OFF(cr_fast) + cr);
 	gpr.Unlock(rB);
 }
 void JitArm::ComputeRC(s32 value, int cr) {
 	ARMReg rB = gpr.GetReg();
 
-	if (value < 0)
-		MOV(rB, 0x8);
-	else if (value > 0)
-		MOV(rB, 0x4);
-	else
-		MOV(rB, 0x2);
+	Operand2 ASRReg(rB, ST_ASR, 31);
 
-	STRB(rB, R9, PPCSTATE_OFF(cr_fast) + cr);
+	MOVI2R(rB, value);
+	STR(rB, R9, PPCSTATE_OFF(cr_val[cr]));
+	MOV(rB, ASRReg);
+	STR(rB, R9, PPCSTATE_OFF(cr_val[cr]) + sizeof(u32));
+
 	gpr.Unlock(rB);
 }
 
@@ -195,7 +180,6 @@ void JitArm::arith(UGeckoInstruction inst)
 	u32 Imm[2] = {0, 0};
 	bool Rc = false;
 	bool carry = false;
-	bool isUnsigned = false;
 	bool shiftedImm = false;
 
 	switch (inst.OPCD)
@@ -306,7 +290,6 @@ void JitArm::arith(UGeckoInstruction inst)
 				case 522: // addcox
 					carry = true;
 				case 40: // subfx
-					isUnsigned = true;
 				case 235: // mullwx
 				case 266:
 				case 747: // mullwox
@@ -431,6 +414,8 @@ void JitArm::arith(UGeckoInstruction inst)
 		if (Rc) ComputeRC(gpr.GetImm(dest), 0);
 		return;
 	}
+
+	u32 dest = d;
 	// One or the other isn't a IMM
 	switch (inst.OPCD)
 	{
@@ -472,6 +457,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		case 24:
 		case 25:
 		{
+			dest = a;
 			ARMReg rA = gpr.GetReg();
 			RS = gpr.R(s);
 			RA = gpr.R(a);
@@ -483,6 +469,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		case 26:
 		case 27:
 		{
+			dest = a;
 			ARMReg rA = gpr.GetReg();
 			RS = gpr.R(s);
 			RA = gpr.R(a);
@@ -495,6 +482,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		case 28:
 		case 29:
 		{
+			dest = a;
 			ARMReg rA = gpr.GetReg();
 			RS = gpr.R(s);
 			RA = gpr.R(a);
@@ -507,12 +495,14 @@ void JitArm::arith(UGeckoInstruction inst)
 			switch (inst.SUBOP10)
 			{
 				case 24:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
 					LSLS(RA, RS, RB);
 				break;
 				case 28:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
@@ -525,12 +515,14 @@ void JitArm::arith(UGeckoInstruction inst)
 					SUBS(RD, RB, RA);
 				break;
 				case 60:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
 					BICS(RA, RS, RB);
 				break;
 				case 124:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
@@ -545,6 +537,7 @@ void JitArm::arith(UGeckoInstruction inst)
 					MULS(RD, RA, RB);
 				break;
 				case 284:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
@@ -552,6 +545,7 @@ void JitArm::arith(UGeckoInstruction inst)
 					MVNS(RA, RA);
 				break;
 				case 316:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
@@ -559,6 +553,7 @@ void JitArm::arith(UGeckoInstruction inst)
 				break;
 				case 412:
 				{
+					dest = a;
 					ARMReg rA = gpr.GetReg();
 					RA = gpr.R(a);
 					RS = gpr.R(s);
@@ -569,12 +564,14 @@ void JitArm::arith(UGeckoInstruction inst)
 				}
 				break;
 				case 444:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
 					ORRS(RA, RS, RB);
 				break;
 				case 476:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
@@ -582,12 +579,14 @@ void JitArm::arith(UGeckoInstruction inst)
 					MVNS(RA, RA);
 				break;
 				case 536:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
 					LSRS(RA,  RS, RB);
 				break;
 				case 792:
+					dest = a;
 					RA = gpr.R(a);
 					RS = gpr.R(s);
 					RB = gpr.R(b);
@@ -605,7 +604,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		break;
 	}
 	if (carry) ComputeCarry();
-	if (Rc) isUnsigned ? GenerateRC() : ComputeRC();
+	if (Rc) ComputeRC(gpr.R(dest));
 }
 
 void JitArm::addex(UGeckoInstruction inst)
@@ -624,7 +623,7 @@ void JitArm::addex(UGeckoInstruction inst)
 	GetCarryAndClear(rA);
 	ADDS(RD, RA, RB);
 	FinalizeCarry(rA);
-	if (inst.Rc) ComputeRC();
+	if (inst.Rc) ComputeRC(RD);
 	gpr.Unlock(rA);
 }
 
@@ -638,10 +637,7 @@ void JitArm::cntlzwx(UGeckoInstruction inst)
 	ARMReg RS = gpr.R(s);
 	CLZ(RA, RS);
 	if (inst.Rc)
-	{
-		CMP(RA, 0);
-		ComputeRC();
-	}
+		ComputeRC(RA);
 }
 
 void JitArm::mulhwux(UGeckoInstruction inst)
@@ -655,8 +651,8 @@ void JitArm::mulhwux(UGeckoInstruction inst)
 	ARMReg RB = gpr.R(b);
 	ARMReg RD = gpr.R(d);
 	ARMReg rA = gpr.GetReg(false);
-	UMULLS(rA, RD, RA, RB);
-	if (inst.Rc) ComputeRC();
+	UMULL(rA, RD, RA, RB);
+	if (inst.Rc) ComputeRC(RD);
 }
 
 void JitArm::extshx(UGeckoInstruction inst)
@@ -674,10 +670,8 @@ void JitArm::extshx(UGeckoInstruction inst)
 	ARMReg rA = gpr.R(a);
 	ARMReg rS = gpr.R(s);
 	SXTH(rA, rS);
-	if (inst.Rc){
-		CMP(rA, 0);
-		ComputeRC();
-	}
+	if (inst.Rc)
+		ComputeRC(rA);
 }
 void JitArm::extsbx(UGeckoInstruction inst)
 {
@@ -694,10 +688,8 @@ void JitArm::extsbx(UGeckoInstruction inst)
 	ARMReg rA = gpr.R(a);
 	ARMReg rS = gpr.R(s);
 	SXTB(rA, rS);
-	if (inst.Rc){
-		CMP(rA, 0);
-		ComputeRC();
-	}
+	if (inst.Rc)
+		ComputeRC(rA);
 }
 void JitArm::cmp (UGeckoInstruction inst)
 {
@@ -713,11 +705,7 @@ void JitArm::cmp (UGeckoInstruction inst)
 		return;
 	}
 
-	ARMReg RA = gpr.R(a);
-	ARMReg RB = gpr.R(b);
-	CMP(RA, RB);
-
-	ComputeRC(crf);
+	FALLBACK_IF(true);
 }
 void JitArm::cmpi(UGeckoInstruction inst)
 {
@@ -726,71 +714,12 @@ void JitArm::cmpi(UGeckoInstruction inst)
 	u32 a = inst.RA;
 	int crf = inst.CRFD;
 	if (gpr.IsImm(a))
+	{
 		ComputeRC((s32)gpr.GetImm(a) - inst.SIMM_16, crf);
-	else
-	{
-		ARMReg RA = gpr.R(a);
-		if (inst.SIMM_16 >= 0 && inst.SIMM_16 < 256)
-			CMP(RA, inst.SIMM_16);
-		else
-		{
-			ARMReg rA = gpr.GetReg();
-			MOVI2R(rA, inst.SIMM_16);
-			CMP(RA, rA);
-			gpr.Unlock(rA);
-		}
-		ComputeRC(crf);
+		return;
 	}
-}
-void JitArm::cmpl(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
 
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RB = gpr.R(inst.RB);
-	ARMReg rA = gpr.GetReg();
-	int crf = inst.CRFD;
-
-	CMP(RA, RB);
-	// Unsigned GenerateRC()
-
-	MOV(rA, 0x2); // Result == 0
-	SetCC(CC_LO); MOV(rA, 0x8); // Result < 0
-	SetCC(CC_HI); MOV(rA, 0x4); // Result > 0
-	SetCC();
-
-	STRB(rA, R9, PPCSTATE_OFF(cr_fast) + crf);
-	gpr.Unlock(rA);
-}
-
-void JitArm::cmpli(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg rA = gpr.GetReg();
-	int crf = inst.CRFD;
-	u32 uimm = (u32)inst.UIMM;
-	if (uimm < 256)
-	{
-		CMP(RA, uimm);
-	}
-	else
-	{
-		MOVI2R(rA, (u32)inst.UIMM);
-		CMP(RA, rA);
-	}
-	// Unsigned GenerateRC()
-
-	MOV(rA, 0x2); // Result == 0
-	SetCC(CC_LO); MOV(rA, 0x8); // Result < 0
-	SetCC(CC_HI); MOV(rA, 0x4); // Result > 0
-	SetCC();
-
-	STRB(rA, R9, PPCSTATE_OFF(cr_fast) + crf);
-	gpr.Unlock(rA);
+	FALLBACK_IF(true);
 }
 
 void JitArm::negx(UGeckoInstruction inst)
@@ -801,11 +730,10 @@ void JitArm::negx(UGeckoInstruction inst)
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RD = gpr.R(inst.RD);
 
-	RSBS(RD, RA, 0);
+	RSB(RD, RA, 0);
 	if (inst.Rc)
-	{
-		GenerateRC();
-	}
+		ComputeRC(RD);
+
 	if (inst.OE)
 	{
 		BKPT(0x333);
@@ -825,19 +753,12 @@ void JitArm::rlwimix(UGeckoInstruction inst)
 	MOVI2R(rA, mask);
 
 	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
+	BIC (rB, RA, rA); // RA & ~mask
+	AND (rA, rA, Shift);
+	ORR(RA, rB, rA);
+
 	if (inst.Rc)
-	{
-		BIC (rB, RA, rA); // RA & ~mask
-		AND (rA, rA, Shift);
-		ORRS(RA, rB, rA);
-		GenerateRC();
-	}
-	else
-	{
-		BIC (rB, RA, rA); // RA & ~mask
-		AND (rA, rA, Shift);
-		ORR(RA, rB, rA);
-	}
+		ComputeRC(RA);
 	gpr.Unlock(rA, rB);
 }
 
@@ -853,13 +774,10 @@ void JitArm::rlwinmx(UGeckoInstruction inst)
 	MOVI2R(rA, mask);
 
 	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
+	AND(RA, rA, Shift);
+
 	if (inst.Rc)
-	{
-		ANDS(RA, rA, Shift);
-		GenerateRC();
-	}
-	else
-		AND (RA, rA, Shift);
+		ComputeRC(RA);
 	gpr.Unlock(rA);
 
 	//m_GPR[inst.RA] = _rotl(m_GPR[inst.RS],inst.SH) & mask;
@@ -882,13 +800,10 @@ void JitArm::rlwnmx(UGeckoInstruction inst)
 	SUB(rB, rB, RB);
 
 	Operand2 Shift(RS, ST_ROR, rB); // Register shifted register
+	AND(RA, rA, Shift);
+
 	if (inst.Rc)
-	{
-		ANDS(RA, rA, Shift);
-		GenerateRC();
-	}
-	else
-		AND (RA, rA, Shift);
+		ComputeRC(RA);
 	gpr.Unlock(rA, rB);
 }
 
@@ -908,9 +823,9 @@ void JitArm::srawix(UGeckoInstruction inst)
 		Operand2 mask = Operand2(2, 2); // XER_CA_MASK
 
 		MOV(tmp, RS);
-		ASRS(RA, RS, amount);
+		ASR(RA, RS, amount);
 		if (inst.Rc)
-			GenerateRC();
+			ComputeRC(RA);
 		LSL(tmp, tmp, 32 - amount);
 		TST(tmp, RA);
 
