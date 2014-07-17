@@ -71,7 +71,6 @@ static volatile u32 DrawnFrame = 0;
 static u32 DrawnVideo = 0;
 
 // Function forwarding
-const char *Callback_ISOName(void);
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
 // Function declarations
@@ -648,18 +647,6 @@ void Callback_VideoCopiedToXFB(bool video_update)
 	if (video_update)
 		Common::AtomicIncrement(DrawnFrame);
 	Movie::FrameUpdate();
-}
-
-// Callback_ISOName: Let the DSP emulator get the game name
-//
-const char *Callback_ISOName()
-{
-	SCoreStartupParameter& params =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
-	if (params.m_strName.length() > 0)
-		return params.m_strName.c_str();
-	else
-		return "";
 }
 
 void UpdateTitle()
