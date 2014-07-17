@@ -54,7 +54,7 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 		Bitmap bitmapResized = Bitmap.createScaledBitmap(b,
 				(int)(displayMetrics.heightPixels * scale),
 				(int)(displayMetrics.heightPixels * scale),
-				false);
+				true);
 
 		return new BitmapDrawable(getResources(), bitmapResized);
 	}
