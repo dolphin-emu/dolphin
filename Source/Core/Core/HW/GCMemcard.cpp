@@ -366,7 +366,7 @@ u8 GCMemcard::TitlePresent(DEntry d) const
 
 bool GCMemcard::GCI_FileName(u8 index, std::string &filename) const
 {
-	if (!m_valid || index > DIRLEN || (BE32(CurrentDir->Dir[index].Gamecode) == 0xFFFFFFFF))
+	if (!m_valid || index >= DIRLEN || (BE32(CurrentDir->Dir[index].Gamecode) == 0xFFFFFFFF))
 		return false;
 
 	filename = CurrentDir->Dir[index].GCI_FileName();
@@ -378,7 +378,7 @@ bool GCMemcard::GCI_FileName(u8 index, std::string &filename) const
 
 std::string GCMemcard::DEntry_GameCode(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return "";
 
 	return std::string((const char*)CurrentDir->Dir[index].Gamecode, 4);
@@ -386,14 +386,15 @@ std::string GCMemcard::DEntry_GameCode(u8 index) const
 
 std::string GCMemcard::DEntry_Makercode(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return "";
+
 	return std::string((const char*)CurrentDir->Dir[index].Makercode, 2);
 }
 
 std::string GCMemcard::DEntry_BIFlags(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return "";
 
 	std::string flags;
@@ -408,7 +409,7 @@ std::string GCMemcard::DEntry_BIFlags(u8 index) const
 
 std::string GCMemcard::DEntry_FileName(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return "";
 
 	return std::string((const char*)CurrentDir->Dir[index].Filename, DENTRY_STRLEN);
@@ -416,7 +417,7 @@ std::string GCMemcard::DEntry_FileName(u8 index) const
 
 u32 GCMemcard::DEntry_ModTime(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return 0xFFFFFFFF;
 
 	return BE32(CurrentDir->Dir[index].ModTime);
@@ -424,7 +425,7 @@ u32 GCMemcard::DEntry_ModTime(u8 index) const
 
 u32 GCMemcard::DEntry_ImageOffset(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return 0xFFFFFFFF;
 
 	return BE32(CurrentDir->Dir[index].ImageOffset);
@@ -432,7 +433,7 @@ u32 GCMemcard::DEntry_ImageOffset(u8 index) const
 
 std::string GCMemcard::DEntry_IconFmt(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return "";
 
 	int x = CurrentDir->Dir[index].IconFmt[0];
@@ -448,7 +449,7 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
 
 std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return "";
 
 	int x = CurrentDir->Dir[index].AnimSpeed[0];
@@ -464,7 +465,7 @@ std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
 
 std::string GCMemcard::DEntry_Permissions(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return "";
 
 	u8 Permissions = CurrentDir->Dir[index].Permissions;
@@ -477,7 +478,7 @@ std::string GCMemcard::DEntry_Permissions(u8 index) const
 
 u8 GCMemcard::DEntry_CopyCounter(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return 0xFF;
 
 	return CurrentDir->Dir[index].CopyCounter;
@@ -485,7 +486,7 @@ u8 GCMemcard::DEntry_CopyCounter(u8 index) const
 
 u16 GCMemcard::DEntry_FirstBlock(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return 0xFFFF;
 
 	u16 block = BE16(CurrentDir->Dir[index].FirstBlock);
@@ -495,7 +496,7 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index) const
 
 u16 GCMemcard::DEntry_BlockCount(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return 0xFFFF;
 
 	u16 blocks = BE16(CurrentDir->Dir[index].BlockCount);
@@ -505,7 +506,7 @@ u16 GCMemcard::DEntry_BlockCount(u8 index) const
 
 u32 GCMemcard::DEntry_CommentsAddress(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return 0xFFFF;
 
 	return BE32(CurrentDir->Dir[index].CommentsAddr);
@@ -513,7 +514,7 @@ u32 GCMemcard::DEntry_CommentsAddress(u8 index) const
 
 std::string GCMemcard::GetSaveComment1(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return "";
 
 	u32 Comment1 = BE32(CurrentDir->Dir[index].CommentsAddr);
@@ -527,7 +528,7 @@ std::string GCMemcard::GetSaveComment1(u8 index) const
 
 std::string GCMemcard::GetSaveComment2(u8 index) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return "";
 
 	u32 Comment1 = BE32(CurrentDir->Dir[index].CommentsAddr);
@@ -542,7 +543,7 @@ std::string GCMemcard::GetSaveComment2(u8 index) const
 
 bool GCMemcard::GetDEntry(u8 index, DEntry &dest) const
 {
-	if (!m_valid || index > DIRLEN)
+	if (!m_valid || index >= DIRLEN)
 		return false;
 
 	dest = CurrentDir->Dir[index];
@@ -1028,7 +1029,7 @@ void GCMemcard::Gcs_SavConvert(DEntry &tempDEntry, int saveType, int length)
 
 bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 {
-	if (!m_valid)
+	if (!m_valid || index >= DIRLEN)
 		return false;
 
 	int flags = CurrentDir->Dir[index].BIFlags;
@@ -1069,7 +1070,7 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 
 u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 {
-	if (!m_valid)
+	if (!m_valid || index >= DIRLEN)
 		return 0;
 
 	// To ensure only one type of icon is used
