@@ -593,6 +593,10 @@ void VertexShaderManager::SetProjectionConstants()
 {
 	float *rawProjection = xfmem.projection.rawProjection;
 	static int LayerToHide = -1;
+	if (g_ActiveConfig.iFlashState > 5)
+		LayerToHide = g_ActiveConfig.iSelectedLayer;
+	else
+		LayerToHide = -1;
 
 	switch (xfmem.projection.type)
 	{
@@ -728,7 +732,7 @@ void VertexShaderManager::SetProjectionConstants()
 	float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre;
 
 	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
-	if (g_has_hmd)
+	if (g_has_hmd && !(g_ActiveConfig.bHudFullscreen && xfmem.projection.type != GX_PERSPECTIVE))
 	{
 		float *p = rawProjection;
 		// near clipping plane in game units
@@ -1038,6 +1042,14 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 final_matrix_left, final_matrix_right;
 		Matrix44::Multiply(proj_left, view_matrix_left, final_matrix_left);
 		Matrix44::Multiply(proj_right, view_matrix_right, final_matrix_right);
+		// If we are supposed to hide the layer, make it microscopic and far away
+		if (debug_projNum == LayerToHide) {
+			final_matrix_left.data[2] += 900000000.0f;
+			final_matrix_left.data[0] *= 900000000.0f;
+			final_matrix_right.data[2] += 900000000.0f;
+			final_matrix_right.data[0] *= 900000000.0f;
+		}
+
 		memcpy(constants.projection, final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[0], final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[1], final_matrix_right.data, 4 * 16);

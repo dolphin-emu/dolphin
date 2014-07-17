@@ -1703,6 +1703,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// Clear framebuffer
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
+		FramebufferManager::RenderToEye(0);
 		for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
 		{
 			if (eye)
@@ -1731,6 +1732,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	GL_REPORT_ERRORD();
 	g_Config.iSaveTargetId = 0;
+	
+	// VR layer debugging, sometimes layers need to flash.
+	g_Config.iFlashState++;
+	if (g_Config.iFlashState >= 10)
+		g_Config.iFlashState = 0;
 
 	UpdateActiveConfig();
 	TextureCache::OnConfigChanged(g_ActiveConfig);

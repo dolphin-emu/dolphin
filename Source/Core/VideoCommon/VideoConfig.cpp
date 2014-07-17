@@ -220,7 +220,14 @@ void VideoConfig::GameIniLoad()
 	fScreenRight = 0.0f;
 	fScreenUp = 0.0f;
 	fScreenPitch = 0.0f;
+	bDisable3D = false;
+	bHudFullscreen = false;
+	iSelectedLayer = -1;
+	iFlashState = 0;
 
+
+	CHECK_SETTING("VR", "Disable3D", bDisable3D);
+	CHECK_SETTING("VR", "HudFullscreen", bHudFullscreen);
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
@@ -266,7 +273,9 @@ void VideoConfig::GameIniSave()
 			GameIniLocal.DeleteKey((section), (key)); \
 	} while (0)
 
+	SAVE_IF_NOT_DEFAULT("VR", "Disable3D", bDisable3D, false);
 	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)fUnitsPerMetre, 1.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, 1.5f);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, 0.5f);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)fCameraForward, 0.0f);

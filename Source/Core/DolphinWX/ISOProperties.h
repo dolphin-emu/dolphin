@@ -90,6 +90,8 @@ private:
 	wxButton *RemoveSpeedhack;
 
 	// VR
+	wxCheckBox *Disable3D;
+	wxCheckBox *HudFullscreen;
 	wxSpinCtrlDouble* UnitsPerMetre;
 	wxSpinCtrlDouble* HudDistance;
 	wxSpinCtrlDouble* HudThickness;
@@ -134,6 +136,8 @@ private:
 		ID_NOTEBOOK,
 		ID_GAMECONFIG,
 		ID_VR,
+		ID_DISABLE_3D,
+		ID_HUD_FULLSCREEN,
 		ID_UNITS_PER_METRE,
 		ID_HUD_DISTANCE,
 		ID_HUD_THICKNESS,

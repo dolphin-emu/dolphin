@@ -1102,6 +1102,18 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				g_Config.fCameraPitch -= 5.0f;
 				NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
 				break;
+			// Previous layer
+			case 'H':
+				g_Config.iSelectedLayer--;
+				if (g_Config.iSelectedLayer < 0)
+					g_Config.iSelectedLayer = -1;
+				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
+				break;
+				// Previous layer
+			case 'J':
+				g_Config.iSelectedLayer++;
+				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
+				break;
 			}
 		}
 	}

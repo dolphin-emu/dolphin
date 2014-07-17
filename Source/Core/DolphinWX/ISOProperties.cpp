@@ -390,14 +390,18 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_Notebook->AddPage(m_Information, _("Info"));
 
 	// VR
-	wxBoxSizer* const sVRPage = new wxBoxSizer(wxVERTICAL);
-	m_VR->SetSizer(sVRPage);
-	wxStaticBoxSizer * const sbVR = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("Game-Specific VR Settings"));
-	sVRPage->Add(sbVR, 0, wxEXPAND | wxALL, 5);
-	wxStaticText* const OverrideTextVR = new wxStaticText(m_VR, wxID_ANY, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."));
-	sbVR->Add(OverrideTextVR, 0, wxEXPAND | wxALL, 5);
+	wxBoxSizer* const sbVR = new wxBoxSizer(wxVERTICAL);
+	m_VR->SetSizer(sbVR);
+	//wxStaticBoxSizer * const sbVR = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("Game-Specific VR Settings"));
+	//sVRPage->Add(sbVR, 0, wxEXPAND | wxALL, 5);
+	//wxStaticText* const OverrideTextVR = new wxStaticText(m_VR, wxID_ANY, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."));
+	//sbVR->Add(OverrideTextVR, 0, wxEXPAND | wxALL, 5);
 	wxStaticBoxSizer * const sb3D = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("3D World"));
 	sbVR->Add(sb3D, 0, wxEXPAND | wxALL, 5);
+	Disable3D = new wxCheckBox(m_VR, ID_DISABLE_3D, _("Disable 3D"), wxDefaultPosition, wxDefaultSize, GetElementStyle("VR", "Disable3D"));
+	HudFullscreen = new wxCheckBox(m_VR, ID_HUD_FULLSCREEN, _("HUD Fullscreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("VR", "HudFullscreen"));
+	sb3D->Add(Disable3D, 0, wxLEFT, 5);
+	sb3D->Add(HudFullscreen, 0, wxLEFT, 5);
 	wxGridBagSizer *s3DGrid = new wxGridBagSizer();
 	sb3D->Add(s3DGrid, 0, wxEXPAND);
 
@@ -1175,6 +1179,8 @@ void CISOProperties::LoadGameConfig()
 
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
+	SetCheckboxValueFromGameini("VR", "Disable3D", Disable3D);
+	SetCheckboxValueFromGameini("VR", "HudFullscreen", HudFullscreen);
 	float fTemp;
 	if (GameIniDefault.GetIfExists("VR", "UnitsPerMetre", &fTemp))
 		UnitsPerMetre->SetValue(fTemp);
@@ -1313,6 +1319,8 @@ bool CISOProperties::SaveGameConfig()
 	std::string emu_issues = EmuIssues->GetValue().ToStdString();
 	SAVE_IF_NOT_DEFAULT("EmuState", "EmulationIssues", emu_issues, "");
 
+	SaveGameIniValueFrom3StateCheckbox("VR", "Disable3D", Disable3D);
+	SaveGameIniValueFrom3StateCheckbox("VR", "HudFullscreen", HudFullscreen);
 	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)UnitsPerMetre->GetValue(), 1.0f);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)HudDistance->GetValue(), 1.5f);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)HudThickness->GetValue(), 0.5f);

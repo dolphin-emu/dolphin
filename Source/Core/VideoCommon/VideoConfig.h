@@ -137,6 +137,12 @@ struct VideoConfig final
 	float fScreenRight;
 	float fScreenUp;
 	float fScreenPitch;
+	bool bEnableVR;
+	bool bDisable3D;
+	bool bHudFullscreen;
+	// VR layer debugging
+	int iSelectedLayer;
+	int iFlashState;
 
 	//currently unused:
 	int iCompileDLsLevel;
