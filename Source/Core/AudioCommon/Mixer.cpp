@@ -85,8 +85,8 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	short s[2];
 	s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
 	s[1] = Common::swap16(m_buffer[(indexR - 2) & INDEX_MASK]);
-	s[0] = (s[0] * lvolume) >> 8;
-	s[1] = (s[1] * rvolume) >> 8;
+	s[0] = (s[0] * rvolume) >> 8;
+	s[1] = (s[1] * lvolume) >> 8;
 	for (; currentSample < numSamples * 2; currentSample += 2)
 	{
 		int sampleR = s[0] + samples[currentSample];
