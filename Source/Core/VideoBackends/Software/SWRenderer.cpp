@@ -2,7 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <string>
+
 #include "Common/Common.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/Software/RasterFont.h"
@@ -29,7 +33,7 @@ static std::string s_sScreenshotName;
 
 // Rasterfont isn't compatible with GLES
 // degasus: I think it does, but I can't test it
-RasterFont* s_pfont = nullptr;
+static RasterFont* s_pfont = nullptr;
 
 void SWRenderer::Init()
 {
@@ -49,7 +53,7 @@ void SWRenderer::Shutdown()
 	}
 }
 
-void CreateShaders()
+static void CreateShaders()
 {
 	static const char *fragShaderText =
 		"#ifdef GL_ES\n"
@@ -125,34 +129,36 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 
 void SWRenderer::DrawDebugText()
 {
-	char debugtext_buffer[8192];
-	char *p = debugtext_buffer;
-	p[0] = 0;
+	std::string debugtext;
 
 	if (g_SWVideoConfig.bShowStats)
 	{
-		p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
-		p+=sprintf(p,"Primitives: %i\n",swstats.thisFrame.numPrimatives);
-		p+=sprintf(p,"Vertices Loaded: %i\n",swstats.thisFrame.numVerticesLoaded);
+		debugtext += StringFromFormat("Objects:            %i\n", swstats.thisFrame.numDrawnObjects);
+		debugtext += StringFromFormat("Primitives:         %i\n", swstats.thisFrame.numPrimatives);
+		debugtext += StringFromFormat("Vertices Loaded:    %i\n", swstats.thisFrame.numVerticesLoaded);
 
-		p+=sprintf(p,"Triangles Input:   %i\n",swstats.thisFrame.numTrianglesIn);
-		p+=sprintf(p,"Triangles Rejected:   %i\n",swstats.thisFrame.numTrianglesRejected);
-		p+=sprintf(p,"Triangles Culled:   %i\n",swstats.thisFrame.numTrianglesCulled);
-		p+=sprintf(p,"Triangles Clipped:  %i\n",swstats.thisFrame.numTrianglesClipped);
-		p+=sprintf(p,"Triangles Drawn:   %i\n",swstats.thisFrame.numTrianglesDrawn);
+		debugtext += StringFromFormat("Triangles Input:    %i\n", swstats.thisFrame.numTrianglesIn);
+		debugtext += StringFromFormat("Triangles Rejected: %i\n", swstats.thisFrame.numTrianglesRejected);
+		debugtext += StringFromFormat("Triangles Culled:   %i\n", swstats.thisFrame.numTrianglesCulled);
+		debugtext += StringFromFormat("Triangles Clipped:  %i\n", swstats.thisFrame.numTrianglesClipped);
+		debugtext += StringFromFormat("Triangles Drawn:    %i\n", swstats.thisFrame.numTrianglesDrawn);
 
-		p+=sprintf(p,"Rasterized Pix:   %i\n",swstats.thisFrame.rasterizedPixels);
-		p+=sprintf(p,"TEV Pix In:   %i\n",swstats.thisFrame.tevPixelsIn);
-		p+=sprintf(p,"TEV Pix Out:   %i\n",swstats.thisFrame.tevPixelsOut);
+		debugtext += StringFromFormat("Rasterized Pix:     %i\n", swstats.thisFrame.rasterizedPixels);
+		debugtext += StringFromFormat("TEV Pix In:         %i\n", swstats.thisFrame.tevPixelsIn);
+		debugtext += StringFromFormat("TEV Pix Out:        %i\n", swstats.thisFrame.tevPixelsOut);
 	}
 
 	// Render a shadow, and then the text.
-	SWRenderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
-	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
+	SWRenderer::RenderText(debugtext.c_str(), 21, 21, 0xDD000000);
+	SWRenderer::RenderText(debugtext.c_str(), 20, 20, 0xFFFFFF00);
 }
 
-u8* SWRenderer::getColorTexture() {
+u8* SWRenderer::getNextColorTexture() {
 	return s_xfbColorTexture[!s_currentColorTexture];
+}
+
+u8* SWRenderer::getCurrentColorTexture() {
+	return s_xfbColorTexture[s_currentColorTexture];
 }
 
 void SWRenderer::swapColorTexture() {
@@ -167,7 +173,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 	}
 
 	u32 offset = 0;
-	u8 *TexturePointer = getColorTexture();
+	u8 *TexturePointer = getNextColorTexture();
 
 	for (u16 y = 0; y < fbHeight; y++)
 	{
@@ -181,14 +187,14 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 
 			// We do the inverse BT.601 conversion for YCbCr to RGB
 			// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y1              + 1.596f * V));
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y1 - 0.392f * U - 0.813f * V));
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y1 + 2.017f * U             ));
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y1              + 1.596f * V), 0, 255);
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255);
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y1 + 2.017f * U             ), 0, 255);
 			TexturePointer[offset++] = 255;
 
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y2              + 1.596f * V));
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y2 - 0.392f * U - 0.813f * V));
-			TexturePointer[offset++] = (u8)min(255.0f, max(0.0f, 1.164f * Y2 + 2.017f * U             ));
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y2              + 1.596f * V), 0, 255);
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y2 - 0.392f * U - 0.813f * V), 0, 255);
+			TexturePointer[offset++] = MathUtil::Clamp(int(1.164f * Y2 + 2.017f * U             ), 0, 255);
 			TexturePointer[offset++] = 255;
 		}
 		xfb += fbWidth;
@@ -201,7 +207,7 @@ void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
 {
 	GLInterface->Update(); // just updates the render window position and the backbuffer size
 	if (!g_SWVideoConfig.bHwRasterizer)
-		SWRenderer::DrawTexture(s_xfbColorTexture[s_currentColorTexture], fbWidth, fbHeight);
+		SWRenderer::DrawTexture(getCurrentColorTexture(), fbWidth, fbHeight);
 
 	swstats.frameCount++;
 	SWRenderer::SwapBuffer();

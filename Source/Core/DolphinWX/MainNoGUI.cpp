@@ -11,7 +11,7 @@
 
 #include "Common/Common.h"
 #include "Common/Event.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
@@ -95,6 +95,11 @@ void Host_SetStartupDebuggingParameters()
 	StartUp.bBootToPause = false;
 }
 
+bool Host_UIHasFocus()
+{
+	return false;
+}
+
 bool Host_RendererHasFocus()
 {
 	return rendererHasFocus;
@@ -131,7 +136,7 @@ void Host_SetWiiMoteConnectionState(int _State) {}
 void X11_MainLoop()
 {
 	bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
-	while (Core::GetState() == Core::CORE_UNINITIALIZED)
+	while (!Core::IsRunning())
 		updateMainFrameEvent.Wait();
 
 	Display *dpy = XOpenDisplay(0);
@@ -314,7 +319,7 @@ int main(int argc, char* argv[])
 	if (help == 1 || argc == optind)
 	{
 		fprintf(stderr, "%s\n\n", scm_rev_str);
-		fprintf(stderr, "A multi-platform Gamecube/Wii emulator\n\n");
+		fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
 		fprintf(stderr, "  -e, --exec   Load the specified file\n");
 		fprintf(stderr, "  -h, --help   Show this help message\n");
@@ -385,6 +390,7 @@ int main(int argc, char* argv[])
 #endif
 	}
 
+	Core::Shutdown();
 	WiimoteReal::Shutdown();
 	VideoBackend::ClearList();
 	SConfig::Shutdown();

@@ -124,8 +124,10 @@ TODO (in no particular order):
 #include <ctime>
 #include <memory>
 #include <set>
+#include <string>
 
 #include "Common/StdMakeUnique.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GPFifo.h"
@@ -1220,9 +1222,8 @@ struct Writer
 	File::IOFile file;
 	Writer() : file(nullptr)
 	{
-		char buffer[1024];
-		sprintf(buffer, "JitIL_IR_%d.txt", (int)time(nullptr));
-		file.Open(buffer, "w");
+		std::string filename = StringFromFormat("JitIL_IR_%d.txt", (int)time(nullptr));
+		file.Open(filename, "w");
 		setvbuf(file.GetHandle(), nullptr, _IOFBF, 1024 * 1024);
 	}
 

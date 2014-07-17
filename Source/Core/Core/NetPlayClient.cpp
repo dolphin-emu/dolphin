@@ -17,7 +17,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
 
-std::mutex crit_netplay_client;
+static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
 NetSettings g_NetPlaySettings;
 
@@ -29,7 +29,7 @@ NetPad::NetPad()
 	nLo = 0x80800000;
 }
 
-NetPad::NetPad(const SPADStatus* const pad_status)
+NetPad::NetPad(const GCPadStatus* const pad_status)
 {
 	nHi = (u32)((u8)pad_status->stickY);
 	nHi |= (u32)((u8)pad_status->stickX << 8);
@@ -558,14 +558,14 @@ void NetPlayClient::ClearBuffers()
 }
 
 // called from ---CPU--- thread
-bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, NetPad* const netvalues)
+bool NetPlayClient::GetNetPads(const u8 pad_nb, const GCPadStatus* const pad_status, NetPad* const netvalues)
 {
 	// The interface for this is extremely silly.
 	//
 	// Imagine a physical device that links three Gamecubes together
-	// and emulates NetPlay that way. Which Gamecube controls which
+	// and emulates NetPlay that way. Which GameCube controls which
 	// in-game controllers can be configured on the device (m_pad_map)
-	// but which sockets on each individual Gamecube should be used
+	// but which sockets on each individual GameCube should be used
 	// to control which players? The solution that Dolphin uses is
 	// that we hardcode the knowledge that they go in order, so if
 	// you have a 3P game with three gamecubes, then every single
@@ -618,7 +618,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 		Common::SleepCurrentThread(1);
 	}
 
-	SPADStatus tmp;
+	GCPadStatus tmp;
 	tmp.stickY = ((u8*)&netvalues->nHi)[0];
 	tmp.stickX = ((u8*)&netvalues->nHi)[1];
 	tmp.button = ((u16*)&netvalues->nHi)[1];
@@ -846,7 +846,7 @@ u8 NetPlayClient::LocalWiimoteToInGameWiimote(u8 local_pad)
 
 // called from ---CPU--- thread
 // Actual Core function which is called on every frame
-bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
+bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, GCPadStatus PadStatus, u32 *PADStatus)
 {
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
@@ -866,12 +866,12 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
 		return false;
 }
 
-bool CSIDevice_GCSteeringWheel::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
+bool CSIDevice_GCSteeringWheel::NetPlay_GetInput(u8 numPAD, GCPadStatus PadStatus, u32 *PADStatus)
 {
 	return CSIDevice_GCController::NetPlay_GetInput(numPAD, PadStatus, PADStatus);
 }
 
-bool CSIDevice_DanceMat::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
+bool CSIDevice_DanceMat::NetPlay_GetInput(u8 numPAD, GCPadStatus PadStatus, u32 *PADStatus)
 {
 	return CSIDevice_GCController::NetPlay_GetInput(numPAD, PadStatus, PADStatus);
 }

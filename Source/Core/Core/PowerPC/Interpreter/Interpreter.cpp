@@ -3,9 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <string>
 
 #include "PowerPCDisasm.h"
 
+#include "Common/StringUtil.h"
 #include "Core/Host.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
@@ -63,24 +65,20 @@ static void patches()
 	}*/
 }
 
-int startTrace = 0;
+static int startTrace = 0;
 
-void Trace( UGeckoInstruction &instCode )
+static void Trace(UGeckoInstruction& instCode)
 {
-	char reg[25]="";
 	std::string regs = "";
-	for (int i=0; i<32; i++)
+	for (int i = 0; i < 32; i++)
 	{
-		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
-		regs.append(reg);
+		regs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
 	}
 
-	char freg[25]="";
 	std::string fregs = "";
-	for (int i=0; i<32; i++)
+	for (int i = 0; i < 32; i++)
 	{
-		sprintf(freg, "f%02d: %08" PRIx64 " %08" PRIx64 " ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
-		fregs.append(freg);
+		fregs += StringFromFormat("f%02d: %08" PRIx64 " %08" PRIx64 " ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
 	}
 
 	char ppcInst[256];
@@ -201,7 +199,7 @@ void Interpreter::SingleStep()
 	SingleStepInner();
 
 	CoreTiming::slicelength = 1;
-	CoreTiming::downcount = 0;
+	PowerPC::ppcState.downcount = 0;
 	CoreTiming::Advance();
 
 	if (PowerPC::ppcState.Exceptions)
@@ -235,7 +233,7 @@ void Interpreter::Run()
 
 			// Debugging friendly version of inner loop. Tries to do the timing as similarly to the
 			// JIT as possible. Does not take into account that some instructions take multiple cycles.
-			while (CoreTiming::downcount > 0)
+			while (PowerPC::ppcState.downcount > 0)
 			{
 				m_EndBlock = false;
 				int i;
@@ -278,13 +276,13 @@ void Interpreter::Run()
 					}
 					SingleStepInner();
 				}
-				CoreTiming::downcount -= i;
+				PowerPC::ppcState.downcount -= i;
 			}
 		}
 		else
 		{
 			// "fast" version of inner loop. well, it's not so fast.
-			while (CoreTiming::downcount > 0)
+			while (PowerPC::ppcState.downcount > 0)
 			{
 				m_EndBlock = false;
 
@@ -293,7 +291,7 @@ void Interpreter::Run()
 				{
 					cycles += SingleStepInner();
 				}
-				CoreTiming::downcount -= cycles;
+				PowerPC::ppcState.downcount -= cycles;
 			}
 		}
 

@@ -32,6 +32,7 @@
 
 #include "Common/Common.h"
 #include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -43,13 +44,12 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GeckoCodeDiag.h"
 #include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 class wxWindow;
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY  256
-extern std::vector<ActionReplay::ARCode> arCodes;
-extern CFrame* main_frame;
 
 // meh
 static wxCheatsWindow *g_cheat_window;
@@ -332,17 +332,14 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 		{
 			ARCode code = GetARCode(i);
 			m_Label_Codename->SetLabel(_("Name: ") + StrToWxStr(code.name));
-			char text[CHAR_MAX];
-			char* numcodes = text;
-			sprintf(numcodes, "Number of Codes: %lu", (unsigned long)code.ops.size());
+
+			std::string numcodes = StringFromFormat("Number of Codes: %lu", (unsigned long)code.ops.size());
 			m_Label_NumCodes->SetLabel(StrToWxStr(numcodes));
 			m_ListBox_CodesList->Clear();
 
 			for (const AREntry& entry : code.ops)
 			{
-				char text2[CHAR_MAX];
-				char* ops = text2;
-				sprintf(ops, "%08x %08x", entry.cmd_addr, entry.value);
+				std::string ops = StringFromFormat("%08x %08x", entry.cmd_addr, entry.value);
 				m_ListBox_CodesList->Append(StrToWxStr(ops));
 			}
 		}
@@ -531,7 +528,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 void CheatSearchTab::ApplyFocus(wxEvent& ev)
 {
-	ev.Skip(true);
+	ev.Skip();
 	value_x_radiobtn.rad_uservalue->SetValue(true);
 }
 

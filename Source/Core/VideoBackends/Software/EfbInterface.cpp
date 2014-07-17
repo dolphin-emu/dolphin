@@ -14,7 +14,7 @@
 #include "VideoCommon/PixelEngine.h"
 
 
-u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
+static u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
 
 namespace EfbInterface
 {
@@ -35,7 +35,7 @@ namespace EfbInterface
 		p.DoArray(efb, EFB_WIDTH*EFB_HEIGHT*6);
 	}
 
-	void SetPixelAlphaOnly(u32 offset, u8 a)
+	static void SetPixelAlphaOnly(u32 offset, u8 a)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -58,7 +58,7 @@ namespace EfbInterface
 		}
 	}
 
-	void SetPixelColorOnly(u32 offset, u8 *rgb)
+	static void SetPixelColorOnly(u32 offset, u8 *rgb)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -98,7 +98,7 @@ namespace EfbInterface
 		}
 	}
 
-	void SetPixelAlphaColor(u32 offset, u8 *color)
+	static void SetPixelAlphaColor(u32 offset, u8 *color)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -139,7 +139,7 @@ namespace EfbInterface
 		}
 	}
 
-	void GetPixelColor(u32 offset, u8 *color)
+	static void GetPixelColor(u32 offset, u8 *color)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -175,7 +175,7 @@ namespace EfbInterface
 		}
 	}
 
-	void SetPixelDepth(u32 offset, u32 depth)
+	static void SetPixelDepth(u32 offset, u32 depth)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -203,7 +203,7 @@ namespace EfbInterface
 		}
 	}
 
-	u32 GetPixelDepth(u32 offset)
+	static u32 GetPixelDepth(u32 offset)
 	{
 		u32 depth = 0;
 
@@ -229,7 +229,7 @@ namespace EfbInterface
 		return depth;
 	}
 
-	u32 GetSourceFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
+	static u32 GetSourceFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
 	{
 		switch (mode)
 		{
@@ -270,7 +270,7 @@ namespace EfbInterface
 		return 0;
 	}
 
-	u32 GetDestinationFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
+	static u32 GetDestinationFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
 	{
 		switch (mode)
 		{
@@ -311,7 +311,7 @@ namespace EfbInterface
 		return 0;
 	}
 
-	void BlendColor(u8 *srcClr, u8 *dstClr)
+	static void BlendColor(u8 *srcClr, u8 *dstClr)
 	{
 		u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.srcfactor);
 		u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dstfactor);
@@ -333,7 +333,7 @@ namespace EfbInterface
 		}
 	}
 
-	void LogicBlend(u32 srcClr, u32 &dstClr, BlendMode::LogicOp op)
+	static void LogicBlend(u32 srcClr, u32 &dstClr, BlendMode::LogicOp op)
 	{
 		switch (op)
 		{
@@ -388,7 +388,7 @@ namespace EfbInterface
 		}
 	}
 
-	void SubtractBlend(u8 *srcClr, u8 *dstClr)
+	static void SubtractBlend(u8 *srcClr, u8 *dstClr)
 	{
 		for (int i = 0; i < 4; i++)
 		{
@@ -556,7 +556,7 @@ namespace EfbInterface
 		}
 	}
 
-	// Like CopyToXFB, but we copy directly into the opengl colour texture without going via Gamecube main memory or doing a yuyv conversion
+	// Like CopyToXFB, but we copy directly into the opengl colour texture without going via GameCube main memory or doing a yuyv conversion
 	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma) {
 		if (fbWidth*fbHeight > 640*568) {
 			ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);

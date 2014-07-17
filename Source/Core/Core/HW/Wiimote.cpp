@@ -17,6 +17,8 @@ namespace Wiimote
 {
 
 static InputPlugin g_plugin(WIIMOTE_INI_NAME, _trans("Wiimote"), "Wiimote");
+static int s_last_number = 4;
+
 InputPlugin *GetPlugin()
 {
 	return &g_plugin;
@@ -115,13 +117,12 @@ void Update(int _number)
 	// TODO: change this to a try_to_lock, and make it give empty input on failure
 	std::lock_guard<std::recursive_mutex> lk(g_plugin.controls_lock);
 
-	static int _last_number = 4;
-	if (_number <= _last_number)
+	if (_number <= s_last_number)
 	{
 		g_controller_interface.UpdateOutput();
 		g_controller_interface.UpdateInput();
 	}
-	_last_number = _number;
+	s_last_number = _number;
 
 	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->Update();
@@ -155,6 +156,7 @@ void DoState(u8 **ptr, PointerWrap::Mode mode)
 	// TODO:
 
 	PointerWrap p(ptr, mode);
+	p.Do(s_last_number);
 	for (unsigned int i=0; i<MAX_BBMOTES; ++i)
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[i])->DoState(p);
 }

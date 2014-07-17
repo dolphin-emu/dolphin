@@ -71,8 +71,6 @@ const CPUCore CPUCores[] = {
 #endif
 };
 
-extern CFrame* main_frame;
-
 // keep these in sync with CConfigMain::InitializeGUILists
 static const wxLanguage langIds[] =
 {
@@ -116,6 +114,7 @@ static const wxLanguage langIds[] =
 #define SIDEV_AM_BB_STR     _trans("AM-Baseboard")
 
 #define EXIDEV_MEMCARD_STR  _trans("Memory Card")
+#define EXIDEV_MEMDIR_STR   _trans("GCI Folder")
 #define EXIDEV_MIC_STR      _trans("Mic")
 #define EXIDEV_BBA_STR      "BBA"
 #define EXIDEV_AM_BB_STR    _trans("AM-Baseboard")
@@ -229,7 +228,7 @@ void CConfigMain::SetSelectedTab(int tab)
 // Used to restrict changing of some options while emulator is running
 void CConfigMain::UpdateGUI()
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Disable the Core stuff on GeneralPage
 		CPUThread->Disable();
@@ -278,7 +277,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_DSPEngine.Add(_("DSP LLE recompiler"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE interpreter (slow)"));
 
-	// Gamecube page
+	// GameCube page
 	// GC Language arrayStrings
 	arrayStringFor_GCSystemLang.Add(_("English"));
 	arrayStringFor_GCSystemLang.Add(_("German"));
@@ -385,16 +384,18 @@ void CConfigMain::InitializeGUIValues()
 	AddAudioBackends();
 
 
-	// Gamecube - IPL
+	// GameCube - IPL
 	GCSystemLang->SetSelection(startup_params.SelectedLanguage);
 	GCAlwaysHLE_BS2->SetValue(startup_params.bHLE_BS2);
 
-	// Gamecube - Devices
+	// GameCube - Devices
 	wxArrayString SlotDevices;
 		SlotDevices.Add(_(DEV_NONE_STR));
 		SlotDevices.Add(_(DEV_DUMMY_STR));
 		SlotDevices.Add(_(EXIDEV_MEMCARD_STR));
 		SlotDevices.Add(_(EXIDEV_GECKO_STR));
+		SlotDevices.Add(_(EXIDEV_MEMDIR_STR));
+
 #if HAVE_PORTAUDIO
 		SlotDevices.Add(_(EXIDEV_MIC_STR));
 #endif
@@ -432,8 +433,11 @@ void CConfigMain::InitializeGUIValues()
 		case EXIDEVICE_MEMORYCARD:
 			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
 			break;
-		case EXIDEVICE_MIC:
+		case EXIDEVICE_MEMORYCARDFOLDER:
 			GCEXIDevice[i]->SetStringSelection(SlotDevices[4]);
+			break;
+		case EXIDEVICE_MIC:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[5]);
 			break;
 		case EXIDEVICE_ETH:
 			GCEXIDevice[i]->SetStringSelection(SP1Devices[2]);
@@ -525,7 +529,7 @@ void CConfigMain::InitializeGUITooltips()
 	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended: might cause freezes)."));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 
-	// Gamecube - Devices
+	// GameCube - Devices
 	GCEXIDevice[2]->SetToolTip(_("Serial Port 1 - This is the port which devices such as the net adapter use"));
 
 	// Wii - Devices
@@ -556,7 +560,7 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(GeneralPage, _("General"));
 	Notebook->AddPage(DisplayPage, _("Interface"));
 	Notebook->AddPage(AudioPage, _("Audio"));
-	Notebook->AddPage(GamecubePage, _("Gamecube"));
+	Notebook->AddPage(GamecubePage, _("GameCube"));
 	Notebook->AddPage(WiiPage, _("Wii"));
 	Notebook->AddPage(PathsPage, _("Paths"));
 
@@ -663,7 +667,7 @@ void CConfigMain::CreateGUIControls()
 
 	Latency->Bind(wxEVT_SPINCTRL, &CConfigMain::AudioSettingsChanged, this);
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		Latency->Disable();
 		BackendSelection->Disable();
@@ -699,7 +703,7 @@ void CConfigMain::CreateGUIControls()
 	AudioPage->SetSizerAndFit(sAudioPage);
 
 
-	// Gamecube page
+	// GameCube page
 	// IPL settings
 	GCSystemLang = new wxChoice(GamecubePage, ID_GC_SRAM_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_GCSystemLang);
 	GCAlwaysHLE_BS2 = new wxCheckBox(GamecubePage, ID_GC_ALWAYS_HLE_BS2, _("Skip BIOS"));
@@ -728,7 +732,7 @@ void CConfigMain::CreateGUIControls()
 	GCSIDevice[2] = new wxChoice(GamecubePage, ID_GC_SIDEVICE2);
 	GCSIDevice[3] = new wxChoice(GamecubePage, ID_GC_SIDEVICE3);
 
-	// Populate the Gamecube page
+	// Populate the GameCube page
 	sGamecubeIPLSettings = new wxGridBagSizer();
 	sGamecubeIPLSettings->Add(GCAlwaysHLE_BS2, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sGamecubeIPLSettings->Add(TEXT_BOX(GamecubePage, _("System Language:")),
@@ -882,6 +886,8 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	{
 	// Core - Basic
 	case ID_CPUTHREAD:
+		if (Core::IsRunning())
+			return;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = CPUThread->IsChecked();
 		break;
 	case ID_IDLESKIP:
@@ -1015,16 +1021,16 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 	int exidevice = 0;
 	switch (event.GetId())
 	{
-	// Gamecube - IPL
+	// GameCube - IPL
 	case ID_GC_SRAM_LNG:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = GCSystemLang->GetSelection();
 		bRefreshList = true;
 		break;
-	// Gamecube - IPL Settings
+	// GameCube - IPL Settings
 	case ID_GC_ALWAYS_HLE_BS2:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = GCAlwaysHLE_BS2->IsChecked();
 		break;
-	// Gamecube - Devices
+	// GameCube - Devices
 	case ID_GC_EXIDEVICE_SP1:
 		exidevice++;
 	case ID_GC_EXIDEVICE_SLOTB:
@@ -1057,7 +1063,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		StrToWxStr(File::GetUserPath(D_GCUSER_IDX)),
 		isSlotA ? GC_MEMCARDA : GC_MEMCARDB,
 		wxEmptyString,
-		_("Gamecube Memory Cards (*.raw,*.gcp)") + "|*.raw;*.gcp"));
+		_("GameCube Memory Cards (*.raw,*.gcp)") + "|*.raw;*.gcp"));
 
 	if (!filename.empty())
 	{
@@ -1091,7 +1097,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		{
 			strMemcard = filename;
 
-			if (Core::GetState() != Core::CORE_UNINITIALIZED)
+			if (Core::IsRunning())
 			{
 				// Change memcard to the new file
 				ExpansionInterface::ChangeDevice(
@@ -1128,7 +1134,7 @@ void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
 
 	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Change plugged device! :D
 		SerialInterface::ChangeDevice(tempType, deviceNum);
@@ -1141,6 +1147,8 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 
 	if (!deviceName.compare(_(EXIDEV_MEMCARD_STR)))
 		tempType = EXIDEVICE_MEMORYCARD;
+	else if (!deviceName.compare(_(EXIDEV_MEMDIR_STR)))
+		tempType = EXIDEVICE_MEMORYCARDFOLDER;
 	else if (!deviceName.compare(_(EXIDEV_MIC_STR)))
 		tempType = EXIDEVICE_MIC;
 	else if (!deviceName.compare(EXIDEV_BBA_STR))
@@ -1162,7 +1170,7 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 
 	SConfig::GetInstance().m_EXIDevice[deviceNum] = tempType;
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Change plugged device! :D
 		ExpansionInterface::ChangeDevice(

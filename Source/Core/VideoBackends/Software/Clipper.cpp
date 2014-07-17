@@ -47,10 +47,10 @@ namespace Clipper
 {
 	enum { NUM_CLIPPED_VERTICES = 33, NUM_INDICES = NUM_CLIPPED_VERTICES + 3 };
 
-	float m_ViewOffset[2];
+	static float m_ViewOffset[2];
 
-	OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
-	OutputVertexData *Vertices[NUM_INDICES];
+	static OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
+	static OutputVertexData *Vertices[NUM_INDICES];
 
 	void DoState(PointerWrap &p)
 	{
@@ -169,7 +169,7 @@ namespace Clipper
 		}														\
 	}
 
-	void ClipTriangle(int *indices, int &numIndices)
+	static void ClipTriangle(int *indices, int &numIndices)
 	{
 		int mask = 0;
 
@@ -218,7 +218,7 @@ namespace Clipper
 		}
 	}
 
-	void ClipLine(int *indices)
+	static void ClipLine(int *indices)
 	{
 		int mask = 0;
 		int clip_mask[2] = { 0, 0 };
@@ -310,7 +310,7 @@ namespace Clipper
 		}
 	}
 
-	void CopyVertex(OutputVertexData *dst, OutputVertexData *src, float dx, float dy, unsigned int sOffset)
+	static void CopyVertex(OutputVertexData *dst, OutputVertexData *src, float dx, float dy, unsigned int sOffset)
 	{
 		dst->screenPosition.x = src->screenPosition.x + dx;
 		dst->screenPosition.y = src->screenPosition.y + dy;

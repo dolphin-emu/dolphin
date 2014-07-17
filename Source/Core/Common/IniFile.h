@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstring>
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
@@ -95,38 +96,12 @@ public:
 	// Returns true if key exists in section
 	bool Exists(const std::string& sectionName, const std::string& key) const;
 
-	// TODO: Get rid of these, in favor of the Section ones.
-	void Set(const std::string& sectionName, const std::string& key, const std::string& newValue) {
-		GetOrCreateSection(sectionName)->Set(key, newValue);
-	}
-	void Set(const std::string& sectionName, const std::string& key, int newValue) {
-		GetOrCreateSection(sectionName)->Set(key, newValue);
-	}
-	void Set(const std::string& sectionName, const std::string& key, float newValue) {
-		GetOrCreateSection(sectionName)->Set(key, newValue);
-	}
-	void Set(const std::string& sectionName, const std::string& key, u32 newValue) {
-		GetOrCreateSection(sectionName)->Set(key, newValue);
-	}
-	void Set(const std::string& sectionName, const std::string& key, bool newValue) {
-		GetOrCreateSection(sectionName)->Set(key, newValue);
-	}
-	void Set(const std::string& sectionName, const std::string& key, const std::vector<std::string>& newValues) {
-		GetOrCreateSection(sectionName)->Set(key, newValues);
-	}
-
-	// TODO: Get rid of these, in favor of the Section ones.
-	bool Get(const std::string& sectionName, const std::string& key, int* value, int defaultValue = 0);
-	bool Get(const std::string& sectionName, const std::string& key, u32* value, u32 defaultValue = 0);
-	bool Get(const std::string& sectionName, const std::string& key, bool* value, bool defaultValue = false);
-	bool Get(const std::string& sectionName, const std::string& key, float* value, float defaultValue = 0.0f);
-	bool Get(const std::string& sectionName, const std::string& key, std::vector<std::string>* values);
-	bool Get(const std::string& sectionName, const std::string& key, std::string* value, const std::string& defaultValue = NULL_STRING);
 
 	template<typename T> bool GetIfExists(const std::string& sectionName, const std::string& key, T value)
 	{
 		if (Exists(sectionName, key))
-			return Get(sectionName, key, value);
+			return GetOrCreateSection(sectionName)->Get(key, value);
+
 		return false;
 	}
 
@@ -143,7 +118,7 @@ public:
 	Section* GetOrCreateSection(const std::string& section);
 
 private:
-	std::vector<Section> sections;
+	std::list<Section> sections;
 
 	const Section* GetSection(const std::string& section) const;
 	Section* GetSection(const std::string& section);

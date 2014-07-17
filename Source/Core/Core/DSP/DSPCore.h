@@ -25,11 +25,14 @@
 
 #pragma once
 
+#include <array>
+#include <memory>
 #include <string>
 
 #include "Common/Thread.h"
 
 #include "Core/DSP/DSPBreakpoints.h"
+#include "Core/DSP/DSPCaptureLogger.h"
 #include "Core/DSP/DSPEmitter.h"
 
 #define DSP_IRAM_BYTE_SIZE  0x2000
@@ -269,8 +272,39 @@ extern DSPBreakpoints dsp_breakpoints;
 extern DSPEmitter *dspjit;
 extern u16 cyclesLeft;
 extern bool init_hax;
+extern std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 
-bool DSPCore_Init(const std::string& irom_filename, const std::string& coef_filename, bool bUsingJIT);
+struct DSPInitOptions
+{
+	// DSP IROM blob, which is where the DSP boots from. Embedded into the DSP.
+	std::array<u16, DSP_IROM_SIZE> irom_contents;
+
+	// DSP DROM blob, which contains resampling coefficients.
+	std::array<u16, DSP_COEF_SIZE> coef_contents;
+
+	// Core used to emulate the DSP.
+	// Default: CORE_JIT.
+	enum CoreType
+	{
+		CORE_INTERPRETER,
+		CORE_JIT,
+	};
+	CoreType core_type;
+
+	// Optional capture logger used to log internal DSP data transfers.
+	// Default: dummy implementation, does nothing.
+	DSPCaptureLogger* capture_logger;
+
+	DSPInitOptions()
+		: core_type(CORE_JIT),
+		  capture_logger(new DefaultDSPCaptureLogger())
+	{
+	}
+};
+
+// Initializes the DSP emulator using the provided options. Takes ownership of
+// all the pointers contained in the options structure.
+bool DSPCore_Init(const DSPInitOptions& opts);
 
 void DSPCore_Reset();
 void DSPCore_Shutdown(); // Frees all allocated memory.

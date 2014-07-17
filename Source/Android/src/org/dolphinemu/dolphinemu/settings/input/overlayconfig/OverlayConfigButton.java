@@ -54,7 +54,7 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 		Bitmap bitmapResized = Bitmap.createScaledBitmap(b,
 				(int)(displayMetrics.heightPixels * scale),
 				(int)(displayMetrics.heightPixels * scale),
-				false);
+				true);
 
 		return new BitmapDrawable(getResources(), bitmapResized);
 	}
@@ -76,12 +76,42 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 		// Set the button as its own OnTouchListener.
 		setOnTouchListener(this);
 
-		// Set the button's icon that represents it.
-		setBackground(resizeDrawable(getResources().getDrawable(drawableId),
-		                drawableId == R.drawable.gcpad_joystick_range ? 0.30f : 0.20f));
-
 		// Get the SharedPreferences instance.
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+		// Decide scale based on button ID
+
+		// SeekBars are not able to set a minimum value, only a maximum value, which complicates
+		// things a bit. What happens here is after the SeekBar's value is retrieved, 25 is
+		// added so the value will never go below 25. It is then divided by 50 (25 + 25) so the
+		// default value will be 100%.
+		float scale;
+		float overlaySize = sharedPrefs.getInt("controls_size", 25);
+		overlaySize += 25;
+		overlaySize /= 50;
+
+		switch (drawableId)
+		{
+		case R.drawable.gcpad_b:
+			scale = 0.13f * overlaySize;
+			break;
+		case R.drawable.gcpad_x:
+		case R.drawable.gcpad_y:
+			scale = 0.18f * overlaySize;
+			break;
+		case R.drawable.gcpad_start:
+			scale = 0.12f * overlaySize;
+			break;
+		case R.drawable.gcpad_joystick_range:
+			scale = 0.30f * overlaySize;
+			break;
+		default:
+			scale = 0.20f * overlaySize;
+			break;
+		}
+
+		// Set the button's icon that represents it.
+		setBackground(resizeDrawable(getResources().getDrawable(drawableId), scale));
 
 		// Check if this button has previous values set that aren't the default.
 		final float x = sharedPrefs.getFloat(buttonId+"-X", -1f);

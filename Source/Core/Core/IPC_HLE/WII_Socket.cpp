@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
@@ -32,7 +34,7 @@ char* WiiSockMan::DecodeError(s32 ErrorCode)
 #endif
 }
 
-s32 TranslateErrorCode(s32 native_error, bool isRW)
+static s32 TranslateErrorCode(s32 native_error, bool isRW)
 {
 	switch (native_error)
 	{
@@ -568,8 +570,9 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 
 s32 WiiSockMan::DeleteSocket(s32 s)
 {
-	s32 ReturnValue = WiiSockets[s].CloseFd();
-	WiiSockets.erase(s);
+	auto socket_entry = WiiSockets.find(s);
+	s32 ReturnValue = socket_entry->second.CloseFd();
+	WiiSockets.erase(socket_entry);
 	return ReturnValue;
 }
 
@@ -581,20 +584,25 @@ void WiiSockMan::Update()
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 	FD_ZERO(&except_fds);
-	for (auto& entry : WiiSockets)
+
+	auto socket_iter = WiiSockets.begin();
+	auto end_socks = WiiSockets.end();
+
+	while (socket_iter != end_socks)
 	{
-		WiiSocket& sock = entry.second;
+		WiiSocket& sock = socket_iter->second;
 		if (sock.IsValid())
 		{
 			FD_SET(sock.fd, &read_fds);
 			FD_SET(sock.fd, &write_fds);
 			FD_SET(sock.fd, &except_fds);
-			nfds = max(nfds, sock.fd+1);
+			nfds = std::max(nfds, sock.fd+1);
+			++socket_iter;
 		}
 		else
 		{
 			// Good time to clean up invalid sockets.
-			WiiSockets.erase(sock.fd);
+			socket_iter = WiiSockets.erase(socket_iter);
 		}
 	}
 	s32 ret = select(nfds, &read_fds, &write_fds, &except_fds, &t);
@@ -630,7 +638,7 @@ void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue, IPCCommandTyp
 	// Return value
 	Memory::Write_U32(ReturnValue, CommandAddress + 4);
 
-	WII_IPC_HLE_Interface::EnqReply(CommandAddress);
+	WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
 }
 
 

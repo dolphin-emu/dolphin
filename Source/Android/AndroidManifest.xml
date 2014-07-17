@@ -21,24 +21,19 @@
         android:label="@string/app_name"
         android:allowBackup="true">
         <activity
-            android:name="org.dolphinemu.dolphinemu.DolphinEmulator"
-            android:configChanges="locale|keyboard|keyboardHidden|navigation|fontScale|uiMode"
+            android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"
             android:label="@string/app_name"
-            android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+            android:theme="@android:style/Theme.Holo.Light" >
+
+            <!-- This intentfilter marks this Activity as the one that gets launched from Home screen.-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
             android:name="org.dolphinemu.dolphinemu.about.AboutActivity"
-            android:theme="@android:style/Theme.Holo.Light" />
-
-        <activity
-            android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"
             android:theme="@android:style/Theme.Holo.Light" />
 
         <activity
@@ -54,6 +49,8 @@
             android:name="org.dolphinemu.dolphinemu.settings.PrefsActivity"
             android:label="@string/settings"
             android:theme="@android:style/Theme.Holo.Light" />
+
+        <service android:name=".AssetCopyService"/>
 
     </application>
 

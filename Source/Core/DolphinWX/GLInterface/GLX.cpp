@@ -12,7 +12,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);
-PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
+static PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
 
 // Show the current FPS
 void cInterfaceGLX::UpdateFPSDisplay(const std::string& text)

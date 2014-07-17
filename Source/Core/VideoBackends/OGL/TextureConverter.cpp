@@ -4,7 +4,10 @@
 
 // Fast image conversion using OpenGL shaders.
 
+#include <string>
+
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
 #include "Core/HW/Memmap.h"
 
@@ -131,7 +134,7 @@ static void CreatePrograms()
 
 static SHADER &GetOrCreateEncodingShader(u32 format)
 {
-	if (format > NUM_ENCODING_PROGRAMS)
+	if (format >= NUM_ENCODING_PROGRAMS)
 	{
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
 		return s_encodingPrograms[0];
@@ -145,10 +148,9 @@ static SHADER &GetOrCreateEncodingShader(u32 format)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)
 		{
 			static int counter = 0;
-			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+			std::string filename = StringFromFormat("%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 
-			SaveData(szTemp, shader);
+			SaveData(filename, shader);
 		}
 #endif
 

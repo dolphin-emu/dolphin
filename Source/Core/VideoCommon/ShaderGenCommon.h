@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "VideoCommon/VideoCommon.h"
 
 /**
@@ -179,14 +180,12 @@ public:
 			{
 				static int num_failures = 0;
 
-				char szTemp[MAX_PATH];
-				sprintf(szTemp, "%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-						dump_prefix,
-						++num_failures);
+				std::string temp = StringFromFormat("%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
+						dump_prefix, ++num_failures);
 
 				// TODO: Should also dump uids
 				std::ofstream file;
-				OpenFStream(file, szTemp, std::ios_base::out);
+				OpenFStream(file, temp, std::ios_base::out);
 				file << "Old shader code:\n" << old_code;
 				file << "\n\nNew shader code:\n" << new_code.GetBuffer();
 				file << "\n\nShader uid:\n";
@@ -206,9 +205,8 @@ public:
 					else
 						file << std::endl;
 				}
-				file.close();
 
-				ERROR_LOG(VIDEO, "%s shader uid mismatch! See %s for details", shader_type, szTemp);
+				ERROR_LOG(VIDEO, "%s shader uid mismatch! See %s for details", shader_type, temp.c_str());
 			}
 		}
 	}
@@ -217,3 +215,25 @@ private:
 	std::map<UidT,std::string> m_shaders;
 	std::vector<UidT> m_uids;
 };
+
+// Constant variable names
+#define I_COLORS        "color"
+#define I_KCOLORS       "k"
+#define I_ALPHA         "alphaRef"
+#define I_TEXDIMS       "texdim"
+#define I_ZBIAS         "czbias"
+#define I_INDTEXSCALE   "cindscale"
+#define I_INDTEXMTX     "cindmtx"
+#define I_FOGCOLOR      "cfogcolor"
+#define I_FOGI          "cfogi"
+#define I_FOGF          "cfogf"
+
+#define I_POSNORMALMATRIX       "cpnmtx"
+#define I_PROJECTION            "cproj"
+#define I_MATERIALS             "cmtrl"
+#define I_LIGHTS                "clights"
+#define I_TEXMATRICES           "ctexmtx"
+#define I_TRANSFORMMATRICES     "ctrmtx"
+#define I_NORMALMATRICES        "cnmtx"
+#define I_POSTTRANSFORMMATRICES "cpostmtx"
+#define I_DEPTHPARAMS           "cDepth" // farZ, zRange

@@ -116,27 +116,6 @@ void make_blanksig_ec_cert(u8 *cert_out, const char *signer, const char *name, c
 	ec_priv_to_pub(private_key, cert_out + 0x108);
 }
 
-
-// get_shared_secret
-
-// shared_secret_out is a pointer to 0x3c long buffer
-// remote_public_key is a pointer to the remote party's public key (0x3c bytes)
-// NG_priv is the device-unique private key to use
-// if NG_priv is nullptr, default builtin will be used
-void get_shared_secret(u8* shared_secret_out, u8* remote_public_key, u8* NG_priv)
-{
-	if (NG_priv==nullptr)
-	{
-		NG_priv = default_NG_priv;
-	}
-
-	// required point_mul in Source/Core/Common/Crypto/ec.cpp
-	// to be made non-static
-
-	point_mul(shared_secret_out, NG_priv, remote_public_key);
-
-}
-
 EcWii::EcWii()
 {
 	bool init = true;

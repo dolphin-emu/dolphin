@@ -14,6 +14,7 @@
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/XFMemLoader.h"
 #include "VideoCommon/DataReader.h"
+#include "VideoCommon/Fifo.h"
 
 typedef void (*DecodingFunction)(u32);
 
@@ -43,7 +44,7 @@ void DoState(PointerWrap &p)
 		  ResetDecoding();
 }
 
-void DecodePrimitiveStream(u32 iBufferSize)
+static void DecodePrimitiveStream(u32 iBufferSize)
 {
 	u32 vertexSize = vertexLoader.GetVertexSize();
 
@@ -77,7 +78,7 @@ void DecodePrimitiveStream(u32 iBufferSize)
 	}
 }
 
-void ReadXFData(u32 iBufferSize)
+static void ReadXFData(u32 iBufferSize)
 {
 	_assert_msg_(VIDEO, iBufferSize >= (u32)(streamSize * 4), "Underflow during standard opcode decoding");
 
@@ -90,7 +91,7 @@ void ReadXFData(u32 iBufferSize)
 	ResetDecoding();
 }
 
-void ExecuteDisplayList(u32 addr, u32 count)
+static void ExecuteDisplayList(u32 addr, u32 count)
 {
 	u8 *videoDataSave = g_pVideoData;
 
@@ -114,7 +115,7 @@ void ExecuteDisplayList(u32 addr, u32 count)
 	g_pVideoData = videoDataSave;
 }
 
-void DecodeStandard(u32 bufferSize)
+static void DecodeStandard(u32 bufferSize)
 {
 	_assert_msg_(VIDEO, CommandRunnable(bufferSize), "Underflow during standard opcode decoding");
 

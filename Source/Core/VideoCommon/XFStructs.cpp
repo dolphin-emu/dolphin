@@ -11,14 +11,13 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
-void XFMemWritten(u32 transferSize, u32 baseAddress)
+static void XFMemWritten(u32 transferSize, u32 baseAddress)
 {
 	VertexManager::Flush();
 	VertexShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
-	PixelShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
-void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
+static void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 {
 	u32 address = baseAddress;
 	u32 dataIndex = 0;
@@ -61,7 +60,6 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 				{
 					VertexManager::Flush();
 					VertexShaderManager::SetMaterialColorChanged(chan, newValue);
-					PixelShaderManager::SetMaterialColorChanged(chan, newValue);
 				}
 				break;
 			}
@@ -74,7 +72,6 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 				{
 					VertexManager::Flush();
 					VertexShaderManager::SetMaterialColorChanged(chan + 2, newValue);
-					PixelShaderManager::SetMaterialColorChanged(chan + 2, newValue);
 				}
 				break;
 			}

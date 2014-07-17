@@ -4,12 +4,14 @@
 
 #include <cmath>
 
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPStructs.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -22,8 +24,6 @@
 #include "VideoCommon/VideoConfig.h"
 
 using namespace BPFunctions;
-
-extern volatile bool g_bSkipCurrentFrame;
 
 static const float s_gammaLUT[] =
 {
@@ -50,7 +50,7 @@ static void BPWritten(const BPCmd& bp)
 				  some bp cases check the changes variable, because they might not have to be updated all the time
 	NOTE: it seems not all bp cases like checking changes, so calling if (bp.changes == 0 ? false : true)
 		  had to be ditched and the games seem to work fine with out it.
-	NOTE2: Yet Another Gamecube Documentation calls them Bypass Raster State Registers but possibly completely wrong
+	NOTE2: Yet Another GameCube Documentation calls them Bypass Raster State Registers but possibly completely wrong
 	NOTE3: This controls the register groups: RAS1/2, SU, TF, TEV, C/Z, PEC
 	TODO: Turn into function table. The (future) DisplayList (DL) jit can then call the functions directly,
 		  getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
@@ -544,7 +544,7 @@ static void BPWritten(const BPCmd& bp)
 	// BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
 	// -------------------------------
 	case BPMEM_TX_SETTLUT:
-	case BPMEM_TX_SETLUT_4:
+	case BPMEM_TX_SETTLUT_4:
 		return;
 
 	// ---------------------------------------------------
@@ -658,7 +658,7 @@ void LoadBPReg(u32 value0)
 	BPWritten(bp);
 }
 
-void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size_t desc_size)
+void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
 {
 	const char* no_yes[2] = { "No", "Yes" };
 
@@ -667,7 +667,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 	{
 	 // Macro to set the register name and make sure it was written correctly via compile time assertion
 	#define SetRegName(reg) \
-		snprintf(name, name_size, #reg); \
+		*name = #reg; \
 		(void)(reg);
 
 	case BPMEM_GENMODE: // 0x00
@@ -687,12 +687,131 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 		// TODO: same as BPMEM_DISPLAYCOPYFILTER
 		break;
 
-	case BPMEM_EFB_TL: // 0x49
-		{
-			SetRegName(BPMEM_EFB_TL);
-			X10Y10 left_top; left_top.hex = cmddata;
-			snprintf(desc, desc_size, "Left: %d\nTop: %d", left_top.x, left_top.y);
-		}
+	case BPMEM_IND_MTXA: // 0x06
+	case BPMEM_IND_MTXA+3:
+	case BPMEM_IND_MTXA+6:
+		SetRegName(BPMEM_IND_MTXA);
+		// TODO: Description
+		break;
+
+	case BPMEM_IND_MTXB: // 0x07
+	case BPMEM_IND_MTXB+3:
+	case BPMEM_IND_MTXB+6:
+		SetRegName(BPMEM_IND_MTXB);
+		// TODO: Descriptio
+		break;
+
+	case BPMEM_IND_MTXC: // 0x08
+	case BPMEM_IND_MTXC+3:
+	case BPMEM_IND_MTXC+6:
+		SetRegName(BPMEM_IND_MTXC);
+		// TODO: Description
+		break;
+
+	case BPMEM_IND_IMASK: // 0x0F
+		SetRegName(BPMEM_IND_IMASK);
+		// TODO: Description
+		break;
+
+	case BPMEM_IND_CMD: // 0x10
+	case BPMEM_IND_CMD+1:
+	case BPMEM_IND_CMD+2:
+	case BPMEM_IND_CMD+3:
+	case BPMEM_IND_CMD+4:
+	case BPMEM_IND_CMD+5:
+	case BPMEM_IND_CMD+6:
+	case BPMEM_IND_CMD+7:
+	case BPMEM_IND_CMD+8:
+	case BPMEM_IND_CMD+9:
+	case BPMEM_IND_CMD+10:
+	case BPMEM_IND_CMD+11:
+	case BPMEM_IND_CMD+12:
+	case BPMEM_IND_CMD+13:
+	case BPMEM_IND_CMD+14:
+	case BPMEM_IND_CMD+15:
+		SetRegName(BPMEM_IND_CMD);
+		// TODO: Description
+		break;
+
+	case BPMEM_SCISSORTL: // 0x20
+		SetRegName(BPMEM_SCISSORTL);
+		// TODO: Description
+		break;
+
+	case BPMEM_SCISSORBR: // 0x21
+		SetRegName(BPMEM_SCISSORBR);
+		// TODO: Description
+		break;
+
+	case BPMEM_LINEPTWIDTH: // 0x22
+		SetRegName(BPMEM_LINEPTWIDTH);
+		// TODO: Description
+		break;
+
+	case BPMEM_PERF0_TRI: // 0x23
+		SetRegName(BPMEM_PERF0_TRI);
+		// TODO: Description
+		break;
+
+	case BPMEM_PERF0_QUAD: // 0x24
+		SetRegName(BPMEM_PERF0_QUAD);
+		// TODO: Description
+		break;
+
+	case BPMEM_RAS1_SS0: // 0x25
+		SetRegName(BPMEM_RAS1_SS0);
+		// TODO: Description
+		break;
+
+	case BPMEM_RAS1_SS1: // 0x26
+		SetRegName(BPMEM_RAS1_SS1);
+		// TODO: Description
+		break;
+
+	case BPMEM_IREF: // 0x27
+		SetRegName(BPMEM_IREF);
+		// TODO: Description
+		break;
+
+	case BPMEM_TREF: // 0x28
+	case BPMEM_TREF+1:
+	case BPMEM_TREF+2:
+	case BPMEM_TREF+3:
+	case BPMEM_TREF+4:
+	case BPMEM_TREF+5:
+	case BPMEM_TREF+6:
+	case BPMEM_TREF+7:
+		SetRegName(BPMEM_TREF);
+		// TODO: Description
+		break;
+
+	case BPMEM_SU_SSIZE: // 0x30
+	case BPMEM_SU_SSIZE+2:
+	case BPMEM_SU_SSIZE+4:
+	case BPMEM_SU_SSIZE+6:
+	case BPMEM_SU_SSIZE+8:
+	case BPMEM_SU_SSIZE+10:
+	case BPMEM_SU_SSIZE+12:
+	case BPMEM_SU_SSIZE+14:
+		SetRegName(BPMEM_SU_SSIZE);
+		// TODO: Description
+		break;
+
+	case BPMEM_SU_TSIZE: // 0x31
+	case BPMEM_SU_TSIZE+2:
+	case BPMEM_SU_TSIZE+4:
+	case BPMEM_SU_TSIZE+6:
+	case BPMEM_SU_TSIZE+8:
+	case BPMEM_SU_TSIZE+10:
+	case BPMEM_SU_TSIZE+12:
+	case BPMEM_SU_TSIZE+14:
+		SetRegName(BPMEM_SU_TSIZE);
+		// TODO: Description
+		break;
+
+	case BPMEM_ZMODE: // 0x40
+		SetRegName(BPMEM_ZMODE);
+		// TODO: Description
 		break;
 
 	case BPMEM_BLENDMODE: // 0x41
@@ -702,31 +821,69 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			const char* dstfactors[] = { "0", "1", "src_color", "1-src_color", "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha" };
 			const char* srcfactors[] = { "0", "1", "dst_color", "1-dst_color", "src_alpha", "1-src_alpha", "dst_alpha", "1-dst_alpha" };
 			const char* logicmodes[] = { "0", "s & d", "s & ~d", "s", "~s & d", "d", "s ^ d", "s | d", "~(s | d)", "~(s ^ d)", "~d", "s | ~d", "~s", "~s | d", "~(s & d)", "1" };
-			snprintf(desc, desc_size, "Enable: %s\n"
-									"Logic ops: %s\n"
-									"Dither: %s\n"
-									"Color write: %s\n"
-									"Alpha write: %s\n"
-									"Dest factor: %s\n"
-									"Source factor: %s\n"
-									"Subtract: %s\n"
-									"Logic mode: %s\n",
-									no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
-									no_yes[mode.colorupdate], no_yes[mode.alphaupdate], dstfactors[mode.dstfactor],
-									srcfactors[mode.srcfactor], no_yes[mode.subtract], logicmodes[mode.logicmode]);
+			*desc = StringFromFormat("Enable: %s\n"
+			                         "Logic ops: %s\n"
+			                         "Dither: %s\n"
+			                         "Color write: %s\n"
+			                         "Alpha write: %s\n"
+			                         "Dest factor: %s\n"
+			                         "Source factor: %s\n"
+			                         "Subtract: %s\n"
+			                         "Logic mode: %s\n",
+			                         no_yes[mode.blendenable], no_yes[mode.logicopenable], no_yes[mode.dither],
+			                         no_yes[mode.colorupdate], no_yes[mode.alphaupdate], dstfactors[mode.dstfactor],
+			                         srcfactors[mode.srcfactor], no_yes[mode.subtract], logicmodes[mode.logicmode]);
 		}
 		break;
 
-	case BPMEM_ZCOMPARE:
+	case BPMEM_CONSTANTALPHA: // 0x42
+		SetRegName(BPMEM_CONSTANTALPHA);
+		// TODO: Description
+		break;
+
+	case BPMEM_ZCOMPARE: // 0x43
 		{
 			SetRegName(BPMEM_ZCOMPARE);
 			PEControl config; config.hex = cmddata;
 			const char* pixel_formats[] = { "RGB8_Z24", "RGBA6_Z24", "RGB565_Z16", "Z24", "Y8", "U8", "V8", "YUV420" };
 			const char* zformats[] = { "linear", "compressed (near)", "compressed (mid)", "compressed (far)", "inv linear", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)" };
-			snprintf(desc, desc_size, "EFB pixel format: %s\n"
-									"Depth format: %s\n"
-									"Early depth test: %s\n",
-									pixel_formats[config.pixel_format], zformats[config.zformat], no_yes[config.early_ztest]);
+			*desc = StringFromFormat("EFB pixel format: %s\n"
+			                         "Depth format: %s\n"
+			                         "Early depth test: %s\n",
+			                         pixel_formats[config.pixel_format], zformats[config.zformat], no_yes[config.early_ztest]);
+		}
+		break;
+
+	case BPMEM_FIELDMASK: // 0x44
+		SetRegName(BPMEM_FIELDMASK);
+		// TODO: Description
+		break;
+
+	case BPMEM_SETDRAWDONE: // 0x45
+		SetRegName(BPMEM_SETDRAWDONE);
+		// TODO: Description
+		break;
+
+	case BPMEM_BUSCLOCK0: // 0x46
+		SetRegName(BPMEM_BUSCLOCK0);
+		// TODO: Description
+		break;
+
+	case BPMEM_PE_TOKEN_ID: // 0x47
+		SetRegName(BPMEM_PE_TOKEN_ID);
+		// TODO: Description
+		break;
+
+	case BPMEM_PE_TOKEN_INT_ID: // 0x48
+		SetRegName(BPMEM_PE_TOKEN_INT_ID);
+		// TODO: Description
+		break;
+
+	case BPMEM_EFB_TL: // 0x49
+		{
+			SetRegName(BPMEM_EFB_TL);
+			X10Y10 left_top; left_top.hex = cmddata;
+			*desc = StringFromFormat("Left: %d\nTop: %d", left_top.x, left_top.y);
 		}
 		break;
 
@@ -735,61 +892,66 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			// TODO: Misleading name, should be BPMEM_EFB_WH instead
 			SetRegName(BPMEM_EFB_BR);
 			X10Y10 width_height; width_height.hex = cmddata;
-			snprintf(desc, desc_size, "Width: %d\nHeight: %d", width_height.x+1, width_height.y+1);
+			*desc = StringFromFormat("Width: %d\nHeight: %d", width_height.x+1, width_height.y+1);
 		}
 		break;
 
 	case BPMEM_EFB_ADDR: // 0x4B
 		SetRegName(BPMEM_EFB_ADDR);
-		snprintf(desc, desc_size, "Target address (32 byte aligned): 0x%06X", cmddata << 5);
+		*desc = StringFromFormat("Target address (32 byte aligned): 0x%06X", cmddata << 5);
+		break;
+
+	case BPMEM_MIPMAP_STRIDE: // 0x4D
+		SetRegName(BPMEM_MIPMAP_STRIDE);
+		// TODO: Description
 		break;
 
 	case BPMEM_COPYYSCALE: // 0x4E
 		SetRegName(BPMEM_COPYYSCALE);
-		snprintf(desc, desc_size, "Scaling factor (XFB copy only): 0x%X (%f or inverted %f)", cmddata, (float)cmddata/256.f, 256.f/(float)cmddata);
+		*desc = StringFromFormat("Scaling factor (XFB copy only): 0x%X (%f or inverted %f)", cmddata, (float)cmddata/256.f, 256.f/(float)cmddata);
 		break;
 
 	case BPMEM_CLEAR_AR: // 0x4F
 		SetRegName(BPMEM_CLEAR_AR);
-		snprintf(desc, desc_size, "Alpha: 0x%02X\nRed: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
+		*desc = StringFromFormat("Alpha: 0x%02X\nRed: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
 		break;
 
 	case BPMEM_CLEAR_GB: // 0x50
 		SetRegName(BPMEM_CLEAR_GB);
-		snprintf(desc, desc_size, "Green: 0x%02X\nBlue: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
+		*desc = StringFromFormat("Green: 0x%02X\nBlue: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
 		break;
 
 	case BPMEM_CLEAR_Z: // 0x51
 		SetRegName(BPMEM_CLEAR_Z);
-		snprintf(desc, desc_size, "Z value: 0x%06X", cmddata);
+		*desc = StringFromFormat("Z value: 0x%06X", cmddata);
 		break;
 
 	case BPMEM_TRIGGER_EFB_COPY: // 0x52
 		{
 			SetRegName(BPMEM_TRIGGER_EFB_COPY);
 			UPE_Copy copy; copy.Hex = cmddata;
-			snprintf(desc, desc_size, "Clamping: %s\n"
-								"Converting from RGB to YUV: %s\n"
-								"Target pixel format: 0x%X\n"
-								"Gamma correction: %s\n"
-								"Mipmap filter: %s\n"
-								"Vertical scaling: %s\n"
-								"Clear: %s\n"
-								"Frame to field: 0x%01X\n"
-								"Copy to XFB: %s\n"
-								"Intensity format: %s\n"
-								"Automatic color conversion: %s",
-								(copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ? "Top only" : (copy.clamp1) ? "Bottom only" : "None",
-								no_yes[copy.yuv],
-								copy.tp_realFormat(),
-								(copy.gamma==0)?"1.0":(copy.gamma==1)?"1.7":(copy.gamma==2)?"2.2":"Invalid value 0x3?",
-								no_yes[copy.half_scale],
-								no_yes[copy.scale_invert],
-								no_yes[copy.clear],
-								(u32)copy.frame_to_field,
-								no_yes[copy.copy_to_xfb],
-								no_yes[copy.intensity_fmt],
-								no_yes[copy.auto_conv]);
+			*desc = StringFromFormat("Clamping: %s\n"
+			                         "Converting from RGB to YUV: %s\n"
+			                         "Target pixel format: 0x%X\n"
+			                         "Gamma correction: %s\n"
+			                         "Mipmap filter: %s\n"
+			                         "Vertical scaling: %s\n"
+			                         "Clear: %s\n"
+			                         "Frame to field: 0x%01X\n"
+			                         "Copy to XFB: %s\n"
+			                         "Intensity format: %s\n"
+			                         "Automatic color conversion: %s",
+			                         (copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ? "Top only" : (copy.clamp1) ? "Bottom only" : "None",
+			                         no_yes[copy.yuv],
+			                         copy.tp_realFormat(),
+			                         (copy.gamma==0)?"1.0":(copy.gamma==1)?"1.7":(copy.gamma==2)?"2.2":"Invalid value 0x3?",
+			                         no_yes[copy.half_scale],
+			                         no_yes[copy.scale_invert],
+			                         no_yes[copy.clear],
+			                         (u32)copy.frame_to_field,
+			                         no_yes[copy.copy_to_xfb],
+			                         no_yes[copy.intensity_fmt],
+			                         no_yes[copy.auto_conv]);
 		}
 		break;
 
@@ -800,6 +962,133 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 
 	case BPMEM_COPYFILTER1: // 0x54
 		SetRegName(BPMEM_COPYFILTER1);
+		// TODO: Description
+		break;
+
+	case BPMEM_CLEARBBOX1: // 0x55
+		SetRegName(BPMEM_CLEARBBOX1);
+		// TODO: Description
+		break;
+
+	case BPMEM_CLEARBBOX2: // 0x56
+		SetRegName(BPMEM_CLEARBBOX2);
+		// TODO: Description
+		break;
+
+	case BPMEM_CLEAR_PIXEL_PERF: // 0x57
+		SetRegName(BPMEM_CLEAR_PIXEL_PERF);
+		// TODO: Description
+		break;
+
+	case BPMEM_REVBITS: // 0x58
+		SetRegName(BPMEM_REVBITS);
+		// TODO: Description
+		break;
+
+	case BPMEM_SCISSOROFFSET: // 0x59
+		SetRegName(BPMEM_SCISSOROFFSET);
+		// TODO: Description
+		break;
+
+	case BPMEM_PRELOAD_ADDR: // 0x60
+		SetRegName(BPMEM_PRELOAD_ADDR);
+		// TODO: Description
+		break;
+
+	case BPMEM_PRELOAD_TMEMEVEN: // 0x61
+		SetRegName(BPMEM_PRELOAD_TMEMEVEN);
+		// TODO: Description
+		break;
+
+	case BPMEM_PRELOAD_TMEMODD: // 0x62
+		SetRegName(BPMEM_PRELOAD_TMEMODD);
+		// TODO: Description
+		break;
+
+	case BPMEM_PRELOAD_MODE: // 0x63
+		SetRegName(BPMEM_PRELOAD_MODE);
+		// TODO: Description
+		break;
+
+	case BPMEM_LOADTLUT0: // 0x64
+		SetRegName(BPMEM_LOADTLUT0);
+		// TODO: Description
+		break;
+
+	case BPMEM_LOADTLUT1: // 0x65
+		SetRegName(BPMEM_LOADTLUT1);
+		// TODO: Description
+		break;
+
+	case BPMEM_TEXINVALIDATE: // 0x66
+		SetRegName(BPMEM_TEXINVALIDATE);
+		// TODO: Description
+		break;
+
+	case BPMEM_PERF1: // 0x67
+		SetRegName(BPMEM_PERF1);
+		// TODO: Description
+		break;
+
+	case BPMEM_FIELDMODE: // 0x68
+		SetRegName(BPMEM_FIELDMODE);
+		// TODO: Description
+		break;
+
+	case BPMEM_BUSCLOCK1: // 0x69
+		SetRegName(BPMEM_BUSCLOCK1);
+		// TODO: Description
+		break;
+
+	case BPMEM_TX_SETMODE0: // 0x80
+	case BPMEM_TX_SETMODE0+1:
+	case BPMEM_TX_SETMODE0+2:
+	case BPMEM_TX_SETMODE0+3:
+		SetRegName(BPMEM_TX_SETMODE0);
+		// TODO: Description
+		break;
+
+	case BPMEM_TX_SETMODE1: // 0x84
+	case BPMEM_TX_SETMODE1+1:
+	case BPMEM_TX_SETMODE1+2:
+	case BPMEM_TX_SETMODE1+3:
+		SetRegName(BPMEM_TX_SETMODE1);
+		// TODO: Description
+		break;
+
+	case BPMEM_TX_SETIMAGE0: // 0x88
+	case BPMEM_TX_SETIMAGE0+1:
+	case BPMEM_TX_SETIMAGE0+2:
+	case BPMEM_TX_SETIMAGE0+3:
+	case BPMEM_TX_SETIMAGE0_4: // 0xA8
+	case BPMEM_TX_SETIMAGE0_4+1:
+	case BPMEM_TX_SETIMAGE0_4+2:
+	case BPMEM_TX_SETIMAGE0_4+3:
+		SetRegName(BPMEM_TX_SETIMAGE0);
+		// TODO: Description
+		break;
+
+	case BPMEM_TX_SETIMAGE1: // 0x8C
+	case BPMEM_TX_SETIMAGE1+1:
+	case BPMEM_TX_SETIMAGE1+2:
+	case BPMEM_TX_SETIMAGE1+3:
+	case BPMEM_TX_SETIMAGE1_4: // 0xAC
+	case BPMEM_TX_SETIMAGE1_4+1:
+	case BPMEM_TX_SETIMAGE1_4+2:
+	case BPMEM_TX_SETIMAGE1_4+3:
+		SetRegName(BPMEM_TX_SETIMAGE1);
+		// TODO: Description
+		break;
+
+	case BPMEM_TX_SETIMAGE2: // 0x90
+	case BPMEM_TX_SETIMAGE2+1:
+	case BPMEM_TX_SETIMAGE2+2:
+	case BPMEM_TX_SETIMAGE2+3:
+	case BPMEM_TX_SETIMAGE2_4: // 0xB0
+	case BPMEM_TX_SETIMAGE2_4+1:
+	case BPMEM_TX_SETIMAGE2_4+2:
+	case BPMEM_TX_SETIMAGE2_4+3:
+		SetRegName(BPMEM_TX_SETIMAGE2);
 		// TODO: Description
 		break;
 
@@ -814,8 +1103,20 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 		{
 			SetRegName(BPMEM_TX_SETIMAGE3);
 			TexImage3 teximg; teximg.hex = cmddata;
-			snprintf(desc, desc_size, "Source address (32 byte aligned): 0x%06X", teximg.image_base << 5);
+			*desc = StringFromFormat("Source address (32 byte aligned): 0x%06X", teximg.image_base << 5);
 		}
+		break;
+
+	case BPMEM_TX_SETTLUT: // 0x98
+	case BPMEM_TX_SETTLUT+1:
+	case BPMEM_TX_SETTLUT+2:
+	case BPMEM_TX_SETTLUT+3:
+	case BPMEM_TX_SETTLUT_4: // 0xB8
+	case BPMEM_TX_SETTLUT_4+1:
+	case BPMEM_TX_SETTLUT_4+2:
+	case BPMEM_TX_SETTLUT_4+3:
+		SetRegName(BPMEM_TX_SETTLUT);
+		// TODO: Description
 		break;
 
 	case BPMEM_TEV_COLOR_ENV: // 0xC0
@@ -850,18 +1151,18 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			const char* tevop[] = { "add", "sub" };
 			const char* tevscale[] = { "1", "2", "4", "0.5" };
 			const char* tevout[] = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
-			snprintf(desc, desc_size, "tev stage: %d\n"
-									"a: %s\n"
-									"b: %s\n"
-									"c: %s\n"
-									"d: %s\n"
-									"bias: %s\n"
-									"op: %s\n"
-									"clamp: %s\n"
-									"scale factor: %s\n"
-									"dest: %s\n",
-									(data[0] - BPMEM_TEV_COLOR_ENV)/2, tevin[cc.a], tevin[cc.b], tevin[cc.c], tevin[cc.d],
-									tevbias[cc.bias], tevop[cc.op], no_yes[cc.clamp], tevscale[cc.shift], tevout[cc.dest]);
+			*desc = StringFromFormat("Tev stage: %d\n"
+			                         "a: %s\n"
+			                         "b: %s\n"
+			                         "c: %s\n"
+			                         "d: %s\n"
+			                         "Bias: %s\n"
+			                         "Op: %s\n"
+			                         "Clamp: %s\n"
+			                         "Scale factor: %s\n"
+			                         "Dest: %s\n",
+			                         (data[0] - BPMEM_TEV_COLOR_ENV)/2, tevin[cc.a], tevin[cc.b], tevin[cc.c], tevin[cc.d],
+			                         tevbias[cc.bias], tevop[cc.op], no_yes[cc.clamp], tevscale[cc.shift], tevout[cc.dest]);
 			break;
 		}
 
@@ -893,36 +1194,109 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			const char* tevop[] = { "add", "sub" };
 			const char* tevscale[] = { "1", "2", "4", "0.5" };
 			const char* tevout[] = { "prev", "c0", "c1", "c2" };
-			snprintf(desc, desc_size, "tev stage: %d\n"
-									"a: %s\n"
-									"b: %s\n"
-									"c: %s\n"
-									"d: %s\n"
-									"bias: %s\n"
-									"op: %s\n"
-									"clamp: %s\n"
-									"scale factor: %s\n"
-									"dest: %s\n"
-									"ras sel: %d\n"
-									"tex sel: %d\n",
-									(data[0] - BPMEM_TEV_ALPHA_ENV)/2, tevin[ac.a], tevin[ac.b], tevin[ac.c], tevin[ac.d],
-									tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp], tevscale[ac.shift], tevout[ac.dest],
-									ac.rswap, ac.tswap);
+			*desc = StringFromFormat("Tev stage: %d\n"
+			                         "a: %s\n"
+			                         "b: %s\n"
+			                         "c: %s\n"
+			                         "d: %s\n"
+			                         "Bias: %s\n"
+			                         "Op: %s\n"
+			                         "Clamp: %s\n"
+			                         "Scale factor: %s\n"
+			                         "Dest: %s\n"
+			                         "Ras sel: %d\n"
+			                         "Tex sel: %d\n",
+			                         (data[0] - BPMEM_TEV_ALPHA_ENV)/2, tevin[ac.a], tevin[ac.b], tevin[ac.c], tevin[ac.d],
+			                         tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp], tevscale[ac.shift], tevout[ac.dest],
+			                         ac.rswap, ac.tswap);
 			break;
 		}
 
-		case BPMEM_ALPHACOMPARE: // 0xF3
-			{
-				SetRegName(BPMEM_ALPHACOMPARE);
-				AlphaTest test; test.hex = cmddata;
-				const char* functions[] = { "NEVER", "LESS", "EQUAL", "LEQUAL", "GREATER", "NEQUAL", "GEQUAL", "ALWAYS" };
-				const char* logic[] = { "AND", "OR", "XOR", "XNOR" };
-				snprintf(desc, desc_size, "test 1: %s (ref: %#02x)\n"
-										"test 2: %s (ref: %#02x)\n"
-										"logic: %s\n",
-										functions[test.comp0], (int)test.ref0, functions[test.comp1], (int)test.ref1, logic[test.logic]);
-				break;
-			}
+	case BPMEM_TEV_REGISTER_L: // 0xE0
+	case BPMEM_TEV_REGISTER_L+2:
+	case BPMEM_TEV_REGISTER_L+4:
+	case BPMEM_TEV_REGISTER_L+6:
+		SetRegName(BPMEM_TEV_REGISTER_L);
+		// TODO: Description
+		break;
+
+	case BPMEM_TEV_REGISTER_H: // 0xE1
+	case BPMEM_TEV_REGISTER_H+2:
+	case BPMEM_TEV_REGISTER_H+4:
+	case BPMEM_TEV_REGISTER_H+6:
+		SetRegName(BPMEM_TEV_REGISTER_H);
+		// TODO: Description
+		break;
+
+	case BPMEM_FOGRANGE: // 0xE8
+	case BPMEM_FOGRANGE+1:
+	case BPMEM_FOGRANGE+2:
+	case BPMEM_FOGRANGE+3:
+	case BPMEM_FOGRANGE+4:
+	case BPMEM_FOGRANGE+5:
+		SetRegName(BPMEM_FOGRANGE);
+		// TODO: Description
+		break;
+
+	case BPMEM_FOGPARAM0: // 0xEE
+		SetRegName(BPMEM_FOGPARAM0);
+		// TODO: Description
+		break;
+
+	case BPMEM_FOGBMAGNITUDE: // 0xEF
+		SetRegName(BPMEM_FOGBMAGNITUDE);
+		// TODO: Description
+		break;
+
+	case BPMEM_FOGBEXPONENT: // 0xF0
+		SetRegName(BPMEM_FOGBEXPONENT);
+		// TODO: Description
+		break;
+
+	case BPMEM_FOGPARAM3: // 0xF1
+		SetRegName(BPMEM_FOGPARAM3);
+		// TODO: Description
+		break;
+
+	case BPMEM_FOGCOLOR: // 0xF2
+		SetRegName(BPMEM_FOGCOLOR);
+		// TODO: Description
+		break;
+
+	case BPMEM_ALPHACOMPARE: // 0xF3
+		{
+			SetRegName(BPMEM_ALPHACOMPARE);
+			AlphaTest test; test.hex = cmddata;
+			const char* functions[] = { "NEVER", "LESS", "EQUAL", "LEQUAL", "GREATER", "NEQUAL", "GEQUAL", "ALWAYS" };
+			const char* logic[] = { "AND", "OR", "XOR", "XNOR" };
+			*desc = StringFromFormat("Test 1: %s (ref: %#02x)\n"
+			                         "Test 2: %s (ref: %#02x)\n"
+			                         "Logic: %s\n",
+			                         functions[test.comp0], (int)test.ref0, functions[test.comp1], (int)test.ref1, logic[test.logic]);
+			break;
+		}
+
+	case BPMEM_BIAS: // 0xF4
+		SetRegName(BPMEM_BIAS);
+		// TODO: Description
+		break;
+
+	case BPMEM_ZTEX2: // 0xF5
+		SetRegName(BPMEM_ZTEX2);
+		// TODO: Description
+		break;
+
+	case BPMEM_TEV_KSEL: // 0xF6
+	case BPMEM_TEV_KSEL+1:
+	case BPMEM_TEV_KSEL+2:
+	case BPMEM_TEV_KSEL+3:
+	case BPMEM_TEV_KSEL+4:
+	case BPMEM_TEV_KSEL+5:
+	case BPMEM_TEV_KSEL+6:
+	case BPMEM_TEV_KSEL+7:
+		SetRegName(BPMEM_TEV_KSEL);
+		// TODO: Description
+		break;
 
 #undef SetRegName
 	}

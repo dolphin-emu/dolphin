@@ -5,8 +5,8 @@
 #include "Common/Common.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
-
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -47,7 +47,7 @@ void Initialize(void* const hwnd)
 	g_plugin.LoadConfig(true);
 }
 
-void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
+void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 {
 	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
 	_pPADStatus->err = PAD_ERR_NONE;

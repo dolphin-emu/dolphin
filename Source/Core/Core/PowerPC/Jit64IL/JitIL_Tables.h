@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef JITIL_TABLES_H
-#define JITIL_TABLES_H
+#pragma once
 
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -14,5 +13,3 @@ namespace JitILTables
 	void CompileInstruction(PPCAnalyst::CodeOp & op);
 	void InitTables();
 }
-
-#endif

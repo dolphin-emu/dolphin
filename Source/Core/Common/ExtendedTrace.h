@@ -36,8 +36,6 @@ void StackTrace(HANDLE, char const* msg, FILE *file, DWORD eip, DWORD esp, DWORD
 // functions by Masken
 void etfprintf(FILE *file, const char *format, ...);
 void etfprint(FILE *file, const std::string &text);
-#define UEFBUFSIZE 2048
-extern char g_uefbuf[UEFBUFSIZE];
 
 #else // not WIN32
 

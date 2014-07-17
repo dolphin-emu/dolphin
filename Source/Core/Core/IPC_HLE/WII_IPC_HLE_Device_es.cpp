@@ -394,8 +394,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			}
 			SContentAccess& rContent = itr->second;
 
-			_dbg_assert_(WII_IPC_ES, rContent.m_pContent->m_pData != nullptr);
-
 			u8* pDest = Memory::GetPointer(Addr);
 
 			if (rContent.m_Position + Size > rContent.m_pContent->m_Size)
@@ -905,7 +903,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u64 titleid    = Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
 			u16 access     = Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
 
-
+			std::string tContentFile;
 			if ((u32)(TitleID>>32) != 0x00000001 || TitleID == TITLEID_SYSMENU)
 			{
 				const DiscIO::INANDContentLoader& ContentLoader = AccessContentDevice(TitleID);
@@ -915,7 +913,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(bootInd);
 					if (pContent)
 					{
-						LoadWAD(Common::GetTitleContentPath(TitleID));
+						tContentFile = Common::GetTitleContentPath(TitleID);
 						std::unique_ptr<CDolLoader> pDolLoader;
 						if (pContent->m_pData)
 						{
@@ -953,8 +951,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				bool* wiiMoteConnected = new bool[size];
 				for (unsigned int i = 0; i < size; i++)
 					wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
-
-				std::string tContentFile(m_ContentFile);
 
 				WII_IPC_HLE_Interface::Reset(true);
 				WII_IPC_HLE_Interface::Init();
@@ -997,9 +993,9 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			// IOS also seems to write back the command that was responded to in the FD field.
 			Memory::Write_U32(IPC_CMD_IOCTLV, _CommandAddress + 8);
 
-			// Generate a reply to the IPC command
-			WII_IPC_HLE_Interface::EnqReply(_CommandAddress, 0);
-
+			// Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
+			// involves restarting IOS; IOS generates two acknowledgements in a row.
+			WII_IPC_HLE_Interface::EnqueueCommandAcknowledgement(_CommandAddress, 0);
 			return false;
 		}
 		break;

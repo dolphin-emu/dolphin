@@ -253,12 +253,12 @@ int CD3DFont::Init()
 	DeleteObject(hFont);
 
 	// setup device objects for drawing
-	m_pshader = D3D::CompileAndCreatePixelShader(fontpixshader, sizeof(fontpixshader));
+	m_pshader = D3D::CompileAndCreatePixelShader(fontpixshader);
 	if (m_pshader == nullptr) PanicAlert("Failed to create pixel shader, %s %d\n", __FILE__, __LINE__);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_pshader, "pixel shader of a CD3DFont object");
 
 	D3DBlob* vsbytecode;
-	D3D::CompileVertexShader(fontvertshader, sizeof(fontvertshader), &vsbytecode);
+	D3D::CompileVertexShader(fontvertshader, &vsbytecode);
 	if (vsbytecode == nullptr) PanicAlert("Failed to compile vertex shader, %s %d\n", __FILE__, __LINE__);
 	m_vshader = D3D::CreateVertexShaderFromByteCode(vsbytecode);
 	if (m_vshader == nullptr) PanicAlert("Failed to create vertex shader, %s %d\n", __FILE__, __LINE__);

@@ -174,7 +174,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			// save key
 			if (region_offset >= 0x40 && region_offset <= 0x4c) {
 				if (!emu)
-					wiimote_gen_key(&wm->m_ext_key, wm->m_reg_ext.encryption_key);
+					WiimoteGenerateKey(&wm->m_ext_key, wm->m_reg_ext.encryption_key);
 				INFO_LOG(CONSOLE, "Writing key: %s", ArrayToString((u8*)&wm->m_ext_key, sizeof(wm->m_ext_key), 0, 30).c_str());
 			}
 			if (data[3] == 0xa4 || data[3] == 0xa6) {
@@ -347,7 +347,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		if (!emu && rdr->address>>8 == 0x40)
 		{
 			memcpy(((u8*)&wm->m_reg_ext.encryption_key), rdr->data, rdr->size+1);
-			wiimote_gen_key(&wm->m_ext_key, wm->m_reg_ext.encryption_key);
+			WiimoteGenerateKey(&wm->m_ext_key, wm->m_reg_ext.encryption_key);
 			NOTICE_LOG(CONSOLE, "Reading key: %s", ArrayToString(((u8*)&wm->m_ext_key), sizeof(wm->m_ext_key), 0, 30).c_str());
 		}
 
@@ -362,7 +362,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 			// SWARN_LOG(CONSOLE, "key %s", ArrayToString(((u8*)&wm->m_ext_key), sizeof(wm->m_ext_key), 0, 30).c_str());
 			// SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
-			// wiimote_decrypt(&wm->m_ext_key, rdr->data, dataReply[2]&0xffff, rdr->size+1);
+			// WiimoteDecrypt(&wm->m_ext_key, rdr->data, dataReply[2]&0xffff, rdr->size+1);
 			// SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
 			// decrypted = true;
 		//}
@@ -394,7 +394,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 			// decrypt
 			//if(((u8*)&wm->m_reg_ext)[0xf0] == 0xaa) {
-			//    wiimote_decrypt(&wm->m_ext_key, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
+			//    WiimoteDecrypt(&wm->m_ext_key, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
 
 			//if (wm->m_extension->name == "NUNCHUCK")
 			//{
@@ -542,9 +542,9 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		// decrypt extension data
 		//if (data[1] == 0x37 && !wm->GetMotionPlusActive())
 		//if (data[1] == 0x37)
-		//	wiimote_decrypt(&wm->m_ext_key, &data[17], 0x00, 0x06);
+		//	WiimoteDecrypt(&wm->m_ext_key, &data[17], 0x00, 0x06);
 		//if (data[1] == 0x35)
-		//	wiimote_decrypt(&wm->m_ext_key, &data[7], 0x00, 0x06);
+		//	WiimoteDecrypt(&wm->m_ext_key, &data[7], 0x00, 0x06);
 
 		//if (data[1] == 0x35 || data[1] == 0x37)
 		//{
@@ -1004,7 +1004,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 				// Run the key generation on all writes in the key area, it doesn't matter
 				// that we send it parts of a key, only the last full key will have an effect
 				if (address >= 0xa40040 && address <= 0xa4004c)
-					wiimote_gen_key(&m_ext_key, m_reg_ext.encryption_key);
+					WiimoteGenerateKey(&m_ext_key, m_reg_ext.encryption_key);
 			}
 			else if (&m_reg_motion_plus == region_ptr)
 			{
@@ -1139,7 +1139,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				// Encrypt data read from extension register
 				// Check if encrypted reads is on
 				if (0xaa == m_reg_ext.encryption)
-					wiimote_encrypt(&m_ext_key, block, address & 0xffff, (u8)size);
+					WiimoteEncrypt(&m_ext_key, block, address & 0xffff, (u8)size);
 			}
 		}
 		break;

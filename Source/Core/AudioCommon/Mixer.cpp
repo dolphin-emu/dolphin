@@ -6,6 +6,7 @@
 #include "AudioCommon/Mixer.h"
 #include "Common/Atomic.h"
 #include "Common/CPUDetect.h"
+#include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
@@ -19,20 +20,8 @@
 #endif
 
 // Executed from sound stream thread
-unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
+unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
 {
-	if (!samples)
-		return 0;
-
-	std::lock_guard<std::mutex> lk(m_csMixing);
-
-	if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
-	{
-		// Silence
-		memset(samples, 0, numSamples * 4);
-		return numSamples;
-	}
-
 	unsigned int currentSample = 0;
 
 	// Cache access in non-volatile variable
@@ -45,7 +34,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_
 	u32 indexR = Common::AtomicLoad(m_indexR);
 	u32 indexW = Common::AtomicLoad(m_indexW);
 
-	float numLeft = ((indexW - indexR) & INDEX_MASK) / 2;
+	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);
 	m_numLeftI = (numLeft + m_numLeftI*(CONTROL_AVG-1)) / CONTROL_AVG;
 	float offset = (m_numLeftI - LOW_WATERMARK) * CONTROL_FACTOR;
 	if (offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
@@ -56,29 +45,36 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_
 	//remember fractional offset
 
 	u32 framelimit = SConfig::GetInstance().m_Framelimit;
-	float aid_sample_rate = AudioInterface::GetAIDSampleRate() + offset;
+	float aid_sample_rate = m_input_sample_rate + offset;
 	if (consider_framelimit && framelimit > 2)
 	{
 		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
 
 	static u32 frac = 0;
-	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_sampleRate );
+	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );
 
-	if (ratio > 0x10000)
-		ERROR_LOG(AUDIO, "ratio out of range");
+	s32 lvolume = m_LVolume;
+	s32 rvolume = m_RVolume;
 
+	// TODO: consider a higher-quality resampling algorithm.
 	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2) {
 		u32 indexR2 = indexR + 2; //next sample
 
 		s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
 		s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
 		int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
+		sampleL = (sampleL * lvolume) >> 8;
+		sampleL += samples[currentSample + 1];
+		MathUtil::Clamp(&sampleL, -32767, 32767);
 		samples[currentSample+1] = sampleL;
 
 		s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
 		s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
 		int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
+		sampleR = (sampleR * rvolume) >> 8;
+		sampleR += samples[currentSample];
+		MathUtil::Clamp(&sampleR, -32767, 32767);
 		samples[currentSample] = sampleR;
 
 		frac += ratio;
@@ -87,36 +83,57 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_
 	}
 
 	// Padding
-	unsigned short s[2];
+	short s[2];
 	s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
 	s[1] = Common::swap16(m_buffer[(indexR - 2) & INDEX_MASK]);
-	for (; currentSample < numSamples*2; currentSample+=2)
+	s[0] = (s[0] * lvolume) >> 8;
+	s[1] = (s[1] * rvolume) >> 8;
+	for (; currentSample < numSamples * 2; currentSample += 2)
 	{
-		samples[currentSample] = s[0];
-		samples[currentSample+1] = s[1];
+		int sampleR = s[0] + samples[currentSample];
+		MathUtil::Clamp(&sampleR, -32767, 32767);
+		samples[currentSample] = sampleR;
+		int sampleL = s[1] + samples[currentSample + 1];
+		MathUtil::Clamp(&sampleL, -32767, 32767);
+		samples[currentSample + 1] = sampleL;
 	}
 
 	// Flush cached variable
 	Common::AtomicStore(m_indexR, indexR);
 
-	// Add the DTK Music
-	// Re-sampling is done inside
-	AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
-	if (m_logAudio)
-		g_wave_writer.AddStereoSamples(samples, numSamples);
-
 	return numSamples;
 }
 
+unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider_framelimit)
+{
+	if (!samples)
+		return 0;
 
-void CMixer::PushSamples(const short *samples, unsigned int num_samples)
+	std::lock_guard<std::mutex> lk(m_csMixing);
+
+	memset(samples, 0, num_samples * 2 * sizeof(short));
+
+	if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
+	{
+		// Silence
+		return num_samples;
+	}
+
+	m_dma_mixer.Mix(samples, num_samples, consider_framelimit);
+	m_streaming_mixer.Mix(samples, num_samples, consider_framelimit);
+	if (m_logAudio)
+		g_wave_writer.AddStereoSamples(samples, num_samples);
+	return num_samples;
+}
+
+void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_samples)
 {
 	// Cache access in non-volatile variable
 	// indexR isn't allowed to cache in the audio throttling loop as it
 	// needs to get updates to not deadlock.
 	u32 indexW = Common::AtomicLoad(m_indexW);
 
-	if (m_throttle)
+	if (m_mixer->m_throttle)
 	{
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
 		while (num_samples * 2 + ((indexW - Common::AtomicLoad(m_indexR)) & INDEX_MASK) >= MAX_SAMPLES * 2)
@@ -155,3 +172,23 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 	return;
 }
 
+void CMixer::PushSamples(const short *samples, unsigned int num_samples)
+{
+	m_dma_mixer.PushSamples(samples, num_samples);
+}
+
+void CMixer::PushStreamingSamples(const short *samples, unsigned int num_samples)
+{
+	m_streaming_mixer.PushSamples(samples, num_samples);
+}
+
+void CMixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
+{
+	m_streaming_mixer.SetVolume(lvolume, rvolume);
+}
+
+void CMixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
+{
+	m_LVolume = lvolume + (lvolume >> 7);
+	m_RVolume = rvolume + (rvolume >> 7);
+}

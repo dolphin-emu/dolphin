@@ -13,7 +13,6 @@
 #include "Core/NetPlayClient.h"
 
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
-#include "Core/HW/WiimoteEmu/UDPTLayer.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
@@ -54,7 +53,7 @@ static const u8 eeprom_data_16D0[] = {
 	0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13
 };
 
-const ReportFeatures reporting_mode_features[] =
+static const ReportFeatures reporting_mode_features[] =
 {
 	//0x30: Core Buttons
 	{ 2, 0, 0, 0, 4 },
@@ -119,11 +118,14 @@ void EmulateShake(AccelData* const accel
 
 void EmulateTilt(AccelData* const accel
 	, ControllerEmu::Tilt* const tilt_group
-	, const bool focus, const bool sideways, const bool upright)
+	, const bool sideways, const bool upright)
 {
-	float roll, pitch;
+	double roll, pitch;
 	// 180 degrees
-	tilt_group->GetState(&roll, &pitch, 0, focus ? PI : 0);
+	tilt_group->GetState(&roll, &pitch);
+
+	roll *= PI;
+	pitch *= PI;
 
 	unsigned int ud = 0, lr = 0, fb = 0;
 
@@ -145,7 +147,7 @@ void EmulateTilt(AccelData* const accel
 	if (!sideways && upright)
 		sgn[ud] *= -1;
 
-	(&accel->x)[ud] = (sin((PI / 2) - std::max(fabsf(roll), fabsf(pitch))))*sgn[ud];
+	(&accel->x)[ud] = (sin((PI / 2) - std::max(fabs(roll), fabs(pitch))))*sgn[ud];
 	(&accel->x)[lr] = -sin(roll)*sgn[lr];
 	(&accel->x)[fb] = sin(pitch)*sgn[fb];
 }
@@ -156,8 +158,8 @@ void EmulateSwing(AccelData* const accel
 	, ControllerEmu::Force* const swing_group
 	, const bool sideways, const bool upright)
 {
-	float swing[3];
-	swing_group->GetState(swing, 0, SWING_INTENSITY);
+	double swing[3];
+	swing_group->GetState(swing);
 
 	s8 g_dir[3] = {-1, -1, -1};
 	u8 axis_map[3];
@@ -175,7 +177,7 @@ void EmulateSwing(AccelData* const accel
 		g_dir[axis_map[0]] *= -1;
 
 	for (unsigned int i=0; i<3; ++i)
-		(&accel->x)[axis_map[i]] += swing[i] * g_dir[i];
+		(&accel->x)[axis_map[i]] += swing[i] * g_dir[i] * SWING_INTENSITY;
 }
 
 const u16 button_bitmasks[] =
@@ -266,9 +268,6 @@ Wiimote::Wiimote( const unsigned int index )
 	for (auto& named_button : named_buttons)
 		m_buttons->controls.emplace_back(new ControlGroup::Input( named_button));
 
-	// udp
-	groups.emplace_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
-
 	// ir
 	groups.emplace_back(m_ir = new Cursor(_trans("IR")));
 
@@ -287,7 +286,7 @@ Wiimote::Wiimote( const unsigned int index )
 	// extension
 	groups.emplace_back(m_extension = new Extension(_trans("Extension")));
 	m_extension->attachments.emplace_back(new WiimoteEmu::None(m_reg_ext));
-	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Guitar(m_reg_ext));
 	m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
@@ -306,7 +305,7 @@ Wiimote::Wiimote( const unsigned int index )
 
 	// options
 	groups.emplace_back( m_options = new ControlGroup(_trans("Options")));
-	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Background Input"), false));
+	m_options->settings.emplace_back(new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
 	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
 
@@ -322,26 +321,17 @@ std::string Wiimote::GetName() const
 	return std::string("Wiimote") + char('1'+m_index);
 }
 
-// if windows is focused or background input is enabled
-#define HAS_FOCUS  (Host_RendererHasFocus() || (m_options->settings[0]->value != 0))
-
 bool Wiimote::Step()
 {
-	const bool has_focus = HAS_FOCUS;
-
 	// TODO: change this a bit
 	m_motion_plus_present = m_extension->settings[0]->value != 0;
-
-	// no rumble if no focus
-	if (false == has_focus)
-		m_rumble_on = false;
 
 	m_rumble->controls[0]->control_ref->State(m_rumble_on);
 
 	// when a movie is active, this button status update is disabled (moved), because movies only record data reports.
 	if (!(Movie::IsPlayingInput() || Movie::IsRecordingInput()) || NetPlay::IsNetPlayRunning())
 	{
-		UpdateButtonsStatus(has_focus);
+		UpdateButtonsStatus();
 	}
 
 	// check if there is a read data request
@@ -381,17 +371,13 @@ bool Wiimote::Step()
 	return false;
 }
 
-void Wiimote::UpdateButtonsStatus(bool has_focus)
+void Wiimote::UpdateButtonsStatus()
 {
 	// update buttons in status struct
 	m_status.buttons = 0;
-	if (has_focus)
-	{
-		const bool is_sideways = m_options->settings[1]->value != 0;
-		m_buttons->GetState(&m_status.buttons, button_bitmasks);
-		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
-		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
-	}
+	const bool is_sideways = m_options->settings[1]->value != 0;
+	m_buttons->GetState(&m_status.buttons, button_bitmasks);
+	m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
 }
 
 void Wiimote::GetCoreData(u8* const data)
@@ -399,7 +385,7 @@ void Wiimote::GetCoreData(u8* const data)
 	// when a movie is active, the button update happens here instead of Wiimote::Step, to avoid potential desync issues.
 	if (Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::IsNetPlayRunning())
 	{
-		UpdateButtonsStatus(HAS_FOCUS);
+		UpdateButtonsStatus();
 	}
 
 	*(wm_core*)data |= m_status.buttons;
@@ -407,21 +393,16 @@ void Wiimote::GetCoreData(u8* const data)
 
 void Wiimote::GetAccelData(u8* const data)
 {
-	const bool has_focus = HAS_FOCUS;
 	const bool is_sideways = m_options->settings[1]->value != 0;
 	const bool is_upright = m_options->settings[2]->value != 0;
 
 	// ----TILT----
-	EmulateTilt(&m_accel, m_tilt, has_focus, is_sideways, is_upright);
+	EmulateTilt(&m_accel, m_tilt, is_sideways, is_upright);
 
 	// ----SWING----
 	// ----SHAKE----
-	if (has_focus)
-	{
-		EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
-		EmulateShake(&m_accel, m_shake, m_shake_step);
-		UDPTLayer::GetAcceleration(m_udp, &m_accel);
-	}
+	EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
+	EmulateShake(&m_accel, m_shake, m_shake_step);
 
 	FillRawAccelFromGForceData(*(wm_accel*)data, *(accel_cal*)&m_eeprom[0x16], m_accel);
 }
@@ -435,98 +416,89 @@ inline void LowPassFilter(double & var, double newval, double period)
 
 void Wiimote::GetIRData(u8* const data, bool use_accel)
 {
-	const bool has_focus = HAS_FOCUS;
-
 	u16 x[4], y[4];
 	memset(x, 0xFF, sizeof(x));
 
-	if (has_focus)
-	{
-		float xx = 10000, yy = 0, zz = 0;
-		double nsin,ncos;
+	double xx = 10000, yy = 0, zz = 0;
+	double nsin,ncos;
 
-		if (use_accel)
+	if (use_accel)
+	{
+		double ax,az,len;
+		ax=m_accel.x;
+		az=m_accel.z;
+		len=sqrt(ax*ax+az*az);
+		if (len)
 		{
-			double ax,az,len;
-			ax=m_accel.x;
-			az=m_accel.z;
-			len=sqrt(ax*ax+az*az);
-			if (len)
-			{
-				ax/=len;
-				az/=len; //normalizing the vector
-				nsin=ax;
-				ncos=az;
-			}
-			else
-			{
-				nsin=0;
-				ncos=1;
-			}
-			// PanicAlert("%d %d %d\nx:%f\nz:%f\nsin:%f\ncos:%f",accel->x,accel->y,accel->z,ax,az,sin,cos);
-			// PanicAlert("%d %d %d\n%d %d %d\n%d %d %d",accel->x,accel->y,accel->z,calib->zero_g.x,calib->zero_g.y,calib->zero_g.z, calib->one_g.x,calib->one_g.y,calib->one_g.z);
+			ax/=len;
+			az/=len; //normalizing the vector
+			nsin=ax;
+			ncos=az;
 		}
 		else
 		{
-			nsin=0; //m_tilt stuff here (can't figure it out yet....)
+			nsin=0;
 			ncos=1;
 		}
+		// PanicAlert("%d %d %d\nx:%f\nz:%f\nsin:%f\ncos:%f",accel->x,accel->y,accel->z,ax,az,sin,cos);
+		// PanicAlert("%d %d %d\n%d %d %d\n%d %d %d",accel->x,accel->y,accel->z,calib->zero_g.x,calib->zero_g.y,calib->zero_g.z, calib->one_g.x,calib->one_g.y,calib->one_g.z);
+	}
+	else
+	{
+		nsin=0; //m_tilt stuff here (can't figure it out yet....)
+		ncos=1;
+	}
 
-		LowPassFilter(ir_sin,nsin,1.0f/60);
-		LowPassFilter(ir_cos,ncos,1.0f/60);
+	LowPassFilter(ir_sin,nsin,1.0f/60);
+	LowPassFilter(ir_cos,ncos,1.0f/60);
 
-		m_ir->GetState(&xx, &yy, &zz, true);
-		UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
+	m_ir->GetState(&xx, &yy, &zz, true);
 
-		Vertex v[4];
+	Vertex v[4];
 
-		static const int camWidth=1024;
-		static const int camHeight=768;
-		static const double bndup=-0.315447;
-		static const double bnddown=0.85;
-		static const double bndleft=0.443364;
-		static const double bndright=-0.443364;
-		static const double dist1=100.f/camWidth; //this seems the optimal distance for zelda
-		static const double dist2=1.2f*dist1;
+	static const int camWidth=1024;
+	static const int camHeight=768;
+	static const double bndup=-0.315447;
+	static const double bnddown=0.85;
+	static const double bndleft=0.443364;
+	static const double bndright=-0.443364;
+	static const double dist1=100.f/camWidth; //this seems the optimal distance for zelda
+	static const double dist2=1.2f*dist1;
 
-		for (auto& vtx : v)
-		{
-			vtx.x=xx*(bndright-bndleft)/2+(bndleft+bndright)/2;
-			if (m_sensor_bar_on_top) vtx.y=yy*(bndup-bnddown)/2+(bndup+bnddown)/2;
-			else vtx.y=yy*(bndup-bnddown)/2-(bndup+bnddown)/2;
-			vtx.z=0;
-		}
+	for (auto& vtx : v)
+	{
+		vtx.x=xx*(bndright-bndleft)/2+(bndleft+bndright)/2;
+		if (m_sensor_bar_on_top) vtx.y=yy*(bndup-bnddown)/2+(bndup+bnddown)/2;
+		else vtx.y=yy*(bndup-bnddown)/2-(bndup+bnddown)/2;
+		vtx.z=0;
+	}
 
-		v[0].x-=(zz*0.5+1)*dist1;
-		v[1].x+=(zz*0.5+1)*dist1;
-		v[2].x-=(zz*0.5+1)*dist2;
-		v[3].x+=(zz*0.5+1)*dist2;
+	v[0].x-=(zz*0.5+1)*dist1;
+	v[1].x+=(zz*0.5+1)*dist1;
+	v[2].x-=(zz*0.5+1)*dist2;
+	v[3].x+=(zz*0.5+1)*dist2;
 
 #define printmatrix(m) PanicAlert("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",m[0][0],m[0][1],m[0][2],m[0][3],m[1][0],m[1][1],m[1][2],m[1][3],m[2][0],m[2][1],m[2][2],m[2][3],m[3][0],m[3][1],m[3][2],m[3][3])
-		Matrix rot,tot;
-		static Matrix scale;
-		static bool isscale=false;
-		if (!isscale)
-		{
-			MatrixScale(scale,1,camWidth/camHeight,1);
-			//MatrixIdentity(scale);
-		}
-		MatrixRotationByZ(rot,ir_sin,ir_cos);
-		//MatrixIdentity(rot);
-		MatrixMultiply(tot,scale,rot);
+	Matrix rot,tot;
+	static Matrix scale;
+	MatrixScale(scale,1,camWidth/camHeight,1);
+	//MatrixIdentity(scale);
+	MatrixRotationByZ(rot,ir_sin,ir_cos);
+	//MatrixIdentity(rot);
+	MatrixMultiply(tot,scale,rot);
 
-		for (int i=0; i<4; i++)
-		{
-			MatrixTransformVertex(tot,v[i]);
-			if ((v[i].x<-1)||(v[i].x>1)||(v[i].y<-1)||(v[i].y>1))
-				continue;
-			x[i] = (u16)lround((v[i].x+1)/2*(camWidth-1));
-			y[i] = (u16)lround((v[i].y+1)/2*(camHeight-1));
-		}
-		// PanicAlert("%f %f\n%f %f\n%f %f\n%f %f\n%d %d\n%d %d\n%d %d\n%d %d",
-		//      v[0].x,v[0].y,v[1].x,v[1].y,v[2].x,v[2].y,v[3].x,v[3].y,
-		//      x[0],y[0],x[1],y[1],x[2],y[2],x[3],y[38]);
+	for (int i=0; i<4; i++)
+	{
+		MatrixTransformVertex(tot,v[i]);
+		if ((v[i].x<-1)||(v[i].x>1)||(v[i].y<-1)||(v[i].y>1))
+			continue;
+		x[i] = (u16)lround((v[i].x+1)/2*(camWidth-1));
+		y[i] = (u16)lround((v[i].y+1)/2*(camHeight-1));
 	}
+	// PanicAlert("%f %f\n%f %f\n%f %f\n%f %f\n%d %d\n%d %d\n%d %d\n%d %d",
+	//      v[0].x,v[0].y,v[1].x,v[1].y,v[2].x,v[2].y,v[3].x,v[3].y,
+	//      x[0],y[0],x[1],y[1],x[2],y[2],x[3],y[38]);
+
 	// Fill report with valid data when full handshake was done
 	if (m_reg_ir.data[0x30])
 	// ir mode
@@ -586,7 +558,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 
 void Wiimote::GetExtData(u8* const data)
 {
-	m_extension->GetState(data, HAS_FOCUS);
+	m_extension->GetState(data);
 
 	// i dont think anything accesses the extension data like this, but ill support it. Indeed, commercial games don't do this.
 	// i think it should be unencrpyted in the register, encrypted when read.
@@ -630,7 +602,7 @@ void Wiimote::GetExtData(u8* const data)
 	}
 
 	if (0xAA == m_reg_ext.encryption)
-		wiimote_encrypt(&m_ext_key, data, 0x00, sizeof(wm_extension));
+		WiimoteEncrypt(&m_ext_key, data, 0x00, sizeof(wm_extension));
 }
 
 void Wiimote::Update()

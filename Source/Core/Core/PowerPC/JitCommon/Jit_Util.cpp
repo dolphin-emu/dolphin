@@ -13,9 +13,6 @@
 
 using namespace Gen;
 
-static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-static u32 GC_ALIGNED16(float_buffer);
-
 void EmuCodeBlock::LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src)
 {
 	if (cpu_info.bMOVBE)
@@ -101,7 +98,7 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 		if (accessSize == 8 && signExtend)
 			MOVSX(32, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
 		else
-			MOVZX(32, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
+			MOVZX(64, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
 	}
 	else
 	{
@@ -110,7 +107,7 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 		if (accessSize == 8 && signExtend)
 			MOVSX(32, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
 		else
-			MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
+			MOVZX(64, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
 	}
 #else
 	if (opAddress.IsImm())
@@ -150,6 +147,10 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 
 	case 32:
 		BSWAP(32, reg_value);
+		break;
+
+	case 64:
+		BSWAP(64, reg_value);
 		break;
 	}
 
@@ -272,6 +273,8 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 	}
 }
 
+// Always clobbers EAX.  Preserves the address.
+// Preserves the value if the load fails and js.memcheck is enabled.
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags)
 {
 	if (!jit->js.memcheck)
@@ -325,7 +328,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			{
 				UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 			}
-			else if (!Core::g_CoreStartupParameter.bMMU && MMIO::IsMMIOAddress(address))
+			else if (!Core::g_CoreStartupParameter.bMMU && MMIO::IsMMIOAddress(address) && accessSize != 64)
 			{
 				MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
 				              address, accessSize, signExtend);
@@ -335,6 +338,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				ABI_PushRegistersAndAdjustStack(registersInUse, false);
 				switch (accessSize)
 				{
+				case 64: ABI_CallFunctionC((void *)&Memory::Read_U64, address); break;
 				case 32: ABI_CallFunctionC((void *)&Memory::Read_U32, address); break;
 				case 16: ABI_CallFunctionC((void *)&Memory::Read_U16_ZX, address); break;
 				case 8:  ABI_CallFunctionC((void *)&Memory::Read_U8_ZX, address); break;
@@ -350,7 +354,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				}
 				else if (reg_value != EAX)
 				{
-					MOVZX(32, accessSize, reg_value, R(EAX));
+					MOVZX(64, accessSize, reg_value, R(EAX));
 				}
 
 				MEMCHECK_END
@@ -358,74 +362,45 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		}
 		else
 		{
+			OpArg addr_loc = opAddress;
 			if (offset)
 			{
+				addr_loc = R(EAX);
 				MOV(32, R(EAX), opAddress);
 				ADD(32, R(EAX), Imm32(offset));
-				TEST(32, R(EAX), Imm32(mem_mask));
-				FixupBranch fast = J_CC(CC_Z, true);
-
-				ABI_PushRegistersAndAdjustStack(registersInUse, false);
-				switch (accessSize)
-				{
-				case 32: ABI_CallFunctionR((void *)&Memory::Read_U32, EAX); break;
-				case 16: ABI_CallFunctionR((void *)&Memory::Read_U16_ZX, EAX); break;
-				case 8:  ABI_CallFunctionR((void *)&Memory::Read_U8_ZX, EAX);  break;
-				}
-				ABI_PopRegistersAndAdjustStack(registersInUse, false);
-
-				MEMCHECK_START
-
-				if (signExtend && accessSize < 32)
-				{
-					// Need to sign extend values coming from the Read_U* functions.
-					MOVSX(32, accessSize, reg_value, R(EAX));
-				}
-				else if (reg_value != EAX)
-				{
-					MOVZX(32, accessSize, reg_value, R(EAX));
-				}
-
-				MEMCHECK_END
-
-				FixupBranch exit = J();
-				SetJumpTarget(fast);
-				UnsafeLoadToReg(reg_value, R(EAX), accessSize, 0, signExtend);
-				SetJumpTarget(exit);
 			}
-			else
+			TEST(32, addr_loc, Imm32(mem_mask));
+
+			FixupBranch fast = J_CC(CC_Z, true);
+
+			ABI_PushRegistersAndAdjustStack(registersInUse, false);
+			switch (accessSize)
 			{
-				TEST(32, opAddress, Imm32(mem_mask));
-				FixupBranch fast = J_CC(CC_Z, true);
-
-				ABI_PushRegistersAndAdjustStack(registersInUse, false);
-				switch (accessSize)
-				{
-				case 32: ABI_CallFunctionA((void *)&Memory::Read_U32, opAddress); break;
-				case 16: ABI_CallFunctionA((void *)&Memory::Read_U16_ZX, opAddress); break;
-				case 8:  ABI_CallFunctionA((void *)&Memory::Read_U8_ZX, opAddress);  break;
-				}
-				ABI_PopRegistersAndAdjustStack(registersInUse, false);
-
-				MEMCHECK_START
-
-				if (signExtend && accessSize < 32)
-				{
-					// Need to sign extend values coming from the Read_U* functions.
-					MOVSX(32, accessSize, reg_value, R(EAX));
-				}
-				else if (reg_value != EAX)
-				{
-					MOVZX(32, accessSize, reg_value, R(EAX));
-				}
-
-				MEMCHECK_END
-
-				FixupBranch exit = J();
-				SetJumpTarget(fast);
-				UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
-				SetJumpTarget(exit);
+			case 64: ABI_CallFunctionA((void *)&Memory::Read_U64, addr_loc); break;
+			case 32: ABI_CallFunctionA((void *)&Memory::Read_U32, addr_loc); break;
+			case 16: ABI_CallFunctionA((void *)&Memory::Read_U16_ZX, addr_loc); break;
+			case 8:  ABI_CallFunctionA((void *)&Memory::Read_U8_ZX, addr_loc);  break;
 			}
+			ABI_PopRegistersAndAdjustStack(registersInUse, false);
+
+			MEMCHECK_START
+
+			if (signExtend && accessSize < 32)
+			{
+				// Need to sign extend values coming from the Read_U* functions.
+				MOVSX(32, accessSize, reg_value, R(EAX));
+			}
+			else if (reg_value != EAX)
+			{
+				MOVZX(64, accessSize, reg_value, R(EAX));
+			}
+
+			MEMCHECK_END
+
+			FixupBranch exit = J();
+			SetJumpTarget(fast);
+			UnsafeLoadToReg(reg_value, addr_loc, accessSize, 0, signExtend);
+			SetJumpTarget(exit);
 		}
 	}
 }
@@ -520,6 +495,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	ABI_PushRegistersAndAdjustStack(registersInUse, noProlog);
 	switch (accessSize)
 	{
+	case 64: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U64) : ((void *)&Memory::Write_U64_Swap), reg_value, reg_addr, false); break;
 	case 32: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), reg_value, reg_addr, false); break;
 	case 16: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), reg_value, reg_addr, false); break;
 	case 8:  ABI_CallFunctionRR((void *)&Memory::Write_U8, reg_value, reg_addr, false);  break;
@@ -531,43 +507,12 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	SetJumpTarget(exit);
 }
 
-void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 registersInUse, int flags)
+// Destroys both arg registers and EAX
+void EmuCodeBlock::SafeWriteF32ToReg(X64Reg xmm_value, X64Reg reg_addr, s32 offset, u32 registersInUse, int flags)
 {
-	// FIXME
-	if (false && cpu_info.bSSSE3) {
-		// This path should be faster but for some reason it causes errors so I've disabled it.
-		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
-			mem_mask |= Memory::ADDR_MASK_MEM1;
-
-#ifdef ENABLE_MEM_CHECK
-		if (Core::g_CoreStartupParameter.bEnableDebugging)
-			mem_mask |= Memory::EXRAM_MASK;
-#endif
-		TEST(32, R(reg_addr), Imm32(mem_mask));
-		FixupBranch argh = J_CC(CC_Z);
-		MOVSS(M(&float_buffer), xmm_value);
-		LoadAndSwap(32, EAX, M(&float_buffer));
-		MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
-		ABI_PushRegistersAndAdjustStack(registersInUse, false);
-		ABI_CallFunctionRR((void *)&Memory::Write_U32, EAX, reg_addr);
-		ABI_PopRegistersAndAdjustStack(registersInUse, false);
-		FixupBranch arg2 = J();
-		SetJumpTarget(argh);
-		PSHUFB(xmm_value, M((void *)pbswapShuffle1x4));
-#if _M_X86_64
-		MOVD_xmm(MComplex(RBX, reg_addr, SCALE_1, 0), xmm_value);
-#else
-		AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
-		MOVD_xmm(MDisp(reg_addr, (u32)Memory::base), xmm_value);
-#endif
-		SetJumpTarget(arg2);
-	} else {
-		MOVSS(M(&float_buffer), xmm_value);
-		MOV(32, R(EAX), M(&float_buffer));
-		SafeWriteRegToReg(EAX, reg_addr, 32, 0, registersInUse, flags);
-	}
+	// TODO: PSHUFB might be faster if fastmem supported MOVSS.
+	MOVD_xmm(R(EAX), xmm_value);
+	SafeWriteRegToReg(EAX, reg_addr, 32, offset, registersInUse, flags);
 }
 
 void EmuCodeBlock::WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 address, bool swap)
@@ -582,16 +527,6 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 a
 		SwapAndStore(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), arg);
 	else
 		MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), R(arg));
-#endif
-}
-
-void EmuCodeBlock::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
-{
-#if _M_X86_64
-	MOV(32, R(RAX), Imm32(address));
-	MOVSS(MComplex(RBX, RAX, 1, 0), xmm_reg);
-#else
-	MOVSS(M((void*)((u32)Memory::base + (address & Memory::MEMVIEW32_MASK))), xmm_reg);
 #endif
 }
 

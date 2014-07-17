@@ -14,8 +14,6 @@
 #include "Core/PowerPC/JitArm32/JitAsm.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
-extern u32 Helper_Mask(u8 mb, u8 me);
-
 // Assumes that Sign and Zero flags were set by the last operation. Preserves all flags and registers.
 // Jit64 ComputerRC is signed
 // JIT64 GenerateRC is unsigned
@@ -104,15 +102,11 @@ void JitArm::FinalizeCarry(ARMReg reg)
 	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
 	gpr.Unlock(tmp);
 }
-// Wrong - prevents WW from loading in to a game and also inverted intro logos
+
 void JitArm::subfic(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
-
-	// FIXME
-	FallBackToInterpreter(inst);
-	return;
+	JITDISABLE(bJITIntegerOff);
 
 	int a = inst.RA, d = inst.RD;
 
@@ -127,8 +121,7 @@ void JitArm::subfic(UGeckoInstruction inst)
 			BIC(tmp, tmp, mask);
 			// Flags act exactly like subtracting from 0
 			RSBS(gpr.R(d), gpr.R(d), 0);
-			// Output carry is inverted
-			SetCC(CC_CC);
+			SetCC(CC_CS);
 				ORR(tmp, tmp, mask);
 			SetCC();
 			STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
@@ -175,7 +168,7 @@ void JitArm::subfic(UGeckoInstruction inst)
 		// Flags act exactly like subtracting from 0
 		SUBS(gpr.R(d), gpr.R(d), gpr.R(a));
 		// Output carry is inverted
-		SetCC(CC_CC);
+		SetCC(CC_CS);
 			ORR(tmp, tmp, mask);
 		SetCC();
 		STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
@@ -194,7 +187,7 @@ u32 Xor(u32 a, u32 b) {return a ^ b;}
 void JitArm::arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	u32 a = inst.RA, b = inst.RB, d = inst.RD, s = inst.RS;
 	ARMReg RA, RB, RD, RS;
@@ -334,8 +327,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		break;
 		default:
 			WARN_LOG(DYNA_REC, "Unknown OPCD %d with arith function", inst.OPCD);
-			FallBackToInterpreter(inst);
-			return;
+			FALLBACK_IF(true);
 		break;
 	}
 	if (isImm[0] && isImm[1]) // Immediate propagation
@@ -619,12 +611,11 @@ void JitArm::arith(UGeckoInstruction inst)
 void JitArm::addex(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
 
 	// FIXME
-	FallBackToInterpreter(inst);
-	return;
+	FALLBACK_IF(true);
 
 	ARMReg RA = gpr.R(a);
 	ARMReg RB = gpr.R(b);
@@ -640,7 +631,7 @@ void JitArm::addex(UGeckoInstruction inst)
 void JitArm::cntlzwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	u32 a = inst.RA, s = inst.RS;
 
 	ARMReg RA = gpr.R(a);
@@ -656,7 +647,7 @@ void JitArm::cntlzwx(UGeckoInstruction inst)
 void JitArm::mulhwux(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
 
@@ -671,7 +662,7 @@ void JitArm::mulhwux(UGeckoInstruction inst)
 void JitArm::extshx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	u32 a = inst.RA, s = inst.RS;
 
 	if (gpr.IsImm(s))
@@ -691,7 +682,7 @@ void JitArm::extshx(UGeckoInstruction inst)
 void JitArm::extsbx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	u32 a = inst.RA, s = inst.RS;
 
 	if (gpr.IsImm(s))
@@ -711,7 +702,7 @@ void JitArm::extsbx(UGeckoInstruction inst)
 void JitArm::cmp (UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	int crf = inst.CRFD;
 	u32 a = inst.RA, b = inst.RB;
@@ -731,7 +722,7 @@ void JitArm::cmp (UGeckoInstruction inst)
 void JitArm::cmpi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	u32 a = inst.RA;
 	int crf = inst.CRFD;
 	if (gpr.IsImm(a))
@@ -754,7 +745,7 @@ void JitArm::cmpi(UGeckoInstruction inst)
 void JitArm::cmpl(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RB = gpr.R(inst.RB);
@@ -776,7 +767,7 @@ void JitArm::cmpl(UGeckoInstruction inst)
 void JitArm::cmpli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg rA = gpr.GetReg();
@@ -805,7 +796,7 @@ void JitArm::cmpli(UGeckoInstruction inst)
 void JitArm::negx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RD = gpr.R(inst.RD);
@@ -824,7 +815,7 @@ void JitArm::negx(UGeckoInstruction inst)
 void JitArm::rlwimix(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
 	ARMReg RA = gpr.R(inst.RA);
@@ -853,7 +844,7 @@ void JitArm::rlwimix(UGeckoInstruction inst)
 void JitArm::rlwinmx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
 	ARMReg RA = gpr.R(inst.RA);
@@ -876,7 +867,7 @@ void JitArm::rlwinmx(UGeckoInstruction inst)
 void JitArm::rlwnmx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	u32 mask = Helper_Mask(inst.MB,inst.ME);
 	ARMReg RA = gpr.R(inst.RA);
@@ -904,7 +895,7 @@ void JitArm::rlwnmx(UGeckoInstruction inst)
 void JitArm::srawix(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int s = inst.RS;
 	int amount = inst.SH;
@@ -950,12 +941,9 @@ void JitArm::srawix(UGeckoInstruction inst)
 void JitArm::twx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff)
+	JITDISABLE(bJITIntegerOff);
 
 	s32 a = inst.RA;
-
-	gpr.Flush();
-	fpr.Flush();
 
 	ARMReg RA = gpr.GetReg();
 	ARMReg RB = gpr.GetReg();
@@ -1003,6 +991,9 @@ void JitArm::twx(UGeckoInstruction inst)
 	SetJumpTarget(take4);
 	SetJumpTarget(take5);
 
+	gpr.Flush(FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FLUSH_MAINTAIN_STATE);
+
 	LDR(RA, R9, PPCSTATE_OFF(Exceptions));
 	MOVI2R(RB, EXCEPTION_PROGRAM); // XXX: Can be optimized
 	ORR(RA, RA, RB);
@@ -1016,7 +1007,12 @@ void JitArm::twx(UGeckoInstruction inst)
 	SetJumpTarget(exit5);
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush();
+		fpr.Flush();
+
 		WriteExit(js.compilerPC + 4);
+	}
 
 	gpr.Unlock(RA, RB);
 }

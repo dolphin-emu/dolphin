@@ -37,12 +37,12 @@ void AddAutoBreakpoints()
 }
 
 // Returns true if the address is not a valid RAM address or NULL.
-bool IsStackBottom(u32 addr)
+static bool IsStackBottom(u32 addr)
 {
 	return !addr || !Memory::IsRAMAddress(addr);
 }
 
-void WalkTheStack(const std::function<void(u32)>& stack_step)
+static void WalkTheStack(const std::function<void(u32)>& stack_step)
 {
 	if (!IsStackBottom(PowerPC::ppcState.gpr[1]))
 	{
@@ -69,8 +69,7 @@ void WalkTheStack(const std::function<void(u32)>& stack_step)
 // instead of "pointing ahead"
 bool GetCallstack(std::vector<CallstackEntry> &output)
 {
-	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
-	    !Memory::IsRAMAddress(PowerPC::ppcState.gpr[1]))
+	if (!Core::IsRunning() || !Memory::IsRAMAddress(PowerPC::ppcState.gpr[1]))
 		return false;
 
 	if (LR == 0)

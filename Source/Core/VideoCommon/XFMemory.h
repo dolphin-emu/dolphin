@@ -194,13 +194,9 @@ union DualTexInfo
 struct Light
 {
 	u32 useless[3];
-	u32 color; // rgba
-	float a0;  // attenuation
-	float a1;
-	float a2;
-	float k0;  // k stuff
-	float k1;
-	float k2;
+	u8 color[4];
+	float cosatt[3]; // cos attenuation
+	float distatt[3]; // dist attenuation
 
 	union
 	{
@@ -241,7 +237,7 @@ struct XFMemory
 	u32 normalMatrices[96];         // 0x0400 - 0x045f
 	u32 unk1[160];                  // 0x0460 - 0x04ff
 	u32 postMatrices[256];          // 0x0500 - 0x05ff
-	u32 lights[128];                // 0x0600 - 0x067f
+	Light lights[8];                // 0x0600 - 0x067f
 	u32 unk2[2432];                 // 0x0680 - 0x0fff
 	u32 error;                      // 0x1000
 	u32 diag;                       // 0x1001

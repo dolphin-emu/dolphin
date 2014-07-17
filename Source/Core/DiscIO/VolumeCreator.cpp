@@ -14,6 +14,7 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
 #include "DiscIO/VolumeDirectory.h"
 #include "DiscIO/VolumeGC.h"
 #include "DiscIO/VolumeWad.h"
@@ -132,7 +133,7 @@ bool IsVolumeWiiDisc(const IVolume *_rVolume)
 	_rVolume->Read(0x18, 4, (u8*)&MagicWord);
 
 	return (Common::swap32(MagicWord) == 0x5D1C9EA3);
-	//Gamecube 0xc2339f3d
+	//GameCube 0xc2339f3d
 }
 
 bool IsVolumeWadFile(const IVolume *_rVolume)

@@ -331,7 +331,7 @@ public:
 
 	FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
 	//void J_CC(CCFlags conditionCode, JumpTarget target);
-	void J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes = false);
+	void J_CC(CCFlags conditionCode, const u8* addr);
 
 	void SetJumpTarget(const FixupBranch &branch);
 
@@ -576,6 +576,7 @@ public:
 
 	void CVTTSS2SI(X64Reg xregdest, OpArg arg);  // Yeah, destination really is a GPR like EAX!
 	void CVTTPS2DQ(X64Reg regOp, OpArg arg);
+	void CVTTPD2DQ(X64Reg regOp, OpArg arg);
 
 	// SSE2: Packed integer instructions
 	void PACKSSDW(X64Reg dest, OpArg arg);

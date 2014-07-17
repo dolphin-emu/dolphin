@@ -25,4 +25,3 @@ public:
 	}
 };
 
-extern JitArmILAsmRoutineManager armil_asm_routines;

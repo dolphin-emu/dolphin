@@ -8,24 +8,16 @@
 
 #include "Common/MathUtil.h"
 
-template <typename T>
-T ClampAndReturn(const T& val, const T& min, const T& max)
-{
-	T ret = val;
-	MathUtil::Clamp(&ret, min, max);
-	return ret;
-}
-
 TEST(MathUtil, Clamp)
 {
-	EXPECT_EQ(1, ClampAndReturn(1, 0, 2));
-	EXPECT_EQ(1.0, ClampAndReturn(1.0, 0.0, 2.0));
+	EXPECT_EQ(1, MathUtil::Clamp(1, 0, 2));
+	EXPECT_EQ(1.0, MathUtil::Clamp(1.0, 0.0, 2.0));
 
-	EXPECT_EQ(2, ClampAndReturn(4, 0, 2));
-	EXPECT_EQ(2.0, ClampAndReturn(4.0, 0.0, 2.0));
+	EXPECT_EQ(2, MathUtil::Clamp(4, 0, 2));
+	EXPECT_EQ(2.0, MathUtil::Clamp(4.0, 0.0, 2.0));
 
-	EXPECT_EQ(0, ClampAndReturn(-1, 0, 2));
-	EXPECT_EQ(0.0, ClampAndReturn(-1.0, 0.0, 2.0));
+	EXPECT_EQ(0, MathUtil::Clamp(-1, 0, 2));
+	EXPECT_EQ(0.0, MathUtil::Clamp(-1.0, 0.0, 2.0));
 }
 
 TEST(MathUtil, IsINF)

@@ -29,8 +29,6 @@
 
 class wxWindow;
 
-extern std::vector<PatchEngine::Patch> onFrame;
-
 BEGIN_EVENT_TABLE(CPatchAddEdit, wxDialog)
 	EVT_BUTTON(wxID_OK, CPatchAddEdit::SavePatchData)
 	EVT_BUTTON(ID_ENTRY_ADD, CPatchAddEdit::AddRemoveEntry)

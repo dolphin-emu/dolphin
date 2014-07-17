@@ -17,11 +17,19 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
-#ifndef _M_GENERIC
+#ifdef _M_X86
 #ifndef __APPLE__
 #define USE_VERTEX_LOADER_JIT
 #endif
 #endif
+
+// They are used for the communication with the loader functions
+extern NativeVertexFormat *g_nativeVertexFmt;
+extern int tcIndex;
+extern int colIndex;
+extern int colElements[2];
+extern float posScale;
+extern float tcScale[8];
 
 class VertexLoaderUID
 {

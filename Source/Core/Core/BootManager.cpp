@@ -48,7 +48,7 @@ namespace BootManager
 struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-	     bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack;
+	     bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack, bProgressive;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];
@@ -117,6 +117,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.sBackend = SConfig::GetInstance().sBackend;
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
 		config_cache.frameSkip = SConfig::GetInstance().m_FrameSkip;
+		config_cache.bProgressive = StartUp.bProgressive;
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
 			config_cache.iWiimoteSource[i] = g_wiimote_sources[i];
@@ -136,38 +137,44 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bSetFrameSkip = false;
 
 		// General settings
-		game_ini.Get("Core", "CPUThread",        &StartUp.bCPUThread, StartUp.bCPUThread);
-		game_ini.Get("Core", "SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
-		game_ini.Get("Core", "EnableFPRF",       &StartUp.bEnableFPRF, StartUp.bEnableFPRF);
-		game_ini.Get("Core", "MMU",              &StartUp.bMMU, StartUp.bMMU);
-		game_ini.Get("Core", "TLBHack",          &StartUp.bTLBHack, StartUp.bTLBHack);
-		game_ini.Get("Core", "DCBZ",             &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
-		game_ini.Get("Core", "VBeam",            &StartUp.bVBeamSpeedHack, StartUp.bVBeamSpeedHack);
-		game_ini.Get("Core", "SyncGPU",          &StartUp.bSyncGPU, StartUp.bSyncGPU);
-		game_ini.Get("Core", "FastDiscSpeed",    &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-		game_ini.Get("Core", "BlockMerging",     &StartUp.bMergeBlocks, StartUp.bMergeBlocks);
-		game_ini.Get("Core", "DSPHLE",           &StartUp.bDSPHLE, StartUp.bDSPHLE);
-		game_ini.Get("Core", "DSPThread",        &StartUp.bDSPThread, StartUp.bDSPThread);
-		game_ini.Get("Core", "GFXBackend",       &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
-		game_ini.Get("Core", "CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
-		game_ini.Get("Core", "HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
-		if (game_ini.Get("Core", "FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
+		IniFile::Section* core_section     = game_ini.GetOrCreateSection("Core");
+		IniFile::Section* dsp_section      = game_ini.GetOrCreateSection("DSP");
+		IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
+
+		core_section->Get("CPUThread",        &StartUp.bCPUThread, StartUp.bCPUThread);
+		core_section->Get("SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
+		core_section->Get("EnableFPRF",       &StartUp.bEnableFPRF, StartUp.bEnableFPRF);
+		core_section->Get("MMU",              &StartUp.bMMU, StartUp.bMMU);
+		core_section->Get("TLBHack",          &StartUp.bTLBHack, StartUp.bTLBHack);
+		core_section->Get("DCBZ",             &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
+		core_section->Get("VBeam",            &StartUp.bVBeamSpeedHack, StartUp.bVBeamSpeedHack);
+		core_section->Get("SyncGPU",          &StartUp.bSyncGPU, StartUp.bSyncGPU);
+		core_section->Get("FastDiscSpeed",    &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
+		core_section->Get("BlockMerging",     &StartUp.bMergeBlocks, StartUp.bMergeBlocks);
+		core_section->Get("DSPHLE",           &StartUp.bDSPHLE, StartUp.bDSPHLE);
+		core_section->Get("DSPThread",        &StartUp.bDSPThread, StartUp.bDSPThread);
+		core_section->Get("GFXBackend",       &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
+		core_section->Get("CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
+		core_section->Get("HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
+		core_section->Get("ProgressiveScan",  &StartUp.bProgressive, StartUp.bProgressive);
+		if (core_section->Get("FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
 			config_cache.bSetFramelimit = true;
-		if (game_ini.Get("Core", "FrameSkip",    &SConfig::GetInstance().m_FrameSkip))
+		if (core_section->Get("FrameSkip",    &SConfig::GetInstance().m_FrameSkip))
 		{
 			config_cache.bSetFrameSkip = true;
 			Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
 		}
-		if (game_ini.Get("DSP", "Volume",        &SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume))
+
+		if (dsp_section->Get("Volume",        &SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume))
 			config_cache.bSetVolume = true;
-		game_ini.Get("DSP", "EnableJIT",         &SConfig::GetInstance().m_DSPEnableJIT, SConfig::GetInstance().m_DSPEnableJIT);
-		game_ini.Get("DSP", "Backend",           &SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
+		dsp_section->Get("EnableJIT",         &SConfig::GetInstance().m_DSPEnableJIT, SConfig::GetInstance().m_DSPEnableJIT);
+		dsp_section->Get("Backend",           &SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 
 		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
 			int source;
-			game_ini.Get("Controls", StringFromFormat("PadType%u", i), &source, -1);
+			controls_section->Get(StringFromFormat("PadType%u", i), &source, -1);
 			if (source >= (int) SIDEVICE_NONE && source <= (int) SIDEVICE_AM_BASEBOARD)
 			{
 				SConfig::GetInstance().m_SIDevice[i] = (SIDevices) source;
@@ -184,7 +191,7 @@ bool BootCore(const std::string& _rFilename)
 			int source;
 			for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
 			{
-				game_ini.Get("Controls", StringFromFormat("WiimoteSource%u", i), &source, -1);
+				controls_section->Get(StringFromFormat("WiimoteSource%u", i), &source, -1);
 				if (source != -1 && g_wiimote_sources[i] != (unsigned) source && source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_HYBRID)
 				{
 					config_cache.bSetWiimoteSource[i] = true;
@@ -192,7 +199,7 @@ bool BootCore(const std::string& _rFilename)
 					WiimoteReal::ChangeWiimoteSource(i, source);
 				}
 			}
-			game_ini.Get("Controls", "WiimoteSourceBB", &source, -1);
+			controls_section->Get("WiimoteSourceBB", &source, -1);
 			if (source != -1 && g_wiimote_sources[WIIMOTE_BALANCE_BOARD] != (unsigned) source && (source == WIIMOTE_SRC_NONE || source == WIIMOTE_SRC_REAL))
 			{
 				config_cache.bSetWiimoteSource[WIIMOTE_BALANCE_BOARD] = true;
@@ -212,10 +219,13 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
 		StartUp.iCPUCore = Movie::GetCPUMode();
 		StartUp.bSyncGPU = Movie::IsSyncGPU();
-		if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+		for (int i = 0; i < 2; ++i)
 		{
-			if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw"))
-				File::Delete(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw");
+			if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+			{
+				if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B")))
+					File::Delete(File::GetUserPath(D_GCUSER_IDX) + StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B"));
+			}
 		}
 	}
 
@@ -231,6 +241,8 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bSetEXIDevice[0] = true;
 		config_cache.bSetEXIDevice[1] = true;
 	}
+
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
 
 	// Run the game
 	// Init the core
@@ -271,6 +283,8 @@ void Stop()
 		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
 		SConfig::GetInstance().sBackend = config_cache.sBackend;
 		SConfig::GetInstance().m_DSPEnableJIT = config_cache.m_EnableJIT;
+		StartUp.bProgressive = config_cache.bProgressive;
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", config_cache.bProgressive);
 
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 		if (config_cache.bSetFramelimit)

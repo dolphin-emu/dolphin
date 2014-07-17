@@ -5,7 +5,7 @@
 #include <cinttypes>
 
 #include "Common/Common.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/Core.h"
 #include "Core/VolumeHandler.h"

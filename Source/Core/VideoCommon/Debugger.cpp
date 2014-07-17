@@ -15,7 +15,6 @@
 #include "VideoCommon/VideoConfig.h"
 
 //void UpdateFPSDisplay(const char *text);
-extern NativeVertexFormat *g_nativeVertexFmt;
 
 GFXDebuggerBase *g_pdebugger = nullptr;
 volatile bool GFXDebuggerPauseFlag = false; // if true, the GFX thread will be spin locked until it's false again

@@ -41,8 +41,8 @@ Make AA apply instantly during gameplay if possible
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
-#include "Common/LogManager.h"
 #include "Common/Thread.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -80,7 +80,6 @@ Make AA apply instantly during gameplay if possible
 
 #ifdef _WIN32
 #include "Common/IniFile.h"
-#include "VideoCommon/EmuWindow.h"
 #endif
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -104,7 +103,7 @@ std::string VideoBackend::GetDisplayName() const
 		return "OpenGL";
 }
 
-void GetShaders(std::vector<std::string> &shaders)
+static void GetShaders(std::vector<std::string> &shaders)
 {
 	std::set<std::string> already_found;
 
@@ -139,7 +138,7 @@ void GetShaders(std::vector<std::string> &shaders)
 	std::sort(shaders.begin(), shaders.end());
 }
 
-void InitBackendInfo()
+static void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_OPENGL;
 	g_Config.backend_info.bUseRGBATextures = true;

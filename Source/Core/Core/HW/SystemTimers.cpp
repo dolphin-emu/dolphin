@@ -82,10 +82,10 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 namespace SystemTimers
 {
 
-u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
+static u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
 
 /*
-Gamecube                   MHz
+GameCube                   MHz
 flipper <-> ARAM bus:      81 (DSP)
 gekko <-> flipper bus:     162
 flipper <-> 1T-SRAM bus:   324
@@ -109,19 +109,19 @@ enum
 	TIMER_RATIO = 12
 };
 
-int et_Dec;
-int et_VI;
-int et_SI;
-int et_CP;
-int et_AudioDMA;
-int et_DSP;
-int et_IPC_HLE;
-int et_PatchEngine; // PatchEngine updates every 1/60th of a second by default
-int et_Throttle;
+static int et_Dec;
+static int et_VI;
+static int et_SI;
+static int et_CP;
+static int et_AudioDMA;
+static int et_DSP;
+static int et_IPC_HLE;
+static int et_PatchEngine; // PatchEngine updates every 1/60th of a second by default
+static int et_Throttle;
 
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
-int
+static int
 	// This is a fixed value, don't change it
 	AUDIO_DMA_PERIOD,
 
@@ -139,13 +139,8 @@ u32 GetTicksPerSecond()
 	return CPU_CORE_CLOCK;
 }
 
-u32 ConvertMillisecondsToTicks(u32 _Milliseconds)
-{
-	return GetTicksPerSecond() / 1000 * _Milliseconds;
-}
-
 // DSP/CPU timeslicing.
-void DSPCallback(u64 userdata, int cyclesLate)
+static void DSPCallback(u64 userdata, int cyclesLate)
 {
 	//splits up the cycle budget in case lle is used
 	//for hle, just gives all of the slice to hle
@@ -153,7 +148,7 @@ void DSPCallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
-void AudioDMACallback(u64 userdata, int cyclesLate)
+static void AudioDMACallback(u64 userdata, int cyclesLate)
 {
 	int fields = VideoInterface::GetNumFields();
 	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32 * fields);
@@ -161,34 +156,34 @@ void AudioDMACallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
 
-void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
+static void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		WII_IPC_HLE_Interface::Update();
+		WII_IPC_HLE_Interface::UpdateDevices();
 		CoreTiming::ScheduleEvent(IPC_HLE_PERIOD - cyclesLate, et_IPC_HLE);
 	}
 }
 
-void VICallback(u64 userdata, int cyclesLate)
+static void VICallback(u64 userdata, int cyclesLate)
 {
 	VideoInterface::Update();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine() - cyclesLate, et_VI);
 }
 
-void SICallback(u64 userdata, int cyclesLate)
+static void SICallback(u64 userdata, int cyclesLate)
 {
 	SerialInterface::UpdateDevices();
 	CoreTiming::ScheduleEvent(SerialInterface::GetTicksToNextSIPoll() - cyclesLate, et_SI);
 }
 
-void CPCallback(u64 userdata, int cyclesLate)
+static void CPCallback(u64 userdata, int cyclesLate)
 {
 	CommandProcessor::Update();
 	CoreTiming::ScheduleEvent(CP_PERIOD - cyclesLate, et_CP);
 }
 
-void DecrementerCallback(u64 userdata, int cyclesLate)
+static void DecrementerCallback(u64 userdata, int cyclesLate)
 {
 	PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
 	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DECREMENTER);
@@ -224,7 +219,7 @@ u64 GetFakeTimeBase()
 	return CoreTiming::GetFakeTBStartValue() + ((CoreTiming::GetTicks() - CoreTiming::GetFakeTBStartTicks()) / TIMER_RATIO);
 }
 
-void PatchEngineCallback(u64 userdata, int cyclesLate)
+static void PatchEngineCallback(u64 userdata, int cyclesLate)
 {
 	// Patch mem and run the Action Replay
 	PatchEngine::ApplyFramePatches();
@@ -232,7 +227,7 @@ void PatchEngineCallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_PatchEngine);
 }
 
-void ThrottleCallback(u64 last_time, int cyclesLate)
+static void ThrottleCallback(u64 last_time, int cyclesLate)
 {
 	u32 time = Common::Timer::GetTimeMs();
 

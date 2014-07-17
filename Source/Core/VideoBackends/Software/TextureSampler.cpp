@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cmath>
 
 #include "Core/HW/Memmap.h"
@@ -142,8 +143,8 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 
 		while (mip)
 		{
-			mipWidth = max(mipWidth, fmtWidth);
-			mipHeight = max(mipHeight, fmtHeight);
+			mipWidth = std::max(mipWidth, fmtWidth);
+			mipHeight = std::max(mipHeight, fmtHeight);
 			u32 size = (mipWidth * mipHeight * fmtDepth) >> 1;
 
 			imageSrc += size;

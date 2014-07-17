@@ -16,7 +16,7 @@ namespace DebugUtil
 	void OnObjectBegin();
 	void OnObjectEnd();
 
-	void OnFrameEnd();
+	void OnFrameEnd(u32 width, u32 height);
 
 	void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name);
 

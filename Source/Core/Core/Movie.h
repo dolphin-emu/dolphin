@@ -29,7 +29,7 @@ enum PlayMode
 	MODE_PLAYING
 };
 
-// Gamecube Controller State
+// GameCube Controller State
 #pragma pack(push,1)
 struct ControllerState
 {
@@ -49,24 +49,13 @@ static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes")
 #pragma pack(pop)
 
 // Global declarations
-extern bool g_bFrameStep, g_bPolled, g_bReadOnly, g_bDiscChange, g_bClearSave;
-extern PlayMode g_playMode;
+extern bool g_bDiscChange, g_bClearSave;
 extern u64 g_titleID;
 
-extern u32 g_framesToSkip, g_frameSkipCounter;
-
-extern u8 g_numPads;
-extern ControllerState *g_padStates;
-extern char g_playingFile[256];
-extern std::string g_recordFile;
-
-extern u64 g_currentByte, g_totalBytes;
 extern u64 g_currentFrame, g_totalFrames;
-extern u64 g_currentLagCount, g_totalLagCount;
+extern u64 g_currentLagCount;
 extern u64 g_currentInputCount, g_totalInputCount;
 extern std::string g_discChange;
-
-extern u32 g_rerecords;
 
 #pragma pack(push,1)
 struct DTMHeader
@@ -106,7 +95,7 @@ struct DTMHeader
 	bool bEFBEmulateFormatChanges;
 	bool bUseXFB;
 	bool bUseRealXFB;
-	bool bMemcard;
+	u8   memcards;
 	bool bClearSave;        // Create a new memory card when playing back a movie if true
 	u8 bongos;
 	bool bSyncGPU;
@@ -114,7 +103,10 @@ struct DTMHeader
 	u8 reserved[13];        // Padding for any new config options
 	u8 discChange[40];      // Name of iso file to switch to, for two disc games.
 	u8 revision[20];        // Git hash
-	u8 reserved2[27];       // Make heading 256 bytes, just because we can
+	u32 DSPiromHash;
+	u32 DSPcoefHash;
+	u64 tickCount;	        // Number of ticks in the recording
+	u8 reserved2[11];       // Make heading 256 bytes, just because we can
 };
 static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
 
@@ -132,7 +124,7 @@ bool IsJustStartingRecordingInputFromSaveState();
 bool IsJustStartingPlayingInputFromSaveState();
 bool IsPlayingInput();
 bool IsReadOnly();
-u64 GetRecordingStartTime();
+u64  GetRecordingStartTime();
 
 bool IsConfigSaved();
 bool IsDualCore();
@@ -140,9 +132,9 @@ bool IsProgressive();
 bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
-int GetCPUMode();
+int  GetCPUMode();
 bool IsStartingFromClearSave();
-bool IsUsingMemcard();
+bool IsUsingMemcard(int memcard);
 bool IsSyncGPU();
 void SetGraphicsConfig();
 void GetSettings();
@@ -162,13 +154,13 @@ void SetFrameSkipping(unsigned int framesToSkip);
 void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
-void RecordInput(SPADStatus *PadStatus, int controllerID);
+void RecordInput(GCPadStatus* PadStatus, int controllerID);
 void RecordWiimote(int wiimote, u8 *data, u8 size);
 
 bool PlayInput(const std::string& filename);
 void LoadInput(const std::string& filename);
 void ReadHeader();
-void PlayController(SPADStatus *PadStatus, int controllerID);
+void PlayController(GCPadStatus* PadStatus, int controllerID);
 bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
@@ -176,14 +168,14 @@ void DoState(PointerWrap &p);
 void CheckMD5();
 void GetMD5();
 void Shutdown();
-void CheckPadStatus(SPADStatus *PadStatus, int controllerID);
+void CheckPadStatus(GCPadStatus* PadStatus, int controllerID);
 void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 
 std::string GetInputDisplay();
 
 // Done this way to avoid mixing of core and gui code
-typedef void(*ManipFunction)(SPADStatus *, int);
+typedef void(*ManipFunction)(GCPadStatus*, int);
 
 void SetInputManip(ManipFunction);
-void CallInputManip(SPADStatus *PadStatus, int controllerID);
+void CallInputManip(GCPadStatus* PadStatus, int controllerID);
 };

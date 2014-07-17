@@ -54,23 +54,9 @@ public final class NativeLibrary
 	}
 
 	/**
-	 * Handles touch events.
-	 *
-	 * @param padID Identifier for which GCpad 0-3,
-	 * @param Button Key code identifying which button was pressed,
-	 * @param Action Mask for the action being performed.
+	 * Default touchscreen device
 	 */
-	public static native void onTouchEvent(int padID, int Button, int Action);
-
-	/**
-	 * Handles axis-related touch events.
-	 *
-	 * @param padID Identifier for which GCpad 0-3,
-	 * @param Axis  Axis ID for the type of axis being altered. (Example: Main stick up, down, left, right, etc),
-	 * @param force How 'far down' the joystick is pushed down. 0.0f indicates center (or no force), 
-	 *              1.0f indicates max force (or joystick pushed all the way down in any arbitrary direction).
-	 */
-	public static native void onTouchAxisEvent(int padID, int Axis, float force);
+	public static final String TouchScreenDevice = "Touchscreen";
 
 	/**
 	 * Handles button press events for a gamepad.

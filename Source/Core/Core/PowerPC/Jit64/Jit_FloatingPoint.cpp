@@ -10,7 +10,7 @@
 
 static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 static const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-static const double one_const = 1.0f;
+static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
 void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg))
 {
@@ -74,20 +74,11 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 void Jit64::fp_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF);
 
 	bool single = inst.OPCD == 59;
 	switch (inst.SUBOP5)
@@ -104,20 +95,11 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 void Jit64::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	if (inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF);
 
 	bool single_precision = inst.OPCD == 59;
 
@@ -167,13 +149,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 void Jit64::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int b = inst.FB;
@@ -201,33 +178,34 @@ void Jit64::fsign(UGeckoInstruction inst)
 void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int b = inst.FB;
+
+	if (d == b)
+		return;
+
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d, true, true);
-	MOVSD(XMM0, fpr.R(b));
-	MOVSD(fpr.R(d), XMM0);
+
+	// We don't need to load d, but if it is loaded, we need to mark it as dirty.
+	if (fpr.IsBound(d))
+		fpr.BindToRegister(d);
+
+	// b needs to be in a register because "MOVSD reg, mem" sets the upper bits (64+) to zero and we don't want that.
+	fpr.BindToRegister(b, true, false);
+
+	MOVSD(fpr.R(d), fpr.RX(b));
+
 	fpr.UnlockAll();
 }
 
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff)
-
-	if (jo.fpAccurateFcmp)
-	{
-		FallBackToInterpreter(inst); // turn off from debugger
-		return;
-	}
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(jo.fpAccurateFcmp);
 
 	//bool ordered = inst.SUBOP10 == 32;
 	int a   = inst.FA;
@@ -291,4 +269,43 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
+void Jit64::fctiwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
 
+	int d = inst.RD;
+	int b = inst.RB;
+	fpr.Lock(d, b);
+	fpr.BindToRegister(d, d == b);
+
+	// Intel uses 0x80000000 as a generic error code while PowerPC uses clamping:
+	//
+	// input       | output fctiw | output CVTPD2DQ
+	// ------------+--------------+----------------
+	// > +2^31 - 1 | 0x7fffffff   | 0x80000000
+	// < -2^31     | 0x80000000   | 0x80000000
+	// any NaN     | 0x80000000   | 0x80000000
+	//
+	// The upper 32 bits of the result are set to 0xfff80000,
+	// except for -0.0 where they are set to 0xfff80001 (TODO).
+
+	MOVAPD(XMM0, M(&half_qnan_and_s32_max));
+	MINSD(XMM0, fpr.R(b));
+	switch (inst.SUBOP10)
+	{
+		// fctiwx
+		case 14:
+			CVTPD2DQ(XMM0, R(XMM0));
+			break;
+
+		// fctiwzx
+		case 15:
+			CVTTPD2DQ(XMM0, R(XMM0));
+			break;
+	}
+	// d[64+] must not be modified
+	MOVSD(fpr.R(d), XMM0);
+	fpr.UnlockAll();
+}

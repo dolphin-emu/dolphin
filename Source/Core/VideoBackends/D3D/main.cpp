@@ -7,8 +7,8 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/LogManager.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -29,7 +29,6 @@
 
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/EmuWindow.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -58,7 +57,8 @@ unsigned int VideoBackend::PeekMessages()
 
 void VideoBackend::UpdateFPSDisplay(const std::string& text)
 {
-	EmuWindow::SetWindowText(StringFromFormat("%s | D3D | %s", scm_rev_str, text.c_str()));
+	std::string str = StringFromFormat("%s | D3D | %s", scm_rev_str, text.c_str());
+	SetWindowTextA((HWND)m_window_handle, str.c_str());
 }
 
 std::string VideoBackend::GetName() const
@@ -108,15 +108,18 @@ void InitBackendInfo()
 		// TODO: These don't get updated on adapter change, yet
 		if (adapter_index == g_Config.iAdapter)
 		{
-			char buf[32];
-			std::vector<DXGI_SAMPLE_DESC> modes;
-			modes = DX11::D3D::EnumAAModes(ad);
+			std::string samples;
+			std::vector<DXGI_SAMPLE_DESC> modes = DX11::D3D::EnumAAModes(ad);
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
-				if (i == 0) sprintf_s(buf, 32, _trans("None"));
-				else if (modes[i].Quality) sprintf_s(buf, 32, _trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
-				else sprintf_s(buf, 32, _trans("%d samples"), modes[i].Count);
-				g_Config.backend_info.AAModes.push_back(buf);
+				if (i == 0)
+					samples = _trans("None");
+				else if (modes[i].Quality)
+					samples = StringFromFormat(_trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
+				else
+					samples = StringFromFormat(_trans("%d samples"), modes[i].Count);
+
+				g_Config.backend_info.AAModes.push_back(samples);
 			}
 
 			// Requires the earlydepthstencil attribute (only available in shader model 5)
@@ -147,6 +150,9 @@ void VideoBackend::ShowConfig(void *_hParent)
 
 bool VideoBackend::Initialize(void *&window_handle)
 {
+	if (window_handle == nullptr)
+		return false;
+
 	InitializeShared();
 	InitBackendInfo();
 
@@ -158,12 +164,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
-	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));
-	if (window_handle == nullptr)
-	{
-		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
-		return false;
-	}
+	m_window_handle = window_handle;
 
 	s_BackendInitialized = true;
 
@@ -178,7 +179,7 @@ void VideoBackend::Video_Prepare()
 	s_swapRequested = FALSE;
 
 	// internal interfaces
-	g_renderer = new Renderer;
+	g_renderer = new Renderer(m_window_handle);
 	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
 	g_perf_query = new PerfQuery;

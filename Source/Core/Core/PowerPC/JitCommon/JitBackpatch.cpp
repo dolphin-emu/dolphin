@@ -19,8 +19,6 @@
 
 using namespace Gen;
 
-extern u8 *trampolineCodePtr;
-
 #if _M_X86_64
 static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	u64 code_addr = (u64)codePtr;
@@ -86,7 +84,12 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 		break;
 	}
 
-	if (dataReg != EAX)
+	if (info.signExtend && info.operandSize == 1)
+	{
+		// Need to sign extend value from Read_U8.
+		MOVSX(32, 8, dataReg, R(EAX));
+	}
+	else if (dataReg != EAX)
 	{
 		MOV(32, R(dataReg), R(EAX));
 	}

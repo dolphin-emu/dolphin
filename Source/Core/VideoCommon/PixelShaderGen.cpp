@@ -11,6 +11,7 @@
 #endif
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
@@ -218,9 +219,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	out.Write("\n");
 
 	if (ApiType == API_OPENGL)
+	{
 		out.Write("layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 1" : "");
+	}
 	else
-		out.Write("cbuffer PSBlock {\n");
+	{
+		out.Write("cbuffer PSBlock : register(b0) {\n");
+	}
 	out.Write(
 		"\tint4 " I_COLORS"[4];\n"
 		"\tint4 " I_KCOLORS"[4];\n"
@@ -232,13 +237,32 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		"\tint4 " I_FOGCOLOR";\n"
 		"\tint4 " I_FOGI";\n"
 		"\tfloat4 " I_FOGF"[2];\n"
-
-		// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
-		"\tint4 " I_PLIGHT_COLORS"[8];\n"
-		"\tfloat4 " I_PLIGHTS"[32];\n"
-		"\tint4 " I_PMATERIALS"[4];\n"
 		"};\n");
 
+	if (g_ActiveConfig.bEnablePixelLighting)
+	{
+		out.Write("%s", s_lighting_struct);
+
+		if (ApiType == API_OPENGL)
+		{
+			out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
+		}
+		else
+		{
+			out.Write("cbuffer VSBlock : register(b1) {\n");
+		}
+		out.Write(
+			"\tfloat4 " I_POSNORMALMATRIX"[6];\n"
+			"\tfloat4 " I_PROJECTION"[4];\n"
+			"\tint4 " I_MATERIALS"[4];\n"
+			"\tLight " I_LIGHTS"[8];\n"
+			"\tfloat4 " I_TEXMATRICES"[24];\n"
+			"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
+			"\tfloat4 " I_NORMALMATRICES"[32];\n"
+			"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
+			"\tfloat4 " I_DEPTHPARAMS";\n"
+			"};\n");
+	}
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
 
@@ -351,11 +375,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 				"\tfloat3 ldir, h;\n"
 				"\tfloat dist, dist2, attn;\n");
 
-		out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
-		out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
-		out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
+		// TODO: Our current constant usage code isn't able to handle more than one buffer.
+		//       So we can't mark the VS constant as used here. But keep them here as reference.
+		//out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
+		//out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
+		//out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
 		uid_data.components = components;
-		GenerateLightingShader<T>(out, uid_data.lighting, components, I_PMATERIALS, I_PLIGHT_COLORS, I_PLIGHTS, "colors_", "colors_");
+		GenerateLightingShader<T>(out, uid_data.lighting, components, "colors_", "colors_");
 	}
 
 	// HACK to handle cases where the tex gen is not enabled
@@ -379,7 +405,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			{
 				out.Write("uv%d.xy", i);
 			}
-			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0);\n\n", i);
+			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0);\n", i);
 			// TODO: S24 overflows here?
 		}
 	}
@@ -549,7 +575,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	if (!bHasTexCoord)
 		texcoord = 0;
 
-	out.Write("\t// TEV stage %d\n", n);
+	out.Write("\n\t// TEV stage %d\n", n);
 
 	uid_data.stagehash[n].hasindstage = bHasIndStage;
 	uid_data.stagehash[n].tevorders_texcoord = texcoord;
@@ -754,10 +780,10 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 
-	out.Write("tevin_a = int4(%s, %s)&255;\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
-	out.Write("tevin_b = int4(%s, %s)&255;\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
-	out.Write("tevin_c = int4(%s, %s)&255;\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
-	out.Write("tevin_d = int4(%s, %s);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
+	out.Write("\ttevin_a = int4(%s, %s)&255;\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
+	out.Write("\ttevin_b = int4(%s, %s)&255;\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
+	out.Write("\ttevin_c = int4(%s, %s)&255;\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
+	out.Write("\ttevin_d = int4(%s, %s);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
 
 	out.Write("\t// color combine\n");
 	out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
@@ -818,7 +844,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	else
 		out.Write(", -1024, 1023)");
 
-	out.Write(";\n\n");
+	out.Write(";\n");
 }
 
 template<class T>
@@ -954,7 +980,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 			out.Write("\t\treturn;\n");
 	}
 
-	out.Write("}\n");
+	out.Write("\t}\n");
 }
 
 static const char *tevFogFuncsTable[] =

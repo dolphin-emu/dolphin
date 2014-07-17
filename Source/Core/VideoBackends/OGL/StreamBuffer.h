@@ -15,7 +15,7 @@ namespace OGL
 class StreamBuffer {
 
 public:
-	static StreamBuffer* Create(u32 type, size_t size);
+	static StreamBuffer* Create(u32 type, u32 size);
 	virtual ~StreamBuffer();
 
 	/* This mapping function will return a pair of:
@@ -26,27 +26,40 @@ public:
 	 * Mapping invalidates the current buffer content,
 	 * so it isn't allowed to access the old content any more.
 	 */
-	virtual std::pair<u8*, size_t> Map(size_t size, u32 stride = 0) = 0;
-	virtual void Unmap(size_t used_size) = 0;
+	virtual std::pair<u8*, u32> Map(u32 size) = 0;
+	virtual void Unmap(u32 used_size) = 0;
+
+	inline std::pair<u8*, u32> Map(u32 size, u32 stride)
+	{
+		u32 padding = m_iterator % stride;
+		if (padding)
+		{
+			m_iterator += stride - padding;
+		}
+		return Map(size);
+        }
 
 	const u32 m_buffer;
 
 protected:
-	StreamBuffer(u32 type, size_t size);
+	StreamBuffer(u32 type, u32 size);
 	void CreateFences();
 	void DeleteFences();
-	void AllocMemory(size_t size);
-	void Align(u32 stride);
+	void AllocMemory(u32 size);
 
 	const u32 m_buffertype;
-	const size_t m_size;
+	const u32 m_size;
 
-	size_t m_iterator;
-	size_t m_used_iterator;
-	size_t m_free_iterator;
+	u32 m_iterator;
+	u32 m_used_iterator;
+	u32 m_free_iterator;
 
 private:
-	GLsync *fences;
+	static const int SYNC_POINTS = 16;
+	inline int SLOT(u32 x) const { return x >> m_bit_per_slot; }
+	const int m_bit_per_slot;
+
+	GLsync fences[SYNC_POINTS];
 };
 
 }

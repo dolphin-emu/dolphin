@@ -29,7 +29,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/LogManager.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -96,6 +96,11 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 void Host_RequestRenderWindowSize(int width, int height) {}
 void Host_SetStartupDebuggingParameters()
 {
+}
+
+bool Host_UIHasFocus()
+{
+	return true;
 }
 
 bool Host_RendererHasFocus()
@@ -236,14 +241,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulatio
 	Core::Stop();
 	updateMainFrameEvent.Set(); // Kick the waiting event
 }
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchEvent(JNIEnv *env, jobject obj, jint padID, jint Button, jint Action)
-{
-	ButtonManager::TouchEvent(padID, (ButtonManager::ButtonType)Button, Action);
-}
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchAxisEvent(JNIEnv *env, jobject obj, jint padID, jint Button, jfloat Action)
-{
-	ButtonManager::TouchAxisEvent(padID, (ButtonManager::ButtonType)Button, Action);
-}
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Button, jint Action)
 {
 	ButtonManager::GamepadEvent(GetJString(env, jDevice), Button, Action);
@@ -306,7 +303,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
 	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
 	std::string value;
 
-	ini.Get(section, key, &value, defaultValue);
+	ini.GetOrCreateSection(section)->Get(key, &value, defaultValue);
 
 	return env->NewStringUTF(value.c_str());
 }
@@ -321,7 +318,7 @@ jstring jValue)
 
 	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
 
-	ini.Set(section, key, value);
+	ini.GetOrCreateSection(section)->Set(key, value);
 	ini.Save(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
 }
 

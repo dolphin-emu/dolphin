@@ -39,6 +39,7 @@
     <ClInclude Include="MsgHandler.h" />
     <ClInclude Include="NandPaths.h" />
     <ClInclude Include="Network.h" />
+    <ClInclude Include="PcapFile.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="StdConditionVariable.h" />
@@ -53,13 +54,13 @@
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Analyzer.h" />
     <ClInclude Include="x64Emitter.h" />
-    <ClInclude Include="ConsoleListener.h">
+    <ClInclude Include="Logging\ConsoleListener.h">
       <Filter>Logging</Filter>
     </ClInclude>
-    <ClInclude Include="Log.h">
+    <ClInclude Include="Logging\Log.h">
       <Filter>Logging</Filter>
     </ClInclude>
-    <ClInclude Include="LogManager.h">
+    <ClInclude Include="Logging\LogManager.h">
       <Filter>Logging</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
@@ -86,6 +87,7 @@
     <ClCompile Include="MsgHandler.cpp" />
     <ClCompile Include="NandPaths.cpp" />
     <ClCompile Include="Network.cpp" />
+    <ClCompile Include="PcapFile.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
@@ -105,10 +107,10 @@
     <ClCompile Include="Crypto\ec.cpp">
       <Filter>Crypto</Filter>
     </ClCompile>
-    <ClCompile Include="ConsoleListener.cpp">
+    <ClCompile Include="Logging\ConsoleListener.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="LogManager.cpp">
+    <ClCompile Include="Logging\LogManager.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />

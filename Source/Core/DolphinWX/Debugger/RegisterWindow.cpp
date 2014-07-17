@@ -16,8 +16,6 @@
 
 class wxWindow;
 
-extern const char* GetGRPName(unsigned int index);
-
 BEGIN_EVENT_TABLE(CRegisterWindow, wxPanel)
 END_EVENT_TABLE()
 

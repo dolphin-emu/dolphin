@@ -25,10 +25,7 @@ using namespace ArmGen;
 using namespace PowerPC;
 
 static int CODE_SIZE = 1024*1024*32;
-namespace CPUCompare
-{
-	extern u32 m_BlockStart;
-}
+
 void JitArmIL::Init()
 {
 	AllocCodeSpace(CODE_SIZE);
@@ -81,22 +78,19 @@ void JitArmIL::Break(UGeckoInstruction _inst)
 
 void JitArmIL::DoDownCount()
 {
-	ARMReg rA = R14;
-	ARMReg rB = R12;
-	MOVI2R(rA, (u32)&CoreTiming::downcount);
-	LDR(rB, rA);
+	ARMReg rA = R12;
+	LDR(rA, R9, PPCSTATE_OFF(downcount));
 	if (js.downcountAmount < 255) // We can enlarge this if we used rotations
 	{
-		SUBS(rB, rB, js.downcountAmount);
-		STR(rB, rA);
+		SUBS(rA, rA, js.downcountAmount);
 	}
 	else
 	{
-		ARMReg rC = R11;
-		MOVI2R(rC, js.downcountAmount);
-		SUBS(rB, rB, rC);
-		STR(rB, rA);
+		ARMReg rB = R11;
+		MOVI2R(rB, js.downcountAmount);
+		SUBS(rA, rA, rB);
 	}
+	STR(rA, R9, PPCSTATE_OFF(downcount));
 }
 
 void JitArmIL::WriteExitDestInReg(ARMReg Reg)

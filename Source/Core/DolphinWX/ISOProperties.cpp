@@ -89,10 +89,10 @@ struct WiiPartition
 	DiscIO::IFileSystem *FileSystem;
 	std::vector<const DiscIO::SFileInfo *> Files;
 };
-std::vector<WiiPartition> WiiDisc;
+static std::vector<WiiPartition> WiiDisc;
 
-DiscIO::IVolume *OpenISO = nullptr;
-DiscIO::IFileSystem *pFileSystem = nullptr;
+static DiscIO::IVolume *OpenISO = nullptr;
+static DiscIO::IFileSystem *pFileSystem = nullptr;
 
 std::vector<PatchEngine::Patch> onFrame;
 std::vector<ActionReplay::ARCode> arCodes;
@@ -269,7 +269,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
 	if (!IsWad)
 	{
-		ChangeBannerDetails((int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+		ChangeBannerDetails(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
 	}
 	else
 	{
@@ -641,7 +641,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Lang.Add(_("Spanish"));
 	arrayStringFor_Lang.Add(_("Italian"));
 	arrayStringFor_Lang.Add(_("Dutch"));
-	int language = (int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	int language = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	if (IsWad)
 	{
 		arrayStringFor_Lang.Insert(_("Japanese"), 0);
@@ -855,7 +855,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		int partitionNum = wxAtoi(File.Mid(File.find_first_of("/") - 1, 1));
-		File.Remove(0, File.find_first_of("/") + 1); // Remove "Partition x/"
+		File.erase(0, File.find_first_of("/") + 1); // Remove "Partition x/"
 		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File), WxStrToStr(Path));
 	}
 	else
@@ -864,53 +864,47 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
-void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
+void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder, const int partitionNum)
 {
-	std::string exportName;
-	u32 index[2] = {0, 0};
-	std::vector<const DiscIO::SFileInfo *> fst;
-	DiscIO::IFileSystem *FS = nullptr;
+	DiscIO::IFileSystem* const fs = DiscIO::IsVolumeWiiDisc(OpenISO) ? WiiDisc[partitionNum].FileSystem : pFileSystem;
 
-	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	std::vector<const DiscIO::SFileInfo*> fst;
+	fs->GetFileList(fst);
+
+	u32 index = 0;
+	u32 size = 0;
+
+	// Extract all
+	if (_rFullPath.empty())
 	{
-		FS = WiiDisc.at(partitionNum).FileSystem;
+		index = 0;
+		size = (u32)fst.size();
+
+		fs->ExportApploader(_rExportFolder);
+		if (!DiscIO::IsVolumeWiiDisc(OpenISO))
+			fs->ExportDOL(_rExportFolder);
 	}
 	else
 	{
-		FS = pFileSystem;
-	}
-
-	FS->GetFileList(fst);
-
-	if (!_rFullPath) // Extract all
-	{
-		index[0] = 0;
-		index[1] = (u32)fst.size();
-
-		FS->ExportApploader(_rExportFolder);
-		if (!DiscIO::IsVolumeWiiDisc(OpenISO))
-			FS->ExportDOL(_rExportFolder);
-	}
-	else // Look for the dir we are going to extract
-	{
-		for (index[0] = 0; index[0] < fst.size(); index[0]++)
+		// Look for the dir we are going to extract
+		for (index = 0; index != fst.size(); ++index)
 		{
-			if (fst.at(index[0])->m_FullPath == _rFullPath)
+			if (fst[index]->m_FullPath == _rFullPath)
 			{
-				DEBUG_LOG(DISCIO, "Found the directory at %u", index[0]);
-				index[1] = (u32)fst.at(index[0])->m_FileSize;
+				DEBUG_LOG(DISCIO, "Found the directory at %u", index);
+				size = (u32)fst[index]->m_FileSize;
 				break;
 			}
 		}
 
-		DEBUG_LOG(DISCIO,"Directory found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
+		DEBUG_LOG(DISCIO,"Directory found from %u to %u\nextracting to:\n%s", index , size, _rExportFolder.c_str());
 	}
 
-	wxString dialogTitle = index[0] ? _("Extracting Directory") : _("Extracting All Files");
+	wxString dialogTitle = (index != 0) ? _("Extracting Directory") : _("Extracting All Files");
 	wxProgressDialog dialog(
 		dialogTitle,
 		_("Extracting..."),
-		index[1] - 1,
+		size - 1,
 		this,
 		wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
 		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
@@ -918,10 +912,10 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		);
 
 	// Extraction
-	for (u32 i = index[0]; i < index[1]; i++)
+	for (u32 i = index; i < size; i++)
 	{
 		dialog.SetTitle(wxString::Format("%s : %d%%", dialogTitle.c_str(),
-			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
+			(u32)(((float)(i - index) / (float)(size - index)) * 100)));
 
 		dialog.Update(i, wxString::Format(_("Extracting %s"), StrToWxStr(fst[i]->m_FullPath)));
 
@@ -930,7 +924,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 
 		if (fst[i]->IsDirectory())
 		{
-			exportName = StringFromFormat("%s/%s/", _rExportFolder, fst[i]->m_FullPath.c_str());
+			const std::string exportName = StringFromFormat("%s/%s/", _rExportFolder.c_str(), fst[i]->m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
 			if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
@@ -947,10 +941,10 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		}
 		else
 		{
-			exportName = StringFromFormat("%s/%s", _rExportFolder, fst[i]->m_FullPath.c_str());
+			const std::string exportName = StringFromFormat("%s/%s", _rExportFolder.c_str(), fst[i]->m_FullPath.c_str());
 			DEBUG_LOG(DISCIO, "%s", exportName.c_str());
 
-			if (!File::Exists(exportName) && !FS->ExportFile(fst[i]->m_FullPath, exportName))
+			if (!File::Exists(exportName) && !fs->ExportFile(fst[i]->m_FullPath, exportName))
 			{
 				ERROR_LOG(DISCIO, "Could not export %s", exportName.c_str());
 			}
@@ -974,9 +968,9 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	{
 		if (DiscIO::IsVolumeWiiDisc(OpenISO))
 			for (u32 i = 0; i < WiiDisc.size(); i++)
-				ExportDir(nullptr, WxStrToStr(Path).c_str(), i);
+				ExportDir("", WxStrToStr(Path), i);
 		else
-			ExportDir(nullptr, WxStrToStr(Path).c_str());
+			ExportDir("", WxStrToStr(Path));
 
 		return;
 	}
@@ -989,15 +983,17 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 	}
 
+	Directory += DIR_SEP_CHR;
+
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("/") - 1, 1));
-		Directory.Remove(0, Directory.find_first_of("/") + 1); // Remove "Partition x/"
-		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str(), partitionNum);
+		Directory.erase(0, Directory.find_first_of("/") + 1); // Remove "Partition x/"
+		ExportDir(WxStrToStr(Directory), WxStrToStr(Path), partitionNum);
 	}
 	else
 	{
-		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str());
+		ExportDir(WxStrToStr(Directory), WxStrToStr(Path));
 	}
 }
 
@@ -1077,8 +1073,7 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 	int PartitionNum = wxAtoi(PartitionName.Mid(PartitionName.find_first_of("0123456789"), 1));
 	const WiiPartition& Partition = WiiDisc[PartitionNum];
 
-	wxProgressDialog* dialog = new wxProgressDialog(
-		_("Checking integrity..."), _("Working..."), 1000, this,
+	wxProgressDialog dialog(_("Checking integrity..."), _("Working..."), 1000, this,
 		wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH
 	);
 
@@ -1087,11 +1082,11 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 
 	while (thread.IsAlive())
 	{
-		dialog->Pulse();
+		dialog.Pulse();
 		wxThread::Sleep(50);
 	}
 
-	delete dialog;
+	dialog.Destroy();
 
 	if (!thread.Wait())
 	{
@@ -1121,9 +1116,9 @@ void CISOProperties::SetCheckboxValueFromGameini(const char* section, const char
 {
 	// Prefer local gameini value over default gameini value.
 	bool value;
-	if (GameIniLocal.Get(section, key, &value))
+	if (GameIniLocal.GetOrCreateSection(section)->Get(key, &value))
 		checkbox->Set3StateValue((wxCheckBoxState)value);
-	else if (GameIniDefault.Get(section, key, &value))
+	else if (GameIniDefault.GetOrCreateSection(section)->Get(key, &value))
 		checkbox->Set3StateValue((wxCheckBoxState)value);
 	else
 		checkbox->Set3StateValue(wxCHK_UNDETERMINED);
@@ -1144,34 +1139,39 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
 	SetCheckboxValueFromGameini("Video", "UseBBox", UseBBox);
 
+	IniFile::Section* default_video = GameIniDefault.GetOrCreateSection("Video");
+	IniFile::Section* local_video = GameIniLocal.GetOrCreateSection("Video");
+
 	// First set values from default gameini, then apply values from local gameini
 	int iTemp;
-	GameIniDefault.Get("Video", "ProjectionHack", &iTemp);
+	default_video->Get("ProjectionHack", &iTemp);
 	PHackEnable->SetValue(!!iTemp);
-	if (GameIniLocal.Get("Video", "ProjectionHack", &iTemp))
+	if (local_video->Get("ProjectionHack", &iTemp))
 		PHackEnable->SetValue(!!iTemp);
 
-	GameIniDefault.Get("Video", "PH_SZNear", &PHack_Data.PHackSZNear);
+	default_video->Get("PH_SZNear", &PHack_Data.PHackSZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZNear", &iTemp))
 		PHack_Data.PHackSZNear = !!iTemp;
-	GameIniDefault.Get("Video", "PH_SZFar", &PHack_Data.PHackSZFar);
+	default_video->Get("PH_SZFar", &PHack_Data.PHackSZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZFar", &iTemp))
 		PHack_Data.PHackSZFar = !!iTemp;
 
 	std::string sTemp;
-	GameIniDefault.Get("Video", "PH_ZNear", &PHack_Data.PHZNear);
+	default_video->Get("PH_ZNear", &PHack_Data.PHZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_ZNear", &sTemp))
 		PHack_Data.PHZNear = sTemp;
-	GameIniDefault.Get("Video", "PH_ZFar", &PHack_Data.PHZFar);
+	default_video->Get("PH_ZFar", &PHack_Data.PHZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_ZFar", &sTemp))
 		PHack_Data.PHZFar = sTemp;
 
-	GameIniDefault.Get("EmuState", "EmulationStateId", &iTemp, 0/*Not Set*/);
+
+	IniFile::Section* default_emustate = GameIniDefault.GetOrCreateSection("EmuState");
+	default_emustate->Get("EmulationStateId", &iTemp, 0/*Not Set*/);
 	EmuState->SetSelection(iTemp);
 	if (GameIniLocal.GetIfExists("EmuState", "EmulationStateId", &iTemp))
 		EmuState->SetSelection(iTemp);
 
-	GameIniDefault.Get("EmuState", "EmulationIssues", &sTemp);
+	default_emustate->Get("EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 		EmuIssues->SetValue(StrToWxStr(sTemp));
 	if (GameIniLocal.GetIfExists("EmuState", "EmulationIssues", &sTemp))
@@ -1182,72 +1182,87 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("VR", "Disable3D", Disable3D);
 	SetCheckboxValueFromGameini("VR", "HudFullscreen", HudFullscreen);
 	float fTemp;
+
+	fTemp = 1;
 	if (GameIniDefault.GetIfExists("VR", "UnitsPerMetre", &fTemp))
 		UnitsPerMetre->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "UnitsPerMetre", &fTemp))
 		UnitsPerMetre->SetValue(fTemp);
 
+	fTemp = 1.5f;
 	if (GameIniDefault.GetIfExists("VR", "HudDistance", &fTemp))
 		HudDistance->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "HudDistance", &fTemp))
 		HudDistance->SetValue(fTemp);
 
+	fTemp = 0.5f;
 	if (GameIniDefault.GetIfExists("VR", "HudThickness", &fTemp))
 		HudThickness->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "HudThickness", &fTemp))
 		HudThickness->SetValue(fTemp);
 
+	fTemp = 0;
 	if (GameIniDefault.GetIfExists("VR", "CameraForward", &fTemp))
 		CameraForward->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "CameraForward", &fTemp))
 		CameraForward->SetValue(fTemp);
 
+	fTemp = 0;
 	if (GameIniDefault.GetIfExists("VR", "CameraPitch", &fTemp))
 		CameraPitch->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "CameraPitch", &fTemp))
 		CameraPitch->SetValue(fTemp);
 
+	fTemp = 7;
 	if (GameIniDefault.GetIfExists("VR", "AimDistance", &fTemp))
 		AimDistance->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "AimDistance", &fTemp))
 		AimDistance->SetValue(fTemp);
 
+	fTemp = 2;
 	if (GameIniDefault.GetIfExists("VR", "ScreenHeight", &fTemp))
 		ScreenHeight->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "ScreenHeight", &fTemp))
 		ScreenHeight->SetValue(fTemp);
 
+	fTemp = 1.5f;
 	if (GameIniDefault.GetIfExists("VR", "ScreenDistance", &fTemp))
 		ScreenDistance->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "ScreenDistance", &fTemp))
 		ScreenDistance->SetValue(fTemp);
 
+	fTemp = 0.5f;
 	if (GameIniDefault.GetIfExists("VR", "ScreenThickness", &fTemp))
 		ScreenThickness->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "ScreenThickness", &fTemp))
 		ScreenThickness->SetValue(fTemp);
 
+	fTemp = 0;
 	if (GameIniDefault.GetIfExists("VR", "ScreenUp", &fTemp))
 		ScreenUp->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "ScreenUp", &fTemp))
 		ScreenUp->SetValue(fTemp);
 
+	fTemp = 0;
 	if (GameIniDefault.GetIfExists("VR", "ScreenRight", &fTemp))
 		ScreenRight->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "ScreenRight", &fTemp))
 		ScreenRight->SetValue(fTemp);
 
+	fTemp = 0;
 	if (GameIniDefault.GetIfExists("VR", "ScreenPitch", &fTemp))
 		ScreenPitch->SetValue(fTemp);
 	if (GameIniLocal.GetIfExists("VR", "ScreenPitch", &fTemp))
 		ScreenPitch->SetValue(fTemp);
 
-	GameIniDefault.Get("VR", "VRStateId", &iTemp, 0/*Not Set*/);
+	iTemp = 0;
+	GameIniDefault.GetIfExists("VR", "VRStateId", &iTemp);
 	VRState->SetSelection(iTemp);
 	if (GameIniLocal.GetIfExists("VR", "VRStateId", &iTemp))
 		VRState->SetSelection(iTemp);
 
-	GameIniDefault.Get("VR", "VRIssues", &sTemp);
+	sTemp = "";
+	GameIniDefault.GetIfExists("VR", "VRIssues", &sTemp);
 	if (!sTemp.empty())
 		VRIssues->SetValue(StrToWxStr(sTemp));
 	if (GameIniLocal.GetIfExists("VR", "VRIssues", &sTemp))
@@ -1268,13 +1283,13 @@ void CISOProperties::SaveGameIniValueFrom3StateCheckbox(const char* section, con
 	if (checkbox->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIniLocal.DeleteKey(section, key);
 	else if (!GameIniDefault.Exists(section, key))
-		GameIniLocal.Set(section, key, checkbox_val);
+		GameIniLocal.GetOrCreateSection(section)->Set(key, checkbox_val);
 	else
 	{
 		bool default_value;
-		GameIniDefault.Get(section, key, &default_value);
+		GameIniDefault.GetOrCreateSection(section)->Get(key, &default_value);
 		if (default_value != checkbox_val)
-			GameIniLocal.Set(section, key, checkbox_val);
+			GameIniLocal.GetOrCreateSection(section)->Set(key, checkbox_val);
 		else
 			GameIniLocal.DeleteKey(section, key);
 	}
@@ -1298,13 +1313,13 @@ bool CISOProperties::SaveGameConfig()
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
 			std::remove_reference<decltype((val))>::type tmp__; \
-			GameIniDefault.Get((section), (key), &tmp__); \
+			GameIniDefault.GetOrCreateSection((section))->Get((key), &tmp__); \
 			if ((val) != tmp__) \
-				GameIniLocal.Set((section), (key), (val)); \
+				GameIniLocal.GetOrCreateSection((section))->Set((key), (val)); \
 			else \
 				GameIniLocal.DeleteKey((section), (key)); \
 		} else if ((val) != (def)) \
-			GameIniLocal.Set((section), (key), (val)); \
+			GameIniLocal.GetOrCreateSection((section))->Set((key), (val)); \
 		else \
 			GameIniLocal.DeleteKey((section), (key)); \
 	} while (0)

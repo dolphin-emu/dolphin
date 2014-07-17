@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    android:layout_height="match_parent"
+    android:layout_height="48dp"
     android:gravity="left"
     android:orientation="vertical" >
 
@@ -9,12 +10,11 @@
         android:id="@+id/SideMenuTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dip"
-        android:layout_marginTop="5dip"
+        android:layout_margin="4dp"
         android:singleLine="true"
-        android:text="@+id/TextView01"
-        android:textAppearance="?android:attr/textAppearanceLarge" 
-        android:textStyle="bold"
+        tools:text="Menu Option"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:fontFamily="sans-serif-light"
         android:textColor="#FFFFFF" />
 
 </LinearLayout>

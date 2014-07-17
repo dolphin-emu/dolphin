@@ -115,6 +115,8 @@ u16 gdsp_mbox_read_l(u8 mbx)
 
 void gdsp_ifx_write(u32 addr, u32 val)
 {
+	g_dsp_cap->LogIFXWrite(addr, val);
+
 	switch (addr & 0xff)
 	{
 		case DSP_DIRQ:
@@ -190,7 +192,7 @@ void gdsp_ifx_write(u32 addr, u32 val)
 	}
 }
 
-u16 gdsp_ifx_read(u16 addr)
+static u16 _gdsp_ifx_read(u16 addr)
 {
 	switch (addr & 0xff)
 	{
@@ -235,7 +237,14 @@ u16 gdsp_ifx_read(u16 addr)
 	}
 }
 
-static void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
+u16 gdsp_ifx_read(u16 addr)
+{
+	u16 retval = _gdsp_ifx_read(addr);
+	g_dsp_cap->LogIFXRead(addr, retval);
+	return retval;
+}
+
+static const u8* gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
 	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
@@ -249,11 +258,15 @@ static void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	DSPHost::CodeLoaded((const u8*)g_dsp.iram + dsp_addr, size);
 
 	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
+
+	return dst + dsp_addr;
 }
 
-static void gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
+static const u8* gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
 {
 	ERROR_LOG(DSPLLE, "*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2, addr, size);
+
+	return nullptr;
 }
 
 #if _M_SSE >= 0x301
@@ -261,7 +274,7 @@ static const __m128i s_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405
 #endif
 
 // TODO: These should eat clock cycles.
-static void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
+static const u8* gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 {
 	u8* dst = ((u8*)g_dsp.dram);
 
@@ -282,9 +295,11 @@ static void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 		}
 	}
 	INFO_LOG(DSPLLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)", addr, dsp_addr / 2, size);
+
+	return dst + dsp_addr;
 }
 
-static void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
+static const u8* gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 {
 	const u8* src = ((const u8*)g_dsp.dram);
 
@@ -306,6 +321,8 @@ static void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 	}
 
 	INFO_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2, addr, size);
+
+	return src + dsp_addr;
 }
 
 static void gdsp_do_dma()
@@ -323,22 +340,28 @@ static void gdsp_do_dma()
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	DEBUG_LOG(DSPLLE, "DMA pc: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 #endif
+
+	const u8* copied_data_ptr;
 	switch (ctl & 0x3)
 	{
 		case (DSP_CR_DMEM | DSP_CR_TO_CPU):
-			gdsp_ddma_out(dsp_addr, addr, len);
+			copied_data_ptr = gdsp_ddma_out(dsp_addr, addr, len);
 			break;
 
 		case (DSP_CR_DMEM | DSP_CR_FROM_CPU):
-			gdsp_ddma_in(dsp_addr, addr, len);
+			copied_data_ptr = gdsp_ddma_in(dsp_addr, addr, len);
 			break;
 
 		case (DSP_CR_IMEM | DSP_CR_TO_CPU):
-			gdsp_idma_out(dsp_addr, addr, len);
+			copied_data_ptr = gdsp_idma_out(dsp_addr, addr, len);
 			break;
 
 		case (DSP_CR_IMEM | DSP_CR_FROM_CPU):
-			gdsp_idma_in(dsp_addr, addr, len);
+			copied_data_ptr = gdsp_idma_in(dsp_addr, addr, len);
 			break;
 	}
+
+	if (copied_data_ptr)
+		g_dsp_cap->LogDMA(ctl, addr, dsp_addr, len, copied_data_ptr);
+
 }

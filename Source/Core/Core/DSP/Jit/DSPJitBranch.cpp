@@ -117,7 +117,7 @@ static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 	}
 }
 
-void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
+static void r_jcc(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u16 dest = dsp_imem_read(emitter.compilePC + 1);
 	const DSPOPCTemplate *opcode = GetOpTemplate(opc);
@@ -141,7 +141,7 @@ void DSPEmitter::jcc(const UDSPInstruction opc)
 	ReJitConditional<r_jcc>(opc, *this);
 }
 
-void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)
+static void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u8 reg = (opc >> 5) & 0x7;
 	//reg can only be DSP_REG_ARx and DSP_REG_IXx now,
@@ -161,7 +161,7 @@ void DSPEmitter::jmprcc(const UDSPInstruction opc)
 	ReJitConditional<r_jmprcc>(opc, *this);
 }
 
-void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
+static void r_call(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	emitter.MOV(16, R(DX), Imm16(emitter.compilePC + 2));
 	emitter.dsp_reg_store_stack(DSP_STACK_C);
@@ -188,7 +188,7 @@ void DSPEmitter::call(const UDSPInstruction opc)
 	ReJitConditional<r_call>(opc, *this);
 }
 
-void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
+static void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	u8 reg = (opc >> 5) & 0x7;
 	emitter.MOV(16, R(DX), Imm16(emitter.compilePC + 1));
@@ -210,7 +210,7 @@ void DSPEmitter::callr(const UDSPInstruction opc)
 	ReJitConditional<r_callr>(opc, *this);
 }
 
-void r_ifcc(const UDSPInstruction opc, DSPEmitter& emitter)
+static void r_ifcc(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	emitter.MOV(16, M(&g_dsp.pc), Imm16(emitter.compilePC + 1));
 }
@@ -226,7 +226,7 @@ void DSPEmitter::ifcc(const UDSPInstruction opc)
 	WriteBranchExit(*this);
 }
 
-void r_ret(const UDSPInstruction opc, DSPEmitter& emitter)
+static void r_ret(const UDSPInstruction opc, DSPEmitter& emitter)
 {
 	emitter.dsp_reg_load_stack(DSP_STACK_C);
 	emitter.MOV(16, M(&g_dsp.pc), R(DX));

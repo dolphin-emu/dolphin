@@ -29,8 +29,6 @@ namespace WII_IPC_HLE_Interface
 #define IPC_FIRST_ID  0x00 // First IPC device ID
 #define IPC_MAX_FILES 0x10 // First IPC file ID
 
-void EnqueReplyCallback(u64 userdata, int =0);
-
 // Init
 void Init();
 
@@ -64,7 +62,9 @@ void UpdateDevices();
 
 void ExecuteCommand(u32 _Address);
 
-void EnqRequest(u32 _Address);
-void EnqReply(u32 _Address, int cycles_in_future = 0);
+void EnqueueRequest(u32 address);
+void EnqueueReply(u32 address, int cycles_in_future = 0);
+void EnqueueReply_Threadsafe(u32 address, int cycles_in_future = 0);
+void EnqueueCommandAcknowledgement(u32 _Address, int cycles_in_future = 0);
 
 } // end of namespace WII_IPC_HLE_Interface

@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/ArmEmitter.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -50,7 +52,7 @@ static void regMarkUse(RegInfo& R, InstLoc I, InstLoc Op, unsigned OpNum) {
 	unsigned& info = R.IInfo[Op - R.FirstI];
 	if (info == 0) R.IInfo[I - R.FirstI] |= 1 << (OpNum + 1);
 	if (info < 2) info++;
-	R.lastUsed[Op - R.FirstI] = max(R.lastUsed[Op - R.FirstI], I);
+	R.lastUsed[Op - R.FirstI] = std::max(R.lastUsed[Op - R.FirstI], I);
 }
 static void regClearInst(RegInfo& RI, InstLoc I) {
 	for (int i = 0; i < RegAllocSize; i++)

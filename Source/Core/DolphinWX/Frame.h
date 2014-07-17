@@ -80,6 +80,7 @@ class CRenderFrame : public wxFrame
 
 	private:
 		void OnDropFiles(wxDropFilesEvent& event);
+		static bool IsValidSavestateDropped(const std::string& filepath);
 		#ifdef _WIN32
 			// Receive WndProc messages
 			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
@@ -122,6 +123,7 @@ public:
 	void InitBitmaps();
 	void DoPause();
 	void DoStop();
+	void OnStopped();
 	void DoRecordingSave();
 	void UpdateGUI();
 	void UpdateGameList();
@@ -136,6 +138,7 @@ public:
 	void OnRenderParentClose(wxCloseEvent& event);
 	void OnRenderParentMove(wxMoveEvent& event);
 	bool RendererHasFocus();
+	bool UIHasFocus();
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
@@ -184,6 +187,7 @@ private:
 	bool m_bTabSplit;
 	bool m_bNoDocking;
 	bool m_bGameLoading;
+	bool m_bClosing;
 
 	std::vector<std::string> drives;
 
@@ -343,6 +347,7 @@ private:
 	void OnRenderParentResize(wxSizeEvent& event);
 	bool RendererIsFullscreen();
 	void StartGame(const std::string& filename);
+	void OnChangeColumnsVisible(wxCommandEvent& event);
 
 	// Event table
 	DECLARE_EVENT_TABLE();
@@ -351,7 +356,8 @@ private:
 int GetCmdForHotkey(unsigned int key);
 
 void OnAfterLoadCallback();
+void OnStoppedCallback();
 
 // For TASInputDlg
-void TASManipFunction(SPADStatus *PadStatus, int controllerID);
+void TASManipFunction(GCPadStatus* PadStatus, int controllerID);
 bool TASInputHasFocus();

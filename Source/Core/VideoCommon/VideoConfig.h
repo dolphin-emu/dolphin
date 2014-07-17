@@ -44,8 +44,6 @@ enum EFBScale
 	SCALE_4X,
 };
 
-class IniFile;
-
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -86,7 +84,7 @@ struct VideoConfig final
 	bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
 	bool bShowEFBCopyRegions;
-	bool bLogFPSToFile;
+	bool bLogRenderTimeToFile;
 
 	// Render
 	bool bWireFrame;
@@ -144,8 +142,6 @@ struct VideoConfig final
 	int iSelectedLayer;
 	int iFlashState;
 
-	//currently unused:
-	int iCompileDLsLevel;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;

@@ -51,7 +51,6 @@ static int loop_counter;
 // Vertex loaders read these. Although the scale ones should be baked into the shader.
 int tcIndex;
 int colIndex;
-TVtxAttr* pVtxAttr;
 int colElements[2];
 float posScale;
 float tcScale[8];
@@ -84,13 +83,13 @@ static const float fractionTable[32] = {
 
 using namespace Gen;
 
-void LOADERDECL PosMtx_ReadDirect_UByte()
+static void LOADERDECL PosMtx_ReadDirect_UByte()
 {
 	s_curposmtx = DataReadU8() & 0x3f;
 	PRIM_LOG("posmtx: %d, ", s_curposmtx);
 }
 
-void LOADERDECL PosMtx_Write()
+static void LOADERDECL PosMtx_Write()
 {
 	DataWrite<u8>(s_curposmtx);
 	DataWrite<u8>(0);
@@ -101,7 +100,7 @@ void LOADERDECL PosMtx_Write()
 	s_curposmtx = (u8) MatrixIndexA.PosNormalMtxIdx;
 }
 
-void LOADERDECL UpdateBoundingBoxPrepare()
+static void LOADERDECL UpdateBoundingBoxPrepare()
 {
 	if (!PixelEngine::bbox_active)
 		return;
@@ -112,7 +111,7 @@ void LOADERDECL UpdateBoundingBoxPrepare()
 	VertexManager::s_pCurBufferPointer = (u8*)s_bbox_vertex_buffer;
 }
 
-inline bool UpdateBoundingBoxVars()
+static inline bool UpdateBoundingBoxVars()
 {
 	switch (s_bbox_primitive)
 	{
@@ -198,7 +197,7 @@ inline bool UpdateBoundingBoxVars()
 	}
 }
 
-void LOADERDECL UpdateBoundingBox()
+static void LOADERDECL UpdateBoundingBox()
 {
 	if (!PixelEngine::bbox_active)
 		return;
@@ -431,25 +430,25 @@ void LOADERDECL UpdateBoundingBox()
 	PixelEngine::bbox[3] = (bottom > PixelEngine::bbox[3]) ? bottom : PixelEngine::bbox[3];
 }
 
-void LOADERDECL TexMtx_ReadDirect_UByte()
+static void LOADERDECL TexMtx_ReadDirect_UByte()
 {
 	s_curtexmtx[s_texmtxread] = DataReadU8() & 0x3f;
 	PRIM_LOG("texmtx%d: %d, ", s_texmtxread, s_curtexmtx[s_texmtxread]);
 	s_texmtxread++;
 }
 
-void LOADERDECL TexMtx_Write_Float()
+static void LOADERDECL TexMtx_Write_Float()
 {
 	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
-void LOADERDECL TexMtx_Write_Float2()
+static void LOADERDECL TexMtx_Write_Float2()
 {
 	DataWrite(0.f);
 	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
-void LOADERDECL TexMtx_Write_Float4()
+static void LOADERDECL TexMtx_Write_Float4()
 {
 	DataWrite(0.f);
 	DataWrite(0.f);
@@ -463,7 +462,6 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_compiledCode = nullptr;
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
-	m_NativeFmt = nullptr;
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
@@ -488,7 +486,6 @@ VertexLoader::~VertexLoader()
 	#ifdef USE_VERTEX_LOADER_JIT
 	FreeCodeSpace();
 	#endif
-	delete m_NativeFmt;
 }
 
 void VertexLoader::CompileVertexTranslator()
@@ -769,13 +766,11 @@ void VertexLoader::CompileVertexTranslator()
 	SUB(32, M(&loop_counter), Imm8(1));
 #endif
 
-	J_CC(CC_NZ, loop_start, true);
+	J_CC(CC_NZ, loop_start);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 #endif
-	m_NativeFmt = g_vertex_manager->CreateNativeVertexFormat();
-	m_NativeFmt->m_components = components;
-	m_NativeFmt->Initialize(vtx_decl);
+	m_NativeFmt = VertexLoaderManager::GetNativeVertexFormat(vtx_decl, components);
 }
 
 void VertexLoader::WriteCall(TPipelineFunction func)
@@ -825,9 +820,6 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	// Flush if our vertex format is different from the currently set.
 	if (g_nativeVertexFmt != nullptr && g_nativeVertexFmt != m_NativeFmt)
 	{
-		// We really must flush here. It's possible that the native representations
-		// of the two vtx formats are the same, but we have no way to easily check that
-		// now.
 		VertexManager::Flush();
 		// Also move the Set() here?
 	}
@@ -844,7 +836,6 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	m_VtxAttr.texCoord[6].Frac = g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
 	m_VtxAttr.texCoord[7].Frac = g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
 
-	pVtxAttr = &m_VtxAttr;
 	posScale = fractionTable[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components & VB_HAS_UVALL)
 		for (int i = 0; i < 8; i++)

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="ActionReplay">
@@ -410,6 +410,12 @@
     <ClCompile Include="HW\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
+    <ClCompile Include="HW\GCMemcardDirectory.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\GCMemcardRaw.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClCompile>
     <ClCompile Include="HW\GCPad.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
     </ClCompile>
@@ -515,6 +521,9 @@
     <ClCompile Include="DSP\DSPAnalyzer.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
+    <ClCompile Include="DSP\DSPCaptureLogger.cpp">
+      <Filter>DSPCore</Filter>
+    </ClCompile>
     <ClCompile Include="DSP\DSPCodeUtil.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
@@ -591,9 +600,6 @@
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\JitInterface.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\LUT_frsqrtex.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\PowerPC.cpp">
@@ -930,6 +936,12 @@
     <ClInclude Include="HW\GCMemcard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
+    <ClInclude Include="HW\GCMemcardDirectory.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCMemcardRaw.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
     <ClInclude Include="HW\GCPadEmu.h">
       <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
     </ClInclude>
@@ -993,9 +1005,6 @@
     <ClInclude Include="HW\WiimoteEmu\MatrixMath.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WiimoteEmu\UDPTLayer.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
-    </ClInclude>
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClInclude>
@@ -1039,6 +1048,9 @@
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPBreakpoints.h">
+      <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\DSPCaptureLogger.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPCodeUtil.h">
@@ -1141,9 +1153,6 @@
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitInterface.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\LUT_frsqrtex.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\PowerPC.h">

@@ -51,19 +51,6 @@ void CommonAsmRoutines::GenFifoFloatWrite()
 	RET();
 }
 
-void CommonAsmRoutines::GenFifoXmm64Write()
-{
-	// Assume value in XMM0. Assume pre-byteswapped (unlike the others here!)
-	PUSH(ESI);
-	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
-	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
-	MOVQ_xmm(MComplex(RAX, RSI, 1, 0), XMM0);
-	ADD(32, R(ESI), Imm8(8));
-	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
-	POP(ESI);
-	RET();
-}
-
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 
 static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -279,7 +266,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	// Easy!
 	const u8* storeSingleFloat = AlignCode4();
-	SafeWriteFloatToReg(XMM0, ECX, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
+	SafeWriteF32ToReg(XMM0, ECX, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
 	/*
 	if (cpu_info.bSSSE3) {

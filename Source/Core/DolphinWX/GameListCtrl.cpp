@@ -82,9 +82,7 @@
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
-bool sorted = false;
-
-extern CFrame* main_frame;
+static bool sorted = false;
 
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
                                 long sortData = CGameListCtrl::COLUMN_TITLE)
@@ -143,6 +141,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 					iso2->GetCompany() : iso2->GetDescription(indexOther);
 				return strcasecmp(cmp1.c_str(), cmp2.c_str()) * t;
 			}
+		case CGameListCtrl::COLUMN_ID:
+			 return strcasecmp(iso1->GetUniqueID().c_str(), iso2->GetUniqueID().c_str()) * t;
 		case CGameListCtrl::COLUMN_COUNTRY:
 			if (iso1->GetCountry() > iso2->GetCountry())
 				return  1 * t;
@@ -181,11 +181,6 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	return 0;
 }
 
-bool operator < (const GameListItem &one, const GameListItem &other)
-{
-	return CompareGameListItems(&one, &other) < 0;
-}
-
 BEGIN_EVENT_TABLE(wxEmuStateTip, wxTipWindow)
 	EVT_KEY_DOWN(wxEmuStateTip::OnKeyDown)
 END_EVENT_TABLE()
@@ -208,14 +203,13 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
 	EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
 	EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
+	EVT_MENU(IDM_LIST_CHANGEDISC, CGameListCtrl::OnChangeDisc)
 END_EVENT_TABLE()
 
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 		wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style), toolTip(nullptr)
 {
-	DragAcceptFiles(true);
-	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CGameListCtrl::OnDropFiles), nullptr, this);
 }
 
 CGameListCtrl::~CGameListCtrl()
@@ -317,6 +311,7 @@ void CGameListCtrl::Update()
 		// wii titles We show in the same column : company for GC games and
 		// description for wii/wad games
 		InsertColumn(COLUMN_NOTES, _("Notes"));
+		InsertColumn(COLUMN_ID, _("ID"));
 		InsertColumn(COLUMN_COUNTRY, "");
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
@@ -329,18 +324,19 @@ void CGameListCtrl::Update()
 
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_DUMMY,0);
-		SetColumnWidth(COLUMN_PLATFORM, 35 + platform_padding);
-		SetColumnWidth(COLUMN_BANNER, 96 + platform_padding);
-		SetColumnWidth(COLUMN_TITLE, 200 + platform_padding);
-		SetColumnWidth(COLUMN_NOTES, 200 + platform_padding);
-		SetColumnWidth(COLUMN_COUNTRY, 32 + platform_padding);
-		SetColumnWidth(COLUMN_EMULATION_STATE, 50 + platform_padding);
+		SetColumnWidth(COLUMN_PLATFORM, SConfig::GetInstance().m_showSystemColumn ? 35 + platform_padding : 0);
+		SetColumnWidth(COLUMN_BANNER, SConfig::GetInstance().m_showBannerColumn ? 96 + platform_padding : 0);
+		SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
+		SetColumnWidth(COLUMN_NOTES, SConfig::GetInstance().m_showNotesColumn ? 150 + platform_padding : 0);
+		SetColumnWidth(COLUMN_ID, SConfig::GetInstance().m_showIDColumn ? 75 + platform_padding : 0);
+		SetColumnWidth(COLUMN_COUNTRY, SConfig::GetInstance().m_showRegionColumn ? 32 + platform_padding : 0);
+		SetColumnWidth(COLUMN_EMULATION_STATE, SConfig::GetInstance().m_showStateColumn ? 50 + platform_padding : 0);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
 		{
 			InsertItemInReportView(i);
-			if (m_ISOFiles[i]->IsCompressed())
+			if (SConfig::GetInstance().m_ColorCompressed && m_ISOFiles[i]->IsCompressed())
 				SetItemTextColour(i, wxColour(0xFF0000));
 		}
 
@@ -356,7 +352,7 @@ void CGameListCtrl::Update()
 		OnColumnClick(event);
 		sorted = true;
 
-		SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
+		SetColumnWidth(COLUMN_SIZE, SConfig::GetInstance().m_showSizeColumn ? wxLIST_AUTOSIZE : 0);
 	}
 	else
 	{
@@ -391,7 +387,7 @@ void CGameListCtrl::Update()
 	SetFocus();
 }
 
-wxString NiceSizeFormat(u64 _size)
+static wxString NiceSizeFormat(u64 _size)
 {
 	// Return a pretty filesize string from byte count.
 	// e.g. 1134278 -> "1.08 MiB"
@@ -444,7 +440,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	std::string const name = rISOFile.GetName(SelectedLanguage);
 	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
-	// We show the company string on Gamecube only
+	// We show the company string on GameCube only
 	// On Wii we show the description instead as the company string is empty
 	std::string const notes = (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
 		rISOFile.GetCompany() : rISOFile.GetDescription(SelectedLanguage);
@@ -459,6 +455,9 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// File size
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
 
+	// Game ID
+	SetItem(_Index, COLUMN_ID, rISOFile.GetUniqueID(), -1);
+
 	// Background color
 	SetBackgroundColor();
 
@@ -466,7 +465,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	SetItemData(_Index, ItemIndex);
 }
 
-wxColour blend50(const wxColour& c1, const wxColour& c2)
+static wxColour blend50(const wxColour& c1, const wxColour& c2)
 {
 	unsigned char r,g,b,a;
 	r = c1.Red()/2   + c2.Red()/2;
@@ -651,12 +650,8 @@ const GameListItem *CGameListCtrl::GetISO(size_t index) const
 		return nullptr;
 }
 
-CGameListCtrl *caller;
-#if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
-#else // 2.8.x
-int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
-#endif
+static CGameListCtrl *caller;
+static int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 	// return 1 if item1 > item2
 	// return -1 if item1 < item2
@@ -899,6 +894,12 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			{
 				popupMenu->Append(IDM_LIST_INSTALLWAD, _("Install to Wii Menu"));
 			}
+			if (selected_iso->GetPlatform() == GameListItem::GAMECUBE_DISC ||
+				selected_iso->GetPlatform() == GameListItem::WII_DISC)
+			{
+				wxMenuItem* changeDiscItem = popupMenu->Append(IDM_LIST_CHANGEDISC, _("Change &Disc"));
+				changeDiscItem->Enable(Core::IsRunning());
+			}
 
 			PopupMenu(popupMenu);
 		}
@@ -1063,12 +1064,12 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 	WxUtils::Launch(wikiUrl);
 }
 
-void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
+void CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void* arg)
 {
 	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
 	wxString textString(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
 				m_currentFilename.c_str(), (int)m_currentItem+1,
-				(int)m_numberItem, text)));
+				(int)m_numberItem, text.c_str())));
 
 	((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
 }
@@ -1173,7 +1174,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	Update();
 }
 
-void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
+void CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg)
 {
 	((wxProgressDialog*)arg)->
 		Update((int)(percent*1000), StrToWxStr(text));
@@ -1198,7 +1199,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 			if (iso->GetPlatform() == GameListItem::WII_DISC)
 				FileType = _("All Wii ISO files (iso)") + "|*.iso";
 			else
-				FileType = _("All Gamecube GCM files (gcm)") + "|*.gcm";
+				FileType = _("All GameCube GCM files (gcm)") + "|*.gcm";
 
 			path = wxFileSelector(
 					_("Save decompressed GCM/ISO"),
@@ -1259,6 +1260,14 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	Update();
 }
 
+void CGameListCtrl::OnChangeDisc(wxCommandEvent& WXUNUSED(event))
+{
+	const GameListItem *iso = GetSelectedISO();
+	if (!iso || !Core::IsRunning())
+		return;
+	DVDInterface::ChangeDisc(WxStrToStr(iso->GetFileName()));
+}
+
 void CGameListCtrl::OnSize(wxSizeEvent& event)
 {
 	if (lastpos == event.GetSize())
@@ -1278,20 +1287,29 @@ void CGameListCtrl::AutomaticColumnWidth()
 	{
 		SetColumnWidth(0, rc.GetWidth());
 	}
-	else if (GetColumnCount() > 4)
+	else if (GetColumnCount() > 0)
 	{
+
 		int resizable = rc.GetWidth() - (
-			GetColumnWidth(COLUMN_BANNER)
+			GetColumnWidth(COLUMN_PLATFORM)
+			+ GetColumnWidth(COLUMN_BANNER)
+			+ GetColumnWidth(COLUMN_ID)
 			+ GetColumnWidth(COLUMN_COUNTRY)
 			+ GetColumnWidth(COLUMN_SIZE)
-			+ GetColumnWidth(COLUMN_EMULATION_STATE)
-			+ GetColumnWidth(COLUMN_PLATFORM));
+			+ GetColumnWidth(COLUMN_EMULATION_STATE));
 
 		// We hide the Notes column if the window is too small
 		if (resizable > 400)
 		{
-			SetColumnWidth(COLUMN_TITLE, resizable / 2);
-			SetColumnWidth(COLUMN_NOTES, resizable / 2);
+			if (SConfig::GetInstance().m_showNotesColumn)
+			{
+				SetColumnWidth(COLUMN_TITLE, resizable / 2);
+				SetColumnWidth(COLUMN_NOTES, resizable / 2);
+			}
+			else
+			{
+				SetColumnWidth(COLUMN_TITLE, resizable);
+			}
 		}
 		else
 		{
@@ -1306,39 +1324,5 @@ void CGameListCtrl::UnselectAll()
 	for (int i=0; i<GetItemCount(); i++)
 	{
 		SetItemState(i, 0, wxLIST_STATE_SELECTED);
-	}
-}
-
-void CGameListCtrl::OnDropFiles(wxDropFilesEvent& event)
-{
-	if (event.GetNumberOfFiles() != 1)
-		return;
-	if (File::IsDirectory(WxStrToStr(event.GetFiles()[0])))
-		return;
-
-	wxFileName file = event.GetFiles()[0];
-
-	if (file.GetExt() == "dtm")
-	{
-		if (Core::IsRunning())
-			return;
-
-		if (!Movie::IsReadOnly())
-		{
-			// let's make the read-only flag consistent at the start of a movie.
-			Movie::SetReadOnly(true);
-			main_frame->GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
-		}
-
-		if (Movie::PlayInput(WxStrToStr(file.GetFullPath())))
-			main_frame->BootGame("");
-	}
-	else if (!Core::IsRunning())
-	{
-		main_frame->BootGame(WxStrToStr(file.GetFullPath()));
-	}
-	else
-	{
-		DVDInterface::ChangeDisc(WxStrToStr(file.GetFullPath()));
 	}
 }

@@ -123,8 +123,8 @@ public final class FolderBrowser extends ListFragment
 		if(currentDir == null)
 			currentDir = new File(Environment.getExternalStorageDirectory().getPath());
 
-		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
-		adapter = new FolderBrowserAdapter(getActivity(), R.layout.gamelist_folderbrowser_list_item);
+		ListView rootView = (ListView) inflater.inflate(R.layout.folderbrowser_listview, container, false);
+		adapter = new FolderBrowserAdapter(getActivity(), R.layout.folderbrowser_list_item);
 		rootView.setAdapter(adapter);
 
 		Fill(currentDir);

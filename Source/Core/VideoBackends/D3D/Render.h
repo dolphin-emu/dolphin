@@ -9,7 +9,7 @@ namespace DX11
 class Renderer : public ::Renderer
 {
 public:
-	Renderer();
+	Renderer(void *&window_handle);
 	~Renderer();
 
 	void SetColorMask() override;

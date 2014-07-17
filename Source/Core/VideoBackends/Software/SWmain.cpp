@@ -7,8 +7,8 @@
 #include "Common/Atomic.h"
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
-#include "Common/LogManager.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -35,6 +35,7 @@
 #include "VideoBackends/Software/VideoConfigDialog.h"
 #endif // HAVE_WX
 
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/XFMemory.h"
@@ -60,11 +61,6 @@ static std::mutex m_csSWVidOccupied;
 std::string VideoSoftware::GetName() const
 {
 	return _trans("Software Renderer");
-}
-
-void *DllDebugger(void *_hParent, bool Show)
-{
-	return nullptr;
 }
 
 void VideoSoftware::ShowConfig(void *_hParent)
@@ -236,6 +232,9 @@ void VideoSoftware::Video_EndField()
 		}
 	}
 
+	// Dump frame if needed
+	DebugUtil::OnFrameEnd(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+
 	// Ideally we would just move all the OpenGL context stuff to the CPU thread,
 	// but this gets messy when the hardware rasterizer is enabled.
 	// And neobrain loves his hardware rasterizer.
@@ -360,16 +359,6 @@ void VideoSoftware::Video_GatherPipeBursted()
 bool VideoSoftware::Video_IsPossibleWaitingSetDrawDone(void)
 {
 	return false;
-}
-
-bool VideoSoftware::Video_IsHiWatermarkActive(void)
-{
-	return false;
-}
-
-
-void VideoSoftware::Video_AbortFrame(void)
-{
 }
 
 void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)

@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
-#include "VideoCommon/EmuWindow.h"
+//#include "VideoCommon/EmuWindow.h"
 #include "VideoCommon/VR920.h"
 #endif
 
@@ -87,7 +87,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
 		cfg.OGL.Header.Multisample = 0;
 #ifdef _WIN32
-		cfg.OGL.Window = EmuWindow::GetWnd();
+		cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
+		//cfg.OGL.Window = EmuWindow::GetWnd();
 #endif
 		ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Chromatic | ovrDistortionCap_TimeWarp,
 			g_eye_fov, g_eye_render_desc);

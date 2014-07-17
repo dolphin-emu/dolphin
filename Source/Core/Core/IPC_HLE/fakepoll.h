@@ -15,10 +15,9 @@
 // * don't set POLLIN or POLLOUT in revents if it wasn't requested
 //   in events (only happens when an fd is in the poll set twice)
 
-#if (_WIN32_WINNT < _WIN32_WINNT_VISTA)
+#pragma once
 
-#ifndef _FAKE_POLL_H
-#define _FAKE_POLL_H
+#if (_WIN32_WINNT < _WIN32_WINNT_VISTA)
 
 #include <limits.h>
 #include <sys/types.h>
@@ -157,8 +156,6 @@ inline int poll(struct pollfd *pollSet, int pollCount, int pollTimeout)
 	}
 	return result;
 }
-
-#endif
 
 #else // (_WIN32_WINNT < _WIN32_WINNT_VISTA)
 

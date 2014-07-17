@@ -87,7 +87,7 @@ END_EVENT_TABLE()
 // Class
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *parent,
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
-	: wxPanel((wxWindow*)parent, id, position, size, style, name)
+	: wxPanel(parent, id, position, size, style, name)
 	, Parent(parent)
 	, m_RegisterWindow(nullptr)
 	, m_BreakpointWindow(nullptr)
@@ -195,10 +195,18 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 	Parent->UpdateGUI();
 }
 
-void CCodeWindow::JumpToAddress(u32 _Address)
+bool CCodeWindow::JumpToAddress(u32 address)
 {
-	codeview->Center(_Address);
-	UpdateLists();
+	// Jump to anywhere in memory
+	if (address <= 0xFFFFFFFF)
+	{
+		codeview->Center(address);
+		UpdateLists();
+
+		return true;
+	}
+
+	return false;
 }
 
 void CCodeWindow::OnCodeViewChange(wxCommandEvent &event)
@@ -208,21 +216,30 @@ void CCodeWindow::OnCodeViewChange(wxCommandEvent &event)
 
 void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 {
-	if (!GetToolBar()) return;
+	if (!GetToolBar())
+		return;
 
 	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
-	wxString txt = pAddrCtrl->GetValue();
 
-	std::string text(WxStrToStr(txt));
-	text = StripSpaces(text);
-	if (text.size() == 8)
+	// Trim leading and trailing whitespace.
+	wxString txt = pAddrCtrl->GetValue().Trim().Trim(false);
+
+	bool success = false;
+	unsigned long addr;
+	if (txt.ToULong(&addr, 16))
 	{
-		u32 addr;
-		sscanf(text.c_str(), "%08x", &addr);
-		JumpToAddress(addr);
+		if (JumpToAddress(addr))
+			success = true;
 	}
 
-	event.Skip(1);
+	if (success)
+		pAddrCtrl->SetBackgroundColour(wxNullColour);
+	else
+		pAddrCtrl->SetBackgroundColour(*wxRED);
+
+	pAddrCtrl->Refresh();
+
+	event.Skip();
 }
 
 void CCodeWindow::OnCallstackListChange(wxCommandEvent& event)

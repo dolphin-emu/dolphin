@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Base">
@@ -30,9 +30,6 @@
     <ClCompile Include="VideoBackendBase.cpp" />
     <ClCompile Include="VideoConfig.cpp" />
     <ClCompile Include="Debugger.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
-    <ClCompile Include="EmuWindow.cpp">
       <Filter>Base</Filter>
     </ClCompile>
     <ClCompile Include="FramebufferManagerBase.cpp">
@@ -81,9 +78,6 @@
       <Filter>Shader Generators</Filter>
     </ClCompile>
     <ClCompile Include="TextureConversionShader.cpp">
-      <Filter>Shader Generators</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureDecoder_x64.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
     <ClCompile Include="VertexShaderGen.cpp">
@@ -138,6 +132,9 @@
       <Filter>Vertex Loading</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="TextureDecoder_x64.cpp">
+      <Filter>Decoding</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -148,9 +145,6 @@
     <ClInclude Include="VideoCommon.h" />
     <ClInclude Include="VideoConfig.h" />
     <ClInclude Include="Debugger.h">
-      <Filter>Base</Filter>
-    </ClInclude>
-    <ClInclude Include="EmuWindow.h">
       <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="FramebufferManagerBase.h">

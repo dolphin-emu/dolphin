@@ -42,6 +42,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/ISOFile.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -56,10 +57,9 @@ END_EVENT_TABLE()
 
 static NetPlayServer* netplay_server = nullptr;
 static NetPlayClient* netplay_client = nullptr;
-extern CFrame* main_frame;
 NetPlayDiag *NetPlayDiag::npd = nullptr;
 
-std::string BuildGameName(const GameListItem& game)
+static std::string BuildGameName(const GameListItem& game)
 {
 	// Lang needs to be consistent
 	auto const lang = 0;
@@ -74,7 +74,7 @@ std::string BuildGameName(const GameListItem& game)
 		return name + " (" + game.GetUniqueID() + ")";
 }
 
-void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
+static void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
 {
 	for (u32 i = 0 ; auto game = game_list.GetISO(i); ++i)
 		game_lbox->Append(StrToWxStr(BuildGameName(*game)));
@@ -355,6 +355,12 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	// player list
 	if (is_hosting)
 	{
+		m_player_lbox->Bind(wxEVT_LISTBOX, &NetPlayDiag::OnPlayerSelect, this);
+		m_kick_btn = new wxButton(panel, wxID_ANY, _("Kick Player"));
+		m_kick_btn->Bind(wxEVT_BUTTON, &NetPlayDiag::OnKick, this);
+		player_szr->Add(m_kick_btn, 0, wxEXPAND | wxTOP, 5);
+		m_kick_btn->Disable();
+
 		wxButton* const player_config_btn = new wxButton(panel, wxID_ANY, _("Configure Pads"));
 		player_config_btn->Bind(wxEVT_BUTTON, &NetPlayDiag::OnConfigPads, this);
 		player_szr->Add(player_config_btn, 0, wxEXPAND | wxTOP, 5);
@@ -422,14 +428,15 @@ NetPlayDiag::~NetPlayDiag()
 
 void NetPlayDiag::OnChat(wxCommandEvent&)
 {
-	wxString s = m_chat_msg_text->GetValue();
+	wxString text = m_chat_msg_text->GetValue();
 
-	if (s.Length())
+	if (!text.empty())
 	{
-		if (s.Length() > 2000)
-			s.erase(2000);
-		netplay_client->SendChatMessage(WxStrToStr(s));
-		m_chat_text->AppendText(s.Prepend(" >> ").Append('\n'));
+		if (text.length() > 2000)
+			text.erase(2000);
+
+		netplay_client->SendChatMessage(WxStrToStr(text));
+		m_chat_text->AppendText(text.Prepend(" >> ").Append('\n'));
 		m_chat_msg_text->Clear();
 	}
 }
@@ -539,14 +546,40 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 	std::string tmps;
 	netplay_client->GetPlayerList(tmps, m_playerids);
 
-	const int selection = m_player_lbox->GetSelection();
+	wxString selection;
+	if (m_player_lbox->GetSelection() != wxNOT_FOUND)
+		selection = m_player_lbox->GetString(m_player_lbox->GetSelection());
 
 	m_player_lbox->Clear();
 	std::istringstream ss(tmps);
 	while (std::getline(ss, tmps))
 		m_player_lbox->Append(StrToWxStr(tmps));
 
-	m_player_lbox->SetSelection(selection);
+	// remove ping from selection string, in case it has changed
+	selection.erase(selection.find_last_of("|") + 1);
+
+	if (!selection.empty())
+	{
+		for (unsigned int i = 0; i < m_player_lbox->GetCount(); ++i)
+		{
+			if (selection == m_player_lbox->GetString(i).Mid(0, selection.length()))
+			{
+				m_player_lbox->SetSelection(i);
+				break;
+			}
+		}
+	}
+
+	// flash window in taskbar when someone joins if window isn't active
+	static u8 numPlayers = 1;
+	bool focus = (wxWindow::FindFocus() == this || (wxWindow::FindFocus() != nullptr && wxWindow::FindFocus()->GetParent() == this) ||
+	             (wxWindow::FindFocus() != nullptr && wxWindow::FindFocus()->GetParent() != nullptr
+	              && wxWindow::FindFocus()->GetParent()->GetParent() == this));
+	if (netplay_server != nullptr && numPlayers < m_playerids.size() && !focus)
+	{
+		RequestUserAttention();
+	}
+	numPlayers = m_playerids.size();
 
 	switch (event.GetId())
 	{
@@ -607,6 +640,27 @@ void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 	pmd.ShowModal();
 	netplay_server->SetPadMapping(mapping);
 	netplay_server->SetWiimoteMapping(wiimotemapping);
+}
+
+void NetPlayDiag::OnKick(wxCommandEvent&)
+{
+	wxString selection = m_player_lbox->GetStringSelection();
+	unsigned long player = 0;
+	selection.Mid(selection.find_last_of("[") + 1, selection.find_last_of("]")).ToULong(&player);
+
+	netplay_server->KickPlayer((u8)player);
+
+	m_player_lbox->SetSelection(wxNOT_FOUND);
+	wxCommandEvent event;
+	OnPlayerSelect(event);
+}
+
+void NetPlayDiag::OnPlayerSelect(wxCommandEvent&)
+{
+	if (m_player_lbox->GetSelection() > 0)
+		m_kick_btn->Enable();
+	else
+		m_kick_btn->Disable();
 }
 
 bool NetPlayDiag::IsRecording()

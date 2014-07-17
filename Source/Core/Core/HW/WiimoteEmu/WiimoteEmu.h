@@ -12,7 +12,6 @@
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "InputCommon/ControllerEmu.h"
-#include "InputCommon/UDPWrapper.h"
 
 // Registry sizes
 #define WIIMOTE_EEPROM_SIZE       (16*1024)
@@ -68,8 +67,6 @@ struct ExtensionReg
 	u8 constant_id[6];
 };
 
-extern const ReportFeatures reporting_mode_features[];
-
 void FillRawAccelFromGForceData(wm_accel& raw_accel,
 	const accel_cal& calib,
 	const WiimoteEmu::AccelData& accel);
@@ -80,7 +77,7 @@ void EmulateShake(AccelData* const accel_data
 
 void EmulateTilt(AccelData* const accel
 	 , ControllerEmu::Tilt* const tilt_group
-	 , const bool focus, const bool sideways = false, const bool upright = false);
+	 , const bool sideways = false, const bool upright = false);
 
 void EmulateSwing(AccelData* const accel
 	 , ControllerEmu::Force* const tilt_group
@@ -131,7 +128,7 @@ protected:
 	bool Step();
 	void HidOutputReport(const wm_report* const sr, const bool send_ack = true);
 	void HandleExtensionSwap();
-	void UpdateButtonsStatus(bool has_focus);
+	void UpdateButtonsStatus();
 
 	void GetCoreData(u8* const data);
 	void GetAccelData(u8* const data);
@@ -176,8 +173,6 @@ private:
 	const u8       m_index;
 
 	double ir_sin, ir_cos; //for the low pass filter
-
-	UDPWrapper* m_udp;
 
 	bool m_rumble_on;
 	bool m_speaker_mute;

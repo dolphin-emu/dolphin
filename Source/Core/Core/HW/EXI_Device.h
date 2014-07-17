@@ -17,6 +17,8 @@ enum TEXIDevices
 	EXIDEVICE_ETH,
 	EXIDEVICE_AM_BASEBOARD,
 	EXIDEVICE_GECKO,
+	EXIDEVICE_MEMORYCARDFOLDER, // Only used when creating a device by EXIDevice_Create
+	                            // Converted to EXIDEVICE_MEMORYCARD internally
 	EXIDEVICE_NONE = (u8)-1
 };
 
@@ -42,9 +44,6 @@ public:
 	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) {}
 	virtual IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) { return (device_type == m_deviceType) ? this : nullptr; }
 
-	// Update
-	virtual void Update() {}
-
 	// Is generating interrupt ?
 	virtual bool IsInterruptSet() {return false;}
 	virtual ~IEXIDevice() {}
@@ -54,4 +53,4 @@ public:
 	TEXIDevices m_deviceType;
 };
 
-extern IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
+IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);

@@ -30,10 +30,10 @@ namespace PowerPC
 
 // STATE_TO_SAVE
 PowerPCState GC_ALIGNED16(ppcState);
-volatile CPUState state = CPU_STEPPING;
+static volatile CPUState state = CPU_STEPPING;
 
 Interpreter * const interpreter = Interpreter::getInstance();
-CoreMode mode;
+static CoreMode mode;
 
 BreakPoints breakpoints;
 MemChecks memchecks;
@@ -74,7 +74,7 @@ void DoState(PointerWrap &p)
 	JitInterface::DoState(p);
 }
 
-void ResetRegisters()
+static void ResetRegisters()
 {
 	memset(ppcState.ps, 0, sizeof(ppcState.ps));
 	memset(ppcState.gpr, 0, sizeof(ppcState.gpr));
@@ -115,7 +115,6 @@ void Init(int cpu_core)
 {
 	FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
 
-	memset(ppcState.mojs, 0, sizeof(ppcState.mojs));
 	memset(ppcState.sr, 0, sizeof(ppcState.sr));
 	ppcState.DebugCount = 0;
 	ppcState.dtlb_last = 0;
@@ -361,7 +360,7 @@ void CheckExceptions()
 	}
 	else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
 	{
-		//This happens a lot - Gamecube OS uses deferred FPU context switching
+		//This happens a lot - GameCube OS uses deferred FPU context switching
 		SRR0 = PC; // re-execute the instruction
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;

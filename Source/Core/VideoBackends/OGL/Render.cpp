@@ -58,7 +58,6 @@
 #endif
 
 #ifdef _WIN32
-#include "VideoCommon/EmuWindow.h"
 #endif
 #if defined _WIN32 || defined HAVE_LIBAV
 #include "VideoCommon/AVIDump.h"
@@ -71,7 +70,7 @@ void VideoConfig::UpdateProjectionHack()
 	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
-int OSDInternalW, OSDInternalH;
+static int OSDInternalW, OSDInternalH;
 
 namespace OGL
 {
@@ -115,9 +114,10 @@ static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
 static const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
 static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
+static bool s_efbCacheIsCleared = false;
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-int GetNumMSAASamples(int MSAAMode)
+static int GetNumMSAASamples(int MSAAMode)
 {
 	int samples;
 	switch (MSAAMode)
@@ -150,7 +150,7 @@ int GetNumMSAASamples(int MSAAMode)
 	return g_ogl_config.max_samples;
 }
 
-void ApplySSAASettings() {
+static void ApplySSAASettings() {
 	// GLES3 doesn't support SSAA
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
@@ -168,7 +168,8 @@ void ApplySSAASettings() {
 	}
 }
 
-void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
+#if defined(_DEBUG) || defined(DEBUGFAST)
+static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
 	const char *s_source;
 	const char *s_type;
@@ -201,18 +202,19 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
 }
+#endif
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
-void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
+static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 {
 	glDepthRange(neardepth, fardepth);
 }
-void GLAPIENTRY ClearDepthf(GLfloat depthval)
+static void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
 }
 
-void InitDriverInfo()
+static void InitDriverInfo()
 {
 	std::string svendor = std::string(g_ogl_config.gl_vendor);
 	std::string srenderer = std::string(g_ogl_config.gl_renderer);
@@ -346,7 +348,7 @@ Renderer::Renderer()
 	s_fps=0;
 	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
-	InitFPSCounter();
+	FPSCounter::Initialize();
 
 	bool bSuccess = true;
 
@@ -468,7 +470,7 @@ Renderer::Renderer()
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
-		if (strstr(g_ogl_config.glsl_version, "3.00"))
+		if (strstr(g_ogl_config.glsl_version, "3.0"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
 		}
@@ -621,6 +623,7 @@ Renderer::Renderer()
 			}
 	}
 	UpdateActiveConfig();
+	ClearEFBCache();
 
 	{
 		/* load an image file directly as a new OpenGL texture */
@@ -926,11 +929,11 @@ void Renderer::SetColorMask()
 
 void ClearEFBCache()
 {
-	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
-		s_efbCacheValid[0][i] = false;
-
-	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
-		s_efbCacheValid[1][i] = false;
+	if (!s_efbCacheIsCleared)
+	{
+		s_efbCacheIsCleared = true;
+		memset(s_efbCacheValid, 0, sizeof(s_efbCacheValid));
+	}
 }
 
 void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data)
@@ -960,6 +963,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 	}
 
 	s_efbCacheValid[cacheType][cacheRectIdx] = true;
+	s_efbCacheIsCleared = false;
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -1346,7 +1350,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
-void DumpFrame(const std::vector<u8>& data, int w, int h)
+static void DumpFrame(const std::vector<u8>& data, int w, int h)
 {
 #if defined(HAVE_LIBAV) || defined(_WIN32)
 		if (g_ActiveConfig.bDumpFrames && !data.empty())
@@ -1540,7 +1544,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 				if (!bLastFrameDumped)
 				{
 					#ifdef _WIN32
-						bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
+						bAVIDumping = AVIDump::Start((HWND)((cInterfaceWGL*)GLInterface)->m_window_handle, w, h);
 					#else
 						bAVIDumping = AVIDump::Start(w, h);
 					#endif
@@ -1664,7 +1668,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	}
 
 	if (XFBWrited)
-		s_fps = UpdateFPSCounter();
+		s_fps = FPSCounter::Update();
 	// ---------------------------------------------------------------------
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !g_has_rift)
 	{

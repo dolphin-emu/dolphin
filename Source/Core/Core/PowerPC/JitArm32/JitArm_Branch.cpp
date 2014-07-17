@@ -29,7 +29,7 @@ using namespace ArmGen;
 void JitArm::sc(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff)
+	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush();
 	fpr.Flush();
@@ -48,7 +48,7 @@ void JitArm::sc(UGeckoInstruction inst)
 void JitArm::rfi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff)
+	JITDISABLE(bJITBranchOff);
 
 	gpr.Flush();
 	fpr.Flush();
@@ -95,7 +95,7 @@ void JitArm::rfi(UGeckoInstruction inst)
 void JitArm::bx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff)
+	JITDISABLE(bJITBranchOff);
 	// We must always process the following sentence
 	// even if the blocks are merged by PPCAnalyst::Flatten().
 	if (inst.LK)
@@ -146,11 +146,8 @@ void JitArm::bx(UGeckoInstruction inst)
 void JitArm::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff)
+	JITDISABLE(bJITBranchOff);
 	// USES_CR
-
-	gpr.Flush();
-	fpr.Flush();
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -194,6 +191,9 @@ void JitArm::bcx(UGeckoInstruction inst)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
+
+	gpr.Flush(FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FLUSH_MAINTAIN_STATE);
 	WriteExit(destination);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -202,15 +202,16 @@ void JitArm::bcx(UGeckoInstruction inst)
 		SetJumpTarget( pCTRDontBranch );
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush();
+		fpr.Flush();
 		WriteExit(js.compilerPC + 4);
+	}
 }
 void JitArm::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff)
-
-	gpr.Flush();
-	fpr.Flush();
+	JITDISABLE(bJITBranchOff);
 
 	// bcctrx doesn't decrement and/or test CTR
 	_dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
@@ -220,6 +221,9 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 		// BO_2 == 1z1zz -> b always
 
 		//NPC = CTR & 0xfffffffc;
+		gpr.Flush();
+		fpr.Flush();
+
 		ARMReg rA = gpr.GetReg();
 
 		if (inst.LK_3)
@@ -261,21 +265,25 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 			//ARMABI_MOVI2M((u32)&LR, js.compilerPC + 4);
 		}
 		gpr.Unlock(rB); // rA gets unlocked in WriteExitDestInR
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
+
 		WriteExitDestInR(rA);
 
 		SetJumpTarget(b);
 
 		if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+		{
+			gpr.Flush();
+			fpr.Flush();
 			WriteExit(js.compilerPC + 4);
+		}
 	}
 }
 void JitArm::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff)
-
-	gpr.Flush();
-	fpr.Flush();
+	JITDISABLE(bJITBranchOff);
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -326,6 +334,9 @@ void JitArm::bclrx(UGeckoInstruction inst)
 		//ARMABI_MOVI2M((u32)&LR, js.compilerPC + 4);
 	}
 	gpr.Unlock(rB); // rA gets unlocked in WriteExitDestInR
+
+	gpr.Flush(FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FLUSH_MAINTAIN_STATE);
 	WriteExitDestInR(rA);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -334,5 +345,9 @@ void JitArm::bclrx(UGeckoInstruction inst)
 		SetJumpTarget( pCTRDontBranch );
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush();
+		fpr.Flush();
 		WriteExit(js.compilerPC + 4);
+	}
 }

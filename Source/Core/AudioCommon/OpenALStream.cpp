@@ -10,7 +10,7 @@
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
-soundtouch::SoundTouch soundTouch;
+static soundtouch::SoundTouch soundTouch;
 
 //
 // AyuanX: Spec says OpenAL1.1 is thread safe already
@@ -58,7 +58,7 @@ bool OpenALStream::Start()
 	}
 
 	// Initialize DPL2 parameters
-	dpl2reset();
+	DPL2Reset();
 
 	soundTouch.clear();
 	return bReturn;
@@ -246,7 +246,7 @@ void OpenALStream::SoundLoop()
 			if (surround_capable)
 			{
 				float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
-				dpl2decode(sampleBuffer, nSamples, dpl2);
+				DPL2Decode(sampleBuffer, nSamples, dpl2);
 				alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
 				ALenum err = alGetError();
 				if (err == AL_INVALID_ENUM)
