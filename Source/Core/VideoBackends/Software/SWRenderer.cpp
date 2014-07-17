@@ -86,8 +86,8 @@ static void CreateShaders()
 
 void SWRenderer::Prepare()
 {
-	s_xfbColorTexture[0] = new u8[640*568*4];
-	s_xfbColorTexture[1] = new u8[640*568*4];
+	s_xfbColorTexture[0] = new u8[MAX_XFB_WIDTH*MAX_XFB_HEIGHT*4];
+	s_xfbColorTexture[1] = new u8[MAX_XFB_WIDTH*MAX_XFB_HEIGHT*4];
 
 	s_currentColorTexture = 0;
 
@@ -166,7 +166,7 @@ void SWRenderer::swapColorTexture() {
 
 void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight)
 {
-	if (fbWidth*fbHeight > 640*568) {
+	if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT) {
 		ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
 		return;
 	}
