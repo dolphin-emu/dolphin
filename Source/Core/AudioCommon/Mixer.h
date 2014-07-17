@@ -91,6 +91,7 @@ protected:
 			, m_LVolume(256)
 			, m_RVolume(256)
 			, m_numLeftI(0.0f)
+			, m_frac(0)
 		{
 			memset(m_buffer, 0, sizeof(m_buffer));
 		}
@@ -107,6 +108,7 @@ protected:
 		volatile s32 m_LVolume;
 		volatile s32 m_RVolume;
 		float m_numLeftI;
+		u32 m_frac;
 	};
 	MixerFifo m_dma_mixer;
 	MixerFifo m_streaming_mixer;
