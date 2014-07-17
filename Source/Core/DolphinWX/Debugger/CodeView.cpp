@@ -30,6 +30,7 @@
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
+#include "Core/Core.h"
 #include "Core/Host.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeView.h"
@@ -370,12 +371,12 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 #endif
 	menu->Append(IDM_RENAMESYMBOL, _("Rename &symbol"))->Enable(isSymbol);
 	menu->AppendSeparator();
-	menu->Append(IDM_RUNTOHERE, _("&Run To Here"));
-	menu->Append(IDM_ADDFUNCTION, _("&Add function"));
-	menu->Append(IDM_JITRESULTS, _("PPC vs X86"));
-	menu->Append(IDM_INSERTBLR, _("Insert &blr"));
-	menu->Append(IDM_INSERTNOP, _("Insert &nop"));
-	menu->Append(IDM_PATCHALERT, _("Patch alert"));
+	menu->Append(IDM_RUNTOHERE, _("&Run To Here"))->Enable(Core::IsRunning());
+	menu->Append(IDM_ADDFUNCTION, _("&Add function"))->Enable(Core::IsRunning());
+	menu->Append(IDM_JITRESULTS, _("PPC vs X86"))->Enable(Core::IsRunning());
+	menu->Append(IDM_INSERTBLR, _("Insert &blr"))->Enable(Core::IsRunning());
+	menu->Append(IDM_INSERTNOP, _("Insert &nop"))->Enable(Core::IsRunning());
+	menu->Append(IDM_PATCHALERT, _("Patch alert"))->Enable(Core::IsRunning());
 	PopupMenu(menu);
 	event.Skip();
 }
