@@ -232,9 +232,6 @@ void VideoSoftware::Video_EndField()
 		}
 	}
 
-	// Dump frame if needed
-	DebugUtil::OnFrameEnd(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
-
 	// Ideally we would just move all the OpenGL context stuff to the CPU thread,
 	// but this gets messy when the hardware rasterizer is enabled.
 	// And neobrain loves his hardware rasterizer.
@@ -242,6 +239,9 @@ void VideoSoftware::Video_EndField()
 	// If BypassXFB has already done a swap (cf. EfbCopy::CopyToXfb), skip this.
 	if (!g_SWVideoConfig.bBypassXFB)
 	{
+		// Dump frame if needed
+		DebugUtil::OnFrameEnd(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+
 		// If we are in dual core mode, notify the GPU thread about the new color texture.
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 			Common::AtomicStoreRelease(s_swapRequested, true);

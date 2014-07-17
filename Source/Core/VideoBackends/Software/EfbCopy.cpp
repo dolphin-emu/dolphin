@@ -58,6 +58,7 @@ namespace EfbCopy
 				//       This requires careful synchronization since GPU commands
 				//       are processed on a different thread than VI commands.
 				SWRenderer::Swap(fbWidth, fbHeight);
+				DebugUtil::OnFrameEnd(fbWidth, fbHeight);
 			}
 		}
 	}
