@@ -54,7 +54,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		Bitmap bitmapResized = Bitmap.createScaledBitmap(bitmap,
 				(int)(dm.heightPixels * scale),
 				(int)(dm.heightPixels * scale),
-				false);
+				true);
 		return bitmapResized;
 	}
 
