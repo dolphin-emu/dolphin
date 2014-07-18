@@ -70,6 +70,7 @@
     <ClInclude Include="Crypto\bn.h">
       <Filter>Crypto</Filter>
     </ClInclude>
+    <ClInclude Include="GekkoDisassembler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />
@@ -115,6 +116,7 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="XSaveWorkaround.cpp" />
+    <ClCompile Include="GekkoDisassembler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
