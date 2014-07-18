@@ -70,7 +70,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
-		WRITE(p, "uniform sampler2D samp0;\n");
+		WRITE(p, "SAMPLER_BINDING(9) uniform sampler2D samp0;\n");
 
 		WRITE(p, "  out vec4 ocol0;\n");
 		WRITE(p, "void main()\n");
