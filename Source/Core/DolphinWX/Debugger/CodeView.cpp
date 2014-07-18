@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -189,15 +190,15 @@ void CCodeView::OnMouseUpL(wxMouseEvent& event)
 
 u32 CCodeView::AddrToBranch(u32 addr)
 {
-	char disasm[256];
-	m_debugger->Disassemble(addr, disasm, 256);
-	const char *mojs = strstr(disasm, "->0x");
-	if (mojs)
+	std::string disasm = m_debugger->Disassemble(addr);
+	size_t pos = disasm.find("->0x");
+
+	if (pos != std::string::npos)
 	{
-		u32 dest;
-		sscanf(mojs+4,"%08x", &dest);
-		return dest;
+		std::string hex = disasm.substr(pos + 2);
+		return std::stoul(hex, nullptr, 16);
 	}
+
 	return 0;
 }
 
@@ -253,16 +254,14 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 		case IDM_COPYCODE:
 			{
-				char disasm[256];
-				m_debugger->Disassemble(m_selection, disasm, 256);
+				std::string disasm = m_debugger->Disassemble(m_selection);
 				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(disasm)));
 			}
 			break;
 
 		case IDM_COPYHEX:
 			{
-				char temp[24];
-				sprintf(temp, "%08x", m_debugger->ReadInstruction(m_selection));
+				std::string temp = StringFromFormat("%08x", m_debugger->ReadInstruction(m_selection));
 				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
 			}
 			break;
@@ -280,9 +279,8 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 					u32 end = start + symbol->size;
 					for (u32 addr = start; addr != end; addr += 4)
 					{
-						char disasm[256];
-						m_debugger->Disassemble(addr, disasm, 256);
-						text = text + StringFromFormat("%08x: ", addr) + disasm + "\r\n";
+						std::string disasm = m_debugger->Disassemble(addr);
+						text += StringFromFormat("%08x: ", addr) + disasm + "\r\n";
 					}
 					wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(text)));
 				}
@@ -478,65 +476,51 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 		// If running
 		if (m_debugger->IsAlive())
 		{
-			char dis[256];
-			m_debugger->Disassemble(address, dis, 256);
-			char* dis2 = strchr(dis, '\t');
-			char desc[256] = "";
+			std::vector<std::string> dis;
+			SplitString(m_debugger->Disassemble(address), '\t', dis);
 
-			// If we have a code
-			if (dis2)
+			static const size_t VALID_BRANCH_LENGTH = 10;
+			const std::string& opcode = dis[0];
+			const std::string& operands = dis[1];
+			std::string desc;
+
+			// look for hex strings to decode branches
+			std::string hex_str;
+			size_t pos = operands.find("0x8");
+			if (pos != std::string::npos)
 			{
-				*dis2 = 0;
-				dis2++;
-				// look for hex strings to decode branches
-				const char* mojs = strstr(dis2, "0x8");
-				if (mojs)
-				{
-					for (int k = 0; k < 8; k++)
-					{
-						bool found = false;
-						for (int j = 0; j < 22; j++)
-						{
-							if (mojs[k + 2] == "0123456789ABCDEFabcdef"[j])
-								found = true;
-						}
-						if (!found)
-						{
-							mojs = nullptr;
-							break;
-						}
-					}
-				}
-				if (mojs)
-				{
-					int offs;
-					sscanf(mojs + 2, "%08x", &offs);
-					branches[numBranches].src = rowY1 + m_rowHeight / 2;
-					branches[numBranches].srcAddr = address / m_align;
-					branches[numBranches++].dst = (int)(rowY1 + ((s64)(u32)offs - (s64)(u32)address) * m_rowHeight / m_align + m_rowHeight / 2);
-					sprintf(desc, "-->%s", m_debugger->GetDescription(offs).c_str());
-					dc.SetTextForeground(wxTheColourDatabase->Find("PURPLE")); // the -> arrow illustrations are purple
-				}
-				else
-				{
-					dc.SetTextForeground(*wxBLACK);
-				}
-
-				dc.DrawText(StrToWxStr(dis2), 17 + 17*charWidth, rowY1);
-				// ------------
+				hex_str = operands.substr(pos);
 			}
 
+			if (hex_str.length() == VALID_BRANCH_LENGTH)
+			{
+				u32 offs = std::stoul(hex_str, nullptr, 16);
+
+				branches[numBranches].src = rowY1 + m_rowHeight / 2;
+				branches[numBranches].srcAddr = address / m_align;
+				branches[numBranches++].dst = (int)(rowY1 + ((s64)(u32)offs - (s64)(u32)address) * m_rowHeight / m_align + m_rowHeight / 2);
+				desc = StringFromFormat("-->%s", m_debugger->GetDescription(offs).c_str());
+				dc.SetTextForeground(wxTheColourDatabase->Find("PURPLE")); // the -> arrow illustrations are purple
+			}
+			else
+			{
+				dc.SetTextForeground(*wxBLACK);
+			}
+
+			dc.DrawText(StrToWxStr(operands), 17 + 17*charWidth, rowY1);
+			// ------------
+
 			// Show blr as its' own color
-			if (strcmp(dis, "blr"))
+			if (opcode == "blr")
 				dc.SetTextForeground(wxTheColourDatabase->Find("DARK GREEN"));
 			else
 				dc.SetTextForeground(wxTheColourDatabase->Find("VIOLET"));
 
-			dc.DrawText(StrToWxStr(dis), 17 + (m_plain ? 1*charWidth : 9*charWidth), rowY1);
+			dc.DrawText(StrToWxStr(opcode), 17 + (m_plain ? 1*charWidth : 9*charWidth), rowY1);
 
-			if (desc[0] == 0)
+			if (desc.empty())
 			{
-				strcpy(desc, m_debugger->GetDescription(address).c_str());
+				desc = m_debugger->GetDescription(address);
 			}
 
 			if (!m_plain)
@@ -545,7 +529,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
 				//char temp[256];
 				//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
-				if (strlen(desc))
+				if (!desc.empty())
 				{
 					dc.DrawText(StrToWxStr(desc), 17 + 35 * charWidth, rowY1);
 				}

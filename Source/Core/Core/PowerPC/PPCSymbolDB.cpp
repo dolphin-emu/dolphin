@@ -334,9 +334,9 @@ bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 			for (int i = 0; i < space; i += 4)
 			{
 				int Address = LastAddress + i;
-				char disasm[256];
-				debugger->Disassemble(Address, disasm, 256);
-				fprintf(f.GetHandle(),"%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm);
+
+				std::string disasm = debugger->Disassemble(Address);
+				fprintf(f.GetHandle(),"%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm.c_str());
 			}
 			// Write a blank line after each block
 			fprintf(f.GetHandle(), "\n");

@@ -56,6 +56,7 @@
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FixedSizeQueue.h" />
     <ClInclude Include="FPURoundMode.h" />
+    <ClInclude Include="GekkoDisassembler.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="LinearDiskCache.h" />
@@ -94,6 +95,7 @@
     <ClCompile Include="ExtendedTrace.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
+    <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="MathUtil.cpp" />

@@ -5,7 +5,6 @@
 #pragma once
 
 #include <string>
-#include <string.h>
 
 #include "Common/Common.h"
 #include "Common/DebugInterface.h"
@@ -14,7 +13,7 @@ class DSPDebugInterface final : public DebugInterface
 {
 public:
 	DSPDebugInterface(){}
-	virtual void Disassemble(unsigned int address, char *dest, int max_size) override;
+	virtual std::string Disassemble(unsigned int address) override;
 	virtual void GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size) override;
 	virtual int GetInstructionSize(int instruction) override { return 1; }
 	virtual bool IsAlive() override;

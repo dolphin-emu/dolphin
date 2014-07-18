@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -48,12 +48,10 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="disasm.h" />
     <ClInclude Include="dis_tables.h" />
-    <ClInclude Include="PowerPCDisasm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dis_decode.cpp" />
     <ClCompile Include="dis_groups.cpp" />
-    <ClCompile Include="PowerPCDisasm.cpp" />
     <ClCompile Include="resolve.cpp" />
     <ClCompile Include="syntax.cpp" />
   </ItemGroup>

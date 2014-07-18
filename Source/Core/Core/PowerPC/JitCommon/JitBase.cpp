@@ -6,8 +6,8 @@
 #include <string>
 
 #include "disasm.h"
-#include "PowerPCDisasm.h"
 
+#include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
@@ -29,15 +29,11 @@ u32 Helper_Mask(u8 mb, u8 me)
 
 void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *normalEntry, JitBlock *b)
 {
-	std::string ppcdisasm;
-
 	for (int i = 0; i < size; i++)
 	{
-		char temp[256] = "";
 		const PPCAnalyst::CodeOp &op = code_buffer->codebuffer[i];
-		DisassembleGekko(op.inst.hex, op.address, temp, 256);
-		ppcdisasm += StringFromFormat("%08x %s", op.address, temp);
-		DEBUG_LOG(DYNA_REC, "IR_X86 PPC: %s\n", ppcdisasm.c_str());
+		std::string temp = StringFromFormat("%08x %s", op.address, GekkoDisassembler::Disassemble(op.inst.hex, op.address).c_str());
+		DEBUG_LOG(DYNA_REC, "IR_X86 PPC: %s\n", temp.c_str());
 	}
 
 	disassembler x64disasm;

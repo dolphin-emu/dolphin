@@ -3,6 +3,7 @@ set(SRCS BreakPoints.cpp
          ColorUtil.cpp
          FileSearch.cpp
          FileUtil.cpp
+         GekkoDisassembler.cpp
          Hash.cpp
          IniFile.cpp
          MathUtil.cpp

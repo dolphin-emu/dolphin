@@ -14,7 +14,7 @@ class PPCDebugInterface final : public DebugInterface
 {
 public:
 	PPCDebugInterface(){}
-	virtual void Disassemble(unsigned int address, char *dest, int max_size) override;
+	virtual std::string Disassemble(unsigned int address) override;
 	virtual void GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size) override;
 	virtual int GetInstructionSize(int /*instruction*/) override {return 4;}
 	virtual bool IsAlive() override;
