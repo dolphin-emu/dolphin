@@ -85,7 +85,6 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
 static SHADER s_ShowEFBCopyRegions;
@@ -339,10 +338,8 @@ Renderer::Renderer()
 	OSDInternalW = 0;
 	OSDInternalH = 0;
 
-	s_fps=0;
 	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
-	FPSCounter::Initialize();
 
 	bool bSuccess = true;
 
@@ -688,7 +685,7 @@ void Renderer::DrawDebugInfo()
 	std::string debug_info;
 
 	if (g_ActiveConfig.bShowFPS)
-		debug_info += StringFromFormat("FPS: %d\n", s_fps);
+		debug_info += StringFromFormat("FPS: %d\n", m_fps_counter.m_fps);
 
 	if (SConfig::GetInstance().m_ShowLag)
 		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
@@ -1585,8 +1582,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		}
 	}
 
-	if (XFBWrited)
-		s_fps = FPSCounter::Update();
 	// ---------------------------------------------------------------------
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
