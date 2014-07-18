@@ -18,12 +18,6 @@ FPSCounter::FPSCounter()
 	m_render_time.Update();
 }
 
-FPSCounter::~FPSCounter()
-{
-	if (m_bench_file.is_open())
-		m_bench_file.close();
-}
-
 void FPSCounter::LogRenderTimeToFile(u64 val)
 {
 	if (!m_bench_file.is_open())

@@ -16,9 +16,6 @@ public:
 	// Initializes the FPS counter.
 	FPSCounter();
 
-	// Shutdown the FPS counter by closing the logs.
-	~FPSCounter();
-
 	// Called when a frame is rendered. Returns the value to be displayed on
 	// screen as the FPS counter (updated every second).
 	int Update();
