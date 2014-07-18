@@ -19,6 +19,7 @@
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VideoCommon.h"
@@ -149,6 +150,8 @@ protected:
 
 	static bool s_skipSwap;
 	static bool XFBWrited;
+
+	FPSCounter m_fps_counter;
 
 private:
 	static PEControl::PixelFormat prev_efb_format;

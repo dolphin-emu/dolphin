@@ -39,8 +39,6 @@
 namespace DX11
 {
 
-static int s_fps = 0;
-
 static u32 s_LastAA = 0;
 
 static Television s_television;
@@ -181,8 +179,6 @@ void CreateScreenshotTexture(const TargetRectangle& rc)
 Renderer::Renderer(void *&window_handle)
 {
 	int x, y, w_temp, h_temp;
-
-	FPSCounter::Initialize();
 
 	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
 
@@ -904,7 +900,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
 	{
-		std::string fps = StringFromFormat("FPS: %d\n", s_fps);
+		std::string fps = StringFromFormat("FPS: %d\n", m_fps_counter.m_fps);
 		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
@@ -952,10 +948,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		FramebufferManagerBase::SetLastXfbWidth(w);
 		FramebufferManagerBase::SetLastXfbHeight(h);
 	}
-
-	// update FPS counter
-	if (XFBWrited)
-		s_fps = FPSCounter::Update();
 
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
