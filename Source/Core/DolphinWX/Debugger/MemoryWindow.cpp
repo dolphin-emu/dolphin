@@ -160,6 +160,12 @@ void CMemoryWindow::JumpToAddress(u32 _Address)
 
 void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 {
+	if (!Memory::IsInitialized())
+	{
+		PanicAlertT("Cannot set uninitialized memory.");
+		return;
+	}
+
 	std::string str_addr = WxStrToStr(addrbox->GetValue());
 	std::string str_val = WxStrToStr(valbox->GetValue());
 	u32 addr;
