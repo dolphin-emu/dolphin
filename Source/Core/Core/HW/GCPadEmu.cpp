@@ -103,12 +103,12 @@ void GCPad::GetInput(GCPadStatus* const pad)
 
 	// sticks
 	m_main_stick->GetState(&x, &y);
-	pad->stickX = 0x7F + (x * 0x80);
-	pad->stickY = 0x7F + (y * 0x80);
+	pad->stickX = 0x80 + (x * 0x7F);
+	pad->stickY = 0x80 + (y * 0x7F);
 
 	m_c_stick->GetState(&x, &y);
-	pad->substickX = 0x7F + (x * 0x80);
-	pad->substickY = 0x7F + (y * 0x80);
+	pad->substickX = 0x80 + (x * 0x7F);
+	pad->substickY = 0x80 + (y * 0x7F);
 
 	// triggers
 	m_triggers->GetState(&pad->button, trigger_bitmasks, triggers);
