@@ -39,6 +39,7 @@ VideoConfig::VideoConfig()
 	backend_info.bUseRGBATextures = false;
 	backend_info.bUseMinimalMipCount = false;
 	backend_info.bSupports3DVision = false;
+	backend_info.bSupportsExclusiveFullscreen = false;
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -83,6 +84,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("DisableFog", &bDisableFog, 0);
 	settings->Get("OMPDecoder", &bOMPDecoder, false);
 	settings->Get("EnableShaderDebugging", &bEnableShaderDebugging, false);
+	settings->Get("ForceBorderlessFullscreen", &bForceBorderlessFullscreen, false);
 
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Get("ForceFiltering", &bForceFiltering, 0);
@@ -211,6 +213,7 @@ void VideoConfig::VerifyValidity()
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
 	if (!backend_info.bSupports3DVision) b3DVision = false;
+	if (!backend_info.bSupportsExclusiveFullscreen) bForceBorderlessFullscreen = false;
 }
 
 void VideoConfig::Save(const std::string& ini_file)
@@ -255,6 +258,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DisableFog", bDisableFog);
 	settings->Set("OMPDecoder", bOMPDecoder);
 	settings->Set("EnableShaderDebugging", bEnableShaderDebugging);
+	settings->Set("ForceBorderlessFullscreen", bForceBorderlessFullscreen);
 
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Set("ForceFiltering", bForceFiltering);

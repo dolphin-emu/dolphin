@@ -114,6 +114,7 @@ static wxString pixel_lighting_desc = wxTRANSLATE("Calculate lighting of 3D grap
 static wxString fast_depth_calc_desc = wxTRANSLATE("Use a less accurate algorithm to calculate depth values.\nCauses issues in a few games but might give a decent speedup.\n\nIf unsure, leave this checked.");
 static wxString force_filtering_desc = wxTRANSLATE("Force texture filtering even if the emulated game explicitly disabled it.\nImproves texture quality slightly but causes glitches in some games.\n\nIf unsure, leave this unchecked.");
 static wxString _3d_vision_desc = wxTRANSLATE("Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's supported by your GPU.\nPossibly causes issues.\nRequires fullscreen to work.\n\nIf unsure, leave this unchecked.");
+static wxString borderless_fullscreen_desc = wxTRANSLATE("Don't use exclusive mode when in fullscreen.\nAllows for faster transitions between fullscreen and windowed mode.\nIncreases input latency, makes movement less smooth and slightly decreases performance.\nExclusive mode is required to support 3D Vision.\n\nIf unsure, leave this unchecked.");
 static wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.\n\"Multiple of 640x528\" is a bit slower than \"Window Size\" but yields less issues. Generally speaking, the lower the internal resolution is, the better your performance will be.\n\nIf unsure, select 640x528.");
 static wxString efb_access_desc = wxTRANSLATE("Ignore any requests of the CPU to read from or write to the EFB.\nImproves performance in some games, but might disable some gameplay-related features or graphical effects.\n\nIf unsure, leave this unchecked.");
 static wxString efb_emulate_format_changes_desc = wxTRANSLATE("Ignore any changes to the EFB format.\nImproves performance in many games without any negative effect. Causes graphical defects in a small number of other games though.\n\nIf unsure, leave this checked.");
@@ -583,6 +584,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_misc->Add(cb_prog_scan);
 	}
+
+	// Borderless Fullscreen
+	borderless_fullscreen = CreateCheckBox(page_advanced, _("Borderless Fullscreen"), wxGetTranslation(borderless_fullscreen_desc), vconfig.bForceBorderlessFullscreen);
+	borderless_fullscreen->Show(vconfig.backend_info.bSupportsExclusiveFullscreen);
+	szr_misc->Add(borderless_fullscreen);
 
 	wxStaticBoxSizer* const group_misc = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Misc"));
 	szr_advanced->Add(group_misc, 0, wxEXPAND | wxALL, 5);
