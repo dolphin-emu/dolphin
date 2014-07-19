@@ -27,15 +27,15 @@ static volatile bool GpuRunningState = false;
 static volatile bool EmuRunningState = false;
 static std::mutex m_csHWVidOccupied;
 // STATE_TO_SAVE
-static u8 *videoBuffer;
-static int size = 0;
+static u8* s_video_buffer;  // Size: FIFO_SIZE.
+static int s_buffer_write_pos = 0;
 }  // namespace
 
 void Fifo_DoState(PointerWrap &p)
 {
-	p.DoArray(videoBuffer, FIFO_SIZE);
-	p.Do(size);
-	p.DoPointer(g_pVideoData, videoBuffer);
+	p.DoArray(s_video_buffer, FIFO_SIZE);
+	p.Do(s_buffer_write_pos);
+	p.DoPointer(g_pVideoData, s_video_buffer);
 	p.Do(g_bSkipCurrentFrame);
 }
 
@@ -60,8 +60,8 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
 
 void Fifo_Init()
 {
-	videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
-	size = 0;
+	s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
+	s_buffer_write_pos = 0;
 	GpuRunningState = false;
 	Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
 }
@@ -69,18 +69,18 @@ void Fifo_Init()
 void Fifo_Shutdown()
 {
 	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
-	FreeMemoryPages(videoBuffer, FIFO_SIZE);
-	videoBuffer = nullptr;
+	FreeMemoryPages(s_video_buffer, FIFO_SIZE);
+	s_video_buffer = nullptr;
 }
 
 u8* GetVideoBufferStartPtr()
 {
-	return videoBuffer;
+	return s_video_buffer;
 }
 
 u8* GetVideoBufferEndPtr()
 {
-	return &videoBuffer[size];
+	return &s_video_buffer[s_buffer_write_pos];
 }
 
 void Fifo_SetRendering(bool enabled)
@@ -107,29 +107,60 @@ void EmulatorState(bool running)
 }
 
 
-// Description: RunGpuLoop() sends data through this function.
-void ReadDataFromFifo(u8* _uData, u32 len)
+// Description: RunGpuLoop() sends data through this function. Returns the
+// number of bytes successfully written.
+static u32 ReadDataFromFifo(u8* data, u32 len)
 {
-	if (size + len >= FIFO_SIZE)
+	if (s_buffer_write_pos + len >= FIFO_SIZE)
 	{
-		int pos = (int)(g_pVideoData - videoBuffer);
-		size -= pos;
-		if (size + len > FIFO_SIZE)
+		// No more space in the FIFO, try to relocate the data that is
+		// currently waiting to be processed (it starts at g_pVideoData and
+		// ends at our current writing position).
+		//
+		//           R       W
+		// [01234567890123456789]
+		//
+		// If we want to add 4 bytes, we will copy (W - R) bytes to index 0.
+		u32 read_pos = (u32)(g_pVideoData - s_video_buffer);
+		s_buffer_write_pos -= read_pos;
+
+		// Still not enough space in the FIFO. Write as much data as we can.
+		if (s_buffer_write_pos == FIFO_SIZE)
 		{
-			PanicAlert("FIFO out of bounds (size = %i, len = %i at %08x)", size, len, pos);
+			PanicAlert("FIFO out of bounds (wi = %i, len = %i at %08x)",
+			           s_buffer_write_pos, len, read_pos);
 		}
-		memmove(&videoBuffer[0], &videoBuffer[pos], size);
-		g_pVideoData = videoBuffer;
+		else if (s_buffer_write_pos + len > FIFO_SIZE)
+		{
+			len = FIFO_SIZE - s_buffer_write_pos;
+		}
+
+		// Note: we already substracted the read pos from the write pos here.
+		memmove(s_video_buffer, g_pVideoData, s_buffer_write_pos);
+		g_pVideoData = s_video_buffer;
 	}
-	// Copy new video instructions to videoBuffer for future use in rendering the new picture
-	memcpy(videoBuffer + size, _uData, len);
-	size += len;
+	// Copy new video instructions to s_video_buffer for future use in rendering the new picture
+	memcpy(s_video_buffer + s_buffer_write_pos, data, len);
+	s_buffer_write_pos += len;
+
+	return len;
 }
 
 void ResetVideoBuffer()
 {
-	g_pVideoData = videoBuffer;
-	size = 0;
+	g_pVideoData = s_video_buffer;
+	s_buffer_write_pos = 0;
+}
+
+// Returns the number of bytes that we can process at once from the FIFO
+// without skipping over a breakpoint or requiring a wrap around.
+static u32 ProcessableFifoBytes(u32 current_read_ptr)
+{
+	SCPFifoStruct &fifo = CommandProcessor::fifo;
+	u32 res = std::min((u32)fifo.CPReadWriteDistance, (u32)(fifo.CPEnd - current_read_ptr + 32));
+	if (fifo.bFF_BPEnable && fifo.CPBreakpoint > current_read_ptr)
+		res = std::min(res, (u32)(fifo.CPBreakpoint - current_read_ptr));
+	return res;
 }
 
 
@@ -163,23 +194,23 @@ void RunGpuLoop()
 				u32 readPtr = fifo.CPReadPointer;
 				u8 *uData = Memory::GetPointer(readPtr);
 
-				if (readPtr == fifo.CPEnd)
-					readPtr = fifo.CPBase;
-				else
-					readPtr += 32;
-
 				_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
 					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
 
-				ReadDataFromFifo(uData, 32);
+				u32 bytes_to_read = ProcessableFifoBytes(readPtr);
+				u32 bytes_read = ReadDataFromFifo(uData, bytes_to_read);
 
 				cyclesExecuted = OpcodeDecoder_Run(g_bSkipCurrentFrame);
 
 				if (Core::g_CoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) > cyclesExecuted)
 					Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
 
+				readPtr += bytes_read;
+				if (readPtr == fifo.CPEnd + 32)
+					readPtr = fifo.CPBase;
+
 				Common::AtomicStore(fifo.CPReadPointer, readPtr);
-				Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
+				Common::AtomicAdd(fifo.CPReadWriteDistance, -(s32)bytes_read);
 				if ((GetVideoBufferEndPtr() - g_pVideoData) == 0)
 					Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 			}
@@ -231,21 +262,21 @@ void RunGpu()
 	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
 	{
 		u8 *uData = Memory::GetPointer(fifo.CPReadPointer);
+		u32 bytes_to_read = ProcessableFifoBytes(fifo.CPReadPointer);
 
 		FPURoundMode::SaveSIMDState();
 		FPURoundMode::LoadDefaultSIMDState();
-		ReadDataFromFifo(uData, 32);
+		u32 bytes_read = ReadDataFromFifo(uData, bytes_to_read);
 		OpcodeDecoder_Run(g_bSkipCurrentFrame);
 		FPURoundMode::LoadSIMDState();
 
 		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
 
-		if (fifo.CPReadPointer == fifo.CPEnd)
+		fifo.CPReadPointer += bytes_read;
+		if (fifo.CPReadPointer == fifo.CPEnd + 32)
 			fifo.CPReadPointer = fifo.CPBase;
-		else
-			fifo.CPReadPointer += 32;
 
-		fifo.CPReadWriteDistance -= 32;
+		fifo.CPReadWriteDistance -= bytes_read;
 	}
 	CommandProcessor::SetCpStatus();
 }
