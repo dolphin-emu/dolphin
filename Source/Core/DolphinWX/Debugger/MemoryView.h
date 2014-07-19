@@ -21,6 +21,7 @@ public:
 	void OnMouseMove(wxMouseEvent& event);
 	void OnMouseUpL(wxMouseEvent& event);
 	void OnMouseDownR(wxMouseEvent& event);
+	void OnScrollWheel(wxMouseEvent& event);
 	void OnPopupMenu(wxCommandEvent& event);
 
 	u32 GetSelection() { return selection ; }

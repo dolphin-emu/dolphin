@@ -50,6 +50,7 @@ BEGIN_EVENT_TABLE(CMemoryView, wxControl)
 	EVT_LEFT_UP(CMemoryView::OnMouseUpL)
 	EVT_MOTION(CMemoryView::OnMouseMove)
 	EVT_RIGHT_DOWN(CMemoryView::OnMouseDownR)
+	EVT_MOUSEWHEEL(CMemoryView::OnScrollWheel)
 	EVT_MENU(-1, CMemoryView::OnPopupMenu)
 	EVT_SIZE(CMemoryView::OnResize)
 END_EVENT_TABLE()
@@ -134,6 +135,24 @@ void CMemoryView::OnMouseUpL(wxMouseEvent& event)
 		Refresh();
 	}
 
+	event.Skip();
+}
+
+void CMemoryView::OnScrollWheel(wxMouseEvent& event)
+{
+	const bool scroll_down = (event.GetWheelRotation() < 0);
+	const int num_lines = event.GetLinesPerAction();
+
+	if (scroll_down)
+	{
+		curAddress += num_lines;
+	}
+	else
+	{
+		curAddress -= num_lines;
+	}
+
+	Refresh();
 	event.Skip();
 }
 
