@@ -27,15 +27,15 @@ static volatile bool GpuRunningState = false;
 static volatile bool EmuRunningState = false;
 static std::mutex m_csHWVidOccupied;
 // STATE_TO_SAVE
-static u8* video_buffer;  // Size: FIFO_SIZE.
-static int buffer_write_pos = 0;
+static u8* s_video_buffer;  // Size: FIFO_SIZE.
+static int s_buffer_write_pos = 0;
 }  // namespace
 
 void Fifo_DoState(PointerWrap &p)
 {
-	p.DoArray(video_buffer, FIFO_SIZE);
-	p.Do(buffer_write_pos);
-	p.DoPointer(g_pVideoData, video_buffer);
+	p.DoArray(s_video_buffer, FIFO_SIZE);
+	p.Do(s_buffer_write_pos);
+	p.DoPointer(g_pVideoData, s_video_buffer);
 	p.Do(g_bSkipCurrentFrame);
 }
 
@@ -60,8 +60,8 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
 
 void Fifo_Init()
 {
-	video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
-	buffer_write_pos = 0;
+	s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
+	s_buffer_write_pos = 0;
 	GpuRunningState = false;
 	Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
 }
@@ -69,18 +69,18 @@ void Fifo_Init()
 void Fifo_Shutdown()
 {
 	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
-	FreeMemoryPages(video_buffer, FIFO_SIZE);
-	video_buffer = nullptr;
+	FreeMemoryPages(s_video_buffer, FIFO_SIZE);
+	s_video_buffer = nullptr;
 }
 
 u8* GetVideoBufferStartPtr()
 {
-	return video_buffer;
+	return s_video_buffer;
 }
 
 u8* GetVideoBufferEndPtr()
 {
-	return &video_buffer[buffer_write_pos];
+	return &s_video_buffer[s_buffer_write_pos];
 }
 
 void Fifo_SetRendering(bool enabled)
@@ -108,29 +108,29 @@ void EmulatorState(bool running)
 
 
 // Description: RunGpuLoop() sends data through this function.
-static void ReadDataFromFifo(u8* _uData, u32 len)
+static void ReadDataFromFifo(u8* data, u32 len)
 {
-	if (buffer_write_pos + len >= FIFO_SIZE)
+	if (s_buffer_write_pos + len >= FIFO_SIZE)
 	{
-		int pos = (int)(g_pVideoData - video_buffer);
-		buffer_write_pos -= pos;
-		if (buffer_write_pos + len > FIFO_SIZE)
+		int pos = (int)(g_pVideoData - s_video_buffer);
+		s_buffer_write_pos -= pos;
+		if (s_buffer_write_pos + len > FIFO_SIZE)
 		{
 			PanicAlert("FIFO out of bounds (wi = %i, len = %i at %08x)",
-			           buffer_write_pos, len, pos);
+			           s_buffer_write_pos, len, pos);
 		}
-		memmove(&video_buffer[0], &video_buffer[pos], buffer_write_pos);
-		g_pVideoData = video_buffer;
+		memmove(&s_video_buffer[0], &s_video_buffer[pos], s_buffer_write_pos);
+		g_pVideoData = s_video_buffer;
 	}
-	// Copy new video instructions to video_buffer for future use in rendering the new picture
-	memcpy(video_buffer + buffer_write_pos, _uData, len);
-	buffer_write_pos += len;
+	// Copy new video instructions to s_video_buffer for future use in rendering the new picture
+	memcpy(s_video_buffer + s_buffer_write_pos, data, len);
+	s_buffer_write_pos += len;
 }
 
 void ResetVideoBuffer()
 {
-	g_pVideoData = video_buffer;
-	buffer_write_pos = 0;
+	g_pVideoData = s_video_buffer;
+	s_buffer_write_pos = 0;
 }
 
 
