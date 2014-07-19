@@ -107,8 +107,9 @@ void EmulatorState(bool running)
 }
 
 
-// Description: RunGpuLoop() sends data through this function.
-static void ReadDataFromFifo(u8* data, u32 len)
+// Description: RunGpuLoop() sends data through this function. Returns the
+// number of bytes successfully written.
+static u32 ReadDataFromFifo(u8* data, u32 len)
 {
 	if (s_buffer_write_pos + len >= FIFO_SIZE)
 	{
@@ -122,11 +123,18 @@ static void ReadDataFromFifo(u8* data, u32 len)
 		// If we want to add 4 bytes, we will copy (W - R) bytes to index 0.
 		u32 read_pos = (u32)(g_pVideoData - s_video_buffer);
 		s_buffer_write_pos -= read_pos;
-		if (s_buffer_write_pos + len > FIFO_SIZE)
+
+		// Still not enough space in the FIFO. Write as much data as we can.
+		if (s_buffer_write_pos == FIFO_SIZE)
 		{
 			PanicAlert("FIFO out of bounds (wi = %i, len = %i at %08x)",
 			           s_buffer_write_pos, len, read_pos);
 		}
+		else if (s_buffer_write_pos + len > FIFO_SIZE)
+		{
+			len = FIFO_SIZE - s_buffer_write_pos;
+		}
+
 		// Note: we already substracted the read pos from the write pos here.
 		memmove(s_video_buffer, g_pVideoData, s_buffer_write_pos);
 		g_pVideoData = s_video_buffer;
@@ -134,6 +142,8 @@ static void ReadDataFromFifo(u8* data, u32 len)
 	// Copy new video instructions to s_video_buffer for future use in rendering the new picture
 	memcpy(s_video_buffer + s_buffer_write_pos, data, len);
 	s_buffer_write_pos += len;
+
+	return len;
 }
 
 void ResetVideoBuffer()
