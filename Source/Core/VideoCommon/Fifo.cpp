@@ -181,25 +181,25 @@ void RunGpuLoop()
 			if (!Core::g_CoreStartupParameter.bSyncGPU || Common::AtomicLoad(CommandProcessor::VITicks) > CommandProcessor::m_cpClockOrigin)
 			{
 				u32 readPtr = fifo.CPReadPointer;
-				u8 *uData = Memory::GetPointer(readPtr);
-
-				if (readPtr == fifo.CPEnd)
+				if (readPtr > fifo.CPEnd)
 					readPtr = fifo.CPBase;
-				else
-					readPtr += 32;
+
+				u8 *uData = Memory::GetPointer(readPtr);
 
 				_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
 					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
 
-				ReadDataFromFifo(uData, 32);
+				u32 bytes_to_read = std::min((u32)fifo.CPReadWriteDistance,
+				                             (u32)(fifo.CPEnd - fifo.CPReadPointer + 32));
+				u32 bytes_read = ReadDataFromFifo(uData, bytes_to_read);
 
 				cyclesExecuted = OpcodeDecoder_Run(g_bSkipCurrentFrame);
 
 				if (Core::g_CoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) > cyclesExecuted)
 					Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
 
-				Common::AtomicStore(fifo.CPReadPointer, readPtr);
-				Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
+				Common::AtomicStore(fifo.CPReadPointer, readPtr + bytes_read);
+				Common::AtomicAdd(fifo.CPReadWriteDistance, -(s32)bytes_read);
 				if ((GetVideoBufferEndPtr() - g_pVideoData) == 0)
 					Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 			}
@@ -250,22 +250,23 @@ void RunGpu()
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
 	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
 	{
+		if (fifo.CPReadPointer > fifo.CPEnd)
+			fifo.CPReadPointer = fifo.CPBase;
+
 		u8 *uData = Memory::GetPointer(fifo.CPReadPointer);
+		u32 bytes_to_read = std::min((u32)fifo.CPReadWriteDistance,
+		                             (u32)(fifo.CPEnd - fifo.CPReadPointer + 32));
 
 		FPURoundMode::SaveSIMDState();
 		FPURoundMode::LoadDefaultSIMDState();
-		ReadDataFromFifo(uData, 32);
+		u32 bytes_read = ReadDataFromFifo(uData, bytes_to_read);
 		OpcodeDecoder_Run(g_bSkipCurrentFrame);
 		FPURoundMode::LoadSIMDState();
 
 		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
 
-		if (fifo.CPReadPointer == fifo.CPEnd)
-			fifo.CPReadPointer = fifo.CPBase;
-		else
-			fifo.CPReadPointer += 32;
-
-		fifo.CPReadWriteDistance -= 32;
+		fifo.CPReadPointer += bytes_read;
+		fifo.CPReadWriteDistance -= bytes_read;
 	}
 	CommandProcessor::SetCpStatus();
 }
