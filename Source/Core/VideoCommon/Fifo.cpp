@@ -112,14 +112,23 @@ static void ReadDataFromFifo(u8* data, u32 len)
 {
 	if (s_buffer_write_pos + len >= FIFO_SIZE)
 	{
-		int pos = (int)(g_pVideoData - s_video_buffer);
-		s_buffer_write_pos -= pos;
+		// No more space in the FIFO, try to relocate the data that is
+		// currently waiting to be processed (it starts at g_pVideoData and
+		// ends at our current writing position).
+		//
+		//           R       W
+		// [01234567890123456789]
+		//
+		// If we want to add 4 bytes, we will copy (W - R) bytes to index 0.
+		u32 read_pos = (u32)(g_pVideoData - s_video_buffer);
+		s_buffer_write_pos -= read_pos;
 		if (s_buffer_write_pos + len > FIFO_SIZE)
 		{
 			PanicAlert("FIFO out of bounds (wi = %i, len = %i at %08x)",
-			           s_buffer_write_pos, len, pos);
+			           s_buffer_write_pos, len, read_pos);
 		}
-		memmove(&s_video_buffer[0], &s_video_buffer[pos], s_buffer_write_pos);
+		// Note: we already substracted the read pos from the write pos here.
+		memmove(s_video_buffer, g_pVideoData, s_buffer_write_pos);
 		g_pVideoData = s_video_buffer;
 	}
 	// Copy new video instructions to s_video_buffer for future use in rendering the new picture
