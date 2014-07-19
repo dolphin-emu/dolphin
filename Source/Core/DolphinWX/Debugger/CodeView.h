@@ -45,13 +45,6 @@ public:
 		return m_selection;
 	}
 
-	struct BlrStruct // for IDM_INSERTBLR
-	{
-		u32 address;
-		u32 oldValue;
-	};
-	std::vector<BlrStruct> m_blrList;
-
 	void Center(u32 addr)
 	{
 		m_curAddress = addr;
@@ -79,6 +72,12 @@ private:
 
 	void LineTo(wxPaintDC &dc, int x, int y);
 
+	struct BlrStruct // for IDM_INSERTBLR
+	{
+		u32 address;
+		u32 oldValue;
+	};
+	std::vector<BlrStruct> m_blrList;
 
 	DebugInterface* m_debugger;
 	SymbolDB* m_symbol_db;
