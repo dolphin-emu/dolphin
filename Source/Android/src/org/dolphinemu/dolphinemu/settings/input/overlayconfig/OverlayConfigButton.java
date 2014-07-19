@@ -113,6 +113,11 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 		// Set the button's icon that represents it.
 		setBackground(resizeDrawable(getResources().getDrawable(drawableId), scale));
 
+		// Fix for deformed buttons with a small scale. (This does not happen outside of edit mode)
+		// The cause of this bug is unknown, except that it likely has something to do with the
+		// above line of code. At some point I will find the exact cause and remove this.
+		setHeight(getWidth());
+
 		// Check if this button has previous values set that aren't the default.
 		final float x = sharedPrefs.getFloat(buttonId+"-X", -1f);
 		final float y = sharedPrefs.getFloat(buttonId+"-Y", -1f);
