@@ -8,6 +8,15 @@ var cmd_branch		= " rev-parse --abbrev-ref HEAD";
 
 function GetGitExe()
 {
+	try
+	{
+		gitexe = wshShell.RegRead("HKCU\\Software\\GitExtensions\\gitcommand");
+		wshShell.Exec(gitexe);
+		return gitexe;
+	}
+	catch (e)
+	{}
+
 	for (var gitexe in {"git.cmd":1, "git":1, "git.bat":1})
 	{
 		try
@@ -56,7 +65,7 @@ var gitexe = GetGitExe();
 var revision	= GetFirstStdOutLine(gitexe + cmd_revision);
 var describe	= GetFirstStdOutLine(gitexe + cmd_describe);
 var branch		= GetFirstStdOutLine(gitexe + cmd_branch);
-var isMaster    = +("master" == branch);
+var isMaster	= +("master" == branch);
 
 // remove hash (and trailing "-0" if needed) from description
 describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
