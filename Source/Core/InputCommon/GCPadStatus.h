@@ -45,4 +45,11 @@ struct GCPadStatus
 	unsigned char  analogA;                // 0 <= analogA      <= 255
 	unsigned char  analogB;                // 0 <= analogB      <= 255
 	signed char    err;                    // one of PAD_ERR_* number
+
+	static const u8 MAIN_STICK_CENTER_X = 0x80;
+	static const u8 MAIN_STICK_CENTER_Y = 0x80;
+	static const u8 MAIN_STICK_RADIUS   = 0x7f;
+	static const u8 C_STICK_CENTER_X    = 0x80;
+	static const u8 C_STICK_CENTER_Y    = 0x80;
+	static const u8 C_STICK_RADIUS      = 0x7f;
 };
