@@ -316,7 +316,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
 	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bGameLoading(false), m_bClosing(false)
+	, m_bGameLoading(false), m_bClosing(false), m_confirmStop(false)
 {
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
@@ -643,6 +643,8 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_FULLSCREENREQUEST:
 		if (m_RenderFrame != nullptr)
 			m_RenderFrame->ShowFullScreen(event.GetInt() == 0 ? false : true);
+		if (m_confirmStop)
+			Core::SetState(Core::CORE_PAUSE);
 		break;
 
 	case WM_USER_CREATE:
@@ -1194,9 +1196,8 @@ void CFrame::DoFullscreen(bool bF)
 	{
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
-	else if (!g_ActiveConfig.backend_info.bSupportsExclusiveFullscreen ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain ||
-		g_ActiveConfig.bForceBorderlessFullscreen)
+	else if (!g_Config.ExclusiveFullscreenEnabled() ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.
 		// Therefore we don't exit fullscreen from here if we support exclusive mode.

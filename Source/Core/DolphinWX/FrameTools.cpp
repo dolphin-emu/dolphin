@@ -95,6 +95,7 @@ Core::GetWindowHandle().
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
 #ifndef SM_XVIRTUALSCREEN
@@ -118,8 +119,6 @@ extern "C" {
 
 class InputPlugin;
 class wxFrame;
-
-static bool confirmStop = false;
 
 // Create menu items
 // ---------------------
@@ -1082,11 +1081,11 @@ void CFrame::DoStop()
 {
 	if (!Core::IsRunningAndStarted())
 		return;
-	if (confirmStop)
+	if (m_confirmStop)
 		return;
 
 	// don't let this function run again until it finishes, or is aborted.
-	confirmStop = true;
+	m_confirmStop = true;
 
 	m_bGameLoading = false;
 	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
@@ -1100,8 +1099,21 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
+			// Pause the state during confirmation and restore it afterwards
 			Core::EState state = Core::GetState();
-			Core::SetState(Core::CORE_PAUSE);
+
+			// If exclusive fullscreen is not enabled then we can pause the emulation
+			// before we've exited fullscreen. If not then we need to exit fullscreen first.
+			if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
+				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			{
+				Core::SetState(Core::CORE_PAUSE);
+			}
+			else
+			{
+				DoFullscreen(false);
+			}
+
 			wxMessageDialog m_StopDlg(
 				this,
 				_("Do you want to stop the current emulation?"),
@@ -1113,7 +1125,7 @@ void CFrame::DoStop()
 			if (Ret != wxID_YES)
 			{
 				Core::SetState(state);
-				confirmStop = false;
+				m_confirmStop = false;
 				return;
 			}
 		}
@@ -1135,7 +1147,7 @@ void CFrame::OnStopped()
 {
 	wxEndBusyCursor();
 
-	confirmStop = false;
+	m_confirmStop = false;
 
 #if defined(HAVE_X11) && HAVE_X11
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
