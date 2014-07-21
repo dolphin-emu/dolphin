@@ -450,7 +450,7 @@ bool CFrame::RendererIsFullscreen()
 
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
-		fullscreen = m_RenderFrame->IsFullScreen();
+		fullscreen = m_RenderFrame->IsFullScreen() && g_Config.bFullscreen;
 	}
 
 #if defined(__APPLE__)
@@ -641,10 +641,14 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case IDM_FULLSCREENREQUEST:
-		if (m_RenderFrame != nullptr)
-			m_RenderFrame->ShowFullScreen(event.GetInt() == 0 ? false : true);
-		if (m_confirmStop)
-			Core::SetState(Core::CORE_PAUSE);
+		{
+			bool fullscreen = event.GetInt() == 0 ? false : true;
+			ToggleDisplayMode(fullscreen);
+			if (m_RenderFrame != nullptr)
+				m_RenderFrame->ShowFullScreen(fullscreen);
+			if (m_confirmStop)
+				Core::SetState(Core::CORE_PAUSE);
+		}
 		break;
 
 	case WM_USER_CREATE:
