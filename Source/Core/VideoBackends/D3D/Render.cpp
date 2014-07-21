@@ -946,10 +946,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	BOOL fullscreen_state;
 	if (SUCCEEDED(D3D::swapchain->GetFullscreenState(&fullscreen_state, nullptr)))
 	{
-		if (!!fullscreen_state != fullscreen)
+		if (!!fullscreen_state != fullscreen && Host_RendererHasFocus())
 		{
 			// We should be in fullscreen, but we're not. Restore it when we regain focus.
-			fullscreen_changed = Host_RendererHasFocus();
+			fullscreen_changed = true;
 		}
 	}
 

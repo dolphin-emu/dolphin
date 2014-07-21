@@ -170,6 +170,7 @@ private:
 	bool m_bNoDocking;
 	bool m_bGameLoading;
 	bool m_bClosing;
+	bool m_confirmStop;
 
 	std::vector<std::string> drives;
 
