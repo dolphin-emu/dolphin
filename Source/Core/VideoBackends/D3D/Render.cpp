@@ -984,7 +984,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 			{
 				s_last_fullscreen_mode = fullscreen;
 				D3D::swapchain->SetFullscreenState(fullscreen, nullptr);
-				Host_RequestFullscreen(fullscreen);
+
+				// notify the host that it is safe to exit fullscreen
+				if (!fullscreen)
+				{
+					Host_RequestFullscreen(false);
+				}
 			}
 
 			// TODO: Aren't we still holding a reference to the back buffer right now?
