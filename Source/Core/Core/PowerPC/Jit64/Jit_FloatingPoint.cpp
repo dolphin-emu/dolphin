@@ -175,21 +175,6 @@ void Jit64::fsign(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-void Jit64::frsp(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(inst.Rc);
-
-	int d = inst.FD, b = inst.FB;
-	fpr.Lock(d, b);
-	fpr.BindToRegister(d, d == b);
-	CVTSD2SS(fpr.RX(d), fpr.R(b));
-	CVTSS2SD(fpr.RX(d), fpr.R(d));
-	UNPCKLPD(fpr.RX(d), fpr.R(d));
-	fpr.UnlockAll();
-}
-
 void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
