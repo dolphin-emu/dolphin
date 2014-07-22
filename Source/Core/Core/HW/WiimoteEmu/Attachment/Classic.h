@@ -35,6 +35,17 @@ public:
 		PAD_UP       = 0x0100,
 	};
 
+	static const u8 LEFT_STICK_CENTER_X = 0x20;
+	static const u8 LEFT_STICK_CENTER_Y = 0x20;
+	static const u8 LEFT_STICK_RADIUS = 0x1F;
+
+	static const u8 RIGHT_STICK_CENTER_X = 0x10;
+	static const u8 RIGHT_STICK_CENTER_Y = 0x10;
+	static const u8 RIGHT_STICK_RADIUS = 0x0F;
+
+	static const u8 LEFT_TRIGGER_RANGE = 0x1F;
+	static const u8 RIGHT_TRIGGER_RANGE = 0x1F;
+
 private:
 	Buttons*       m_buttons;
 	MixedTriggers* m_triggers;
