@@ -14,6 +14,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
@@ -39,10 +40,13 @@ VideoConfig::VideoConfig()
 	backend_info.bUseMinimalMipCount = false;
 	backend_info.bSupports3DVision = false;
 
-	fUnitsPerMetre = 1.0f;
+	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
-	fHudDistance = 1.5f;
-	fHudThickness = 0.5f;
+	fHudDistance = DEFAULT_VR_HUD_DISTANCE;
+	fHudThickness = DEFAULT_VR_HUD_THICKNESS;
+	fAimDistance = DEFAULT_VR_AIM_DISTANCE;
+	fScreenDistance = DEFAULT_VR_SCREEN_DISTANCE;
+	fScreenHeight = DEFAULT_VR_SCREEN_HEIGHT;
 
 }
 
@@ -206,18 +210,18 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "UseBBox", bUseBBox);
 	CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
 
-	fUnitsPerMetre = 1.0f;
-	fHudDistance = 1.5f;
-	fHudThickness = 0.5f;
-	fCameraForward = 0.0f;
-	fCameraPitch = 0.0f;
-	fAimDistance = 7.0f;
-	fScreenHeight = 2.0f;
-	fScreenDistance = 1.5f;
-	fScreenThickness = 0.5f;
-	fScreenRight = 0.0f;
-	fScreenUp = 0.0f;
-	fScreenPitch = 0.0f;
+	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
+	fHudDistance = DEFAULT_VR_HUD_DISTANCE;
+	fHudThickness = DEFAULT_VR_HUD_THICKNESS;
+	fCameraForward = DEFAULT_VR_CAMERA_FORWARD;
+	fCameraPitch = DEFAULT_VR_CAMERA_PITCH;
+	fAimDistance = DEFAULT_VR_AIM_DISTANCE;
+	fScreenHeight = DEFAULT_VR_SCREEN_HEIGHT;
+	fScreenDistance = DEFAULT_VR_SCREEN_DISTANCE;
+	fScreenThickness = DEFAULT_VR_HUD_THICKNESS;
+	fScreenRight = DEFAULT_VR_SCREEN_RIGHT;
+	fScreenUp = DEFAULT_VR_SCREEN_UP;
+	fScreenPitch = DEFAULT_VR_SCREEN_PITCH;
 	bDisable3D = false;
 	bHudFullscreen = false;
 	iSelectedLayer = -1;
@@ -272,19 +276,19 @@ void VideoConfig::GameIniSave()
 	} while (0)
 
 	SAVE_IF_NOT_DEFAULT("VR", "Disable3D", bDisable3D, false);
-	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)fUnitsPerMetre, 1.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
-	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, 1.5f);
-	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, 0.5f);
-	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)fCameraForward, 0.0f);
-	SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)fCameraPitch, 0.0f);
-	SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)fAimDistance, 7.0f);
-	SAVE_IF_NOT_DEFAULT("VR", "ScreenHeight", (float)fScreenHeight, 2.0f);
-	SAVE_IF_NOT_DEFAULT("VR", "ScreenDistance", (float)fScreenDistance, 1.5f);
-	SAVE_IF_NOT_DEFAULT("VR", "ScreenThickness", (float)fScreenThickness, 0.5f);
-	SAVE_IF_NOT_DEFAULT("VR", "ScreenUp", (float)fScreenUp, 0.0f);
-	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, 0.0f);
-	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
+	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
+	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)fCameraForward, DEFAULT_VR_CAMERA_FORWARD);
+	SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)fCameraPitch, DEFAULT_VR_CAMERA_PITCH);
+	SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)fAimDistance, DEFAULT_VR_AIM_DISTANCE);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenHeight", (float)fScreenHeight, DEFAULT_VR_SCREEN_HEIGHT);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenDistance", (float)fScreenDistance, DEFAULT_VR_SCREEN_DISTANCE);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenThickness", (float)fScreenThickness, DEFAULT_VR_SCREEN_THICKNESS);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenUp", (float)fScreenUp, DEFAULT_VR_SCREEN_UP);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
+	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
 	GameIniLocal.Save(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal);
 }
 
