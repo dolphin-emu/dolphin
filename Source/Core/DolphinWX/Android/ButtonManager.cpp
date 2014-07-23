@@ -117,13 +117,13 @@ namespace ButtonManager
 				{
 					hasbind = true;
 					type = BIND_AXIS;
-					sscanf(value.c_str(), "Device '%[^\']'-Axis %d%c", dev, &bindnum, &modifier);
+					sscanf(value.c_str(), "Device '%127[^\']'-Axis %d%c", dev, &bindnum, &modifier);
 				}
 				else if (std::string::npos != value.find("Button"))
 				{
 					hasbind = true;
 					type = BIND_BUTTON;
-					sscanf(value.c_str(), "Device '%[^\']'-Button %d", dev, &bindnum);
+					sscanf(value.c_str(), "Device '%127[^\']'-Button %d", dev, &bindnum);
 				}
 				if (hasbind)
 					AddBind(std::string(dev), new sBind(padID, configTypes[a], type, bindnum, modifier == '-' ? -1.0f : 1.0f));
