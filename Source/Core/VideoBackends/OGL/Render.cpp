@@ -1509,7 +1509,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	// Save screenshot
-	if (s_bScreenshot && !g_has_rift)
+	if (s_bScreenshot)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		SaveScreenshot(s_sScreenshotName, flipped_trc);
@@ -1520,7 +1520,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	// Frame dumps are handled a little differently in Windows
 	// Frame dumping disabled entirely on GLES3
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && !g_has_rift)
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 #if defined _WIN32 || defined HAVE_LIBAV
 		if (g_ActiveConfig.bDumpFrames)
