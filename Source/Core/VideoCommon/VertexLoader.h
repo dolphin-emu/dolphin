@@ -107,8 +107,8 @@ public:
 
 	int GetVertexSize() const {return m_VertexSize;}
 
-	void SetupRunVertices(int vtx_attr_group, int primitive, int const count);
-	void RunVertices(int vtx_attr_group, int primitive, int count);
+	void SetupRunVertices(const VAT& vat, int primitive, int const count);
+	void RunVertices(const VAT& vat, int primitive, int count);
 
 	// For debugging / profiling
 	void AppendToString(std::string *dest) const;
