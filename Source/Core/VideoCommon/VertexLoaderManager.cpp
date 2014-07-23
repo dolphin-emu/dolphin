@@ -104,8 +104,7 @@ static VertexLoader* RefreshLoader(int vtx_attr_group)
 {
 	if ((s_attr_dirty >> vtx_attr_group) & 1)
 	{
-		VertexLoaderUID uid;
-		uid.InitFromCurrentState(vtx_attr_group);
+		VertexLoaderUID uid(g_VtxDesc, g_VtxAttr[vtx_attr_group]);
 		VertexLoaderMap::iterator iter = g_VertexLoaderMap.find(uid);
 		if (iter != g_VertexLoaderMap.end())
 		{
