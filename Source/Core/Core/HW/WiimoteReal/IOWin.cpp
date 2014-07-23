@@ -673,7 +673,9 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 					// Semaphore timeout
 					NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to the Wiimote");
 				}
-				else
+				else if (err != 0x1F)  // Some third-party adapters (DolphinBar) use this
+				                       // error code to signal the absence of a WiiMote
+				                       // linked to the HID device.
 				{
 					WARN_LOG(WIIMOTE, "IOWrite[MSBT_STACK_MS]: ERROR: %08x", err);
 				}
