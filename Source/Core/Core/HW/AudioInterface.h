@@ -17,6 +17,7 @@ namespace AudioInterface
 void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
+bool IsPlaying();
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 

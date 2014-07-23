@@ -200,15 +200,17 @@ static UDICR     m_DICR;
 static UDIIMMBUF m_DIIMMBUF;
 static UDICFG    m_DICFG;
 
-static u32 LoopStart;
 static u32 AudioPos;
 static u32 CurrentStart;
-static u32 LoopLength;
 static u32 CurrentLength;
+static u32 NextStart;
+static u32 NextLength;
+
 
 static u32  g_ErrorCode = 0;
 static bool g_bDiscInside = false;
 bool g_bStream = false;
+static bool g_bStopAtTrackEnd = false;
 static int  tc = 0;
 static int  dtk = 0;
 
@@ -240,9 +242,9 @@ void DoState(PointerWrap &p)
 	p.Do(m_DIIMMBUF);
 	p.DoPOD(m_DICFG);
 
-	p.Do(LoopStart);
+	p.Do(NextStart);
 	p.Do(AudioPos);
-	p.Do(LoopLength);
+	p.Do(NextLength);
 
 	p.Do(g_ErrorCode);
 	p.Do(g_bDiscInside);
@@ -253,6 +255,8 @@ void DoState(PointerWrap &p)
 
 	p.Do(g_last_read_offset);
 	p.Do(g_last_read_time);
+
+	p.Do(g_bStopAtTrackEnd);
 }
 
 static void TransferComplete(u64 userdata, int cyclesLate)
@@ -268,18 +272,22 @@ static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
 	{
 		if (AudioPos >= CurrentStart + CurrentLength)
 		{
-			AudioPos = LoopStart;
-			CurrentStart = LoopStart;
-			CurrentLength = LoopLength;
-			NGCADPCM::InitFilter();
-			AudioInterface::GenerateAISInterrupt();
+			DEBUG_LOG(DVDINTERFACE,
+				"ProcessDTKSamples: NextStart=%08x,NextLength=%08x,CurrentStart=%08x,CurrentLength=%08x,AudioPos=%08x",
+				NextStart, NextLength, CurrentStart, CurrentLength, AudioPos);
 
-			// If there isn't any audio to stream, stop streaming.
-			if (AudioPos >= CurrentStart + CurrentLength)
+			AudioPos = NextStart;
+			CurrentStart = NextStart;
+			CurrentLength = NextLength;
+
+			if (g_bStopAtTrackEnd)
 			{
+				g_bStopAtTrackEnd = false;
 				g_bStream = false;
+				break;
 			}
-			break;
+
+			NGCADPCM::InitFilter();
 		}
 
 		u8 tempADPCM[NGCADPCM::ONE_BLOCK_SIZE];
@@ -303,7 +311,7 @@ static void DTKStreamingCallback(u64 userdata, int cyclesLate)
 	static const int NUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
 	short tempPCM[NUM_SAMPLES * 2];
 	unsigned samples_processed;
-	if (g_bStream)
+	if (g_bStream && AudioInterface::IsPlaying())
 	{
 		samples_processed = ProcessDTKSamples(tempPCM, NUM_SAMPLES);
 	}
@@ -333,12 +341,13 @@ void Init()
 	m_DICFG.CONFIG    = 1; // Disable bootrom descrambler
 
 	AudioPos = 0;
-	LoopStart = 0;
-	LoopLength = 0;
+	NextStart = 0;
+	NextLength = 0;
 	CurrentStart = 0;
 	CurrentLength = 0;
 
 	g_bStream = false;
+	g_bStopAtTrackEnd = false;
 
 	ejectDisc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
@@ -928,31 +937,41 @@ void ExecuteCommand()
 	// m_DICMDBUF[2].Hex      = Length of the stream
 	case 0xE1:
 		{
-			u32 pos = m_DICMDBUF[1].Hex << 2;
-			u32 length = m_DICMDBUF[2].Hex;
-
-			// Start playing
-			if (!g_bStream && m_DICMDBUF[0].CMDBYTE1 == 0 && pos != 0 && length != 0)
+			u8 cancel_stream = m_DICMDBUF[0].CMDBYTE1;
+			if (cancel_stream)
 			{
-				AudioPos = pos;
-				CurrentStart = pos;
-				CurrentLength = length;
-				NGCADPCM::InitFilter();
-			}
-
-			LoopStart = pos;
-			LoopLength = length;
-			g_bStream = (m_DICMDBUF[0].CMDBYTE1 == 0); // This command can start/stop the stream
-
-			// Stop stream
-			if (m_DICMDBUF[0].CMDBYTE1 == 1)
-			{
+				g_bStopAtTrackEnd = false;
+				g_bStream = false;
 				AudioPos = 0;
-				LoopStart = 0;
-				LoopLength = 0;
+				NextStart = 0;
+				NextLength = 0;
 				CurrentStart = 0;
 				CurrentLength = 0;
 			}
+			else
+			{
+				u32 pos = m_DICMDBUF[1].Hex << 2;
+				u32 length = m_DICMDBUF[2].Hex;
+
+				if ((pos == 0) && (length == 0))
+				{
+					g_bStopAtTrackEnd = true;
+				}
+				else if (!g_bStopAtTrackEnd)
+				{
+					NextStart = pos;
+					NextLength = length;
+					if (!g_bStream)
+					{
+						CurrentStart = NextStart;
+						CurrentLength = NextLength;
+						AudioPos = CurrentStart;
+						NGCADPCM::InitFilter();
+						g_bStream = true;
+					}
+				}
+			}
+
 
 			WARN_LOG(DVDINTERFACE, "(Audio) Stream subcmd = %08x offset = %08x length=%08x",
 				m_DICMDBUF[0].Hex, m_DICMDBUF[1].Hex << 2, m_DICMDBUF[2].Hex);
@@ -965,25 +984,23 @@ void ExecuteCommand()
 			switch (m_DICMDBUF[0].CMDBYTE1)
 			{
 			case 0x00: // Returns streaming status
-				m_DIIMMBUF.Hex = (AudioPos == 0) ? 0 : 1;
+				DEBUG_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08x/%08x CurrentStart:%08x CurrentLength:%08x", AudioPos, CurrentStart + CurrentLength, CurrentStart, CurrentLength);
+				m_DIIMMBUF.REGVAL0 = 0;
+				m_DIIMMBUF.REGVAL1 = 0;
+				m_DIIMMBUF.REGVAL2 = 0;
+				m_DIIMMBUF.REGVAL3 = (g_bStream) ? 1 : 0;
 				break;
 			case 0x01: // Returns the current offset
-				if (g_bStream)
-					m_DIIMMBUF.Hex = (AudioPos - CurrentStart) >> 2;
-				else
-					m_DIIMMBUF.Hex = 0;
+				DEBUG_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08x", AudioPos);
+				m_DIIMMBUF.Hex = AudioPos >> 2;
 				break;
 			case 0x02: // Returns the start offset
-				if (g_bStream)
-					m_DIIMMBUF.Hex = CurrentStart >> 2;
-				else
-					m_DIIMMBUF.Hex = 0;
+				DEBUG_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentStart:%08x", CurrentStart);
+				m_DIIMMBUF.Hex = CurrentStart >> 2;
 				break;
 			case 0x03: // Returns the total length
-				if (g_bStream)
-					m_DIIMMBUF.Hex = CurrentLength;
-				else
-					m_DIIMMBUF.Hex = 0;
+				DEBUG_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentLength:%08x", CurrentLength);
+				m_DIIMMBUF.Hex = CurrentLength;
 				break;
 			default:
 				WARN_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s", m_DICMDBUF[0].CMDBYTE1, g_bStream? "on":"off");
