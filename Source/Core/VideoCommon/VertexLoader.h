@@ -135,7 +135,7 @@ private:
 
 	int m_numLoadedVertices;
 
-	void SetVAT(u32 _group0, u32 _group1, u32 _group2);
+	void SetVAT(const VAT& vat);
 
 	void CompileVertexTranslator();
 	void ConvertVertices(int count);
