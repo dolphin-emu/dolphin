@@ -1204,8 +1204,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
 	{
-		if (eye)
-			FramebufferManager::SwapRenderEye();
+		FramebufferManager::RenderToEye(eye);
 		// color
 		GLboolean const
 			color_mask = colorEnable ? GL_TRUE : GL_FALSE,
@@ -1707,11 +1706,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		{
 			if (eye)
 				FramebufferManager::SwapRenderEye();
-			glClearColor(0, 0, 0, 0);
+//			glClearColor(0, 0, 0, 0);
+//			glClearDepth(1);
+			glClearColor(0.f, 0.f, 0.f, 1.f);
+			glClearDepthf(1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		}
 		GL_REPORT_ERRORD();
 	}
+	// VR
+	g_texture_cache->ClearRenderTargets();
 
 	if (s_vsync != g_ActiveConfig.IsVSync())
 	{
@@ -1769,6 +1773,7 @@ void Renderer::RestoreAPIState()
 	// Gets us back into a more game-like state.
 	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
 	{
+		FramebufferManager::RenderToEye(eye);
 		glEnable(GL_SCISSOR_TEST);
 		SetGenerationMode();
 		BPFunctions::SetScissor();
@@ -1795,8 +1800,7 @@ void Renderer::SetGenerationMode()
 	if (bpmem.genMode.cullmode > 0)
 	{
 		// TODO: GX_CULL_ALL not supported, yet!
-		//glEnable(GL_CULL_FACE);
-		glDisable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);
 		glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
 	}
 	else

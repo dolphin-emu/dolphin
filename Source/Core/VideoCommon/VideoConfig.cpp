@@ -214,7 +214,7 @@ void VideoConfig::GameIniLoad()
 	fAimDistance = 7.0f;
 	fScreenHeight = 2.0f;
 	fScreenDistance = 1.5f;
-	fScreenThickness = 1.0f;
+	fScreenThickness = 0.5f;
 	fScreenRight = 0.0f;
 	fScreenUp = 0.0f;
 	fScreenPitch = 0.0f;
