@@ -13,6 +13,7 @@ public:
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs) override;
 	bool IsInterruptSet() override;
+	bool UseDelayedTransferCompletion() override;
 	bool IsPresent() override;
 	void DoState(PointerWrap &p) override;
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
@@ -30,11 +31,17 @@ private:
 	// Scheduled when a command that required delayed end signaling is done.
 	static void CmdDoneCallback(u64 userdata, int cyclesLate);
 
+	// Scheduled when memory card is done transferring data
+	static void TransferCompleteCallback(u64 userdata, int cyclesLate);
+
 	// Flushes the memory card contents to disk.
 	void Flush(bool exiting = false);
 
 	// Signals that the command that was previously executed is now done.
 	void CmdDone();
+
+	// Signals that the transfer that was previously executed is now done.
+	void TransferComplete();
 
 	// Variant of CmdDone which schedules an event later in the future to complete the command.
 	void CmdDoneLater(u64 cycles);
@@ -59,7 +66,7 @@ private:
 	};
 
 	int card_index;
-	int et_this_card, et_cmd_done;
+	int et_this_card, et_cmd_done, et_transfer_complete;
 	//! memory card state
 
 	// STATE_TO_SAVE

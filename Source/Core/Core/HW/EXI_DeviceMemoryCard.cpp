@@ -11,6 +11,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
 #include "Core/HW/EXI.h"
+#include "Core/HW/EXI_Channel.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceMemoryCard.h"
 #include "Core/HW/GCMemcard.h"
@@ -18,6 +19,7 @@
 #include "Core/HW/GCMemcardRaw.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/SystemTimers.h"
 #include "DiscIO/NANDContentLoader.h"
 
 #define MC_STATUS_BUSY              0x80
@@ -27,6 +29,9 @@
 #define MC_STATUS_PROGRAMEERROR     0x08
 #define MC_STATUS_READY             0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
+
+static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
+static const u32 MC_TRANSFER_RATE_WRITE = (u32)(96.125f * 1024.0f);
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
@@ -49,6 +54,16 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 		pThis->CmdDone();
 }
 
+void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, int cyclesLate)
+{
+	int card_index = (int)userdata;
+	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	if (pThis == nullptr)
+		pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
+	if (pThis)
+		pThis->TransferComplete();
+}
+
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	: card_index(index)
 	, m_bDirty(false)
@@ -56,6 +71,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
 	et_this_card = CoreTiming::RegisterEvent((index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
 	et_cmd_done = CoreTiming::RegisterEvent((index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
+	et_transfer_complete = CoreTiming::RegisterEvent((index == 0) ? "memcardTransferCompleteA" : "memcardTransferCompleteB", TransferCompleteCallback);
 
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -185,6 +201,11 @@ CEXIMemoryCard::~CEXIMemoryCard()
 	memorycard.reset();
 }
 
+bool CEXIMemoryCard::UseDelayedTransferCompletion()
+{
+	return true;
+}
+
 bool CEXIMemoryCard::IsPresent()
 {
 	return true;
@@ -197,6 +218,12 @@ void CEXIMemoryCard::CmdDone()
 
 	m_bInterruptSet = 1;
 	m_bDirty = true;
+}
+
+void CEXIMemoryCard::TransferComplete()
+{
+	// Transfer complete, send interrupt
+	ExpansionInterface::GetChannel(card_index)->SendTransferComplete();
 }
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
@@ -473,10 +500,14 @@ IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
 void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 {
 	memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
+
 #ifdef _DEBUG
 	if ((address + _uSize) % BLOCK_SIZE == 0)
 		INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
 #endif
+
+	// Schedule transfer complete later based on read speed
+	CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ), et_transfer_complete, (u64)card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -499,4 +530,7 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 		CoreTiming::RemoveEvent(et_this_card);
 		CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
 	}
+
+	// Schedule transfer complete later based on write speed
+	CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE), et_transfer_complete, (u64)card_index);
 }
