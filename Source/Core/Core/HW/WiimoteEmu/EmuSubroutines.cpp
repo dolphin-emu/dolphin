@@ -33,6 +33,7 @@ namespace WiimoteEmu
 
 void Spy(Wiimote* wm_, const void* data_, size_t size_)
 {
+// Enable for logging and debugging purposes.
 #if 0
 	// enable log
 	bool logCom = true;
