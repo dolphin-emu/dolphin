@@ -468,7 +468,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	VertexLoader_TextCoord::Init();
 
 	m_VtxDesc = vtx_desc;
-	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
+	SetVAT(vtx_attr);
 
 	#ifdef USE_VERTEX_LOADER_JIT
 	AllocCodeSpace(COMPILED_CODE_SIZE);
@@ -887,13 +887,8 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const coun
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 }
 
-void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
+void VertexLoader::SetVAT(const VAT& vat)
 {
-	VAT vat;
-	vat.g0.Hex = _group0;
-	vat.g1.Hex = _group1;
-	vat.g2.Hex = _group2;
-
 	m_VtxAttr.PosElements          = vat.g0.PosElements;
 	m_VtxAttr.PosFormat            = vat.g0.PosFormat;
 	m_VtxAttr.PosFrac              = vat.g0.PosFrac;
