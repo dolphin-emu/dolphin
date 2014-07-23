@@ -906,8 +906,24 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // therefore the width and height are (scissorBR + 1) - scissorTL
 void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-	TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
-	glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
+	TargetRectangle trc;
+	// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
+	if (g_has_hmd)
+	{
+		EFBRectangle sourceRc;
+		sourceRc.left = 0;
+		sourceRc.right = EFB_WIDTH-1;
+		sourceRc.top = 0;
+		sourceRc.bottom = EFB_HEIGHT-1;
+		trc = g_renderer->ConvertEFBRectangle(sourceRc);
+		glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
+		glDisable(GL_SCISSOR_TEST);
+	}
+	else
+	{
+		trc = g_renderer->ConvertEFBRectangle(rc);
+		glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
+	}
 }
 
 void Renderer::SetColorMask()
@@ -1169,10 +1185,25 @@ void Renderer::SetViewport()
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	// TODO: ceil, floor or just cast to int?
-	float X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
-	float Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
-	float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
-	float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+	float X, Y, Width, Height;
+	if (!g_has_hmd)
+	{
+		X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
+		Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
+		Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
+		Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+	}
+	else
+	{
+		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
+		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
+		X = (xfmem.viewport.xOrig - xfmem.viewport.wd - bpmem.copyTexSrcXY.x - (float)scissorXOff) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		Y = (float)GetTargetHeight() - (xfmem.viewport.yOrig - xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		Width = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		Height = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		X = 0; Y = 0; Width = GetTargetWidth(); Height = GetTargetHeight();
+	}
+
 	float GLNear = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
 	float GLFar = xfmem.viewport.farZ / 16777216.0f;
 	if (Width < 0)
@@ -1190,12 +1221,15 @@ void Renderer::SetViewport()
 	if (g_ogl_config.bSupportViewportFloat)
 	{
 		glViewportIndexedf(0, X, Y, Width, Height);
+		//NOTICE_LOG(VR, "glViewportIndexedf(0,   %f, %f,   %f, %f) TargetSize=%d, %d", X, Y, Width, Height, GetTargetWidth(), GetTargetHeight());
 	}
 	else
 	{
 		glViewport(ceil(X), ceil(Y), ceil(Width), ceil(Height));
+		NOTICE_LOG(VR, "glViewport(%d, %d,   %d, %d)", ceil(X), ceil(Y), ceil(Width), ceil(Height));
 	}
 	glDepthRangef(GLNear, GLFar);
+	//NOTICE_LOG(VR, "gDepthRangef(%f, %f)", GLNear, GLFar);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
@@ -1223,7 +1257,11 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 		glClearDepthf(float(z & 0xFFFFFF) / float(0xFFFFFF));
 
 		// Update rect for clearing the picture
-		glEnable(GL_SCISSOR_TEST);
+		// TODO fix this properly by setting the scissor rectangle
+		if (g_has_hmd)
+			glDisable(GL_SCISSOR_TEST);
+		else
+			glEnable(GL_SCISSOR_TEST);
 
 		TargetRectangle const targetRc = ConvertEFBRectangle(rc);
 		glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
@@ -1465,11 +1503,24 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 #ifdef HAVE_OCULUSSDK
 	else if (g_has_rift)
 	{
-		TargetRectangle targetRc = ConvertEFBRectangle(rc);
+		EFBRectangle sourceRc;
+		if (g_has_hmd)
+		{
+			// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
+			sourceRc.left = 0;
+			sourceRc.right = EFB_WIDTH;
+			sourceRc.top = 0;
+			sourceRc.bottom = EFB_HEIGHT;
+		}
+		else
+		{
+			sourceRc = rc;
+		}
+		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
-		FramebufferManager::ResolveAndGetRenderTarget(rc, 0);
-		FramebufferManager::ResolveAndGetRenderTarget(rc, 1);
+		FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 0);
+		FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 1);
 
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
 		PostProcessing::BindTargetFramebuffer();
@@ -1479,17 +1530,27 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 		// Let OVR do distortion rendering, Present and flush/sync.
 		ovrHmd_EndFrame(hmd);
-
-
-
 	}
 #endif
 	else
 	{
-		TargetRectangle targetRc = ConvertEFBRectangle(rc);
+		EFBRectangle sourceRc;
+		if (g_has_hmd)
+		{
+			// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
+			sourceRc.left = 0;
+			sourceRc.right = EFB_WIDTH;
+			sourceRc.top = 0;
+			sourceRc.bottom = EFB_HEIGHT;
+		}
+		else
+		{
+			sourceRc = rc;
+		}
+		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
-		FramebufferManager::ResolveAndGetRenderTarget(rc, 0);
+		FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 0);
 
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
 		PostProcessing::BindTargetFramebuffer();
@@ -1774,7 +1835,10 @@ void Renderer::RestoreAPIState()
 	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
 	{
 		FramebufferManager::RenderToEye(eye);
-		glEnable(GL_SCISSOR_TEST);
+		if (g_has_hmd)
+			glDisable(GL_SCISSOR_TEST);
+		else
+			glEnable(GL_SCISSOR_TEST);
 		SetGenerationMode();
 		BPFunctions::SetScissor();
 		SetColorMask();

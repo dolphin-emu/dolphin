@@ -582,6 +582,7 @@ void VertexShaderManager::SetConstants()
 		constants.depthparams[2] = pixel_center_correction * pixel_size_x;
 		constants.depthparams[3] = pixel_center_correction * pixel_size_y;
 		dirty = true;
+		NOTICE_LOG(VR, "pixel_size: %f, %f", pixel_size_x, pixel_size_y);
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();
 
@@ -775,19 +776,19 @@ void VertexShaderManager::SetProjectionConstants()
 			}
 			else { // default, if no 3D in scene
 				znear = 0.5f*UnitsPerMetre; // 50cm
-				zfar = 2000 *UnitsPerMetre; // 400m
+				zfar = 400 *UnitsPerMetre; // 400m
 				hfov = 70; // 70 degrees
 				if (g_aspect_wide)
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 9.0f / 16.0f); // 2D screen is meant to be 16:9 aspect ratio
 				else
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 3.0f / 4.0f); //  2D screen is meant to be 4:3 aspect ratio, make it the same width but taller
 				if (debug_newScene)
-					INFO_LOG(VR, "Only 2D Projecting: %g x %g, n=%g f=%g", hfov, vfov, znear, zfar);
+					ERROR_LOG(VR, "Only 2D Projecting: %g x %g, n=%fm f=%fm", hfov, vfov, znear, zfar);
 			}
 			zNear3D = znear;
 			znear /= 40;
 			if (debug_newScene)
-				INFO_LOG(VR, "2D: zNear3D = %f, znear = %f", zNear3D, znear);
+				WARN_LOG(VR, "2D: zNear3D = %f, znear = %f, zFar = %f", zNear3D, znear, zfar);
 			g_fProjectionMatrix[0] = 1.0f;
 			g_fProjectionMatrix[1] = 0.0f;
 			g_fProjectionMatrix[2] = 0.0f;
@@ -803,7 +804,7 @@ void VertexShaderManager::SetProjectionConstants()
 			g_fProjectionMatrix[10] = -znear / (zfar - znear);
 			g_fProjectionMatrix[11] = -zfar*znear / (zfar - znear);
 			if (debug_newScene)
-				INFO_LOG(VR, "2D: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
+				WARN_LOG(VR, "2D: m[2][2]=%f m[2][3]=%f ", g_fProjectionMatrix[10], g_fProjectionMatrix[11]);
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
