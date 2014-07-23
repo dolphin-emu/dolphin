@@ -1126,6 +1126,16 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				g_Config.fUnitsPerMetre /= 1.20f;
 				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 				break;
+				// Make everything 20% smaller (and closer)
+			case ',':
+				g_Config.fScreenHeight *= 1.05f;
+				NOTICE_LOG(VR, "Screen is %fm high", g_Config.fScreenHeight);
+				break;
+				// Make everything 20% bigger (and further)
+			case 'M':
+				g_Config.fScreenHeight /= 1.05f;
+				NOTICE_LOG(VR, "Screen is %fm High", g_Config.fScreenHeight);
+				break;
 			// Make HUD 10cm thinner
 			case '[':
 				if (g_Config.fHudThickness <= 0.01f)
@@ -1147,16 +1157,38 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				NOTICE_LOG(VR, "HUD is %5.2fm (%5.0fcm) thick", g_Config.fHudThickness, g_Config.fHudThickness * 100);
 				break;
 			// Move HUD in 10cm
-			case ',':
+			case '.':
 				g_Config.fHudDistance -= 0.1f;
 				if (g_Config.fHudDistance <= 0)
 					g_Config.fHudDistance = 0;
 				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
 				break;
 			// Move HUD out 10cm
-			case '.':
+			case '/':
 				g_Config.fHudDistance += 0.1f;
 				NOTICE_LOG(VR, "HUD is %5.1fm (%5.0fcm) away", g_Config.fHudDistance, g_Config.fHudDistance * 100);
+				break;
+				// Move Screen in 10cm
+			case 'J':
+				g_Config.fScreenDistance -= 0.1f;
+				if (g_Config.fScreenDistance <= 0)
+					g_Config.fScreenDistance = 0;
+				NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
+				break;
+				// Move Screen out 10cm
+			case 'U':
+				g_Config.fScreenDistance += 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.1fm (%5.0fcm) away", g_Config.fScreenDistance, g_Config.fScreenDistance * 100);
+				break;
+				// Move Screen in 10cm
+			case 'H':
+				g_Config.fScreenUp -= 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
+				break;
+				// Move Screen out 10cm
+			case 'Y':
+				g_Config.fScreenUp += 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.1fm up", g_Config.fScreenUp);
 				break;
 			// Move camera back 10cm
 			case ';':
@@ -1178,15 +1210,25 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				g_Config.fCameraPitch -= 5.0f;
 				NOTICE_LOG(VR, "Camera is pitched %5.1f degrees up", g_Config.fCameraPitch);
 				break;
+				// Pitch camera up 5 degrees
+			case 'I':
+				g_Config.fScreenPitch += 5.0f;
+				NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
+				break;
+				// Pitch camera down 5 degrees
+			case 'K':
+				g_Config.fScreenPitch -= 5.0f;
+				NOTICE_LOG(VR, "2D Camera is pitched %5.1f degrees up", g_Config.fScreenPitch);
+				break;
 			// Previous layer
-			case 'H':
+			case 'B':
 				g_Config.iSelectedLayer--;
 				if (g_Config.iSelectedLayer < 0)
 					g_Config.iSelectedLayer = -1;
 				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
 				break;
 				// Previous layer
-			case 'J':
+			case 'N':
 				g_Config.iSelectedLayer++;
 				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
 				break;
