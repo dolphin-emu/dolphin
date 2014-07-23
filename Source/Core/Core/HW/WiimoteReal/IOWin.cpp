@@ -140,7 +140,7 @@ namespace WiimoteReal
 {
 
 
-int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len);
+int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len, DWORD* written);
 int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index);
 void _IOWakeup(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read);
 
@@ -257,26 +257,8 @@ int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, size_t size, int at
 
 	for (; attempts>0; --attempts)
 	{
-		if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, size))
-		{
-			auto const wait_result = WaitForSingleObject(hid_overlap_write.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
-			if (WAIT_TIMEOUT == wait_result)
-			{
-				WARN_LOG(WIIMOTE, "CheckDeviceType_Write: A timeout occurred on writing to Wiimote.");
-				CancelIo(dev_handle);
-				continue;
-			}
-			else if (WAIT_FAILED == wait_result)
-			{
-				WARN_LOG(WIIMOTE, "CheckDeviceType_Write: A wait error occurred on writing to Wiimote.");
-				CancelIo(dev_handle);
-				continue;
-			}
-			if (GetOverlappedResult(dev_handle, &hid_overlap_write, &written, TRUE))
-			{
-				break;
-			}
-		}
+		if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, size, &written))
+			break;
 	}
 
 	CloseHandle(hid_overlap_write.hEvent);
@@ -640,7 +622,7 @@ int Wiimote::IORead(u8* buf)
 }
 
 
-int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len)
+int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len, DWORD* written)
 {
 	WiimoteEmu::Spy(nullptr, buf, len);
 
@@ -650,11 +632,11 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 		{
 			// Try to auto-detect the stack type
 			stack = MSBT_STACK_BLUESOLEIL;
-			if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, len))
+			if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, len, written))
 				return 1;
 
 			stack = MSBT_STACK_MS;
-			if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, len))
+			if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, len, written))
 				return 1;
 
 			stack = MSBT_STACK_UNKNOWN;
@@ -681,6 +663,9 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 				}
 			}
 
+			if (written)
+				*written = (result ? (DWORD)len : 0);
+
 			return result;
 		}
 		case MSBT_STACK_BLUESOLEIL:
@@ -697,7 +682,26 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 			DWORD bytes = 0;
 			if (WriteFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap_write))
 			{
-				// WriteFile always returns true with bluesoleil.
+				// If the number of written bytes is requested, block until we can provide
+				// this information to the called.
+				if (written)
+				{
+					auto const wait_result = WaitForSingleObject(hid_overlap_write.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
+					if (WAIT_TIMEOUT == wait_result)
+					{
+						WARN_LOG(WIIMOTE, "_IOWrite: A timeout occurred on writing to Wiimote.");
+						CancelIo(dev_handle);
+						*written = 0;
+					}
+					else if (WAIT_FAILED == wait_result)
+					{
+						WARN_LOG(WIIMOTE, "_IOWrite: A wait error occurred on writing to Wiimote.");
+						CancelIo(dev_handle);
+						*written = 0;
+					}
+					else if (!GetOverlappedResult(dev_handle, &hid_overlap_write, written, TRUE))
+						*written = 0;
+				}
 				return 1;
 			}
 			else
@@ -707,8 +711,8 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 				{
 					CancelIo(dev_handle);
 				}
+				return 0;
 			}
-			break;
 		}
 	}
 
@@ -717,7 +721,7 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 
 int Wiimote::IOWrite(const u8* buf, size_t len)
 {
-	return _IOWrite(dev_handle, hid_overlap_write, stack, buf, len);
+	return _IOWrite(dev_handle, hid_overlap_write, stack, buf, len, nullptr);
 }
 
 // invokes callback for each found wiimote bluetooth device
