@@ -813,7 +813,7 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 }
 #endif
 
-void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const count)
+void VertexLoader::SetupRunVertices(const VAT& vat, int primitive, int const count)
 {
 	m_numLoadedVertices += count;
 
@@ -826,15 +826,15 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 	g_nativeVertexFmt = m_NativeFmt;
 
 	// Load position and texcoord scale factors.
-	m_VtxAttr.PosFrac          = g_VtxAttr[vtx_attr_group].g0.PosFrac;
-	m_VtxAttr.texCoord[0].Frac = g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
-	m_VtxAttr.texCoord[1].Frac = g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
-	m_VtxAttr.texCoord[2].Frac = g_VtxAttr[vtx_attr_group].g1.Tex2Frac;
-	m_VtxAttr.texCoord[3].Frac = g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
-	m_VtxAttr.texCoord[4].Frac = g_VtxAttr[vtx_attr_group].g2.Tex4Frac;
-	m_VtxAttr.texCoord[5].Frac = g_VtxAttr[vtx_attr_group].g2.Tex5Frac;
-	m_VtxAttr.texCoord[6].Frac = g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
-	m_VtxAttr.texCoord[7].Frac = g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
+	m_VtxAttr.PosFrac          = vat.g0.PosFrac;
+	m_VtxAttr.texCoord[0].Frac = vat.g0.Tex0Frac;
+	m_VtxAttr.texCoord[1].Frac = vat.g1.Tex1Frac;
+	m_VtxAttr.texCoord[2].Frac = vat.g1.Tex2Frac;
+	m_VtxAttr.texCoord[3].Frac = vat.g1.Tex3Frac;
+	m_VtxAttr.texCoord[4].Frac = vat.g2.Tex4Frac;
+	m_VtxAttr.texCoord[5].Frac = vat.g2.Tex5Frac;
+	m_VtxAttr.texCoord[6].Frac = vat.g2.Tex6Frac;
+	m_VtxAttr.texCoord[7].Frac = vat.g2.Tex7Frac;
 
 	posScale = fractionTable[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components & VB_HAS_UVALL)
@@ -870,7 +870,7 @@ void VertexLoader::ConvertVertices ( int count )
 #endif
 }
 
-void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const count)
+void VertexLoader::RunVertices(const VAT& vat, int primitive, int const count)
 {
 	if (bpmem.genMode.cullmode == 3 && primitive < 5)
 	{
@@ -878,7 +878,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const coun
 		DataSkip(count * m_VertexSize);
 		return;
 	}
-	SetupRunVertices(vtx_attr_group, primitive, count);
+	SetupRunVertices(vat, primitive, count);
 	VertexManager::PrepareForAdditionalData(primitive, count, native_stride);
 	ConvertVertices(count);
 	IndexGenerator::AddIndices(primitive, count);
