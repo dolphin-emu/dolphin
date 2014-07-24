@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <string>
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
@@ -67,7 +68,7 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 	eff.dwGain = DI_FFNOMINALMAX;
 	eff.dwTriggerButton = DIEB_NOTRIGGER;
 	eff.dwTriggerRepeatInterval = 0;
-	eff.cAxes = std::min((DWORD)1, (DWORD)cAxes);
+	eff.cAxes = std::min<DWORD>(1, cAxes);
 	eff.rgdwAxes = rgdwAxes;
 	eff.rglDirection = rglDirection;
 
