@@ -181,9 +181,24 @@ void CMixer::PushStreamingSamples(const short *samples, unsigned int num_samples
 	m_streaming_mixer.PushSamples(samples, num_samples);
 }
 
+void CMixer::SetDMAInputSampleRate(unsigned int rate)
+{
+	m_dma_mixer.SetInputSampleRate(rate);
+}
+
+void CMixer::SetStreamInputSampleRate(unsigned int rate)
+{
+	m_streaming_mixer.SetInputSampleRate(rate);
+}
+
 void CMixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
 {
 	m_streaming_mixer.SetVolume(lvolume, rvolume);
+}
+
+void CMixer::MixerFifo::SetInputSampleRate(unsigned int rate)
+{
+	m_input_sample_rate = rate;
 }
 
 void CMixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
