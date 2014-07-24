@@ -26,7 +26,6 @@ public:
 		, m_streaming_mixer(this, 48000)
 		, m_sampleRate(BackendSampleRate)
 		, m_logAudio(0)
-		, m_throttle(false)
 		, m_speed(0)
 	{
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
@@ -42,9 +41,6 @@ public:
 	virtual void PushStreamingSamples(const short* samples, unsigned int num_samples);
 	unsigned int GetSampleRate() const { return m_sampleRate; }
 	void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
-
-	void SetThrottle(bool use) { m_throttle = use;}
-
 
 	virtual void StartLogAudio(const std::string& filename)
 	{
@@ -117,8 +113,6 @@ protected:
 	WaveFileWriter g_wave_writer;
 
 	bool m_logAudio;
-
-	bool m_throttle;
 
 	std::mutex m_csMixing;
 
