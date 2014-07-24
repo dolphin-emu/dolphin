@@ -41,6 +41,9 @@ public:
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
 	virtual void PushStreamingSamples(const short* samples, unsigned int num_samples);
 	unsigned int GetSampleRate() const { return m_sampleRate; }
+
+	void SetDMAInputSampleRate(unsigned int rate);
+	void SetStreamInputSampleRate(unsigned int rate);
 	void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
 
 	void SetThrottle(bool use) { m_throttle = use;}
@@ -97,6 +100,7 @@ protected:
 		}
 		void PushSamples(const short* samples, unsigned int num_samples);
 		unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
+		void SetInputSampleRate(unsigned int rate);
 		void SetVolume(unsigned int lvolume, unsigned int rvolume);
 	private:
 		CMixer *m_mixer;
