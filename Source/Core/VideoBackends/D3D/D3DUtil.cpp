@@ -419,10 +419,10 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 ID3D11SamplerState* linear_copy_sampler = nullptr;
 ID3D11SamplerState* point_copy_sampler = nullptr;
 
-typedef struct { float x,y,z,u,v,w; } STQVertex;
-typedef struct { float x,y,z,u,v,w; } STSQVertex;
-typedef struct { float x,y,z; u32 col; } ClearVertex;
-typedef struct { float x,y,z; u32 col; } ColVertex;
+struct STQVertex   { float x, y, z, u, v, w; };
+struct STSQVertex  { float x, y, z, u, v, w; };
+struct ClearVertex { float x, y, z; u32 col; };
+struct ColVertex   { float x, y, z; u32 col; };
 
 struct
 {

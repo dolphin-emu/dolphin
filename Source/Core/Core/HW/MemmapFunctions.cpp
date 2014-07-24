@@ -609,12 +609,12 @@ void SDRUpdated()
 #define TLB_FLAG_MOST_RECENT 0x01
 #define TLB_FLAG_INVALID 0x02
 
-typedef struct tlb_entry
+struct tlb_entry
 {
 	u32 tag;
 	u32 paddr;
 	u8 flags;
-} tlb_entry;
+};
 
 // TODO: tlb needs to be in ppcState for save-state purposes.
 #ifdef FAST_TLB_CACHE
