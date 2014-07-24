@@ -68,7 +68,7 @@ struct param2_t
 	u16 mask;
 };
 
-typedef struct
+struct DSPOPCTemplate
 {
 	const char *name;
 	u16 opcode;
@@ -85,7 +85,7 @@ typedef struct
 	bool uncond_branch;
 	bool reads_pc;
 	bool updates_sr;
-} DSPOPCTemplate;
+};
 
 typedef DSPOPCTemplate opc_t;
 

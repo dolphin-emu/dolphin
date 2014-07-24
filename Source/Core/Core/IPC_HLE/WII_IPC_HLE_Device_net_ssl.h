@@ -54,7 +54,7 @@ enum SSL_IOCTL
 	IOCTLV_NET_SSL_DEBUGGETTIME                = 0x15,
 };
 
-typedef struct
+struct WII_SSL
 {
 	ssl_context ctx;
 	ssl_session session;
@@ -66,7 +66,7 @@ typedef struct
 	int sockfd;
 	char hostname[NET_SSL_MAX_HOSTNAME_LEN];
 	bool active;
-} WII_SSL;
+};
 
 class CWII_IPC_HLE_Device_net_ssl : public IWII_IPC_HLE_Device
 {
