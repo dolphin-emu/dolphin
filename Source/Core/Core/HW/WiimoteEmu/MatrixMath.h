@@ -11,10 +11,10 @@
 #endif
 
 typedef double Matrix[4][4];
-typedef struct
+struct Vertex
 {
-	double x,y,z;
-} Vertex;
+	double x, y, z;
+};
 
 inline void MatrixIdentity(Matrix & m)
 {

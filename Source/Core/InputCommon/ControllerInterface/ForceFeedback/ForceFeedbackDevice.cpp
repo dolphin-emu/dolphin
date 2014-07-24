@@ -15,11 +15,11 @@ template class ForceFeedbackDevice::Force<DICONSTANTFORCE>;
 template class ForceFeedbackDevice::Force<DIRAMPFORCE>;
 template class ForceFeedbackDevice::Force<DIPERIODIC>;
 
-typedef struct
+struct ForceType
 {
 	GUID guid;
 	const std::string name;
-} ForceType;
+};
 
 static const ForceType force_type_names[] =
 {
