@@ -152,7 +152,6 @@ namespace AudioCommon
 	{
 		if (soundStream)
 		{
-			soundStream->GetMixer()->SetThrottle(SConfig::GetInstance().m_Framelimit == 2);
 			soundStream->SetVolume(SConfig::GetInstance().m_Volume);
 		}
 	}

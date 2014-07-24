@@ -46,7 +46,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 
 	u32 framelimit = SConfig::GetInstance().m_Framelimit;
 	float aid_sample_rate = m_input_sample_rate + offset;
-	if (consider_framelimit && framelimit > 2)
+	if (consider_framelimit && framelimit > 1)
 	{
 		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
@@ -131,21 +131,6 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 	// indexR isn't allowed to cache in the audio throttling loop as it
 	// needs to get updates to not deadlock.
 	u32 indexW = Common::AtomicLoad(m_indexW);
-
-	if (m_mixer->m_throttle)
-	{
-		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
-		while (num_samples * 2 + ((indexW - Common::AtomicLoad(m_indexR)) & INDEX_MASK) >= MAX_SAMPLES * 2)
-		{
-			if (*PowerPC::GetStatePtr() != PowerPC::CPU_RUNNING || soundStream->IsMuted())
-				break;
-			// Shortcut key for Throttle Skipping
-			if (Core::GetIsFramelimiterTempDisabled())
-				break;
-			SLEEP(1);
-			soundStream->Update();
-		}
-	}
 
 	// Check if we have enough free space
 	// indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
