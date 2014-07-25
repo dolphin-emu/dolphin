@@ -1169,7 +1169,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	}
 
 	if (!all_good)
-		wxMessageBox(_("Dolphin was unable to complete the requested action."));
+		WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
 	Update();
 }
@@ -1255,7 +1255,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	}
 
 	if (!all_good)
-		wxMessageBox(_("Dolphin was unable to complete the requested action."));
+		WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
 	Update();
 }

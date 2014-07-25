@@ -20,6 +20,7 @@
 #include <wx/filedlg.h>
 #include <wx/gdicmn.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -418,7 +419,7 @@ void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 
 			// Wasn't able to save the file, shit's whack, yo.
 			if (!result)
-				PanicAlertT("Error saving file");
+				WxUtils::ShowErrorDialog(_("Error saving file."));
 		}
 	}
 }

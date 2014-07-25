@@ -23,6 +23,7 @@
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreParameter.h"
+#include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerPanel.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -288,42 +289,42 @@ void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 
 		case 2: // Pixel Shader Constants
 			DumpPixelShaderConstants(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 3: // Vertex Shader Constants
 			DumpVertexShaderConstants(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 4: // Textures
 			DumpTextures(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 5: // Frame Buffer
 			DumpFrameBuffer(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 6: // Geometry
 			DumpGeometry(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 7: // Vertex Description
 			DumpVertexDecl(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 8: // Vertex Matrices
 			DumpMatrices(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 9: // Statistics
 			DumpStats(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 	}
 }
@@ -337,7 +338,7 @@ void GFXDebuggerPanel::OnContButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnClearScreenButton(wxCommandEvent& event)
 {
 	// TODO
-	wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+	WxUtils::ShowErrorDialog(_("Not implemented"));
 }
 
 void GFXDebuggerPanel::OnClearTextureCacheButton(wxCommandEvent& event)
@@ -348,17 +349,17 @@ void GFXDebuggerPanel::OnClearTextureCacheButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnClearVertexShaderCacheButton(wxCommandEvent& event)
 {
 	// TODO
-	wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+	WxUtils::ShowErrorDialog(_("Not implemented"));
 }
 
 void GFXDebuggerPanel::OnClearPixelShaderCacheButton(wxCommandEvent& event)
 {
 	// TODO
-	wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+	WxUtils::ShowErrorDialog(_("Not implemented"));
 }
 
 void GFXDebuggerPanel::OnUpdateScreenButton(wxCommandEvent& event)
 {
-	wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+	WxUtils::ShowErrorDialog(_("Not implemented"));
 	GFXDebuggerUpdateScreen();
 }

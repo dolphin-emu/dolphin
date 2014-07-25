@@ -431,14 +431,14 @@ void DolphinApp::InitLanguageSupport()
 
 		if (!m_locale->IsOk())
 		{
-			PanicAlertT("Error loading selected language. Falling back to system default.");
+			wxMessageBox(_("Error loading selected language. Falling back to system default."), _("Error"));
 			delete m_locale;
 			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 		}
 	}
 	else
 	{
-		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
+		wxMessageBox(_("The selected language is not supported by your system. Falling back to system default."), _("Error"));
 		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 	}
 }

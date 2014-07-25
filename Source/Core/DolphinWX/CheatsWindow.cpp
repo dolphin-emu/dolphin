@@ -18,6 +18,7 @@
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/radiobut.h>
@@ -398,7 +399,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 	const u8* const memptr = Memory::GetPointer(0);
 	if (nullptr == memptr)
 	{
-		PanicAlertT("A game is not currently running.");
+		WxUtils::ShowErrorDialog(_("A game is not currently running."));
 		return;
 	}
 
@@ -432,7 +433,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	const u8* const memptr = Memory::GetPointer(0);
 	if (nullptr == memptr)
 	{
-		PanicAlertT("A game is not currently running.");
+		WxUtils::ShowErrorDialog(_("A game is not currently running."));
 		return;
 	}
 
@@ -479,7 +480,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 			if (!x_val.ToULong(&parsed_x_val, 0))
 			{
-				PanicAlertT("You must enter a valid decimal, hexadecimal or octal value.");
+				WxUtils::ShowErrorDialog(_("You must enter a valid decimal, hexadecimal or octal value."));
 				return;
 			}
 
@@ -629,7 +630,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	const wxString code_name = textctrl_name->GetValue();
 	if (code_name.empty())
 	{
-		PanicAlertT("You must enter a name!");
+		WxUtils::ShowErrorDialog(_("You must enter a name."));
 		return;
 	}
 
@@ -637,7 +638,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	int base = checkbox_use_hex->IsChecked() ? 16 : 10;
 	if (!textctrl_value->GetValue().ToLong(&code_value, base))
 	{
-		PanicAlertT("Invalid Value!");
+		WxUtils::ShowErrorDialog(_("Invalid value."));
 		return;
 	}
 

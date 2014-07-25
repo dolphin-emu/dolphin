@@ -18,6 +18,7 @@
 #include <wx/frame.h>
 #include <wx/gdicmn.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -256,13 +257,13 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	NetPlayDiag *&npd = NetPlayDiag::GetInstance();
 	if (npd)
 	{
-		PanicAlertT("A NetPlay window is already open!!");
+		WxUtils::ShowErrorDialog(_("A NetPlay window is already open!"));
 		return;
 	}
 
 	if (-1 == m_game_lbox->GetSelection())
 	{
-		PanicAlertT("You must choose a game!!");
+		WxUtils::ShowErrorDialog(_("You must choose a game!"));
 		return;
 	}
 
@@ -283,7 +284,7 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	}
 	else
 	{
-		PanicAlertT("Failed to listen.  Is another instance of the NetPlay server running?");
+		WxUtils::ShowErrorDialog(_("Failed to listen. Is another instance of the NetPlay server running?"));
 	}
 }
 
@@ -292,7 +293,7 @@ void NetPlaySetupDiag::OnJoin(wxCommandEvent&)
 	NetPlayDiag *&npd = NetPlayDiag::GetInstance();
 	if (npd)
 	{
-		PanicAlertT("A NetPlay window is already open!!");
+		WxUtils::ShowErrorDialog(_("A NetPlay window is already open!"));
 		return;
 	}
 
@@ -459,7 +460,7 @@ std::string NetPlayDiag::FindGame()
 		if (m_selected_game == BuildGameName(*game))
 			return game->GetFileName();
 
-	PanicAlertT("Game not found!");
+	WxUtils::ShowErrorDialog(_("Game not found!"));
 	return "";
 }
 

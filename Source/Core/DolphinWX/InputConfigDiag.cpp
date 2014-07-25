@@ -25,6 +25,7 @@
 #include <wx/font.h>
 #include <wx/gdicmn.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -695,7 +696,7 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 	}
 	else
 	{
-		PanicAlertT("You must enter a valid profile name.");
+		WxUtils::ShowErrorDialog(_("You must enter a valid profile name."));
 	}
 }
 
