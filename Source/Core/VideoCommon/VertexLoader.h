@@ -24,7 +24,6 @@
 #endif
 
 // They are used for the communication with the loader functions
-extern NativeVertexFormat *g_nativeVertexFmt;
 extern int tcIndex;
 extern int colIndex;
 extern int colElements[2];
@@ -106,6 +105,9 @@ public:
 	~VertexLoader();
 
 	int GetVertexSize() const {return m_VertexSize;}
+	u32 GetNativeComponents() const { return m_native_components; }
+	const PortableVertexDeclaration& GetNativeVertexDeclaration() const
+		{ return m_native_vtx_decl; }
 
 	void SetupRunVertices(const VAT& vat, int primitive, int const count);
 	void RunVertices(const VAT& vat, int primitive, int count);
@@ -122,8 +124,8 @@ private:
 	TVtxDesc m_VtxDesc;  // Not really used currently - or well it is, but could be easily avoided.
 
 	// PC vertex format
-	NativeVertexFormat *m_NativeFmt;
-	int native_stride;
+	u32 m_native_components;
+	PortableVertexDeclaration m_native_vtx_decl;
 
 #ifndef USE_VERTEX_LOADER_JIT
 	// Pipeline.

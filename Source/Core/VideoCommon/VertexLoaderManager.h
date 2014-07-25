@@ -22,7 +22,7 @@ namespace VertexLoaderManager
 	// For debugging
 	void AppendListToString(std::string *dest);
 
-	NativeVertexFormat* GetNativeVertexFormat(const PortableVertexDeclaration& format, u32 components);
+	NativeVertexFormat* GetCurrentVertexFormat();
 };
 
 void RecomputeCachedArraybases();

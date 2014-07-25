@@ -12,11 +12,13 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 
 static int s_attr_dirty;  // bitfield
 
+static NativeVertexFormat* s_current_vtx_fmt;
 static VertexLoader *g_VertexLoaders[8];
 
 namespace std
@@ -122,10 +124,34 @@ static VertexLoader* RefreshLoader(int vtx_attr_group)
 	return g_VertexLoaders[vtx_attr_group];
 }
 
+static NativeVertexFormat* GetNativeVertexFormat(const PortableVertexDeclaration& format,
+                                                 u32 components)
+{
+	auto& native = s_native_vertex_map[format];
+	if (!native)
+	{
+		auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
+		native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
+		native->Initialize(format);
+		native->m_components = components;
+	}
+	return native.get();
+}
+
 void RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	if (!count)
 		return;
+	VertexLoader* loader = RefreshLoader(vtx_attr_group);
+
+	// If the native vertex format changed, force a flush.
+	NativeVertexFormat* required_vtx_fmt = GetNativeVertexFormat(
+			loader->GetNativeVertexDeclaration(),
+			loader->GetNativeComponents());
+	if (required_vtx_fmt != s_current_vtx_fmt)
+		VertexManager::Flush();
+	s_current_vtx_fmt = required_vtx_fmt;
+
 	RefreshLoader(vtx_attr_group)->RunVertices(g_VtxAttr[vtx_attr_group], primitive, count);
 }
 
@@ -134,17 +160,9 @@ int GetVertexSize(int vtx_attr_group)
 	return RefreshLoader(vtx_attr_group)->GetVertexSize();
 }
 
-NativeVertexFormat* GetNativeVertexFormat(const PortableVertexDeclaration& format, u32 components)
+NativeVertexFormat* GetCurrentVertexFormat()
 {
-	auto& native = s_native_vertex_map[format];
-	if (!native)
-	{
-		auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
-		native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
-		native->m_components = components;
-		native->Initialize(format);
-	}
-	return native.get();
+	return s_current_vtx_fmt;
 }
 
 }  // namespace
