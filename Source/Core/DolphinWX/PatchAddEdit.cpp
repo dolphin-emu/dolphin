@@ -12,6 +12,7 @@
 #include <wx/event.h>
 #include <wx/gbsizer.h>
 #include <wx/gdicmn.h>
+#include <wx/msgdlg.h>
 #include <wx/radiobox.h>
 #include <wx/sizer.h>
 #include <wx/spinbutt.h>
@@ -233,7 +234,7 @@ bool CPatchAddEdit::UpdateTempEntryData(std::vector<PatchEngine::PatchEntry>::it
 
 	if (!parsed_ok)
 	{
-		PanicAlertT("Unable to create patch from given values.\nEntry not modified.");
+		wxMessageBox(_("Unable to create patch from given values.\nEntry not modified."), _("Error"));
 	}
 
 	return parsed_ok;

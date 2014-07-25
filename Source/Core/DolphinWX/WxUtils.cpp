@@ -7,6 +7,7 @@
 #include <wx/chartype.h>
 #include <wx/gdicmn.h>
 #include <wx/image.h>
+#include <wx/msgdlg.h>
 #include <wx/mstream.h>
 #include <wx/string.h>
 #include <wx/utils.h>
@@ -49,6 +50,11 @@ void Explore(const std::string& path)
 	{
 		// WARN_LOG
 	}
+}
+
+void ShowErrorDialog(const wxString& error_msg)
+{
+	wxMessageBox(error_msg, _("Error"), wxOK | wxICON_ERROR);
 }
 
 double GetCurrentBitmapLogicalScale()
