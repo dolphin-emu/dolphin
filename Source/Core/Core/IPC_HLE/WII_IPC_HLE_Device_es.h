@@ -143,7 +143,7 @@ private:
 
 	bool IsValid(u64 _TitleID) const;
 
-	typedef struct ecc_cert_t
+	struct ecc_cert_t
 	{
 		u32 sig_type          ;
 		 u8 sig         [0x3c];
@@ -154,5 +154,5 @@ private:
 		u32 ng_key_id         ;
 		 u8 ecc_pubkey  [0x3c];
 		 u8 padding     [0x3c];
-	} ecc_cert_t;
+	};
 };

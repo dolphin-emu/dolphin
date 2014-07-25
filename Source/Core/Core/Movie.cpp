@@ -836,7 +836,7 @@ void LoadInput(const std::string& filename)
 		g_totalFrames = tmpHeader.frameCount;
 		g_totalLagCount = tmpHeader.lagCount;
 		g_totalInputCount = tmpHeader.inputCount;
-		g_totalTickCount = tmpHeader.tickCount;
+		g_totalTickCount = g_tickCountAtLastInput = tmpHeader.tickCount;
 
 		EnsureTmpInputSize((size_t)totalSavedBytes);
 		g_totalBytes = totalSavedBytes;
