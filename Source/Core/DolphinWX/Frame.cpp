@@ -1185,6 +1185,17 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool bF)
 {
+	if (g_Config.ExclusiveFullscreenEnabled() &&
+		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+		Core::GetState() != Core::CORE_RUN)
+	{
+		// A responsive renderer is required for exclusive fullscreen,
+		// but the renderer can only respond in the running state.
+		// Therefore we ignore fullscreen switches if we support
+		// exclusive fullscreen, but the renderer is not running.
+		return;
+	}
+
 	ToggleDisplayMode(bF);
 
 #if defined(__APPLE__)
