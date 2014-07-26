@@ -1191,7 +1191,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 {
 	if (!g_Config.bBorderlessFullscreen &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-		Core::GetState() != Core::CORE_RUN)
+		Core::GetState() == Core::CORE_PAUSE)
 	{
 		// A responsive renderer is required for exclusive fullscreen, but the
 		// renderer can only respond in the running state. Therefore we ignore
