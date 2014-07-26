@@ -1104,7 +1104,7 @@ void CFrame::DoStop()
 
 			// If exclusive fullscreen is not enabled then we can pause the emulation
 			// before we've exited fullscreen. If not then we need to exit fullscreen first.
-			if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
+			if (!RendererIsFullscreen() || g_Config.bBorderlessFullscreen ||
 				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			{
 				Core::SetState(Core::CORE_PAUSE);

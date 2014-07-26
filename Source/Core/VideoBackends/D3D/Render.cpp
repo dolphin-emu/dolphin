@@ -938,7 +938,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	SetWindowSize(fbWidth, fbHeight);
 
 	const bool windowResized = CheckForResize();
-	const bool fullscreen = g_ActiveConfig.bFullscreen && !g_ActiveConfig.bForceBorderlessFullscreen &&
+	const bool fullscreen = g_ActiveConfig.ExclusiveFullscreenEnabled() &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
 
 	bool fullscreen_changed = s_last_fullscreen_mode != fullscreen;
@@ -948,7 +948,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	{
 		if (!!fullscreen_state != fullscreen && Host_RendererHasFocus())
 		{
-			// We should be in fullscreen, but we're not. Restore it when we regain focus.
+			// The current fullscreen state does not match the configuration,
+			// this may happen when the renderer frame loses focus. When the
+			// render frame is in focus again we can re-apply the configuration.
 			fullscreen_changed = true;
 		}
 	}
@@ -967,7 +969,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
 
-	// resize the back buffers NOW to avoid flickering
+	// Resize the back buffers NOW to avoid flickering
 	if (xfbchanged ||
 		windowResized ||
 		fullscreen_changed ||
@@ -979,13 +981,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 		if (windowResized || fullscreen_changed)
 		{
-			// apply fullscreen state
+			// Apply fullscreen state
 			if (fullscreen_changed)
 			{
 				s_last_fullscreen_mode = fullscreen;
 				D3D::swapchain->SetFullscreenState(fullscreen, nullptr);
 
-				// notify the host that it is safe to exit fullscreen
+				// Notify the host that it is safe to exit fullscreen
 				if (!fullscreen)
 				{
 					Host_RequestFullscreen(false);
