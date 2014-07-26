@@ -156,7 +156,7 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 	return true;
 }
 
-bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
+bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 {
 	m_bWii = bWii;
 	m_bDSPThread = bDSPThread;
