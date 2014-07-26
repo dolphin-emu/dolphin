@@ -38,7 +38,6 @@ VideoConfig::VideoConfig()
 	backend_info.APIType = API_NONE;
 	backend_info.bUseRGBATextures = false;
 	backend_info.bUseMinimalMipCount = false;
-	backend_info.bSupports3DVision = false;
 	backend_info.bSupportsExclusiveFullscreen = false;
 }
 
@@ -90,7 +89,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	enhancements->Get("ForceFiltering", &bForceFiltering, 0);
 	enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
 	enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
-	enhancements->Get("Enable3dVision", &b3DVision, false);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
@@ -186,7 +184,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
-	CHECK_SETTING("Video_Enhancements", "Enable3dVision", b3DVision);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
@@ -212,7 +209,6 @@ void VideoConfig::VerifyValidity()
 	// TODO: Check iMaxAnisotropy value
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
-	if (!backend_info.bSupports3DVision) b3DVision = false;
 	if (!backend_info.bSupportsExclusiveFullscreen) bForceBorderlessFullscreen = false;
 }
 
@@ -264,7 +260,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	enhancements->Set("ForceFiltering", bForceFiltering);
 	enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
 	enhancements->Set("PostProcessingShader", sPostProcessingShader);
-	enhancements->Set("Enable3dVision", b3DVision);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);

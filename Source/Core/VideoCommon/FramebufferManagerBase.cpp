@@ -236,15 +236,7 @@ int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x, unsigned int backbuffe
 	if (g_ActiveConfig.RealXFBEnabled())
 		return x;
 
-	if (g_ActiveConfig.b3DVision)
-	{
-		// This works, yet the version in the else doesn't. No idea why.
-		return x * (int)backbuffer_width / (int)FramebufferManagerBase::LastXfbWidth();
-	}
-	else
-	{
-		return x * (int)Renderer::GetTargetRectangle().GetWidth() / (int)FramebufferManagerBase::LastXfbWidth();
-	}
+	return x * (int)Renderer::GetTargetRectangle().GetWidth() / (int)FramebufferManagerBase::LastXfbWidth();
 }
 
 int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height)
@@ -252,13 +244,5 @@ int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, unsigned int backbuff
 	if (g_ActiveConfig.RealXFBEnabled())
 		return y;
 
-	if (g_ActiveConfig.b3DVision)
-	{
-		// This works, yet the version in the else doesn't. No idea why.
-		return y * (int)backbuffer_height / (int)FramebufferManagerBase::LastXfbHeight();
-	}
-	else
-	{
-		return y * (int)Renderer::GetTargetRectangle().GetHeight() / (int)FramebufferManagerBase::LastXfbHeight();
-	}
+	return y * (int)Renderer::GetTargetRectangle().GetHeight() / (int)FramebufferManagerBase::LastXfbHeight();
 }
