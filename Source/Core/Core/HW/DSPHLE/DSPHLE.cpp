@@ -39,7 +39,7 @@ struct DSPState
 	}
 };
 
-bool DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
+bool DSPHLE::Initialize(bool bWii, bool bDSPThread)
 {
 	m_bWii = bWii;
 	m_pUCode = nullptr;
