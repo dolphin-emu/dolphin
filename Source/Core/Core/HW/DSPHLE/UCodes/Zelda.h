@@ -285,7 +285,7 @@ private:
 	void Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do_resample = false);
 
 	int ConvertRatio(int pb_ratio);
-	int SizeForResampling(ZeldaVoicePB &PB, int size, int ratio);
+	int SizeForResampling(ZeldaVoicePB &PB, int size);
 
 	// Renders a voice and mixes it into LeftBuffer, RightBuffer
 	void RenderAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);
