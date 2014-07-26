@@ -275,9 +275,9 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			{
 				if (_uByte != '\0')
 					m_szBuffer[m_count++] = _uByte;
-				if (m_count >= 255 || _uByte == 0xD)
+				if (m_count >= 255 || _uByte == '\r')
 				{
-					m_szBuffer[m_count] = 0x00;
+					m_szBuffer[m_count] = '\0';
 					NOTICE_LOG(OSREPORT, "%s", m_szBuffer);
 					memset(m_szBuffer, 0, sizeof(m_szBuffer));
 					m_count = 0;
