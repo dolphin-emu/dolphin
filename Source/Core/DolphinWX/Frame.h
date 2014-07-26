@@ -50,24 +50,6 @@ class wxListEvent;
 class wxMenuItem;
 class wxWindow;
 
-// The CPanel class to receive MSWWindowProc messages from the video backend.
-class CPanel : public wxPanel
-{
-	public:
-		CPanel(
-			wxWindow* parent,
-			wxWindowID id = wxID_ANY
-			);
-
-	private:
-		DECLARE_EVENT_TABLE();
-
-		#ifdef _WIN32
-			// Receive WndProc messages
-			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
-		#endif
-};
-
 class CRenderFrame : public wxFrame
 {
 	public:
@@ -177,7 +159,7 @@ private:
 	CGameListCtrl* m_GameListCtrl;
 	wxPanel* m_Panel;
 	CRenderFrame* m_RenderFrame;
-	wxPanel* m_RenderParent;
+	wxWindow* m_RenderParent;
 	CLogWindow* m_LogWindow;
 	LogConfigWindow* m_LogConfigWindow;
 	FifoPlayerDlg* m_FifoPlayerDlg;
@@ -188,6 +170,7 @@ private:
 	bool m_bNoDocking;
 	bool m_bGameLoading;
 	bool m_bClosing;
+	bool m_confirmStop;
 
 	std::vector<std::string> drives;
 

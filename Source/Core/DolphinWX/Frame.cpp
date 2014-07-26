@@ -78,57 +78,6 @@ extern "C" {
 #include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
 };
 
-#ifdef _WIN32
-// I could not use FindItemByHWND() instead of this, it crashed on that occasion I used it */
-HWND MSWGetParent_(HWND Parent)
-{
-	return GetParent(Parent);
-}
-#endif
-
-// ---------------
-// The CPanel class to receive MSWWindowProc messages from the video backend.
-
-BEGIN_EVENT_TABLE(CPanel, wxPanel)
-END_EVENT_TABLE()
-
-CPanel::CPanel(
-			wxWindow *parent,
-			wxWindowID id
-			)
-	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, 0) // disables wxTAB_TRAVERSAL because it was breaking hotkeys
-{
-}
-
-#ifdef _WIN32
-	WXLRESULT CPanel::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
-	{
-		switch (nMsg)
-		{
-		case WM_USER:
-			switch (wParam)
-			{
-			case WM_USER_STOP:
-				main_frame->DoStop();
-				break;
-
-			case WM_USER_SETCURSOR:
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
-					SetCursor(wxCURSOR_BLANK);
-				else
-					SetCursor(wxNullCursor);
-				break;
-			}
-			break;
-
-		default:
-			// By default let wxWidgets do what it normally does with this event
-			return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
-		}
-		return 0;
-	}
-#endif
 
 CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
 		const wxPoint& pos, const wxSize& size, long style)
@@ -210,6 +159,23 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 						break;
 				default:
 					return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+			}
+			break;
+
+		case WM_USER:
+			switch (wParam)
+			{
+			case WM_USER_STOP:
+				main_frame->DoStop();
+				break;
+
+			case WM_USER_SETCURSOR:
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+					main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
+					SetCursor(wxCURSOR_BLANK);
+				else
+					SetCursor(wxNullCursor);
+				break;
 			}
 			break;
 
@@ -350,7 +316,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
 	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bGameLoading(false), m_bClosing(false)
+	, m_bGameLoading(false), m_bClosing(false), m_confirmStop(false)
 {
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
@@ -384,7 +350,7 @@ CFrame::CFrame(wxFrame* parent,
 	// ---------------
 	// Main panel
 	// This panel is the parent for rendering and it holds the gamelistctrl
-	m_Panel = new CPanel(this, IDM_MPANEL);
+	m_Panel = new wxPanel(this, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 
 	m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
 			wxDefaultPosition, wxDefaultSize,
@@ -484,7 +450,7 @@ bool CFrame::RendererIsFullscreen()
 
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
-		fullscreen = m_RenderFrame->IsFullScreen();
+		fullscreen = m_RenderFrame->IsFullScreen() && g_Config.bFullscreen;
 	}
 
 #if defined(__APPLE__)
@@ -674,6 +640,21 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		}
 		break;
 
+	case IDM_FULLSCREENREQUEST:
+		{
+			bool enable_fullscreen = event.GetInt() == 0 ? false : true;
+			ToggleDisplayMode(enable_fullscreen);
+			if (m_RenderFrame != nullptr)
+				m_RenderFrame->ShowFullScreen(enable_fullscreen);
+
+			// If the stop dialog initiated this fullscreen switch then we need
+			// to pause the emulator after we've completed the switch.
+			// TODO: Allow the renderer to switch fullscreen modes while paused.
+			if (m_confirmStop)
+				Core::SetState(Core::CORE_PAUSE);
+		}
+		break;
+
 	case WM_USER_CREATE:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
@@ -756,7 +737,11 @@ bool CFrame::RendererHasFocus()
 	if (m_RenderParent == nullptr)
 		return false;
 #ifdef _WIN32
-	if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
+	HWND window = GetForegroundWindow();
+	if (window == nullptr)
+		return false;
+
+	if (m_RenderFrame->GetHWND() == window)
 		return true;
 #else
 	wxWindow *window = wxWindow::FindFocus();
@@ -1202,25 +1187,47 @@ void CFrame::OnMouse(wxMouseEvent& event)
 	event.Skip();
 }
 
-void CFrame::DoFullscreen(bool bF)
+void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-	ToggleDisplayMode(bF);
+	if (!g_Config.bBorderlessFullscreen &&
+		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+		Core::GetState() != Core::CORE_RUN)
+	{
+		// A responsive renderer is required for exclusive fullscreen, but the
+		// renderer can only respond in the running state. Therefore we ignore
+		// fullscreen switches if we support exclusive fullscreen, but the
+		// renderer is not running.
+		// TODO: Allow the renderer to switch fullscreen modes while paused.
+		return;
+	}
+
+	ToggleDisplayMode(enable_fullscreen);
 
 #if defined(__APPLE__)
 	NSView *view = (NSView *) m_RenderFrame->GetHandle();
 	NSWindow *window = [view window];
 
-	if (bF != RendererIsFullscreen())
+	if (enable_fullscreen != RendererIsFullscreen())
 	{
 		[window toggleFullScreen:nil];
 	}
 #else
-	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
+	if (enable_fullscreen)
+	{
+		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
+	}
+	else if (g_Config.bBorderlessFullscreen ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	{
+		// Exiting exclusive fullscreen should be done from a Renderer callback.
+		// Therefore we don't exit fullscreen from here if we support exclusive mode.
+		m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
+	}
 #endif
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
-		if (bF)
+		if (enable_fullscreen)
 		{
 			// Save the current mode before going to fullscreen
 			AuiCurrent = m_Mgr->SavePerspective();
@@ -1236,6 +1243,8 @@ void CFrame::DoFullscreen(bool bF)
 	{
 		m_RenderFrame->Raise();
 	}
+
+	g_Config.bFullscreen = enable_fullscreen;
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const

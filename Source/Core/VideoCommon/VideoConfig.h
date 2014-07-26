@@ -57,7 +57,7 @@ struct VideoConfig final
 
 	// General
 	bool bVSync;
-
+	bool bFullscreen;
 	bool bRunning;
 	bool bWidescreenHack;
 	int iAspectRatio;
@@ -100,7 +100,7 @@ struct VideoConfig final
 	bool bAnaglyphStereo;
 	int iAnaglyphStereoSeparation;
 	int iAnaglyphFocalAngle;
-	bool b3DVision;
+	bool bBorderlessFullscreen;
 
 	// Hacks
 	bool bEFBAccessEnable;
@@ -139,7 +139,7 @@ struct VideoConfig final
 
 		bool bUseRGBATextures; // used for D3D in TextureCache
 		bool bUseMinimalMipCount;
-		bool bSupports3DVision;
+		bool bSupportsExclusiveFullscreen;
 		bool bSupportsDualSourceBlend;
 		bool bSupportsPrimitiveRestart;
 		bool bSupportsOversizedViewports;
@@ -152,6 +152,7 @@ struct VideoConfig final
 	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
 	bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
 	bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
+	bool ExclusiveFullscreenEnabled() const { return bFullscreen && !bBorderlessFullscreen; }
 };
 
 extern VideoConfig g_Config;
