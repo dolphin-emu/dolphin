@@ -140,7 +140,6 @@ struct VideoConfig final
 
 		bool bUseRGBATextures; // used for D3D in TextureCache
 		bool bUseMinimalMipCount;
-		bool bSupports3DVision;
 		bool bSupportsExclusiveFullscreen;
 		bool bSupportsDualSourceBlend;
 		bool bSupportsPrimitiveRestart;
