@@ -943,10 +943,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	bool fullscreen_changed = s_last_fullscreen_mode != fullscreen;
 
-	BOOL fullscreen_state;
-	if (SUCCEEDED(D3D::swapchain->GetFullscreenState(&fullscreen_state, nullptr)))
+	bool fullscreen_state;
+	if (SUCCEEDED(D3D::GetFullscreenState(&fullscreen_state)))
 	{
-		if (!!fullscreen_state != fullscreen && Host_RendererHasFocus())
+		if (fullscreen_state != fullscreen && Host_RendererHasFocus())
 		{
 			// The current fullscreen state does not match the configuration,
 			// this may happen when the renderer frame loses focus. When the
@@ -985,7 +985,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 			if (fullscreen_changed)
 			{
 				s_last_fullscreen_mode = fullscreen;
-				D3D::swapchain->SetFullscreenState(fullscreen, nullptr);
+				D3D::SetFullscreenState(fullscreen);
 
 				// Notify the host that it is safe to exit fullscreen
 				if (!fullscreen)
