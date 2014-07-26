@@ -183,20 +183,22 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			// Set frequency of streaming audio
 			if (tmpAICtrl.AISFR != m_Control.AISFR)
 			{
+				// AISFR rates below are intentionally inverted wrt yagcd
 				DEBUG_LOG(AUDIO_INTERFACE, "Change AISFR to %s", tmpAICtrl.AISFR ? "48khz":"32khz");
 				m_Control.AISFR = tmpAICtrl.AISFR;
+				g_AISSampleRate = tmpAICtrl.AISFR ? 48000 : 32000;
+				soundStream->GetMixer()->SetStreamInputSampleRate(g_AISSampleRate);
+				g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_AISSampleRate;
 			}
 			// Set frequency of DMA
 			if (tmpAICtrl.AIDFR != m_Control.AIDFR)
 			{
 				DEBUG_LOG(AUDIO_INTERFACE, "Change AIDFR to %s", tmpAICtrl.AIDFR ? "32khz":"48khz");
 				m_Control.AIDFR = tmpAICtrl.AIDFR;
+				g_AIDSampleRate = tmpAICtrl.AIDFR ? 32000 : 48000;
+				soundStream->GetMixer()->SetDMAInputSampleRate(g_AIDSampleRate);
 			}
 
-			g_AISSampleRate = tmpAICtrl.AISFR ? 48000 : 32000;
-			g_AIDSampleRate = tmpAICtrl.AIDFR ? 32000 : 48000;
-
-			g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_AISSampleRate;
 
 			// Streaming counter
 			if (tmpAICtrl.PSTAT != m_Control.PSTAT)
