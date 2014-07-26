@@ -531,32 +531,32 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
 	g_InputDisplay[controllerID] = StringFromFormat("P%d:", controllerID + 1);
 
-	if (g_padState.A)
+	if (padState.A)
 		g_InputDisplay[controllerID].append(" A");
-	if (g_padState.B)
+	if (padState.B)
 		g_InputDisplay[controllerID].append(" B");
-	if (g_padState.X)
+	if (padState.X)
 		g_InputDisplay[controllerID].append(" X");
-	if (g_padState.Y)
+	if (padState.Y)
 		g_InputDisplay[controllerID].append(" Y");
-	if (g_padState.Z)
+	if (padState.Z)
 		g_InputDisplay[controllerID].append(" Z");
-	if (g_padState.Start)
+	if (padState.Start)
 		g_InputDisplay[controllerID].append(" START");
 
-	if (g_padState.DPadUp)
+	if (padState.DPadUp)
 		g_InputDisplay[controllerID].append(" UP");
-	if (g_padState.DPadDown)
+	if (padState.DPadDown)
 		g_InputDisplay[controllerID].append(" DOWN");
-	if (g_padState.DPadLeft)
+	if (padState.DPadLeft)
 		g_InputDisplay[controllerID].append(" LEFT");
-	if (g_padState.DPadRight)
+	if (padState.DPadRight)
 		g_InputDisplay[controllerID].append(" RIGHT");
 
-	g_InputDisplay[controllerID].append(Analog1DToString(g_padState.TriggerL, " L"));
-	g_InputDisplay[controllerID].append(Analog1DToString(g_padState.TriggerR, " R"));
-	g_InputDisplay[controllerID].append(Analog2DToString(g_padState.AnalogStickX, g_padState.AnalogStickY, " ANA"));
-	g_InputDisplay[controllerID].append(Analog2DToString(g_padState.CStickX, g_padState.CStickY, " C"));
+	g_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerL, " L"));
+	g_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerR, " R"));
+	g_InputDisplay[controllerID].append(Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA"));
+	g_InputDisplay[controllerID].append(Analog2DToString(padState.CStickX, padState.CStickY, " C"));
 	g_InputDisplay[controllerID].append("\n");
 }
 
