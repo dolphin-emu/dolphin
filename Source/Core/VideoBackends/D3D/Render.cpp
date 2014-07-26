@@ -195,6 +195,7 @@ Renderer::Renderer(void *&window_handle)
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
+	s_last_fullscreen_mode = g_ActiveConfig.bFullscreen;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	SetupDeviceObjects();
