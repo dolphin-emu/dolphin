@@ -83,7 +83,7 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("DisableFog", &bDisableFog, 0);
 	settings->Get("OMPDecoder", &bOMPDecoder, false);
 	settings->Get("EnableShaderDebugging", &bEnableShaderDebugging, false);
-	settings->Get("ForceBorderlessFullscreen", &bForceBorderlessFullscreen, false);
+	settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
 
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Get("ForceFiltering", &bForceFiltering, 0);
@@ -209,7 +209,7 @@ void VideoConfig::VerifyValidity()
 	// TODO: Check iMaxAnisotropy value
 	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
 	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
-	if (!backend_info.bSupportsExclusiveFullscreen) bForceBorderlessFullscreen = false;
+	if (!backend_info.bSupportsExclusiveFullscreen) bBorderlessFullscreen = true;
 }
 
 void VideoConfig::Save(const std::string& ini_file)
@@ -254,7 +254,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("DisableFog", bDisableFog);
 	settings->Set("OMPDecoder", bOMPDecoder);
 	settings->Set("EnableShaderDebugging", bEnableShaderDebugging);
-	settings->Set("ForceBorderlessFullscreen", bForceBorderlessFullscreen);
+	settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
 
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Set("ForceFiltering", bForceFiltering);

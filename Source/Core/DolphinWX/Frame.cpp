@@ -642,10 +642,14 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 
 	case IDM_FULLSCREENREQUEST:
 		{
-			bool fullscreen = event.GetInt() == 0 ? false : true;
-			ToggleDisplayMode(fullscreen);
+			bool enable_fullscreen = event.GetInt() == 0 ? false : true;
+			ToggleDisplayMode(enable_fullscreen);
 			if (m_RenderFrame != nullptr)
-				m_RenderFrame->ShowFullScreen(fullscreen);
+				m_RenderFrame->ShowFullScreen(enable_fullscreen);
+
+			// If the stop dialog initiated this fullscreen switch then we need
+			// to pause the emulator after we've completed the switch.
+			// TODO: Allow the renderer to switch fullscreen modes while paused.
 			if (m_confirmStop)
 				Core::SetState(Core::CORE_PAUSE);
 		}
@@ -1183,35 +1187,36 @@ void CFrame::OnMouse(wxMouseEvent& event)
 	event.Skip();
 }
 
-void CFrame::DoFullscreen(bool bF)
+void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-	if (g_Config.ExclusiveFullscreenEnabled() &&
+	if (!g_Config.bBorderlessFullscreen &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 		Core::GetState() != Core::CORE_RUN)
 	{
-		// A responsive renderer is required for exclusive fullscreen,
-		// but the renderer can only respond in the running state.
-		// Therefore we ignore fullscreen switches if we support
-		// exclusive fullscreen, but the renderer is not running.
+		// A responsive renderer is required for exclusive fullscreen, but the
+		// renderer can only respond in the running state. Therefore we ignore
+		// fullscreen switches if we support exclusive fullscreen, but the
+		// renderer is not running.
+		// TODO: Allow the renderer to switch fullscreen modes while paused.
 		return;
 	}
 
-	ToggleDisplayMode(bF);
+	ToggleDisplayMode(enable_fullscreen);
 
 #if defined(__APPLE__)
 	NSView *view = (NSView *) m_RenderFrame->GetHandle();
 	NSWindow *window = [view window];
 
-	if (bF != RendererIsFullscreen())
+	if (enable_fullscreen != RendererIsFullscreen())
 	{
 		[window toggleFullScreen:nil];
 	}
 #else
-	if (bF)
+	if (enable_fullscreen)
 	{
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
-	else if (!g_Config.ExclusiveFullscreenEnabled() ||
+	else if (g_Config.bBorderlessFullscreen ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.
@@ -1222,7 +1227,7 @@ void CFrame::DoFullscreen(bool bF)
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
-		if (bF)
+		if (enable_fullscreen)
 		{
 			// Save the current mode before going to fullscreen
 			AuiCurrent = m_Mgr->SavePerspective();
@@ -1239,7 +1244,7 @@ void CFrame::DoFullscreen(bool bF)
 		m_RenderFrame->Raise();
 	}
 
-	g_Config.bFullscreen = bF;
+	g_Config.bFullscreen = enable_fullscreen;
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const

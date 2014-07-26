@@ -100,8 +100,7 @@ struct VideoConfig final
 	bool bAnaglyphStereo;
 	int iAnaglyphStereoSeparation;
 	int iAnaglyphFocalAngle;
-	bool b3DVision;
-	bool bForceBorderlessFullscreen;
+	bool bBorderlessFullscreen;
 
 	// Hacks
 	bool bEFBAccessEnable;
@@ -153,7 +152,7 @@ struct VideoConfig final
 	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
 	bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
 	bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
-	bool ExclusiveFullscreenEnabled() const { return backend_info.bSupportsExclusiveFullscreen && !bForceBorderlessFullscreen; }
+	bool ExclusiveFullscreenEnabled() const { return bFullscreen && !bBorderlessFullscreen; }
 };
 
 extern VideoConfig g_Config;
