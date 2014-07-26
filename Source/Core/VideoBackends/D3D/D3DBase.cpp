@@ -31,7 +31,7 @@ namespace D3D
 
 ID3D11Device* device = nullptr;
 ID3D11DeviceContext* context = nullptr;
-IDXGISwapChain* swapchain = nullptr;
+static IDXGISwapChain* swapchain = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
 HWND hWnd;
@@ -490,6 +490,24 @@ void Present()
 {
 	// TODO: Is 1 the correct value for vsyncing?
 	swapchain->Present((UINT)g_ActiveConfig.IsVSync(), 0);
+}
+
+HRESULT SetFullscreenState(bool enable_fullscreen)
+{
+	return swapchain->SetFullscreenState(enable_fullscreen, nullptr);
+}
+
+HRESULT GetFullscreenState(bool* fullscreen_state)
+{
+	if (fullscreen_state == nullptr)
+	{
+		return E_POINTER;
+	}
+
+	BOOL state;
+	HRESULT hr = swapchain->GetFullscreenState(&state, nullptr);
+	*fullscreen_state = !!state;
+	return hr;
 }
 
 }  // namespace D3D
