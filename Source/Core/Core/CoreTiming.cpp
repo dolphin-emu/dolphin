@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/ChunkFile.h"
 #include "Common/FifoQueue.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"

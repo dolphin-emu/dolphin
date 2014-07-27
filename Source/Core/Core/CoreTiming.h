@@ -18,9 +18,9 @@
 //   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
 
 #include <string>
-
-#include "Common/ChunkFile.h"
 #include "Common/Common.h"
+
+class PointerWrap;
 
 namespace CoreTiming
 {

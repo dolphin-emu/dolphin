@@ -52,6 +52,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 

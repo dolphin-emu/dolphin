@@ -24,6 +24,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include <map>
 #include <string>
 
+#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"

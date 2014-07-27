@@ -6,10 +6,10 @@
 
 #include <string>
 
-#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 
-#include "InputCommon/GCPadStatus.h"
+struct GCPadStatus;
+class PointerWrap;
 
 namespace WiimoteEmu
 {

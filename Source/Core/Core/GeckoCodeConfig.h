@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "Common/IniFile.h"
-
+#include <vector>
 #include "Core/GeckoCode.h"
+
+class IniFile;
 
 namespace Gecko
 {
