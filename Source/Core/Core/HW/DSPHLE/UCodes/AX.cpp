@@ -661,7 +661,7 @@ void AXUCode::CopyCmdList(u32 addr, u16 size)
 	m_cmdlist_size = size;
 }
 
-void AXUCode::Update(int cycles)
+void AXUCode::Update()
 {
 	// Used for UCode switching.
 	if (NeedsResumeMail())

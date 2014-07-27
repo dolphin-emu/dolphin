@@ -125,7 +125,7 @@ public:
 	void HandleMail_LightVersion(u32 mail);
 	void HandleMail_SMSVersion(u32 mail);
 	void HandleMail_NormalVersion(u32 mail);
-	void Update(int cycles) override;
+	void Update() override;
 
 	void CopyPBsFromRAM();
 	void CopyPBsToRAM();

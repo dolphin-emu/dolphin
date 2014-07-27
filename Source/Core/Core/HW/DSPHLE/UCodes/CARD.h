@@ -14,6 +14,6 @@ public:
 	u32 GetUpdateMs() override;
 
 	void HandleMail(u32 mail) override;
-	void Update(int cycles) override;
+	void Update() override;
 };
 

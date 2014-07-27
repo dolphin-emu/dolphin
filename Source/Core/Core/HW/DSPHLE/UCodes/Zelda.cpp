@@ -82,7 +82,7 @@ u8 *ZeldaUCode::GetARAMPointer(u32 address)
 		return DSP::GetARAMPtr() + address;
 }
 
-void ZeldaUCode::Update(int cycles)
+void ZeldaUCode::Update()
 {
 	if (!IsLightVersion())
 	{

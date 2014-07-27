@@ -56,7 +56,7 @@ public:
 	virtual ~AXUCode();
 
 	virtual void HandleMail(u32 mail) override;
-	virtual void Update(int cycles) override;
+	virtual void Update() override;
 	virtual void DoState(PointerWrap& p) override;
 	u32 GetUpdateMs() override;
 
