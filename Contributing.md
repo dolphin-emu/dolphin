@@ -34,6 +34,7 @@ Following this guide and formatting your code as detailed will likely get your p
 - The opening brace for namespaces, classes, functions, enums, structs, unions, conditionals, and loops go on the next line.
   - With array initializer lists and lambda expressions it is OK to keep the brace on the same line.
 - References and pointers have the ampersand or asterisk against the type name, not the variable name. Example: `int* var`, not `int *var`.
+- Don't use multi-line comments (`/* Comment text */`), use single-line comments (`// Comment text`) instead.
 - Don't collapse single line conditional or loop bodies onto the same line as its header. Put it on the next line.
   - Yes:
 
