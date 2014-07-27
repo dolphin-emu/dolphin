@@ -551,6 +551,8 @@ void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm) {
 static u32 GC_ALIGNED16(temp32);
 static u64 GC_ALIGNED16(temp64);
 
+static const float GC_ALIGNED16(m_zero[]) = { 0.0f, 0.0f, 0.0f, 0.0f };
+
 #if _M_X86_64
 static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0, 0x0000000000400000);
 static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi64x(0, 0x000000007f800000);
@@ -669,8 +671,13 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 		PTEST(XMM1, M((void *)&double_exponent));
 		cond = CC_NC;
 	} else {
-		FNSTSW_AX();
-		TEST(16, R(AX), Imm16(x87_InvalidOperation));
+		// emulate PTEST; checking FPU flags is incorrect because the NaN bits
+		// are sticky (persist between instructions)
+		MOVSD(XMM0, M((void *)&double_exponent));
+		PAND(XMM0, R(XMM1));
+		PCMPEQB(XMM0, M((void *)&m_zero));
+		PMOVMSKB(EAX, R(XMM0));
+		CMP(32, R(EAX), Imm32(0xffff));
 		cond = CC_Z;
 	}
 	FSTP(32, M(&temp32));
@@ -706,8 +713,13 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 		PTEST(XMM1, M((void *)&single_exponent));
 		cond = CC_NC;
 	} else {
-		FNSTSW_AX();
-		TEST(16, R(AX), Imm16(x87_InvalidOperation));
+		// emulate PTEST; checking FPU flags is incorrect because the NaN bits
+		// are sticky (persist between instructions)
+		MOVSS(XMM0, M((void *)&single_exponent));
+		PAND(XMM0, R(XMM1));
+		PCMPEQB(XMM0, M((void *)&m_zero));
+		PMOVMSKB(EAX, R(XMM0));
+		CMP(32, R(EAX), Imm32(0xffff));
 		cond = CC_Z;
 	}
 	FSTP(64, M(&temp64));
