@@ -86,8 +86,9 @@ public:
 	{
 		if (IsBound(preg))
 			return regs[preg].location.GetSimpleReg();
+
 		PanicAlert("Not so simple - %i", preg);
-		return (X64Reg)-1;
+		return INVALID_REG;
 	}
 	virtual OpArg GetDefaultLocation(size_t reg) const = 0;
 
