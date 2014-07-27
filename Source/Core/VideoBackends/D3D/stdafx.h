@@ -3,10 +3,9 @@
 // Refer to the license.txt file included.
 
 #pragma once
-#define _WIN32_WINNT 0x501
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0500    // Default value is 0x0400
-#endif
+
+// Windows Vista is the lowest version we support
+#define _WIN32_WINNT 0x0600
 
 #define NOMINMAX            // Don't include windows min/max definitions
 

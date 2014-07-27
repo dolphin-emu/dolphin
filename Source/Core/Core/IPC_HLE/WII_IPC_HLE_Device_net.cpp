@@ -24,9 +24,7 @@
 #ifdef _WIN32
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
-#include <iphlpapi.h>
 
-#include "Core/IPC_HLE/fakepoll.h"
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 

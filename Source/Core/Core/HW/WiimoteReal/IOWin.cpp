@@ -2,10 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-// Used for pair up
-#undef NTDDI_VERSION
-#define NTDDI_VERSION  NTDDI_WINXPSP2
-
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
