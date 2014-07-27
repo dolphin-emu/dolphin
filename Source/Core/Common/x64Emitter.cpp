@@ -60,6 +60,10 @@ enum NormalSSEOps
 	sseMOVAPtoRM   = 0x29, //MOVAP to RM
 	sseMOVUPfromRM = 0x10, //MOVUP from RM
 	sseMOVUPtoRM   = 0x11, //MOVUP to RM
+	sseMOVLPDfromRM= 0x12,
+	sseMOVLPDtoRM  = 0x13,
+	sseMOVHPDfromRM= 0x16,
+	sseMOVHPDtoRM  = 0x17,
 	sseMASKMOVDQU  = 0xF7,
 	sseLDDQU       = 0xF0,
 	sseSHUF        = 0xC6,
@@ -1237,7 +1241,7 @@ void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a)
 }
 
 
-void XEmitter::WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes)
+void XEmitter::WriteSSEOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes)
 {
 	if (size == 64 && packed)
 		Write8(0x66); //this time, override goes upwards
@@ -1246,19 +1250,33 @@ void XEmitter::WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg a
 	arg.operandReg = regOp;
 	arg.WriteRex(this, 0, 0);
 	Write8(0x0F);
-	Write8(sseOp);
+	if (sseOp > 0xFF)
+	{
+		// Currently, only 0x38 and 0x3A are used as secondary escape byte.
+		_assert_msg_(DYNA_REC, ((sseOp >> 8) & 0xFD) == 0x38, "Invalid SSE opcode: 0F%04X", sseOp);
+		Write8((sseOp >> 8) & 0xFF);
+	}
+	Write8(sseOp & 0xFF);
 	arg.WriteRest(this, extrabytes);
 }
 
-void XEmitter::WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes)
+void XEmitter::WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes)
 {
 	WriteAVXOp(size, sseOp, packed, regOp, X64Reg::INVALID_REG, arg, extrabytes);
 }
 
-void XEmitter::WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes)
+void XEmitter::WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes)
 {
+	if (!cpu_info.bAVX)
+		PanicAlert("Trying to use AVX on a system that doesn't support it. Bad programmer.");
 	arg.WriteVex(this, size, packed, regOp1, regOp2);
-	Write8(sseOp);
+	if (sseOp > 0xFF)
+	{
+		// Currently, only 0x38 and 0x3A are used as secondary escape byte.
+		_assert_msg_(DYNA_REC, ((sseOp >> 8) & 0xFD) == 0x38, "Invalid SSE opcode: 0F%04X", sseOp);
+		Write8((sseOp >> 8) & 0xFF);
+	}
+	Write8(sseOp & 0xFF);
 	arg.WriteRest(this, extrabytes, regOp1);
 }
 
@@ -1382,6 +1400,11 @@ void XEmitter::MOVSD(X64Reg regOp, OpArg arg)   {WriteSSEOp(64, sseMOVUPfromRM, 
 void XEmitter::MOVSS(OpArg arg, X64Reg regOp)   {WriteSSEOp(32, sseMOVUPtoRM, false, regOp, arg);}
 void XEmitter::MOVSD(OpArg arg, X64Reg regOp)   {WriteSSEOp(64, sseMOVUPtoRM, false, regOp, arg);}
 
+void XEmitter::MOVLPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(64, sseMOVLPDfromRM, false, regOp, arg);}
+void XEmitter::MOVHPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(64, sseMOVHPDfromRM, false, regOp, arg);}
+void XEmitter::MOVLPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(64, sseMOVLPDtoRM, false, regOp, arg);}
+void XEmitter::MOVHPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(64, sseMOVHPDtoRM, false, regOp, arg);}
+
 void XEmitter::CVTPS2PD(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x5A, true, regOp, arg);}
 void XEmitter::CVTPD2PS(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5A, true, regOp, arg);}
 
@@ -1432,7 +1455,6 @@ void XEmitter::MOVDDUP(X64Reg regOp, OpArg arg)
 // Also some integer instructions are missing
 void XEmitter::PACKSSDW(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x6B, true, dest, arg);}
 void XEmitter::PACKSSWB(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x63, true, dest, arg);}
-//void PACKUSDW(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x66, true, dest, arg);} // WRONG
 void XEmitter::PACKUSWB(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x67, true, dest, arg);}
 
 void XEmitter::PUNPCKLBW(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x60, true, dest, arg);}
@@ -1496,30 +1518,40 @@ void XEmitter::PSRAD(X64Reg reg, int shift) {
 	Write8(shift);
 }
 
-void XEmitter::PSHUFB(X64Reg dest, OpArg arg) {
-	if (!cpu_info.bSSSE3) {
-		PanicAlert("Trying to use PSHUFB on a system that doesn't support it. Bad programmer.");
-	}
-	Write8(0x66);
-	arg.operandReg = dest;
-	arg.WriteRex(this, 0, 0);
-	Write8(0x0f);
-	Write8(0x38);
-	Write8(0x00);
-	arg.WriteRest(this);
+void XEmitter::WriteSSSE3Op(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes)
+{
+	if (!cpu_info.bSSSE3)
+		PanicAlert("Trying to use SSSE3 on a system that doesn't support it. Bad programmer.");
+	WriteSSEOp(size, sseOp, packed, regOp, arg, extrabytes);
 }
 
-void XEmitter::PTEST(X64Reg dest, OpArg arg) {
-	if (!cpu_info.bSSE4_1) {
-		PanicAlert("Trying to use PTEST on a system that doesn't support it. Nobody hears your screams.");
-	}
-	Write8(0x66);
-	Write8(0x0f);
-	Write8(0x38);
-	Write8(0x17);
-	arg.operandReg = dest;
-	arg.WriteRest(this);
+void XEmitter::WriteSSE41Op(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes)
+{
+	if (!cpu_info.bSSE4_1)
+		PanicAlert("Trying to use SSE4.1 on a system that doesn't support it. Bad programmer.");
+	WriteSSEOp(size, sseOp, packed, regOp, arg, extrabytes);
 }
+
+void XEmitter::PSHUFB(X64Reg dest, OpArg arg)   {WriteSSSE3Op(64, 0x3800, true, dest, arg);}
+void XEmitter::PTEST(X64Reg dest, OpArg arg)    {WriteSSE41Op(64, 0x3817, true, dest, arg);}
+void XEmitter::PACKUSDW(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x382b, true, dest, arg);}
+
+void XEmitter::PMOVSXBW(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3820, true, dest, arg);}
+void XEmitter::PMOVSXBD(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3821, true, dest, arg);}
+void XEmitter::PMOVSXBQ(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3822, true, dest, arg);}
+void XEmitter::PMOVSXWD(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3823, true, dest, arg);}
+void XEmitter::PMOVSXWQ(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3824, true, dest, arg);}
+void XEmitter::PMOVSXDQ(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3825, true, dest, arg);}
+void XEmitter::PMOVZXBW(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3830, true, dest, arg);}
+void XEmitter::PMOVZXBD(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3831, true, dest, arg);}
+void XEmitter::PMOVZXBQ(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3832, true, dest, arg);}
+void XEmitter::PMOVZXWD(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3833, true, dest, arg);}
+void XEmitter::PMOVZXWQ(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3834, true, dest, arg);}
+void XEmitter::PMOVZXDQ(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3835, true, dest, arg);}
+
+void XEmitter::PBLENDVB(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3810, true, dest, arg);}
+void XEmitter::BLENDVPS(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3814, true, dest, arg);}
+void XEmitter::BLENDVPD(X64Reg dest, OpArg arg) {WriteSSE41Op(64, 0x3815, true, dest, arg);}
 
 void XEmitter::PAND(X64Reg dest, OpArg arg)     {WriteSSEOp(64, 0xDB, true, dest, arg);}
 void XEmitter::PANDN(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xDF, true, dest, arg);}

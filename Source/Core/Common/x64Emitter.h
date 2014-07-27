@@ -252,9 +252,11 @@ private:
 	void WriteShift(int bits, OpArg dest, OpArg &shift, int ext);
 	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
 	void WriteMXCSR(OpArg arg, int ext);
-	void WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
-	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
-	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteSSEOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteSSSE3Op(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteSSE41Op(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteFloatLoadStore(int bits, FloatOp op, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
@@ -550,6 +552,11 @@ public:
 	void MOVSS(OpArg arg, X64Reg regOp);
 	void MOVSD(OpArg arg, X64Reg regOp);
 
+	void MOVLPD(X64Reg regOp, OpArg arg);
+	void MOVHPD(X64Reg regOp, OpArg arg);
+	void MOVLPD(OpArg arg, X64Reg regOp);
+	void MOVHPD(OpArg arg, X64Reg regOp);
+
 	void MOVD_xmm(X64Reg dest, const OpArg &arg);
 	void MOVQ_xmm(X64Reg dest, OpArg arg);
 	void MOVD_xmm(const OpArg &arg, X64Reg src);
@@ -581,7 +588,7 @@ public:
 	// SSE2: Packed integer instructions
 	void PACKSSDW(X64Reg dest, OpArg arg);
 	void PACKSSWB(X64Reg dest, OpArg arg);
-	//void PACKUSDW(X64Reg dest, OpArg arg);
+	void PACKUSDW(X64Reg dest, OpArg arg);
 	void PACKUSWB(X64Reg dest, OpArg arg);
 
 	void PUNPCKLBW(X64Reg dest, const OpArg &arg);
@@ -652,6 +659,25 @@ public:
 
 	void PSRAW(X64Reg reg, int shift);
 	void PSRAD(X64Reg reg, int shift);
+
+	// SSE4: data type conversions
+	void PMOVSXBW(X64Reg dest, OpArg arg);
+	void PMOVSXBD(X64Reg dest, OpArg arg);
+	void PMOVSXBQ(X64Reg dest, OpArg arg);
+	void PMOVSXWD(X64Reg dest, OpArg arg);
+	void PMOVSXWQ(X64Reg dest, OpArg arg);
+	void PMOVSXDQ(X64Reg dest, OpArg arg);
+	void PMOVZXBW(X64Reg dest, OpArg arg);
+	void PMOVZXBD(X64Reg dest, OpArg arg);
+	void PMOVZXBQ(X64Reg dest, OpArg arg);
+	void PMOVZXWD(X64Reg dest, OpArg arg);
+	void PMOVZXWQ(X64Reg dest, OpArg arg);
+	void PMOVZXDQ(X64Reg dest, OpArg arg);
+
+	// SSE4: variable blend instructions (xmm0 implicit argument)
+	void PBLENDVB(X64Reg dest, OpArg arg);
+	void BLENDVPS(X64Reg dest, OpArg arg);
+	void BLENDVPD(X64Reg dest, OpArg arg);
 
 	// AVX
 	void VADDSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
