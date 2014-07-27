@@ -7,7 +7,9 @@
 #include <string>
 #include <vector>
 
-#include "Common/IniFile.h"
+#include "Common/CommonTypes.h"
+
+class IniFile;
 
 namespace PatchEngine
 {

@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
-
 class IWII_IPC_HLE_Device;
+class PointerWrap;
 
 enum IPCCommandType : u32
 {
