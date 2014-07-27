@@ -22,9 +22,8 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStorePairedOff);
 	FALLBACK_IF(!inst.RA);
 
-	bool update = inst.OPCD == 61;
-
-	int offset = inst.SIMM_12;
+	s32 offset = inst.SIMM_12;
+	bool update = inst.OPCD == 61 && offset;
 	int a = inst.RA;
 	int s = inst.RS;
 
@@ -32,9 +31,16 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	if (update)
 		gpr.BindToRegister(a, true, true);
 	fpr.BindToRegister(s, true, false);
-	MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
-	if (offset)
-		ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
+	if (offset && gpr.R(a).IsSimpleReg())
+	{
+		LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
+	}
+	else
+	{
+		MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
+		if (offset)
+			ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
+	}
 	// In memcheck mode, don't update the address until the exception check
 	if (update && offset && !js.memcheck)
 		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
@@ -46,7 +52,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + inst.I]));
 	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
-	// FIXME: Fix ModR/M encoding to allow [RSCRATCH2*4+disp32] without a base register!
+	// FIXME: Fix ModR/M encoding to allow [RSCRATCH2*8+disp32] without a base register!
 	if (inst.W)
 	{
 		// One value
@@ -77,18 +83,24 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStorePairedOff);
 	FALLBACK_IF(!inst.RA);
 
-	bool update = inst.OPCD == 57;
-	int offset = inst.SIMM_12;
+	s32 offset = inst.SIMM_12;
+	bool update = inst.OPCD == 57 && offset;
 	int a = inst.RA;
 	int s = inst.RS;
 
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	gpr.BindToRegister(a, true, update && offset);
 	fpr.BindToRegister(s, false, true);
-	if (offset)
+	if (offset && gpr.R(a).IsSimpleReg())
+	{
 		LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
+	}
 	else
+	{
 		MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
+		if (offset)
+			ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
+	}
 	// In memcheck mode, don't update the address until the exception check
 	if (update && offset && !js.memcheck)
 		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
