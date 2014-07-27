@@ -7,9 +7,11 @@
 #ifdef _WIN32
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
-#include <iphlpapi.h>
+#include <WinSock2.h>
 
-#include "fakepoll.h"
+typedef pollfd pollfd_t;
+
+#define poll WSAPoll
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
