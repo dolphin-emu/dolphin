@@ -297,29 +297,35 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	case 14: //madds0
 		MOVDDUP(XMM1, fpr.R(c));
 		MULPD(XMM0, R(XMM1));
+		ForceSinglePrecisionP(XMM0);
 		ADDPD(XMM0, fpr.R(b));
 		break;
 	case 15: //madds1
 		MOVAPD(XMM1, fpr.R(c));
 		SHUFPD(XMM1, R(XMM1), 3); // copy higher to lower
 		MULPD(XMM0, R(XMM1));
+		ForceSinglePrecisionP(XMM0);
 		ADDPD(XMM0, fpr.R(b));
 		break;
 	case 28: //msub
 		MULPD(XMM0, fpr.R(c));
+		ForceSinglePrecisionP(XMM0);
 		SUBPD(XMM0, fpr.R(b));
 		break;
 	case 29: //madd
 		MULPD(XMM0, fpr.R(c));
+		ForceSinglePrecisionP(XMM0);
 		ADDPD(XMM0, fpr.R(b));
 		break;
 	case 30: //nmsub
 		MULPD(XMM0, fpr.R(c));
+		ForceSinglePrecisionP(XMM0);
 		SUBPD(XMM0, fpr.R(b));
 		PXOR(XMM0, M((void*)&psSignBits));
 		break;
 	case 31: //nmadd
 		MULPD(XMM0, fpr.R(c));
+		ForceSinglePrecisionP(XMM0);
 		ADDPD(XMM0, fpr.R(b));
 		PXOR(XMM0, M((void*)&psSignBits));
 		break;

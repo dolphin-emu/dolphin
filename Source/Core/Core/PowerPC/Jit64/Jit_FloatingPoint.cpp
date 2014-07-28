@@ -114,19 +114,27 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	{
 	case 28: //msub
 		MULSD(XMM0, fpr.R(c));
+		if (single_precision)
+			ForceSinglePrecisionS(XMM0);
 		SUBSD(XMM0, fpr.R(b));
 		break;
 	case 29: //madd
 		MULSD(XMM0, fpr.R(c));
+		if (single_precision)
+			ForceSinglePrecisionS(XMM0);
 		ADDSD(XMM0, fpr.R(b));
 		break;
 	case 30: //nmsub
 		MULSD(XMM0, fpr.R(c));
+		if (single_precision)
+			ForceSinglePrecisionS(XMM0);
 		SUBSD(XMM0, fpr.R(b));
 		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
 	case 31: //nmadd
 		MULSD(XMM0, fpr.R(c));
+		if (single_precision)
+			ForceSinglePrecisionS(XMM0);
 		ADDSD(XMM0, fpr.R(b));
 		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
