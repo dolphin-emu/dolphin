@@ -1189,7 +1189,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-	if (!g_Config.bBorderlessFullscreen &&
+	if (!g_Config.BorderlessFullscreenEnabled() &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 		Core::GetState() == Core::CORE_PAUSE)
 	{
@@ -1216,7 +1216,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	{
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
-	else if (g_Config.bBorderlessFullscreen ||
+	else if (g_Config.BorderlessFullscreenEnabled() ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.
@@ -1244,7 +1244,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 		m_RenderFrame->Raise();
 	}
 
-	g_Config.bFullscreen = (g_Config.bBorderlessFullscreen ||
+	g_Config.bFullscreen = (g_Config.BorderlessFullscreenEnabled() ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain) ? false : enable_fullscreen;
 }
 
