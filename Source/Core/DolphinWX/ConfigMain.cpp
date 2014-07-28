@@ -264,8 +264,7 @@ void CConfigMain::InitializeGUILists()
 	// Framelimit
 	arrayStringFor_Framelimit.Add(_("Off"));
 	arrayStringFor_Framelimit.Add(_("Auto"));
-	arrayStringFor_Framelimit.Add(_("Audio"));
-	for (int i = 10; i <= 120; i += 5) // from 10 to 120
+	for (int i = 5; i <= 120; i += 5) // from 5 to 120
 		arrayStringFor_Framelimit.Add(wxString::Format("%i", i));
 
 	// Emulator Engine
@@ -898,7 +897,6 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
-		AudioCommon::UpdateSoundStream();
 		break;
 	// Core - Advanced
 	case ID_CPUENGINE:

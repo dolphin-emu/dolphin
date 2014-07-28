@@ -134,7 +134,6 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 		" - Enable Dual Core [OFF]\n"
 		" - DSP Emulator Engine Must be the same on all computers!\n"
 		" - DSP on Dedicated Thread [OFF]\n"
-		" - Framelimit NOT set to [Audio]\n"
 		" - Manually set the extensions for each wiimote\n"
 		"\n"
 		"All players should use the same Dolphin version and settings.\n"
