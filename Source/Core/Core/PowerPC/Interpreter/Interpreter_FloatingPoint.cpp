@@ -289,7 +289,7 @@ void Interpreter::fmulsx(UGeckoInstruction _inst)
 
 void Interpreter::fmaddx(UGeckoInstruction _inst)
 {
-	double result = ForceDouble(NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
+	double result = ForceDouble(NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB), false ));
 	rPS0(_inst.FD) = result;
 	UpdateFPRF(result);
 	if (_inst.Rc) Helper_UpdateCR1();
@@ -297,8 +297,8 @@ void Interpreter::fmaddx(UGeckoInstruction _inst)
 
 void Interpreter::fmaddsx(UGeckoInstruction _inst)
 {
-	double d_value = NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) );
-	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(d_value);
+	double d_value = NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB), true);
+	rPS0(_inst.FD) = rPS1(_inst.FD) = d_value;
 	FPSCR.FI = d_value != rPS0(_inst.FD);
 	FPSCR.FR = 0;
 	UpdateFPRF(rPS0(_inst.FD));
@@ -414,36 +414,34 @@ void Interpreter::frsqrtex(UGeckoInstruction _inst)
 
 void Interpreter::fmsubx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceDouble(NI_msub( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
+	rPS0(_inst.FD) = NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB), false);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fmsubsx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) =
-		ForceSingle( NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
+	rPS0(_inst.FD) = rPS1(_inst.FD) = NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB), true);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fnmaddx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceDouble(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS0(_inst.FD) = -NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB), false);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 void Interpreter::fnmaddsx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) =
-		ForceSingle(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS0(_inst.FD) = rPS1(_inst.FD) = -NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB), true);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
 
 void Interpreter::fnmsubx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceDouble(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS0(_inst.FD) = -NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB), false);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }
@@ -451,8 +449,7 @@ void Interpreter::fnmsubx(UGeckoInstruction _inst)
 // fnmsubsx does not handle QNAN properly - see NI_msub
 void Interpreter::fnmsubsx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) =
-		ForceSingle(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS0(_inst.FD) = rPS1(_inst.FD) = -NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB), true);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1();
 }

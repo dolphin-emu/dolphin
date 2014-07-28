@@ -149,7 +149,7 @@ inline double NI_sub(const double a, const double b)
 #endif
 }
 
-inline double NI_madd(const double a, const double b, const double c)
+inline double NI_madd(const double a, const double b, const double c, bool single)
 {
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
@@ -169,11 +169,14 @@ inline double NI_madd(const double a, const double b, const double c)
 	}
 	return t;
 #else
-	return NI_add(NI_mul(a, b), c);
+	if (single)
+		return ForceSingle(NI_add(ForceSingle(NI_mul(a, b)), c));
+	else
+		return ForceDouble(NI_add(ForceDouble(NI_mul(a, b)), c));
 #endif
 }
 
-inline double NI_msub(const double a, const double b, const double c)
+inline double NI_msub(const double a, const double b, const double c, bool single)
 {
 //#ifdef VERY_ACCURATE_FP
 //  This code does not produce accurate fp!  NAN's are not calculated correctly, nor negative zero.
@@ -198,7 +201,10 @@ inline double NI_msub(const double a, const double b, const double c)
 //	return t;
 //#else
 //	This code does not calculate QNAN's correctly but calculates negative zero correctly.
-	return NI_sub(NI_mul(a, b), c);
+	if (single)
+		return ForceSingle(NI_sub(ForceSingle(NI_mul(a, b)), c));
+	else
+		return ForceDouble(NI_sub(ForceDouble(NI_mul(a, b)), c));
 // #endif
 }
 
