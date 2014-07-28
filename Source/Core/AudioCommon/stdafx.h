@@ -3,14 +3,13 @@
 // Refer to the license.txt file included.
 
 #pragma once
-/*
-#ifdef HAVE_DXSDK_JUNE_2010
-#define _WIN32_WINNT 0x501
-#else
-#pragma message("Resulting binary will be compatible with DirectX >= Windows 8. Install the June 2010 DirectX SDK if you want to build for older environments.")
-#define _WIN32_WINNT 0x602
-#endif
-*/
+
+// Windows Vista is the lowest version we support
+// BUT We need to use the headers for Win8+ XAudio2, so Win8 version is used here.
+// The XAudio2 code will gracefully fallback to older versions if the new one
+// isn't available at runtime.
+#define _WIN32_WINNT 0x0602
+
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 #define NOMINMAX            // Don't include windows min/max definitions
 
