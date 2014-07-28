@@ -450,7 +450,7 @@ bool CFrame::RendererIsFullscreen()
 
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
-		fullscreen = m_RenderFrame->IsFullScreen() && g_Config.bFullscreen;
+		fullscreen = m_RenderFrame->IsFullScreen();
 	}
 
 #if defined(__APPLE__)
