@@ -102,8 +102,8 @@ void Classic::GetState(u8* const data)
 	u8 x_, y_;
 	m_right_stick->GetState(&x, &y);
 
-	x_ = (x * 0x1F) + 0x20;
-	y_ = (y * 0x1F) + 0x20;
+	x_ = (x * 0x0F) + 0x10;
+	y_ = (y * 0x0F) + 0x10;
 
 	ccdata->rx1 = x_;
 	ccdata->rx2 = x_ >> 1;
