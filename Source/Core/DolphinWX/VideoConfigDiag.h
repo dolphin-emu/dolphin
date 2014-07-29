@@ -1,9 +1,14 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 #pragma once
 
 #include <cstddef>
 #include <map>
 #include <string>
 #include <vector>
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/defs.h>
@@ -22,7 +27,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
+#include "DolphinWX/PostProcessingConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
+#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -200,6 +207,8 @@ protected:
 	wxChoice* choice_display_resolution;
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
+
+	wxButton* button_config_pp;
 
 	SettingCheckBox* borderless_fullscreen;
 

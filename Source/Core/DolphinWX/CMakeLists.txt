@@ -62,6 +62,7 @@ set(GUI_SRCS
 	MemoryCards/WiiSaveCrypted.cpp
 	NetWindow.cpp
 	PatchAddEdit.cpp
+	PostProcessingConfigDiag.cpp
 	SoftwareVideoConfigDialog.cpp
 	TASInputDlg.cpp
 	VideoConfigDiag.cpp
