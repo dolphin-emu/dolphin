@@ -43,6 +43,8 @@ static u32 s_LastAA = 0;
 
 static Television s_television;
 
+static bool s_last_fullscreen_mode = false;
+
 ID3D11Buffer* access_efb_cbuf = nullptr;
 ID3D11BlendState* clearblendstates[4] = {nullptr};
 ID3D11DepthStencilState* cleardepthstates[3] = {nullptr};
@@ -194,6 +196,7 @@ Renderer::Renderer(void *&window_handle)
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
+	s_last_fullscreen_mode = g_ActiveConfig.bFullscreen;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	SetupDeviceObjects();
@@ -937,6 +940,22 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	SetWindowSize(fbWidth, fbHeight);
 
 	const bool windowResized = CheckForResize();
+	const bool fullscreen = g_ActiveConfig.ExclusiveFullscreenEnabled() &&
+		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
+
+	bool fullscreen_changed = s_last_fullscreen_mode != fullscreen;
+
+	bool fullscreen_state;
+	if (SUCCEEDED(D3D::GetFullscreenState(&fullscreen_state)))
+	{
+		if (fullscreen_state != fullscreen && Host_RendererHasFocus())
+		{
+			// The current fullscreen state does not match the configuration,
+			// this may happen when the renderer frame loses focus. When the
+			// render frame is in focus again we can re-apply the configuration.
+			fullscreen_changed = true;
+		}
+	}
 
 	bool xfbchanged = false;
 
@@ -954,17 +973,31 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	NewVRFrame();
 
-	// resize the back buffers NOW to avoid flickering
+	// Resize the back buffers NOW to avoid flickering
 	if (xfbchanged ||
 		windowResized ||
+		fullscreen_changed ||
 		s_LastEFBScale != g_ActiveConfig.iEFBScale ||
 		s_LastAA != g_ActiveConfig.iMultisampleMode)
 	{
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
 		PixelShaderCache::InvalidateMSAAShaders();
 
-		if (windowResized)
+		if (windowResized || fullscreen_changed)
 		{
+			// Apply fullscreen state
+			if (fullscreen_changed)
+			{
+				s_last_fullscreen_mode = fullscreen;
+				D3D::SetFullscreenState(fullscreen);
+
+				// Notify the host that it is safe to exit fullscreen
+				if (!fullscreen)
+				{
+					Host_RequestFullscreen(false);
+				}
+			}
+
 			// TODO: Aren't we still holding a reference to the back buffer right now?
 			D3D::Reset();
 			SAFE_RELEASE(s_screenshot_texture);

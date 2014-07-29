@@ -264,8 +264,7 @@ void CConfigMain::InitializeGUILists()
 	// Framelimit
 	arrayStringFor_Framelimit.Add(_("Off"));
 	arrayStringFor_Framelimit.Add(_("Auto"));
-	arrayStringFor_Framelimit.Add(_("Audio"));
-	for (int i = 10; i <= 120; i += 5) // from 10 to 120
+	for (int i = 5; i <= 120; i += 5) // from 5 to 120
 		arrayStringFor_Framelimit.Add(wxString::Format("%i", i));
 
 	// Emulator Engine
@@ -513,7 +512,7 @@ void CConfigMain::InitializeGUITooltips()
 {
 	// General - Basic
 	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."));
-	Framelimit->SetToolTip(_("This limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL). Alternatively, use Audio to throttle using the DSP (might fix audio clicks but can also cause constant noise depending on the game)."));
+	Framelimit->SetToolTip(_("This limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL)."));
 
 	// General - Advanced
 	_NTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nLeft unchecked, dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
@@ -898,7 +897,6 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
-		AudioCommon::UpdateSoundStream();
 		break;
 	// Core - Advanced
 	case ID_CPUENGINE:

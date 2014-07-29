@@ -112,7 +112,7 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 			if (g->control_group->name == "Main Stick")
 			{
 				max = (87.0f / 127.0f) * 100;
-				diagonal = (55.0f / 127.0f) * 100.0;
+				diagonal = (55.0f / 127.0f) * 100;
 			}
 			else if (g->control_group->name == "C-Stick")
 			{

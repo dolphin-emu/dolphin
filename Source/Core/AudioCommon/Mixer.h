@@ -26,7 +26,6 @@ public:
 		, m_streaming_mixer(this, 48000)
 		, m_sampleRate(BackendSampleRate)
 		, m_logAudio(0)
-		, m_throttle(false)
 		, m_speed(0)
 	{
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
@@ -41,10 +40,10 @@ public:
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
 	virtual void PushStreamingSamples(const short* samples, unsigned int num_samples);
 	unsigned int GetSampleRate() const { return m_sampleRate; }
+
+	void SetDMAInputSampleRate(unsigned int rate);
+	void SetStreamInputSampleRate(unsigned int rate);
 	void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
-
-	void SetThrottle(bool use) { m_throttle = use;}
-
 
 	virtual void StartLogAudio(const std::string& filename)
 	{
@@ -97,6 +96,7 @@ protected:
 		}
 		void PushSamples(const short* samples, unsigned int num_samples);
 		unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
+		void SetInputSampleRate(unsigned int rate);
 		void SetVolume(unsigned int lvolume, unsigned int rvolume);
 	private:
 		CMixer *m_mixer;
@@ -117,8 +117,6 @@ protected:
 	WaveFileWriter g_wave_writer;
 
 	bool m_logAudio;
-
-	bool m_throttle;
 
 	std::mutex m_csMixing;
 

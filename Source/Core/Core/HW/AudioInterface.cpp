@@ -52,13 +52,13 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
 #include "Core/CoreTiming.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/DVDInterface.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
@@ -177,26 +177,38 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::ComplexWrite<u32>([](u32, u32 val) {
 			AICR tmpAICtrl(val);
 
-			m_Control.AIINTMSK = tmpAICtrl.AIINTMSK;
-			m_Control.AIINTVLD = tmpAICtrl.AIINTVLD;
+
+			if (m_Control.AIINTMSK != tmpAICtrl.AIINTMSK)
+			{
+				DEBUG_LOG(AUDIO_INTERFACE, "Change AIINTMSK to %d", tmpAICtrl.AIINTMSK);
+				m_Control.AIINTMSK = tmpAICtrl.AIINTMSK;
+			}
+
+			if (m_Control.AIINTVLD != tmpAICtrl.AIINTVLD)
+			{
+				DEBUG_LOG(AUDIO_INTERFACE, "Change AIINTVLD to %d", tmpAICtrl.AIINTVLD);
+				m_Control.AIINTVLD = tmpAICtrl.AIINTVLD;
+			}
 
 			// Set frequency of streaming audio
 			if (tmpAICtrl.AISFR != m_Control.AISFR)
 			{
+				// AISFR rates below are intentionally inverted wrt yagcd
 				DEBUG_LOG(AUDIO_INTERFACE, "Change AISFR to %s", tmpAICtrl.AISFR ? "48khz":"32khz");
 				m_Control.AISFR = tmpAICtrl.AISFR;
+				g_AISSampleRate = tmpAICtrl.AISFR ? 48000 : 32000;
+				soundStream->GetMixer()->SetStreamInputSampleRate(g_AISSampleRate);
+				g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_AISSampleRate;
 			}
 			// Set frequency of DMA
 			if (tmpAICtrl.AIDFR != m_Control.AIDFR)
 			{
 				DEBUG_LOG(AUDIO_INTERFACE, "Change AIDFR to %s", tmpAICtrl.AIDFR ? "32khz":"48khz");
 				m_Control.AIDFR = tmpAICtrl.AIDFR;
+				g_AIDSampleRate = tmpAICtrl.AIDFR ? 32000 : 48000;
+				soundStream->GetMixer()->SetDMAInputSampleRate(g_AIDSampleRate);
 			}
 
-			g_AISSampleRate = tmpAICtrl.AISFR ? 48000 : 32000;
-			g_AIDSampleRate = tmpAICtrl.AIDFR ? 32000 : 48000;
-
-			g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_AISSampleRate;
 
 			// Streaming counter
 			if (tmpAICtrl.PSTAT != m_Control.PSTAT)
@@ -204,9 +216,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				DEBUG_LOG(AUDIO_INTERFACE, "%s streaming audio", tmpAICtrl.PSTAT ? "start":"stop");
 				m_Control.PSTAT = tmpAICtrl.PSTAT;
 				g_LastCPUTime = CoreTiming::GetTicks();
-
-				// Tell Drive Interface to start/stop streaming
-				DVDInterface::g_bStream = tmpAICtrl.PSTAT;
 
 				CoreTiming::RemoveEvent(et_AI);
 				CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2), et_AI);
@@ -251,6 +260,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	mmio->Register(base | AI_INTERRUPT_TIMING,
 		MMIO::DirectRead<u32>(&m_InterruptTiming),
 		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			DEBUG_LOG(AUDIO_INTERFACE, "AI_INTERRUPT_TIMING=%08x@%08x", val, PowerPC::ppcState.pc);
 			m_InterruptTiming = val;
 			CoreTiming::RemoveEvent(et_AI);
 			CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2), et_AI);
@@ -279,12 +289,20 @@ static void IncreaseSampleCount(const u32 _iAmount)
 {
 	if (m_Control.PSTAT)
 	{
+		u32 old_SampleCounter = m_SampleCounter + 1;
 		m_SampleCounter += _iAmount;
-		if (m_Control.AIINTVLD && (m_SampleCounter >= m_InterruptTiming))
+
+		if ((m_InterruptTiming - old_SampleCounter) <= (m_SampleCounter - old_SampleCounter))
 		{
+			DEBUG_LOG(AUDIO_INTERFACE, "GenerateAudioInterrupt %08x:%08x @ %08x m_Control.AIINTVLD=%d", m_SampleCounter, m_InterruptTiming, PowerPC::ppcState.pc, m_Control.AIINTVLD);
 			GenerateAudioInterrupt();
 		}
 	}
+}
+
+bool IsPlaying()
+{
+	return (m_Control.PSTAT == 1);
 }
 
 unsigned int GetAIDSampleRate()

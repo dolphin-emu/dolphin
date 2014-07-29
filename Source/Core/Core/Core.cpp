@@ -362,8 +362,7 @@ void EmuThread()
 
 	OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
 
-	if (!DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
-		_CoreParameter.bWii, _CoreParameter.bDSPThread))
+	if (!DSP::GetDSPEmulator()->Initialize(_CoreParameter.bWii, _CoreParameter.bDSPThread))
 	{
 		HW::Shutdown();
 		g_video_backend->Shutdown();
@@ -631,7 +630,7 @@ void VideoThrottle()
 bool ShouldSkipFrame(int skipped)
 {
 	const u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1)
-		? SConfig::GetInstance().m_Framelimit * 5
+		? (SConfig::GetInstance().m_Framelimit - 1) * 5
 		: VideoInterface::TargetRefreshRate;
 	const u32 frames = Common::AtomicLoad(DrawnFrame);
 	const bool fps_slow = !(Timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS);

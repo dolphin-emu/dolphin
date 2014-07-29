@@ -34,6 +34,7 @@ Following this guide and formatting your code as detailed will likely get your p
 - The opening brace for namespaces, classes, functions, enums, structs, unions, conditionals, and loops go on the next line.
   - With array initializer lists and lambda expressions it is OK to keep the brace on the same line.
 - References and pointers have the ampersand or asterisk against the type name, not the variable name. Example: `int* var`, not `int *var`.
+- Don't use multi-line comments (`/* Comment text */`), use single-line comments (`// Comment text`) instead.
 - Don't collapse single line conditional or loop bodies onto the same line as its header. Put it on the next line.
   - Yes:
 
@@ -138,7 +139,7 @@ private:
 - Try to avoid using raw pointers (pointers allocated with `new`) as much as possible. There are cases where using a raw pointer is unavoidable, and in these situations it is OK to use them. An example of this is functions from a C library that require them. In cases where it is avoidable, the STL usually has a means to solve this (`vector`, `unique_ptr`, etc).
 - Do not use the `auto` keyword everywhere. While it's nice that the type can be determined by the compiler, it cannot be resolved at 'readtime' by the developer as easily. Use auto only in cases where it is obvious what the type being assigned is (note: 'obvious' means not having to open other files or reading the header file). Some situations where it is appropriate to use `auto` is when iterating over a `std::map` container in a foreach loop, or to shorten the length of container iterator variable declarations.
 - Do not use `using namespace [x];` in headers. Try not to use it at all if you can.
-- The preferred form of the increment and decrement operator is prefix (e.g. `++var`).
+- The preferred form of the increment and decrement operator in for-loops is prefix-form (e.g. `++var`).
 
 ### Headers
 - If a header is not necessary in a certain source file, remove them.

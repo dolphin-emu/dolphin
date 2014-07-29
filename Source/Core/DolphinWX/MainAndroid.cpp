@@ -94,6 +94,9 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 }
 
 void Host_RequestRenderWindowSize(int width, int height) {}
+
+void Host_RequestFullscreen(bool enable_fullscreen) {}
+
 void Host_SetStartupDebuggingParameters()
 {
 }
