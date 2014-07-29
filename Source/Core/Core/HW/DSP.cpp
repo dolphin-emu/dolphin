@@ -105,17 +105,17 @@ union UAudioDMAControl
 // AudioDMA
 struct AudioDMA
 {
+	u32 current_source_address;
+	u16 remaining_blocks_count;
 	u32 SourceAddress;
-	u32 ReadAddress;
 	UAudioDMAControl AudioDMAControl;
-	int BlocksLeft;
 
-	AudioDMA()
+	AudioDMA():
+		current_source_address(0),
+		remaining_blocks_count(0),
+		SourceAddress(0),
+		AudioDMAControl(0)
 	{
-		SourceAddress = 0;
-		ReadAddress = 0;
-		AudioDMAControl.Hex = 0;
-		BlocksLeft = 0;
 	}
 };
 
@@ -392,18 +392,31 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	mmio->Register(base | AUDIO_DMA_CONTROL_LEN,
 		MMIO::DirectRead<u16>(&g_audioDMA.AudioDMAControl.Hex),
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			bool already_enabled = g_audioDMA.AudioDMAControl.Enable;
 			g_audioDMA.AudioDMAControl.Hex = val;
-			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
-			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
+
+			// Only load new values if were not already doing a DMA transfer,
+			// otherwise just let the new values be autoloaded in when the
+			// current transfer ends.
+			if (!already_enabled && g_audioDMA.AudioDMAControl.Enable)
+			{
+				g_audioDMA.current_source_address = g_audioDMA.SourceAddress;
+				g_audioDMA.remaining_blocks_count = g_audioDMA.AudioDMAControl.NumBlocks;
+
+				if (g_audioDMA.AudioDMAControl.NumBlocks == 0)
+				{
+					g_audioDMA.AudioDMAControl.Enable = 0;
+				}
+
+				GenerateDSPInterrupt(DSP::INT_AID);
+			}
 		})
 	);
 
 	// Audio DMA blocks remaining is invalid to write to, and requires logic on
 	// the read side.
 	mmio->Register(base | AUDIO_DMA_BLOCKS_LEFT,
-		MMIO::ComplexRead<u16>([](u32) {
-			return (g_audioDMA.BlocksLeft > 0 ? g_audioDMA.BlocksLeft - 1 : 0);
-		}),
+		MMIO::DirectRead<u16>(&g_audioDMA.remaining_blocks_count),
 		MMIO::InvalidWrite<u16>()
 	);
 
@@ -472,31 +485,34 @@ void UpdateDSPSlice(int cycles)
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
 void UpdateAudioDMA()
 {
-	if (g_audioDMA.AudioDMAControl.Enable && g_audioDMA.BlocksLeft)
+	static short zero_samples[8*2] = { 0 };
+	if (g_audioDMA.AudioDMAControl.Enable)
 	{
-		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an
+		// Read audio at g_audioDMA.current_source_address in RAM and push onto an
 		// external audio fifo in the emulator, to be mixed with the disc
-		// streaming output. If that audio queue fills up, we delay the
-		// emulator.
+		// streaming output.
+		void *address = Memory::GetPointer(g_audioDMA.current_source_address);
+		AudioCommon::SendAIBuffer((short*)address, 8);
 
-		g_audioDMA.BlocksLeft--;
-		g_audioDMA.ReadAddress += 32;
+		g_audioDMA.remaining_blocks_count--;
+		g_audioDMA.current_source_address += 32;
 
-		if (g_audioDMA.BlocksLeft == 0)
+		if (g_audioDMA.remaining_blocks_count == 0)
 		{
-			void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
-			unsigned samples = 8 * g_audioDMA.AudioDMAControl.NumBlocks;
-			AudioCommon::SendAIBuffer((short*)address, samples);
+			g_audioDMA.current_source_address = g_audioDMA.SourceAddress;
+			g_audioDMA.remaining_blocks_count = g_audioDMA.AudioDMAControl.NumBlocks;
+
+			if (g_audioDMA.AudioDMAControl.NumBlocks == 0)
+			{
+				g_audioDMA.AudioDMAControl.Enable = 0;
+			}
+
 			GenerateDSPInterrupt(DSP::INT_AID);
-			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
-			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
 		}
 	}
 	else
 	{
-		// Send silence. Yeah, it's a bit of a waste to sample rate convert
-		// silence.  or hm. Maybe we shouldn't do this :)
-		AudioCommon::SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
+		AudioCommon::SendAIBuffer(&zero_samples[0], 8);
 	}
 }
 
