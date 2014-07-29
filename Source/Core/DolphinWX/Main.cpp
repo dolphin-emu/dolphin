@@ -298,6 +298,8 @@ bool DolphinApp::OnInit()
 	if (selectVideoBackend && videoBackendName != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
 			WxStrToStr(videoBackendName);
+	if (g_has_hmd)
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = "OGL";
 
 	if (selectAudioEmulation)
 	{
@@ -460,6 +462,7 @@ int DolphinApp::OnExit()
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
+	ShutdownVR();
 
 	delete m_locale;
 

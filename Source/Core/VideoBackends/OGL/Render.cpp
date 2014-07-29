@@ -663,11 +663,11 @@ void Renderer::Shutdown()
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
 		PostProcessing::BindTargetFramebuffer();
 
-		ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
-		ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
+		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
+		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
 
 		// Let OVR do distortion rendering, Present and flush/sync.
-		ovrHmd_EndFrame(hmd);
+		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 	}
 #endif
 	g_first_rift_frame = true;
@@ -1401,8 +1401,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	if (g_first_rift_frame && g_has_rift)
 	{
 		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
-		g_left_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Left);
-		g_right_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Right);
+		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
+		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 		g_first_rift_frame = false;
 	}
 #endif
@@ -1525,11 +1525,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
 		PostProcessing::BindTargetFramebuffer();
 
-		ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
-		ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
+		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
+		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
 
 		// Let OVR do distortion rendering, Present and flush/sync.
-		ovrHmd_EndFrame(hmd);
+		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+		// Dismiss health and safety warning as soon as possible (it covers our own health and safety warning).
+		ovrHmd_DismissHSWDisplay(hmd);
+
 	}
 #endif
 	else
@@ -1754,8 +1757,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	{
 		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
 		
-		g_left_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Left);
-		g_right_eye_pose = ovrHmd_BeginEyeRender(hmd, ovrEye_Right);
+		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
+		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 	}
 #endif
 
@@ -1803,6 +1806,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		g_Config.iFlashState = 0;
 
 	UpdateActiveConfig();
+	// VR XFB isn't implemented yet, so always disable it for VR
+	if (g_has_hmd)
+	{
+		g_ActiveConfig.bUseXFB = false;
+		// always stretch to fit
+		g_ActiveConfig.iAspectRatio = 3; 
+	}
 	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 	// For testing zbuffer targets.

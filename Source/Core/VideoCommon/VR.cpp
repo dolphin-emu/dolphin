@@ -25,7 +25,7 @@ ovrHmdDesc hmdDesc;
 ovrFovPort g_eye_fov[2];
 ovrEyeRenderDesc g_eye_render_desc[2];
 ovrFrameTiming g_rift_frame_timing;
-ovrPosef g_left_eye_pose, g_right_eye_pose;
+ovrPosef g_eye_poses[2];
 #endif
 
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
@@ -55,9 +55,10 @@ void InitVR()
 	if (hmd)
 	{
 		// Get more details about the HMD
-		ovrHmd_GetDesc(hmd, &hmdDesc);
+		//ovrHmd_GetDesc(hmd, &hmdDesc);
+		hmdDesc = *hmd;
 
-		if (ovrHmd_StartSensor(hmd, ovrSensorCap_Orientation | ovrSensorCap_Position | ovrSensorCap_YawCorrection,
+		if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection,
 			0))
 		{
 			g_has_rift = true;
@@ -109,15 +110,27 @@ void InitVR()
 	SConfig::GetInstance().m_special_case = true;
 }
 
+void ShutdownVR()
+{
+#ifdef HAVE_OCULUSSDK
+	if (hmd)
+	{
+		ovrHmd_Destroy(hmd);
+		NOTICE_LOG(VR, "Oculus Rift shut down.");
+	}
+	ovr_Shutdown();
+#endif
+}
+
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z)
 {
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift && hmd)
 	{
-		ovrSensorState ss = ovrHmd_GetSensorState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
+		ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
 		if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
 		{
-			OVR::Transformf pose = ss.Predicted.Pose;
+			OVR::Posef pose = ss.HeadPose.ThePose;
 			float ya = 0.0f, p = 0.0f, r = 0.0f;
 			pose.Rotation.GetEulerAngles<OVR::Axis_Y, OVR::Axis_X, OVR::Axis_Z>(&ya, &p, &r);
 			*roll = -RADIANS_TO_DEGREES(r);  // ???

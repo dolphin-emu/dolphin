@@ -25,6 +25,7 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 #define DEGREES_TO_RADIANS(deg) ((float) deg * (float) (M_PI / 180.0))
 
 void InitVR();
+void ShutdownVR();
 void NewVRFrame();
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z);
 void UpdateHeadTrackingIfNeeded();
@@ -42,5 +43,5 @@ extern ovrHmdDesc hmdDesc;
 extern ovrFovPort g_eye_fov[2];
 extern ovrEyeRenderDesc g_eye_render_desc[2];
 extern ovrFrameTiming g_rift_frame_timing;
-extern ovrPosef g_left_eye_pose, g_right_eye_pose;
+extern ovrPosef g_eye_poses[2];
 #endif
