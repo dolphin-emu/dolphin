@@ -415,6 +415,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		else
 			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
 
+		// Should the configuration button be loaded by default?
+		PostProcessingShaderConfiguration postprocessing_shader;
+		postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
+		button_config_pp->Enable(postprocessing_shader.HasOptions());
+
 		choice_ppshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_PPShader, this);
 
 		szr_enh->Add(new wxStaticText(page_enh, -1, _("Post-Processing Effect:")), 1, wxALIGN_CENTER_VERTICAL, 0);

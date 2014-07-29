@@ -142,6 +142,19 @@ protected:
 		else
 			vconfig.sPostProcessingShader.clear();
 
+		// Should we enable the configuration button?
+		PostProcessingShaderConfiguration postprocessing_shader;
+		postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
+		button_config_pp->Enable(postprocessing_shader.HasOptions());
+
+		ev.Skip();
+	}
+
+	void Event_ConfigurePPShader(wxCommandEvent &ev)
+	{
+		PostProcessingConfigDiag dialog(this, vconfig.sPostProcessingShader);
+		dialog.ShowModal();
+
 		ev.Skip();
 	}
 

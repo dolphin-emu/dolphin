@@ -115,6 +115,8 @@ public:
 	static PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
 	static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
 
+	PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor; }
+
 protected:
 
 	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
@@ -152,6 +154,8 @@ protected:
 	static bool XFBWrited;
 
 	FPSCounter m_fps_counter;
+
+	static PostProcessingShaderImplementation* m_post_processor;
 
 private:
 	static PEControl::PixelFormat prev_efb_format;
