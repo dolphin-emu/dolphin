@@ -1,17 +1,10 @@
-SAMPLER_BINDING(9) uniform sampler2D samp9;
-
-out vec4 ocol0;
-in vec2 uv0;
-
-uniform vec4 resolution;
-
 void main()
 {
-	float4 c0 = texture(samp9, uv0);
-	float4 c1 = texture(samp9, uv0 - float2(1.0, 0.0) * resolution.zw);
-	float4 c2 = texture(samp9, uv0 - float2(0.0, 1.0) * resolution.zw);
-	float4 c3 = texture(samp9, uv0 + float2(1.0, 0.0) * resolution.zw);
-	float4 c4 = texture(samp9, uv0 + float2(0.0, 1.0) * resolution.zw);
+	float4 c0 = Sample();
+	float4 c1 = SampleOffset(int2(-1,  0));
+	float4 c2 = SampleOffset(int2( 0, -1));
+	float4 c3 = SampleOffset(int2( 1,  0));
+	float4 c4 = SampleOffset(int2( 0,  1));
 
 	float red = c0.r;
 	float blue = c0.b;
@@ -36,5 +29,5 @@ void main()
 	else
 		blue = c0.b - c0.b / 2.0;
 
-	ocol0 = float4(red, green, blue, c0.a);
+	SetOutput(float4(red, green, blue, c0.a));
 }
