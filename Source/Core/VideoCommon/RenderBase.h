@@ -24,6 +24,8 @@
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VideoCommon.h"
 
+class PostProcessingShaderImplementation;
+
 // TODO: Move these out of here.
 extern int frameCount;
 extern int OSDChoice;
