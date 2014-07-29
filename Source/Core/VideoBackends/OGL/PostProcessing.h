@@ -8,6 +8,8 @@
 #include <unordered_map>
 
 #include "VideoBackends/OGL/GLUtil.h"
+
+#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace OGL

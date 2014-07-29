@@ -210,7 +210,6 @@ void VideoBackend::Video_Prepare()
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
 	ProgramShaderCache::Init();
-	PostProcessing::Init();
 	g_texture_cache = new TextureCache();
 	g_sampler_cache = new SamplerCache();
 	Renderer::Init();
@@ -250,7 +249,6 @@ void VideoBackend::Video_Cleanup() {
 		g_sampler_cache = nullptr;
 		delete g_texture_cache;
 		g_texture_cache = nullptr;
-		PostProcessing::Shutdown();
 		ProgramShaderCache::Shutdown();
 		VertexShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
