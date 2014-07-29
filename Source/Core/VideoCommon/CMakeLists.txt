@@ -18,6 +18,7 @@ set(SRCS	BPFunctions.cpp
 			PixelEngine.cpp
 			PixelShaderGen.cpp
 			PixelShaderManager.cpp
+			PostProcessing.cpp
 			RenderBase.cpp
 			Statistics.cpp
 			TextureCacheBase.cpp

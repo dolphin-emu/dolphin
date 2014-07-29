@@ -116,6 +116,11 @@ public:
 
 	Section* GetOrCreateSection(const std::string& section);
 
+	// This function is related to parsing data from lines of INI files
+	// It's used outside of IniFile, which is why it is exposed publicly
+	// In particular it is used in PostProcessing for its configuration
+	static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut);
+
 private:
 	std::list<Section> sections;
 

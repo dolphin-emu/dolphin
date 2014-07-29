@@ -40,14 +40,13 @@ static char s_vertex_shader[] =
 
 void Init()
 {
-	s_currentShader = "";
-	s_enable = 0;
-	s_width = 0;
-	s_height = 0;
+	m_enable = false;
+	m_width = 0;
+	m_height = 0;
 
-	glGenFramebuffers(1, &s_fbo);
-	glGenTextures(1, &s_texture);
-	glBindTexture(GL_TEXTURE_2D, s_texture);
+	glGenFramebuffers(1, &m_fbo);
+	glGenTextures(1, &m_texture);
+	glBindTexture(GL_TEXTURE_2D, m_texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0); // disable mipmaps
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -59,7 +58,7 @@ void Init()
 
 void Shutdown()
 {
-	s_shader.Destroy();
+	m_shader.Destroy();
 
 	glDeleteFramebuffers(1, &s_fbo);
 	glDeleteTextures(1, &s_texture);
@@ -83,6 +82,9 @@ void BlitToScreen()
 	glViewport(0, 0, s_width, s_height);
 
 	s_shader.Bind();
+
+	glUniform4f(m_uniform_resolution, (float)m_width, (float)m_height, 1.0f/(float)m_width, 1.0f/(float)m_height);
+	glUniform1ui(m_uniform_time, (GLuint)m_timer.GetTimeElapsed());
 
 	glUniform4f(s_uniform_resolution, (float)s_width, (float)s_height, 1.0f/(float)s_width, 1.0f/(float)s_height);
 
@@ -145,10 +147,82 @@ void ApplyShader()
 	}
 
 	// read uniform locations
-	s_uniform_resolution = glGetUniformLocation(s_shader.glprogid, "resolution");
+	m_uniform_resolution = glGetUniformLocation(m_shader.glprogid, "resolution");
+	m_uniform_time = glGetUniformLocation(m_shader.glprogid, "time");
+
+	for (const auto& it : m_options)
+	{
+		std::string glsl_name = "option_" + it.first;
+		m_uniform_bindings[it.first] = glGetUniformLocation(m_shader.glprogid, glsl_name.c_str());
+	}
 
 	// successful
-	s_enable = true;
+	m_enable = true;
+}
+
+void OpenGLPostProcessing::CreateHeader()
+{
+	m_glsl_header =
+		// Required variables
+		// Shouldn't be accessed directly by the PP shader
+		// Texture sampler
+		"SAMPLER_BINDING(8) uniform sampler2D samp8;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
+
+		// Output variable
+		"out float4 ocol0;\n"
+		// Input coordinates
+		"in float2 uv0;\n"
+		// Resolution
+		"uniform float4 resolution;\n"
+		// Time
+		"uniform uint time;\n"
+
+		// Interfacing functions
+		"float4 Sample()\n"
+		"{\n"
+			"\treturn texture(samp9, uv0);\n"
+		"}\n"
+
+		"float4 SampleLocation(float2 location)\n"
+		"{\n"
+			"\treturn texture(samp9, location);\n"
+		"}\n"
+
+		"#define SampleOffset(offset) textureOffset(samp9, uv0, offset)\n"
+
+		"float4 SampleFontLocation(float2 location)\n"
+		"{\n"
+			"\treturn texture(samp8, location);\n"
+		"}\n"
+
+		"float2 GetResolution()\n"
+		"{\n"
+			"\treturn resolution.xy;\n"
+		"}\n"
+
+		"float2 GetInvResolution()\n"
+		"{\n"
+			"\treturn resolution.zw;\n"
+		"}\n"
+
+		"float2 GetCoordinates()\n"
+		"{\n"
+			"\treturn uv0;\n"
+		"}\n"
+
+		"uint GetTime()\n"
+		"{\n"
+			"\treturn time;\n"
+		"}\n"
+
+		"void SetOutput(float4 color)\n"
+		"{\n"
+			"\tocol0 = color;\n"
+		"}\n"
+
+		"#define GetOption(x) (option_#x)\n"
+		"#define OptionEnabled(x) (option_#x != 0)\n";
 }
 
 }  // namespace
