@@ -1,3 +1,7 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 #include <map>
 #include <string>
 #include <utility>
@@ -32,6 +36,7 @@
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoBackends/OGL/main.h"
+#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -401,9 +406,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// postproc shader
 	if (vconfig.backend_info.PPShaders.size())
 	{
+		wxFlexGridSizer* const szr_pp = new wxFlexGridSizer(3, 5, 5);
 		wxChoice *const choice_ppshader = new wxChoice(page_enh, -1);
 		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
 		choice_ppshader->AppendString(_("(off)"));
+
+		button_config_pp = new wxButton(page_enh, wxID_ANY, _("Config"));
 
 		for (const std::string& shader : vconfig.backend_info.PPShaders)
 		{
@@ -421,9 +429,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		button_config_pp->Enable(postprocessing_shader.HasOptions());
 
 		choice_ppshader->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_PPShader, this);
+		button_config_pp->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ConfigurePPShader, this);
 
 		szr_enh->Add(new wxStaticText(page_enh, -1, _("Post-Processing Effect:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_enh->Add(choice_ppshader);
+		szr_pp->Add(choice_ppshader);
+		szr_pp->Add(button_config_pp);
+		szr_enh->Add(szr_pp);
 	}
 
 	// Scaled copy, PL, Bilinear filter

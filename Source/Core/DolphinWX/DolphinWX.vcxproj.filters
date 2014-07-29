@@ -93,6 +93,9 @@
     <ClCompile Include="Debugger\DebuggerPanel.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
+    <ClCompile Include="PostProcessingConfigDiag.cpp">
+      <Filter>GUI\Video</Filter>
+    </ClCompile>
     <ClCompile Include="VideoConfigDiag.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
@@ -215,6 +218,9 @@
       <Filter>GUI\Saves</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\DebuggerPanel.h">
+      <Filter>GUI\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessingConfigDiag.h">
       <Filter>GUI\Video</Filter>
     </ClInclude>
     <ClInclude Include="VideoConfigDiag.h">
