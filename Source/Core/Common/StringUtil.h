@@ -75,6 +75,23 @@ static bool TryParse(const std::string &str, N *const output)
 		return false;
 }
 
+template <typename N>
+bool TryParseVector(const std::string& str, std::vector<N>* output, const char delimiter = ',')
+{
+	output->clear();
+	std::istringstream buffer(str);
+	std::string variable;
+
+	while (std::getline(buffer, variable, delimiter))
+	{
+		N tmp = 0;
+		if (!TryParse(variable, &tmp))
+			return false;
+		output->push_back(tmp);
+	}
+	return true;
+}
+
 // TODO: kill this
 bool AsciiToHex(const std::string& _szValue, u32& result);
 
