@@ -1247,7 +1247,8 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 		m_RenderFrame->Raise();
 	}
 
-	g_Config.bFullscreen = enable_fullscreen;
+	g_Config.bFullscreen = (g_Config.bBorderlessFullscreen ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain) ? false : enable_fullscreen;
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const
