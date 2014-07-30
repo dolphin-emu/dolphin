@@ -1,9 +1,12 @@
 // Copyright 2013 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
+
+#include "Common/ChunkFile.h"
 #include "Core/Core.h"
 #include "Core/HW/GCMemcard.h"
 #include "Core/HW/GCMemcardRaw.h"
+
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 

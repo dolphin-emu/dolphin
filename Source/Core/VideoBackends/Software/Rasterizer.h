@@ -5,7 +5,8 @@
 #pragma once
 
 #include "Common/ChunkFile.h"
-#include "VideoBackends/Software/NativeVertexFormat.h"
+
+struct OutputVertexData;
 
 namespace Rasterizer
 {

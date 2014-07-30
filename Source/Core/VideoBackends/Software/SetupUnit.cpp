@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/CPMemLoader.h"
 #include "VideoBackends/Software/OpcodeDecoder.h"
