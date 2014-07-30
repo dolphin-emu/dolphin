@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
 #include "VideoBackends/Software/BPMemLoader.h"
+
+class PointerWrap;
 
 class Tev
 {

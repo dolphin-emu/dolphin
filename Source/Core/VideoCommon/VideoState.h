@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
-#include "Common/Common.h"
+class PointerWrap;
 
 void VideoCommon_DoState(PointerWrap &p);
 void VideoCommon_RunLoop(bool enable);

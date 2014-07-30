@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
-#include "Common/Common.h"
+class PointerWrap;
 
 namespace HW
 {
