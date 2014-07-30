@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -90,7 +90,6 @@
     <ClCompile Include="MemoryCards\WiiSaveCrypted.cpp" />
     <ClCompile Include="NetWindow.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
-    <ClCompile Include="PHackSettings.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -140,7 +139,6 @@
     <ClInclude Include="MemoryCards\WiiSaveCrypted.h" />
     <ClInclude Include="NetWindow.h" />
     <ClInclude Include="PatchAddEdit.h" />
-    <ClInclude Include="PHackSettings.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TASInputDlg.h" />
     <ClInclude Include="VideoConfigDiag.h" />

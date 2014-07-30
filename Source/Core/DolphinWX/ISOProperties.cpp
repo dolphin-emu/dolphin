@@ -73,7 +73,6 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
-#include "DolphinWX/PHackSettings.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/resources/isoprop_disc.xpm"
 #include "DolphinWX/resources/isoprop_file.xpm"
@@ -105,7 +104,6 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
 	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
-	EVT_BUTTON(ID_PHSETTINGS, CISOProperties::PHackButtonClicked)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -413,13 +411,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	UseBBox = new wxCheckBox(m_GameConfig, ID_USE_BBOX, _("Enable Bounding Box Calculation"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Video", "UseBBox"));
 	UseBBox->SetToolTip(_("If checked, the bounding box registers will be updated. Used by the Paper Mario games."));
 
-	// Hack
-	wxFlexGridSizer* const szrPHackSettings = new wxFlexGridSizer(0);
-	PHackEnable = new wxCheckBox(m_GameConfig, ID_PHACKENABLE, _("Custom Projection Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE);
-	PHackEnable->SetToolTip(_("Enables Custom Projection Hack"));
-	PHSettings = new wxButton(m_GameConfig, ID_PHSETTINGS, _("Settings..."));
-	PHSettings->SetToolTip(_("Customize some Orthographic Projection parameters."));
-
 	wxBoxSizer* const sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const EmuStateText = new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State: "));
 	arrayStringFor_EmuState.Add(_("Not Set"));
@@ -455,10 +446,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	wxStaticBoxSizer * const sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
 	sbVideoOverrides->Add(UseBBox, 0, wxLEFT, 5);
-	szrPHackSettings->Add(PHackEnable, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-	szrPHackSettings->Add(PHSettings, 0, wxLEFT, 5);
 
-	sbVideoOverrides->Add(szrPHackSettings, 0, wxEXPAND);
 	wxStaticBoxSizer * const sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
@@ -1043,10 +1031,6 @@ void CISOProperties::LoadGameConfig()
 	// First set values from default gameini, then apply values from local gameini
 	int iTemp;
 	default_video->Get("ProjectionHack", &iTemp);
-	PHackEnable->SetValue(!!iTemp);
-	if (local_video->Get("ProjectionHack", &iTemp))
-		PHackEnable->SetValue(!!iTemp);
-
 	default_video->Get("PH_SZNear", &PHack_Data.PHackSZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZNear", &iTemp))
 		PHack_Data.PHackSZNear = !!iTemp;
@@ -1133,7 +1117,6 @@ bool CISOProperties::SaveGameConfig()
 			GameIniLocal.DeleteKey((section), (key)); \
 	} while (0)
 
-	SAVE_IF_NOT_DEFAULT("Video", "ProjectionHack", (int)PHackEnable->GetValue(), 0);
 	SAVE_IF_NOT_DEFAULT("Video", "PH_SZNear", (PHack_Data.PHackSZNear ? 1 : 0), 0);
 	SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (PHack_Data.PHackSZFar ? 1 : 0), 0);
 	SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", PHack_Data.PHZNear, "");
@@ -1327,17 +1310,6 @@ void CISOProperties::PatchList_Save()
 	}
 	GameIniLocal.SetLines("OnFrame_Enabled", enabledLines);
 	GameIniLocal.SetLines("OnFrame", lines);
-}
-
-void CISOProperties::PHackButtonClicked(wxCommandEvent& event)
-{
-	if (event.GetId() == ID_PHSETTINGS)
-	{
-		::PHack_Data = PHack_Data;
-		CPHackSettings dlg(this, 1);
-		if (dlg.ShowModal() == wxID_OK)
-			PHack_Data = ::PHack_Data;
-	}
 }
 
 void CISOProperties::PatchButtonClicked(wxCommandEvent& event)

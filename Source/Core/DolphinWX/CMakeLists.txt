@@ -86,7 +86,6 @@ if(wxWidgets_FOUND)
 				MemcardManager.cpp
 				MemoryCards/WiiSaveCrypted.cpp
 				NetWindow.cpp
-				PHackSettings.cpp
 				PatchAddEdit.cpp
 				TASInputDlg.cpp
 				VideoConfigDiag.cpp
