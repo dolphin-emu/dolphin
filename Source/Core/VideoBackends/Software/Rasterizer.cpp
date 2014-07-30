@@ -8,6 +8,7 @@
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/HwRasterizer.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVideoConfig.h"

@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 
 #include "VideoBackends/Software/CPMemLoader.h"
@@ -22,13 +23,13 @@
 SWVertexLoader::SWVertexLoader() :
 	m_VertexSize(0),
 	m_NumAttributeLoaders(0)
- {
+{
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
 	VertexLoader_TextCoord::Init();
 
 	m_SetupUnit = new SetupUnit;
- }
+}
 
 SWVertexLoader::~SWVertexLoader()
 {
