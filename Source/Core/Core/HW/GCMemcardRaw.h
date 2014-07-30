@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
 #include "Common/Thread.h"
 #include "Core/HW/GCMemcard.h"
+
+class PointerWrap;
 
 // Data structure to be passed to the flushing thread.
 struct FlushData

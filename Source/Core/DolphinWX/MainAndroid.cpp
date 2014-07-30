@@ -49,7 +49,6 @@
 ANativeWindow* surf;
 int g_width, g_height;
 std::string g_filename;
-static std::thread g_run_thread;
 
 #define DOLPHIN_TAG "Dolphinemu"
 
