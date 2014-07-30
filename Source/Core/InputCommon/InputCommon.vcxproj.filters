@@ -13,6 +13,9 @@
     <Filter Include="ControllerInterface\ForceFeedback">
       <UniqueIdentifier>{e10ce316-283c-4be0-848d-578dec2b6404}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ControllerInterface\Sixense">
+      <UniqueIdentifier>{8e4d9d8d-1a70-4a65-839f-34437b5f461c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ControllerEmu.cpp" />
@@ -41,6 +44,12 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp">
       <Filter>ControllerInterface\ForceFeedback</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\Sixense\SixenseHack.cpp">
+      <Filter>ControllerInterface\Sixense</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\Sixense\RazerHydra.cpp">
+      <Filter>ControllerInterface\Sixense</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -71,6 +80,12 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h">
       <Filter>ControllerInterface\ForceFeedback</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\Sixense\SixenseHack.h">
+      <Filter>ControllerInterface\Sixense</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\Sixense\RazerHydra.h">
+      <Filter>ControllerInterface\Sixense</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

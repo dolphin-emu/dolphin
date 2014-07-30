@@ -12,7 +12,7 @@ namespace WiimoteEmu
 class Classic : public Attachment
 {
 public:
-	Classic(WiimoteEmu::ExtensionReg& _reg);
+	Classic(WiimoteEmu::ExtensionReg& _reg, int index);
 	void GetState(u8* const data) override;
 
 	enum
@@ -52,6 +52,7 @@ private:
 	Buttons*       m_dpad;
 	AnalogStick*   m_left_stick;
 	AnalogStick*   m_right_stick;
+	int            m_index;
 };
 
 }

@@ -1,5 +1,6 @@
 set(SRCS	ControllerEmu.cpp
 			InputConfig.cpp
+			ControllerInterface/Sixense/RazerHydra.cpp
 			ControllerInterface/ControllerInterface.cpp
 			ControllerInterface/Device.cpp
 			ControllerInterface/ExpressionParser.cpp)
@@ -10,6 +11,7 @@ if(WIN32)
 				ControllerInterface/DInput/DInputJoystick.cpp
 				ControllerInterface/DInput/DInputKeyboardMouse.cpp
 				ControllerInterface/XInput/XInput.cpp
+				ControllerInterface/Sixense/SixenseHack.cpp
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS	${SRCS}

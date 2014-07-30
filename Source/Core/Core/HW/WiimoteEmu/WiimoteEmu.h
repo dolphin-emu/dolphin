@@ -67,7 +67,7 @@ struct ExtensionReg
 	u8 constant_id[6];
 };
 
-void FillRawAccelFromGForceData(wm_accel& raw_accel,
+void FillRawAccelFromGForceData(wm_accel& raw_accel, u8 &lsb,
 	const accel_cal& calib,
 	const WiimoteEmu::AccelData& accel);
 
@@ -85,9 +85,21 @@ void EmulateSwing(AccelData* const accel
 
 inline double trim(double a)
 {
-	if (a<=0) return 0;
-	if (a>=255) return 255;
+	if (a<=0)
+		return 0;
+	if (a>=255)
+		return 255;
 	return a;
+}
+
+// Convert a float with values between 0 and 255 into a 10bit integer. 
+inline u32 trim10bit(double a)
+{
+	if (a <= 0)
+		return 0;
+	if (a*4 >= 1023)
+		return 1023;
+	return (u32)a*4;
 }
 
 class Wiimote : public ControllerEmu
@@ -124,6 +136,8 @@ public:
 
 	void LoadDefaults(const ControllerInterface& ciface) override;
 
+	void CycleThroughExtensions();
+
 protected:
 	bool Step();
 	void HidOutputReport(const wm_report* const sr, const bool send_ack = true);
@@ -131,7 +145,7 @@ protected:
 	void UpdateButtonsStatus();
 
 	void GetCoreData(u8* const data);
-	void GetAccelData(u8* const data);
+	void GetAccelData(u8* const data, u8* const core);
 	void GetIRData(u8* const data, bool use_accel);
 	void GetExtData(u8* const data);
 

@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -12,7 +12,7 @@ namespace WiimoteEmu
 class Nunchuk : public Attachment
 {
 public:
-	Nunchuk(WiimoteEmu::ExtensionReg& _reg);
+	Nunchuk(WiimoteEmu::ExtensionReg& _reg, int index);
 
 	virtual void GetState(u8* const data) override;
 
@@ -34,6 +34,8 @@ private:
 	AnalogStick* m_stick;
 
 	u8 m_shake_step[3];
+
+	int m_index;
 };
 
 }
