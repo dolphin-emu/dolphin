@@ -6,7 +6,7 @@ The official Dolphin website: https://dolphin-emu.org
 See the website for non-VR related help, and the Wiki for game specific information.
 Don't both the official Dolphin devs with VR questions or issues, they don't know.
 
-The VR branch: https://github.com/CarlKenner/dolphin/tree/VR
+The VR branch: https://github.com/CarlKenner/dolphin/tree/VR-Hydra
 Disscusion of the VR branch: https://developer.oculusvr.com/forums/
 
 How to run:
