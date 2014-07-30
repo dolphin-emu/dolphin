@@ -104,7 +104,7 @@ SetCompressor /SOLID lzma
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define UN_NAME "Uninstall $(^Name)"
-OutFile "dolphin-${DOLPHIN_ARCH}-${PRODUCT_VERSION}.exe"
+OutFile "dolphin-vr-${DOLPHIN_ARCH}-${PRODUCT_VERSION}.exe"
 InstallDir "${BASE_INSTALL_DIR}\$(^Name)"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -123,6 +123,7 @@ Section "Base" SEC01
   SetOverwrite ifnewer
   File "${BASE_DIR}\Dolphin.exe"
   File "${BASE_DIR}\license.txt"
+  File "${BASE_DIR}\readme.txt"
   File "${BASE_DIR}\*.dll"
   File /r "${BASE_DIR}\Languages"
   File /r "${BASE_DIR}\Sys"

@@ -32,6 +32,14 @@ Nullsoft Scriptable Install System (NSIS) to be installed. Creating an
 installer is not necessary to run Dolphin since the Build directory contains
 a working Dolphin distribution.
 
+## Oculus Rift
+To build with Oculus Rift support, you need the Oculus Rift SDK 0.4.0 or above.
+Copy the LibOVR folder from the Oculus Rift SDK into the Externals folder,
+and clean and rebuild. The presense or absense of the LibOVR folder changes the
+HAVE_OCULUSSDK preprocessor definition.
+Currently only the OpenGL renderer works with the Oculus Rift.
+Oculus Rift features are not officially supported by the Dolphin team.
+
 ## Installation on Linux/OS X
 Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake

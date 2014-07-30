@@ -582,7 +582,6 @@ void VertexShaderManager::SetConstants()
 		constants.depthparams[2] = pixel_center_correction * pixel_size_x;
 		constants.depthparams[3] = pixel_center_correction * pixel_size_y;
 		dirty = true;
-		NOTICE_LOG(VR, "pixel_size: %f, %f", pixel_size_x, pixel_size_y);
 		// This is so implementation-dependent that we can't have it here.
 		g_renderer->SetViewport();
 

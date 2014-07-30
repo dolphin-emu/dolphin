@@ -1217,6 +1217,14 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				g_Config.iSelectedLayer++;
 				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
 				break;
+#ifdef HAVE_OCULUSSDK
+			case 'R':
+				if (g_has_rift)
+				{
+					ovrHmd_RecenterPose(hmd);
+				}
+				break;
+#endif
 			}
 		}
 	}
