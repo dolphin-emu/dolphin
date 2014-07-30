@@ -90,9 +90,22 @@ int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry 
 		{
 			gci.LoadSaveBlocks();
 		}
-		else if (currentGameOnly)
+		else
 		{
-			return NO_INDEX;
+			if (currentGameOnly)
+			{
+				return NO_INDEX;
+			}
+			int totalBlocks = BE16(m_hdr.SizeMb)*MBIT_TO_BLOCKS - MC_FST_BLOCKS;
+			int freeBlocks = BE16(m_bat1.FreeBlocks);
+			if (totalBlocks > freeBlocks * 10)
+			{
+
+				PanicAlertT("%s\nwas not loaded because there is less than 10%% free space on the memorycard\n"\
+					"Total Blocks: %d; Free Blocks: %d",
+					gci.m_filename.c_str(), totalBlocks, freeBlocks);
+				return NO_INDEX;
+			}
 		}
 		u16 first_block = m_bat1.AssignBlocksContiguous(numBlocks);
 		if (first_block == 0xFFFF)
