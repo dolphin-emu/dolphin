@@ -212,7 +212,7 @@ void getIR(int index, double* x, double* y, double* z)
 			hydra_ir_center_x = g_hydra.c[right].position[0];
 			hydra_ir_center_y = g_hydra.c[right].position[1];
 			hydra_ir_center_z = -g_hydra.c[right].position[2];
-			NOTICE_LOG(WIIMOTE, "Razer Hydra IR centre set to: %5.1fcm right, %5.1fcm up, %5.1fcm in", hydra_ir_center_x / 10.0f, hydra_ir_center_y / 10.0f, hydra_ir_center_z / 10.0f);
+			NOTICE_LOG(VR, "Razer Hydra IR centre set to: %5.1fcm right, %5.1fcm up, %5.1fcm in", hydra_ir_center_x / 10.0f, hydra_ir_center_y / 10.0f, hydra_ir_center_z / 10.0f);
 		}
 		*x = (g_hydra.c[right].position[0] - hydra_ir_center_x) / 150;
 		*y = (g_hydra.c[right].position[1] - hydra_ir_center_y) / 150;
@@ -419,7 +419,7 @@ bool getGameCube(int index, float* lx, float* ly, float* rx, float* ry, float* l
 		*ly = g_hydra_state[left].jy;
 		// Left analog trigger = L
 		*l = g_hydra.c[left].trigger;
-		if (g_hydra.c[left].trigger > 0.9)
+		if (g_hydra.c[left].trigger > 0.8)
 		{
 			*mask |= GC_B_L;
 		}
@@ -431,7 +431,7 @@ bool getGameCube(int index, float* lx, float* ly, float* rx, float* ry, float* l
 			*ry = g_hydra_state[right].jy;
 			// Right analog trigger = R
 			*r = g_hydra.c[right].trigger;
-			if (g_hydra.c[right].trigger > 0.9)
+			if (g_hydra.c[right].trigger > 0.8)
 			{
 				*mask |= GC_B_R;
 			}

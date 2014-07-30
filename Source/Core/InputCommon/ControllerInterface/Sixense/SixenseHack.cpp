@@ -33,9 +33,9 @@ void InitSixenseLib()
 			if (!g_sixense_lib)
 			{
 #ifdef _WIN64
-				WARN_LOG(WIIMOTE, "Failed to load sixense_x64.dll. Razer Hydra and Sixense STEM will not be supported.");
+				WARN_LOG(VR, "Failed to load sixense_x64.dll. Razer Hydra and Sixense STEM will not be supported.");
 #else
-				WARN_LOG(WIIMOTE, "Failed to load sixense.dll. Razer Hydra and Sixense STEM will not be supported.");
+				WARN_LOG(VR, "Failed to load sixense.dll. Razer Hydra and Sixense STEM will not be supported.");
 #endif
 				return;
 			}
@@ -46,12 +46,12 @@ void InitSixenseLib()
 		Hydra_GetAllNewestData = (PHydra_GetAllNewestData)GetProcAddress(g_sixense_lib, "sixenseGetAllNewestData");
 		if (!Hydra_Init || !Hydra_GetAllNewestData)
 		{
-			ERROR_LOG(WIIMOTE, "Failed to load minimum needed sixense dll functions. Razer Hydra and Sixense STEM will not be supported.");
+			ERROR_LOG(VR, "Failed to load minimum needed sixense dll functions. Razer Hydra and Sixense STEM will not be supported.");
 			return;
 		}
 		if (Hydra_Init()!=0)
 		{
-			ERROR_LOG(WIIMOTE, "Hydra_Init() function failed. Razer Hydra and Sixense STEM will not be supported.");
+			ERROR_LOG(VR, "Hydra_Init() function failed. Razer Hydra and Sixense STEM will not be supported.");
 			return;
 		}
 		ZeroMemory(g_hydra_state, 2*sizeof(g_hydra_state[0]));
@@ -61,7 +61,7 @@ void InitSixenseLib()
 		HydraUpdate();
 
 		g_sixense_initialized = true;
-		NOTICE_LOG(WIIMOTE, "Sixense Razer Hydra driver initialized.");
+		NOTICE_LOG(VR, "Sixense Razer Hydra driver initialized.");
 	}
 }
 
@@ -94,12 +94,12 @@ void HydraUpdateController(int hand)
 		{
 			g_hydra_state[hand].jcx = g_hydra.c[hand].stick_x;
 			g_hydra_state[hand].jcy = g_hydra.c[hand].stick_y;
-			NOTICE_LOG(WIIMOTE, "Hydra %d analog stick recalibrated to (%5.2f, %5.2f)", hand, g_hydra_state[hand].jcx, g_hydra_state[hand].jcy);
+			NOTICE_LOG(VR, "Hydra %d analog stick recalibrated to (%5.2f, %5.2f)", hand, g_hydra_state[hand].jcx, g_hydra_state[hand].jcy);
 			MessageBeep(MB_ICONASTERISK);
 		}
 		else
 		{
-			ERROR_LOG(WIIMOTE, "Unable to recalibrate Hydra %d because joypos=(%5.2f, %5.2f)", hand, g_hydra.c[hand].stick_x, g_hydra.c[hand].stick_y);
+			ERROR_LOG(VR, "Unable to recalibrate Hydra %d because joypos=(%5.2f, %5.2f)", hand, g_hydra.c[hand].stick_x, g_hydra.c[hand].stick_y);
 			MessageBeep(0xFFFFFFFF);
 		}
 	}
