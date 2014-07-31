@@ -1217,6 +1217,26 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				g_Config.iSelectedLayer++;
 				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
 				break;
+			// Make Screen 10cm thinner
+			case 'G':
+				if (g_Config.fScreenThickness <= 0.01f)
+					g_Config.fScreenThickness = 0;
+				else if (g_Config.fScreenThickness <= 0.1f)
+					g_Config.fScreenThickness -= 0.01f;
+				else
+					g_Config.fScreenThickness -= 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
+				break;
+			// Make Screen 10cm thicker
+			case 'T':
+				if (g_Config.fScreenThickness < 0.01f)
+					g_Config.fScreenThickness = 0.01f;
+				else if (g_Config.fScreenThickness < 0.1f)
+					g_Config.fScreenThickness += 0.01f;
+				else
+					g_Config.fScreenThickness += 0.1f;
+				NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
+				break;
 #ifdef HAVE_OCULUSSDK
 			case 'R':
 				if (g_has_rift)

@@ -754,13 +754,16 @@ void VertexShaderManager::SetProjectionConstants()
 		if (xfmem.projection.type == GX_PERSPECTIVE)
 		{
 			zfar = p[5] / p[4];
-			znear = (1 + p[4] * zfar) / p[4];
+			znear = (1 + p[5]) / p[4];
 			float zn2 = p[5] / (p[4] - 1);
 			float zf2 = p[5] / (p[4] + 1);
 			hfov = 2 * atan(1.0f / p[0])*180.0f / 3.1415926535f;
 			vfov = 2 * atan(1.0f / p[2])*180.0f / 3.1415926535f;
 			if (debug_newScene)
 				INFO_LOG(VR, "Real 3D scene: hfov=%8.4f    vfov=%8.4f      znear=%8.4f or %8.4f   zfar=%8.4f or %8.4f", hfov, vfov, znear, zn2, zfar, zf2);
+			// prevent near z-clipping by moving near clipping plane closer (may cause z-fighting though)
+			// needed for Animal Crossing on GameCube
+			// znear *= 0.3f;
 		}
 		// 2D layer we will turn into a 3D scene
 		else
@@ -774,8 +777,8 @@ void VertexShaderManager::SetProjectionConstants()
 					INFO_LOG(VR, "2D to fit 3D world: hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov, vfov, znear, zfar);
 			}
 			else { // default, if no 3D in scene
-				znear = 0.5f*UnitsPerMetre; // 50cm
-				zfar = 400 *UnitsPerMetre; // 400m
+				znear = 0.5f*UnitsPerMetre * 20; // 50cm
+				zfar = 40 *UnitsPerMetre; // 40m
 				hfov = 70; // 70 degrees
 				if (g_aspect_wide)
 					vfov = 180.0f / 3.14159f * 2 * atanf(tanf((hfov*3.14159f / 180.0f) / 2)* 9.0f / 16.0f); // 2D screen is meant to be 16:9 aspect ratio
@@ -785,7 +788,7 @@ void VertexShaderManager::SetProjectionConstants()
 					ERROR_LOG(VR, "Only 2D Projecting: %g x %g, n=%fm f=%fm", hfov, vfov, znear, zfar);
 			}
 			zNear3D = znear;
-			znear /= 40;
+			znear /= 40.0f;
 			if (debug_newScene)
 				WARN_LOG(VR, "2D: zNear3D = %f, znear = %f, zFar = %f", zNear3D, znear, zfar);
 			g_fProjectionMatrix[0] = 1.0f;

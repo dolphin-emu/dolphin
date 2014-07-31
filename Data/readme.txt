@@ -80,7 +80,9 @@ Shift+Y and Shift+H to move the 2D screen up and down by 10cm.
 (Move the screen down/camera up for 2.5D games for more realism.
 Move the screen up/camera down for 2D platform games to make the ground level
 with the real floor. Move the screen up for top-down games so you can see better.)
-You can't adjust the 2D screen thickness with the keys yet. Use the game properties.
+*NEW* Shift+T and Shift+G to make the 2D screen thicker (more 3D) or thinner.
+(Sometimes 2D games can be made 3D if they render sprites at different depths.
+A thicker screen can also help fix Z-Fighting issues.)
 Esc to stop emulation and give you the option to save VR settings.
 
 VR debugging keys:
