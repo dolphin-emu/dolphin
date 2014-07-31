@@ -33,6 +33,9 @@ enum Opcode {
 	Load8,  // These loads zext
 	Load16,
 	Load32,
+	// CR conversions
+	ConvertFromFastCR,
+	ConvertToFastCR,
 	// Branches
 	BranchUncond,
 	// Register store operators
@@ -45,6 +48,11 @@ enum Opcode {
 	StoreFPRF,
 	StoreGQR,
 	StoreSRR,
+	// Branch conditions
+	FastCRSOSet,
+	FastCREQSet,
+	FastCRGTSet,
+	FastCRLTSet,
 	// Arbitrary interpreter instruction
 	FallBackToInterpreter,
 
@@ -74,6 +82,7 @@ enum Opcode {
 	ICmpSlt,
 	ICmpSge,
 	ICmpSle, // Opposite of sgt
+
 	// Memory store operators
 	Store8,
 	Store16,
@@ -237,7 +246,8 @@ private:
 	unsigned ComputeKnownZeroBits(InstLoc I) const;
 
 public:
-	InstLoc EmitIntConst(unsigned value);
+	InstLoc EmitIntConst(unsigned value) { return EmitIntConst64(value); }
+	InstLoc EmitIntConst64(u64 value);
 	InstLoc EmitStoreLink(InstLoc val) {
 		return FoldUOp(StoreLink, val);
 	}
@@ -372,6 +382,24 @@ public:
 	}
 	InstLoc EmitICmpCRUnsigned(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(ICmpCRUnsigned, op1, op2);
+	}
+	InstLoc EmitConvertFromFastCR(InstLoc op1) {
+		return FoldUOp(ConvertFromFastCR, op1);
+	}
+	InstLoc EmitConvertToFastCR(InstLoc op1) {
+		return FoldUOp(ConvertToFastCR, op1);
+	}
+	InstLoc EmitFastCRSOSet(InstLoc op1) {
+		return FoldUOp(FastCRSOSet, op1);
+	}
+	InstLoc EmitFastCREQSet(InstLoc op1) {
+		return FoldUOp(FastCREQSet, op1);
+	}
+	InstLoc EmitFastCRLTSet(InstLoc op1) {
+		return FoldUOp(FastCRLTSet, op1);
+	}
+	InstLoc EmitFastCRGTSet(InstLoc op1) {
+		return FoldUOp(FastCRGTSet, op1);
 	}
 	InstLoc EmitFallBackToInterpreter(InstLoc op1, InstLoc op2) {
 		return FoldBiOp(FallBackToInterpreter, op1, op2);
@@ -532,7 +560,8 @@ public:
 	InstLoc getFirstInst() { return InstList.data(); }
 	unsigned int getNumInsts() { return (unsigned int)InstList.size(); }
 	unsigned int ReadInst(InstLoc I) { return *I; }
-	unsigned int GetImmValue(InstLoc I) const;
+	unsigned int GetImmValue(InstLoc I) const { return (u32)GetImmValue64(I); }
+	u64 GetImmValue64(InstLoc I) const;
 	void SetMarkUsed(InstLoc I);
 	bool IsMarkUsed(InstLoc I) const;
 	void WriteToFile(u64 codeHash);
@@ -571,7 +600,7 @@ private:
 
 	std::vector<Inst> InstList; // FIXME: We must ensure this is continuous!
 	std::vector<bool> MarkUsed; // Used for IRWriter
-	std::vector<unsigned> ConstList;
+	std::vector<u64> ConstList;
 	InstLoc curReadPtr;
 	InstLoc GRegCache[32];
 	InstLoc GRegCacheStore[32];

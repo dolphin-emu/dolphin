@@ -107,8 +107,10 @@ void JitILBase::mfcr(UGeckoInstruction inst)
 	IREmitter::InstLoc d = ibuild.EmitIntConst(0);
 	for (int i = 0; i < 8; ++i)
 	{
-		d = ibuild.EmitShl(d, ibuild.EmitIntConst(4));
-		d = ibuild.EmitOr(d, ibuild.EmitLoadCR(i));
+		IREmitter::InstLoc cr = ibuild.EmitLoadCR(i);
+		cr = ibuild.EmitConvertFromFastCR(cr);
+		cr = ibuild.EmitShl(cr, ibuild.EmitIntConst(28 - 4 * i));
+		d = ibuild.EmitOr(d, cr);
 	}
 	ibuild.EmitStoreGReg(d, inst.RD);
 }
@@ -126,6 +128,7 @@ void JitILBase::mtcrf(UGeckoInstruction inst)
 			IREmitter::InstLoc value;
 			value = ibuild.EmitShrl(s, ibuild.EmitIntConst(28 - i * 4));
 			value = ibuild.EmitAnd(value, ibuild.EmitIntConst(0xF));
+			value = ibuild.EmitConvertToFastCR(value);
 			ibuild.EmitStoreCR(value, i);
 		}
 	}
@@ -150,6 +153,7 @@ void JitILBase::crXX(UGeckoInstruction inst)
 	// Get bit CRBA in EAX aligned with bit CRBD
 	const int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
 	IREmitter::InstLoc eax = ibuild.EmitLoadCR(inst.CRBA >> 2);
+	eax = ibuild.EmitConvertFromFastCR(eax);
 	if (shiftA < 0)
 		eax = ibuild.EmitShl(eax, ibuild.EmitIntConst(-shiftA));
 	else if (shiftA > 0)
@@ -158,6 +162,7 @@ void JitILBase::crXX(UGeckoInstruction inst)
 	// Get bit CRBB in ECX aligned with bit CRBD
 	const int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
 	IREmitter::InstLoc ecx = ibuild.EmitLoadCR(inst.CRBB >> 2);
+	ecx = ibuild.EmitConvertFromFastCR(ecx);
 	if (shiftB < 0)
 		ecx = ibuild.EmitShl(ecx, ibuild.EmitIntConst(-shiftB));
 	else if (shiftB > 0)
@@ -211,7 +216,9 @@ void JitILBase::crXX(UGeckoInstruction inst)
 	// Store result bit in CRBD
 	eax = ibuild.EmitAnd(eax, ibuild.EmitIntConst(0x8 >> (inst.CRBD & 3)));
 	IREmitter::InstLoc bd = ibuild.EmitLoadCR(inst.CRBD >> 2);
+	bd = ibuild.EmitConvertFromFastCR(bd);
 	bd = ibuild.EmitAnd(bd, ibuild.EmitIntConst(~(0x8 >> (inst.CRBD & 3))));
 	bd = ibuild.EmitOr(bd, eax);
+	bd = ibuild.EmitConvertToFastCR(bd);
 	ibuild.EmitStoreCR(bd, inst.CRBD >> 2);
 }
