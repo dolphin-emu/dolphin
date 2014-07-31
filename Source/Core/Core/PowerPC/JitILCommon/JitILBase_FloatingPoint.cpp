@@ -86,7 +86,7 @@ void JitILBase::fcmpx(UGeckoInstruction inst)
 	int ordered = (inst.SUBOP10 == 32) ? 1 : 0;
 	res = ibuild.EmitFDCmpCR(lhs, rhs, ordered);
 	ibuild.EmitStoreFPRF(res);
-	ibuild.EmitStoreCR(res, inst.CRFD);
+	ibuild.EmitStoreCR(ibuild.EmitConvertToFastCR(res), inst.CRFD);
 }
 
 void JitILBase::fsign(UGeckoInstruction inst)

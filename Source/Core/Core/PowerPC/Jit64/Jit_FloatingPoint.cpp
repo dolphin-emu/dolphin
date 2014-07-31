@@ -237,26 +237,22 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 		pGreater = J_CC(CC_B);
 	}
 
-	// Equal
-	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2));
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
 	continue1 = J();
 
-	// NAN
 	SetJumpTarget(pNaN);
-	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x1));
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
 
 	if (a != b)
 	{
 		continue2 = J();
 
-		// Greater Than
 		SetJumpTarget(pGreater);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));
+		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_GT)));
 		continue3 = J();
 
-		// Less Than
 		SetJumpTarget(pLesser);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));
+		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_LT)));
 	}
 
 	SetJumpTarget(continue1);
@@ -266,6 +262,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 		SetJumpTarget(continue3);
 	}
 
+	MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
 	fpr.UnlockAll();
 }
 
