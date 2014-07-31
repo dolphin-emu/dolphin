@@ -158,6 +158,7 @@ RasterFont::RasterFont()
 
 	// generate shader
 	ProgramShaderCache::CompileShader(s_shader, s_vertexShaderSrc, s_fragmentShaderSrc);
+	s_shader.Bind();
 
 	// bound uniforms
 	glUniform2f(glGetUniformLocation(s_shader.glprogid,"charSize"), 1.0f / GLfloat(char_count), 1.0f);
