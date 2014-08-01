@@ -37,11 +37,11 @@ const char *scm_rev_str = "Dolphin "
 #endif
 
 #ifdef _WIN32
-const char *netplay_dolphin_ver = SCM_DESC_STR " W" NP_ARCH;
+const char *netplay_dolphin_ver = SCM_DESC_STR " Win";
 #elif __APPLE__
-const char *netplay_dolphin_ver = SCM_DESC_STR " M" NP_ARCH;
+const char *netplay_dolphin_ver = SCM_DESC_STR " Mac";
 #else
-const char *netplay_dolphin_ver = SCM_DESC_STR " L" NP_ARCH;
+const char *netplay_dolphin_ver = SCM_DESC_STR " Linux";
 #endif
 
 const char *scm_rev_git_str = SCM_REV_STR;
