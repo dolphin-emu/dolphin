@@ -73,8 +73,7 @@ private:
 	// Wii
 	wxCheckBox *EnableWideScreen;
 	// Video
-	wxCheckBox *PHackEnable, *UseBBox;
-	wxButton *PHSettings;
+	wxCheckBox *UseBBox;
 
 	wxArrayString arrayStringFor_EmuState;
 	wxChoice *EmuState;
@@ -171,8 +170,6 @@ private:
 		ID_MERGEBLOCKS,
 		ID_AUDIO_DSP_HLE,
 		ID_USE_BBOX,
-		ID_PHACKENABLE,
-		ID_PHSETTINGS,
 		ID_ENABLEPROGRESSIVESCAN,
 		ID_ENABLEWIDESCREEN,
 		ID_EDITCONFIG,
@@ -233,7 +230,6 @@ private:
 	void CheckPartitionIntegrity(wxCommandEvent& event);
 	void SetRefresh(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
-	void PHackButtonClicked(wxCommandEvent& event);
 
 	GameListItem *OpenGameListItem;
 
