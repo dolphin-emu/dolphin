@@ -82,11 +82,8 @@ CEXIIPL::CEXIIPL() :
 	m_uPosition(0),
 	m_uAddress(0),
 	m_uRWOffset(0),
-	m_count(0),
 	m_FontsLoaded(false)
 {
-	memset(m_szBuffer,0,sizeof(m_szBuffer));
-
 	// Determine region
 	m_bNTSC = SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC;
 
@@ -114,7 +111,6 @@ CEXIIPL::CEXIIPL() :
 	// Clear RTC
 	memset(m_RTC, 0, sizeof(m_RTC));
 
-
 	// We Overwrite language selection here since it's possible on the GC to change the language as you please
 	g_SRAM.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 
@@ -124,11 +120,6 @@ CEXIIPL::CEXIIPL() :
 
 CEXIIPL::~CEXIIPL()
 {
-	if (m_count > 0)
-	{
-		m_szBuffer[m_count] = 0x00;
-	}
-
 	FreeMemoryPages(m_pIPL, ROM_SIZE);
 	m_pIPL = nullptr;
 
@@ -142,8 +133,7 @@ void CEXIIPL::DoState(PointerWrap &p)
 	p.Do(m_uPosition);
 	p.Do(m_uAddress);
 	p.Do(m_uRWOffset);
-	p.Do(m_szBuffer);
-	p.Do(m_count);
+	p.Do(m_buffer);
 	p.Do(m_FontsLoaded);
 }
 
@@ -274,13 +264,12 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			if (IsWriteCommand())
 			{
 				if (_uByte != '\0')
-					m_szBuffer[m_count++] = _uByte;
-				if (m_count >= 255 || _uByte == '\r')
+					m_buffer += _uByte;
+
+				if (_uByte == '\r')
 				{
-					m_szBuffer[m_count] = '\0';
-					NOTICE_LOG(OSREPORT, "%s", m_szBuffer);
-					memset(m_szBuffer, 0, sizeof(m_szBuffer));
-					m_count = 0;
+					NOTICE_LOG(OSREPORT, "%s", m_buffer.c_str());
+					m_buffer.clear();
 				}
 			}
 			else
