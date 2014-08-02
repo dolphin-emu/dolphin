@@ -43,7 +43,8 @@ const u64 PPC_NAN_U64      = 0x7ff8000000000000ull;
 const double PPC_NAN       = *(double* const)&PPC_NAN_U64;
 
 // the 4 less-significand bits in FPSCR[FPRF]
-enum FPCC {
+enum FPCC
+{
 	FL = 8, // <
 	FG = 4, // >
 	FE = 2, // =
@@ -264,6 +265,7 @@ inline u64 ConvertToDouble(u32 _x)
 			frac <<= 1;
 			exp -= 1;
 		} while ((frac & 0x00800000) == 0);
+
 		return ((x & 0x80000000) << 32) | (exp << 52) | ((frac & 0x007fffff) << 29);
 	}
 	else // QNaN, SNaN or Zero
@@ -303,6 +305,7 @@ inline double ApproximateReciprocal(double val)
 		double valf;
 		s64 vali;
 	};
+
 	valf = val;
 	s64 mantissa = vali & ((1LL << 52) - 1);
 	s64 sign = vali & (1ULL << 63);
@@ -312,6 +315,7 @@ inline double ApproximateReciprocal(double val)
 	if (mantissa == 0 && exponent == 0)
 		return sign ? -std::numeric_limits<double>::infinity() :
 		               std::numeric_limits<double>::infinity();
+
 	// Special case NaN-ish numbers
 	if (exponent == (0x7FFLL << 52))
 	{
@@ -319,10 +323,12 @@ inline double ApproximateReciprocal(double val)
 			return sign ? -0.0 : 0.0;
 		return 0.0 + valf;
 	}
+
 	// Special case small inputs
 	if (exponent < (895LL << 52))
 		return sign ? -std::numeric_limits<float>::max() :
 		               std::numeric_limits<float>::max();
+
 	// Special case large inputs
 	if (exponent >= (1149LL << 52))
 		return sign ? -0.0f : 0.0f;
@@ -379,10 +385,13 @@ inline double ApproximateReciprocalSquareRoot(double val)
 		{
 			if (sign)
 				return std::numeric_limits<double>::quiet_NaN();
+
 			return 0.0;
 		}
+
 		return 0.0 + valf;
 	}
+
 	// Negative numbers return NaN
 	if (sign)
 		return std::numeric_limits<double>::quiet_NaN();
