@@ -142,13 +142,15 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
 
 	int c = 4;
-	if ((ldType == QUANTIZE_U8)  || (ldType == QUANTIZE_S8))  c = 0x1;
-	if ((ldType == QUANTIZE_U16) || (ldType == QUANTIZE_S16)) c = 0x2;
+	if (ldType == QUANTIZE_U8  || ldType == QUANTIZE_S8)
+		c = 0x1;
+	else if (ldType == QUANTIZE_U16 || ldType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.W == 0)
 	{
-		float ps0 = Helper_Dequantize(EA,   ldType, ldScale);
-		float ps1 = Helper_Dequantize(EA+c, ldType, ldScale);
+		float ps0 = Helper_Dequantize(EA,     ldType, ldScale);
+		float ps1 = Helper_Dequantize(EA + c, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -158,7 +160,7 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 	}
 	else
 	{
-		float ps0 = Helper_Dequantize(EA,   ldType, ldScale);
+		float ps0 = Helper_Dequantize(EA, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -176,13 +178,15 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 	const u32 EA = m_GPR[_inst.RA] + _inst.SIMM_12;
 
 	int c = 4;
-	if ((ldType == 4) || (ldType == 6)) c = 0x1;
-	if ((ldType == 5) || (ldType == 7)) c = 0x2;
+	if (ldType == QUANTIZE_U8 || ldType == QUANTIZE_S8)
+		c = 0x1;
+	else if (ldType == QUANTIZE_U16 || ldType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.W == 0)
 	{
-		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
-		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA,     ldType, ldScale);
+		float ps1 = Helper_Dequantize(EA + c, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -192,7 +196,7 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 	}
 	else
 	{
-		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -212,17 +216,19 @@ void Interpreter::psq_st(UGeckoInstruction _inst)
 		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
 
 	int c = 4;
-	if ((stType == 4) || (stType == 6)) c = 0x1;
-	if ((stType == 5) || (stType == 7)) c = 0x2;
+	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
+		c = 0x1;
+	else if (stType == QUANTIZE_U16 || stType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.W == 0)
 	{
-		Helper_Quantize( EA,   rPS0(_inst.RS), stType, stScale );
-		Helper_Quantize( EA+c, rPS1(_inst.RS), stType, stScale );
+		Helper_Quantize(EA,     rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA + c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize( EA,   rPS0(_inst.RS), stType, stScale );
+		Helper_Quantize(EA, rPS0(_inst.RS), stType, stScale);
 	}
 }
 
@@ -234,17 +240,19 @@ void Interpreter::psq_stu(UGeckoInstruction _inst)
 	const u32 EA = m_GPR[_inst.RA] + _inst.SIMM_12;
 
 	int c = 4;
-	if ((stType == 4) || (stType == 6)) c = 0x1;
-	if ((stType == 5) || (stType == 7)) c = 0x2;
+	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
+		c = 0x1;
+	else if (stType == QUANTIZE_U16 || stType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.W == 0)
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,     rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA + c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA, rPS0(_inst.RS), stType, stScale);
 	}
 	if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 	{
@@ -261,13 +269,15 @@ void Interpreter::psq_lx(UGeckoInstruction _inst)
 	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB];
 
 	int c = 4;
-	if ((ldType == 4) || (ldType == 6)) c = 0x1;
-	if ((ldType == 5) || (ldType == 7)) c = 0x2;
+	if (ldType == QUANTIZE_U8 || ldType == QUANTIZE_S8)
+		c = 0x1;
+	else if (ldType == QUANTIZE_U16 || ldType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.Wx == 0)
 	{
-		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
-		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA,     ldType, ldScale);
+		float ps1 = Helper_Dequantize(EA + c, ldType, ldScale);
 
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
@@ -279,7 +289,7 @@ void Interpreter::psq_lx(UGeckoInstruction _inst)
 	}
 	else
 	{
-		float ps0 = Helper_Dequantize( EA, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA, ldType, ldScale);
 		float ps1 = 1.0f;
 
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
@@ -300,17 +310,19 @@ void Interpreter::psq_stx(UGeckoInstruction _inst)
 	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB];
 
 	int c = 4;
-	if ((stType == 4) || (stType == 6)) c = 0x1;
-	if ((stType == 5) || (stType == 7)) c = 0x2;
+	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
+		c = 0x1;
+	else if (stType == QUANTIZE_U16 || stType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.Wx == 0)
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,     rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA + c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA, rPS0(_inst.RS), stType, stScale);
 	}
 }
 
@@ -322,13 +334,15 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 	const u32 EA = m_GPR[_inst.RA] + m_GPR[_inst.RB];
 
 	int c = 4;
-	if ((ldType == 4) || (ldType == 6)) c = 0x1;
-	if ((ldType == 5) || (ldType == 7)) c = 0x2;
+	if (ldType == QUANTIZE_U8 || ldType == QUANTIZE_S8)
+		c = 0x1;
+	else if (ldType == QUANTIZE_U16 || ldType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.Wx == 0)
 	{
-		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
-		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA,     ldType, ldScale);
+		float ps1 = Helper_Dequantize(EA + c, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -338,7 +352,7 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 	}
 	else
 	{
-		float ps0 = Helper_Dequantize( EA, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -357,17 +371,19 @@ void Interpreter::psq_stux(UGeckoInstruction _inst)
 	const u32 EA = m_GPR[_inst.RA] + m_GPR[_inst.RB];
 
 	int c = 4;
-	if ((stType == 4) || (stType == 6)) c = 0x1;
-	if ((stType == 5) || (stType == 7)) c = 0x2;
+	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
+		c = 0x1;
+	else if (stType == QUANTIZE_U16 || stType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.Wx == 0)
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,     rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA + c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA, rPS0(_inst.RS), stType, stScale);
 	}
 	if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 	{

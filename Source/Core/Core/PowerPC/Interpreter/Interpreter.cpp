@@ -18,7 +18,8 @@
 #include "Core/PowerPC/GDBStub.h"
 #endif
 
-namespace {
+namespace
+{
 	u32 last_pc;
 }
 
@@ -32,11 +33,11 @@ Interpreter::_interpreterInstruction Interpreter::m_opTable31[1024];
 Interpreter::_interpreterInstruction Interpreter::m_opTable59[32];
 Interpreter::_interpreterInstruction Interpreter::m_opTable63[1024];
 
-void Interpreter::RunTable4(UGeckoInstruction _inst)  {m_opTable4 [_inst.SUBOP10](_inst);}
-void Interpreter::RunTable19(UGeckoInstruction _inst) {m_opTable19[_inst.SUBOP10](_inst);}
-void Interpreter::RunTable31(UGeckoInstruction _inst) {m_opTable31[_inst.SUBOP10](_inst);}
-void Interpreter::RunTable59(UGeckoInstruction _inst) {m_opTable59[_inst.SUBOP5 ](_inst);}
-void Interpreter::RunTable63(UGeckoInstruction _inst) {m_opTable63[_inst.SUBOP10](_inst);}
+void Interpreter::RunTable4(UGeckoInstruction _inst)  { m_opTable4 [_inst.SUBOP10](_inst); }
+void Interpreter::RunTable19(UGeckoInstruction _inst) { m_opTable19[_inst.SUBOP10](_inst); }
+void Interpreter::RunTable31(UGeckoInstruction _inst) { m_opTable31[_inst.SUBOP10](_inst); }
+void Interpreter::RunTable59(UGeckoInstruction _inst) { m_opTable59[_inst.SUBOP5 ](_inst); }
+void Interpreter::RunTable63(UGeckoInstruction _inst) { m_opTable63[_inst.SUBOP10](_inst); }
 
 void Interpreter::Init()
 {
@@ -116,8 +117,8 @@ int Interpreter::SingleStepInner(void)
 	if (function == 0)
 	{
 		#ifdef USE_GDBSTUB
-		if (gdb_active() && gdb_bp_x(PC)) {
-
+		if (gdb_active() && gdb_bp_x(PC))
+		{
 			Host_UpdateDisasmDialog();
 
 			gdb_signal(SIGTRAP);
@@ -260,8 +261,10 @@ void Interpreter::Run()
 							{
 								// Write space
 								if (j > 0)
+								{
 									if (PCVec.at(j) != PCVec.at(j-1) + 4)
 										NOTICE_LOG(POWERPC, "");
+								}
 
 								NOTICE_LOG(POWERPC, "PC: 0x%08x", PCVec.at(j));
 							}

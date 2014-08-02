@@ -9,6 +9,7 @@ void Interpreter::bx(UGeckoInstruction _inst)
 {
 	if (_inst.LK)
 		LR = PC + 4;
+
 	if (_inst.AA)
 		NPC = SignExt26(_inst.LI << 2);
 	else
@@ -41,11 +42,13 @@ void Interpreter::bcx(UGeckoInstruction _inst)
 	{
 		if (_inst.LK)
 			LR = PC + 4;
+
 		if (_inst.AA)
 			NPC = SignExt16(_inst.BD << 2);
 		else
 			NPC = PC + SignExt16(_inst.BD << 2);
 	}
+
 	m_EndBlock = true;
 }
 
@@ -61,6 +64,7 @@ void Interpreter::bcctrx(UGeckoInstruction _inst)
 		if (_inst.LK_3)
 			LR = PC + 4;
 	}
+
 	m_EndBlock = true;
 }
 
@@ -78,6 +82,7 @@ void Interpreter::bclrx(UGeckoInstruction _inst)
 		if (_inst.LK_3)
 			LR = PC + 4;
 	}
+
 	m_EndBlock = true;
 }
 
