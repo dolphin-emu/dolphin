@@ -11,10 +11,10 @@
 namespace MMIO { class Mapping; }
 
 #define MEMCHECK_START \
-	FixupBranch memException; \
+	Gen::FixupBranch memException; \
 	if (jit->js.memcheck) \
-	{ TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI)); \
-	memException = J_CC(CC_NZ, true); }
+	{ TEST(32, Gen::M((void *)&PowerPC::ppcState.Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
+	memException = J_CC(Gen::CC_NZ, true); }
 
 #define MEMCHECK_END \
 	if (jit->js.memcheck) \

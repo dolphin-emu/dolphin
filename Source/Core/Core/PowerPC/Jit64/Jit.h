@@ -114,12 +114,12 @@ public:
 
 	// Generates a branch that will check if a given bit of a CR register part
 	// is set or not.
-	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
+	Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
 
-	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
+	void tri_op(int d, int a, int b, bool reversible, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 	typedef u32 (*Operation)(u32 a, u32 b);
-	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
-	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
+	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
+	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);

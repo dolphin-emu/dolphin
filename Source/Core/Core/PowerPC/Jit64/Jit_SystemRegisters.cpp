@@ -6,9 +6,10 @@
 
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
-
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+
+using namespace Gen;
 
 void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out)
 {

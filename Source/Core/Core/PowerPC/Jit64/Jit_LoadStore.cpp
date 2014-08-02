@@ -11,6 +11,8 @@
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
+using namespace Gen;
+
 void Jit64::lXXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
