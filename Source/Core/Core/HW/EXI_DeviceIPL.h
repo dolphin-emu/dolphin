@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/Sram.h"
 
@@ -58,8 +60,7 @@ private:
 	u32 m_uAddress;
 	u32 m_uRWOffset;
 
-	char m_szBuffer[256];
-	int m_count;
+	std::string m_buffer;
 	bool m_FontsLoaded;
 
 	virtual void TransferByte(u8 &_uByte) override;
