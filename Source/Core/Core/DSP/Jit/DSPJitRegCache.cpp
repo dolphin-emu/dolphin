@@ -580,7 +580,7 @@ X64Reg DSPJitRegCache::makeABICallSafe(X64Reg reg)
 		return reg;
 	}
 
-	int rbp_guest = xregs[RBP].guest_reg;
+	size_t rbp_guest = xregs[RBP].guest_reg;
 	xregs[RBP].guest_reg = DSP_REG_USED;
 	X64Reg safe = findSpillFreeXReg();
 	_assert_msg_(DSPLLE, safe != INVALID_REG, "could not find register");
@@ -597,7 +597,7 @@ X64Reg DSPJitRegCache::makeABICallSafe(X64Reg reg)
 	return safe;
 }
 
-void DSPJitRegCache::movToHostReg(int reg, X64Reg host_reg, bool load)
+void DSPJitRegCache::movToHostReg(size_t reg, X64Reg host_reg, bool load)
 {
 	_assert_msg_(DSPLLE, reg >= 0 && reg <= DSP_REG_MAX_MEM_BACKED,
 	             "bad register name %x", reg);
@@ -645,7 +645,7 @@ void DSPJitRegCache::movToHostReg(int reg, X64Reg host_reg, bool load)
 	}
 }
 
-void DSPJitRegCache::movToHostReg(int reg, bool load)
+void DSPJitRegCache::movToHostReg(size_t reg, bool load)
 {
 	_assert_msg_(DSPLLE, reg >= 0 && reg <= DSP_REG_MAX_MEM_BACKED,
 	             "bad register name %x", reg);
@@ -677,7 +677,7 @@ void DSPJitRegCache::movToHostReg(int reg, bool load)
 	movToHostReg(reg, tmp, load);
 }
 
-void DSPJitRegCache::rotateHostReg(int reg, int shift, bool emit)
+void DSPJitRegCache::rotateHostReg(size_t reg, int shift, bool emit)
 {
 	_assert_msg_(DSPLLE, reg >= 0 && reg <= DSP_REG_MAX_MEM_BACKED,
 	             "bad register name %x", reg);
@@ -725,7 +725,7 @@ void DSPJitRegCache::rotateHostReg(int reg, int shift, bool emit)
 	regs[reg].shift = shift;
 }
 
-void DSPJitRegCache::movToMemory(int reg)
+void DSPJitRegCache::movToMemory(size_t reg)
 {
 	_assert_msg_(DSPLLE, reg >= 0 && reg <= DSP_REG_MAX_MEM_BACKED,
 		     "bad register name %x", reg);
