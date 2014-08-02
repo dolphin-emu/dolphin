@@ -4,41 +4,17 @@ endif()
 
 set(LIBS	core
 			${LZO}
-			discio
-			bdisasm
-			inputcommon
-			common
-			audiocommon
-			z
-			sfml-network
 			${GTK2_LIBRARIES})
-
-if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND (NOT ANDROID))
-	set(LIBS ${LIBS} rt)
-endif()
 
 if(NOT ANDROID)
 	if(USE_X11)
-	  set(LIBS  ${LIBS} ${X11_LIBRARIES}
-              ${XINPUT2_LIBRARIES}
-	      ${XRANDR_LIBRARIES})
+		set(LIBS  ${LIBS} ${XRANDR_LIBRARIES})
 	endif()
 	if(USE_WAYLAND)
-	  set(LIBS  ${LIBS} ${WAYLAND_LIBRARIES}
-		${XKBCOMMON_LIBRARIES})
+		set(LIBS  ${LIBS} ${WAYLAND_LIBRARIES} ${XKBCOMMON_LIBRARIES})
 	endif()
 
 	link_directories(${CMAKE_PREFIX_PATH}/lib)
-
-	if(SDL2_FOUND)
-		# Using shared SDL2
-		set(LIBS	${LIBS} ${SDL2_LIBRARY})
-	else(SDL2_FOUND)
-		if(SDL_FOUND)
-			# Using shared SDL
-			set(LIBS	${LIBS} ${SDL_LIBRARY})
-		endif()
-	endif()
 else()
 	set(LIBS ${LIBS} png iconv)
 endif()
@@ -135,7 +111,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		${COREAUDIO_LIBRARY}
 		${COREFUND_LIBRARY}
 		${CORESERV_LIBRARY}
-		${IOB_LIBRARY}
 		${IOK_LIBRARY}
 		${FORCEFEEDBACK}
 		)
