@@ -305,7 +305,7 @@ void FPURegCache::LoadRegister(size_t preg, X64Reg newLoc)
 {
 	if (!regs[preg].location.IsImm() && (regs[preg].location.offset & 0xF))
 	{
-		PanicAlert("WARNING - misaligned fp register location %i", preg);
+		PanicAlert("WARNING - misaligned fp register location %" PRIx64, preg);
 	}
 	emit->MOVAPD(newLoc, regs[preg].location);
 }
@@ -320,7 +320,7 @@ void RegCache::Flush(FlushMode mode)
 	for (size_t i = 0; i < xregs.size(); i++)
 	{
 		if (xregs[i].locked)
-			PanicAlert("Someone forgot to unlock X64 reg %zu.", i);
+			PanicAlert("Someone forgot to unlock X64 reg %" PRIx64, i);
 	}
 
 	for (size_t i = 0; i < regs.size(); i++)
