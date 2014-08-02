@@ -1026,9 +1026,7 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Video", "UseBBox", UseBBox);
 
 	IniFile::Section* default_video = GameIniDefault.GetOrCreateSection("Video");
-	IniFile::Section* local_video = GameIniLocal.GetOrCreateSection("Video");
 
-	// First set values from default gameini, then apply values from local gameini
 	int iTemp;
 	default_video->Get("ProjectionHack", &iTemp);
 	default_video->Get("PH_SZNear", &PHack_Data.PHackSZNear);
@@ -1045,7 +1043,6 @@ void CISOProperties::LoadGameConfig()
 	default_video->Get("PH_ZFar", &PHack_Data.PHZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_ZFar", &sTemp))
 		PHack_Data.PHZFar = sTemp;
-
 
 	IniFile::Section* default_emustate = GameIniDefault.GetOrCreateSection("EmuState");
 	default_emustate->Get("EmulationStateId", &iTemp, 0/*Not Set*/);
