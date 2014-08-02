@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <cinttypes>
 
 #include "Common/x64Emitter.h"
 
@@ -85,7 +86,7 @@ public:
 		if (IsBound(preg))
 			return regs[preg].location.GetSimpleReg();
 
-		PanicAlert("Not so simple - %i", preg);
+		PanicAlert("Not so simple - %" PRIx64, preg);
 		return Gen::INVALID_REG;
 	}
 	virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;
