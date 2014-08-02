@@ -5,7 +5,7 @@
 #pragma once
 
 #include <string>
-#include "DolphinWX/GLInterface/InterfaceBase.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 
 class cInterfaceWGL : public cInterfaceBase
 {

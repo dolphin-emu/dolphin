@@ -46,6 +46,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/Main.h"
+#include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/JitWindow.h"
@@ -698,4 +699,12 @@ bool Host_RendererHasFocus()
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
 	CFrame::ConnectWiimote(wm_idx, connect);
+}
+
+void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
+                          const std::string& config_name)
+{
+	VideoConfigDiag diag((wxWindow*)parent, WxStrToStr(backend_name),
+	                     WxStrToStr(config_name));
+	diag.ShowModal();
 }

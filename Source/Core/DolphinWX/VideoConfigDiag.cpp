@@ -31,6 +31,7 @@
 #include "DolphinWX/Main.h"
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
+#include "VideoBackends/OGL/main.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 

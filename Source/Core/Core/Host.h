@@ -42,6 +42,8 @@ void Host_UpdateLogDisplay();
 void Host_UpdateMainFrame();
 void Host_UpdateStatusBar(const std::string& text, int Filed = 0);
 void Host_UpdateTitle(const std::string& title);
+void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
+                          const std::string& config_name);
 
 // TODO (neobrain): Remove these from host!
 void* Host_GetInstance();

@@ -127,6 +127,8 @@ void Host_SysMessage(const char *fmt, ...)
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
+void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
+
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
 std::vector<std::string> m_volume_names;

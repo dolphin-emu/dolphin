@@ -5,10 +5,6 @@
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#if USE_EGL
-#include "DolphinWX/GLInterface/GLInterface.h"
-#endif
-
 #ifdef CIFACE_USE_XINPUT
 	#include "InputCommon/ControllerInterface/XInput/XInput.h"
 #endif
@@ -57,16 +53,10 @@ void ControllerInterface::Initialize()
 	ciface::XInput::Init(m_devices);
 #endif
 #ifdef CIFACE_USE_XLIB
-#if USE_EGL
-if (GLWin.platform == EGL_PLATFORM_X11) {
-#endif
 	ciface::Xlib::Init(m_devices, m_hwnd);
 	#ifdef CIFACE_USE_X11_XINPUT2
 		ciface::XInput2::Init(m_devices, m_hwnd);
 	#endif
-#if USE_EGL
-}
-#endif
 #endif
 #ifdef CIFACE_USE_OSX
 	ciface::OSX::Init(m_devices, m_hwnd);

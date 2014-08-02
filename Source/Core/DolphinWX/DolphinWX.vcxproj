@@ -74,6 +74,7 @@
     <ClCompile Include="FrameTools.cpp" />
     <ClCompile Include="GameListCtrl.cpp" />
     <ClCompile Include="GeckoCodeDiag.cpp" />
+    <ClCompile Include="GLInterface\GLInterface.cpp" />
     <ClCompile Include="GLInterface\WGL.cpp" />
     <ClCompile Include="HotkeyDlg.cpp" />
     <ClCompile Include="InputConfigDiag.cpp" />
@@ -125,7 +126,6 @@
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />
     <ClInclude Include="GeckoCodeDiag.h" />
-    <ClInclude Include="GLInterface\InterfaceBase.h" />
     <ClInclude Include="GLInterface\WGL.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="HotkeyDlg.h" />

@@ -17,6 +17,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
+#include "Core/Host.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -134,6 +135,8 @@ void Host_SysMessage(const char *fmt, ...)
 }
 
 void Host_SetWiiMoteConnectionState(int _State) {}
+
+void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 #if HAVE_X11
 void X11_MainLoop()
