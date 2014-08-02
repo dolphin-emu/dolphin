@@ -49,6 +49,7 @@ Make AA apply instantly during gameplay if possible
 #include "Core/Host.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoBackends/OGL/PostProcessing.h"
@@ -81,11 +82,6 @@ Make AA apply instantly during gameplay if possible
 #ifdef _WIN32
 #include "Common/IniFile.h"
 #endif
-
-#if defined(HAVE_WX) && HAVE_WX
-#include "DolphinWX/VideoConfigDiag.h"
-#include "DolphinWX/Debugger/DebuggerPanel.h"
-#endif // HAVE_WX
 
 namespace OGL
 {
@@ -160,11 +156,8 @@ static void InitBackendInfo()
 
 void VideoBackend::ShowConfig(void *_hParent)
 {
-#if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
-	VideoConfigDiag diag((wxWindow*)_hParent, "OpenGL", "gfx_opengl");
-	diag.ShowModal();
-#endif
+	Host_ShowVideoConfig(_hParent, "OpenGL", "gfx_opengl");
 }
 
 bool VideoBackend::Initialize(void *&window_handle)

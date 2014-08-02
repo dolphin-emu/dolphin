@@ -123,6 +123,7 @@ else()
 
 	endif()
 endif()
+set(SRCS ${SRCS} GLInterface/GLInterface.cpp)
 
 if(WIN32)
 	set(SRCS ${SRCS} stdafx.cpp)

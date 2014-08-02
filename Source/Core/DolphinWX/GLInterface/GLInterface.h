@@ -108,5 +108,4 @@ typedef struct {
 	unsigned int width, height;
 } GLWindow;
 
-extern cInterfaceBase *GLInterface;
 extern GLWindow GLWin;

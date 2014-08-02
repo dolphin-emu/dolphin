@@ -12,9 +12,11 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/Clipper.h"
@@ -65,10 +67,7 @@ std::string VideoSoftware::GetName() const
 
 void VideoSoftware::ShowConfig(void *_hParent)
 {
-#if defined(HAVE_WX) && HAVE_WX
-	VideoConfigDialog diag((wxWindow*)_hParent, "Software", "gfx_software");
-	diag.ShowModal();
-#endif
+	Host_ShowVideoConfig(_hParent, "Software", "gfx_software");
 }
 
 bool VideoSoftware::Initialize(void *&window_handle)

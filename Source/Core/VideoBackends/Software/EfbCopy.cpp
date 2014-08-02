@@ -4,6 +4,7 @@
 
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbCopy.h"

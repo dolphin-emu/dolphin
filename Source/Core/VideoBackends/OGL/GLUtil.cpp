@@ -8,13 +8,13 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/VideoBackend.h"
 
 #include "VideoCommon/VideoConfig.h"
 
-GLWindow GLWin;
 cInterfaceBase *GLInterface;
 
 namespace OGL
@@ -35,15 +35,7 @@ void VideoBackend::UpdateFPSDisplay(const std::string& text)
 }
 void InitInterface()
 {
-	#if defined(USE_EGL) && USE_EGL
-		GLInterface = new cInterfaceEGL;
-	#elif defined(__APPLE__)
-		GLInterface = new cInterfaceAGL;
-	#elif defined(_WIN32)
-		GLInterface = new cInterfaceWGL;
-	#elif defined(HAVE_X11) && HAVE_X11
-		GLInterface = new cInterfaceGLX;
-	#endif
+	GLInterface = HostGL_CreateGLInterface();
 }
 
 GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShader)
