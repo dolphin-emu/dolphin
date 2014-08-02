@@ -599,7 +599,7 @@ X64Reg DSPJitRegCache::makeABICallSafe(X64Reg reg)
 
 void DSPJitRegCache::movToHostReg(size_t reg, X64Reg host_reg, bool load)
 {
-	_assert_msg_(DSPLLE, reg >= 0 && reg <= DSP_REG_MAX_MEM_BACKED,
+	_assert_msg_(DSPLLE, reg <= DSP_REG_MAX_MEM_BACKED,
 	             "bad register name %x", reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
 	             "register %x is proxy for %x", reg, regs[reg].parentReg);
@@ -647,7 +647,7 @@ void DSPJitRegCache::movToHostReg(size_t reg, X64Reg host_reg, bool load)
 
 void DSPJitRegCache::movToHostReg(size_t reg, bool load)
 {
-	_assert_msg_(DSPLLE, reg >= 0 && reg <= DSP_REG_MAX_MEM_BACKED,
+	_assert_msg_(DSPLLE, reg <= DSP_REG_MAX_MEM_BACKED,
 	             "bad register name %x", reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
 	             "register %x is proxy for %x", reg, regs[reg].parentReg);
@@ -679,7 +679,7 @@ void DSPJitRegCache::movToHostReg(size_t reg, bool load)
 
 void DSPJitRegCache::rotateHostReg(size_t reg, int shift, bool emit)
 {
-	_assert_msg_(DSPLLE, reg >= 0 && reg <= DSP_REG_MAX_MEM_BACKED,
+	_assert_msg_(DSPLLE, reg <= DSP_REG_MAX_MEM_BACKED,
 	             "bad register name %x", reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
 	             "register %x is proxy for %x", reg, regs[reg].parentReg);
@@ -727,7 +727,7 @@ void DSPJitRegCache::rotateHostReg(size_t reg, int shift, bool emit)
 
 void DSPJitRegCache::movToMemory(size_t reg)
 {
-	_assert_msg_(DSPLLE, reg >= 0 && reg <= DSP_REG_MAX_MEM_BACKED,
+	_assert_msg_(DSPLLE, reg <= DSP_REG_MAX_MEM_BACKED,
 		     "bad register name %x", reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
 		     "register %x is proxy for %x", reg, regs[reg].parentReg);
