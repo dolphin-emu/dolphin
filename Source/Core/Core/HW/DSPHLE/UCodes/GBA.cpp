@@ -18,7 +18,7 @@ GBAUCode::~GBAUCode()
 	m_mail_handler.Clear();
 }
 
-void GBAUCode::Update(int cycles)
+void GBAUCode::Update()
 {
 	// check if we have to send something
 	if (!m_mail_handler.IsEmpty())

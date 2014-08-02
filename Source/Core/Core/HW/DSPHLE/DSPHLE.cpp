@@ -66,10 +66,8 @@ void DSPHLE::Shutdown()
 
 void DSPHLE::DSP_Update(int cycles)
 {
-	// This is called OFTEN - better not do anything expensive!
-	// ~1/6th as many cycles as the period PPC-side.
 	if (m_pUCode != nullptr)
-		m_pUCode->Update(cycles / 6);
+		m_pUCode->Update();
 }
 
 u32 DSPHLE::DSP_UpdateRate()
