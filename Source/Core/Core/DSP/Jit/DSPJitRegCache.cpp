@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
+
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/Jit/DSPJitRegCache.h"
@@ -288,7 +290,7 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 	{
 		_assert_msg_(DSPLLE,
 			     xregs[i].guest_reg == cache.xregs[i].guest_reg,
-			     "cache and current xreg guest_reg mismatch for %zi", i);
+			     "cache and current xreg guest_reg mismatch for %" PRIx64, i);
 	}
 
 	for (i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
@@ -322,7 +324,7 @@ void DSPJitRegCache::flushMemBackedRegs()
 	for (unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		_assert_msg_(DSPLLE, !regs[i].used,
-			     "register %x still in use", i);
+			     "register %u still in use", i);
 
 		if (regs[i].used)
 		{
@@ -357,7 +359,7 @@ void DSPJitRegCache::flushRegs()
 	{
 		_assert_msg_(DSPLLE,
 		             !regs[i].loc.IsSimpleReg(),
-		             "register %x is still a simple reg", i);
+		             "register %u is still a simple reg", i);
 	}
 
 	_assert_msg_(DSPLLE,
@@ -452,7 +454,7 @@ void DSPJitRegCache::saveRegs()
 	{
 		_assert_msg_(DSPLLE,
 		             !regs[i].loc.IsSimpleReg(),
-		             "register %x is still a simple reg", i);
+		             "register %u is still a simple reg", i);
 	}
 
 #if _M_X86_64
@@ -508,7 +510,7 @@ void DSPJitRegCache::pushRegs()
 	{
 		_assert_msg_(DSPLLE,
 		             !regs[i].loc.IsSimpleReg(),
-		             "register %x is still a simple reg", i);
+		             "register %u is still a simple reg", i);
 	}
 
 	for (unsigned int i = 0; i < NUMXREGS; i++)
@@ -516,7 +518,7 @@ void DSPJitRegCache::pushRegs()
 		_assert_msg_(DSPLLE,
 		             xregs[i].guest_reg == DSP_REG_NONE ||
 		             xregs[i].guest_reg == DSP_REG_STATIC,
-		             "register %x is still used", i);
+		             "register %u is still used", i);
 	}
 
 #if _M_X86_64
@@ -600,11 +602,11 @@ X64Reg DSPJitRegCache::makeABICallSafe(X64Reg reg)
 void DSPJitRegCache::movToHostReg(size_t reg, X64Reg host_reg, bool load)
 {
 	_assert_msg_(DSPLLE, reg <= DSP_REG_MAX_MEM_BACKED,
-	             "bad register name %x", reg);
+	             "bad register name %" PRIx64, reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
-	             "register %x is proxy for %x", reg, regs[reg].parentReg);
+	             "register %" PRIx64 " is proxy for %d", reg, regs[reg].parentReg);
 	_assert_msg_(DSPLLE, !regs[reg].used,
-	             "moving to host reg in use guest reg %x!", reg);
+	             "moving to host reg in use guest reg %" PRIx64, reg);
 	X64Reg old_reg = regs[reg].loc.GetSimpleReg();
 	if (old_reg == host_reg)
 	{
@@ -648,11 +650,11 @@ void DSPJitRegCache::movToHostReg(size_t reg, X64Reg host_reg, bool load)
 void DSPJitRegCache::movToHostReg(size_t reg, bool load)
 {
 	_assert_msg_(DSPLLE, reg <= DSP_REG_MAX_MEM_BACKED,
-	             "bad register name %x", reg);
+	             "bad register name %" PRIx64, reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
-	             "register %x is proxy for %x", reg, regs[reg].parentReg);
+	             "register %" PRIx64 " is proxy for %d", reg, regs[reg].parentReg);
 	_assert_msg_(DSPLLE, !regs[reg].used,
-	             "moving to host reg in use guest reg %x!", reg);
+	             "moving to host reg in use guest reg %" PRIx64, reg);
 
 	if (regs[reg].loc.IsSimpleReg())
 	{
@@ -680,13 +682,13 @@ void DSPJitRegCache::movToHostReg(size_t reg, bool load)
 void DSPJitRegCache::rotateHostReg(size_t reg, int shift, bool emit)
 {
 	_assert_msg_(DSPLLE, reg <= DSP_REG_MAX_MEM_BACKED,
-	             "bad register name %x", reg);
+	             "bad register name %" PRIx64, reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
-	             "register %x is proxy for %x", reg, regs[reg].parentReg);
+	             "register %" PRIx64 " is proxy for %d", reg, regs[reg].parentReg);
 	_assert_msg_(DSPLLE, regs[reg].loc.IsSimpleReg(),
-	             "register %x is not a simple reg", reg);
+	             "register %" PRIx64 " is not a simple reg", reg);
 	_assert_msg_(DSPLLE, !regs[reg].used,
-	             "rotating in use guest reg %x!", reg);
+	             "rotating in use guest reg %" PRIx64, reg);
 
 	if (shift > regs[reg].shift && emit)
 	{
@@ -728,11 +730,11 @@ void DSPJitRegCache::rotateHostReg(size_t reg, int shift, bool emit)
 void DSPJitRegCache::movToMemory(size_t reg)
 {
 	_assert_msg_(DSPLLE, reg <= DSP_REG_MAX_MEM_BACKED,
-		     "bad register name %x", reg);
+		     "bad register name %" PRIx64, reg);
 	_assert_msg_(DSPLLE, regs[reg].parentReg == DSP_REG_NONE,
-		     "register %x is proxy for %x", reg, regs[reg].parentReg);
+		     "register %" PRIx64 " is proxy for %d", reg, regs[reg].parentReg);
 	_assert_msg_(DSPLLE, !regs[reg].used,
-		     "moving to memory in use guest reg %x!", reg);
+		     "moving to memory in use guest reg %" PRIx64, reg);
 
 	if (regs[reg].used)
 	{
@@ -816,7 +818,7 @@ void DSPJitRegCache::getReg(int reg, OpArg &oparg, bool load)
 	}
 
 	_assert_msg_(DSPLLE, !regs[real_reg].used,
-	             "register %x already in use", real_reg);
+	             "register %d already in use", real_reg);
 
 	if (regs[real_reg].used)
 	{
@@ -828,7 +830,7 @@ void DSPJitRegCache::getReg(int reg, OpArg &oparg, bool load)
 
 	// TODO: actually handle INVALID_REG
 	_assert_msg_(DSPLLE, regs[real_reg].loc.IsSimpleReg(),
-	             "did not get host reg for %x", reg);
+	             "did not get host reg for %d", reg);
 
 	rotateHostReg(real_reg, shift, load);
 	oparg = regs[real_reg].loc;
