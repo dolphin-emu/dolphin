@@ -161,7 +161,7 @@ bool PlayInput(const std::string& filename);
 void LoadInput(const std::string& filename);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
+bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf);
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap &p);
@@ -169,7 +169,7 @@ void CheckMD5();
 void GetMD5();
 void Shutdown();
 void CheckPadStatus(GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
+void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf);
 
 std::string GetInputDisplay();
 

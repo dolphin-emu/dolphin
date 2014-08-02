@@ -622,7 +622,7 @@ void Wiimote::Update()
 
 	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
 	s8 rptf_size = rptf.size;
-	if (Movie::IsPlayingInput() && Movie::PlayWiimote(m_index, data, rptf, m_reg_ir.mode))
+	if (Movie::IsPlayingInput() && Movie::PlayWiimote(m_index, data, rptf))
 	{
 		if (rptf.core)
 			m_status.buttons = *(wm_core*)(data + rptf.core);
@@ -734,7 +734,7 @@ void Wiimote::Update()
 	}
 	if (!Movie::IsPlayingInput())
 	{
-		Movie::CheckWiimoteStatus(m_index, data, rptf, m_reg_ir.mode);
+		Movie::CheckWiimoteStatus(m_index, data, rptf);
 	}
 
 	// don't send a data report if auto reporting is off
