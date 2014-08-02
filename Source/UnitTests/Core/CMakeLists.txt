@@ -1,1 +1,1 @@
-add_dolphin_test(MMIOTest MMIOTest.cpp core)
+add_dolphin_test(MMIOTest MMIOTest.cpp)
