@@ -125,7 +125,7 @@ void RegCache::FlushR(X64Reg reg)
 
 int RegCache::SanityCheck() const
 {
-	for (int i = 0; i < (int)regs.size(); i++)
+	for (size_t i = 0; i < regs.size(); i++)
 	{
 		if (regs[i].away)
 		{
