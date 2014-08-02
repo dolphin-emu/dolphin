@@ -1101,14 +1101,14 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			switch (event.GetKeyCode())
 			{
-			// Make everything 20% smaller (and closer)
+			// Make everything 10% smaller (and closer)
 			case '-':
-				g_Config.fUnitsPerMetre *= 1.20f;
+				g_Config.fUnitsPerMetre *= 1.10f;
 				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 				break;
-			// Make everything 20% bigger (and further)
+			// Make everything 10% bigger (and further)
 			case '=':
-				g_Config.fUnitsPerMetre /= 1.20f;
+				g_Config.fUnitsPerMetre /= 1.10f;
 				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 				break;
 				// Make everything 20% smaller (and closer)
