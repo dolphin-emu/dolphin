@@ -44,7 +44,7 @@ class DSPJitRegCache
 private:
 	struct X64CachedReg
 	{
-		int guest_reg; //including DSPJitRegSpecial
+		size_t guest_reg; //including DSPJitRegSpecial
 		bool pushed;
 	};
 
@@ -85,10 +85,10 @@ private:
 	Gen::X64Reg findSpillFreeXReg();
 	void spillXReg(Gen::X64Reg reg);
 
-	void movToHostReg(int reg, Gen::X64Reg host_reg, bool load);
-	void movToHostReg(int reg, bool load);
-	void rotateHostReg(int reg, int shift, bool emit);
-	void movToMemory(int reg);
+	void movToHostReg(size_t reg, Gen::X64Reg host_reg, bool load);
+	void movToHostReg(size_t reg, bool load);
+	void rotateHostReg(size_t reg, int shift, bool emit);
+	void movToMemory(size_t reg);
 	void flushMemBackedRegs();
 
 public:
