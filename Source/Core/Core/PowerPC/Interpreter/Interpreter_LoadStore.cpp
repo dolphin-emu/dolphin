@@ -788,9 +788,12 @@ void Interpreter::stwcxd(UGeckoInstruction _inst)
 {
 	// Stores Word Conditional indeXed
 	u32 uAddress;
-	if (g_bReserve) {
+	if (g_bReserve)
+	{
 		uAddress = Helper_Get_EA_X(_inst);
-		if (uAddress == g_reserveAddr) {
+
+		if (uAddress == g_reserveAddr)
+		{
 			Memory::Write_U32(m_GPR[_inst.RS], uAddress);
 			if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 			{
