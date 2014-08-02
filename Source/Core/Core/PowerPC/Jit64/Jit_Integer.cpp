@@ -423,7 +423,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		{
 			js.downcountAmount++;
 			int test_bit = 8 >> (js.next_inst.BI & 3);
-			bool condition = js.next_inst.BO & BO_BRANCH_IF_TRUE;
+			bool condition = !!(js.next_inst.BO & BO_BRANCH_IF_TRUE);
 
 			// Test swapping (in the future, will be used to inline across branches the right way)
 			// if (rand() & 1)
