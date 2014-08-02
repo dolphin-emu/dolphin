@@ -10,8 +10,6 @@
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-using namespace MathUtil;
-
 // warning! very slow! This setting fixes NAN
 //#define VERY_ACCURATE_FP
 
@@ -80,7 +78,7 @@ inline double ForceSingle(double _x)
 	float x = (float) _x;
 	if (!cpu_info.bFlushToZero && FPSCR.NI)
 	{
-		x = FlushToZero(x);
+		x = MathUtil::FlushToZero(x);
 	}
 	// ...and back to double:
 	return x;
@@ -90,7 +88,7 @@ inline double ForceDouble(double d)
 {
 	if (!cpu_info.bFlushToZero && FPSCR.NI)
 	{
-		d = FlushToZero(d);
+		d = MathUtil::FlushToZero(d);
 	}
 	return d;
 }
@@ -206,13 +204,13 @@ inline double NI_msub(const double a, const double b, const double c)
 inline u32 ConvertToSingle(u64 x)
 {
 	u32 exp = (x >> 52) & 0x7ff;
-	if (exp > 896 || (x & ~DOUBLE_SIGN) == 0)
+	if (exp > 896 || (x & ~MathUtil::DOUBLE_SIGN) == 0)
 	{
 		return ((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff);
 	}
 	else if (exp >= 874)
 	{
-		u32 t = (u32)(0x80000000 | ((x & DOUBLE_FRAC) >> 21));
+		u32 t = (u32)(0x80000000 | ((x & MathUtil::DOUBLE_FRAC) >> 21));
 		t = t >> (905 - exp);
 		t |= (x >> 32) & 0x80000000;
 		return t;
@@ -229,7 +227,7 @@ inline u32 ConvertToSingle(u64 x)
 inline u32 ConvertToSingleFTZ(u64 x)
 {
 	u32 exp = (x >> 52) & 0x7ff;
-	if (exp > 896 || (x & ~DOUBLE_SIGN) == 0)
+	if (exp > 896 || (x & ~MathUtil::DOUBLE_SIGN) == 0)
 	{
 		return ((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff);
 	}

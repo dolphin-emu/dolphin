@@ -12,6 +12,8 @@
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
+using namespace Gen;
+
 // The big problem is likely instructions that set the quantizers in the same block.
 // We will have to break block after quantizers are written to.
 void Jit64::psq_st(UGeckoInstruction inst)
