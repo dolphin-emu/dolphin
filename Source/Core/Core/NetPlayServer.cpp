@@ -535,7 +535,7 @@ void NetPlayServer::SetNetSettings(const NetSettings &settings)
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::StartGame(const std::string &path)
+bool NetPlayServer::StartGame()
 {
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 	m_current_game = Common::Timer::GetTimeMs();
