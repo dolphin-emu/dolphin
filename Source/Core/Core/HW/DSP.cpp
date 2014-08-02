@@ -403,10 +403,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				g_audioDMA.current_source_address = g_audioDMA.SourceAddress;
 				g_audioDMA.remaining_blocks_count = g_audioDMA.AudioDMAControl.NumBlocks;
 
-				if (g_audioDMA.AudioDMAControl.NumBlocks == 0)
-				{
-					g_audioDMA.AudioDMAControl.Enable = 0;
-				}
+				// We make the samples ready as soon as possible
+				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
+				AudioCommon::SendAIBuffer((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8);
 
 				GenerateDSPInterrupt(DSP::INT_AID);
 			}
@@ -491,9 +490,6 @@ void UpdateAudioDMA()
 		// Read audio at g_audioDMA.current_source_address in RAM and push onto an
 		// external audio fifo in the emulator, to be mixed with the disc
 		// streaming output.
-		void *address = Memory::GetPointer(g_audioDMA.current_source_address);
-		AudioCommon::SendAIBuffer((short*)address, 8);
-
 		g_audioDMA.remaining_blocks_count--;
 		g_audioDMA.current_source_address += 32;
 
@@ -506,7 +502,12 @@ void UpdateAudioDMA()
 			{
 				g_audioDMA.AudioDMAControl.Enable = 0;
 			}
-
+			else
+			{
+				// We make the samples ready as soon as possible
+				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
+				AudioCommon::SendAIBuffer((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8);
+			}
 			GenerateDSPInterrupt(DSP::INT_AID);
 		}
 	}
