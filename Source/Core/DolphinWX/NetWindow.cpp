@@ -469,7 +469,7 @@ void NetPlayDiag::OnStart(wxCommandEvent&)
 	NetSettings settings;
 	GetNetSettings(settings);
 	netplay_server->SetNetSettings(settings);
-	netplay_server->StartGame(FindGame());
+	netplay_server->StartGame();
 }
 
 void NetPlayDiag::BootGame(const std::string& filename)
