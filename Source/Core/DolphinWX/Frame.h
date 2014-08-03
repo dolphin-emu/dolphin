@@ -60,6 +60,8 @@ class CRenderFrame : public wxFrame
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
+		bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) override;
+
 	private:
 		void OnDropFiles(wxDropFilesEvent& event);
 		static bool IsValidSavestateDropped(const std::string& filepath);
