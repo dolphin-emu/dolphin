@@ -148,14 +148,11 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 	#define fstat64 _fstat64
 	#define fileno _fileno
 
-	#if _M_X86_32
-		#define Crash() {__asm int 3}
-	#else
-extern "C" {
+extern "C"
+{
 	__declspec(dllimport) void __stdcall DebugBreak(void);
 }
-		#define Crash() {DebugBreak();}
-	#endif // M_IX86
+	#define Crash() {DebugBreak();}
 #endif // WIN32 ndef
 
 // Generic function to get last error message.
