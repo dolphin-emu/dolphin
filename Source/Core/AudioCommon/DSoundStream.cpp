@@ -3,9 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
-#include <functional>
-
-#include <windows.h>
+#include <Windows.h>
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/DSoundStream.h"
@@ -123,7 +121,7 @@ bool DSound::Start()
 	dsBuffer->Lock(0, bufferSize, (void* *)&p1, &num1, 0, 0, DSBLOCK_ENTIREBUFFER);
 	memset(p1, 0, num1);
 	dsBuffer->Unlock(p1, num1, 0, 0);
-	thread = std::thread(std::mem_fn(&DSound::SoundLoop), this);
+	thread = std::thread(&DSound::SoundLoop, this);
 	return true;
 }
 
