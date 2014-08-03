@@ -27,8 +27,9 @@ eXternal Frame Buffer is always disabled regardless of what you choose.
 Turning Free-Look on in the Advanced tab allows you to walk around with Shift+WASD.
 The OnScreen Display or debug information doesn't work in VR mode, so don't bother.
 
-Choose a game and click the Play button to start. Then put on the Rift.
-Keep the mouse over the Rift's window, and click to focus input.
+Choose a game and click the Play button to start. Acknowledge the warning, then put 
+on the Rift. Keep the mouse over the Rift's window, and click to focus input.
+Shift+R recenters the view.
 
 Per-game Settings:
 Virtual Reality needs to be the correct scale, and the 2D elements need to be at
@@ -37,15 +38,15 @@ You can edit the per-game settings by right clicking a game in the list and
 choosing "properties". It doesn't take effect until you restart the game. 
 You can also adjust the settings with the keyboard during the game.
 
-Free-Look Keys:
+## Free-Look Keys:
 (Free-Look must be turned on. These keys often conflict with game controls,
 so you may need to map your game controls to other keys or gamepad.)
+Shift+R reset free-look position, also resets Rift position.
 Shift+WASD to move around. If movement is too slow, the scale is too large.
 Shift+Q move down, Shift+E move up.
-Shift+R reset free-look position, also resets Rift position.
 Shift+9 or Shift+0 halve or double speed. But fix the scale first instead.
 
-VR 3D Settings Keys:
+## VR 3D Settings Keys:
 (Only affects scenes with some 3D perspective elements.)
 Shift+R to recenter Rift.
 Shift+- and Shift+= to adjust the scale to make the world smaller or bigger!
@@ -65,7 +66,7 @@ what is happening in the game. Tilting tha camera up 10 degrees is usually a
 good compromise.)
 Esc to stop emulation and give you the option to save VR settings.
 
-VR 2D Settings:
+## VR 2D Settings:
 (Only affects scenes which have no perspective projection and only 2D elements.)
 Shift+I and Shift+K to tilt the 2D camera up or down by 5 degrees.
 (This is good for top-down or 2.5D menus, intros, or games, for realism.)
@@ -85,11 +86,11 @@ with the real floor. Move the screen up for top-down games so you can see better
 A thicker screen can also help fix Z-Fighting issues.)
 Esc to stop emulation and give you the option to save VR settings.
 
-VR debugging keys:
+## VR debugging keys:
 (Don't use these!)
 Shift+B and Shift+N to change selected debug layer.
 
-Other useful keys:
+## Other useful keys:
 Alt+F5 to disconnect/reconnect virtual Wii remote.
 Shift+F1 to Shift+F8 to save game with savestate 1 to 8.
 (So you can exit and save and edit your settings.)
@@ -100,7 +101,7 @@ Take off the Rift after pressing this to view the dialog box.)
 See the menus for more keys, these and other keys can be adjusted in the menus,
 unlike the hardcoded Free-look and VR keys.
 
-Razer Hydra:
+## Razer Hydra:
 You need sixense_x64.dll (not included) in your folder if you want to use the Hydra.
 Exit the Razer Hydra and Sixense system tray icons before playing.
 
@@ -113,7 +114,7 @@ This patch has no effect (dolphin behaves the same as before except for a log me
 When the dll is present, and a Hydra is connected, and not sitting in the dock, and Wiimote 1 is set to Emulated Wiimote, the Hydra will automatically control Wiimote 1 and its Nuchuk or Classic Controller extensions. It will also control Gamecube controller 1 if it is enabled. While holding the hydra, the actual tilt will override any other emulated tilt, and the actual pointing will override any other emulated IR, and the actual joysticks will override other emulated joysticks, but emulated buttons, swings and shakes from other inputs will still work additively.
 
 It currently uses a fixed control scheme to make it plug-and-play:
-Wiimote:
+## Wiimote:
 A: right start button (middle)
 B: right bumper or trigger (underneath)
 Minus: right 3 button (top left)
@@ -126,13 +127,13 @@ IR pointer: right controller's position in space relative to where you pressed H
 Orientation/Motion sensing: right controller's orientation/motion
 Swap extension: push left stick in
 
-Nunchuk:
+## Nunchuk:
 C: left bumper (top) or left 1 button (bottom left)
 Z: left trigger (bottom) or left 2 button (bottom right)
 Stick: left stick
 Orientation/Motion sensing: left controller's orientation/motion
 
-Classic:
+## Classic:
 L: left analog trigger (bottom left unlike Classic Controller Pro)
 ZL: left bumper (top left)
 R: right analog trigger
@@ -145,10 +146,10 @@ minus: left start
 plus: right start
 home/recenter IR: push right stick in
 
-Sideways Wiimote (if left controller is docked):
+## Sideways Wiimote (if left controller is docked):
 turn right hydra sideways yourself, same as above wiimote controls
 
-Sideways Wiimote (if holding both controllers):
+## Sideways Wiimote (if holding both controllers):
 steering/tilt left-right: angle between controllers (like holding imaginary wheel or sideways wiimote with both hands)
 tilt forwards-backwards: tilt controllers (only measures right one) forwards or backwards
 motion sensing: shake or swing controllers (only measures right one)
@@ -160,7 +161,7 @@ minus: right 3 button (top left)
 plus: right 4 button (top right)
 home/recenter IR: push right stick in
 
-GameCube:
+## GameCube:
 L: left analog trigger (bottom left like GameCube controller)
 Z: left or right bumper (top left or top right)
 R: right analog trigger (bottom right)
@@ -170,14 +171,14 @@ dpad: left buttons like if tilted inwards, 3=up, 2=down, 1=left, 4=right
 a, b, x, y: right buttons like GameCube layout: 2=a, 1=b, 4=x, 3=y
 start: right start
 
-General:
+## General:
 Cycle between Wiimote/sideways Wiimote/Wiimote+Nunchuk/Classic: push left stick in
 (note that doesn't affect the gamecube controller)
 Recenter IR pointer: push right stick in (press again to get out of home screen)
 Recenter hydra joysticks: dock then undock that controller
 (if that doesn't help, disconnect and reconnect nunchuk/classic extension)
 
-Troubleshooting:
+## Hydra Troubleshooting:
 Hydra isn't recognised: make sure sixense_x64.dll is in Dolphin's exe folder (see above).
 Wii cursor isn't showing: push the right analog stick in, then exit the home screen.
 IR Pointer doesn't aim smoothly: it uses position rather than angle, so move rather than aiming.
@@ -185,6 +186,56 @@ Orientation/motion sensing is messed up: make sure base is straight with cables 
 Hands are swapped: The nunchuk should be the controller that says LT (or q7) on the triggers, so hold that one in your left hand.
 Joystick is messed up: dock then undock both controllers, then disconnect and reconnect the extension in Wiimote settings.
 
+## VR Compatability for GameCube games:
+These games have been tested, and had their defaults set to the correct scale.
+They are listed in order of compatability from working best to most broken.
+Games not listed have not been tested, need to have the scale set manually, and might or might not work.
+
+Wind Waker
+Animal Crossing GameCube (near-clipping when turning head)
+Bomberman Generation (angled camera)
+Mario Party 4 (working, angled camera)
+Mario Party 5 (white characters at start)
+Baldur's Gate Dark Alliance (lights at HUD depth, angled camera)
+Pikmin (3D HUD at wrong depth)
+Pikmin 2 (3D HUD at wrong depth, far clipping)
+Zelda Collector's Edition: OOT (Giant A button behind you)
+Zelda Collector's Edition: Majora's Mask (Giant A button behind you)
+Sonic Adventures DX (white subtitles and some screens)
+Donkey Konga 2 (slight menu issues)
+Tony Hawks Pro 4 (some intros missing head-tracking)
+Four Swords Adventures (z-fighting, letterboxing)
+Mario Kart Double Dash (dirty screen)
+Paper Mario (works, a few things render strangely)
+Soul Calibur 2 (HUD is ocluded by world behind it)
+F-Zero GX (sort of works, resets)
+Metroid Prime 2 Echoes GameCube (helmet at wrong depth, lots of culling)
+Resident Evil 4 (intro weirdness, playable)
+Zelda Collector's Edition: Wind Waker Demo (larger, sometimes distorted)
+Star Fox Assault (menu depth problems)
+Super Smash Bros. Melee (missing textures)
+Kirby Air (sometimes one eye, change internal resolution during game to fix)
+Eternal Darkness (HUD too close, scale not consistent)
+Metroid Prime (slow, wrong depths)
+Twilight Princess GameCube (bad orange rendering over HUD)
+Need for Speed Underground (messed up menus)
+Need for Speed Hot Pursuit 2 (menu and HUD problems)
+Pokemon Coluseum (weird doubled menus and HUD, missing textures)
+Killer 7 (impossible to proceed past menu)
+Beyond Good and Evil (strobing)
+Time Splitters (black noise)
+Sonic Heroes (most things missing)
+Luigi's Mansion (only intro works)
+
+Zelda Collector's Edition: Zelda 1 (broken)
+Zelda Collector's Edition: Zelda 2 (broken)
+Game Boy Player (freezes)
+Star Wars Rogue Squadron III (freezes)
+Star Wars Rogue Leader (crashes)
+Final Fantasy Crystal (Crash, CPU)
+Super Mario Strikers (Crash)
+Viewtiful Joe (crash)
+Pokemon Box Ruby and Sapphire (crash)
 
 ## System Requirements
 * OS
@@ -208,7 +259,8 @@ Joystick is messed up: dock then undock both controllers, then disconnect and re
 * -e, --exec=<str> Loads the specified file (DOL,ELF,WAD,GCM,ISO)  
 * -b, --batch Exit Dolphin with emulator  
 * -V, --video_backend=<str> Specify a video backend  
-* -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio  
+* -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
+* -vr  force Virtual Reality DK2 mode if no HMD is detected
 
 Available DSP emulation engines are HLE (High Level Emulation) and
 LLE (Low Level Emulation). HLE is fast but often less accurate while LLE is

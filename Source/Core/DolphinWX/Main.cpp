@@ -207,6 +207,11 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
+			wxCMD_LINE_SWITCH, "vr", nullptr,
+			"force Virtual Reality on",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
 			wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
@@ -225,6 +230,7 @@ bool DolphinApp::OnInit()
 	selectVideoBackend = parser.Found("video_backend", &videoBackendName);
 	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
 	playMovie = parser.Found("movie", &movieFile);
+	g_force_vr = parser.Found("vr");
 
 	if (parser.Found("user", &userPath))
 	{

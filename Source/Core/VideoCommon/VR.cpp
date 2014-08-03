@@ -28,6 +28,7 @@ ovrFrameTiming g_rift_frame_timing;
 ovrPosef g_eye_poses[2];
 #endif
 
+bool g_force_vr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false;
 bool g_new_tracking_frame = true;
 Matrix44 g_head_tracking_matrix;
@@ -47,11 +48,41 @@ void NewVRFrame()
 
 void InitVR()
 {
+	g_has_hmd = false;
 	g_hmd_device_name = nullptr;
 #ifdef HAVE_OCULUSSDK
 	memset(&g_rift_frame_timing, 0, sizeof(g_rift_frame_timing));
 	ovr_Initialize();
 	hmd = ovrHmd_Create(0);
+	if (!hmd)
+	{
+		WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
+#endif
+#ifdef _WIN32
+		LoadVR920();
+		if (g_has_vr920)
+		{
+			g_has_hmd = true;
+			g_hmd_window_width = 800;
+			g_hmd_window_height = 600;
+			// Todo: find vr920
+			g_hmd_window_x = 0;
+			g_hmd_window_y = 0;
+		}
+		else
+#endif
+		{
+			g_has_hmd = g_force_vr;
+#ifdef HAVE_OCULUSSDK
+			if (g_force_vr)
+			{
+				WARN_LOG(VR, "Forcing VR mode, simulating Oculus Rift DK2.");
+				hmd = ovrHmd_CreateDebug(ovrHmd_DK2);
+			}
+#endif
+		}
+#ifdef HAVE_OCULUSSDK
+	}
 	if (hmd)
 	{
 		// Get more details about the HMD
@@ -84,23 +115,7 @@ void InitVR()
 			NOTICE_LOG(VR, "Oculus Rift head tracker started.");
 		}
 	}
-	else
 #endif
-	{
-		WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
-#ifdef _WIN32
-		LoadVR920();
-		if (g_has_vr920)
-		{
-			g_has_hmd = true;
-			g_hmd_window_width = 800;
-			g_hmd_window_height = 600;
-			// Todo: find vr920
-			g_hmd_window_x = 0;
-			g_hmd_window_y = 0;
-		}
-#endif
-	}
 	SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution = 
 		StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = g_hmd_window_x;
