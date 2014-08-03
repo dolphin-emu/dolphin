@@ -152,14 +152,8 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 	_tcscpy( lpszSymbol, _T("?") );
 
 	// Get symbol info for IP
-#if _M_X86_32
-	DWORD             dwDisp = 0;
-	if ( SymGetSymFromAddr( GetCurrentProcess(), (ULONG)fnAddress, &dwDisp, pSym ) )
-#else
-	//makes it compile but hell im not sure if this works...
 	DWORD64           dwDisp = 0;
 	if ( SymGetSymFromAddr( GetCurrentProcess(), (ULONG)fnAddress, (PDWORD64)&dwDisp, pSym ) )
-#endif
 	{
 		// Make the symbol readable for humans
 		UnDecorateSymbolName( pSym->Name, lpszNonUnicodeUnDSymbol, BUFFERSIZE,
@@ -313,15 +307,9 @@ void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 		}
 
 		::ZeroMemory( &callStack, sizeof(callStack) );
-#if _M_X86_32
-		callStack.AddrPC.Offset    = context.Eip;
-		callStack.AddrStack.Offset = context.Esp;
-		callStack.AddrFrame.Offset = context.Ebp;
-#else
 		callStack.AddrPC.Offset    = context.Rip;
 		callStack.AddrStack.Offset = context.Rsp;
 		callStack.AddrFrame.Offset = context.Rbp;
-#endif
 		callStack.AddrPC.Mode      = AddrModeFlat;
 		callStack.AddrStack.Mode   = AddrModeFlat;
 		callStack.AddrFrame.Mode   = AddrModeFlat;

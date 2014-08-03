@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#if defined(_WIN32) && defined(_M_X86_64)
+#if defined(_WIN32)
 
 #include <math.h>
 #include <Windows.h>

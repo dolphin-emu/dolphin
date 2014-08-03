@@ -44,10 +44,6 @@
 #define USE_RVALUE_REFERENCES
 #endif
 
-#if defined(_WIN32) && _M_X86_64
-#define USE_SRWLOCKS
-#endif
-
 namespace std
 {
 
@@ -122,7 +118,6 @@ private:
 	native_type m_handle;
 };
 
-#if !defined(_WIN32) || defined(USE_SRWLOCKS)
 
 class mutex
 {
@@ -192,11 +187,6 @@ public:
 private:
 	native_type m_handle;
 };
-
-#else
-typedef recursive_mutex mutex; // just use CriticalSections
-
-#endif
 
 enum defer_lock_t { defer_lock };
 enum try_to_lock_t { try_to_lock };
