@@ -777,7 +777,7 @@ void VertexShaderManager::SetProjectionConstants()
 					INFO_LOG(VR, "2D to fit 3D world: hfov=%8.4f    vfov=%8.4f      znear=%8.4f   zfar=%8.4f", hfov, vfov, znear, zfar);
 			}
 			else { // default, if no 3D in scene
-				znear = 0.5f*UnitsPerMetre * 20; // 50cm
+				znear = 0.2f*UnitsPerMetre * 20; // 50cm
 				zfar = 40 *UnitsPerMetre; // 40m
 				hfov = 70; // 70 degrees
 				if (g_aspect_wide)
