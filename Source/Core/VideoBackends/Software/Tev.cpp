@@ -491,13 +491,13 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 
 	if (indirect.fb_addprev)
 	{
-		TexCoord.s += (int)(WrapIndirectCoord(s, indirect.sw) + indtevtrans[0]);
-		TexCoord.t += (int)(WrapIndirectCoord(t, indirect.tw) + indtevtrans[1]);
+		TexCoord.s += WrapIndirectCoord(s, indirect.sw) + indtevtrans[0];
+		TexCoord.t += WrapIndirectCoord(t, indirect.tw) + indtevtrans[1];
 	}
 	else
 	{
-		TexCoord.s = (int)(WrapIndirectCoord(s, indirect.sw) + indtevtrans[0]);
-		TexCoord.t = (int)(WrapIndirectCoord(t, indirect.tw) + indtevtrans[1]);
+		TexCoord.s = WrapIndirectCoord(s, indirect.sw) + indtevtrans[0];
+		TexCoord.t = WrapIndirectCoord(t, indirect.tw) + indtevtrans[1];
 	}
 }
 
@@ -699,7 +699,7 @@ void Tev::Draw()
 			// - scaling of the "k" coefficient isn't clear either.
 
 			// First, calculate the offset from the viewport center (normalized to 0..1)
-			float offset = (Position[0] - (bpmem.fogRange.Base.Center - 342)) / (float)xfmem.viewport.wd;
+			float offset = (Position[0] - (bpmem.fogRange.Base.Center - 342)) / xfmem.viewport.wd;
 
 			// Based on that, choose the index such that points which are far away from the z-axis use the 10th "k" value and such that central points use the first value.
 			float floatindex = 9.f - std::abs(offset) * 9.f;

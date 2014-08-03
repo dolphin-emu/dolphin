@@ -283,7 +283,7 @@ void AXWiiUCode::SetupProcessing(u32 init_addr)
 	for (auto& buffer : buffers)
 	{
 		s32 init_val = (s32)((init_data[init_idx] << 16) | init_data[init_idx + 1]);
-		s16 delta = (s16)init_data[init_idx + 2];
+		s16 delta = init_data[init_idx + 2];
 
 		init_idx += 3;
 
@@ -577,7 +577,7 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
 
 		for (u32 i = 0; i < 96; ++i)
 		{
-			s64 sample = (s64)(s32)aux_left[i];
+			s64 sample = (s64) aux_left[i];
 			sample *= volume_ramp[i];
 			mix_dest[mix_i][i] += (s32)(sample >> 15);
 		}

@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <cstring>
 #include <map>
 #include <string>
@@ -19,8 +20,7 @@ void SymbolDB::List()
 		          func.second.size, func.second.hash,
 		          func.second.numCalls);
 	}
-	INFO_LOG(OSHLE, "%lu functions known in this program above.",
-	         (unsigned long)functions.size());
+	INFO_LOG(OSHLE, "%" PRIu64 " functions known in this program above.", functions.size());
 }
 
 void SymbolDB::Clear(const char *prefix)

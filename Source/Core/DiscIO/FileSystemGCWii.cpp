@@ -104,7 +104,7 @@ bool CFileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::stri
 	while (remainingSize)
 	{
 		// Limit read size to 128 MB
-		size_t readSize = (size_t)std::min(remainingSize, (u64)0x08000000);
+		u64 readSize = std::min<u64>(remainingSize, 0x08000000);
 
 		std::vector<u8> buffer(readSize);
 
@@ -316,7 +316,7 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 		if (rFileInfo.IsDirectory())
 		{
 			rFileInfo.m_FullPath += '/';
-			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_FileSize, rFileInfo.m_FullPath, _NameTableOffset);
+			CurrentIndex = BuildFilenames(CurrentIndex + 1, rFileInfo.m_FileSize, rFileInfo.m_FullPath, _NameTableOffset);
 		}
 		else
 		{

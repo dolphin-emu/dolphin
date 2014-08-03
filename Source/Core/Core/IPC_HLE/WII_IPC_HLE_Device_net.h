@@ -346,7 +346,7 @@ public:
 	{
 		if (!File::Exists(path))
 		{
-			if (!File::CreateFullPath(std::string(File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/")))
+			if (!File::CreateFullPath(File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/"))
 			{
 				ERROR_LOG(WII_IPC_NET, "Failed to create directory for network config file");
 			}

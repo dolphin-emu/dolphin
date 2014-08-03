@@ -65,7 +65,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 	// performance.
 
 	if (addrReg != ABI_PARAM1)
-		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
+		MOV(32, R(ABI_PARAM1), R(addrReg));
 	if (info.displacement) {
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
 	}
@@ -122,16 +122,16 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 	if (addrReg != ABI_PARAM1)
 	{
 		if (ABI_PARAM1 != dataReg)
-			MOV(64, R(ABI_PARAM1), R((X64Reg)dataReg));
+			MOV(64, R(ABI_PARAM1), R(dataReg));
 		if (ABI_PARAM2 != addrReg)
-			MOV(64, R(ABI_PARAM2), R((X64Reg)addrReg));
+			MOV(64, R(ABI_PARAM2), R(addrReg));
 	}
 	else
 	{
 		if (ABI_PARAM2 != addrReg)
-			MOV(64, R(ABI_PARAM2), R((X64Reg)addrReg));
+			MOV(64, R(ABI_PARAM2), R(addrReg));
 		if (ABI_PARAM1 != dataReg)
-			MOV(64, R(ABI_PARAM1), R((X64Reg)dataReg));
+			MOV(64, R(ABI_PARAM1), R(dataReg));
 	}
 
 	if (info.displacement)

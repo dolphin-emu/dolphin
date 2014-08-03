@@ -85,7 +85,7 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
 	// Write image data
 	for (auto y = 0; y < height; ++y)
 	{
-		u8* row_ptr = (u8*)data + y * row_stride;
+		u8* row_ptr = data + (y * row_stride);
 		u8* ptr = row_ptr;
 		for (auto x = 0; x < row_stride / 4; ++x)
 		{

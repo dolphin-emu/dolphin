@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
+
 #include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
@@ -119,7 +121,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = FileSearch.GetFileNames().size();
-				INFO_LOG(WII_IPC_FILEIO, "\t%lu files found", (unsigned long)numFile);
+				INFO_LOG(WII_IPC_FILEIO, "\t%" PRIu64 " files found", numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
@@ -130,7 +132,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 				memset(Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address), 0, CommandBuffer.PayloadBuffer[0].m_Size);
 
 				size_t numFiles = 0;
-				char* pFilename = (char*)Memory::GetPointer((u32)(CommandBuffer.PayloadBuffer[0].m_Address));
+				char* pFilename = (char*)Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address);
 
 				for (size_t i=0; i<FileSearch.GetFileNames().size(); i++)
 				{

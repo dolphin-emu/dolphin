@@ -86,7 +86,7 @@ void ZeldaUCode::Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do
 
 	for (int i = 0; i < 4; i++)
 	{
-		PB.ResamplerOldData[i] = (u16)(s16)in[in_size - 4 + i];
+		PB.ResamplerOldData[i] = (u16) in[in_size - 4 + i];
 	}
 	PB.CurSampleFrac = position & 0xFFFF;
 }
@@ -131,7 +131,7 @@ clear_buffer:
 	}
 	// SetupAccelerator
 	const s16 *read_ptr = (s16*)GetARAMPointer(PB.CurAddr);
-	if (PB.RemLength < (u32)rem_samples)
+	if (PB.RemLength < rem_samples)
 	{
 		// finish-up loop
 		for (u32 i = 0; i < PB.RemLength; i++)
@@ -190,7 +190,7 @@ clear_buffer:
 
 	// SetupAccelerator
 	const s8 *read_ptr = (s8*)GetARAMPointer(PB.CurAddr);
-	if (PB.RemLength < (u32)rem_samples)
+	if (PB.RemLength < rem_samples)
 	{
 		// finish-up loop
 		for (u32 i = 0; i < PB.RemLength; i++)
@@ -391,7 +391,7 @@ void ZeldaUCode::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 
 	// The PB.StopOnSilence check is a hack, we should check the buffers and enter this
 	// only when the buffer is completely 0 (i.e. when the music has finished fading out)
-	if (PB.StopOnSilence || PB.RemLength < (u32)_RealSize)
+	if (PB.StopOnSilence || PB.RemLength < _RealSize)
 	{
 		WARN_LOG(DSPHLE, "Raw: END");
 		// Let's ignore this entire case since it doesn't seem to happen
@@ -615,13 +615,13 @@ ContinueWithBlock:
 
 		for (int i = 0; i < 4; i++)
 		{
-			b00[i + 4] = (s16)b00[i] * (s16)PB.raw[0x2a] >> 16;
+			b00[i + 4] = b00[i] * (s16)PB.raw[0x2a] >> 16;
 		}
 
 		int prod = ((s16)PB.raw[0x2a] * (s16)PB.raw[0x29] * 2) >> 16;
 		for (int i = 0; i < 4; i++)
 		{
-			b00[i + 8] = (s16)b00[i + 4] * prod;
+			b00[i + 8] = b00[i + 4] * prod;
 		}
 
 		// ZWW 0d34
@@ -636,7 +636,7 @@ ContinueWithBlock:
 
 		for (int i = 0; i < 4; i++)
 		{
-			b00[i + 0x10] = (s16)b00[i + 0xc] * PB.raw[0x29];
+			b00[i + 0x10] = b00[i + 0xc] * PB.raw[0x29];
 		}
 
 		for (int count = 0; count < 8; count++)

@@ -158,7 +158,7 @@ void Interpreter::lhau(UGeckoInstruction _inst)
 
 void Interpreter::lhz(UGeckoInstruction _inst)
 {
-	u32 temp = (u32)(u16)Memory::Read_U16(Helper_Get_EA(_inst));
+	u32 temp = (u32) Memory::Read_U16(Helper_Get_EA(_inst));
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 	{
 		m_GPR[_inst.RD] = temp;
@@ -168,7 +168,7 @@ void Interpreter::lhz(UGeckoInstruction _inst)
 void Interpreter::lhzu(UGeckoInstruction _inst)
 {
 	u32 uAddress = Helper_Get_EA_U(_inst);
-	u32 temp = (u32)(u16)Memory::Read_U16(uAddress);
+	u32 temp = (u32) Memory::Read_U16(uAddress);
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 	{
 		m_GPR[_inst.RD] = temp;

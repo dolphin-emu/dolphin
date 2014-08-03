@@ -157,8 +157,8 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define rPS0(i) (*(double*)(&PowerPC::ppcState.ps[i][0]))
 #define rPS1(i) (*(double*)(&PowerPC::ppcState.ps[i][1]))
 
-#define riPS0(i) (*(u64*)(&PowerPC::ppcState.ps[i][0]))
-#define riPS1(i) (*(u64*)(&PowerPC::ppcState.ps[i][1]))
+#define riPS0(i) PowerPC::ppcState.ps[i][0]
+#define riPS1(i) PowerPC::ppcState.ps[i][1]
 
 }  // namespace
 

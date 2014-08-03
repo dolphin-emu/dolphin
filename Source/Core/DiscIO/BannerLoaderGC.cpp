@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -33,8 +34,10 @@ CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVol
 			else m_IsValid = true;
 		}
 	}
-	else WARN_LOG(DISCIO, "Invalid opening.bnr size: %0lx",
-		(unsigned long)FileSize);
+	else
+	{
+		WARN_LOG(DISCIO, "Invalid opening.bnr size: %" PRIu64, FileSize);
+	}
 }
 
 

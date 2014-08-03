@@ -26,7 +26,7 @@ CARCFile::CARCFile(const std::string& _rFilename)
 	if (pReader != nullptr)
 	{
 		u64 FileSize = pReader->GetDataSize();
-		m_pBuffer = new u8[(u32)FileSize];
+		m_pBuffer = new u8[FileSize];
 		pReader->Read(0, FileSize, m_pBuffer);
 		delete pReader;
 
@@ -42,7 +42,7 @@ CARCFile::CARCFile(const std::string& _rFilename, u32 offset)
 	if (pReader != nullptr)
 	{
 		u64 FileSize = pReader->GetDataSize() - offset;
-		m_pBuffer = new u8[(u32)FileSize];
+		m_pBuffer = new u8[FileSize];
 		pReader->Read(offset, FileSize, m_pBuffer);
 		delete pReader;
 
@@ -87,7 +87,7 @@ size_t CARCFile::GetFileSize(const std::string& _rFullPath)
 
 	if (pFileInfo != nullptr)
 	{
-		return (size_t)pFileInfo->m_FileSize;
+		return pFileInfo->m_FileSize;
 	}
 
 	return 0;
@@ -113,8 +113,8 @@ size_t CARCFile::ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _M
 		return 0;
 	}
 
-	memcpy(_pBuffer, &m_pBuffer[pFileInfo->m_Offset], (size_t)pFileInfo->m_FileSize);
-	return (size_t) pFileInfo->m_FileSize;
+	memcpy(_pBuffer, &m_pBuffer[pFileInfo->m_Offset], pFileInfo->m_FileSize);
+	return pFileInfo->m_FileSize;
 }
 
 
@@ -134,7 +134,7 @@ bool CARCFile::ExportFile(const std::string& _rFullPath, const std::string& _rEx
 
 	File::IOFile pFile(_rExportFilename, "wb");
 
-	return pFile.WriteBytes(&m_pBuffer[pFileInfo->m_Offset], (size_t) pFileInfo->m_FileSize);
+	return pFile.WriteBytes(&m_pBuffer[pFileInfo->m_Offset], pFileInfo->m_FileSize);
 }
 
 
@@ -165,7 +165,7 @@ bool CARCFile::ParseBuffer()
 
 	if (Root.IsDirectory())
 	{
-		m_FileInfoVector.resize((unsigned int)Root.m_FileSize);
+		m_FileInfoVector.resize(Root.m_FileSize);
 		const char* szNameTable = (char*)(m_pBuffer + FSTOffset);
 
 		for (size_t i = 0; i < m_FileInfoVector.size(); i++)
@@ -200,7 +200,7 @@ size_t CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastInde
 		if (rFileInfo.IsDirectory())
 		{
 			rFileInfo.m_FullPath += '/';
-			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t)rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);
+			CurrentIndex = BuildFilenames(CurrentIndex + 1, rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);
 		}
 		else
 		{

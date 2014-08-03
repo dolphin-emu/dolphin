@@ -1226,7 +1226,7 @@ static PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width,
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
+						decodebytesC8_5A3_To_RGBA32(dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 		}
 		else if (tlutfmt == 0)
 		{
@@ -2072,7 +2072,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 				case PC_TEX_FMT_I8:
 					{
 						// TODO: Is this an acceptable way to draw in I8?
-						u8  *dtp = (u8*)dst;
+						u8  *dtp = dst;
 						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFF : 0x88;
 						break;
 					}

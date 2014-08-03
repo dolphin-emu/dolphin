@@ -86,7 +86,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 		// copy the encrypted data
 		u64 MaxSizeToCopy = 0x7C00 - Offset;
 		u64 CopySize = (_Length > MaxSizeToCopy) ? MaxSizeToCopy : _Length;
-		memcpy(_pBuffer, &m_LastDecryptedBlock[Offset], (size_t)CopySize);
+		memcpy(_pBuffer, &m_LastDecryptedBlock[Offset], CopySize);
 
 		// increase buffers
 		_Length -= CopySize;

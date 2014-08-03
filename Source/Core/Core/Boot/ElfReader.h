@@ -40,7 +40,7 @@ public:
 	ElfType GetType() const { return (ElfType)(header->e_type); }
 	ElfMachine GetMachine() const { return (ElfMachine)(header->e_machine); }
 	u32 GetEntryPoint() const { return entryPoint; }
-	u32 GetFlags() const { return (u32)(header->e_flags); }
+	u32 GetFlags() const { return header->e_flags; }
 	bool LoadInto(u32 vaddr);
 	bool LoadSymbols();
 

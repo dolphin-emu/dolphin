@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <polarssl/md5.h>
 
 #include "Common/ChunkFile.h"
@@ -99,7 +100,7 @@ static void EnsureTmpInputSize(size_t bound)
 	if (tmpInput != nullptr)
 	{
 		if (g_totalBytes > 0)
-			memcpy(newTmpInput, tmpInput, (size_t)g_totalBytes);
+			memcpy(newTmpInput, tmpInput, g_totalBytes);
 		delete[] tmpInput;
 	}
 	tmpInput = newTmpInput;
@@ -650,7 +651,7 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 		g_bDiscChange = false;
 	}
 
-	EnsureTmpInputSize((size_t)(g_currentByte + 8));
+	EnsureTmpInputSize(g_currentByte + 8);
 	memcpy(&(tmpInput[g_currentByte]), &g_padState, 8);
 	g_currentByte += 8;
 	g_totalBytes = g_currentByte;
@@ -674,7 +675,7 @@ void RecordWiimote(int wiimote, u8 *data, u8 size)
 		return;
 
 	InputUpdate();
-	EnsureTmpInputSize((size_t)(g_currentByte + size + 1));
+	EnsureTmpInputSize(g_currentByte + size + 1);
 	tmpInput[g_currentByte++] = size;
 	memcpy(&(tmpInput[g_currentByte]), data, size);
 	g_currentByte += size;
@@ -752,8 +753,8 @@ bool PlayInput(const std::string& filename)
 	g_playMode = MODE_PLAYING;
 
 	g_totalBytes = g_recordfd.GetSize() - 256;
-	EnsureTmpInputSize((size_t)g_totalBytes);
-	g_recordfd.ReadArray(tmpInput, (size_t)g_totalBytes);
+	EnsureTmpInputSize(g_totalBytes);
+	g_recordfd.ReadArray(tmpInput, g_totalBytes);
 	g_currentByte = 0;
 	g_recordfd.Close();
 
@@ -827,7 +828,10 @@ void LoadInput(const std::string& filename)
 	// This can only happen if the user manually deletes data from the dtm.
 	if (g_currentByte > totalSavedBytes)
 	{
-		PanicAlertT("Warning: You loaded a save whose movie ends before the current frame in the save (byte %u < %u) (frame %u < %u). You should load another save before continuing.", (u32)totalSavedBytes+256, (u32)g_currentByte+256, (u32)tmpHeader.frameCount, (u32)g_currentFrame);
+		PanicAlertT("Warning: You loaded a save whose movie ends before the current"
+		            "frame in the save (byte %" PRIu64 " < %" PRIu64 ") (frame %" PRIu64 " < %" PRIu64 ")."
+		            "You should load another save before continuing.",
+		            totalSavedBytes+256, g_currentByte+256, tmpHeader.frameCount, g_currentFrame);
 		afterEnd = true;
 	}
 
@@ -838,9 +842,9 @@ void LoadInput(const std::string& filename)
 		g_totalInputCount = tmpHeader.inputCount;
 		g_totalTickCount = g_tickCountAtLastInput = tmpHeader.tickCount;
 
-		EnsureTmpInputSize((size_t)totalSavedBytes);
+		EnsureTmpInputSize(totalSavedBytes);
 		g_totalBytes = totalSavedBytes;
-		t_record.ReadArray(tmpInput, (size_t)g_totalBytes);
+		t_record.ReadArray(tmpInput, g_totalBytes);
 	}
 	else if (g_currentByte > 0)
 	{
@@ -850,15 +854,18 @@ void LoadInput(const std::string& filename)
 		else if (g_currentByte > g_totalBytes)
 		{
 			afterEnd = true;
-			PanicAlertT("Warning: You loaded a save that's after the end of the current movie. (byte %u > %u) (frame %u > %u). You should load another save before continuing, or load this state with read-only mode off.", (u32)g_currentByte+256, (u32)g_totalBytes+256, (u32)g_currentFrame, (u32)g_totalFrames);
+			PanicAlertT("Warning: You loaded a save that's after the end of the current movie."
+			            "(byte %" PRIu64 " > %" PRIu64 ") (frame %" PRIu64 " > %" PRIu64 ")."
+			            "You should load another save before continuing, or load this state with read-only mode off.",
+			            g_currentByte+256, g_totalBytes+256, g_currentFrame, g_totalFrames);
 		}
 		else if (g_currentByte > 0 && g_totalBytes > 0)
 		{
 			// verify identical from movie start to the save's current frame
-			u32 len = (u32)g_currentByte;
+			u64 len = g_currentByte;
 			u8* movInput = new u8[len];
-			t_record.ReadArray(movInput, (size_t)len);
-			for (u32 i = 0; i < len; ++i)
+			t_record.ReadArray(movInput, len);
+			for (u64 i = 0; i < len; ++i)
 			{
 				if (movInput[i] != tmpInput[i])
 				{
@@ -867,29 +874,31 @@ void LoadInput(const std::string& filename)
 					if (IsUsingWiimote(0))
 					{
 						// TODO: more detail
-						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i+256, i+256);
+						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %" PRIu64 " (0x%" PRIu64 ")."
+						            "You should load another save before continuing, or load this state with read-only mode off."
+						            "Otherwise you'll probably get a desync.", i+256, i+256);
 						memcpy(tmpInput, movInput, g_currentByte);
 					}
 					else
 					{
-						int frame = i/8;
+						u64 frame = i/8;
 						ControllerState curPadState;
 						memcpy(&curPadState, &(tmpInput[frame*8]), 8);
 						ControllerState movPadState;
 						memcpy(&movPadState, &(movInput[frame*8]), 8);
-						PanicAlertT("Warning: You loaded a save whose movie mismatches on frame %d. You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.\n\n"
-							"More information: The current movie is %d frames long and the savestate's movie is %d frames long.\n\n"
-							"On frame %d, the current movie presses:\n"
-							"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+						PanicAlertT("Warning: You loaded a save whose movie mismatches on frame %" PRIu64 ". You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.\n\n"
+							"More information: The current movie is %" PRIu64 " frames long and the savestate's movie is %" PRIu64 " frames long.\n\n"
+							"On frame %" PRIu64 ", the current movie presses:\n"
+							"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%u, RT=%u, AnalogX=%u, AnalogY=%u, CX=%u, CY=%u"
 							"\n\n"
-							"On frame %d, the savestate's movie presses:\n"
-							"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d",
-							(int)frame,
-							(int)g_totalFrames, (int)tmpHeader.frameCount,
-							(int)frame,
-							(int)curPadState.Start, (int)curPadState.A, (int)curPadState.B, (int)curPadState.X, (int)curPadState.Y, (int)curPadState.Z, (int)curPadState.DPadUp, (int)curPadState.DPadDown, (int)curPadState.DPadLeft, (int)curPadState.DPadRight, (int)curPadState.L, (int)curPadState.R, (int)curPadState.TriggerL, (int)curPadState.TriggerR, (int)curPadState.AnalogStickX, (int)curPadState.AnalogStickY, (int)curPadState.CStickX, (int)curPadState.CStickY,
-							(int)frame,
-							(int)movPadState.Start, (int)movPadState.A, (int)movPadState.B, (int)movPadState.X, (int)movPadState.Y, (int)movPadState.Z, (int)movPadState.DPadUp, (int)movPadState.DPadDown, (int)movPadState.DPadLeft, (int)movPadState.DPadRight, (int)movPadState.L, (int)movPadState.R, (int)movPadState.TriggerL, (int)movPadState.TriggerR, (int)movPadState.AnalogStickX, (int)movPadState.AnalogStickY, (int)movPadState.CStickX, (int)movPadState.CStickY);
+							"On frame %" PRIu64 ", the savestate's movie presses:\n"
+							"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%u, RT=%u, AnalogX=%u, AnalogY=%u, CX=%u, CY=%u",
+							frame,
+							g_totalFrames, tmpHeader.frameCount,
+							frame,
+							curPadState.Start, curPadState.A, curPadState.B, curPadState.X, curPadState.Y, curPadState.Z, curPadState.DPadUp, curPadState.DPadDown, curPadState.DPadLeft, curPadState.DPadRight, curPadState.L, curPadState.R, curPadState.TriggerL, curPadState.TriggerR, curPadState.AnalogStickX, curPadState.AnalogStickY, curPadState.CStickX, curPadState.CStickY,
+							frame,
+							movPadState.Start, movPadState.A, movPadState.B, movPadState.X, movPadState.Y, movPadState.Z, movPadState.DPadUp, movPadState.DPadDown, movPadState.DPadLeft, movPadState.DPadRight, movPadState.L, movPadState.R, movPadState.TriggerL, movPadState.TriggerR, movPadState.AnalogStickX, movPadState.AnalogStickY, movPadState.CStickX, movPadState.CStickY);
 
 						memcpy(tmpInput, movInput, g_currentByte);
 					}
@@ -945,7 +954,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 
 	if (g_currentByte + 8 > g_totalBytes)
 	{
-		PanicAlertT("Premature movie end in PlayController. %u + 8 > %u", (u32)g_currentByte, (u32)g_totalBytes);
+		PanicAlertT("Premature movie end in PlayController. %" PRIu64 " + 8 > %" PRIu64, g_currentByte, g_totalBytes);
 		EndPlayInput(!g_bReadOnly);
 		return;
 	}
@@ -1007,10 +1016,10 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 		// This implementation assumes the disc change will only happen once. Trying to change more than that will cause
 		// it to load the last disc every time. As far as i know though, there are no 3+ disc games, so this should be fine.
 		Core::SetState(Core::CORE_PAUSE);
-		int numPaths = (int)SConfig::GetInstance().m_ISOFolder.size();
+		size_t numPaths = SConfig::GetInstance().m_ISOFolder.size();
 		bool found = false;
 		std::string path;
-		for (int i = 0; i < numPaths; i++)
+		for (size_t i = 0; i < numPaths; i++)
 		{
 			path = SConfig::GetInstance().m_ISOFolder[i];
 			if (File::Exists(path + '/' + g_discChange))
@@ -1041,7 +1050,7 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf)
 
 	if (g_currentByte > g_totalBytes)
 	{
-		PanicAlertT("Premature movie end in PlayWiimote. %u > %u", (u32)g_currentByte, (u32)g_totalBytes);
+		PanicAlertT("Premature movie end in PlayWiimote. %" PRIu64 " > %" PRIu64, g_currentByte, g_totalBytes);
 		EndPlayInput(!g_bReadOnly);
 		return false;
 	}
@@ -1055,7 +1064,7 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf)
 
 	if (size != sizeInMovie)
 	{
-		PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s", (u32)sizeInMovie, (u32)size, (u32)g_currentByte,
+		PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %" PRIu64 ".)%s", sizeInMovie, size, g_currentByte,
 					(g_numPads & 0xF)?" Try re-creating the recording with all GameCube controllers disabled (in Configure > GameCube > Device Settings)." : "");
 		EndPlayInput(!g_bReadOnly);
 		return false;
@@ -1065,7 +1074,7 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf)
 
 	if (g_currentByte + size > g_totalBytes)
 	{
-		PanicAlertT("Premature movie end in PlayWiimote. %u + %d > %u", (u32)g_currentByte, size, (u32)g_totalBytes);
+		PanicAlertT("Premature movie end in PlayWiimote. %" PRIu64 " + %d > %" PRIu64, g_currentByte, size, g_totalBytes);
 		EndPlayInput(!g_bReadOnly);
 		return false;
 	}
@@ -1155,7 +1164,7 @@ void SaveRecording(const std::string& filename)
 
 	save_record.WriteArray(&header, 1);
 
-	bool success = save_record.WriteArray(tmpInput, (size_t)g_totalBytes);
+	bool success = save_record.WriteArray(tmpInput, g_totalBytes);
 
 	if (success && g_bRecordingFromSaveState)
 	{
