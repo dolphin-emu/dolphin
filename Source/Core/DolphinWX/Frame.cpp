@@ -192,6 +192,25 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 }
 #endif
 
+bool CRenderFrame::ShowFullScreen(bool show, long style)
+{
+	if (show)
+	{
+		// OpenGL requires the pop-up style to activate exclusive mode.
+		SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
+	}
+
+	bool result = wxTopLevelWindow::ShowFullScreen(show, style);
+
+	if (!show)
+	{
+		// Restore the default style.
+		SetWindowStyle((GetWindowStyle() & ~wxPOPUP_WINDOW) | wxDEFAULT_FRAME_STYLE);
+	}
+
+	return result;
+}
+
 // event tables
 // Notice that wxID_HELP will be processed for the 'About' menu and the toolbar
 // help button.
