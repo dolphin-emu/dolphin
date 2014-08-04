@@ -137,7 +137,6 @@ static void fregSpill(RegInfo& RI, X64Reg reg) {
 }
 
 // ECX is scratch, so we don't allocate it
-#if _M_X86_64
 
 // 64-bit - calling conventions differ between linux & windows, so...
 #ifdef _WIN32
@@ -148,16 +147,6 @@ static const X64Reg RegAllocOrder[] = {RBP, R12, R13, R14, R8, R9, R10, R11};
 static const int RegAllocSize = sizeof(RegAllocOrder) / sizeof(X64Reg);
 static const X64Reg FRegAllocOrder[] = {XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5};
 static const int FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
-
-#else
-
-// 32-bit
-static const X64Reg RegAllocOrder[] = {EDI, ESI, EBP, EBX, EDX, EAX};
-static const int RegAllocSize = sizeof(RegAllocOrder) / sizeof(X64Reg);
-static const X64Reg FRegAllocOrder[] = {XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
-static const int FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
-
-#endif
 
 static X64Reg regFindFreeReg(RegInfo& RI) {
 	for (auto& reg : RegAllocOrder)
@@ -256,13 +245,6 @@ static X64Reg fregEnsureInReg(RegInfo& RI, InstLoc I) {
 }
 
 static void regSpillCallerSaved(RegInfo& RI) {
-#if _M_X86_32
-	// 32-bit
-	regSpill(RI, EDX);
-	regSpill(RI, ECX);
-	regSpill(RI, EAX);
-#else
-	// 64-bit
 	regSpill(RI, RCX);
 	regSpill(RI, RDX);
 	regSpill(RI, RSI);
@@ -271,7 +253,6 @@ static void regSpillCallerSaved(RegInfo& RI) {
 	regSpill(RI, R9);
 	regSpill(RI, R10);
 	regSpill(RI, R11);
-#endif
 }
 
 static X64Reg regUReg(RegInfo& RI, InstLoc I) {
@@ -1292,13 +1273,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->MOVZX(32, 16, EAX, M(((char *)&GQR(quantreg)) + 2));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 			Jit->OR(32, R(EDX), Imm8(w << 3));
-#if _M_X86_32
-			int addr_scale = SCALE_4;
-#else
-			int addr_scale = SCALE_8;
-#endif
+
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(EDX, addr_scale, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
+			Jit->CALLptr(MScaled(EDX, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
 			Jit->MOVAPD(reg, R(XMM0));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1342,14 +1319,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			u32 quantreg = *I >> 24;
 			Jit->MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, EDX, R(AL));
-#if _M_X86_32
-			int addr_scale = SCALE_4;
-#else
-			int addr_scale = SCALE_8;
-#endif
+
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(EDX, addr_scale, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
+			Jit->CALLptr(MScaled(EDX, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -1831,12 +1804,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 			// Remove the invalid instruction from the icache, forcing a recompile
-#if _M_X86_32
-			Jit->MOV(32, M(jit->GetBlockCache()->GetICachePtr(InstLoc)), Imm32(JIT_ICACHE_INVALID_WORD));
-#else
 			Jit->MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(InstLoc)));
 			Jit->MOV(32, MatR(RAX), Imm32(JIT_ICACHE_INVALID_WORD));
-#endif
 			Jit->WriteExceptionExit();
 			break;
 		}

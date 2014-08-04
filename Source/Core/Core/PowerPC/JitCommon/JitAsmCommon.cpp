@@ -126,7 +126,6 @@ void CommonAsmRoutines::GenQuantizedStores()
 	UD2();
 	const u8* storePairedFloat = AlignCode4();
 
-#if _M_X86_64
 	SHUFPS(XMM0, R(XMM0), 1);
 	MOVQ_xmm(M(&psTemp[0]), XMM0);
 	TEST(32, R(ECX), Imm32(0x0C000000));
@@ -140,27 +139,6 @@ void CommonAsmRoutines::GenQuantizedStores()
 	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
 	SetJumpTarget(skip_complex);
 	RET();
-#else
-	TEST(32, R(ECX), Imm32(0x0C000000));
-	FixupBranch argh = J_CC(CC_NZ, true);
-	MOVQ_xmm(M(&psTemp[0]), XMM0);
-	MOV(32, R(EAX), M(&psTemp));
-	BSWAP(32, EAX);
-	AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-	MOV(32, MDisp(ECX, (u32)Memory::base), R(EAX));
-	MOV(32, R(EAX), M(((char*)&psTemp) + 4));
-	BSWAP(32, EAX);
-	MOV(32, MDisp(ECX, 4+(u32)Memory::base), R(EAX));
-	FixupBranch arg2 = J(true);
-	SetJumpTarget(argh);
-	SHUFPS(XMM0, R(XMM0), 1);
-	MOVQ_xmm(M(&psTemp[0]), XMM0);
-	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
-	ABI_CallFunctionR((void *)&WriteDual32, ECX);
-	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
-	SetJumpTarget(arg2);
-	RET();
-#endif
 
 	const u8* storePairedU8 = AlignCode4();
 	SHR(32, R(EAX), Imm8(6));
@@ -343,64 +321,24 @@ void CommonAsmRoutines::GenQuantizedLoads()
 
 	const u8* loadPairedFloatTwo = AlignCode4();
 	if (cpu_info.bSSSE3) {
-#if _M_X86_64
 		MOVQ_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
-#else
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
-#endif
 		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
 	} else {
-#if _M_X86_64
 		LoadAndSwap(64, RCX, MComplex(RBX, RCX, 1, 0));
 		ROL(64, R(RCX), Imm8(32));
 		MOVQ_xmm(XMM0, R(RCX));
-#else
-#if 0
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
-		PXOR(XMM1, R(XMM1));
-		PSHUFLW(XMM0, R(XMM0), 0xB1);
-		MOVAPD(XMM1, R(XMM0));
-		PSRLW(XMM0, 8);
-		PSLLW(XMM1, 8);
-		POR(XMM0, R(XMM1));
-#else
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
-		BSWAP(32, EAX);
-		MOV(32, M(&psTemp[0]), R(RAX));
-		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base + 4));
-		BSWAP(32, EAX);
-		MOV(32, M(((float *)&psTemp[0]) + 1), R(RAX));
-		MOVQ_xmm(XMM0, M(&psTemp[0]));
-#endif
-#endif
 	}
 	RET();
 
 	const u8* loadPairedFloatOne = AlignCode4();
 	if (cpu_info.bSSSE3) {
-#if _M_X86_64
 		MOVD_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
-#else
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVD_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
-#endif
 		PSHUFB(XMM0, M((void *)pbswapShuffle1x4));
 		UNPCKLPS(XMM0, M((void*)m_one));
 	} else {
-#if _M_X86_64
 		LoadAndSwap(32, RCX, MComplex(RBX, RCX, 1, 0));
 		MOVD_xmm(XMM0, R(RCX));
 		UNPCKLPS(XMM0, M((void*)m_one));
-#else
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
-		BSWAP(32, EAX);
-		MOVD_xmm(XMM0, R(EAX));
-		UNPCKLPS(XMM0, M((void*)m_one));
-#endif
 	}
 	RET();
 

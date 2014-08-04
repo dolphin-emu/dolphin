@@ -19,24 +19,20 @@
 
 using namespace Gen;
 
-#if _M_X86_64
+extern u8 *trampolineCodePtr;
+
 static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	u64 code_addr = (u64)codePtr;
 	disassembler disasm;
 	char disbuf[256];
 	memset(disbuf, 0, 256);
-#if _M_X86_32
-	disasm.disasm32(0, code_addr, codePtr, disbuf);
-#else
 	disasm.disasm64(0, code_addr, codePtr, disbuf);
-#endif
 	PanicAlert("%s\n\n"
 		"Error encountered accessing emulated address %08x.\n"
 		"Culprit instruction: \n%s\nat %#" PRIx64,
 		text.c_str(), emAddress, disbuf, code_addr);
 	return;
 }
-#endif
 
 void TrampolineCache::Init()
 {
@@ -55,7 +51,6 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 		PanicAlert("Trampoline cache full");
 
 	const u8 *trampoline = GetCodePtr();
-#if _M_X86_64
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
 
@@ -96,7 +91,6 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 
 	ABI_PopRegistersAndAdjustStack(registersInUse, true);
 	RET();
-#endif
 	return trampoline;
 }
 
@@ -108,7 +102,6 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 
 	const u8 *trampoline = GetCodePtr();
 
-#if _M_X86_64
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 
@@ -158,7 +151,6 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 
 	ABI_PopRegistersAndAdjustStack(registersInUse, true);
 	RET();
-#endif
 
 	return trampoline;
 }
@@ -170,7 +162,6 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 //    that many of them in a typical program/game.
 const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 {
-#if _M_X86_64
 	SContext *ctx = (SContext *)ctx_void;
 
 	if (!jit->IsInCodeSpace(codePtr))
@@ -271,7 +262,4 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		}
 		return start;
 	}
-#else
-	return 0;
-#endif
 }

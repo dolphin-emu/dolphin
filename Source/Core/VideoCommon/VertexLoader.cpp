@@ -752,12 +752,8 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_VERTEX_LOADER_JIT
 	// End loop here
-#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)&loop_counter));
 	SUB(32, MatR(RAX), Imm8(1));
-#else
-	SUB(32, M(&loop_counter), Imm8(1));
-#endif
 
 	J_CC(CC_NZ, loop_start);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
@@ -768,12 +764,8 @@ void VertexLoader::CompileVertexTranslator()
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)func));
 	CALLptr(R(RAX));
-#else
-	CALL((void*)func);
-#endif
 #else
 	m_PipelineStages[m_numPipelineStages++] = func;
 #endif
@@ -783,24 +775,16 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, dest, MatR(RAX));
-#else
-	MOV(bits, dest, M(address));
-#endif
 #endif
 }
 
 void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, MatR(RAX), value);
-#else
-	MOV(bits, M(address), value);
-#endif
 #endif
 }
 #endif

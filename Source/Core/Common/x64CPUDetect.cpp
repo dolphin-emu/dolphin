@@ -90,21 +90,11 @@ CPUInfo::CPUInfo() {
 void CPUInfo::Detect()
 {
 	memset(this, 0, sizeof(*this));
-#if _M_X86_32
-	Mode64bit = false;
-#elif _M_X86_64
+#ifdef _M_X86_64
 	Mode64bit = true;
 	OS64bit = true;
 #endif
 	num_cores = 1;
-
-#ifdef _WIN32
-#if _M_X86_32
-	BOOL f64 = false;
-	IsWow64Process(GetCurrentProcess(), &f64);
-	OS64bit = (f64 == TRUE) ? true : false;
-#endif
-#endif
 
 	// Set obvious defaults, for extra safety
 	if (Mode64bit) {
