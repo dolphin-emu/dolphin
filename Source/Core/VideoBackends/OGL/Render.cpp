@@ -1834,7 +1834,11 @@ void Renderer::ResetAPIState()
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+	{
 		glDisable(GL_COLOR_LOGIC_OP);
+		if (g_ActiveConfig.bWireFrame)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
