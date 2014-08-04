@@ -91,6 +91,7 @@
     <ClCompile Include="MemoryCards\WiiSaveCrypted.cpp" />
     <ClCompile Include="NetWindow.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
+    <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -139,6 +140,7 @@
     <ClInclude Include="MemoryCards\WiiSaveCrypted.h" />
     <ClInclude Include="NetWindow.h" />
     <ClInclude Include="PatchAddEdit.h" />
+    <ClInclude Include="SoftwareVideoConfigDialog.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TASInputDlg.h" />
     <ClInclude Include="VideoConfigDiag.h" />

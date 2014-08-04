@@ -157,7 +157,7 @@ static void InitBackendInfo()
 void VideoBackend::ShowConfig(void *_hParent)
 {
 	InitBackendInfo();
-	Host_ShowVideoConfig(_hParent, "OpenGL", "gfx_opengl");
+	Host_ShowVideoConfig(_hParent, GetDisplayName(), "gfx_opengl");
 }
 
 bool VideoBackend::Initialize(void *&window_handle)

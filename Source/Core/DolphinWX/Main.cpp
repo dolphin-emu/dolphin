@@ -46,6 +46,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/Main.h"
+#include "DolphinWX/SoftwareVideoConfigDialog.h"
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
@@ -702,7 +703,14 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
                           const std::string& config_name)
 {
-	VideoConfigDiag diag((wxWindow*)parent, WxStrToStr(backend_name),
-	                     WxStrToStr(config_name));
-	diag.ShowModal();
+	if (backend_name == "Direct3D" || backend_name == "OpenGL")
+	{
+		VideoConfigDiag diag((wxWindow*)parent, backend_name, config_name);
+		diag.ShowModal();
+	}
+	else if (backend_name == "Software Renderer")
+	{
+		SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name, config_name);
+		diag.ShowModal();
+	}
 }

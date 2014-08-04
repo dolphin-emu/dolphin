@@ -33,10 +33,6 @@
 #include "VideoBackends/Software/VideoBackend.h"
 #include "VideoBackends/Software/XFMemLoader.h"
 
-#if defined(HAVE_WX) && HAVE_WX
-#include "VideoBackends/Software/VideoConfigDialog.h"
-#endif // HAVE_WX
-
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
@@ -62,12 +58,17 @@ static std::mutex m_csSWVidOccupied;
 
 std::string VideoSoftware::GetName() const
 {
-	return _trans("Software Renderer");
+	return "Software Renderer";
 }
 
-void VideoSoftware::ShowConfig(void *_hParent)
+std::string VideoSoftware::GetDisplayName() const
 {
-	Host_ShowVideoConfig(_hParent, "Software", "gfx_software");
+	return "Software Renderer";
+}
+
+void VideoSoftware::ShowConfig(void *hParent)
+{
+	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_software");
 }
 
 bool VideoSoftware::Initialize(void *&window_handle)
