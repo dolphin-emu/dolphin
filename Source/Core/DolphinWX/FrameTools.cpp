@@ -976,7 +976,14 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderFrame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnRenderParentClose, this);
 		m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
 		m_RenderFrame->Bind(wxEVT_MOVE, &CFrame::OnRenderParentMove, this);
+#ifdef _WIN32
+		// The renderer should use a top-level window for exclusive fullscreen support.
 		m_RenderParent = m_RenderFrame;
+#else
+		// To capture key events on Linux and Mac OS X the frame needs at least one child.
+		m_RenderParent = new wxPanel(m_RenderFrame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
+#endif
+
 		m_RenderFrame->Show();
 	}
 
