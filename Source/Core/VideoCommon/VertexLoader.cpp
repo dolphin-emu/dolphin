@@ -12,16 +12,13 @@
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -866,13 +863,7 @@ void VertexLoader::RunVertices(const VAT& vat, int primitive, int const count)
 		return;
 	}
 	SetupRunVertices(vat, primitive, count);
-	VertexManager::PrepareForAdditionalData(primitive, count,
-			m_native_vtx_decl.stride);
 	ConvertVertices(count);
-	IndexGenerator::AddIndices(primitive, count);
-
-	ADDSTAT(stats.thisFrame.numPrims, count);
-	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 }
 
 void VertexLoader::SetVAT(const VAT& vat)

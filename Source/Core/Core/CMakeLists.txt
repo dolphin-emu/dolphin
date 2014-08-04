@@ -221,7 +221,18 @@ if(_M_ARM_32)
 			)
 endif()
 
-set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network)
+set(LIBS
+	audiocommon
+	bdisasm
+	common
+	discio
+	inputcommon
+	${LZO}
+	sfml-network
+	videoogl
+	videosoftware
+	z
+	)
 
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
@@ -236,6 +247,8 @@ if(WIN32)
 		HW/WiimoteReal/IOWin.cpp)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
+	set(LIBS ${LIBS}
+		${IOB_LIBRARY})
 elseif(UNIX)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Unix.cpp)
 	if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND BLUEZ_FOUND)

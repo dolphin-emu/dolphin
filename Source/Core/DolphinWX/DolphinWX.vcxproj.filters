@@ -27,6 +27,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GLInterface\GLInterface.cpp" />
     <ClCompile Include="GLInterface\WGL.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainNoGUI.cpp" />
@@ -153,9 +154,11 @@
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="SoftwareVideoConfigDialog.cpp">
+      <Filter>GUI\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GLInterface\InterfaceBase.h" />
     <ClInclude Include="GLInterface\WGL.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="WXInputBase.h" />
@@ -276,6 +279,9 @@
     </ClInclude>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="GLInterface\GLInterface.h" />
+    <ClInclude Include="SoftwareVideoConfigDialog.h">
+      <Filter>GUI\Video</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

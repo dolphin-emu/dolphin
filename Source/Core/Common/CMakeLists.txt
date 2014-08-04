@@ -48,6 +48,11 @@ if(WIN32)
     set(SRCS ${SRCS} ExtendedTrace.cpp)
 endif(WIN32)
 
+set(LIBS "${CMAKE_THREAD_LIBS_INIT}")
+if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND (NOT ANDROID))
+	set(LIBS ${LIBS} rt)
+endif()
+
 enable_precompiled_headers(stdafx.h stdafx.cpp SRCS)
 
-add_dolphin_library(common "${SRCS}" "${CMAKE_THREAD_LIBS_INIT}")
+add_dolphin_library(common "${SRCS}" "${LIBS}")

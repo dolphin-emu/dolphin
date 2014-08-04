@@ -9,6 +9,7 @@
 
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -152,7 +153,15 @@ void RunVertices(int vtx_attr_group, int primitive, int count)
 		VertexManager::Flush();
 	s_current_vtx_fmt = required_vtx_fmt;
 
-	RefreshLoader(vtx_attr_group)->RunVertices(g_VtxAttr[vtx_attr_group], primitive, count);
+	VertexManager::PrepareForAdditionalData(primitive, count,
+			loader->GetNativeVertexDeclaration().stride);
+
+	loader->RunVertices(g_VtxAttr[vtx_attr_group], primitive, count);
+
+	IndexGenerator::AddIndices(primitive, count);
+
+	ADDSTAT(stats.thisFrame.numPrims, count);
+	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 }
 
 int GetVertexSize(int vtx_attr_group)
