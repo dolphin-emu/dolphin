@@ -21,7 +21,7 @@
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #if defined(_DEBUG) || defined(DEBUGFAST)
-#include "PowerPCDisasm.h"
+#include "Common/GekkoDisassembler.h"
 #endif
 
 using namespace Gen;
@@ -613,9 +613,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (gpr.SanityCheck() || fpr.SanityCheck())
 		{
-			char ppcInst[256];
-			DisassembleGekko(ops[i].inst.hex, em_address, ppcInst, 256);
-			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppcInst);
+			std::string ppc_inst = GekkoDisassembler::Disassemble(ops[i].inst.hex, em_address);
+			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
 		}
 #endif
 		if (js.skipnext) {
