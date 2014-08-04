@@ -478,9 +478,10 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 		{
 			std::vector<std::string> dis;
 			SplitString(m_debugger->Disassemble(address), '\t', dis);
+			dis.resize(2);
 
 			static const size_t VALID_BRANCH_LENGTH = 10;
-			const std::string& opcode = dis[0];
+			const std::string& opcode   = dis[0];
 			const std::string& operands = dis[1];
 			std::string desc;
 
