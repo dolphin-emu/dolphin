@@ -162,7 +162,7 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 {
 	if (!Memory::IsInitialized())
 	{
-		PanicAlertT("Cannot set uninitialized memory.");
+		WxUtils::ShowErrorDialog(_("Cannot set uninitialized memory."));
 		return;
 	}
 
@@ -173,13 +173,13 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 
 	if (!TryParse(std::string("0x") + str_addr, &addr))
 	{
-		PanicAlertT("Invalid Address: %s", str_addr.c_str());
+		WxUtils::ShowErrorDialog(wxString::Format(_("Invalid address: %s"), str_addr.c_str()));
 		return;
 	}
 
 	if (!TryParse(std::string("0x") + str_val, &val))
 	{
-		PanicAlertT("Invalid Value: %s", str_val.c_str());
+		WxUtils::ShowErrorDialog(wxString::Format(_("Invalid value: %s"), str_val.c_str()));
 		return;
 	}
 
