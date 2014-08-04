@@ -524,19 +524,6 @@ void Host_Message(int Id)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-#ifdef _WIN32
-extern "C" HINSTANCE wxGetInstance();
-void* Host_GetInstance()
-{
-	return (void*)wxGetInstance();
-}
-#else
-void* Host_GetInstance()
-{
-	return nullptr;
-}
-#endif
-
 void* Host_GetRenderHandle()
 {
 	return main_frame->GetRenderHandle();

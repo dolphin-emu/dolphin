@@ -65,8 +65,6 @@ void* Host_GetRenderHandle()
 	return nullptr;
 }
 
-void* Host_GetInstance() { return nullptr; }
-
 void Host_UpdateTitle(const std::string& title){};
 
 void Host_UpdateLogDisplay(){}

@@ -67,8 +67,6 @@ void* Host_GetRenderHandle()
 	return surf;
 }
 
-void* Host_GetInstance() { return nullptr; }
-
 void Host_UpdateTitle(const std::string& title)
 {
 	__android_log_write(ANDROID_LOG_INFO, DOLPHIN_TAG, title.c_str());

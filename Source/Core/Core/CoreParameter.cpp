@@ -21,8 +21,7 @@
 #include "DiscIO/VolumeCreator.h"
 
 SCoreStartupParameter::SCoreStartupParameter()
-: hInstance(nullptr),
-  bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
+: bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
   bJITNoBlockCache(false), bJITBlockLinking(true),
   bJITOff(false),
   bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
