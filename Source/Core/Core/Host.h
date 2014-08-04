@@ -43,6 +43,5 @@ void Host_UpdateMainFrame();
 void Host_UpdateStatusBar(const std::string& text, int Filed = 0);
 void Host_UpdateTitle(const std::string& title);
 
-// TODO (neobrain): Remove these from host!
-void* Host_GetInstance();
+// TODO (neobrain): Remove this from host!
 void* Host_GetRenderHandle();
