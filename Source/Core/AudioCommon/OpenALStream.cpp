@@ -38,7 +38,7 @@ bool OpenALStream::Start()
 				//period_size_in_millisec = 1000 / refresh;
 
 				alcMakeContextCurrent(pContext);
-				thread = std::thread(std::mem_fn(&OpenALStream::SoundLoop), this);
+				thread = std::thread(&OpenALStream::SoundLoop, this);
 				bReturn = true;
 			}
 			else
