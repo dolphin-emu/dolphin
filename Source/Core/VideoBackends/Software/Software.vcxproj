@@ -59,7 +59,6 @@
     <ClCompile Include="TextureEncoder.cpp" />
     <ClCompile Include="TextureSampler.cpp" />
     <ClCompile Include="TransformUnit.cpp" />
-    <ClCompile Include="VideoConfigDialog.cpp" />
     <ClCompile Include="XFMemLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -87,7 +86,6 @@
     <ClInclude Include="TransformUnit.h" />
     <ClInclude Include="Vec3.h" />
     <ClInclude Include="VideoBackend.h" />
-    <ClInclude Include="VideoConfigDialog.h" />
     <ClInclude Include="XFMemLoader.h" />
   </ItemGroup>
   <ItemGroup>
