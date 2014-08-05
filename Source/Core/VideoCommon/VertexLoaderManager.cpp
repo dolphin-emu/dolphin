@@ -9,6 +9,7 @@
 
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoader.h"
@@ -144,6 +145,13 @@ void RunVertices(int vtx_attr_group, int primitive, int count)
 	if (!count)
 		return;
 	VertexLoader* loader = RefreshLoader(vtx_attr_group);
+
+	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5)
+	{
+		// if cull mode is CULL_ALL, ignore triangles and quads
+		DataSkip(count * loader->GetVertexSize());
+		return;
+	}
 
 	// If the native vertex format changed, force a flush.
 	NativeVertexFormat* required_vtx_fmt = GetNativeVertexFormat(
