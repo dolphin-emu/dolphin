@@ -1270,7 +1270,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			// The lower 3 bits is for GQR index. The next 1 bit is for inst.W
 			unsigned int quantreg = (*I >> 16) & 0x7;
 			unsigned int w = *I >> 19;
-			Jit->MOVZX(32, 16, EAX, M(((char *)&GQR(quantreg)) + 2));
+			// Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
+			// Hence, we need to mask out the unused bits. The layout of the GQR register is
+			// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
+			// 0b0011111100000111, or 0x3F07.
+			Jit->MOV(32, R(EAX), Imm32(0x3F07));
+			Jit->AND(32, R(EAX), M(((char *)&GQR(quantreg)) + 2));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 			Jit->OR(32, R(EDX), Imm8(w << 3));
 
@@ -1317,7 +1322,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			regSpill(RI, EAX);
 			regSpill(RI, EDX);
 			u32 quantreg = *I >> 24;
-			Jit->MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
+			Jit->MOV(32, R(EAX), Imm32(0x3F07));
+			Jit->AND(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));

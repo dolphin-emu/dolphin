@@ -38,7 +38,12 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		ADD(32, R(ECX), Imm32((u32)offset));
 	if (update && offset)
 		MOV(32, gpr.R(a), R(ECX));
-	MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + inst.I]));
+	// Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
+	// Hence, we need to mask out the unused bits. The layout of the GQR register is
+	// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
+	// 0b0011111100000111, or 0x3F07.
+	MOV(32, R(EAX), Imm32(0x3F07));
+	AND(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_GQR0 + inst.I]));
 	MOVZX(32, 8, EDX, R(AL));
 
 	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32] without a base register!
@@ -75,7 +80,8 @@ void Jit64::psq_l(UGeckoInstruction inst)
 		MOV(32, R(ECX), gpr.R(inst.RA));
 	if (update && offset)
 		MOV(32, gpr.R(inst.RA), R(ECX));
-	MOVZX(32, 16, EAX, M(((char *)&GQR(inst.I)) + 2));
+	MOV(32, R(EAX), Imm32(0x3F07));
+	AND(32, R(EAX), M(((char *)&GQR(inst.I)) + 2));
 	MOVZX(32, 8, EDX, R(AL));
 	if (inst.W)
 		OR(32, R(EDX), Imm8(8));
