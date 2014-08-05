@@ -542,19 +542,6 @@ void Host_NotifyMapLoaded()
 	}
 }
 
-
-void Host_UpdateLogDisplay()
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATELOGDISPLAY);
-	main_frame->GetEventHandler()->AddPendingEvent(event);
-
-	if (main_frame->g_pCodeWindow)
-	{
-		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-	}
-}
-
-
 void Host_UpdateDisasmDialog()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
@@ -565,7 +552,6 @@ void Host_UpdateDisasmDialog()
 		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 }
-
 
 void Host_ShowJitResults(unsigned int address)
 {
