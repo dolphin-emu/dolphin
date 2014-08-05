@@ -27,7 +27,7 @@ IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& se
 {
 	SetRange(minVal, maxVal);
 	SetValue(m_setting);
-	Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &IntegerSetting::UpdateValue, this);
+	Bind(wxEVT_SPINCTRL, &IntegerSetting::UpdateValue, this);
 }
 
 
@@ -39,24 +39,24 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 {
 	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
-	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);
+	wxNotebook* const notebook = new wxNotebook(this, -1);
 
 	// -- GENERAL --
 	{
-	wxPanel* const page_general= new wxPanel(notebook, -1, wxDefaultPosition);
-	notebook->AddPage(page_general, wxT("General"));
+	wxPanel* const page_general= new wxPanel(notebook, -1);
+	notebook->AddPage(page_general, _("General"));
 	wxBoxSizer* const szr_general = new wxBoxSizer(wxVERTICAL);
 
 	// - rendering
 	{
-	wxStaticBoxSizer* const group_rendering = new wxStaticBoxSizer(wxVERTICAL, page_general, wxT("Rendering"));
+	wxStaticBoxSizer* const group_rendering = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Rendering"));
 	szr_general->Add(group_rendering, 0, wxEXPAND | wxALL, 5);
 	wxGridSizer* const szr_rendering = new wxGridSizer(2, 5, 5);
 	group_rendering->Add(szr_rendering, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 	// backend
 	wxStaticText* const label_backend = new wxStaticText(page_general, wxID_ANY, _("Backend:"));
-	wxChoice* const choice_backend = new wxChoice(page_general, wxID_ANY, wxDefaultPosition);
+	wxChoice* const choice_backend = new wxChoice(page_general, wxID_ANY);
 
 	for (const VideoBackend* backend : g_available_video_backends)
 	{
@@ -65,7 +65,7 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 
 	// TODO: How to get the translated plugin name?
 	choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));
-	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &SoftwareVideoConfigDialog::Event_Backend, this);
+	choice_backend->Bind(wxEVT_CHOICE, &SoftwareVideoConfigDialog::Event_Backend, this);
 
 	szr_rendering->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
 	szr_rendering->Add(choice_backend, 1, 0, 0);
@@ -77,52 +77,52 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 	}
 
 	// rasterizer
-	szr_rendering->Add(new SettingCheckBox(page_general, wxT("Hardware rasterization"), wxT(""), vconfig.bHwRasterizer));
+	szr_rendering->Add(new SettingCheckBox(page_general, _("Hardware rasterization"), "", vconfig.bHwRasterizer));
 
 	// xfb
-	szr_rendering->Add(new SettingCheckBox(page_general, wxT("Bypass XFB"), wxT(""), vconfig.bBypassXFB));
+	szr_rendering->Add(new SettingCheckBox(page_general, _("Bypass XFB"), "", vconfig.bBypassXFB));
 	}
 
 	// - info
 	{
-	wxStaticBoxSizer* const group_info = new wxStaticBoxSizer(wxVERTICAL, page_general, wxT("Overlay Information"));
+	wxStaticBoxSizer* const group_info = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Overlay Information"));
 	szr_general->Add(group_info, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	wxGridSizer* const szr_info = new wxGridSizer(2, 5, 5);
 	group_info->Add(szr_info, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_info->Add(new SettingCheckBox(page_general, wxT("Various Statistics"), wxT(""), vconfig.bShowStats));
+	szr_info->Add(new SettingCheckBox(page_general, _("Various Statistics"), "", vconfig.bShowStats));
 	}
 
 	// - utility
 	{
-	wxStaticBoxSizer* const group_utility = new wxStaticBoxSizer(wxVERTICAL, page_general, wxT("Utility"));
+	wxStaticBoxSizer* const group_utility = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Utility"));
 	szr_general->Add(group_utility, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	wxGridSizer* const szr_utility = new wxGridSizer(2, 5, 5);
 	group_utility->Add(szr_utility, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_utility->Add(new SettingCheckBox(page_general, wxT("Dump Textures"), wxT(""), vconfig.bDumpTextures));
-	szr_utility->Add(new SettingCheckBox(page_general, wxT("Dump Objects"), wxT(""), vconfig.bDumpObjects));
-	szr_utility->Add(new SettingCheckBox(page_general, wxT("Dump Frames"), wxT(""), vconfig.bDumpFrames));
+	szr_utility->Add(new SettingCheckBox(page_general, _("Dump Textures"), "", vconfig.bDumpTextures));
+	szr_utility->Add(new SettingCheckBox(page_general, _("Dump Objects"), "", vconfig.bDumpObjects));
+	szr_utility->Add(new SettingCheckBox(page_general, _("Dump Frames"), "", vconfig.bDumpFrames));
 
 	// - debug only
-	wxStaticBoxSizer* const group_debug_only_utility = new wxStaticBoxSizer(wxHORIZONTAL, page_general, wxT("Debug Only"));
+	wxStaticBoxSizer* const group_debug_only_utility = new wxStaticBoxSizer(wxHORIZONTAL, page_general, _("Debug Only"));
 	group_utility->Add(group_debug_only_utility, 0, wxEXPAND | wxBOTTOM, 5);
 	wxGridSizer* const szr_debug_only_utility = new wxGridSizer(2, 5, 5);
 	group_debug_only_utility->Add(szr_debug_only_utility, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_debug_only_utility->Add(new SettingCheckBox(page_general, wxT("Dump TEV Stages"), wxT(""), vconfig.bDumpTevStages));
-	szr_debug_only_utility->Add(new SettingCheckBox(page_general, wxT("Dump Texture Fetches"), wxT(""), vconfig.bDumpTevTextureFetches));
+	szr_debug_only_utility->Add(new SettingCheckBox(page_general, _("Dump TEV Stages"), "", vconfig.bDumpTevStages));
+	szr_debug_only_utility->Add(new SettingCheckBox(page_general, _("Dump Texture Fetches"), "", vconfig.bDumpTevTextureFetches));
 	}
 
 	// - misc
 	{
-	wxStaticBoxSizer* const group_misc = new wxStaticBoxSizer(wxVERTICAL, page_general, wxT("Drawn Object Range"));
+	wxStaticBoxSizer* const group_misc = new wxStaticBoxSizer(wxVERTICAL, page_general, _("Drawn Object Range"));
 	szr_general->Add(group_misc, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	wxFlexGridSizer* const szr_misc = new wxFlexGridSizer(2, 5, 5);
 	group_misc->Add(szr_misc, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	szr_misc->Add(new U32Setting(page_general, wxT("Start"), vconfig.drawStart, 0, 100000));
-	szr_misc->Add(new U32Setting(page_general, wxT("End"), vconfig.drawEnd, 0, 100000));
+	szr_misc->Add(new U32Setting(page_general, _("Start"), vconfig.drawStart, 0, 100000));
+	szr_misc->Add(new U32Setting(page_general, _("End"), vconfig.drawEnd, 0, 100000));
 	}
 
 	page_general->SetSizerAndFit(szr_general);
@@ -130,7 +130,7 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
 
 	wxBoxSizer* const szr_main = new wxBoxSizer(wxVERTICAL);
 	szr_main->Add(notebook, 1, wxEXPAND | wxALL, 5);
-	szr_main->Add(new wxButton(this, wxID_OK, wxT("Close"), wxDefaultPosition),
+	szr_main->Add(new wxButton(this, wxID_OK, _("Close"), wxDefaultPosition),
 			0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 5);
 
 	SetSizerAndFit(szr_main);
