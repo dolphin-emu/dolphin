@@ -10,7 +10,6 @@
 
 #include "Core/Host.h"
 
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PixelEngine.h"
@@ -840,12 +839,6 @@ void VertexLoader::ConvertVertices ( int count )
 
 void VertexLoader::RunVertices(const VAT& vat, int primitive, int const count)
 {
-	if (bpmem.genMode.cullmode == 3 && primitive < 5)
-	{
-		// if cull mode is none, ignore triangles and quads
-		DataSkip(count * m_VertexSize);
-		return;
-	}
 	SetupRunVertices(vat, primitive, count);
 	ConvertVertices(count);
 }
