@@ -37,7 +37,6 @@ void Host_SetWiiMoteConnectionState(int _State);
 void Host_ShowJitResults(unsigned int address);
 void Host_SysMessage(const char *fmt, ...);
 void Host_UpdateDisasmDialog();
-void Host_UpdateLogDisplay();
 void Host_UpdateMainFrame();
 void Host_UpdateStatusBar(const std::string& text, int Filed = 0);
 void Host_UpdateTitle(const std::string& title);

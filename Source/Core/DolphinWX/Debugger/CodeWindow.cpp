@@ -286,7 +286,6 @@ void CCodeWindow::SingleStep()
 		// need a short wait here
 		JumpToAddress(PC);
 		Update();
-		Host_UpdateLogDisplay();
 	}
 }
 

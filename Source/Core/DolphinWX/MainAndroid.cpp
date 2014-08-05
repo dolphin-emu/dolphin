@@ -72,8 +72,6 @@ void Host_UpdateTitle(const std::string& title)
 	__android_log_write(ANDROID_LOG_INFO, DOLPHIN_TAG, title.c_str());
 }
 
-void Host_UpdateLogDisplay(){}
-
 void Host_UpdateDisasmDialog(){}
 
 void Host_UpdateMainFrame()
