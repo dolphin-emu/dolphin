@@ -4,9 +4,6 @@
 
 #include <wx/panel.h>
 
-#include "Core/ConfigManager.h"
-#include "Core/Host.h"
-
 #include "DolphinWX/GLInterface/GLInterface.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -21,10 +18,9 @@ void cInterfaceAGL::Swap()
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceAGL::Create(void *&window_handle)
 {
-	int _tx, _ty, _twidth, _theight;
-	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
-
-	GLWin.cocoaWin = (NSView*)(((wxPanel*)window_handle)->GetHandle());
+	// FIXME: Get rid of the explicit use of wxPanel here. This shouldn't be necessary.
+	GLWin.cocoaWin = reinterpret_cast<NSView*>(((wxPanel*)window_handle)->GetHandle());
+	NSSize size = [GLWin.cocoaWin frame].size;
 
 	// Enable high-resolution display support.
 	[GLWin.cocoaWin setWantsBestResolutionOpenGLSurface:YES];
@@ -32,12 +28,12 @@ bool cInterfaceAGL::Create(void *&window_handle)
 	NSWindow *window = [GLWin.cocoaWin window];
 
 	float scale = [window backingScaleFactor];
-	_twidth *= scale;
-	_theight *= scale;
+	size.width *= scale;
+	size.height *= scale;
 
 	// Control window size and picture scaling
-	s_backbuffer_width = _twidth;
-	s_backbuffer_height = _theight;
+	s_backbuffer_width = size.width;
+	s_backbuffer_height = size.height;
 
 	NSOpenGLPixelFormatAttribute attr[] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, NSOpenGLPFAAccelerated, 0 };
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
