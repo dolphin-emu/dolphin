@@ -33,6 +33,7 @@
 #include "Common/SymbolDB.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
@@ -139,7 +140,10 @@ void CCodeView::ToggleBreakpoint(u32 address)
 {
 	m_debugger->ToggleBreakpoint(address);
 	Refresh();
-	Host_UpdateBreakPointView();
+
+	// Propagate back to the parent window to update the breakpoint list.
+	wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
+	GetEventHandler()->AddPendingEvent(evt);
 }
 
 void CCodeView::OnMouseMove(wxMouseEvent& event)
