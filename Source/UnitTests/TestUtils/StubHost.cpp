@@ -20,7 +20,6 @@ void Host_UpdateTitle(const std::string&) {}
 void Host_UpdateLogDisplay() {}
 void Host_UpdateDisasmDialog() {}
 void Host_UpdateMainFrame() {}
-void Host_UpdateBreakPointView() {}
 void Host_GetRenderWindowSize(int&, int&, int&, int&) {}
 void Host_RequestRenderWindowSize(int, int) {}
 void Host_SetStartupDebuggingParameters() {}

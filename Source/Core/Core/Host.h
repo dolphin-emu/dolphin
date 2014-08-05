@@ -36,7 +36,6 @@ void Host_SetStartupDebuggingParameters();
 void Host_SetWiiMoteConnectionState(int _State);
 void Host_ShowJitResults(unsigned int address);
 void Host_SysMessage(const char *fmt, ...);
-void Host_UpdateBreakPointView();
 void Host_UpdateDisasmDialog();
 void Host_UpdateLogDisplay();
 void Host_UpdateMainFrame();

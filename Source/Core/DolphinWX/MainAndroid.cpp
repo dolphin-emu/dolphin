@@ -80,8 +80,6 @@ void Host_UpdateMainFrame()
 {
 }
 
-void Host_UpdateBreakPointView(){}
-
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
 	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
