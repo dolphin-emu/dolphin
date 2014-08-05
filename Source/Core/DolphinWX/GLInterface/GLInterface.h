@@ -104,8 +104,6 @@ typedef struct {
 	XSetWindowAttributes attr;
 	std::thread xEventThread;
 #endif
-	int x, y;
-	unsigned int width, height;
 } GLWindow;
 
 extern GLWindow GLWin;
