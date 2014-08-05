@@ -4,8 +4,6 @@
 
 #include <string>
 
-#include "Core/Host.h"
-
 #include "DolphinWX/GLInterface/GLInterface.h"
 
 #include "VideoCommon/RenderBase.h"
@@ -41,13 +39,6 @@ void cInterfaceGLX::Swap()
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceGLX::Create(void *&window_handle)
 {
-	int _tx, _ty, _twidth, _theight;
-	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
-
-	// Control window size and picture scaling
-	s_backbuffer_width = _twidth;
-	s_backbuffer_height = _theight;
-
 	int glxMajorVersion, glxMinorVersion;
 
 	// attributes for a single buffered visual in RGBA format with at least
@@ -113,11 +104,6 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		return false;
 	}
 
-	GLWin.x = _tx;
-	GLWin.y = _ty;
-	GLWin.width = _twidth;
-	GLWin.height = _theight;
-
 	XWindow.CreateXWindow();
 	window_handle = (void *)GLWin.win;
 	return true;
@@ -125,14 +111,6 @@ bool cInterfaceGLX::Create(void *&window_handle)
 
 bool cInterfaceGLX::MakeCurrent()
 {
-	// connect the glx-context to the window
-	#if defined(HAVE_WX) && (HAVE_WX)
-	Host_GetRenderWindowSize(GLWin.x, GLWin.y,
-			(int&)GLWin.width, (int&)GLWin.height);
-	XMoveResizeWindow(GLWin.evdpy, GLWin.win, GLWin.x, GLWin.y,
-			GLWin.width, GLWin.height);
-	#endif
-
 	bool success = glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 	if (success)
 	{
