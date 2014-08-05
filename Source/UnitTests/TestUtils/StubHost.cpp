@@ -15,7 +15,6 @@ void Host_RefreshDSPDebuggerWindow() {}
 void Host_ShowJitResults(unsigned int) {}
 void Host_Message(int) {}
 void* Host_GetRenderHandle() { return nullptr; }
-void* Host_GetInstance() { return nullptr; }
 void Host_UpdateTitle(const std::string&) {}
 void Host_UpdateLogDisplay() {}
 void Host_UpdateDisasmDialog() {}
