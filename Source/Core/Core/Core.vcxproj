@@ -277,7 +277,6 @@
     <ClInclude Include="DSP\DSPStacks.h" />
     <ClInclude Include="DSP\DSPTables.h" />
     <ClInclude Include="DSP\Jit\DSPJitRegCache.h" />
-    <ClInclude Include="DSP\Jit\DSPJitUtil.h" />
     <ClInclude Include="DSP\LabelMap.h" />
     <ClInclude Include="ec_wii.h" />
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h" />
