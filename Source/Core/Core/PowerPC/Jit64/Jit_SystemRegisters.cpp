@@ -11,31 +11,28 @@
 
 using namespace Gen;
 
-void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out)
+void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate)
 {
 	switch (bit)
 	{
 	case CR_SO_BIT:  // check bit 61 set
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 61));
-		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM1));
-		SETcc(CC_NZ, R(out));
+		BT(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(61));
+		SETcc(negate ? CC_NC : CC_C, R(out));
 		break;
 
 	case CR_EQ_BIT:  // check bits 31-0 == 0
-		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm32(0));
-		SETcc(CC_Z, R(out));
+		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm8(0));
+		SETcc(negate ? CC_NZ : CC_Z, R(out));
 		break;
 
 	case CR_GT_BIT:  // check val > 0
-		MOV(64, R(ABI_PARAM1), M(&PowerPC::ppcState.cr_val[field]));
-		TEST(64, R(ABI_PARAM1), R(ABI_PARAM1));
-		SETcc(CC_G, R(out));
+		CMP(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(0));
+		SETcc(negate ? CC_NG : CC_G, R(out));
 		break;
 
 	case CR_LT_BIT:  // check bit 62 set
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 62));
-		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM1));
-		SETcc(CC_NZ, R(out));
+		BT(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(62));
+		SETcc(negate ? CC_NC : CC_C, R(out));
 		break;
 
 	default:
@@ -45,63 +42,40 @@ void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out)
 
 void Jit64::SetCRFieldBit(int field, int bit, Gen::X64Reg in)
 {
-	MOV(64, R(ABI_PARAM2), M(&PowerPC::ppcState.cr_val[field]));
-	TEST(8, R(in), Imm8(1));
-	FixupBranch input_is_set = J_CC(CC_NZ, false);
-
-	// New value is 0.
-	switch (bit)
-	{
-	case CR_SO_BIT:  // unset bit 61
-		MOV(64, R(ABI_PARAM1), Imm64(~(1ull << 61)));
-		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
-		break;
-
-	case CR_EQ_BIT:  // set bit 0 to 1
-		OR(8, R(ABI_PARAM2), Imm8(1));
-		break;
-
-	case CR_GT_BIT:  // !GT, set bit 63
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 63));
-		OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
-		break;
-
-	case CR_LT_BIT:  // !LT, unset bit 62
-		MOV(64, R(ABI_PARAM1), Imm64(~(1ull << 62)));
-		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
-		break;
-	}
-
-	FixupBranch end = J();
-	SetJumpTarget(input_is_set);
+	MOV(64, R(ABI_PARAM1), M(&PowerPC::ppcState.cr_val[field]));
+	MOVZX(32, 8, in, R(in));
 
 	switch (bit)
 	{
-	case CR_SO_BIT:  // set bit 61
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 61));
-		OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
+	case CR_SO_BIT:  // set bit 61 to input
+		BTR(64, R(ABI_PARAM1), Imm8(61));
+		SHL(64, R(in), Imm8(61));
+		OR(64, R(ABI_PARAM1), R(in));
 		break;
 
-	case CR_EQ_BIT:  // set bits 31-0 to 0
-		MOV(64, R(ABI_PARAM1), Imm64(0xFFFFFFFF00000000));
-		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
+	case CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
+		SHR(64, R(ABI_PARAM1), Imm8(32));
+		SHL(64, R(ABI_PARAM1), Imm8(32));
+		XOR(32, R(in), Imm8(1));
+		OR(64, R(ABI_PARAM1), R(in));
 		break;
 
-	case CR_GT_BIT:  // unset bit 63
-		MOV(64, R(ABI_PARAM1), Imm64(~(1ull << 63)));
-		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
+	case CR_GT_BIT:  // set bit 63 to !input
+		BTR(64, R(ABI_PARAM1), Imm8(63));
+		NOT(32, R(in));
+		SHL(64, R(in), Imm8(63));
+		OR(64, R(ABI_PARAM1), R(in));
 		break;
 
-	case CR_LT_BIT:  // set bit 62
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 62));
-		OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
+	case CR_LT_BIT:  // set bit 62 to input
+		BTR(64, R(ABI_PARAM1), Imm8(62));
+		SHL(64, R(in), Imm8(62));
+		OR(64, R(ABI_PARAM1), R(in));
 		break;
 	}
 
-	SetJumpTarget(end);
-	MOV(64, R(ABI_PARAM1), Imm64(1ull << 32));
-	OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
-	MOV(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM2));
+	BTS(64, R(ABI_PARAM1), Imm8(32));
+	MOV(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM1));
 }
 
 FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
@@ -109,23 +83,20 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 	switch (bit)
 	{
 	case CR_SO_BIT:  // check bit 61 set
-		MOV(64, R(RAX), Imm64(1ull << 61));
-		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(RAX));
-		return J_CC(jump_if_set ? CC_NZ : CC_Z, true);
+		BT(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(61));
+		return J_CC(jump_if_set ? CC_C : CC_NC, true);
 
 	case CR_EQ_BIT:  // check bits 31-0 == 0
-		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm32(0));
+		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm8(0));
 		return J_CC(jump_if_set ? CC_Z : CC_NZ, true);
 
 	case CR_GT_BIT:  // check val > 0
-		MOV(64, R(RAX), M(&PowerPC::ppcState.cr_val[field]));
-		TEST(64, R(RAX), R(RAX));
+		CMP(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(0));
 		return J_CC(jump_if_set ? CC_G : CC_LE, true);
 
 	case CR_LT_BIT:  // check bit 62 set
-		MOV(64, R(RAX), Imm64(1ull << 62));
-		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(RAX));
-		return J_CC(jump_if_set ? CC_NZ : CC_Z, true);
+		BT(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(62));
+		return J_CC(jump_if_set ? CC_C : CC_NC, true);
 
 	default:
 		_assert_msg_(DYNA_REC, false, "Invalid CR bit");
@@ -458,49 +429,33 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	// not required.
 
 	// USES_CR
+	// crandc or crorc or creqv or crnand or crnor
+	bool negateA = inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 289 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
+	// crnand or crnor
+	bool negateB = inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
 
-	gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-	GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), ABI_PARAM2);
-	GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), EAX);
+	gpr.FlushLockX(ABI_PARAM1);
+	GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), ABI_PARAM1, negateA);
+	GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), EAX, negateB);
 
 	// Compute combined bit
 	switch (inst.SUBOP10)
 	{
-	case 33:  // crnor
-		OR(8, R(EAX), R(ABI_PARAM2));
-		NOT(8, R(EAX));
-		break;
-
+	case 33:  // crnor: ~(A || B) == (~A && ~B)
 	case 129: // crandc
-		NOT(8, R(ABI_PARAM2));
-		AND(8, R(EAX), R(ABI_PARAM2));
+	case 257: // crand
+		AND(8, R(EAX), R(ABI_PARAM1));
 		break;
 
 	case 193: // crxor
-		XOR(8, R(EAX), R(ABI_PARAM2));
-		break;
-
-	case 225: // crnand
-		AND(8, R(EAX), R(ABI_PARAM2));
-		NOT(8, R(EAX));
-		break;
-
-	case 257: // crand
-		AND(8, R(EAX), R(ABI_PARAM2));
-		break;
-
 	case 289: // creqv
-		XOR(8, R(EAX), R(ABI_PARAM2));
-		NOT(8, R(EAX));
+		XOR(8, R(EAX), R(ABI_PARAM1));
 		break;
 
+	case 225: // crnand: ~(A && B) == (~A || ~B)
 	case 417: // crorc
-		NOT(8, R(ABI_PARAM2));
-		OR(8, R(EAX), R(ABI_PARAM2));
-		break;
-
 	case 449: // cror
-		OR(8, R(EAX), R(ABI_PARAM2));
+		OR(8, R(EAX), R(ABI_PARAM1));
 		break;
 	}
 

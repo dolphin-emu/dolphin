@@ -105,8 +105,8 @@ public:
 
 	// Reads a given bit of a given CR register part. Clobbers ABI_PARAM1,
 	// don't forget to xlock it before.
-	void GetCRFieldBit(int field, int bit, Gen::X64Reg out);
-	// Clobbers ABI_PARAM1 and ABI_PARAM2, xlock them before.
+	void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
+	// Clobbers ABI_PARAM1, xlock it before.
 	void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
 
 	// Generates a branch that will check if a given bit of a CR register part
