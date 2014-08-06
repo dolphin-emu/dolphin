@@ -284,6 +284,15 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	gpr.UnlockAllX();
 }
 
+// convert flags into 64-bit CR values with a lookup table
+static const u64 m_crTable[16] =
+{
+	PPCCRToInternal(0x0), PPCCRToInternal(0x1), PPCCRToInternal(0x2), PPCCRToInternal(0x3),
+	PPCCRToInternal(0x4), PPCCRToInternal(0x5), PPCCRToInternal(0x6), PPCCRToInternal(0x7),
+	PPCCRToInternal(0x8), PPCCRToInternal(0x9), PPCCRToInternal(0xA), PPCCRToInternal(0xB),
+	PPCCRToInternal(0xC), PPCCRToInternal(0xD), PPCCRToInternal(0xE), PPCCRToInternal(0xF),
+};
+
 void Jit64::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -300,8 +309,16 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 				if ((crm & (0x80 >> i)) != 0)
 				{
 					u8 newcr = (gpr.R(inst.RS).offset >> (28 - (i * 4))) & 0xF;
-					MOV(64, R(RAX), Imm64(PPCCRToInternal(newcr)));
-					MOV(64, M(&PowerPC::ppcState.cr_val[i]), R(RAX));
+					u64 newcrval = PPCCRToInternal(newcr);
+					if ((s64)newcrval == (s32)newcrval)
+					{
+						MOV(64, M(&PowerPC::ppcState.cr_val[i]), Imm32(newcrval));
+					}
+					else
+					{
+						MOV(64, R(RAX), Imm64(newcrval));
+						MOV(64, M(&PowerPC::ppcState.cr_val[i]), R(RAX));
+					}
 				}
 			}
 		}
@@ -309,50 +326,20 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 		{
 			gpr.Lock(inst.RS);
 			gpr.BindToRegister(inst.RS, true, false);
-			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 			for (int i = 0; i < 8; i++)
 			{
 				if ((crm & (0x80 >> i)) != 0)
 				{
-					MOVZX(64, 32, EAX, gpr.R(inst.RS));
-					SHR(64, R(EAX), Imm8(28 - (i * 4)));
-					AND(64, R(EAX), Imm32(0xF));
-
-					X64Reg cr_val = ABI_PARAM1;
-					X64Reg tmp = ABI_PARAM2;
-
-					MOV(64, R(cr_val), Imm64(1ull << 32));
-
-					// SO
-					MOV(64, R(tmp), R(EAX));
-					SHL(64, R(tmp), Imm8(63));
-					SHR(64, R(tmp), Imm8(63 - 61));
-					OR(64, R(cr_val), R(tmp));
-
-					// EQ
-					MOV(64, R(tmp), R(EAX));
-					NOT(64, R(tmp));
-					AND(64, R(tmp), Imm8(CR_EQ));
-					OR(64, R(cr_val), R(tmp));
-
-					// GT
-					MOV(64, R(tmp), R(EAX));
-					NOT(64, R(tmp));
-					AND(64, R(tmp), Imm8(CR_GT));
-					SHL(64, R(tmp), Imm8(63 - 2));
-					OR(64, R(cr_val), R(tmp));
-
-					// LT
-					MOV(64, R(tmp), R(EAX));
-					AND(64, R(tmp), Imm8(CR_LT));
-					SHL(64, R(tmp), Imm8(62 - 3));
-					OR(64, R(cr_val), R(tmp));
-
-					MOV(64, M(&PowerPC::ppcState.cr_val[i]), R(cr_val));
+					MOV(32, R(EAX), gpr.R(inst.RS));
+					if (i != 7)
+						SHR(32, R(EAX), Imm8(28 - (i * 4)));
+					if (i != 0)
+						AND(32, R(EAX), Imm8(0xF));
+					MOV(64, R(EAX), MScaled(EAX, SCALE_8, (u32)(u64)m_crTable));
+					MOV(64, M(&PowerPC::ppcState.cr_val[i]), R(EAX));
 				}
 			}
 			gpr.UnlockAll();
-			gpr.UnlockAllX();
 		}
 	}
 }
@@ -378,41 +365,11 @@ void Jit64::mcrxr(UGeckoInstruction inst)
 	// USES_CR
 
 	// Copy XER[0-3] into CR[inst.CRFD]
-	MOVZX(64, 32, EAX, M(&PowerPC::ppcState.spr[SPR_XER]));
-	SHR(64, R(EAX), Imm8(28));
+	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+	SHR(32, R(EAX), Imm8(28));
 
-	gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-	X64Reg cr_val = ABI_PARAM1;
-	X64Reg tmp = ABI_PARAM2;
-
-	MOV(64, R(cr_val), Imm64(1ull << 32));
-
-	// SO
-	MOV(64, R(tmp), R(EAX));
-	SHL(64, R(tmp), Imm8(63));
-	SHR(64, R(tmp), Imm8(63 - 61));
-	OR(64, R(cr_val), R(tmp));
-
-	// EQ
-	MOV(64, R(tmp), R(EAX));
-	AND(64, R(tmp), Imm8(0x2));
-	OR(64, R(cr_val), R(tmp));
-
-	// GT
-	MOV(64, R(tmp), R(EAX));
-	NOT(64, R(tmp));
-	AND(64, R(tmp), Imm8(0x4));
-	SHL(64, R(tmp), Imm8(63 - 2));
-	OR(64, R(cr_val), R(tmp));
-
-	// LT
-	MOV(64, R(tmp), R(EAX));
-	AND(64, R(tmp), Imm8(0x8));
-	SHL(64, R(tmp), Imm8(62 - 3));
-	OR(64, R(cr_val), R(tmp));
-
-	MOV(64, M(&PowerPC::ppcState.cr_val[inst.CRFD]), R(cr_val));
-	gpr.UnlockAllX();
+	MOV(64, R(EAX), MScaled(EAX, SCALE_8, (u32)(u64)m_crTable));
+	MOV(64, M(&PowerPC::ppcState.cr_val[inst.CRFD]), R(EAX));
 
 	// Clear XER[0-3]
 	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(0x0FFFFFFF));
