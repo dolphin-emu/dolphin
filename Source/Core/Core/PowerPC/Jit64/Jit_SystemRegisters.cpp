@@ -277,47 +277,38 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 	// USES_CR
 	int d = inst.RD;
-	gpr.Lock(d);
-	gpr.KillImmediate(d, false, true);
-	XOR(32, R(EAX), R(EAX));
+	gpr.BindToRegister(d, false, true);
+	XOR(32, gpr.R(d), gpr.R(d));
 
-	gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
+	gpr.FlushLockX(ABI_PARAM1);
 	X64Reg cr_val = ABI_PARAM1;
-	X64Reg tmp = ABI_PARAM2;
+	// we only need to zero the high bits of EAX once
+	XOR(32, R(EAX), R(EAX));
 	for (int i = 0; i < 8; i++)
 	{
+		static const u8 m_flagTable[8] = {0x0,0x1,0x8,0x9,0x0,0x1,0x8,0x9};
 		if (i != 0)
-			SHL(32, R(EAX), Imm8(4));
+			SHL(32, gpr.R(d), Imm8(4));
 
 		MOV(64, R(cr_val), M(&PowerPC::ppcState.cr_val[i]));
 
-		// SO: Bit 61 set.
-		MOV(64, R(tmp), R(cr_val));
-		SHR(64, R(tmp), Imm8(61));
-		AND(32, R(tmp), Imm8(1));
-		OR(32, R(EAX), R(tmp));
-
-		// EQ: Bits 31-0 == 0.
-		XOR(32, R(tmp), R(tmp));
+		// EQ: Bits 31-0 == 0; set flag bit 1
 		TEST(32, R(cr_val), R(cr_val));
-		SETcc(CC_Z, R(tmp));
-		SHL(32, R(tmp), Imm8(1));
-		OR(32, R(EAX), R(tmp));
+		SETcc(CC_Z, R(EAX));
+		LEA(32, gpr.RX(d), MComplex(gpr.RX(d), EAX, SCALE_2, 0));
 
-		// GT: Value > 0.
+		// GT: Value > 0; set flag bit 2
 		TEST(64, R(cr_val), R(cr_val));
-		SETcc(CC_G, R(tmp));
-		SHL(32, R(tmp), Imm8(2));
-		OR(32, R(EAX), R(tmp));
+		SETcc(CC_G, R(EAX));
+		LEA(32, gpr.RX(d), MComplex(gpr.RX(d), EAX, SCALE_4, 0));
 
-		// LT: Bit 62 set.
-		MOV(64, R(tmp), R(cr_val));
-		SHR(64, R(tmp), Imm8(62 - 3));
-		AND(32, R(tmp), Imm8(0x8));
-		OR(32, R(EAX), R(tmp));
+		// SO: Bit 61 set; set flag bit 0
+		// LT: Bit 62 set; set flag bit 3
+		SHR(64, R(cr_val), Imm8(61));
+		MOVZX(32, 8, EAX, MDisp(cr_val, (u32)(u64)m_flagTable));
+		OR(32, gpr.R(d), R(EAX));
 	}
 
-	MOV(32, gpr.R(d), R(EAX));
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
