@@ -1145,18 +1145,6 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 
 void CFrame::OnMouse(wxMouseEvent& event)
 {
-#if defined(HAVE_X11) && HAVE_X11
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		if (event.Dragging())
-			X11Utils::SendMotionEvent(X11Utils::XDisplayFromHandle(GetHandle()),
-					event.GetPosition().x, event.GetPosition().y);
-		else
-			X11Utils::SendButtonEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetButton(),
-					event.GetPosition().x, event.GetPosition().y, event.ButtonDown());
-	}
-#endif
-
 	// next handlers are all for FreeLook, so we don't need to check them if disabled
 	if (!g_Config.bFreeLook)
 	{
