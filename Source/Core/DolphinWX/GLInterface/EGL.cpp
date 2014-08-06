@@ -9,11 +9,10 @@
 // Show the current FPS
 void cInterfaceEGL::UpdateFPSDisplay(const std::string& text)
 {
-	Platform.UpdateFPSDisplay(text);
 }
 void cInterfaceEGL::Swap()
 {
-	Platform.SwapBuffers();
+	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
 }
 void cInterfaceEGL::SwapInterval(int Interval)
 {
@@ -93,7 +92,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	const char *s;
 	EGLint egl_major, egl_minor;
 
-	GLWin.egl_dpy = Platform.EGLGetDisplay();
+	GLWin.egl_dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
 	if (!GLWin.egl_dpy)
 	{
@@ -157,8 +156,14 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	else
 		eglBindAPI(EGL_OPENGL_ES_API);
 
-	if (!Platform.Init(config, window_handle))
-		return false;
+	EGLint format;
+	eglGetConfigAttrib(GLWin.egl_dpy, config, EGL_NATIVE_VISUAL_ID, &format);
+	ANativeWindow_setBuffersGeometry((EGLNativeWindowType)Host_GetRenderHandle(), 0, 0, format);
+	int none, width, height;
+	Host_GetRenderWindowSize(none, none, width, height);
+	GLWin.width = width;
+	GLWin.height = height;
+	GLInterface->SetBackBufferDimensions(width, height);
 
 	s = eglQueryString(GLWin.egl_dpy, EGL_VERSION);
 	INFO_LOG(VIDEO, "EGL_VERSION = %s\n", s);
@@ -179,7 +184,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		exit(1);
 	}
 
-	GLWin.native_window = Platform.CreateWindow();
+	GLWin.native_window = Host_GetRenderHandle();
 
 	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.native_window, nullptr);
 	if (!GLWin.egl_surf)
@@ -187,8 +192,6 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
 		exit(1);
 	}
-
-	Platform.ToggleFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 
 	window_handle = (void *)GLWin.native_window;
 	return true;
@@ -201,7 +204,6 @@ bool cInterfaceEGL::MakeCurrent()
 // Close backend
 void cInterfaceEGL::Shutdown()
 {
-	Platform.DestroyWindow();
 	if (GLWin.egl_ctx && !eglMakeCurrent(GLWin.egl_dpy, GLWin.egl_surf, GLWin.egl_surf, GLWin.egl_ctx))
 		NOTICE_LOG(VIDEO, "Could not release drawing context.");
 	if (GLWin.egl_ctx)

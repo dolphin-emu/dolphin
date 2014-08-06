@@ -73,11 +73,7 @@ set(ANDROID_SRCS Android/ButtonManager.cpp
 	 MainAndroid.cpp)
 
 if(USE_EGL)
-	set(SRCS ${SRCS} GLInterface/Platform.cpp
-		GLInterface/EGL.cpp)	
-	if(USE_X11)
-		set(SRCS ${SRCS} GLInterface/X11_Util.cpp)
-	endif()
+	set(SRCS ${SRCS} GLInterface/EGL.cpp)
 else()
 	if(WIN32)
 		set(SRCS ${SRCS} GLInterface/WGL.cpp)
@@ -86,7 +82,6 @@ else()
 	else()
 		set(SRCS ${SRCS} GLInterface/GLX.cpp
 			GLInterface/X11_Util.cpp)
-
 	endif()
 endif()
 set(SRCS ${SRCS} GLInterface/GLInterface.cpp)

@@ -7,12 +7,6 @@
 #include "Common/Thread.h"
 
 #if USE_EGL
-// Currently Android/EGL and X11/EGL platforms are supported.
-
-#if HAVE_X11
-#include "DolphinWX/GLInterface/X11_Util.h"
-#endif
-
 #include "DolphinWX/GLInterface/EGL.h"
 #elif defined(__APPLE__)
 #include "DolphinWX/GLInterface/AGL.h"
@@ -31,13 +25,11 @@ typedef struct {
 	EGLContext egl_ctx;
 	EGLDisplay egl_dpy;
 	EGLNativeWindowType native_window;
-#elif HAVE_X11
-	GLXContext ctx;
-#endif
-#if defined(__APPLE__)
+#elif defined(__APPLE__)
 	NSView *cocoaWin;
 	NSOpenGLContext *cocoaCtx;
 #elif HAVE_X11
+	GLXContext ctx;
 	int screen;
 	Window win;
 	Window parent;
