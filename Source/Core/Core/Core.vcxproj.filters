@@ -774,9 +774,6 @@
     <ClInclude Include="DSP\Jit\DSPJitRegCache.h">
       <Filter>DSPCore\Jit</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\Jit\DSPJitUtil.h">
-      <Filter>DSPCore\Jit</Filter>
-    </ClInclude>
     <ClInclude Include="DSP\DSPEmitter.h">
       <Filter>DSPCore\Jit</Filter>
     </ClInclude>
