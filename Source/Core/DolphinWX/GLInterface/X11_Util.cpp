@@ -8,8 +8,6 @@
 
 void cX11Window::CreateXWindow(void)
 {
-	Atom wmProtocols[1];
-
 	// Setup window attributes
 	GLWin.attr.colormap = XCreateColormap(GLWin.dpy,
 			GLWin.parent, GLWin.vi->visual, AllocNone);
@@ -22,9 +20,7 @@ void cX11Window::CreateXWindow(void)
 			0, 0, 1, 1, 0,
 			GLWin.vi->depth, InputOutput, GLWin.vi->visual,
 			CWBorderPixel | CWBackPixel | CWColormap | CWEventMask, &GLWin.attr);
-	wmProtocols[0] = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
-	XSetWMProtocols(GLWin.dpy, GLWin.win, wmProtocols, 1);
-	XMapRaised(GLWin.dpy, GLWin.win);
+	XMapWindow(GLWin.dpy, GLWin.win);
 	XSync(GLWin.dpy, True);
 
 	GLWin.xEventThread = std::thread(&cX11Window::XEventThread, this);
@@ -50,11 +46,6 @@ void cX11Window::XEventThread()
 			switch (event.type) {
 				case ConfigureNotify:
 					GLInterface->SetBackBufferDimensions(event.xconfigure.width, event.xconfigure.height);
-					break;
-				case ClientMessage:
-					if ((unsigned long) event.xclient.data.l[0] ==
-							XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
-						Host_Message(WM_USER_STOP);
 					break;
 				default:
 					break;

@@ -148,6 +148,9 @@ class PlatformX11 : public Platform
 					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
 					  0, 0, BlackPixel(dpy, 0));
 		XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
+		Atom wmProtocols[1];
+		wmProtocols[0] = XInternAtom(dpy, "WM_DELETE_WINDOW", True);
+		XSetWMProtocols(dpy, win, wmProtocols, 1);
 		XMapRaised(dpy, win);
 		XFlush(dpy);
 		windowHandle = (void *) win;
@@ -249,6 +252,10 @@ class PlatformX11 : public Platform
 					rendererHasFocus = false;
 					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 						XUndefineCursor(dpy, win);
+					break;
+				case ClientMessage:
+					if ((unsigned long) event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
+						running = false;
 					break;
 				}
 			}
