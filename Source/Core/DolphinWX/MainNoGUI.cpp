@@ -29,10 +29,6 @@
 #include "DolphinWX/X11Utils.h"
 #endif
 
-#ifdef USE_EGL
-#include "DolphinWX/GLInterface/GLInterface.h"
-#endif
-
 #ifdef __APPLE__
 #import <Cocoa/Cocoa.h>
 #endif
