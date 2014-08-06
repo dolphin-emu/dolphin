@@ -141,7 +141,7 @@ void VideoBackend::ShowConfig(void *hParent)
 	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_dx11");
 }
 
-bool VideoBackend::Initialize(void *&window_handle)
+bool VideoBackend::Initialize(void *window_handle)
 {
 	if (window_handle == nullptr)
 		return false;

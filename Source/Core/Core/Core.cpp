@@ -208,9 +208,6 @@ bool Init()
 		     !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	}
 
-	// g_pWindowHandle is first the m_Panel handle,
-	// then it is updated to the render window handle,
-	// within g_video_backend->Initialize()
 	g_pWindowHandle = Host_GetRenderHandle();
 
 	// Start the emu thread

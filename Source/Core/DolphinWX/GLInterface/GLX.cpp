@@ -37,7 +37,7 @@ void cInterfaceGLX::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceGLX::Create(void *&window_handle)
+bool cInterfaceGLX::Create(void *window_handle)
 {
 	int glxMajorVersion, glxMinorVersion;
 
@@ -102,7 +102,6 @@ bool cInterfaceGLX::Create(void *&window_handle)
 	}
 
 	XWindow.CreateXWindow();
-	window_handle = (void *)GLWin.win;
 	return true;
 }
 

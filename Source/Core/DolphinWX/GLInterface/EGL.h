@@ -20,7 +20,7 @@ public:
 	void SetMode(u32 mode) { s_opengl_mode = mode; }
 	void UpdateFPSDisplay(const std::string& text);
 	void* GetFuncAddress(const std::string& name);
-	bool Create(void *&window_handle);
+	bool Create(void *window_handle);
 	bool MakeCurrent();
 	void Shutdown();
 };

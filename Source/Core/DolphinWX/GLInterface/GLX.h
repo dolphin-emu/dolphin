@@ -19,7 +19,7 @@ public:
 	void Swap() override;
 	void UpdateFPSDisplay(const std::string& text) override;
 	void* GetFuncAddress(const std::string& name) override;
-	bool Create(void *&window_handle) override;
+	bool Create(void *window_handle);
 	bool MakeCurrent() override;
 	bool ClearCurrent() override;
 	void Shutdown() override;
