@@ -33,9 +33,7 @@ typedef struct {
 	int screen;
 	Window win;
 	Window parent;
-	// dpy used for glx stuff, evdpy for window events etc.
-	// evdpy is to be used by XEventThread only
-	Display *dpy, *evdpy;
+	Display *dpy;
 	XVisualInfo *vi;
 	XSetWindowAttributes attr;
 	std::thread xEventThread;
