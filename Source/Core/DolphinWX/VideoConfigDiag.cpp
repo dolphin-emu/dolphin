@@ -175,7 +175,10 @@ static wxArrayString GetListOfResolutions()
 		ZeroMemory(&dmi, sizeof(dmi));
 	}
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
-	main_frame->m_XRRConfig->AddResolutions(retlist);
+	std::vector<std::string> resos;
+	main_frame->m_XRRConfig->AddResolutions(resos);
+	for (auto res : resos)
+		retlist.Add(StrToWxStr(res));
 #elif defined(__APPLE__)
 	CFArrayRef modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), nullptr);
 	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)

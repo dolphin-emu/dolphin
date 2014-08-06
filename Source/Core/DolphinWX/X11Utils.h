@@ -51,9 +51,7 @@ class XRRConfiguration
 
 		void Update();
 		void ToggleDisplayMode(bool bFullscreen);
-#if defined(HAVE_WX) && HAVE_WX
-		void AddResolutions(wxArrayString& arrayStringFor_FullscreenResolution);
-#endif
+		void AddResolutions(std::vector<std::string>& resos);
 
 	private:
 		Display *dpy;
