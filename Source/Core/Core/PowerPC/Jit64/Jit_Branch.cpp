@@ -166,7 +166,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		MOV(32, R(EAX), M(&CTR));
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); // LR = PC + 4;
-		AND(32, R(EAX), Imm32(0xFFFFFFFC));
+		AND(32, R(EAX), Imm8(0xFC));
 		WriteExitDestInEAX();
 	}
 	else
@@ -179,7 +179,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		FixupBranch b = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
 		                                 !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 		MOV(32, R(EAX), M(&CTR));
-		AND(32, R(EAX), Imm32(0xFFFFFFFC));
+		AND(32, R(EAX), Imm8(0xFC));
 		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); // LR = PC + 4;
@@ -224,7 +224,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 #endif
 
 	MOV(32, R(EAX), M(&LR));
-	AND(32, R(EAX), Imm32(0xFFFFFFFC));
+	AND(32, R(EAX), Imm8(0xFC));
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 

@@ -364,7 +364,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 					if (js.next_inst.LK)
 						MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 					MOV(32, R(EAX), M(&CTR));
-					AND(32, R(EAX), Imm32(0xFFFFFFFC));
+					AND(32, R(EAX), Imm8(0xFC));
 					WriteExitDestInEAX();
 				}
 				else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
@@ -460,13 +460,13 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				if (js.next_inst.LK)
 					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 				MOV(32, R(EAX), M(&CTR));
-				AND(32, R(EAX), Imm32(0xFFFFFFFC));
+				AND(32, R(EAX), Imm8(0xFC));
 				WriteExitDestInEAX();
 			}
 			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
 			{
 				MOV(32, R(EAX), M(&LR));
-				AND(32, R(EAX), Imm32(0xFFFFFFFC));
+				AND(32, R(EAX), Imm8(0xFC));
 				if (js.next_inst.LK)
 					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 				WriteExitDestInEAX();
@@ -879,7 +879,7 @@ void Jit64::subfmex(UGeckoInstruction inst)
 		MOV(32, gpr.R(d), gpr.R(a));
 	}
 	NOT(32, gpr.R(d));
-	ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
+	ADC(32, gpr.R(d), Imm8(0xFF));
 	FinalizeCarryGenerateOverflowEAX(inst.OE);
 	if (inst.Rc)
 		ComputeRC(gpr.R(d));
@@ -1446,7 +1446,7 @@ void Jit64::addmex(UGeckoInstruction inst)
 		gpr.BindToRegister(d, true);
 
 		GetCarryEAXAndClear();
-		ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
+		ADC(32, gpr.R(d), Imm8(0xFF));
 		FinalizeCarryGenerateOverflowEAX(inst.OE);
 		if (inst.Rc)
 			ComputeRC(gpr.R(d));
@@ -1459,7 +1459,7 @@ void Jit64::addmex(UGeckoInstruction inst)
 
 		GetCarryEAXAndClear();
 		MOV(32, gpr.R(d), gpr.R(a));
-		ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
+		ADC(32, gpr.R(d), Imm8(0xFF));
 		FinalizeCarryGenerateOverflowEAX(inst.OE);
 		if (inst.Rc)
 			ComputeRC(gpr.R(d));
