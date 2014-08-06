@@ -31,6 +31,7 @@ class Platform
 {
 public:
 	virtual void Init() = 0;
+	virtual void SetTitle(const std::string &title) = 0;
 	virtual void MainLoop() = 0;
 	virtual void Shutdown() = 0;
 	virtual ~Platform() {};
@@ -58,7 +59,10 @@ void* Host_GetRenderHandle()
 	return windowHandle;
 }
 
-void Host_UpdateTitle(const std::string& title){};
+void Host_UpdateTitle(const std::string& title)
+{
+	platform->SetTitle(title);
+}
 
 void Host_UpdateDisasmDialog(){}
 
@@ -173,6 +177,11 @@ class PlatformX11 : public Platform
 			XFreePixmap (dpy, Blank);
 			XDefineCursor(dpy, win, blankCursor);
 		}
+	}
+
+	void SetTitle(const std::string &string) override
+	{
+		XStoreName(dpy, win, string.c_str());
 	}
 
 	void MainLoop() override

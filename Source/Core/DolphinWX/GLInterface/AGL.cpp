@@ -16,7 +16,7 @@ void cInterfaceAGL::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceAGL::Create(void *&window_handle)
+bool cInterfaceAGL::Create(void *window_handle)
 {
 	// FIXME: Get rid of the explicit use of wxPanel here. This shouldn't be necessary.
 	GLWin.cocoaWin = reinterpret_cast<NSView*>(((wxPanel*)window_handle)->GetHandle());

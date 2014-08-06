@@ -14,7 +14,7 @@ public:
 	void Swap();
 	void UpdateFPSDisplay(const std::string& text);
 	void* GetFuncAddress(const std::string& name);
-	bool Create(void *&window_handle);
+	bool Create(void *window_handle);
 	bool MakeCurrent();
 	bool ClearCurrent();
 	void Shutdown();

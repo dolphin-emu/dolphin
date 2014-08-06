@@ -71,7 +71,7 @@ void VideoSoftware::ShowConfig(void *hParent)
 	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_software");
 }
 
-bool VideoSoftware::Initialize(void *&window_handle)
+bool VideoSoftware::Initialize(void *window_handle)
 {
 	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
 

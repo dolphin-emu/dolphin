@@ -10,7 +10,7 @@ namespace SW
 
 class VideoSoftware : public VideoBackend
 {
-	bool Initialize(void *&) override;
+	bool Initialize(void *window_handle) override;
 	void Shutdown() override;
 
 	std::string GetName() const override;
