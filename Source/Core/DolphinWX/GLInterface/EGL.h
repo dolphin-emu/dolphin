@@ -17,18 +17,12 @@ private:
 #if HAVE_X11
 	cXInterface XInterface;
 #endif
-#if HAVE_WAYLAND
-	cWaylandInterface WaylandInterface;
-#endif
 public:
-	enum egl_platform platform;
-	bool SelectDisplay(void);
 	bool Init(EGLConfig config, void *window_handle);
 	EGLDisplay EGLGetDisplay(void);
 	EGLNativeWindowType CreateWindow(void);
 	void DestroyWindow(void);
 	void UpdateFPSDisplay(const std::string& text);
-	void ToggleFullscreen(bool fullscreen);
 	void SwapBuffers();
 };
 

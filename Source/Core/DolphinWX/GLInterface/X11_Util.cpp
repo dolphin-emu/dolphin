@@ -53,11 +53,7 @@ bool cXInterface::Initialize(void *config, void *window_handle)
 
 void *cXInterface::EGLGetDisplay(void)
 {
-#if HAVE_WAYLAND
-	return eglGetDisplay((wl_display *) GLWin.dpy);
-#else
 	return eglGetDisplay(GLWin.dpy);
-#endif
 }
 
 void *cXInterface::CreateWindow(void)
