@@ -18,6 +18,7 @@ struct NormalOpDef
 	u8 toRm8, toRm32, fromRm8, fromRm32, imm8, imm32, simm8, ext;
 };
 
+// 0xCC is code for invalid combination of immediates
 static const NormalOpDef nops[11] =
 {
 	{0x00, 0x01, 0x02, 0x03, 0x80, 0x81, 0x83, 0}, //ADD
@@ -1057,8 +1058,20 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 				 (operand.scale == SCALE_IMM32 && bits == 32) ||
 				 (operand.scale == SCALE_IMM32 && bits == 64))
 		{
-			emit->Write8(nops[op].imm32);
-			immToWrite = bits == 16 ? 16 : 32;
+			// Try to save immediate size if we can, but first check to see
+			// if the instruction supports simm8.
+			if (nops[op].simm8 != 0xCC &&
+			    ((operand.scale == SCALE_IMM16 && (s16)operand.offset == (s8)operand.offset) ||
+			     (operand.scale == SCALE_IMM32 && (s32)operand.offset == (s8)operand.offset)))
+			{
+				emit->Write8(nops[op].simm8);
+				immToWrite = 8;
+			}
+			else
+			{
+				emit->Write8(nops[op].imm32);
+				immToWrite = bits == 16 ? 16 : 32;
+			}
 		}
 		else if ((operand.scale == SCALE_IMM8 && bits == 16) ||
 				 (operand.scale == SCALE_IMM8 && bits == 32) ||
@@ -1182,7 +1195,9 @@ void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
 		Write8(0x66);
 	a1.WriteRex(this, bits, bits, regOp);
 
-	if (a2.GetImmBits() == 8) {
+	if (a2.GetImmBits() == 8 ||
+	    (a2.GetImmBits() == 16 && (s8)a2.offset == (s16)a2.offset) ||
+	    (a2.GetImmBits() == 32 && (s8)a2.offset == (s32)a2.offset)) {
 		Write8(0x6B);
 		a1.WriteRest(this, 1, regOp);
 		Write8((u8)a2.offset);
