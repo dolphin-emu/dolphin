@@ -15,7 +15,7 @@ static PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
 // Show the current FPS
 void cInterfaceGLX::UpdateFPSDisplay(const std::string& text)
 {
-	XStoreName(GLWin.evdpy, GLWin.win, text.c_str());
+	XStoreName(GLWin.dpy, GLWin.win, text.c_str());
 }
 
 void cInterfaceGLX::SwapInterval(int Interval)
@@ -65,7 +65,6 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		None };
 
 	GLWin.dpy = XOpenDisplay(nullptr);
-	GLWin.evdpy = XOpenDisplay(nullptr);
 	GLWin.parent = (Window)window_handle;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 	if (GLWin.parent == 0)
@@ -134,7 +133,6 @@ void cInterfaceGLX::Shutdown()
 	{
 		glXDestroyContext(GLWin.dpy, GLWin.ctx);
 		XCloseDisplay(GLWin.dpy);
-		XCloseDisplay(GLWin.evdpy);
 		GLWin.ctx = nullptr;
 	}
 }
