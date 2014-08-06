@@ -5,7 +5,6 @@
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPMemoryMap.h"
-#include "Core/DSP/Jit/DSPJitUtil.h"
 
 using namespace Gen;
 
