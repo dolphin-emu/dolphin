@@ -77,7 +77,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 			}
 		}
 	}
-	SuccessAlertT("Found %x save files", (unsigned int) titles.size());
+	SuccessAlertT("Found %d save files", (unsigned int) titles.size());
 	for (const u64& title : titles)
 	{
 		CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", title);
