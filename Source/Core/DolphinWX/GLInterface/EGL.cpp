@@ -93,9 +93,6 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	const char *s;
 	EGLint egl_major, egl_minor;
 
-	if (!Platform.SelectDisplay())
-		return false;
-
 	GLWin.egl_dpy = Platform.EGLGetDisplay();
 
 	if (!GLWin.egl_dpy)
@@ -103,8 +100,6 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		INFO_LOG(VIDEO, "Error: eglGetDisplay() failed\n");
 		return false;
 	}
-
-	GLWin.platform = Platform.platform;
 
 	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor))
 	{

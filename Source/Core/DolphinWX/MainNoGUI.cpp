@@ -29,10 +29,6 @@
 #include "DolphinWX/X11Utils.h"
 #endif
 
-#if HAVE_WAYLAND
-#include <wayland-client.h>
-#endif
-
 #ifdef USE_EGL
 #include "DolphinWX/GLInterface/GLInterface.h"
 #endif
@@ -262,23 +258,6 @@ static void X11_MainLoop()
 }
 #endif
 
-#if HAVE_WAYLAND
-static void Wayland_MainLoop()
-{
-	// Wait for display to be initialized
-	while (!GLWin.wl_display)
-		usleep(20000);
-
-	GLWin.running = 1;
-
-	while (GLWin.running)
-		wl_display_dispatch(GLWin.wl_display);
-
-	if (GLWin.wl_display)
-		wl_display_disconnect(GLWin.wl_display);
-}
-#endif
-
 int main(int argc, char* argv[])
 {
 #ifdef __APPLE__
@@ -330,34 +309,12 @@ int main(int argc, char* argv[])
 		m_LocalCoreStartupParameter.m_strVideoBackend);
 	WiimoteReal::LoadSettings();
 
-#if USE_EGL
-	GLWin.platform = EGL_PLATFORM_NONE;
-#endif
-#if HAVE_WAYLAND
-	GLWin.wl_display = nullptr;
-#endif
-
 	// No use running the loop when booting fails
 	if (BootManager::BootCore(argv[optind]))
 	{
-#if USE_EGL
-		while (GLWin.platform == EGL_PLATFORM_NONE)
-			usleep(20000);
-#endif
-#if HAVE_WAYLAND
-		if (GLWin.platform == EGL_PLATFORM_WAYLAND)
-			Wayland_MainLoop();
-#endif
 #if HAVE_X11
-#if USE_EGL
-		if (GLWin.platform == EGL_PLATFORM_X11)
-		{
-#endif
-			XInitThreads();
-			X11_MainLoop();
-#if USE_EGL
-		}
-#endif
+		XInitThreads();
+		X11_MainLoop();
 #endif
 #ifdef __APPLE__
 		while (running)
