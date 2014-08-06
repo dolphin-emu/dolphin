@@ -1371,9 +1371,11 @@ void CISOProperties::ActionReplayList_Save()
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 	u32 index = 0;
+	u32 cheats_chkbox_count = Cheats->GetCount();
 	for (const ActionReplay::ARCode& code : arCodes)
 	{
-		if (Cheats->IsChecked(index))
+		//Check the index against the count because of the hacky way codes are added from the "Cheat Search" dialog
+		if ((index < cheats_chkbox_count) && Cheats->IsChecked(index))
 			enabledLines.push_back("$" + code.name);
 
 		// Do not save default cheats.
