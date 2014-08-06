@@ -341,7 +341,7 @@ static void gdsp_do_dma()
 	DEBUG_LOG(DSPLLE, "DMA pc: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 #endif
 
-	const u8* copied_data_ptr;
+	const u8* copied_data_ptr = nullptr;
 	switch (ctl & 0x3)
 	{
 		case (DSP_CR_DMEM | DSP_CR_TO_CPU):
