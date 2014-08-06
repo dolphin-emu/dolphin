@@ -23,62 +23,56 @@ if(LIBAV_FOUND)
 	set(LIBS	${LIBS} ${LIBAV_LIBRARIES})
 endif()
 
-if(wxWidgets_FOUND)
-	set(SRCS 
-				ARCodeAddEdit.cpp
-				AboutDolphin.cpp
-				CheatsWindow.cpp
-				ConfigMain.cpp
-				Debugger/BreakpointDlg.cpp
-				Debugger/BreakpointView.cpp
-				Debugger/BreakpointWindow.cpp
-				Debugger/CodeView.cpp
-				Debugger/CodeWindow.cpp
-				Debugger/CodeWindowFunctions.cpp
-				Debugger/DSPDebugWindow.cpp
-				Debugger/DSPRegisterView.cpp
-				Debugger/DebuggerPanel.cpp
-				Debugger/DebuggerUIUtil.cpp
-				Debugger/JitWindow.cpp
-				Debugger/MemoryCheckDlg.cpp
-				Debugger/MemoryView.cpp
-				Debugger/MemoryWindow.cpp
-				Debugger/RegisterView.cpp
-				Debugger/RegisterWindow.cpp
-				FifoPlayerDlg.cpp
-				Frame.cpp
-				FrameAui.cpp
-				FrameTools.cpp
-				GameListCtrl.cpp
-				GeckoCodeDiag.cpp
-				HotkeyDlg.cpp
-				ISOFile.cpp
-				ISOProperties.cpp
-				InputConfigDiag.cpp
-				InputConfigDiagBitmaps.cpp
-				LogConfigWindow.cpp
-				LogWindow.cpp
-				Main.cpp
-				MemcardManager.cpp
-				MemoryCards/WiiSaveCrypted.cpp
-				NetWindow.cpp
-				PatchAddEdit.cpp
-				SoftwareVideoConfigDialog.cpp
-				TASInputDlg.cpp
-				VideoConfigDiag.cpp
-				WXInputBase.cpp
-				WiimoteConfigDiag.cpp
-				WxUtils.cpp)
+set(GUI_SRCS
+	ARCodeAddEdit.cpp
+	AboutDolphin.cpp
+	CheatsWindow.cpp
+	ConfigMain.cpp
+	Debugger/BreakpointDlg.cpp
+	Debugger/BreakpointView.cpp
+	Debugger/BreakpointWindow.cpp
+	Debugger/CodeView.cpp
+	Debugger/CodeWindow.cpp
+	Debugger/CodeWindowFunctions.cpp
+	Debugger/DSPDebugWindow.cpp
+	Debugger/DSPRegisterView.cpp
+	Debugger/DebuggerPanel.cpp
+	Debugger/DebuggerUIUtil.cpp
+	Debugger/JitWindow.cpp
+	Debugger/MemoryCheckDlg.cpp
+	Debugger/MemoryView.cpp
+	Debugger/MemoryWindow.cpp
+	Debugger/RegisterView.cpp
+	Debugger/RegisterWindow.cpp
+	FifoPlayerDlg.cpp
+	Frame.cpp
+	FrameAui.cpp
+	FrameTools.cpp
+	GameListCtrl.cpp
+	GeckoCodeDiag.cpp
+	HotkeyDlg.cpp
+	ISOFile.cpp
+	ISOProperties.cpp
+	InputConfigDiag.cpp
+	InputConfigDiagBitmaps.cpp
+	LogConfigWindow.cpp
+	LogWindow.cpp
+	Main.cpp
+	MemcardManager.cpp
+	MemoryCards/WiiSaveCrypted.cpp
+	NetWindow.cpp
+	PatchAddEdit.cpp
+	SoftwareVideoConfigDialog.cpp
+	TASInputDlg.cpp
+	VideoConfigDiag.cpp
+	WXInputBase.cpp
+	WiimoteConfigDiag.cpp
+	WxUtils.cpp)
 
-	set(WXLIBS ${wxWidgets_LIBRARIES} dl)
-else()
-	if(ANDROID)
-		set(SRCS Android/ButtonManager.cpp
-			 MainAndroid.cpp)
-	else()
-		set(SRCS MainNoGUI.cpp)
-	endif()
-endif()
+set(WXLIBS ${wxWidgets_LIBRARIES} dl)
+
+set(ANDROID_SRCS Android/ButtonManager.cpp
+	 MainAndroid.cpp)
 
 if(USE_EGL)
 	set(SRCS ${SRCS} GLInterface/Platform.cpp
@@ -101,6 +95,8 @@ else()
 	endif()
 endif()
 set(SRCS ${SRCS} GLInterface/GLInterface.cpp)
+
+set(NOGUI_SRCS MainNoGUI.cpp)
 
 if(WIN32)
 	set(SRCS ${SRCS} stdafx.cpp)
@@ -140,11 +136,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 else()
 	set(DOLPHIN_EXE_BASE dolphin-emu)
 endif()
-if(wxWidgets_FOUND)
-	set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
-else()
-	set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE}-nogui)
-endif()
+
+set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
 
 if(USE_UPNP)
   set(LIBS  ${LIBS} miniupnpc)
@@ -159,7 +152,7 @@ endif()
 
 if(ANDROID)
 	set(DOLPHIN_EXE main)
-	add_library(${DOLPHIN_EXE} SHARED ${SRCS})
+	add_library(${DOLPHIN_EXE} SHARED ${SRCS} ${ANDROID_SRCS})
 	target_link_libraries(${DOLPHIN_EXE} 
 	log
 	android
@@ -180,8 +173,10 @@ if(ANDROID)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 		COMMAND cp ARGS -r ${CMAKE_SOURCE_DIR}/Data/Sys/Shaders ${CMAKE_SOURCE_DIR}/Source/Android/assets/
 	)
-else()
-	add_executable(${DOLPHIN_EXE} ${SRCS})
+
+	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
+elseif(wxWidgets_FOUND)
+	add_executable(${DOLPHIN_EXE} ${SRCS} ${GUI_SRCS})
 	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		include(BundleUtilities)
@@ -268,6 +263,13 @@ else()
 	else()
 		install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
 	endif()
+
+	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
 endif()
 
-set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
+if(USE_X11)
+	set(DOLPHIN_NOGUI_EXE ${DOLPHIN_EXE_BASE}-nogui)
+	add_executable(${DOLPHIN_NOGUI_EXE} ${SRCS} ${NOGUI_SRCS})
+	target_link_libraries(${DOLPHIN_NOGUI_EXE} ${LIBS})
+	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_NOGUI_EXE})
+endif()
