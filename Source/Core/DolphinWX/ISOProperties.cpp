@@ -1374,7 +1374,7 @@ void CISOProperties::ActionReplayList_Save()
 	u32 cheats_chkbox_count = Cheats->GetCount();
 	for (const ActionReplay::ARCode& code : arCodes)
 	{
-		//Check the index against the count because of the hacky way codes are added from the "Cheat Search" dialog
+		// Check the index against the count because of the hacky way codes are added from the "Cheat Search" dialog
 		if ((index < cheats_chkbox_count) && Cheats->IsChecked(index))
 			enabledLines.push_back("$" + code.name);
 
