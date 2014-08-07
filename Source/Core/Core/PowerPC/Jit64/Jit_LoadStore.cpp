@@ -136,11 +136,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// Determine whether this instruction updates inst.RA
 	bool update;
 	if (inst.OPCD == 31)
-		update = ((inst.SUBOP10 & 0x20) != 0);
+		update = ((inst.SUBOP10 & 0x20) != 0) && (!gpr.R(b).IsImm() || gpr.R(b).offset != 0);
 	else
-		update = ((inst.OPCD & 1) != 0);
+		update = ((inst.OPCD & 1) != 0) && inst.SIMM_16 != 0;
 
-	bool zeroOffset = inst.OPCD != 31 && inst.SIMM_16 == 0;
+	bool storeAddress = false;
+	s32 loadOffset = 0;
 
 	// Prepare address operand
 	Gen::OpArg opAddress;
@@ -178,30 +179,59 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		}
 		else
 		{
-			if ((update && !js.memcheck) || zeroOffset)
+			// If we're using reg+reg mode and b is an immediate, pretend we're using constant offset mode
+			bool use_constant_offset = inst.OPCD != 31 || gpr.R(b).IsImm();
+			s32 offset = inst.OPCD == 31 ? (s32)gpr.R(b).offset : (s32)inst.SIMM_16;
+			// Depending on whether we have an immediate and/or update, find the optimum way to calculate
+			// the load address.
+			if ((update || use_constant_offset) && !js.memcheck)
 			{
 				gpr.BindToRegister(a, true, update);
 				opAddress = gpr.R(a);
+				if (!use_constant_offset)
+					ADD(32, opAddress, gpr.R(b));
+				else if (update)
+					ADD(32, opAddress, Imm32((u32)offset));
+				else
+					loadOffset = offset;
 			}
 			else
 			{
+				// In this case we need an extra temporary register.
 				gpr.FlushLockX(ABI_PARAM1);
 				opAddress = R(ABI_PARAM1);
-				MOV(32, opAddress, gpr.R(a));
+				storeAddress = true;
+				if (use_constant_offset)
+				{
+					if (gpr.R(a).IsSimpleReg() && offset != 0)
+					{
+						LEA(32, ABI_PARAM1, MDisp(gpr.RX(a), offset));
+					}
+					else
+					{
+						MOV(32, opAddress, gpr.R(a));
+						if (offset != 0)
+							ADD(32, opAddress, Imm32((u32)offset));
+					}
+				}
+				else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
+				{
+					LEA(32, ABI_PARAM1, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+				}
+				else
+				{
+					MOV(32, opAddress, gpr.R(a));
+					ADD(32, opAddress, gpr.R(b));
+				}
 			}
-
-			if (inst.OPCD == 31)
-				ADD(32, opAddress, gpr.R(b));
-			else if (inst.SIMM_16 != 0)
-				ADD(32, opAddress, Imm32((u32)(s32)inst.SIMM_16));
 		}
 	}
 
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, js.memcheck, true);
-	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, 0, CallerSavedRegistersInUse(), signExtend);
+	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, CallerSavedRegistersInUse(), signExtend);
 
-	if (update && js.memcheck && !zeroOffset)
+	if (update && storeAddress)
 	{
 		gpr.BindToRegister(a, true, true);
 		MEMCHECK_START
@@ -385,6 +415,10 @@ void Jit64::stXx(UGeckoInstruction inst)
 		MOV(32, R(EDX), gpr.R(a));
 		MEMCHECK_END
 	}
+	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
+	{
+		LEA(32, EDX, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+	}
 	else
 	{
 		MOV(32, R(EDX), gpr.R(a));
@@ -423,17 +457,17 @@ void Jit64::lmw(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStoreOff);
 
 	// TODO: This doesn't handle rollback on DSI correctly
-	gpr.FlushLockX(ECX);
-	MOV(32, R(ECX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
-		ADD(32, R(ECX), gpr.R(inst.RA));
+	{
+		gpr.Lock(inst.RA);
+		gpr.BindToRegister(inst.RA, true, false);
+	}
 	for (int i = inst.RD; i < 32; i++)
 	{
-		SafeLoadToReg(EAX, R(ECX), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse(), false);
 		gpr.BindToRegister(i, false, true);
-		MOV(32, gpr.R(i), R(EAX));
+		SafeLoadToReg(gpr.RX(i), inst.RA ? gpr.R(inst.RA) : Imm32(0), 32, (i - inst.RD) * 4 + (s32)inst.SIMM_16, CallerSavedRegistersInUse(), false);
 	}
-	gpr.UnlockAllX();
+	gpr.UnlockAll();
 }
 
 void Jit64::stmw(UGeckoInstruction inst)

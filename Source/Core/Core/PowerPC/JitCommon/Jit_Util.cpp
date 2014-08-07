@@ -67,9 +67,10 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 	MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
 }
 
-u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend)
+u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset, bool signExtend)
 {
 	u8 *result;
+	OpArg memOperand;
 	if (opAddress.IsSimpleReg())
 	{
 		// Deal with potential wraparound.  (This is just a heuristic, and it would
@@ -85,21 +86,23 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 			offset = 0;
 		}
 
-		result = GetWritableCodePtr();
-		if (accessSize == 8 && signExtend)
-			MOVSX(32, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
-		else
-			MOVZX(64, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
+		memOperand = MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset);
+	}
+	else if (opAddress.IsImm())
+	{
+		memOperand = MDisp(RBX, (opAddress.offset + offset) & 0x3FFFFFFF);
 	}
 	else
 	{
 		MOV(32, R(reg_value), opAddress);
-		result = GetWritableCodePtr();
-		if (accessSize == 8 && signExtend)
-			MOVSX(32, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
-		else
-			MOVZX(64, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
+		memOperand = MComplex(RBX, reg_value, SCALE_1, offset);
 	}
+
+	result = GetWritableCodePtr();
+	if (accessSize == 8 && signExtend)
+		MOVSX(32, accessSize, reg_value, memOperand);
+	else
+		MOVZX(64, accessSize, reg_value, memOperand);
 
 	switch (accessSize)
 	{
@@ -336,8 +339,15 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			if (offset)
 			{
 				addr_loc = R(EAX);
-				MOV(32, R(EAX), opAddress);
-				ADD(32, R(EAX), Imm32(offset));
+				if (opAddress.IsSimpleReg())
+				{
+					LEA(32, EAX, MDisp(opAddress.GetSimpleReg(), offset));
+				}
+				else
+				{
+					MOV(32, R(EAX), opAddress);
+					ADD(32, R(EAX), Imm32(offset));
+				}
 			}
 			TEST(32, addr_loc, Imm32(mem_mask));
 
