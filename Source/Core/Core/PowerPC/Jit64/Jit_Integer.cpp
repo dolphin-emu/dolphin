@@ -122,8 +122,7 @@ void Jit64::ComputeRC(const Gen::OpArg & arg)
 {
 	if (arg.IsImm())
 	{
-		MOV(32, R(EAX), Imm32((s32)arg.offset));
-		MOV(64, M(&PowerPC::ppcState.cr_val[0]), R(RAX));
+		MOV(64, M(&PowerPC::ppcState.cr_val[0]), Imm32((s32)arg.offset));
 	}
 	else
 	{
@@ -394,7 +393,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		if (signedCompare)
 		{
 			if (gpr.R(a).IsImm())
-				MOV(64, R(RAX), gpr.R(a));
+				MOV(64, R(RAX), Imm32((s32)gpr.R(a).offset));
 			else
 				MOVSX(64, 32, RAX, gpr.R(a));
 			if (!comparand.IsImm())
@@ -406,7 +405,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		else
 		{
 			if (gpr.R(a).IsImm())
-				MOV(32, R(RAX), gpr.R(a));
+				MOV(32, R(RAX), Imm32((u32)gpr.R(a).offset));
 			else
 				MOVZX(64, 32, RAX, gpr.R(a));
 
