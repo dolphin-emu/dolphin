@@ -67,8 +67,6 @@ bool cInterfaceGLX::Create(void *&window_handle)
 	GLWin.dpy = XOpenDisplay(nullptr);
 	GLWin.parent = (Window)window_handle;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
-	if (GLWin.parent == 0)
-		GLWin.parent = RootWindow(GLWin.dpy, GLWin.screen);
 
 	glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
 	NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);

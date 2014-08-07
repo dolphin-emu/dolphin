@@ -13,7 +13,7 @@ void cX11Window::CreateXWindow(void)
 	// Setup window attributes
 	GLWin.attr.colormap = XCreateColormap(GLWin.dpy,
 			GLWin.parent, GLWin.vi->visual, AllocNone);
-	GLWin.attr.event_mask = KeyPressMask | StructureNotifyMask | FocusChangeMask;
+	GLWin.attr.event_mask = StructureNotifyMask;
 	GLWin.attr.background_pixel = BlackPixel(GLWin.dpy, GLWin.screen);
 	GLWin.attr.border_pixel = 0;
 
@@ -24,7 +24,6 @@ void cX11Window::CreateXWindow(void)
 			CWBorderPixel | CWBackPixel | CWColormap | CWEventMask, &GLWin.attr);
 	wmProtocols[0] = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
 	XSetWMProtocols(GLWin.dpy, GLWin.win, wmProtocols, 1);
-	XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU", "GPU", None, nullptr, 0, nullptr);
 	XMapRaised(GLWin.dpy, GLWin.win);
 	XSync(GLWin.dpy, True);
 
