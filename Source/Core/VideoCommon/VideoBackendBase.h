@@ -127,7 +127,6 @@ extern VideoBackend* g_video_backend;
 class VideoBackendHardware : public VideoBackend
 {
 	void RunLoop(bool enable) override;
-	bool Initialize(void *&) override { InitializeShared(); return true; }
 
 	void EmuStateChange(EMUSTATE_CHANGE) override;
 
