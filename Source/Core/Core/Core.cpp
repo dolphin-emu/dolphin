@@ -694,9 +694,6 @@ void UpdateTitle()
 	std::string SMessage = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
 	std::string TMessage = StringFromFormat("%s | %s", scm_rev_str, SMessage.c_str());
 
-	// Show message
-	g_video_backend->UpdateFPSDisplay(SMessage);
-
 	// Update the audio timestretcher with the current speed
 	if (soundStream)
 	{

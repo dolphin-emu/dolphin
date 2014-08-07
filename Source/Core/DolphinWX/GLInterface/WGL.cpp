@@ -55,12 +55,6 @@ bool cInterfaceWGL::PeekMessages()
 	return TRUE;
 }
 
-// Show the current FPS
-void cInterfaceWGL::UpdateFPSDisplay(const std::string& text)
-{
-	SetWindowTextA(m_window_handle, text.c_str());
-}
-
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceWGL::Create(void *window_handle)

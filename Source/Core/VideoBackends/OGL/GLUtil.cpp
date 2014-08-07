@@ -26,12 +26,6 @@ unsigned int VideoBackend::PeekMessages()
 	return GLInterface->PeekMessages();
 }
 
-// Show the current FPS
-void VideoBackend::UpdateFPSDisplay(const std::string& text)
-{
-	return GLInterface->UpdateFPSDisplay(StringFromFormat("%s | %s | %s", scm_rev_str, GetDisplayName().c_str(), text.c_str()));
-}
-
 }
 void InitInterface()
 {

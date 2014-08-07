@@ -372,10 +372,4 @@ unsigned int VideoSoftware::PeekMessages()
 	return GLInterface->PeekMessages();
 }
 
-// Show the current FPS
-void VideoSoftware::UpdateFPSDisplay(const std::string& text)
-{
-	GLInterface->UpdateFPSDisplay(StringFromFormat("%s | Software | %s", scm_rev_str, text.c_str()));
-}
-
 }

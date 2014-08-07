@@ -12,7 +12,6 @@ class cInterfaceWGL : public cInterfaceBase
 public:
 	void SwapInterval(int Interval);
 	void Swap();
-	void UpdateFPSDisplay(const std::string& text);
 	void* GetFuncAddress(const std::string& name);
 	bool Create(void *window_handle);
 	bool MakeCurrent();

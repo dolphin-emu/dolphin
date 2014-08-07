@@ -68,8 +68,6 @@ public:
 
 	virtual void EmuStateChange(EMUSTATE_CHANGE) = 0;
 
-	virtual void UpdateFPSDisplay(const std::string&) = 0;
-
 	virtual unsigned int PeekMessages() = 0;
 
 	virtual bool Initialize(void *window_handle) = 0;
