@@ -21,7 +21,7 @@ void DSPHost::UpdateDebugger() {}
 
 // This test goes from text ASM to binary to text ASM and once again back to binary.
 // Then the two binaries are compared.
-bool RoundTrip(const std::vector<u16> &code1)
+static bool RoundTrip(const std::vector<u16> &code1)
 {
 	std::vector<u16> code2;
 	std::string text;
@@ -45,7 +45,7 @@ bool RoundTrip(const std::vector<u16> &code1)
 
 // This test goes from text ASM to binary to text ASM and once again back to binary.
 // Very convenient for testing. Then the two binaries are compared.
-bool SuperTrip(const char *asm_code)
+static bool SuperTrip(const char *asm_code)
 {
 	std::vector<u16> code1, code2;
 	std::string text;
@@ -80,7 +80,7 @@ bool SuperTrip(const char *asm_code)
 	return true;
 }
 
-void RunAsmTests()
+static void RunAsmTests()
 {
 	bool fail = false;
 #define CHK(a) if (!SuperTrip(a)) printf("FAIL\n%s\n", a), fail = true;
