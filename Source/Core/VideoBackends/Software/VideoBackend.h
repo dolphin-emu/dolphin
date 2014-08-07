@@ -48,7 +48,6 @@ class VideoSoftware : public VideoBackend
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 
-	void UpdateFPSDisplay(const std::string&) override;
 	unsigned int PeekMessages() override;
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;

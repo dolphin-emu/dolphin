@@ -7,9 +7,6 @@
 #include "VideoCommon/RenderBase.h"
 
 // Show the current FPS
-void cInterfaceEGL::UpdateFPSDisplay(const std::string& text)
-{
-}
 void cInterfaceEGL::Swap()
 {
 	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);

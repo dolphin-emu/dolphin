@@ -12,12 +12,6 @@
 typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);
 static PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
 
-// Show the current FPS
-void cInterfaceGLX::UpdateFPSDisplay(const std::string& text)
-{
-	XStoreName(GLWin.dpy, GLWin.win, text.c_str());
-}
-
 void cInterfaceGLX::SwapInterval(int Interval)
 {
 	if (glXSwapIntervalSGI)

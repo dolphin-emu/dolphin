@@ -18,7 +18,6 @@ public:
 	void SwapInterval(int Interval);
 	void Swap();
 	void SetMode(u32 mode) { s_opengl_mode = mode; }
-	void UpdateFPSDisplay(const std::string& text);
 	void* GetFuncAddress(const std::string& name);
 	bool Create(void *window_handle);
 	bool MakeCurrent();
