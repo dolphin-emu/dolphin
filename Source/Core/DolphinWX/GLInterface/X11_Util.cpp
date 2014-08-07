@@ -11,7 +11,6 @@ void cX11Window::CreateXWindow(void)
 	// Setup window attributes
 	GLWin.attr.colormap = XCreateColormap(GLWin.dpy,
 			GLWin.parent, GLWin.vi->visual, AllocNone);
-	GLWin.attr.event_mask = StructureNotifyMask;
 	GLWin.attr.background_pixel = BlackPixel(GLWin.dpy, GLWin.screen);
 	GLWin.attr.border_pixel = 0;
 
@@ -19,7 +18,8 @@ void cX11Window::CreateXWindow(void)
 	GLWin.win = XCreateWindow(GLWin.dpy, GLWin.parent,
 			0, 0, 1, 1, 0,
 			GLWin.vi->depth, InputOutput, GLWin.vi->visual,
-			CWBorderPixel | CWBackPixel | CWColormap | CWEventMask, &GLWin.attr);
+			CWBorderPixel | CWBackPixel | CWColormap, &GLWin.attr);
+	XSelectInput(GLWin.dpy, GLWin.parent, StructureNotifyMask);
 	XMapWindow(GLWin.dpy, GLWin.win);
 	XSync(GLWin.dpy, True);
 
@@ -45,6 +45,7 @@ void cX11Window::XEventThread()
 			XNextEvent(GLWin.dpy, &event);
 			switch (event.type) {
 				case ConfigureNotify:
+					XResizeWindow(GLWin.dpy, GLWin.win, event.xconfigure.width, event.xconfigure.height);
 					GLInterface->SetBackBufferDimensions(event.xconfigure.width, event.xconfigure.height);
 					break;
 				default:
