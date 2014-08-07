@@ -169,9 +169,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
-
-	// TODO: (inst.SUBOP5 == 10) breaks Sonic Colours (black screen)
-	FALLBACK_IF(inst.Rc || (inst.SUBOP5 == 10));
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int a = inst.FA;
@@ -182,7 +180,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	switch (inst.SUBOP5)
 	{
 	case 10:
-		// Do the sum in upper subregisters, merge uppers
+		// ps_sum0, do the sum in upper subregisters, merge uppers
 		MOVDDUP(XMM0, fpr.R(a));
 		MOVAPD(XMM1, fpr.R(b));
 		ADDPD(XMM0, R(XMM1));
@@ -190,7 +188,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 		MOVAPD(fpr.R(d), XMM0);
 		break;
 	case 11:
-		// Do the sum in lower subregisters, merge lowers
+		// ps_sum1, do the sum in lower subregisters, merge lowers
 		MOVAPD(XMM0, fpr.R(a));
 		MOVAPD(XMM1, fpr.R(b));
 		SHUFPD(XMM1, R(XMM1), 5); // copy higher to lower
