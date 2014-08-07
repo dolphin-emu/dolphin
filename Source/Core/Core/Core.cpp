@@ -138,11 +138,6 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 	}
 }
 
-void *GetWindowHandle()
-{
-	return g_pWindowHandle;
-}
-
 bool IsRunning()
 {
 	return (GetState() != CORE_UNINITIALIZED) || g_bHwInit;
