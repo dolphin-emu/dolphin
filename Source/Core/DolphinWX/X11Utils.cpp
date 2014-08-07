@@ -254,8 +254,7 @@ void XRRConfiguration::ToggleDisplayMode(bool bFullscreen)
 	XSync(dpy, false);
 }
 
-#if defined(HAVE_WX) && HAVE_WX
-void XRRConfiguration::AddResolutions(wxArrayString& arrayStringFor_FullscreenResolution)
+void XRRConfiguration::AddResolutions(std::vector<std::string>& resos)
 {
 	if (!bValid || !screenResources)
 		return;
@@ -268,7 +267,6 @@ void XRRConfiguration::AddResolutions(wxArrayString& arrayStringFor_FullscreenRe
 
 		if (output_info && output_info->crtc && output_info->connection == RR_Connected)
 		{
-			std::vector<std::string> resos;
 			for (int j = 0; j < output_info->nmode; j++)
 				for (int k = 0; k < screenResources->nmode; k++)
 					if (output_info->modes[j] == screenResources->modes[k].id)
@@ -280,7 +278,6 @@ void XRRConfiguration::AddResolutions(wxArrayString& arrayStringFor_FullscreenRe
 						if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
 						{
 							resos.push_back(strRes);
-							arrayStringFor_FullscreenResolution.Add(StrToWxStr(strRes));
 						}
 					}
 		}
@@ -288,7 +285,6 @@ void XRRConfiguration::AddResolutions(wxArrayString& arrayStringFor_FullscreenRe
 			XRRFreeOutputInfo(output_info);
 	}
 }
-#endif
 
 #endif
 
