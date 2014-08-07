@@ -24,10 +24,8 @@ extern char **environ;
 namespace X11Utils
 {
 
-void ToggleFullscreen(Display *dpy)
+void ToggleFullscreen(Display *dpy, Window win)
 {
-	Window win = (Window)Core::GetWindowHandle();
-
 	// Init X event structure for _NET_WM_STATE_FULLSCREEN client message
 	XEvent event;
 	event.xclient.type = ClientMessage;
