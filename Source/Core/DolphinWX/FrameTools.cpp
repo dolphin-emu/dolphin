@@ -835,13 +835,6 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
 		}
-#if defined(HAVE_X11) && HAVE_X11
-		wxRect client_rect = m_RenderParent->GetClientRect();
-		XMoveResizeWindow(X11Utils::XDisplayFromHandle(GetHandle()),
-				  (Window) Core::GetWindowHandle(),
-				  client_rect.x, client_rect.y,
-				  client_rect.width, client_rect.height);
-#endif
 		m_LogWindow->Refresh();
 		m_LogWindow->Update();
 	}
