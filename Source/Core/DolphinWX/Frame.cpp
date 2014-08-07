@@ -2,14 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-// CFrame is the main parent window. Inside CFrame there is an m_Panel that is
-// the parent for the rendering window (when we render to the main window). In
-// Windows the rendering window is created by giving CreateWindow()
-// m_Panel->GetHandle() as parent window and creating a new child window to
-// m_Panel. The new child window handle that is returned by CreateWindow() can
-// be accessed from Core::GetWindowHandle().
-
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
 #endif
