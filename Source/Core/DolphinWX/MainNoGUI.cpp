@@ -52,9 +52,10 @@ void Host_Message(int Id)
 	}
 }
 
+void* windowHandle;
 void* Host_GetRenderHandle()
 {
-	return nullptr;
+	return windowHandle;
 }
 
 void Host_UpdateTitle(const std::string& title){};
@@ -129,6 +130,7 @@ void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 class PlatformX11 : public Platform
 {
 	Display *dpy;
+	Window win;
 	Cursor blankCursor = None;
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	X11Utils::XRRConfiguration *XRRConfig;
@@ -138,12 +140,17 @@ class PlatformX11 : public Platform
 	{
 		XInitThreads();
 		dpy = XOpenDisplay(NULL);
-	}
 
-	void MainLoop() override
-	{
-		Window win = (Window)Core::GetWindowHandle();
+		win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy),
+					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
+					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
+					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					  0, 0, BlackPixel(dpy, 0));
 		XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
+		XMapRaised(dpy, win);
+		XFlush(dpy);
+		windowHandle = (void *) win;
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 			X11Utils::InhibitScreensaver(dpy, win, true);
@@ -163,7 +170,10 @@ class PlatformX11 : public Platform
 			XFreePixmap (dpy, Blank);
 			XDefineCursor(dpy, win, blankCursor);
 		}
+	}
 
+	void MainLoop() override
+	{
 		bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
 
 		if (fullscreen)
