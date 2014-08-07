@@ -41,15 +41,15 @@
 #import <Cocoa/Cocoa.h>
 #endif
 
-bool rendererHasFocus = true;
-bool running = true;
+static bool rendererHasFocus = true;
+static bool running = true;
 
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
 
 void Host_ShowJitResults(unsigned int address){}
 
-Common::Event updateMainFrameEvent;
+static Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
 	switch (Id)
@@ -109,8 +109,6 @@ bool Host_RendererHasFocus()
 
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
-void Host_SetWaitCursor(bool enable){}
-
 void Host_UpdateStatusBar(const std::string& text, int filed){}
 
 void Host_SysMessage(const char *fmt, ...)
@@ -137,7 +135,7 @@ void Host_SetWiiMoteConnectionState(int _State) {}
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 #if HAVE_X11
-void X11_MainLoop()
+static void X11_MainLoop()
 {
 	bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
 	while (!Core::IsRunning())
@@ -271,7 +269,7 @@ void X11_MainLoop()
 #endif
 
 #if HAVE_WAYLAND
-void Wayland_MainLoop()
+static void Wayland_MainLoop()
 {
 	// Wait for display to be initialized
 	while (!GLWin.wl_display)

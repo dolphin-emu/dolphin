@@ -1011,7 +1011,7 @@ void DSPJitRegCache::spillXReg(X64Reg reg)
 	if (xregs[reg].guest_reg <= DSP_REG_MAX_MEM_BACKED)
 	{
 		_assert_msg_(DSPLLE, !regs[xregs[reg].guest_reg].used,
-		             "to be spilled host reg %x(guest reg %x) still in use!",
+		             "to be spilled host reg %x(guest reg %zx) still in use!",
 		             reg, xregs[reg].guest_reg);
 
 		movToMemory(xregs[reg].guest_reg);

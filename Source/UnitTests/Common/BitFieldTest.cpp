@@ -24,7 +24,7 @@ union TestUnion
 };
 
 // table of raw numbers to test with
-u64 table[] =
+static u64 table[] =
 {
 	0x0000000000000000ull, // all zero
 	0xffffffffffffffffull, // all one

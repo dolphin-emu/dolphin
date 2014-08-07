@@ -1666,7 +1666,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			u64 val = ibuild->GetImmValue64(I);
 			if ((u32)val == val)
 				Jit->MOV(32, R(reg), Imm32(val));
-			else if ((s32)val == val)
+			else if ((s32)val == (s64)val)
 				Jit->MOV(64, R(reg), Imm32(val));
 			else
 				Jit->MOV(64, R(reg), Imm64(val));
