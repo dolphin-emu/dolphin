@@ -168,7 +168,7 @@ class PlatformX11 : public Platform
 
 		if (fullscreen)
 		{
-			X11Utils::EWMH_Fullscreen(dpy, _NET_WM_STATE_TOGGLE);
+			X11Utils::ToggleFullscreen(dpy);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 			XRRConfig->ToggleDisplayMode(True);
 #endif
@@ -204,7 +204,7 @@ class PlatformX11 : public Platform
 					else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
 					{
 						fullscreen = !fullscreen;
-						X11Utils::EWMH_Fullscreen(dpy, _NET_WM_STATE_TOGGLE);
+						X11Utils::ToggleFullscreen(dpy);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 						XRRConfig->ToggleDisplayMode(fullscreen);
 #endif
