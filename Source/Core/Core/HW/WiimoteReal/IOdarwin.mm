@@ -142,6 +142,8 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	if ([bti start] != kIOReturnSuccess)
 	{
 		ERROR_LOG(WIIMOTE, "Unable to do bluetooth discovery");
+		[bth release];
+		[sbt release];
 		return;
 	}
 
