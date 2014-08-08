@@ -11,6 +11,10 @@
 #define SLEEP(x) usleep(x*1000)
 #endif
 
+#ifdef __APPLE__
+#include <libkern/OSByteOrder.h>
+#endif
+
 #include <clocale>
 #include <cstddef>
 #include <type_traits>
@@ -186,11 +190,11 @@ inline u32 swap32(u32 _data) {return bswap_32(_data);}
 inline u64 swap64(u64 _data) {return bswap_64(_data);}
 #elif __APPLE__
 inline __attribute__((always_inline)) u16 swap16(u16 _data)
-	{return (_data >> 8) | (_data << 8);}
+	{return OSSwapInt16(_data);}
 inline __attribute__((always_inline)) u32 swap32(u32 _data)
-	{return __builtin_bswap32(_data);}
+	{return OSSwapInt32(_data);}
 inline __attribute__((always_inline)) u64 swap64(u64 _data)
-	{return __builtin_bswap64(_data);}
+	{return OSSwapInt64(_data);}
 #elif __FreeBSD__
 inline u16 swap16(u16 _data) {return bswap16(_data);}
 inline u32 swap32(u32 _data) {return bswap32(_data);}
