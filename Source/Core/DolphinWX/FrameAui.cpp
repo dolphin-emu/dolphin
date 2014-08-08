@@ -584,7 +584,7 @@ void CFrame::OnToolBar(wxCommandEvent& event)
 			break;
 		case IDM_EDIT_PERSPECTIVES:
 			m_bEdit = !m_bEdit;
-			//m_ToolBarAui->SetToolSticky(IDM_EDIT_PERSPECTIVES, m_bEdit);
+			m_ToolBarAui->SetToolSticky(IDM_EDIT_PERSPECTIVES, m_bEdit);
 			TogglePaneStyle(m_bEdit, IDM_EDIT_PERSPECTIVES);
 			break;
 	}

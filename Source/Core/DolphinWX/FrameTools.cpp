@@ -1731,15 +1731,13 @@ void CFrame::UpdateGUI()
 			{
 				PlayTool->SetLabel(_("Pause"));
 				PlayTool->SetShortHelp(_("Pause"));
-				// TODO: Change icon
-				// m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
+				m_ToolBar->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
 			}
 			else
 			{
 				PlayTool->SetLabel(_("Play"));
 				PlayTool->SetShortHelp(_("Play"));
-				// TODO: Change icon
-				// m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
+				m_ToolBar->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
 			}
 		}
 	}
