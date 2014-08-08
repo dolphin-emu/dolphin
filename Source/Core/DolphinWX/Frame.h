@@ -138,9 +138,10 @@ public:
 	X11Utils::XRRConfiguration *m_XRRConfig;
 #endif
 
+	wxToolBar *m_ToolBar, *m_ToolBarDebug;
 	// AUI
 	wxAuiManager *m_Mgr;
-	wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
+	wxAuiToolBar *m_ToolBarAui;
 	bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
 	// Perspectives (Should find a way to make all of this private)
@@ -195,7 +196,7 @@ private:
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
-	void PopulateToolbar(wxAuiToolBar* toolBar);
+	void PopulateToolbar(wxToolBar* toolBar);
 	void PopulateToolbarAui(wxAuiToolBar* toolBar);
 	void RecreateToolbar();
 	void CreateMenu();

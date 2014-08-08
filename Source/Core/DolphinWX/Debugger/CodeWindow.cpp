@@ -128,7 +128,7 @@ wxMenuBar *CCodeWindow::GetMenuBar()
 	return Parent->GetMenuBar();
 }
 
-wxAuiToolBar *CCodeWindow::GetToolBar()
+wxToolBar *CCodeWindow::GetToolBar()
 {
 	return Parent->m_ToolBarDebug;
 }
@@ -588,7 +588,7 @@ void CCodeWindow::InitBitmaps()
 		bitmap = wxBitmap(bitmap.ConvertToImage().Scale(24, 24));
 }
 
-void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
+void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 {
 	int w = m_Bitmaps[0].GetWidth(),
 		h = m_Bitmaps[0].GetHeight();
@@ -625,7 +625,7 @@ void CCodeWindow::UpdateButtonStates()
 	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
 	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
 	bool Stepping = CCPU::IsStepping();
-	wxAuiToolBar* ToolBar = GetToolBar();
+	wxToolBar* ToolBar = GetToolBar();
 
 	// Toolbar
 	if (!ToolBar)
