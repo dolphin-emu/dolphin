@@ -48,6 +48,9 @@ VideoConfig::VideoConfig()
 	fAimDistance = DEFAULT_VR_AIM_DISTANCE;
 	fScreenDistance = DEFAULT_VR_SCREEN_DISTANCE;
 	fScreenHeight = DEFAULT_VR_SCREEN_HEIGHT;
+	iMetroidPrime = 0;
+	iTelescopeEye = 0;
+	fTelescopeMaxFOV = 0;
 
 }
 
@@ -242,6 +245,10 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "ScreenRight", fScreenRight);
 	CHECK_SETTING("VR", "ScreenUp", fScreenUp);
 	CHECK_SETTING("VR", "ScreenPitch", fScreenPitch);
+	CHECK_SETTING("VR", "MetroidPrime", iMetroidPrime);
+	CHECK_SETTING("VR", "TelescopeEye", iTelescopeEye);
+	CHECK_SETTING("VR", "TelescopeFOV", fTelescopeMaxFOV);
+
 	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick", fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
 
 	if (gfx_override_exists)

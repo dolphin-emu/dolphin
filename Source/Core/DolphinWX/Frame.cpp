@@ -1211,11 +1211,13 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				if (g_Config.iSelectedLayer < 0)
 					g_Config.iSelectedLayer = -1;
 				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
+				debug_nextScene = true;
 				break;
-				// Previous layer
+			// Next layer
 			case 'N':
 				g_Config.iSelectedLayer++;
 				NOTICE_LOG(VR, "Selected layer %d", g_Config.iSelectedLayer);
+				debug_nextScene = true;
 				break;
 			// Make Screen 10cm thinner
 			case 'G':
@@ -1236,6 +1238,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				else
 					g_Config.fScreenThickness += 0.1f;
 				NOTICE_LOG(VR, "Screen is %5.2fm (%5.0fcm) thick", g_Config.fScreenThickness, g_Config.fScreenThickness * 100);
+				break;
+			case '\'':
+				NOTICE_LOG(VR, "--- pressed ' ---");
+				debug_nextScene = true;
 				break;
 #ifdef HAVE_OCULUSSDK
 			case 'R':

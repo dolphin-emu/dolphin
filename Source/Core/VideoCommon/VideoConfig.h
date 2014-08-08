@@ -135,13 +135,15 @@ struct VideoConfig final
 	float fScreenRight;
 	float fScreenUp;
 	float fScreenPitch;
+	float fTelescopeMaxFOV;
 	bool bEnableVR;
 	bool bDisable3D;
 	bool bHudFullscreen;
+	int iTelescopeEye;
+	int iMetroidPrime;
 	// VR layer debugging
 	int iSelectedLayer;
 	int iFlashState;
-
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
