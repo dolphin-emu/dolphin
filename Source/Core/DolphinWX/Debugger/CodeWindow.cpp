@@ -20,6 +20,7 @@
 #include <wx/textctrl.h>
 #include <wx/textdlg.h>
 #include <wx/thread.h>
+#include <wx/toolbar.h>
 #include <wx/translation.h>
 #include <wx/window.h>
 #include <wx/windowid.h>
