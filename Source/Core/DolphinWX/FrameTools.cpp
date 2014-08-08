@@ -501,7 +501,7 @@ wxString CFrame::GetMenuLabel(int Id)
 
 // Create toolbar items
 // ---------------------
-void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
+void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
 		h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
@@ -553,25 +553,15 @@ void CFrame::RecreateToolbar()
 		m_ToolBar->Destroy();
 	}
 
-	long TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT  /*wxAUI_TB_OVERFLOW overflow visible*/;
-	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
+	long TOOLBAR_STYLE = wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT  /*wxAUI_TB_OVERFLOW overflow visible*/;
 
+	m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBMain");
 	PopulateToolbar(m_ToolBar);
-
-	m_Mgr->AddPane(m_ToolBar, wxAuiPaneInfo().
-				Name("TBMain").Caption("TBMain").
-				ToolbarPane().Top().
-				LeftDockable(false).RightDockable(false).Floatable(false));
 
 	if (g_pCodeWindow && !m_ToolBarDebug)
 	{
-		m_ToolBarDebug = new wxAuiToolBar(this, ID_TOOLBAR_DEBUG, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
+		m_ToolBarDebug = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBDebug");
 		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
-
-		m_Mgr->AddPane(m_ToolBarDebug, wxAuiPaneInfo().
-				Name("TBDebug").Caption("TBDebug").
-				ToolbarPane().Top().
-				LeftDockable(false).RightDockable(false).Floatable(false));
 
 		m_ToolBarAui = new wxAuiToolBar(this, ID_TOOLBAR_AUI, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
 		PopulateToolbarAui(m_ToolBarAui);
@@ -1730,22 +1720,27 @@ void CFrame::UpdateGUI()
 				AccessWiiMote(0x0104)->IsConnected());
 	}
 
-	if (Running)
+	if (m_ToolBar)
 	{
-		if (m_ToolBar)
+		// Get the tool that controls pausing/playing
+		wxToolBarToolBase * PlayTool = m_ToolBar->FindById(IDM_PLAY);
+
+		if (PlayTool)
 		{
-			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
-			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Pause"));
-			m_ToolBar->SetToolLabel(IDM_PLAY, _("Pause"));
-		}
-	}
-	else
-	{
-		if (m_ToolBar)
-		{
-			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
-			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Play"));
-			m_ToolBar->SetToolLabel(IDM_PLAY, _("Play"));
+			if (Running)
+			{
+				PlayTool->SetLabel(_("Pause"));
+				PlayTool->SetShortHelp(_("Pause"));
+				// TODO: Change icon
+				// m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
+			}
+			else
+			{
+				PlayTool->SetLabel(_("Play"));
+				PlayTool->SetShortHelp(_("Play"));
+				// TODO: Change icon
+				// m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
+			}
 		}
 	}
 
