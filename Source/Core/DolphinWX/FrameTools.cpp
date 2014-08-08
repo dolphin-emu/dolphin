@@ -1900,26 +1900,21 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 }
 void CFrame::DoToggleToolbar(bool _show)
 {
-	if (_show)
+	GetToolBar()->Show(_show);
+
+	if (g_pCodeWindow)
 	{
-		m_Mgr->GetPane("TBMain").Show();
-		if (g_pCodeWindow)
+		if (_show)
 		{
-			m_Mgr->GetPane("TBDebug").Show();
 			m_Mgr->GetPane("TBAui").Show();
 		}
-		m_Mgr->Update();
-	}
-	else
-	{
-		m_Mgr->GetPane("TBMain").Hide();
-		if (g_pCodeWindow)
+		else
 		{
-			m_Mgr->GetPane("TBDebug").Hide();
 			m_Mgr->GetPane("TBAui").Hide();
 		}
-		m_Mgr->Update();
 	}
+
+	m_Mgr->Update();
 }
 
 // Enable and disable the status bar
