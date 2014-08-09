@@ -131,7 +131,7 @@ wxMenuBar *CCodeWindow::GetMenuBar()
 
 wxToolBar *CCodeWindow::GetToolBar()
 {
-	return Parent->m_ToolBarDebug;
+	return Parent->m_ToolBar;
 }
 
 // ----------

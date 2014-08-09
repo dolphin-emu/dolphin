@@ -540,15 +540,18 @@ void CFrame::RecreateToolbar()
 
 	long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
 
-	if (g_pCodeWindow && !m_ToolBarDebug)
+	if (!m_ToolBar)
 	{
-		m_ToolBarDebug = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBDebug");
-		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
-		m_ToolBarDebug->AddSeparator();
-	}
+		m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBMain");
 
-	m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBMain");
-	PopulateToolbar(m_ToolBar);
+		if (g_pCodeWindow)
+		{
+			g_pCodeWindow->PopulateToolbar(m_ToolBar);
+			m_ToolBar->AddSeparator();
+		}
+
+		PopulateToolbar(m_ToolBar);
+	}
 
 	UpdateGUI();
 }
