@@ -179,10 +179,6 @@ void CreateScreenshotTexture(const TargetRectangle& rc)
 
 Renderer::Renderer(void *&window_handle)
 {
-	int x, y, w_temp, h_temp;
-
-	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
-
 	D3D::Create((HWND)window_handle);
 
 	s_backbuffer_width = D3D::GetBackBufferWidth();

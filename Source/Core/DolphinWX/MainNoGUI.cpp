@@ -67,16 +67,12 @@ void* Host_GetRenderHandle()
 
 void Host_UpdateTitle(const std::string& title){};
 
-void Host_UpdateLogDisplay(){}
-
 void Host_UpdateDisasmDialog(){}
 
 void Host_UpdateMainFrame()
 {
 	updateMainFrameEvent.Set();
 }
-
-void Host_UpdateBreakPointView(){}
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {

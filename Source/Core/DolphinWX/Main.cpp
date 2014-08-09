@@ -542,19 +542,6 @@ void Host_NotifyMapLoaded()
 	}
 }
 
-
-void Host_UpdateLogDisplay()
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATELOGDISPLAY);
-	main_frame->GetEventHandler()->AddPendingEvent(event);
-
-	if (main_frame->g_pCodeWindow)
-	{
-		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-	}
-}
-
-
 void Host_UpdateDisasmDialog()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
@@ -565,7 +552,6 @@ void Host_UpdateDisasmDialog()
 		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 }
-
 
 void Host_ShowJitResults(unsigned int address)
 {
@@ -589,17 +575,6 @@ void Host_UpdateTitle(const std::string& title)
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
 	event.SetString(StrToWxStr(title));
 	main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
-void Host_UpdateBreakPointView()
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
-	main_frame->GetEventHandler()->AddPendingEvent(event);
-
-	if (main_frame->g_pCodeWindow)
-	{
-		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-	}
 }
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)

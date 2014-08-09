@@ -122,11 +122,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		ERROR_LOG(_t_, __VA_ARGS__); \
 		if (!PanicYesNo(__VA_ARGS__)) {Crash();} \
 	}
-#define _dbg_update_() Host_UpdateLogDisplay();
-
 #else // not debug
-#define _dbg_update_() ;
-
 #ifndef _dbg_assert_
 #define _dbg_assert_(_t_, _a_) {}
 #define _dbg_assert_msg_(_t_, _a_, _desc_, ...) {}

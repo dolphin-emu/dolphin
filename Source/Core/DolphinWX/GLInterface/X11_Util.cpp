@@ -19,8 +19,7 @@ bool cXInterface::ServerConnect(void)
 
 bool cXInterface::Initialize(void *config, void *window_handle)
 {
-	int _tx, _ty, _twidth, _theight;
-	XVisualInfo  visTemplate;
+	XVisualInfo visTemplate;
 	int num_visuals;
 	EGLint vid;
 
@@ -41,13 +40,6 @@ bool cXInterface::Initialize(void *config, void *window_handle)
 		printf("Error: couldn't get X visual\n");
 		exit(1);
 	}
-
-	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
-
-	GLWin.x = _tx;
-	GLWin.y = _ty;
-	GLWin.width = _twidth;
-	GLWin.height = _theight;
 
 	GLWin.evdpy = XOpenDisplay(nullptr);
 	GLWin.parent = (Window) window_handle;
@@ -81,7 +73,7 @@ void *cXInterface::CreateWindow(void)
 
 	// Create the window
 	GLWin.win = XCreateWindow(GLWin.evdpy, GLWin.parent,
-			GLWin.x, GLWin.y, GLWin.width, GLWin.height, 0,
+			0, 0, 1, 1, 0,
 			GLWin.vi->depth, InputOutput, GLWin.vi->visual,
 			CWBorderPixel | CWBackPixel | CWColormap | CWEventMask, &GLWin.attr);
 	wmProtocols[0] = XInternAtom(GLWin.evdpy, "WM_DELETE_WINDOW", True);
@@ -131,7 +123,7 @@ void cX11Window::CreateXWindow(void)
 
 	// Create the window
 	GLWin.win = XCreateWindow(GLWin.evdpy, GLWin.parent,
-			GLWin.x, GLWin.y, GLWin.width, GLWin.height, 0,
+			0, 0, 1, 1, 0,
 			GLWin.vi->depth, InputOutput, GLWin.vi->visual,
 			CWBorderPixel | CWBackPixel | CWColormap | CWEventMask, &GLWin.attr);
 	wmProtocols[0] = XInternAtom(GLWin.evdpy, "WM_DELETE_WINDOW", True);

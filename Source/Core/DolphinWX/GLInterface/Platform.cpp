@@ -135,8 +135,6 @@ bool cPlatform::Init(EGLConfig config, void *window_handle)
 	ANativeWindow_setBuffersGeometry((EGLNativeWindowType)Host_GetRenderHandle(), 0, 0, format);
 	int none, width, height;
 	Host_GetRenderWindowSize(none, none, width, height);
-	GLWin.width = width;
-	GLWin.height = height;
 	GLInterface->SetBackBufferDimensions(width, height);
 #endif
 	return true;

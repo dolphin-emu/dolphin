@@ -25,7 +25,7 @@
 
 #include "Common/Common.h"
 #include "Common/DebugInterface.h"
-#include "Core/Host.h"
+#include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryView.h"
@@ -97,7 +97,10 @@ void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 		debugger->ToggleMemCheck(YToAddress(y));
 
 		Refresh();
-		Host_UpdateBreakPointView();
+
+		// Propagate back to the parent window to update the breakpoint list.
+		wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
+		GetEventHandler()->AddPendingEvent(evt);
 	}
 
 	event.Skip();
