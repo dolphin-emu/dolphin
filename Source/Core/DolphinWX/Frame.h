@@ -141,7 +141,7 @@ public:
 
 	wxMenu* m_SavedPerspectives;
 
-	wxToolBar *m_ToolBar, *m_ToolBarDebug;
+	wxToolBar *m_ToolBar;
 	// AUI
 	wxAuiManager *m_Mgr;
 	bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
