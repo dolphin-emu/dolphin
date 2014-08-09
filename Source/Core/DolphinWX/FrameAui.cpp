@@ -533,8 +533,7 @@ void CFrame::OnPerspectiveMenu(wxCommandEvent& event)
 				wxTextEntryDialog dlg(this,
 						_("Enter a name for the new perspective:"),
 						_("Create new perspective"));
-				wxString DefaultValue = wxString::Format(_("Perspective %d"),
-						Perspectives.size() + 1);
+				wxString DefaultValue = wxString::Format(_("Perspective %d"), (int)(Perspectives.size() + 1));
 				dlg.SetValue(DefaultValue);
 
 				int Return = 0;
