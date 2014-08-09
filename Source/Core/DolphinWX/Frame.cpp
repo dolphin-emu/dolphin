@@ -41,7 +41,6 @@
 #include <wx/translation.h>
 #include <wx/window.h>
 #include <wx/windowid.h>
-#include <wx/aui/auibar.h>
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 
@@ -246,16 +245,14 @@ EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnConfigPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnConfigWiimote)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
 
-EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnToolBar)
-EVT_AUITOOLBAR_TOOL_DROPDOWN(IDM_SAVE_PERSPECTIVE, CFrame::OnDropDownToolbarItem)
-EVT_MENU(IDM_EDIT_PERSPECTIVES, CFrame::OnToolBar)
-EVT_AUITOOLBAR_TOOL_DROPDOWN(IDM_EDIT_PERSPECTIVES, CFrame::OnDropDownSettingsToolbar)
+EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnPerspectiveMenu)
+EVT_MENU(IDM_EDIT_PERSPECTIVES, CFrame::OnPerspectiveMenu)
 // Drop down
-EVT_MENU(IDM_PERSPECTIVES_ADD_PANE, CFrame::OnToolBar)
+EVT_MENU(IDM_PERSPECTIVES_ADD_PANE, CFrame::OnPerspectiveMenu)
 EVT_MENU_RANGE(IDM_PERSPECTIVES_0, IDM_PERSPECTIVES_100, CFrame::OnSelectPerspective)
-EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnDropDownToolbarSelect)
-EVT_MENU(IDM_TAB_SPLIT, CFrame::OnDropDownToolbarSelect)
-EVT_MENU(IDM_NO_DOCKING, CFrame::OnDropDownToolbarSelect)
+EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnPerspectiveMenu)
+EVT_MENU(IDM_TAB_SPLIT, CFrame::OnPerspectiveMenu)
+EVT_MENU(IDM_NO_DOCKING, CFrame::OnPerspectiveMenu)
 // Drop down float
 EVT_MENU_RANGE(IDM_FLOAT_LOGWINDOW, IDM_FLOAT_CODEWINDOW, CFrame::OnFloatWindow)
 
@@ -329,7 +326,8 @@ CFrame::CFrame(wxFrame* parent,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
 	, g_pCodeWindow(nullptr), g_NetPlaySetupDiag(nullptr), g_CheatsWindow(nullptr)
-	, m_ToolBar(nullptr), m_ToolBarDebug(nullptr), m_ToolBarAui(nullptr)
+	, m_ToolBar(nullptr), m_ToolBarDebug(nullptr)
+	, m_SavedPerspectives(nullptr)
 	, m_GameListCtrl(nullptr), m_Panel(nullptr)
 	, m_RenderFrame(nullptr), m_RenderParent(nullptr)
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)

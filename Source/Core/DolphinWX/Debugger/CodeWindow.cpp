@@ -436,6 +436,22 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	pDebugMenu->Append(IDM_STEP, _("Step &Into\tF11"));
 	pDebugMenu->Append(IDM_STEPOVER, _("Step &Over\tF10"));
 	pDebugMenu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint\tF9"));
+	pDebugMenu->AppendSeparator();
+
+	wxMenu* pPerspectives = new wxMenu;
+	Parent->m_SavedPerspectives = new wxMenu;
+	pDebugMenu->AppendSubMenu(pPerspectives, _("Perspectives"), _("Edit Perspectives"));
+	pPerspectives->Append(IDM_SAVE_PERSPECTIVE, _("Save perspectives"), _("Save currently-toggled perspectives"));
+	pPerspectives->Append(IDM_EDIT_PERSPECTIVES, _("Edit perspectives"), _("Toggle editing of perspectives"), wxITEM_CHECK);
+	pPerspectives->AppendSeparator();
+	pPerspectives->Append(IDM_ADD_PERSPECTIVE, _("Create new perspective"));
+	pPerspectives->AppendSubMenu(Parent->m_SavedPerspectives, _("Saved perspectives"));
+	Parent->PopulateSavedPerspectives();
+	pPerspectives->AppendSeparator();
+	pPerspectives->Append(IDM_PERSPECTIVES_ADD_PANE, _("Add new pane"));
+	pPerspectives->Append(IDM_TAB_SPLIT, _("Tab split"), "", wxITEM_CHECK);
+	pPerspectives->Append(IDM_NO_DOCKING, _("Disable docking"), "Disable docking of perspective panes to main window", wxITEM_CHECK);
+
 
 	pMenuBar->Append(pDebugMenu, _("&Debug"));
 

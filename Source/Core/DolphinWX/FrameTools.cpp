@@ -41,7 +41,6 @@ Core::GetWindowHandle().
 #include <wx/translation.h>
 #include <wx/utils.h>
 #include <wx/window.h>
-#include <wx/aui/auibar.h>
 #include <wx/aui/framemanager.h>
 
 #ifdef __APPLE__
@@ -529,21 +528,6 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->Realize();
 }
 
-void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
-{
-	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
-		h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
-	ToolBar->SetToolBitmapSize(wxSize(w, h));
-
-	ToolBar->AddTool(IDM_SAVE_PERSPECTIVE,  _("Save"), g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Save current perspective"));
-	ToolBar->AddTool(IDM_EDIT_PERSPECTIVES, _("Edit"), g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Edit current perspective"));
-
-	ToolBar->SetToolDropDown(IDM_SAVE_PERSPECTIVE, true);
-	ToolBar->SetToolDropDown(IDM_EDIT_PERSPECTIVES, true);
-
-	ToolBar->Realize();
-}
-
 
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
@@ -554,23 +538,17 @@ void CFrame::RecreateToolbar()
 		m_ToolBar->Destroy();
 	}
 
-	long TOOLBAR_STYLE = wxAUI_TB_PLAIN_BACKGROUND | wxAUI_TB_TEXT  /*wxAUI_TB_OVERFLOW overflow visible*/;
-
-	m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBMain");
-	PopulateToolbar(m_ToolBar);
+	long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
 
 	if (g_pCodeWindow && !m_ToolBarDebug)
 	{
 		m_ToolBarDebug = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBDebug");
 		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
-
-		m_ToolBarAui = new wxAuiToolBar(this, ID_TOOLBAR_AUI, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
-		PopulateToolbarAui(m_ToolBarAui);
-		m_Mgr->AddPane(m_ToolBarAui, wxAuiPaneInfo().
-				Name("TBAui").Caption("TBAui").
-				ToolbarPane().Top().
-				LeftDockable(false).RightDockable(false).Floatable(false));
+		m_ToolBarDebug->AddSeparator();
 	}
+
+	m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBMain");
+	PopulateToolbar(m_ToolBar);
 
 	UpdateGUI();
 }
@@ -1902,20 +1880,6 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 void CFrame::DoToggleToolbar(bool _show)
 {
 	GetToolBar()->Show(_show);
-
-	if (g_pCodeWindow)
-	{
-		if (_show)
-		{
-			m_Mgr->GetPane("TBAui").Show();
-		}
-		else
-		{
-			m_Mgr->GetPane("TBAui").Hide();
-		}
-	}
-
-	m_Mgr->Update();
 }
 
 // Enable and disable the status bar

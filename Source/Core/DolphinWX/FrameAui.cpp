@@ -475,94 +475,36 @@ void CFrame::DoAddPage(wxWindow *Win, int i, bool Float)
 				Win->GetName(), Win);
 }
 
-// Toolbar
-void CFrame::OnDropDownSettingsToolbar(wxAuiToolBarEvent& event)
+void CFrame::PopulateSavedPerspectives()
 {
-	event.Skip();
-	ClearStatusBar();
+	// If the perspective submenu hasn't been created yet, return
+	if (!m_SavedPerspectives) return;
 
-	if (event.IsDropDownClicked())
+	// Delete all saved perspective menu items
+	while (m_SavedPerspectives->GetMenuItemCount() != 0)
 	{
-		wxAuiToolBar* Tb = static_cast<wxAuiToolBar*>(event.GetEventObject());
-		Tb->SetToolSticky(event.GetId(), true);
-
-		// Create the popup menu
-		wxMenu* menuPopup = new wxMenu;
-
-		wxMenuItem* Item =  new wxMenuItem(menuPopup, IDM_PERSPECTIVES_ADD_PANE,
-				_("Add new pane"));
-		menuPopup->Append(Item);
-		menuPopup->Append(new wxMenuItem(menuPopup));
-		Item = new wxMenuItem(menuPopup, IDM_TAB_SPLIT, _("Tab split"), "", wxITEM_CHECK);
-		menuPopup->Append(Item);
-		Item->Check(m_bTabSplit);
-		Item = new wxMenuItem(menuPopup, IDM_NO_DOCKING, _("No docking"), "", wxITEM_CHECK);
-		menuPopup->Append(Item);
-		Item->Check(m_bNoDocking);
-
-		// Line up our menu with the button
-		wxRect rect = Tb->GetToolRect(event.GetId());
-		wxPoint Pt = Tb->ClientToScreen(rect.GetBottomLeft());
-		Pt = ScreenToClient(Pt);
-
-		// Show
-		PopupMenu(menuPopup, Pt);
-
-		// Make the button un-stuck again
-		if (!m_bEdit)
-		{
-			Tb->SetToolSticky(event.GetId(), false);
-		}
+		// Delete the first menu item in the list (while there are menu items)
+		m_SavedPerspectives->Delete(m_SavedPerspectives->FindItemByPosition(0));
 	}
-}
 
-void CFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& event)
-{
-	event.Skip();
-	ClearStatusBar();
-
-	if (event.IsDropDownClicked())
+	if (Perspectives.size() > 0)
 	{
-		wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(event.GetEventObject());
-		tb->SetToolSticky(event.GetId(), true);
-
-		// create the popup menu
-		wxMenu* menuPopup = new wxMenu;
-		wxMenuItem* Item = new wxMenuItem(menuPopup, IDM_ADD_PERSPECTIVE,
-				_("Create new perspective"));
-		menuPopup->Append(Item);
-
-		if (Perspectives.size() > 0)
+		for (u32 i = 0; i < Perspectives.size(); i++)
 		{
-			menuPopup->Append(new wxMenuItem(menuPopup));
-			for (u32 i = 0; i < Perspectives.size(); i++)
+			wxMenuItem* mItem = new wxMenuItem(m_SavedPerspectives, IDM_PERSPECTIVES_0 + i,
+					StrToWxStr(Perspectives[i].Name), "", wxITEM_CHECK);
+
+			m_SavedPerspectives->Append(mItem);
+
+			if (i == ActivePerspective)
 			{
-				wxMenuItem* mItem = new wxMenuItem(menuPopup, IDM_PERSPECTIVES_0 + i,
-						StrToWxStr(Perspectives[i].Name), "", wxITEM_CHECK);
-
-				menuPopup->Append(mItem);
-
-				if (i == ActivePerspective)
-				{
-					mItem->Check(true);
-				}
+				mItem->Check(true);
 			}
 		}
-
-		// line up our menu with the button
-		wxRect rect = tb->GetToolRect(event.GetId());
-		wxPoint pt = tb->ClientToScreen(rect.GetBottomLeft());
-		pt = ScreenToClient(pt);
-
-		// show
-		PopupMenu(menuPopup, pt);
-
-		// make sure the button is "un-stuck"
-		tb->SetToolSticky(event.GetId(), false);
 	}
 }
 
-void CFrame::OnToolBar(wxCommandEvent& event)
+void CFrame::OnPerspectiveMenu(wxCommandEvent& event)
 {
 	ClearStatusBar();
 
@@ -583,19 +525,9 @@ void CFrame::OnToolBar(wxCommandEvent& event)
 			AddPane();
 			break;
 		case IDM_EDIT_PERSPECTIVES:
-			m_bEdit = !m_bEdit;
-			m_ToolBarAui->SetToolSticky(IDM_EDIT_PERSPECTIVES, m_bEdit);
+			m_bEdit = event.IsChecked();
 			TogglePaneStyle(m_bEdit, IDM_EDIT_PERSPECTIVES);
 			break;
-	}
-}
-
-void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
-{
-	ClearStatusBar();
-
-	switch (event.GetId())
-	{
 		case IDM_ADD_PERSPECTIVE:
 			{
 				wxTextEntryDialog dlg(this,
@@ -643,6 +575,7 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 				Perspectives.push_back(Tmp);
 
 				UpdateCurrentPerspective();
+				PopulateSavedPerspectives();
 			}
 			break;
 		case IDM_TAB_SPLIT:
@@ -654,26 +587,6 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 			TogglePaneStyle(m_bNoDocking, IDM_NO_DOCKING);
 			break;
 	}
-}
-
-void CFrame::ResetToolbarStyle()
-{
-	wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
-	for (int i = 0, Count = (int)AllPanes.GetCount(); i < Count; ++i)
-	{
-		wxAuiPaneInfo& Pane = AllPanes[i];
-		if (Pane.window->IsKindOf(CLASSINFO(wxAuiToolBar)))
-		{
-			Pane.Show();
-
-			// Show all of it
-			if (Pane.rect.GetLeft() > GetClientSize().GetX() - 50)
-			{
-				Pane.Position(GetClientSize().GetX() - Pane.window->GetClientSize().GetX());
-			}
-		}
-	}
-	m_Mgr->Update();
 }
 
 void CFrame::TogglePaneStyle(bool On, int EventId)
@@ -798,8 +711,6 @@ void CFrame::ReloadPanes()
 
 	// Perspectives
 	m_Mgr->LoadPerspective(Perspectives[ActivePerspective].Perspective, false);
-	// Reset toolbars
-	ResetToolbarStyle();
 	// Restore settings
 	TogglePaneStyle(m_bNoDocking, IDM_NO_DOCKING);
 	TogglePaneStyle(m_bEdit, IDM_EDIT_PERSPECTIVES);
@@ -809,6 +720,9 @@ void CFrame::ReloadPanes()
 	// Open notebook pages
 	AddRemoveBlankPage();
 	g_pCodeWindow->OpenPages();
+
+	// Repopulate perspectives
+	PopulateSavedPerspectives();
 }
 
 void CFrame::DoLoadPerspective()
