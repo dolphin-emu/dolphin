@@ -6,7 +6,7 @@
 
 #include "Core/Host.h"
 
-#include "DolphinWX/GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/WGL.h"
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"

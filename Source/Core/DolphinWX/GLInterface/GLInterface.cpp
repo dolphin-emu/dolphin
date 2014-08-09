@@ -2,10 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DolphinWX/GLInterface/GLInterface.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 
-GLWindow GLWin;
+#if USE_EGL
+#include "DolphinWX/GLInterface/EGL.h"
+#elif defined(__APPLE__)
+#include "DolphinWX/GLInterface/AGL.h"
+#elif defined(_WIN32)
+#include "DolphinWX/GLInterface/WGL.h"
+#elif HAVE_X11
+#include "DolphinWX/GLInterface/GLX.h"
+#else
+#error Platform doesnt have a GLInterface
+#endif
 
 cInterfaceBase* HostGL_CreateGLInterface()
 {

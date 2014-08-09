@@ -14,6 +14,9 @@ class cInterfaceEGL : public cInterfaceBase
 {
 private:
 	void DetectMode();
+	EGLSurface egl_surf;
+	EGLContext egl_ctx;
+	EGLDisplay egl_dpy;
 public:
 	void SwapInterval(int Interval);
 	void Swap();
