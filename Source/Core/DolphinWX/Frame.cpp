@@ -326,7 +326,7 @@ CFrame::CFrame(wxFrame* parent,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
 	, g_pCodeWindow(nullptr), g_NetPlaySetupDiag(nullptr), g_CheatsWindow(nullptr)
-	, m_ToolBar(nullptr), m_SavedPerspectives(nullptr)
+	, m_SavedPerspectives(nullptr), m_ToolBar(nullptr)
 	, m_GameListCtrl(nullptr), m_Panel(nullptr)
 	, m_RenderFrame(nullptr), m_RenderParent(nullptr)
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
