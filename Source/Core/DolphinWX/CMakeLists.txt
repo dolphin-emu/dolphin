@@ -74,16 +74,22 @@ set(ANDROID_SRCS Android/ButtonManager.cpp
 
 if(USE_EGL)
 	set(SRCS ${SRCS} GLInterface/EGL.cpp)
-else()
-	if(WIN32)
-		set(SRCS ${SRCS} GLInterface/WGL.cpp)
-	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set(SRCS ${SRCS} GLInterface/AGL.cpp)
-	else()
-		set(SRCS ${SRCS} GLInterface/GLX.cpp
-			GLInterface/X11_Util.cpp)
+	if(ANDROID)
+		set(SRCS ${SRCS} GLInterface/EGLAndroid.cpp)
+	elseif(USE_X11)
+		set(SRCS ${SRCS} GLInterface/EGLX11.cpp)
 	endif()
 endif()
+
+if(WIN32)
+	set(SRCS ${SRCS} GLInterface/WGL.cpp)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(SRCS ${SRCS} GLInterface/AGL.cpp)
+elseif(USE_X11)
+	set(SRCS ${SRCS} GLInterface/GLX.cpp
+		GLInterface/X11_Util.cpp)
+endif()
+
 set(SRCS ${SRCS} GLInterface/GLInterface.cpp)
 
 set(NOGUI_SRCS MainNoGUI.cpp)

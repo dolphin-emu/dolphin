@@ -12,11 +12,15 @@
 
 class cInterfaceEGL : public cInterfaceBase
 {
-private:
+protected:
 	void DetectMode();
 	EGLSurface egl_surf;
 	EGLContext egl_ctx;
 	EGLDisplay egl_dpy;
+
+	virtual EGLDisplay OpenDisplay() = 0;
+	virtual EGLNativeWindowType InitializePlatform(EGLNativeWindowType host_window, EGLConfig config) = 0;
+	virtual void ShutdownPlatform() = 0;
 public:
 	void SwapInterval(int Interval);
 	void Swap();
