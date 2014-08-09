@@ -156,9 +156,11 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	else
 		eglBindAPI(EGL_OPENGL_ES_API);
 
+	EGLNativeWindowType native_window = window_handle;
+
 	EGLint format;
 	eglGetConfigAttrib(GLWin.egl_dpy, config, EGL_NATIVE_VISUAL_ID, &format);
-	ANativeWindow_setBuffersGeometry((EGLNativeWindowType)Host_GetRenderHandle(), 0, 0, format);
+	ANativeWindow_setBuffersGeometry(native_window, 0, 0, format);
 	int none, width, height;
 	Host_GetRenderWindowSize(none, none, width, height);
 	GLWin.width = width;
@@ -184,16 +186,13 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		exit(1);
 	}
 
-	GLWin.native_window = Host_GetRenderHandle();
-
-	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.native_window, nullptr);
+	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, native_window, nullptr);
 	if (!GLWin.egl_surf)
 	{
 		INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
 		exit(1);
 	}
 
-	window_handle = (void *)GLWin.native_window;
 	return true;
 }
 
