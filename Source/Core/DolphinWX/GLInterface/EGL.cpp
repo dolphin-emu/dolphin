@@ -2,7 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Core/Host.h"
 #include "DolphinWX/GLInterface/EGL.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoCommon/RenderBase.h"
@@ -90,7 +89,7 @@ bool cInterfaceEGL::Create(void *window_handle)
 	const char *s;
 	EGLint egl_major, egl_minor;
 
-	egl_dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	egl_dpy = OpenDisplay();
 
 	if (!egl_dpy)
 	{
@@ -154,14 +153,8 @@ bool cInterfaceEGL::Create(void *window_handle)
 	else
 		eglBindAPI(EGL_OPENGL_ES_API);
 
-	EGLNativeWindowType native_window = (EGLNativeWindowType) window_handle;
-
-	EGLint format;
-	eglGetConfigAttrib(egl_dpy, config, EGL_NATIVE_VISUAL_ID, &format);
-	ANativeWindow_setBuffersGeometry(native_window, 0, 0, format);
-	int none, width, height;
-	Host_GetRenderWindowSize(none, none, width, height);
-	GLInterface->SetBackBufferDimensions(width, height);
+	EGLNativeWindowType host_window = (EGLNativeWindowType) window_handle;
+	EGLNativeWindowType native_window = InitializePlatform(host_window, config);
 
 	s = eglQueryString(egl_dpy, EGL_VERSION);
 	INFO_LOG(VIDEO, "EGL_VERSION = %s\n", s);
@@ -199,6 +192,7 @@ bool cInterfaceEGL::MakeCurrent()
 // Close backend
 void cInterfaceEGL::Shutdown()
 {
+	ShutdownPlatform();
 	if (egl_ctx && !eglMakeCurrent(egl_dpy, egl_surf, egl_surf, egl_ctx))
 		NOTICE_LOG(VIDEO, "Could not release drawing context.");
 	if (egl_ctx)
