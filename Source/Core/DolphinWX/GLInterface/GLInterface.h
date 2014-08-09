@@ -24,7 +24,6 @@ typedef struct {
 	EGLSurface egl_surf;
 	EGLContext egl_ctx;
 	EGLDisplay egl_dpy;
-	EGLNativeWindowType native_window;
 #elif defined(__APPLE__)
 	NSView *cocoaWin;
 	NSOpenGLContext *cocoaCtx;
