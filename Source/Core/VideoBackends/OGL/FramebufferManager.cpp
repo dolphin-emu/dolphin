@@ -9,6 +9,8 @@
 
 #include "Core/HW/Memmap.h"
 
+#include "DolphinWX/GLInterface/GLInterface.h"
+
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/TextureConverter.h"

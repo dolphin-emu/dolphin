@@ -62,20 +62,32 @@ typedef enum
 	METROID_ECHO_EFFECT,
 	METROID_DARK_CENTRAL,
 	METROID_DARK_EFFECT,
+	METROID_VISOR_DIRT,
 	METROID_SCAN_HIGHLIGHTER,
 	METROID_SCAN_BOX,
 	METROID_SCAN_RETICLE,
 	METROID_RETICLE,
+	METROID_SCAN_ICONS,
+	METROID_SCAN_CROSS,
 	METROID_MORPHBALL_WORLD,
 	METROID_UNKNOWN_WORLD,
+	METROID_SCAN_DARKEN,
 	METROID_HELMET,
 	METROID_HUD,
 	METROID_MORPHBALL_HUD,
+	METROID_VISOR_RADAR_HINT,
 	METROID_RADAR_DOT,
 	METROID_MORPHBALL_MAP_OR_HINT,
 	METROID_MAP_OR_HINT,
 	METROID_MORPHBALL_MAP,
 	METROID_MAP,
+	METROID_MAP_0,
+	METROID_MAP_1,
+	METROID_MAP_2,
+	METROID_MAP_MAP,
+	METROID_MAP_LEGEND,
+	METROID_INVENTORY_SAMUS,
+	METROID_MAP_NORTH,
 	METROID_SCAN_VISOR,
 	METROID_SCAN_TEXT,
 	METROID_SCAN_HOLOGRAM,
@@ -96,6 +108,7 @@ float debug_projList[64][7] = { 0 };
 bool debug_newScene = true, debug_nextScene = false;
 TMetroidLayer g_metroid_layer;
 bool g_metroid_scan_visor = false, g_metroid_scan_visor_active = false,
+g_metroid_map_screen = false, g_metroid_inventory = false,
 g_metroid_dark_visor = false, g_metroid_echo_visor = false, g_metroid_morphball_active = false;
 int g_metroid_wide_count = 0, g_metroid_normal_count = 0;
 int vr_widest_3d_projNum = -1;
@@ -129,8 +142,22 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Helmet";
 	case METROID_HUD:
 		return "HUD";
+	case METROID_INVENTORY_SAMUS:
+		return "Inventory Samus";
 	case METROID_MAP:
 		return "Map";
+	case METROID_MAP_0:
+		return "Map Screen 0";
+	case METROID_MAP_1:
+		return "Map Screen 1";
+	case METROID_MAP_2:
+		return "Map Screen 2";
+	case METROID_MAP_LEGEND:
+		return "Map Screen Legend";
+	case METROID_MAP_MAP:
+		return "Map Screen Map";
+	case METROID_MAP_NORTH:
+		return "Map Screen North";
 	case METROID_MORPHBALL_HUD:
 		return "Morphball HUD";
 	case METROID_MORPHBALL_MAP:
@@ -145,10 +172,18 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Reticle";
 	case METROID_SCAN_BOX:
 		return "Scan Box";
+	case METROID_SCAN_CROSS:
+		return "Scan Cross";
+	case METROID_SCAN_DARKEN:
+		return "Scan Darken";
 	case METROID_SCAN_HIGHLIGHTER:
 		return "Scan Highlighter";
 	case METROID_SCAN_HOLOGRAM:
 		return "Scan Hologram";
+	case METROID_SCAN_ICONS:
+		return "Scan Icons";
+	case METROID_VISOR_DIRT:
+		return "Visor Dirt";
 	case METROID_SCAN_RETICLE:
 		return "Scan Reticle";
 	case METROID_SCAN_TEXT:
@@ -165,6 +200,8 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Unknown World";
 	case METROID_UNKNOWN_VISOR:
 		return "Unknown Visor";
+	case METROID_VISOR_RADAR_HINT:
+		return "Visor/Radar/Hint";
 	case METROID_WORLD:
 		return "World";
 	case METROID_SCREEN_OVERLAY:
@@ -174,6 +211,274 @@ const char *MetroidLayerName(TMetroidLayer layer)
 	default:
 		return "Error";
 	}
+}
+
+TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar)
+{
+	TMetroidLayer result;
+	int l = Round100(left);
+	int n = Round100(znear);
+	int f = Round100(zfar);
+	if (layer == 0 && g_metroid_map_screen && l == 0 && n == -100)
+	{
+		result = METROID_MAP_0;
+	}
+	else if (layer == 1)
+	{
+		g_metroid_dark_visor = false;
+		if (l == -88 && n == 0)
+		{
+			result = METROID_SHADOW_2D;
+			g_metroid_morphball_active = true;
+		}
+		if (l == -32000 && n == -409600)
+		{
+			result = METROID_MAP_1;
+			g_metroid_map_screen = true;
+		}
+		else if (l == 0 && n == -409600)
+		{
+			result = METROID_ECHO_EFFECT;
+			g_metroid_echo_visor = true;
+			g_metroid_scan_visor = false;
+		}
+		else
+		{
+			g_metroid_scan_visor = false;
+			g_metroid_echo_visor = false;
+			if (l == -105)
+				result = METROID_SHADOW_2D;
+			else
+				result = METROID_UNKNOWN_2D;
+		}
+	}
+	else if (layer == 2)
+	{
+		if (l == 0 && n == -409600)
+		{
+			result = METROID_DARK_EFFECT;
+			g_metroid_dark_visor = true;
+			g_metroid_scan_visor = false;
+			g_metroid_scan_visor_active = false;
+			g_metroid_morphball_active = false;
+		}
+		if (l == -32000 && n == -409600 && g_metroid_map_screen)
+		{
+			result = METROID_MAP_2;
+		}
+		else if (l == -32000 && n == -409600 && f == 409600)
+		{
+			result = METROID_VISOR_DIRT;
+		}
+		else
+		{
+			result = METROID_UNKNOWN_2D;
+			g_metroid_dark_visor = false;
+		}
+	}
+	else if (l == -320)
+	{
+		result = METROID_MORPHBALL_HUD;
+		g_metroid_morphball_active = true;
+	}
+	else if (l == -32000 && n == -409600 && f == 409600)
+	{
+		if (g_metroid_map_screen)
+			result = METROID_MAP_NORTH;
+		else
+			result = METROID_SCAN_DARKEN;
+	}
+	else if (l == -32000 && n == -100 && f == 100)
+		result = METROID_SCAN_BOX;
+	else
+		result = METROID_UNKNOWN_2D;
+	return result;
+}
+
+TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float znear, float zfar)
+{
+	int h = Round100(hfov);
+	int v = Round100(vfov);
+	//	int n = Round100(znear);
+	int f = Round100(zfar);
+	TMetroidLayer result;
+	// In Dark Visor layer 2 would be 2D not 3D
+	if (layer == 2)
+		g_metroid_dark_visor = false;
+
+	if (f == 409600 && v == 6500)
+	{
+		if (h == 8055)
+		{
+			// This layer is not always present when scanning.
+			// Only when the text box is visible. It also includes
+			// the data boxes on the sides when you scan your ship.
+			result = METROID_SCAN_TEXT;
+			g_metroid_morphball_active = false;
+		}
+		else
+		{
+			++g_metroid_wide_count;
+			switch (g_metroid_wide_count)
+			{
+			case 1:
+				if (g_metroid_map_screen || g_metroid_inventory)
+				{
+					if (g_metroid_inventory)
+					{
+						g_metroid_map_screen = false;
+						result = METROID_HELMET;
+					}
+					else
+					{
+						g_metroid_map_screen = true;
+						result = METROID_MAP_MAP;
+					}
+				}
+				else if (g_metroid_dark_visor && layer == 1)
+				{
+					result = METROID_DARK_CENTRAL;
+				}
+				else
+				{
+					result = METROID_HUD;
+				}
+				break;
+			case 2:
+				if (g_metroid_morphball_active)
+					result = METROID_MORPHBALL_MAP_OR_HINT;
+				else if (g_metroid_map_screen)
+					result = METROID_HELMET;
+				else if (g_metroid_dark_visor)
+					result = METROID_HELMET;
+				else
+					result = METROID_VISOR_RADAR_HINT;
+				break;
+			case 3:
+				// visor
+				if (g_metroid_morphball_active)
+				{
+					result = METROID_MORPHBALL_MAP;
+					g_metroid_scan_visor_active = false;
+				}
+				else if (g_metroid_dark_visor)
+				{
+					result = METROID_HUD;
+					g_metroid_scan_visor_active = false;
+				}
+				else if (h == 8243)
+				{
+					result = METROID_RADAR_DOT;
+					g_metroid_scan_visor_active = false;
+				}
+				else
+				{
+					result = METROID_UNKNOWN_VISOR;
+					g_metroid_scan_visor_active = false;
+				}
+				break;
+			case 4:
+				if (g_metroid_morphball_active)
+					result = METROID_MORPHBALL_MAP;
+				else if (g_metroid_scan_visor_active && h != 8243)
+					result = METROID_SCAN_HOLOGRAM;
+				else if (g_metroid_dark_visor)
+					result = METROID_RADAR_DOT;
+				else if (g_metroid_scan_visor_active)
+					result = METROID_UNKNOWN_HUD;
+				else if (h == 8243)
+					result = METROID_MAP;
+				else
+					result = METROID_UNKNOWN_HUD;
+				break;
+			case 5:
+				if (g_metroid_dark_visor)
+					result = METROID_MAP_OR_HINT;
+				else if (h == 8243 && !g_metroid_scan_visor_active)
+					result = METROID_HELMET;
+				else
+					result = METROID_UNKNOWN_HUD;
+				break;
+			case 6:
+				if (g_metroid_dark_visor)
+					result = METROID_MAP;
+				else
+					result = METROID_UNKNOWN_HUD;
+				break;
+			default:
+				result = METROID_UNKNOWN_HUD;
+				break;
+			}
+		}
+	}
+	else if (f == 409600 && v == 5500)
+	{
+		if ((g_metroid_map_screen || g_metroid_inventory) && h == 7327)
+		{
+			result = METROID_INVENTORY_SAMUS;
+			g_metroid_map_screen = false;
+			g_metroid_inventory = true;
+		}
+		else
+		{
+			result = METROID_SCAN_HOLOGRAM;
+			g_metroid_scan_visor_active = true;
+		}
+	}
+	else if (f == 409600 && v == 5443)
+	{
+		result = METROID_MAP_LEGEND;
+		g_metroid_map_screen = true;
+	}
+	else if (f == 75000 && v == 4958)
+	{
+		result = METROID_MORPHBALL_WORLD;
+		vr_widest_3d_HFOV = abs(hfov);
+		vr_widest_3d_VFOV = abs(vfov);
+		vr_widest_3d_zNear = znear;
+		vr_widest_3d_zFar = zfar;
+		g_metroid_morphball_active = true;
+		g_metroid_map_screen = false;
+		g_metroid_scan_visor = false;
+		g_metroid_inventory = false;
+	}
+	else if (f == 75000 && h == 7327)
+	{
+		++g_metroid_normal_count;
+		g_metroid_map_screen = false;
+		g_metroid_inventory = false;
+		switch (g_metroid_normal_count)
+		{
+		case 1:
+			result = METROID_WORLD;
+			vr_widest_3d_HFOV = abs(hfov);
+			vr_widest_3d_VFOV = abs(vfov);
+			vr_widest_3d_zNear = znear;
+			vr_widest_3d_zFar = zfar;
+			g_metroid_morphball_active = false;
+			if (layer > 1)
+				g_metroid_scan_visor = false;
+			break;
+		case 2:
+			if (g_metroid_scan_visor)
+				result = METROID_SCAN_ICONS;
+			else
+				result = METROID_RETICLE;
+			break;
+		case 3:
+			result = METROID_SCAN_CROSS;
+			g_metroid_scan_visor = true;
+			break;
+		default:
+			result = METROID_UNKNOWN_WORLD;
+			break;
+		}
+	}
+	else
+	{
+		result = METROID_UNKNOWN;
+	}
+	return result;
 }
 
 TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar)
@@ -332,6 +637,11 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 		result = METROID_SCAN_HOLOGRAM;
 		g_metroid_scan_visor_active = true;
 	}
+	else if (f == 409600 && v == 5443)
+	{
+		result = METROID_MAP_LEGEND;
+		g_metroid_map_screen = true;
+	}
 	else if (f == 75000)
 	{
 		++g_metroid_normal_count;
@@ -432,10 +742,20 @@ void LogProj(float p[]) { //VR
 		float hfov = (2 * atan(1.0f / p[0])*180.0f / 3.1415926535f);
 		float f = p[5] / p[4];
 		float n = f*p[4] / (p[4] - 1);
-		if (g_ActiveConfig.iMetroidPrime == 2)
+		switch (g_ActiveConfig.iMetroidPrime)
+		{
+		case 1:
+			g_metroid_layer = GetMetroidPrime1GCLayer(debug_projNum, hfov, vfov, n, f);
+			break;
+		case 2:
 			g_metroid_layer = GetMetroidPrime2GCLayer(debug_projNum, hfov, vfov, n, f);
-		else
+			break;
+		case 0:
+		default:
 			g_metroid_layer = METROID_UNKNOWN;
+			break;
+		}
+
 		if (debug_newScene && fabs(hfov) > vr_widest_3d_HFOV && fabs(hfov) <= 125 && (fabs(p[2]) != fabs(p[0]))) {
 			WARN_LOG(VR, "***** New Widest 3D *****");
 
@@ -455,11 +775,21 @@ void LogProj(float p[]) { //VR
 		float top = bottom + 2 / p[2];
 		float zfar = p[5] / p[4];
 		float znear = (1 + p[4] * zfar) / p[4];
-		if (g_ActiveConfig.iMetroidPrime == 2)
+		switch (g_ActiveConfig.iMetroidPrime)
+		{
+		case 1:
+			g_metroid_layer = GetMetroidPrime1GCLayer2D(debug_projNum, left, right, top, bottom, znear, zfar);
+			break;
+		case 2:
 			g_metroid_layer = GetMetroidPrime2GCLayer2D(debug_projNum, left, right, top, bottom, znear, zfar);
-		else
+			break;
+		case 0:
+		default:
 			g_metroid_layer = METROID_UNKNOWN_2D;
+			break;
+		}
 	}
+
 	if (debug_projNum >= 64)
 		return;
 	if (!debug_newScene) {
@@ -477,7 +807,8 @@ void LogProj(float p[]) { //VR
 		//	}
 		//}
 	}
-	else {
+	else
+	{
 		debug_nextScene = false;
 		INFO_LOG(VR, "%f Units Per Metre", g_ActiveConfig.fUnitsPerMetre);
 		INFO_LOG(VR, "HUD is %.1fm away and %.1fm thick", g_ActiveConfig.fHudDistance, g_ActiveConfig.fHudThickness);
@@ -916,6 +1247,15 @@ void VertexShaderManager::SetProjectionConstants()
 		case METROID_DARK_CENTRAL:
 			bStuckToHead = true;
 			break;
+		case METROID_VISOR_DIRT:
+			// todo: move to helmet depth (hard with a 2D layer)
+			bStuckToHead = true;
+			bFullscreenLayer = true;
+			break;
+		case METROID_SCAN_DARKEN:
+			bStuckToHead = true;
+			bFullscreenLayer = true;
+			break;
 		case METROID_SCAN_BOX:
 			bHide = true;
 			break;
@@ -955,9 +1295,26 @@ void VertexShaderManager::SetProjectionConstants()
 		case METROID_WORLD:
 		case METROID_MORPHBALL_WORLD:
 		case METROID_RETICLE:
+		case METROID_SCAN_ICONS:
+		case METROID_SCAN_CROSS:
 		case METROID_UNKNOWN_WORLD:
 		case METROID_UNKNOWN_2D:
 		case METROID_SHADOW_2D:
+			bStuckToHead = false;
+			break;
+		case METROID_MAP_0:
+		case METROID_MAP_1:
+		case METROID_MAP_2:
+			bStuckToHead = false;
+			fScaleHack = 0.001;
+			break;
+
+		case METROID_MAP_LEGEND:
+			bStuckToHead = false;
+			fScaleHack = 30;
+			break;
+		case METROID_MAP_MAP:
+		case METROID_MAP_NORTH:
 			bStuckToHead = false;
 			break;
 		case METROID_UNKNOWN_HUD:
@@ -967,6 +1324,7 @@ void VertexShaderManager::SetProjectionConstants()
 			fWidthHack = 0.78f;
 			fHeightHack = 0.78f;
 			break;
+		case METROID_VISOR_RADAR_HINT:
 		case METROID_RADAR_DOT:
 			bStuckToHead = true;
 			fScaleHack = 32;
@@ -1002,12 +1360,19 @@ void VertexShaderManager::SetProjectionConstants()
 			fWidthHack = 1.2f;
 			fHeightHack = 1.2f;
 			break;
+		case METROID_INVENTORY_SAMUS:
+			// move the hologram inside the box when scanning ship
+			// and make it bigger
+			bStuckToHead = false;
+			break;
 		default:
 			bStuckToHead = true;
 			fScaleHack = 30; // 1/30
 			break;
 		}
 	}
+
+	bHide = bHide || (bFlashing && g_ActiveConfig.iFlashState > 5);
 
 	// Split WidthHack and HeightHack into left and right versions for telescopes
 	float fLeftWidthHack = fWidthHack, fRightWidthHack = fWidthHack;
@@ -1056,8 +1421,6 @@ void VertexShaderManager::SetProjectionConstants()
 			bHideRight = false;
 		}
 	}
-
-	bHide |= (bFlashing && g_ActiveConfig.iFlashState > 5);
 
 	switch (xfmem.projection.type)
 	{
@@ -1492,19 +1855,13 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 final_matrix_left, final_matrix_right;
 		Matrix44::Multiply(proj_left, view_matrix_left, final_matrix_left);
 		Matrix44::Multiply(proj_right, view_matrix_right, final_matrix_right);
-		// If we are supposed to hide the layer, make it microscopic and far away
+		// If we are supposed to hide the layer, zero out the projection matrix
 		if (bHideLeft) {
-			final_matrix_left.data[2] = 900000000.0f;
-			final_matrix_left.data[0] = 0;
-			final_matrix_left.data[1 * 4 + 1] = 0;
-			final_matrix_left.data[2 * 4 + 2] *= 900000000.0f;
+			memset(final_matrix_left.data, 0, 16 * sizeof(final_matrix_left.data[0]));
 		}
 		if (bHideRight)
 		{
-			final_matrix_right.data[2] = 900000000.0f;
-			final_matrix_right.data[0] = 0;
-			final_matrix_right.data[1 * 4 + 1] = 0;
-			final_matrix_right.data[2 * 4 + 2] *= 900000000.0f;
+			memset(final_matrix_right.data, 0, 16 * sizeof(final_matrix_right.data[0]));
 		}
 
 		memcpy(constants.projection, final_matrix_left.data, 4 * 16);
@@ -1554,6 +1911,11 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44::Set(mtxB, g_fProjectionMatrix);
 		Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
 		Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
+
+		// If we are supposed to hide the layer, zero out the projection matrix
+		if (bHide) {
+			memset(mtxB.data, 0, 16 * sizeof(mtxB.data[0]));
+		}
 		memcpy(constants.projection, mtxB.data, 4 * 16);
 		memcpy(constants_eye_projection[0], mtxB.data, 4 * 16);
 		memcpy(constants_eye_projection[1], mtxB.data, 4 * 16);
@@ -1565,6 +1927,10 @@ void VertexShaderManager::SetProjectionConstants()
 
 		Matrix44 correctedMtx;
 		Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
+		// If we are supposed to hide the layer, zero out the projection matrix
+		if (bHide) {
+			memset(correctedMtx.data, 0, 16 * sizeof(correctedMtx.data[0]));
+		}
 		memcpy(constants.projection, correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
