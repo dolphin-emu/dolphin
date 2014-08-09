@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <functional>
-
 #include "Core/Core.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceGecko.h"
@@ -88,7 +86,7 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 			recv_fifo = std::deque<u8>();
 			send_fifo = std::deque<u8>();
 		}
-		clientThread = std::thread(std::mem_fn(&GeckoSockServer::ClientThread), this);
+		clientThread = std::thread(&GeckoSockServer::ClientThread, this);
 		client_count++;
 		waiting_socks.pop();
 		sock_filled = true;

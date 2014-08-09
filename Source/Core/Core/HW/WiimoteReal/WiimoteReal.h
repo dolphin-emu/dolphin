@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <functional>
 #include <vector>
 
 #include "Common/ChunkFile.h"

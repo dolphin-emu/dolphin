@@ -117,7 +117,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 			is_connected = true;
 
 			m_selector.Add(m_socket);
-			m_thread = std::thread(std::mem_fn(&NetPlayClient::ThreadFunc), this);
+			m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
 		}
 	}
 	else
