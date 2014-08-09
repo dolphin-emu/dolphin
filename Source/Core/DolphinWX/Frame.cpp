@@ -480,11 +480,14 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			{
 #ifdef __WXMSW__
-			::SetFocus((HWND)m_RenderParent->GetHandle());
+				::SetFocus((HWND)m_RenderParent->GetHandle());
 #else
-			m_RenderParent->SetFocus();
+				m_RenderParent->SetFocus();
 #endif
+			}
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
@@ -1277,18 +1280,6 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 
 void CFrame::OnMouse(wxMouseEvent& event)
 {
-#if defined(HAVE_X11) && HAVE_X11
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		if (event.Dragging())
-			X11Utils::SendMotionEvent(X11Utils::XDisplayFromHandle(GetHandle()),
-					event.GetPosition().x, event.GetPosition().y);
-		else
-			X11Utils::SendButtonEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetButton(),
-					event.GetPosition().x, event.GetPosition().y, event.ButtonDown());
-	}
-#endif
-
 	// next handlers are all for FreeLook, so we don't need to check them if disabled
 	if (!g_Config.bFreeLook)
 	{

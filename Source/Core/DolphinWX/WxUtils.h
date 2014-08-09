@@ -21,6 +21,9 @@ void Launch(const std::string& filename);
 // Launch an file explorer window on a certain path
 void Explore(const std::string& path);
 
+// Displays a wxMessageBox geared for errors
+void ShowErrorDialog(const wxString& error_msg);
+
 double GetCurrentBitmapLogicalScale();
 
 wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length);

@@ -769,9 +769,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 
 	if (Movie::IsReadOnly())
 	{
-		//PanicAlertT("Cannot record movies in read-only mode.");
-		//return;
-		// the user just chose to record a movie, so that should take precedence
+		// The user just chose to record a movie, so that should take precedence
 		Movie::SetReadOnly(false);
 		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(false);
 	}

@@ -1070,8 +1070,8 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 			GCMemcard memorycard(filename);
 			if (!memorycard.IsValid())
 			{
-				PanicAlertT("Cannot use that file as a memory card.\n%s\n" \
-							"is not a valid gamecube memory card file", filename.c_str());
+				WxUtils::ShowErrorDialog(wxString::Format(_("Cannot use that file as a memory card.\n%s\n" \
+				            "is not a valid gamecube memory card file"), filename.c_str()));
 				return;
 			}
 		}
@@ -1106,8 +1106,8 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		}
 		else
 		{
-			PanicAlertT("Cannot use that file as a memory card.\n" \
-					"Are you trying to use the same file in both slots?");
+			WxUtils::ShowErrorDialog(_("Cannot use that file as a memory card.\n"
+			                           "Are you trying to use the same file in both slots?"));
 		}
 	}
 }
@@ -1204,7 +1204,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		u8 country_code = GetSADRCountryCode(wii_system_lang);
 		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
 		{
-			PanicAlertT("Failed to update country code in SYSCONF");
+			WxUtils::ShowErrorDialog(_("Failed to update country code in SYSCONF"));
 		}
 		break;
 	}
@@ -1238,7 +1238,7 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 		{
 			if (ISOPaths->FindString(dialog.GetPath()) != -1)
 			{
-				wxMessageBox(_("The chosen directory is already in the list"), _("Error"), wxOK);
+				WxUtils::ShowErrorDialog(_("The chosen directory is already in the list."));
 			}
 			else
 			{

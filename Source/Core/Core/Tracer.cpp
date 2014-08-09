@@ -106,7 +106,6 @@ int SyncTrace()
 */
 		if (difference)
 		{
-			Host_UpdateLogDisplay();
 			//Also show drec compare window here
 			//CDynaViewDlg::Show(true);
 			//CDynaViewDlg::ViewAddr(m_BlockStart);

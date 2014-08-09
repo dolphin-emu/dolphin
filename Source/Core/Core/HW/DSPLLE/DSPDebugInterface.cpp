@@ -2,17 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
-void DSPDebugInterface::Disassemble(unsigned int address, char *dest, int max_size)
+std::string DSPDebugInterface::Disassemble(unsigned int address)
 {
 	// we'll treat addresses as line numbers.
-	strncpy(dest, DSPSymbols::GetLineText(address), max_size);
-	dest[max_size-1] = 0;
+	return DSPSymbols::GetLineText(address);
 }
 
 void DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size)

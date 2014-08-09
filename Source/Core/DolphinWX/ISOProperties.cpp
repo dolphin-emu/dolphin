@@ -745,7 +745,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
-		PanicAlertT("Could not save %s", GameIniFileLocal.c_str());
+		WxUtils::ShowErrorDialog(wxString::Format(_("Could not save %s."), GameIniFileLocal.c_str()));
 
 	EndModal(bRefreshList ? wxID_OK : wxID_CANCEL);
 }
@@ -1006,7 +1006,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 		}
 		else
 		{
-			PanicAlertT("Partition doesn't exist: %d", partitionNum);
+			WxUtils::ShowErrorDialog(wxString::Format(_("Partition doesn't exist: %d"), partitionNum));
 			return;
 		}
 	}
@@ -1026,7 +1026,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	}
 
 	if (!ret)
-		PanicAlertT("Failed to extract to %s!", WxStrToStr(Path).c_str());
+		WxUtils::ShowErrorDialog(wxString::Format(_("Failed to extract to %s!"), WxStrToStr(Path).c_str()));
 }
 
 class IntegrityCheckThread : public wxThread
@@ -1360,17 +1360,21 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename)
 		filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain");
 		if (filetype == nullptr) // MIME type failed, aborting mission
 		{
-			PanicAlertT("Filetype 'ini' is unknown! Will not open!");
+			WxUtils::ShowErrorDialog(_("Filetype 'ini' is unknown! Will not open!"));
 			return;
 		}
 	}
-	wxString OpenCommand;
-	OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
+
+	wxString OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
 	if (OpenCommand.IsEmpty())
-		PanicAlertT("Couldn't find open command for extension 'ini'!");
+	{
+		WxUtils::ShowErrorDialog(_("Couldn't find open command for extension 'ini'!"));
+	}
 	else
+	{
 		if (wxExecute(OpenCommand, wxEXEC_SYNC) == -1)
-			PanicAlertT("wxExecute returned -1 on application run!");
+			WxUtils::ShowErrorDialog(_("wxExecute returned -1 on application run!"));
+	}
 #endif
 
 	bRefreshList = true; // Just in case
@@ -1577,9 +1581,11 @@ void CISOProperties::ActionReplayList_Save()
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 	u32 index = 0;
+	u32 cheats_chkbox_count = Cheats->GetCount();
 	for (const ActionReplay::ARCode& code : arCodes)
 	{
-		if (Cheats->IsChecked(index))
+		// Check the index against the count because of the hacky way codes are added from the "Cheat Search" dialog
+		if ((index < cheats_chkbox_count) && Cheats->IsChecked(index))
 			enabledLines.push_back("$" + code.name);
 
 		// Do not save default cheats.

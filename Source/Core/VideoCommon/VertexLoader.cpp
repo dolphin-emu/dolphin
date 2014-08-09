@@ -10,18 +10,14 @@
 
 #include "Core/Host.h"
 
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
-#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -755,12 +751,8 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_VERTEX_LOADER_JIT
 	// End loop here
-#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)&loop_counter));
 	SUB(32, MatR(RAX), Imm8(1));
-#else
-	SUB(32, M(&loop_counter), Imm8(1));
-#endif
 
 	J_CC(CC_NZ, loop_start);
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
@@ -771,12 +763,8 @@ void VertexLoader::CompileVertexTranslator()
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)func));
 	CALLptr(R(RAX));
-#else
-	CALL((void*)func);
-#endif
 #else
 	m_PipelineStages[m_numPipelineStages++] = func;
 #endif
@@ -786,24 +774,16 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, dest, MatR(RAX));
-#else
-	MOV(bits, dest, M(address));
-#endif
 #endif
 }
 
 void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, MatR(RAX), value);
-#else
-	MOV(bits, M(address), value);
-#endif
 #endif
 }
 #endif
@@ -859,20 +839,8 @@ void VertexLoader::ConvertVertices ( int count )
 
 void VertexLoader::RunVertices(const VAT& vat, int primitive, int const count)
 {
-	if (bpmem.genMode.cullmode == 3 && primitive < 5)
-	{
-		// if cull mode is none, ignore triangles and quads
-		DataSkip(count * m_VertexSize);
-		return;
-	}
 	SetupRunVertices(vat, primitive, count);
-	VertexManager::PrepareForAdditionalData(primitive, count,
-			m_native_vtx_decl.stride);
 	ConvertVertices(count);
-	IndexGenerator::AddIndices(primitive, count);
-
-	ADDSTAT(stats.thisFrame.numPrims, count);
-	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 }
 
 void VertexLoader::SetVAT(const VAT& vat)

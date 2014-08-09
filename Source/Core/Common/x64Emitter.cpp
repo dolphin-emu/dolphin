@@ -125,7 +125,6 @@ void XEmitter::WriteSIB(int scale, int index, int base)
 void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 {
 	if (customOp == -1)       customOp = operandReg;
-#if _M_X86_64
 	u8 op = 0x40;
 	// REX.W (whether operation is a 64-bit operation)
 	if (opBits == 64)         op |= 8;
@@ -145,17 +144,6 @@ void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 		_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 0x100) == 0);
 		_dbg_assert_(DYNA_REC, (customOp & 0x100) == 0);
 	}
-#else
-	// Make sure we don't perform a 64-bit operation.
-	_dbg_assert_(DYNA_REC, opBits != 64);
-	// Make sure the operation doesn't access R8-R15 registers.
-	_dbg_assert_(DYNA_REC, (customOp & 8) == 0);
-	_dbg_assert_(DYNA_REC, (indexReg & 8) == 0);
-	_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 8) == 0);
-	// Make sure the operation doesn't access SIL, DIL, BPL, or SPL.
-	_dbg_assert_(DYNA_REC, opBits != 8 || (customOp & 0x10c) != 4);
-	_dbg_assert_(DYNA_REC, scale != SCALE_NONE || bits != 8 || (offsetOrBaseReg & 0x10c) != 4);
-#endif
 }
 
 void OpArg::WriteVex(XEmitter* emit, int size, int packed, Gen::X64Reg regOp1, Gen::X64Reg regOp2) const
@@ -208,7 +196,6 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		_offsetOrBaseReg = 5;
 		emit->WriteModRM(0, _operandReg, _offsetOrBaseReg);
 		//TODO : add some checks
-#if _M_X86_64
 		u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
 		s64 distance = (s64)offset - (s64)ripAddr;
 		_assert_msg_(DYNA_REC,
@@ -219,9 +206,6 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		             ripAddr, offset);
 		s32 offs = (s32)distance;
 		emit->Write32((u32)offs);
-#else
-		emit->Write32((u32)offset);
-#endif
 		return;
 	}
 
@@ -1267,7 +1251,6 @@ void XEmitter::MOVD_xmm(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x6E, tru
 void XEmitter::MOVD_xmm(const OpArg &arg, X64Reg src) {WriteSSEOp(64, 0x7E, true, src, arg, 0);}
 
 void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg) {
-#if _M_X86_64
 		// Alternate encoding
 		// This does not display correctly in MSVC's debugger, it thinks it's a MOVD
 		arg.operandReg = dest;
@@ -1276,13 +1259,6 @@ void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg) {
 		Write8(0x0f);
 		Write8(0x6E);
 		arg.WriteRest(this, 0);
-#else
-		arg.operandReg = dest;
-		Write8(0xF3);
-		Write8(0x0f);
-		Write8(0x7E);
-		arg.WriteRest(this, 0);
-#endif
 }
 
 void XEmitter::MOVQ_xmm(OpArg arg, X64Reg src) {
@@ -1626,8 +1602,6 @@ void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
 void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 {
 	using namespace Gen;
-#if _M_X86_64
-
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1639,26 +1613,11 @@ void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 	MOV(32, R(RDX), Imm32(arg2));
 	CALL(fnptr);
 #endif
-
-#else
-	ABI_AlignStack(3 * 4);
-	PUSH(32, Imm32(arg2));
-	PUSH(32, Imm32(arg1));
-	PUSH(32, Imm32(arg0));
-	CALL(fnptr);
-#ifdef _WIN32
-	// don't inc stack
-#else
-	ABI_RestoreStack(3 * 4);
-#endif
-#endif
 }
 
 void XEmitter::CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3)
 {
 	using namespace Gen;
-#if _M_X86_64
-
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1672,27 +1631,11 @@ void XEmitter::CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 	MOV(32, R(RCX), Imm32(arg3));
 	CALL(fnptr);
 #endif
-
-#else
-	ABI_AlignStack(4 * 4);
-	PUSH(32, Imm32(arg3));
-	PUSH(32, Imm32(arg2));
-	PUSH(32, Imm32(arg1));
-	PUSH(32, Imm32(arg0));
-	CALL(fnptr);
-#ifdef _WIN32
-	// don't inc stack
-#else
-	ABI_RestoreStack(4 * 4);
-#endif
-#endif
 }
 
 void XEmitter::CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4)
 {
 	using namespace Gen;
-#if _M_X86_64
-
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1708,28 +1651,11 @@ void XEmitter::CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 	MOV(32, R(R8),  Imm32(arg4));
 	CALL(fnptr);
 #endif
-
-#else
-	ABI_AlignStack(5 * 4);
-	PUSH(32, Imm32(arg4));
-	PUSH(32, Imm32(arg3));
-	PUSH(32, Imm32(arg2));
-	PUSH(32, Imm32(arg1));
-	PUSH(32, Imm32(arg0));
-	CALL(fnptr);
-#ifdef _WIN32
-	// don't inc stack
-#else
-	ABI_RestoreStack(5 * 4);
-#endif
-#endif
 }
 
 void XEmitter::CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5)
 {
 	using namespace Gen;
-#if _M_X86_64
-
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1747,25 +1673,7 @@ void XEmitter::CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 	MOV(32, R(R9), Imm32(arg5));
 	CALL(fnptr);
 #endif
-
-#else
-	ABI_AlignStack(6 * 4);
-	PUSH(32, Imm32(arg5));
-	PUSH(32, Imm32(arg4));
-	PUSH(32, Imm32(arg3));
-	PUSH(32, Imm32(arg2));
-	PUSH(32, Imm32(arg1));
-	PUSH(32, Imm32(arg0));
-	CALL(fnptr);
-#ifdef _WIN32
-	// don't inc stack
-#else
-	ABI_RestoreStack(6 * 4);
-#endif
-#endif
 }
-
-#if _M_X86_64
 
 // See header
 void XEmitter::___CallCdeclImport3(void* impptr, u32 arg0, u32 arg1, u32 arg2) {
@@ -1798,7 +1706,5 @@ void XEmitter::___CallCdeclImport6(void* impptr, u32 arg0, u32 arg1, u32 arg2, u
 	MOV(32, MDisp(RSP, 0x28), Imm32(arg5));
 	CALLptr(M(impptr));
 }
-
-#endif
 
 }

@@ -21,7 +21,7 @@
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #if defined(_DEBUG) || defined(DEBUGFAST)
-#include "PowerPCDisasm.h"
+#include "Common/GekkoDisassembler.h"
 #endif
 
 using namespace Gen;
@@ -247,13 +247,8 @@ static void ImHere()
 	if (ImHereLog)
 	{
 		if (!f)
-		{
-#if _M_X86_64
 			f.Open("log64.txt", "w");
-#else
-			f.Open("log32.txt", "w");
-#endif
-		}
+
 		fprintf(f.GetHandle(), "%08x\n", PC);
 	}
 	if (been_here.find(PC) != been_here.end())
@@ -618,9 +613,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (gpr.SanityCheck() || fpr.SanityCheck())
 		{
-			char ppcInst[256];
-			DisassembleGekko(ops[i].inst.hex, em_address, ppcInst, 256);
-			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppcInst);
+			std::string ppc_inst = GekkoDisassembler::Disassemble(ops[i].inst.hex, em_address);
+			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
 		}
 #endif
 		if (js.skipnext) {
@@ -651,12 +645,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 		// Remove the invalid instruction from the icache, forcing a recompile
-#if _M_X86_32
-		MOV(32, M(jit->GetBlockCache()->GetICachePtr(js.compilerPC)), Imm32(JIT_ICACHE_INVALID_WORD));
-#else
 		MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
 		MOV(32,MatR(RAX),Imm32(JIT_ICACHE_INVALID_WORD));
-#endif
 
 		WriteExceptionExit();
 	}

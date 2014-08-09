@@ -36,7 +36,6 @@
 #include "Core/PowerPC/JitILCommon/IR.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-
 class JitIL : public JitILBase, public EmuCodeBlock
 {
 private:

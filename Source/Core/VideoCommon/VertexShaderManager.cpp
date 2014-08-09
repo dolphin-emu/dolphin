@@ -753,10 +753,13 @@ void VertexShaderManager::SetConstants()
 			dstlight.pos[1] = light.dpos[1];
 			dstlight.pos[2] = light.dpos[2];
 
-			// TODO: these likely have to be normalized
-			dstlight.dir[0] = light.ddir[0];
-			dstlight.dir[1] = light.ddir[1];
-			dstlight.dir[2] = light.ddir[2];
+			double norm = double(light.ddir[0]) * double(light.ddir[0]) +
+			              double(light.ddir[1]) * double(light.ddir[1]) +
+			              double(light.ddir[2]) * double(light.ddir[2]);
+			norm = 1.0 / sqrt(norm);
+			dstlight.dir[0] = light.ddir[0] * norm;
+			dstlight.dir[1] = light.ddir[1] * norm;
+			dstlight.dir[2] = light.ddir[2] * norm;
 		}
 		dirty = true;
 

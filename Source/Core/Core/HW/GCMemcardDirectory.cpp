@@ -135,7 +135,7 @@ GCMemcardDirectory::GCMemcardDirectory(std::string directory, int slot, u16 size
 	{
 		std::string ext;
 		std::string const &name = FST_Temp.children[j].virtualName;
-		SplitPath(name, NULL, NULL, &ext);
+		SplitPath(name, nullptr, nullptr, &ext);
 		if (strcasecmp(ext.c_str(), ".gci") == 0)
 		{
 			if (m_saves.size() == DIRLEN)
@@ -553,7 +553,7 @@ void GCMemcardDirectory::Flush(bool exiting)
 void GCMemcardDirectory::DoState(PointerWrap &p)
 {
 	m_LastBlock = -1;
-	m_LastBlockAddress = 0;
+	m_LastBlockAddress = nullptr;
 	p.Do(m_SaveDirectory);
 	p.DoPOD<Header>(m_hdr);
 	p.DoPOD<Directory>(m_dir1);

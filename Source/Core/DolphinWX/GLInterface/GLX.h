@@ -6,8 +6,8 @@
 
 #include <string>
 
-#include "DolphinWX/GLInterface/InterfaceBase.h"
 #include "DolphinWX/GLInterface/X11_Util.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 
 class cInterfaceGLX : public cInterfaceBase
 {

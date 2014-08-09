@@ -10,6 +10,7 @@
 #include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Gekko.h"
@@ -21,9 +22,6 @@
 class wxWindow;
 
 // F-zero 80005e60 wtf??
-
-extern const char* GetGPRName(unsigned int index);
-extern const char* GetFPRName(unsigned int index);
 
 static const char *special_reg_names[] = {
 	"PC", "LR", "CTR", "CR", "FPSCR", "MSR", "SRR0", "SRR1", "Exceptions", "Int Mask", "Int Cause",
@@ -54,9 +52,9 @@ wxString CRegTable::GetValue(int row, int col)
 	{
 		switch (col)
 		{
-		case 0: return StrToWxStr(GetGPRName(row));
+		case 0: return StrToWxStr(GekkoDisassembler::GetGPRName(row));
 		case 1: return wxString::Format("%08x", GPR(row));
-		case 2: return StrToWxStr(GetFPRName(row));
+		case 2: return StrToWxStr(GekkoDisassembler::GetFPRName(row));
 		case 3: return wxString::Format("%016llx", riPS0(row));
 		case 4: return wxString::Format("%016llx", riPS1(row));
 		default: return wxEmptyString;

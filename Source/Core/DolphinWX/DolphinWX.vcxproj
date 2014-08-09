@@ -90,6 +90,7 @@
     <ClCompile Include="FrameTools.cpp" />
     <ClCompile Include="GameListCtrl.cpp" />
     <ClCompile Include="GeckoCodeDiag.cpp" />
+    <ClCompile Include="GLInterface\GLInterface.cpp" />
     <ClCompile Include="GLInterface\WGL.cpp" />
     <ClCompile Include="HotkeyDlg.cpp" />
     <ClCompile Include="InputConfigDiag.cpp" />
@@ -106,6 +107,7 @@
     <ClCompile Include="MemoryCards\WiiSaveCrypted.cpp" />
     <ClCompile Include="NetWindow.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
+    <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -141,7 +143,6 @@
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />
     <ClInclude Include="GeckoCodeDiag.h" />
-    <ClInclude Include="GLInterface\InterfaceBase.h" />
     <ClInclude Include="GLInterface\WGL.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="HotkeyDlg.h" />
@@ -155,6 +156,7 @@
     <ClInclude Include="MemoryCards\WiiSaveCrypted.h" />
     <ClInclude Include="NetWindow.h" />
     <ClInclude Include="PatchAddEdit.h" />
+    <ClInclude Include="SoftwareVideoConfigDialog.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TASInputDlg.h" />
     <ClInclude Include="VideoConfigDiag.h" />

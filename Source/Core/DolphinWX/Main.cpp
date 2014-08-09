@@ -46,6 +46,8 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/Main.h"
+#include "DolphinWX/SoftwareVideoConfigDialog.h"
+#include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/JitWindow.h"
@@ -121,11 +123,9 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	//dumpCurrentDate(file);
 	etfprintf(file.GetHandle(), "Unhandled Exception\n  Code: 0x%08X\n",
 		e->ExceptionRecord->ExceptionCode);
-#if _M_X86_32
-	STACKTRACE2(file.GetHandle(), e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
-#else
+
 	STACKTRACE2(file.GetHandle(), e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
-#endif
+
 	file.Close();
 	_flushall();
 
@@ -440,14 +440,14 @@ void DolphinApp::InitLanguageSupport()
 
 		if (!m_locale->IsOk())
 		{
-			PanicAlertT("Error loading selected language. Falling back to system default.");
+			wxMessageBox(_("Error loading selected language. Falling back to system default."), _("Error"));
 			delete m_locale;
 			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 		}
 	}
 	else
 	{
-		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
+		wxMessageBox(_("The selected language is not supported by your system. Falling back to system default."), _("Error"));
 		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 	}
 }
@@ -535,19 +535,6 @@ void Host_Message(int Id)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-#ifdef _WIN32
-extern "C" HINSTANCE wxGetInstance();
-void* Host_GetInstance()
-{
-	return (void*)wxGetInstance();
-}
-#else
-void* Host_GetInstance()
-{
-	return nullptr;
-}
-#endif
-
 void* Host_GetRenderHandle()
 {
 	return main_frame->GetRenderHandle();
@@ -566,19 +553,6 @@ void Host_NotifyMapLoaded()
 	}
 }
 
-
-void Host_UpdateLogDisplay()
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATELOGDISPLAY);
-	main_frame->GetEventHandler()->AddPendingEvent(event);
-
-	if (main_frame->g_pCodeWindow)
-	{
-		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-	}
-}
-
-
 void Host_UpdateDisasmDialog()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
@@ -589,7 +563,6 @@ void Host_UpdateDisasmDialog()
 		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 }
-
 
 void Host_ShowJitResults(unsigned int address)
 {
@@ -613,17 +586,6 @@ void Host_UpdateTitle(const std::string& title)
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
 	event.SetString(StrToWxStr(title));
 	main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
-void Host_UpdateBreakPointView()
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
-	main_frame->GetEventHandler()->AddPendingEvent(event);
-
-	if (main_frame->g_pCodeWindow)
-	{
-		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-	}
 }
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
@@ -709,4 +671,19 @@ bool Host_RendererHasFocus()
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
 	CFrame::ConnectWiimote(wm_idx, connect);
+}
+
+void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
+                          const std::string& config_name)
+{
+	if (backend_name == "Direct3D" || backend_name == "OpenGL")
+	{
+		VideoConfigDiag diag((wxWindow*)parent, backend_name, config_name);
+		diag.ShowModal();
+	}
+	else if (backend_name == "Software Renderer")
+	{
+		SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name, config_name);
+		diag.ShowModal();
+	}
 }

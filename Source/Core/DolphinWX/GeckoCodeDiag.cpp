@@ -13,6 +13,7 @@
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -188,16 +189,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 		// parse the codes
 		std::istringstream ss(resp.GetBody());
 
-		// debug
-		//PanicAlert("File size is %i bytes.", ss.str().size());
-
 		std::string line;
-
-		// make sure the txt file is for this game
-		// eh w/e
-		//std::getline(ss, line);
-		//if (line != m_gameid)
-		//    PanicAlert("Bad code file.");
 
 		// seek past the header, get to the first code
 		std::getline(ss, line);
@@ -300,20 +292,20 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 				}
 			}
 
-			PanicAlertT("Downloaded %lu codes. (added %lu)",
-				(unsigned long)gcodes.size(), added_count);
+			wxMessageBox(wxString::Format(_("Downloaded %lu codes. (added %lu)"),
+				(unsigned long)gcodes.size(), added_count));
 
 			// refresh the list
 			UpdateCodeList();
 		}
 		else
 		{
-			PanicAlertT("File contained no codes.");
+			wxMessageBox(_("File contained no codes."));
 		}
 	}
 	else
 	{
-		PanicAlertT("Failed to download codes.");
+		WxUtils::ShowErrorDialog(_("Failed to download codes."));
 	}
 }
 
