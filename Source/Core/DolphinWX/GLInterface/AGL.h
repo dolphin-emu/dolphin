@@ -12,6 +12,9 @@
 
 class cInterfaceAGL : public cInterfaceBase
 {
+private:
+	NSView *cocoaWin;
+	NSOpenGLContext *cocoaCtx;
 public:
 	void Swap();
 	bool Create(void *window_handle);

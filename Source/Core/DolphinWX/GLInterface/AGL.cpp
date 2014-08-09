@@ -4,14 +4,15 @@
 
 #include <wx/panel.h>
 
-#include "DolphinWX/GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/AGL.h"
+
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 void cInterfaceAGL::Swap()
 {
-	[GLWin.cocoaCtx flushBuffer];
+	[cocoaCtx flushBuffer];
 }
 
 // Create rendering window.
@@ -19,13 +20,13 @@ void cInterfaceAGL::Swap()
 bool cInterfaceAGL::Create(void *window_handle)
 {
 	// FIXME: Get rid of the explicit use of wxPanel here. This shouldn't be necessary.
-	GLWin.cocoaWin = reinterpret_cast<NSView*>(((wxPanel*)window_handle)->GetHandle());
-	NSSize size = [GLWin.cocoaWin frame].size;
+	cocoaWin = reinterpret_cast<NSView*>(((wxPanel*)window_handle)->GetHandle());
+	NSSize size = [cocoaWin frame].size;
 
 	// Enable high-resolution display support.
-	[GLWin.cocoaWin setWantsBestResolutionOpenGLSurface:YES];
+	[cocoaWin setWantsBestResolutionOpenGLSurface:YES];
 
-	NSWindow *window = [GLWin.cocoaWin window];
+	NSWindow *window = [cocoaWin window];
 
 	float scale = [window backingScaleFactor];
 	size.width *= scale;
@@ -43,21 +44,21 @@ bool cInterfaceAGL::Create(void *window_handle)
 		return false;
 	}
 
-	GLWin.cocoaCtx = [[NSOpenGLContext alloc]
+	cocoaCtx = [[NSOpenGLContext alloc]
 		initWithFormat: fmt shareContext: nil];
 	[fmt release];
-	if (GLWin.cocoaCtx == nil) {
+	if (cocoaCtx == nil) {
 		ERROR_LOG(VIDEO, "failed to create context");
 		return false;
 	}
 
-	if (GLWin.cocoaWin == nil) {
+	if (cocoaWin == nil) {
 		ERROR_LOG(VIDEO, "failed to create window");
 		return false;
 	}
 
-	[window makeFirstResponder:GLWin.cocoaWin];
-	[GLWin.cocoaCtx setView: GLWin.cocoaWin];
+	[window makeFirstResponder:cocoaWin];
+	[cocoaCtx setView: cocoaWin];
 	[window makeKeyAndOrderFront: nil];
 
 	return true;
@@ -65,7 +66,7 @@ bool cInterfaceAGL::Create(void *window_handle)
 
 bool cInterfaceAGL::MakeCurrent()
 {
-	[GLWin.cocoaCtx makeCurrentContext];
+	[cocoaCtx makeCurrentContext];
 	return true;
 }
 
@@ -79,15 +80,15 @@ bool cInterfaceAGL::ClearCurrent()
 // Close backend
 void cInterfaceAGL::Shutdown()
 {
-	[GLWin.cocoaCtx clearDrawable];
-	[GLWin.cocoaCtx release];
-	GLWin.cocoaCtx = nil;
+	[cocoaCtx clearDrawable];
+	[cocoaCtx release];
+	cocoaCtx = nil;
 }
 
 void cInterfaceAGL::Update()
 {
-	NSWindow *window = [GLWin.cocoaWin window];
-	NSSize size = [GLWin.cocoaWin frame].size;
+	NSWindow *window = [cocoaWin window];
+	NSSize size = [cocoaWin frame].size;
 
 	float scale = [window backingScaleFactor];
 	size.width *= scale;
@@ -100,11 +101,11 @@ void cInterfaceAGL::Update()
 	s_backbuffer_width = size.width;
 	s_backbuffer_height = size.height;
 
-	[GLWin.cocoaCtx update];
+	[cocoaCtx update];
 }
 
 void cInterfaceAGL::SwapInterval(int interval)
 {
-	[GLWin.cocoaCtx setValues:(GLint *)&interval forParameter:NSOpenGLCPSwapInterval];
+	[cocoaCtx setValues:(GLint *)&interval forParameter:NSOpenGLCPSwapInterval];
 }
 

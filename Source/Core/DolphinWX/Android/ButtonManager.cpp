@@ -4,8 +4,10 @@
 
 #include <unordered_map>
 
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/Thread.h"
 #include "DolphinWX/Android/ButtonManager.h"
-#include "DolphinWX/GLInterface/GLInterface.h"
 
 namespace ButtonManager
 {

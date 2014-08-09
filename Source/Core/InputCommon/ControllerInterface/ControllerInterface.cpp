@@ -5,10 +5,6 @@
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-#if USE_EGL
-#include "DolphinWX/GLInterface/GLInterface.h"
-#endif
-
 #ifdef CIFACE_USE_XINPUT
 	#include "InputCommon/ControllerInterface/XInput/XInput.h"
 #endif

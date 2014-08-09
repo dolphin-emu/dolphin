@@ -282,7 +282,6 @@
     <ClInclude Include="WiimoteConfigDiag.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="GLInterface\GLInterface.h" />
     <ClInclude Include="SoftwareVideoConfigDialog.h">
       <Filter>GUI\Video</Filter>
     </ClInclude>
