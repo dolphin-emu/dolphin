@@ -141,16 +141,7 @@ u8* MemArena::Find4GBBase()
 	return reinterpret_cast<u8*>(0x2300000000ULL);
 #endif
 
-#else
-	// 32 bit
-#ifdef _WIN32
-	// The highest thing in any 1GB section of memory space is the locked cache. We only need to fit it.
-	u8* base = (u8*)VirtualAlloc(0, 0x31000000, MEM_RESERVE, PAGE_READWRITE);
-	if (base) {
-		VirtualFree(base, 0, MEM_RELEASE);
-	}
-	return base;
-#else
+#else // 32 bit
 #ifdef ANDROID
 	// Android 4.3 changed how mmap works.
 	// if we map it private and then munmap it, we can't use the base returned.
@@ -167,7 +158,6 @@ u8* MemArena::Find4GBBase()
 	}
 	munmap(base, MemSize);
 	return static_cast<u8*>(base);
-#endif
 #endif
 }
 
@@ -258,23 +248,6 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 		return nullptr;
 	}
 #else
-#ifdef _WIN32
-	// Try a whole range of possible bases. Return once we got a valid one.
-	u32 max_base_addr = 0x7FFF0000 - 0x31000000;
-	u8 *base = nullptr;
-
-	for (u32 base_addr = 0x40000; base_addr < max_base_addr; base_addr += 0x40000)
-	{
-		base_attempts++;
-		base = (u8 *)base_addr;
-		if (Memory_TryBase(base, views, num_views, flags, arena))
-		{
-			INFO_LOG(MEMMAP, "Found valid memory base at %p after %i tries.", base, base_attempts);
-			base_attempts = 0;
-			break;
-		}
-	}
-#else
 	// Linux32 is fine with the x64 method, although limited to 32-bit with no automirrors.
 	u8 *base = MemArena::Find4GBBase();
 	if (!Memory_TryBase(base, views, num_views, flags, arena))
@@ -285,7 +258,6 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	}
 #endif
 
-#endif
 	if (base_attempts)
 		PanicAlert("No possible memory base pointer found!");
 	return base;
