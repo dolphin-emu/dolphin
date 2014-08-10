@@ -242,7 +242,7 @@ static void TexDecoder_DrawOverlay(u8 *dst, int width, int height, int texformat
 	}
 }
 
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, TlutFormat tlutfmt)
 {
 	PC_TexFormat pc_texformat = _TexDecoder_DecodeImpl((u32*)dst, src, width, height, texformat, tlutaddr, tlutfmt);
 
@@ -301,7 +301,7 @@ struct DXTBlock
 	u8 lines[4];
 };
 
-void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, int tlutfmt)
+void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, TlutFormat tlutfmt)
 {
 	/* General formula for computing texture offset
 	//
@@ -334,13 +334,13 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 
 			switch (tlutfmt)
 			{
-			case 0:
+			case GX_TL_IA8:
 				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
 				break;
-			case 1:
+			case GX_TL_RGB565:
 				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
 				break;
-			case 2:
+			case GX_TL_RGB5A3:
 				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
 				break;
 			}
@@ -399,13 +399,13 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 
 			switch (tlutfmt)
 			{
-			case 0:
+			case GX_TL_IA8:
 				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
 				break;
-			case 1:
+			case GX_TL_RGB565:
 				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
 				break;
-			case 2:
+			case GX_TL_RGB5A3:
 				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
 				break;
 			}
@@ -464,13 +464,13 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 
 			switch (tlutfmt)
 			{
-			case 0:
+			case GX_TL_IA8:
 				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
 				break;
-			case 1:
+			case GX_TL_RGB565:
 				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
 				break;
-			case 2:
+			case GX_TL_RGB5A3:
 				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
 				break;
 			}

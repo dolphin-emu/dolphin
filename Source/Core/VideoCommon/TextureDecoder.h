@@ -52,6 +52,13 @@ enum TextureFormat
 	GX_CTF_Z16L  = 0xC | _GX_TF_ZTF | _GX_TF_CTF,
 };
 
+enum TlutFormat
+{
+	GX_TL_IA8    = 0x0,
+	GX_TL_RGB565 = 0x1,
+	GX_TL_RGB5A3 = 0x2,
+};
+
 int TexDecoder_GetTexelSizeInNibbles(int format);
 int TexDecoder_GetTextureSizeInBytes(int width, int height, int format);
 int TexDecoder_GetBlockWidthInTexels(u32 format);
@@ -71,12 +78,12 @@ enum PC_TexFormat
 	PC_TEX_FMT_DXT1,
 };
 
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
+PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, TlutFormat tlutfmt);
 PC_TexFormat TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height);
-void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, int tlutfmt);
+void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, TlutFormat tlutfmt);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* src_gb, int s, int t, int imageWidth);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
 /* Internal method, implemented by TextureDecoder_Generic and TextureDecoder_x64. */
-PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
+PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, TlutFormat tlutfmt);

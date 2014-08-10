@@ -287,7 +287,7 @@ static inline void SetOpenMPThreadCount(int width, int height)
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
-PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int height, int texformat, int tlutaddr, TlutFormat tlutfmt)
 {
 	SetOpenMPThreadCount(width, height);
 
@@ -297,7 +297,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 	switch (texformat)
 	{
 	case GX_TF_C4:
-		if (tlutfmt == 2)
+		if (tlutfmt == GX_TL_RGB5A3)
 		{
 			// Special decoding is required for TLUT format 5A3
 			#pragma omp parallel for
@@ -306,7 +306,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
 						decodebytesC4_5A3_To_rgba32(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
 		}
-		else if (tlutfmt == 0)
+		else if (tlutfmt == GX_TL_IA8)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
@@ -315,7 +315,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 						decodebytesC4IA8_To_RGBA(dst + (y + iy) * width + x, src + 4 * xStep, tlutaddr);
 
 		}
-		else
+		else if (tlutfmt == GX_TL_RGB565)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
@@ -555,7 +555,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		}
 		break;
 	case GX_TF_C8:
-		if (tlutfmt == 2)
+		if (tlutfmt == GX_TL_RGB5A3)
 		{
 			// Special decoding is required for TLUT format 5A3
 			#pragma omp parallel for
@@ -564,7 +564,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						decodebytesC8_5A3_To_RGBA32((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 		}
-		else if (tlutfmt == 0)
+		else if (tlutfmt == GX_TL_IA8)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
@@ -573,7 +573,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 							decodebytesC8IA8_To_RGBA(dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
 
 		}
-		else
+		else if (tlutfmt == GX_TL_RGB565)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
@@ -668,7 +668,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		}
 		break;
 	case GX_TF_C14X2:
-		if (tlutfmt == 2)
+		if (tlutfmt == GX_TL_RGB5A3)
 		{
 			// Special decoding is required for TLUT format 5A3
 			#pragma omp parallel for
@@ -677,7 +677,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						decodebytesC14X2_5A3_To_RGBA(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
 		}
-		else if (tlutfmt == 0)
+		else if (tlutfmt == GX_TL_IA8)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
@@ -685,7 +685,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						decodebytesC14X2IA8_To_RGBA(dst + (y + iy) * width + x,  (u16*)(src + 8 * xStep), tlutaddr);
 		}
-		else
+		else if (tlutfmt == GX_TL_RGB565)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
