@@ -242,9 +242,9 @@ static void TexDecoder_DrawOverlay(u8 *dst, int width, int height, int texformat
 	}
 }
 
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt,bool rgbaOnly)
+PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
-	PC_TexFormat pc_texformat = _TexDecoder_DecodeImpl(dst, src, width, height, texformat, tlutaddr, tlutfmt, rgbaOnly);
+	PC_TexFormat pc_texformat = _TexDecoder_DecodeImpl((u32*)dst, src, width, height, texformat, tlutaddr, tlutfmt);
 
 	if (TexFmt_Overlay_Enable && pc_texformat != PC_TEX_FMT_NONE)
 		TexDecoder_DrawOverlay(dst, width, height, texformat, pc_texformat);
