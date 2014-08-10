@@ -13,8 +13,6 @@
 static FifoRecorder instance;
 static std::recursive_mutex sMutex;
 
-using namespace std;
-
 FifoRecorder::FifoRecorder() :
 	m_IsRecording(false),
 	m_WasRecording(false),

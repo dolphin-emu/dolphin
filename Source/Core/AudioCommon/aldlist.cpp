@@ -86,7 +86,7 @@ ALDeviceList::ALDeviceList()
 							alcGetIntegerv(device, ALC_MAJOR_VERSION, sizeof(s32), &ALDeviceInfo.iMajorVersion);
 							alcGetIntegerv(device, ALC_MINOR_VERSION, sizeof(s32), &ALDeviceInfo.iMinorVersion);
 
-							ALDeviceInfo.pvstrExtensions = new vector<string>;
+							ALDeviceInfo.pvstrExtensions = new std::vector<std::string>;
 
 							// Check for ALC Extensions
 							if (alcIsExtensionPresent(device, "ALC_EXT_CAPTURE") == AL_TRUE)

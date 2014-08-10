@@ -51,8 +51,6 @@ DEFINE_EVENT_TYPE(RECORDING_FINISHED_EVENT)
 DECLARE_EVENT_TYPE(FRAME_WRITTEN_EVENT, -1)
 DEFINE_EVENT_TYPE(FRAME_WRITTEN_EVENT)
 
-using namespace std;
-
 static std::recursive_mutex sMutex;
 wxEvtHandler *volatile FifoPlayerDlg::m_EvtHandler = nullptr;
 
@@ -955,7 +953,7 @@ wxString FifoPlayerDlg::CreateRecordingMemSizeLabel() const
 		size_t memBytes = 0;
 		for (size_t frameNum = 0; frameNum < file->GetFrameCount(); ++frameNum)
 		{
-			const vector<MemoryUpdate>& memUpdates = file->GetFrame(frameNum).memoryUpdates;
+			const std::vector<MemoryUpdate>& memUpdates = file->GetFrame(frameNum).memoryUpdates;
 			for (auto& memUpdate : memUpdates)
 				memBytes += memUpdate.size;
 		}

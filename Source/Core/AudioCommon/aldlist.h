@@ -10,22 +10,20 @@
 								//'255' characters in the browser information"
 #endif
 
-using namespace std;
-
 typedef struct
 {
-	string          strDeviceName;
-	s32             iMajorVersion;
-	s32             iMinorVersion;
-	u32             uiSourceCount;
-	vector<string>* pvstrExtensions;
-	bool            bSelected;
+	std::string               strDeviceName;
+	s32                       iMajorVersion;
+	s32                       iMinorVersion;
+	u32                       uiSourceCount;
+	std::vector<std::string>* pvstrExtensions;
+	bool                      bSelected;
 } ALDEVICEINFO, *LPALDEVICEINFO;
 
 class ALDeviceList
 {
 private:
-	vector<ALDEVICEINFO> vDeviceInfo;
+	std::vector<ALDEVICEINFO> vDeviceInfo;
 	s32 defaultDeviceIndex;
 	s32 filterIndex;
 

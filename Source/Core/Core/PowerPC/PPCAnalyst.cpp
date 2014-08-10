@@ -28,10 +28,8 @@
 // It is also useful for finding function boundaries so that we can find, fingerprint and detect library functions.
 // We don't do this much currently. Only for the special case Super Monkey Ball.
 
-namespace PPCAnalyst {
-
-using namespace std;
-
+namespace PPCAnalyst
+{
 static const int CODEBUFFER_SIZE = 32000;
 // 0 does not perform block merging
 static const u32 FUNCTION_FOLLOWING_THRESHOLD = 16;
@@ -306,7 +304,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func
 
 static void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 {
-	vector<u32> funcAddrs;
+	std::vector<u32> funcAddrs;
 
 	for (const auto& func : func_db->Symbols())
 		funcAddrs.push_back(func.second.address + func.second.size);
