@@ -945,7 +945,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
-						decodebytesC14X2_5A3_To_BGRA32(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
+						decodebytesC14X2_5A3_To_RGBA(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlutaddr);
 		}
 		else if (tlutfmt == 0)
 		{
