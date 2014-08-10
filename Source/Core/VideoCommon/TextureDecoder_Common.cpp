@@ -252,19 +252,14 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 	return pc_texformat;
 }
 
-static inline u32 makeRGBA(int r, int g, int b, int a)
-{
-	return (a<<24)|(b<<16)|(g<<8)|r;
-}
-
-static inline u32 decodeIA8Swapped(u16 val)
+static inline u32 DecodePixel_IA8(u16 val)
 {
 	int a = val & 0xFF;
 	int i = val >> 8;
 	return i | (i<<8) | (i<<16) | (a<<24);
 }
 
-static inline u32 decode565RGBA(u16 val)
+static inline u32 DecodePixel_RGB565(u16 val)
 {
 	int r,g,b,a;
 	r=Convert5To8((val>>11) & 0x1f);
@@ -274,7 +269,7 @@ static inline u32 decode565RGBA(u16 val)
 	return  r | (g<<8) | (b << 16) | (a << 24);
 }
 
-static inline u32 decode5A3RGBA(u16 val)
+static inline u32 DecodePixel_RGB5A3(u16 val)
 {
 	int r,g,b,a;
 	if ((val&0x8000))
@@ -294,6 +289,21 @@ static inline u32 decode5A3RGBA(u16 val)
 	return r | (g<<8) | (b << 16) | (a << 24);
 }
 
+static inline u32 DecodePixel_Paletted(u16 pixel, TlutFormat tlutfmt)
+{
+	switch (tlutfmt)
+	{
+	case GX_TL_IA8:
+		return DecodePixel_IA8(pixel);
+	case GX_TL_RGB565:
+		return DecodePixel_RGB565(Common::swap16(pixel));
+	case GX_TL_RGB5A3:
+		return DecodePixel_RGB5A3(Common::swap16(pixel));
+	default:
+		return 0;
+	}
+}
+
 struct DXTBlock
 {
 	u16 color1;
@@ -301,19 +311,9 @@ struct DXTBlock
 	u8 lines[4];
 };
 
-static inline u32 decodePalettedPixel(u16 pixel, TlutFormat tlutfmt)
+static inline u32 MakeRGBA(int r, int g, int b, int a)
 {
-	switch (tlutfmt)
-	{
-	case GX_TL_IA8:
-		return decodeIA8Swapped(pixel);
-	case GX_TL_RGB565:
-		return decode565RGBA(Common::swap16(pixel));
-	case GX_TL_RGB5A3:
-		return decode5A3RGBA(Common::swap16(pixel));
-	default:
-		return 0;
-	}
+	return (a<<24)|(b<<16)|(g<<8)|r;
 }
 
 void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, const u8* tlut_, TlutFormat tlutfmt)
@@ -347,7 +347,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u8 val = (*(src + offset) >> rs) & 0xF;
 			u16 *tlut = (u16*) tlut_;
 
-			*((u32*)dst) = decodePalettedPixel(tlut[val], tlutfmt);
+			*((u32*)dst) = DecodePixel_Paletted(tlut[val], tlutfmt);
 		}
 		break;
 	case GX_TF_I4:
@@ -401,7 +401,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u8 val = *(src + base + blkOff);
 			u16 *tlut = (u16*) tlut_;
 
-			*((u32*)dst) = decodePalettedPixel(tlut[val], tlutfmt);
+			*((u32*)dst) = DecodePixel_Paletted(tlut[val], tlutfmt);
 		}
 		break;
 	case GX_TF_IA4:
@@ -436,7 +436,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u32 offset = (base + blkOff) << 1;
 			const u16* valAddr = (u16*)(src + offset);
 
-			*((u32*)dst) = decodeIA8Swapped(*valAddr);
+			*((u32*)dst) = DecodePixel_IA8(*valAddr);
 		}
 		break;
 	case GX_TF_C14X2:
@@ -455,7 +455,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 val = Common::swap16(*valAddr) & 0x3FFF;
 			u16 *tlut = (u16*) tlut_;
 
-			*((u32*)dst) = decodePalettedPixel(tlut[val], tlutfmt);
+			*((u32*)dst) = DecodePixel_Paletted(tlut[val], tlutfmt);
 		}
 		break;
 	case GX_TF_RGB565:
@@ -471,7 +471,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u32 offset = (base + blkOff) << 1;
 			const u16* valAddr = (u16*)(src + offset);
 
-			*((u32*)dst) = decode565RGBA(Common::swap16(*valAddr));
+			*((u32*)dst) = DecodePixel_RGB565(Common::swap16(*valAddr));
 		}
 		break;
 	case GX_TF_RGB5A3:
@@ -487,7 +487,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u32 offset = (base + blkOff) << 1;
 			const u16* valAddr = (u16*)(src + offset);
 
-			*((u32*)dst) = decode5A3RGBA(Common::swap16(*valAddr));
+			*((u32*)dst) = DecodePixel_RGB5A3(Common::swap16(*valAddr));
 		}
 		break;
 	case GX_TF_RGBA8:
@@ -549,23 +549,23 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			{
 				case 0:
 				case 4:
-					color = makeRGBA(red1, green1, blue1, 255);
+					color = MakeRGBA(red1, green1, blue1, 255);
 					break;
 				case 1:
 				case 5:
-					color = makeRGBA(red2, green2, blue2, 255);
+					color = MakeRGBA(red2, green2, blue2, 255);
 					break;
 				case 2:
-					color = makeRGBA(red1+(red2-red1)/3, green1+(green2-green1)/3, blue1+(blue2-blue1)/3, 255);
+					color = MakeRGBA(red1+(red2-red1)/3, green1+(green2-green1)/3, blue1+(blue2-blue1)/3, 255);
 					break;
 				case 3:
-					color = makeRGBA(red2+(red1-red2)/3, green2+(green1-green2)/3, blue2+(blue1-blue2)/3, 255);
+					color = MakeRGBA(red2+(red1-red2)/3, green2+(green1-green2)/3, blue2+(blue1-blue2)/3, 255);
 					break;
 				case 6:
-					color = makeRGBA((int)ceil((float)(red1+red2)/2), (int)ceil((float)(green1+green2)/2), (int)ceil((float)(blue1+blue2)/2), 255);
+					color = MakeRGBA((int)ceil((float)(red1+red2)/2), (int)ceil((float)(green1+green2)/2), (int)ceil((float)(blue1+blue2)/2), 255);
 					break;
 				case 7:
-					color = makeRGBA(red2, green2, blue2, 0);
+					color = MakeRGBA(red2, green2, blue2, 0);
 					break;
 			}
 
