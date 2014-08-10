@@ -203,6 +203,112 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
+// helper functions for picking the right CR value based on a set of possible flags
+void Jit64::PickGTEQ()
+{
+	static const u64 cr[2] = { PPCCRToInternal(CR_GT), PPCCRToInternal(CR_EQ) };
+	SETcc(CC_E, R(AL));
+	MOVZX(32, 8, EAX, R(AL));
+	MOV(64, R(RAX), MScaled(EAX, 8, (u32)(u64)cr));
+}
+
+void Jit64::PickLTEQ()
+{
+	static const u64 cr[2] = { PPCCRToInternal(CR_LT), PPCCRToInternal(CR_EQ) };
+	SETcc(CC_E, R(AL));
+	MOVZX(32, 8, EAX, R(AL));
+	MOV(64, R(RAX), MScaled(EAX, 8, (u32)(u64)cr));
+}
+
+void Jit64::PickLTGT()
+{
+	static const u64 cr[2] = { PPCCRToInternal(CR_LT), PPCCRToInternal(CR_GT) };
+	SETcc(CC_B, R(AL));
+	MOVZX(32, 8, EAX, R(AL));
+	MOV(64, R(RAX), MScaled(EAX, 8, (u32)(u64)cr));
+}
+
+void Jit64::PickGTSO(FixupBranch *pBranchNan)
+{
+	FixupBranch continue1;
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_GT)));
+	continue1 = J();
+	SetJumpTarget(*pBranchNan);
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+	SetJumpTarget(continue1);
+}
+
+void Jit64::PickEQSO(FixupBranch *pBranchNan)
+{
+	FixupBranch continue1;
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
+	continue1 = J();
+	SetJumpTarget(*pBranchNan);
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+	SetJumpTarget(continue1);
+}
+
+void Jit64::PickLTSO(FixupBranch *pBranchNan)
+{
+	FixupBranch continue1;
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_LT)));
+	continue1 = J();
+	SetJumpTarget(*pBranchNan);
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+	SetJumpTarget(continue1);
+}
+
+void Jit64::PickGTEQSO(FixupBranch *pBranchNan)
+{
+	FixupBranch continue1;
+	PickGTEQ();
+	continue1 = J();
+	SetJumpTarget(*pBranchNan);
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+	SetJumpTarget(continue1);
+}
+
+void Jit64::PickLTEQSO(FixupBranch *pBranchNan)
+{
+	FixupBranch continue1;
+	PickLTEQ();
+	continue1 = J();
+	SetJumpTarget(*pBranchNan);
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+	SetJumpTarget(continue1);
+}
+
+void Jit64::PickLTGTSO(FixupBranch *pBranchNan)
+{
+	FixupBranch continue1;
+	PickLTGT();
+	continue1 = J();
+	SetJumpTarget(*pBranchNan);
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+	SetJumpTarget(continue1);
+}
+
+void Jit64::PickLTGTEQ()
+{
+	// probably not very important, so we'll just do it with branches
+	FixupBranch pLesser, pGreater, continue1, continue2;
+	pLesser = J_CC(CC_A);
+	pGreater = J_CC(CC_B);
+
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
+	continue1 = J();
+
+	SetJumpTarget(pGreater);
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_GT)));
+	continue2 = J();
+
+	SetJumpTarget(pLesser);
+	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_LT)));
+
+	SetJumpTarget(continue1);
+	SetJumpTarget(continue2);
+}
+
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -214,58 +320,268 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	int b   = inst.FB;
 	int crf = inst.CRFD;
 
+	bool merge_branch = false;
+	int test_crf = js.next_inst.BI >> 2;
+
+	// Check if the next instruction is a branch - if it is, merge the two.
+	if (((js.next_inst.OPCD == 16 /* bcx */) ||
+		((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528) /* bcctrx */) ||
+		((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16) /* bclrx */)) &&
+		(js.next_inst.BO & BO_DONT_DECREMENT_FLAG) &&
+		!(js.next_inst.BO & BO_DONT_CHECK_CONDITION)) {
+		// Looks like a decent conditional branch that we can merge with.
+		// It only test CR, not CTR.
+		if (test_crf == crf) {
+			merge_branch = true;
+		}
+	}
+
 	fpr.Lock(a,b);
-	fpr.BindToRegister(b, true);
+	fpr.BindToRegister(b, true, false);
 
 	// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
 	UCOMISD(fpr.R(b).GetSimpleReg(), fpr.R(a));
 
-	FixupBranch pNaN, pLesser, pGreater;
-	FixupBranch continue1, continue2, continue3;
-
-	if (a != b)
+	if (merge_branch)
 	{
-		// if B > A, goto Lesser's jump target
-		pLesser  = J_CC(CC_A);
+		js.downcountAmount++;
+		js.skipnext = true;
+		int test_bit = 8 >> (js.next_inst.BI & 3);
+		bool condition = js.next_inst.BO & BO_BRANCH_IF_TRUE;
+
+		FixupBranch pDontBranch, pDontBranchNaN;
+
+		gpr.UnlockAll();
+		fpr.UnlockAll();
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
+
+		// handle the taken path. keep in mind all the x86 conditions (A/B) are reversed because
+		// the register order is backwards (as in the non-merged path).
+		ERROR_LOG(COMMON, "%x %d", test_bit, condition);
+		if (test_bit & 8)
+		{
+			if (condition)
+			{
+				// less than, so jump over path has to handle CR_GT or CR_EQ or CR_SO
+				// and the taken path has to handle CR_LT
+				pDontBranchNaN = J_CC(CC_P);
+				pDontBranch = J_CC(CC_BE);
+				MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_LT)));
+			}
+			else
+			{
+				// greater than or equal, so jump over path has to handle CR_LT or CR_SO
+				// and the taken path has to handle CR_GT or CR_EQ
+				if (a != b)
+				{
+					pDontBranch = J_CC(CC_A);
+					// we can put the NaN check after because it doesn't conflict with the NE branch
+					pDontBranchNaN = J_CC(CC_P);
+					PickGTEQ();
+				}
+				else
+				{
+					pDontBranch = J_CC(CC_P);
+					MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
+				}
+			}
+		}
+		else if (test_bit & 4)
+		{
+			if (condition)
+			{
+				// greater than, so jump over path has to handle CR_LT or CR_EQ or CR_SO
+				// and the taken path has to handle CR_GT
+				pDontBranchNaN = J_CC(CC_P);
+				pDontBranch = J_CC(CC_AE);
+				MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_GT)));
+			}
+			else
+			{
+				// less than or equal, so jump over path has to handle CR_GT or CR_SO
+				// and the taken path has to handle CR_LT or CR_EQ
+				if (a != b)
+				{
+					pDontBranchNaN = J_CC(CC_P);
+					pDontBranch = J_CC(CC_B);
+					PickLTEQ();
+				}
+				else
+				{
+					pDontBranch = J_CC(CC_P);
+					MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
+				}
+			}
+		}
+		else if (test_bit & 2)
+		{
+			if (condition)
+			{
+				// equal to, so jump over path has to handle CR_LT or CR_GT or CR_SO
+				// and the taken path has to handle CR_EQ
+				if (a != b)
+				{
+					pDontBranch = J_CC(CC_NE);
+					// we can put the NaN check after because it doesn't conflict with the NE branch
+					pDontBranchNaN = J_CC(CC_P);
+				}
+				else
+				{
+					pDontBranch = J_CC(CC_P);
+				}
+				MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
+			}
+			else
+			{
+				// not equal to, so jump over path has to handle CR_EQ or CR_SO
+				// and the taken path has to handle CR_LT or CR_GT
+				pDontBranchNaN = J_CC(CC_P);
+				pDontBranch = J_CC(CC_E);
+				if (a != b)
+					PickLTGT();
+			}
+		}
+		else
+		{
+			if (condition)
+			{
+				// NaN, so jump over path has to handle CR_LT or CR_GT or CR_EQ
+				// and the taken path has to handle CR_SO
+				pDontBranch = J_CC(CC_NP);
+				MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+			}
+			else
+			{
+				// not NaN, so jump over path has to handle CR_SO
+				// and the taken path has to handle CR_LT or CR_GT or CR_EQ
+				pDontBranch = J_CC(CC_P);
+				if (a != b)
+					PickLTGTEQ();
+				else
+					MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
+			}
+		}
+		MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
+
+		DoMergedBranch();
+
+		SetJumpTarget(pDontBranch);
+
+		// handle the untaken path
+		if (test_bit & 8)
+		{
+			if (condition)
+			{
+				if (a != b)
+					PickGTEQSO(&pDontBranchNaN);
+				else
+					PickEQSO(&pDontBranchNaN);
+			}
+			else
+			{
+				if (a != b)
+					PickLTSO(&pDontBranchNaN);
+				else
+					MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+			}
+		}
+		else if (test_bit & 4)
+		{
+			if (condition)
+			{
+				if (a != b)
+					PickLTEQSO(&pDontBranchNaN);
+				else
+					PickEQSO(&pDontBranchNaN);
+			}
+			else
+			{
+				if (a != b)
+					PickGTSO(&pDontBranchNaN);
+				else
+					MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+			}
+		}
+		else if (test_bit & 2)
+		{
+			if (condition)
+			{
+				if (a != b)
+					PickLTGTSO(&pDontBranchNaN);
+				else
+					MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+			}
+			else
+			{
+				PickEQSO(&pDontBranchNaN);
+			}
+		}
+		else
+		{
+			if (condition)
+			{
+				if (a != b)
+					PickLTGTEQ();
+				else
+					MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
+			}
+			else
+			{
+				MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+			}
+		}
+		MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
 	}
-
-	// if (B != B) or (A != A), goto NaN's jump target
-	pNaN = J_CC(CC_P);
-
-	if (a != b)
+	else
 	{
-		// if B < A, goto Greater's jump target
-		// JB can't precede the NaN check because it doesn't test ZF
-		pGreater = J_CC(CC_B);
+		FixupBranch pNaN, pLesser, pGreater;
+		FixupBranch continue1, continue2, continue3;
+
+		if (a != b)
+		{
+			// if B > A, goto Lesser's jump target
+			pLesser = J_CC(CC_A);
+		}
+
+		// if (B != B) or (A != A), goto NaN's jump target
+		pNaN = J_CC(CC_P);
+
+		if (a != b)
+		{
+			// if B < A, goto Greater's jump target
+			// JB can't precede the NaN check because it doesn't test ZF
+			pGreater = J_CC(CC_B);
+		}
+
+		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
+		continue1 = J();
+
+		SetJumpTarget(pNaN);
+		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+
+		if (a != b)
+		{
+			continue2 = J();
+
+			SetJumpTarget(pGreater);
+			MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_GT)));
+			continue3 = J();
+
+			SetJumpTarget(pLesser);
+			MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_LT)));
+		}
+
+		SetJumpTarget(continue1);
+		if (a != b)
+		{
+			SetJumpTarget(continue2);
+			SetJumpTarget(continue3);
+		}
+
+		MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
+		fpr.UnlockAll();
 	}
-
-	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
-	continue1 = J();
-
-	SetJumpTarget(pNaN);
-	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
-
-	if (a != b)
-	{
-		continue2 = J();
-
-		SetJumpTarget(pGreater);
-		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_GT)));
-		continue3 = J();
-
-		SetJumpTarget(pLesser);
-		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_LT)));
-	}
-
-	SetJumpTarget(continue1);
-	if (a != b)
-	{
-		SetJumpTarget(continue2);
-		SetJumpTarget(continue3);
-	}
-
-	MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
-	fpr.UnlockAll();
 }
 
 void Jit64::fctiwx(UGeckoInstruction inst)
