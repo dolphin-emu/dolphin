@@ -466,8 +466,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	{
 		if (!(texformat == GX_TF_RGBA8 && from_tmem))
 		{
-			pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth,
-						expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
+			pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt);
 		}
 		else
 		{
@@ -543,7 +542,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 				const u8*& mip_src_data = from_tmem
 					? ((level % 2) ? ptr_odd : ptr_even)
 					: src_data;
-				TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
+				TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat, tlutaddr, tlutfmt);
 				mip_src_data += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
 
 				entry->Load(mip_width, mip_height, expanded_mip_width, level);
