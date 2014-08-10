@@ -377,7 +377,6 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 					}
 					strcat(dis, buf);
 				}
-				curAddress += 32;
 			}
 			else
 			{
