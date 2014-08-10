@@ -418,7 +418,7 @@ void WiimoteScanner::StartScanning()
 	if (!m_run_thread)
 	{
 		m_run_thread = true;
-		m_scan_thread = std::thread(std::mem_fn(&WiimoteScanner::ThreadFunc), this);
+		m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
 	}
 }
 
@@ -491,7 +491,7 @@ bool Wiimote::Connect()
 void Wiimote::StartThread()
 {
 	m_run_thread = true;
-	m_wiimote_thread = std::thread(std::mem_fn(&Wiimote::ThreadFunc), this);
+	m_wiimote_thread = std::thread(&Wiimote::ThreadFunc, this);
 }
 
 void Wiimote::StopThread()
