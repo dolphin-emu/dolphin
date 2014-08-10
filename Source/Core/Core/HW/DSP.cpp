@@ -459,8 +459,7 @@ void GenerateDSPInterrupt(DSPInterruptType type, bool _bSet)
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool _bSet)
 {
-	CoreTiming::ScheduleEvent_Threadsafe(
-		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(et_GenerateDSPInterrupt, type | (_bSet<<16));
 	CoreTiming::ForceExceptionCheck(100);
 }
 
