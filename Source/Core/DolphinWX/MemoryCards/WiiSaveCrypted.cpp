@@ -89,10 +89,10 @@ void CWiiSaveCrypted::ExportAllSaves()
 	u32 success = 0;
 	for (const u64& title : titles)
 	{
-		CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", title);
-		if (exportSave->b_valid)
+		CWiiSaveCrypted exportSave("", title);
+
+		if (exportSave.b_valid)
 			success++;
-		delete exportSave;
 	}
 	SuccessAlertT("Sucessfully exported %u saves to %s", success, (File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
