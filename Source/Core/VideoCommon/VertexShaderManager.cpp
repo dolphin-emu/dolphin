@@ -124,7 +124,7 @@ float vr_widest_3d_VFOV = 0;
 float vr_widest_3d_zNear = 0;
 float vr_widest_3d_zFar = 0;
 
-#pragma optimize("", off)
+//#pragma optimize("", off)
 
 int Round100(float x)
 {
@@ -963,7 +963,7 @@ void LogViewport(Viewport &v) { //VR
 	}
 	debug_viewportNum++;
 }
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 
 struct ProjectionHack
@@ -1339,7 +1339,7 @@ void VertexShaderManager::SetConstants()
 	}
 }
 
-#pragma optimize("", off)
+//#pragma optimize("", off)
 
 void VertexShaderManager::SetProjectionConstants()
 {
@@ -2090,7 +2090,7 @@ void VertexShaderManager::SetProjectionConstants()
 	}
 	dirty = true;
 }
-#pragma optimize("", on)
+//#pragma optimize("", on)
 
 
 void VertexShaderManager::InvalidateXFRange(int start, int end)
