@@ -301,6 +301,21 @@ struct DXTBlock
 	u8 lines[4];
 };
 
+static inline u32 decodePalettedPixel(u16 pixel, TlutFormat tlutfmt)
+{
+	switch (tlutfmt)
+	{
+	case GX_TL_IA8:
+		return decodeIA8Swapped(pixel);
+	case GX_TL_RGB565:
+		return decode565RGBA(Common::swap16(pixel));
+	case GX_TL_RGB5A3:
+		return decode5A3RGBA(Common::swap16(pixel));
+	default:
+		return 0;
+	}
+}
+
 void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, const u8* tlut_, TlutFormat tlutfmt)
 {
 	/* General formula for computing texture offset
@@ -332,18 +347,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u8 val = (*(src + offset) >> rs) & 0xF;
 			u16 *tlut = (u16*) tlut_;
 
-			switch (tlutfmt)
-			{
-			case GX_TL_IA8:
-				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
-				break;
-			case GX_TL_RGB565:
-				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
-				break;
-			case GX_TL_RGB5A3:
-				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
-				break;
-			}
+			*((u32*)dst) = decodePalettedPixel(tlut[val], tlutfmt);
 		}
 		break;
 	case GX_TF_I4:
@@ -397,18 +401,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u8 val = *(src + base + blkOff);
 			u16 *tlut = (u16*) tlut_;
 
-			switch (tlutfmt)
-			{
-			case GX_TL_IA8:
-				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
-				break;
-			case GX_TL_RGB565:
-				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
-				break;
-			case GX_TL_RGB5A3:
-				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
-				break;
-			}
+			*((u32*)dst) = decodePalettedPixel(tlut[val], tlutfmt);
 		}
 		break;
 	case GX_TF_IA4:
@@ -462,18 +455,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 val = Common::swap16(*valAddr) & 0x3FFF;
 			u16 *tlut = (u16*) tlut_;
 
-			switch (tlutfmt)
-			{
-			case GX_TL_IA8:
-				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
-				break;
-			case GX_TL_RGB565:
-				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
-				break;
-			case GX_TL_RGB5A3:
-				*((u32*)dst) = decode5A3RGBA(Common::swap16(tlut[val]));
-				break;
-			}
+			*((u32*)dst) = decodePalettedPixel(tlut[val], tlutfmt);
 		}
 		break;
 	case GX_TF_RGB565:
