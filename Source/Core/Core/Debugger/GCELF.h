@@ -44,7 +44,7 @@
 #define SHT_DYNSYM      11
 
 
-typedef struct
+struct ELF_Header
 {
 	unsigned char ID[4];
 	unsigned char clazz;
@@ -64,9 +64,9 @@ typedef struct
 	unsigned short e_shentsize;
 	unsigned short e_shnum;
 	unsigned short e_shtrndx;
-} ELF_Header;
+};
 
-typedef struct
+struct Program_Header
 {
 	unsigned int type;
 	unsigned int offset;
@@ -76,9 +76,9 @@ typedef struct
 	unsigned int memsz;
 	unsigned int flags;
 	unsigned int align;
-} Program_Header;
+};
 
-typedef struct
+struct Section_Header
 {
 	unsigned int name;
 	unsigned int type;
@@ -90,9 +90,9 @@ typedef struct
 	unsigned int info;
 	unsigned int addralign;
 	unsigned int entsize;
-} Section_Header;
+};
 
-typedef struct
+struct Symbol_Header
 {
 	unsigned int name;
 	unsigned int value;
@@ -100,13 +100,13 @@ typedef struct
 	unsigned char info;
 	unsigned char other;
 	unsigned short shndx;
-} Symbol_Header;
+};
 
-typedef struct
+struct Rela_Header
 {
 	unsigned int offset;
 	unsigned int info;
 	signed int addend;
-} Rela_Header;
+};
 
 const char ELFID[4] = {0x7F, 'E', 'L', 'F'};

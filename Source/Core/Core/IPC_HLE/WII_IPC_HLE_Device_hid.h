@@ -46,9 +46,9 @@ private:
 	};
 
 	/* Device descriptor */
-	typedef struct
+	struct WiiHIDDeviceDescriptor
 	{
-		 u8 bLength;
+		u8 bLength;
 		u8 bDescriptorType;
 		u16 bcdUSB;
 		u8 bDeviceClass;
@@ -63,9 +63,9 @@ private:
 		u8 iSerialNumber;
 		u8 bNumConfigurations;
 		u8 pad[2];
-	} WiiHIDDeviceDescriptor;
+	};
 
-	typedef struct
+	struct WiiHIDConfigDescriptor
 	{
 		u8 bLength;
 		u8 bDescriptorType;
@@ -76,9 +76,9 @@ private:
 		u8 bmAttributes;
 		u8 MaxPower;
 		u8 pad[3];
-	} WiiHIDConfigDescriptor;
+	};
 
-	typedef struct
+	struct WiiHIDInterfaceDescriptor
 	{
 		u8 bLength;
 		u8 bDescriptorType;
@@ -90,9 +90,9 @@ private:
 		u8 bInterfaceProtocol;
 		u8 iInterface;
 		u8 pad[3];
-	} WiiHIDInterfaceDescriptor;
+	};
 
-	typedef struct
+	struct WiiHIDEndpointDescriptor
 	{
 		u8 bLength;
 		u8 bDescriptorType;
@@ -103,7 +103,7 @@ private:
 		u8 bRefresh;
 		u8 bSynchAddress;
 		u8 pad[1];
-	} WiiHIDEndpointDescriptor;
+	};
 
 	u32 deviceCommandAddress;
 	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
