@@ -490,19 +490,19 @@ void UpdateAudioDMA()
 		// Read audio at g_audioDMA.current_source_address in RAM and push onto an
 		// external audio fifo in the emulator, to be mixed with the disc
 		// streaming output.
-		g_audioDMA.remaining_blocks_count--;
-		g_audioDMA.current_source_address += 32;
+
+		if (g_audioDMA.remaining_blocks_count != 0)
+		{
+			g_audioDMA.remaining_blocks_count--;
+			g_audioDMA.current_source_address += 32;
+		}
 
 		if (g_audioDMA.remaining_blocks_count == 0)
 		{
 			g_audioDMA.current_source_address = g_audioDMA.SourceAddress;
 			g_audioDMA.remaining_blocks_count = g_audioDMA.AudioDMAControl.NumBlocks;
 
-			if (g_audioDMA.AudioDMAControl.NumBlocks == 0)
-			{
-				g_audioDMA.AudioDMAControl.Enable = 0;
-			}
-			else
+			if (g_audioDMA.remaining_blocks_count != 0)
 			{
 				// We make the samples ready as soon as possible
 				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
