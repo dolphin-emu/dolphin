@@ -242,9 +242,9 @@ static void TexDecoder_DrawOverlay(u8 *dst, int width, int height, int texformat
 	}
 }
 
-PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, TlutFormat tlutfmt)
+PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
 {
-	PC_TexFormat pc_texformat = _TexDecoder_DecodeImpl((u32*)dst, src, width, height, texformat, tlutaddr, tlutfmt);
+	PC_TexFormat pc_texformat = _TexDecoder_DecodeImpl((u32*)dst, src, width, height, texformat, tlut, tlutfmt);
 
 	if (TexFmt_Overlay_Enable && pc_texformat != PC_TEX_FMT_NONE)
 		TexDecoder_DrawOverlay(dst, width, height, texformat, pc_texformat);
@@ -301,7 +301,7 @@ struct DXTBlock
 	u8 lines[4];
 };
 
-void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, TlutFormat tlutfmt)
+void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, const u8* tlut_, TlutFormat tlutfmt)
 {
 	/* General formula for computing texture offset
 	//
@@ -330,7 +330,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u32 offset = base + (blkOff >> 1);
 
 			u8 val = (*(src + offset) >> rs) & 0xF;
-			u16 *tlut = (u16*)(texMem + tlutaddr);
+			u16 *tlut = (u16*) tlut_;
 
 			switch (tlutfmt)
 			{
@@ -395,7 +395,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u32 blkOff = (blkT << 3) + blkS;
 
 			u8 val = *(src + base + blkOff);
-			u16 *tlut = (u16*)(texMem + tlutaddr);
+			u16 *tlut = (u16*) tlut_;
 
 			switch (tlutfmt)
 			{
@@ -460,7 +460,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			const u16* valAddr = (u16*)(src + offset);
 
 			u16 val = Common::swap16(*valAddr) & 0x3FFF;
-			u16 *tlut = (u16*)(texMem + tlutaddr);
+			u16 *tlut = (u16*) tlut_;
 
 			switch (tlutfmt)
 			{

@@ -106,6 +106,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 	TexMode0& tm0 = texUnit.texMode0[subTexmap];
 	TexImage0& ti0 = texUnit.texImage0[subTexmap];
 	TexTLUT& texTlut = texUnit.texTlut[subTexmap];
+	TlutFormat tlutfmt = (TlutFormat) texTlut.tlut_format;
 
 	u8 *imageSrc, *imageSrcOdd = nullptr;
 	if (texUnit.texImage1[subTexmap].image_type)
@@ -124,6 +125,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 	int imageHeight = ti0.height;
 
 	int tlutAddress = texTlut.tmem_offset << 9;
+	const u8* tlut = &texMem[tlutAddress];
 
 	// reduce sample location and texture size to mip level
 	// move texture pointer to mip location
@@ -179,20 +181,18 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 		WrapCoord(imageSPlus1, tm0.wrap_s, imageWidth);
 		WrapCoord(imageTPlus1, tm0.wrap_t, imageHeight);
 
-		TlutFormat tlutfmt = (TlutFormat) texTlut.tlut_format;
-
 		if (!(ti0.format == GX_TF_RGBA8 && texUnit.texImage1[subTexmap].image_type))
 		{
-			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, tlutfmt);
+			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, imageWidth, ti0.format, tlut, tlutfmt);
 			SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
 
-			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageT, imageWidth, ti0.format, tlutAddress, tlutfmt);
+			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageT, imageWidth, ti0.format, tlut, tlutfmt);
 			AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
 
-			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageTPlus1, imageWidth, ti0.format, tlutAddress, tlutfmt);
+			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageTPlus1, imageWidth, ti0.format, tlut, tlutfmt);
 			AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
 
-			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageTPlus1, imageWidth, ti0.format, tlutAddress, tlutfmt);
+			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageTPlus1, imageWidth, ti0.format, tlut, tlutfmt);
 			AddTexel(sampledTex, texel, (fractS) * (fractT));
 		}
 		else
@@ -226,7 +226,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 		WrapCoord(imageT, tm0.wrap_t, imageHeight);
 
 		if (!(ti0.format == GX_TF_RGBA8 && texUnit.texImage1[subTexmap].image_type))
-			TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, (TlutFormat) texTlut.tlut_format);
+			TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, ti0.format, tlut, tlutfmt);
 		else
 			TexDecoder_DecodeTexelRGBA8FromTmem(sample, imageSrc, imageSrcOdd, imageS, imageT, imageWidth);
 	}
