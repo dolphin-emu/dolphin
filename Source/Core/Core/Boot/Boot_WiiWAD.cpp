@@ -38,14 +38,15 @@ static u32 state_checksum(u32 *buf, int len)
 	return checksum;
 }
 
-typedef struct {
+struct StateFlags
+{
 	u32 checksum;
 	u8 flags;
 	u8 type;
 	u8 discstate;
 	u8 returnto;
 	u32 unknown[6];
-} StateFlags;
+};
 
 bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {

@@ -184,7 +184,8 @@
 #define EXP_6           6 // 0x000c
 #define EXP_INT         7 // 0x000e external int (message from cpu)
 
-typedef struct {
+struct DSP_Regs
+{
 	u16 ar[4];
 	u16 ix[4];
 	u16 wr[4];
@@ -215,7 +216,7 @@ typedef struct {
 			u16 h;
 		};
 	} ac[2];
-} DSP_Regs;
+};
 
 // All the state of the DSP should be in this struct. Any DSP state that is not filled on init
 // should be moved here.
