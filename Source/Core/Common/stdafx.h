@@ -4,6 +4,10 @@
 
 #pragma once
 
+#if _MSC_FULL_VER < 180030723
+#error Please update your build environment to VS2013 with Update 3 or later!
+#endif
+
 // Windows Vista is the lowest version we support
 #define _WIN32_WINNT 0x0600
 
