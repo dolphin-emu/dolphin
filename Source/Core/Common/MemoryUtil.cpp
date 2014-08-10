@@ -91,10 +91,10 @@ void* AllocateMemoryPages(size_t size)
 #else
 	void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE,
 			MAP_ANON | MAP_PRIVATE, -1, 0);
-#endif
 
-	// printf("Mapped memory at %p (size %ld)\n", ptr,
-	//	(unsigned long)size);
+	if (ptr == MAP_FAILED)
+		ptr = nullptr;
+#endif
 
 	if (ptr == nullptr)
 		PanicAlert("Failed to allocate raw memory");
