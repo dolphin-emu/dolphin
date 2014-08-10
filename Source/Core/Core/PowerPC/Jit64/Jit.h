@@ -101,6 +101,17 @@ public:
 	void GenerateCarry();
 	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
+	void PickGTEQ();
+	void PickLTEQ();
+	void PickLTGT();
+	void PickGTSO(Gen::FixupBranch *pBranchNan);
+	void PickLTSO(Gen::FixupBranch *pBranchNan);
+	void PickEQSO(Gen::FixupBranch *pBranchNan);
+	void PickLTGTSO(Gen::FixupBranch *pBranchNan);
+	void PickGTEQSO(Gen::FixupBranch *pBranchNan);
+	void PickLTEQSO(Gen::FixupBranch *pBranchNan);
+	void PickLTGTEQ();
+	void DoMergedBranch();
 
 	// Reads a given bit of a given CR register part. Clobbers ABI_PARAM1,
 	// don't forget to xlock it before.
