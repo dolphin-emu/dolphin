@@ -123,12 +123,12 @@ void Tev::Init()
 	m_ScaleRShiftLUT[3] = 1;
 }
 
-inline s16 Clamp255(s16 in)
+static inline s16 Clamp255(s16 in)
 {
 	return in>255?255:(in<0?0:in);
 }
 
-inline s16 Clamp1024(s16 in)
+static inline s16 Clamp1024(s16 in)
 {
 	return in>1023?1023:(in<-1024?-1024:in);
 }
@@ -366,7 +366,7 @@ static bool TevAlphaTest(int alpha)
 	return true;
 }
 
-inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
+static inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
 {
 	switch (wrapMode)
 	{

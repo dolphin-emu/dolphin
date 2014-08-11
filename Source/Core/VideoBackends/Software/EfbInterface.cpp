@@ -20,12 +20,12 @@ namespace EfbInterface
 {
 	u32 perf_values[PQ_NUM_MEMBERS];
 
-	inline u32 GetColorOffset(u16 x, u16 y)
+	static inline u32 GetColorOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3;
 	}
 
-	inline u32 GetDepthOffset(u16 x, u16 y)
+	static inline u32 GetDepthOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
 	}
