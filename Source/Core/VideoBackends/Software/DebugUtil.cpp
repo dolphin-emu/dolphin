@@ -159,7 +159,7 @@ static void DumpEfb(const std::string& filename)
 
 static void DumpColorTexture(const std::string& filename, u32 width, u32 height)
 {
-	TextureToPng(SWRenderer::getCurrentColorTexture(), width * 4, filename, width, height, true);
+	TextureToPng(SWRenderer::GetCurrentColorTexture(), width * 4, filename, width, height, true);
 }
 
 void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name)
