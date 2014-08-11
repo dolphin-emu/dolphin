@@ -27,7 +27,13 @@ namespace EfbInterface
 		s8 V;
 	};
 
-	enum { ALP_C, BLU_C, GRN_C, RED_C };
+	enum
+	{
+		ALP_C,
+		BLU_C,
+		GRN_C,
+		RED_C
+	};
 
 	// color order is ABGR in order to emulate RGBA on little-endian hardware
 

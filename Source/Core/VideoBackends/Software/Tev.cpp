@@ -336,7 +336,8 @@ void Tev::DrawAlphaCompare(TevStageCombiner::AlphaCombiner& ac, const InputRegTy
 
 static bool AlphaCompare(int alpha, int ref, AlphaTest::CompareMode comp)
 {
-	switch (comp) {
+	switch (comp)
+	{
 	case AlphaTest::ALWAYS:  return true;
 	case AlphaTest::NEVER:   return false;
 	case AlphaTest::LEQUAL:  return alpha <= ref;
@@ -346,6 +347,7 @@ static bool AlphaCompare(int alpha, int ref, AlphaTest::CompareMode comp)
 	case AlphaTest::EQUAL:   return alpha == ref;
 	case AlphaTest::NEQUAL:  return alpha != ref;
 	}
+
 	return true;
 }
 

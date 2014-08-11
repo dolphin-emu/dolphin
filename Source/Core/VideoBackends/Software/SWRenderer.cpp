@@ -153,21 +153,25 @@ void SWRenderer::DrawDebugText()
 	SWRenderer::RenderText(debugtext.c_str(), 20, 20, 0xFFFFFF00);
 }
 
-u8* SWRenderer::getNextColorTexture() {
+u8* SWRenderer::getNextColorTexture()
+{
 	return s_xfbColorTexture[!s_currentColorTexture];
 }
 
-u8* SWRenderer::getCurrentColorTexture() {
+u8* SWRenderer::getCurrentColorTexture()
+{
 	return s_xfbColorTexture[s_currentColorTexture];
 }
 
-void SWRenderer::swapColorTexture() {
+void SWRenderer::swapColorTexture()
+{
 	s_currentColorTexture = !s_currentColorTexture;
 }
 
 void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight)
 {
-	if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT) {
+	if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT)
+	{
 		ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
 		return;
 	}
