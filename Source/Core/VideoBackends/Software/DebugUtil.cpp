@@ -25,18 +25,18 @@ namespace DebugUtil
 
 static bool drawingHwTriangles = false;
 
-enum { NumObjectBuffers = 40};
+static const int NUM_OBJECT_BUFFERS = 40;
 
-static u32 *ObjectBuffer[NumObjectBuffers];
-static u32 TempBuffer[NumObjectBuffers];
+static u32 *ObjectBuffer[NUM_OBJECT_BUFFERS];
+static u32 TempBuffer[NUM_OBJECT_BUFFERS];
 
-static bool DrawnToBuffer[NumObjectBuffers];
-static const char* ObjectBufferName[NumObjectBuffers];
-static int BufferBase[NumObjectBuffers];
+static bool DrawnToBuffer[NUM_OBJECT_BUFFERS];
+static const char* ObjectBufferName[NUM_OBJECT_BUFFERS];
+static int BufferBase[NUM_OBJECT_BUFFERS];
 
 void Init()
 {
-	for (int i = 0; i < NumObjectBuffers; i++)
+	for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
 	{
 		ObjectBuffer[i] = new u32[EFB_WIDTH*EFB_HEIGHT]();
 		DrawnToBuffer[i] = false;
@@ -47,7 +47,7 @@ void Init()
 
 void Shutdown()
 {
-	for (int i = 0; i < NumObjectBuffers; i++)
+	for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
 	{
 		delete[] ObjectBuffer[i];
 	}
@@ -229,7 +229,7 @@ void OnObjectEnd()
 			drawingHwTriangles = false;
 		}
 
-		for (int i = 0; i < NumObjectBuffers; i++)
+		for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
 		{
 			if (DrawnToBuffer[i])
 			{
