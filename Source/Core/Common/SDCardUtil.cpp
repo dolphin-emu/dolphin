@@ -55,16 +55,16 @@
 #define POKES(p,v)	( BYTE_(p,0) = (u8)(v), BYTE_(p,1) = (u8)((v) >> 8) )
 #define POKEW(p,v)	( BYTE_(p,0) = (u8)(v), BYTE_(p,1) = (u8)((v) >> 8), BYTE_(p,2) = (u8)((v) >> 16), BYTE_(p,3) = (u8)((v) >> 24) )
 
-static u8 s_boot_sector		[ BYTES_PER_SECTOR ];	/* Boot sector */
-static u8 s_fsinfo_sector	[ BYTES_PER_SECTOR ];	/* FS Info sector */
-static u8 s_fat_head		[ BYTES_PER_SECTOR ];	/* First FAT sector */
+static u8 s_boot_sector   [ BYTES_PER_SECTOR ];	/* Boot sector */
+static u8 s_fsinfo_sector [ BYTES_PER_SECTOR ];	/* FS Info sector */
+static u8 s_fat_head      [ BYTES_PER_SECTOR ];	/* First FAT sector */
 
 /* This is the date and time when creating the disk */
 static unsigned int get_serial_id()
 {
-	u16			lo, hi;
-	time_t		now = time(nullptr);
-	struct tm	tm  = gmtime( &now )[0];
+	u16       lo, hi;
+	time_t    now = time(nullptr);
+	struct tm tm  = gmtime( &now )[0];
 
 	lo = (u16)(tm.tm_mday + ((tm.tm_mon+1) << 8) + (tm.tm_sec << 8));
 	hi = (u16)(tm.tm_min + (tm.tm_hour << 8) + (tm.tm_year + 1900));
@@ -105,10 +105,10 @@ static unsigned int get_sectors_per_fat(u64 disk_size, u32 sectors_per_cluster)
 
 static void boot_sector_init(u8* boot, u8* info, u64 disk_size, const char* label)
 {
-	u32 sectors_per_cluster	= get_sectors_per_cluster(disk_size);
-	u32 sectors_per_fat		= get_sectors_per_fat(disk_size, sectors_per_cluster);
-	u32 sectors_per_disk	= (u32)(disk_size / BYTES_PER_SECTOR);
-	u32 serial_id			= get_serial_id();
+	u32 sectors_per_cluster = get_sectors_per_cluster(disk_size);
+	u32 sectors_per_fat     = get_sectors_per_fat(disk_size, sectors_per_cluster);
+	u32 sectors_per_disk    = (u32)(disk_size / BYTES_PER_SECTOR);
+	u32 serial_id           = get_serial_id();
 	u32 free_count;
 
 	if (label == nullptr)
@@ -162,12 +162,6 @@ static void fat_init(u8* fat)
 	POKEW( fat,     0x0ffffff8 );	/* Reserve cluster 1, media id in low byte */
 	POKEW( fat + 4, 0x0fffffff );	/* Reserve cluster 2 */
 	POKEW( fat + 8, 0x0fffffff );	/* End of cluster chain for root dir */
-}
-
-
-static unsigned int write_sector(FILE* file, u8* sector)
-{
-	return fwrite(sector, 1, 512, file) != 512;
 }
 
 static unsigned int write_empty(FILE* file, u64 count)
@@ -231,51 +225,58 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
 	*  zero sectors
 	*/
 
-	if (write_sector(f, s_boot_sector))
-		goto FailWrite;
+	auto write_sector = [&f](u8* sector) {
+		return fwrite(sector, 1, 512, f) != 512;
+	};
+	
+	auto fail_write = [&filename]() {
+		ERROR_LOG(COMMON, "Could not write to '%s', aborting...\n", filename.c_str());
+		if (unlink(filename.c_str()) < 0)
+			ERROR_LOG(COMMON, "unlink(%s) failed\n%s", filename.c_str(), GetLastErrorMsg());
+		return false;
+	};
+	
 
-	if (write_sector(f, s_fsinfo_sector))
-		goto FailWrite;
+	if (write_sector(s_boot_sector))
+		return fail_write();
+
+	if (write_sector(s_fsinfo_sector))
+		return fail_write();
 
 	if (BACKUP_BOOT_SECTOR > 0)
 	{
 		if (write_empty(f, BACKUP_BOOT_SECTOR - 2))
-			goto FailWrite;
+			return fail_write();
 
-		if (write_sector(f, s_boot_sector))
-			goto FailWrite;
+		if (write_sector(s_boot_sector))
+			return fail_write();
 
-		if (write_sector(f, s_fsinfo_sector))
-			goto FailWrite;
+		if (write_sector(s_fsinfo_sector))
+			return fail_write();
 
 		if (write_empty(f, RESERVED_SECTORS - 2 - BACKUP_BOOT_SECTOR))
-			goto FailWrite;
+			return fail_write();
 	}
 	else
 	{
-		if (write_empty(f, RESERVED_SECTORS - 2)) goto FailWrite;
+		if (write_empty(f, RESERVED_SECTORS - 2))
+			return fail_write();
 	}
 
-	if (write_sector(f, s_fat_head))
-		goto FailWrite;
+	if (write_sector(s_fat_head))
+		return fail_write();
 
 	if (write_empty(f, sectors_per_fat - 1))
-		goto FailWrite;
+		return fail_write();
 
-	if (write_sector(f, s_fat_head))
-		goto FailWrite;
+	if (write_sector(s_fat_head))
+		return fail_write();
 
 	if (write_empty(f, sectors_per_fat - 1))
-		goto FailWrite;
+		return fail_write();
 
 	if (write_empty(f, sectors_per_disk - RESERVED_SECTORS - 2*sectors_per_fat))
-		goto FailWrite;
+		return fail_write();
 
 	return true;
-
-FailWrite:
-	ERROR_LOG(COMMON, "Could not write to '%s', aborting...\n", filename.c_str());
-	if (unlink(filename.c_str()) < 0)
-		ERROR_LOG(COMMON, "unlink(%s) failed\n%s", filename.c_str(), GetLastErrorMsg());
-	return false;
 }
