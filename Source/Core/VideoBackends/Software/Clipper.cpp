@@ -45,7 +45,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Clipper
 {
-	enum { NUM_CLIPPED_VERTICES = 33, NUM_INDICES = NUM_CLIPPED_VERTICES + 3 };
+	enum
+	{
+		NUM_CLIPPED_VERTICES = 33,
+		NUM_INDICES = NUM_CLIPPED_VERTICES + 3
+	};
 
 	static float m_ViewOffset[2];
 
@@ -72,7 +76,8 @@ namespace Clipper
 	}
 
 
-	enum {
+	enum
+	{
 		SKIP_FLAG = -1,
 		CLIP_POS_X_BIT = 0x01,
 		CLIP_NEG_X_BIT = 0x02,
@@ -209,7 +214,8 @@ namespace Clipper
 				indices[0] = inlist[0];
 				indices[1] = inlist[1];
 				indices[2] = inlist[2];
-				for (int j = 3; j < n; ++j) {
+				for (int j = 3; j < n; ++j)
+				{
 					indices[numIndices++] = inlist[0];
 					indices[numIndices++] = inlist[j - 1];
 					indices[numIndices++] = inlist[j];
@@ -276,9 +282,11 @@ namespace Clipper
 		if (!CullTest(v0, v1, v2, backface))
 			return;
 
-		int indices[NUM_INDICES] = { 0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-										SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-										SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG };
+		int indices[NUM_INDICES] = {
+			0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+			SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+			SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG
+		};
 		int numIndices = 3;
 
 		if (backface)
