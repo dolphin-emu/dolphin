@@ -95,12 +95,12 @@ void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst
 		MultiplyVec3Mat33(src->normal[0], mat, dst->normal[0]);
 		MultiplyVec3Mat33(src->normal[1], mat, dst->normal[1]);
 		MultiplyVec3Mat33(src->normal[2], mat, dst->normal[2]);
-		dst->normal[0].normalize();
+		dst->normal[0].Normalize();
 	}
 	else
 	{
 		MultiplyVec3Mat33(src->normal[0], mat, dst->normal[0]);
-		dst->normal[0].normalize();
+		dst->normal[0].Normalize();
 	}
 }
 
@@ -170,7 +170,7 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 		else
 		{
 			if (postInfo.normalize)
-				tempCoord = dst->normalized();
+				tempCoord = dst->Normalized();
 			else
 				tempCoord = *dst;
 
@@ -222,14 +222,14 @@ static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 				break;
 			case LIGHTDIF_SIGN:
 				{
-					Vec3 ldir = (light->pos - pos).normalized();
+					Vec3 ldir = (light->pos - pos).Normalized();
 					float diffuse = ldir * normal;
 					AddScaledIntegerColor(light->color, diffuse, lightCol);
 				}
 				break;
 			case LIGHTDIF_CLAMP:
 				{
-					Vec3 ldir = (light->pos - pos).normalized();
+					Vec3 ldir = (light->pos - pos).Normalized();
 					float diffuse = std::max(0.0f, ldir * normal);
 					AddScaledIntegerColor(light->color, diffuse, lightCol);
 				}
@@ -245,7 +245,7 @@ static void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 
 		if (chan.attnfunc == 3) // spot
 		{
-			float dist2 = ldir.length2();
+			float dist2 = ldir.Length2();
 			float dist = sqrtf(dist2);
 			ldir = ldir / dist;
 			attn = std::max(0.0f, ldir * light->dir);
@@ -307,14 +307,14 @@ static void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 				break;
 			case LIGHTDIF_SIGN:
 				{
-					Vec3 ldir = (light->pos - pos).normalized();
+					Vec3 ldir = (light->pos - pos).Normalized();
 					float diffuse = ldir * normal;
 					lightCol += light->color[0] * diffuse;
 				}
 				break;
 			case LIGHTDIF_CLAMP:
 				{
-					Vec3 ldir = (light->pos - pos).normalized();
+					Vec3 ldir = (light->pos - pos).Normalized();
 					float diffuse = std::max(0.0f, ldir * normal);
 					lightCol += light->color[0] * diffuse;
 				}
@@ -329,7 +329,7 @@ static void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const L
 
 		if (chan.attnfunc == 3) // spot
 		{
-			float dist2 = ldir.length2();
+			float dist2 = ldir.Length2();
 			float dist = sqrtf(dist2);
 			ldir = ldir / dist;
 			attn = std::max(0.0f, ldir * light->dir);
@@ -478,7 +478,7 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool s
 			{
 				const LightPointer *light = (const LightPointer*)&xfmem.lights[texinfo.embosslightshift];
 
-				Vec3 ldir = (light->pos - dst->mvPosition).normalized();
+				Vec3 ldir = (light->pos - dst->mvPosition).Normalized();
 				float d1 = ldir * dst->normal[1];
 				float d2 = ldir * dst->normal[2];
 
