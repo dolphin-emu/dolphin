@@ -83,8 +83,6 @@ void *cXInterface::CreateWindow(void)
 	XSync(GLWin.evdpy, True);
 
 	GLWin.xEventThread = std::thread(&cXInterface::XEventThread, this);
-	// Control window size and picture scaling
-	GLInterface->SetBackBufferDimensions(GLWin.width, GLWin.height);
 
 	return (void *) GLWin.win;
 }
