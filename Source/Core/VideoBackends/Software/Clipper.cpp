@@ -91,12 +91,25 @@ namespace Clipper
 	{
 		int cmask = 0;
 		Vec4 pos = v->projectedPosition;
-		if (pos.w - pos.x < 0) cmask |= CLIP_POS_X_BIT;
-		if (pos.x + pos.w < 0) cmask |= CLIP_NEG_X_BIT;
-		if (pos.w - pos.y < 0) cmask |= CLIP_POS_Y_BIT;
-		if (pos.y + pos.w < 0) cmask |= CLIP_NEG_Y_BIT;
-		if (pos.w * pos.z > 0) cmask |= CLIP_POS_Z_BIT;
-		if (pos.z + pos.w < 0) cmask |= CLIP_NEG_Z_BIT;
+
+		if (pos.w - pos.x < 0)
+			cmask |= CLIP_POS_X_BIT;
+
+		if (pos.x + pos.w < 0)
+			cmask |= CLIP_NEG_X_BIT;
+
+		if (pos.w - pos.y < 0)
+			cmask |= CLIP_POS_Y_BIT;
+
+		if (pos.y + pos.w < 0)
+			cmask |= CLIP_NEG_Y_BIT;
+
+		if (pos.w * pos.z > 0)
+			cmask |= CLIP_POS_Z_BIT;
+
+		if (pos.z + pos.w < 0)
+			cmask |= CLIP_NEG_Z_BIT;
+
 		return cmask;
 	}
 
