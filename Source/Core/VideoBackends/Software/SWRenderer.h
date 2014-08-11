@@ -18,9 +18,9 @@ namespace SWRenderer
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugText();
 
-	u8* getNextColorTexture();
-	u8* getCurrentColorTexture();
-	void swapColorTexture();
+	u8* GetNextColorTexture();
+	u8* GetCurrentColorTexture();
+	void SwapColorTexture();
 	void UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight);
 	void DrawTexture(u8 *texture, int width, int height);
 

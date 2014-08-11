@@ -153,17 +153,17 @@ void SWRenderer::DrawDebugText()
 	SWRenderer::RenderText(debugtext.c_str(), 20, 20, 0xFFFFFF00);
 }
 
-u8* SWRenderer::getNextColorTexture()
+u8* SWRenderer::GetNextColorTexture()
 {
 	return s_xfbColorTexture[!s_currentColorTexture];
 }
 
-u8* SWRenderer::getCurrentColorTexture()
+u8* SWRenderer::GetCurrentColorTexture()
 {
 	return s_xfbColorTexture[s_currentColorTexture];
 }
 
-void SWRenderer::swapColorTexture()
+void SWRenderer::SwapColorTexture()
 {
 	s_currentColorTexture = !s_currentColorTexture;
 }
@@ -177,7 +177,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 	}
 
 	u32 offset = 0;
-	u8 *TexturePointer = getNextColorTexture();
+	u8 *TexturePointer = GetNextColorTexture();
 
 	for (u16 y = 0; y < fbHeight; y++)
 	{
@@ -203,7 +203,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 		}
 		xfb += fbWidth;
 	}
-	swapColorTexture();
+	SwapColorTexture();
 }
 
 // Called on the GPU thread
@@ -211,7 +211,7 @@ void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
 {
 	GLInterface->Update(); // just updates the render window position and the backbuffer size
 	if (!g_SWVideoConfig.bHwRasterizer)
-		SWRenderer::DrawTexture(getCurrentColorTexture(), fbWidth, fbHeight);
+		SWRenderer::DrawTexture(GetCurrentColorTexture(), fbWidth, fbHeight);
 
 	swstats.frameCount++;
 	SWRenderer::SwapBuffer();
