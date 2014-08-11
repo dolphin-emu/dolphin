@@ -61,19 +61,30 @@ void DoState(PointerWrap &p)
 }
 
 // does it matter that there is no synchronization between threads during writes?
-inline void WriteLow (u32& _reg, u16 lowbits)  {_reg = (_reg & 0xFFFF0000) | lowbits;}
-inline void WriteHigh(u32& _reg, u16 highbits) {_reg = (_reg & 0x0000FFFF) | ((u32)highbits << 16);}
+static inline void WriteLow (u32& _reg, u16 lowbits)
+{
+	_reg = (_reg & 0xFFFF0000) | lowbits;
+}
+static inline void WriteHigh(u32& _reg, u16 highbits)
+{
+	_reg = (_reg & 0x0000FFFF) | ((u32)highbits << 16);
+}
 
-inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
-inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
-
+static inline u16 ReadLow(u32 _reg)
+{
+	return (u16)(_reg & 0xFFFF);
+}
+static inline u16 ReadHigh(u32 _reg)
+{
+	return (u16)(_reg >> 16);
+}
 
 static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
 	UpdateInterrupts(userdata);
 }
 
-inline bool AtBreakpoint()
+static inline bool AtBreakpoint()
 {
 	return cpreg.ctrl.BPEnable && (cpreg.readptr == cpreg.breakpt);
 }

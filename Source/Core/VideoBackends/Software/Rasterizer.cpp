@@ -83,11 +83,9 @@ void Init()
 	ZSlope.f0 = 1.f;
 }
 
-inline int iround(float x)
+static inline int iround(float x)
 {
-	int t;
-
-	t = (int)x;
+	int t = (int)x;
 	if ((x - t) >= 0.5)
 		return t + 1;
 
@@ -208,7 +206,7 @@ static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, fl
 	slope->f0 = f1;
 }
 
-inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
+static inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
 {
 	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
 	u8 subTexmap = texmap & 3;

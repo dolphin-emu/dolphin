@@ -189,21 +189,21 @@ struct LightPointer
 	Vec3 dir;
 };
 
-inline void AddIntegerColor(const u8 *src, Vec3 &dst)
+static inline void AddIntegerColor(const u8 *src, Vec3 &dst)
 {
 	dst.x += src[1];
 	dst.y += src[2];
 	dst.z += src[3];
 }
 
-inline void AddScaledIntegerColor(const u8 *src, float scale, Vec3 &dst)
+static inline void AddScaledIntegerColor(const u8 *src, float scale, Vec3 &dst)
 {
 	dst.x += src[1] * scale;
 	dst.y += src[2] * scale;
 	dst.z += src[3] * scale;
 }
 
-inline float SafeDivide(float n, float d)
+static inline float SafeDivide(float n, float d)
 {
 	return (d==0) ? (n>0?1:0) : n/d;
 }

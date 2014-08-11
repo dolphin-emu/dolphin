@@ -13,7 +13,7 @@
 namespace TextureEncoder
 {
 
-inline void RGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
+static inline void RGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
 {
 	u32 srcColor = *(u32*)src;
 	a = Convert6To8(srcColor & 0x3f);
@@ -22,7 +22,7 @@ inline void RGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
 	r = Convert6To8((srcColor >> 18)& 0x3f);
 }
 
-inline void RGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
+static inline void RGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 {
 	u32 srcColor = *(u32*)src;
 	b = Convert6To8((srcColor >> 6) & 0x3f);
@@ -30,7 +30,7 @@ inline void RGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 	r = Convert6To8((srcColor >> 18)& 0x3f);
 }
 
-inline u8 RGB8_to_I(u8 r, u8 g, u8 b)
+static inline u8 RGB8_to_I(u8 r, u8 g, u8 b)
 {
 	// values multiplied by 256 to keep math integer
 	u16 val = 4096 + 66 * r + 129 * g + 25 * b;
@@ -40,7 +40,7 @@ inline u8 RGB8_to_I(u8 r, u8 g, u8 b)
 // box filter sampling averages 4 samples with the source texel being the top left of the box
 // components are scaled to the range 0-255 after all samples are taken
 
-inline void BoxfilterRGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
+static inline void BoxfilterRGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
 {
 	u16 r16 = 0, g16 = 0, b16 = 0, a16 = 0;
 
@@ -66,7 +66,7 @@ inline void BoxfilterRGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
 	a = a16 + (a16 >> 6);
 }
 
-inline void BoxfilterRGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
+static inline void BoxfilterRGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 {
 	u16 r16 = 0, g16 = 0, b16 = 0;
 
@@ -90,7 +90,7 @@ inline void BoxfilterRGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 	b = b16 + (b16 >> 6);
 }
 
-inline void BoxfilterRGBA_to_x8(u8 *src, u8 &x8, int shift)
+static inline void BoxfilterRGBA_to_x8(u8 *src, u8 &x8, int shift)
 {
 	u16 x16 = 0;
 
@@ -110,7 +110,7 @@ inline void BoxfilterRGBA_to_x8(u8 *src, u8 &x8, int shift)
 	x8 = x16 + (x16 >> 6);
 }
 
-inline void BoxfilterRGBA_to_xx8(u8 *src, u8 &x1, u8 &x2, int shift1, int shift2)
+static inline void BoxfilterRGBA_to_xx8(u8 *src, u8 &x1, u8 &x2, int shift1, int shift2)
 {
 	u16 x16_1 = 0;
 	u16 x16_2 = 0;
@@ -133,7 +133,7 @@ inline void BoxfilterRGBA_to_xx8(u8 *src, u8 &x1, u8 &x2, int shift1, int shift2
 	x2 = x16_2 + (x16_2 >> 6);
 }
 
-inline void BoxfilterRGB_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
+static inline void BoxfilterRGB_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 {
 	u16 r16 = 0, g16 = 0, b16 = 0;
 
@@ -155,7 +155,7 @@ inline void BoxfilterRGB_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 	b = b16 >> 2;
 }
 
-inline void BoxfilterRGB_to_x8(u8 *src, u8 &x8, int comp)
+static inline void BoxfilterRGB_to_x8(u8 *src, u8 &x8, int comp)
 {
 	u16 x16 = 0;
 
@@ -174,7 +174,7 @@ inline void BoxfilterRGB_to_x8(u8 *src, u8 &x8, int comp)
 	x8 = x16 >> 2;
 }
 
-inline void BoxfilterRGB_to_xx8(u8 *src, u8 &x1, u8 &x2, int comp1, int comp2)
+static inline void BoxfilterRGB_to_xx8(u8 *src, u8 &x1, u8 &x2, int comp1, int comp2)
 {
 	u16 x16_1 = 0;
 	u16 x16_2 = 0;
