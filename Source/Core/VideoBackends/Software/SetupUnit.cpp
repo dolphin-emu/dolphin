@@ -54,8 +54,8 @@ void SetupUnit::SetupVertex()
 }
 
 
-	void SetupUnit::SetupQuad()
-	{
+void SetupUnit::SetupQuad()
+{
 	if (m_VertexCounter < 2)
 	{
 		m_VertexCounter++;
