@@ -98,16 +98,20 @@ void SetScissor()
 	int yoff = bpmem.scissorOffset.y * 2 - 342;
 
 	scissorLeft = bpmem.scissorTL.x - xoff - 342;
-	if (scissorLeft < 0) scissorLeft = 0;
+	if (scissorLeft < 0)
+		scissorLeft = 0;
 
 	scissorTop = bpmem.scissorTL.y - yoff - 342;
-	if (scissorTop < 0) scissorTop = 0;
+	if (scissorTop < 0)
+		scissorTop = 0;
 
 	scissorRight = bpmem.scissorBR.x - xoff - 341;
-	if (scissorRight > EFB_WIDTH) scissorRight = EFB_WIDTH;
+	if (scissorRight > EFB_WIDTH)
+		scissorRight = EFB_WIDTH;
 
 	scissorBottom = bpmem.scissorBR.y - yoff - 341;
-	if (scissorBottom > EFB_HEIGHT) scissorBottom = EFB_HEIGHT;
+	if (scissorBottom > EFB_HEIGHT)
+		scissorBottom = EFB_HEIGHT;
 }
 
 void SetTevReg(int reg, int comp, bool konst, s16 color)
