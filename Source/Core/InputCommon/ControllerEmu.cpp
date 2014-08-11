@@ -144,7 +144,11 @@ ControllerEmu::AnalogStick::AnalogStick(const char* const _name) : ControlGroup(
 
 	controls.emplace_back(new Input(_trans("Modifier")));
 
-	settings.emplace_back(new Setting(_trans("Radius"), 0.7f, 0, 100));
+	// Default to 100 radius for everything but gcpad.
+	if (name == "Stick" || name == "Left Stick" || name == "Right Stick")
+		settings.emplace_back(new Setting(_trans("Radius"), 1.0f, 0, 100));
+	else
+		settings.emplace_back(new Setting(_trans("Radius"), 0.7f, 0, 100));
 	settings.emplace_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
 }
 
