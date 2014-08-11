@@ -298,12 +298,12 @@ ControlState KeyboardMouse::Button::GetState() const
 
 ControlState KeyboardMouse::Axis::GetState() const
 {
-	return std::max(0.0f, ControlState(m_axis) / m_range);
+	return std::max(0.0, ControlState(m_axis) / m_range);
 }
 
 ControlState KeyboardMouse::Cursor::GetState() const
 {
-	return std::max(0.0f, ControlState(m_axis) / (m_positive ? 1.0f : -1.0f));
+	return std::max(0.0, ControlState(m_axis) / (m_positive ? 1.0 : -1.0));
 }
 
 void KeyboardMouse::Light::SetState(const ControlState state)
