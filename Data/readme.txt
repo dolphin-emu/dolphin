@@ -1,4 +1,4 @@
-Dolphin VR
+Dolphin VR 4.0-2558
 (Unofficial Dolphin build with Oculus Rift support.)
 Open Source licence: GPL v2
 
@@ -208,15 +208,15 @@ Four Swords Adventures (z-fighting, letterboxing)
 Mario Kart Double Dash (dirty screen)
 Paper Mario (works, a few things render strangely)
 Soul Calibur 2 (HUD is ocluded by world behind it)
+Metroid Prime (lots of culling, skybox is wrong depth)
+Metroid Prime 2 Echoes GameCube (lots of culling, scan cursor in top left)
 F-Zero GX (sort of works, resets)
-Metroid Prime 2 Echoes GameCube (helmet at wrong depth, lots of culling)
 Resident Evil 4 (intro weirdness, playable)
 Zelda Collector's Edition: Wind Waker Demo (larger, sometimes distorted)
 Star Fox Assault (menu depth problems)
 Super Smash Bros. Melee (missing textures)
 Kirby Air (sometimes one eye, change internal resolution during game to fix)
 Eternal Darkness (HUD too close, scale not consistent)
-Metroid Prime (slow, wrong depths)
 Twilight Princess GameCube (bad orange rendering over HUD)
 Need for Speed Underground (messed up menus)
 Need for Speed Hot Pursuit 2 (menu and HUD problems)
@@ -236,6 +236,56 @@ Final Fantasy Crystal (Crash, CPU)
 Super Mario Strikers (Crash)
 Viewtiful Joe (crash)
 Pokemon Box Ruby and Sapphire (crash)
+
+## VR compatability for Nintendo 64 games:
+These games have been tested, and had their defaults set to the correct scale.
+They are listed in order of compatability from working best to most broken.
+Only Custom Robo V2 has not been tested, needs to have the scale set manually, and might or might not work.
+
+Super Mario Kart 64 on Virtual Console (sometimes flashing skybox)
+Majora's Mask in Collector's Edition on GameCube (big A button behind you, too close)
+Ocarina Of Time in Collector's Edition on GameCube (big A button behind you, too close, 2D backgrounds)
+(K) Super Mario 64 on Virtual Console (very annoying flashing skybox)
+Super Mario 64 on GameCube (very annoying flashing skybox)
+
+(K) Kirby 64: The Crystal Shards (unplayable, lots of issues)
+Majora's Mask (data is corrupt)
+Ocarina Of Time on Virtual Console (data is corrupt)
+Sin and Punishment (data is corrupt)
+Yoshi's Story (data is corrupt)
+Pokemon Snap (data is corrupt)
+(K) 1080 Snowboarding (data is corrupt)
+(K) Star Fox 64: Lylat Wars (OpenGL crash)
+F-Zero X (OpenGL crash)
+Paper Mario (OpenGL crash)
+Wave Race 64 (OpenGL crash)
+Cruis'n USA (OpenGL crash)
+Pokémon Puzzle League (OpenGL crash)
+Mario Golf (OpenGL crash)
+Super Smash Bros. (OpenGL crash)
+Ogre Battle 64: Person of Lordly Caliber (OpenGL crash)
+Mario Tennis (OpenGL crash)
+Mario Party 2 (OpenGL crash)
+Bomberman Hero (OpenGL crash)
+
+(Custom Robo V2 is untested)
+
+## VR compatability for Super Nintendo:
+These games have been tested, and had their defaults set to the correct scale.
+They are listed in order of compatability from working best to most broken.
+Unlisted games have not been tested, need to have the scale set manually, and might or might not work.
+
+Donkey Kong Country
+Super Castlevania IV
+Super Mario RPG
+A Link To The Past (low resolution?, wrong aspect ratio)
+Super Metroid (wrong aspect ratio)
+Super Mario World (wrong aspect ratio)
+
+Chrono Trigger (very broken render to texture)
+
+## VR compatability for Nintendo Entertainment System:
+(None are playable)
 
 ## System Requirements
 * OS
