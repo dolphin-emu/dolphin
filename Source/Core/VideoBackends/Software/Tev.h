@@ -77,13 +77,19 @@ public:
 	s32 TextureLod[16];
 	bool TextureLinear[16];
 
+	enum
+	{
+		ALP_C,
+		BLU_C,
+		GRN_C,
+		RED_C
+	};
+
 	void Init();
 
 	void Draw();
 
 	void SetRegColor(int reg, int comp, bool konst, s16 color);
-
-	enum { ALP_C, BLU_C, GRN_C, RED_C };
 
 	void DoState(PointerWrap &p);
 };

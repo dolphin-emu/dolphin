@@ -13,7 +13,7 @@
 namespace TextureEncoder
 {
 
-inline void RGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
+static inline void RGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
 {
 	u32 srcColor = *(u32*)src;
 	a = Convert6To8(srcColor & 0x3f);
@@ -22,7 +22,7 @@ inline void RGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
 	r = Convert6To8((srcColor >> 18)& 0x3f);
 }
 
-inline void RGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
+static inline void RGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 {
 	u32 srcColor = *(u32*)src;
 	b = Convert6To8((srcColor >> 6) & 0x3f);
@@ -30,7 +30,7 @@ inline void RGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 	r = Convert6To8((srcColor >> 18)& 0x3f);
 }
 
-inline u8 RGB8_to_I(u8 r, u8 g, u8 b)
+static inline u8 RGB8_to_I(u8 r, u8 g, u8 b)
 {
 	// values multiplied by 256 to keep math integer
 	u16 val = 4096 + 66 * r + 129 * g + 25 * b;
@@ -40,7 +40,7 @@ inline u8 RGB8_to_I(u8 r, u8 g, u8 b)
 // box filter sampling averages 4 samples with the source texel being the top left of the box
 // components are scaled to the range 0-255 after all samples are taken
 
-inline void boxfilterRGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
+static inline void BoxfilterRGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
 {
 	u16 r16 = 0, g16 = 0, b16 = 0, a16 = 0;
 
@@ -66,7 +66,7 @@ inline void boxfilterRGBA_to_RGBA8(u8 *src, u8 &r, u8 &g, u8 &b, u8 &a)
 	a = a16 + (a16 >> 6);
 }
 
-inline void boxfilterRGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
+static inline void BoxfilterRGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 {
 	u16 r16 = 0, g16 = 0, b16 = 0;
 
@@ -90,7 +90,7 @@ inline void boxfilterRGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 	b = b16 + (b16 >> 6);
 }
 
-inline void boxfilterRGBA_to_x8(u8 *src, u8 &x8, int shift)
+static inline void BoxfilterRGBA_to_x8(u8 *src, u8 &x8, int shift)
 {
 	u16 x16 = 0;
 
@@ -110,7 +110,7 @@ inline void boxfilterRGBA_to_x8(u8 *src, u8 &x8, int shift)
 	x8 = x16 + (x16 >> 6);
 }
 
-inline void boxfilterRGBA_to_xx8(u8 *src, u8 &x1, u8 &x2, int shift1, int shift2)
+static inline void BoxfilterRGBA_to_xx8(u8 *src, u8 &x1, u8 &x2, int shift1, int shift2)
 {
 	u16 x16_1 = 0;
 	u16 x16_2 = 0;
@@ -133,7 +133,7 @@ inline void boxfilterRGBA_to_xx8(u8 *src, u8 &x1, u8 &x2, int shift1, int shift2
 	x2 = x16_2 + (x16_2 >> 6);
 }
 
-inline void boxfilterRGB_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
+static inline void BoxfilterRGB_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 {
 	u16 r16 = 0, g16 = 0, b16 = 0;
 
@@ -155,7 +155,7 @@ inline void boxfilterRGB_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
 	b = b16 >> 2;
 }
 
-inline void boxfilterRGB_to_x8(u8 *src, u8 &x8, int comp)
+static inline void BoxfilterRGB_to_x8(u8 *src, u8 &x8, int comp)
 {
 	u16 x16 = 0;
 
@@ -174,7 +174,7 @@ inline void boxfilterRGB_to_x8(u8 *src, u8 &x8, int comp)
 	x8 = x16 >> 2;
 }
 
-inline void boxfilterRGB_to_xx8(u8 *src, u8 &x1, u8 &x2, int comp1, int comp2)
+static inline void BoxfilterRGB_to_xx8(u8 *src, u8 &x1, u8 &x2, int comp1, int comp2)
 {
 	u16 x16_1 = 0;
 	u16 x16_2 = 0;
@@ -506,11 +506,11 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		sBlkSize /= 2;
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_RGB8(src, r, g, b);
+			BoxfilterRGBA_to_RGB8(src, r, g, b);
 			src += readStride;
 			*dst = RGB8_to_I(r, g, b) & 0xf0;
 
-			boxfilterRGBA_to_RGB8(src, r, g, b);
+			BoxfilterRGBA_to_RGB8(src, r, g, b);
 			src += readStride;
 			*dst |= RGB8_to_I(r, g, b) >> 4;
 			dst++;
@@ -523,7 +523,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_RGB8(src, r, g, b);
+			BoxfilterRGBA_to_RGB8(src, r, g, b);
 			src += readStride;
 			*dst++ = RGB8_to_I(r, g, b);
 		}
@@ -535,7 +535,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_RGBA8(src, r, g, b, a);
+			BoxfilterRGBA_to_RGBA8(src, r, g, b, a);
 			src += readStride;
 			*dst++ = (a & 0xf0) | (RGB8_to_I(r, g, b) >> 4);
 		}
@@ -547,7 +547,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_RGBA8(src, r, g, b, a);
+			BoxfilterRGBA_to_RGBA8(src, r, g, b, a);
 			src += readStride;
 			*dst++ = a;
 			*dst++ = RGB8_to_I(r, g, b);
@@ -560,7 +560,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_RGB8(src, r, g, b);
+			BoxfilterRGBA_to_RGB8(src, r, g, b);
 			src += readStride;
 
 			u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001e);
@@ -575,7 +575,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_RGBA8(src, r, g, b, a);
+			BoxfilterRGBA_to_RGBA8(src, r, g, b, a);
 			src += readStride;
 
 			u16 val;
@@ -595,7 +595,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_RGBA8(src, dst[1], dst[32], dst[33], dst[0]);
+			BoxfilterRGBA_to_RGBA8(src, dst[1], dst[32], dst[33], dst[0]);
 			src += readStride;
 			dst += 2;
 		}
@@ -608,11 +608,11 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		sBlkSize /= 2;
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_x8(src, r, 18);
+			BoxfilterRGBA_to_x8(src, r, 18);
 			src += readStride;
 			*dst = r & 0xf0;
 
-			boxfilterRGBA_to_x8(src, r, 18);
+			BoxfilterRGBA_to_x8(src, r, 18);
 			src += readStride;
 			*dst |= r >> 4;
 			dst++;
@@ -625,7 +625,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_xx8(src, r, a, 18, 0);
+			BoxfilterRGBA_to_xx8(src, r, a, 18, 0);
 			src += readStride;
 			*dst++ = (a & 0xf0) | (r >> 4);
 		}
@@ -637,7 +637,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_xx8(src, r, a, 18, 0);
+			BoxfilterRGBA_to_xx8(src, r, a, 18, 0);
 			src += readStride;
 			*dst++ = a;
 			*dst++ = r;
@@ -650,7 +650,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_x8(src, a, 0);
+			BoxfilterRGBA_to_x8(src, a, 0);
 			*dst++ = a;
 			src += readStride;
 		}
@@ -662,7 +662,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_x8(src, r, 18);
+			BoxfilterRGBA_to_x8(src, r, 18);
 			*dst++ = r;
 			src += readStride;
 		}
@@ -674,7 +674,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_x8(src, g, 12);
+			BoxfilterRGBA_to_x8(src, g, 12);
 			*dst++ = g;
 			src += readStride;
 		}
@@ -686,7 +686,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_x8(src, b, 6);
+			BoxfilterRGBA_to_x8(src, b, 6);
 			*dst++ = b;
 			src += readStride;
 		}
@@ -698,7 +698,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_xx8(src, r, g, 18, 12);
+			BoxfilterRGBA_to_xx8(src, r, g, 18, 12);
 			src += readStride;
 			*dst++ = g;
 			*dst++ = r;
@@ -711,7 +711,7 @@ static void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_xx8(src, g, b, 12, 6);
+			BoxfilterRGBA_to_xx8(src, g, b, 12, 6);
 			src += readStride;
 			*dst++ = b;
 			*dst++ = g;
@@ -955,11 +955,11 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		sBlkSize /= 2;
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_RGB8(src, r, g, b);
+			BoxfilterRGB_to_RGB8(src, r, g, b);
 			*dst = RGB8_to_I(r, g, b) & 0xf0;
 			src += readStride;
 
-			boxfilterRGB_to_RGB8(src, r, g, b);
+			BoxfilterRGB_to_RGB8(src, r, g, b);
 			*dst |= RGB8_to_I(r, g, b) >> 4;
 			src += readStride;
 			dst++;
@@ -972,7 +972,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_RGB8(src, r, g, b);
+			BoxfilterRGB_to_RGB8(src, r, g, b);
 			*dst++ = RGB8_to_I(r, g, b);
 			src += readStride;
 		}
@@ -984,7 +984,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_RGB8(src, r, g, b);
+			BoxfilterRGB_to_RGB8(src, r, g, b);
 			*dst++ = 0xf0 | (RGB8_to_I(r, g, b) >> 4);
 			src += readStride;
 		}
@@ -996,7 +996,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_RGB8(src, r, g, b);
+			BoxfilterRGB_to_RGB8(src, r, g, b);
 			*dst++ = 0xff;
 			*dst++ = RGB8_to_I(r, g, b);
 			src += readStride;
@@ -1009,7 +1009,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_RGB8(src, r, g, b);
+			BoxfilterRGB_to_RGB8(src, r, g, b);
 			u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001e);
 			*(u16*)dst = Common::swap16(val);
 			src += readStride;
@@ -1023,7 +1023,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_RGB8(src, r, g, b);
+			BoxfilterRGB_to_RGB8(src, r, g, b);
 			u16 val = 0x8000 | ((r << 7) & 0x7c00) | ((g << 2) & 0x03e0) | ((b >> 3) & 0x001e);
 			*(u16*)dst = Common::swap16(val);
 			src += readStride;
@@ -1037,7 +1037,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_RGB8(src, r, g, b);
+			BoxfilterRGB_to_RGB8(src, r, g, b);
 			dst[0] = 0xff;
 			dst[1] = r;
 			dst[32] = g;
@@ -1054,11 +1054,11 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		sBlkSize /= 2;
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, r, 2);
+			BoxfilterRGB_to_x8(src, r, 2);
 			*dst = r & 0xf0;
 			src += readStride;
 
-			boxfilterRGB_to_x8(src, r, 2);
+			BoxfilterRGB_to_x8(src, r, 2);
 			*dst |= r >> 4;
 			src += readStride;
 
@@ -1072,7 +1072,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, r, 2);
+			BoxfilterRGB_to_x8(src, r, 2);
 			*dst++ = 0xf0 | (r >> 4);
 			src += readStride;
 		}
@@ -1084,7 +1084,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, r, 2);
+			BoxfilterRGB_to_x8(src, r, 2);
 			*dst++ = 0xff;
 			*dst++ = r;
 			src += readStride;
@@ -1107,7 +1107,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, r, 2);
+			BoxfilterRGB_to_x8(src, r, 2);
 			*dst++ = r;
 			src += readStride;
 		}
@@ -1119,7 +1119,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, g, 1);
+			BoxfilterRGB_to_x8(src, g, 1);
 			*dst++ = g;
 			src += readStride;
 		}
@@ -1131,7 +1131,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, b, 0);
+			BoxfilterRGB_to_x8(src, b, 0);
 			*dst++ = b;
 			src += readStride;
 		}
@@ -1143,7 +1143,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_xx8(src, r, g, 2, 1);
+			BoxfilterRGB_to_xx8(src, r, g, 2, 1);
 			*dst++ = g;
 			*dst++ = r;
 			src += readStride;
@@ -1156,7 +1156,7 @@ static void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_xx8(src, g, b, 1, 0);
+			BoxfilterRGB_to_xx8(src, g, b, 1, 0);
 			*dst++ = b;
 			*dst++ = g;
 			src += readStride;
@@ -1289,7 +1289,7 @@ static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, b, 2);
+			BoxfilterRGB_to_x8(src, b, 2);
 			*dst++ = b;
 			src += readStride;
 		}
@@ -1301,7 +1301,7 @@ static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_xx8(src, g, b, 1, 2);
+			BoxfilterRGB_to_xx8(src, g, b, 1, 2);
 			*dst++ = b;
 			*dst++ = g;
 			src += readStride;
@@ -1314,7 +1314,7 @@ static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_RGB8(src, dst[33], dst[32], dst[1]);
+			BoxfilterRGB_to_RGB8(src, dst[33], dst[32], dst[1]);
 			dst[0] = 255;
 			src += readStride;
 			dst += 2;
@@ -1328,11 +1328,11 @@ static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 		sBlkSize /= 2;
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, b, 2);
+			BoxfilterRGB_to_x8(src, b, 2);
 			*dst = b & 0xf0;
 			src += readStride;
 
-			boxfilterRGB_to_x8(src, b, 2);
+			BoxfilterRGB_to_x8(src, b, 2);
 			*dst |= b >> 4;
 			src += readStride;
 
@@ -1346,7 +1346,7 @@ static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, g, 1);
+			BoxfilterRGB_to_x8(src, g, 1);
 			*dst++ = g;
 			src += readStride;
 		}
@@ -1358,7 +1358,7 @@ static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_x8(src, r, 0);
+			BoxfilterRGB_to_x8(src, r, 0);
 			*dst++ = r;
 			src += readStride;
 		}
@@ -1370,7 +1370,7 @@ static void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_xx8(src, r, g, 0, 1);
+			BoxfilterRGB_to_xx8(src, r, g, 0, 1);
 			*dst++ = g;
 			*dst++ = r;
 			src += readStride;
