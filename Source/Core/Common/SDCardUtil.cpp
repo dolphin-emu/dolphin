@@ -228,14 +228,14 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
 	auto write_sector = [&f](u8* sector) {
 		return fwrite(sector, 1, 512, f) != 512;
 	};
-	
+
 	auto fail_write = [&filename]() {
 		ERROR_LOG(COMMON, "Could not write to '%s', aborting...\n", filename.c_str());
 		if (unlink(filename.c_str()) < 0)
 			ERROR_LOG(COMMON, "unlink(%s) failed\n%s", filename.c_str(), GetLastErrorMsg());
 		return false;
 	};
-	
+
 
 	if (write_sector(s_boot_sector))
 		return fail_write();
