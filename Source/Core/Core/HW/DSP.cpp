@@ -406,8 +406,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				// We make the samples ready as soon as possible
 				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
 				AudioCommon::SendAIBuffer((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8);
-
-				GenerateDSPInterrupt(DSP::INT_AID);
+				CoreTiming::ScheduleEvent_Threadsafe(80, et_GenerateDSPInterrupt, INT_AID | (1 << 16));
 			}
 		})
 	);
