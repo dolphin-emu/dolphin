@@ -20,6 +20,7 @@
 #include <wx/textctrl.h>
 #include <wx/textdlg.h>
 #include <wx/thread.h>
+#include <wx/toolbar.h>
 #include <wx/translation.h>
 #include <wx/window.h>
 #include <wx/windowid.h>
@@ -128,9 +129,9 @@ wxMenuBar *CCodeWindow::GetMenuBar()
 	return Parent->GetMenuBar();
 }
 
-wxAuiToolBar *CCodeWindow::GetToolBar()
+wxToolBar *CCodeWindow::GetToolBar()
 {
-	return Parent->m_ToolBarDebug;
+	return Parent->m_ToolBar;
 }
 
 // ----------
@@ -435,6 +436,22 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	pDebugMenu->Append(IDM_STEP, _("Step &Into\tF11"));
 	pDebugMenu->Append(IDM_STEPOVER, _("Step &Over\tF10"));
 	pDebugMenu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint\tF9"));
+	pDebugMenu->AppendSeparator();
+
+	wxMenu* pPerspectives = new wxMenu;
+	Parent->m_SavedPerspectives = new wxMenu;
+	pDebugMenu->AppendSubMenu(pPerspectives, _("Perspectives"), _("Edit Perspectives"));
+	pPerspectives->Append(IDM_SAVE_PERSPECTIVE, _("Save perspectives"), _("Save currently-toggled perspectives"));
+	pPerspectives->Append(IDM_EDIT_PERSPECTIVES, _("Edit perspectives"), _("Toggle editing of perspectives"), wxITEM_CHECK);
+	pPerspectives->AppendSeparator();
+	pPerspectives->Append(IDM_ADD_PERSPECTIVE, _("Create new perspective"));
+	pPerspectives->AppendSubMenu(Parent->m_SavedPerspectives, _("Saved perspectives"));
+	Parent->PopulateSavedPerspectives();
+	pPerspectives->AppendSeparator();
+	pPerspectives->Append(IDM_PERSPECTIVES_ADD_PANE, _("Add new pane"));
+	pPerspectives->Append(IDM_TAB_SPLIT, _("Tab split"), "", wxITEM_CHECK);
+	pPerspectives->Append(IDM_NO_DOCKING, _("Disable docking"), "Disable docking of perspective panes to main window", wxITEM_CHECK);
+
 
 	pMenuBar->Append(pDebugMenu, _("&Debug"));
 
@@ -587,7 +604,7 @@ void CCodeWindow::InitBitmaps()
 		bitmap = wxBitmap(bitmap.ConvertToImage().Scale(24, 24));
 }
 
-void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
+void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 {
 	int w = m_Bitmaps[0].GetWidth(),
 		h = m_Bitmaps[0].GetHeight();
@@ -624,7 +641,7 @@ void CCodeWindow::UpdateButtonStates()
 	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
 	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
 	bool Stepping = CCPU::IsStepping();
-	wxAuiToolBar* ToolBar = GetToolBar();
+	wxToolBar* ToolBar = GetToolBar();
 
 	// Toolbar
 	if (!ToolBar)
