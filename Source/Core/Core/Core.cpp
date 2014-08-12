@@ -130,7 +130,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 	if (_CoreParameter.bRenderToMain &&
 		SConfig::GetInstance().m_InterfaceStatusbar)
 	{
-			Host_UpdateStatusBar(message);
+		Host_UpdateStatusBar(message);
 	}
 	else
 	{
@@ -491,9 +491,6 @@ void EmuThread()
 
 	// Clear on screen messages that haven't expired
 	g_video_backend->Video_ClearMessages();
-
-	// Close the trace file
-	Core::StopTrace();
 
 	// Reload sysconf file in order to see changes committed during emulation
 	if (_CoreParameter.bWii)
