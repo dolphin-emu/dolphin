@@ -1072,6 +1072,9 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
+			// Exit fullscreen to ensure it does not cover the stop dialog.
+			DoFullscreen(false);
+
 			// Pause the state during confirmation and restore it afterwards
 			Core::EState state = Core::GetState();
 
@@ -1081,10 +1084,6 @@ void CFrame::DoStop()
 				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			{
 				Core::SetState(Core::CORE_PAUSE);
-			}
-			else
-			{
-				DoFullscreen(false);
 			}
 
 			wxMessageDialog m_StopDlg(
