@@ -15,7 +15,6 @@ set(SRCS	ActionReplay.cpp
 			PatchEngine.cpp
 			State.cpp
 			stdafx.cpp
-			Tracer.cpp
 			VolumeHandler.cpp
 			Boot/Boot_BS2Emu.cpp
 			Boot/Boot.cpp
