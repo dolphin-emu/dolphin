@@ -234,7 +234,6 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Tracer.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
     <ClCompile Include="x64MemTools.cpp" />
   </ItemGroup>
@@ -414,7 +413,6 @@
     <ClInclude Include="PowerPC\SignatureDB.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Tracer.h" />
     <ClInclude Include="VolumeHandler.h" />
   </ItemGroup>
   <ItemGroup>

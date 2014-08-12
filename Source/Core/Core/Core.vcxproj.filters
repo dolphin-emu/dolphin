@@ -146,7 +146,6 @@
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
-    <ClCompile Include="Tracer.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
     <ClCompile Include="x64MemTools.cpp" />
     <ClCompile Include="ActionReplay.cpp">
@@ -721,7 +720,6 @@
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
-    <ClInclude Include="Tracer.h" />
     <ClInclude Include="VolumeHandler.h" />
     <ClInclude Include="ActionReplay.h">
       <Filter>ActionReplay</Filter>
