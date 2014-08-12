@@ -44,8 +44,6 @@ class wxAuiManager;
 class wxAuiManagerEvent;
 class wxAuiNotebook;
 class wxAuiNotebookEvent;
-class wxAuiToolBar;
-class wxAuiToolBarEvent;
 class wxListEvent;
 class wxMenuItem;
 class wxWindow;
@@ -124,6 +122,7 @@ public:
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
+	void PopulateSavedPerspectives();
 	static void ConnectWiimote(int wm_idx, bool connect);
 
 	const CGameListCtrl *GetGameListCtrl() const;
@@ -138,9 +137,11 @@ public:
 	X11Utils::XRRConfiguration *m_XRRConfig;
 #endif
 
+	wxMenu* m_SavedPerspectives;
+
+	wxToolBar *m_ToolBar;
 	// AUI
 	wxAuiManager *m_Mgr;
-	wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
 	bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
 	// Perspectives (Should find a way to make all of this private)
@@ -195,8 +196,7 @@ private:
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
-	void PopulateToolbar(wxAuiToolBar* toolBar);
-	void PopulateToolbarAui(wxAuiToolBar* toolBar);
+	void PopulateToolbar(wxToolBar* toolBar);
 	void RecreateToolbar();
 	void CreateMenu();
 
@@ -221,7 +221,6 @@ private:
 	void ShowResizePane();
 	void TogglePane();
 	void SetPaneSize();
-	void ResetToolbarStyle();
 	void TogglePaneStyle(bool On, int EventId);
 	void ToggleNotebookStyle(bool On, long Style);
 	// Float window
@@ -240,9 +239,7 @@ private:
 	void OnPaneClose(wxAuiManagerEvent& evt);
 	void ReloadPanes();
 	void DoLoadPerspective();
-	void OnDropDownToolbarSelect(wxCommandEvent& event);
-	void OnDropDownSettingsToolbar(wxAuiToolBarEvent& event);
-	void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
+	void OnPerspectiveMenu(wxCommandEvent& event);
 	void OnSelectPerspective(wxCommandEvent& event);
 
 #ifdef _WIN32
@@ -252,8 +249,6 @@ private:
 	// Event functions
 	void OnQuit(wxCommandEvent& event);
 	void OnHelp(wxCommandEvent& event);
-	void OnToolBar(wxCommandEvent& event);
-	void OnAuiToolBar(wxAuiToolBarEvent& event);
 
 	void OnOpen(wxCommandEvent& event); // File menu
 	void DoOpen(bool Boot);
