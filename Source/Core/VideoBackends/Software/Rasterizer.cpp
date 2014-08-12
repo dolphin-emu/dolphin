@@ -83,11 +83,9 @@ void Init()
 	ZSlope.f0 = 1.f;
 }
 
-inline int iround(float x)
+static inline int iround(float x)
 {
-	int t;
-
-	t = (int)x;
+	int t = (int)x;
 	if ((x - t) >= 0.5)
 		return t + 1;
 
@@ -100,16 +98,20 @@ void SetScissor()
 	int yoff = bpmem.scissorOffset.y * 2 - 342;
 
 	scissorLeft = bpmem.scissorTL.x - xoff - 342;
-	if (scissorLeft < 0) scissorLeft = 0;
+	if (scissorLeft < 0)
+		scissorLeft = 0;
 
 	scissorTop = bpmem.scissorTL.y - yoff - 342;
-	if (scissorTop < 0) scissorTop = 0;
+	if (scissorTop < 0)
+		scissorTop = 0;
 
 	scissorRight = bpmem.scissorBR.x - xoff - 341;
-	if (scissorRight > EFB_WIDTH) scissorRight = EFB_WIDTH;
+	if (scissorRight > EFB_WIDTH)
+		scissorRight = EFB_WIDTH;
 
 	scissorBottom = bpmem.scissorBR.y - yoff - 341;
-	if (scissorBottom > EFB_HEIGHT) scissorBottom = EFB_HEIGHT;
+	if (scissorBottom > EFB_HEIGHT)
+		scissorBottom = EFB_HEIGHT;
 }
 
 void SetTevReg(int reg, int comp, bool konst, s16 color)
@@ -208,7 +210,7 @@ static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, fl
 	slope->f0 = f1;
 }
 
-inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
+static inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
 {
 	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
 	u8 subTexmap = texmap & 3;

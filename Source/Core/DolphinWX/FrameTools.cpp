@@ -1936,6 +1936,7 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 void CFrame::DoToggleToolbar(bool _show)
 {
 	GetToolBar()->Show(_show);
+	m_Mgr->Update();
 }
 
 // Enable and disable the status bar

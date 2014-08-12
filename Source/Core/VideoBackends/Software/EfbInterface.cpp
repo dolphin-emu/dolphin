@@ -20,12 +20,12 @@ namespace EfbInterface
 {
 	u32 perf_values[PQ_NUM_MEMBERS];
 
-	inline u32 GetColorOffset(u16 x, u16 y)
+	static inline u32 GetColorOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3;
 	}
 
-	inline u32 GetDepthOffset(u16 x, u16 y)
+	static inline u32 GetDepthOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
 	}
@@ -498,7 +498,8 @@ namespace EfbInterface
 		return &efb[GetColorOffset(x, y)];
 	}
 
-	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma) {
+	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	{
 		// FIXME: We should do Gamma correction
 
 		if (!xfb_in_ram)
@@ -512,7 +513,8 @@ namespace EfbInterface
 
 		// this assumes copies will always start on an even (YU) pixel and the
 		// copy always has an even width, which might not be true.
-		if (left & 1 || right & 1) {
+		if (left & 1 || right & 1)
+		{
 			WARN_LOG(VIDEO, "Trying to copy XFB to from unaligned EFB source");
 			// this will show up as wrongly encoded
 		}
@@ -557,8 +559,10 @@ namespace EfbInterface
 	}
 
 	// Like CopyToXFB, but we copy directly into the opengl colour texture without going via GameCube main memory or doing a yuyv conversion
-	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma) {
-		if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT) {
+	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	{
+		if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT)
+		{
 			ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
 			return;
 		}
