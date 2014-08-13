@@ -33,45 +33,62 @@
 static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
 static const u32 MC_TRANSFER_RATE_WRITE = (u32)(96.125f * 1024.0f);
 
-void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
+// Takes care of the nasty recovery of the 'this' pointer from card_index,
+// stored in the userdata parameter of the CoreTiming event.
+void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata, std::function<void(CEXIMemoryCard*)> callback)
 {
-	// note that userdata is forbidden to be a pointer, due to the implementation of EventDoState
 	int card_index = (int)userdata;
-	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(
+		EXIDEVICE_MEMORYCARD, card_index);
 	if (pThis == nullptr)
-		pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
-	if (pThis && pThis->memorycard)
-		pThis->memorycard->Flush();
+	{
+		pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(
+			EXIDEVICE_MEMORYCARDFOLDER, card_index);
+	}
+	if (pThis)
+	{
+		callback(pThis);
+	}
 }
 
 void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 {
-	int card_index = (int)userdata;
-	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
-	if (pThis == nullptr)
-		pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
-	if (pThis)
-		pThis->CmdDone();
+	EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance)
+	{
+		instance->CmdDone();
+	});
 }
 
 void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, int cyclesLate)
 {
-	int card_index = (int)userdata;
-	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
-	if (pThis == nullptr)
-		pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
-	if (pThis)
-		pThis->TransferComplete();
+	EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance)
+	{
+		instance->TransferComplete();
+	});
 }
 
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	: card_index(index)
-	, m_bDirty(false)
 {
-	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
-	et_this_card = CoreTiming::RegisterEvent((index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
-	et_cmd_done = CoreTiming::RegisterEvent((index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
-	et_transfer_complete = CoreTiming::RegisterEvent((index == 0) ? "memcardTransferCompleteA" : "memcardTransferCompleteB", TransferCompleteCallback);
+	struct
+	{
+		const char *done;
+		const char *transfer_complete;
+	} const event_names[] = {
+		{ "memcardDoneA", "memcardTransferCompleteA" },
+		{ "memcardDoneB", "memcardTransferCompleteB" },
+	};
+
+	if ((size_t)index >= ArraySize(event_names))
+	{
+		PanicAlertT("Trying to create invalid memory card index.");
+	}
+	// we're potentially leaking events here, since there's no RemoveEvent
+	// until emu shutdown, but I guess it's inconsequential
+	et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done,
+		CmdDoneCallback);
+	et_transfer_complete = CoreTiming::RegisterEvent(
+		event_names[index].transfer_complete, TransferCompleteCallback);
 
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -226,9 +243,8 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
-	CoreTiming::RemoveEvent(et_this_card);
-	memorycard->Flush(true);
-	memorycard.reset();
+	CoreTiming::RemoveEvent(et_cmd_done);
+	CoreTiming::RemoveEvent(et_transfer_complete);
 }
 
 bool CEXIMemoryCard::UseDelayedTransferCompletion()
@@ -247,7 +263,6 @@ void CEXIMemoryCard::CmdDone()
 	status &= ~MC_STATUS_BUSY;
 
 	m_bInterruptSet = 1;
-	m_bDirty = true;
 }
 
 void CEXIMemoryCard::TransferComplete()
@@ -264,9 +279,6 @@ void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 
 void CEXIMemoryCard::SetCS(int cs)
 {
-	// So that memory card won't be invalidated during flushing
-	memorycard->JoinThread();
-
 	if (cs)  // not-selected to selected
 	{
 		m_uPosition = 0;
@@ -291,10 +303,10 @@ void CEXIMemoryCard::SetCS(int cs)
 		case cmdChipErase:
 			if (m_uPosition > 2)
 			{
-				// TODO: Investigate on HW, I (LPFaint99) believe that this only erases the system area (Blocks 0-4)
+				// TODO: Investigate on HW, I (LPFaint99) believe that this only
+				// erases the system area (Blocks 0-4)
 				memorycard->ClearAll();
 				status &= ~MC_STATUS_BUSY;
-				m_bDirty = true;
 			}
 			break;
 
@@ -483,16 +495,6 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
 }
 
-void CEXIMemoryCard::PauseAndLock(bool doLock, bool unpauseOnUnlock)
-{
-	if (doLock)
-	{
-		// we don't exactly have anything to pause,
-		// but let's make sure the flush thread isn't running.
-		memorycard->JoinThread();
-	}
-}
-
 void CEXIMemoryCard::DoState(PointerWrap &p)
 {
 	// for movie sync, we need to save/load memory card contents (and other data) in savestates.
@@ -509,7 +511,6 @@ void CEXIMemoryCard::DoState(PointerWrap &p)
 		p.Do(status);
 		p.Do(m_uPosition);
 		p.Do(programming_buffer);
-		p.Do(m_bDirty);
 		p.Do(address);
 		memorycard->DoState(p);
 		p.Do(card_index);
@@ -531,13 +532,16 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 {
 	memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
 
-#ifdef _DEBUG
 	if ((address + _uSize) % BLOCK_SIZE == 0)
-		INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
-#endif
+	{
+		DEBUG_LOG(EXPANSIONINTERFACE, "reading from block: %x",
+			address / BLOCK_SIZE);
+	}
 
 	// Schedule transfer complete later based on read speed
-	CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ), et_transfer_complete, (u64)card_index);
+	CoreTiming::ScheduleEvent(
+		_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
+		et_transfer_complete, (u64)card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -546,21 +550,14 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 {
 	memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
 
-	// At the end of writing to a block flush to disk
-	// memory card blocks are always(?) written as a whole,
-	// but the dma calls are by page size (0x200) at a time
-	// just in case this is the last block that the game will be writing for a while
 	if (((address + _uSize) % BLOCK_SIZE) == 0)
 	{
-		INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
-		// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
-		// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write
-		// Scheduling event is mainly for raw memory cards as the flush the whole 16MB to disk
-		// Flushing the gci folder is free in comparison
-		CoreTiming::RemoveEvent(et_this_card);
-		CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
+		DEBUG_LOG(EXPANSIONINTERFACE, "writing to block: %x",
+			address / BLOCK_SIZE);
 	}
 
 	// Schedule transfer complete later based on write speed
-	CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE), et_transfer_complete, (u64)card_index);
+	CoreTiming::ScheduleEvent(
+		_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
+		et_transfer_complete, (u64)card_index);
 }

@@ -16,7 +16,6 @@ public:
 	bool UseDelayedTransferCompletion() override;
 	bool IsPresent() override;
 	void DoState(PointerWrap &p) override;
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) override;
 	void DMARead(u32 _uAddr, u32 _uSize) override;
 	void DMAWrite(u32 _uAddr, u32 _uSize) override;
@@ -24,18 +23,13 @@ public:
 private:
 	void SetupGciFolder(u16 sizeMb);
 	void SetupRawMemcard(u16 sizeMb);
-	// This is scheduled whenever a page write is issued. The this pointer is passed
-	// through the userdata parameter, so that it can then call Flush on the right card.
-	static void FlushCallback(u64 userdata, int cyclesLate);
+	static void EventCompleteFindInstance(u64 userdata, std::function<void(CEXIMemoryCard*)> callback);
 
 	// Scheduled when a command that required delayed end signaling is done.
 	static void CmdDoneCallback(u64 userdata, int cyclesLate);
 
 	// Scheduled when memory card is done transferring data
 	static void TransferCompleteCallback(u64 userdata, int cyclesLate);
-
-	// Flushes the memory card contents to disk.
-	void Flush(bool exiting = false);
 
 	// Signals that the command that was previously executed is now done.
 	void CmdDone();
@@ -66,7 +60,7 @@ private:
 	};
 
 	int card_index;
-	int et_this_card, et_cmd_done, et_transfer_complete;
+	int et_cmd_done, et_transfer_complete;
 	//! memory card state
 
 	// STATE_TO_SAVE
@@ -76,7 +70,6 @@ private:
 	int status;
 	u32 m_uPosition;
 	u8 programming_buffer[128];
-	bool m_bDirty;
 	//! memory card parameters
 	unsigned int card_id;
 	unsigned int address;
