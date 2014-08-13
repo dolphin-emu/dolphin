@@ -68,6 +68,7 @@
       <Filter>Crypto</Filter>
     </ClInclude>
     <ClInclude Include="GekkoDisassembler.h" />
+    <ClInclude Include="Event.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />
