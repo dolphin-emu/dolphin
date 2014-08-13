@@ -535,9 +535,9 @@ void CFrame::RecreateToolbar()
 	if (m_ToolBar)
 	{
 		m_Mgr->DetachPane(m_ToolBar);
-		m_Mgr->Update();	// not sure if needed
+		m_Mgr->Update();
 		m_ToolBar->Destroy();
-		m_ToolBar = NULL;	// set null so that the below if-statement executes
+		m_ToolBar = nullptr;	// set null so that the below if-statement executes
 	}
 
 	long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
