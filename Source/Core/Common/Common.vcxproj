@@ -50,6 +50,7 @@
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
+    <ClInclude Include="Event.h" />
     <ClInclude Include="ExtendedTrace.h" />
     <ClInclude Include="FifoQueue.h" />
     <ClInclude Include="FileSearch.h" />
