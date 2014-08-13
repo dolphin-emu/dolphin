@@ -535,7 +535,6 @@ void CFrame::RecreateToolbar()
 	if (m_ToolBar)
 	{
 		m_Mgr->DetachPane(m_ToolBar);
-		m_Mgr->Update();
 		m_ToolBar->Destroy();
 		m_ToolBar = nullptr;	// set null so that the below if-statement executes
 	}
