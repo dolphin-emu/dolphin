@@ -206,11 +206,19 @@ bool Update_DSP_ReadRegister();
 void Update_DSP_WriteRegister();
 
 static int et_GenerateDSPInterrupt;
+static int et_CompleteARAM;
 
 static void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 {
 	GenerateDSPInterrupt((DSPInterruptType)(userdata&0xFFFF), (bool)((userdata>>16) & 1));
 }
+
+static void CompleteARAM(u64 userdata, int cyclesLate)
+{
+	g_dspState.DSPControl.DMAState = 0;
+	GenerateDSPInterrupt(INT_ARAM, true);
+}
+
 
 DSPEmulator *GetDSPEmulator()
 {
@@ -249,6 +257,7 @@ void Init(bool hle)
 	g_AR_REFRESH = 156; // 156MHz
 
 	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt_Wrapper);
+	et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
 }
 
 void Shutdown()
@@ -448,7 +457,7 @@ void GenerateDSPInterrupt(DSPInterruptType type, bool _bSet)
 	switch (type)
 	{
 	case INT_DSP:  g_dspState.DSPControl.DSP  = _bSet ? 1 : 0; break;
-	case INT_ARAM: g_dspState.DSPControl.ARAM = _bSet ? 1 : 0; if (_bSet) g_dspState.DSPControl.DMAState = 0; break;
+	case INT_ARAM: g_dspState.DSPControl.ARAM = _bSet ? 1 : 0; break;
 	case INT_AID:  g_dspState.DSPControl.AID  = _bSet ? 1 : 0; break;
 	}
 
@@ -517,17 +526,17 @@ void UpdateAudioDMA()
 
 void Do_ARAM_DMA()
 {
+	g_dspState.DSPControl.DMAState = 1;
 	if (g_arDMA.Cnt.count == 32)
 	{
 		// Beyond Good and Evil (GGEE41) sends count 32
 		// Lost Kingdoms 2 needs the exception check here in DSP HLE mode
-		GenerateDSPInterrupt(INT_ARAM);
+		CompleteARAM(0, 0);
 		CoreTiming::ForceExceptionCheck(100);
 	}
 	else
 	{
-		g_dspState.DSPControl.DMAState = 1;
-		CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
+		CoreTiming::ScheduleEvent_Threadsafe(0, et_CompleteARAM);
 
 		// Force an early exception check on large transfers. Fixes RE2 audio.
 		// NFS:HP2 (<= 6144)
