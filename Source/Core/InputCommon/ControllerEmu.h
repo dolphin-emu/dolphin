@@ -125,7 +125,7 @@ public:
 
 			void SetValue(ControlState new_value) override
 			{
-				SConfig::GetInstance().m_BackgroundInput = new_value;
+				SConfig::GetInstance().m_BackgroundInput = !!new_value;
 			}
 
 			ControlState GetValue() override
