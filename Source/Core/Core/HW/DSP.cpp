@@ -199,24 +199,17 @@ void DoState(PointerWrap &p)
 }
 
 
-void UpdateInterrupts();
-void Do_ARAM_DMA();
-void WriteARAM(u8 _iValue, u32 _iAddress);
-bool Update_DSP_ReadRegister();
-void Update_DSP_WriteRegister();
+static void UpdateInterrupts();
+static void Do_ARAM_DMA();
+static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate = 0);
 
 static int et_GenerateDSPInterrupt;
 static int et_CompleteARAM;
 
-static void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
-{
-	GenerateDSPInterrupt((DSPInterruptType)(userdata&0xFFFF), (bool)((userdata>>16) & 1));
-}
-
 static void CompleteARAM(u64 userdata, int cyclesLate)
 {
 	g_dspState.DSPControl.DMAState = 0;
-	GenerateDSPInterrupt(INT_ARAM, true);
+	GenerateDSPInterrupt(INT_ARAM);
 }
 
 
@@ -256,7 +249,7 @@ void Init(bool hle)
 	g_AR_MODE = 1; // ARAM Controller has init'd
 	g_AR_REFRESH = 156; // 156MHz
 
-	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt_Wrapper);
+	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
 	et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
 }
 
@@ -415,7 +408,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				// We make the samples ready as soon as possible
 				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
 				AudioCommon::SendAIBuffer((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8);
-				CoreTiming::ScheduleEvent_Threadsafe(80, et_GenerateDSPInterrupt, INT_AID | (1 << 16));
+				CoreTiming::ScheduleEvent_Threadsafe(80, et_GenerateDSPInterrupt, INT_AID);
 			}
 		})
 	);
@@ -438,36 +431,31 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 }
 
 // UpdateInterrupts
-void UpdateInterrupts()
+static void UpdateInterrupts()
 {
-	if ((g_dspState.DSPControl.AID  & g_dspState.DSPControl.AID_mask) ||
-		(g_dspState.DSPControl.ARAM & g_dspState.DSPControl.ARAM_mask) ||
-		(g_dspState.DSPControl.DSP  & g_dspState.DSPControl.DSP_mask))
-	{
-		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, true);
-	}
-	else
-	{
-		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, false);
-	}
+	// For each interrupt bit in DSP_CONTROL, the interrupt enablemask is the bit directly
+	// to the left of it. By doing:
+	// (DSP_CONTROL>>1) & DSP_CONTROL & MASK_OF_ALL_INTERRUPT_BITS
+	// We can check if any of the interrupts are enabled and active, all at once.
+	bool ints_set = (((g_dspState.DSPControl.Hex >> 1) & g_dspState.DSPControl.Hex & (INT_DSP | INT_ARAM | INT_AID)) != 0);
+
+	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
 }
 
-void GenerateDSPInterrupt(DSPInterruptType type, bool _bSet)
+static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate)
 {
-	switch (type)
-	{
-	case INT_DSP:  g_dspState.DSPControl.DSP  = _bSet ? 1 : 0; break;
-	case INT_ARAM: g_dspState.DSPControl.ARAM = _bSet ? 1 : 0; break;
-	case INT_AID:  g_dspState.DSPControl.AID  = _bSet ? 1 : 0; break;
-	}
+	// The INT_* enumeration members have values that reflect their bit positions in
+	// DSP_CONTROL - we mask by (INT_DSP | INT_ARAM | INT_AID) just to ensure people
+	// don't call this with bogus values.
+	g_dspState.DSPControl.Hex |= (DSPIntType & (INT_DSP | INT_ARAM | INT_AID));
 
 	UpdateInterrupts();
 }
 
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool _bSet)
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
 {
-	CoreTiming::ScheduleEvent_Threadsafe_Immediate(et_GenerateDSPInterrupt, type | (_bSet<<16));
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(et_GenerateDSPInterrupt, type);
 	CoreTiming::ForceExceptionCheck(100);
 }
 
@@ -524,7 +512,7 @@ void UpdateAudioDMA()
 	}
 }
 
-void Do_ARAM_DMA()
+static void Do_ARAM_DMA()
 {
 	g_dspState.DSPControl.DMAState = 1;
 	if (g_arDMA.Cnt.count == 32)
