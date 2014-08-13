@@ -21,8 +21,7 @@
 #include "DiscIO/VolumeCreator.h"
 
 SCoreStartupParameter::SCoreStartupParameter()
-: hInstance(nullptr),
-  bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
+: bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
   bJITNoBlockCache(false), bJITBlockLinking(true),
   bJITOff(false),
   bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
@@ -140,7 +139,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 					if (bootDrive)
 						PanicAlertT("Could not read \"%s\".  "
 								"There is no disc in the drive, or it is not a GC/Wii backup.  "
-								"Please note that original Gamecube and Wii discs cannot be read "
+								"Please note that original GameCube and Wii discs cannot be read "
 								"by most PC DVD drives.", m_strFilename.c_str());
 					else
 						PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.",

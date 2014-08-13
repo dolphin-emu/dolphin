@@ -19,11 +19,9 @@
 #ifdef _WIN32
 	#define CIFACE_USE_XINPUT
 	#define CIFACE_USE_DINPUT
-	#define CIFACE_USE_SDL
 #endif
 #if defined(HAVE_X11) && HAVE_X11
 	#define CIFACE_USE_XLIB
-	#define CIFACE_USE_SDL
 	#if defined(HAVE_X11_XINPUT2) && HAVE_X11_XINPUT2
 		#define CIFACE_USE_X11_XINPUT2
 	#endif
@@ -33,6 +31,9 @@
 #endif
 #ifdef ANDROID
 	#define CIFACE_USE_ANDROID
+#endif
+#if defined(HAVE_SDL) && HAVE_SDL
+	#define CIFACE_USE_SDL
 #endif
 
 using namespace ciface::Core;

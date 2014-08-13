@@ -1,17 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -51,7 +43,6 @@
     <ClCompile Include="CPMemory.cpp" />
     <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="DriverDetails.cpp" />
-    <ClCompile Include="EmuWindow.cpp" />
     <ClCompile Include="Fifo.cpp" />
     <ClCompile Include="FPSCounter.cpp" />
     <ClCompile Include="FramebufferManagerBase.cpp" />
@@ -59,7 +50,6 @@
     <ClCompile Include="ImageWrite.cpp" />
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="MainBase.cpp" />
-    <ClCompile Include="memcpy_amd.cpp" />
     <ClCompile Include="OnScreenDisplay.cpp" />
     <ClCompile Include="OpcodeDecoding.cpp" />
     <ClCompile Include="PerfQueryBase.cpp" />
@@ -99,7 +89,6 @@
     <ClInclude Include="DataReader.h" />
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="DriverDetails.h" />
-    <ClInclude Include="EmuWindow.h" />
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
     <ClInclude Include="FramebufferManagerBase.h" />

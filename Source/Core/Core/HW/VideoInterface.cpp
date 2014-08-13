@@ -39,13 +39,13 @@ static u16                       m_VBeamPos = 0;    // 0: Inactive
 static u16                       m_HBeamPos = 0;    // 0: Inactive
 static UVIInterruptRegister      m_InterruptRegister[4];
 static UVILatchRegister          m_LatchRegister[2];
-static UVIHorizontalStepping     m_HorizontalStepping;
+static PictureConfigurationRegister  m_PictureConfiguration;
 static UVIHorizontalScaling      m_HorizontalScaling;
 static SVIFilterCoefTables       m_FilterCoefTables;
 static u32                       m_UnkAARegister = 0;// ??? 0x00FF0000
 static u16                       m_Clock = 0;       // 0: 27MHz, 1: 54MHz
 static UVIDTVStatus              m_DTVStatus;
-static u16                       m_FBWidth = 0;     // Only correct when scaling is enabled?
+static UVIHorizontalStepping     m_FBWidth;         // Only correct when scaling is enabled?
 static UVIBorderBlankRegister    m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
@@ -76,7 +76,7 @@ void DoState(PointerWrap &p)
 	p.Do(m_HBeamPos);
 	p.DoArray(m_InterruptRegister, 4);
 	p.DoArray(m_LatchRegister, 2);
-	p.Do(m_HorizontalStepping);
+	p.Do(m_PictureConfiguration);
 	p.DoPOD(m_HorizontalScaling);
 	p.Do(m_FilterCoefTables);
 	p.Do(m_UnkAARegister);
@@ -129,8 +129,8 @@ void Preset(bool _bNTSC)
 	m_InterruptRegister[1].IR_MASK = 1;
 	m_InterruptRegister[1].IR_INT = 0;
 
-	m_HorizontalStepping.FbSteps = 40;
-	m_HorizontalStepping.FieldSteps = 40;
+	m_PictureConfiguration.STD = 40;
+	m_PictureConfiguration.WPL = 40;
 
 	m_HBeamPos = -1; // NTSC-U N64 VC games check for a non-zero HBeamPos
 	m_VBeamPos = 0; // RG4JC0 checks for a zero VBeamPos
@@ -160,12 +160,12 @@ void Init()
 	m_3DFBInfoBottom.Hex = 0;
 	m_VBeamPos = 0;
 	m_HBeamPos = 0;
-	m_HorizontalStepping.Hex = 0;
+	m_PictureConfiguration.Hex = 0;
 	m_HorizontalScaling.Hex = 0;
 	m_UnkAARegister = 0;
 	m_Clock = 0;
 	m_DTVStatus.Hex = 0;
-	m_FBWidth = 0;
+	m_FBWidth.Hex = 0;
 	m_BorderHBlank.Hex = 0;
 	memset(&m_FilterCoefTables, 0, sizeof(m_FilterCoefTables));
 
@@ -218,7 +218,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		{ VI_DISPLAY_LATCH_0_LO, &m_LatchRegister[0].Lo },
 		{ VI_DISPLAY_LATCH_1_HI, &m_LatchRegister[1].Hi },
 		{ VI_DISPLAY_LATCH_1_LO, &m_LatchRegister[1].Lo },
-		{ VI_HSCALEW, &m_HorizontalStepping.Hex },
+		{ VI_HSCALEW, &m_PictureConfiguration.Hex },
 		{ VI_HSCALER, &m_HorizontalScaling.Hex },
 		{ VI_FILTER_COEF_0_HI, &m_FilterCoefTables.Tables02[0].Hi },
 		{ VI_FILTER_COEF_0_LO, &m_FilterCoefTables.Tables02[0].Lo },
@@ -236,7 +236,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		{ VI_FILTER_COEF_6_LO, &m_FilterCoefTables.Tables36[3].Lo },
 		{ VI_CLOCK, &m_Clock },
 		{ VI_DTV_STATUS, &m_DTVStatus.Hex },
-		{ VI_FBWIDTH, &m_FBWidth },
+		{ VI_FBWIDTH, &m_FBWidth.Hex },
 		{ VI_BORDER_BLANK_END, &m_BorderHBlank.Lo },
 		{ VI_BORDER_BLANK_START, &m_BorderHBlank.Hi },
 	};
@@ -505,38 +505,47 @@ unsigned int GetTicksPerFrame()
 
 static void BeginField(FieldType field)
 {
-	u32 fbWidth = m_HorizontalStepping.FieldSteps * 16;
-	u32 fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
+	// TODO: the stride and height shouldn't depend on whether the FieldType is
+	// "progressive".  We're actually telling the video backend to draw unspecified
+	// junk.  Due to the way XFB copies work, the unspecified junk is usually
+	// the contents of the other field, so it looks okay in most cases, but we
+	// shouldn't depend on that; a good example of where our output is wrong is
+	// the title screen teaser videos in Metroid Prime.
+	//
+	// What should actually happen is that we should pass on the correct width,
+	// stride, and height to the video backend, and it should deinterlace the
+	// output when appropriate.
+	u32 fbWidth = m_PictureConfiguration.STD * (field == FIELD_PROGRESSIVE ? 16 : 8);
+	u32 fbHeight = m_VerticalTimingRegister.ACV * (field == FIELD_PROGRESSIVE ? 1 : 2);
 	u32 xfbAddr;
 
-	// NTSC and PAL have opposite field orders.
-	if (m_DisplayControlRegister.FMT == 1) // PAL
+	// Only the top field is valid in progressive mode.
+	if (field == FieldType::FIELD_PROGRESSIVE)
 	{
-		// But the PAL ports of some games are poorly programmed and don't use correct ordering.
-		// Zelda: Wind Waker and Simpsons Hit & Run are exampes of this, there are probally more.
-		// PAL Wind Waker also runs at 30fps instead of 25.
-		if (field == FieldType::FIELD_PROGRESSIVE || GetXFBAddressBottom() != (GetXFBAddressTop() - 1280))
-		{
-			WARN_LOG(VIDEOINTERFACE, "PAL game is trying to use incorrect (NTSC) field ordering");
-			// Lets kindly fix this for them.
-			xfbAddr = GetXFBAddressTop();
-
-			// TODO: PAL Simpsons Hit & Run now has a green line at the bottom when Real XFB is used.
-			// Might be a bug later on in our code, or a bug in the actual game.
-		}
-		else
-		{
-			xfbAddr = GetXFBAddressBottom();
-		}
-	} else {
 		xfbAddr = GetXFBAddressTop();
+	}
+	else
+	{
+		// If we are displaying an interlaced field, we convert it to a progressive field
+		// by simply using the whole XFB, which 99% of the time contains a whole progressive
+		// frame.
+
+		// All known NTSC games use the top/odd field as the upper field but
+		// PAL games are known to whimsically arrange the fields in either order.
+		// So to work out which field is pointing to the top of the progressive XFB we check
+		// which field has the lower PRB value in the VBlank Timing Registers.
+
+		if(m_VBlankTimingOdd.PRB < m_VBlankTimingEven.PRB)
+			xfbAddr = GetXFBAddressTop();
+		else
+			xfbAddr = GetXFBAddressBottom();
 	}
 
 	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
 
 	DEBUG_LOG(VIDEOINTERFACE,
-			  "(VI->BeginField): Address: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
-			  xfbAddr, m_HorizontalStepping.FieldSteps,m_HorizontalStepping.FbSteps,
+			  "(VI->BeginField): Address: %.08X | WPL %u | STD %u | ACV %u | Field %s",
+			  xfbAddr, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
 			  m_VerticalTimingRegister.ACV, fieldTypeNames[field]);
 
 	if (xfbAddr)

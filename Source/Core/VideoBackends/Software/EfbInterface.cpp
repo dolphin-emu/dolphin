@@ -14,18 +14,18 @@
 #include "VideoCommon/PixelEngine.h"
 
 
-u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
+static u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
 
 namespace EfbInterface
 {
 	u32 perf_values[PQ_NUM_MEMBERS];
 
-	inline u32 GetColorOffset(u16 x, u16 y)
+	static inline u32 GetColorOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3;
 	}
 
-	inline u32 GetDepthOffset(u16 x, u16 y)
+	static inline u32 GetDepthOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
 	}
@@ -35,7 +35,7 @@ namespace EfbInterface
 		p.DoArray(efb, EFB_WIDTH*EFB_HEIGHT*6);
 	}
 
-	void SetPixelAlphaOnly(u32 offset, u8 a)
+	static void SetPixelAlphaOnly(u32 offset, u8 a)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -58,7 +58,7 @@ namespace EfbInterface
 		}
 	}
 
-	void SetPixelColorOnly(u32 offset, u8 *rgb)
+	static void SetPixelColorOnly(u32 offset, u8 *rgb)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -98,7 +98,7 @@ namespace EfbInterface
 		}
 	}
 
-	void SetPixelAlphaColor(u32 offset, u8 *color)
+	static void SetPixelAlphaColor(u32 offset, u8 *color)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -139,7 +139,7 @@ namespace EfbInterface
 		}
 	}
 
-	void GetPixelColor(u32 offset, u8 *color)
+	static void GetPixelColor(u32 offset, u8 *color)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -175,7 +175,7 @@ namespace EfbInterface
 		}
 	}
 
-	void SetPixelDepth(u32 offset, u32 depth)
+	static void SetPixelDepth(u32 offset, u32 depth)
 	{
 		switch (bpmem.zcontrol.pixel_format)
 		{
@@ -203,7 +203,7 @@ namespace EfbInterface
 		}
 	}
 
-	u32 GetPixelDepth(u32 offset)
+	static u32 GetPixelDepth(u32 offset)
 	{
 		u32 depth = 0;
 
@@ -229,7 +229,7 @@ namespace EfbInterface
 		return depth;
 	}
 
-	u32 GetSourceFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
+	static u32 GetSourceFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
 	{
 		switch (mode)
 		{
@@ -270,7 +270,7 @@ namespace EfbInterface
 		return 0;
 	}
 
-	u32 GetDestinationFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
+	static u32 GetDestinationFactor(u8 *srcClr, u8 *dstClr, BlendMode::BlendFactor mode)
 	{
 		switch (mode)
 		{
@@ -311,7 +311,7 @@ namespace EfbInterface
 		return 0;
 	}
 
-	void BlendColor(u8 *srcClr, u8 *dstClr)
+	static void BlendColor(u8 *srcClr, u8 *dstClr)
 	{
 		u32 srcFactor = GetSourceFactor(srcClr, dstClr, bpmem.blendmode.srcfactor);
 		u32 dstFactor = GetDestinationFactor(srcClr, dstClr, bpmem.blendmode.dstfactor);
@@ -333,7 +333,7 @@ namespace EfbInterface
 		}
 	}
 
-	void LogicBlend(u32 srcClr, u32 &dstClr, BlendMode::LogicOp op)
+	static void LogicBlend(u32 srcClr, u32 &dstClr, BlendMode::LogicOp op)
 	{
 		switch (op)
 		{
@@ -388,7 +388,7 @@ namespace EfbInterface
 		}
 	}
 
-	void SubtractBlend(u8 *srcClr, u8 *dstClr)
+	static void SubtractBlend(u8 *srcClr, u8 *dstClr)
 	{
 		for (int i = 0; i < 4; i++)
 		{
@@ -498,7 +498,8 @@ namespace EfbInterface
 		return &efb[GetColorOffset(x, y)];
 	}
 
-	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma) {
+	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	{
 		// FIXME: We should do Gamma correction
 
 		if (!xfb_in_ram)
@@ -512,7 +513,8 @@ namespace EfbInterface
 
 		// this assumes copies will always start on an even (YU) pixel and the
 		// copy always has an even width, which might not be true.
-		if (left & 1 || right & 1) {
+		if (left & 1 || right & 1)
+		{
 			WARN_LOG(VIDEO, "Trying to copy XFB to from unaligned EFB source");
 			// this will show up as wrongly encoded
 		}
@@ -556,9 +558,11 @@ namespace EfbInterface
 		}
 	}
 
-	// Like CopyToXFB, but we copy directly into the opengl colour texture without going via Gamecube main memory or doing a yuyv conversion
-	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma) {
-		if (fbWidth*fbHeight > 640*568) {
+	// Like CopyToXFB, but we copy directly into the opengl colour texture without going via GameCube main memory or doing a yuyv conversion
+	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	{
+		if (fbWidth*fbHeight > MAX_XFB_WIDTH*MAX_XFB_HEIGHT)
+		{
 			ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
 			return;
 		}

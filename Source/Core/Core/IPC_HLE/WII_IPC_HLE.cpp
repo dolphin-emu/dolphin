@@ -24,6 +24,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include <map>
 #include <string>
 
+#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
@@ -61,34 +62,44 @@ namespace WII_IPC_HLE_Interface
 {
 
 typedef std::map<u32, IWII_IPC_HLE_Device*> TDeviceMap;
-TDeviceMap g_DeviceMap;
+static TDeviceMap g_DeviceMap;
 
 // STATE_TO_SAVE
 typedef std::map<u32, std::string> TFileNameMap;
 
 #define IPC_MAX_FDS 0x18
 #define ES_MAX_COUNT 2
-IWII_IPC_HLE_Device* g_FdMap[IPC_MAX_FDS];
-bool es_inuse[ES_MAX_COUNT];
-IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
+static IWII_IPC_HLE_Device* g_FdMap[IPC_MAX_FDS];
+static bool es_inuse[ES_MAX_COUNT];
+static IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
 
 
 typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue; // ppc -> arm
 static ipc_msg_queue reply_queue;   // arm -> ppc
-static std::mutex s_reply_queue;
+static ipc_msg_queue ack_queue;   // arm -> ppc
 
-static int enque_reply;
+static int event_enqueue;
 
 static u64 last_reply_time;
 
-// NOTE: Only call this if you have correctly handled
-//       CommandAddress+0 and CommandAddress+8.
-//       Please search for examples of this being called elsewhere.
-void EnqueReplyCallback(u64 userdata, int)
+static const u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
+static const u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
+static void EnqueueEventCallback(u64 userdata, int)
 {
-	std::lock_guard<std::mutex> lk(s_reply_queue);
-	reply_queue.push_back((u32)userdata);
+	if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
+	{
+		ack_queue.push_back((u32)userdata);
+	}
+	else if (userdata & ENQUEUE_REQUEST_FLAG)
+	{
+		request_queue.push_back((u32)userdata);
+	}
+	else
+	{
+		reply_queue.push_back((u32)userdata);
+	}
+	Update();
 }
 
 void Init()
@@ -133,12 +144,12 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, "/dev/usb/oh1"); i++;
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, "_Unimplemented_Device_"); i++;
 
-	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
+	event_enqueue = CoreTiming::RegisterEvent("IPCEvent", EnqueueEventCallback);
 }
 
 void Reset(bool _bHard)
 {
-	CoreTiming::RemoveAllEvents(enque_reply);
+	CoreTiming::RemoveAllEvents(event_enqueue);
 
 	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
@@ -175,12 +186,8 @@ void Reset(bool _bHard)
 		g_DeviceMap.erase(g_DeviceMap.begin(), g_DeviceMap.end());
 	}
 	request_queue.clear();
+	reply_queue.clear();
 
-	// lock due to using reply_queue
-	{
-		std::lock_guard<std::mutex> lk(s_reply_queue);
-		reply_queue.clear();
-	}
 	last_reply_time = 0;
 }
 
@@ -264,8 +271,6 @@ IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName
 
 void DoState(PointerWrap &p)
 {
-	std::lock_guard<std::mutex> lk(s_reply_queue);
-
 	p.Do(request_queue);
 	p.Do(reply_queue);
 	p.Do(last_reply_time);
@@ -537,6 +542,11 @@ void ExecuteCommand(u32 _Address)
 		// Ensure replies happen in order, fairly ugly
 		// Without this, tons of games fail now that DI commands have different reply delays
 		int reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
+		if (!reply_delay)
+		{
+			int delay_us = 250;
+			reply_delay = SystemTimers::GetTicksPerSecond() / 1000000 * delay_us;
+		}
 
 		const s64 ticks_til_last_reply = last_reply_time - CoreTiming::GetTicks();
 
@@ -548,23 +558,34 @@ void ExecuteCommand(u32 _Address)
 		last_reply_time = CoreTiming::GetTicks() + reply_delay;
 
 		// Generate a reply to the IPC command
-		EnqReply(_Address, reply_delay);
+		EnqueueReply(_Address, reply_delay);
 	}
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
-void EnqRequest(u32 _Address)
+void EnqueueRequest(u32 address)
 {
-	request_queue.push_back(_Address);
+	CoreTiming::ScheduleEvent(1000, event_enqueue, address | ENQUEUE_REQUEST_FLAG);
 }
 
 // Called when IOS module has some reply
 // NOTE: Only call this if you have correctly handled
 //       CommandAddress+0 and CommandAddress+8.
 //       Please search for examples of this being called elsewhere.
-void EnqReply(u32 _Address, int cycles_in_future)
+void EnqueueReply(u32 address, int cycles_in_future)
 {
-	CoreTiming::ScheduleEvent(cycles_in_future, enque_reply, _Address);
+	CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue, address);
+}
+
+void EnqueueReply_Threadsafe(u32 address, int cycles_in_future)
+{
+	CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, event_enqueue, address);
+}
+
+void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)
+{
+	CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue,
+	                          address | ENQUEUE_ACKNOWLEDGEMENT_FLAG);
 }
 
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp
@@ -574,8 +595,6 @@ void Update()
 	if (!WII_IPCInterface::IsReady())
 		return;
 
-	UpdateDevices();
-
 	if (request_queue.size())
 	{
 		WII_IPCInterface::GenerateAck(request_queue.front());
@@ -583,21 +602,23 @@ void Update()
 		u32 command = request_queue.front();
 		request_queue.pop_front();
 		ExecuteCommand(command);
-
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
-		Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
-#endif
+		return;
 	}
 
-	// lock due to using reply_queue
+	if (reply_queue.size())
 	{
-		std::lock_guard<std::mutex> lk(s_reply_queue);
-		if (reply_queue.size())
-		{
-			WII_IPCInterface::GenerateReply(reply_queue.front());
-			INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
-			reply_queue.pop_front();
-		}
+		WII_IPCInterface::GenerateReply(reply_queue.front());
+		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
+		reply_queue.pop_front();
+		return;
+	}
+
+	if (ack_queue.size())
+	{
+		WII_IPCInterface::GenerateAck(ack_queue.front());
+		WARN_LOG(WII_IPC_HLE, "<<-- Double-ack to IPC Request @ 0x%08x", ack_queue.front());
+		ack_queue.pop_front();
+		return;
 	}
 }
 
@@ -606,9 +627,9 @@ void UpdateDevices()
 	// Check if a hardware device must be updated
 	for (const auto& entry : g_DeviceMap)
 	{
-		if (entry.second->IsOpened() && entry.second->Update())
+		if (entry.second->IsOpened())
 		{
-			break;
+			entry.second->Update();
 		}
 	}
 }

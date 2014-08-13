@@ -241,6 +241,11 @@ bool CBoot::BootUp()
 			// If we can't load the bootrom file we HLE it instead
 			EmulatedBS2(_StartupPara.bWii);
 		}
+		else
+		{
+			// Load patches if they weren't already
+			PatchEngine::LoadPatches();
+		}
 
 		// Scan for common HLE functions
 		if (_StartupPara.bSkipIdle && !_StartupPara.bEnableDebugging)
@@ -424,7 +429,5 @@ bool CBoot::BootUp()
 	// Not part of the binary itself, but either we or Gecko OS might insert
 	// this, and it doesn't clear the icache properly.
 	HLE::Patch(0x800018a8, "GeckoCodehandler");
-
-	Host_UpdateLogDisplay();
 	return true;
 }

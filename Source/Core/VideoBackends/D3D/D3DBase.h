@@ -17,7 +17,7 @@ namespace DX11
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = nullptr; }
 #define SAFE_DELETE(x) { delete (x); (x) = nullptr; }
 #define SAFE_DELETE_ARRAY(x) { delete[] (x); (x) = nullptr; }
-#define CHECK(cond, Message, ...) if (!(cond)) { PanicAlert(__FUNCTION__ "Failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
+#define CHECK(cond, Message, ...) if (!(cond)) { PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
 
 class D3DTexture2D;
 
@@ -40,7 +40,7 @@ void Close();
 
 extern ID3D11Device* device;
 extern ID3D11DeviceContext* context;
-extern IDXGISwapChain* swapchain;
+extern HWND hWnd;
 extern bool bFrameInProgress;
 
 void Reset();
@@ -57,6 +57,9 @@ const char* VertexShaderVersionString();
 bool BGRATexturesSupported();
 
 unsigned int GetMaxTextureSize();
+
+HRESULT SetFullscreenState(bool enable_fullscreen);
+HRESULT GetFullscreenState(bool* fullscreen_state);
 
 // Ihis function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,
@@ -76,7 +79,6 @@ void SetDebugObjectName(T resource, const char* name)
 typedef HRESULT (WINAPI *CREATEDXGIFACTORY)(REFIID, void**);
 extern CREATEDXGIFACTORY PCreateDXGIFactory;
 typedef HRESULT (WINAPI *D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
-extern D3D11CREATEDEVICE PD3D11CreateDevice;
 
 typedef HRESULT (WINAPI *D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
 extern D3DREFLECT PD3DReflect;

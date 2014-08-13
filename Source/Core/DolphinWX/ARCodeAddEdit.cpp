@@ -12,6 +12,7 @@
 #include <wx/event.h>
 #include <wx/gbsizer.h>
 #include <wx/gdicmn.h>
+#include <wx/msgdlg.h>
 #include <wx/sizer.h>
 #include <wx/spinbutt.h>
 #include <wx/stattext.h>
@@ -25,11 +26,10 @@
 #include "Core/ActionReplay.h"
 #include "Core/ARDecrypt.h"
 #include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
 
 class wxWindow;
-
-extern std::vector<ActionReplay::ARCode> arCodes;
 
 BEGIN_EVENT_TABLE(CARCodeAddEdit, wxDialog)
 	EVT_BUTTON(wxID_OK, CARCodeAddEdit::SaveCheatData)
@@ -149,7 +149,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 	// Codes with no lines appear to be deleted/hidden from the list.  Let's prevent that.
 	if (!decryptedLines.size())
 	{
-		PanicAlertT("The resulting decrypted AR code doesn't contain any lines.");
+		WxUtils::ShowErrorDialog(_("The resulting decrypted AR code doesn't contain any lines."));
 		return;
 	}
 
@@ -182,7 +182,7 @@ void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)
 	if (arCode.name != "")
 	{
 		for (auto& op : arCode.ops)
-			EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), op.cmd_addr, op.value));
+			EditCheatCode->AppendText(wxString::Format("%08X %08X\n", op.cmd_addr, op.value));
 	}
 	else
 	{

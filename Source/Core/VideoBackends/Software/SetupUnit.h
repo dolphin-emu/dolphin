@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
+
+class PointerWrap;
 
 class SetupUnit
 {

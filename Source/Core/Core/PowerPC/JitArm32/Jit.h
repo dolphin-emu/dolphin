@@ -50,6 +50,8 @@ private:
 	void Helper_UpdateCR1(ARMReg fpscr, ARMReg temp);
 
 	void SetFPException(ARMReg Reg, u32 Exception);
+
+	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 public:
 	JitArm() : code_buffer(32000) {}
 	~JitArm() {}
@@ -96,8 +98,7 @@ public:
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 
-	void GenerateRC(int cr = 0);
-	void ComputeRC(int cr = 0);
+	void ComputeRC(ARMReg value, int cr = 0);
 	void ComputeRC(s32 value, int cr);
 
 	void ComputeCarry();
@@ -143,8 +144,6 @@ public:
 	void cntlzwx(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);
-	void cmpl(UGeckoInstruction _inst);
-	void cmpli(UGeckoInstruction _inst);
 	void negx(UGeckoInstruction _inst);
 	void mulhwux(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);
@@ -160,13 +159,9 @@ public:
 	void mtspr(UGeckoInstruction _inst);
 	void mfspr(UGeckoInstruction _inst);
 	void mftb(UGeckoInstruction _inst);
-	void crXXX(UGeckoInstruction _inst);
 	void mcrf(UGeckoInstruction _inst);
-	void mfcr(UGeckoInstruction _inst);
-	void mtcrf(UGeckoInstruction _inst);
 	void mtsr(UGeckoInstruction _inst);
 	void mfsr(UGeckoInstruction _inst);
-	void mcrxr(UGeckoInstruction _inst);
 	void twx(UGeckoInstruction _inst);
 
 	// LoadStore
@@ -193,8 +188,6 @@ public:
 	void fmaddx(UGeckoInstruction _inst);
 	void fctiwx(UGeckoInstruction _inst);
 	void fctiwzx(UGeckoInstruction _inst);
-	void fcmpo(UGeckoInstruction _inst);
-	void fcmpu(UGeckoInstruction _inst);
 	void fnmaddx(UGeckoInstruction _inst);
 	void fnmaddsx(UGeckoInstruction _inst);
 	void fresx(UGeckoInstruction _inst);
@@ -232,10 +225,6 @@ public:
 	void ps_nabs(UGeckoInstruction _inst);
 	void ps_rsqrte(UGeckoInstruction _inst);
 	void ps_sel(UGeckoInstruction _inst);
-	void ps_cmpu0(UGeckoInstruction _inst);
-	void ps_cmpu1(UGeckoInstruction _inst);
-	void ps_cmpo0(UGeckoInstruction _inst);
-	void ps_cmpo1(UGeckoInstruction _inst);
 
 	// LoadStore paired
 	void psq_l(UGeckoInstruction _inst);

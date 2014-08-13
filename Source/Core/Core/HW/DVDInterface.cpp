@@ -2,6 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
+
+#include "AudioCommon/AudioCommon.h"
+
 #include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/Thread.h"
@@ -19,11 +23,17 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 
-// Disc transfer rate measured in bytes per second
-static const u32 DISC_TRANSFER_RATE_GC = 5 * 1024 * 1024;
+// A GameCube disc can be read at somewhere between
+// 2 and 3MB/sec, depending on the location on disk.  Wii disks
+// not yet tested.
+static const u32 DISC_TRANSFER_RATE_GC = 3 * 1024 * 1024;
+
+// Rate the drive can transfer data to main memory, given the data
+// is already buffered.
+static const u32 BUFFER_TRANSFER_RATE_GC = 16 * 1024 * 1024;
 
 // Disc access time measured in milliseconds
-static const u32 DISC_ACCESS_TIME_MS = 1;
+static const u32 DISC_ACCESS_TIME_MS = 50;
 
 namespace DVDInterface
 {
@@ -190,23 +200,25 @@ static UDICR     m_DICR;
 static UDIIMMBUF m_DIIMMBUF;
 static UDICFG    m_DICFG;
 
-static u32 LoopStart;
 static u32 AudioPos;
 static u32 CurrentStart;
-static u32 LoopLength;
 static u32 CurrentLength;
+static u32 NextStart;
+static u32 NextLength;
 
-u32  g_ErrorCode = 0;
-bool g_bDiscInside = false;
+
+static u32  g_ErrorCode = 0;
+static bool g_bDiscInside = false;
 bool g_bStream = false;
-int  tc = 0;
+static bool g_bStopAtTrackEnd = false;
+static int  tc = 0;
+static int  dtk = 0;
+
+static u64 g_last_read_offset;
+static u64 g_last_read_time;
 
 // GC-AM only
 static unsigned char media_buffer[0x40];
-
-// Needed because data and streaming audio access needs to be managed by the "drive"
-// (both requests can happen at the same time, audio takes precedence)
-static std::mutex dvdread_section;
 
 static int ejectDisc;
 static int insertDisc;
@@ -216,7 +228,8 @@ void InsertDiscCallback(u64 userdata, int cyclesLate);
 
 void UpdateInterrupts();
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt);
-void ExecuteCommand(UDICR& _DICR);
+void ExecuteCommand();
+void FinishExecuteRead();
 
 void DoState(PointerWrap &p)
 {
@@ -229,9 +242,9 @@ void DoState(PointerWrap &p)
 	p.Do(m_DIIMMBUF);
 	p.DoPOD(m_DICFG);
 
-	p.Do(LoopStart);
+	p.Do(NextStart);
 	p.Do(AudioPos);
-	p.Do(LoopLength);
+	p.Do(NextLength);
 
 	p.Do(g_ErrorCode);
 	p.Do(g_bDiscInside);
@@ -239,12 +252,78 @@ void DoState(PointerWrap &p)
 
 	p.Do(CurrentStart);
 	p.Do(CurrentLength);
+
+	p.Do(g_last_read_offset);
+	p.Do(g_last_read_time);
+
+	p.Do(g_bStopAtTrackEnd);
 }
 
-void TransferComplete(u64 userdata, int cyclesLate)
+static void TransferComplete(u64 userdata, int cyclesLate)
 {
 	if (m_DICR.TSTART)
-		ExecuteCommand(m_DICR);
+		FinishExecuteRead();
+}
+
+static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
+{
+	u32 samples_processed = 0;
+	do
+	{
+		if (AudioPos >= CurrentStart + CurrentLength)
+		{
+			DEBUG_LOG(DVDINTERFACE,
+				"ProcessDTKSamples: NextStart=%08x,NextLength=%08x,CurrentStart=%08x,CurrentLength=%08x,AudioPos=%08x",
+				NextStart, NextLength, CurrentStart, CurrentLength, AudioPos);
+
+			AudioPos = NextStart;
+			CurrentStart = NextStart;
+			CurrentLength = NextLength;
+
+			if (g_bStopAtTrackEnd)
+			{
+				g_bStopAtTrackEnd = false;
+				g_bStream = false;
+				break;
+			}
+
+			NGCADPCM::InitFilter();
+		}
+
+		u8 tempADPCM[NGCADPCM::ONE_BLOCK_SIZE];
+		// TODO: What if we can't read from AudioPos?
+		VolumeHandler::ReadToPtr(tempADPCM, AudioPos, sizeof(tempADPCM));
+		AudioPos += sizeof(tempADPCM);
+		NGCADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
+		samples_processed += NGCADPCM::SAMPLES_PER_BLOCK;
+	} while (samples_processed < num_samples);
+	for (unsigned i = 0; i < samples_processed * 2; ++i)
+	{
+		// TODO: Fix the mixer so it can accept non-byte-swapped samples.
+		tempPCM[i] = Common::swap16(tempPCM[i]);
+	}
+	return samples_processed;
+}
+
+static void DTKStreamingCallback(u64 userdata, int cyclesLate)
+{
+	// Send audio to the mixer.
+	static const int NUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
+	short tempPCM[NUM_SAMPLES * 2];
+	unsigned samples_processed;
+	if (g_bStream && AudioInterface::IsPlaying())
+	{
+		samples_processed = ProcessDTKSamples(tempPCM, NUM_SAMPLES);
+	}
+	else
+	{
+		memset(tempPCM, 0, sizeof(tempPCM));
+		samples_processed = NUM_SAMPLES;
+	}
+	soundStream->GetMixer()->PushStreamingSamples(tempPCM, samples_processed);
+
+	int ticks_to_dtk = int(SystemTimers::GetTicksPerSecond() * u64(samples_processed) / 48000);
+	CoreTiming::ScheduleEvent(ticks_to_dtk - cyclesLate, dtk);
 }
 
 void Init()
@@ -262,17 +341,21 @@ void Init()
 	m_DICFG.CONFIG    = 1; // Disable bootrom descrambler
 
 	AudioPos = 0;
-	LoopStart = 0;
-	LoopLength = 0;
+	NextStart = 0;
+	NextLength = 0;
 	CurrentStart = 0;
 	CurrentLength = 0;
 
 	g_bStream = false;
+	g_bStopAtTrackEnd = false;
 
 	ejectDisc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
 	tc = CoreTiming::RegisterEvent("TransferComplete", TransferComplete);
+	dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
+
+	CoreTiming::ScheduleEvent(0, dtk);
 }
 
 void Shutdown()
@@ -354,55 +437,7 @@ void ClearCoverInterrupt()
 
 bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
 {
-	// We won't need the crit sec when DTK streaming has been rewritten correctly.
-	std::lock_guard<std::mutex> lk(dvdread_section);
 	return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
-}
-
-bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
-{
-	_iNumSamples &= ~31;
-
-	if (AudioPos == 0)
-	{
-		memset(_pDestBuffer, 0, _iNumSamples); // probably __AI_SRC_INIT :P
-	}
-	else
-	{
-		std::lock_guard<std::mutex> lk(dvdread_section);
-		VolumeHandler::ReadToPtr(_pDestBuffer, AudioPos, _iNumSamples);
-	}
-
-	// loop check
-	if (g_bStream)
-	{
-		AudioPos += _iNumSamples;
-
-		if (AudioPos >= CurrentStart + CurrentLength)
-		{
-			if (LoopStart == 0)
-			{
-				AudioPos = 0;
-				CurrentStart = 0;
-				CurrentLength = 0;
-			}
-			else
-			{
-				AudioPos = LoopStart;
-				CurrentStart = LoopStart;
-				CurrentLength = LoopLength;
-			}
-			NGCADPCM::InitFilter();
-			AudioInterface::GenerateAISInterrupt();
-		}
-
-		//WARN_LOG(DVDINTERFACE,"ReadADPCM");
-		return true;
-	}
-	else
-	{
-		return false;
-	}
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -474,17 +509,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			m_DICR.Hex = val & 7;
 			if (m_DICR.TSTART)
 			{
-				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
-				{
-					u64 ticksUntilTC = m_DILENGTH.Length *
-						(SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 1 : DISC_TRANSFER_RATE_GC)) +
-						(SystemTimers::GetTicksPerSecond() * DISC_ACCESS_TIME_MS / 1000);
-					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
-				}
-				else
-				{
-					ExecuteCommand(m_DICR);
-				}
+				ExecuteCommand();
 			}
 		})
 	);
@@ -532,7 +557,7 @@ void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 	UpdateInterrupts();
 }
 
-void ExecuteCommand(UDICR& _DICR)
+void ExecuteCommand()
 {
 	// _dbg_assert_(DVDINTERFACE, _DICR.RW == 0); // only DVD to Memory
 	int GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD) &&
@@ -650,11 +675,93 @@ void ExecuteCommand(UDICR& _DICR)
 						}
 					}
 
-					// Here is the actual Disk Reading
-					if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
+					u64 ticksUntilTC = 0;
+
+					// The drive buffers 1MB (?) of data after every read request;
+					// if a read request is covered by this buffer (or if it's
+					// faster to wait for the data to be buffered), the drive
+					// doesn't seek; it returns buffered data.  Data can be
+					// transferred from the buffer at up to 16MB/sec.
+					//
+					// If the drive has to seek, the time this takes varies a lot.
+					// A short seek is around 50ms; a long seek is around 150ms.
+					// However, the time isn't purely dependent on the distance; the
+					// pattern of previous seeks seems to matter in a way I'm
+					// not sure how to explain.
+					//
+					// Metroid Prime is a good example of a game that's sensitive to
+					// all of these details; if there isn't enough latency in the
+					// right places, doors open too quickly, and if there's too
+					// much latency in the wrong places, the video before the
+					// save-file select screen lags.
+					//
+					// For now, just use a very rough approximation: 50ms seek
+					// and 3MB/sec for reads outside 1MB, acceleated reads
+					// within 1MB.  We can refine this if someone comes up
+					// with a more complete model for seek times.
+
+					u64 cur_time = CoreTiming::GetTicks();
+					// Number of ticks it takes to seek and read directly from the disk.
+					u64 disk_read_duration = m_DILENGTH.Length *
+						(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC) +
+						SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
+
+					if (iDVDOffset + m_DILENGTH.Length - g_last_read_offset > 1024 * 1024)
 					{
-						PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
+						// No buffer; just use the simple seek time + read time.
+						DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes", s64(g_last_read_offset) - s64(iDVDOffset));
+						ticksUntilTC = disk_read_duration;
+						g_last_read_time = cur_time + ticksUntilTC;
 					}
+					else
+					{
+						// Possibly buffered; use the buffer if it saves time.
+						// It's not proven that the buffer actually behaves like this, but
+						// it appears to be a decent approximation.
+
+						// Time at which the buffer will contain the data we need.
+						u64 buffer_fill_time = (iDVDOffset + m_DILENGTH.Length - g_last_read_offset) *
+							(SystemTimers::GetTicksPerSecond() / DISC_TRANSFER_RATE_GC) +
+							g_last_read_time;
+						// Number of ticks it takes to transfer the data from the buffer to memory.
+						u64 buffer_read_duration = m_DILENGTH.Length *
+							(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE_GC);
+
+						if (cur_time > buffer_fill_time)
+						{
+							DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %" PRId64, s64(iDVDOffset));
+							ticksUntilTC = buffer_read_duration;
+							g_last_read_time = buffer_fill_time;
+						}
+						else if (cur_time + disk_read_duration > buffer_fill_time)
+						{
+							DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %" PRId64, s64(iDVDOffset));
+							ticksUntilTC = std::max(buffer_fill_time - cur_time, buffer_read_duration);
+							g_last_read_time = buffer_fill_time;
+						}
+						else
+						{
+							DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes", s64(g_last_read_offset) - s64(iDVDOffset));
+							ticksUntilTC = disk_read_duration;
+							g_last_read_time = cur_time + ticksUntilTC;
+						}
+					}
+					g_last_read_offset = (iDVDOffset + m_DILENGTH.Length - 2048) & ~2047;
+
+					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
+					{
+						// Make sure fast disc speed performs "instant" reads; in addition
+						// to being used to speed up games, fast disc speed is used as a
+						// workaround for crashes in certain games, including Star Wars
+						// Rogue Leader.
+						FinishExecuteRead();
+						return;
+					}
+
+					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
+
+					// Early return; we'll finish executing the command in FinishExecuteRead.
+					return;
 				}
 				break;
 
@@ -675,7 +782,7 @@ void ExecuteCommand(UDICR& _DICR)
 		else
 		{
 			// there is no disc to read
-			_DICR.TSTART = 0;
+			m_DICR.TSTART = 0;
 			m_DILENGTH.Length = 0;
 			g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
 			GenerateDIInterrupt(INT_DEINT);
@@ -830,32 +937,41 @@ void ExecuteCommand(UDICR& _DICR)
 	// m_DICMDBUF[2].Hex      = Length of the stream
 	case 0xE1:
 		{
-			u32 pos = m_DICMDBUF[1].Hex << 2;
-			u32 length = m_DICMDBUF[2].Hex;
-
-			// Start playing
-			if (!g_bStream && m_DICMDBUF[0].CMDBYTE1 == 0 && pos != 0 && length != 0)
+			u8 cancel_stream = m_DICMDBUF[0].CMDBYTE1;
+			if (cancel_stream)
 			{
-				AudioPos = pos;
-				CurrentStart = pos;
-				CurrentLength = length;
-				NGCADPCM::InitFilter();
-				g_bStream = true;
-			}
-
-			LoopStart = pos;
-			LoopLength = length;
-			g_bStream = (m_DICMDBUF[0].CMDBYTE1 == 0); // This command can start/stop the stream
-
-			// Stop stream
-			if (m_DICMDBUF[0].CMDBYTE1 == 1)
-			{
+				g_bStopAtTrackEnd = false;
+				g_bStream = false;
 				AudioPos = 0;
-				LoopStart = 0;
-				LoopLength = 0;
+				NextStart = 0;
+				NextLength = 0;
 				CurrentStart = 0;
 				CurrentLength = 0;
 			}
+			else
+			{
+				u32 pos = m_DICMDBUF[1].Hex << 2;
+				u32 length = m_DICMDBUF[2].Hex;
+
+				if ((pos == 0) && (length == 0))
+				{
+					g_bStopAtTrackEnd = true;
+				}
+				else if (!g_bStopAtTrackEnd)
+				{
+					NextStart = pos;
+					NextLength = length;
+					if (!g_bStream)
+					{
+						CurrentStart = NextStart;
+						CurrentLength = NextLength;
+						AudioPos = CurrentStart;
+						NGCADPCM::InitFilter();
+						g_bStream = true;
+					}
+				}
+			}
+
 
 			WARN_LOG(DVDINTERFACE, "(Audio) Stream subcmd = %08x offset = %08x length=%08x",
 				m_DICMDBUF[0].Hex, m_DICMDBUF[1].Hex << 2, m_DICMDBUF[2].Hex);
@@ -868,25 +984,23 @@ void ExecuteCommand(UDICR& _DICR)
 			switch (m_DICMDBUF[0].CMDBYTE1)
 			{
 			case 0x00: // Returns streaming status
-				m_DIIMMBUF.Hex = (AudioPos == 0) ? 0 : 1;
+				DEBUG_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08x/%08x CurrentStart:%08x CurrentLength:%08x", AudioPos, CurrentStart + CurrentLength, CurrentStart, CurrentLength);
+				m_DIIMMBUF.REGVAL0 = 0;
+				m_DIIMMBUF.REGVAL1 = 0;
+				m_DIIMMBUF.REGVAL2 = 0;
+				m_DIIMMBUF.REGVAL3 = (g_bStream) ? 1 : 0;
 				break;
 			case 0x01: // Returns the current offset
-				if (g_bStream)
-					m_DIIMMBUF.Hex = (AudioPos - CurrentStart) >> 2;
-				else
-					m_DIIMMBUF.Hex = 0;
+				DEBUG_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08x", AudioPos);
+				m_DIIMMBUF.Hex = AudioPos >> 2;
 				break;
 			case 0x02: // Returns the start offset
-				if (g_bStream)
-					m_DIIMMBUF.Hex = CurrentStart >> 2;
-				else
-					m_DIIMMBUF.Hex = 0;
+				DEBUG_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentStart:%08x", CurrentStart);
+				m_DIIMMBUF.Hex = CurrentStart >> 2;
 				break;
 			case 0x03: // Returns the total length
-				if (g_bStream)
-					m_DIIMMBUF.Hex = CurrentLength;
-				else
-					m_DIIMMBUF.Hex = 0;
+				DEBUG_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentLength:%08x", CurrentLength);
+				m_DIIMMBUF.Hex = CurrentLength;
 				break;
 			default:
 				WARN_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s", m_DICMDBUF[0].CMDBYTE1, g_bStream? "on":"off");
@@ -903,11 +1017,13 @@ void ExecuteCommand(UDICR& _DICR)
 	case DVDLowAudioBufferConfig:
 		if (m_DICMDBUF[0].CMDBYTE1 == 1)
 		{
+			// TODO: What is this actually supposed to do?
 			g_bStream = true;
 			WARN_LOG(DVDINTERFACE, "(Audio): Audio enabled");
 		}
 		else
 		{
+			// TODO: What is this actually supposed to do?
 			g_bStream = false;
 			WARN_LOG(DVDINTERFACE, "(Audio): Audio disabled");
 		}
@@ -955,7 +1071,23 @@ void ExecuteCommand(UDICR& _DICR)
 	}
 
 	// transfer is done
-	_DICR.TSTART = 0;
+	m_DICR.TSTART = 0;
+	m_DILENGTH.Length = 0;
+	GenerateDIInterrupt(INT_TCINT);
+	g_ErrorCode = 0;
+}
+
+void FinishExecuteRead()
+{
+	u32 iDVDOffset = m_DICMDBUF[1].Hex << 2;
+
+	if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
+	{
+		PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
+	}
+
+	// transfer is done
+	m_DICR.TSTART = 0;
 	m_DILENGTH.Length = 0;
 	GenerateDIInterrupt(INT_TCINT);
 	g_ErrorCode = 0;

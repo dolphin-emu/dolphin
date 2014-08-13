@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/CPMemLoader.h"
 #include "VideoBackends/Software/OpcodeDecoder.h"
@@ -27,6 +28,10 @@ void SetupUnit::SetupVertex()
 	case GX_DRAW_QUADS:
 		SetupQuad();
 		break;
+	case GX_DRAW_QUADS_2:
+		WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
+		SetupQuad();
+		break;
 	case GX_DRAW_TRIANGLES:
 		SetupTriangle();
 		break;
@@ -49,8 +54,8 @@ void SetupUnit::SetupVertex()
 }
 
 
-	void SetupUnit::SetupQuad()
-	{
+void SetupUnit::SetupQuad()
+{
 	if (m_VertexCounter < 2)
 	{
 		m_VertexCounter++;

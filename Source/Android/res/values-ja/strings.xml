@@ -41,6 +41,8 @@
     <string name="browse_folder">フォルダの参照</string>
     <string name="settings">設定</string>
     <string name="about">について</string>
+    <string name="file_size_gib">ファイルサイズ: %.2f GiB</string>
+    <string name="file_size_mib">ファイルサイズ: %.2f MiB</string>
 
     <!-- Game List Activity - Device Compatibility AlertDialog -->
     <string name="device_compat_warning">デバイスの互換性の警告</string>
@@ -66,8 +68,11 @@
 
     <!-- Input Config Fragment -->
     <string name="input_settings">入力</string>
+    <string name="input_overlay">入力オーバーレイ</string>
+    <string name="input_overlay_desc">画面上の入力のオーバーレイを設定し。</string>
     <string name="input_overlay_layout">入力オーバーレイレイアウト</string>
     <string name="input_overlay_layout_desc">入力オーバーレイのためのボタンのレイアウト。</string>
+    <string name="controls_size">コントロールのサイズを調整し</string>
     <string name="gamecube_bindings">ゲームキューブコントローラの入力バインディング</string>
     <string name="controller_0">コントローラ1</string>
     <string name="controller_1">コントローラ2</string>
@@ -82,7 +87,7 @@
     <string name="enable_wiimote">Wiiリモコンを有効</string>
     <string name="input_binding">入力バインディング</string>
     <string name="input_binding_descrip">%1$sにバインドするための入力を移動または押してください。</string>
-    <!-- Gamecube buttons (May be shared with Wiimote stuff too) -->
+    <!-- GameCube buttons (May be shared with Wiimote stuff too) -->
     <string name="button_a">Aボタン</string>
     <string name="button_b">Bボタン</string>
     <string name="button_start">スタートボタン</string>
@@ -132,7 +137,6 @@
     <string name="jit64_recompiler">JIT64 Recompiler</string>
     <string name="jitil_recompiler">JITIL Recompiler</string>
     <string name="jit_arm_recompiler">JIT ARM Recompiler</string>
-    <string name="jitil_arm_recompiler">JITIL ARM Recompiler</string>
     <string name="cpu_settings">CPU</string>
     <string name="cpu_core">CPUコア</string>
     <string name="cpu_core_desc">%s</string>
@@ -157,6 +161,8 @@
     <string name="FSAA_descrip">3Dグラフィックスをラスタライズによって生じるエイリアシングの量が減少。 レンダリングされた画像はあまりギザギザになります。 抽選でエミュレーション速度を下げます。問題を引き起こす可能性があります。</string>
     <string name="anisotropic_filtering">異方性フィルタリング</string>
     <string name="anisotropic_filtering_descrip">異方性フィルタリングを適用します。 奥行きのあるテクスチャをより精細に描画することが出来ます。 特定のゲームでは描画バグの原因になることがあります。</string>
+    <string name="postprocessing_shader">ポストプロセッシングシェーダー</string>
+    <string name="postprocessing_shader_descrip">フレーム終了後の後処理効果を適用する。</string>
     <string name="scaled_efb_copy">Scaled EFB Copy</string>
     <string name="scaled_efb_copy_descrip">テクスチャエフェクトを表示するために作成されたテクスチャの品質を著しく向上させます。 特に高解像度出力時に効果が大きく出ます。 動作速度は少々低下し、まれに描画バグの原因にもなることもあります。</string>
     <string name="per_pixel_lighting">Per-Pixel Lighting</string>

@@ -18,9 +18,9 @@
 //   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
 
 #include <string>
-
-#include "Common/ChunkFile.h"
 #include "Common/Common.h"
+
+class PointerWrap;
 
 namespace CoreTiming
 {
@@ -78,7 +78,6 @@ void SetFakeTBStartTicks(u64 val);
 
 void ForceExceptionCheck(int cycles);
 
-extern int downcount;
 extern int slicelength;
 
 }; // end of namespace

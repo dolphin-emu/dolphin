@@ -28,20 +28,13 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/Jit64IL/JitILAsm.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/JitILCommon/IR.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
-
-#if _M_X86_64
-#define DISABLE64 \
-	{FallBackToInterpreter(inst); return;}
-#else
-#define DISABLE64
-#endif
 
 class JitIL : public JitILBase, public EmuCodeBlock
 {
@@ -50,7 +43,7 @@ private:
 	TrampolineCache trampolines;
 
 public:
-	JitILAsmRoutineManager asm_routines;
+	Jit64AsmRoutineManager asm_routines;
 
 	JitIL() {}
 	~JitIL() {}
@@ -82,11 +75,7 @@ public:
 	}
 
 	const char *GetName() override {
-#if _M_X86_64
 		return "JIT64IL";
-#else
-		return "JIT32IL";
-#endif
 	}
 
 	// Run!
@@ -103,8 +92,6 @@ public:
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 
-	void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
-	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void GenerateCarry(Gen::X64Reg temp_reg);
 
 	void tri_op(int d, int a, int b, bool reversible, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));

@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
 
@@ -700,7 +701,7 @@ static u32 ParseCont(u8* pCont)
 }
 
 
-int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
+static int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 {
 	u32 attribOffset = 0;
 	CBigEndianBuffer attribList(pAttribIDList);

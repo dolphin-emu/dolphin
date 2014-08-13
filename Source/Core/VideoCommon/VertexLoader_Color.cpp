@@ -16,10 +16,6 @@
 #define ASHIFT 24
 #define AMASK 0xFF000000
 
-extern int colIndex;
-extern int colElements[2];
-
-
 __forceinline void _SetCol(u32 val)
 {
 	DataWrite(val);

@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -30,7 +31,6 @@ enum
 	GROUP_TYPE_TILT,
 	GROUP_TYPE_CURSOR,
 	GROUP_TYPE_TRIGGERS,
-	GROUP_TYPE_UDPWII,
 	GROUP_TYPE_SLIDER,
 };
 
@@ -38,7 +38,6 @@ enum
 {
 	SETTING_RADIUS,
 	SETTING_DEADZONE,
-	SETTING_SQUARE,
 };
 
 const char* const named_directions[] =
@@ -96,12 +95,43 @@ public:
 				, value(def_value)
 				, default_value(def_value)
 				, low(_low)
-				, high(_high){}
+				, high(_high)
+				, is_virtual(false) {}
 
 			const std::string   name;
 			ControlState        value;
 			const ControlState  default_value;
 			const unsigned int  low, high;
+			bool                is_virtual;
+
+			virtual void SetValue(ControlState new_value)
+			{
+				value = new_value;
+			}
+
+			virtual ControlState GetValue()
+			{
+				return value;
+			}
+		};
+
+		class BackgroundInputSetting : public Setting
+		{
+		public:
+			BackgroundInputSetting(const std::string &_name) : Setting(_name, false)
+			{
+				is_virtual = true;
+			}
+
+			void SetValue(ControlState new_value) override
+			{
+				SConfig::GetInstance().m_BackgroundInput = new_value;
+			}
+
+			ControlState GetValue() override
+			{
+				return SConfig::GetInstance().m_BackgroundInput;
+			}
 		};
 
 		ControlGroup(const std::string& _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}
@@ -121,66 +151,41 @@ public:
 	class AnalogStick : public ControlGroup
 	{
 	public:
+		AnalogStick(const char* const _name);
 
-		template <typename C>
-		void GetState(C* const x, C* const y, const unsigned int base, const unsigned int range)
+		void GetState(double* const x, double* const y)
 		{
-			// this is all a mess
-
 			ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
 			ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
 			ControlState radius = settings[SETTING_RADIUS]->value;
 			ControlState deadzone = settings[SETTING_DEADZONE]->value;
-			ControlState square = settings[SETTING_SQUARE]->value;
 			ControlState m = controls[4]->control_ref->State();
 
-			// modifier code
+			ControlState ang = atan2(yy, xx);
+			ControlState ang_sin = sin(ang);
+			ControlState ang_cos = cos(ang);
+
+			ControlState dist = sqrt(xx*xx + yy*yy);
+
+			// dead zone code
+			dist = std::max(0.0f, dist - deadzone);
+			dist /= (1 - deadzone);
+
+			// radius
+			dist *= radius;
+
+			// The modifier halves the distance by 50%, which is useful
+			// for keyboard controls.
 			if (m)
-			{
-				yy = (fabsf(yy)>deadzone) * sign(yy) * (m + deadzone/2);
-				xx = (fabsf(xx)>deadzone) * sign(xx) * (m + deadzone/2);
-			}
+				dist *= 0.5;
 
-			// deadzone / square stick code
-			if (radius != 1 || deadzone || square)
-			{
-				// this section might be all wrong, but its working good enough, I think
+			yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
+			xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
 
-				ControlState ang = atan2(yy, xx);
-				ControlState ang_sin = sin(ang);
-				ControlState ang_cos = cos(ang);
-
-				// the amt a full square stick would have at current angle
-				ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
-
-				// the amt a full stick would have that was ( user setting squareness) at current angle
-				// I think this is more like a pointed circle rather than a rounded square like it should be
-				ControlState stick_full = (1 + (square_full - 1) * square);
-
-				ControlState dist = sqrt(xx*xx + yy*yy);
-
-				// dead zone code
-				dist = std::max(0.0f, dist - deadzone * stick_full);
-				dist /= (1 - deadzone);
-
-				// square stick code
-				ControlState amt = dist / stick_full;
-				dist -= ((square_full - 1) * amt * square);
-
-				// radius
-				dist *= radius;
-
-				yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
-				xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
-			}
-
-			*y = C(yy * range + base);
-			*x = C(xx * range + base);
+			*y = yy;
+			*x = xx;
 		}
-
-		AnalogStick(const char* const _name);
-
 	};
 
 	class Buttons : public ControlGroup
@@ -205,64 +210,55 @@ public:
 	class MixedTriggers : public ControlGroup
 	{
 	public:
+		MixedTriggers(const std::string& _name);
 
-		template <typename C, typename S>
-		void GetState(C* const digital, const C* bitmasks, S* analog, const unsigned int range)
+		void GetState(u16 *const digital, const u16* bitmasks, double* analog)
 		{
 			const unsigned int trig_count = ((unsigned int) (controls.size() / 2));
 			for (unsigned int i=0; i<trig_count; ++i,++bitmasks,++analog)
 			{
 				if (controls[i]->control_ref->State() > settings[0]->value) //threshold
 				{
-					*analog = range;
+					*analog = 1.0;
 					*digital |= *bitmasks;
 				}
 				else
 				{
-					*analog = S(controls[i+trig_count]->control_ref->State() * range);
+					*analog = controls[i+trig_count]->control_ref->State();
 				}
 			}
 		}
-
-		MixedTriggers(const std::string& _name);
-
 	};
 
 	class Triggers : public ControlGroup
 	{
 	public:
+		Triggers(const std::string& _name);
 
-		template <typename S>
-		void GetState(S* analog, const unsigned int range)
+		void GetState(double* analog)
 		{
 			const unsigned int trig_count = ((unsigned int) (controls.size()));
 			const ControlState deadzone = settings[0]->value;
 			for (unsigned int i=0; i<trig_count; ++i,++analog)
-				*analog = S(std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone) * range);
+				*analog = std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone);
 		}
-
-		Triggers(const std::string& _name);
-
 	};
 
 	class Slider : public ControlGroup
 	{
 	public:
+		Slider(const std::string& _name);
 
-		template <typename S>
-		void GetState(S* const slider, const unsigned int range, const unsigned int base = 0)
+		void GetState(double* const slider)
 		{
 			const float deadzone = settings[0]->value;
 			const float state = controls[1]->control_ref->State() - controls[0]->control_ref->State();
 
 			if (fabsf(state) > deadzone)
-				*slider = (S)((state - (deadzone * sign(state))) / (1 - deadzone) * range + base);
+				*slider = (state - (deadzone * sign(state))) / (1 - deadzone);
 			else
 				*slider = 0;
 		}
-
-		Slider(const std::string& _name);
-
 	};
 
 	class Force : public ControlGroup
@@ -270,8 +266,7 @@ public:
 	public:
 		Force(const std::string& _name);
 
-		template <typename C, typename R>
-		void GetState(C* axis, const u8 base, const R range)
+		void GetState(double* axis)
 		{
 			const float deadzone = settings[0]->value;
 			for (unsigned int i=0; i<6; i+=2)
@@ -282,7 +277,7 @@ public:
 					tmpf = ((state - (deadzone * sign(state))) / (1 - deadzone));
 
 				float &ax = m_swing[i >> 1];
-				*axis++ = (C)((tmpf - ax) * range + base);
+				*axis++ = (tmpf - ax);
 				ax = tmpf;
 			}
 		}
@@ -296,8 +291,7 @@ public:
 	public:
 		Tilt(const std::string& _name);
 
-		template <typename C, typename R>
-		void GetState(C* const x, C* const y, const unsigned int base, const R range, const bool step = true)
+		void GetState(double* const x, double* const y, const bool step = true)
 		{
 			// this is all a mess
 
@@ -309,42 +303,35 @@ public:
 			auto const angle = settings[2]->value / 1.8f;
 			ControlState m = controls[4]->control_ref->State();
 
-			// modifier code
-			if (m)
-			{
-				yy = (fabsf(yy)>deadzone) * sign(yy) * (m + deadzone/2);
-				xx = (fabsf(xx)>deadzone) * sign(xx) * (m + deadzone/2);
-			}
-
 			// deadzone / circle stick code
-			if (deadzone || circle)
-			{
-				// this section might be all wrong, but its working good enough, I think
+			// this section might be all wrong, but its working good enough, I think
 
-				ControlState ang = atan2(yy, xx);
-				ControlState ang_sin = sin(ang);
-				ControlState ang_cos = cos(ang);
+			ControlState ang = atan2(yy, xx);
+			ControlState ang_sin = sin(ang);
+			ControlState ang_cos = cos(ang);
 
-				// the amt a full square stick would have at current angle
-				ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
+			// the amt a full square stick would have at current angle
+			ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
 
-				// the amt a full stick would have that was (user setting circular) at current angle
-				// I think this is more like a pointed circle rather than a rounded square like it should be
-				ControlState stick_full = (square_full * (1 - circle)) + (circle);
+			// the amt a full stick would have that was (user setting circular) at current angle
+			// I think this is more like a pointed circle rather than a rounded square like it should be
+			ControlState stick_full = (square_full * (1 - circle)) + (circle);
 
-				ControlState dist = sqrt(xx*xx + yy*yy);
+			ControlState dist = sqrt(xx*xx + yy*yy);
 
-				// dead zone code
-				dist = std::max(0.0f, dist - deadzone * stick_full);
-				dist /= (1 - deadzone);
+			// dead zone code
+			dist = std::max(0.0f, dist - deadzone * stick_full);
+			dist /= (1 - deadzone);
 
-				// circle stick code
-				ControlState amt = dist / stick_full;
-				dist += (square_full - 1) * amt * circle;
+			// circle stick code
+			ControlState amt = dist / stick_full;
+			dist += (square_full - 1) * amt * circle;
 
-				yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
-				xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
-			}
+			if (m)
+				dist *= 0.5;
+
+			yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
+			xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
 
 			// this is kinda silly here
 			// gui being open will make this happen 2x as fast, o well
@@ -363,8 +350,8 @@ public:
 					m_tilt[1] = std::max(m_tilt[1] - 0.1f, yy);
 			}
 
-			*y = C(m_tilt[1] * angle * range + base);
-			*x = C(m_tilt[0] * angle * range + base);
+			*y = m_tilt[1] * angle;
+			*x = m_tilt[0] * angle;
 		}
 
 	private:
@@ -376,8 +363,7 @@ public:
 	public:
 		Cursor(const std::string& _name);
 
-		template <typename C>
-		void GetState(C* const x, C* const y, C* const z, const bool adjusted = false)
+		void GetState(double* const x, double* const y, double* const z, const bool adjusted = false)
 		{
 			const float zz = controls[4]->control_ref->State() - controls[5]->control_ref->State();
 
@@ -425,7 +411,7 @@ public:
 
 		~Extension() {}
 
-		void GetState(u8* const data, const bool focus = true);
+		void GetState(u8* const data);
 
 		std::vector<std::unique_ptr<ControllerEmu>> attachments;
 

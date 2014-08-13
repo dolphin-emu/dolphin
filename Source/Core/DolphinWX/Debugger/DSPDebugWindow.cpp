@@ -23,6 +23,7 @@
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
+#include "Core/Host.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
@@ -34,7 +35,7 @@
 
 class wxWindow;
 
-DSPDebuggerLLE* m_DebuggerFrame = nullptr;
+static DSPDebuggerLLE* m_DebuggerFrame = nullptr;
 
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
@@ -57,11 +58,11 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 
 	m_Toolbar = new wxAuiToolBar(this, ID_TOOLBAR,
 		wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
-	m_Toolbar->AddTool(ID_RUNTOOL, wxT("Pause"),
+	m_Toolbar->AddTool(ID_RUNTOOL, _("Pause"),
 		wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10,10)));
-	m_Toolbar->AddTool(ID_STEPTOOL, wxT("Step"),
+	m_Toolbar->AddTool(ID_STEPTOOL, _("Step"),
 		wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, wxSize(10,10)));
-	m_Toolbar->AddTool(ID_SHOWPCTOOL, wxT("Show PC"),
+	m_Toolbar->AddTool(ID_SHOWPCTOOL, _("Show PC"),
 		wxArtProvider::GetBitmap(wxART_GO_TO_PARENT, wxART_OTHER, wxSize(10,10)));
 	m_Toolbar->AddSeparator();
 	m_Toolbar->AddControl(new wxTextCtrl(m_Toolbar, ID_ADDRBOX, wxEmptyString,
@@ -81,7 +82,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	m_CodeView->SetPlain();
 	code_sizer->Add(m_CodeView, 1, wxALL | wxEXPAND);
 	code_panel->SetSizer(code_sizer);
-	m_MainNotebook->AddPage(code_panel, wxT("Disasm"), true);
+	m_MainNotebook->AddPage(code_panel, _("Disassembly"), true);
 
 	wxPanel *mem_panel = new wxPanel(m_MainNotebook, wxID_ANY);
 	wxBoxSizer *mem_sizer = new wxBoxSizer(wxVERTICAL);
@@ -89,7 +90,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	m_MemView = new CMemoryView(&debug_interface, mem_panel);
 	mem_sizer->Add(m_MemView, 1, wxALL | wxEXPAND);
 	mem_panel->SetSizer(mem_sizer);
-	m_MainNotebook->AddPage(mem_panel, wxT("Mem"));
+	m_MainNotebook->AddPage(mem_panel, _("Memory"));
 
 	m_Regs = new DSPRegisterView(this, ID_DSP_REGS);
 
@@ -100,14 +101,14 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 
 	m_mgr.AddPane(m_SymbolList, wxAuiPaneInfo().
 		Left().CloseButton(false).
-		Caption(wxT("Symbols")).Dockable(true));
+		Caption(_("Symbols")).Dockable(true));
 
 	m_mgr.AddPane(m_MainNotebook, wxAuiPaneInfo().
-		Name(wxT("m_MainNotebook")).Center().
+		Name("m_MainNotebook").Center().
 		CloseButton(false).MaximizeButton(true));
 
 	m_mgr.AddPane(m_Regs, wxAuiPaneInfo().Right().
-		CloseButton(false).Caption(wxT("Registers")).
+		CloseButton(false).Caption(_("Registers")).
 		Dockable(true));
 
 	UpdateState();
@@ -189,14 +190,14 @@ void DSPDebuggerLLE::UpdateState()
 {
 	if (DSPCore_GetState() == DSPCORE_RUNNING)
 	{
-		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Pause"));
+		m_Toolbar->SetToolLabel(ID_RUNTOOL, _("Pause"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10,10)));
 		m_Toolbar->EnableTool(ID_STEPTOOL, false);
 	}
 	else
 	{
-		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Run"));
+		m_Toolbar->SetToolLabel(ID_RUNTOOL, _("Run"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_OTHER, wxSize(10,10)));
 		m_Toolbar->EnableTool(ID_STEPTOOL, true);

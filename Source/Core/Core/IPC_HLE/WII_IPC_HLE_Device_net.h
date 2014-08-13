@@ -177,8 +177,6 @@ public:
 
 	void ResetConfig()
 	{
-		int i;
-
 		if (File::Exists(path))
 			File::Delete(path);
 
@@ -198,7 +196,7 @@ public:
 		SetEnableBooting(0);
 		SetEmail("@wii.com");
 
-		for (i=0; i<nwc24_config_t::URL_COUNT; i++)
+		for (int i = 0; i < nwc24_config_t::URL_COUNT; ++i)
 		{
 			strncpy(config.http_urls[i], urls[i], nwc24_config_t::MAX_URL_LENGTH);
 		}
@@ -226,7 +224,7 @@ public:
 	{
 		if (File::Exists(path))
 		{
-			if (!File::IOFile(path, "rb").ReadBytes((void *)&config, sizeof(config)))
+			if (!File::IOFile(path, "rb").ReadBytes((void*)&config, sizeof(config)))
 				ResetConfig();
 			else
 			{
@@ -245,8 +243,7 @@ public:
 	{
 		u32* ptr = (u32*)&config;
 		u32 sum = 0;
-		int i;
-		for (i=0; i<0xFF; i++)
+		for (int i = 0; i < 0xFF; ++i)
 		{
 			sum += Common::swap32(*ptr++);
 		}
@@ -278,35 +275,37 @@ public:
 		return 0;
 	}
 
-	u32 Magic(){return Common::swap32(config.magic);}
-	void SetMagic(u32 magic){config.magic = Common::swap32(magic);}
+	u32 Magic() {return Common::swap32(config.magic);}
+	void SetMagic(u32 magic) {config.magic = Common::swap32(magic);}
 
-	u32 Unk(){return Common::swap32(config._unk_04);}
-	void SetUnk(u32 _unk_04){config._unk_04 = Common::swap32(_unk_04);}
+	u32 Unk() {return Common::swap32(config._unk_04);}
+	void SetUnk(u32 _unk_04) {config._unk_04 = Common::swap32(_unk_04);}
 
-	u32 IdGen(){return Common::swap32(config.id_generation);}
-	void SetIdGen(u32 id_generation){config.id_generation = Common::swap32(id_generation);}
-	void IncrementIdGen(){
+	u32 IdGen() {return Common::swap32(config.id_generation);}
+	void SetIdGen(u32 id_generation) {config.id_generation = Common::swap32(id_generation);}
+
+	void IncrementIdGen()
+	{
 		u32 id_ctr = IdGen();
 		id_ctr++;
 		id_ctr &= 0x1F;
 		SetIdGen(id_ctr);
 	}
 
-	u32 Checksum(){return Common::swap32(config.checksum);}
-	void SetChecksum(u32 checksum){config.checksum = Common::swap32(checksum);}
+	u32 Checksum() {return Common::swap32(config.checksum);}
+	void SetChecksum(u32 checksum) {config.checksum = Common::swap32(checksum);}
 
-	u32 CreationStage(){return Common::swap32(config.creation_stage);}
-	void SetCreationStage(u32 creation_stage){config.creation_stage = Common::swap32(creation_stage);}
+	u32 CreationStage() {return Common::swap32(config.creation_stage);}
+	void SetCreationStage(u32 creation_stage) {config.creation_stage = Common::swap32(creation_stage);}
 
-	u32 EnableBooting(){return Common::swap32(config.enable_booting);}
-	void SetEnableBooting(u32 enable_booting){config.enable_booting = Common::swap32(enable_booting);}
+	u32 EnableBooting() {return Common::swap32(config.enable_booting);}
+	void SetEnableBooting(u32 enable_booting) {config.enable_booting = Common::swap32(enable_booting);}
 
-	u64 Id(){return Common::swap64(config.nwc24_id);}
-	void SetId(u64 nwc24_id){config.nwc24_id = Common::swap64(nwc24_id);}
+	u64 Id() {return Common::swap64(config.nwc24_id);}
+	void SetId(u64 nwc24_id) {config.nwc24_id = Common::swap64(nwc24_id);}
 
-	const char * Email(){return config.email;}
-	void SetEmail(const char * email)
+	const char* Email() {return config.email;}
+	void SetEmail(const char* email)
 	{
 		strncpy(config.email, email, nwc24_config_t::MAX_EMAIL_LENGTH);
 		config.email[nwc24_config_t::MAX_EMAIL_LENGTH-1] = '\0';
@@ -323,7 +322,6 @@ public:
 	WiiNetConfig()
 	{
 		path = File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/config.dat";
-
 		ReadConfig();
 	}
 
@@ -348,8 +346,7 @@ public:
 	{
 		if (!File::Exists(path))
 		{
-			if (!File::CreateFullPath(
-				std::string(File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/")))
+			if (!File::CreateFullPath(std::string(File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/")))
 			{
 				ERROR_LOG(WII_IPC_NET, "Failed to create directory for network config file");
 			}
@@ -360,19 +357,19 @@ public:
 
 	void WriteToMem(const u32 address)
 	{
-		Memory::WriteBigEData((const u8 *)&config, address, sizeof(config));
+		Memory::WriteBigEData((const u8*)&config, address, sizeof(config));
 	}
 
 	void ReadFromMem(const u32 address)
 	{
-		Memory::ReadBigEData((u8 *)&config, address, sizeof(config));
+		Memory::ReadBigEData((u8*)&config, address, sizeof(config));
 	}
 
 	void ReadConfig()
 	{
 		if (File::Exists(path))
 		{
-			if (!File::IOFile(path, "rb").ReadBytes((void *)&config, sizeof(config)))
+			if (!File::IOFile(path, "rb").ReadBytes((void*)&config, sizeof(config)))
 				ResetConfig();
 		}
 		else
@@ -507,8 +504,7 @@ public:
 			break;
 
 		default:
-			ERROR_LOG(WII_IPC_NET, "%s - unknown IOCtl: %x\n",
-				GetDeviceName().c_str(), Parameter);
+			ERROR_LOG(WII_IPC_NET, "%s - unknown IOCtl: %x\n", GetDeviceName().c_str(), Parameter);
 			break;
 		}
 

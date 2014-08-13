@@ -51,6 +51,7 @@ public:
 		COLUMN_BANNER,
 		COLUMN_TITLE,
 		COLUMN_NOTES,
+		COLUMN_ID,
 		COLUMN_COUNTRY,
 		COLUMN_SIZE,
 		COLUMN_EMULATION_STATE,
@@ -103,7 +104,7 @@ private:
 	void OnMultiCompressGCM(wxCommandEvent& event);
 	void OnMultiDecompressGCM(wxCommandEvent& event);
 	void OnInstallWAD(wxCommandEvent& event);
-	void OnDropFiles(wxDropFilesEvent& event);
+	void OnChangeDisc(wxCommandEvent& event);
 
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();
@@ -112,6 +113,6 @@ private:
 	static size_t m_currentItem;
 	static std::string m_currentFilename;
 	static size_t m_numberItem;
-	static void CompressCB(const char* text, float percent, void* arg);
-	static void MultiCompressCB(const char* text, float percent, void* arg);
+	static void CompressCB(const std::string& text, float percent, void* arg);
+	static void MultiCompressCB(const std::string& text, float percent, void* arg);
 };

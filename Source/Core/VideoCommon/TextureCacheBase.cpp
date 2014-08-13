@@ -2,8 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <string>
+
 #include "Common/FileUtil.h"
 #include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
@@ -14,9 +18,6 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoConfig.h"
-
-// ugly
-extern int frameCount;
 
 enum
 {
@@ -32,7 +33,7 @@ TextureCache::TexCache TextureCache::textures;
 
 TextureCache::BackupConfig TextureCache::backup_config;
 
-bool invalidate_texture_cache_requested;
+static bool invalidate_texture_cache_requested;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -225,36 +226,34 @@ bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsign
 		return false;
 
 	// Just checking if the necessary files exist, if they can't be loaded or have incorrect dimensions LODs will be black
-	char texBasePathTemp[MAX_PATH];
-	char texPathTemp[MAX_PATH];
-
-	sprintf(texBasePathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
+	std::string texBasePathTemp = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
 
 	for (unsigned int level = 1; level < levels; ++level)
 	{
-		sprintf(texPathTemp, "%s_mip%u", texBasePathTemp, level);
+		std::string texPathTemp = StringFromFormat("%s_mip%u", texBasePathTemp.c_str(), level);
 		if (!HiresTextures::HiresTexExists(texPathTemp))
 		{
 			if (level > 1)
-				WARN_LOG(VIDEO, "Couldn't find custom texture LOD with index %u (filename: %s), disabling custom LODs for this texture", level, texPathTemp);
+				WARN_LOG(VIDEO, "Couldn't find custom texture LOD with index %u (filename: %s), disabling custom LODs for this texture", level, texPathTemp.c_str());
 
 			return false;
 		}
 	}
+
 	return true;
 }
 
 PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height)
 {
-	char texPathTemp[MAX_PATH];
+	std::string texPathTemp;
 	unsigned int newWidth = 0;
 	unsigned int newHeight = 0;
 	u32 tex_hash_u32 = tex_hash & 0x00000000FFFFFFFFLL;
 
 	if (level == 0)
-		sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat);
+		texPathTemp = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat);
 	else
-		sprintf(texPathTemp, "%s_%08x_%i_mip%u", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat, level);
+		texPathTemp = StringFromFormat("%s_%08x_%i_mip%u", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat, level);
 
 	unsigned int required_size = 0;
 	PC_TexFormat ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, &required_size, texformat, temp_size, temp);
@@ -271,11 +270,11 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 	if (ret != PC_TEX_FMT_NONE)
 	{
 		if (level > 0 && (newWidth != width || newHeight != height))
-			ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.", newWidth, newHeight, texPathTemp, width, height);
+			ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.", newWidth, newHeight, texPathTemp.c_str(), width, height);
 		if (newWidth * height != newHeight * width)
-			ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. The aspect differs from the native size %dx%d.", newWidth, newHeight, texPathTemp, width, height);
+			ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. The aspect differs from the native size %dx%d.", newWidth, newHeight, texPathTemp.c_str(), width, height);
 		if (newWidth % width || newHeight % height)
-			WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. Please use an integer upscaling factor based on the native size %dx%d.", newWidth, newHeight, texPathTemp, width, height);
+			WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. Please use an integer upscaling factor based on the native size %dx%d.", newWidth, newHeight, texPathTemp.c_str(), width, height);
 
 		width = newWidth;
 		height = newHeight;
@@ -386,7 +385,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 
 	// D3D doesn't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
 	// e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,1x1, so we limit the mipmap count to 6 there
-	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && max(expandedWidth, expandedHeight) >> maxlevel == 0)
+	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && std::max(expandedWidth, expandedHeight) >> maxlevel == 0)
 		--maxlevel;
 
 	TCacheEntryBase *entry = textures[texID];

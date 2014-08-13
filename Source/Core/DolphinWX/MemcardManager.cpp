@@ -18,6 +18,7 @@
 #include <wx/listbase.h>
 #include <wx/menu.h>
 #include <wx/menuitem.h>
+#include <wx/msgdlg.h>
 #include <wx/mstream.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -34,7 +35,7 @@
 #include "DolphinWX/MemcardManager.h"
 #include "DolphinWX/WxUtils.h"
 
-#define ARROWS slot ? _T("") : ARROW[slot], slot ? ARROW[slot] : _T("")
+#define ARROWS slot ? "" : ARROW[slot], slot ? ARROW[slot] : ""
 
 const u8 hdr[] = {
 0x42,0x4D,
@@ -54,7 +55,7 @@ const u8 hdr[] = {
 0x00,0x00,0x00,0x00
 };
 
-wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, u32 width, u32 height)
+static wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, u32 width, u32 height)
 {
 	u32 stride = (4*width);
 
@@ -197,7 +198,7 @@ void CMemcardManager::CreateGUIControls()
 {
 	// Create the controls for both memcards
 
-	const wxChar* ARROW[2] = {_T("<-"), _T("->")};
+	const char* ARROW[2] = { "<-", "->" };
 
 	m_ConvertToGci = new wxButton(this, ID_CONVERTTOGCI, _("Convert to GCI"));
 
@@ -228,14 +229,14 @@ void CMemcardManager::CreateGUIControls()
 
 		m_MemcardPath[slot] = new wxFilePickerCtrl(this, ID_MEMCARDPATH_A + slot,
 			 StrToWxStr(File::GetUserPath(D_GCUSER_IDX)), _("Choose a memory card:"),
-		_("Gamecube Memory Cards (*.raw,*.gcp)") + wxString(wxT("|*.raw;*.gcp")), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
+		_("GameCube Memory Cards (*.raw,*.gcp)") + wxString("|*.raw;*.gcp"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 
 		m_MemcardList[slot] = new CMemcardListCtrl(this, ID_MEMCARDLIST_A + slot, wxDefaultPosition, wxSize(350,400),
 		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL, mcmSettings);
 
 		m_MemcardList[slot]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
 
-		sMemcard[slot] = new wxStaticBoxSizer(wxVERTICAL, this, _("Memory Card") + wxString::Format(wxT(" %c"), 'A' + slot));
+		sMemcard[slot] = new wxStaticBoxSizer(wxVERTICAL, this, _("Memory Card") + wxString::Format(" %c", 'A' + slot));
 		sMemcard[slot]->Add(m_MemcardPath[slot], 0, wxEXPAND|wxALL, 5);
 		sMemcard[slot]->Add(m_MemcardList[slot], 1, wxEXPAND|wxALL, 5);
 		sMemcard[slot]->Add(sPages, 0, wxEXPAND|wxALL, 1);
@@ -301,7 +302,7 @@ void CMemcardManager::ChangePath(int slot)
 	if (!m_MemcardPath[SLOT_A]->GetPath().CmpNoCase(m_MemcardPath[SLOT_B]->GetPath()))
 	{
 		if (m_MemcardPath[slot]->GetPath().length())
-			PanicAlertT("Memcard already opened");
+			wxMessageBox(_("Memcard already opened"));
 	}
 	else
 	{
@@ -423,66 +424,66 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 	switch (error)
 	{
 	case GCS:
-		SuccessAlertT("File converted to .gci");
+		wxMessageBox(_("File converted to .gci"));
 		break;
 	case SUCCESS:
 		if (slot != -1)
 		{
 			memoryCard[slot]->FixChecksums();
-			if (!memoryCard[slot]->Save()) PanicAlert(E_SAVEFAILED);
+			if (!memoryCard[slot]->Save()) PanicAlertT(E_SAVEFAILED);
 			page[slot] = FIRSTPAGE;
 			ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()), slot);
 		}
 		break;
 	case NOMEMCARD:
-		PanicAlertT("File is not recognized as a memcard");
+		WxUtils::ShowErrorDialog(_("File is not recognized as a memcard"));
 		break;
 	case OPENFAIL:
-		PanicAlertT("File could not be opened\nor does not have a valid extension");
+		WxUtils::ShowErrorDialog(_("File could not be opened\nor does not have a valid extension"));
 		break;
 	case OUTOFBLOCKS:
 		if (slot == -1)
 		{
-			PanicAlert(E_UNK);
+			WxUtils::ShowErrorDialog(_(E_UNK));
 			break;
 		}
-		PanicAlertT("Only %d blocks available", memoryCard[slot]->GetFreeBlocks());
+		wxMessageBox(wxString::Format(_("Only %d blocks available"), memoryCard[slot]->GetFreeBlocks()));
 		break;
 	case OUTOFDIRENTRIES:
-		PanicAlertT("No free dir index entries");
+		WxUtils::ShowErrorDialog(_("No free directory index entries."));
 		break;
 	case LENGTHFAIL:
-		PanicAlertT("Imported file has invalid length");
+		WxUtils::ShowErrorDialog(_("Imported file has invalid length."));
 		break;
 	case INVALIDFILESIZE:
-		PanicAlertT("The save you are trying to copy has an invalid file size");
+		WxUtils::ShowErrorDialog(_("The save you are trying to copy has an invalid file size."));
 		break;
 	case TITLEPRESENT:
-		PanicAlertT("Memcard already has a save for this title");
+		WxUtils::ShowErrorDialog(_("Memcard already has a save for this title."));
 		break;
 	case SAVFAIL:
-		PanicAlertT("Imported file has sav extension\nbut does not have a correct header");
+		WxUtils::ShowErrorDialog(_("Imported file has sav extension\nbut does not have a correct header."));
 		break;
 	case GCSFAIL:
-		PanicAlertT("Imported file has gsc extension\nbut does not have a correct header");
+		WxUtils::ShowErrorDialog(_("Imported file has gsc extension\nbut does not have a correct header."));
 		break;
 	case FAIL:
 		if (slot == -1)
 		{
-			PanicAlertT("Export Failed");
+			WxUtils::ShowErrorDialog(_("Export failed"));
 			return false;
 		}
-		PanicAlertT("Invalid bat.map or dir entry");
+		WxUtils::ShowErrorDialog(_("Invalid bat.map or dir entry."));
 		break;
 	case WRITEFAIL:
-		PanicAlert(E_SAVEFAILED);
+		WxUtils::ShowErrorDialog(_(E_SAVEFAILED));
 		break;
 	case DELETE_FAIL:
-		PanicAlertT("Order of files in the File Directory do not match the block order\n"
-				"Right click and export all of the saves,\nand import the saves to a new memcard\n");
+		WxUtils::ShowErrorDialog(_("Order of files in the File Directory do not match the block order\n"
+		                           "Right click and export all of the saves,\nand import the saves to a new memcard\n"));
 		break;
 	default:
-		PanicAlert(E_UNK);
+		WxUtils::ShowErrorDialog(_(E_UNK));
 		break;
 	}
 	SetFocus();
@@ -519,11 +520,11 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	case ID_FIXCHECKSUM_B:
 		if (memoryCard[slot]->FixChecksums() && memoryCard[slot]->Save())
 		{
-			SuccessAlertT("The checksum was successfully fixed");
+			wxMessageBox(_("The checksum was successfully fixed."));
 		}
 		else
 		{
-			PanicAlert(E_SAVEFAILED);
+			WxUtils::ShowErrorDialog(_(E_SAVEFAILED));
 		}
 		break;
 	case ID_CONVERTTOGCI:
@@ -538,16 +539,16 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				? StrToWxStr("")
 				: StrToWxStr(DefaultIOPath),
 			wxEmptyString, wxEmptyString,
-			_("GameCube Savegame files(*.gci;*.gcs;*.sav)") + wxString(wxT("|*.gci;*.gcs;*.sav|")) +
-			_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
-			_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
-			_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),
+			_("GameCube Savegame files(*.gci;*.gcs;*.sav)") + wxString("|*.gci;*.gcs;*.sav|") +
+			_("Native GCI files(*.gci)") + wxString("|*.gci|") +
+			_("MadCatz Gameshark files(*.gcs)") + wxString("|*.gcs|") +
+			_("Datel MaxDrive/Pro files(*.sav)") + wxString("|*.sav"),
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 		if (!fileName.empty() && !fileName2.empty())
 		{
 			wxString temp2 = wxFileSelector(_("Save GCI as..."),
-				wxEmptyString, wxEmptyString, wxT(".gci"),
-				_("GCI File(*.gci)") + wxString(_T("|*.gci")),
+				wxEmptyString, wxEmptyString, ".gci",
+				_("GCI File(*.gci)") + wxString("|*.gci"),
 				wxFD_OVERWRITE_PROMPT|wxFD_SAVE, this);
 
 			if (temp2.empty())
@@ -571,16 +572,16 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			std::string gciFilename;
 			if (!memoryCard[slot]->GCI_FileName(index, gciFilename))
 			{
-				PanicAlert("Invalid index");
+				wxMessageBox(_("Invalid index"), _("Error"));
 				return;
 			}
 			wxString fileName = wxFileSelector(
 				_("Export save as..."),
 				StrToWxStr(DefaultIOPath),
-				StrToWxStr(gciFilename), wxT(".gci"),
-				_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
-				_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
-				_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),
+				StrToWxStr(gciFilename), ".gci",
+				_("Native GCI files(*.gci)") + wxString("|*.gci|") +
+				_("MadCatz Gameshark files(*.gcs)") + wxString("|*.gcs|") +
+				_("Datel MaxDrive/Pro files(*.sav)") + wxString("|*.sav"),
 				wxFD_OVERWRITE_PROMPT|wxFD_SAVE, this);
 
 			if (fileName.length() > 0)
@@ -601,12 +602,17 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		SplitPath(mpath, &path1, &path2, nullptr);
 		path1 += path2;
 		File::CreateDir(path1);
-		if (PanicYesNoT("Warning: This will overwrite any existing saves that are in the folder:\n"
-		                "%s\nand have the same name as a file on your memcard\nContinue?", path1.c_str()))
-		for (int i = 0; i < DIRLEN; i++)
+
+		int answer = wxMessageBox(wxString::Format(_("Warning: This will overwrite any existing saves that are in the folder:\n"
+		                                             "%s\nand have the same name as a file on your memcard\nContinue?"), path1.c_str()), _("Warning"), wxYES_NO);
+		if (answer == wxYES)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, "", path1), -1);
+			for (int i = 0; i < DIRLEN; i++)
+			{
+				CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, "", path1), -1);
+			}
 		}
+
 		break;
 	}
 	case ID_DELETE_A:
@@ -741,11 +747,11 @@ bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
 		if (blocks == 0xFFFF)
 			blocks = 0;
 
-		wxBlock.Printf(wxT("%10d"), blocks);
+		wxBlock.Printf("%10d", blocks);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
 		firstblock = memoryCard[card]->DEntry_FirstBlock(fileIndex);
 		//if (firstblock == 0xFFFF) firstblock = 3; // to make firstblock -1
-		wxFirstBlock.Printf(wxT("%15d"), firstblock);
+		wxFirstBlock.Printf("%15d", firstblock);
 		m_MemcardList[card]->SetItem(index, COLUMN_FIRSTBLOCK, wxFirstBlock);
 		m_MemcardList[card]->SetItem(index, COLUMN_ICON, wxEmptyString);
 

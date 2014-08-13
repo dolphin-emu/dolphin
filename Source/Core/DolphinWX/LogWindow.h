@@ -18,7 +18,7 @@
 #include <wx/windowid.h>
 
 #include "Common/Common.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/LogManager.h"
 
 class CFrame;
 class wxBoxSizer;

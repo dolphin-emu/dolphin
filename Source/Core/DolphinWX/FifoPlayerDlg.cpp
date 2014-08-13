@@ -20,6 +20,7 @@
 #include <wx/filedlg.h>
 #include <wx/gdicmn.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -52,7 +53,7 @@ DEFINE_EVENT_TYPE(FRAME_WRITTEN_EVENT)
 
 using namespace std;
 
-std::recursive_mutex sMutex;
+static std::recursive_mutex sMutex;
 wxEvtHandler *volatile FifoPlayerDlg::m_EvtHandler = nullptr;
 
 FifoPlayerDlg::FifoPlayerDlg(wxWindow * const parent) :
@@ -76,19 +77,19 @@ FifoPlayerDlg::~FifoPlayerDlg()
 
 	// Disconnect Events
 	Unbind(wxEVT_PAINT, &FifoPlayerDlg::OnPaint, this);
-	m_FrameFromCtrl->Unbind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnFrameFrom, this);
-	m_FrameToCtrl->Unbind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnFrameTo, this);
-	m_ObjectFromCtrl->Unbind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnObjectFrom, this);
-	m_ObjectToCtrl->Unbind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnObjectTo, this);
-	m_EarlyMemoryUpdates->Unbind(wxEVT_COMMAND_CHECKBOX_CLICKED, &FifoPlayerDlg::OnCheckEarlyMemoryUpdates, this);
-	m_RecordStop->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnRecordStop, this);
-	m_Save->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnSaveFile, this);
-	m_FramesToRecordCtrl->Unbind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnNumFramesToRecord, this);
-	m_Close->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnCloseClick, this);
+	m_FrameFromCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnFrameFrom, this);
+	m_FrameToCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnFrameTo, this);
+	m_ObjectFromCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnObjectFrom, this);
+	m_ObjectToCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnObjectTo, this);
+	m_EarlyMemoryUpdates->Unbind(wxEVT_CHECKBOX, &FifoPlayerDlg::OnCheckEarlyMemoryUpdates, this);
+	m_RecordStop->Unbind(wxEVT_BUTTON, &FifoPlayerDlg::OnRecordStop, this);
+	m_Save->Unbind(wxEVT_BUTTON, &FifoPlayerDlg::OnSaveFile, this);
+	m_FramesToRecordCtrl->Unbind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnNumFramesToRecord, this);
+	m_Close->Unbind(wxEVT_BUTTON, &FifoPlayerDlg::OnCloseClick, this);
 
-	m_framesList->Unbind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnFrameListSelectionChanged, this);
-	m_objectsList->Unbind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectListSelectionChanged, this);
-	m_objectCmdList->Unbind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectCmdListSelectionChanged, this);
+	m_framesList->Unbind(wxEVT_LISTBOX, &FifoPlayerDlg::OnFrameListSelectionChanged, this);
+	m_objectsList->Unbind(wxEVT_LISTBOX, &FifoPlayerDlg::OnObjectListSelectionChanged, this);
+	m_objectCmdList->Unbind(wxEVT_LISTBOX, &FifoPlayerDlg::OnObjectCmdListSelectionChanged, this);
 
 	FifoPlayer::GetInstance().SetFrameWrittenCallback(nullptr);
 
@@ -321,33 +322,33 @@ void FifoPlayerDlg::CreateGUIControls()
 
 	// Connect Events
 	Bind(wxEVT_PAINT, &FifoPlayerDlg::OnPaint, this);
-	m_FrameFromCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnFrameFrom, this);
-	m_FrameToCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnFrameTo, this);
-	m_ObjectFromCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnObjectFrom, this);
-	m_ObjectToCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnObjectTo, this);
-	m_EarlyMemoryUpdates->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &FifoPlayerDlg::OnCheckEarlyMemoryUpdates, this);
-	m_RecordStop->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnRecordStop, this);
-	m_Save->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnSaveFile, this);
-	m_FramesToRecordCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnNumFramesToRecord, this);
-	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnCloseClick, this);
+	m_FrameFromCtrl->Bind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnFrameFrom, this);
+	m_FrameToCtrl->Bind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnFrameTo, this);
+	m_ObjectFromCtrl->Bind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnObjectFrom, this);
+	m_ObjectToCtrl->Bind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnObjectTo, this);
+	m_EarlyMemoryUpdates->Bind(wxEVT_CHECKBOX, &FifoPlayerDlg::OnCheckEarlyMemoryUpdates, this);
+	m_RecordStop->Bind(wxEVT_BUTTON, &FifoPlayerDlg::OnRecordStop, this);
+	m_Save->Bind(wxEVT_BUTTON, &FifoPlayerDlg::OnSaveFile, this);
+	m_FramesToRecordCtrl->Bind(wxEVT_SPINCTRL, &FifoPlayerDlg::OnNumFramesToRecord, this);
+	Bind(wxEVT_BUTTON, &FifoPlayerDlg::OnCloseClick, this);
 
-	m_framesList->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnFrameListSelectionChanged, this);
-	m_objectsList->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectListSelectionChanged, this);
-	m_objectCmdList->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectCmdListSelectionChanged, this);
+	m_framesList->Bind(wxEVT_LISTBOX, &FifoPlayerDlg::OnFrameListSelectionChanged, this);
+	m_objectsList->Bind(wxEVT_LISTBOX, &FifoPlayerDlg::OnObjectListSelectionChanged, this);
+	m_objectCmdList->Bind(wxEVT_LISTBOX, &FifoPlayerDlg::OnObjectCmdListSelectionChanged, this);
 
-	m_beginSearch->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnBeginSearch, this);
-	m_findNext->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnFindNextClick, this);
-	m_findPrevious->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnFindPreviousClick, this);
+	m_beginSearch->Bind(wxEVT_BUTTON, &FifoPlayerDlg::OnBeginSearch, this);
+	m_findNext->Bind(wxEVT_BUTTON, &FifoPlayerDlg::OnFindNextClick, this);
+	m_findPrevious->Bind(wxEVT_BUTTON, &FifoPlayerDlg::OnFindPreviousClick, this);
 
-	m_searchField->Bind(wxEVT_COMMAND_TEXT_ENTER, &FifoPlayerDlg::OnBeginSearch, this);
-	m_searchField->Bind(wxEVT_COMMAND_TEXT_UPDATED, &FifoPlayerDlg::OnSearchFieldTextChanged, this);
+	m_searchField->Bind(wxEVT_TEXT_ENTER, &FifoPlayerDlg::OnBeginSearch, this);
+	m_searchField->Bind(wxEVT_TEXT, &FifoPlayerDlg::OnSearchFieldTextChanged, this);
 
 	// Setup command copying
 	wxAcceleratorEntry entry;
 	entry.Set(wxACCEL_CTRL, (int)'C', wxID_COPY);
 	wxAcceleratorTable accel(1, &entry);
 	m_objectCmdList->SetAcceleratorTable(accel);
-	m_objectCmdList->Bind(wxEVT_COMMAND_MENU_SELECTED, &FifoPlayerDlg::OnObjectCmdListSelectionCopy, this, wxID_COPY);
+	m_objectCmdList->Bind(wxEVT_MENU, &FifoPlayerDlg::OnObjectCmdListSelectionCopy, this, wxID_COPY);
 
 	Bind(RECORDING_FINISHED_EVENT, &FifoPlayerDlg::OnRecordingFinished, this);
 	Bind(FRAME_WRITTEN_EVENT, &FifoPlayerDlg::OnFrameWritten, this);
@@ -418,7 +419,7 @@ void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 
 			// Wasn't able to save the file, shit's whack, yo.
 			if (!result)
-				PanicAlert("Error saving file");
+				WxUtils::ShowErrorDialog(_("Error saving file."));
 		}
 	}
 }
@@ -464,13 +465,13 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 		return;
 
 	// TODO: Limited to even str lengths...
-	if (str_search_val.Length() && str_search_val.Length() % 2)
+	if (!str_search_val.empty() && str_search_val.length() % 2)
 	{
 		m_numResultsText->SetLabel(_("Invalid search string (only even string lengths supported)"));
 		return;
 	}
 
-	unsigned int const val_length = str_search_val.Length() / 2;
+	unsigned int const val_length = str_search_val.length() / 2;
 	std::vector<u8> search_val(val_length);
 	for (unsigned int i = 0; i < val_length; ++i)
 	{
@@ -583,7 +584,7 @@ void FifoPlayerDlg::ChangeSearchResult(unsigned int result_idx)
 		m_objectsList->SetSelection(search_results[result_idx].obj_idx);
 		m_objectCmdList->SetSelection(search_results[result_idx].cmd_idx);
 
-		wxCommandEvent ev(wxEVT_COMMAND_LISTBOX_SELECTED);
+		wxCommandEvent ev(wxEVT_LISTBOX);
 		if (prev_frame != m_framesList->GetSelection())
 		{
 			ev.SetInt(m_framesList->GetSelection());
@@ -631,7 +632,7 @@ void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
 	}
 
 	// Update object list
-	wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
+	wxCommandEvent ev = wxCommandEvent(wxEVT_LISTBOX);
 	ev.SetInt(-1);
 	OnObjectListSelectionChanged(ev);
 
@@ -762,7 +763,7 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		}
 	}
 	// Update command list
-	wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
+	wxCommandEvent ev = wxCommandEvent(wxEVT_LISTBOX);
 	ev.SetInt(-1);
 	OnObjectCmdListSelectionChanged(ev);
 
@@ -789,16 +790,18 @@ void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
 	wxString newLabel;
 	if (*cmddata == GX_LOAD_BP_REG)
 	{
-		char name[64]="\0", desc[512]="\0";
-		GetBPRegInfo(cmddata+1, name, sizeof(name), desc, sizeof(desc));
+		std::string name;
+		std::string desc;
+		GetBPRegInfo(cmddata+1, &name, &desc);
+
 		newLabel = _("BP register ");
-		newLabel += (name[0] != '\0') ? StrToWxStr(name) : wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1));
+		newLabel += (name.empty()) ? wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1)) : StrToWxStr(name);
 		newLabel += ":\n";
 
-		if (desc[0] != '\0')
-			newLabel += StrToWxStr(desc);
-		else
+		if (desc.empty())
 			newLabel += _("No description available");
+		else
+			newLabel += StrToWxStr(desc);
 	}
 	else if (*cmddata == GX_LOAD_CP_REG)
 	{
@@ -891,7 +894,7 @@ void FifoPlayerDlg::UpdateAnalyzerGui()
 			m_framesList->Append(wxString::Format("Frame %u", (u32)i));
 		}
 
-		wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
+		wxCommandEvent ev = wxCommandEvent(wxEVT_LISTBOX);
 		ev.SetInt(-1);
 		OnFrameListSelectionChanged(ev);
 	}

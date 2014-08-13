@@ -7,6 +7,7 @@
 package org.dolphinemu.dolphinemu.gamelist;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,9 @@ import org.dolphinemu.dolphinemu.R;
  */
 public final class GameListAdapter extends ArrayAdapter<GameListItem>
 {
+	private static final float BYTES_PER_GIB = 1024 * 1024 * 1024;
+	private static final float BYTES_PER_MIB = 1024 * 1024;
+
 	private final Context context;
 	private final int id;
 
@@ -41,40 +45,80 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 	}
 
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent)
+	public View getView(int position, View gameView, ViewGroup parent)
 	{
-		if (convertView == null)
+		ViewHolder holder;
+
+		// If getView() was called without passing in a recycled view,
+		if (gameView == null)
 		{
-			LayoutInflater vi = LayoutInflater.from(context);
-			convertView = vi.inflate(id, parent, false);
+			// Inflate a new view using the appropriate XML layout.
+			LayoutInflater inflater = LayoutInflater.from(context);
+			gameView = inflater.inflate(id, parent, false);
+
+			// Instantiate a holder to contain references to the game's views.
+			holder = new ViewHolder();
+			holder.title    = (TextView) gameView.findViewById(R.id.GameListItemTitle);
+			holder.subtitle = (TextView) gameView.findViewById(R.id.GameListItemSubTitle);
+			holder.icon    = (ImageView) gameView.findViewById(R.id.GameListItemIcon);
+
+			// Attach this list of references to the view.
+			gameView.setTag(holder);
+		}
+		// If we do have a recycled view, we can use the references it already contains.
+		else
+		{
+			holder = (ViewHolder) gameView.getTag();
 		}
 
+		// Get a reference to the game represented by this row.
 		final GameListItem item = getItem(position);
+
+		// Whether this row's view is newly created or not, set the children to contain the game's data.
 		if (item != null)
 		{
-			TextView title    = (TextView) convertView.findViewById(R.id.ListItemTitle);
-			TextView subtitle = (TextView) convertView.findViewById(R.id.ListItemSubTitle);
-			ImageView icon    = (ImageView) convertView.findViewById(R.id.ListItemIcon);
+			holder.title.setText(item.getName());
 
-			if (title != null)
-				title.setText(item.getName());
-
-			if (subtitle != null)
-				subtitle.setText(item.getData());
+			Bitmap icon = item.getImage();
 
 			if (icon != null)
 			{
-				icon.setImageBitmap(item.getImage());
-				icon.getLayoutParams().width = (int) ((860 / context.getResources().getDisplayMetrics().density) + 0.5);
-				icon.getLayoutParams().height = (int)((340 / context.getResources().getDisplayMetrics().density) + 0.5);
+				holder.icon.setImageBitmap(icon);
 			}
+			else
+			{
+				holder.icon.setImageResource(R.drawable.no_banner);
+			}
+
+			float fileSize = item.getFilesize() / BYTES_PER_GIB;
+
+			String subtitle;
+
+			if (fileSize >= 1.0f)
+			{
+				subtitle = String.format(context.getString(R.string.file_size_gib), fileSize);
+			}
+			else
+			{
+				fileSize = item.getFilesize() / BYTES_PER_MIB;
+				subtitle = String.format(context.getString(R.string.file_size_mib), fileSize);
+			}
+
+			holder.subtitle.setText(subtitle);
 		}
 
 		// Make every other game in the list grey
 		if (position % 2 == 1)
-			convertView.setBackgroundColor(0xFFE3E3E3);
+			gameView.setBackgroundColor(0xFFE3E3E3);
 
-		return convertView;
+		return gameView;
+	}
+
+	private final class ViewHolder
+	{
+		public TextView title;
+		public TextView subtitle;
+		public ImageView icon;
 	}
 }
 

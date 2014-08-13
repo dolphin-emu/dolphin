@@ -97,7 +97,8 @@ static const char XFB_ENCODE_PS[] =
 
 "void main(out float4 ocol0 : SV_Target, in float4 Pos : SV_Position, in float2 Coord : ENCODECOORD)\n"
 "{\n"
-	"float2 baseCoord = Coord * float2(2,1);\n"
+	// Multiplying X by 2, moves pixel centers from (x+0.5) to (2x+1) instead of (2x+0.5), so subtract 0.5 to compensate
+	"float2 baseCoord = Coord * float2(2,1) - float2(0.5,0);\n"
 	// FIXME: Shall we apply gamma here, or apply it below to the Y components?
 	// Be careful if you apply it to Y! The Y components are in the range (16..235) / 255.
 	"float3 sampleL = pow(abs(SampleEFB(baseCoord+float2(-1,0))), Params.Gamma);\n" // Left
@@ -189,7 +190,7 @@ void XFBEncoder::Init()
 	// Create vertex shader
 
 	D3DBlob* bytecode = nullptr;
-	if (!D3D::CompileVertexShader(XFB_ENCODE_VS, sizeof(XFB_ENCODE_VS), &bytecode))
+	if (!D3D::CompileVertexShader(XFB_ENCODE_VS, &bytecode))
 	{
 		ERROR_LOG(VIDEO, "XFB encode vertex shader failed to compile");
 		return;
@@ -211,7 +212,7 @@ void XFBEncoder::Init()
 
 	// Create pixel shader
 
-	m_pShader = D3D::CompileAndCreatePixelShader(XFB_ENCODE_PS, sizeof(XFB_ENCODE_PS));
+	m_pShader = D3D::CompileAndCreatePixelShader(XFB_ENCODE_PS);
 	if (!m_pShader)
 	{
 		ERROR_LOG(VIDEO, "XFB encode pixel shader failed to compile");

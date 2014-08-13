@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -58,7 +59,7 @@ struct SSysConfEntry
 	{
 		if (buffer)
 		{
-			memcpy(data, buffer, min<u16>(bufferSize, dataLength));
+			memcpy(data, buffer, std::min<u16>(bufferSize, dataLength));
 			return true;
 		}
 		return false;

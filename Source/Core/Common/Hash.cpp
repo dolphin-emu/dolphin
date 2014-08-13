@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
+#include <algorithm>
 #include "Common/Hash.h"
 #if _M_SSE >= 0x402
 #include "Common/CPUDetect.h"
@@ -155,7 +155,7 @@ u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
 	const u8 * data = (const u8*)src;
 	const int nblocks = len / 16;
 	u32 Step = (len / 8);
-	if (samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = std::max(Step, 1u);
 	Step = Step / samples;
 	if (Step < 1) Step = 1;
 
@@ -233,7 +233,7 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
-	if (samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = std::max(Step, 1u);
 	Step = Step / samples;
 	if (Step < 1) Step = 1;
 	while (data < end)
@@ -265,7 +265,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
-	if (samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = std::max(Step, 1u);
 	Step = Step / samples;
 	if (Step < 1) Step = 1;
 	while (data < end)
@@ -308,7 +308,7 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 	u32 Step = (len/4);
 	const u32 *data = (const u32 *)src;
 	const u32 *end = data + Step;
-	if (samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = std::max(Step, 1u);
 	Step  = Step / samples;
 	if (Step < 1) Step = 1;
 	while (data < end)
@@ -380,7 +380,7 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 	u32 out[2];
 	const int nblocks = len / 8;
 	u32 Step = (len / 4);
-	if (samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = std::max(Step, 1u);
 	Step = Step / samples;
 	if (Step < 1) Step = 1;
 
@@ -456,7 +456,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 	u32 Step = (len / 8);
 	const u64 *data = (const u64 *)src;
 	const u64 *end = data + Step;
-	if (samples == 0) samples = max(Step, 1u);
+	if (samples == 0) samples = std::max(Step, 1u);
 	Step = Step / samples;
 	if (Step < 1) Step = 1;
 	while (data < end)

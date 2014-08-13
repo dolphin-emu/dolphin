@@ -55,63 +55,68 @@ Turntable::Turntable(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Turnta
 	memcpy(&id, turntable_id, sizeof(turntable_id));
 }
 
-void Turntable::GetState(u8* const data, const bool focus)
+void Turntable::GetState(u8* const data)
 {
 	wm_turntable_extension* const ttdata = (wm_turntable_extension*)data;
 	ttdata->bt = 0;
 
 	// stick
 	{
-	u8 x, y;
-	m_stick->GetState(&x, &y, 0x20, focus ? 0x1F /*0x15*/ : 0);
+	double x, y;
+	m_stick->GetState(&x, &y);
 
-	ttdata->sx = x;
-	ttdata->sy = y;
+	ttdata->sx = (x * 0x1F) + 0x20;
+	ttdata->sy = (y * 0x1F) + 0x20;
 	}
 
 	// left table
 	{
-	s8 tt = 0;
-	m_left_table->GetState(&tt, focus ? 0x1F : 0);
+	double tt;
+	s8 tt_;
+	m_left_table->GetState(&tt);
 
-	ttdata->ltable1 = tt;
-	ttdata->ltable2 = tt >> 5;
+	tt_ = tt * 0x1F;
+
+	ttdata->ltable1 = tt_;
+	ttdata->ltable2 = tt_ >> 5;
 	}
 
 	// right table
 	{
-	s8 tt = 0;
-	m_right_table->GetState(&tt, focus ? 0x1F : 0);
+	double tt;
+	s8 tt_;
+	m_right_table->GetState(&tt);
 
-	ttdata->rtable1 = tt;
-	ttdata->rtable2 = tt >> 1;
-	ttdata->rtable3 = tt >> 3;
-	ttdata->rtable4 = tt >> 5;
+	tt_ = tt * 0x1F;
+
+	ttdata->rtable1 = tt_;
+	ttdata->rtable2 = tt_ >> 1;
+	ttdata->rtable3 = tt_ >> 3;
+	ttdata->rtable4 = tt_ >> 5;
 	}
 
 	// effect dial
 	{
-	u8 dial = 0;
-	m_effect_dial->GetState(&dial, focus ? 0xF : 0);
+	double dial;
+	u8 dial_;
+	m_effect_dial->GetState(&dial);
 
-	ttdata->dial1 = dial;
-	ttdata->dial2 = dial >> 3;
+	dial_ = dial * 0x0F;
+
+	ttdata->dial1 = dial_;
+	ttdata->dial2 = dial_ >> 3;
 	}
 
 	// crossfade slider
 	{
-	s8 cfs = 0;
-	m_crossfade->GetState(&cfs, focus ? 7 : 0);
-	cfs += 8;
+	double cfs;
+	m_crossfade->GetState(&cfs);
 
-	ttdata->slider = cfs;
+	ttdata->slider = (cfs * 0x07) + 0x08;
 	}
 
-	if (focus)
-	{
-		// buttons
-		m_buttons->GetState(&ttdata->bt, turntable_button_bitmasks);
-	}
+	// buttons
+	m_buttons->GetState(&ttdata->bt, turntable_button_bitmasks);
 
 	// flip button bits :/
 	ttdata->bt ^= (

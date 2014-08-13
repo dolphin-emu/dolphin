@@ -25,35 +25,35 @@ public:
 		m_last_start = 0;
 	}
 
-	void start(int node)
+	void Start(int node)
 	{
 		m_last_start = m_ptr;
 		unsigned char hdr[3] = {0xe0, (unsigned char)node, 0};
 		m_csum = 0;
-		addData(hdr, 3, 1);
+		AddData(hdr, 3, 1);
 	}
-	void addData(const void *data, size_t len)
+	void AddData(const void *data, size_t len)
 	{
-		addData((const unsigned char*)data, len);
+		AddData((const unsigned char*)data, len);
 	}
-	void addData(const char *data)
+	void AddData(const char *data)
 	{
-		addData(data, strlen(data));
+		AddData(data, strlen(data));
 	}
-	void addData(int n)
+	void AddData(int n)
 	{
 		unsigned char cs = n;
-		addData(&cs, 1);
+		AddData(&cs, 1);
 	}
 
-	void end()
+	void End()
 	{
 		int len = m_ptr - m_last_start;
 		m_msg[m_last_start + 2] = len - 2; // assuming len <0xD0
-		addData(m_csum + len - 2);
+		AddData(m_csum + len - 2);
 	}
 
-	void addData(const unsigned char *dst, size_t len, int sync = 0)
+	void AddData(const unsigned char *dst, size_t len, int sync = 0)
 	{
 		while (len--)
 		{
@@ -134,7 +134,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 					case 0x10:
 						{
 							DEBUG_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 10, %02x (READ STATUS&SWITCHES)", ptr(1));
-							SPADStatus PadStatus;
+							GCPadStatus PadStatus;
 							memset(&PadStatus, 0 ,sizeof(PadStatus));
 							Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 							res[resp++] = 0x10;
@@ -236,8 +236,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							int pptr = 2;
 							JVSIOMessage msg;
 
-							msg.start(0);
-							msg.addData(1);
+							msg.Start(0);
+							msg.AddData(1);
 
 							unsigned char jvs_io_buffer[0x80];
 							int nr_bytes = ptr(pptr + 2); // byte after e0 xx
@@ -257,49 +257,49 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 								switch (cmd)
 								{
 								case 0x10: // get ID
-									msg.addData(1);
+									msg.AddData(1);
 									{
 										char buffer[12];
 										sprintf(buffer, "JVS-node %02x", node);
 										//msg.addData(buffer);
-										msg.addData("JAMMA I/O CONTROLLER");
+										msg.AddData("JAMMA I/O CONTROLLER");
 									}
-									msg.addData(0);
+									msg.AddData(0);
 									break;
 								case 0x11: // cmd revision
-									msg.addData(1);
-									msg.addData(0x11);
+									msg.AddData(1);
+									msg.AddData(0x11);
 									break;
 								case 0x12: // jvs revision
-									msg.addData(1);
-									msg.addData(0x12);
+									msg.AddData(1);
+									msg.AddData(0x12);
 									break;
 								case 0x13: // com revision
-									msg.addData(1);
-									msg.addData(0x13);
+									msg.AddData(1);
+									msg.AddData(0x13);
 									break;
 								case 0x14: // get features
-									msg.addData(1);
-									msg.addData((void *)"\x01\x02\x0a\x00", 4);  // 2 player, 10 bit
-									msg.addData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
+									msg.AddData(1);
+									msg.AddData((void *)"\x01\x02\x0a\x00", 4);  // 2 player, 10 bit
+									msg.AddData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
 									//msg.addData((void *)"\x03\x02\x08\x00", 4);
-									msg.addData((void *)"\x00\x00\x00\x00", 4);
+									msg.AddData((void *)"\x00\x00\x00\x00", 4);
 									break;
 								case 0x15:
 									while (*jvs_io++) {};
-									msg.addData(1);
+									msg.AddData(1);
 									break;
 								case 0x20:
 									{
 										int nr_players = *jvs_io++;
 										int bytes_per_player = *jvs_io++; /* ??? */
 										int j;
-										msg.addData(1);
+										msg.AddData(1);
 
-										msg.addData(0); // tilt
+										msg.AddData(0); // tilt
 										for (i=0; i<nr_players; ++i)
 										{
-											SPADStatus PadStatus;
+											GCPadStatus PadStatus;
 											Pad::GetStatus(i, &PadStatus);
 											unsigned char player_data[2] = {0,0};
 											if (PadStatus.button & PAD_BUTTON_START)
@@ -328,20 +328,20 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 												player_data[1] |= 0x10;
 
 											for (j=0; j<bytes_per_player; ++j)
-												msg.addData(player_data[j&1]);
+												msg.AddData(player_data[j&1]);
 										}
 										break;
 									}
 								case 0x21: // coin
 									{
 										int slots = *jvs_io++;
-										msg.addData(1);
-										SPADStatus PadStatus;
+										msg.AddData(1);
+										GCPadStatus PadStatus;
 										Pad::GetStatus(0, &PadStatus);
 										while (slots--)
 										{
-											msg.addData(0);
-											msg.addData((PadStatus.button & PAD_BUTTON_START) ? 1 : 0);
+											msg.AddData(0);
+											msg.AddData((PadStatus.button & PAD_BUTTON_START) ? 1 : 0);
 										}
 										break;
 									}
@@ -352,14 +352,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 								case 0xf0:
 									if (*jvs_io++ == 0xD9)
 										ERROR_LOG(AMBASEBOARDDEBUG, "JVS RESET");
-									msg.addData(1);
+									msg.AddData(1);
 
 									d10_1 |= 1;
 									break;
 								case 0xf1:
 									node = *jvs_io++;
 									ERROR_LOG(AMBASEBOARDDEBUG, "JVS SET ADDRESS, node=%d", node);
-									msg.addData(node == 1);
+									msg.AddData(node == 1);
 									break;
 								default:
 									break;
@@ -369,7 +369,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 
 							}
 
-							msg.end();
+							msg.End();
 
 							res[resp++] = ptr(0);
 

@@ -26,10 +26,6 @@ using namespace ArmGen;
 using namespace PowerPC;
 
 static int CODE_SIZE = 1024*1024*32;
-namespace CPUCompare
-{
-	extern u32 m_BlockStart;
-}
 
 void JitArm::Init()
 {
@@ -134,22 +130,19 @@ void JitArm::Cleanup()
 void JitArm::DoDownCount()
 {
 	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	MOVI2R(rA, (u32)&CoreTiming::downcount);
-	LDR(rB, rA);
+	LDR(rA, R9, PPCSTATE_OFF(downcount));
 	if (js.downcountAmount < 255) // We can enlarge this if we used rotations
 	{
-		SUBS(rB, rB, js.downcountAmount);
-		STR(rB, rA);
+		SUBS(rA, rA, js.downcountAmount);
 	}
 	else
 	{
-		ARMReg rC = gpr.GetReg(false);
-		MOVI2R(rC, js.downcountAmount);
-		SUBS(rB, rB, rC);
-		STR(rB, rA);
+		ARMReg rB = gpr.GetReg(false);
+		MOVI2R(rB, js.downcountAmount);
+		SUBS(rA, rA, rB);
 	}
-	gpr.Unlock(rA, rB);
+	STR(rA, R9, PPCSTATE_OFF(downcount));
+	gpr.Unlock(rA);
 }
 void JitArm::WriteExitDestInR(ARMReg Reg)
 {
@@ -166,17 +159,32 @@ void JitArm::WriteRfiExitDestInR(ARMReg Reg)
 	Cleanup();
 	DoDownCount();
 
-	MOVI2R(Reg, (u32)asm_routines.testExceptions);
-	B(Reg);
+	ARMReg A = gpr.GetReg(false);
+
+	LDR(A, R9, PPCSTATE_OFF(pc));
+	STR(A, R9, PPCSTATE_OFF(npc));
+		QuickCallFunction(A, (void*)&PowerPC::CheckExceptions);
+	LDR(A, R9, PPCSTATE_OFF(npc));
+	STR(A, R9, PPCSTATE_OFF(pc));
 	gpr.Unlock(Reg); // This was locked in the instruction beforehand
+
+	MOVI2R(A, (u32)asm_routines.dispatcher);
+	B(A);
 }
 void JitArm::WriteExceptionExit()
 {
-	ARMReg A = gpr.GetReg(false);
 	Cleanup();
 	DoDownCount();
 
-	MOVI2R(A, (u32)asm_routines.testExceptions);
+	ARMReg A = gpr.GetReg(false);
+
+	LDR(A, R9, PPCSTATE_OFF(pc));
+	STR(A, R9, PPCSTATE_OFF(npc));
+		QuickCallFunction(A, (void*)&PowerPC::CheckExceptions);
+	LDR(A, R9, PPCSTATE_OFF(npc));
+	STR(A, R9, PPCSTATE_OFF(pc));
+
+	MOVI2R(A, (u32)asm_routines.dispatcher);
 	B(A);
 }
 void JitArm::WriteExit(u32 destination)
@@ -225,31 +233,25 @@ void JitArm::SingleStep()
 
 void JitArm::Trace()
 {
-	char regs[500] = "";
-	char fregs[750] = "";
+	std::string regs;
+	std::string fregs;
 
 #ifdef JIT_LOG_GPR
 	for (int i = 0; i < 32; i++)
 	{
-		char reg[50];
-		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
-		strncat(regs, reg, sizeof(regs) - 1);
+		regs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
 	}
 #endif
 
 #ifdef JIT_LOG_FPR
 	for (int i = 0; i < 32; i++)
 	{
-		char reg[50];
-		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
-		strncat(fregs, reg, sizeof(fregs) - 1);
+		fregs += StringFromFormat("f%02d: %016x ", i, riPS0(i));
 	}
 #endif
 
-	DEBUG_LOG(DYNA_REC, "JITARM PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s",
-		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3],
-		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr,
-		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
+	DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x FPSCR: %08x MSR: %08x LR: %08x %s %s",
+		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
 void JitArm::PrintDebug(UGeckoInstruction inst, u32 level)
@@ -300,8 +302,6 @@ void JitArm::Break(UGeckoInstruction inst)
 const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
 {
 	int blockSize = code_buf->GetSize();
-	// Memory exception on instruction fetch
-	bool memory_exception = false;
 
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
@@ -316,27 +316,15 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		PanicAlert("ERROR: Compiling at 0. LR=%08x CTR=%08x", LR, CTR);
 	}
 
-	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
-	{
-		if (!Memory::TranslateAddress(em_address, Memory::FLAG_OPCODE))
-		{
-			// Memory exception occurred during instruction fetch
-			memory_exception = true;
-		}
-	}
-
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
-	js.block_flags = 0;
-	js.cancel = false;
 
 	u32 nextPC = em_address;
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	if (!memory_exception)
-		nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
+	nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -372,8 +360,17 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		TST(A, Shift);
 		SetCC(CC_EQ);
 		STR(C, R9, PPCSTATE_OFF(pc));
-		MOVI2R(A, (u32)asm_routines.fpException);
+
+		LDR(A, R9, PPCSTATE_OFF(Exceptions));
+		ORR(A, A, EXCEPTION_FPU_UNAVAILABLE);
+		STR(A, R9, PPCSTATE_OFF(Exceptions));
+			QuickCallFunction(A, (void*)&PowerPC::CheckExceptions);
+		LDR(A, R9, PPCSTATE_OFF(npc));
+		STR(A, R9, PPCSTATE_OFF(pc));
+
+		MOVI2R(A, (u32)asm_routines.dispatcher);
 		B(A);
+
 		SetCC();
 		gpr.Unlock(A, C);
 	}
@@ -397,7 +394,6 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
 	js.skipnext = false;
-	js.blockSize = code_block.m_num_instructions;
 	js.compilerPC = nextPC;
 
 	const int DEBUG_OUTPUT = 0;
@@ -478,15 +474,15 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 				}
 		}
 	}
-	if (memory_exception)
+	if (code_block.m_memory_exception)
 		BKPT(0x500);
+
 	if (code_block.m_broken)
 	{
 		printf("Broken Block going to 0x%08x\n", nextPC);
 		WriteExit(nextPC);
 	}
 
-	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
 	b->originalSize = code_block.m_num_instructions;
 	FlushIcache();

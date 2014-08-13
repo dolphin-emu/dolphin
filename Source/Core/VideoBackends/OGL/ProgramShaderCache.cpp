@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
@@ -28,7 +29,7 @@ s32 ProgramShaderCache::s_ubo_align;
 static StreamBuffer *s_buffer;
 static int num_failures = 0;
 
-LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
+static LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
 static GLuint CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;
@@ -38,7 +39,7 @@ UidChecker<VertexShaderUid,VertexShaderCode> ProgramShaderCache::vertex_uid_chec
 
 static char s_glsl_header[1024] = "";
 
-std::string GetGLSLVersionString()
+static std::string GetGLSLVersionString()
 {
 	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
 	switch(v)
@@ -60,12 +61,12 @@ std::string GetGLSLVersionString()
 
 void SHADER::SetProgramVariables()
 {
-	// glsl shader must be bind to set samplers
-	Bind();
-
-	// Bind UBO
+	// Bind UBO and texture samplers
 	if (!g_ActiveConfig.backend_info.bSupportsBindingLayout)
 	{
+		// glsl shader must be bind to set samplers if we don't support binding layout
+		Bind();
+
 		GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
 		GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
 
@@ -73,20 +74,19 @@ void SHADER::SetProgramVariables()
 			glUniformBlockBinding(glprogid, PSBlock_id, 1);
 		if (VSBlock_id != -1)
 			glUniformBlockBinding(glprogid, VSBlock_id, 2);
+
+		// Bind Texture Sampler
+		for (int a = 0; a <= 9; ++a)
+		{
+			char name[8];
+			snprintf(name, 8, "samp%d", a);
+
+			// Still need to get sampler locations since we aren't binding them statically in the shaders
+			int loc = glGetUniformLocation(glprogid, name);
+			if (loc != -1)
+				glUniform1i(loc, a);
+		}
 	}
-
-	// Bind Texture Sampler
-	for (int a = 0; a <= 9; ++a)
-	{
-		char name[8];
-		snprintf(name, 8, "samp%d", a);
-
-		// Still need to get sampler locations since we aren't binding them statically in the shaders
-		int loc = glGetUniformLocation(glprogid, name);
-		if (loc != -1)
-			glUniform1i(loc, a);
-	}
-
 }
 
 void SHADER::SetProgramBindings()
@@ -122,6 +122,7 @@ void SHADER::Bind()
 {
 	if (CurrentProgram != glprogid)
 	{
+		INCSTAT(stats.thisFrame.numShaderChanges);
 		glUseProgram(glprogid);
 		CurrentProgram = glprogid;
 	}
@@ -204,13 +205,14 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) {
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
+	{
 		static int counter = 0;
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-		SaveData(szTemp, vcode.GetBuffer());
-		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-		SaveData(szTemp, pcode.GetBuffer());
+		std::string filename =  StringFromFormat("%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+		SaveData(filename, vcode.GetBuffer());
+
+		filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+		SaveData(filename, pcode.GetBuffer());
 	}
 #endif
 
@@ -265,16 +267,16 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		GLchar* infoLog = new GLchar[length];
 		glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+
+		std::string filename = StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
 		std::ofstream file;
-		OpenFStream(file, szTemp, std::ios_base::out);
+		OpenFStream(file, filename, std::ios_base::out);
 		file << s_glsl_header << vcode << s_glsl_header << pcode << infoLog;
 		file.close();
 
 		if (linkStatus != GL_TRUE)
 			PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
-				szTemp,
+				filename.c_str(),
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version,
@@ -319,21 +321,20 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		GLchar* infoLog = new GLchar[length];
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "%s Shader info log:\n%s", type==GL_VERTEX_SHADER ? "VS" : "PS", infoLog);
-		char szTemp[MAX_PATH];
-		sprintf(szTemp,
-			"%sbad_%s_%04i.txt",
+
+		std::string filename = StringFromFormat("%sbad_%s_%04i.txt",
 			File::GetUserPath(D_DUMP_IDX).c_str(),
 			type==GL_VERTEX_SHADER ? "vs" : "ps",
 			num_failures++);
 		std::ofstream file;
-		OpenFStream(file, szTemp, std::ios_base::out);
+		OpenFStream(file, filename, std::ios_base::out);
 		file << s_glsl_header << code << infoLog;
 		file.close();
 
 		if (compileStatus != GL_TRUE)
 			PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
 				type==GL_VERTEX_SHADER ? "vertex" : "pixel",
-				szTemp,
+				filename.c_str(),
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version,
@@ -405,8 +406,7 @@ void ProgramShaderCache::Init(void)
 			if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 				File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-			char cache_filename[MAX_PATH];
-			sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+			std::string cache_filename = StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
 				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 
 			ProgramShaderCacheInserter inserter;
@@ -476,6 +476,9 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n" // ubo
 		"%s\n" // early-z
 		"%s\n" // 420pack
+		"%s\n" // msaa
+		"%s\n" // sample shading
+		"%s\n" // Sampler binding
 
 		// Precision defines for GLSL ES
 		"%s\n"
@@ -504,6 +507,9 @@ void ProgramShaderCache::CreateHeader ( void )
 		, v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
 		, (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ? "#extension GL_ARB_shading_language_420pack : enable" : ""
+		, (g_ogl_config.bSupportsMSAA && v < GLSL_150) ? "#extension GL_ARB_texture_multisample : enable" : ""
+		, (g_ogl_config.bSupportSampleShading) ? "#extension GL_ARB_sample_shading : enable" : ""
+		, g_ActiveConfig.backend_info.bSupportsBindingLayout ? "#define SAMPLER_BINDING(x) layout(binding = x)" : "#define SAMPLER_BINDING(x)"
 
 		, v>=GLSLES_300 ? "precision highp float;" : ""
 		, v>=GLSLES_300 ? "precision highp int;" : ""

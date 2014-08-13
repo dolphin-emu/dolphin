@@ -7,6 +7,8 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
+using namespace Gen;
+
 // TODO
 // ps_madds0
 // ps_muls0
@@ -16,18 +18,12 @@
 
 static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-static const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
 
 void Jit64::ps_mr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int b = inst.FB;
@@ -44,13 +40,8 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	// but we need -0 = +0
 
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int a = inst.FA;
@@ -74,13 +65,8 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 void Jit64::ps_sign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int b = inst.FB;
@@ -109,41 +95,6 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 		break;
 	}
 
-	fpr.UnlockAll();
-}
-
-// ps_res and ps_rsqrte
-void Jit64::ps_recip(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
-
-	OpArg divisor;
-	int d = inst.FD;
-	int b = inst.FB;
-	fpr.Lock(d, b);
-	fpr.BindToRegister(d, (d == b));
-	switch (inst.SUBOP5)
-	{
-	case 24:
-		// ps_res
-		divisor = fpr.R(b);
-		break;
-	case 26:
-		// ps_rsqrte
-		SQRTPD(XMM0, fpr.R(b));
-		divisor = R(XMM0);
-		break;
-	}
-	MOVAPD(XMM1, M((void*)&psOneOne));
-	DIVPD(XMM1, divisor);
-	MOVAPD(fpr.R(d), XMM1);
 	fpr.UnlockAll();
 }
 
@@ -200,13 +151,8 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X6
 void Jit64::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	switch (inst.SUBOP5)
 	{
@@ -222,14 +168,10 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 void Jit64::ps_sum(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
+	JITDISABLE(bJITPairedOff);
 
 	// TODO: (inst.SUBOP5 == 10) breaks Sonic Colours (black screen)
-	if (inst.Rc || (inst.SUBOP5 == 10))
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(inst.Rc || (inst.SUBOP5 == 10));
 
 	int d = inst.FD;
 	int a = inst.FA;
@@ -268,13 +210,8 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 void Jit64::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int a = inst.FA;
@@ -311,13 +248,8 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
 	int a = inst.FA;
@@ -352,13 +284,8 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 void Jit64::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff)
-
-	if (inst.Rc)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
 
 	int a = inst.FA;
 	int b = inst.FB;

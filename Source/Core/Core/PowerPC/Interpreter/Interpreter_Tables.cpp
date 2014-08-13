@@ -488,7 +488,9 @@ void InitTables()
 		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
 	for (auto& tpl : table63_2)
 		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-	if (m_numInstructions >= 512) {
+
+	if (m_numInstructions >= 512)
+	{
 		PanicAlert("m_allInstructions underdimensioned");
 	}
 

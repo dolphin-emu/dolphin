@@ -3,10 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <fstream>
+#include <string>
 #include <vector>
 
 #include "Common/FileUtil.h"
 #include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
 
 #include "VideoBackends/OGL/main.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -22,13 +24,10 @@
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-
-// internal state for loading vertices
-extern NativeVertexFormat *g_nativeVertexFmt;
 
 namespace OGL
 {
@@ -59,7 +58,6 @@ void VertexManager::CreateDeviceObjects()
 	s_indexBuffer = StreamBuffer::Create(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
 	m_index_buffers = s_indexBuffer->m_buffer;
 
-	m_CurrentVertexFmt = nullptr;
 	m_last_vao = 0;
 }
 
@@ -123,12 +121,12 @@ void VertexManager::Draw(u32 stride)
 	} else {
 		glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr+s_index_offset);
 	}
-	INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+	INCSTAT(stats.thisFrame.numDrawCalls);
 }
 
 void VertexManager::vFlush(bool useDstAlpha)
 {
-	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)g_nativeVertexFmt;
+	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
 	u32 stride  = nativeVertexFmt->GetVertexStride();
 
 	if (m_last_vao != nativeVertexFmt->VAO) {
@@ -146,18 +144,18 @@ void VertexManager::vFlush(bool useDstAlpha)
 	// the same pass as regular rendering.
 	if (useDstAlpha && dualSourcePossible)
 	{
-		ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
+		ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, nativeVertexFmt->m_components);
 	}
 	else
 	{
-		ProgramShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+		ProgramShaderCache::SetShader(DSTALPHA_NONE, nativeVertexFmt->m_components);
 	}
 
 	// upload global constants
 	ProgramShaderCache::UploadConstants();
 
 	// setup the pointers
-	g_nativeVertexFmt->SetupVertexPointers();
+	nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
 
 	Draw(stride);
@@ -165,7 +163,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
 	{
-		ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
+		ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, nativeVertexFmt->m_components);
 
 		// only update alpha
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
@@ -186,27 +184,26 @@ void VertexManager::vFlush(bool useDstAlpha)
 	{
 		// save the shaders
 		ProgramShaderCache::PCacheEntry prog = ProgramShaderCache::GetShaderProgram();
-		char strfile[255];
-		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
+		std::string filename = StringFromFormat("%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fps;
-		OpenFStream(fps, strfile, std::ios_base::out);
+		OpenFStream(fps, filename, std::ios_base::out);
 		fps << prog.shader.strpprog.c_str();
-		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
+
+		filename = StringFromFormat("%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fvs;
-		OpenFStream(fvs, strfile, std::ios_base::out);
+		OpenFStream(fvs, filename, std::ios_base::out);
 		fvs << prog.shader.strvprog.c_str();
 	}
 
 	if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
 	{
-		char str[128];
-		sprintf(str, "%starg%.3d.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
+		std::string filename = StringFromFormat("%starg%.3d.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		TargetRectangle tr;
 		tr.left = 0;
 		tr.right = Renderer::GetTargetWidth();
 		tr.top = 0;
 		tr.bottom = Renderer::GetTargetHeight();
-		g_renderer->SaveScreenshot(str, tr);
+		g_renderer->SaveScreenshot(filename, tr);
 	}
 #endif
 	g_Config.iSaveTargetId++;

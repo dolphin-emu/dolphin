@@ -40,8 +40,15 @@ bool CBoot::EmulatedBS2_GC()
 {
 	INFO_LOG(BOOT, "Faking GC BS2...");
 
+	// Set up MSR and the BAT SPR registers.
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 	m_MSR.FP = 1;
+	PowerPC::ppcState.spr[SPR_IBAT0U] = 0x800001ff;
+	PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_DBAT0U] = 0x800001ff;
+	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
+	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
 
 	// Clear ALL memory
 	Memory::Clear();
@@ -317,8 +324,21 @@ bool CBoot::EmulatedBS2_Wii()
 	bool apploaderRan = false;
 	if (VolumeHandler::IsValid() && VolumeHandler::IsWii())
 	{
+		// Set up MSR and the BAT SPR registers.
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 		m_MSR.FP = 1;
+		PowerPC::ppcState.spr[SPR_IBAT0U] = 0x800001ff;
+		PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+		PowerPC::ppcState.spr[SPR_IBAT4L] = 0x90001fff;
+		PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
+		PowerPC::ppcState.spr[SPR_DBAT0U] = 0x800001ff;
+		PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+		PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
+		PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+		PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001fff;
+		PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
+		PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
+		PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
 
 		Memory::Write_U32(0x4c000064, 0x80000300); // Write default DFI Handler:     rfi
 		Memory::Write_U32(0x4c000064, 0x80000800); // Write default FPU Handler:     rfi

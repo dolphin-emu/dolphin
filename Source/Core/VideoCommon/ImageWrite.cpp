@@ -3,13 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <list>
+#include <string>
 #include <vector>
 
 #include "png.h"
 #include "Common/FileUtil.h"
 #include "VideoCommon/ImageWrite.h"
 
-bool SaveData(const char* filename, const char* data)
+bool SaveData(const std::string& filename, const char* data)
 {
 	std::ofstream f;
 	OpenFStream(f, filename, std::ios::binary);

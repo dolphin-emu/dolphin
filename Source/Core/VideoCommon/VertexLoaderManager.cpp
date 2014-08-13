@@ -3,19 +3,24 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 
 static int s_attr_dirty;  // bitfield
 
+static NativeVertexFormat* s_current_vtx_fmt;
 static VertexLoader *g_VertexLoaders[8];
 
 namespace std
@@ -33,11 +38,13 @@ struct hash<VertexLoaderUID>
 }
 
 typedef std::unordered_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
+typedef std::map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexLoaderMap;
 
 namespace VertexLoaderManager
 {
 
 static VertexLoaderMap g_VertexLoaderMap;
+static NativeVertexLoaderMap s_native_vertex_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
 void Init()
@@ -55,6 +62,7 @@ void Shutdown()
 		delete p.second;
 	}
 	g_VertexLoaderMap.clear();
+	s_native_vertex_map.clear();
 }
 
 namespace
@@ -100,8 +108,7 @@ static VertexLoader* RefreshLoader(int vtx_attr_group)
 {
 	if ((s_attr_dirty >> vtx_attr_group) & 1)
 	{
-		VertexLoaderUID uid;
-		uid.InitFromCurrentState(vtx_attr_group);
+		VertexLoaderUID uid(g_VtxDesc, g_VtxAttr[vtx_attr_group]);
 		VertexLoaderMap::iterator iter = g_VertexLoaderMap.find(uid);
 		if (iter != g_VertexLoaderMap.end())
 		{
@@ -119,24 +126,60 @@ static VertexLoader* RefreshLoader(int vtx_attr_group)
 	return g_VertexLoaders[vtx_attr_group];
 }
 
+static NativeVertexFormat* GetNativeVertexFormat(const PortableVertexDeclaration& format,
+                                                 u32 components)
+{
+	auto& native = s_native_vertex_map[format];
+	if (!native)
+	{
+		auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
+		native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
+		native->Initialize(format);
+		native->m_components = components;
+	}
+	return native.get();
+}
+
 void RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	if (!count)
 		return;
-	RefreshLoader(vtx_attr_group)->RunVertices(vtx_attr_group, primitive, count);
-}
+	VertexLoader* loader = RefreshLoader(vtx_attr_group);
 
-void SkipVertices(int vtx_attr_group, int count)
-{
-	if (!count)
+	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5)
+	{
+		// if cull mode is CULL_ALL, ignore triangles and quads
+		DataSkip(count * loader->GetVertexSize());
 		return;
-	u32 stride = RefreshLoader(vtx_attr_group)->GetVertexSize();
-	DataSkip(count * stride);
+	}
+
+	// If the native vertex format changed, force a flush.
+	NativeVertexFormat* required_vtx_fmt = GetNativeVertexFormat(
+			loader->GetNativeVertexDeclaration(),
+			loader->GetNativeComponents());
+	if (required_vtx_fmt != s_current_vtx_fmt)
+		VertexManager::Flush();
+	s_current_vtx_fmt = required_vtx_fmt;
+
+	VertexManager::PrepareForAdditionalData(primitive, count,
+			loader->GetNativeVertexDeclaration().stride);
+
+	loader->RunVertices(g_VtxAttr[vtx_attr_group], primitive, count);
+
+	IndexGenerator::AddIndices(primitive, count);
+
+	ADDSTAT(stats.thisFrame.numPrims, count);
+	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 }
 
 int GetVertexSize(int vtx_attr_group)
 {
 	return RefreshLoader(vtx_attr_group)->GetVertexSize();
+}
+
+NativeVertexFormat* GetCurrentVertexFormat()
+{
+	return s_current_vtx_fmt;
 }
 
 }  // namespace

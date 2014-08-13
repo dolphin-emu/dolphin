@@ -14,20 +14,20 @@
 
 class AVIDump
 {
-	private:
-		static bool CreateFile();
-		static void CloseFile();
-		static void SetBitmapFormat();
-		static bool SetCompressionOptions();
-		static bool SetVideoFormat();
+private:
+	static bool CreateFile();
+	static void CloseFile();
+	static void SetBitmapFormat();
+	static bool SetCompressionOptions();
+	static bool SetVideoFormat();
 
-	public:
+public:
 #ifdef _WIN32
-		static bool Start(HWND hWnd, int w, int h);
+	static bool Start(HWND hWnd, int w, int h);
 #else
-		static bool Start(int w, int h);
+	static bool Start(int w, int h);
 #endif
-		static void AddFrame(const u8* data, int width, int height);
+	static void AddFrame(const u8* data, int width, int height);
 
-		static void Stop();
+	static void Stop();
 };

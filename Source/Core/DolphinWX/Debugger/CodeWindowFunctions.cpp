@@ -62,13 +62,14 @@ void CCodeWindow::Load()
 
 	// The font to override DebuggerFont with
 	std::string fontDesc;
-	ini.Get("General", "DebuggerFont", &fontDesc);
+
+	IniFile::Section* general = ini.GetOrCreateSection("General");
+	general->Get("DebuggerFont", &fontDesc);
+	general->Get("AutomaticStart", &bAutomaticStart, false);
+	general->Get("BootToPause", &bBootToPause, true);
+
 	if (!fontDesc.empty())
 		DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc));
-
-	// Boot to pause or not
-	ini.Get("General", "AutomaticStart", &bAutomaticStart, false);
-	ini.Get("General", "BootToPause", &bBootToPause, true);
 
 	const char* SettingName[] = {
 		"Log",
@@ -85,19 +86,19 @@ void CCodeWindow::Load()
 
 	// Decide what windows to show
 	for (int i = 0; i <= IDM_VIDEOWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get("ShowOnStart", SettingName[i], &bShowOnStart[i], false);
+		ini.GetOrCreateSection("ShowOnStart")->Get(SettingName[i], &bShowOnStart[i], false);
 
 	// Get notebook affiliation
-	std::string _Section = "P - " +
+	std::string section = "P - " +
 		((Parent->ActivePerspective < Parent->Perspectives.size())
 		? Parent->Perspectives[Parent->ActivePerspective].Name : "Perspective 1");
 
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get(_Section, SettingName[i], &iNbAffiliation[i], 0);
+		ini.GetOrCreateSection(section)->Get(SettingName[i], &iNbAffiliation[i], 0);
 
 	// Get floating setting
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Get("Float", SettingName[i], &Parent->bFloatWindow[i], false);
+		ini.GetOrCreateSection("Float")->Get(SettingName[i], &Parent->bFloatWindow[i], false);
 }
 
 void CCodeWindow::Save()
@@ -105,11 +106,10 @@ void CCodeWindow::Save()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	ini.Set("General", "DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
-
-	// Boot to pause or not
-	ini.Set("General", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
-	ini.Set("General", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
+	IniFile::Section* general = ini.GetOrCreateSection("General");
+	general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
+	general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
+	general->Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
 
 	const char* SettingName[] = {
 		"Log",
@@ -126,16 +126,16 @@ void CCodeWindow::Save()
 
 	// Save windows settings
 	for (int i = IDM_LOGWINDOW; i <= IDM_VIDEOWINDOW; i++)
-		ini.Set("ShowOnStart", SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
+		ini.GetOrCreateSection("ShowOnStart")->Set(SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
 
 	// Save notebook affiliations
-	std::string _Section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
+	std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
-		ini.Set(_Section, SettingName[i], iNbAffiliation[i]);
+		ini.GetOrCreateSection(section)->Set(SettingName[i], iNbAffiliation[i]);
 
 	// Save floating setting
 	for (int i = IDM_LOGWINDOW_PARENT; i <= IDM_CODEWINDOW_PARENT; i++)
-		ini.Set("Float", SettingName[i - IDM_LOGWINDOW_PARENT], !!FindWindowById(i));
+		ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOGWINDOW_PARENT], !!FindWindowById(i));
 
 	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }
@@ -152,7 +152,7 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _("Save code"),
-		StrToWxStr("Save the entire disassembled code. This may take a several seconds"
+		_("Save the entire disassembled code. This may take a several seconds"
 		" and may require between 50 and 100 MB of hard drive space. It will only save code"
 		" that are in the first 4 MB of memory, if you are debugging a game that load .rel"
 		" files with code to memory you may want to increase that to perhaps 8 MB, you can do"
@@ -198,10 +198,10 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 				Profiler::WriteProfileResults(filename);
 
 				wxFileType* filetype = nullptr;
-				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
+				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt")))
 				{
 					// From extension failed, trying with MIME type now
-					if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"))))
+					if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain")))
 						// MIME type failed, aborting mission
 						break;
 				}
@@ -219,7 +219,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 {
 	Parent->ClearStatusBar();
 
-	if (Core::GetState() == Core::CORE_UNINITIALIZED) return;
+	if (!Core::IsRunning()) return;
 
 	std::string existing_map_file, writable_map_file;
 	bool map_exists = CBoot::FindMapFile(&existing_map_file,
@@ -227,7 +227,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_CLEARSYMBOLS:
-		if (!AskYesNo("Do you want to clear the list of symbol names?")) return;
+		if (!AskYesNoT("Do you want to clear the list of symbol names?")) return;
 		g_symbolDB.Clear();
 		Host_NotifyMapLoaded();
 		break;
@@ -279,7 +279,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			const wxString path = wxFileSelector(
 				_("Apply signature file"), wxEmptyString,
 				wxEmptyString, wxEmptyString,
-				_T("Dolphin Symbol Rename File (*.sym)|*.sym"),
+				"Dolphin Symbol Rename File (*.sym)|*.sym",
 				wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
 			if (!path.IsEmpty())
@@ -313,7 +313,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 			wxTextEntryDialog input_prefix(
 				this,
-				StrToWxStr("Only export symbols with prefix:\n(Blank for all symbols)"),
+				_("Only export symbols with prefix:\n(Blank for all symbols)"),
 				wxGetTextFromUserPromptStr,
 				wxEmptyString);
 
@@ -322,8 +322,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
 				wxString path = wxFileSelector(
-					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
-					_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_SAVE,
+					_("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
+					"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_SAVE,
 					this);
 				if (!path.IsEmpty())
 				{
@@ -337,8 +337,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_USESIGNATUREFILE:
 		{
 			wxString path = wxFileSelector(
-				_T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
-				_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+				_("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
+				"Dolphin Signature File (*.dsy)|*.dsy;", wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 				this);
 			if (!path.IsEmpty())
 			{

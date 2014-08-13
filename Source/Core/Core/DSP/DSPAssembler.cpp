@@ -160,14 +160,7 @@ void DSPAssembler::ShowError(err_t err_code, const char *extra_info)
 	last_error = err_code;
 }
 
-char *skip_spaces(char *ptr)
-{
-	while (*ptr == ' ')
-		ptr++;
-	return ptr;
-}
-
-const char *skip_spaces(const char *ptr)
+static char *skip_spaces(char *ptr)
 {
 	while (*ptr == ' ')
 		ptr++;
@@ -268,8 +261,18 @@ s32 DSPAssembler::ParseValue(const char *str)
 	return val;
 }
 
-// Modifies both src and dst!
-// What does it do, really??
+// This function splits the given src string into three parts:
+// - Text before the first opening ('(') parenthesis
+// - Text within the first and last opening ('(') and closing (')') parentheses.
+// - If text follows after these parentheses, then this is what is returned from the function.
+//
+// Note that the first opening parenthesis and the last closing parenthesis are discarded from the string.
+// For example: Say "Test (string) 1234" is the string passed in as src.
+//
+// - src will become "Test "
+// - dst will become "string"
+// - Returned string from the function will be " 1234"
+//
 char *DSPAssembler::FindBrackets(char *src, char *dst)
 {
 	s32 len = (s32) strlen(src);
@@ -500,7 +503,7 @@ const opc_t *DSPAssembler::FindOpcode(const char *opcode, u32 par_count, const o
 }
 
 // weird...
-u16 get_mask_shifted_down(u16 mask)
+static u16 get_mask_shifted_down(u16 mask)
 {
 	while (!(mask & 1))
 		mask >>= 1;

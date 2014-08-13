@@ -85,8 +85,6 @@ enum Hotkey
 
 struct SCoreStartupParameter
 {
-	void* hInstance;  // HINSTANCE but we don't want to include <windows.h>
-
 	// Settings
 	bool bEnableDebugging;
 	#ifdef USE_GDBSTUB

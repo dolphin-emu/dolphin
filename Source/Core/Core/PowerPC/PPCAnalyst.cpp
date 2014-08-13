@@ -15,7 +15,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/SignatureDB.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 // Analyzes PowerPC code in memory to find functions
 // After running, for each function we will know what functions it calls
@@ -34,7 +34,7 @@ using namespace std;
 
 static const int CODEBUFFER_SIZE = 32000;
 // 0 does not perform block merging
-static const int FUNCTION_FOLLOWING_THRESHOLD = 16;
+static const u32 FUNCTION_FOLLOWING_THRESHOLD = 16;
 
 CodeBuffer::CodeBuffer(int size)
 {
@@ -192,7 +192,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 
 // Second pass analysis, done after the first pass is done for all functions
 // so we have more information to work with
-void AnalyzeFunction2(Symbol *func)
+static void AnalyzeFunction2(Symbol *func)
 {
 	u32 flags = func->flags;
 
@@ -214,7 +214,7 @@ void AnalyzeFunction2(Symbol *func)
 }
 
 // IMPORTANT - CURRENTLY ASSUMES THAT A IS A COMPARE
-bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
+static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 {
 	const GekkoOPInfo *b_info = b.opinfo;
 	int b_flags = b_info->flags;
@@ -273,7 +273,7 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 // called by another function. Therefore, let's scan the
 // entire space for bl operations and find what functions
 // get called.
-void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func_db)
+static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 {
 	for (u32 addr = startAddr; addr < endAddr; addr+=4)
 	{
@@ -304,7 +304,7 @@ void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 	}
 }
 
-void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
+static void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 {
 	vector<u32> funcAddrs;
 
@@ -543,7 +543,25 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	// Reset our block state
 	block->m_broken = false;
+	block->m_memory_exception = false;
 	block->m_num_instructions = 0;
+
+	if (address == 0)
+	{
+		// Memory exception occurred during instruction fetch
+		block->m_memory_exception = true;
+		return address;
+	}
+
+	if (Core::g_CoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT))
+	{
+		if (!Memory::TranslateAddress(address, Memory::FLAG_OPCODE))
+		{
+			// Memory exception occurred during instruction fetch
+			block->m_memory_exception = true;
+			return address;
+		}
+	}
 
 	CodeOp *code = buffer->codebuffer;
 

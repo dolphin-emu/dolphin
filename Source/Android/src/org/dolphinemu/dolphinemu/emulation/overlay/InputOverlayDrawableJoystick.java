@@ -22,7 +22,7 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 	private final int[] axisIDs = {0, 0, 0, 0};
 	private final float[] axises = {0f, 0f};
 	private final BitmapDrawable ringInner;
-	private int trackid = -1;
+	private int trackId = -1;
 
 	/**
 	 * Constructor
@@ -62,42 +62,48 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 	public void TrackEvent(MotionEvent event)
 	{
 		int pointerIndex = event.getActionIndex();
-		if (trackid == -1)
+
+		switch(event.getAction() & MotionEvent.ACTION_MASK)
 		{
-			if (event.getAction() == MotionEvent.ACTION_DOWN)
-				if(getBounds().contains((int)event.getX(), (int)event.getY()))
-					trackid = event.getPointerId(pointerIndex);
-		}
-		else
-		{
-			if (event.getAction() == MotionEvent.ACTION_UP)
+		case MotionEvent.ACTION_DOWN:
+		case MotionEvent.ACTION_POINTER_DOWN:
+			if (getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+				trackId = event.getPointerId(pointerIndex);
+			break;
+		case MotionEvent.ACTION_UP:
+		case MotionEvent.ACTION_POINTER_UP:
+			if (trackId == event.getPointerId(pointerIndex))
 			{
-				if (trackid == event.getPointerId(pointerIndex))
-				{
-					axises[0] = axises[1] = 0.0f;
-					SetInnerBounds();
-					trackid = -1;
-				}
+				axises[0] = axises[1] = 0.0f;
+				SetInnerBounds();
+				trackId = -1;
+			}
+			break;
+		}
+
+		if (trackId == -1)
+			return;
+
+		for (int i = 0; i < event.getPointerCount(); i++)
+		{
+			if (trackId == event.getPointerId(i))
+			{
+				float touchX = event.getX(i);
+				float touchY = event.getY(i);
+				float maxY = getBounds().bottom;
+				float maxX = getBounds().right;
+				touchX -= getBounds().centerX();
+				maxX -= getBounds().centerX();
+				touchY -= getBounds().centerY();
+				maxY -= getBounds().centerY();
+				final float AxisX = touchX / maxX;
+				final float AxisY = touchY / maxY;
+				axises[0] = AxisY;
+				axises[1] = AxisX;
+
+				SetInnerBounds();
 			}
 		}
-		
-		if (trackid == -1)
-			return;
-		float touchX = event.getX();
-		float touchY = event.getY();
-		float maxY = this.getBounds().bottom;
-		float maxX = this.getBounds().right;
-		touchX -= this.getBounds().centerX();
-		maxX -= this.getBounds().centerX();
-		touchY -= this.getBounds().centerY();
-		maxY -= this.getBounds().centerY();
-		final float AxisX = touchX / maxX;
-		final float AxisY = touchY/maxY;
-
-		this.axises[0] = AxisY;
-		this.axises[1] = AxisX;
-
-		SetInnerBounds();
 	}
 
 	public float[] getAxisValues()

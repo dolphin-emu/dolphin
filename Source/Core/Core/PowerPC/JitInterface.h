@@ -35,6 +35,5 @@ namespace JitInterface
 
 	void Shutdown();
 }
-extern bool bFakeVMEM;
 extern bool bMMU;
 

@@ -61,15 +61,35 @@ void JitILBase::bx(UGeckoInstruction inst)
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(destination));
 }
 
+static IREmitter::InstLoc EmitCRTest(IREmitter::IRBuilder& ibuild, UGeckoInstruction inst)
+{
+	IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
+	IREmitter::InstLoc CRTest;
+	switch (3 - (inst.BI & 3))
+	{
+	case CR_SO_BIT:
+		CRTest = ibuild.EmitFastCRSOSet(CRReg);
+		break;
+	case CR_EQ_BIT:
+		CRTest = ibuild.EmitFastCREQSet(CRReg);
+		break;
+	case CR_GT_BIT:
+		CRTest = ibuild.EmitFastCRGTSet(CRReg);
+		break;
+	case CR_LT_BIT:
+		CRTest = ibuild.EmitFastCRLTSet(CRReg);
+		break;
+	}
+	if (!(inst.BO & 8))
+		CRTest = ibuild.EmitXor(CRTest, ibuild.EmitIntConst(1));
+	return CRTest;
+}
+
 static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruction inst) {
 	IREmitter::InstLoc CRTest = nullptr, CTRTest = nullptr;
 	if ((inst.BO & 16) == 0)  // Test a CR bit
 	{
-		IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
-		IREmitter::InstLoc CRCmp = ibuild.EmitIntConst(8 >> (inst.BI & 3));
-		CRTest = ibuild.EmitAnd(CRReg, CRCmp);
-		if (!(inst.BO & 8))
-			CRTest = ibuild.EmitXor(CRCmp, CRTest);
+		CRTest = EmitCRTest(ibuild, inst);
 	}
 
 	if ((inst.BO & 4) == 0) {
@@ -140,12 +160,10 @@ void JitILBase::bcctrx(UGeckoInstruction inst)
 	IREmitter::InstLoc test;
 	if ((inst.BO & 16) == 0)  // Test a CR bit
 	{
-		IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
-		IREmitter::InstLoc CRCmp = ibuild.EmitIntConst(8 >> (inst.BI & 3));
-		test = ibuild.EmitAnd(CRReg, CRCmp);
-		if (!(inst.BO & 8))
-			test = ibuild.EmitXor(test, CRCmp);
-	} else {
+		test = EmitCRTest(ibuild, inst);
+	}
+	else
+	{
 		test = ibuild.EmitIntConst(1);
 	}
 	test = ibuild.EmitICmpEq(test, ibuild.EmitIntConst(0));

@@ -1,17 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -64,6 +56,7 @@
     <ClCompile Include="DSP\DSPDisassembler.cpp" />
     <ClCompile Include="DSP\DSPAccelerator.cpp" />
     <ClCompile Include="DSP\DSPAnalyzer.cpp" />
+    <ClCompile Include="DSP\DSPCaptureLogger.cpp" />
     <ClCompile Include="DSP\DSPCodeUtil.cpp" />
     <ClCompile Include="DSP\DSPCore.cpp" />
     <ClCompile Include="DSP\DSPEmitter.cpp" />
@@ -136,6 +129,8 @@
     <ClCompile Include="HW\EXI_DeviceMemoryCard.cpp" />
     <ClCompile Include="HW\EXI_DeviceMic.cpp" />
     <ClCompile Include="HW\GCMemcard.cpp" />
+    <ClCompile Include="HW\GCMemcardDirectory.cpp" />
+    <ClCompile Include="HW\GCMemcardRaw.cpp" />
     <ClCompile Include="HW\GCPad.cpp" />
     <ClCompile Include="HW\GCPadEmu.cpp" />
     <ClCompile Include="HW\GPFifo.cpp" />
@@ -209,7 +204,6 @@
     <ClCompile Include="PowerPC\JitILCommon\JitILBase_SystemRegisters.cpp" />
     <ClCompile Include="PowerPC\Jit64IL\IR_X86.cpp" />
     <ClCompile Include="PowerPC\Jit64IL\JitIL.cpp" />
-    <ClCompile Include="PowerPC\Jit64IL\JitILAsm.cpp" />
     <ClCompile Include="PowerPC\Jit64IL\JitIL_Tables.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit64_Tables.cpp" />
@@ -229,7 +223,6 @@
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp" />
     <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
-    <ClCompile Include="PowerPC\LUT_frsqrtex.cpp" />
     <ClCompile Include="PowerPC\PowerPC.cpp" />
     <ClCompile Include="PowerPC\PPCAnalyst.cpp" />
     <ClCompile Include="PowerPC\PPCCache.cpp" />
@@ -241,7 +234,6 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Tracer.cpp" />
     <ClCompile Include="VolumeHandler.cpp" />
     <ClCompile Include="x64MemTools.cpp" />
   </ItemGroup>
@@ -269,6 +261,7 @@
     <ClInclude Include="DSP\DSPAccelerator.h" />
     <ClInclude Include="DSP\DSPAnalyzer.h" />
     <ClInclude Include="DSP\DSPBreakpoints.h" />
+    <ClInclude Include="DSP\DSPCaptureLogger.h" />
     <ClInclude Include="DSP\DSPCodeUtil.h" />
     <ClInclude Include="DSP\DSPCommon.h" />
     <ClInclude Include="DSP\DSPCore.h" />
@@ -283,7 +276,6 @@
     <ClInclude Include="DSP\DSPStacks.h" />
     <ClInclude Include="DSP\DSPTables.h" />
     <ClInclude Include="DSP\Jit\DSPJitRegCache.h" />
-    <ClInclude Include="DSP\Jit\DSPJitUtil.h" />
     <ClInclude Include="DSP\LabelMap.h" />
     <ClInclude Include="ec_wii.h" />
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h" />
@@ -332,6 +324,8 @@
     <ClInclude Include="HW\EXI_DeviceMemoryCard.h" />
     <ClInclude Include="HW\EXI_DeviceMic.h" />
     <ClInclude Include="HW\GCMemcard.h" />
+    <ClInclude Include="HW\GCMemcardDirectory.h" />
+    <ClInclude Include="HW\GCMemcardRaw.h" />
     <ClInclude Include="HW\GCPad.h" />
     <ClInclude Include="HW\GCPadEmu.h" />
     <ClInclude Include="HW\GPFifo.h" />
@@ -361,13 +355,11 @@
     <ClInclude Include="HW\WiimoteEmu\Attachment\Turntable.h" />
     <ClInclude Include="HW\WiimoteEmu\Encryption.h" />
     <ClInclude Include="HW\WiimoteEmu\MatrixMath.h" />
-    <ClInclude Include="HW\WiimoteEmu\UDPTLayer.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteEmu.h" />
     <ClInclude Include="HW\WiimoteEmu\WiimoteHid.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h" />
     <ClInclude Include="HW\WII_IPC.h" />
-    <ClInclude Include="IPC_HLE\fakepoll.h" />
     <ClInclude Include="IPC_HLE\hci.h" />
     <ClInclude Include="IPC_HLE\ICMP.h" />
     <ClInclude Include="IPC_HLE\l2cap.h" />
@@ -399,7 +391,6 @@
     <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter_Tables.h" />
     <ClInclude Include="PowerPC\Jit64IL\JitIL.h" />
-    <ClInclude Include="PowerPC\Jit64IL\JitILAsm.h" />
     <ClInclude Include="PowerPC\Jit64IL\JitIL_Tables.h" />
     <ClInclude Include="PowerPC\Jit64\Jit.h" />
     <ClInclude Include="PowerPC\Jit64\Jit64_Tables.h" />
@@ -413,7 +404,6 @@
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />
     <ClInclude Include="PowerPC\JitCommon\Jit_Util.h" />
     <ClInclude Include="PowerPC\JitInterface.h" />
-    <ClInclude Include="PowerPC\LUT_frsqrtex.h" />
     <ClInclude Include="PowerPC\PowerPC.h" />
     <ClInclude Include="PowerPC\PPCAnalyst.h" />
     <ClInclude Include="PowerPC\PPCCache.h" />
@@ -423,7 +413,6 @@
     <ClInclude Include="PowerPC\SignatureDB.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Tracer.h" />
     <ClInclude Include="VolumeHandler.h" />
   </ItemGroup>
   <ItemGroup>

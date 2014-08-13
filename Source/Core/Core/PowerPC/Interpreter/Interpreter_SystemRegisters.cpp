@@ -3,15 +3,7 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
-#define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
-#define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
-#define _interlockedbittestandset64 workaround_ms_header_bug_platform_sdk6_set64
-#define _interlockedbittestandreset64 workaround_ms_header_bug_platform_sdk6_reset64
 #include <intrin.h>
-#undef _interlockedbittestandset
-#undef _interlockedbittestandreset
-#undef _interlockedbittestandset64
-#undef _interlockedbittestandreset64
 #endif
 
 #include "Common/CPUDetect.h"
@@ -62,7 +54,8 @@ void Interpreter::mtfsb0x(UGeckoInstruction _inst)
 	FPSCR.Hex &= ~b;
 	FPSCRtoFPUSettings(FPSCR);
 
-	if (_inst.Rc) PanicAlert("mtfsb0x: inst_.Rc");
+	if (_inst.Rc)
+		PanicAlert("mtfsb0x: inst_.Rc");
 }
 
 void Interpreter::mtfsb1x(UGeckoInstruction _inst)
@@ -75,7 +68,8 @@ void Interpreter::mtfsb1x(UGeckoInstruction _inst)
 		FPSCR.Hex |= b;
 	FPSCRtoFPUSettings(FPSCR);
 
-	if (_inst.Rc) PanicAlert("mtfsb1x: inst_.Rc");
+	if (_inst.Rc)
+		PanicAlert("mtfsb1x: inst_.Rc");
 }
 
 void Interpreter::mtfsfix(UGeckoInstruction _inst)
@@ -91,7 +85,8 @@ void Interpreter::mtfsfix(UGeckoInstruction _inst)
 
 	FPSCRtoFPUSettings(FPSCR);
 
-	if (_inst.Rc) PanicAlert("mtfsfix: inst_.Rc");
+	if (_inst.Rc)
+		PanicAlert("mtfsfix: inst_.Rc");
 }
 
 void Interpreter::mtfsfx(UGeckoInstruction _inst)
@@ -111,7 +106,8 @@ void Interpreter::mtfsfx(UGeckoInstruction _inst)
 	FPSCR.Hex = (FPSCR.Hex & ~m) | ((u32)(riPS0(_inst.FB)) & m);
 	FPSCRtoFPUSettings(FPSCR);
 
-	if (_inst.Rc) PanicAlert("mtfsfx: inst_.Rc");
+	if (_inst.Rc)
+		PanicAlert("mtfsfx: inst_.Rc");
 }
 
 void Interpreter::mcrxr(UGeckoInstruction _inst)
@@ -137,10 +133,12 @@ void Interpreter::mtcrf(UGeckoInstruction _inst)
 	{
 		//TODO: use lookup table? probably not worth it
 		u32 mask = 0;
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 8; i++)
+		{
 			if (crm & (1 << i))
 				mask |= 0xF << (i*4);
 		}
+
 		SetCR((GetCR() & ~mask) | (m_GPR[_inst.RS] & mask));
 	}
 }
@@ -173,7 +171,8 @@ void Interpreter::mtmsr(UGeckoInstruction _inst)
 
 // Segment registers. MMU control.
 
-static void SetSR(int index, u32 value) {
+static void SetSR(int index, u32 value)
+{
 	DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", PowerPC::ppcState.pc, index, value);
 	PowerPC::ppcState.sr[index] = value;
 }
@@ -209,7 +208,7 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
 
 	//TODO - check processor privilege level - many of these require privilege
 	//XER LR CTR are the only ones available in user mode, time base can be read too.
-	//Gamecube games always run in superuser mode, but hey....
+	//GameCube games always run in superuser mode, but hey....
 
 	switch (iIndex)
 	{
@@ -248,7 +247,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 
 	//TODO - check processor privilege level - many of these require privilege
 	//XER LR CTR are the only ones available in user mode, time base can be read too.
-	//Gamecube games always run in superuser mode, but hey....
+	//GameCube games always run in superuser mode, but hey....
 
 	//Our DMA emulation is highly inaccurate - instead of properly emulating the queue
 	//and so on, we simply make all DMA:s complete instantaneously.
@@ -414,7 +413,8 @@ void Interpreter::mcrfs(UGeckoInstruction _inst)
 
 	UpdateFPSCR();
 	u32 fpflags = ((FPSCR.Hex >> (4 * (7 - _inst.CRFS))) & 0xF);
-	switch (_inst.CRFS) {
+	switch (_inst.CRFS)
+	{
 	case 0:
 		FPSCR.FX = 0;
 		FPSCR.OX = 0;
@@ -451,5 +451,7 @@ void Interpreter::mffsx(UGeckoInstruction _inst)
 
 	UpdateFPSCR();
 	riPS0(_inst.FD) = (u64)FPSCR.Hex;
-	if (_inst.Rc) PanicAlert("mffsx: inst_.Rc");
+
+	if (_inst.Rc)
+		PanicAlert("mffsx: inst_.Rc");
 }

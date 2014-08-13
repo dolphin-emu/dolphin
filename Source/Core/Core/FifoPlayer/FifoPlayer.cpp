@@ -74,7 +74,7 @@ bool FifoPlayer::Play()
 				{
 					m_CurrentFrame = m_FrameRangeStart;
 
-					CoreTiming::downcount = 0;
+					PowerPC::ppcState.downcount = 0;
 					CoreTiming::Advance();
 				}
 				else
@@ -301,7 +301,7 @@ void FifoPlayer::WriteFifo(u8 *data, u32 start, u32 end)
 		u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
 		m_ElapsedCycles = elapsedCycles;
 
-		CoreTiming::downcount -= cyclesUsed;
+		PowerPC::ppcState.downcount -= cyclesUsed;
 		CoreTiming::Advance();
 	}
 }

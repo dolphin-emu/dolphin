@@ -51,19 +51,6 @@ void CommonAsmRoutines::GenFifoFloatWrite()
 	RET();
 }
 
-void CommonAsmRoutines::GenFifoXmm64Write()
-{
-	// Assume value in XMM0. Assume pre-byteswapped (unlike the others here!)
-	PUSH(ESI);
-	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
-	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
-	MOVQ_xmm(MComplex(RAX, RSI, 1, 0), XMM0);
-	ADD(32, R(ESI), Imm8(8));
-	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
-	POP(ESI);
-	RET();
-}
-
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 
 static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -71,42 +58,42 @@ static const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8,
 
 static const float GC_ALIGNED16(m_quantizeTableS[]) =
 {
-	(1 <<  0),  (1 <<  1),  (1 <<  2),  (1 <<  3),
-	(1 <<  4),  (1 <<  5),  (1 <<  6),  (1 <<  7),
-	(1 <<  8),  (1 <<  9),  (1 << 10),  (1 << 11),
-	(1 << 12),  (1 << 13),  (1 << 14),  (1 << 15),
-	(1 << 16),  (1 << 17),  (1 << 18),  (1 << 19),
-	(1 << 20),  (1 << 21),  (1 << 22),  (1 << 23),
-	(1 << 24),  (1 << 25),  (1 << 26),  (1 << 27),
-	(1 << 28),  (1 << 29),  (1 << 30),  (1 << 31),
-	1.0 / (1ULL << 32), 1.0 / (1 << 31), 1.0 / (1 << 30), 1.0 / (1 << 29),
-	1.0 / (1 << 28),    1.0 / (1 << 27), 1.0 / (1 << 26), 1.0 / (1 << 25),
-	1.0 / (1 << 24),    1.0 / (1 << 23), 1.0 / (1 << 22), 1.0 / (1 << 21),
-	1.0 / (1 << 20),    1.0 / (1 << 19), 1.0 / (1 << 18), 1.0 / (1 << 17),
-	1.0 / (1 << 16),    1.0 / (1 << 15), 1.0 / (1 << 14), 1.0 / (1 << 13),
-	1.0 / (1 << 12),    1.0 / (1 << 11), 1.0 / (1 << 10), 1.0 / (1 <<  9),
-	1.0 / (1 <<  8),    1.0 / (1 <<  7), 1.0 / (1 <<  6), 1.0 / (1 <<  5),
-	1.0 / (1 <<  4),    1.0 / (1 <<  3), 1.0 / (1 <<  2), 1.0 / (1 <<  1),
+	(1ULL <<  0), (1ULL <<  1), (1ULL <<  2), (1ULL <<  3),
+	(1ULL <<  4), (1ULL <<  5), (1ULL <<  6), (1ULL <<  7),
+	(1ULL <<  8), (1ULL <<  9), (1ULL << 10), (1ULL << 11),
+	(1ULL << 12), (1ULL << 13), (1ULL << 14), (1ULL << 15),
+	(1ULL << 16), (1ULL << 17), (1ULL << 18), (1ULL << 19),
+	(1ULL << 20), (1ULL << 21), (1ULL << 22), (1ULL << 23),
+	(1ULL << 24), (1ULL << 25), (1ULL << 26), (1ULL << 27),
+	(1ULL << 28), (1ULL << 29), (1ULL << 30), (1ULL << 31),
+	1.0 / (1ULL << 32), 1.0 / (1ULL << 31), 1.0 / (1ULL << 30), 1.0 / (1ULL << 29),
+	1.0 / (1ULL << 28), 1.0 / (1ULL << 27), 1.0 / (1ULL << 26), 1.0 / (1ULL << 25),
+	1.0 / (1ULL << 24), 1.0 / (1ULL << 23), 1.0 / (1ULL << 22), 1.0 / (1ULL << 21),
+	1.0 / (1ULL << 20), 1.0 / (1ULL << 19), 1.0 / (1ULL << 18), 1.0 / (1ULL << 17),
+	1.0 / (1ULL << 16), 1.0 / (1ULL << 15), 1.0 / (1ULL << 14), 1.0 / (1ULL << 13),
+	1.0 / (1ULL << 12), 1.0 / (1ULL << 11), 1.0 / (1ULL << 10), 1.0 / (1ULL << 9),
+	1.0 / (1ULL << 8), 1.0 / (1ULL << 7), 1.0 / (1ULL << 6), 1.0 / (1ULL << 5),
+	1.0 / (1ULL << 4), 1.0 / (1ULL << 3), 1.0 / (1ULL << 2), 1.0 / (1ULL << 1),
 };
 
 static const float GC_ALIGNED16(m_dequantizeTableS[]) =
 {
-	1.0 / (1 <<  0), 1.0 / (1 <<  1), 1.0 / (1 <<  2), 1.0 / (1 <<  3),
-	1.0 / (1 <<  4), 1.0 / (1 <<  5), 1.0 / (1 <<  6), 1.0 / (1 <<  7),
-	1.0 / (1 <<  8), 1.0 / (1 <<  9), 1.0 / (1 << 10), 1.0 / (1 << 11),
-	1.0 / (1 << 12), 1.0 / (1 << 13), 1.0 / (1 << 14), 1.0 / (1 << 15),
-	1.0 / (1 << 16), 1.0 / (1 << 17), 1.0 / (1 << 18), 1.0 / (1 << 19),
-	1.0 / (1 << 20), 1.0 / (1 << 21), 1.0 / (1 << 22), 1.0 / (1 << 23),
-	1.0 / (1 << 24), 1.0 / (1 << 25), 1.0 / (1 << 26), 1.0 / (1 << 27),
-	1.0 / (1 << 28), 1.0 / (1 << 29), 1.0 / (1 << 30), 1.0 / (1 << 31),
-	(1ULL << 32),   (1 << 31),      (1 << 30),      (1 << 29),
-	(1 << 28),      (1 << 27),      (1 << 26),      (1 << 25),
-	(1 << 24),      (1 << 23),      (1 << 22),      (1 << 21),
-	(1 << 20),      (1 << 19),      (1 << 18),      (1 << 17),
-	(1 << 16),      (1 << 15),      (1 << 14),      (1 << 13),
-	(1 << 12),      (1 << 11),      (1 << 10),      (1 <<  9),
-	(1 <<  8),      (1 <<  7),      (1 <<  6),      (1 <<  5),
-	(1 <<  4),      (1 <<  3),      (1 <<  2),      (1 <<  1),
+	1.0 / (1ULL <<  0), 1.0 / (1ULL <<  1), 1.0 / (1ULL <<  2), 1.0 / (1ULL <<  3),
+	1.0 / (1ULL <<  4), 1.0 / (1ULL <<  5), 1.0 / (1ULL <<  6), 1.0 / (1ULL <<  7),
+	1.0 / (1ULL <<  8), 1.0 / (1ULL <<  9), 1.0 / (1ULL << 10), 1.0 / (1ULL << 11),
+	1.0 / (1ULL << 12), 1.0 / (1ULL << 13), 1.0 / (1ULL << 14), 1.0 / (1ULL << 15),
+	1.0 / (1ULL << 16), 1.0 / (1ULL << 17), 1.0 / (1ULL << 18), 1.0 / (1ULL << 19),
+	1.0 / (1ULL << 20), 1.0 / (1ULL << 21), 1.0 / (1ULL << 22), 1.0 / (1ULL << 23),
+	1.0 / (1ULL << 24), 1.0 / (1ULL << 25), 1.0 / (1ULL << 26), 1.0 / (1ULL << 27),
+	1.0 / (1ULL << 28), 1.0 / (1ULL << 29), 1.0 / (1ULL << 30), 1.0 / (1ULL << 31),
+	(1ULL << 32), (1ULL << 31), (1ULL << 30), (1ULL << 29),
+	(1ULL << 28), (1ULL << 27), (1ULL << 26), (1ULL << 25),
+	(1ULL << 24), (1ULL << 23), (1ULL << 22), (1ULL << 21),
+	(1ULL << 20), (1ULL << 19), (1ULL << 18), (1ULL << 17),
+	(1ULL << 16), (1ULL << 15), (1ULL << 14), (1ULL << 13),
+	(1ULL << 12), (1ULL << 11), (1ULL << 10), (1ULL <<  9),
+	(1ULL <<  8), (1ULL <<  7), (1ULL <<  6), (1ULL <<  5),
+	(1ULL <<  4), (1ULL <<  3), (1ULL <<  2), (1ULL <<  1),
 };
 
 static float GC_ALIGNED16(psTemp[4]);
@@ -139,7 +126,6 @@ void CommonAsmRoutines::GenQuantizedStores()
 	UD2();
 	const u8* storePairedFloat = AlignCode4();
 
-#if _M_X86_64
 	SHUFPS(XMM0, R(XMM0), 1);
 	MOVQ_xmm(M(&psTemp[0]), XMM0);
 	TEST(32, R(ECX), Imm32(0x0C000000));
@@ -153,27 +139,6 @@ void CommonAsmRoutines::GenQuantizedStores()
 	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
 	SetJumpTarget(skip_complex);
 	RET();
-#else
-	TEST(32, R(ECX), Imm32(0x0C000000));
-	FixupBranch argh = J_CC(CC_NZ, true);
-	MOVQ_xmm(M(&psTemp[0]), XMM0);
-	MOV(32, R(EAX), M(&psTemp));
-	BSWAP(32, EAX);
-	AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-	MOV(32, MDisp(ECX, (u32)Memory::base), R(EAX));
-	MOV(32, R(EAX), M(((char*)&psTemp) + 4));
-	BSWAP(32, EAX);
-	MOV(32, MDisp(ECX, 4+(u32)Memory::base), R(EAX));
-	FixupBranch arg2 = J(true);
-	SetJumpTarget(argh);
-	SHUFPS(XMM0, R(XMM0), 1);
-	MOVQ_xmm(M(&psTemp[0]), XMM0);
-	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
-	ABI_CallFunctionR((void *)&WriteDual32, ECX);
-	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
-	SetJumpTarget(arg2);
-	RET();
-#endif
 
 	const u8* storePairedU8 = AlignCode4();
 	SHR(32, R(EAX), Imm8(6));
@@ -279,7 +244,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 
 	// Easy!
 	const u8* storeSingleFloat = AlignCode4();
-	SafeWriteFloatToReg(XMM0, ECX, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
+	SafeWriteF32ToReg(XMM0, ECX, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
 	/*
 	if (cpu_info.bSSSE3) {
@@ -356,64 +321,24 @@ void CommonAsmRoutines::GenQuantizedLoads()
 
 	const u8* loadPairedFloatTwo = AlignCode4();
 	if (cpu_info.bSSSE3) {
-#if _M_X86_64
 		MOVQ_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
-#else
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
-#endif
 		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
 	} else {
-#if _M_X86_64
 		LoadAndSwap(64, RCX, MComplex(RBX, RCX, 1, 0));
 		ROL(64, R(RCX), Imm8(32));
 		MOVQ_xmm(XMM0, R(RCX));
-#else
-#if 0
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
-		PXOR(XMM1, R(XMM1));
-		PSHUFLW(XMM0, R(XMM0), 0xB1);
-		MOVAPD(XMM1, R(XMM0));
-		PSRLW(XMM0, 8);
-		PSLLW(XMM1, 8);
-		POR(XMM0, R(XMM1));
-#else
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
-		BSWAP(32, EAX);
-		MOV(32, M(&psTemp[0]), R(RAX));
-		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base + 4));
-		BSWAP(32, EAX);
-		MOV(32, M(((float *)&psTemp[0]) + 1), R(RAX));
-		MOVQ_xmm(XMM0, M(&psTemp[0]));
-#endif
-#endif
 	}
 	RET();
 
 	const u8* loadPairedFloatOne = AlignCode4();
 	if (cpu_info.bSSSE3) {
-#if _M_X86_64
 		MOVD_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
-#else
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVD_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
-#endif
 		PSHUFB(XMM0, M((void *)pbswapShuffle1x4));
 		UNPCKLPS(XMM0, M((void*)m_one));
 	} else {
-#if _M_X86_64
 		LoadAndSwap(32, RCX, MComplex(RBX, RCX, 1, 0));
 		MOVD_xmm(XMM0, R(RCX));
 		UNPCKLPS(XMM0, M((void*)m_one));
-#else
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
-		BSWAP(32, EAX);
-		MOVD_xmm(XMM0, R(EAX));
-		UNPCKLPS(XMM0, M((void*)m_one));
-#endif
 	}
 	RET();
 

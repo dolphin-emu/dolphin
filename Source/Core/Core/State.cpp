@@ -63,7 +63,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 22;
+static const u32 STATE_VERSION = 30;
 
 enum
 {
@@ -79,7 +79,7 @@ void EnableCompression(bool compression)
 	g_use_compression = compression;
 }
 
-void DoState(PointerWrap &p)
+static void DoState(PointerWrap &p)
 {
 	u32 version = STATE_VERSION;
 	{
@@ -159,7 +159,7 @@ void VerifyBuffer(std::vector<u8>& buffer)
 }
 
 // return state number not in map
-int GetEmptySlot(std::map<double, int> m)
+static int GetEmptySlot(std::map<double, int> m)
 {
 	for (int i = 1; i <= (int)NUM_STATES; i++)
 	{
@@ -180,7 +180,7 @@ int GetEmptySlot(std::map<double, int> m)
 static std::string MakeStateFilename(int number);
 
 // read state timestamps
-std::map<double, int> GetSavedStates()
+static std::map<double, int> GetSavedStates()
 {
 	StateHeader header;
 	std::map<double, int> m;
@@ -209,7 +209,7 @@ struct CompressAndDumpState_args
 	bool wait;
 };
 
-void CompressAndDumpState(CompressAndDumpState_args save_args)
+static void CompressAndDumpState(CompressAndDumpState_args save_args)
 {
 	std::lock_guard<std::mutex> lk(*save_args.buffer_mutex);
 	if (!save_args.wait)
@@ -356,7 +356,7 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
 	return true;
 }
 
-void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
+static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 {
 	Flush();
 	File::IOFile f(filename, "rb");
@@ -424,18 +424,11 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 
 void LoadAs(const std::string& filename)
 {
+	if (!Core::IsRunning())
+		return;
+
 	// Stop the core while we load the state
 	bool wasUnpaused = Core::PauseAndLock(true);
-
-#if defined _DEBUG && defined _WIN32
-	// we use _CRTDBG_DELAY_FREE_MEM_DF (as a speed hack?),
-	// but it was causing us to leak gigantic amounts of memory here,
-	// enough that only a few savestates could be loaded before crashing,
-	// so let's disable it temporarily.
-	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-	if (g_loadDepth == 0)
-		_CrtSetDbgFlag(tmpflag & ~_CRTDBG_DELAY_FREE_MEM_DF);
-#endif
 
 	g_loadDepth++;
 
@@ -493,12 +486,6 @@ void LoadAs(const std::string& filename)
 		g_onAfterLoadCb();
 
 	g_loadDepth--;
-
-#if defined _DEBUG && defined _WIN32
-	// restore _CRTDBG_DELAY_FREE_MEM_DF
-	if (g_loadDepth == 0)
-		_CrtSetDbgFlag(tmpflag);
-#endif
 
 	// resume dat core
 	Core::PauseAndLock(false, wasUnpaused);

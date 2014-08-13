@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+
+class PointerWrap;
 
 namespace OpcodeDecoder
 {
@@ -23,12 +24,15 @@ namespace OpcodeDecoder
 	#define GX_CMD_CALL_DL              0x40
 	#define GX_CMD_INVL_VC              0x48
 
-	#define GX_PRIMITIVE_MASK           0x78
+	#define GX_PRIMITIVE_MASK           0x38
 	#define GX_PRIMITIVE_SHIFT          3
 	#define GX_VAT_MASK                 0x07
 
-	//these are defined 1/8th of their real values and without their top bit
+	// These values are the values extracted using GX_PRIMITIVE_MASK
+	// and GX_PRIMITIVE_SHIFT.
+	// GX_DRAW_QUADS_2 behaves the same way as GX_DRAW_QUADS.
 	#define GX_DRAW_QUADS               0x0   //0x80
+	#define GX_DRAW_QUADS_2             0x1   //0x88
 	#define GX_DRAW_TRIANGLES           0x2   //0x90
 	#define GX_DRAW_TRIANGLE_STRIP      0x3   //0x98
 	#define GX_DRAW_TRIANGLE_FAN        0x4   //0xA0

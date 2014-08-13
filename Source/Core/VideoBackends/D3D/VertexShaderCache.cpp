@@ -2,8 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 
@@ -119,7 +122,7 @@ void VertexShaderCache::Init()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)vscbuf, "vertex shader constant buffer used to emulate the GX pipeline");
 
 	D3DBlob* blob;
-	D3D::CompileVertexShader(simple_shader_code, sizeof(simple_shader_code), &blob);
+	D3D::CompileVertexShader(simple_shader_code, &blob);
 	D3D::device->CreateInputLayout(simpleelems, 2, blob->Data(), blob->Size(), &SimpleLayout);
 	SimpleVertexShader = D3D::CreateVertexShaderFromByteCode(blob);
 	if (SimpleLayout == nullptr || SimpleVertexShader == nullptr) PanicAlert("Failed to create simple vertex shader or input layout at %s %d\n", __FILE__, __LINE__);
@@ -127,7 +130,7 @@ void VertexShaderCache::Init()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)SimpleVertexShader, "simple vertex shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)SimpleLayout, "simple input layout");
 
-	D3D::CompileVertexShader(clear_shader_code, sizeof(clear_shader_code), &blob);
+	D3D::CompileVertexShader(clear_shader_code, &blob);
 	D3D::device->CreateInputLayout(clearelems, 2, blob->Data(), blob->Size(), &ClearLayout);
 	ClearVertexShader = D3D::CreateVertexShaderFromByteCode(blob);
 	if (ClearLayout == nullptr || ClearVertexShader == nullptr) PanicAlert("Failed to create clear vertex shader or input layout at %s %d\n", __FILE__, __LINE__);
@@ -143,8 +146,7 @@ void VertexShaderCache::Init()
 	SETSTAT(stats.numVertexShadersCreated, 0);
 	SETSTAT(stats.numVertexShadersAlive, 0);
 
-	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+	std::string cache_filename = StringFromFormat("%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	VertexShaderCacheInserter inserter;
 	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
@@ -216,7 +218,7 @@ bool VertexShaderCache::SetShader(u32 components)
 	GenerateVertexShaderCode(code, components, API_D3D);
 
 	D3DBlob* pbytecode = nullptr;
-	D3D::CompileVertexShader(code.GetBuffer(), (int)strlen(code.GetBuffer()), &pbytecode);
+	D3D::CompileVertexShader(code.GetBuffer(), &pbytecode);
 
 	if (pbytecode == nullptr)
 	{

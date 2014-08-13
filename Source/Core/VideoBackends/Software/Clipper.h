@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
-#include "Common/Common.h"
-#include "VideoBackends/Software/NativeVertexFormat.h"
+struct OutputVertexData;
+class PointerWrap;
 
 namespace Clipper
 {

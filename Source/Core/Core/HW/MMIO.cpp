@@ -224,10 +224,8 @@ ReadHandlingMethod<T>* ReadToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_
 {
 	typedef typename SmallerAccessSize<T>::value ST;
 
-	const ReadHandler<ST>* high_part;
-	const ReadHandler<ST>* low_part;
-	mmio->GetHandlerForRead(high_part_addr, &high_part);
-	mmio->GetHandlerForRead(low_part_addr, &low_part);
+	ReadHandler<ST>* high_part = &mmio->GetHandlerForRead<ST>(high_part_addr);
+	ReadHandler<ST>* low_part = &mmio->GetHandlerForRead<ST>(low_part_addr);
 
 	// TODO(delroth): optimize
 	return ComplexRead<T>([=](u32 addr) {
@@ -241,10 +239,8 @@ WriteHandlingMethod<T>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, u32 lo
 {
 	typedef typename SmallerAccessSize<T>::value ST;
 
-	const WriteHandler<ST>* high_part;
-	const WriteHandler<ST>* low_part;
-	mmio->GetHandlerForWrite(high_part_addr, &high_part);
-	mmio->GetHandlerForWrite(low_part_addr, &low_part);
+	WriteHandler<ST>* high_part = &mmio->GetHandlerForWrite<ST>(high_part_addr);
+	WriteHandler<ST>* low_part = &mmio->GetHandlerForWrite<ST>(low_part_addr);
 
 	// TODO(delroth): optimize
 	return ComplexWrite<T>([=](u32 addr, T val) {
@@ -258,8 +254,7 @@ ReadHandlingMethod<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
 {
 	typedef typename LargerAccessSize<T>::value LT;
 
-	const ReadHandler<LT>* large;
-	mmio->GetHandlerForRead(larger_addr, &large);
+	ReadHandler<LT>* large = &mmio->GetHandlerForRead<LT>(larger_addr);
 
 	// TODO(delroth): optimize
 	return ComplexRead<T>([large, shift](u32 addr) {
@@ -271,9 +266,8 @@ ReadHandlingMethod<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
 // redundant code between these two classes but trying to abstract it away
 // brings more trouble than it fixes.
 template <typename T>
-ReadHandler<T>::ReadHandler() : m_Method(nullptr)
+ReadHandler<T>::ReadHandler()
 {
-	ResetMethod(InvalidRead<T>());
 }
 
 template <typename T>
@@ -289,8 +283,11 @@ ReadHandler<T>::~ReadHandler()
 }
 
 template <typename T>
-void ReadHandler<T>::Visit(ReadHandlingMethodVisitor<T>& visitor) const
+void ReadHandler<T>::Visit(ReadHandlingMethodVisitor<T>& visitor)
 {
+	if (!m_Method)
+		InitializeInvalid();
+
 	m_Method->AcceptReadVisitor(visitor);
 }
 
@@ -325,9 +322,8 @@ void ReadHandler<T>::ResetMethod(ReadHandlingMethod<T>* method)
 }
 
 template <typename T>
-WriteHandler<T>::WriteHandler() : m_Method(nullptr)
+WriteHandler<T>::WriteHandler()
 {
-	ResetMethod(InvalidWrite<T>());
 }
 
 template <typename T>
@@ -343,8 +339,11 @@ WriteHandler<T>::~WriteHandler()
 }
 
 template <typename T>
-void WriteHandler<T>::Visit(WriteHandlingMethodVisitor<T>& visitor) const
+void WriteHandler<T>::Visit(WriteHandlingMethodVisitor<T>& visitor)
 {
+	if (!m_Method)
+		InitializeInvalid();
+
 	m_Method->AcceptWriteVisitor(visitor);
 }
 

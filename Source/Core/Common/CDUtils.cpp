@@ -155,7 +155,7 @@ static struct
 	};
 
 // Returns true if a device is a block or char device and not a symbolic link
-bool is_device(const std::string& source_name)
+static bool is_device(const std::string& source_name)
 {
 	struct stat buf;
 	if (0 != lstat(source_name.c_str(), &buf))

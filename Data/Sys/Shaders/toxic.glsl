@@ -1,4 +1,4 @@
-uniform sampler2D samp9;
+SAMPLER_BINDING(9) uniform sampler2D samp9;
 
 out vec4 ocol0;
 in vec2 uv0;
@@ -13,7 +13,7 @@ void main()
 	if (c0.r < 0.3 || c0.b > 0.5)
 	{
 		blue = c0.r + c0.b;
-		red = c0.g + c0.b / 2;
+		red = c0.g + c0.b / 2.0;
 	}
 	else
 	{

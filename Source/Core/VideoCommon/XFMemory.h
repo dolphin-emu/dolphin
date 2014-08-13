@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/Common.h"
+#include "VideoCommon/CPMemory.h"
 
 
 // Lighting
@@ -50,7 +51,6 @@
 #define GX_PERSPECTIVE  0
 #define GX_ORTHOGRAPHIC 1
 
-#define XFMEM_SIZE               0x8000
 #define XFMEM_POSMATRICES        0x000
 #define XFMEM_POSMATRICES_END    0x100
 #define XFMEM_NORMALMATRICES     0x400
@@ -194,13 +194,9 @@ union DualTexInfo
 struct Light
 {
 	u32 useless[3];
-	u32 color; // rgba
-	float a0;  // attenuation
-	float a1;
-	float a2;
-	float k0;  // k stuff
-	float k1;
-	float k2;
+	u8 color[4];
+	float cosatt[3]; // cos attenuation
+	float distatt[3]; // dist attenuation
 
 	union
 	{
@@ -234,8 +230,15 @@ struct Projection
 	u32 type;                      // only GX_PERSPECTIVE or GX_ORTHOGRAPHIC are allowed
 };
 
-struct XFRegisters
+struct XFMemory
 {
+	u32 posMatrices[256];           // 0x0000 - 0x00ff
+	u32 unk0[768];                  // 0x0100 - 0x03ff
+	u32 normalMatrices[96];         // 0x0400 - 0x045f
+	u32 unk1[160];                  // 0x0460 - 0x04ff
+	u32 postMatrices[256];          // 0x0500 - 0x05ff
+	Light lights[8];                // 0x0600 - 0x067f
+	u32 unk2[2432];                 // 0x0680 - 0x0fff
 	u32 error;                      // 0x1000
 	u32 diag;                       // 0x1001
 	u32 state0;                     // 0x1002
@@ -256,8 +259,8 @@ struct XFRegisters
 	u32 unk5;                       // 0x1015
 	u32 unk6;                       // 0x1016
 	u32 unk7;                       // 0x1017
-	u32 MatrixIndexA;               // 0x1018
-	u32 MatrixIndexB;               // 0x1019
+	TMatrixIndexA MatrixIndexA;     // 0x1018
+	TMatrixIndexB MatrixIndexB;     // 0x1019
 	Viewport viewport;              // 0x101a - 0x101f
 	Projection projection;          // 0x1020 - 0x1026
 	u32 unk8[24];                   // 0x1027 - 0x103e
@@ -268,8 +271,7 @@ struct XFRegisters
 };
 
 
-extern XFRegisters xfregs;
-extern u32 xfmem[XFMEM_SIZE];
+extern XFMemory xfmem;
 
 void LoadXFReg(u32 transferSize, u32 address, u32 *pData);
 void LoadIndexedXF(u32 val, int array);

@@ -14,6 +14,7 @@ class VideoSoftware : public VideoBackend
 	void Shutdown() override;
 
 	std::string GetName() const override;
+	std::string GetDisplayName() const override;
 
 	void EmuStateChange(EMUSTATE_CHANGE newState) override;
 
@@ -43,9 +44,7 @@ class VideoSoftware : public VideoBackend
 	void Video_SetRendering(bool bEnabled) override;
 
 	void Video_GatherPipeBursted() override;
-	bool Video_IsHiWatermarkActive() override;
 	bool Video_IsPossibleWaitingSetDrawDone() override;
-	void Video_AbortFrame() override;
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 

@@ -4,6 +4,7 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <string>
 #include <strsafe.h>
 
 #include "Common/Timer.h"
@@ -25,7 +26,6 @@
 
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
-#include "VideoCommon/EmuWindow.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
@@ -38,11 +38,11 @@
 namespace DX11
 {
 
-static int s_fps = 0;
-
 static u32 s_LastAA = 0;
 
 static Television s_television;
+
+static bool s_last_fullscreen_mode = false;
 
 ID3D11Buffer* access_efb_cbuf = nullptr;
 ID3D11BlendState* clearblendstates[4] = {nullptr};
@@ -177,15 +177,9 @@ void CreateScreenshotTexture(const TargetRectangle& rc)
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
 }
 
-Renderer::Renderer()
+Renderer::Renderer(void *&window_handle)
 {
-	int x, y, w_temp, h_temp;
-
-	InitFPSCounter();
-
-	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
-
-	D3D::Create(EmuWindow::GetWnd());
+	D3D::Create((HWND)window_handle);
 
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
@@ -197,6 +191,7 @@ Renderer::Renderer()
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
+	s_last_fullscreen_mode = g_ActiveConfig.bFullscreen;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	SetupDeviceObjects();
@@ -274,21 +269,8 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // size.
 bool Renderer::CheckForResize()
 {
-	while (EmuWindow::IsSizing())
-		Sleep(10);
-
-	if (EmuWindow::GetParentWnd())
-	{
-		// Re-stretch window to parent window size again, if it has a parent window.
-		RECT rcParentWindow;
-		GetWindowRect(EmuWindow::GetParentWnd(), &rcParentWindow);
-		int width = rcParentWindow.right - rcParentWindow.left;
-		int height = rcParentWindow.bottom - rcParentWindow.top;
-		if (width != Renderer::GetBackbufferWidth() || height != Renderer::GetBackbufferHeight())
-			MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
-	}
 	RECT rcWindow;
-	GetClientRect(EmuWindow::GetWnd(), &rcWindow);
+	GetClientRect(D3D::hWnd, &rcWindow);
 	int client_width = rcWindow.right - rcWindow.left;
 	int client_height = rcWindow.bottom - rcWindow.top;
 
@@ -487,16 +469,16 @@ void Renderer::SetViewport()
 	// [5] = 16777215 * farz
 
 	// D3D crashes for zero viewports
-	if (xfregs.viewport.wd == 0 || xfregs.viewport.ht == 0)
+	if (xfmem.viewport.wd == 0 || xfmem.viewport.ht == 0)
 		return;
 
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	float X = Renderer::EFBToScaledXf(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff);
-	float Y = Renderer::EFBToScaledYf(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff);
-	float Wd = Renderer::EFBToScaledXf(2.0f * xfregs.viewport.wd);
-	float Ht = Renderer::EFBToScaledYf(-2.0f * xfregs.viewport.ht);
+	float X = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff);
+	float Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
+	float Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	float Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
 	if (Wd < 0.0f)
 	{
 		X += Wd;
@@ -516,8 +498,8 @@ void Renderer::SetViewport()
 
 	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
-										0.f,  // (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
-										1.f); //  xfregs.viewport.farZ / 16777216.0f;
+										0.f,  // (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+										1.f); //  xfmem.viewport.farZ / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -865,16 +847,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		{
 			s_recordWidth = GetTargetRectangle().GetWidth();
 			s_recordHeight = GetTargetRectangle().GetHeight();
-			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
+			bAVIDumping = AVIDump::Start(D3D::hWnd, s_recordWidth, s_recordHeight);
 			if (!bAVIDumping)
 			{
 				PanicAlert("Error dumping frames to AVI.");
 			}
 			else
 			{
-				char msg [255];
-				sprintf_s(msg,255, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), s_recordWidth, s_recordHeight);
+				std::string msg = StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+					File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), s_recordWidth, s_recordHeight);
+
 				OSD::AddMessage(msg, 2000);
 			}
 		}
@@ -909,40 +891,36 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		bLastFrameDumped = false;
 	}
 
+	// Reset viewport for drawing text
+	vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
+	D3D::context->RSSetViewports(1, &vp);
+
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
 	{
-		char fps[20];
-		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
+		std::string fps = StringFromFormat("FPS: %d\n", m_fps_counter.m_fps);
 		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
 	if (SConfig::GetInstance().m_ShowLag)
 	{
-		char lag[10];
-		StringCchPrintfA(lag, 10, "Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+		std::string lag = StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
 	}
 
 	if (g_ActiveConfig.bShowInputDisplay)
 	{
-		char inputDisplay[1000];
-		StringCchPrintfA(inputDisplay, 1000, Movie::GetInputDisplay().c_str());
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, inputDisplay);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Movie::GetInputDisplay());
 	}
 	Renderer::DrawDebugText();
 
 	if (g_ActiveConfig.bOverlayStats)
 	{
-		char buf[32768];
-		Statistics::ToString(buf);
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, buf);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToString());
 	}
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
-		char buf[32768];
-		Statistics::ToStringProj(buf);
-		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, buf);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, Statistics::ToStringProj());
 	}
 
 	OSD::DrawMessages();
@@ -957,6 +935,22 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	SetWindowSize(fbWidth, fbHeight);
 
 	const bool windowResized = CheckForResize();
+	const bool fullscreen = g_ActiveConfig.bFullscreen &&
+		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain;
+
+	bool fullscreen_changed = s_last_fullscreen_mode != fullscreen;
+
+	bool fullscreen_state;
+	if (SUCCEEDED(D3D::GetFullscreenState(&fullscreen_state)))
+	{
+		if (fullscreen_state != fullscreen && Host_RendererHasFocus())
+		{
+			// The current fullscreen state does not match the configuration,
+			// this may happen when the renderer frame loses focus. When the
+			// render frame is in focus again we can re-apply the configuration.
+			fullscreen_changed = true;
+		}
+	}
 
 	bool xfbchanged = false;
 
@@ -969,24 +963,34 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		FramebufferManagerBase::SetLastXfbHeight(h);
 	}
 
-	// update FPS counter
-	if (XFBWrited)
-		s_fps = UpdateFPSCounter();
-
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
 
-	// resize the back buffers NOW to avoid flickering
+	// Resize the back buffers NOW to avoid flickering
 	if (xfbchanged ||
 		windowResized ||
+		fullscreen_changed ||
 		s_LastEFBScale != g_ActiveConfig.iEFBScale ||
 		s_LastAA != g_ActiveConfig.iMultisampleMode)
 	{
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
 		PixelShaderCache::InvalidateMSAAShaders();
 
-		if (windowResized)
+		if (windowResized || fullscreen_changed)
 		{
+			// Apply fullscreen state
+			if (fullscreen_changed)
+			{
+				s_last_fullscreen_mode = fullscreen;
+				D3D::SetFullscreenState(fullscreen);
+
+				// Notify the host that it is safe to exit fullscreen
+				if (!fullscreen)
+				{
+					Host_RequestFullscreen(false);
+				}
+			}
+
 			// TODO: Aren't we still holding a reference to the back buffer right now?
 			D3D::Reset();
 			SAFE_RELEASE(s_screenshot_texture);
@@ -1104,8 +1108,9 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		SetLogicOpMode();
 	}
 
-	D3D::context->PSSetConstantBuffers(0, 1, &PixelShaderCache::GetConstantBuffer());
-	D3D::context->VSSetConstantBuffers(0, 1, &VertexShaderCache::GetConstantBuffer());
+	ID3D11Buffer* const_buffers[2] = {PixelShaderCache::GetConstantBuffer(), VertexShaderCache::GetConstantBuffer()};
+	D3D::context->PSSetConstantBuffers(0, 1 + g_ActiveConfig.bEnablePixelLighting, const_buffers);
+	D3D::context->VSSetConstantBuffers(0, 1, const_buffers+1);
 
 	D3D::context->PSSetShader(PixelShaderCache::GetActiveShader(), nullptr, 0);
 	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), nullptr, 0);

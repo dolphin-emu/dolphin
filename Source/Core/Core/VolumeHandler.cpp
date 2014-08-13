@@ -8,7 +8,7 @@
 namespace VolumeHandler
 {
 
-DiscIO::IVolume* g_pVolume = nullptr;
+static DiscIO::IVolume* g_pVolume = nullptr;
 
 DiscIO::IVolume *GetVolume()
 {

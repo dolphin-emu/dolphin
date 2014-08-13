@@ -42,6 +42,8 @@ public:
 		virtual std::string GetName() const = 0;
 		virtual ~Control() {}
 
+		bool InputGateOn();
+
 		virtual Input* ToInput() { return nullptr; }
 		virtual Output* ToOutput() { return nullptr; }
 	};
@@ -59,6 +61,16 @@ public:
 
 		virtual ControlState GetState() const = 0;
 
+		bool ShouldHaveInput();
+
+		ControlState GetGatedState()
+		{
+			if (InputGateOn())
+				return GetState();
+			else
+				return 0.0;
+		}
+
 		Input* ToInput() override { return this; }
 	};
 
@@ -73,6 +85,12 @@ public:
 		virtual ~Output() {}
 
 		virtual void SetState(ControlState state) = 0;
+
+		void SetGatedState(ControlState state)
+		{
+			if (InputGateOn())
+				SetState(state);
+		}
 
 		Output* ToOutput() override { return this; }
 	};

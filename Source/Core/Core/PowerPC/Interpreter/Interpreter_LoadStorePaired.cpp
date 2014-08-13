@@ -9,43 +9,43 @@
 // dequantize table
 const float m_dequantizeTable[] =
 {
-	1.0 / (1 <<  0), 1.0 / (1 <<  1), 1.0 / (1 <<  2), 1.0 / (1 <<  3),
-	1.0 / (1 <<  4), 1.0 / (1 <<  5), 1.0 / (1 <<  6), 1.0 / (1 <<  7),
-	1.0 / (1 <<  8), 1.0 / (1 <<  9), 1.0 / (1 << 10), 1.0 / (1 << 11),
-	1.0 / (1 << 12), 1.0 / (1 << 13), 1.0 / (1 << 14), 1.0 / (1 << 15),
-	1.0 / (1 << 16), 1.0 / (1 << 17), 1.0 / (1 << 18), 1.0 / (1 << 19),
-	1.0 / (1 << 20), 1.0 / (1 << 21), 1.0 / (1 << 22), 1.0 / (1 << 23),
-	1.0 / (1 << 24), 1.0 / (1 << 25), 1.0 / (1 << 26), 1.0 / (1 << 27),
-	1.0 / (1 << 28), 1.0 / (1 << 29), 1.0 / (1 << 30), 1.0 / (1 << 31),
-	(1ULL << 32), (1 << 31), (1 << 30), (1 << 29),
-	(1 << 28),    (1 << 27), (1 << 26), (1 << 25),
-	(1 << 24),    (1 << 23), (1 << 22), (1 << 21),
-	(1 << 20),    (1 << 19), (1 << 18), (1 << 17),
-	(1 << 16),    (1 << 15), (1 << 14), (1 << 13),
-	(1 << 12),    (1 << 11), (1 << 10), (1 <<  9),
-	(1 <<  8),    (1 <<  7), (1 <<  6), (1 <<  5),
-	(1 <<  4),    (1 <<  3), (1 <<  2), (1 <<  1),
+	1.0 / (1ULL <<  0), 1.0 / (1ULL <<  1), 1.0 / (1ULL <<  2), 1.0 / (1ULL <<  3),
+	1.0 / (1ULL <<  4), 1.0 / (1ULL <<  5), 1.0 / (1ULL <<  6), 1.0 / (1ULL <<  7),
+	1.0 / (1ULL <<  8), 1.0 / (1ULL <<  9), 1.0 / (1ULL << 10), 1.0 / (1ULL << 11),
+	1.0 / (1ULL << 12), 1.0 / (1ULL << 13), 1.0 / (1ULL << 14), 1.0 / (1ULL << 15),
+	1.0 / (1ULL << 16), 1.0 / (1ULL << 17), 1.0 / (1ULL << 18), 1.0 / (1ULL << 19),
+	1.0 / (1ULL << 20), 1.0 / (1ULL << 21), 1.0 / (1ULL << 22), 1.0 / (1ULL << 23),
+	1.0 / (1ULL << 24), 1.0 / (1ULL << 25), 1.0 / (1ULL << 26), 1.0 / (1ULL << 27),
+	1.0 / (1ULL << 28), 1.0 / (1ULL << 29), 1.0 / (1ULL << 30), 1.0 / (1ULL << 31),
+	(1ULL << 32), (1ULL << 31), (1ULL << 30), (1ULL << 29),
+	(1ULL << 28), (1ULL << 27), (1ULL << 26), (1ULL << 25),
+	(1ULL << 24), (1ULL << 23), (1ULL << 22), (1ULL << 21),
+	(1ULL << 20), (1ULL << 19), (1ULL << 18), (1ULL << 17),
+	(1ULL << 16), (1ULL << 15), (1ULL << 14), (1ULL << 13),
+	(1ULL << 12), (1ULL << 11), (1ULL << 10), (1ULL <<  9),
+	(1ULL <<  8), (1ULL <<  7), (1ULL <<  6), (1ULL <<  5),
+	(1ULL <<  4), (1ULL <<  3), (1ULL <<  2), (1ULL <<  1),
 };
 
 // quantize table
 const float m_quantizeTable[] =
 {
-	(1 <<  0),  (1 <<  1),  (1 <<  2),  (1 <<  3),
-	(1 <<  4),  (1 <<  5),  (1 <<  6),  (1 <<  7),
-	(1 <<  8),  (1 <<  9),  (1 << 10),  (1 << 11),
-	(1 << 12),  (1 << 13),  (1 << 14),  (1 << 15),
-	(1 << 16),  (1 << 17),  (1 << 18),  (1 << 19),
-	(1 << 20),  (1 << 21),  (1 << 22),  (1 << 23),
-	(1 << 24),  (1 << 25),  (1 << 26),  (1 << 27),
-	(1 << 28),  (1 << 29),  (1 << 30),  (1 << 31),
-	1.0 / (1ULL << 32), 1.0 / (1 << 31), 1.0 / (1 << 30), 1.0 / (1 << 29),
-	1.0 / (1 << 28),    1.0 / (1 << 27), 1.0 / (1 << 26), 1.0 / (1 << 25),
-	1.0 / (1 << 24),    1.0 / (1 << 23), 1.0 / (1 << 22), 1.0 / (1 << 21),
-	1.0 / (1 << 20),    1.0 / (1 << 19), 1.0 / (1 << 18), 1.0 / (1 << 17),
-	1.0 / (1 << 16),    1.0 / (1 << 15), 1.0 / (1 << 14), 1.0 / (1 << 13),
-	1.0 / (1 << 12),    1.0 / (1 << 11), 1.0 / (1 << 10), 1.0 / (1 <<  9),
-	1.0 / (1 <<  8),    1.0 / (1 <<  7), 1.0 / (1 <<  6), 1.0 / (1 <<  5),
-	1.0 / (1 <<  4),    1.0 / (1 <<  3), 1.0 / (1 <<  2), 1.0 / (1 <<  1),
+	(1ULL <<  0), (1ULL <<  1), (1ULL <<  2), (1ULL <<  3),
+	(1ULL <<  4), (1ULL <<  5), (1ULL <<  6), (1ULL <<  7),
+	(1ULL <<  8), (1ULL <<  9), (1ULL << 10), (1ULL << 11),
+	(1ULL << 12), (1ULL << 13), (1ULL << 14), (1ULL << 15),
+	(1ULL << 16), (1ULL << 17), (1ULL << 18), (1ULL << 19),
+	(1ULL << 20), (1ULL << 21), (1ULL << 22), (1ULL << 23),
+	(1ULL << 24), (1ULL << 25), (1ULL << 26), (1ULL << 27),
+	(1ULL << 28), (1ULL << 29), (1ULL << 30), (1ULL << 31),
+	1.0 / (1ULL << 32), 1.0 / (1ULL << 31), 1.0 / (1ULL << 30), 1.0 / (1ULL << 29),
+	1.0 / (1ULL << 28), 1.0 / (1ULL << 27), 1.0 / (1ULL << 26), 1.0 / (1ULL << 25),
+	1.0 / (1ULL << 24), 1.0 / (1ULL << 23), 1.0 / (1ULL << 22), 1.0 / (1ULL << 21),
+	1.0 / (1ULL << 20), 1.0 / (1ULL << 19), 1.0 / (1ULL << 18), 1.0 / (1ULL << 17),
+	1.0 / (1ULL << 16), 1.0 / (1ULL << 15), 1.0 / (1ULL << 14), 1.0 / (1ULL << 13),
+	1.0 / (1ULL << 12), 1.0 / (1ULL << 11), 1.0 / (1ULL << 10), 1.0 / (1ULL <<  9),
+	1.0 / (1ULL <<  8), 1.0 / (1ULL <<  7), 1.0 / (1ULL <<  6), 1.0 / (1ULL <<  5),
+	1.0 / (1ULL <<  4), 1.0 / (1ULL <<  3), 1.0 / (1ULL <<  2), 1.0 / (1ULL <<  1),
 };
 
 void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const EQuantizeType _quantizeType, const unsigned int _uScale)
@@ -142,13 +142,15 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
 
 	int c = 4;
-	if ((ldType == QUANTIZE_U8)  || (ldType == QUANTIZE_S8))  c = 0x1;
-	if ((ldType == QUANTIZE_U16) || (ldType == QUANTIZE_S16)) c = 0x2;
+	if (ldType == QUANTIZE_U8  || ldType == QUANTIZE_S8)
+		c = 0x1;
+	else if (ldType == QUANTIZE_U16 || ldType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.W == 0)
 	{
-		float ps0 = Helper_Dequantize(EA,   ldType, ldScale);
-		float ps1 = Helper_Dequantize(EA+c, ldType, ldScale);
+		float ps0 = Helper_Dequantize(EA,     ldType, ldScale);
+		float ps1 = Helper_Dequantize(EA + c, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -158,7 +160,7 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 	}
 	else
 	{
-		float ps0 = Helper_Dequantize(EA,   ldType, ldScale);
+		float ps0 = Helper_Dequantize(EA, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -176,13 +178,15 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 	const u32 EA = m_GPR[_inst.RA] + _inst.SIMM_12;
 
 	int c = 4;
-	if ((ldType == 4) || (ldType == 6)) c = 0x1;
-	if ((ldType == 5) || (ldType == 7)) c = 0x2;
+	if (ldType == QUANTIZE_U8 || ldType == QUANTIZE_S8)
+		c = 0x1;
+	else if (ldType == QUANTIZE_U16 || ldType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.W == 0)
 	{
-		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
-		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA,     ldType, ldScale);
+		float ps1 = Helper_Dequantize(EA + c, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -192,7 +196,7 @@ void Interpreter::psq_lu(UGeckoInstruction _inst)
 	}
 	else
 	{
-		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -212,17 +216,19 @@ void Interpreter::psq_st(UGeckoInstruction _inst)
 		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
 
 	int c = 4;
-	if ((stType == 4) || (stType == 6)) c = 0x1;
-	if ((stType == 5) || (stType == 7)) c = 0x2;
+	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
+		c = 0x1;
+	else if (stType == QUANTIZE_U16 || stType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.W == 0)
 	{
-		Helper_Quantize( EA,   rPS0(_inst.RS), stType, stScale );
-		Helper_Quantize( EA+c, rPS1(_inst.RS), stType, stScale );
+		Helper_Quantize(EA,     rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA + c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize( EA,   rPS0(_inst.RS), stType, stScale );
+		Helper_Quantize(EA, rPS0(_inst.RS), stType, stScale);
 	}
 }
 
@@ -234,17 +240,19 @@ void Interpreter::psq_stu(UGeckoInstruction _inst)
 	const u32 EA = m_GPR[_inst.RA] + _inst.SIMM_12;
 
 	int c = 4;
-	if ((stType == 4) || (stType == 6)) c = 0x1;
-	if ((stType == 5) || (stType == 7)) c = 0x2;
+	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
+		c = 0x1;
+	else if (stType == QUANTIZE_U16 || stType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.W == 0)
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,     rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA + c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA, rPS0(_inst.RS), stType, stScale);
 	}
 	if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 	{
@@ -261,13 +269,15 @@ void Interpreter::psq_lx(UGeckoInstruction _inst)
 	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB];
 
 	int c = 4;
-	if ((ldType == 4) || (ldType == 6)) c = 0x1;
-	if ((ldType == 5) || (ldType == 7)) c = 0x2;
+	if (ldType == QUANTIZE_U8 || ldType == QUANTIZE_S8)
+		c = 0x1;
+	else if (ldType == QUANTIZE_U16 || ldType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.Wx == 0)
 	{
-		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
-		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA,     ldType, ldScale);
+		float ps1 = Helper_Dequantize(EA + c, ldType, ldScale);
 
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
@@ -279,7 +289,7 @@ void Interpreter::psq_lx(UGeckoInstruction _inst)
 	}
 	else
 	{
-		float ps0 = Helper_Dequantize( EA, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA, ldType, ldScale);
 		float ps1 = 1.0f;
 
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
@@ -300,17 +310,19 @@ void Interpreter::psq_stx(UGeckoInstruction _inst)
 	const u32 EA = _inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB];
 
 	int c = 4;
-	if ((stType == 4) || (stType == 6)) c = 0x1;
-	if ((stType == 5) || (stType == 7)) c = 0x2;
+	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
+		c = 0x1;
+	else if (stType == QUANTIZE_U16 || stType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.Wx == 0)
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,     rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA + c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA, rPS0(_inst.RS), stType, stScale);
 	}
 }
 
@@ -322,13 +334,15 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 	const u32 EA = m_GPR[_inst.RA] + m_GPR[_inst.RB];
 
 	int c = 4;
-	if ((ldType == 4) || (ldType == 6)) c = 0x1;
-	if ((ldType == 5) || (ldType == 7)) c = 0x2;
+	if (ldType == QUANTIZE_U8 || ldType == QUANTIZE_S8)
+		c = 0x1;
+	else if (ldType == QUANTIZE_U16 || ldType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.Wx == 0)
 	{
-		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
-		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA,     ldType, ldScale);
+		float ps1 = Helper_Dequantize(EA + c, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -338,7 +352,7 @@ void Interpreter::psq_lux(UGeckoInstruction _inst)
 	}
 	else
 	{
-		float ps0 = Helper_Dequantize( EA, ldType, ldScale );
+		float ps0 = Helper_Dequantize(EA, ldType, ldScale);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
 			return;
@@ -357,17 +371,19 @@ void Interpreter::psq_stux(UGeckoInstruction _inst)
 	const u32 EA = m_GPR[_inst.RA] + m_GPR[_inst.RB];
 
 	int c = 4;
-	if ((stType == 4) || (stType == 6)) c = 0x1;
-	if ((stType == 5) || (stType == 7)) c = 0x2;
+	if (stType == QUANTIZE_U8 || stType == QUANTIZE_S8)
+		c = 0x1;
+	else if (stType == QUANTIZE_U16 || stType == QUANTIZE_S16)
+		c = 0x2;
 
 	if (_inst.Wx == 0)
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,     rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA + c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA, rPS0(_inst.RS), stType, stScale);
 	}
 	if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 	{

@@ -17,11 +17,18 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
-#ifndef _M_GENERIC
+#ifdef _M_X86
 #ifndef __APPLE__
 #define USE_VERTEX_LOADER_JIT
 #endif
 #endif
+
+// They are used for the communication with the loader functions
+extern int tcIndex;
+extern int colIndex;
+extern int colElements[2];
+extern float posScale;
+extern float tcScale[8];
 
 class VertexLoaderUID
 {
@@ -32,13 +39,13 @@ public:
 	{
 	}
 
-	void InitFromCurrentState(int vtx_attr_group)
+	VertexLoaderUID(const TVtxDesc& vtx_desc, const VAT& vat)
 	{
-		vid[0] = g_VtxDesc.Hex & 0xFFFFFFFF;
-		vid[1] = g_VtxDesc.Hex >> 32;
-		vid[2] = g_VtxAttr[vtx_attr_group].g0.Hex & ~VAT_0_FRACBITS;
-		vid[3] = g_VtxAttr[vtx_attr_group].g1.Hex & ~VAT_1_FRACBITS;
-		vid[4] = g_VtxAttr[vtx_attr_group].g2.Hex & ~VAT_2_FRACBITS;
+		vid[0] = vtx_desc.Hex & 0xFFFFFFFF;
+		vid[1] = vtx_desc.Hex >> 32;
+		vid[2] = vat.g0.Hex & ~VAT_0_FRACBITS;
+		vid[3] = vat.g1.Hex & ~VAT_1_FRACBITS;
+		vid[4] = vat.g2.Hex & ~VAT_2_FRACBITS;
 		hash = CalculateHash();
 	}
 
@@ -98,9 +105,12 @@ public:
 	~VertexLoader();
 
 	int GetVertexSize() const {return m_VertexSize;}
+	u32 GetNativeComponents() const { return m_native_components; }
+	const PortableVertexDeclaration& GetNativeVertexDeclaration() const
+		{ return m_native_vtx_decl; }
 
-	void SetupRunVertices(int vtx_attr_group, int primitive, int const count);
-	void RunVertices(int vtx_attr_group, int primitive, int count);
+	void SetupRunVertices(const VAT& vat, int primitive, int const count);
+	void RunVertices(const VAT& vat, int primitive, int count);
 
 	// For debugging / profiling
 	void AppendToString(std::string *dest) const;
@@ -114,8 +124,8 @@ private:
 	TVtxDesc m_VtxDesc;  // Not really used currently - or well it is, but could be easily avoided.
 
 	// PC vertex format
-	NativeVertexFormat *m_NativeFmt;
-	int native_stride;
+	u32 m_native_components;
+	PortableVertexDeclaration m_native_vtx_decl;
 
 #ifndef USE_VERTEX_LOADER_JIT
 	// Pipeline.
@@ -127,7 +137,7 @@ private:
 
 	int m_numLoadedVertices;
 
-	void SetVAT(u32 _group0, u32 _group1, u32 _group2);
+	void SetVAT(const VAT& vat);
 
 	void CompileVertexTranslator();
 	void ConvertVertices(int count);

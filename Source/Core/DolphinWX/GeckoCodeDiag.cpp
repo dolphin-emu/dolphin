@@ -13,6 +13,7 @@
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -42,8 +43,8 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	: wxPanel(parent, -1)
 {
 	m_listbox_gcodes = new wxCheckListBox(this, -1);
-	m_listbox_gcodes->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &CodeConfigPanel::UpdateInfoBox, this);
-	m_listbox_gcodes->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &CodeConfigPanel::ToggleCode, this);
+	m_listbox_gcodes->Bind(wxEVT_LISTBOX, &CodeConfigPanel::UpdateInfoBox, this);
+	m_listbox_gcodes->Bind(wxEVT_CHECKLISTBOX, &CodeConfigPanel::ToggleCode, this);
 
 	m_infobox.label_name = new wxStaticText(this, -1, wxGetTranslation(wxstr_name));
 	m_infobox.label_creator = new wxStaticText(this, -1, wxGetTranslation(wxstr_creator));
@@ -65,7 +66,7 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
 	btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
 	btn_download->Enable(false);
-	btn_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CodeConfigPanel::DownloadCodes, this);
+	btn_download->Bind(wxEVT_BUTTON, &CodeConfigPanel::DownloadCodes, this);
 	sizer_buttons->AddStretchSpacer(1);
 	sizer_buttons->Add(btn_download, 1, wxEXPAND);
 
@@ -141,7 +142,7 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 		// add codes to info listbox
 		for (const GeckoCode::Code& code : m_gcodes[sel].codes)
 		{
-			m_infobox.listbox_codes->Append(wxString::Format(wxT("%08X %08X"), code.address, code.data));
+			m_infobox.listbox_codes->Append(wxString::Format("%08X %08X", code.address, code.data));
 		}
 	}
 	else
@@ -188,16 +189,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 		// parse the codes
 		std::istringstream ss(resp.GetBody());
 
-		// debug
-		//PanicAlert("File size is %i bytes.", ss.str().size());
-
 		std::string line;
-
-		// make sure the txt file is for this game
-		// eh w/e
-		//std::getline(ss, line);
-		//if (line != m_gameid)
-		//    PanicAlert("Bad code file.");
 
 		// seek past the header, get to the first code
 		std::getline(ss, line);
@@ -300,20 +292,20 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 				}
 			}
 
-			PanicAlertT("Downloaded %lu codes. (added %lu)",
-				(unsigned long)gcodes.size(), added_count);
+			wxMessageBox(wxString::Format(_("Downloaded %lu codes. (added %lu)"),
+				(unsigned long)gcodes.size(), added_count));
 
 			// refresh the list
 			UpdateCodeList();
 		}
 		else
 		{
-			PanicAlertT("File contained no codes.");
+			wxMessageBox(_("File contained no codes."));
 		}
 	}
 	else
 	{
-		PanicAlertT("Failed to download codes.");
+		WxUtils::ShowErrorDialog(_("Failed to download codes."));
 	}
 }
 

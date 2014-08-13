@@ -95,4 +95,4 @@ public:
 	}
 };
 
-extern ISIDevice* SIDevice_Create(const SIDevices device, const int port_number);
+ISIDevice* SIDevice_Create(const SIDevices device, const int port_number);

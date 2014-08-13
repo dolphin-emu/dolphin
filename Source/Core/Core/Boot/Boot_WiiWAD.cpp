@@ -8,6 +8,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
+#include "Common/StdMakeUnique.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/PatchEngine.h"
@@ -37,14 +38,15 @@ static u32 state_checksum(u32 *buf, int len)
 	return checksum;
 }
 
-typedef struct {
+struct StateFlags
+{
 	u32 checksum;
 	u8 flags;
 	u8 type;
 	u8 discstate;
 	u8 returnto;
 	u32 unknown[6];
-} StateFlags;
+};
 
 bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
@@ -98,11 +100,11 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	std::unique_ptr<CDolLoader> pDolLoader;
 	if (pContent->m_pData)
 	{
-		pDolLoader.reset(new CDolLoader(pContent->m_pData, pContent->m_Size));
+		pDolLoader = std::make_unique<CDolLoader>(pContent->m_pData, pContent->m_Size);
 	}
 	else
 	{
-		pDolLoader.reset(new CDolLoader(pContent->m_Filename));
+		pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
 	}
 	pDolLoader->Load();
 	PC = pDolLoader->GetEntryPoint() | 0x80000000;

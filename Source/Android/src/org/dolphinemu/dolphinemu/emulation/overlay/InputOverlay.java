@@ -54,7 +54,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		Bitmap bitmapResized = Bitmap.createScaledBitmap(bitmap,
 				(int)(dm.heightPixels * scale),
 				(int)(dm.heightPixels * scale),
-				false);
+				true);
 		return bitmapResized;
 	}
 
@@ -110,27 +110,26 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	@Override
 	public boolean onTouch(View v, MotionEvent event)
 	{
-		// Determine the button state to apply based on the MotionEvent action flag.
-		// TODO: This will not work when Axis support is added. Make sure to refactor this when that time comes
-		// The reason it won't work is that when moving an axis, you would get the event MotionEvent.ACTION_MOVE.
-		//
-		// TODO: Refactor this so we detect either Axis movements or button presses so we don't run two loops all the time.
-		//
-		int buttonState = (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE)
-				? ButtonState.PRESSED : ButtonState.RELEASED;
-		// Check if there was a touch within the bounds of a drawable.
+		int pointerIndex = event.getActionIndex();
+
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
-			if (button.getBounds().contains((int)event.getX(), (int)event.getY()))
+			// Determine the button state to apply based on the MotionEvent action flag.
+			switch(event.getAction() & MotionEvent.ACTION_MASK)
 			{
-				NativeLibrary.onTouchEvent(0, button.getId(), buttonState);
-			}
-			else
-			{
-				// Because the above code only changes the state for the button that is being touched, sliding off the
-				// button does not allow for it to be released. Release the button as soon as the touch coordinates leave
-				// the button bounds.
-				NativeLibrary.onTouchEvent(0, button.getId(), ButtonState.RELEASED);
+			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_POINTER_DOWN:
+			case MotionEvent.ACTION_MOVE:
+				// If a pointer enters the bounds of a button, press that button.
+				if (button.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.PRESSED);
+				break;
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_POINTER_UP:
+				// If a pointer ends, release the button it was pressing.
+				if (button.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+ 					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
+				break;
 			}
 		}
 
@@ -142,7 +141,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			float[] axises = joystick.getAxisValues();
 
 			for (int i = 0; i < 4; i++)
-				NativeLibrary.onTouchAxisEvent(0, axisIDs[i], axises[i]);
+				NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
 		}
 
 		return true;
@@ -187,8 +186,31 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableButton.
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
+		// Decide scale based on button ID
+		float scale;
+		float overlaySize = sPrefs.getInt("controls_size", 25);
+		overlaySize += 25;
+		overlaySize /= 50;
+
+		switch (resId)
+		{
+		case R.drawable.gcpad_b:
+			scale = 0.13f * overlaySize;
+			break;
+		case R.drawable.gcpad_x:
+		case R.drawable.gcpad_y:
+			scale = 0.18f * overlaySize;
+			break;
+		case R.drawable.gcpad_start:
+			scale = 0.12f * overlaySize;
+			break;
+		default:
+			scale = 0.20f * overlaySize;
+			break;
+		}
+
 		// Initialize the InputOverlayDrawableButton.
-		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), 0.20f);
+		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), scale);
 		final InputOverlayDrawableButton overlayDrawable = new InputOverlayDrawableButton(res, bitmap, buttonId);
 
 		// String ID of the Drawable. This is what is passed into SharedPreferences
@@ -232,7 +254,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
 		// Initialize the InputOverlayDrawableJoystick.
-		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), 0.30f);
+		float overlaySize = sPrefs.getInt("controls_size", 20);
+		overlaySize += 30;
+		overlaySize /= 50;
+		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), 0.30f * overlaySize);
 		final Bitmap bitmapInner = BitmapFactory.decodeResource(res, resInner);
 
 		// String ID of the Drawable. This is what is passed into SharedPreferences

@@ -12,6 +12,7 @@
 #include <wx/event.h>
 #include <wx/gbsizer.h>
 #include <wx/gdicmn.h>
+#include <wx/msgdlg.h>
 #include <wx/radiobox.h>
 #include <wx/sizer.h>
 #include <wx/spinbutt.h>
@@ -28,8 +29,6 @@
 #include "DolphinWX/WxUtils.h"
 
 class wxWindow;
-
-extern std::vector<PatchEngine::Patch> onFrame;
 
 BEGIN_EVENT_TABLE(CPatchAddEdit, wxDialog)
 	EVT_BUTTON(wxID_OK, CPatchAddEdit::SavePatchData)
@@ -72,7 +71,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	EditPatchName->SetValue(currentName);
 	wxStaticText* EditPatchOffsetText = new wxStaticText(this, ID_EDITPATCH_OFFSET_TEXT, _("Offset:"));
 	EditPatchOffset = new wxTextCtrl(this, ID_EDITPATCH_OFFSET);
-	EditPatchOffset->SetValue(wxString::Format(wxT("%08X"), tempEntries.at(0).address));
+	EditPatchOffset->SetValue(wxString::Format("%08X", tempEntries.at(0).address));
 	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT);
 	EntrySelection->SetRange(0, (int)tempEntries.size()-1);
 	EntrySelection->SetValue((int)tempEntries.size()-1);
@@ -83,7 +82,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	EditPatchType->SetSelection((int)tempEntries.at(0).type);
 	wxStaticText* EditPatchValueText = new wxStaticText(this, ID_EDITPATCH_VALUE_TEXT, _("Value:"));
 	EditPatchValue = new wxTextCtrl(this, ID_EDITPATCH_VALUE);
-	EditPatchValue->SetValue(wxString::Format(wxT("%0*X"), PatchEngine::GetPatchTypeCharLength(tempEntries.at(0).type), tempEntries.at(0).value));
+	EditPatchValue->SetValue(wxString::Format("%0*X", PatchEngine::GetPatchTypeCharLength(tempEntries.at(0).type), tempEntries.at(0).value));
 	wxButton *EntryAdd = new wxButton(this, ID_ENTRY_ADD, _("Add"));
 	EntryRemove = new wxButton(this, ID_ENTRY_REMOVE, _("Remove"));
 	if ((int)tempEntries.size() <= 1)
@@ -201,9 +200,9 @@ void CPatchAddEdit::UpdateEntryCtrls(PatchEngine::PatchEntry pE)
 {
 	sbEntry->GetStaticBox()->SetLabel(wxString::Format(_("Entry %d/%d"), currentItem,
 									  (int)tempEntries.size()));
-	EditPatchOffset->SetValue(wxString::Format(wxT("%08X"), pE.address));
+	EditPatchOffset->SetValue(wxString::Format("%08X", pE.address));
 	EditPatchType->SetSelection(pE.type);
-	EditPatchValue->SetValue(wxString::Format(wxT("%0*X"),
+	EditPatchValue->SetValue(wxString::Format("%0*X",
 		PatchEngine::GetPatchTypeCharLength(pE.type), pE.value));
 }
 
@@ -235,7 +234,7 @@ bool CPatchAddEdit::UpdateTempEntryData(std::vector<PatchEngine::PatchEntry>::it
 
 	if (!parsed_ok)
 	{
-		PanicAlertT("Unable to create patch from given values.\nEntry not modified.");
+		wxMessageBox(_("Unable to create patch from given values.\nEntry not modified."), _("Error"));
 	}
 
 	return parsed_ok;

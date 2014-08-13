@@ -60,7 +60,7 @@ public final class GameListFragment extends ListFragment
 		mGameAdapter.notifyDataSetChanged();
 	}
 
-	private void Fill()
+	private void fill()
 	{
 		List<GameListItem> fls = new ArrayList<GameListItem>();
 		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
@@ -83,8 +83,9 @@ public final class GameListFragment extends ListFragment
 					if (!entry.isHidden() && !entry.isDirectory())
 					{
 						if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
-							fls.add(new GameListItem(getActivity(), entryName, String.format(getString(R.string.file_size), entry.length()), entry.getAbsolutePath()));
+							fls.add(new GameListItem(getActivity(), entryName, entry.length(), entry.getAbsolutePath()));
 					}
+
 				}
 			}
 			catch (Exception ignored)
@@ -107,10 +108,10 @@ public final class GameListFragment extends ListFragment
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
-		mGameAdapter = new GameListAdapter(getActivity(), R.layout.gamelist_folderbrowser_list_item);
+		mGameAdapter = new GameListAdapter(getActivity(), R.layout.gamelist_list_item);
 		rootView.setAdapter(mGameAdapter);
 
-		Fill();
+		fill();
 
 		return rootView;
 	}

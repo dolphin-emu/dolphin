@@ -17,13 +17,13 @@ enum GLSL_VERSION {
 };
 
 // ogl-only config, so not in VideoConfig.h
-extern struct VideoConfig {
+struct VideoConfig {
 	bool bSupportsGLSLCache;
 	bool bSupportsGLPinnedMemory;
 	bool bSupportsGLSync;
 	bool bSupportsGLBaseVertex;
 	bool bSupportsGLBufferStorage;
-	bool bSupportCoverageMSAA;
+	bool bSupportsMSAA;
 	bool bSupportSampleShading;
 	GLSL_VERSION eSupportedGLSLVersion;
 	bool bSupportOGL31;
@@ -35,7 +35,8 @@ extern struct VideoConfig {
 	const char* glsl_version;
 
 	s32 max_samples;
-} g_ogl_config;
+};
+extern VideoConfig g_ogl_config;
 
 class Renderer : public ::Renderer
 {

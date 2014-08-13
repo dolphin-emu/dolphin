@@ -46,7 +46,7 @@ namespace Memory
 /* Enable the Translation Lookaside Buffer functions. TLBHack = 1 in Dolphin.ini or a
    <GameID>.ini file will set this to true */
 bool bFakeVMEM = false;
-bool bMMU = false;
+static bool bMMU = false;
 // ==============
 
 
@@ -57,11 +57,11 @@ bool bMMU = false;
 u8* base = nullptr;
 
 // The MemArena class
-MemArena g_arena;
+static MemArena g_arena;
 // ==============
 
 // STATE_TO_SAVE
-bool m_IsInitialized = false; // Save the Init(), Shutdown() state
+static bool m_IsInitialized = false; // Save the Init(), Shutdown() state
 // END STATE_TO_SAVE
 
 // 64-bit: Pointers to low-mem (sub-0x10000000) mirror
@@ -74,20 +74,20 @@ u8 *m_pFakeVMEM;
 
 // 64-bit: Pointers to high-mem mirrors
 // 32-bit: Same as above
-u8 *m_pPhysicalRAM;
-u8 *m_pVirtualCachedRAM;
-u8 *m_pVirtualUncachedRAM;
-u8 *m_pPhysicalEXRAM;        // wii only
-u8 *m_pVirtualCachedEXRAM;   // wii only
-u8 *m_pVirtualUncachedEXRAM; // wii only
+static u8 *m_pPhysicalRAM;
+static u8 *m_pVirtualCachedRAM;
+static u8 *m_pVirtualUncachedRAM;
+static u8 *m_pPhysicalEXRAM;        // wii only
+static u8 *m_pVirtualCachedEXRAM;   // wii only
+static u8 *m_pVirtualUncachedEXRAM; // wii only
 //u8 *m_pVirtualEFB;
-u8 *m_pVirtualL1Cache;
+static u8 *m_pVirtualL1Cache;
 u8 *m_pVirtualFakeVMEM;
 
 // MMIO mapping object.
 MMIO::Mapping* mmio_mapping;
 
-void InitMMIO(MMIO::Mapping* mmio)
+static void InitMMIO(MMIO::Mapping* mmio)
 {
 	g_video_backend->RegisterCPMMIO(mmio, 0xCC000000);
 	PixelEngine::RegisterMMIO(mmio, 0xCC001000);
@@ -101,7 +101,7 @@ void InitMMIO(MMIO::Mapping* mmio)
 	AudioInterface::RegisterMMIO(mmio, 0xCC006C00);
 }
 
-void InitMMIOWii(MMIO::Mapping* mmio)
+static void InitMMIOWii(MMIO::Mapping* mmio)
 {
 	InitMMIO(mmio);
 
@@ -237,7 +237,7 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
 {
-	const u8 *src = GetCachePtr() + (_CacheAddr & 0x3FFFF);
+	const u8 *src = m_pL1Cache + (_CacheAddr & 0x3FFFF);
 	u8 *dst = GetPointer(_MemAddr);
 
 	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
@@ -257,7 +257,7 @@ void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlo
 void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlocks)
 {
 	const u8 *src = GetPointer(_MemAddr);
-	u8 *dst = GetCachePtr() + (_CacheAddr & 0x3FFFF);
+	u8 *dst = m_pL1Cache + (_CacheAddr & 0x3FFFF);
 
 	if ((dst != nullptr) && (src != nullptr) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
 	{
@@ -333,7 +333,7 @@ u8 *GetPointer(const u32 _Address)
 
 	case 0xe:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
-			return GetCachePtr() + (_Address & L1_CACHE_MASK);
+			return m_pL1Cache + (_Address & L1_CACHE_MASK);
 		else
 			break;
 

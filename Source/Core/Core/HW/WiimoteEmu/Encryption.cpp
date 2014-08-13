@@ -186,13 +186,13 @@ static const u8 sboxes[8][256] = {
 };
 
 
-static inline u8 ror8(const u8 a, const u8 b)
+static inline u8 ROR8(const u8 a, const u8 b)
 {
 	return (a>>b) | ((a<<(8-b))&0xff);
 }
 
 
-void genkey(const u8* const rand, const u8 idx, u8* const key)
+static void GenerateKey(const u8* const rand, const u8 idx, u8* const key)
 {
 	const u8* const ans = ans_tbl[idx];
 	u8 t0[10];
@@ -200,16 +200,16 @@ void genkey(const u8* const rand, const u8 idx, u8* const key)
 	for (int i=0; i<10; ++i)
 		t0[i] = tsbox[rand[i]];
 
-	key[0] = ((ror8((ans[0]^t0[5]),(t0[2]%8)) - t0[9]) ^ t0[4]);
-	key[1] = ((ror8((ans[1]^t0[1]),(t0[0]%8)) - t0[5]) ^ t0[7]);
-	key[2] = ((ror8((ans[2]^t0[6]),(t0[8]%8)) - t0[2]) ^ t0[0]);
-	key[3] = ((ror8((ans[3]^t0[4]),(t0[7]%8)) - t0[3]) ^ t0[2]);
-	key[4] = ((ror8((ans[4]^t0[1]),(t0[6]%8)) - t0[3]) ^ t0[4]);
-	key[5] = ((ror8((ans[5]^t0[7]),(t0[8]%8)) - t0[5]) ^ t0[9]);
+	key[0] = ((ROR8((ans[0]^t0[5]),(t0[2]%8)) - t0[9]) ^ t0[4]);
+	key[1] = ((ROR8((ans[1]^t0[1]),(t0[0]%8)) - t0[5]) ^ t0[7]);
+	key[2] = ((ROR8((ans[2]^t0[6]),(t0[8]%8)) - t0[2]) ^ t0[0]);
+	key[3] = ((ROR8((ans[3]^t0[4]),(t0[7]%8)) - t0[3]) ^ t0[2]);
+	key[4] = ((ROR8((ans[4]^t0[1]),(t0[6]%8)) - t0[3]) ^ t0[4]);
+	key[5] = ((ROR8((ans[5]^t0[7]),(t0[8]%8)) - t0[5]) ^ t0[9]);
 }
 
 
-void gentabs(const u8* const rand, const u8* const key, const u8 idx, u8* const ft, u8* const sb)
+static void GenerateTables(const u8* const rand, const u8* const key, const u8 idx, u8* const ft, u8* const sb)
 {
 	ft[0] = sboxes[idx][key[4]] ^ sboxes[(idx+1)%8][rand[3]];
 	ft[1] = sboxes[idx][key[2]] ^ sboxes[(idx+1)%8][rand[5]];
@@ -234,7 +234,7 @@ void gentabs(const u8* const rand, const u8* const key, const u8 idx, u8* const 
 
 
 /* Generate key from the 0x40-0x4c data in g_RegExt */
-void wiimote_gen_key(wiimote_key* const key, const u8* const keydata)
+void WiimoteGenerateKey(wiimote_key* const key, const u8* const keydata)
 {
 	u8 rand[10];
 	u8 skey[6];
@@ -251,14 +251,14 @@ void wiimote_gen_key(wiimote_key* const key, const u8* const keydata)
 
 	for (idx = 0; idx < 7; ++idx)
 	{
-		genkey(rand, idx, testkey);
+		GenerateKey(rand, idx, testkey);
 		if (0 == memcmp(testkey, skey, 6))
 			break;
 	}
 	// default case is idx = 7 which is valid (homebrew uses it for the 0x17 case)
 	//DEBUG_LOG(WIIMOTE, "idx:  %d", idx);
 
-	gentabs(rand, skey, idx, key->ft, key->sb);
+	GenerateTables(rand, skey, idx, key->ft, key->sb);
 
 	//DEBUG_LOG(WIIMOTE, "ft:   %02x %02x %02x %02x %02x %02x %02x %02x", key->ft[0], key->ft[1], key->ft[2], key->ft[3], key->ft[4], key->ft[5], key->ft[6], key->ft[7]);
 	//DEBUG_LOG(WIIMOTE, "sb:   %02x %02x %02x %02x %02x %02x %02x %02x", key->sb[0], key->sb[1], key->sb[2], key->sb[3], key->sb[4], key->sb[5], key->sb[6], key->sb[7]);
@@ -268,7 +268,7 @@ void wiimote_gen_key(wiimote_key* const key, const u8* const keydata)
 
 // TODO: is there a reason these can only handle a length of 255?
 /* Encrypt data */
-void wiimote_encrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len)
+void WiimoteEncrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len)
 {
 	for (int i = 0; i < len; ++i, ++addr)
 		data[i] = (data[i] - key->ft[addr % 8]) ^ key->sb[addr % 8];
@@ -276,7 +276,7 @@ void wiimote_encrypt(const wiimote_key* const key, u8* const data, int addr, con
 
 
 /* Decrypt data */
-void wiimote_decrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len)
+void WiimoteDecrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len)
 {
 	for (int i = 0; i < len; ++i, ++addr)
 		data[i] = (data[i] ^ key->sb[addr % 8]) + key->ft[addr % 8];

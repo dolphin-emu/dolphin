@@ -4,7 +4,10 @@
 
 // Fast image conversion using OpenGL shaders.
 
+#include <string>
+
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
 #include "Core/HW/Memmap.h"
 
@@ -47,7 +50,7 @@ static int s_encodingUniforms[NUM_ENCODING_PROGRAMS];
 
 static GLuint s_PBO = 0; // for readback with different strides
 
-void CreatePrograms()
+static void CreatePrograms()
 {
 	/* TODO: Accuracy Improvements
 	 *
@@ -69,7 +72,7 @@ void CreatePrograms()
 	const char *VProgramRgbToYuyv =
 		"out vec2 uv0;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
-		"uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"void main()\n"
 		"{\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
@@ -77,7 +80,7 @@ void CreatePrograms()
 		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0));\n"
 		"}\n";
 	const char *FProgramRgbToYuyv =
-		"uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
@@ -108,7 +111,7 @@ void CreatePrograms()
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 	const char *FProgramYuyvToRgb =
-		"uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
@@ -129,9 +132,9 @@ void CreatePrograms()
 	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgramYuyvToRgb, FProgramYuyvToRgb);
 }
 
-SHADER &GetOrCreateEncodingShader(u32 format)
+static SHADER &GetOrCreateEncodingShader(u32 format)
 {
-	if (format > NUM_ENCODING_PROGRAMS)
+	if (format >= NUM_ENCODING_PROGRAMS)
 	{
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
 		return s_encodingPrograms[0];
@@ -145,10 +148,9 @@ SHADER &GetOrCreateEncodingShader(u32 format)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)
 		{
 			static int counter = 0;
-			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+			std::string filename = StringFromFormat("%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 
-			SaveData(szTemp, shader);
+			SaveData(filename, shader);
 		}
 #endif
 
@@ -210,7 +212,7 @@ void Shutdown()
 	s_texConvFrameBuffer[1] = 0;
 }
 
-void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
+static void EncodeToRamUsingShader(GLuint srcTexture,
 						u8* destAddr, int dstWidth, int dstHeight, int readStride,
 						bool linearFilter)
 {
@@ -322,18 +324,13 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		source.left, source.top,
 		expandedWidth, bScaleByHalf ? 2 : 1);
 
-	TargetRectangle scaledSource;
-	scaledSource.top = 0;
-	scaledSource.bottom = expandedHeight;
-	scaledSource.left = 0;
-	scaledSource.right = expandedWidth / samples;
 	int cacheBytes = 32;
 	if ((format & 0x0f) == 6)
 		cacheBytes = 64;
 
 	int readStride = (expandedWidth * cacheBytes) /
 		TexDecoder_GetBlockWidthInTexels(format);
-	EncodeToRamUsingShader(source_texture, scaledSource,
+	EncodeToRamUsingShader(source_texture,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
 		bScaleByHalf > 0 && !bFromZBuffer);
 	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
@@ -351,7 +348,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	// We enable linear filtering, because the gamecube does filtering in the vertical direction when
 	// yscale is enabled.
 	// Otherwise we get jaggies when a game uses yscaling (most PAL games)
-	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);
+	EncodeToRamUsingShader(srcTexture, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();

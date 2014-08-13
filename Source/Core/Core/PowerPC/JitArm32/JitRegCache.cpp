@@ -30,6 +30,19 @@ void ArmRegCache::Init(ARMXEmitter *emitter)
 }
 void ArmRegCache::Start(PPCAnalyst::BlockRegStats &stats)
 {
+	// Make sure the state is wiped on Start
+	// There is a potential for the state remaining dirty from the previous block
+	// This is due to conditional branches not clearing the register cache state
+	for (u8 a = 0; a < 32; ++a)
+	{
+		if (regs[a].GetType() == REG_REG)
+		{
+			u32 regindex = regs[a].GetRegIndex();
+			ArmCRegs[regindex].PPCReg = 33;
+			ArmCRegs[regindex].LastLoad = 0;
+		}
+		regs[a].Flush();
+	}
 }
 
 ARMReg *ArmRegCache::GetPPCAllocationOrder(int &count)
@@ -192,21 +205,36 @@ void ArmRegCache::SetImmediate(u32 preg, u32 imm)
 	regs[preg].LoadToImm(imm);
 }
 
-void ArmRegCache::Flush()
+void ArmRegCache::Flush(FlushMode mode)
 {
 	for (u8 a = 0; a < 32; ++a)
 	{
 		if (regs[a].GetType() == REG_IMM)
-			BindToRegister(a);
+		{
+			if (mode == FLUSH_ALL)
+			{
+				// This changes the type over to a REG_REG and gets caught below.
+				BindToRegister(a);
+			}
+			else
+			{
+				ARMReg tmp = GetReg();
+				emit->MOVI2R(tmp, regs[a].GetImm());
+				emit->STR(tmp, R9, PPCSTATE_OFF(gpr) + a * 4);
+				Unlock(tmp);
+			}
+		}
 		if (regs[a].GetType() == REG_REG)
 		{
 			u32 regindex = regs[a].GetRegIndex();
 			emit->STR(ArmCRegs[regindex].Reg, R9, PPCSTATE_OFF(gpr) + a * 4);
-			ArmCRegs[regindex].PPCReg = 33;
-			ArmCRegs[regindex].LastLoad = 0;
+			if (mode == FLUSH_ALL)
+			{
+				ArmCRegs[regindex].PPCReg = 33;
+				ArmCRegs[regindex].LastLoad = 0;
+				regs[a].Flush();
+			}
 		}
-
-		regs[a].Flush();
 	}
 }
 

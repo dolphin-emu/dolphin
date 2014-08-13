@@ -17,6 +17,7 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
@@ -193,7 +194,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 	u64 position = 0;
 	int num_compressed = 0;
 	int num_stored = 0;
-	int progress_monitor = max<int>(1, header.num_blocks / 1000);
+	int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
 
 	for (u32 i = 0; i < header.num_blocks; i++)
 	{
@@ -203,8 +204,8 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 			int ratio = 0;
 			if (inpos != 0)
 				ratio = (int)(100 * position / inpos);
-			char temp[512];
-			sprintf(temp, "%i of %i blocks. Compression ratio %i%%", i, header.num_blocks, ratio);
+
+			std::string temp = StringFromFormat("%i of %i blocks. Compression ratio %i%%", i, header.num_blocks, ratio);
 			callback(temp, (float)i / (float)header.num_blocks, arg);
 		}
 
@@ -299,7 +300,7 @@ bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
 
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];
-	int progress_monitor = max<int>(1, header.num_blocks / 100);
+	int progress_monitor = std::max<int>(1, header.num_blocks / 100);
 
 	for (u64 i = 0; i < header.num_blocks; i++)
 	{

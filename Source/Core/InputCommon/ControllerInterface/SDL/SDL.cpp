@@ -18,7 +18,7 @@ namespace ciface
 namespace SDL
 {
 
-std::string GetJoystickName(int index)
+static std::string GetJoystickName(int index)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	return SDL_JoystickNameForIndex(index);

@@ -34,8 +34,9 @@
 u8* g_pVideoData = nullptr;
 bool g_bRecordFifoData = false;
 
+typedef void (*DataReadU32xNfunc)(u32 *buf);
 #if _M_SSE >= 0x301
-DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
+static DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
 	DataReadU32xN_SSSE3<1>,
 	DataReadU32xN_SSSE3<2>,
 	DataReadU32xN_SSSE3<3>,
@@ -55,7 +56,7 @@ DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
 };
 #endif
 
-DataReadU32xNfunc DataReadU32xFuncs[16] = {
+static DataReadU32xNfunc DataReadU32xFuncs[16] = {
 	DataReadU32xN<1>,
 	DataReadU32xN<2>,
 	DataReadU32xN<3>,
@@ -73,9 +74,6 @@ DataReadU32xNfunc DataReadU32xFuncs[16] = {
 	DataReadU32xN<15>,
 	DataReadU32xN<16>
 };
-
-extern u8* GetVideoBufferStartPtr();
-extern u8* GetVideoBufferEndPtr();
 
 static void Decode();
 
@@ -97,7 +95,6 @@ void InterpretDisplayList(u32 address, u32 size)
 		{
 			Decode();
 		}
-		INCSTAT(stats.numDListsCalled);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -108,7 +105,7 @@ void InterpretDisplayList(u32 address, u32 size)
 	g_pVideoData = old_pVideoData;
 }
 
-u32 FifoCommandRunnable(u32 &command_size)
+static u32 FifoCommandRunnable(u32 &command_size)
 {
 	u32 cycleTime = 0;
 	u32 buffer_size = (u32)(GetVideoBufferEndPtr() - g_pVideoData);
@@ -201,7 +198,7 @@ u32 FifoCommandRunnable(u32 &command_size)
 		break;
 
 	default:
-		if (cmd_byte & 0x80)
+		if ((cmd_byte & 0xC0) == 0x80)
 		{
 			// check if we can read the header
 			if (buffer_size >= 3)
@@ -219,22 +216,21 @@ u32 FifoCommandRunnable(u32 &command_size)
 		else
 		{
 			// TODO(Omega): Maybe dump FIFO to file on this error
-			char szTemp[1024];
-			sprintf(szTemp, "GFX FIFO: Unknown Opcode (0x%x).\n"
+			std::string temp = StringFromFormat(
+				"GFX FIFO: Unknown Opcode (0x%x).\n"
 				"This means one of the following:\n"
 				"* The emulated GPU got desynced, disabling dual core can help\n"
 				"* Command stream corrupted by some spurious memory bug\n"
 				"* This really is an unknown opcode (unlikely)\n"
 				"* Some other sort of bug\n\n"
 				"Dolphin will now likely crash or hang. Enjoy." , cmd_byte);
-			Host_SysMessage(szTemp);
-			INFO_LOG(VIDEO, "%s", szTemp);
+			Host_SysMessage(temp.c_str());
+			INFO_LOG(VIDEO, "%s", temp.c_str());
 			{
 				SCPFifoStruct &fifo = CommandProcessor::fifo;
 
-				char szTmp[512];
-				// sprintf(szTmp, "Illegal command %02x (at %08x)",cmd_byte,g_pDataReader->GetPtr());
-				sprintf(szTmp, "Illegal command %02x\n"
+				std::string tmp = StringFromFormat(
+					"Illegal command %02x\n"
 					"CPBase: 0x%08x\n"
 					"CPEnd: 0x%08x\n"
 					"CPHiWatermark: 0x%08x\n"
@@ -252,8 +248,8 @@ u32 FifoCommandRunnable(u32 &command_size)
 					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_BPInt ? "true" : "false"
 					,fifo.bFF_Breakpoint ? "true" : "false");
 
-				Host_SysMessage(szTmp);
-				INFO_LOG(VIDEO, "%s", szTmp);
+				Host_SysMessage(tmp.c_str());
+				INFO_LOG(VIDEO, "%s", tmp.c_str());
 			}
 		}
 		break;
@@ -269,7 +265,7 @@ u32 FifoCommandRunnable(u32 &command_size)
 	return cycleTime;
 }
 
-u32 FifoCommandRunnable()
+static u32 FifoCommandRunnable()
 {
 	u32 command_size = 0;
 	return FifoCommandRunnable(command_size);
@@ -346,7 +342,7 @@ static void Decode()
 
 	// draw primitives
 	default:
-		if (cmd_byte & 0x80)
+		if ((cmd_byte & 0xC0) == 0x80)
 		{
 			// load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();
@@ -434,7 +430,7 @@ static void DecodeSemiNop()
 
 	// draw primitives
 	default:
-		if (cmd_byte & 0x80)
+		if ((cmd_byte & 0xC0) == 0x80)
 		{
 			// load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();

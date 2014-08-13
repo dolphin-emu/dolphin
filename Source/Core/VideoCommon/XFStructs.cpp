@@ -11,14 +11,13 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
-void XFMemWritten(u32 transferSize, u32 baseAddress)
+static void XFMemWritten(u32 transferSize, u32 baseAddress)
 {
 	VertexManager::Flush();
 	VertexShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
-	PixelShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
-void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
+static void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 {
 	u32 address = baseAddress;
 	u32 dataIndex = 0;
@@ -49,7 +48,7 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 			break;
 
 		case XFMEM_SETNUMCHAN:
-			if (xfregs.numChan.numColorChans != (newValue & 3))
+			if (xfmem.numChan.numColorChans != (newValue & 3))
 				VertexManager::Flush();
 			break;
 
@@ -57,11 +56,10 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETCHAN1_AMBCOLOR:
 			{
 				u8 chan = address - XFMEM_SETCHAN0_AMBCOLOR;
-				if (xfregs.ambColor[chan] != newValue)
+				if (xfmem.ambColor[chan] != newValue)
 				{
 					VertexManager::Flush();
 					VertexShaderManager::SetMaterialColorChanged(chan, newValue);
-					PixelShaderManager::SetMaterialColorChanged(chan, newValue);
 				}
 				break;
 			}
@@ -70,11 +68,10 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETCHAN1_MATCOLOR:
 			{
 				u8 chan = address - XFMEM_SETCHAN0_MATCOLOR;
-				if (xfregs.matColor[chan] != newValue)
+				if (xfmem.matColor[chan] != newValue)
 				{
 					VertexManager::Flush();
 					VertexShaderManager::SetMaterialColorChanged(chan + 2, newValue);
-					PixelShaderManager::SetMaterialColorChanged(chan + 2, newValue);
 				}
 				break;
 			}
@@ -83,12 +80,12 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETCHAN1_COLOR:
 		case XFMEM_SETCHAN0_ALPHA: // Channel Alpha
 		case XFMEM_SETCHAN1_ALPHA:
-			if (((u32*)&xfregs)[address - 0x1000] != (newValue & 0x7fff))
+			if (((u32*)&xfmem)[address] != (newValue & 0x7fff))
 				VertexManager::Flush();
 			break;
 
 		case XFMEM_DUALTEX:
-			if (xfregs.dualTexTrans.enabled != (newValue & 1))
+			if (xfmem.dualTexTrans.enabled != (newValue & 1))
 				VertexManager::Flush();
 			break;
 
@@ -129,7 +126,7 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 			break;
 
 		case XFMEM_SETNUMTEXGENS: // GXSetNumTexGens
-			if (xfregs.numTexGen.numTexGens != (newValue & 15))
+			if (xfmem.numTexGen.numTexGens != (newValue & 15))
 				VertexManager::Flush();
 			break;
 
@@ -164,7 +161,7 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		// --------------
 
 		// Maybe these are for Normals?
-		case 0x1048: //xfregs.texcoords[0].nrmmtxinfo.hex = data; break; ??
+		case 0x1048: //xfmem.texcoords[0].nrmmtxinfo.hex = data; break; ??
 		case 0x1049:
 		case 0x104a:
 		case 0x104b:
@@ -228,7 +225,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 		}
 
 		XFMemWritten(xfMemTransferSize, xfMemBase);
-		memcpy_gc(&xfmem[xfMemBase], pData, xfMemTransferSize * 4);
+		memcpy((u32*)(&xfmem) + xfMemBase, pData, xfMemTransferSize * 4);
 
 		pData += xfMemTransferSize;
 	}
@@ -237,7 +234,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 	if (transferSize > 0)
 	{
 		XFRegWritten(transferSize, baseAddress, pData);
-		memcpy_gc((u32*)(&xfregs) + (baseAddress - 0x1000), pData, transferSize * 4);
+		memcpy((u32*)(&xfmem) + baseAddress, pData, transferSize * 4);
 	}
 }
 
@@ -249,7 +246,7 @@ void LoadIndexedXF(u32 val, int refarray)
 	int size = ((val >> 12) & 0xF) + 1;
 	//load stuff from array to address in xf mem
 
-	u32* currData = (u32*)(xfmem + address);
+	u32* currData = (u32*)(&xfmem) + address;
 	u32* newData = (u32*)Memory::GetPointer(arraybases[refarray] + arraystrides[refarray] * index);
 	bool changed = false;
 	for (int i = 0; i < size; ++i)

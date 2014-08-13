@@ -9,15 +9,14 @@
 void JitILBase::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
 	switch (iIndex)
 	{
 		case SPR_TL:
 		case SPR_TU:
-			FallBackToInterpreter(inst);
-			return;
+			FALLBACK_IF(true);
 		case SPR_LR:
 			ibuild.EmitStoreLink(ibuild.EmitLoadGReg(inst.RD));
 			return;
@@ -39,22 +38,20 @@ void JitILBase::mtspr(UGeckoInstruction inst)
 			ibuild.EmitStoreSRR(ibuild.EmitLoadGReg(inst.RD), iIndex - SPR_SRR0);
 			return;
 		default:
-			FallBackToInterpreter(inst);
-			return;
+			FALLBACK_IF(true);
 	}
 }
 
 void JitILBase::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(bJITSystemRegistersOff)
+		JITDISABLE(bJITSystemRegistersOff);
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	switch (iIndex)
 	{
 	case SPR_TL:
 	case SPR_TU:
-		FallBackToInterpreter(inst);
-		return;
+		FALLBACK_IF(true);
 	case SPR_LR:
 		ibuild.EmitStoreGReg(ibuild.EmitLoadLink(), inst.RD);
 		return;
@@ -72,8 +69,7 @@ void JitILBase::mfspr(UGeckoInstruction inst)
 		ibuild.EmitStoreGReg(ibuild.EmitLoadGQR(iIndex - SPR_GQR0), inst.RD);
 		return;
 	default:
-		FallBackToInterpreter(inst);
-		return;
+		FALLBACK_IF(true);
 	}
 }
 
@@ -92,27 +88,29 @@ void JitILBase::mtmsr(UGeckoInstruction inst)
 void JitILBase::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(bJITSystemRegistersOff)
+		JITDISABLE(bJITSystemRegistersOff);
 		ibuild.EmitStoreGReg(ibuild.EmitLoadMSR(), inst.RD);
 }
 
 void JitILBase::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 		mfspr(inst);
 }
 
 void JitILBase::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	IREmitter::InstLoc d = ibuild.EmitIntConst(0);
 	for (int i = 0; i < 8; ++i)
 	{
-		d = ibuild.EmitShl(d, ibuild.EmitIntConst(4));
-		d = ibuild.EmitOr(d, ibuild.EmitLoadCR(i));
+		IREmitter::InstLoc cr = ibuild.EmitLoadCR(i);
+		cr = ibuild.EmitConvertFromFastCR(cr);
+		cr = ibuild.EmitShl(cr, ibuild.EmitIntConst(28 - 4 * i));
+		d = ibuild.EmitOr(d, cr);
 	}
 	ibuild.EmitStoreGReg(d, inst.RD);
 }
@@ -120,7 +118,7 @@ void JitILBase::mfcr(UGeckoInstruction inst)
 void JitILBase::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
 	for (int i = 0; i < 8; ++i)
@@ -130,6 +128,7 @@ void JitILBase::mtcrf(UGeckoInstruction inst)
 			IREmitter::InstLoc value;
 			value = ibuild.EmitShrl(s, ibuild.EmitIntConst(28 - i * 4));
 			value = ibuild.EmitAnd(value, ibuild.EmitIntConst(0xF));
+			value = ibuild.EmitConvertToFastCR(value);
 			ibuild.EmitStoreCR(value, i);
 		}
 	}
@@ -138,7 +137,7 @@ void JitILBase::mtcrf(UGeckoInstruction inst)
 void JitILBase::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff)
+	JITDISABLE(bJITSystemRegistersOff);
 
 	if (inst.CRFS != inst.CRFD)
 	{
@@ -148,11 +147,13 @@ void JitILBase::mcrf(UGeckoInstruction inst)
 
 void JitILBase::crXX(UGeckoInstruction inst)
 {
-	// Ported from Jit_SystemRegister.cpp
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
 
 	// Get bit CRBA in EAX aligned with bit CRBD
 	const int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);
 	IREmitter::InstLoc eax = ibuild.EmitLoadCR(inst.CRBA >> 2);
+	eax = ibuild.EmitConvertFromFastCR(eax);
 	if (shiftA < 0)
 		eax = ibuild.EmitShl(eax, ibuild.EmitIntConst(-shiftA));
 	else if (shiftA > 0)
@@ -161,6 +162,7 @@ void JitILBase::crXX(UGeckoInstruction inst)
 	// Get bit CRBB in ECX aligned with bit CRBD
 	const int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
 	IREmitter::InstLoc ecx = ibuild.EmitLoadCR(inst.CRBB >> 2);
+	ecx = ibuild.EmitConvertFromFastCR(ecx);
 	if (shiftB < 0)
 		ecx = ibuild.EmitShl(ecx, ibuild.EmitIntConst(-shiftB));
 	else if (shiftB > 0)
@@ -214,7 +216,9 @@ void JitILBase::crXX(UGeckoInstruction inst)
 	// Store result bit in CRBD
 	eax = ibuild.EmitAnd(eax, ibuild.EmitIntConst(0x8 >> (inst.CRBD & 3)));
 	IREmitter::InstLoc bd = ibuild.EmitLoadCR(inst.CRBD >> 2);
+	bd = ibuild.EmitConvertFromFastCR(bd);
 	bd = ibuild.EmitAnd(bd, ibuild.EmitIntConst(~(0x8 >> (inst.CRBD & 3))));
 	bd = ibuild.EmitOr(bd, eax);
+	bd = ibuild.EmitConvertToFastCR(bd);
 	ibuild.EmitStoreCR(bd, inst.CRBD >> 2);
 }

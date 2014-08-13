@@ -4,8 +4,6 @@
 
 #include <string>
 
-#include "DolphinWX/GLInterface/GLInterface.h"
-
 #include "VideoBackends/OGL/GLExtensions/ARB_blend_func_extended.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_buffer_storage.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_debug_output.h"
@@ -17,6 +15,7 @@
 #include "VideoBackends/OGL/GLExtensions/ARB_sample_shading.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_sampler_objects.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_sync.h"
+#include "VideoBackends/OGL/GLExtensions/ARB_texture_multisample.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_uniform_buffer_object.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_vertex_array_object.h"
 #include "VideoBackends/OGL/GLExtensions/ARB_viewport_array.h"
@@ -30,7 +29,6 @@
 #include "VideoBackends/OGL/GLExtensions/gl_3_1.h"
 #include "VideoBackends/OGL/GLExtensions/gl_3_2.h"
 #include "VideoBackends/OGL/GLExtensions/KHR_debug.h"
-#include "VideoBackends/OGL/GLExtensions/NV_framebuffer_multisample_coverage.h"
 #include "VideoBackends/OGL/GLExtensions/NV_primitive_restart.h"
 
 namespace GLExtensions

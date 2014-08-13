@@ -77,7 +77,6 @@ struct CPUInfo
 
 	// Turn the cpu info into a string we can show
 	std::string Summarize();
-	bool IsUnsafe();
 
 private:
 	// Detects the various cpu features

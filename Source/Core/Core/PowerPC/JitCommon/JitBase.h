@@ -32,10 +32,10 @@
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
 
-#define JITDISABLE(setting)                     \
-	if (Core::g_CoreStartupParameter.bJITOff || \
-		Core::g_CoreStartupParameter.setting)   \
-	{ FallBackToInterpreter(inst); return; }
+#define FALLBACK_IF(cond) do { if (cond) { FallBackToInterpreter(inst); return; } } while (0)
+
+#define JITDISABLE(setting) FALLBACK_IF(Core::g_CoreStartupParameter.bJITOff || \
+                                        Core::g_CoreStartupParameter.setting)
 
 class JitBase : public CPUCoreBase
 {
@@ -54,9 +54,7 @@ protected:
 		u32 compilerPC;
 		u32 next_compilerPC;
 		u32 blockStart;
-		bool cancel;
 		UGeckoInstruction next_inst;  // for easy peephole opt.
-		int blockSize;
 		int instructionNumber;
 		int downcountAmount;
 		u32 numLoadStoreInst;
@@ -64,11 +62,8 @@ protected:
 
 		bool firstFPInstructionFound;
 		bool isLastInstruction;
-		bool forceUnsafeLoad;
 		bool memcheck;
 		bool skipnext;
-		bool broken_block;
-		int block_flags;
 
 		int fifoBytesThisBlock;
 

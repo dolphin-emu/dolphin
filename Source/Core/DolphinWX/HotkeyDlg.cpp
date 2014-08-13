@@ -30,8 +30,7 @@
 class wxWindow;
 
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
-	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,
-			wxEVT_COMMAND_BUTTON_CLICKED, HotkeyConfigDialog::OnButtonClick)
+	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1, wxEVT_BUTTON, HotkeyConfigDialog::OnButtonClick)
 	EVT_TIMER(wxID_ANY, HotkeyConfigDialog::OnButtonTimer)
 END_EVENT_TABLE()
 
@@ -161,7 +160,7 @@ void HotkeyConfigDialog::DoGetButtons(int _GetId)
 		// Current time
 		int TmpTime = Seconds - (GetButtonWaitingTimer / TimesPerSecond);
 		// Update text
-		SetButtonText(_GetId, wxString::Format(wxT("[ %d ]"), TmpTime));
+		SetButtonText(_GetId, wxString::Format("[ %d ]", TmpTime));
 	}
 
 	// Time's up

@@ -8,6 +8,7 @@
 #include <wx/dialog.h>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
+#include <wx/msgdlg.h>
 #include <wx/sizer.h>
 #include <wx/string.h>
 #include <wx/textctrl.h>
@@ -25,10 +26,10 @@ BEGIN_EVENT_TABLE(BreakPointDlg, wxDialog)
 END_EVENT_TABLE()
 
 BreakPointDlg::BreakPointDlg(CBreakPointWindow *_Parent)
-	: wxDialog(_Parent, wxID_ANY, wxT("BreakPoint"))
+	: wxDialog(_Parent, wxID_ANY, _("Add Breakpoint"))
 	, Parent(_Parent)
 {
-	m_pEditAddress = new wxTextCtrl(this, wxID_ANY, wxT("80000000"));
+	m_pEditAddress = new wxTextCtrl(this, wxID_ANY, "80000000");
 
 	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
 	sMainSizer->Add(m_pEditAddress, 0, wxEXPAND | wxALL, 5);
@@ -50,7 +51,7 @@ void BreakPointDlg::OnOK(wxCommandEvent& event)
 	}
 	else
 	{
-		PanicAlert("The address %s is invalid.", WxStrToStr(AddressString).c_str());
+		WxUtils::ShowErrorDialog(wxString::Format(_("The address %s is invalid."), WxStrToStr(AddressString).c_str()));
 	}
 
 	event.Skip();

@@ -1,9 +1,11 @@
+#!/usr/bin/env xdg-open
 [Desktop Entry]
 Version=1.0
-Type=Application
-Name=Dolphin Emulator
-Comment=A Wii/GameCube Emulator
 Icon=dolphin-emu
 Exec=dolphin-emu
-Categories=Game;
-
+Terminal=false
+Type=Application
+Categories=Game;Emulator;
+Name=Dolphin Emulator
+GenericName=Wii/GameCube Emulator
+Comment=A Wii/GameCube Emulator

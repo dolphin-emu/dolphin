@@ -11,10 +11,10 @@
 namespace MMIO { class Mapping; }
 
 #define MEMCHECK_START \
-	FixupBranch memException; \
+	Gen::FixupBranch memException; \
 	if (jit->js.memcheck) \
-	{ TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI)); \
-	memException = J_CC(CC_NZ, true); }
+	{ TEST(32, Gen::M((void *)&PowerPC::ppcState.Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
+	memException = J_CC(Gen::CC_NZ, true); }
 
 #define MEMCHECK_END \
 	if (jit->js.memcheck) \
@@ -47,11 +47,9 @@ public:
 	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags = 0);
 	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags = 0);
 
-	// Trashes both inputs and EAX.
-	void SafeWriteFloatToReg(Gen::X64Reg xmm_value, Gen::X64Reg reg_addr, u32 registersInUse, int flags = 0);
+	void SafeWriteF32ToReg(Gen::X64Reg xmm_value, Gen::X64Reg reg_addr, s32 offset, u32 registersInUse, int flags = 0);
 
 	void WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 address, bool swap = false);
-	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void JitClearCA();
 	void JitSetCA();
 	void JitClearCAOV(bool oe);
@@ -59,8 +57,9 @@ public:
 	void ForceSinglePrecisionS(Gen::X64Reg xmm);
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);
 
-	// AX might get trashed
+	// EAX might get trashed
 	void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, bool src_is_gpr = false);
+	// EAX might get trashed
 	void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
 protected:
 	std::unordered_map<u8 *, u32> registersInUseAtLoc;

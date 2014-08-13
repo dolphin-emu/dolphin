@@ -5,7 +5,8 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "Common/Log.h"
+#include "Common/Logging/Log.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -711,6 +712,12 @@ PFNGLGETSYNCIVPROC glGetSynciv;
 PFNGLISSYNCPROC glIsSync;
 PFNGLWAITSYNCPROC glWaitSync;
 
+// ARB_texture_multisample
+PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
+PFNGLTEXIMAGE3DMULTISAMPLEPROC glTexImage3DMultisample;
+PFNGLGETMULTISAMPLEFVPROC glGetMultisamplefv;
+PFNGLSAMPLEMASKIPROC glSampleMaski;
+
 // ARB_ES2_compatibility
 PFNGLCLEARDEPTHFPROC glClearDepthf;
 PFNGLDEPTHRANGEFPROC glDepthRangef;
@@ -743,9 +750,6 @@ PFNGLDRAWELEMENTSBASEVERTEXPROC glDrawElementsBaseVertex;
 PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC glDrawElementsInstancedBaseVertex;
 PFNGLDRAWRANGEELEMENTSBASEVERTEXPROC glDrawRangeElementsBaseVertex;
 PFNGLMULTIDRAWELEMENTSBASEVERTEXPROC glMultiDrawElementsBaseVertex;
-
-// NV_framebuffer_multisample_coverage
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLECOVERAGENVPROC glRenderbufferStorageMultisampleCoverageNV;
 
 // ARB_sample_shading
 PFNGLMINSAMPLESHADINGARBPROC glMinSampleShadingARB;
@@ -1493,6 +1497,12 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glIsSync,         "GL_ARB_sync"),
 	GLFUNC_REQUIRES(glWaitSync,       "GL_ARB_sync"),
 
+	// ARB_texture_multisample
+	GLFUNC_REQUIRES(glTexImage2DMultisample, "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glTexImage3DMultisample, "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glGetMultisamplefv,      "GL_ARB_texture_multisample"),
+	GLFUNC_REQUIRES(glSampleMaski,           "GL_ARB_texture_multisample"),
+
 	// ARB_ES2_compatibility
 	GLFUNC_REQUIRES(glClearDepthf,              "GL_ARB_ES2_compatibility"),
 	GLFUNC_REQUIRES(glDepthRangef,              "GL_ARB_ES2_compatibility"),
@@ -1525,9 +1535,6 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glDrawElementsInstancedBaseVertex, "GL_ARB_draw_elements_base_vertex"),
 	GLFUNC_REQUIRES(glDrawRangeElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
 	GLFUNC_REQUIRES(glMultiDrawElementsBaseVertex,     "GL_ARB_draw_elements_base_vertex"),
-
-	// NV_framebuffer_multisample_coverage
-	GLFUNC_REQUIRES(glRenderbufferStorageMultisampleCoverageNV, "GL_NV_framebuffer_multisample_coverage"),
 
 	// ARB_sample_shading
 	GLFUNC_REQUIRES(glMinSampleShadingARB, "GL_ARB_sample_shading"),
@@ -1568,16 +1575,16 @@ const GLFunc gl_function_array[] =
 namespace GLExtensions
 {
 	// Private members and functions
-	bool _isES3;
-	bool _isES;
-	u32 _GLVersion;
-	std::unordered_map<std::string, bool> m_extension_list;
+	static bool _isES3;
+	static bool _isES;
+	static u32 _GLVersion;
+	static std::unordered_map<std::string, bool> m_extension_list;
 
 	// Private initialization functions
 	bool InitFunctionPointers();
 
 	// Initializes the extension list the old way
-	void InitExtensionList21()
+	static void InitExtensionList21()
 	{
 		const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
 		std::string tmp(extensions);
@@ -1587,7 +1594,7 @@ namespace GLExtensions
 			m_extension_list[tmp] = true;
 	}
 
-	void InitExtensionList()
+	static void InitExtensionList()
 	{
 		m_extension_list.clear();
 		if (_isES3)
@@ -1724,7 +1731,7 @@ namespace GLExtensions
 		for (GLint i = 0; i < NumExtension; ++i)
 			m_extension_list[std::string((const char*)glGetStringi(GL_EXTENSIONS, i))] = true;
 	}
-	void InitVersion()
+	static void InitVersion()
 	{
 		GLint major, minor;
 		glGetIntegerv(GL_MAJOR_VERSION, &major);
@@ -1737,7 +1744,7 @@ namespace GLExtensions
 			_GLVersion = 330; // Get all the fun things
 	}
 
-	void* GetFuncAddress(std::string name, void **func)
+	static void* GetFuncAddress(std::string name, void **func)
 	{
 		*func = GLInterface->GetFuncAddress(name);
 		if (*func == nullptr)
@@ -1786,7 +1793,7 @@ namespace GLExtensions
 	}
 
 	// Private initialization functions
-	bool HasFeatures(const std::string& extensions)
+	static bool HasFeatures(const std::string& extensions)
 	{
 		bool result = true;
 		std::string tmp;

@@ -30,30 +30,30 @@ namespace PowerPC
 
 // STATE_TO_SAVE
 PowerPCState GC_ALIGNED16(ppcState);
-volatile CPUState state = CPU_STEPPING;
+static volatile CPUState state = CPU_POWERDOWN;
 
 Interpreter * const interpreter = Interpreter::getInstance();
-CoreMode mode;
+static CoreMode mode;
 
 BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
 
-void CompactCR()
+u32 CompactCR()
 {
-	u32 new_cr = ppcState.cr_fast[0] << 28;
-	for (int i = 1; i < 8; i++)
+	u32 new_cr = 0;
+	for (int i = 0; i < 8; i++)
 	{
-		new_cr |= ppcState.cr_fast[i] << (28 - i * 4);
+		new_cr |= GetCRField(i) << (28 - i * 4);
 	}
-	ppcState.cr = new_cr;
+	return new_cr;
 }
 
-void ExpandCR()
+void ExpandCR(u32 cr)
 {
 	for (int i = 0; i < 8; i++)
 	{
-		ppcState.cr_fast[i] = (ppcState.cr >> (28 - i * 4)) & 0xF;
+		SetCRField(i, (cr >> (28 - i * 4)) & 0xF);
 	}
 }
 
@@ -74,7 +74,7 @@ void DoState(PointerWrap &p)
 	JitInterface::DoState(p);
 }
 
-void ResetRegisters()
+static void ResetRegisters()
 {
 	memset(ppcState.ps, 0, sizeof(ppcState.ps));
 	memset(ppcState.gpr, 0, sizeof(ppcState.gpr));
@@ -95,12 +95,12 @@ void ResetRegisters()
 	ppcState.spr[SPR_ECID_M] = 0x1840c00d;
 	ppcState.spr[SPR_ECID_L] = 0x82bb08e8;
 
-	ppcState.cr = 0;
 	ppcState.fpscr = 0;
 	ppcState.pc = 0;
 	ppcState.npc = 0;
 	ppcState.Exceptions = 0;
-	((u64*)(&ppcState.cr_fast[0]))[0] = 0;
+	for (auto& v : ppcState.cr_val)
+		v = 0x8000000000000001;
 
 	TL = 0;
 	TU = 0;
@@ -116,7 +116,6 @@ void Init(int cpu_core)
 {
 	FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
 
-	memset(ppcState.mojs, 0, sizeof(ppcState.mojs));
 	memset(ppcState.sr, 0, sizeof(ppcState.sr));
 	ppcState.DebugCount = 0;
 	ppcState.dtlb_last = 0;
@@ -320,6 +319,11 @@ void CheckExceptions()
 	// set to exception type entry point
 	//NPC = 0x00000x00;
 
+	// TODO(delroth): Exception priority is completely wrong here: depending on
+	// the instruction class, exceptions should be executed in a given order,
+	// which is very different from the one arbitrarily chosen here. See §6.1.5
+	// in 6xx_pem.pdf.
+
 	if (exceptions & EXCEPTION_ISI)
 	{
 		SRR0 = NPC;
@@ -357,7 +361,7 @@ void CheckExceptions()
 	}
 	else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
 	{
-		//This happens a lot - Gamecube OS uses deferred FPU context switching
+		//This happens a lot - GameCube OS uses deferred FPU context switching
 		SRR0 = PC; // re-execute the instruction
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
@@ -396,7 +400,7 @@ void CheckExceptions()
 	}
 
 	// EXTERNAL INTERRUPT
-	else if (MSR & 0x0008000) //hacky...the exception shouldn't be generated if EE isn't set...
+	else if (MSR & 0x0008000)  // Handling is delayed until MSR.EE=1.
 	{
 		if (exceptions & EXCEPTION_EXTERNAL_INT)
 		{

@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstring>
 #include <disasm.h>        // Bochs
-#include <PowerPCDisasm.h> // Bochs
 #include <wx/button.h>
 #include <wx/chartype.h>
 #include <wx/defs.h>
@@ -22,6 +21,7 @@
 #include <wx/windowid.h>
 
 #include "Common/Common.h"
+#include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -54,9 +54,9 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 {
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sizerSplit = new wxBoxSizer(wxHORIZONTAL);
-	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, _T("(ppc)"),
+	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, "(ppc)",
 				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
-	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, _T("(x86)"),
+	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, "(x86)",
 				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
 	sizerBig->Add(block_list = new JitBlockList(this, IDM_BLOCKLIST,
 				wxDefaultPosition, wxSize(100, 140),
@@ -66,7 +66,7 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	// sizerBig->Add(memview, 5, wxEXPAND);
 	// sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
 	sizerBig->Add(button_refresh = new wxButton(this, IDM_REFRESH_LIST, _("&Refresh")));
-	// sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
+	// sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, ""));
 	// sizerRight->Add(new wxButton(this, IDM_SETPC, _("S&et PC")));
 
 	SetSizer(sizerBig);
@@ -115,9 +115,8 @@ void CJitWindow::Compare(u32 em_address)
 		// Do not merge this "if" with the above - block_num changes inside it.
 		if (block_num < 0)
 		{
-			ppc_box->SetValue(StrToWxStr(StringFromFormat("(non-code address: %08x)",
-							em_address)));
-			x86_box->SetValue(StrToWxStr(StringFromFormat("(no translation)")));
+			ppc_box->SetValue(_(StringFromFormat("(non-code address: %08x)", em_address)));
+			x86_box->SetValue(_("(no translation)"));
 			delete[] xDis;
 			return;
 		}
@@ -135,11 +134,7 @@ void CJitWindow::Compare(u32 em_address)
 	int num_x86_instructions = 0;
 	while ((u8*)disasmPtr < end)
 	{
-#if _M_X86_64
 		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
-#else
-		disasmPtr += x64disasm.disasm32(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
-#endif
 		sptr += strlen(sptr);
 		*sptr++ = 13;
 		*sptr++ = 10;
@@ -166,9 +161,8 @@ void CJitWindow::Compare(u32 em_address)
 		for (u32 i = 0; i < code_block.m_num_instructions; i++)
 		{
 			const PPCAnalyst::CodeOp &op = code_buffer.codebuffer[i];
-			char temp[256];
-			DisassembleGekko(op.inst.hex, op.address, temp, 256);
-			sptr += sprintf(sptr, "%08x %s\n", op.address, temp);
+			std::string temp = GekkoDisassembler::Disassemble(op.inst.hex, op.address);
+			sptr += sprintf(sptr, "%08x %s\n", op.address, temp.c_str());
 		}
 
 		// Add stats to the end of the ppc box since it's generally the shortest.
@@ -178,7 +172,7 @@ void CJitWindow::Compare(u32 em_address)
 		if (st.isFirstBlockOfFunction)
 			sptr += sprintf(sptr, "(first block of function)\n");
 		if (st.isLastBlockOfFunction)
-			sptr += sprintf(sptr, "(first block of function)\n");
+			sptr += sprintf(sptr, "(last block of function)\n");
 
 		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
 

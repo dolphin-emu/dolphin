@@ -4,4 +4,6 @@
 
 #pragma once
 
+#include <string>
+
 #include "VideoCommon/MainBase.h"

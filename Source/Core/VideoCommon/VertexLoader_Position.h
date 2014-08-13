@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef VERTEXLOADER_POSITION_H
-#define VERTEXLOADER_POSITION_H
+#pragma once
 
 class VertexLoader_Position {
 public:
@@ -18,4 +17,3 @@ public:
 	static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements);
 };
 
-#endif

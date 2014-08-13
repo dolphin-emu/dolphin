@@ -8,7 +8,7 @@
 #include <EGL/egl.h>
 
 #include "Core/ConfigManager.h"
-#include "DolphinWX/GLInterface/InterfaceBase.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 
 
 class cPlatform

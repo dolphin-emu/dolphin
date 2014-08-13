@@ -32,30 +32,15 @@ namespace FPURoundMode
 		fesetround(rounding_mode_lut[mode]);
 	}
 
-	void SetPrecisionMode(PrecisionMode mode)
+	void SetPrecisionMode(PrecisionMode /* mode */)
 	{
-		#ifdef _WIN32
-			_control87(_PC_53, MCW_PC);
-		#else
-			const unsigned short PRECISION_MASK = 3 << 8;
-			const unsigned short precision_table[] = {
-				0 << 8, // 24 bits
-				2 << 8, // 53 bits
-				3 << 8, // 64 bits
-			};
-			unsigned short cw;
-			asm ("fnstcw %0" : "=m" (cw));
-			cw = (cw & ~PRECISION_MASK) | precision_table[mode];
-			asm ("fldcw %0" : : "m" (cw));
-		#endif
+		//x64 doesn't need this - fpu is done with SSE
 	}
 
 	void SetSIMDMode(int rounding_mode, bool non_ieee_mode)
 	{
 		// OR-mask for disabling FPU exceptions (bits 7-12 in the MXCSR register)
 		const u32 EXCEPTION_MASK = 0x1F80;
-		// Denormals-Are-Zero (non-IEEE mode: denormal inputs are set to +/- 0)
-		const u32 DAZ = 0x40;
 		// Flush-To-Zero (non-IEEE mode: denormal outputs are set to +/- 0)
 		const u32 FTZ = 0x8000;
 		// lookup table for FPSCR.RN-to-MXCSR.RC translation
@@ -68,16 +53,9 @@ namespace FPURoundMode
 		};
 		u32 csr = simd_rounding_table[rounding_mode];
 
-		// Some initial steppings of Pentium 4 CPUs support FTZ but not DAZ.
-		// They will not flush input operands but flushing outputs only is better than nothing.
-		static const u32 denormalLUT[2] =
-		{
-			FTZ,       // flush-to-zero only
-			FTZ | DAZ, // flush-to-zero and denormals-are-zero (may not be supported)
-		};
 		if (non_ieee_mode)
 		{
-			csr |= denormalLUT[cpu_info.bFlushToZero];
+			csr |= FTZ;
 		}
 		_mm_setcsr(csr);
 	}

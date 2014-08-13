@@ -19,6 +19,7 @@
 #include <wx/windowid.h>
 
 #include "Common/IniFile.h"
+#include "Core/ActionReplay.h"
 
 class GameListItem;
 class wxButton;
@@ -32,6 +33,8 @@ class wxWindow;
 namespace DiscIO { struct SFileInfo; }
 namespace Gecko { class CodeConfigPanel; }
 
+extern std::vector<ActionReplay::ARCode> arCodes;
+
 struct PHackData
 {
 	bool PHackSZNear;
@@ -39,6 +42,7 @@ struct PHackData
 	std::string PHZNear;
 	std::string PHZFar;
 };
+extern PHackData PHack_Data;
 
 class CISOProperties : public wxDialog
 {
@@ -68,8 +72,7 @@ private:
 	// Wii
 	wxCheckBox *EnableWideScreen;
 	// Video
-	wxCheckBox *PHackEnable, *UseBBox;
-	wxButton *PHSettings;
+	wxCheckBox *UseBBox;
 
 	wxArrayString arrayStringFor_EmuState;
 	wxChoice *EmuState;
@@ -132,8 +135,6 @@ private:
 		ID_MERGEBLOCKS,
 		ID_AUDIO_DSP_HLE,
 		ID_USE_BBOX,
-		ID_PHACKENABLE,
-		ID_PHSETTINGS,
 		ID_ENABLEPROGRESSIVESCAN,
 		ID_ENABLEWIDESCREEN,
 		ID_EDITCONFIG,
@@ -194,7 +195,6 @@ private:
 	void CheckPartitionIntegrity(wxCommandEvent& event);
 	void SetRefresh(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
-	void PHackButtonClicked(wxCommandEvent& event);
 
 	GameListItem *OpenGameListItem;
 
@@ -205,7 +205,7 @@ private:
 			std::vector<const DiscIO::SFileInfo*> fileInfos,
 			const size_t _FirstIndex,
 			const size_t _LastIndex);
-	void ExportDir(const char* _rFullPath, const char* _rExportFilename,
+	void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
 			const int partitionNum = 0);
 
 	IniFile GameIniDefault;

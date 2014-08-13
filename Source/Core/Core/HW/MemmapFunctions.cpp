@@ -53,15 +53,6 @@ GXPeekZ
 // From Memmap.cpp
 // ----------------
 
-// Pointers to low memory
-extern u8 *m_pFakeVMEM;
-extern u8 *m_pEXRAM;  // Wii
-extern u8 *m_pEFB;
-
-// Init
-extern bool m_IsInitialized;
-extern bool bFakeVMEM;
-
 // Overloaded byteswap functions, for use within the templated functions below.
 inline u8 bswap(u8 val)   {return val;}
 inline u16 bswap(u16 val) {return Common::swap16(val);}
@@ -71,7 +62,7 @@ inline u64 bswap(u64 val) {return Common::swap64(val);}
 
 
 // Nasty but necessary. Super Mario Galaxy pointer relies on this stuff.
-u32 EFB_Read(const u32 addr)
+static u32 EFB_Read(const u32 addr)
 {
 	u32 var = 0;
 	// Convert address to coordinates. It's possible that this should be done
@@ -90,6 +81,8 @@ u32 EFB_Read(const u32 addr)
 	return var;
 }
 
+static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
+
 template <typename T>
 inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_address, Memory::XCheckTLBFlag flag)
 {
@@ -99,7 +92,7 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 		if (em_address < 0xcc000000)
 			_var = EFB_Read(em_address);
 		else
-			mmio_mapping->Read(em_address, &_var);
+			_var = mmio_mapping->Read<T>(em_address);
 	}
 	else if (((em_address & 0xF0000000) == 0x80000000) ||
 		((em_address & 0xF0000000) == 0xC0000000) ||
@@ -232,6 +225,9 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 /* These functions are primarily called by the Interpreter functions and are routed to the correct
    location through ReadFromHardware and WriteToHardware */
 // ----------------
+
+static void GenerateISIException(u32 effective_address);
+
 u32 Read_Opcode(u32 _Address)
 {
 	if (_Address == 0x00000000)
@@ -550,7 +546,7 @@ union UPTE2
 	u32 Hex;
 };
 
-void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
+static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 {
 	if (_bWrite)
 		PowerPC::ppcState.spr[SPR_DSISR] = PPC_EXC_DSISR_PAGE | PPC_EXC_DSISR_STORE;
@@ -563,7 +559,7 @@ void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 }
 
 
-void GenerateISIException(u32 _EffectiveAddress)
+static void GenerateISIException(u32 _EffectiveAddress)
 {
 	// Address of instruction could not be translated
 	NPC = _EffectiveAddress;
@@ -613,19 +609,19 @@ void SDRUpdated()
 #define TLB_FLAG_MOST_RECENT 0x01
 #define TLB_FLAG_INVALID 0x02
 
-typedef struct tlb_entry
+struct tlb_entry
 {
 	u32 tag;
 	u32 paddr;
 	u8 flags;
-} tlb_entry;
+};
 
 // TODO: tlb needs to be in ppcState for save-state purposes.
 #ifdef FAST_TLB_CACHE
 static tlb_entry tlb[NUM_TLBS][TLB_SIZE/TLB_WAYS][TLB_WAYS];
 #endif
 
-u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
+static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 {
 #ifdef FAST_TLB_CACHE
 	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
@@ -674,7 +670,7 @@ u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 #endif
 }
 
-void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
+static void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 {
 #ifdef FAST_TLB_CACHE
 	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
@@ -752,7 +748,7 @@ void InvalidateTLBEntry(u32 vpa)
 }
 
 // Page Address Translation
-u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
+static u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 {
 	// TLB cache
 	u32 translatedAddress = 0;
@@ -846,7 +842,7 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 #define BAT_EA_4(v)      ((v)&0xf0000000)
 
 // Block Address Translation
-u32 TranslateBlockAddress(const u32 addr, const XCheckTLBFlag _Flag)
+static u32 TranslateBlockAddress(const u32 addr, const XCheckTLBFlag _Flag)
 {
 	u32 result = 0;
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);

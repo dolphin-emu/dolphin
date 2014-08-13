@@ -10,10 +10,10 @@
 
 namespace OGL {
 
-static const u32 char_width = 8;
-static const u32 char_height = 13;
-static const u32 char_offset = 32;
-static const u32 char_count = 95;
+static const int char_width = 8;
+static const int char_height = 13;
+static const int char_offset = 32;
+static const int char_count = 95;
 
 const u8 rasters[char_count][char_height] = {
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
@@ -124,7 +124,7 @@ static const char *s_vertexShaderSrc =
 	"}\n";
 
 static const char *s_fragmentShaderSrc =
-	"uniform sampler2D samp8;\n"
+	"SAMPLER_BINDING(8) uniform sampler2D samp8;\n"
 	"uniform vec4 color;\n"
 	"in vec2 uv0;\n"
 	"out vec4 ocol0;\n"
@@ -141,11 +141,11 @@ RasterFont::RasterFont()
 	glActiveTexture(GL_TEXTURE0+8);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	u32* texture_data = new u32[char_width*char_count*char_height];
-	for (u32 y = 0; y < char_height; y++)
+	for (int y = 0; y < char_height; y++)
 	{
-		for (u32 c = 0; c < char_count; c++)
+		for (int c = 0; c < char_count; c++)
 		{
-			for (u32 x = 0; x < char_width; x++)
+			for (int x = 0; x < char_width; x++)
 			{
 				bool pixel = (0 != (rasters[c][y] & (1<<(char_width-x-1))));
 				texture_data[char_width*char_count*y+char_width*c+x] = pixel ? -1 : 0;
@@ -158,6 +158,7 @@ RasterFont::RasterFont()
 
 	// generate shader
 	ProgramShaderCache::CompileShader(s_shader, s_vertexShaderSrc, s_fragmentShaderSrc);
+	s_shader.Bind();
 
 	// bound uniforms
 	glUniform2f(glGetUniformLocation(s_shader.glprogid,"charSize"), 1.0f / GLfloat(char_count), 1.0f);

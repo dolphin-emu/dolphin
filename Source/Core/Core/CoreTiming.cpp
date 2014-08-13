@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/ChunkFile.h"
 #include "Common/FifoQueue.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -27,7 +28,7 @@ struct EventType
 	std::string name;
 };
 
-std::vector<EventType> event_types;
+static std::vector<EventType> event_types;
 
 struct BaseEvent
 {
@@ -41,28 +42,28 @@ typedef LinkedListItem<BaseEvent> Event;
 // STATE_TO_SAVE
 static Event *first;
 static std::mutex tsWriteLock;
-Common::FifoQueue<BaseEvent, false> tsQueue;
+static Common::FifoQueue<BaseEvent, false> tsQueue;
 
 // event pools
-Event *eventPool = nullptr;
+static Event *eventPool = nullptr;
 
-int downcount, slicelength;
-int maxSliceLength = MAX_SLICE_LENGTH;
+int slicelength;
+static int maxSliceLength = MAX_SLICE_LENGTH;
 
-s64 globalTimer;
-s64 idledCycles;
+static s64 globalTimer;
+static s64 idledCycles;
 
-u32 fakeDecStartValue;
-u64 fakeDecStartTicks;
-u64 fakeTBStartValue;
-u64 fakeTBStartTicks;
+static u32 fakeDecStartValue;
+static u64 fakeDecStartTicks;
+static u64 fakeTBStartValue;
+static u64 fakeTBStartTicks;
 
-int ev_lost;
+static int ev_lost;
 
 
-void (*advanceCallback)(int cyclesExecuted) = nullptr;
+static void (*advanceCallback)(int cyclesExecuted) = nullptr;
 
-Event* GetNewEvent()
+static Event* GetNewEvent()
 {
 	if (!eventPool)
 		return new Event;
@@ -72,7 +73,7 @@ Event* GetNewEvent()
 	return ev;
 }
 
-void FreeEvent(Event* ev)
+static void FreeEvent(Event* ev)
 {
 	ev->next = eventPool;
 	eventPool = ev;
@@ -113,7 +114,7 @@ void UnregisterAllEvents()
 
 void Init()
 {
-	downcount = maxSliceLength;
+	PowerPC::ppcState.downcount = maxSliceLength;
 	slicelength = maxSliceLength;
 	globalTimer = 0;
 	idledCycles = 0;
@@ -136,7 +137,7 @@ void Shutdown()
 	}
 }
 
-void EventDoState(PointerWrap &p, BaseEvent* ev)
+static void EventDoState(PointerWrap &p, BaseEvent* ev)
 {
 	p.Do(ev->time);
 
@@ -173,7 +174,6 @@ void EventDoState(PointerWrap &p, BaseEvent* ev)
 void DoState(PointerWrap &p)
 {
 	std::lock_guard<std::mutex> lk(tsWriteLock);
-	p.Do(downcount);
 	p.Do(slicelength);
 	p.Do(globalTimer);
 	p.Do(idledCycles);
@@ -235,7 +235,7 @@ void ClearPendingEvents()
 	}
 }
 
-void AddEventToQueue(Event* ne)
+static void AddEventToQueue(Event* ne)
 {
 	Event* prev = nullptr;
 	Event** pNext = &first;
@@ -336,10 +336,10 @@ void SetMaximumSlice(int maximumSliceLength)
 
 void ForceExceptionCheck(int cycles)
 {
-	if (downcount > cycles)
+	if (PowerPC::ppcState.downcount > cycles)
 	{
-		slicelength -= (downcount - cycles); // Account for cycles already executed by adjusting the slicelength
-		downcount = cycles;
+		slicelength -= (PowerPC::ppcState.downcount - cycles); // Account for cycles already executed by adjusting the slicelength
+		PowerPC::ppcState.downcount = cycles;
 	}
 }
 
@@ -390,9 +390,9 @@ void Advance()
 {
 	MoveEvents();
 
-	int cyclesExecuted = slicelength - downcount;
+	int cyclesExecuted = slicelength - PowerPC::ppcState.downcount;
 	globalTimer += cyclesExecuted;
-	downcount = slicelength;
+	PowerPC::ppcState.downcount = slicelength;
 
 	while (first)
 	{
@@ -414,14 +414,14 @@ void Advance()
 	if (!first)
 	{
 		WARN_LOG(POWERPC, "WARNING - no events in queue. Setting downcount to 10000");
-		downcount += 10000;
+		PowerPC::ppcState.downcount += 10000;
 	}
 	else
 	{
 		slicelength = (int)(first->time - globalTimer);
 		if (slicelength > maxSliceLength)
 			slicelength = maxSliceLength;
-		downcount = slicelength;
+		PowerPC::ppcState.downcount = slicelength;
 	}
 
 	if (advanceCallback)
@@ -451,8 +451,8 @@ void Idle()
 		Common::YieldCPU();
 	}
 
-	idledCycles += downcount;
-	downcount = 0;
+	idledCycles += PowerPC::ppcState.downcount;
+	PowerPC::ppcState.downcount = 0;
 
 	Advance();
 }

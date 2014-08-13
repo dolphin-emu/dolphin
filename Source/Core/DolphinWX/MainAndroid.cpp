@@ -29,7 +29,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/LogManager.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -49,7 +49,6 @@
 ANativeWindow* surf;
 int g_width, g_height;
 std::string g_filename;
-static std::thread g_run_thread;
 
 #define DOLPHIN_TAG "Dolphinemu"
 
@@ -68,22 +67,16 @@ void* Host_GetRenderHandle()
 	return surf;
 }
 
-void* Host_GetInstance() { return nullptr; }
-
 void Host_UpdateTitle(const std::string& title)
 {
 	__android_log_write(ANDROID_LOG_INFO, DOLPHIN_TAG, title.c_str());
 }
-
-void Host_UpdateLogDisplay(){}
 
 void Host_UpdateDisasmDialog(){}
 
 void Host_UpdateMainFrame()
 {
 }
-
-void Host_UpdateBreakPointView(){}
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
@@ -94,8 +87,16 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 }
 
 void Host_RequestRenderWindowSize(int width, int height) {}
+
+void Host_RequestFullscreen(bool enable_fullscreen) {}
+
 void Host_SetStartupDebuggingParameters()
 {
+}
+
+bool Host_UIHasFocus()
+{
+	return true;
 }
 
 bool Host_RendererHasFocus()
@@ -104,8 +105,6 @@ bool Host_RendererHasFocus()
 }
 
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
-
-void Host_SetWaitCursor(bool enable){}
 
 void Host_UpdateStatusBar(const std::string& text, int filed){}
 
@@ -119,6 +118,8 @@ void Host_SysMessage(const char *fmt, ...)
 }
 
 void Host_SetWiiMoteConnectionState(int _State) {}
+
+void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -236,14 +237,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulatio
 	Core::Stop();
 	updateMainFrameEvent.Set(); // Kick the waiting event
 }
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchEvent(JNIEnv *env, jobject obj, jint padID, jint Button, jint Action)
-{
-	ButtonManager::TouchEvent(padID, (ButtonManager::ButtonType)Button, Action);
-}
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchAxisEvent(JNIEnv *env, jobject obj, jint padID, jint Button, jfloat Action)
-{
-	ButtonManager::TouchAxisEvent(padID, (ButtonManager::ButtonType)Button, Action);
-}
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Button, jint Action)
 {
 	ButtonManager::GamepadEvent(GetJString(env, jDevice), Button, Action);
@@ -306,7 +299,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
 	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
 	std::string value;
 
-	ini.Get(section, key, &value, defaultValue);
+	ini.GetOrCreateSection(section)->Get(key, &value, defaultValue);
 
 	return env->NewStringUTF(value.c_str());
 }
@@ -321,7 +314,7 @@ jstring jValue)
 
 	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
 
-	ini.Set(section, key, value);
+	ini.GetOrCreateSection(section)->Set(key, value);
 	ini.Save(File::GetUserPath(D_CONFIG_IDX) + std::string(file));
 }
 
@@ -357,6 +350,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
 	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
 	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);

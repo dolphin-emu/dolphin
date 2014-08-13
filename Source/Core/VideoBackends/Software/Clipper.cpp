@@ -35,6 +35,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "Common/ChunkFile.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
@@ -42,15 +43,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/XFMemLoader.h"
 
-
 namespace Clipper
 {
-	enum { NUM_CLIPPED_VERTICES = 33, NUM_INDICES = NUM_CLIPPED_VERTICES + 3 };
+	enum
+	{
+		NUM_CLIPPED_VERTICES = 33,
+		NUM_INDICES = NUM_CLIPPED_VERTICES + 3
+	};
 
-	float m_ViewOffset[2];
+	static float m_ViewOffset[2];
 
-	OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
-	OutputVertexData *Vertices[NUM_INDICES];
+	static OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
+	static OutputVertexData *Vertices[NUM_INDICES];
 
 	void DoState(PointerWrap &p)
 	{
@@ -67,12 +71,13 @@ namespace Clipper
 
 	void SetViewOffset()
 	{
-		m_ViewOffset[0] = swxfregs.viewport.xOrig - 342;
-		m_ViewOffset[1] = swxfregs.viewport.yOrig - 342;
+		m_ViewOffset[0] = xfmem.viewport.xOrig - 342;
+		m_ViewOffset[1] = xfmem.viewport.yOrig - 342;
 	}
 
 
-	enum {
+	enum
+	{
 		SKIP_FLAG = -1,
 		CLIP_POS_X_BIT = 0x01,
 		CLIP_NEG_X_BIT = 0x02,
@@ -86,12 +91,25 @@ namespace Clipper
 	{
 		int cmask = 0;
 		Vec4 pos = v->projectedPosition;
-		if (pos.w - pos.x < 0) cmask |= CLIP_POS_X_BIT;
-		if (pos.x + pos.w < 0) cmask |= CLIP_NEG_X_BIT;
-		if (pos.w - pos.y < 0) cmask |= CLIP_POS_Y_BIT;
-		if (pos.y + pos.w < 0) cmask |= CLIP_NEG_Y_BIT;
-		if (pos.w * pos.z > 0) cmask |= CLIP_POS_Z_BIT;
-		if (pos.z + pos.w < 0) cmask |= CLIP_NEG_Z_BIT;
+
+		if (pos.w - pos.x < 0)
+			cmask |= CLIP_POS_X_BIT;
+
+		if (pos.x + pos.w < 0)
+			cmask |= CLIP_NEG_X_BIT;
+
+		if (pos.w - pos.y < 0)
+			cmask |= CLIP_POS_Y_BIT;
+
+		if (pos.y + pos.w < 0)
+			cmask |= CLIP_NEG_Y_BIT;
+
+		if (pos.w * pos.z > 0)
+			cmask |= CLIP_POS_Z_BIT;
+
+		if (pos.z + pos.w < 0)
+			cmask |= CLIP_NEG_Z_BIT;
+
 		return cmask;
 	}
 
@@ -169,7 +187,7 @@ namespace Clipper
 		}														\
 	}
 
-	void ClipTriangle(int *indices, int &numIndices)
+	static void ClipTriangle(int *indices, int &numIndices)
 	{
 		int mask = 0;
 
@@ -209,7 +227,8 @@ namespace Clipper
 				indices[0] = inlist[0];
 				indices[1] = inlist[1];
 				indices[2] = inlist[2];
-				for (int j = 3; j < n; ++j) {
+				for (int j = 3; j < n; ++j)
+				{
 					indices[numIndices++] = inlist[0];
 					indices[numIndices++] = inlist[j - 1];
 					indices[numIndices++] = inlist[j];
@@ -218,7 +237,7 @@ namespace Clipper
 		}
 	}
 
-	void ClipLine(int *indices)
+	static void ClipLine(int *indices)
 	{
 		int mask = 0;
 		int clip_mask[2] = { 0, 0 };
@@ -276,9 +295,11 @@ namespace Clipper
 		if (!CullTest(v0, v1, v2, backface))
 			return;
 
-		int indices[NUM_INDICES] = { 0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-										SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-										SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG };
+		int indices[NUM_INDICES] = {
+			0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+			SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+			SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG
+		};
 		int numIndices = 3;
 
 		if (backface)
@@ -310,7 +331,7 @@ namespace Clipper
 		}
 	}
 
-	void CopyVertex(OutputVertexData *dst, OutputVertexData *src, float dx, float dy, unsigned int sOffset)
+	static void CopyVertex(OutputVertexData *dst, OutputVertexData *src, float dx, float dy, unsigned int sOffset)
 	{
 		dst->screenPosition.x = src->screenPosition.x + dx;
 		dst->screenPosition.y = src->screenPosition.y + dy;
@@ -430,9 +451,9 @@ namespace Clipper
 		Vec3 &screen = vertex->screenPosition;
 
 		float wInverse = 1.0f/projected.w;
-		screen.x = projected.x * wInverse * swxfregs.viewport.wd + m_ViewOffset[0];
-		screen.y = projected.y * wInverse * swxfregs.viewport.ht + m_ViewOffset[1];
-		screen.z = projected.z * wInverse * swxfregs.viewport.zRange + swxfregs.viewport.farZ;
+		screen.x = projected.x * wInverse * xfmem.viewport.wd + m_ViewOffset[0];
+		screen.y = projected.y * wInverse * xfmem.viewport.ht + m_ViewOffset[1];
+		screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 	}
 
 }

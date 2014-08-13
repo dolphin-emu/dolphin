@@ -12,20 +12,28 @@ namespace EfbInterface
 
 	// xfb color format - packed so the compiler doesn't mess with alignment
 #pragma pack(push,1)
-	typedef struct {
+	struct yuv422_packed
+	{
 		u8 Y;
 		u8 UV;
-	} yuv422_packed;
+	};
 #pragma pack(pop)
 
 	// But this struct is only used internally, so we could optimise alignment
-	typedef struct {
+	struct yuv444
+	{
 		u8 Y;
 		s8 U;
 		s8 V;
-	} yuv444;
+	};
 
-	enum { ALP_C, BLU_C, GRN_C, RED_C };
+	enum
+	{
+		ALP_C,
+		BLU_C,
+		GRN_C,
+		RED_C
+	};
 
 	// color order is ABGR in order to emulate RGBA on little-endian hardware
 

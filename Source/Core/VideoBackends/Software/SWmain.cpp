@@ -7,14 +7,16 @@
 #include "Common/Atomic.h"
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
-#include "Common/LogManager.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/Clipper.h"
@@ -31,10 +33,7 @@
 #include "VideoBackends/Software/VideoBackend.h"
 #include "VideoBackends/Software/XFMemLoader.h"
 
-#if defined(HAVE_WX) && HAVE_WX
-#include "VideoBackends/Software/VideoConfigDialog.h"
-#endif // HAVE_WX
-
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/XFMemory.h"
@@ -59,20 +58,17 @@ static std::mutex m_csSWVidOccupied;
 
 std::string VideoSoftware::GetName() const
 {
-	return _trans("Software Renderer");
+	return "Software Renderer";
 }
 
-void *DllDebugger(void *_hParent, bool Show)
+std::string VideoSoftware::GetDisplayName() const
 {
-	return nullptr;
+	return "Software Renderer";
 }
 
-void VideoSoftware::ShowConfig(void *_hParent)
+void VideoSoftware::ShowConfig(void *hParent)
 {
-#if defined(HAVE_WX) && HAVE_WX
-	VideoConfigDialog diag((wxWindow*)_hParent, "Software", "gfx_software");
-	diag.ShowModal();
-#endif
+	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_software");
 }
 
 bool VideoSoftware::Initialize(void *&window_handle)
@@ -83,7 +79,7 @@ bool VideoSoftware::Initialize(void *&window_handle)
 	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
 	if (!GLInterface->Create(window_handle))
 	{
-		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");
+		INFO_LOG(VIDEO, "GLInterface::Create failed.");
 		return false;
 	}
 
@@ -115,7 +111,7 @@ void VideoSoftware::DoState(PointerWrap& p)
 	EfbInterface::DoState(p);
 	OpcodeDecoder::DoState(p);
 	Clipper::DoState(p);
-	p.Do(swxfregs);
+	p.Do(xfmem);
 	p.Do(bpmem);
 	p.DoPOD(swstats);
 
@@ -243,6 +239,9 @@ void VideoSoftware::Video_EndField()
 	// If BypassXFB has already done a swap (cf. EfbCopy::CopyToXfb), skip this.
 	if (!g_SWVideoConfig.bBypassXFB)
 	{
+		// Dump frame if needed
+		DebugUtil::OnFrameEnd(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+
 		// If we are in dual core mode, notify the GPU thread about the new color texture.
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 			Common::AtomicStoreRelease(s_swapRequested, true);
@@ -360,16 +359,6 @@ void VideoSoftware::Video_GatherPipeBursted()
 bool VideoSoftware::Video_IsPossibleWaitingSetDrawDone(void)
 {
 	return false;
-}
-
-bool VideoSoftware::Video_IsHiWatermarkActive(void)
-{
-	return false;
-}
-
-
-void VideoSoftware::Video_AbortFrame(void)
-{
 }
 
 void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)

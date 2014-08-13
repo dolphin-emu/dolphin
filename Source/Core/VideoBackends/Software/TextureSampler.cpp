@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cmath>
 
 #include "Core/HW/Memmap.h"
@@ -14,7 +15,7 @@
 namespace TextureSampler
 {
 
-inline void WrapCoord(int &coord, int wrapMode, int imageSize)
+static inline void WrapCoord(int &coord, int wrapMode, int imageSize)
 {
 	switch (wrapMode)
 	{
@@ -37,7 +38,7 @@ inline void WrapCoord(int &coord, int wrapMode, int imageSize)
 	}
 }
 
-inline void SetTexel(u8 *inTexel, u32 *outTexel, u32 fract)
+static inline void SetTexel(u8 *inTexel, u32 *outTexel, u32 fract)
 {
 	outTexel[0] = inTexel[0] * fract;
 	outTexel[1] = inTexel[1] * fract;
@@ -45,7 +46,7 @@ inline void SetTexel(u8 *inTexel, u32 *outTexel, u32 fract)
 	outTexel[3] = inTexel[3] * fract;
 }
 
-inline void AddTexel(u8 *inTexel, u32 *outTexel, u32 fract)
+static inline void AddTexel(u8 *inTexel, u32 *outTexel, u32 fract)
 {
 	outTexel[0] += inTexel[0] * fract;
 	outTexel[1] += inTexel[1] * fract;
@@ -142,8 +143,8 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 
 		while (mip)
 		{
-			mipWidth = max(mipWidth, fmtWidth);
-			mipHeight = max(mipHeight, fmtHeight);
+			mipWidth = std::max(mipWidth, fmtWidth);
+			mipHeight = std::max(mipHeight, fmtHeight);
 			u32 size = (mipWidth * mipHeight * fmtDepth) >> 1;
 
 			imageSrc += size;

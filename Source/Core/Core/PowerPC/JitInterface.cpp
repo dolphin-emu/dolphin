@@ -27,11 +27,9 @@
 #if _M_ARM_32
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitArm32/JitArm_Tables.h"
-#include "Core/PowerPC/JitArmIL/JitIL.h"
-#include "Core/PowerPC/JitArmIL/JitIL_Tables.h"
 #endif
 
-bool bFakeVMEM = false;
+static bool bFakeVMEM = false;
 bool bMMU = false;
 
 namespace JitInterface
@@ -39,7 +37,7 @@ namespace JitInterface
 	void DoState(PointerWrap &p)
 	{
 		if (jit && p.GetMode() == PointerWrap::MODE_READ)
-			jit->GetBlockCache()->ClearSafe();
+			jit->GetBlockCache()->Clear();
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
@@ -65,11 +63,6 @@ namespace JitInterface
 			case 3:
 			{
 				ptr = new JitArm();
-				break;
-			}
-			case 4:
-			{
-				ptr = new JitArmIL();
 				break;
 			}
 			#endif
@@ -104,11 +97,6 @@ namespace JitInterface
 			case 3:
 			{
 				JitArmTables::InitTables();
-				break;
-			}
-			case 4:
-			{
-				JitArmILTables::InitTables();
 				break;
 			}
 			#endif
@@ -199,8 +187,12 @@ namespace JitInterface
 	}
 	void ClearSafe()
 	{
+		// This clear is "safe" in the sense that it's okay to run from
+		// inside a JIT'ed block: it clears the instruction cache, but not
+		// the JIT'ed code.
+		// TODO: There's probably a better way to handle this situation.
 		if (jit)
-			jit->GetBlockCache()->ClearSafe();
+			jit->GetBlockCache()->Clear();
 	}
 
 	void InvalidateICache(u32 address, u32 size)
@@ -211,7 +203,6 @@ namespace JitInterface
 
 	u32 Read_Opcode_JIT(u32 _Address)
 	{
-	#ifdef FAST_ICACHE
 		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
 		{
 			_Address = Memory::TranslateAddress(_Address, Memory::FLAG_OPCODE);
@@ -228,9 +219,6 @@ namespace JitInterface
 			inst = Memory::ReadUnchecked_U32(_Address);
 		else
 			inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
-	#else
-		u32 inst = Memory::ReadUnchecked_U32(_Address);
-	#endif
 		return inst;
 	}
 

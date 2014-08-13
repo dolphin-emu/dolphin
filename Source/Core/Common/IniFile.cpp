@@ -26,13 +26,17 @@ void ParseLine(const std::string& line, std::string* keyOut, std::string* valueO
 	if (line[0] == '#')
 		return;
 
-	int FirstEquals = (int)line.find("=", 0);
+	size_t firstEquals = line.find("=", 0);
 
-	if (FirstEquals >= 0)
+	if (firstEquals != std::string::npos)
 	{
 		// Yes, a valid line!
-		*keyOut = StripSpaces(line.substr(0, FirstEquals));
-		if (valueOut) *valueOut = StripQuotes(StripSpaces(line.substr(FirstEquals + 1, std::string::npos)));
+		*keyOut = StripSpaces(line.substr(0, firstEquals));
+
+		if (valueOut)
+		{
+			*valueOut = StripQuotes(StripSpaces(line.substr(firstEquals + 1, std::string::npos)));
+		}
 	}
 }
 
@@ -229,7 +233,7 @@ IniFile::Section* IniFile::GetOrCreateSection(const std::string& sectionName)
 	if (!section)
 	{
 		sections.push_back(Section(sectionName));
-		section = &sections[sections.size() - 1];
+		section = &sections.back();
 	}
 	return section;
 }
@@ -298,13 +302,13 @@ bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>*
 
 		if (remove_comments)
 		{
-			int commentPos = (int)line.find('#');
+			size_t commentPos = line.find('#');
 			if (commentPos == 0)
 			{
 				continue;
 			}
 
-			if (commentPos != (int)std::string::npos)
+			if (commentPos != std::string::npos)
 			{
 				line = StripSpaces(line.substr(0, commentPos));
 			}
@@ -319,14 +323,11 @@ bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>*
 
 void IniFile::SortSections()
 {
-	std::sort(sections.begin(), sections.end());
+	sections.sort();
 }
 
 bool IniFile::Load(const std::string& filename, bool keep_current_data)
 {
-	// Maximum number of letters in a line
-	static const int MAX_BYTES = 1024*32;
-
 	if (!keep_current_data)
 		sections.clear();
 	// first section consists of the comments before the first real section
@@ -335,14 +336,21 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 	std::ifstream in;
 	OpenFStream(in, filename, std::ios::in);
 
-	if (in.fail()) return false;
+	if (in.fail())
+		return false;
 
 	Section* current_section = nullptr;
 	while (!in.eof())
 	{
-		char templine[MAX_BYTES];
-		in.getline(templine, MAX_BYTES);
-		std::string line = templine;
+		std::string line;
+
+		if (!std::getline(in, line))
+		{
+			if (in.eof())
+				return true;
+			else
+				return false;
+		}
 
 #ifndef _WIN32
 		// Check for CRLF eol and convert it to LF
@@ -427,61 +435,6 @@ bool IniFile::Save(const std::string& filename)
 
 	return File::RenameSync(temp, filename);
 }
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, std::vector<std::string>* values)
-{
-	Section *section = GetSection(sectionName);
-	if (!section)
-		return false;
-	return section->Get(key, values);
-}
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, int* value, int defaultValue)
-{
-	Section *section = GetSection(sectionName);
-	if (!section) {
-		*value = defaultValue;
-		return false;
-	} else {
-		return section->Get(key, value, defaultValue);
-	}
-}
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, u32* value, u32 defaultValue)
-{
-	Section *section = GetSection(sectionName);
-	if (!section) {
-		*value = defaultValue;
-		return false;
-	} else {
-		return section->Get(key, value, defaultValue);
-	}
-}
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, bool* value, bool defaultValue)
-{
-	Section *section = GetSection(sectionName);
-	if (!section) {
-		*value = defaultValue;
-		return false;
-	} else {
-		return section->Get(key, value, defaultValue);
-	}
-}
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, std::string* value, const std::string& defaultValue)
-{
-	Section* section = GetSection(sectionName);
-	if (!section) {
-		if (&defaultValue != &NULL_STRING) {
-			*value = defaultValue;
-		}
-		return false;
-	}
-	return section->Get(key, value, defaultValue);
-}
-
-
 
 // Unit test. TODO: Move to the real unit test framework.
 /*

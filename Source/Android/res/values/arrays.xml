@@ -19,12 +19,10 @@
     <string-array name="emuCoreEntriesARM" translatable="false">
         <item>@string/interpreter</item>
         <item>@string/jit_arm_recompiler</item>
-        <item>@string/jitil_arm_recompiler</item>
     </string-array>
     <string-array name="emuCoreValuesARM" translatable="false">
         <item>0</item>
         <item>3</item>
-        <item>4</item>
     </string-array>
     
     <!-- CPU core selection - Other -->

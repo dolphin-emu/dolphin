@@ -55,17 +55,17 @@ endmacro()
 
 macro(check_libav)
 	if(PKG_CONFIG_FOUND)
-		pkg_check_modules(LIBAV libavcodec>=53.35.0 libavformat>=53.21.0
-			libswscale>=2.1.0 libavutil>=51.22.1)
+		pkg_check_modules(LIBAV libavcodec>=54.35.0 libavformat>=54.20.4
+			libswscale>=2.1.1 libavutil>=52.3.0)
 	else()
-		message("pkg-config is required to check for libav")
+		message("pkg-config is required to check for libav/ffmpeg")
 	endif()
 	if(LIBAV_FOUND)
-		message("libav found, enabling AVI frame dumps")
+		message("libav/ffmpeg found, enabling AVI frame dumps")
 		add_definitions(-DHAVE_LIBAV)
 		include_directories(${LIBAV_INCLUDE_DIRS})
 	else()
-		message("libav not found, disabling AVI frame dumps")
+		message("libav/ffmpeg not found, disabling AVI frame dumps")
 	endif()
 endmacro()
 

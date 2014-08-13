@@ -11,6 +11,10 @@
 #define SLEEP(x) usleep(x*1000)
 #endif
 
+#ifdef __APPLE__
+#include <libkern/OSByteOrder.h>
+#endif
+
 #include <clocale>
 #include <cstddef>
 #include <type_traits>
@@ -36,7 +40,7 @@ struct ArraySizeImpl : public std::extent<T>
 #endif
 
 #if (defined __GNUC__ && !__GNUC_PREREQ(4,9)) && \
-    !defined __SSSE3__ && !defined _M_GENERIC
+    !defined __SSSE3__ && defined _M_X86
 #include <emmintrin.h>
 static __inline __m128i __attribute__((__always_inline__))
 _mm_shuffle_epi8(__m128i a, __m128i mask)
@@ -61,10 +65,10 @@ _mm_shuffle_epi8(__m128i a, __m128i mask)
 // go to debugger mode
 	#ifdef GEKKO
 		#define Crash()
-	#elif defined _M_GENERIC
-		#define Crash() { exit(1); }
-	#else
+	#elif defined _M_X86
 		#define Crash() {asm ("int $3");}
+	#else
+		#define Crash() { exit(1); }
 	#endif
 
 // GCC 4.8 defines all the rotate functions now
@@ -148,24 +152,12 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 	#define fstat64 _fstat64
 	#define fileno _fileno
 
-	#if _M_X86_32
-		#define Crash() {__asm int 3}
-	#else
-extern "C" {
+extern "C"
+{
 	__declspec(dllimport) void __stdcall DebugBreak(void);
 }
-		#define Crash() {DebugBreak();}
-	#endif // M_IX86
+	#define Crash() {DebugBreak();}
 #endif // WIN32 ndef
-
-// Dolphin's min and max functions
-#undef min
-#undef max
-
-template<class T>
-inline T min(const T& a, const T& b) {return a > b ? b : a;}
-template<class T>
-inline T max(const T& a, const T& b) {return a > b ? a : b;}
 
 // Generic function to get last error message.
 // Call directly after the command or use the error num.
@@ -198,11 +190,11 @@ inline u32 swap32(u32 _data) {return bswap_32(_data);}
 inline u64 swap64(u64 _data) {return bswap_64(_data);}
 #elif __APPLE__
 inline __attribute__((always_inline)) u16 swap16(u16 _data)
-	{return (_data >> 8) | (_data << 8);}
+	{return OSSwapInt16(_data);}
 inline __attribute__((always_inline)) u32 swap32(u32 _data)
-	{return __builtin_bswap32(_data);}
+	{return OSSwapInt32(_data);}
 inline __attribute__((always_inline)) u64 swap64(u64 _data)
-	{return __builtin_bswap64(_data);}
+	{return OSSwapInt64(_data);}
 #elif __FreeBSD__
 inline u16 swap16(u16 _data) {return bswap16(_data);}
 inline u32 swap32(u32 _data) {return bswap32(_data);}

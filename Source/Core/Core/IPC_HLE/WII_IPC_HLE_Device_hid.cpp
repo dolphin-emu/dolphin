@@ -37,7 +37,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 				// Return value
 				Memory::Write_U32(0, hid->deviceCommandAddress + 4);
 
-				WII_IPC_HLE_Interface::EnqueReplyCallback(hid->deviceCommandAddress);
+				WII_IPC_HLE_Interface::EnqueueReply_Threadsafe(hid->deviceCommandAddress);
 				hid->deviceCommandAddress = 0;
 			}
 		}
@@ -65,7 +65,7 @@ void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer *transfer)
 	// Return value
 	Memory::Write_U32(ret, replyAddress + 4);
 
-	WII_IPC_HLE_Interface::EnqueReplyCallback(replyAddress);
+	WII_IPC_HLE_Interface::EnqueueReply_Threadsafe(replyAddress);
 	//DEBUG_LOG(WII_IPC_HID, "OMG OMG OMG I GOT A CALLBACK, IMMA BE FAMOUS %d %d %d", transfer->actual_length, transfer->length, transfer->status);
 }
 
@@ -122,13 +122,6 @@ bool CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForce)
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	return true;
-}
-
-u32 CWII_IPC_HLE_Device_hid::Update()
-{
-
-	u32 work_done = 0;
-	return work_done;
 }
 
 bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
@@ -256,7 +249,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 			// Return value
 			Memory::Write_U32(-1, deviceCommandAddress + 4);
-			WII_IPC_HLE_Interface::EnqueReplyCallback(deviceCommandAddress);
+			WII_IPC_HLE_Interface::EnqueueReply(deviceCommandAddress);
 			deviceCommandAddress = 0;
 		}
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Shutdown) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
@@ -329,11 +322,20 @@ bool CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
 
 void CWII_IPC_HLE_Device_hid::ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, const struct libusb_device_descriptor *src)
 {
-	memcpy(dest,src,sizeof(WiiHIDDeviceDescriptor));
-	dest->bcdUSB = Common::swap16(dest->bcdUSB);
-	dest->idVendor = Common::swap16(dest->idVendor);
-	dest->idProduct = Common::swap16(dest->idProduct);
-	dest->bcdDevice = Common::swap16(dest->bcdDevice);
+	dest->bLength            = src->bLength;
+	dest->bDescriptorType    = src->bDescriptorType;
+	dest->bcdUSB             = Common::swap16(src->bcdUSB);
+	dest->bDeviceClass       = src->bDeviceClass;
+	dest->bDeviceSubClass    = src->bDeviceSubClass;
+	dest->bDeviceProtocol    = src->bDeviceProtocol;
+	dest->bMaxPacketSize0    = src->bMaxPacketSize0;
+	dest->idVendor           = Common::swap16(src->idVendor);
+	dest->idProduct          = Common::swap16(src->idProduct);
+	dest->bcdDevice          = Common::swap16(src->bcdDevice);
+	dest->iManufacturer      = src->iManufacturer;
+	dest->iProduct           = src->iProduct;
+	dest->iSerialNumber      = src->iSerialNumber;
+	dest->bNumConfigurations = src->bNumConfigurations;
 }
 
 void CWII_IPC_HLE_Device_hid::ConvertConfigToWii(WiiHIDConfigDescriptor *dest, const struct libusb_config_descriptor *src)

@@ -51,9 +51,6 @@ struct SCPFifoStruct
 	volatile u32 bFF_BPInt;
 	volatile u32 bFF_Breakpoint;
 
-	volatile u32 CPCmdIdle;
-	volatile u32 CPReadIdle;
-
 	volatile u32 bFF_LoWatermarkInt;
 	volatile u32 bFF_HiWatermarkInt;
 
@@ -61,7 +58,6 @@ struct SCPFifoStruct
 	volatile u32 bFF_HiWatermark;
 
 	// for GP watchdog hack
-	volatile u32 Fake_GPWDToken; // cicular incrementer
 	volatile u32 isGpuReadingData;
 };
 
@@ -83,7 +79,7 @@ public:
 	virtual std::string GetName() const = 0;
 	virtual std::string GetDisplayName() const { return GetName(); }
 
-	virtual void ShowConfig(void*) {}
+	virtual void ShowConfig(void*) = 0;
 
 	virtual void Video_Prepare() = 0;
 	virtual void Video_EnterLoop() = 0;
@@ -105,8 +101,6 @@ public:
 	virtual void Video_GatherPipeBursted() = 0;
 
 	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
-	virtual bool Video_IsHiWatermarkActive() = 0;
-	virtual void Video_AbortFrame() = 0;
 
 	// Registers MMIO handlers for the CommandProcessor registers.
 	virtual void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) = 0;
@@ -133,7 +127,6 @@ extern VideoBackend* g_video_backend;
 class VideoBackendHardware : public VideoBackend
 {
 	void RunLoop(bool enable) override;
-	bool Initialize(void *&) override { InitializeShared(); return true; }
 
 	void EmuStateChange(EMUSTATE_CHANGE) override;
 
@@ -154,8 +147,6 @@ class VideoBackendHardware : public VideoBackend
 	void Video_GatherPipeBursted() override;
 
 	bool Video_IsPossibleWaitingSetDrawDone() override;
-	bool Video_IsHiWatermarkActive() override;
-	void Video_AbortFrame() override;
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 

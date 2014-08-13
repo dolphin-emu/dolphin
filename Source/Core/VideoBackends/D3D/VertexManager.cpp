@@ -16,11 +16,9 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-
-// internal state for loading vertices
-extern NativeVertexFormat *g_nativeVertexFmt;
 
 namespace DX11
 {
@@ -138,6 +136,7 @@ static const float LINE_PT_TEX_OFFSETS[8] = {
 
 void VertexManager::Draw(UINT stride)
 {
+	u32 components = VertexLoaderManager::GetCurrentVertexFormat()->m_components;
 	D3D::context->IASetVertexBuffers(0, 1, &m_vertex_buffers[m_current_vertex_buffer], &stride, &m_vertex_draw_offset);
 	D3D::context->IASetIndexBuffer(m_index_buffers[m_current_index_buffer], DXGI_FORMAT_R16_UINT, 0);
 
@@ -145,27 +144,27 @@ void VertexManager::Draw(UINT stride)
 	{
 		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		INCSTAT(stats.thisFrame.numDrawCalls);
 	}
 	else if (current_primitive_type == PRIMITIVE_LINES)
 	{
 		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
-		float vpWidth = 2.0f * xfregs.viewport.wd;
-		float vpHeight = -2.0f * xfregs.viewport.ht;
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
 
 		bool texOffsetEnable[8];
 
 		for (int i = 0; i < 8; ++i)
 			texOffsetEnable[i] = bpmem.texcoords[i].s.line_offset;
 
-		if (m_lineShader.SetShader(g_nativeVertexFmt->m_components, lineWidth,
+		if (m_lineShader.SetShader(components, lineWidth,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+			INCSTAT(stats.thisFrame.numDrawCalls);
 
 			D3D::context->GSSetShader(nullptr, nullptr, 0);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
@@ -175,21 +174,21 @@ void VertexManager::Draw(UINT stride)
 	{
 		float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
-		float vpWidth = 2.0f * xfregs.viewport.wd;
-		float vpHeight = -2.0f * xfregs.viewport.ht;
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
 
 		bool texOffsetEnable[8];
 
 		for (int i = 0; i < 8; ++i)
 			texOffsetEnable[i] = bpmem.texcoords[i].s.point_offset;
 
-		if (m_pointShader.SetShader(g_nativeVertexFmt->m_components, pointSize,
+		if (m_pointShader.SetShader(components, pointSize,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
 			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+			INCSTAT(stats.thisFrame.numDrawCalls);
 
 			D3D::context->GSSetShader(nullptr, nullptr, 0);
 			((DX11::Renderer*)g_renderer)->RestoreCull();
@@ -199,21 +198,21 @@ void VertexManager::Draw(UINT stride)
 
 void VertexManager::vFlush(bool useDstAlpha)
 {
+	u32 components = VertexLoaderManager::GetCurrentVertexFormat()->m_components;
 	if (!PixelShaderCache::SetShader(
-		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
-		g_nativeVertexFmt->m_components))
+		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE, components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		return;
 	}
-	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
+	if (!VertexShaderCache::SetShader(components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		return;
 	}
 	PrepareDrawBuffers();
-	unsigned int stride = g_nativeVertexFmt->GetVertexStride();
-	g_nativeVertexFmt->SetupVertexPointers();
+	unsigned int stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
+	VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);
 
 	Draw(stride);

@@ -6,14 +6,16 @@
 #include <ctime> // For profiling
 #include <map>
 #include <memory>
+#include <string>
 
 #include "Common/Common.h"
+#include "Common/StdMakeUnique.h"
+#include "Common/StringUtil.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
-#include "Core/PowerPC/Jit64IL/JitILAsm.h"
 
 using namespace Gen;
 using namespace PowerPC;
@@ -205,9 +207,8 @@ namespace JitILProfiler
 	{
 		virtual ~JitILProfilerFinalizer()
 		{
-			char buffer[1024];
-			sprintf(buffer, "JitIL_profiling_%d.csv", (int)time(nullptr));
-			File::IOFile file(buffer, "w");
+			std::string filename = StringFromFormat("JitIL_profiling_%d.csv", (int)time(nullptr));
+			File::IOFile file(filename, "w");
 			setvbuf(file.GetHandle(), nullptr, _IOFBF, 1024 * 1024);
 			fprintf(file.GetHandle(), "code hash,total elapsed,number of calls,elapsed per call\n");
 			for (auto& block : blocks)
@@ -220,10 +221,10 @@ namespace JitILProfiler
 			}
 		}
 	};
-	std::unique_ptr<JitILProfilerFinalizer> finalizer;
+	static std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
-		finalizer = std::unique_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
+		finalizer = std::make_unique<JitILProfilerFinalizer>();
 	}
 	static void Shutdown()
 	{
@@ -232,11 +233,6 @@ namespace JitILProfiler
 };
 
 static int CODE_SIZE = 1024*1024*32;
-
-namespace CPUCompare
-{
-	extern u32 m_BlockStart;
-}
 
 void JitIL::Init()
 {
@@ -350,11 +346,7 @@ static void ImHere()
 	{
 		if (!f)
 		{
-#if _M_X86_64
 			f.Open("log64.txt", "w");
-#else
-			f.Open("log32.txt", "w");
-#endif
 		}
 		fprintf(f.GetHandle(), "%08x r0: %08x r5: %08x r6: %08x\n", PC, PowerPC::ppcState.gpr[0],
 			PowerPC::ppcState.gpr[5], PowerPC::ppcState.gpr[6]);
@@ -387,7 +379,7 @@ void JitIL::WriteExit(u32 destination)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
@@ -419,19 +411,21 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
 void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 {
 	MOV(32, M(&PC), arg);
+	MOV(32, M(&NPC), arg);
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
-	JMP(asm_routines.testExceptions, true);
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	JMP(asm_routines.dispatcher, true);
 }
 
 void JitIL::WriteExceptionExit()
@@ -440,8 +434,11 @@ void JitIL::WriteExceptionExit()
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
-	JMP(asm_routines.testExceptions, true);
+	MOV(32, R(EAX), M(&PC));
+	MOV(32, M(&NPC), R(EAX));
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	JMP(asm_routines.dispatcher, true);
 }
 
 void STACKALIGN JitIL::Run()
@@ -459,31 +456,27 @@ void JitIL::SingleStep()
 
 void JitIL::Trace()
 {
-	char regs[500] = "";
-	char fregs[750] = "";
+	std::string regs;
+	std::string fregs;
 
 #ifdef JIT_LOG_GPR
 	for (int i = 0; i < 32; i++)
 	{
-		char reg[50];
-		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
-		strncat(regs, reg, sizeof(regs) - 1);
+		regs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
 	}
 #endif
 
 #ifdef JIT_LOG_FPR
 	for (int i = 0; i < 32; i++)
 	{
-		char reg[50];
-		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
-		strncat(fregs, reg, sizeof(fregs) - 1);
+		fregs += StringFromFormat("f%02d: %016x ", i, riPS0(i));
 	}
 #endif
 
-	DEBUG_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s",
-		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3],
-		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr,
-		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
+	DEBUG_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRval: %016lx%016lx%016lx%016lx%016lx%016lx%016lx%016lx FPSCR: %08x MSR: %08x LR: %08x %s %s",
+		PC, SRR0, SRR1, PowerPC::ppcState.cr_val[0], PowerPC::ppcState.cr_val[1], PowerPC::ppcState.cr_val[2], PowerPC::ppcState.cr_val[3],
+		PowerPC::ppcState.cr_val[4], PowerPC::ppcState.cr_val[5], PowerPC::ppcState.cr_val[6], PowerPC::ppcState.cr_val[7], PowerPC::ppcState.fpscr,
+		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
 void STACKALIGN JitIL::Jit(u32 em_address)
@@ -501,9 +494,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 {
 	int blockSize = code_buf->GetSize();
 
-	// Memory exception on instruction fetch
-	bool memory_exception = false;
-
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
@@ -515,34 +505,17 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
-	if (em_address == 0)
-	{
-		// Memory exception occurred during instruction fetch
-		memory_exception = true;
-	}
-
-	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
-	{
-		if (!Memory::TranslateAddress(em_address, Memory::FLAG_OPCODE))
-		{
-			// Memory exception occurred during instruction fetch
-			memory_exception = true;
-		}
-	}
-
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
-	js.cancel = false;
 	jit->js.numLoadStoreInst = 0;
 	jit->js.numFloatingPointInst = 0;
 
 	u32 nextPC = em_address;
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	if (!memory_exception)
-		nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
+	nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -567,8 +540,13 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		// This block uses FPU - needs to add FP exception bailout
 		TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP enabled bit
 		FixupBranch b1 = J_CC(CC_NZ);
+
+		// If a FPU exception occurs, the exception handler will read
+		// from PC.  Update PC with the latest value in case that happens.
 		MOV(32, M(&PC), Imm32(js.blockStart));
-		JMP(asm_routines.fpException, true);
+		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+		WriteExceptionExit();
+
 		SetJumpTarget(b1);
 	}
 
@@ -689,7 +667,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 	}
 
-	if (memory_exception)
+	if (code_block.m_memory_exception)
 	{
 		ibuild.EmitISIException(ibuild.EmitIntConst(em_address));
 	}

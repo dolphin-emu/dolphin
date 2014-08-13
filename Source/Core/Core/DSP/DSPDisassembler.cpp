@@ -23,25 +23,17 @@
 
    ====================================================================*/
 
-#include <cstdio>
+#include <algorithm>
 #include <cstdlib>
+#include <fstream>
 #include <string>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
-
-#ifdef _MSC_VER
-#pragma warning(disable:4996)
-#endif
-
-#ifndef MAX_PATH
-#include <Windows.h> // For MAX_PATH
-#endif
-
-extern void nop(const UDSPInstruction opc);
 
 DSPDisassembler::DSPDisassembler(const AssemblerSettings &settings)
 	: settings_(settings)
@@ -52,7 +44,7 @@ DSPDisassembler::~DSPDisassembler()
 {
 	// Some old code for logging unknown ops.
 	std::string filename = File::GetUserPath(D_DUMPDSP_IDX) + "UnkOps.txt";
-	File::IOFile uo(filename, "w");
+	std::ofstream uo(filename);
 	if (!uo)
 		return;
 
@@ -62,17 +54,20 @@ DSPDisassembler::~DSPDisassembler()
 		if (entry.second > 0)
 		{
 			count++;
-			fprintf(uo.GetHandle(), "OP%04x\t%d", entry.first, entry.second);
+			uo << StringFromFormat("OP%04x\t%d", entry.first, entry.second);
 			for (int j = 15; j >= 0; j--)  // print op bits
 			{
 				if ((j & 0x3) == 3)
-					fprintf(uo.GetHandle(), "\tb");
-				fprintf(uo.GetHandle(), "%d", (entry.first >> j) & 0x1);
+					uo << "\tb";
+
+				uo << StringFromFormat("%d", (entry.first >> j) & 0x1);
 			}
-			fprintf(uo.GetHandle(), "\n");
+
+			uo << "\n";
 		}
 	}
-	fprintf(uo.GetHandle(), "Unknown opcodes count: %d\n", count);
+
+	uo << StringFromFormat("Unknown opcodes count: %d\n", count);
 }
 
 bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, int base_addr, std::string &text)
@@ -86,16 +81,17 @@ bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, in
 	}
 
 	// Run the two passes.
-	return DisFile(tmp1, base_addr, 1, text) && DisFile(tmp1, base_addr, 2, text);
+	return DisassembleFile(tmp1, base_addr, 1, text) && DisassembleFile(tmp1, base_addr, 2, text);
 }
 
-char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, char *strbuf)
+std::string DSPDisassembler::DisassembleParameters(const DSPOPCTemplate& opc, u16 op1, u16 op2)
 {
-	char *buf = strbuf;
+	std::string buf;
+
 	for (int j = 0; j < opc.param_count; j++)
 	{
 		if (j > 0)
-			buf += sprintf(buf, ", ");
+			buf += ", ";
 
 		u32 val = (opc.params[j].loc >= 1) ? op2 : op1;
 		val &= opc.params[j].mask;
@@ -122,16 +118,16 @@ char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, ch
 		{
 		case P_REG:
 			if (settings_.decode_registers)
-				sprintf(buf, "$%s", pdregname(val));
+				buf += StringFromFormat("$%s", pdregname(val));
 			else
-				sprintf(buf, "$%d", val);
+				buf += StringFromFormat("$%d", val);
 			break;
 
 		case P_PRG:
 			if (settings_.decode_registers)
-				sprintf(buf, "@$%s", pdregname(val));
+				buf += StringFromFormat("@$%s", pdregname(val));
 			else
-				sprintf(buf, "@$%d", val);
+				buf += StringFromFormat("@$%d", val);
 			break;
 
 		case P_VAL:
@@ -139,23 +135,25 @@ char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, ch
 		case P_ADDR_D:
 			if (settings_.decode_names)
 			{
-				sprintf(buf, "%s", pdname(val));
+				buf += pdname(val);
 			}
 			else
-				sprintf(buf, "0x%04x", val);
+			{
+				buf += StringFromFormat("0x%04x", val);
+			}
 			break;
 
 		case P_IMM:
 			if (opc.params[j].size != 2)
 			{
 				if (opc.params[j].mask == 0x003f) // LSL, LSR, ASL, ASR
-					sprintf(buf, "#%d", (val & 0x20) ? (val | 0xFFFFFFC0) : val);  // 6-bit sign extension
+					buf += StringFromFormat("#%d", (val & 0x20) ? (val | 0xFFFFFFC0) : val);  // 6-bit sign extension
 				else
-					sprintf(buf, "#0x%02x", val);
+					buf += StringFromFormat("#0x%02x", val);
 			}
 			else
 			{
-				sprintf(buf, "#0x%04x", val);
+				buf += StringFromFormat("#0x%04x", val);
 			}
 			break;
 
@@ -164,41 +162,30 @@ char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, ch
 				val = (u16)(s16)(s8)val;
 
 			if (settings_.decode_names)
-				sprintf(buf, "@%s", pdname(val));
+				buf += StringFromFormat("@%s", pdname(val));
 			else
-				sprintf(buf, "@0x%04x", val);
+				buf += StringFromFormat("@0x%04x", val);
 			break;
 
 		default:
 			ERROR_LOG(DSPLLE, "Unknown parameter type: %x", opc.params[j].type);
 			break;
 		}
-
-		buf += strlen(buf);
 	}
 
-	return strbuf;
+	return buf;
 }
 
-static void MakeLowerCase(char *ptr)
+static std::string MakeLowerCase(std::string in)
 {
-	int i = 0;
-	while (ptr[i])
-	{
-		ptr[i] = tolower(ptr[i]);
-		i++;
-	}
+	std::transform(in.begin(), in.end(), in.begin(), ::tolower);
+
+	return in;
 }
 
-bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest)
+bool DSPDisassembler::DisassembleOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest)
 {
-	char buffer[256];
-	char *buf = buffer;
-
-	// Start with 8 spaces, if there's no label.
-	buf[0] = ' ';
-	buf[1] = '\0';
-	buf++;
+	std::string buf(" ");
 
 	if ((*pc & 0x7fff) >= 0x1000)
 	{
@@ -230,14 +217,15 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	bool extended = false;
 	bool only7bitext = false;
 
-	if (((opc->opcode >> 12) == 0x3) && (op1 & 0x007f)) {
+	if (((opc->opcode >> 12) == 0x3) && (op1 & 0x007f))
+	{
 		extended = true;
 		only7bitext = true;
 	}
 	else if (((opc->opcode >> 12) > 0x3) && (op1 & 0x00ff))
+	{
 		extended = true;
-	else
-		extended = false;
+	}
 
 	if (extended)
 	{
@@ -245,14 +233,16 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 		// find opcode
 		for (int j = 0; j < opcodes_ext_size; j++)
 		{
-			if (only7bitext) {
+			if (only7bitext)
+			{
 				if (((op1 & 0x7f) & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
 				{
 					opc_ext = &opcodes_ext[j];
 					break;
 				}
 			}
-			else {
+			else
+			{
 				if ((op1 & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
 				{
 					opc_ext = &opcodes_ext[j];
@@ -265,7 +255,7 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	// printing
 
 	if (settings_.show_pc)
-		buf += sprintf(buf, "%04x ", *pc);
+		buf += StringFromFormat("%04x ", *pc);
 
 	u32 op2;
 
@@ -274,54 +264,52 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	{
 		op2 = binbuf[(*pc + 1) & 0x0fff];
 		if (settings_.show_hex)
-			buf += sprintf(buf, "%04x %04x ", op1, op2);
+			buf += StringFromFormat("%04x %04x ", op1, op2);
 	}
 	else
 	{
 		op2 = 0;
 		if (settings_.show_hex)
-			buf += sprintf(buf, "%04x      ", op1);
+			buf += StringFromFormat("%04x      ", op1);
 	}
 
-	char opname[20];
-	strcpy(opname, opc->name);
+	std::string opname = opc->name;
 	if (settings_.lower_case_ops)
-		MakeLowerCase(opname);
-	char ext_buf[20];
+		opname = MakeLowerCase(opname);
+
+	std::string ext_buf;
 	if (extended)
-		sprintf(ext_buf, "%s%c%s", opname, settings_.ext_separator, opc_ext->name);
+		ext_buf = StringFromFormat("%s%c%s", opname.c_str(), settings_.ext_separator, opc_ext->name);
 	else
-		sprintf(ext_buf, "%s", opname);
+		ext_buf = opname;
 	if (settings_.lower_case_ops)
-		MakeLowerCase(ext_buf);
+		ext_buf = MakeLowerCase(ext_buf);
 
 	if (settings_.print_tabs)
-		buf += sprintf(buf, "%s\t", ext_buf);
+		buf += StringFromFormat("%s\t", ext_buf.c_str());
 	else
-		buf += sprintf(buf, "%-12s", ext_buf);
+		buf += StringFromFormat("%-12s", ext_buf.c_str());
 
 	if (opc->param_count > 0)
-		DisParams(*opc, op1, op2, buf);
-
-	buf += strlen(buf);
+		buf += DisassembleParameters(*opc, op1, op2);
 
 	// Handle opcode extension.
 	if (extended)
 	{
 		if (opc->param_count > 0)
-			buf += sprintf(buf, " ");
-		buf += sprintf(buf, ": ");
-		if (opc_ext->param_count > 0)
-			DisParams(*opc_ext, op1, op2, buf);
+			buf += " ";
 
-		buf += strlen(buf);
+		buf += ": ";
+
+		if (opc_ext->param_count > 0)
+			buf += DisassembleParameters(*opc_ext, op1, op2);
 	}
 
 	if (opc->opcode_mask == 0)
 	{
 		// unknown opcode
 		unk_opcodes[op1]++;
-		sprintf(buf, "\t\t; *** UNKNOWN OPCODE ***");
+		buf += "\t\t; *** UNKNOWN OPCODE ***";
 	}
 
 	if (extended)
@@ -330,11 +318,12 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 		*pc += opc->size;
 
 	if (pass == 2)
-		dest.append(buffer);
+		dest.append(buf);
+
 	return true;
 }
 
-bool DSPDisassembler::DisFile(const std::string& name, int base_addr, int pass, std::string &output)
+bool DSPDisassembler::DisassembleFile(const std::string& name, int base_addr, int pass, std::string &output)
 {
 	File::IOFile in(name, "rb");
 	if (!in)
@@ -344,17 +333,17 @@ bool DSPDisassembler::DisFile(const std::string& name, int base_addr, int pass, 
 	}
 
 	const int size = ((int)in.GetSize() & ~1) / 2;
-	u16 *const binbuf = new u16[size];
-	in.ReadArray(binbuf, size);
+	std::vector<u16> binbuf(size);
+	in.ReadArray(binbuf.data(), size);
 	in.Close();
 
 	// Actually do the disassembly.
 	for (u16 pc = 0; pc < size;)
 	{
-		DisOpcode(binbuf, base_addr, pass, &pc, output);
+		DisassembleOpcode(binbuf.data(), base_addr, pass, &pc, output);
 		if (pass == 2)
 			output.append("\n");
 	}
-	delete[] binbuf;
+
 	return true;
 }

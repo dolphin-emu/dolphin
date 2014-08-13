@@ -90,6 +90,8 @@ private:
 	void OnChangeGame(wxCommandEvent& event);
 	void OnAdjustBuffer(wxCommandEvent& event);
 	void OnConfigPads(wxCommandEvent& event);
+	void OnKick(wxCommandEvent& event);
+	void OnPlayerSelect(wxCommandEvent& event);
 	void GetNetSettings(NetSettings &settings);
 	std::string FindGame();
 
@@ -102,6 +104,7 @@ private:
 	std::string  m_selected_game;
 	wxButton*    m_game_btn;
 	wxButton*    m_start_btn;
+	wxButton*    m_kick_btn;
 
 	std::vector<int> m_playerids;
 

@@ -17,19 +17,15 @@
 void JitArm::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	bool update = inst.OPCD == 57;
-	s32 offset = inst.SIMM_12;
+	JITDISABLE(bJITLoadStorePairedOff);
 
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+
+	bool update = inst.OPCD == 57;
+	s32 offset = inst.SIMM_12;
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 16, 3); // Type
@@ -61,17 +57,14 @@ void JitArm::psq_l(UGeckoInstruction inst)
 void JitArm::psq_lx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
+	JITDISABLE(bJITLoadStorePairedOff);
 
-	bool update = inst.SUBOP10 == 38;
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+
+	bool update = inst.SUBOP10 == 38;
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.Ix]));
 	UBFX(R12, R11, 16, 3); // Type
@@ -113,19 +106,15 @@ void JitArm::psq_lx(UGeckoInstruction inst)
 void JitArm::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	bool update = inst.OPCD == 61;
-	s32 offset = inst.SIMM_12;
+	JITDISABLE(bJITLoadStorePairedOff);
 
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+
+	bool update = inst.OPCD == 61;
+	s32 offset = inst.SIMM_12;
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 0, 3); // Type
@@ -162,18 +151,14 @@ void JitArm::psq_st(UGeckoInstruction inst)
 void JitArm::psq_stx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff)
-
-	bool update = inst.SUBOP10 == 39;
+	JITDISABLE(bJITLoadStorePairedOff);
 
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem)
-	{
-		FallBackToInterpreter(inst);
-		return;
-	}
+	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+
+	bool update = inst.SUBOP10 == 39;
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 0, 3); // Type

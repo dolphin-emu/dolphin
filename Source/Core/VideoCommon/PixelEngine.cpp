@@ -97,14 +97,14 @@ static UPEAlphaReadReg     m_AlphaRead;
 static UPECtrlReg          m_Control;
 //static u16                 m_Token; // token value most recently encountered
 
-volatile u32 g_bSignalTokenInterrupt;
-volatile u32 g_bSignalFinishInterrupt;
+static volatile u32 g_bSignalTokenInterrupt;
+static volatile u32 g_bSignalFinishInterrupt;
 
 static int et_SetTokenOnMainThread;
 static int et_SetFinishOnMainThread;
 
-volatile u32 interruptSetToken = 0;
-volatile u32 interruptSetFinish = 0;
+static volatile u32 interruptSetToken = 0;
+static volatile u32 interruptSetFinish = 0;
 
 u16 bbox[4];
 bool bbox_active;
@@ -252,11 +252,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	}
 }
 
-bool AllowIdleSkipping()
-{
-	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
-}
-
 void UpdateInterrupts()
 {
 	// check if there is a token-interrupt
@@ -326,37 +321,6 @@ void SetFinish()
 	CommandProcessor::interruptFinishWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
-}
-
-//This function is used in CommandProcessor when write CTRL_REGISTER and the new fifo is attached.
-void ResetSetFinish()
-{
-	//if SetFinish happened but PE_CTRL_REGISTER not, I reset the interrupt else
-	//remove event from the queue
-	if (g_bSignalFinishInterrupt)
-	{
-		UpdateFinishInterrupt(false);
-		g_bSignalFinishInterrupt = false;
-	}
-	else
-	{
-		CoreTiming::RemoveEvent(et_SetFinishOnMainThread);
-	}
-	CommandProcessor::interruptFinishWaiting = false;
-}
-
-void ResetSetToken()
-{
-	if (g_bSignalTokenInterrupt)
-	{
-		UpdateTokenInterrupt(false);
-		g_bSignalTokenInterrupt = 0;
-	}
-	else
-	{
-		CoreTiming::RemoveEvent(et_SetTokenOnMainThread);
-	}
-	CommandProcessor::interruptTokenWaiting = false;
 }
 
 UPEAlphaReadReg GetAlphaReadMode()

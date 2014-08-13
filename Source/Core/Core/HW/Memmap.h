@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official Git repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -46,6 +33,8 @@ extern u8 *m_pRAM;
 extern u8 *m_pEXRAM;
 extern u8 *m_pL1Cache;
 extern u8 *m_pVirtualFakeVMEM;
+extern u8 *m_pFakeVMEM;
+extern bool bFakeVMEM;
 
 enum
 {
@@ -95,17 +84,6 @@ void WriteUnchecked_U32(const u32 _Data, const u32 _Address);
 
 bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false, bool allow_fake_vmem = false);
 
-inline u8* GetCachePtr() {return m_pL1Cache;}
-inline u8* GetMainRAMPtr() {return m_pRAM;}
-inline u32 ReadFast32(const u32 _Address)
-{
-#if _ARCH_32
-	return Common::swap32(*(u32 *)(base + (_Address & MEMVIEW32_MASK)));  // ReadUnchecked_U32(_Address);
-#else
-	return Common::swap32(*(u32 *)(base + _Address));
-#endif
-}
-
 // used by interpreter to read instructions, uses iCache
 u32 Read_Opcode(const u32 _Address);
 // this is used by Debugger a lot.
@@ -114,11 +92,6 @@ u32 Read_Instruction(const u32 _Address);
 
 
 // For use by emulator
-
-// Read and write functions
-#define NUMHWMEMFUN 64
-#define HWSHIFT 10
-#define HW_MASK 0x3FF
 
 u8  Read_U8(const u32 _Address);
 u16 Read_U16(const u32 _Address);
@@ -133,9 +106,6 @@ double Read_F64(const u32 _Address);
 u32 Read_U8_ZX(const u32 _Address);
 u32 Read_U16_ZX(const u32 _Address);
 
-// used by JIT (Jit64::lXz)
-u32 EFB_Read(const u32 addr);
-
 void Write_U8(const u8 _Data, const u32 _Address);
 void Write_U16(const u16 _Data, const u32 _Address);
 void Write_U32(const u32 _Data, const u32 _Address);
@@ -148,7 +118,6 @@ void Write_U64_Swap(const u64 _Data, const u32 _Address);
 // Useful helper functions, used by ARM JIT
 void Write_F64(const double _Data, const u32 _Address);
 
-void WriteHW_U32(const u32 _Data, const u32 _Address);
 void GetString(std::string& _string, const u32 _Address);
 
 void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t size);
@@ -169,9 +138,6 @@ enum XCheckTLBFlag
 };
 u32 TranslateAddress(u32 _Address, XCheckTLBFlag _Flag);
 void InvalidateTLBEntry(u32 _Address);
-void GenerateDSIException(u32 _EffectiveAdress, bool _bWrite);
-void GenerateISIException(u32 _EffectiveAdress);
 extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
-
 };

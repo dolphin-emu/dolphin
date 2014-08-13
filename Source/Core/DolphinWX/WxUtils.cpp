@@ -7,6 +7,7 @@
 #include <wx/chartype.h>
 #include <wx/gdicmn.h>
 #include <wx/image.h>
+#include <wx/msgdlg.h>
 #include <wx/mstream.h>
 #include <wx/string.h>
 #include <wx/utils.h>
@@ -35,20 +36,25 @@ void Explore(const std::string& path)
 	wxString wxPath = StrToWxStr(path);
 #ifndef _WIN32
 	// Default to file
-	if (! wxPath.Contains(wxT("://")))
+	if (! wxPath.Contains("://"))
 	{
-		wxPath = wxT("file://") + wxPath;
+		wxPath = "file://" + wxPath;
 	}
 #endif
 
 #ifdef __WXGTK__
-	wxPath.Replace(wxT(" "), wxT("\\ "));
+	wxPath.Replace(" ", "\\ ");
 #endif
 
 	if (! ::wxLaunchDefaultBrowser(wxPath))
 	{
 		// WARN_LOG
 	}
+}
+
+void ShowErrorDialog(const wxString& error_msg)
+{
+	wxMessageBox(error_msg, _("Error"), wxOK | wxICON_ERROR);
 }
 
 double GetCurrentBitmapLogicalScale()

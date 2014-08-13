@@ -22,7 +22,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::EnqueueReply(u32 CommandAddress, u32 Return
 
 	Memory::Write_U32(ReturnValue, CommandAddress + 4);
 
-	WII_IPC_HLE_Interface::EnqReply(CommandAddress);
+	WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
 }
 
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
@@ -396,16 +396,10 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			if (!m_Card.Seek(req.arg, SEEK_SET))
 				ERROR_LOG(WII_IPC_SD, "Seek failed WTF");
 
-			u8* const buffer = new u8[size];
 
-			if (m_Card.ReadBytes(buffer, req.bsize * req.blocks))
+			if (m_Card.ReadBytes(Memory::GetPointer(req.addr), size))
 			{
-				u32 i;
-				for (i = 0; i < size; ++i)
-				{
-					Memory::Write_U8((u8)buffer[i], req.addr++);
-				}
-				DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", _rwBufferSize, i);
+				DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", _rwBufferSize, size);
 			}
 			else
 			{
@@ -413,8 +407,6 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 					ferror(m_Card.GetHandle()), feof(m_Card.GetHandle()));
 				ret = RET_FAIL;
 			}
-
-			delete[] buffer;
 		}
 		}
 		Memory::Write_U32(0x900, _BufferOut);
@@ -434,21 +426,12 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			if (!m_Card.Seek(req.arg, SEEK_SET))
 				ERROR_LOG(WII_IPC_SD, "fseeko failed WTF");
 
-			u8* buffer = new u8[size];
-
-			for (u32 i = 0; i < size; ++i)
-			{
-				buffer[i] = Memory::Read_U8(req.addr++);
-			}
-
-			if (!m_Card.WriteBytes(buffer, req.bsize * req.blocks))
+			if (!m_Card.WriteBytes(Memory::GetPointer(req.addr), size))
 			{
 				ERROR_LOG(WII_IPC_SD, "Write Failed - error: %i, eof: %i",
 					ferror(m_Card.GetHandle()), feof(m_Card.GetHandle()));
 				ret = RET_FAIL;
 			}
-
-			delete[] buffer;
 		}
 		}
 		Memory::Write_U32(0x900, _BufferOut);

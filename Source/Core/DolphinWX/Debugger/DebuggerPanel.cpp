@@ -23,6 +23,7 @@
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreParameter.h"
+#include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerPanel.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -42,12 +43,6 @@ BEGIN_EVENT_TABLE(GFXDebuggerPanel, wxPanel)
 	EVT_BUTTON(ID_CLEAR_VERTEX_SHADER_CACHE,GFXDebuggerPanel::OnClearVertexShaderCacheButton)
 	EVT_BUTTON(ID_CLEAR_PIXEL_SHADER_CACHE,GFXDebuggerPanel::OnClearPixelShaderCacheButton)
 END_EVENT_TABLE()
-
-// From VideoCommon
-extern GFXDebuggerBase *g_pdebugger;
-extern volatile bool GFXDebuggerPauseFlag;
-extern volatile PauseEvent GFXDebuggerToPauseAtNext;
-extern volatile int GFXDebuggerEventToPauseCount;
 
 GFXDebuggerPanel::GFXDebuggerPanel(wxWindow *parent, wxWindowID id, const wxPoint &position,
 									const wxSize& size, long style, const wxString &title)
@@ -88,10 +83,11 @@ void GFXDebuggerPanel::SaveSettings() const
 	    GetSize().GetWidth() < 1000 &&
 	    GetSize().GetHeight() < 1000)
 	{
-		file.Set("VideoWindow", "x", GetPosition().x);
-		file.Set("VideoWindow", "y", GetPosition().y);
-		file.Set("VideoWindow", "w", GetSize().GetWidth());
-		file.Set("VideoWindow", "h", GetSize().GetHeight());
+		IniFile::Section* video_window = file.GetOrCreateSection("VideoWindow");
+		video_window->Set("x", GetPosition().x);
+		video_window->Set("y", GetPosition().y);
+		video_window->Set("w", GetSize().GetWidth());
+		video_window->Set("h", GetSize().GetHeight());
 	}
 
 	file.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
@@ -102,11 +98,17 @@ void GFXDebuggerPanel::LoadSettings()
 	IniFile file;
 	file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	int x = 100, y = 100, w = 100, h = 100;
-	file.Get("VideoWindow", "x", &x, GetPosition().x);
-	file.Get("VideoWindow", "y", &y, GetPosition().y);
-	file.Get("VideoWindow", "w", &w, GetSize().GetWidth());
-	file.Get("VideoWindow", "h", &h, GetSize().GetHeight());
+	int x = 100;
+	int y = 100;
+	int w = 100;
+	int h = 100;
+
+	IniFile::Section* video_window = file.GetOrCreateSection("VideoWindow");
+	video_window->Get("x", &x, GetPosition().x);
+	video_window->Get("y", &y, GetPosition().y);
+	video_window->Get("w", &w, GetSize().GetWidth());
+	video_window->Get("h", &h, GetSize().GetHeight());
+
 	SetSize(x, y, w, h);
 }
 
@@ -153,7 +155,7 @@ void GFXDebuggerPanel::CreateGUIControls()
 	m_pButtonPauseAtNextFrame = new wxButton(this, ID_PAUSE_AT_NEXT_FRAME, _("Go to Next Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Next Frame"));
 	m_pButtonCont = new wxButton(this, ID_CONT, _("Continue"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _("Continue"));
 
-	m_pCount = new wxTextCtrl(this, ID_COUNT, wxT("1"), wxDefaultPosition, wxSize(50,25), wxTE_RIGHT, wxDefaultValidator, _("Count"));
+	m_pCount = new wxTextCtrl(this, ID_COUNT, "1", wxDefaultPosition, wxSize(50,25), wxTE_RIGHT, wxDefaultValidator, _("Count"));
 
 	m_pPauseAtList = new wxChoice(this, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, nullptr,0,wxDefaultValidator, _("PauseAtList"));
 	for (int i=0; i<numPauseEventMap; i++)
@@ -287,42 +289,42 @@ void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 
 		case 2: // Pixel Shader Constants
 			DumpPixelShaderConstants(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 3: // Vertex Shader Constants
 			DumpVertexShaderConstants(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 4: // Textures
 			DumpTextures(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 5: // Frame Buffer
 			DumpFrameBuffer(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 6: // Geometry
 			DumpGeometry(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 7: // Vertex Description
 			DumpVertexDecl(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 8: // Vertex Matrices
 			DumpMatrices(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 
 		case 9: // Statistics
 			DumpStats(dump_path);
-			wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+			WxUtils::ShowErrorDialog(_("Not implemented"));
 			break;
 	}
 }
@@ -336,7 +338,7 @@ void GFXDebuggerPanel::OnContButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnClearScreenButton(wxCommandEvent& event)
 {
 	// TODO
-	wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+	WxUtils::ShowErrorDialog(_("Not implemented"));
 }
 
 void GFXDebuggerPanel::OnClearTextureCacheButton(wxCommandEvent& event)
@@ -347,17 +349,17 @@ void GFXDebuggerPanel::OnClearTextureCacheButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnClearVertexShaderCacheButton(wxCommandEvent& event)
 {
 	// TODO
-	wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+	WxUtils::ShowErrorDialog(_("Not implemented"));
 }
 
 void GFXDebuggerPanel::OnClearPixelShaderCacheButton(wxCommandEvent& event)
 {
 	// TODO
-	wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+	WxUtils::ShowErrorDialog(_("Not implemented"));
 }
 
 void GFXDebuggerPanel::OnUpdateScreenButton(wxCommandEvent& event)
 {
-	wxMessageBox(_("Not implemented"), _("Error"), wxOK);
+	WxUtils::ShowErrorDialog(_("Not implemented"));
 	GFXDebuggerUpdateScreen();
 }

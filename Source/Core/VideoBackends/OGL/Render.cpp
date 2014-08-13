@@ -20,6 +20,7 @@
 #include "Core/Movie.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/main.h"
 #include "VideoBackends/OGL/PostProcessing.h"
@@ -56,7 +57,6 @@
 #endif
 
 #ifdef _WIN32
-#include "VideoCommon/EmuWindow.h"
 #endif
 #if defined _WIN32 || defined HAVE_LIBAV
 #include "VideoCommon/AVIDump.h"
@@ -68,7 +68,7 @@ void VideoConfig::UpdateProjectionHack()
 	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
-int OSDInternalW, OSDInternalH;
+static int OSDInternalW, OSDInternalH;
 
 namespace OGL
 {
@@ -78,10 +78,6 @@ enum MultisampleMode {
 	MULTISAMPLE_2X,
 	MULTISAMPLE_4X,
 	MULTISAMPLE_8X,
-	MULTISAMPLE_CSAA_8X,
-	MULTISAMPLE_CSAA_8XQ,
-	MULTISAMPLE_CSAA_16X,
-	MULTISAMPLE_CSAA_16XQ,
 	MULTISAMPLE_SSAA_4X,
 };
 
@@ -90,7 +86,6 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
 static SHADER s_ShowEFBCopyRegions;
@@ -99,7 +94,6 @@ static RasterFont* s_pfont = nullptr;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
-static int s_MSAACoverageSamples = 0;
 static int s_LastMultisampleMode = 0;
 
 static u32 s_blendMode;
@@ -115,9 +109,10 @@ static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
 static const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
 static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
+static bool s_efbCacheIsCleared = false;
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-int GetNumMSAASamples(int MSAAMode)
+static int GetNumMSAASamples(int MSAAMode)
 {
 	int samples;
 	switch (MSAAMode)
@@ -131,15 +126,11 @@ int GetNumMSAASamples(int MSAAMode)
 			break;
 
 		case MULTISAMPLE_4X:
-		case MULTISAMPLE_CSAA_8X:
-		case MULTISAMPLE_CSAA_16X:
 		case MULTISAMPLE_SSAA_4X:
 			samples = 4;
 			break;
 
 		case MULTISAMPLE_8X:
-		case MULTISAMPLE_CSAA_8XQ:
-		case MULTISAMPLE_CSAA_16XQ:
 			samples = 8;
 			break;
 
@@ -154,32 +145,7 @@ int GetNumMSAASamples(int MSAAMode)
 	return g_ogl_config.max_samples;
 }
 
-int GetNumMSAACoverageSamples(int MSAAMode)
-{
-	int samples;
-	switch (g_ActiveConfig.iMultisampleMode)
-	{
-		case MULTISAMPLE_CSAA_8X:
-		case MULTISAMPLE_CSAA_8XQ:
-			samples = 8;
-			break;
-
-		case MULTISAMPLE_CSAA_16X:
-		case MULTISAMPLE_CSAA_16XQ:
-			samples = 16;
-			break;
-
-		default:
-			samples = 0;
-	}
-	if (g_ogl_config.bSupportCoverageMSAA || samples == 0) return samples;
-
-	// TODO: move this to InitBackendInfo
-	OSD::AddMessage("CSAA Anti Aliasing isn't supported by your GPU.", 10000);
-	return 0;
-}
-
-void ApplySSAASettings() {
+static void ApplySSAASettings() {
 	// GLES3 doesn't support SSAA
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
@@ -197,7 +163,8 @@ void ApplySSAASettings() {
 	}
 }
 
-void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
+#if defined(_DEBUG) || defined(DEBUGFAST)
+static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
 	const char *s_source;
 	const char *s_type;
@@ -230,18 +197,19 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
 }
+#endif
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
-void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
+static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 {
 	glDepthRange(neardepth, fardepth);
 }
-void GLAPIENTRY ClearDepthf(GLfloat depthval)
+static void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
 }
 
-void InitDriverInfo()
+static void InitDriverInfo()
 {
 	std::string svendor = std::string(g_ogl_config.gl_vendor);
 	std::string srenderer = std::string(g_ogl_config.gl_renderer);
@@ -371,10 +339,8 @@ Renderer::Renderer()
 	OSDInternalW = 0;
 	OSDInternalH = 0;
 
-	s_fps=0;
 	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
-	InitFPSCounter();
 
 	bool bSuccess = true;
 
@@ -489,14 +455,14 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
 	g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex");
 	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage");
-	g_ogl_config.bSupportCoverageMSAA = GLExtensions::Supports("GL_NV_framebuffer_multisample_coverage");
+	g_ogl_config.bSupportsMSAA = GLExtensions::Supports("GL_ARB_texture_multisample");
 	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
 	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
 	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 	{
-		if (strstr(g_ogl_config.glsl_version, "3.00"))
+		if (strstr(g_ogl_config.glsl_version, "3.0"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
 		}
@@ -565,7 +531,7 @@ Renderer::Renderer()
 	}
 
 	glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
-	if (g_ogl_config.max_samples < 1)
+	if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
 		g_ogl_config.max_samples = 1;
 
 	UpdateActiveConfig();
@@ -584,13 +550,12 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
 			g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
-			g_ogl_config.bSupportCoverageMSAA ? "" : "CSAA ",
+			g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA "
 			);
 
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
-	s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
 	ApplySSAASettings();
 
 	// Decide framebuffer size
@@ -650,6 +615,7 @@ Renderer::Renderer()
 			}
 	}
 	UpdateActiveConfig();
+	ClearEFBCache();
 }
 
 Renderer::~Renderer()
@@ -681,7 +647,7 @@ void Renderer::Init()
 {
 	// Initialize the FramebufferManager
 	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
-			s_MSAASamples, s_MSAACoverageSamples);
+			s_MSAASamples);
 
 	s_pfont = new RasterFont();
 
@@ -715,19 +681,18 @@ void Renderer::DrawDebugInfo()
 {
 	// Reset viewport for drawing text
 	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
+
 	// Draw various messages on the screen, like FPS, statistics, etc.
-	char debugtext_buffer[8192];
-	char *p = debugtext_buffer;
-	p[0] = 0;
+	std::string debug_info;
 
 	if (g_ActiveConfig.bShowFPS)
-		p+=sprintf(p, "FPS: %d\n", s_fps);
+		debug_info += StringFromFormat("FPS: %d\n", m_fps_counter.m_fps);
 
 	if (SConfig::GetInstance().m_ShowLag)
-		p+=sprintf(p, "Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 
 	if (g_ActiveConfig.bShowInputDisplay)
-		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
+		debug_info += Movie::GetInputDisplay();
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{
@@ -850,16 +815,16 @@ void Renderer::DrawDebugInfo()
 	}
 
 	if (g_ActiveConfig.bOverlayStats)
-		p = Statistics::ToString(p);
+		debug_info += Statistics::ToString();
 
 	if (g_ActiveConfig.bOverlayProjStats)
-		p = Statistics::ToStringProj(p);
+		debug_info += Statistics::ToStringProj();
 
-	// Render a shadow, and then the text.
-	if (p != debugtext_buffer)
+	if (!debug_info.empty())
 	{
-		Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
-		Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
+		// Render a shadow, and then the text.
+		Renderer::RenderText(debug_info, 21, 21, 0xDD000000);
+		Renderer::RenderText(debug_info, 20, 20, 0xFF00FFFF);
 	}
 }
 
@@ -918,11 +883,11 @@ void Renderer::SetColorMask()
 
 void ClearEFBCache()
 {
-	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
-		s_efbCacheValid[0][i] = false;
-
-	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
-		s_efbCacheValid[1][i] = false;
+	if (!s_efbCacheIsCleared)
+	{
+		s_efbCacheIsCleared = true;
+		memset(s_efbCacheValid, 0, sizeof(s_efbCacheValid));
+	}
 }
 
 void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data)
@@ -952,6 +917,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 	}
 
 	s_efbCacheValid[cacheType][cacheRectIdx] = true;
+	s_efbCacheIsCleared = false;
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -1160,12 +1126,12 @@ void Renderer::SetViewport()
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
 	// TODO: ceil, floor or just cast to int?
-	float X = EFBToScaledXf(xfregs.viewport.xOrig - xfregs.viewport.wd - (float)scissorXOff);
-	float Y = EFBToScaledYf((float)EFB_HEIGHT - xfregs.viewport.yOrig + xfregs.viewport.ht + (float)scissorYOff);
-	float Width = EFBToScaledXf(2.0f * xfregs.viewport.wd);
-	float Height = EFBToScaledYf(-2.0f * xfregs.viewport.ht);
-	float GLNear = (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
-	float GLFar = xfregs.viewport.farZ / 16777216.0f;
+	float X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
+	float Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht + (float)scissorYOff);
+	float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+	float GLNear = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+	float GLFar = xfmem.viewport.farZ / 16777216.0f;
 	if (Width < 0)
 	{
 		X += Width;
@@ -1333,7 +1299,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
-void DumpFrame(const std::vector<u8>& data, int w, int h)
+static void DumpFrame(const std::vector<u8>& data, int w, int h)
 {
 #if defined(HAVE_LIBAV) || defined(_WIN32)
 		if (g_ActiveConfig.bDumpFrames && !data.empty())
@@ -1494,7 +1460,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 				if (!bLastFrameDumped)
 				{
 					#ifdef _WIN32
-						bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
+						bAVIDumping = AVIDump::Start(nullptr, w, h);
 					#else
 						bAVIDumping = AVIDump::Start(w, h);
 					#endif
@@ -1609,17 +1575,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		{
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
-			s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
 			ApplySSAASettings();
 
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
-				s_MSAASamples, s_MSAACoverageSamples);
+				s_MSAASamples);
 		}
 	}
 
-	if (XFBWrited)
-		s_fps = UpdateFPSCounter();
 	// ---------------------------------------------------------------------
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
@@ -1807,7 +1770,7 @@ void Renderer::SetDitherMode()
 
 void Renderer::SetLineWidth()
 {
-	float fratio = xfregs.viewport.wd != 0 ?
+	float fratio = xfmem.viewport.wd != 0 ?
 		((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
 	if (bpmem.lineptwidth.linesize > 0)
 		// scale by ratio of widths

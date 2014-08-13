@@ -1,17 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -82,6 +74,7 @@
     <ClCompile Include="FrameTools.cpp" />
     <ClCompile Include="GameListCtrl.cpp" />
     <ClCompile Include="GeckoCodeDiag.cpp" />
+    <ClCompile Include="GLInterface\GLInterface.cpp" />
     <ClCompile Include="GLInterface\WGL.cpp" />
     <ClCompile Include="HotkeyDlg.cpp" />
     <ClCompile Include="InputConfigDiag.cpp" />
@@ -98,12 +91,11 @@
     <ClCompile Include="MemoryCards\WiiSaveCrypted.cpp" />
     <ClCompile Include="NetWindow.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
-    <ClCompile Include="PHackSettings.cpp" />
+    <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TASInputDlg.cpp" />
-    <ClCompile Include="UDPConfigDiag.cpp" />
     <ClCompile Include="VideoConfigDiag.cpp" />
     <ClCompile Include="WiimoteConfigDiag.cpp" />
     <ClCompile Include="WXInputBase.cpp" />
@@ -135,7 +127,6 @@
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />
     <ClInclude Include="GeckoCodeDiag.h" />
-    <ClInclude Include="GLInterface\InterfaceBase.h" />
     <ClInclude Include="GLInterface\WGL.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="HotkeyDlg.h" />
@@ -149,10 +140,9 @@
     <ClInclude Include="MemoryCards\WiiSaveCrypted.h" />
     <ClInclude Include="NetWindow.h" />
     <ClInclude Include="PatchAddEdit.h" />
-    <ClInclude Include="PHackSettings.h" />
+    <ClInclude Include="SoftwareVideoConfigDialog.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TASInputDlg.h" />
-    <ClInclude Include="UDPConfigDiag.h" />
     <ClInclude Include="VideoConfigDiag.h" />
     <ClInclude Include="WiimoteConfigDiag.h" />
     <ClInclude Include="WXInputBase.h" />
