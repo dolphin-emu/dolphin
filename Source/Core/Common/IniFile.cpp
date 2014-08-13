@@ -19,9 +19,7 @@
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
-namespace {
-
-void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut)
+void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut)
 {
 	if (line[0] == '#')
 		return;
@@ -38,8 +36,6 @@ void ParseLine(const std::string& line, std::string* keyOut, std::string* valueO
 			*valueOut = StripQuotes(StripSpaces(line.substr(firstEquals + 1, std::string::npos)));
 		}
 	}
-}
-
 }
 
 const std::string& IniFile::NULL_STRING = "";

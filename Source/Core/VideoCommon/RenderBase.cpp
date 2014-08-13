@@ -59,6 +59,8 @@ int Renderer::s_target_height;
 int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
 
+PostProcessingShaderImplementation* Renderer::m_post_processor;
+
 TargetRectangle Renderer::target_rc;
 
 int Renderer::s_LastEFBScale;
