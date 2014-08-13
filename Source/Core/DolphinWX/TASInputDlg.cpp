@@ -46,8 +46,8 @@ EVT_CLOSE(TASInputDlg::OnCloseWindow)
 
 END_EVENT_TABLE()
 
-TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
-		const wxPoint &position, const wxSize& size, long style)
+TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
+		const wxPoint& position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
 	A_turbo = B_turbo = X_turbo = Y_turbo = Z_turbo = L_turbo = R_turbo = START_turbo = DL_turbo = DR_turbo = DD_turbo = DU_turbo = false;
@@ -564,8 +564,8 @@ void TASInputDlg::GetValues(GCPadStatus* PadStatus, int controllerID)
 
 void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 {
-	wxTextCtrl *text;
-	u8 *v;
+	wxTextCtrl* text;
+	u8* v;
 	update = 0;
 
 	switch (event.GetId())
@@ -573,28 +573,28 @@ void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 		case ID_MAIN_X_SLIDER:
 			text = wx_mainX_t;
 			v = &mainX;
-			xaxis =((wxSlider *) event.GetEventObject())->GetValue();
+			xaxis =((wxSlider*) event.GetEventObject())->GetValue();
 			update = 1;
 			break;
 
 		case ID_MAIN_Y_SLIDER:
 			text = wx_mainY_t;
 			v = &mainY;
-			yaxis = 256 - ((wxSlider *) event.GetEventObject())->GetValue();
+			yaxis = 256 - ((wxSlider*) event.GetEventObject())->GetValue();
 			update = 1;
 			break;
 
 		case ID_C_X_SLIDER:
 			text = wx_cX_t;
 			v = &cX;
-			c_xaxis = ((wxSlider *) event.GetEventObject())->GetValue();
+			c_xaxis = ((wxSlider*) event.GetEventObject())->GetValue();
 			update = 2;
 			break;
 
 		case ID_C_Y_SLIDER:
 			text = wx_cY_t;
 			v = &cY;
-			c_yaxis = 256 -((wxSlider *) event.GetEventObject())->GetValue();
+			c_yaxis = 256 -((wxSlider*) event.GetEventObject())->GetValue();
 			update = 2;
 			break;
 
@@ -612,7 +612,7 @@ void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 			return;
 	}
 
-	int value = ((wxSlider *) event.GetEventObject())->GetValue();
+	int value = ((wxSlider*) event.GetEventObject())->GetValue();
 	*v = (u8) value;
 	text->SetValue(wxString::Format("%i", value));
 
@@ -629,8 +629,8 @@ void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 
 void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 {
-	wxSlider *slider;
-	u8 *v;
+	wxSlider* slider;
+	u8* v;
 	update = 0;
 	update_axis = 0;
 
@@ -679,7 +679,7 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 	}
 	unsigned long value;
 
-	if (((wxTextCtrl *) event.GetEventObject())->GetValue().ToULong(&value))
+	if (((wxTextCtrl*) event.GetEventObject())->GetValue().ToULong(&value))
 	{
 		*v = (u8) (value > 255 ? 255 : value);
 		slider->SetValue(*v);
@@ -766,7 +766,7 @@ bool TASInputDlg::TextBoxHasFocus()
 void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 {
 	wxSlider *sliderX,*sliderY;
-	wxStaticBitmap *sbitmap;
+	wxStaticBitmap* sbitmap;
 	wxTextCtrl *textX, *textY;
 	int *x,*y;
 
@@ -815,7 +815,7 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 		return;
 
 	wxSlider *sliderX,*sliderY;
-	wxStaticBitmap *sbitmap;
+	wxStaticBitmap* sbitmap;
 	wxTextCtrl *textX, *textY;
 	int *x,*y;
 
