@@ -1,4 +1,4 @@
-Dolphin VR 4.0-2558
+Dolphin VR 4.0-2592
 (Unofficial Dolphin build with Oculus Rift support.)
 Open Source licence: GPL v2
 
@@ -13,7 +13,7 @@ How to run:
 
 Optional: Copy sixense_x64.dll, iweardrv.dll, and iwrstdrv.dll into your Dolphin directory.
 
-Oculus Rift DK1 to DK2 are supported. You need the Oculus 0.4.0 runtime installed.
+Oculus Rift DK1 to DK2 are supported. You need the Oculus 0.4.1 or 0.4.0 runtime installed.
 Set the Rift Display Mode to "Extend Desktop to the HMD", or it won't work!
 Plug the Rift in, and make sure the service is running, before launching Dolphin.
 
