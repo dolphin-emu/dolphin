@@ -4,26 +4,40 @@
 
 #pragma once
 
+#include <string>
+#include <unordered_map>
+
 #include "VideoBackends/OGL/GLUtil.h"
+
+#include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace OGL
 {
 
-namespace PostProcessing
+class OpenGLPostProcessing : public PostProcessingShaderImplementation
 {
+public:
+	OpenGLPostProcessing();
+	~OpenGLPostProcessing();
 
-void Init();
-void Shutdown();
+	void BindTargetFramebuffer() override;
+	void BlitToScreen() override;
+	void Update(u32 width, u32 height) override;
+	void ApplyShader() override;
 
-void BindTargetFramebuffer();
-void BlitToScreen();
-void Update(u32 width, u32 height);
+private:
+	GLuint m_fbo;
+	GLuint m_texture;
+	SHADER m_shader;
+	GLuint m_uniform_resolution;
+	GLuint m_uniform_time;
+	std::string m_glsl_header;
 
-void ReloadShader();
+	std::unordered_map<std::string, GLuint> m_uniform_bindings;
 
-void ApplyShader();
-
-}  // namespace
+	void CreateHeader();
+	std::string LoadShaderOptions(const std::string& code);
+};
 
 }  // namespace

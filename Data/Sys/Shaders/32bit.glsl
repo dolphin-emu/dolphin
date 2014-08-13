@@ -1,10 +1,3 @@
-SAMPLER_BINDING(9) uniform sampler2D samp9;
-
-out vec4 ocol0;
-in vec2 uv0;
-
-uniform vec4 resolution;
-
 void main()
 {
 	//Change this number to increase the pixel size.
@@ -14,9 +7,9 @@ void main()
 	float green	= 0.0;
 	float blue	= 0.0;
 
-	vec2 pos = floor(uv0 * resolution.xy / pixelSize) * pixelSize * resolution.zw;
+	float2 pos = floor(GetCoordinates() * GetResolution() / pixelSize) * pixelSize * GetInvResolution();
 
-	vec4 c0 = texture(samp9, pos);
+	float4 c0 = SampleLocation(pos);
 
 	if (c0.r < 0.06)
 		red = 0.06;
@@ -82,5 +75,5 @@ void main()
 	else
 		green = 1.0;
 
-	ocol0 = vec4(red, green, blue, c0.a);
+	SetOutput(float4(red, green, blue, c0.a));
 }

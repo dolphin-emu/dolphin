@@ -1,23 +1,15 @@
-SAMPLER_BINDING(9) uniform sampler2D samp9;
-
-out vec4 ocol0;
-in vec2 uv0;
-
-uniform vec4 resolution;
-
 void main()
 {
-
 	//Changethis to increase the number of colors.
 	int numColors =8;
 
 	float4 to_gray = float4(0.3,0.59,0.11,0);
-	float x1 = dot(to_gray, texture(samp9, uv0+vec2(1,1)*resolution.zw));
-	float x0 = dot(to_gray, texture(samp9, uv0+vec2(-1,-1)*resolution.zw));
-	float x3 = dot(to_gray, texture(samp9, uv0+vec2(1,-1)*resolution.zw));
-	float x2 = dot(to_gray, texture(samp9, uv0+vec2(-1,1)*resolution.zw));
+	float x1 = dot(to_gray, SampleOffset(int2( 1, 1)));
+	float x0 = dot(to_gray, SampleOffset(int2(-1,-1)));
+	float x3 = dot(to_gray, SampleOffset(int2( 1,-1)));
+	float x2 = dot(to_gray, SampleOffset(int2(-1, 1)));
 	float edge = (x1 - x0) * (x1 - x0) + (x3 - x2) * (x3 - x2);
-	float4 color = texture(samp9, uv0).rgba;
+	float4 color = Sample();
 
 	float4 c0 = color - float4(edge, edge, edge, edge) * 12.0;
 
@@ -66,7 +58,7 @@ void main()
 				blue = 0.95;
 			else
 				blue = colorN ;
-			
+
 			bb = true;
 		}
 
@@ -92,5 +84,5 @@ void main()
 			break;
 	}
 
-	ocol0 = float4(red, green, blue, c0.a);
+	SetOutput(float4(red, green, blue, c0.a));
 }

@@ -685,6 +685,9 @@ void Renderer::Shutdown()
 	delete s_pfont;
 	s_pfont = nullptr;
 	s_ShowEFBCopyRegions.Destroy();
+
+	delete m_post_processor;
+	m_post_processor = nullptr;
 }
 
 void Renderer::Init()
@@ -692,6 +695,8 @@ void Renderer::Init()
 	// Initialize the FramebufferManager
 	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 			s_MSAASamples);
+
+	m_post_processor = new OpenGLPostProcessing();
 
 	s_pfont = new RasterFont();
 
@@ -1427,7 +1432,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	ResetAPIState();
 
-	PostProcessing::Update(s_backbuffer_width, s_backbuffer_height);
+	m_post_processor->Update(s_backbuffer_width, s_backbuffer_height);
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	TargetRectangle flipped_trc = GetTargetRectangle();
 
@@ -1450,7 +1455,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	if (g_ActiveConfig.bUseXFB)
 	{
 		// Render to the real/postprocessing buffer now.
-		PostProcessing::BindTargetFramebuffer();
+		m_post_processor->BindTargetFramebuffer();
 
 		// draw each xfb source
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
@@ -1557,7 +1562,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 0);
 
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
-		PostProcessing::BindTargetFramebuffer();
+		m_post_processor->BindTargetFramebuffer();
 
 		// always the non-msaa fbo
 		GLuint fb = s_MSAASamples>1?FramebufferManager::GetResolvedFramebuffer(0):FramebufferManager::GetEFBFramebuffer(0);
@@ -1569,7 +1574,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	}
 
 	if (!g_has_rift)
-		PostProcessing::BlitToScreen();
+		m_post_processor->BlitToScreen();
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
