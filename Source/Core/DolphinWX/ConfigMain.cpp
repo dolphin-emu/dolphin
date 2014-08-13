@@ -71,8 +71,6 @@ const CPUCore CPUCores[] = {
 #endif
 };
 
-extern CFrame* main_frame;
-
 // keep these in sync with CConfigMain::InitializeGUILists
 static const wxLanguage langIds[] =
 {
@@ -116,6 +114,7 @@ static const wxLanguage langIds[] =
 #define SIDEV_AM_BB_STR     _trans("AM-Baseboard")
 
 #define EXIDEV_MEMCARD_STR  _trans("Memory Card")
+#define EXIDEV_MEMDIR_STR   _trans("GCI Folder")
 #define EXIDEV_MIC_STR      _trans("Mic")
 #define EXIDEV_BBA_STR      "BBA"
 #define EXIDEV_AM_BB_STR    _trans("AM-Baseboard")
@@ -229,7 +228,7 @@ void CConfigMain::SetSelectedTab(int tab)
 // Used to restrict changing of some options while emulator is running
 void CConfigMain::UpdateGUI()
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Disable the Core stuff on GeneralPage
 		CPUThread->Disable();
@@ -265,8 +264,7 @@ void CConfigMain::InitializeGUILists()
 	// Framelimit
 	arrayStringFor_Framelimit.Add(_("Off"));
 	arrayStringFor_Framelimit.Add(_("Auto"));
-	arrayStringFor_Framelimit.Add(_("Audio"));
-	for (int i = 10; i <= 120; i += 5) // from 10 to 120
+	for (int i = 5; i <= 120; i += 5) // from 5 to 120
 		arrayStringFor_Framelimit.Add(wxString::Format("%i", i));
 
 	// Emulator Engine
@@ -395,6 +393,8 @@ void CConfigMain::InitializeGUIValues()
 		SlotDevices.Add(_(DEV_DUMMY_STR));
 		SlotDevices.Add(_(EXIDEV_MEMCARD_STR));
 		SlotDevices.Add(_(EXIDEV_GECKO_STR));
+		SlotDevices.Add(_(EXIDEV_MEMDIR_STR));
+
 #if HAVE_PORTAUDIO
 		SlotDevices.Add(_(EXIDEV_MIC_STR));
 #endif
@@ -432,8 +432,11 @@ void CConfigMain::InitializeGUIValues()
 		case EXIDEVICE_MEMORYCARD:
 			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
 			break;
-		case EXIDEVICE_MIC:
+		case EXIDEVICE_MEMORYCARDFOLDER:
 			GCEXIDevice[i]->SetStringSelection(SlotDevices[4]);
+			break;
+		case EXIDEVICE_MIC:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[5]);
 			break;
 		case EXIDEVICE_ETH:
 			GCEXIDevice[i]->SetStringSelection(SP1Devices[2]);
@@ -509,7 +512,7 @@ void CConfigMain::InitializeGUITooltips()
 {
 	// General - Basic
 	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."));
-	Framelimit->SetToolTip(_("This limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL). Alternatively, use Audio to throttle using the DSP (might fix audio clicks but can also cause constant noise depending on the game)."));
+	Framelimit->SetToolTip(_("This limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL)."));
 
 	// General - Advanced
 	_NTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nLeft unchecked, dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
@@ -663,7 +666,7 @@ void CConfigMain::CreateGUIControls()
 
 	Latency->Bind(wxEVT_SPINCTRL, &CConfigMain::AudioSettingsChanged, this);
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		Latency->Disable();
 		BackendSelection->Disable();
@@ -882,7 +885,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	{
 	// Core - Basic
 	case ID_CPUTHREAD:
-		if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		if (Core::IsRunning())
 			return;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = CPUThread->IsChecked();
 		break;
@@ -894,7 +897,6 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
-		AudioCommon::UpdateSoundStream();
 		break;
 	// Core - Advanced
 	case ID_CPUENGINE:
@@ -1068,8 +1070,8 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 			GCMemcard memorycard(filename);
 			if (!memorycard.IsValid())
 			{
-				PanicAlertT("Cannot use that file as a memory card.\n%s\n" \
-							"is not a valid gamecube memory card file", filename.c_str());
+				WxUtils::ShowErrorDialog(wxString::Format(_("Cannot use that file as a memory card.\n%s\n" \
+				            "is not a valid gamecube memory card file"), filename.c_str()));
 				return;
 			}
 		}
@@ -1093,7 +1095,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		{
 			strMemcard = filename;
 
-			if (Core::GetState() != Core::CORE_UNINITIALIZED)
+			if (Core::IsRunning())
 			{
 				// Change memcard to the new file
 				ExpansionInterface::ChangeDevice(
@@ -1104,8 +1106,8 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		}
 		else
 		{
-			PanicAlertT("Cannot use that file as a memory card.\n" \
-					"Are you trying to use the same file in both slots?");
+			WxUtils::ShowErrorDialog(_("Cannot use that file as a memory card.\n"
+			                           "Are you trying to use the same file in both slots?"));
 		}
 	}
 }
@@ -1130,7 +1132,7 @@ void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
 
 	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Change plugged device! :D
 		SerialInterface::ChangeDevice(tempType, deviceNum);
@@ -1143,6 +1145,8 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 
 	if (!deviceName.compare(_(EXIDEV_MEMCARD_STR)))
 		tempType = EXIDEVICE_MEMORYCARD;
+	else if (!deviceName.compare(_(EXIDEV_MEMDIR_STR)))
+		tempType = EXIDEVICE_MEMORYCARDFOLDER;
 	else if (!deviceName.compare(_(EXIDEV_MIC_STR)))
 		tempType = EXIDEVICE_MIC;
 	else if (!deviceName.compare(EXIDEV_BBA_STR))
@@ -1164,7 +1168,7 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 
 	SConfig::GetInstance().m_EXIDevice[deviceNum] = tempType;
 
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Change plugged device! :D
 		ExpansionInterface::ChangeDevice(
@@ -1200,7 +1204,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		u8 country_code = GetSADRCountryCode(wii_system_lang);
 		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
 		{
-			PanicAlertT("Failed to update country code in SYSCONF");
+			WxUtils::ShowErrorDialog(_("Failed to update country code in SYSCONF"));
 		}
 		break;
 	}
@@ -1234,7 +1238,7 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 		{
 			if (ISOPaths->FindString(dialog.GetPath()) != -1)
 			{
-				wxMessageBox(_("The chosen directory is already in the list"), _("Error"), wxOK);
+				WxUtils::ShowErrorDialog(_("The chosen directory is already in the list."));
 			}
 			else
 			{

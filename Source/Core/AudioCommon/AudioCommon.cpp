@@ -28,10 +28,7 @@ namespace AudioCommon
 {
 	SoundStream *InitSoundStream(void *hWnd)
 	{
-		unsigned int AISampleRate, DACSampleRate;
-		AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-		delete soundStream;
-		CMixer *mixer = new CMixer(AISampleRate, DACSampleRate, 48000);
+		CMixer *mixer = new CMixer(48000);
 
 		// TODO: possible memleak with mixer
 
@@ -155,7 +152,6 @@ namespace AudioCommon
 	{
 		if (soundStream)
 		{
-			soundStream->GetMixer()->SetThrottle(SConfig::GetInstance().m_Framelimit == 2);
 			soundStream->SetVolume(SConfig::GetInstance().m_Volume);
 		}
 	}

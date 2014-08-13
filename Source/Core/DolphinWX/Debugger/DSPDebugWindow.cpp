@@ -23,6 +23,7 @@
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
+#include "Core/Host.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
@@ -34,7 +35,7 @@
 
 class wxWindow;
 
-DSPDebuggerLLE* m_DebuggerFrame = nullptr;
+static DSPDebuggerLLE* m_DebuggerFrame = nullptr;
 
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)

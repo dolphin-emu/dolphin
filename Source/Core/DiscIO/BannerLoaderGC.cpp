@@ -16,9 +16,7 @@
 namespace DiscIO
 {
 CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume)
-	: m_pBannerFile(nullptr)
-	, m_IsValid(false)
-	, m_country(volume->GetCountry())
+	: m_country(volume->GetCountry())
 {
 	// load the opening.bnr
 	size_t FileSize = (size_t) _rFileSystem.GetFileSize("opening.bnr");
@@ -47,12 +45,6 @@ CBannerLoaderGC::~CBannerLoaderGC()
 		delete [] m_pBannerFile;
 		m_pBannerFile = nullptr;
 	}
-}
-
-
-bool CBannerLoaderGC::IsValid()
-{
-	return m_IsValid;
 }
 
 std::vector<u32> CBannerLoaderGC::GetBanner(int* pWidth, int* pHeight)

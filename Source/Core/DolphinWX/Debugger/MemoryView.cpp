@@ -25,7 +25,7 @@
 
 #include "Common/Common.h"
 #include "Common/DebugInterface.h"
-#include "Core/Host.h"
+#include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryView.h"
@@ -50,6 +50,7 @@ BEGIN_EVENT_TABLE(CMemoryView, wxControl)
 	EVT_LEFT_UP(CMemoryView::OnMouseUpL)
 	EVT_MOTION(CMemoryView::OnMouseMove)
 	EVT_RIGHT_DOWN(CMemoryView::OnMouseDownR)
+	EVT_MOUSEWHEEL(CMemoryView::OnScrollWheel)
 	EVT_MENU(-1, CMemoryView::OnPopupMenu)
 	EVT_SIZE(CMemoryView::OnResize)
 END_EVENT_TABLE()
@@ -96,10 +97,13 @@ void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 		debugger->ToggleMemCheck(YToAddress(y));
 
 		Refresh();
-		Host_UpdateBreakPointView();
+
+		// Propagate back to the parent window to update the breakpoint list.
+		wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
+		GetEventHandler()->AddPendingEvent(evt);
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void CMemoryView::OnMouseMove(wxMouseEvent& event)
@@ -122,7 +126,7 @@ void CMemoryView::OnMouseMove(wxMouseEvent& event)
 			OnMouseDownL(event);
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void CMemoryView::OnMouseUpL(wxMouseEvent& event)
@@ -134,7 +138,25 @@ void CMemoryView::OnMouseUpL(wxMouseEvent& event)
 		Refresh();
 	}
 
-	event.Skip(true);
+	event.Skip();
+}
+
+void CMemoryView::OnScrollWheel(wxMouseEvent& event)
+{
+	const bool scroll_down = (event.GetWheelRotation() < 0);
+	const int num_lines = event.GetLinesPerAction();
+
+	if (scroll_down)
+	{
+		curAddress += num_lines;
+	}
+	else
+	{
+		curAddress -= num_lines;
+	}
+
+	Refresh();
+	event.Skip();
 }
 
 void CMemoryView::OnPopupMenu(wxCommandEvent& event)
@@ -182,7 +204,7 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 #if wxUSE_CLIPBOARD
 	wxTheClipboard->Close();
 #endif
-	event.Skip(true);
+	event.Skip();
 }
 
 void CMemoryView::OnMouseDownR(wxMouseEvent& event)
@@ -355,7 +377,6 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 					}
 					strcat(dis, buf);
 				}
-				curAddress += 32;
 			}
 			else
 			{

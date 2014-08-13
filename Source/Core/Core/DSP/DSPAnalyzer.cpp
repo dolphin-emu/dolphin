@@ -60,12 +60,12 @@ const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] =
 	  0, 0 }
 };
 
-void Reset()
+static void Reset()
 {
 	memset(code_flags, 0, sizeof(code_flags));
 }
 
-void AnalyzeRange(int start_addr, int end_addr)
+static void AnalyzeRange(int start_addr, int end_addr)
 {
 	// First we run an extremely simplified version of a disassembler to find
 	// where all instructions start.

@@ -72,7 +72,7 @@ static void CreatePrograms()
 	const char *VProgramRgbToYuyv =
 		"out vec2 uv0;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
-		"uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"void main()\n"
 		"{\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
@@ -80,7 +80,7 @@ static void CreatePrograms()
 		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0));\n"
 		"}\n";
 	const char *FProgramRgbToYuyv =
-		"uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
@@ -111,7 +111,7 @@ static void CreatePrograms()
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 	const char *FProgramYuyvToRgb =
-		"uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
@@ -134,7 +134,7 @@ static void CreatePrograms()
 
 static SHADER &GetOrCreateEncodingShader(u32 format)
 {
-	if (format > NUM_ENCODING_PROGRAMS)
+	if (format >= NUM_ENCODING_PROGRAMS)
 	{
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
 		return s_encodingPrograms[0];

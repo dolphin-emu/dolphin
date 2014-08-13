@@ -21,7 +21,7 @@
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #if defined(_DEBUG) || defined(DEBUGFAST)
-#include "PowerPCDisasm.h"
+#include "Common/GekkoDisassembler.h"
 #endif
 
 using namespace Gen;
@@ -142,11 +142,6 @@ ps_adds1
 
 static int CODE_SIZE = 1024*1024*32;
 
-namespace CPUCompare
-{
-	extern u32 m_BlockStart;
-}
-
 void Jit64::Init()
 {
 	jo.optimizeStack = true;
@@ -252,13 +247,8 @@ static void ImHere()
 	if (ImHereLog)
 	{
 		if (!f)
-		{
-#if _M_X86_64
 			f.Open("log64.txt", "w");
-#else
-			f.Open("log32.txt", "w");
-#endif
-		}
+
 		fprintf(f.GetHandle(), "%08x\n", PC);
 	}
 	if (been_here.find(PC) != been_here.end())
@@ -287,7 +277,7 @@ void Jit64::WriteExit(u32 destination)
 {
 	Cleanup();
 
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
@@ -317,7 +307,7 @@ void Jit64::WriteExitDestInEAX()
 {
 	MOV(32, M(&PC), R(EAX));
 	Cleanup();
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -327,7 +317,7 @@ void Jit64::WriteRfiExitDestInEAX()
 	MOV(32, M(&NPC), R(EAX));
 	Cleanup();
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -337,7 +327,7 @@ void Jit64::WriteExceptionExit()
 	MOV(32, R(EAX), M(&PC));
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -347,7 +337,7 @@ void Jit64::WriteExternalExceptionExit()
 	MOV(32, R(EAX), M(&PC));
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -382,10 +372,8 @@ void Jit64::Trace()
 	}
 #endif
 
-	DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s",
-		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3],
-		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr,
-		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
+	DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x FPSCR: %08x MSR: %08x LR: %08x %s %s",
+		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
 void STACKALIGN Jit64::Jit(u32 em_address)
@@ -625,9 +613,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (gpr.SanityCheck() || fpr.SanityCheck())
 		{
-			char ppcInst[256];
-			DisassembleGekko(ops[i].inst.hex, em_address, ppcInst, 256);
-			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppcInst);
+			std::string ppc_inst = GekkoDisassembler::Disassemble(ops[i].inst.hex, em_address);
+			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
 		}
 #endif
 		if (js.skipnext) {
@@ -658,12 +645,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 		// Remove the invalid instruction from the icache, forcing a recompile
-#if _M_X86_32
-		MOV(32, M(jit->GetBlockCache()->GetICachePtr(js.compilerPC)), Imm32(JIT_ICACHE_INVALID_WORD));
-#else
 		MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
 		MOV(32,MatR(RAX),Imm32(JIT_ICACHE_INVALID_WORD));
-#endif
 
 		WriteExceptionExit();
 	}

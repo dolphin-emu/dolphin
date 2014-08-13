@@ -356,6 +356,31 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 			return getOp1(Op1);
 		}
 	}
+	if (Opcode == FastCRGTSet)
+	{
+		if (getOpcode(*Op1) == ICmpCRSigned)
+			return EmitICmpSgt(getOp1(Op1), getOp2(Op1));
+		if (getOpcode(*Op1) == ICmpCRUnsigned)
+			return EmitICmpUgt(getOp1(Op1), getOp2(Op1));
+		if (isImm(*Op1))
+			return EmitIntConst((s64)GetImmValue64(Op1) > 0);
+	}
+	if (Opcode == FastCRLTSet)
+	{
+		if (getOpcode(*Op1) == ICmpCRSigned)
+			return EmitICmpSlt(getOp1(Op1), getOp2(Op1));
+		if (getOpcode(*Op1) == ICmpCRUnsigned)
+			return EmitICmpUlt(getOp1(Op1), getOp2(Op1));
+		if (isImm(*Op1))
+			return EmitIntConst(!!(GetImmValue64(Op1) & (1ull << 62)));
+	}
+	if (Opcode == FastCREQSet)
+	{
+		if (getOpcode(*Op1) == ICmpCRSigned || getOpcode(*Op1) == ICmpCRUnsigned)
+			return EmitICmpEq(getOp1(Op1), getOp2(Op1));
+		if (isImm(*Op1))
+			return EmitIntConst((GetImmValue64(Op1) & 0xFFFFFFFFU) == 0);
+	}
 
 	return EmitUOp(Opcode, Op1, extra);
 }
@@ -778,6 +803,35 @@ InstLoc IRBuilder::FoldOr(InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(Or, Op1, Op2);
 }
 
+static unsigned ICmpInverseOp(unsigned op)
+{
+	switch (op)
+	{
+	case ICmpEq:
+		return ICmpNe;
+	case ICmpNe:
+		return ICmpEq;
+	case ICmpUlt:
+		return ICmpUge;
+	case ICmpUgt:
+		return ICmpUle;
+	case ICmpUle:
+		return ICmpUgt;
+	case ICmpUge:
+		return ICmpUlt;
+	case ICmpSlt:
+		return ICmpSge;
+	case ICmpSgt:
+		return ICmpSle;
+	case ICmpSle:
+		return ICmpSgt;
+	case ICmpSge:
+		return ICmpSlt;
+	}
+	PanicAlert("Bad opcode");
+	return Nop;
+}
+
 InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
 	simplifyCommutative(Xor, Op1, Op2);
 
@@ -793,6 +847,11 @@ InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
 			unsigned RHS = GetImmValue(Op2) ^
 				       GetImmValue(getOp2(Op1));
 			return FoldXor(getOp1(Op1), EmitIntConst(RHS));
+		}
+		if (isICmp(getOpcode(*Op1)) && GetImmValue(Op2) == 1)
+		{
+			return FoldBiOp(ICmpInverseOp(getOpcode(*Op1)), getOp1(Op1), getOp2(Op1));
+
 		}
 	}
 
@@ -848,42 +907,6 @@ InstLoc IRBuilder::FoldBranchCond(InstLoc Op1, InstLoc Op2) {
 		if (GetImmValue(Op1))
 			return EmitBranchUncond(Op2);
 		return nullptr;
-	}
-	if (getOpcode(*Op1) == And &&
-	    isImm(*getOp2(Op1)) &&
-	    getOpcode(*getOp1(Op1)) == ICmpCRSigned) {
-		unsigned branchValue = GetImmValue(getOp2(Op1));
-		if (branchValue == 2)
-			return FoldBranchCond(EmitICmpEq(getOp1(getOp1(Op1)),
-					      getOp2(getOp1(Op1))), Op2);
-		if (branchValue == 4)
-			return FoldBranchCond(EmitICmpSgt(getOp1(getOp1(Op1)),
-					      getOp2(getOp1(Op1))), Op2);
-		if (branchValue == 8)
-			return FoldBranchCond(EmitICmpSlt(getOp1(getOp1(Op1)),
-					      getOp2(getOp1(Op1))), Op2);
-	}
-	if (getOpcode(*Op1) == Xor &&
-	    isImm(*getOp2(Op1))) {
-		InstLoc XOp1 = getOp1(Op1);
-		unsigned branchValue = GetImmValue(getOp2(Op1));
-		if (getOpcode(*XOp1) == And &&
-		    isImm(*getOp2(XOp1)) &&
-		    getOpcode(*getOp1(XOp1)) == ICmpCRSigned) {
-			unsigned innerBranchValue =
-				GetImmValue(getOp2(XOp1));
-			if (branchValue == innerBranchValue) {
-				if (branchValue == 2)
-					return FoldBranchCond(EmitICmpNe(getOp1(getOp1(XOp1)),
-						      getOp2(getOp1(XOp1))), Op2);
-				if (branchValue == 4)
-					return FoldBranchCond(EmitICmpSle(getOp1(getOp1(XOp1)),
-						      getOp2(getOp1(XOp1))), Op2);
-				if (branchValue == 8)
-					return FoldBranchCond(EmitICmpSge(getOp1(getOp1(XOp1)),
-						      getOp2(getOp1(XOp1))), Op2);
-			}
-		}
 	}
 	return EmitBiOp(BranchCond, Op1, Op2);
 }
@@ -967,16 +990,8 @@ InstLoc IRBuilder::FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
 InstLoc IRBuilder::FoldICmpCRSigned(InstLoc Op1, InstLoc Op2) {
 	if (isImm(*Op1)) {
 		if (isImm(*Op2)) {
-			int c1 = (int)GetImmValue(Op1),
-			    c2 = (int)GetImmValue(Op2),
-			    result;
-			if (c1 == c2)
-				result = 2;
-			else if (c1 > c2)
-				result = 4;
-			else
-				result = 8;
-			return EmitIntConst(result);
+			s64 diff = (s64)(s32)GetImmValue(Op1) - (s64)(s32)GetImmValue(Op2);
+			return EmitIntConst64((u64)diff);
 		}
 	}
 	return EmitBiOp(ICmpCRSigned, Op1, Op2);
@@ -985,16 +1000,8 @@ InstLoc IRBuilder::FoldICmpCRSigned(InstLoc Op1, InstLoc Op2) {
 InstLoc IRBuilder::FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2) {
 	if (isImm(*Op1)) {
 		if (isImm(*Op2)) {
-			unsigned int c1 = GetImmValue(Op1),
-			             c2 = GetImmValue(Op2),
-			             result;
-			if (c1 == c2)
-				result = 2;
-			else if (c1 > c2)
-				result = 4;
-			else
-				result = 8;
-			return EmitIntConst(result);
+			u64 diff = (u64)GetImmValue(Op1) - (u64)GetImmValue(Op2);
+			return EmitIntConst64(diff);
 		}
 	}
 	return EmitBiOp(ICmpCRUnsigned, Op1, Op2);
@@ -1056,7 +1063,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 	}
 }
 
-InstLoc IRBuilder::EmitIntConst(unsigned value) {
+InstLoc IRBuilder::EmitIntConst64(u64 value) {
 	InstLoc curIndex = InstList.data() + InstList.size();
 	InstList.push_back(CInt32 | ((unsigned int)ConstList.size() << 8));
 	MarkUsed.push_back(false);
@@ -1064,7 +1071,7 @@ InstLoc IRBuilder::EmitIntConst(unsigned value) {
 	return curIndex;
 }
 
-unsigned IRBuilder::GetImmValue(InstLoc I) const {
+u64 IRBuilder::GetImmValue64(InstLoc I) const {
 	return ConstList[*I >> 8];
 }
 
@@ -1129,9 +1136,9 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const {
 		numberOfOperands[CInt16] = 0;
 		numberOfOperands[CInt32] = 0;
 
-		static unsigned ZeroOp[] = {LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
-		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, Not, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
-		static unsigned BiOp[] = {BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, FallBackToInterpreter, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
+		static unsigned ZeroOp[] = { LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
+		static unsigned UOp[] = { StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, Not, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, ConvertFromFastCR, ConvertToFastCR, FastCRSOSet, FastCREQSet, FastCRGTSet, FastCRLTSet, };
+		static unsigned BiOp[] = { BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, FallBackToInterpreter, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
 		for (auto& op : ZeroOp) {
 			numberOfOperands[op] = 0;
 		}
@@ -1235,10 +1242,12 @@ static std::unique_ptr<Writer> writer;
 static const std::string opcodeNames[] = {
 	"Nop", "LoadGReg", "LoadLink", "LoadCR", "LoadCarry", "LoadCTR",
 	"LoadMSR", "LoadGQR", "SExt8", "SExt16", "BSwap32", "BSwap16", "Cntlzw",
-	"Not", "Load8", "Load16", "Load32", "BranchUncond", "StoreGReg",
-	"StoreCR", "StoreLink", "StoreCarry", "StoreCTR", "StoreMSR", "StoreFPRF",
-	"StoreGQR", "StoreSRR", "FallBackToInterpreter", "Add", "Mul", "And", "Or",
-	"Xor", "MulHighUnsigned", "Sub", "Shl", "Shrl", "Sarl", "Rol",
+	"Not", "Load8", "Load16", "Load32", "BranchUncond", "ConvertFromFastCR",
+	"ConvertToFastCR", "StoreGReg",	"StoreCR", "StoreLink", "StoreCarry",
+	"StoreCTR", "StoreMSR", "StoreFPRF", "StoreGQR", "StoreSRR",
+	"FastCRSOSet", "FastCREQSet", "FastCRGTSet", "FastCRLTSet",
+	"FallBackToInterpreter", "Add", "Mul", "And", "Or",	"Xor",
+	"MulHighUnsigned", "Sub", "Shl", "Shrl", "Sarl", "Rol",
 	"ICmpCRSigned", "ICmpCRUnsigned", "ICmpEq", "ICmpNe", "ICmpUgt",
 	"ICmpUlt", "ICmpUge", "ICmpUle", "ICmpSgt", "ICmpSlt", "ICmpSge",
 	"ICmpSle", "Store8", "Store16", "Store32", "BranchCond", "FResult_Start",

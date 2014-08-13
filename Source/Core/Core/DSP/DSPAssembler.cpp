@@ -160,14 +160,7 @@ void DSPAssembler::ShowError(err_t err_code, const char *extra_info)
 	last_error = err_code;
 }
 
-char *skip_spaces(char *ptr)
-{
-	while (*ptr == ' ')
-		ptr++;
-	return ptr;
-}
-
-const char *skip_spaces(const char *ptr)
+static char *skip_spaces(char *ptr)
 {
 	while (*ptr == ' ')
 		ptr++;
@@ -510,7 +503,7 @@ const opc_t *DSPAssembler::FindOpcode(const char *opcode, u32 par_count, const o
 }
 
 // weird...
-u16 get_mask_shifted_down(u16 mask)
+static u16 get_mask_shifted_down(u16 mask)
 {
 	while (!(mask & 1))
 		mask >>= 1;

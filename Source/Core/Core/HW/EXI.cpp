@@ -21,22 +21,25 @@ namespace ExpansionInterface
 
 static int changeDevice;
 
-CEXIChannel *g_Channels[MAX_EXI_CHANNELS];
+static CEXIChannel *g_Channels[MAX_EXI_CHANNELS];
 void Init()
 {
-	initSRAM();
+	InitSRAM();
 	for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
 		g_Channels[i] = new CEXIChannel(i);
 
-	if (Movie::IsPlayingInput() && Movie::IsUsingMemcard() && Movie::IsConfigSaved())
-		g_Channels[0]->AddDevice(EXIDEVICE_MEMORYCARD, 0); // SlotA
-	else if (Movie::IsPlayingInput() && !Movie::IsUsingMemcard() && Movie::IsConfigSaved())
-		g_Channels[0]->AddDevice(EXIDEVICE_NONE,       0); // SlotA
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+	{
+		g_Channels[0]->AddDevice(Movie::IsUsingMemcard(0) ? EXIDEVICE_MEMORYCARD : EXIDEVICE_NONE, 0); // SlotA
+		g_Channels[1]->AddDevice(Movie::IsUsingMemcard(1) ? EXIDEVICE_MEMORYCARD : EXIDEVICE_NONE, 0); // SlotB
+	}
 	else
+	{
 		g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[0], 0); // SlotA
+		g_Channels[1]->AddDevice(SConfig::GetInstance().m_EXIDevice[1], 0); // SlotB
+	}
 	g_Channels[0]->AddDevice(EXIDEVICE_MASKROM,                         1);
 	g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[2],     2); // Serial Port 1
-	g_Channels[1]->AddDevice(SConfig::GetInstance().m_EXIDevice[1],     0); // SlotB
 	g_Channels[2]->AddDevice(EXIDEVICE_AD16,                            0);
 
 	changeDevice = CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
@@ -92,6 +95,11 @@ void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 devi
 	// Let the hardware see no device for .5b cycles
 	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | ((u64)EXIDEVICE_NONE << 16) | device_num);
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | ((u64)device_type << 16) | device_num);
+}
+
+CEXIChannel* GetChannel(u32 index)
+{
+	return g_Channels[index];
 }
 
 IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)

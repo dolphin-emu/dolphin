@@ -22,6 +22,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
@@ -43,8 +44,8 @@ const char *PatchTypeStrings[] =
 	"dword",
 };
 
-std::vector<Patch> onFrame;
-std::map<u32, int> speedHacks;
+static std::vector<Patch> onFrame;
+static std::map<u32, int> speedHacks;
 
 void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni, IniFile& localIni)
 {
@@ -132,7 +133,7 @@ static void LoadSpeedhacks(const std::string& section, IniFile& ini)
 	for (const std::string& key : keys)
 	{
 		std::string value;
-		ini.Get(section, key, &value, "BOGUS");
+		ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
 		if (value != "BOGUS")
 		{
 			u32 address;
@@ -174,7 +175,7 @@ void LoadPatches()
 	LoadSpeedhacks("Speedhacks", merged);
 }
 
-void ApplyPatches(const std::vector<Patch> &patches)
+static void ApplyPatches(const std::vector<Patch> &patches)
 {
 	for (const Patch& patch : patches)
 	{

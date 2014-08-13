@@ -31,7 +31,7 @@
 
 namespace DSPInterpreter {
 
-volatile u32 gdsp_running;
+static volatile u32 gdsp_running;
 
 // NOTE: These have nothing to do with g_dsp.r.cr !
 

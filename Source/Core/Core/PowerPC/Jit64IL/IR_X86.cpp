@@ -85,7 +85,7 @@ static unsigned regReadUse(RegInfo& R, InstLoc I) {
 	return R.IInfo[I - R.FirstI] & 3;
 }
 
-static unsigned SlotSet[1000];
+static u64 SlotSet[1000];
 static u8 GC_ALIGNED16(FSlotSet[16*1000]);
 
 static OpArg regLocForSlot(RegInfo& RI, unsigned slot) {
@@ -107,7 +107,7 @@ static void regSpill(RegInfo& RI, X64Reg reg) {
 	unsigned slot = regGetSpill(RI, RI.regs[reg]);
 	if (!slot) {
 		slot = regCreateSpill(RI, RI.regs[reg]);
-		RI.Jit->MOV(32, regLocForSlot(RI, slot), R(reg));
+		RI.Jit->MOV(64, regLocForSlot(RI, slot), R(reg));
 	}
 	RI.regs[reg] = nullptr;
 }
@@ -137,7 +137,6 @@ static void fregSpill(RegInfo& RI, X64Reg reg) {
 }
 
 // ECX is scratch, so we don't allocate it
-#if _M_X86_64
 
 // 64-bit - calling conventions differ between linux & windows, so...
 #ifdef _WIN32
@@ -148,16 +147,6 @@ static const X64Reg RegAllocOrder[] = {RBP, R12, R13, R14, R8, R9, R10, R11};
 static const int RegAllocSize = sizeof(RegAllocOrder) / sizeof(X64Reg);
 static const X64Reg FRegAllocOrder[] = {XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5};
 static const int FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
-
-#else
-
-// 32-bit
-static const X64Reg RegAllocOrder[] = {EDI, ESI, EBP, EBX, EDX, EAX};
-static const int RegAllocSize = sizeof(RegAllocOrder) / sizeof(X64Reg);
-static const X64Reg FRegAllocOrder[] = {XMM2, XMM3, XMM4, XMM5, XMM6, XMM7};
-static const int FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
-
-#endif
 
 static X64Reg regFindFreeReg(RegInfo& RI) {
 	for (auto& reg : RegAllocOrder)
@@ -256,13 +245,6 @@ static X64Reg fregEnsureInReg(RegInfo& RI, InstLoc I) {
 }
 
 static void regSpillCallerSaved(RegInfo& RI) {
-#if _M_X86_32
-	// 32-bit
-	regSpill(RI, EDX);
-	regSpill(RI, ECX);
-	regSpill(RI, EAX);
-#else
-	// 64-bit
 	regSpill(RI, RCX);
 	regSpill(RI, RDX);
 	regSpill(RI, RSI);
@@ -271,7 +253,6 @@ static void regSpillCallerSaved(RegInfo& RI) {
 	regSpill(RI, R9);
 	regSpill(RI, R10);
 	regSpill(RI, R11);
-#endif
 }
 
 static X64Reg regUReg(RegInfo& RI, InstLoc I) {
@@ -550,6 +531,48 @@ static void regEmitICmpInst(RegInfo& RI, InstLoc I, CCFlags flag) {
 	regNormalRegClear(RI, I);
 }
 
+static void regEmitICmpCRInst(RegInfo& RI, InstLoc I) {
+	bool signed_compare = getOpcode(*I) == ICmpCRSigned;
+	X64Reg reg;
+	if (RI.IInfo[I - RI.FirstI] & 4)
+	{
+		reg = regEnsureInReg(RI, getOp1(I));
+		if (signed_compare)
+			RI.Jit->MOVSX(64, 32, reg, R(reg));
+	}
+	else
+	{
+		reg = regFindFreeReg(RI);
+		if (signed_compare)
+			RI.Jit->MOVSX(64, 32, reg, regLocForInst(RI, getOp1(I)));
+		else
+			RI.Jit->MOV(32, R(reg), regLocForInst(RI, getOp1(I)));
+	}
+	if (isImm(*getOp2(I)))
+	{
+		unsigned RHS = RI.Build->GetImmValue(getOp2(I));
+		if (!signed_compare && (RHS & 0x80000000U))
+		{
+			RI.Jit->MOV(32, R(EAX), Imm32(RHS));
+			RI.Jit->SUB(64, R(reg), R(RAX));
+		}
+		else if (RHS)
+		{
+			RI.Jit->SUB(64, R(reg), Imm32(RHS));
+		}
+	}
+	else
+	{
+		if (signed_compare)
+			RI.Jit->MOVSX(64, 32, RAX, regLocForInst(RI, getOp2(I)));
+		else
+			RI.Jit->MOV(32, R(EAX), regLocForInst(RI, getOp2(I)));
+		RI.Jit->SUB(64, R(reg), R(RAX));
+	}
+	RI.regs[reg] = I;
+	regNormalRegClear(RI, I);
+}
+
 static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	if (isImm(*dest)) {
 		RI.exitNumber++;
@@ -621,6 +644,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case FPDup1:
 		case FSNeg:
 		case FDNeg:
+		case ConvertFromFastCR:
+		case ConvertToFastCR:
+		case FastCRSOSet:
+		case FastCREQSet:
+		case FastCRGTSet:
+		case FastCRLTSet:
 			if (thisUsed)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
@@ -715,9 +744,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			regMarkUse(RI, I, getOp1(getOp1(I)), 1);
 			break;
 		case BranchCond: {
-			if (isICmp(*getOp1(I)) &&
-			    isImm(*getOp2(getOp1(I)))) {
+			if (isICmp(*getOp1(I))) {
 				regMarkUse(RI, I, getOp1(getOp1(I)), 1);
+				if (!isImm(*getOp2(getOp1(I))))
+					regMarkUse(RI, I, getOp2(getOp1(I)), 2);
 			} else {
 				regMarkUse(RI, I, getOp1(I), 1);
 			}
@@ -763,7 +793,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			if (!thisUsed) break;
 			X64Reg reg = regFindFreeReg(RI);
 			unsigned ppcreg = *I >> 8;
-			Jit->MOVZX(32, 8, reg, M(&PowerPC::ppcState.cr_fast[ppcreg]));
+			Jit->MOV(64, R(reg), M(&PowerPC::ppcState.cr_val[ppcreg]));
 			RI.regs[reg] = I;
 			break;
 		}
@@ -813,10 +843,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			break;
 		}
 		case StoreCR: {
-			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
+			X64Reg reg = regEnsureInReg(RI, getOp1(I));
 			unsigned ppcreg = *I >> 16;
-			// CAUTION: uses 8-bit reg!
-			Jit->MOV(8, M(&PowerPC::ppcState.cr_fast[ppcreg]), R(ECX));
+			Jit->MOV(64, M(&PowerPC::ppcState.cr_val[ppcreg]), R(reg));
 			regNormalRegClear(RI, I);
 			break;
 		}
@@ -1076,40 +1105,138 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			regEmitICmpInst(RI, I, CC_LE);
 			break;
 		}
-		case ICmpCRUnsigned: {
+		case ICmpCRUnsigned:
+		{
 			if (!thisUsed) break;
-			regEmitCmp(RI, I);
-			X64Reg reg = regBinReg(RI, I);
-			FixupBranch pLesser  = Jit->J_CC(CC_B);
-			FixupBranch pGreater = Jit->J_CC(CC_A);
-			Jit->MOV(32, R(reg), Imm32(0x2)); // _x86Reg == 0
-			FixupBranch continue1 = Jit->J();
-			Jit->SetJumpTarget(pGreater);
-			Jit->MOV(32, R(reg), Imm32(0x4)); // _x86Reg > 0
-			FixupBranch continue2 = Jit->J();
-			Jit->SetJumpTarget(pLesser);
-			Jit->MOV(32, R(reg), Imm32(0x8)); // _x86Reg < 0
-			Jit->SetJumpTarget(continue1);
-			Jit->SetJumpTarget(continue2);
+			regEmitICmpCRInst(RI, I);
+			break;
+		}
+		case ICmpCRSigned:
+		{
+			if (!thisUsed) break;
+			regEmitICmpCRInst(RI, I);
+			break;
+		}
+		case ConvertFromFastCR:
+		{
+			if (!thisUsed) break;
+			X64Reg cr_val = regUReg(RI, I);
+			Jit->MOV(64, R(cr_val), regLocForInst(RI, getOp1(I)));
+
+			Jit->XOR(32, R(EAX), R(EAX));
+
+			// SO: Bit 61 set.
+			Jit->MOV(64, R(RCX), R(cr_val));
+			Jit->SHR(64, R(RCX), Imm8(61));
+			Jit->AND(32, R(ECX), Imm8(1));
+			Jit->OR(32, R(EAX), R(ECX));
+
+			// EQ: Bits 31-0 == 0.
+			Jit->XOR(32, R(ECX), R(ECX));
+			Jit->TEST(32, R(cr_val), R(cr_val));
+			Jit->SETcc(CC_Z, R(ECX));
+			Jit->SHL(32, R(ECX), Imm8(1));
+			Jit->OR(32, R(EAX), R(ECX));
+
+			// GT: Value > 0.
+			Jit->XOR(32, R(ECX), R(ECX));
+			Jit->TEST(64, R(cr_val), R(cr_val));
+			Jit->SETcc(CC_G, R(ECX));
+			Jit->SHL(32, R(ECX), Imm8(2));
+			Jit->OR(32, R(EAX), R(ECX));
+
+			// LT: Bit 62 set.
+			Jit->MOV(64, R(ECX), R(cr_val));
+			Jit->SHR(64, R(ECX), Imm8(62 - 3));
+			Jit->AND(32, R(ECX), Imm8(0x8));
+			Jit->OR(32, R(EAX), R(ECX));
+
+			Jit->MOV(32, R(cr_val), R(EAX));
+			RI.regs[cr_val] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case ConvertToFastCR:
+		{
+			if (!thisUsed) break;
+			X64Reg cr_val = regUReg(RI, I);
+			Jit->MOV(64, R(cr_val), regLocForInst(RI, getOp1(I)));
+
+			Jit->MOV(64, R(RCX), Imm64(1ull << 32));
+
+			// SO
+			Jit->MOV(64, R(RAX), R(cr_val));
+			Jit->SHL(64, R(RAX), Imm8(63));
+			Jit->SHR(64, R(RAX), Imm8(63 - 61));
+			Jit->OR(64, R(RCX), R(RAX));
+
+			// EQ
+			Jit->MOV(64, R(RAX), R(cr_val));
+			Jit->NOT(64, R(RAX));
+			Jit->AND(64, R(RAX), Imm8(CR_EQ));
+			Jit->OR(64, R(RCX), R(RAX));
+
+			// GT
+			Jit->MOV(64, R(RAX), R(cr_val));
+			Jit->NOT(64, R(RAX));
+			Jit->AND(64, R(RAX), Imm8(CR_GT));
+			Jit->SHL(64, R(RAX), Imm8(63 - 2));
+			Jit->OR(64, R(RCX), R(RAX));
+
+			// LT
+			Jit->MOV(64, R(RAX), R(cr_val));
+			Jit->AND(64, R(RAX), Imm8(CR_LT));
+			Jit->SHL(64, R(RAX), Imm8(62 - 3));
+			Jit->OR(64, R(RCX), R(RAX));
+
+			Jit->MOV(64, R(cr_val), R(RCX));
+
+			RI.regs[cr_val] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case FastCRSOSet:
+		{
+			if (!thisUsed) break;
+			X64Reg reg = regUReg(RI, I);
+			Jit->MOV(64, R(RAX), Imm64(1ull << 61));
+			Jit->TEST(64, regLocForInst(RI, getOp1(I)), R(RAX));
+			Jit->SETcc(CC_NZ, R(AL));
+			Jit->MOVZX(32, 8, reg, R(AL));
 			RI.regs[reg] = I;
 			regNormalRegClear(RI, I);
 			break;
 		}
-		case ICmpCRSigned: {
+		case FastCREQSet:
+		{
 			if (!thisUsed) break;
-			regEmitCmp(RI, I);
-			X64Reg reg = regBinReg(RI, I);
-			FixupBranch pLesser  = Jit->J_CC(CC_L);
-			FixupBranch pGreater = Jit->J_CC(CC_G);
-			Jit->MOV(32, R(reg), Imm32(0x2)); // _x86Reg == 0
-			FixupBranch continue1 = Jit->J();
-			Jit->SetJumpTarget(pGreater);
-			Jit->MOV(32, R(reg), Imm32(0x4)); // _x86Reg > 0
-			FixupBranch continue2 = Jit->J();
-			Jit->SetJumpTarget(pLesser);
-			Jit->MOV(32, R(reg), Imm32(0x8)); // _x86Reg < 0
-			Jit->SetJumpTarget(continue1);
-			Jit->SetJumpTarget(continue2);
+			X64Reg reg = regUReg(RI, I);
+			Jit->CMP(32, regLocForInst(RI, getOp1(I)), Imm32(0));
+			Jit->SETcc(CC_Z, R(AL));
+			Jit->MOVZX(32, 8, reg, R(AL));
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case FastCRGTSet:
+		{
+			if (!thisUsed) break;
+			X64Reg reg = regUReg(RI, I);
+			Jit->CMP(64, regLocForInst(RI, getOp1(I)), Imm8(0));
+			Jit->SETcc(CC_G, R(AL));
+			Jit->MOVZX(32, 8, reg, R(AL));
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case FastCRLTSet:
+		{
+			if (!thisUsed) break;
+			X64Reg reg = regUReg(RI, I);
+			Jit->MOV(64, R(RAX), Imm64(1ull << 62));
+			Jit->TEST(64, regLocForInst(RI, getOp1(I)), R(RAX));
+			Jit->SETcc(CC_NZ, R(AL));
+			Jit->MOVZX(32, 8, reg, R(AL));
 			RI.regs[reg] = I;
 			regNormalRegClear(RI, I);
 			break;
@@ -1118,7 +1245,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
-			RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
+			RI.Jit->SafeLoadToReg(ECX, R(ECX), 32, 0, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
 			Jit->MOVD_xmm(reg, R(ECX));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1127,30 +1254,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case LoadDouble: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
-			if (cpu_info.bSSSE3) {
-				static const u32 GC_ALIGNED16(maskSwapa64_1[4]) =
-				{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
-#if _M_X86_64
-				// TODO: Remove regEnsureInReg() and use ECX
-				X64Reg address = regEnsureInReg(RI, getOp1(I));
-				Jit->MOVQ_xmm(reg, MComplex(RBX, address, SCALE_1, 0));
-#else
-				X64Reg address = regBinLHSReg(RI, I);
-				Jit->AND(32, R(address), Imm32(Memory::MEMVIEW32_MASK));
-				Jit->MOVQ_xmm(reg, MDisp(address, (u32)Memory::base));
-#endif
-				Jit->PSHUFB(reg, M((void*)maskSwapa64_1));
-			} else {
-				const OpArg loc = regLocForInst(RI, getOp1(I));
-				Jit->MOV(32, R(ECX), loc);
-				Jit->ADD(32, R(ECX), Imm8(4));
-				RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
-				Jit->MOVD_xmm(reg, R(ECX));
-				Jit->MOV(32, R(ECX), loc);
-				RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
-				Jit->MOVD_xmm(XMM0, R(ECX));
-				Jit->PUNPCKLDQ(reg, R(XMM0));
-			}
+			const OpArg loc = regLocForInst(RI, getOp1(I));
+			Jit->MOV(32, R(ECX), loc);
+			RI.Jit->SafeLoadToReg(RCX, R(ECX), 64, 0, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			Jit->MOVQ_xmm(reg, R(RCX));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
 			break;
@@ -1163,16 +1270,17 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			// The lower 3 bits is for GQR index. The next 1 bit is for inst.W
 			unsigned int quantreg = (*I >> 16) & 0x7;
 			unsigned int w = *I >> 19;
-			Jit->MOVZX(32, 16, EAX, M(((char *)&GQR(quantreg)) + 2));
+			// Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
+			// Hence, we need to mask out the unused bits. The layout of the GQR register is
+			// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
+			// 0b0011111100000111, or 0x3F07.
+			Jit->MOV(32, R(EAX), Imm32(0x3F07));
+			Jit->AND(32, R(EAX), M(((char *)&GQR(quantreg)) + 2));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 			Jit->OR(32, R(EDX), Imm8(w << 3));
-#if _M_X86_32
-			int addr_scale = SCALE_4;
-#else
-			int addr_scale = SCALE_8;
-#endif
+
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(EDX, addr_scale, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
+			Jit->CALLptr(MScaled(EDX, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
 			Jit->MOVAPD(reg, R(XMM0));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1196,67 +1304,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		}
 		case StoreDouble: {
 			regSpill(RI, EAX);
-			// Please fix the following code
-			// if SafeWriteRegToReg() is modified.
-			u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-			if (Core::g_CoreStartupParameter.bMMU ||
-				Core::g_CoreStartupParameter.bTLBHack) {
-				mem_mask |= Memory::ADDR_MASK_MEM1;
-			}
-#ifdef ENABLE_MEM_CHECK
-			if (Core::g_CoreStartupParameter.bEnableDebugging)
-			{
-				mem_mask |= Memory::EXRAM_MASK;
-			}
-#endif
-			Jit->TEST(32, regLocForInst(RI, getOp2(I)), Imm32(mem_mask));
-			FixupBranch safe = Jit->J_CC(CC_NZ);
-				// Fast routine
-				if (cpu_info.bSSSE3) {
-					static const u32 GC_ALIGNED16(maskSwapa64_1[4]) =
-					{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
 
-					X64Reg value = fregBinLHSRegWithMov(RI, I);
-					Jit->PSHUFB(value, M((void*)maskSwapa64_1));
-					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-#if _M_X86_64
-					Jit->MOVQ_xmm(MComplex(RBX, ECX, SCALE_1, 0), value);
-#else
-					Jit->AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-					Jit->MOVQ_xmm(MDisp(ECX, (u32)Memory::base), value);
-#endif
-				} else {
-					regSpill(RI, EAX);
-					OpArg loc = fregLocForInst(RI, getOp1(I));
-					if (!loc.IsSimpleReg() || !(RI.IInfo[I - RI.FirstI] & 4)) {
-						Jit->MOVAPD(XMM0, loc);
-						loc = R(XMM0);
-					}
-					Jit->MOVD_xmm(R(EAX), loc.GetSimpleReg());
-					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-					RI.Jit->UnsafeWriteRegToReg(EAX, ECX, 32, 4);
-
-					Jit->PSRLQ(loc.GetSimpleReg(), 32);
-					Jit->MOVD_xmm(R(EAX), loc.GetSimpleReg());
-					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-					RI.Jit->UnsafeWriteRegToReg(EAX, ECX, 32, 0);
-				}
-			FixupBranch exit = Jit->J(true);
-			Jit->SetJumpTarget(safe);
-				// Safe but slow routine
-				OpArg value = fregLocForInst(RI, getOp1(I));
-				OpArg address = regLocForInst(RI, getOp2(I));
-				Jit->MOVAPD(XMM0, value);
-				Jit->PSRLQ(XMM0, 32);
-				Jit->MOVD_xmm(R(EAX), XMM0);
-				Jit->MOV(32, R(ECX), address);
-				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
-
-				Jit->MOVAPD(XMM0, value);
-				Jit->MOVD_xmm(R(EAX), XMM0);
-				Jit->MOV(32, R(ECX), address);
-				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 4, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
-			Jit->SetJumpTarget(exit);
+			OpArg value = fregLocForInst(RI, getOp1(I));
+			OpArg address = regLocForInst(RI, getOp2(I));
+			Jit->MOVAPD(XMM0, value);
+			Jit->MOVQ_xmm(R(RAX), XMM0);
+			Jit->MOV(32, R(ECX), address);
+			RI.Jit->SafeWriteRegToReg(RAX, ECX, 64, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
 
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
@@ -1268,16 +1322,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			regSpill(RI, EAX);
 			regSpill(RI, EDX);
 			u32 quantreg = *I >> 24;
-			Jit->MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
+			Jit->MOV(32, R(EAX), Imm32(0x3F07));
+			Jit->AND(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, EDX, R(AL));
-#if _M_X86_32
-			int addr_scale = SCALE_4;
-#else
-			int addr_scale = SCALE_8;
-#endif
+
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(EDX, addr_scale, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
+			Jit->CALLptr(MScaled(EDX, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -1612,7 +1663,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case CInt16: {
 			if (!thisUsed) break;
 			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOV(32, R(reg), Imm32(ibuild->GetImmValue(I)));
+			u64 val = ibuild->GetImmValue64(I);
+			if ((u32)val == val)
+				Jit->MOV(32, R(reg), Imm32(val));
+			else if ((s32)val == (s64)val)
+				Jit->MOV(64, R(reg), Imm32(val));
+			else
+				Jit->MOV(64, R(reg), Imm64(val));
 			RI.regs[reg] = I;
 			break;
 		}
@@ -1640,17 +1697,15 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		}
 
 		case BranchCond: {
-			if (isICmp(*getOp1(I)) &&
-			    isImm(*getOp2(getOp1(I)))) {
-				Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
-					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));
+			if (isICmp(*getOp1(I))) {
+				regEmitCmp(RI, getOp1(I));
 				CCFlags flag;
 				switch (getOpcode(*getOp1(I))) {
 					case ICmpEq: flag = CC_NE; break;
 					case ICmpNe: flag = CC_E; break;
 					case ICmpUgt: flag = CC_BE; break;
 					case ICmpUlt: flag = CC_AE; break;
-					case ICmpUge: flag = CC_L; break;
+					case ICmpUge: flag = CC_B; break;
 					case ICmpUle: flag = CC_A; break;
 					case ICmpSgt: flag = CC_LE; break;
 					case ICmpSlt: flag = CC_GE; break;
@@ -1663,7 +1718,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 				Jit->SetJumpTarget(cont);
 				if (RI.IInfo[I - RI.FirstI] & 4)
 					regClearInst(RI, getOp1(getOp1(I)));
-			} else {
+				if (RI.IInfo[I - RI.FirstI] & 8)
+					regClearInst(RI, getOp2(getOp1(I)));
+			}
+			else {
 				Jit->CMP(32, regLocForInst(RI, getOp1(I)), Imm8(0));
 				FixupBranch cont = Jit->J_CC(CC_Z);
 				regWriteExit(RI, getOp2(I));
@@ -1726,7 +1784,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			// If a FPU exception occurs, the exception handler will read
 			// from PC.  Update PC with the latest value in case that happens.
 			Jit->MOV(32, M(&PC), Imm32(InstLoc));
-			Jit->SUB(32, M(&CoreTiming::downcount), Jit->js.downcountAmount > 127 ? Imm32(Jit->js.downcountAmount) : Imm8(Jit->js.downcountAmount));
+			Jit->SUB(32, M(&PowerPC::ppcState.downcount), Jit->js.downcountAmount > 127 ? Imm32(Jit->js.downcountAmount) : Imm8(Jit->js.downcountAmount));
 			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
 			Jit->WriteExceptionExit();
 			Jit->SetJumpTarget(b1);
@@ -1752,12 +1810,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 			// Remove the invalid instruction from the icache, forcing a recompile
-#if _M_X86_32
-			Jit->MOV(32, M(jit->GetBlockCache()->GetICachePtr(InstLoc)), Imm32(JIT_ICACHE_INVALID_WORD));
-#else
 			Jit->MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(InstLoc)));
 			Jit->MOV(32, MatR(RAX), Imm32(JIT_ICACHE_INVALID_WORD));
-#endif
 			Jit->WriteExceptionExit();
 			break;
 		}

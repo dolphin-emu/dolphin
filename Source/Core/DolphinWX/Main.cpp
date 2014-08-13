@@ -33,17 +33,21 @@
 #include "Common/CPUDetect.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/LogManager.h"
 #include "Common/Thread.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreParameter.h"
+#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/HW/Wiimote.h"
 
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/Main.h"
+#include "DolphinWX/SoftwareVideoConfigDialog.h"
+#include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/JitWindow.h"
@@ -118,11 +122,9 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	//dumpCurrentDate(file);
 	etfprintf(file.GetHandle(), "Unhandled Exception\n  Code: 0x%08X\n",
 		e->ExceptionRecord->ExceptionCode);
-#if _M_X86_32
-	STACKTRACE2(file.GetHandle(), e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
-#else
+
 	STACKTRACE2(file.GetHandle(), e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
-#endif
+
 	file.Close();
 	_flushall();
 
@@ -413,7 +415,7 @@ void DolphinApp::InitLanguageSupport()
 
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	ini.Get("Interface", "Language", &language, wxLANGUAGE_DEFAULT);
+	ini.GetOrCreateSection("Interface")->Get("Language", &language, wxLANGUAGE_DEFAULT);
 
 	// Load language if possible, fall back to system default otherwise
 	if (wxLocale::IsAvailable(language))
@@ -428,14 +430,14 @@ void DolphinApp::InitLanguageSupport()
 
 		if (!m_locale->IsOk())
 		{
-			PanicAlertT("Error loading selected language. Falling back to system default.");
+			wxMessageBox(_("Error loading selected language. Falling back to system default."), _("Error"));
 			delete m_locale;
 			m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 		}
 	}
 	else
 	{
-		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
+		wxMessageBox(_("The selected language is not supported by your system. Falling back to system default."), _("Error"));
 		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
 	}
 }
@@ -451,6 +453,7 @@ void DolphinApp::OnEndSession(wxCloseEvent& event)
 
 int DolphinApp::OnExit()
 {
+	Core::Shutdown();
 	WiimoteReal::Shutdown();
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
@@ -521,19 +524,6 @@ void Host_Message(int Id)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-#ifdef _WIN32
-extern "C" HINSTANCE wxGetInstance();
-void* Host_GetInstance()
-{
-	return (void*)wxGetInstance();
-}
-#else
-void* Host_GetInstance()
-{
-	return nullptr;
-}
-#endif
-
 void* Host_GetRenderHandle()
 {
 	return main_frame->GetRenderHandle();
@@ -552,19 +542,6 @@ void Host_NotifyMapLoaded()
 	}
 }
 
-
-void Host_UpdateLogDisplay()
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATELOGDISPLAY);
-	main_frame->GetEventHandler()->AddPendingEvent(event);
-
-	if (main_frame->g_pCodeWindow)
-	{
-		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-	}
-}
-
-
 void Host_UpdateDisasmDialog()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
@@ -575,7 +552,6 @@ void Host_UpdateDisasmDialog()
 		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 }
-
 
 void Host_ShowJitResults(unsigned int address)
 {
@@ -601,17 +577,6 @@ void Host_UpdateTitle(const std::string& title)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-void Host_UpdateBreakPointView()
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
-	main_frame->GetEventHandler()->AddPendingEvent(event);
-
-	if (main_frame->g_pCodeWindow)
-	{
-		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-	}
-}
-
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
 	main_frame->GetRenderWindowSize(x, y, width, height);
@@ -621,6 +586,13 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOWSIZEREQUEST);
 	event.SetClientData(new std::pair<int, int>(width, height));
+	main_frame->GetEventHandler()->AddPendingEvent(event);
+}
+
+void Host_RequestFullscreen(bool enable_fullscreen)
+{
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FULLSCREENREQUEST);
+	event.SetInt(enable_fullscreen ? 1 : 0);
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
@@ -675,6 +647,11 @@ void Host_SetWiiMoteConnectionState(int _State)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
+bool Host_UIHasFocus()
+{
+	return main_frame->UIHasFocus();
+}
+
 bool Host_RendererHasFocus()
 {
 	return main_frame->RendererHasFocus();
@@ -683,4 +660,19 @@ bool Host_RendererHasFocus()
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
 	CFrame::ConnectWiimote(wm_idx, connect);
+}
+
+void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
+                          const std::string& config_name)
+{
+	if (backend_name == "Direct3D" || backend_name == "OpenGL")
+	{
+		VideoConfigDiag diag((wxWindow*)parent, backend_name, config_name);
+		diag.ShowModal();
+	}
+	else if (backend_name == "Software Renderer")
+	{
+		SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name, config_name);
+		diag.ShowModal();
+	}
 }

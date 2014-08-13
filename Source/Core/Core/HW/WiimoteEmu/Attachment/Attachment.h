@@ -15,7 +15,7 @@ class Attachment : public ControllerEmu
 public:
 	Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg);
 
-	virtual void GetState(u8* const data, const bool focus = true) {}
+	virtual void GetState(u8* const data) {}
 	void Reset();
 	std::string GetName() const override;
 

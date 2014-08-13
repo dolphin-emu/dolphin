@@ -18,6 +18,7 @@
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/radiobut.h>
@@ -32,6 +33,7 @@
 
 #include "Common/Common.h"
 #include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -43,13 +45,12 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GeckoCodeDiag.h"
 #include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 class wxWindow;
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY  256
-extern std::vector<ActionReplay::ARCode> arCodes;
-extern CFrame* main_frame;
 
 // meh
 static wxCheatsWindow *g_cheat_window;
@@ -332,17 +333,14 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 		{
 			ARCode code = GetARCode(i);
 			m_Label_Codename->SetLabel(_("Name: ") + StrToWxStr(code.name));
-			char text[CHAR_MAX];
-			char* numcodes = text;
-			sprintf(numcodes, "Number of Codes: %lu", (unsigned long)code.ops.size());
+
+			std::string numcodes = StringFromFormat("Number of Codes: %lu", (unsigned long)code.ops.size());
 			m_Label_NumCodes->SetLabel(StrToWxStr(numcodes));
 			m_ListBox_CodesList->Clear();
 
 			for (const AREntry& entry : code.ops)
 			{
-				char text2[CHAR_MAX];
-				char* ops = text2;
-				sprintf(ops, "%08x %08x", entry.cmd_addr, entry.value);
+				std::string ops = StringFromFormat("%08x %08x", entry.cmd_addr, entry.value);
 				m_ListBox_CodesList->Append(StrToWxStr(ops));
 			}
 		}
@@ -401,7 +399,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 	const u8* const memptr = Memory::GetPointer(0);
 	if (nullptr == memptr)
 	{
-		PanicAlertT("A game is not currently running.");
+		WxUtils::ShowErrorDialog(_("A game is not currently running."));
 		return;
 	}
 
@@ -435,7 +433,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	const u8* const memptr = Memory::GetPointer(0);
 	if (nullptr == memptr)
 	{
-		PanicAlertT("A game is not currently running.");
+		WxUtils::ShowErrorDialog(_("A game is not currently running."));
 		return;
 	}
 
@@ -482,7 +480,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 			if (!x_val.ToULong(&parsed_x_val, 0))
 			{
-				PanicAlertT("You must enter a valid decimal, hexadecimal or octal value.");
+				WxUtils::ShowErrorDialog(_("You must enter a valid decimal, hexadecimal or octal value."));
 				return;
 			}
 
@@ -531,7 +529,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 void CheatSearchTab::ApplyFocus(wxEvent& ev)
 {
-	ev.Skip(true);
+	ev.Skip();
 	value_x_radiobtn.rad_uservalue->SetValue(true);
 }
 
@@ -632,7 +630,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	const wxString code_name = textctrl_name->GetValue();
 	if (code_name.empty())
 	{
-		PanicAlertT("You must enter a name!");
+		WxUtils::ShowErrorDialog(_("You must enter a name."));
 		return;
 	}
 
@@ -640,7 +638,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	int base = checkbox_use_hex->IsChecked() ? 16 : 10;
 	if (!textctrl_value->GetValue().ToLong(&code_value, base))
 	{
-		PanicAlertT("Invalid Value!");
+		WxUtils::ShowErrorDialog(_("Invalid value."));
 		return;
 	}
 

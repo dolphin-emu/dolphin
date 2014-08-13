@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 
 #include "VideoBackends/Software/CPMemLoader.h"
@@ -12,30 +13,23 @@
 #include "VideoBackends/Software/XFMemLoader.h"
 
 #include "VideoCommon/DataReader.h"
+#include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
 #include "VideoCommon/VertexManagerBase.h"
 
-// Vertex loaders read these
-extern int tcIndex;
-extern int colIndex;
-extern int colElements[2];
-extern float posScale;
-extern float tcScale[8];
-
-
 SWVertexLoader::SWVertexLoader() :
 	m_VertexSize(0),
 	m_NumAttributeLoaders(0)
- {
+{
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
 	VertexLoader_TextCoord::Init();
 
 	m_SetupUnit = new SetupUnit;
- }
+}
 
 SWVertexLoader::~SWVertexLoader()
 {

@@ -20,16 +20,7 @@ struct Statistics
 	int numTexturesCreated;
 	int numTexturesAlive;
 
-	int numRenderTargetsCreated;
-	int numRenderTargetsAlive;
-
-	int numDListsCalled;
-	int numDListsCreated;
-	int numDListsAlive;
-
 	int numVertexLoaders;
-
-	int numUniquePixelShaders;
 
 	float proj_0, proj_1, proj_2, proj_3, proj_4, proj_5;
 	float gproj_0, gproj_1, gproj_2, gproj_3, gproj_4, gproj_5;
@@ -50,15 +41,12 @@ struct Statistics
 		int numCPLoadsInDL;
 		int numXFLoadsInDL;
 
-		int numDLs;
 		int numPrims;
 		int numDLPrims;
 		int numShaderChanges;
 
 		int numPrimitiveJoins;
 		int numDrawCalls;
-		int numIndexedDrawCalls;
-		int numBufferSplits;
 
 		int numDListsCalled;
 

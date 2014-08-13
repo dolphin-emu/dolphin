@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
+
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
@@ -20,7 +22,7 @@ void RegCache::Start()
 		xreg.free = true;
 		xreg.dirty = false;
 		xreg.locked = false;
-		xreg.ppcReg = -1;
+		xreg.ppcReg = INVALID_REG;
 	}
 	for (size_t i = 0; i < regs.size(); i++)
 	{
@@ -81,9 +83,9 @@ void RegCache::UnlockAllX()
 
 X64Reg RegCache::GetFreeXReg()
 {
-	int aCount;
-	const int *aOrder = GetAllocationOrder(aCount);
-	for (int i = 0; i < aCount; i++)
+	size_t aCount;
+	const int* aOrder = GetAllocationOrder(aCount);
+	for (size_t i = 0; i < aCount; i++)
 	{
 		X64Reg xr = (X64Reg)aOrder[i];
 		if (!xregs[xr].locked && xregs[xr].free)
@@ -94,12 +96,12 @@ X64Reg RegCache::GetFreeXReg()
 	//Okay, not found :( Force grab one
 
 	//TODO - add a pass to grab xregs whose ppcreg is not used in the next 3 instructions
-	for (int i = 0; i < aCount; i++)
+	for (size_t i = 0; i < aCount; i++)
 	{
 		X64Reg xr = (X64Reg)aOrder[i];
 		if (xregs[xr].locked)
 			continue;
-		int preg = xregs[xr].ppcReg;
+		size_t preg = xregs[xr].ppcReg;
 		if (!regs[preg].locked)
 		{
 			StoreFromRegister(preg);
@@ -108,7 +110,7 @@ X64Reg RegCache::GetFreeXReg()
 	}
 	//Still no dice? Die!
 	_assert_msg_(DYNA_REC, 0, "Regcache ran out of regs");
-	return (X64Reg) -1;
+	return INVALID_REG;
 }
 
 void RegCache::FlushR(X64Reg reg)
@@ -123,7 +125,7 @@ void RegCache::FlushR(X64Reg reg)
 
 int RegCache::SanityCheck() const
 {
-	for (int i = 0; i < (int)regs.size(); i++)
+	for (size_t i = 0; i < regs.size(); i++)
 	{
 		if (regs[i].away)
 		{
@@ -136,77 +138,71 @@ int RegCache::SanityCheck() const
 					return 2;
 			}
 			else if (regs[i].location.IsImm())
+			{
 				return 3;
+			}
 		}
 	}
 	return 0;
 }
 
-void RegCache::DiscardRegContentsIfCached(int preg)
+void RegCache::DiscardRegContentsIfCached(size_t preg)
 {
 	if (IsBound(preg))
 	{
 		X64Reg xr = regs[preg].location.GetSimpleReg();
 		xregs[xr].free = true;
 		xregs[xr].dirty = false;
-		xregs[xr].ppcReg = -1;
+		xregs[xr].ppcReg = INVALID_REG;
 		regs[preg].away = false;
 		regs[preg].location = GetDefaultLocation(preg);
 	}
 }
 
 
-void GPRRegCache::SetImmediate32(int preg, u32 immValue)
+void GPRRegCache::SetImmediate32(size_t preg, u32 immValue)
 {
 	DiscardRegContentsIfCached(preg);
 	regs[preg].away = true;
 	regs[preg].location = Imm32(immValue);
 }
 
-const int *GPRRegCache::GetAllocationOrder(int &count)
+const int* GPRRegCache::GetAllocationOrder(size_t& count)
 {
 	static const int allocationOrder[] =
 	{
 		// R12, when used as base register, for example in a LEA, can generate bad code! Need to look into this.
-#if _M_X86_64
 #ifdef _WIN32
 		RSI, RDI, R13, R14, R8, R9, R10, R11, R12, //, RCX
 #else
 		RBP, R13, R14, R8, R9, R10, R11, R12, //, RCX
-#endif
-#elif _M_X86_32
-		ESI, EDI, EBX, EBP, EDX, ECX,
 #endif
 	};
 	count = sizeof(allocationOrder) / sizeof(const int);
 	return allocationOrder;
 }
 
-const int *FPURegCache::GetAllocationOrder(int &count)
+const int* FPURegCache::GetAllocationOrder(size_t& count)
 {
 	static const int allocationOrder[] =
 	{
-#if _M_X86_64
 		XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5
-#elif _M_X86_32
-		XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
-#endif
 	};
 	count = sizeof(allocationOrder) / sizeof(int);
 	return allocationOrder;
 }
 
-OpArg GPRRegCache::GetDefaultLocation(int reg) const
+OpArg GPRRegCache::GetDefaultLocation(size_t reg) const
 {
 	return M(&ppcState.gpr[reg]);
 }
 
-OpArg FPURegCache::GetDefaultLocation(int reg) const
+OpArg FPURegCache::GetDefaultLocation(size_t reg) const
 {
 	return M(&ppcState.ps[reg][0]);
 }
 
-void RegCache::KillImmediate(int preg, bool doLoad, bool makeDirty)
+void RegCache::KillImmediate(size_t preg, bool doLoad, bool makeDirty)
 {
 	if (regs[preg].away)
 	{
@@ -217,7 +213,7 @@ void RegCache::KillImmediate(int preg, bool doLoad, bool makeDirty)
 	}
 }
 
-void RegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
+void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
 {
 	if (!regs[i].away && regs[i].location.IsImm())
 		PanicAlert("Bad immediate");
@@ -232,7 +228,7 @@ void RegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 		xregs[xr].dirty = makeDirty || regs[i].location.IsImm();
 		if (doLoad)
 			LoadRegister(i, xr);
-		for (int j = 0; j < (int)regs.size(); j++)
+		for (size_t j = 0; j < regs.size(); j++)
 		{
 			if (i != j && regs[j].location.IsSimpleReg() && regs[j].location.GetSimpleReg() == xr)
 			{
@@ -255,7 +251,7 @@ void RegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 	}
 }
 
-void RegCache::StoreFromRegister(int i, FlushMode mode)
+void RegCache::StoreFromRegister(size_t i, FlushMode mode)
 {
 	if (regs[i].away)
 	{
@@ -267,7 +263,7 @@ void RegCache::StoreFromRegister(int i, FlushMode mode)
 			if (mode == FLUSH_ALL)
 			{
 				xregs[xr].free = true;
-				xregs[xr].ppcReg = -1;
+				xregs[xr].ppcReg = INVALID_REG;
 				xregs[xr].dirty = false;
 			}
 		}
@@ -287,26 +283,26 @@ void RegCache::StoreFromRegister(int i, FlushMode mode)
 	}
 }
 
-void GPRRegCache::LoadRegister(int preg, X64Reg newLoc)
+void GPRRegCache::LoadRegister(size_t preg, X64Reg newLoc)
 {
 	emit->MOV(32, ::Gen::R(newLoc), regs[preg].location);
 }
 
-void GPRRegCache::StoreRegister(int preg, OpArg newLoc)
+void GPRRegCache::StoreRegister(size_t preg, OpArg newLoc)
 {
 	emit->MOV(32, newLoc, regs[preg].location);
 }
 
-void FPURegCache::LoadRegister(int preg, X64Reg newLoc)
+void FPURegCache::LoadRegister(size_t preg, X64Reg newLoc)
 {
 	if (!regs[preg].location.IsImm() && (regs[preg].location.offset & 0xF))
 	{
-		PanicAlert("WARNING - misaligned fp register location %i", preg);
+		PanicAlert("WARNING - misaligned fp register location %" PRIx64, preg);
 	}
 	emit->MOVAPD(newLoc, regs[preg].location);
 }
 
-void FPURegCache::StoreRegister(int preg, OpArg newLoc)
+void FPURegCache::StoreRegister(size_t preg, OpArg newLoc)
 {
 	emit->MOVAPD(newLoc, regs[preg].location.GetSimpleReg());
 }
@@ -316,14 +312,14 @@ void RegCache::Flush(FlushMode mode)
 	for (size_t i = 0; i < xregs.size(); i++)
 	{
 		if (xregs[i].locked)
-			PanicAlert("Someone forgot to unlock X64 reg %zu.", i);
+			PanicAlert("Someone forgot to unlock X64 reg %" PRIx64, i);
 	}
 
 	for (size_t i = 0; i < regs.size(); i++)
 	{
 		if (regs[i].locked)
 		{
-			PanicAlert("Someone forgot to unlock PPC reg %zu (X64 reg %i).", i, RX(i));
+			PanicAlert("Someone forgot to unlock PPC reg %" PRIx64 " (X64 reg %i).", i, RX(i));
 		}
 		if (regs[i].away)
 		{
@@ -333,7 +329,7 @@ void RegCache::Flush(FlushMode mode)
 			}
 			else
 			{
-				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %zu PC: %08x", i, PC);
+				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %" PRIx64 " PC: %08x", i, PC);
 			}
 		}
 	}

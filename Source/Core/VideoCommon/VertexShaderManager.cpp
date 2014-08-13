@@ -18,7 +18,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-float GC_ALIGNED16(g_fProjectionMatrix[16]);
+static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -53,7 +53,7 @@ static ProjectionHack g_ProjHack1;
 static ProjectionHack g_ProjHack2;
 } // Namespace
 
-float PHackValue(std::string sValue)
+static float PHackValue(std::string sValue)
 {
 	float f = 0;
 	bool fp = false;
@@ -281,10 +281,13 @@ void VertexShaderManager::SetConstants()
 			dstlight.pos[1] = light.dpos[1];
 			dstlight.pos[2] = light.dpos[2];
 
-			// TODO: these likely have to be normalized
-			dstlight.dir[0] = light.ddir[0];
-			dstlight.dir[1] = light.ddir[1];
-			dstlight.dir[2] = light.ddir[2];
+			double norm = double(light.ddir[0]) * double(light.ddir[0]) +
+			              double(light.ddir[1]) * double(light.ddir[1]) +
+			              double(light.ddir[2]) * double(light.ddir[2]);
+			norm = 1.0 / sqrt(norm);
+			dstlight.dir[0] = light.ddir[0] * norm;
+			dstlight.dir[1] = light.ddir[1] * norm;
+			dstlight.dir[2] = light.ddir[2] * norm;
 		}
 		dirty = true;
 

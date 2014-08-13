@@ -54,6 +54,8 @@ enum partype_t
 #define OPTABLE_SIZE 0xffff + 1
 #define EXT_OPTABLE_SIZE 0xff + 1
 
+void nop(const UDSPInstruction opc);
+
 typedef void (*dspIntFunc)(const UDSPInstruction);
 typedef void (DSPEmitter::*dspJitFunc)(const UDSPInstruction);
 
@@ -66,7 +68,7 @@ struct param2_t
 	u16 mask;
 };
 
-typedef struct
+struct DSPOPCTemplate
 {
 	const char *name;
 	u16 opcode;
@@ -83,7 +85,7 @@ typedef struct
 	bool uncond_branch;
 	bool reads_pc;
 	bool updates_sr;
-} DSPOPCTemplate;
+};
 
 typedef DSPOPCTemplate opc_t;
 

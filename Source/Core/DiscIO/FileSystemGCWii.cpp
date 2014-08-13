@@ -104,7 +104,7 @@ bool CFileSystemGCWii::ExportFile(const std::string& _rFullPath, const std::stri
 	while (remainingSize)
 	{
 		// Limit read size to 128 MB
-		size_t readSize = std::min<size_t>(remainingSize, (u64)0x08000000);
+		size_t readSize = (size_t)std::min(remainingSize, (u64)0x08000000);
 
 		std::vector<u8> buffer(readSize);
 
@@ -307,28 +307,20 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 
 	while (CurrentIndex < _LastIndex)
 	{
-		SFileInfo *rFileInfo = &m_FileInfoVector[CurrentIndex];
-		u64 uOffset = _NameTableOffset + (rFileInfo->m_NameOffset & 0xFFFFFF);
-		std::string filename = GetStringFromOffset(uOffset);
+		SFileInfo& rFileInfo = m_FileInfoVector[CurrentIndex];
+		u64 const uOffset = _NameTableOffset + (rFileInfo.m_NameOffset & 0xFFFFFF);
+
+		rFileInfo.m_FullPath = _szDirectory + GetStringFromOffset(uOffset);
 
 		// check next index
-		if (rFileInfo->IsDirectory())
+		if (rFileInfo.IsDirectory())
 		{
-			if (_szDirectory.empty())
-				rFileInfo->m_FullPath += StringFromFormat("%s/", filename.c_str());
-			else
-				rFileInfo->m_FullPath += StringFromFormat("%s%s/", _szDirectory.c_str(), filename.c_str());
-
-			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo->m_FileSize, rFileInfo->m_FullPath, _NameTableOffset);
+			rFileInfo.m_FullPath += '/';
+			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_FileSize, rFileInfo.m_FullPath, _NameTableOffset);
 		}
-		else // This is a filename
+		else
 		{
-			if (_szDirectory.empty())
-				rFileInfo->m_FullPath += filename;
-			else
-				rFileInfo->m_FullPath += StringFromFormat("%s%s", _szDirectory.c_str(), filename.c_str());
-
-			CurrentIndex++;
+			++CurrentIndex;
 		}
 	}
 

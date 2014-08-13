@@ -36,11 +36,11 @@ Core::GetWindowHandle().
 #include <wx/strconv.h>
 #include <wx/string.h>
 #include <wx/thread.h>
+#include <wx/toolbar.h>
 #include <wx/toplevel.h>
 #include <wx/translation.h>
 #include <wx/utils.h>
 #include <wx/window.h>
-#include <wx/aui/auibar.h>
 #include <wx/aui/framemanager.h>
 
 #ifdef __APPLE__
@@ -95,6 +95,7 @@ Core::GetWindowHandle().
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
 #ifndef SM_XVIRTUALSCREEN
@@ -118,8 +119,6 @@ extern "C" {
 
 class InputPlugin;
 class wxFrame;
-
-bool confirmStop = false;
 
 // Create menu items
 // ---------------------
@@ -502,7 +501,7 @@ wxString CFrame::GetMenuLabel(int Id)
 
 // Create toolbar items
 // ---------------------
-void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
+void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
 		h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
@@ -529,21 +528,6 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->Realize();
 }
 
-void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
-{
-	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
-		h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
-	ToolBar->SetToolBitmapSize(wxSize(w, h));
-
-	ToolBar->AddTool(IDM_SAVE_PERSPECTIVE,  _("Save"), g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Save current perspective"));
-	ToolBar->AddTool(IDM_EDIT_PERSPECTIVES, _("Edit"), g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Edit current perspective"));
-
-	ToolBar->SetToolDropDown(IDM_SAVE_PERSPECTIVE, true);
-	ToolBar->SetToolDropDown(IDM_EDIT_PERSPECTIVES, true);
-
-	ToolBar->Realize();
-}
-
 
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
@@ -554,32 +538,19 @@ void CFrame::RecreateToolbar()
 		m_ToolBar->Destroy();
 	}
 
-	long TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT  /*wxAUI_TB_OVERFLOW overflow visible*/;
-	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
+	long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
 
-	PopulateToolbar(m_ToolBar);
-
-	m_Mgr->AddPane(m_ToolBar, wxAuiPaneInfo().
-				Name("TBMain").Caption("TBMain").
-				ToolbarPane().Top().
-				LeftDockable(false).RightDockable(false).Floatable(false));
-
-	if (g_pCodeWindow && !m_ToolBarDebug)
+	if (!m_ToolBar)
 	{
-		m_ToolBarDebug = new wxAuiToolBar(this, ID_TOOLBAR_DEBUG, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
-		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
+		m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBMain");
 
-		m_Mgr->AddPane(m_ToolBarDebug, wxAuiPaneInfo().
-				Name("TBDebug").Caption("TBDebug").
-				ToolbarPane().Top().
-				LeftDockable(false).RightDockable(false).Floatable(false));
+		if (g_pCodeWindow)
+		{
+			g_pCodeWindow->PopulateToolbar(m_ToolBar);
+			m_ToolBar->AddSeparator();
+		}
 
-		m_ToolBarAui = new wxAuiToolBar(this, ID_TOOLBAR_AUI, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
-		PopulateToolbarAui(m_ToolBarAui);
-		m_Mgr->AddPane(m_ToolBarAui, wxAuiPaneInfo().
-				Name("TBAui").Caption("TBAui").
-				ToolbarPane().Top().
-				LeftDockable(false).RightDockable(false).Floatable(false));
+		PopulateToolbar(m_ToolBar);
 	}
 
 	UpdateGUI();
@@ -751,9 +722,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 
 	if (Movie::IsReadOnly())
 	{
-		//PanicAlertT("Cannot record movies in read-only mode.");
-		//return;
-		// the user just chose to record a movie, so that should take precedence
+		// The user just chose to record a movie, so that should take precedence
 		Movie::SetReadOnly(false);
 		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(false);
 	}
@@ -802,7 +771,7 @@ void CFrame::OnRecordExport(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunning())
 	{
 		// Core is initialized and emulator is running
 		if (UseDebugger)
@@ -832,9 +801,19 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnRenderParentClose(wxCloseEvent& event)
 {
-	DoStop();
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
-		event.Skip();
+	// Before closing the window we need to shut down the emulation core.
+	// We'll try to close this window again once that is done.
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		DoStop();
+		if (event.CanVeto())
+		{
+			event.Veto();
+		}
+		return;
+	}
+
+	event.Skip();
 }
 
 void CFrame::OnRenderParentMove(wxMoveEvent& event)
@@ -964,11 +943,12 @@ void CFrame::StartGame(const std::string& filename)
 		else
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 
+		m_RenderFrame->SetBackgroundColour(*wxBLACK);
 		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
 		m_RenderFrame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnRenderParentClose, this);
 		m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
 		m_RenderFrame->Bind(wxEVT_MOVE, &CFrame::OnRenderParentMove, this);
-		m_RenderParent = new CPanel(m_RenderFrame, wxID_ANY);
+		m_RenderParent = m_RenderFrame;
 		m_RenderFrame->Show();
 	}
 
@@ -1074,11 +1054,11 @@ void CFrame::DoStop()
 {
 	if (!Core::IsRunningAndStarted())
 		return;
-	if (confirmStop)
+	if (m_confirmStop)
 		return;
 
 	// don't let this function run again until it finishes, or is aborted.
-	confirmStop = true;
+	m_confirmStop = true;
 
 	m_bGameLoading = false;
 	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
@@ -1092,8 +1072,20 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
+			// Exit fullscreen to ensure it does not cover the stop dialog.
+			DoFullscreen(false);
+
+			// Pause the state during confirmation and restore it afterwards
 			Core::EState state = Core::GetState();
-			Core::SetState(Core::CORE_PAUSE);
+
+			// If exclusive fullscreen is not enabled then we can pause the emulation
+			// before we've exited fullscreen. If not then we need to exit fullscreen first.
+			if (!RendererIsFullscreen() || g_Config.BorderlessFullscreenEnabled() ||
+				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			{
+				Core::SetState(Core::CORE_PAUSE);
+			}
+
 			wxMessageDialog m_StopDlg(
 				this,
 				_("Do you want to stop the current emulation?"),
@@ -1105,7 +1097,7 @@ void CFrame::DoStop()
 			if (Ret != wxID_YES)
 			{
 				Core::SetState(state);
-				confirmStop = false;
+				m_confirmStop = false;
 				return;
 			}
 		}
@@ -1119,72 +1111,78 @@ void CFrame::DoStop()
 
 		wxBeginBusyCursor();
 		BootManager::Stop();
-		wxEndBusyCursor();
-		confirmStop = false;
+		UpdateGUI();
+	}
+}
+
+void CFrame::OnStopped()
+{
+	wxEndBusyCursor();
+
+	m_confirmStop = false;
 
 #if defined(HAVE_X11) && HAVE_X11
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
-		m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
+	m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
 
-		// Destroy the renderer frame when not rendering to main
-		m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
+	// Destroy the renderer frame when not rendering to main
+	m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 
-		// Keyboard
-		wxTheApp->Unbind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
-		wxTheApp->Unbind(wxEVT_KEY_UP, &CFrame::OnKeyUp, this);
+	// Keyboard
+	wxTheApp->Unbind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
+	wxTheApp->Unbind(wxEVT_KEY_UP, &CFrame::OnKeyUp, this);
 
-		// Mouse
-		wxTheApp->Unbind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
-		wxTheApp->Unbind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
-		wxTheApp->Unbind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
-		wxTheApp->Unbind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
-		wxTheApp->Unbind(wxEVT_MOTION, &CFrame::OnMouse, this);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxNullCursor);
-		DoFullscreen(false);
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-		{
-			m_RenderFrame->Destroy();
-		}
-		else
-		{
+	// Mouse
+	wxTheApp->Unbind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_MOTION, &CFrame::OnMouse, this);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		m_RenderParent->SetCursor(wxNullCursor);
+	DoFullscreen(false);
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	{
+		m_RenderFrame->Destroy();
+	}
+	else
+	{
 #if defined(__APPLE__)
-			// Disable the full screen button when not in a game.
-			NSView *view = (NSView *) m_RenderFrame->GetHandle();
-			NSWindow *window = [view window];
+		// Disable the full screen button when not in a game.
+		NSView *view = (NSView *)m_RenderFrame->GetHandle();
+		NSWindow *window = [view window];
 
-			[window setCollectionBehavior:NSWindowCollectionBehaviorDefault];
+		[window setCollectionBehavior : NSWindowCollectionBehaviorDefault];
 #endif
 
-			// Make sure the window is not longer set to stay on top
-			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
-		}
-		m_RenderParent = nullptr;
-
-		// Clean framerate indications from the status bar.
-		GetStatusBar()->SetStatusText(" ", 0);
-
-		// Clear wiimote connection status from the status bar.
-		GetStatusBar()->SetStatusText(" ", 1);
-
-		// If batch mode was specified on the command-line, exit now.
-		if (m_bBatchMode)
-			Close(true);
-
-		// If using auto size with render to main, reset the application size.
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize)
-			SetSize(SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth,
-					SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight);
-
-		m_GameListCtrl->Enable();
-		m_GameListCtrl->Show();
-		m_GameListCtrl->SetFocus();
-		UpdateGUI();
+		// Make sure the window is not longer set to stay on top
+		m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 	}
+	m_RenderParent = nullptr;
+
+	// Clean framerate indications from the status bar.
+	GetStatusBar()->SetStatusText(" ", 0);
+
+	// Clear wiimote connection status from the status bar.
+	GetStatusBar()->SetStatusText(" ", 1);
+
+	// If batch mode was specified on the command-line or we were already closing, exit now.
+	if (m_bBatchMode || m_bClosing)
+		Close(true);
+
+	// If using auto size with render to main, reset the application size.
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize)
+		SetSize(SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth,
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight);
+
+	m_GameListCtrl->Enable();
+	m_GameListCtrl->Show();
+	m_GameListCtrl->SetFocus();
+	UpdateGUI();
 }
 
 void CFrame::DoRecordingSave()
@@ -1567,7 +1565,7 @@ void CFrame::OnLoadLastState(wxCommandEvent& event)
 
 void CFrame::OnSaveFirstState(wxCommandEvent& WXUNUSED(event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 		State::SaveFirstSaved();
 }
 
@@ -1625,6 +1623,7 @@ void CFrame::UpdateGUI()
 	bool Initialized = Core::IsRunning();
 	bool Running = Core::GetState() == Core::CORE_RUN;
 	bool Paused = Core::GetState() == Core::CORE_PAUSE;
+	bool Stopping = Core::GetState() == Core::CORE_STOPPING;
 	bool RunningWii = Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	bool RunningGamecube = Initialized && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 
@@ -1696,22 +1695,25 @@ void CFrame::UpdateGUI()
 				AccessWiiMote(0x0104)->IsConnected());
 	}
 
-	if (Running)
+	if (m_ToolBar)
 	{
-		if (m_ToolBar)
+		// Get the tool that controls pausing/playing
+		wxToolBarToolBase * PlayTool = m_ToolBar->FindById(IDM_PLAY);
+
+		if (PlayTool)
 		{
-			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
-			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Pause"));
-			m_ToolBar->SetToolLabel(IDM_PLAY, _("Pause"));
-		}
-	}
-	else
-	{
-		if (m_ToolBar)
-		{
-			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
-			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Play"));
-			m_ToolBar->SetToolLabel(IDM_PLAY, _("Play"));
+			if (Running)
+			{
+				PlayTool->SetLabel(_("Pause"));
+				PlayTool->SetShortHelp(_("Pause"));
+				m_ToolBar->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
+			}
+			else
+			{
+				PlayTool->SetLabel(_("Play"));
+				PlayTool->SetShortHelp(_("Play"));
+				m_ToolBar->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
+			}
 		}
 	}
 
@@ -1771,8 +1773,8 @@ void CFrame::UpdateGUI()
 	{
 		// Game has been loaded, enable the pause button
 		if (m_ToolBar)
-			m_ToolBar->EnableTool(IDM_PLAY, true);
-		GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+			m_ToolBar->EnableTool(IDM_PLAY, !Stopping);
+		GetMenuBar()->FindItem(IDM_PLAY)->Enable(!Stopping);
 
 		// Reset game loading flag
 		m_bGameLoading = false;
@@ -1873,26 +1875,8 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 }
 void CFrame::DoToggleToolbar(bool _show)
 {
-	if (_show)
-	{
-		m_Mgr->GetPane("TBMain").Show();
-		if (g_pCodeWindow)
-		{
-			m_Mgr->GetPane("TBDebug").Show();
-			m_Mgr->GetPane("TBAui").Show();
-		}
-		m_Mgr->Update();
-	}
-	else
-	{
-		m_Mgr->GetPane("TBMain").Hide();
-		if (g_pCodeWindow)
-		{
-			m_Mgr->GetPane("TBDebug").Hide();
-			m_Mgr->GetPane("TBAui").Hide();
-		}
-		m_Mgr->Update();
-	}
+	GetToolBar()->Show(_show);
+	m_Mgr->Update();
 }
 
 // Enable and disable the status bar

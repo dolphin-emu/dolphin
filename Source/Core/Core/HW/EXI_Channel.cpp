@@ -123,7 +123,6 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 						case EXI_READWRITE: pDevice->ImmReadWrite(m_ImmData, m_Control.TLEN + 1); break;
 						default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI Imm: Unknown transfer type %i", m_Control.RW);
 					}
-					m_Control.TSTART = 0;
 				}
 				else
 				{
@@ -134,14 +133,13 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 						case EXI_WRITE: pDevice->DMAWrite(m_DMAMemoryAddress, m_DMALength); break;
 						default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI DMA: Unknown transfer type %i", m_Control.RW);
 					}
-					m_Control.TSTART = 0;
 				}
 
-				if (!m_Control.TSTART) // completed !
-				{
-					m_Status.TCINT = 1;
-					CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
-				}
+				m_Control.TSTART = 0;
+
+				// Check if device needs specific timing, otherwise just complete transfer immediately
+				if (!pDevice->UseDelayedTransferCompletion())
+					SendTransferComplete();
 			}
 		})
 	);
@@ -150,6 +148,12 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::DirectRead<u32>(&m_ImmData),
 		MMIO::DirectWrite<u32>(&m_ImmData)
 	);
+}
+
+void CEXIChannel::SendTransferComplete()
+{
+	m_Status.TCINT = 1;
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
 }
 
 void CEXIChannel::RemoveDevices()

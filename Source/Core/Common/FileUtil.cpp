@@ -59,11 +59,9 @@ static void StripTailDirSlashes(std::string &fname)
 {
 	if (fname.length() > 1)
 	{
-		size_t i = fname.length() - 1;
-		while (fname[i] == DIR_SEP_CHR)
-			fname[i--] = '\0';
+		while (fname.back() == DIR_SEP_CHR)
+			fname.pop_back();
 	}
-	return;
 }
 
 // Returns true if file filename exists

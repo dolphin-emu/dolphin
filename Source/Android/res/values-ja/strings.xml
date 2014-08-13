@@ -41,6 +41,8 @@
     <string name="browse_folder">フォルダの参照</string>
     <string name="settings">設定</string>
     <string name="about">について</string>
+    <string name="file_size_gib">ファイルサイズ: %.2f GiB</string>
+    <string name="file_size_mib">ファイルサイズ: %.2f MiB</string>
 
     <!-- Game List Activity - Device Compatibility AlertDialog -->
     <string name="device_compat_warning">デバイスの互換性の警告</string>
@@ -66,8 +68,11 @@
 
     <!-- Input Config Fragment -->
     <string name="input_settings">入力</string>
+    <string name="input_overlay">入力オーバーレイ</string>
+    <string name="input_overlay_desc">画面上の入力のオーバーレイを設定し。</string>
     <string name="input_overlay_layout">入力オーバーレイレイアウト</string>
     <string name="input_overlay_layout_desc">入力オーバーレイのためのボタンのレイアウト。</string>
+    <string name="controls_size">コントロールのサイズを調整し</string>
     <string name="gamecube_bindings">ゲームキューブコントローラの入力バインディング</string>
     <string name="controller_0">コントローラ1</string>
     <string name="controller_1">コントローラ2</string>
@@ -132,7 +137,6 @@
     <string name="jit64_recompiler">JIT64 Recompiler</string>
     <string name="jitil_recompiler">JITIL Recompiler</string>
     <string name="jit_arm_recompiler">JIT ARM Recompiler</string>
-    <string name="jitil_arm_recompiler">JITIL ARM Recompiler</string>
     <string name="cpu_settings">CPU</string>
     <string name="cpu_core">CPUコア</string>
     <string name="cpu_core_desc">%s</string>

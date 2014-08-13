@@ -68,20 +68,26 @@ public:
 		, m_next_ucode()
 		, m_next_ucode_steps(0)
 		, m_needs_resume_mail(false)
-	{}
+	{
+	}
 
 	virtual ~UCodeInterface()
-	{}
+	{
+	}
 
 	virtual void HandleMail(u32 mail) = 0;
-
-	// Cycles are out of the 81/121mhz the DSP runs at.
-	virtual void Update(int cycles) = 0;
+	virtual void Update() = 0;
 	virtual u32 GetUpdateMs() = 0;
 
-	virtual void DoState(PointerWrap &p) { DoStateShared(p); }
+	virtual void DoState(PointerWrap &p)
+	{
+		DoStateShared(p);
+	}
 
-	static u32 GetCRC(UCodeInterface* ucode) { return ucode ? ucode->m_crc : UCODE_NULL; }
+	static u32 GetCRC(UCodeInterface* ucode)
+	{
+		return ucode ? ucode->m_crc : UCODE_NULL;
+	}
 
 protected:
 	void PrepareBootUCode(u32 mail);
@@ -136,4 +142,4 @@ private:
 	bool m_needs_resume_mail;
 };
 
-extern UCodeInterface* UCodeFactory(u32 crc, DSPHLE *dsphle, bool wii);
+UCodeInterface* UCodeFactory(u32 crc, DSPHLE *dsphle, bool wii);

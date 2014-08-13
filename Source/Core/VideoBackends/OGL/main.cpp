@@ -41,14 +41,15 @@ Make AA apply instantly during gameplay if possible
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
-#include "Common/LogManager.h"
 #include "Common/Thread.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoBackends/OGL/PostProcessing.h"
@@ -82,11 +83,6 @@ Make AA apply instantly during gameplay if possible
 #include "Common/IniFile.h"
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
-#include "DolphinWX/VideoConfigDiag.h"
-#include "DolphinWX/Debugger/DebuggerPanel.h"
-#endif // HAVE_WX
-
 namespace OGL
 {
 
@@ -103,7 +99,7 @@ std::string VideoBackend::GetDisplayName() const
 		return "OpenGL";
 }
 
-void GetShaders(std::vector<std::string> &shaders)
+static void GetShaders(std::vector<std::string> &shaders)
 {
 	std::set<std::string> already_found;
 
@@ -138,12 +134,12 @@ void GetShaders(std::vector<std::string> &shaders)
 	std::sort(shaders.begin(), shaders.end());
 }
 
-void InitBackendInfo()
+static void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_OPENGL;
 	g_Config.backend_info.bUseRGBATextures = true;
 	g_Config.backend_info.bUseMinimalMipCount = false;
-	g_Config.backend_info.bSupports3DVision = false;
+	g_Config.backend_info.bSupportsExclusiveFullscreen = false;
 	//g_Config.backend_info.bSupportsDualSourceBlend = true; // is gpu dependent and must be set in renderer
 	//g_Config.backend_info.bSupportsEarlyZ = true; // is gpu dependent and must be set in renderer
 	g_Config.backend_info.bSupportsOversizedViewports = true;
@@ -160,11 +156,8 @@ void InitBackendInfo()
 
 void VideoBackend::ShowConfig(void *_hParent)
 {
-#if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
-	VideoConfigDiag diag((wxWindow*)_hParent, "OpenGL", "gfx_opengl");
-	diag.ShowModal();
-#endif
+	Host_ShowVideoConfig(_hParent, GetDisplayName(), "gfx_opengl");
 }
 
 bool VideoBackend::Initialize(void *&window_handle)

@@ -40,39 +40,25 @@
 #define USE_RVALUE_REFERENCES
 #endif
 
-#if defined(_WIN32) && _M_X86_64
-#define USE_CONDITION_VARIABLES
-#elif defined(_WIN32)
-#define USE_EVENTS
-#endif
-
 namespace std
 {
 
 class condition_variable
 {
-#if defined(_WIN32) && defined(USE_CONDITION_VARIABLES)
+#if defined(_WIN32)
 	typedef CONDITION_VARIABLE native_type;
-#elif defined(_WIN32)
-	typedef HANDLE native_type;
 #else
 	typedef pthread_cond_t native_type;
 #endif
 
 public:
 
-#ifdef USE_EVENTS
-	typedef native_type native_handle_type;
-#else
 	typedef native_type* native_handle_type;
-#endif
 
 	condition_variable()
 	{
-#if defined(_WIN32) && defined(USE_CONDITION_VARIABLES)
+#if defined(_WIN32)
 		InitializeConditionVariable(&m_handle);
-#elif defined(_WIN32)
-		m_handle = CreateEvent(nullptr, false, false, nullptr);
 #else
 		pthread_cond_init(&m_handle, nullptr);
 #endif
@@ -80,9 +66,7 @@ public:
 
 	~condition_variable()
 	{
-#if defined(_WIN32) && !defined(USE_CONDITION_VARIABLES)
-		CloseHandle(m_handle);
-#elif !defined(_WIN32)
+#ifndef _WIN32
 		pthread_cond_destroy(&m_handle);
 #endif
 	}
@@ -92,10 +76,8 @@ public:
 
 	void notify_one()
 	{
-#if defined(_WIN32) && defined(USE_CONDITION_VARIABLES)
+#if defined(_WIN32)
 		WakeConditionVariable(&m_handle);
-#elif defined(_WIN32)
-		SetEvent(m_handle);
 #else
 		pthread_cond_signal(&m_handle);
 #endif
@@ -103,11 +85,8 @@ public:
 
 	void notify_all()
 	{
-#if defined(_WIN32) && defined(USE_CONDITION_VARIABLES)
+#if defined(_WIN32)
 		WakeAllConditionVariable(&m_handle);
-#elif defined(_WIN32)
-		// TODO: broken
-		SetEvent(m_handle);
 #else
 		pthread_cond_broadcast(&m_handle);
 #endif
@@ -116,16 +95,7 @@ public:
 	void wait(unique_lock<mutex>& lock)
 	{
 #ifdef _WIN32
-	#ifdef USE_SRWLOCKS
 		SleepConditionVariableSRW(&m_handle, lock.mutex()->native_handle(), INFINITE, 0);
-	#elif defined(USE_CONDITION_VARIABLES)
-		SleepConditionVariableCS(&m_handle, lock.mutex()->native_handle(), INFINITE);
-	#else
-		// TODO: broken, the unlock and wait need to be atomic
-		lock.unlock();
-		WaitForSingleObject(m_handle, INFINITE);
-		lock.lock();
-	#endif
 #else
 		pthread_cond_wait(&m_handle, lock.mutex()->native_handle());
 #endif
@@ -158,11 +128,7 @@ public:
 
 	native_handle_type native_handle()
 	{
-#ifdef USE_EVENTS
-		return m_handle;
-#else
 		return &m_handle;
-#endif
 	}
 
 private:

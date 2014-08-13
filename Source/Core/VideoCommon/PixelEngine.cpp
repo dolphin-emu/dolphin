@@ -97,14 +97,14 @@ static UPEAlphaReadReg     m_AlphaRead;
 static UPECtrlReg          m_Control;
 //static u16                 m_Token; // token value most recently encountered
 
-volatile u32 g_bSignalTokenInterrupt;
-volatile u32 g_bSignalFinishInterrupt;
+static volatile u32 g_bSignalTokenInterrupt;
+static volatile u32 g_bSignalFinishInterrupt;
 
 static int et_SetTokenOnMainThread;
 static int et_SetFinishOnMainThread;
 
-volatile u32 interruptSetToken = 0;
-volatile u32 interruptSetFinish = 0;
+static volatile u32 interruptSetToken = 0;
+static volatile u32 interruptSetFinish = 0;
 
 u16 bbox[4];
 bool bbox_active;
@@ -250,11 +250,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			MMIO::InvalidWrite<u16>()
 		);
 	}
-}
-
-bool AllowIdleSkipping()
-{
-	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
 }
 
 void UpdateInterrupts()

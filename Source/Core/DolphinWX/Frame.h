@@ -44,29 +44,9 @@ class wxAuiManager;
 class wxAuiManagerEvent;
 class wxAuiNotebook;
 class wxAuiNotebookEvent;
-class wxAuiToolBar;
-class wxAuiToolBarEvent;
 class wxListEvent;
 class wxMenuItem;
 class wxWindow;
-
-// The CPanel class to receive MSWWindowProc messages from the video backend.
-class CPanel : public wxPanel
-{
-	public:
-		CPanel(
-			wxWindow* parent,
-			wxWindowID id = wxID_ANY
-			);
-
-	private:
-		DECLARE_EVENT_TABLE();
-
-		#ifdef _WIN32
-			// Receive WndProc messages
-			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
-		#endif
-};
 
 class CRenderFrame : public wxFrame
 {
@@ -78,8 +58,11 @@ class CRenderFrame : public wxFrame
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
+		bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) override;
+
 	private:
 		void OnDropFiles(wxDropFilesEvent& event);
+		static bool IsValidSavestateDropped(const std::string& filepath);
 		#ifdef _WIN32
 			// Receive WndProc messages
 			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
@@ -122,6 +105,7 @@ public:
 	void InitBitmaps();
 	void DoPause();
 	void DoStop();
+	void OnStopped();
 	void DoRecordingSave();
 	void UpdateGUI();
 	void UpdateGameList();
@@ -136,9 +120,11 @@ public:
 	void OnRenderParentClose(wxCloseEvent& event);
 	void OnRenderParentMove(wxMoveEvent& event);
 	bool RendererHasFocus();
+	bool UIHasFocus();
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
+	void PopulateSavedPerspectives();
 	static void ConnectWiimote(int wm_idx, bool connect);
 
 	const CGameListCtrl *GetGameListCtrl() const;
@@ -153,9 +139,11 @@ public:
 	X11Utils::XRRConfiguration *m_XRRConfig;
 #endif
 
+	wxMenu* m_SavedPerspectives;
+
+	wxToolBar *m_ToolBar;
 	// AUI
 	wxAuiManager *m_Mgr;
-	wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
 	bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
 	// Perspectives (Should find a way to make all of this private)
@@ -174,7 +162,7 @@ private:
 	CGameListCtrl* m_GameListCtrl;
 	wxPanel* m_Panel;
 	CRenderFrame* m_RenderFrame;
-	wxPanel* m_RenderParent;
+	wxWindow* m_RenderParent;
 	CLogWindow* m_LogWindow;
 	LogConfigWindow* m_LogConfigWindow;
 	FifoPlayerDlg* m_FifoPlayerDlg;
@@ -184,6 +172,8 @@ private:
 	bool m_bTabSplit;
 	bool m_bNoDocking;
 	bool m_bGameLoading;
+	bool m_bClosing;
+	bool m_confirmStop;
 
 	std::vector<std::string> drives;
 
@@ -208,8 +198,7 @@ private:
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
-	void PopulateToolbar(wxAuiToolBar* toolBar);
-	void PopulateToolbarAui(wxAuiToolBar* toolBar);
+	void PopulateToolbar(wxToolBar* toolBar);
 	void RecreateToolbar();
 	void CreateMenu();
 
@@ -234,7 +223,6 @@ private:
 	void ShowResizePane();
 	void TogglePane();
 	void SetPaneSize();
-	void ResetToolbarStyle();
 	void TogglePaneStyle(bool On, int EventId);
 	void ToggleNotebookStyle(bool On, long Style);
 	// Float window
@@ -253,9 +241,7 @@ private:
 	void OnPaneClose(wxAuiManagerEvent& evt);
 	void ReloadPanes();
 	void DoLoadPerspective();
-	void OnDropDownToolbarSelect(wxCommandEvent& event);
-	void OnDropDownSettingsToolbar(wxAuiToolBarEvent& event);
-	void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
+	void OnPerspectiveMenu(wxCommandEvent& event);
 	void OnSelectPerspective(wxCommandEvent& event);
 
 #ifdef _WIN32
@@ -265,8 +251,6 @@ private:
 	// Event functions
 	void OnQuit(wxCommandEvent& event);
 	void OnHelp(wxCommandEvent& event);
-	void OnToolBar(wxCommandEvent& event);
-	void OnAuiToolBar(wxAuiToolBarEvent& event);
 
 	void OnOpen(wxCommandEvent& event); // File menu
 	void DoOpen(bool Boot);
@@ -352,7 +336,8 @@ private:
 int GetCmdForHotkey(unsigned int key);
 
 void OnAfterLoadCallback();
+void OnStoppedCallback();
 
 // For TASInputDlg
-void TASManipFunction(SPADStatus *PadStatus, int controllerID);
+void TASManipFunction(GCPadStatus* PadStatus, int controllerID);
 bool TASInputHasFocus();

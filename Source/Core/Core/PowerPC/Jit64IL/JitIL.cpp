@@ -221,7 +221,7 @@ namespace JitILProfiler
 			}
 		}
 	};
-	std::unique_ptr<JitILProfilerFinalizer> finalizer;
+	static std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
 		finalizer = std::make_unique<JitILProfilerFinalizer>();
@@ -233,11 +233,6 @@ namespace JitILProfiler
 };
 
 static int CODE_SIZE = 1024*1024*32;
-
-namespace CPUCompare
-{
-	extern u32 m_BlockStart;
-}
 
 void JitIL::Init()
 {
@@ -351,11 +346,7 @@ static void ImHere()
 	{
 		if (!f)
 		{
-#if _M_X86_64
 			f.Open("log64.txt", "w");
-#else
-			f.Open("log32.txt", "w");
-#endif
 		}
 		fprintf(f.GetHandle(), "%08x r0: %08x r5: %08x r6: %08x\n", PC, PowerPC::ppcState.gpr[0],
 			PowerPC::ppcState.gpr[5], PowerPC::ppcState.gpr[6]);
@@ -388,7 +379,7 @@ void JitIL::WriteExit(u32 destination)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
@@ -420,7 +411,7 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -433,7 +424,7 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -446,7 +437,7 @@ void JitIL::WriteExceptionExit()
 	MOV(32, R(EAX), M(&PC));
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&PowerPC::ppcState.downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -482,9 +473,9 @@ void JitIL::Trace()
 	}
 #endif
 
-	DEBUG_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s",
-		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3],
-		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr,
+	DEBUG_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRval: %016lx%016lx%016lx%016lx%016lx%016lx%016lx%016lx FPSCR: %08x MSR: %08x LR: %08x %s %s",
+		PC, SRR0, SRR1, PowerPC::ppcState.cr_val[0], PowerPC::ppcState.cr_val[1], PowerPC::ppcState.cr_val[2], PowerPC::ppcState.cr_val[3],
+		PowerPC::ppcState.cr_val[4], PowerPC::ppcState.cr_val[5], PowerPC::ppcState.cr_val[6], PowerPC::ppcState.cr_val[7], PowerPC::ppcState.fpscr,
 		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 

@@ -128,17 +128,6 @@ public:
 	}
 
 	template <typename T>
-	void DoContainer(T& x)
-	{
-		u32 size = (u32)x.size();
-		Do(size);
-		x.resize(size);
-
-		for (auto& elem : x)
-			Do(elem);
-	}
-
-	template <typename T>
 	void Do(std::vector<T>& x)
 	{
 		DoContainer(x);
@@ -276,6 +265,17 @@ public:
 	}
 
 private:
+	template <typename T>
+	void DoContainer(T& x)
+	{
+		u32 size = (u32)x.size();
+		Do(size);
+		x.resize(size);
+
+		for (auto& elem : x)
+			Do(elem);
+	}
+
 	__forceinline void DoByte(u8& x)
 	{
 		switch (mode)

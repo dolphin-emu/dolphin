@@ -76,11 +76,7 @@ public:
 	}
 
 	const char *GetName() override {
-#if _M_X86_64
 		return "JIT64";
-#else
-		return "JIT32";
-#endif
 	}
 	// Run!
 
@@ -106,10 +102,20 @@ public:
 	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
 
-	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
+	// Reads a given bit of a given CR register part. Clobbers ABI_PARAM1,
+	// don't forget to xlock it before.
+	void GetCRFieldBit(int field, int bit, Gen::X64Reg out);
+	// Clobbers ABI_PARAM1 and ABI_PARAM2, xlock them before.
+	void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
+
+	// Generates a branch that will check if a given bit of a CR register part
+	// is set or not.
+	Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
+
+	void tri_op(int d, int a, int b, bool reversible, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 	typedef u32 (*Operation)(u32 a, u32 b);
-	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
-	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
+	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
+	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
@@ -174,6 +180,7 @@ public:
 	void fp_arith(UGeckoInstruction inst);
 
 	void fcmpx(UGeckoInstruction inst);
+	void fctiwx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
 
 	void cmpXX(UGeckoInstruction inst);

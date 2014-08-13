@@ -18,9 +18,9 @@ namespace ActionReplay
 {
 
 // Alphanumeric filter for text<->bin conversion
-const char *filter = "0123456789ABCDEFGHJKMNPQRTUVWXYZILOS";
+static const char *filter = "0123456789ABCDEFGHJKMNPQRTUVWXYZILOS";
 
-u32 genseeds[0x20];
+static u32 genseeds[0x20];
 
 const u8 gentable0[0x38] = {
 	0x39, 0x31, 0x29, 0x21, 0x19, 0x11, 0x09, 0x01,
@@ -143,7 +143,7 @@ const u32 table7[0x40] = {
 };
 
 
-void generateseeds(u32 *seeds, const u8 *seedtable, u8 doreverse)
+static void generateseeds(u32 *seeds, const u8 *seedtable, u8 doreverse)
 {
 	u32 tmp3;
 	u8 array0[0x38],array1[0x38],array2[0x08];
@@ -208,24 +208,24 @@ void generateseeds(u32 *seeds, const u8 *seedtable, u8 doreverse)
 	}
 }
 
-void buildseeds()
+static void buildseeds()
 {
 	generateseeds(genseeds,gensubtable,0);
 }
 
-void getcode(u32 *src, u32 *addr, u32 *val)
+static void getcode(u32 *src, u32 *addr, u32 *val)
 {
 	*addr = Common::swap32(src[0]);
 	*val = Common::swap32(src[1]);
 }
 
-void setcode(u32 *dst, u32 addr, u32 val)
+static void setcode(u32 *dst, u32 addr, u32 val)
 {
 	dst[0] = Common::swap32(addr);
 	dst[1] = Common::swap32(val);
 }
 
-u16 gencrc16(u32 *codes, u16 size)
+static u16 gencrc16(u32 *codes, u16 size)
 {
 	u16 ret = 0;
 
@@ -243,13 +243,13 @@ u16 gencrc16(u32 *codes, u16 size)
 	return ret;
 }
 
-u8 verifycode(u32 *codes, u16 size)
+static u8 verifycode(u32 *codes, u16 size)
 {
 	u16 tmp = gencrc16(codes,size);
 	return (((tmp>>12)^(tmp>>8)^(tmp>>4)^tmp)&0x0F);
 }
 
-void unscramble1(u32 *addr, u32 *val)
+static void unscramble1(u32 *addr, u32 *val)
 {
 	u32 tmp;
 
@@ -276,7 +276,7 @@ void unscramble1(u32 *addr, u32 *val)
 	*val ^= tmp;
 }
 
-void unscramble2(u32 *addr, u32 *val)
+static void unscramble2(u32 *addr, u32 *val)
 {
 	u32 tmp;
 
@@ -303,7 +303,7 @@ void unscramble2(u32 *addr, u32 *val)
 	*addr = _rotr((*addr^tmp),4);
 }
 
-void decryptcode(u32 *seeds, u32 *code)
+static void decryptcode(u32 *seeds, u32 *code)
 {
 	u32 addr,val;
 	u32 tmp,tmp2;
@@ -325,7 +325,7 @@ void decryptcode(u32 *seeds, u32 *code)
 	setcode(code,val,addr);
 }
 
-bool getbitstring(u32 *ctrl, u32 *out, u8 len)
+static bool getbitstring(u32 *ctrl, u32 *out, u8 len)
 {
 	u32 tmp=(ctrl[0]+(ctrl[1]<<2));
 
@@ -348,7 +348,7 @@ bool getbitstring(u32 *ctrl, u32 *out, u8 len)
 	return true;
 }
 
-bool batchdecrypt(u32 *codes, u16 size)
+static bool batchdecrypt(u32 *codes, u16 size)
 {
 	u32 tmp,*ptr=codes;
 	u32 tmparray[4] = { 0 },tmparray2[8] = { 0 };
@@ -391,7 +391,7 @@ bool batchdecrypt(u32 *codes, u16 size)
 	// Unfinished (so says Parasyte :p )
 }
 
-int GetVal(const char *flt, char chr)
+static int GetVal(const char *flt, char chr)
 {
 	int ret = (int)(strchr(flt,chr) - flt);
 	switch (ret)
@@ -410,7 +410,7 @@ int GetVal(const char *flt, char chr)
 	return ret;
 }
 
-int alphatobin(u32 *dst, std::vector<std::string> alpha, int size)
+static int alphatobin(u32 *dst, std::vector<std::string> alpha, int size)
 {
 	int j = 0;
 	int ret = 0;

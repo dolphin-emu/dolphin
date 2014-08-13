@@ -22,8 +22,8 @@ volatile u32 s_swapRequested = false;
 u32 s_efbAccessRequested = false;
 volatile u32 s_FifoShuttingDown = false;
 
-std::condition_variable s_perf_query_cond;
-std::mutex s_perf_query_lock;
+static std::condition_variable s_perf_query_cond;
+static std::mutex s_perf_query_lock;
 static volatile bool s_perf_query_requested;
 
 static volatile struct
@@ -66,7 +66,7 @@ void VideoBackendHardware::Video_SetRendering(bool bEnabled)
 }
 
 // Run from the graphics thread (from Fifo.cpp)
-void VideoFifo_CheckSwapRequest()
+static void VideoFifo_CheckSwapRequest()
 {
 	if (g_ActiveConfig.bUseXFB)
 	{
@@ -177,7 +177,7 @@ static bool QueryResultIsReady()
 	return !s_perf_query_requested || s_FifoShuttingDown;
 }
 
-void VideoFifo_CheckPerfQueryRequest()
+static void VideoFifo_CheckPerfQueryRequest()
 {
 	if (s_perf_query_requested)
 	{

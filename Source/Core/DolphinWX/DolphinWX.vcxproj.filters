@@ -27,6 +27,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GLInterface\GLInterface.cpp" />
     <ClCompile Include="GLInterface\WGL.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainNoGUI.cpp" />
@@ -146,22 +147,18 @@
     <ClCompile Include="PatchAddEdit.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="PHackSettings.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="TASInputDlg.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="UDPConfigDiag.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="WiimoteConfigDiag.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="SoftwareVideoConfigDialog.cpp">
+      <Filter>GUI\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GLInterface\InterfaceBase.h" />
     <ClInclude Include="GLInterface\WGL.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="WXInputBase.h" />
@@ -274,13 +271,7 @@
     <ClInclude Include="PatchAddEdit.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="PHackSettings.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="TASInputDlg.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="UDPConfigDiag.h">
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="WiimoteConfigDiag.h">
@@ -288,6 +279,9 @@
     </ClInclude>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="GLInterface\GLInterface.h" />
+    <ClInclude Include="SoftwareVideoConfigDialog.h">
+      <Filter>GUI\Video</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

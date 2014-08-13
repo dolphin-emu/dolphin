@@ -18,6 +18,7 @@
 #include <wx/frame.h>
 #include <wx/gdicmn.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -42,6 +43,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/ISOFile.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -56,10 +58,9 @@ END_EVENT_TABLE()
 
 static NetPlayServer* netplay_server = nullptr;
 static NetPlayClient* netplay_client = nullptr;
-extern CFrame* main_frame;
 NetPlayDiag *NetPlayDiag::npd = nullptr;
 
-std::string BuildGameName(const GameListItem& game)
+static std::string BuildGameName(const GameListItem& game)
 {
 	// Lang needs to be consistent
 	auto const lang = 0;
@@ -74,7 +75,7 @@ std::string BuildGameName(const GameListItem& game)
 		return name + " (" + game.GetUniqueID() + ")";
 }
 
-void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
+static void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
 {
 	for (u32 i = 0 ; auto game = game_list.GetISO(i); ++i)
 		game_lbox->Append(StrToWxStr(BuildGameName(*game)));
@@ -134,7 +135,6 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 		" - Enable Dual Core [OFF]\n"
 		" - DSP Emulator Engine Must be the same on all computers!\n"
 		" - DSP on Dedicated Thread [OFF]\n"
-		" - Framelimit NOT set to [Audio]\n"
 		" - Manually set the extensions for each wiimote\n"
 		"\n"
 		"All players should use the same Dolphin version and settings.\n"
@@ -257,13 +257,13 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	NetPlayDiag *&npd = NetPlayDiag::GetInstance();
 	if (npd)
 	{
-		PanicAlertT("A NetPlay window is already open!!");
+		WxUtils::ShowErrorDialog(_("A NetPlay window is already open!"));
 		return;
 	}
 
 	if (-1 == m_game_lbox->GetSelection())
 	{
-		PanicAlertT("You must choose a game!!");
+		WxUtils::ShowErrorDialog(_("You must choose a game!"));
 		return;
 	}
 
@@ -284,7 +284,7 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	}
 	else
 	{
-		PanicAlertT("Failed to listen.  Is another instance of the NetPlay server running?");
+		WxUtils::ShowErrorDialog(_("Failed to listen. Is another instance of the NetPlay server running?"));
 	}
 }
 
@@ -293,7 +293,7 @@ void NetPlaySetupDiag::OnJoin(wxCommandEvent&)
 	NetPlayDiag *&npd = NetPlayDiag::GetInstance();
 	if (npd)
 	{
-		PanicAlertT("A NetPlay window is already open!!");
+		WxUtils::ShowErrorDialog(_("A NetPlay window is already open!"));
 		return;
 	}
 
@@ -428,14 +428,15 @@ NetPlayDiag::~NetPlayDiag()
 
 void NetPlayDiag::OnChat(wxCommandEvent&)
 {
-	wxString s = m_chat_msg_text->GetValue();
+	wxString text = m_chat_msg_text->GetValue();
 
-	if (s.Length())
+	if (!text.empty())
 	{
-		if (s.Length() > 2000)
-			s.erase(2000);
-		netplay_client->SendChatMessage(WxStrToStr(s));
-		m_chat_text->AppendText(s.Prepend(" >> ").Append('\n'));
+		if (text.length() > 2000)
+			text.erase(2000);
+
+		netplay_client->SendChatMessage(WxStrToStr(text));
+		m_chat_text->AppendText(text.Prepend(" >> ").Append('\n'));
 		m_chat_msg_text->Clear();
 	}
 }
@@ -459,7 +460,7 @@ std::string NetPlayDiag::FindGame()
 		if (m_selected_game == BuildGameName(*game))
 			return game->GetFileName();
 
-	PanicAlertT("Game not found!");
+	WxUtils::ShowErrorDialog(_("Game not found!"));
 	return "";
 }
 
@@ -468,7 +469,7 @@ void NetPlayDiag::OnStart(wxCommandEvent&)
 	NetSettings settings;
 	GetNetSettings(settings);
 	netplay_server->SetNetSettings(settings);
-	netplay_server->StartGame(FindGame());
+	netplay_server->StartGame();
 }
 
 void NetPlayDiag::BootGame(const std::string& filename)
@@ -557,11 +558,11 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 	// remove ping from selection string, in case it has changed
 	selection.erase(selection.find_last_of("|") + 1);
 
-	if (selection.Length() > 0)
+	if (!selection.empty())
 	{
 		for (unsigned int i = 0; i < m_player_lbox->GetCount(); ++i)
 		{
-			if (selection == m_player_lbox->GetString(i).Mid(0, selection.Length()))
+			if (selection == m_player_lbox->GetString(i).Mid(0, selection.length()))
 			{
 				m_player_lbox->SetSelection(i);
 				break;

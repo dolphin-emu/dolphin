@@ -6,11 +6,10 @@
 
 #include <map>
 #include <string>
-
-#include "Common/ChunkFile.h"
 #include "Core/IPC_HLE/hci.h"
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305;
+class PointerWrap;
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305* GetUsbPointer();
 void SetUsbPointer(CWII_IPC_HLE_Device_usb_oh1_57e_305* ptr);

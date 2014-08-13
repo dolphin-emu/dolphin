@@ -86,6 +86,7 @@ private:
 	int updateInterrupts;
 
 	static void UpdateInterrupts(u64 userdata, int cyclesLate);
+
 public:
 	// get device
 	IEXIDevice* GetDevice(const u8 _CHIP_SELECT);
@@ -95,6 +96,8 @@ public:
 	~CEXIChannel();
 
 	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+
+	void SendTransferComplete();
 
 	void AddDevice(const TEXIDevices device_type, const int device_num);
 	void AddDevice(IEXIDevice* pDevice, const int device_num, bool notifyPresenceChanged=true);

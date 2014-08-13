@@ -29,6 +29,7 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/MainBase.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -40,7 +41,8 @@
 
 // TODO: Move these out of here.
 int frameCount;
-int OSDChoice, OSDTime;
+int OSDChoice;
+static int OSDTime;
 
 Renderer *g_renderer = nullptr;
 
@@ -350,9 +352,6 @@ void Renderer::DrawDebugText()
 	g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
 
-// TODO: remove
-extern bool g_aspect_wide;
-
 void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 {
 	float FloatGLWidth = (float)backbuffer_width;
@@ -520,6 +519,9 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& 
 {
 	// TODO: merge more generic parts into VideoCommon
 	g_renderer->SwapImpl(xfbAddr, fbWidth, fbHeight, rc, Gamma);
+
+	if (XFBWrited)
+		g_renderer->m_fps_counter.Update();
 
 	frameCount++;
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);

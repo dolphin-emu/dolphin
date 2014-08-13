@@ -5,7 +5,11 @@
 #pragma once
 
 #include <string>
-#include "Common/IniFile.h"
+#include <vector>
+
+#include "Common/CommonTypes.h"
+
+class IniFile;
 
 namespace PatchEngine
 {
@@ -65,3 +69,4 @@ inline int GetPatchTypeCharLength(PatchType type)
 }
 
 }  // namespace
+extern std::vector<PatchEngine::Patch> onFrame;

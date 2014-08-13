@@ -233,7 +233,7 @@ IniFile::Section* IniFile::GetOrCreateSection(const std::string& sectionName)
 	if (!section)
 	{
 		sections.push_back(Section(sectionName));
-		section = &sections[sections.size() - 1];
+		section = &sections.back();
 	}
 	return section;
 }
@@ -323,7 +323,7 @@ bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>*
 
 void IniFile::SortSections()
 {
-	std::sort(sections.begin(), sections.end());
+	sections.sort();
 }
 
 bool IniFile::Load(const std::string& filename, bool keep_current_data)
@@ -435,61 +435,6 @@ bool IniFile::Save(const std::string& filename)
 
 	return File::RenameSync(temp, filename);
 }
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, std::vector<std::string>* values)
-{
-	Section *section = GetSection(sectionName);
-	if (!section)
-		return false;
-	return section->Get(key, values);
-}
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, int* value, int defaultValue)
-{
-	Section *section = GetSection(sectionName);
-	if (!section) {
-		*value = defaultValue;
-		return false;
-	} else {
-		return section->Get(key, value, defaultValue);
-	}
-}
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, u32* value, u32 defaultValue)
-{
-	Section *section = GetSection(sectionName);
-	if (!section) {
-		*value = defaultValue;
-		return false;
-	} else {
-		return section->Get(key, value, defaultValue);
-	}
-}
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, bool* value, bool defaultValue)
-{
-	Section *section = GetSection(sectionName);
-	if (!section) {
-		*value = defaultValue;
-		return false;
-	} else {
-		return section->Get(key, value, defaultValue);
-	}
-}
-
-bool IniFile::Get(const std::string& sectionName, const std::string& key, std::string* value, const std::string& defaultValue)
-{
-	Section* section = GetSection(sectionName);
-	if (!section) {
-		if (&defaultValue != &NULL_STRING) {
-			*value = defaultValue;
-		}
-		return false;
-	}
-	return section->Get(key, value, defaultValue);
-}
-
-
 
 // Unit test. TODO: Move to the real unit test framework.
 /*

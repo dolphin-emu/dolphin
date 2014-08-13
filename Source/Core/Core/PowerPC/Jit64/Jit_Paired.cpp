@@ -7,6 +7,8 @@
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
+using namespace Gen;
+
 // TODO
 // ps_madds0
 // ps_muls0

@@ -242,9 +242,9 @@ void TASInputDlg::ResetValues()
 	wx_start_button->SetValue(false);
 }
 
-void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
+void TASInputDlg::GetKeyBoardInput(GCPadStatus* PadStatus)
 {
-	if (PadStatus->stickX != 128)
+	if (PadStatus->stickX != GCPadStatus::MAIN_STICK_CENTER_X)
 	{
 		mainX = PadStatus->stickX;
 		mstickx = true;
@@ -254,11 +254,11 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 	else if (mstickx)
 	{
 		mstickx = false;
-		mainX = 128;
+		mainX = GCPadStatus::MAIN_STICK_CENTER_X;
 		wx_mainX_t->SetValue(wxString::Format("%i", mainX));
 	}
 
-	if (PadStatus->stickY != 128)
+	if (PadStatus->stickY != GCPadStatus::MAIN_STICK_CENTER_Y)
 	{
 		mainY = PadStatus->stickY;
 		msticky = true;
@@ -267,11 +267,11 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 	else if (msticky)
 	{
 		msticky = false;
-		mainY = 128;
+		mainY = GCPadStatus::MAIN_STICK_CENTER_Y;
 		wx_mainY_t->SetValue(wxString::Format("%i", mainY));
 	}
 
-	if (PadStatus->substickX != 128)
+	if (PadStatus->substickX != GCPadStatus::C_STICK_CENTER_X)
 	{
 		cX = PadStatus->substickX;
 		cstickx = true;
@@ -280,11 +280,11 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 	else if (cstickx)
 	{
 		cstickx = false;
-		cX = 128;
+		cX = GCPadStatus::C_STICK_CENTER_X;
 		wx_cX_t->SetValue(wxString::Format("%i", cX));
 	}
 
-	if (PadStatus->substickY != 128)
+	if (PadStatus->substickY != GCPadStatus::C_STICK_CENTER_Y)
 	{
 		cY = PadStatus->substickY;
 		csticky = true;
@@ -293,7 +293,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 	else if (csticky)
 	{
 		csticky = false;
-		cY = 128;
+		cY = GCPadStatus::C_STICK_CENTER_Y;
 		wx_cY_t->SetValue(wxString::Format("%i", cY));
 	}
 
@@ -471,7 +471,7 @@ void TASInputDlg::SetLandRTriggers()
 		rTrig = wx_r_s->GetValue();
 }
 
-void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
+void TASInputDlg::GetValues(GCPadStatus* PadStatus, int controllerID)
 {
 	if (!IsShown())
 		return;
@@ -806,8 +806,7 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 
 	sliderX->SetValue(*x);
 	sliderY->SetValue(256 - *y);
-	event.Skip(true);
-
+	event.Skip();
 }
 
 void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
@@ -863,7 +862,7 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 
 	sliderX->SetValue(*x);
 	sliderY->SetValue(256 - *y);
-	event.Skip(true);
+	event.Skip();
 }
 
 void TASInputDlg::SetTurboFalse(wxMouseEvent& event)
@@ -922,7 +921,7 @@ void TASInputDlg::SetTurboFalse(wxMouseEvent& event)
 			return;
 	}
 
-	event.Skip(true);
+	event.Skip();
 }
 
 void TASInputDlg::SetTurbo(wxMouseEvent& event)

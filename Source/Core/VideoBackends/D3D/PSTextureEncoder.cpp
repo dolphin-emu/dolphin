@@ -929,7 +929,7 @@ void PSTextureEncoder::Init()
 	// Create vertex shader
 
 	D3DBlob* bytecode = nullptr;
-	if (!D3D::CompileVertexShader(EFB_ENCODE_VS, sizeof(EFB_ENCODE_VS), &bytecode))
+	if (!D3D::CompileVertexShader(EFB_ENCODE_VS, &bytecode))
 	{
 		ERROR_LOG(VIDEO, "EFB encode vertex shader failed to compile");
 		return;
@@ -1254,7 +1254,7 @@ bool PSTextureEncoder::SetStaticShader(unsigned int dstFormat, PEControl::PixelF
 			{ "IMP_GENERATOR", generatorFuncName },
 			{ nullptr, nullptr }
 		};
-		if (!D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), &bytecode, macros))
+		if (!D3D::CompilePixelShader(EFB_ENCODE_PS, &bytecode, macros))
 		{
 			WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, scaleByHalf %d failed to compile",
 				dstFormat, static_cast<int>(srcFormat), isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
@@ -1296,7 +1296,7 @@ bool PSTextureEncoder::InitDynamicMode()
 	};
 
 	D3DBlob* bytecode = nullptr;
-	if (!D3D::CompilePixelShader(EFB_ENCODE_PS, sizeof(EFB_ENCODE_PS), &bytecode, macros))
+	if (!D3D::CompilePixelShader(EFB_ENCODE_PS, &bytecode, macros))
 	{
 		ERROR_LOG(VIDEO, "EFB encode pixel shader failed to compile");
 		return false;

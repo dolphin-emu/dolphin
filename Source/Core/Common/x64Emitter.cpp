@@ -6,8 +6,8 @@
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
-#include "Common/Log.h"
 #include "Common/x64Emitter.h"
+#include "Common/Logging/Log.h"
 
 namespace Gen
 {
@@ -18,6 +18,7 @@ struct NormalOpDef
 	u8 toRm8, toRm32, fromRm8, fromRm32, imm8, imm32, simm8, ext;
 };
 
+// 0xCC is code for invalid combination of immediates
 static const NormalOpDef nops[11] =
 {
 	{0x00, 0x01, 0x02, 0x03, 0x80, 0x81, 0x83, 0}, //ADD
@@ -125,7 +126,6 @@ void XEmitter::WriteSIB(int scale, int index, int base)
 void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 {
 	if (customOp == -1)       customOp = operandReg;
-#if _M_X86_64
 	u8 op = 0x40;
 	// REX.W (whether operation is a 64-bit operation)
 	if (opBits == 64)         op |= 8;
@@ -145,17 +145,6 @@ void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 		_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 0x100) == 0);
 		_dbg_assert_(DYNA_REC, (customOp & 0x100) == 0);
 	}
-#else
-	// Make sure we don't perform a 64-bit operation.
-	_dbg_assert_(DYNA_REC, opBits != 64);
-	// Make sure the operation doesn't access R8-R15 registers.
-	_dbg_assert_(DYNA_REC, (customOp & 8) == 0);
-	_dbg_assert_(DYNA_REC, (indexReg & 8) == 0);
-	_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 8) == 0);
-	// Make sure the operation doesn't access SIL, DIL, BPL, or SPL.
-	_dbg_assert_(DYNA_REC, opBits != 8 || (customOp & 0x10c) != 4);
-	_dbg_assert_(DYNA_REC, scale != SCALE_NONE || bits != 8 || (offsetOrBaseReg & 0x10c) != 4);
-#endif
 }
 
 void OpArg::WriteVex(XEmitter* emit, int size, int packed, Gen::X64Reg regOp1, Gen::X64Reg regOp2) const
@@ -208,7 +197,6 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		_offsetOrBaseReg = 5;
 		emit->WriteModRM(0, _operandReg, _offsetOrBaseReg);
 		//TODO : add some checks
-#if _M_X86_64
 		u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
 		s64 distance = (s64)offset - (s64)ripAddr;
 		_assert_msg_(DYNA_REC,
@@ -219,9 +207,6 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		             ripAddr, offset);
 		s32 offs = (s32)distance;
 		emit->Write32((u32)offs);
-#else
-		emit->Write32((u32)offset);
-#endif
 		return;
 	}
 
@@ -721,7 +706,7 @@ void XEmitter::SETcc(CCFlags flag, OpArg dest)
 {
 	if (dest.IsImm()) _assert_msg_(DYNA_REC, 0, "SETcc - Imm argument");
 	dest.operandReg = 0;
-	dest.WriteRex(this, 0, 0);
+	dest.WriteRex(this, 0, 8);
 	Write8(0x0F);
 	Write8(0x90 + (u8)flag);
 	dest.WriteRest(this);
@@ -1073,8 +1058,20 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 				 (operand.scale == SCALE_IMM32 && bits == 32) ||
 				 (operand.scale == SCALE_IMM32 && bits == 64))
 		{
-			emit->Write8(nops[op].imm32);
-			immToWrite = bits == 16 ? 16 : 32;
+			// Try to save immediate size if we can, but first check to see
+			// if the instruction supports simm8.
+			if (nops[op].simm8 != 0xCC &&
+			    ((operand.scale == SCALE_IMM16 && (s16)operand.offset == (s8)operand.offset) ||
+			     (operand.scale == SCALE_IMM32 && (s32)operand.offset == (s8)operand.offset)))
+			{
+				emit->Write8(nops[op].simm8);
+				immToWrite = 8;
+			}
+			else
+			{
+				emit->Write8(nops[op].imm32);
+				immToWrite = bits == 16 ? 16 : 32;
+			}
 		}
 		else if ((operand.scale == SCALE_IMM8 && bits == 16) ||
 				 (operand.scale == SCALE_IMM8 && bits == 32) ||
@@ -1198,7 +1195,9 @@ void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
 		Write8(0x66);
 	a1.WriteRex(this, bits, bits, regOp);
 
-	if (a2.GetImmBits() == 8) {
+	if (a2.GetImmBits() == 8 ||
+	    (a2.GetImmBits() == 16 && (s8)a2.offset == (s16)a2.offset) ||
+	    (a2.GetImmBits() == 32 && (s8)a2.offset == (s32)a2.offset)) {
 		Write8(0x6B);
 		a1.WriteRest(this, 1, regOp);
 		Write8((u8)a2.offset);
@@ -1267,7 +1266,6 @@ void XEmitter::MOVD_xmm(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x6E, tru
 void XEmitter::MOVD_xmm(const OpArg &arg, X64Reg src) {WriteSSEOp(64, 0x7E, true, src, arg, 0);}
 
 void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg) {
-#if _M_X86_64
 		// Alternate encoding
 		// This does not display correctly in MSVC's debugger, it thinks it's a MOVD
 		arg.operandReg = dest;
@@ -1276,19 +1274,10 @@ void XEmitter::MOVQ_xmm(X64Reg dest, OpArg arg) {
 		Write8(0x0f);
 		Write8(0x6E);
 		arg.WriteRest(this, 0);
-#else
-		arg.operandReg = dest;
-		Write8(0xF3);
-		Write8(0x0f);
-		Write8(0x7E);
-		arg.WriteRest(this, 0);
-#endif
 }
 
 void XEmitter::MOVQ_xmm(OpArg arg, X64Reg src) {
-	if (arg.IsSimpleReg())
-		PanicAlert("Emitter: MOVQ_xmm doesn't support single registers as destination");
-	if (src > 7)
+	if (src > 7 || arg.IsSimpleReg())
 	{
 		// Alternate encoding
 		// This does not display correctly in MSVC's debugger, it thinks it's a MOVD
@@ -1407,6 +1396,7 @@ void XEmitter::CVTPS2DQ(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5B, true, reg
 
 void XEmitter::CVTTSS2SI(X64Reg xregdest, OpArg arg) {WriteSSEOp(32, 0x2C, false, xregdest, arg);}
 void XEmitter::CVTTPS2DQ(X64Reg xregdest, OpArg arg) {WriteSSEOp(32, 0x5B, false, xregdest, arg);}
+void XEmitter::CVTTPD2DQ(X64Reg xregdest, OpArg arg) {WriteSSEOp(64, 0xE6, true, xregdest, arg);}
 
 void XEmitter::MASKMOVDQU(X64Reg dest, X64Reg src)  {WriteSSEOp(64, sseMASKMOVDQU, true, dest, R(src));}
 
@@ -1627,8 +1617,6 @@ void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
 void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 {
 	using namespace Gen;
-#if _M_X86_64
-
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1640,26 +1628,11 @@ void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 	MOV(32, R(RDX), Imm32(arg2));
 	CALL(fnptr);
 #endif
-
-#else
-	ABI_AlignStack(3 * 4);
-	PUSH(32, Imm32(arg2));
-	PUSH(32, Imm32(arg1));
-	PUSH(32, Imm32(arg0));
-	CALL(fnptr);
-#ifdef _WIN32
-	// don't inc stack
-#else
-	ABI_RestoreStack(3 * 4);
-#endif
-#endif
 }
 
 void XEmitter::CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3)
 {
 	using namespace Gen;
-#if _M_X86_64
-
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1673,27 +1646,11 @@ void XEmitter::CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 	MOV(32, R(RCX), Imm32(arg3));
 	CALL(fnptr);
 #endif
-
-#else
-	ABI_AlignStack(4 * 4);
-	PUSH(32, Imm32(arg3));
-	PUSH(32, Imm32(arg2));
-	PUSH(32, Imm32(arg1));
-	PUSH(32, Imm32(arg0));
-	CALL(fnptr);
-#ifdef _WIN32
-	// don't inc stack
-#else
-	ABI_RestoreStack(4 * 4);
-#endif
-#endif
 }
 
 void XEmitter::CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4)
 {
 	using namespace Gen;
-#if _M_X86_64
-
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1709,28 +1666,11 @@ void XEmitter::CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 	MOV(32, R(R8),  Imm32(arg4));
 	CALL(fnptr);
 #endif
-
-#else
-	ABI_AlignStack(5 * 4);
-	PUSH(32, Imm32(arg4));
-	PUSH(32, Imm32(arg3));
-	PUSH(32, Imm32(arg2));
-	PUSH(32, Imm32(arg1));
-	PUSH(32, Imm32(arg0));
-	CALL(fnptr);
-#ifdef _WIN32
-	// don't inc stack
-#else
-	ABI_RestoreStack(5 * 4);
-#endif
-#endif
 }
 
 void XEmitter::CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5)
 {
 	using namespace Gen;
-#if _M_X86_64
-
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1748,25 +1688,7 @@ void XEmitter::CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 	MOV(32, R(R9), Imm32(arg5));
 	CALL(fnptr);
 #endif
-
-#else
-	ABI_AlignStack(6 * 4);
-	PUSH(32, Imm32(arg5));
-	PUSH(32, Imm32(arg4));
-	PUSH(32, Imm32(arg3));
-	PUSH(32, Imm32(arg2));
-	PUSH(32, Imm32(arg1));
-	PUSH(32, Imm32(arg0));
-	CALL(fnptr);
-#ifdef _WIN32
-	// don't inc stack
-#else
-	ABI_RestoreStack(6 * 4);
-#endif
-#endif
 }
-
-#if _M_X86_64
 
 // See header
 void XEmitter::___CallCdeclImport3(void* impptr, u32 arg0, u32 arg1, u32 arg2) {
@@ -1799,7 +1721,5 @@ void XEmitter::___CallCdeclImport6(void* impptr, u32 arg0, u32 arg1, u32 arg2, u
 	MOV(32, MDisp(RSP, 0x28), Imm32(arg5));
 	CALLptr(M(impptr));
 }
-
-#endif
 
 }

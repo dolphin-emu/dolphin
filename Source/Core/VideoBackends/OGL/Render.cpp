@@ -20,6 +20,7 @@
 #include "Core/Movie.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/main.h"
 #include "VideoBackends/OGL/PostProcessing.h"
@@ -67,7 +68,7 @@ void VideoConfig::UpdateProjectionHack()
 	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
-int OSDInternalW, OSDInternalH;
+static int OSDInternalW, OSDInternalH;
 
 namespace OGL
 {
@@ -85,7 +86,6 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
 static SHADER s_ShowEFBCopyRegions;
@@ -112,7 +112,7 @@ static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static bool s_efbCacheIsCleared = false;
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-int GetNumMSAASamples(int MSAAMode)
+static int GetNumMSAASamples(int MSAAMode)
 {
 	int samples;
 	switch (MSAAMode)
@@ -145,7 +145,7 @@ int GetNumMSAASamples(int MSAAMode)
 	return g_ogl_config.max_samples;
 }
 
-void ApplySSAASettings() {
+static void ApplySSAASettings() {
 	// GLES3 doesn't support SSAA
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
@@ -163,7 +163,8 @@ void ApplySSAASettings() {
 	}
 }
 
-void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
+#if defined(_DEBUG) || defined(DEBUGFAST)
+static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
 	const char *s_source;
 	const char *s_type;
@@ -196,18 +197,19 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
 }
+#endif
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
-void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
+static void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 {
 	glDepthRange(neardepth, fardepth);
 }
-void GLAPIENTRY ClearDepthf(GLfloat depthval)
+static void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
 }
 
-void InitDriverInfo()
+static void InitDriverInfo()
 {
 	std::string svendor = std::string(g_ogl_config.gl_vendor);
 	std::string srenderer = std::string(g_ogl_config.gl_renderer);
@@ -337,10 +339,8 @@ Renderer::Renderer()
 	OSDInternalW = 0;
 	OSDInternalH = 0;
 
-	s_fps=0;
 	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
-	InitFPSCounter();
 
 	bool bSuccess = true;
 
@@ -686,7 +686,7 @@ void Renderer::DrawDebugInfo()
 	std::string debug_info;
 
 	if (g_ActiveConfig.bShowFPS)
-		debug_info += StringFromFormat("FPS: %d\n", s_fps);
+		debug_info += StringFromFormat("FPS: %d\n", m_fps_counter.m_fps);
 
 	if (SConfig::GetInstance().m_ShowLag)
 		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
@@ -1299,7 +1299,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
-void DumpFrame(const std::vector<u8>& data, int w, int h)
+static void DumpFrame(const std::vector<u8>& data, int w, int h)
 {
 #if defined(HAVE_LIBAV) || defined(_WIN32)
 		if (g_ActiveConfig.bDumpFrames && !data.empty())
@@ -1460,7 +1460,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 				if (!bLastFrameDumped)
 				{
 					#ifdef _WIN32
-						bAVIDumping = AVIDump::Start((HWND)((cInterfaceWGL*)GLInterface)->m_window_handle, w, h);
+						bAVIDumping = AVIDump::Start(nullptr, w, h);
 					#else
 						bAVIDumping = AVIDump::Start(w, h);
 					#endif
@@ -1583,8 +1583,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		}
 	}
 
-	if (XFBWrited)
-		s_fps = UpdateFPSCounter();
 	// ---------------------------------------------------------------------
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{

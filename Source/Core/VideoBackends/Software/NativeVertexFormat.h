@@ -37,7 +37,13 @@ struct InputVertexData
 struct OutputVertexData
 {
 	// components in color channels
-	enum { RED_C, GRN_C, BLU_C, ALP_C };
+	enum
+	{
+		RED_C,
+		GRN_C,
+		BLU_C,
+		ALP_C
+	};
 
 	Vec3 mvPosition;
 	Vec4 projectedPosition;

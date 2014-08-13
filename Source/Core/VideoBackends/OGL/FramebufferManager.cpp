@@ -169,7 +169,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	{
 		// non-msaa, so just fetch the pixel
 		sampler =
-			"uniform sampler2D samp9;\n"
+			"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 			"vec4 sampleEFB(ivec2 pos) {\n"
 			"	return texelFetch(samp9, pos, 0);\n"
 			"}\n";
@@ -180,7 +180,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		// This will lead to sample shading, but it's the only way to not loose
 		// the values of each sample.
 		sampler =
-			"uniform sampler2DMS samp9;\n"
+			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
 			"vec4 sampleEFB(ivec2 pos) {\n"
 			"	return texelFetch(samp9, pos, gl_SampleID);\n"
 			"}\n";
@@ -191,7 +191,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		std::stringstream samples;
 		samples << m_msaaSamples;
 		sampler =
-			"uniform sampler2DMS samp9;\n"
+			"SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
 			"vec4 sampleEFB(ivec2 pos) {\n"
 			"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
 			"	for(int i=0; i<" + samples.str() + "; i++)\n"

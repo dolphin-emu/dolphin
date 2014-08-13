@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/MemoryUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -53,13 +54,13 @@ void* AllocateExecutableMemory(size_t size, bool low)
 	// printf("Mapped executable memory at %p (size %ld)\n", ptr,
 	//	(unsigned long)size);
 
-#if defined(__FreeBSD__)
+#ifdef _WIN32
+	if (ptr == nullptr)
+	{
+#else
 	if (ptr == MAP_FAILED)
 	{
 		ptr = nullptr;
-#else
-	if (ptr == nullptr)
-	{
 #endif
 		PanicAlert("Failed to allocate executable memory");
 	}

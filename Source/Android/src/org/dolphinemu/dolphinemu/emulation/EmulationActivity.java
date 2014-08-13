@@ -253,7 +253,7 @@ public final class EmulationActivity extends Activity
 			{
 				// Create a confirmation method for quitting the current emulation instance.
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(getString(R.string.overlay_exit_emulation));
+				builder.setTitle(R.string.overlay_exit_emulation);
 				builder.setMessage(R.string.overlay_exit_emulation_confirm);
 				builder.setNegativeButton(R.string.no, null);
 				builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {

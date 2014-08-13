@@ -12,9 +12,6 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 
-extern float posScale;
-extern TVtxAttr *pVtxAttr;
-
 // Thoughts on the implementation of a vertex loader compiler.
 // s_pCurBufferPointer should definitely be in a register.
 // Could load the position scale factor in XMM7, for example.

@@ -29,10 +29,10 @@
 #include <wx/aui/framemanager.h>
 
 #include "Common/Common.h"
-#include "Common/ConsoleListener.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/LogManager.h"
+#include "Common/Logging/ConsoleListener.h"
+#include "Common/Logging/LogManager.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/WxUtils.h"
@@ -69,13 +69,15 @@ void CLogWindow::CreateGUIControls()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 
-	ini.Get("LogWindow", "x", &x, Parent->GetSize().GetX() / 2);
-	ini.Get("LogWindow", "y", &y, Parent->GetSize().GetY());
-	ini.Get("LogWindow", "pos", &winpos, wxAUI_DOCK_RIGHT);
+	IniFile::Section* options    = ini.GetOrCreateSection("Options");
+	IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
+	log_window->Get("x", &x, Parent->GetSize().GetX() / 2);
+	log_window->Get("y", &y, Parent->GetSize().GetY());
+	log_window->Get("pos", &winpos, wxAUI_DOCK_RIGHT);
 
 	// Set up log listeners
 	int verbosity;
-	ini.Get("Options", "Verbosity", &verbosity, 0);
+	options->Get("Verbosity", &verbosity, 0);
 
 	// Ensure the verbosity level is valid
 	if (verbosity < 1)
@@ -84,12 +86,12 @@ void CLogWindow::CreateGUIControls()
 		verbosity = MAX_LOGLEVEL;
 
 	// Get the logger output settings from the config ini file.
-	ini.Get("Options", "WriteToFile", &m_writeFile, false);
-	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
+	options->Get("WriteToFile", &m_writeFile, false);
+	options->Get("WriteToWindow", &m_writeWindow, true);
 #ifdef _MSC_VER
 	if (IsDebuggerPresent())
 	{
-		ini.Get("Options", "WriteToDebugger", &m_writeDebugger, true);
+		options->Get("WriteToDebugger", &m_writeDebugger, true);
 	}
 	else
 #endif
@@ -97,10 +99,11 @@ void CLogWindow::CreateGUIControls()
 		m_writeDebugger = false;
 	}
 
+	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
-		ini.Get("Logs", m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, true);
+		logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, true);
 
 		if (m_writeWindow && enable)
 			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, this);
@@ -133,12 +136,12 @@ void CLogWindow::CreateGUIControls()
 	LogFont.push_back(DebuggerFont);
 
 	int font;
-	ini.Get("Options", "Font", &font, 0);
+	options->Get("Font", &font, 0);
 	m_FontChoice->SetSelection(font);
 
 	// Word wrap
 	bool wrap_lines;
-	ini.Get("Options", "WrapLines", &wrap_lines, false);
+	options->Get("WrapLines", &wrap_lines, false);
 	m_WrapLine = new wxCheckBox(this, IDM_WRAPLINE, _("Word Wrap"));
 	m_WrapLine->SetValue(wrap_lines);
 
@@ -190,12 +193,16 @@ void CLogWindow::SaveSettings()
 
 	if (!Parent->g_pCodeWindow)
 	{
-		ini.Set("LogWindow", "x", x);
-		ini.Set("LogWindow", "y", y);
-		ini.Set("LogWindow", "pos", winpos);
+		IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
+		log_window->Set("x", x);
+		log_window->Set("y", y);
+		log_window->Set("pos", winpos);
 	}
-	ini.Set("Options", "Font", m_FontChoice->GetSelection());
-	ini.Set("Options", "WrapLines", m_WrapLine->IsChecked());
+
+	IniFile::Section* options = ini.GetOrCreateSection("Options");
+	options->Set("Font", m_FontChoice->GetSelection());
+	options->Set("WrapLines", m_WrapLine->IsChecked());
+
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
 }
 

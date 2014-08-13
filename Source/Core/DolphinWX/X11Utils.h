@@ -34,8 +34,6 @@
 namespace X11Utils
 {
 
-void SendButtonEvent(Display *dpy, int button, int x, int y, bool pressed);
-void SendMotionEvent(Display *dpy, int x, int y);
 void EWMH_Fullscreen(Display *dpy, int action);
 #if defined(HAVE_WX) && HAVE_WX
 Window XWindowFromHandle(void *Handle);
@@ -53,9 +51,7 @@ class XRRConfiguration
 
 		void Update();
 		void ToggleDisplayMode(bool bFullscreen);
-#if defined(HAVE_WX) && HAVE_WX
-		void AddResolutions(wxArrayString& arrayStringFor_FullscreenResolution);
-#endif
+		void AddResolutions(std::vector<std::string>& resos);
 
 	private:
 		Display *dpy;

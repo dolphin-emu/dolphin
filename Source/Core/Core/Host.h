@@ -23,6 +23,7 @@
 // The host can be just a command line app that opens a window, or a full blown debugger
 // interface.
 
+bool Host_UIHasFocus();
 bool Host_RendererHasFocus();
 void Host_ConnectWiimote(int wm_idx, bool connect);
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height);
@@ -30,17 +31,17 @@ void Host_Message(int Id);
 void Host_NotifyMapLoaded();
 void Host_RefreshDSPDebuggerWindow();
 void Host_RequestRenderWindowSize(int width, int height);
+void Host_RequestFullscreen(bool enable_fullscreen);
 void Host_SetStartupDebuggingParameters();
 void Host_SetWiiMoteConnectionState(int _State);
 void Host_ShowJitResults(unsigned int address);
 void Host_SysMessage(const char *fmt, ...);
-void Host_UpdateBreakPointView();
 void Host_UpdateDisasmDialog();
-void Host_UpdateLogDisplay();
 void Host_UpdateMainFrame();
 void Host_UpdateStatusBar(const std::string& text, int Filed = 0);
 void Host_UpdateTitle(const std::string& title);
+void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
+                          const std::string& config_name);
 
-// TODO (neobrain): Remove these from host!
-void* Host_GetInstance();
+// TODO (neobrain): Remove this from host!
 void* Host_GetRenderHandle();

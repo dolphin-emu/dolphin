@@ -346,15 +346,15 @@ StreamBuffer* StreamBuffer::Create(u32 type, u32 size)
 	// Prefer the syncing buffers over the orphaning one
 	if (g_ogl_config.bSupportsGLSync)
 	{
-		// try to use buffer storage whenever possible
-		if (g_ogl_config.bSupportsGLBufferStorage &&
-			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER))
-			return new BufferStorage(type, size);
-
-		// pinned memory is almost as fine
+		// pinned memory is much faster than buffer storage on amd cards
 		if (g_ogl_config.bSupportsGLPinnedMemory &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER))
 			return new PinnedMemory(type, size);
+
+		// buffer storage works well in most situations
+		if (g_ogl_config.bSupportsGLBufferStorage &&
+			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER))
+			return new BufferStorage(type, size);
 
 		// don't fall back to MapAnd* for nvidia drivers
 		if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUNSYNCMAPPING))

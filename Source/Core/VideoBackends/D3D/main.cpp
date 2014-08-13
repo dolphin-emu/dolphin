@@ -3,19 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <string>
-#include <wx/wx.h>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/LogManager.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
-
-#include "DolphinWX/VideoConfigDiag.h"
-#include "DolphinWX/Debugger/DebuggerPanel.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DUtil.h"
@@ -84,7 +80,7 @@ void InitBackendInfo()
 	g_Config.backend_info.APIType = API_D3D;
 	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
 	g_Config.backend_info.bUseMinimalMipCount = true;
-	g_Config.backend_info.bSupports3DVision = false;
+	g_Config.backend_info.bSupportsExclusiveFullscreen = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 	g_Config.backend_info.bSupportsOversizedViewports = false;
@@ -139,13 +135,10 @@ void InitBackendInfo()
 	DX11::D3D::UnloadD3D();
 }
 
-void VideoBackend::ShowConfig(void *_hParent)
+void VideoBackend::ShowConfig(void *hParent)
 {
-#if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
-	VideoConfigDiag diag((wxWindow*)_hParent, _trans("Direct3D"), "gfx_dx11");
-	diag.ShowModal();
-#endif
+	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_dx11");
 }
 
 bool VideoBackend::Initialize(void *&window_handle)

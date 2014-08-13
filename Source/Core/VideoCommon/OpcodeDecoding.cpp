@@ -34,8 +34,9 @@
 u8* g_pVideoData = nullptr;
 bool g_bRecordFifoData = false;
 
+typedef void (*DataReadU32xNfunc)(u32 *buf);
 #if _M_SSE >= 0x301
-DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
+static DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
 	DataReadU32xN_SSSE3<1>,
 	DataReadU32xN_SSSE3<2>,
 	DataReadU32xN_SSSE3<3>,
@@ -55,7 +56,7 @@ DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
 };
 #endif
 
-DataReadU32xNfunc DataReadU32xFuncs[16] = {
+static DataReadU32xNfunc DataReadU32xFuncs[16] = {
 	DataReadU32xN<1>,
 	DataReadU32xN<2>,
 	DataReadU32xN<3>,
@@ -73,9 +74,6 @@ DataReadU32xNfunc DataReadU32xFuncs[16] = {
 	DataReadU32xN<15>,
 	DataReadU32xN<16>
 };
-
-extern u8* GetVideoBufferStartPtr();
-extern u8* GetVideoBufferEndPtr();
 
 static void Decode();
 
@@ -97,7 +95,6 @@ void InterpretDisplayList(u32 address, u32 size)
 		{
 			Decode();
 		}
-		INCSTAT(stats.numDListsCalled);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -108,7 +105,7 @@ void InterpretDisplayList(u32 address, u32 size)
 	g_pVideoData = old_pVideoData;
 }
 
-u32 FifoCommandRunnable(u32 &command_size)
+static u32 FifoCommandRunnable(u32 &command_size)
 {
 	u32 cycleTime = 0;
 	u32 buffer_size = (u32)(GetVideoBufferEndPtr() - g_pVideoData);
@@ -268,7 +265,7 @@ u32 FifoCommandRunnable(u32 &command_size)
 	return cycleTime;
 }
 
-u32 FifoCommandRunnable()
+static u32 FifoCommandRunnable()
 {
 	u32 command_size = 0;
 	return FifoCommandRunnable(command_size);

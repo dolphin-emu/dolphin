@@ -23,7 +23,7 @@ CARDUCode::~CARDUCode()
 }
 
 
-void CARDUCode::Update(int cycles)
+void CARDUCode::Update()
 {
 	// check if we have to sent something
 	if (!m_mail_handler.IsEmpty())

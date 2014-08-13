@@ -104,7 +104,7 @@ private:
 	void OnMultiCompressGCM(wxCommandEvent& event);
 	void OnMultiDecompressGCM(wxCommandEvent& event);
 	void OnInstallWAD(wxCommandEvent& event);
-	void OnDropFiles(wxDropFilesEvent& event);
+	void OnChangeDisc(wxCommandEvent& event);
 
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();

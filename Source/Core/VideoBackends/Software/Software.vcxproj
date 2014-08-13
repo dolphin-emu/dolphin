@@ -1,17 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -72,7 +64,6 @@
     <ClCompile Include="TextureEncoder.cpp" />
     <ClCompile Include="TextureSampler.cpp" />
     <ClCompile Include="TransformUnit.cpp" />
-    <ClCompile Include="VideoConfigDialog.cpp" />
     <ClCompile Include="XFMemLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -100,7 +91,6 @@
     <ClInclude Include="TransformUnit.h" />
     <ClInclude Include="Vec3.h" />
     <ClInclude Include="VideoBackend.h" />
-    <ClInclude Include="VideoConfigDialog.h" />
     <ClInclude Include="XFMemLoader.h" />
   </ItemGroup>
   <ItemGroup>

@@ -20,11 +20,11 @@ namespace DSPSymbols
 
 DSPSymbolDB g_dsp_symbol_db;
 
-std::map<u16, int> addr_to_line;
-std::map<int, u16> line_to_addr;
-std::map<int, const char *> line_to_symbol;
-std::vector<std::string> lines;
-int line_counter = 0;
+static std::map<u16, int> addr_to_line;
+static std::map<int, u16> line_to_addr;
+static std::map<int, const char *> line_to_symbol;
+static std::vector<std::string> lines;
+static int line_counter = 0;
 
 int Addr2Line(u16 address)  // -1 for not found
 {
@@ -73,11 +73,6 @@ Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 		}
 	}
 	return nullptr;
-}
-
-void DisassembleRange(u16 start, u16 end)
-{
-	// TODO: ?
 }
 
 bool ReadAnnotatedAssembly(const std::string& filename)
@@ -233,7 +228,7 @@ void AutoDisassembly(u16 start_addr, u16 end_addr)
 		addr_to_line[addr] = line_counter;
 
 		std::string buf;
-		if (!disasm.DisOpcode(ptr, 0, 2, &addr, buf))
+		if (!disasm.DisassembleOpcode(ptr, 0, 2, &addr, buf))
 		{
 			ERROR_LOG(DSPLLE, "disasm failed at %04x", addr);
 			break;

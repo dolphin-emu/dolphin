@@ -98,7 +98,7 @@ void Television::Init()
 
 	// Create YUYV-decoding pixel shader
 
-	m_pShader = D3D::CompileAndCreatePixelShader(YUYV_DECODER_PS, sizeof(YUYV_DECODER_PS));
+	m_pShader = D3D::CompileAndCreatePixelShader(YUYV_DECODER_PS);
 	CHECK(m_pShader != nullptr, "compile and create yuyv decoder pixel shader");
 	D3D::SetDebugObjectName(m_pShader, "yuyv decoder pixel shader");
 

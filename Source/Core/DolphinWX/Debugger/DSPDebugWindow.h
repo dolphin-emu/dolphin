@@ -74,4 +74,3 @@ private:
 	//void UnselectAll();
 };
 
-extern DSPDebuggerLLE* m_DebuggerFrame;

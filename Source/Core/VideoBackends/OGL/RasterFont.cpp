@@ -124,7 +124,7 @@ static const char *s_vertexShaderSrc =
 	"}\n";
 
 static const char *s_fragmentShaderSrc =
-	"uniform sampler2D samp8;\n"
+	"SAMPLER_BINDING(8) uniform sampler2D samp8;\n"
 	"uniform vec4 color;\n"
 	"in vec2 uv0;\n"
 	"out vec4 ocol0;\n"
@@ -158,6 +158,7 @@ RasterFont::RasterFont()
 
 	// generate shader
 	ProgramShaderCache::CompileShader(s_shader, s_vertexShaderSrc, s_fragmentShaderSrc);
+	s_shader.Bind();
 
 	// bound uniforms
 	glUniform2f(glGetUniformLocation(s_shader.glprogid,"charSize"), 1.0f / GLfloat(char_count), 1.0f);

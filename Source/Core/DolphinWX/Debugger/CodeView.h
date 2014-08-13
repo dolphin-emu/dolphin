@@ -30,6 +30,7 @@ public:
 			wxWindow* parent, wxWindowID Id = wxID_ANY);
 	void OnPaint(wxPaintEvent& event);
 	void OnErase(wxEraseEvent& event);
+	void OnScrollWheel(wxMouseEvent& event);
 	void OnMouseDown(wxMouseEvent& event);
 	void OnMouseMove(wxMouseEvent& event);
 	void OnMouseUpL(wxMouseEvent& event);
@@ -37,26 +38,23 @@ public:
 	void OnPopupMenu(wxCommandEvent& event);
 	void InsertBlrNop(int);
 
-	u32 GetSelection() {return(selection);}
 	void ToggleBreakpoint(u32 address);
 
-	struct BlrStruct // for IDM_INSERTBLR
+	u32 GetSelection()
 	{
-		u32 Address;
-		u32 OldValue;
-	};
-	std::vector<BlrStruct> BlrList;
+		return m_selection;
+	}
 
 	void Center(u32 addr)
 	{
-		curAddress = addr;
-		selection = addr;
+		m_curAddress = addr;
+		m_selection = addr;
 		Refresh();
 	}
 
 	void SetPlain()
 	{
-		plain = true;
+		m_plain = true;
 	}
 
 private:
@@ -66,22 +64,35 @@ private:
 	u32 AddrToBranch(u32 addr);
 	void OnResize(wxSizeEvent& event);
 
-	DebugInterface* debugger;
-	SymbolDB* symbol_db;
+	void MoveTo(int x, int y)
+	{
+		m_lx = x;
+		m_ly = y;
+	}
 
-	bool plain;
+	void LineTo(wxPaintDC &dc, int x, int y);
 
-	int curAddress;
-	int align;
-	int rowHeight;
+	struct BlrStruct // for IDM_INSERTBLR
+	{
+		u32 address;
+		u32 oldValue;
+	};
+	std::vector<BlrStruct> m_blrList;
 
-	u32 selection;
-	u32 oldSelection;
-	bool selecting;
+	DebugInterface* m_debugger;
+	SymbolDB* m_symbol_db;
 
-	int lx, ly;
-	void _MoveTo(int x, int y) {lx = x; ly = y;}
-	void _LineTo(wxPaintDC &dc, int x, int y);
+	bool m_plain;
+
+	int m_curAddress;
+	int m_align;
+	int m_rowHeight;
+
+	u32 m_selection;
+	u32 m_oldSelection;
+	bool m_selecting;
+
+	int m_lx, m_ly;
 
 	DECLARE_EVENT_TABLE()
 };

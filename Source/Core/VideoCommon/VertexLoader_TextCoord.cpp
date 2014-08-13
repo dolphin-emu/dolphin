@@ -34,10 +34,7 @@ __forceinline void LOG_TEX<2>()
 	// PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
 }
 
-extern int tcIndex;
-extern float tcScale[8];
-
-void LOADERDECL TexCoord_Read_Dummy()
+static void LOADERDECL TexCoord_Read_Dummy()
 {
 	tcIndex++;
 }

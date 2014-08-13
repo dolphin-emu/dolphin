@@ -35,7 +35,7 @@ NetPlayServer::NetPlayServer(const u16 port) : is_connected(false), m_is_running
 		is_connected = true;
 		m_do_loop = true;
 		m_selector.Add(m_socket);
-		m_thread = std::thread(std::mem_fn(&NetPlayServer::ThreadFunc), this);
+		m_thread = std::thread(&NetPlayServer::ThreadFunc, this);
 		m_target_buffer_size = 20;
 	}
 }
@@ -535,7 +535,7 @@ void NetPlayServer::SetNetSettings(const NetSettings &settings)
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::StartGame(const std::string &path)
+bool NetPlayServer::StartGame()
 {
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 	m_current_game = Common::Timer::GetTimeMs();

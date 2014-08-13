@@ -11,8 +11,8 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
-void bswap(Elf32_Word &w) {w = Common::swap32(w);}
-void bswap(Elf32_Half &w) {w = Common::swap16(w);}
+static void bswap(Elf32_Word &w) {w = Common::swap32(w);}
+static void bswap(Elf32_Half &w) {w = Common::swap16(w);}
 
 static void byteswapHeader(Elf32_Ehdr &ELF_H)
 {

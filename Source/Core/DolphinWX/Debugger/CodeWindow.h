@@ -27,7 +27,7 @@ class DSPDebuggerLLE;
 class GFXDebuggerPanel;
 struct SCoreStartupParameter;
 
-class wxAuiToolBar;
+class wxToolBar;
 class wxListBox;
 class wxMenu;
 class wxMenuBar;
@@ -52,7 +52,7 @@ class CCodeWindow
 		// Parent interaction
 		CFrame *Parent;
 		wxMenuBar * GetMenuBar();
-		wxAuiToolBar * GetToolBar();
+		wxToolBar * GetToolBar();
 		wxBitmap m_Bitmaps[ToolbarDebugBitmapMax];
 
 		bool UseInterpreter();
@@ -60,15 +60,15 @@ class CCodeWindow
 		bool AutomaticStart();
 		bool JITNoBlockCache();
 		bool JITBlockLinking();
-		void JumpToAddress(u32 _Address);
+		bool JumpToAddress(u32 address);
 
 		void Update() override;
 		void NotifyMapLoaded();
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 		void CreateMenuOptions(wxMenu *pMenu);
 		void CreateMenuSymbols(wxMenuBar *pMenuBar);
-		void RecreateToolbar(wxAuiToolBar*);
-		void PopulateToolbar(wxAuiToolBar* toolBar);
+		void RecreateToolbar(wxToolBar*);
+		void PopulateToolbar(wxToolBar* toolBar);
 		void UpdateButtonStates();
 		void OpenPages();
 		void UpdateManager();

@@ -4,6 +4,7 @@
 
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbCopy.h"
@@ -14,6 +15,7 @@
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/TextureEncoder.h"
+#include "VideoCommon/Fifo.h"
 
 static const float s_gammaLUT[] =
 {
@@ -25,7 +27,7 @@ static const float s_gammaLUT[] =
 
 namespace EfbCopy
 {
-	void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	static void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 	{
 		GLInterface->Update(); // update the render window position and the backbuffer size
 
@@ -43,12 +45,12 @@ namespace EfbCopy
 			else
 			{
 				// Ask SWRenderer for the next color texture
-				u8 *colorTexture = SWRenderer::getColorTexture();
+				u8 *colorTexture = SWRenderer::GetNextColorTexture();
 
 				EfbInterface::BypassXFB(colorTexture, fbWidth, fbHeight, sourceRc, Gamma);
 
 				// Tell SWRenderer we are now finished with it.
-				SWRenderer::swapColorTexture();
+				SWRenderer::SwapColorTexture();
 
 				// FifoPlayer is broken and never calls BeginFrame/EndFrame.
 				// Hence, we manually force a swap now. This emulates the behavior
@@ -57,11 +59,12 @@ namespace EfbCopy
 				//       This requires careful synchronization since GPU commands
 				//       are processed on a different thread than VI commands.
 				SWRenderer::Swap(fbWidth, fbHeight);
+				DebugUtil::OnFrameEnd(fbWidth, fbHeight);
 			}
 		}
 	}
 
-	void CopyToRam()
+	static void CopyToRam()
 	{
 		if (!g_SWVideoConfig.bHwRasterizer)
 		{
@@ -71,7 +74,7 @@ namespace EfbCopy
 		}
 	}
 
-	void ClearEfb()
+	static void ClearEfb()
 	{
 		u32 clearColor = (bpmem.clearcolorAR & 0xff) << 24 | bpmem.clearcolorGB << 8 | (bpmem.clearcolorAR & 0xff00) >> 8;
 

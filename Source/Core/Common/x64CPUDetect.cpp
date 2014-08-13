@@ -9,15 +9,7 @@
 #include "Common/CPUDetect.h"
 
 #ifdef _WIN32
-#define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
-#define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
-#define _interlockedbittestandset64 workaround_ms_header_bug_platform_sdk6_set64
-#define _interlockedbittestandreset64 workaround_ms_header_bug_platform_sdk6_reset64
 #include <intrin.h>
-#undef _interlockedbittestandset
-#undef _interlockedbittestandreset
-#undef _interlockedbittestandset64
-#undef _interlockedbittestandreset64
 #else
 
 //#include <config/i386/cpuid.h>
@@ -98,21 +90,11 @@ CPUInfo::CPUInfo() {
 void CPUInfo::Detect()
 {
 	memset(this, 0, sizeof(*this));
-#if _M_X86_32
-	Mode64bit = false;
-#elif _M_X86_64
+#ifdef _M_X86_64
 	Mode64bit = true;
 	OS64bit = true;
 #endif
 	num_cores = 1;
-
-#ifdef _WIN32
-#if _M_X86_32
-	BOOL f64 = false;
-	IsWow64Process(GetCurrentProcess(), &f64);
-	OS64bit = (f64 == TRUE) ? true : false;
-#endif
-#endif
 
 	// Set obvious defaults, for extra safety
 	if (Mode64bit) {

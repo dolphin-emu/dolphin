@@ -27,11 +27,9 @@
 #if _M_ARM_32
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitArm32/JitArm_Tables.h"
-#include "Core/PowerPC/JitArmIL/JitIL.h"
-#include "Core/PowerPC/JitArmIL/JitIL_Tables.h"
 #endif
 
-bool bFakeVMEM = false;
+static bool bFakeVMEM = false;
 bool bMMU = false;
 
 namespace JitInterface
@@ -67,11 +65,6 @@ namespace JitInterface
 				ptr = new JitArm();
 				break;
 			}
-			case 4:
-			{
-				ptr = new JitArmIL();
-				break;
-			}
 			#endif
 			default:
 			{
@@ -104,11 +97,6 @@ namespace JitInterface
 			case 3:
 			{
 				JitArmTables::InitTables();
-				break;
-			}
-			case 4:
-			{
-				JitArmILTables::InitTables();
 				break;
 			}
 			#endif

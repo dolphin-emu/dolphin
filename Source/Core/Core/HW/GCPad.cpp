@@ -5,8 +5,8 @@
 #include "Common/Common.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
-
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -47,7 +47,7 @@ void Initialize(void* const hwnd)
 	g_plugin.LoadConfig(true);
 }
 
-void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
+void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 {
 	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
 	_pPADStatus->err = PAD_ERR_NONE;
@@ -58,10 +58,10 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		// if gui has lock (messing with controls), skip this input cycle
 		// center axes and return
-		_pPADStatus->stickX = 0x80;
-		_pPADStatus->stickY = 0x80;
-		_pPADStatus->substickX = 0x80;
-		_pPADStatus->substickY = 0x80;
+		_pPADStatus->stickX = GCPadStatus::MAIN_STICK_CENTER_X;
+		_pPADStatus->stickY = GCPadStatus::MAIN_STICK_CENTER_Y;
+		_pPADStatus->substickX = GCPadStatus::C_STICK_CENTER_X;
+		_pPADStatus->substickY = GCPadStatus::C_STICK_CENTER_Y;
 		return;
 	}
 

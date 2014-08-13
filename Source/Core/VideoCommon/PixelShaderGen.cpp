@@ -204,7 +204,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		// Declare samplers
 		for (int i = 0; i < 8; ++i)
-			out.Write("uniform sampler2D samp%d;\n", i);
+			out.Write("SAMPLER_BINDING(%d) uniform sampler2D samp%d;\n", i, i);
 	}
 	else // D3D
 	{
@@ -405,7 +405,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			{
 				out.Write("uv%d.xy", i);
 			}
-			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0);\n\n", i);
+			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0);\n", i);
 			// TODO: S24 overflows here?
 		}
 	}
@@ -575,7 +575,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	if (!bHasTexCoord)
 		texcoord = 0;
 
-	out.Write("\t// TEV stage %d\n", n);
+	out.Write("\n\t// TEV stage %d\n", n);
 
 	uid_data.stagehash[n].hasindstage = bHasIndStage;
 	uid_data.stagehash[n].tevorders_texcoord = texcoord;
@@ -780,10 +780,10 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 
-	out.Write("tevin_a = int4(%s, %s)&255;\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
-	out.Write("tevin_b = int4(%s, %s)&255;\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
-	out.Write("tevin_c = int4(%s, %s)&255;\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
-	out.Write("tevin_d = int4(%s, %s);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
+	out.Write("\ttevin_a = int4(%s, %s)&255;\n", tevCInputTable[cc.a], tevAInputTable[ac.a]);
+	out.Write("\ttevin_b = int4(%s, %s)&255;\n", tevCInputTable[cc.b], tevAInputTable[ac.b]);
+	out.Write("\ttevin_c = int4(%s, %s)&255;\n", tevCInputTable[cc.c], tevAInputTable[ac.c]);
+	out.Write("\ttevin_d = int4(%s, %s);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
 
 	out.Write("\t// color combine\n");
 	out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
@@ -844,7 +844,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	else
 		out.Write(", -1024, 1023)");
 
-	out.Write(";\n\n");
+	out.Write(";\n");
 }
 
 template<class T>
@@ -980,7 +980,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 			out.Write("\t\treturn;\n");
 	}
 
-	out.Write("}\n");
+	out.Write("\t}\n");
 }
 
 static const char *tevFogFuncsTable[] =

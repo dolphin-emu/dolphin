@@ -15,10 +15,6 @@
 bool TexFmt_Overlay_Enable=false;
 bool TexFmt_Overlay_Center=false;
 
-extern const char* texfmt[];
-extern const unsigned char sfont_map[];
-extern const unsigned char sfont_raw[][9*10];
-
 // TRAM
 // STATE_TO_SAVE
  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);

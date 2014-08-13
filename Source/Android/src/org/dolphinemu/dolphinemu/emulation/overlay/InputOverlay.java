@@ -54,7 +54,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		Bitmap bitmapResized = Bitmap.createScaledBitmap(bitmap,
 				(int)(dm.heightPixels * scale),
 				(int)(dm.heightPixels * scale),
-				false);
+				true);
 		return bitmapResized;
 	}
 
@@ -186,8 +186,31 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableButton.
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
+		// Decide scale based on button ID
+		float scale;
+		float overlaySize = sPrefs.getInt("controls_size", 25);
+		overlaySize += 25;
+		overlaySize /= 50;
+
+		switch (resId)
+		{
+		case R.drawable.gcpad_b:
+			scale = 0.13f * overlaySize;
+			break;
+		case R.drawable.gcpad_x:
+		case R.drawable.gcpad_y:
+			scale = 0.18f * overlaySize;
+			break;
+		case R.drawable.gcpad_start:
+			scale = 0.12f * overlaySize;
+			break;
+		default:
+			scale = 0.20f * overlaySize;
+			break;
+		}
+
 		// Initialize the InputOverlayDrawableButton.
-		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), 0.20f);
+		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), scale);
 		final InputOverlayDrawableButton overlayDrawable = new InputOverlayDrawableButton(res, bitmap, buttonId);
 
 		// String ID of the Drawable. This is what is passed into SharedPreferences
@@ -231,7 +254,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
 		// Initialize the InputOverlayDrawableJoystick.
-		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), 0.30f);
+		float overlaySize = sPrefs.getInt("controls_size", 20);
+		overlaySize += 30;
+		overlaySize /= 50;
+		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), 0.30f * overlaySize);
 		final Bitmap bitmapInner = BitmapFactory.decodeResource(res, resInner);
 
 		// String ID of the Drawable. This is what is passed into SharedPreferences

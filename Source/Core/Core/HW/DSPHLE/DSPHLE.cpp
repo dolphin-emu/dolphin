@@ -6,8 +6,8 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/IniFile.h"
-#include "Common/LogManager.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -39,7 +39,7 @@ struct DSPState
 	}
 };
 
-bool DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
+bool DSPHLE::Initialize(bool bWii, bool bDSPThread)
 {
 	m_bWii = bWii;
 	m_pUCode = nullptr;
@@ -66,10 +66,8 @@ void DSPHLE::Shutdown()
 
 void DSPHLE::DSP_Update(int cycles)
 {
-	// This is called OFTEN - better not do anything expensive!
-	// ~1/6th as many cycles as the period PPC-side.
 	if (m_pUCode != nullptr)
-		m_pUCode->Update(cycles / 6);
+		m_pUCode->Update();
 }
 
 u32 DSPHLE::DSP_UpdateRate()

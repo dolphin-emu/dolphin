@@ -86,7 +86,7 @@ protected:
 		VideoBackend* new_backend = g_available_video_backends[ev.GetInt()];
 		if (g_video_backend != new_backend)
 		{
-			bool do_switch = Core::GetState() == Core::CORE_UNINITIALIZED;
+			bool do_switch = !Core::IsRunning();
 			if (new_backend->GetName() == "Software Renderer")
 			{
 				do_switch = (wxYES == wxMessageBox(_("Software rendering is an order of magnitude slower than using the other backends.\nIt's only useful for debugging purposes.\nDo you really want to enable software rendering? If unsure, select 'No'."),
@@ -155,9 +155,9 @@ protected:
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 
-		// 3D vision
-		_3d_vision->Enable(vconfig.backend_info.bSupports3DVision);
-		_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
+		// Borderless Fullscreen
+		borderless_fullscreen->Enable(vconfig.backend_info.bSupportsExclusiveFullscreen);
+		borderless_fullscreen->Show(vconfig.backend_info.bSupportsExclusiveFullscreen);
 
 		// EFB copy
 		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
@@ -188,7 +188,7 @@ protected:
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
 
-	SettingCheckBox* _3d_vision;
+	SettingCheckBox* borderless_fullscreen;
 
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;

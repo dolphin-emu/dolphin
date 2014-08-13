@@ -82,9 +82,7 @@
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
-bool sorted = false;
-
-extern CFrame* main_frame;
+static bool sorted = false;
 
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
                                 long sortData = CGameListCtrl::COLUMN_TITLE)
@@ -183,11 +181,6 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	return 0;
 }
 
-bool operator < (const GameListItem &one, const GameListItem &other)
-{
-	return CompareGameListItems(&one, &other) < 0;
-}
-
 BEGIN_EVENT_TABLE(wxEmuStateTip, wxTipWindow)
 	EVT_KEY_DOWN(wxEmuStateTip::OnKeyDown)
 END_EVENT_TABLE()
@@ -210,14 +203,13 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
 	EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
 	EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
+	EVT_MENU(IDM_LIST_CHANGEDISC, CGameListCtrl::OnChangeDisc)
 END_EVENT_TABLE()
 
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 		wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style), toolTip(nullptr)
 {
-	DragAcceptFiles(true);
-	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CGameListCtrl::OnDropFiles), nullptr, this);
 }
 
 CGameListCtrl::~CGameListCtrl()
@@ -360,7 +352,7 @@ void CGameListCtrl::Update()
 		OnColumnClick(event);
 		sorted = true;
 
-		SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
+		SetColumnWidth(COLUMN_SIZE, SConfig::GetInstance().m_showSizeColumn ? wxLIST_AUTOSIZE : 0);
 	}
 	else
 	{
@@ -395,7 +387,7 @@ void CGameListCtrl::Update()
 	SetFocus();
 }
 
-wxString NiceSizeFormat(u64 _size)
+static wxString NiceSizeFormat(u64 _size)
 {
 	// Return a pretty filesize string from byte count.
 	// e.g. 1134278 -> "1.08 MiB"
@@ -473,7 +465,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	SetItemData(_Index, ItemIndex);
 }
 
-wxColour blend50(const wxColour& c1, const wxColour& c2)
+static wxColour blend50(const wxColour& c1, const wxColour& c2)
 {
 	unsigned char r,g,b,a;
 	r = c1.Red()/2   + c2.Red()/2;
@@ -658,12 +650,8 @@ const GameListItem *CGameListCtrl::GetISO(size_t index) const
 		return nullptr;
 }
 
-CGameListCtrl *caller;
-#if wxCHECK_VERSION(2, 9, 0)
-int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
-#else // 2.8.x
-int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
-#endif
+static CGameListCtrl *caller;
+static int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 	// return 1 if item1 > item2
 	// return -1 if item1 < item2
@@ -905,6 +893,12 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			else
 			{
 				popupMenu->Append(IDM_LIST_INSTALLWAD, _("Install to Wii Menu"));
+			}
+			if (selected_iso->GetPlatform() == GameListItem::GAMECUBE_DISC ||
+				selected_iso->GetPlatform() == GameListItem::WII_DISC)
+			{
+				wxMenuItem* changeDiscItem = popupMenu->Append(IDM_LIST_CHANGEDISC, _("Change &Disc"));
+				changeDiscItem->Enable(Core::IsRunning());
 			}
 
 			PopupMenu(popupMenu);
@@ -1175,7 +1169,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	}
 
 	if (!all_good)
-		wxMessageBox(_("Dolphin was unable to complete the requested action."));
+		WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
 	Update();
 }
@@ -1261,9 +1255,17 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	}
 
 	if (!all_good)
-		wxMessageBox(_("Dolphin was unable to complete the requested action."));
+		WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
 	Update();
+}
+
+void CGameListCtrl::OnChangeDisc(wxCommandEvent& WXUNUSED(event))
+{
+	const GameListItem *iso = GetSelectedISO();
+	if (!iso || !Core::IsRunning())
+		return;
+	DVDInterface::ChangeDisc(WxStrToStr(iso->GetFileName()));
 }
 
 void CGameListCtrl::OnSize(wxSizeEvent& event)
@@ -1322,39 +1324,5 @@ void CGameListCtrl::UnselectAll()
 	for (int i=0; i<GetItemCount(); i++)
 	{
 		SetItemState(i, 0, wxLIST_STATE_SELECTED);
-	}
-}
-
-void CGameListCtrl::OnDropFiles(wxDropFilesEvent& event)
-{
-	if (event.GetNumberOfFiles() != 1)
-		return;
-	if (File::IsDirectory(WxStrToStr(event.GetFiles()[0])))
-		return;
-
-	wxFileName file = event.GetFiles()[0];
-
-	if (file.GetExt() == "dtm")
-	{
-		if (Core::IsRunning())
-			return;
-
-		if (!Movie::IsReadOnly())
-		{
-			// let's make the read-only flag consistent at the start of a movie.
-			Movie::SetReadOnly(true);
-			main_frame->GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
-		}
-
-		if (Movie::PlayInput(WxStrToStr(file.GetFullPath())))
-			main_frame->BootGame("");
-	}
-	else if (!Core::IsRunning())
-	{
-		main_frame->BootGame(WxStrToStr(file.GetFullPath()));
-	}
-	else
-	{
-		DVDInterface::ChangeDisc(WxStrToStr(file.GetFullPath()));
 	}
 }

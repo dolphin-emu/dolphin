@@ -79,7 +79,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
 	// options
 	groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
-	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Background Input"), false));
+	m_options->settings.emplace_back(new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
 }
 
 std::string GCPad::GetName() const
@@ -87,36 +87,33 @@ std::string GCPad::GetName() const
 	return std::string("GCPad") + char('1'+m_index);
 }
 
-void GCPad::GetInput(SPADStatus* const pad)
+void GCPad::GetInput(GCPadStatus* const pad)
 {
-	// if window has focus or background input enabled
-	if (Host_RendererHasFocus() || m_options[0].settings[0]->value)
-	{
-		// buttons
-		m_buttons->GetState(&pad->button, button_bitmasks);
+	double x, y, triggers[2];
 
-		// set analog A/B analog to full or w/e, prolly not needed
-		if (pad->button & PAD_BUTTON_A) pad->analogA = 0xFF;
-		if (pad->button & PAD_BUTTON_B) pad->analogB = 0xFF;
+	// buttons
+	m_buttons->GetState(&pad->button, button_bitmasks);
 
-		// dpad
-		m_dpad->GetState(&pad->button, dpad_bitmasks);
+	// set analog A/B analog to full or w/e, prolly not needed
+	if (pad->button & PAD_BUTTON_A) pad->analogA = 0xFF;
+	if (pad->button & PAD_BUTTON_B) pad->analogB = 0xFF;
 
-		// sticks
-		m_main_stick->GetState(&pad->stickX, &pad->stickY, 0x80, 127);
-		m_c_stick->GetState(&pad->substickX, &pad->substickY, 0x80, 127);
+	// dpad
+	m_dpad->GetState(&pad->button, dpad_bitmasks);
 
-		// triggers
-		m_triggers->GetState(&pad->button, trigger_bitmasks, &pad->triggerLeft, 0xFF);
-	}
-	else
-	{
-		// center sticks
-		pad->stickX = 0x80;
-		pad->stickY = 0x80;
-		pad->substickX = 0x80;
-		pad->substickY = 0x80;
-	}
+	// sticks
+	m_main_stick->GetState(&x, &y);
+	pad->stickX = GCPadStatus::MAIN_STICK_CENTER_X + (x * GCPadStatus::MAIN_STICK_RADIUS);
+	pad->stickY = GCPadStatus::MAIN_STICK_CENTER_Y + (y * GCPadStatus::MAIN_STICK_RADIUS);
+
+	m_c_stick->GetState(&x, &y);
+	pad->substickX = GCPadStatus::C_STICK_CENTER_X + (x * GCPadStatus::C_STICK_RADIUS);
+	pad->substickY = GCPadStatus::C_STICK_CENTER_Y + (y * GCPadStatus::C_STICK_RADIUS);
+
+	// triggers
+	m_triggers->GetState(&pad->button, trigger_bitmasks, triggers);
+	pad->triggerLeft = triggers[0] * 0xFF;
+	pad->triggerRight = triggers[1] * 0xFF;
 }
 
 void GCPad::SetMotor(const u8 on)
@@ -126,17 +123,12 @@ void GCPad::SetMotor(const u8 on)
 	if (state < 0.5)
 		force = -force;
 
-	// only rumble if window has focus or background input is enabled
-	if (Host_RendererHasFocus() || m_options[0].settings[0]->value)
-		m_rumble->controls[0]->control_ref->State(force);
-	else
-		m_rumble->controls[0]->control_ref->State(0);
+	m_rumble->controls[0]->control_ref->State(force);
 }
 
 void GCPad::SetOutput(const u8 on)
 {
-	// only rumble if window has focus or background input is enabled
-	m_rumble->controls[0]->control_ref->State(on && (Host_RendererHasFocus() || m_options[0].settings[0]->value));
+	m_rumble->controls[0]->control_ref->State(on);
 }
 
 void GCPad::LoadDefaults(const ControllerInterface& ciface)

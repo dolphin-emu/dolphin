@@ -297,7 +297,7 @@ static void point_add(u8 *r, const u8 *p, const u8 *q)
 	elt_add(ry, s, rx);
 }
 
-void point_mul(u8 *d, const u8 *a, const u8 *b) // a is bignum
+static void point_mul(u8 *d, const u8 *a, const u8 *b) // a is bignum
 {
 	u32 i;
 	u8 mask;

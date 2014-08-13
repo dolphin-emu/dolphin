@@ -92,9 +92,13 @@ struct SConfig : NonCopyable
 
 	// DSP settings
 	bool m_DSPEnableJIT;
+	bool m_DSPCaptureLog;
 	bool m_DumpAudio;
 	int m_Volume;
 	std::string sBackend;
+
+	// Input settings
+	bool m_BackgroundInput;
 
 	SysConf* m_SYSCONF;
 
@@ -113,6 +117,28 @@ struct SConfig : NonCopyable
 private:
 	SConfig();
 	~SConfig();
+
+	void SaveGeneralSettings(IniFile& ini);
+	void SaveInterfaceSettings(IniFile& ini);
+	void SaveDisplaySettings(IniFile& ini);
+	void SaveHotkeySettings(IniFile& ini);
+	void SaveGameListSettings(IniFile& ini);
+	void SaveCoreSettings(IniFile& ini);
+	void SaveDSPSettings(IniFile& ini);
+	void SaveInputSettings(IniFile& ini);
+	void SaveMovieSettings(IniFile& ini);
+	void SaveFifoPlayerSettings(IniFile& ini);
+
+	void LoadGeneralSettings(IniFile& ini);
+	void LoadInterfaceSettings(IniFile& ini);
+	void LoadDisplaySettings(IniFile& ini);
+	void LoadHotkeySettings(IniFile& ini);
+	void LoadGameListSettings(IniFile& ini);
+	void LoadCoreSettings(IniFile& ini);
+	void LoadDSPSettings(IniFile& ini);
+	void LoadInputSettings(IniFile& ini);
+	void LoadMovieSettings(IniFile& ini);
+	void LoadFifoPlayerSettings(IniFile& ini);
 
 	static SConfig* m_Instance;
 };

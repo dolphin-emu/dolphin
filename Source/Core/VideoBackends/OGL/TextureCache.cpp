@@ -7,15 +7,7 @@
 #include <vector>
 
 #ifdef _WIN32
-#define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
-#define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
-#define _interlockedbittestandset64 workaround_ms_header_bug_platform_sdk6_set64
-#define _interlockedbittestandreset64 workaround_ms_header_bug_platform_sdk6_reset64
 #include <intrin.h>
-#undef _interlockedbittestandset
-#undef _interlockedbittestandreset
-#undef _interlockedbittestandset64
-#undef _interlockedbittestandreset64
 #endif
 
 #include "Common/CommonPaths.h"
@@ -27,6 +19,7 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/TextureCache.h"
@@ -346,7 +339,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 TextureCache::TextureCache()
 {
 	const char *pColorMatrixProg =
-		"uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[7];\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
@@ -358,7 +351,7 @@ TextureCache::TextureCache()
 		"}\n";
 
 	const char *pDepthMatrixProg =
-		"uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[5];\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
@@ -372,7 +365,7 @@ TextureCache::TextureCache()
 
 	const char *VProgram =
 		"out vec2 uv0;\n"
-		"uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"void main()\n"
 		"{\n"

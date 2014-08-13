@@ -4,13 +4,14 @@
 
 #include <polarssl/md5.h>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -28,60 +29,62 @@
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/PowerPC/PowerPC.h"
-
+#include "InputCommon/GCPadStatus.h"
 #include "VideoCommon/VideoConfig.h"
 
 // The chunk to allocate movie data in multiples of.
 #define DTM_BASE_LENGTH (1024)
 
-std::mutex cs_frameSkip;
+static std::mutex cs_frameSkip;
 
 namespace Movie {
 
-bool g_bFrameStep = false;
-bool g_bFrameStop = false;
-bool g_bReadOnly = true;
-u32 g_rerecords = 0;
-PlayMode g_playMode = MODE_NONE;
+static bool g_bFrameStep = false;
+static bool g_bFrameStop = false;
+static bool g_bReadOnly = true;
+static u32 g_rerecords = 0;
+static PlayMode g_playMode = MODE_NONE;
 
-u32 g_framesToSkip = 0, g_frameSkipCounter = 0;
+static u32 g_framesToSkip = 0, g_frameSkipCounter = 0;
 
-u8 g_numPads = 0;
-ControllerState g_padState;
-DTMHeader tmpHeader;
-u8* tmpInput = nullptr;
-size_t tmpInputAllocated = 0;
-u64 g_currentByte = 0, g_totalBytes = 0;
+static u8 g_numPads = 0;
+static ControllerState g_padState;
+static DTMHeader tmpHeader;
+static u8* tmpInput = nullptr;
+static size_t tmpInputAllocated = 0;
+static u64 g_currentByte = 0, g_totalBytes = 0;
 u64 g_currentFrame = 0, g_totalFrames = 0; // VI
-u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
+u64 g_currentLagCount = 0;
+static u64 g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
-u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
-u64 g_recordingStartTime; // seconds since 1970 that recording started
-bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
-bool bMemcard = false, g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
-std::string videoBackend = "unknown";
-int iCPUCore = 1;
+static u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
+static u64 g_recordingStartTime; // seconds since 1970 that recording started
+static bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
+bool g_bClearSave = false;
+static bool bSyncGPU = false, bNetPlay = false;
+static std::string videoBackend = "unknown";
+static int iCPUCore = 1;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
-std::string author = "";
+static std::string author = "";
 u64 g_titleID = 0;
-unsigned char MD5[16];
-u8 bongos;
-u8 revision[20];
-u32 DSPiromHash = 0;
-u32 DSPcoefHash = 0;
+static unsigned char MD5[16];
+static u8 bongos, memcards;
+static u8 revision[20];
+static u32 DSPiromHash = 0;
+static u32 DSPcoefHash = 0;
 
-bool g_bRecordingFromSaveState = false;
-bool g_bPolled = false;
-int g_currentSaveVersion = 0;
+static bool g_bRecordingFromSaveState = false;
+static bool g_bPolled = false;
+static int g_currentSaveVersion = 0;
 
-std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
+static std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
 
-std::string g_InputDisplay[8];
+static std::string g_InputDisplay[8];
 
-ManipFunction mfunc = nullptr;
+static ManipFunction mfunc = nullptr;
 
-void EnsureTmpInputSize(size_t bound)
+static void EnsureTmpInputSize(size_t bound)
 {
 	if (tmpInputAllocated >= bound)
 		return;
@@ -365,9 +368,9 @@ bool IsStartingFromClearSave()
 	return g_bClearSave;
 }
 
-bool IsUsingMemcard()
+bool IsUsingMemcard(int memcard)
 {
-	return bMemcard;
+	return (memcards & (1 << memcard)) != 0;
 }
 bool IsSyncGPU()
 {
@@ -381,7 +384,7 @@ bool IsNetPlayRecording()
 
 void ChangePads(bool instantly)
 {
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+	if (!Core::IsRunning())
 		return;
 
 	int controllers = 0;
@@ -443,7 +446,7 @@ bool BeginRecordingInput(int controllers)
 		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			bongos |= (1 << i);
 
-	if (Core::IsRunning())
+	if (Core::IsRunningAndStarted())
 	{
 		if (File::Exists(tmpStateFilename))
 			File::Delete(tmpStateFilename);
@@ -474,7 +477,7 @@ bool BeginRecordingInput(int controllers)
 	return true;
 }
 
-static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str)
+static std::string Analog2DToString(u8 x, u8 y, const std::string& prefix)
 {
 	if ((x <= 1 || x == 128 || x >= 255) &&
 	    (y <= 1 || y == 128 || y >= 255))
@@ -483,97 +486,85 @@ static void Analog2DToString(u8 x, u8 y, const char* prefix, char* str)
 		{
 			if (x != 128 && y != 128)
 			{
-				sprintf(str, "%s:%s,%s", prefix, x<128?"LEFT":"RIGHT", y<128?"DOWN":"UP");
+				return StringFromFormat("%s:%s,%s", prefix.c_str(), x<128?"LEFT":"RIGHT", y<128?"DOWN":"UP");
 			}
 			else if (x != 128)
 			{
-				sprintf(str, "%s:%s", prefix, x<128?"LEFT":"RIGHT");
+				return StringFromFormat("%s:%s", prefix.c_str(), x<128?"LEFT":"RIGHT");
 			}
 			else
 			{
-				sprintf(str, "%s:%s", prefix, y<128?"DOWN":"UP");
+				return StringFromFormat("%s:%s", prefix.c_str(), y<128?"DOWN":"UP");
 			}
 		}
 		else
 		{
-			str[0] = '\0';
+			return "";
 		}
 	}
 	else
 	{
-		sprintf(str, "%s:%d,%d", prefix, x, y);
+		return StringFromFormat("%s:%d,%d", prefix.c_str(), x, y);
 	}
 }
 
-static void Analog1DToString(u8 v, const char* prefix, char* str)
+static std::string Analog1DToString(u8 v, const std::string& prefix)
 {
 	if (v > 0)
 	{
 		if (v == 255)
 		{
-			strcpy(str, prefix);
+			return prefix;
 		}
 		else
 		{
-			sprintf(str, "%s:%d", prefix, v);
+			return StringFromFormat("%s:%d", prefix.c_str(), v);
 		}
 	}
 	else
 	{
-		str[0] = '\0';
+		return "";
 	}
 }
 
-void SetInputDisplayString(ControllerState padState, int controllerID)
+static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
-	char inp[70];
-	sprintf(inp, "P%d:", controllerID + 1);
-	g_InputDisplay[controllerID] = inp;
+	g_InputDisplay[controllerID] = StringFromFormat("P%d:", controllerID + 1);
 
-	if (g_padState.A)
+	if (padState.A)
 		g_InputDisplay[controllerID].append(" A");
-	if (g_padState.B)
+	if (padState.B)
 		g_InputDisplay[controllerID].append(" B");
-	if (g_padState.X)
+	if (padState.X)
 		g_InputDisplay[controllerID].append(" X");
-	if (g_padState.Y)
+	if (padState.Y)
 		g_InputDisplay[controllerID].append(" Y");
-	if (g_padState.Z)
+	if (padState.Z)
 		g_InputDisplay[controllerID].append(" Z");
-	if (g_padState.Start)
+	if (padState.Start)
 		g_InputDisplay[controllerID].append(" START");
 
-	if (g_padState.DPadUp)
+	if (padState.DPadUp)
 		g_InputDisplay[controllerID].append(" UP");
-	if (g_padState.DPadDown)
+	if (padState.DPadDown)
 		g_InputDisplay[controllerID].append(" DOWN");
-	if (g_padState.DPadLeft)
+	if (padState.DPadLeft)
 		g_InputDisplay[controllerID].append(" LEFT");
-	if (g_padState.DPadRight)
+	if (padState.DPadRight)
 		g_InputDisplay[controllerID].append(" RIGHT");
 
-	Analog1DToString(g_padState.TriggerL, " L", inp);
-	g_InputDisplay[controllerID].append(inp);
-
-	Analog1DToString(g_padState.TriggerR, " R", inp);
-	g_InputDisplay[controllerID].append(inp);
-
-	Analog2DToString(g_padState.AnalogStickX, g_padState.AnalogStickY, " ANA", inp);
-	g_InputDisplay[controllerID].append(inp);
-
-	Analog2DToString(g_padState.CStickX, g_padState.CStickY, " C", inp);
-	g_InputDisplay[controllerID].append(inp);
-
+	g_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerL, " L"));
+	g_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerR, " R"));
+	g_InputDisplay[controllerID].append(Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA"));
+	g_InputDisplay[controllerID].append(Analog2DToString(padState.CStickX, padState.CStickY, " C"));
 	g_InputDisplay[controllerID].append("\n");
 }
 
-void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelData, u8* const irData)
+static void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelData, u8* const irData)
 {
 	int controllerID = remoteID + 4;
 
-	char inp[70];
-	sprintf(inp, "R%d:", remoteID + 1);
-	g_InputDisplay[controllerID] = inp;
+	g_InputDisplay[controllerID] = StringFromFormat("R%d:", remoteID + 1);
 
 	if (coreData)
 	{
@@ -605,20 +596,20 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 	if (accelData)
 	{
 		wm_accel* dt = (wm_accel*)accelData;
-		sprintf(inp, " ACC:%d,%d,%d", dt->x, dt->y, dt->z);
-		g_InputDisplay[controllerID].append(inp);
+		std::string accel = StringFromFormat(" ACC:%d,%d,%d", dt->x, dt->y, dt->z);
+		g_InputDisplay[controllerID].append(accel);
 	}
 
 	if (irData) // incomplete
 	{
-		sprintf(inp, " IR:%d,%d", ((u8*)irData)[0], ((u8*)irData)[1]);
-		g_InputDisplay[controllerID].append(inp);
+		std::string ir = StringFromFormat(" IR:%d,%d", ((u8*)irData)[0], ((u8*)irData)[1]);
+		g_InputDisplay[controllerID].append(ir);
 	}
 
 	g_InputDisplay[controllerID].append("\n");
 }
 
-void CheckPadStatus(SPADStatus *PadStatus, int controllerID)
+void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 {
 	g_padState.A         = ((PadStatus->button & PAD_BUTTON_A) != 0);
 	g_padState.B         = ((PadStatus->button & PAD_BUTTON_B) != 0);
@@ -646,7 +637,7 @@ void CheckPadStatus(SPADStatus *PadStatus, int controllerID)
 	SetInputDisplayString(g_padState, controllerID);
 }
 
-void RecordInput(SPADStatus *PadStatus, int controllerID)
+void RecordInput(GCPadStatus* PadStatus, int controllerID)
 {
 	if (!IsRecordingInput() || !IsUsingPad(controllerID))
 		return;
@@ -665,7 +656,7 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	g_totalBytes = g_currentByte;
 }
 
-void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
+void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf)
 {
 	u8* const coreData = rptf.core?(data+rptf.core):nullptr;
 	u8* const accelData = rptf.accel?(data+rptf.accel):nullptr;
@@ -707,7 +698,7 @@ void ReadHeader()
 		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
 		iCPUCore = tmpHeader.CPUCore;
 		g_bClearSave = tmpHeader.bClearSave;
-		bMemcard = tmpHeader.bMemcard;
+		memcards = tmpHeader.memcards;
 		bongos = tmpHeader.bongos;
 		bSyncGPU = tmpHeader.bSyncGPU;
 		bNetPlay = tmpHeader.bNetPlay;
@@ -833,9 +824,10 @@ void LoadInput(const std::string& filename)
 	u64 totalSavedBytes = t_record.GetSize() - 256;
 
 	bool afterEnd = false;
+	// This can only happen if the user manually deletes data from the dtm.
 	if (g_currentByte > totalSavedBytes)
 	{
-		//PanicAlertT("Warning: You loaded a save whose movie ends before the current frame in the save (byte %u < %u) (frame %u < %u). You should load another save before continuing.", (u32)totalSavedBytes+256, (u32)g_currentByte+256, (u32)tmpHeader.frameCount, (u32)g_currentFrame);
+		PanicAlertT("Warning: You loaded a save whose movie ends before the current frame in the save (byte %u < %u) (frame %u < %u). You should load another save before continuing.", (u32)totalSavedBytes+256, (u32)g_currentByte+256, (u32)tmpHeader.frameCount, (u32)g_currentFrame);
 		afterEnd = true;
 	}
 
@@ -844,7 +836,7 @@ void LoadInput(const std::string& filename)
 		g_totalFrames = tmpHeader.frameCount;
 		g_totalLagCount = tmpHeader.lagCount;
 		g_totalInputCount = tmpHeader.inputCount;
-		g_totalTickCount = tmpHeader.tickCount;
+		g_totalTickCount = g_tickCountAtLastInput = tmpHeader.tickCount;
 
 		EnsureTmpInputSize((size_t)totalSavedBytes);
 		g_totalBytes = totalSavedBytes;
@@ -857,6 +849,7 @@ void LoadInput(const std::string& filename)
 		}
 		else if (g_currentByte > g_totalBytes)
 		{
+			afterEnd = true;
 			PanicAlertT("Warning: You loaded a save that's after the end of the current movie. (byte %u > %u) (frame %u > %u). You should load another save before continuing, or load this state with read-only mode off.", (u32)g_currentByte+256, (u32)g_totalBytes+256, (u32)g_currentFrame, (u32)g_totalFrames);
 		}
 		else if (g_currentByte > 0 && g_totalBytes > 0)
@@ -943,7 +936,7 @@ static void CheckInputEnd()
 	}
 }
 
-void PlayController(SPADStatus *PadStatus, int controllerID)
+void PlayController(GCPadStatus* PadStatus, int controllerID)
 {
 	// Correct playback is entirely dependent on the emulator polling the controllers
 	// in the same order done during recording
@@ -959,7 +952,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 	// dtm files don't save the mic button or error bit. not sure if they're actually used, but better safe than sorry
 	signed char e = PadStatus->err;
-	memset(PadStatus, 0, sizeof(SPADStatus));
+	memset(PadStatus, 0, sizeof(GCPadStatus));
 	PadStatus->err = e;
 
 
@@ -1041,7 +1034,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	CheckInputEnd();
 }
 
-bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
+bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf)
 {
 	if (!IsPlayingInput() || !IsUsingWiimote(wiimote) || tmpInput == nullptr)
 		return false;
@@ -1143,7 +1136,7 @@ void SaveRecording(const std::string& filename)
 	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
-	header.bMemcard = bMemcard;
+	header.memcards = memcards;
 	header.bClearSave = g_bClearSave;
 	header.bSyncGPU = bSyncGPU;
 	header.bNetPlay = bNetPlay;
@@ -1181,7 +1174,7 @@ void SetInputManip(ManipFunction func)
 	mfunc = func;
 }
 
-void CallInputManip(SPADStatus *PadStatus, int controllerID)
+void CallInputManip(GCPadStatus* PadStatus, int controllerID)
 {
 	if (mfunc)
 		(*mfunc)(PadStatus, controllerID);
@@ -1212,7 +1205,8 @@ void GetSettings()
 	bNetPlay = NetPlay::IsNetPlayRunning();
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+	memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
+	memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
 	unsigned int tmp;
 	for (int i = 0; i < 20; ++i)
 	{

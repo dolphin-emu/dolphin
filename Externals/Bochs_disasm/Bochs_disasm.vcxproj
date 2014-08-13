@@ -53,12 +53,10 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="disasm.h" />
     <ClInclude Include="dis_tables.h" />
-    <ClInclude Include="PowerPCDisasm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dis_decode.cpp" />
     <ClCompile Include="dis_groups.cpp" />
-    <ClCompile Include="PowerPCDisasm.cpp" />
     <ClCompile Include="resolve.cpp" />
     <ClCompile Include="syntax.cpp" />
   </ItemGroup>
