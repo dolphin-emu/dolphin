@@ -1242,15 +1242,23 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 			// Save the current mode before going to fullscreen
 			AuiCurrent = m_Mgr->SavePerspective();
 			m_Mgr->LoadPerspective(AuiFullscreen, true);
+
 			// Hide toolbar
 			DoToggleToolbar(false);
+
+			// Disable toggling toolbar in menu
+			GetMenuBar()->FindItem(IDM_TOGGLE_TOOLBAR)->Enable(false);
 		}
 		else
 		{
 			// Restore saved perspective
 			m_Mgr->LoadPerspective(AuiCurrent, true);
+
 			// Restore toolbar to the status it was at before going fullscreen.
 			DoToggleToolbar(SConfig::GetInstance().m_InterfaceToolbar);
+
+			// Re-enable toggling toolbar in menu
+			GetMenuBar()->FindItem(IDM_TOGGLE_TOOLBAR)->Enable(true);
 		}
 	}
 	else
