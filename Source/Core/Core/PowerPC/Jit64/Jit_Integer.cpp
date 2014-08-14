@@ -338,6 +338,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		if (merge_branch)
 		{
 			js.downcountAmount++;
+			js.skipnext = true;
 
 			gpr.Flush();
 			fpr.Flush();
@@ -382,7 +383,6 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			{
 				if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 				{
-					js.skipnext = true;
 					WriteExit(js.next_compilerPC + 4);
 				}
 			}
