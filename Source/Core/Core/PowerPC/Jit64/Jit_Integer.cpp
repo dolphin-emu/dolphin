@@ -255,6 +255,49 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	}
 }
 
+void Jit64::DoMergedBranch()
+{
+	// Code that handles successful PPC branching.
+	if (js.next_inst.OPCD == 16) // bcx
+	{
+		if (js.next_inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+
+		u32 destination;
+		if (js.next_inst.AA)
+			destination = SignExt16(js.next_inst.BD << 2);
+		else
+			destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
+		WriteExit(destination);
+	}
+	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
+	{
+		if (js.next_inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+		MOV(32, R(EAX), M(&CTR));
+		AND(32, R(EAX), Imm32(0xFFFFFFFC));
+		WriteExitDestInEAX();
+	}
+	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
+	{
+		MOV(32, R(EAX), M(&LR));
+		AND(32, R(EAX), Imm32(0xFFFFFFFC));
+		if (js.next_inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+		WriteExitDestInEAX();
+	}
+	else
+	{
+		PanicAlert("WTF invalid branch");
+	}
+
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		js.skipnext = true;
+		WriteExit(js.next_compilerPC + 4);
+	}
+}
+
 void Jit64::cmpXX(UGeckoInstruction inst)
 {
 	// USES_CR
@@ -441,47 +484,9 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			else  // SO bit, do not branch (we don't emulate SO for cmp).
 				pDontBranch = J();
 
-			// Code that handles successful PPC branching.
-			if (js.next_inst.OPCD == 16) // bcx
-			{
-				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-
-				u32 destination;
-				if (js.next_inst.AA)
-					destination = SignExt16(js.next_inst.BD << 2);
-				else
-					destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-				WriteExit(destination);
-			}
-			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
-			{
-				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-				MOV(32, R(EAX), M(&CTR));
-				AND(32, R(EAX), Imm32(0xFFFFFFFC));
-				WriteExitDestInEAX();
-			}
-			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
-			{
-				MOV(32, R(EAX), M(&LR));
-				AND(32, R(EAX), Imm32(0xFFFFFFFC));
-				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-				WriteExitDestInEAX();
-			}
-			else
-			{
-				PanicAlert("WTF invalid branch");
-			}
+			DoMergedBranch();
 
 			SetJumpTarget(pDontBranch);
-
-			if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
-			{
-				js.skipnext = true;
-				WriteExit(js.next_compilerPC + 4);
-			}
 		}
 	}
 
