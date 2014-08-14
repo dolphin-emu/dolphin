@@ -177,9 +177,9 @@ void CJitWindow::Compare(u32 em_address)
 		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
 
 		sptr += sprintf(sptr, "Num instr: PPC: %i  x86: %i  (blowup: %i%%)\n",
-				code_block.m_num_instructions, num_x86_instructions, 100 * (num_x86_instructions / code_block.m_num_instructions - 1));
+				code_block.m_num_instructions, num_x86_instructions, (100 * num_x86_instructions / code_block.m_num_instructions - 1));
 		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n",
-				code_block.m_num_instructions * 4, block->codeSize, 100 * (block->codeSize / (4 * code_block.m_num_instructions) - 1));
+				code_block.m_num_instructions * 4, block->codeSize, (100 * block->codeSize / (4 * code_block.m_num_instructions) - 1));
 
 		ppc_box->SetValue(StrToWxStr((char*)xDis));
 	}
