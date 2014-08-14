@@ -6,7 +6,7 @@
 
 #if HAVE_PORTAUDIO
 
-#include "Common/StdMutex.h"
+#include <mutex>
 
 class CEXIMic : public IEXIDevice
 {

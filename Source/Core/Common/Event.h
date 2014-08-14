@@ -16,9 +16,10 @@
 #include <concrt.h>
 #endif
 
+#include <condition_variable>
+#include <mutex>
+
 #include "Common/Flag.h"
-#include "Common/StdConditionVariable.h"
-#include "Common/StdMutex.h"
 
 namespace Common {
 

@@ -4,14 +4,14 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <cstdio>
 #include <cstring>
+#include <mutex>
+#include <thread>
 
-// Don't include common.h here as it will break LogManager
+// Don't include Common.h here as it will break LogManager
 #include "Common/CommonTypes.h"
-#include "Common/StdConditionVariable.h"
-#include "Common/StdMutex.h"
-#include "Common/StdThread.h"
 
 // This may not be defined outside _WIN32
 #ifndef _WIN32

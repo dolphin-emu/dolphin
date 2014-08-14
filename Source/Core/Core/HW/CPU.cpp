@@ -2,12 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "AudioCommon/AudioCommon.h"
+#include <mutex>
 
+#include "AudioCommon/AudioCommon.h"
 #include "Common/Common.h"
 #include "Common/Event.h"
-#include "Common/StdMutex.h"
-
 #include "Core/Core.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
@@ -15,7 +14,6 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/PowerPC/PowerPC.h"
-
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace

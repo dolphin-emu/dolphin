@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <mutex>
+#include <thread>
 #include <lzo/lzo1x.h>
 
 #include "Common/Common.h"
 #include "Common/Event.h"
-#include "Common/StdMutex.h"
-#include "Common/StdThread.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
