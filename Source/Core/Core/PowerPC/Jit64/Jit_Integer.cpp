@@ -421,6 +421,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		if (merge_branch)
 		{
 			js.downcountAmount++;
+			js.skipnext = true;
 			int test_bit = 8 >> (js.next_inst.BI & 3);
 			bool condition = !!(js.next_inst.BO & BO_BRANCH_IF_TRUE);
 
@@ -479,7 +480,6 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 
 			if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 			{
-				js.skipnext = true;
 				WriteExit(js.next_compilerPC + 4);
 			}
 		}
