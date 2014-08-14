@@ -662,7 +662,7 @@ void Renderer::Shutdown()
 		//FramebufferManager::ResolveAndGetRenderTarget(rc, 1);
 
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
-		PostProcessing::BindTargetFramebuffer();
+		m_post_processor->BindTargetFramebuffer();
 
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
@@ -1529,7 +1529,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 1);
 
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
-		PostProcessing::BindTargetFramebuffer();
+		m_post_processor->BindTargetFramebuffer();
 
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
