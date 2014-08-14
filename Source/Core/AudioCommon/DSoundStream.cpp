@@ -3,11 +3,11 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <thread>
 #include <Windows.h>
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/DSoundStream.h"
-#include "Common/StdThread.h"
 #include "Common/Thread.h"
 
 bool DSound::CreateBuffer()
