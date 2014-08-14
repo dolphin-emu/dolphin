@@ -340,13 +340,13 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			js.downcountAmount++;
 			js.skipnext = true;
 
-			gpr.Flush();
-			fpr.Flush();
-
 			int test_bit = 8 >> (js.next_inst.BI & 3);
 			u8 conditionResult = (js.next_inst.BO & BO_BRANCH_IF_TRUE) ? test_bit : 0;
 			if ((compareResult & test_bit) == conditionResult)
 			{
+				gpr.Flush();
+				fpr.Flush();
+
 				if (js.next_inst.OPCD == 16) // bcx
 				{
 					if (js.next_inst.LK)
@@ -430,8 +430,8 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			//     std::swap(destination1, destination2), condition = !condition;
 
 			gpr.UnlockAll();
-			gpr.Flush();
-			fpr.Flush();
+			gpr.Flush(FLUSH_MAINTAIN_STATE);
+			fpr.Flush(FLUSH_MAINTAIN_STATE);
 			FixupBranch pDontBranch;
 			if (test_bit & 8)
 				pDontBranch = J_CC(condition ? CC_GE : CC_L);  // Test < 0, so jump over if >= 0.
