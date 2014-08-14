@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 enum PadError
 {
 	PAD_ERR_NONE          = 0,
@@ -35,16 +37,16 @@ enum PadButton
 
 struct GCPadStatus
 {
-	unsigned short button;                 // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
-	unsigned char  stickX;                 // 0 <= stickX       <= 255
-	unsigned char  stickY;                 // 0 <= stickY       <= 255
-	unsigned char  substickX;              // 0 <= substickX    <= 255
-	unsigned char  substickY;              // 0 <= substickY    <= 255
-	unsigned char  triggerLeft;            // 0 <= triggerLeft  <= 255
-	unsigned char  triggerRight;           // 0 <= triggerRight <= 255
-	unsigned char  analogA;                // 0 <= analogA      <= 255
-	unsigned char  analogB;                // 0 <= analogB      <= 255
-	signed char    err;                    // one of PAD_ERR_* number
+	u16 button;                 // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
+	u8  stickX;                 // 0 <= stickX       <= 255
+	u8  stickY;                 // 0 <= stickY       <= 255
+	u8  substickX;              // 0 <= substickX    <= 255
+	u8  substickY;              // 0 <= substickY    <= 255
+	u8  triggerLeft;            // 0 <= triggerLeft  <= 255
+	u8  triggerRight;           // 0 <= triggerRight <= 255
+	u8  analogA;                // 0 <= analogA      <= 255
+	u8  analogB;                // 0 <= analogB      <= 255
+	s8  err;                    // one of PAD_ERR_* number
 
 	static const u8 MAIN_STICK_CENTER_X = 0x80;
 	static const u8 MAIN_STICK_CENTER_Y = 0x80;
