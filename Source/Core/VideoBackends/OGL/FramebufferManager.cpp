@@ -95,8 +95,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 #endif
 		ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Chromatic | ovrDistortionCap_TimeWarp,
 			g_eye_fov, g_eye_render_desc);
-#ifdef _WIN32
-#endif
+		ovrhmd_EnableHSWDisplaySDKRender(hmd, false);
 	}
 #endif
 

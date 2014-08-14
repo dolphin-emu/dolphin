@@ -9,6 +9,11 @@
 #include "OVR_CAPI.h"
 #include "OVR_CAPI_GL.h"
 #include "Kernel/OVR_Math.h"
+
+extern "C"
+{
+	void ovrhmd_EnableHSWDisplaySDKRender(ovrHmd hmd, ovrBool enabled);
+}
 #endif
 
 #include "VideoBackends/OGL/GLUtil.h"
