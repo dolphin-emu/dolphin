@@ -63,8 +63,8 @@ void Drums::GetState(u8* const data)
 	double x, y;
 	m_stick->GetState(&x, &y);
 
-	ddata->sx = (x * 0x1F) + 0x20;
-	ddata->sy = (y * 0x1F) + 0x20;
+	ddata->sx = (u8)(x * 0x1F) + 0x20;
+	ddata->sy = (u8)(y * 0x1F) + 0x20;
 	}
 
 	// TODO: softness maybe
