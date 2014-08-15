@@ -553,16 +553,6 @@ void Host_UpdateDisasmDialog()
 	}
 }
 
-void Host_ShowJitResults(unsigned int address)
-{
-	if (main_frame->g_pCodeWindow)
-	{
-		if (!main_frame->g_pCodeWindow->m_JitWindow)
-			main_frame->g_pCodeWindow->ToggleJitWindow(true);
-		main_frame->g_pCodeWindow->m_JitWindow->ViewAddr(address);
-	}
-}
-
 void Host_UpdateMainFrame()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);

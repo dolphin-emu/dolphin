@@ -12,7 +12,6 @@
 
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
-void Host_ShowJitResults(unsigned int) {}
 void Host_Message(int) {}
 void* Host_GetRenderHandle() { return nullptr; }
 void Host_UpdateTitle(const std::string&) {}

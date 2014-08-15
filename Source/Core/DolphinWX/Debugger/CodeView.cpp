@@ -309,7 +309,12 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			break;
 
 		case IDM_JITRESULTS:
-			m_debugger->ShowJitResults(m_selection);
+			{
+				// Propagate back to the parent window and tell it
+				// to flip to the JIT tab for the current address.
+				wxCommandEvent jit_event(wxEVT_HOST_COMMAND, IDM_UPDATEJITPANE);
+				GetEventHandler()->AddPendingEvent(jit_event);
+			}
 			break;
 
 		case IDM_FOLLOWBRANCH:

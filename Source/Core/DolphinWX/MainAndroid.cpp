@@ -55,8 +55,6 @@ std::string g_filename;
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
 
-void Host_ShowJitResults(unsigned int address){}
-
 Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
