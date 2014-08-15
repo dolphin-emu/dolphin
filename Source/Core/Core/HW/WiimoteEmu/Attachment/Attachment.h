@@ -24,6 +24,12 @@ public:
 
 	u8 id[6];
 	u8 calibration[0x10];
+
+protected:
+	// TODO: Make constexpr when VS supports it.
+	//
+	// Default radius for attachment analog sticks.
+	static const ControlState DEFAULT_ATTACHMENT_STICK_RADIUS;
 };
 
 class None : public Attachment
