@@ -91,7 +91,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 #ifdef _WIN32
 		cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
 		cfg.OGL.DC = GetDC(cfg.OGL.Window);
-		ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr);
+		//ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr);
 #endif
 		ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Chromatic | ovrDistortionCap_TimeWarp,
 			g_eye_fov, g_eye_render_desc);
