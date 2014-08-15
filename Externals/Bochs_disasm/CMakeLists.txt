@@ -1,7 +1,7 @@
-set(SRCS dis_decode.cpp
-         dis_groups.cpp
-         resolve.cpp
-         syntax.cpp)
+set(SRCS dis_decode.cc
+         dis_groups.cc
+         resolve.cc
+         syntax.cc)
 
 if(WIN32)
     set(SRCS ${SRCS} stdafx.cpp)
