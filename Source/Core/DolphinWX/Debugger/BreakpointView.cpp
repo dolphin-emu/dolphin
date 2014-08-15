@@ -49,20 +49,20 @@ void CBreakPointView::Update()
 		if (!rBP.bTemporary)
 		{
 			wxString breakpoint_enabled_str = StrToWxStr(rBP.bOn ? "on" : " ");
-			int Item = InsertItem(0, breakpoint_enabled_str);
-			SetItem(Item, 1, StrToWxStr("BP"));
+			int item = InsertItem(0, breakpoint_enabled_str);
+			SetItem(item, 1, StrToWxStr("BP"));
 
 			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(rBP.iAddress);
 			if (symbol)
 			{
 				wxString symbol_description = StrToWxStr(g_symbolDB.GetDescription(rBP.iAddress));
-				SetItem(Item, 2, symbol_description);
+				SetItem(item, 2, symbol_description);
 			}
 
 			std::string address = StringFromFormat("%08x", rBP.iAddress);
-			SetItem(Item, 3, StrToWxStr(address));
+			SetItem(item, 3, StrToWxStr(address));
 
-			SetItemData(Item, rBP.iAddress);
+			SetItemData(item, rBP.iAddress);
 		}
 	}
 
@@ -70,18 +70,18 @@ void CBreakPointView::Update()
 	for (const auto& rMemCheck : rMemChecks)
 	{
 		wxString memcheck_on_str = StrToWxStr((rMemCheck.Break || rMemCheck.Log) ? "on" : " ");
-		int Item = InsertItem(0, memcheck_on_str);
-		SetItem(Item, 1, StrToWxStr("MC"));
+		int item = InsertItem(0, memcheck_on_str);
+		SetItem(item, 1, StrToWxStr("MC"));
 
 		Symbol *symbol = g_symbolDB.GetSymbolFromAddr(rMemCheck.StartAddress);
 		if (symbol)
 		{
 			wxString memcheck_start_addr = StrToWxStr(g_symbolDB.GetDescription(rMemCheck.StartAddress));
-			SetItem(Item, 2, memcheck_start_addr);
+			SetItem(item, 2, memcheck_start_addr);
 		}
 
 		std::string address_range_str = StringFromFormat("%08x to %08x", rMemCheck.StartAddress, rMemCheck.EndAddress);
-		SetItem(Item, 3, StrToWxStr(address_range_str));
+		SetItem(item, 3, StrToWxStr(address_range_str));
 
 		std::string mode;
 		if (rMemCheck.OnRead)
@@ -89,9 +89,9 @@ void CBreakPointView::Update()
 		if (rMemCheck.OnWrite)
 			mode += 'w';
 
-		SetItem(Item, 4, StrToWxStr(mode));
+		SetItem(item, 4, StrToWxStr(mode));
 
-		SetItemData(Item, rMemCheck.StartAddress);
+		SetItemData(item, rMemCheck.StartAddress);
 	}
 
 	Refresh();
@@ -99,10 +99,10 @@ void CBreakPointView::Update()
 
 void CBreakPointView::DeleteCurrentSelection()
 {
-	int Item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-	if (Item >= 0)
+	int item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	if (item >= 0)
 	{
-		u32 Address = (u32)GetItemData(Item);
+		u32 Address = (u32)GetItemData(item);
 		PowerPC::breakpoints.Remove(Address);
 		PowerPC::memchecks.Remove(Address);
 		Update();
