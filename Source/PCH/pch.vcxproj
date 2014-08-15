@@ -11,11 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1970D175-3DE8-4738-942A-4D98D1CDBF64}</ProjectGuid>
+    <ProjectGuid>{76563A7F-1011-4EAD-B667-7BB18D09568E}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -31,44 +31,16 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\VSProps\Base.props" />
-    <Import Project="..\VSProps\PCHUse.props" />
+    <Import Project="..\VSProps\PCHCreate.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup>
-    <Link>
-      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Console</SubSystem>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="Testdata\dsp_test.bin" />
-    <None Include="Testdata\dsp_test.S" />
-    <None Include="Testdata\hermes.bin" />
-    <None Include="Testdata\hermes.s" />
+    <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DSPTool.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Common\Common.vcxproj">
-      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\Core\Core.vcxproj">
-      <Project>{e54cf649-140e-4255-81a5-30a673c1fb36}</Project>
-    </ProjectReference>
+    <ClCompile Include="pch.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <!--Copy the .exe to binary output folder-->
-  <ItemGroup>
-    <SourceFiles Include="$(TargetPath)" />
-  </ItemGroup>
-  <Target Name="AfterBuild" Inputs="@(SourceFiles)" Outputs="@(SourceFiles -> '$(BinaryOutputDir)%(Filename)%(Extension)')">
-    <Message Text="Copy: @(SourceFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
-    <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(BinaryOutputDir)" />
-  </Target>
 </Project>

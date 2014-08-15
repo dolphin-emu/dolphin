@@ -1286,7 +1286,6 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\..\Source\VSProps\Base.props" />
-    <Import Project="..\..\..\..\Source\VSProps\PrecompiledHeader.props" />
     <Import Project="..\..\..\..\Source\VSProps\WXWOverrides.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />

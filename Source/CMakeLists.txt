@@ -7,7 +7,7 @@ if(ENABLE_PCH)
 	else()
 		set(pch_lib_filename "${CMAKE_CURRENT_BINARY_DIR}/libpch.a")
 	endif()
-	set(pch_src_filename "${CMAKE_CURRENT_SOURCE_DIR}/pch.h")
+	set(pch_src_filename "${CMAKE_CURRENT_SOURCE_DIR}/PCH/pch.h")
 
 	if(APPLE)
 		set(type objective-c++-header)
@@ -16,12 +16,12 @@ if(ENABLE_PCH)
 	endif()
 
 	set_source_files_properties(
-		pch.h PROPERTIES
+		PCH/pch.h PROPERTIES
 		COMPILE_FLAGS "-x ${type}"
 		HEADER_FILE_ONLY 0
 		LANGUAGE CXX)
 
-	add_library(pch STATIC pch.h)
+	add_library(pch STATIC PCH/pch.h)
 
 	add_custom_command(
 		TARGET pch

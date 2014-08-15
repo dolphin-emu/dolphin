@@ -676,7 +676,6 @@
     <ClCompile Include="PowerPC\Jit64\JitRegCache.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="PowerPC\JitILCommon\JitILBase_Branch.cpp">
       <Filter>PowerPC\JitILCommon</Filter>
     </ClCompile>
@@ -1195,7 +1194,6 @@
     <ClInclude Include="PowerPC\Jit64\JitAsm.h">
       <Filter>PowerPC\Jit64</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="PowerPC\JitILCommon\JitILBase.h">
       <Filter>PowerPC\JitILCommon</Filter>
     </ClInclude>

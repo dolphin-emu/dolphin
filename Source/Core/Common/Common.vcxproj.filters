@@ -63,7 +63,6 @@
     <ClInclude Include="Logging\LogManager.h">
       <Filter>Logging</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="Crypto\ec.h">
       <Filter>Crypto</Filter>
     </ClInclude>
@@ -114,7 +113,6 @@
     <ClCompile Include="Logging\LogManager.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="XSaveWorkaround.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
   </ItemGroup>

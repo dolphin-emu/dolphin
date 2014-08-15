@@ -31,7 +31,7 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
@@ -69,7 +69,6 @@
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="StdConditionVariable.h" />
     <ClInclude Include="StdMakeUnique.h" />
     <ClInclude Include="StdMutex.h" />
@@ -108,9 +107,6 @@
     <ClCompile Include="PcapFile.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader>Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="SymbolDB.cpp" />
     <ClCompile Include="SysConf.cpp" />

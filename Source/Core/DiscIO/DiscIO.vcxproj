@@ -31,7 +31,7 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
@@ -49,9 +49,6 @@
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="FileSystemGCWii.cpp" />
     <ClCompile Include="NANDContentLoader.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader>Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="VolumeCommon.cpp" />
     <ClCompile Include="VolumeCreator.cpp" />
     <ClCompile Include="VolumeDirectory.cpp" />
@@ -76,7 +73,6 @@
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="FileSystemGCWii.h" />
     <ClInclude Include="NANDContentLoader.h" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="Volume.h" />
     <ClInclude Include="VolumeCreator.h" />
     <ClInclude Include="VolumeDirectory.h" />
