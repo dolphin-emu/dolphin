@@ -78,11 +78,6 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 
-
-#ifdef _WIN32
-#include "Common/IniFile.h"
-#endif
-
 namespace OGL
 {
 
