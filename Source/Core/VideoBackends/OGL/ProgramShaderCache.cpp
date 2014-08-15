@@ -159,7 +159,7 @@ GLuint ProgramShaderCache::GetCurrentProgram()
 	return CurrentProgram;
 }
 
-SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 components )
+SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	SHADERUID uid;
 	GetShaderId(&uid, dstAlphaMode, components);
@@ -231,7 +231,7 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 	return &last_entry->shader;
 }
 
-bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, const char* pcode )
+bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const char* pcode)
 {
 	GLuint vsid = CompileSingleShader(GL_VERTEX_SHADER, vcode);
 	GLuint psid = CompileSingleShader(GL_FRAGMENT_SHADER, pcode);
@@ -526,7 +526,7 @@ void ProgramShaderCache::CreateHeader()
 }
 
 
-void ProgramShaderCache::ProgramShaderCacheInserter::Read ( const SHADERUID& key, const u8* value, u32 value_size )
+void ProgramShaderCache::ProgramShaderCacheInserter::Read(const SHADERUID& key, const u8* value, u32 value_size)
 {
 	const u8 *binary = value+sizeof(GLenum);
 	GLenum *prog_format = (GLenum*)value;
