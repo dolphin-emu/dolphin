@@ -5,6 +5,9 @@
 #include "Core/Host.h"
 #include "Core/HW/GCPadEmu.h"
 
+// TODO: Move to header file when VS supports constexpr.
+const ControlState GCPad::DEFAULT_PAD_STICK_RADIUS = 0.7f;
+
 const u16 button_bitmasks[] =
 {
 	PAD_BUTTON_A,
@@ -60,8 +63,8 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 		m_buttons->controls.emplace_back(new ControlGroup::Input(named_buttons[i]));
 
 	// sticks
-	groups.emplace_back(m_main_stick = new AnalogStick(_trans("Main Stick")));
-	groups.emplace_back(m_c_stick = new AnalogStick(_trans("C-Stick")));
+	groups.emplace_back(m_main_stick = new AnalogStick(_trans("Main Stick"), DEFAULT_PAD_STICK_RADIUS));
+	groups.emplace_back(m_c_stick = new AnalogStick(_trans("C-Stick"), DEFAULT_PAD_STICK_RADIUS));
 
 	// triggers
 	groups.emplace_back(m_triggers = new MixedTriggers(_trans("Triggers")));

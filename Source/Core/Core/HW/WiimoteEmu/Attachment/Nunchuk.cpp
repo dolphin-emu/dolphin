@@ -36,7 +36,7 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"),
 	m_buttons->controls.emplace_back(new ControlGroup::Input("Z"));
 
 	// stick
-	groups.emplace_back(m_stick = new AnalogStick("Stick"));
+	groups.emplace_back(m_stick = new AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
 
 	// swing
 	groups.emplace_back(m_swing = new Force("Swing"));

@@ -39,7 +39,7 @@ Drums::Drums(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Drums"), _reg)
 		m_pads->controls.emplace_back(new ControlGroup::Input(drum_pad_name));
 
 	// stick
-	groups.emplace_back(m_stick = new AnalogStick("Stick"));
+	groups.emplace_back(m_stick = new AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
 
 	// buttons
 	groups.emplace_back(m_buttons = new Buttons("Buttons"));

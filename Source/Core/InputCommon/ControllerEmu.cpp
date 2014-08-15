@@ -137,18 +137,14 @@ void ControllerEmu::SaveConfig(IniFile::Section *sec, const std::string& base)
 		ctrlGroup->SaveConfig(sec, defdev, base);
 }
 
-ControllerEmu::AnalogStick::AnalogStick(const char* const _name) : ControlGroup(_name, GROUP_TYPE_STICK)
+ControllerEmu::AnalogStick::AnalogStick(const char* const _name, ControlState default_radius)
+	: ControlGroup(_name, GROUP_TYPE_STICK)
 {
 	for (auto& named_direction : named_directions)
 		controls.emplace_back(new Input(named_direction));
 
 	controls.emplace_back(new Input(_trans("Modifier")));
-
-	// Default to 100 radius for everything but gcpad.
-	if (name == "Stick" || name == "Left Stick" || name == "Right Stick")
-		settings.emplace_back(new Setting(_trans("Radius"), 1.0f, 0, 100));
-	else
-		settings.emplace_back(new Setting(_trans("Radius"), 0.7f, 0, 100));
+	settings.emplace_back(new Setting(_trans("Radius"), default_radius, 0, 100));
 	settings.emplace_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
 }
 

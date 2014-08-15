@@ -41,7 +41,7 @@ Turntable::Turntable(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Turnta
 	groups.emplace_back(m_right_table = new Slider(_trans("Table Right")));
 
 	// stick
-	groups.emplace_back(m_stick = new AnalogStick("Stick"));
+	groups.emplace_back(m_stick = new AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
 
 	// effect dial
 	groups.emplace_back(m_effect_dial = new Triggers(_trans("Effect")));

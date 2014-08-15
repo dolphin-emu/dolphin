@@ -53,7 +53,7 @@ Guitar::Guitar(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Guitar"), _r
 	m_buttons->controls.emplace_back(new ControlGroup::Input("+"));
 
 	// stick
-	groups.emplace_back(m_stick = new AnalogStick(_trans("Stick")));
+	groups.emplace_back(m_stick = new AnalogStick(_trans("Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
 
 	// whammy
 	groups.emplace_back(m_whammy = new Triggers(_trans("Whammy")));
