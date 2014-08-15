@@ -508,20 +508,20 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
 
-	ToolBar->AddTool(wxID_OPEN,    _("Open"),    m_Bitmaps[Toolbar_FileOpen], _("Open file..."));
-	ToolBar->AddTool(wxID_REFRESH, _("Refresh"), m_Bitmaps[Toolbar_Refresh], _("Refresh game list"));
-	ToolBar->AddTool(IDM_BROWSE, _("Browse"),   m_Bitmaps[Toolbar_Browse], _("Browse for an ISO directory..."));
+	ToolBar->AddTool(wxID_OPEN,                 _("Open"),     m_Bitmaps[Toolbar_FileOpen],   _("Open file..."));
+	ToolBar->AddTool(wxID_REFRESH,              _("Refresh"),  m_Bitmaps[Toolbar_Refresh],    _("Refresh game list"));
+	ToolBar->AddTool(IDM_BROWSE,                _("Browse"),   m_Bitmaps[Toolbar_Browse],     _("Browse for an ISO directory..."));
 	ToolBar->AddSeparator();
-	ToolBar->AddTool(IDM_PLAY, _("Play"),   m_Bitmaps[Toolbar_Play], _("Play"));
-	ToolBar->AddTool(IDM_STOP, _("Stop"),   m_Bitmaps[Toolbar_Stop], _("Stop"));
-	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _("FullScr"),  m_Bitmaps[Toolbar_FullScreen], _("Toggle Fullscreen"));
-	ToolBar->AddTool(IDM_SCREENSHOT, _("ScrShot"),   m_Bitmaps[Toolbar_Screenshot], _("Take Screenshot"));
+	ToolBar->AddTool(IDM_PLAY,                  _("Play"),     m_Bitmaps[Toolbar_Play],       _("Play"));
+	ToolBar->AddTool(IDM_STOP,                  _("Stop"),     m_Bitmaps[Toolbar_Stop],       _("Stop"));
+	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN,     _("FullScr"),  m_Bitmaps[Toolbar_FullScreen], _("Toggle Fullscreen"));
+	ToolBar->AddTool(IDM_SCREENSHOT,            _("ScrShot"),  m_Bitmaps[Toolbar_Screenshot], _("Take Screenshot"));
 	ToolBar->AddSeparator();
-	ToolBar->AddTool(wxID_PREFERENCES, _("Config"), m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
-	ToolBar->AddTool(IDM_CONFIG_GFX_BACKEND, _("Graphics"),  m_Bitmaps[Toolbar_ConfigGFX], _("Graphics settings"));
-	ToolBar->AddTool(IDM_CONFIG_DSP_EMULATOR, _("DSP"),  m_Bitmaps[Toolbar_ConfigDSP], _("DSP settings"));
-	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _("GCPad"),  m_Bitmaps[Toolbar_ConfigPAD], _("GameCube Pad settings"));
-	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _("Wiimote settings"));
+	ToolBar->AddTool(wxID_PREFERENCES,          _("Config"),   m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
+	ToolBar->AddTool(IDM_CONFIG_GFX_BACKEND,    _("Graphics"), m_Bitmaps[Toolbar_ConfigGFX],  _("Graphics settings"));
+	ToolBar->AddTool(IDM_CONFIG_DSP_EMULATOR,   _("DSP"),      m_Bitmaps[Toolbar_ConfigDSP],  _("DSP settings"));
+	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN,     _("GCPad"),    m_Bitmaps[Toolbar_ConfigPAD],  _("GameCube Pad settings"));
+	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote],    _("Wiimote settings"));
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
@@ -561,17 +561,17 @@ void CFrame::InitBitmaps()
 {
 	auto const dir = StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
-	m_Bitmaps[Toolbar_FileOpen].LoadFile(dir + "open.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Refresh].LoadFile(dir + "refresh.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Browse].LoadFile(dir + "browse.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Play].LoadFile(dir + "play.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Stop].LoadFile(dir + "stop.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Pause].LoadFile(dir + "pause.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigMain].LoadFile(dir + "config.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigGFX].LoadFile(dir + "graphics.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigDSP].LoadFile(dir + "dsp.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_ConfigPAD].LoadFile(dir + "gcpad.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Wiimote].LoadFile(dir + "wiimote.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_FileOpen  ].LoadFile(dir + "open.png",       wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Refresh   ].LoadFile(dir + "refresh.png",    wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Browse    ].LoadFile(dir + "browse.png",     wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Play      ].LoadFile(dir + "play.png",       wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Stop      ].LoadFile(dir + "stop.png",       wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Pause     ].LoadFile(dir + "pause.png",      wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigMain].LoadFile(dir + "config.png",     wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigGFX ].LoadFile(dir + "graphics.png",   wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigDSP ].LoadFile(dir + "dsp.png",        wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigPAD ].LoadFile(dir + "gcpad.png",      wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Wiimote   ].LoadFile(dir + "wiimote.png",    wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Screenshot].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_FullScreen].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
 
@@ -995,13 +995,13 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderParent->SetFocus();
 #endif
 
-		wxTheApp->Bind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
-		wxTheApp->Bind(wxEVT_KEY_UP, &CFrame::OnKeyUp, this);
-		wxTheApp->Bind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
-		wxTheApp->Bind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
-		wxTheApp->Bind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
-		wxTheApp->Bind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
-		wxTheApp->Bind(wxEVT_MOTION, &CFrame::OnMouse, this);
+		wxTheApp->Bind(wxEVT_KEY_DOWN,    &CFrame::OnKeyDown, this);
+		wxTheApp->Bind(wxEVT_KEY_UP,      &CFrame::OnKeyUp,   this);
+		wxTheApp->Bind(wxEVT_RIGHT_DOWN,  &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_RIGHT_UP,    &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_MIDDLE_UP,   &CFrame::OnMouse,   this);
+		wxTheApp->Bind(wxEVT_MOTION,      &CFrame::OnMouse,   this);
 		m_RenderParent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 	}
 
@@ -1140,15 +1140,15 @@ void CFrame::OnStopped()
 	m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 
 	// Keyboard
-	wxTheApp->Unbind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
-	wxTheApp->Unbind(wxEVT_KEY_UP, &CFrame::OnKeyUp, this);
+	wxTheApp->Unbind(wxEVT_KEY_DOWN,    &CFrame::OnKeyDown, this);
+	wxTheApp->Unbind(wxEVT_KEY_UP,      &CFrame::OnKeyUp,   this);
 
 	// Mouse
-	wxTheApp->Unbind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
-	wxTheApp->Unbind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_RIGHT_DOWN,  &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_RIGHT_UP,    &CFrame::OnMouse, this);
 	wxTheApp->Unbind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
-	wxTheApp->Unbind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
-	wxTheApp->Unbind(wxEVT_MOTION, &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_MIDDLE_UP,   &CFrame::OnMouse, this);
+	wxTheApp->Unbind(wxEVT_MOTION,      &CFrame::OnMouse, this);
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 		m_RenderParent->SetCursor(wxNullCursor);
 	DoFullscreen(false);
