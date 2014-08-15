@@ -94,6 +94,7 @@ public:
 	void Cleanup();
 
 	void GenerateConstantOverflow(bool overflow);
+	void GenerateConstantOverflow(s64 val);
 	void GenerateOverflow();
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
 	void GetCarryEAXAndClear();

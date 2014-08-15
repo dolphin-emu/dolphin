@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <limits>
 #include <vector>
 
 #include "Core/PowerPC/Jit64/Jit.h"
@@ -9,6 +10,11 @@
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
 using namespace Gen;
+
+void Jit64::GenerateConstantOverflow(s64 val)
+{
+	GenerateConstantOverflow(val > std::numeric_limits<s32>::max() || val < std::numeric_limits<s32>::min());
+}
 
 void Jit64::GenerateConstantOverflow(bool overflow)
 {
@@ -925,7 +931,7 @@ void Jit64::subfx(UGeckoInstruction inst)
 		}
 		if (inst.OE)
 		{
-			GenerateConstantOverflow((s64)(i - j) != (s64)i - (s64)j);
+			GenerateConstantOverflow((s64)i - (s64)j);
 		}
 	}
 	else
@@ -1014,7 +1020,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
 		gpr.SetImmediate32(d, i * j);
 		if (inst.OE)
 		{
-			GenerateConstantOverflow((s64)(i*j) != (s64)i * (s64)j);
+			GenerateConstantOverflow((s64)i * (s64)j);
 		}
 	}
 	else
@@ -1330,7 +1336,7 @@ void Jit64::addx(UGeckoInstruction inst)
 		}
 		if (inst.OE)
 		{
-			GenerateConstantOverflow((s64)(i + j) != (s64)i + (s64)j);
+			GenerateConstantOverflow((s64)i + (s64)j);
 		}
 	}
 	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && !inst.Rc && !inst.OE)
