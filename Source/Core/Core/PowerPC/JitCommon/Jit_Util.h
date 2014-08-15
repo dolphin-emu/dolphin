@@ -63,4 +63,5 @@ public:
 	void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
 protected:
 	std::unordered_map<u8 *, u32> registersInUseAtLoc;
+	std::unordered_map<u8 *, u32> pcAtLoc;
 };

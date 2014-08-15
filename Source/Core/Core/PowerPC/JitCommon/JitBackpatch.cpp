@@ -95,7 +95,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 }
 
 // Extremely simplistic - just generate the requested trampoline. May reuse them in the future.
-const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 registersInUse)
+const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 registersInUse, u32 pc)
 {
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
@@ -109,6 +109,9 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 	// hardware access - we can take shortcuts.
 	// Don't treat FIFO writes specially for now because they require a burst
 	// check anyway.
+
+	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
+	MOV(32, M(&PC), Imm32(pc));
 
 	if (dataReg == ABI_PARAM2)
 		PanicAlert("Incorrect use of SafeWriteRegToReg");
@@ -220,6 +223,14 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	else
 	{
 		// TODO: special case FIFO writes. Also, support 32-bit mode.
+		it = pcAtLoc.find(codePtr);
+		if (it == pcAtLoc.end())
+		{
+			PanicAlert("BackPatch: no pc entry for address %p", codePtr);
+			return nullptr;
+		}
+
+		u32 pc = it->second;
 
 		u8 *start;
 		if (info.byteSwap)
@@ -253,7 +264,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 			start = codePtr - bswapSize;
 		}
 		XEmitter emitter(start);
-		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse);
+		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse, pc);
 		emitter.CALL((void *)trampoline);
 		int padding = codePtr + info.instructionSize - emitter.GetCodePtr();
 		if (padding > 0)
