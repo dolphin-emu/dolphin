@@ -8,7 +8,8 @@
 
 // globals
 
-namespace OGL {
+namespace OGL
+{
 
 static const int char_width = 8;
 static const int char_height = 13;

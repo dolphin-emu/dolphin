@@ -164,24 +164,28 @@ void OpenGLPostProcessing::Update(u32 width, u32 height)
 void OpenGLPostProcessing::ApplyShader()
 {
 	// shader didn't changed
-	if (m_config.GetShader() == g_ActiveConfig.sPostProcessingShader) return;
+	if (m_config.GetShader() == g_ActiveConfig.sPostProcessingShader)
+		return;
 
 	m_enable = false;
 	m_shader.Destroy();
 	m_uniform_bindings.clear();
 
 	// shader disabled
-	if (g_ActiveConfig.sPostProcessingShader == "") return;
+	if (g_ActiveConfig.sPostProcessingShader == "")
+		return;
 
 	// so need to compile shader
 	std::string code = m_config.LoadShader();
 
-	if (code == "") return;
+	if (code == "")
+		return;
 
 	code = LoadShaderOptions(code);
 
 	// and compile it
-	if (!ProgramShaderCache::CompileShader(m_shader, s_vertex_shader, code.c_str())) {
+	if (!ProgramShaderCache::CompileShader(m_shader, s_vertex_shader, code.c_str()))
+	{
 		ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", m_config.GetShader().c_str());
 		return;
 	}

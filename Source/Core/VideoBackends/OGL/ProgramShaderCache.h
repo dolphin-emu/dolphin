@@ -25,9 +25,15 @@ public:
 
 	bool operator <(const SHADERUID& r) const
 	{
-		if (puid < r.puid) return true;
-		if (r.puid < puid) return false;
-		if (vuid < r.vuid) return true;
+		if (puid < r.puid)
+			return true;
+
+		if (r.puid < puid)
+			return false;
+
+		if (vuid < r.vuid)
+			return true;
+
 		return false;
 	}
 
@@ -72,8 +78,8 @@ public:
 
 	typedef std::map<SHADERUID, PCacheEntry> PCache;
 
-	static PCacheEntry GetShaderProgram(void);
-	static GLuint GetCurrentProgram(void);
+	static PCacheEntry GetShaderProgram();
+	static GLuint GetCurrentProgram();
 	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
 	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
 
@@ -81,9 +87,9 @@ public:
 	static GLuint CompileSingleShader(GLuint type, const char *code);
 	static void UploadConstants();
 
-	static void Init(void);
-	static void Shutdown(void);
-	static void CreateHeader(void);
+	static void Init();
+	static void Shutdown();
+	static void CreateHeader();
 
 private:
 	class ProgramShaderCacheInserter : public LinearDiskCacheReader<SHADERUID, u8>

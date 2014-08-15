@@ -111,7 +111,8 @@ void SHADER::SetProgramBindings()
 	glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB,    "rawnorm1");
 	glBindAttribLocation(glprogid, SHADER_NORM2_ATTRIB,    "rawnorm2");
 
-	for (int i=0; i<8; i++) {
+	for (int i = 0; i < 8; i++)
+	{
 		char attrib_name[8];
 		snprintf(attrib_name, 8, "tex%d", i);
 		glBindAttribLocation(glprogid, SHADER_TEXTURE0_ATTRIB+i, attrib_name);
@@ -153,7 +154,7 @@ void ProgramShaderCache::UploadConstants()
 	}
 }
 
-GLuint ProgramShaderCache::GetCurrentProgram(void)
+GLuint ProgramShaderCache::GetCurrentProgram()
 {
 	return CurrentProgram;
 }
@@ -216,7 +217,8 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 	}
 #endif
 
-	if (!CompileShader(newentry.shader, vcode.GetBuffer(), pcode.GetBuffer())) {
+	if (!CompileShader(newentry.shader, vcode.GetBuffer(), pcode.GetBuffer()))
+	{
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return nullptr;
 	}
@@ -275,12 +277,14 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		file.close();
 
 		if (linkStatus != GL_TRUE)
+		{
 			PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
 				filename.c_str(),
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version,
 				infoLog);
+		}
 
 		delete [] infoLog;
 	}
@@ -299,7 +303,7 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 	return true;
 }
 
-GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
+GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 {
 	GLuint result = glCreateShader(type);
 
@@ -332,13 +336,15 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		file.close();
 
 		if (compileStatus != GL_TRUE)
+		{
 			PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
-				type==GL_VERTEX_SHADER ? "vertex" : "pixel",
+				type == GL_VERTEX_SHADER ? "vertex" : "pixel",
 				filename.c_str(),
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version,
 				infoLog);
+		}
 
 		delete[] infoLog;
 	}
@@ -372,12 +378,12 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
 	}
 }
 
-ProgramShaderCache::PCacheEntry ProgramShaderCache::GetShaderProgram(void)
+ProgramShaderCache::PCacheEntry ProgramShaderCache::GetShaderProgram()
 {
 	return *last_entry;
 }
 
-void ProgramShaderCache::Init(void)
+void ProgramShaderCache::Init()
 {
 	// We have to get the UBO alignment here because
 	// if we generate a buffer that isn't aligned
@@ -421,7 +427,7 @@ void ProgramShaderCache::Init(void)
 	last_entry = nullptr;
 }
 
-void ProgramShaderCache::Shutdown(void)
+void ProgramShaderCache::Shutdown()
 {
 	// store all shaders in cache on disk
 	if (g_ogl_config.bSupportsGLSLCache && !g_Config.bEnableShaderDebugging)
@@ -468,7 +474,7 @@ void ProgramShaderCache::Shutdown(void)
 	s_buffer = nullptr;
 }
 
-void ProgramShaderCache::CreateHeader ( void )
+void ProgramShaderCache::CreateHeader()
 {
 	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
 	snprintf(s_glsl_header, sizeof(s_glsl_header),
@@ -540,7 +546,9 @@ void ProgramShaderCache::ProgramShaderCacheInserter::Read ( const SHADERUID& key
 		entry.shader.SetProgramVariables();
 	}
 	else
+	{
 		glDeleteProgram(entry.shader.glprogid);
+	}
 }
 
 

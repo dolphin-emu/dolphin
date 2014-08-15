@@ -95,8 +95,8 @@ void StreamBuffer::AllocMemory(u32 size)
 	m_free_iterator = m_iterator + size;
 
 	// if buffer is full
-	if (m_iterator + size >= m_size) {
-
+	if (m_iterator + size >= m_size)
+	{
 		// insert waiting slots in unused space at the end of the buffer
 		for (int i = SLOT(m_used_iterator); i < SYNC_POINTS; i++)
 		{
@@ -126,16 +126,20 @@ void StreamBuffer::AllocMemory(u32 size)
 class MapAndOrphan : public StreamBuffer
 {
 public:
-	MapAndOrphan(u32 type, u32 size) : StreamBuffer(type, size) {
+	MapAndOrphan(u32 type, u32 size) : StreamBuffer(type, size)
+	{
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
 	}
 
-	~MapAndOrphan() {
+	~MapAndOrphan()
+	{
 	}
 
-	std::pair<u8*, u32> Map(u32 size) override {
-		if (m_iterator + size >= m_size) {
+	std::pair<u8*, u32> Map(u32 size) override
+	{
+		if (m_iterator + size >= m_size)
+		{
 			glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
 			m_iterator = 0;
 		}
@@ -144,7 +148,8 @@ public:
 		return std::make_pair(pointer, m_iterator);
 	}
 
-	void Unmap(u32 used_size) override {
+	void Unmap(u32 used_size) override
+	{
 		glFlushMappedBufferRange(m_buffertype, 0, used_size);
 		glUnmapBuffer(m_buffertype);
 		m_iterator += used_size;
@@ -161,24 +166,28 @@ public:
 class MapAndSync : public StreamBuffer
 {
 public:
-	MapAndSync(u32 type, u32 size) : StreamBuffer(type, size) {
+	MapAndSync(u32 type, u32 size) : StreamBuffer(type, size)
+	{
 		CreateFences();
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
 	}
 
-	~MapAndSync() {
+	~MapAndSync()
+	{
 		DeleteFences();
 	}
 
-	std::pair<u8*, u32> Map(u32 size) override {
+	std::pair<u8*, u32> Map(u32 size) override
+	{
 		AllocMemory(size);
 		u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
 			GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 		return std::make_pair(pointer, m_iterator);
 	}
 
-	void Unmap(u32 used_size) override {
+	void Unmap(u32 used_size) override
+	{
 		glFlushMappedBufferRange(m_buffertype, 0, used_size);
 		glUnmapBuffer(m_buffertype);
 		m_iterator += used_size;
@@ -201,7 +210,8 @@ public:
 class BufferStorage : public StreamBuffer
 {
 public:
-	BufferStorage(u32 type, u32 size) : StreamBuffer(type, size) {
+	BufferStorage(u32 type, u32 size) : StreamBuffer(type, size)
+	{
 		CreateFences();
 		glBindBuffer(m_buffertype, m_buffer);
 
@@ -214,18 +224,21 @@ public:
 			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
 	}
 
-	~BufferStorage() {
+	~BufferStorage()
+	{
 		DeleteFences();
 		glUnmapBuffer(m_buffertype);
 		glBindBuffer(m_buffertype, 0);
 	}
 
-	std::pair<u8*, u32> Map(u32 size) override {
+	std::pair<u8*, u32> Map(u32 size) override
+	{
 		AllocMemory(size);
 		return std::make_pair(m_pointer + m_iterator, m_iterator);
 	}
 
-	void Unmap(u32 used_size) override {
+	void Unmap(u32 used_size) override
+	{
 		glFlushMappedBufferRange(m_buffertype, m_iterator, used_size);
 		m_iterator += used_size;
 	}
@@ -243,7 +256,8 @@ public:
 class PinnedMemory : public StreamBuffer
 {
 public:
-	PinnedMemory(u32 type, u32 size) : StreamBuffer(type, size) {
+	PinnedMemory(u32 type, u32 size) : StreamBuffer(type, size)
+	{
 		CreateFences();
 		m_pointer = (u8*)AllocateAlignedMemory(ROUND_UP(m_size,ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY );
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
@@ -252,7 +266,8 @@ public:
 		glBindBuffer(m_buffertype, m_buffer);
 	}
 
-	~PinnedMemory() {
+	~PinnedMemory()
+	{
 		DeleteFences();
 		glBindBuffer(m_buffertype, 0);
 		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
@@ -260,12 +275,14 @@ public:
 		m_pointer = nullptr;
 	}
 
-	std::pair<u8*, u32> Map(u32 size) override {
+	std::pair<u8*, u32> Map(u32 size) override
+	{
 		AllocMemory(size);
 		return std::make_pair(m_pointer + m_iterator, m_iterator);
 	}
 
-	void Unmap(u32 used_size) override {
+	void Unmap(u32 used_size) override
+	{
 		m_iterator += used_size;
 	}
 
@@ -281,21 +298,25 @@ public:
 class BufferSubData : public StreamBuffer
 {
 public:
-	BufferSubData(u32 type, u32 size) : StreamBuffer(type, size) {
+	BufferSubData(u32 type, u32 size) : StreamBuffer(type, size)
+	{
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, size, nullptr, GL_STATIC_DRAW);
 		m_pointer = new u8[m_size];
 	}
 
-	~BufferSubData() {
+	~BufferSubData()
+	{
 		delete [] m_pointer;
 	}
 
-	std::pair<u8*, u32> Map(u32 size) override {
+	std::pair<u8*, u32> Map(u32 size) override
+	{
 		return std::make_pair(m_pointer, 0);
 	}
 
-	void Unmap(u32 used_size) override {
+	void Unmap(u32 used_size) override
+	{
 		glBufferSubData(m_buffertype, 0, used_size, m_pointer);
 	}
 
@@ -310,20 +331,24 @@ public:
 class BufferData : public StreamBuffer
 {
 public:
-	BufferData(u32 type, u32 size) : StreamBuffer(type, size) {
+	BufferData(u32 type, u32 size) : StreamBuffer(type, size)
+	{
 		glBindBuffer(m_buffertype, m_buffer);
 		m_pointer = new u8[m_size];
 	}
 
-	~BufferData() {
+	~BufferData()
+	{
 		delete [] m_pointer;
 	}
 
-	std::pair<u8*, u32> Map(u32 size) override {
+	std::pair<u8*, u32> Map(u32 size) override
+	{
 		return std::make_pair(m_pointer, 0);
 	}
 
-	void Unmap(u32 used_size) override {
+	void Unmap(u32 used_size) override
+	{
 		glBufferData(m_buffertype, used_size, m_pointer, GL_STREAM_DRAW);
 	}
 

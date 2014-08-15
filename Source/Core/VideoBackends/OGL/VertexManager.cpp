@@ -116,11 +116,15 @@ void VertexManager::Draw(u32 stride)
 			break;
 	}
 
-	if (g_ogl_config.bSupportsGLBaseVertex) {
+	if (g_ogl_config.bSupportsGLBaseVertex)
+	{
 		glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr+s_index_offset, (GLint)s_baseVertex);
-	} else {
+	}
+	else
+	{
 		glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)nullptr+s_index_offset);
 	}
+
 	INCSTAT(stats.thisFrame.numDrawCalls);
 }
 
@@ -129,7 +133,8 @@ void VertexManager::vFlush(bool useDstAlpha)
 	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
 	u32 stride  = nativeVertexFmt->GetVertexStride();
 
-	if (m_last_vao != nativeVertexFmt->VAO) {
+	if (m_last_vao != nativeVertexFmt->VAO)
+	{
 		glBindVertexArray(nativeVertexFmt->VAO);
 		m_last_vao = nativeVertexFmt->VAO;
 	}
