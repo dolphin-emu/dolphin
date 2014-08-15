@@ -49,6 +49,7 @@
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include "DolphinWX/Debugger/JitWindow.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
 
 extern "C"  // Bitmaps
@@ -155,6 +156,13 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 		case IDM_UPDATEBREAKPOINTS:
 			Update();
 			if (m_BreakpointWindow) m_BreakpointWindow->NotifyUpdate();
+			break;
+
+		case IDM_UPDATEJITPANE:
+			// Check if the JIT pane is in the AUI notebook. If not, add it and switch to it.
+			if (!m_JitWindow)
+				ToggleJitWindow(true);
+			m_JitWindow->ViewAddr(codeview->GetSelection());
 			break;
 	}
 }

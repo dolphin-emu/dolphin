@@ -213,11 +213,6 @@ void PPCDebugInterface::SetPC(unsigned int address)
 	PowerPC::ppcState.pc = address;
 }
 
-void PPCDebugInterface::ShowJitResults(unsigned int address)
-{
-	Host_ShowJitResults(address);
-}
-
 void PPCDebugInterface::RunToBreakpoint()
 {
 
