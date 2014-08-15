@@ -31,7 +31,7 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\VSProps\Base.props" />
-    <Import Project="..\..\..\VSProps\PrecompiledHeader.props" />
+    <Import Project="..\..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
@@ -46,9 +46,6 @@
     <ClCompile Include="RasterFont.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="SetupUnit.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader>Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="SWCommandProcessor.cpp" />
     <ClCompile Include="SWmain.cpp" />
     <ClCompile Include="SWRenderer.cpp" />
@@ -74,7 +71,6 @@
     <ClInclude Include="RasterFont.h" />
     <ClInclude Include="Rasterizer.h" />
     <ClInclude Include="SetupUnit.h" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="SWCommandProcessor.h" />
     <ClInclude Include="SWRenderer.h" />
     <ClInclude Include="SWStatistics.h" />

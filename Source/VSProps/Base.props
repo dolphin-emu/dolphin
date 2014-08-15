@@ -59,7 +59,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/Zo /volatile:iso /D PSAPI_VERSION=1 /D _M_X86=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Platform)'=='x64'">/D _ARCH_64=1 /D _M_X86_64=1 %(AdditionalOptions)</AdditionalOptions>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <!--
       This is for GetVersionEx being marked as depreciated - which is idiotic and there's
       not much else we can do since many externals use it. The bad part is that there doesn't
@@ -67,10 +67,6 @@
       -->
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <OpenMPSupport>true</OpenMPSupport>
-    </ClCompile>
-    <!--ClCompile Base:StaticLibrary-->
-    <ClCompile Condition="'$(ConfigurationType)'=='StaticLibrary'">
-      <PreprocessorDefinitions>_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">

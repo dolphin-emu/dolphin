@@ -87,7 +87,6 @@
     <ClCompile Include="VolumeWiiCrypted.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -156,7 +155,6 @@
     <ClInclude Include="VolumeWiiCrypted.h">
       <Filter>Volume</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
