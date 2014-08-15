@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <memory>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "Core/HW/Memmap.h"
@@ -21,7 +22,9 @@
 static int s_attr_dirty;  // bitfield
 
 static NativeVertexFormat* s_current_vtx_fmt;
-static VertexLoader *g_VertexLoaders[8];
+
+typedef std::pair<VertexLoader*, NativeVertexFormat*> VertexLoaderCacheItem;
+static VertexLoaderCacheItem s_VertexLoaders[8];
 
 namespace std
 {
@@ -37,31 +40,34 @@ struct hash<VertexLoaderUID>
 
 }
 
-typedef std::unordered_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
+typedef std::unordered_map<VertexLoaderUID, VertexLoaderCacheItem> VertexLoaderMap;
 typedef std::map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexLoaderMap;
 
 namespace VertexLoaderManager
 {
 
-static VertexLoaderMap g_VertexLoaderMap;
+static VertexLoaderMap s_VertexLoaderMap;
 static NativeVertexLoaderMap s_native_vertex_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
 void Init()
 {
 	MarkAllDirty();
-	for (VertexLoader*& vertexLoader : g_VertexLoaders)
-		vertexLoader = nullptr;
+	for (auto& map_entry : s_VertexLoaders)
+	{
+		map_entry.first = nullptr;
+		map_entry.second = nullptr;
+	}
 	RecomputeCachedArraybases();
 }
 
 void Shutdown()
 {
-	for (auto& p : g_VertexLoaderMap)
+	for (auto& map_entry : s_VertexLoaderMap)
 	{
-		delete p.second;
+		delete map_entry.second.first;
 	}
-	g_VertexLoaderMap.clear();
+	s_VertexLoaderMap.clear();
 	s_native_vertex_map.clear();
 }
 
@@ -83,11 +89,11 @@ void AppendListToString(std::string *dest)
 	std::vector<entry> entries;
 
 	size_t total_size = 0;
-	for (const auto& map_entry : g_VertexLoaderMap)
+	for (const auto& map_entry : s_VertexLoaderMap)
 	{
 		entry e;
-		map_entry.second->AppendToString(&e.text);
-		e.num_verts = map_entry.second->GetNumLoadedVerts();
+		map_entry.second.first->AppendToString(&e.text);
+		e.num_verts = map_entry.second.first->GetNumLoadedVerts();
 		entries.push_back(e);
 		total_size += e.text.size() + 1;
 	}
@@ -104,28 +110,6 @@ void MarkAllDirty()
 	s_attr_dirty = 0xff;
 }
 
-static VertexLoader* RefreshLoader(int vtx_attr_group)
-{
-	if ((s_attr_dirty >> vtx_attr_group) & 1)
-	{
-		VertexLoaderUID uid(g_VtxDesc, g_VtxAttr[vtx_attr_group]);
-		VertexLoaderMap::iterator iter = g_VertexLoaderMap.find(uid);
-		if (iter != g_VertexLoaderMap.end())
-		{
-			g_VertexLoaders[vtx_attr_group] = iter->second;
-		}
-		else
-		{
-			VertexLoader *loader = new VertexLoader(g_VtxDesc, g_VtxAttr[vtx_attr_group]);
-			g_VertexLoaderMap[uid] = loader;
-			g_VertexLoaders[vtx_attr_group] = loader;
-			INCSTAT(stats.numVertexLoaders);
-		}
-	}
-	s_attr_dirty &= ~(1 << vtx_attr_group);
-	return g_VertexLoaders[vtx_attr_group];
-}
-
 static NativeVertexFormat* GetNativeVertexFormat(const PortableVertexDeclaration& format,
                                                  u32 components)
 {
@@ -140,31 +124,55 @@ static NativeVertexFormat* GetNativeVertexFormat(const PortableVertexDeclaration
 	return native.get();
 }
 
+static VertexLoaderCacheItem RefreshLoader(int vtx_attr_group)
+{
+	if ((s_attr_dirty >> vtx_attr_group) & 1)
+	{
+		VertexLoaderUID uid(g_VtxDesc, g_VtxAttr[vtx_attr_group]);
+		VertexLoaderMap::iterator iter = s_VertexLoaderMap.find(uid);
+		if (iter != s_VertexLoaderMap.end())
+		{
+			s_VertexLoaders[vtx_attr_group] = iter->second;
+		}
+		else
+		{
+			VertexLoader* loader = new VertexLoader(g_VtxDesc, g_VtxAttr[vtx_attr_group]);
+
+			NativeVertexFormat* vtx_fmt = GetNativeVertexFormat(
+				loader->GetNativeVertexDeclaration(),
+				loader->GetNativeComponents());
+
+			s_VertexLoaderMap[uid] = std::make_pair(loader, vtx_fmt);
+			s_VertexLoaders[vtx_attr_group] = std::make_pair(loader, vtx_fmt);
+			INCSTAT(stats.numVertexLoaders);
+		}
+	}
+	s_attr_dirty &= ~(1 << vtx_attr_group);
+	return s_VertexLoaders[vtx_attr_group];
+}
+
 void RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	if (!count)
 		return;
-	VertexLoader* loader = RefreshLoader(vtx_attr_group);
+	auto loader = RefreshLoader(vtx_attr_group);
 
 	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5)
 	{
 		// if cull mode is CULL_ALL, ignore triangles and quads
-		DataSkip(count * loader->GetVertexSize());
+		DataSkip(count * loader.first->GetVertexSize());
 		return;
 	}
 
 	// If the native vertex format changed, force a flush.
-	NativeVertexFormat* required_vtx_fmt = GetNativeVertexFormat(
-			loader->GetNativeVertexDeclaration(),
-			loader->GetNativeComponents());
-	if (required_vtx_fmt != s_current_vtx_fmt)
+	if (loader.second != s_current_vtx_fmt)
 		VertexManager::Flush();
-	s_current_vtx_fmt = required_vtx_fmt;
+	s_current_vtx_fmt = loader.second;
 
 	VertexManager::PrepareForAdditionalData(primitive, count,
-			loader->GetNativeVertexDeclaration().stride);
+			loader.first->GetNativeVertexDeclaration().stride);
 
-	loader->RunVertices(g_VtxAttr[vtx_attr_group], primitive, count);
+	loader.first->RunVertices(g_VtxAttr[vtx_attr_group], primitive, count);
 
 	IndexGenerator::AddIndices(primitive, count);
 
@@ -174,7 +182,7 @@ void RunVertices(int vtx_attr_group, int primitive, int count)
 
 int GetVertexSize(int vtx_attr_group)
 {
-	return RefreshLoader(vtx_attr_group)->GetVertexSize();
+	return RefreshLoader(vtx_attr_group).first->GetVertexSize();
 }
 
 NativeVertexFormat* GetCurrentVertexFormat()
