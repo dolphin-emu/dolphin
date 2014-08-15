@@ -57,7 +57,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/Zo /volatile:iso /D PSAPI_VERSION=1 /D _M_X86=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:inline /Zo /volatile:iso /D PSAPI_VERSION=1 /D _M_X86=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Platform)'=='x64'">/D _ARCH_64=1 /D _M_X86_64=1 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <!--
