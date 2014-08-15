@@ -8,7 +8,8 @@ namespace OGL
 
 void ClearEFBCache();
 
-enum GLSL_VERSION {
+enum GLSL_VERSION
+{
 	GLSL_130,
 	GLSL_140,
 	GLSL_150,  // and above
@@ -17,7 +18,8 @@ enum GLSL_VERSION {
 };
 
 // ogl-only config, so not in VideoConfig.h
-struct VideoConfig {
+struct VideoConfig
+{
 	bool bSupportsGLSLCache;
 	bool bSupportsGLPinnedMemory;
 	bool bSupportsGLSync;

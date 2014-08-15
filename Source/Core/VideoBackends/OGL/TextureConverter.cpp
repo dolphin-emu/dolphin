@@ -298,8 +298,10 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 			format |= _GX_TF_CTF;
 	}
 	else
+	{
 		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
 			format |= _GX_TF_CTF;
+	}
 
 	SHADER& texconv_shader = GetOrCreateEncodingShader(format);
 

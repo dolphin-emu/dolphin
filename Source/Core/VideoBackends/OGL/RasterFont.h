@@ -13,7 +13,7 @@ class RasterFont
 {
 public:
 	RasterFont();
-	~RasterFont(void);
+	~RasterFont();
 	static int debug;
 
 	void printMultilineText(const std::string& text, double x, double y, double z, int bbWidth, int bbHeight, u32 color);

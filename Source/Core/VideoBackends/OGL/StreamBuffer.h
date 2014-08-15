@@ -12,7 +12,8 @@
 namespace OGL
 {
 
-class StreamBuffer {
+class StreamBuffer
+{
 
 public:
 	static StreamBuffer* Create(u32 type, u32 size);
@@ -37,7 +38,7 @@ public:
 			m_iterator += stride - padding;
 		}
 		return Map(size);
-        }
+	}
 
 	const u32 m_buffer;
 
