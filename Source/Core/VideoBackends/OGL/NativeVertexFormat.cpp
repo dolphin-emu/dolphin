@@ -35,7 +35,7 @@ GLVertexFormat::~GLVertexFormat()
 	glDeleteVertexArrays(1, &VAO);
 }
 
-inline GLuint VarToGL(VarType t)
+static inline GLuint VarToGL(VarType t)
 {
 	static const GLuint lookup[5] = {
 		GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT, GL_FLOAT
