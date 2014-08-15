@@ -41,5 +41,4 @@ public:
 	virtual void InsertBLR(unsigned int address, unsigned int value) override;
 	virtual int GetColor(unsigned int address) override;
 	virtual std::string GetDescription(unsigned int address) override;
-	virtual void ShowJitResults(u32 address) override;
 };
