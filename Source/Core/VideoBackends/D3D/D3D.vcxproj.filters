@@ -67,7 +67,6 @@
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -130,6 +129,5 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="VideoBackend.h" />
-    <ClInclude Include="stdafx.h" />
   </ItemGroup>
 </Project>

@@ -31,7 +31,7 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\VSProps\Base.props" />
-    <Import Project="..\..\..\VSProps\PrecompiledHeader.props" />
+    <Import Project="..\..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
@@ -50,9 +50,6 @@
     <ClCompile Include="PointGeometryShader.cpp" />
     <ClCompile Include="PSTextureEncoder.cpp" />
     <ClCompile Include="Render.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader>Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Television.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
@@ -75,7 +72,6 @@
     <ClInclude Include="PointGeometryShader.h" />
     <ClInclude Include="PSTextureEncoder.h" />
     <ClInclude Include="Render.h" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="Television.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="TextureEncoder.h" />

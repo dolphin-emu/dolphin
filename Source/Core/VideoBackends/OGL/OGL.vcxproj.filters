@@ -56,7 +56,6 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SamplerCache.cpp" />
-    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="GLExtensions\GLExtensions.cpp">
       <Filter>GLExtensions</Filter>
     </ClCompile>
@@ -98,7 +97,6 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="SamplerCache.h" />
     <ClInclude Include="VideoBackend.h" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="GLExtensions\ARB_blend_func_extended.h">
       <Filter>GLExtensions</Filter>
     </ClInclude>

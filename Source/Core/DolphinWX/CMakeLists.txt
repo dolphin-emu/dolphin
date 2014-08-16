@@ -99,9 +99,7 @@ set(SRCS ${SRCS} GLInterface/GLInterface.cpp)
 
 set(NOGUI_SRCS MainNoGUI.cpp)
 
-if(WIN32)
-	set(SRCS ${SRCS} stdafx.cpp)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	# Link against OS X system frameworks.
 	list(APPEND LIBS
 		${APPKIT_LIBRARY}
