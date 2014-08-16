@@ -31,7 +31,6 @@ public:
 	virtual void RunToBreakpoint() {}
 	virtual void BreakNow() {}
 	virtual void InsertBLR(unsigned int /*address*/, unsigned int /*value*/) {}
-	virtual void ShowJitResults(unsigned int /*address*/) {};
 	virtual int GetColor(unsigned int /*address*/){return 0xFFFFFFFF;}
 	virtual std::string GetDescription(unsigned int /*address*/) = 0;
 };

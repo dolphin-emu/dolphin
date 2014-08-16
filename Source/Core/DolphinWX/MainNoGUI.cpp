@@ -47,8 +47,6 @@ static bool running = true;
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
 
-void Host_ShowJitResults(unsigned int address){}
-
 static Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
