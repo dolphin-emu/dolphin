@@ -1,4 +1,4 @@
-Dolphin VR 4.0-2592
+Dolphin VR 4.0-2654
 (Unofficial Dolphin build with Oculus Rift support.)
 Open Source licence: GPL v2
 
