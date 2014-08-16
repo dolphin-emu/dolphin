@@ -19,10 +19,19 @@ g_metroid_xray_visor = false, g_metroid_thermal_visor = false,
 g_metroid_map_screen = false, g_metroid_inventory = false,
 g_metroid_dark_visor = false, g_metroid_echo_visor = false, g_metroid_morphball_active = false;
 int g_metroid_wide_count = 0, g_metroid_normal_count = 0;
+int g_zelda_normal_count = 0, g_zelda_effect_count = 0;
 
 extern float vr_widest_3d_HFOV, vr_widest_3d_VFOV, vr_widest_3d_zNear, vr_widest_3d_zFar;
 
 //#pragma optimize("", off)
+
+void NewMetroidFrame()
+{
+	g_metroid_wide_count = 0;
+	g_metroid_normal_count = 0;
+	g_zelda_normal_count = 0;
+	g_zelda_effect_count = 0;
+}
 
 int Round100(float x)
 {
@@ -125,6 +134,22 @@ const char *MetroidLayerName(TMetroidLayer layer)
 		return "Screen Overlay";
 	case METROID_UNKNOWN_2D:
 		return "Unknown 2D";
+	case ZELDA_DARK_EFFECT:
+		return "Zelda Dark Effect";
+	case ZELDA_DIALOG:
+		return "Zelda Dialog";
+	case ZELDA_NEXT:
+		return "Zelda Next";
+	case ZELDA_REFLECTION:
+		return "Zelda Water Reflection";
+	case ZELDA_UNKNOWN:
+		return "Zelda Unknown";
+	case ZELDA_UNKNOWN_2D:
+		return "Zelda Unknown 2D";
+	case ZELDA_UNKNOWN_EFFECT:
+		return "Zelda Unknown Effect";
+	case ZELDA_WORLD:
+		return "Zelda World";
 	default:
 		return "Error";
 	}
@@ -703,11 +728,61 @@ TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float z
 	return result;
 }
 
-void NewMetroidFrame()
-{
-	g_metroid_wide_count = 0;
-	g_metroid_normal_count = 0;
 
+TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar)
+{
+	TMetroidLayer result;
+	int r = Round100(right);
+	int n = Round100(znear);
+	int f = Round100(zfar);
+	if (r == 400 && f == 1000)
+	{
+		result = ZELDA_DARK_EFFECT;
+	}
+	else if (r == 60800 && f == 10000)
+	{
+		result = ZELDA_UNKNOWN_EFFECT;
+	}
+	else if (r == 60800 && n == 10000000 && g_zelda_normal_count)
+	{
+		++g_zelda_effect_count;
+		switch (g_zelda_effect_count)
+		{
+		case 1:
+			result = ZELDA_DIALOG;
+			break;
+		case 2:
+			result = ZELDA_NEXT;
+			break;
+		default:
+			result = ZELDA_UNKNOWN_2D;
+		}
+	}
+	else
+	{
+		result = ZELDA_UNKNOWN_2D;
+	}
+	return result;
+}
+
+TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, float zfar)
+{
+	TMetroidLayer result;
+
+	++g_zelda_normal_count;
+	switch (g_zelda_normal_count)
+	{
+	case 1:
+		result = ZELDA_WORLD;
+		break;
+	case 2:
+		result = ZELDA_REFLECTION;
+		break;
+	default:
+		result = ZELDA_UNKNOWN;
+		break;
+	}
+	return result;
 }
 
 void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHide, bool *bFlashing,
@@ -879,6 +954,23 @@ void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHi
 		// and make it bigger
 		*bStuckToHead = false;
 		break;
+
+	case ZELDA_UNKNOWN:
+	case ZELDA_WORLD:
+	case ZELDA_DIALOG:
+	case ZELDA_NEXT:
+	case ZELDA_UNKNOWN_2D:
+	case ZELDA_UNKNOWN_EFFECT:
+		// render most things like normal
+		break;
+
+	case ZELDA_DARK_EFFECT:
+		*bHide = true;
+		break;
+	case ZELDA_REFLECTION:
+		*bHide = true;
+		break;
+
 	default:
 		*bStuckToHead = true;
 		*fScaleHack = 30; // 1/30

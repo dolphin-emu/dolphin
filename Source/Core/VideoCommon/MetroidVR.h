@@ -52,6 +52,16 @@ typedef enum
 	METROID_UNKNOWN_VISOR,
 	METROID_UNKNOWN_HUD,
 	METROID_UNKNOWN_2D,
+
+	ZELDA_UNKNOWN,
+	ZELDA_WORLD,
+	ZELDA_REFLECTION,
+	ZELDA_DARK_EFFECT,
+	ZELDA_DIALOG,
+	ZELDA_NEXT,
+	ZELDA_UNKNOWN_2D,
+	ZELDA_UNKNOWN_EFFECT,
+
 	METROID_LAYER_COUNT
 } TMetroidLayer;
 
@@ -65,13 +75,15 @@ g_metroid_map_screen, g_metroid_inventory,
 g_metroid_dark_visor, g_metroid_echo_visor, g_metroid_morphball_active;
 extern int g_metroid_wide_count, g_metroid_normal_count;
 
-int Round100(float x);
 void NewMetroidFrame();
+int Round100(float x);
 const char *MetroidLayerName(TMetroidLayer layer);
 TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
 TMetroidLayer GetMetroidPrime1GCLayer(int layer, float hfov, float vfov, float znear, float zfar);
 TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
 TMetroidLayer GetMetroidPrime2GCLayer(int layer, float hfov, float vfov, float znear, float zfar);
+TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top, float bottom, float znear, float zfar);
+TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, float zfar);
 void GetMetroidPrimeValues(bool *bStuckToHead, bool *bFullscreenLayer, bool *bHide, bool *bFlashing,
 	float* fScaleHack, float *fWidthHack, float *fHeightHack, float *fUpHack, float *fRightHack);
 
