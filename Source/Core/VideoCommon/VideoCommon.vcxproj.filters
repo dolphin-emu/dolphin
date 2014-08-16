@@ -138,6 +138,9 @@
     <ClCompile Include="TextureDecoder_x64.cpp">
       <Filter>Decoding</Filter>
     </ClCompile>
+    <ClCompile Include="VR.cpp" />
+    <ClCompile Include="VR920.cpp" />
+    <ClCompile Include="MetroidVR.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -268,6 +271,8 @@
       <Filter>Vertex Loading</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="VR.h" />
+    <ClInclude Include="VR920.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
