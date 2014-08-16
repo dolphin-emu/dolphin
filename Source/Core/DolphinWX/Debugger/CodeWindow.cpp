@@ -618,12 +618,12 @@ void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 		h = m_Bitmaps[0].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(IDM_STEP,     _("Step"),      m_Bitmaps[Toolbar_Step]);
-	toolBar->AddTool(IDM_STEPOVER, _("Step Over"), m_Bitmaps[Toolbar_StepOver]);
-	toolBar->AddTool(IDM_SKIP,     _("Skip"),      m_Bitmaps[Toolbar_Skip]);
+	WxUtils::AddToolbarButton(toolBar, IDM_STEP,     _("Step"),      m_Bitmaps[Toolbar_Step],     _("Step into the next instruction"));
+	WxUtils::AddToolbarButton(toolBar, IDM_STEPOVER, _("Step Over"), m_Bitmaps[Toolbar_StepOver], _("Step over the next instruction"));
+	WxUtils::AddToolbarButton(toolBar, IDM_SKIP,     _("Skip"),      m_Bitmaps[Toolbar_Skip],     _("Skips the next instruction completely"));
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_GOTOPC,   _("Show PC"),   m_Bitmaps[Toolbar_GotoPC]);
-	toolBar->AddTool(IDM_SETPC,    _("Set PC"),    m_Bitmaps[Toolbar_SetPC]);
+	WxUtils::AddToolbarButton(toolBar, IDM_GOTOPC,   _("Show PC"),   m_Bitmaps[Toolbar_GotoPC],   _("Go to the current instruction"));
+	WxUtils::AddToolbarButton(toolBar, IDM_SETPC,    _("Set PC"),    m_Bitmaps[Toolbar_SetPC],    _("Set the current instruction"));
 	toolBar->AddSeparator();
 	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, ""));
 
