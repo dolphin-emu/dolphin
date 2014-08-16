@@ -70,7 +70,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 	}
 
 	// load the banner.bin
-	size_t FileSize = (size_t) File::GetSize(Filename);
+	u64 FileSize = File::GetSize(Filename);
 
 	if (FileSize > 0)
 	{

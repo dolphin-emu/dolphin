@@ -287,7 +287,7 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 	INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
 	if (userdata >> 16)
 	{
-		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
+		Common::AtomicStore(g_bSignalTokenInterrupt, 1);
 		UpdateInterrupts();
 	}
 	CommandProcessor::interruptTokenWaiting = false;
@@ -295,7 +295,7 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
-	Common::AtomicStore(*(volatile u32*)&g_bSignalFinishInterrupt, 1);
+	Common::AtomicStore(g_bSignalFinishInterrupt, 1);
 	UpdateInterrupts();
 	CommandProcessor::interruptFinishWaiting = false;
 	CommandProcessor::isPossibleWaitingSetDrawDone = false;
@@ -307,7 +307,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 {
 	if (_bSetTokenAcknowledge) // set token INT
 	{
-		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
+		Common::AtomicStore(g_bSignalTokenInterrupt, 1);
 	}
 
 	CommandProcessor::interruptTokenWaiting = true;

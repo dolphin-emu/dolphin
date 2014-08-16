@@ -152,7 +152,7 @@ inline u64 fmix64(u64 k)
 
 u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
 {
-	const u8 * data = (const u8*)src;
+	const u8* data = src;
 	const int nblocks = len / 16;
 	u32 Step = (len / 8);
 	if (samples == 0) samples = std::max(Step, 1u);

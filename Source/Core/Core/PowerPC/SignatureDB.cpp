@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <string>
 
 #include "Common/Common.h"
@@ -96,8 +97,7 @@ void SignatureDB::List()
 	{
 		INFO_LOG(OSHLE, "%s : %i bytes, hash = %08x", entry.second.name.c_str(), entry.second.size, entry.first);
 	}
-	INFO_LOG(OSHLE, "%lu functions known in current database.",
-		(unsigned long)database.size());
+	INFO_LOG(OSHLE, "%" PRIu64 " functions known in current database.", database.size());
 }
 
 void SignatureDB::Clear()

@@ -266,7 +266,7 @@ struct BlockAlloc
 	u16 GetNextBlock(u16 Block) const;
 	u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
 	bool ClearBlocks(u16 StartingBlock, u16 Length);
-	void fixChecksums() { calc_checksumsBE((u16 *)&UpdateCounter, 0xFFE, &Checksum, &Checksum_Inv); }
+	void fixChecksums() { calc_checksumsBE(&UpdateCounter, 0xFFE, &Checksum, &Checksum_Inv); }
 	BlockAlloc(u16 sizeMb = MemCard2043Mb)
 	{
 		memset(this, 0, BLOCK_SIZE);

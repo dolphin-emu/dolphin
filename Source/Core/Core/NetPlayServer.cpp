@@ -198,7 +198,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	// send the pad buffer value
 	spac.Clear();
 	spac << (MessageId)NP_MSG_PAD_BUFFER;
-	spac << (u32)m_target_buffer_size;
+	spac << m_target_buffer_size;
 	socket.Send(spac);
 
 	// sync values with new client
@@ -350,7 +350,7 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 	// tell clients to change buffer size
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_PAD_BUFFER;
-	spac << (u32)m_target_buffer_size;
+	spac << m_target_buffer_size;
 
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);

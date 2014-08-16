@@ -269,7 +269,7 @@ u8 Read_U8(const u32 _Address)
 		mc->Action(&PowerPC::debug_interface, _var, _Address, false, 1, PC);
 	}
 #endif
-	return (u8)_var;
+	return _var;
 }
 
 u16 Read_U16(const u32 _Address)
@@ -284,7 +284,7 @@ u16 Read_U16(const u32 _Address)
 		mc->Action(&PowerPC::debug_interface, _var, _Address, false, 2, PC);
 	}
 #endif
-	return (u16)_var;
+	return _var;
 }
 
 u32 Read_U32(const u32 _Address)

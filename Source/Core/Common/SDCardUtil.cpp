@@ -181,7 +181,7 @@ static unsigned int write_empty(FILE* file, u64 count)
 		if (len > count)
 			len = count;
 
-		if ( fwrite(empty, 1, (size_t)len, file) != (size_t)len )
+		if ( fwrite(empty, 1, len, file) != len )
 			return 1;
 
 		count -= len;

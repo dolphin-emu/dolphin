@@ -518,8 +518,7 @@ void CFrame::OnPerspectiveMenu(wxCommandEvent& event)
 				return;
 			}
 			SaveIniPerspectives();
-			GetStatusBar()->SetStatusText(StrToWxStr(std::string
-						("Saved " + Perspectives[ActivePerspective].Name)), 0);
+			GetStatusBar()->SetStatusText(StrToWxStr("Saved " + Perspectives[ActivePerspective].Name), 0);
 			break;
 		case IDM_PERSPECTIVES_ADD_PANE:
 			AddPane();

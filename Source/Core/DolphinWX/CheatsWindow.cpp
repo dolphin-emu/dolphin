@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <climits>
 #include <cstddef>
 #include <cstdio>
@@ -334,7 +335,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 			ARCode code = GetARCode(i);
 			m_Label_Codename->SetLabel(_("Name: ") + StrToWxStr(code.name));
 
-			std::string numcodes = StringFromFormat("Number of Codes: %lu", (unsigned long)code.ops.size());
+			std::string numcodes = StringFromFormat("Number of Codes: %" PRIu64, code.ops.size());
 			m_Label_NumCodes->SetLabel(StrToWxStr(numcodes));
 			m_ListBox_CodesList->Clear();
 

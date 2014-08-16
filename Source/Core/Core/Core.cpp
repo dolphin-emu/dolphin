@@ -709,7 +709,7 @@ void UpdateTitle()
 	if (soundStream)
 	{
 		CMixer* pMixer = soundStream->GetMixer();
-		pMixer->UpdateSpeed((float)Speed / 100);
+		pMixer->UpdateSpeed(Speed / 100);
 	}
 
 	if (_CoreParameter.bRenderToMain &&

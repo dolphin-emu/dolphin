@@ -38,7 +38,7 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 
 	// create the default disk header
 	m_diskHeader = new u8[DISKHEADERINFO_ADDRESS];
-	memset(m_diskHeader, 0, (size_t)DISKHEADERINFO_ADDRESS);
+	memset(m_diskHeader, 0, DISKHEADERINFO_ADDRESS);
 	SetUniqueID("AGBJ01");
 	SetName("Default name");
 
@@ -183,7 +183,7 @@ void CVolumeDirectory::SetUniqueID(std::string _ID)
 {
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
 
-	u32 length = (u32)_ID.length();
+	size_t length = _ID.length();
 	if (length > 6)
 		length = 6;
 
@@ -214,7 +214,7 @@ void CVolumeDirectory::SetName(std::string _Name)
 {
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
 
-	u32 length = (u32)_Name.length();
+	size_t length = _Name.length();
 	if (length > MAX_NAME_LENGTH)
 	    length = MAX_NAME_LENGTH;
 
@@ -357,7 +357,7 @@ void CVolumeDirectory::BuildFST()
 
 	m_fstNameOffset = totalEntries * ENTRY_SIZE; // offset in FST nameTable
 	m_fstSize = m_fstNameOffset + m_totalNameSize;
-	m_FSTData = new u8[(u32)m_fstSize];
+	m_FSTData = new u8[m_fstSize];
 
 	// if FST hasn't been assigned (ie no apploader/dol setup), set to default
 	if (FST_ADDRESS == 0)
@@ -405,7 +405,7 @@ void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _
 		if (_Length < srcBytes)
 			srcBytes = _Length;
 
-		memcpy(_pBuffer, _Src + srcOffset, (size_t)srcBytes);
+		memcpy(_pBuffer, _Src + srcOffset, srcBytes);
 
 		_Length -= srcBytes;
 		_pBuffer += srcBytes;
@@ -424,7 +424,7 @@ void CVolumeDirectory::PadToAddress(u64 _StartAddress, u64& _Address, u64& _Leng
 
 	if (_Length > 0)
 	{
-		memset(_pBuffer, 0, (size_t)padBytes);
+		memset(_pBuffer, 0, padBytes);
 		_Length -= padBytes;
 		_pBuffer += padBytes;
 		_Address += padBytes;
@@ -450,7 +450,7 @@ void CVolumeDirectory::WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset,
 	Write32((u32)(dataOffset >> m_addressShift), entryOffset, m_FSTData);
 	entryOffset += 4;
 
-	Write32((u32)length, entryOffset, m_FSTData);
+	Write32(length, entryOffset, m_FSTData);
 	entryOffset += 4;
 }
 

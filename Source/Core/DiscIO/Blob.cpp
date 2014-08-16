@@ -85,7 +85,7 @@ bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 				return false;
 
 			// Yay, we are done!
-			memcpy(out_ptr, data + positionInBlock, (size_t)remain);
+			memcpy(out_ptr, data + positionInBlock, remain);
 			return true;
 		}
 		else

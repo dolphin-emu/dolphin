@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <lzo/lzo1x.h>
 
 #include "Common/Common.h"
@@ -413,7 +414,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
 		if (!f.ReadBytes(&buffer[0], size))
 		{
-			PanicAlert("wtf? reading bytes: %i", (int)size);
+			PanicAlert("wtf? reading bytes: %" PRIu64, size);
 			return;
 		}
 	}
