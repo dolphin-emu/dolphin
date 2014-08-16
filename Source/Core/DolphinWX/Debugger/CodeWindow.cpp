@@ -626,8 +626,6 @@ void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 	WxUtils::AddToolbarButton(toolBar, IDM_SETPC,    _("Set PC"),    m_Bitmaps[Toolbar_SetPC],    _("Set the current instruction"));
 	toolBar->AddSeparator();
 	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, ""));
-
-	toolBar->Realize();
 }
 
 // Update GUI

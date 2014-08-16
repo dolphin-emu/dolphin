@@ -522,37 +522,32 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_DSP_EMULATOR,   _("DSP"),      m_Bitmaps[Toolbar_ConfigDSP],  _("DSP settings"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_PAD_PLUGIN,     _("GCPad"),    m_Bitmaps[Toolbar_ConfigPAD],  _("GameCube Pad settings"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote],    _("Wiimote settings"));
-
-	// after adding the buttons to the toolbar, must call Realize() to reflect
-	// the changes
-	ToolBar->Realize();
 }
 
 
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
-	if (m_ToolBar)
+	static const long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
+
+	if (m_ToolBar != nullptr)
 	{
-		m_Mgr->DetachPane(m_ToolBar);
 		m_ToolBar->Destroy();
 		m_ToolBar = nullptr;
 	}
 
-	long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
+	m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY);
 
-	if (!m_ToolBar)
+	if (g_pCodeWindow)
 	{
-		m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBMain");
-
-		if (g_pCodeWindow)
-		{
-			g_pCodeWindow->PopulateToolbar(m_ToolBar);
-			m_ToolBar->AddSeparator();
-		}
-
-		PopulateToolbar(m_ToolBar);
+		g_pCodeWindow->PopulateToolbar(m_ToolBar);
+		m_ToolBar->AddSeparator();
 	}
+
+	PopulateToolbar(m_ToolBar);
+	// after adding the buttons to the toolbar, must call Realize() to reflect
+	// the changes
+	m_ToolBar->Realize();
 
 	UpdateGUI();
 }
