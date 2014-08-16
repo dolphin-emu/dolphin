@@ -583,9 +583,6 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 	wxButton* const select_button = new wxButton(this, -1, _("Select"));
 	select_button->Bind(wxEVT_BUTTON, &ControlDialog::SetSelectedControl, this);
 
-	wxButton* const not_button = new  wxButton(this, -1, _("! NOT"));
-	not_button->Bind(wxEVT_BUTTON, &ControlDialog::AppendControl, this);
-
 	wxButton* const or_button = new  wxButton(this, -1, _("| OR"));
 	or_button->Bind(wxEVT_BUTTON, &ControlDialog::AppendControl, this);
 
@@ -600,9 +597,11 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 	{
 		// TODO: check if && is good on other OS
 		wxButton* const and_button = new  wxButton(this, -1, _("&& AND"));
+		wxButton* const not_button = new  wxButton(this, -1, _("! NOT"));
 		wxButton* const add_button = new  wxButton(this, -1, _("+ ADD"));
 
 		and_button->Bind(wxEVT_BUTTON, &ControlDialog::AppendControl, this);
+		not_button->Bind(wxEVT_BUTTON, &ControlDialog::AppendControl, this);
 		add_button->Bind(wxEVT_BUTTON, &ControlDialog::AppendControl, this);
 
 		button_sizer->Add(and_button, 1, 0, 5);
