@@ -11,7 +11,6 @@
 #include "Core/FifoPlayer/FifoFileStruct.h"
 
 using namespace FifoFileStruct;
-using namespace std;
 
 FifoDataFile::FifoDataFile() :
 	m_Flags(0)
