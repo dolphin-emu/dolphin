@@ -134,7 +134,6 @@
     <ClCompile Include="VertexLoaderManager.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="TextureDecoder_x64.cpp">
       <Filter>Decoding</Filter>
     </ClCompile>
@@ -270,7 +269,6 @@
     <ClInclude Include="VertexLoaderManager.h">
       <Filter>Vertex Loading</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="VR.h" />
     <ClInclude Include="VR920.h" />
   </ItemGroup>

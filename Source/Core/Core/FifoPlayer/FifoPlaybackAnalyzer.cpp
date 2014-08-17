@@ -12,7 +12,6 @@
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexLoader.h"
 
-using namespace std;
 using namespace FifoAnalyzer;
 
 // For debugging
@@ -291,10 +290,10 @@ void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
 void FifoPlaybackAnalyzer::StoreWrittenRegion(u32 address, u32 size)
 {
 	u32 end = address + size;
-	vector<MemoryRange>::iterator newRangeIter = m_WrittenMemory.end();
+	auto newRangeIter = m_WrittenMemory.end();
 
 	// Search for overlapping memory regions and expand them to include the new region
-	for (vector<MemoryRange>::iterator iter = m_WrittenMemory.begin(); iter != m_WrittenMemory.end();)
+	for (auto iter = m_WrittenMemory.begin(); iter != m_WrittenMemory.end();)
 	{
 		MemoryRange &range = *iter;
 

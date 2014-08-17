@@ -31,7 +31,7 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
+    <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
@@ -55,6 +55,7 @@
     <ClInclude Include="FileSearch.h" />
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FixedSizeQueue.h" />
+    <ClInclude Include="Flag.h" />
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="GekkoDisassembler.h" />
     <ClInclude Include="Hash.h" />
@@ -69,11 +70,7 @@
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="StdConditionVariable.h" />
     <ClInclude Include="StdMakeUnique.h" />
-    <ClInclude Include="StdMutex.h" />
-    <ClInclude Include="StdThread.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="SymbolDB.h" />
     <ClInclude Include="SysConf.h" />
@@ -108,9 +105,6 @@
     <ClCompile Include="PcapFile.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader>Create</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="SymbolDB.cpp" />
     <ClCompile Include="SysConf.cpp" />

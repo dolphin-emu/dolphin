@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include <thread>
+
 #include "AudioCommon/SoundStream.h"
 #include "Common/Event.h"
-#include "Common/StdThread.h"
 
 #ifdef _WIN32
 #include <Windows.h>

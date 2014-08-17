@@ -156,7 +156,6 @@
     <ClCompile Include="WiimoteConfigDiag.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="SoftwareVideoConfigDialog.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
@@ -283,7 +282,6 @@
     <ClInclude Include="WiimoteConfigDiag.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="GLInterface\GLInterface.h" />
     <ClInclude Include="SoftwareVideoConfigDialog.h">
       <Filter>GUI\Video</Filter>

@@ -23,7 +23,6 @@
     <ClCompile Include="XAudio2Stream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="XAudio2_7Stream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
@@ -50,7 +49,6 @@
     <ClInclude Include="XAudio2Stream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="XAudio2_7Stream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
