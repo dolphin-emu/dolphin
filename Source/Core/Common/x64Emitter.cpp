@@ -1237,16 +1237,23 @@ void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a)
 }
 
 
-void XEmitter::WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes)
+void XEmitter::WriteSSEOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes, int destBits)
 {
 	if (size == 64 && packed)
 		Write8(0x66); //this time, override goes upwards
 	if (!packed)
 		Write8(size == 64 ? 0xF2 : 0xF3);
 	arg.operandReg = regOp;
-	arg.WriteRex(this, 0, 0);
+	arg.WriteRex(this, destBits, 0);
+	// All SSE opcodes begin with 0x0F so it's implied here.
 	Write8(0x0F);
-	Write8(sseOp);
+	if (sseOp > 0xFF)
+	{
+		// Currently, only 0x38 and 0x3A are used as secondary escape byte.
+		_assert_msg_(DYNA_REC, ((sseOp >> 8) & 0xFD) == 0x38, "Invalid SSE opcode: 0F%04x", sseOp);
+		Write8((sseOp >> 8) & 0xFF);
+	}
+	Write8(sseOp & 0xFF);
 	arg.WriteRest(this, extrabytes);
 }
 
@@ -1387,14 +1394,16 @@ void XEmitter::CVTPD2PS(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5A, true, reg
 
 void XEmitter::CVTSD2SS(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5A, false, regOp, arg);}
 void XEmitter::CVTSS2SD(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x5A, false, regOp, arg);}
-void XEmitter::CVTSD2SI(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x2D, false, regOp, arg);}
+void XEmitter::CVTSS2SI(int bits, X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x2D, false, regOp, arg, 0, bits);}
+void XEmitter::CVTSD2SI(int bits, X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x2D, false, regOp, arg, 0, bits);}
 
 void XEmitter::CVTDQ2PD(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0xE6, false, regOp, arg);}
 void XEmitter::CVTDQ2PS(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x5B, true, regOp, arg);}
 void XEmitter::CVTPD2DQ(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0xE6, false, regOp, arg);}
 void XEmitter::CVTPS2DQ(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5B, true, regOp, arg);}
 
-void XEmitter::CVTTSS2SI(X64Reg xregdest, OpArg arg) {WriteSSEOp(32, 0x2C, false, xregdest, arg);}
+void XEmitter::CVTTSS2SI(int bits, X64Reg xregdest, OpArg arg) {WriteSSEOp(32, 0x2C, false, xregdest, arg, 0, bits);}
+void XEmitter::CVTTSD2SI(int bits, X64Reg xregdest, OpArg arg) {WriteSSEOp(64, 0x2C, false, xregdest, arg, 0, bits);}
 void XEmitter::CVTTPS2DQ(X64Reg xregdest, OpArg arg) {WriteSSEOp(32, 0x5B, false, xregdest, arg);}
 void XEmitter::CVTTPD2DQ(X64Reg xregdest, OpArg arg) {WriteSSEOp(64, 0xE6, true, xregdest, arg);}
 
@@ -1496,30 +1505,12 @@ void XEmitter::PSRAD(X64Reg reg, int shift) {
 	Write8(shift);
 }
 
-void XEmitter::PSHUFB(X64Reg dest, OpArg arg) {
-	if (!cpu_info.bSSSE3) {
-		PanicAlert("Trying to use PSHUFB on a system that doesn't support it. Bad programmer.");
-	}
-	Write8(0x66);
-	arg.operandReg = dest;
-	arg.WriteRex(this, 0, 0);
-	Write8(0x0f);
-	Write8(0x38);
-	Write8(0x00);
-	arg.WriteRest(this);
-}
+void XEmitter::BLENDPS(X64Reg reg, OpArg arg, u8 mask) {WriteSSEOp(64, 0x3A0C, true, reg, arg, 1); Write8(mask);}
+void XEmitter::BLENDPD(X64Reg reg, OpArg arg, u8 mask) {WriteSSEOp(64, 0x3A0D, true, reg, arg, 1); Write8(mask);}
+void XEmitter::BLENDVPD(X64Reg reg, OpArg arg)         {WriteSSEOp(64, 0x3815, true, reg, arg);}
 
-void XEmitter::PTEST(X64Reg dest, OpArg arg) {
-	if (!cpu_info.bSSE4_1) {
-		PanicAlert("Trying to use PTEST on a system that doesn't support it. Nobody hears your screams.");
-	}
-	Write8(0x66);
-	Write8(0x0f);
-	Write8(0x38);
-	Write8(0x17);
-	arg.operandReg = dest;
-	arg.WriteRest(this);
-}
+void XEmitter::PSHUFB(X64Reg dest, OpArg arg)   {WriteSSEOp(64, 0x3800, true, dest, arg);}
+void XEmitter::PTEST(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0x3817, true, dest, arg);}
 
 void XEmitter::PAND(X64Reg dest, OpArg arg)     {WriteSSEOp(64, 0xDB, true, dest, arg);}
 void XEmitter::PANDN(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xDF, true, dest, arg);}

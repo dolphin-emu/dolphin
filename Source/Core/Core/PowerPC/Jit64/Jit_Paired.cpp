@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/Common.h"
+#include "Common/CPUDetect.h"
 
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
@@ -36,8 +37,8 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 
 void Jit64::ps_sel(UGeckoInstruction inst)
 {
-	// we can't use (V)BLENDVPD here because it just looks at the sign bit
-	// but we need -0 = +0
+	// We can't use BLENDVPD here directly because it just looks at the sign bit
+	// but we need -0 = +0, so use CMPPD for the actual comparison.
 
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
@@ -51,14 +52,27 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	fpr.Lock(a, b, c, d);
 	MOVAPD(XMM0, fpr.R(a));
 	PXOR(XMM1, R(XMM1));
+
 	// XMM0 = XMM0 < 0 ? all 1s : all 0s
 	CMPPD(XMM0, R(XMM1), LT);
-	MOVAPD(XMM1, R(XMM0));
-	PAND(XMM0, fpr.R(b));
-	PANDN(XMM1, fpr.R(c));
-	POR(XMM0, R(XMM1));
+
+	if (cpu_info.bSSE4_1)
+	{
+		MOVAPD(XMM1, fpr.R(c));
+
+		// XMM1 = XMMO ? b : c
+		BLENDVPD(XMM1, fpr.R(b));
+	}
+	else
+	{
+		MOVAPD(XMM1, R(XMM0));
+		PAND(XMM1, fpr.R(b));
+		PANDN(XMM0, fpr.R(c));
+		POR(XMM1, R(XMM0));
+	}
+
 	fpr.BindToRegister(d, false);
-	MOVAPD(fpr.RX(d), R(XMM0));
+	MOVAPD(fpr.RX(d), R(XMM1));
 	fpr.UnlockAll();
 }
 
