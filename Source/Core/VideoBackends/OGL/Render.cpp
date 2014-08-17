@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
@@ -48,16 +49,6 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-#if defined(HAVE_WX) && HAVE_WX
-#include "DolphinWX/WxUtils.h"
-#endif
-
-#ifdef _WIN32
-#include <mmsystem.h>
-#endif
-
-#ifdef _WIN32
-#endif
 #if defined _WIN32 || defined HAVE_LIBAV
 #include "VideoCommon/AVIDump.h"
 #endif
@@ -100,10 +91,6 @@ static int s_LastMultisampleMode = 0;
 static u32 s_blendMode;
 
 static bool s_vsync;
-
-#if defined(HAVE_WX) && HAVE_WX
-static std::thread scrshotThread;
-#endif
 
 // EFB cache related
 static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
@@ -651,11 +638,6 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
-
-#if defined(HAVE_WX) && HAVE_WX
-	if (scrshotThread.joinable())
-		scrshotThread.join();
-#endif
 }
 
 void Renderer::Shutdown()
