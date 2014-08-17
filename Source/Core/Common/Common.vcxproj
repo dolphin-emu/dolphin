@@ -55,6 +55,7 @@
     <ClInclude Include="FileSearch.h" />
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FixedSizeQueue.h" />
+    <ClInclude Include="Flag.h" />
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="GekkoDisassembler.h" />
     <ClInclude Include="Hash.h" />
@@ -69,10 +70,7 @@
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
-    <ClInclude Include="StdConditionVariable.h" />
     <ClInclude Include="StdMakeUnique.h" />
-    <ClInclude Include="StdMutex.h" />
-    <ClInclude Include="StdThread.h" />
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="SymbolDB.h" />
     <ClInclude Include="SysConf.h" />

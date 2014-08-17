@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include <thread>
+
 #include "AudioCommon/SoundStream.h"
 #include "Common/Event.h"
-#include "Common/StdThread.h"
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/SystemTimers.h"
