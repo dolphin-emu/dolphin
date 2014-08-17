@@ -38,7 +38,7 @@
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 
-DEFINE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE);
+wxDEFINE_EVENT(wxEVT_CODEVIEW_CHANGE, wxCommandEvent);
 
 enum
 {
