@@ -1892,21 +1892,19 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
 	else
 	{
 		gpr.Lock(a, s);
-		gpr.KillImmediate(s, true, false);
 		gpr.BindToRegister(a, (a == s), true);
-		BSR(32, gpr.R(a).GetSimpleReg(), gpr.R(s));
-		FixupBranch gotone = J_CC(CC_NZ);
-		MOV(32, gpr.R(a), Imm32(63));
-		SetJumpTarget(gotone);
+		BSR(32, gpr.RX(a), gpr.R(s));
+		FixupBranch nonzero = J_CC(CC_NZ);
+		MOV(32, gpr.R(a), Imm32(32));
+		SetJumpTarget(nonzero);
 		XOR(32, gpr.R(a), Imm8(0x1f));  // flip order
 		gpr.UnlockAll();
 	}
 
+	// the PPC manual says that LT is cleared if RC is set, but that should be implicit,
+	// since the output of cntlzw is always nonnegative.
 	if (inst.Rc)
-	{
 		ComputeRC(gpr.R(a));
-		// TODO: Check PPC manual too
-	}
 }
 
 void Jit64::twx(UGeckoInstruction inst)
