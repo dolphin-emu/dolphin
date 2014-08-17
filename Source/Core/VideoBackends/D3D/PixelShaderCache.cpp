@@ -118,10 +118,30 @@ const char depth_matrix_program[] = {
 	"out float4 ocol0 : SV_Target,\n"
 	" in float4 pos : SV_Position,\n"
 	" in float2 uv0 : TEXCOORD0){\n"
-	"float4 texcol = Tex0.Sample(samp0,uv0);\n"
-	"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,1.0f));\n"
-	"texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * float4(255.0f,255.0f,255.0f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n"
-	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
+	"	float4 texcol = Tex0.Sample(samp0,uv0);\n"
+
+	// 255.99998474121 = 16777215/16777216*256
+	"	float workspace = texcol.x * 255.99998474121;\n"
+
+	"	texcol.x = floor(workspace);\n"         // x component
+
+	"	workspace = workspace - texcol.x;\n"    // subtract x component out
+	"	workspace = workspace * 256.0;\n"       // shift left 8 bits
+	"	texcol.y = floor(workspace);\n"         // y component
+
+	"	workspace = workspace - texcol.y;\n"    // subtract y component out
+	"	workspace = workspace * 256.0;\n"       // shift left 8 bits
+	"	texcol.z = floor(workspace);\n"         // z component
+
+	"	texcol.w = texcol.x;\n"                 // duplicate x into w
+
+	"	texcol = texcol / 255.0;\n"             // normalize components to [0.0..1.0]
+
+	"	texcol.w = texcol.w * 15.0;\n"
+	"	texcol.w = floor(texcol.w);\n"
+	"	texcol.w = texcol.w / 15.0;\n"          // w component
+
+	"	ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
 
@@ -133,15 +153,35 @@ const char depth_matrix_program_msaa[] = {
 	"out float4 ocol0 : SV_Target,\n"
 	" in float4 pos : SV_Position,\n"
 	" in float2 uv0 : TEXCOORD0){\n"
-	"int width, height, samples;\n"
-	"Tex0.GetDimensions(width, height, samples);\n"
-	"float4 texcol = 0;\n"
-	"for(int i = 0; i < samples; ++i)\n"
-	"	texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
-	"texcol /= samples;\n"
-	"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,256.0f,256.0f*256.0f,16.0f));\n"
-	"texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * float4(255.0f,255.0f,255.0f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n"
-	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
+	"	int width, height, samples;\n"
+	"	Tex0.GetDimensions(width, height, samples);\n"
+	"	float4 texcol = 0;\n"
+	"	for(int i = 0; i < samples; ++i)\n"
+	"		texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
+	"	texcol /= samples;\n"
+
+	// 255.99998474121 = 16777215/16777216*256
+	"	float workspace = texcol.x * 255.99998474121;\n"
+
+	"	texcol.x = floor(workspace);\n"         // x component
+
+	"	workspace = workspace - texcol.x;\n"    // subtract x component out
+	"	workspace = workspace * 256.0;\n"       // shift left 8 bits
+	"	texcol.y = floor(workspace);\n"         // y component
+
+	"	workspace = workspace - texcol.y;\n"    // subtract y component out
+	"	workspace = workspace * 256.0;\n"       // shift left 8 bits
+	"	texcol.z = floor(workspace);\n"         // z component
+
+	"	texcol.w = texcol.x;\n"                 // duplicate x into w
+
+	"	texcol = texcol / 255.0;\n"             // normalize components to [0.0..1.0]
+
+	"	texcol.w = texcol.w * 15.0;\n"
+	"	texcol.w = floor(texcol.w);\n"
+	"	texcol.w = texcol.w / 15.0;\n"          // w component
+
+	"	ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
 
