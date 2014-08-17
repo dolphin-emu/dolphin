@@ -20,8 +20,6 @@
 #include "Core/State.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/DVDInterface.h"
-#include "Core/HW/EXI.h"
-#include "Core/HW/EXI_Channel.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/Wiimote.h"
