@@ -106,6 +106,8 @@ public:
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
 	Gen::OpArg ExtractFromReg(int reg, int offset);
 	void AndWithMask(Gen::X64Reg reg, u32 mask);
+	bool CheckMergedBranch(int crf);
+	void DoMergedBranch();
 
 	// Reads a given bit of a given CR register part.
 	void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
