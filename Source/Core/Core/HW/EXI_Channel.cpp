@@ -159,7 +159,7 @@ void CEXIChannel::SendTransferComplete()
 void CEXIChannel::RemoveDevices()
 {
 	for (auto& device : m_pDevices)
-		device.reset();
+		device.reset(nullptr);
 }
 
 void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)

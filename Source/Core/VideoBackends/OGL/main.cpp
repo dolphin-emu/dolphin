@@ -226,8 +226,8 @@ void VideoBackend::Shutdown()
 	GLInterface->Shutdown();
 }
 
-void VideoBackend::Video_Cleanup() {
-
+void VideoBackend::Video_Cleanup()
+{
 	if (g_renderer)
 	{
 		s_efbAccessRequested = false;

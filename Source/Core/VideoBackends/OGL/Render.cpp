@@ -67,7 +67,8 @@ static int OSDInternalW, OSDInternalH;
 namespace OGL
 {
 
-enum MultisampleMode {
+enum MultisampleMode
+{
 	MULTISAMPLE_OFF,
 	MULTISAMPLE_2X,
 	MULTISAMPLE_4X,
@@ -130,26 +131,34 @@ static int GetNumMSAASamples(int MSAAMode)
 			samples = 1;
 	}
 
-	if (samples <= g_ogl_config.max_samples) return samples;
+	if (samples <= g_ogl_config.max_samples)
+		return samples;
 
 	// TODO: move this to InitBackendInfo
 	OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", samples, g_ogl_config.max_samples), 10000);
 	return g_ogl_config.max_samples;
 }
 
-static void ApplySSAASettings() {
+static void ApplySSAASettings()
+{
 	// GLES3 doesn't support SSAA
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
-		if (g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X) {
-			if (g_ogl_config.bSupportSampleShading) {
+		if (g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X)
+		{
+			if (g_ogl_config.bSupportSampleShading)
+			{
 				glEnable(GL_SAMPLE_SHADING_ARB);
 				glMinSampleShadingARB(s_MSAASamples);
-			} else {
+			}
+			else
+			{
 				// TODO: move this to InitBackendInfo
 				OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
 			}
-		} else if (g_ogl_config.bSupportSampleShading) {
+		}
+		else if (g_ogl_config.bSupportSampleShading)
+		{
 			glDisable(GL_SAMPLE_SHADING_ARB);
 		}
 	}
@@ -213,28 +222,46 @@ static void InitDriverInfo()
 
 	// Get the vendor first
 	if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
+	{
 		vendor = DriverDetails::VENDOR_NVIDIA;
+	}
 	else if (svendor == "ATI Technologies Inc." || svendor == "Advanced Micro Devices, Inc.")
+	{
 		vendor = DriverDetails::VENDOR_ATI;
+	}
 	else if (std::string::npos != sversion.find("Mesa"))
+	{
 		vendor = DriverDetails::VENDOR_MESA;
+	}
 	else if (std::string::npos != svendor.find("Intel"))
+	{
 		vendor = DriverDetails::VENDOR_INTEL;
+	}
 	else if (svendor == "ARM")
+	{
 		vendor = DriverDetails::VENDOR_ARM;
+	}
 	else if (svendor == "http://limadriver.org/")
 	{
 		vendor = DriverDetails::VENDOR_ARM;
 		driver = DriverDetails::DRIVER_LIMA;
 	}
 	else if (svendor == "Qualcomm")
+	{
 		vendor = DriverDetails::VENDOR_QUALCOMM;
+	}
 	else if (svendor == "Imagination Technologies")
+	{
 		vendor = DriverDetails::VENDOR_IMGTEC;
+	}
 	else if (svendor == "NVIDIA Corporation" && srenderer == "NVIDIA Tegra")
+	{
 		vendor = DriverDetails::VENDOR_TEGRA;
+	}
 	else if (svendor == "Vivante Corporation")
+	{
 		vendor = DriverDetails::VENDOR_VIVANTE;
+	}
 
 	// Get device family and driver version...if we care about it
 	switch (vendor)
@@ -594,8 +621,11 @@ Renderer::Renderer()
 	if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
 	{
 		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+		{
 			glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+		}
 		else
+		{
 			if (g_ogl_config.bSupportOGL31)
 			{
 				glEnable(GL_PRIMITIVE_RESTART);
@@ -606,6 +636,7 @@ Renderer::Renderer()
 				glEnableClientState(GL_PRIMITIVE_RESTART_NV);
 				glPrimitiveRestartIndexNV(65535);
 			}
+		}
 	}
 	UpdateActiveConfig();
 	ClearEFBCache();
@@ -1105,9 +1136,21 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			{
 				color |= 0xFF000000;
 			}
-			if (alpha_read_mode.ReadMode == 2) return color; // GX_READ_NONE
-			else if (alpha_read_mode.ReadMode == 1) return (color | 0xFF000000); // GX_READ_FF
-			else /*if(alpha_read_mode.ReadMode == 0)*/ return (color & 0x00FFFFFF); // GX_READ_00
+			if (alpha_read_mode.ReadMode == 2)
+			{
+				// GX_READ_NONE
+				return color;
+			}
+			else if (alpha_read_mode.ReadMode == 1)
+			{
+				// GX_READ_FF
+				return (color | 0xFF000000);
+			}
+			else /*if(alpha_read_mode.ReadMode == 0)*/
+			{
+				// GX_READ_00
+				return (color & 0x00FFFFFF);
+			}
 		}
 
 	case POKE_COLOR:
@@ -1318,7 +1361,9 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	newval |= bpmem.blendmode.subtract << 2;
 
 	if (bpmem.blendmode.subtract)
+	{
 		newval |= 0x0049;   // enable blending src 1 dst 1
+	}
 	else if (bpmem.blendmode.blendenable)
 	{
 		newval |= 1;    // enable blending
@@ -1329,8 +1374,10 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
 	if (changes & 1)
+	{
 		// blend enable change
 		(newval & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+	}
 
 	if (changes & 4)
 	{
@@ -1357,12 +1404,16 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		else
 		{
 			// we can't use GL_DST_COLOR or GL_ONE_MINUS_DST_COLOR for source in alpha channel so use their alpha equivalent instead
-			if (srcidx == BlendMode::DSTCLR) srcidx = BlendMode::DSTALPHA;
-			if (srcidx == BlendMode::INVDSTCLR) srcidx = BlendMode::INVDSTALPHA;
+			if (srcidx == BlendMode::DSTCLR)
+				srcidx = BlendMode::DSTALPHA;
+			else if (srcidx == BlendMode::INVDSTCLR)
+				srcidx = BlendMode::INVDSTALPHA;
 
 			// we can't use GL_SRC_COLOR or GL_ONE_MINUS_SRC_COLOR for destination in alpha channel so use their alpha equivalent instead
-			if (dstidx == BlendMode::SRCCLR) dstidx = BlendMode::SRCALPHA;
-			if (dstidx == BlendMode::INVSRCCLR) dstidx = BlendMode::INVSRCALPHA;
+			if (dstidx == BlendMode::SRCCLR)
+				dstidx = BlendMode::SRCALPHA;
+			else if (dstidx == BlendMode::INVSRCCLR)
+				dstidx = BlendMode::INVSRCALPHA;
 		}
 		GLenum srcFactorAlpha = glSrcFactors[srcidx];
 		GLenum dstFactorAlpha = glDestFactors[dstidx];
@@ -1597,7 +1648,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 						bAVIDumping = AVIDump::Start(w, h);
 					#endif
 					if (!bAVIDumping)
+					{
 						OSD::AddMessage("AVIDump Start failed", 2000);
+					}
 					else
 					{
 						OSD::AddMessage(StringFromFormat(
@@ -1617,7 +1670,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 				bLastFrameDumped = true;
 			}
 			else
+			{
 				NOTICE_LOG(VIDEO, "Error reading framebuffer");
+			}
 		}
 		else
 		{
@@ -1648,7 +1703,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 					movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
 					pFrameDump.Open(movie_file_name, "wb");
 					if (!pFrameDump)
+					{
 						OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
+					}
 					else
 					{
 						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
@@ -1870,7 +1927,9 @@ void Renderer::SetGenerationMode()
 		glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
 	}
 	else
+	{
 		glDisable(GL_CULL_FACE);
+	}
 }
 
 void Renderer::SetDepthMode()

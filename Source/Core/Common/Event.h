@@ -16,6 +16,7 @@
 #include <concrt.h>
 #endif
 
+#include <chrono>
 #include <condition_variable>
 #include <mutex>
 
@@ -48,6 +49,20 @@ public:
 		m_flag.Clear();
 	}
 
+	template<class Rep, class Period>
+	bool WaitFor(const std::chrono::duration<Rep, Period>& rel_time)
+	{
+		if (m_flag.TestAndClear())
+			return true;
+
+		std::unique_lock<std::mutex> lk(m_mutex);
+		bool signaled = m_condvar.wait_for(lk, rel_time,
+			[&]{ return m_flag.IsSet(); });
+		m_flag.Clear();
+
+		return signaled;
+	}
+
 	void Reset()
 	{
 		// no other action required, since wait loops on
@@ -65,9 +80,31 @@ private:
 class Event final
 {
 public:
-	void Set() { m_event.set(); }
-	void Wait() { m_event.wait(); m_event.reset(); }
-	void Reset() { m_event.reset(); }
+	void Set()
+	{
+		m_event.set();
+	}
+
+	void Wait()
+	{
+		m_event.wait();
+		m_event.reset();
+	}
+
+	template<class Rep, class Period>
+	bool WaitFor(const std::chrono::duration<Rep, Period>& rel_time)
+	{
+		bool signaled = m_event.wait(
+			(u32)std::chrono::duration_cast<std::chrono::milliseconds>(rel_time).count()
+			) == 0;
+		m_event.reset();
+		return signaled;
+	}
+
+	void Reset()
+	{
+		m_event.reset();
+	}
 
 private:
 	concurrency::event m_event;

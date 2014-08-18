@@ -55,7 +55,8 @@ extern "C"
 // There may be multiple XFBs in GameCube RAM. This is the maximum number to
 // virtualize.
 
-namespace OGL {
+namespace OGL
+{
 
 struct XFBSource : public XFBSourceBase
 {

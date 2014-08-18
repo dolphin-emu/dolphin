@@ -2,7 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <chrono>
 #include "Common/ChunkFile.h"
+#include "Common/StdMakeUnique.h"
 #include "Core/Core.h"
 #include "Core/HW/GCMemcard.h"
 #include "Core/HW/GCMemcardRaw.h"
@@ -10,53 +12,21 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-static void innerFlush(FlushData *data)
-{
-	File::IOFile pFile(data->filename, "r+b");
-	if (!pFile)
-	{
-		std::string dir;
-		SplitPath(data->filename, &dir, nullptr, nullptr);
-		if (!File::IsDirectory(dir))
-			File::CreateFullPath(dir);
-		pFile.Open(data->filename, "wb");
-	}
-
-	if (!pFile) // Note - pFile changed inside above if
-	{
-		PanicAlertT("Could not write memory card file %s.\n\n"
-					"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
-					"Are you receiving this after moving the emulator directory?\nIf so, then you may "
-					"need to re-specify your memory card location in the options.",
-					data->filename.c_str());
-		return;
-	}
-
-	pFile.WriteBytes(data->memcardContent, data->memcardSize);
-
-	if (!data->bExiting)
-		Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s", data->memcardIndex ? 'B' : 'A',
-											  data->filename.c_str()).c_str(),
-							 4000);
-	return;
-}
-
 MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb)
 	: MemoryCardBase(_card_index, sizeMb)
-	, m_bDirty(false)
-	, m_strFilename(filename)
+	, m_filename(filename)
 {
-	File::IOFile pFile(m_strFilename, "rb");
+	File::IOFile pFile(m_filename, "rb");
 	if (pFile)
 	{
-		// Measure size of the memcard file.
-		memory_card_size = (int)pFile.GetSize();
+		// Measure size of the existing memcard file.
+		memory_card_size = (u32)pFile.GetSize();
 		nintendo_card_id = memory_card_size / SIZE_TO_Mb;
-		memory_card_content = new u8[memory_card_size];
-		memset(memory_card_content, 0xFF, memory_card_size);
+		m_memcard_data = std::make_unique<u8[]>(memory_card_size);
+		memset(&m_memcard_data[0], 0xFF, memory_card_size);
 
-		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
-		pFile.ReadBytes(memory_card_content, memory_card_size);
+		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_filename.c_str());
+		pFile.ReadBytes(&m_memcard_data[0], memory_card_size);
 	}
 	else
 	{
@@ -64,108 +34,186 @@ MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb)
 		nintendo_card_id = sizeMb;
 		memory_card_size = sizeMb * SIZE_TO_Mb;
 
-		memory_card_content = new u8[memory_card_size];
-		GCMemcard::Format(memory_card_content, m_strFilename.find(".JAP.raw") != std::string::npos, sizeMb);
-		memset(memory_card_content + MC_HDR_SIZE, 0xFF, memory_card_size - MC_HDR_SIZE);
+		m_memcard_data = std::make_unique<u8[]>(memory_card_size);
+		// Fills in MC_HDR_SIZE bytes
+		GCMemcard::Format(&m_memcard_data[0], m_filename.find(".JAP.raw") != std::string::npos, sizeMb);
+		memset(&m_memcard_data[MC_HDR_SIZE], 0xFF, memory_card_size - MC_HDR_SIZE);
 
-		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create a new one.");
+		INFO_LOG(EXPANSIONINTERFACE, "No memory card found - a new one was created.");
 	}
+
+	// Class members (including inherited ones) have now been initialized, so
+	// it's safe to startup the flush thread (which reads them).
+	m_flush_buffer = std::make_unique<u8[]>(memory_card_size);
+	m_flush_thread = std::thread(&MemoryCard::FlushThread, this);
 }
 
 MemoryCard::~MemoryCard()
 {
-	Flush(true);
-	delete[] memory_card_content;
-}
-
-void MemoryCard::JoinThread()
-{
-	if (flushThread.joinable())
+	if (m_flush_thread.joinable())
 	{
-		flushThread.join();
+		// Update the flush buffer one last time, flush, and join.
+		{
+			std::unique_lock<std::mutex> l(m_flush_mutex);
+			memcpy(&m_flush_buffer[0], &m_memcard_data[0], memory_card_size);
+		}
+
+		m_is_exiting.Set();
+		m_flush_trigger.Set();
+
+		m_flush_thread.join();
 	}
 }
 
-// Flush memory card contents to disc
-void MemoryCard::Flush(bool exiting)
+void MemoryCard::FlushThread()
 {
-	if (!m_bDirty)
-		return;
-
 	if (!Core::g_CoreStartupParameter.bEnableMemcardSaving)
-		return;
-
-	if (flushThread.joinable())
 	{
-		flushThread.join();
+		return;
 	}
 
-	if (!exiting)
-		Core::DisplayMessage(StringFromFormat("Writing to memory card %c", card_index ? 'B' : 'A'), 1000);
+	Common::SetCurrentThreadName(
+		StringFromFormat("Memcard%x-Flush", card_index).c_str());
 
-	flushData.filename = m_strFilename;
-	flushData.memcardContent = memory_card_content;
-	flushData.memcardIndex = card_index;
-	flushData.memcardSize = memory_card_size;
-	flushData.bExiting = exiting;
+	const auto flush_interval = std::chrono::seconds(15);
+	auto last_flush = std::chrono::steady_clock::now();
+	bool dirty = false;
 
-	flushThread = std::thread(innerFlush, &flushData);
-	if (exiting)
-		flushThread.join();
+	for (;;)
+	{
+		bool triggered = m_flush_trigger.WaitFor(flush_interval);
+		bool do_exit = m_is_exiting.IsSet();
+		if (triggered)
+		{
+			dirty = true;
+		}
+		// Delay the flush if we're not exiting or if the event timed out and
+		// the state isn't dirty.
+		if (!do_exit)
+		{
+			auto now = std::chrono::steady_clock::now();
+			if (now - last_flush < flush_interval || !dirty)
+			{
+				continue;
+			}
+			last_flush = now;
+		}
 
-	m_bDirty = false;
+		// Opening the file is purposefully done each iteration to ensure the
+		// file doesn't disappear out from under us after the first check.
+		File::IOFile pFile(m_filename, "r+b");
+
+		if (!pFile)
+		{
+			std::string dir;
+			SplitPath(m_filename, &dir, nullptr, nullptr);
+			if (!File::IsDirectory(dir))
+			{
+				File::CreateFullPath(dir);
+			}
+			pFile.Open(m_filename, "wb");
+		}
+
+		// Note - pFile may have changed above, after ctor
+		if (!pFile)
+		{
+			PanicAlertT(
+				"Could not write memory card file %s.\n\n"
+				"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
+				"Are you receiving this after moving the emulator directory?\nIf so, then you may "
+				"need to re-specify your memory card location in the options.",
+				m_filename.c_str());
+
+			// Exit the flushing thread - further flushes will be ignored unless
+			// the thread is recreated.
+			return;
+		}
+
+		{
+			std::unique_lock<std::mutex> l(m_flush_mutex);
+			pFile.WriteBytes(&m_flush_buffer[0], memory_card_size);
+		}
+
+		dirty = false;
+
+		if (!do_exit)
+		{
+			Core::DisplayMessage(
+				StringFromFormat("Wrote memory card %c contents to %s",
+				card_index ? 'B' : 'A', m_filename.c_str()).c_str(),
+				4000);
+		}
+		else
+		{
+			return;
+		}
+	}
+}
+
+// Attempt to update the flush buffer and trigger a flush. If we can't get a
+// lock in order to update the flush buffer, a write is in progress and a future
+// write will take care of any changes to the memcard data, so nothing needs to
+// be done now.
+void MemoryCard::TryFlush()
+{
+	if (m_flush_mutex.try_lock())
+	{
+		memcpy(&m_flush_buffer[0], &m_memcard_data[0], memory_card_size);
+		m_flush_mutex.unlock();
+		m_flush_trigger.Set();
+	}
 }
 
 s32 MemoryCard::Read(u32 srcaddress, s32 length, u8 *destaddress)
 {
-	if (!memory_card_content)
-		return -1;
-	if (srcaddress > (memory_card_size - 1))
+	if (!IsAddressInBounds(srcaddress))
 	{
-		PanicAlertT("MemoryCard: Read called with invalid source address, %x", srcaddress);
+		PanicAlertT("MemoryCard: Read called with invalid source address, %x",
+					srcaddress);
 		return -1;
 	}
 
-	memcpy(destaddress, &(memory_card_content[srcaddress]), length);
+	memcpy(destaddress, &m_memcard_data[srcaddress], length);
 	return length;
 }
 
 s32 MemoryCard::Write(u32 destaddress, s32 length, u8 *srcaddress)
 {
-	if (!memory_card_content)
-		return -1;
-
-	if (destaddress > (memory_card_size - 1))
+	if (!IsAddressInBounds(destaddress))
 	{
-		PanicAlertT("MemoryCard: Write called with invalid destination address, %x", destaddress);
+		PanicAlertT("MemoryCard: Write called with invalid destination address, %x",
+					destaddress);
 		return -1;
 	}
 
-	m_bDirty = true;
-	memcpy(&(memory_card_content[destaddress]), srcaddress, length);
+	memcpy(&m_memcard_data[destaddress], srcaddress, length);
+	TryFlush();
 	return length;
 }
 
 void MemoryCard::ClearBlock(u32 address)
 {
-	if (address & (BLOCK_SIZE - 1) || address > (memory_card_size - 1))
-		PanicAlertT("MemoryCard: ClearBlock called on invalid address %x", address);
+	if (address & (BLOCK_SIZE - 1) || !IsAddressInBounds(address))
+	{
+		PanicAlertT("MemoryCard: ClearBlock called on invalid address %x",
+					address);
+	}
 	else
 	{
-		m_bDirty = true;
-		memset(memory_card_content + address, 0xFF, BLOCK_SIZE);
+		memset(&m_memcard_data[address], 0xFF, BLOCK_SIZE);
+		TryFlush();
 	}
 }
 
 void MemoryCard::ClearAll()
 {
-	m_bDirty = true;
-	memset(memory_card_content, 0xFF, memory_card_size);
+	memset(&m_memcard_data[0], 0xFF, memory_card_size);
+	TryFlush();
 }
 
 void MemoryCard::DoState(PointerWrap &p)
 {
 	p.Do(card_index);
 	p.Do(memory_card_size);
-	p.DoArray(memory_card_content, memory_card_size);
+	p.DoArray(&m_memcard_data[0], memory_card_size);
 }

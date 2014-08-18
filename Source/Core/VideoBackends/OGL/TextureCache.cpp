@@ -358,9 +358,29 @@ TextureCache::TextureCache()
 		"\n"
 		"void main(){\n"
 		"	vec4 texcol = texture(samp9, uv0);\n"
-		"	vec4 EncodedDepth = fract((texcol.r * (16777215.0/16777216.0)) * vec4(1.0,256.0,256.0*256.0,1.0));\n"
-		"	texcol = round(EncodedDepth * (16777216.0/16777215.0) * vec4(255.0,255.0,255.0,15.0)) / vec4(255.0,255.0,255.0,15.0);\n"
-		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];"
+
+		// 255.99998474121 = 16777215/16777216*256
+		"	float workspace = texcol.x * 255.99998474121;\n"
+
+		"	texcol.x = floor(workspace);\n"         // x component
+
+		"	workspace = workspace - texcol.x;\n"    // subtract x component out
+		"	workspace = workspace * 256.0;\n"       // shift left 8 bits
+		"	texcol.y = floor(workspace);\n"         // y component
+
+		"	workspace = workspace - texcol.y;\n"    // subtract y component out
+		"	workspace = workspace * 256.0;\n"       // shift left 8 bits
+		"	texcol.z = floor(workspace);\n"         // z component
+
+		"	texcol.w = texcol.x;\n"                 // duplicate x into w
+
+		"	texcol = texcol / 255.0;\n"             // normalize components to [0.0..1.0]
+
+		"	texcol.w = texcol.w * 15.0;\n"
+		"	texcol.w = floor(texcol.w);\n"
+		"	texcol.w = texcol.w / 15.0;\n"          // w component
+
+		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
 	const char *VProgram =
