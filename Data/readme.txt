@@ -1,4 +1,4 @@
-Dolphin VR 4.0-2654
+Dolphin VR 4.0-2702
 (Unofficial Dolphin build with Oculus Rift support.)
 Open Source licence: GPL v2
 
@@ -191,10 +191,11 @@ These games have been tested, and had their defaults set to the correct scale.
 They are listed in order of compatability from working best to most broken.
 Games not listed have not been tested, need to have the scale set manually, and might or might not work.
 
-Wind Waker
+Zelda: Wind Waker (dot in middle of screen)
 Animal Crossing GameCube (near-clipping when turning head)
 Bomberman Generation (angled camera)
 Mario Party 4 (working, angled camera)
+Zelda Twilight Princess GameCube (Effects are missing, map is black, water has no reflections, hawkeye has problem in top left corner) 
 Mario Party 5 (white characters at start)
 Baldur's Gate Dark Alliance (lights at HUD depth, angled camera)
 Pikmin (3D HUD at wrong depth)
@@ -215,9 +216,9 @@ Resident Evil 4 (intro weirdness, playable)
 Zelda Collector's Edition: Wind Waker Demo (larger, sometimes distorted)
 Star Fox Assault (menu depth problems)
 Super Smash Bros. Melee (missing textures)
-Kirby Air (sometimes one eye, change internal resolution during game to fix)
 Eternal Darkness (HUD too close, scale not consistent)
-Twilight Princess GameCube (bad orange rendering over HUD)
+Kirby Air (sometimes one eye, change internal resolution during game to fix)
+Wave Race Blue Storm (water issues, wrong menu depths)
 Need for Speed Underground (messed up menus)
 Need for Speed Hot Pursuit 2 (menu and HUD problems)
 Pokemon Coluseum (weird doubled menus and HUD, missing textures)
