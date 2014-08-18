@@ -168,7 +168,7 @@ namespace DriverDetails
 		// Bug: Adreno now rotates the framebuffer on blit a full 180 degrees
 		// Affected devices: Adreno
 		// Started Version: v53 (dev drivers)
-		// Ended Version: -1
+		// Ended Version: v66 (07-14-2014 dev drivers)
 		// Qualcomm is a super pro company that has recently updated their development drivers
 		// These drivers are available to the Nexus 5 and report as v53
 		// Qualcomm in their infinite wisdom thought it was a good idea to rotate the framebuffer 180 degrees on glBlit
