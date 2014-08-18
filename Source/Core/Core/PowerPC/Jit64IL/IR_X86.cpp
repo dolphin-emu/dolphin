@@ -1784,7 +1784,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			// If a FPU exception occurs, the exception handler will read
 			// from PC.  Update PC with the latest value in case that happens.
 			Jit->MOV(32, M(&PC), Imm32(InstLoc));
-			Jit->SUB(32, M(&PowerPC::ppcState.downcount), Jit->js.downcountAmount > 127 ? Imm32(Jit->js.downcountAmount) : Imm8(Jit->js.downcountAmount));
+			Jit->SUB(32, M(&PowerPC::ppcState.downcount), Imm32(Jit->js.downcountAmount));
 			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
 			Jit->WriteExceptionExit();
 			Jit->SetJumpTarget(b1);
