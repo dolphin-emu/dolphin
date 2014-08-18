@@ -42,7 +42,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bSyncGPU(false), bFastDiscSpeed(false),
   SelectedLanguage(0), bWii(false),
   bConfirmStop(false), bHideCursor(false),
-  bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
+  bAutoHideCursor(false), bOnScreenDisplayMessages(true),
   iRenderWindowXPos(-1), iRenderWindowYPos(-1),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
   bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
