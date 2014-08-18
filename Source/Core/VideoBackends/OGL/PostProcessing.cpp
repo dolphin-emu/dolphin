@@ -265,8 +265,8 @@ void OpenGLPostProcessing::CreateHeader()
 			"\tocol0 = color;\n"
 		"}\n"
 
-		"#define GetOption(x) (option_#x)\n"
-		"#define OptionEnabled(x) (option_#x != 0)\n";
+		"#define GetOption(x) (option_##x)\n"
+		"#define OptionEnabled(x) (option_##x != 0)\n";
 }
 
 std::string OpenGLPostProcessing::LoadShaderOptions(const std::string& code)
