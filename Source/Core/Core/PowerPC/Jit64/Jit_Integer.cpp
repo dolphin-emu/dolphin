@@ -264,6 +264,56 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	}
 }
 
+bool Jit64::CheckMergedBranch(int crf)
+{
+	const UGeckoInstruction& next = js.next_inst;
+	if (((next.OPCD == 16 /* bcx */) ||
+	    ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
+	    ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
+	     (next.BO & BO_DONT_DECREMENT_FLAG) &&
+	    !(next.BO & BO_DONT_CHECK_CONDITION) &&
+	     (next.BI >> 2) == crf)
+		return true;
+	return false;
+}
+
+void Jit64::DoMergedBranch()
+{
+	// Code that handles successful PPC branching.
+	if (js.next_inst.OPCD == 16) // bcx
+	{
+		if (js.next_inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+
+		u32 destination;
+		if (js.next_inst.AA)
+			destination = SignExt16(js.next_inst.BD << 2);
+		else
+			destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
+		WriteExit(destination);
+	}
+	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
+	{
+		if (js.next_inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+		MOV(32, R(EAX), M(&CTR));
+		AND(32, R(EAX), Imm32(0xFFFFFFFC));
+		WriteExitDestInEAX();
+	}
+	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
+	{
+		MOV(32, R(EAX), M(&LR));
+		AND(32, R(EAX), Imm32(0xFFFFFFFC));
+		if (js.next_inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+		WriteExitDestInEAX();
+	}
+	else
+	{
+		PanicAlert("WTF invalid branch");
+	}
+}
+
 void Jit64::cmpXX(UGeckoInstruction inst)
 {
 	// USES_CR
@@ -272,23 +322,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = inst.RB;
 	int crf = inst.CRFD;
-
-	bool merge_branch = false;
-	int test_crf = js.next_inst.BI >> 2;
-	// Check if the next instruction is a branch - if it is, merge the two.
-	if (((js.next_inst.OPCD == 16 /* bcx */) ||
-	    ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528) /* bcctrx */) ||
-	    ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16) /* bclrx */)) &&
-	    (js.next_inst.BO & BO_DONT_DECREMENT_FLAG) &&
-	    !(js.next_inst.BO & BO_DONT_CHECK_CONDITION))
-	{
-			// Looks like a decent conditional branch that we can merge with.
-			// It only test CR, not CTR.
-			if (test_crf == crf)
-			{
-				merge_branch = true;
-			}
-	}
+	bool merge_branch = CheckMergedBranch(crf);
 
 	OpArg comparand;
 	bool signedCompare;
@@ -358,45 +392,13 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			{
 				gpr.Flush();
 				fpr.Flush();
-
-				if (js.next_inst.OPCD == 16) // bcx
-				{
-					if (js.next_inst.LK)
-						MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-
-					u32 destination;
-					if (js.next_inst.AA)
-						destination = SignExt16(js.next_inst.BD << 2);
-					else
-						destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-					WriteExit(destination);
-				}
-				else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
-				{
-					if (js.next_inst.LK)
-						MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-					MOV(32, R(EAX), M(&CTR));
-					AND(32, R(EAX), Imm32(0xFFFFFFFC));
-					WriteExitDestInEAX();
-				}
-				else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
-				{
-					MOV(32, R(EAX), M(&LR));
-					if (js.next_inst.LK)
-						MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-					WriteExitDestInEAX();
-				}
-				else
-				{
-					PanicAlert("WTF invalid branch");
-				}
+				DoMergedBranch();
 			}
-			else
+			else if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 			{
-				if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
-				{
-					WriteExit(js.next_compilerPC + 4);
-				}
+				gpr.Flush();
+				fpr.Flush();
+				WriteExit(js.next_compilerPC + 4);
 			}
 		}
 	}
@@ -473,51 +475,12 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			gpr.Flush(FLUSH_MAINTAIN_STATE);
 			fpr.Flush(FLUSH_MAINTAIN_STATE);
 
-			// Code that handles successful PPC branching.
-			if (js.next_inst.OPCD == 16) // bcx
-			{
-				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-
-				u32 destination;
-				if (js.next_inst.AA)
-					destination = SignExt16(js.next_inst.BD << 2);
-				else
-					destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-				WriteExit(destination);
-			}
-			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
-			{
-				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-
-				MOV(32, R(EAX), M(&CTR));
-				AND(32, R(EAX), Imm32(0xFFFFFFFC));
-				WriteExitDestInEAX();
-			}
-			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
-			{
-				MOV(32, R(EAX), M(&LR));
-				AND(32, R(EAX), Imm32(0xFFFFFFFC));
-
-				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-
-				WriteExitDestInEAX();
-			}
-			else
-			{
-				PanicAlert("WTF invalid branch");
-			}
+			DoMergedBranch();
 
 			SetJumpTarget(pDontBranch);
 
 			if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
-			{
-				gpr.Flush();
-				fpr.Flush();
 				WriteExit(js.next_compilerPC + 4);
-			}
 		}
 	}
 
@@ -1494,6 +1457,11 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int s = inst.RS;
+
+	// rlwinm is commonly used as a branch test, second only to the more obvious cmpw.
+	// since it's almost never used with any check other than beq, only support beq for simplicity.
+	bool merge_branch = inst.Rc && CheckMergedBranch(0) && (js.next_inst.BI & 3) == 2;
+
 	if (gpr.R(s).IsImm())
 	{
 		u32 result = (int)gpr.R(s).offset;
@@ -1510,6 +1478,11 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 		bool isRightShift = inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH;
 		u32 mask = Helper_Mask(inst.MB, inst.ME);
 		bool simpleMask = mask == 0xff || mask == 0xffff;
+		// in case of a merged branch, track whether or not we've set flags.
+		// if not, we need to do a TEST later to get them.
+		bool needsTest = false;
+		// if we know the high bit can't be set, we can avoid doing a sign extend for flag storage
+		bool needsSext = true;
 		int maskSize = inst.ME - inst.MB + 1;
 
 		gpr.Lock(a, s);
@@ -1517,11 +1490,14 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 		if (a != s && isLeftShift && gpr.R(s).IsSimpleReg() && inst.SH <= 3)
 		{
 			LEA(32, gpr.RX(a), MScaled(gpr.RX(s), SCALE_1 << inst.SH, 0));
+			needsTest = true;
 		}
 		// common optimized case: byte/word extract
 		else if (simpleMask && !(inst.SH & (maskSize - 1)))
 		{
 			MOVZX(32, maskSize, gpr.RX(a), ExtractFromReg(s, inst.SH ? (32 - inst.SH) >> 3 : 0));
+			needsTest = true;
+			needsSext = false;
 		}
 		// another optimized special case: byte/word extract plus shift
 		else if (((mask >> inst.SH) << inst.SH) == mask && !isLeftShift &&
@@ -1529,6 +1505,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 		{
 			MOVZX(32, maskSize, gpr.RX(a), gpr.R(s));
 			SHL(32, gpr.R(a), Imm8(inst.SH));
+			needsSext = inst.SH + maskSize >= 32;
 		}
 		else
 		{
@@ -1542,16 +1519,54 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 			else if (isRightShift)
 			{
 				SHR(32, gpr.R(a), Imm8(inst.MB));
+				needsSext = false;
 			}
 			else
 			{
 				if (inst.SH != 0)
 					ROL(32, gpr.R(a), Imm8(inst.SH));
 				if (!(inst.MB == 0 && inst.ME == 31))
+				{
 					AndWithMask(gpr.RX(a), mask);
+					needsSext = inst.MB == 0;
+					needsTest = simpleMask;
+				}
+				else
+				{
+					needsTest = true;
+				}
 			}
 		}
-		if (inst.Rc)
+		if (merge_branch)
+		{
+			js.downcountAmount++;
+			js.skipnext = true;
+
+			if (needsSext)
+				MOVSX(64, 32, gpr.RX(a), gpr.R(a));
+			MOV(64, M(&PowerPC::ppcState.cr_val[0]), gpr.R(a));
+
+			if (needsTest)
+				TEST(32, gpr.R(a), gpr.R(a));
+
+			gpr.UnlockAll();
+			FixupBranch pDontBranch = J_CC((js.next_inst.BO & BO_BRANCH_IF_TRUE) ? CC_NE : CC_E, true);
+
+			gpr.Flush(FLUSH_MAINTAIN_STATE);
+			fpr.Flush(FLUSH_MAINTAIN_STATE);
+
+			DoMergedBranch();
+
+			SetJumpTarget(pDontBranch);
+
+			if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+			{
+				gpr.Flush();
+				fpr.Flush();
+				WriteExit(js.next_compilerPC + 4);
+			}
+		}
+		else if (inst.Rc)
 			ComputeRC(gpr.R(a));
 		gpr.UnlockAll();
 	}
