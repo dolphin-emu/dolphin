@@ -157,6 +157,11 @@ GCMemcardDirectory::GCMemcardDirectory(std::string directory, int slot, u16 size
 	m_bat2 = m_bat1;
 }
 
+GCMemcardDirectory::~GCMemcardDirectory()
+{
+	FlushToFile();
+}
+
 s32 GCMemcardDirectory::Read(u32 address, s32 length, u8 *destaddress)
 {
 
@@ -468,7 +473,7 @@ bool GCMemcardDirectory::SetUsedBlocks(int saveIndex)
 	return true;
 }
 
-void GCMemcardDirectory::Flush(bool exiting)
+void GCMemcardDirectory::FlushToFile()
 {
 	int errors = 0;
 	DEntry invalid;
@@ -500,21 +505,18 @@ void GCMemcardDirectory::Flush(bool exiting)
 					GCI.WriteBytes(&m_saves[i].m_gci_header, DENTRY_SIZE);
 					GCI.WriteBytes(m_saves[i].m_save_data.data(), BLOCK_SIZE * m_saves[i].m_save_data.size());
 
-					if (!exiting)
+					if (GCI.IsGood())
 					{
-						if (GCI.IsGood())
-						{
-							Core::DisplayMessage(
-								StringFromFormat("Wrote save contents to %s", m_saves[i].m_filename.c_str()), 4000);
-						}
-						else
-						{
-							++errors;
-							Core::DisplayMessage(
-								StringFromFormat("Failed to write save contents to %s", m_saves[i].m_filename.c_str()),
-								4000);
-							ERROR_LOG(EXPANSIONINTERFACE, "Failed to save data to %s", m_saves[i].m_filename.c_str());
-						}
+						Core::DisplayMessage(
+							StringFromFormat("Wrote save contents to %s", m_saves[i].m_filename.c_str()), 4000);
+					}
+					else
+					{
+						++errors;
+						Core::DisplayMessage(
+							StringFromFormat("Failed to write save contents to %s", m_saves[i].m_filename.c_str()),
+							4000);
+						ERROR_LOG(EXPANSIONINTERFACE, "Failed to save data to %s", m_saves[i].m_filename.c_str());
 					}
 				}
 			}

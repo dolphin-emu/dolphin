@@ -70,14 +70,16 @@ public:
 	{
 	}
 	virtual ~MemoryCardBase() {}
-	virtual void Flush(bool exiting = false) = 0;
 	virtual s32 Read(u32 address, s32 length, u8 *destaddress) = 0;
 	virtual s32 Write(u32 destaddress, s32 length, u8 *srcaddress) = 0;
 	virtual void ClearBlock(u32 address) = 0;
 	virtual void ClearAll() = 0;
 	virtual void DoState(PointerWrap &p) = 0;
-	virtual void JoinThread() {};
 	u32 GetCardId() { return nintendo_card_id; }
+	bool IsAddressInBounds(u32 address) const
+	{
+		return address <= (memory_card_size - 1);
+	}
 
 protected:
 	int card_index;
