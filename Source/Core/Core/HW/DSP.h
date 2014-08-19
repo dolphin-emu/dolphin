@@ -15,9 +15,9 @@ namespace DSP
 
 enum DSPInterruptType
 {
-	INT_DSP  = 0,
-	INT_ARAM = 1,
-	INT_AID  = 2
+	INT_DSP  = 0x80,
+	INT_ARAM = 0x20,
+	INT_AID  = 0x08,
 };
 
 // aram size and mask
@@ -65,8 +65,7 @@ DSPEmulator *GetDSPEmulator();
 
 void DoState(PointerWrap &p);
 
-void GenerateDSPInterrupt(DSPInterruptType _DSPInterruptType, bool _bSet = true);
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType _DSPInterruptType, bool _bSet = true);
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType _DSPInterruptType);
 
 // Audio/DSP Helper
 u8 ReadARAM(const u32 _uAddress);
