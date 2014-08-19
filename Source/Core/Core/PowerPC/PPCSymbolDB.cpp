@@ -279,9 +279,6 @@ bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 			mapFile.c_str()).c_str(), "Confirm", wxYES_NO)) return false;
 	}
 
-	if (WithCodes)
-		Host_UpdateStatusBar("Saving code, please stand by ...");
-
 	// Make a file
 	File::IOFile f(mapFile, "w");
 	if (!f)
@@ -342,8 +339,6 @@ bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 			fprintf(f.GetHandle(), "\n");
 		}
 	}
-	// ---------------
-	Host_UpdateStatusBar(StringFromFormat("Saved %s", mapFile.c_str()).c_str());
 
 	return true;
 }
