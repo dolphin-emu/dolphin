@@ -519,6 +519,25 @@ void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm)
 	}
 }
 
+static const u64 GC_ALIGNED16(psMantissaTruncate[2]) = {0xFFFFFFFFF8000000ULL, 0xFFFFFFFFF8000000ULL};
+static const u64 GC_ALIGNED16(psRoundBit[2]) = {0x8000000, 0x8000000};
+
+// Emulate the odd truncation/rounding that the PowerPC does on the RHS operand before
+// a single precision multiply. To be precise, it drops the low 28 bits of the mantissa,
+// rounding to nearest as it does.
+// It needs a temp, so let the caller pass that in.
+void EmuCodeBlock::Force25BitPrecision(X64Reg xmm, X64Reg tmp)
+{
+	if (jit->jo.accurateSinglePrecision)
+	{
+		// mantissa = (mantissa & ~0xFFFFFFF) + ((mantissa & (1ULL << 27)) << 1);
+		MOVAPD(tmp, R(xmm));
+		PAND(xmm, M((void*)&psMantissaTruncate));
+		PAND(tmp, M((void*)&psRoundBit));
+		PADDQ(xmm, R(tmp));
+	}
+}
+
 static u32 GC_ALIGNED16(temp32);
 static u64 GC_ALIGNED16(temp64);
 

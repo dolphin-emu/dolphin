@@ -14,10 +14,28 @@ static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x800000
 static const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
-void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg))
+void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg), bool roundRHS)
 {
 	fpr.Lock(d, a, b);
-	if (d == a)
+	if (roundRHS)
+	{
+		if (d == a)
+		{
+			fpr.BindToRegister(d, true);
+			MOVSD(XMM0, fpr.R(b));
+			Force25BitPrecision(XMM0, XMM1);
+			(this->*op)(fpr.RX(d), R(XMM0));
+		}
+		else
+		{
+			fpr.BindToRegister(d, d == b);
+			if (d != b)
+				MOVSD(fpr.RX(d), fpr.R(b));
+			Force25BitPrecision(fpr.RX(d), XMM0);
+			(this->*op)(fpr.RX(d), fpr.R(a));
+		}
+	}
+	else if (d == a)
 	{
 		fpr.BindToRegister(d, true);
 		if (!single)
@@ -88,7 +106,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 	case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::DIVSD); break; //div
 	case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::SUBSD); break; //sub
 	case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true,  single, &XEmitter::ADDSD); break; //add
-	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, single, &XEmitter::MULSD); break; //mul
+	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, single, &XEmitter::MULSD, single); break; //mul
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
 	}
@@ -111,24 +129,25 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	int d = inst.FD;
 
 	fpr.Lock(a, b, c, d);
-	MOVSD(XMM0, fpr.R(a));
+	MOVSD(XMM0, fpr.R(c));
+	Force25BitPrecision(XMM0, XMM1);
 	switch (inst.SUBOP5)
 	{
 	case 28: //msub
-		MULSD(XMM0, fpr.R(c));
+		MULSD(XMM0, fpr.R(a));
 		SUBSD(XMM0, fpr.R(b));
 		break;
 	case 29: //madd
-		MULSD(XMM0, fpr.R(c));
+		MULSD(XMM0, fpr.R(a));
 		ADDSD(XMM0, fpr.R(b));
 		break;
 	case 30: //nmsub
-		MULSD(XMM0, fpr.R(c));
+		MULSD(XMM0, fpr.R(a));
 		SUBSD(XMM0, fpr.R(b));
 		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
 	case 31: //nmadd
-		MULSD(XMM0, fpr.R(c));
+		MULSD(XMM0, fpr.R(a));
 		ADDSD(XMM0, fpr.R(b));
 		PXOR(XMM0, M((void*)&psSignBits2));
 		break;
