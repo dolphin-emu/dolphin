@@ -467,20 +467,20 @@ const pdlabel_t regnames[] =
 	{0x15, "PROD.M1",   "Prod M1",},
 	{0x16, "PROD.H",    "Prod H",},
 	{0x17, "PROD.M2",   "Prod M2",},
-	{0x18, "AX0.L",		"Extra Accu L 0",},
-	{0x19, "AX1.L",		"Extra Accu L 1",},
-	{0x1a, "AX0.H",		"Extra Accu H 0",},
-	{0x1b, "AX1.H",		"Extra Accu H 1",},
-	{0x1c, "AC0.L",		"Accu Low 0",},
-	{0x1d, "AC1.L",		"Accu Low 1",},
-	{0x1e, "AC0.M",		"Accu Mid 0",},
-	{0x1f, "AC1.M",		"Accu Mid 1",},
+	{0x18, "AX0.L",     "Extra Accu L 0",},
+	{0x19, "AX1.L",     "Extra Accu L 1",},
+	{0x1a, "AX0.H",     "Extra Accu H 0",},
+	{0x1b, "AX1.H",     "Extra Accu H 1",},
+	{0x1c, "AC0.L",     "Accu Low 0",},
+	{0x1d, "AC1.L",     "Accu Low 1",},
+	{0x1e, "AC0.M",     "Accu Mid 0",},
+	{0x1f, "AC1.M",     "Accu Mid 1",},
 
 	// To resolve combined register names.
-	{0x20, "ACC0",		"Accu Full 0",},
-	{0x21, "ACC1",		"Accu Full 1",},
-	{0x22, "AX0",		"Extra Accu 0",},
-	{0x23, "AX1",		"Extra Accu 1",},
+	{0x20, "ACC0",      "Accu Full 0",},
+	{0x21, "ACC1",      "Accu Full 1",},
+	{0x22, "AX0",       "Extra Accu 0",},
+	{0x23, "AX1",       "Extra Accu 1",},
 };
 
 const DSPOPCTemplate *opTable[OPTABLE_SIZE];
