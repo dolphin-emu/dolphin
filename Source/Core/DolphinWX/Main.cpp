@@ -607,17 +607,6 @@ void Host_SetStartupDebuggingParameters()
 	StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
 }
 
-void Host_UpdateStatusBar(const std::string& text, int Field)
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
-	// Set the event string
-	event.SetString(StrToWxStr(text));
-	// Update statusbar field
-	event.SetInt(Field);
-	// Post message
-	main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
 void Host_SetWiiMoteConnectionState(int _State)
 {
 	static int currentState = -1;
