@@ -297,7 +297,8 @@ void Interpreter::fmulx(UGeckoInstruction _inst)
 }
 void Interpreter::fmulsx(UGeckoInstruction _inst)
 {
-	double d_value = NI_mul(rPS0(_inst.FA), rPS0(_inst.FC));
+	double c_value = Force25Bit(rPS0(_inst.FC));
+	double d_value = NI_mul(rPS0(_inst.FA), c_value);
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(d_value);
 	//FPSCR.FI = d_value != rPS0(_inst.FD);
 	FPSCR.FI = 0;
@@ -320,7 +321,8 @@ void Interpreter::fmaddx(UGeckoInstruction _inst)
 
 void Interpreter::fmaddsx(UGeckoInstruction _inst)
 {
-	double d_value = NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) );
+	double c_value = Force25Bit(rPS0(_inst.FC));
+	double d_value = NI_madd(rPS0(_inst.FA), c_value, rPS0(_inst.FB));
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(d_value);
 	FPSCR.FI = d_value != rPS0(_inst.FD);
 	FPSCR.FR = 0;
