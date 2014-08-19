@@ -94,6 +94,13 @@ inline double ForceDouble(double d)
 	return d;
 }
 
+inline double Force25Bit(double d)
+{
+	u64 di = *(u64*)&d;
+	di = (di & 0xFFFFFFFFF8000000ULL) + (di & 0x8000000);
+	return *(double*)&di;
+}
+
 // these functions allow globally modify operations behaviour
 // also, these may be used to set flags like FR, FI, OX, UX
 
