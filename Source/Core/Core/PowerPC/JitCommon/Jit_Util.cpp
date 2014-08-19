@@ -411,7 +411,6 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 #endif
 	    )
 	{
-		MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 		const u8* backpatchStart = GetCodePtr();
 		u8* mov = UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_LOADSTORE_NO_SWAP));
 		int padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
@@ -421,6 +420,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 		}
 
 		registersInUseAtLoc[mov] = registersInUse;
+		pcAtLoc[mov] = jit->js.compilerPC;
 		return;
 	}
 
@@ -441,9 +441,10 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	}
 #endif
 
-	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	TEST(32, R(reg_addr), Imm32(mem_mask));
 	FixupBranch fast = J_CC(CC_Z, true);
+	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
+	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
 	bool noProlog = (0 != (flags & SAFE_LOADSTORE_NO_PROLOG));
 	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
 	ABI_PushRegistersAndAdjustStack(registersInUse, noProlog);
