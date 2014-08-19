@@ -628,6 +628,21 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 #endif
 
+void CFrame::UpdateTitle(const std::string &str)
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+	    SConfig::GetInstance().m_InterfaceStatusbar)
+	{
+		GetStatusBar()->SetStatusText(str, 0);
+		m_RenderFrame->SetTitle(scm_rev_str);
+	}
+	else
+	{
+		std::string titleStr = StringFromFormat("%s | %s", scm_rev_str, str.c_str());
+		m_RenderFrame->SetTitle(titleStr);
+	}
+}
+
 void CFrame::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -642,8 +657,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case IDM_UPDATETITLE:
-		if (m_RenderFrame != nullptr)
-			m_RenderFrame->SetTitle(event.GetString());
+		SetTitle(event.GetString());
 		break;
 
 	case IDM_WINDOWSIZEREQUEST:

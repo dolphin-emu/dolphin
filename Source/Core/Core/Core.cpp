@@ -682,7 +682,6 @@ void UpdateTitle()
 	}
 	// This is our final "frame counter" string
 	std::string SMessage = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
-	std::string TMessage = StringFromFormat("%s | %s", scm_rev_str, SMessage.c_str());
 
 	// Update the audio timestretcher with the current speed
 	if (soundStream)
@@ -691,16 +690,7 @@ void UpdateTitle()
 		pMixer->UpdateSpeed((float)Speed / 100);
 	}
 
-	if (_CoreParameter.bRenderToMain &&
-		SConfig::GetInstance().m_InterfaceStatusbar)
-	{
-		Host_UpdateStatusBar(SMessage);
-		Host_UpdateTitle(scm_rev_str);
-	}
-	else
-	{
-		Host_UpdateTitle(TMessage);
-	}
+	Host_UpdateTitle(SMessage);
 }
 
 void Shutdown()
