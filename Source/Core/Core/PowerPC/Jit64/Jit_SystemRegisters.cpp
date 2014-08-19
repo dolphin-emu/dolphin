@@ -11,31 +11,28 @@
 
 using namespace Gen;
 
-void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out)
+void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate)
 {
 	switch (bit)
 	{
 	case CR_SO_BIT:  // check bit 61 set
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 61));
-		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM1));
-		SETcc(CC_NZ, R(out));
+		BT(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(61));
+		SETcc(negate ? CC_NC : CC_C, R(out));
 		break;
 
 	case CR_EQ_BIT:  // check bits 31-0 == 0
-		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm32(0));
-		SETcc(CC_Z, R(out));
+		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm8(0));
+		SETcc(negate ? CC_NZ : CC_Z, R(out));
 		break;
 
 	case CR_GT_BIT:  // check val > 0
-		MOV(64, R(ABI_PARAM1), M(&PowerPC::ppcState.cr_val[field]));
-		TEST(64, R(ABI_PARAM1), R(ABI_PARAM1));
-		SETcc(CC_G, R(out));
+		CMP(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(0));
+		SETcc(negate ? CC_NG : CC_G, R(out));
 		break;
 
 	case CR_LT_BIT:  // check bit 62 set
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 62));
-		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM1));
-		SETcc(CC_NZ, R(out));
+		BT(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(62));
+		SETcc(negate ? CC_NC : CC_C, R(out));
 		break;
 
 	default:
@@ -45,63 +42,40 @@ void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out)
 
 void Jit64::SetCRFieldBit(int field, int bit, Gen::X64Reg in)
 {
-	MOV(64, R(ABI_PARAM2), M(&PowerPC::ppcState.cr_val[field]));
-	TEST(8, R(in), Imm8(1));
-	FixupBranch input_is_set = J_CC(CC_NZ, false);
-
-	// New value is 0.
-	switch (bit)
-	{
-	case CR_SO_BIT:  // unset bit 61
-		MOV(64, R(ABI_PARAM1), Imm64(~(1ull << 61)));
-		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
-		break;
-
-	case CR_EQ_BIT:  // set bit 0 to 1
-		OR(8, R(ABI_PARAM2), Imm8(1));
-		break;
-
-	case CR_GT_BIT:  // !GT, set bit 63
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 63));
-		OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
-		break;
-
-	case CR_LT_BIT:  // !LT, unset bit 62
-		MOV(64, R(ABI_PARAM1), Imm64(~(1ull << 62)));
-		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
-		break;
-	}
-
-	FixupBranch end = J();
-	SetJumpTarget(input_is_set);
+	MOV(64, R(ABI_PARAM1), M(&PowerPC::ppcState.cr_val[field]));
+	MOVZX(32, 8, in, R(in));
 
 	switch (bit)
 	{
-	case CR_SO_BIT:  // set bit 61
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 61));
-		OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
+	case CR_SO_BIT:  // set bit 61 to input
+		BTR(64, R(ABI_PARAM1), Imm8(61));
+		SHL(64, R(in), Imm8(61));
+		OR(64, R(ABI_PARAM1), R(in));
 		break;
 
-	case CR_EQ_BIT:  // set bits 31-0 to 0
-		MOV(64, R(ABI_PARAM1), Imm64(0xFFFFFFFF00000000));
-		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
+	case CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
+		SHR(64, R(ABI_PARAM1), Imm8(32));
+		SHL(64, R(ABI_PARAM1), Imm8(32));
+		XOR(32, R(in), Imm8(1));
+		OR(64, R(ABI_PARAM1), R(in));
 		break;
 
-	case CR_GT_BIT:  // unset bit 63
-		MOV(64, R(ABI_PARAM1), Imm64(~(1ull << 63)));
-		AND(64, R(ABI_PARAM2), R(ABI_PARAM1));
+	case CR_GT_BIT:  // set bit 63 to !input
+		BTR(64, R(ABI_PARAM1), Imm8(63));
+		NOT(32, R(in));
+		SHL(64, R(in), Imm8(63));
+		OR(64, R(ABI_PARAM1), R(in));
 		break;
 
-	case CR_LT_BIT:  // set bit 62
-		MOV(64, R(ABI_PARAM1), Imm64(1ull << 62));
-		OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
+	case CR_LT_BIT:  // set bit 62 to input
+		BTR(64, R(ABI_PARAM1), Imm8(62));
+		SHL(64, R(in), Imm8(62));
+		OR(64, R(ABI_PARAM1), R(in));
 		break;
 	}
 
-	SetJumpTarget(end);
-	MOV(64, R(ABI_PARAM1), Imm64(1ull << 32));
-	OR(64, R(ABI_PARAM2), R(ABI_PARAM1));
-	MOV(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM2));
+	BTS(64, R(ABI_PARAM1), Imm8(32));
+	MOV(64, M(&PowerPC::ppcState.cr_val[field]), R(ABI_PARAM1));
 }
 
 FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
@@ -109,23 +83,20 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 	switch (bit)
 	{
 	case CR_SO_BIT:  // check bit 61 set
-		MOV(64, R(RAX), Imm64(1ull << 61));
-		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(RAX));
-		return J_CC(jump_if_set ? CC_NZ : CC_Z, true);
+		BT(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(61));
+		return J_CC(jump_if_set ? CC_C : CC_NC, true);
 
 	case CR_EQ_BIT:  // check bits 31-0 == 0
-		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm32(0));
+		CMP(32, M(&PowerPC::ppcState.cr_val[field]), Imm8(0));
 		return J_CC(jump_if_set ? CC_Z : CC_NZ, true);
 
 	case CR_GT_BIT:  // check val > 0
-		MOV(64, R(RAX), M(&PowerPC::ppcState.cr_val[field]));
-		TEST(64, R(RAX), R(RAX));
+		CMP(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(0));
 		return J_CC(jump_if_set ? CC_G : CC_LE, true);
 
 	case CR_LT_BIT:  // check bit 62 set
-		MOV(64, R(RAX), Imm64(1ull << 62));
-		TEST(64, M(&PowerPC::ppcState.cr_val[field]), R(RAX));
-		return J_CC(jump_if_set ? CC_NZ : CC_Z, true);
+		BT(64, M(&PowerPC::ppcState.cr_val[field]), Imm8(62));
+		return J_CC(jump_if_set ? CC_C : CC_NC, true);
 
 	default:
 		_assert_msg_(DYNA_REC, false, "Invalid CR bit");
@@ -277,50 +248,50 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 	// USES_CR
 	int d = inst.RD;
-	gpr.Lock(d);
-	gpr.KillImmediate(d, false, true);
-	XOR(32, R(EAX), R(EAX));
+	gpr.BindToRegister(d, false, true);
+	XOR(32, gpr.R(d), gpr.R(d));
 
-	gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
+	gpr.FlushLockX(ABI_PARAM1);
 	X64Reg cr_val = ABI_PARAM1;
-	X64Reg tmp = ABI_PARAM2;
+	// we only need to zero the high bits of EAX once
+	XOR(32, R(EAX), R(EAX));
 	for (int i = 0; i < 8; i++)
 	{
+		static const u8 m_flagTable[8] = {0x0,0x1,0x8,0x9,0x0,0x1,0x8,0x9};
 		if (i != 0)
-			SHL(32, R(EAX), Imm8(4));
+			SHL(32, gpr.R(d), Imm8(4));
 
 		MOV(64, R(cr_val), M(&PowerPC::ppcState.cr_val[i]));
 
-		// SO: Bit 61 set.
-		MOV(64, R(tmp), R(cr_val));
-		SHR(64, R(tmp), Imm8(61));
-		AND(32, R(tmp), Imm8(1));
-		OR(32, R(EAX), R(tmp));
-
-		// EQ: Bits 31-0 == 0.
-		XOR(32, R(tmp), R(tmp));
+		// EQ: Bits 31-0 == 0; set flag bit 1
 		TEST(32, R(cr_val), R(cr_val));
-		SETcc(CC_Z, R(tmp));
-		SHL(32, R(tmp), Imm8(1));
-		OR(32, R(EAX), R(tmp));
+		SETcc(CC_Z, R(EAX));
+		LEA(32, gpr.RX(d), MComplex(gpr.RX(d), EAX, SCALE_2, 0));
 
-		// GT: Value > 0.
+		// GT: Value > 0; set flag bit 2
 		TEST(64, R(cr_val), R(cr_val));
-		SETcc(CC_G, R(tmp));
-		SHL(32, R(tmp), Imm8(2));
-		OR(32, R(EAX), R(tmp));
+		SETcc(CC_G, R(EAX));
+		LEA(32, gpr.RX(d), MComplex(gpr.RX(d), EAX, SCALE_4, 0));
 
-		// LT: Bit 62 set.
-		MOV(64, R(tmp), R(cr_val));
-		SHR(64, R(tmp), Imm8(62 - 3));
-		AND(32, R(tmp), Imm8(0x8));
-		OR(32, R(EAX), R(tmp));
+		// SO: Bit 61 set; set flag bit 0
+		// LT: Bit 62 set; set flag bit 3
+		SHR(64, R(cr_val), Imm8(61));
+		MOVZX(32, 8, EAX, MDisp(cr_val, (u32)(u64)m_flagTable));
+		OR(32, gpr.R(d), R(EAX));
 	}
 
-	MOV(32, gpr.R(d), R(EAX));
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
+
+// convert flags into 64-bit CR values with a lookup table
+static const u64 m_crTable[16] =
+{
+	PPCCRToInternal(0x0), PPCCRToInternal(0x1), PPCCRToInternal(0x2), PPCCRToInternal(0x3),
+	PPCCRToInternal(0x4), PPCCRToInternal(0x5), PPCCRToInternal(0x6), PPCCRToInternal(0x7),
+	PPCCRToInternal(0x8), PPCCRToInternal(0x9), PPCCRToInternal(0xA), PPCCRToInternal(0xB),
+	PPCCRToInternal(0xC), PPCCRToInternal(0xD), PPCCRToInternal(0xE), PPCCRToInternal(0xF),
+};
 
 void Jit64::mtcrf(UGeckoInstruction inst)
 {
@@ -338,8 +309,16 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 				if ((crm & (0x80 >> i)) != 0)
 				{
 					u8 newcr = (gpr.R(inst.RS).offset >> (28 - (i * 4))) & 0xF;
-					MOV(64, R(RAX), Imm64(PPCCRToInternal(newcr)));
-					MOV(64, M(&PowerPC::ppcState.cr_val[i]), R(RAX));
+					u64 newcrval = PPCCRToInternal(newcr);
+					if ((s64)newcrval == (s32)newcrval)
+					{
+						MOV(64, M(&PowerPC::ppcState.cr_val[i]), Imm32(newcrval));
+					}
+					else
+					{
+						MOV(64, R(RAX), Imm64(newcrval));
+						MOV(64, M(&PowerPC::ppcState.cr_val[i]), R(RAX));
+					}
 				}
 			}
 		}
@@ -347,50 +326,20 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 		{
 			gpr.Lock(inst.RS);
 			gpr.BindToRegister(inst.RS, true, false);
-			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 			for (int i = 0; i < 8; i++)
 			{
 				if ((crm & (0x80 >> i)) != 0)
 				{
-					MOVZX(64, 32, EAX, gpr.R(inst.RS));
-					SHR(64, R(EAX), Imm8(28 - (i * 4)));
-					AND(64, R(EAX), Imm32(0xF));
-
-					X64Reg cr_val = ABI_PARAM1;
-					X64Reg tmp = ABI_PARAM2;
-
-					MOV(64, R(cr_val), Imm64(1ull << 32));
-
-					// SO
-					MOV(64, R(tmp), R(EAX));
-					SHL(64, R(tmp), Imm8(63));
-					SHR(64, R(tmp), Imm8(63 - 61));
-					OR(64, R(cr_val), R(tmp));
-
-					// EQ
-					MOV(64, R(tmp), R(EAX));
-					NOT(64, R(tmp));
-					AND(64, R(tmp), Imm8(CR_EQ));
-					OR(64, R(cr_val), R(tmp));
-
-					// GT
-					MOV(64, R(tmp), R(EAX));
-					NOT(64, R(tmp));
-					AND(64, R(tmp), Imm8(CR_GT));
-					SHL(64, R(tmp), Imm8(63 - 2));
-					OR(64, R(cr_val), R(tmp));
-
-					// LT
-					MOV(64, R(tmp), R(EAX));
-					AND(64, R(tmp), Imm8(CR_LT));
-					SHL(64, R(tmp), Imm8(62 - 3));
-					OR(64, R(cr_val), R(tmp));
-
-					MOV(64, M(&PowerPC::ppcState.cr_val[i]), R(cr_val));
+					MOV(32, R(EAX), gpr.R(inst.RS));
+					if (i != 7)
+						SHR(32, R(EAX), Imm8(28 - (i * 4)));
+					if (i != 0)
+						AND(32, R(EAX), Imm8(0xF));
+					MOV(64, R(EAX), MScaled(EAX, SCALE_8, (u32)(u64)m_crTable));
+					MOV(64, M(&PowerPC::ppcState.cr_val[i]), R(EAX));
 				}
 			}
 			gpr.UnlockAll();
-			gpr.UnlockAllX();
 		}
 	}
 }
@@ -416,41 +365,11 @@ void Jit64::mcrxr(UGeckoInstruction inst)
 	// USES_CR
 
 	// Copy XER[0-3] into CR[inst.CRFD]
-	MOVZX(64, 32, EAX, M(&PowerPC::ppcState.spr[SPR_XER]));
-	SHR(64, R(EAX), Imm8(28));
+	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+	SHR(32, R(EAX), Imm8(28));
 
-	gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-	X64Reg cr_val = ABI_PARAM1;
-	X64Reg tmp = ABI_PARAM2;
-
-	MOV(64, R(cr_val), Imm64(1ull << 32));
-
-	// SO
-	MOV(64, R(tmp), R(EAX));
-	SHL(64, R(tmp), Imm8(63));
-	SHR(64, R(tmp), Imm8(63 - 61));
-	OR(64, R(cr_val), R(tmp));
-
-	// EQ
-	MOV(64, R(tmp), R(EAX));
-	AND(64, R(tmp), Imm8(0x2));
-	OR(64, R(cr_val), R(tmp));
-
-	// GT
-	MOV(64, R(tmp), R(EAX));
-	NOT(64, R(tmp));
-	AND(64, R(tmp), Imm8(0x4));
-	SHL(64, R(tmp), Imm8(63 - 2));
-	OR(64, R(cr_val), R(tmp));
-
-	// LT
-	MOV(64, R(tmp), R(EAX));
-	AND(64, R(tmp), Imm8(0x8));
-	SHL(64, R(tmp), Imm8(62 - 3));
-	OR(64, R(cr_val), R(tmp));
-
-	MOV(64, M(&PowerPC::ppcState.cr_val[inst.CRFD]), R(cr_val));
-	gpr.UnlockAllX();
+	MOV(64, R(EAX), MScaled(EAX, SCALE_8, (u32)(u64)m_crTable));
+	MOV(64, M(&PowerPC::ppcState.cr_val[inst.CRFD]), R(EAX));
 
 	// Clear XER[0-3]
 	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(0x0FFFFFFF));
@@ -467,49 +386,33 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	// not required.
 
 	// USES_CR
+	// crandc or crorc or creqv or crnand or crnor
+	bool negateA = inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 289 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
+	// crnand or crnor
+	bool negateB = inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
 
-	gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-	GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), ABI_PARAM2);
-	GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), EAX);
+	gpr.FlushLockX(ABI_PARAM1);
+	GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), ABI_PARAM1, negateA);
+	GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), EAX, negateB);
 
 	// Compute combined bit
 	switch (inst.SUBOP10)
 	{
-	case 33:  // crnor
-		OR(8, R(EAX), R(ABI_PARAM2));
-		NOT(8, R(EAX));
-		break;
-
+	case 33:  // crnor: ~(A || B) == (~A && ~B)
 	case 129: // crandc
-		NOT(8, R(ABI_PARAM2));
-		AND(8, R(EAX), R(ABI_PARAM2));
+	case 257: // crand
+		AND(8, R(EAX), R(ABI_PARAM1));
 		break;
 
 	case 193: // crxor
-		XOR(8, R(EAX), R(ABI_PARAM2));
-		break;
-
-	case 225: // crnand
-		AND(8, R(EAX), R(ABI_PARAM2));
-		NOT(8, R(EAX));
-		break;
-
-	case 257: // crand
-		AND(8, R(EAX), R(ABI_PARAM2));
-		break;
-
 	case 289: // creqv
-		XOR(8, R(EAX), R(ABI_PARAM2));
-		NOT(8, R(EAX));
+		XOR(8, R(EAX), R(ABI_PARAM1));
 		break;
 
+	case 225: // crnand: ~(A && B) == (~A || ~B)
 	case 417: // crorc
-		NOT(8, R(ABI_PARAM2));
-		OR(8, R(EAX), R(ABI_PARAM2));
-		break;
-
 	case 449: // cror
-		OR(8, R(EAX), R(ABI_PARAM2));
+		OR(8, R(EAX), R(ABI_PARAM1));
 		break;
 	}
 
