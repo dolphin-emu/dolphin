@@ -49,16 +49,10 @@ struct RegInfo
 	unsigned numFSpills;
 	unsigned exitNumber;
 
-	RegInfo(JitIL* j, InstLoc f, unsigned insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts)
+	RegInfo(JitIL* j, InstLoc f, unsigned insts)
+		: Jit(j), Build(nullptr), FirstI(f), IInfo(insts), lastUsed(insts)
+		, regs(), fregs(), numSpills(0), numFSpills(0), exitNumber(0)
 	{
-		for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
-		{
-			regs[i] = nullptr;
-			fregs[i] = nullptr;
-		}
-		numSpills = 0;
-		numFSpills = 0;
-		exitNumber = 0;
 	}
 
 	private:
