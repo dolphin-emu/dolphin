@@ -24,7 +24,7 @@ using namespace Gen;
 void Jit64::sc(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
+	JITDISABLE(m_JIT_branch_off);
 
 	gpr.Flush();
 	fpr.Flush();
@@ -37,7 +37,7 @@ void Jit64::sc(UGeckoInstruction inst)
 void Jit64::rfi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
+	JITDISABLE(m_JIT_branch_off);
 
 	gpr.Flush();
 	fpr.Flush();
@@ -57,7 +57,7 @@ void Jit64::rfi(UGeckoInstruction inst)
 void Jit64::bx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
+	JITDISABLE(m_JIT_branch_off);
 
 	// We must always process the following sentence
 	// even if the blocks are merged by PPCAnalyst::Flatten().
@@ -100,7 +100,7 @@ void Jit64::bx(UGeckoInstruction inst)
 void Jit64::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
+	JITDISABLE(m_JIT_branch_off);
 
 	// USES_CR
 
@@ -150,7 +150,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 void Jit64::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
+	JITDISABLE(m_JIT_branch_off);
 
 	// bcctrx doesn't decrement and/or test CTR
 	_dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
@@ -198,7 +198,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 void Jit64::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITBranchOff);
+	JITDISABLE(m_JIT_branch_off);
 
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR

@@ -375,7 +375,7 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {
 	// HACK but works... we think
-	if (!Core::g_CoreStartupParameter.bDCBZOFF)
+	if (!Core::g_CoreStartupParameter.m_DCBZOFF)
 		Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 	if (!JitInterface::GetCore())
 		PowerPC::CheckExceptions();

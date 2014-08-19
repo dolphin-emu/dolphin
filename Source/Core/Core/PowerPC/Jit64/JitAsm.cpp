@@ -51,7 +51,7 @@ void Jit64AsmRoutineManager::Generate()
 			// IMPORTANT - We jump on negative, not carry!!!
 			FixupBranch bail = J_CC(CC_BE, true);
 
-			if (Core::g_CoreStartupParameter.bEnableDebugging)
+			if (Core::g_CoreStartupParameter.m_enable_debugging)
 			{
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
 				FixupBranch notStepping = J_CC(CC_Z);
@@ -74,11 +74,11 @@ void Jit64AsmRoutineManager::Generate()
 			FixupBranch no_mem;
 			FixupBranch exit_mem;
 			FixupBranch exit_vmem;
-			if (Core::g_CoreStartupParameter.bWii)
+			if (Core::g_CoreStartupParameter.m_wii)
 				mask = JIT_ICACHE_EXRAM_BIT;
-			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (Core::g_CoreStartupParameter.m_MMU || Core::g_CoreStartupParameter.m_TLB_hack)
 				mask |= JIT_ICACHE_VMEM_BIT;
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (Core::g_CoreStartupParameter.m_wii || Core::g_CoreStartupParameter.m_MMU || Core::g_CoreStartupParameter.m_TLB_hack)
 			{
 				TEST(32, R(EAX), Imm32(mask));
 				no_mem = J_CC(CC_NZ);
@@ -87,12 +87,12 @@ void Jit64AsmRoutineManager::Generate()
 			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCache));
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (Core::g_CoreStartupParameter.m_wii || Core::g_CoreStartupParameter.m_MMU || Core::g_CoreStartupParameter.m_TLB_hack)
 			{
 				exit_mem = J();
 				SetJumpTarget(no_mem);
 			}
-			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (Core::g_CoreStartupParameter.m_MMU || Core::g_CoreStartupParameter.m_TLB_hack)
 			{
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
 				FixupBranch no_vmem = J_CC(CC_Z);
@@ -100,10 +100,10 @@ void Jit64AsmRoutineManager::Generate()
 				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
 				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 
-				if (Core::g_CoreStartupParameter.bWii) exit_vmem = J();
+				if (Core::g_CoreStartupParameter.m_wii) exit_vmem = J();
 				SetJumpTarget(no_vmem);
 			}
-			if (Core::g_CoreStartupParameter.bWii)
+			if (Core::g_CoreStartupParameter.m_wii)
 			{
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
@@ -113,9 +113,9 @@ void Jit64AsmRoutineManager::Generate()
 
 				SetJumpTarget(no_exram);
 			}
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (Core::g_CoreStartupParameter.m_wii || Core::g_CoreStartupParameter.m_MMU || Core::g_CoreStartupParameter.m_TLB_hack)
 				SetJumpTarget(exit_mem);
-			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack))
+			if (Core::g_CoreStartupParameter.m_wii && (Core::g_CoreStartupParameter.m_MMU || Core::g_CoreStartupParameter.m_TLB_hack))
 				SetJumpTarget(exit_vmem);
 
 			TEST(32, R(EAX), R(EAX));

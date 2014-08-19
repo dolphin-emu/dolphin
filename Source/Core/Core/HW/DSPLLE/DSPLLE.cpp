@@ -157,10 +157,10 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 	return true;
 }
 
-bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
+bool DSPLLE::Initialize(bool m_wii, bool m_DSP_thread)
 {
-	m_bWii = bWii;
-	m_bDSPThread = bDSPThread;
+	m_bWii = m_wii;
+	m_m_DSP_thread = m_DSP_thread;
 
 	DSPInitOptions opts;
 	if (!FillDSPInitOptions(&opts))
@@ -175,7 +175,7 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 
 	InitInstructionTable();
 
-	if (m_bDSPThread)
+	if (m_m_DSP_thread)
 		m_hDSPThread = std::thread(dsp_thread, this);
 
 	Host_RefreshDSPDebuggerWindow();
@@ -187,7 +187,7 @@ void DSPLLE::DSP_StopSoundStream()
 {
 	DSPInterpreter::Stop();
 	m_bIsRunning = false;
-	if (m_bDSPThread)
+	if (m_m_DSP_thread)
 	{
 		ppcEvent.Set();
 		dspEvent.Set();
@@ -208,7 +208,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 	// and immediately process it, if it has.
 	if (_uFlag & 2)
 	{
-		if (!m_bDSPThread)
+		if (!m_m_DSP_thread)
 		{
 			DSPCore_CheckExternalInterrupt();
 			DSPCore_CheckExceptions();
@@ -291,7 +291,7 @@ void DSPLLE::DSP_Update(int cycles)
 	// This gets called VERY OFTEN. The soundstream update might be expensive so only do it 200 times per second or something.
 	int cycles_between_ss_update;
 
-	if (g_dspInitialize.bWii)
+	if (g_dspInitialize.m_wii)
 		cycles_between_ss_update = 121500000 / 200;
 	else
 		cycles_between_ss_update = 81000000 / 200;
@@ -305,7 +305,7 @@ void DSPLLE::DSP_Update(int cycles)
 	}
 */
 	// If we're not on a thread, run cycles here.
-	if (!m_bDSPThread)
+	if (!m_m_DSP_thread)
 	{
 		// ~1/6th as many cycles as the period PPC-side.
 		DSPCore_RunCycles(dsp_cycles);

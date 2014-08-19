@@ -83,90 +83,90 @@ enum Hotkey
 	NUM_HOTKEYS,
 };
 
-struct SCoreStartupParameter
+struct CoreStartupParameter
 {
 	// Settings
-	bool bEnableDebugging;
+	bool m_enable_debugging;
 	#ifdef USE_GDBSTUB
-	int  iGDBPort;
+	int  m_GDB_port;
 	#endif
-	bool bAutomaticStart;
-	bool bBootToPause;
+	bool m_automatic_start;
+	bool m_boot_to_pause;
 
 	// 0 = Interpreter
 	// 1 = Jit
 	// 2 = JitIL
 	// 3 = JIT ARM
-	int iCPUCore;
+	int m_CPU_core;
 
 	// JIT (shared between JIT and JITIL)
-	bool bJITNoBlockCache, bJITBlockLinking;
-	bool bJITOff;
-	bool bJITLoadStoreOff, bJITLoadStorelXzOff, bJITLoadStorelwzOff, bJITLoadStorelbzxOff;
-	bool bJITLoadStoreFloatingOff;
-	bool bJITLoadStorePairedOff;
-	bool bJITFloatingPointOff;
-	bool bJITIntegerOff;
-	bool bJITPairedOff;
-	bool bJITSystemRegistersOff;
-	bool bJITBranchOff;
-	bool bJITILTimeProfiling;
-	bool bJITILOutputIR;
+	bool m_JIT_no_block_cache, m_JIT_block_linking;
+	bool m_JIT_off;
+	bool m_JIT_load_store_off, m_JIT_load_store_lxz_off, m_JIT_load_store_lwz_off, m_JIT_load_store_lbzx_off;
+	bool m_JIT_load_store_floating_off;
+	bool m_JIT_load_store_paired_off;
+	bool m_JIT_floating_point_off;
+	bool m_JIT_integer_off;
+	bool m_JIT_paired_off;
+	bool m_JIT_system_registers_off;
+	bool m_JIT_branch_off;
+	bool m_JITIL_time_profiling;
+	bool m_JITIL_output_IR;
 
-	bool bFastmem;
-	bool bEnableFPRF;
+	bool m_fastmem;
+	bool m_enable_FPRF;
 
-	bool bCPUThread;
-	bool bDSPThread;
-	bool bDSPHLE;
-	bool bSkipIdle;
-	bool bNTSC;
-	bool bForceNTSCJ;
-	bool bHLE_BS2;
-	bool bEnableCheats;
-	bool bMergeBlocks;
-	bool bEnableMemcardSaving;
+	bool m_CPU_thread;
+	bool m_DSP_thread;
+	bool m_DSPHLE;
+	bool m_skip_idle;
+	bool m_NTSC;
+	bool m_force_NTSCJ;
+	bool m_HLE_BS2;
+	bool m_enable_cheats;
+	bool m_merge_blocks;
+	bool m_enable_memcard_saving;
 
-	bool bDPL2Decoder;
-	int iLatency;
+	bool m_DPL2_decoder;
+	int m_latency;
 
-	bool bRunCompareServer;
-	bool bRunCompareClient;
+	bool m_run_compare_server;
+	bool m_run_compare_client;
 
-	bool bMMU;
-	bool bDCBZOFF;
-	bool bTLBHack;
-	int iBBDumpPort;
-	bool bVBeamSpeedHack;
-	bool bSyncGPU;
-	bool bFastDiscSpeed;
+	bool m_MMU;
+	bool m_DCBZOFF;
+	bool m_TLB_hack;
+	int m_BB_dump_port;
+	bool m_vbeam_speed_hack;
+	bool m_sync_GPU;
+	bool m_fast_disc_speed;
 
-	int SelectedLanguage;
+	int m_selected_language;
 
-	bool bWii;
+	bool m_wii;
 
 	// Interface settings
-	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
-	std::string theme_name;
+	bool m_confirm_stop, m_hide_cursor, m_auto_hide_cursor, m_use_panic_handlers, m_on_screen_display_messages;
+	std::string m_theme_name;
 
 	// Hotkeys
-	int iHotkey[NUM_HOTKEYS];
-	int iHotkeyModifier[NUM_HOTKEYS];
+	int m_hotkey[NUM_HOTKEYS];
+	int m_hotkey_modifier[NUM_HOTKEYS];
 
 	// Display settings
-	std::string strFullscreenResolution;
-	int iRenderWindowXPos, iRenderWindowYPos;
-	int iRenderWindowWidth, iRenderWindowHeight;
-	bool bRenderWindowAutoSize, bKeepWindowOnTop;
-	bool bFullscreen, bRenderToMain;
-	bool bProgressive, bDisableScreenSaver;
+	std::string m_fullscreen_resolution;
+	int m_render_window_xpos, m_render_window_ypos;
+	int m_render_window_width, m_render_window_height;
+	bool m_render_window_auto_size, m_keep_window_on_top;
+	bool m_fullscreen, m_render_to_main;
+	bool m_progressive, m_disable_screen_saver;
 
-	int iPosX, iPosY, iWidth, iHeight;
+	int m_posx, m_posy, m_width, m_height;
 
 	// Fifo Player related settings
-	bool bLoopFifoReplay;
+	bool m_loop_fifo_replay;
 
-	enum EBootBS2
+	enum BootBS2
 	{
 		BOOT_DEFAULT,
 		BOOT_BS2_JAP,
@@ -174,7 +174,7 @@ struct SCoreStartupParameter
 		BOOT_BS2_EUR,
 	};
 
-	enum EBootType
+	enum BootType
 	{
 		BOOT_ISO,
 		BOOT_ELF,
@@ -183,31 +183,32 @@ struct SCoreStartupParameter
 		BOOT_BS2,
 		BOOT_DFF
 	};
-	EBootType m_BootType;
+	BootType m_boot_type;
 
-	std::string m_strVideoBackend;
+	std::string m_video_backend;
 
 	// files
-	std::string m_strFilename;
-	std::string m_strBootROM;
-	std::string m_strSRAM;
-	std::string m_strDefaultGCM;
-	std::string m_strDVDRoot;
-	std::string m_strApploader;
-	std::string m_strUniqueID;
-	std::string m_strRevisionSpecificUniqueID;
-	std::string m_strName;
-	std::string m_strGameIniDefault;
-	std::string m_strGameIniDefaultRevisionSpecific;
-	std::string m_strGameIniLocal;
+
+	std::string m_filename;
+	std::string m_boot_ROM;
+	std::string m_SRAM;
+	std::string m_default_GCM;
+	std::string m_DVD_root;
+	std::string m_apploader;
+	std::string m_unique_ID;
+	std::string m_revision_specific_unique_ID;
+	std::string m_name;
+	std::string m_game_ini_default;
+	std::string m_game_ini_default_revision_specific;
+	std::string m_game_ini_local;
 
 	// Constructor just calls LoadDefaults
-	SCoreStartupParameter();
+	CoreStartupParameter();
 
 	void LoadDefaults();
-	bool AutoSetup(EBootBS2 _BootBS2);
-	const std::string &GetUniqueID() const { return m_strUniqueID; }
-	void CheckMemcardPath(std::string& memcardPath, std::string Region, bool isSlotA);
+	bool AutoSetup(BootBS2 boot_BS2);
+	const std::string &GetUniqueID() const { return m_unique_ID; }
+	void CheckMemcardPath(std::string& memcard_path, std::string region, bool is_slot_a);
 	IniFile LoadDefaultGameIni() const;
 	IniFile LoadLocalGameIni() const;
 	IniFile LoadGameIni() const;

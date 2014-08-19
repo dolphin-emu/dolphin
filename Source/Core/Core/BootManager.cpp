@@ -47,9 +47,9 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-	     bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack, bProgressive;
-	int iCPUCore, Volume;
+	bool valid, m_CPU_thread, m_skip_idle, m_enable_FPRF, m_MMU, m_DCBZOFF, m_EnableJIT, m_DSP_thread,
+	     m_vbeam_speed_hack, m_sync_GPU, m_fast_disc_speed, m_merge_blocks, m_DSPHLE, m_HLE_BS2, m_TLB_hack, m_progressive;
+	int m_CPU_core, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];
 	unsigned int framelimit, frameSkip;
@@ -62,60 +62,60 @@ static ConfigCache config_cache;
 // Boot the ISO or file
 bool BootCore(const std::string& _rFilename)
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	CoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	// Use custom settings for debugging mode
 	Host_SetStartupDebuggingParameters();
 
-	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
-	StartUp.m_strFilename = _rFilename;
+	StartUp.m_boot_type = CoreStartupParameter::BOOT_ISO;
+	StartUp.m_filename = _rFilename;
 	SConfig::GetInstance().m_LastFilename = _rFilename;
 	SConfig::GetInstance().SaveSettings();
-	StartUp.bRunCompareClient = false;
-	StartUp.bRunCompareServer = false;
+	StartUp.m_run_compare_client = false;
+	StartUp.m_run_compare_server = false;
 
 	// This is saved seperately from everything because it can be changed in SConfig::AutoSetup()
-	config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
+	config_cache.m_HLE_BS2 = StartUp.m_HLE_BS2;
 
 	// If for example the ISO file is bad we return here
-	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT))
+	if (!StartUp.AutoSetup(CoreStartupParameter::BOOT_DEFAULT))
 		return false;
 
 	// Load game specific settings
 	std::string unique_id = StartUp.GetUniqueID();
-	std::string revision_specific = StartUp.m_strRevisionSpecificUniqueID;
-	StartUp.m_strGameIniDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + unique_id + ".ini";
+	std::string revision_specific = StartUp.m_revision_specific_unique_ID;
+	StartUp.m_game_ini_default = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + unique_id + ".ini";
 	if (revision_specific != "")
-		StartUp.m_strGameIniDefaultRevisionSpecific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + revision_specific + ".ini";
+		StartUp.m_game_ini_default_revision_specific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + revision_specific + ".ini";
 	else
-		StartUp.m_strGameIniDefaultRevisionSpecific = "";
-	StartUp.m_strGameIniLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + unique_id + ".ini";
+		StartUp.m_game_ini_default_revision_specific = "";
+	StartUp.m_game_ini_local = File::GetUserPath(D_GAMESETTINGS_IDX) + unique_id + ".ini";
 
 	if (unique_id.size() == 6)
 	{
 		IniFile game_ini = StartUp.LoadGameIni();
 
 		config_cache.valid = true;
-		config_cache.bCPUThread = StartUp.bCPUThread;
-		config_cache.bSkipIdle = StartUp.bSkipIdle;
-		config_cache.iCPUCore = StartUp.iCPUCore;
-		config_cache.bEnableFPRF = StartUp.bEnableFPRF;
-		config_cache.bMMU = StartUp.bMMU;
-		config_cache.bDCBZOFF = StartUp.bDCBZOFF;
-		config_cache.bTLBHack = StartUp.bTLBHack;
-		config_cache.bVBeamSpeedHack = StartUp.bVBeamSpeedHack;
-		config_cache.bSyncGPU = StartUp.bSyncGPU;
-		config_cache.bFastDiscSpeed = StartUp.bFastDiscSpeed;
-		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
-		config_cache.bDSPHLE = StartUp.bDSPHLE;
-		config_cache.strBackend = StartUp.m_strVideoBackend;
+		config_cache.m_CPU_thread = StartUp.m_CPU_thread;
+		config_cache.m_skip_idle = StartUp.m_skip_idle;
+		config_cache.m_CPU_core = StartUp.m_CPU_core;
+		config_cache.m_enable_FPRF = StartUp.m_enable_FPRF;
+		config_cache.m_MMU = StartUp.m_MMU;
+		config_cache.m_DCBZOFF = StartUp.m_DCBZOFF;
+		config_cache.m_TLB_hack = StartUp.m_TLB_hack;
+		config_cache.m_vbeam_speed_hack = StartUp.m_vbeam_speed_hack;
+		config_cache.m_sync_GPU = StartUp.m_sync_GPU;
+		config_cache.m_fast_disc_speed = StartUp.m_fast_disc_speed;
+		config_cache.m_merge_blocks = StartUp.m_merge_blocks;
+		config_cache.m_DSPHLE = StartUp.m_DSPHLE;
+		config_cache.strBackend = StartUp.m_video_backend;
 		config_cache.m_EnableJIT = SConfig::GetInstance().m_DSPEnableJIT;
-		config_cache.bDSPThread = StartUp.bDSPThread;
+		config_cache.m_DSP_thread = StartUp.m_DSP_thread;
 		config_cache.Volume = SConfig::GetInstance().m_Volume;
 		config_cache.sBackend = SConfig::GetInstance().sBackend;
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
 		config_cache.frameSkip = SConfig::GetInstance().m_FrameSkip;
-		config_cache.bProgressive = StartUp.bProgressive;
+		config_cache.m_progressive = StartUp.m_progressive;
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
 			config_cache.iWiimoteSource[i] = g_wiimote_sources[i];
@@ -139,22 +139,22 @@ bool BootCore(const std::string& _rFilename)
 		IniFile::Section* dsp_section      = game_ini.GetOrCreateSection("DSP");
 		IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
-		core_section->Get("CPUThread",        &StartUp.bCPUThread, StartUp.bCPUThread);
-		core_section->Get("SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
-		core_section->Get("EnableFPRF",       &StartUp.bEnableFPRF, StartUp.bEnableFPRF);
-		core_section->Get("MMU",              &StartUp.bMMU, StartUp.bMMU);
-		core_section->Get("TLBHack",          &StartUp.bTLBHack, StartUp.bTLBHack);
-		core_section->Get("DCBZ",             &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
-		core_section->Get("VBeam",            &StartUp.bVBeamSpeedHack, StartUp.bVBeamSpeedHack);
-		core_section->Get("SyncGPU",          &StartUp.bSyncGPU, StartUp.bSyncGPU);
-		core_section->Get("FastDiscSpeed",    &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-		core_section->Get("BlockMerging",     &StartUp.bMergeBlocks, StartUp.bMergeBlocks);
-		core_section->Get("DSPHLE",           &StartUp.bDSPHLE, StartUp.bDSPHLE);
-		core_section->Get("DSPThread",        &StartUp.bDSPThread, StartUp.bDSPThread);
-		core_section->Get("GFXBackend",       &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
-		core_section->Get("CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
-		core_section->Get("HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
-		core_section->Get("ProgressiveScan",  &StartUp.bProgressive, StartUp.bProgressive);
+		core_section->Get("CPUThread",        &StartUp.m_CPU_thread, StartUp.m_CPU_thread);
+		core_section->Get("SkipIdle",         &StartUp.m_skip_idle, StartUp.m_skip_idle);
+		core_section->Get("EnableFPRF",       &StartUp.m_enable_FPRF, StartUp.m_enable_FPRF);
+		core_section->Get("MMU",              &StartUp.m_MMU, StartUp.m_MMU);
+		core_section->Get("TLBHack",          &StartUp.m_TLB_hack, StartUp.m_TLB_hack);
+		core_section->Get("DCBZ",             &StartUp.m_DCBZOFF, StartUp.m_DCBZOFF);
+		core_section->Get("VBeam",            &StartUp.m_vbeam_speed_hack, StartUp.m_vbeam_speed_hack);
+		core_section->Get("SyncGPU",          &StartUp.m_sync_GPU, StartUp.m_sync_GPU);
+		core_section->Get("FastDiscSpeed",    &StartUp.m_fast_disc_speed, StartUp.m_fast_disc_speed);
+		core_section->Get("BlockMerging",     &StartUp.m_merge_blocks, StartUp.m_merge_blocks);
+		core_section->Get("DSPHLE",           &StartUp.m_DSPHLE, StartUp.m_DSPHLE);
+		core_section->Get("DSPThread",        &StartUp.m_DSP_thread, StartUp.m_DSP_thread);
+		core_section->Get("GFXBackend",       &StartUp.m_video_backend, StartUp.m_video_backend);
+		core_section->Get("CPUCore",          &StartUp.m_CPU_core, StartUp.m_CPU_core);
+		core_section->Get("HLE_BS2",          &StartUp.m_HLE_BS2, StartUp.m_HLE_BS2);
+		core_section->Get("ProgressiveScan",  &StartUp.m_progressive, StartUp.m_progressive);
 		if (core_section->Get("FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
 			config_cache.bSetFramelimit = true;
 		if (core_section->Get("FrameSkip",    &SConfig::GetInstance().m_FrameSkip))
@@ -167,7 +167,7 @@ bool BootCore(const std::string& _rFilename)
 			config_cache.bSetVolume = true;
 		dsp_section->Get("EnableJIT",         &SConfig::GetInstance().m_DSPEnableJIT, SConfig::GetInstance().m_DSPEnableJIT);
 		dsp_section->Get("Backend",           &SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
-		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
+		VideoBackend::ActivateBackend(StartUp.m_video_backend);
 
 		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
@@ -181,7 +181,7 @@ bool BootCore(const std::string& _rFilename)
 		}
 
 		// Wii settings
-		if (StartUp.bWii)
+		if (StartUp.m_wii)
 		{
 			// Flush possible changes to SYSCONF to file
 			SConfig::GetInstance().m_SYSCONF->Save();
@@ -210,16 +210,16 @@ bool BootCore(const std::string& _rFilename)
 	// Movie settings
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
 	{
-		StartUp.bCPUThread = Movie::IsDualCore();
-		StartUp.bSkipIdle = Movie::IsSkipIdle();
-		StartUp.bDSPHLE = Movie::IsDSPHLE();
-		StartUp.bProgressive = Movie::IsProgressive();
-		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
-		StartUp.iCPUCore = Movie::GetCPUMode();
-		StartUp.bSyncGPU = Movie::IsSyncGPU();
+		StartUp.m_CPU_thread = Movie::IsDualCore();
+		StartUp.m_skip_idle = Movie::IsSkipIdle();
+		StartUp.m_DSPHLE = Movie::IsDSPHLE();
+		StartUp.m_progressive = Movie::IsProgressive();
+		StartUp.m_fast_disc_speed = Movie::IsFastDiscSpeed();
+		StartUp.m_CPU_core = Movie::GetCPUMode();
+		StartUp.m_sync_GPU = Movie::IsSyncGPU();
 		for (int i = 0; i < 2; ++i)
 		{
-			if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+			if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.m_wii)
 			{
 				if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B")))
 					File::Delete(File::GetUserPath(D_GCUSER_IDX) + StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B"));
@@ -229,10 +229,10 @@ bool BootCore(const std::string& _rFilename)
 
 	if (NetPlay::IsNetPlayRunning())
 	{
-		StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
-		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
-		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
-		StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
+		StartUp.m_CPU_thread = g_NetPlaySettings.m_CPUthread;
+		StartUp.m_DSPHLE = g_NetPlaySettings.m_DSPHLE;
+		StartUp.m_enable_memcard_saving = g_NetPlaySettings.m_WriteToMemcard;
+		StartUp.m_CPU_core = g_NetPlaySettings.m_CPUcore;
 		SConfig::GetInstance().m_DSPEnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
 		SConfig::GetInstance().m_EXIDevice[0] = g_NetPlaySettings.m_EXIDevice[0];
 		SConfig::GetInstance().m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
@@ -240,7 +240,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bSetEXIDevice[1] = true;
 	}
 
-	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
+	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.m_progressive);
 
 	// Run the game
 	// Init the core
@@ -257,32 +257,32 @@ void Stop()
 {
 	Core::Stop();
 
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	CoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	StartUp.m_strUniqueID = "00000000";
+	StartUp.m_unique_ID = "00000000";
 	if (config_cache.valid)
 	{
 		config_cache.valid = false;
-		StartUp.bCPUThread = config_cache.bCPUThread;
-		StartUp.bSkipIdle = config_cache.bSkipIdle;
-		StartUp.iCPUCore = config_cache.iCPUCore;
-		StartUp.bEnableFPRF = config_cache.bEnableFPRF;
-		StartUp.bMMU = config_cache.bMMU;
-		StartUp.bDCBZOFF = config_cache.bDCBZOFF;
-		StartUp.bTLBHack = config_cache.bTLBHack;
-		StartUp.bVBeamSpeedHack = config_cache.bVBeamSpeedHack;
-		StartUp.bSyncGPU = config_cache.bSyncGPU;
-		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
-		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
-		StartUp.bDSPHLE = config_cache.bDSPHLE;
-		StartUp.bDSPThread = config_cache.bDSPThread;
-		StartUp.m_strVideoBackend = config_cache.strBackend;
-		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
-		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
+		StartUp.m_CPU_thread = config_cache.m_CPU_thread;
+		StartUp.m_skip_idle = config_cache.m_skip_idle;
+		StartUp.m_CPU_core = config_cache.m_CPU_core;
+		StartUp.m_enable_FPRF = config_cache.m_enable_FPRF;
+		StartUp.m_MMU = config_cache.m_MMU;
+		StartUp.m_DCBZOFF = config_cache.m_DCBZOFF;
+		StartUp.m_TLB_hack = config_cache.m_TLB_hack;
+		StartUp.m_vbeam_speed_hack = config_cache.m_vbeam_speed_hack;
+		StartUp.m_sync_GPU = config_cache.m_sync_GPU;
+		StartUp.m_fast_disc_speed = config_cache.m_fast_disc_speed;
+		StartUp.m_merge_blocks = config_cache.m_merge_blocks;
+		StartUp.m_DSPHLE = config_cache.m_DSPHLE;
+		StartUp.m_DSP_thread = config_cache.m_DSP_thread;
+		StartUp.m_video_backend = config_cache.strBackend;
+		VideoBackend::ActivateBackend(StartUp.m_video_backend);
+		StartUp.m_HLE_BS2 = config_cache.m_HLE_BS2;
 		SConfig::GetInstance().sBackend = config_cache.sBackend;
 		SConfig::GetInstance().m_DSPEnableJIT = config_cache.m_EnableJIT;
-		StartUp.bProgressive = config_cache.bProgressive;
-		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", config_cache.bProgressive);
+		StartUp.m_progressive = config_cache.m_progressive;
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", config_cache.m_progressive);
 
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 		if (config_cache.bSetFramelimit)
@@ -310,7 +310,7 @@ void Stop()
 				SConfig::GetInstance().m_EXIDevice[i] = config_cache.m_EXIDevice[i];
 			}
 		}
-		if (StartUp.bWii)
+		if (StartUp.m_wii)
 		{
 			for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 			{

@@ -57,7 +57,7 @@ struct VideoConfig final
 
 	// General
 	bool bVSync;
-	bool bFullscreen;
+	bool m_fullscreen;
 	bool bRunning;
 	bool bWidescreenHack;
 	int iAspectRatio;

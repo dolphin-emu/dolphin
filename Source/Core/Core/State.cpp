@@ -104,7 +104,7 @@ static void DoState(PointerWrap &p)
 	g_video_backend->DoState(p);
 	p.DoMarker("video_backend");
 
-	if (Core::g_CoreStartupParameter.bWii)
+	if (Core::g_CoreStartupParameter.m_wii)
 		Wiimote::DoState(p.GetPPtr(), p.GetMode());
 	p.DoMarker("Wiimote");
 

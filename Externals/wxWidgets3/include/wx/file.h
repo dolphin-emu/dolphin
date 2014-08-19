@@ -167,7 +167,7 @@ public:
   bool Flush() { return m_file.Flush(); }
 
   // different ways to close the file
-    // validate changes and delete the old file of name m_strName
+    // validate changes and delete the old file of name m_name
   bool Commit();
     // discard changes
   void Discard();
@@ -180,7 +180,7 @@ private:
   wxTempFile(const wxTempFile&);
   wxTempFile& operator=(const wxTempFile&);
 
-  wxString  m_strName,  // name of the file to replace in Commit()
+  wxString  m_name,  // name of the file to replace in Commit()
             m_strTemp;  // temporary file name
   wxFile    m_file;     // the temporary file
 };

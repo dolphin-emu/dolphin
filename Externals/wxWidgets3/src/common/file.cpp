@@ -532,7 +532,7 @@ bool wxTempFile::Open(const wxString& strName)
     // we must have an absolute filename because otherwise CreateTempFileName()
     // would create the temp file in $TMP (i.e. the system standard location
     // for the temp files) which might be on another volume/drive/mount and
-    // wxRename()ing it later to m_strName from Commit() would then fail
+    // wxRename()ing it later to m_name from Commit() would then fail
     //
     // with the absolute filename, the temp file is created in the same
     // directory as this one which ensures that wxRename() may work later
@@ -542,9 +542,9 @@ bool wxTempFile::Open(const wxString& strName)
         fn.Normalize(wxPATH_NORM_ABSOLUTE);
     }
 
-    m_strName = fn.GetFullPath();
+    m_name = fn.GetFullPath();
 
-    m_strTemp = wxFileName::CreateTempFileName(m_strName, &m_file);
+    m_strTemp = wxFileName::CreateTempFileName(m_name, &m_file);
 
     if ( m_strTemp.empty() )
     {
@@ -557,7 +557,7 @@ bool wxTempFile::Open(const wxString& strName)
     mode_t mode;
 
     wxStructStat st;
-    if ( stat( (const char*) m_strName.fn_str(), &st) == 0 )
+    if ( stat( (const char*) m_name.fn_str(), &st) == 0 )
     {
         mode = st.st_mode;
     }
@@ -595,13 +595,13 @@ bool wxTempFile::Commit()
 {
     m_file.Close();
 
-    if ( wxFile::Exists(m_strName) && wxRemove(m_strName) != 0 ) {
-        wxLogSysError(_("can't remove file '%s'"), m_strName.c_str());
+    if ( wxFile::Exists(m_name) && wxRemove(m_name) != 0 ) {
+        wxLogSysError(_("can't remove file '%s'"), m_name.c_str());
         return false;
     }
 
-    if ( !wxRenameFile(m_strTemp, m_strName)  ) {
-        wxLogSysError(_("can't commit changes to file '%s'"), m_strName.c_str());
+    if ( !wxRenameFile(m_strTemp, m_name)  ) {
+        wxLogSysError(_("can't commit changes to file '%s'"), m_name.c_str());
         return false;
     }
 

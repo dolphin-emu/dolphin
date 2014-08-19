@@ -294,28 +294,28 @@ bool DolphinApp::OnInit()
 	WiimoteReal::LoadSettings();
 
 	if (selectVideoBackend && videoBackendName != wxEmptyString)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_video_backend =
 			WxStrToStr(videoBackendName);
 
 	if (selectAudioEmulation)
 	{
 		if (audioEmulationName == "HLE")
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = true;
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_DSPHLE = true;
 		else if (audioEmulationName == "LLE")
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = false;
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_DSPHLE = false;
 	}
 
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
+	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_video_backend);
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);
 
-	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
+	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.m_use_panic_handlers);
 
-	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX;
-	int y = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY;
-	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
-	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
+	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.m_posx;
+	int y = SConfig::GetInstance().m_LocalCoreStartupParameter.m_posy;
+	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.m_width;
+	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.m_height;
 
 #ifdef _WIN32
 	if (File::Exists("www.dolphin-emulator.com.txt"))
@@ -592,19 +592,19 @@ void Host_RequestFullscreen(bool enable_fullscreen)
 
 void Host_SetStartupDebuggingParameters()
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	CoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	if (main_frame->g_pCodeWindow)
 	{
-		StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
-		StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
-		StartUp.bJITNoBlockCache = main_frame->g_pCodeWindow->JITNoBlockCache();
-		StartUp.bJITBlockLinking = main_frame->g_pCodeWindow->JITBlockLinking();
+		StartUp.m_boot_to_pause = main_frame->g_pCodeWindow->BootToPause();
+		StartUp.m_automatic_start = main_frame->g_pCodeWindow->AutomaticStart();
+		StartUp.m_JIT_no_block_cache = main_frame->g_pCodeWindow->JITNoBlockCache();
+		StartUp.m_JIT_block_linking = main_frame->g_pCodeWindow->JITBlockLinking();
 	}
 	else
 	{
-		StartUp.bBootToPause = false;
+		StartUp.m_boot_to_pause = false;
 	}
-	StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
+	StartUp.m_enable_debugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
 }
 
 void Host_UpdateStatusBar(const std::string& text, int Field)

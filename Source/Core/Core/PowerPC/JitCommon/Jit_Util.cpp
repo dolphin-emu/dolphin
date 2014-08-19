@@ -249,8 +249,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	{
 		registersInUse &= ~(1 << RAX | 1 << reg_value);
 	}
-	if (!Core::g_CoreStartupParameter.bMMU &&
-	    Core::g_CoreStartupParameter.bFastmem &&
+	if (!Core::g_CoreStartupParameter.m_MMU &&
+	    Core::g_CoreStartupParameter.m_fastmem &&
 	    !opAddress.IsImm() &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
 #ifdef ENABLE_MEM_CHECK
@@ -265,13 +265,13 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	else
 	{
 		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+		if (Core::g_CoreStartupParameter.m_MMU || Core::g_CoreStartupParameter.m_TLB_hack)
 		{
 			mem_mask |= Memory::ADDR_MASK_MEM1;
 		}
 
 #ifdef ENABLE_MEM_CHECK
-		if (Core::g_CoreStartupParameter.bEnableDebugging)
+		if (Core::g_CoreStartupParameter.m_enable_debugging)
 		{
 			mem_mask |= Memory::EXRAM_MASK;
 		}
@@ -294,7 +294,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			{
 				UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
 			}
-			else if (!Core::g_CoreStartupParameter.bMMU && MMIO::IsMMIOAddress(address) && accessSize != 64)
+			else if (!Core::g_CoreStartupParameter.m_MMU && MMIO::IsMMIOAddress(address) && accessSize != 64)
 			{
 				MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
 				              address, accessSize, signExtend);
@@ -403,11 +403,11 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags)
 {
 	registersInUse &= ~(1 << RAX);
-	if (!Core::g_CoreStartupParameter.bMMU &&
-	    Core::g_CoreStartupParameter.bFastmem &&
+	if (!Core::g_CoreStartupParameter.m_MMU &&
+	    Core::g_CoreStartupParameter.m_fastmem &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
 #ifdef ENABLE_MEM_CHECK
-	    && !Core::g_CoreStartupParameter.bEnableDebugging
+	    && !Core::g_CoreStartupParameter.m_enable_debugging
 #endif
 	    )
 	{
@@ -429,13 +429,13 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+	if (Core::g_CoreStartupParameter.m_MMU || Core::g_CoreStartupParameter.m_TLB_hack)
 	{
 		mem_mask |= Memory::ADDR_MASK_MEM1;
 	}
 
 #ifdef ENABLE_MEM_CHECK
-	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	if (Core::g_CoreStartupParameter.m_enable_debugging)
 	{
 		mem_mask |= Memory::EXRAM_MASK;
 	}

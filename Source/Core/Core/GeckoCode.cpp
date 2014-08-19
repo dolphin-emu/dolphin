@@ -130,7 +130,7 @@ static bool InstallCodeHandler()
 
 void RunCodeHandler()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats && active_codes.size() > 0)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_enable_cheats && active_codes.size() > 0)
 	{
 		if (!code_handler_installed || Memory::Read_U32(0x80001800) - 0xd01f1bad > 5)
 			code_handler_installed = InstallCodeHandler();

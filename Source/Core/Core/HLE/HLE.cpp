@@ -94,7 +94,7 @@ void PatchFunctions()
 		}
 	}
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_enable_debugging)
 	{
 		for (size_t i = 1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
 		{
@@ -143,10 +143,10 @@ int GetFunctionFlagsByIndex(u32 index)
 
 bool IsEnabled(int flags)
 {
-	if (flags == HLE::HLE_TYPE_MEMORY && Core::g_CoreStartupParameter.bMMU)
+	if (flags == HLE::HLE_TYPE_MEMORY && Core::g_CoreStartupParameter.m_MMU)
 		return false;
 
-	if (flags == HLE::HLE_TYPE_DEBUG && !Core::g_CoreStartupParameter.bEnableDebugging && PowerPC::GetMode() != MODE_INTERPRETER)
+	if (flags == HLE::HLE_TYPE_DEBUG && !Core::g_CoreStartupParameter.m_enable_debugging && PowerPC::GetMode() != MODE_INTERPRETER)
 		return false;
 
 	return true;

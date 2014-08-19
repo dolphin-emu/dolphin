@@ -19,7 +19,7 @@ using namespace Gen;
 void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff);
+	JITDISABLE(m_JIT_load_store_paired_off);
 	FALLBACK_IF(js.memcheck || !inst.RA);
 
 	bool update = inst.OPCD == 61;
@@ -64,7 +64,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 void Jit64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff);
+	JITDISABLE(m_JIT_load_store_paired_off);
 	FALLBACK_IF(js.memcheck || !inst.RA);
 
 	bool update = inst.OPCD == 57;

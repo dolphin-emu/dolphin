@@ -17,7 +17,7 @@ using namespace Gen;
 void Jit64::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff);
+	JITDISABLE(m_JIT_load_store_floating_off);
 
 	int d = inst.RD;
 	int a = inst.RA;
@@ -41,7 +41,7 @@ void Jit64::lfs(UGeckoInstruction inst)
 void Jit64::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff);
+	JITDISABLE(m_JIT_load_store_floating_off);
 	FALLBACK_IF(!inst.RA);
 
 	int d = inst.RD;
@@ -66,7 +66,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 void Jit64::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff);
+	JITDISABLE(m_JIT_load_store_floating_off);
 	FALLBACK_IF(!inst.RA);
 
 	int s = inst.RS;
@@ -89,7 +89,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 void Jit64::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff);
+	JITDISABLE(m_JIT_load_store_floating_off);
 	FALLBACK_IF(!inst.RA);
 
 	int s = inst.RS;
@@ -108,7 +108,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 void Jit64::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff);
+	JITDISABLE(m_JIT_load_store_floating_off);
 
 	gpr.FlushLockX(ABI_PARAM1);
 	MOV(32, R(ABI_PARAM1), gpr.R(inst.RB));
@@ -127,7 +127,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 void Jit64::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreFloatingOff);
+	JITDISABLE(m_JIT_load_store_floating_off);
 
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)

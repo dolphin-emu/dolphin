@@ -162,7 +162,7 @@ FifoPlayer::FifoPlayer() :
 	m_FrameWrittenCb(nullptr),
 	m_File(nullptr)
 {
-	m_Loop = SConfig::GetInstance().m_LocalCoreStartupParameter.bLoopFifoReplay;
+	m_Loop = SConfig::GetInstance().m_LocalCoreStartupParameter.m_loop_fifo_replay;
 }
 
 void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo &info)

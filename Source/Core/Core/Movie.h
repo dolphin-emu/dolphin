@@ -63,7 +63,7 @@ struct DTMHeader
 	u8 filetype[4];         // Unique Identifier (always "DTM"0x1A)
 
 	u8 gameID[6];           // The Game ID
-	bool bWii;              // Wii game
+	bool m_wii;              // Wii game
 
 	u8  numControllers;     // The number of connected controllers (1-4)
 
@@ -82,11 +82,11 @@ struct DTMHeader
 	u64 recordingStartTime; // seconds since 1970 that recording started (used for RTC)
 
 	bool bSaveConfig;       // Loads the settings below on startup if true
-	bool bSkipIdle;
+	bool m_skip_idle;
 	bool bDualCore;
-	bool bProgressive;
-	bool bDSPHLE;
-	bool bFastDiscSpeed;
+	bool m_progressive;
+	bool m_DSPHLE;
+	bool m_fast_disc_speed;
 	u8  CPUCore;            // 0 = interpreter, 1 = JIT, 2 = JITIL
 	bool bEFBAccessEnable;
 	bool bEFBCopyEnable;
@@ -98,7 +98,7 @@ struct DTMHeader
 	u8   memcards;
 	bool bClearSave;        // Create a new memory card when playing back a movie if true
 	u8 bongos;
-	bool bSyncGPU;
+	bool m_sync_GPU;
 	bool bNetPlay;
 	u8 reserved[13];        // Padding for any new config options
 	u8 discChange[40];      // Name of iso file to switch to, for two disc games.

@@ -74,10 +74,10 @@ void Host_UpdateMainFrame()
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
-	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
-	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;
-	width = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth;
-	height = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight;
+	x = SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_xpos;
+	y = SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_ypos;
+	width = SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_width;
+	height = SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_height;
 }
 
 void Host_RequestRenderWindowSize(int width, int height) {}
@@ -86,9 +86,9 @@ void Host_RequestFullscreen(bool enable_fullscreen) {}
 
 void Host_SetStartupDebuggingParameters()
 {
-	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	CoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	StartUp.bEnableDebugging = false;
-	StartUp.bBootToPause = false;
+	StartUp.m_boot_to_pause = false;
 }
 
 bool Host_UIHasFocus()
@@ -131,7 +131,7 @@ void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 #if HAVE_X11
 static void X11_MainLoop()
 {
-	bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
+	bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.m_fullscreen;
 	while (!Core::IsRunning())
 		updateMainFrameEvent.Wait();
 
@@ -139,7 +139,7 @@ static void X11_MainLoop()
 	Window win = (Window)Core::GetWindowHandle();
 	XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_disable_screen_saver)
 		X11Utils::InhibitScreensaver(dpy, win, true);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -147,7 +147,7 @@ static void X11_MainLoop()
 #endif
 
 	Cursor blankCursor = None;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor)
 	{
 		// make a blank cursor
 		Pixmap Blank;
@@ -183,13 +183,13 @@ static void X11_MainLoop()
 					{
 						if (Core::GetState() == Core::CORE_RUN)
 						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor)
 								XUndefineCursor(dpy, win);
 							Core::SetState(Core::CORE_PAUSE);
 						}
 						else
 						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor)
 								XDefineCursor(dpy, win, blankCursor);
 							Core::SetState(Core::CORE_RUN);
 						}
@@ -224,13 +224,13 @@ static void X11_MainLoop()
 					break;
 				case FocusIn:
 					rendererHasFocus = true;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+					if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor &&
 							Core::GetState() != Core::CORE_PAUSE)
 						XDefineCursor(dpy, win, blankCursor);
 					break;
 				case FocusOut:
 					rendererHasFocus = false;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor)
 						XUndefineCursor(dpy, win);
 					break;
 			}
@@ -240,10 +240,10 @@ static void X11_MainLoop()
 			Window winDummy;
 			unsigned int borderDummy, depthDummy;
 			XGetGeometry(dpy, win, &winDummy,
-					&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-					&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
-					(unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					(unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					&SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_xpos,
+					&SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_ypos,
+					(unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_width,
+					(unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_height,
 					&borderDummy, &depthDummy);
 		}
 		usleep(100000);
@@ -252,10 +252,10 @@ static void X11_MainLoop()
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	delete XRRConfig;
 #endif
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_disable_screen_saver)
 		X11Utils::InhibitScreensaver(dpy, win, false);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor)
 		XFreeCursor(dpy, blankCursor);
 	XCloseDisplay(dpy);
 	Core::Stop();
@@ -327,7 +327,7 @@ int main(int argc, char* argv[])
 	SConfig::Init();
 	VideoBackend::PopulateList();
 	VideoBackend::ActivateBackend(SConfig::GetInstance().
-		m_LocalCoreStartupParameter.m_strVideoBackend);
+		m_LocalCoreStartupParameter.m_video_backend);
 	WiimoteReal::LoadSettings();
 
 #if USE_EGL

@@ -462,14 +462,14 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	int XOffset = (int)(FloatXOffset + 0.5f);
 	int YOffset = (int)(FloatYOffset + 0.5f);
 	int iWhidth = (int)ceil(FloatGLWidth);
-	int iHeight = (int)ceil(FloatGLHeight);
+	int m_height = (int)ceil(FloatGLHeight);
 	iWhidth -= iWhidth % 4; // ensure divisibility by 4 to make it compatible with all the video encoders
-	iHeight -= iHeight % 4;
+	m_height -= m_height % 4;
 
 	target_rc.left = XOffset;
 	target_rc.top = YOffset;
 	target_rc.right = XOffset + iWhidth;
-	target_rc.bottom = YOffset + iHeight;
+	target_rc.bottom = YOffset + m_height;
 }
 
 void Renderer::SetWindowSize(int width, int height)

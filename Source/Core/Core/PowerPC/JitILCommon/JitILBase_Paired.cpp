@@ -8,7 +8,7 @@
 void JitILBase::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc || (inst.SUBOP5 != 21 && inst.SUBOP5 != 20 && inst.SUBOP5 != 25));
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
@@ -45,7 +45,7 @@ void JitILBase::ps_sum(UGeckoInstruction inst)
 	FALLBACK_IF(true);
 
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc || inst.SUBOP5 != 10);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
@@ -65,7 +65,7 @@ void JitILBase::ps_sum(UGeckoInstruction inst)
 void JitILBase::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
@@ -89,7 +89,7 @@ void JitILBase::ps_muls(UGeckoInstruction inst)
 void JitILBase::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	IREmitter::InstLoc val = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FA));
@@ -121,7 +121,7 @@ void JitILBase::ps_mergeXX(UGeckoInstruction inst)
 void JitILBase::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA), op2, op3;

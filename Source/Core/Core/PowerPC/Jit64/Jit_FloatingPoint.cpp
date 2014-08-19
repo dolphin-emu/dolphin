@@ -76,11 +76,11 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 void Jit64::fp_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	FALLBACK_IF(inst.Rc);
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	FALLBACK_IF(inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF);
+	FALLBACK_IF(inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.m_enable_FPRF);
 
 	bool single = inst.OPCD == 59;
 	switch (inst.SUBOP5)
@@ -97,11 +97,11 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 void Jit64::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	FALLBACK_IF(inst.Rc);
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	FALLBACK_IF(inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF);
+	FALLBACK_IF(inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.m_enable_FPRF);
 
 	bool single_precision = inst.OPCD == 59;
 
@@ -151,7 +151,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 void Jit64::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
@@ -180,7 +180,7 @@ void Jit64::fsign(UGeckoInstruction inst)
 void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
@@ -206,7 +206,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	FALLBACK_IF(jo.fpAccurateFcmp);
 
 	//bool ordered = inst.SUBOP10 == 32;
@@ -271,7 +271,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 void Jit64::fctiwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	FALLBACK_IF(inst.Rc);
 
 	int d = inst.RD;

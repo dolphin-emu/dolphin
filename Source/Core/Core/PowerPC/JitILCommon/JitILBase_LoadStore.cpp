@@ -8,7 +8,7 @@
 void JitILBase::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
@@ -23,7 +23,7 @@ void JitILBase::lhax(UGeckoInstruction inst)
 void JitILBase::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
@@ -46,7 +46,7 @@ void JitILBase::lXz(UGeckoInstruction inst)
 void JitILBase::lbzu(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 	const IREmitter::InstLoc uAddress = ibuild.EmitAdd(ibuild.EmitLoadGReg(inst.RA), ibuild.EmitIntConst((int)inst.SIMM_16));
 	const IREmitter::InstLoc temp = ibuild.EmitLoad8(uAddress);
 	ibuild.EmitStoreGReg(temp, inst.RD);
@@ -56,7 +56,7 @@ void JitILBase::lbzu(UGeckoInstruction inst)
 void JitILBase::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
@@ -72,7 +72,7 @@ void JitILBase::lha(UGeckoInstruction inst)
 void JitILBase::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
@@ -98,7 +98,7 @@ void JitILBase::lXzx(UGeckoInstruction inst)
 void JitILBase::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
@@ -114,7 +114,7 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 
 	// TODO!
 #if 0
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+	if (Core::g_CoreStartupParameter.m_JIT_off || Core::g_CoreStartupParameter.m_JIT_load_store_off)
 		{Default(inst); return;} // turn off from debugger
 	INSTRUCTION_START;
 		MOV(32, R(EAX), gpr.R(inst.RB));
@@ -136,7 +136,7 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 void JitILBase::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
@@ -159,7 +159,7 @@ void JitILBase::stX(UGeckoInstruction inst)
 void JitILBase::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
@@ -183,7 +183,7 @@ void JitILBase::stXx(UGeckoInstruction inst)
 void JitILBase::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
@@ -202,7 +202,7 @@ void JitILBase::lmw(UGeckoInstruction inst)
 void JitILBase::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 	FALLBACK_IF(js.memcheck);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);

@@ -14,7 +14,7 @@ class DSPHLE : public DSPEmulator {
 public:
 	DSPHLE();
 
-	virtual bool Initialize(bool bWii, bool bDSPThread) override;
+	virtual bool Initialize(bool m_wii, bool m_DSP_thread) override;
 	virtual void Shutdown() override;
 	virtual bool IsLLE() override { return false ; }
 

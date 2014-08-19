@@ -8,7 +8,7 @@
 void JitILBase::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff);
+	JITDISABLE(m_JIT_load_store_paired_off);
 	FALLBACK_IF(js.memcheck || inst.W);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12);
@@ -28,7 +28,7 @@ void JitILBase::psq_st(UGeckoInstruction inst)
 void JitILBase::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStorePairedOff);
+	JITDISABLE(m_JIT_load_store_paired_off);
 	FALLBACK_IF(js.memcheck || inst.W);
 
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12);

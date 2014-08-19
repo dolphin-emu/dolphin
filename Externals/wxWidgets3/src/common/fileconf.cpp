@@ -143,7 +143,7 @@ class wxFileConfigEntry
 private:
   wxFileConfigGroup *m_pParent; // group that contains us
 
-  wxString      m_strName,      // entry name
+  wxString      m_name,      // entry name
                 m_strValue;     //       value
   bool          m_bImmutable:1, // can be overridden locally?
                 m_bHasValue:1;  // set after first call to SetValue()
@@ -159,7 +159,7 @@ public:
                     const wxString& strName, int nLine);
 
   // simple accessors
-  const wxString& Name()        const { return m_strName;    }
+  const wxString& Name()        const { return m_name;    }
   const wxString& Value()       const { return m_strValue;   }
   wxFileConfigGroup *Group()    const { return m_pParent;    }
   bool            IsImmutable() const { return m_bImmutable; }
@@ -186,7 +186,7 @@ private:
   wxFileConfigGroup  *m_pParent;    // parent group (NULL for root group)
   ArrayEntries  m_aEntries;         // entries in this group
   ArrayGroups   m_aSubgroups;       // subgroups
-  wxString      m_strName;          // group's name
+  wxString      m_name;          // group's name
   wxFileConfigLineList *m_pLine;    // pointer to our line in the linked list
   wxFileConfigEntry *m_pLastEntry;  // last entry/subgroup of this group in the
   wxFileConfigGroup *m_pLastGroup;  // local file (we insert new ones after it)
@@ -205,7 +205,7 @@ public:
   ~wxFileConfigGroup();
 
   // simple accessors
-  const wxString& Name()    const { return m_strName; }
+  const wxString& Name()    const { return m_name; }
   wxFileConfigGroup    *Parent()  const { return m_pParent; }
   wxFileConfig   *Config()  const { return m_pConfig; }
 
@@ -1345,7 +1345,7 @@ wxFileConfigGroup::wxFileConfigGroup(wxFileConfigGroup *pParent,
                                        wxFileConfig *pConfig)
                          : m_aEntries(CompareEntries),
                            m_aSubgroups(CompareGroups),
-                           m_strName(strName)
+                           m_name(strName)
 {
   m_pConfig = pConfig;
   m_pParent = pParent;
@@ -1538,14 +1538,14 @@ void wxFileConfigGroup::Rename(const wxString& newName)
 {
     wxCHECK_RET( m_pParent, wxT("the root group can't be renamed") );
 
-    if ( newName == m_strName )
+    if ( newName == m_name )
         return;
 
     // we need to remove the group from the parent and it back under the new
     // name to keep the parents array of subgroups alphabetically sorted
     m_pParent->m_aSubgroups.Remove(this);
 
-    m_strName = newName;
+    m_name = newName;
 
     m_pParent->m_aSubgroups.Add(this);
 
@@ -1843,7 +1843,7 @@ bool wxFileConfigGroup::DeleteEntry(const wxString& name)
 wxFileConfigEntry::wxFileConfigEntry(wxFileConfigGroup *pParent,
                                        const wxString& strName,
                                        int nLine)
-                         : m_strName(strName)
+                         : m_name(strName)
 {
   wxASSERT( !strName.empty() );
 
@@ -1855,7 +1855,7 @@ wxFileConfigEntry::wxFileConfigEntry(wxFileConfigGroup *pParent,
 
   m_bImmutable = strName[0] == wxCONFIG_IMMUTABLE_PREFIX;
   if ( m_bImmutable )
-    m_strName.erase(0, 1);  // remove first character
+    m_name.erase(0, 1);  // remove first character
 }
 
 // ----------------------------------------------------------------------------
@@ -1905,7 +1905,7 @@ void wxFileConfigEntry::SetValue(const wxString& strValue, bool bUser)
         }
 
         wxString    strLine;
-        strLine << FilterOutEntryName(m_strName) << wxT('=') << strValFiltered;
+        strLine << FilterOutEntryName(m_name) << wxT('=') << strValFiltered;
 
         if ( m_pLine )
         {

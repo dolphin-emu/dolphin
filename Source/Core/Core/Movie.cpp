@@ -57,11 +57,11 @@ static u64 g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 static u64 g_totalTickCount = 0, g_tickCountAtLastInput = 0; // just stats
 static u64 g_recordingStartTime; // seconds since 1970 that recording started
-static bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
+static bool bSaveConfig = false, m_skip_idle = false, bDualCore = false, m_progressive = false, m_DSPHLE = false, m_fast_disc_speed = false;
 bool g_bClearSave = false;
-static bool bSyncGPU = false, bNetPlay = false;
+static bool m_sync_GPU = false, bNetPlay = false;
 static std::string videoBackend = "unknown";
-static int iCPUCore = 1;
+static int m_CPU_core = 1;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
 static std::string author = "";
@@ -161,7 +161,7 @@ void Init()
 	g_bFrameStep = false;
 	g_bFrameStop = false;
 	bSaveConfig = false;
-	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	m_CPU_core = SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_core;
 	if (IsPlayingInput())
 	{
 		ReadHeader();
@@ -338,27 +338,27 @@ bool IsDualCore()
 
 bool IsProgressive()
 {
-	return bProgressive;
+	return m_progressive;
 }
 
 bool IsSkipIdle()
 {
-	return bSkipIdle;
+	return m_skip_idle;
 }
 
 bool IsDSPHLE()
 {
-	return bDSPHLE;
+	return m_DSPHLE;
 }
 
 bool IsFastDiscSpeed()
 {
-	return bFastDiscSpeed;
+	return m_fast_disc_speed;
 }
 
 int GetCPUMode()
 {
-	return iCPUCore;
+	return m_CPU_core;
 }
 
 bool IsStartingFromClearSave()
@@ -372,7 +372,7 @@ bool IsUsingMemcard(int memcard)
 }
 bool IsSyncGPU()
 {
-	return bSyncGPU;
+	return m_sync_GPU;
 }
 
 bool IsNetPlayRecording()
@@ -454,7 +454,7 @@ bool BeginRecordingInput(int controllers)
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
 		// TODO: find a way to GetTitleDataPath() from Movie::Init()
-		if (Core::g_CoreStartupParameter.bWii)
+		if (Core::g_CoreStartupParameter.m_wii)
 		{
 			if (File::Exists(Common::GetTitleDataPath(g_titleID) + "banner.bin"))
 				Movie::g_bClearSave = false;
@@ -689,16 +689,16 @@ void ReadHeader()
 	if (tmpHeader.bSaveConfig)
 	{
 		bSaveConfig = true;
-		bSkipIdle = tmpHeader.bSkipIdle;
+		m_skip_idle = tmpHeader.m_skip_idle;
 		bDualCore = tmpHeader.bDualCore;
-		bProgressive = tmpHeader.bProgressive;
-		bDSPHLE = tmpHeader.bDSPHLE;
-		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-		iCPUCore = tmpHeader.CPUCore;
+		m_progressive = tmpHeader.m_progressive;
+		m_DSPHLE = tmpHeader.m_DSPHLE;
+		m_fast_disc_speed = tmpHeader.m_fast_disc_speed;
+		m_CPU_core = tmpHeader.CPUCore;
 		g_bClearSave = tmpHeader.bClearSave;
 		memcards = tmpHeader.memcards;
 		bongos = tmpHeader.bongos;
-		bSyncGPU = tmpHeader.bSyncGPU;
+		m_sync_GPU = tmpHeader.m_sync_GPU;
 		bNetPlay = tmpHeader.bNetPlay;
 		memcpy(revision, tmpHeader.revision, ArraySize(revision));
 	}
@@ -816,7 +816,7 @@ void LoadInput(const std::string& filename)
 	}
 
 	ChangePads(true);
-	if (Core::g_CoreStartupParameter.bWii)
+	if (Core::g_CoreStartupParameter.m_wii)
 		ChangeWiiPads(true);
 
 	u64 totalSavedBytes = t_record.GetSize() - 256;
@@ -1109,8 +1109,8 @@ void SaveRecording(const std::string& filename)
 
 	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
 	strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
-	header.bWii = Core::g_CoreStartupParameter.bWii;
-	header.numControllers = g_numPads & (Core::g_CoreStartupParameter.bWii ? 0xFF : 0x0F);
+	header.m_wii = Core::g_CoreStartupParameter.m_wii;
+	header.numControllers = g_numPads & (Core::g_CoreStartupParameter.m_wii ? 0xFF : 0x0F);
 
 	header.bFromSaveState = g_bRecordingFromSaveState;
 	header.frameCount = g_totalFrames;
@@ -1120,13 +1120,13 @@ void SaveRecording(const std::string& filename)
 	header.recordingStartTime = g_recordingStartTime;
 
 	header.bSaveConfig = true;
-	header.bSkipIdle = bSkipIdle;
+	header.m_skip_idle = m_skip_idle;
 	header.bDualCore = bDualCore;
-	header.bProgressive = bProgressive;
-	header.bDSPHLE = bDSPHLE;
-	header.bFastDiscSpeed = bFastDiscSpeed;
+	header.m_progressive = m_progressive;
+	header.m_DSPHLE = m_DSPHLE;
+	header.m_fast_disc_speed = m_fast_disc_speed;
 	strncpy((char *)header.videoBackend, videoBackend.c_str(),ArraySize(header.videoBackend));
-	header.CPUCore = iCPUCore;
+	header.CPUCore = m_CPU_core;
 	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
 	header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
 	header.bCopyEFBToTexture = g_ActiveConfig.bCopyEFBToTexture;
@@ -1136,7 +1136,7 @@ void SaveRecording(const std::string& filename)
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
 	header.memcards = memcards;
 	header.bClearSave = g_bClearSave;
-	header.bSyncGPU = bSyncGPU;
+	header.m_sync_GPU = m_sync_GPU;
 	header.bNetPlay = bNetPlay;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ArraySize(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ArraySize(header.author));
@@ -1192,16 +1192,16 @@ void SetGraphicsConfig()
 void GetSettings()
 {
 	bSaveConfig = true;
-	bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
-	bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
-	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
-	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
+	m_skip_idle = SConfig::GetInstance().m_LocalCoreStartupParameter.m_skip_idle;
+	bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_thread;
+	m_progressive = SConfig::GetInstance().m_LocalCoreStartupParameter.m_progressive;
+	m_DSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.m_DSPHLE;
+	m_fast_disc_speed = SConfig::GetInstance().m_LocalCoreStartupParameter.m_fast_disc_speed;
 	videoBackend = g_video_backend->GetName();
-	bSyncGPU = SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU;
-	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	m_sync_GPU = SConfig::GetInstance().m_LocalCoreStartupParameter.m_sync_GPU;
+	m_CPU_core = SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_core;
 	bNetPlay = NetPlay::IsNetPlayRunning();
-	if (!Core::g_CoreStartupParameter.bWii)
+	if (!Core::g_CoreStartupParameter.m_wii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
 	memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
@@ -1211,7 +1211,7 @@ void GetSettings()
 		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
 		revision[i] = tmp;
 	}
-	if (!bDSPHLE)
+	if (!m_DSPHLE)
 	{
 		std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
 		std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
@@ -1259,7 +1259,7 @@ void CheckMD5()
 
 	unsigned char gameMD5[16];
 	char game[255];
-	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
+	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_filename.c_str(), SConfig::GetInstance().m_LocalCoreStartupParameter.m_filename.size());
 	md5_file(game, gameMD5);
 
 	if (memcmp(gameMD5,MD5,16) == 0)
@@ -1273,7 +1273,7 @@ void GetMD5()
 	Core::DisplayMessage("Calculating checksum of game file...", 2000);
 	memset(MD5, 0, sizeof(MD5));
 	char game[255];
-	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(),SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
+	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_filename.c_str(),SConfig::GetInstance().m_LocalCoreStartupParameter.m_filename.size());
 	md5_file(game, MD5);
 	Core::DisplayMessage("Finished calculating checksum.", 2000);
 }

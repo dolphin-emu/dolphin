@@ -16,14 +16,14 @@ using namespace Gen;
 void Jit64::lXXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	// Skip disabled JIT instructions
-	FALLBACK_IF(Core::g_CoreStartupParameter.bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
-	FALLBACK_IF(Core::g_CoreStartupParameter.bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
-	FALLBACK_IF(Core::g_CoreStartupParameter.bJITLoadStorelwzOff && (inst.OPCD == 32));
+	FALLBACK_IF(Core::g_CoreStartupParameter.m_JIT_load_store_lbzx_off && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
+	FALLBACK_IF(Core::g_CoreStartupParameter.m_JIT_load_store_lxz_off && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
+	FALLBACK_IF(Core::g_CoreStartupParameter.m_JIT_load_store_lwz_off && (inst.OPCD == 32));
 
 	// Determine memory access size and sign extend
 	int accessSize = 0;
@@ -95,11 +95,11 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle methode
 	// ... maybe the throttle one already do that :p
 	// if (CommandProcessor::AllowIdleSkipping() && PixelEngine::AllowIdleSkipping())
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_skip_idle &&
 		inst.OPCD == 32 &&
 		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
 		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		// TODO(LinesPrower):
@@ -216,7 +216,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 void Jit64::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
@@ -229,7 +229,7 @@ void Jit64::dcbst(UGeckoInstruction inst)
 void Jit64::dcbz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 
 	// FIXME
 	FALLBACK_IF(true);
@@ -246,7 +246,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 void Jit64::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 
 	int s = inst.RS;
 	int a = inst.RA;
@@ -344,7 +344,7 @@ void Jit64::stX(UGeckoInstruction inst)
 void Jit64::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	FALLBACK_IF(!a || a == s || a == b);
@@ -383,7 +383,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 void Jit64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 
 	// TODO: This doesn't handle rollback on DSI correctly
 	gpr.FlushLockX(ECX);
@@ -402,7 +402,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 void Jit64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITLoadStoreOff);
+	JITDISABLE(m_JIT_load_store_off);
 
 	// TODO: This doesn't handle rollback on DSI correctly
 	gpr.FlushLockX(ECX);

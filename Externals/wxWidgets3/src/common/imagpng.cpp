@@ -773,8 +773,8 @@ bool wxPNGHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbos
     //     explanation why this line is mandatory
     png_set_write_fn( png_ptr, &wxinfo, wx_PNG_stream_writer, NULL);
 
-    const int iHeight = image->GetHeight();
-    const int iWidth = image->GetWidth();
+    const int m_height = image->GetHeight();
+    const int m_width = image->GetWidth();
 
     const bool bHasPngFormatOption
         = image->HasOption(wxIMAGE_OPTION_PNG_FORMAT);
@@ -817,9 +817,9 @@ bool wxPNGHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbos
             PaletteAdd(&palette, mask);
         }
 
-        for (int y = 0; y < iHeight; y++)
+        for (int y = 0; y < m_height; y++)
         {
-            for (int x = 0; x < iWidth; x++)
+            for (int x = 0; x < m_width; x++)
             {
                 png_color_8 rgba;
 
@@ -988,10 +988,10 @@ bool wxPNGHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbos
 
     const unsigned char *pColors = image->GetData();
 
-    for (int y = 0; y != iHeight; ++y)
+    for (int y = 0; y != m_height; ++y)
     {
         unsigned char *pData = data;
-        for (int x = 0; x != iWidth; x++)
+        for (int x = 0; x != m_width; x++)
         {
             png_color_8 clr;
             clr.red   = *pColors++;

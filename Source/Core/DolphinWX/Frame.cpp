@@ -154,7 +154,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 			{
 				case SC_SCREENSAVE:
 				case SC_MONITORPOWER:
-					if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+					if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().m_LocalCoreStartupParameter.m_disable_screen_saver)
 						break;
 				default:
 					return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
@@ -169,7 +169,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 				break;
 
 			case WM_USER_SETCURSOR:
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor &&
 					main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
 					SetCursor(wxCURSOR_BLANK);
 				else
@@ -495,7 +495,7 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main)
 			{
 #ifdef __WXMSW__
 				::SetFocus((HWND)m_RenderParent->GetHandle());
@@ -504,13 +504,13 @@ void CFrame::OnActive(wxActivateEvent& event)
 #endif
 			}
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor &&
 					Core::GetState() == Core::CORE_RUN)
 				m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		}
 		else
 		{
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor)
 				m_RenderParent->SetCursor(wxNullCursor);
 		}
 	}
@@ -580,10 +580,10 @@ void CFrame::OnMove(wxMoveEvent& event)
 	event.Skip();
 
 	if (!IsMaximized() &&
-		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+		!(SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main && RendererIsFullscreen()))
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_posx = GetPosition().x;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_posy = GetPosition().y;
 	}
 }
 
@@ -592,13 +592,13 @@ void CFrame::OnResize(wxSizeEvent& event)
 	event.Skip();
 
 	if (!IsMaximized() &&
-		!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()) &&
+		!(SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main && RendererIsFullscreen()) &&
 		!(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-			SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize))
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main &&
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_auto_size))
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_width = GetSize().GetWidth();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_height = GetSize().GetHeight();
 	}
 
 	// Make sure the logger pane is a sane size
@@ -678,7 +678,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case WM_USER_CREATE:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_hide_cursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
@@ -724,7 +724,7 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
 	if (!Core::IsRunning() ||
-			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize ||
+			!SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_window_auto_size ||
 			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
 
@@ -732,7 +732,7 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 	m_RenderFrame->GetClientSize(&old_width, &old_height);
 
 	// Add space for the log/console/debugger window
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main &&
 			(SConfig::GetInstance().m_InterfaceLogWindow ||
 			 SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
 			!m_Mgr->GetPane("Pane 1").IsFloating())
@@ -850,8 +850,8 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 static bool IsHotkey(wxKeyEvent &event, int Id)
 {
 	return (event.GetKeyCode() != WXK_NONE &&
-			event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
-			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
+			event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_hotkey[Id] &&
+			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_hotkey_modifier[Id]);
 }
 
 int GetCmdForHotkey(unsigned int key)
@@ -1040,7 +1040,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || TASInputHasFocus())
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main || TASInputHasFocus())
 			{
 				for (i = 0; i < NUM_HOTKEYS; i++)
 				{
@@ -1200,7 +1200,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
 	if (!g_Config.BorderlessFullscreenEnabled() &&
-		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+		!SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main &&
 		Core::GetState() == Core::CORE_PAUSE)
 	{
 		// A responsive renderer is required for exclusive fullscreen, but the
@@ -1227,7 +1227,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
 	else if (g_Config.BorderlessFullscreenEnabled() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main)
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.
 		// Therefore we don't exit fullscreen from here if we support exclusive mode.
@@ -1235,7 +1235,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	}
 #endif
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main)
 	{
 		if (enable_fullscreen)
 		{
@@ -1266,8 +1266,8 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 		m_RenderFrame->Raise();
 	}
 
-	g_Config.bFullscreen = (g_Config.BorderlessFullscreenEnabled() ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain) ? false : enable_fullscreen;
+	g_Config.m_fullscreen = (g_Config.BorderlessFullscreenEnabled() ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_render_to_main) ? false : enable_fullscreen;
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const

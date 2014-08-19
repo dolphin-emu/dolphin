@@ -16,8 +16,8 @@ struct SWVideoConfig : NonCopyable
 	void Save(const char* ini_file);
 
 	// General
-	bool bFullscreen;
-	bool bHideCursor;
+	bool m_fullscreen;
+	bool m_hide_cursor;
 	bool renderToMainframe;
 
 	bool bHwRasterizer;

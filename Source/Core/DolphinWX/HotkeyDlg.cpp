@@ -58,8 +58,8 @@ HotkeyConfigDialog::~HotkeyConfigDialog()
 // Save keyboard key mapping
 void HotkeyConfigDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] = Key;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id] = Modkey;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_hotkey[Id] = Key;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_hotkey_modifier[Id] = Modkey;
 }
 
 void HotkeyConfigDialog::EndGetButtons(void)
@@ -313,9 +313,9 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 			m_Button_Hotkeys[i]->SetFont(m_SmallFont);
 			m_Button_Hotkeys[i]->SetToolTip(_("Left click to detect hotkeys.\nEnter space to clear."));
 			SetButtonText(i,
-					InputCommon::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[i]),
+					InputCommon::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_hotkey[i]),
 					InputCommon::WXKeymodToString(
-						SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[i]));
+						SConfig::GetInstance().m_LocalCoreStartupParameter.m_hotkey_modifier[i]));
 
 			wxBoxSizer *sHotkey = new wxBoxSizer(wxHORIZONTAL);
 			sHotkey->Add(stHotkeys, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 2);

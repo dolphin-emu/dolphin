@@ -124,7 +124,7 @@ void Shutdown()
 
 void RunGpu()
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_thread)
 	{
 		// We are going to do FP math on the main thread so have to save the current state
 		FPURoundMode::SaveSIMDState();
@@ -307,7 +307,7 @@ static void SetStatus()
 	if (interrupt != interruptSet && !interruptWaiting)
 	{
 		u64 userdata = interrupt?1:0;
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_thread)
 		{
 			interruptWaiting = true;
 			SWCommandProcessor::UpdateInterruptsFromVideoBackend(userdata);

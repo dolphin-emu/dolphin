@@ -9,7 +9,7 @@
 void JitILBase::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff);
+	JITDISABLE(m_JIT_system_registers_off);
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
 	switch (iIndex)
@@ -45,7 +45,7 @@ void JitILBase::mtspr(UGeckoInstruction inst)
 void JitILBase::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(bJITSystemRegistersOff);
+		JITDISABLE(m_JIT_system_registers_off);
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	switch (iIndex)
 	{
@@ -88,21 +88,21 @@ void JitILBase::mtmsr(UGeckoInstruction inst)
 void JitILBase::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(bJITSystemRegistersOff);
+		JITDISABLE(m_JIT_system_registers_off);
 		ibuild.EmitStoreGReg(ibuild.EmitLoadMSR(), inst.RD);
 }
 
 void JitILBase::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITSystemRegistersOff);
+	JITDISABLE(m_JIT_system_registers_off);
 		mfspr(inst);
 }
 
 void JitILBase::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITSystemRegistersOff);
+	JITDISABLE(m_JIT_system_registers_off);
 
 	IREmitter::InstLoc d = ibuild.EmitIntConst(0);
 	for (int i = 0; i < 8; ++i)
@@ -118,7 +118,7 @@ void JitILBase::mfcr(UGeckoInstruction inst)
 void JitILBase::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(bJITSystemRegistersOff);
+	JITDISABLE(m_JIT_system_registers_off);
 
 	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
 	for (int i = 0; i < 8; ++i)
@@ -137,7 +137,7 @@ void JitILBase::mtcrf(UGeckoInstruction inst)
 void JitILBase::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff);
+	JITDISABLE(m_JIT_system_registers_off);
 
 	if (inst.CRFS != inst.CRFD)
 	{
@@ -148,7 +148,7 @@ void JitILBase::mcrf(UGeckoInstruction inst)
 void JitILBase::crXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITSystemRegistersOff);
+	JITDISABLE(m_JIT_system_registers_off);
 
 	// Get bit CRBA in EAX aligned with bit CRBD
 	const int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);

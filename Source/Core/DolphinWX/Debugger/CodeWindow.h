@@ -25,7 +25,7 @@ class CJitWindow;
 class CCodeView;
 class DSPDebuggerLLE;
 class GFXDebuggerPanel;
-struct SCoreStartupParameter;
+struct CoreStartupParameter;
 
 class wxToolBar;
 class wxListBox;
@@ -37,7 +37,7 @@ class CCodeWindow
 {
 	public:
 
-		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter,
+		CCodeWindow(const CoreStartupParameter& _LocalCoreStartupParameter,
 			CFrame * parent,
 			wxWindowID id = wxID_ANY,
 			const wxPoint& pos = wxDefaultPosition,
@@ -64,7 +64,7 @@ class CCodeWindow
 
 		void Update() override;
 		void NotifyMapLoaded();
-		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
+		void CreateMenu(const CoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 		void CreateMenuOptions(wxMenu *pMenu);
 		void CreateMenuSymbols(wxMenuBar *pMenuBar);
 		void RecreateToolbar(wxToolBar*);
@@ -103,7 +103,7 @@ class CCodeWindow
 		GFXDebuggerPanel* m_VideoWindow;
 
 		// Settings
-		bool bAutomaticStart; bool bBootToPause;
+		bool m_automatic_start; bool m_boot_to_pause;
 		bool bShowOnStart[IDM_VIDEOWINDOW - IDM_LOGWINDOW + 1];
 		int iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 

@@ -149,7 +149,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	else
 	{
 		// default banner
-		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
+		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.m_theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 

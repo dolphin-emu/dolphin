@@ -85,12 +85,12 @@ CEXIIPL::CEXIIPL() :
 	m_FontsLoaded(false)
 {
 	// Determine region
-	m_bNTSC = SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC;
+	m_bNTSC = SConfig::GetInstance().m_LocalCoreStartupParameter.m_NTSC;
 
 	// Create the IPL
 	m_pIPL = (u8*)AllocateMemoryPages(ROM_SIZE);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_HLE_BS2)
 	{
 		// Copy header
 		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, m_bNTSC ? sizeof(iplverNTSC) : sizeof(iplverPAL));
@@ -102,7 +102,7 @@ CEXIIPL::CEXIIPL() :
 	else
 	{
 		// Load whole ROM dump
-		LoadFileToIPL(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strBootROM, 0);
+		LoadFileToIPL(SConfig::GetInstance().m_LocalCoreStartupParameter.m_boot_ROM, 0);
 		// Descramble the encrypted section (contains BS1 and BS2)
 		Descrambler(m_pIPL + 0x100, 0x1aff00);
 		INFO_LOG(BOOT, "Loaded bootrom: %s", m_pIPL); // yay for null-terminated strings ;p
@@ -112,7 +112,7 @@ CEXIIPL::CEXIIPL() :
 	memset(m_RTC, 0, sizeof(m_RTC));
 
 	// We Overwrite language selection here since it's possible on the GC to change the language as you please
-	g_SRAM.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	g_SRAM.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.m_selected_language;
 
 	WriteProtectMemory(m_pIPL, ROM_SIZE);
 	m_uAddress = 0;
@@ -124,7 +124,7 @@ CEXIIPL::~CEXIIPL()
 	m_pIPL = nullptr;
 
 	// SRAM
-	File::IOFile file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM, "wb");
+	File::IOFile file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_SRAM, "wb");
 	file.WriteArray(&g_SRAM, 1);
 }
 void CEXIIPL::DoState(PointerWrap &p)
@@ -183,7 +183,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		{
 			// Get the time ...
 			u32 &rtc = *((u32 *)&m_RTC);
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii)
 			{
 				// Subtract Wii bias
 				rtc = Common::swap32(CEXIIPL::GetGCTime() - cWiiBias);

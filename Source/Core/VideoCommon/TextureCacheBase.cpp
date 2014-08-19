@@ -48,7 +48,7 @@ TextureCache::TextureCache()
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 
 	if (g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
-		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
+		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_unique_ID);
 
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 
@@ -90,7 +90,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 			g_texture_cache->Invalidate();
 
 			if (g_ActiveConfig.bHiresTextures)
-				HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID);
+				HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_unique_ID);
 
 			SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 			TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
@@ -226,7 +226,7 @@ bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsign
 		return false;
 
 	// Just checking if the necessary files exist, if they can't be loaded or have incorrect dimensions LODs will be black
-	std::string texBasePathTemp = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
+	std::string texBasePathTemp = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_unique_ID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
 
 	for (unsigned int level = 1; level < levels; ++level)
 	{
@@ -251,9 +251,9 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 	u32 tex_hash_u32 = tex_hash & 0x00000000FFFFFFFFLL;
 
 	if (level == 0)
-		texPathTemp = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat);
+		texPathTemp = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_unique_ID.c_str(), tex_hash_u32, texformat);
 	else
-		texPathTemp = StringFromFormat("%s_%08x_%i_mip%u", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat, level);
+		texPathTemp = StringFromFormat("%s_%08x_%i_mip%u", SConfig::GetInstance().m_LocalCoreStartupParameter.m_unique_ID.c_str(), tex_hash_u32, texformat, level);
 
 	unsigned int required_size = 0;
 	PC_TexFormat ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, &required_size, texformat, temp_size, temp);
@@ -286,7 +286,7 @@ void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
 {
 	std::string filename;
 	std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_unique_ID;
 
 	// make sure that the directory exists
 	if (!File::Exists(szDir) || !File::IsDirectory(szDir))
@@ -297,13 +297,13 @@ void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
 	if (level == 0)
 	{
 		filename = StringFromFormat("%s/%s_%08x_%i.png", szDir.c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_unique_ID.c_str(),
 			(u32)(entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF);
 	}
 	else
 	{
 		filename = StringFromFormat("%s/%s_%08x_%i_mip%i.png", szDir.c_str(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_unique_ID.c_str(),
 				(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF, level);
 	}
 

@@ -268,7 +268,7 @@ static void BPWritten(const BPCmd& bp)
 			u8 *ptr = nullptr;
 
 			// TODO - figure out a cleaner way.
-			if (Core::g_CoreStartupParameter.bWii)
+			if (Core::g_CoreStartupParameter.m_wii)
 				ptr = Memory::GetPointer(bpmem.tmem_config.tlut_src << 5);
 			else
 				ptr = Memory::GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);

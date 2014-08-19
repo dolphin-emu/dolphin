@@ -334,25 +334,25 @@ void CConfigMain::InitializeGUILists()
 
 void CConfigMain::InitializeGUIValues()
 {
-	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const CoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	// General - Basic
-	CPUThread->SetValue(startup_params.bCPUThread);
-	SkipIdle->SetValue(startup_params.bSkipIdle);
-	EnableCheats->SetValue(startup_params.bEnableCheats);
+	CPUThread->SetValue(startup_params.m_CPU_thread);
+	SkipIdle->SetValue(startup_params.m_skip_idle);
+	EnableCheats->SetValue(startup_params.m_enable_cheats);
 	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
 
 	// General - Advanced
 	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
-		if (CPUCores[a].CPUid == startup_params.iCPUCore)
+		if (CPUCores[a].CPUid == startup_params.m_CPU_core)
 			CPUEngine->SetSelection(a);
-	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
+	_NTSCJ->SetValue(startup_params.m_force_NTSCJ);
 
 
 	// Display - Interface
-	ConfirmStop->SetValue(startup_params.bConfirmStop);
-	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
-	OnScreenDisplayMessages->SetValue(startup_params.bOnScreenDisplayMessages);
+	ConfirmStop->SetValue(startup_params.m_confirm_stop);
+	UsePanicHandlers->SetValue(startup_params.m_use_panic_handlers);
+	OnScreenDisplayMessages->SetValue(startup_params.m_on_screen_display_messages);
 	// need redesign
 	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++)
 	{
@@ -364,7 +364,7 @@ void CConfigMain::InitializeGUIValues()
 	}
 
 	// Audio DSP Engine
-	if (startup_params.bDSPHLE)
+	if (startup_params.m_DSPHLE)
 		DSPEngine->SetSelection(0);
 	else
 		DSPEngine->SetSelection(SConfig::GetInstance().m_DSPEnableJIT ? 1 : 2);
@@ -373,19 +373,19 @@ void CConfigMain::InitializeGUIValues()
 	VolumeSlider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
 	VolumeSlider->SetValue(SConfig::GetInstance().m_Volume);
 	VolumeText->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
-	DSPThread->SetValue(startup_params.bDSPThread);
+	DSPThread->SetValue(startup_params.m_DSP_thread);
 	DumpAudio->SetValue(SConfig::GetInstance().m_DumpAudio ? true : false);
 	DPL2Decoder->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
-	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
+	DPL2Decoder->SetValue(startup_params.m_DPL2_decoder);
 	Latency->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
-	Latency->SetValue(startup_params.iLatency);
+	Latency->SetValue(startup_params.m_latency);
 	// add backends to the list
 	AddAudioBackends();
 
 
 	// GameCube - IPL
-	GCSystemLang->SetSelection(startup_params.SelectedLanguage);
-	GCAlwaysHLE_BS2->SetValue(startup_params.bHLE_BS2);
+	GCSystemLang->SetSelection(startup_params.m_selected_language);
+	GCAlwaysHLE_BS2->SetValue(startup_params.m_HLE_BS2);
 
 	// GameCube - Devices
 	wxArrayString SlotDevices;
@@ -502,9 +502,9 @@ void CConfigMain::InitializeGUIValues()
 
 	// Paths
 	RecursiveISOPath->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
-	DefaultISO->SetPath(StrToWxStr(startup_params.m_strDefaultGCM));
-	DVDRoot->SetPath(StrToWxStr(startup_params.m_strDVDRoot));
-	ApploaderPath->SetPath(StrToWxStr(startup_params.m_strApploader));
+	DefaultISO->SetPath(StrToWxStr(startup_params.m_default_GCM));
+	DVDRoot->SetPath(StrToWxStr(startup_params.m_DVD_root));
+	ApploaderPath->SetPath(StrToWxStr(startup_params.m_apploader));
 	NANDRoot->SetPath(StrToWxStr(SConfig::GetInstance().m_NANDPath));
 }
 
@@ -628,12 +628,12 @@ void CConfigMain::CreateGUIControls()
 			theme_selection->Append(wxname);
 	});
 
-	theme_selection->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
+	theme_selection->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.m_theme_name));
 
 	// std::function = avoid error on msvc
 	theme_selection->Bind(wxEVT_CHOICE, std::function<void(wxEvent&)>([theme_selection](wxEvent&)
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = WxStrToStr(theme_selection->GetStringSelection());
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_theme_name = WxStrToStr(theme_selection->GetStringSelection());
 		main_frame->InitBitmaps();
 		main_frame->UpdateGameList();
 	}));
@@ -887,26 +887,26 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_CPUTHREAD:
 		if (Core::IsRunning())
 			return;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = CPUThread->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_thread = CPUThread->IsChecked();
 		break;
 	case ID_IDLESKIP:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = SkipIdle->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_skip_idle = SkipIdle->IsChecked();
 		break;
 	case ID_ENABLECHEATS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = EnableCheats->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_enable_cheats = EnableCheats->IsChecked();
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
 		break;
 	// Core - Advanced
 	case ID_CPUENGINE:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = CPUCores[CPUEngine->GetSelection()].CPUid;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_core = CPUCores[CPUEngine->GetSelection()].CPUid;
 		if (main_frame->g_pCodeWindow)
 			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER,
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore?false:true);
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_core?false:true);
 		break;
 	case ID_NTSCJ:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ = _NTSCJ->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_force_NTSCJ = _NTSCJ->IsChecked();
 		break;
 	}
 }
@@ -918,14 +918,14 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 	{
 	// Display - Interface
 	case ID_INTERFACE_CONFIRMSTOP:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop = ConfirmStop->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_confirm_stop = ConfirmStop->IsChecked();
 		break;
 	case ID_INTERFACE_USEPANICHANDLERS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers = UsePanicHandlers->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_use_panic_handlers = UsePanicHandlers->IsChecked();
 		SetEnableAlert(UsePanicHandlers->IsChecked());
 		break;
 	case ID_INTERFACE_ONSCREENDISPLAYMESSAGES:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages = OnScreenDisplayMessages->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_on_screen_display_messages = OnScreenDisplayMessages->IsChecked();
 		SetEnableAlert(OnScreenDisplayMessages->IsChecked());
 		break;
 	case ID_INTERFACE_LANG:
@@ -949,7 +949,7 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case ID_DSPENGINE:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = DSPEngine->GetSelection() == 0;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_DSPHLE = DSPEngine->GetSelection() == 0;
 		SConfig::GetInstance().m_DSPEnableJIT = DSPEngine->GetSelection() == 1;
 		AudioCommon::UpdateSoundStream();
 		break;
@@ -961,11 +961,11 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_DSPTHREAD:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = DSPThread->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_DSP_thread = DSPThread->IsChecked();
 		break;
 
 	case ID_DPL2DECODER:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bDPL2Decoder = DPL2Decoder->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_DPL2_decoder = DPL2Decoder->IsChecked();
 		break;
 
 	case ID_BACKEND:
@@ -979,7 +979,7 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_LATENCY:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency = Latency->GetValue();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_latency = Latency->GetValue();
 		break;
 
 	default:
@@ -1021,12 +1021,12 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 	{
 	// GameCube - IPL
 	case ID_GC_SRAM_LNG:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = GCSystemLang->GetSelection();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_selected_language = GCSystemLang->GetSelection();
 		bRefreshList = true;
 		break;
 	// GameCube - IPL Settings
 	case ID_GC_ALWAYS_HLE_BS2:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = GCAlwaysHLE_BS2->IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_HLE_BS2 = GCAlwaysHLE_BS2->IsChecked();
 		break;
 	// GameCube - Devices
 	case ID_GC_EXIDEVICE_SP1:
@@ -1273,17 +1273,17 @@ void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
 
 void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = WxStrToStr(DefaultISO->GetPath());
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_default_GCM = WxStrToStr(DefaultISO->GetPath());
 }
 
 void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = WxStrToStr(DVDRoot->GetPath());
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_DVD_root = WxStrToStr(DVDRoot->GetPath());
 }
 
 void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader = WxStrToStr(ApploaderPath->GetPath());
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_apploader = WxStrToStr(ApploaderPath->GetPath());
 }
 
 void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
@@ -1302,7 +1302,7 @@ void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 void CConfigMain::OnSelectionChanged(wxCommandEvent& ev)
 {
 	g_video_backend = g_available_video_backends[ev.GetInt()];
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_video_backend = g_video_backend->GetName();
 }
 
 void CConfigMain::OnConfig(wxCommandEvent&)

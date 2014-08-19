@@ -102,7 +102,7 @@ void VideoBackendHardware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbHeig
 {
 	if (s_BackendInitialized && g_ActiveConfig.bUseXFB)
 	{
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_thread)
 			VideoFifo_CheckSwapRequest();
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.fbWidth = fbWidth;
@@ -157,7 +157,7 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 
 		Common::AtomicStoreRelease(s_efbAccessRequested, true);
 
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_thread)
 		{
 			while (Common::AtomicLoadAcquire(s_efbAccessRequested) && !s_FifoShuttingDown)
 				//Common::SleepCurrentThread(1);
@@ -202,7 +202,7 @@ u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
 	// TODO: Is this check sane?
 	if (!g_perf_query->IsFlushed())
 	{
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_thread)
 		{
 			s_perf_query_requested = true;
 			std::unique_lock<std::mutex> lk(s_perf_query_lock);

@@ -13,7 +13,7 @@ public:
 
 	virtual bool IsLLE() = 0;
 
-	virtual bool Initialize(bool bWii, bool bDSPThread) = 0;
+	virtual bool Initialize(bool m_wii, bool m_DSP_thread) = 0;
 	virtual void Shutdown() = 0;
 
 	virtual void DoState(PointerWrap &p) = 0;
