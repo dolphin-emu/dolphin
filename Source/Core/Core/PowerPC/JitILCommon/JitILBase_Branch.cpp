@@ -43,7 +43,8 @@ void JitILBase::bx(UGeckoInstruction inst)
 	// If this is not the last instruction of a block,
 	// we will skip the rest process.
 	// Because PPCAnalyst::Flatten() merged the blocks.
-	if (!js.isLastInstruction) {
+	if (!js.isLastInstruction)
+	{
 		return;
 	}
 
@@ -53,7 +54,8 @@ void JitILBase::bx(UGeckoInstruction inst)
 	else
 		destination = js.compilerPC + SignExt26(inst.LI << 2);
 
-	if (destination == js.compilerPC) {
+	if (destination == js.compilerPC)
+	{
 		ibuild.EmitShortIdleLoop(ibuild.EmitIntConst(js.compilerPC));
 		return;
 	}
@@ -85,36 +87,40 @@ static IREmitter::InstLoc EmitCRTest(IREmitter::IRBuilder& ibuild, UGeckoInstruc
 	return CRTest;
 }
 
-static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruction inst) {
+static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruction inst)
+{
 	IREmitter::InstLoc CRTest = nullptr, CTRTest = nullptr;
 	if ((inst.BO & 16) == 0)  // Test a CR bit
 	{
 		CRTest = EmitCRTest(ibuild, inst);
 	}
 
-	if ((inst.BO & 4) == 0) {
+	if ((inst.BO & 4) == 0)
+	{
 		IREmitter::InstLoc c = ibuild.EmitLoadCTR();
 		c = ibuild.EmitSub(c, ibuild.EmitIntConst(1));
 		ibuild.EmitStoreCTR(c);
-		if (inst.BO & 2) {
-			CTRTest = ibuild.EmitICmpEq(c,
-					ibuild.EmitIntConst(0));
-		} else {
+
+		if (inst.BO & 2)
+			CTRTest = ibuild.EmitICmpEq(c, ibuild.EmitIntConst(0));
+		else
 			CTRTest = c;
-		}
 	}
 
 	IREmitter::InstLoc Test = CRTest;
-	if (CTRTest) {
+	if (CTRTest)
+	{
 		if (Test)
 			Test = ibuild.EmitAnd(Test, CTRTest);
 		else
 			Test = CTRTest;
 	}
 
-	if (!Test) {
+	if (!Test)
+	{
 		Test = ibuild.EmitIntConst(1);
 	}
+
 	return Test;
 }
 
@@ -122,8 +128,7 @@ void JitILBase::bcx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	if (inst.LK)
-		ibuild.EmitStoreLink(
-			ibuild.EmitIntConst(js.compilerPC + 4));
+		ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
 
 	IREmitter::InstLoc Test = TestBranch(ibuild, inst);
 
@@ -134,11 +139,11 @@ void JitILBase::bcx(UGeckoInstruction inst)
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
-		inst.hex == 0x4182fff8 &&
-		(Memory::ReadUnchecked_U32(js.compilerPC - 8) & 0xFFFF0000) == 0x800D0000 &&
-		(Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x2C000000))
-		)
+	    inst.hex == 0x4182fff8 &&
+	    (Memory::ReadUnchecked_U32(js.compilerPC - 8) & 0xFFFF0000) == 0x800D0000 &&
+	    (Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x28000000 ||
+	    (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x2C000000))
+	    )
 	{
 		ibuild.EmitIdleBranch(Test, ibuild.EmitIntConst(destination));
 	}
@@ -152,11 +157,13 @@ void JitILBase::bcx(UGeckoInstruction inst)
 void JitILBase::bcctrx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
-	if ((inst.BO & 4) == 0) {
+	if ((inst.BO & 4) == 0)
+	{
 		IREmitter::InstLoc c = ibuild.EmitLoadCTR();
 		c = ibuild.EmitSub(c, ibuild.EmitIntConst(1));
 		ibuild.EmitStoreCTR(c);
 	}
+
 	IREmitter::InstLoc test;
 	if ((inst.BO & 16) == 0)  // Test a CR bit
 	{
@@ -181,16 +188,19 @@ void JitILBase::bclrx(UGeckoInstruction inst)
 	NORMALBRANCH_START
 
 	if (!js.isLastInstruction &&
-		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
+	    (inst.BO & (1 << 4)) && (inst.BO & (1 << 2)))
+	{
 		if (inst.LK)
 			ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
 		return;
 	}
 
-	if (inst.hex == 0x4e800020) {
+	if (inst.hex == 0x4e800020)
+	{
 		ibuild.EmitBranchUncond(ibuild.EmitLoadLink());
 		return;
 	}
+
 	IREmitter::InstLoc test = TestBranch(ibuild, inst);
 	test = ibuild.EmitICmpEq(test, ibuild.EmitIntConst(0));
 	ibuild.EmitBranchCond(test, ibuild.EmitIntConst(js.compilerPC + 4));

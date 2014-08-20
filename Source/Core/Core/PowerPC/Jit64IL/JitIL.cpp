@@ -174,8 +174,12 @@ namespace JitILProfiler
 		u64 codeHash;
 		u64 totalElapsed;
 		u64 numberOfCalls;
-		Block() : index(0), codeHash(0), totalElapsed(0), numberOfCalls(0) { }
+
+		Block() : index(0), codeHash(0), totalElapsed(0), numberOfCalls(0)
+		{
+		}
 	};
+
 	static std::vector<Block> blocks;
 	static u32 blockIndex;
 	static u64 beginTime;
@@ -188,6 +192,7 @@ namespace JitILProfiler
 		block.codeHash = codeHash;
 		return block;
 	}
+
 	// These functions need to be static because they are called with
 	// ABI_CallFunction().
 	static void Begin(u32 index)
@@ -195,6 +200,7 @@ namespace JitILProfiler
 		blockIndex = index;
 		beginTime = __rdtsc();
 	}
+
 	static void End()
 	{
 		const u64 endTime = __rdtsc();
@@ -203,6 +209,7 @@ namespace JitILProfiler
 		block.totalElapsed += duration;
 		++block.numberOfCalls;
 	}
+
 	struct JitILProfilerFinalizer
 	{
 		virtual ~JitILProfilerFinalizer()
@@ -221,11 +228,13 @@ namespace JitILProfiler
 			}
 		}
 	};
+
 	static std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
 		finalizer = std::make_unique<JitILProfilerFinalizer>();
 	}
+
 	static void Shutdown()
 	{
 		finalizer.reset();
@@ -246,10 +255,14 @@ void JitIL::Init()
 	else
 	{
 		if (!Core::g_CoreStartupParameter.bJITBlockLinking)
+		{
 			jo.enableBlocklink = false;
+		}
 		else
+		{
 			// Speed boost, but not 100% safe
 			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
+		}
 	}
 
 	jo.fpAccurateFcmp = false;
@@ -268,7 +281,8 @@ void JitIL::Init()
 	code_block.m_gpa = &js.gpa;
 	code_block.m_fpa = &js.fpa;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	{
 		JitILProfiler::Init();
 	}
 }
@@ -282,7 +296,8 @@ void JitIL::ClearCache()
 
 void JitIL::Shutdown()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	{
 		JitILProfiler::Shutdown();
 	}
 
@@ -352,11 +367,14 @@ static void ImHere()
 			PowerPC::ppcState.gpr[5], PowerPC::ppcState.gpr[6]);
 		f.Flush();
 	}
-	if (been_here.find(PC) != been_here.end()) {
+
+	if (been_here.find(PC) != been_here.end())
+	{
 		been_here.find(PC)->second++;
 		if ((been_here.find(PC)->second) & 1023)
 			return;
 	}
+
 	DEBUG_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
 	been_here[PC] = 1;
 }
@@ -376,7 +394,8 @@ void JitIL::Cleanup()
 void JitIL::WriteExit(u32 destination)
 {
 	Cleanup();
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
@@ -408,7 +427,8 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 {
 	MOV(32, M(&PC), arg);
 	Cleanup();
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
@@ -420,7 +440,8 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 	MOV(32, M(&PC), arg);
 	MOV(32, M(&NPC), arg);
 	Cleanup();
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
@@ -431,7 +452,8 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 void JitIL::WriteExceptionExit()
 {
 	Cleanup();
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
+	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	MOV(32, R(EAX), M(&PC));
@@ -554,7 +576,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	u64 codeHash = -1;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling ||
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILOutputIR)
+	    SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILOutputIR)
 	{
 		// For profiling and IR Writer
 		for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -577,7 +599,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	js.downcountAmount = 0;
 	if (!Core::g_CoreStartupParameter.bEnableDebugging)
-			js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
+		js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)

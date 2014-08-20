@@ -376,15 +376,19 @@ void CompileInstruction(PPCAnalyst::CodeOp & op)
 	JitIL *jitil = (JitIL *)jit;
 	(jitil->*dynaOpTable[op.inst.OPCD])(op.inst);
 	GekkoOPInfo *info = op.opinfo;
-	if (info) {
+	if (info)
+	{
 #ifdef OPLOG
-		if (!strcmp(info->opname, OP_TO_LOG)){  ///"mcrfs"
+		if (!strcmp(info->opname, OP_TO_LOG)) // "mcrfs"
+		{
 			rsplocations.push_back(jit.js.compilerPC);
 		}
 #endif
 		info->compileCount++;
 		info->lastUse = jit->js.compilerPC;
-	} else {
+	}
+	else
+	{
 		PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", op.inst.hex, jit->js.compilerPC);
 	}
 }

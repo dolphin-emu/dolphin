@@ -35,11 +35,21 @@ void JitILBase::lXz(UGeckoInstruction inst)
 	IREmitter::InstLoc val;
 	switch (inst.OPCD & ~0x1)
 	{
-	case 32: val = ibuild.EmitLoad32(addr); break; //lwz
-	case 40: val = ibuild.EmitLoad16(addr); break; //lhz
-	case 34: val = ibuild.EmitLoad8(addr);  break; //lbz
-	default: PanicAlert("lXz: invalid access size"); val = nullptr; break;
+	case 32: // lwz
+		val = ibuild.EmitLoad32(addr);
+		break;
+	case 40: // lhz
+		val = ibuild.EmitLoad16(addr);
+		break;
+	case 34: // lbz
+		val = ibuild.EmitLoad8(addr);
+		break;
+	default:
+		PanicAlert("lXz: invalid access size");
+		val = nullptr;
+		break;
 	}
+
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
@@ -87,10 +97,17 @@ void JitILBase::lXzx(UGeckoInstruction inst)
 	IREmitter::InstLoc val;
 	switch (inst.SUBOP10 & ~32)
 	{
-	default: PanicAlert("lXzx: invalid access size");
-	case 23:  val = ibuild.EmitLoad32(addr); break; //lwzx
-	case 279: val = ibuild.EmitLoad16(addr); break; //lhzx
-	case 87:  val = ibuild.EmitLoad8(addr);  break; //lbzx
+	default:
+		PanicAlert("lXzx: invalid access size");
+	case 23:  // lwzx
+		val = ibuild.EmitLoad32(addr);
+		break;
+	case 279: // lhzx
+		val = ibuild.EmitLoad16(addr);
+		break;
+	case 87:  // lbzx
+		val = ibuild.EmitLoad8(addr);
+		break;
 	}
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
@@ -115,7 +132,10 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 	// TODO!
 #if 0
 	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		{Default(inst); return;} // turn off from debugger
+	{
+		Default(inst);
+		return;
+	}
 	INSTRUCTION_START;
 		MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
@@ -149,10 +169,18 @@ void JitILBase::stX(UGeckoInstruction inst)
 
 	switch (inst.OPCD & ~1)
 	{
-	case 36: ibuild.EmitStore32(value, addr); break; //stw
-	case 44: ibuild.EmitStore16(value, addr); break; //sth
-	case 38: ibuild.EmitStore8(value, addr); break;  //stb
-	default: _assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF"); return;
+	case 36: // stw
+		ibuild.EmitStore32(value, addr);
+		break;
+	case 44: // sth
+		ibuild.EmitStore16(value, addr);
+		break;
+	case 38: // stb
+		ibuild.EmitStore8(value, addr);
+		break;
+	default:
+		_assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF");
+		return;
 	}
 }
 
@@ -172,10 +200,18 @@ void JitILBase::stXx(UGeckoInstruction inst)
 
 	switch (inst.SUBOP10 & ~32)
 	{
-	case 151: ibuild.EmitStore32(value, addr); break; //stw
-	case 407: ibuild.EmitStore16(value, addr); break; //sth
-	case 215: ibuild.EmitStore8(value, addr); break;  //stb
-	default: _assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF"); return;
+	case 151: // stw
+		ibuild.EmitStore32(value, addr);
+		break;
+	case 407: // sth
+		ibuild.EmitStore16(value, addr);
+		break;
+	case 215: // stb
+		ibuild.EmitStore8(value, addr);
+		break;
+	default:
+		_assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF");
+		return;
 	}
 }
 
