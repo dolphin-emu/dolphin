@@ -179,7 +179,7 @@ void JitILBase::stX(UGeckoInstruction inst)
 		ibuild.EmitStore8(value, addr);
 		break;
 	default:
-		_assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF");
+		_assert_msg_(DYNA_REC, 0, "stX: Invalid access size.");
 		return;
 	}
 }
@@ -210,7 +210,7 @@ void JitILBase::stXx(UGeckoInstruction inst)
 		ibuild.EmitStore8(value, addr);
 		break;
 	default:
-		_assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF");
+		_assert_msg_(DYNA_REC, 0, "stXx: Invalid store size.");
 		return;
 	}
 }
