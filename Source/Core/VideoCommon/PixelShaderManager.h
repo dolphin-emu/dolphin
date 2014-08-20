@@ -18,14 +18,13 @@ class PixelShaderManager
 {
 public:
 	static void Init();
-	static void Dirty();
 	static void Shutdown();
 	static void DoState(PointerWrap &p);
-
 	static void SetConstants(); // sets pixel shader constants
 
 	// constant management, should be called after memory is committed
-	static void SetColorChanged(int type, int index);
+	static void SetColorChangedRA(int type, int index);
+	static void SetColorChangedBG(int type, int index);
 	static void SetAlpha();
 	static void SetDestAlpha();
 	static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);
@@ -42,4 +41,7 @@ public:
 
 	static PixelShaderConstants constants;
 	static bool dirty;
+private:
+	// We cannot update fully from BP so keep us from incorrect uses.
+	static void Dirty();
 };
