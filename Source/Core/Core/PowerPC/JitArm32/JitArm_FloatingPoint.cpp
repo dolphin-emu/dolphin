@@ -117,7 +117,8 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 	NEONXEmitter nemit(this);
 	nemit.VORR(vD, vD, V0);
 
-	if (inst.Rc) Helper_UpdateCR1(fpscrReg, rA);
+	if (inst.Rc)
+		Helper_UpdateCR1(fpscrReg, rA);
 
 	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
 	gpr.Unlock(rA);
@@ -197,7 +198,8 @@ void JitArm::fctiwzx(UGeckoInstruction inst)
 	NEONXEmitter nemit(this);
 	nemit.VORR(vD, vD, V0);
 
-	if (inst.Rc) Helper_UpdateCR1(fpscrReg, rA);
+	if (inst.Rc)
+		Helper_UpdateCR1(fpscrReg, rA);
 
 	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
 	gpr.Unlock(rA);

@@ -83,6 +83,7 @@ ARMReg *ArmFPRCache::GetAllocationOrder(int &count)
 ARMReg ArmFPRCache::GetReg(bool AutoLock)
 {
 	for (u8 a = 0; a < NUMARMREG; ++a)
+	{
 		if (ArmRegs[a].free)
 		{
 			// Alright, this one is free
@@ -90,6 +91,8 @@ ARMReg ArmFPRCache::GetReg(bool AutoLock)
 				ArmRegs[a].free = false;
 			return ArmRegs[a].Reg;
 		}
+	}
+
 	// Uh Oh, we have all them locked....
 	_assert_msg_(_DYNA_REC_, false, "All available registers are locked dumb dumb");
 	return D31;
@@ -109,9 +112,11 @@ u32 ArmFPRCache::GetLeastUsedRegister(bool increment)
 {
 	u32 HighestUsed = 0;
 	u8 lastRegIndex = 0;
-	for (u8 a = 0; a < NUMPPCREG; ++a){
+	for (u8 a = 0; a < NUMPPCREG; ++a)
+	{
 		if (increment)
 			++ArmCRegs[a].LastLoad;
+
 		if (ArmCRegs[a].LastLoad > HighestUsed)
 		{
 			HighestUsed = ArmCRegs[a].LastLoad;
@@ -123,11 +128,13 @@ u32 ArmFPRCache::GetLeastUsedRegister(bool increment)
 bool ArmFPRCache::FindFreeRegister(u32 &regindex)
 {
 	for (u8 a = 0; a < NUMPPCREG; ++a)
+	{
 		if (ArmCRegs[a].PPCReg == 33)
 		{
 			regindex = a;
 			return true;
 		}
+	}
 	return false;
 }
 

@@ -77,7 +77,9 @@ void JitArm::psq_lx(UGeckoInstruction inst)
 		ADD(R10, gpr.R(inst.RB), gpr.R(inst.RA));
 	}
 	else
+	{
 		MOV(R10, gpr.R(inst.RB));
+	}
 
 	if (update)
 		MOV(gpr.R(inst.RA), R10);
@@ -128,7 +130,9 @@ void JitArm::psq_st(UGeckoInstruction inst)
 		ADD(R10, gpr.R(inst.RA), R14);
 	}
 	else
+	{
 		MOVI2R(R10, (u32)offset);
+	}
 
 	if (update)
 		MOV(gpr.R(inst.RA), R10);
@@ -171,7 +175,9 @@ void JitArm::psq_stx(UGeckoInstruction inst)
 		ADD(R10, gpr.R(inst.RA), gpr.R(inst.RB));
 	}
 	else
+	{
 		MOV(R10, gpr.R(inst.RB));
+	}
 
 	if (update)
 		MOV(gpr.R(inst.RA), R10);

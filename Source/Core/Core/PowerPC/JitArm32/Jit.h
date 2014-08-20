@@ -74,18 +74,22 @@ public:
 
 	void ClearCache();
 
-	const u8 *GetDispatcher() {
+	const u8 *GetDispatcher()
+	{
 		return asm_routines.dispatcher;
 	}
-	CommonAsmRoutinesBase *GetAsmRoutines() {
+
+	CommonAsmRoutinesBase *GetAsmRoutines()
+	{
 		return &asm_routines;
 	}
 
-	const char *GetName() {
+	const char *GetName()
+	{
 		return "JITARM";
 	}
-	// Run!
 
+	// Run!
 	void Run();
 	void SingleStep();
 

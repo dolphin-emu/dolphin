@@ -108,12 +108,14 @@ static void ImHere()
 		}
 		fprintf(f.GetHandle(), "%08x\n", PC);
 	}
+
 	if (been_here.find(PC) != been_here.end())
 	{
 		been_here.find(PC)->second++;
 		if ((been_here.find(PC)->second) & 1023)
 			return;
 	}
+
 	DEBUG_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
 	been_here[PC] = 1;
 }
@@ -374,8 +376,10 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		SetCC();
 		gpr.Unlock(A, C);
 	}
+
 	// Conditionally add profiling code.
-	if (Profiler::g_ProfileBlocks) {
+	if (Profiler::g_ProfileBlocks)
+	{
 		ARMReg rA = gpr.GetReg();
 		ARMReg rB = gpr.GetReg();
 		MOVI2R(rA, (u32)&b->runCount); // Load in to register
@@ -415,7 +419,8 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
 			js.next_inst = 0;
-			if (Profiler::g_ProfileBlocks) {
+			if (Profiler::g_ProfileBlocks)
+			{
 				// CAUTION!!! push on stack regs you use, do your stuff, then pop
 				PROFILER_VPUSH;
 				// get end tic
@@ -431,6 +436,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			js.next_inst = ops[i + 1].inst;
 			js.next_compilerPC = ops[i + 1].address;
 		}
+
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
 			js.fifoBytesThisBlock -= 32;
@@ -438,6 +444,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			QuickCallFunction(R14, (void*)&GPFifo::CheckGatherPipe);
 			POP(4, R0, R1, R2, R3);
 		}
+
 		if (Core::g_CoreStartupParameter.bEnableDebugging)
 		{
 			// Add run count
@@ -457,6 +464,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			fpr.Unlock(VA);
 			fpr.Unlock(VB);
 		}
+
 		if (!ops[i].skip)
 		{
 				PrintDebug(ops[i].inst, DEBUG_OUTPUT);
@@ -474,6 +482,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 				}
 		}
 	}
+
 	if (code_block.m_memory_exception)
 		BKPT(0x500);
 

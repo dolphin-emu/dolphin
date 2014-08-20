@@ -89,11 +89,12 @@ void JitArm::lfXX(UGeckoInstruction inst)
 			ADD(rB, rB, RA);
 		}
 		else
+		{
 			ADD(rB, gpr.R(offsetReg), RA);
+		}
 	}
 	else
 	{
-
 		if (zeroA)
 		{
 			if (offsetReg == -1)
@@ -105,7 +106,9 @@ void JitArm::lfXX(UGeckoInstruction inst)
 					ADD(rB, rB, RA);
 				}
 				else
+				{
 					MOVI2R(rB, (u32)offset);
+				}
 			}
 			else
 			{
@@ -116,7 +119,9 @@ void JitArm::lfXX(UGeckoInstruction inst)
 					ADD(rB, RB, RA);
 				}
 				else
+				{
 					MOV(rB, RB);
+				}
 			}
 		}
 	}
@@ -248,11 +253,12 @@ void JitArm::stfXX(UGeckoInstruction inst)
 			ADD(rB, rB, RA);
 		}
 		else
+		{
 			ADD(rB, gpr.R(offsetReg), RA);
+		}
 	}
 	else
 	{
-
 		if (zeroA)
 		{
 			if (offsetReg == -1)
@@ -264,7 +270,9 @@ void JitArm::stfXX(UGeckoInstruction inst)
 					ADD(rB, rB, RA);
 				}
 				else
+				{
 					MOVI2R(rB, (u32)offset);
+				}
 			}
 			else
 			{
@@ -275,7 +283,9 @@ void JitArm::stfXX(UGeckoInstruction inst)
 					ADD(rB, RB, RA);
 				}
 				else
+				{
 					MOV(rB, RB);
+				}
 			}
 		}
 	}
@@ -320,7 +330,6 @@ void JitArm::stfXX(UGeckoInstruction inst)
 			MOV(R1, rB);
 
 			BL(rA);
-
 		}
 		else
 		{
@@ -332,7 +341,6 @@ void JitArm::stfXX(UGeckoInstruction inst)
 			VMOV(D0, v0);
 			MOV(R0, rB);
 #endif
-
 			BL(rA);
 		}
 		POP(4, R0, R1, R2, R3);
@@ -361,8 +369,9 @@ void JitArm::stfs(UGeckoInstruction inst)
 		ADD(rB, rB, RA);
 	}
 	else
+	{
 		MOVI2R(rB, (u32)inst.SIMM_16);
-
+	}
 
 	MOVI2R(rA, (u32)&Memory::Write_U32);
 	PUSH(4, R0, R1, R2, R3);
