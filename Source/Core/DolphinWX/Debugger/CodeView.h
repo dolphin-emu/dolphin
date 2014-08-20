@@ -16,7 +16,7 @@
 
 #include "Common/Common.h"
 
-DECLARE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE, -1);
+wxDECLARE_EVENT(wxEVT_CODEVIEW_CHANGE, wxCommandEvent);
 
 class DebugInterface;
 class SymbolDB;
