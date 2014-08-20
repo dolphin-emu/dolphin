@@ -1584,7 +1584,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 	int s = inst.RS;
 	if (gpr.R(s).IsImm())
 	{
-		unsigned result = (int)gpr.R(s).offset;
+		u32 result = (int)gpr.R(s).offset;
 		if (inst.SH != 0)
 			result = _rotl(result, inst.SH);
 		result &= Helper_Mask(inst.MB, inst.ME);
