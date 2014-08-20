@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 // ELF Header Constants
 
 // File type
@@ -182,17 +184,17 @@ enum ElfSectionFlags
 #define DT_LOPROC   0x70000000
 #define DT_HIPROC   0x7FFFFFFF
 
-typedef unsigned int  Elf32_Addr;
-typedef unsigned short Elf32_Half;
-typedef unsigned int  Elf32_Off;
-typedef signed   int  Elf32_Sword;
-typedef unsigned int  Elf32_Word;
+typedef u32  Elf32_Addr;
+typedef u16  Elf32_Half;
+typedef u32  Elf32_Off;
+typedef s32  Elf32_Sword;
+typedef u32  Elf32_Word;
 
 
 // ELF file header
 struct Elf32_Ehdr
 {
-	unsigned char e_ident[EI_NIDENT];
+	u8            e_ident[EI_NIDENT];
 	Elf32_Half    e_type;
 	Elf32_Half    e_machine;
 	Elf32_Word    e_version;
@@ -242,8 +244,8 @@ struct Elf32_Sym
 	Elf32_Word    st_name;
 	Elf32_Addr    st_value;
 	Elf32_Word    st_size;
-	unsigned char st_info;
-	unsigned char st_other;
+	u8            st_info;
+	u8            st_other;
 	Elf32_Half    st_shndx;
 };
 
@@ -266,8 +268,8 @@ struct Elf32_Rela
 };
 
 #define ELF32_R_SYM(i) ((i)>>8)
-#define ELF32_R_TYPE(i) ((unsigned char)(i))
-#define ELF32_R_INFO(s,t) (((s)<<8 )+(unsigned char)(t))
+#define ELF32_R_TYPE(i) ((u8)(i))
+#define ELF32_R_INFO(s,t) (((s)<<8 )+(u8)(t))
 
 
 struct Elf32_Dyn
