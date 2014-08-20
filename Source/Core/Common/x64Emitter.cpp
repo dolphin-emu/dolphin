@@ -151,7 +151,7 @@ void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 	}
 }
 
-void OpArg::WriteVex(XEmitter* emit, int size, bool packed, Gen::X64Reg regOp1, Gen::X64Reg regOp2) const
+void OpArg::WriteVex(XEmitter* emit, int size, bool packed, X64Reg regOp1, X64Reg regOp2) const
 {
 	int R = !(regOp1 & 8);
 	int X = !(indexReg & 8);

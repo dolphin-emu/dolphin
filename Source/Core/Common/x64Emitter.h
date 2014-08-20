@@ -123,7 +123,7 @@ struct OpArg
 		offset = _offset;
 	}
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
-	void WriteVex(XEmitter* emit, int size, bool packed, Gen::X64Reg regOp1, X64Reg regOp2) const;
+	void WriteVex(XEmitter* emit, int size, bool packed, X64Reg regOp1, X64Reg regOp2) const;
 	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=(X64Reg)0xFF, bool warn_64bit_offset = true) const;
 	void WriteFloatModRM(XEmitter *emit, FloatOp op);
 	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
@@ -708,12 +708,12 @@ public:
 	void ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2,u32 param3, void *param4);
 	void ABI_CallFunctionPC(void *func, void *param1, u32 param2);
 	void ABI_CallFunctionPPC(void *func, void *param1, void *param2,u32 param3);
-	void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2);
-	void ABI_CallFunctionA(void *func, const Gen::OpArg &arg1);
+	void ABI_CallFunctionAC(void *func, const OpArg &arg1, u32 param2);
+	void ABI_CallFunctionA(void *func, const OpArg &arg1);
 
 	// Pass a register as a parameter.
-	void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
-	void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2, bool noProlog = false);
+	void ABI_CallFunctionR(void *func, X64Reg reg1);
+	void ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2, bool noProlog = false);
 
 	// A function that doesn't have any control over what it will do to regs,
 	// such as the dispatcher, should be surrounded by these.
