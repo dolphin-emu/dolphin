@@ -274,12 +274,14 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
+		GLuint uniform_location;
 		if (srcFormat == PEControl::Z24)
 		{
 			s_DepthMatrixProgram.Bind();
 			if (s_DepthCbufid != cbufid)
 				glUniform4fv(s_DepthMatrixUniform, 5, colmat);
 			s_DepthCbufid = cbufid;
+			uniform_location = s_DepthCopyPositionUniform;
 		}
 		else
 		{
@@ -287,11 +289,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			if (s_ColorCbufid != cbufid)
 				glUniform4fv(s_ColorMatrixUniform, 7, colmat);
 			s_ColorCbufid = cbufid;
+			uniform_location = s_ColorCopyPositionUniform;
 		}
 
 		TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
-		glUniform4f(srcFormat == PEControl::Z24 ? s_DepthCopyPositionUniform : s_ColorCopyPositionUniform,
-			R.left, R.top, R.right, R.bottom);
+		glUniform4f(uniform_location, static_cast<float>(R.left), static_cast<float>(R.top),
+			static_cast<float>(R.right), static_cast<float>(R.bottom));
 		GL_REPORT_ERRORD();
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

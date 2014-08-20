@@ -345,7 +345,8 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 
 	s_rgbToYuyvProgram.Bind();
 
-	glUniform4f(s_rgbToYuyvUniform_loc, sourceRc.left, sourceRc.top, sourceRc.right, sourceRc.bottom);
+	glUniform4f(s_rgbToYuyvUniform_loc, static_cast<float>(sourceRc.left), static_cast<float>(sourceRc.top),
+		static_cast<float>(sourceRc.right), static_cast<float>(sourceRc.bottom));
 
 	// We enable linear filtering, because the gamecube does filtering in the vertical direction when
 	// yscale is enabled.

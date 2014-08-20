@@ -144,7 +144,8 @@ static void ApplySSAASettings()
 			if (g_ogl_config.bSupportSampleShading)
 			{
 				glEnable(GL_SAMPLE_SHADING_ARB);
-				glMinSampleShadingARB(s_MSAASamples);
+				GLfloat min_sample_shading_value = static_cast<GLfloat>(s_MSAASamples);
+				glMinSampleShadingARB(min_sample_shading_value);
 			}
 			else
 			{
@@ -718,7 +719,7 @@ void Renderer::DrawDebugInfo()
 		glLineWidth(3.0f);
 
 		// 2*Coords + 3*Color
-		u32 length = stats.efb_regions.size() * sizeof(GLfloat) * (2+3)*2*6;
+		GLsizeiptr length = stats.efb_regions.size() * sizeof(GLfloat) * (2 + 3) * 2 * 6;
 		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
 		glBufferData(GL_ARRAY_BUFFER, length, nullptr, GL_STREAM_DRAW);
 		GLfloat *Vertices = (GLfloat*)glMapBufferRange(GL_ARRAY_BUFFER, 0, length, GL_MAP_WRITE_BIT);
@@ -822,8 +823,9 @@ void Renderer::DrawDebugInfo()
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 
 		s_ShowEFBCopyRegions.Bind();
-		glBindVertexArray( s_ShowEFBCopyRegions_VAO );
-		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
+		glBindVertexArray(s_ShowEFBCopyRegions_VAO);
+		GLsizei count = static_cast<GLsizei>(stats.efb_regions.size() * 2*6);
+		glDrawArrays(GL_LINES, 0, count);
 
 		// Restore Line Size
 		SetLineWidth();
@@ -1180,7 +1182,11 @@ void Renderer::SetViewport()
 	}
 	else
 	{
-		glViewport(ceil(X), ceil(Y), ceil(Width), ceil(Height));
+		auto iceilf = [](float f)
+		{
+			return static_cast<GLint>(ceilf(f));
+		};
+		glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
 	}
 	glDepthRangef(GLNear, GLFar);
 }
@@ -1405,10 +1411,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 			if (g_ActiveConfig.bUseRealXFB)
 			{
-				drawRc.top = flipped_trc.top;
-				drawRc.bottom = flipped_trc.bottom;
-				drawRc.left = flipped_trc.left;
-				drawRc.right = flipped_trc.right;
+				drawRc.top      = static_cast<float>(flipped_trc.top);
+				drawRc.bottom   = static_cast<float>(flipped_trc.bottom);
+				drawRc.left     = static_cast<float>(flipped_trc.left);
+				drawRc.right    = static_cast<float>(flipped_trc.right);
 			}
 			else
 			{
@@ -1417,10 +1423,17 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 				int xfbWidth = xfbSource->srcWidth;
 				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
 
-				drawRc.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / fbHeight;
-				drawRc.bottom = flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / fbHeight;
-				drawRc.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / fbWidth)/2;
-				drawRc.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / fbWidth)/2;
+				MathUtil::Rectangle<u32> rect_u32;
+
+				rect_u32.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / fbHeight;
+				rect_u32.bottom = flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / fbHeight;
+				rect_u32.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / fbWidth)/2;
+				rect_u32.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / fbWidth)/2;
+
+				drawRc.top      = static_cast<float>(rect_u32.top);
+				drawRc.bottom   = static_cast<float>(rect_u32.bottom);
+				drawRc.left     = static_cast<float>(rect_u32.left);
+				drawRc.right    = static_cast<float>(rect_u32.right);
 
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target
