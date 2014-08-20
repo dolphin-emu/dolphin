@@ -413,7 +413,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	{
 		const u8* backpatchStart = GetCodePtr();
 		u8* mov = UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_LOADSTORE_NO_SWAP));
-		int padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
+		ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
 		if (padding > 0)
 		{
 			NOP(padding);

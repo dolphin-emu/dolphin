@@ -48,7 +48,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 	frameInfo.clear();
 	frameInfo.resize(file->GetFrameCount());
 
-	for (size_t frameIdx = 0; frameIdx < file->GetFrameCount(); ++frameIdx)
+	for (u32 frameIdx = 0; frameIdx < file->GetFrameCount(); ++frameIdx)
 	{
 		const FifoFrameInfo& frame = file->GetFrame(frameIdx);
 		AnalyzedFrameInfo& analyzed = frameInfo[frameIdx];
