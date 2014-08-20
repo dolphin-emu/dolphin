@@ -470,12 +470,6 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = wxString::Format(_("Undefined %i"), Id);
 	}
 
-	// wxWidgets only accepts Ctrl/Alt/Shift as menu accelerator
-	// modifiers. On OS X, "Ctrl+" is mapped to the Command key.
-#ifdef __APPLE__
-	if (hotkeymodifier & wxMOD_CMD)
-		hotkeymodifier |= wxMOD_CONTROL;
-#endif
 	hotkeymodifier &= wxMOD_CONTROL | wxMOD_ALT | wxMOD_SHIFT;
 
 	Modifier = InputCommon::WXKeymodToString(hotkeymodifier);
