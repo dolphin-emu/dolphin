@@ -285,9 +285,10 @@ void VertexShaderManager::SetConstants()
 			              double(light.ddir[1]) * double(light.ddir[1]) +
 			              double(light.ddir[2]) * double(light.ddir[2]);
 			norm = 1.0 / sqrt(norm);
-			dstlight.dir[0] = light.ddir[0] * norm;
-			dstlight.dir[1] = light.ddir[1] * norm;
-			dstlight.dir[2] = light.ddir[2] * norm;
+			float norm_float = static_cast<float>(norm);
+			dstlight.dir[0] = light.ddir[0] * norm_float;
+			dstlight.dir[1] = light.ddir[1] * norm_float;
+			dstlight.dir[2] = light.ddir[2] * norm_float;
 		}
 		dirty = true;
 
