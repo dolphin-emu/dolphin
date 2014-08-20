@@ -16,20 +16,21 @@
 
 using namespace ArmGen;
 
-	void JitArmBlockCache::WriteLinkBlock(u8* location, const u8* address)
-	{
-		ARMXEmitter emit(location);
-		emit.B(address);
-		emit.FlushIcache();
-	}
-	void JitArmBlockCache::WriteDestroyBlock(const u8* location, u32 address)
-	{
-		ARMXEmitter emit((u8 *)location);
-		emit.MOVI2R(R11, address);
-		emit.MOVI2R(R12, (u32)jit->GetAsmRoutines()->dispatcher);
-		emit.STR(R11, R9, PPCSTATE_OFF(pc));
-		emit.B(R12);
-		emit.FlushIcache();
-	}
+void JitArmBlockCache::WriteLinkBlock(u8* location, const u8* address)
+{
+	ARMXEmitter emit(location);
+	emit.B(address);
+	emit.FlushIcache();
+}
+
+void JitArmBlockCache::WriteDestroyBlock(const u8* location, u32 address)
+{
+	ARMXEmitter emit((u8 *)location);
+	emit.MOVI2R(R11, address);
+	emit.MOVI2R(R12, (u32)jit->GetAsmRoutines()->dispatcher);
+	emit.STR(R11, R9, PPCSTATE_OFF(pc));
+	emit.B(R12);
+	emit.FlushIcache();
+}
 
 

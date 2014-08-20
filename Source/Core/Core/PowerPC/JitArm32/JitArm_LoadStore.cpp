@@ -68,7 +68,9 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 			NOP(1);
 		}
 		else
+		{
 			MOVI2R(R10, (u32)offset, false);
+		}
 
 		if (dest != -1)
 			ADD(R10, R10, RA);
@@ -439,11 +441,11 @@ void JitArm::lXX(UGeckoInstruction inst)
 
 	// LWZ idle skipping
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
-		inst.OPCD == 32 &&
-		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
-		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
-		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
+	    inst.OPCD == 32 &&
+	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
+	    (Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
+	    (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
+	    Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		ARMReg RD = gpr.R(d);
 
