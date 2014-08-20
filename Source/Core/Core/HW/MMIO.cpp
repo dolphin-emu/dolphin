@@ -378,6 +378,8 @@ void WriteHandler<T>::ResetMethod(WriteHandlingMethod<T>* method)
 }
 
 // Define all the public specializations that are exported in MMIOHandlers.h.
-MMIO_PUBLIC_SPECIALIZATIONS();
+#define MaybeExtern
+MMIO_PUBLIC_SPECIALIZATIONS()
+#undef MaybeExtern
 
 }

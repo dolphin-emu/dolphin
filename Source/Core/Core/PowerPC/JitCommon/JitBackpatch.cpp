@@ -266,7 +266,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		XEmitter emitter(start);
 		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse, pc);
 		emitter.CALL((void *)trampoline);
-		int padding = codePtr + info.instructionSize - emitter.GetCodePtr();
+		ptrdiff_t padding = (codePtr - emitter.GetCodePtr()) + info.instructionSize;
 		if (padding > 0)
 		{
 			emitter.NOP(padding);

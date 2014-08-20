@@ -312,7 +312,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 					u64 newcrval = PPCCRToInternal(newcr);
 					if ((s64)newcrval == (s32)newcrval)
 					{
-						MOV(64, M(&PowerPC::ppcState.cr_val[i]), Imm32(newcrval));
+						MOV(64, M(&PowerPC::ppcState.cr_val[i]), Imm32((s32)newcrval));
 					}
 					else
 					{

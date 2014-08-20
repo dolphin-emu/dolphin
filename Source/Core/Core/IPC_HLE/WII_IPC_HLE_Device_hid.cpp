@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <errno.h>
+#include <libusb.h>
 
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -25,7 +26,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 		static u16 timeToFill = 0;
 		if (timeToFill == 0)
 		{
-			std::lock_guard<std::mutex> lk(hid->s_device_list_reply);
+			std::lock_guard<std::mutex> lk(hid->m_device_list_reply_mutex);
 			if (hid->deviceCommandAddress != 0){
 				hid->FillOutDevices(Memory::Read_U32(hid->deviceCommandAddress + 0x18), Memory::Read_U32(hid->deviceCommandAddress + 0x1C));
 
@@ -97,11 +98,11 @@ CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 		deinit_libusb = true;
 	}
 
-	for (const auto& device : open_devices)
+	for (const auto& device : m_open_devices)
 	{
 		libusb_close(device.second);
 	}
-	open_devices.clear();
+	m_open_devices.clear();
 
 	if (deinit_libusb)
 		libusb_exit(nullptr);
@@ -238,7 +239,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 	}
 	case IOCTL_HID_SHUTDOWN:
 	{
-		std::lock_guard<std::mutex> lk(s_device_list_reply);
+		std::lock_guard<std::mutex> lk(m_device_list_reply_mutex);
 		if (deviceCommandAddress != 0){
 			Memory::Write_U32(0xFFFFFFFF, Memory::Read_U32(deviceCommandAddress + 0x18));
 
@@ -479,12 +480,12 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 		if (hidDeviceAliases[i] != 0 && check_cur != check)
 		{
 			DEBUG_LOG(WII_IPC_HID, "Removing: device %d %hX %hX", i, check, check_cur);
-			std::lock_guard<std::mutex> lk(s_open_devices);
-			if (open_devices.find(i) != open_devices.end())
+			std::lock_guard<std::mutex> lk(m_open_devices_mutex);
+			if (m_open_devices.find(i) != m_open_devices.end())
 			{
-				libusb_device_handle *handle = open_devices[i];
+				libusb_device_handle *handle = m_open_devices[i];
 				libusb_close(handle);
-				open_devices.erase(i);
+				m_open_devices.erase(i);
 			}
 			hidDeviceAliases[i] = 0;
 		}
@@ -514,11 +515,11 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 		return nullptr;
 
 
-	std::lock_guard<std::mutex> lk(s_open_devices);
+	std::lock_guard<std::mutex> lk(m_open_devices_mutex);
 
-	if (open_devices.find(devNum) != open_devices.end())
+	if (m_open_devices.find(devNum) != m_open_devices.end())
 	{
-		handle = open_devices[devNum];
+		handle = m_open_devices[devNum];
 		if (libusb_kernel_driver_active(handle, 0) != LIBUSB_ERROR_NO_DEVICE)
 		{
 			return handle;
@@ -526,7 +527,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 		else
 		{
 			libusb_close(handle);
-			open_devices.erase(devNum);
+			m_open_devices.erase(devNum);
 		}
 	}
 
@@ -597,7 +598,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 				continue;
 			}
 
-			open_devices[devNum] = handle;
+			m_open_devices[devNum] = handle;
 			break;
 		}
 		else
