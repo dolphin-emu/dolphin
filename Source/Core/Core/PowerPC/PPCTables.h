@@ -36,6 +36,8 @@ enum
 	FL_EVIL            = (1<<17),
 	FL_USE_FPU         = (1<<18),
 	FL_LOADSTORE       = (1<<19),
+	FL_SET_FPRF        = (1<<20),
+	FL_READ_FPRF       = (1<<21),
 };
 
 enum

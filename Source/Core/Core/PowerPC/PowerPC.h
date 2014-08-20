@@ -187,11 +187,15 @@ inline u64 PPCCRToInternal(u8 value)
 	return cr_val;
 }
 
+// convert flags into 64-bit CR values with a lookup table
+extern const u64 m_crTable[16];
+
 // Warning: these CR operations are fairly slow since they need to convert from
 // PowerPC format (4 bit) to our internal 64 bit format. See the definition of
 // ppcState.cr_val for more explanations.
-inline void SetCRField(int cr_field, int value) {
-	PowerPC::ppcState.cr_val[cr_field] = PPCCRToInternal(value);
+inline void SetCRField(int cr_field, int value)
+{
+	PowerPC::ppcState.cr_val[cr_field] = m_crTable[value];
 }
 
 inline u32 GetCRField(int cr_field) {

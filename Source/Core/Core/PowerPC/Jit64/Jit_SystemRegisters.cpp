@@ -284,15 +284,6 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	gpr.UnlockAllX();
 }
 
-// convert flags into 64-bit CR values with a lookup table
-static const u64 m_crTable[16] =
-{
-	PPCCRToInternal(0x0), PPCCRToInternal(0x1), PPCCRToInternal(0x2), PPCCRToInternal(0x3),
-	PPCCRToInternal(0x4), PPCCRToInternal(0x5), PPCCRToInternal(0x6), PPCCRToInternal(0x7),
-	PPCCRToInternal(0x8), PPCCRToInternal(0x9), PPCCRToInternal(0xA), PPCCRToInternal(0xB),
-	PPCCRToInternal(0xC), PPCCRToInternal(0xD), PPCCRToInternal(0xE), PPCCRToInternal(0xF),
-};
-
 void Jit64::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
