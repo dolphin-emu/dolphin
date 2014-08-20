@@ -121,7 +121,7 @@ public:
 	void OnRenderParentMove(wxMoveEvent& event);
 	bool RendererHasFocus();
 	bool UIHasFocus();
-	void DoFullscreen(bool bF);
+	void DoFullscreen(bool enable_fullscreen, bool force=false);
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
 	void PopulateSavedPerspectives();
