@@ -172,7 +172,13 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_es.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_fs.cpp" />
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_hid.cpp" />
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_hid.cpp">
+      <!--
+      Disable "nonstandard extension used : zero-sized array in struct/union" warning,
+      which is hit in libusb.h (and this is the only file which uses that header).
+      -->
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp" />
