@@ -156,12 +156,21 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 
 	switch (inst.SUBOP5)
 	{
-	case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD); break; //div
-	case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD); break; //sub
-	case 21: tri_op(inst.FD, inst.FA, inst.FB, true,  &XEmitter::ADDPD); break; //add
-	case 25: tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD); break; //mul
+	case 18: // div
+		tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD);
+		break;
+	case 20: // sub
+		tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD);
+		break;
+	case 21: // add
+		tri_op(inst.FD, inst.FA, inst.FB, true,  &XEmitter::ADDPD);
+		break;
+	case 25: // mul
+		tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD);
+		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");
+		break;
 	}
 }
 

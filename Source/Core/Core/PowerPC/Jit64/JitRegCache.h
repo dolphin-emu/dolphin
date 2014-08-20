@@ -47,23 +47,34 @@ protected:
 
 public:
 	RegCache();
-
 	virtual ~RegCache() {}
+
 	void Start();
 
 	void DiscardRegContentsIfCached(size_t preg);
-	void SetEmitter(Gen::XEmitter *emitter) {emit = emitter;}
+	void SetEmitter(Gen::XEmitter *emitter)
+	{
+		emit = emitter;
+	}
 
 	void FlushR(Gen::X64Reg reg);
-	void FlushR(Gen::X64Reg reg, Gen::X64Reg reg2) {FlushR(reg); FlushR(reg2);}
-	void FlushLockX(Gen::X64Reg reg) {
+	void FlushR(Gen::X64Reg reg, Gen::X64Reg reg2)
+	{
+		FlushR(reg);
+		FlushR(reg2);
+	}
+
+	void FlushLockX(Gen::X64Reg reg)
+	{
 		FlushR(reg);
 		LockX(reg);
 	}
-	void FlushLockX(Gen::X64Reg reg1, Gen::X64Reg reg2) {
+	void FlushLockX(Gen::X64Reg reg1, Gen::X64Reg reg2)
+	{
 		FlushR(reg1); FlushR(reg2);
 		LockX(reg1); LockX(reg2);
 	}
+
 	void Flush(FlushMode mode = FLUSH_ALL);
 	void Flush(PPCAnalyst::CodeOp *op) {Flush();}
 	int SanityCheck() const;
@@ -76,7 +87,11 @@ public:
 	virtual void StoreRegister(size_t preg, Gen::OpArg newLoc) = 0;
 	virtual void LoadRegister(size_t preg, Gen::X64Reg newLoc) = 0;
 
-	const Gen::OpArg &R(size_t preg) const {return regs[preg].location;}
+	const Gen::OpArg &R(size_t preg) const
+	{
+		return regs[preg].location;
+	}
+
 	Gen::X64Reg RX(size_t preg) const
 	{
 		if (IsBound(preg))

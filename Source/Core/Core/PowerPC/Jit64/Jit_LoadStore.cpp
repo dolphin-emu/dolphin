@@ -30,26 +30,26 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	bool signExtend = false;
 	switch (inst.OPCD)
 	{
-	case 32: /* lwz */
-	case 33: /* lwzu */
+	case 32: // lwz
+	case 33: // lwzu
 		accessSize = 32;
 		signExtend = false;
 		break;
 
-	case 34: /* lbz */
-	case 35: /* lbzu */
+	case 34: // lbz
+	case 35: // lbzu
 		accessSize = 8;
 		signExtend = false;
 		break;
 
-	case 40: /* lhz */
-	case 41: /* lhzu */
+	case 40: // lhz
+	case 41: // lhzu
 		accessSize = 16;
 		signExtend = false;
 		break;
 
-	case 42: /* lha */
-	case 43: /* lhau */
+	case 42: // lha
+	case 43: // lhau
 		accessSize = 16;
 		signExtend = true;
 		break;
@@ -57,25 +57,25 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	case 31:
 		switch (inst.SUBOP10)
 		{
-		case 23:  /* lwzx */
-		case 55:  /* lwzux */
+		case 23: // lwzx
+		case 55: // lwzux
 			accessSize = 32;
 			signExtend = false;
 			break;
 
-		case 87:  /* lbzx */
-		case 119: /* lbzux */
+		case 87:  // lbzx
+		case 119: // lbzux
 			accessSize = 8;
 			signExtend = false;
 			break;
-		case 279: /* lhzx */
-		case 311: /* lhzux */
+		case 279: // lhzx
+		case 311: // lhzux
 			accessSize = 16;
 			signExtend = false;
 			break;
 
-		case 343: /* lhax */
-		case 375: /* lhaux */
+		case 343: // lhax
+		case 375: // lhaux
 			accessSize = 16;
 			signExtend = true;
 			break;
@@ -96,11 +96,11 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// ... maybe the throttle one already do that :p
 	// if (CommandProcessor::AllowIdleSkipping() && PixelEngine::AllowIdleSkipping())
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
-		inst.OPCD == 32 &&
-		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
-		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
-		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
+	    inst.OPCD == 32 &&
+	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
+	    (Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
+	    (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
+	    Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		// TODO(LinesPrower):
 		// - Rewrite this!
@@ -259,10 +259,18 @@ void Jit64::stX(UGeckoInstruction inst)
 		int accessSize;
 		switch (inst.OPCD & ~1)
 		{
-		case 36: accessSize = 32; break; //stw
-		case 44: accessSize = 16; break; //sth
-		case 38: accessSize = 8; break;  //stb
-		default: _assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF"); return;
+		case 36: // stw
+			accessSize = 32;
+			break;
+		case 44: // sth
+			accessSize = 16;
+			break;
+		case 38: // stb
+			accessSize = 8;
+			break;
+		default:
+			_assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF");
+			return;
 		}
 
 		if ((a == 0) || gpr.R(a).IsImm())
@@ -273,18 +281,27 @@ void Jit64::stX(UGeckoInstruction inst)
 			addr += offset;
 			if ((addr & 0xFFFFF000) == 0xCC008000 && jo.optimizeGatherPipe)
 			{
-				MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
+				// Helps external systems know which instruction triggered the write
+				MOV(32, M(&PC), Imm32(jit->js.compilerPC));
+
 				gpr.FlushLockX(ABI_PARAM1);
 				MOV(32, R(ABI_PARAM1), gpr.R(s));
 				if (update)
 					gpr.SetImmediate32(a, addr);
+
+				// No need to protect these, they don't touch any state
+				// question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
 				switch (accessSize)
 				{
-					// No need to protect these, they don't touch any state
-					// question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
-				case 8:  CALL((void *)asm_routines.fifoDirectWrite8);  break;
-				case 16: CALL((void *)asm_routines.fifoDirectWrite16); break;
-				case 32: CALL((void *)asm_routines.fifoDirectWrite32); break;
+				case 8:
+					CALL((void *)asm_routines.fifoDirectWrite8);
+					break;
+				case 16:
+					CALL((void *)asm_routines.fifoDirectWrite16);
+					break;
+				case 32:
+					CALL((void *)asm_routines.fifoDirectWrite32);
+					break;
 				}
 				js.fifoBytesThisBlock += accessSize >> 3;
 				gpr.UnlockAllX();
@@ -300,14 +317,22 @@ void Jit64::stX(UGeckoInstruction inst)
 			}
 			else
 			{
-				MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
+				// Helps external systems know which instruction triggered the write
+				MOV(32, M(&PC), Imm32(jit->js.compilerPC));
+
 				u32 registersInUse = RegistersInUse();
 				ABI_PushRegistersAndAdjustStack(registersInUse, false);
 				switch (accessSize)
 				{
-				case 32: ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), gpr.R(s), addr); break;
-				case 16: ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), gpr.R(s), addr); break;
-				case 8:  ABI_CallFunctionAC((void *)&Memory::Write_U8, gpr.R(s), addr);  break;
+				case 32:
+					ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), gpr.R(s), addr);
+					break;
+				case 16:
+					ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), gpr.R(s), addr);
+					break;
+				case 8:
+					ABI_CallFunctionAC((void *)&Memory::Write_U8, gpr.R(s), addr);
+					break;
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, false);
 				if (update)
@@ -359,17 +384,29 @@ void Jit64::stXx(UGeckoInstruction inst)
 		ADD(32, gpr.R(a), gpr.R(b));
 		MOV(32, R(EDX), gpr.R(a));
 		MEMCHECK_END
-	} else {
+	}
+	else
+	{
 		MOV(32, R(EDX), gpr.R(a));
 		ADD(32, R(EDX), gpr.R(b));
 	}
+
 	int accessSize;
-	switch (inst.SUBOP10 & ~32) {
-		case 151: accessSize = 32; break;
-		case 407: accessSize = 16; break;
-		case 215: accessSize = 8; break;
-		default: PanicAlert("stXx: invalid access size");
-			accessSize = 0; break;
+	switch (inst.SUBOP10 & ~32)
+	{
+		case 151:
+			accessSize = 32;
+			break;
+		case 407:
+			accessSize = 16;
+			break;
+		case 215:
+			accessSize = 8;
+			break;
+		default:
+			PanicAlert("stXx: invalid access size");
+			accessSize = 0;
+			break;
 	}
 
 	MOV(32, R(ECX), gpr.R(s));

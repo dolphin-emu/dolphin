@@ -162,7 +162,9 @@ void Jit64::Init()
 			jo.enableBlocklink = false;
 		}
 		else
+		{
 			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
+		}
 	}
 	jo.fpAccurateFcmp = Core::g_CoreStartupParameter.bEnableFPRF;
 	jo.optimizeGatherPipe = true;
@@ -435,7 +437,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 
 	// Conditionally add profiling code.
-	if (Profiler::g_ProfileBlocks) {
+	if (Profiler::g_ProfileBlocks)
+	{
 		ADD(32, M(&b->runCount), Imm8(1));
 #ifdef _WIN32
 		b->ticCounter = 0;
@@ -617,7 +620,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
 		}
 #endif
-		if (js.skipnext) {
+		if (js.skipnext)
+		{
 			js.skipnext = false;
 			i++; // Skip next instruction
 		}

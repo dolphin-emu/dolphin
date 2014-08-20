@@ -77,7 +77,8 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 		// offsets with the wrong sign, so whatever.  Since the original code
 		// *could* try to wrap an address around, however, this is the correct
 		// place to address the issue.)
-		if ((u32) offset >= 0x1000) {
+		if ((u32) offset >= 0x1000)
+		{
 			LEA(32, reg_value, MDisp(opAddress.GetSimpleReg(), offset));
 			opAddress = R(reg_value);
 			offset = 0;
@@ -186,7 +187,9 @@ private:
 		// then mask, then sign extend if needed (1 instr vs. 2/3).
 		u32 all_ones = (1ULL << sbits) - 1;
 		if ((all_ones & mask) == all_ones)
+		{
 			MoveOpArgToReg(sbits, MDisp(EAX, 0));
+		}
 		else
 		{
 			m_code->MOVZX(32, sbits, m_dst_reg, MDisp(EAX, 0));
@@ -342,10 +345,18 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			ABI_PushRegistersAndAdjustStack(registersInUse, false);
 			switch (accessSize)
 			{
-			case 64: ABI_CallFunctionA((void *)&Memory::Read_U64, addr_loc); break;
-			case 32: ABI_CallFunctionA((void *)&Memory::Read_U32, addr_loc); break;
-			case 16: ABI_CallFunctionA((void *)&Memory::Read_U16_ZX, addr_loc); break;
-			case 8:  ABI_CallFunctionA((void *)&Memory::Read_U8_ZX, addr_loc);  break;
+			case 64:
+				ABI_CallFunctionA((void *)&Memory::Read_U64, addr_loc);
+				break;
+			case 32:
+				ABI_CallFunctionA((void *)&Memory::Read_U32, addr_loc);
+				break;
+			case 16:
+				ABI_CallFunctionA((void *)&Memory::Read_U16_ZX, addr_loc);
+				break;
+			case 8:
+				ABI_CallFunctionA((void *)&Memory::Read_U8_ZX, addr_loc);
+				break;
 			}
 			ABI_PopRegistersAndAdjustStack(registersInUse, false);
 
@@ -373,11 +384,12 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 
 u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
 {
-	u8 *result;
-	if (accessSize == 8 && reg_value >= 4) {
+	if (accessSize == 8 && reg_value >= 4)
+	{
 		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
 	}
-	result = GetWritableCodePtr();
+
+	u8* result = GetWritableCodePtr();
 	OpArg dest = MComplex(RBX, reg_addr, SCALE_1, offset);
 	if (swap)
 	{
@@ -396,6 +408,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 	{
 		MOV(accessSize, dest, R(reg_value));
 	}
+
 	return result;
 }
 
@@ -450,10 +463,18 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	ABI_PushRegistersAndAdjustStack(registersInUse, noProlog);
 	switch (accessSize)
 	{
-	case 64: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U64) : ((void *)&Memory::Write_U64_Swap), reg_value, reg_addr, false); break;
-	case 32: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), reg_value, reg_addr, false); break;
-	case 16: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), reg_value, reg_addr, false); break;
-	case 8:  ABI_CallFunctionRR((void *)&Memory::Write_U8, reg_value, reg_addr, false);  break;
+	case 64:
+		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U64) : ((void *)&Memory::Write_U64_Swap), reg_value, reg_addr, false);
+		break;
+	case 32:
+		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), reg_value, reg_addr, false);
+		break;
+	case 16:
+		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), reg_value, reg_addr, false);
+		break;
+	case 8:
+		ABI_CallFunctionRR((void *)&Memory::Write_U8, reg_value, reg_addr, false);
+		break;
 	}
 	ABI_PopRegistersAndAdjustStack(registersInUse, noProlog);
 	FixupBranch exit = J();
@@ -478,7 +499,8 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 a
 		MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), R(arg));
 }
 
-void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm) {
+void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm)
+{
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jit->jo.accurateSinglePrecision)
 	{
@@ -487,7 +509,8 @@ void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm) {
 	}
 }
 
-void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm) {
+void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm)
+{
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jit->jo.accurateSinglePrecision)
 	{
@@ -600,10 +623,13 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 	MOVSD(XMM1, R(src));
 	FLD(64, M(&temp64));
 	CCFlags cond;
-	if (cpu_info.bSSE4_1) {
+	if (cpu_info.bSSE4_1)
+	{
 		PTEST(XMM1, M((void *)&double_exponent));
 		cond = CC_NC;
-	} else {
+	}
+	else
+	{
 		// emulate PTEST; checking FPU flags is incorrect because the NaN bits
 		// are sticky (persist between instructions)
 		MOVSD(XMM0, M((void *)&double_exponent));
@@ -619,9 +645,12 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 	PANDN(XMM1, M((void *)&double_qnan_bit));
 	PSRLQ(XMM1, 29);
-	if (cpu_info.bAVX) {
+	if (cpu_info.bAVX)
+	{
 		VPANDN(XMM0, XMM1, R(XMM0));
-	} else {
+	}
+	else
+	{
 		PANDN(XMM1, R(XMM0));
 		MOVSS(XMM0, R(XMM1));
 	}
@@ -633,19 +662,26 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
 {
-	if (src_is_gpr) {
+	if (src_is_gpr)
+	{
 		MOV(32, M(&temp32), R(src));
 		MOVD_xmm(XMM1, R(src));
-	} else {
+	}
+	else
+	{
 		MOVSS(M(&temp32), src);
 		MOVSS(R(XMM1), src);
 	}
+
 	FLD(32, M(&temp32));
 	CCFlags cond;
-	if (cpu_info.bSSE4_1) {
+	if (cpu_info.bSSE4_1)
+	{
 		PTEST(XMM1, M((void *)&single_exponent));
 		cond = CC_NC;
-	} else {
+	}
+	else
+	{
 		// emulate PTEST; checking FPU flags is incorrect because the NaN bits
 		// are sticky (persist between instructions)
 		MOVSS(XMM0, M((void *)&single_exponent));
@@ -661,9 +697,12 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 
 	PANDN(XMM1, M((void *)&single_qnan_bit));
 	PSLLQ(XMM1, 29);
-	if (cpu_info.bAVX) {
+	if (cpu_info.bAVX)
+	{
 		VPANDN(dst, XMM1, R(dst));
-	} else {
+	}
+	else
+	{
 		PANDN(XMM1, R(dst));
 		MOVSD(dst, R(XMM1));
 	}
