@@ -1049,10 +1049,9 @@ InstLoc IRBuilder::FoldShl(InstLoc Op1, InstLoc Op2)
 
 InstLoc IRBuilder::FoldShrl(InstLoc Op1, InstLoc Op2)
 {
-	if (isImm(*Op2))
+	if (isImm(*Op1) && isImm(*Op2))
 	{
-		if (isImm(*Op1))
-			return EmitIntConst(GetImmValue(Op1) >> (GetImmValue(Op2) & 31));
+		return EmitIntConst(GetImmValue(Op1) >> (GetImmValue(Op2) & 31));
 	}
 
 	return EmitBiOp(Shrl, Op1, Op2);
@@ -1161,13 +1160,10 @@ InstLoc IRBuilder::FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2)
 
 InstLoc IRBuilder::FoldICmpCRSigned(InstLoc Op1, InstLoc Op2)
 {
-	if (isImm(*Op1))
+	if (isImm(*Op1) && isImm(*Op2))
 	{
-		if (isImm(*Op2))
-		{
-			s64 diff = (s64)(s32)GetImmValue(Op1) - (s64)(s32)GetImmValue(Op2);
-			return EmitIntConst64((u64)diff);
-		}
+		s64 diff = (s64)(s32)GetImmValue(Op1) - (s64)(s32)GetImmValue(Op2);
+		return EmitIntConst64((u64)diff);
 	}
 
 	return EmitBiOp(ICmpCRSigned, Op1, Op2);
@@ -1175,13 +1171,10 @@ InstLoc IRBuilder::FoldICmpCRSigned(InstLoc Op1, InstLoc Op2)
 
 InstLoc IRBuilder::FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2)
 {
-	if (isImm(*Op1))
+	if (isImm(*Op1) && isImm(*Op2))
 	{
-		if (isImm(*Op2))
-		{
-			u64 diff = (u64)GetImmValue(Op1) - (u64)GetImmValue(Op2);
-			return EmitIntConst64(diff);
-		}
+		u64 diff = (u64)GetImmValue(Op1) - (u64)GetImmValue(Op2);
+		return EmitIntConst64(diff);
 	}
 
 	return EmitBiOp(ICmpCRUnsigned, Op1, Op2);
