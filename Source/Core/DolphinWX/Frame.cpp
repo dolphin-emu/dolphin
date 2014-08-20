@@ -70,7 +70,7 @@ extern "C" {
 };
 
 
-CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
+CRenderFrame::CRenderFrame(wxWindow* parent, wxWindowID id, const wxString& title,
 		const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
 {
@@ -307,7 +307,7 @@ END_EVENT_TABLE()
 // ---------------
 // Creation and close, quit functions
 
-CFrame::CFrame(wxFrame* parent,
+CFrame::CFrame(wxWindow* parent,
 		wxWindowID id,
 		const wxString& title,
 		const wxPoint& pos,
