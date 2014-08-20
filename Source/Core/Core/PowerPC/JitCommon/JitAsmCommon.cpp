@@ -247,13 +247,16 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	SafeWriteF32ToReg(XMM0, ECX, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
 	/*
-	if (cpu_info.bSSSE3) {
+	if (cpu_info.bSSSE3)
+	{
 		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
 		// TODO: SafeWriteFloat
 		MOVSS(M(&psTemp[0]), XMM0);
 		MOV(32, R(EAX), M(&psTemp[0]));
 		SafeWriteRegToReg(EAX, ECX, 32, 0, SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
-	} else {
+	}
+	else
+	{
 		MOVSS(M(&psTemp[0]), XMM0);
 		MOV(32, R(EAX), M(&psTemp[0]));
 		SafeWriteRegToReg(EAX, ECX, 32, 0, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
@@ -320,10 +323,13 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	UD2();
 
 	const u8* loadPairedFloatTwo = AlignCode4();
-	if (cpu_info.bSSSE3) {
+	if (cpu_info.bSSSE3)
+	{
 		MOVQ_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
 		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
-	} else {
+	}
+	else
+	{
 		LoadAndSwap(64, RCX, MComplex(RBX, RCX, 1, 0));
 		ROL(64, R(RCX), Imm8(32));
 		MOVQ_xmm(XMM0, R(RCX));
@@ -331,11 +337,14 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	RET();
 
 	const u8* loadPairedFloatOne = AlignCode4();
-	if (cpu_info.bSSSE3) {
+	if (cpu_info.bSSSE3)
+	{
 		MOVD_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
 		PSHUFB(XMM0, M((void *)pbswapShuffle1x4));
 		UNPCKLPS(XMM0, M((void*)m_one));
-	} else {
+	}
+	else
+	{
 		LoadAndSwap(32, RCX, MComplex(RBX, RCX, 1, 0));
 		MOVD_xmm(XMM0, R(RCX));
 		UNPCKLPS(XMM0, M((void*)m_one));
