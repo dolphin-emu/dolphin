@@ -114,7 +114,7 @@ PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent, ControllerEmu::Co
 
 void PadSettingCheckBox::UpdateGUI()
 {
-	((wxCheckBox*)wxcontrol)->SetValue(setting->GetValue());
+	((wxCheckBox*)wxcontrol)->SetValue(!!setting->GetValue());
 }
 
 void PadSettingCheckBox::UpdateValue()

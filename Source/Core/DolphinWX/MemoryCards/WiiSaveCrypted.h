@@ -10,49 +10,51 @@
 
 #include "Common/CommonTypes.h"
 
-// --- this is used for encrypted Wii save files
-
-
 class CWiiSaveCrypted
 {
 public:
-	bool static ImportWiiSave(const char* FileName);
-	bool static ExportWiiSave(u64 TitleID);
+	bool static ImportWiiSave(const char* filename);
+	bool static ExportWiiSave(u64 title_id);
 	void static ExportAllSaves();
 
 private:
-	CWiiSaveCrypted(const char* FileName, u64 TitleID = 0);
+	CWiiSaveCrypted(const char* filename, u64 title_id = 0);
 	~CWiiSaveCrypted();
 	void ReadHDR();
 	void ReadBKHDR();
 	void WriteHDR();
 	void WriteBKHDR();
-	void Extract(){;}
+	void Extract(){}
 	void ImportWiiSaveFiles();
-	void ExportWiiSaveFiles(); // To data.bin
+	void ExportWiiSaveFiles();
 	void do_sig();
-	void make_ec_cert(u8 *cert, u8 *sig, char *signer, char *name, u8 *priv, u32 key_id);
-	bool getPaths(bool forExport = false);
-	void ScanForFiles(std::string savDir, std::vector<std::string>&FilesList, u32 *_numFiles, u32 *_sizeFiles);
+	void make_ec_cert(u8 *cert, const u8 *sig, const char *signer, const char *name,
+		const u8 *priv, const u32 key_id);
+	bool getPaths(bool for_export = false);
+	void ScanForFiles(std::string save_directory, std::vector<std::string>& file_list,
+		u32 *num_files, u32 *size_files);
 
-	aes_context m_AES_ctx;
-	u8 SD_IV[0x10];
-	std::vector<std::string> FilesList;
+	static const u8 s_sd_key[16];
+	static const u8 s_md5_blanker[16];
+	static const u32 s_ng_id;
 
-	std::string encryptedSavePath;
+	aes_context m_aes_ctx;
+	u8 m_sd_iv[0x10];
+	std::vector<std::string> m_files_list;
 
-	std::string WiiTitlePath;
+	std::string m_encrypted_save_path;
 
-	u8  IV[0x10];
+	std::string m_wii_title_path;
 
-	u32 //_bannerSize,
-		_numberOfFiles,
-		_sizeOfFiles,
-		_totalSize;
+	u8  m_iv[0x10];
 
-	u64 m_TitleID;
+	u32 m_files_list_size;
+	u32 m_size_of_files;
+	u32 m_total_size;
 
-	bool b_valid;
+	u64 m_title_id;
+
+	bool m_valid;
 
 	enum
 	{
@@ -92,7 +94,7 @@ private:
 	{
 		Data_Bin_HDR hdr;
 		u8 BNR[FULL_BNR_MAX];
-	}_header, _encryptedHeader;
+	};
 
 	struct BK_Header // Not encrypted
 	{
@@ -110,7 +112,7 @@ private:
 		u64 SaveGameTitle;
 		u8 MACaddress[6];
 		u8 padding[0x12];
-	}bkhdr;
+	};
 
 	struct FileHDR // encrypted
 	{
@@ -124,4 +126,8 @@ private:
 		u8 unk[0x20];
 	};
 #pragma pack(pop)
+
+	HEADER m_header;
+	HEADER m_encrypted_header;
+	BK_Header m_bk_hdr;
 };
