@@ -100,8 +100,8 @@ void PixelShaderManager::SetConstants()
 
 	if (s_bViewPortChanged)
 	{
-		constants.zbias[1][0] = xfmem.viewport.farZ;
-		constants.zbias[1][1] = xfmem.viewport.zRange;
+		constants.zbias[1][0] = static_cast<u32>(xfmem.viewport.farZ);
+		constants.zbias[1][1] = static_cast<u32>(xfmem.viewport.zRange);
 		dirty = true;
 		s_bViewPortChanged = false;
 	}
@@ -110,10 +110,10 @@ void PixelShaderManager::SetConstants()
 void PixelShaderManager::SetColorChanged(int type, int num)
 {
 	int4* c = type ? constants.kcolors : constants.colors;
-	c[num][0] = bpmem.tevregs[num].red;
-	c[num][3] = bpmem.tevregs[num].alpha;
-	c[num][2] = bpmem.tevregs[num].blue;
-	c[num][1] = bpmem.tevregs[num].green;
+	c[num][0] = static_cast<s32>(bpmem.tevregs[num].red);
+	c[num][3] = static_cast<s32>(bpmem.tevregs[num].alpha);
+	c[num][2] = static_cast<s32>(bpmem.tevregs[num].blue);
+	c[num][1] = static_cast<s32>(bpmem.tevregs[num].green);
 	dirty = true;
 
 	PRIM_LOG("pixel %scolor%d: %d %d %d %d\n", type?"k":"", num, c[num][0], c[num][1], c[num][2], c[num][3]);

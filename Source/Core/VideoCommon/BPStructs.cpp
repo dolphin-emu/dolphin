@@ -219,7 +219,7 @@ static void BPWritten(const BPCmd& bp)
 
 				CopyEFB(destAddr, srcRect,
 					PE_copy.tp_realFormat(), bpmem.zcontrol.pixel_format,
-					PE_copy.intensity_fmt, PE_copy.half_scale);
+					!!PE_copy.intensity_fmt, !!PE_copy.half_scale);
 			}
 			else
 			{
@@ -235,19 +235,19 @@ static void BPWritten(const BPCmd& bp)
 				else
 					yScale = (float)bpmem.dispcopyyscale / 256.0f;
 
-				float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
-				if ((u32)xfbLines > MAX_XFB_HEIGHT)
+				float num_xfb_lines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
+
+				u32 height = static_cast<u32>(num_xfb_lines);
+				if (height > MAX_XFB_HEIGHT)
 				{
-					INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines (%f)", xfbLines);
-					xfbLines = MAX_XFB_HEIGHT;
+					INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines: %d (%f)",
+							 height, num_xfb_lines);
+					height = MAX_XFB_HEIGHT;
 				}
 
 				u32 width = bpmem.copyMipMapStrideChannels << 4;
-				u32 height = xfbLines;
 
-				Renderer::RenderToXFB(destAddr, srcRect,
-						      width, height,
-						      s_gammaLUT[PE_copy.gamma]);
+				Renderer::RenderToXFB(destAddr, srcRect, width, height, s_gammaLUT[PE_copy.gamma]);
 			}
 
 			// Clear the rectangular region after copying it.
@@ -565,9 +565,9 @@ static void BPWritten(const BPCmd& bp)
 			// don't compare with changes!
 			int num = (bp.address >> 1) & 0x3;
 			if ((bp.address & 1) == 0)
-				PixelShaderManager::SetColorChanged(bpmem.tevregs[num].type_ra, num);
+				PixelShaderManager::SetColorChanged(static_cast<int>(bpmem.tevregs[num].type_ra), num);
 			else
-				PixelShaderManager::SetColorChanged(bpmem.tevregs[num].type_bg, num);
+				PixelShaderManager::SetColorChanged(static_cast<int>(bpmem.tevregs[num].type_bg), num);
 		}
 		return;
 	default:
