@@ -1228,7 +1228,9 @@ typedef wxUint32 wxDword;
     each time we cast it to a pointer or a handle (which results in hundreds
     of warnings as Win32 API often passes pointers in them)
  */
-#if wxCHECK_VISUALC_VERSION(7)
+// (dolphin-emu) Just disable __w64 usage. It's not meant to be used anymore,
+// even on 32bit builds.
+#if 0
     #define wxW64 __w64
 #else
     #define wxW64
