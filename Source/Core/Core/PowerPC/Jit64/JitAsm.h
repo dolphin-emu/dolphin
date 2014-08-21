@@ -27,13 +27,15 @@ private:
 	void GenerateCommon();
 
 public:
-	void Init() {
+	void Init()
+	{
 		AllocCodeSpace(8192);
 		Generate();
 		WriteProtect();
 	}
 
-	void Shutdown() {
+	void Shutdown()
+	{
 		FreeCodeSpace();
 	}
 };

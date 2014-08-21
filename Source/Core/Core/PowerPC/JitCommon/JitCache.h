@@ -42,7 +42,8 @@ struct JitBlock
 
 	bool invalid;
 
-	struct LinkData {
+	struct LinkData
+	{
 		u8 *exitPtrs;    // to be able to rewrite the exit jum
 		u32 exitAddress;
 		bool linkStatus; // is it already linked?
@@ -81,18 +82,22 @@ public:
 		m_valid_block.reset(new u32[VALID_BLOCK_ALLOC_ELEMENTS]);
 		ClearAll();
 	}
+
 	void Set(u32 bit)
 	{
 		m_valid_block[bit / 32] |= 1u << (bit % 32);
 	}
+
 	void Clear(u32 bit)
 	{
 		m_valid_block[bit / 32] &= ~(1u << (bit % 32));
 	}
+
 	void ClearAll()
 	{
 		memset(m_valid_block.get(), 0, sizeof(u32) * VALID_BLOCK_ALLOC_ELEMENTS);
 	}
+
 	bool Test(u32 bit)
 	{
 		return (m_valid_block[bit / 32] & (1u << (bit % 32))) != 0;
@@ -125,7 +130,10 @@ class JitBaseBlockCache
 public:
 	JitBaseBlockCache() :
 		blockCodePointers(nullptr), blocks(nullptr), num_blocks(0),
-		iCache(nullptr), iCacheEx(nullptr), iCacheVMEM(nullptr) {}
+		iCache(nullptr), iCacheEx(nullptr), iCacheVMEM(nullptr)
+	{
+	}
+
 	int AllocateBlock(u32 em_address);
 	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
 

@@ -30,10 +30,13 @@ void JitILBase::fp_arith_s(UGeckoInstruction inst)
 		_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
 	}
 
-	if (inst.OPCD == 59) {
+	if (inst.OPCD == 59)
+	{
 		val = ibuild.EmitDoubleToSingle(val);
 		val = ibuild.EmitDupSingleToMReg(val);
-	} else {
+	}
+	else
+	{
 		val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
 	}
 	ibuild.EmitStoreFReg(val, inst.FD);
@@ -50,18 +53,25 @@ void JitILBase::fmaddXX(UGeckoInstruction inst)
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
+
 	if (inst.SUBOP5 & 1)
 		val = ibuild.EmitFDAdd(val, ibuild.EmitLoadFReg(inst.FB));
 	else
 		val = ibuild.EmitFDSub(val, ibuild.EmitLoadFReg(inst.FB));
+
 	if (inst.SUBOP5 & 2)
 		val = ibuild.EmitFDNeg(val);
-	if (inst.OPCD == 59) {
+
+	if (inst.OPCD == 59)
+	{
 		val = ibuild.EmitDoubleToSingle(val);
 		val = ibuild.EmitDupSingleToMReg(val);
-	} else {
+	}
+	else
+	{
 		val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
 	}
+
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
@@ -97,7 +107,8 @@ void JitILBase::fsign(UGeckoInstruction inst)
 	FALLBACK_IF(true);
 
 	// TODO
-	switch (inst.SUBOP10) {
+	switch (inst.SUBOP10)
+	{
 	case 40:  // fnegx
 		break;
 	case 264: // fabsx

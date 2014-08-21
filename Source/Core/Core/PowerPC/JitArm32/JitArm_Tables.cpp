@@ -378,9 +378,12 @@ void CompileInstruction(PPCAnalyst::CodeOp & op)
 	JitArm *jitarm = (JitArm *)jit;
 	(jitarm->*dynaOpTable[op.inst.OPCD])(op.inst);
 	GekkoOPInfo *info = op.opinfo;
-	if (info) {
+
+	if (info)
+	{
 #ifdef OPLOG
-		if (!strcmp(info->opname, OP_TO_LOG)){  ///"mcrfs"
+		if (!strcmp(info->opname, OP_TO_LOG)) // "mcrfs"
+		{
 			rsplocations.push_back(jit.js.compilerPC);
 		}
 #endif

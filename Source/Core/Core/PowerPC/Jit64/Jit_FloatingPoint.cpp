@@ -136,10 +136,13 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	fpr.BindToRegister(d, false);
 	//YES it is necessary to dupe the result :(
 	//TODO : analysis - does the top reg get used? If so, dupe, if not, don't.
-	if (single_precision) {
+	if (single_precision)
+	{
 		ForceSinglePrecisionS(XMM0);
 		MOVDDUP(fpr.RX(d), R(XMM0));
-	} else {
+	}
+	else
+	{
 		MOVSD(fpr.RX(d), R(XMM0));
 	}
 	// SMB checks flags after this op. Let's lie.
@@ -159,7 +162,8 @@ void Jit64::fsign(UGeckoInstruction inst)
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d, true, true);
 	MOVSD(XMM0, fpr.R(b));
-	switch (inst.SUBOP10) {
+	switch (inst.SUBOP10)
+	{
 	case 40:  // fnegx
 		PXOR(XMM0, M((void*)&psSignBits2));
 		break;

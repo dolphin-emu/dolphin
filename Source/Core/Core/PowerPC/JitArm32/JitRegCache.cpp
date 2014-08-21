@@ -28,6 +28,7 @@ void ArmRegCache::Init(ARMXEmitter *emitter)
 		ArmRegs[a].free = true;
 	}
 }
+
 void ArmRegCache::Start(PPCAnalyst::BlockRegStats &stats)
 {
 	// Make sure the state is wiped on Start
@@ -71,6 +72,7 @@ ARMReg *ArmRegCache::GetAllocationOrder(int &count)
 ARMReg ArmRegCache::GetReg(bool AutoLock)
 {
 	for (u8 a = 0; a < NUMARMREG; ++a)
+	{
 		if (ArmRegs[a].free)
 		{
 			// Alright, this one is free
@@ -78,6 +80,8 @@ ARMReg ArmRegCache::GetReg(bool AutoLock)
 				ArmRegs[a].free = false;
 			return ArmRegs[a].Reg;
 		}
+	}
+
 	// Uh Oh, we have all them locked....
 	_assert_msg_(_DYNA_REC_, false, "All available registers are locked dumb dumb");
 	return R0;
@@ -92,11 +96,18 @@ void ArmRegCache::Unlock(ARMReg R0, ARMReg R1, ARMReg R2, ARMReg R3)
 			_assert_msg_(_DYNA_REC, !ArmRegs[RegNum].free, "This register is already unlocked");
 			ArmRegs[RegNum].free = true;
 		}
-		if ( R1 != INVALID_REG && ArmRegs[RegNum].Reg == R1) ArmRegs[RegNum].free = true;
-		if ( R2 != INVALID_REG && ArmRegs[RegNum].Reg == R2) ArmRegs[RegNum].free = true;
-		if ( R3 != INVALID_REG && ArmRegs[RegNum].Reg == R3) ArmRegs[RegNum].free = true;
+
+		if (R1 != INVALID_REG && ArmRegs[RegNum].Reg == R1)
+			ArmRegs[RegNum].free = true;
+
+		if (R2 != INVALID_REG && ArmRegs[RegNum].Reg == R2)
+			ArmRegs[RegNum].free = true;
+
+		if (R3 != INVALID_REG && ArmRegs[RegNum].Reg == R3)
+			ArmRegs[RegNum].free = true;
 	}
 }
+
 u32 ArmRegCache::GetLeastUsedRegister(bool increment)
 {
 	u32 HighestUsed = 0;
@@ -113,14 +124,17 @@ u32 ArmRegCache::GetLeastUsedRegister(bool increment)
 	}
 	return lastRegIndex;
 }
+
 bool ArmRegCache::FindFreeRegister(u32 &regindex)
 {
 	for (u8 a = 0; a < NUMPPCREG; ++a)
+	{
 		if (ArmCRegs[a].PPCReg == 33)
 		{
 			regindex = a;
 			return true;
 		}
+	}
 	return false;
 }
 

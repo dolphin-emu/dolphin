@@ -21,7 +21,8 @@ using namespace Gen;
 
 extern u8 *trampolineCodePtr;
 
-static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
+static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress)
+{
 	u64 code_addr = (u64)codePtr;
 	disassembler disasm;
 	char disbuf[256];
@@ -61,9 +62,10 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 
 	if (addrReg != ABI_PARAM1)
 		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
-	if (info.displacement) {
+
+	if (info.displacement)
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
-	}
+
 	ABI_PushRegistersAndAdjustStack(registersInUse, true);
 	switch (info.operandSize)
 	{
