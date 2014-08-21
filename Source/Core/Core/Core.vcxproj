@@ -246,8 +246,6 @@
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="Boot\Boot.h" />
     <ClInclude Include="Boot\Boot_DOL.h" />
-    <ClInclude Include="Boot\Boot_ELF.h" />
-    <ClInclude Include="Boot\Boot_WiiWAD.h" />
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
     <ClInclude Include="ConfigManager.h" />
