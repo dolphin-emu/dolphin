@@ -10,7 +10,7 @@ namespace SW
 
 class VideoSoftware : public VideoBackend
 {
-	bool Initialize(void *&) override;
+	bool Initialize(void *window_handle) override;
 	void Shutdown() override;
 
 	std::string GetName() const override;
@@ -48,7 +48,6 @@ class VideoSoftware : public VideoBackend
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 
-	void UpdateFPSDisplay(const std::string&) override;
 	unsigned int PeekMessages() override;
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;

@@ -10,9 +10,6 @@ if(NOT ANDROID)
 	if(USE_X11)
 		set(LIBS  ${LIBS} ${XRANDR_LIBRARIES})
 	endif()
-	if(USE_WAYLAND)
-		set(LIBS  ${LIBS} ${WAYLAND_LIBRARIES} ${XKBCOMMON_LIBRARIES})
-	endif()
 
 	link_directories(${CMAKE_PREFIX_PATH}/lib)
 else()
@@ -76,25 +73,23 @@ set(ANDROID_SRCS Android/ButtonManager.cpp
 	 MainAndroid.cpp)
 
 if(USE_EGL)
-	set(SRCS ${SRCS} GLInterface/Platform.cpp
-		GLInterface/EGL.cpp)	
-	if(USE_WAYLAND)
-		set(SRCS ${SRCS} GLInterface/Wayland_Util.cpp)
-	endif()
-	if(USE_X11)
-		set(SRCS ${SRCS} GLInterface/X11_Util.cpp)
-	endif()
-else()
-	if(WIN32)
-		set(SRCS ${SRCS} GLInterface/WGL.cpp)
-	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set(SRCS ${SRCS} GLInterface/AGL.cpp)
-	else()
-		set(SRCS ${SRCS} GLInterface/GLX.cpp
-			GLInterface/X11_Util.cpp)
-
+	set(SRCS ${SRCS} GLInterface/EGL.cpp)
+	if(ANDROID)
+		set(SRCS ${SRCS} GLInterface/EGLAndroid.cpp)
+	elseif(USE_X11)
+		set(SRCS ${SRCS} GLInterface/EGLX11.cpp)
 	endif()
 endif()
+
+if(WIN32)
+	set(SRCS ${SRCS} GLInterface/WGL.cpp)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(SRCS ${SRCS} GLInterface/AGL.cpp)
+elseif(USE_X11)
+	set(SRCS ${SRCS} GLInterface/GLX.cpp
+		GLInterface/X11_Util.cpp)
+endif()
+
 set(SRCS ${SRCS} GLInterface/GLInterface.cpp)
 
 set(NOGUI_SRCS MainNoGUI.cpp)

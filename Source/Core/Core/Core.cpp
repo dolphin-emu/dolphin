@@ -126,21 +126,6 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 	}
 
 	g_video_backend->Video_AddMessage(message, time_in_ms);
-
-	if (_CoreParameter.bRenderToMain &&
-		SConfig::GetInstance().m_InterfaceStatusbar)
-	{
-		Host_UpdateStatusBar(message);
-	}
-	else
-	{
-		Host_UpdateTitle(message);
-	}
-}
-
-void *GetWindowHandle()
-{
-	return g_pWindowHandle;
 }
 
 bool IsRunning()
@@ -213,9 +198,6 @@ bool Init()
 		     !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	}
 
-	// g_pWindowHandle is first the m_Panel handle,
-	// then it is updated to the render window handle,
-	// within g_video_backend->Initialize()
 	g_pWindowHandle = Host_GetRenderHandle();
 
 	// Start the emu thread
@@ -700,10 +682,6 @@ void UpdateTitle()
 	}
 	// This is our final "frame counter" string
 	std::string SMessage = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
-	std::string TMessage = StringFromFormat("%s | %s", scm_rev_str, SMessage.c_str());
-
-	// Show message
-	g_video_backend->UpdateFPSDisplay(SMessage);
 
 	// Update the audio timestretcher with the current speed
 	if (soundStream)
@@ -712,16 +690,7 @@ void UpdateTitle()
 		pMixer->UpdateSpeed((float)Speed / 100);
 	}
 
-	if (_CoreParameter.bRenderToMain &&
-		SConfig::GetInstance().m_InterfaceStatusbar)
-	{
-		Host_UpdateStatusBar(SMessage);
-		Host_UpdateTitle(scm_rev_str);
-	}
-	else
-	{
-		Host_UpdateTitle(TMessage);
-	}
+	Host_UpdateTitle(SMessage);
 }
 
 void Shutdown()

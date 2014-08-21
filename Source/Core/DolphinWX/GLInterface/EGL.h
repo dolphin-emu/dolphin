@@ -10,41 +10,23 @@
 #include "Core/ConfigManager.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
 
-
-class cPlatform
-{
-private:
-#if HAVE_X11
-	cXInterface XInterface;
-#endif
-#if HAVE_WAYLAND
-	cWaylandInterface WaylandInterface;
-#endif
-public:
-	enum egl_platform platform;
-	bool SelectDisplay(void);
-	bool Init(EGLConfig config, void *window_handle);
-	EGLDisplay EGLGetDisplay(void);
-	EGLNativeWindowType CreateWindow(void);
-	void DestroyWindow(void);
-	void UpdateFPSDisplay(const std::string& text);
-	void ToggleFullscreen(bool fullscreen);
-	void SwapBuffers();
-};
-
 class cInterfaceEGL : public cInterfaceBase
 {
-private:
-	cPlatform Platform;
+protected:
 	void DetectMode();
+	EGLSurface egl_surf;
+	EGLContext egl_ctx;
+	EGLDisplay egl_dpy;
+
+	virtual EGLDisplay OpenDisplay() = 0;
+	virtual EGLNativeWindowType InitializePlatform(EGLNativeWindowType host_window, EGLConfig config) = 0;
+	virtual void ShutdownPlatform() = 0;
 public:
-	friend class cPlatform;
 	void SwapInterval(int Interval);
 	void Swap();
 	void SetMode(u32 mode) { s_opengl_mode = mode; }
-	void UpdateFPSDisplay(const std::string& text);
 	void* GetFuncAddress(const std::string& name);
-	bool Create(void *&window_handle);
+	bool Create(void *window_handle);
 	bool MakeCurrent();
 	void Shutdown();
 };

@@ -8,7 +8,7 @@ namespace DX11
 
 class VideoBackend : public VideoBackendHardware
 {
-	bool Initialize(void *&) override;
+	bool Initialize(void *) override;
 	void Shutdown() override;
 
 	std::string GetName() const override;
@@ -19,7 +19,6 @@ class VideoBackend : public VideoBackendHardware
 
 	void ShowConfig(void* parent) override;
 
-	void UpdateFPSDisplay(const std::string&) override;
 	unsigned int PeekMessages() override;
 
 	void* m_window_handle;

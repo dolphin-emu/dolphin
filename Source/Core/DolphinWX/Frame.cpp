@@ -2,14 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-// CFrame is the main parent window. Inside CFrame there is an m_Panel that is
-// the parent for the rendering window (when we render to the main window). In
-// Windows the rendering window is created by giving CreateWindow()
-// m_Panel->GetHandle() as parent window and creating a new child window to
-// m_Panel. The new child window handle that is returned by CreateWindow() can
-// be accessed from Core::GetWindowHandle().
-
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
 #endif
@@ -636,6 +628,21 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 #endif
 
+void CFrame::UpdateTitle(const std::string &str)
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+	    SConfig::GetInstance().m_InterfaceStatusbar)
+	{
+		GetStatusBar()->SetStatusText(str, 0);
+		m_RenderFrame->SetTitle(scm_rev_str);
+	}
+	else
+	{
+		std::string titleStr = StringFromFormat("%s | %s", scm_rev_str, str.c_str());
+		m_RenderFrame->SetTitle(titleStr);
+	}
+}
+
 void CFrame::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -650,8 +657,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case IDM_UPDATETITLE:
-		if (m_RenderFrame != nullptr)
-			m_RenderFrame->SetTitle(event.GetString());
+		SetTitle(event.GetString());
 		break;
 
 	case IDM_WINDOWSIZEREQUEST:

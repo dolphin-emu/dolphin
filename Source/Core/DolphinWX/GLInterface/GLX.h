@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <GL/glx.h>
 
 #include "DolphinWX/GLInterface/X11_Util.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"
@@ -13,13 +14,16 @@ class cInterfaceGLX : public cInterfaceBase
 {
 private:
 	cX11Window XWindow;
+	Display *dpy;
+	Window win;
+	GLXContext ctx;
+	XVisualInfo *vi;
 public:
 	friend class cX11Window;
 	void SwapInterval(int Interval) override;
 	void Swap() override;
-	void UpdateFPSDisplay(const std::string& text) override;
 	void* GetFuncAddress(const std::string& name) override;
-	bool Create(void *&window_handle) override;
+	bool Create(void *window_handle);
 	bool MakeCurrent() override;
 	bool ClearCurrent() override;
 	void Shutdown() override;

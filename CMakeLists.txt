@@ -6,7 +6,6 @@ cmake_minimum_required(VERSION 2.8)
 option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
-option(TRY_WAYLAND "Enables Wayland Support" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 option(ENABLE_PCH "Use PCH to speed up compilation" ON)
@@ -324,7 +323,6 @@ if(ANDROID)
 	message("Building for Android")
 	add_definitions(-DANDROID)
 	set(USE_X11 0)
-	set(USE_WAYLAND 0)
 	set(USE_UPNP 0)
 	set(USE_EGL 1)
 endif()
@@ -407,26 +405,8 @@ if(NOT ANDROID)
 	endif(OPENAL_FOUND)
 
 	set(USE_X11 0)
-	set(USE_WAYLAND 0)
 
 	if(UNIX AND NOT APPLE)
-		# Note: The convention is to check TRY_X11 or TRY_WAYLAND where needed.
-		# This is where we detect platforms and set the variables accordingly.
-		pkg_check_modules(WAYLAND wayland-egl wayland-client wayland-cursor)
-		if(TRY_WAYLAND AND WAYLAND_FOUND)
-			pkg_check_modules(XKBCOMMON xkbcommon)
-			if(XKBCOMMON_FOUND)
-				set(USE_WAYLAND 1)
-				add_definitions(-DHAVE_WAYLAND)
-				include_directories(${WAYLAND_INCLUDE_DIR})
-				message("Wayland support enabled")
-			endif(XKBCOMMON_FOUND)
-		else()
-			set(USE_WAYLAND 0)
-			message("Wayland support disabled")
-			add_definitions(-DHAVE_WAYLAND=0)
-		endif(TRY_WAYLAND AND WAYLAND_FOUND)
-
 		# Note: We do not need to explicitly check for X11 as it is done in the cmake
 		# FindOpenGL module on linux.
 		if(TRY_X11 AND X11_FOUND)
@@ -441,17 +421,11 @@ if(NOT ANDROID)
 			add_definitions(-DHAVE_X11=0)
 		endif(TRY_X11 AND X11_FOUND)
 
-		if (NOT USE_WAYLAND AND NOT USE_X11)
+		if (NOT USE_X11)
 			message(FATAL_ERROR "\n"
 				"No suitable display platform found\n"
-				"Requires wayland or x11 to run")
+				"Requires x11 to run")
 		endif()
-	endif()
-
-	# For now Wayland and EGL are tied to each other.
-	# The alternative would be an shm path
-	if(USE_WAYLAND)
-		set(USE_EGL 1)
 	endif()
 
 	if(USE_X11)

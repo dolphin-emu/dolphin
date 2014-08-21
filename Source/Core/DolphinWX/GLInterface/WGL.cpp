@@ -6,7 +6,7 @@
 
 #include "Core/Host.h"
 
-#include "DolphinWX/GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/WGL.h"
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -55,15 +55,9 @@ bool cInterfaceWGL::PeekMessages()
 	return TRUE;
 }
 
-// Show the current FPS
-void cInterfaceWGL::UpdateFPSDisplay(const std::string& text)
-{
-	SetWindowTextA(m_window_handle, text.c_str());
-}
-
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceWGL::Create(void *&window_handle)
+bool cInterfaceWGL::Create(void *window_handle)
 {
 	if (window_handle == nullptr)
 		return false;

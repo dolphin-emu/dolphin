@@ -51,12 +51,6 @@ unsigned int VideoBackend::PeekMessages()
 	return TRUE;
 }
 
-void VideoBackend::UpdateFPSDisplay(const std::string& text)
-{
-	std::string str = StringFromFormat("%s | D3D | %s", scm_rev_str, text.c_str());
-	SetWindowTextA((HWND)m_window_handle, str.c_str());
-}
-
 std::string VideoBackend::GetName() const
 {
 	return "D3D";
@@ -141,7 +135,7 @@ void VideoBackend::ShowConfig(void *hParent)
 	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_dx11");
 }
 
-bool VideoBackend::Initialize(void *&window_handle)
+bool VideoBackend::Initialize(void *window_handle)
 {
 	if (window_handle == nullptr)
 		return false;

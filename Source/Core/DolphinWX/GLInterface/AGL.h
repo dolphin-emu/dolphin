@@ -12,9 +12,12 @@
 
 class cInterfaceAGL : public cInterfaceBase
 {
+private:
+	NSView *cocoaWin;
+	NSOpenGLContext *cocoaCtx;
 public:
 	void Swap();
-	bool Create(void *&window_handle);
+	bool Create(void *window_handle);
 	bool MakeCurrent();
 	bool ClearCurrent();
 	void Shutdown();

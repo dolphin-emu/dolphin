@@ -24,21 +24,15 @@ extern char **environ;
 namespace X11Utils
 {
 
-void EWMH_Fullscreen(Display *dpy, int action)
+void ToggleFullscreen(Display *dpy, Window win)
 {
-	_assert_(action == _NET_WM_STATE_REMOVE ||
-	         action == _NET_WM_STATE_ADD ||
-	         action == _NET_WM_STATE_TOGGLE);
-
-	Window win = (Window)Core::GetWindowHandle();
-
 	// Init X event structure for _NET_WM_STATE_FULLSCREEN client message
 	XEvent event;
 	event.xclient.type = ClientMessage;
 	event.xclient.message_type = XInternAtom(dpy, "_NET_WM_STATE", False);
 	event.xclient.window = win;
 	event.xclient.format = 32;
-	event.xclient.data.l[0] = action;
+	event.xclient.data.l[0] = _NET_WM_STATE_TOGGLE;
 	event.xclient.data.l[1] = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
 
 	// Send the event
