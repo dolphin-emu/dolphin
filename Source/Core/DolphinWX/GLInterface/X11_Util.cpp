@@ -22,9 +22,16 @@ Window cX11Window::CreateXWindow(Window parent, XVisualInfo *vi)
 	// Setup window attributes
 	attr.colormap = colormap;
 
+	XWindowAttributes attribs;
+	if (!XGetWindowAttributes(dpy, parent, &attribs))
+	{
+		ERROR_LOG(VIDEO, "Window attribute retrieval failed");
+		return 0;
+	}
+
 	// Create the window
 	win = XCreateWindow(dpy, parent,
-			    0, 0, 1, 1, 0,
+			    0, 0, attribs.width, attribs.height, 0,
 			    vi->depth, InputOutput, vi->visual,
 			    CWColormap, &attr);
 	XSelectInput(dpy, parent, StructureNotifyMask);
