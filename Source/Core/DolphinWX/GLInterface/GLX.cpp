@@ -97,6 +97,17 @@ bool cInterfaceGLX::Create(void *window_handle)
 	XWindow.Initialize(dpy);
 
 	Window parent = (Window)window_handle;
+
+	XWindowAttributes attribs;
+	if (!XGetWindowAttributes(dpy, parent, &attribs))
+	{
+		ERROR_LOG(VIDEO, "Window attribute retrieval failed");
+		return false;
+	}
+
+	s_backbuffer_width  = attribs.width;
+	s_backbuffer_height = attribs.height;
+
 	win = XWindow.CreateXWindow(parent, vi);
 	return true;
 }
