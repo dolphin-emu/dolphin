@@ -5,7 +5,6 @@
 #include "Common/FileUtil.h"
 
 #include "Core/Boot/Boot.h"
-#include "Core/Boot/Boot_ELF.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/PowerPC.h"
