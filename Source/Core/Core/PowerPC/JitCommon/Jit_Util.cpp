@@ -825,10 +825,10 @@ void EmuCodeBlock::JitSetCAIf(CCFlags conditionCode)
 	OR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); //XER.CA = 1
 }
 
-void EmuCodeBlock::JitClearCAOV(bool oe)
+void EmuCodeBlock::JitClearCAOV(bool ca, bool oe)
 {
-	if (oe)
-		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_CA_MASK & ~XER_OV_MASK)); //XER.CA, XER.OV = 0
-	else
-		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
+	u32 mask = (ca ? ~XER_CA_MASK : 0xFFFFFFFF) & (oe ? ~XER_OV_MASK : 0xFFFFFFFF);
+	if (mask == 0xFFFFFFFF)
+		return;
+	AND(32, PPCSTATE(spr[SPR_XER]), Imm32(mask));
 }

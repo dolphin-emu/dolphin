@@ -100,7 +100,7 @@ public:
 	void GenerateConstantOverflow(bool overflow);
 	void GenerateConstantOverflow(s64 val);
 	void GenerateOverflow();
-	void FinalizeCarryOverflow(bool oe, bool inv = false);
+	void FinalizeCarryOverflow(bool ca, bool oe, bool inv = false);
 	void ComputeRC(const Gen::OpArg & arg);
 
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
