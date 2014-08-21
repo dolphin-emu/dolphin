@@ -698,6 +698,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		}
 	}
 
+	block->m_num_instructions = num_inst;
+
 	if (block->m_num_instructions > 1)
 		ReorderInstructions(block->m_num_instructions, code);
 
@@ -727,7 +729,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		code[i].wantsCR1 = wantsCR1;
 		code[i].wantsPS1 = wantsPS1;
 	}
-	block->m_num_instructions = num_inst;
 	return address;
 }
 
