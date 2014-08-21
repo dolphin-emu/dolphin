@@ -34,7 +34,7 @@ static GekkoOPTemplate primarytable[] =
 	{10, Interpreter::cmpli,        {"cmpli",    OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn, 1, 0, 0, 0}},
 	{11, Interpreter::cmpi,         {"cmpi",     OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn, 1, 0, 0, 0}},
 	{12, Interpreter::addic,        {"addic",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA, 1, 0, 0, 0}},
-	{13, Interpreter::addic_rc,     {"addic_rc", OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CR0, 1, 0, 0, 0}},
+	{13, Interpreter::addic_rc,     {"addic_rc", OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA | FL_SET_CR0, 1, 0, 0, 0}},
 	{14, Interpreter::addi,         {"addi",     OPTYPE_INTEGER, FL_OUT_D | FL_IN_A0, 1, 0, 0, 0}},
 	{15, Interpreter::addis,        {"addis",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A0, 1, 0, 0, 0}},
 
@@ -180,8 +180,8 @@ static GekkoOPTemplate table31[] =
 	{922, Interpreter::extshx,      {"extshx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT, 1, 0, 0, 0}},
 	{954, Interpreter::extsbx,      {"extsbx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT, 1, 0, 0, 0}},
 	{536, Interpreter::srwx,        {"srwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT, 1, 0, 0, 0}},
-	{792, Interpreter::srawx,       {"srawx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT, 1, 0, 0, 0}},
-	{824, Interpreter::srawix,      {"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT, 1, 0, 0, 0}},
+	{792, Interpreter::srawx,       {"srawx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
+	{824, Interpreter::srawix,      {"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_SET_CA | FL_RC_BIT, 1, 0, 0, 0}},
 	{24,  Interpreter::slwx,        {"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT, 1, 0, 0, 0}},
 
 	{54,   Interpreter::dcbst,      {"dcbst",  OPTYPE_DCACHE, 0, 5, 0, 0, 0}},
@@ -260,7 +260,7 @@ static GekkoOPTemplate table31[] =
 	{339, Interpreter::mfspr,       {"mfspr",  OPTYPE_SPR, FL_OUT_D, 1, 0, 0, 0}},
 	{467, Interpreter::mtspr,       {"mtspr",  OPTYPE_SPR, 0, 2, 0, 0, 0}},
 	{371, Interpreter::mftb,        {"mftb",   OPTYPE_SYSTEM, FL_OUT_D | FL_TIMER, 1, 0, 0, 0}},
-	{512, Interpreter::mcrxr,       {"mcrxr",  OPTYPE_SYSTEM, 0, 1, 0, 0, 0}},
+	{512, Interpreter::mcrxr,       {"mcrxr",  OPTYPE_SYSTEM, FL_READ_CA | FL_SET_CA, 1, 0, 0, 0}},
 	{595, Interpreter::mfsr,        {"mfsr",   OPTYPE_SYSTEM, FL_OUT_D, 3, 0, 0, 0}},
 	{659, Interpreter::mfsrin,      {"mfsrin", OPTYPE_SYSTEM, FL_OUT_D, 3, 0, 0, 0}},
 
