@@ -136,10 +136,10 @@ void Preset(bool _bNTSC)
 	m_VBeamPos = 0; // RG4JC0 checks for a zero VBeamPos
 
 	// 54MHz, capable of progressive scan
-	m_Clock = Core::g_CoreStartupParameter.bProgressive;
+	m_Clock = Core::g_CoreStartupParameter.m_progressive;
 
 	// Say component cable is plugged
-	m_DTVStatus.component_plugged = Core::g_CoreStartupParameter.bProgressive;
+	m_DTVStatus.component_plugged = Core::g_CoreStartupParameter.m_progressive;
 
 	UpdateParameters();
 }
@@ -171,7 +171,7 @@ void Init()
 
 	fields = 1;
 
-	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.bForceNTSCJ;
+	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.m_force_NTSCJ;
 
 	for (UVIInterruptRegister& reg : m_InterruptRegister)
 	{
@@ -399,7 +399,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void SetRegionReg(char region)
 {
-	if (!Core::g_CoreStartupParameter.bForceNTSCJ)
+	if (!Core::g_CoreStartupParameter.m_force_NTSCJ)
 		m_DTVStatus.ntsc_j = region == 'J';
 }
 
@@ -477,7 +477,7 @@ void UpdateParameters()
 
 int GetNumFields()
 {
-	if (Core::g_CoreStartupParameter.bVBeamSpeedHack)
+	if (Core::g_CoreStartupParameter.m_vbeam_speed_hack)
 		return (2 / fields);
 	else
 		return 1;
@@ -491,7 +491,7 @@ unsigned int GetTicksPerLine()
 	}
 	else
 	{
-		if (Core::g_CoreStartupParameter.bVBeamSpeedHack)
+		if (Core::g_CoreStartupParameter.m_vbeam_speed_hack)
 			return TicksPerFrame / s_lineCount;
 		else
 			return TicksPerFrame / (s_lineCount / (2 / fields)) ;

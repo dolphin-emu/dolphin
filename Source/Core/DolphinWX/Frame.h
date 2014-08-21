@@ -122,7 +122,7 @@ public:
 	bool RendererHasFocus();
 	bool UIHasFocus();
 	void DoFullscreen(bool bF);
-	void ToggleDisplayMode (bool bFullscreen);
+	void ToggleDisplayMode (bool m_fullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
 	void PopulateSavedPerspectives();
 	static void ConnectWiimote(int wm_idx, bool connect);

@@ -11,7 +11,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h" // for bWii
+#include "Core/Core.h" // for m_wii
 #include "Core/CoreParameter.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
@@ -20,345 +20,345 @@
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/VolumeCreator.h"
 
-SCoreStartupParameter::SCoreStartupParameter()
-: bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
-  bJITNoBlockCache(false), bJITBlockLinking(true),
-  bJITOff(false),
-  bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
-  bJITLoadStorelwzOff(false), bJITLoadStorelbzxOff(false),
-  bJITLoadStoreFloatingOff(false), bJITLoadStorePairedOff(false),
-  bJITFloatingPointOff(false), bJITIntegerOff(false),
-  bJITPairedOff(false), bJITSystemRegistersOff(false),
-  bJITBranchOff(false),
-  bJITILTimeProfiling(false), bJITILOutputIR(false),
-  bEnableFPRF(false),
-  bCPUThread(true), bDSPThread(false), bDSPHLE(true),
-  bSkipIdle(true), bNTSC(false), bForceNTSCJ(false),
-  bHLE_BS2(true), bEnableCheats(false),
-  bMergeBlocks(false), bEnableMemcardSaving(true),
-  bDPL2Decoder(false), iLatency(14),
-  bRunCompareServer(false), bRunCompareClient(false),
-  bMMU(false), bDCBZOFF(false), bTLBHack(false), iBBDumpPort(0), bVBeamSpeedHack(false),
-  bSyncGPU(false), bFastDiscSpeed(false),
-  SelectedLanguage(0), bWii(false),
-  bConfirmStop(false), bHideCursor(false),
-  bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
-  iRenderWindowXPos(-1), iRenderWindowYPos(-1),
-  iRenderWindowWidth(640), iRenderWindowHeight(480),
-  bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
-  bFullscreen(false), bRenderToMain(false),
-  bProgressive(false), bDisableScreenSaver(false),
-  iPosX(100), iPosY(100), iWidth(800), iHeight(600),
-  bLoopFifoReplay(true)
+CoreStartupParameter::CoreStartupParameter()
+: m_enable_debugging(false), m_automatic_start(false), m_boot_to_pause(false),
+  m_JIT_no_block_cache(false), m_JIT_block_linking(true),
+  m_JIT_off(false),
+  m_JIT_load_store_off(false), m_JIT_load_store_lxz_off(false),
+  m_JIT_load_store_lwz_off(false), m_JIT_load_store_lbzx_off(false),
+  m_JIT_load_store_floating_off(false), m_JIT_load_store_paired_off(false),
+  m_JIT_floating_point_off(false), m_JIT_integer_off(false),
+  m_JIT_paired_off(false), m_JIT_system_registers_off(false),
+  m_JIT_branch_off(false),
+  m_JITIL_time_profiling(false), m_JITIL_output_IR(false),
+  m_enable_FPRF(false),
+  m_CPU_thread(true), m_DSP_thread(false), m_DSPHLE(true),
+  m_skip_idle(true), m_NTSC(false), m_force_NTSCJ(false),
+  m_HLE_BS2(true), m_enable_cheats(false),
+  m_merge_blocks(false), m_enable_memcard_saving(true),
+  m_DPL2_decoder(false), m_latency(14),
+  m_run_compare_server(false), m_run_compare_client(false),
+  m_MMU(false), m_DCBZOFF(false), m_TLB_hack(false), m_BB_dump_port(0), m_vbeam_speed_hack(false),
+  m_sync_GPU(false), m_fast_disc_speed(false),
+  m_selected_language(0), m_wii(false),
+  m_confirm_stop(false), m_hide_cursor(false),
+  m_auto_hide_cursor(false), m_use_panic_handlers(true), m_on_screen_display_messages(true),
+  m_render_window_xpos(-1), m_render_window_ypos(-1),
+  m_render_window_width(640), m_render_window_height(480),
+  m_render_window_auto_size(false), m_keep_window_on_top(false),
+  m_fullscreen(false), m_render_to_main(false),
+  m_progressive(false), m_disable_screen_saver(false),
+  m_posx(100), m_posy(100), m_width(800), m_height(600),
+  m_loop_fifo_replay(true)
 {
 	LoadDefaults();
 }
 
-void SCoreStartupParameter::LoadDefaults()
+void CoreStartupParameter::LoadDefaults()
 {
-	bEnableDebugging = false;
-	bAutomaticStart = false;
-	bBootToPause = false;
+	m_enable_debugging = false;
+	m_automatic_start = false;
+	m_boot_to_pause = false;
 
 	#ifdef USE_GDBSTUB
-	iGDBPort = -1;
+	m_GDB_port = -1;
 	#endif
 
-	iCPUCore = 1;
-	bCPUThread = false;
-	bSkipIdle = false;
-	bRunCompareServer = false;
-	bDSPHLE = true;
-	bDSPThread = true;
-	bFastmem = true;
-	bEnableFPRF = false;
-	bMMU = false;
-	bDCBZOFF = false;
-	bTLBHack = false;
-	iBBDumpPort = -1;
-	bVBeamSpeedHack = false;
-	bSyncGPU = false;
-	bFastDiscSpeed = false;
-	bMergeBlocks = false;
-	bEnableMemcardSaving = true;
-	SelectedLanguage = 0;
-	bWii = false;
-	bDPL2Decoder = false;
-	iLatency = 14;
+	m_CPU_core = 1;
+	m_CPU_thread = false;
+	m_skip_idle = false;
+	m_run_compare_server = false;
+	m_DSPHLE = true;
+	m_DSP_thread = true;
+	m_fastmem = true;
+	m_enable_FPRF = false;
+	m_MMU = false;
+	m_DCBZOFF = false;
+	m_TLB_hack = false;
+	m_BB_dump_port = -1;
+	m_vbeam_speed_hack = false;
+	m_sync_GPU = false;
+	m_fast_disc_speed = false;
+	m_merge_blocks = false;
+	m_enable_memcard_saving = true;
+	m_selected_language = 0;
+	m_wii = false;
+	m_DPL2_decoder = false;
+	m_latency = 14;
 
-	iPosX = 100;
-	iPosY = 100;
-	iWidth = 800;
-	iHeight = 600;
+	m_posx = 100;
+	m_posy = 100;
+	m_width = 800;
+	m_height = 600;
 
-	bLoopFifoReplay = true;
+	m_loop_fifo_replay = true;
 
-	bJITOff = false; // debugger only settings
-	bJITLoadStoreOff = false;
-	bJITLoadStoreFloatingOff = false;
-	bJITLoadStorePairedOff = false; // XXX not 64-bit clean
-	bJITFloatingPointOff = false;
-	bJITIntegerOff = false;
-	bJITPairedOff = false;
-	bJITSystemRegistersOff = false;
+	m_JIT_off = false; // debugger only settings
+	m_JIT_load_store_off = false;
+	m_JIT_load_store_floating_off = false;
+	m_JIT_load_store_paired_off = false; // XXX not 64-bit clean
+	m_JIT_floating_point_off = false;
+	m_JIT_integer_off = false;
+	m_JIT_paired_off = false;
+	m_JIT_system_registers_off = false;
 
-	m_strName = "NONE";
-	m_strUniqueID = "00000000";
+	m_name = "NONE";
+	m_unique_ID = "00000000";
 }
 
-bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
+bool CoreStartupParameter::AutoSetup(BootBS2 boot_BS2)
 {
-	std::string Region(EUR_DIR);
+	std::string region(EUR_DIR);
 
-	switch (_BootBS2)
+	switch (boot_BS2)
 	{
 	case BOOT_DEFAULT:
 		{
-			bool bootDrive = cdio_is_cdrom(m_strFilename);
+			bool boot_drive = cdio_is_cdrom(m_filename);
 			// Check if the file exist, we may have gotten it from a --elf command line
 			// that gave an incorrect file name
-			if (!bootDrive && !File::Exists(m_strFilename))
+			if (!boot_drive && !File::Exists(m_filename))
 			{
-				PanicAlertT("The specified file \"%s\" does not exist", m_strFilename.c_str());
+				PanicAlertT("The specified file \"%s\" does not exist", m_filename.c_str());
 				return false;
 			}
 
-			std::string Extension;
-			SplitPath(m_strFilename, nullptr, nullptr, &Extension);
-			if (!strcasecmp(Extension.c_str(), ".gcm") ||
-				!strcasecmp(Extension.c_str(), ".iso") ||
-				!strcasecmp(Extension.c_str(), ".wbfs") ||
-				!strcasecmp(Extension.c_str(), ".ciso") ||
-				!strcasecmp(Extension.c_str(), ".gcz") ||
-				bootDrive)
+			std::string extension;
+			SplitPath(m_filename, nullptr, nullptr, &extension);
+			if (!strcasecmp(extension.c_str(), ".gcm") ||
+				!strcasecmp(extension.c_str(), ".iso") ||
+				!strcasecmp(extension.c_str(), ".wbfs") ||
+				!strcasecmp(extension.c_str(), ".ciso") ||
+				!strcasecmp(extension.c_str(), ".gcz") ||
+				boot_drive)
 			{
-				m_BootType = BOOT_ISO;
-				DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename);
-				if (pVolume == nullptr)
+				m_boot_type = BOOT_ISO;
+				DiscIO::IVolume* p_volume = DiscIO::CreateVolumeFromFilename(m_filename);
+				if (p_volume == nullptr)
 				{
-					if (bootDrive)
+					if (boot_drive)
 						PanicAlertT("Could not read \"%s\".  "
 								"There is no disc in the drive, or it is not a GC/Wii backup.  "
 								"Please note that original GameCube and Wii discs cannot be read "
-								"by most PC DVD drives.", m_strFilename.c_str());
+								"by most PC DVD drives.", m_filename.c_str());
 					else
 						PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.",
-								m_strFilename.c_str());
+								m_filename.c_str());
 					return false;
 				}
-				m_strName = pVolume->GetName();
-				m_strUniqueID = pVolume->GetUniqueID();
-				m_strRevisionSpecificUniqueID = pVolume->GetRevisionSpecificUniqueID();
+				m_name = p_volume->GetName();
+				m_unique_ID = p_volume->GetUniqueID();
+				m_revision_specific_unique_ID = p_volume->GetRevisionSpecificUniqueID();
 
 				// Check if we have a Wii disc
-				bWii = DiscIO::IsVolumeWiiDisc(pVolume);
-				switch (pVolume->GetCountry())
+				m_wii = DiscIO::IsVolumeWiiDisc(p_volume);
+				switch (p_volume->GetCountry())
 				{
 				case DiscIO::IVolume::COUNTRY_USA:
-					bNTSC = true;
-					Region = USA_DIR;
+					m_NTSC = true;
+					region = USA_DIR;
 					break;
 
 				case DiscIO::IVolume::COUNTRY_TAIWAN:
 				case DiscIO::IVolume::COUNTRY_KOREA:
 					// TODO: Should these have their own Region Dir?
 				case DiscIO::IVolume::COUNTRY_JAPAN:
-					bNTSC = true;
-					Region = JAP_DIR;
+					m_NTSC = true;
+					region = JAP_DIR;
 					break;
 
 				case DiscIO::IVolume::COUNTRY_EUROPE:
 				case DiscIO::IVolume::COUNTRY_FRANCE:
 				case DiscIO::IVolume::COUNTRY_ITALY:
 				case DiscIO::IVolume::COUNTRY_RUSSIA:
-					bNTSC = false;
-					Region = EUR_DIR;
+					m_NTSC = false;
+					region = EUR_DIR;
 					break;
 
 				default:
 					if (PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
 								   "\nContinue with PAL region?"))
 					{
-						bNTSC = false;
-						Region = EUR_DIR;
+						m_NTSC = false;
+						region = EUR_DIR;
 						break;
 					}else return false;
 				}
 
-				delete pVolume;
+				delete p_volume;
 			}
-			else if (!strcasecmp(Extension.c_str(), ".elf"))
+			else if (!strcasecmp(extension.c_str(), ".elf"))
 			{
-				bWii = CBoot::IsElfWii(m_strFilename);
-				Region = USA_DIR;
-				m_BootType = BOOT_ELF;
-				bNTSC = true;
+				m_wii = CBoot::IsElfWii(m_filename);
+				region = USA_DIR;
+				m_boot_type = BOOT_ELF;
+				m_NTSC = true;
 			}
-			else if (!strcasecmp(Extension.c_str(), ".dol"))
+			else if (!strcasecmp(extension.c_str(), ".dol"))
 			{
-				CDolLoader dolfile(m_strFilename);
-				bWii = dolfile.IsWii();
-				Region = USA_DIR;
-				m_BootType = BOOT_DOL;
-				bNTSC = true;
+				CDolLoader dolfile(m_filename);
+				m_wii = dolfile.IsWii();
+				region = USA_DIR;
+				m_boot_type = BOOT_DOL;
+				m_NTSC = true;
 			}
-			else if (!strcasecmp(Extension.c_str(), ".dff"))
+			else if (!strcasecmp(extension.c_str(), ".dff"))
 			{
-				bWii = true;
-				Region = USA_DIR;
-				bNTSC = true;
-				m_BootType = BOOT_DFF;
+				m_wii = true;
+				region = USA_DIR;
+				m_NTSC = true;
+				m_boot_type = BOOT_DFF;
 
-				FifoDataFile *ddfFile = FifoDataFile::Load(m_strFilename, true);
+				FifoDataFile* ddf_file = FifoDataFile::Load(m_filename, true);
 
-				if (ddfFile)
+				if (ddf_file)
 				{
-					bWii = ddfFile->GetIsWii();
-					delete ddfFile;
+					m_wii = ddf_file->GetIsWii();
+					delete ddf_file;
 				}
 			}
-			else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
+			else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_filename).IsValid())
 			{
-				const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename);
-				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
+				const DiscIO::IVolume* p_volume = DiscIO::CreateVolumeFromFilename(m_filename);
+				const DiscIO::INANDContentLoader& content_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_filename);
 
-				if (ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex()) == nullptr)
+				if (content_loader.GetContentByIndex(content_loader.GetBootIndex()) == nullptr)
 				{
 					//WAD is valid yet cannot be booted. Install instead.
-					u64 installed = DiscIO::CNANDContentManager::Access().Install_WiiWAD(m_strFilename);
+					u64 installed = DiscIO::CNANDContentManager::Access().Install_WiiWAD(m_filename);
 					if (installed)
 						SuccessAlertT("The WAD has been installed successfully");
 					return false; //do not boot
 				}
 
-				switch (ContentLoader.GetCountry())
+				switch (content_loader.GetCountry())
 				{
 				case DiscIO::IVolume::COUNTRY_USA:
-					bNTSC = true;
-					Region = USA_DIR;
+					m_NTSC = true;
+					region = USA_DIR;
 					break;
 
 				case DiscIO::IVolume::COUNTRY_TAIWAN:
 				case DiscIO::IVolume::COUNTRY_KOREA:
 					// TODO: Should these have their own Region Dir?
 				case DiscIO::IVolume::COUNTRY_JAPAN:
-					bNTSC = true;
-					Region = JAP_DIR;
+					m_NTSC = true;
+					region = JAP_DIR;
 					break;
 
 				case DiscIO::IVolume::COUNTRY_EUROPE:
 				case DiscIO::IVolume::COUNTRY_FRANCE:
 				case DiscIO::IVolume::COUNTRY_ITALY:
 				case DiscIO::IVolume::COUNTRY_RUSSIA:
-					bNTSC = false;
-					Region = EUR_DIR;
+					m_NTSC = false;
+					region = EUR_DIR;
 					break;
 
 				default:
-					bNTSC = false;
-					Region = EUR_DIR;
+					m_NTSC = false;
+					region = EUR_DIR;
 						break;
 				}
 
-				bWii = true;
-				m_BootType = BOOT_WII_NAND;
+				m_wii = true;
+				m_boot_type = BOOT_WII_NAND;
 
-				if (pVolume)
+				if (p_volume)
 				{
-					m_strName = pVolume->GetName();
-					m_strUniqueID = pVolume->GetUniqueID();
-					delete pVolume;
+					m_name = p_volume->GetName();
+					m_unique_ID = p_volume->GetUniqueID();
+					delete p_volume;
 				}
 				else
 				{
 					// null pVolume means that we are loading from nand folder (Most Likely Wii Menu)
 					// if this is the second boot we would be using the Name and id of the last title
-					m_strName.clear();
-					m_strUniqueID.clear();
+					m_name.clear();
+					m_unique_ID.clear();
 				}
 
 				// Use the TitleIDhex for name and/or unique ID if launching from nand folder
 				// or if it is not ascii characters (specifically sysmenu could potentially apply to other things)
 				char titleidstr[17];
-				snprintf(titleidstr, 17, "%016" PRIx64, ContentLoader.GetTitleID());
+				snprintf(titleidstr, 17, "%016" PRIx64, content_loader.GetTitleID());
 
-				if (!m_strName.length())
+				if (!m_name.length())
 				{
-					m_strName = titleidstr;
+					m_name = titleidstr;
 				}
-				if (!m_strUniqueID.length())
+				if (!m_unique_ID.length())
 				{
-					m_strUniqueID = titleidstr;
+					m_unique_ID = titleidstr;
 				}
 
 			}
 			else
 			{
-				PanicAlertT("Could not recognize ISO file %s", m_strFilename.c_str());
+				PanicAlertT("Could not recognize ISO file %s", m_filename.c_str());
 				return false;
 			}
 		}
 		break;
 
 	case BOOT_BS2_USA:
-		Region = USA_DIR;
-		m_strFilename.clear();
-		bNTSC = true;
+		region = USA_DIR;
+		m_filename.clear();
+		m_NTSC = true;
 		break;
 
 	case BOOT_BS2_JAP:
-		Region = JAP_DIR;
-		m_strFilename.clear();
-		bNTSC = true;
+		region = JAP_DIR;
+		m_filename.clear();
+		m_NTSC = true;
 		break;
 
 	case BOOT_BS2_EUR:
-		Region = EUR_DIR;
-		m_strFilename.clear();
-		bNTSC = false;
+		region = EUR_DIR;
+		m_filename.clear();
+		m_NTSC = false;
 		break;
 	}
 
 	// Setup paths
-	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, Region, true);
-	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, Region, false);
-	m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
-	if (!bWii)
+	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, region, true);
+	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, region, false);
+	m_SRAM = File::GetUserPath(F_GCSRAM_IDX);
+	if (!m_wii)
 	{
-		m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + Region + DIR_SEP GC_IPL;
-		if (!File::Exists(m_strBootROM))
-			m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
+		m_boot_ROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + region + DIR_SEP GC_IPL;
+		if (!File::Exists(m_boot_ROM))
+			m_boot_ROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + region + DIR_SEP GC_IPL;
 
-		if (!bHLE_BS2)
+		if (!m_HLE_BS2)
 		{
-			if (!File::Exists(m_strBootROM))
+			if (!File::Exists(m_boot_ROM))
 			{
-				WARN_LOG(BOOT, "Bootrom file %s not found - using HLE.", m_strBootROM.c_str());
-				bHLE_BS2 = true;
+				WARN_LOG(BOOT, "Bootrom file %s not found - using HLE.", m_boot_ROM.c_str());
+				m_HLE_BS2 = true;
 			}
 		}
 	}
-	else if (bWii && !bHLE_BS2)
+	else if (m_wii && !m_HLE_BS2)
 	{
 		WARN_LOG(BOOT, "GC bootrom file will not be loaded for Wii mode.");
-		bHLE_BS2 = true;
+		m_HLE_BS2 = true;
 	}
 
 	return true;
 }
 
-void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::string gameRegion, bool isSlotA)
+void CoreStartupParameter::CheckMemcardPath(std::string& memcard_path, std::string game_region, bool is_slot_a)
 {
-	std::string ext("." + gameRegion + ".raw");
-	if (memcardPath.empty())
+	std::string ext("." + game_region + ".raw");
+	if (memcard_path.empty())
 	{
 		// Use default memcard path if there is no user defined name
-		std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-		memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+		std::string default_filename = is_slot_a ? GC_MEMCARDA : GC_MEMCARDB;
+		memcard_path = File::GetUserPath(D_GCUSER_IDX) + default_filename + ext;
 	}
 	else
 	{
-		std::string filename = memcardPath;
+		std::string filename = memcard_path;
 		std::string region = filename.substr(filename.size()-7, 3);
 		bool hasregion = false;
 		hasregion |= region.compare(USA_DIR) == 0;
@@ -370,52 +370,52 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 			if (File::Exists(filename))
 			{
 				// If the old file exists we are polite and ask if we should copy it
-				std::string oldFilename = filename;
+				std::string old_filename = filename;
 				filename.replace(filename.size()-4, 4, ext);
 				if (PanicYesNoT("Memory Card filename in Slot %c is incorrect\n"
 					"Region not specified\n\n"
 					"Slot %c path was changed to\n"
 					"%s\n"
 					"Would you like to copy the old file to this new location?\n",
-					isSlotA ? 'A':'B', isSlotA ? 'A':'B', filename.c_str()))
+					is_slot_a ? 'A':'B', is_slot_a ? 'A':'B', filename.c_str()))
 				{
-					if (!File::Copy(oldFilename, filename))
+					if (!File::Copy(old_filename, filename))
 						PanicAlertT("Copy failed");
 				}
 			}
-			memcardPath = filename; // Always correct the path!
+			memcard_path = filename; // Always correct the path!
 		}
-		else if (region.compare(gameRegion) != 0)
+		else if (region.compare(game_region) != 0)
 		{
 			// filename has region, but it's not == gameRegion
 			// Just set the correct filename, the EXI Device will create it if it doesn't exist
-			memcardPath = filename.replace(filename.size()-ext.size(), ext.size(), ext);;
+			memcard_path = filename.replace(filename.size()-ext.size(), ext.size(), ext);;
 		}
 	}
 }
 
-IniFile SCoreStartupParameter::LoadGameIni() const
+IniFile CoreStartupParameter::LoadGameIni() const
 {
 	IniFile game_ini;
-	game_ini.Load(m_strGameIniDefault);
-	if (m_strGameIniDefaultRevisionSpecific != "")
-		game_ini.Load(m_strGameIniDefaultRevisionSpecific, true);
-	game_ini.Load(m_strGameIniLocal, true);
+	game_ini.Load(m_game_ini_default);
+	if (m_game_ini_default_revision_specific != "")
+		game_ini.Load(m_game_ini_default_revision_specific, true);
+	game_ini.Load(m_game_ini_local, true);
 	return game_ini;
 }
 
-IniFile SCoreStartupParameter::LoadDefaultGameIni() const
+IniFile CoreStartupParameter::LoadDefaultGameIni() const
 {
 	IniFile game_ini;
-	game_ini.Load(m_strGameIniDefault);
-	if (m_strGameIniDefaultRevisionSpecific != "")
-		game_ini.Load(m_strGameIniDefaultRevisionSpecific, true);
+	game_ini.Load(m_game_ini_default);
+	if (m_game_ini_default_revision_specific != "")
+		game_ini.Load(m_game_ini_default_revision_specific, true);
 	return game_ini;
 }
 
-IniFile SCoreStartupParameter::LoadLocalGameIni() const
+IniFile CoreStartupParameter::LoadLocalGameIni() const
 {
 	IniFile game_ini;
-	game_ini.Load(m_strGameIniLocal);
+	game_ini.Load(m_game_ini_local);
 	return game_ini;
 }

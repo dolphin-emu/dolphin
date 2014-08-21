@@ -10,8 +10,8 @@ SWVideoConfig g_SWVideoConfig;
 
 SWVideoConfig::SWVideoConfig()
 {
-	bFullscreen = false;
-	bHideCursor = false;
+	m_fullscreen = false;
+	m_hide_cursor = false;
 	renderToMainframe = false;
 
 	bHwRasterizer = false;
@@ -39,7 +39,7 @@ void SWVideoConfig::Load(const char* ini_file)
 	iniFile.Load(ini_file);
 
 	IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
-	hardware->Get("Fullscreen", &bFullscreen, 0); // Hardware
+	hardware->Get("Fullscreen", &m_fullscreen, 0); // Hardware
 	hardware->Get("RenderToMainframe", &renderToMainframe, false);
 
 	IniFile::Section* rendering = iniFile.GetOrCreateSection("Rendering");
@@ -69,7 +69,7 @@ void SWVideoConfig::Save(const char* ini_file)
 	iniFile.Load(ini_file);
 
 	IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
-	hardware->Set("Fullscreen", bFullscreen);
+	hardware->Set("Fullscreen", m_fullscreen);
 	hardware->Set("RenderToMainframe", renderToMainframe);
 
 	IniFile::Section* rendering = iniFile.GetOrCreateSection("Rendering");

@@ -237,8 +237,8 @@ u32 Read_Opcode(u32 _Address)
 		return 0x00000000;
 	}
 
-	if (Core::g_CoreStartupParameter.bMMU &&
-		!Core::g_CoreStartupParameter.bTLBHack &&
+	if (Core::g_CoreStartupParameter.m_MMU &&
+		!Core::g_CoreStartupParameter.m_TLB_hack &&
 		(_Address & ADDR_MASK_MEM1))
 	{
 		// TODO: Check for MSR instruction address translation flag before translating
@@ -848,7 +848,7 @@ static u32 TranslateBlockAddress(const u32 addr, const XCheckTLBFlag _Flag)
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 
 	// Check for enhanced mode (secondary BAT enable) using 8 BATs
-	int bats = (Core::g_CoreStartupParameter.bWii && HID4.SBE)?8:4;
+	int bats = (Core::g_CoreStartupParameter.m_wii && HID4.SBE)?8:4;
 
 	for (int i = 0; i < bats; i++)
 	{

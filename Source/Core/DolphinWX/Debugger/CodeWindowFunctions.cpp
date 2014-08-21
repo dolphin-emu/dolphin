@@ -65,8 +65,8 @@ void CCodeWindow::Load()
 
 	IniFile::Section* general = ini.GetOrCreateSection("General");
 	general->Get("DebuggerFont", &fontDesc);
-	general->Get("AutomaticStart", &bAutomaticStart, false);
-	general->Get("BootToPause", &bBootToPause, true);
+	general->Get("AutomaticStart", &m_automatic_start, false);
+	general->Get("BootToPause", &m_boot_to_pause, true);
 
 	if (!fontDesc.empty())
 		DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc));

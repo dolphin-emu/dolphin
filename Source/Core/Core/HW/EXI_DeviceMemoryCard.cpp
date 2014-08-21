@@ -138,7 +138,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
 
 	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;
-	auto strUniqueID = Core::g_CoreStartupParameter.m_strUniqueID;
+	auto strUniqueID = Core::g_CoreStartupParameter.m_unique_ID;
 
 	u32 CurrentGameId = 0;
 	if (strUniqueID == TITLEID_SYSMENU_STRING)
@@ -168,7 +168,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 	case DiscIO::IVolume::COUNTRY_UNKNOWN:
 	{
 		// The current game's region is not passed down to the EXI device level.
-		// Usually, we can retrieve the region from Core::g_CoreStartupParameter.m_strUniqueId.
+		// Usually, we can retrieve the region from Core::g_CoreStartupParameter.m_unique_ID.
 		// The Wii System Menu requires a lookup based on the version number.
 		// This is not possible in some cases ( e.g. FIFO logs, homebrew elf/dol files).
 		// Instead, we then lookup the region from the memory card name

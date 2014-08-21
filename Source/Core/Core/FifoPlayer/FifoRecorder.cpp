@@ -48,7 +48,7 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 	memset(m_Ram, 0, Memory::RAM_SIZE);
 	memset(m_ExRam, 0, Memory::EXRAM_SIZE);
 
-	m_File->SetIsWii(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
+	m_File->SetIsWii(SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii);
 
 	if (!m_IsRecording)
 	{

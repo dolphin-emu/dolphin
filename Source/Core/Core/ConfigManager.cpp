@@ -186,7 +186,7 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 	general->Set("WirelessMac", m_WirelessMac);
 
 #ifdef USE_GDBSTUB
-	general->Set("GDBPort", m_LocalCoreStartupParameter.iGDBPort);
+	general->Set("GDBPort", m_LocalCoreStartupParameter.m_GDB_port);
 #endif
 }
 
@@ -194,22 +194,22 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
 {
 	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
-	interface->Set("ConfirmStop", m_LocalCoreStartupParameter.bConfirmStop);
-	interface->Set("UsePanicHandlers", m_LocalCoreStartupParameter.bUsePanicHandlers);
-	interface->Set("OnScreenDisplayMessages", m_LocalCoreStartupParameter.bOnScreenDisplayMessages);
-	interface->Set("HideCursor", m_LocalCoreStartupParameter.bHideCursor);
-	interface->Set("AutoHideCursor", m_LocalCoreStartupParameter.bAutoHideCursor);
-	interface->Set("MainWindowPosX", (m_LocalCoreStartupParameter.iPosX == -32000) ? 0 : m_LocalCoreStartupParameter.iPosX); // TODO - HAX
-	interface->Set("MainWindowPosY", (m_LocalCoreStartupParameter.iPosY == -32000) ? 0 : m_LocalCoreStartupParameter.iPosY); // TODO - HAX
-	interface->Set("MainWindowWidth", m_LocalCoreStartupParameter.iWidth);
-	interface->Set("MainWindowHeight", m_LocalCoreStartupParameter.iHeight);
+	interface->Set("ConfirmStop", m_LocalCoreStartupParameter.m_confirm_stop);
+	interface->Set("UsePanicHandlers", m_LocalCoreStartupParameter.m_use_panic_handlers);
+	interface->Set("OnScreenDisplayMessages", m_LocalCoreStartupParameter.m_on_screen_display_messages);
+	interface->Set("HideCursor", m_LocalCoreStartupParameter.m_hide_cursor);
+	interface->Set("AutoHideCursor", m_LocalCoreStartupParameter.m_auto_hide_cursor);
+	interface->Set("MainWindowPosX", (m_LocalCoreStartupParameter.m_posx == -32000) ? 0 : m_LocalCoreStartupParameter.m_posx); // TODO - HAX
+	interface->Set("MainWindowPosY", (m_LocalCoreStartupParameter.m_posy == -32000) ? 0 : m_LocalCoreStartupParameter.m_posy); // TODO - HAX
+	interface->Set("MainWindowWidth", m_LocalCoreStartupParameter.m_width);
+	interface->Set("MainWindowHeight", m_LocalCoreStartupParameter.m_height);
 	interface->Set("Language", m_InterfaceLanguage);
 	interface->Set("ShowToolbar", m_InterfaceToolbar);
 	interface->Set("ShowStatusbar", m_InterfaceStatusbar);
 	interface->Set("ShowLogWindow", m_InterfaceLogWindow);
 	interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
 	interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
-	interface->Set("ThemeName40", m_LocalCoreStartupParameter.theme_name);
+	interface->Set("ThemeName40", m_LocalCoreStartupParameter.m_theme_name);
 }
 
 void SConfig::SaveHotkeySettings(IniFile& ini)
@@ -218,9 +218,9 @@ void SConfig::SaveHotkeySettings(IniFile& ini)
 
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
-		hotkeys->Set(g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
+		hotkeys->Set(g_HKData[i].IniText, m_LocalCoreStartupParameter.m_hotkey[i]);
 		hotkeys->Set(std::string(g_HKData[i].IniText) + "Modifier",
-			m_LocalCoreStartupParameter.iHotkeyModifier[i]);
+			m_LocalCoreStartupParameter.m_hotkey_modifier[i]);
 	}
 }
 
@@ -228,18 +228,18 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 {
 	IniFile::Section* display = ini.GetOrCreateSection("Display");
 
-	display->Set("FullscreenResolution", m_LocalCoreStartupParameter.strFullscreenResolution);
-	display->Set("Fullscreen", m_LocalCoreStartupParameter.bFullscreen);
-	display->Set("RenderToMain", m_LocalCoreStartupParameter.bRenderToMain);
-	display->Set("RenderWindowXPos", m_LocalCoreStartupParameter.iRenderWindowXPos);
-	display->Set("RenderWindowYPos", m_LocalCoreStartupParameter.iRenderWindowYPos);
-	display->Set("RenderWindowWidth", m_LocalCoreStartupParameter.iRenderWindowWidth);
-	display->Set("RenderWindowHeight", m_LocalCoreStartupParameter.iRenderWindowHeight);
-	display->Set("RenderWindowAutoSize", m_LocalCoreStartupParameter.bRenderWindowAutoSize);
-	display->Set("KeepWindowOnTop", m_LocalCoreStartupParameter.bKeepWindowOnTop);
-	display->Set("ProgressiveScan", m_LocalCoreStartupParameter.bProgressive);
-	display->Set("DisableScreenSaver", m_LocalCoreStartupParameter.bDisableScreenSaver);
-	display->Set("ForceNTSCJ", m_LocalCoreStartupParameter.bForceNTSCJ);
+	display->Set("FullscreenResolution", m_LocalCoreStartupParameter.m_fullscreen_resolution);
+	display->Set("Fullscreen", m_LocalCoreStartupParameter.m_fullscreen);
+	display->Set("RenderToMain", m_LocalCoreStartupParameter.m_render_to_main);
+	display->Set("RenderWindowXPos", m_LocalCoreStartupParameter.m_render_window_xpos);
+	display->Set("RenderWindowYPos", m_LocalCoreStartupParameter.m_render_window_ypos);
+	display->Set("RenderWindowWidth", m_LocalCoreStartupParameter.m_render_window_width);
+	display->Set("RenderWindowHeight", m_LocalCoreStartupParameter.m_render_window_height);
+	display->Set("RenderWindowAutoSize", m_LocalCoreStartupParameter.m_render_window_auto_size);
+	display->Set("KeepWindowOnTop", m_LocalCoreStartupParameter.m_keep_window_on_top);
+	display->Set("ProgressiveScan", m_LocalCoreStartupParameter.m_progressive);
+	display->Set("DisableScreenSaver", m_LocalCoreStartupParameter.m_disable_screen_saver);
+	display->Set("ForceNTSCJ", m_LocalCoreStartupParameter.m_force_NTSCJ);
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
@@ -276,20 +276,20 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 {
 	IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-	core->Set("HLE_BS2", m_LocalCoreStartupParameter.bHLE_BS2);
-	core->Set("CPUCore", m_LocalCoreStartupParameter.iCPUCore);
-	core->Set("Fastmem", m_LocalCoreStartupParameter.bFastmem);
-	core->Set("CPUThread", m_LocalCoreStartupParameter.bCPUThread);
-	core->Set("DSPThread", m_LocalCoreStartupParameter.bDSPThread);
-	core->Set("DSPHLE", m_LocalCoreStartupParameter.bDSPHLE);
-	core->Set("SkipIdle", m_LocalCoreStartupParameter.bSkipIdle);
-	core->Set("DefaultGCM", m_LocalCoreStartupParameter.m_strDefaultGCM);
-	core->Set("DVDRoot", m_LocalCoreStartupParameter.m_strDVDRoot);
-	core->Set("Apploader", m_LocalCoreStartupParameter.m_strApploader);
-	core->Set("EnableCheats", m_LocalCoreStartupParameter.bEnableCheats);
-	core->Set("SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
-	core->Set("DPL2Decoder", m_LocalCoreStartupParameter.bDPL2Decoder);
-	core->Set("Latency", m_LocalCoreStartupParameter.iLatency);
+	core->Set("HLE_BS2", m_LocalCoreStartupParameter.m_HLE_BS2);
+	core->Set("CPUCore", m_LocalCoreStartupParameter.m_CPU_core);
+	core->Set("Fastmem", m_LocalCoreStartupParameter.m_fastmem);
+	core->Set("CPUThread", m_LocalCoreStartupParameter.m_CPU_thread);
+	core->Set("DSPThread", m_LocalCoreStartupParameter.m_DSP_thread);
+	core->Set("DSPHLE", m_LocalCoreStartupParameter.m_DSPHLE);
+	core->Set("SkipIdle", m_LocalCoreStartupParameter.m_skip_idle);
+	core->Set("DefaultGCM", m_LocalCoreStartupParameter.m_default_GCM);
+	core->Set("DVDRoot", m_LocalCoreStartupParameter.m_DVD_root);
+	core->Set("Apploader", m_LocalCoreStartupParameter.m_apploader);
+	core->Set("EnableCheats", m_LocalCoreStartupParameter.m_enable_cheats);
+	core->Set("m_selected_language", m_LocalCoreStartupParameter.m_selected_language);
+	core->Set("DPL2Decoder", m_LocalCoreStartupParameter.m_DPL2_decoder);
+	core->Set("Latency", m_LocalCoreStartupParameter.m_latency);
 	core->Set("MemcardAPath", m_strMemoryCardA);
 	core->Set("MemcardBPath", m_strMemoryCardB);
 	core->Set("SlotA", m_EXIDevice[0]);
@@ -304,11 +304,11 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("WiiKeyboard", m_WiiKeyboard);
 	core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
 	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
-	core->Set("RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
-	core->Set("RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
+	core->Set("RunCompareServer", m_LocalCoreStartupParameter.m_run_compare_server);
+	core->Set("RunCompareClient", m_LocalCoreStartupParameter.m_run_compare_client);
 	core->Set("FrameLimit", m_Framelimit);
 	core->Set("FrameSkip", m_FrameSkip);
-	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
+	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_video_backend);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -341,7 +341,7 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
 {
 	IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
 
-	fifoplayer->Set("LoopReplay", m_LocalCoreStartupParameter.bLoopFifoReplay);
+	fifoplayer->Set("LoopReplay", m_LocalCoreStartupParameter.m_loop_fifo_replay);
 }
 
 void SConfig::LoadSettings()
@@ -371,7 +371,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 	general->Get("LastFilename", &m_LastFilename);
 	general->Get("ShowLag", &m_ShowLag, false);
 #ifdef USE_GDBSTUB
-	general->Get("GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
+	general->Get("GDBPort", &(m_LocalCoreStartupParameter.m_GDB_port), -1);
 #endif
 
 	m_ISOFolder.clear();
@@ -400,22 +400,22 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 {
 	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
-	interface->Get("ConfirmStop",             &m_LocalCoreStartupParameter.bConfirmStop,      true);
-	interface->Get("UsePanicHandlers",        &m_LocalCoreStartupParameter.bUsePanicHandlers, true);
-	interface->Get("OnScreenDisplayMessages", &m_LocalCoreStartupParameter.bOnScreenDisplayMessages, true);
-	interface->Get("HideCursor",              &m_LocalCoreStartupParameter.bHideCursor,       false);
-	interface->Get("AutoHideCursor",          &m_LocalCoreStartupParameter.bAutoHideCursor,   false);
-	interface->Get("MainWindowPosX",          &m_LocalCoreStartupParameter.iPosX,             100);
-	interface->Get("MainWindowPosY",          &m_LocalCoreStartupParameter.iPosY,             100);
-	interface->Get("MainWindowWidth",         &m_LocalCoreStartupParameter.iWidth,            800);
-	interface->Get("MainWindowHeight",        &m_LocalCoreStartupParameter.iHeight,           600);
+	interface->Get("ConfirmStop",             &m_LocalCoreStartupParameter.m_confirm_stop,      true);
+	interface->Get("UsePanicHandlers",        &m_LocalCoreStartupParameter.m_use_panic_handlers, true);
+	interface->Get("OnScreenDisplayMessages", &m_LocalCoreStartupParameter.m_on_screen_display_messages, true);
+	interface->Get("HideCursor",              &m_LocalCoreStartupParameter.m_hide_cursor,       false);
+	interface->Get("AutoHideCursor",          &m_LocalCoreStartupParameter.m_auto_hide_cursor,   false);
+	interface->Get("MainWindowPosX",          &m_LocalCoreStartupParameter.m_posx,             100);
+	interface->Get("MainWindowPosY",          &m_LocalCoreStartupParameter.m_posy,             100);
+	interface->Get("MainWindowWidth",         &m_LocalCoreStartupParameter.m_width,            800);
+	interface->Get("MainWindowHeight",        &m_LocalCoreStartupParameter.m_height,           600);
 	interface->Get("Language",                &m_InterfaceLanguage,                           0);
 	interface->Get("ShowToolbar",             &m_InterfaceToolbar,                            true);
 	interface->Get("ShowStatusbar",           &m_InterfaceStatusbar,                          true);
 	interface->Get("ShowLogWindow",           &m_InterfaceLogWindow,                          false);
 	interface->Get("ShowLogConfigWindow",     &m_InterfaceLogConfigWindow,                    false);
 	interface->Get("ExtendedFPSInfo",         &m_InterfaceExtendedFPSInfo,                    false);
-	interface->Get("ThemeName40",             &m_LocalCoreStartupParameter.theme_name,        "Clean");
+	interface->Get("ThemeName40",             &m_LocalCoreStartupParameter.m_theme_name,        "Clean");
 }
 
 void SConfig::LoadHotkeySettings(IniFile& ini)
@@ -425,9 +425,9 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		hotkeys->Get(g_HKData[i].IniText,
-		    &m_LocalCoreStartupParameter.iHotkey[i], g_HKData[i].DefaultKey);
+		    &m_LocalCoreStartupParameter.m_hotkey[i], g_HKData[i].DefaultKey);
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "Modifier",
-		    &m_LocalCoreStartupParameter.iHotkeyModifier[i], g_HKData[i].DefaultModifier);
+		    &m_LocalCoreStartupParameter.m_hotkey_modifier[i], g_HKData[i].DefaultModifier);
 	}
 }
 
@@ -435,18 +435,18 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 {
 	IniFile::Section* display = ini.GetOrCreateSection("Display");
 
-	display->Get("Fullscreen",           &m_LocalCoreStartupParameter.bFullscreen,             false);
-	display->Get("FullscreenResolution", &m_LocalCoreStartupParameter.strFullscreenResolution, "Auto");
-	display->Get("RenderToMain",         &m_LocalCoreStartupParameter.bRenderToMain,           false);
-	display->Get("RenderWindowXPos",     &m_LocalCoreStartupParameter.iRenderWindowXPos,       -1);
-	display->Get("RenderWindowYPos",     &m_LocalCoreStartupParameter.iRenderWindowYPos,       -1);
-	display->Get("RenderWindowWidth",    &m_LocalCoreStartupParameter.iRenderWindowWidth,      640);
-	display->Get("RenderWindowHeight",   &m_LocalCoreStartupParameter.iRenderWindowHeight,     480);
-	display->Get("RenderWindowAutoSize", &m_LocalCoreStartupParameter.bRenderWindowAutoSize,   false);
-	display->Get("KeepWindowOnTop",      &m_LocalCoreStartupParameter.bKeepWindowOnTop,        false);
-	display->Get("ProgressiveScan",      &m_LocalCoreStartupParameter.bProgressive,            false);
-	display->Get("DisableScreenSaver",   &m_LocalCoreStartupParameter.bDisableScreenSaver,     true);
-	display->Get("ForceNTSCJ",           &m_LocalCoreStartupParameter.bForceNTSCJ,             false);
+	display->Get("Fullscreen",           &m_LocalCoreStartupParameter.m_fullscreen,             false);
+	display->Get("FullscreenResolution", &m_LocalCoreStartupParameter.m_fullscreen_resolution, "Auto");
+	display->Get("RenderToMain",         &m_LocalCoreStartupParameter.m_render_to_main,           false);
+	display->Get("RenderWindowXPos",     &m_LocalCoreStartupParameter.m_render_window_xpos,       -1);
+	display->Get("RenderWindowYPos",     &m_LocalCoreStartupParameter.m_render_window_ypos,       -1);
+	display->Get("RenderWindowWidth",    &m_LocalCoreStartupParameter.m_render_window_width,      640);
+	display->Get("RenderWindowHeight",   &m_LocalCoreStartupParameter.m_render_window_height,     480);
+	display->Get("RenderWindowAutoSize", &m_LocalCoreStartupParameter.m_render_window_auto_size,   false);
+	display->Get("KeepWindowOnTop",      &m_LocalCoreStartupParameter.m_keep_window_on_top,        false);
+	display->Get("ProgressiveScan",      &m_LocalCoreStartupParameter.m_progressive,            false);
+	display->Get("DisableScreenSaver",   &m_LocalCoreStartupParameter.m_disable_screen_saver,     true);
+	display->Get("ForceNTSCJ",           &m_LocalCoreStartupParameter.m_force_NTSCJ,             false);
 }
 
 void SConfig::LoadGameListSettings(IniFile& ini)
@@ -486,34 +486,34 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 {
 	IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-	core->Get("HLE_BS2",      &m_LocalCoreStartupParameter.bHLE_BS2, false);
+	core->Get("HLE_BS2",      &m_LocalCoreStartupParameter.m_HLE_BS2, false);
 #ifdef _M_X86
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 1);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.m_CPU_core, 1);
 #elif _M_ARM_32
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 3);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.m_CPU_core, 3);
 #else
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 0);
+	core->Get("CPUCore",      &m_LocalCoreStartupParameter.m_CPU_core, 0);
 #endif
-	core->Get("Fastmem",           &m_LocalCoreStartupParameter.bFastmem,      true);
-	core->Get("DSPThread",         &m_LocalCoreStartupParameter.bDSPThread,    false);
-	core->Get("DSPHLE",            &m_LocalCoreStartupParameter.bDSPHLE,       true);
-	core->Get("CPUThread",         &m_LocalCoreStartupParameter.bCPUThread,    true);
-	core->Get("SkipIdle",          &m_LocalCoreStartupParameter.bSkipIdle,     true);
-	core->Get("DefaultGCM",        &m_LocalCoreStartupParameter.m_strDefaultGCM);
-	core->Get("DVDRoot",           &m_LocalCoreStartupParameter.m_strDVDRoot);
-	core->Get("Apploader",         &m_LocalCoreStartupParameter.m_strApploader);
-	core->Get("EnableCheats",      &m_LocalCoreStartupParameter.bEnableCheats, false);
-	core->Get("SelectedLanguage",  &m_LocalCoreStartupParameter.SelectedLanguage, 0);
-	core->Get("DPL2Decoder",       &m_LocalCoreStartupParameter.bDPL2Decoder, false);
-	core->Get("Latency",           &m_LocalCoreStartupParameter.iLatency, 2);
+	core->Get("Fastmem",           &m_LocalCoreStartupParameter.m_fastmem,      true);
+	core->Get("DSPThread",         &m_LocalCoreStartupParameter.m_DSP_thread,    false);
+	core->Get("DSPHLE",            &m_LocalCoreStartupParameter.m_DSPHLE,       true);
+	core->Get("CPUThread",         &m_LocalCoreStartupParameter.m_CPU_thread,    true);
+	core->Get("SkipIdle",          &m_LocalCoreStartupParameter.m_skip_idle,     true);
+	core->Get("DefaultGCM",        &m_LocalCoreStartupParameter.m_default_GCM);
+	core->Get("DVDRoot",           &m_LocalCoreStartupParameter.m_DVD_root);
+	core->Get("Apploader",         &m_LocalCoreStartupParameter.m_apploader);
+	core->Get("EnableCheats",      &m_LocalCoreStartupParameter.m_enable_cheats, false);
+	core->Get("m_selected_language",  &m_LocalCoreStartupParameter.m_selected_language, 0);
+	core->Get("DPL2Decoder",       &m_LocalCoreStartupParameter.m_DPL2_decoder, false);
+	core->Get("Latency",           &m_LocalCoreStartupParameter.m_latency, 2);
 	core->Get("MemcardAPath",      &m_strMemoryCardA);
 	core->Get("MemcardBPath",      &m_strMemoryCardB);
 	core->Get("SlotA",       (int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
 	core->Get("SlotB",       (int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 	core->Get("SerialPort1", (int*)&m_EXIDevice[2], EXIDEVICE_NONE);
 	core->Get("BBA_MAC",           &m_bba_mac);
-	core->Get("TimeProfiling",     &m_LocalCoreStartupParameter.bJITILTimeProfiling, false);
-	core->Get("OutputIR",          &m_LocalCoreStartupParameter.bJITILOutputIR,      false);
+	core->Get("TimeProfiling",     &m_LocalCoreStartupParameter.m_JITIL_time_profiling, false);
+	core->Get("OutputIR",          &m_LocalCoreStartupParameter.m_JITIL_output_IR,      false);
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
 		core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
@@ -522,18 +522,18 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("WiiKeyboard",               &m_WiiKeyboard,                                 false);
 	core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning,                   false);
 	core->Get("WiimoteEnableSpeaker",      &m_WiimoteEnableSpeaker,                        true);
-	core->Get("RunCompareServer",          &m_LocalCoreStartupParameter.bRunCompareServer, false);
-	core->Get("RunCompareClient",          &m_LocalCoreStartupParameter.bRunCompareClient, false);
-	core->Get("MMU",                       &m_LocalCoreStartupParameter.bMMU,              false);
-	core->Get("TLBHack",                   &m_LocalCoreStartupParameter.bTLBHack,          false);
-	core->Get("BBDumpPort",                &m_LocalCoreStartupParameter.iBBDumpPort,       -1);
-	core->Get("VBeam",                     &m_LocalCoreStartupParameter.bVBeamSpeedHack,   false);
-	core->Get("SyncGPU",                   &m_LocalCoreStartupParameter.bSyncGPU,          false);
-	core->Get("FastDiscSpeed",             &m_LocalCoreStartupParameter.bFastDiscSpeed,    false);
-	core->Get("DCBZ",                      &m_LocalCoreStartupParameter.bDCBZOFF,          false);
+	core->Get("RunCompareServer",          &m_LocalCoreStartupParameter.m_run_compare_server, false);
+	core->Get("RunCompareClient",          &m_LocalCoreStartupParameter.m_run_compare_client, false);
+	core->Get("MMU",                       &m_LocalCoreStartupParameter.m_MMU,              false);
+	core->Get("TLBHack",                   &m_LocalCoreStartupParameter.m_TLB_hack,          false);
+	core->Get("BBDumpPort",                &m_LocalCoreStartupParameter.m_BB_dump_port,       -1);
+	core->Get("VBeam",                     &m_LocalCoreStartupParameter.m_vbeam_speed_hack,   false);
+	core->Get("SyncGPU",                   &m_LocalCoreStartupParameter.m_sync_GPU,          false);
+	core->Get("FastDiscSpeed",             &m_LocalCoreStartupParameter.m_fast_disc_speed,    false);
+	core->Get("DCBZ",                      &m_LocalCoreStartupParameter.m_DCBZOFF,          false);
 	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
-	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
+	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_video_backend, "");
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -576,5 +576,5 @@ void SConfig::LoadFifoPlayerSettings(IniFile& ini)
 {
 	IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
 
-	fifoplayer->Get("LoopReplay", &m_LocalCoreStartupParameter.bLoopFifoReplay, true);
+	fifoplayer->Get("LoopReplay", &m_LocalCoreStartupParameter.m_loop_fifo_replay, true);
 }

@@ -39,9 +39,9 @@ struct DSPState
 	}
 };
 
-bool DSPHLE::Initialize(bool bWii, bool bDSPThread)
+bool DSPHLE::Initialize(bool m_wii, bool m_DSP_thread)
 {
-	m_bWii = bWii;
+	m_bWii = m_wii;
 	m_pUCode = nullptr;
 	m_lastUCode = nullptr;
 	m_bHalt = false;

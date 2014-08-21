@@ -67,7 +67,7 @@ MemoryCard::~MemoryCard()
 
 void MemoryCard::FlushThread()
 {
-	if (!Core::g_CoreStartupParameter.bEnableMemcardSaving)
+	if (!Core::g_CoreStartupParameter.m_enable_memcard_saving)
 	{
 		return;
 	}

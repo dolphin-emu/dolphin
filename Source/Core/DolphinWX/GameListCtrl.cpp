@@ -107,7 +107,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	}
 	else // GC
 	{
-		indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+		indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.m_selected_language;
 	}
 
 	if (iso2->GetPlatform() == GameListItem::WII_WAD)
@@ -116,7 +116,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	}
 	else // GC
 	{
-		indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+		indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.m_selected_language;
 	}
 
 	switch (sortData)
@@ -429,21 +429,21 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 
-	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	int m_selected_language = SConfig::GetInstance().m_LocalCoreStartupParameter.m_selected_language;
 
 	// Is this sane?
 	if  (rISOFile.GetPlatform() == GameListItem::WII_WAD)
 	{
-		SelectedLanguage = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+		m_selected_language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	}
 
-	std::string const name = rISOFile.GetName(SelectedLanguage);
+	std::string const name = rISOFile.GetName(m_selected_language);
 	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
 	// We show the company string on GameCube only
 	// On Wii we show the description instead as the company string is empty
 	std::string const notes = (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-		rISOFile.GetCompany() : rISOFile.GetDescription(SelectedLanguage);
+		rISOFile.GetCompany() : rISOFile.GetDescription(m_selected_language);
 	SetItem(_Index, COLUMN_NOTES, StrToWxStr(notes), -1);
 
 	// Emulation state
@@ -876,7 +876,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 
 			// First we have to decide a starting value when we append it
 			if (selected_iso->GetFileName() == SConfig::GetInstance().
-				m_LocalCoreStartupParameter.m_strDefaultGCM)
+				m_LocalCoreStartupParameter.m_default_GCM)
 				popupMenu->FindItem(IDM_SETDEFAULTGCM)->Check();
 
 			popupMenu->AppendSeparator();
@@ -994,14 +994,14 @@ void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& event)
 	if (event.IsChecked())
 	{
 		// Write the new default value and save it the ini file
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM =
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_default_GCM =
 			iso->GetFileName();
 		SConfig::GetInstance().SaveSettings();
 	}
 	else
 	{
 		// Otherwise blank the value and save it
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = "";
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_default_GCM = "";
 		SConfig::GetInstance().SaveSettings();
 	}
 }

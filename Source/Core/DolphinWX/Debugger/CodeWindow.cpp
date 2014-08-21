@@ -87,7 +87,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 END_EVENT_TABLE()
 
 // Class
-CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *parent,
+CCodeWindow::CCodeWindow(const CoreStartupParameter& _LocalCoreStartupParameter, CFrame *parent,
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, position, size, style, name)
 	, Parent(parent)
@@ -384,7 +384,7 @@ void CCodeWindow::UpdateCallstack()
 }
 
 // Create CPU Mode menus
-void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar)
+void CCodeWindow::CreateMenu(const CoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar)
 {
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;
@@ -394,7 +394,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
 		" slow, perhaps slower than 1 fps."),
 		wxITEM_CHECK);
-	interpreter->Check(_LocalCoreStartupParameter.iCPUCore == 0);
+	interpreter->Check(_LocalCoreStartupParameter.m_CPU_core == 0);
 	pCoreMenu->AppendSeparator();
 
 	pCoreMenu->Append(IDM_JITBLOCKLINKING, _("&JIT Block Linking off"),
@@ -471,7 +471,7 @@ void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 	wxMenuItem* boottopause = pMenu->Append(IDM_BOOTTOPAUSE, _("Boot to pause"),
 		_("Start the game directly instead of booting to pause"),
 		wxITEM_CHECK);
-	boottopause->Check(bBootToPause);
+	boottopause->Check(m_boot_to_pause);
 
 	wxMenuItem* automaticstart = pMenu->Append(IDM_AUTOMATICSTART, _("&Automatic start"),
 		_(
@@ -481,7 +481,7 @@ void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 		" and retry it several times, either with changes to Dolphin or if you are"
 		" developing a homebrew game.]"),
 		wxITEM_CHECK);
-	automaticstart->Check(bAutomaticStart);
+	automaticstart->Check(m_automatic_start);
 
 	pMenu->Append(IDM_FONTPICKER, _("&Font..."));
 }
@@ -495,43 +495,43 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 			PowerPC::SetMode(UseInterpreter() ? PowerPC::MODE_INTERPRETER : PowerPC::MODE_JIT);
 			break;
 		case IDM_BOOTTOPAUSE:
-			bBootToPause = !bBootToPause;
+			m_boot_to_pause = !m_boot_to_pause;
 			return;
 		case IDM_AUTOMATICSTART:
-			bAutomaticStart = !bAutomaticStart;
+			m_automatic_start = !m_automatic_start;
 			return;
 		case IDM_JITOFF:
-			Core::g_CoreStartupParameter.bJITOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_off = event.IsChecked();
 			break;
 		case IDM_JITLSOFF:
-			Core::g_CoreStartupParameter.bJITLoadStoreOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_load_store_off = event.IsChecked();
 			break;
 		case IDM_JITLSLXZOFF:
-			Core::g_CoreStartupParameter.bJITLoadStorelXzOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_load_store_lxz_off = event.IsChecked();
 			break;
 		case IDM_JITLSLWZOFF:
-			Core::g_CoreStartupParameter.bJITLoadStorelwzOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_load_store_lwz_off = event.IsChecked();
 			break;
 		case IDM_JITLSLBZXOFF:
-			Core::g_CoreStartupParameter.bJITLoadStorelbzxOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_load_store_lbzx_off = event.IsChecked();
 			break;
 		case IDM_JITLSFOFF:
-			Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_load_store_floating_off = event.IsChecked();
 			break;
 		case IDM_JITLSPOFF:
-			Core::g_CoreStartupParameter.bJITLoadStorePairedOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_load_store_paired_off = event.IsChecked();
 			break;
 		case IDM_JITFPOFF:
-			Core::g_CoreStartupParameter.bJITFloatingPointOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_floating_point_off = event.IsChecked();
 			break;
 		case IDM_JITIOFF:
-			Core::g_CoreStartupParameter.bJITIntegerOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_integer_off = event.IsChecked();
 			break;
 		case IDM_JITPOFF:
-			Core::g_CoreStartupParameter.bJITPairedOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_paired_off = event.IsChecked();
 			break;
 		case IDM_JITSROFF:
-			Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked();
+			Core::g_CoreStartupParameter.m_JIT_system_registers_off = event.IsChecked();
 			break;
 	}
 

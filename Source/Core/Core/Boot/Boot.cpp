@@ -71,13 +71,13 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 {
 	std::string title_id_str;
 
-	SCoreStartupParameter& _StartupPara = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	switch (_StartupPara.m_BootType)
+	CoreStartupParameter& _StartupPara = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	switch (_StartupPara.m_boot_type)
 	{
-	case SCoreStartupParameter::BOOT_WII_NAND:
+	case CoreStartupParameter::BOOT_WII_NAND:
 	{
 		const DiscIO::INANDContentLoader& Loader =
-				DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
+				DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_filename);
 		if (Loader.IsValid())
 		{
 			u64 TitleID = Loader.GetTitleID();
@@ -88,11 +88,11 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 		break;
 	}
 
-	case SCoreStartupParameter::BOOT_ELF:
-	case SCoreStartupParameter::BOOT_DOL:
+	case CoreStartupParameter::BOOT_ELF:
+	case CoreStartupParameter::BOOT_DOL:
 		// Strip the .elf/.dol file extension
-		title_id_str = _StartupPara.m_strFilename.substr(
-				0, _StartupPara.m_strFilename.size() - 4);
+		title_id_str = _StartupPara.m_filename.substr(
+				0, _StartupPara.m_filename.size() - 4);
 		break;
 
 	default:
@@ -188,30 +188,30 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
 bool CBoot::BootUp()
 {
-	SCoreStartupParameter& _StartupPara =
+	CoreStartupParameter& _StartupPara =
 	SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
+	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_filename.c_str());
 
 	g_symbolDB.Clear();
-	VideoInterface::Preset(_StartupPara.bNTSC);
-	switch (_StartupPara.m_BootType)
+	VideoInterface::Preset(_StartupPara.m_NTSC);
+	switch (_StartupPara.m_boot_type)
 	{
 	// GCM and Wii
-	case SCoreStartupParameter::BOOT_ISO:
+	case CoreStartupParameter::BOOT_ISO:
 	{
-		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename);
+		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_filename);
 		if (pVolume == nullptr)
 			break;
 
 		bool isoWii = DiscIO::IsVolumeWiiDisc(pVolume);
-		if (isoWii != _StartupPara.bWii)
+		if (isoWii != _StartupPara.m_wii)
 		{
 			PanicAlertT("Warning - starting ISO in wrong console mode!");
 		}
 
 		// setup the map from ISOFile ID
-		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
+		VolumeHandler::SetVolumeName(_StartupPara.m_filename);
 
 		std::string unique_id = VolumeHandler::GetVolume()->GetUniqueID();
 		if (unique_id.size() >= 4)
@@ -229,17 +229,17 @@ bool CBoot::BootUp()
 		delete []_pTMD;
 
 
-		_StartupPara.bWii = VolumeHandler::IsWii();
+		_StartupPara.m_wii = VolumeHandler::IsWii();
 
 		// HLE BS2 or not
-		if (_StartupPara.bHLE_BS2)
+		if (_StartupPara.m_HLE_BS2)
 		{
-			EmulatedBS2(_StartupPara.bWii);
+			EmulatedBS2(_StartupPara.m_wii);
 		}
-		else if (!Load_BS2(_StartupPara.m_strBootROM))
+		else if (!Load_BS2(_StartupPara.m_boot_ROM))
 		{
 			// If we can't load the bootrom file we HLE it instead
-			EmulatedBS2(_StartupPara.bWii);
+			EmulatedBS2(_StartupPara.m_wii);
 		}
 		else
 		{
@@ -248,7 +248,7 @@ bool CBoot::BootUp()
 		}
 
 		// Scan for common HLE functions
-		if (_StartupPara.bSkipIdle && !_StartupPara.bEnableDebugging)
+		if (_StartupPara.m_skip_idle && !_StartupPara.m_enable_debugging)
 		{
 			PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
 			SignatureDB db;
@@ -271,12 +271,12 @@ bool CBoot::BootUp()
 	}
 
 	// DOL
-	case SCoreStartupParameter::BOOT_DOL:
+	case CoreStartupParameter::BOOT_DOL:
 	{
-		CDolLoader dolLoader(_StartupPara.m_strFilename);
+		CDolLoader dolLoader(_StartupPara.m_filename);
 		// Check if we have gotten a Wii file or not
 		bool dolWii = dolLoader.IsWii();
-		if (dolWii != _StartupPara.bWii)
+		if (dolWii != _StartupPara.m_wii)
 		{
 			PanicAlertT("Warning - starting DOL in wrong console mode!");
 		}
@@ -287,16 +287,16 @@ bool CBoot::BootUp()
 		{
 			BS2Success = EmulatedBS2(dolWii);
 		}
-		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
+		else if (!VolumeHandler::IsWii() && !_StartupPara.m_default_GCM.empty())
 		{
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+			VolumeHandler::SetVolumeName(_StartupPara.m_default_GCM);
 			BS2Success = EmulatedBS2(dolWii);
 		}
 
-		if (!_StartupPara.m_strDVDRoot.empty())
+		if (!_StartupPara.m_DVD_root.empty())
 		{
-			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii, _StartupPara.m_strApploader, _StartupPara.m_strFilename);
+			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_DVD_root.c_str());
+			VolumeHandler::SetVolumeDirectory(_StartupPara.m_DVD_root, dolWii, _StartupPara.m_apploader, _StartupPara.m_filename);
 			BS2Success = EmulatedBS2(dolWii);
 		}
 
@@ -315,18 +315,18 @@ bool CBoot::BootUp()
 	}
 
 	// ELF
-	case SCoreStartupParameter::BOOT_ELF:
+	case CoreStartupParameter::BOOT_ELF:
 	{
-		if (!File::Exists(_StartupPara.m_strFilename))
+		if (!File::Exists(_StartupPara.m_filename))
 		{
 			PanicAlertT("The file you specified (%s) does not exist",
-				_StartupPara.m_strFilename.c_str());
+				_StartupPara.m_filename.c_str());
 			return false;
 		}
 
 		// Check if we have gotten a Wii file or not
-		bool elfWii = IsElfWii(_StartupPara.m_strFilename);
-		if (elfWii != _StartupPara.bWii)
+		bool elfWii = IsElfWii(_StartupPara.m_filename);
+		if (elfWii != _StartupPara.m_wii)
 		{
 			PanicAlertT("Warning - starting ELF in wrong console mode!");
 		}
@@ -337,26 +337,26 @@ bool CBoot::BootUp()
 		{
 			BS2Success = EmulatedBS2(elfWii);
 		}
-		else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
+		else if (!VolumeHandler::IsWii() && !_StartupPara.m_default_GCM.empty())
 		{
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+			VolumeHandler::SetVolumeName(_StartupPara.m_default_GCM);
 			BS2Success = EmulatedBS2(elfWii);
 		}
 
 		// load image or create virtual drive from directory
-		if (!_StartupPara.m_strDVDRoot.empty())
+		if (!_StartupPara.m_DVD_root.empty())
 		{
-			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
+			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_DVD_root.c_str());
 			// TODO: auto-convert elf to dol, so we can load them :)
-			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, elfWii);
+			VolumeHandler::SetVolumeDirectory(_StartupPara.m_DVD_root, elfWii);
 			BS2Success = EmulatedBS2(elfWii);
 		}
-		else if (!_StartupPara.m_strDefaultGCM.empty())
+		else if (!_StartupPara.m_default_GCM.empty())
 		{
-			NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultGCM.c_str());
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+			NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_default_GCM.c_str());
+			VolumeHandler::SetVolumeName(_StartupPara.m_default_GCM);
 		}
-		else VolumeHandler::SetVolumeDirectory(_StartupPara.m_strFilename, elfWii);
+		else VolumeHandler::SetVolumeDirectory(_StartupPara.m_filename, elfWii);
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
@@ -367,7 +367,7 @@ bool CBoot::BootUp()
 		else // Poor man's bootup
 		{
 			Load_FST(elfWii);
-			Boot_ELF(_StartupPara.m_strFilename);
+			Boot_ELF(_StartupPara.m_filename);
 		}
 		UpdateDebugger_MapLoaded();
 		Dolphin_Debugger::AddAutoBreakpoints();
@@ -375,27 +375,27 @@ bool CBoot::BootUp()
 	}
 
 	// Wii WAD
-	case SCoreStartupParameter::BOOT_WII_NAND:
-		Boot_WiiWAD(_StartupPara.m_strFilename);
+	case CoreStartupParameter::BOOT_WII_NAND:
+		Boot_WiiWAD(_StartupPara.m_filename);
 
 		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 
 		// load default image or create virtual drive from directory
-		if (!_StartupPara.m_strDVDRoot.empty())
-			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, true);
-		else if (!_StartupPara.m_strDefaultGCM.empty())
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+		if (!_StartupPara.m_DVD_root.empty())
+			VolumeHandler::SetVolumeDirectory(_StartupPara.m_DVD_root, true);
+		else if (!_StartupPara.m_default_GCM.empty())
+			VolumeHandler::SetVolumeName(_StartupPara.m_default_GCM);
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 		break;
 
 
 	// Bootstrap 2 (AKA: Initial Program Loader, "BIOS")
-	case SCoreStartupParameter::BOOT_BS2:
+	case CoreStartupParameter::BOOT_BS2:
 	{
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
-		if (Load_BS2(_StartupPara.m_strBootROM))
+		if (Load_BS2(_StartupPara.m_boot_ROM))
 		{
 			if (LoadMapFromFilename())
 				HLE::PatchFunctions();
@@ -407,7 +407,7 @@ bool CBoot::BootUp()
 		break;
 	}
 
-	case SCoreStartupParameter::BOOT_DFF:
+	case CoreStartupParameter::BOOT_DFF:
 		// do nothing
 		break;
 
@@ -419,7 +419,7 @@ bool CBoot::BootUp()
 	}
 
 	// HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code handler
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_enable_cheats)
 	{
 		HLE::Patch(0x80001800, "HBReload");
 		const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };

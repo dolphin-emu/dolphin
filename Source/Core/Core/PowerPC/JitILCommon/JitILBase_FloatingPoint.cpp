@@ -8,11 +8,11 @@
 void JitILBase::fp_arith_s(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	FALLBACK_IF(inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21));
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	FALLBACK_IF(inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF);
+	FALLBACK_IF(inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.m_enable_FPRF);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	switch (inst.SUBOP5)
@@ -42,11 +42,11 @@ void JitILBase::fp_arith_s(UGeckoInstruction inst)
 void JitILBase::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	FALLBACK_IF(inst.Rc);
 
 	// Only the interpreter has "proper" support for (some) FP flags
-	FALLBACK_IF(inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF);
+	FALLBACK_IF(inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.m_enable_FPRF);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
@@ -68,7 +68,7 @@ void JitILBase::fmaddXX(UGeckoInstruction inst)
 void JitILBase::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	FALLBACK_IF(inst.Rc);
 
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FB);
@@ -79,7 +79,7 @@ void JitILBase::fmrx(UGeckoInstruction inst)
 void JitILBase::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 	IREmitter::InstLoc lhs, rhs, res;
 	lhs = ibuild.EmitLoadFReg(inst.FA);
 	rhs = ibuild.EmitLoadFReg(inst.FB);
@@ -92,7 +92,7 @@ void JitILBase::fcmpx(UGeckoInstruction inst)
 void JitILBase::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
+	JITDISABLE(m_JIT_floating_point_off);
 
 	FALLBACK_IF(true);
 

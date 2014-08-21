@@ -50,7 +50,7 @@ volatile u32 VITicks = CommandProcessor::m_cpClockOrigin;
 
 static bool IsOnThread()
 {
-	return SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.m_CPU_thread;
 }
 
 static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)

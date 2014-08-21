@@ -46,7 +46,7 @@ namespace Memory
 /* Enable the Translation Lookaside Buffer functions. TLBHack = 1 in Dolphin.ini or a
    <GameID>.ini file will set this to true */
 bool bFakeVMEM = false;
-static bool bMMU = false;
+static bool m_MMU = false;
 // ==============
 
 
@@ -142,9 +142,9 @@ static const int num_views = sizeof(views) / sizeof(MemoryView);
 
 void Init()
 {
-	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true;
-	bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii;
+	bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.m_TLB_hack == true;
+	m_MMU = SConfig::GetInstance().m_LocalCoreStartupParameter.m_MMU;
 
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;
@@ -165,7 +165,7 @@ void Init()
 
 void DoState(PointerWrap &p)
 {
-	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii;
 	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
 	//p.DoArray(m_pVirtualEFB, EFB_SIZE);
 	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
@@ -182,7 +182,7 @@ void Shutdown()
 {
 	m_IsInitialized = false;
 	u32 flags = 0;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) flags |= MV_WII_ONLY;
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSpace();
@@ -197,7 +197,7 @@ void Clear()
 		memset(m_pRAM, 0, RAM_SIZE);
 	if (m_pL1Cache)
 		memset(m_pL1Cache, 0, L1_CACHE_SIZE);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && m_pEXRAM)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii && m_pEXRAM)
 		memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 
@@ -323,7 +323,7 @@ u8 *GetPointer(const u32 _Address)
 	case 0x1:
 	case 0x9:
 	case 0xd:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii)
 		{
 			if ((_Address & 0xfffffff) < EXRAM_SIZE)
 				return m_pPhysicalEXRAM + (_Address & EXRAM_MASK);
@@ -362,7 +362,7 @@ bool IsRAMAddress(const u32 addr, bool allow_locked_cache, bool allow_fake_vmem)
 	case 0x10:
 	case 0x90:
 	case 0xD0:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && (addr & 0x0FFFFFFF) < EXRAM_SIZE)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii && (addr & 0x0FFFFFFF) < EXRAM_SIZE)
 			return true;
 		else
 			return false;

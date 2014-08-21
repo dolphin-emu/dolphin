@@ -108,7 +108,7 @@ protected:
 				Close();
 
 				g_video_backend = new_backend;
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = g_video_backend->GetName();
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_video_backend = g_video_backend->GetName();
 
 				g_video_backend->ShowConfig(GetParent());
 			}
@@ -128,7 +128,7 @@ protected:
 	void Event_ProgressiveScan(wxCommandEvent &ev)
 	{
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", ev.GetInt());
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = ev.IsChecked();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_progressive = ev.IsChecked();
 
 		ev.Skip();
 	}

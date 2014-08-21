@@ -144,7 +144,7 @@ static void AudioDMACallback(u64 userdata, int cyclesLate)
 
 static void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii)
 	{
 		WII_IPC_HLE_Interface::UpdateDevices();
 		CoreTiming::ScheduleEvent(IPC_HLE_PERIOD - cyclesLate, et_IPC_HLE);
@@ -240,7 +240,7 @@ static void ThrottleCallback(u64 last_time, int cyclesLate)
 // split from Init to break a circular dependency between VideoInterface::Init and SystemTimers::Init
 void PreInit()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii)
 		CPU_CORE_CLOCK = 729000000u;
 	else
 		CPU_CORE_CLOCK = 486000000u;
@@ -248,7 +248,7 @@ void PreInit()
 
 void Init()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii)
 	{
 		// AyuanX: TO BE TWEAKED
 		// Now the 1500 is a pure assumption
@@ -276,7 +276,7 @@ void Init()
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
 	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_sync_GPU)
 		et_CP = CoreTiming::RegisterEvent("CPCallback", CPCallback);
 	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
 	et_AudioDMA = CoreTiming::RegisterEvent("AudioDMACallback", AudioDMACallback);
@@ -289,12 +289,12 @@ void Init()
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_sync_GPU)
 		CoreTiming::ScheduleEvent(CP_PERIOD, et_CP);
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_PatchEngine);
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_wii)
 		CoreTiming::ScheduleEvent(IPC_HLE_PERIOD, et_IPC_HLE);
 }
 

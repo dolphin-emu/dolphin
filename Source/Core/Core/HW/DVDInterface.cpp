@@ -386,7 +386,7 @@ void EjectDiscCallback(u64 userdata, int cyclesLate)
 
 void InsertDiscCallback(u64 userdata, int cyclesLate)
 {
-	std::string& SavedFileName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
+	std::string& SavedFileName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_filename;
 	std::string *_FileName = (std::string *)userdata;
 
 	if (!VolumeHandler::SetVolumeName(*_FileName))
@@ -748,7 +748,7 @@ void ExecuteCommand()
 					}
 					g_last_read_offset = (iDVDOffset + m_DILENGTH.Length - 2048) & ~2047;
 
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
+					if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_fast_disc_speed)
 					{
 						// Make sure fast disc speed performs "instant" reads; in addition
 						// to being used to speed up games, fast disc speed is used as a

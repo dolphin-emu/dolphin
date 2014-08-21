@@ -22,7 +22,7 @@ static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFF
 void Jit64::ps_mr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
@@ -40,7 +40,7 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	// but we need -0 = +0
 
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
@@ -65,7 +65,7 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 void Jit64::ps_sign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
@@ -151,7 +151,7 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X6
 void Jit64::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	switch (inst.SUBOP5)
@@ -168,7 +168,7 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 void Jit64::ps_sum(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
@@ -208,7 +208,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 void Jit64::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
@@ -246,7 +246,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	int d = inst.FD;
@@ -282,7 +282,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 void Jit64::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
+	JITDISABLE(m_JIT_paired_off);
 	FALLBACK_IF(inst.Rc);
 
 	int a = inst.FA;

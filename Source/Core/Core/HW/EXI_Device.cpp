@@ -68,22 +68,22 @@ void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize)
 // DOES NOT FUNCTION AS "NO DEVICE INSERTED" -> Appears as unknown device
 class CEXIDummy : public IEXIDevice
 {
-	std::string m_strName;
+	std::string m_name;
 
 	void TransferByte(u8& _byte) override {}
 
 public:
 	CEXIDummy(const std::string& _strName) :
-	  m_strName(_strName)
+	  m_name(_strName)
 	{
 	}
 
 	virtual ~CEXIDummy(){}
 
-	void ImmWrite(u32 data, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x", m_strName.c_str(), data);}
-	u32  ImmRead (u32 size) override           {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
-	void DMAWrite(u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
-	void DMARead (u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
+	void ImmWrite(u32 data, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x", m_name.c_str(), data);}
+	u32  ImmRead (u32 size) override           {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_name.c_str()); return 0;}
+	void DMAWrite(u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_name.c_str(), size, addr);}
+	void DMARead (u32 addr, u32 size) override {INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_name.c_str(), size, addr);}
 };
 
 

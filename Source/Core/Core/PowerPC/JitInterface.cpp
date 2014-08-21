@@ -30,7 +30,7 @@
 #endif
 
 static bool bFakeVMEM = false;
-bool bMMU = false;
+bool m_MMU = false;
 
 namespace JitInterface
 {
@@ -41,8 +41,8 @@ namespace JitInterface
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
-		bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true;
-		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
+		bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.m_TLB_hack == true;
+		m_MMU = SConfig::GetInstance().m_LocalCoreStartupParameter.m_MMU;
 
 		CPUCoreBase *ptr = nullptr;
 		switch (core)
@@ -203,7 +203,7 @@ namespace JitInterface
 
 	u32 Read_Opcode_JIT(u32 _Address)
 	{
-		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
+		if (m_MMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
 		{
 			_Address = Memory::TranslateAddress(_Address, Memory::FLAG_OPCODE);
 			if (_Address == 0)

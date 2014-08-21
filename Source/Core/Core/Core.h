@@ -25,7 +25,7 @@ namespace Core
 
 // Get core parameters
 // TODO: kill, use SConfig instead
-extern SCoreStartupParameter g_CoreStartupParameter;
+extern CoreStartupParameter g_CoreStartupParameter;
 
 bool GetIsFramelimiterTempDisabled();
 void SetIsFramelimiterTempDisabled(bool disable);

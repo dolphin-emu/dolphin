@@ -419,7 +419,7 @@ public:
  ~wxConfigPathChanger();
 
   // get the key name
-  const wxString& Name() const { return m_strName; }
+  const wxString& Name() const { return m_name; }
 
   // this method must be called if the original path (i.e. the current path at
   // the moment of creation of this object) could have been deleted to prevent
@@ -431,7 +431,7 @@ public:
 
 private:
   wxConfigBase *m_pContainer;   // object we live in
-  wxString      m_strName,      // name of entry (i.e. name only)
+  wxString      m_name,      // name of entry (i.e. name only)
                 m_strOldPath;   // saved path
   bool          m_bChanged;     // was the path changed?
 

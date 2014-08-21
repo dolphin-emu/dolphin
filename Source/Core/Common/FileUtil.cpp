@@ -926,13 +926,13 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 	return paths[DirIDX];
 }
 
-std::string GetThemeDir(const std::string& theme_name)
+std::string GetThemeDir(const std::string& m_theme_name)
 {
-	std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
+	std::string dir = File::GetUserPath(D_THEMES_IDX) + m_theme_name + "/";
 
 	// If theme does not exist in user's dir load from shared directory
 	if (!File::Exists(dir))
-		dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+		dir = GetSysDirectory() + THEMES_DIR "/" + m_theme_name + "/";
 
 	return dir;
 }

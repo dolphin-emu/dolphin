@@ -291,7 +291,7 @@ wxConfigPathChanger::wxConfigPathChanger(const wxConfigBase *pContainer,
 
   // the path is everything which precedes the last slash and the name is
   // everything after it -- and this works correctly if there is no slash too
-  wxString strPath = strEntry.BeforeLast(wxCONFIG_PATH_SEPARATOR, &m_strName);
+  wxString strPath = strEntry.BeforeLast(wxCONFIG_PATH_SEPARATOR, &m_name);
 
   // except in the special case of "/keyname" when there is nothing before "/"
   if ( strPath.empty() &&
