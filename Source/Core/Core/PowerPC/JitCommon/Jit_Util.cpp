@@ -524,11 +524,6 @@ static u64 GC_ALIGNED16(temp64);
 
 static const float GC_ALIGNED16(m_zero[]) = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0, 0x0000000000400000);
-static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi64x(0, 0x000000007f800000);
-static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi64x(0, 0x0008000000000000);
-static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi64x(0, 0x7ff0000000000000);
-
 // Since the following float conversion functions are used in non-arithmetic PPC float instructions,
 // they must convert floats bitexact and never flush denormals to zero or turn SNaNs into QNaNs.
 // This means we can't use CVTSS2SD/CVTSD2SS :(
@@ -542,6 +537,7 @@ static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi64x(0, 0x7ff0000
 //#define MORE_ACCURATE_DOUBLETOSINGLE
 #ifdef MORE_ACCURATE_DOUBLETOSINGLE
 
+static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi64x(0, 0x7ff0000000000000);
 static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi64x(0, 0x000fffffffffffff);
 static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0, 0x8000000000000000);
 static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi64x(0, 0x0010000000000000);
@@ -619,95 +615,64 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 {
+	// Most games have flush-to-zero enabled, which causes the single -> double -> single process here to be lossy.
+	// This is a problem when games use float operations to copy non-float data.
+	// Changing the FPU mode is very expensive, so we can't do that.
+	// Here, check to see if the exponent is small enough that it will result in a denormal, and pass it to the x87 unit
+	// if it is.
+	MOVQ_xmm(R(RAX), src);
+	SHR(64, R(RAX), Imm8(55));
+	// Exponents 0x369 <= x <= 0x380 are denormal. This code accepts the range 0x368 <= x <= 0x387
+	// to save an instruction, since diverting a few more floats to the slow path can't hurt much.
+	SUB(8, R(AL), Imm8(0x6D));
+	CMP(8, R(AL), Imm8(0x3));
+	FixupBranch x87Conversion = J_CC(CC_BE);
+	CVTSD2SS(dst, R(src));
+	FixupBranch continue1 = J();
+
+	SetJumpTarget(x87Conversion);
 	MOVSD(M(&temp64), src);
-	MOVSD(XMM1, R(src));
 	FLD(64, M(&temp64));
-	CCFlags cond;
-	if (cpu_info.bSSE4_1)
-	{
-		PTEST(XMM1, M((void *)&double_exponent));
-		cond = CC_NC;
-	}
-	else
-	{
-		// emulate PTEST; checking FPU flags is incorrect because the NaN bits
-		// are sticky (persist between instructions)
-		MOVSD(XMM0, M((void *)&double_exponent));
-		PAND(XMM0, R(XMM1));
-		PCMPEQB(XMM0, M((void *)&m_zero));
-		PMOVMSKB(EAX, R(XMM0));
-		CMP(32, R(EAX), Imm32(0xffff));
-		cond = CC_Z;
-	}
 	FSTP(32, M(&temp32));
-	MOVSS(XMM0, M(&temp32));
-	FixupBranch dont_reset_qnan_bit = J_CC(cond);
+	MOVSS(dst, M(&temp32));
 
-	PANDN(XMM1, M((void *)&double_qnan_bit));
-	PSRLQ(XMM1, 29);
-	if (cpu_info.bAVX)
-	{
-		VPANDN(XMM0, XMM1, R(XMM0));
-	}
-	else
-	{
-		PANDN(XMM1, R(XMM0));
-		MOVSS(XMM0, R(XMM1));
-	}
-
-	SetJumpTarget(dont_reset_qnan_bit);
-	MOVDDUP(dst, R(XMM0));
+	SetJumpTarget(continue1);
 }
 #endif // MORE_ACCURATE_DOUBLETOSINGLE
 
 void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
 {
+	// If the input isn't denormal, just do things the simple way -- otherwise, go through the x87 unit, which has
+	// flush-to-zero off.
+	X64Reg gprsrc = src_is_gpr ? src : EAX;
 	if (src_is_gpr)
 	{
-		MOV(32, M(&temp32), R(src));
-		MOVD_xmm(XMM1, R(src));
+		MOVD_xmm(dst, R(src));
 	}
 	else
 	{
-		MOVSS(M(&temp32), src);
-		MOVSS(R(XMM1), src);
+		if (dst != src)
+			MOVAPD(dst, R(src));
+		MOVD_xmm(EAX, R(src));
 	}
+	// A sneaky hack: floating-point zero is rather common and we don't want to confuse it for denormals and
+	// needlessly send it through the slow path. If we subtract 1 before doing the comparison, it turns
+	// float-zero into 0xffffffff (skipping the slow path). This results in a single non-denormal being sent
+	// through the slow path (0x00800000), but the performance effects of that should be negligible.
+	SUB(32, R(gprsrc), Imm8(1));
+	TEST(32, R(gprsrc), Imm32(0x7f800000));
 
+	FixupBranch x87Conversion = J_CC(CC_Z);
+	CVTSS2SD(dst, R(dst));
+	FixupBranch continue1 = J();
+
+	SetJumpTarget(x87Conversion);
+	MOVSS(M(&temp32), dst);
 	FLD(32, M(&temp32));
-	CCFlags cond;
-	if (cpu_info.bSSE4_1)
-	{
-		PTEST(XMM1, M((void *)&single_exponent));
-		cond = CC_NC;
-	}
-	else
-	{
-		// emulate PTEST; checking FPU flags is incorrect because the NaN bits
-		// are sticky (persist between instructions)
-		MOVSS(XMM0, M((void *)&single_exponent));
-		PAND(XMM0, R(XMM1));
-		PCMPEQB(XMM0, M((void *)&m_zero));
-		PMOVMSKB(EAX, R(XMM0));
-		CMP(32, R(EAX), Imm32(0xffff));
-		cond = CC_Z;
-	}
 	FSTP(64, M(&temp64));
 	MOVSD(dst, M(&temp64));
-	FixupBranch dont_reset_qnan_bit = J_CC(cond);
 
-	PANDN(XMM1, M((void *)&single_qnan_bit));
-	PSLLQ(XMM1, 29);
-	if (cpu_info.bAVX)
-	{
-		VPANDN(dst, XMM1, R(dst));
-	}
-	else
-	{
-		PANDN(XMM1, R(dst));
-		MOVSD(dst, R(XMM1));
-	}
-
-	SetJumpTarget(dont_reset_qnan_bit);
+	SetJumpTarget(continue1);
 	MOVDDUP(dst, R(dst));
 }
 
