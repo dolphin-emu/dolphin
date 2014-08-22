@@ -732,12 +732,6 @@
     <ClInclude Include="Boot\Boot_DOL.h">
       <Filter>Boot</Filter>
     </ClInclude>
-    <ClInclude Include="Boot\Boot_ELF.h">
-      <Filter>Boot</Filter>
-    </ClInclude>
-    <ClInclude Include="Boot\Boot_WiiWAD.h">
-      <Filter>Boot</Filter>
-    </ClInclude>
     <ClInclude Include="Boot\ElfReader.h">
       <Filter>Boot</Filter>
     </ClInclude>
