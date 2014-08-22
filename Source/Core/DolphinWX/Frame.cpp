@@ -657,7 +657,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case IDM_UPDATETITLE:
-		SetTitle(event.GetString());
+		UpdateTitle(WxStrToStr(event.GetString()));
 		break;
 
 	case IDM_WINDOWSIZEREQUEST:
