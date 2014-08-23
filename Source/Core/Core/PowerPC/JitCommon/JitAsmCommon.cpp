@@ -8,7 +8,7 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-#define QUANTIZED_REGS_TO_SAVE (ABI_ALL_CALLEE_SAVED & ~((1 << RAX) | (1 << RCX) | (1 << RDX) | \
+#define QUANTIZED_REGS_TO_SAVE (ABI_ALL_CALLER_SAVED & ~((1 << RAX) | (1 << RCX) | (1 << RDX) | \
                                                          (1 << XMM0) | (1 << XMM1)))
 
 using namespace Gen;

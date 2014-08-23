@@ -25,7 +25,7 @@ void Jit64::lfs(UGeckoInstruction inst)
 
 	s32 offset = (s32)(s16)inst.SIMM_16;
 
-	SafeLoadToReg(EAX, gpr.R(a), 32, offset, RegistersInUse(), false);
+	SafeLoadToReg(EAX, gpr.R(a), 32, offset, CallerSavedRegistersInUse(), false);
 
 	fpr.Lock(d);
 	fpr.BindToRegister(d, js.memcheck);
@@ -49,7 +49,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 
 	s32 offset = (s32)(s16)inst.SIMM_16;
 
-	SafeLoadToReg(RAX, gpr.R(a), 64, offset, RegistersInUse(), false);
+	SafeLoadToReg(RAX, gpr.R(a), 64, offset, CallerSavedRegistersInUse(), false);
 
 	fpr.Lock(d);
 	fpr.BindToRegister(d, true);
@@ -81,7 +81,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 		MOV(64, R(RAX), fpr.R(s));
 
 	s32 offset = (s32)(s16)inst.SIMM_16;
-	SafeWriteRegToReg(RAX, ABI_PARAM1, 64, offset, RegistersInUse());
+	SafeWriteRegToReg(RAX, ABI_PARAM1, 64, offset, CallerSavedRegistersInUse());
 
 	gpr.UnlockAllX();
 }
@@ -100,7 +100,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 	ConvertDoubleToSingle(XMM0, fpr.RX(s));
 	gpr.FlushLockX(ABI_PARAM1);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
-	SafeWriteF32ToReg(XMM0, ABI_PARAM1, offset, RegistersInUse());
+	SafeWriteF32ToReg(XMM0, ABI_PARAM1, offset, CallerSavedRegistersInUse());
 	fpr.UnlockAll();
 	gpr.UnlockAllX();
 }
@@ -119,7 +119,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 	fpr.Lock(s);
 	fpr.BindToRegister(s, true, false);
 	ConvertDoubleToSingle(XMM0, fpr.RX(s));
-	SafeWriteF32ToReg(XMM0, ABI_PARAM1, 0, RegistersInUse());
+	SafeWriteF32ToReg(XMM0, ABI_PARAM1, 0, CallerSavedRegistersInUse());
 	fpr.UnlockAll();
 	gpr.UnlockAllX();
 }
@@ -133,7 +133,7 @@ void Jit64::lfsx(UGeckoInstruction inst)
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
 
-	SafeLoadToReg(EAX, R(EAX), 32, 0, RegistersInUse(), false);
+	SafeLoadToReg(EAX, R(EAX), 32, 0, CallerSavedRegistersInUse(), false);
 
 	fpr.Lock(inst.RS);
 	fpr.BindToRegister(inst.RS, js.memcheck);
