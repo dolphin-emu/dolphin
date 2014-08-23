@@ -901,12 +901,8 @@ else()
 endif()
 
 add_definitions(-DWXBUILDING)
-add_definitions(-Wno-deprecated-declarations)
-add_definitions(-Wno-shadow)
-add_definitions(-Wno-parentheses-equality)
-add_definitions(-Wno-self-assign)
-add_definitions(-Wno-null-conversion)
-add_definitions(-Wno-sign-compare)
+# wxWidgets warnings are not our problem.
+add_definitions(-w)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
 
 enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
