@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <windows.h>
-// The following Windows headers MUST be included after windows.h.
+// The following Windows headers must be included AFTER windows.h.
 #include <BluetoothAPIs.h> //NOLINT
 #include <dbt.h>           //NOLINT
 #include <setupapi.h>      //NOLINT

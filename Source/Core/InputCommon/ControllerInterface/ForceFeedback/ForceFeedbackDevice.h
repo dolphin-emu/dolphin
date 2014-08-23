@@ -10,11 +10,8 @@
 #include "InputCommon/ControllerInterface/Device.h"
 
 #ifdef _WIN32
-#define DIRECTINPUT_VERSION 0x0800
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
 #include <Windows.h>
-#include <dinput.h>
+#include "InputCommon/ControllerInterface/DInput/DInput8.h"
 #elif __APPLE__
 #include "InputCommon/ControllerInterface/ForceFeedback/OSX/DirectInputAdapter.h"
 #endif

@@ -4,9 +4,6 @@
 
 #pragma once
 
-// windows crap
-#define NOMINMAX
-
 #include <algorithm>
 #include <cmath>
 #include <memory>

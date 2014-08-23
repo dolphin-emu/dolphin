@@ -4,9 +4,6 @@
 
 #pragma once
 
-// DO NOT EVER INCLUDE <windows.h> directly _or indirectly_ from this file
-// since it slows down the build a lot.
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -88,13 +85,6 @@ private:
 #endif
 
 #elif defined _WIN32
-
-// Check MSC ver
-	#if !defined _MSC_VER || _MSC_VER <= 1000
-		#error needs at least version 1000 of MSC
-	#endif
-
-	#define NOMINMAX
 
 // Memory leak checks
 	#define CHECK_HEAP_INTEGRITY()
