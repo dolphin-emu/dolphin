@@ -115,9 +115,6 @@ std::string StopMessage(bool bMainThread, std::string Message)
 
 void DisplayMessage(const std::string& message, int time_in_ms)
 {
-	SCoreStartupParameter& _CoreParameter =
-		SConfig::GetInstance().m_LocalCoreStartupParameter;
-
 	// Actually displaying non-ASCII could cause things to go pear-shaped
 	for (const char& c : message)
 	{
