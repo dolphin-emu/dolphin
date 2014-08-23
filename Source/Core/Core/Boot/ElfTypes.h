@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
+
 // ELF Header Constants
 
 // File type
@@ -182,69 +184,62 @@ enum ElfSectionFlags
 #define DT_LOPROC   0x70000000
 #define DT_HIPROC   0x7FFFFFFF
 
-typedef unsigned int  Elf32_Addr;
-typedef unsigned short Elf32_Half;
-typedef unsigned int  Elf32_Off;
-typedef signed   int  Elf32_Sword;
-typedef unsigned int  Elf32_Word;
-
-
 // ELF file header
 struct Elf32_Ehdr
 {
-	unsigned char e_ident[EI_NIDENT];
-	Elf32_Half    e_type;
-	Elf32_Half    e_machine;
-	Elf32_Word    e_version;
-	Elf32_Addr    e_entry;
-	Elf32_Off     e_phoff;
-	Elf32_Off     e_shoff;
-	Elf32_Word    e_flags;
-	Elf32_Half    e_ehsize;
-	Elf32_Half    e_phentsize;
-	Elf32_Half    e_phnum;
-	Elf32_Half    e_shentsize;
-	Elf32_Half    e_shnum;
-	Elf32_Half    e_shstrndx;
+	u8     e_ident[EI_NIDENT];
+	u16    e_type;
+	u16    e_machine;
+	u32    e_version;
+	u32    e_entry;
+	u32    e_phoff;
+	u32    e_shoff;
+	u32    e_flags;
+	u16    e_ehsize;
+	u16    e_phentsize;
+	u16    e_phnum;
+	u16    e_shentsize;
+	u16    e_shnum;
+	u16    e_shstrndx;
 };
 
 // Section header
 struct Elf32_Shdr
 {
-	Elf32_Word sh_name;
-	Elf32_Word sh_type;
-	Elf32_Word sh_flags;
-	Elf32_Addr sh_addr;
-	Elf32_Off  sh_offset;
-	Elf32_Word sh_size;
-	Elf32_Word sh_link;
-	Elf32_Word sh_info;
-	Elf32_Word sh_addralign;
-	Elf32_Word sh_entsize;
+	u32 sh_name;
+	u32 sh_type;
+	u32 sh_flags;
+	u32 sh_addr;
+	u32 sh_offset;
+	u32 sh_size;
+	u32 sh_link;
+	u32 sh_info;
+	u32 sh_addralign;
+	u32 sh_entsize;
 };
 
 // Segment header
 struct Elf32_Phdr
 {
-	Elf32_Word p_type;
-	Elf32_Off  p_offset;
-	Elf32_Addr p_vaddr;
-	Elf32_Addr p_paddr;
-	Elf32_Word p_filesz;
-	Elf32_Word p_memsz;
-	Elf32_Word p_flags;
-	Elf32_Word p_align;
+	u32 p_type;
+	u32 p_offset;
+	u32 p_vaddr;
+	u32 p_paddr;
+	u32 p_filesz;
+	u32 p_memsz;
+	u32 p_flags;
+	u32 p_align;
 };
 
 // Symbol table entry
 struct Elf32_Sym
 {
-	Elf32_Word    st_name;
-	Elf32_Addr    st_value;
-	Elf32_Word    st_size;
-	unsigned char st_info;
-	unsigned char st_other;
-	Elf32_Half    st_shndx;
+	u32 st_name;
+	u32 st_value;
+	u32 st_size;
+	u8  st_info;
+	u8  st_other;
+	u16 st_shndx;
 };
 
 #define ELF32_ST_BIND(i)   ((i)>>4)
@@ -254,28 +249,28 @@ struct Elf32_Sym
 // Relocation entries
 struct Elf32_Rel
 {
-	Elf32_Addr r_offset;
-	Elf32_Word r_info;
+	u32 r_offset;
+	u32 r_info;
 };
 
 struct Elf32_Rela
 {
-	Elf32_Addr  r_offset;
-	Elf32_Word  r_info;
-	Elf32_Sword r_addend;
+	u32 r_offset;
+	u32 r_info;
+	s32 r_addend;
 };
 
 #define ELF32_R_SYM(i) ((i)>>8)
-#define ELF32_R_TYPE(i) ((unsigned char)(i))
-#define ELF32_R_INFO(s,t) (((s)<<8 )+(unsigned char)(t))
+#define ELF32_R_TYPE(i) ((u8)(i))
+#define ELF32_R_INFO(s,t) (((s)<<8 )+(u8)(t))
 
 
 struct Elf32_Dyn
 {
-	Elf32_Sword d_tag;
+	s32 d_tag;
 	union
 	{
-		Elf32_Word d_val;
-		Elf32_Addr d_ptr;
+		u32 d_val;
+		u32 d_ptr;
 	} d_un;
 };
