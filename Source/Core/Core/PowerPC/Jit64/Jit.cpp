@@ -501,7 +501,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			js.fifoBytesThisBlock -= 32;
 			MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
-			u32 registersInUse = RegistersInUse();
+			u32 registersInUse = CallerSavedRegistersInUse();
 			ABI_PushRegistersAndAdjustStack(registersInUse, false);
 			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
 			ABI_PopRegistersAndAdjustStack(registersInUse, false);
@@ -672,7 +672,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	return normalEntry;
 }
 
-u32 Jit64::RegistersInUse()
+u32 Jit64::CallerSavedRegistersInUse()
 {
 	u32 result = 0;
 	for (int i = 0; i < NUMXREGS; i++)
@@ -682,5 +682,5 @@ u32 Jit64::RegistersInUse()
 		if (!fpr.IsFreeX(i))
 			result |= (1 << (16 + i));
 	}
-	return result;
+	return result & ABI_ALL_CALLER_SAVED;
 }

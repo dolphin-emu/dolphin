@@ -110,13 +110,13 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		// do our job at first
 		s32 offset = (s32)(s16)inst.SIMM_16;
 		gpr.BindToRegister(d, false, true);
-		SafeLoadToReg(gpr.RX(d), gpr.R(a), accessSize, offset, RegistersInUse(), signExtend);
+		SafeLoadToReg(gpr.RX(d), gpr.R(a), accessSize, offset, CallerSavedRegistersInUse(), signExtend);
 
 		// if it's still 0, we can wait until the next event
 		TEST(32, gpr.R(d), gpr.R(d));
 		FixupBranch noIdle = J_CC(CC_NZ);
 
-		u32 registersInUse = RegistersInUse();
+		u32 registersInUse = CallerSavedRegistersInUse();
 		ABI_PushRegistersAndAdjustStack(registersInUse, false);
 
 		ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
@@ -199,7 +199,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, js.memcheck, true);
-	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, 0, RegistersInUse(), signExtend);
+	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, 0, CallerSavedRegistersInUse(), signExtend);
 
 	if (update && js.memcheck && !zeroOffset)
 	{
@@ -320,7 +320,7 @@ void Jit64::stX(UGeckoInstruction inst)
 				// Helps external systems know which instruction triggered the write
 				MOV(32, M(&PC), Imm32(jit->js.compilerPC));
 
-				u32 registersInUse = RegistersInUse();
+				u32 registersInUse = CallerSavedRegistersInUse();
 				ABI_PushRegistersAndAdjustStack(registersInUse, false);
 				switch (accessSize)
 				{
@@ -345,7 +345,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		gpr.Lock(s, a);
 		MOV(32, R(EDX), gpr.R(a));
 		MOV(32, R(ECX), gpr.R(s));
-		SafeWriteRegToReg(ECX, EDX, accessSize, offset, RegistersInUse());
+		SafeWriteRegToReg(ECX, EDX, accessSize, offset, CallerSavedRegistersInUse());
 
 		if (update && offset)
 		{
@@ -410,7 +410,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 	}
 
 	MOV(32, R(ECX), gpr.R(s));
-	SafeWriteRegToReg(ECX, EDX, accessSize, 0, RegistersInUse());
+	SafeWriteRegToReg(ECX, EDX, accessSize, 0, CallerSavedRegistersInUse());
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -429,7 +429,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 		ADD(32, R(ECX), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
-		SafeLoadToReg(EAX, R(ECX), 32, (i - inst.RD) * 4, RegistersInUse(), false);
+		SafeLoadToReg(EAX, R(ECX), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse(), false);
 		gpr.BindToRegister(i, false, true);
 		MOV(32, gpr.R(i), R(EAX));
 	}
@@ -450,7 +450,7 @@ void Jit64::stmw(UGeckoInstruction inst)
 		else
 			XOR(32, R(EAX), R(EAX));
 		MOV(32, R(ECX), gpr.R(i));
-		SafeWriteRegToReg(ECX, EAX, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, RegistersInUse());
+		SafeWriteRegToReg(ECX, EAX, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, CallerSavedRegistersInUse());
 	}
 	gpr.UnlockAllX();
 }
