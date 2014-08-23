@@ -279,19 +279,18 @@ void ReadBigEData(u8 *data, const u32 em_address, const u32 size)
 	memcpy(data, src, size);
 }
 
-void GetString(std::string& _string, const u32 em_address)
+std::string GetString(u32 em_address)
 {
-	char stringBuffer[2048];
-	char *string = stringBuffer;
+	std::string str;
 	char c;
-	u32 addr = em_address;
-	while ((c = Read_U8(addr)))
+
+	while ((c = Read_U8(em_address)) != '\0')
 	{
-		*string++ = c;
-		addr++;
+		str += c;
+		em_address++;
 	}
-	*string++ = '\0';
-	_string = stringBuffer;
+
+	return str;
 }
 
 // GetPointer must always return an address in the bottom 32 bits of address space, so that 64-bit
