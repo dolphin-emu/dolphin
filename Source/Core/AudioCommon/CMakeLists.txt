@@ -32,7 +32,6 @@ if(PULSEAUDIO_FOUND)
 endif(PULSEAUDIO_FOUND)
 
 if(WIN32)
-	set(SRCS ${SRCS} DSoundStream.cpp)
 	set(SRCS ${SRCS} XAudio2Stream.cpp)
 endif(WIN32)
 
