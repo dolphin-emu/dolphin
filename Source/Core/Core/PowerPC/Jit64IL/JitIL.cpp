@@ -496,9 +496,10 @@ void JitIL::Trace()
 #endif
 
 	DEBUG_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRval: %016lx%016lx%016lx%016lx%016lx%016lx%016lx%016lx FPSCR: %08x MSR: %08x LR: %08x %s %s",
-		PC, SRR0, SRR1, PowerPC::ppcState.cr_val[0], PowerPC::ppcState.cr_val[1], PowerPC::ppcState.cr_val[2], PowerPC::ppcState.cr_val[3],
-		PowerPC::ppcState.cr_val[4], PowerPC::ppcState.cr_val[5], PowerPC::ppcState.cr_val[6], PowerPC::ppcState.cr_val[7], PowerPC::ppcState.fpscr,
-		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
+		PC, SRR0, SRR1, (unsigned long) PowerPC::ppcState.cr_val[0], (unsigned long) PowerPC::ppcState.cr_val[1], (unsigned long) PowerPC::ppcState.cr_val[2],
+		(unsigned long) PowerPC::ppcState.cr_val[3], (unsigned long) PowerPC::ppcState.cr_val[4], (unsigned long) PowerPC::ppcState.cr_val[5],
+		(unsigned long) PowerPC::ppcState.cr_val[6], (unsigned long) PowerPC::ppcState.cr_val[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr,
+		PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
 void STACKALIGN JitIL::Jit(u32 em_address)
