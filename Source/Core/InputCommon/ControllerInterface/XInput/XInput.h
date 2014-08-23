@@ -5,7 +5,6 @@
 
 #pragma once
 
-#define NOMINMAX
 #include <windows.h>
 #include <XInput.h>
 
