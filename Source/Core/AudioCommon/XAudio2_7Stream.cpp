@@ -2,27 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-// Note that this file *and this file only* must also have %DXSDK_DIR%/Include prepended
-// to its include path in order fetch dxsdkver.h and XAudio2.h from the DXSDK
-// instead of other possible places. This may be accomplished by adding the path to
-// the AdditionalIncludeDirectories for this file via msbuild.
+// Note that this file *and this file only* must include XAudio2.h from the old
+// DXSDK instead of other possible places.
+
+#include <XAudio2_7/XAudio2.h>
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/XAudio2_7Stream.h"
 #include "Common/Event.h"
-
-#ifdef HAVE_DXSDK
-#include <dxsdkver.h>
-#if (_DXSDK_PRODUCT_MAJOR == 9) && (_DXSDK_PRODUCT_MINOR == 29) && (_DXSDK_BUILD_MAJOR == 1962) && (_DXSDK_BUILD_MINOR == 0)
-#define HAVE_DXSDK_JUNE_2010
-#else
-#pragma message("You have DirectX SDK installed, but it is not the expected version (June 2010). Update it to build this module.")
-#endif
-#endif
-
-#ifdef HAVE_DXSDK_JUNE_2010
-
-#include <XAudio2.h>
 
 struct StreamingVoiceContext2_7 : public IXAudio2VoiceCallback
 {
@@ -260,28 +247,3 @@ void XAudio2_7::Stop()
 		m_xaudio2_dll = nullptr;
 	}
 }
-
-#else
-
-struct StreamingVoiceContext2_7 {};
-struct IXAudio2 {};
-struct IXAudio2MasteringVoice {};
-void XAudio2_7::ReleaseIXAudio2(IXAudio2* ptr) {}
-
-XAudio2_7::XAudio2_7(CMixer *mixer)
-	: SoundStream(mixer)
-	, m_mastering_voice(nullptr)
-	, m_volume(1.0f)
-	, m_cleanup_com(false)
-{}
-
-XAudio2_7::~XAudio2_7() {}
-
-bool XAudio2_7::Start() { return SoundStream::Start(); }
-void XAudio2_7::Stop() {}
-void XAudio2_7::Update() {}
-void XAudio2_7::Clear(bool mute) {}
-void XAudio2_7::SetVolume(int volume) {}
-bool XAudio2_7::InitLibrary() { return false; }
-
-#endif

@@ -5,10 +5,11 @@
 // This audio backend uses XAudio2 via XAudio2_7.dll
 // This version of the library is included in the June 2010 DirectX SDK and
 // works on all versions of Windows, however the SDK and/or redist must be
-// seperately installed.
+// separately installed.
 // Therefore this backend is available iff:
 //  * SDK is available at compile-time
 //  * runtime dll is available at runtime
+// Dolphin ships the relevant SDK headers in Externals, so it's always available.
 
 #pragma once
 
