@@ -460,12 +460,13 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 	}
 	else
 	{
+		X64Reg input = RSCRATCH;
 		if (signedCompare)
 		{
 			if (gpr.R(a).IsImm())
-				MOV(64, R(RSCRATCH), Imm32((s32)gpr.R(a).offset));
+				MOV(64, R(input), Imm32((s32)gpr.R(a).offset));
 			else
-				MOVSX(64, 32, RSCRATCH, gpr.R(a));
+				MOVSX(64, 32, input, gpr.R(a));
 
 			if (!comparand.IsImm())
 			{
@@ -476,19 +477,46 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		else
 		{
 			if (gpr.R(a).IsImm())
-				MOV(32, R(RSCRATCH), Imm32((u32)gpr.R(a).offset));
+			{
+				MOV(32, R(input), Imm32((u32)gpr.R(a).offset));
+			}
+			else if (comparand.IsImm() && !comparand.offset)
+			{
+				gpr.BindToRegister(a, true, false);
+				input = gpr.RX(a);
+			}
 			else
-				MOVZX(64, 32, RSCRATCH, gpr.R(a));
+			{
+				MOVZX(64, 32, input, gpr.R(a));
+			}
 
 			if (comparand.IsImm())
-				MOV(32, R(RSCRATCH2), comparand);
+			{
+				// sign extension will ruin this, so store it in a register
+				if (comparand.offset & 0x80000000U)
+				{
+					MOV(32, R(RSCRATCH2), comparand);
+					comparand = R(RSCRATCH2);
+				}
+			}
 			else
-				MOVZX(64, 32, RSCRATCH2, comparand);
-
-			comparand = R(RSCRATCH2);
+			{
+				gpr.BindToRegister(b, true, false);
+				comparand = gpr.R(b);
+			}
 		}
-		SUB(64, R(RSCRATCH), comparand);
-		MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+		if (comparand.IsImm() && !comparand.offset)
+		{
+			MOV(64, PPCSTATE(cr_val[crf]), R(input));
+			// Place the comparison next to the branch for macro-op fusion
+			if (merge_branch)
+				TEST(64, R(input), R(input));
+		}
+		else
+		{
+			SUB(64, R(input), comparand);
+			MOV(64, PPCSTATE(cr_val[crf]), R(input));
+		}
 
 		if (merge_branch)
 		{
