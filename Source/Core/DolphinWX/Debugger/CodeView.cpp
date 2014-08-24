@@ -421,7 +421,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	int numBranches = 0;
 	// TODO: Add any drawing code here...
 	int width   = rc.width;
-	int numRows = (rc.height / m_rowHeight) / 2 + 2;
+	int numRows = ((rc.height / m_rowHeight) / 2) + 2;
 	// ------------
 
 	// -------------------------
@@ -453,14 +453,14 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	// -----------------------------
 	for (int i = -numRows; i <= numRows; i++)
 	{
-		unsigned int address = m_curAddress + i * m_align;
+		unsigned int address = m_curAddress + (i * m_align);
 
-		int rowY1 = rc.height / 2 + m_rowHeight * i - m_rowHeight / 2;
-		int rowY2 = rc.height / 2 + m_rowHeight * i + m_rowHeight / 2;
+		int rowY1 = (rc.height / 2) + (m_rowHeight * i) - (m_rowHeight / 2);
+		int rowY2 = (rc.height / 2) + (m_rowHeight * i) + (m_rowHeight / 2);
 
 		wxString temp = wxString::Format("%08x", address);
-		u32 col = m_debugger->GetColor(address);
-		wxBrush rowBrush(wxColour(col >> 16, col >> 8, col));
+		u32 color = m_debugger->GetColor(address);
+		wxBrush rowBrush(wxColour(color >> 16, color >> 8, color));
 		ctx->SetBrush(nullBrush);
 		ctx->SetPen(nullPen);
 		ctx->DrawRectangle(0, rowY1, 16, rowY2 - rowY1 + 2);
@@ -509,11 +509,13 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			{
 				u32 offs = std::stoul(hex_str, nullptr, 16);
 
-				branches[numBranches].src = rowY1 + m_rowHeight / 2;
-				branches[numBranches].srcAddr = address / m_align;
+				branches[numBranches].src = rowY1 + (m_rowHeight / 2);
+				branches[numBranches].srcAddr = (address / m_align);
 				branches[numBranches++].dst = (int)(rowY1 + ((s64)(u32)offs - (s64)(u32)address) * m_rowHeight / m_align + m_rowHeight / 2);
 				desc = StringFromFormat("-->%s", m_debugger->GetDescription(offs).c_str());
-				ctx->SetFont(DebuggerFont, wxTheColourDatabase->Find("PURPLE")); // the -> arrow illustrations are purple
+
+				// the -> arrow illustrations are purple
+				ctx->SetFont(DebuggerFont, wxTheColourDatabase->Find("PURPLE"));
 			}
 			else
 			{
