@@ -796,11 +796,7 @@ void Jit64::extsbx(UGeckoInstruction inst)
 	{
 		gpr.Lock(a, s);
 		gpr.BindToRegister(a, a == s, true);
-		// Always force moving to EAX because it isn't possible
-		// to refer to the lowest byte of some registers, at least in
-		// 32-bit mode.
-		MOV(32, R(EAX), gpr.R(s));
-		MOVSX(32, 8, gpr.RX(a), R(AL)); // watch out for ah and friends
+		MOVSX(32, 8, gpr.RX(a), gpr.R(s));
 		gpr.UnlockAll();
 	}
 
@@ -823,11 +819,7 @@ void Jit64::extshx(UGeckoInstruction inst)
 	else
 	{
 		gpr.Lock(a, s);
-		gpr.KillImmediate(s, true, false);
 		gpr.BindToRegister(a, a == s, true);
-		// This looks a little dangerous, but it's safe because
-		// every 32-bit register has a 16-bit half at the same index
-		// as the 32-bit register.
 		MOVSX(32, 16, gpr.RX(a), gpr.R(s));
 		gpr.UnlockAll();
 	}
