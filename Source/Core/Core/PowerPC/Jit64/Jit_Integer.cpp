@@ -1861,8 +1861,8 @@ void Jit64::srwx(UGeckoInstruction inst)
 		// no register choice
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
-		gpr.BindToRegister(a, (a == b || a == s), true);
 		MOV(32, R(ECX), gpr.R(b));
+		gpr.BindToRegister(a, a == s, true);
 		if (a != s)
 		{
 			MOV(32, gpr.R(a), gpr.R(s));
@@ -1900,8 +1900,8 @@ void Jit64::slwx(UGeckoInstruction inst)
 		// no register choice
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
-		gpr.BindToRegister(a, (a == b || a == s), true);
 		MOV(32, R(ECX), gpr.R(b));
+		gpr.BindToRegister(a, a == s, true);
 		if (a != s)
 		{
 			MOV(32, gpr.R(a), gpr.R(s));
