@@ -479,13 +479,29 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				MOVZX(64, 32, RAX, gpr.R(a));
 
 			if (comparand.IsImm())
-				MOV(32, R(ABI_PARAM1), comparand);
+			{
+				// sign extension will ruin this, so store it in a register
+				if (comparand.offset & 0x80000000U)
+				{
+					MOV(32, R(ABI_PARAM1), comparand);
+					comparand = R(ABI_PARAM1);
+				}
+			}
 			else
+			{
 				MOVZX(64, 32, ABI_PARAM1, comparand);
-
-			comparand = R(ABI_PARAM1);
+				comparand = R(ABI_PARAM1);
+			}
 		}
-		SUB(64, R(RAX), comparand);
+		if (comparand.IsImm() && !comparand.offset)
+		{
+			if (merge_branch)
+				TEST(64, R(RAX), R(RAX));
+		}
+		else
+		{
+			SUB(64, R(RAX), comparand);
+		}
 		MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
 
 		if (merge_branch)
