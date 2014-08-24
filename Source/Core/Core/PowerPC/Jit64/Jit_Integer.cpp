@@ -5,6 +5,7 @@
 #include <limits>
 #include <vector>
 
+#include "Common/MathUtil.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
@@ -1007,6 +1008,64 @@ void Jit64::subfx(UGeckoInstruction inst)
 	}
 }
 
+void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
+{
+	// simplest cases first
+	if (imm == 0)
+	{
+		XOR(32, gpr.R(d), gpr.R(d));
+		return;
+	}
+
+	if (imm == (u32)-1)
+	{
+		if (d != a)
+			MOV(32, gpr.R(d), gpr.R(a));
+		NEG(32, gpr.R(d));
+		return;
+	}
+
+	// skip these if we need to check overflow flag
+	if (!overflow)
+	{
+		// power of 2; just a shift
+		if (IsPow2(imm))
+		{
+			u32 shift = IntLog2(imm);
+			// use LEA if it saves an op
+			if (d != a && shift <= 3 && shift >= 1 && gpr.R(a).IsSimpleReg())
+			{
+				LEA(32, gpr.RX(d), MScaled(gpr.RX(a), SCALE_1 << shift, 0));
+			}
+			else
+			{
+				if (d != a)
+					MOV(32, gpr.R(d), gpr.R(a));
+				if (shift)
+					SHL(32, gpr.R(d), Imm8(shift));
+			}
+			return;
+		}
+
+		// We could handle factors of 2^N*3, 2^N*5, and 2^N*9 using lea+shl, but testing shows
+		// it seems to be slower overall.
+		static u8 lea_scales[3] = { 3, 5, 9 };
+		for (int i = 0; i < 3; i++)
+		{
+			if (imm == lea_scales[i])
+			{
+				if (d != a)
+					gpr.BindToRegister(a, true, false);
+				LEA(32, gpr.RX(d), MComplex(gpr.RX(a), gpr.RX(a), SCALE_2 << i, 0));
+				return;
+			}
+		}
+	}
+
+	// if we didn't find any better options
+	IMUL(32, gpr.RX(d), gpr.R(a), Imm32(imm));
+}
+
 void Jit64::mulli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -1022,46 +1081,7 @@ void Jit64::mulli(UGeckoInstruction inst)
 	{
 		gpr.Lock(a, d);
 		gpr.BindToRegister(d, (d == a), true);
-		if (imm == 0)
-		{
-			XOR(32, gpr.R(d), gpr.R(d));
-		}
-		else if (imm == (u32)-1)
-		{
-			if (d != a)
-				MOV(32, gpr.R(d), gpr.R(a));
-			NEG(32, gpr.R(d));
-		}
-		else if ((imm & (imm - 1)) == 0)
-		{
-			u32 shift = 0;
-
-			if (imm & 0xFFFF0000)
-				shift |= 16;
-
-			if (imm & 0xFF00FF00)
-				shift |= 8;
-
-			if (imm & 0xF0F0F0F0)
-				shift |= 4;
-
-			if (imm & 0xCCCCCCCC)
-				shift |= 2;
-
-			if (imm & 0xAAAAAAAA)
-				shift |= 1;
-
-			if (d != a)
-				MOV(32, gpr.R(d), gpr.R(a));
-
-			if (shift)
-				SHL(32, gpr.R(d), Imm8(shift));
-		}
-		else
-		{
-			IMUL(32, gpr.RX(d), gpr.R(a), Imm32(imm));
-		}
-
+		MultiplyImmediate(imm, a, d, false);
 		gpr.UnlockAll();
 	}
 }
@@ -1089,45 +1109,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
 		{
 			u32 imm = gpr.R(a).IsImm() ? (u32)gpr.R(a).offset : (u32)gpr.R(b).offset;
 			int src = gpr.R(a).IsImm() ? b : a;
-			if (imm == 0)
-			{
-				XOR(32, gpr.R(d), gpr.R(d));
-			}
-			else if (imm == (u32)-1)
-			{
-				if (d != src)
-					MOV(32, gpr.R(d), gpr.R(src));
-				NEG(32, gpr.R(d));
-			}
-			else if ((imm & (imm - 1)) == 0 && !inst.OE)
-			{
-				u32 shift = 0;
-
-				if (imm & 0xFFFF0000)
-					shift |= 16;
-
-				if (imm & 0xFF00FF00)
-					shift |= 8;
-
-				if (imm & 0xF0F0F0F0)
-					shift |= 4;
-
-				if (imm & 0xCCCCCCCC)
-					shift |= 2;
-
-				if (imm & 0xAAAAAAAA)
-					shift |= 1;
-
-				if (d != src)
-					MOV(32, gpr.R(d), gpr.R(src));
-
-				if (shift)
-					SHL(32, gpr.R(d), Imm8(shift));
-			}
-			else
-			{
-				IMUL(32, gpr.RX(d), gpr.R(src), Imm32(imm));
-			}
+			MultiplyImmediate(imm, src, d, inst.OE);
 		}
 		else if (d == a)
 		{
