@@ -299,7 +299,10 @@ void RegCache::StoreFromRegister(size_t i, FlushMode mode)
 
 void GPRRegCache::LoadRegister(size_t preg, X64Reg newLoc)
 {
-	emit->MOV(32, ::Gen::R(newLoc), regs[preg].location);
+	if (regs[preg].location.IsImm() && !regs[preg].location.offset)
+		emit->XOR(32, ::Gen::R(newLoc), ::Gen::R(newLoc));
+	else
+		emit->MOV(32, ::Gen::R(newLoc), regs[preg].location);
 }
 
 void GPRRegCache::StoreRegister(size_t preg, OpArg newLoc)
