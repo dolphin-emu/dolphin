@@ -796,55 +796,36 @@ void Jit64::boolX(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::extsbx(UGeckoInstruction inst)
+void Jit64::extsXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, s = inst.RS;
+	int size = inst.SUBOP10 == 922 ? 16 : 8;
 
 	if (gpr.R(s).IsImm())
 	{
-		gpr.SetImmediate32(a, (u32)(s32)(s8)gpr.R(s).offset);
+		gpr.SetImmediate32(a, (u32)(s32)(size == 16 ? (s16)gpr.R(s).offset : (s8)gpr.R(s).offset));
+		if (inst.Rc)
+			ComputeRC(gpr.R(a));
 	}
 	else
 	{
 		gpr.Lock(a, s);
 		gpr.BindToRegister(a, a == s, true);
-		MOVSX(32, 8, gpr.RX(a), gpr.R(s));
+		// exts is moderately commonly used with inst.Rc, so try to optimize it.
+		if (inst.Rc)
+		{
+			// Only do one movsx; the movzx is free on most modern CPUs.
+			MOVSX(64, size, gpr.RX(a), gpr.R(s));
+			MOV(64, PPCSTATE(cr_val[0]), gpr.R(a));
+			MOVZX(64, 32, gpr.RX(a), gpr.R(a));
+		}
+		else
+		{
+			MOVSX(32, size, gpr.RX(a), gpr.R(s));
+		}
 		gpr.UnlockAll();
-	}
-
-	if (inst.Rc)
-	{
-		ComputeRC(gpr.R(a));
-	}
-}
-
-void Jit64::extshx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, s = inst.RS;
-
-	if (gpr.R(s).IsImm())
-	{
-		gpr.SetImmediate32(a, (u32)(s32)(s16)gpr.R(s).offset);
-	}
-	else
-	{
-		gpr.Lock(a, s);
-		gpr.KillImmediate(s, true, false);
-		gpr.BindToRegister(a, a == s, true);
-		// This looks a little dangerous, but it's safe because
-		// every 32-bit register has a 16-bit half at the same index
-		// as the 32-bit register.
-		MOVSX(32, 16, gpr.RX(a), gpr.R(s));
-		gpr.UnlockAll();
-	}
-
-	if (inst.Rc)
-	{
-		ComputeRC(gpr.R(a));
 	}
 }
 

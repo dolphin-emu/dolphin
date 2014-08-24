@@ -153,8 +153,7 @@ public:
 	void addmex(UGeckoInstruction inst);
 	void addzex(UGeckoInstruction inst);
 
-	void extsbx(UGeckoInstruction inst);
-	void extshx(UGeckoInstruction inst);
+	void extsXx(UGeckoInstruction inst);
 
 	void sc(UGeckoInstruction _inst);
 	void rfi(UGeckoInstruction _inst);
