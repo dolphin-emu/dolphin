@@ -367,13 +367,13 @@ void CGameListCtrl::Update()
 			SConfig::GetInstance().m_ListUsa  &&
 			SConfig::GetInstance().m_ListPal))
 		{
-			errorString = _("Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for files...");
+			errorString = _("Dolphin could not find any GameCube/Wii ISOs or WADs.  Double-click here to browse for files...");
 		}
 		else
 		{
-			errorString = _("Dolphin is currently set to hide all games.  Doubleclick here to show all games...");
+			errorString = _("Dolphin is currently set to hide all games.  Double-click here to show all games...");
 		}
-		InsertColumn(0, _("No ISOs or WADS found"));
+		InsertColumn(0, "");
 		long index = InsertItem(0, errorString);
 		SetItemFont(index, *wxITALIC_FONT);
 		SetColumnWidth(0, wxLIST_AUTOSIZE);
