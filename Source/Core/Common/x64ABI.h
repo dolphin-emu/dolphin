@@ -30,7 +30,7 @@
 #define ABI_PARAM3 R8
 #define ABI_PARAM4 R9
 
-#define ABI_ALL_CALLEE_SAVED ((1 << RAX) | (1 << RCX) | (1 << RDX) | (1 << R8) | \
+#define ABI_ALL_CALLER_SAVED ((1 << RAX) | (1 << RCX) | (1 << RDX) | (1 << R8) | \
                               (1 << R9) | (1 << R10) | (1 << R11) | \
                               (1 << XMM0) | (1 << XMM1) | (1 << XMM2) | (1 << XMM3) | \
                               (1 << XMM4) | (1 << XMM5))
@@ -44,7 +44,7 @@
 #define ABI_PARAM5 R8
 #define ABI_PARAM6 R9
 
-#define ABI_ALL_CALLEE_SAVED ((1 << RAX) | (1 << RCX) | (1 << RDX) | (1 << RDI) | \
+#define ABI_ALL_CALLER_SAVED ((1 << RAX) | (1 << RCX) | (1 << RDX) | (1 << RDI) | \
                               (1 << RSI) | (1 << R8) | (1 << R9) | (1 << R10) | (1 << R11) | \
                               0xffff0000 /* xmm0..15 */)
 
