@@ -208,8 +208,15 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 		else
 		{
 			gpr.BindToRegister(d, false);
-			MOV(32, gpr.R(d), gpr.R(a));
-			(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+			if (doop == Add && gpr.R(a).IsSimpleReg() && !carry)
+			{
+				LEA(32, gpr.RX(d), MDisp(gpr.RX(a), value));
+			}
+			else
+			{
+				MOV(32, gpr.R(d), gpr.R(a));
+				(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+			}
 			if (carry)
 				GenerateCarry();
 			if (Rc)
