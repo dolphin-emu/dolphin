@@ -138,6 +138,30 @@ void Jit64::ComputeRC(const Gen::OpArg & arg)
 	}
 }
 
+OpArg Jit64::ExtractFromReg(int reg, int offset)
+{
+	OpArg src = gpr.R(reg);
+	// store to load forwarding should handle this case efficiently
+	if (offset)
+	{
+		gpr.StoreFromRegister(reg, FLUSH_MAINTAIN_STATE);
+		src = gpr.GetDefaultLocation(reg);
+		src.offset += offset;
+	}
+	return src;
+}
+
+// we can't do this optimization in the emitter because MOVZX and AND have different effects on flags.
+void Jit64::AndWithMask(X64Reg reg, u32 mask)
+ {
+	if (mask == 0xff)
+		MOVZX(32, 8, reg, R(reg));
+	else if (mask == 0xffff)
+		MOVZX(32, 16, reg, R(reg));
+ 	else
+		AND(32, R(reg), Imm32(mask));
+}
+
 // Following static functions are used in conjunction with regimmop
 static u32 Add(u32 a, u32 b)
 {
@@ -1576,49 +1600,57 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 		result &= Helper_Mask(inst.MB, inst.ME);
 		gpr.SetImmediate32(a, result);
 		if (inst.Rc)
-		{
 			ComputeRC(gpr.R(a));
-		}
 	}
 	else
 	{
+		bool left_shift = inst.SH && inst.MB == 0 && inst.ME == 31 - inst.SH;
+		bool right_shift = inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH;
+		u32 mask = Helper_Mask(inst.MB, inst.ME);
+		bool simple_mask = mask == 0xff || mask == 0xffff;
+		int mask_size = inst.ME - inst.MB + 1;
+
 		gpr.Lock(a, s);
 		gpr.BindToRegister(a, a == s);
-		if (a != s)
+		if (a != s && left_shift && gpr.R(s).IsSimpleReg() && inst.SH <= 3)
 		{
-			MOV(32, gpr.R(a), gpr.R(s));
+			LEA(32, gpr.RX(a), MScaled(gpr.RX(s), SCALE_1 << inst.SH, 0));
 		}
-
-		if (inst.SH && inst.MB == 0 && inst.ME==31-inst.SH)
+		// common optimized case: byte/word extract
+		else if (simple_mask && !(inst.SH & (mask_size - 1)))
 		{
+			MOVZX(32, mask_size, gpr.RX(a), ExtractFromReg(s, inst.SH ? (32 - inst.SH) >> 3 : 0));
+		}
+		// another optimized special case: byte/word extract plus shift
+		else if (((mask >> inst.SH) << inst.SH) == mask && !left_shift &&
+		         ((mask >> inst.SH) == 0xff || (mask >> inst.SH) == 0xffff))
+		{
+			MOVZX(32, mask_size, gpr.RX(a), gpr.R(s));
 			SHL(32, gpr.R(a), Imm8(inst.SH));
-			if (inst.Rc)
-				ComputeRC(gpr.R(a));
-		}
-		else if (inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH)
-		{
-			SHR(32, gpr.R(a), Imm8(inst.MB));
-			if (inst.Rc)
-				ComputeRC(gpr.R(a));
 		}
 		else
 		{
-			if (inst.SH != 0)
-			{
-				ROL(32, gpr.R(a), Imm8(inst.SH));
-			}
+			if (a != s)
+				MOV(32, gpr.R(a), gpr.R(s));
 
-			if (!(inst.MB==0 && inst.ME==31))
+			if (left_shift)
 			{
-				AND(32, gpr.R(a), Imm32(Helper_Mask(inst.MB, inst.ME)));
-				if (inst.Rc)
-					ComputeRC(gpr.R(a));
+				SHL(32, gpr.R(a), Imm8(inst.SH));
 			}
-			else if (inst.Rc)
+			else if (right_shift)
 			{
-				ComputeRC(gpr.R(a));
+				SHR(32, gpr.R(a), Imm8(inst.MB));
+			}
+			else
+			{
+				if (inst.SH != 0)
+					ROL(32, gpr.R(a), Imm8(inst.SH));
+				if (!(inst.MB == 0 && inst.ME == 31))
+					AndWithMask(gpr.RX(a), mask);
 			}
 		}
+		if (inst.Rc)
+			ComputeRC(gpr.R(a));
 		gpr.UnlockAll();
 	}
 }
@@ -1636,75 +1668,89 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 		u32 mask = Helper_Mask(inst.MB,inst.ME);
 		gpr.SetImmediate32(a, ((u32)gpr.R(a).offset & ~mask) | (_rotl((u32)gpr.R(s).offset,inst.SH) & mask));
 		if (inst.Rc)
-		{
 			ComputeRC(gpr.R(a));
-		}
 	}
 	else
 	{
 		gpr.Lock(a, s);
-		gpr.BindToRegister(a, true, true);
 		u32 mask = Helper_Mask(inst.MB, inst.ME);
 		if (mask == 0 || (a == s && inst.SH == 0))
 		{
-			if (inst.Rc)
-			{
-				ComputeRC(gpr.R(a));
-			}
+			// nothing to do
 		}
 		else if (mask == 0xFFFFFFFF)
 		{
+			gpr.BindToRegister(a, a == s, true);
 			if (a != s)
-			{
 				MOV(32, gpr.R(a), gpr.R(s));
-			}
-
 			if (inst.SH)
-			{
 				ROL(32, gpr.R(a), Imm8(inst.SH));
-			}
-
-			if (inst.Rc)
-			{
-				ComputeRC(gpr.R(a));
-			}
+		}
+		else if(gpr.R(s).IsImm())
+		{
+			gpr.BindToRegister(a, true, true);
+			AndWithMask(gpr.RX(a), ~mask);
+			OR(32, gpr.R(a), Imm32(_rotl((u32)gpr.R(s).offset, inst.SH) & mask));
 		}
 		else if (inst.SH)
 		{
-			if (mask == 0U - (1U << inst.SH))
+			bool isLeftShift = mask == 0U - (1U << inst.SH);
+			bool isRightShift = mask == (1U << inst.SH) - 1;
+			if (gpr.R(a).IsImm())
 			{
-				MOV(32, R(RSCRATCH), gpr.R(s));
-				SHL(32, R(RSCRATCH), Imm8(inst.SH));
-				AND(32, gpr.R(a), Imm32(~mask));
-				OR(32, gpr.R(a), R(RSCRATCH));
-			}
-			else if (mask == (1U << inst.SH) - 1)
-			{
-				MOV(32, R(RSCRATCH), gpr.R(s));
-				SHR(32, R(RSCRATCH), Imm8(32-inst.SH));
-				AND(32, gpr.R(a), Imm32(~mask));
-				OR(32, gpr.R(a), R(RSCRATCH));
+				u32 maskA = gpr.R(a).offset & ~mask;
+				gpr.BindToRegister(a, false, true);
+				MOV(32, gpr.R(a), gpr.R(s));
+				if (isLeftShift)
+				{
+					SHL(32, gpr.R(a), Imm8(inst.SH));
+				}
+				else if (isRightShift)
+				{
+					SHR(32, gpr.R(a), Imm8(32 - inst.SH));
+				}
+				else
+				{
+					ROL(32, gpr.R(a), Imm8(inst.SH));
+					AND(32, gpr.R(a), Imm32(mask));
+				}
+				OR(32, gpr.R(a), Imm32(maskA));
 			}
 			else
 			{
+				// TODO: common cases of this might be faster with pinsrb or abuse of AH
+				gpr.BindToRegister(a, true, true);
 				MOV(32, R(RSCRATCH), gpr.R(s));
-				ROL(32, R(RSCRATCH), Imm8(inst.SH));
-				XOR(32, R(RSCRATCH), gpr.R(a));
-				AND(32, R(RSCRATCH), Imm32(mask));
-				XOR(32, gpr.R(a), R(RSCRATCH));
+				if (isLeftShift)
+				{
+					SHL(32, R(RSCRATCH), Imm8(inst.SH));
+					AndWithMask(gpr.RX(a), ~mask);
+					OR(32, gpr.R(a), R(RSCRATCH));
+				}
+				else if (isRightShift)
+				{
+					SHR(32, R(RSCRATCH), Imm8(32 - inst.SH));
+					AndWithMask(gpr.RX(a), ~mask);
+					OR(32, gpr.R(a), R(RSCRATCH));
+				}
+				else
+				{
+					ROL(32, R(RSCRATCH), Imm8(inst.SH));
+					XOR(32, R(RSCRATCH), gpr.R(a));
+					AndWithMask(RSCRATCH, mask);
+					XOR(32, gpr.R(a), R(RSCRATCH));
+				}
 			}
-
-			if (inst.Rc)
-				ComputeRC(gpr.R(a));
 		}
 		else
 		{
+			gpr.BindToRegister(a, true, true);
 			XOR(32, gpr.R(a), gpr.R(s));
-			AND(32, gpr.R(a), Imm32(~mask));
+			AndWithMask(gpr.RX(a), ~mask);
 			XOR(32, gpr.R(a), gpr.R(s));
-			if (inst.Rc)
-				ComputeRC(gpr.R(a));
 		}
+		if (inst.Rc)
+			ComputeRC(gpr.R(a));
 		gpr.UnlockAll();
 	}
 }
@@ -1736,7 +1782,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
 			MOV(32, gpr.R(a), gpr.R(s));
 		}
 		ROL(32, gpr.R(a), R(ECX));
-		AND(32, gpr.R(a), Imm32(mask));
+		AndWithMask(gpr.RX(a), mask);
 		if (inst.Rc)
 			ComputeRC(gpr.R(a));
 		gpr.UnlockAll();
