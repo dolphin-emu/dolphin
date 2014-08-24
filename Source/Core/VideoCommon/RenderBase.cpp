@@ -126,7 +126,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbWidt
 	else
 	{
 		Swap(xfbAddr, fbWidth, fbHeight,sourceRc,Gamma);
-		Common::AtomicStoreRelease(s_swapRequested, false);
+		s_swapRequested.Clear();
 	}
 }
 
