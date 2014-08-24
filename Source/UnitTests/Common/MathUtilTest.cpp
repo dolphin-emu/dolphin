@@ -44,17 +44,17 @@ TEST(MathUtil, IsSNAN)
 	EXPECT_TRUE(MathUtil::IsSNAN(std::numeric_limits<double>::signaling_NaN()));
 }
 
-TEST(MathUtil, Log2)
+TEST(MathUtil, IntLog2)
 {
-	EXPECT_EQ(0, Log2(1));
-	EXPECT_EQ(1, Log2(2));
-	EXPECT_EQ(2, Log2(4));
-	EXPECT_EQ(3, Log2(8));
-	EXPECT_EQ(63, Log2(0x8000000000000000ull));
+	EXPECT_EQ(0, IntLog2(1));
+	EXPECT_EQ(1, IntLog2(2));
+	EXPECT_EQ(2, IntLog2(4));
+	EXPECT_EQ(3, IntLog2(8));
+	EXPECT_EQ(63, IntLog2(0x8000000000000000ull));
 
 	// Rounding behavior.
-	EXPECT_EQ(3, Log2(15));
-	EXPECT_EQ(63, Log2(0xFFFFFFFFFFFFFFFFull));
+	EXPECT_EQ(3, IntLog2(15));
+	EXPECT_EQ(63, IntLog2(0xFFFFFFFFFFFFFFFFull));
 }
 
 TEST(MathUtil, FlushToZero)

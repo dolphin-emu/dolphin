@@ -397,7 +397,7 @@ static wxString NiceSizeFormat(u64 _size)
 	// Find largest power of 2 less than _size.
 	// div 10 to get largest named unit less than _size
 	// 10 == log2(1024) (number of B in a KiB, KiB in a MiB, etc)
-	const u64 unit = Log2(std::max<u64>(_size, 1)) / 10;
+	const u64 unit = IntLog2(std::max<u64>(_size, 1)) / 10;
 	const u64 unit_size = (1 << (unit * 10));
 
 	// mul 1000 for 3 decimal places, add 5 to round up, div 10 for 2 decimal places

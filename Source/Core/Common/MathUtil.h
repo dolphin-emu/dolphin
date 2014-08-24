@@ -166,16 +166,15 @@ struct Rectangle
 
 }  // namespace MathUtil
 
-inline float pow2f(float x) {return x * x;}
-inline double pow2(double x) {return x * x;}
-
 float MathFloatVectorSum(const std::vector<float>&);
 
 #define ROUND_UP(x, a)   (((x) + (a) - 1) & ~((a) - 1))
 #define ROUND_DOWN(x, a) ((x) & ~((a) - 1))
 
+inline bool IsPow2(u32 imm) {return (imm & (imm - 1)) == 0;}
+
 // Rounds down. 0 -> undefined
-inline int Log2(u64 val)
+inline int IntLog2(u64 val)
 {
 #if defined(__GNUC__)
 	return 63 - __builtin_clzll(val);
