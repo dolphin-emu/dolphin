@@ -469,12 +469,13 @@ void OpcodeDecoder_Shutdown()
 u32 OpcodeDecoder_Run(bool skipped_frame)
 {
 	u32 totalCycles = 0;
-	u32 cycles = FifoCommandRunnable();
-	while (cycles > 0)
+	while (true)
 	{
+		u32 cycles = FifoCommandRunnable();
+		if (cycles == 0)
+			break;
 		skipped_frame ? DecodeSemiNop() : Decode();
 		totalCycles += cycles;
-		cycles = FifoCommandRunnable();
 	}
 	return totalCycles;
 }
