@@ -1428,13 +1428,6 @@ void Jit64::addx(UGeckoInstruction inst)
 			GenerateConstantOverflow((s64)i + (s64)j);
 		}
 	}
-	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && !inst.Rc && !inst.OE)
-	{
-		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, false);
-		LEA(32, gpr.RX(d), MComplex(gpr.RX(a), gpr.RX(b), 1, 0));
-		gpr.UnlockAll();
-	}
 	else if ((d == a) || (d == b))
 	{
 		int operand = ((d == a) ? b : a);
@@ -1443,6 +1436,15 @@ void Jit64::addx(UGeckoInstruction inst)
 		ADD(32, gpr.R(d), gpr.R(operand));
 		if (inst.OE)
 			GenerateOverflow();
+		if (inst.Rc)
+			ComputeRC(gpr.R(d));
+		gpr.UnlockAll();
+	}
+	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && !inst.OE)
+	{
+		gpr.Lock(a, b, d);
+		gpr.BindToRegister(d, false);
+		LEA(32, gpr.RX(d), MComplex(gpr.RX(a), gpr.RX(b), 1, 0));
 		if (inst.Rc)
 			ComputeRC(gpr.R(d));
 		gpr.UnlockAll();
