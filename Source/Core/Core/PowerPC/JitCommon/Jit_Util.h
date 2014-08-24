@@ -56,6 +56,7 @@ public:
 
 	void ForceSinglePrecisionS(Gen::X64Reg xmm);
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);
+	void Force25BitPrecision(Gen::X64Reg xmm, Gen::X64Reg tmp);
 
 	// EAX might get trashed
 	void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, bool src_is_gpr = false);
