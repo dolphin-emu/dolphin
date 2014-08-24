@@ -107,6 +107,10 @@ public:
 	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
 
+	// use to extract bytes from a register using the regcache. offset is in bytes.
+	Gen::OpArg ExtractFromReg(int reg, int offset);
+	void AndWithMask(Gen::X64Reg reg, u32 mask);
+
 	// Reads a given bit of a given CR register part. Clobbers ABI_PARAM1,
 	// don't forget to xlock it before.
 	void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
