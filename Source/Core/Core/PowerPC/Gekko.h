@@ -331,9 +331,12 @@ union UFPR
 	float f[2];
 };
 
-#define XER_CA_MASK 0x20000000
-#define XER_OV_MASK 0x40000000
-#define XER_SO_MASK 0x80000000
+#define XER_CA_SHIFT 29
+#define XER_OV_SHIFT 30
+#define XER_SO_SHIFT 31
+#define XER_CA_MASK (1U << XER_CA_SHIFT)
+#define XER_OV_MASK (1U << XER_OV_SHIFT)
+#define XER_SO_MASK (1U << XER_SO_SHIFT)
 // XER
 union UReg_XER
 {
