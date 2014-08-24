@@ -541,8 +541,6 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg xmm, X64Reg tmp)
 static u32 GC_ALIGNED16(temp32);
 static u64 GC_ALIGNED16(temp64);
 
-static const float GC_ALIGNED16(m_zero[]) = { 0.0f, 0.0f, 0.0f, 0.0f };
-
 // Since the following float conversion functions are used in non-arithmetic PPC float instructions,
 // they must convert floats bitexact and never flush denormals to zero or turn SNaNs into QNaNs.
 // This means we can't use CVTSS2SD/CVTSD2SS :(
