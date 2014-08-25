@@ -1122,7 +1122,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		ResetAPIState();
 
 		glDepthMask(GL_TRUE);
-		glClearDepthf(float(poke_data & 0xFFFFFF) / float(0xFFFFFF));
+		glClearDepthf(float(poke_data & 0xFFFFFF) / float(0x1000000));
 
 		glEnable(GL_SCISSOR_TEST);
 		glScissor(targetPixelRc.left, targetPixelRc.bottom, targetPixelRc.GetWidth(), targetPixelRc.GetHeight());
@@ -1210,7 +1210,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	// depth
 	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-	glClearDepthf(float(z & 0xFFFFFF) / float(0xFFFFFF));
+	glClearDepthf(float(z & 0xFFFFFF) / float(0x1000000));
 
 	// Update rect for clearing the picture
 	glEnable(GL_SCISSOR_TEST);

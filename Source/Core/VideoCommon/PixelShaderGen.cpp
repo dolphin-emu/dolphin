@@ -492,7 +492,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// The performance impact of this additional calculation doesn't matter, but it prevents
 	// the host GPU driver from performing any early depth test optimizations.
 	if (g_ActiveConfig.bFastDepthCalc)
-		out.Write("\tint zCoord = iround(rawpos.z * float(0xFFFFFF));\n");
+		out.Write("\tint zCoord = iround(rawpos.z * float(0x1000000));\n");
 	else
 	{
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
@@ -512,7 +512,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
-		out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
+		out.Write("\tdepth = float(zCoord) / float(0x1000000);\n");
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
 	// theoretical final depth value is used for fog calculation, though, so we have to emulate ztextures anyway
@@ -526,7 +526,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
-		out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
+		out.Write("\tdepth = float(zCoord) / float(0x1000000);\n");
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 	{

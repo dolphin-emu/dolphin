@@ -120,8 +120,12 @@ const char depth_matrix_program[] = {
 	" in float2 uv0 : TEXCOORD0){\n"
 	"	float4 texcol = Tex0.Sample(samp0,uv0);\n"
 
-	// 255.99998474121 = 16777215/16777216*256
-	"	float workspace = texcol.x * 255.99998474121;\n"
+	// texcol.x contains depth as a float
+	// This depth has 3 bytes (x,y,z) encoded into it.
+	// Encode method:
+	// depth = ((x << 16) + (y << 8) + z) / 256^3
+	// Here we extract those 3 bytes by reversing the encoding.
+	"	float workspace = texcol.x * 256.0;\n"
 
 	"	texcol.x = floor(workspace);\n"         // x component
 
@@ -160,8 +164,12 @@ const char depth_matrix_program_msaa[] = {
 	"		texcol += Tex0.Load(int2(uv0.x*(width), uv0.y*(height)), i);\n"
 	"	texcol /= samples;\n"
 
-	// 255.99998474121 = 16777215/16777216*256
-	"	float workspace = texcol.x * 255.99998474121;\n"
+	// texcol.x contains depth as a float
+	// This depth has 3 bytes (x,y,z) encoded into it.
+	// Encode method:
+	// depth = ((x << 16) + (y << 8) + z) / 256^3
+	// Here we extract those 3 bytes by reversing the encoding.
+	"	float workspace = texcol.x * 256.0;\n"
 
 	"	texcol.x = floor(workspace);\n"         // x component
 

@@ -206,7 +206,7 @@ static const char EFB_ENCODE_PS[] =
 "{\n"
 	"float2 texCoord = CalcTexCoord(coord);\n"
 
-	"uint depth24 = 0xFFFFFF * EFBTexture.Sample(EFBSampler, texCoord).r;\n"
+	"uint depth24 = 0x1000000 * EFBTexture.Sample(EFBSampler, texCoord).r;\n"
 	"uint4 bytes = uint4(\n"
 		"(depth24 >> 16) & 0xFF,\n" // r
 		"(depth24 >> 8) & 0xFF,\n"  // g
