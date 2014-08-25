@@ -46,6 +46,7 @@ Window cX11Window::CreateXWindow(Window parent, XVisualInfo *vi)
 void cX11Window::DestroyXWindow(void)
 {
 	XUnmapWindow(dpy, win);
+	win = 0;
 	if (xEventThread.joinable())
 		xEventThread.join();
 	XFreeColormap(dpy, colormap);
