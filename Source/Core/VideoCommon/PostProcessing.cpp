@@ -7,7 +7,6 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "VideoCommon/PostProcessing.h"
@@ -48,130 +47,9 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
 	}
 
 	LoadOptions(code);
-
-	std::string error = VerifyOptions(m_options);
-	if (error.size())
-	{
-		PanicAlert("%s", StringFromFormat("Shader %s has a configuration issue!\n%s", shader.c_str(), error.c_str()).c_str());
-		return "";
-	}
-
 	LoadOptionsConfiguration();
 
 	return code;
-}
-
-std::string PostProcessingShaderConfiguration::VerifyOptions(const ConfigMap& config_map)
-{
-	for (const auto& option : config_map)
-	{
-		// Make sure we have an option name
-		if (!option.second.m_option_name.size())
-			return "Option doesn't have a unique identifier via 'OptionName'";
-
-		// Make sure we have a correct type
-		if (option.second.m_type == ConfigurationOption::OptionType::OPTION_INVALID)
-			return StringFromFormat("Option '%s' has invalid type", option.second.m_option_name.c_str());
-
-		// Make sure we have a GUI name
-		if (!option.second.m_gui_name.size())
-			return StringFromFormat("Option '%s' has no GUI name", option.second.m_option_name.c_str());
-
-		// If we have a dependent option, make sure that option actually exists
-		if (option.second.m_dependent_option.size())
-		{
-			if (config_map.find(option.second.m_dependent_option) == config_map.end())
-				return StringFromFormat("Option '%s' has a dependent option '%s' that doesn't exist",
-				       option.second.m_option_name.c_str(), option.second.m_dependent_option.c_str());
-		}
-
-		switch (option.second.m_type)
-		{
-		case ConfigurationOption::OptionType::OPTION_INTEGER:
-		{
-			// Make sure our vectors are the same sizes
-			if (option.second.m_integer_values.size() != option.second.m_integer_min_values.size() ||
-			    option.second.m_integer_min_values.size() != option.second.m_integer_max_values.size() ||
-			    option.second.m_integer_max_values.size() != option.second.m_integer_step_values.size())
-				return StringFromFormat("Option '%s' has invalid set value amounts", option.second.m_option_name.c_str());
-
-			int option_size = option.second.m_integer_values.size();
-			// Make sure our minimums are lower than our maximums
-			for (int i = 0; i < option_size; ++i)
-			{
-				if (option.second.m_integer_min_values[i] > option.second.m_integer_max_values[i])
-					return StringFromFormat("Option '%s' minimum value index %d is greater than max(%d > %d)",
-					       option.second.m_option_name.c_str(), i,
-						 option.second.m_integer_min_values[i], option.second.m_integer_max_values[i]);
-			}
-
-			// Make sure the default value is between minimum and maximum
-			for (int i = 0; i < option_size; ++i)
-			{
-				if (option.second.m_integer_values[i] < option.second.m_integer_min_values[i] ||
-				    option.second.m_integer_values[i] > option.second.m_integer_max_values[i])
-					return StringFromFormat("Option '%s' default value index %d is outside of available range(%d outside %d - %d)",
-					       option.second.m_option_name.c_str(), i,
-						 option.second.m_integer_values[i],
-						 option.second.m_integer_min_values[i], option.second.m_integer_max_values[i]);
-			}
-
-			// Make sure our step size is smaller than the range acceptable values
-			for (int i = 0; i < option_size; ++i)
-			{
-				if (option.second.m_integer_step_values[i] >
-				    (option.second.m_integer_max_values[i] - option.second.m_integer_min_values[i]))
-					return StringFromFormat("Option '%s' step value is larger than maximum range of %d",
-					       option.second.m_option_name.c_str(), option.second.m_integer_max_values[i] - option.second.m_integer_min_values[i]);
-			}
-		}
-		break;
-		case ConfigurationOption::OptionType::OPTION_FLOAT:
-		{
-			// Make sure our vectors are the same sizes
-			if (option.second.m_float_values.size() != option.second.m_float_min_values.size() ||
-			    option.second.m_float_min_values.size() != option.second.m_float_max_values.size() ||
-			    option.second.m_float_max_values.size() != option.second.m_float_step_values.size())
-				return StringFromFormat("Option '%s' has invalid set value amounts", option.second.m_option_name.c_str());
-
-			int option_size = option.second.m_float_values.size();
-			// Make sure our minimums are lower than our maximums
-			for (int i = 0; i < option_size; ++i)
-			{
-				if (option.second.m_float_min_values[i] > option.second.m_float_max_values[i])
-					return StringFromFormat("Option '%s' minimum value index %d is greater than max(%f > %f)",
-					       option.second.m_option_name.c_str(), i,
-						 option.second.m_float_min_values[i], option.second.m_float_max_values[i]);
-			}
-
-			// Make sure the default value is between minimum and maximum
-			for (int i = 0; i < option_size; ++i)
-			{
-				if (option.second.m_float_values[i] < option.second.m_float_min_values[i] ||
-				    option.second.m_float_values[i] > option.second.m_float_max_values[i])
-					return StringFromFormat("Option '%s' default value index %d is outside of available range(%f outside %f - %f)",
-					       option.second.m_option_name.c_str(), i,
-						 option.second.m_float_values[i],
-						 option.second.m_float_min_values[i], option.second.m_float_max_values[i]);
-			}
-
-			// Make sure our step size is smaller than the range acceptable values
-			for (int i = 0; i < option_size; ++i)
-			{
-				if (option.second.m_float_step_values[i] >
-				    (option.second.m_float_max_values[i] - option.second.m_float_min_values[i]))
-					return StringFromFormat("Option '%s' step value is larger than maximum range of %f",
-					       option.second.m_option_name.c_str(), option.second.m_float_max_values[i] - option.second.m_float_min_values[i]);
-			}
-		}
-		break;
-		case ConfigurationOption::OptionType::OPTION_BOOL:
-		case ConfigurationOption::OptionType::OPTION_INVALID: // Won't be hit
-		default:
-		break;
-		}
-	}
-	return "";
 }
 
 void PostProcessingShaderConfiguration::LoadOptions(const std::string& code)
@@ -258,8 +136,6 @@ void PostProcessingShaderConfiguration::LoadOptions(const std::string& code)
 			option.m_type = ConfigurationOption::OptionType::OPTION_FLOAT;
 		else if (it.m_type == "OptionRangeInteger")
 			option.m_type = ConfigurationOption::OptionType::OPTION_INTEGER;
-		else
-			option.m_type = ConfigurationOption::OptionType::OPTION_INVALID;
 
 		for (const auto& string_option : it.m_options)
 		{
@@ -355,8 +231,6 @@ void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
 				TryParseVector(value, &it.second.m_float_values);
 		}
 		break;
-		case ConfigurationOption::OptionType::OPTION_INVALID: // Won't get hit
-		break;
 		}
 	}
 }
@@ -391,8 +265,6 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
 				value += StringFromFormat("%f%s", it.second.m_float_values[i], i == (it.second.m_float_values.size() - 1) ? "": ", ");
 			ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
 		}
-		break;
-		case ConfigurationOption::OptionType::OPTION_INVALID: // Won't get hit
 		break;
 		}
 	}

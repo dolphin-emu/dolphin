@@ -21,7 +21,6 @@ public:
 			OPTION_BOOL = 0,
 			OPTION_FLOAT,
 			OPTION_INTEGER,
-			OPTION_INVALID,
 		};
 
 		bool m_bool_value;
@@ -76,9 +75,6 @@ private:
 	std::string m_current_shader;
 	ConfigMap m_options;
 
-	// Verifies if a configurationOption is valid or not
-	// Returns an error string on error
-	std::string VerifyOptions(const ConfigMap& config_map);
 	void LoadOptions(const std::string& code);
 	void LoadOptionsConfiguration();
 };
