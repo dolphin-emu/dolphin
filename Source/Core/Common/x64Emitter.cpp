@@ -152,22 +152,13 @@ void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 	}
 }
 
-void OpArg::WriteVex(XEmitter* emit, int size, bool packed, X64Reg regOp1, X64Reg regOp2) const
+void OpArg::WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W) const
 {
 	int R = !(regOp1 & 8);
 	int X = !(indexReg & 8);
 	int B = !(offsetOrBaseReg & 8);
 
-	// not so sure about this one...
-	int W = 0;
-
-	// aka map_select in AMD manuals
-	// only support VEX opcode map 1 for now (analog to secondary opcode map)
-	int mmmmm = 1;
-
 	int vvvv = (regOp2 == X64Reg::INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
-	int L = size == 256;
-	int pp = (packed << 1) | (size == 64);
 
 	// do we need any VEX fields that only appear in the three-byte form?
 	if (X == 1 && B == 1 && W == 0 && mmmmm == 1)
@@ -189,7 +180,7 @@ void OpArg::WriteVex(XEmitter* emit, int size, bool packed, X64Reg regOp1, X64Re
 void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 	bool warn_64bit_offset) const
 {
-	if (_operandReg == 0xff)
+	if (_operandReg == INVALID_REG)
 		_operandReg = (X64Reg)this->operandReg;
 	int mod = 0;
 	int ireg = indexReg;
@@ -878,7 +869,7 @@ void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
 	if (bits == 16) Write8(0x66); //TODO: performance warning
 	src.WriteRex(this, bits, bits);
 	Write8(0x8D);
-	src.WriteRest(this, 0, (X64Reg)0xFF, bits == 64);
+	src.WriteRest(this, 0, INVALID_REG, bits == 64);
 }
 
 //shift can be either imm8 or cl
@@ -1284,11 +1275,7 @@ void XEmitter::WriteSSEOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg 
 	arg.WriteRex(this, 0, 0);
 	Write8(0x0F);
 	if (sseOp > 0xFF)
-	{
-		// Currently, only 0x38 and 0x3A are used as secondary escape byte.
-		_assert_msg_(DYNA_REC, ((sseOp >> 8) & 0xFD) == 0x38, "Invalid SSE opcode: 0F%04X", sseOp);
 		Write8((sseOp >> 8) & 0xFF);
-	}
 	Write8(sseOp & 0xFF);
 	arg.WriteRest(this, extrabytes);
 }
@@ -1302,15 +1289,57 @@ void XEmitter::WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp1, X64Re
 {
 	if (!cpu_info.bAVX)
 		PanicAlert("Trying to use AVX on a system that doesn't support it. Bad programmer.");
-	arg.WriteVex(this, size, packed, regOp1, regOp2);
-	if (sseOp > 0xFF)
-	{
-		// Currently, only 0x38 and 0x3A are used as secondary escape byte.
-		_assert_msg_(DYNA_REC, ((sseOp >> 8) & 0xFD) == 0x38, "Invalid SSE opcode: 0F%04X", sseOp);
-		Write8((sseOp >> 8) & 0xFF);
-	}
+	// Currently, only 0x38 and 0x3A are used as secondary escape byte.
+	int mmmmm;
+	if ((sseOp >> 8) == 0x3A)
+		mmmmm = 3;
+	else if ((sseOp >> 8) == 0x38)
+		mmmmm = 2;
+	else
+		mmmmm = 1;
+	// FIXME: we currently don't support 256-bit instructions, and "size" is not the vector size here
+	arg.WriteVex(this, regOp1, regOp2, 0, (packed << 1) | (size == 64), mmmmm);
 	Write8(sseOp & 0xFF);
 	arg.WriteRest(this, extrabytes, regOp1);
+}
+
+// Like the above, but more general; covers GPR-based VEX operations, like BMI1/2
+void XEmitter::WriteVEXOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes)
+{
+	if (size != 32 && size != 64)
+		PanicAlert("VEX GPR instructions only support 32-bit and 64-bit modes!");
+	int mmmmm, pp;
+	if ((op >> 8) == 0x3A)
+		mmmmm = 3;
+	else if ((op >> 8) == 0x38)
+		mmmmm = 2;
+	else
+		mmmmm = 1;
+	if (opPrefix == 0x66)
+		pp = 1;
+	else if (opPrefix == 0xF3)
+		pp = 2;
+	else if (opPrefix == 0xF2)
+		pp = 3;
+	else
+		pp = 0;
+	arg.WriteVex(this, regOp1, regOp2, 0, pp, mmmmm, size == 64);
+	Write8(op & 0xFF);
+	arg.WriteRest(this, extrabytes, regOp1);
+}
+
+void XEmitter::WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes)
+{
+	if (!cpu_info.bBMI1)
+		PanicAlert("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
+	WriteVEXOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
+}
+
+void XEmitter::WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes)
+{
+	if (!cpu_info.bBMI2)
+		PanicAlert("Trying to use BMI2 on a system that doesn't support it. Bad programmer.");
+	WriteVEXOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
 }
 
 void XEmitter::MOVD_xmm(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x6E, true, dest, arg, 0);}
@@ -1662,6 +1691,20 @@ void XEmitter::VDIVSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64,
 void XEmitter::VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)  {WriteAVXOp(64, sseSQRT, false, regOp1, regOp2, arg);}
 void XEmitter::VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg)    {WriteAVXOp(64, sseAND, false, regOp1, regOp2, arg);}
 void XEmitter::VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseANDN, false, regOp1, regOp2, arg);}
+
+void XEmitter::SARX(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2) {WriteBMI2Op(bits, 0xF3, 0x38F7, regOp1, regOp2, arg);}
+void XEmitter::SHLX(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2) {WriteBMI2Op(bits, 0x66, 0x38F7, regOp1, regOp2, arg);}
+void XEmitter::SHRX(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2) {WriteBMI2Op(bits, 0xF2, 0x38F7, regOp1, regOp2, arg);}
+void XEmitter::RORX(int bits, X64Reg regOp, OpArg arg, u8 rotate)      {WriteBMI2Op(bits, 0xF2, 0x3AF0, regOp, INVALID_REG, arg, 1); Write8(rotate);}
+void XEmitter::PEXT(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg) {WriteBMI2Op(bits, 0xF3, 0x38F5, regOp1, regOp2, arg);}
+void XEmitter::PDEP(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg) {WriteBMI2Op(bits, 0xF2, 0x38F5, regOp1, regOp2, arg);}
+void XEmitter::MULX(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg) {WriteBMI2Op(bits, 0xF2, 0x38F6, regOp2, regOp1, arg);}
+void XEmitter::BZHI(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2) {WriteBMI2Op(bits, 0x00, 0x38F5, regOp1, regOp2, arg);}
+void XEmitter::BLSR(int bits, X64Reg regOp, OpArg arg)                 {WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x1, regOp, arg);}
+void XEmitter::BLSMSK(int bits, X64Reg regOp, OpArg arg)               {WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x2, regOp, arg);}
+void XEmitter::BLSI(int bits, X64Reg regOp, OpArg arg)                 {WriteBMI1Op(bits, 0x00, 0x38F3, (X64Reg)0x3, regOp, arg);}
+void XEmitter::BEXTR(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2){WriteBMI1Op(bits, 0x00, 0x38F7, regOp1, regOp2, arg);}
+void XEmitter::ANDN(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg) {WriteBMI1Op(bits, 0x00, 0x38F2, regOp1, regOp2, arg);}
 
 // Prefixes
 
