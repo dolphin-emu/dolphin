@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <inttypes.h>
 #include <string>
 
 #include "Common/CommonPaths.h"
@@ -95,29 +96,29 @@ std::string PostProcessingShaderConfiguration::VerifyOptions(const ConfigMap& co
 			    option.second.m_integer_max_values.size() != option.second.m_integer_step_values.size())
 				return StringFromFormat("Option '%s' has invalid set value amounts", option.second.m_option_name.c_str());
 
-			int option_size = option.second.m_integer_values.size();
+			size_t option_size = option.second.m_integer_values.size();
 			// Make sure our minimums are lower than our maximums
-			for (int i = 0; i < option_size; ++i)
+			for (size_t i = 0; i < option_size; ++i)
 			{
 				if (option.second.m_integer_min_values[i] > option.second.m_integer_max_values[i])
-					return StringFromFormat("Option '%s' minimum value index %d is greater than max(%d > %d)",
+					return StringFromFormat("Option '%s' minimum value index %" PRIu64 " is greater than max(%d > %d)",
 					       option.second.m_option_name.c_str(), i,
 						 option.second.m_integer_min_values[i], option.second.m_integer_max_values[i]);
 			}
 
 			// Make sure the default value is between minimum and maximum
-			for (int i = 0; i < option_size; ++i)
+			for (size_t i = 0; i < option_size; ++i)
 			{
 				if (option.second.m_integer_values[i] < option.second.m_integer_min_values[i] ||
 				    option.second.m_integer_values[i] > option.second.m_integer_max_values[i])
-					return StringFromFormat("Option '%s' default value index %d is outside of available range(%d outside %d - %d)",
+					return StringFromFormat("Option '%s' default value index %" PRIu64 " is outside of available range(%d outside %d - %d)",
 					       option.second.m_option_name.c_str(), i,
 						 option.second.m_integer_values[i],
 						 option.second.m_integer_min_values[i], option.second.m_integer_max_values[i]);
 			}
 
 			// Make sure our step size is smaller than the range acceptable values
-			for (int i = 0; i < option_size; ++i)
+			for (size_t i = 0; i < option_size; ++i)
 			{
 				if (option.second.m_integer_step_values[i] >
 				    (option.second.m_integer_max_values[i] - option.second.m_integer_min_values[i]))
@@ -134,29 +135,29 @@ std::string PostProcessingShaderConfiguration::VerifyOptions(const ConfigMap& co
 			    option.second.m_float_max_values.size() != option.second.m_float_step_values.size())
 				return StringFromFormat("Option '%s' has invalid set value amounts", option.second.m_option_name.c_str());
 
-			int option_size = option.second.m_float_values.size();
+			size_t option_size = option.second.m_float_values.size();
 			// Make sure our minimums are lower than our maximums
-			for (int i = 0; i < option_size; ++i)
+			for (size_t i = 0; i < option_size; ++i)
 			{
 				if (option.second.m_float_min_values[i] > option.second.m_float_max_values[i])
-					return StringFromFormat("Option '%s' minimum value index %d is greater than max(%f > %f)",
+					return StringFromFormat("Option '%s' minimum value index %" PRIu64 " is greater than max(%f > %f)",
 					       option.second.m_option_name.c_str(), i,
 						 option.second.m_float_min_values[i], option.second.m_float_max_values[i]);
 			}
 
 			// Make sure the default value is between minimum and maximum
-			for (int i = 0; i < option_size; ++i)
+			for (size_t i = 0; i < option_size; ++i)
 			{
 				if (option.second.m_float_values[i] < option.second.m_float_min_values[i] ||
 				    option.second.m_float_values[i] > option.second.m_float_max_values[i])
-					return StringFromFormat("Option '%s' default value index %d is outside of available range(%f outside %f - %f)",
+					return StringFromFormat("Option '%s' default value index %" PRIu64 " is outside of available range(%f outside %f - %f)",
 					       option.second.m_option_name.c_str(), i,
 						 option.second.m_float_values[i],
 						 option.second.m_float_min_values[i], option.second.m_float_max_values[i]);
 			}
 
 			// Make sure our step size is smaller than the range acceptable values
-			for (int i = 0; i < option_size; ++i)
+			for (size_t i = 0; i < option_size; ++i)
 			{
 				if (option.second.m_float_step_values[i] >
 				    (option.second.m_float_max_values[i] - option.second.m_float_min_values[i]))

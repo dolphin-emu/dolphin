@@ -133,6 +133,8 @@ void OpenGLPostProcessing::BlitToScreen()
 					break;
 					}
 				break;
+				case PostProcessingShaderConfiguration::ConfigurationOption::OptionType::OPTION_INVALID: // Won't get hit
+				break;
 				}
 				it.second.m_dirty = false;
 			}
