@@ -38,7 +38,7 @@ bool IsSoundFile(const std::string& filename)
 	SplitPath(filename, nullptr, nullptr, &extension);
 	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
-	std::unordered_set<std::string> extensions = {
+	static std::unordered_set<std::string> extensions = {
 		".adp",   // 1080 Avalanche, Crash Bandicoot, etc.
 		".adx",   // Sonic Adventure 2 Battle, etc.
 		".afc",   // Zelda WW
