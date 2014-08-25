@@ -548,6 +548,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_compiledCode = nullptr;
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
+	m_native_vertex_format = nullptr;
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
@@ -1035,3 +1036,22 @@ void VertexLoader::AppendToString(std::string *dest) const
 	}
 	dest->append(StringFromFormat(" - %i v\n", m_numLoadedVertices));
 }
+
+NativeVertexFormat* VertexLoader::GetNativeVertexFormat()
+{
+	if (m_native_vertex_format)
+		return m_native_vertex_format;
+	auto& native = s_native_vertex_map[m_native_vtx_decl];
+	if (!native)
+	{
+		auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
+		native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
+		native->Initialize(m_native_vtx_decl);
+		native->m_components = m_native_components;
+	}
+	m_native_vertex_format = native.get();
+	return native.get();
+
+}
+
+std::map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> VertexLoader::s_native_vertex_map;
