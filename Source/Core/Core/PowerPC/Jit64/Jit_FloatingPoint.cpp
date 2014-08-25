@@ -130,7 +130,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
 	fpr.Lock(a, b, c, d);
 	MOVSD(XMM0, fpr.R(c));
-	Force25BitPrecision(XMM0, XMM1);
+	if (single_precision)
+		Force25BitPrecision(XMM0, XMM1);
 	switch (inst.SUBOP5)
 	{
 	case 28: //msub
