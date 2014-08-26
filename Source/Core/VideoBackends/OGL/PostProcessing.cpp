@@ -55,7 +55,17 @@ OpenGLPostProcessing::~OpenGLPostProcessing()
 
 void OpenGLPostProcessing::BindTargetFramebuffer()
 {
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_enable ? m_fbo : 0);
+	if (m_enable)
+	{
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+		// Clear the buffer so there isn't any remaining garbage from the previous post processing shader frame
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+	else
+	{
+		// Bind to default framebuffer if we aren't post processing
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	}
 }
 
 void OpenGLPostProcessing::BlitToScreen()
