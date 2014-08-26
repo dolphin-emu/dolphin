@@ -734,7 +734,7 @@ void XEmitter::WriteMulDivType(int bits, OpArg src, int ext)
 	if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "WriteMulDivType - Imm argument");
 	src.operandReg = ext;
 	if (bits == 16) Write8(0x66);
-	src.WriteRex(this, bits, bits);
+	src.WriteRex(this, bits, bits, 0);
 	if (bits == 8)
 	{
 		Write8(0xF6);
