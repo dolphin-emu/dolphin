@@ -56,7 +56,16 @@ public:
 private:
 	u32 m_CachedRegs[32];
 	u32 m_CachedSpecialRegs[NUM_SPECIALS];
-	u64 m_CachedFRegs[32][2];
+	#if (__GNUC__ == 4 && __GNUC_MINOR__ == 9 &&  __GNUC_PATCHLEVEL__ <= 1)
+	       /*
+	       Workaround There is a bug on GCC 4.9.0-1
+	       The compiler has problems with m_CachedFRegs[i][1]
+	       if y size is 2. Then we set it to 3
+	       */
+	       u64 m_CachedFRegs[32][3];
+	#else
+	        u64 m_CachedFRegs[32][2];
+	#endif
 	bool m_CachedRegHasChanged[32];
 	bool m_CachedSpecialRegHasChanged[NUM_SPECIALS];
 	bool m_CachedFRegHasChanged[32][2];
