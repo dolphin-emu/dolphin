@@ -1154,15 +1154,19 @@ void Jit64::mullwx(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::mulhwux(UGeckoInstruction inst)
+void Jit64::mulhwXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
+	bool sign = inst.SUBOP10 == 75;
 
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
 	{
-		gpr.SetImmediate32(d, (u32)(((u64)gpr.R(a).offset * (u64)gpr.R(b).offset) >> 32));
+		if (sign)
+			gpr.SetImmediate32(d, (u32)((u64)(((s64)(s32)gpr.R(a).offset * (s64)(s32)gpr.R(b).offset)) >> 32));
+		else
+			gpr.SetImmediate32(d, (u32)((gpr.R(a).offset * gpr.R(b).offset) >> 32));
 	}
 	else
 	{
@@ -1173,16 +1177,17 @@ void Jit64::mulhwux(UGeckoInstruction inst)
 			PanicAlert("mulhwux : WTF");
 		MOV(32, R(EAX), gpr.R(a));
 		gpr.KillImmediate(b, true, false);
-		MUL(32, gpr.R(b));
+		if (sign)
+			IMUL(32, gpr.R(b));
+		else
+			MUL(32, gpr.R(b));
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 		MOV(32, gpr.R(d), R(EDX));
 	}
 
 	if (inst.Rc)
-	{
 		ComputeRC(gpr.R(d));
-	}
 }
 
 void Jit64::divwux(UGeckoInstruction inst)
