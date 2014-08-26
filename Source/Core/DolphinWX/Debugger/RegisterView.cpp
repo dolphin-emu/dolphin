@@ -126,10 +126,11 @@ void CRegTable::UpdateCachedRegs()
 		m_CachedRegHasChanged[i] = (m_CachedRegs[i] != GPR(i));
 		m_CachedRegs[i] = GPR(i);
 
-		m_CachedFRegHasChanged[i][0] = (m_CachedFRegs[i][0] != riPS0(i));
-		m_CachedFRegs[i][0] = riPS0(i);
-		m_CachedFRegHasChanged[i][1] = (m_CachedFRegs[i][1] != riPS1(i));
-		m_CachedFRegs[i][1] = riPS1(i);
+		for (int j=0; j < 2; j++)
+		{
+			m_CachedFRegHasChanged[i][j] = (m_CachedFRegs[i][j] != riPS0(i));
+			m_CachedFRegs[i][j] = riPS0(i);
+		}
 	}
 	for (int i = 0; i < NUM_SPECIALS; ++i)
 	{
