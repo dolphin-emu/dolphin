@@ -720,6 +720,8 @@ void XEmitter::SETcc(CCFlags flag, OpArg dest)
 void XEmitter::CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag)
 {
 	if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "CMOVcc - Imm argument");
+	if (bits == 8) _assert_msg_(DYNA_REC, 0, "CMOVcc - 8 bits unsupported");
+	if (bits == 16) Write8(0x66);
 	src.operandReg = dest;
 	src.WriteRex(this, bits, bits);
 	Write8(0x0F);
