@@ -137,7 +137,7 @@ public:
 	void addx(UGeckoInstruction inst);
 	void addcx(UGeckoInstruction inst);
 	void mulli(UGeckoInstruction inst);
-	void mulhwux(UGeckoInstruction inst);
+	void mulhwXx(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
 	void divwux(UGeckoInstruction inst);
 	void divwx(UGeckoInstruction inst);
