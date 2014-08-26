@@ -654,6 +654,8 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 	MOVSS(dst, M(&temp32));
 
 	SetJumpTarget(continue1);
+	// We'd normally need to MOVDDUP here to put the single in the top half of the output register too, but
+	// this function is only used to go directly to a following store, so we omit the MOVDDUP here.
 }
 #endif // MORE_ACCURATE_DOUBLETOSINGLE
 
