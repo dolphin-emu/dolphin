@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -64,12 +65,12 @@ private:
 	void SetDOL(const std::string& _rDOL);
 
 	// writing to read buffer
-	void WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _Src,
+	void WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, const u8* _Src,
 					   u64& _Address, u64& _Length, u8*& _pBuffer) const;
 
 	void PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length, u8*& _pBuffer) const;
 
-	void Write32(u32 data, u32 offset, u8* buffer);
+	void Write32(u32 data, u32 offset, std::vector<u8>* const buffer);
 
 	// FST creation
 	void WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u32 length);
@@ -92,10 +93,9 @@ private:
 	u64 m_dataStartAddress;
 
 	u64 m_fstNameOffset;
-	u64 m_fstSize;
-	u8* m_FSTData;
+	std::vector<u8> m_FSTData;
 
-	u8* m_diskHeader;
+	std::vector<u8> m_diskHeader;
 
 	#pragma pack(push, 1)
 	struct SDiskHeaderInfo
@@ -124,13 +124,10 @@ private:
 		}
 	};
 	#pragma pack(pop)
-	SDiskHeaderInfo* m_diskHeaderInfo;
+	std::unique_ptr<SDiskHeaderInfo> m_diskHeaderInfo;
 
-	u64 m_apploaderSize;
-	u8* m_apploader;
-
-	u64 m_DOLSize;
-	u8* m_DOL;
+	std::vector<u8> m_apploader;
+	std::vector<u8> m_DOL;
 
 	static const u8 ENTRY_SIZE = 0x0c;
 	static const u8 FILE_ENTRY = 0;
