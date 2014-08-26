@@ -349,3 +349,20 @@ void Jit64::fctiwx(UGeckoInstruction inst)
 	MOVSD(fpr.R(d), XMM0);
 	fpr.UnlockAll();
 }
+
+void Jit64::frspx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	int b = inst.FB;
+	int d = inst.FD;
+
+	fpr.Lock(b, d);
+	fpr.BindToRegister(d, d == b);
+	if (b != d)
+		MOVAPD(fpr.RX(d), fpr.R(b));
+	ForceSinglePrecisionS(fpr.RX(d));
+	MOVDDUP(fpr.RX(d), fpr.R(d));
+	SetFPRFIfNeeded(inst, fpr.RX(d));
+	fpr.UnlockAll();
+}
