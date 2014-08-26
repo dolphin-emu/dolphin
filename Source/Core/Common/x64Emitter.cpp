@@ -1679,7 +1679,7 @@ void XEmitter::FST(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatST, des
 void XEmitter::FSTP(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatSTP, dest);}
 void XEmitter::FNSTSW_AX() { Write8(0xDF); Write8(0xE0); }
 
-void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
+void XEmitter::RDTSC() { Write8(0x0F); Write8(0x31); }
 
 // helper routines for setting pointers
 void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)

@@ -705,7 +705,7 @@ public:
 	void VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
-	void RTDSC();
+	void RDTSC();
 
 	// Utility functions
 	// The difference between this and CALL is that this aligns the stack
