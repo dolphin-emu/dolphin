@@ -57,7 +57,7 @@ static void DecodePrimitiveStream(u32 iBufferSize)
 	{
 		while (streamSize > 0 && iBufferSize >= vertexSize)
 		{
-			g_pVideoData += vertexSize;
+			g_video_buffer_read_ptr += vertexSize;
 			iBufferSize -= vertexSize;
 			streamSize--;
 		}
@@ -94,26 +94,26 @@ static void ReadXFData(u32 iBufferSize)
 
 static void ExecuteDisplayList(u32 addr, u32 count)
 {
-	u8 *videoDataSave = g_pVideoData;
+	u8 *videoDataSave = g_video_buffer_read_ptr;
 
 	u8 *dlStart = Memory::GetPointer(addr);
 
-	g_pVideoData = dlStart;
+	g_video_buffer_read_ptr = dlStart;
 
 	while (OpcodeDecoder::CommandRunnable(count))
 	{
 		OpcodeDecoder::Run(count);
 
 		// if data was read by the opcode decoder then the video data pointer changed
-		u32 readCount = (u32)(g_pVideoData - dlStart);
-		dlStart = g_pVideoData;
+		u32 readCount = (u32)(g_video_buffer_read_ptr - dlStart);
+		dlStart = g_video_buffer_read_ptr;
 
 		_assert_msg_(VIDEO, count >= readCount, "Display list underrun");
 
 		count -= readCount;
 	}
 
-	g_pVideoData = videoDataSave;
+	g_video_buffer_read_ptr = videoDataSave;
 }
 
 static void DecodeStandard(u32 bufferSize)

@@ -22,21 +22,22 @@
 
 bool g_bSkipCurrentFrame = false;
 
-namespace
-{
 static volatile bool GpuRunningState = false;
 static volatile bool EmuRunningState = false;
 static std::mutex m_csHWVidOccupied;
 // STATE_TO_SAVE
-static u8 *videoBuffer;
-static int size = 0;
-}  // namespace
+static u8* s_video_buffer;
+static u8* s_video_buffer_write_ptr;
+
+// Note: during display list execution, temporarily points to the list instead
+// of inside s_video_buffer.
+u8* g_video_buffer_read_ptr;
 
 void Fifo_DoState(PointerWrap &p)
 {
-	p.DoArray(videoBuffer, FIFO_SIZE);
-	p.Do(size);
-	p.DoPointer(g_pVideoData, videoBuffer);
+	p.DoArray(s_video_buffer, FIFO_SIZE);
+	p.DoPointer(s_video_buffer_write_ptr, s_video_buffer);
+	p.DoPointer(g_video_buffer_read_ptr, s_video_buffer);
 	p.Do(g_bSkipCurrentFrame);
 }
 
@@ -61,8 +62,8 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
 
 void Fifo_Init()
 {
-	videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
-	size = 0;
+	s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
+	s_video_buffer_write_ptr = s_video_buffer;
 	GpuRunningState = false;
 	Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
 }
@@ -70,18 +71,18 @@ void Fifo_Init()
 void Fifo_Shutdown()
 {
 	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
-	FreeMemoryPages(videoBuffer, FIFO_SIZE);
-	videoBuffer = nullptr;
+	FreeMemoryPages(s_video_buffer, FIFO_SIZE);
+	s_video_buffer = nullptr;
 }
 
 u8* GetVideoBufferStartPtr()
 {
-	return videoBuffer;
+	return s_video_buffer;
 }
 
 u8* GetVideoBufferEndPtr()
 {
-	return &videoBuffer[size];
+	return s_video_buffer_write_ptr;
 }
 
 void Fifo_SetRendering(bool enabled)
@@ -111,26 +112,27 @@ void EmulatorState(bool running)
 // Description: RunGpuLoop() sends data through this function.
 void ReadDataFromFifo(u8* _uData, u32 len)
 {
-	if (size + len >= FIFO_SIZE)
+	if (len > (s_video_buffer + FIFO_SIZE - s_video_buffer_write_ptr))
 	{
-		int pos = (int)(g_pVideoData - videoBuffer);
-		size -= pos;
-		if (size + len > FIFO_SIZE)
+		size_t size = s_video_buffer_write_ptr - g_video_buffer_read_ptr;
+		if (len > FIFO_SIZE - size)
 		{
-			PanicAlert("FIFO out of bounds (size = %i, len = %i at %08x)", size, len, pos);
+			PanicAlert("FIFO out of bounds (existing %lu + new %lu > %lu)", (unsigned long) size, (unsigned long) len, (unsigned long) FIFO_SIZE);
+			return;
 		}
-		memmove(&videoBuffer[0], &videoBuffer[pos], size);
-		g_pVideoData = videoBuffer;
+		memmove(s_video_buffer, g_video_buffer_read_ptr, size);
+		s_video_buffer_write_ptr = s_video_buffer + size;
+		g_video_buffer_read_ptr = s_video_buffer;
 	}
-	// Copy new video instructions to videoBuffer for future use in rendering the new picture
-	memcpy(videoBuffer + size, _uData, len);
-	size += len;
+	// Copy new video instructions to s_video_buffer for future use in rendering the new picture
+	memcpy(s_video_buffer_write_ptr, _uData, len);
+	s_video_buffer_write_ptr += len;
 }
 
 void ResetVideoBuffer()
 {
-	g_pVideoData = videoBuffer;
-	size = 0;
+	g_video_buffer_read_ptr = s_video_buffer;
+	s_video_buffer_write_ptr = s_video_buffer;
 }
 
 
@@ -181,7 +183,7 @@ void RunGpuLoop()
 
 				Common::AtomicStore(fifo.CPReadPointer, readPtr);
 				Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
-				if ((GetVideoBufferEndPtr() - g_pVideoData) == 0)
+				if ((GetVideoBufferEndPtr() - g_video_buffer_read_ptr) == 0)
 					Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 			}
 

@@ -31,12 +31,11 @@
 #include "VideoCommon/XFMemory.h"
 
 
-u8* g_pVideoData = nullptr;
 bool g_bRecordFifoData = false;
 
 static u32 InterpretDisplayList(u32 address, u32 size)
 {
-	u8* old_pVideoData = g_pVideoData;
+	u8* old_pVideoData = g_video_buffer_read_ptr;
 	u8* startAddress = Memory::GetPointer(address);
 
 	u32 cycles = 0;
@@ -44,12 +43,12 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 	// Avoid the crash if Memory::GetPointer failed ..
 	if (startAddress != nullptr)
 	{
-		g_pVideoData = startAddress;
+		g_video_buffer_read_ptr = startAddress;
 
 		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		u8 *end = g_pVideoData + size;
+		u8 *end = g_video_buffer_read_ptr + size;
 		cycles = OpcodeDecoder_Run(end);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
@@ -58,7 +57,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 	}
 
 	// reset to the old pointer
-	g_pVideoData = old_pVideoData;
+	g_video_buffer_read_ptr = old_pVideoData;
 
 	return cycles;
 }
@@ -107,8 +106,8 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 
 static u32 Decode(u8* end)
 {
-	u8 *opcodeStart = g_pVideoData;
-	if (g_pVideoData == end)
+	u8 *opcodeStart = g_video_buffer_read_ptr;
+	if (g_video_buffer_read_ptr == end)
 		return 0;
 
 	u8 cmd_byte = DataReadU8();
@@ -121,7 +120,7 @@ static u32 Decode(u8* end)
 
 	case GX_LOAD_CP_REG: //0x08
 		{
-			if (end - g_pVideoData < 1 + 4)
+			if (end - g_video_buffer_read_ptr < 1 + 4)
 				return 0;
 			cycles = 12;
 			u8 sub_cmd = DataReadU8();
@@ -133,11 +132,11 @@ static u32 Decode(u8* end)
 
 	case GX_LOAD_XF_REG:
 		{
-			if (end - g_pVideoData < 4)
+			if (end - g_video_buffer_read_ptr < 4)
 				return 0;
 			u32 Cmd2 = DataReadU32();
 			int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-			if ((size_t) (end - g_pVideoData) < transfer_size * sizeof(u32))
+			if ((size_t) (end - g_video_buffer_read_ptr) < transfer_size * sizeof(u32))
 				return 0;
 			cycles = 18 + 6 * transfer_size;
 			u32 xf_address = Cmd2 & 0xFFFF;
@@ -148,25 +147,25 @@ static u32 Decode(u8* end)
 		break;
 
 	case GX_LOAD_INDX_A: //used for position matrices
-		if (end - g_pVideoData < 4)
+		if (end - g_video_buffer_read_ptr < 4)
 			return 0;
 		cycles = 6;
 		LoadIndexedXF(DataReadU32(), 0xC);
 		break;
 	case GX_LOAD_INDX_B: //used for normal matrices
-		if (end - g_pVideoData < 4)
+		if (end - g_video_buffer_read_ptr < 4)
 			return 0;
 		cycles = 6;
 		LoadIndexedXF(DataReadU32(), 0xD);
 		break;
 	case GX_LOAD_INDX_C: //used for postmatrices
-		if (end - g_pVideoData < 4)
+		if (end - g_video_buffer_read_ptr < 4)
 			return 0;
 		cycles = 6;
 		LoadIndexedXF(DataReadU32(), 0xE);
 		break;
 	case GX_LOAD_INDX_D: //used for lights
-		if (end - g_pVideoData < 4)
+		if (end - g_video_buffer_read_ptr < 4)
 			return 0;
 		cycles = 6;
 		LoadIndexedXF(DataReadU32(), 0xF);
@@ -174,7 +173,7 @@ static u32 Decode(u8* end)
 
 	case GX_CMD_CALL_DL:
 		{
-			if (end - g_pVideoData < 8)
+			if (end - g_video_buffer_read_ptr < 8)
 				return 0;
 			u32 address = DataReadU32();
 			u32 count = DataReadU32();
@@ -196,7 +195,7 @@ static u32 Decode(u8* end)
 		// In skipped_frame case: We have to let BP writes through because they set
 		// tokens and stuff.  TODO: Call a much simplified LoadBPReg instead.
 		{
-			if (end - g_pVideoData < 4)
+			if (end - g_video_buffer_read_ptr < 4)
 				return 0;
 			cycles = 12;
 			u32 bp_cmd = DataReadU32();
@@ -211,7 +210,7 @@ static u32 Decode(u8* end)
 		{
 			cycles = 1600;
 			// load vertices
-			if (end - g_pVideoData < 2)
+			if (end - g_video_buffer_read_ptr < 2)
 				return 0;
 			u16 numVertices = DataReadU16();
 
@@ -219,7 +218,7 @@ static u32 Decode(u8* end)
 				cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
 				(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 				numVertices,
-				end - g_pVideoData,
+				end - g_video_buffer_read_ptr,
 				g_bSkipCurrentFrame))
 			{
 				return 0;
@@ -235,14 +234,14 @@ static u32 Decode(u8* end)
 
 	// Display lists get added directly into the FIFO stream
 	if (g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
-		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(g_pVideoData - opcodeStart));
+		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(g_video_buffer_read_ptr - opcodeStart));
 
 	return cycles;
 }
 
 void OpcodeDecoder_Init()
 {
-	g_pVideoData = GetVideoBufferStartPtr();
+	g_video_buffer_read_ptr = GetVideoBufferStartPtr();
 }
 
 
@@ -255,11 +254,11 @@ u32 OpcodeDecoder_Run(u8* end)
 	u32 totalCycles = 0;
 	while (true)
 	{
-		u8* old = g_pVideoData;
+		u8* old = g_video_buffer_read_ptr;
 		u32 cycles = Decode(end);
 		if (cycles == 0)
 		{
-			g_pVideoData = old;
+			g_video_buffer_read_ptr = old;
 			break;
 		}
 		totalCycles += cycles;

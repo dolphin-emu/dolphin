@@ -57,7 +57,7 @@ void DoState(PointerWrap &p)
 	p.Do(interruptWaiting);
 
 	// Is this right?
-	p.DoArray(g_pVideoData,writePos);
+	p.DoArray(g_video_buffer_read_ptr,writePos);
 }
 
 static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
@@ -95,7 +95,7 @@ void Init()
 	interruptSet = false;
 	interruptWaiting = false;
 
-	g_pVideoData = nullptr;
+	g_video_buffer_read_ptr = nullptr;
 	g_bSkipCurrentFrame = false;
 }
 
@@ -311,7 +311,7 @@ bool RunBuffer()
 
 	_dbg_assert_(COMMANDPROCESSOR, writePos >= readPos);
 
-	g_pVideoData = &commandBuffer[readPos];
+	g_video_buffer_read_ptr = &commandBuffer[readPos];
 
 	u32 availableBytes = writePos - readPos;
 
@@ -322,7 +322,7 @@ bool RunBuffer()
 		OpcodeDecoder::Run(availableBytes);
 
 		// if data was read by the opcode decoder then the video data pointer changed
-		readPos = (u32)(g_pVideoData - &commandBuffer[0]);
+		readPos = (u32)(g_video_buffer_read_ptr - &commandBuffer[0]);
 		_dbg_assert_(VIDEO, writePos >= readPos);
 		availableBytes = writePos - readPos;
 	}
