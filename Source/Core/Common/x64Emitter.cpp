@@ -666,7 +666,7 @@ void XEmitter::POP(int /*bits*/, const OpArg &reg)
 	if (reg.IsSimpleReg())
 		POP(reg.GetSimpleReg());
 	else
-		INT3();
+		_assert_msg_(DYNA_REC, 0, "POP - Unsupported encoding");
 }
 
 void XEmitter::BSWAP(int bits, X64Reg reg)
