@@ -126,11 +126,31 @@ void CRegTable::UpdateCachedRegs()
 		m_CachedRegHasChanged[i] = (m_CachedRegs[i] != GPR(i));
 		m_CachedRegs[i] = GPR(i);
 
-		for (int j=0; j < 2; j++)
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 9 && __GNUC_PATCHLEVEL__ <= 1
+		/*
+		Workaround There is a bug on GCC 4.9.0-1
+		The compiler has problems with m_CachedFRegs[i][1]
+		We use a loop to avoid this problem
+		*/
+		for (u8 j = 0; j < 2; j++)
 		{
-			m_CachedFRegHasChanged[i][j] = (m_CachedFRegs[i][j] != riPS0(i));
-			m_CachedFRegs[i][j] = riPS0(i);
+			if (j == 0)
+			{
+				m_CachedFRegHasChanged[i][j] = (m_CachedFRegs[i][j] != riPS0(i));
+				m_CachedFRegs[i][j] = riPS0(i);
+			}
+			else if (j == 1)
+			{
+				m_CachedFRegHasChanged[i][j] = (m_CachedFRegs[i][j] != riPS1(i));
+				m_CachedFRegs[i][j] = riPS1(i);
+			}
 		}
+#else
+		m_CachedFRegHasChanged[i][0] = (m_CachedFRegs[i][0] != riPS0(i));
+		m_CachedFRegs[i][0] = riPS0(i);
+		m_CachedFRegHasChanged[i][1] = (m_CachedFRegs[i][1] != riPS1(i));
+		m_CachedFRegs[i][1] = riPS1(i);
+#endif
 	}
 	for (int i = 0; i < NUM_SPECIALS; ++i)
 	{
