@@ -95,7 +95,7 @@ void ReadGC(const std::string& filename)
 void CheckFile(const std::string& file, u64 size)
 {
 	// Don't do anything if the log is unselected
-	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
+	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON) || LogManager::GetMaxLevel() < INFO_LEVEL)
 		return;
 	// Do nothing if we found the same file again
 	if (CurrentFile == file)
@@ -108,10 +108,6 @@ void CheckFile(const std::string& file, u64 size)
 	if (IsSoundFile(file))
 	{
 		INFO_LOG(FILEMON, "%s", str.c_str());
-	}
-	else
-	{
-		WARN_LOG(FILEMON, "%s", str.c_str());
 	}
 
 	// Update the current file
@@ -127,7 +123,7 @@ void FindFilename(u64 offset)
 		return;
 
 	// Or if the log is unselected
-	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
+	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON) || LogManager::GetMaxLevel() < INFO_LEVEL)
 		return;
 
 	// Or if we don't have file access
