@@ -336,7 +336,6 @@ public:
 	FixupBranch J(bool force5bytes = false);
 
 	void JMP(const u8 * addr, bool force5Bytes = false);
-	void JMP(OpArg arg);
 	void JMPptr(const OpArg &arg);
 	void JMPself(); //infinite loop!
 #ifdef CALL
