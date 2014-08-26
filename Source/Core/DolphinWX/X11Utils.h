@@ -34,7 +34,7 @@
 namespace X11Utils
 {
 
-void EWMH_Fullscreen(Display *dpy, int action);
+void ToggleFullscreen(Display *dpy, Window win);
 #if defined(HAVE_WX) && HAVE_WX
 Window XWindowFromHandle(void *Handle);
 Display *XDisplayFromHandle(void *Handle);

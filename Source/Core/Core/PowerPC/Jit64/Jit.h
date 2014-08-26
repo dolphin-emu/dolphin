@@ -68,18 +68,22 @@ public:
 
 	void ClearCache() override;
 
-	const u8 *GetDispatcher() {
+	const u8 *GetDispatcher()
+	{
 		return asm_routines.dispatcher;
 	}
-	const CommonAsmRoutines *GetAsmRoutines() override {
+
+	const CommonAsmRoutines *GetAsmRoutines() override
+	{
 		return &asm_routines;
 	}
 
-	const char *GetName() override {
+	const char *GetName() override
+	{
 		return "JIT64";
 	}
-	// Run!
 
+	// Run!
 	void Run() override;
 	void SingleStep() override;
 
@@ -105,8 +109,8 @@ public:
 
 	// Reads a given bit of a given CR register part. Clobbers ABI_PARAM1,
 	// don't forget to xlock it before.
-	void GetCRFieldBit(int field, int bit, Gen::X64Reg out);
-	// Clobbers ABI_PARAM1 and ABI_PARAM2, xlock them before.
+	void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
+	// Clobbers ABI_PARAM1, xlock it before.
 	void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
 
 	// Generates a branch that will check if a given bit of a CR register part

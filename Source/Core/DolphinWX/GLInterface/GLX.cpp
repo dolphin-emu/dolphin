@@ -4,19 +4,13 @@
 
 #include <string>
 
-#include "DolphinWX/GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/GLX.h"
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);
 static PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
-
-// Show the current FPS
-void cInterfaceGLX::UpdateFPSDisplay(const std::string& text)
-{
-	XStoreName(GLWin.evdpy, GLWin.win, text.c_str());
-}
 
 void cInterfaceGLX::SwapInterval(int Interval)
 {
@@ -32,12 +26,12 @@ void* cInterfaceGLX::GetFuncAddress(const std::string& name)
 
 void cInterfaceGLX::Swap()
 {
-	glXSwapBuffers(GLWin.dpy, GLWin.win);
+	glXSwapBuffers(dpy, win);
 }
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceGLX::Create(void *&window_handle)
+bool cInterfaceGLX::Create(void *window_handle)
 {
 	int glxMajorVersion, glxMinorVersion;
 
@@ -64,29 +58,25 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		GLX_DOUBLEBUFFER,
 		None };
 
-	GLWin.dpy = XOpenDisplay(nullptr);
-	GLWin.evdpy = XOpenDisplay(nullptr);
-	GLWin.parent = (Window)window_handle;
-	GLWin.screen = DefaultScreen(GLWin.dpy);
-	if (GLWin.parent == 0)
-		GLWin.parent = RootWindow(GLWin.dpy, GLWin.screen);
+	dpy = XOpenDisplay(nullptr);
+	int screen = DefaultScreen(dpy);
 
-	glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
+	glXQueryVersion(dpy, &glxMajorVersion, &glxMinorVersion);
 	NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
 
 	// Get an appropriate visual
-	GLWin.vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDbl);
-	if (GLWin.vi == nullptr)
+	vi = glXChooseVisual(dpy, screen, attrListDbl);
+	if (vi == nullptr)
 	{
-		GLWin.vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListSgl);
-		if (GLWin.vi != nullptr)
+		vi = glXChooseVisual(dpy, screen, attrListSgl);
+		if (vi != nullptr)
 		{
 			ERROR_LOG(VIDEO, "Only single buffered visual!");
 		}
 		else
 		{
-			GLWin.vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDefault);
-			if (GLWin.vi == nullptr)
+			vi = glXChooseVisual(dpy, screen, attrListDefault);
+			if (vi == nullptr)
 			{
 				ERROR_LOG(VIDEO, "Could not choose visual (glXChooseVisual)");
 				return false;
@@ -97,21 +87,34 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		NOTICE_LOG(VIDEO, "Got double buffered visual!");
 
 	// Create a GLX context.
-	GLWin.ctx = glXCreateContext(GLWin.dpy, GLWin.vi, nullptr, GL_TRUE);
-	if (!GLWin.ctx)
+	ctx = glXCreateContext(dpy, vi, nullptr, GL_TRUE);
+	if (!ctx)
 	{
 		PanicAlert("Unable to create GLX context.");
 		return false;
 	}
 
-	XWindow.CreateXWindow();
-	window_handle = (void *)GLWin.win;
+	XWindow.Initialize(dpy);
+
+	Window parent = (Window)window_handle;
+
+	XWindowAttributes attribs;
+	if (!XGetWindowAttributes(dpy, parent, &attribs))
+	{
+		ERROR_LOG(VIDEO, "Window attribute retrieval failed");
+		return false;
+	}
+
+	s_backbuffer_width  = attribs.width;
+	s_backbuffer_height = attribs.height;
+
+	win = XWindow.CreateXWindow(parent, vi);
 	return true;
 }
 
 bool cInterfaceGLX::MakeCurrent()
 {
-	bool success = glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
+	bool success = glXMakeCurrent(dpy, win, ctx);
 	if (success)
 	{
 		// load this function based on the current bound context
@@ -122,7 +125,7 @@ bool cInterfaceGLX::MakeCurrent()
 
 bool cInterfaceGLX::ClearCurrent()
 {
-	return glXMakeCurrent(GLWin.dpy, None, nullptr);
+	return glXMakeCurrent(dpy, None, nullptr);
 }
 
 
@@ -130,12 +133,11 @@ bool cInterfaceGLX::ClearCurrent()
 void cInterfaceGLX::Shutdown()
 {
 	XWindow.DestroyXWindow();
-	if (GLWin.ctx)
+	if (ctx)
 	{
-		glXDestroyContext(GLWin.dpy, GLWin.ctx);
-		XCloseDisplay(GLWin.dpy);
-		XCloseDisplay(GLWin.evdpy);
-		GLWin.ctx = nullptr;
+		glXDestroyContext(dpy, ctx);
+		XCloseDisplay(dpy);
+		ctx = nullptr;
 	}
 }
 

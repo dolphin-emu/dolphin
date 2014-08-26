@@ -71,7 +71,7 @@ void VideoSoftware::ShowConfig(void *hParent)
 	Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_software");
 }
 
-bool VideoSoftware::Initialize(void *&window_handle)
+bool VideoSoftware::Initialize(void *window_handle)
 {
 	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
 
@@ -370,12 +370,6 @@ void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
 unsigned int VideoSoftware::PeekMessages()
 {
 	return GLInterface->PeekMessages();
-}
-
-// Show the current FPS
-void VideoSoftware::UpdateFPSDisplay(const std::string& text)
-{
-	GLInterface->UpdateFPSDisplay(StringFromFormat("%s | Software | %s", scm_rev_str, text.c_str()));
 }
 
 }

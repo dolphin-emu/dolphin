@@ -97,10 +97,12 @@ void JitArm::bx(UGeckoInstruction inst)
 		STR(rA, R9, PPCSTATE_OFF(spr[SPR_LR]));
 		//ARMABI_MOVI2M((u32)&LR, js.compilerPC + 4);
 	}
+
 	// If this is not the last instruction of a block,
 	// we will skip the rest process.
 	// Because PPCAnalyst::Flatten() merged the blocks.
-	if (!js.isLastInstruction) {
+	if (!js.isLastInstruction)
+	{
 		return;
 	}
 
@@ -231,7 +233,8 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 		LDR(rA, R9, PPCSTATE_OFF(spr[SPR_CTR]));
 		BIC(rA, rA, 0x3);
 
-		if (inst.LK_3){
+		if (inst.LK_3)
+		{
 			u32 Jumpto = js.compilerPC + 4;
 			MOVI2R(rB, Jumpto);
 			STR(rB, R9, PPCSTATE_OFF(spr[SPR_LR]));
@@ -285,7 +288,8 @@ void JitArm::bclrx(UGeckoInstruction inst)
 	//AND(32, R(EAX), Imm32(0xFFFFFFFC));
 	LDR(rA, R9, PPCSTATE_OFF(spr[SPR_LR]));
 	BIC(rA, rA, 0x3);
-	if (inst.LK){
+	if (inst.LK)
+	{
 		u32 Jumpto = js.compilerPC + 4;
 		MOVI2R(rB, Jumpto);
 		STR(rB, R9, PPCSTATE_OFF(spr[SPR_LR]));

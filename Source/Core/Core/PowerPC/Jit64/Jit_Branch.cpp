@@ -67,7 +67,8 @@ void Jit64::bx(UGeckoInstruction inst)
 	// If this is not the last instruction of a block,
 	// we will skip the rest process.
 	// Because PPCAnalyst::Flatten() merged the blocks.
-	if (!js.isLastInstruction) {
+	if (!js.isLastInstruction)
+	{
 		return;
 	}
 

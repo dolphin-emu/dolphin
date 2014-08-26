@@ -66,8 +66,8 @@ public:
 	u32 *GetXFRegs() { return m_XFRegs; }
 
 	void AddFrame(const FifoFrameInfo &frameInfo);
-	const FifoFrameInfo &GetFrame(size_t frame) const { return m_Frames[frame]; }
-	size_t GetFrameCount() { return m_Frames.size(); }
+	const FifoFrameInfo &GetFrame(u32 frame) const { return m_Frames[frame]; }
+	u32 GetFrameCount() { return static_cast<u32>(m_Frames.size()); }
 
 	bool Save(const std::string& filename);
 
@@ -79,7 +79,7 @@ private:
 		FLAG_IS_WII = 1
 	};
 
-	void PadFile(u32 numBytes, File::IOFile &file);
+	void PadFile(size_t numBytes, File::IOFile &file);
 
 	void SetFlag(u32 flag, bool set);
 	bool GetFlag(u32 flag) const;

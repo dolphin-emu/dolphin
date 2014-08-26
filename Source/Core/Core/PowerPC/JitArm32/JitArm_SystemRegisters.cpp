@@ -98,12 +98,14 @@ void JitArm::mtspr(UGeckoInstruction inst)
 	ARMReg RD = gpr.R(inst.RD);
 	STR(RD, R9,  PPCSTATE_OFF(spr) + iIndex * 4);
 }
+
 void JitArm::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
 	mfspr(inst);
 }
+
 void JitArm::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

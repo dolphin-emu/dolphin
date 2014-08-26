@@ -259,7 +259,7 @@ void FifoPlayer::WriteAllMemoryUpdates()
 {
 	_assert_(m_File);
 
-	for (size_t frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
+	for (u32 frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
 	{
 		const FifoFrameInfo &frame = m_File->GetFrame(frameNum);
 		for (auto& update : frame.memoryUpdates)

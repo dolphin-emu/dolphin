@@ -107,13 +107,13 @@ PC_TexFormat GetHiresTex(const std::string& filename, unsigned int* pWidth, unsi
 	//int offset = 0;
 	PC_TexFormat returnTex = PC_TEX_FMT_NONE;
 
-	switch (texformat)
-	{
 	// TODO(neobrain): This function currently has no way to enforce RGBA32
 	// output, which however is required on some configurations to function
 	// properly. As a lazy workaround, we hence disable the optimized code
 	// path for now.
 #if 0
+	switch (texformat)
+	{
 	case GX_TF_I4:
 	case GX_TF_I8:
 	case GX_TF_IA4:
@@ -131,7 +131,6 @@ PC_TexFormat GetHiresTex(const std::string& filename, unsigned int* pWidth, unsi
 		}
 		returnTex = PC_TEX_FMT_IA8;
 		break;
-#endif
 	default:
 		*required_size = width * height * 4;
 		if (data_size < *required_size)
@@ -141,6 +140,14 @@ PC_TexFormat GetHiresTex(const std::string& filename, unsigned int* pWidth, unsi
 		returnTex = PC_TEX_FMT_RGBA32;
 		break;
 	}
+#else
+	*required_size = width * height * 4;
+	if (data_size < *required_size)
+		goto cleanup;
+
+	memcpy(data, temp, width * height * 4);
+	returnTex = PC_TEX_FMT_RGBA32;
+#endif
 
 	INFO_LOG(VIDEO, "Loading custom texture from %s", textureMap[filename].c_str());
 cleanup:

@@ -143,7 +143,7 @@ void RunGpu()
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
 	// Directly map reads and writes to the cpreg structure.
-	for (size_t i = 0; i < sizeof (cpreg) / sizeof (u16); ++i)
+	for (u32 i = 0; i < sizeof (cpreg) / sizeof (u16); ++i)
 	{
 		u16* ptr = ((u16*)&cpreg) + i;
 		mmio->Register(base | (i * 2),
@@ -154,7 +154,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 	// Bleh. Apparently SWCommandProcessor does not know about regs 0x40 to
 	// 0x64...
-	for (size_t i = 0x40; i < 0x64; ++i)
+	for (u32 i = 0x40; i < 0x64; ++i)
 	{
 		mmio->Register(base | i,
 			MMIO::Constant<u16>(0),

@@ -18,31 +18,26 @@
 #include "Core/Core.h"
 #include "Core/CoreParameter.h"
 #include "Core/Host.h"
+#include "Core/State.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
-#if HAVE_X11
-#include <X11/keysym.h>
-#include "Core/State.h"
-#include "DolphinWX/X11Utils.h"
-#endif
-
-#if HAVE_WAYLAND
-#include <wayland-client.h>
-#endif
-
-#ifdef USE_EGL
-#include "DolphinWX/GLInterface/GLInterface.h"
-#endif
-
-#ifdef __APPLE__
-#import <Cocoa/Cocoa.h>
-#endif
-
 static bool rendererHasFocus = true;
 static bool running = true;
+
+class Platform
+{
+public:
+	virtual void Init() = 0;
+	virtual void SetTitle(const std::string &title) = 0;
+	virtual void MainLoop() = 0;
+	virtual void Shutdown() = 0;
+	virtual ~Platform() {};
+};
+
+static Platform* platform;
 
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
@@ -58,12 +53,16 @@ void Host_Message(int Id)
 	}
 }
 
+void* windowHandle;
 void* Host_GetRenderHandle()
 {
-	return nullptr;
+	return windowHandle;
 }
 
-void Host_UpdateTitle(const std::string& title){};
+void Host_UpdateTitle(const std::string& title)
+{
+	platform->SetTitle(title);
+}
 
 void Host_UpdateDisasmDialog(){}
 
@@ -103,8 +102,6 @@ bool Host_RendererHasFocus()
 
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
-void Host_UpdateStatusBar(const std::string& text, int filed){}
-
 void Host_SysMessage(const char *fmt, ...)
 {
 	va_list list;
@@ -129,54 +126,84 @@ void Host_SetWiiMoteConnectionState(int _State) {}
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 #if HAVE_X11
-static void X11_MainLoop()
+#include <X11/keysym.h>
+#include "DolphinWX/X11Utils.h"
+
+class PlatformX11 : public Platform
 {
-	bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
-	while (!Core::IsRunning())
-		updateMainFrameEvent.Wait();
-
-	Display *dpy = XOpenDisplay(0);
-	Window win = (Window)Core::GetWindowHandle();
-	XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
-
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
-		X11Utils::InhibitScreensaver(dpy, win, true);
-
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-	X11Utils::XRRConfiguration *XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
-#endif
-
+	Display *dpy;
+	Window win;
 	Cursor blankCursor = None;
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-	{
-		// make a blank cursor
-		Pixmap Blank;
-		XColor DummyColor;
-		char ZeroData[1] = {0};
-		Blank = XCreateBitmapFromData (dpy, win, ZeroData, 1, 1);
-		blankCursor = XCreatePixmapCursor(dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
-		XFreePixmap (dpy, Blank);
-		XDefineCursor(dpy, win, blankCursor);
-	}
-
-	if (fullscreen)
-	{
-		X11Utils::EWMH_Fullscreen(dpy, _NET_WM_STATE_TOGGLE);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-		XRRConfig->ToggleDisplayMode(True);
+	X11Utils::XRRConfiguration *XRRConfig;
 #endif
+
+	void Init() override
+	{
+		XInitThreads();
+		dpy = XOpenDisplay(NULL);
+
+		win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy),
+					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
+					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
+					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					  0, 0, BlackPixel(dpy, 0));
+		XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
+		Atom wmProtocols[1];
+		wmProtocols[0] = XInternAtom(dpy, "WM_DELETE_WINDOW", True);
+		XSetWMProtocols(dpy, win, wmProtocols, 1);
+		XMapRaised(dpy, win);
+		XFlush(dpy);
+		windowHandle = (void *) win;
+
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+			X11Utils::InhibitScreensaver(dpy, win, true);
+
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+		XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
+#endif
+
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		{
+			// make a blank cursor
+			Pixmap Blank;
+			XColor DummyColor;
+			char ZeroData[1] = {0};
+			Blank = XCreateBitmapFromData (dpy, win, ZeroData, 1, 1);
+			blankCursor = XCreatePixmapCursor(dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
+			XFreePixmap (dpy, Blank);
+			XDefineCursor(dpy, win, blankCursor);
+		}
 	}
 
-	// The actual loop
-	while (running)
+	void SetTitle(const std::string &string) override
 	{
-		XEvent event;
-		KeySym key;
-		for (int num_events = XPending(dpy); num_events > 0; num_events--)
+		XStoreName(dpy, win, string.c_str());
+	}
+
+	void MainLoop() override
+	{
+		bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
+
+		if (fullscreen)
 		{
-			XNextEvent(dpy, &event);
-			switch (event.type)
+			X11Utils::ToggleFullscreen(dpy, win);
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+			XRRConfig->ToggleDisplayMode(True);
+#endif
+		}
+
+		// The actual loop
+		while (running)
+		{
+			XEvent event;
+			KeySym key;
+			for (int num_events = XPending(dpy); num_events > 0; num_events--)
 			{
+				XNextEvent(dpy, &event);
+				switch (event.type)
+				{
 				case KeyPress:
 					key = XLookupKeysym((XKeyEvent*)&event, 0);
 					if (key == XK_Escape)
@@ -197,7 +224,7 @@ static void X11_MainLoop()
 					else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
 					{
 						fullscreen = !fullscreen;
-						X11Utils::EWMH_Fullscreen(dpy, _NET_WM_STATE_TOGGLE);
+						X11Utils::ToggleFullscreen(dpy, win);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 						XRRConfig->ToggleDisplayMode(fullscreen);
 #endif
@@ -225,7 +252,7 @@ static void X11_MainLoop()
 				case FocusIn:
 					rendererHasFocus = true;
 					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-							Core::GetState() != Core::CORE_PAUSE)
+					    Core::GetState() != Core::CORE_PAUSE)
 						XDefineCursor(dpy, win, blankCursor);
 					break;
 				case FocusOut:
@@ -233,61 +260,51 @@ static void X11_MainLoop()
 					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 						XUndefineCursor(dpy, win);
 					break;
+				case ClientMessage:
+					if ((unsigned long) event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
+						running = false;
+					break;
+				}
 			}
+			if (!fullscreen)
+			{
+				Window winDummy;
+				unsigned int borderDummy, depthDummy;
+				XGetGeometry(dpy, win, &winDummy,
+					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
+					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
+					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					     &borderDummy, &depthDummy);
+			}
+			usleep(100000);
 		}
-		if (!fullscreen)
-		{
-			Window winDummy;
-			unsigned int borderDummy, depthDummy;
-			XGetGeometry(dpy, win, &winDummy,
-					&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
-					&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
-					(unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					(unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
-					&borderDummy, &depthDummy);
-		}
-		usleep(100000);
 	}
 
+	void Shutdown() override
+	{
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-	delete XRRConfig;
-#endif
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
-		X11Utils::InhibitScreensaver(dpy, win, false);
-
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-		XFreeCursor(dpy, blankCursor);
-	XCloseDisplay(dpy);
-	Core::Stop();
-}
+		delete XRRConfig;
 #endif
 
-#if HAVE_WAYLAND
-static void Wayland_MainLoop()
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			XFreeCursor(dpy, blankCursor);
+
+		XCloseDisplay(dpy);
+	}
+};
+#endif
+
+static Platform* GetPlatform()
 {
-	// Wait for display to be initialized
-	while (!GLWin.wl_display)
-		usleep(20000);
-
-	GLWin.running = 1;
-
-	while (GLWin.running)
-		wl_display_dispatch(GLWin.wl_display);
-
-	if (GLWin.wl_display)
-		wl_display_disconnect(GLWin.wl_display);
-}
+#if HAVE_X11
+	return new PlatformX11();
 #endif
+	return nullptr;
+}
 
 int main(int argc, char* argv[])
 {
-#ifdef __APPLE__
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSEvent *event = [[NSEvent alloc] init];
-	[NSApplication sharedApplication];
-	[NSApp activateIgnoringOtherApps: YES];
-	[NSApp finishLaunching];
-#endif
 	int ch, help = 0;
 	struct option longopts[] = {
 		{ "exec",    no_argument, nullptr, 'e' },
@@ -323,6 +340,13 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	platform = GetPlatform();
+	if (!platform)
+	{
+		fprintf(stderr, "No platform found\n");
+		return 1;
+	}
+
 	LogManager::Init();
 	SConfig::Init();
 	VideoBackend::PopulateList();
@@ -330,67 +354,30 @@ int main(int argc, char* argv[])
 		m_LocalCoreStartupParameter.m_strVideoBackend);
 	WiimoteReal::LoadSettings();
 
-#if USE_EGL
-	GLWin.platform = EGL_PLATFORM_NONE;
-#endif
-#if HAVE_WAYLAND
-	GLWin.wl_display = nullptr;
-#endif
+	platform->Init();
 
-	// No use running the loop when booting fails
-	if (BootManager::BootCore(argv[optind]))
+	if (!BootManager::BootCore(argv[optind]))
 	{
-#if USE_EGL
-		while (GLWin.platform == EGL_PLATFORM_NONE)
-			usleep(20000);
-#endif
-#if HAVE_WAYLAND
-		if (GLWin.platform == EGL_PLATFORM_WAYLAND)
-			Wayland_MainLoop();
-#endif
-#if HAVE_X11
-#if USE_EGL
-		if (GLWin.platform == EGL_PLATFORM_X11)
-		{
-#endif
-			XInitThreads();
-			X11_MainLoop();
-#if USE_EGL
-		}
-#endif
-#endif
-#ifdef __APPLE__
-		while (running)
-		{
-			event = [NSApp nextEventMatchingMask: NSAnyEventMask
-				untilDate: [NSDate distantFuture]
-				inMode: NSDefaultRunLoopMode dequeue: YES];
-
-			if ([event type] == NSKeyDown &&
-				[event modifierFlags] & NSCommandKeyMask &&
-				[[event characters] UTF8String][0] == 'q')
-			{
-				Core::Stop();
-				break;
-			}
-
-			if ([event type] != NSKeyDown)
-				[NSApp sendEvent: event];
-		}
-
-		[event release];
-		[pool release];
-#else
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
-			updateMainFrameEvent.Wait();
-#endif
+		fprintf(stderr, "Could not boot %s\n", argv[optind]);
+		return 1;
 	}
 
+	while (!Core::IsRunning())
+		updateMainFrameEvent.Wait();
+
+	platform->MainLoop();
+	Core::Stop();
+	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		updateMainFrameEvent.Wait();
+
+	platform->Shutdown();
 	Core::Shutdown();
 	WiimoteReal::Shutdown();
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
+
+	delete platform;
 
 	return 0;
 }

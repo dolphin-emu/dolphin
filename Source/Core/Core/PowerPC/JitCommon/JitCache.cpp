@@ -135,9 +135,9 @@ using namespace Gen;
 	{
 		// check if any endpoint is inside the other range
 		if ((s1 >= s2 && s1 <= e2) ||
-			(e1 >= s2 && e1 <= e2) ||
-			(s2 >= s1 && s2 <= e1) ||
-			(e2 >= s1 && e2 <= e1))
+		    (e1 >= s2 && e1 <= e2) ||
+		    (s2 >= s1 && s2 <= e1) ||
+		    (e2 >= s1 && e2 <= e1))
 			return true;
 		else
 			return false;
@@ -360,11 +360,13 @@ using namespace Gen;
 			}
 		}
 	}
+
 	void JitBlockCache::WriteLinkBlock(u8* location, const u8* address)
 	{
 		XEmitter emit(location);
 		emit.JMP(address, true);
 	}
+
 	void JitBlockCache::WriteDestroyBlock(const u8* location, u32 address)
 	{
 		XEmitter emit((u8 *)location);

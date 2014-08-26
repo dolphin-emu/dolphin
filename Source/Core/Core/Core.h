@@ -59,9 +59,6 @@ void SaveScreenShot();
 
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
-void* GetWindowHandle();
-
-
 // This displays messages in a user-visible way.
 void DisplayMessage(const std::string& message, int time_in_ms);
 
