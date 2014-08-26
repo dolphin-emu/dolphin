@@ -155,6 +155,7 @@ static wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to R
 static wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
 
 
+#if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
 // No, now it depends on VR to know which display to check, so don't move it to Common.
 // g_hmd_device_name will be nullptr unless there is a VR display attached.
@@ -216,6 +217,7 @@ static wxArrayString GetListOfResolutions()
 #endif
 	return retlist;
 }
+#endif
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,

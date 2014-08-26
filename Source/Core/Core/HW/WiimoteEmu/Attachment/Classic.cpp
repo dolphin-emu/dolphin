@@ -62,8 +62,8 @@ Classic::Classic(WiimoteEmu::ExtensionReg& _reg, int index)
 		m_buttons->controls.emplace_back(new ControlGroup::Input(classic_button_name));
 
 	// sticks
-	groups.emplace_back(m_left_stick = new AnalogStick(_trans("Left Stick")));
-	groups.emplace_back(m_right_stick = new AnalogStick(_trans("Right Stick")));
+	groups.emplace_back(m_left_stick = new AnalogStick(_trans("Left Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+	groups.emplace_back(m_right_stick = new AnalogStick(_trans("Right Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
 
 	// triggers
 	groups.emplace_back(m_triggers = new MixedTriggers("Triggers"));

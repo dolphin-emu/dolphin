@@ -4,9 +4,6 @@
 
 #pragma once
 
-// windows crap
-#define NOMINMAX
-
 #include <algorithm>
 #include <cmath>
 #include <memory>
@@ -151,7 +148,8 @@ public:
 	class AnalogStick : public ControlGroup
 	{
 	public:
-		AnalogStick(const char* const _name);
+		// The GameCube controller and Wiimote attachments have a different default radius
+		AnalogStick(const char* const _name, ControlState default_radius);
 
 		void GetState(double* const x, double* const y)
 		{

@@ -5,14 +5,15 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/Boot/ElfReader.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 
-static void bswap(Elf32_Word &w) {w = Common::swap32(w);}
-static void bswap(Elf32_Half &w) {w = Common::swap16(w);}
+static void bswap(u32 &w) {w = Common::swap32(w);}
+static void bswap(u16 &w) {w = Common::swap16(w);}
 
 static void byteswapHeader(Elf32_Ehdr &ELF_H)
 {

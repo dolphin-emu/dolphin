@@ -47,8 +47,6 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <!--Allow compile-time testing of whether DXSDK (aka DX before integration into VS) is present-->
-      <PreprocessorDefinitions Condition="Exists('$(DXSDK_DIR)')">HAVE_DXSDK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--Allow compile-time testing of whether Oculus SDK (aka LibOVR) is present-->
       <PreprocessorDefinitions Condition="Exists('$(ExternalsDir)LibOVR')">HAVE_OCULUSSDK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>

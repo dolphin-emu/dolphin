@@ -113,11 +113,29 @@ add a,b,a
 */
 
 //There's still a little bit more optimization that can be squeezed out of this
-void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X64Reg, OpArg))
+void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X64Reg, OpArg), bool roundRHS)
 {
 	fpr.Lock(d, a, b);
 
-	if (d == a)
+	if (roundRHS)
+	{
+		if (d == a)
+		{
+			fpr.BindToRegister(d, true);
+			MOVAPD(XMM0, fpr.R(b));
+			Force25BitPrecision(XMM0, XMM1);
+			(this->*op)(fpr.RX(d), R(XMM0));
+		}
+		else
+		{
+			fpr.BindToRegister(d, d == b);
+			if (d != b)
+				MOVAPD(fpr.RX(d), fpr.R(b));
+			Force25BitPrecision(fpr.RX(d), XMM0);
+			(this->*op)(fpr.RX(d), fpr.R(a));
+		}
+	}
+	else if (d == a)
 	{
 		fpr.BindToRegister(d, true);
 		(this->*op)(fpr.RX(d), fpr.R(b));
@@ -166,7 +184,7 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 		tri_op(inst.FD, inst.FA, inst.FB, true,  &XEmitter::ADDPD);
 		break;
 	case 25: // mul
-		tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD);
+		tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD, true);
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");
@@ -230,15 +248,17 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 	case 12:
 		// Single multiply scalar high
 		// TODO - faster version for when regs are different
-		MOVAPD(XMM0, fpr.R(a));
 		MOVDDUP(XMM1, fpr.R(c));
+		Force25BitPrecision(XMM1, XMM0);
+		MOVAPD(XMM0, fpr.R(a));
 		MULPD(XMM0, R(XMM1));
 		MOVAPD(fpr.R(d), XMM0);
 		break;
 	case 13:
 		// TODO - faster version for when regs are different
-		MOVAPD(XMM0, fpr.R(a));
 		MOVAPD(XMM1, fpr.R(c));
+		Force25BitPrecision(XMM1, XMM0);
+		MOVAPD(XMM0, fpr.R(a));
 		SHUFPD(XMM1, R(XMM1), 3); // copy higher to lower
 		MULPD(XMM0, R(XMM1));
 		MOVAPD(fpr.R(d), XMM0);
@@ -300,35 +320,46 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	int d = inst.FD;
 	fpr.Lock(a,b,c,d);
 
-	MOVAPD(XMM0, fpr.R(a));
 	switch (inst.SUBOP5)
 	{
 	case 14: //madds0
 		MOVDDUP(XMM1, fpr.R(c));
+		Force25BitPrecision(XMM1, XMM0);
+		MOVAPD(XMM0, fpr.R(a));
 		MULPD(XMM0, R(XMM1));
 		ADDPD(XMM0, fpr.R(b));
 		break;
 	case 15: //madds1
 		MOVAPD(XMM1, fpr.R(c));
 		SHUFPD(XMM1, R(XMM1), 3); // copy higher to lower
+		Force25BitPrecision(XMM1, XMM0);
+		MOVAPD(XMM0, fpr.R(a));
 		MULPD(XMM0, R(XMM1));
 		ADDPD(XMM0, fpr.R(b));
 		break;
 	case 28: //msub
-		MULPD(XMM0, fpr.R(c));
+		MOVAPD(XMM0, fpr.R(c));
+		Force25BitPrecision(XMM0, XMM1);
+		MULPD(XMM0, fpr.R(a));
 		SUBPD(XMM0, fpr.R(b));
 		break;
 	case 29: //madd
-		MULPD(XMM0, fpr.R(c));
+		MOVAPD(XMM0, fpr.R(c));
+		Force25BitPrecision(XMM0, XMM1);
+		MULPD(XMM0, fpr.R(a));
 		ADDPD(XMM0, fpr.R(b));
 		break;
 	case 30: //nmsub
-		MULPD(XMM0, fpr.R(c));
+		MOVAPD(XMM0, fpr.R(c));
+		Force25BitPrecision(XMM0, XMM1);
+		MULPD(XMM0, fpr.R(a));
 		SUBPD(XMM0, fpr.R(b));
 		PXOR(XMM0, M((void*)&psSignBits));
 		break;
 	case 31: //nmadd
-		MULPD(XMM0, fpr.R(c));
+		MOVAPD(XMM0, fpr.R(c));
+		Force25BitPrecision(XMM0, XMM1);
+		MULPD(XMM0, fpr.R(a));
 		ADDPD(XMM0, fpr.R(b));
 		PXOR(XMM0, M((void*)&psSignBits));
 		break;

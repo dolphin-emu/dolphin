@@ -311,7 +311,7 @@ void FPURegCache::LoadRegister(size_t preg, X64Reg newLoc)
 {
 	if (!regs[preg].location.IsImm() && (regs[preg].location.offset & 0xF))
 	{
-		PanicAlert("WARNING - misaligned fp register location %" PRIx64, preg);
+		PanicAlert("WARNING - misaligned fp register location %u", (unsigned int) preg);
 	}
 	emit->MOVAPD(newLoc, regs[preg].location);
 }
@@ -323,17 +323,17 @@ void FPURegCache::StoreRegister(size_t preg, OpArg newLoc)
 
 void RegCache::Flush(FlushMode mode)
 {
-	for (size_t i = 0; i < xregs.size(); i++)
+	for (unsigned int i = 0; i < xregs.size(); i++)
 	{
 		if (xregs[i].locked)
-			PanicAlert("Someone forgot to unlock X64 reg %" PRIx64, i);
+			PanicAlert("Someone forgot to unlock X64 reg %u", i);
 	}
 
-	for (size_t i = 0; i < regs.size(); i++)
+	for (unsigned int i = 0; i < regs.size(); i++)
 	{
 		if (regs[i].locked)
 		{
-			PanicAlert("Someone forgot to unlock PPC reg %" PRIx64 " (X64 reg %i).", i, RX(i));
+			PanicAlert("Someone forgot to unlock PPC reg %u (X64 reg %i).", i, RX(i));
 		}
 
 		if (regs[i].away)
@@ -344,7 +344,7 @@ void RegCache::Flush(FlushMode mode)
 			}
 			else
 			{
-				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %" PRIx64 " PC: %08x", i, PC);
+				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %u PC: %08x", i, PC);
 			}
 		}
 	}

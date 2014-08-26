@@ -23,7 +23,6 @@ void Host_SetStartupDebuggingParameters() {}
 bool Host_UIHasFocus() { return false; }
 bool Host_RendererHasFocus() { return false; }
 void Host_ConnectWiimote(int, bool) {}
-void Host_UpdateStatusBar(const std::string&, int) {}
 void Host_SysMessage(const char*, ...) {}
 void Host_SetWiiMoteConnectionState(int) {}
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}

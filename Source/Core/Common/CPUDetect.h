@@ -40,6 +40,9 @@ struct CPUInfo
 	bool bLZCNT;
 	bool bSSE4A;
 	bool bAVX;
+	bool bAVX2;
+	bool bBMI1;
+	bool bBMI2;
 	bool bFMA;
 	bool bAES;
 	// FXSAVE/FXRSTOR

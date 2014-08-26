@@ -38,14 +38,13 @@
     <ClCompile Include="aldlist.cpp" />
     <ClCompile Include="AudioCommon.cpp" />
     <ClCompile Include="DPL2Decoder.cpp" />
-    <ClCompile Include="DSoundStream.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="NullSoundStream.cpp" />
     <ClCompile Include="OpenALStream.cpp" />
     <ClCompile Include="WaveFile.cpp" />
     <ClCompile Include="XAudio2Stream.cpp" />
     <ClCompile Include="XAudio2_7Stream.cpp">
-      <AdditionalIncludeDirectories Condition="Exists('$(DXSDK_DIR)')">$(DXSDK_DIR)Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)XAudio2_7;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -55,7 +54,6 @@
     <ClInclude Include="AudioCommon.h" />
     <ClInclude Include="CoreAudioSoundStream.h" />
     <ClInclude Include="DPL2Decoder.h" />
-    <ClInclude Include="DSoundStream.h" />
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="NullSoundStream.h" />
     <ClInclude Include="OpenALStream.h" />

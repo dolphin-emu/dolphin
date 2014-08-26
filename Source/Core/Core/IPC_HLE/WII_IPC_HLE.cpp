@@ -369,8 +369,7 @@ void ExecuteCommand(u32 _Address)
 		u32 Mode = Memory::Read_U32(_Address + 0x10);
 		DeviceID = getFreeDeviceId();
 
-		std::string DeviceName;
-		Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
+		std::string DeviceName = Memory::GetString(Memory::Read_U32(_Address + 0xC));
 
 		WARN_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
 		if (DeviceID >= 0)

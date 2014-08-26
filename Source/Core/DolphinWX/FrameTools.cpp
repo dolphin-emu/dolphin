@@ -464,19 +464,13 @@ wxString CFrame::GetMenuLabel(int Id)
 			break;
 
 		case HK_SAVE_FIRST_STATE: Label = _("Save Oldest State"); break;
-		case HK_UNDO_LOAD_STATE: Label = _("Undo Load State"); break;
-		case HK_UNDO_SAVE_STATE: Label = _("Undo Save State"); break;
+		case HK_UNDO_LOAD_STATE:  Label = _("Undo Load State");   break;
+		case HK_UNDO_SAVE_STATE:  Label = _("Undo Save State");   break;
 
 		default:
 			Label = wxString::Format(_("Undefined %i"), Id);
 	}
 
-	// wxWidgets only accepts Ctrl/Alt/Shift as menu accelerator
-	// modifiers. On OS X, "Ctrl+" is mapped to the Command key.
-#ifdef __APPLE__
-	if (hotkeymodifier & wxMOD_CMD)
-		hotkeymodifier |= wxMOD_CONTROL;
-#endif
 	hotkeymodifier &= wxMOD_CONTROL | wxMOD_ALT | wxMOD_SHIFT;
 
 	Modifier = InputCommon::WXKeymodToString(hotkeymodifier);
@@ -497,51 +491,46 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
 
-	ToolBar->AddTool(wxID_OPEN,                 _("Open"),     m_Bitmaps[Toolbar_FileOpen],   _("Open file..."));
-	ToolBar->AddTool(wxID_REFRESH,              _("Refresh"),  m_Bitmaps[Toolbar_Refresh],    _("Refresh game list"));
-	ToolBar->AddTool(IDM_BROWSE,                _("Browse"),   m_Bitmaps[Toolbar_Browse],     _("Browse for an ISO directory..."));
+	WxUtils::AddToolbarButton(ToolBar, wxID_OPEN,                 _("Open"),     m_Bitmaps[Toolbar_FileOpen],   _("Open file..."));
+	WxUtils::AddToolbarButton(ToolBar, wxID_REFRESH,              _("Refresh"),  m_Bitmaps[Toolbar_Refresh],    _("Refresh game list"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_BROWSE,                _("Browse"),   m_Bitmaps[Toolbar_Browse],     _("Browse for an ISO directory..."));
 	ToolBar->AddSeparator();
-	ToolBar->AddTool(IDM_PLAY,                  _("Play"),     m_Bitmaps[Toolbar_Play],       _("Play"));
-	ToolBar->AddTool(IDM_STOP,                  _("Stop"),     m_Bitmaps[Toolbar_Stop],       _("Stop"));
-	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN,     _("FullScr"),  m_Bitmaps[Toolbar_FullScreen], _("Toggle Fullscreen"));
-	ToolBar->AddTool(IDM_SCREENSHOT,            _("ScrShot"),  m_Bitmaps[Toolbar_Screenshot], _("Take Screenshot"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_PLAY,                  _("Play"),     m_Bitmaps[Toolbar_Play],       _("Play"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_STOP,                  _("Stop"),     m_Bitmaps[Toolbar_Stop],       _("Stop"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_TOGGLE_FULLSCREEN,     _("FullScr"),  m_Bitmaps[Toolbar_FullScreen], _("Toggle Fullscreen"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_SCREENSHOT,            _("ScrShot"),  m_Bitmaps[Toolbar_Screenshot], _("Take Screenshot"));
 	ToolBar->AddSeparator();
-	ToolBar->AddTool(wxID_PREFERENCES,          _("Config"),   m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
-	ToolBar->AddTool(IDM_CONFIG_GFX_BACKEND,    _("Graphics"), m_Bitmaps[Toolbar_ConfigGFX],  _("Graphics settings"));
-	ToolBar->AddTool(IDM_CONFIG_DSP_EMULATOR,   _("DSP"),      m_Bitmaps[Toolbar_ConfigDSP],  _("DSP settings"));
-	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN,     _("GCPad"),    m_Bitmaps[Toolbar_ConfigPAD],  _("GameCube Pad settings"));
-	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote],    _("Wiimote settings"));
-
-	// after adding the buttons to the toolbar, must call Realize() to reflect
-	// the changes
-	ToolBar->Realize();
+	WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES,          _("Config"),   m_Bitmaps[Toolbar_ConfigMain], _("Configure..."));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND,    _("Graphics"), m_Bitmaps[Toolbar_ConfigGFX],  _("Graphics settings"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_DSP_EMULATOR,   _("DSP"),      m_Bitmaps[Toolbar_ConfigDSP],  _("DSP settings"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_PAD_PLUGIN,     _("GCPad"),    m_Bitmaps[Toolbar_ConfigPAD],  _("GameCube Pad settings"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote],    _("Wiimote settings"));
 }
 
 
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
-	if (m_ToolBar)
+	static const long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
+
+	if (m_ToolBar != nullptr)
 	{
-		m_Mgr->DetachPane(m_ToolBar);
 		m_ToolBar->Destroy();
 		m_ToolBar = nullptr;
 	}
 
-	long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
+	m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY);
 
-	if (!m_ToolBar)
+	if (g_pCodeWindow)
 	{
-		m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY, "TBMain");
-
-		if (g_pCodeWindow)
-		{
-			g_pCodeWindow->PopulateToolbar(m_ToolBar);
-			m_ToolBar->AddSeparator();
-		}
-
-		PopulateToolbar(m_ToolBar);
+		g_pCodeWindow->PopulateToolbar(m_ToolBar);
+		m_ToolBar->AddSeparator();
 	}
+
+	PopulateToolbar(m_ToolBar);
+	// after adding the buttons to the toolbar, must call Realize() to reflect
+	// the changes
+	m_ToolBar->Realize();
 
 	UpdateGUI();
 }
@@ -1675,11 +1664,11 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 void CFrame::UpdateGUI()
 {
 	// Save status
-	bool Initialized = Core::IsRunning();
-	bool Running = Core::GetState() == Core::CORE_RUN;
-	bool Paused = Core::GetState() == Core::CORE_PAUSE;
-	bool Stopping = Core::GetState() == Core::CORE_STOPPING;
-	bool RunningWii = Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	bool Initialized     = Core::IsRunning();
+	bool Running         = Core::GetState() == Core::CORE_RUN;
+	bool Paused          = Core::GetState() == Core::CORE_PAUSE;
+	bool Stopping        = Core::GetState() == Core::CORE_STOPPING;
+	bool RunningWii      = Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	bool RunningGamecube = Initialized && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 
 	// Make sure that we have a toolbar
