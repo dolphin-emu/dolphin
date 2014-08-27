@@ -79,7 +79,9 @@ u32 DSPHLE::DSP_UpdateRate()
 		return (SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs() / VideoInterface::GetNumFields();
 	}
 	else
+	{
 		return SystemTimers::GetTicksPerSecond() / 1000;
+	}
 }
 
 void DSPHLE::SendMailToDSP(u32 _uMail)
