@@ -3,13 +3,12 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
-//#include "VideoCommon/EmuWindow.h"
+#include "DolphinWX/GLInterface/WGL.h"
+
 #include "VideoCommon/VR920.h"
 #endif
 
 #include "Core/HW/Memmap.h"
-
-#include "DolphinWX/GLInterface/GLInterface.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/Render.h"

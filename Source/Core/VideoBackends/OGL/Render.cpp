@@ -1234,7 +1234,7 @@ void Renderer::SetViewport()
 		Y = (float)GetTargetHeight() - (xfmem.viewport.yOrig - xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
 		Width = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
 		Height = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
-		X = 0; Y = 0; Width = GetTargetWidth(); Height = GetTargetHeight();
+		X = 0.0f; Y = 0.0f; Width = (float)GetTargetWidth(); Height = (float)GetTargetHeight();
 	}
 
 	float GLNear = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
