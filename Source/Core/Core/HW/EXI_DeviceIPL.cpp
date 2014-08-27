@@ -352,6 +352,8 @@ u32 CEXIIPL::GetGCTime()
 
 		if (0 == ltime)
 			ltime = Common::Timer::GetLocalTimeSinceJan1970();
+		else
+			ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
 	}
 
 	return ((u32)ltime - cJanuary2000);
