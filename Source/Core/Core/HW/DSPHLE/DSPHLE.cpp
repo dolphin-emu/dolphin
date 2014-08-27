@@ -72,12 +72,16 @@ void DSPHLE::DSP_Update(int cycles)
 
 u32 DSPHLE::DSP_UpdateRate()
 {
-	// AX HLE uses 3ms (Wii) or 5ms (GC) timing period
-	int fields = VideoInterface::GetNumFields();
+
 	if (m_pUCode != nullptr)
-		return (SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs() / fields;
+	{
+		// AX HLE uses 3ms (Wii) or 5ms (GC) timing period
+		return (SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs() / VideoInterface::GetNumFields();
+	}
 	else
+	{
 		return SystemTimers::GetTicksPerSecond() / 1000;
+	}
 }
 
 void DSPHLE::SendMailToDSP(u32 _uMail)
