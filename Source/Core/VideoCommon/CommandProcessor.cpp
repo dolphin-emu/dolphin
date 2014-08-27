@@ -317,7 +317,7 @@ void STACKALIGN GatherPipeBursted()
 	}
 
 	if (IsOnThread())
-		SetCpStatus(true);
+		SetCPStatusFromCPU();
 
 	// update the fifo pointer
 	if (fifo.CPWritePointer >= fifo.CPEnd)
@@ -361,30 +361,17 @@ void UpdateInterruptsFromVideoBackend(u64 userdata)
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
-void SetCpStatus(bool isCPUThread)
+void SetCPStatusFromGPU()
 {
-	// overflow & underflow check
-	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
-	fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
-
 	// breakpoint
-	if (!isCPUThread)
+	if (fifo.bFF_BPEnable)
 	{
-		if (fifo.bFF_BPEnable)
+		if (fifo.CPBreakpoint == fifo.CPReadPointer)
 		{
-			if (fifo.CPBreakpoint == fifo.CPReadPointer)
+			if (!fifo.bFF_Breakpoint)
 			{
-				if (!fifo.bFF_Breakpoint)
-				{
-					INFO_LOG(COMMANDPROCESSOR, "Hit breakpoint at %i", fifo.CPReadPointer);
-					fifo.bFF_Breakpoint = true;
-				}
-			}
-			else
-			{
-				if (fifo.bFF_Breakpoint)
-					INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
-				fifo.bFF_Breakpoint = false;
+				INFO_LOG(COMMANDPROCESSOR, "Hit breakpoint at %i", fifo.CPReadPointer);
+				fifo.bFF_Breakpoint = true;
 			}
 		}
 		else
@@ -394,6 +381,20 @@ void SetCpStatus(bool isCPUThread)
 			fifo.bFF_Breakpoint = false;
 		}
 	}
+	else
+	{
+		if (fifo.bFF_Breakpoint)
+			INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
+		fifo.bFF_Breakpoint = false;
+	}
+	SetCPStatusFromCPU();
+}
+
+void SetCPStatusFromCPU()
+{
+	// overflow & underflow check
+	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
+	fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
 
 	bool bpInt = fifo.bFF_Breakpoint && fifo.bFF_BPInt;
 	bool ovfInt = fifo.bFF_HiWatermark && fifo.bFF_HiWatermarkInt;
@@ -408,15 +409,14 @@ void SetCpStatus(bool isCPUThread)
 		{
 			if (!interrupt || bpInt || undfInt || ovfInt)
 			{
-				if (!isCPUThread)
+				if (Core::IsGPUThread())
 				{
-					// GPU thread:
+					// Schedule the interrupt asynchronously
 					interruptWaiting = true;
 					CommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
 				}
 				else
 				{
-					// CPU thread:
 					interruptSet = interrupt;
 					INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
 					ProcessorInterface::SetInterrupt(INT_CAUSE_CP, interrupt);
