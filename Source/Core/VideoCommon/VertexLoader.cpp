@@ -33,7 +33,7 @@
 
 // Matrix components are first in GC format but later in PC format - we need to store it temporarily
 // when decoding each vertex.
-static u8 s_curposmtx = MatrixIndexA.PosNormalMtxIdx;
+static u8 s_curposmtx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
 static u8 s_curtexmtx[8];
 static int s_texmtxwrite = 0;
 static int s_texmtxread = 0;
@@ -87,7 +87,7 @@ static void LOADERDECL PosMtx_Write()
 	DataWrite<u8>(0);
 
 	// Resetting current position matrix to default is needed for bbox to behave
-	s_curposmtx = (u8) MatrixIndexA.PosNormalMtxIdx;
+	s_curposmtx = (u8) g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
 }
 
 static void LOADERDECL UpdateBoundingBoxPrepare()

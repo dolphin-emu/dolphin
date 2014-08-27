@@ -22,13 +22,7 @@ static void DoState(PointerWrap &p)
 	p.DoMarker("BP Memory");
 
 	// CP Memory
-	p.DoArray(arraybases, 16);
-	p.DoArray(arraystrides, 16);
-	p.Do(MatrixIndexA);
-	p.Do(MatrixIndexB);
-	p.Do(g_VtxDesc.Hex);
-	p.DoArray(g_VtxAttr, 8);
-	p.DoMarker("CP Memory");
+	DoCPState(p);
 
 	// XF Memory
 	p.Do(xfmem);
@@ -73,11 +67,6 @@ void VideoCommon_RunLoop(bool enable)
 
 void VideoCommon_Init()
 {
-	memset(arraybases, 0, sizeof(arraybases));
-	memset(arraystrides, 0, sizeof(arraystrides));
-	memset(&MatrixIndexA, 0, sizeof(MatrixIndexA));
-	memset(&MatrixIndexB, 0, sizeof(MatrixIndexB));
-	memset(&g_VtxDesc, 0, sizeof(g_VtxDesc));
-	memset(g_VtxAttr, 0, sizeof(g_VtxAttr));
+	memset(&g_main_cp_state, 0, sizeof(g_main_cp_state));
 	memset(texMem, 0, TMEM_SIZE);
 }

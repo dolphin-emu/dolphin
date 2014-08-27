@@ -252,7 +252,7 @@ void LoadIndexedXF(u32 val, int refarray)
 	//load stuff from array to address in xf mem
 
 	u32* currData = (u32*)(&xfmem) + address;
-	u32* newData = (u32*)Memory::GetPointer(arraybases[refarray] + arraystrides[refarray] * index);
+	u32* newData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[refarray] + g_main_cp_state.array_strides[refarray] * index);
 	bool changed = false;
 	for (int i = 0; i < size; ++i)
 	{
