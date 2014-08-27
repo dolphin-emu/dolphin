@@ -238,6 +238,8 @@ struct VAT
 	UVAT_group2 g2;
 };
 
+class VertexLoader;
+
 // STATE_TO_SAVE
 struct CPState final
 {
@@ -248,18 +250,25 @@ struct CPState final
     TVtxDesc vtx_desc;
     // Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
     VAT vtx_attr[8];
+
+	// Attributes that actually belong to VertexLoaderManager:
+	int attr_dirty; // bitfield
+	VertexLoader* vertex_loaders[8];
 };
 
 class PointerWrap;
 
 extern void DoCPState(PointerWrap& p);
 
+extern void CopyPreprocessCPStateFromMain();
+
 extern CPState g_main_cp_state;
+extern CPState g_preprocess_cp_state;
 
 extern u8 *cached_arraybases[16];
 
 // Might move this into its own file later.
-void LoadCPReg(u32 SubCmd, u32 Value);
+void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);
 
 // Fills memory with data from CP regs
 void FillCPMemoryArray(u32 *memory);
