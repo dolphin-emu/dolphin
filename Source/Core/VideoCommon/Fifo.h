@@ -23,8 +23,6 @@ u8* GetVideoBufferEndPtr();
 void Fifo_DoState(PointerWrap &f);
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);
 
-void ReadDataFromFifo(u8* _uData, u32 len);
-
 void RunGpu();
 void RunGpuLoop();
 void ExitGpuLoop();

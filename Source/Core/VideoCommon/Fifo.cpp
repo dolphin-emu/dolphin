@@ -110,7 +110,7 @@ void EmulatorState(bool running)
 
 
 // Description: RunGpuLoop() sends data through this function.
-void ReadDataFromFifo(u8* _uData, u32 len)
+static void ReadDataFromFifo(u8* _uData, u32 len)
 {
 	if (len > (s_video_buffer + FIFO_SIZE - s_video_buffer_write_ptr))
 	{
