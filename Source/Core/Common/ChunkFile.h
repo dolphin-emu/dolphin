@@ -25,6 +25,7 @@
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
+#include "Common/Flag.h"
 
 // ewww
 #if _LIBCPP_VERSION
@@ -163,6 +164,14 @@ public:
 	{
 		for (u32 i = 0; i != count; ++i)
 			Do(x[i]);
+	}
+
+	void Do(Common::Flag& flag)
+	{
+		bool s = flag.IsSet();
+		Do(s);
+		if (mode == MODE_READ)
+			flag.Set(s);
 	}
 
 	template <typename T>
