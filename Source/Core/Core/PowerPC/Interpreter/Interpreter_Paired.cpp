@@ -349,7 +349,7 @@ void Interpreter::ps_sum1(UGeckoInstruction _inst)
 
 void Interpreter::ps_muls0(UGeckoInstruction _inst)
 {
-	double c0 = Force25Bit(rPS1(_inst.FC));
+	double c0 = Force25Bit(rPS0(_inst.FC));
 	double p0 = ForceSingle(NI_mul(rPS0(_inst.FA), c0));
 	double p1 = ForceSingle(NI_mul(rPS1(_inst.FA), c0));
 	rPS0(_inst.FD) = p0;

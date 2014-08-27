@@ -481,8 +481,8 @@ void Interpreter::fmsubx(UGeckoInstruction _inst)
 
 void Interpreter::fmsubsx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) =
-		ForceSingle(NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	double c_value = Force25Bit(rPS0(_inst.FC));
+	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_msub(rPS0(_inst.FA), c_value, rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -500,8 +500,8 @@ void Interpreter::fnmaddx(UGeckoInstruction _inst)
 
 void Interpreter::fnmaddsx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) =
-		ForceSingle(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	double c_value = Force25Bit(rPS0(_inst.FC));
+	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(-NI_madd(rPS0(_inst.FA), c_value, rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
@@ -520,8 +520,8 @@ void Interpreter::fnmsubx(UGeckoInstruction _inst)
 // fnmsubsx does not handle QNAN properly - see NI_msub
 void Interpreter::fnmsubsx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) =
-		ForceSingle(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	double c_value = Force25Bit(rPS0(_inst.FC));
+	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(-NI_msub(rPS0(_inst.FA), c_value, rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
 
 	if (_inst.Rc)
