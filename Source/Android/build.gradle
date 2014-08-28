@@ -3,7 +3,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:0.8.+'
+		classpath 'com.android.tools.build:gradle:0.12.+'
 	}
 }
 apply plugin: 'android'
@@ -15,7 +15,7 @@ dependencies {
 
 android {
 	compileSdkVersion 19
-	buildToolsVersion "19.0.1"
+	buildToolsVersion "20.0.0"
 
 	task nativeLibsToJar(type: Zip, description: 'create a jar archive of the native libs') {
 		destinationDir file("$buildDir/native-libs")
