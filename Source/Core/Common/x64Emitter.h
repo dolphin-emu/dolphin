@@ -574,14 +574,18 @@ public:
 	void CVTPS2PD(X64Reg dest, OpArg src);
 	void CVTPD2PS(X64Reg dest, OpArg src);
 	void CVTSS2SD(X64Reg dest, OpArg src);
+	void CVTSS2SI(X64Reg dest, OpArg src);
+	void CVTSI2SS(X64Reg dest, OpArg src);
 	void CVTSD2SS(X64Reg dest, OpArg src);
 	void CVTSD2SI(X64Reg dest, OpArg src);
+	void CVTSI2SD(X64Reg dest, OpArg src);
 	void CVTDQ2PD(X64Reg regOp, OpArg arg);
 	void CVTPD2DQ(X64Reg regOp, OpArg arg);
 	void CVTDQ2PS(X64Reg regOp, OpArg arg);
 	void CVTPS2DQ(X64Reg regOp, OpArg arg);
 
-	void CVTTSS2SI(X64Reg xregdest, OpArg arg);  // Yeah, destination really is a GPR like EAX!
+	void CVTTSS2SI(X64Reg regOp, OpArg arg);
+	void CVTTSD2SI(X64Reg regOp, OpArg arg);
 	void CVTTPS2DQ(X64Reg regOp, OpArg arg);
 	void CVTTPD2DQ(X64Reg regOp, OpArg arg);
 
