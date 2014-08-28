@@ -18,9 +18,7 @@
 #include "VideoCommon/NativeVertexFormat.h"
 
 #ifdef _M_X86
-#ifndef __APPLE__
 #define USE_VERTEX_LOADER_JIT
-#endif
 #endif
 
 // They are used for the communication with the loader functions
