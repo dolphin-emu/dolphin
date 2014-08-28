@@ -6,6 +6,7 @@
 #include "Core/HW/Memmap.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -252,7 +253,15 @@ void LoadIndexedXF(u32 val, int refarray)
 	//load stuff from array to address in xf mem
 
 	u32* currData = (u32*)(&xfmem) + address;
-	u32* newData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[refarray] + g_main_cp_state.array_strides[refarray] * index);
+	u32* newData;
+	if (g_use_deterministic_gpu_thread)
+	{
+		newData = (u32*)PopFifoAuxBuffer(size * sizeof(u32));
+	}
+	else
+	{
+		newData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[refarray] + g_main_cp_state.array_strides[refarray] * index);
+	}
 	bool changed = false;
 	for (int i = 0; i < size; ++i)
 	{
@@ -268,4 +277,15 @@ void LoadIndexedXF(u32 val, int refarray)
 		for (int i = 0; i < size; ++i)
 			currData[i] = Common::swap32(newData[i]);
 	}
+}
+
+void PreprocessIndexedXF(u32 val, int refarray)
+{
+	int index = val >> 16;
+	int size = ((val >> 12) & 0xF) + 1;
+
+	u32* new_data = (u32*)Memory::GetPointer(g_preprocess_cp_state.array_bases[refarray] + g_preprocess_cp_state.array_strides[refarray] * index);
+
+	size_t buf_size = size * sizeof(u32);
+	PushFifoAuxBuffer(new_data, buf_size);
 }

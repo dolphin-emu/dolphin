@@ -13,6 +13,11 @@ class PointerWrap;
 
 extern bool g_bSkipCurrentFrame;
 
+// This could be in SCoreStartupParameter, but it depends on multiple settings
+// and can change at runtime.
+extern bool g_use_deterministic_gpu_thread;
+extern std::atomic<u8*> g_video_buffer_write_ptr_xthread;
+extern u8* g_video_buffer_pp_read_ptr;
 
 void Fifo_Init();
 void Fifo_Shutdown();
@@ -22,6 +27,22 @@ u8* GetVideoBufferEndPtr();
 
 void Fifo_DoState(PointerWrap &f);
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);
+
+// Used for diagnostics.
+enum SyncGPUReason {
+    SYNC_GPU_NONE,
+    SYNC_GPU_OTHER,
+    SYNC_GPU_WRAPAROUND,
+    SYNC_GPU_EFB_POKE,
+    SYNC_GPU_PERFQUERY,
+    SYNC_GPU_SWAP,
+    SYNC_GPU_AUX_SPACE,
+};
+// In g_use_deterministic_gpu_thread mode, waits for the GPU to be done with pending work.
+void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr = true);
+
+void PushFifoAuxBuffer(void* ptr, size_t size);
+void* PopFifoAuxBuffer(size_t size);
 
 void RunGpu();
 void RunGpuLoop();

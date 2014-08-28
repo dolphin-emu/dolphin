@@ -25,9 +25,9 @@ __forceinline void DataSkip()
 }
 
 template <typename T>
-__forceinline T DataPeek(int _uOffset)
+__forceinline T DataPeek(int _uOffset, u8** bufp = &g_video_buffer_read_ptr)
 {
-	auto const result = Common::FromBigEndian(*reinterpret_cast<T*>(g_video_buffer_read_ptr + _uOffset));
+	auto const result = Common::FromBigEndian(*reinterpret_cast<T*>(*bufp + _uOffset));
 	return result;
 }
 
@@ -48,10 +48,10 @@ __forceinline u32 DataPeek32(int _uOffset)
 }
 
 template <typename T>
-__forceinline T DataRead()
+__forceinline T DataRead(u8** bufp = &g_video_buffer_read_ptr)
 {
-	auto const result = DataPeek<T>(0);
-	DataSkip<sizeof(T)>();
+	auto const result = DataPeek<T>(0, bufp);
+	*bufp += sizeof(T);
 	return result;
 }
 
