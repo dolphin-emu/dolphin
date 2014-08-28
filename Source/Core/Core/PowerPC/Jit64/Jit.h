@@ -193,11 +193,9 @@ public:
 
 	void cntlzwx(UGeckoInstruction inst);
 
-	void lfs(UGeckoInstruction inst);
-	void lfd(UGeckoInstruction inst);
-	void stfd(UGeckoInstruction inst);
-	void stfs(UGeckoInstruction inst);
-	void stfsx(UGeckoInstruction inst);
+	void lfXXX(UGeckoInstruction inst);
+	void stfXXX(UGeckoInstruction inst);
+	void stfiwx(UGeckoInstruction inst);
 	void psq_l(UGeckoInstruction inst);
 	void psq_st(UGeckoInstruction inst);
 
@@ -212,7 +210,6 @@ public:
 	void srwx(UGeckoInstruction inst);
 	void dcbst(UGeckoInstruction inst);
 	void dcbz(UGeckoInstruction inst);
-	void lfsx(UGeckoInstruction inst);
 
 	void subfic(UGeckoInstruction inst);
 	void subfcx(UGeckoInstruction inst);
