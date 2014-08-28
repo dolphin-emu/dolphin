@@ -34,9 +34,12 @@ struct CodeOp //16B
 	bool wantsCR0;
 	bool wantsCR1;
 	bool wantsPS1;
+	bool wantsFPRF;
 	bool outputCR0;
 	bool outputCR1;
 	bool outputPS1;
+	bool outputFPRF;
+	bool canEndBlock;
 	bool skip;  // followed BL-s for example
 };
 
