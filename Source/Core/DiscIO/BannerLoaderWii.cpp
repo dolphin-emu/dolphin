@@ -22,7 +22,7 @@ namespace DiscIO
 
 CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 {
-	u64 TitleID;
+	u64 TitleID = 0;
 	pVolume->GetTitleID((u8*)&TitleID);
 	TitleID = Common::swap64(TitleID);
 
