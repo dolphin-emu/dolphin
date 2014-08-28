@@ -1051,4 +1051,4 @@ NativeVertexFormat* VertexLoader::GetNativeVertexFormat()
 
 }
 
-std::map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> VertexLoader::s_native_vertex_map;
+std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> VertexLoader::s_native_vertex_map;

@@ -8,9 +8,9 @@
 // Metroid Prime: P I16-flt N I16-s16 T0 I16-u16 T1 i16-flt
 
 #include <algorithm>
-#include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
@@ -141,7 +141,7 @@ private:
 	int m_numLoadedVertices;
 
 	NativeVertexFormat* m_native_vertex_format;
-	static std::map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> s_native_vertex_map;
+	static std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> s_native_vertex_map;
 
 	void SetVAT(const VAT& vat);
 
