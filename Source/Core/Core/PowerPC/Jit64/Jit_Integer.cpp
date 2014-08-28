@@ -1841,14 +1841,36 @@ void Jit64::srawix(UGeckoInstruction inst)
 	{
 		gpr.Lock(a, s);
 		gpr.BindToRegister(a, a == s, true);
-		JitClearCAOV(false);
 		MOV(32, R(RSCRATCH), gpr.R(s));
 		if (a != s)
 			MOV(32, gpr.R(a), R(RSCRATCH));
-		SAR(32, gpr.R(a), Imm8(amount));
-		SHL(32, R(RSCRATCH), Imm8(32 - amount));
-		TEST(32, R(RSCRATCH), gpr.R(a));
-		JitSetCAIf(CC_NZ);
+		// some optimized common cases that can be done in slightly fewer ops
+		if (amount == 31)
+		{
+			JitSetCA();
+			SAR(32, gpr.R(a), Imm8(31));
+			NEG(32, R(RSCRATCH));                                     // RSCRATCH = input == INT_MIN ? INT_MIN : -input;
+			AND(32, R(RSCRATCH), Imm32(0x80000000));                  // RSCRATCH = input < 0 && input != INT_MIN ? 0 : 0x80000000
+			SHR(32, R(RSCRATCH), Imm8(31 - XER_CA_SHIFT));
+			XOR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); // XER.CA = (input < 0 && input != INT_MIN)
+		}
+		else if (amount == 1)
+		{
+			JitClearCAOV(false);
+			SHR(32, R(RSCRATCH), Imm8(31));                          // sign
+			AND(32, R(RSCRATCH), gpr.R(a));                          // (sign && carry)
+			SAR(32, gpr.R(a), Imm8(1));
+			SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
+			OR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); // XER.CA = sign && carry, aka (input&0x80000001) == 0x80000001
+		}
+		else
+		{
+			JitClearCAOV(false);
+			SAR(32, gpr.R(a), Imm8(amount));
+			SHL(32, R(RSCRATCH), Imm8(32 - amount));
+			TEST(32, R(RSCRATCH), gpr.R(a));
+			JitSetCAIf(CC_NZ);
+		}
 	}
 	else
 	{
