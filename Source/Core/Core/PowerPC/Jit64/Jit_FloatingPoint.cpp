@@ -242,11 +242,13 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	int a   = inst.FA;
 	int b   = inst.FB;
 	int crf = inst.CRFD;
+	bool fprf = Core::g_CoreStartupParameter.bEnableFPRF && js.op->wantsFPRF;
 
 	fpr.Lock(a,b);
 	fpr.BindToRegister(b, true);
 
-	AND(32, M(&FPSCR), Imm32(~FPRF_MASK));
+	if (fprf)
+		AND(32, M(&FPSCR), Imm32(~FPRF_MASK));
 	// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
 	UCOMISD(fpr.R(b).GetSimpleReg(), fpr.R(a));
 
@@ -270,13 +272,15 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	}
 
 	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
-	OR(32, M(&FPSCR), Imm32(CR_EQ << FPRF_SHIFT));
+	if (fprf)
+		OR(32, M(&FPSCR), Imm32(CR_EQ << FPRF_SHIFT));
 
 	continue1 = J();
 
 	SetJumpTarget(pNaN);
 	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
-	OR(32, M(&FPSCR), Imm32(CR_SO << FPRF_SHIFT));
+	if (fprf)
+		OR(32, M(&FPSCR), Imm32(CR_SO << FPRF_SHIFT));
 
 	if (a != b)
 	{
@@ -284,12 +288,14 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 
 		SetJumpTarget(pGreater);
 		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_GT)));
-		OR(32, M(&FPSCR), Imm32(CR_GT << FPRF_SHIFT));
+		if (fprf)
+			OR(32, M(&FPSCR), Imm32(CR_GT << FPRF_SHIFT));
 		continue3 = J();
 
 		SetJumpTarget(pLesser);
 		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_LT)));
-		OR(32, M(&FPSCR), Imm32(CR_LT << FPRF_SHIFT));
+		if (fprf)
+			OR(32, M(&FPSCR), Imm32(CR_LT << FPRF_SHIFT));
 	}
 
 	SetJumpTarget(continue1);
