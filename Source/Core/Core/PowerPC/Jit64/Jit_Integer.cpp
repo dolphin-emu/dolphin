@@ -1842,10 +1842,30 @@ void Jit64::srawix(UGeckoInstruction inst)
 		MOV(32, R(EAX), gpr.R(s));
 		if (a != s)
 			MOV(32, gpr.R(a), R(EAX));
-		SAR(32, gpr.R(a), Imm8(amount));
-		SHL(32, R(EAX), Imm8(32 - amount));
-		TEST(32, R(EAX), gpr.R(a));
-		JitSetCAIf(CC_NZ);
+		// some optimized common cases that can be done in slightly fewer ops
+		if (amount == 31)
+		{
+			SAR(32, gpr.R(a), Imm8(31));
+			NEG(32, R(EAX));                                     // EAX = input == INT_MIN ? INT_MIN : -input;
+			AND(32, R(EAX), Imm32(0x80000000));                  // EAX = input < 0 && input != INT_MIN ? 0 : 0x80000000
+			SHR(32, R(EAX), Imm8(31 - XER_CA_SHIFT));
+			XOR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(EAX)); // XER.CA = (input < 0 && input != INT_MIN)
+		}
+		else if (amount == 1)
+		{
+			SHR(32, R(EAX), Imm8(31));                          // sign
+			AND(32, R(EAX), gpr.R(a));                          // (sign && carry)
+			SAR(32, gpr.R(a), Imm8(1));
+			SHL(32, R(EAX), Imm8(XER_CA_SHIFT));
+			OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(EAX)); // XER.CA = sign && carry, aka (input&0x80000001) == 0x80000001
+		}
+		else
+		{
+			SAR(32, gpr.R(a), Imm8(amount));
+			SHL(32, R(EAX), Imm8(32 - amount));
+			TEST(32, R(EAX), gpr.R(a));
+			JitSetCAIf(CC_NZ);
+		}
 	}
 	else
 	{
