@@ -199,72 +199,69 @@ class PlatformX11 : public Platform
 		{
 			XEvent event;
 			KeySym key;
-			for (int num_events = XPending(dpy); num_events > 0; num_events--)
+			XNextEvent(dpy, &event);
+			switch (event.type)
 			{
-				XNextEvent(dpy, &event);
-				switch (event.type)
+			case KeyPress:
+				key = XLookupKeysym((XKeyEvent*)&event, 0);
+				if (key == XK_Escape)
 				{
-				case KeyPress:
-					key = XLookupKeysym((XKeyEvent*)&event, 0);
-					if (key == XK_Escape)
+					if (Core::GetState() == Core::CORE_RUN)
 					{
-						if (Core::GetState() == Core::CORE_RUN)
-						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-								XUndefineCursor(dpy, win);
-							Core::SetState(Core::CORE_PAUSE);
-						}
-						else
-						{
-							if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-								XDefineCursor(dpy, win, blankCursor);
-							Core::SetState(Core::CORE_RUN);
-						}
+						if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							XUndefineCursor(dpy, win);
+						Core::SetState(Core::CORE_PAUSE);
 					}
-					else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
+					else
 					{
-						fullscreen = !fullscreen;
-						X11Utils::ToggleFullscreen(dpy, win);
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-						XRRConfig->ToggleDisplayMode(fullscreen);
-#endif
+						if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							XDefineCursor(dpy, win, blankCursor);
+						Core::SetState(Core::CORE_RUN);
 					}
-					else if (key >= XK_F1 && key <= XK_F8)
-					{
-						int slot_number = key - XK_F1 + 1;
-						if (event.xkey.state & ShiftMask)
-							State::Save(slot_number);
-						else
-							State::Load(slot_number);
-					}
-					else if (key == XK_F9)
-						Core::SaveScreenShot();
-					else if (key == XK_F11)
-						State::LoadLastSaved();
-					else if (key == XK_F12)
-					{
-						if (event.xkey.state & ShiftMask)
-							State::UndoLoadState();
-						else
-							State::UndoSaveState();
-					}
-					break;
-				case FocusIn:
-					rendererHasFocus = true;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-					    Core::GetState() != Core::CORE_PAUSE)
-						XDefineCursor(dpy, win, blankCursor);
-					break;
-				case FocusOut:
-					rendererHasFocus = false;
-					if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-						XUndefineCursor(dpy, win);
-					break;
-				case ClientMessage:
-					if ((unsigned long) event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
-						running = false;
-					break;
 				}
+				else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
+				{
+					fullscreen = !fullscreen;
+					X11Utils::ToggleFullscreen(dpy, win);
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+					XRRConfig->ToggleDisplayMode(fullscreen);
+#endif
+				}
+				else if (key >= XK_F1 && key <= XK_F8)
+				{
+					int slot_number = key - XK_F1 + 1;
+					if (event.xkey.state & ShiftMask)
+						State::Save(slot_number);
+					else
+						State::Load(slot_number);
+				}
+				else if (key == XK_F9)
+					Core::SaveScreenShot();
+				else if (key == XK_F11)
+					State::LoadLastSaved();
+				else if (key == XK_F12)
+				{
+					if (event.xkey.state & ShiftMask)
+						State::UndoLoadState();
+					else
+						State::UndoSaveState();
+				}
+				break;
+			case FocusIn:
+				rendererHasFocus = true;
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+				    Core::GetState() != Core::CORE_PAUSE)
+					XDefineCursor(dpy, win, blankCursor);
+				break;
+			case FocusOut:
+				rendererHasFocus = false;
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					XUndefineCursor(dpy, win);
+				break;
+			case ClientMessage:
+				if ((unsigned long) event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
+					running = false;
+				break;
 			}
 			if (!fullscreen)
 			{
@@ -277,7 +274,6 @@ class PlatformX11 : public Platform
 					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
 					     &borderDummy, &depthDummy);
 			}
-			usleep(100000);
 		}
 	}
 
