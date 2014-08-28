@@ -32,10 +32,15 @@ public final class CPUSettingsFragment extends PreferenceFragment
 		// Set valid emulation cores depending on the CPU architecture
 		// that the Android device is running on.
 		//
-		if (Build.CPU_ABI.contains("x86"))
+		if (Build.CPU_ABI.contains("x86-64"))
 		{
-			cpuCores.setEntries(R.array.emuCoreEntriesX86);
-			cpuCores.setEntryValues(R.array.emuCoreValuesX86);
+			cpuCores.setEntries(R.array.emuCoreEntriesX86_64);
+			cpuCores.setEntryValues(R.array.emuCoreValuesX86_64);
+		}
+		else if (Build.CPU_ABI.contains("arm64"))
+		{
+			cpuCores.setEntries(R.array.emuCoreEntriesARM64);
+			cpuCores.setEntryValues(R.array.emuCoreValuesARM64);
 		}
 		else if (Build.CPU_ABI.contains("arm"))
 		{

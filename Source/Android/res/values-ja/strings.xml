@@ -137,6 +137,7 @@
     <string name="jit64_recompiler">JIT64 Recompiler</string>
     <string name="jitil_recompiler">JITIL Recompiler</string>
     <string name="jit_arm_recompiler">JIT ARM Recompiler</string>
+    <string name="jit_arm64_recompiler">JIT ARM64 Recompiler</string>
     <string name="cpu_settings">CPU</string>
     <string name="cpu_core">CPUコア</string>
     <string name="cpu_core_desc">%s</string>
