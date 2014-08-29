@@ -235,6 +235,20 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 	}
 }
 
+void ClearCacheLine(const u32 _Address)
+{
+	u8 *ptr = GetPointer(_Address);
+	if (ptr != nullptr)
+	{
+		memset(ptr, 0, 32);
+	}
+	else
+	{
+		for (u32 i = 0; i < 32; i += 8)
+			Write_U64(0, _Address + i);
+	}
+}
+
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
 {
 	const u8 *src = m_pL1Cache + (_CacheAddr & 0x3FFFF);
