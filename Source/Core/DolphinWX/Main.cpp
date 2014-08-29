@@ -244,16 +244,6 @@ bool DolphinApp::OnInit()
 	wxHandleFatalExceptions(true);
 #endif
 
-#ifndef _M_ARM
-	// TODO: if First Boot
-	if (!cpu_info.bSSE2)
-	{
-		PanicAlertT("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
-				"Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
-				"Sayonara!\n");
-		return false;
-	}
-#endif
 #ifdef __APPLE__
 	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_7)
 	{
