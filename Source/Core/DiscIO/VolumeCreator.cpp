@@ -32,14 +32,6 @@ enum EDiscType
 	DISC_TYPE_WAD
 };
 
-#ifndef _WIN32
-struct SPartition
-{
-	u64 Offset;
-	u32 Type;
-}; //gcc 4.3 cries if it's local
-#endif
-
 class CBlobBigEndianReader
 {
 public:
@@ -155,13 +147,12 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 	if ((int)_VolumeNum != -1 && _VolumeNum > numPartitions)
 		return nullptr;
 
-	#ifdef _WIN32
 	struct SPartition
 	{
 		u64 Offset;
 		u32 Type;
 	};
-	#endif
+
 	struct SPartitionGroup
 	{
 		u32 numPartitions;
