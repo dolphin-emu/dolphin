@@ -44,7 +44,8 @@ class CPatchAddEdit : public wxDialog
 		wxButton *EntryRemove;
 		wxStaticBoxSizer* sbEntry;
 
-		enum {
+		enum
+		{
 			ID_EDITPATCH_NAME_TEXT = 4500,
 			ID_EDITPATCH_NAME,
 			ID_EDITPATCH_OFFSET_TEXT,
