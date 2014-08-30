@@ -83,6 +83,11 @@ const int BACKPATCH_SIZE = 5;
 		#define CTX_R14 gregs[REG_R14]
 		#define CTX_R15 gregs[REG_R15]
 		#define CTX_RIP gregs[REG_RIP]
+	#elif _M_ARM_64
+		typedef struct sigcontext SContext;
+		#define CTX_REG(x) regs[x]
+		#define CTX_SP sp
+		#define CTX_PC pc
 	#elif _M_ARM_32
 		// Add others if required.
 		typedef struct sigcontext SContext;
