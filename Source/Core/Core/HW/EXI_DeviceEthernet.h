@@ -155,7 +155,10 @@ enum
 	BBA_MEM_SIZE  = BBA_NUM_PAGES * BBA_PAGE_SIZE
 };
 
-enum { EXI_DEVTYPE_ETHER = 0x04020200 };
+enum
+{
+	EXI_DEVTYPE_ETHER = 0x04020200
+};
 
 enum SendStatus
 {

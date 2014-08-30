@@ -128,7 +128,8 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 				}
 			}
 			/*
-			else if ((instr.hex & 0xFC000000) == (0x4b000000 & 0xFC000000) && !instr.LK) {
+			else if ((instr.hex & 0xFC000000) == (0x4b000000 & 0xFC000000) && !instr.LK)
+			{
 				u32 target = addr + SignExt26(instr.LI << 2);
 				if (target < startAddr || (max_size && target > max_size+startAddr))
 				{
@@ -415,7 +416,8 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 			(a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32)))
 		{
 			// Got a compare instruction.
-			if (CanSwapAdjacentOps(a, b)) {
+			if (CanSwapAdjacentOps(a, b))
+			{
 				// Alright, let's bubble it down!
 				CodeOp c = a;
 				a = b;
@@ -626,7 +628,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 				{
 					// mtspr
 					const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-					if (index == SPR_LR) {
+					if (index == SPR_LR)
+					{
 						// We give up to follow the return address
 						// because we have to check the register usage.
 						return_address = 0;

@@ -82,7 +82,8 @@ u32 DSPHLE::DSP_UpdateRate()
 
 void DSPHLE::SendMailToDSP(u32 _uMail)
 {
-	if (m_pUCode != nullptr) {
+	if (m_pUCode != nullptr)
+	{
 		DEBUG_LOG(DSP_MAIL, "CPU writes 0x%08x", _uMail);
 		m_pUCode->HandleMail(_uMail);
 	}

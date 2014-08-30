@@ -74,7 +74,8 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 		tf.name = name;
 		tf.type = type;
 		tf.address = startAddr;
-		if (tf.type == Symbol::SYMBOL_FUNCTION) {
+		if (tf.type == Symbol::SYMBOL_FUNCTION)
+		{
 			PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
 			checksumToFunction[tf.hash] = &(functions[startAddr]);
 		}

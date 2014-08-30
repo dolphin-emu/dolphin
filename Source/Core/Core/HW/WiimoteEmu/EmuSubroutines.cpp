@@ -115,8 +115,8 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		case WM_SPACE_EEPROM:
 			if (logCom) Name.append(" REG_EEPROM"); break;
 		case WM_SPACE_REGS1:
-		case WM_SPACE_REGS2: {
-
+		case WM_SPACE_REGS2:
+		{
 			const u8 region_offset = (u8)address;
 			void *region_ptr = nullptr;
 			int region_size = 0;
@@ -148,7 +148,8 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			case 0xa4:
 				if (logCom) Name.append(" REG_EXT");
 				// Update the encryption mode
-				if (data[5] == 0xf0) {
+				if (data[5] == 0xf0)
+				{
 					if (!emu)
 						wm->m_reg_ext.encryption = wd->data[0];
 					//NOTICE_LOG(CONSOLE, "Extension encryption: %u", wm->m_reg_ext.encryption);
@@ -158,7 +159,8 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			case 0xa6 :
 				if (logCom) Name.append(" REG_M+");
 				// update the encryption mode
-				if (data[5] == 0xf0) {
+				if (data[5] == 0xf0)
+				{
 					if (!emu)
 						wm->m_reg_motion_plus.activated = wd->data[0];
 					//NOTICE_LOG(CONSOLE, "Extension enryption: %u", wm->m_reg_ext.encryption);
@@ -173,12 +175,14 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			if (!emu && region_ptr)
 				memcpy((u8*)region_ptr + region_offset, wd->data, wd->size);
 			// save key
-			if (region_offset >= 0x40 && region_offset <= 0x4c) {
+			if (region_offset >= 0x40 && region_offset <= 0x4c)
+			{
 				if (!emu)
 					WiimoteGenerateKey(&wm->m_ext_key, wm->m_reg_ext.encryption_key);
 				INFO_LOG(CONSOLE, "Writing key: %s", ArrayToString((u8*)&wm->m_ext_key, sizeof(wm->m_ext_key), 0, 30).c_str());
 			}
-			if (data[3] == 0xa4 || data[3] == 0xa6) {
+			if (data[3] == 0xa4 || data[3] == 0xa6)
+			{
 				//DEBUG_LOG(CONSOLE, "M+: %s", ArrayToString((u8*)&wm->m_reg_motion_plus, sizeof(wm->m_reg_motion_plus), 0, 30).c_str());
 				//DEBUG_LOG(CONSOLE, "M+: %s", ArrayToString((u8*)&wm->m_reg_motion_plus.ext_identifier, sizeof(wm->m_reg_motion_plus.ext_identifier), 0, 30).c_str());
 				NOTICE_LOG(CONSOLE, "W[0x%02x 0x%02x|%d]: %s", data[3], region_offset,  wd->size, ArrayToString(wd->data, wd->size, 0).c_str());
@@ -315,8 +319,10 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 			if (logCom)
 				Name.append(" REG_EEPROM");
 			// Wiimote calibration
-			if (data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10) {
-				if (data[6] == 0x10) {
+			if (data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10)
+			{
+				if (data[6] == 0x10)
+				{
 					accel_cal* calib = (accel_cal*)&rdr->data[6];
 					ERROR_LOG(CONSOLE, "Wiimote calibration:");
 					//SERROR_LOG(CONSOLE, "%s", ArrayToString(rdr->data, rdr->size).c_str());

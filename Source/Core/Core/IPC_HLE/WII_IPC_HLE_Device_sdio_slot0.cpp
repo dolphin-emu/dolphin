@@ -261,7 +261,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 	}
 
 	u32 ReturnValue = 0;
-	switch (CommandBuffer.Parameter) {
+	switch (CommandBuffer.Parameter)
+	{
 	case IOCTLV_SENDCMD:
 		INFO_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address));
 		ReturnValue = ExecuteCommand(
@@ -288,7 +289,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 {
 	// The game will send us a SendCMD with this information. To be able to read and write
 	// to a file we need to prepare a 0x10 byte output buffer as response.
-	struct Request {
+	struct Request
+	{
 		u32 command;
 		u32 type;
 		u32 resp;

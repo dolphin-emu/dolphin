@@ -63,9 +63,11 @@ struct BlockRegStats
 	bool anyTimer;
 
 	int GetTotalNumAccesses(int reg) {return numReads[reg] + numWrites[reg];}
-	int GetUseRange(int reg) {
+	int GetUseRange(int reg)
+	{
 		return std::max(lastRead[reg], lastWrite[reg]) -
-			   std::min(firstRead[reg], firstWrite[reg]);}
+			   std::min(firstRead[reg], firstWrite[reg]);
+	}
 
 	inline void SetInputRegister(int reg, short opindex)
 	{

@@ -41,7 +41,8 @@ distribution.
 union SRAM
 {
 	u8 p_SRAM[64];
-	struct {                    // Stored configuration value from the system SRAM area
+	struct                      // Stored configuration value from the system SRAM area
+	{
 		u16 checksum;           // Holds the block checksum.
 		u16 checksum_inv;       // Holds the inverse block checksum
 		u32 ead0;               // Unknown attribute

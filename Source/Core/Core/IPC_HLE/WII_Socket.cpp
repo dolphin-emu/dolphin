@@ -64,9 +64,12 @@ static s32 TranslateErrorCode(s32 native_error, bool isRW)
 	case ERRORCODE(EHOSTUNREACH):
 		return -SO_EHOSTUNREACH;
 	case EITHER(WSAEWOULDBLOCK, EAGAIN):
-		if (isRW){
+		if (isRW)
+		{
 			return -SO_EAGAIN;  // EAGAIN
-		}else{
+		}
+		else
+		{
 			return -SO_EINPROGRESS; // EINPROGRESS
 		}
 	default:
@@ -473,7 +476,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
 					// recv/recvfrom only handles PEEK/OOB
 					flags &= SO_MSG_PEEK | SO_MSG_OOB;
 #ifdef _WIN32
-					if (flags & SO_MSG_PEEK){
+					if (flags & SO_MSG_PEEK)
+					{
 						unsigned long totallen = 0;
 						ioctlsocket(fd, FIONREAD, &totallen);
 						ReturnValue = totallen;

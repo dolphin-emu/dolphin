@@ -76,7 +76,8 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 		{
 			char* pArgument = ArgumentBuffer;
 			*pArgument++ = *pString++;
-			if (*pString == '%') {
+			if (*pString == '%')
+			{
 				_rOutBuffer += "%";
 				pString++;
 				continue;

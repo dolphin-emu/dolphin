@@ -733,7 +733,8 @@ bool PlayInput(const std::string& filename)
 	if (tmpHeader.filetype[0] != 'D' ||
 	    tmpHeader.filetype[1] != 'T' ||
 	    tmpHeader.filetype[2] != 'M' ||
-	    tmpHeader.filetype[3] != 0x1A) {
+	    tmpHeader.filetype[3] != 0x1A)
+	{
 		PanicAlertT("Invalid recording file");
 		goto cleanup;
 	}

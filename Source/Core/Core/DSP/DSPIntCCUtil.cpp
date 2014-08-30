@@ -111,31 +111,38 @@ inline int GetMultiplyModifier()
 	return (g_dsp.r.sr & SR_MUL_MODIFY)?1:2;
 }
 
-inline bool isCarry() {
+inline bool isCarry()
+{
 	return (g_dsp.r.sr & SR_CARRY) ? true : false;
 }
 
-inline bool isOverflow() {
+inline bool isOverflow()
+{
 	return (g_dsp.r.sr & SR_OVERFLOW) ? true : false;
 }
 
-inline bool isOverS32() {
+inline bool isOverS32()
+{
 	return (g_dsp.r.sr & SR_OVER_S32) ? true : false;
 }
 
-inline bool isLess() {
+inline bool isLess()
+{
 	return (!(g_dsp.r.sr & SR_OVERFLOW) != !(g_dsp.r.sr & SR_SIGN));
 }
 
-inline bool isZero() {
+inline bool isZero()
+{
 	return (g_dsp.r.sr & SR_ARITH_ZERO) ? true : false;
 }
 
-inline bool isLogicZero() {
+inline bool isLogicZero()
+{
 	return (g_dsp.r.sr & SR_LOGIC_ZERO) ? true : false;
 }
 
-inline bool isConditionA() {
+inline bool isConditionA()
+{
 	return (((g_dsp.r.sr & SR_OVER_S32) || (g_dsp.r.sr & SR_TOP2BITS)) && !(g_dsp.r.sr & SR_ARITH_ZERO)) ? true : false;
 }
 

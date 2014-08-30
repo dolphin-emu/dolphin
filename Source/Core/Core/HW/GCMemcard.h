@@ -105,7 +105,8 @@ struct GCMBlock
 void calc_checksumsBE(u16 *buf, u32 length, u16 *csum, u16 *inv_csum);
 
 #pragma pack(push,1)
-struct Header {         //Offset    Size    Description
+struct Header           //Offset    Size    Description
+{
 	// Serial in libogc
 	u8 serial[12];      //0x0000    12      ?
 	u64 formatTime;     //0x000c    8       Time of format (OSTime value)

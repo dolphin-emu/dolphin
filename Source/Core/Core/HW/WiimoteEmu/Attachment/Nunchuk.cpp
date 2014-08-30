@@ -74,7 +74,8 @@ void Nunchuk::GetState(u8* const data)
 	cal_js[0] = cal.jx;
 	cal_js[1] = cal.jy;
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++)
+	{
 		double &s = state[i];
 		nu_js c = cal_js[i];
 		if (s < 0)

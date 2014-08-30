@@ -192,25 +192,33 @@ struct DSP_Regs
 	u16 st[4];
 	u16 cr;
 	u16 sr;
-	union {
+
+	union
+	{
 		u64 val;
-		struct {
+		struct
+		{
 			u16 l;
 			u16 m;
 			u16 h;
 			u16 m2;//if this gets in the way, drop it.
 		};
 	} prod;
-	union {
+
+	union
+	{
 		u32 val;
 		struct {
 			u16 l;
 			u16 h;
 		};
 	} ax[2];
-	union {
+
+	union
+	{
 		u64 val;
-		struct {
+		struct
+		{
 			u16 l;
 			u16 m;
 			u16 h;

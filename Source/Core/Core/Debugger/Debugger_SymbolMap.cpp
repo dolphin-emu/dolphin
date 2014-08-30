@@ -103,13 +103,16 @@ void PrintCallstack()
 {
 	printf("== STACK TRACE - SP = %08x ==", PowerPC::ppcState.gpr[1]);
 
-	if (LR == 0) {
+	if (LR == 0)
+	{
 		printf(" LR = 0 - this is bad");
 	}
+
 	if (g_symbolDB.GetDescription(PC) != g_symbolDB.GetDescription(LR))
 	{
 		printf(" * %s  [ LR = %08x ]", g_symbolDB.GetDescription(LR).c_str(), LR);
 	}
+
 	WalkTheStack([](u32 func_addr) {
 		std::string func_desc = g_symbolDB.GetDescription(func_addr);
 		if (func_desc.empty() || func_desc == "Invalid")
@@ -123,14 +126,17 @@ void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 	GENERIC_LOG(type, level, "== STACK TRACE - SP = %08x ==",
 				PowerPC::ppcState.gpr[1]);
 
-	if (LR == 0) {
+	if (LR == 0)
+	{
 		GENERIC_LOG(type, level, " LR = 0 - this is bad");
 	}
+
 	if (g_symbolDB.GetDescription(PC) != g_symbolDB.GetDescription(LR))
 	{
 		GENERIC_LOG(type, level, " * %s  [ LR = %08x ]",
 					g_symbolDB.GetDescription(LR).c_str(), LR);
 	}
+
 	WalkTheStack([type, level](u32 func_addr) {
 		std::string func_desc = g_symbolDB.GetDescription(func_addr);
 		if (func_desc.empty() || func_desc == "Invalid")

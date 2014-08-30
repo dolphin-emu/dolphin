@@ -174,7 +174,8 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 
 	InstructionInfo info = {};
 
-	if (!DisassembleMov(codePtr, &info)) {
+	if (!DisassembleMov(codePtr, &info))
+	{
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
 		return nullptr;
 	}
