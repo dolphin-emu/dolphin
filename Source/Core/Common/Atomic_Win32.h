@@ -32,51 +32,61 @@
 namespace Common
 {
 
-inline void AtomicAdd(volatile u32& target, u32 value) {
+inline void AtomicAdd(volatile u32& target, u32 value)
+{
 	_InterlockedExchangeAdd((volatile LONG*)&target, (LONG)value);
 }
 
-inline void AtomicAnd(volatile u32& target, u32 value) {
+inline void AtomicAnd(volatile u32& target, u32 value)
+{
 	_InterlockedAnd((volatile LONG*)&target, (LONG)value);
 }
 
-inline void AtomicIncrement(volatile u32& target) {
+inline void AtomicIncrement(volatile u32& target)
+{
 	_InterlockedIncrement((volatile LONG*)&target);
 }
 
-inline void AtomicDecrement(volatile u32& target) {
+inline void AtomicDecrement(volatile u32& target)
+{
 	_InterlockedDecrement((volatile LONG*)&target);
 }
 
-inline void AtomicOr(volatile u32& target, u32 value) {
+inline void AtomicOr(volatile u32& target, u32 value)
+{
 	_InterlockedOr((volatile LONG*)&target, (LONG)value);
 }
 
 template <typename T>
-inline T AtomicLoad(volatile T& src) {
+inline T AtomicLoad(volatile T& src)
+{
 	return src; // 32-bit reads are always atomic.
 }
 
 template <typename T>
-inline T AtomicLoadAcquire(volatile T& src) {
+inline T AtomicLoadAcquire(volatile T& src)
+{
 	T result = src; // 32-bit reads are always atomic.
 	_ReadBarrier(); // Compiler instruction only. x86 loads always have acquire semantics.
 	return result;
 }
 
 template <typename T, typename U>
-inline void AtomicStore(volatile T& dest, U value) {
+inline void AtomicStore(volatile T& dest, U value)
+{
 	dest = (T) value; // 32-bit writes are always atomic.
 }
 
 template <typename T, typename U>
-inline void AtomicStoreRelease(volatile T& dest, U value) {
+inline void AtomicStoreRelease(volatile T& dest, U value)
+{
 	_WriteBarrier(); // Compiler instruction only. x86 stores always have release semantics.
 	dest = (T) value; // 32-bit writes are always atomic.
 }
 
 template <typename T, typename U>
-inline T* AtomicExchangeAcquire(T* volatile& loc, U newval) {
+inline T* AtomicExchangeAcquire(T* volatile& loc, U newval)
+{
 	return (T*) _InterlockedExchangePointer_acq((void* volatile*) &loc, (void*) newval);
 }
 
