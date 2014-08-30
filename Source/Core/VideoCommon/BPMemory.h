@@ -972,7 +972,8 @@ union UPE_Copy
 	BitField<15,1,u32> intensity_fmt;        // if set, is an intensity format (I4,I8,IA4,IA8)
 	BitField<16,1,u32> auto_conv;            // if 0 automatic color conversion by texture format and pixel type
 
-	u32 tp_realFormat() {
+	u32 tp_realFormat()
+	{
 		return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
 	}
 };

@@ -41,14 +41,16 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
 
 	// Open file for writing (binary mode)
 	File::IOFile fp(filename, "wb");
-	if (!fp.IsOpen()) {
+	if (!fp.IsOpen())
+	{
 		PanicAlert("Screenshot failed: Could not open file %s %d\n", filename.c_str(), errno);
 		goto finalise;
 	}
 
 	// Initialize write structure
 	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-	if (png_ptr == nullptr) {
+	if (png_ptr == nullptr)
+	{
 		PanicAlert("Screenshot failed: Could not allocate write struct\n");
 		goto finalise;
 
@@ -56,13 +58,15 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
 
 	// Initialize info structure
 	info_ptr = png_create_info_struct(png_ptr);
-	if (info_ptr == nullptr) {
+	if (info_ptr == nullptr)
+	{
 		PanicAlert("Screenshot failed: Could not allocate info struct\n");
 		goto finalise;
 	}
 
 	// Setup Exception handling
-	if (setjmp(png_jmpbuf(png_ptr))) {
+	if (setjmp(png_jmpbuf(png_ptr)))
+	{
 		PanicAlert("Screenshot failed: Error during png creation\n");
 		goto finalise;
 	}
