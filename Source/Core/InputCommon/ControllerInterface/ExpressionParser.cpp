@@ -136,7 +136,8 @@ public:
 		std::string name;
 		name += c;
 
-		while (it != expr.end()) {
+		while (it != expr.end())
+		{
 			c = *it;
 			if (!isalpha(c))
 				break;
@@ -569,7 +570,8 @@ ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Ex
 	qualifier.has_device = false;
 
 	Device::Control *control = finder.FindControl(qualifier);
-	if (control) {
+	if (control)
+	{
 		*expr_out = new Expression(new ControlExpression(qualifier, control));
 		return EXPRESSION_PARSE_SUCCESS;
 	}

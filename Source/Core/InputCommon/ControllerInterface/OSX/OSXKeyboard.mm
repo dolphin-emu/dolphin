@@ -116,7 +116,8 @@ Keyboard::Key::Key(IOHIDElementRef element, IOHIDDeviceRef device)
 	: m_element(element)
 	, m_device(device)
 {
-	static const struct PrettyKeys {
+	static const struct PrettyKeys
+	{
 		const uint32_t    code;
 		const char *const name;
 	} named_keys[] = {
@@ -224,14 +225,17 @@ Keyboard::Key::Key(IOHIDElementRef element, IOHIDDeviceRef device)
 		{ kHIDUsage_KeyboardRightGUI, "Right Command" },
 		{ 184, "Eject" },
 	};
-	
+
 	const uint32_t keycode = IOHIDElementGetUsage(m_element);
 	for (auto & named_key : named_keys)
-		if (named_key.code == keycode) {
+	{
+		if (named_key.code == keycode)
+		{
 			m_name = named_key.name;
 			return;
 		}
-	
+	}
+
 	std::stringstream ss;
 	ss << "Key " << keycode;
 	m_name = ss.str();
