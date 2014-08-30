@@ -212,7 +212,8 @@ void VideoBackend::Shutdown()
 	}
 }
 
-void VideoBackend::Video_Cleanup() {
+void VideoBackend::Video_Cleanup()
+{
 }
 
 }
