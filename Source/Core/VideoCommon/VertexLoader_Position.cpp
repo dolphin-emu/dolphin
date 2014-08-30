@@ -165,7 +165,7 @@ static int tableReadPositionVertexSize[4][8][2] = {
 };
 
 
-void VertexLoader_Position::Init(void)
+void VertexLoader_Position::Init()
 {
 
 #if _M_SSE >= 0x301

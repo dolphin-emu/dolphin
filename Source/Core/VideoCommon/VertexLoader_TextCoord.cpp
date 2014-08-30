@@ -173,7 +173,7 @@ static int tableReadTexCoordVertexSize[4][8][2] = {
 	},
 };
 
-void VertexLoader_TextCoord::Init(void)
+void VertexLoader_TextCoord::Init()
 {
 
 #if _M_SSE >= 0x301

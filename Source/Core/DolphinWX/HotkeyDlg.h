@@ -49,12 +49,12 @@ class HotkeyConfigDialog : public wxDialog
 		void OnButtonClick(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void SaveButtonMapping(int Id, int Key, int Modkey);
-		void CreateHotkeyGUIControls(void);
+		void CreateHotkeyGUIControls();
 
 		void SetButtonText(int id, const wxString &keystr, const wxString &modkeystr = wxString());
 
 		void DoGetButtons(int id);
-		void EndGetButtons(void);
+		void EndGetButtons();
 
 		int GetButtonWaitingID, GetButtonWaitingTimer, g_Pressed, g_Modkey;
 };

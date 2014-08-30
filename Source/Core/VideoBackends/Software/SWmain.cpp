@@ -356,7 +356,7 @@ void VideoSoftware::Video_GatherPipeBursted()
 	SWCommandProcessor::GatherPipeBursted();
 }
 
-bool VideoSoftware::Video_IsPossibleWaitingSetDrawDone(void)
+bool VideoSoftware::Video_IsPossibleWaitingSetDrawDone()
 {
 	return false;
 }

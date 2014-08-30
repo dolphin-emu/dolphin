@@ -24,7 +24,7 @@ CDump::CDump(const std::string& filename) :
 	}
 }
 
-CDump::~CDump(void)
+CDump::~CDump()
 {
 	if (m_pData != nullptr)
 	{
@@ -33,7 +33,7 @@ CDump::~CDump(void)
 	}
 }
 
-int CDump::GetNumberOfSteps(void)
+int CDump::GetNumberOfSteps()
 {
 	return (int)(m_size / STRUCTUR_SIZE);
 }

@@ -60,7 +60,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // gfx backend support
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
-void SetFinish(void);
+void SetFinish();
 UPEAlphaReadReg GetAlphaReadMode();
 
 // Bounding box functionality. Paper Mario (both) are a couple of the few games that use it.

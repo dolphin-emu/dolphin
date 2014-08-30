@@ -19,7 +19,7 @@ private:
 public:
 	void Initialize(Display *dpy);
 	Window CreateXWindow(Window parent, XVisualInfo *vi);
-	void DestroyXWindow(void);
+	void DestroyXWindow();
 
 	Display *dpy;
 	Window win;

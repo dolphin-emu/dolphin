@@ -110,7 +110,7 @@ struct Normal_Index_Indices3
 
 }
 
-void VertexLoader_Normal::Init(void)
+void VertexLoader_Normal::Init()
 {
 	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_UBYTE]  = Normal_Direct<u8, 1>();
 	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_BYTE]   = Normal_Direct<s8, 1>();

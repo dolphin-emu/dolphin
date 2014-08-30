@@ -617,7 +617,7 @@ void Initialize(bool wait)
 }
 
 // called on emulation shutdown
-void Stop(void)
+void Stop()
 {
 	for (auto& wiimote : g_wiimotes)
 		if (wiimote && wiimote->IsConnected())
@@ -625,7 +625,7 @@ void Stop(void)
 }
 
 // called when the dolphin app exits
-void Shutdown(void)
+void Shutdown()
 {
 	g_wiimote_scanner.StopScanning();
 
