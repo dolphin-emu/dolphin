@@ -10,22 +10,28 @@ using namespace Gen;
 
 // Shared code between Win64 and Unix64
 
-unsigned int XEmitter::ABI_GetAlignedFrameSize(unsigned int frameSize, bool noProlog) {
+unsigned int XEmitter::ABI_GetAlignedFrameSize(unsigned int frameSize, bool noProlog)
+{
 	frameSize = noProlog ? 0x28 : 0;
 	return frameSize;
 }
 
-void XEmitter::ABI_AlignStack(unsigned int frameSize, bool noProlog) {
-	unsigned int fillSize =
-		ABI_GetAlignedFrameSize(frameSize, noProlog) - frameSize;
-	if (fillSize != 0) {
+void XEmitter::ABI_AlignStack(unsigned int frameSize, bool noProlog)
+{
+	unsigned int fillSize = ABI_GetAlignedFrameSize(frameSize, noProlog) - frameSize;
+
+	if (fillSize != 0)
+	{
 		SUB(64, R(RSP), Imm8(fillSize));
 	}
 }
 
-void XEmitter::ABI_RestoreStack(unsigned int frameSize, bool noProlog) {
+void XEmitter::ABI_RestoreStack(unsigned int frameSize, bool noProlog)
+{
 	unsigned int alignedSize = ABI_GetAlignedFrameSize(frameSize, noProlog);
-	if (alignedSize != 0) {
+
+	if (alignedSize != 0)
+	{
 		ADD(64, R(RSP), Imm8(alignedSize));
 	}
 }
@@ -101,7 +107,8 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(u32 mask, bool noProlog)
 }
 
 // Common functions
-void XEmitter::ABI_CallFunction(void *func) {
+void XEmitter::ABI_CallFunction(void *func)
+{
 	ABI_AlignStack(0);
 	u64 distance = u64(func) - (u64(code) + 5);
 	if (distance >= 0x0000000080000000ULL &&
@@ -118,7 +125,8 @@ void XEmitter::ABI_CallFunction(void *func) {
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionC16(void *func, u16 param1) {
+void XEmitter::ABI_CallFunctionC16(void *func, u16 param1)
+{
 	ABI_AlignStack(0);
 	MOV(32, R(ABI_PARAM1), Imm32((u32)param1));
 	u64 distance = u64(func) - (u64(code) + 5);
@@ -136,7 +144,8 @@ void XEmitter::ABI_CallFunctionC16(void *func, u16 param1) {
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionCC16(void *func, u32 param1, u16 param2) {
+void XEmitter::ABI_CallFunctionCC16(void *func, u32 param1, u16 param2)
+{
 	ABI_AlignStack(0);
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	MOV(32, R(ABI_PARAM2), Imm32((u32)param2));
@@ -155,7 +164,8 @@ void XEmitter::ABI_CallFunctionCC16(void *func, u32 param1, u16 param2) {
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {
+void XEmitter::ABI_CallFunctionC(void *func, u32 param1)
+{
 	ABI_AlignStack(0);
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	u64 distance = u64(func) - (u64(code) + 5);
@@ -173,7 +183,8 @@ void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionCC(void *func, u32 param1, u32 param2) {
+void XEmitter::ABI_CallFunctionCC(void *func, u32 param1, u32 param2)
+{
 	ABI_AlignStack(0);
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -192,7 +203,8 @@ void XEmitter::ABI_CallFunctionCC(void *func, u32 param1, u32 param2) {
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionCP(void *func, u32 param1, void *param2) {
+void XEmitter::ABI_CallFunctionCP(void *func, u32 param1, void *param2)
+{
 	ABI_AlignStack(0);
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	MOV(64, R(ABI_PARAM2), Imm64((u64)param2));
@@ -211,7 +223,8 @@ void XEmitter::ABI_CallFunctionCP(void *func, u32 param1, void *param2) {
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionCCC(void *func, u32 param1, u32 param2, u32 param3) {
+void XEmitter::ABI_CallFunctionCCC(void *func, u32 param1, u32 param2, u32 param3)
+{
 	ABI_AlignStack(0);
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -231,7 +244,8 @@ void XEmitter::ABI_CallFunctionCCC(void *func, u32 param1, u32 param2, u32 param
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *param3) {
+void XEmitter::ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *param3)
+{
 	ABI_AlignStack(0);
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -251,7 +265,8 @@ void XEmitter::ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *par
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2, u32 param3, void *param4) {
+void XEmitter::ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2, u32 param3, void *param4)
+{
 	ABI_AlignStack(0);
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -272,7 +287,8 @@ void XEmitter::ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2, u32 para
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionPC(void *func, void *param1, u32 param2) {
+void XEmitter::ABI_CallFunctionPC(void *func, void *param1, u32 param2)
+{
 	ABI_AlignStack(0);
 	MOV(64, R(ABI_PARAM1), Imm64((u64)param1));
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
@@ -291,7 +307,8 @@ void XEmitter::ABI_CallFunctionPC(void *func, void *param1, u32 param2) {
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_CallFunctionPPC(void *func, void *param1, void *param2, u32 param3) {
+void XEmitter::ABI_CallFunctionPPC(void *func, void *param1, void *param2, u32 param3)
+{
 	ABI_AlignStack(0);
 	MOV(64, R(ABI_PARAM1), Imm64((u64)param1));
 	MOV(64, R(ABI_PARAM2), Imm64((u64)param2));
@@ -312,7 +329,8 @@ void XEmitter::ABI_CallFunctionPPC(void *func, void *param1, void *param2, u32 p
 }
 
 // Pass a register as a parameter.
-void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
+void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1)
+{
 	ABI_AlignStack(0);
 	if (reg1 != ABI_PARAM1)
 		MOV(32, R(ABI_PARAM1), R(reg1));
@@ -332,7 +350,8 @@ void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
 }
 
 // Pass two registers as parameters.
-void XEmitter::ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2, bool noProlog) {
+void XEmitter::ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2, bool noProlog)
+{
 	ABI_AlignStack(0, noProlog);
 	if (reg2 != ABI_PARAM1)
 	{
@@ -407,7 +426,8 @@ void XEmitter::ABI_CallFunctionA(void *func, const Gen::OpArg &arg1)
 #ifdef _WIN32
 // Win64 Specific Code
 
-void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack()
+{
 	//we only want to do this once
 	PUSH(RBP);
 	MOV(64, R(RBP), R(RSP));
@@ -422,7 +442,8 @@ void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	//TODO: Also preserve XMM0-3?
 }
 
-void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack()
+{
 	ADD(64, R(RSP), Imm8(0x28));
 	POP(R15);
 	POP(R14);
@@ -437,7 +458,8 @@ void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 #else
 // Unix64 Specific Code
 
-void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack()
+{
 	PUSH(RBP);
 	MOV(64, R(RBP), R(RSP));
 	PUSH(RBX);
@@ -448,7 +470,8 @@ void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	SUB(64, R(RSP), Imm8(8));
 }
 
-void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack()
+{
 	ADD(64, R(RSP), Imm8(8));
 	POP(R15);
 	POP(R14);

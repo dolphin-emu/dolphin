@@ -263,7 +263,8 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 	}
 
 	// sync the freely used xregs
-	if (!emit) {
+	if (!emit)
+	{
 		for (i = 0; i < NUMXREGS; i++)
 		{
 			if (cache.xregs[i].guest_reg == DSP_REG_USED &&
@@ -501,7 +502,8 @@ void DSPJitRegCache::pushRegs()
 	emitter.MOV(64, R(RBP), M(&ebp_store));
 }
 
-void DSPJitRegCache::popRegs() {
+void DSPJitRegCache::popRegs()
+{
 	emitter.MOV(64, M(&ebp_store), R(RBP));
 	int push_count = 0;
 	for (X64CachedReg& xreg : xregs)

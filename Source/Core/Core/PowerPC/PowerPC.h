@@ -198,7 +198,8 @@ inline void SetCRField(int cr_field, int value)
 	PowerPC::ppcState.cr_val[cr_field] = m_crTable[value];
 }
 
-inline u32 GetCRField(int cr_field) {
+inline u32 GetCRField(int cr_field)
+{
 	u64 cr_val = PowerPC::ppcState.cr_val[cr_field];
 	u32 ppc_cr = 0;
 
@@ -214,11 +215,13 @@ inline u32 GetCRField(int cr_field) {
 	return ppc_cr;
 }
 
-inline u32 GetCRBit(int bit) {
+inline u32 GetCRBit(int bit)
+{
 	return (GetCRField(bit >> 2) >> (3 - (bit & 3))) & 1;
 }
 
-inline void SetCRBit(int bit, int value) {
+inline void SetCRBit(int bit, int value)
+{
 	if (value & 1)
 		SetCRField(bit >> 2, GetCRField(bit >> 2) | (0x8 >> (bit & 3)));
 	else
@@ -226,36 +229,44 @@ inline void SetCRBit(int bit, int value) {
 }
 
 // SetCR and GetCR are fairly slow. Should be avoided if possible.
-inline void SetCR(u32 new_cr) {
+inline void SetCR(u32 new_cr)
+{
 	PowerPC::ExpandCR(new_cr);
 }
 
-inline u32 GetCR() {
+inline u32 GetCR()
+{
 	return PowerPC::CompactCR();
 }
 
 // SetCarry/GetCarry may speed up soon.
-inline void SetCarry(int ca) {
+inline void SetCarry(int ca)
+{
 	((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).CA = ca;
 }
 
-inline int GetCarry() {
+inline int GetCarry()
+{
 	return ((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).CA;
 }
 
-inline UReg_XER GetXER() {
+inline UReg_XER GetXER()
+{
 	return ((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]);
 }
 
-inline void SetXER(UReg_XER new_xer) {
+inline void SetXER(UReg_XER new_xer)
+{
 	((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]) = new_xer;
 }
 
-inline int GetXER_SO() {
+inline int GetXER_SO()
+{
 	return ((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).SO;
 }
 
-inline void SetXER_SO(int value) {
+inline void SetXER_SO(int value)
+{
 	((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).SO = value;
 }
 

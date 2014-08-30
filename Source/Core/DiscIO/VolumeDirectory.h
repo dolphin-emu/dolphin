@@ -111,7 +111,8 @@ private:
 		u32 unknown2;
 
 		// All the data is byteswapped
-		SDiskHeaderInfo() {
+		SDiskHeaderInfo()
+		{
 			debug_mntr_size = 0;
 			simulated_mem_size = 0;
 			arg_offset = 0;

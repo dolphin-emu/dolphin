@@ -22,7 +22,8 @@ public:
 	virtual void SoundLoop();
 	virtual void Stop();
 
-	static bool isValid() {
+	static bool isValid()
+	{
 		return true;
 	}
 

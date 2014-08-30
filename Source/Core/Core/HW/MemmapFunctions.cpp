@@ -70,10 +70,13 @@ static u32 EFB_Read(const u32 addr)
 	int x = (addr & 0xfff) >> 2;
 	int y = (addr >> 12) & 0x3ff;
 
-	if (addr & 0x00400000) {
+	if (addr & 0x00400000)
+	{
 		var = g_video_backend->Video_AccessEFB(PEEK_Z, x, y, 0);
 		DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= 0x%08x", x, y, var);
-	} else {
+	}
+	else
+	{
 		var = g_video_backend->Video_AccessEFB(PEEK_COLOR, x, y, 0);
 		DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i\t= 0x%08x", x, y, var);
 	}
@@ -378,7 +381,8 @@ void Write_U16(const u16 _Data, const u32 _Address)
 
 	WriteToHardware<u16>(_Address, _Data, _Address, FLAG_WRITE);
 }
-void Write_U16_Swap(const u16 _Data, const u32 _Address) {
+void Write_U16_Swap(const u16 _Data, const u32 _Address)
+{
 	Write_U16(Common::swap16(_Data), _Address);
 }
 
@@ -413,7 +417,8 @@ void Write_U64(const u64 _Data, const u32 _Address)
 
 	WriteToHardware<u64>(_Address, _Data, _Address + 4, FLAG_WRITE);
 }
-void Write_U64_Swap(const u64 _Data, const u32 _Address) {
+void Write_U64_Swap(const u64 _Data, const u32 _Address)
+{
 	Write_U64(Common::swap64(_Data), _Address);
 }
 

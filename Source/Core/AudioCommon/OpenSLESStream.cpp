@@ -30,7 +30,8 @@ static CMixer *g_mixer;
 static short buffer[2][BUFFER_SIZE];
 static int curBuffer = 0;
 
-static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
+static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
+{
 	assert(bq == bqPlayerBufferQueue);
 	assert(nullptr == context);
 
@@ -49,6 +50,7 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
 	// Render to the fresh buffer
 	g_mixer->Mix(reinterpret_cast<short *>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
 }
+
 bool OpenSLESStream::Start()
 {
 	SLresult result;
@@ -103,9 +105,11 @@ bool OpenSLESStream::Start()
 	curBuffer = 0;
 
 	result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer[curBuffer], sizeof(buffer[curBuffer]));
-	if (SL_RESULT_SUCCESS != result) {
+	if (SL_RESULT_SUCCESS != result)
+	{
 		return false;
 	}
+
 	curBuffer ^= 1;
 	g_mixer = m_mixer;
 	return true;
@@ -113,7 +117,8 @@ bool OpenSLESStream::Start()
 
 void OpenSLESStream::Stop()
 {
-	if (bqPlayerObject != nullptr) {
+	if (bqPlayerObject != nullptr)
+	{
 		(*bqPlayerObject)->Destroy(bqPlayerObject);
 		bqPlayerObject = nullptr;
 		bqPlayerPlay = nullptr;
@@ -121,11 +126,15 @@ void OpenSLESStream::Stop()
 		bqPlayerMuteSolo = nullptr;
 		bqPlayerVolume = nullptr;
 	}
-	if (outputMixObject != nullptr) {
+
+	if (outputMixObject != nullptr)
+	{
 		(*outputMixObject)->Destroy(outputMixObject);
 		outputMixObject = nullptr;
 	}
-	if (engineObject != nullptr) {
+
+	if (engineObject != nullptr)
+	{
 		(*engineObject)->Destroy(engineObject);
 		engineObject = nullptr;
 		engineEngine = nullptr;

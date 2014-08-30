@@ -27,7 +27,8 @@ bool TexFmt_Overlay_Center=false;
 
 int TexDecoder_GetTexelSizeInNibbles(int format)
 {
-	switch (format & 0x3f) {
+	switch (format & 0x3f)
+	{
 	case GX_TF_I4: return 1;
 	case GX_TF_I8: return 2;
 	case GX_TF_IA4: return 2;
@@ -450,7 +451,8 @@ inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 * src2)
 {
 #if 0
-	for (int x = 0; x < 4; x++) {
+	for (int x = 0; x < 4; x++)
+	{
 		dst[x] =  ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00)>>8)  | (src2[x] << 8);
 	}
 #else
@@ -864,7 +866,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							memset(dst+(y + iy) * width + x + ix * 2 + 1 , i2,4);
 						}
 		}
-	   break;
+		break;
 	case GX_TF_I8:  // speed critical
 		{
 			// Reference C implementation

@@ -70,7 +70,8 @@ struct CtrlRegister
 	inline u8 ppc() { return (IY2<<5)|(IY1<<4)|(X2<<3)|(Y1<<2)|(Y2<<1)|X1; }
 	inline u8 arm() { return (IX2<<5)|(IX1<<4)|(Y2<<3)|(X1<<2)|(X2<<1)|Y1; }
 
-	inline void ppc(u32 v) {
+	inline void ppc(u32 v)
+	{
 		X1 = v & 1;
 		X2 = (v >> 3) & 1;
 		if ((v >> 2) & 1) Y1 = 0;
@@ -79,7 +80,8 @@ struct CtrlRegister
 		IY2 = (v >> 5) & 1;
 	}
 
-	inline void arm(u32 v) {
+	inline void arm(u32 v)
+	{
 		Y1 = v & 1;
 		Y2 = (v >> 3) & 1;
 		if ((v >> 2) & 1) X1 = 0;

@@ -464,7 +464,8 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
 	const u8 *source = Memory::GetPointer(0x80000000);
 	const u16 *src = (u16 *)(source + (ACC0 & ram_mask));
 
-	for (u32 i = 0; i < (ACC1 >> 16); i++) {
+	for (u32 i = 0; i < (ACC1 >> 16); i++)
+	{
 		_Buffer[i] = Common::swap16(src[i]);
 	}
 
@@ -484,7 +485,8 @@ void ZeldaUCode::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightB
 	}
 
 	// XK: Use this to disable MIDI music (GREAT for testing). Also kills some sound FX.
-	//if (PB.SoundType == 0x0d00) {
+	//if (PB.SoundType == 0x0d00)
+	//{
 	//    PB.NeedsReset = 0;
 	//    return;
 	//}
@@ -592,13 +594,15 @@ ContinueWithBlock:
 	if (PB.VolumeMode != 0)
 	{
 		// Complex volume mode. Let's see what we can do.
-		if (PB.StopOnSilence) {
+		if (PB.StopOnSilence)
+		{
 			PB.raw[0x2b] = PB.raw[0x2a] >> 1;
 			if (PB.raw[0x2b] == 0)
 			{
 				PB.KeyOff = 1;
 			}
 		}
+
 		short AX0L = PB.raw[0x28] >> 8;
 		short AX0H = PB.raw[0x28] & 0x7F;
 		short AX1L = AX0L ^ 0x7F;
@@ -651,7 +655,8 @@ ContinueWithBlock:
 			for (int i = 0; i < _Size; i++)
 			{
 				int unmixed_audio = m_voice_buffer[i];
-				switch (count) {
+				switch (count)
+				{
 				case 0: _LeftBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
 				case 1: _RightBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
 				}
@@ -731,7 +736,8 @@ ContinueWithBlock:
 		}
 	}
 	// 03b2, this is the reason of using PB.NeedsReset. Seems to be necessary for SMG, and maybe other games.
-	if (PB.IsBlank == 0){
+	if (PB.IsBlank == 0)
+	{
 		PB.NeedsReset = 0;
 	}
 }
