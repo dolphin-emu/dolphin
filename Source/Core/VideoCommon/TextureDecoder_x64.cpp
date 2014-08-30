@@ -47,7 +47,8 @@ static bool TexFmt_Overlay_Center=false;
 
 int TexDecoder_GetTexelSizeInNibbles(int format)
 {
-	switch (format & 0x3f) {
+	switch (format & 0x3f)
+	{
 	case GX_TF_I4: return 1;
 	case GX_TF_I8: return 2;
 	case GX_TF_IA4: return 2;
@@ -496,7 +497,8 @@ inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 * src2)
 {
 #if 0
-	for (int x = 0; x < 4; x++) {
+	for (int x = 0; x < 4; x++)
+	{
 		dst[x] =  ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00)>>8)  | (src2[x] << 8);
 	}
 #else
@@ -755,13 +757,15 @@ static PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, in
 
 #if _M_SSE >= 0x301
 
-			if (cpu_info.bSSSE3) {
+			if (cpu_info.bSSSE3)
+			{
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
 					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 							decodebytesC8_To_Raw16_SSSE3((u16*)dst + (y + iy) * width + x, src + 8 * xStep, tlutaddr);
-			} else
+			}
+			else
 #endif
 			{
 				#pragma omp parallel for
@@ -844,12 +848,14 @@ static PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, in
 
 #if _M_SSE >= 0x301
 
-			if (cpu_info.bSSSE3) {
+			if (cpu_info.bSSSE3)
+			{
 				#pragma omp parallel for
-				for (int y = 0; y < height; y += 4) {
+				for (int y = 0; y < height; y += 4)
+				{
 					__m128i* p = (__m128i*)(src + y * width * 4);
-					for (int x = 0; x < width; x += 4) {
-
+					for (int x = 0; x < width; x += 4)
+					{
 						// We use _mm_loadu_si128 instead of _mm_load_si128
 						// because "p" may not be aligned in 16-bytes alignment.
 						// See Issue 3493.
@@ -882,7 +888,8 @@ static PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, in
 						_mm_stream_si128((__m128i*)((u32*)dst + (y + 3) * width + x), c3);
 					}
 				}
-			} else
+			}
+			else
 
 #endif
 
@@ -998,7 +1005,8 @@ static PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width,
 #if _M_SSE >= 0x301
 			// xsacha optimized with SSSE3 intrinsics
 			// Produces a ~40% speed improvement over SSE2 implementation
-			if (cpu_info.bSSSE3) {
+			if (cpu_info.bSSSE3)
+			{
 				const __m128i mask9180 = _mm_set_epi8(9,9,9,9,1,1,1,1,8,8,8,8,0,0,0,0);
 				const __m128i maskB3A2 = _mm_set_epi8(11,11,11,11,3,3,3,3,10,10,10,10,2,2,2,2);
 				const __m128i maskD5C4 = _mm_set_epi8(13,13,13,13,5,5,5,5,12,12,12,12,4,4,4,4);
@@ -1033,7 +1041,8 @@ static PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width,
 							_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x ), o3 );
 							_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
 						}
-			} else
+			}
+			else
 #endif
 			// JSD optimized with SSE2 intrinsics.
 			// Produces a ~76% speed improvement over reference C implementation.
@@ -1102,7 +1111,7 @@ static PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width,
 						}
 			}
 		}
-	   break;
+		break;
 	case GX_TF_I8:  // speed critical
 		{
 #if _M_SSE >= 0x301
@@ -1130,7 +1139,8 @@ static PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width,
 							_mm_storeu_si128(quaddst+1, rgba1);
 						}
 
-			} else
+			}
+			else
 #endif
 			// JSD optimized with SSE2 intrinsics.
 			// Produces an ~86% speed improvement over reference C implementation.
@@ -1275,7 +1285,8 @@ static PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width,
 							const __m128i r1 = _mm_shuffle_epi8(r0, mask);
 							_mm_storeu_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
 						}
-			} else
+			}
+			else
 #endif
 			// JSD optimized with SSE2 intrinsics.
 			// Produces an ~80% speed improvement over reference C implementation.
@@ -1530,7 +1541,8 @@ static PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width,
 									}
 								}
 						}
-			} else
+			}
+			else
 #endif
 			// JSD optimized with SSE2 intrinsics (2 in 4 cases)
 			// Produces a ~25% speed improvement over reference C implementation.
@@ -1675,7 +1687,8 @@ static PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width,
 						dst128 = (__m128i*)( dst + (y + 3) * width + x );
 						_mm_storeu_si128(dst128, rgba11);
 					}
-			} else
+			}
+			else
 #endif
 			// JSD optimized with SSE2 intrinsics
 			// Produces a ~68% speed improvement over reference C implementation.

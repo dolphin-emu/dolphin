@@ -753,7 +753,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			ColorMask[4] = ColorMask[7] = 1.0f / 15.0f;
 
 			cbufid = 16;
-			if (!efbHasAlpha) {
+			if (!efbHasAlpha)
+			{
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 17;
@@ -763,7 +764,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
 
 			cbufid = 18;
-			if (!efbHasAlpha) {
+			if (!efbHasAlpha)
+			{
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 19;
@@ -774,7 +776,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
 
 			cbufid = 20;
-			if (!efbHasAlpha) {
+			if (!efbHasAlpha)
+			{
 				ColorMask[3] = 0.0f;
 				fConstAdd[0] = 1.0f;
 				fConstAdd[1] = 1.0f;
@@ -821,7 +824,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			ColorMask[7] = 1.0f / 7.0f;
 
 			cbufid = 27;
-			if (!efbHasAlpha) {
+			if (!efbHasAlpha)
+			{
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 28;
@@ -831,7 +835,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
 
 			cbufid = 29;
-			if (!efbHasAlpha) {
+			if (!efbHasAlpha)
+			{
 				ColorMask[3] = 0.0f;
 				fConstAdd[3] = 1.0f;
 				cbufid = 30;
