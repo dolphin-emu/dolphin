@@ -115,7 +115,8 @@ void DSPEmitter::l(const UDSPInstruction opc)
 
 	pushExtValueFromMem(dreg, sreg);
 
-	if (dreg  >= DSP_REG_ACM0) {
+	if (dreg  >= DSP_REG_ACM0)
+	{
 		//save SR too, so we can decide later.
 		//even if only for one bit, can only
 		//store (up to) two registers in EBX,
@@ -139,7 +140,8 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 
 	pushExtValueFromMem(dreg, sreg);
 
-	if (dreg  >= DSP_REG_ACM0) {
+	if (dreg  >= DSP_REG_ACM0)
+	{
 		//save SR too, so we can decide later.
 		//even if only for one bit, can only
 		//store (up to) two registers in EBX,

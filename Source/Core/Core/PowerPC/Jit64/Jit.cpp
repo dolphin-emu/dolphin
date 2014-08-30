@@ -480,7 +480,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
 			js.next_inst = 0;
-			if (Profiler::g_ProfileBlocks) {
+			if (Profiler::g_ProfileBlocks)
+			{
 				// CAUTION!!! push on stack regs you use, do your stuff, then pop
 				PROFILER_VPUSH;
 				// get end tic

@@ -252,7 +252,8 @@ void AXWiiUCode::SetupProcessing(u32 init_addr)
 		init_data[i] = HLEMemory_Read_U16(init_addr + 2 * i);
 
 	// List of all buffers we have to initialize
-	struct {
+	struct
+	{
 		int* ptr;
 		u32 samples;
 	} buffers[] = {

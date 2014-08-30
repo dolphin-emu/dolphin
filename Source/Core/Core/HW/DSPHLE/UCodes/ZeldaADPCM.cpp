@@ -22,7 +22,9 @@ void ZeldaUCode::AFCdecodebuffer(const s16 *coef, const char *src, signed short 
 			nibbles[i + 1] = *src & 15;
 			src++;
 		}
-		for (auto& nibble : nibbles) {
+
+		for (auto& nibble : nibbles)
+		{
 			if (nibble >= 8)
 				nibble = nibble - 16;
 			nibble <<= 11;

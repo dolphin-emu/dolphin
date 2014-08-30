@@ -422,7 +422,8 @@ private:
 		IOCTL_NWC24_REQUEST_SHUTDOWN                = 0x28,
 	};
 
-	enum {
+	enum
+	{
 		MODEL_RVT = 0,
 		MODEL_RVV = 0,
 		MODEL_RVL = 1,

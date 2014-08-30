@@ -269,7 +269,8 @@ void Shutdown()
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
 	// Declare all the boilerplate direct MMIOs.
-	struct {
+	struct
+	{
 		u32 addr;
 		u16* ptr;
 		bool align_writes_on_32_bytes;
