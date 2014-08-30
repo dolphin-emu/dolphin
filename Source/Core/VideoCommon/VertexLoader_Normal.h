@@ -11,7 +11,7 @@ class VertexLoader_Normal
 public:
 
 	// Init
-	static void Init(void);
+	static void Init();
 
 	// GetSize
 	static unsigned int GetSize(unsigned int _type, unsigned int _format,
