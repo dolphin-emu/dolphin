@@ -36,13 +36,15 @@ public:
 		delete [] storage;
 	}
 
-	void clear() {
+	void clear()
+	{
 		head = 0;
 		tail = 0;
 		count = 0;
 	}
 
-	void push(T t) {
+	void push(T t)
+	{
 		storage[tail] = t;
 		tail++;
 		if (tail == N)
@@ -50,14 +52,16 @@ public:
 		count++;
 	}
 
-	void pop() {
+	void pop()
+	{
 		head++;
 		if (head == N)
 			head = 0;
 		count--;
 	}
 
-	T pop_front() {
+	T pop_front()
+	{
 		const T &temp = storage[head];
 		pop();
 		return temp;
@@ -66,7 +70,8 @@ public:
 	T &front() { return storage[head]; }
 	const T &front() const { return storage[head]; }
 
-	size_t size() const {
+	size_t size() const
+	{
 		return count;
 	}
 };

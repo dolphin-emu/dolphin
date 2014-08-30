@@ -92,7 +92,8 @@ static void InitSymbolPath( PSTR lpszSymbolPath, PCSTR lpszIniPath )
 }
 
 // Uninitialize the loaded symbol files
-BOOL UninitSymInfo() {
+BOOL UninitSymInfo()
+{
 	return SymCleanup( GetCurrentProcess() );
 }
 

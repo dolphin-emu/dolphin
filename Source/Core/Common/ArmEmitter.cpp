@@ -26,34 +26,43 @@
 namespace ArmGen
 {
 
-inline u32 RotR(u32 a, int amount) {
+inline u32 RotR(u32 a, int amount)
+{
 	if (!amount) return a;
 	return (a >> amount) | (a << (32 - amount));
 }
 
-inline u32 RotL(u32 a, int amount) {
+inline u32 RotL(u32 a, int amount)
+{
 	if (!amount) return a;
 	return (a << amount) | (a >> (32 - amount));
 }
 
-bool TryMakeOperand2(u32 imm, Operand2 &op2) {
+bool TryMakeOperand2(u32 imm, Operand2 &op2)
+{
 	// Just brute force it.
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 16; i++)
+	{
 		int mask = RotR(0xFF, i * 2);
-		if ((imm & mask) == imm) {
+		if ((imm & mask) == imm)
+		{
 			op2 = Operand2((u8)(RotL(imm, i * 2)), (u8)i);
 			return true;
 		}
 	}
+
 	return false;
 }
 
 bool TryMakeOperand2_AllowInverse(u32 imm, Operand2 &op2, bool *inverse)
 {
-	if (!TryMakeOperand2(imm, op2)) {
+	if (!TryMakeOperand2(imm, op2))
+	{
 		*inverse = true;
 		return TryMakeOperand2(~imm, op2);
-	} else {
+	}
+	else
+	{
 		*inverse = false;
 		return true;
 	}
@@ -61,16 +70,20 @@ bool TryMakeOperand2_AllowInverse(u32 imm, Operand2 &op2, bool *inverse)
 
 bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool *negated)
 {
-	if (!TryMakeOperand2(imm, op2)) {
+	if (!TryMakeOperand2(imm, op2))
+	{
 		*negated = true;
 		return TryMakeOperand2(-imm, op2);
-	} else {
+	}
+	else
+	{
 		*negated = false;
 		return true;
 	}
 }
 
-Operand2 AssumeMakeOperand2(u32 imm) {
+Operand2 AssumeMakeOperand2(u32 imm)
+{
 	Operand2 op2;
 	bool result = TryMakeOperand2(imm, op2);
 	(void) result;
@@ -93,10 +106,12 @@ bool ARMXEmitter::TrySetValue_TwoOp(ARMReg reg, u32 val)
 		return false;
 
 	bool first = true;
-	for (int i = 0; i < 16; i++, val >>=2) {
-		if (val & 0x3) {
+	for (int i = 0; i < 16; i++, val >>=2)
+	{
+		if (val & 0x3)
+		{
 			first ? MOV(reg, Operand2((u8)val, (u8)((16-i) & 0xF)))
-				  : ORR(reg, reg, Operand2((u8)val, (u8)((16-i) & 0xF)));
+			      : ORR(reg, reg, Operand2((u8)val, (u8)((16-i) & 0xF)));
 			first = false;
 			i+=3;
 			val >>= 6;
@@ -138,12 +153,15 @@ void ARMXEmitter::ADDI2R(ARMReg rd, ARMReg rs, u32 val, ARMReg scratch)
 {
 	Operand2 op2;
 	bool negated;
-	if (TryMakeOperand2_AllowNegation(val, op2, &negated)) {
+	if (TryMakeOperand2_AllowNegation(val, op2, &negated))
+	{
 		if (!negated)
 			ADD(rd, rs, op2);
 		else
 			SUB(rd, rs, op2);
-	} else {
+	}
+	else
+	{
 		MOVI2R(scratch, val);
 		ADD(rd, rs, scratch);
 	}
@@ -153,13 +171,19 @@ void ARMXEmitter::ANDI2R(ARMReg rd, ARMReg rs, u32 val, ARMReg scratch)
 {
 	Operand2 op2;
 	bool inverse;
-	if (TryMakeOperand2_AllowInverse(val, op2, &inverse)) {
-		if (!inverse) {
+	if (TryMakeOperand2_AllowInverse(val, op2, &inverse))
+	{
+		if (!inverse)
+		{
 			AND(rd, rs, op2);
-		} else {
+		}
+		else
+		{
 			BIC(rd, rs, op2);
 		}
-	} else {
+	}
+	else
+	{
 		MOVI2R(scratch, val);
 		AND(rd, rs, scratch);
 	}
@@ -169,12 +193,15 @@ void ARMXEmitter::CMPI2R(ARMReg rs, u32 val, ARMReg scratch)
 {
 	Operand2 op2;
 	bool negated;
-	if (TryMakeOperand2_AllowNegation(val, op2, &negated)) {
+	if (TryMakeOperand2_AllowNegation(val, op2, &negated))
+	{
 		if (!negated)
 			CMP(rs, op2);
 		else
 			CMN(rs, op2);
-	} else {
+	}
+	else
+	{
 		MOVI2R(scratch, val);
 		CMP(rs, scratch);
 	}
@@ -183,9 +210,12 @@ void ARMXEmitter::CMPI2R(ARMReg rs, u32 val, ARMReg scratch)
 void ARMXEmitter::ORI2R(ARMReg rd, ARMReg rs, u32 val, ARMReg scratch)
 {
 	Operand2 op2;
-	if (TryMakeOperand2(val, op2)) {
+	if (TryMakeOperand2(val, op2))
+	{
 		ORR(rd, rs, op2);
-	} else {
+	}
+	else
+	{
 		MOVI2R(scratch, val);
 		ORR(rd, rs, scratch);
 	}
@@ -193,9 +223,11 @@ void ARMXEmitter::ORI2R(ARMReg rd, ARMReg rs, u32 val, ARMReg scratch)
 
 void ARMXEmitter::FlushLitPool()
 {
-	for (LiteralPool& pool : currentLitPool) {
+	for (LiteralPool& pool : currentLitPool)
+	{
 		// Search for duplicates
-		for (LiteralPool& old_pool : currentLitPool) {
+		for (LiteralPool& old_pool : currentLitPool)
+		{
 			if (old_pool.val == pool.val)
 				pool.loc = old_pool.loc;
 		}
@@ -235,16 +267,21 @@ void ARMXEmitter::MOVI2R(ARMReg reg, u32 val, bool optimize)
 		MOVW(reg, val & 0xFFFF);
 		MOVT(reg, val, true);
 	}
-	else if (TryMakeOperand2_AllowInverse(val, op2, &inverse)) {
+	else if (TryMakeOperand2_AllowInverse(val, op2, &inverse))
+	{
 		inverse ? MVN(reg, op2) : MOV(reg, op2);
-	} else {
+	}
+	else
+	{
 		if (cpu_info.bArmV7)
 		{
 			// Use MOVW+MOVT for ARMv7+
 			MOVW(reg, val & 0xFFFF);
 			if (val & 0xFFFF0000)
 				MOVT(reg, val, true);
-		} else if (!TrySetValue_TwoOp(reg,val)) {
+		}
+		else if (!TrySetValue_TwoOp(reg,val))
+		{
 			// Use literal pool for ARMv6.
 			AddNewLit(val);
 			LDR(reg, _PC); // To be backpatched later
@@ -252,10 +289,14 @@ void ARMXEmitter::MOVI2R(ARMReg reg, u32 val, bool optimize)
 	}
 }
 
-void ARMXEmitter::QuickCallFunction(ARMReg reg, void *func) {
-	if (BLInRange(func)) {
+void ARMXEmitter::QuickCallFunction(ARMReg reg, void *func)
+{
+	if (BLInRange(func))
+	{
 		BL(func);
-	} else {
+	}
+	else
+	{
 		MOVI2R(reg, (u32)(func));
 		BL(reg);
 	}
@@ -327,7 +368,8 @@ void ARMXEmitter::SetCC(CCFlags cond)
 
 void ARMXEmitter::NOP(int count)
 {
-	for (int i = 0; i < count; i++) {
+	for (int i = 0; i < count; i++)
+	{
 		Write32(condition | 0x01A00000);
 	}
 }
@@ -418,7 +460,8 @@ void ARMXEmitter::B(ARMReg src)
 	Write32(condition | 0x12FFF10 | src);
 }
 
-bool ARMXEmitter::BLInRange(const void *fnptr) {
+bool ARMXEmitter::BLInRange(const void *fnptr)
+{
 	s32 distance = (s32)fnptr - (s32(code) + 8);
 	if (distance <= -0x2000000 || distance > 0x2000000)
 		return false;
@@ -602,7 +645,8 @@ void ARMXEmitter::MULS(ARMReg dest, ARMReg src, ARMReg op2)
 	Write32(condition | (1 << 20) | (dest << 16) | (src << 8) | (9 << 4) | op2);
 }
 
-void ARMXEmitter::Write4OpMultiply(u32 op, ARMReg destLo, ARMReg destHi, ARMReg rm, ARMReg rn) {
+void ARMXEmitter::Write4OpMultiply(u32 op, ARMReg destLo, ARMReg destHi, ARMReg rm, ARMReg rn)
+{
 	Write32(condition | (op << 20) | (destHi << 16) | (destLo << 12) | (rm << 8) | (9 << 4) | rn);
 }
 
@@ -1057,10 +1101,13 @@ void ARMXEmitter::VSTR(ARMReg Src, ARMReg Base, s16 offset)
 	}
 }
 
-void ARMXEmitter::VMRS(ARMReg Rt) {
+void ARMXEmitter::VMRS(ARMReg Rt)
+{
 	Write32(condition | (0xEF << 20) | (1 << 16) | (Rt << 12) | 0xA10);
 }
-void ARMXEmitter::VMSR(ARMReg Rt) {
+
+void ARMXEmitter::VMSR(ARMReg Rt)
+{
 	Write32(condition | (0xEE << 20) | (1 << 16) | (Rt << 12) | 0xA10);
 }
 
@@ -1191,26 +1238,33 @@ void ARMXEmitter::VCVT(ARMReg Dest, ARMReg Source, int flags)
 			{
 				Write32(condition | (0x1D << 23) | ((Dest & 0x10) << 18) | (0x7 << 19) \
 					| ((Dest & 0xF) << 12) | (op << 7) | (0x2D << 6) | ((Source & 0x1) << 5) | (Source >> 1));
-			} else {
+			}
+			else
+			{
 				Write32(condition | (0x1D << 23) | ((Dest & 0x1) << 22) | (0x7 << 19) | ((flags & TO_INT) << 18) | (op2 << 16) \
 					| ((Dest & 0x1E) << 11) | (op << 7) | (0x2D << 6) | ((Source & 0x10) << 1) | (Source & 0xF));
 			}
 		}
-		// F32<->F64
-		else {
+		else // F32<->F64
+		{
 			if (single_to_double)
 			{
 				Write32(condition | (0x1D << 23) | ((Dest & 0x10) << 18) | (0x3 << 20) | (0x7 << 16) \
 					| ((Dest & 0xF) << 12) | (0x2B << 6) | ((Source & 0x1) << 5) | (Source >> 1));
-			} else {
+			}
+			else
+			{
 				Write32(condition | (0x1D << 23) | ((Dest & 0x1) << 22) | (0x3 << 20) | (0x7 << 16) \
 					| ((Dest & 0x1E) << 11) | (0x2F << 6) | ((Source & 0x10) << 1) | (Source & 0xF));
 			}
 		}
-	} else if (single_reg) {
+	} else if (single_reg)
+	{
 		Write32(condition | (0x1D << 23) | ((Dest & 0x1) << 22) | (0x7 << 19) | ((flags & TO_INT) << 18) | (op2 << 16) \
 			| ((Dest & 0x1E) << 11) | (op << 7) | (0x29 << 6) | ((Source & 0x1) << 5) | (Source >> 1));
-	} else {
+	}
+	else
+	{
 		Write32(condition | (0x1D << 23) | ((Dest & 0x10) << 18) | (0x7 << 19) | ((flags & TO_INT) << 18) | (op2 << 16) \
 			| ((Dest & 0xF) << 12) | (1 << 8) | (op << 7) | (0x29 << 6) | ((Source & 0x10) << 1) | (Source & 0xF));
 	}
