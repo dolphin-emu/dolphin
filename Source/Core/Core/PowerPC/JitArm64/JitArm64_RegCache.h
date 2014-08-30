@@ -209,6 +209,15 @@ public:
 	// Will dump an immediate to the host register as well
 	ARM64Reg R(u32 preg);
 
+	// Set a register to an immediate
+	void SetImmediate(u32 reg, u32 imm) { m_guest_registers[reg].LoadToImm(imm); }
+
+	// Returns if a register is set as an immediate
+	bool IsImm(u32 reg) { return m_guest_registers[reg].GetType() == REG_IMM; }
+
+	// Gets the immediate that a register is set to
+	u32 GetImm(u32 reg) { return m_guest_registers[reg].GetImm(); }
+
 protected:
 	// Get the order of the host registers
 	void GetAllocationOrder(void);
