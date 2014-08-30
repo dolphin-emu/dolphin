@@ -62,7 +62,7 @@ void HotkeyConfigDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id] = Modkey;
 }
 
-void HotkeyConfigDialog::EndGetButtons(void)
+void HotkeyConfigDialog::EndGetButtons()
 {
 	wxTheApp->Unbind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
 	m_ButtonMappingTimer->Stop();
@@ -194,7 +194,7 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 
 #define HOTKEY_NUM_COLUMNS 2
 
-void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
+void HotkeyConfigDialog::CreateHotkeyGUIControls()
 {
 	const wxString pageNames[] =
 	{

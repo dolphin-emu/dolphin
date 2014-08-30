@@ -8,7 +8,7 @@ class RasterFont
 {
 public:
 	RasterFont();
-	~RasterFont(void);
+	~RasterFont();
 	static int debug;
 
 	// and the happy helper functions

@@ -239,7 +239,7 @@ public:
 		}
 	}
 
-	u32 CalculateNwc24ConfigChecksum(void)
+	u32 CalculateNwc24ConfigChecksum()
 	{
 		u32* ptr = (u32*)&config;
 		u32 sum = 0;
@@ -250,7 +250,7 @@ public:
 		return sum;
 	}
 
-	s32 CheckNwc24Config(void)
+	s32 CheckNwc24Config()
 	{
 		if (Magic() != 0x57634366) /* 'WcCf' magic */
 		{
