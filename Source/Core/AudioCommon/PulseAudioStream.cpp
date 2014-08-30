@@ -19,7 +19,8 @@ PulseAudio::PulseAudio(CMixer *mixer)
 	: SoundStream(mixer)
 	, m_thread()
 	, m_run_thread()
-{}
+{
+}
 
 bool PulseAudio::Start()
 {

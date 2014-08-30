@@ -41,13 +41,15 @@ bool CoreAudioSound::Start()
 	desc.componentFlagsMask = 0;
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 	component = FindNextComponent(nullptr, &desc);
-	if (component == nullptr) {
+	if (component == nullptr)
+	{
 		ERROR_LOG(AUDIO, "error finding audio component");
 		return false;
 	}
 
 	err = OpenAComponent(component, &audioUnit);
-	if (err != noErr) {
+	if (err != noErr)
+	{
 		ERROR_LOG(AUDIO, "error opening audio component");
 		return false;
 	}
@@ -58,7 +60,8 @@ bool CoreAudioSound::Start()
 				kAudioUnitProperty_StreamFormat,
 				kAudioUnitScope_Input, 0, &format,
 				sizeof(AudioStreamBasicDescription));
-	if (err != noErr) {
+	if (err != noErr)
+	{
 		ERROR_LOG(AUDIO, "error setting audio format");
 		return false;
 	}
@@ -69,12 +72,13 @@ bool CoreAudioSound::Start()
 				kAudioUnitProperty_SetRenderCallback,
 				kAudioUnitScope_Input, 0, &callback_struct,
 				sizeof callback_struct);
-	if (err != noErr) {
+	if (err != noErr)
+	{
 		ERROR_LOG(AUDIO, "error setting audio callback");
 		return false;
 	}
 
-    err = AudioUnitSetParameter(audioUnit,
+	err = AudioUnitSetParameter(audioUnit,
 					kHALOutputParam_Volume,
 					kAudioUnitParameterFlag_Output, 0,
 					m_volume / 100., 0);
@@ -82,13 +86,15 @@ bool CoreAudioSound::Start()
 		ERROR_LOG(AUDIO, "error setting volume");
 
 	err = AudioUnitInitialize(audioUnit);
-	if (err != noErr) {
+	if (err != noErr)
+	{
 		ERROR_LOG(AUDIO, "error initializing audiounit");
 		return false;
 	}
 
 	err = AudioOutputUnitStart(audioUnit);
-	if (err != noErr) {
+	if (err != noErr)
+	{
 		ERROR_LOG(AUDIO, "error starting audiounit");
 		return false;
 	}
@@ -99,7 +105,7 @@ bool CoreAudioSound::Start()
 void CoreAudioSound::SetVolume(int volume)
 {
 	OSStatus err;
-    m_volume = volume;
+	m_volume = volume;
 
 	err = AudioUnitSetParameter(audioUnit,
 					kHALOutputParam_Volume,

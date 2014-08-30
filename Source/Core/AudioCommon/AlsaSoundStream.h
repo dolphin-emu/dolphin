@@ -23,7 +23,8 @@ public:
 	virtual void SoundLoop() override;
 	virtual void Stop() override;
 
-	static bool isValid() {
+	static bool isValid()
+	{
 		return true;
 	}
 

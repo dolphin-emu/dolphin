@@ -57,7 +57,8 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	s32 rvolume = m_RVolume;
 
 	// TODO: consider a higher-quality resampling algorithm.
-	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2) {
+	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2)
+	{
 		u32 indexR2 = indexR + 2; //next sample
 
 		s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
