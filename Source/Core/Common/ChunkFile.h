@@ -162,8 +162,8 @@ public:
 	template <typename T>
 	void DoArray(T* x, u32 count)
 	{
-		for (u32 i = 0; i != count; ++i)
-			Do(x[i]);
+		static_assert(IsTriviallyCopyable(T), "Only sane for trivially copyable types");
+		DoVoid(x, count * sizeof(T));
 	}
 
 	void Do(Common::Flag& flag)
@@ -178,6 +178,10 @@ public:
 	void Do(T& x)
 	{
 		static_assert(IsTriviallyCopyable(T), "Only sane for trivially copyable types");
+		// Note:
+		// Usually we can just use x = **ptr, etc.  However, this doesn't work
+		// for unions containing BitFields (long story, stupid language rules)
+		// or arrays.  This will get optimized anyway.
 		DoVoid((void*)&x, sizeof(x));
 	}
 
@@ -285,38 +289,30 @@ private:
 			Do(elem);
 	}
 
-	__forceinline void DoByte(u8& x)
+	__forceinline
+	void DoVoid(void *data, u32 size)
 	{
 		switch (mode)
 		{
 		case MODE_READ:
-			x = **ptr;
+			memcpy(data, *ptr, size);
 			break;
 
 		case MODE_WRITE:
-			**ptr = x;
+			memcpy(*ptr, data, size);
 			break;
 
 		case MODE_MEASURE:
 			break;
 
 		case MODE_VERIFY:
-			_dbg_assert_msg_(COMMON, (x == **ptr),
-				"Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n",
-					x, x, &x, **ptr, **ptr, *ptr);
-			break;
-
-		default:
+			_dbg_assert_msg_(COMMON, !memcmp(data, *ptr, size),
+				"Savestate verification failure: buf %p != %p (size %u).\n",
+					data, *ptr, size);
 			break;
 		}
 
-		++(*ptr);
-	}
-
-	void DoVoid(void *data, u32 size)
-	{
-		for (u32 i = 0; i != size; ++i)
-			DoByte(reinterpret_cast<u8*>(data)[i]);
+		*ptr += size;
 	}
 };
 

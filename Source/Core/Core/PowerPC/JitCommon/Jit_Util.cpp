@@ -6,6 +6,7 @@
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
+#include "Common/MathUtil.h"
 
 #include "Core/HW/MMIO.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
@@ -66,9 +67,10 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 	MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
 }
 
-u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend)
+u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset, bool signExtend)
 {
 	u8 *result;
+	OpArg memOperand;
 	if (opAddress.IsSimpleReg())
 	{
 		// Deal with potential wraparound.  (This is just a heuristic, and it would
@@ -84,21 +86,23 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 			offset = 0;
 		}
 
-		result = GetWritableCodePtr();
-		if (accessSize == 8 && signExtend)
-			MOVSX(32, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
-		else
-			MOVZX(64, accessSize, reg_value, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
+		memOperand = MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset);
+	}
+	else if (opAddress.IsImm())
+	{
+		memOperand = MDisp(RBX, (opAddress.offset + offset) & 0x3FFFFFFF);
 	}
 	else
 	{
 		MOV(32, R(reg_value), opAddress);
-		result = GetWritableCodePtr();
-		if (accessSize == 8 && signExtend)
-			MOVSX(32, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
-		else
-			MOVZX(64, accessSize, reg_value, MComplex(RBX, reg_value, SCALE_1, offset));
+		memOperand = MComplex(RBX, reg_value, SCALE_1, offset);
 	}
+
+	result = GetWritableCodePtr();
+	if (accessSize == 8 && signExtend)
+		MOVSX(32, accessSize, reg_value, memOperand);
+	else
+		MOVZX(64, accessSize, reg_value, memOperand);
 
 	switch (accessSize)
 	{
@@ -335,8 +339,15 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			if (offset)
 			{
 				addr_loc = R(EAX);
-				MOV(32, R(EAX), opAddress);
-				ADD(32, R(EAX), Imm32(offset));
+				if (opAddress.IsSimpleReg())
+				{
+					LEA(32, EAX, MDisp(opAddress.GetSimpleReg(), offset));
+				}
+				else
+				{
+					MOV(32, R(EAX), opAddress);
+					ADD(32, R(EAX), Imm32(offset));
+				}
 			}
 			TEST(32, addr_loc, Imm32(mem_mask));
 
@@ -694,6 +705,103 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 	SetJumpTarget(continue1);
 	MOVDDUP(dst, R(dst));
 }
+
+static const u64 GC_ALIGNED16(psDoubleExp[2])  = {0x7FF0000000000000ULL, 0};
+static const u64 GC_ALIGNED16(psDoubleFrac[2]) = {0x000FFFFFFFFFFFFFULL, 0};
+static const u64 GC_ALIGNED16(psDoubleNoSign[2]) = {0x7FFFFFFFFFFFFFFFULL, 0};
+
+// TODO: it might be faster to handle FPRF in the same way as CR is currently handled for integer, storing
+// the result of each floating point op and calculating it when needed. This is trickier than for integers
+// though, because there's 32 possible FPRF bit combinations but only 9 categories of floating point values,
+// which makes the whole thing rather trickier.
+// Fortunately, PPCAnalyzer can optimize out a large portion of FPRF calculations, so maybe this isn't
+// quite that necessary.
+void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
+{
+	AND(32, M(&FPSCR), Imm32(~FPRF_MASK));
+
+	FixupBranch continue1, continue2, continue3, continue4;
+	if (cpu_info.bSSE4_1)
+	{
+		MOVQ_xmm(R(RAX), xmm);
+		SHR(64, R(RAX), Imm8(63)); // Get the sign bit; almost all the branches need it.
+		PTEST(xmm, M((void*)psDoubleExp));
+		FixupBranch maxExponent = J_CC(CC_C);
+		FixupBranch zeroExponent = J_CC(CC_Z);
+
+		// Nice normalized number: sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
+		LEA(32, EAX, MScaled(EAX, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN, MathUtil::PPC_FPCLASS_PN));
+		continue1 = J();
+
+		SetJumpTarget(maxExponent);
+		PTEST(xmm, M((void*)psDoubleFrac));
+		FixupBranch notNAN = J_CC(CC_Z);
+
+		// Max exponent + mantissa: PPC_FPCLASS_QNAN
+		MOV(32, R(EAX), Imm32(MathUtil::PPC_FPCLASS_QNAN));
+		continue2 = J();
+
+		// Max exponent + no mantissa: sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
+		SetJumpTarget(notNAN);
+		LEA(32, EAX, MScaled(EAX, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF, MathUtil::PPC_FPCLASS_NINF));
+		continue3 = J();
+
+		SetJumpTarget(zeroExponent);
+		PTEST(xmm, R(xmm));
+		FixupBranch zero = J_CC(CC_Z);
+
+		// No exponent + mantissa: sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
+		LEA(32, EAX, MScaled(EAX, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD, MathUtil::PPC_FPCLASS_ND));
+		continue4 = J();
+
+		// Zero: sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
+		SetJumpTarget(zero);
+		SHL(32, R(EAX), Imm8(4));
+		ADD(32, R(EAX), Imm8(MathUtil::PPC_FPCLASS_PZ));
+	}
+	else
+	{
+		MOVQ_xmm(R(RAX), xmm);
+		TEST(64, R(RAX), M((void*)psDoubleExp));
+		FixupBranch zeroExponent = J_CC(CC_Z);
+		AND(64, R(RAX), M((void*)psDoubleNoSign));
+		CMP(64, R(RAX), M((void*)psDoubleExp));
+		FixupBranch nan = J_CC(CC_G); // This works because if the sign bit is set, RAX is negative
+		FixupBranch infinity = J_CC(CC_E);
+		MOVQ_xmm(R(RAX), xmm);
+		SHR(64, R(RAX), Imm8(63));
+		LEA(32, EAX, MScaled(EAX, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN, MathUtil::PPC_FPCLASS_PN));
+		continue1 = J();
+		SetJumpTarget(nan);
+		MOVQ_xmm(R(RAX), xmm);
+		SHR(64, R(RAX), Imm8(63));
+		MOV(32, R(EAX), Imm32(MathUtil::PPC_FPCLASS_QNAN));
+		continue2 = J();
+		SetJumpTarget(infinity);
+		MOVQ_xmm(R(RAX), xmm);
+		SHR(64, R(RAX), Imm8(63));
+		LEA(32, EAX, MScaled(EAX, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF, MathUtil::PPC_FPCLASS_NINF));
+		continue3 = J();
+		SetJumpTarget(zeroExponent);
+		TEST(64, R(RAX), R(RAX));
+		FixupBranch zero = J_CC(CC_Z);
+		SHR(64, R(RAX), Imm8(63));
+		LEA(32, EAX, MScaled(EAX, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD, MathUtil::PPC_FPCLASS_ND));
+		continue4 = J();
+		SetJumpTarget(zero);
+		SHR(64, R(RAX), Imm8(63));
+		SHL(32, R(EAX), Imm8(4));
+		ADD(32, R(EAX), Imm8(MathUtil::PPC_FPCLASS_PZ));
+	}
+
+	SetJumpTarget(continue1);
+	SetJumpTarget(continue2);
+	SetJumpTarget(continue3);
+	SetJumpTarget(continue4);
+	SHL(32, R(EAX), Imm8(FPRF_SHIFT));
+	OR(32, M(&FPSCR), R(EAX));
+}
+
 
 void EmuCodeBlock::JitClearCA()
 {

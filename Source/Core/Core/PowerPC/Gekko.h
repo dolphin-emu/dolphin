@@ -383,6 +383,9 @@ union UReg_MSR
 	UReg_MSR()         { Hex = 0; }
 };
 
+#define FPRF_SHIFT 12
+#define FPRF_MASK (0x1F << FPRF_SHIFT)
+
 // Floating Point Status and Control Register
 union UReg_FPSCR
 {
