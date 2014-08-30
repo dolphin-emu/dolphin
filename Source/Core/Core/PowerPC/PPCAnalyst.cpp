@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <queue>
 #include <string>
 
@@ -419,9 +420,7 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 			if (CanSwapAdjacentOps(a, b))
 			{
 				// Alright, let's bubble it down!
-				CodeOp c = a;
-				a = b;
-				b = c;
+				std::swap(a, b);
 			}
 		}
 	}
