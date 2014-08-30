@@ -136,9 +136,10 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
 	u32 Count = (u32)(m_ContentAccessMap.size());
 	p.Do(Count);
 
-	u32 CFD, Position;
-	u64 TitleID;
-	u16 Index;
+	u32 CFD = 0;
+	u32 Position = 0;
+	u64 TitleID = 0;
+	u16 Index = 0;
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		for (u32 i = 0; i < Count; i++)
