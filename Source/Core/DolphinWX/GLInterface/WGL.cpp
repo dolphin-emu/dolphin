@@ -104,19 +104,26 @@ bool cInterfaceWGL::Create(void *window_handle)
 
 	int      PixelFormat;               // Holds The Results After Searching For A Match
 
-	if (!(hDC = GetDC(window_handle_reified))) {
+	if (!(hDC = GetDC(window_handle_reified)))
+	{
 		PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
 		return false;
 	}
-	if (!(PixelFormat = ChoosePixelFormat(hDC, &pfd))) {
+
+	if (!(PixelFormat = ChoosePixelFormat(hDC, &pfd)))
+	{
 		PanicAlert("(2) Can't find a suitable PixelFormat.");
 		return false;
 	}
-	if (!SetPixelFormat(hDC, PixelFormat, &pfd)) {
+
+	if (!SetPixelFormat(hDC, PixelFormat, &pfd))
+	{
 		PanicAlert("(3) Can't set the PixelFormat.");
 		return false;
 	}
-	if (!(hRC = wglCreateContext(hDC))) {
+
+	if (!(hRC = wglCreateContext(hDC)))
+	{
 		PanicAlert("(4) Can't create an OpenGL rendering context.");
 		return false;
 	}

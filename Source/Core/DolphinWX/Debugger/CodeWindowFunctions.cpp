@@ -377,7 +377,8 @@ void CCodeWindow::NotifyMapLoaded()
 void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = symbols->GetSelection();
-	if (index >= 0) {
+	if (index >= 0)
+	{
 		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
 		if (pSymbol != nullptr)
 		{

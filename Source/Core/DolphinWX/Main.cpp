@@ -111,7 +111,8 @@ CFrame* main_frame = nullptr;
 #ifdef WIN32
 //Has no error handling.
 //I think that if an error occurs here there's no way to handle it anyway.
-LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
+LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e)
+{
 	//EnterCriticalSection(&g_uefcs);
 
 	File::IOFile file("exceptioninfo.txt", "a");

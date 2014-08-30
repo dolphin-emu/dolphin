@@ -39,20 +39,22 @@ bool cInterfaceAGL::Create(void *window_handle)
 	NSOpenGLPixelFormatAttribute attr[] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, NSOpenGLPFAAccelerated, 0 };
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
 		initWithAttributes: attr];
-	if (fmt == nil) {
+	if (fmt == nil)
+	{
 		ERROR_LOG(VIDEO, "failed to create pixel format");
 		return false;
 	}
 
-	cocoaCtx = [[NSOpenGLContext alloc]
-		initWithFormat: fmt shareContext: nil];
+	cocoaCtx = [[NSOpenGLContext alloc] initWithFormat: fmt shareContext: nil];
 	[fmt release];
-	if (cocoaCtx == nil) {
+	if (cocoaCtx == nil)
+	{
 		ERROR_LOG(VIDEO, "failed to create context");
 		return false;
 	}
 
-	if (cocoaWin == nil) {
+	if (cocoaWin == nil)
+	{
 		ERROR_LOG(VIDEO, "failed to create window");
 		return false;
 	}

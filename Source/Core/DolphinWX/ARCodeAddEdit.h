@@ -35,7 +35,8 @@ class CARCodeAddEdit : public wxDialog
 		wxSpinButton *EntrySelection;
 		wxTextCtrl *EditCheatCode;
 
-		enum {
+		enum
+		{
 			ID_EDITCHEAT_NAME_TEXT = 4550,
 			ID_EDITCHEAT_NAME,
 			ID_ENTRY_SELECT,

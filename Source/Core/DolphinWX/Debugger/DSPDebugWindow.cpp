@@ -234,7 +234,8 @@ void DSPDebuggerLLE::UpdateSymbolMap()
 void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = m_SymbolList->GetSelection();
-	if (index >= 0) {
+	if (index >= 0)
+	{
 		Symbol* pSymbol = static_cast<Symbol *>(m_SymbolList->GetClientData(index));
 		if (pSymbol != nullptr)
 		{
@@ -275,7 +276,8 @@ bool DSPDebuggerLLE::JumpToAddress(u16 addr)
 	{
 		// Center on valid instruction in IRAM/IROM
 		int new_line = DSPSymbols::Addr2Line(addr);
-		if (new_line >= 0) {
+		if (new_line >= 0)
+		{
 			m_CodeView->Center(new_line);
 			return true;
 		}

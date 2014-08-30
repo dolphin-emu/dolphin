@@ -75,7 +75,8 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	sizerBig->Fit(this);
 }
 
-void CJitWindow::OnRefresh(wxCommandEvent& /*event*/) {
+void CJitWindow::OnRefresh(wxCommandEvent& /*event*/)
+{
 	block_list->Update();
 }
 
@@ -212,7 +213,8 @@ void CJitWindow::OnHostMessage(wxCommandEvent& event)
 // JitBlockList
 //================
 
-enum {
+enum
+{
 	COLUMN_ADDRESS,
 	COLUMN_PPCSIZE,
 	COLUMN_X86SIZE,

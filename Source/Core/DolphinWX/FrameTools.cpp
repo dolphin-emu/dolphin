@@ -126,7 +126,8 @@ void CFrame::CreateMenu()
 
 	drives = cdio_get_devices();
 	// Windows Limitation of 24 character drives
-	for (unsigned int i = 0; i < drives.size() && i < 24; i++) {
+	for (unsigned int i = 0; i < drives.size() && i < 24; i++)
+	{
 		externalDrive->Append(IDM_DRIVE1 + i, StrToWxStr(drives[i]));
 	}
 

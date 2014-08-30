@@ -87,7 +87,7 @@ XRRConfiguration::XRRConfiguration(Display *_dpy, Window _win)
 	int XRRMajorVersion, XRRMinorVersion;
 
 	if (!XRRQueryVersion(dpy, &XRRMajorVersion, &XRRMinorVersion) ||
-			(XRRMajorVersion < 1 || (XRRMajorVersion == 1 && XRRMinorVersion < 3)))
+	    (XRRMajorVersion < 1 || (XRRMajorVersion == 1 && XRRMinorVersion < 3)))
 	{
 		WARN_LOG(VIDEO, "XRRExtension not supported.");
 		bValid = false;
@@ -148,8 +148,10 @@ void XRRConfiguration::Update()
 		fullHeight = fb_height;
 	}
 	else
+	{
 		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
 				"%m[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
+	}
 
 	for (int i = 0; i < screenResources->noutput; i++)
 	{
@@ -262,7 +264,9 @@ void XRRConfiguration::AddResolutions(std::vector<std::string>& resos)
 		if (output_info && output_info->crtc && output_info->connection == RR_Connected)
 		{
 			for (int j = 0; j < output_info->nmode; j++)
+			{
 				for (int k = 0; k < screenResources->nmode; k++)
+				{
 					if (output_info->modes[j] == screenResources->modes[k].id)
 					{
 						const std::string strRes =
@@ -274,6 +278,8 @@ void XRRConfiguration::AddResolutions(std::vector<std::string>& resos)
 							resos.push_back(strRes);
 						}
 					}
+				}
+			}
 		}
 		if (output_info)
 			XRRFreeOutputInfo(output_info);
