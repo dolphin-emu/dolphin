@@ -574,7 +574,8 @@ bool PixelShaderCache::InsertByteCode(const PixelShaderUid &uid, const void* byt
 	PixelShaders[uid] = newentry;
 	last_entry = &PixelShaders[uid];
 
-	if (!shader) {
+	if (!shader)
+	{
 		// INCSTAT(stats.numPixelShadersFailed);
 		return false;
 	}
