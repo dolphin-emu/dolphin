@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{474661E7-C73A-43A6-AFEE-EE1EC433D49E}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\VSProps\Base.props" />
+    <Import Project="..\VSProps\PCHUse.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <!--This project also compiles gtest-->
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)gtest\include;$(ExternalsDir)gtest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <!--This junk is needed for JIT to function correctly-->
+      <BaseAddress>0x00400000</BaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>true</FixedBaseAddress>
+      <!--
+        The following libs are needed since we pull in pretty much the entire
+        dolphin codebase.
+        -->
+      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <!--gtest is rather small, so just include it into the build here-->
+    <ClCompile Include="$(ExternalsDir)gtest\src\gtest-all.cc" />
+    <ClCompile Include="$(ExternalsDir)gtest\src\gtest_main.cc" />
+    <!--Lump all of the tests (and supporting code) into one binary-->
+    <ClCompile Include="*\*.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
+      <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\D3D\D3D.vcxproj">
+      <Project>{96020103-4ba5-4fd2-b4aa-5b6d24492d4e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\OGL\OGL.vcxproj">
+      <Project>{ec1a314c-5588-4506-9c1e-2e58e5817f75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj">
+      <Project>{a4c423aa-f57c-46c7-a172-d1a777017d29}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <!--
+    This project is always built, but the outputs are conditionally executed.
+    The tests will either be run by VS' test runner (requires a plugin to adapt
+    to gtest - developers will mostly use this method), or via msbuild (the
+    buildbot does it this way). The gtest adapter has the restriction that it
+    can only scan for tests on binaries it knows about (e.g. from projects' OutDir),
+    and it doesn't allow changing the working directory for running the tests.
+    Essentially this requires all runtime dependencies to be findable from the
+    context of the tests running with working directory set to OutDir. So...
+    that was the long-winded explanation of why we copy external things to the
+    OutDir :)
+    -->
+  <ItemGroup>
+    <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll" />
+  </ItemGroup>
+  <!--Either method of running requires the runtime deps to be copied to pwd-->
+  <Target Name="CopyDeps"
+    AfterTargets="AfterBuild"
+    Inputs="@(ExternalDlls)"
+    Outputs="@(ExternalDlls -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(OutDir)"
+      Condition="!Exists('$(OutDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(OutDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)').Ticks)" />
+  </Target>
+  <Target Name="ExecUnitTests"
+    AfterTargets="AfterBuild;CopyDeps"
+    Condition="'$(RunUnitTests)'=='true'">
+    <!--This is only executed via msbuild, VS test runner automatically does this-->
+    <Exec Command="$(TargetPath)"/>
+  </Target>
+</Project>

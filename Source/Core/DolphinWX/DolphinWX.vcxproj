@@ -209,7 +209,7 @@
   </ImportGroup>
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
-    <DataDirFiles Include="$(SolutionDir)..\Data\**\*.*" />
+    <DataDirFiles Include="$(DolphinRootDir)Data\**\*.*" />
     <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll;$(ExternalsDir)msvcrt\$(PlatformName)\*.dll" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataDirFiles);@(ExternalDlls);@(BinaryFiles)" />
