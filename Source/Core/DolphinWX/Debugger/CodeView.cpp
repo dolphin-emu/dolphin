@@ -35,6 +35,7 @@
 #include "Common/SymbolDB.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/ConfigManager.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeView.h"
@@ -382,7 +383,8 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	menu->AppendSeparator();
 	menu->Append(IDM_RUNTOHERE, _("&Run To Here"))->Enable(Core::IsRunning());
 	menu->Append(IDM_ADDFUNCTION, _("&Add function"))->Enable(Core::IsRunning());
-	menu->Append(IDM_JITRESULTS, _("PPC vs X86"))->Enable(Core::IsRunning());
+	menu->Append(IDM_JITRESULTS, _("PPC vs X86"))->Enable(Core::IsRunning() &&
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore != 0);
 	menu->Append(IDM_INSERTBLR, _("Insert &blr"))->Enable(Core::IsRunning());
 	menu->Append(IDM_INSERTNOP, _("Insert &nop"))->Enable(Core::IsRunning());
 	menu->Append(IDM_PATCHALERT, _("Patch alert"))->Enable(Core::IsRunning());
