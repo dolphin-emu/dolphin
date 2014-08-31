@@ -10,13 +10,15 @@
 #include "AudioCommon/WaveFile.h"
 
 // 16 bit Stereo
-#define MAX_SAMPLES     (1024 * 2) // 64ms
-#define INDEX_MASK      (MAX_SAMPLES * 2 - 1)
+#define MAX_SAMPLES     (1024 * 2) // 64ms = 2048/32000
+#define INDEX_MASK      (MAX_SAMPLES * 2 - 1) // 2 channels of 2048 samples
 
 #define LOW_WATERMARK   1280 // 40 ms
 #define MAX_FREQ_SHIFT  200  // per 32000 Hz
 #define CONTROL_FACTOR  0.2f // in freq_shift per fifo size offset
 #define CONTROL_AVG     32
+#define BIT_DEPTH		16
+#define CLAMP			((1 << (BIT_DEPTH - 1)) - 1)
 
 class CMixer {
 

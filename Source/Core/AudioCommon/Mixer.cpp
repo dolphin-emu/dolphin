@@ -34,7 +34,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	u32 indexR = Common::AtomicLoad(m_indexR);
 	u32 indexW = Common::AtomicLoad(m_indexW);
 
-	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);
+	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);	
 	m_numLeftI = (numLeft + m_numLeftI*(CONTROL_AVG-1)) / CONTROL_AVG;
 	float offset = (m_numLeftI - LOW_WATERMARK) * CONTROL_FACTOR;
 	if (offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
@@ -51,7 +51,8 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
 
-	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );
+	// if not framelimit, then ratio = 0x10000
+	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );	//ratio of aid over sample, scaled to be 0 - 0x10000
 
 	s32 lvolume = m_LVolume;
 	s32 rvolume = m_RVolume;
@@ -65,8 +66,8 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
 		int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac)  >> 16;
 		sampleL = (sampleL * lvolume) >> 8;
-		sampleL += samples[currentSample + 1];
-		MathUtil::Clamp(&sampleL, -32767, 32767);
+		sampleL += samples[currentSample+1];
+		MathUtil::Clamp(&sampleL, -CLAMP, CLAMP);
 		samples[currentSample+1] = sampleL;
 
 		s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
@@ -74,7 +75,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac)  >> 16;
 		sampleR = (sampleR * rvolume) >> 8;
 		sampleR += samples[currentSample];
-		MathUtil::Clamp(&sampleR, -32767, 32767);
+		MathUtil::Clamp(&sampleR, -CLAMP, CLAMP);
 		samples[currentSample] = sampleR;
 
 		m_frac += ratio;
@@ -91,10 +92,10 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	for (; currentSample < numSamples * 2; currentSample += 2)
 	{
 		int sampleR = s[0] + samples[currentSample];
-		MathUtil::Clamp(&sampleR, -32767, 32767);
+		MathUtil::Clamp(&sampleR, -CLAMP, CLAMP);
 		samples[currentSample] = sampleR;
 		int sampleL = s[1] + samples[currentSample + 1];
-		MathUtil::Clamp(&sampleL, -32767, 32767);
+		MathUtil::Clamp(&sampleL, -CLAMP, CLAMP);
 		samples[currentSample + 1] = sampleL;
 	}
 
