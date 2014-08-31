@@ -1256,14 +1256,6 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ResourceCompile>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\libpng\png\png.vcxproj">
-      <Project>{01573c36-ac6e-49f6-94ba-572517eb9740}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\zlib\zlib.vcxproj">
-      <Project>{3e1339f5-9311-4122-9442-369702e8fcad}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>wxWidgets</ProjectName>
     <ProjectGuid>{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}</ProjectGuid>
@@ -1294,6 +1286,14 @@
       <PreprocessorDefinitions>__WXDEBUG__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{01573c36-ac6e-49f6-94ba-572517eb9740}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
+      <Project>{3e1339f5-9311-4122-9442-369702e8fcad}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

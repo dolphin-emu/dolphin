@@ -74,7 +74,7 @@
     <ClInclude Include="..\pngstruct.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\zlib\zlib.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
       <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
     </ProjectReference>
   </ItemGroup>
