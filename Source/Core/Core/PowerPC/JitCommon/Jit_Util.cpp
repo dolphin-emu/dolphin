@@ -61,9 +61,12 @@ void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int acc
 	}
 }
 
-void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset)
+void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
-	MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
+	if (signExtend)
+		MOVSX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
+	else
+		MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
 }
 
 u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset, bool signExtend)
@@ -350,7 +353,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 
 			FixupBranch fast = J_CC(CC_Z, true);
 
-			ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+			size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
+			ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
 			switch (accessSize)
 			{
 			case 64:
@@ -366,7 +370,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				ABI_CallFunctionA((void *)&Memory::Read_U8_ZX, addr_loc);
 				break;
 			}
-			ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+			ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
 
 			MEMCHECK_START
 

@@ -20,30 +20,31 @@ void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
-	FALLBACK_IF(js.memcheck || !inst.RA);
+	FALLBACK_IF(!inst.RA);
 
 	bool update = inst.OPCD == 61;
 
 	int offset = inst.SIMM_12;
 	int a = inst.RA;
-	int s = inst.RS; // Fp numbers
+	int s = inst.RS;
 
-	gpr.FlushLockX(RSCRATCH, RSCRATCH_EXTRA);
+	gpr.FlushLockX(RSCRATCH_EXTRA);
 	if (update)
-		gpr.BindToRegister(inst.RA, true, true);
-	fpr.BindToRegister(inst.RS, true, false);
-	MOV(32, R(RSCRATCH_EXTRA), gpr.R(inst.RA));
+		gpr.BindToRegister(a, true, true);
+	fpr.BindToRegister(s, true, false);
+	MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
 	if (offset)
 		ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
-	if (update && offset)
+	// In memcheck mode, don't update the address until the exception check
+	if (update && offset && !js.memcheck)
 		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
 	// Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
 	// Hence, we need to mask out the unused bits. The layout of the GQR register is
 	// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
 	// 0b0011111100000111, or 0x3F07.
-	MOV(32, R(RSCRATCH), Imm32(0x3F07));
-	AND(32, R(RSCRATCH), PPCSTATE(spr[SPR_GQR0 + inst.I]));
-	MOVZX(32, 8, RSCRATCH2, R(RSCRATCH));
+	MOV(32, R(RSCRATCH2), Imm32(0x3F07));
+	AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + inst.I]));
+	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
 	// FIXME: Fix ModR/M encoding to allow [RSCRATCH2*4+disp32] without a base register!
 	if (inst.W)
@@ -51,13 +52,20 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		// One value
 		PXOR(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
 		CVTSD2SS(XMM0, fpr.R(s));
-		CALLptr(MScaled(RSCRATCH2, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
+		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
 	}
 	else
 	{
 		// Pair of values
 		CVTPD2PS(XMM0, fpr.R(s));
-		CALLptr(MScaled(RSCRATCH2, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
+		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
+	}
+
+	if (update && offset && js.memcheck)
+	{
+		MEMCHECK_START
+		ADD(32, gpr.R(a), Imm32((u32)offset));
+		MEMCHECK_END
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -67,33 +75,38 @@ void Jit64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff);
-	FALLBACK_IF(js.memcheck || !inst.RA);
+	FALLBACK_IF(!inst.RA);
 
 	bool update = inst.OPCD == 57;
 	int offset = inst.SIMM_12;
+	int a = inst.RA;
+	int s = inst.RS;
 
-	gpr.FlushLockX(RSCRATCH, RSCRATCH_EXTRA);
-	gpr.BindToRegister(inst.RA, true, update && offset);
-	fpr.BindToRegister(inst.RS, false, true);
+	gpr.FlushLockX(RSCRATCH_EXTRA);
+	gpr.BindToRegister(a, true, update && offset);
+	fpr.BindToRegister(s, false, true);
 	if (offset)
-		LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(inst.RA), offset));
+		LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
 	else
-		MOV(32, R(RSCRATCH_EXTRA), gpr.R(inst.RA));
-	if (update && offset)
-		MOV(32, gpr.R(inst.RA), R(RSCRATCH_EXTRA));
-	MOV(32, R(RSCRATCH), Imm32(0x3F07));
-	AND(32, R(RSCRATCH), M(((char *)&GQR(inst.I)) + 2));
-	MOVZX(32, 8, RSCRATCH2, R(RSCRATCH));
+		MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
+	// In memcheck mode, don't update the address until the exception check
+	if (update && offset && !js.memcheck)
+		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
+	MOV(32, R(RSCRATCH2), Imm32(0x3F07));
+	AND(32, R(RSCRATCH2), M(((char *)&GQR(inst.I)) + 2));
+	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 	if (inst.W)
-		OR(32, R(RSCRATCH2), Imm8(8));
+		OR(32, R(RSCRATCH), Imm8(8));
 
-	CALLptr(MScaled(RSCRATCH2, SCALE_8, (u32)(u64)asm_routines.pairedLoadQuantized));
+	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedLoadQuantized));
 
-	// MEMCHECK_START // FIXME: MMU does not work here because of unsafe memory access
-
-	CVTPS2PD(fpr.RX(inst.RS), R(XMM0));
-
-	// MEMCHECK_END
+	MEMCHECK_START
+	CVTPS2PD(fpr.RX(s), R(XMM0));
+	if (update && offset && js.memcheck)
+	{
+		ADD(32, gpr.R(a), Imm32((u32)offset));
+	}
+	MEMCHECK_END
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
