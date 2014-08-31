@@ -32,10 +32,42 @@ namespace MMIO { class Mapping; }
 #define PPCSTATE_SRR0 PPCSTATE(spr[SPR_SRR0])
 #define PPCSTATE_SRR1 PPCSTATE(spr[SPR_SRR1])
 
+// A place to throw blocks of code we don't want polluting the cache, e.g. rarely taken
+// exception branches.
+class FarCodeCache : public Gen::X64CodeBlock
+{
+public:
+	void Init(int size) { AllocCodeSpace(size); }
+	void Shutdown() { FreeCodeSpace(); }
+};
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
+	static const int CODE_SIZE = 1024 * 1024 * 32;
+
+	// a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
+	// mostly exception handling, so give it a whole bunch more space if the MMU is on.
+	static const int FARCODE_SIZE = 1024 * 1024 * 8;
+	static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
+
+	FarCodeCache farcode;
+	u8* nearcode; // Backed up when we switch to far code.
+
+	// Simple functions to switch between near and far code emitting
+	void SwitchToFarCode()
+	{
+		nearcode = GetWritableCodePtr();
+		SetCodePtr(farcode.GetWritableCodePtr());
+	}
+
+	void SwitchToNearCode()
+	{
+		farcode.SetCodePtr(GetWritableCodePtr());
+		SetCodePtr(nearcode);
+	}
+
 	void LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src);
 	void SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src);
 

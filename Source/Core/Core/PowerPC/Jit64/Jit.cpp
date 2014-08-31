@@ -132,8 +132,6 @@ ps_adds1
 
 */
 
-static int CODE_SIZE = 1024*1024*32;
-
 void Jit64::Init()
 {
 	jo.optimizeStack = true;
@@ -169,6 +167,7 @@ void Jit64::Init()
 
 	trampolines.Init();
 	AllocCodeSpace(CODE_SIZE);
+	farcode.Init(js.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
 
 	blocks.Init();
 	asm_routines.Init();
@@ -183,6 +182,7 @@ void Jit64::ClearCache()
 {
 	blocks.Clear();
 	trampolines.ClearCodeSpace();
+	farcode.ClearCodeSpace();
 	ClearCodeSpace();
 }
 
@@ -193,6 +193,7 @@ void Jit64::Shutdown()
 	blocks.Shutdown();
 	trampolines.Shutdown();
 	asm_routines.Shutdown();
+	farcode.Shutdown();
 }
 
 // This is only called by FallBackToInterpreter() in this file. It will execute an instruction with the interpreter functions.
@@ -372,7 +373,8 @@ void Jit64::Trace()
 
 void STACKALIGN Jit64::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
+	if (GetSpaceLeft() < 0x10000 || farcode.GetSpaceLeft() < 0x10000 || blocks.IsFull() ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{
 		ClearCache();
 	}
@@ -525,12 +527,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
 			{
-				gpr.Flush();
-				fpr.Flush();
-
 				//This instruction uses FPU - needs to add FP exception bailout
 				TEST(32, PPCSTATE(msr), Imm32(1 << 13)); // Test FP enabled bit
-				FixupBranch b1 = J_CC(CC_NZ, true);
+				FixupBranch b1 = J_CC(CC_Z, true);
+				SwitchToFarCode();
+				SetJumpTarget(b1);
+				gpr.Flush(FLUSH_MAINTAIN_STATE);
+				fpr.Flush(FLUSH_MAINTAIN_STATE);
 
 				// If a FPU exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
@@ -538,32 +541,34 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
 				WriteExceptionExit();
 
-				SetJumpTarget(b1);
-
+				SwitchToNearCode();
 				js.firstFPInstructionFound = true;
 			}
 
 			// Add an external exception check if the instruction writes to the FIFO.
 			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
 			{
-				gpr.Flush();
-				fpr.Flush();
-
 				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
-				FixupBranch clearInt = J_CC(CC_NZ, true);
+				FixupBranch clearInt = J_CC(CC_NZ);
 				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-				FixupBranch noExtException = J_CC(CC_Z, true);
+				FixupBranch extException = J_CC(CC_NZ, true);
+				SwitchToFarCode();
+				SetJumpTarget(extException);
 				TEST(32, PPCSTATE(msr), Imm32(0x0008000));
 				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
 				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
 				FixupBranch noCPInt = J_CC(CC_Z, true);
 
+				gpr.Flush(FLUSH_MAINTAIN_STATE);
+				fpr.Flush(FLUSH_MAINTAIN_STATE);
+
 				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
 				WriteExternalExceptionExit();
 
+				SwitchToNearCode();
+
 				SetJumpTarget(noCPInt);
 				SetJumpTarget(noExtIntEnable);
-				SetJumpTarget(noExtException);
 				SetJumpTarget(clearInt);
 			}
 
@@ -585,9 +590,11 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				// In case we are about to jump to the dispatcher, flush regs
 				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-				FixupBranch noMemException = J_CC(CC_Z, true);
+				FixupBranch memException = J_CC(CC_NZ, true);
+
+				SwitchToFarCode();
+				SetJumpTarget(memException);
 
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
@@ -596,7 +603,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				// from PC.  Update PC with the latest value in case that happens.
 				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
 				WriteExceptionExit();
-				SetJumpTarget(noMemException);
+				SwitchToNearCode();
 			}
 
 			if (opinfo->flags & FL_LOADSTORE)
