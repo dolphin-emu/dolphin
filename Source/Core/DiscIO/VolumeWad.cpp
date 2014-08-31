@@ -41,7 +41,6 @@ CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
 
 CVolumeWAD::~CVolumeWAD()
 {
-	delete m_pReader;
 }
 
 bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const

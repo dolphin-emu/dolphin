@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -41,7 +42,7 @@ public:
 	static StringDecoder GetStringDecoder(ECountry country);
 
 private:
-	IBlobReader* m_pReader;
+	std::unique_ptr<IBlobReader> m_pReader;
 };
 
 } // namespace

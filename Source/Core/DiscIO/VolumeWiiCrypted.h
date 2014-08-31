@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <polarssl/aes.h>
@@ -40,10 +41,10 @@ public:
 	bool CheckIntegrity() const override;
 
 private:
-	IBlobReader* m_pReader;
+	std::unique_ptr<IBlobReader> m_pReader;
+	std::unique_ptr<aes_context> m_AES_ctx;
 
 	u8* m_pBuffer;
-	aes_context* m_AES_ctx;
 
 	u64 m_VolumeOffset;
 	u64 dataOffset;
