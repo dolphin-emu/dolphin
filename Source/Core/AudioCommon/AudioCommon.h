@@ -14,7 +14,7 @@ extern SoundStream *soundStream;
 
 namespace AudioCommon
 {
-	SoundStream *InitSoundStream(void *hWnd);
+	SoundStream* InitSoundStream();
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);

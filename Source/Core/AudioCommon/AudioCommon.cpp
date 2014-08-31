@@ -25,7 +25,7 @@ SoundStream *soundStream = nullptr;
 
 namespace AudioCommon
 {
-	SoundStream *InitSoundStream(void *hWnd)
+	SoundStream* InitSoundStream()
 	{
 		CMixer *mixer = new CMixer(48000);
 

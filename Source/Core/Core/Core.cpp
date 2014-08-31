@@ -363,7 +363,7 @@ void EmuThread()
 
 	}
 
-	AudioCommon::InitSoundStream(g_pWindowHandle);
+	AudioCommon::InitSoundStream();
 
 	// The hardware is initialized.
 	g_bHwInit = true;
