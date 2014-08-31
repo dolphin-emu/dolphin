@@ -40,7 +40,8 @@ public:
 
 	virtual void Stop() override;
 
-	static bool isValid() {
+	static bool isValid()
+	{
 		return true;
 	}
 

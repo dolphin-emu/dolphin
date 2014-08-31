@@ -27,7 +27,8 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 		if (timeToFill == 0)
 		{
 			std::lock_guard<std::mutex> lk(hid->m_device_list_reply_mutex);
-			if (hid->deviceCommandAddress != 0){
+			if (hid->deviceCommandAddress != 0)
+			{
 				hid->FillOutDevices(Memory::Read_U32(hid->deviceCommandAddress + 0x18), Memory::Read_U32(hid->deviceCommandAddress + 0x1C));
 
 				// The original hardware overwrites the command type with the async reply type.
@@ -240,7 +241,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 	case IOCTL_HID_SHUTDOWN:
 	{
 		std::lock_guard<std::mutex> lk(m_device_list_reply_mutex);
-		if (deviceCommandAddress != 0){
+		if (deviceCommandAddress != 0)
+		{
 			Memory::Write_U32(0xFFFFFFFF, Memory::Read_U32(deviceCommandAddress + 0x18));
 
 			// The original hardware overwrites the command type with the async reply type.

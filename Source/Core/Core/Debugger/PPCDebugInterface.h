@@ -28,9 +28,11 @@ public:
 	virtual void ToggleMemCheck(unsigned int address) override;
 	virtual unsigned int ReadMemory(unsigned int address) override;
 
-	enum {
+	enum
+	{
 		EXTRAMEM_ARAM = 1,
 	};
+
 	virtual unsigned int ReadExtraMemory(int memory, unsigned int address) override;
 	virtual unsigned int ReadInstruction(unsigned int address) override;
 	virtual unsigned int GetPC() override;

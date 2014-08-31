@@ -883,7 +883,8 @@ void VertexLoader::SetVAT(const VAT& vat)
 	m_VtxAttr.texCoord[7].Format   = vat.g2.Tex7CoordFormat;
 	m_VtxAttr.texCoord[7].Frac     = vat.g2.Tex7Frac;
 
-	if (!m_VtxAttr.ByteDequant) {
+	if (!m_VtxAttr.ByteDequant)
+	{
 		ERROR_LOG(VIDEO, "ByteDequant is set to zero");
 	}
 };

@@ -84,7 +84,9 @@ bool cInterfaceGLX::Create(void *window_handle)
 		}
 	}
 	else
+	{
 		NOTICE_LOG(VIDEO, "Got double buffered visual!");
+	}
 
 	// Create a GLX context.
 	ctx = glXCreateContext(dpy, vi, nullptr, GL_TRUE);

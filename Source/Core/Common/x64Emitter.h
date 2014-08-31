@@ -134,7 +134,8 @@ struct OpArg
 	void WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
 	bool IsImm() const {return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 || scale == SCALE_IMM64;}
 	bool IsSimpleReg() const {return scale == SCALE_NONE;}
-	bool IsSimpleReg(X64Reg reg) const {
+	bool IsSimpleReg(X64Reg reg) const
+	{
 		if (!IsSimpleReg())
 			return false;
 		return GetSimpleReg() == reg;
@@ -175,21 +176,30 @@ private:
 inline OpArg M(const void *ptr) {return OpArg((u64)ptr, (int)SCALE_RIP);}
 inline OpArg R(X64Reg value)    {return OpArg(0, SCALE_NONE, value);}
 inline OpArg MatR(X64Reg value) {return OpArg(0, SCALE_ATREG, value);}
-inline OpArg MDisp(X64Reg value, int offset) {
+
+inline OpArg MDisp(X64Reg value, int offset)
+{
 	return OpArg((u32)offset, SCALE_ATREG, value);
 }
-inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset) {
+
+inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset)
+{
 	return OpArg(offset, scale, base, scaled);
 }
-inline OpArg MScaled(X64Reg scaled, int scale, int offset) {
+
+inline OpArg MScaled(X64Reg scaled, int scale, int offset)
+{
 	if (scale == SCALE_1)
 		return OpArg(offset, SCALE_ATREG, scaled);
 	else
 		return OpArg(offset, scale | 0x20, RAX, scaled);
 }
-inline OpArg MRegSum(X64Reg base, X64Reg offset) {
+
+inline OpArg MRegSum(X64Reg base, X64Reg offset)
+{
 	return MComplex(base, offset, 1, 0);
 }
+
 inline OpArg Imm8 (u8 imm)  {return OpArg(imm, SCALE_IMM8);}
 inline OpArg Imm16(u16 imm) {return OpArg(imm, SCALE_IMM16);} //rarely used
 inline OpArg Imm32(u32 imm) {return OpArg(imm, SCALE_IMM32);}
@@ -199,14 +209,18 @@ inline OpArg ImmPtr(const void* imm) {return Imm64((u64)imm);}
 #else
 inline OpArg ImmPtr(const void* imm) {return Imm32((u32)imm);}
 #endif
-inline u32 PtrOffset(void* ptr, void* base) {
+
+inline u32 PtrOffset(void* ptr, void* base)
+{
 #ifdef _ARCH_64
 	s64 distance = (s64)ptr-(s64)base;
 	if (distance >= 0x80000000LL ||
-	    distance < -0x80000000LL) {
+	    distance < -0x80000000LL)
+	{
 		_assert_msg_(DYNA_REC, 0, "pointer offset out of range");
 		return 0;
 	}
+
 	return (u32)distance;
 #else
 	return (u32)ptr-(u32)base;

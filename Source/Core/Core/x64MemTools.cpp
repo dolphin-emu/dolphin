@@ -39,9 +39,11 @@ static bool DoFault(u64 bad_address, SContext *ctx)
 		0x40000000;
 #endif
 
-	if (bad_address < memspace_bottom || bad_address >= memspace_top) {
+	if (bad_address < memspace_bottom || bad_address >= memspace_top)
+	{
 		return false;
 	}
+
 	u32 em_address = (u32)(bad_address - memspace_bottom);
 	const u8 *new_pc = jit->BackPatch((u8*) ctx->CTX_PC, em_address, ctx);
 	if (new_pc)

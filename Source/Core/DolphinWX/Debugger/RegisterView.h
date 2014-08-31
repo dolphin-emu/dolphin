@@ -32,12 +32,14 @@ class wxWindow;
 
 class CRegTable : public wxGridTableBase
 {
-	enum {
+	enum
+	{
 		NUM_SPECIALS = 11,
 	};
 
 public:
-	CRegTable() {
+	CRegTable()
+	{
 		memset(m_CachedRegs, 0, sizeof(m_CachedRegs));
 		memset(m_CachedSpecialRegs, 0, sizeof(m_CachedSpecialRegs));
 		memset(m_CachedFRegs, 0, sizeof(m_CachedFRegs));
@@ -45,11 +47,12 @@ public:
 		memset(m_CachedSpecialRegHasChanged, 0, sizeof(m_CachedSpecialRegHasChanged));
 		memset(m_CachedFRegHasChanged, 0, sizeof(m_CachedFRegHasChanged));
 	}
-    int GetNumberCols(void) override {return 5;}
-    int GetNumberRows(void) override {return 32 + NUM_SPECIALS;}
-	bool IsEmptyCell(int row, int col) override {return row > 31 && col > 2;}
-    wxString GetValue(int row, int col) override;
-    void SetValue(int row, int col, const wxString &) override;
+
+	int GetNumberCols() override { return 5; }
+	int GetNumberRows() override { return 32 + NUM_SPECIALS; }
+	bool IsEmptyCell(int row, int col) override { return row > 31 && col > 2; }
+	wxString GetValue(int row, int col) override;
+	void SetValue(int row, int col, const wxString &) override;
 	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
 	void UpdateCachedRegs();
 

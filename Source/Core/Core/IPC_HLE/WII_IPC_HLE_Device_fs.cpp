@@ -576,7 +576,8 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 				File::IOFile handle(entry.physicalName, "rb");
 				char buf[65536];
 				u32 count = size;
-				while (count > 65536) {
+				while (count > 65536)
+				{
 					handle.ReadArray(&buf[0], 65536);
 					p.DoArray(&buf[0], 65536);
 					count -= 65536;

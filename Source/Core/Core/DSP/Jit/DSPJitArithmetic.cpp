@@ -1358,9 +1358,12 @@ void DSPEmitter::lsrn(const UDSPInstruction opc)
 	//	else
 	//		shift = accm & 0x3f;
 
-	//	if (shift > 0) {
+	//	if (shift > 0)
+	//	{
 	//		acc >>= shift;
-	//	} else if (shift < 0) {
+	//	}
+	//	else if (shift < 0)
+	//	{
 	//		acc <<= -shift;
 	//	}
 
@@ -1414,9 +1417,12 @@ void DSPEmitter::asrn(const UDSPInstruction opc)
 //	else
 //		shift = accm & 0x3f;
 
-//	if (shift > 0) {
+//	if (shift > 0)
+//	{
 //		acc >>= shift;
-//	} else if (shift < 0) {
+//	}
+//	else if (shift < 0)
+//	{
 //		acc <<= -shift;
 //	}
 
@@ -1474,9 +1480,12 @@ void DSPEmitter::lsrnrx(const UDSPInstruction opc)
 //	else
 //		shift = axh & 0x3f;
 
-//	if (shift > 0) {
+//	if (shift > 0)
+//	{
 //		acc <<= shift;
-//	} else if (shift < 0) {
+//	}
+//	else if (shift < 0)
+//	{
 //		acc >>= -shift;
 //	}
 

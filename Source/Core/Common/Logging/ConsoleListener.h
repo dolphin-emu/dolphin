@@ -31,7 +31,7 @@ public:
 
 private:
 #ifdef _WIN32
-	HWND GetHwnd(void);
+	HWND GetHwnd();
 	HANDLE hConsole;
 #endif
 	bool bUseColor;

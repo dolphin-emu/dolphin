@@ -64,12 +64,15 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 			(IOHIDElementRef)CFArrayGetValueAtIndex(axes, i);
 			//DeviceElementDebugPrint(e, nullptr);
 
-			if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch) {
+			if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch)
+			{
 				AddInput(new Hat(e, m_device, Hat::up));
 				AddInput(new Hat(e, m_device, Hat::right));
 				AddInput(new Hat(e, m_device, Hat::down));
 				AddInput(new Hat(e, m_device, Hat::left));
-			} else {
+			}
+			else
+			{
 				AddAnalogInputs(new Axis(e, m_device, Axis::negative),
 					new Axis(e, m_device, Axis::positive));
 			}
@@ -212,7 +215,8 @@ Joystick::Hat::Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir
 	, m_device(device)
 	, m_direction(dir)
 {
-	switch (dir) {
+	switch (dir)
+	{
 	case up:
 		m_name = "Up";
 		break;
@@ -239,7 +243,8 @@ ControlState Joystick::Hat::GetState() const
 	{
 		position = IOHIDValueGetIntegerValue(value);
 
-		switch (position) {
+		switch (position)
+		{
 		case 0:
 			if (m_direction == up)
 				return 1;

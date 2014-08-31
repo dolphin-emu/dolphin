@@ -7,6 +7,7 @@
 //  * Copyright (c) 2004-2006 Milan Cutka
 //  * based on mplayer HRTF plugin by ylai
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <functional>
@@ -14,6 +15,7 @@
 #include <vector>
 
 #include "AudioCommon/DPL2Decoder.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
 #ifndef M_PI
@@ -90,11 +92,10 @@ static T FIRFilter(const T *buf, int pos, int len, int count, const float *coeff
 */
 static void Hamming(int n, float* w)
 {
-	int      i;
 	float k = float(2*M_PI/((float)(n-1))); // 2*pi/(N-1)
 
 	// Calculate window coefficients
-	for (i=0; i<n; i++)
+	for (int i = 0; i < n; i++)
 		*w++ = float(0.54 - 0.46*cos(k*(float)i));
 }
 
@@ -119,7 +120,6 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 {
 	unsigned int  o   = *n & 1;              // Indicator for odd filter length
 	unsigned int  end = ((*n + 1) >> 1) - o; // Loop end
-	unsigned int  i;                         // Loop index
 
 	float k1 = 2 * float(M_PI);              // 2*pi*fc1
 	float k2 = 0.5f * (float)(1 - o);        // Constant used if the filter has even length
@@ -154,7 +154,7 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 	}
 
 	// Create filter
-	for (i=0 ; i<end ; i++)
+	for (u32 i = 0; i < end; i++)
 	{
 		t1 = (float)(i+1) - k2;
 		w[end-i-1] = w[*n-end+i] = float(w[end-i-1] * sin(k1 * t1)/(M_PI * t1)); // Sinc
@@ -164,7 +164,7 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 
 	// Normalize gain
 	g=1/g;
-	for (i=0; i<*n; i++)
+	for (u32 i = 0; i < *n; i++)
 		w[i] *= g;
 
 	return w;

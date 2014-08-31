@@ -275,7 +275,8 @@ bool IsScheduled(int event_type)
 	if (!first)
 		return false;
 	Event *e = first;
-	while (e) {
+	while (e)
+	{
 		if (e->type == event_type)
 			return true;
 		e = e->next;
