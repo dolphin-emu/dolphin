@@ -7,12 +7,14 @@
 #include <mutex>
 #include <string>
 
+#include "Interpolator.h"
 #include "AudioCommon/WaveFile.h"
 
 // 16 bit Stereo
 #define MAX_SAMPLES     (1024 * 2) // 64ms
-#define INDEX_MASK      (MAX_SAMPLES * 2 - 1)
+#define INDEX_MASK      (MAX_SAMPLES * 2 - 1) // 2 channels of 2048 samples
 
+// magic numbers. Need to figure out what exactly they are, and if can be made better
 #define LOW_WATERMARK   1280 // 40 ms
 #define MAX_FREQ_SHIFT  200  // per 32000 Hz
 #define CONTROL_FACTOR  0.2f // in freq_shift per fifo size offset
@@ -85,18 +87,8 @@ public:
 protected:
 	class MixerFifo {
 	public:
-		MixerFifo(CMixer *mixer, unsigned sample_rate)
-			: m_mixer(mixer)
-			, m_input_sample_rate(sample_rate)
-			, m_indexW(0)
-			, m_indexR(0)
-			, m_LVolume(256)
-			, m_RVolume(256)
-			, m_numLeftI(0.0f)
-			, m_frac(0)
-		{
-			memset(m_buffer, 0, sizeof(m_buffer));
-		}
+		MixerFifo(CMixer *mixer, unsigned sample_rate);
+		~MixerFifo();
 		void PushSamples(const short* samples, unsigned int num_samples);
 		unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
 		void SetInputSampleRate(unsigned int rate);
@@ -105,13 +97,16 @@ protected:
 		CMixer *m_mixer;
 		unsigned m_input_sample_rate;
 		short m_buffer[MAX_SAMPLES * 2];
+		std::string interpAlgo;
+		Interpolator *m_interp;
 		volatile u32 m_indexW;
 		volatile u32 m_indexR;
+		u32 m_previousW;
 		// Volume ranges from 0-256
 		volatile s32 m_LVolume;
 		volatile s32 m_RVolume;
 		float m_numLeftI;
-		u32 m_frac;
+		float m_frac;
 	};
 	MixerFifo m_dma_mixer;
 	MixerFifo m_streaming_mixer;

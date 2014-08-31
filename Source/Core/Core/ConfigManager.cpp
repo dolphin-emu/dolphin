@@ -328,6 +328,7 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 	dsp->Set("Backend", sBackend);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
+	dsp->Set("Interp", sInterp);
 }
 
 void SConfig::SaveInputSettings(IniFile& ini)
@@ -547,7 +548,6 @@ void SConfig::LoadMovieSettings(IniFile& ini)
 void SConfig::LoadDSPSettings(IniFile& ini)
 {
 	IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
-
 	dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
 	dsp->Get("DumpAudio", &m_DumpAudio, false);
 #if defined __linux__ && HAVE_ALSA
@@ -563,6 +563,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #endif
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+	dsp->Get("Interp", &sInterp, INTERP_LINEAR);
 }
 
 void SConfig::LoadInputSettings(IniFile& ini)
