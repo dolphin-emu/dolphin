@@ -28,11 +28,11 @@
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/WiimoteConfigDiag.h"
 
-class InputPlugin;
+class InputConfig;
 
-WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
+WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputConfig& config)
 	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"))
-	, m_plugin(plugin)
+	, m_config(config)
 {
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -230,7 +230,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 
 void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& ev)
 {
-	InputConfigDialog* const m_emu_config_diag = new InputConfigDialog(this, m_plugin, _trans("Dolphin Emulated Wiimote Configuration"), m_wiimote_index_from_conf_bt_id[ev.GetId()]);
+	InputConfigDialog* const m_emu_config_diag = new InputConfigDialog(this, m_config, _trans("Dolphin Emulated Wiimote Configuration"), m_wiimote_index_from_conf_bt_id[ev.GetId()]);
 	m_emu_config_diag->ShowModal();
 	m_emu_config_diag->Destroy();
 }

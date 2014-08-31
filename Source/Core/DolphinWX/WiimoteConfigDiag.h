@@ -9,14 +9,14 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
 
-class InputPlugin;
+class InputConfig;
 class wxButton;
 class wxWindow;
 
 class WiimoteConfigDiag : public wxDialog
 {
 public:
-	WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin);
+	WiimoteConfigDiag(wxWindow* const parent, InputConfig& config);
 
 	void RefreshRealWiimotes(wxCommandEvent& event);
 
@@ -61,7 +61,7 @@ public:
 private:
 	void Cancel(wxCommandEvent& event);
 
-	InputPlugin& m_plugin;
+	InputConfig& m_config;
 
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
 	unsigned int m_orig_wiimote_sources[MAX_BBMOTES];
