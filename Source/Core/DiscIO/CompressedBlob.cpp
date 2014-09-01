@@ -26,29 +26,29 @@
 namespace DiscIO
 {
 
-CompressedBlobReader::CompressedBlobReader(const std::string& filename) : file_name(filename)
+CompressedBlobReader::CompressedBlobReader(const std::string& filename) : m_file_name(filename)
 {
 	m_file.Open(filename, "rb");
-	file_size = File::GetSize(filename);
-	m_file.ReadArray(&header, 1);
+	m_file_size = File::GetSize(filename);
+	m_file.ReadArray(&m_header, 1);
 
-	SetSectorSize(header.block_size);
+	SetSectorSize(m_header.block_size);
 
 	// cache block pointers and hashes
-	block_pointers = new u64[header.num_blocks];
-	m_file.ReadArray(block_pointers, header.num_blocks);
-	hashes = new u32[header.num_blocks];
-	m_file.ReadArray(hashes, header.num_blocks);
+	m_block_pointers = new u64[m_header.num_blocks];
+	m_file.ReadArray(m_block_pointers, m_header.num_blocks);
+	m_hashes = new u32[m_header.num_blocks];
+	m_file.ReadArray(m_hashes, m_header.num_blocks);
 
-	data_offset = (sizeof(CompressedBlobHeader))
-		+ (sizeof(u64)) * header.num_blocks   // skip block pointers
-		+ (sizeof(u32)) * header.num_blocks;  // skip hashes
+	m_data_offset = (sizeof(CompressedBlobHeader))
+	              + (sizeof(u64)) * m_header.num_blocks  // skip block pointers
+	              + (sizeof(u32)) * m_header.num_blocks; // skip hashes
 
 	// A compressed block is never ever longer than a decompressed block, so just header.block_size should be fine.
 	// I still add some safety margin.
-	zlib_buffer_size = header.block_size + 64;
-	zlib_buffer = new u8[zlib_buffer_size];
-	memset(zlib_buffer, 0, zlib_buffer_size);
+	m_zlib_buffer_size = m_header.block_size + 64;
+	m_zlib_buffer = new u8[m_zlib_buffer_size];
+	memset(m_zlib_buffer, 0, m_zlib_buffer_size);
 }
 
 CompressedBlobReader* CompressedBlobReader::Create(const std::string& filename)
@@ -61,19 +61,19 @@ CompressedBlobReader* CompressedBlobReader::Create(const std::string& filename)
 
 CompressedBlobReader::~CompressedBlobReader()
 {
-	delete [] zlib_buffer;
-	delete [] block_pointers;
-	delete [] hashes;
+	delete [] m_zlib_buffer;
+	delete [] m_block_pointers;
+	delete [] m_hashes;
 }
 
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
 u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 {
-	u64 start = block_pointers[block_num];
-	if (block_num < header.num_blocks - 1)
-		return block_pointers[block_num + 1] - start;
-	else if (block_num == header.num_blocks - 1)
-		return header.compressed_data_size - start;
+	u64 start = m_block_pointers[block_num];
+	if (block_num < m_header.num_blocks - 1)
+		return m_block_pointers[block_num + 1] - start;
+	else if (block_num == m_header.num_blocks - 1)
+		return m_header.compressed_data_size - start;
 	else
 		PanicAlert("GetBlockCompressedSize - illegal block number %i", (int)block_num);
 	return 0;
@@ -83,32 +83,32 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 {
 	bool uncompressed = false;
 	u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
-	u64 offset = block_pointers[block_num] + data_offset;
+	u64 offset = m_block_pointers[block_num] + m_data_offset;
 
 	if (offset & (1ULL << 63))
 	{
-		if (comp_block_size != header.block_size)
+		if (comp_block_size != m_header.block_size)
 			PanicAlert("Uncompressed block with wrong size");
 		uncompressed = true;
 		offset &= ~(1ULL << 63);
 	}
 
 	// clear unused part of zlib buffer. maybe this can be deleted when it works fully.
-	memset(zlib_buffer + comp_block_size, 0, zlib_buffer_size - comp_block_size);
+	memset(m_zlib_buffer + comp_block_size, 0, m_zlib_buffer_size - comp_block_size);
 
 	m_file.Seek(offset, SEEK_SET);
-	m_file.ReadBytes(zlib_buffer, comp_block_size);
+	m_file.ReadBytes(m_zlib_buffer, comp_block_size);
 
-	u8* source = zlib_buffer;
+	u8* source = m_zlib_buffer;
 	u8* dest = out_ptr;
 
 	// First, check hash.
 	u32 block_hash = HashAdler32(source, comp_block_size);
-	if (block_hash != hashes[block_num])
+	if (block_hash != m_hashes[block_num])
 		PanicAlert("Hash of block %" PRIu64 " is %08x instead of %08x.\n"
 		           "Your ISO, %s, is corrupt.",
-		           block_num, block_hash, hashes[block_num],
-		           file_name.c_str());
+		           block_num, block_hash, m_hashes[block_num],
+		           m_file_name.c_str());
 
 	if (uncompressed)
 	{
@@ -120,15 +120,15 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 		memset(&z, 0, sizeof(z));
 		z.next_in  = source;
 		z.avail_in = comp_block_size;
-		if (z.avail_in > header.block_size)
+		if (z.avail_in > m_header.block_size)
 		{
 			PanicAlert("We have a problem");
 		}
 		z.next_out  = dest;
-		z.avail_out = header.block_size;
+		z.avail_out = m_header.block_size;
 		inflateInit(&z);
 		int status = inflate(&z, Z_FULL_FLUSH);
-		u32 uncomp_size = header.block_size - z.avail_out;
+		u32 uncomp_size = m_header.block_size - z.avail_out;
 		if (status != Z_STREAM_END)
 		{
 			// this seem to fire wrongly from time to time
@@ -136,7 +136,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 			PanicAlert("Failure reading block %" PRIu64 " - out of data and not at end.", block_num);
 		}
 		inflateEnd(&z);
-		if (uncomp_size != header.block_size)
+		if (uncomp_size != m_header.block_size)
 			PanicAlert("Wrong block size");
 	}
 }

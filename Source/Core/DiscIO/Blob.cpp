@@ -27,15 +27,15 @@ void SectorReader::SetSectorSize(int blocksize)
 {
 	for (int i = 0; i < CACHE_SIZE; i++)
 	{
-		cache[i] = new u8[blocksize];
-		cache_tags[i] = (u64)(s64) - 1;
+		m_cache[i] = new u8[blocksize];
+		m_cache_tags[i] = (u64)(s64) - 1;
 	}
 	m_blocksize = blocksize;
 }
 
 SectorReader::~SectorReader()
 {
-	for (u8*& block : cache)
+	for (u8*& block : m_cache)
 	{
 		delete [] block;
 	}
@@ -44,15 +44,15 @@ SectorReader::~SectorReader()
 const u8 *SectorReader::GetBlockData(u64 block_num)
 {
 	// TODO : Expand usage of the cache to more than one block :P
-	if (cache_tags[0] == block_num)
+	if (m_cache_tags[0] == block_num)
 	{
-		return cache[0];
+		return m_cache[0];
 	}
 	else
 	{
-		GetBlock(block_num, cache[0]);
-		cache_tags[0] = block_num;
-		return cache[0];
+		GetBlock(block_num, m_cache[0]);
+		m_cache_tags[0] = block_num;
+		return m_cache[0];
 	}
 }
 
