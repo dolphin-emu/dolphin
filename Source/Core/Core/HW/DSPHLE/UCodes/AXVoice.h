@@ -149,12 +149,17 @@ void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 u16 AcceleratorGetSample()
 {
 	u16 ret;
+	u8 step_size_bytes = 2;
+
+	// 8-bit PCM audio uses 1 byte per sample/sample block, not 2 like other formats.
+	if (acc_pb->audio_addr.sample_format == 0x19)
+		step_size_bytes = 1;
 
 	// Have we reached the end address?
 	//
 	// On real hardware, this would raise an interrupt that is handled by the
 	// UCode. We simulate what this interrupt does here.
-	if ((*acc_cur_addr & ~1) == (acc_end_addr & ~1))
+	if (*acc_cur_addr == (acc_end_addr + step_size_bytes - 1))
 	{
 		// loop back to loop_addr.
 		*acc_cur_addr = acc_loop_addr;
