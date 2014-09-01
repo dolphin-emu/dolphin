@@ -47,7 +47,7 @@ private:
 	u8* m_pBuffer;
 
 	u64 m_VolumeOffset;
-	u64 dataOffset;
+	u64 m_dataOffset;
 
 	mutable u64 m_LastDecryptedBlockOffset;
 	mutable unsigned char m_LastDecryptedBlock[0x8000];

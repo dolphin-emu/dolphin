@@ -24,7 +24,7 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
 	m_AES_ctx(new aes_context),
 	m_pBuffer(nullptr),
 	m_VolumeOffset(_VolumeOffset),
-	dataOffset(0x20000),
+	m_dataOffset(0x20000),
 	m_LastDecryptedBlockOffset(-1)
 {
 	aes_setkey_dec(m_AES_ctx.get(), _pVolumeKey, 128);
@@ -66,7 +66,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 		u64 Offset = _ReadOffset % 0x7C00;
 
 		// read current block
-		if (!m_pReader->Read(m_VolumeOffset + dataOffset + Block * 0x8000, 0x8000, m_pBuffer))
+		if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * 0x8000, 0x8000, m_pBuffer))
 		{
 			return(false);
 		}
@@ -246,7 +246,7 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
 	u32 nClusters = (u32)(partDataSize / 0x8000);
 	for (u32 clusterID = 0; clusterID < nClusters; ++clusterID)
 	{
-		u64 clusterOff = m_VolumeOffset + dataOffset + (u64)clusterID * 0x8000;
+		u64 clusterOff = m_VolumeOffset + m_dataOffset + (u64)clusterID * 0x8000;
 
 		// Read and decrypt the cluster metadata
 		u8 clusterMDCrypted[0x400];

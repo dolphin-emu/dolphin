@@ -106,8 +106,8 @@ private:
 	};
 #pragma pack(pop)
 
-	u32 lastID;
-	std::string contentMap;
+	u32 m_lastID;
+	std::string m_contentMap;
 	std::vector<SElement> m_Elements;
 	static CSharedContent m_Instance;
 };
@@ -134,8 +134,8 @@ private:
 	};
 #pragma pack(pop)
 
-	u32 lastUID;
-	std::string uidSys;
+	u32 m_lastUID;
+	std::string m_uidSys;
 	std::vector<SElement> m_Elements;
 	static cUIDsys m_Instance;
 };

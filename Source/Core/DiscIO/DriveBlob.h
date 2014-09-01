@@ -20,27 +20,27 @@ namespace DiscIO
 
 class DriveReader : public SectorReader
 {
+public:
+	static DriveReader* Create(const std::string& drive);
+	~DriveReader();
+	u64 GetDataSize() const override { return m_size; }
+	u64 GetRawSize() const override { return m_size; }
+
+	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr) override;
+
 private:
 	DriveReader(const std::string& drive);
 	void GetBlock(u64 block_num, u8 *out_ptr) override;
 
 #ifdef _WIN32
-	HANDLE hDisc;
-	PREVENT_MEDIA_REMOVAL pmrLockCDROM;
-	bool IsOK() {return hDisc != INVALID_HANDLE_VALUE;}
+	HANDLE m_disc_handle;
+	PREVENT_MEDIA_REMOVAL m_lock_cdrom;
+	bool IsOK() { return m_disc_handle != INVALID_HANDLE_VALUE; }
 #else
-	File::IOFile file_;
-	bool IsOK() {return file_ != nullptr;}
+	File::IOFile m_file;
+	bool IsOK() { return m_file != nullptr; }
 #endif
-	s64 size;
-
-public:
-	static DriveReader* Create(const std::string& drive);
-	~DriveReader();
-	u64 GetDataSize() const override { return size; }
-	u64 GetRawSize() const override { return size; }
-
-	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr) override;
+	s64 m_size;
 };
 
 }  // namespace

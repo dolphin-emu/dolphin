@@ -16,6 +16,14 @@ namespace DiscIO
 
 class WbfsFileReader : public IBlobReader
 {
+public:
+	static WbfsFileReader* Create(const std::string& filename);
+
+	u64 GetDataSize() const override { return m_size; }
+	u64 GetRawSize() const override { return m_size; }
+	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
+
+private:
 	WbfsFileReader(const std::string& filename);
 	~WbfsFileReader();
 
@@ -38,28 +46,21 @@ class WbfsFileReader : public IBlobReader
 	u32 m_total_files;
 	u64 m_size;
 
-	u64 hd_sector_size;
-	u8 hd_sector_shift;
-	u32 hd_sector_count;
+	u64 m_hd_sector_size;
+	u8 m_hd_sector_shift;
+	u32 m_hd_sector_count;
 
-	u64 wbfs_sector_size;
-	u8 wbfs_sector_shift;
-	u64 wbfs_sector_count;
+	u64 m_wbfs_sector_size;
+	u8 m_wbfs_sector_shift;
+	u64 m_wbfs_sector_count;
 	u64 m_disc_info_size;
 
-	u8 disc_table[500];
+	u8 m_disc_table[500];
 
 	u16* m_wlba_table;
 	u64 m_blocks_per_disc;
 
 	bool m_good;
-
-public:
-	static WbfsFileReader* Create(const std::string& filename);
-
-	u64 GetDataSize() const override { return m_size; }
-	u64 GetRawSize() const override { return m_size; }
-	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 };
 
 bool IsWbfsBlob(const std::string& filename);

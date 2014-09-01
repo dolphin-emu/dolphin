@@ -28,8 +28,8 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	, m_dataStartAddress(-1)
 	, m_diskHeader(DISKHEADERINFO_ADDRESS)
 	, m_diskHeaderInfo(new SDiskHeaderInfo())
-	, FST_ADDRESS(0)
-	, DOL_ADDRESS(0)
+	, m_fst_address(0)
+	, m_dol_address(0)
 {
 	m_rootDirectory = ExtractDirectoryName(_rDirectory);
 
@@ -86,14 +86,14 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 		WriteToBuffer(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data(), _Offset, _Length, _pBuffer);
 	}
 	// dol
-	if (_Offset >= DOL_ADDRESS && _Offset < DOL_ADDRESS + m_DOL.size())
+	if (_Offset >= m_dol_address && _Offset < m_dol_address + m_DOL.size())
 	{
-		WriteToBuffer(DOL_ADDRESS, m_DOL.size(), m_DOL.data(), _Offset, _Length, _pBuffer);
+		WriteToBuffer(m_dol_address, m_DOL.size(), m_DOL.data(), _Offset, _Length, _pBuffer);
 	}
 	// fst
-	if (_Offset >= FST_ADDRESS && _Offset < m_dataStartAddress)
+	if (_Offset >= m_fst_address && _Offset < m_dataStartAddress)
 	{
-		WriteToBuffer(FST_ADDRESS, m_FSTData.size(), m_FSTData.data(), _Offset, _Length, _pBuffer);
+		WriteToBuffer(m_fst_address, m_FSTData.size(), m_FSTData.data(), _Offset, _Length, _pBuffer);
 	}
 
 	if (m_virtualDisk.empty())
@@ -279,7 +279,7 @@ bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
 		std::copy(data.begin(), data.end(), m_apploader.begin());
 
 		// 32byte aligned (plus 0x20 padding)
-		DOL_ADDRESS = ROUND_UP(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
+		m_dol_address = ROUND_UP(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
 		return true;
 	}
 	else
@@ -300,10 +300,10 @@ void CVolumeDirectory::SetDOL(const std::string& rDOL)
 		m_DOL.resize(data.size());
 		std::copy(data.begin(), data.end(), m_DOL.begin());
 
-		Write32((u32)(DOL_ADDRESS >> m_addressShift), 0x0420, &m_diskHeader);
+		Write32((u32)(m_dol_address >> m_addressShift), 0x0420, &m_diskHeader);
 
 		// 32byte aligned (plus 0x20 padding)
-		FST_ADDRESS = ROUND_UP(DOL_ADDRESS + m_DOL.size() + 0x20, 0x20ull);
+		m_fst_address = ROUND_UP(m_dol_address + m_DOL.size() + 0x20, 0x20ull);
 	}
 }
 
@@ -320,11 +320,11 @@ void CVolumeDirectory::BuildFST()
 	m_FSTData.resize(m_fstNameOffset + m_totalNameSize);
 
 	// if FST hasn't been assigned (ie no apploader/dol setup), set to default
-	if (FST_ADDRESS == 0)
-		FST_ADDRESS = APPLOADER_ADDRESS + 0x2000;
+	if (m_fst_address == 0)
+		m_fst_address = APPLOADER_ADDRESS + 0x2000;
 
 	// 4 byte aligned start of data on disk
-	m_dataStartAddress = ROUND_UP(FST_ADDRESS + m_FSTData.size(), 0x8000ull);
+	m_dataStartAddress = ROUND_UP(m_fst_address + m_FSTData.size(), 0x8000ull);
 	u64 curDataAddress = m_dataStartAddress;
 
 	u32 fstOffset = 0;  // Offset within FST data
@@ -343,7 +343,7 @@ void CVolumeDirectory::BuildFST()
 	_dbg_assert_(DVDINTERFACE, nameOffset == m_totalNameSize);
 
 	// write FST size and location
-	Write32((u32)(FST_ADDRESS >> m_addressShift), 0x0424, &m_diskHeader);
+	Write32((u32)(m_fst_address >> m_addressShift), 0x0424, &m_diskHeader);
 	Write32((u32)(m_FSTData.size() >> m_addressShift), 0x0428, &m_diskHeader);
 	Write32((u32)(m_FSTData.size() >> m_addressShift), 0x042c, &m_diskHeader);
 }
