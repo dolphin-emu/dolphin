@@ -6,6 +6,7 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -275,9 +276,9 @@ bool ParsePartitionData(SPartition& _rPartition)
 
 	// Ready some stuff
 	m_Disc = CreateVolumeFromFilename(m_Filename, _rPartition.GroupNumber, _rPartition.Number);
-	IFileSystem *FileSystem = CreateFileSystem(m_Disc);
+	std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_Disc));
 
-	if (!FileSystem)
+	if (!filesystem)
 	{
 		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", _rPartition.GroupNumber, _rPartition.Number);
 		ParsedOK = false;
@@ -285,7 +286,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 	else
 	{
 		std::vector<const SFileInfo *> Files;
-		size_t numFiles = FileSystem->GetFileList(Files);
+		size_t numFiles = filesystem->GetFileList(Files);
 
 		// Mark things as used which are not in the filesystem
 		// Header, Header Information, Apploader
@@ -329,8 +330,6 @@ bool ParsePartitionData(SPartition& _rPartition)
 				, (*Files.at(currentFile)).m_Offset, (*Files.at(currentFile)).m_FileSize);
 		}
 	}
-
-	delete FileSystem;
 
 	// Swap back
 	delete m_Disc;
