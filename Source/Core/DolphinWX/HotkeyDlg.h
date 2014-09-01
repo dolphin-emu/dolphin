@@ -9,6 +9,7 @@
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/string.h>
+#include <wx/timer.h>
 #include <wx/translation.h>
 #include <wx/windowid.h>
 
@@ -20,7 +21,6 @@
 #endif
 
 class wxButton;
-class wxTimer;
 class wxTimerEvent;
 class wxWindow;
 
@@ -40,10 +40,10 @@ class HotkeyConfigDialog : public wxDialog
 
 		wxString OldLabel;
 
-		wxButton *ClickedButton,
-				 *m_Button_Hotkeys[NUM_HOTKEYS];
+		wxButton *ClickedButton;
+		wxButton *m_Button_Hotkeys[NUM_HOTKEYS];
 
-		wxTimer *m_ButtonMappingTimer;
+		wxTimer m_ButtonMappingTimer;
 
 		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
 		void OnButtonClick(wxCommandEvent& event);

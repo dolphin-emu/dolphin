@@ -37,22 +37,19 @@ END_EVENT_TABLE()
 HotkeyConfigDialog::HotkeyConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
 		const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
+, m_ButtonMappingTimer(this)
 {
 	CreateHotkeyGUIControls();
 
-#if wxUSE_TIMER
-	m_ButtonMappingTimer = new wxTimer(this, wxID_ANY);
 	g_Pressed = 0;
 	g_Modkey = 0;
 	ClickedButton = nullptr;
 	GetButtonWaitingID = 0;
 	GetButtonWaitingTimer = 0;
-#endif
 }
 
 HotkeyConfigDialog::~HotkeyConfigDialog()
 {
-	delete m_ButtonMappingTimer;
 }
 
 // Save keyboard key mapping
@@ -65,7 +62,7 @@ void HotkeyConfigDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 void HotkeyConfigDialog::EndGetButtons()
 {
 	wxTheApp->Unbind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
-	m_ButtonMappingTimer->Stop();
+	m_ButtonMappingTimer.Stop();
 	GetButtonWaitingTimer = 0;
 	GetButtonWaitingID = 0;
 	ClickedButton = nullptr;
@@ -135,19 +132,17 @@ void HotkeyConfigDialog::DoGetButtons(int _GetId)
 	const int TimesPerSecond = 40; // How often to run the check
 
 	// If the Id has changed or the timer is not running we should start one
-	if ( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer->IsRunning() )
+	if ( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer.IsRunning() )
 	{
-		if (m_ButtonMappingTimer->IsRunning())
-			m_ButtonMappingTimer->Stop();
+		if (m_ButtonMappingTimer.IsRunning())
+			m_ButtonMappingTimer.Stop();
 
 		// Save the button Id
 		GetButtonWaitingID = _GetId;
 		GetButtonWaitingTimer = 0;
 
 		// Start the timer
-		#if wxUSE_TIMER
-		m_ButtonMappingTimer->Start(1000 / TimesPerSecond);
-		#endif
+		m_ButtonMappingTimer.Start(1000 / TimesPerSecond);
 	}
 
 	// Process results
@@ -177,7 +172,7 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
 	event.Skip();
 
-	if (m_ButtonMappingTimer->IsRunning())
+	if (m_ButtonMappingTimer.IsRunning())
 		return;
 
 	wxTheApp->Bind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
