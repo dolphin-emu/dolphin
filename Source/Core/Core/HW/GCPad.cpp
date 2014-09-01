@@ -15,20 +15,20 @@
 namespace Pad
 {
 
-static InputPlugin g_plugin("GCPadNew", _trans("Pad"), "GCPad");
-InputPlugin *GetPlugin()
+static InputConfig s_config("GCPadNew", _trans("Pad"), "GCPad");
+InputConfig* GetConfig()
 {
-	return &g_plugin;
+	return &s_config;
 }
 
 void Shutdown()
 {
 	std::vector<ControllerEmu*>::const_iterator
-		i = g_plugin.controllers.begin(),
-		e = g_plugin.controllers.end();
+		i = s_config.controllers.begin(),
+		e = s_config.controllers.end();
 	for ( ; i!=e; ++i )
 		delete *i;
-	g_plugin.controllers.clear();
+	s_config.controllers.clear();
 
 	g_controller_interface.Shutdown();
 }
@@ -38,13 +38,13 @@ void Initialize(void* const hwnd)
 {
 	// add 4 gcpads
 	for (unsigned int i=0; i<4; ++i)
-		g_plugin.controllers.push_back(new GCPad(i));
+		s_config.controllers.push_back(new GCPad(i));
 
 	g_controller_interface.SetHwnd(hwnd);
 	g_controller_interface.Initialize();
 
 	// load the saved controller config
-	g_plugin.LoadConfig(true);
+	s_config.LoadConfig(true);
 }
 
 void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
@@ -52,7 +52,7 @@ void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
 	_pPADStatus->err = PAD_ERR_NONE;
 
-	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
 
 	if (!lk.owns_lock())
 	{
@@ -76,7 +76,7 @@ void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 	_last_numPAD = _numPAD;
 
 	// get input
-	((GCPad*)g_plugin.controllers[_numPAD])->GetInput(_pPADStatus);
+	((GCPad*)s_config.controllers[_numPAD])->GetInput(_pPADStatus);
 }
 
 // __________________________________________________________________________________________________
@@ -89,7 +89,7 @@ void GetStatus(u8 _numPAD, GCPadStatus* _pPADStatus)
 //
 void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
-	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
 
 	if (lk.owns_lock())
 	{
@@ -97,11 +97,11 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 		// set rumble
 		if (1 == _uType && _uStrength > 2)
 		{
-			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput(255);
+			((GCPad*)s_config.controllers[ _numPAD ])->SetOutput(255);
 		}
 		else
 		{
-			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput(0);
+			((GCPad*)s_config.controllers[ _numPAD ])->SetOutput(0);
 		}
 	}
 }
@@ -116,7 +116,7 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 //
 void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
-	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
 
 	if (lk.owns_lock())
 	{
@@ -124,7 +124,7 @@ void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 		// set rumble
 		if (_uType == 6)
 		{
-			((GCPad*)g_plugin.controllers[ _numPAD ])->SetMotor(_uStrength);
+			((GCPad*)s_config.controllers[ _numPAD ])->SetMotor(_uStrength);
 		}
 	}
 }
@@ -132,12 +132,12 @@ void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 bool GetMicButton(u8 pad)
 {
 
-	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+	std::unique_lock<std::recursive_mutex> lk(s_config.controls_lock, std::try_to_lock);
 
 	if (!lk.owns_lock())
 		return false;
 
-	return ((GCPad*)g_plugin.controllers[pad])->GetMicButton();
+	return ((GCPad*)s_config.controllers[pad])->GetMicButton();
 }
 
 }

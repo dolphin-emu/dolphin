@@ -7,14 +7,14 @@
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/InputConfig.h"
 
-InputPlugin::~InputPlugin()
+InputConfig::~InputConfig()
 {
 	// delete pads
 	for (ControllerEmu* pad : controllers)
 		delete pad;
 }
 
-bool InputPlugin::LoadConfig(bool isGC)
+bool InputConfig::LoadConfig(bool isGC)
 {
 	IniFile inifile;
 	IniFile game_ini;
@@ -94,7 +94,7 @@ bool InputPlugin::LoadConfig(bool isGC)
 	}
 }
 
-void InputPlugin::SaveConfig()
+void InputConfig::SaveConfig()
 {
 	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini";
 
