@@ -445,10 +445,9 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 				m_valid = false;
 			}
 
-			std::vector<u8> file_data, file_data_enc;
-			file_data.reserve(file_size_rounded);
-			file_data_enc.reserve(file_size_rounded);
-			memset(&file_data[0], 0, file_size_rounded);
+			std::vector<u8> file_data(file_size_rounded);
+			std::vector<u8> file_data_enc(file_size_rounded);
+
 			if (!raw_save_file.ReadBytes(&file_data[0], file_size))
 			{
 				ERROR_LOG(CONSOLE, "Failed to read data from file: %s",
