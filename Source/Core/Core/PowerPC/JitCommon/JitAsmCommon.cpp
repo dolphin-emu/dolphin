@@ -9,7 +9,7 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define QUANTIZED_REGS_TO_SAVE (ABI_ALL_CALLER_SAVED & ~((1 << RAX) | (1 << RCX) | (1 << RDX) | \
-                                                         (1 << XMM0) | (1 << XMM1)))
+                                                         (1 << (XMM0+16)) | (1 << (XMM1+16))))
 
 using namespace Gen;
 
