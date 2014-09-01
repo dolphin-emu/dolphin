@@ -139,7 +139,7 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	const VAT &vtxAttr = cpMem.vtxAttr[vatIndex];
 
 	// Colors
-	const u32 colDesc[2] = {vtxDesc.Color0, vtxDesc.Color1};
+	const u64 colDesc[2] = {vtxDesc.Color0, vtxDesc.Color1};
 	const u32 colComp[2] = {vtxAttr.g0.Color0Comp, vtxAttr.g0.Color1Comp};
 
 	const u32 tcElements[8] =
