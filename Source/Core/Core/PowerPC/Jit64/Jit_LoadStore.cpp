@@ -457,17 +457,17 @@ void Jit64::lmw(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStoreOff);
 
 	// TODO: This doesn't handle rollback on DSI correctly
+	gpr.FlushLockX(ECX);
+	MOV(32, R(ECX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
-	{
-		gpr.Lock(inst.RA);
-		gpr.BindToRegister(inst.RA, true, false);
-	}
+		ADD(32, R(ECX), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
+		SafeLoadToReg(EAX, R(ECX), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse(), false);
 		gpr.BindToRegister(i, false, true);
-		SafeLoadToReg(gpr.RX(i), inst.RA ? gpr.R(inst.RA) : Imm32(0), 32, (i - inst.RD) * 4 + (s32)inst.SIMM_16, CallerSavedRegistersInUse(), false);
+		MOV(32, gpr.R(i), R(EAX));
 	}
-	gpr.UnlockAll();
+	gpr.UnlockAllX();
 }
 
 void Jit64::stmw(UGeckoInstruction inst)
