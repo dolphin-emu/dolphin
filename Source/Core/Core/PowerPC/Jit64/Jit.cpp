@@ -167,10 +167,12 @@ void Jit64::Init()
 
 	trampolines.Init();
 	AllocCodeSpace(CODE_SIZE);
-	farcode.Init(js.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
-
 	blocks.Init();
 	asm_routines.Init();
+
+	// important: do this *after* generating the global asm routines, because we can't use farcode in them.
+	// it'll crash because the farcode functions get cleared on JIT clears.
+	farcode.Init(js.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
 
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;

@@ -351,7 +351,14 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			}
 			TEST(32, addr_loc, Imm32(mem_mask));
 
-			FixupBranch fast = J_CC(CC_Z, true);
+			FixupBranch slow, exit;
+			slow = J_CC(CC_NZ, farcode.Enabled());
+			UnsafeLoadToReg(reg_value, addr_loc, accessSize, 0, signExtend);
+			if (farcode.Enabled())
+				SwitchToFarCode();
+			else
+				exit = J(true);
+			SetJumpTarget(slow);
 
 			size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
 			ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -385,10 +392,11 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			}
 
 			MEMCHECK_END
-
-			FixupBranch exit = J();
-			SetJumpTarget(fast);
-			UnsafeLoadToReg(reg_value, addr_loc, accessSize, 0, signExtend);
+			if (farcode.Enabled())
+			{
+				exit = J(true);
+				SwitchToNearCode();
+			}
 			SetJumpTarget(exit);
 		}
 	}
@@ -470,12 +478,21 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	}
 #endif
 
+	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
+
+	FixupBranch slow, exit;
 	TEST(32, R(reg_addr), Imm32(mem_mask));
-	FixupBranch fast = J_CC(CC_Z, true);
+	slow = J_CC(CC_NZ, farcode.Enabled());
+	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
+	if (farcode.Enabled())
+		SwitchToFarCode();
+	else
+		exit = J(true);
+	SetJumpTarget(slow);
 	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
 	MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
+
 	size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
-	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
 	ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
 	switch (accessSize)
 	{
@@ -493,9 +510,11 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 		break;
 	}
 	ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
-	FixupBranch exit = J();
-	SetJumpTarget(fast);
-	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
+	if (farcode.Enabled())
+	{
+		exit = J(true);
+		SwitchToNearCode();
+	}
 	SetJumpTarget(exit);
 }
 
@@ -659,15 +678,17 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 	// to save an instruction, since diverting a few more floats to the slow path can't hurt much.
 	SUB(8, R(RSCRATCH), Imm8(0x6D));
 	CMP(8, R(RSCRATCH), Imm8(0x3));
-	FixupBranch x87Conversion = J_CC(CC_BE);
+	FixupBranch x87Conversion = J_CC(CC_BE, true);
 	CVTSD2SS(dst, R(src));
-	FixupBranch continue1 = J();
 
+	SwitchToFarCode();
 	SetJumpTarget(x87Conversion);
 	MOVSD(M(&temp64), src);
 	FLD(64, M(&temp64));
 	FSTP(32, M(&temp32));
 	MOVSS(dst, M(&temp32));
+	FixupBranch continue1 = J(true);
+	SwitchToNearCode();
 
 	SetJumpTarget(continue1);
 	// We'd normally need to MOVDDUP here to put the single in the top half of the output register too, but
@@ -696,16 +717,17 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 	// through the slow path (0x00800000), but the performance effects of that should be negligible.
 	SUB(32, R(gprsrc), Imm8(1));
 	TEST(32, R(gprsrc), Imm32(0x7f800000));
-
-	FixupBranch x87Conversion = J_CC(CC_Z);
+	FixupBranch x87Conversion = J_CC(CC_Z, true);
 	CVTSS2SD(dst, R(dst));
-	FixupBranch continue1 = J();
 
+	SwitchToFarCode();
 	SetJumpTarget(x87Conversion);
 	MOVSS(M(&temp32), dst);
 	FLD(32, M(&temp32));
 	FSTP(64, M(&temp64));
 	MOVSD(dst, M(&temp64));
+	FixupBranch continue1 = J(true);
+	SwitchToNearCode();
 
 	SetJumpTarget(continue1);
 	MOVDDUP(dst, R(dst));
