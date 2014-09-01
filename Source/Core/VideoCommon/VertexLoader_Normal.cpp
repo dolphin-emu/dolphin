@@ -182,13 +182,13 @@ void VertexLoader_Normal::Init()
 	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT]  = Normal_Index_Indices3<u16, float>();
 }
 
-unsigned int VertexLoader_Normal::GetSize(unsigned int _type,
+unsigned int VertexLoader_Normal::GetSize(u64 _type,
 	unsigned int _format, unsigned int _elements, unsigned int _index3)
 {
 	return m_Table[_type][_index3][_elements][_format].gc_size;
 }
 
-TPipelineFunction VertexLoader_Normal::GetFunction(unsigned int _type,
+TPipelineFunction VertexLoader_Normal::GetFunction(u64 _type,
 	unsigned int _format, unsigned int _elements, unsigned int _index3)
 {
 	TPipelineFunction pFunc = m_Table[_type][_index3][_elements][_format].function;
