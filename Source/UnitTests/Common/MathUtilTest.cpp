@@ -64,13 +64,15 @@ TEST(MathUtil, FlushToZero)
 	// we want the multiplication to occur at test runtime.
 	volatile float s = std::numeric_limits<float>::denorm_min();
 	volatile double d = std::numeric_limits<double>::denorm_min();
-	EXPECT_LT(0, s * 2);
-	EXPECT_LT(0, d * 2);
+	// Casting away the volatile attribute is required in order for msvc to resolve this to the
+	// correct instance of the comparison function.
+	EXPECT_LT(0.f, (float)(s * 2));
+	EXPECT_LT(0.0, (double)(d * 2));
 
-	EXPECT_EQ(+0, MathUtil::FlushToZero(+std::numeric_limits<double>::denorm_min()));
-	EXPECT_EQ(-0, MathUtil::FlushToZero(-std::numeric_limits<double>::denorm_min()));
-	EXPECT_EQ(+0, MathUtil::FlushToZero(+std::numeric_limits<double>::min() / 2));
-	EXPECT_EQ(-0, MathUtil::FlushToZero(-std::numeric_limits<double>::min() / 2));
+	EXPECT_EQ(+0.0, MathUtil::FlushToZero(+std::numeric_limits<double>::denorm_min()));
+	EXPECT_EQ(-0.0, MathUtil::FlushToZero(-std::numeric_limits<double>::denorm_min()));
+	EXPECT_EQ(+0.0, MathUtil::FlushToZero(+std::numeric_limits<double>::min() / 2));
+	EXPECT_EQ(-0.0, MathUtil::FlushToZero(-std::numeric_limits<double>::min() / 2));
 	EXPECT_EQ(std::numeric_limits<double>::min(), MathUtil::FlushToZero(std::numeric_limits<double>::min()));
 	EXPECT_EQ(std::numeric_limits<double>::max(), MathUtil::FlushToZero(std::numeric_limits<double>::max()));
 	EXPECT_EQ(+std::numeric_limits<double>::infinity(), MathUtil::FlushToZero(+std::numeric_limits<double>::infinity()));
@@ -82,10 +84,10 @@ TEST(MathUtil, FlushToZero)
 	for (u32 i = 0; i <= 0x007fffffu; ++i)
 	{
 		MathUtil::IntFloat x(i);
-		EXPECT_EQ(+0, MathUtil::FlushToZero(x.f));
+		EXPECT_EQ(+0.f, MathUtil::FlushToZero(x.f));
 
 		x.i = i | 0x80000000u;
-		EXPECT_EQ(-0, MathUtil::FlushToZero(x.f));
+		EXPECT_EQ(-0.f, MathUtil::FlushToZero(x.f));
 
 		x.i = dist(engine);
 		MathUtil::IntFloat y(MathUtil::FlushToZero(x.f));
