@@ -43,7 +43,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
 	// 0b0011111100000111, or 0x3F07.
 	MOV(32, R(EAX), Imm32(0x3F07));
-	AND(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_GQR0 + inst.I]));
+	AND(32, R(EAX), PPCSTATE(spr[SPR_GQR0 + inst.I]));
 	MOVZX(32, 8, EDX, R(AL));
 
 	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32] without a base register!

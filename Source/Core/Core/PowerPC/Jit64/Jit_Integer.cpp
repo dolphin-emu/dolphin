@@ -21,12 +21,12 @@ void Jit64::GenerateConstantOverflow(bool overflow)
 	if (overflow)
 	{
 		//XER[OV/SO] = 1
-		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
+		OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
 	}
 	else
 	{
 		//XER[OV] = 0
-		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_OV_MASK));
+		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_OV_MASK));
 	}
 }
 
@@ -34,11 +34,11 @@ void Jit64::GenerateOverflow()
 {
 	FixupBranch jno = J_CC(CC_NO);
 	//XER[OV/SO] = 1
-	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
+	OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
 	FixupBranch exit = J();
 	SetJumpTarget(jno);
 	//XER[OV] = 0
-	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_OV_MASK));
+	AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_OV_MASK));
 	SetJumpTarget(exit);
 }
 
@@ -54,7 +54,7 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 		JitSetCA();
 		SetJumpTarget(carry1);
 		//XER[OV/SO] = 1
-		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
+		OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
 		FixupBranch exit = J();
 		SetJumpTarget(jno);
 		// Do carry
@@ -74,7 +74,7 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 
 void Jit64::GetCarryEAXAndClear()
 {
-	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+	MOV(32, R(EAX), PPCSTATE(spr[SPR_XER]));
 	BTR(32, R(EAX), Imm8(29));
 }
 
@@ -109,7 +109,7 @@ void Jit64::FinalizeCarryGenerateOverflowEAX(bool oe, bool inv)
 		SetJumpTarget(carry1);
 	}
 	// Dump EAX back into XER
-	MOV(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(EAX));
+	MOV(32, PPCSTATE(spr[SPR_XER]), R(EAX));
 }
 
 // Assumes that the flags were just set through an addition.
@@ -117,10 +117,10 @@ void Jit64::GenerateCarry()
 {
 	// USES_XER
 	FixupBranch pNoCarry = J_CC(CC_NC);
-	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK));
+	OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_CA_MASK));
 	FixupBranch pContinue = J();
 	SetJumpTarget(pNoCarry);
-	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(XER_CA_MASK)));
+	AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~(XER_CA_MASK)));
 	SetJumpTarget(pContinue);
 }
 
@@ -128,12 +128,12 @@ void Jit64::ComputeRC(const Gen::OpArg & arg)
 {
 	if (arg.IsImm())
 	{
-		MOV(64, M(&PowerPC::ppcState.cr_val[0]), Imm32((s32)arg.offset));
+		MOV(64, PPCSTATE(cr_val[0]), Imm32((s32)arg.offset));
 	}
 	else
 	{
 		MOVSX(64, 32, RAX, arg);
-		MOV(64, M(&PowerPC::ppcState.cr_val[0]), R(RAX));
+		MOV(64, PPCSTATE(cr_val[0]), R(RAX));
 	}
 }
 
@@ -375,7 +375,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				compareResult = CR_LT;
 		}
 		MOV(64, R(RAX), Imm64(PPCCRToInternal(compareResult)));
-		MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
+		MOV(64, PPCSTATE(cr_val[crf]), R(RAX));
 		gpr.UnlockAll();
 
 		if (merge_branch)
@@ -393,7 +393,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				if (js.next_inst.OPCD == 16) // bcx
 				{
 					if (js.next_inst.LK)
-						MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+						MOV(32, PPCSTATE_LR, Imm32(js.next_compilerPC + 4));
 
 					u32 destination;
 					if (js.next_inst.AA)
@@ -405,16 +405,16 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
 				{
 					if (js.next_inst.LK)
-						MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
-					MOV(32, R(EAX), M(&CTR));
+						MOV(32, PPCSTATE_LR, Imm32(js.next_compilerPC + 4));
+					MOV(32, R(EAX), PPCSTATE_CTR);
 					AND(32, R(EAX), Imm32(0xFFFFFFFC));
 					WriteExitDestInEAX();
 				}
 				else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
 				{
-					MOV(32, R(EAX), M(&LR));
+					MOV(32, R(EAX), PPCSTATE_LR);
 					if (js.next_inst.LK)
-						MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+						MOV(32, PPCSTATE_LR, Imm32(js.next_compilerPC + 4));
 					WriteExitDestInEAX();
 				}
 				else
@@ -461,7 +461,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			comparand = R(ABI_PARAM1);
 		}
 		SUB(64, R(RAX), comparand);
-		MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
+		MOV(64, PPCSTATE(cr_val[crf]), R(RAX));
 
 		if (merge_branch)
 		{
@@ -492,7 +492,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			if (js.next_inst.OPCD == 16) // bcx
 			{
 				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+					MOV(32, PPCSTATE_LR, Imm32(js.next_compilerPC + 4));
 
 				u32 destination;
 				if (js.next_inst.AA)
@@ -504,19 +504,19 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
 			{
 				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+					MOV(32, PPCSTATE_LR, Imm32(js.next_compilerPC + 4));
 
-				MOV(32, R(EAX), M(&CTR));
+				MOV(32, R(EAX), PPCSTATE_CTR);
 				AND(32, R(EAX), Imm32(0xFFFFFFFC));
 				WriteExitDestInEAX();
 			}
 			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
 			{
-				MOV(32, R(EAX), M(&LR));
+				MOV(32, R(EAX), PPCSTATE_LR);
 				AND(32, R(EAX), Imm32(0xFFFFFFFC));
 
 				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
+					MOV(32, PPCSTATE_LR, Imm32(js.next_compilerPC + 4));
 
 				WriteExitDestInEAX();
 			}
@@ -2020,7 +2020,7 @@ void Jit64::twx(UGeckoInstruction inst)
 		SetJumpTarget(fixup);
 	}
 	LOCK();
-	OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_PROGRAM));
+	OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_PROGRAM));
 
 	gpr.Flush(FLUSH_MAINTAIN_STATE);
 	fpr.Flush(FLUSH_MAINTAIN_STATE);

@@ -163,7 +163,7 @@ static void fregSpill(RegInfo& RI, X64Reg reg)
 #ifdef _WIN32
 static const X64Reg RegAllocOrder[] = {RSI, RDI, R12, R13, R14, R8, R9, R10, R11};
 #else
-static const X64Reg RegAllocOrder[] = {RBP, R12, R13, R14, R8, R9, R10, R11};
+static const X64Reg RegAllocOrder[] = {R12, R13, R14, R8, R9, R10, R11};
 #endif
 static const int RegAllocSize = sizeof(RegAllocOrder) / sizeof(X64Reg);
 static const X64Reg FRegAllocOrder[] = {XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5};
@@ -949,8 +949,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			// interpreter call at the moment, but optimizing interpreter
 			// calls isn't completely out of the question...
 			regSpillCallerSaved(RI);
-			Jit->MOV(32, M(&PC), Imm32(InstLoc));
-			Jit->MOV(32, M(&NPC), Imm32(InstLoc+4));
+			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
+			Jit->MOV(32, PPCSTATE(npc), Imm32(InstLoc+4));
 			Jit->ABI_CallFunctionC((void*)GetInterpreterOp(InstCode),
 					       InstCode);
 			break;
@@ -962,7 +962,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = regFindFreeReg(RI);
 			unsigned ppcreg = *I >> 8;
-			Jit->MOV(32, R(reg), M(&PowerPC::ppcState.gpr[ppcreg]));
+			Jit->MOV(32, R(reg), PPCSTATE(gpr[ppcreg]));
 			RI.regs[reg] = I;
 			break;
 		}
@@ -973,7 +973,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = regFindFreeReg(RI);
 			unsigned ppcreg = *I >> 8;
-			Jit->MOV(64, R(reg), M(&PowerPC::ppcState.cr_val[ppcreg]));
+			Jit->MOV(64, R(reg), PPCSTATE(cr_val[ppcreg]));
 			RI.regs[reg] = I;
 			break;
 		}
@@ -983,7 +983,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOV(32, R(reg), M(&CTR));
+			Jit->MOV(32, R(reg), PPCSTATE_CTR);
 			RI.regs[reg] = I;
 			break;
 		}
@@ -993,7 +993,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOV(32, R(reg), M(&LR));
+			Jit->MOV(32, R(reg), PPCSTATE_LR);
 			RI.regs[reg] = I;
 			break;
 		}
@@ -1003,7 +1003,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOV(32, R(reg), M(&MSR));
+			Jit->MOV(32, R(reg), PPCSTATE(msr));
 			RI.regs[reg] = I;
 			break;
 		}
@@ -1014,7 +1014,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = regFindFreeReg(RI);
 			unsigned gqr = *I >> 8;
-			Jit->MOV(32, R(reg), M(&GQR(gqr)));
+			Jit->MOV(32, R(reg), PPCSTATE(spr[SPR_GQR0 + gqr]));
 			RI.regs[reg] = I;
 			break;
 		}
@@ -1024,7 +1024,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOV(32, R(reg), M(&PowerPC::ppcState.spr[SPR_XER]));
+			Jit->MOV(32, R(reg), PPCSTATE(spr[SPR_XER]));
 			Jit->SHR(32, R(reg), Imm8(29));
 			Jit->AND(32, R(reg), Imm8(1));
 			RI.regs[reg] = I;
@@ -1042,7 +1042,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 		{
 			X64Reg reg = regEnsureInReg(RI, getOp1(I));
 			unsigned ppcreg = *I >> 16;
-			Jit->MOV(64, M(&PowerPC::ppcState.cr_val[ppcreg]), R(reg));
+			Jit->MOV(64, PPCSTATE(cr_val[ppcreg]), R(reg));
 			regNormalRegClear(RI, I);
 			break;
 		}
@@ -1067,15 +1067,15 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			// If some exceptions are pending and EE are now enabled, force checking
 			// external exceptions when going out of mtmsr in order to execute delayed
 			// interrupts as soon as possible.
-			Jit->MOV(32, R(EAX), M(&MSR));
+			Jit->MOV(32, R(EAX), PPCSTATE(msr));
 			Jit->TEST(32, R(EAX), Imm32(0x8000));
 			FixupBranch eeDisabled = Jit->J_CC(CC_Z);
 
-			Jit->MOV(32, R(EAX), M((void*)&PowerPC::ppcState.Exceptions));
+			Jit->MOV(32, R(EAX), PPCSTATE(Exceptions));
 			Jit->TEST(32, R(EAX), R(EAX));
 			FixupBranch noExceptionsPending = Jit->J_CC(CC_Z);
 
-			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
+			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc + 4));
 			Jit->WriteExceptionExit(); // TODO: Implement WriteExternalExceptionExit for JitIL
 
 			Jit->SetJumpTarget(eeDisabled);
@@ -1114,8 +1114,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
 			Jit->AND(32, R(ECX), Imm8(0x1F));
 			Jit->SHL(32, R(ECX), Imm8(12));
-			Jit->AND(32, M(&FPSCR), Imm32(~(0x1F << 12)));
-			Jit->OR(32, M(&FPSCR), R(ECX));
+			Jit->AND(32, PPCSTATE(fpscr), Imm32(~(0x1F << 12)));
+			Jit->OR(32, PPCSTATE(fpscr), R(ECX));
 			regNormalRegClear(RI, I);
 			break;
 		}
@@ -1641,7 +1641,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			regSpill(RI, EDX);
 			u32 quantreg = *I >> 24;
 			Jit->MOV(32, R(EAX), Imm32(0x3F07));
-			Jit->AND(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
+			Jit->AND(32, R(EAX), PPCSTATE(spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
@@ -1778,7 +1778,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = fregFindFreeReg(RI);
 			unsigned ppcreg = *I >> 8;
-			Jit->MOVAPD(reg, M(&PowerPC::ppcState.ps[ppcreg]));
+			Jit->MOVAPD(reg, PPCSTATE(ps[ppcreg]));
 			RI.fregs[reg] = I;
 			break;
 		}
@@ -1797,14 +1797,14 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->AND(32, M(p+4), Imm32(0x80000000));
 			Jit->MOV(32, M(p), Imm32(0));
 			Jit->SetJumpTarget(ok);
-			Jit->MOVAPD(reg, M(&PowerPC::ppcState.ps[ppcreg]));
+			Jit->MOVAPD(reg, PPCSTATE(ps[ppcreg]));
 			RI.fregs[reg] = I;
 			break;
 		}
 		case StoreFReg:
 		{
 			unsigned ppcreg = *I >> 16;
-			Jit->MOVAPD(M(&PowerPC::ppcState.ps[ppcreg]),
+			Jit->MOVAPD(PPCSTATE(ps[ppcreg]),
 				      fregEnsureInReg(RI, getOp1(I)));
 			fregNormalRegClear(RI, I);
 			break;
@@ -1913,15 +1913,15 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				Jit->ABI_CallFunction((void*)checkIsSNAN);
 				Jit->TEST(8, R(EAX), R(EAX));
 				FixupBranch ok = Jit->J_CC(CC_Z);
-					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
-					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_VXSNAN)); // FPSCR.Hex |= mask;
-					Jit->TEST(32, M(&FPSCR), Imm32(FPSCR_VE));
+					Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
+					Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_VXSNAN)); // FPSCR.Hex |= mask;
+					Jit->TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_VE));
 					FixupBranch finish0 = Jit->J_CC(CC_NZ);
-						Jit->OR(32, M(&FPSCR), Imm32(FPSCR_VXVC)); // FPSCR.Hex |= mask;
+						Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_VXVC)); // FPSCR.Hex |= mask;
 						FixupBranch finish1 = Jit->J();
 				Jit->SetJumpTarget(ok);
-					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
-					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_VXVC)); // FPSCR.Hex |= mask;
+					Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
+					Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_VXVC)); // FPSCR.Hex |= mask;
 				Jit->SetJumpTarget(finish0);
 				Jit->SetJumpTarget(finish1);
 			}
@@ -1942,8 +1942,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				Jit->ABI_CallFunction((void*)checkIsSNAN);
 				Jit->TEST(8, R(EAX), R(EAX));
 				FixupBranch finish = Jit->J_CC(CC_Z);
-					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
-					Jit->OR(32, M(&FPSCR), Imm32(FPSCR_VXVC)); // FPSCR.Hex |= mask;
+					Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX)); // FPSCR.FX = 1;
+					Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_VXVC)); // FPSCR.Hex |= mask;
 				Jit->SetJumpTarget(finish);
 			}
 
@@ -2094,7 +2094,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			RI.Jit->Cleanup(); // is it needed?
 			Jit->ABI_CallFunction((void *)&PowerPC::OnIdleIL);
 
-			Jit->MOV(32, M(&PC), Imm32(ibuild->GetImmValue( getOp2(I) )));
+			Jit->MOV(32, PPCSTATE(pc), Imm32(ibuild->GetImmValue( getOp2(I) )));
 			Jit->WriteExceptionExit();
 
 			Jit->SetJumpTarget(cont);
@@ -2179,7 +2179,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 		{
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			Jit->ABI_CallFunction((void *)&CoreTiming::Idle);
-			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
 			Jit->WriteExceptionExit();
 			break;
 		}
@@ -2187,14 +2187,14 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 		{
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			Jit->LOCK();
-			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_SYSCALL));
-			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
+			Jit->OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_SYSCALL));
+			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc + 4));
 			Jit->WriteExceptionExit();
 			break;
 		}
 		case InterpreterBranch:
 		{
-			Jit->MOV(32, R(EAX), M(&NPC));
+			Jit->MOV(32, R(EAX), PPCSTATE(npc));
 			Jit->WriteExitDestInOpArg(R(EAX));
 			break;
 		}
@@ -2203,16 +2203,16 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			// See Interpreter rfi for details
 			const u32 mask = 0x87C0FFFF;
 			// MSR = (MSR & ~mask) | (SRR1 & mask);
-			Jit->MOV(32, R(EAX), M(&MSR));
-			Jit->MOV(32, R(ECX), M(&SRR1));
+			Jit->MOV(32, R(EAX), PPCSTATE(msr));
+			Jit->MOV(32, R(ECX), PPCSTATE_SRR1);
 			Jit->AND(32, R(EAX), Imm32(~mask));
 			Jit->AND(32, R(ECX), Imm32(mask));
 			Jit->OR(32, R(EAX), R(ECX));
 			// MSR &= 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
 			Jit->AND(32, R(EAX), Imm32(0xFFFBFFFF));
-			Jit->MOV(32, M(&MSR), R(EAX));
+			Jit->MOV(32, PPCSTATE(msr), R(EAX));
 			// NPC = SRR0;
-			Jit->MOV(32, R(EAX), M(&SRR0));
+			Jit->MOV(32, R(EAX), PPCSTATE_SRR0);
 			Jit->WriteRfiExitDestInOpArg(R(EAX));
 			break;
 		}
@@ -2220,14 +2220,14 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 		{
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			//This instruction uses FPU - needs to add FP exception bailout
-			Jit->TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
+			Jit->TEST(32, PPCSTATE(msr), Imm32(1 << 13)); // Test FP enabled bit
 			FixupBranch b1 = Jit->J_CC(CC_NZ);
 
 			// If a FPU exception occurs, the exception handler will read
 			// from PC.  Update PC with the latest value in case that happens.
-			Jit->MOV(32, M(&PC), Imm32(InstLoc));
-			Jit->SUB(32, M(&PowerPC::ppcState.downcount), Imm32(Jit->js.downcountAmount));
-			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
+			Jit->SUB(32, PPCSTATE(downcount), Imm32(Jit->js.downcountAmount));
+			Jit->OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
 			Jit->WriteExceptionExit();
 			Jit->SetJumpTarget(b1);
 			break;
@@ -2235,12 +2235,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 		case DSIExceptionCheck:
 		{
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
+			Jit->TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
 			FixupBranch noMemException = Jit->J_CC(CC_Z);
 
 			// If a memory exception occurs, the exception handler will read
 			// from PC.  Update PC with the latest value in case that happens.
-			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
 			Jit->WriteExceptionExit();
 			Jit->SetJumpTarget(noMemException);
 			break;
@@ -2250,8 +2250,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 
 			// Address of instruction could not be translated
-			Jit->MOV(32, M(&NPC), Imm32(InstLoc));
-			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
+			Jit->MOV(32, PPCSTATE(npc), Imm32(InstLoc));
+			Jit->OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI));
 
 			// Remove the invalid instruction from the icache, forcing a recompile
 			Jit->MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(InstLoc)));
@@ -2263,16 +2263,16 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 		{
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 
-			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
+			Jit->TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
 			FixupBranch clearInt = Jit->J_CC(CC_NZ);
-			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+			Jit->TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
 			FixupBranch noExtException = Jit->J_CC(CC_Z);
-			Jit->TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
+			Jit->TEST(32, PPCSTATE(msr), Imm32(0x0008000));
 			FixupBranch noExtIntEnable = Jit->J_CC(CC_Z);
 			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
 			FixupBranch noCPInt = Jit->J_CC(CC_Z);
 
-			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
 			Jit->WriteExceptionExit();
 
 			Jit->SetJumpTarget(noCPInt);
@@ -2285,7 +2285,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 		{
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 
-			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
 			Jit->ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 			Jit->TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 			FixupBranch noBreakpoint = Jit->J_CC(CC_Z);

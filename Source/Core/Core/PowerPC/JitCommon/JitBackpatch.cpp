@@ -113,7 +113,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 	// check anyway.
 
 	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
-	MOV(32, M(&PC), Imm32(pc));
+	MOV(32, PPCSTATE(pc), Imm32(pc));
 
 	if (dataReg == ABI_PARAM2)
 		PanicAlert("Incorrect use of SafeWriteRegToReg");

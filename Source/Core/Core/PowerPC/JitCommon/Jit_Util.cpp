@@ -468,7 +468,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	TEST(32, R(reg_addr), Imm32(mem_mask));
 	FixupBranch fast = J_CC(CC_Z, true);
 	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
-	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
+	MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
 	bool noProlog = (0 != (flags & SAFE_LOADSTORE_NO_PROLOG));
 	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
 	ABI_PushRegistersAndAdjustStack(registersInUse, noProlog);
@@ -718,7 +718,7 @@ static const u64 GC_ALIGNED16(psDoubleNoSign[2]) = {0x7FFFFFFFFFFFFFFFULL, 0};
 // quite that necessary.
 void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 {
-	AND(32, M(&FPSCR), Imm32(~FPRF_MASK));
+	AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
 
 	FixupBranch continue1, continue2, continue3, continue4;
 	if (cpu_info.bSSE4_1)
@@ -799,24 +799,24 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 	SetJumpTarget(continue3);
 	SetJumpTarget(continue4);
 	SHL(32, R(EAX), Imm8(FPRF_SHIFT));
-	OR(32, M(&FPSCR), R(EAX));
+	OR(32, PPCSTATE(fpscr), R(EAX));
 }
 
 
 void EmuCodeBlock::JitClearCA()
 {
-	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
+	AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
 }
 
 void EmuCodeBlock::JitSetCA()
 {
-	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
+	OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
 }
 
 void EmuCodeBlock::JitClearCAOV(bool oe)
 {
 	if (oe)
-		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK & ~XER_OV_MASK)); //XER.CA, XER.OV = 0
+		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_CA_MASK & ~XER_OV_MASK)); //XER.CA, XER.OV = 0
 	else
-		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
+		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
 }

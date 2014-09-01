@@ -123,7 +123,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		ABI_PopRegistersAndAdjustStack(registersInUse, false);
 
 		// ! we must continue executing of the loop after exception handling, maybe there is still 0 in r0
-		//MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC));
+		//MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
 		WriteExceptionExit();
 
 		SetJumpTarget(noIdle);
@@ -331,7 +331,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			if ((addr & 0xFFFFF000) == 0xCC008000 && jo.optimizeGatherPipe)
 			{
 				// Helps external systems know which instruction triggered the write
-				MOV(32, M(&PC), Imm32(jit->js.compilerPC));
+				MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
 
 				gpr.FlushLockX(ABI_PARAM1);
 				MOV(32, R(ABI_PARAM1), gpr.R(s));
@@ -367,7 +367,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			else
 			{
 				// Helps external systems know which instruction triggered the write
-				MOV(32, M(&PC), Imm32(jit->js.compilerPC));
+				MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
 
 				u32 registersInUse = CallerSavedRegistersInUse();
 				ABI_PushRegistersAndAdjustStack(registersInUse, false);

@@ -313,14 +313,14 @@ void JitIL::WriteCallInterpreter(UGeckoInstruction inst)
 {
 	if (js.isLastInstruction)
 	{
-		MOV(32, M(&PC), Imm32(js.compilerPC));
-		MOV(32, M(&NPC), Imm32(js.compilerPC + 4));
+		MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
 	}
 	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
 	ABI_CallFunctionC((void*)instr, inst.hex);
 	if (js.isLastInstruction)
 	{
-		MOV(32, R(EAX), M(&NPC));
+		MOV(32, R(EAX), PPCSTATE(npc));
 		WriteRfiExitDestInOpArg(R(EAX));
 	}
 }
@@ -341,7 +341,7 @@ void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 void JitIL::HLEFunction(UGeckoInstruction _inst)
 {
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
-	MOV(32, R(EAX), M(&NPC));
+	MOV(32, R(EAX), PPCSTATE(npc));
 	WriteExitDestInOpArg(R(EAX));
 }
 
@@ -398,7 +398,7 @@ void JitIL::WriteExit(u32 destination)
 	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
@@ -417,7 +417,7 @@ void JitIL::WriteExit(u32 destination)
 	}
 	else
 	{
-		MOV(32, M(&PC), Imm32(destination));
+		MOV(32, PPCSTATE(pc), Imm32(destination));
 		JMP(asm_routines.dispatcher, true);
 	}
 	b->linkData.push_back(linkData);
@@ -425,27 +425,27 @@ void JitIL::WriteExit(u32 destination)
 
 void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 {
-	MOV(32, M(&PC), arg);
+	MOV(32, PPCSTATE(pc), arg);
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
 	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
 void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 {
-	MOV(32, M(&PC), arg);
-	MOV(32, M(&NPC), arg);
+	MOV(32, PPCSTATE(pc), arg);
+	MOV(32, PPCSTATE(npc), arg);
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
 	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -456,10 +456,10 @@ void JitIL::WriteExceptionExit()
 	{
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	MOV(32, R(EAX), M(&PC));
-	MOV(32, M(&NPC), R(EAX));
+	MOV(32, R(EAX), PPCSTATE(pc));
+	MOV(32, PPCSTATE(npc), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -548,7 +548,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	// Downcount flag check. The last block decremented downcounter, and the flag should still be available.
 	FixupBranch skip = J_CC(CC_NBE);
-	MOV(32, M(&PC), Imm32(js.blockStart));
+	MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
 	JMP(asm_routines.doTiming, true);  // downcount hit zero - go doTiming.
 	SetJumpTarget(skip);
 
@@ -561,13 +561,13 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (js.fpa.any)
 	{
 		// This block uses FPU - needs to add FP exception bailout
-		TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP enabled bit
+		TEST(32, PPCSTATE(msr), Imm32(1 << 13)); //Test FP enabled bit
 		FixupBranch b1 = J_CC(CC_NZ);
 
 		// If a FPU exception occurs, the exception handler will read
 		// from PC.  Update PC with the latest value in case that happens.
-		MOV(32, M(&PC), Imm32(js.blockStart));
-		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+		MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+		OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
 		WriteExceptionExit();
 
 		SetJumpTarget(b1);
@@ -635,7 +635,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 					HLEFunction(function);
 					if (type == HLE::HLE_HOOK_REPLACE)
 					{
-						MOV(32, R(EAX), M(&NPC));
+						MOV(32, R(EAX), PPCSTATE(npc));
 						jit->js.downcountAmount += jit->js.st.numCycles;
 						WriteExitDestInOpArg(R(EAX));
 						break;

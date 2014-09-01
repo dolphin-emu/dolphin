@@ -13,13 +13,23 @@ namespace MMIO { class Mapping; }
 #define MEMCHECK_START \
 	Gen::FixupBranch memException; \
 	if (jit->js.memcheck) \
-	{ TEST(32, Gen::M((void *)&PowerPC::ppcState.Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
+	{ TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
 	memException = J_CC(Gen::CC_NZ, true); }
 
 #define MEMCHECK_END \
 	if (jit->js.memcheck) \
 	SetJumpTarget(memException);
 
+// We offset by 0x80 because the range of one byte memory offsets is
+// -0x80..0x7f.
+#define PPCSTATE(x) MDisp(RBP, \
+	(int) ((char *) &PowerPC::ppcState.x - (char *) &PowerPC::ppcState) - 0x80)
+// In case you want to disable the ppcstate register:
+// #define PPCSTATE(x) M((void*) &PowerPC::ppcState.x)
+#define PPCSTATE_LR PPCSTATE(spr[SPR_LR])
+#define PPCSTATE_CTR PPCSTATE(spr[SPR_CTR])
+#define PPCSTATE_SRR0 PPCSTATE(spr[SPR_SRR0])
+#define PPCSTATE_SRR1 PPCSTATE(spr[SPR_SRR1])
 
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock

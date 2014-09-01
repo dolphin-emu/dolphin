@@ -29,6 +29,7 @@ void Jit64AsmRoutineManager::Generate()
 	// Two statically allocated registers.
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
 	MOV(64, R(R15), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
+	MOV(64, R(RBP), Imm64((u64)&PowerPC::ppcState + 0x80));
 
 	const u8* outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
@@ -55,7 +56,7 @@ void Jit64AsmRoutineManager::Generate()
 			SetJumpTarget(skipToRealDispatch);
 
 			dispatcherNoCheck = GetCodePtr();
-			MOV(32, R(EAX), M(&PowerPC::ppcState.pc));
+			MOV(32, R(EAX), PPCSTATE(pc));
 			dispatcherPcInEAX = GetCodePtr();
 
 			u32 mask = 0;
@@ -113,7 +114,7 @@ void Jit64AsmRoutineManager::Generate()
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
-			MOV(32, R(ABI_PARAM1), M(&PowerPC::ppcState.pc));
+			MOV(32, R(ABI_PARAM1), PPCSTATE(pc));
 			CALL((void *)&Jit);
 
 			JMP(dispatcherNoCheck); // no point in special casing this
@@ -122,10 +123,10 @@ void Jit64AsmRoutineManager::Generate()
 		doTiming = GetCodePtr();
 
 		// Test external exceptions.
-		TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
+		TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
 		FixupBranch noExtException = J_CC(CC_Z);
-		MOV(32, R(EAX), M(&PC));
-		MOV(32, M(&NPC), R(EAX));
+		MOV(32, R(EAX), PPCSTATE(pc));
+		MOV(32, PPCSTATE(npc), R(EAX));
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
 		SetJumpTarget(noExtException);
 

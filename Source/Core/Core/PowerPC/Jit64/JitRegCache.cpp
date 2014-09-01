@@ -202,7 +202,7 @@ const int* GPRRegCache::GetAllocationOrder(size_t& count)
 #ifdef _WIN32
 		RSI, RDI, R13, R14, R8, R9, R10, R11, R12, //, RCX
 #else
-		RBP, R13, R14, R8, R9, R10, R11, R12, //, RCX
+		R13, R14, R8, R9, R10, R11, R12, //, RCX
 #endif
 	};
 	count = sizeof(allocationOrder) / sizeof(const int);
@@ -221,12 +221,12 @@ const int* FPURegCache::GetAllocationOrder(size_t& count)
 
 OpArg GPRRegCache::GetDefaultLocation(size_t reg) const
 {
-	return M(&ppcState.gpr[reg]);
+	return PPCSTATE(gpr[reg]);
 }
 
 OpArg FPURegCache::GetDefaultLocation(size_t reg) const
 {
-	return M(&ppcState.ps[reg][0]);
+	return PPCSTATE(ps[reg][0]);
 }
 
 void RegCache::KillImmediate(size_t preg, bool doLoad, bool makeDirty)
