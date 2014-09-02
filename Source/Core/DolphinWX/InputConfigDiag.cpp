@@ -465,6 +465,13 @@ void GamepadPage::AdjustSetting(wxCommandEvent& event)
 	((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
 }
 
+void GamepadPage::AdjustSettingUI(wxCommandEvent& event)
+{
+	m_iterate = !m_iterate;
+	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
+	((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
+}
+
 void GamepadPage::AdjustControlOption(wxCommandEvent&)
 {
 	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
@@ -521,7 +528,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 void GamepadPage::DetectControl(wxCommandEvent& event)
 {
 	ControlButton* btn = (ControlButton*)event.GetEventObject();
-	if (DetectButton(btn))
+	if (DetectButton(btn) && m_iterate == true)
 	{
 		auto it = std::find(control_buttons.begin(), control_buttons.end(), btn);
 
@@ -905,7 +912,15 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			for (auto& groupSetting : group->settings)
 			{
 				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
-				setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+				if (groupSetting.get()->is_iterate == true)
+				{
+					setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSettingUI, eventsink);
+					groupSetting.get()->value = 0;
+				}
+				else
+				{
+					setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+				}
 				options.push_back(setting_cbox);
 
 				Add(setting_cbox->wxcontrol, 0, wxALL|wxLEFT, 5);

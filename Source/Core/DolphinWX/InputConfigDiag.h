@@ -5,7 +5,7 @@
 #pragma once
 
 #define SLIDER_TICK_COUNT    100
-#define DETECT_WAIT_TIME     5000
+#define DETECT_WAIT_TIME     2500
 #define PREVIEW_UPDATE_TIME  25
 
 // might have to change this setup for wiimote
@@ -196,6 +196,7 @@ public:
 
 	void AdjustControlOption(wxCommandEvent& event);
 	void AdjustSetting(wxCommandEvent& event);
+	void AdjustSettingUI(wxCommandEvent& event);
 
 	void GetProfilePath(std::string& path);
 
@@ -215,6 +216,7 @@ private:
 	InputConfigDialog* const m_config_dialog;
 	InputConfig& m_config;
 	bool DetectButton(ControlButton* button);
+	bool m_iterate = false;
 };
 
 class InputConfigDialog : public wxDialog
