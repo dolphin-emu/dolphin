@@ -203,6 +203,11 @@ endif(NOT MSVC)
 # gcc uses some optimizations which might break stuff without this flag
 add_definitions(-fno-strict-aliasing -fno-exceptions)
 
+# explicitly disable PIE, as this breaks dolphin on systems like
+# gentoo-hardened
+add_definitions(-fno-pie)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
+
 check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
 
 if(UNIX AND NOT APPLE)
