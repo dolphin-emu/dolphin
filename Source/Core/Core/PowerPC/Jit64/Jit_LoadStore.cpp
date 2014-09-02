@@ -197,14 +197,13 @@ void Jit64::lXXx(UGeckoInstruction inst)
 			else
 			{
 				// In this case we need an extra temporary register.
-				gpr.FlushLockX(ABI_PARAM1);
-				opAddress = R(ABI_PARAM1);
+				opAddress = R(RDX);
 				storeAddress = true;
 				if (use_constant_offset)
 				{
 					if (gpr.R(a).IsSimpleReg() && offset != 0)
 					{
-						LEA(32, ABI_PARAM1, MDisp(gpr.RX(a), offset));
+						LEA(32, RDX, MDisp(gpr.RX(a), offset));
 					}
 					else
 					{
@@ -215,7 +214,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 				}
 				else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 				{
-					LEA(32, ABI_PARAM1, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+					LEA(32, RDX, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 				}
 				else
 				{
@@ -232,7 +231,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	if (update && storeAddress)
 	{
 		// We need to save the (usually scratch) address register for the update.
-		registersInUse |= (1 << ABI_PARAM1);
+		registersInUse |= (1 << RDX);
 	}
 	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
 
@@ -339,8 +338,7 @@ void Jit64::stX(UGeckoInstruction inst)
 				// Helps external systems know which instruction triggered the write
 				MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
 
-				gpr.FlushLockX(ABI_PARAM1);
-				MOV(32, R(ABI_PARAM1), gpr.R(s));
+				MOV(32, R(EDX), gpr.R(s));
 				if (update)
 					gpr.SetImmediate32(a, addr);
 
@@ -396,24 +394,31 @@ void Jit64::stX(UGeckoInstruction inst)
 			}
 		}
 
-		gpr.FlushLockX(ECX, EDX);
-		gpr.Lock(s, a);
-		MOV(32, R(EDX), gpr.R(a));
-		MOV(32, R(ECX), gpr.R(s));
-		SafeWriteRegToReg(ECX, EDX, accessSize, offset, CallerSavedRegistersInUse());
+		gpr.Lock(a, s);
+		gpr.BindToRegister(a, true, false);
+		X64Reg reg_value;
+		if (WriteClobbersRegValue(accessSize, /* swap */ true))
+		{
+			MOV(32, R(EDX), gpr.R(s));
+			reg_value = EDX;
+		}
+		else
+		{
+			gpr.BindToRegister(s, true, false);
+			reg_value = gpr.RX(s);
+		}
+		SafeWriteRegToReg(reg_value, gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_EAX_INSTEAD_OF_ADDR);
 
 		if (update && offset)
 		{
-			gpr.KillImmediate(a, true, true);
 			MEMCHECK_START
+			gpr.KillImmediate(a, true, true);
 
 			ADD(32, gpr.R(a), Imm32((u32)offset));
 
 			MEMCHECK_END
 		}
-
 		gpr.UnlockAll();
-		gpr.UnlockAllX();
 	}
 	else
 	{
@@ -430,15 +435,12 @@ void Jit64::stXx(UGeckoInstruction inst)
 	FALLBACK_IF(!a || a == s || a == b);
 
 	gpr.Lock(a, b, s);
-	gpr.FlushLockX(ECX, EDX);
 
 	if (inst.SUBOP10 & 32)
 	{
-		MEMCHECK_START
 		gpr.BindToRegister(a, true, true);
 		ADD(32, gpr.R(a), gpr.R(b));
 		MOV(32, R(EDX), gpr.R(a));
-		MEMCHECK_END
 	}
 	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 	{
@@ -468,8 +470,18 @@ void Jit64::stXx(UGeckoInstruction inst)
 			break;
 	}
 
-	MOV(32, R(ECX), gpr.R(s));
-	SafeWriteRegToReg(ECX, EDX, accessSize, 0, CallerSavedRegistersInUse());
+	X64Reg reg_value;
+	if (WriteClobbersRegValue(accessSize, /* swap */ true))
+	{
+		MOV(32, R(EAX), gpr.R(s));
+		reg_value = EAX;
+	}
+	else
+	{
+		gpr.BindToRegister(s, true, false);
+		reg_value = gpr.RX(s);
+	}
+	SafeWriteRegToReg(reg_value, EDX, accessSize, 0, CallerSavedRegistersInUse());
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -482,13 +494,12 @@ void Jit64::lmw(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStoreOff);
 
 	// TODO: This doesn't handle rollback on DSI correctly
-	gpr.FlushLockX(ECX);
-	MOV(32, R(ECX), Imm32((u32)(s32)inst.SIMM_16));
+	MOV(32, R(EDX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
-		ADD(32, R(ECX), gpr.R(inst.RA));
+		ADD(32, R(EDX), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
-		SafeLoadToReg(EAX, R(ECX), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | (1 << ECX), false);
+		SafeLoadToReg(EAX, R(EDX), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | (1 << ECX), false);
 		gpr.BindToRegister(i, false, true);
 		MOV(32, gpr.R(i), R(EAX));
 	}
@@ -501,15 +512,14 @@ void Jit64::stmw(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStoreOff);
 
 	// TODO: This doesn't handle rollback on DSI correctly
-	gpr.FlushLockX(ECX);
 	for (int i = inst.RD; i < 32; i++)
 	{
 		if (inst.RA)
 			MOV(32, R(EAX), gpr.R(inst.RA));
 		else
 			XOR(32, R(EAX), R(EAX));
-		MOV(32, R(ECX), gpr.R(i));
-		SafeWriteRegToReg(ECX, EAX, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, CallerSavedRegistersInUse());
+		MOV(32, R(EDX), gpr.R(i));
+		SafeWriteRegToReg(EDX, EAX, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, CallerSavedRegistersInUse());
 	}
 	gpr.UnlockAllX();
 }

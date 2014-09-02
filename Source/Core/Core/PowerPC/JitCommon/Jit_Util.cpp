@@ -5,7 +5,6 @@
 #include <emmintrin.h>
 
 #include "Common/Common.h"
-#include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 
 #include "Core/HW/MMIO.h"
@@ -248,13 +247,11 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 	}
 }
 
-// Always clobbers EAX.  Preserves the address.
-// Preserves the value if the load fails and js.memcheck is enabled.
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags)
 {
 	if (!jit->js.memcheck)
 	{
-		registersInUse &= ~(1 << RAX | 1 << reg_value);
+		registersInUse &= ~(1 << reg_value);
 	}
 	if (!Core::g_CoreStartupParameter.bMMU &&
 	    Core::g_CoreStartupParameter.bFastmem &&
@@ -395,11 +392,6 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 
 u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
 {
-	if (accessSize == 8 && reg_value >= 4)
-	{
-		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
-	}
-
 	u8* result = GetWritableCodePtr();
 	OpArg dest = MComplex(RBX, reg_addr, SCALE_1, offset);
 	if (swap)
@@ -410,7 +402,8 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 		}
 		else
 		{
-			BSWAP(accessSize, reg_value);
+			if (accessSize > 8)
+				BSWAP(accessSize, reg_value);
 			result = GetWritableCodePtr();
 			MOV(accessSize, dest, R(reg_value));
 		}
@@ -423,10 +416,8 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 	return result;
 }
 
-// Destroys both arg registers
 void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags)
 {
-	registersInUse &= ~(1 << RAX);
 	if (!Core::g_CoreStartupParameter.bMMU &&
 	    Core::g_CoreStartupParameter.bFastmem &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
@@ -449,7 +440,17 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	}
 
 	if (offset)
-		ADD(32, R(reg_addr), Imm32((u32)offset));
+	{
+		if (flags & SAFE_LOADSTORE_CLOBBER_EAX_INSTEAD_OF_ADDR)
+		{
+			LEA(32, EAX, MDisp(reg_addr, (u32)offset));
+			reg_addr = EAX;
+		}
+		else
+		{
+			ADD(32, R(reg_addr), Imm32((u32)offset));
+		}
+	}
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 

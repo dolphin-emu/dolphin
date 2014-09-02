@@ -9,7 +9,7 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-#define QUANTIZED_REGS_TO_SAVE (ABI_ALL_CALLER_SAVED & ~((1 << RAX) | (1 << RCX) | (1 << RDX) | \
+#define QUANTIZED_REGS_TO_SAVE (ABI_ALL_CALLER_SAVED & ~((1 << RAX) | (1 << RCX) | \
                                                          (1 << (XMM0+16)) | (1 << (XMM1+16))))
 
 using namespace Gen;
@@ -18,19 +18,15 @@ static int temp32;
 
 void CommonAsmRoutines::GenFifoWrite(int size)
 {
-	// Assume value in ABI_PARAM1
+	// Assume value in EDX
 	PUSH(ESI);
-	if (size != 32)
-		PUSH(EDX);
 	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
 	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
 
-	SwapAndStore(size, MComplex(RAX, RSI, 1, 0), ABI_PARAM1);
+	SwapAndStore(size, MComplex(RAX, RSI, 1, 0), EDX);
 
 	ADD(32, R(ESI), Imm8(size >> 3));
 	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
-	if (size != 32)
-		POP(EDX);
 	POP(ESI);
 	RET();
 }
@@ -39,7 +35,6 @@ void CommonAsmRoutines::GenFifoFloatWrite()
 {
 	// Assume value in XMM0
 	PUSH(ESI);
-	PUSH(EDX);
 	MOVSS(M(&temp32), XMM0);
 	MOV(32, R(EDX), M(&temp32));
 	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
@@ -47,7 +42,6 @@ void CommonAsmRoutines::GenFifoFloatWrite()
 	SwapAndStore(32, MComplex(RAX, RSI, 1, 0), EDX);
 	ADD(32, R(ESI), Imm8(4));
 	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
-	POP(EDX);
 	POP(ESI);
 	RET();
 }

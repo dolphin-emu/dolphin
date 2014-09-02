@@ -96,24 +96,23 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 	FALLBACK_IF(!indexed && !a);
 
 	s32 offset = 0;
-	gpr.FlushLockX(ABI_PARAM1);
 	if (indexed)
 	{
 		if (update)
 		{
 			gpr.BindToRegister(a, true, true);
 			ADD(32, gpr.R(a), gpr.R(b));
-			MOV(32, R(ABI_PARAM1), gpr.R(a));
+			MOV(32, R(RDX), gpr.R(a));
 		}
 		else
 		{
 			if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
-				LEA(32, ABI_PARAM1, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+				LEA(32, RDX, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 			else
 			{
-				MOV(32, R(ABI_PARAM1), gpr.R(b));
+				MOV(32, R(RDX), gpr.R(b));
 				if (a)
-					ADD(32, R(ABI_PARAM1), gpr.R(a));
+					ADD(32, R(RDX), gpr.R(a));
 			}
 		}
 	}
@@ -128,14 +127,14 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 		{
 			offset = (s32)(s16)inst.SIMM_16;
 		}
-		MOV(32, R(ABI_PARAM1), gpr.R(a));
+		MOV(32, R(RDX), gpr.R(a));
 	}
 
 	if (single)
 	{
 		fpr.BindToRegister(s, true, false);
 		ConvertDoubleToSingle(XMM0, fpr.RX(s));
-		SafeWriteF32ToReg(XMM0, ABI_PARAM1, offset, CallerSavedRegistersInUse());
+		SafeWriteF32ToReg(XMM0, RDX, offset, CallerSavedRegistersInUse());
 		fpr.UnlockAll();
 	}
 	else
@@ -144,7 +143,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 			MOVQ_xmm(R(RAX), fpr.RX(s));
 		else
 			MOV(64, R(RAX), fpr.R(s));
-		SafeWriteRegToReg(RAX, ABI_PARAM1, 64, offset, CallerSavedRegistersInUse());
+		SafeWriteRegToReg(RAX, RDX, 64, offset, CallerSavedRegistersInUse());
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -160,15 +159,14 @@ void Jit64::stfiwx(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = inst.RB;
 
-	gpr.FlushLockX(ABI_PARAM1);
-	MOV(32, R(ABI_PARAM1), gpr.R(b));
+	MOV(32, R(RDX), gpr.R(b));
 	if (a)
-		ADD(32, R(ABI_PARAM1), gpr.R(a));
+		ADD(32, R(RDX), gpr.R(a));
 
 	if (fpr.R(s).IsSimpleReg())
 		MOVD_xmm(R(EAX), fpr.RX(s));
 	else
 		MOV(32, R(EAX), fpr.R(s));
-	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0, CallerSavedRegistersInUse());
+	SafeWriteRegToReg(EAX, RDX, 32, 0, CallerSavedRegistersInUse());
 	gpr.UnlockAllX();
 }

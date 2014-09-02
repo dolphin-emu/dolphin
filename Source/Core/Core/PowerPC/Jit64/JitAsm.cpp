@@ -9,13 +9,12 @@
 
 using namespace Gen;
 
-//GLOBAL STATIC ALLOCATIONS x86
-//EAX - ubiquitous scratch register - EVERYBODY scratches this
-
-//GLOBAL STATIC ALLOCATIONS x64
-//EAX - ubiquitous scratch register - EVERYBODY scratches this
-//RBX - Base pointer of memory
-//R15 - Pointer to array of block pointers
+// GLOBAL STATIC ALLOCATIONS x64
+// RAX - ubiquitous scratch register - EVERYBODY scratches this
+// RDX - second scratch register
+// RBX - Base pointer of memory
+// R15 - Pointer to array of block pointers
+// RBP - Pointer to ppcState+0x80
 
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
@@ -73,8 +72,8 @@ void Jit64AsmRoutineManager::Generate()
 				no_mem = J_CC(CC_NZ);
 			}
 			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCache));
-			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
+			MOV(64, R(RDX), Imm64((u64)jit->GetBlockCache()->iCache));
+			MOV(32, R(EAX), MComplex(RDX, EAX, SCALE_1, 0));
 
 			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
@@ -86,8 +85,8 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
 				FixupBranch no_vmem = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
-				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
+				MOV(64, R(RDX), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
+				MOV(32, R(EAX), MComplex(RDX, EAX, SCALE_1, 0));
 
 				if (Core::g_CoreStartupParameter.bWii) exit_vmem = J();
 				SetJumpTarget(no_vmem);
@@ -97,8 +96,8 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHEEX_MASK));
-				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheEx));
-				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
+				MOV(64, R(RDX), Imm64((u64)jit->GetBlockCache()->iCacheEx));
+				MOV(32, R(EAX), MComplex(RDX, EAX, SCALE_1, 0));
 
 				SetJumpTarget(no_exram);
 			}

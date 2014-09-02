@@ -42,40 +42,40 @@ void Jit64::GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate)
 
 void Jit64::SetCRFieldBit(int field, int bit, Gen::X64Reg in)
 {
-	MOV(64, R(ABI_PARAM1), PPCSTATE(cr_val[field]));
+	MOV(64, R(RDX), PPCSTATE(cr_val[field]));
 	MOVZX(32, 8, in, R(in));
 
 	switch (bit)
 	{
 	case CR_SO_BIT:  // set bit 61 to input
-		BTR(64, R(ABI_PARAM1), Imm8(61));
+		BTR(64, R(RDX), Imm8(61));
 		SHL(64, R(in), Imm8(61));
-		OR(64, R(ABI_PARAM1), R(in));
+		OR(64, R(RDX), R(in));
 		break;
 
 	case CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
-		SHR(64, R(ABI_PARAM1), Imm8(32));
-		SHL(64, R(ABI_PARAM1), Imm8(32));
+		SHR(64, R(RDX), Imm8(32));
+		SHL(64, R(RDX), Imm8(32));
 		XOR(32, R(in), Imm8(1));
-		OR(64, R(ABI_PARAM1), R(in));
+		OR(64, R(RDX), R(in));
 		break;
 
 	case CR_GT_BIT:  // set bit 63 to !input
-		BTR(64, R(ABI_PARAM1), Imm8(63));
+		BTR(64, R(RDX), Imm8(63));
 		NOT(32, R(in));
 		SHL(64, R(in), Imm8(63));
-		OR(64, R(ABI_PARAM1), R(in));
+		OR(64, R(RDX), R(in));
 		break;
 
 	case CR_LT_BIT:  // set bit 62 to input
-		BTR(64, R(ABI_PARAM1), Imm8(62));
+		BTR(64, R(RDX), Imm8(62));
 		SHL(64, R(in), Imm8(62));
-		OR(64, R(ABI_PARAM1), R(in));
+		OR(64, R(RDX), R(in));
 		break;
 	}
 
-	BTS(64, R(ABI_PARAM1), Imm8(32));
-	MOV(64, PPCSTATE(cr_val[field]), R(ABI_PARAM1));
+	BTS(64, R(RDX), Imm8(32));
+	MOV(64, PPCSTATE(cr_val[field]), R(RDX));
 }
 
 FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
@@ -308,8 +308,7 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	gpr.BindToRegister(d, false, true);
 	XOR(32, gpr.R(d), gpr.R(d));
 
-	gpr.FlushLockX(ABI_PARAM1);
-	X64Reg cr_val = ABI_PARAM1;
+	X64Reg cr_val = RDX;
 	// we only need to zero the high bits of EAX once
 	XOR(32, R(EAX), R(EAX));
 	for (int i = 0; i < 8; i++)
@@ -439,9 +438,8 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	// crnand or crnor
 	bool negateB = inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
 
-	gpr.FlushLockX(ABI_PARAM1);
-	GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), ABI_PARAM1, negateA);
-	GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), EAX, negateB);
+	GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), DL, negateA);
+	GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), AL, negateB);
 
 	// Compute combined bit
 	switch (inst.SUBOP10)
@@ -449,23 +447,23 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	case 33:  // crnor: ~(A || B) == (~A && ~B)
 	case 129: // crandc
 	case 257: // crand
-		AND(8, R(EAX), R(ABI_PARAM1));
+		AND(8, R(AL), R(DL));
 		break;
 
 	case 193: // crxor
 	case 289: // creqv
-		XOR(8, R(EAX), R(ABI_PARAM1));
+		XOR(8, R(AL), R(DL));
 		break;
 
 	case 225: // crnand: ~(A && B) == (~A || ~B)
 	case 417: // crorc
 	case 449: // cror
-		OR(8, R(EAX), R(ABI_PARAM1));
+		OR(8, R(AL), R(DL));
 		break;
 	}
 
 	// Store result bit in CRBD
-	SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), EAX);
+	SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), AL);
 
 	gpr.UnlockAllX();
 }

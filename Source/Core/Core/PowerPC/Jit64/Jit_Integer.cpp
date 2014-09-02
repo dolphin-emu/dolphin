@@ -442,8 +442,8 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 
 			if (!comparand.IsImm())
 			{
-				MOVSX(64, 32, ABI_PARAM1, comparand);
-				comparand = R(ABI_PARAM1);
+				MOVSX(64, 32, RDX, comparand);
+				comparand = R(RDX);
 			}
 		}
 		else
@@ -454,11 +454,11 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				MOVZX(64, 32, RAX, gpr.R(a));
 
 			if (comparand.IsImm())
-				MOV(32, R(ABI_PARAM1), comparand);
+				MOV(32, R(RDX), comparand);
 			else
-				MOVZX(64, 32, ABI_PARAM1, comparand);
+				MOVZX(64, 32, RDX, comparand);
 
-			comparand = R(ABI_PARAM1);
+			comparand = R(RDX);
 		}
 		SUB(64, R(RAX), comparand);
 		MOV(64, PPCSTATE(cr_val[crf]), R(RAX));
@@ -1170,7 +1170,6 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
 	}
 	else
 	{
-		gpr.FlushLockX(EDX);
 		gpr.Lock(a, b, d);
 		gpr.BindToRegister(d, (d == a || d == b), true);
 		if (gpr.RX(d) == EDX)
@@ -1288,7 +1287,6 @@ void Jit64::divwux(UGeckoInstruction inst)
 	}
 	else
 	{
-		gpr.FlushLockX(EDX);
 		gpr.Lock(a, b, d);
 		gpr.BindToRegister(d, (d == a || d == b), true);
 		MOV(32, R(EAX), gpr.R(a));
@@ -1349,7 +1347,6 @@ void Jit64::divwx(UGeckoInstruction inst)
 	}
 	else
 	{
-		gpr.FlushLockX(EDX);
 		gpr.Lock(a, b, d);
 		gpr.BindToRegister(d, (d == a || d == b), true);
 		MOV(32, R(EAX), gpr.R(a));
@@ -1881,8 +1878,8 @@ void Jit64::srawx(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = inst.RB;
 	int s = inst.RS;
-	gpr.Lock(a, s, b);
 	gpr.FlushLockX(ECX);
+	gpr.Lock(a, s, b);
 	gpr.BindToRegister(a, (a == s || a == b), true);
 	JitClearCA();
 	MOV(32, R(ECX), gpr.R(b));

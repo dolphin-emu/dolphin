@@ -59,6 +59,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 	// It ought to be necessary to align the stack here.  Since it seems to not
 	// affect anybody, I'm not going to add it just to be completely safe about
 	// performance.
+	ABI_PushRegistersAndAdjustStack(registersInUse, true);
 
 	if (addrReg != ABI_PARAM1)
 		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
@@ -66,7 +67,6 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 	if (info.displacement)
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
 
-	ABI_PushRegistersAndAdjustStack(registersInUse, true);
 	switch (info.operandSize)
 	{
 	case 4:
@@ -115,6 +115,8 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
 	MOV(32, PPCSTATE(pc), Imm32(pc));
 
+	ABI_PushRegistersAndAdjustStack(registersInUse, true);
+
 	MOVTwo(64, ABI_PARAM1, dataReg, ABI_PARAM2, addrReg, ABI_PARAM3);
 
 	if (info.displacement)
@@ -122,7 +124,6 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
 	}
 
-	ABI_PushRegistersAndAdjustStack(registersInUse, true);
 	switch (info.operandSize)
 	{
 	case 8:

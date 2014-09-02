@@ -28,8 +28,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	int a = inst.RA;
 	int s = inst.RS; // Fp numbers
 
-	gpr.FlushLockX(EAX, EDX);
-	gpr.FlushLockX(ECX);
+	gpr.FlushLockX(EAX, ECX);
 	if (update)
 		gpr.BindToRegister(inst.RA, true, true);
 	fpr.BindToRegister(inst.RS, true, false);
@@ -73,8 +72,7 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	bool update = inst.OPCD == 57;
 	int offset = inst.SIMM_12;
 
-	gpr.FlushLockX(EAX, EDX);
-	gpr.FlushLockX(ECX);
+	gpr.FlushLockX(EAX, ECX);
 	gpr.BindToRegister(inst.RA, true, update && offset);
 	fpr.BindToRegister(inst.RS, false, true);
 	if (offset)

@@ -40,7 +40,7 @@ instruction and generates code.  Dead code elimination works in this step,
 by simply skipping unused instructions.  The register allocator is a dumb,
 greedy allocator: at the moment, it's really a bit too dumb, but it's
 actually not as bad as it looks: unless a block is relatively long, spills
-are rarely needed.  ECX is used as a scratch register: requiring a scratch
+are rarely needed.  EDX is used as a scratch register: requiring a scratch
 register isn't ideal, but the register allocator is too dumb to handle
 instructions that need a specific register at the moment.
 

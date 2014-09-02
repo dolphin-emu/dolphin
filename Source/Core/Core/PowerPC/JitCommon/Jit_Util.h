@@ -6,6 +6,7 @@
 
 #include <unordered_map>
 
+#include "Common/CPUDetect.h"
 #include "Common/x64Emitter.h"
 
 namespace MMIO { class Mapping; }
@@ -52,10 +53,20 @@ public:
 	{
 		SAFE_LOADSTORE_NO_SWAP = 1,
 		SAFE_LOADSTORE_NO_PROLOG = 2,
-		SAFE_LOADSTORE_NO_FASTMEM = 4
+		SAFE_LOADSTORE_NO_FASTMEM = 4,
+		SAFE_LOADSTORE_CLOBBER_EAX_INSTEAD_OF_ADDR = 8
 	};
+
 	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags = 0);
+	// Clobbers EAX or reg_addr depending on the relevant flag.  Preserves
+	// reg_value if the load fails and js.memcheck is enabled.
 	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags = 0);
+
+	// applies to safe and unsafe WriteRegToReg
+	bool WriteClobbersRegValue(int accessSize, bool swap)
+	{
+		return swap && !cpu_info.bMOVBE && accessSize > 8;
+	}
 
 	void SafeWriteF32ToReg(Gen::X64Reg xmm_value, Gen::X64Reg reg_addr, s32 offset, u32 registersInUse, int flags = 0);
 
