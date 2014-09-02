@@ -15,28 +15,28 @@ namespace Gen
 // TODO(ector): Add EAX special casing, for ever so slightly smaller code.
 struct NormalOpDef
 {
-	u8 toRm8, toRm32, fromRm8, fromRm32, imm8, imm32, simm8, ext;
+	u8 toRm8, toRm32, fromRm8, fromRm32, imm8, imm32, simm8, eaximm8, eaximm32, ext;
 };
 
 // 0xCC is code for invalid combination of immediates
-static const NormalOpDef nops[11] =
+static const NormalOpDef normalops[11] =
 {
-	{0x00, 0x01, 0x02, 0x03, 0x80, 0x81, 0x83, 0}, //ADD
-	{0x10, 0x11, 0x12, 0x13, 0x80, 0x81, 0x83, 2}, //ADC
+	{0x00, 0x01, 0x02, 0x03, 0x80, 0x81, 0x83, 0x04, 0x05, 0}, //ADD
+	{0x10, 0x11, 0x12, 0x13, 0x80, 0x81, 0x83, 0x14, 0x15, 2}, //ADC
 
-	{0x28, 0x29, 0x2A, 0x2B, 0x80, 0x81, 0x83, 5}, //SUB
-	{0x18, 0x19, 0x1A, 0x1B, 0x80, 0x81, 0x83, 3}, //SBB
+	{0x28, 0x29, 0x2A, 0x2B, 0x80, 0x81, 0x83, 0x2C, 0x2D, 5}, //SUB
+	{0x18, 0x19, 0x1A, 0x1B, 0x80, 0x81, 0x83, 0x1C, 0x1D, 3}, //SBB
 
-	{0x20, 0x21, 0x22, 0x23, 0x80, 0x81, 0x83, 4}, //AND
-	{0x08, 0x09, 0x0A, 0x0B, 0x80, 0x81, 0x83, 1}, //OR
+	{0x20, 0x21, 0x22, 0x23, 0x80, 0x81, 0x83, 0x24, 0x25, 4}, //AND
+	{0x08, 0x09, 0x0A, 0x0B, 0x80, 0x81, 0x83, 0x0C, 0x0D, 1}, //OR
 
-	{0x30, 0x31, 0x32, 0x33, 0x80, 0x81, 0x83, 6}, //XOR
-	{0x88, 0x89, 0x8A, 0x8B, 0xC6, 0xC7, 0xCC, 0}, //MOV
+	{0x30, 0x31, 0x32, 0x33, 0x80, 0x81, 0x83, 0x34, 0x35, 6}, //XOR
+	{0x88, 0x89, 0x8A, 0x8B, 0xC6, 0xC7, 0xCC, 0xCC, 0xCC, 0}, //MOV
 
-	{0x84, 0x85, 0x84, 0x85, 0xF6, 0xF7, 0xCC, 0}, //TEST (to == from)
-	{0x38, 0x39, 0x3A, 0x3B, 0x80, 0x81, 0x83, 7}, //CMP
+	{0x84, 0x85, 0x84, 0x85, 0xF6, 0xF7, 0xCC, 0xA8, 0xA9, 0}, //TEST (to == from)
+	{0x38, 0x39, 0x3A, 0x3B, 0x80, 0x81, 0x83, 0x3C, 0x3D, 7}, //CMP
 
-	{0x86, 0x87, 0x86, 0x87, 0xCC, 0xCC, 0xCC, 7}, //XCHG
+	{0x86, 0x87, 0x86, 0x87, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 7}, //XCHG
 };
 
 enum NormalSSEOps
@@ -1047,6 +1047,7 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 		emit->Write8(0x66);
 
 	int immToWrite = 0;
+	bool skip_rest = false;
 
 	if (operand.IsImm())
 	{
@@ -1060,7 +1061,15 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 
 		if (operand.scale == SCALE_IMM8 && bits == 8)
 		{
-			emit->Write8(nops[op].imm8);
+			if (!scale && offsetOrBaseReg == AL && normalops[op].eaximm8 != 0xCC)
+			{
+				emit->Write8(normalops[op].eaximm8);
+				skip_rest = true;
+			}
+			else
+			{
+				emit->Write8(normalops[op].imm8);
+			}
 			immToWrite = 8;
 		}
 		else if ((operand.scale == SCALE_IMM16 && bits == 16) ||
@@ -1069,16 +1078,24 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 		{
 			// Try to save immediate size if we can, but first check to see
 			// if the instruction supports simm8.
-			if (nops[op].simm8 != 0xCC &&
+			if (normalops[op].simm8 != 0xCC &&
 			    ((operand.scale == SCALE_IMM16 && (s16)operand.offset == (s8)operand.offset) ||
 			     (operand.scale == SCALE_IMM32 && (s32)operand.offset == (s8)operand.offset)))
 			{
-				emit->Write8(nops[op].simm8);
+				emit->Write8(normalops[op].simm8);
 				immToWrite = 8;
 			}
 			else
 			{
-				emit->Write8(nops[op].imm32);
+				if (!scale && offsetOrBaseReg == EAX && normalops[op].eaximm32 != 0xCC)
+				{
+					emit->Write8(normalops[op].eaximm32);
+					skip_rest = true;
+				}
+				else
+				{
+					emit->Write8(normalops[op].imm32);
+				}
 				immToWrite = bits == 16 ? 16 : 32;
 			}
 		}
@@ -1086,7 +1103,7 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 				 (operand.scale == SCALE_IMM8 && bits == 32) ||
 				 (operand.scale == SCALE_IMM8 && bits == 64))
 		{
-			emit->Write8(nops[op].simm8);
+			emit->Write8(normalops[op].simm8);
 			immToWrite = 8;
 		}
 		else if (operand.scale == SCALE_IMM64 && bits == 64)
@@ -1103,7 +1120,7 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 		{
 			_assert_msg_(DYNA_REC, 0, "WriteNormalOp - Unhandled case");
 		}
-		_operandReg = (X64Reg)nops[op].ext; //pass extension in REG of ModRM
+		_operandReg = (X64Reg)normalops[op].ext; //pass extension in REG of ModRM
 	}
 	else
 	{
@@ -1112,16 +1129,17 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 		// mem/reg or reg/reg op
 		if (toRM)
 		{
-			emit->Write8(bits == 8 ? nops[op].toRm8 : nops[op].toRm32);
+			emit->Write8(bits == 8 ? normalops[op].toRm8 : normalops[op].toRm32);
 			// _assert_msg_(DYNA_REC, code[-1] != 0xCC, "ARGH4");
 		}
 		else
 		{
-			emit->Write8(bits == 8 ? nops[op].fromRm8 : nops[op].fromRm32);
+			emit->Write8(bits == 8 ? normalops[op].fromRm8 : normalops[op].fromRm32);
 			// _assert_msg_(DYNA_REC, code[-1] != 0xCC, "ARGH5");
 		}
 	}
-	WriteRest(emit, immToWrite>>3, _operandReg);
+	if (!skip_rest)
+		WriteRest(emit, immToWrite>>3, _operandReg);
 	switch (immToWrite)
 	{
 	case 0:
