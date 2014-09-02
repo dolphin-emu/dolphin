@@ -105,6 +105,10 @@ enum FloatOp {
 	floatLD = 0,
 	floatST = 2,
 	floatSTP = 3,
+	floatLD80 = 5,
+	floatSTP80 = 7,
+
+	floatINVALID = -1,
 };
 
 class XEmitter;
@@ -271,7 +275,7 @@ private:
 	void WriteSSE41Op(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
-	void WriteFloatLoadStore(int bits, FloatOp op, OpArg arg);
+	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 protected:

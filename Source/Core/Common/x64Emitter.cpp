@@ -1660,25 +1660,27 @@ void XEmitter::FWAIT()
 }
 
 // TODO: make this more generic
-void XEmitter::WriteFloatLoadStore(int bits, FloatOp op, OpArg arg)
+void XEmitter::WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg)
 {
 	int mf = 0;
-
+	_assert_msg_(DYNA_REC, !(bits == 80 && op_80b == floatINVALID), "WriteFloatLoadStore: 80 bits not supported for this instruction");
 	switch (bits)
 	{
 	case 32: mf = 0; break;
-	case 64: mf = 2; break;
-	default: _assert_msg_(DYNA_REC, 0, "WriteFloatLoadStore: bits is not 32 or 64");
+	case 64: mf = 4; break;
+	case 80: mf = 2; break;
+	default: _assert_msg_(DYNA_REC, 0, "WriteFloatLoadStore: invalid bits (should be 32/64/80)");
 	}
-
-	Write8(0xd9 | (mf << 1));
+	Write8(0xd9 | mf);
 	// x87 instructions use the reg field of the ModR/M byte as opcode:
+	if (bits == 80)
+		op = op_80b;
 	arg.WriteRest(this, 0, (X64Reg) op);
 }
 
-void XEmitter::FLD(int bits, OpArg src) {WriteFloatLoadStore(bits, floatLD, src);}
-void XEmitter::FST(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatST, dest);}
-void XEmitter::FSTP(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatSTP, dest);}
+void XEmitter::FLD(int bits, OpArg src) {WriteFloatLoadStore(bits, floatLD, floatLD80, src);}
+void XEmitter::FST(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatST, floatINVALID, dest);}
+void XEmitter::FSTP(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatSTP, floatSTP80, dest);}
 void XEmitter::FNSTSW_AX() { Write8(0xDF); Write8(0xE0); }
 
 void XEmitter::RDTSC() { Write8(0x0F); Write8(0x31); }
