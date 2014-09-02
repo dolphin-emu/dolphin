@@ -32,6 +32,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	// Without this cache, the compiler wouldn't be allowed to optimize the
 	// interpolation loop.
 	u32 indexR = Common::AtomicLoad(m_indexR);
+	u32 startR = indexR;
 	u32 indexW = Common::AtomicLoad(m_indexW);
 
 	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);	
@@ -60,27 +61,54 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	// TODO: consider a higher-quality resampling algorithm.
 	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2)
 	{
-		u32 indexR2 = indexR + 2; //next sample
-
-		s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
-		s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
-		int sampleL = ((l1 << 16) + (l2 - l1) * (u16)m_frac)  >> 16;
+		
+		u32 indexRp = indexR - 2; //previous sample
+		u32 indexR2 = indexR + 2; //next
+		u32 indexR4 = indexR + 4; //nextnext
+		u32 f2 = (m_frac * m_frac) >> 16;
+		u32 f3 = (f2 * m_frac) >> 16;
+		
+		s16 s0 = Common::swap16(m_buffer[indexRp & INDEX_MASK]); //previous
+		s16 s1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); // current
+		s16 s2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
+		s16 s3 = Common::swap16(m_buffer[indexR4 & INDEX_MASK]); //nextnext
+		int a = s3 - s2 - s0 + s1;
+		int b = s0 - s1 - a;
+		int c = s2 - s0;
+		int d = s1;
+		int sampleL = a * (u16) f3;
+		sampleL += b * (u16) f2;
+		sampleL += c * (u16) m_frac;
+		sampleL += (d << 16);
+		sampleL = (sampleL >> 16);
 		sampleL = (sampleL * lvolume) >> 8;
-		sampleL += samples[currentSample+1];
-		MathUtil::Clamp(&sampleL, -CLAMP, CLAMP);
-		samples[currentSample+1] = sampleL;
+		sampleL += samples[currentSample + 1];
+		MathUtil::Clamp(&sampleL, -32767, 32767);
+		samples[currentSample + 1] = sampleL;
 
-		s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
-		s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
-		int sampleR = ((r1 << 16) + (r2 - r1) * (u16)m_frac)  >> 16;
+		s0 = Common::swap16(m_buffer[(indexRp + 1) & INDEX_MASK]); //previous
+		s1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); // current
+		s2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
+		s3 = Common::swap16(m_buffer[(indexR4 + 1) & INDEX_MASK]); //nextnext
+		a = s3 - s2 - s0 + s1;
+		b = s0 - s1 - a;
+		c = s2 - s0;
+		d = s1;
+		int sampleR = a * (u16) f3;
+		sampleR += b * (u16) f2;
+		sampleR += c * (u16) m_frac;
+		sampleR += (d << 16);
+		sampleR = (sampleR >> 16);
 		sampleR = (sampleR * rvolume) >> 8;
 		sampleR += samples[currentSample];
-		MathUtil::Clamp(&sampleR, -CLAMP, CLAMP);
+		MathUtil::Clamp(&sampleR, -32767, 32767);
 		samples[currentSample] = sampleR;
 
 		m_frac += ratio;
-		indexR += 2 * (u16)(m_frac >> 16);
+		indexR += 2 * (u16) (m_frac >> 16);
 		m_frac &= 0xffff;
+
+
 	}
 
 	// Padding
