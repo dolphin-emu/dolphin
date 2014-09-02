@@ -223,8 +223,6 @@ void OpenALStream::SoundLoop()
 			// many silence samples.  These do not need to be timestretched.
 			if (rate > 0.10)
 			{
-				// Adjust SETTING_SEQUENCE_MS to balance between lag vs hollow audio
-				soundTouch.setSetting(SETTING_SEQUENCE_MS, (int)(1 / (rate * rate)));
 				soundTouch.setTempo(rate);
 				if (rate > 10)
 				{
