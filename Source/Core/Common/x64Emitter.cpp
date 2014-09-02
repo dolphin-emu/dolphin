@@ -833,7 +833,7 @@ void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 	}
 	else
 	{
-		Crash();
+		_assert_msg_(DYNA_REC, 0, "MOVZX - Invalid size");
 	}
 	src.WriteRest(this);
 }
