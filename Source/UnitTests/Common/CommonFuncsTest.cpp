@@ -13,6 +13,9 @@ TEST(CommonFuncs, ArraySizeMacro)
 
 	EXPECT_EQ(4u, ArraySize(test));
 	EXPECT_EQ(42u, ArraySize(test2));
+
+	(void)test;
+	(void)test2;
 }
 
 TEST(CommonFuncs, RoundUpPow2Macro)

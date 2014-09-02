@@ -106,7 +106,7 @@ extern "C" {
 #include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
 };
 
-class InputPlugin;
+class InputConfig;
 class wxFrame;
 
 // Create menu items
@@ -1288,7 +1288,7 @@ void CFrame::OnConfigDSP(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnConfigPAD(wxCommandEvent& WXUNUSED (event))
 {
-	InputPlugin *const pad_plugin = Pad::GetPlugin();
+	InputConfig* const pad_plugin = Pad::GetConfig();
 	bool was_init = false;
 	if (g_controller_interface.IsInit()) // check if game is running
 	{
@@ -1316,7 +1316,7 @@ void CFrame::OnConfigPAD(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 {
-	InputPlugin *const wiimote_plugin = Wiimote::GetPlugin();
+	InputConfig* const wiimote_plugin = Wiimote::GetConfig();
 	bool was_init = false;
 	if (g_controller_interface.IsInit()) // check if game is running
 	{

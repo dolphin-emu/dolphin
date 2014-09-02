@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -37,8 +38,13 @@ public:
 	u64 GetRawSize() const override;
 
 private:
-	IBlobReader* m_pReader;
-	u32 OpeningBnrOffset, hdr_size, cert_size, tick_size, tmd_size, data_size;
+	std::unique_ptr<IBlobReader> m_pReader;
+	u32 m_opening_bnr_offset;
+	u32 m_hdr_size;
+	u32 m_cert_size;
+	u32 m_tick_size;
+	u32 m_tmd_size;
+	u32 m_data_size;
 	u8 m_Country;
 };
 

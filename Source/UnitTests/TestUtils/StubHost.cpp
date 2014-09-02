@@ -19,6 +19,7 @@ void Host_UpdateDisasmDialog() {}
 void Host_UpdateMainFrame() {}
 void Host_GetRenderWindowSize(int&, int&, int&, int&) {}
 void Host_RequestRenderWindowSize(int, int) {}
+void Host_RequestFullscreen(bool) {}
 void Host_SetStartupDebuggingParameters() {}
 bool Host_UIHasFocus() { return false; }
 bool Host_RendererHasFocus() { return false; }

@@ -4,6 +4,7 @@
 
 
 #include <cstddef>
+#include <memory>
 #include <string>
 
 #include "Common/Common.h"
@@ -32,18 +33,16 @@ private:
 	DiscIO::IBlobReader& m_rReader;
 };
 
-WiiWAD::WiiWAD(const std::string& _rName)
+WiiWAD::WiiWAD(const std::string& name)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName);
-	if (pReader == nullptr || File::IsDirectory(_rName))
+	std::unique_ptr<IBlobReader> reader(DiscIO::CreateBlobReader(name));
+	if (reader == nullptr || File::IsDirectory(name))
 	{
 		m_Valid = false;
-		if (pReader) delete pReader;
 		return;
 	}
 
-	m_Valid = ParseWAD(*pReader);
-	delete pReader;
+	m_Valid = ParseWAD(*reader);
 }
 
 WiiWAD::~WiiWAD()
@@ -118,30 +117,28 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 	return true;
 }
 
-bool WiiWAD::IsWiiWAD(const std::string& _rName)
+bool WiiWAD::IsWiiWAD(const std::string& name)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName);
-	if (pReader == nullptr)
+	std::unique_ptr<IBlobReader> blob_reader(DiscIO::CreateBlobReader(name));
+	if (blob_reader == nullptr)
 		return false;
 
-	CBlobBigEndianReader Reader(*pReader);
-	bool Result = false;
+	CBlobBigEndianReader big_endian_reader(*blob_reader);
+	bool result = false;
 
 	// check for wii wad
-	if (Reader.Read32(0x00) == 0x20)
+	if (big_endian_reader.Read32(0x00) == 0x20)
 	{
-		u32 WADTYpe = Reader.Read32(0x04);
-		switch (WADTYpe)
+		u32 wad_type = big_endian_reader.Read32(0x04);
+		switch (wad_type)
 		{
 		case 0x49730000:
 		case 0x69620000:
-			Result = true;
+			result = true;
 		}
 	}
 
-	delete pReader;
-
-	return Result;
+	return result;
 }
 
 

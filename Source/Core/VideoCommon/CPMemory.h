@@ -59,33 +59,33 @@ union TVtxDesc
 	{
 		// 0: not present
 		// 1: present
-		u32 PosMatIdx   : 1;
-		u32 Tex0MatIdx  : 1;
-		u32 Tex1MatIdx  : 1;
-		u32 Tex2MatIdx  : 1;
-		u32 Tex3MatIdx  : 1;
-		u32 Tex4MatIdx  : 1;
-		u32 Tex5MatIdx  : 1;
-		u32 Tex6MatIdx  : 1;
-		u32 Tex7MatIdx  : 1;
+		u64 PosMatIdx   : 1;
+		u64 Tex0MatIdx  : 1;
+		u64 Tex1MatIdx  : 1;
+		u64 Tex2MatIdx  : 1;
+		u64 Tex3MatIdx  : 1;
+		u64 Tex4MatIdx  : 1;
+		u64 Tex5MatIdx  : 1;
+		u64 Tex6MatIdx  : 1;
+		u64 Tex7MatIdx  : 1;
 
 		// 00: not present
 		// 01: direct
 		// 10: 8 bit index
 		// 11: 16 bit index
-		u32 Position    : 2;
-		u32 Normal      : 2;
-		u32 Color0      : 2;
-		u32 Color1      : 2;
-		u32 Tex0Coord   : 2;
-		u32 Tex1Coord   : 2;
-		u32 Tex2Coord   : 2;
-		u32 Tex3Coord   : 2;
-		u32 Tex4Coord   : 2;
-		u32 Tex5Coord   : 2;
-		u32 Tex6Coord   : 2;
-		u32 Tex7Coord   : 2;
-		u32             :31;
+		u64 Position    : 2;
+		u64 Normal      : 2;
+		u64 Color0      : 2;
+		u64 Color1      : 2;
+		u64 Tex0Coord   : 2;
+		u64 Tex1Coord   : 2;
+		u64 Tex2Coord   : 2;
+		u64 Tex3Coord   : 2;
+		u64 Tex4Coord   : 2;
+		u64 Tex5Coord   : 2;
+		u64 Tex6Coord   : 2;
+		u64 Tex7Coord   : 2;
+		u64             :31;
 	};
 
 	struct

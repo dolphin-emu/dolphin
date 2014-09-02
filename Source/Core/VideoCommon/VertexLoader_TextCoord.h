@@ -14,10 +14,10 @@ public:
 	static void Init();
 
 	// GetSize
-	static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements);
+	static unsigned int GetSize(u64 _type, unsigned int _format, unsigned int _elements);
 
 	// GetFunction
-	static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements);
+	static TPipelineFunction GetFunction(u64 _type, unsigned int _format, unsigned int _elements);
 
 	// GetDummyFunction
 	// It is important to synchronize tcIndex.

@@ -11,6 +11,10 @@
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
+#ifdef _WIN32
+#pragma comment(lib, "openal32.lib")
+#endif
+
 static soundtouch::SoundTouch soundTouch;
 
 //

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include "Common/Event.h"
 #include "Common/Flag.h"
@@ -34,4 +35,6 @@ private:
 	Common::Event m_flush_trigger;
 	Common::Flag m_is_exiting;
 	std::unique_ptr<u8[]> m_flush_buffer;
+	std::chrono::steady_clock::time_point m_last_flush;
+	static const std::chrono::seconds s_flush_interval;
 };

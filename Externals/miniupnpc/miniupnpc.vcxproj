@@ -70,7 +70,6 @@
     <ClCompile Include="src\minixml.c" />
     <ClCompile Include="src\portlistingparse.c" />
     <ClCompile Include="src\receivedata.c" />
-    <ClCompile Include="src\upnpc.c" />
     <ClCompile Include="src\upnpcommands.c" />
     <ClCompile Include="src\upnperrors.c" />
     <ClCompile Include="src\upnpreplyparse.c" />

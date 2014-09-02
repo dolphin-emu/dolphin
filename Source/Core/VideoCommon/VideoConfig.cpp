@@ -24,6 +24,8 @@ void UpdateActiveConfig()
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
 		Movie::SetGraphicsConfig();
 	g_ActiveConfig = g_Config;
+	if (g_has_hmd)
+		g_ActiveConfig.bUseXFB = false;
 }
 
 VideoConfig::VideoConfig()

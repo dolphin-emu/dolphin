@@ -52,21 +52,21 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	tcScale[7] = 1.0f / float(1 << m_CurrentVat->g2.Tex7Frac);
 
 	//TexMtx
-	const u32 tmDesc[8] = {
+	const u64 tmDesc[8] = {
 		g_VtxDesc.Tex0MatIdx, g_VtxDesc.Tex1MatIdx, g_VtxDesc.Tex2MatIdx, g_VtxDesc.Tex3MatIdx,
 		g_VtxDesc.Tex4MatIdx, g_VtxDesc.Tex5MatIdx, g_VtxDesc.Tex6MatIdx, g_VtxDesc.Tex7MatIdx
 	};
 
 	// Colors
-	const u32 colDesc[2] = {g_VtxDesc.Color0, g_VtxDesc.Color1};
+	const u64 colDesc[2] = {g_VtxDesc.Color0, g_VtxDesc.Color1};
 	colElements[0] = m_CurrentVat->g0.Color0Elements;
 	colElements[1] = m_CurrentVat->g0.Color1Elements;
 	const u32 colComp[2] = {m_CurrentVat->g0.Color0Comp, m_CurrentVat->g0.Color1Comp};
 
 	// TextureCoord
-	const u32 tcDesc[8] = {
+	const u64 tcDesc[8] = {
 		g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord,
-		g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const u32)((g_VtxDesc.Hex >> 31) & 3)
+		g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, g_VtxDesc.Tex7Coord
 	};
 	const u32 tcElements[8] = {
 		m_CurrentVat->g0.Tex0CoordElements, m_CurrentVat->g1.Tex1CoordElements, m_CurrentVat->g1.Tex2CoordElements,
@@ -219,7 +219,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
 	for (int i = 0; i < 8; i++)
 	{
-		const int desc = tcDesc[i];
+		const int desc = (int)tcDesc[i];
 		const int format = tcFormat[i];
 		const int elements = tcElements[i];
 		_assert_msg_(VIDEO, NOT_PRESENT <= desc && desc <= INDEX16, "Invalid texture coordinates description!\n(desc = %d)", desc);

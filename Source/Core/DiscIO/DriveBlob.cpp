@@ -23,20 +23,20 @@ DriveReader::DriveReader(const std::string& drive)
 #ifdef _WIN32
 	SectorReader::SetSectorSize(2048);
 	auto const path = UTF8ToTStr(std::string("\\\\.\\") + drive);
-	hDisc = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
-						nullptr, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, nullptr);
-	if (hDisc != INVALID_HANDLE_VALUE)
+	m_disc_handle = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+	                           nullptr, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, nullptr);
+	if (m_disc_handle != INVALID_HANDLE_VALUE)
 	{
 		// Do a test read to make sure everything is OK, since it seems you can get
 		// handles to empty drives.
 		DWORD not_used;
 		u8 *buffer = new u8[m_blocksize];
-		if (!ReadFile(hDisc, buffer, m_blocksize, (LPDWORD)&not_used, nullptr))
+		if (!ReadFile(m_disc_handle, buffer, m_blocksize, (LPDWORD)&not_used, nullptr))
 		{
 			delete [] buffer;
 			// OK, something is wrong.
-			CloseHandle(hDisc);
-			hDisc = INVALID_HANDLE_VALUE;
+			CloseHandle(m_disc_handle);
+			m_disc_handle = INVALID_HANDLE_VALUE;
 			return;
 		}
 		delete [] buffer;
@@ -44,15 +44,15 @@ DriveReader::DriveReader(const std::string& drive)
 	#ifdef _LOCKDRIVE // Do we want to lock the drive?
 		// Lock the compact disc in the CD-ROM drive to prevent accidental
 		// removal while reading from it.
-		pmrLockCDROM.PreventMediaRemoval = TRUE;
-		DeviceIoControl(hDisc, IOCTL_CDROM_MEDIA_REMOVAL,
-					&pmrLockCDROM, sizeof(pmrLockCDROM), nullptr,
-					0, &dwNotUsed, nullptr);
+		m_lock_cdrom.PreventMediaRemoval = TRUE;
+		DeviceIoControl(m_disc_handle, IOCTL_CDROM_MEDIA_REMOVAL,
+		                &m_lock_cdrom, sizeof(m_lock_cdrom), nullptr,
+		                0, &dwNotUsed, nullptr);
 	#endif
 #else
 	SectorReader::SetSectorSize(2048);
-	file_.Open(drive, "rb");
-	if (file_)
+	m_file.Open(drive, "rb");
+	if (m_file)
 	{
 #endif
 	}
@@ -67,18 +67,18 @@ DriveReader::~DriveReader()
 #ifdef _WIN32
 #ifdef _LOCKDRIVE // Do we want to lock the drive?
 	// Unlock the disc in the CD-ROM drive.
-	pmrLockCDROM.PreventMediaRemoval = FALSE;
-	DeviceIoControl (hDisc, IOCTL_CDROM_MEDIA_REMOVAL,
-		&pmrLockCDROM, sizeof(pmrLockCDROM), nullptr,
+	m_lock_cdrom.PreventMediaRemoval = FALSE;
+	DeviceIoControl (m_disc_handle, IOCTL_CDROM_MEDIA_REMOVAL,
+		&m_lock_cdrom, sizeof(m_lock_cdrom), nullptr,
 		0, &dwNotUsed, nullptr);
 #endif
-	if (hDisc != INVALID_HANDLE_VALUE)
+	if (m_disc_handle != INVALID_HANDLE_VALUE)
 	{
-		CloseHandle(hDisc);
-		hDisc = INVALID_HANDLE_VALUE;
+		CloseHandle(m_disc_handle);
+		m_disc_handle = INVALID_HANDLE_VALUE;
 	}
 #else
-	file_.Close();
+	m_file.Close();
 #endif
 }
 
@@ -103,12 +103,12 @@ void DriveReader::GetBlock(u64 block_num, u8* out_ptr)
 	u64 offset = m_blocksize * block_num;
 	LONG off_low = (LONG)offset & 0xFFFFFFFF;
 	LONG off_high = (LONG)(offset >> 32);
-	SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
-	if (!ReadFile(hDisc, lpSector, m_blocksize, (LPDWORD)&NotUsed, nullptr))
+	SetFilePointer(m_disc_handle, off_low, &off_high, FILE_BEGIN);
+	if (!ReadFile(m_disc_handle, lpSector, m_blocksize, (LPDWORD)&NotUsed, nullptr))
 		PanicAlertT("Disc Read Error");
 #else
-	file_.Seek(m_blocksize * block_num, SEEK_SET);
-	file_.ReadBytes(lpSector, m_blocksize);
+	m_file.Seek(m_blocksize * block_num, SEEK_SET);
+	m_file.ReadBytes(lpSector, m_blocksize);
 #endif
 	memcpy(out_ptr, lpSector, m_blocksize);
 	delete[] lpSector;
@@ -121,15 +121,15 @@ bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* o
 	u64 offset = m_blocksize * block_num;
 	LONG off_low = (LONG)offset & 0xFFFFFFFF;
 	LONG off_high = (LONG)(offset >> 32);
-	SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
-	if (!ReadFile(hDisc, out_ptr, (DWORD)(m_blocksize * num_blocks), (LPDWORD)&NotUsed, nullptr))
+	SetFilePointer(m_disc_handle, off_low, &off_high, FILE_BEGIN);
+	if (!ReadFile(m_disc_handle, out_ptr, (DWORD)(m_blocksize * num_blocks), (LPDWORD)&NotUsed, nullptr))
 	{
 		PanicAlertT("Disc Read Error");
 		return false;
 	}
 #else
-	fseeko(file_.GetHandle(), m_blocksize*block_num, SEEK_SET);
-	if (fread(out_ptr, 1, m_blocksize * num_blocks, file_.GetHandle()) != m_blocksize * num_blocks)
+	fseeko(m_file.GetHandle(), (m_blocksize * block_num), SEEK_SET);
+	if (fread(out_ptr, 1, (m_blocksize * num_blocks), m_file.GetHandle()) != (m_blocksize * num_blocks))
 		return false;
 #endif
 	return true;

@@ -1684,7 +1684,6 @@ void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
 // helper routines for setting pointers
 void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 {
-	using namespace Gen;
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1700,7 +1699,6 @@ void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 
 void XEmitter::CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3)
 {
-	using namespace Gen;
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1718,7 +1716,6 @@ void XEmitter::CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 
 void XEmitter::CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4)
 {
-	using namespace Gen;
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));
@@ -1738,7 +1735,6 @@ void XEmitter::CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 
 void XEmitter::CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5)
 {
-	using namespace Gen;
 #ifdef _MSC_VER
 	MOV(32, R(RCX), Imm32(arg0));
 	MOV(32, R(RDX), Imm32(arg1));

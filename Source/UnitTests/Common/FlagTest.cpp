@@ -37,7 +37,7 @@ TEST(Flag, MultiThreaded)
 	int count = 0;
 	const int ITERATIONS_COUNT = 100000;
 
-	auto setter = [&f]() {
+	auto setter = [&]() {
 		for (int i = 0; i < ITERATIONS_COUNT; ++i)
 		{
 			while (f.IsSet());
@@ -45,7 +45,7 @@ TEST(Flag, MultiThreaded)
 		}
 	};
 
-	auto clearer = [&f, &count]() {
+	auto clearer = [&]() {
 		for (int i = 0; i < ITERATIONS_COUNT; ++i)
 		{
 			while (!f.IsSet());
