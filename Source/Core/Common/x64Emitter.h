@@ -105,6 +105,10 @@ enum FloatOp {
 	floatLD = 0,
 	floatST = 2,
 	floatSTP = 3,
+	floatLD80 = 5,
+	floatSTP80 = 7,
+
+	floatINVALID = -1,
 };
 
 class XEmitter;
@@ -271,7 +275,7 @@ private:
 	void WriteSSE41Op(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
-	void WriteFloatLoadStore(int bits, FloatOp op, OpArg arg);
+	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 protected:
@@ -336,7 +340,6 @@ public:
 	FixupBranch J(bool force5bytes = false);
 
 	void JMP(const u8 * addr, bool force5Bytes = false);
-	void JMP(OpArg arg);
 	void JMPptr(const OpArg &arg);
 	void JMPself(); //infinite loop!
 #ifdef CALL
@@ -536,11 +539,8 @@ public:
 	// SSE/SSE2: Useful alternative to shuffle in some cases.
 	void MOVDDUP(X64Reg regOp, OpArg arg);
 
-	// THESE TWO ARE NEW AND UNTESTED
 	void UNPCKLPS(X64Reg dest, OpArg src);
 	void UNPCKHPS(X64Reg dest, OpArg src);
-
-	// These are OK.
 	void UNPCKLPD(X64Reg dest, OpArg src);
 	void UNPCKHPD(X64Reg dest, OpArg src);
 
@@ -588,20 +588,22 @@ public:
 	void CVTPS2PD(X64Reg dest, OpArg src);
 	void CVTPD2PS(X64Reg dest, OpArg src);
 	void CVTSS2SD(X64Reg dest, OpArg src);
-	void CVTSS2SI(X64Reg dest, OpArg src);
 	void CVTSI2SS(X64Reg dest, OpArg src);
 	void CVTSD2SS(X64Reg dest, OpArg src);
-	void CVTSD2SI(X64Reg dest, OpArg src);
 	void CVTSI2SD(X64Reg dest, OpArg src);
 	void CVTDQ2PD(X64Reg regOp, OpArg arg);
 	void CVTPD2DQ(X64Reg regOp, OpArg arg);
 	void CVTDQ2PS(X64Reg regOp, OpArg arg);
 	void CVTPS2DQ(X64Reg regOp, OpArg arg);
 
-	void CVTTSS2SI(X64Reg regOp, OpArg arg);
-	void CVTTSD2SI(X64Reg regOp, OpArg arg);
 	void CVTTPS2DQ(X64Reg regOp, OpArg arg);
 	void CVTTPD2DQ(X64Reg regOp, OpArg arg);
+
+	// Destinations are X64 regs (rax, rbx, ...) for these instructions.
+	void CVTSS2SI(X64Reg xregdest, OpArg src);
+	void CVTSD2SI(X64Reg xregdest, OpArg src);
+	void CVTTSS2SI(X64Reg xregdest, OpArg arg);
+	void CVTTSD2SI(X64Reg xregdest, OpArg arg);
 
 	// SSE2: Packed integer instructions
 	void PACKSSDW(X64Reg dest, OpArg arg);
@@ -706,7 +708,7 @@ public:
 	void VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
-	void RTDSC();
+	void RDTSC();
 
 	// Utility functions
 	// The difference between this and CALL is that this aligns the stack
