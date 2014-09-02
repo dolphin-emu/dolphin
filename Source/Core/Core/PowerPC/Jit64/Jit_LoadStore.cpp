@@ -260,17 +260,37 @@ void Jit64::dcbz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	if (Core::g_CoreStartupParameter.bDCBZOFF)
+		return;
 
-	// FIXME
-	FALLBACK_IF(true);
+	int a = inst.RA;
+	int b = inst.RB;
 
-	MOV(32, R(EAX), gpr.R(inst.RB));
-	if (inst.RA)
-		ADD(32, R(EAX), gpr.R(inst.RA));
+	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+		mem_mask |= Memory::ADDR_MASK_MEM1;
+
+	MOV(32, R(EAX), gpr.R(b));
+	if (a)
+		ADD(32, R(EAX), gpr.R(a));
 	AND(32, R(EAX), Imm32(~31));
+	TEST(32, R(EAX), Imm32(mem_mask));
+	FixupBranch fast = J_CC(CC_Z, true);
+
+	// Should this code ever run? I can't find any games that use DCBZ on non-physical addresses, but
+	// supposedly there are, at least for some MMU titles. Let's be careful and support it to be sure.
+	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
+	u32 registersInUse = CallerSavedRegistersInUse();
+	ABI_PushRegistersAndAdjustStack(registersInUse, false);
+	ABI_CallFunctionR((void *)&Memory::ClearCacheLine, EAX);
+	ABI_PopRegistersAndAdjustStack(registersInUse, false);
+
+	FixupBranch exit = J();
+	SetJumpTarget(fast);
 	PXOR(XMM0, R(XMM0));
-	MOVAPS(MComplex(EBX, EAX, SCALE_1, 0), XMM0);
-	MOVAPS(MComplex(EBX, EAX, SCALE_1, 16), XMM0);
+	MOVAPS(MComplex(RBX, RAX, SCALE_1, 0), XMM0);
+	MOVAPS(MComplex(RBX, RAX, SCALE_1, 16), XMM0);
+	SetJumpTarget(exit);
 }
 
 void Jit64::stX(UGeckoInstruction inst)
