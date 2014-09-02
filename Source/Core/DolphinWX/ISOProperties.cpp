@@ -167,12 +167,10 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	if (!_iniFilename.length())
 	{
-		char tmp[17];
-		u8 _tTitleID[8];
-		if (OpenISO->GetTitleID(_tTitleID))
+		u8 title_id[8];
+		if (OpenISO->GetTitleID(title_id))
 		{
-			snprintf(tmp, 17, "%016" PRIx64, Common::swap64(_tTitleID));
-			_iniFilename = tmp;
+			_iniFilename = StringFromFormat("%016" PRIx64, Common::swap64(title_id));
 		}
 	}
 
