@@ -196,6 +196,7 @@ public:
 
 	void AdjustControlOption(wxCommandEvent& event);
 	void AdjustSetting(wxCommandEvent& event);
+	void AdjustSettingUI(wxCommandEvent& event);
 
 	void GetProfilePath(std::string& path);
 
@@ -215,6 +216,7 @@ private:
 	InputConfigDialog* const m_config_dialog;
 	InputPlugin &m_plugin;
 	bool DetectButton(ControlButton* button);
+	bool IterateBoolean = false;
 };
 
 class InputConfigDialog : public wxDialog

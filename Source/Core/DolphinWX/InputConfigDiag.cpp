@@ -465,6 +465,13 @@ void GamepadPage::AdjustSetting(wxCommandEvent& event)
 	((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
 }
 
+void GamepadPage::AdjustSettingUI(wxCommandEvent& event)
+{
+	IterateBoolean = !IterateBoolean;
+	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
+	((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
+}
+
 void GamepadPage::AdjustControlOption(wxCommandEvent&)
 {
 	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
@@ -521,7 +528,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 void GamepadPage::DetectControl(wxCommandEvent& event)
 {
 	ControlButton* btn = (ControlButton*)event.GetEventObject();
-	if (DetectButton(btn))
+	if (DetectButton(btn) && IterateBoolean == true)
 	{
 		auto it = std::find(control_buttons.begin(), control_buttons.end(), btn);
 
@@ -898,14 +905,21 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			Add(attachments->wxcontrol, 0, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 3);
 			Add(configure_btn, 0, wxALL|wxEXPAND, 3);
 		}
-		break;
+		break; 
 	default:
 		{
 			//options
 			for (auto& groupSetting : group->settings)
 			{
 				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
-				setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+				if (groupSetting.get()->is_iterate == true)
+				{
+					setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSettingUI, eventsink);
+				}
+				else
+				{
+					setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+				}
 				options.push_back(setting_cbox);
 
 				Add(setting_cbox->wxcontrol, 0, wxALL|wxLEFT, 5);
@@ -983,10 +997,10 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 
 	device_sbox->Add(device_cbox, 1, wxLEFT|wxRIGHT, 3);
 	device_sbox->Add(refresh_button, 0, wxRIGHT|wxBOTTOM, 3);
-
+	
 	wxButton* const default_button = new wxButton(this, -1, _("Default"), wxDefaultPosition, wxSize(48,-1));
 	wxButton* const clearall_button = new wxButton(this, -1, _("Clear"), wxDefaultPosition, wxSize(58,-1));
-
+	
 	wxStaticBoxSizer* const clear_sbox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Reset"));
 	clear_sbox->Add(default_button, 1, wxLEFT, 3);
 	clear_sbox->Add(clearall_button, 1, wxRIGHT, 3);
