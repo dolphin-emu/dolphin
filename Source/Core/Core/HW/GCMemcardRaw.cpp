@@ -12,6 +12,8 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
+const std::chrono::seconds MemoryCard::s_flush_interval{ 15 };
+
 MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb)
 	: MemoryCardBase(_card_index, sizeMb)
 	, m_filename(filename)
@@ -44,6 +46,7 @@ MemoryCard::MemoryCard(std::string filename, int _card_index, u16 sizeMb)
 
 	// Class members (including inherited ones) have now been initialized, so
 	// it's safe to startup the flush thread (which reads them).
+	m_last_flush = std::chrono::steady_clock::now();
 	m_flush_buffer = std::make_unique<u8[]>(memory_card_size);
 	m_flush_thread = std::thread(&MemoryCard::FlushThread, this);
 }
@@ -75,29 +78,10 @@ void MemoryCard::FlushThread()
 	Common::SetCurrentThreadName(
 		StringFromFormat("Memcard%x-Flush", card_index).c_str());
 
-	const auto flush_interval = std::chrono::seconds(15);
-	auto last_flush = std::chrono::steady_clock::now();
-	bool dirty = false;
-
 	for (;;)
 	{
-		bool triggered = m_flush_trigger.WaitFor(flush_interval);
+		m_flush_trigger.Wait();
 		bool do_exit = m_is_exiting.IsSet();
-		if (triggered)
-		{
-			dirty = true;
-		}
-		// Delay the flush if we're not exiting or if the event timed out and
-		// the state isn't dirty.
-		if (!do_exit)
-		{
-			auto now = std::chrono::steady_clock::now();
-			if (now - last_flush < flush_interval || !dirty)
-			{
-				continue;
-			}
-			last_flush = now;
-		}
 
 		// Opening the file is purposefully done each iteration to ensure the
 		// file doesn't disappear out from under us after the first check.
@@ -134,8 +118,6 @@ void MemoryCard::FlushThread()
 			pFile.WriteBytes(&m_flush_buffer[0], memory_card_size);
 		}
 
-		dirty = false;
-
 		if (!do_exit)
 		{
 			Core::DisplayMessage(
@@ -156,6 +138,13 @@ void MemoryCard::FlushThread()
 // be done now.
 void MemoryCard::TryFlush()
 {
+	auto now = std::chrono::steady_clock::now();
+	if (now - m_last_flush < s_flush_interval)
+	{
+		return;
+	}
+	m_last_flush = now;
+
 	if (m_flush_mutex.try_lock())
 	{
 		memcpy(&m_flush_buffer[0], &m_memcard_data[0], memory_card_size);
