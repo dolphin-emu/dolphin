@@ -14,6 +14,11 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define PPCSTATE_OFF(elem) ((s64)&PowerPC::ppcState.elem - (s64)&PowerPC::ppcState)
+
+// Some asserts to make sure we will be able to load everything
+static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
+static_assert((PPCSTATE_OFF(ps[0][0]) % 8) == 0, "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
+
 using namespace Arm64Gen;
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock
 {
