@@ -6,10 +6,11 @@
     <TargetSuffix>
     </TargetSuffix>
     <TargetSuffix Condition="'$(Configuration)'=='Debug'">D</TargetSuffix>
-    <BuildRootDir>$(SolutionDir)..\Build\</BuildRootDir>
-    <BinaryRootDir>$(SolutionDir)..\Binary\</BinaryRootDir>
+    <DolphinRootDir>$(SolutionDir)..\</DolphinRootDir>
+    <BuildRootDir>$(DolphinRootDir)Build\</BuildRootDir>
+    <BinaryRootDir>$(DolphinRootDir)Binary\</BinaryRootDir>
     <BinaryOutputDir>$(BinaryRootDir)$(Platform)\</BinaryOutputDir>
-    <ExternalsDir>$(SolutionDir)..\Externals\</ExternalsDir>
+    <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
     <CoreDir>$(SolutionDir)Core\</CoreDir>
   </PropertyGroup>
   <PropertyGroup>
@@ -41,7 +42,6 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)polarssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)portaudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ExternalsDir)SDL2-2.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)SOIL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
