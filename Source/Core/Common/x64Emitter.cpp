@@ -1037,7 +1037,7 @@ void OpArg::WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg _operandReg, int bit
 //operand can either be immediate or register
 void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const
 {
-	X64Reg _operandReg = (X64Reg)this->operandReg;
+	X64Reg _operandReg;
 	if (IsImm())
 	{
 		_assert_msg_(DYNA_REC, 0, "WriteNormalOp - Imm argument, wrong order");
@@ -1051,7 +1051,6 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 
 	if (operand.IsImm())
 	{
-		_operandReg = (X64Reg)0;
 		WriteRex(emit, bits, bits);
 
 		if (!toRM)

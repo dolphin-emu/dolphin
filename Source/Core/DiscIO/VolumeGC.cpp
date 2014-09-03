@@ -156,7 +156,7 @@ u64 CVolumeGC::GetRawSize() const
 
 bool CVolumeGC::IsDiscTwo() const
 {
-	bool discTwo;
+	bool discTwo = false;
 	Read(6,1, (u8*) &discTwo);
 	return discTwo;
 }
