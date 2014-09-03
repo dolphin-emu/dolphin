@@ -92,6 +92,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		cfg.OGL.DC = GetDC(cfg.OGL.Window);
 		//ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr);
 #endif
+		// TODO: | ovrDistortionCap_NoRestore to prevent crashes, when that flag works
 		ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Chromatic | ovrDistortionCap_TimeWarp,
 			g_eye_fov, g_eye_render_desc);
 		ovrhmd_EnableHSWDisplaySDKRender(hmd, false);
