@@ -192,6 +192,8 @@ void Jit64::mfspr(UGeckoInstruction inst)
 			js.downcountAmount++;
 			js.skipnext = true;
 			gpr.Lock(d, n);
+			gpr.BindToRegister(d, false);
+			gpr.BindToRegister(n, false);
 			if (iIndex == SPR_TL)
 				MOV(32, gpr.R(d), R(EAX));
 			if (nextIndex == SPR_TL)
@@ -205,6 +207,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		else
 		{
 			gpr.Lock(d);
+			gpr.BindToRegister(d, false);
 			if (iIndex == SPR_TU)
 				SHR(64, R(RAX), Imm8(32));
 			MOV(32, gpr.R(d), R(EAX));
