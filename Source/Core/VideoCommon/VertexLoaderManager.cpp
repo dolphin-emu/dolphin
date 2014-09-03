@@ -151,17 +151,21 @@ static VertexLoaderCacheItem RefreshLoader(int vtx_attr_group)
 	return s_VertexLoaders[vtx_attr_group];
 }
 
-void RunVertices(int vtx_attr_group, int primitive, int count)
+bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size)
 {
 	if (!count)
-		return;
+		return true;
 	auto loader = RefreshLoader(vtx_attr_group);
+
+	size_t size = count * loader.first->GetVertexSize();
+	if (buf_size < size)
+		return false;
 
 	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5)
 	{
 		// if cull mode is CULL_ALL, ignore triangles and quads
-		DataSkip(count * loader.first->GetVertexSize());
-		return;
+		DataSkip((u32)size);
+		return true;
 	}
 
 	// If the native vertex format changed, force a flush.
@@ -178,6 +182,7 @@ void RunVertices(int vtx_attr_group, int primitive, int count)
 
 	ADDSTAT(stats.thisFrame.numPrims, count);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
+	return true;
 }
 
 int GetVertexSize(int vtx_attr_group)
