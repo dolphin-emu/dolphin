@@ -273,5 +273,5 @@ struct XFMemory
 
 extern XFMemory xfmem;
 
-void LoadXFReg(u32 transferSize, u32 address, u32 *pData);
+void LoadXFReg(u32 transferSize, u32 address);
 void LoadIndexedXF(u32 val, int array);

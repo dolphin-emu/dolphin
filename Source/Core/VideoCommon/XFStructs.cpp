@@ -5,6 +5,7 @@
 #include "Common/Common.h"
 #include "Core/HW/Memmap.h"
 #include "VideoCommon/CPMemory.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -17,14 +18,14 @@ static void XFMemWritten(u32 transferSize, u32 baseAddress)
 	VertexShaderManager::InvalidateXFRange(baseAddress, baseAddress + transferSize);
 }
 
-static void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
+static void XFRegWritten(int transferSize, u32 baseAddress)
 {
 	u32 address = baseAddress;
 	u32 dataIndex = 0;
 
 	while (transferSize > 0 && address < 0x1058)
 	{
-		u32 newValue = pData[dataIndex];
+		u32 newValue = DataPeek<u32>(dataIndex * sizeof(u32));
 		u32 nextAddress = address + 1;
 
 		switch (address)
@@ -191,7 +192,7 @@ static void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 	}
 }
 
-void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
+void LoadXFReg(u32 transferSize, u32 baseAddress)
 {
 	// do not allow writes past registers
 	if (baseAddress + transferSize > 0x1058)
@@ -225,16 +226,20 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 		}
 
 		XFMemWritten(xfMemTransferSize, xfMemBase);
-		memcpy((u32*)(&xfmem) + xfMemBase, pData, xfMemTransferSize * 4);
-
-		pData += xfMemTransferSize;
+		for (u32 i = 0; i < xfMemTransferSize; i++)
+		{
+			((u32*)&xfmem)[xfMemBase + i] = DataRead<u32>();
+		}
 	}
 
 	// write to XF regs
 	if (transferSize > 0)
 	{
-		XFRegWritten(transferSize, baseAddress, pData);
-		memcpy((u32*)(&xfmem) + baseAddress, pData, transferSize * 4);
+		XFRegWritten(transferSize, baseAddress);
+		for (u32 i = 0; i < transferSize; i++)
+		{
+			((u32*)&xfmem)[baseAddress + i] = DataRead<u32>();
+		}
 	}
 }
 
