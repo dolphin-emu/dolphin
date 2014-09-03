@@ -17,6 +17,7 @@
 // can get away with simply undef'ing TEST. Phew.
 #undef TEST
 
+#include "Common/CPUDetect.h"
 #include "Common/x64Emitter.h"
 
 namespace Gen
@@ -90,6 +91,8 @@ class x64EmitterTest : public testing::Test
 protected:
 	void SetUp() override
 	{
+		memset(&cpu_info, 0xFF, sizeof (cpu_info));
+
 		emitter.reset(new X64CodeBlock());
 		emitter->AllocCodeSpace(4096);
 		code_buffer = emitter->GetWritableCodePtr();
