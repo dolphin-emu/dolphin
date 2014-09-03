@@ -91,7 +91,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 		Statistics::SwapDL();
 
 		u8 *end = g_pVideoData + size;
-		cycles = OpcodeDecoder_Run(false, end);
+		cycles = OpcodeDecoder_Run(end);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -146,7 +146,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 	}
 }
 
-static u32 Decode(u8* end, bool skipped_frame)
+static u32 Decode(u8* end)
 {
 	u8 *opcodeStart = g_pVideoData;
 	if (g_pVideoData == end)
@@ -221,10 +221,7 @@ static u32 Decode(u8* end, bool skipped_frame)
 				return 0;
 			u32 address = DataReadU32();
 			u32 count = DataReadU32();
-			if (skipped_frame)
-				cycles = 45; // xxx
-			else
-				cycles = 6 + InterpretDisplayList(address, count);
+			cycles = 6 + InterpretDisplayList(address, count);
 		}
 		break;
 
@@ -261,21 +258,14 @@ static u32 Decode(u8* end, bool skipped_frame)
 				return 0;
 			u16 numVertices = DataReadU16();
 
-			if (skipped_frame)
+			if (!VertexLoaderManager::RunVertices(
+				cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+				(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+				numVertices,
+				end - g_pVideoData,
+				g_bSkipCurrentFrame))
 			{
-				size_t size = numVertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK);
-				if ((size_t) (end - g_pVideoData) < size)
-					return 0;
-				DataSkip((u32)size);
-			}
-			else
-			{
-				if (!VertexLoaderManager::RunVertices(
-					cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-					numVertices,
-					end - g_pVideoData))
-					return 0;
+				return 0;
 			}
 		}
 		else
@@ -311,13 +301,13 @@ void OpcodeDecoder_Shutdown()
 {
 }
 
-u32 OpcodeDecoder_Run(bool skipped_frame, u8* end)
+u32 OpcodeDecoder_Run(u8* end)
 {
 	u32 totalCycles = 0;
 	while (true)
 	{
 		u8* old = g_pVideoData;
-		u32 cycles = Decode(end, skipped_frame);
+		u32 cycles = Decode(end);
 		if (cycles == 0)
 		{
 			g_pVideoData = old;

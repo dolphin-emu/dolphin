@@ -151,7 +151,7 @@ static VertexLoaderCacheItem RefreshLoader(int vtx_attr_group)
 	return s_VertexLoaders[vtx_attr_group];
 }
 
-bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size)
+bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size, bool skip_drawing)
 {
 	if (!count)
 		return true;
@@ -161,7 +161,7 @@ bool RunVertices(int vtx_attr_group, int primitive, int count, size_t buf_size)
 	if (buf_size < size)
 		return false;
 
-	if (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5)
+	if (skip_drawing || (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5))
 	{
 		// if cull mode is CULL_ALL, ignore triangles and quads
 		DataSkip((u32)size);
