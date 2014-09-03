@@ -156,8 +156,6 @@ bool CBoot::EmulatedBS2_GC()
 	// Load patches
 	PatchEngine::LoadPatches();
 
-	PowerPC::ppcState.DebugCount = 0;
-
 	// If we have any patches that need to be applied very early, here's a good place
 	PatchEngine::ApplyFramePatches();
 
@@ -417,8 +415,6 @@ bool CBoot::EmulatedBS2_Wii()
 		// return
 		PC = PowerPC::ppcState.gpr[3];
 	}
-
-	PowerPC::ppcState.DebugCount = 0;
 
 	return apploaderRan;
 }
