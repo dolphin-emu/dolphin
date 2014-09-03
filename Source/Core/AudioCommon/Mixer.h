@@ -87,19 +87,7 @@ public:
 protected:
 	class MixerFifo {
 	public:
-		MixerFifo(CMixer *mixer, unsigned sample_rate)
-			: m_mixer(mixer)
-			, m_input_sample_rate(sample_rate)
-			, m_indexW(0)
-			, m_indexR(0)
-			, m_LVolume(256)
-			, m_RVolume(256)
-			, m_numLeftI(0.0f)
-			, m_frac(0)
-		{
-			memset(m_buffer, 0, sizeof(m_buffer));
-			memset(float_buffer, 0, sizeof(float_buffer));
-		}
+		MixerFifo(CMixer *mixer, unsigned sample_rate);
 		void PushSamples(const short* samples, unsigned int num_samples);
 		unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
 		void SetInputSampleRate(unsigned int rate);
@@ -108,7 +96,7 @@ protected:
 		CMixer *m_mixer;
 		unsigned m_input_sample_rate;
 		short m_buffer[MAX_SAMPLES * 2];
-		float float_buffer[MAX_SAMPLES * 2];
+		Interpolator* interp;
 		volatile u32 m_indexW;
 		volatile u32 m_indexR;
 		// Volume ranges from 0-256

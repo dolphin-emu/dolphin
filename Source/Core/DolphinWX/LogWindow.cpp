@@ -103,7 +103,7 @@ void CLogWindow::CreateGUIControls()
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
-		logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, false);
+		logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, true);
 
 		if (m_writeWindow && enable)
 			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, this);
@@ -238,7 +238,7 @@ wxTextCtrl* CLogWindow::CreateTextCtrl(wxPanel* parent, wxWindowID id, long Styl
 #ifdef __APPLE__
 	TC->SetBackgroundColour(*wxLIGHT_GREY);
 #else
-	TC->SetBackgroundColour(*wxBLACK);
+	TC->SetBackgroundColour(*wxLIGHT_GREY);
 #endif
 	if (m_FontChoice && m_FontChoice->GetSelection() < (int)LogFont.size() && m_FontChoice->GetSelection() >= 0)
 		TC->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, LogFont[m_FontChoice->GetSelection()]));
@@ -323,7 +323,7 @@ void CLogWindow::UpdateLog()
 				break;
 
 			case LogTypes::LOG_LEVELS::LNOTICE:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
+				m_Log->SetDefaultStyle(wxTextAttr(*wxBLACK));
 				break;
 
 			case LogTypes::LOG_LEVELS::LINFO:

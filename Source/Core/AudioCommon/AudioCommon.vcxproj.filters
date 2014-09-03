@@ -23,6 +23,7 @@
     <ClCompile Include="XAudio2_7Stream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
+    <ClCompile Include="Interpolator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aldlist.h" />
@@ -58,6 +59,7 @@
     <ClInclude Include="AlsaSoundStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
+    <ClInclude Include="Interpolator.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

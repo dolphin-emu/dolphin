@@ -11,6 +11,7 @@
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/VideoInterface.h"
+#include "Interpolator.h"
 
 // UGLINESS
 #include "Core/PowerPC/PowerPC.h"
@@ -40,10 +41,30 @@ s16 float2stwos(float f) {
 	return (s16) n;
 }
 
+CMixer::MixerFifo::MixerFifo(CMixer *mixer, unsigned sample_rate)
+	: m_mixer(mixer)
+	, m_input_sample_rate(sample_rate)
+	, m_indexW(0)
+	, m_indexR(0)
+	, m_LVolume(256)
+	, m_RVolume(256)
+	, m_numLeftI(0.0f)
+	, m_frac(0)
+{
+	memset(m_buffer, 0, sizeof(m_buffer));
+	std::string interpAlgo = SConfig::GetInstance().sInterp;
+	if (interpAlgo == INTERP_LINEAR)
+		interp = new Linear(m_buffer);
+	else if (interpAlgo == INTERP_CUBIC)
+		interp = new Cubic(m_buffer);
+	else
+		interp = new Linear(m_buffer);
+}
+
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
 {
-	srand((u32)time(NULL));
+	/*srand((u32)time(NULL));
 	unsigned int currentSample = 0;
 	int rand1 = 0, rand2 = 0, rand3 = 0, rand4 = 0;
 	float errorL1 = 0, errorL2 = 0;
@@ -53,7 +74,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	float width = 1.f / w;
 	float dither = width / RAND_MAX;
 	float doffset = width * 0.5f;
-	float temp;
+	float temp;*/
 	// Cache access in non-volatile variable
 	// This is the only function changing the read value, so it's safe to
 	// cache it locally although it's written here.
@@ -86,13 +107,14 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	//const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );	//ratio of aid over sample, scaled to be 0 - 0x10000
 	float ratio = aid_sample_rate / (float) m_mixer->m_sampleRate;
 	
-	float lvolume = (m_LVolume / 256.f);
-	float rvolume = (m_RVolume / 256.f);
+	s32 lvolume = m_LVolume;
+	s32 rvolume = m_RVolume;
 
-	for (u32 i = indexR; i < indexW - 2; i++) {
-		float_buffer[i & INDEX_MASK] = twos2float(Common::swap16(m_buffer[i & INDEX_MASK]));
-	}
+	interp->setRatio(ratio);
+	interp->setVolume(lvolume, rvolume);
+	unsigned int currentSample = interp->interpolate(samples, numSamples, indexR, indexW);
 
+	/*
 	// TODO: consider a higher-quality resampling algorithm.
 	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2)
 	{
@@ -169,14 +191,14 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		indexR += 2 * (int)m_frac;
 		float intpart;
 		m_frac = modf(m_frac, &intpart);
-	}
+	}*/
 
 	// Padding
 	short s[2];
 	s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
 	s[1] = Common::swap16(m_buffer[(indexR - 2) & INDEX_MASK]);
-	s[0] = (s[0] * m_RVolume) >> 8;
-	s[1] = (s[1] * m_LVolume) >> 8;
+	s[0] = (s[0] * lvolume) >> 8;
+	s[1] = (s[1] * rvolume) >> 8;
 	for (; currentSample < numSamples * 2; currentSample += 2)
 	{
 		int sampleR = s[0] + samples[currentSample];
