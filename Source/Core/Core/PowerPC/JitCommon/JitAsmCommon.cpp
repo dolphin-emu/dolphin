@@ -117,6 +117,65 @@ void CommonAsmRoutines::GenFrsqrte()
 	RET();
 }
 
+void CommonAsmRoutines::GenFres()
+{
+	// Assume input in XMM0.
+	// This function clobbers EAX, ECX, and EDX.
+	MOVQ_xmm(R(RAX), XMM0);
+
+	// Zero inputs set an exception and take the complex path.
+	TEST(64, R(RAX), R(RAX));
+	FixupBranch zero = J_CC(CC_Z);
+
+	MOV(64, R(RCX), R(RAX));
+	SHR(64, R(RCX), Imm8(52));
+	MOV(32, R(EDX), R(ECX));
+	AND(32, R(ECX), Imm32(0x7FF)); // exp
+	AND(32, R(EDX), Imm32(0x800)); // sign
+	CMP(32, R(ECX), Imm32(895));
+	// Take the complex path for very large/small exponents.
+	FixupBranch complex1 = J_CC(CC_L);
+	CMP(32, R(ECX), Imm32(1149));
+	FixupBranch complex2 = J_CC(CC_GE);
+
+	SUB(32, R(ECX), Imm32(0x7FD));
+	NEG(32, R(ECX));
+	OR(32, R(ECX), R(EDX));
+	SHL(64, R(RCX), Imm8(52));	   // vali = sign | exponent
+
+	MOV(64, R(RDX), R(RAX));
+	SHR(64, R(RAX), Imm8(37));
+	SHR(64, R(RDX), Imm8(47));
+	AND(32, R(EAX), Imm32(0x3FF)); // i % 1024
+	AND(32, R(RDX), Imm8(0x1F));   // i / 1024
+
+	IMUL(32, EAX, MScaled(RDX, SCALE_4, (u32)(u64)MathUtil::fres_expected_dec));
+	ADD(32, R(EAX), Imm8(1));
+	SHR(32, R(EAX), Imm8(1));
+
+	MOV(32, R(EDX), MScaled(RDX, SCALE_4, (u32)(u64)MathUtil::fres_expected_base));
+	SUB(32, R(EDX), R(EAX));
+	SHL(64, R(RDX), Imm8(29));
+	OR(64, R(RDX), R(RCX));     // vali |= (s64)(fres_expected_base[i / 1024] - (fres_expected_dec[i / 1024] * (i % 1024) + 1) / 2) << 29
+	MOVQ_xmm(XMM0, R(RDX));
+	RET();
+
+	// Exception flags for zero input.
+	SetJumpTarget(zero);
+	TEST(32, M(&FPSCR), Imm32(FPSCR_ZX));
+	FixupBranch skip_set_fx1 = J_CC(CC_NZ);
+	OR(32, M(&FPSCR), Imm32(FPSCR_FX));
+	SetJumpTarget(skip_set_fx1);
+	OR(32, M(&FPSCR), Imm32(FPSCR_ZX));
+
+	SetJumpTarget(complex1);
+	SetJumpTarget(complex2);
+	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, false);
+	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocal);
+	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, false);
+	RET();
+}
+
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 
 static const u8 GC_ALIGNED16(pbswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};

@@ -151,6 +151,8 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	GenFifoFloatWrite();
 	frsqrte = AlignCode4();
 	GenFrsqrte();
+	fres = AlignCode4();
+	GenFres();
 
 	GenQuantizedLoads();
 	GenQuantizedStores();

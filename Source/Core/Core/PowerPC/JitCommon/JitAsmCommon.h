@@ -25,6 +25,7 @@ public:
 	const u8 *doTiming;
 
 	const u8 *frsqrte;
+	const u8 *fres;
 
 	// In: array index: GQR to use.
 	// In: ECX: Address to read from.
@@ -59,5 +60,5 @@ public:
 	void GenFifoXmm64Write();
 	void GenFifoFloatWrite();
 	void GenFrsqrte();
-
+	void GenFres();
 };
