@@ -166,10 +166,53 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	int d = inst.RD;
 	switch (iIndex)
 	{
-	case SPR_WPAR:
-	case SPR_DEC:
 	case SPR_TL:
 	case SPR_TU:
+	{
+		// TODO: we really only need to call GetFakeTimeBase once per JIT block; this matters because
+		// typical use of this instruction is to call it three times, e.g. mftbu/mftbl/mftbu/cmpw/bne
+		// to deal with possible timer wraparound. This makes the second two (out of three) completely
+		// redundant for the JIT.
+		u32 registersInUse = CallerSavedRegistersInUse();
+		u32 offset = js.downcountAmount / SystemTimers::TIMER_RATIO;
+		ABI_PushRegistersAndAdjustStack(registersInUse, false);
+		ABI_CallFunction((void *)&SystemTimers::GetFakeTimeBase);
+		ABI_PopRegistersAndAdjustStack(registersInUse, false);
+		// The timer can change within a long block, so add in any difference
+		if (offset > 0)
+			ADD(64, R(RAX), Imm32(offset));
+		MOV(64, M(&TL), R(RAX));
+		// Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
+		// if we can.
+		u32 nextIndex = (js.next_inst.SPRU << 5) | (js.next_inst.SPRL & 0x1F);
+		// Be careful; the actual opcode is for mftb (371), not mfspr (339)
+		if (js.next_inst.OPCD == 31 && js.next_inst.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL))
+		{
+			int n = js.next_inst.RD;
+			js.downcountAmount++;
+			js.skipnext = true;
+			gpr.Lock(d, n);
+			if (iIndex == SPR_TL)
+				MOV(32, gpr.R(d), R(EAX));
+			if (nextIndex == SPR_TL)
+				MOV(32, gpr.R(n), R(EAX));
+			SHR(64, R(RAX), Imm8(32));
+			if (iIndex == SPR_TU)
+				MOV(32, gpr.R(d), R(EAX));
+			if (nextIndex == SPR_TU)
+				MOV(32, gpr.R(n), R(EAX));
+		}
+		else
+		{
+			gpr.Lock(d);
+			if (iIndex == SPR_TU)
+				SHR(64, R(RAX), Imm8(32));
+			MOV(32, gpr.R(d), R(EAX));
+		}
+		break;
+	}
+	case SPR_WPAR:
+	case SPR_DEC:
 	case SPR_PMC1:
 	case SPR_PMC2:
 	case SPR_PMC3:
@@ -179,9 +222,9 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		gpr.Lock(d);
 		gpr.BindToRegister(d, false);
 		MOV(32, gpr.R(d), M(&PowerPC::ppcState.spr[iIndex]));
-		gpr.UnlockAll();
 		break;
 	}
+	gpr.UnlockAll();
 }
 
 void Jit64::mtmsr(UGeckoInstruction inst)
