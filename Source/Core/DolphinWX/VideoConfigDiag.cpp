@@ -241,7 +241,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// backend
 	{
-	wxStaticText* const label_backend = new wxStaticText(page_general, wxID_ANY, _("Backend:"));
+	label_backend = new wxStaticText(page_general, wxID_ANY, _("Backend:"));
 	choice_backend = new wxChoice(page_general, wxID_ANY);
 	RegisterControl(choice_backend, wxGetTranslation(backend_desc));
 
@@ -255,18 +255,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
 	szr_basic->Add(choice_backend, 1, 0, 0);
-
-	if (Core::IsRunning())
-	{
-		label_backend->Disable();
-		choice_backend->Disable();
-	}
 	}
 
 	// adapter (D3D only)
 	if (vconfig.backend_info.Adapters.size())
 	{
-		wxChoice* const choice_adapter = CreateChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_desc));
+		choice_adapter = CreateChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_desc));
 
 		for (const std::string& adapter : vconfig.backend_info.Adapters)
 		{
@@ -275,7 +269,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 		choice_adapter->Select(vconfig.iAdapter);
 
-		szr_basic->Add(new wxStaticText(page_general, -1, _("Adapter:")), 1, wxALIGN_CENTER_VERTICAL, 5);
+		label_adapter = new wxStaticText(page_general, wxID_ANY, _("Adapter:"));
+		szr_basic->Add(label_adapter, 1, wxALIGN_CENTER_VERTICAL, 5);
 		szr_basic->Add(choice_adapter, 1, 0, 0);
 	}
 
@@ -291,7 +286,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		wxArrayString res_list = GetListOfResolutions();
 		if (res_list.empty())
 			res_list.Add(_("<No resolutions found>"));
-		wxStaticText* const label_display_resolution = new wxStaticText(page_general, wxID_ANY, _("Fullscreen Resolution:"));
+		label_display_resolution = new wxStaticText(page_general, wxID_ANY, _("Fullscreen Resolution:"));
 		choice_display_resolution = new wxChoice(page_general, wxID_ANY, wxDefaultPosition, wxDefaultSize, res_list);
 		RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
 		choice_display_resolution->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_DisplayResolution, this);
@@ -300,12 +295,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 		szr_display->Add(label_display_resolution, 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_display->Add(choice_display_resolution);
-
-		if (Core::IsRunning())
-		{
-			label_display_resolution->Disable();
-			choice_display_resolution->Disable();
-		}
 	}
 #endif
 
@@ -330,16 +319,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxFlexGridSizer* const szr_other = new wxFlexGridSizer(2, 5, 5);
 
 	{
-	SettingCheckBox* render_to_main_cb;
 	szr_other->Add(CreateCheckBox(page_general, _("Show FPS"), wxGetTranslation(show_fps_desc), vconfig.bShowFPS));
 	szr_other->Add(CreateCheckBox(page_general, _("Log Render Time to File"), wxGetTranslation(log_render_time_to_file_desc), vconfig.bLogRenderTimeToFile));
 	szr_other->Add(CreateCheckBox(page_general, _("Auto adjust Window Size"), wxGetTranslation(auto_window_size_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize));
 	szr_other->Add(CreateCheckBox(page_general, _("Keep Window on Top"), wxGetTranslation(keep_window_on_top_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop));
 	szr_other->Add(CreateCheckBox(page_general, _("Hide Mouse Cursor"), wxGetTranslation(hide_mouse_cursor_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor));
-	szr_other->Add(render_to_main_cb = CreateCheckBox(page_general, _("Render to Main Window"), wxGetTranslation(render_to_main_win_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain));
-
-	if (Core::IsRunning())
-		render_to_main_cb->Disable();
+	szr_other->Add(render_to_main_checkbox = CreateCheckBox(page_general, _("Render to Main Window"), wxGetTranslation(render_to_main_win_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain));
 	}
 
 
@@ -587,17 +572,15 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// Progressive Scan
 	{
-	wxCheckBox* const cb_prog_scan = new wxCheckBox(page_advanced, wxID_ANY, _("Enable Progressive Scan"));
-	RegisterControl(cb_prog_scan, wxGetTranslation(prog_scan_desc));
-	cb_prog_scan->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_ProgressiveScan, this);
-	if (Core::IsRunning())
-		cb_prog_scan->Disable();
+	progressive_scan_checkbox = new wxCheckBox(page_advanced, wxID_ANY, _("Enable Progressive Scan"));
+	RegisterControl(progressive_scan_checkbox, wxGetTranslation(prog_scan_desc));
+	progressive_scan_checkbox->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::Event_ProgressiveScan, this);
 
-	cb_prog_scan->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);
+	progressive_scan_checkbox->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);
 	// A bit strange behavior, but this needs to stay in sync with the main progressive boolean; TODO: Is this still necessary?
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);
 
-	szr_misc->Add(cb_prog_scan);
+	szr_misc->Add(progressive_scan_checkbox);
 	}
 
 	// Borderless Fullscreen

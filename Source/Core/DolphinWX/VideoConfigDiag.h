@@ -188,6 +188,29 @@ protected:
 		virtual_xfb->Enable(vconfig.bUseXFB);
 		real_xfb->Enable(vconfig.bUseXFB);
 
+		// Things which shouldn't be changed during emulation
+		if (Core::IsRunning())
+		{
+			choice_backend->Disable();
+			label_backend->Disable();
+
+			//D3D only
+			if (vconfig.backend_info.Adapters.size())
+			{
+				choice_adapter->Disable();
+				label_adapter->Disable();
+			}
+
+#if !defined(_APPLE_)
+			// This isn't supported on OSX.
+
+			choice_display_resolution->Disable();
+			label_display_resolution->Disable();
+#endif
+
+			progressive_scan_checkbox->Disable();
+			render_to_main_checkbox->Disable();
+		}
 		ev.Skip();
 	}
 
@@ -204,13 +227,21 @@ protected:
 	void CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer);
 
 	wxChoice* choice_backend;
+	wxChoice* choice_adapter;
 	wxChoice* choice_display_resolution;
+
+	wxStaticText* label_backend;
+	wxStaticText* label_adapter;
+
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
+
+	wxStaticText* label_display_resolution;
 
 	wxButton* button_config_pp;
 
 	SettingCheckBox* borderless_fullscreen;
+	SettingCheckBox* render_to_main_checkbox;
 
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;
@@ -218,6 +249,8 @@ protected:
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;
+
+	wxCheckBox* progressive_scan_checkbox;
 
 	std::map<wxWindow*, wxString> ctrl_descs; // maps setting controls to their descriptions
 	std::map<wxWindow*, wxStaticText*> desc_texts; // maps dialog tabs (which are the parents of the setting controls) to their description text objects
