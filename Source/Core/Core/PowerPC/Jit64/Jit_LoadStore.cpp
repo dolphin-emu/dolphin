@@ -228,7 +228,13 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, js.memcheck, true);
-	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, CallerSavedRegistersInUse(), signExtend);
+	u32 registersInUse = CallerSavedRegistersInUse();
+	if (update && storeAddress)
+	{
+		// We need to save the (usually scratch) address register for the update.
+		registersInUse |= (1 << ABI_PARAM1);
+	}
+	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
 
 	if (update && storeAddress)
 	{
@@ -482,7 +488,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 		ADD(32, R(ECX), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
-		SafeLoadToReg(EAX, R(ECX), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse(), false);
+		SafeLoadToReg(EAX, R(ECX), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | (1 << ECX), false);
 		gpr.BindToRegister(i, false, true);
 		MOV(32, gpr.R(i), R(EAX));
 	}
