@@ -15,8 +15,8 @@
 namespace Gecko
 {
 
-const u32 installer_base_address = 0x80001800;
-const u32 installer_end_address = 0x80003000;
+static const u32 INSTALLER_BASE_ADDRESS = 0x80001800;
+static const u32 INSTALLER_END_ADDRESS = 0x80003000;
 
 // return true if a code exists
 bool GeckoCode::Exist(u32 address, u32 data)
@@ -90,27 +90,28 @@ static bool InstallCodeHandler()
 	}
 
 	// Install code handler
-	Memory::WriteBigEData((const u8*)data.data(), installer_base_address, data.length());
+	Memory::WriteBigEData((const u8*)data.data(), INSTALLER_BASE_ADDRESS, data.length());
 
 	// Patch the code handler to the system starting up
 	for (unsigned int h = 0; h < data.length(); h += 4)
 	{
 		// Patch MMIO address
-		if (Memory::ReadUnchecked_U32(installer_base_address + h) == (0x3f000000 | ((mmioAddr ^ 1) << 8)))
+		if (Memory::ReadUnchecked_U32(INSTALLER_BASE_ADDRESS + h) == (0x3f000000 | ((mmioAddr ^ 1) << 8)))
 		{
-			NOTICE_LOG(ACTIONREPLAY, "Patching MMIO access at %08x", installer_base_address + h);
-			Memory::Write_U32(0x3f000000 | mmioAddr << 8, installer_base_address + h);
+			NOTICE_LOG(ACTIONREPLAY, "Patching MMIO access at %08x", INSTALLER_BASE_ADDRESS + h);
+			Memory::Write_U32(0x3f000000 | mmioAddr << 8, INSTALLER_BASE_ADDRESS + h);
 		}
 	}
 
-	u32 codelist_location = installer_base_address + (u32)data.length() - 8;
+	u32 codelist_base_address = INSTALLER_BASE_ADDRESS + (u32)data.length() - 8;
+	u32 codelist_end_address = INSTALLER_END_ADDRESS;
 
 	// Write a magic value to 'gameid' (codehandleronly does not actually read this).
-	Memory::Write_U32(0xd01f1bad, installer_base_address);
+	Memory::Write_U32(0xd01f1bad, INSTALLER_BASE_ADDRESS);
 
 	// Create GCT in memory
-	Memory::Write_U32(0x00d0c0de, codelist_location);
-	Memory::Write_U32(0x00d0c0de, codelist_location + 4);
+	Memory::Write_U32(0x00d0c0de, codelist_base_address);
+	Memory::Write_U32(0x00d0c0de, codelist_base_address + 4);
 
 	std::lock_guard<std::mutex> lk(active_codes_lock);
 
@@ -123,26 +124,30 @@ static bool InstallCodeHandler()
 			for (const GeckoCode::Code& code : active_code.codes)
 			{
 				// Make sure we have enough memory to hold the code list
-				if ((codelist_location + 24 + i) < installer_end_address)
+				if ((codelist_base_address + 24 + i) < codelist_end_address)
 				{
-					Memory::Write_U32(code.address, codelist_location + 8 + i);
-					Memory::Write_U32(code.data, codelist_location + 12 + i);
+					Memory::Write_U32(code.address, codelist_base_address + 8 + i);
+					Memory::Write_U32(code.data, codelist_base_address + 12 + i);
 					i += 8;
 				}
 			}
 		}
 	}
 
-	Memory::Write_U32(0xff000000, codelist_location + 8 + i);
-	Memory::Write_U32(0x00000000, codelist_location + 12 + i);
+	Memory::Write_U32(0xff000000, codelist_base_address + 8 + i);
+	Memory::Write_U32(0x00000000, codelist_base_address + 12 + i);
 
 	// Turn on codes
-	Memory::Write_U8(1, installer_base_address + 7);
+	Memory::Write_U8(1, INSTALLER_BASE_ADDRESS + 7);
 
 	// Invalidate the icache and any asm codes
-	for (unsigned int j = 0; j < installer_end_address; j += 32)
+	for (unsigned int j = 0; j < (INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS); j += 32)
 	{
-		PowerPC::ppcState.iCache.Invalidate(installer_base_address + j);
+		PowerPC::ppcState.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
+	}
+	for (unsigned int k = codelist_base_address; k < codelist_end_address; k += 32)
+	{
+		PowerPC::ppcState.iCache.Invalidate(k);
 	}
 	return true;
 }
@@ -151,7 +156,7 @@ void RunCodeHandler()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats && active_codes.size() > 0)
 	{
-		if (!code_handler_installed || Memory::Read_U32(installer_base_address) - 0xd01f1bad > 5)
+		if (!code_handler_installed || Memory::Read_U32(INSTALLER_BASE_ADDRESS) - 0xd01f1bad > 5)
 			code_handler_installed = InstallCodeHandler();
 
 		if (!code_handler_installed)
@@ -165,7 +170,7 @@ void RunCodeHandler()
 			u32 oldLR = LR;
 			PowerPC::CoreMode oldMode = PowerPC::GetMode();
 
-			PC = installer_base_address + 0xA8;
+			PC = INSTALLER_BASE_ADDRESS + 0xA8;
 			LR = 0;
 
 			// Execute the code handler in interpreter mode to track when it exits
