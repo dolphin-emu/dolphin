@@ -833,4 +833,121 @@ TWO_OP_SSE_TEST(PMOVZXDQ, "qword")
 
 // TODO: AVX
 
+// for VEX GPR instructions that take the form op reg, r/m, reg
+#define VEX_RMR_TEST(Name) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		struct { \
+			int bits; \
+			std::vector<NamedReg> regs; \
+			std::string out_name; \
+			std::string size; \
+		} regsets[] = { \
+			{ 32, reg32names, "eax", "dword" }, \
+			{ 64, reg64names, "rax", "qword" }, \
+		}; \
+		for (const auto& regset : regsets) \
+			for (const auto& r : regset.regs) \
+			{ \
+				emitter->Name(regset.bits, r.reg, R(RAX), RAX); \
+				emitter->Name(regset.bits, RAX, R(r.reg), RAX); \
+				emitter->Name(regset.bits, RAX, MatR(R12), r.reg); \
+				ExpectDisassembly(#Name " " + r.name + ", " + regset.out_name + ", " + regset.out_name + " " \
+				                  #Name " " + regset.out_name + ", " + r.name + ", " + regset.out_name + " " \
+				                  #Name " " + regset.out_name + ", " + regset.size + " ptr ds:[r12], " + r.name + " "); \
+			} \
+	}
+
+VEX_RMR_TEST(SHRX)
+VEX_RMR_TEST(SARX)
+VEX_RMR_TEST(SHLX)
+VEX_RMR_TEST(BEXTR)
+VEX_RMR_TEST(BZHI)
+
+// for VEX GPR instructions that take the form op reg, reg, r/m
+#define VEX_RRM_TEST(Name) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		struct { \
+			int bits; \
+			std::vector<NamedReg> regs; \
+			std::string out_name; \
+			std::string size; \
+		} regsets[] = { \
+			{ 32, reg32names, "eax", "dword" }, \
+			{ 64, reg64names, "rax", "qword" }, \
+		}; \
+		for (const auto& regset : regsets) \
+			for (const auto& r : regset.regs) \
+			{ \
+				emitter->Name(regset.bits, r.reg, RAX, R(RAX)); \
+				emitter->Name(regset.bits, RAX, RAX, R(r.reg)); \
+				emitter->Name(regset.bits, RAX, r.reg, MatR(R12)); \
+				ExpectDisassembly(#Name " " + r.name+ ", " + regset.out_name + ", " + regset.out_name  + " " \
+				                  #Name " " + regset.out_name + ", " + regset.out_name + ", " + r.name + " " \
+				                  #Name " " + regset.out_name + ", " + r.name + ", " + regset.size + " ptr ds:[r12] "); \
+			} \
+	}
+
+VEX_RRM_TEST(PEXT)
+VEX_RRM_TEST(PDEP)
+VEX_RRM_TEST(MULX)
+VEX_RRM_TEST(ANDN)
+
+// for VEX GPR instructions that take the form op reg, r/m
+#define VEX_RM_TEST(Name) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		struct { \
+			int bits; \
+			std::vector<NamedReg> regs; \
+			std::string out_name; \
+			std::string size; \
+		} regsets[] = { \
+			{ 32, reg32names, "eax", "dword" }, \
+			{ 64, reg64names, "rax", "qword" }, \
+		}; \
+		for (const auto& regset : regsets) \
+			for (const auto& r : regset.regs) \
+			{ \
+				emitter->Name(regset.bits, r.reg, R(RAX)); \
+				emitter->Name(regset.bits, RAX, R(r.reg)); \
+				emitter->Name(regset.bits, r.reg, MatR(R12)); \
+				ExpectDisassembly(#Name " " + r.name+ ", " + regset.out_name  + " " \
+				                  #Name " " + regset.out_name + ", " + r.name + " " \
+				                  #Name " " + r.name + ", " + regset.size + " ptr ds:[r12] "); \
+			} \
+	}
+
+VEX_RM_TEST(BLSR)
+VEX_RM_TEST(BLSMSK)
+VEX_RM_TEST(BLSI)
+
+// for VEX GPR instructions that take the form op reg, r/m, imm
+#define VEX_RMI_TEST(Name) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		struct { \
+			int bits; \
+			std::vector<NamedReg> regs; \
+			std::string out_name; \
+			std::string size; \
+		} regsets[] = { \
+			{ 32, reg32names, "eax", "dword" }, \
+			{ 64, reg64names, "rax", "qword" }, \
+		}; \
+		for (const auto& regset : regsets) \
+			for (const auto& r : regset.regs) \
+						{ \
+				emitter->Name(regset.bits, r.reg, R(RAX), 4); \
+				emitter->Name(regset.bits, RAX, R(r.reg), 4); \
+				emitter->Name(regset.bits, r.reg, MatR(R12), 4); \
+				ExpectDisassembly(#Name " " + r.name+ ", " + regset.out_name  + ", 0x04 " \
+				                  #Name " " + regset.out_name + ", " + r.name + ", 0x04 " \
+				                  #Name " " + r.name + ", " + regset.size + " ptr ds:[r12], 0x04 "); \
+						} \
+	}
+
+VEX_RMI_TEST(RORX)
+
 }  // namespace Gen

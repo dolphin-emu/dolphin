@@ -127,8 +127,8 @@ struct OpArg
 		offset = _offset;
 	}
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
-	void WriteVex(XEmitter* emit, int size, bool packed, X64Reg regOp1, X64Reg regOp2) const;
-	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=(X64Reg)0xFF, bool warn_64bit_offset = true) const;
+	void WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
+	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
 	void WriteFloatModRM(XEmitter *emit, FloatOp op);
 	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
@@ -275,6 +275,9 @@ private:
 	void WriteSSE41Op(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteVEXOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
@@ -707,6 +710,21 @@ public:
 	void VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+
+	// VEX GPR instructions
+	void SARX(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2);
+	void SHLX(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2);
+	void SHRX(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2);
+	void RORX(int bits, X64Reg regOp, OpArg arg, u8 rotate);
+	void PEXT(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void PDEP(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void MULX(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void BZHI(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2);
+	void BLSR(int bits, X64Reg regOp, OpArg arg);
+	void BLSMSK(int bits, X64Reg regOp, OpArg arg);
+	void BLSI(int bits, X64Reg regOp, OpArg arg);
+	void BEXTR(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2);
+	void ANDN(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
 	void RDTSC();
 
