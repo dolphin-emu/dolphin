@@ -20,6 +20,7 @@ struct PPCCachedReg
 	Gen::OpArg location;
 	bool away;  // value not in source register
 	bool locked;
+	u32 last_used_quantum;
 };
 
 struct X64CachedReg
@@ -44,6 +45,8 @@ protected:
 	virtual const int *GetAllocationOrder(size_t& count) = 0;
 
 	Gen::XEmitter *emit;
+
+	u32 cur_use_quantum;
 
 public:
 	RegCache();
