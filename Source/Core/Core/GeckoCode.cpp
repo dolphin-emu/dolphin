@@ -14,6 +14,10 @@
 
 namespace Gecko
 {
+
+const u32 installer_base_address = 0x80001800;
+const u32 installer_end_address = 0x80003000;
+
 // return true if a code exists
 bool GeckoCode::Exist(u32 address, u32 data)
 {
@@ -70,7 +74,6 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 
 static bool InstallCodeHandler()
 {
-	u32 codelist_location = 0x800028B8; // Debugger on location (0x800022A8 = Debugger off, using codehandleronly.bin)
 	std::string data;
 	std::string _rCodeHandlerFilename = File::GetSysDirectory() + GECKO_CODE_HANDLER;
 	if (!File::ReadFileToString(_rCodeHandlerFilename, data))
@@ -79,15 +82,31 @@ static bool InstallCodeHandler()
 		return false;
 	}
 
-	// Install code handler
-	Memory::WriteBigEData((const u8*)data.data(), 0x80001800, data.length());
+	u8 mmioAddr = 0xCC;
 
-	// Turn off Pause on start
-	Memory::Write_U32(0, 0x80002774);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	{
+		mmioAddr = 0xCD;
+	}
+
+	// Install code handler
+	Memory::WriteBigEData((const u8*)data.data(), installer_base_address, data.length());
+
+	// Patch the code handler to the system starting up
+	for (unsigned int h = 0; h < data.length(); h += 4)
+	{
+		// Patch MMIO address
+		if (Memory::ReadUnchecked_U32(installer_base_address + h) == (0x3f000000 | ((mmioAddr ^ 1) << 8)))
+		{
+			NOTICE_LOG(ACTIONREPLAY, "Patching MMIO access at %08x", installer_base_address + h);
+			Memory::Write_U32(0x3f000000 | mmioAddr << 8, installer_base_address + h);
+		}
+	}
+
+	u32 codelist_location = installer_base_address + (u32)data.length() - 8;
 
 	// Write a magic value to 'gameid' (codehandleronly does not actually read this).
-	// For the purpose of this, see HLEGeckoCodehandler.
-	Memory::Write_U32(0xd01f1bad, 0x80001800);
+	Memory::Write_U32(0xd01f1bad, installer_base_address);
 
 	// Create GCT in memory
 	Memory::Write_U32(0x00d0c0de, codelist_location);
@@ -104,7 +123,7 @@ static bool InstallCodeHandler()
 			for (const GeckoCode::Code& code : active_code.codes)
 			{
 				// Make sure we have enough memory to hold the code list
-				if ((codelist_location + 24 + i) < 0x80003000)
+				if ((codelist_location + 24 + i) < installer_end_address)
 				{
 					Memory::Write_U32(code.address, codelist_location + 8 + i);
 					Memory::Write_U32(code.data, codelist_location + 12 + i);
@@ -118,12 +137,12 @@ static bool InstallCodeHandler()
 	Memory::Write_U32(0x00000000, codelist_location + 12 + i);
 
 	// Turn on codes
-	Memory::Write_U8(1, 0x80001807);
+	Memory::Write_U8(1, installer_base_address + 7);
 
-	// Invalidate the icache
-	for (unsigned int j = 0; j < data.length(); j += 32)
+	// Invalidate the icache and any asm codes
+	for (unsigned int j = 0; j < installer_end_address; j += 32)
 	{
-		PowerPC::ppcState.iCache.Invalidate(0x80001800 + j);
+		PowerPC::ppcState.iCache.Invalidate(installer_base_address + j);
 	}
 	return true;
 }
@@ -132,7 +151,7 @@ void RunCodeHandler()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats && active_codes.size() > 0)
 	{
-		if (!code_handler_installed || Memory::Read_U32(0x80001800) - 0xd01f1bad > 5)
+		if (!code_handler_installed || Memory::Read_U32(installer_base_address) - 0xd01f1bad > 5)
 			code_handler_installed = InstallCodeHandler();
 
 		if (!code_handler_installed)
@@ -146,7 +165,7 @@ void RunCodeHandler()
 			u32 oldLR = LR;
 			PowerPC::CoreMode oldMode = PowerPC::GetMode();
 
-			PC = 0x800018A8;
+			PC = installer_base_address + 0xA8;
 			LR = 0;
 
 			// Execute the code handler in interpreter mode to track when it exits
