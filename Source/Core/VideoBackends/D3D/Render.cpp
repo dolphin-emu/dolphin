@@ -394,11 +394,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 		{
 			// if Z is in 16 bit format you must return a 16 bit integer
-			ret = ((u32)(val * 0xffff));
+			ret = ((u32)(val * 0x10000));
 		}
 		else
 		{
-			ret = ((u32)(val * 0xffffff));
+			ret = ((u32)(val * 0x1000000));
 		}
 		D3D::context->Unmap(read_tex, 0);
 
@@ -524,7 +524,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	// Color is passed in bgra mode so we need to convert it to rgba
 	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
-	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
+	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0x1000000), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
 
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopBlendState();
