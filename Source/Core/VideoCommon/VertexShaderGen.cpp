@@ -409,6 +409,13 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		// divide
 		out.Write("o.pos.z = o.pos.w + o.pos.z * 2.0;\n");
 
+		// HACK (FIXME): Sonic Unleashed puts its final rendering at the near or
+		// far plane of the viewing frustrum(actually box, they use
+		// orthogonal projection for that), and we end up putting it
+		// just beyond, and the rendering gets clipped away. (The
+		// primitive gets dropped)
+		out.Write("o.pos.z = o.pos.z * 1048575.0/1048576.0;\n");
+
 		// the next steps of the OGL pipeline are:
 		// (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
 		// clipping to -w_c <= (x_c,y_c,z_c) <= w_c
