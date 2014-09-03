@@ -24,6 +24,7 @@ public:
 	virtual bool Start() override;
 	virtual void SoundLoop() override;
 	virtual void SetVolume(int volume) override;
+	virtual float GetVolume() override;
 	virtual void Stop() override;
 	virtual void Clear(bool mute) override;
 	static bool isValid() { return true; }

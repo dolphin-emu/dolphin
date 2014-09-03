@@ -103,6 +103,15 @@ void OpenALStream::SetVolume(int volume)
 		alSourcef(uiSource, AL_GAIN, fVolume);
 }
 
+float OpenALStream::GetVolume()
+{
+	float v;
+	if (uiSource)
+		alGetSourcef(uiSource, AL_GAIN, &v);
+
+	return v;
+}
+
 void OpenALStream::Update()
 {
 	soundSyncEvent.Set();

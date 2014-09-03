@@ -60,6 +60,7 @@ public:
 	virtual void Update();
 	virtual void Clear(bool mute);
 	virtual void SetVolume(int volume);
+	virtual float GetVolume();
 
 	static bool isValid() { return InitLibrary(); }
 

@@ -19,6 +19,11 @@ void NullSound::SetVolume(int volume)
 {
 }
 
+float NullSound::GetVolume()
+{
+	return 0;
+}
+
 void NullSound::Update()
 {
 	// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.

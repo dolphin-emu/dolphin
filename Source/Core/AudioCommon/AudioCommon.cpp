@@ -125,6 +125,14 @@ namespace AudioCommon
 		return backends;
 	}
 
+	std::vector<std::string> GetInterpAlgos()
+	{
+		std::vector<std::string> interps;
+		interps.push_back("Linear");
+		interps.push_back("Cardinal Cubic");
+		return interps;
+	}
+
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	{
 		if (soundStream)

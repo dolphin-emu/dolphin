@@ -95,6 +95,7 @@ struct SConfig : NonCopyable
 	bool m_DumpAudio;
 	int m_Volume;
 	std::string sBackend;
+	std::string sInterp;
 
 	// Input settings
 	bool m_BackgroundInput;

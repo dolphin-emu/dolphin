@@ -19,11 +19,41 @@
 #include <tmmintrin.h>
 #endif
 
+float twos2float(u16 s) {
+	int n = (s16)s;
+	if (n > 0) {
+		return (float) (n / (float) 0x7fff);
+	}
+	else {
+		return (float) (n / (float) 0x8000);
+	}
+}
+
+s16 float2stwos(float f) {
+	int n;
+	if (f > 0) {
+		n = (s16) (f * 0x7fff);
+	}
+	else {
+		n = (s16) (f * 0x8000);
+	}
+	return (s16) n;
+}
+
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
 {
+	srand((u32)time(NULL));
 	unsigned int currentSample = 0;
-
+	int rand1 = 0, rand2 = 0, rand3 = 0, rand4 = 0;
+	float errorL1 = 0, errorL2 = 0;
+	float errorR1 = 0, errorR2 = 0;
+	float shape = 0.5f;
+	float w = (0xFFFF);
+	float width = 1.f / w;
+	float dither = width / RAND_MAX;
+	float doffset = width * 0.5f;
+	float temp;
 	// Cache access in non-volatile variable
 	// This is the only function changing the read value, so it's safe to
 	// cache it locally although it's written here.
@@ -53,10 +83,15 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	}
 
 	// if not framelimit, then ratio = 0x10000
-	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );	//ratio of aid over sample, scaled to be 0 - 0x10000
+	//const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );	//ratio of aid over sample, scaled to be 0 - 0x10000
+	float ratio = aid_sample_rate / (float) m_mixer->m_sampleRate;
+	
+	float lvolume = (m_LVolume / 256.f);
+	float rvolume = (m_RVolume / 256.f);
 
-	s32 lvolume = m_LVolume;
-	s32 rvolume = m_RVolume;
+	for (u32 i = indexR; i < indexW - 2; i++) {
+		float_buffer[i & INDEX_MASK] = twos2float(Common::swap16(m_buffer[i & INDEX_MASK]));
+	}
 
 	// TODO: consider a higher-quality resampling algorithm.
 	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2)
@@ -65,58 +100,83 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		u32 indexRp = indexR - 2; //previous sample
 		u32 indexR2 = indexR + 2; //next
 		u32 indexR4 = indexR + 4; //nextnext
-		u32 f2 = (m_frac * m_frac) >> 16;
-		u32 f3 = (f2 * m_frac) >> 16;
-		
-		s16 s0 = Common::swap16(m_buffer[indexRp & INDEX_MASK]); //previous
-		s16 s1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); // current
-		s16 s2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
-		s16 s3 = Common::swap16(m_buffer[indexR4 & INDEX_MASK]); //nextnext
-		int a = s3 - s2 - s0 + s1;
-		int b = s0 - s1 - a;
-		int c = s2 - s0;
-		int d = s1;
-		int sampleL = a * (u16) f3;
-		sampleL += b * (u16) f2;
-		sampleL += c * (u16) m_frac;
-		sampleL += (d << 16);
-		sampleL = (sampleL >> 16);
-		sampleL = (sampleL * lvolume) >> 8;
-		sampleL += samples[currentSample + 1];
-		MathUtil::Clamp(&sampleL, -32767, 32767);
-		samples[currentSample + 1] = sampleL;
+		float f2 = (m_frac * m_frac);
+		float f3 = (f2 * m_frac);
 
-		s0 = Common::swap16(m_buffer[(indexRp + 1) & INDEX_MASK]); //previous
-		s1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); // current
-		s2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
-		s3 = Common::swap16(m_buffer[(indexR4 + 1) & INDEX_MASK]); //nextnext
-		a = s3 - s2 - s0 + s1;
-		b = s0 - s1 - a;
-		c = s2 - s0;
-		d = s1;
-		int sampleR = a * (u16) f3;
-		sampleR += b * (u16) f2;
-		sampleR += c * (u16) m_frac;
-		sampleR += (d << 16);
-		sampleR = (sampleR >> 16);
-		sampleR = (sampleR * rvolume) >> 8;
-		sampleR += samples[currentSample];
-		MathUtil::Clamp(&sampleR, -32767, 32767);
-		samples[currentSample] = sampleR;
+		float s0, s1, s2, s3;
+		float a, b, c, d;
+		s0 = twos2float(Common::swap16(m_buffer[(indexRp) & INDEX_MASK])); //previous
+		s1 = twos2float(Common::swap16(m_buffer[(indexR) & INDEX_MASK])); // current
+		s2 = twos2float(Common::swap16(m_buffer[(indexR2) & INDEX_MASK])); //next
+		s3 = twos2float(Common::swap16(m_buffer[(indexR4) & INDEX_MASK])); //nextnext
+		a = -s0 + (3 * (s1 - s2)) + s3;
+		b = (2 * s0) - (5 * s1) + (4 * s2) - s3;
+		c = -s0 + s2;
+		d = 2 * s1;
+		float sampleL = a * f3;
+		sampleL += b * f2;
+		sampleL += c * m_frac;
+		sampleL += d;
+		sampleL /= 2;
+		sampleL = sampleL * lvolume;
+		sampleL += twos2float(samples[currentSample + 1]);
+
+		rand2 = rand1;
+		rand1 = rand();
+		temp = sampleL + shape * (errorL1 + errorL1 - errorL2);
+		sampleL = temp + doffset + dither * (float) (rand1 - rand2);
+
+		if (sampleL > 1.0) sampleL = 1.0;
+		if (sampleL < -1.0) sampleL = -1.0;
+		int sampleLi = float2stwos(sampleL);
+		samples[currentSample + 1] = sampleLi;
+
+		errorL2 = errorL1;
+		errorL1 = temp - sampleL;
+
+
+
+		s0 = twos2float(Common::swap16(m_buffer[(indexRp + 1) & INDEX_MASK])); //previous
+		s1 = twos2float(Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK])); // current
+		s2 = twos2float(Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK])); //next
+		s3 = twos2float(Common::swap16(m_buffer[(indexR4 + 1) & INDEX_MASK])); //nextnext
+		a = -s0 + (3 * (s1 - s2)) + s3;
+		b = (2 * s0) - (5 * s1) + (4 * s2) - s3;
+		c = -s0 + s2;
+		d = 2 * s1;
+		float sampleR = a * f3;
+		sampleR += b * f2;
+		sampleR += c * m_frac;
+		sampleR += d;
+		sampleR /= 2; // divided by 2
+		sampleR = sampleR * rvolume;
+		sampleR += twos2float(samples[currentSample]);
+
+		rand4 = rand3;
+		rand3 = rand();
+		temp = sampleR + shape * (errorR1 + errorR1 - errorR2);
+		sampleR = temp + doffset + dither * (float) (rand3 - rand4);
+
+		if (sampleR > 1.0) sampleR = 1.0;
+		if (sampleR < -1.0) sampleR = -1.0;
+		int sampleRi = float2stwos(sampleR);
+		samples[currentSample] = sampleRi;
+
+		errorR2 = errorR1;
+		errorR1 = temp - sampleR;
 
 		m_frac += ratio;
-		indexR += 2 * (u16) (m_frac >> 16);
-		m_frac &= 0xffff;
-
-
+		indexR += 2 * (int)m_frac;
+		float intpart;
+		m_frac = modf(m_frac, &intpart);
 	}
 
 	// Padding
 	short s[2];
 	s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
 	s[1] = Common::swap16(m_buffer[(indexR - 2) & INDEX_MASK]);
-	s[0] = (s[0] * rvolume) >> 8;
-	s[1] = (s[1] * lvolume) >> 8;
+	s[0] = (s[0] * m_RVolume) >> 8;
+	s[1] = (s[1] * m_LVolume) >> 8;
 	for (; currentSample < numSamples * 2; currentSample += 2)
 	{
 		int sampleR = s[0] + samples[currentSample];

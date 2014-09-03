@@ -381,6 +381,7 @@ void CConfigMain::InitializeGUIValues()
 	Latency->SetValue(startup_params.iLatency);
 	// add backends to the list
 	AddAudioBackends();
+	AddInterpAlgos();
 
 
 	// GameCube - IPL
@@ -539,7 +540,7 @@ void CConfigMain::InitializeGUITooltips()
 #else
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."));
 #endif
-
+	Interpolation->SetToolTip(_("Sets the interpolation algorithm for resampling audio."));
 	Latency->SetToolTip(_("Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL backend only."));
 }
 
@@ -659,11 +660,11 @@ void CConfigMain::CreateGUIControls()
 	DSPThread = new wxCheckBox(AudioPage, ID_DSPTHREAD, _("DSPLLE on Separate Thread"));
 	DumpAudio = new wxCheckBox(AudioPage, ID_DUMP_AUDIO, _("Dump Audio"));
 	DPL2Decoder = new wxCheckBox(AudioPage, ID_DPL2DECODER, _("Dolby Pro Logic II decoder"));
-	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
+	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
 	VolumeText = new wxStaticText(AudioPage, wxID_ANY, "");
 	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition, wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 	Latency = new wxSpinCtrl(AudioPage, ID_LATENCY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
-
+	Interpolation = new wxChoice(AudioPage, ID_INTERP, wxDefaultPosition, wxDefaultSize, wxInterpMethods, 0, wxDefaultValidator, wxEmptyString);
 
 	Latency->Bind(wxEVT_SPINCTRL, &CConfigMain::AudioSettingsChanged, this);
 
@@ -682,14 +683,16 @@ void CConfigMain::CreateGUIControls()
 	sbAudioSettings->Add(DPL2Decoder, 0, wxALL, 5);
 
 	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
-	sbVolume->Add(VolumeSlider, 1, wxLEFT|wxRIGHT, 13);
-	sbVolume->Add(VolumeText, 0, wxALIGN_CENTER|wxALL, 5);
+	sbVolume->Add(VolumeSlider, 1, wxLEFT | wxRIGHT, 13);
+	sbVolume->Add(VolumeText, 0, wxALIGN_CENTER | wxALL, 5);
 
 	wxGridBagSizer *sBackend = new wxGridBagSizer();
-	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBackend->Add(BackendSelection, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	sBackend->Add(TEXT_BOX(AudioPage, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBackend->Add(Latency, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Interpolation:")), wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBackend->Add(Interpolation, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
 	wxStaticBoxSizer *sbBackend = new wxStaticBoxSizer(wxHORIZONTAL, AudioPage, _("Backend Settings"));
 	sbBackend->Add(sBackend, 0, wxEXPAND);
 
@@ -979,6 +982,10 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		AudioCommon::UpdateSoundStream();
 		break;
 
+	case ID_INTERP:
+		SConfig::GetInstance().sInterp = Interpolation->GetSelection();
+		break;
+		
 	case ID_LATENCY:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency = Latency->GetValue();
 		break;
@@ -997,6 +1004,17 @@ void CConfigMain::AddAudioBackends()
 		int num = BackendSelection->
 			FindString(StrToWxStr(SConfig::GetInstance().sBackend));
 		BackendSelection->SetSelection(num);
+	}
+}
+
+void CConfigMain::AddInterpAlgos()
+{
+	for (const std::string& algo : AudioCommon::GetInterpAlgos())
+	{
+		Interpolation->Append(wxGetTranslation(StrToWxStr(algo)));
+		int num = Interpolation->
+			FindString(StrToWxStr(SConfig::GetInstance().sInterp));
+		Interpolation->SetSelection(num);
 	}
 }
 

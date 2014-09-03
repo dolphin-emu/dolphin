@@ -326,6 +326,7 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 	dsp->Set("EnableJIT", m_DSPEnableJIT);
 	dsp->Set("DumpAudio", m_DumpAudio);
 	dsp->Set("Backend", sBackend);
+	dsp->Set("Interp", sInterp);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
@@ -561,6 +562,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #else
 	dsp->Get("Backend", &sBackend, BACKEND_NULLSOUND);
 #endif
+	dsp->Get("Interp", &sInterp);
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 }
