@@ -8,6 +8,7 @@
 
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
+#include "InputCommon/ControllerInterface/DInput/XInputFilter.h"
 
 namespace ciface
 {
@@ -16,29 +17,22 @@ namespace DInput
 
 #define DATA_BUFFER_SIZE 32
 
-static const GUID s_known_xinput_guids[] = {
-	// ValveStreamingGamepad
-	{ MAKELONG(0x28DE, 0x11FF), 0x0000, 0x0000, { 0x00, 0x00, 0x50, 0x49, 0x44, 0x56, 0x49, 0x44 } },
-	// IID_X360WiredGamepad
-	{ MAKELONG(0x045E, 0x02A1), 0x0000, 0x0000, { 0x00, 0x00, 0x50, 0x49, 0x44, 0x56, 0x49, 0x44 } },
-	// IID_X360WirelessGamepad
-	{ MAKELONG(0x045E, 0x028E), 0x0000, 0x0000, { 0x00, 0x00, 0x50, 0x49, 0x44, 0x56, 0x49, 0x44 } },
-};
-
 void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND hwnd)
 {
 	std::list<DIDEVICEINSTANCE> joysticks;
-	idi8->EnumDevices( DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks, DIEDFL_ATTACHEDONLY );
+	idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks, DIEDFL_ATTACHEDONLY);
 
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map< std::basic_string<TCHAR>, int> name_counts;
 
+	std::vector<DWORD> xinput_guids;
+	GetXInputGUIDS(&xinput_guids);
+
 	for (DIDEVICEINSTANCE& joystick : joysticks)
 	{
 		// skip XInput Devices
-		if (std::find(std::begin(s_known_xinput_guids), std::end(s_known_xinput_guids),
-			joystick.guidProduct) != std::end(s_known_xinput_guids))
+		if (std::find(xinput_guids.begin(), xinput_guids.end(), joystick.guidProduct.Data1) != xinput_guids.end())
 		{
 			continue;
 		}
