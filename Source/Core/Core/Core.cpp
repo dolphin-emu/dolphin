@@ -123,6 +123,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 	}
 
 	g_video_backend->Video_AddMessage(message, time_in_ms);
+	Host_UpdateTitle(message);
 }
 
 bool IsRunning()

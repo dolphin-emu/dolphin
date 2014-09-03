@@ -73,20 +73,20 @@ void Guitar::GetState(u8* const data)
 
 	// stick
 	{
-	double x, y;
+	ControlState x, y;
 	m_stick->GetState(&x, &y);
 
-	gdata->sx = (u8)(x * 0x1F) + 0x20;
-	gdata->sy = (u8)(y * 0x1F) + 0x20;
+	gdata->sx = static_cast<u8>((x * 0x1F) + 0x20);
+	gdata->sy = static_cast<u8>((y * 0x1F) + 0x20);
 	}
 
 	// TODO: touch bar, probably not
 	gdata->tb = 0x0F; // not touched
 
 	// whammy bar
-	double whammy;
+	ControlState whammy;
 	m_whammy->GetState(&whammy);
-	gdata->whammy = (u8)(whammy * 0x1F);
+	gdata->whammy = static_cast<u8>(whammy * 0x1F);
 
 	// buttons
 	m_buttons->GetState(&gdata->bt, guitar_button_bitmasks);

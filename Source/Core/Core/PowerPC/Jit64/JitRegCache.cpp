@@ -11,7 +11,7 @@
 using namespace Gen;
 using namespace PowerPC;
 
-RegCache::RegCache() : emit(nullptr)
+RegCache::RegCache() : emit(nullptr), cur_use_quantum(0)
 {
 }
 
@@ -29,6 +29,7 @@ void RegCache::Start()
 		regs[i].location = GetDefaultLocation(i);
 		regs[i].away = false;
 		regs[i].locked = false;
+		regs[i].last_used_quantum = 0;
 	}
 
 	// todo: sort to find the most popular regs
@@ -110,18 +111,29 @@ X64Reg RegCache::GetFreeXReg()
 	//Okay, not found :( Force grab one
 
 	//TODO - add a pass to grab xregs whose ppcreg is not used in the next 3 instructions
+	u32 last_used = 0xFFFFFFFF;
+	X64Reg last_used_xr = INVALID_REG;
+	size_t last_used_preg = 0;
 	for (size_t i = 0; i < aCount; i++)
 	{
 		X64Reg xr = (X64Reg)aOrder[i];
 		if (xregs[xr].locked)
 			continue;
 		size_t preg = xregs[xr].ppcReg;
-		if (!regs[preg].locked)
+		if (!regs[preg].locked && regs[preg].last_used_quantum < last_used)
 		{
-			StoreFromRegister(preg);
-			return xr;
+			last_used = regs[preg].last_used_quantum;
+			last_used_xr = xr;
+			last_used_preg = preg;
 		}
 	}
+
+	if (last_used_xr != INVALID_REG)
+	{
+		StoreFromRegister(last_used_preg);
+		return last_used_xr;
+	}
+
 	//Still no dice? Die!
 	_assert_msg_(DYNA_REC, 0, "Regcache ran out of regs");
 	return INVALID_REG;
@@ -170,6 +182,7 @@ void RegCache::DiscardRegContentsIfCached(size_t preg)
 		xregs[xr].ppcReg = INVALID_REG;
 		regs[preg].away = false;
 		regs[preg].location = GetDefaultLocation(preg);
+		regs[preg].last_used_quantum = 0;
 	}
 }
 
@@ -251,6 +264,7 @@ void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
 		}
 		regs[i].away = true;
 		regs[i].location = ::Gen::R(xr);
+		regs[i].last_used_quantum = ++cur_use_quantum;
 	}
 	else
 	{
@@ -293,6 +307,7 @@ void RegCache::StoreFromRegister(size_t i, FlushMode mode)
 		{
 			regs[i].location = newLoc;
 			regs[i].away = false;
+			regs[i].last_used_quantum = 0;
 		}
 	}
 }
@@ -348,4 +363,6 @@ void RegCache::Flush(FlushMode mode)
 			}
 		}
 	}
+
+	cur_use_quantum = 0;
 }

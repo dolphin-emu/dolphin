@@ -117,7 +117,6 @@ void Init(int cpu_core)
 	FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
 
 	memset(ppcState.sr, 0, sizeof(ppcState.sr));
-	ppcState.DebugCount = 0;
 	ppcState.dtlb_last = 0;
 	memset(ppcState.dtlb_va, 0, sizeof(ppcState.dtlb_va));
 	memset(ppcState.dtlb_pa, 0, sizeof(ppcState.dtlb_pa));

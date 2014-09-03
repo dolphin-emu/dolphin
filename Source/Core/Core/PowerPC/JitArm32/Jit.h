@@ -27,6 +27,12 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0]))
+
+// Some asserts to make sure we will be able to load everything
+static_assert(PPCSTATE_OFF(spr[1023]) > -4096 && PPCSTATE_OFF(spr[1023]) < 4096, "LDR can't reach all of the SPRs");
+static_assert(PPCSTATE_OFF(ps[0][0]) >= -1020 && PPCSTATE_OFF(ps[0][0]) <= 1020, "VLDR can't reach all of the FPRs");
+static_assert((PPCSTATE_OFF(ps[0][0]) % 4) == 0, "VLDR requires FPRs to be 4 byte aligned");
+
 class JitArm : public JitBase, public ArmGen::ARMCodeBlock
 {
 private:

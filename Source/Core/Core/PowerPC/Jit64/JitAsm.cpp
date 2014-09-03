@@ -9,17 +9,6 @@
 
 using namespace Gen;
 
-//static int temp32; // unused?
-
-//TODO - make an option
-//#if _DEBUG
-static bool enableDebug = false;
-//#else
-//		bool enableDebug = false;
-//#endif
-
-//static bool enableStatistics = false; //unused?
-
 //GLOBAL STATIC ALLOCATIONS x86
 //EAX - ubiquitous scratch register - EVERYBODY scratches this
 
@@ -31,7 +20,6 @@ static bool enableDebug = false;
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
-
 
 void Jit64AsmRoutineManager::Generate()
 {
@@ -120,11 +108,6 @@ void Jit64AsmRoutineManager::Generate()
 
 			TEST(32, R(EAX), R(EAX));
 			FixupBranch notfound = J_CC(CC_L);
-				//IDEA - we have 26 bits, why not just use offsets from base of code?
-				if (enableDebug)
-				{
-					ADD(32, M(&PowerPC::ppcState.DebugCount), Imm8(1));
-				}
 				//grab from list and jump to it
 				JMPptr(MComplex(R15, RAX, 8, 0));
 			SetJumpTarget(notfound);

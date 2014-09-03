@@ -253,7 +253,7 @@ ControlState Keyboard::Key::GetState() const
 
 ControlState Keyboard::Cursor::GetState() const
 {
-	return std::max(0.0f, ControlState(m_axis) / (m_positive ? 1.0f : -1.0f));
+	return std::max(0.0, ControlState(m_axis) / (m_positive ? 1.0 : -1.0));
 }
 
 ControlState Keyboard::Button::GetState() const

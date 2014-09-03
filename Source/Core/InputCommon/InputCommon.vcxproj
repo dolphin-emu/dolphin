@@ -41,6 +41,14 @@
     <ClCompile Include="ControllerInterface\DInput\DInput.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInputJoystick.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInputKeyboardMouse.cpp" />
+    <ClCompile Include="ControllerInterface\DInput\XInputFilter.cpp">
+      <!--Disable /Zc:strictStrings so that wbem headers may compile-->
+      <!--
+        This is somewhat gross as it doesn't dynamically remove the option,
+        I really hope the issue is fixed in next VS release :(
+        -->
+      <AdditionalOptions>/Zo /Zc:inline /Zc:rvalueCast /volatile:iso</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="ControllerInterface\ExpressionParser.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
     <ClCompile Include="ControllerInterface\Sixense\RazerHydra.cpp" />
@@ -56,6 +64,7 @@
     <ClInclude Include="ControllerInterface\DInput\DInput8.h" />
     <ClInclude Include="ControllerInterface\DInput\DInputJoystick.h" />
     <ClInclude Include="ControllerInterface\DInput\DInputKeyboardMouse.h" />
+    <ClInclude Include="ControllerInterface\DInput\XInputFilter.h" />
     <ClInclude Include="ControllerInterface\ExpressionParser.h" />
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
     <ClInclude Include="ControllerInterface\Sixense\RazerHydra.h" />

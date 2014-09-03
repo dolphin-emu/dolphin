@@ -108,7 +108,7 @@ void EmulateShake(AccelData* const accel
 	auto const shake_step_max = 15;
 
 	// peak G-force
-	auto const shake_intensity = 3.f;
+	auto const shake_intensity = 3.0;
 
 	// shake is a bitfield of X,Y,Z shake button states
 	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
@@ -131,7 +131,7 @@ void EmulateTilt(AccelData* const accel
 	, ControllerEmu::Tilt* const tilt_group
 	, const bool sideways, const bool upright)
 {
-	double roll, pitch;
+	ControlState roll, pitch;
 	// 180 degrees
 	tilt_group->GetState(&roll, &pitch);
 
@@ -163,13 +163,13 @@ void EmulateTilt(AccelData* const accel
 	(&accel->x)[fb] = sin(pitch)*sgn[fb];
 }
 
-#define SWING_INTENSITY  2.5f//-uncalibrated(aprox) 0x40-calibrated
+#define SWING_INTENSITY  2.5//-uncalibrated(aprox) 0x40-calibrated
 
 void EmulateSwing(AccelData* const accel
 	, ControllerEmu::Force* const swing_group
 	, const bool sideways, const bool upright)
 {
-	double swing[3];
+	ControlState swing[3];
 	swing_group->GetState(swing);
 
 	s8 g_dir[3] = {-1, -1, -1};
@@ -187,7 +187,7 @@ void EmulateSwing(AccelData* const accel
 	if (!sideways && upright)
 		g_dir[axis_map[0]] *= -1;
 
-	for (unsigned int i=0; i<3; ++i)
+	for (unsigned int i = 0; i < 3; ++i)
 		(&accel->x)[axis_map[i]] += swing[i] * g_dir[i] * SWING_INTENSITY;
 }
 
@@ -430,8 +430,7 @@ void Wiimote::GetAccelData(u8* const data, u8* const core)
 	// lsb is currently in nunchuk format. Assume little-endian (the rest of Dolphin does too).
 	*(wm_core*)core |= ((lsb << 3) && 0x0060) | ((lsb << 8) && 0x2000) | ((lsb << 7) && 0x4000);
 }
-
-#define kCutoffFreq 5.0f
+#define kCutoffFreq 5.0
 inline void LowPassFilter(double & var, double newval, double period)
 {
 	double RC=1.0/kCutoffFreq;
@@ -444,15 +443,15 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 	u16 x[4], y[4];
 	memset(x, 0xFF, sizeof(x));
 
-	double xx = 10000, yy = 0, zz = 0;
+	ControlState xx = 10000, yy = 0, zz = 0;
 	double nsin,ncos;
 
 	if (use_accel)
 	{
 		double ax,az,len;
-		ax=m_accel.x;
-		az=m_accel.z;
-		len=sqrt(ax*ax+az*az);
+		ax = m_accel.x;
+		az = m_accel.z;
+		len = sqrt(ax*ax+az*az);
 		if (len)
 		{
 			ax/=len;
@@ -474,8 +473,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		ncos=1;
 	}
 
-	LowPassFilter(ir_sin,nsin,1.0f/60);
-	LowPassFilter(ir_cos,ncos,1.0f/60);
+	LowPassFilter(ir_sin,nsin,1.0/60);
+	LowPassFilter(ir_cos,ncos,1.0/60);
 
 	m_ir->GetState(&xx, &yy, &zz, true);
 	HydraTLayer::GetIR(m_index, &xx, &yy, &zz);
@@ -488,14 +487,16 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 	static const double bnddown=0.85;
 	static const double bndleft=0.443364;
 	static const double bndright=-0.443364;
-	static const double dist1=100.f/camWidth; //this seems the optimal distance for zelda
-	static const double dist2=1.2f*dist1;
+	static const double dist1=100.0/camWidth; //this seems the optimal distance for zelda
+	static const double dist2=1.2*dist1;
 
 	for (auto& vtx : v)
 	{
-		vtx.x=xx*(bndright-bndleft)/2+(bndleft+bndright)/2;
-		if (m_sensor_bar_on_top) vtx.y=yy*(bndup-bnddown)/2+(bndup+bnddown)/2;
-		else vtx.y=yy*(bndup-bnddown)/2-(bndup+bnddown)/2;
+		vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+		if (m_sensor_bar_on_top)
+			vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+		else
+			vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
 		vtx.z=0;
 	}
 
@@ -513,7 +514,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 	//MatrixIdentity(rot);
 	MatrixMultiply(tot,scale,rot);
 
-	for (int i=0; i<4; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		MatrixTransformVertex(tot,v[i]);
 		if ((v[i].x<-1)||(v[i].x>1)||(v[i].y<-1)||(v[i].y>1))
@@ -561,7 +562,7 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		{
 		memset(data, 0xFF, 12);
 		wm_ir_extended* const irdata = (wm_ir_extended*)data;
-		for (unsigned int i=0; i<4; ++i)
+		for (unsigned int i = 0; i < 4; ++i)
 			if (x[i] < 1024 && y[i] < 768)
 			{
 				irdata[i].x = u8(x[i]);

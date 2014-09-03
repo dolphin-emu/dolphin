@@ -10,7 +10,7 @@
 #include "Common/Common.h"
 
 // idk in case I wanted to change it to double or something, idk what's best
-typedef float ControlState;
+typedef double ControlState;
 
 namespace ciface
 {
