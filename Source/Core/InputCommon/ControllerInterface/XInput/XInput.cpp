@@ -256,7 +256,7 @@ ControlState Device::Trigger::GetState() const
 
 ControlState Device::Axis::GetState() const
 {
-	return std::max( 0.0f, ControlState(m_axis) / m_range );
+	return std::max( 0.0, ControlState(m_axis) / m_range );
 }
 
 void Device::Motor::SetState(ControlState state)

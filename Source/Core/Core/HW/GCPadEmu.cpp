@@ -92,7 +92,7 @@ std::string GCPad::GetName() const
 
 void GCPad::GetInput(GCPadStatus* const pad)
 {
-	double x, y, triggers[2];
+	ControlState x, y, triggers[2];
 
 	// buttons
 	m_buttons->GetState(&pad->button, button_bitmasks);
@@ -121,8 +121,8 @@ void GCPad::GetInput(GCPadStatus* const pad)
 
 void GCPad::SetMotor(const u8 on)
 {
-	float state = static_cast<float>(on) / 255;
-	float force = abs(state - 0.5f) * 2;
+	ControlState state = static_cast<ControlState>(on) / 255;
+	ControlState force = abs(state - 0.5) * 2;
 	if (state < 0.5)
 		force = -force;
 

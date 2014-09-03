@@ -89,7 +89,7 @@ void Classic::GetState(u8* const data)
 
 	// left stick
 	{
-	double x, y;
+	ControlState x, y;
 	m_left_stick->GetState(&x, &y);
 
 	ccdata->lx = static_cast<u8>(Classic::LEFT_STICK_CENTER_X + (x * Classic::LEFT_STICK_RADIUS));
@@ -98,7 +98,7 @@ void Classic::GetState(u8* const data)
 
 	// right stick
 	{
-	double x, y;
+	ControlState x, y;
 	u8 x_, y_;
 	m_right_stick->GetState(&x, &y);
 
@@ -113,7 +113,7 @@ void Classic::GetState(u8* const data)
 
 	//triggers
 	{
-	double trigs[2] = { 0, 0 };
+	ControlState trigs[2] = { 0, 0 };
 	u8 lt, rt;
 	m_triggers->GetState(&ccdata->bt, classic_trigger_bitmasks, trigs);
 

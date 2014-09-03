@@ -73,7 +73,7 @@ void Guitar::GetState(u8* const data)
 
 	// stick
 	{
-	double x, y;
+	ControlState x, y;
 	m_stick->GetState(&x, &y);
 
 	gdata->sx = static_cast<u8>((x * 0x1F) + 0x20);
@@ -84,7 +84,7 @@ void Guitar::GetState(u8* const data)
 	gdata->tb = 0x0F; // not touched
 
 	// whammy bar
-	double whammy;
+	ControlState whammy;
 	m_whammy->GetState(&whammy);
 	gdata->whammy = static_cast<u8>(whammy * 0x1F);
 

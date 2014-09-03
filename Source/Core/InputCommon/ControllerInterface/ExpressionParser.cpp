@@ -273,7 +273,7 @@ public:
 		case TOK_OR:
 			return std::max(lhsValue, rhsValue);
 		case TOK_ADD:
-			return std::min(lhsValue + rhsValue, 1.0f);
+			return std::min(lhsValue + rhsValue, 1.0);
 		default:
 			assert(false);
 			return 0;

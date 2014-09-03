@@ -62,7 +62,7 @@ void Turntable::GetState(u8* const data)
 
 	// stick
 	{
-	double x, y;
+	ControlState x, y;
 	m_stick->GetState(&x, &y);
 
 	ttdata->sx = static_cast<u8>((x * 0x1F) + 0x20);
@@ -71,7 +71,7 @@ void Turntable::GetState(u8* const data)
 
 	// left table
 	{
-	double tt;
+	ControlState tt;
 	s8 tt_;
 	m_left_table->GetState(&tt);
 
@@ -83,7 +83,7 @@ void Turntable::GetState(u8* const data)
 
 	// right table
 	{
-	double tt;
+	ControlState tt;
 	s8 tt_;
 	m_right_table->GetState(&tt);
 
@@ -97,7 +97,7 @@ void Turntable::GetState(u8* const data)
 
 	// effect dial
 	{
-	double dial;
+	ControlState dial;
 	u8 dial_;
 	m_effect_dial->GetState(&dial);
 
@@ -109,7 +109,7 @@ void Turntable::GetState(u8* const data)
 
 	// crossfade slider
 	{
-	double cfs;
+	ControlState cfs;
 	m_crossfade->GetState(&cfs);
 
 	ttdata->slider = static_cast<u8>((cfs * 0x07) + 0x08);
