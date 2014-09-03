@@ -92,8 +92,8 @@ void Classic::GetState(u8* const data)
 	double x, y;
 	m_left_stick->GetState(&x, &y);
 
-	ccdata->lx = Classic::LEFT_STICK_CENTER_X + (u8)(x * Classic::LEFT_STICK_RADIUS);
-	ccdata->ly = Classic::LEFT_STICK_CENTER_Y + (u8)(y * Classic::LEFT_STICK_RADIUS);
+	ccdata->lx = static_cast<u8>(Classic::LEFT_STICK_CENTER_X + (x * Classic::LEFT_STICK_RADIUS));
+	ccdata->ly = static_cast<u8>(Classic::LEFT_STICK_CENTER_Y + (y * Classic::LEFT_STICK_RADIUS));
 	}
 
 	// right stick
@@ -102,8 +102,8 @@ void Classic::GetState(u8* const data)
 	u8 x_, y_;
 	m_right_stick->GetState(&x, &y);
 
-	x_ = Classic::RIGHT_STICK_CENTER_X + (u8)(x * Classic::RIGHT_STICK_RADIUS);
-	y_ = Classic::RIGHT_STICK_CENTER_Y + (u8)(y * Classic::RIGHT_STICK_RADIUS);
+	x_ = static_cast<u8>(Classic::RIGHT_STICK_CENTER_X + (x * Classic::RIGHT_STICK_RADIUS));
+	y_ = static_cast<u8>(Classic::RIGHT_STICK_CENTER_Y + (y * Classic::RIGHT_STICK_RADIUS));
 
 	ccdata->rx1 = x_;
 	ccdata->rx2 = x_ >> 1;
@@ -117,8 +117,8 @@ void Classic::GetState(u8* const data)
 	u8 lt, rt;
 	m_triggers->GetState(&ccdata->bt, classic_trigger_bitmasks, trigs);
 
-	lt = (u8)(trigs[0] * Classic::LEFT_TRIGGER_RANGE);
-	rt = (u8)(trigs[1] * Classic::RIGHT_TRIGGER_RANGE);
+	lt = static_cast<u8>(trigs[0] * Classic::LEFT_TRIGGER_RANGE);
+	rt = static_cast<u8>(trigs[1] * Classic::RIGHT_TRIGGER_RANGE);
 
 	ccdata->lt1 = lt;
 	ccdata->lt2 = lt >> 3;
