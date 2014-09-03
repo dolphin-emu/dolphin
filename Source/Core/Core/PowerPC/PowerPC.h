@@ -66,8 +66,6 @@ struct GC_ALIGNED64(PowerPCState)
 
 	u32 sr[16];  // Segment registers.
 
-	u32 DebugCount;
-
 	// special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
 	// also for power management, but we don't care about that.
 	u32 spr[1024];

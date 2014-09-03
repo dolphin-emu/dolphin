@@ -179,13 +179,6 @@ int Interpreter::SingleStepInner()
 	last_pc = PC;
 	PC = NPC;
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	if (PowerPC::ppcState.gpr[1] == 0)
-	{
-		WARN_LOG(POWERPC, "%i Corrupt stack", PowerPC::ppcState.DebugCount);
-	}
-	PowerPC::ppcState.DebugCount++;
-#endif
 	patches();
 
 	GekkoOPInfo *opinfo = GetOpInfo(instCode);
