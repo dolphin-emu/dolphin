@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/CPUDetect.h"
+#include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
 
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
@@ -48,6 +49,71 @@ void CommonAsmRoutines::GenFifoFloatWrite()
 	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
 	POP(EDX);
 	POP(ESI);
+	RET();
+}
+
+void CommonAsmRoutines::GenFrsqrte()
+{
+	// Assume input in XMM0.
+	// This function clobbers EAX, ECX, and EDX.
+	MOVQ_xmm(R(RAX), XMM0);
+
+	// Negative and zero inputs set an exception and take the complex path.
+	TEST(64, R(RAX), R(RAX));
+	FixupBranch zero = J_CC(CC_Z, true);
+	FixupBranch negative = J_CC(CC_S, true);
+	MOV(64, R(RCX), R(RAX));
+	SHR(64, R(RCX), Imm8(52));
+
+	// Zero and max exponents (non-normal floats) take the complex path.
+	FixupBranch complex1 = J_CC(CC_Z, true);
+	CMP(32, R(ECX), Imm32(0x7FF));
+	FixupBranch complex2 = J_CC(CC_E, true);
+
+	SUB(32, R(ECX), Imm32(0x3FD));
+	SAR(32, R(ECX), Imm8(1));
+	MOV(32, R(EDX), Imm32(0x3FF));
+	SUB(32, R(EDX), R(ECX));
+	SHL(64, R(RDX), Imm8(52));   // exponent = ((0x3FFLL << 52) - ((exponent - (0x3FELL << 52)) / 2)) & (0x7FFLL << 52);
+
+	MOV(64, R(RCX), R(RAX));
+	SHR(64, R(RCX), Imm8(48));
+	AND(32, R(ECX), Imm8(0x1F));
+	XOR(32, R(ECX), Imm8(0x10)); // int index = i / 2048 + (odd_exponent ? 16 : 0);
+
+	SHR(64, R(RAX), Imm8(37));
+	AND(32, R(EAX), Imm32(0x7FF));
+	IMUL(32, EAX, MScaled(RCX, SCALE_4, (u32)(u64)MathUtil::frsqrte_expected_dec));
+	MOV(32, R(ECX), MScaled(RCX, SCALE_4, (u32)(u64)MathUtil::frsqrte_expected_base));
+	SUB(32, R(ECX), R(EAX));
+	SHL(64, R(RCX), Imm8(26));
+	OR(64, R(RDX), R(RCX));     // vali |= (s64)(frsqrte_expected_base[index] - frsqrte_expected_dec[index] * (i % 2048)) << 26;
+	MOVQ_xmm(XMM0, R(RDX));
+	RET();
+
+	// Exception flags for zero input.
+	SetJumpTarget(zero);
+	TEST(32, M(&FPSCR), Imm32(FPSCR_ZX));
+	FixupBranch skip_set_fx1 = J_CC(CC_NZ);
+	OR(32, M(&FPSCR), Imm32(FPSCR_FX));
+	SetJumpTarget(skip_set_fx1);
+	OR(32, M(&FPSCR), Imm32(FPSCR_ZX));
+	FixupBranch complex3 = J();
+
+	// Exception flags for negative input.
+	SetJumpTarget(negative);
+	TEST(32, M(&FPSCR), Imm32(FPSCR_VXSQRT));
+	FixupBranch skip_set_fx2 = J_CC(CC_NZ);
+	OR(32, M(&FPSCR), Imm32(FPSCR_FX));
+	SetJumpTarget(skip_set_fx2);
+	OR(32, M(&FPSCR), Imm32(FPSCR_VXSQRT));
+
+	SetJumpTarget(complex1);
+	SetJumpTarget(complex2);
+	SetJumpTarget(complex3);
+	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, false);
+	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocalSquareRoot);
+	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, false);
 	RET();
 }
 

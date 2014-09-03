@@ -386,6 +386,29 @@ union UReg_MSR
 #define FPRF_SHIFT 12
 #define FPRF_MASK (0x1F << FPRF_SHIFT)
 
+// FPSCR exception flags
+const u32 FPSCR_FX     = 1U << (31 -  0);
+const u32 FPSCR_FEX    = 1U << (31 -  1);
+const u32 FPSCR_VX     = 1U << (31 -  2);
+const u32 FPSCR_OX     = 1U << (31 -  3);
+const u32 FPSCR_UX     = 1U << (31 -  4);
+const u32 FPSCR_ZX     = 1U << (31 -  5);
+const u32 FPSCR_XX     = 1U << (31 -  6);
+const u32 FPSCR_VXSNAN = 1U << (31 -  7);
+const u32 FPSCR_VXISI  = 1U << (31 -  8);
+const u32 FPSCR_VXIDI  = 1U << (31 -  9);
+const u32 FPSCR_VXZDZ  = 1U << (31 - 10);
+const u32 FPSCR_VXIMZ  = 1U << (31 - 11);
+const u32 FPSCR_VXVC   = 1U << (31 - 12);
+const u32 FPSCR_VXSOFT = 1U << (31 - 21);
+const u32 FPSCR_VXSQRT = 1U << (31 - 22);
+const u32 FPSCR_VXCVI  = 1U << (31 - 23);
+
+const u32 FPSCR_VX_ANY = FPSCR_VXSNAN | FPSCR_VXISI | FPSCR_VXIDI | FPSCR_VXZDZ | FPSCR_VXIMZ |
+                         FPSCR_VXVC | FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI;
+
+const u32 FPSCR_ANY_X = FPSCR_OX | FPSCR_UX | FPSCR_ZX | FPSCR_XX | FPSCR_VX_ANY;
+
 // Floating Point Status and Control Register
 union UReg_FPSCR
 {
