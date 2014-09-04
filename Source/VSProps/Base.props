@@ -68,7 +68,7 @@
       not much else we can do since many externals use it. The bad part is that there doesn't
       seem to be a way to only ignore the specific instance we don't care about...
       -->
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996;4351</DisableSpecificWarnings>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <!--ClCompile Debug-->
