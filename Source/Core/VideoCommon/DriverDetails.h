@@ -174,6 +174,14 @@ namespace DriverDetails
 		// Qualcomm in their infinite wisdom thought it was a good idea to rotate the framebuffer 180 degrees on glBlit
 		// This bug allows us to work around that rotation by rotating it the right way around again.
 		BUG_ROTATEDFRAMEBUFFER,
+		// Bug: Intel's Window driver broke buffer_storage with GL_ELEMENT_ARRAY_BUFFER
+		// Affected devices: Intel (Windows)
+		// Started Version: 15.36.3.64.3907 (10.18.10.3907)
+		// Ended Version: -1
+		// Intel implemented buffer_storage in their GL 4.3 driver.
+		// It works for all the buffer types we use except GL_ELEMENT_ARRAY_BUFFER.
+		// Causes complete blackscreen issues.
+		BUG_INTELBROKENBUFFERSTORAGE,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
