@@ -11,7 +11,7 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2013-06-12 15:24:44 +0000 (Wed, 12 Jun 2013) $
+// Last changed  : $Date: 2013-06-13 01:24:44 +1000 (Thu, 13 Jun 2013) $
 // File revision : $Revision: 4 $
 //
 // $Id: FIRFilter.cpp 171 2013-06-12 15:24:44Z oparviai $
@@ -217,7 +217,6 @@ uint FIRFilter::evaluateFilterMulti(SAMPLETYPE *dest, const SAMPLETYPE *src, uin
             sum[c] = 0;
         }
     }
-    free(sum);
     return numSamples - length;
 }
 

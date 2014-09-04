@@ -15,7 +15,7 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2012-11-08 18:53:01 +0000 (Thu, 08 Nov 2012) $
+// Last changed  : $Date: 2012-11-09 05:53:01 +1100 (Fri, 09 Nov 2012) $
 // File revision : $Revision: 4 $
 //
 // $Id: FIFOSampleBuffer.cpp 160 2012-11-08 18:53:01Z oparviai $
@@ -86,6 +86,10 @@ void FIFOSampleBuffer::setChannels(int numChannels)
     samplesInBuffer = usedBytes / channels;
 }
 
+int FIFOSampleBuffer::getChannels()
+{
+	return channels;
+}
 
 // if output location pointer 'bufferPos' isn't zero, 'rewinds' the buffer and
 // zeroes this pointer by copying samples from the 'bufferPos' pointer 
