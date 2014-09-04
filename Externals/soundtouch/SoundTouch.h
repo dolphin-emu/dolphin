@@ -79,10 +79,10 @@ namespace soundtouch
 {
 
 /// Soundtouch library version string
-#define SOUNDTOUCH_VERSION          "1.7.2 (dev)"
+#define SOUNDTOUCH_VERSION          "1.8.1 (r198)"
 
 /// SoundTouch library version id
-#define SOUNDTOUCH_VERSION_ID       (10702)
+#define SOUNDTOUCH_VERSION_ID       (10801)
 
 //
 // Available setting IDs for the 'setSetting' & 'get_setting' functions:
@@ -248,7 +248,7 @@ public:
     /// 'SETTING_...' defines for available setting ID's.
     /// 
     /// \return 'TRUE' if the setting was succesfully changed
-    BOOL setSetting(int settingId,   ///< Setting ID number. see SETTING_... defines.
+    bool setSetting(int settingId,   ///< Setting ID number. see SETTING_... defines.
                     int value        ///< New setting value.
                     );
 
