@@ -19,7 +19,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VideoConfig.h"
 
-volatile bool g_bSkipCurrentFrame = false;
+bool g_bSkipCurrentFrame = false;
 
 namespace
 {
@@ -173,7 +173,7 @@ void RunGpuLoop()
 
 				ReadDataFromFifo(uData, 32);
 
-				cyclesExecuted = OpcodeDecoder_Run(g_bSkipCurrentFrame, GetVideoBufferEndPtr());
+				cyclesExecuted = OpcodeDecoder_Run(GetVideoBufferEndPtr());
 
 				if (Core::g_CoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) > cyclesExecuted)
 					Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
@@ -235,7 +235,7 @@ void RunGpu()
 		FPURoundMode::SaveSIMDState();
 		FPURoundMode::LoadDefaultSIMDState();
 		ReadDataFromFifo(uData, 32);
-		OpcodeDecoder_Run(g_bSkipCurrentFrame, GetVideoBufferEndPtr());
+		OpcodeDecoder_Run(GetVideoBufferEndPtr());
 		FPURoundMode::LoadSIMDState();
 
 		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");

@@ -152,7 +152,6 @@ protected:
 	// can probably eliminate this static var
 	static int s_LastEFBScale;
 
-	static bool s_skipSwap;
 	static bool XFBWrited;
 
 	FPSCounter m_fps_counter;
