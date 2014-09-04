@@ -13,6 +13,7 @@
 #include "Core/Host.h"
 #endif
 #include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -86,15 +87,23 @@ LogManager::LogManager()
 	m_consoleLog = new ConsoleListener();
 	m_debuggerLog = new DebuggerLogListener();
 
+	IniFile ini;
+	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
 	for (LogContainer* container : m_Log)
 	{
-		container->SetEnable(true);
-		container->AddListener(m_fileLog);
-		container->AddListener(m_consoleLog);
+		bool enable;
+		logs->Get(container->GetShortName(), &enable, false);
+		container->SetEnable(enable);
+		if (enable)
+		{
+			container->AddListener(m_fileLog);
+			container->AddListener(m_consoleLog);
 #ifdef _MSC_VER
-		if (IsDebuggerPresent())
-			container->AddListener(m_debuggerLog);
+			if (IsDebuggerPresent())
+				container->AddListener(m_debuggerLog);
 #endif
+		}
 	}
 }
 
