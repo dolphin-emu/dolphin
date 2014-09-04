@@ -11,10 +11,6 @@
 #include <pthread_np.h>
 #endif
 
-#ifdef USE_BEGINTHREADEX
-#include <process.h>
-#endif
-
 namespace Common
 {
 
