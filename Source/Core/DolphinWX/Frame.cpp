@@ -70,7 +70,7 @@ extern "C" {
 };
 
 
-CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
+CRenderFrame::CRenderFrame(wxWindow* parent, wxWindowID id, const wxString& title,
 		const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
 {
@@ -307,7 +307,7 @@ END_EVENT_TABLE()
 // ---------------
 // Creation and close, quit functions
 
-CFrame::CFrame(wxFrame* parent,
+CFrame::CFrame(wxWindow* parent,
 		wxWindowID id,
 		const wxString& title,
 		const wxPoint& pos,
@@ -671,9 +671,8 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_FULLSCREENREQUEST:
 		{
 			bool enable_fullscreen = event.GetInt() == 0 ? false : true;
-			ToggleDisplayMode(enable_fullscreen);
 			if (m_RenderFrame != nullptr)
-				m_RenderFrame->ShowFullScreen(enable_fullscreen);
+				DoFullscreen(enable_fullscreen, true);
 
 			// If the stop dialog initiated this fullscreen switch then we need
 			// to pause the emulator after we've completed the switch.
@@ -1203,7 +1202,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 	event.Skip();
 }
 
-void CFrame::DoFullscreen(bool enable_fullscreen)
+void CFrame::DoFullscreen(bool enable_fullscreen, bool force)
 {
 	if (!g_Config.BorderlessFullscreenEnabled() &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
@@ -1232,7 +1231,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	{
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
-	else if (g_Config.BorderlessFullscreenEnabled() ||
+	else if (force || g_Config.BorderlessFullscreenEnabled() ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.

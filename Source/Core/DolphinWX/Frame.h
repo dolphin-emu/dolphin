@@ -51,7 +51,7 @@ class wxWindow;
 class CRenderFrame : public wxFrame
 {
 	public:
-		CRenderFrame(wxFrame* parent,
+		CRenderFrame(wxWindow* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = "Dolphin",
 			const wxPoint& pos = wxDefaultPosition,
@@ -73,7 +73,7 @@ class CRenderFrame : public wxFrame
 class CFrame : public CRenderFrame
 {
 public:
-	CFrame(wxFrame* parent,
+	CFrame(wxWindow* parent,
 		wxWindowID id = wxID_ANY,
 		const wxString& title = "Dolphin",
 		const wxPoint& pos = wxDefaultPosition,
@@ -121,7 +121,7 @@ public:
 	void OnRenderParentMove(wxMoveEvent& event);
 	bool RendererHasFocus();
 	bool UIHasFocus();
-	void DoFullscreen(bool bF);
+	void DoFullscreen(bool enable_fullscreen, bool force=false);
 	void ToggleDisplayMode (bool bFullscreen);
 	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
 	void PopulateSavedPerspectives();

@@ -874,7 +874,7 @@ void CFrame::StartGame(const std::string& filename)
 		m_GameListCtrl->Hide();
 
 		m_RenderParent = m_Panel;
-		m_RenderFrame = this;
+		m_RenderFrame = new CRenderFrame(m_RenderParent, wxID_ANY, _("Dolphin"), wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
 		else
