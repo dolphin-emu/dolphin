@@ -141,7 +141,7 @@ class PlatformX11 : public Platform
 	void Init() override
 	{
 		XInitThreads();
-		dpy = XOpenDisplay(NULL);
+		dpy = XOpenDisplay(nullptr);
 
 		win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy),
 					  SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
