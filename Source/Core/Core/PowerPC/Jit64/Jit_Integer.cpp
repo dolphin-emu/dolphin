@@ -1934,9 +1934,6 @@ void Jit64::srawix(UGeckoInstruction inst)
 	}
 	else
 	{
-		// FIXME
-		FALLBACK_IF(true);
-
 		gpr.Lock(a, s);
 		JitClearCA();
 		gpr.BindToRegister(a, a == s, true);
