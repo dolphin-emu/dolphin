@@ -119,9 +119,14 @@ private:
 	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height);
 	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
 
+	static TCacheEntryBase* AllocateRenderTarget(unsigned int width, unsigned int height);
+	static void FreeRenderTarget(TCacheEntryBase* entry);
+
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
+	typedef std::vector<TCacheEntryBase*> RenderTargetPool;
 
 	static TexCache textures;
+	static RenderTargetPool render_target_pool;
 
 	// Backup configuration values
 	static struct BackupConfig
