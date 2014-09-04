@@ -55,7 +55,7 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 		sec->Get(group + c->name, &c->control_ref->expression, "");
 
 		// range
-		sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0f);
+		sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0);
 		c->control_ref->range /= 100;
 
 	}
@@ -104,7 +104,7 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::s
 	{
 		if (s->is_virtual)
 			continue;
-		sec->Set(group + s->name, (float)s->value * 100.0f, (float)s->default_value * 100.0f);
+		sec->Set(group + s->name, s->value * 100.0, s->default_value * 100.0);
 	}
 
 	for (auto& c : controls)
@@ -113,7 +113,7 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::s
 		sec->Set(group + c->name, c->control_ref->expression, "");
 
 		// range
-		sec->Set(group + c->name + "/Range", (float) (c->control_ref->range*100.0, 100.0));
+		sec->Set(group + c->name + "/Range", c->control_ref->range*100.0, 100.0);
 	}
 
 	// extensions
