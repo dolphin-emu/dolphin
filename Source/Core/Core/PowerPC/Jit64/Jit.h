@@ -45,7 +45,7 @@ private:
 
 	// The default code buffer. We keep it around to not have to alloc/dealloc a
 	// large chunk of memory for each recompiled block.
-	PPCAnalyst::CodeBuffer code_buffer;
+	std::vector<PPCAnalyst::CodeOp> code_buffer;
 	Jit64AsmRoutineManager asm_routines;
 
 public:
@@ -58,7 +58,7 @@ public:
 	// Jit!
 
 	void Jit(u32 em_address) override;
-	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
+	const u8* DoJit(u32 em_address, std::vector<PPCAnalyst::CodeOp>& code, JitBlock *b);
 
 	u32 CallerSavedRegistersInUse();
 

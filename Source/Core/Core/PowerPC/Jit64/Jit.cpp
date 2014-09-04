@@ -379,12 +379,12 @@ void STACKALIGN Jit64::Jit(u32 em_address)
 
 	int block_num = blocks.AllocateBlock(em_address);
 	JitBlock *b = blocks.GetBlock(block_num);
-	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
+	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, code_buffer, b));
 }
 
-const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
+const u8* Jit64::DoJit(u32 em_address, std::vector<PPCAnalyst::CodeOp>& code, JitBlock *b)
 {
-	int blockSize = code_buf->GetSize();
+	u32 blockSize = (u32) code.size();
 
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
@@ -408,9 +408,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	u32 nextPC = em_address;
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
+	nextPC = analyzer.Analyze(em_address, &code_block, code.data(), blockSize);
 
-	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
+	PPCAnalyst::CodeOp *ops = code.data();
 
 	const u8 *start = AlignCode4(); // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;
@@ -659,7 +659,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_X86
-	LogGeneratedX86(code_block.m_num_instructions, code_buf, normalEntry, b);
+	LogGeneratedX86(code_block.m_num_instructions, code.data(), normalEntry, b);
 #endif
 
 	return normalEntry;

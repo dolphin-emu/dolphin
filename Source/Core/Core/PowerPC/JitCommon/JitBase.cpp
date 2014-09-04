@@ -27,11 +27,11 @@ u32 Helper_Mask(u8 mb, u8 me)
 		);
 }
 
-void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *normalEntry, JitBlock *b)
+void LogGeneratedX86(u32 size, const PPCAnalyst::CodeOp* code, const u8 *normalEntry, JitBlock *b)
 {
-	for (int i = 0; i < size; i++)
+	for (u32 i = 0; i < size; i++)
 	{
-		const PPCAnalyst::CodeOp &op = code_buffer->codebuffer[i];
+		const PPCAnalyst::CodeOp& op = code[i];
 		std::string temp = StringFromFormat("%08x %s", op.address, GekkoDisassembler::Disassemble(op.inst.hex, op.address).c_str());
 		DEBUG_LOG(DYNA_REC, "IR_X86 PPC: %s\n", temp.c_str());
 	}
