@@ -121,6 +121,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider
 
 	m_dma_mixer.Mix(samples, num_samples, consider_framelimit);
 	m_streaming_mixer.Mix(samples, num_samples, consider_framelimit);
+	m_wiimote_speaker_mixer.Mix(samples, num_samples, consider_framelimit);
 	if (m_logAudio)
 		g_wave_writer.AddStereoSamples(samples, num_samples);
 	return num_samples;
@@ -167,6 +168,31 @@ void CMixer::PushStreamingSamples(const short *samples, unsigned int num_samples
 	m_streaming_mixer.PushSamples(samples, num_samples);
 }
 
+void CMixer::PushWiimoteSpeakerSamples(const short *samples, unsigned int num_samples, unsigned int sample_rate, const u8 wiimote_index)
+{
+	short samples_stereo[MAX_SAMPLES * 2];
+
+	if (num_samples < MAX_SAMPLES)
+	{
+		m_wiimote_speaker_mixer.SetInputSampleRate(sample_rate);
+
+		for (unsigned int i = 0; i < num_samples; ++i)
+		{
+			// Position the Wiimotes as follow
+			// Wiimote 0 = Center
+			// Wiimote 1 = Left
+			// Wiimote 2 = Right
+			// Wiimote 3 = Center
+			if (wiimote_index != 2)
+				samples_stereo[i * 2] = Common::swap16(samples[i]);
+			if (wiimote_index != 1)
+				samples_stereo[i * 2 + 1] = Common::swap16(samples[i]);
+		}
+
+		m_wiimote_speaker_mixer.PushSamples(samples_stereo, num_samples);
+	}
+}
+
 void CMixer::SetDMAInputSampleRate(unsigned int rate)
 {
 	m_dma_mixer.SetInputSampleRate(rate);
@@ -180,6 +206,11 @@ void CMixer::SetStreamInputSampleRate(unsigned int rate)
 void CMixer::SetStreamingVolume(unsigned int lvolume, unsigned int rvolume)
 {
 	m_streaming_mixer.SetVolume(lvolume, rvolume);
+}
+
+void CMixer::SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume)
+{
+	m_wiimote_speaker_mixer.SetVolume(lvolume, rvolume);
 }
 
 void CMixer::MixerFifo::SetInputSampleRate(unsigned int rate)

@@ -113,15 +113,10 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputConfig& config
 	continuous_scanning->Bind(wxEVT_CHECKBOX, &WiimoteConfigDiag::OnContinuousScanning, this);
 	continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
 
-	auto wiimote_speaker = new wxCheckBox(this, wxID_ANY, _("Enable Speaker Data"));
-	wiimote_speaker->Bind(wxEVT_CHECKBOX, &WiimoteConfigDiag::OnEnableSpeaker, this);
-	wiimote_speaker->SetValue(SConfig::GetInstance().m_WiimoteEnableSpeaker);
-
 	real_wiimotes_sizer->Add(continuous_scanning, 0, wxALIGN_CENTER_VERTICAL);
 	real_wiimotes_sizer->AddStretchSpacer(1);
 	real_wiimotes_sizer->Add(refresh_btn, 0, wxALL | wxALIGN_CENTER, 5);
 
-	real_wiimotes_group->Add(wiimote_speaker, 0);
 	real_wiimotes_group->Add(real_wiimotes_sizer, 0, wxEXPAND);
 
 	// "General Settings" controls
@@ -130,6 +125,10 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputConfig& config
 	wxSlider* const WiiSensBarSens = new wxSlider(this, wxID_ANY, 0, 0, 4);
 	wxSlider* const WiimoteSpkVolume = new wxSlider(this, wxID_ANY, 0, 0, 127);
 	wxCheckBox* const WiimoteMotor = new wxCheckBox(this, wxID_ANY, _("Wiimote Motor"));
+
+	auto wiimote_speaker = new wxCheckBox(this, wxID_ANY, _("Enable Speaker Data"));
+	wiimote_speaker->Bind(wxEVT_CHECKBOX, &WiimoteConfigDiag::OnEnableSpeaker, this);
+	wiimote_speaker->SetValue(SConfig::GetInstance().m_WiimoteEnableSpeaker);
 
 	wxStaticText* const WiiSensBarPosText = new wxStaticText(this, wxID_ANY, _("Sensor Bar Position:"));
 	wxStaticText* const WiiSensBarSensText = new wxStaticText(this, wxID_ANY, _("IR Sensitivity:"));
@@ -204,6 +203,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputConfig& config
 
 	wxGridSizer* const general_wiimote_sizer = new wxGridSizer(1, 5, 5);
 	general_wiimote_sizer->Add(WiimoteMotor);
+	general_wiimote_sizer->Add(wiimote_speaker, 0);
 
 	general_sizer->Add(choice_sizer);
 	general_sizer->Add(general_wiimote_sizer);

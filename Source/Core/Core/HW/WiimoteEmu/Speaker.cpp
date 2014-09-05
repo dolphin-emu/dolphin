@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "AudioCommon/AudioCommon.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 //#define WIIMOTE_SPEAKER_DUMP
@@ -64,6 +65,9 @@ void stopdamnwav(){wav.Stop();ofile.close();}
 
 void Wiimote::SpeakerData(wm_speaker_data* sd)
 {
+	if (!SConfig::GetInstance().m_WiimoteEnableSpeaker)
+		return;
+
 	// TODO consider using static max size instead of new
 	s16 *samples = new s16[sd->length * 2];
 
@@ -74,6 +78,8 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 		{
 			samples[i] = (s16)(s8)sd->data[i];
 		}
+		soundStream->GetMixer()->SetWiimoteSpeakerVolume(256, 256);
+		soundStream->GetMixer()->PushWiimoteSpeakerSamples(samples, sd->length, 1500, m_index);
 	}
 	else if (m_reg_speaker.format == 0x00)
 	{
@@ -83,6 +89,8 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 			samples[i * 2] = adpcm_yamaha_expand_nibble(m_adpcm_state, (sd->data[i] >> 4) & 0xf);
 			samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(m_adpcm_state, sd->data[i] & 0xf);
 		}
+		soundStream->GetMixer()->SetWiimoteSpeakerVolume(256, 256);
+		soundStream->GetMixer()->PushWiimoteSpeakerSamples(samples, sd->length, 3000, m_index);
 	}
 
 #ifdef WIIMOTE_SPEAKER_DUMP
