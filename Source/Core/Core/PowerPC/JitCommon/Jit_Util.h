@@ -50,9 +50,10 @@ public:
 	void SafeWriteF32ToReg(Gen::X64Reg xmm_value, Gen::X64Reg reg_addr, s32 offset, u32 registersInUse, int flags = 0);
 
 	void WriteToConstRamAddress(int accessSize, Gen::X64Reg arg, u32 address, bool swap = false);
-	void JitClearCA();
+	void JitGetAndClearCAOV(bool oe);
 	void JitSetCA();
-	void JitClearCAOV(bool oe);
+	void JitSetCAIf(Gen::CCFlags conditionCode);
+	void JitClearCAOV(bool ca, bool oe);
 
 	void ForceSinglePrecisionS(Gen::X64Reg xmm);
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);

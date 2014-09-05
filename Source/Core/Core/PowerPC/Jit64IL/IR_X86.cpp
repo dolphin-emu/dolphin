@@ -1104,7 +1104,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->JitSetCA();
 			FixupBranch cont = Jit->J();
 			Jit->SetJumpTarget(nocarry);
-			Jit->JitClearCA();
+			Jit->JitClearCAOV(true, false);
 			Jit->SetJumpTarget(cont);
 			regNormalRegClear(RI, I);
 			break;
