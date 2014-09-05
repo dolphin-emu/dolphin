@@ -518,6 +518,8 @@ struct accel_cal
 	} one_g;
 };
 
+static_assert(sizeof(accel_cal) == 8, "acceleration data needs needs to be 8 bytes");
+
 struct nu_js
 {
 	u8 max, min, center;
@@ -525,10 +527,7 @@ struct nu_js
 
 struct nu_cal
 {
-	wm_accel cal_zero; // zero calibration
-	u8 pad1;
-	wm_accel cal_g;    // g size
-	u8 pad2;
+	accel_cal cal;
 	nu_js jx;
 	nu_js jy;
 	u8 sum[2];

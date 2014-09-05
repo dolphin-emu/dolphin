@@ -112,7 +112,7 @@ void Nunchuk::GetState(u8* const data)
 	// flip the button bits :/
 	ncdata->bt.hex ^= 0x03;
 
-	accel_cal& calib = *(accel_cal*)&reg.calibration;
+	accel_cal& calib = cal.cal;
 
 	u16 x = (u16)(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
 	u16 y = (u16)(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
