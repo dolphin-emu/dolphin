@@ -442,5 +442,5 @@ public:
 
 	std::vector<std::unique_ptr<ControlGroup>> groups;
 
-	DeviceQualifier default_device;
+	ciface::Core::DeviceQualifier default_device;
 };
