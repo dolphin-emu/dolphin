@@ -756,7 +756,6 @@ void Wiimote::Update()
 	// send data report
 	if (rptf_size)
 	{
-		WiimoteEmu::Spy(this, data, rptf_size);
 		Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, rptf_size);
 	}
 }
