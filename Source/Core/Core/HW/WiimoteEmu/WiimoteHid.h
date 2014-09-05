@@ -520,17 +520,4 @@ struct accel_cal
 
 static_assert(sizeof(accel_cal) == 8, "acceleration data needs needs to be 8 bytes");
 
-struct nu_js
-{
-	u8 max, min, center;
-};
-
-struct nu_cal
-{
-	accel_cal cal;
-	nu_js jx;
-	nu_js jy;
-	u8 sum[2];
-};
-
 #pragma pack(pop)

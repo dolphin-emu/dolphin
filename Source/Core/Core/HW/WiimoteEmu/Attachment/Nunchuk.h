@@ -22,6 +22,12 @@ public:
 		BUTTON_Z = 0x01,
 	};
 
+	enum
+	{
+		STICK_CENTER = 0x80,
+		STICK_RADIUS = 0x7F,
+	};
+
 	void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
