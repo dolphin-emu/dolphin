@@ -104,8 +104,6 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path, const std::string& _Filename);
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest);
-std::string UriDecode(const std::string & sSrc);
-std::string UriEncode(const std::string & sSrc);
 
 std::string CP1252ToUTF8(const std::string& str);
 std::string SHIFTJISToUTF8(const std::string& str);
