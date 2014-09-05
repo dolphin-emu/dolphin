@@ -25,7 +25,7 @@ public:
 	void DoState(PointerWrap &p) override;
 
 private:
-	int LoadGCI(std::string fileName, DiscIO::IVolume::ECountry card_region);
+	int LoadGCI(std::string fileName, DiscIO::IVolume::ECountry card_region, bool currentGameOnly);
 	inline s32 SaveAreaRW(u32 block, bool writing = false);
 	// s32 DirectoryRead(u32 offset, u32 length, u8* destaddress);
 	s32 DirectoryWrite(u32 destaddress, u32 length, u8 *srcaddress);

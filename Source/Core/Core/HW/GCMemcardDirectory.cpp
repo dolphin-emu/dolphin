@@ -4,6 +4,7 @@
 #include <cinttypes>
 
 #include "Common/CommonTypes.h"
+#include "Common/FileSearch.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCMemcardDirectory.h"
@@ -12,7 +13,7 @@
 const int NO_INDEX = -1;
 static const char *MC_HDR = "MC_SYSTEM_AREA";
 
-int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry card_region)
+int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry card_region, bool currentGameOnly)
 {
 	File::IOFile gcifile(fileName, "rb");
 	if (gcifile)
@@ -89,6 +90,23 @@ int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry 
 		{
 			gci.LoadSaveBlocks();
 		}
+		else
+		{
+			if (currentGameOnly)
+			{
+				return NO_INDEX;
+			}
+			int totalBlocks = BE16(m_hdr.SizeMb)*MBIT_TO_BLOCKS - MC_FST_BLOCKS;
+			int freeBlocks = BE16(m_bat1.FreeBlocks);
+			if (totalBlocks > freeBlocks * 10)
+			{
+
+				PanicAlertT("%s\nwas not loaded because there is less than 10%% free space on the memorycard\n"\
+					"Total Blocks: %d; Free Blocks: %d",
+					gci.m_filename.c_str(), totalBlocks, freeBlocks);
+				return NO_INDEX;
+			}
+		}
 		u16 first_block = m_bat1.AssignBlocksContiguous(numBlocks);
 		if (first_block == 0xFFFF)
 		{
@@ -114,13 +132,13 @@ int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry 
 }
 
 GCMemcardDirectory::GCMemcardDirectory(std::string directory, int slot, u16 sizeMb, bool ascii, DiscIO::IVolume::ECountry card_region, int gameId)
-	: MemoryCardBase(slot, sizeMb)
-	, m_GameId(gameId)
-	, m_LastBlock(-1)
-	, m_hdr(slot, sizeMb, ascii)
-	, m_bat1(sizeMb)
-	, m_saves(0)
-	, m_SaveDirectory(directory)
+: MemoryCardBase(slot, sizeMb)
+, m_GameId(gameId)
+, m_LastBlock(-1)
+, m_hdr(slot, sizeMb, ascii)
+, m_bat1(sizeMb)
+, m_saves(0)
+, m_SaveDirectory(directory)
 {
 	// Use existing header data if available
 	if (File::Exists(m_SaveDirectory + MC_HDR))
@@ -131,26 +149,39 @@ GCMemcardDirectory::GCMemcardDirectory(std::string directory, int slot, u16 size
 
 	File::FSTEntry FST_Temp;
 	File::ScanDirectoryTree(m_SaveDirectory, FST_Temp);
-	for (u32 j = 0; j < FST_Temp.children.size(); j++)
+
+	CFileSearch::XStringVector Directory;
+	Directory.push_back(m_SaveDirectory);
+	CFileSearch::XStringVector Extensions;
+	Extensions.push_back("*.gci");
+
+	CFileSearch FileSearch(Extensions, Directory);
+	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
+
+	if (rFilenames.size() > 112)
 	{
-		std::string ext;
-		std::string const &name = FST_Temp.children[j].virtualName;
-		SplitPath(name, nullptr, nullptr, &ext);
-		if (strcasecmp(ext.c_str(), ".gci") == 0)
-		{
-			if (m_saves.size() == DIRLEN)
-			{
-				PanicAlertT("There are too many gci files in the folder\n%s\nOnly the first 127 will be available",
-							m_SaveDirectory.c_str());
-				break;
-			}
-			int index = LoadGCI(FST_Temp.children[j].physicalName, card_region);
-			if (index != NO_INDEX)
-			{
-				m_loaded_saves.push_back(m_saves.at(index).m_gci_header.GCI_FileName());
-			}
-		}
+		Core::DisplayMessage(
+		StringFromFormat("WARNING: There are more than 112 save files on this memorycards"\
+		"\n Only loading the first 112 in the folder, unless the gameid is the current games id"),
+		4000);
 	}
+
+	for (auto gciFile : rFilenames)
+	{
+		if (m_saves.size() == DIRLEN)
+		{
+			PanicAlertT("There are too many gci files in the folder\n%s\nOnly the first 127 will be available",
+				m_SaveDirectory.c_str());
+			break;
+		}
+		int index = LoadGCI(gciFile, card_region, m_saves.size() > 112 );
+		if (index != NO_INDEX)
+		{
+			m_loaded_saves.push_back(m_saves.at(index).m_gci_header.GCI_FileName());
+		}
+
+	}
+
 	m_loaded_saves.clear();
 	m_dir1.fixChecksums();
 	m_dir2 = m_dir1;
