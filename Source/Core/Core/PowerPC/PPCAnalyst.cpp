@@ -430,6 +430,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 {
 	code->wantsCR0 = false;
 	code->wantsCR1 = false;
+	code->wantsPS1 = false;
 
 	if (opinfo->flags & FL_USE_FPU)
 		block->m_fpa->any = true;
@@ -456,15 +457,6 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) ? true : false;
 	code->outputFPRF = (opinfo->flags & FL_SET_FPRF) ? true : false;
 	code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) ? true : false;
-
-	code->wantsCA = (opinfo->flags & FL_READ_CA) ? true : false;
-	code->outputCA = (opinfo->flags & FL_SET_CA) ? true : false;
-
-	// mfspr/mtspr can affect/use XER, so be super careful here
-	if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 339) // mfspr
-		code->wantsCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
-	if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 467) // mtspr
-		code->outputCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
 
 	int numOut = 0;
 	int numIn = 0;
@@ -723,30 +715,26 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		block->m_broken = true;
 	}
 
-	// Scan for flag dependencies; assume the next block (or any branch that can leave the block)
-	// wants flags, to be safe.
+	// Scan for CR0 dependency
+	// assume next block wants flags to be safe
 	bool wantsCR0 = true;
 	bool wantsCR1 = true;
+	bool wantsPS1 = true;
 	bool wantsFPRF = true;
-	bool wantsCA = true;
 	for (int i = block->m_num_instructions - 1; i >= 0; i--)
 	{
-		bool opWantsCR0  = code[i].wantsCR0;
-		bool opWantsCR1  = code[i].wantsCR1;
-		bool opWantsFPRF = code[i].wantsFPRF;
-		bool opWantsCA   = code[i].wantsCA;
-		wantsCR0  |= opWantsCR0  || code[i].canEndBlock;
-		wantsCR1  |= opWantsCR1  || code[i].canEndBlock;
-		wantsFPRF |= opWantsFPRF || code[i].canEndBlock;
-		wantsCA   |= opWantsCA   || code[i].canEndBlock;
-		code[i].wantsCR0  = wantsCR0;
-		code[i].wantsCR1  = wantsCR1;
+		wantsCR0 |= code[i].wantsCR0 || code[i].canEndBlock;
+		wantsCR1 |= code[i].wantsCR1 || code[i].canEndBlock;
+		wantsPS1 |= code[i].wantsPS1 || code[i].canEndBlock;
+		wantsFPRF |= code[i].wantsFPRF || code[i].canEndBlock;
+		code[i].wantsCR0 = wantsCR0;
+		code[i].wantsCR1 = wantsCR1;
+		code[i].wantsPS1 = wantsPS1;
 		code[i].wantsFPRF = wantsFPRF;
-		code[i].wantsCA   = wantsCA;
-		wantsCR0  &= !code[i].outputCR0  || opWantsCR0;
-		wantsCR1  &= !code[i].outputCR1  || opWantsCR1;
-		wantsFPRF &= !code[i].outputFPRF || opWantsFPRF;
-		wantsCA   &= !code[i].outputCA   || opWantsCA;
+		wantsCR0 &= !code[i].outputCR0;
+		wantsCR1 &= !code[i].outputCR1;
+		wantsPS1 &= !code[i].outputPS1;
+		wantsFPRF &= !code[i].outputFPRF;
 	}
 	return address;
 }

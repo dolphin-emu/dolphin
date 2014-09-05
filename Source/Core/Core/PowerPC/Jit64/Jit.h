@@ -100,14 +100,12 @@ public:
 	void GenerateConstantOverflow(bool overflow);
 	void GenerateConstantOverflow(s64 val);
 	void GenerateOverflow();
-	void FinalizeCarryOverflow(bool ca, bool oe, bool inv = false);
+	void FinalizeCarryOverflow(bool oe, bool inv = false);
+	void GetCarryEAXAndClear();
+	void FinalizeCarryGenerateOverflowEAX(bool oe, bool inv = false);
+	void GenerateCarry();
+	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
-
-	// use to extract bytes from a register using the regcache. offset is in bytes.
-	Gen::OpArg ExtractFromReg(int reg, int offset);
-	void AndWithMask(Gen::X64Reg reg, u32 mask);
-	bool CheckMergedBranch(int crf);
-	void DoMergedBranch();
 
 	// Reads a given bit of a given CR register part. Clobbers ABI_PARAM1,
 	// don't forget to xlock it before.
@@ -119,8 +117,6 @@ public:
 	// is set or not.
 	Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
 	void SetFPRFIfNeeded(UGeckoInstruction inst, Gen::X64Reg xmm);
-
-	void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
 	void tri_op(int d, int a, int b, bool reversible, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS = false);
 	typedef u32 (*Operation)(u32 a, u32 b);
