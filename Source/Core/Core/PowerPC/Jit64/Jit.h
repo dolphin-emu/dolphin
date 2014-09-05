@@ -189,6 +189,8 @@ public:
 	void fctiwx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
 	void frspx(UGeckoInstruction inst);
+	void frsqrtex(UGeckoInstruction inst);
+	void fresx(UGeckoInstruction inst);
 
 	void cmpXX(UGeckoInstruction inst);
 

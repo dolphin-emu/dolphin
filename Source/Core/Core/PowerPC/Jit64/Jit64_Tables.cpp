@@ -324,7 +324,7 @@ static GekkoOPTemplate table59[] =
 	{20, &Jit64::fp_arith},              //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{21, &Jit64::fp_arith},              //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 //	{22, &Jit64::FallBackToInterpreter},   //"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
-	{24, &Jit64::FallBackToInterpreter}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{24, &Jit64::fresx},                 //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &Jit64::fp_arith},              //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{28, &Jit64::fmaddXX},               //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{29, &Jit64::fmaddXX},               //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}},
@@ -360,7 +360,7 @@ static GekkoOPTemplate table63_2[] =
 	{22, &Jit64::FallBackToInterpreter}, //"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{23, &Jit64::FallBackToInterpreter}, //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &Jit64::fp_arith},              //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{26, &Jit64::FallBackToInterpreter}, //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
+	{26, &Jit64::frsqrtex},              //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
 	{28, &Jit64::fmaddXX},               //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{29, &Jit64::fmaddXX},               //"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{30, &Jit64::fmaddXX},               //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
