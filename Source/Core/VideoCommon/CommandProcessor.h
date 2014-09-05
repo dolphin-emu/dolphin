@@ -141,8 +141,6 @@ void GatherPipeBursted();
 void UpdateInterrupts(u64 userdata);
 void UpdateInterruptsFromVideoBackend(u64 userdata);
 
-bool AllowIdleSkipping();
-
 void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();

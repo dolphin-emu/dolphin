@@ -60,30 +60,6 @@ void IniFile::Section::Set(const std::string& key, const std::string& newValue, 
 		Delete(key);
 }
 
-void IniFile::Section::Set(const std::string& key, const float newValue, const float defaultValue)
-{
-	if (newValue != defaultValue)
-		Set(key, newValue);
-	else
-		Delete(key);
-}
-
-void IniFile::Section::Set(const std::string& key, int newValue, int defaultValue)
-{
-	if (newValue != defaultValue)
-		Set(key, newValue);
-	else
-		Delete(key);
-}
-
-void IniFile::Section::Set(const std::string& key, bool newValue, bool defaultValue)
-{
-	if (newValue != defaultValue)
-		Set(key, newValue);
-	else
-		Delete(key);
-}
-
 void IniFile::Section::Set(const std::string& key, const std::vector<std::string>& newValues)
 {
 	std::string temp;

@@ -13,10 +13,10 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2013-06-12 15:24:44 +0000 (Wed, 12 Jun 2013) $
+// Last changed  : $Date: 2014-04-07 01:57:21 +1000 (Mon, 07 Apr 2014) $
 // File revision : $Revision: 4 $
 //
-// $Id: TDStretch.h 171 2013-06-12 15:24:44Z oparviai $
+// $Id: TDStretch.h 195 2014-04-06 15:57:21Z oparviai $
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -125,21 +125,22 @@ protected:
     float skipFract;
     FIFOSampleBuffer outputBuffer;
     FIFOSampleBuffer inputBuffer;
-    BOOL bQuickSeek;
+    bool bQuickSeek;
 
     int sampleRate;
     int sequenceMs;
     int seekWindowMs;
     int overlapMs;
-    BOOL bAutoSeqSetting;
-    BOOL bAutoSeekSetting;
+    bool bAutoSeqSetting;
+    bool bAutoSeekSetting;
 
     void acceptNewOverlapLength(int newOverlapLength);
 
     virtual void clearCrossCorrState();
     void calculateOverlapLength(int overlapMs);
 
-    virtual double calcCrossCorr(const SAMPLETYPE *mixingPos, const SAMPLETYPE *compare) const;
+    virtual double calcCrossCorr(const SAMPLETYPE *mixingPos, const SAMPLETYPE *compare, double &norm) const;
+    virtual double calcCrossCorrAccumulate(const SAMPLETYPE *mixingPos, const SAMPLETYPE *compare, double &norm) const;
 
     virtual int seekBestOverlapPositionFull(const SAMPLETYPE *refPos);
     virtual int seekBestOverlapPositionQuick(const SAMPLETYPE *refPos);
@@ -194,10 +195,10 @@ public:
 
     /// Enables/disables the quick position seeking algorithm. Zero to disable, 
     /// nonzero to enable
-    void enableQuickSeek(BOOL enable);
+    void enableQuickSeek(bool enable);
 
     /// Returns nonzero if the quick seeking algorithm is enabled.
-    BOOL isQuickSeekEnabled() const;
+    bool isQuickSeekEnabled() const;
 
     /// Sets routine control parameters. These control are certain time constants
     /// defining how the sound is stretched to the desired duration.
@@ -248,7 +249,8 @@ public:
     class TDStretchMMX : public TDStretch
     {
     protected:
-        double calcCrossCorr(const short *mixingPos, const short *compare) const;
+        double calcCrossCorr(const short *mixingPos, const short *compare, double &norm) const;
+        double calcCrossCorrAccumulate(const short *mixingPos, const short *compare, double &norm) const;
         virtual void overlapStereo(short *output, const short *input) const;
         virtual void clearCrossCorrState();
     };
@@ -260,7 +262,8 @@ public:
     class TDStretchSSE : public TDStretch
     {
     protected:
-        double calcCrossCorr(const float *mixingPos, const float *compare) const;
+        double calcCrossCorr(const float *mixingPos, const float *compare, double &norm) const;
+        double calcCrossCorrAccumulate(const float *mixingPos, const float *compare, double &norm) const;
     };
 
 #endif /// SOUNDTOUCH_ALLOW_SSE

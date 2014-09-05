@@ -1409,8 +1409,15 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 			// Hide toolbar
 			DoToggleToolbar(false);
 
-			// Disable toggling toolbar in menu
-			GetMenuBar()->FindItem(IDM_TOGGLE_TOOLBAR)->Enable(false);
+			// Hide menubar (by having wxwidgets delete it)
+			SetMenuBar(nullptr);
+
+			// Hide the statusbar if enabled
+			if (GetStatusBar()->IsShown())
+			{
+				GetStatusBar()->Hide();
+				this->SendSizeEvent();
+			}
 		}
 		else
 		{
@@ -1420,8 +1427,18 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 			// Restore toolbar to the status it was at before going fullscreen.
 			DoToggleToolbar(SConfig::GetInstance().m_InterfaceToolbar);
 
-			// Re-enable toggling toolbar in menu
-			GetMenuBar()->FindItem(IDM_TOGGLE_TOOLBAR)->Enable(true);
+			// Recreate the menubar if needed.
+			if (GetMenuBar() == nullptr)
+			{
+				CreateMenu();
+			}
+
+			// Show statusbar if enabled
+			if (SConfig::GetInstance().m_InterfaceStatusbar)
+			{
+				GetStatusBar()->Show();
+				this->SendSizeEvent();
+			}
 		}
 	}
 	else

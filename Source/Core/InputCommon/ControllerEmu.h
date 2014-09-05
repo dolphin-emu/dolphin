@@ -28,7 +28,7 @@ enum
 	GROUP_TYPE_TILT,
 	GROUP_TYPE_CURSOR,
 	GROUP_TYPE_TRIGGERS,
-	GROUP_TYPE_SLIDER,
+	GROUP_TYPE_SLIDER
 };
 
 enum
@@ -93,13 +93,15 @@ public:
 				, default_value(def_value)
 				, low(_low)
 				, high(_high)
-				, is_virtual(false) {}
+				, is_virtual(false)
+				, is_iterate(false) {}
 
 			const std::string   name;
 			ControlState        value;
 			const ControlState  default_value;
 			const unsigned int  low, high;
 			bool                is_virtual;
+			bool                is_iterate;
 
 			virtual void SetValue(ControlState new_value)
 			{
@@ -128,6 +130,15 @@ public:
 			ControlState GetValue() override
 			{
 				return SConfig::GetInstance().m_BackgroundInput;
+			}
+		};
+
+		class IterateUI : public Setting
+		{
+		public:
+			IterateUI(const std::string &_name) : Setting(_name, false)
+			{
+				is_iterate = true;
 			}
 		};
 

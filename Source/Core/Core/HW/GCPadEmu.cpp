@@ -84,6 +84,7 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 	// options
 	groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
 	m_options->settings.emplace_back(new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
+	m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
 }
 
 std::string GCPad::GetName() const

@@ -50,23 +50,31 @@ public:
 			Set(key, StringFromFormat("%f", newValue));
 		}
 
-		void Set(const std::string& key, const float newValue, const float defaultValue);
 		void Set(const std::string& key, double newValue)
 		{
 			Set(key, StringFromFormat("%f", newValue));
 		}
 
-		void Set(const std::string& key, int newValue, int defaultValue);
 		void Set(const std::string& key, int newValue)
 		{
 			Set(key, StringFromInt(newValue));
 		}
 
-		void Set(const std::string& key, bool newValue, bool defaultValue);
 		void Set(const std::string& key, bool newValue)
 		{
 			Set(key, StringFromBool(newValue));
+
 		}
+
+		template<typename T>
+		void Set(const std::string& key, T newValue, const T defaultValue)
+		{
+			if (newValue != defaultValue)
+				Set(key, newValue);
+			else
+				Delete(key);
+		}
+
 		void Set(const std::string& key, const std::vector<std::string>& newValues);
 
 		bool Get(const std::string& key, int* value, int defaultValue = 0);

@@ -103,7 +103,7 @@ void CLogWindow::CreateGUIControls()
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
-		logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, true);
+		logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, false);
 
 		if (m_writeWindow && enable)
 			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, this);

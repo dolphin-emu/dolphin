@@ -94,7 +94,6 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// (mb2): I agree,
 	// IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle methode
 	// ... maybe the throttle one already do that :p
-	// if (CommandProcessor::AllowIdleSkipping() && PixelEngine::AllowIdleSkipping())
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
 	    inst.OPCD == 32 &&
 	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&

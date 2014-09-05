@@ -34,47 +34,6 @@
 u8* g_pVideoData = nullptr;
 bool g_bRecordFifoData = false;
 
-typedef void (*DataReadU32xNfunc)(u32 *buf);
-#if _M_SSE >= 0x301
-static DataReadU32xNfunc DataReadU32xFuncs_SSSE3[16] = {
-	DataReadU32xN_SSSE3<1>,
-	DataReadU32xN_SSSE3<2>,
-	DataReadU32xN_SSSE3<3>,
-	DataReadU32xN_SSSE3<4>,
-	DataReadU32xN_SSSE3<5>,
-	DataReadU32xN_SSSE3<6>,
-	DataReadU32xN_SSSE3<7>,
-	DataReadU32xN_SSSE3<8>,
-	DataReadU32xN_SSSE3<9>,
-	DataReadU32xN_SSSE3<10>,
-	DataReadU32xN_SSSE3<11>,
-	DataReadU32xN_SSSE3<12>,
-	DataReadU32xN_SSSE3<13>,
-	DataReadU32xN_SSSE3<14>,
-	DataReadU32xN_SSSE3<15>,
-	DataReadU32xN_SSSE3<16>
-};
-#endif
-
-static DataReadU32xNfunc DataReadU32xFuncs[16] = {
-	DataReadU32xN<1>,
-	DataReadU32xN<2>,
-	DataReadU32xN<3>,
-	DataReadU32xN<4>,
-	DataReadU32xN<5>,
-	DataReadU32xN<6>,
-	DataReadU32xN<7>,
-	DataReadU32xN<8>,
-	DataReadU32xN<9>,
-	DataReadU32xN<10>,
-	DataReadU32xN<11>,
-	DataReadU32xN<12>,
-	DataReadU32xN<13>,
-	DataReadU32xN<14>,
-	DataReadU32xN<15>,
-	DataReadU32xN<16>
-};
-
 static u32 InterpretDisplayList(u32 address, u32 size)
 {
 	u8* old_pVideoData = g_pVideoData;
@@ -91,7 +50,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 		Statistics::SwapDL();
 
 		u8 *end = g_pVideoData + size;
-		cycles = OpcodeDecoder_Run(false, end);
+		cycles = OpcodeDecoder_Run(end);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -146,7 +105,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 	}
 }
 
-static u32 Decode(u8* end, bool skipped_frame)
+static u32 Decode(u8* end)
 {
 	u8 *opcodeStart = g_pVideoData;
 	if (g_pVideoData == end)
@@ -182,9 +141,7 @@ static u32 Decode(u8* end, bool skipped_frame)
 				return 0;
 			cycles = 18 + 6 * transfer_size;
 			u32 xf_address = Cmd2 & 0xFFFF;
-			GC_ALIGNED128(u32 data_buffer[16]);
-			DataReadU32xFuncs[transfer_size-1](data_buffer);
-			LoadXFReg(transfer_size, xf_address, data_buffer);
+			LoadXFReg(transfer_size, xf_address);
 
 			INCSTAT(stats.thisFrame.numXFLoads);
 		}
@@ -221,10 +178,7 @@ static u32 Decode(u8* end, bool skipped_frame)
 				return 0;
 			u32 address = DataReadU32();
 			u32 count = DataReadU32();
-			if (skipped_frame)
-				cycles = 45; // xxx
-			else
-				cycles = 6 + InterpretDisplayList(address, count);
+			cycles = 6 + InterpretDisplayList(address, count);
 		}
 		break;
 
@@ -261,21 +215,14 @@ static u32 Decode(u8* end, bool skipped_frame)
 				return 0;
 			u16 numVertices = DataReadU16();
 
-			if (skipped_frame)
+			if (!VertexLoaderManager::RunVertices(
+				cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+				(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+				numVertices,
+				end - g_pVideoData,
+				g_bSkipCurrentFrame))
 			{
-				size_t size = numVertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK);
-				if ((size_t) (end - g_pVideoData) < size)
-					return 0;
-				DataSkip((u32)size);
-			}
-			else
-			{
-				if (!VertexLoaderManager::RunVertices(
-					cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
-					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
-					numVertices,
-					end - g_pVideoData))
-					return 0;
+				return 0;
 			}
 		}
 		else
@@ -296,14 +243,6 @@ static u32 Decode(u8* end, bool skipped_frame)
 void OpcodeDecoder_Init()
 {
 	g_pVideoData = GetVideoBufferStartPtr();
-
-#if _M_SSE >= 0x301
-	if (cpu_info.bSSSE3)
-	{
-		for (int i = 0; i < 16; ++i)
-			DataReadU32xFuncs[i] = DataReadU32xFuncs_SSSE3[i];
-	}
-#endif
 }
 
 
@@ -311,13 +250,13 @@ void OpcodeDecoder_Shutdown()
 {
 }
 
-u32 OpcodeDecoder_Run(bool skipped_frame, u8* end)
+u32 OpcodeDecoder_Run(u8* end)
 {
 	u32 totalCycles = 0;
 	while (true)
 	{
 		u8* old = g_pVideoData;
-		u32 cycles = Decode(end, skipped_frame);
+		u32 cycles = Decode(end);
 		if (cycles == 0)
 		{
 			g_pVideoData = old;
