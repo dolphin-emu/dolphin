@@ -137,7 +137,6 @@ struct VideoConfig final
 		std::vector<std::string> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 
-		bool bUseRGBATextures; // used for D3D in TextureCache
 		bool bUseMinimalMipCount;
 		bool bSupportsExclusiveFullscreen;
 		bool bSupportsDualSourceBlend;
