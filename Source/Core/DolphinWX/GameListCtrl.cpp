@@ -1054,13 +1054,7 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	std::string wikiUrl = "http://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=[GAME_ID]";
-	wikiUrl = ReplaceAll(wikiUrl, "[GAME_ID]", UriEncode(iso->GetUniqueID()));
-	if (UriEncode(iso->GetName(0)).length() < 100)
-		wikiUrl = ReplaceAll(wikiUrl, "[GAME_NAME]", UriEncode(iso->GetName(0)));
-	else
-		wikiUrl = ReplaceAll(wikiUrl, "[GAME_NAME]", "");
-
+	std::string wikiUrl = "http://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=" + iso->GetUniqueID();
 	WxUtils::Launch(wikiUrl);
 }
 
