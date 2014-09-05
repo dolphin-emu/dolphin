@@ -45,6 +45,8 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 	{
 		if (s->is_virtual)
 			continue;
+		if (s->is_iterate)
+			continue;
 		sec->Get(group + s->name, &s->value, s->default_value * 100);
 		s->value /= 100;
 	}
@@ -104,6 +106,9 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::s
 	{
 		if (s->is_virtual)
 			continue;
+		if (s->is_iterate)
+			continue;
+
 		sec->Set(group + s->name, s->value * 100.0, s->default_value * 100.0);
 	}
 

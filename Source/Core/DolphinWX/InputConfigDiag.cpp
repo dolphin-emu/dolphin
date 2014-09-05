@@ -465,6 +465,13 @@ void GamepadPage::AdjustSetting(wxCommandEvent& event)
 	((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
 }
 
+void GamepadPage::AdjustSettingUI(wxCommandEvent& event)
+{
+	m_iterate = !m_iterate;
+	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
+	((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
+}
+
 void GamepadPage::AdjustControlOption(wxCommandEvent&)
 {
 	std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
@@ -521,18 +528,34 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 void GamepadPage::DetectControl(wxCommandEvent& event)
 {
 	ControlButton* btn = (ControlButton*)event.GetEventObject();
+	if (DetectButton(btn) && m_iterate == true)
+	{
+		auto it = std::find(control_buttons.begin(), control_buttons.end(), btn);
 
+		// std find will never return end since btn will always be found in control_buttons
+		++it;
+		for (; it != control_buttons.end(); ++it)
+		{
+			if (!DetectButton(*it))
+				break;
+		}
+	}
+}
+
+bool GamepadPage::DetectButton(ControlButton* button)
+{
+	bool success = false;
 	// find device :/
 	Device* const dev = g_controller_interface.FindDevice(controller->default_device);
 	if (dev)
 	{
-		btn->SetLabel(_("[ waiting ]"));
+		button->SetLabel(_("[ waiting ]"));
 
 		// This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
 		wxTheApp->Yield(true);
 
 		std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
-		Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);
+		Device::Control* const ctrl = button->control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, update expression and reference
 		if (ctrl)
@@ -540,12 +563,15 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
 			wxString control_name = ctrl->GetName();
 			wxString expr;
 			GetExpressionForControl(expr, control_name);
-			btn->control_reference->expression = expr;
-			g_controller_interface.UpdateReference(btn->control_reference, controller->default_device);
+			button->control_reference->expression = expr;
+			g_controller_interface.UpdateReference(button->control_reference, controller->default_device);
+			success = true;
 		}
 	}
 
 	UpdateGUI();
+
+	return success;
 }
 
 wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
@@ -740,6 +766,8 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 	, control_group(group)
 {
 	static_bitmap = nullptr;
+	const std::vector<std::string> exclude_buttons = {"Mic", "Modifier"};
+	const std::vector<std::string> exclude_groups = {"IR", "Swing", "Tilt", "Shake", "UDP Wiimote", "Extension", "Rumble"};
 
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 	for (auto& control : group->controls)
@@ -750,6 +778,10 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 		control_button->SetFont(m_SmallFont);
 
 		control_buttons.push_back(control_button);
+		if (std::find(exclude_groups.begin(), exclude_groups.end(), control_group->name) == exclude_groups.end() &&
+		    std::find(exclude_buttons.begin(), exclude_buttons.end(), control->name) == exclude_buttons.end())
+			eventsink->control_buttons.push_back(control_button);
+
 
 		if (control->control_ref->is_input)
 		{
@@ -880,7 +912,15 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			for (auto& groupSetting : group->settings)
 			{
 				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
-				setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+				if (groupSetting.get()->is_iterate == true)
+				{
+					setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSettingUI, eventsink);
+					groupSetting.get()->value = 0;
+				}
+				else
+				{
+					setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+				}
 				options.push_back(setting_cbox);
 
 				Add(setting_cbox->wxcontrol, 0, wxALL|wxLEFT, 5);
