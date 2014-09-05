@@ -218,19 +218,19 @@ void ControlDialog::UpdateListContents()
 {
 	control_lbox->Clear();
 
-	Device* const dev = g_controller_interface.FindDevice(m_devq);
+	ciface::Core::Device* const dev = g_controller_interface.FindDevice(m_devq);
 	if (dev)
 	{
 		if (control_reference->is_input)
 		{
-			for (Device::Input* input : dev->Inputs())
+			for (ciface::Core::Device::Input* input : dev->Inputs())
 			{
 				control_lbox->Append(StrToWxStr(input->GetName()));
 			}
 		}
 		else // It's an output
 		{
-			for (Device::Output* output : dev->Outputs())
+			for (ciface::Core::Device::Output* output : dev->Outputs())
 			{
 				control_lbox->Append(StrToWxStr(output->GetName()));
 			}
@@ -373,8 +373,8 @@ inline bool IsAlphabetic(wxString &str)
 
 inline void GetExpressionForControl(wxString &expr,
 				    wxString &control_name,
-				    DeviceQualifier *control_device = nullptr,
-				    DeviceQualifier *default_device = nullptr)
+				    ciface::Core::DeviceQualifier *control_device = nullptr,
+				    ciface::Core::DeviceQualifier *default_device = nullptr)
 {
 	expr = "";
 
@@ -506,7 +506,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 	wxButton* const btn = (wxButton*)event.GetEventObject();
 	const wxString lbl = btn->GetLabel();
 
-	Device* const dev = g_controller_interface.FindDevice(m_devq);
+	ciface::Core::Device* const dev = g_controller_interface.FindDevice(m_devq);
 	if (dev)
 	{
 		btn->SetLabel(_("[ waiting ]"));
@@ -515,7 +515,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 		wxTheApp->Yield(true);
 
 		std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
-		Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
+		ciface::Core::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, select it in the list
 		if (ctrl)
@@ -546,7 +546,7 @@ bool GamepadPage::DetectButton(ControlButton* button)
 {
 	bool success = false;
 	// find device :/
-	Device* const dev = g_controller_interface.FindDevice(controller->default_device);
+	ciface::Core::Device* const dev = g_controller_interface.FindDevice(controller->default_device);
 	if (dev)
 	{
 		button->SetLabel(_("[ waiting ]"));
@@ -555,7 +555,7 @@ bool GamepadPage::DetectButton(ControlButton* button)
 		wxTheApp->Yield(true);
 
 		std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
-		Device::Control* const ctrl = button->control_reference->Detect(DETECT_WAIT_TIME, dev);
+		ciface::Core::Device::Control* const ctrl = button->control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, update expression and reference
 		if (ctrl)
@@ -725,12 +725,12 @@ void GamepadPage::DeleteProfile(wxCommandEvent&)
 
 void InputConfigDialog::UpdateDeviceComboBox()
 {
-	DeviceQualifier dq;
+	ciface::Core::DeviceQualifier dq;
 	for (GamepadPage* page : m_padpages)
 	{
 		page->device_cbox->Clear();
 
-		for (Device* d : g_controller_interface.Devices())
+		for (ciface::Core::Device* d : g_controller_interface.Devices())
 		{
 			dq.FromDevice(d);
 			page->device_cbox->Append(StrToWxStr(dq.ToString()));

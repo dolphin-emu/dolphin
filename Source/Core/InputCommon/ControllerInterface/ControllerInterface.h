@@ -36,15 +36,13 @@
 	#define CIFACE_USE_SDL
 #endif
 
-using namespace ciface::Core;
-
 //
 // ControllerInterface
 //
 // Some crazy shit I made to control different device inputs and outputs
 // from lots of different sources, hopefully more easily.
 //
-class ControllerInterface : public DeviceContainer
+class ControllerInterface : public ciface::Core::DeviceContainer
 {
 public:
 
@@ -63,7 +61,7 @@ public:
 		friend class ControllerInterface;
 	public:
 		virtual ControlState State(const ControlState state = 0) = 0;
-		virtual Device::Control* Detect(const unsigned int ms, Device* const device) = 0;
+		virtual ciface::Core::Device::Control* Detect(const unsigned int ms, ciface::Core::Device* const device) = 0;
 
 		ControlState range;
 		std::string  expression;
@@ -98,7 +96,7 @@ public:
 	public:
 		InputReference() : ControlReference(true) {}
 		ControlState State(const ControlState state) override;
-		Device::Control* Detect(const unsigned int ms, Device* const device) override;
+		ciface::Core::Device::Control* Detect(const unsigned int ms, ciface::Core::Device* const device) override;
 	};
 
 	//
@@ -111,7 +109,7 @@ public:
 	public:
 		OutputReference() : ControlReference(false) {}
 		ControlState State(const ControlState state) override;
-		Device::Control* Detect(const unsigned int ms, Device* const device) override;
+		ciface::Core::Device::Control* Detect(const unsigned int ms, ciface::Core::Device* const device) override;
 	};
 
 	ControllerInterface() : m_is_init(false), m_hwnd(nullptr) {}
@@ -121,7 +119,7 @@ public:
 	void Shutdown();
 	bool IsInit() const { return m_is_init; }
 
-	void UpdateReference(ControlReference* control, const DeviceQualifier& default_device) const;
+	void UpdateReference(ControlReference* control, const ciface::Core::DeviceQualifier& default_device) const;
 	bool UpdateInput(const bool force = false);
 	bool UpdateOutput(const bool force = false);
 
