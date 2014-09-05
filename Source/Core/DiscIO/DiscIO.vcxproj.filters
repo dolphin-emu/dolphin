@@ -33,9 +33,6 @@
     <ClCompile Include="BannerLoaderWii.cpp">
       <Filter>FileHandler</Filter>
     </ClCompile>
-    <ClCompile Include="FileHandlerARC.cpp">
-      <Filter>FileHandler</Filter>
-    </ClCompile>
     <ClCompile Include="Filesystem.cpp">
       <Filter>FileSystem</Filter>
     </ClCompile>
@@ -99,9 +96,6 @@
       <Filter>FileHandler</Filter>
     </ClInclude>
     <ClInclude Include="BannerLoaderGC.h">
-      <Filter>FileHandler</Filter>
-    </ClInclude>
-    <ClInclude Include="FileHandlerARC.h">
       <Filter>FileHandler</Filter>
     </ClInclude>
     <ClInclude Include="Filesystem.h">
