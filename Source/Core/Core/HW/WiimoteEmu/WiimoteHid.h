@@ -523,11 +523,6 @@ struct nu_js
 	u8 max, min, center;
 };
 
-struct cc_trigger
-{
-	u8 neutral;
-};
-
 struct nu_cal
 {
 	wm_accel cal_zero; // zero calibration
@@ -537,22 +532,6 @@ struct nu_cal
 	nu_js jx;
 	nu_js jy;
 	u8 sum[2];
-};
-
-struct cc_cal
-{
-	nu_js Lx;
-	nu_js Ly;
-	nu_js Rx;
-	nu_js Ry;
-	cc_trigger Tl;
-	cc_trigger Tr;
-};
-
-struct gh3_cal
-{
-	nu_js Lx;
-	nu_js Ly;
 };
 
 #pragma pack(pop)
