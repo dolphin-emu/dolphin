@@ -50,13 +50,13 @@ static Event *eventPool = nullptr;
 int slicelength;
 static int maxSliceLength = MAX_SLICE_LENGTH;
 
-static s64 globalTimer;
 static s64 idledCycles;
-
 static u32 fakeDecStartValue;
 static u64 fakeDecStartTicks;
-static u64 fakeTBStartValue;
-static u64 fakeTBStartTicks;
+
+s64 globalTimer;
+u64 fakeTBStartValue;
+u64 fakeTBStartTicks;
 
 static int ev_lost;
 

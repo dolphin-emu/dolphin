@@ -173,15 +173,25 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		// typical use of this instruction is to call it three times, e.g. mftbu/mftbl/mftbu/cmpw/bne
 		// to deal with possible timer wraparound. This makes the second two (out of three) completely
 		// redundant for the JIT.
-		u32 registersInUse = CallerSavedRegistersInUse();
 		u32 offset = js.downcountAmount / SystemTimers::TIMER_RATIO;
-		ABI_PushRegistersAndAdjustStack(registersInUse, false);
-		ABI_CallFunction((void *)&SystemTimers::GetFakeTimeBase);
-		ABI_PopRegistersAndAdjustStack(registersInUse, false);
+		gpr.FlushLockX(EDX);
+
+		// An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
+		// cost of calling out to C for this is actually significant.
+		MOV(64, R(RAX), M(&CoreTiming::globalTimer));
+		SUB(64, R(RAX), M(&CoreTiming::fakeTBStartTicks));
+		// a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
+		MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
+		MUL(64, R(RDX));
+		MOV(64, R(RAX), M(&CoreTiming::fakeTBStartValue));
+		SHR(64, R(RDX), Imm8(3));
 		// The timer can change within a long block, so add in any difference
 		if (offset > 0)
-			ADD(64, R(RAX), Imm32(offset));
+			LEA(64, RAX, MComplex(RAX, RDX, SCALE_1, offset));
+		else
+			ADD(64, R(RAX), R(RDX));
 		MOV(64, M(&TL), R(RAX));
+
 		// Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
 		// if we can.
 		u32 nextIndex = (js.next_inst.SPRU << 5) | (js.next_inst.SPRL & 0x1F);
@@ -225,6 +235,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		break;
 	}
 	gpr.UnlockAll();
+	gpr.UnlockAllX();
 }
 
 void Jit64::mtmsr(UGeckoInstruction inst)
