@@ -40,7 +40,7 @@ public:
 	// Called from main thread
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
 	virtual void PushStreamingSamples(const short* samples, unsigned int num_samples);
-	virtual void PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples, unsigned int sample_rate, const u8 wiimote_index);
+	virtual void PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples, unsigned int sample_rate);
 	unsigned int GetSampleRate() const { return m_sampleRate; }
 
 	void SetDMAInputSampleRate(unsigned int rate);
