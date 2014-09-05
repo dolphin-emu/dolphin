@@ -8,14 +8,6 @@ namespace WiimoteEmu
 {
 
 static const u8 nunchuk_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
-/* Default calibration for the nunchuk. It should be written to 0x20 - 0x3f of the
-   extension register. 0x80 is the neutral x and y accelerators and 0xb3 is the
-   neutral z accelerometer that is adjusted for gravity. */
-static const u8 nunchuk_calibration[] =
-{
-	0x80, 0x80, 0x80, 0x00, // accelerometer x, y, z neutral
-	0xb3, 0xb3, 0xb3, 0x00, //  x, y, z g-force values
-};
 
 static const u8 nunchuk_button_bitmasks[] =
 {
@@ -45,9 +37,6 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"),
 	m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
 	m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
 
-	// set up register
-	// calibration
-	memcpy(&calibration, nunchuk_calibration, sizeof(nunchuk_calibration));
 	// id
 	memcpy(&id, nunchuk_id, sizeof(nunchuk_id));
 
@@ -98,11 +87,9 @@ void Nunchuk::GetState(u8* const data)
 	// flip the button bits :/
 	ncdata->bt.hex ^= 0x03;
 
-	accel_cal& calib = *(accel_cal*)&reg.calibration;
-
-	u16 accel_x = (u16)(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
-	u16 accel_y = (u16)(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
-	u16 accel_z = (u16)(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+	u16 accel_x = (u16)(accel.x * ACCEL_RANGE + ACCEL_ZERO_G);
+	u16 accel_y = (u16)(accel.y * ACCEL_RANGE + ACCEL_ZERO_G);
+	u16 accel_z = (u16)(accel.z * ACCEL_RANGE + ACCEL_ZERO_G);
 
 	if (accel_x > 1024)
 		accel_x = 1024;

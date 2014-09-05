@@ -24,6 +24,13 @@ public:
 
 	enum
 	{
+		ACCEL_ZERO_G = 0x80,
+		ACCEL_ONE_G = 0xB3,
+		ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
+	};
+
+	enum
+	{
 		STICK_CENTER = 0x80,
 		STICK_RADIUS = 0x7F,
 	};
