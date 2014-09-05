@@ -281,12 +281,17 @@ std::string TabsToSpaces(int tab_size, const std::string &in)
 
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest)
 {
-	while (1)
+	size_t pos = 0;
+
+	if (src == dest)
+		return result;
+
+	while ((pos = result.find(src, pos)) != std::string::npos)
 	{
-		size_t pos = result.find(src);
-		if (pos == std::string::npos) break;
 		result.replace(pos, src.size(), dest);
+		pos += dest.length();
 	}
+
 	return result;
 }
 
