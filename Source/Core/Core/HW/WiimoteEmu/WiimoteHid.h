@@ -495,29 +495,4 @@ struct wm_speaker_data
 
 // Custom structs
 
-/**
- * @struct accel_t
- * @brief Accelerometer struct. For any device with an accelerometer.
- */
-struct accel_cal
-{
-	struct
-	{
-		u8 x, y, z;
-		u8 xlo : 2;
-		u8 ylo : 2;
-		u8 zlo : 2;
-	} zero_g;
-
-	struct
-	{
-		u8 x, y, z;
-		u8 xlo : 2;
-		u8 ylo : 2;
-		u8 zlo : 2;
-	} one_g;
-};
-
-static_assert(sizeof(accel_cal) == 8, "acceleration data needs needs to be 8 bytes");
-
 #pragma pack(pop)

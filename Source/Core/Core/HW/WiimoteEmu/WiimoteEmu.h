@@ -106,6 +106,13 @@ public:
 		BUTTON_HOME  = 0x8000,
 	};
 
+	enum
+	{
+		ACCEL_ZERO_G = 0x80,
+		ACCEL_ONE_G = 0x9A,
+		ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
+	};
+
 	Wiimote(const unsigned int index);
 	std::string GetName() const override;
 
