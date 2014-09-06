@@ -582,14 +582,16 @@ void XEmitter::SFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xF8);}
 
 void XEmitter::WriteSimple1Byte(int bits, u8 byte, X64Reg reg)
 {
-	if (bits == 16) {Write8(0x66);}
+	if (bits == 16)
+		Write8(0x66);
 	Rex(bits == 64, 0, 0, (int)reg >> 3);
 	Write8(byte + ((int)reg & 7));
 }
 
 void XEmitter::WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg)
 {
-	if (bits == 16) {Write8(0x66);}
+	if (bits == 16)
+		Write8(0x66);
 	Rex(bits==64, 0, 0, (int)reg >> 3);
 	Write8(byte1);
 	Write8(byte2 + ((int)reg & 7));
@@ -597,14 +599,16 @@ void XEmitter::WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg)
 
 void XEmitter::CWD(int bits)
 {
-	if (bits == 16) {Write8(0x66);}
+	if (bits == 16)
+		Write8(0x66);
 	Rex(bits == 64, 0, 0, 0);
 	Write8(0x99);
 }
 
 void XEmitter::CBW(int bits)
 {
-	if (bits == 8) {Write8(0x66);}
+	if (bits == 8)
+		Write8(0x66);
 	Rex(bits == 32, 0, 0, 0);
 	Write8(0x98);
 }
@@ -690,7 +694,8 @@ void XEmitter::UD2()
 
 void XEmitter::PREFETCH(PrefetchLevel level, OpArg arg)
 {
-	if (arg.IsImm()) _assert_msg_(DYNA_REC, 0, "PREFETCH - Imm argument");;
+	if (arg.IsImm())
+		_assert_msg_(DYNA_REC, 0, "PREFETCH - Imm argument");
 	arg.operandReg = (u8)level;
 	arg.WriteRex(this, 0, 0);
 	Write8(0x0F);
@@ -700,7 +705,8 @@ void XEmitter::PREFETCH(PrefetchLevel level, OpArg arg)
 
 void XEmitter::SETcc(CCFlags flag, OpArg dest)
 {
-	if (dest.IsImm()) _assert_msg_(DYNA_REC, 0, "SETcc - Imm argument");
+	if (dest.IsImm())
+		_assert_msg_(DYNA_REC, 0, "SETcc - Imm argument");
 	dest.operandReg = 0;
 	dest.WriteRex(this, 0, 8);
 	Write8(0x0F);
@@ -710,9 +716,12 @@ void XEmitter::SETcc(CCFlags flag, OpArg dest)
 
 void XEmitter::CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag)
 {
-	if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "CMOVcc - Imm argument");
-	if (bits == 8) _assert_msg_(DYNA_REC, 0, "CMOVcc - 8 bits unsupported");
-	if (bits == 16) Write8(0x66);
+	if (src.IsImm())
+		_assert_msg_(DYNA_REC, 0, "CMOVcc - Imm argument");
+	if (bits == 8)
+		_assert_msg_(DYNA_REC, 0, "CMOVcc - 8 bits unsupported");
+	if (bits == 16)
+		Write8(0x66);
 	src.operandReg = dest;
 	src.WriteRex(this, bits, bits);
 	Write8(0x0F);
@@ -722,9 +731,11 @@ void XEmitter::CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag)
 
 void XEmitter::WriteMulDivType(int bits, OpArg src, int ext)
 {
-	if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "WriteMulDivType - Imm argument");
+	if (src.IsImm())
+		_assert_msg_(DYNA_REC, 0, "WriteMulDivType - Imm argument");
 	src.operandReg = ext;
-	if (bits == 16) Write8(0x66);
+	if (bits == 16)
+		Write8(0x66);
 	src.WriteRex(this, bits, bits, 0);
 	if (bits == 8)
 	{
@@ -746,9 +757,11 @@ void XEmitter::NOT(int bits, OpArg src)  {WriteMulDivType(bits, src, 2);}
 
 void XEmitter::WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2)
 {
-	if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "WriteBitSearchType - Imm argument");
+	if (src.IsImm())
+		_assert_msg_(DYNA_REC, 0, "WriteBitSearchType - Imm argument");
 	src.operandReg = (u8)dest;
-	if (bits == 16) Write8(0x66);
+	if (bits == 16)
+		Write8(0x66);
 	src.WriteRex(this, bits, bits);
 	Write8(0x0F);
 	Write8(byte2);
@@ -757,7 +770,8 @@ void XEmitter::WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2)
 
 void XEmitter::MOVNTI(int bits, OpArg dest, X64Reg src)
 {
-	if (bits <= 16) _assert_msg_(DYNA_REC, 0, "MOVNTI - bits<=16");
+	if (bits <= 16)
+		_assert_msg_(DYNA_REC, 0, "MOVNTI - bits<=16");
 	WriteBitSearchType(bits, src, dest, 0xC3);
 }
 
@@ -766,14 +780,16 @@ void XEmitter::BSR(int bits, X64Reg dest, OpArg src) {WriteBitSearchType(bits,de
 
 void XEmitter::MOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
 {
-	if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "MOVSX - Imm argument");
+	if (src.IsImm())
+		_assert_msg_(DYNA_REC, 0, "MOVSX - Imm argument");
 	if (dbits == sbits)
 	{
 		MOV(dbits, R(dest), src);
 		return;
 	}
 	src.operandReg = (u8)dest;
-	if (dbits == 16) Write8(0x66);
+	if (dbits == 16)
+		Write8(0x66);
 	src.WriteRex(this, dbits, sbits);
 	if (sbits == 8)
 	{
@@ -798,14 +814,16 @@ void XEmitter::MOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
 
 void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 {
-	if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "MOVZX - Imm argument");
+	if (src.IsImm())
+		_assert_msg_(DYNA_REC, 0, "MOVZX - Imm argument");
 	if (dbits == sbits)
 	{
 		MOV(dbits, R(dest), src);
 		return;
 	}
 	src.operandReg = (u8)dest;
-	if (dbits == 16) Write8(0x66);
+	if (dbits == 16)
+		Write8(0x66);
 	//the 32bit result is automatically zero extended to 64bit
 	src.WriteRex(this, dbits == 64 ? 32 : dbits, sbits);
 	if (sbits == 8)
@@ -864,9 +882,11 @@ void XEmitter::MOVBE(int bits, const OpArg& dest, const OpArg& src)
 
 void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
 {
-	if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "LEA - Imm argument");
+	if (src.IsImm())
+		_assert_msg_(DYNA_REC, 0, "LEA - Imm argument");
 	src.operandReg = (u8)dest;
-	if (bits == 16) Write8(0x66); //TODO: performance warning
+	if (bits == 16)
+		Write8(0x66); //TODO: performance warning
 	src.WriteRex(this, bits, bits);
 	Write8(0x8D);
 	src.WriteRest(this, 0, INVALID_REG, bits == 64);
@@ -885,7 +905,8 @@ void XEmitter::WriteShift(int bits, OpArg dest, OpArg &shift, int ext)
 		_assert_msg_(DYNA_REC, 0, "WriteShift - illegal argument");
 	}
 	dest.operandReg = ext;
-	if (bits == 16) Write8(0x66);
+	if (bits == 16)
+		Write8(0x66);
 	dest.WriteRex(this, bits, bits, 0);
 	if (shift.GetImmBits() == 8)
 	{
@@ -931,7 +952,8 @@ void XEmitter::WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext)
 	{
 		_assert_msg_(DYNA_REC, 0, "WriteBitTest - illegal argument");
 	}
-	if (bits == 16) Write8(0x66);
+	if (bits == 16)
+		Write8(0x66);
 	if (index.IsImm())
 	{
 		dest.WriteRex(this, bits, bits);
@@ -968,7 +990,8 @@ void XEmitter::SHRD(int bits, OpArg dest, OpArg src, OpArg shift)
 	{
 		_assert_msg_(DYNA_REC, 0, "SHRD - illegal shift");
 	}
-	if (bits == 16) Write8(0x66);
+	if (bits == 16)
+		Write8(0x66);
 	X64Reg operand = src.GetSimpleReg();
 	dest.WriteRex(this, bits, bits, operand);
 	if (shift.GetImmBits() == 8)
@@ -998,7 +1021,8 @@ void XEmitter::SHLD(int bits, OpArg dest, OpArg src, OpArg shift)
 	{
 		_assert_msg_(DYNA_REC, 0, "SHLD - illegal shift");
 	}
-	if (bits == 16) Write8(0x66);
+	if (bits == 16)
+		Write8(0x66);
 	X64Reg operand = src.GetSimpleReg();
 	dest.WriteRex(this, bits, bits, operand);
 	if (shift.GetImmBits() == 8)

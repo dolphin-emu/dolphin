@@ -20,14 +20,16 @@ namespace PowerPC
 		for (u32 m = 0; m < 0xff; m++)
 		{
 			u32 w = 0;
-			while (m & (1<<w)) w++;
+			while (m & (1<<w)) 
+				w++;
 			way_from_valid[m] = w;
 		}
 
 		for (u32 m = 0; m < 128; m++)
 		{
 			u32 b[7];
-			for (int i = 0; i < 7; i++) b[i] = m & (1<<i);
+			for (int i = 0; i < 7; i++)
+				b[i] = m & (1<<i);
 			u32 w;
 			if (b[0])
 				if (b[2])

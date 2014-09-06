@@ -54,14 +54,16 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	void *fault_memory_ptr = (void*)ctx->arm_r10;
 	u8 *fault_instruction_ptr = (u8 *)ctx->arm_pc;
 
-	if (!JitInterface::IsInCodeSpace(fault_instruction_ptr)) {
+	if (!JitInterface::IsInCodeSpace(fault_instruction_ptr))
+	{
 		// Let's not prevent debugging.
 		return;
 	}
 
 	u64 bad_address = (u64)fault_memory_ptr;
 	u64 memspace_bottom = (u64)Memory::base;
-	if (bad_address < memspace_bottom) {
+	if (bad_address < memspace_bottom)
+	{
 		PanicAlertT("Exception handler - access below memory space. %08llx%08llx",
 			bad_address >> 32, bad_address);
 	}
@@ -69,7 +71,8 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	u32 em_address = (u32)(bad_address - memspace_bottom);
 
 	const u8 *new_rip = jit->BackPatch(fault_instruction_ptr, em_address, ctx);
-	if (new_rip) {
+	if (new_rip)
+	{
 		ctx->arm_pc = (u32) new_rip;
 	}
 }
