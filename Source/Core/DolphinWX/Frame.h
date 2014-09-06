@@ -129,6 +129,7 @@ public:
 	void UpdateTitle(const std::string &str);
 
 	const CGameListCtrl *GetGameListCtrl() const;
+	virtual wxMenuBar* GetMenuBar() const override;
 
 #ifdef __WXGTK__
 	Common::Event panic_event;
@@ -199,9 +200,11 @@ private:
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
+	wxMenuBar* m_menubar_shadow;
+
 	void PopulateToolbar(wxToolBar* toolBar);
 	void RecreateToolbar();
-	void CreateMenu();
+	wxMenuBar* CreateMenu();
 
 	// Utility
 	wxString GetMenuLabel(int Id);

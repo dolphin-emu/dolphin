@@ -318,7 +318,7 @@ CFrame::CFrame(wxFrame* parent,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
 	, g_pCodeWindow(nullptr), g_NetPlaySetupDiag(nullptr), g_CheatsWindow(nullptr)
-	, m_SavedPerspectives(nullptr), m_ToolBar(nullptr)
+	, m_menubar_shadow(nullptr), m_SavedPerspectives(nullptr), m_ToolBar(nullptr)
 	, m_GameListCtrl(nullptr), m_Panel(nullptr)
 	, m_RenderFrame(nullptr), m_RenderParent(nullptr)
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
@@ -353,7 +353,10 @@ CFrame::CFrame(wxFrame* parent,
 		GetStatusBar()->Hide();
 
 	// Give it a menu bar
-	CreateMenu();
+	wxMenuBar* menubar_active = CreateMenu();
+	SetMenuBar(menubar_active);
+	// Create a menubar to service requests while the real menubar is hidden from the screen
+	m_menubar_shadow = CreateMenu();
 
 	// ---------------
 	// Main panel
@@ -450,6 +453,10 @@ CFrame::~CFrame()
 	ClosePages();
 
 	delete m_Mgr;
+
+	// This object is owned by us, not wxw
+	m_menubar_shadow->Destroy();
+	m_menubar_shadow = nullptr;
 }
 
 bool CFrame::RendererIsFullscreen()
@@ -1271,9 +1278,9 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 			DoToggleToolbar(SConfig::GetInstance().m_InterfaceToolbar);
 
 			// Recreate the menubar if needed.
-			if (GetMenuBar() == nullptr)
+			if (wxFrame::GetMenuBar() == nullptr)
 			{
-				CreateMenu();
+				SetMenuBar(CreateMenu());
 			}
 
 			// Show statusbar if enabled
