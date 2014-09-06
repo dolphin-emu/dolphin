@@ -49,6 +49,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_Socket.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #ifdef USE_GDBSTUB
@@ -728,6 +729,8 @@ void UpdateWantDeterminism(bool initial)
 		g_want_determinism = new_want_determinism;
 		WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
 		g_video_backend->UpdateWantDeterminism(new_want_determinism);
+		// We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use of FMA.
+		JitInterface::ClearCache();
 
 		Core::PauseAndLock(false, was_unpaused);
 	}
