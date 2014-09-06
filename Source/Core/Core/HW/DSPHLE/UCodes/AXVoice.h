@@ -131,7 +131,6 @@ void DumpPB(const PB_TYPE& pb)
 static u32 acc_loop_addr, acc_end_addr;
 static u32* acc_cur_addr;
 static PB_TYPE* acc_pb;
-static bool acc_end_reached;
 
 // Sets up the simulated accelerator.
 void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
@@ -140,7 +139,6 @@ void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 	acc_loop_addr = HILO_TO_32(pb->audio_addr.loop_addr);
 	acc_end_addr = HILO_TO_32(pb->audio_addr.end_addr);
 	acc_cur_addr = cur_addr;
-	acc_end_reached = false;
 }
 
 // Reads a sample from the simulated accelerator. Also handles looping and
@@ -149,54 +147,7 @@ void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 u16 AcceleratorGetSample()
 {
 	u16 ret;
-	u8 step_size_bytes = 2;
-
-	// 8-bit PCM audio uses 1 byte per sample/sample block, not 2 like other formats.
-	if (acc_pb->audio_addr.sample_format == 0x19)
-		step_size_bytes = 1;
-
-	// Have we reached the end address?
-	//
-	// On real hardware, this would raise an interrupt that is handled by the
-	// UCode. We simulate what this interrupt does here.
-	if (*acc_cur_addr == (acc_end_addr + step_size_bytes - 1))
-	{
-		// loop back to loop_addr.
-		*acc_cur_addr = acc_loop_addr;
-
-		if (acc_pb->audio_addr.looping)
-		{
-			// Set the ADPCM infos to continue processing at loop_addr.
-			//
-			// For some reason, yn1 and yn2 aren't set if the voice is not of
-			// stream type. This is what the AX UCode does and I don't really
-			// know why.
-			acc_pb->adpcm.pred_scale = acc_pb->adpcm_loop_info.pred_scale;
-			if (!acc_pb->is_stream)
-			{
-				acc_pb->adpcm.yn1 = acc_pb->adpcm_loop_info.yn1;
-				acc_pb->adpcm.yn2 = acc_pb->adpcm_loop_info.yn2;
-			}
-		}
-		else
-		{
-			// Non looping voice reached the end -> running = 0.
-			acc_pb->running = 0;
-
-#ifdef AX_WII
-			// One of the few meaningful differences between AXGC and AXWii:
-			// while AXGC handles non looping voices ending by having 0000
-			// samples at the loop address, AXWii has the 0000 samples
-			// internally in DRAM and use an internal pointer to it (loop addr
-			// does not contain 0000 samples on AXWii!).
-			acc_end_reached = true;
-#endif
-		}
-	}
-
-	// See above for explanations about acc_end_reached.
-	if (acc_end_reached)
-		return 0;
+	u8 step_size_bytes = 0;
 
 	switch (acc_pb->audio_addr.sample_format)
 	{
@@ -227,6 +178,7 @@ u16 AcceleratorGetSample()
 
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = val;
+			step_size_bytes = 2;
 			*acc_cur_addr += 1;
 			ret = val;
 			break;
@@ -236,6 +188,7 @@ u16 AcceleratorGetSample()
 			ret = (DSP::ReadARAM(*acc_cur_addr * 2) << 8) | DSP::ReadARAM(*acc_cur_addr * 2 + 1);
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = ret;
+			step_size_bytes = 2;
 			*acc_cur_addr += 1;
 			break;
 
@@ -243,12 +196,43 @@ u16 AcceleratorGetSample()
 			ret = DSP::ReadARAM(*acc_cur_addr) << 8;
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = ret;
+			step_size_bytes = 1;
 			*acc_cur_addr += 1;
 			break;
 
 		default:
 			ERROR_LOG(DSPHLE, "Unknown sample format: %d", acc_pb->audio_addr.sample_format);
 			return 0;
+	}
+
+	// Have we reached the end address?
+	//
+	// On real hardware, this would raise an interrupt that is handled by the
+	// UCode. We simulate what this interrupt does here.
+	if (*acc_cur_addr == (acc_end_addr + step_size_bytes - 1))
+	{
+		// loop back to loop_addr.
+		*acc_cur_addr = acc_loop_addr;
+
+		if (acc_pb->audio_addr.looping)
+		{
+			// Set the ADPCM infos to continue processing at loop_addr.
+			//
+			// For some reason, yn1 and yn2 aren't set if the voice is not of
+			// stream type. This is what the AX UCode does and I don't really
+			// know why.
+			acc_pb->adpcm.pred_scale = acc_pb->adpcm_loop_info.pred_scale;
+			if (!acc_pb->is_stream)
+			{
+				acc_pb->adpcm.yn1 = acc_pb->adpcm_loop_info.yn1;
+				acc_pb->adpcm.yn2 = acc_pb->adpcm_loop_info.yn2;
+			}
+		}
+		else
+		{
+			// Non looping voice reached the end -> running = 0.
+			acc_pb->running = 0;
+		}
 	}
 
 	return ret;
