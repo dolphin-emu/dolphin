@@ -775,7 +775,7 @@ void VertexShaderManager::SetProjectionConstants()
 	float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre * fScaleHack / g_ActiveConfig.fScale;
 
 	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
-	if (g_has_hmd && !bFullscreenLayer)
+	if (g_has_hmd && g_ActiveConfig.bEnableVR && !bFullscreenLayer)
 	{
 		float *p = rawProjection;
 		// near clipping plane in game units
@@ -932,7 +932,10 @@ void VertexShaderManager::SetProjectionConstants()
 			Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
 			Matrix44 pitch_matrix;
 			Matrix44::LoadMatrix33(pitch_matrix, pitch_matrix33);
-			Matrix44::Multiply(g_head_tracking_matrix, pitch_matrix, rotation_matrix);
+			if (g_ActiveConfig.bOrientationTracking)
+				Matrix44::Multiply(g_head_tracking_matrix, pitch_matrix, rotation_matrix);
+			else
+				Matrix44::Set(rotation_matrix, pitch_matrix.data);
 		}
 		//VR sometimes yaw needs to be inverted for games that use a flipped x axis
 		// (ActionGirlz even uses flipped matrices and non-flipped matrices in the same frame)
@@ -973,12 +976,22 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 		else
 		{
-			float head[3], pos[3];
-			for (int i = 0; i < 3; ++i)
-				head[i] = g_head_tracking_position[i] * UnitsPerMetre;
-			pos[0] = head[0];
-			pos[1] = head[1] * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle)) + head[2] * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle));
-			pos[2] = head[2] * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle)) - head[1] * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle));
+			float pos[3];
+			if (g_ActiveConfig.bPositionTracking)
+			{
+				float head[3];
+				for (int i = 0; i < 3; ++i)
+					head[i] = g_head_tracking_position[i] * UnitsPerMetre;
+				pos[0] = head[0];
+				pos[1] = head[1] * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle)) + head[2] * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle));
+				pos[2] = head[2] * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle)) - head[1] * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle));
+			}
+			else
+			{
+				pos[0] = 0;
+				pos[1] = 0;
+				pos[2] = 0;
+			}
 			for (int i = 0; i < 3; ++i)
 				pos[i] += s_fViewTranslationVector[i] * UnitsPerMetre;
 			if (!bNoForward)

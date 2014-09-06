@@ -109,6 +109,7 @@ public:
 
 	// Oculus Rift
 #ifdef HAVE_OCULUSSDK
+	static void ConfigureRift();
 	static ovrGLTexture m_eye_texture[2];
 #endif
 	static bool m_stereo3d;

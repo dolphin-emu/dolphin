@@ -76,6 +76,7 @@ FloatSetting<T>::FloatSetting(wxWindow* parent, const wxString& label, T& settin
 wxSpinCtrlDouble(parent, -1, label, wxDefaultPosition, wxDefaultSize, style, minVal, maxVal, setting, increment),
 m_setting(setting)
 {
+	SetValue(m_setting);
 	Bind(wxEVT_SPINCTRLDOUBLE, &FloatSetting::UpdateValue, this);
 }
 
@@ -114,6 +115,21 @@ static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use int
 #endif
 static wxString scale_desc = wxTRANSLATE("(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = Barbie doll size, 0.02x = Lego size\n\nIf unsure, use 1.00.");
 static wxString lean_desc = wxTRANSLATE("How many degrees leaning back should count as vertical.\n0 = sitting/standing, 45 = reclining\n90 = playing lying on your back, -90 = on your front\n\nIf unsure, use 0.");
+static wxString enablevr_desc = wxTRANSLATE("Enable Virtual Reality (if your HMD was detected when you started Dolphin).\n\nIf unsure, leave this checked.");
+static wxString lowpersistence_desc = wxTRANSLATE("Use low persistence on DK2 to reduce motion blur when turning your head.\n\nIf unsure, leave this checked.");
+static wxString dynamicpred_desc = wxTRANSLATE("\"Adjust prediction dynamically based on internally measured latency.\"\n\nIf unsure, leave this checked.");
+static wxString orientation_desc = wxTRANSLATE("Use orientation tracking.\n\nLeave this checked.");
+static wxString magyaw_desc = wxTRANSLATE("Use the Rift's magnetometers to prevent yaw drift when out of camera range.\n\nIf unsure, leave this checked.");
+static wxString position_desc = wxTRANSLATE("Use position tracking (both from camera and head/neck model).\n\nLeave this checked.");
+static wxString chromatic_desc = wxTRANSLATE("Use chromatic aberration correction to prevent red and blue fringes at the edges of objects.\n\nIf unsure, leave this checked.");
+static wxString timewarp_desc = wxTRANSLATE("Shift the warped display after rendering to correct for head movement during rendering.\n\nIf unsure, leave this checked.");
+static wxString vignette_desc = wxTRANSLATE("Fade out the edges of the screen to make the screen sides look less harsh.\nNot needed on DK1.\n\nIf unsure, leave this unchecked.");
+static wxString norestore_desc = wxTRANSLATE("Tell the Oculus SDK not to restore OpenGL state.\n\nIf unsure, leave this unchecked.");
+static wxString flipvertical_desc = wxTRANSLATE("Flip the screen vertically.\n\nIf unsure, leave this unchecked.");
+static wxString srgb_desc = wxTRANSLATE("\"Assume input images are in sRGB gamma-corrected color space.\"\n\nIf unsure, leave this unchecked.");
+static wxString overdrive_desc = wxTRANSLATE("Try to fix true black smearing by overdriving brightness transitions.\n\nIf unsure, leave this unchecked.");
+static wxString hqdistortion_desc = wxTRANSLATE("\"High-quality sampling of distortion buffer for anti-aliasing\".\n\nIf unsure, leave this unchecked.");
+
 static wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf unsure, use the first one.");
 static wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, use your desktop resolution.\nIf still unsure, use the highest resolution which works for you.");
 static wxString use_fullscreen_desc = wxTRANSLATE("Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a render window will be created instead.\n\nIf unsure, leave this unchecked.");
@@ -640,6 +656,20 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin_lean);
 		}
+		szr_vr->Add(CreateCheckBox(page_vr, _("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Low persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Dynamic prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Orientation tracking"), wxGetTranslation(orientation_desc), vconfig.bOrientationTracking));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Magnetic yaw"), wxGetTranslation(magyaw_desc), vconfig.bMagYawCorrection));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Position tracking"), wxGetTranslation(position_desc), vconfig.bPositionTracking));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Chromatic aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Timewarp"), wxGetTranslation(timewarp_desc), vconfig.bTimewarp));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Don't restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Flip vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
+		szr_vr->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
+		szr_vr->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
+		szr_vr->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

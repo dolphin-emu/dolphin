@@ -82,20 +82,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift)
 	{
-		ovrGLConfig cfg;
-		cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
-		cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
-		cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
-		cfg.OGL.Header.Multisample = 0;
-#ifdef _WIN32
-		cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
-		cfg.OGL.DC = GetDC(cfg.OGL.Window);
-		//ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr);
-#endif
-		// TODO: | ovrDistortionCap_NoRestore to prevent crashes, when that flag works
-		ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Chromatic | ovrDistortionCap_TimeWarp,
-			g_eye_fov, g_eye_render_desc);
-		ovrhmd_EnableHSWDisplaySDKRender(hmd, false);
+		ConfigureRift();
 	}
 #endif
 
@@ -569,5 +556,41 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 	*width = m_targetWidth;
 	*height = m_targetHeight;
 }
+
+#ifdef HAVE_OCULUSSDK
+void FramebufferManager::ConfigureRift()
+{
+	ovrGLConfig cfg;
+	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
+	cfg.OGL.Header.RTSize.w = hmdDesc.Resolution.w;
+	cfg.OGL.Header.RTSize.h = hmdDesc.Resolution.h;
+	cfg.OGL.Header.Multisample = 0;
+#ifdef _WIN32
+	cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
+	cfg.OGL.DC = GetDC(cfg.OGL.Window);
+	//ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr);
+#endif
+	int caps = 0;
+	if (g_Config.bChromatic)
+		caps |= ovrDistortionCap_Chromatic;
+	if (g_Config.bTimewarp)
+		caps |= ovrDistortionCap_TimeWarp;
+	if (g_Config.bVignette)
+		caps |= ovrDistortionCap_Vignette;
+	if (g_Config.bNoRestore)
+		caps |= ovrDistortionCap_NoRestore;
+	if (g_Config.bFlipVertical)
+		caps |= ovrDistortionCap_FlipInput;
+	if (g_Config.bSRGB)
+		caps |= ovrDistortionCap_SRGB;
+	if (g_Config.bOverdrive)
+		caps |= ovrDistortionCap_Overdrive;
+	if (g_Config.bHqDistortion)
+		caps |= ovrDistortionCap_HqDistortion;
+	ovrHmd_ConfigureRendering(hmd, &cfg.Config, caps,
+		g_eye_fov, g_eye_render_desc);
+	ovrhmd_EnableHSWDisplaySDKRender(hmd, false);
+}
+#endif
 
 }  // namespace OGL

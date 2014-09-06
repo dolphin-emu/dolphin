@@ -125,6 +125,21 @@ struct VideoConfig final
 	// VR global
 	float fScale;
 	float fLeanBackAngle;
+	bool bEnableVR;
+	bool bLowPersistence;
+	bool bDynamicPrediction;
+	bool bOrientationTracking;
+	bool bMagYawCorrection;
+	bool bPositionTracking;
+	bool bChromatic;
+	bool bTimewarp;
+	bool bVignette;
+	bool bNoRestore;
+	bool bFlipVertical;
+	bool bSRGB;
+	bool bOverdrive;
+	bool bHqDistortion;
+
 	// VR
 	float fUnitsPerMetre;
 	float fHudThickness;
@@ -139,7 +154,6 @@ struct VideoConfig final
 	float fScreenUp;
 	float fScreenPitch;
 	float fTelescopeMaxFOV;
-	bool bEnableVR;
 	bool bDisable3D;
 	bool bHudFullscreen;
 	int iTelescopeEye;

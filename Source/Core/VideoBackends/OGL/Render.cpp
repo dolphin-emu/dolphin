@@ -672,7 +672,7 @@ Renderer::~Renderer()
 void Renderer::Shutdown()
 {
 #ifdef HAVE_OCULUSSDK
-	if (g_has_rift && !g_first_rift_frame)
+	if (g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR)
 	{
 		//TargetRectangle targetRc = ConvertEFBRectangle(rc);
 
@@ -1448,12 +1448,21 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 #ifdef HAVE_OCULUSSDK
-	if (g_first_rift_frame && g_has_rift)
+	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
 	{
 		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
 		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
 		g_first_rift_frame = false;
+
+		int cap = 0;
+		if (g_ActiveConfig.bOrientationTracking)
+			cap |= ovrTrackingCap_Orientation;
+		if (g_ActiveConfig.bMagYawCorrection)
+			cap |= ovrTrackingCap_MagYawCorrection;
+		if (g_ActiveConfig.bPositionTracking)
+			cap |= ovrTrackingCap_Position;
+		ovrHmd_ConfigureTracking(hmd, cap, 0);
 	}
 #endif
 
@@ -1558,21 +1567,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		}
 	}
 #ifdef HAVE_OCULUSSDK
-	else if (g_has_rift)
+	else if (g_has_rift && g_ActiveConfig.bEnableVR)
 	{
 		EFBRectangle sourceRc;
-		if (g_has_hmd)
-		{
-			// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
-			sourceRc.left = 0;
-			sourceRc.right = EFB_WIDTH;
-			sourceRc.top = 0;
-			sourceRc.bottom = EFB_HEIGHT;
-		}
-		else
-		{
-			sourceRc = rc;
-		}
+		// In VR we use the whole EFB instead of just the bpmem.copyTexSrc rectangle passed to this function. 
+		sourceRc.left = 0;
+		sourceRc.right = EFB_WIDTH;
+		sourceRc.top = 0;
+		sourceRc.bottom = EFB_HEIGHT;
 		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
@@ -1624,7 +1626,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 			GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 
-	if (!g_has_rift)
+	if (!(g_has_rift && g_ActiveConfig.bEnableVR))
 		m_post_processor->BlitToScreen();
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -1791,7 +1793,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	}
 
 	// ---------------------------------------------------------------------
-	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !g_has_rift)
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP) && !(g_has_rift && g_ActiveConfig.bEnableVR))
 	{
 		GL_REPORT_ERRORD();
 
@@ -1809,21 +1811,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		GL_REPORT_ERRORD();
 	}
 	// Copy the rendered frame to the real window
-	if (!g_has_rift)
+	if (!(g_has_rift && g_ActiveConfig.bEnableVR))
 		GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
 
 	NewVRFrame();
-#ifdef HAVE_OCULUSSDK
-	if (g_has_rift)
-	{
-		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
-		
-		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
-		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
-	}
-#endif
 
 	// Clear framebuffer
 	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
@@ -1853,6 +1846,49 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	TextureCache::Cleanup();
 
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
+			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction)
+		{
+			int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
+			if (g_Config.bLowPersistence)
+				caps |= ovrHmdCap_LowPersistence;
+			if (g_Config.bDynamicPrediction)
+				caps |= ovrHmdCap_DynamicPrediction;
+
+			ovrHmd_SetEnabledCaps(hmd, caps);
+		}
+
+		if (g_Config.bOrientationTracking != g_ActiveConfig.bOrientationTracking ||
+			g_Config.bMagYawCorrection != g_ActiveConfig.bMagYawCorrection ||
+			g_Config.bPositionTracking != g_ActiveConfig.bPositionTracking)
+		{
+			int cap = 0;
+			if (g_ActiveConfig.bOrientationTracking)
+				cap |= ovrTrackingCap_Orientation;
+			if (g_ActiveConfig.bMagYawCorrection)
+				cap |= ovrTrackingCap_MagYawCorrection;
+			if (g_ActiveConfig.bPositionTracking)
+				cap |= ovrTrackingCap_Position;
+			ovrHmd_ConfigureTracking(hmd, cap, 0);
+		}
+
+		if (g_Config.bChromatic != g_ActiveConfig.bChromatic ||
+			g_Config.bTimewarp != g_ActiveConfig.bTimewarp ||
+			g_Config.bVignette != g_ActiveConfig.bVignette ||
+			g_Config.bNoRestore != g_ActiveConfig.bNoRestore ||
+			g_Config.bFlipVertical != g_ActiveConfig.bFlipVertical ||
+			g_Config.bSRGB != g_ActiveConfig.bSRGB ||
+			g_Config.bOverdrive != g_ActiveConfig.bOverdrive ||
+			g_Config.bHqDistortion != g_ActiveConfig.bHqDistortion)
+		{
+			FramebufferManager::ConfigureRift();
+		}
+	}
+#endif
+
 	// Render to the framebuffer.
 	FramebufferManager::SetFramebuffer(0);
 
@@ -1870,13 +1906,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 
 	UpdateActiveConfig();
 	// VR XFB isn't implemented yet, so always disable it for VR
-	if (g_has_hmd)
+	if (g_has_hmd && g_ActiveConfig.bEnableVR)
 	{
 		g_ActiveConfig.bUseXFB = false;
 		// always stretch to fit
 		g_ActiveConfig.iAspectRatio = 3; 
 	}
 	TextureCache::OnConfigChanged(g_ActiveConfig);
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift && g_ActiveConfig.bEnableVR)
+	{
+		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
+	}
+#endif
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();

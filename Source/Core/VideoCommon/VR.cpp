@@ -88,6 +88,7 @@ void InitVR()
 		// Get more details about the HMD
 		//ovrHmd_GetDesc(hmd, &hmdDesc);
 		hmdDesc = *hmd;
+		ovrHmd_SetEnabledCaps(hmd, ovrHmd_GetEnabledCaps(hmd) | ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
 
 		if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection,
 			0))
@@ -142,10 +143,13 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift && hmd)
 	{
-		ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
-		if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
+		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
+		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
+		//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
+		//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
 		{
-			OVR::Posef pose = ss.HeadPose.ThePose;
+			//OVR::Posef pose = ss.HeadPose.ThePose;
+			OVR::Posef pose = g_eye_poses[ovrEye_Left];
 			float ya = 0.0f, p = 0.0f, r = 0.0f;
 			pose.Rotation.GetEulerAngles<OVR::Axis_Y, OVR::Axis_X, OVR::Axis_Z>(&ya, &p, &r);
 			*roll = -RADIANS_TO_DEGREES(r);  // ???

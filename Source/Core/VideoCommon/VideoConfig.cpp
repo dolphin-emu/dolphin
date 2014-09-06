@@ -45,6 +45,20 @@ VideoConfig::VideoConfig()
 	// VR
 	fScale = 1.0f;
 	fLeanBackAngle = 0;
+	bEnableVR = true;
+	bLowPersistence = true;
+	bDynamicPrediction = true;
+	bOrientationTracking = true;
+	bMagYawCorrection = true;
+	bPositionTracking = true;
+	bChromatic = true;
+	bTimewarp = true;
+	bVignette = false;
+	bNoRestore = false;
+	bFlipVertical = false;
+	bSRGB = false;
+	bOverdrive = false;
+	bHqDistortion = false;
 
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
@@ -119,6 +133,20 @@ void VideoConfig::Load(const std::string& ini_file)
 	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
 	vr->Get("Scale", &fScale, 1.0f);
 	vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
+	vr->Get("EnableVR", &bEnableVR, true);
+	vr->Get("LowPersistence", &bLowPersistence, true);
+	vr->Get("DynamicPrediction", &bDynamicPrediction, true);
+	vr->Get("OrientationTracking", &bOrientationTracking, true);
+	vr->Get("MagYawCorrection", &bMagYawCorrection, true);
+	vr->Get("PositionTracking", &bPositionTracking, true);
+	vr->Get("Chromatic", &bChromatic, true);
+	vr->Get("Timewarp", &bTimewarp, true);
+	vr->Get("Vignette", &bVignette, false);
+	vr->Get("NoRestore", &bNoRestore, false);
+	vr->Get("FlipVertical", &bFlipVertical, false);
+	vr->Get("sRGB", &bSRGB, false);
+	vr->Get("Overdrive", &bOverdrive, false);
+	vr->Get("HQDistortion", &bHqDistortion, false);
 
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -376,7 +404,20 @@ void VideoConfig::Save(const std::string& ini_file)
 	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
 	vr->Set("Scale", fScale);
 	vr->Set("LeanBackAngle", fLeanBackAngle);
-
+	vr->Set("EnableVR", bEnableVR);
+	vr->Set("LowPersistence", bLowPersistence);
+	vr->Set("DynamicPrediction", bDynamicPrediction);
+	vr->Set("OrientationTracking", bOrientationTracking);
+	vr->Set("MagYawCorrection", bMagYawCorrection);
+	vr->Set("PositionTracking", bPositionTracking);
+	vr->Set("Chromatic", bChromatic);
+	vr->Set("Timewarp", bTimewarp);
+	vr->Set("Vignette", bVignette);
+	vr->Set("NoRestore", bNoRestore);
+	vr->Set("FlipVertical", bFlipVertical);
+	vr->Set("sRGB", bSRGB);
+	vr->Set("Overdrive", bOverdrive);
+	vr->Set("HQDistortion", bHqDistortion);
 	iniFile.Save(ini_file);
 }
 
