@@ -393,7 +393,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				if (js.next_inst.OPCD == 16) // bcx
 				{
 					if (js.next_inst.LK)
-						MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+						MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
 
 					u32 destination;
 					if (js.next_inst.AA)
@@ -405,7 +405,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
 				{
 					if (js.next_inst.LK)
-						MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+						MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
 					MOV(32, R(EAX), M(&CTR));
 					AND(32, R(EAX), Imm32(0xFFFFFFFC));
 					WriteExitDestInEAX();
@@ -414,7 +414,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				{
 					MOV(32, R(EAX), M(&LR));
 					if (js.next_inst.LK)
-						MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+						MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
 					WriteExitDestInEAX();
 				}
 				else
@@ -492,7 +492,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			if (js.next_inst.OPCD == 16) // bcx
 			{
 				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+					MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
 
 				u32 destination;
 				if (js.next_inst.AA)
@@ -504,7 +504,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
 			{
 				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+					MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
 
 				MOV(32, R(EAX), M(&CTR));
 				AND(32, R(EAX), Imm32(0xFFFFFFFC));
@@ -516,7 +516,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 				AND(32, R(EAX), Imm32(0xFFFFFFFC));
 
 				if (js.next_inst.LK)
-					MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+					MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
 
 				WriteExitDestInEAX();
 			}
