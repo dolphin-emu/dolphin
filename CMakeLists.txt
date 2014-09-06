@@ -762,9 +762,9 @@ if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin"))
 endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	# Install the application icon and menu item
-	install(FILES Source/Core/DolphinWX/resources/Dolphin.xpm
-		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps RENAME dolphin-emu.xpm)
-	install(FILES Source/Core/DolphinWX/resources/dolphin-emu.desktop
+	install(FILES Installer/dolphin-emu.xpm
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps)
+	install(FILES Installer/dolphin-emu.desktop
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
 endif()
 
