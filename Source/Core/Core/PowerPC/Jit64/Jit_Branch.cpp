@@ -28,9 +28,9 @@ void Jit64::sc(UGeckoInstruction inst)
 
 	gpr.Flush();
 	fpr.Flush();
-	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
+	MOV(32, PPCSTATE(pc), Imm32(js.compilerPC + 4));
 	LOCK();
-	OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_SYSCALL));
+	OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_SYSCALL));
 	WriteExceptionExit();
 }
 
@@ -45,13 +45,13 @@ void Jit64::rfi(UGeckoInstruction inst)
 	const u32 mask = 0x87C0FFFF;
 	const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
 	// MSR = ((MSR & ~mask) | (SRR1 & mask)) & clearMSR13;
-	AND(32, M(&MSR), Imm32((~mask) & clearMSR13));
-	MOV(32, R(EAX), M(&SRR1));
-	AND(32, R(EAX), Imm32(mask & clearMSR13));
-	OR(32, M(&MSR), R(EAX));
+	AND(32, PPCSTATE(msr), Imm32((~mask) & clearMSR13));
+	MOV(32, R(RSCRATCH), PPCSTATE_SRR1);
+	AND(32, R(RSCRATCH), Imm32(mask & clearMSR13));
+	OR(32, PPCSTATE(msr), R(RSCRATCH));
 	// NPC = SRR0;
-	MOV(32, R(EAX), M(&SRR0));
-	WriteRfiExitDestInEAX();
+	MOV(32, R(RSCRATCH), PPCSTATE_SRR0);
+	WriteRfiExitDestInRSCRATCH();
 }
 
 void Jit64::bx(UGeckoInstruction inst)
@@ -62,7 +62,7 @@ void Jit64::bx(UGeckoInstruction inst)
 	// We must always process the following sentence
 	// even if the blocks are merged by PPCAnalyst::Flatten().
 	if (inst.LK)
-		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
 	// If this is not the last instruction of a block,
 	// we will skip the rest process.
@@ -82,7 +82,7 @@ void Jit64::bx(UGeckoInstruction inst)
 		destination = js.compilerPC + SignExt26(inst.LI << 2);
 #ifdef ACID_TEST
 	if (inst.LK)
-		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
+		AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
 #endif
 	if (destination == js.compilerPC)
 	{
@@ -108,7 +108,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
-		SUB(32, M(&CTR), Imm8(1));
+		SUB(32, PPCSTATE_CTR, Imm8(1));
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
 			pCTRDontBranch = J_CC(CC_NZ, true);
 		else
@@ -123,7 +123,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 	}
 
 	if (inst.LK)
-		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
 	u32 destination;
 	if (inst.AA)
@@ -164,11 +164,11 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		gpr.Flush();
 		fpr.Flush();
 
-		MOV(32, R(EAX), M(&CTR));
+		MOV(32, R(RSCRATCH), PPCSTATE_CTR);
 		if (inst.LK_3)
-			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); // LR = PC + 4;
-		AND(32, R(EAX), Imm32(0xFFFFFFFC));
-		WriteExitDestInEAX();
+			MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4)); // LR = PC + 4;
+		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
+		WriteExitDestInRSCRATCH();
 	}
 	else
 	{
@@ -179,15 +179,15 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
 		FixupBranch b = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
 		                                 !(inst.BO_2 & BO_BRANCH_IF_TRUE));
-		MOV(32, R(EAX), M(&CTR));
-		AND(32, R(EAX), Imm32(0xFFFFFFFC));
-		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
+		MOV(32, R(RSCRATCH), PPCSTATE_CTR);
+		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
+		//MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
 		if (inst.LK_3)
-			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); // LR = PC + 4;
+			MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4)); // LR = PC + 4;
 
 		gpr.Flush(FLUSH_MAINTAIN_STATE);
 		fpr.Flush(FLUSH_MAINTAIN_STATE);
-		WriteExitDestInEAX();
+		WriteExitDestInRSCRATCH();
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
 
@@ -204,7 +204,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
-		SUB(32, M(&CTR), Imm8(1));
+		SUB(32, PPCSTATE_CTR, Imm8(1));
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
 			pCTRDontBranch = J_CC(CC_NZ, true);
 		else
@@ -221,17 +221,17 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		// This below line can be used to prove that blr "eats flags" in practice.
 		// This observation will let us do a lot of fun observations.
 #ifdef ACID_TEST
-		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
+		AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
 #endif
 
-	MOV(32, R(EAX), M(&LR));
-	AND(32, R(EAX), Imm32(0xFFFFFFFC));
+	MOV(32, R(RSCRATCH), PPCSTATE_LR);
+	AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
 	if (inst.LK)
-		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
 	gpr.Flush(FLUSH_MAINTAIN_STATE);
 	fpr.Flush(FLUSH_MAINTAIN_STATE);
-	WriteExitDestInEAX();
+	WriteExitDestInRSCRATCH();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );

@@ -90,10 +90,10 @@ public:
 	// Utilities for use by opcodes
 
 	void WriteExit(u32 destination);
-	void WriteExitDestInEAX();
+	void WriteExitDestInRSCRATCH();
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
-	void WriteRfiExitDestInEAX();
+	void WriteRfiExitDestInRSCRATCH();
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 
@@ -101,16 +101,15 @@ public:
 	void GenerateConstantOverflow(s64 val);
 	void GenerateOverflow();
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
-	void GetCarryEAXAndClear();
-	void FinalizeCarryGenerateOverflowEAX(bool oe, bool inv = false);
+	void GetCarryRSCRATCHAndClear();
+	void FinalizeCarryGenerateOverflowRSCRATCH(bool oe, bool inv = false);
 	void GenerateCarry();
 	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
 
-	// Reads a given bit of a given CR register part. Clobbers ABI_PARAM1,
-	// don't forget to xlock it before.
+	// Reads a given bit of a given CR register part.
 	void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
-	// Clobbers ABI_PARAM1, xlock it before.
+	// Clobbers RDX.
 	void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
 
 	// Generates a branch that will check if a given bit of a CR register part

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "Common/BreakPoints.h"
 #include "Common/Common.h"
 
@@ -29,11 +31,6 @@ enum CoreMode
 struct GC_ALIGNED64(PowerPCState)
 {
 	u32 gpr[32];    // General purpose registers. r1 = stack pointer.
-
-	// The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
-	// but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
-	// Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
-	u64 ps[32][2];
 
 	u32 pc;     // program counter
 	u32 npc;
@@ -64,6 +61,20 @@ struct GC_ALIGNED64(PowerPCState)
 	// This variable should be inside of the CoreTiming namespace if we wanted to be correct.
 	int downcount;
 
+#if _M_X86_64
+	// This member exists for the purpose of an assertion in x86 JitBase.cpp
+	// that its offset <= 0x100.  To minimize code size on x86, we want as much
+	// useful stuff in the one-byte offset range as possible - which is why ps
+	// is sitting down here.  It currently doesn't make a difference on other
+	// supported architectures.
+	std::tuple<> above_fits_in_first_0x100;
+#endif
+
+	// The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
+	// but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
+	// Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
+	GC_ALIGNED16(u64 ps[32][2]);
+
 	u32 sr[16];  // Segment registers.
 
 	// special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
@@ -83,6 +94,10 @@ struct GC_ALIGNED64(PowerPCState)
 
 	InstructionCache iCache;
 };
+
+#if _M_X86_64
+static_assert(offsetof(PowerPC::PowerPCState, above_fits_in_first_0x100) <= 0x100, "top of PowerPCState too big");
+#endif
 
 enum CPUState
 {

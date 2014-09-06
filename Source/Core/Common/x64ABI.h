@@ -53,3 +53,5 @@
 
 #endif // WIN32
 
+#define ABI_RETURN RAX
+

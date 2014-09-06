@@ -248,7 +248,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	fpr.BindToRegister(b, true);
 
 	if (fprf)
-		AND(32, M(&FPSCR), Imm32(~FPRF_MASK));
+		AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
 	// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
 	UCOMISD(fpr.R(b).GetSimpleReg(), fpr.R(a));
 
@@ -271,31 +271,31 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 		pGreater = J_CC(CC_B);
 	}
 
-	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_EQ)));
+	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_EQ)));
 	if (fprf)
-		OR(32, M(&FPSCR), Imm32(CR_EQ << FPRF_SHIFT));
+		OR(32, PPCSTATE(fpscr), Imm32(CR_EQ << FPRF_SHIFT));
 
 	continue1 = J();
 
 	SetJumpTarget(pNaN);
-	MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_SO)));
+	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_SO)));
 	if (fprf)
-		OR(32, M(&FPSCR), Imm32(CR_SO << FPRF_SHIFT));
+		OR(32, PPCSTATE(fpscr), Imm32(CR_SO << FPRF_SHIFT));
 
 	if (a != b)
 	{
 		continue2 = J();
 
 		SetJumpTarget(pGreater);
-		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_GT)));
+		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_GT)));
 		if (fprf)
-			OR(32, M(&FPSCR), Imm32(CR_GT << FPRF_SHIFT));
+			OR(32, PPCSTATE(fpscr), Imm32(CR_GT << FPRF_SHIFT));
 		continue3 = J();
 
 		SetJumpTarget(pLesser);
-		MOV(64, R(RAX), Imm64(PPCCRToInternal(CR_LT)));
+		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_LT)));
 		if (fprf)
-			OR(32, M(&FPSCR), Imm32(CR_LT << FPRF_SHIFT));
+			OR(32, PPCSTATE(fpscr), Imm32(CR_LT << FPRF_SHIFT));
 	}
 
 	SetJumpTarget(continue1);
@@ -305,7 +305,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 		SetJumpTarget(continue3);
 	}
 
-	MOV(64, M(&PowerPC::ppcState.cr_val[crf]), R(RAX));
+	MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
 	fpr.UnlockAll();
 }
 
@@ -375,8 +375,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 	int b = inst.FB;
 	int d = inst.FD;
 
-	// rsqrtex requires ECX and EDX free
-	gpr.FlushLockX(ECX, EDX);
+	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d, d == b);
 	MOVSD(XMM0, fpr.R(b));
@@ -395,8 +394,7 @@ void Jit64::fresx(UGeckoInstruction inst)
 	int b = inst.FB;
 	int d = inst.FD;
 
-	// resx requires ECX and EDX free
-	gpr.FlushLockX(ECX, EDX);
+	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d, d == b);
 	MOVSD(XMM0, fpr.R(b));

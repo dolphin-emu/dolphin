@@ -321,7 +321,7 @@ void JitILBase::divwux(UGeckoInstruction inst)
 
 #if 0
 	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.FlushLockX(EDX);
+	gpr.FlushLockX(RSCRATCH1);
 	gpr.Lock(a, b, d);
 
 	if (d != a && d != b)
@@ -333,11 +333,11 @@ void JitILBase::divwux(UGeckoInstruction inst)
 		gpr.LoadToX64(d, true, true);
 	}
 
-	MOV(32, R(EAX), gpr.R(a));
-	XOR(32, R(EDX), R(EDX));
+	MOV(32, R(RSCRATCH), gpr.R(a));
+	XOR(32, R(RSCRATCH2), R(RSCRATCH));
 	gpr.KillImmediate(b);
 	DIV(32, gpr.R(b));
-	MOV(32, gpr.R(d), R(EAX));
+	MOV(32, gpr.R(d), R(RSCRATCH));
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 
