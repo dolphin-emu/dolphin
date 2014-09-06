@@ -11,7 +11,7 @@ OSStatus CoreAudioSound::callback(void *inRefCon,
 	const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
 	UInt32 inNumberFrames, AudioBufferList *ioData)
 {
-	for (UInt32 i = 0; i < ioData->mNumberBuffers; i++)
+	for (UInt32 i = 0; i < ioData->mNumberBuffers; ++i)
 		((CoreAudioSound *)inRefCon)->m_mixer->
 			Mix((short *)ioData->mBuffers[i].mData,
 				ioData->mBuffers[i].mDataByteSize / 4);

@@ -101,7 +101,7 @@ void WaveFileWriter::AddStereoSamples(const short *sample_data, u32 count)
 	{
 		bool all_zero = true;
 
-		for (u32 i = 0; i < count * 2; i++)
+		for (u32 i = 0; i < count * 2; ++i)
 		{
 			if (sample_data[i])
 				all_zero = false;
@@ -127,7 +127,7 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count)
 	{
 		bool all_zero = true;
 
-		for (u32 i = 0; i < count * 2; i++)
+		for (u32 i = 0; i < count * 2; ++i)
 		{
 			if (sample_data[i])
 				all_zero = false;
@@ -137,7 +137,7 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count)
 			return;
 	}
 
-	for (u32 i = 0; i < count * 2; i++)
+	for (u32 i = 0; i < count * 2; ++i)
 		conv_buffer[i] = Common::swap16((u16)sample_data[i]);
 
 	file.WriteBytes(conv_buffer, count * 4);

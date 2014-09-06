@@ -95,7 +95,7 @@ static void Hamming(int n, float* w)
 	float k = float(2*M_PI/((float)(n-1))); // 2*pi/(N-1)
 
 	// Calculate window coefficients
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < n; ++i)
 		*w++ = float(0.54 - 0.46*cos(k*(float)i));
 }
 
@@ -154,7 +154,7 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 	}
 
 	// Create filter
-	for (u32 i = 0; i < end; i++)
+	for (u32 i = 0; i < end; ++i)
 	{
 		t1 = (float)(i+1) - k2;
 		w[end-i-1] = w[*n-end+i] = float(w[end-i-1] * sin(k1 * t1)/(M_PI * t1)); // Sinc
@@ -164,7 +164,7 @@ static float* DesignFIR(unsigned int *n, float* fc, float opt)
 
 	// Normalize gain
 	g=1/g;
-	for (u32 i = 0; i < *n; i++)
+	for (u32 i = 0; i < *n; ++i)
 		w[i] *= g;
 
 	return w;
@@ -204,7 +204,7 @@ static float* CalculateCoefficients125HzLowpass(int rate)
 	float f = 125.0f / (rate / 2);
 	float *coeffs = DesignFIR(&len125, &f, 0);
 	static const float M3_01DB = 0.7071067812f;
-	for (unsigned int i = 0; i < len125; i++)
+	for (unsigned int i = 0; i < len125; ++i)
 	{
 		coeffs[i] *= M3_01DB;
 	}

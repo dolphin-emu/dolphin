@@ -84,7 +84,7 @@ struct DXTBlock
 static inline void DecodeBytes_C4_IA8(u32* dst, const u8* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
-	for (int x = 0; x < 4; x++)
+	for (int x = 0; x < 4; ++x)
 	{
 		u8 val = src[x];
 		*dst++ = DecodePixel_IA8(tlut[val >> 4]);
@@ -95,7 +95,7 @@ static inline void DecodeBytes_C4_IA8(u32* dst, const u8* src, const u8* tlut_)
 static inline void DecodeBytes_C4_RGB565(u32* dst, const u8* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
-	for (int x = 0; x < 4; x++)
+	for (int x = 0; x < 4; ++x)
 	{
 		u8 val = src[x];
 		*dst++ = DecodePixel_RGB565(Common::swap16(tlut[val >> 4]));
@@ -106,7 +106,7 @@ static inline void DecodeBytes_C4_RGB565(u32* dst, const u8* src, const u8* tlut
 static inline void DecodeBytes_C4_RGB5A3(u32 *dst, const u8 *src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
-	for (int x = 0; x < 4; x++)
+	for (int x = 0; x < 4; ++x)
 	{
 		u8 val = src[x];
 		*dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val >> 4]));
@@ -117,7 +117,7 @@ static inline void DecodeBytes_C4_RGB5A3(u32 *dst, const u8 *src, const u8* tlut
 static inline void DecodeBytes_C8_IA8(u32* dst, const u8* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
-	for (int x = 0; x < 8; x++)
+	for (int x = 0; x < 8; ++x)
 	{
 		*dst++ = DecodePixel_IA8(tlut[src[x]]);
 	}
@@ -126,7 +126,7 @@ static inline void DecodeBytes_C8_IA8(u32* dst, const u8* src, const u8* tlut_)
 static inline void DecodeBytes_C8_RGB565(u32* dst, const u8* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
-	for (int x = 0; x < 8; x++)
+	for (int x = 0; x < 8; ++x)
 	{
 		u8 val = src[x];
 		*dst++ = DecodePixel_RGB565(Common::swap16(tlut[val]));
@@ -136,7 +136,7 @@ static inline void DecodeBytes_C8_RGB565(u32* dst, const u8* src, const u8* tlut
 static inline void DecodeBytes_C8_RGB5A3(u32 *dst, const u8 *src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
-	for (int x = 0; x < 8; x++)
+	for (int x = 0; x < 8; ++x)
 	{
 		u8 val = src[x];
 		*dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[val]));
@@ -146,7 +146,7 @@ static inline void DecodeBytes_C8_RGB5A3(u32 *dst, const u8 *src, const u8* tlut
 static inline void DecodeBytes_C14X2_IA8(u32* dst, const u16* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
-	for (int x = 0; x < 4; x++)
+	for (int x = 0; x < 4; ++x)
 	{
 		u16 val = Common::swap16(src[x]);
 		*dst++ = DecodePixel_IA8(tlut[(val & 0x3FFF)]);
@@ -156,7 +156,7 @@ static inline void DecodeBytes_C14X2_IA8(u32* dst, const u16* src, const u8* tlu
 static inline void DecodeBytes_C14X2_RGB565(u32* dst, const u16* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
-	for (int x = 0; x < 4; x++)
+	for (int x = 0; x < 4; ++x)
 	{
 		u16 val = Common::swap16(src[x]);
 		*dst++ = DecodePixel_RGB565(Common::swap16(tlut[(val & 0x3FFF)]));
@@ -166,7 +166,7 @@ static inline void DecodeBytes_C14X2_RGB565(u32* dst, const u16* src, const u8* 
 static inline void DecodeBytes_C14X2_RGB5A3(u32 *dst, const u16 *src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
-	for (int x = 0; x < 4; x++)
+	for (int x = 0; x < 4; ++x)
 	{
 		u16 val = Common::swap16(src[x]);
 		*dst++ = DecodePixel_RGB5A3(Common::swap16(tlut[(val & 0x3FFF)]));
@@ -175,7 +175,7 @@ static inline void DecodeBytes_C14X2_RGB5A3(u32 *dst, const u16 *src, const u8* 
 
 static inline void DecodeBytes_IA4(u32 *dst, const u8 *src)
 {
-	for (int x = 0; x < 8; x++)
+	for (int x = 0; x < 8; ++x)
 	{
 		const u8 val = src[x];
 		u8 a = Convert4To8(val >> 4);
@@ -221,10 +221,10 @@ static void DecodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 		colors[3] = MakeRGBA(red2, green2, blue2, 0);  // Color2 but transparent
 	}
 
-	for (int y = 0; y < 4; y++)
+	for (int y = 0; y < 4; ++y)
 	{
 		int val = src->lines[y];
-		for (int x = 0; x < 4; x++)
+		for (int x = 0; x < 4; ++x)
 		{
 			dst[x] = colors[(val >> 6) & 3];
 			val <<= 2;
@@ -272,16 +272,16 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
-					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,++yStep)
+					for (int iy = 0, xStep =  8 * yStep; iy < 8; ++iy,++xStep)
 						DecodeBytes_C4_RGB5A3(dst + (y + iy) * width + x, src + 4 * xStep, tlut);
 		}
 		else if (tlutfmt == GX_TL_IA8)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
-					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,++yStep)
+					for (int iy = 0, xStep =  8 * yStep; iy < 8; ++iy,++xStep)
 						DecodeBytes_C4_IA8(dst + (y + iy) * width + x, src + 4 * xStep, tlut);
 
 		}
@@ -289,8 +289,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
-					for (int iy = 0, xStep =  8 * yStep; iy < 8; iy++,xStep++)
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,++yStep)
+					for (int iy = 0, xStep =  8 * yStep; iy < 8; ++iy,++xStep)
 						DecodeBytes_C4_RGB565(dst + (y + iy) * width + x, src  + 4 * xStep, tlut);
 		}
 		break;
@@ -309,8 +309,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 				const __m128i maskF7E6 = _mm_set_epi8(15,15,15,15,7,7,7,7,14,14,14,14,6,6,6,6);
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 8)
-					for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
-						for (int iy = 0, xStep =  4 * yStep; iy < 8; iy += 2,xStep++)
+					for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,++yStep)
+						for (int iy = 0, xStep =  4 * yStep; iy < 8; iy += 2,++xStep)
 						{
 							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
 							// We want the hi 4 bits of each 8-bit word replicated to 32-bit words:
@@ -345,8 +345,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			{
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 8)
-					for (int x = 0, yStep = (y / 8) * Wsteps8 ; x < width; x += 8, yStep++)
-						for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, xStep++)
+					for (int x = 0, yStep = (y / 8) * Wsteps8 ; x < width; x += 8, ++yStep)
+						for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, ++xStep)
 						{
 							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
 							// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
@@ -417,8 +417,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			{
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8,yStep++)
-						for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, xStep++)
+					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8,++yStep)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						{
 							const __m128i mask3210 = _mm_set_epi8(3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0);
 
@@ -443,7 +443,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			{
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8,yStep++)
+					for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8,++yStep)
 					{
 						// Each loop iteration processes 4 rows from 4 64-bit reads.
 						const u8* src2 = src + 32 * yStep;
@@ -529,16 +529,16 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						DecodeBytes_C8_RGB5A3((u32*)dst + (y + iy) * width + x, src + 8 * xStep, tlut);
 		}
 		else if (tlutfmt == GX_TL_IA8)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						DecodeBytes_C8_IA8(dst + (y + iy) * width + x, src + 8 * xStep, tlut);
 
 		}
@@ -546,8 +546,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						DecodeBytes_C8_RGB565(dst + (y + iy) * width + x, src + 8 * xStep, tlut);
 
 		}
@@ -556,8 +556,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+				for (int x = 0, yStep = (y / 4) * Wsteps8; x < width; x += 8, ++yStep)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						DecodeBytes_IA4(dst + (y + iy) * width + x, src + 8 * xStep);
 		}
 		break;
@@ -570,8 +570,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			{
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						{
 							const __m128i mask = _mm_set_epi8(6, 7, 7, 7, 4, 5, 5, 5, 2, 3, 3, 3, 0, 1, 1, 1);
 							// Load 4x 16-bit IA8 samples from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
@@ -592,8 +592,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 				const __m128i kMask_x0fff = _mm_set_epi32(0x00ffffffL, 0x00ffffffL, 0x00ffffffL, 0x00ffffffL);
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						{
 							// Expands a 16-bit "IA" to a 32-bit "AIII". Each char is an 8-bit value.
 
@@ -641,24 +641,24 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						DecodeBytes_C14X2_RGB5A3(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlut);
 		}
 		else if (tlutfmt == GX_TL_IA8)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						DecodeBytes_C14X2_IA8(dst + (y + iy) * width + x,  (u16*)(src + 8 * xStep), tlut);
 		}
 		else if (tlutfmt == GX_TL_RGB565)
 		{
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						DecodeBytes_C14X2_RGB565(dst + (y + iy) * width + x, (u16*)(src + 8 * xStep), tlut);
 		}
 		break;
@@ -673,8 +673,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			const __m128i kAlpha  = _mm_set1_epi32(0xFF000000);
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 4)
-				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
+					for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 					{
 						__m128i *dxtsrc = (__m128i *)(src + 8 * xStep);
 						// Load 4x 16-bit colors: (0000 0000 hgfe dcba)
@@ -750,8 +750,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			{
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						{
 							u32 *newdst = dst+(y+iy)*width+x;
 							const __m128i mask = _mm_set_epi8(-128,-128,6,7,-128,-128,4,5,-128,-128,2,3,-128,-128,0,1);
@@ -843,8 +843,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			{
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
-						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
+						for (int iy = 0, xStep = 4 * yStep; iy < 4; ++iy, ++xStep)
 						{
 							u32 *newdst = dst+(y+iy)*width+x;
 							const u16 *newsrc = (const u16*)(src + 8 * xStep);
@@ -957,7 +957,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			{
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
 					{
 						const u8* src2 = src + 64 * yStep;
 						const __m128i mask0312 = _mm_set_epi8(12,15,13,14,8,11,9,10,4,7,5,6,0,3,1,2);
@@ -989,7 +989,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			{
 				#pragma omp parallel for
 				for (int y = 0; y < height; y += 4)
-					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
+					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, ++yStep)
 					{
 						// Input is divided up into 16-bit words. The texels are split up into AR and GB components where all
 						// AR components come grouped up first in 32 bytes followed by the GB components in 32 bytes. We are
@@ -1094,13 +1094,13 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8 * src, int width, int he
 			#pragma omp parallel for
 			for (int y = 0; y < height; y += 8)
 			{
-				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
+				for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,++yStep)
 				{
 					// We handle two DXT blocks simultaneously to take full advantage of SSE2's 128-bit registers.
 					// This is ideal because a single DXT block contains 2 RGBA colors when decoded from their 16-bit.
 					// Two DXT blocks therefore contain 4 RGBA colors to be processed. The processing is parallelizable
 					// at this level, so we do.
-					for (int z = 0, xStep = 2 * yStep; z < 2; ++z, xStep++)
+					for (int z = 0, xStep = 2 * yStep; z < 2; ++z, ++xStep)
 					{
 						// JSD NOTE: You may see many strange patterns of behavior in the below code, but they
 						// are for performance reasons. Sometimes, calculating what should be obvious hard-coded
