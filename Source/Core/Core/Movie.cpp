@@ -438,17 +438,21 @@ bool BeginRecordingInput(int controllers)
 	g_currentLagCount = g_totalLagCount = 0;
 	g_currentInputCount = g_totalInputCount = 0;
 	g_totalTickCount = g_tickCountAtLastInput = 0;
+	bongos = 0;
+	memcards = 0;
 	if (NetPlay::IsNetPlayRunning())
 	{
 		bNetPlay = true;
 		g_recordingStartTime = NETPLAY_INITIAL_GCTIME;
 	}
 	else
+	{
 		g_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
+	}
 
 	g_rerecords = 0;
 
-	for (int i = 0; i < MAX_SI_CHANNELS; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			bongos |= (1 << i);
 
@@ -1253,7 +1257,7 @@ void GetSettings()
 
 void CheckMD5()
 {
-	for (int i=0, n=0; i<16; i++)
+	for (int i = 0, n = 0; i < 16; ++i)
 	{
 		if (tmpHeader.md5[i] != 0)
 			continue;
