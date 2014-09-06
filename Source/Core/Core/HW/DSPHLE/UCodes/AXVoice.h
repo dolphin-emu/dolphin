@@ -131,6 +131,7 @@ void DumpPB(const PB_TYPE& pb)
 static u32 acc_loop_addr, acc_end_addr;
 static u32* acc_cur_addr;
 static PB_TYPE* acc_pb;
+static bool acc_end_reached;
 
 // Sets up the simulated accelerator.
 void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
@@ -139,6 +140,7 @@ void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 	acc_loop_addr = HILO_TO_32(pb->audio_addr.loop_addr);
 	acc_end_addr = HILO_TO_32(pb->audio_addr.end_addr);
 	acc_cur_addr = cur_addr;
+	acc_end_reached = false;
 }
 
 // Reads a sample from the simulated accelerator. Also handles looping and
@@ -148,6 +150,10 @@ u16 AcceleratorGetSample()
 {
 	u16 ret;
 	u8 step_size_bytes = 0;
+
+	// See below for explanations about acc_end_reached.
+	if (acc_end_reached)
+		return 0;
 
 	switch (acc_pb->audio_addr.sample_format)
 	{
@@ -232,6 +238,15 @@ u16 AcceleratorGetSample()
 		{
 			// Non looping voice reached the end -> running = 0.
 			acc_pb->running = 0;
+
+#ifdef AX_WII
+			// One of the few meaningful differences between AXGC and AXWii:
+			// while AXGC handles non looping voices ending by having 0000
+			// samples at the loop address, AXWii has the 0000 samples
+			// internally in DRAM and use an internal pointer to it (loop addr
+			// does not contain 0000 samples on AXWii!).
+			acc_end_reached = true;
+#endif
 		}
 	}
 
