@@ -180,9 +180,10 @@ static void gdb_bp_remove(u32 type, u32 addr, u32 len)
 {
 	gdb_bp_t *p;
 
-	do {
+	do
+	{
 		p = gdb_bp_find(type, addr, len);
-		if (p != nullptr) 
+		if (p != nullptr)
 		{
 			DEBUG_LOG(GDB_STUB, "gdb: removed a breakpoint: %08x bytes at %08x\n", len, addr);
 			p->active = 0;
@@ -659,7 +660,7 @@ static void _gdb_add_bp()
 	u32 i, addr = 0, len = 0;
 
 	type = hex2char(cmd_bfr[1]);
-	switch (type) 
+	switch (type)
 	{
 		case 0:
 		case 1:
