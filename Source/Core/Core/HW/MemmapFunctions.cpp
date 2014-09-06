@@ -18,6 +18,7 @@
 #include "Common/Atomic.h"
 #include "Common/Common.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
@@ -119,7 +120,7 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 		// fake VMEM
 		_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
 	}
-	else
+	else if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
 		// MMU
 		u32 tlb_addr = TranslateAddress(em_address, flag);
@@ -134,6 +135,10 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 		{
 			_var = bswap((*(const T*)&m_pRAM[tlb_addr & RAM_MASK]));
 		}
+	}
+	else
+	{
+		PanicAlertT("Invalid Read at 0x%08x, PC = 0x%08x ", em_address, PC);
 	}
 }
 
@@ -204,7 +209,7 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		// fake VMEM
 		*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
 	}
-	else
+	else if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
 		// MMU
 		u32 tlb_addr = TranslateAddress(em_address, flag);
@@ -219,6 +224,10 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		{
 			*(T*)&m_pRAM[tlb_addr & RAM_MASK] = bswap(data);
 		}
+	}
+	else
+	{
+		PanicAlertT("Invalid Write to 0x%08x, PC = 0x%08x ", em_address, PC);
 	}
 }
 // =====================
