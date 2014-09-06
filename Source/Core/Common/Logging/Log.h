@@ -4,12 +4,6 @@
 
 #pragma once
 
-#define NOTICE_LEVEL  1  // VERY important information that is NOT errors. Like startup and OSReports.
-#define ERROR_LEVEL   2  // Critical errors
-#define WARNING_LEVEL 3  // Something is suspicious.
-#define INFO_LEVEL    4  // General information.
-#define DEBUG_LEVEL   5  // Detailed debugging - might make things slow.
-
 namespace LogTypes
 {
 
@@ -65,14 +59,13 @@ enum LOG_TYPE
 	NUMBER_OF_LOGS // Must be last
 };
 
-// FIXME: should this be removed?
 enum LOG_LEVELS
 {
-	LNOTICE  = NOTICE_LEVEL,
-	LERROR   = ERROR_LEVEL,
-	LWARNING = WARNING_LEVEL,
-	LINFO    = INFO_LEVEL,
-	LDEBUG   = DEBUG_LEVEL,
+	LNOTICE  = 1, // VERY important information that is NOT errors. Like startup and OSReports.
+	LERROR   = 2, // Critical errors
+	LWARNING = 3, // Something is suspicious.
+	LINFO    = 4, // General information.
+	LDEBUG   = 5, // Detailed debugging - might make things slow.
 };
 
 static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
@@ -87,10 +80,10 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		;
 
 #if defined LOGGING || defined _DEBUG || defined DEBUGFAST
-#define MAX_LOGLEVEL DEBUG_LEVEL
+#define MAX_LOGLEVEL LogTypes::LOG_LEVELS::LDEBUG
 #else
 #ifndef MAX_LOGLEVEL
-#define MAX_LOGLEVEL WARNING_LEVEL
+#define MAX_LOGLEVEL LogTypes::LOG_LEVELS::LWARNING
 #endif // loglevel
 #endif // logging
 
@@ -110,24 +103,30 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 #define INFO_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__) } while (0)
 #define DEBUG_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__) } while (0)
 
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 #define _dbg_assert_(_t_, _a_) \
-	if (!(_a_)) {\
+	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_)) {\
 		ERROR_LOG(_t_, "Error...\n\n  Line: %d\n  File: %s\n  Time: %s\n\nIgnore and continue?", \
-					   __LINE__, __FILE__, __TIME__); \
-		if (!PanicYesNo("*** Assertion (see log)***\n")) {Crash();} \
+				   __LINE__, __FILE__, __TIME__); \
+		if (!PanicYesNo("*** Assertion (see log)***\n")) \
+			Crash(); \
 	}
-#define _dbg_assert_msg_(_t_, _a_, ...)\
-	if (!(_a_)) {\
-		ERROR_LOG(_t_, __VA_ARGS__); \
-		if (!PanicYesNo(__VA_ARGS__)) {Crash();} \
+
+#ifdef _WIN32
+#define _dbg_assert_msg_(_t_, _a_, _msg_, ...)\
+	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_)) {\
+		ERROR_LOG(_t_, _msg_, __VA_ARGS__); \
+		if (!PanicYesNo(_msg_, __VA_ARGS__)) \
+			Crash(); \
 	}
-#else // not debug
-#ifndef _dbg_assert_
-#define _dbg_assert_(_t_, _a_) {}
-#define _dbg_assert_msg_(_t_, _a_, _desc_, ...) {}
-#endif // dbg_assert
-#endif // MAX_LOGLEVEL DEBUG
+#else
+#define _dbg_assert_msg_(_t_, _a_, _msg_, ...)\
+	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_)) {\
+		ERROR_LOG(_t_, _msg_, ##__VA_ARGS__); \
+		if (!PanicYesNo(_msg_, ##__VA_ARGS__)) \
+			Crash(); \
+	}
+#endif
+
 
 #define _assert_(_a_) _dbg_assert_(MASTER_LOG, _a_)
 
@@ -135,12 +134,14 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 #ifdef _WIN32
 #define _assert_msg_(_t_, _a_, _fmt_, ...) \
 	if (!(_a_)) {\
-		if (!PanicYesNo(_fmt_, __VA_ARGS__)) {Crash();} \
+		if (!PanicYesNo(_fmt_, __VA_ARGS__)) \
+			Crash(); \
 	}
 #else // not win32
 #define _assert_msg_(_t_, _a_, _fmt_, ...) \
 	if (!(_a_)) {\
-		if (!PanicYesNo(_fmt_, ##__VA_ARGS__)) {Crash();} \
+		if (!PanicYesNo(_fmt_, ##__VA_ARGS__)) \
+			Crash(); \
 	}
 #endif // WIN32
 #else // GEKKO

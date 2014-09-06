@@ -257,19 +257,19 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 
 	switch (Level)
 	{
-	case NOTICE_LEVEL: // light green
+	case LogTypes::LOG_LEVELS::LNOTICE:  // light green
 		Color = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
 		break;
-	case ERROR_LEVEL: // light red
+	case LogTypes::LOG_LEVELS::LERROR:   // light red
 		Color = FOREGROUND_RED | FOREGROUND_INTENSITY;
 		break;
-	case WARNING_LEVEL: // light yellow
+	case LogTypes::LOG_LEVELS::LWARNING: // light yellow
 		Color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
 		break;
-	case INFO_LEVEL: // cyan
+	case LogTypes::LOG_LEVELS::LINFO:    // cyan
 		Color = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
 		break;
-	case DEBUG_LEVEL: // gray
+	case LogTypes::LOG_LEVELS::LDEBUG:   // gray
 		Color = FOREGROUND_INTENSITY;
 		break;
 	default: // off-white
@@ -294,13 +294,13 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 		strcpy(ResetAttr, "\033[0m");
 		switch (Level)
 		{
-		case NOTICE_LEVEL: // light green
+		case LogTypes::LOG_LEVELS::LNOTICE:  // light green
 			strcpy(ColorAttr, "\033[92m");
 			break;
-		case ERROR_LEVEL: // light red
+		case LogTypes::LOG_LEVELS::LERROR:   // light red
 			strcpy(ColorAttr, "\033[91m");
 			break;
-		case WARNING_LEVEL: // light yellow
+		case LogTypes::LOG_LEVELS::LWARNING: // light yellow
 			strcpy(ColorAttr, "\033[93m");
 			break;
 		default:

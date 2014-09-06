@@ -314,23 +314,23 @@ void CLogWindow::UpdateLog()
 	{
 		switch (msgQueue.front().first)
 		{
-			case ERROR_LEVEL:
+			case LogTypes::LOG_LEVELS::LERROR:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
 				break;
 
-			case WARNING_LEVEL:
+			case LogTypes::LOG_LEVELS::LWARNING:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxYELLOW));
 				break;
 
-			case NOTICE_LEVEL:
+			case LogTypes::LOG_LEVELS::LNOTICE:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
 				break;
 
-			case INFO_LEVEL:
+			case LogTypes::LOG_LEVELS::LINFO:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
 				break;
 
-			case DEBUG_LEVEL:
+			case LogTypes::LOG_LEVELS::LDEBUG:
 				m_Log->SetDefaultStyle(wxTextAttr(*wxLIGHT_GREY));
 				break;
 
