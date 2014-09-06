@@ -238,7 +238,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	if (update && storeAddress)
 	{
 		gpr.BindToRegister(a, true, true);
-		MEMCHECK_START
+		MEMCHECK_START(false)
 		MOV(32, gpr.R(a), opAddress);
 		MEMCHECK_END
 	}
@@ -413,7 +413,7 @@ void Jit64::stX(UGeckoInstruction inst)
 
 		if (update && offset)
 		{
-			MEMCHECK_START
+			MEMCHECK_START(false)
 			gpr.KillImmediate(a, true, true);
 
 			ADD(32, gpr.R(a), Imm32((u32)offset));

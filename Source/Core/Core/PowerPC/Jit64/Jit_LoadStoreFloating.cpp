@@ -65,7 +65,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 	fpr.Lock(d);
 	fpr.BindToRegister(d, js.memcheck || !single);
 
-	MEMCHECK_START
+	MEMCHECK_START(false)
 	if (single)
 	{
 		ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);

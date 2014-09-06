@@ -63,7 +63,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 
 	if (update && offset && js.memcheck)
 	{
-		MEMCHECK_START
+		MEMCHECK_START(false)
 		ADD(32, gpr.R(a), Imm32((u32)offset));
 		MEMCHECK_END
 	}
@@ -100,7 +100,7 @@ void Jit64::psq_l(UGeckoInstruction inst)
 
 	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedLoadQuantized));
 
-	MEMCHECK_START
+	MEMCHECK_START(false)
 	CVTPS2PD(fpr.RX(s), R(XMM0));
 	if (update && offset && js.memcheck)
 	{

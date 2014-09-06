@@ -11,11 +11,13 @@
 
 namespace MMIO { class Mapping; }
 
-#define MEMCHECK_START \
+// If inv is true, invert the check (i.e. skip over the associated code if an exception hits,
+// instead of skipping over the code if an exception isn't hit).
+#define MEMCHECK_START(inv) \
 	Gen::FixupBranch memException; \
 	if (jit->js.memcheck) \
 	{ TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
-	memException = J_CC(Gen::CC_NZ, true); }
+	memException = J_CC((inv) ? Gen::CC_Z : Gen::CC_NZ, true); }
 
 #define MEMCHECK_END \
 	if (jit->js.memcheck) \

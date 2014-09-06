@@ -318,8 +318,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
-				MEMCHECK_START
-
+				MEMCHECK_START(false)
 				if (signExtend && accessSize < 32)
 				{
 					// Need to sign extend values coming from the Read_U* functions.
@@ -329,7 +328,6 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				{
 					MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
 				}
-
 				MEMCHECK_END
 			}
 		}
@@ -379,8 +377,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			}
 			ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
 
-			MEMCHECK_START
-
+			MEMCHECK_START(false)
 			if (signExtend && accessSize < 32)
 			{
 				// Need to sign extend values coming from the Read_U* functions.
@@ -390,8 +387,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			{
 				MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
 			}
-
 			MEMCHECK_END
+
 			if (farcode.Enabled())
 			{
 				exit = J(true);
