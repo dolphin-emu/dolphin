@@ -1578,8 +1578,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
-		FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 0);
-		FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 1);
+		FramebufferManager::m_eye_texture[0].OGL.TexId = FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 0);
+		FramebufferManager::m_eye_texture[1].OGL.TexId = FramebufferManager::ResolveAndGetRenderTarget(sourceRc, 1);
 
 		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
 		m_post_processor->BindTargetFramebuffer();
