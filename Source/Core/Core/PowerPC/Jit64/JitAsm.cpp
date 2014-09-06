@@ -9,13 +9,6 @@
 
 using namespace Gen;
 
-// GLOBAL STATIC ALLOCATIONS x64
-// RAX - ubiquitous scratch register - EVERYBODY scratches this
-// RDX - second scratch register
-// RBX - Base pointer of memory
-// R15 - Pointer to array of block pointers
-// RBP - Pointer to ppcState+0x80
-
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
@@ -26,9 +19,9 @@ void Jit64AsmRoutineManager::Generate()
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 
 	// Two statically allocated registers.
-	MOV(64, R(RBX), Imm64((u64)Memory::base));
-	MOV(64, R(R15), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
-	MOV(64, R(RBP), Imm64((u64)&PowerPC::ppcState + 0x80));
+	MOV(64, R(RMEM), Imm64((u64)Memory::base));
+	MOV(64, R(RCODE_POINTERS), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
+	MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
 
 	const u8* outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
@@ -55,8 +48,8 @@ void Jit64AsmRoutineManager::Generate()
 			SetJumpTarget(skipToRealDispatch);
 
 			dispatcherNoCheck = GetCodePtr();
-			MOV(32, R(EAX), PPCSTATE(pc));
-			dispatcherPcInEAX = GetCodePtr();
+			MOV(32, R(RSCRATCH), PPCSTATE(pc));
+			dispatcherPcInRSCRATCH = GetCodePtr();
 
 			u32 mask = 0;
 			FixupBranch no_mem;
@@ -68,12 +61,12 @@ void Jit64AsmRoutineManager::Generate()
 				mask |= JIT_ICACHE_VMEM_BIT;
 			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
-				TEST(32, R(EAX), Imm32(mask));
+				TEST(32, R(RSCRATCH), Imm32(mask));
 				no_mem = J_CC(CC_NZ);
 			}
-			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-			MOV(64, R(RDX), Imm64((u64)jit->GetBlockCache()->iCache));
-			MOV(32, R(EAX), MComplex(RDX, EAX, SCALE_1, 0));
+			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
+			MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCache));
+			MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
 			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
@@ -82,22 +75,22 @@ void Jit64AsmRoutineManager::Generate()
 			}
 			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
-				TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
+				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_VMEM_BIT));
 				FixupBranch no_vmem = J_CC(CC_Z);
-				AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
-				MOV(64, R(RDX), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
-				MOV(32, R(EAX), MComplex(RDX, EAX, SCALE_1, 0));
+				AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
+				MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
+				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
 				if (Core::g_CoreStartupParameter.bWii) exit_vmem = J();
 				SetJumpTarget(no_vmem);
 			}
 			if (Core::g_CoreStartupParameter.bWii)
 			{
-				TEST(32, R(EAX), Imm32(JIT_ICACHE_EXRAM_BIT));
+				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
-				AND(32, R(EAX), Imm32(JIT_ICACHEEX_MASK));
-				MOV(64, R(RDX), Imm64((u64)jit->GetBlockCache()->iCacheEx));
-				MOV(32, R(EAX), MComplex(RDX, EAX, SCALE_1, 0));
+				AND(32, R(RSCRATCH), Imm32(JIT_ICACHEEX_MASK));
+				MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheEx));
+				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
 				SetJumpTarget(no_exram);
 			}
@@ -106,10 +99,10 @@ void Jit64AsmRoutineManager::Generate()
 			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack))
 				SetJumpTarget(exit_vmem);
 
-			TEST(32, R(EAX), R(EAX));
+			TEST(32, R(RSCRATCH), R(RSCRATCH));
 			FixupBranch notfound = J_CC(CC_L);
 				//grab from list and jump to it
-				JMPptr(MComplex(R15, RAX, 8, 0));
+				JMPptr(MComplex(RCODE_POINTERS, RSCRATCH, 8, 0));
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
@@ -124,8 +117,8 @@ void Jit64AsmRoutineManager::Generate()
 		// Test external exceptions.
 		TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
 		FixupBranch noExtException = J_CC(CC_Z);
-		MOV(32, R(EAX), PPCSTATE(pc));
-		MOV(32, PPCSTATE(npc), R(EAX));
+		MOV(32, R(RSCRATCH), PPCSTATE(pc));
+		MOV(32, PPCSTATE(npc), R(RSCRATCH));
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
 		SetJumpTarget(noExtException);
 
@@ -168,8 +161,8 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	const u8 *fastMemWrite8 = AlignCode16();
 	CMP(32, R(ABI_PARAM2), Imm32(0xCC008000));
 	FixupBranch skip_fast_write = J_CC(CC_NE, false);
-	MOV(32, EAX, M(&m_gatherPipeCount));
-	MOV(8, MDisp(EAX, (u32)&m_gatherPipe), ABI_PARAM1);
+	MOV(32, RSCRATCH, M(&m_gatherPipeCount));
+	MOV(8, MDisp(RSCRATCH, (u32)&m_gatherPipe), ABI_PARAM1);
 	ADD(32, 1, M(&m_gatherPipeCount));
 	RET();
 	SetJumpTarget(skip_fast_write);

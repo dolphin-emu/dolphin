@@ -19,9 +19,9 @@ public:
 
 	const u8 *dispatcher;
 	const u8 *dispatcherNoCheck;
-	const u8 *dispatcherPcInEAX;
+	const u8 *dispatcherPcInRSCRATCH;
 
-	const u8 *dispatchPcInEAX;
+	const u8 *dispatchPcInRSCRATCH;
 	const u8 *doTiming;
 
 	const u8 *frsqrte;
@@ -31,14 +31,14 @@ public:
 	// In: ECX: Address to read from.
 	// Out: XMM0: Bottom two 32-bit slots hold the read value,
 	//            converted to a pair of floats.
-	// Trashes: EAX ECX EDX
+	// Trashes: all three RSCRATCH
 	const u8 **pairedLoadQuantized;
 
 	// In: array index: GQR to use.
 	// In: ECX: Address to write to.
 	// In: XMM0: Bottom two 32-bit slots hold the pair of floats to be written.
 	// Out: Nothing.
-	// Trashes: EAX ECX EDX
+	// Trashes: all three RSCRATCH
 	const u8 **pairedStoreQuantized;
 
 	// In: array index: GQR to use.

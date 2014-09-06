@@ -23,7 +23,7 @@ namespace MMIO { class Mapping; }
 
 // We offset by 0x80 because the range of one byte memory offsets is
 // -0x80..0x7f.
-#define PPCSTATE(x) MDisp(RBP, \
+#define PPCSTATE(x) MDisp(RPPCSTATE, \
 	(int) ((char *) &PowerPC::ppcState.x - (char *) &PowerPC::ppcState) - 0x80)
 // In case you want to disable the ppcstate register:
 // #define PPCSTATE(x) M((void*) &PowerPC::ppcState.x)
@@ -54,11 +54,11 @@ public:
 		SAFE_LOADSTORE_NO_SWAP = 1,
 		SAFE_LOADSTORE_NO_PROLOG = 2,
 		SAFE_LOADSTORE_NO_FASTMEM = 4,
-		SAFE_LOADSTORE_CLOBBER_EAX_INSTEAD_OF_ADDR = 8
+		SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR = 8
 	};
 
 	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags = 0);
-	// Clobbers EAX or reg_addr depending on the relevant flag.  Preserves
+	// Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves
 	// reg_value if the load fails and js.memcheck is enabled.
 	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags = 0);
 
@@ -79,9 +79,8 @@ public:
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);
 	void Force25BitPrecision(Gen::X64Reg xmm, Gen::X64Reg tmp);
 
-	// EAX might get trashed
+	// RSCRATCH might get trashed
 	void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, bool src_is_gpr = false);
-	// EAX might get trashed
 	void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
 	void SetFPRF(Gen::X64Reg xmm);
 protected:

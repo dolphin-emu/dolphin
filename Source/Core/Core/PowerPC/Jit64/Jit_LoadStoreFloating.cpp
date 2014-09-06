@@ -42,9 +42,9 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 		}
 		else
 		{
-			addr = R(EAX);
+			addr = R(RSCRATCH);
 			if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
-				LEA(32, EAX, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+				LEA(32, RSCRATCH, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 			else
 			{
 				MOV(32, addr, gpr.R(b));
@@ -61,18 +61,18 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 			offset = (s32)(s16)inst.SIMM_16;
 	}
 
-	SafeLoadToReg(RAX, addr, single ? 32 : 64, offset, CallerSavedRegistersInUse(), false);
+	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, CallerSavedRegistersInUse(), false);
 	fpr.Lock(d);
 	fpr.BindToRegister(d, js.memcheck || !single);
 
 	MEMCHECK_START
 	if (single)
 	{
-		ConvertSingleToDouble(fpr.RX(d), EAX, true);
+		ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);
 	}
 	else
 	{
-		MOVQ_xmm(XMM0, R(RAX));
+		MOVQ_xmm(XMM0, R(RSCRATCH));
 		MOVSD(fpr.RX(d), R(XMM0));
 	}
 	MEMCHECK_END
@@ -102,17 +102,17 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 		{
 			gpr.BindToRegister(a, true, true);
 			ADD(32, gpr.R(a), gpr.R(b));
-			MOV(32, R(RDX), gpr.R(a));
+			MOV(32, R(RSCRATCH2), gpr.R(a));
 		}
 		else
 		{
 			if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
-				LEA(32, RDX, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+				LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 			else
 			{
-				MOV(32, R(RDX), gpr.R(b));
+				MOV(32, R(RSCRATCH2), gpr.R(b));
 				if (a)
-					ADD(32, R(RDX), gpr.R(a));
+					ADD(32, R(RSCRATCH2), gpr.R(a));
 			}
 		}
 	}
@@ -127,23 +127,23 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 		{
 			offset = (s32)(s16)inst.SIMM_16;
 		}
-		MOV(32, R(RDX), gpr.R(a));
+		MOV(32, R(RSCRATCH2), gpr.R(a));
 	}
 
 	if (single)
 	{
 		fpr.BindToRegister(s, true, false);
 		ConvertDoubleToSingle(XMM0, fpr.RX(s));
-		SafeWriteF32ToReg(XMM0, RDX, offset, CallerSavedRegistersInUse());
+		SafeWriteF32ToReg(XMM0, RSCRATCH2, offset, CallerSavedRegistersInUse());
 		fpr.UnlockAll();
 	}
 	else
 	{
 		if (fpr.R(s).IsSimpleReg())
-			MOVQ_xmm(R(RAX), fpr.RX(s));
+			MOVQ_xmm(R(RSCRATCH), fpr.RX(s));
 		else
-			MOV(64, R(RAX), fpr.R(s));
-		SafeWriteRegToReg(RAX, RDX, 64, offset, CallerSavedRegistersInUse());
+			MOV(64, R(RSCRATCH), fpr.R(s));
+		SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 64, offset, CallerSavedRegistersInUse());
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -159,14 +159,14 @@ void Jit64::stfiwx(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = inst.RB;
 
-	MOV(32, R(RDX), gpr.R(b));
+	MOV(32, R(RSCRATCH2), gpr.R(b));
 	if (a)
-		ADD(32, R(RDX), gpr.R(a));
+		ADD(32, R(RSCRATCH2), gpr.R(a));
 
 	if (fpr.R(s).IsSimpleReg())
-		MOVD_xmm(R(EAX), fpr.RX(s));
+		MOVD_xmm(R(RSCRATCH), fpr.RX(s));
 	else
-		MOV(32, R(EAX), fpr.R(s));
-	SafeWriteRegToReg(EAX, RDX, 32, 0, CallerSavedRegistersInUse());
+		MOV(32, R(RSCRATCH), fpr.R(s));
+	SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, CallerSavedRegistersInUse());
 	gpr.UnlockAllX();
 }

@@ -74,7 +74,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 		break;
 	case 2:
 		CALL((void *)&Memory::Read_U16);
-		SHL(32, R(EAX), Imm8(16));
+		SHL(32, R(ABI_RETURN), Imm8(16));
 		break;
 	case 1:
 		CALL((void *)&Memory::Read_U8);
@@ -84,11 +84,11 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 	if (info.signExtend && info.operandSize == 1)
 	{
 		// Need to sign extend value from Read_U8.
-		MOVSX(32, 8, dataReg, R(EAX));
+		MOVSX(32, 8, dataReg, R(ABI_RETURN));
 	}
 	else if (dataReg != EAX)
 	{
-		MOV(32, R(dataReg), R(EAX));
+		MOV(32, R(dataReg), R(ABI_RETURN));
 	}
 
 	ABI_PopRegistersAndAdjustStack(registersInUse, true);
@@ -166,9 +166,9 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		return nullptr;
 	}
 
-	if (info.otherReg != RBX)
+	if (info.otherReg != RMEM)
 	{
-		PanicAlert("BackPatch : Base reg not RBX."
+		PanicAlert("BackPatch : Base reg not RMEM."
 		           "\n\nAttempted to access %08x.", emAddress);
 		return nullptr;
 	}

@@ -90,10 +90,10 @@ public:
 	// Utilities for use by opcodes
 
 	void WriteExit(u32 destination);
-	void WriteExitDestInEAX();
+	void WriteExitDestInRSCRATCH();
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
-	void WriteRfiExitDestInEAX();
+	void WriteRfiExitDestInRSCRATCH();
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 
@@ -101,8 +101,8 @@ public:
 	void GenerateConstantOverflow(s64 val);
 	void GenerateOverflow();
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
-	void GetCarryEAXAndClear();
-	void FinalizeCarryGenerateOverflowEAX(bool oe, bool inv = false);
+	void GetCarryRSCRATCHAndClear();
+	void FinalizeCarryGenerateOverflowRSCRATCH(bool oe, bool inv = false);
 	void GenerateCarry();
 	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);

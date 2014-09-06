@@ -320,8 +320,8 @@ void JitIL::WriteCallInterpreter(UGeckoInstruction inst)
 	ABI_CallFunctionC((void*)instr, inst.hex);
 	if (js.isLastInstruction)
 	{
-		MOV(32, R(EAX), PPCSTATE(npc));
-		WriteRfiExitDestInOpArg(R(EAX));
+		MOV(32, R(RSCRATCH), PPCSTATE(npc));
+		WriteRfiExitDestInOpArg(R(RSCRATCH));
 	}
 }
 
@@ -341,8 +341,8 @@ void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 void JitIL::HLEFunction(UGeckoInstruction _inst)
 {
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
-	MOV(32, R(EAX), PPCSTATE(npc));
-	WriteExitDestInOpArg(R(EAX));
+	MOV(32, R(RSCRATCH), PPCSTATE(npc));
+	WriteExitDestInOpArg(R(RSCRATCH));
 }
 
 void JitIL::DoNothing(UGeckoInstruction _inst)

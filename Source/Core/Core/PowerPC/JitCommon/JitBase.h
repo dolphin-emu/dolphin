@@ -27,6 +27,23 @@
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
+// TODO: find a better place for x86-specific stuff
+// The following register assignments are common to Jit64 and Jit64IL:
+// RSCRATCH and RSCRATCH2 are always scratch registers and can be used without
+// limitation.
+#define RSCRATCH RAX
+#define RSCRATCH2 RDX
+// RSCRATCH_EXTRA may be in the allocation order, so it has to be flushed
+// before use.
+#define RSCRATCH_EXTRA RCX
+// RMEM points to the start of emulated memory.
+#define RMEM RBX
+// RCODE_POINTERS does what it says.
+#define RCODE_POINTERS R15
+// RPPCSTATE points to ppcState + 0x80.  It's offset because we want to be able
+// to address as much as possible in a one-byte offset form.
+#define RPPCSTATE RBP
+
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);

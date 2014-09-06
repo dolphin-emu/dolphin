@@ -197,13 +197,13 @@ void Jit64::lXXx(UGeckoInstruction inst)
 			else
 			{
 				// In this case we need an extra temporary register.
-				opAddress = R(RDX);
+				opAddress = R(RSCRATCH2);
 				storeAddress = true;
 				if (use_constant_offset)
 				{
 					if (gpr.R(a).IsSimpleReg() && offset != 0)
 					{
-						LEA(32, RDX, MDisp(gpr.RX(a), offset));
+						LEA(32, RSCRATCH2, MDisp(gpr.RX(a), offset));
 					}
 					else
 					{
@@ -214,7 +214,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 				}
 				else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 				{
-					LEA(32, RDX, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+					LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 				}
 				else
 				{
@@ -231,7 +231,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	if (update && storeAddress)
 	{
 		// We need to save the (usually scratch) address register for the update.
-		registersInUse |= (1 << RDX);
+		registersInUse |= (1 << RSCRATCH2);
 	}
 	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
 
@@ -274,11 +274,11 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 		mem_mask |= Memory::ADDR_MASK_MEM1;
 
-	MOV(32, R(EAX), gpr.R(b));
+	MOV(32, R(RSCRATCH), gpr.R(b));
 	if (a)
-		ADD(32, R(EAX), gpr.R(a));
-	AND(32, R(EAX), Imm32(~31));
-	TEST(32, R(EAX), Imm32(mem_mask));
+		ADD(32, R(RSCRATCH), gpr.R(a));
+	AND(32, R(RSCRATCH), Imm32(~31));
+	TEST(32, R(RSCRATCH), Imm32(mem_mask));
 	FixupBranch fast = J_CC(CC_Z, true);
 
 	// Should this code ever run? I can't find any games that use DCBZ on non-physical addresses, but
@@ -286,14 +286,14 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
 	u32 registersInUse = CallerSavedRegistersInUse();
 	ABI_PushRegistersAndAdjustStack(registersInUse, false);
-	ABI_CallFunctionR((void *)&Memory::ClearCacheLine, EAX);
+	ABI_CallFunctionR((void *)&Memory::ClearCacheLine, RSCRATCH);
 	ABI_PopRegistersAndAdjustStack(registersInUse, false);
 
 	FixupBranch exit = J();
 	SetJumpTarget(fast);
 	PXOR(XMM0, R(XMM0));
-	MOVAPS(MComplex(RBX, RAX, SCALE_1, 0), XMM0);
-	MOVAPS(MComplex(RBX, RAX, SCALE_1, 16), XMM0);
+	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
+	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
 	SetJumpTarget(exit);
 }
 
@@ -338,7 +338,7 @@ void Jit64::stX(UGeckoInstruction inst)
 				// Helps external systems know which instruction triggered the write
 				MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
 
-				MOV(32, R(EDX), gpr.R(s));
+				MOV(32, R(RSCRATCH2), gpr.R(s));
 				if (update)
 					gpr.SetImmediate32(a, addr);
 
@@ -362,8 +362,8 @@ void Jit64::stX(UGeckoInstruction inst)
 			}
 			else if (Memory::IsRAMAddress(addr))
 			{
-				MOV(32, R(EAX), gpr.R(s));
-				WriteToConstRamAddress(accessSize, EAX, addr, true);
+				MOV(32, R(RSCRATCH), gpr.R(s));
+				WriteToConstRamAddress(accessSize, RSCRATCH, addr, true);
 				if (update)
 					gpr.SetImmediate32(a, addr);
 				return;
@@ -399,15 +399,15 @@ void Jit64::stX(UGeckoInstruction inst)
 		X64Reg reg_value;
 		if (WriteClobbersRegValue(accessSize, /* swap */ true))
 		{
-			MOV(32, R(EDX), gpr.R(s));
-			reg_value = EDX;
+			MOV(32, R(RSCRATCH2), gpr.R(s));
+			reg_value = RSCRATCH2;
 		}
 		else
 		{
 			gpr.BindToRegister(s, true, false);
 			reg_value = gpr.RX(s);
 		}
-		SafeWriteRegToReg(reg_value, gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_EAX_INSTEAD_OF_ADDR);
+		SafeWriteRegToReg(reg_value, gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 
 		if (update && offset)
 		{
@@ -440,16 +440,16 @@ void Jit64::stXx(UGeckoInstruction inst)
 	{
 		gpr.BindToRegister(a, true, true);
 		ADD(32, gpr.R(a), gpr.R(b));
-		MOV(32, R(EDX), gpr.R(a));
+		MOV(32, R(RSCRATCH2), gpr.R(a));
 	}
 	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
 	{
-		LEA(32, EDX, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
+		LEA(32, RSCRATCH2, MComplex(gpr.RX(a), gpr.RX(b), SCALE_1, 0));
 	}
 	else
 	{
-		MOV(32, R(EDX), gpr.R(a));
-		ADD(32, R(EDX), gpr.R(b));
+		MOV(32, R(RSCRATCH2), gpr.R(a));
+		ADD(32, R(RSCRATCH2), gpr.R(b));
 	}
 
 	int accessSize;
@@ -473,15 +473,15 @@ void Jit64::stXx(UGeckoInstruction inst)
 	X64Reg reg_value;
 	if (WriteClobbersRegValue(accessSize, /* swap */ true))
 	{
-		MOV(32, R(EAX), gpr.R(s));
-		reg_value = EAX;
+		MOV(32, R(RSCRATCH), gpr.R(s));
+		reg_value = RSCRATCH;
 	}
 	else
 	{
 		gpr.BindToRegister(s, true, false);
 		reg_value = gpr.RX(s);
 	}
-	SafeWriteRegToReg(reg_value, EDX, accessSize, 0, CallerSavedRegistersInUse());
+	SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse());
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -494,14 +494,14 @@ void Jit64::lmw(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStoreOff);
 
 	// TODO: This doesn't handle rollback on DSI correctly
-	MOV(32, R(EDX), Imm32((u32)(s32)inst.SIMM_16));
+	MOV(32, R(RSCRATCH2), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
-		ADD(32, R(EDX), gpr.R(inst.RA));
+		ADD(32, R(RSCRATCH2), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
-		SafeLoadToReg(EAX, R(EDX), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | (1 << ECX), false);
+		SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | (1 << RSCRATCH_EXTRA), false);
 		gpr.BindToRegister(i, false, true);
-		MOV(32, gpr.R(i), R(EAX));
+		MOV(32, gpr.R(i), R(RSCRATCH));
 	}
 	gpr.UnlockAllX();
 }
@@ -515,11 +515,11 @@ void Jit64::stmw(UGeckoInstruction inst)
 	for (int i = inst.RD; i < 32; i++)
 	{
 		if (inst.RA)
-			MOV(32, R(EAX), gpr.R(inst.RA));
+			MOV(32, R(RSCRATCH), gpr.R(inst.RA));
 		else
-			XOR(32, R(EAX), R(EAX));
-		MOV(32, R(EDX), gpr.R(i));
-		SafeWriteRegToReg(EDX, EAX, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, CallerSavedRegistersInUse());
+			XOR(32, R(RSCRATCH), R(RSCRATCH));
+		MOV(32, R(RSCRATCH2), gpr.R(i));
+		SafeWriteRegToReg(RSCRATCH2, RSCRATCH, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, CallerSavedRegistersInUse());
 	}
 	gpr.UnlockAllX();
 }

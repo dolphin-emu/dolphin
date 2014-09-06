@@ -39,14 +39,6 @@ using namespace PowerPC;
 
 // Various notes below
 
-// Register allocation
-//   RAX - Generic quicktemp register
-//   RBX - point to base of memory map
-//   RSI RDI R12 R13 R14 R15 - free for allocation
-//   RCX RDX R8 R9 R10 R11 - allocate in emergencies. These need to be flushed before functions are called.
-//   RSP - stack pointer, do not generally use, very dangerous
-//   RBP - ?
-
 // IMPORTANT:
 // Make sure that all generated code and all emulator state sits under the 2GB boundary so that
 // RIP addressing can be used easily. Windows will always allocate static code under the 2GB boundary.
@@ -305,18 +297,18 @@ void Jit64::WriteExit(u32 destination)
 	b->linkData.push_back(linkData);
 }
 
-void Jit64::WriteExitDestInEAX()
+void Jit64::WriteExitDestInRSCRATCH()
 {
-	MOV(32, PPCSTATE(pc), R(EAX));
+	MOV(32, PPCSTATE(pc), R(RSCRATCH));
 	Cleanup();
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
-void Jit64::WriteRfiExitDestInEAX()
+void Jit64::WriteRfiExitDestInRSCRATCH()
 {
-	MOV(32, PPCSTATE(pc), R(EAX));
-	MOV(32, PPCSTATE(npc), R(EAX));
+	MOV(32, PPCSTATE(pc), R(RSCRATCH));
+	MOV(32, PPCSTATE(npc), R(RSCRATCH));
 	Cleanup();
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
@@ -326,8 +318,8 @@ void Jit64::WriteRfiExitDestInEAX()
 void Jit64::WriteExceptionExit()
 {
 	Cleanup();
-	MOV(32, R(EAX), PPCSTATE(pc));
-	MOV(32, PPCSTATE(npc), R(EAX));
+	MOV(32, R(RSCRATCH), PPCSTATE(pc));
+	MOV(32, PPCSTATE(npc), R(RSCRATCH));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
@@ -336,8 +328,8 @@ void Jit64::WriteExceptionExit()
 void Jit64::WriteExternalExceptionExit()
 {
 	Cleanup();
-	MOV(32, R(EAX), PPCSTATE(pc));
-	MOV(32, PPCSTATE(npc), R(EAX));
+	MOV(32, R(RSCRATCH), PPCSTATE(pc));
+	MOV(32, PPCSTATE(npc), R(RSCRATCH));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
@@ -520,9 +512,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 					HLEFunction(function);
 					if (type == HLE::HLE_HOOK_REPLACE)
 					{
-						MOV(32, R(EAX), PPCSTATE(npc));
+						MOV(32, R(RSCRATCH), PPCSTATE(npc));
 						js.downcountAmount += js.st.numCycles;
-						WriteExitDestInEAX();
+						WriteExitDestInRSCRATCH();
 						break;
 					}
 				}
@@ -650,8 +642,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI));
 
 		// Remove the invalid instruction from the icache, forcing a recompile
-		MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
-		MOV(32,MatR(RAX),Imm32(JIT_ICACHE_INVALID_WORD));
+		MOV(64, R(RSCRATCH), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
+		MOV(32,MatR(RSCRATCH),Imm32(JIT_ICACHE_INVALID_WORD));
 
 		WriteExceptionExit();
 	}

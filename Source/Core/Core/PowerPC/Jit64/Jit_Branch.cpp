@@ -46,12 +46,12 @@ void Jit64::rfi(UGeckoInstruction inst)
 	const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
 	// MSR = ((MSR & ~mask) | (SRR1 & mask)) & clearMSR13;
 	AND(32, PPCSTATE(msr), Imm32((~mask) & clearMSR13));
-	MOV(32, R(EAX), PPCSTATE_SRR1);
-	AND(32, R(EAX), Imm32(mask & clearMSR13));
-	OR(32, PPCSTATE(msr), R(EAX));
+	MOV(32, R(RSCRATCH), PPCSTATE_SRR1);
+	AND(32, R(RSCRATCH), Imm32(mask & clearMSR13));
+	OR(32, PPCSTATE(msr), R(RSCRATCH));
 	// NPC = SRR0;
-	MOV(32, R(EAX), PPCSTATE_SRR0);
-	WriteRfiExitDestInEAX();
+	MOV(32, R(RSCRATCH), PPCSTATE_SRR0);
+	WriteRfiExitDestInRSCRATCH();
 }
 
 void Jit64::bx(UGeckoInstruction inst)
@@ -164,11 +164,11 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		gpr.Flush();
 		fpr.Flush();
 
-		MOV(32, R(EAX), PPCSTATE_CTR);
+		MOV(32, R(RSCRATCH), PPCSTATE_CTR);
 		if (inst.LK_3)
 			MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4)); // LR = PC + 4;
-		AND(32, R(EAX), Imm32(0xFFFFFFFC));
-		WriteExitDestInEAX();
+		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
+		WriteExitDestInRSCRATCH();
 	}
 	else
 	{
@@ -179,15 +179,15 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
 		FixupBranch b = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
 		                                 !(inst.BO_2 & BO_BRANCH_IF_TRUE));
-		MOV(32, R(EAX), PPCSTATE_CTR);
-		AND(32, R(EAX), Imm32(0xFFFFFFFC));
-		//MOV(32, PPCSTATE(pc), R(EAX)); => Already done in WriteExitDestInEAX()
+		MOV(32, R(RSCRATCH), PPCSTATE_CTR);
+		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
+		//MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
 		if (inst.LK_3)
 			MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4)); // LR = PC + 4;
 
 		gpr.Flush(FLUSH_MAINTAIN_STATE);
 		fpr.Flush(FLUSH_MAINTAIN_STATE);
-		WriteExitDestInEAX();
+		WriteExitDestInRSCRATCH();
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
 
@@ -224,14 +224,14 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
 #endif
 
-	MOV(32, R(EAX), PPCSTATE_LR);
-	AND(32, R(EAX), Imm32(0xFFFFFFFC));
+	MOV(32, R(RSCRATCH), PPCSTATE_LR);
+	AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
 	if (inst.LK)
 		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
 	gpr.Flush(FLUSH_MAINTAIN_STATE);
 	fpr.Flush(FLUSH_MAINTAIN_STATE);
-	WriteExitDestInEAX();
+	WriteExitDestInRSCRATCH();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );
