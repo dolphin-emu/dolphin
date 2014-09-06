@@ -101,6 +101,12 @@ void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 	Close();
 }
 
+void VideoConfigDiag::Event_ClickSave(wxCommandEvent&)
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal != "")
+		g_Config.GameIniSave();
+}
+
 void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 {
 	g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
@@ -113,6 +119,7 @@ static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use int
 #else
 static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
 #endif
+static wxString temp_desc = wxTRANSLATE("Game specific VR option.");
 static wxString scale_desc = wxTRANSLATE("(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = Barbie doll size, 0.02x = Lego size\n\nIf unsure, use 1.00.");
 static wxString lean_desc = wxTRANSLATE("How many degrees leaning back should count as vertical.\n0 = sitting/standing, 45 = reclining\n90 = playing lying on your back, -90 = on your front\n\nIf unsure, use 0.");
 static wxString enablevr_desc = wxTRANSLATE("Enable Virtual Reality (if your HMD was detected when you started Dolphin).\n\nIf unsure, leave this checked.");
@@ -680,6 +687,132 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		page_vr->SetSizerAndFit(szr_vr_main);
 	}
 
+	// -- VR Game --
+	{
+		wxPanel* const page_vr = new wxPanel(notebook, -1);
+		notebook->AddPage(page_vr, _("VR Game"));
+		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
+
+		// - vr
+		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(2, 5, 5);
+
+		// Units Per Metre
+		{
+			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fUnitsPerMetre,
+				wxGetTranslation(temp_desc), 0.0000001f, 10000000, 0.5f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Units per metre:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_scale);
+		}
+		// HUD distance
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHudDistance,
+				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD Distance:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// HUD thickness
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fHudThickness,
+				wxGetTranslation(temp_desc), 0, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("HUD Thickness:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Camera forward
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fCameraForward,
+				wxGetTranslation(temp_desc), -10000, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera forward:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Camera pitch
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fCameraPitch,
+				wxGetTranslation(temp_desc), -180, 360, 1);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Camera pitch:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Aim distance
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fAimDistance,
+				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Aim distance:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen Height
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenHeight,
+				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Height:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen Distance
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenDistance,
+				wxGetTranslation(temp_desc), 0.01f, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Distance:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen Thickness
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenThickness,
+				wxGetTranslation(temp_desc), 0, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Thickness:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen Up
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenUp,
+				wxGetTranslation(temp_desc), -10000, 10000, 0.1f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Up:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+		// Screen pitch
+		{
+			SettingNumber *const spin = CreateNumber(page_vr, vconfig.fScreenPitch,
+				wxGetTranslation(temp_desc), -180, 360, 1);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("2D Screen Pitch:"));
+			label->SetToolTip(wxGetTranslation(temp_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("For this game only"));
+		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
+
+		wxButton* const btn_save = new wxButton(page_vr, wxID_OK, _("Save"));
+		btn_save->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ClickSave, this);
+		szr_vr->Add(btn_save, 1, wxALIGN_CENTER_VERTICAL, 0);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal == "")
+		{
+			btn_save->Disable();
+			page_vr->Disable();
+		}
+
+		szr_vr_main->AddStretchSpacer();
+		CreateDescriptionArea(page_vr, szr_vr_main);
+		page_vr->SetSizerAndFit(szr_vr_main);
+	}
 
 	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"));
 	btn_close->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ClickClose, this);

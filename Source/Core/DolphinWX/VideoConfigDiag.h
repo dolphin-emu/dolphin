@@ -184,6 +184,7 @@ protected:
 	}
 
 	void Event_ClickClose(wxCommandEvent&);
+	void Event_ClickSave(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
 
 	// Enables/disables UI elements depending on current config
