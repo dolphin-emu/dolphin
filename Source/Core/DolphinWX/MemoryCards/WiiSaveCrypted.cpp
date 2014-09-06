@@ -354,9 +354,9 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 			{
 				file_size = Common::swap32(file_hdr_tmp.size);
 				u32 file_size_rounded = ROUND_UP(file_size, BLOCK_SZ);
-				std::vector<u8> file_data, file_data_enc;
-				file_data.reserve(file_size_rounded);
-				file_data_enc.reserve(file_size_rounded);
+				std::vector<u8> file_data(file_size_rounded);
+				std::vector<u8> file_data_enc(file_size_rounded);
+
 				if (!data_file.ReadBytes(&file_data_enc[0], file_size_rounded))
 				{
 					ERROR_LOG(CONSOLE, "Failed to read data from file %d", i);
