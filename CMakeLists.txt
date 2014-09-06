@@ -592,7 +592,7 @@ if(SFML_FOUND AND NOT SFML_VERSION_MAJOR) # SFML 1.x doesn't define SFML_VERSION
 else()
 	message("Using static SFML ${SFML_FIND_VERSION_MAJOR}.${SFML_FIND_VERSION_MINOR} from Externals")
 	add_subdirectory(Externals/SFML)
-	include_directories(Externals/SFML/include)
+	include_directories(BEFORE Externals/SFML/include)
 endif()
 
 if(USE_UPNP)
