@@ -149,11 +149,67 @@ void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 u16 AcceleratorGetSample()
 {
 	u16 ret;
-	u8 step_size_bytes = 2;
+	u8 step_size_bytes = 0;
 
-	// 8-bit PCM audio uses 1 byte per sample/sample block, not 2 like other formats.
-	if (acc_pb->audio_addr.sample_format == 0x19)
-		step_size_bytes = 1;
+	// See below for explanations about acc_end_reached.
+	if (acc_end_reached)
+		return 0;
+
+	switch (acc_pb->audio_addr.sample_format)
+	{
+		case 0x00: // ADPCM
+		{
+			// ADPCM decoding, not much to explain here.
+			if ((*acc_cur_addr & 15) == 0)
+			{
+				acc_pb->adpcm.pred_scale = DSP::ReadARAM((*acc_cur_addr & ~15) >> 1);
+				*acc_cur_addr += 2;
+			}
+
+			int scale = 1 << (acc_pb->adpcm.pred_scale & 0xF);
+			int coef_idx = (acc_pb->adpcm.pred_scale >> 4) & 0x7;
+
+			s32 coef1 = acc_pb->adpcm.coefs[coef_idx * 2 + 0];
+			s32 coef2 = acc_pb->adpcm.coefs[coef_idx * 2 + 1];
+
+			int temp = (*acc_cur_addr & 1) ?
+					(DSP::ReadARAM(*acc_cur_addr >> 1) & 0xF) :
+					(DSP::ReadARAM(*acc_cur_addr >> 1) >> 4);
+
+			if (temp >= 8)
+				temp -= 16;
+
+			int val = (scale * temp) + ((0x400 + coef1 * acc_pb->adpcm.yn1 + coef2 * acc_pb->adpcm.yn2) >> 11);
+			MathUtil::Clamp(&val, -0x7FFF, 0x7FFF);
+
+			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
+			acc_pb->adpcm.yn1 = val;
+			step_size_bytes = 2;
+			*acc_cur_addr += 1;
+			ret = val;
+			break;
+		}
+
+		case 0x0A: // 16-bit PCM audio
+			ret = (DSP::ReadARAM(*acc_cur_addr * 2) << 8) | DSP::ReadARAM(*acc_cur_addr * 2 + 1);
+			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
+			acc_pb->adpcm.yn1 = ret;
+			step_size_bytes = 2;
+			*acc_cur_addr += 1;
+			break;
+
+		case 0x19: // 8-bit PCM audio
+			ret = DSP::ReadARAM(*acc_cur_addr) << 8;
+			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
+			acc_pb->adpcm.yn1 = ret;
+			step_size_bytes = 1;
+			*acc_cur_addr += 1;
+			break;
+
+		default:
+			ERROR_LOG(DSPHLE, "Unknown sample format: %d", acc_pb->audio_addr.sample_format);
+			return 0;
+	}
 
 	// Have we reached the end address?
 	//
@@ -192,63 +248,6 @@ u16 AcceleratorGetSample()
 			acc_end_reached = true;
 #endif
 		}
-	}
-
-	// See above for explanations about acc_end_reached.
-	if (acc_end_reached)
-		return 0;
-
-	switch (acc_pb->audio_addr.sample_format)
-	{
-		case 0x00: // ADPCM
-		{
-			// ADPCM decoding, not much to explain here.
-			if ((*acc_cur_addr & 15) == 0)
-			{
-				acc_pb->adpcm.pred_scale = DSP::ReadARAM((*acc_cur_addr & ~15) >> 1);
-				*acc_cur_addr += 2;
-			}
-
-			int scale = 1 << (acc_pb->adpcm.pred_scale & 0xF);
-			int coef_idx = (acc_pb->adpcm.pred_scale >> 4) & 0x7;
-
-			s32 coef1 = acc_pb->adpcm.coefs[coef_idx * 2 + 0];
-			s32 coef2 = acc_pb->adpcm.coefs[coef_idx * 2 + 1];
-
-			int temp = (*acc_cur_addr & 1) ?
-					(DSP::ReadARAM(*acc_cur_addr >> 1) & 0xF) :
-					(DSP::ReadARAM(*acc_cur_addr >> 1) >> 4);
-
-			if (temp >= 8)
-				temp -= 16;
-
-			int val = (scale * temp) + ((0x400 + coef1 * acc_pb->adpcm.yn1 + coef2 * acc_pb->adpcm.yn2) >> 11);
-			MathUtil::Clamp(&val, -0x7FFF, 0x7FFF);
-
-			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
-			acc_pb->adpcm.yn1 = val;
-			*acc_cur_addr += 1;
-			ret = val;
-			break;
-		}
-
-		case 0x0A: // 16-bit PCM audio
-			ret = (DSP::ReadARAM(*acc_cur_addr * 2) << 8) | DSP::ReadARAM(*acc_cur_addr * 2 + 1);
-			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
-			acc_pb->adpcm.yn1 = ret;
-			*acc_cur_addr += 1;
-			break;
-
-		case 0x19: // 8-bit PCM audio
-			ret = DSP::ReadARAM(*acc_cur_addr) << 8;
-			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
-			acc_pb->adpcm.yn1 = ret;
-			*acc_cur_addr += 1;
-			break;
-
-		default:
-			ERROR_LOG(DSPHLE, "Unknown sample format: %d", acc_pb->audio_addr.sample_format);
-			return 0;
 	}
 
 	return ret;
