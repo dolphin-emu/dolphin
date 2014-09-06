@@ -15,19 +15,11 @@
 #pragma once
 
 #include <string>
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 
-class WaveFileWriter
+class WaveFileWriter : NonCopyable
 {
-	File::IOFile file;
-	bool skip_silence;
-	u32 audio_size;
-	short *conv_buffer;
-	void Write(u32 value);
-	void Write4(const char *ptr);
-
-	WaveFileWriter& operator=(const WaveFileWriter&)/* = delete*/;
-
 public:
 	WaveFileWriter();
 	~WaveFileWriter();
@@ -40,4 +32,12 @@ public:
 	void AddStereoSamples(const short *sample_data, u32 count);
 	void AddStereoSamplesBE(const short *sample_data, u32 count);  // big endian
 	u32 GetAudioSize() const { return audio_size; }
+
+private:
+	File::IOFile file;
+	bool skip_silence;
+	u32 audio_size;
+	short* conv_buffer;
+	void Write(u32 value);
+	void Write4(const char* ptr);
 };
