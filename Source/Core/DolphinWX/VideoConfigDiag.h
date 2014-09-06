@@ -73,6 +73,24 @@ private:
 
 typedef IntegerSetting<u32> U32Setting;
 
+template <typename T>
+class FloatSetting : public wxSpinCtrlDouble
+{
+public:
+	FloatSetting(wxWindow* parent, const wxString& label, T& setting, T minVal, T maxVal, T increment = 0, long style = 0);
+
+	void UpdateValue(wxSpinDoubleEvent& ev)
+	{
+		m_setting = ev.GetValue();
+		ev.Skip();
+	}
+private:
+	T& m_setting;
+};
+
+typedef FloatSetting<double> SettingDouble;
+typedef FloatSetting<float> SettingNumber;
+
 class SettingChoice : public wxChoice
 {
 public:
@@ -218,6 +236,7 @@ protected:
 	SettingCheckBox* CreateCheckBox(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
 	SettingChoice* CreateChoice(wxWindow* parent, int& setting, const wxString& description, int num = 0, const wxString choices[] = nullptr, long style = 0);
 	SettingRadioButton* CreateRadioButton(wxWindow* parent, const wxString& label, const wxString& description, bool &setting, bool reverse = false, long style = 0);
+	SettingNumber* CreateNumber(wxWindow* parent, float &setting, const wxString& description, float min, float max, float inc, long style = 0);
 
 	// Same as above but only connects enter/leave window events
 	wxControl* RegisterControl(wxControl* const control, const wxString& description);

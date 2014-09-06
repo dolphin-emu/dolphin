@@ -772,7 +772,7 @@ void VertexShaderManager::SetProjectionConstants()
 
 	PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
 
-	float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre * fScaleHack;
+	float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre * fScaleHack / g_ActiveConfig.fScale;
 
 	// VR Oculus Rift 3D projection matrix, needs to include head-tracking
 	if (g_has_hmd && !bFullscreenLayer)
@@ -927,6 +927,7 @@ void VertexShaderManager::SetProjectionConstants()
 				extra_pitch = g_ActiveConfig.fCameraPitch;
 			else
 				extra_pitch = g_ActiveConfig.fScreenPitch;
+			extra_pitch -= g_ActiveConfig.fLeanBackAngle;
 			Matrix33 pitch_matrix33;
 			Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
 			Matrix44 pitch_matrix;
@@ -972,9 +973,14 @@ void VertexShaderManager::SetProjectionConstants()
 		}
 		else
 		{
-			float pos[3];
+			float head[3], pos[3];
 			for (int i = 0; i < 3; ++i)
-				pos[i] = s_fViewTranslationVector[i] + g_head_tracking_position[i] * UnitsPerMetre;
+				head[i] = g_head_tracking_position[i] * UnitsPerMetre;
+			pos[0] = head[0];
+			pos[1] = head[1] * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle)) + head[2] * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle));
+			pos[2] = head[2] * cos(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle)) - head[1] * sin(DEGREES_TO_RADIANS(g_ActiveConfig.fLeanBackAngle));
+			for (int i = 0; i < 3; ++i)
+				pos[i] += s_fViewTranslationVector[i] * UnitsPerMetre;
 			if (!bNoForward)
 				pos[2] += g_ActiveConfig.fCameraForward * UnitsPerMetre;
 			static int x = 0;

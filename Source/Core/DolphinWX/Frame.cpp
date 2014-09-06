@@ -1091,7 +1091,8 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
 		{
-			static float debugSpeed = 0.1f;
+			// everything is in metres, except UnitsPerMetre which is in game units
+			static float debugSpeed = 0.1f; 
 			switch (event.GetKeyCode())
 			{
 			case '9':
@@ -1101,22 +1102,22 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				debugSpeed *= 2.0f;
 				break;
 			case 'W':
-				VertexShaderManager::TranslateView(0.0f, debugSpeed*g_Config.fUnitsPerMetre);
+				VertexShaderManager::TranslateView(0.0f, debugSpeed);
 				break;
 			case 'S':
-				VertexShaderManager::TranslateView(0.0f, -debugSpeed*g_Config.fUnitsPerMetre);
+				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
 				break;
 			case 'A':
-				VertexShaderManager::TranslateView(debugSpeed*g_Config.fUnitsPerMetre, 0.0f);
+				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
 				break;
 			case 'D':
-				VertexShaderManager::TranslateView(-debugSpeed*g_Config.fUnitsPerMetre, 0.0f);
+				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
 				break;
 			case 'Q':
-				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed*g_Config.fUnitsPerMetre);
+				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
 				break;
 			case 'E':
-				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed*g_Config.fUnitsPerMetre);
+				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
 				break;
 			case 'R':
 				VertexShaderManager::ResetView();

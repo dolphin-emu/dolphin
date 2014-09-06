@@ -71,6 +71,15 @@ SettingRadioButton::BoolSetting(wxWindow* parent, const wxString& label, const w
 	Bind(wxEVT_RADIOBUTTON, &SettingRadioButton::UpdateValue, this);
 }
 
+template <typename T>
+FloatSetting<T>::FloatSetting(wxWindow* parent, const wxString& label, T& setting, T minVal, T maxVal, T increment, long style) :
+wxSpinCtrlDouble(parent, -1, label, wxDefaultPosition, wxDefaultSize, style, minVal, maxVal, setting, increment),
+m_setting(setting)
+{
+	Bind(wxEVT_SPINCTRLDOUBLE, &FloatSetting::UpdateValue, this);
+}
+
+
 SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num, const wxString choices[], long style)
 	: wxChoice(parent, -1, wxDefaultPosition, wxDefaultSize, num, choices)
 	, m_setting(setting)
@@ -103,6 +112,8 @@ static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use int
 #else
 static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
 #endif
+static wxString scale_desc = wxTRANSLATE("(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = Barbie doll size, 0.02x = Lego size\n\nIf unsure, use 1.00.");
+static wxString lean_desc = wxTRANSLATE("How many degrees leaning back should count as vertical.\n0 = sitting/standing, 45 = reclining\n90 = playing lying on your back, -90 = on your front\n\nIf unsure, use 0.");
 static wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf unsure, use the first one.");
 static wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, use your desktop resolution.\nIf still unsure, use the highest resolution which works for you.");
 static wxString use_fullscreen_desc = wxTRANSLATE("Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a render window will be created instead.\n\nIf unsure, leave this unchecked.");
@@ -600,6 +611,46 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	page_advanced->SetSizerAndFit(szr_advanced);
 	}
 
+	// -- VR --
+	{
+		wxPanel* const page_vr = new wxPanel(notebook, -1);
+		notebook->AddPage(page_vr, _("VR"));
+		wxBoxSizer* const szr_vr_main = new wxBoxSizer(wxVERTICAL);
+
+		// - vr
+		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(2, 5, 5);
+
+		// Scale
+		{
+			SettingNumber *const spin_scale = CreateNumber(page_vr, vconfig.fScale, 
+				wxGetTranslation(scale_desc), 0.001f, 100.0f, 0.01f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Scale:"));
+			label->SetToolTip(wxGetTranslation(scale_desc));
+
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_scale);
+		}
+		// Lean back angle
+		{
+			SettingNumber *const spin_lean = CreateNumber(page_vr, vconfig.fLeanBackAngle,
+				wxGetTranslation(lean_desc), -180.0f, 180.0f, 1.0f);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, _("Lean back angle:"));
+
+			label->SetToolTip(wxGetTranslation(lean_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_lean);
+		}
+
+		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
+		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+		szr_vr_main->Add(group_vr, 0, wxEXPAND | wxALL, 5);
+
+		szr_vr_main->AddStretchSpacer();
+		CreateDescriptionArea(page_vr, szr_vr_main);
+		page_vr->SetSizerAndFit(szr_vr_main);
+	}
+
+
 	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"));
 	btn_close->Bind(wxEVT_BUTTON, &VideoConfigDiag::Event_ClickClose, this);
 
@@ -645,6 +696,13 @@ SettingRadioButton* VideoConfigDiag::CreateRadioButton(wxWindow* parent, const w
 	SettingRadioButton* const rb = new SettingRadioButton(parent, label, wxString(), setting, reverse, style);
 	RegisterControl(rb, description);
 	return rb;
+}
+
+SettingNumber* VideoConfigDiag::CreateNumber(wxWindow* parent, float &setting, const wxString& description, float min, float max, float inc, long style)
+{
+	SettingNumber* const sn = new SettingNumber(parent, wxString(), setting, min, max, inc, style);
+	RegisterControl(sn, description);
+	return sn;
 }
 
 /* Use this to register descriptions for controls which have NOT been created using the Create* functions from above */

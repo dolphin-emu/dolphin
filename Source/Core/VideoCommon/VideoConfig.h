@@ -122,6 +122,9 @@ struct VideoConfig final
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
 
+	// VR global
+	float fScale;
+	float fLeanBackAngle;
 	// VR
 	float fUnitsPerMetre;
 	float fHudThickness;

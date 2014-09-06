@@ -42,6 +42,10 @@ VideoConfig::VideoConfig()
 	backend_info.bUseMinimalMipCount = false;
 	backend_info.bSupportsExclusiveFullscreen = false;
 
+	// VR
+	fScale = 1.0f;
+	fLeanBackAngle = 0;
+
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
 	fHudDistance = DEFAULT_VR_HUD_DISTANCE;
@@ -111,6 +115,10 @@ void VideoConfig::Load(const std::string& ini_file)
 	hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
 	hacks->Get("EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
 	hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
+
+	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
+	vr->Get("Scale", &fScale, 1.0f);
+	vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
 
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -364,6 +372,10 @@ void VideoConfig::Save(const std::string& ini_file)
 	hacks->Set("EFBScaledCopy", bCopyEFBScaled);
 	hacks->Set("EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
+
+	IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
+	vr->Set("Scale", fScale);
+	vr->Set("LeanBackAngle", fLeanBackAngle);
 
 	iniFile.Save(ini_file);
 }
