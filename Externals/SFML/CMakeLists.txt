@@ -1,4 +1,4 @@
-include_directories(include)
+include_directories(BEFORE include)
 
 set(SRCS	src/SFML/Network/Ftp.cpp
 			src/SFML/Network/Http.cpp
