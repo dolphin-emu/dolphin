@@ -320,17 +320,22 @@ static void InitDriverInfo()
 			version = 100*major + 10*minor + release;
 		}
 		break;
-		case DriverDetails::VENDOR_INTEL: // Happens in OS X
+		case DriverDetails::VENDOR_INTEL: // Happens in OS X/Windows
+		{
 			sscanf(g_ogl_config.gl_renderer, "Intel HD Graphics %d", &family);
-			/*
+#ifdef _WIN32
 			int glmajor = 0;
 			int glminor = 0;
 			int major = 0;
 			int minor = 0;
 			int release = 0;
-			sscanf(g_ogl_config.gl_version, "%d.%d INTEL-%d.%d.%d", &glmajor, &glminor, &major, &minor, &release);
-			version = 10000*major + 1000*minor + release;
-			*/
+			int revision = 0;
+			// Example version string: '4.3.0 - Build 10.18.10.3907'
+			sscanf(g_ogl_config.gl_version, "%d.%d.0 - Build %d.%d.%d.%d", &glmajor, &glminor, &major, &minor, &release, &revision);
+			version = 100000000 * major + 1000000 * minor + 10000 * release + revision;
+			version /= 10000;
+#endif
+		}
 		break;
 		case DriverDetails::VENDOR_NVIDIA:
 		{
@@ -1925,7 +1930,8 @@ void Renderer::RestoreAPIState()
 
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
-	glBindVertexArray(vm->m_last_vao);
+	if (vm->m_last_vao)
+		glBindVertexArray(vm->m_last_vao);
 
 	TextureCache::SetStage();
 }

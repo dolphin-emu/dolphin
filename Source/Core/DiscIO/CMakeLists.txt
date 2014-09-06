@@ -8,7 +8,6 @@ set(SRCS	BannerLoader.cpp
 			DiscScrubber.cpp
 			DriveBlob.cpp
 			FileBlob.cpp
-			FileHandlerARC.cpp
 			FileMonitor.cpp
 			FileSystemGCWii.cpp
 			Filesystem.cpp

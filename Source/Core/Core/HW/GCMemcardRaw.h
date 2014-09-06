@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <chrono>
 #include <memory>
 #include "Common/Event.h"
 #include "Common/Flag.h"
@@ -19,7 +18,7 @@ public:
 	MemoryCard(std::string filename, int _card_index, u16 sizeMb = MemCard2043Mb);
 	~MemoryCard();
 	void FlushThread();
-	void TryFlush();
+	void MakeDirty();
 
 	s32 Read(u32 address, s32 length, u8 *destaddress) override;
 	s32 Write(u32 destaddress, s32 length, u8 *srcaddress) override;
@@ -30,11 +29,9 @@ public:
 private:
 	std::string m_filename;
 	std::unique_ptr<u8[]> m_memcard_data;
+	std::unique_ptr<u8[]> m_flush_buffer;
 	std::thread m_flush_thread;
 	std::mutex m_flush_mutex;
 	Common::Event m_flush_trigger;
-	Common::Flag m_is_exiting;
-	std::unique_ptr<u8[]> m_flush_buffer;
-	std::chrono::steady_clock::time_point m_last_flush;
-	static const std::chrono::seconds s_flush_interval;
+	Common::Flag m_dirty;
 };

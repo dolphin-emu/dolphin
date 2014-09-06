@@ -366,3 +366,43 @@ void Jit64::frspx(UGeckoInstruction inst)
 	SetFPRFIfNeeded(inst, fpr.RX(d));
 	fpr.UnlockAll();
 }
+
+void Jit64::frsqrtex(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+	int b = inst.FB;
+	int d = inst.FD;
+
+	// rsqrtex requires ECX and EDX free
+	gpr.FlushLockX(ECX, EDX);
+	fpr.Lock(b, d);
+	fpr.BindToRegister(d, d == b);
+	MOVSD(XMM0, fpr.R(b));
+	CALL((void *)asm_routines.frsqrte);
+	MOVSD(fpr.R(d), XMM0);
+	SetFPRFIfNeeded(inst, fpr.RX(d));
+	fpr.UnlockAll();
+	gpr.UnlockAllX();
+}
+
+void Jit64::fresx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+	int b = inst.FB;
+	int d = inst.FD;
+
+	// resx requires ECX and EDX free
+	gpr.FlushLockX(ECX, EDX);
+	fpr.Lock(b, d);
+	fpr.BindToRegister(d, d == b);
+	MOVSD(XMM0, fpr.R(b));
+	CALL((void *)asm_routines.fres);
+	MOVSD(fpr.R(d), XMM0);
+	SetFPRFIfNeeded(inst, fpr.RX(d));
+	fpr.UnlockAll();
+	gpr.UnlockAllX();
+}

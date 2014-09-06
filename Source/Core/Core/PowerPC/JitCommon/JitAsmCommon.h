@@ -24,6 +24,9 @@ public:
 	const u8 *dispatchPcInEAX;
 	const u8 *doTiming;
 
+	const u8 *frsqrte;
+	const u8 *fres;
+
 	// In: array index: GQR to use.
 	// In: ECX: Address to read from.
 	// Out: XMM0: Bottom two 32-bit slots hold the read value,
@@ -56,5 +59,6 @@ public:
 	void GenFifoWrite(int size);
 	void GenFifoXmm64Write();
 	void GenFifoFloatWrite();
-
+	void GenFrsqrte();
+	void GenFres();
 };

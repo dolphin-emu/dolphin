@@ -129,6 +129,15 @@ u32 ClassifyDouble(double dvalue);
 // More efficient float version.
 u32 ClassifyFloat(float fvalue);
 
+extern const int frsqrte_expected_base[];
+extern const int frsqrte_expected_dec[];
+extern const int fres_expected_base[];
+extern const int fres_expected_dec[];
+
+// PowerPC approximation algorithms
+double ApproximateReciprocalSquareRoot(double val);
+double ApproximateReciprocal(double val);
+
 template<class T>
 struct Rectangle
 {

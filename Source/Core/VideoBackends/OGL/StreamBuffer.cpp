@@ -378,7 +378,8 @@ StreamBuffer* StreamBuffer::Create(u32 type, u32 size)
 
 		// buffer storage works well in most situations
 		if (g_ogl_config.bSupportsGLBufferStorage &&
-			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER))
+			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER) &&
+			!(DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENBUFFERSTORAGE) && type == GL_ELEMENT_ARRAY_BUFFER))
 			return new BufferStorage(type, size);
 
 		// don't fall back to MapAnd* for nvidia drivers
