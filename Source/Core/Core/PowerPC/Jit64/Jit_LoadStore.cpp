@@ -435,10 +435,11 @@ void Jit64::stXx(UGeckoInstruction inst)
 
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	FALLBACK_IF(!a || a == s || a == b);
+	bool update = !!(inst.SUBOP10 & 32);
 
 	gpr.Lock(a, b, s);
 
-	if (inst.SUBOP10 & 32)
+	if (update)
 	{
 		gpr.BindToRegister(a, true, true);
 		ADD(32, gpr.R(a), gpr.R(b));
@@ -484,6 +485,14 @@ void Jit64::stXx(UGeckoInstruction inst)
 		reg_value = gpr.RX(s);
 	}
 	SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse());
+
+	if (update && js.memcheck)
+	{
+		// revert the address change if an exception occurred
+		MEMCHECK_START(true)
+		SUB(32, gpr.R(a), gpr.R(b));
+		MEMCHECK_END;
+	}
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
