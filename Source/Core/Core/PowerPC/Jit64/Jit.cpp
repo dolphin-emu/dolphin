@@ -586,11 +586,11 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
 				// In case we are about to jump to the dispatcher, flush regs
-				gpr.Flush();
-				fpr.Flush();
-
 				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
 				FixupBranch noMemException = J_CC(CC_Z, true);
+
+				gpr.Flush(FLUSH_MAINTAIN_STATE);
+				fpr.Flush(FLUSH_MAINTAIN_STATE);
 
 				// If a memory exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
