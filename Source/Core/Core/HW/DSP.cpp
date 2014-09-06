@@ -38,6 +38,7 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 namespace DSP
 {
@@ -441,6 +442,21 @@ static void UpdateInterrupts()
 	bool ints_set = (((g_dspState.DSPControl.Hex >> 1) & g_dspState.DSPControl.Hex & (INT_DSP | INT_ARAM | INT_AID)) != 0);
 
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
+
+	if ((g_dspState.DSPControl.Hex >> 1) & g_dspState.DSPControl.Hex & (INT_DSP | INT_ARAM | INT_AID))
+	{
+		if (jit && PC != 0 && (jit->js.dspARAMAddresses.find(PC)) == (jit->js.dspARAMAddresses.end()) && (g_dspState.DSPControl.ARAM & g_dspState.DSPControl.ARAM_mask))
+		{
+			int type = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
+			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || (type == OPTYPE_PS && GetOpInfo(Memory::ReadUnchecked_U32(PC))->opname == "psq_st"))
+			{
+				jit->js.dspARAMAddresses.insert(PC);
+
+				// Invalidate the JIT block so that it gets recompiled with the external exception check included.
+				jit->GetBlockCache()->InvalidateICache(PC, 4);
+			}
+		}
+	}
 }
 
 static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate)
@@ -518,25 +534,11 @@ static void Do_ARAM_DMA()
 	g_dspState.DSPControl.DMAState = 1;
 	if (g_arDMA.Cnt.count == 32)
 	{
-		// Beyond Good and Evil (GGEE41) sends count 32
-		// Lost Kingdoms 2 needs the exception check here in DSP HLE mode
 		CompleteARAM(0, 0);
-		CoreTiming::ForceExceptionCheck(100);
 	}
 	else
 	{
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_CompleteARAM);
-
-		// Force an early exception check on large transfers. Fixes RE2 audio.
-		// NFS:HP2 (<= 6144)
-		// Viewtiful Joe (<= 6144)
-		// Sonic Mega Collection (> 2048)
-		// Paper Mario battles (> 32)
-		// Mario Super Baseball (> 32)
-		// Knockout Kings 2003 loading (> 32)
-		// WWE DOR (> 32)
-		if (g_arDMA.Cnt.count > 2048 && g_arDMA.Cnt.count <= 6144)
-			CoreTiming::ForceExceptionCheck(100);
 	}
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
