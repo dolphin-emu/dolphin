@@ -51,7 +51,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 			return nullptr;
 		}
 	}
-	if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
+	if (info != nullptr && (info->type & 0xFFFFFF) == OPTYPE_INVALID)
 	{
 		_assert_msg_(POWERPC,0,"GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
 		return nullptr;
