@@ -184,22 +184,6 @@ static inline void DecodeBytes_IA4(u32 *dst, const u8 *src)
 	}
 }
 
-static inline void DecodeBytes_RGB5A3(u32 *dst, const u16 *src)
-{
-	dst[0] = DecodePixel_RGB5A3(Common::swap16(src[0]));
-	dst[1] = DecodePixel_RGB5A3(Common::swap16(src[1]));
-	dst[2] = DecodePixel_RGB5A3(Common::swap16(src[2]));
-	dst[3] = DecodePixel_RGB5A3(Common::swap16(src[3]));
-}
-
-static inline void DecodeBytes_RGBA8(u32 *dst, const u16 *src, const u16 * src2)
-{
-	dst[0] =  ((src[0] & 0xFF) << 24) | ((src[0] & 0xFF00)>>8)  | (src2[0] << 8);
-	dst[1] =  ((src[1] & 0xFF) << 24) | ((src[1] & 0xFF00)>>8)  | (src2[1] << 8);
-	dst[2] =  ((src[2] & 0xFF) << 24) | ((src[2] & 0xFF00)>>8)  | (src2[2] << 8);
-	dst[3] =  ((src[3] & 0xFF) << 24) | ((src[3] & 0xFF00)>>8)  | (src2[3] << 8);
-}
-
 #ifdef CHECK
 static inline u32 makeRGBA(int r, int g, int b, int a)
 {
