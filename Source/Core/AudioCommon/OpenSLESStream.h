@@ -13,11 +13,14 @@ class OpenSLESStream final : public SoundStream
 {
 #ifdef ANDROID
 public:
-	OpenSLESStream(CMixer *mixer, void *hWnd = nullptr)
+	OpenSLESStream(CMixer *mixer)
 		: SoundStream(mixer)
-	{};
+	{
+	}
 
-	virtual ~OpenSLESStream() {};
+	virtual ~OpenSLESStream()
+	{
+	}
 
 	virtual bool Start();
 	virtual void Stop();
@@ -28,6 +31,9 @@ private:
 	Common::Event soundSyncEvent;
 #else
 public:
-	OpenSLESStream(CMixer *mixer, void *hWnd = nullptr): SoundStream(mixer) {}
+	OpenSLESStream(CMixer *mixer)
+		: SoundStream(mixer)
+	{
+	}
 #endif // HAVE_OPENSL
 };
