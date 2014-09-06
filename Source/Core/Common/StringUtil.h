@@ -57,11 +57,8 @@ std::string ThousandSeparate(I value, int spaces = 0)
 std::string StringFromInt(int value);
 std::string StringFromBool(bool value);
 
-bool TryParse(const std::string &str, bool *output);
-bool TryParse(const std::string &str, u32 *output);
-
-template <typename N>
-static bool TryParse(const std::string &str, N *const output)
+template<typename N>
+bool TryParse(const std::string &str, N *const output)
 {
 	std::istringstream iss(str);
 
@@ -72,7 +69,22 @@ static bool TryParse(const std::string &str, N *const output)
 		return true;
 	}
 	else
+	{
 		return false;
+	}
+}
+
+template<>
+inline bool TryParse(const std::string& str, bool* const output)
+{
+	if ("1" == str || !strcasecmp("true", str.c_str()))
+		*output = true;
+	else if ("0" == str || !strcasecmp("false", str.c_str()))
+		*output = false;
+	else
+		return false;
+
+	return true;
 }
 
 template <typename N>
