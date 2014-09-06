@@ -58,11 +58,6 @@ extern const char *netplay_dolphin_ver;
 
 #define STACKALIGN
 
-#if __cplusplus >= 201103 || defined(_MSC_VER) || defined(__GXX_EXPERIMENTAL_CXX0X__)
-#define HAVE_CXX11_SYNTAX 1
-#endif
-
-#if HAVE_CXX11_SYNTAX
 // An inheritable class to disallow the copy constructor and operator= functions
 class NonCopyable
 {
@@ -74,7 +69,6 @@ private:
 	NonCopyable(NonCopyable&);
 	NonCopyable& operator=(NonCopyable& other);
 };
-#endif
 
 #ifdef __APPLE__
 // The Darwin ABI requires that stack frames be aligned to 16-byte boundaries.
