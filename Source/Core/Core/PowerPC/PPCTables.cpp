@@ -41,22 +41,25 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 		int table = info->type>>24;
 		switch (table)
 		{
-		case 4:  info = m_infoTable4[_inst.SUBOP10]; break;
-		case 19: info = m_infoTable19[_inst.SUBOP10]; break;
-		case 31: info = m_infoTable31[_inst.SUBOP10]; break;
-		case 59: info = m_infoTable59[_inst.SUBOP5]; break;
-		case 63: info = m_infoTable63[_inst.SUBOP10]; break;
+		case 4:  return m_infoTable4[_inst.SUBOP10];
+		case 19: return m_infoTable19[_inst.SUBOP10];
+		case 31: return m_infoTable31[_inst.SUBOP10];
+		case 59: return m_infoTable59[_inst.SUBOP5];
+		case 63: return m_infoTable63[_inst.SUBOP10];
 		default:
 			_assert_msg_(POWERPC,0,"GetOpInfo - invalid subtable op %08x @ %08x", _inst.hex, PC);
 			return nullptr;
 		}
 	}
-	if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
+	else
 	{
-		_assert_msg_(POWERPC,0,"GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
-		return nullptr;
+		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
+		{
+			_assert_msg_(POWERPC,0,"GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
+			return nullptr;
+		}
+		return m_infoTable[_inst.OPCD];
 	}
-	return info;
 }
 
 Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
