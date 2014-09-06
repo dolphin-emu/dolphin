@@ -55,9 +55,23 @@ struct ConfigCache
 	unsigned int framelimit, frameSkip;
 	TEXIDevices m_EXIDevice[MAX_EXI_CHANNELS];
 	std::string strBackend, sBackend;
+	std::string m_strGPUDeterminismMode;
 	bool bSetFramelimit, bSetEXIDevice[MAX_EXI_CHANNELS], bSetVolume, bSetPads[MAX_SI_CHANNELS], bSetWiimoteSource[MAX_BBMOTES], bSetFrameSkip;
 };
 static ConfigCache config_cache;
+
+static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
+{
+	if (mode == "auto")
+		return GPU_DETERMINISM_AUTO;
+	if (mode == "none")
+		return GPU_DETERMINISM_NONE;
+	if (mode == "fake-completion")
+		return GPU_DETERMINISM_FAKE_COMPLETION;
+
+	NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
+	return GPU_DETERMINISM_AUTO;
+}
 
 // Boot the ISO or file
 bool BootCore(const std::string& _rFilename)
@@ -109,6 +123,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
 		config_cache.strBackend = StartUp.m_strVideoBackend;
+		config_cache.m_strGPUDeterminismMode = StartUp.m_strGPUDeterminismMode;
 		config_cache.m_EnableJIT = SConfig::GetInstance().m_DSPEnableJIT;
 		config_cache.bDSPThread = StartUp.bDSPThread;
 		config_cache.Volume = SConfig::GetInstance().m_Volume;
@@ -168,6 +183,8 @@ bool BootCore(const std::string& _rFilename)
 		dsp_section->Get("EnableJIT",         &SConfig::GetInstance().m_DSPEnableJIT, SConfig::GetInstance().m_DSPEnableJIT);
 		dsp_section->Get("Backend",           &SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
+		core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode, StartUp.m_strGPUDeterminismMode);
+		StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 
 		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
@@ -277,6 +294,7 @@ void Stop()
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
 		StartUp.bDSPThread = config_cache.bDSPThread;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
+		StartUp.m_strGPUDeterminismMode = config_cache.m_strGPUDeterminismMode;
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
 		SConfig::GetInstance().sBackend = config_cache.sBackend;

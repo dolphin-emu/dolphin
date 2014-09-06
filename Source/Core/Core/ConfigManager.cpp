@@ -317,6 +317,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("FrameLimit", m_Framelimit);
 	core->Set("FrameSkip", m_FrameSkip);
 	core->Set("GFXBackend", m_LocalCoreStartupParameter.m_strVideoBackend);
+	core->Set("GPUDeterminismMode", m_LocalCoreStartupParameter.m_strGPUDeterminismMode);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -542,6 +543,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
 	core->Get("GFXBackend",                &m_LocalCoreStartupParameter.m_strVideoBackend, "");
+	core->Get("GPUDeterminismMode",        &m_LocalCoreStartupParameter.m_strGPUDeterminismMode, "auto");
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

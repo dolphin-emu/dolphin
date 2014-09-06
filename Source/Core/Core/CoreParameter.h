@@ -97,6 +97,15 @@ enum Hotkey
 	NUM_HOTKEYS,
 };
 
+enum GPUDeterminismMode
+{
+	GPU_DETERMINISM_AUTO,
+	GPU_DETERMINISM_NONE,
+	// This is currently the only mode.  There will probably be at least
+	// one more at some point.
+	GPU_DETERMINISM_FAKE_COMPLETION,
+};
+
 struct SCoreStartupParameter
 {
 	// Settings
@@ -200,6 +209,10 @@ struct SCoreStartupParameter
 	EBootType m_BootType;
 
 	std::string m_strVideoBackend;
+	std::string m_strGPUDeterminismMode;
+
+	// set based on the string version
+	GPUDeterminismMode m_GPUDeterminismMode;
 
 	// files
 	std::string m_strFilename;

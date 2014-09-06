@@ -421,21 +421,40 @@ void Fifo_UpdateWantDeterminism(bool want)
 {
 	// We are paused (or not running at all yet) and have m_csHWVidOccupied, so
 	// it should be safe to change this.
-	g_use_deterministic_gpu_thread = want && SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-
-	// Hack: For now movies are an exception to this being on (but not
-	// to wanting determinism in general).  Once vertex arrays are
-	// fixed, there should be no reason to want this off for movies by
-	// default, so this can be removed.
-	if (NetPlay::IsNetPlayRunning())
-		g_use_deterministic_gpu_thread = false;
-
-	if (g_use_deterministic_gpu_thread)
+	const SCoreStartupParameter& param = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	bool gpu_thread;
+	switch (param.m_GPUDeterminismMode)
 	{
-		// These haven't been updated in non-deterministic mode.
-		s_video_buffer_seen_ptr = g_video_buffer_pp_read_ptr = g_video_buffer_read_ptr;
-		CopyPreprocessCPStateFromMain();
-		VertexLoaderManager::MarkAllDirty();
+		case GPU_DETERMINISM_AUTO:
+			gpu_thread = want;
+
+			// Hack: For now movies are an exception to this being on (but not
+			// to wanting determinism in general).  Once vertex arrays are
+			// fixed, there should be no reason to want this off for movies by
+			// default, so this can be removed.
+			if (!NetPlay::IsNetPlayRunning())
+				gpu_thread = false;
+
+			break;
+		case GPU_DETERMINISM_NONE:
+			gpu_thread = false;
+			break;
+		case GPU_DETERMINISM_FAKE_COMPLETION:
+			gpu_thread = true;
+			break;
 	}
 
+	gpu_thread = gpu_thread && SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+
+	if (g_use_deterministic_gpu_thread != gpu_thread)
+	{
+		g_use_deterministic_gpu_thread = gpu_thread;
+		if (gpu_thread)
+		{
+			// These haven't been updated in non-deterministic mode.
+			s_video_buffer_seen_ptr = g_video_buffer_pp_read_ptr = g_video_buffer_read_ptr;
+			CopyPreprocessCPStateFromMain();
+			VertexLoaderManager::MarkAllDirty();
+		}
+	}
 }
