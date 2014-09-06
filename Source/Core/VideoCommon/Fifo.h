@@ -27,6 +27,7 @@ u8* GetVideoBufferEndPtr();
 
 void Fifo_DoState(PointerWrap &f);
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);
+void Fifo_UpdateWantDeterminism(bool want);
 
 // Used for diagnostics.
 enum SyncGPUReason {

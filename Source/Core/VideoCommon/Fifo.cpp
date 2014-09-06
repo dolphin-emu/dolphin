@@ -11,13 +11,16 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/NetPlayProto.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 bool g_bSkipCurrentFrame = false;
@@ -31,7 +34,7 @@ static u8 s_fifo_aux_data[FIFO_SIZE];
 static u8* s_fifo_aux_write_ptr;
 static u8* s_fifo_aux_read_ptr;
 
-bool g_use_deterministic_gpu_thread = true; // XXX
+bool g_use_deterministic_gpu_thread;
 
 // STATE_TO_SAVE
 static std::mutex s_video_buffer_lock;
@@ -412,4 +415,27 @@ void RunGpu()
 		fifo.CPReadWriteDistance -= 32;
 	}
 	CommandProcessor::SetCPStatusFromGPU();
+}
+
+void Fifo_UpdateWantDeterminism(bool want)
+{
+	// We are paused (or not running at all yet) and have m_csHWVidOccupied, so
+	// it should be safe to change this.
+	g_use_deterministic_gpu_thread = want && SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+
+	// Hack: For now movies are an exception to this being on (but not
+	// to wanting determinism in general).  Once vertex arrays are
+	// fixed, there should be no reason to want this off for movies by
+	// default, so this can be removed.
+	if (NetPlay::IsNetPlayRunning())
+		g_use_deterministic_gpu_thread = false;
+
+	if (g_use_deterministic_gpu_thread)
+	{
+		// These haven't been updated in non-deterministic mode.
+		s_video_buffer_seen_ptr = g_video_buffer_pp_read_ptr = g_video_buffer_read_ptr;
+		CopyPreprocessCPStateFromMain();
+		VertexLoaderManager::MarkAllDirty();
+	}
+
 }

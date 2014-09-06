@@ -48,6 +48,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_Socket.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #ifdef USE_GDBSTUB
@@ -64,6 +65,8 @@ bool g_aspect_wide;
 
 namespace Core
 {
+
+bool g_want_determinism;
 
 // Declarations and definitions
 static Common::Timer s_timer;
@@ -176,6 +179,8 @@ bool Init()
 		// The Emu Thread was stopped, synchronize with it.
 		s_emu_thread.join();
 	}
+
+	Core::UpdateWantDeterminism(/*initial*/ true);
 
 	INFO_LOG(OSREPORT, "Starting core = %s mode",
 		_CoreParameter.bWii ? "Wii" : "GameCube");
@@ -564,6 +569,9 @@ void RequestRefreshInfo()
 
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
+	if (!IsRunning())
+		return true;
+
 	// let's support recursive locking to simplify things on the caller's side,
 	// and let's do it at this outer level in case the individual systems don't support it.
 	if (doLock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
@@ -700,6 +708,29 @@ void Shutdown()
 void SetOnStoppedCallback(StoppedCallbackFunc callback)
 {
 	s_on_stopped_callback = callback;
+}
+
+void UpdateWantDeterminism(bool initial)
+{
+	// For now, this value is not itself configurable.  Instead, individual
+	// settings that depend on it, such as GPU determinism mode. should have
+	// override options for testing,
+	bool new_want_determinism =
+		Movie::IsPlayingInput() ||
+		Movie::IsRecordingInput() ||
+		NetPlay::IsNetPlayRunning();
+	if (new_want_determinism != g_want_determinism || initial)
+	{
+		WARN_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
+
+		bool was_unpaused = Core::PauseAndLock(true);
+
+		g_want_determinism = new_want_determinism;
+		WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
+		g_video_backend->UpdateWantDeterminism(new_want_determinism);
+
+		Core::PauseAndLock(false, was_unpaused);
+	}
 }
 
 } // Core
