@@ -96,10 +96,10 @@ static bool InstallCodeHandler()
 	for (unsigned int h = 0; h < data.length(); h += 4)
 	{
 		// Patch MMIO address
-		if (Memory::ReadUnchecked_U32(INSTALLER_BASE_ADDRESS + h) == (0x3f000000 | ((mmioAddr ^ 1) << 8)))
+		if (Memory::ReadUnchecked_U32(INSTALLER_BASE_ADDRESS + h) == (0x3f000000u | ((mmioAddr ^ 1) << 8)))
 		{
 			NOTICE_LOG(ACTIONREPLAY, "Patching MMIO access at %08x", INSTALLER_BASE_ADDRESS + h);
-			Memory::Write_U32(0x3f000000 | mmioAddr << 8, INSTALLER_BASE_ADDRESS + h);
+			Memory::Write_U32(0x3f000000u | mmioAddr << 8, INSTALLER_BASE_ADDRESS + h);
 		}
 	}
 
