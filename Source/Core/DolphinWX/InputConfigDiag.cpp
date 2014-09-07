@@ -911,13 +911,13 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			//options
 			for (auto& groupSetting : group->settings)
 			{
-				if (groupSetting.get()->high == DEFAULT_HIGH_VALUE)
+				if (groupSetting->high == DEFAULT_HIGH_VALUE)
 				{
 					PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
-					if (groupSetting.get()->is_iterate == true)
+					if (groupSetting->is_iterate == true)
 					{
 						setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSettingUI, eventsink);
-						groupSetting.get()->value = 0;
+						groupSetting->value = 0;
 					}
 					else
 					{
