@@ -448,7 +448,7 @@ static void UpdateInterrupts()
 		if (jit && PC != 0 && (jit->js.dspARAMAddresses.find(PC)) == (jit->js.dspARAMAddresses.end()) && (g_dspState.DSPControl.ARAM & g_dspState.DSPControl.ARAM_mask))
 		{
 			int type = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
-			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || (type == OPTYPE_PS && GetOpInfo(Memory::ReadUnchecked_U32(PC))->opname == "psq_st"))
+			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || (type == OPTYPE_STOREPS))
 			{
 				jit->js.dspARAMAddresses.insert(PC);
 
@@ -534,7 +534,8 @@ static void Do_ARAM_DMA()
 	g_dspState.DSPControl.DMAState = 1;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_CompleteARAM);
 
-	// Force an early exception check on large transfers. Fixes RE2 audio.
+	// Force an early exception check on large transfers (transfers longer than 250+ ticks).
+	// The shorter transfers are checked by dspARAMAddresses.  Fixes RE2 audio.
 	CoreTiming::ForceExceptionCheck(250);
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks

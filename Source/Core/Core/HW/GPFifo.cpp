@@ -90,7 +90,7 @@ void STACKALIGN CheckGatherPipe()
 		{
 			// Log only stores, fp stores and ps stores, filtering out other instructions arrived via optimizeGatherPipe
 			int type = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
-			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || (type == OPTYPE_PS && !strcmp(GetOpInfo(Memory::ReadUnchecked_U32(PC))->opname, "psq_st")))
+			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || type == OPTYPE_STOREPS)
 			{
 				jit->js.fifoWriteAddresses.insert(PC);
 

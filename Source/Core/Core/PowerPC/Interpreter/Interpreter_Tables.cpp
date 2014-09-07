@@ -79,10 +79,10 @@ static GekkoOPTemplate primarytable[] =
 	{54, Interpreter::stfd,         {"stfd",  OPTYPE_STOREFP, FL_IN_FLOAT_S | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 	{55, Interpreter::stfdu,        {"stfdu", OPTYPE_STOREFP, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 
-	{56, Interpreter::psq_l,        {"psq_l",   OPTYPE_PS, FL_OUT_FLOAT_S | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{57, Interpreter::psq_lu,       {"psq_lu",  OPTYPE_PS, FL_OUT_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{60, Interpreter::psq_st,       {"psq_st",  OPTYPE_PS, FL_IN_FLOAT_S | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
-	{61, Interpreter::psq_stu,      {"psq_stu", OPTYPE_PS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{56, Interpreter::psq_l,        {"psq_l",   OPTYPE_LOADPS, FL_OUT_FLOAT_S | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{57, Interpreter::psq_lu,       {"psq_lu",  OPTYPE_LOADPS, FL_OUT_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{60, Interpreter::psq_st,       {"psq_st",  OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
+	{61, Interpreter::psq_stu,      {"psq_stu", OPTYPE_STOREPS, FL_IN_FLOAT_S | FL_OUT_A | FL_IN_A | FL_USE_FPU | FL_LOADSTORE, 1, 0, 0, 0}},
 
 	//missing: 0, 5, 6, 9, 22, 30, 62, 58
 	{0,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
