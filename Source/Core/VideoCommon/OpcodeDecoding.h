@@ -36,4 +36,4 @@
 
 extern bool g_bRecordFifoData;
 
-u32 OpcodeDecoder_Run(u8* end);
+size_t OpcodeDecoder_Run(u8* start, u8* end, u32* cycles);
