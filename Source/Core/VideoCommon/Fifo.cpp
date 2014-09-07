@@ -78,11 +78,6 @@ u8* GetVideoBufferStartPtr()
 	return videoBuffer;
 }
 
-u8* GetVideoBufferEndPtr()
-{
-	return &videoBuffer[size];
-}
-
 void Fifo_SetRendering(bool enabled)
 {
 	g_bSkipCurrentFrame = !enabled;
@@ -173,14 +168,14 @@ void RunGpuLoop()
 
 				ReadDataFromFifo(uData, 32);
 
-				cyclesExecuted = OpcodeDecoder_Run(GetVideoBufferEndPtr());
+				cyclesExecuted = OpcodeDecoder_Run(&videoBuffer[size]);
 
 				if (Core::g_CoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) >= cyclesExecuted)
 					Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
 
 				Common::AtomicStore(fifo.CPReadPointer, readPtr);
 				Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
-				if ((GetVideoBufferEndPtr() - g_pVideoData) == 0)
+				if ((&videoBuffer[size] - g_pVideoData) == 0)
 					Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 			}
 
@@ -235,7 +230,7 @@ void RunGpu()
 		FPURoundMode::SaveSIMDState();
 		FPURoundMode::LoadDefaultSIMDState();
 		ReadDataFromFifo(uData, 32);
-		OpcodeDecoder_Run(GetVideoBufferEndPtr());
+		OpcodeDecoder_Run(&videoBuffer[size]);
 		FPURoundMode::LoadSIMDState();
 
 		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
