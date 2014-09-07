@@ -440,6 +440,8 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Update controls
 	UpdateGUI();
+	if (g_pCodeWindow)
+		g_pCodeWindow->UpdateButtonStates();
 }
 // Destructor
 CFrame::~CFrame()
