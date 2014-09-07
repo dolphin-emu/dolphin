@@ -9,6 +9,9 @@
 
 using namespace Gen;
 
+// Not PowerPC state.  Can't put in 'this' because it's out of range...
+static void* s_saved_rsp;
+
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
@@ -16,7 +19,13 @@ using namespace Gen;
 void Jit64AsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
-	ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8);
+	// We need to own the beginning of RSP, so we do an extra stack adjustment
+	// for the shadow region before calls in this function.  This call will
+	// waste a bit of space for a second shadow, but whatever.
+	ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, /*frame*/ 16);
+	// something that can't pass the BLR test
+	MOV(64, M(&s_saved_rsp), R(RSP));
+	MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
 
 	// Two statically allocated registers.
 	MOV(64, R(RMEM), Imm64((u64)Memory::base));
@@ -24,8 +33,22 @@ void Jit64AsmRoutineManager::Generate()
 	MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
 
 	const u8* outerLoop = GetCodePtr();
+		ABI_PushRegistersAndAdjustStack(0, 0);
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
+		ABI_PopRegistersAndAdjustStack(0, 0);
 		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
+		dispatcherMispredictedBLR = GetCodePtr();
+
+		#if 0 // debug mispredicts
+		MOV(32, R(ABI_PARAM1), MDisp(RSP, 8)); // guessed_pc
+		ABI_PushRegistersAndAdjustStack(1 << RSCRATCH, 0);
+		CALL(reinterpret_cast<void *>(&ReportMispredict));
+		ABI_PopRegistersAndAdjustStack(1 << RSCRATCH, 0);
+		#endif
+
+		MOV(64, R(RSP), M(&s_saved_rsp));
+
+		SUB(32, PPCSTATE(downcount), R(RSCRATCH));
 
 		dispatcher = GetCodePtr();
 			// The result of slice decrementation should be in flags if somebody jumped here
@@ -36,10 +59,13 @@ void Jit64AsmRoutineManager::Generate()
 			{
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
 				FixupBranch notStepping = J_CC(CC_Z);
+				ABI_PushRegistersAndAdjustStack(0, 0);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+				ABI_PopRegistersAndAdjustStack(0, 0);
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
-				ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8);
+				MOV(64, R(RSP), M(&s_saved_rsp));
+				ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 				RET();
 				SetJumpTarget(noBreakpoint);
 				SetJumpTarget(notStepping);
@@ -120,14 +146,17 @@ void Jit64AsmRoutineManager::Generate()
 		FixupBranch noExtException = J_CC(CC_Z);
 		MOV(32, R(RSCRATCH), PPCSTATE(pc));
 		MOV(32, PPCSTATE(npc), R(RSCRATCH));
+		ABI_PushRegistersAndAdjustStack(0, 0);
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
+		ABI_PopRegistersAndAdjustStack(0, 0);
 		SetJumpTarget(noExtException);
 
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop);
 
 	//Landing pad for drec space
-	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8);
+	MOV(64, R(RSP), M(&s_saved_rsp));
+	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 	RET();
 
 	GenerateCommon();

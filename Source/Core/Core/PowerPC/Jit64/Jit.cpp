@@ -227,31 +227,55 @@ static void ImHere()
 	been_here[PC] = 1;
 }
 
-void Jit64::Cleanup()
+bool Jit64::Cleanup()
 {
+	bool did_something = false;
+
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 	{
 		ABI_PushRegistersAndAdjustStack(0, 0);
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
 		ABI_PopRegistersAndAdjustStack(0, 0);
+		did_something = true;
 	}
 
 	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
 	if (MMCR0.Hex || MMCR1.Hex)
+	{
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
+		did_something = true;
+	}
+
+	return did_something;
 }
 
-void Jit64::WriteExit(u32 destination)
+void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 {
+	// BLR optimization has similar consequences to block linking.
+	if (!jo.enableBlocklink)
+	{
+		bl = false;
+	}
+
 	Cleanup();
+
+	if (bl)
+	{
+		MOV(32, R(RSCRATCH2), Imm32(after));
+		PUSH(RSCRATCH2);
+	}
 
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
+	JustWriteExit(destination, bl, after);
+}
+
+void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
+{
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
 	JitBlock::LinkData linkData;
 	linkData.exitAddress = destination;
-	linkData.exitPtrs = GetWritableCodePtr();
 	linkData.linkStatus = false;
 
 	// Link opportunity!
@@ -259,24 +283,78 @@ void Jit64::WriteExit(u32 destination)
 	if (jo.enableBlocklink && (block = blocks.GetBlockNumberFromStartAddress(destination)) >= 0)
 	{
 		// It exists! Joy of joy!
-		JMP(blocks.GetBlock(block)->checkedEntry, true);
+		JitBlock* jb = blocks.GetBlock(block);
+		const u8* addr = jb->checkedEntry;
+		linkData.exitPtrs = GetWritableCodePtr();
+		if (bl)
+			CALL(addr);
+		else
+			JMP(addr, true);
 		linkData.linkStatus = true;
 	}
 	else
 	{
 		MOV(32, PPCSTATE(pc), Imm32(destination));
-		JMP(asm_routines.dispatcher, true);
+		linkData.exitPtrs = GetWritableCodePtr();
+		if (bl)
+			CALL(asm_routines.dispatcher);
+		else
+			JMP(asm_routines.dispatcher, true);
 	}
 
 	b->linkData.push_back(linkData);
+
+	if (bl)
+	{
+		POP(RSCRATCH);
+		JustWriteExit(after, false, 0);
+	}
 }
 
-void Jit64::WriteExitDestInRSCRATCH()
+void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
 {
+	if (!jo.enableBlocklink)
+	{
+		bl = false;
+	}
+	if (bl)
+	{
+		MOV(32, R(RSCRATCH2), Imm32(after));
+		PUSH(RSCRATCH2);
+	}
 	MOV(32, PPCSTATE(pc), R(RSCRATCH));
 	Cleanup();
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
-	JMP(asm_routines.dispatcher, true);
+	if (bl)
+	{
+		CALL(asm_routines.dispatcher);
+		POP(RSCRATCH);
+		JustWriteExit(after, false, 0);
+	}
+	else
+	{
+		JMP(asm_routines.dispatcher, true);
+	}
+}
+
+void Jit64::WriteBLRExit()
+{
+	if (!jo.enableBlocklink)
+	{
+		WriteExitDestInRSCRATCH();
+		return;
+	}
+	MOV(32, PPCSTATE(pc), R(RSCRATCH));
+	bool disturbed = Cleanup();
+	if (disturbed)
+		MOV(32, R(RSCRATCH), PPCSTATE(pc));
+	CMP(64, R(RSCRATCH), MDisp(RSP, 8));
+	FixupBranch nope = J_CC(CC_NE);
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
+	RET();
+	SetJumpTarget(nope);
+	MOV(32, R(RSCRATCH), Imm32(js.downcountAmount));
+	JMP(asm_routines.dispatcherMispredictedBLR, true);
 }
 
 void Jit64::WriteRfiExitDestInRSCRATCH()

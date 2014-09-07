@@ -89,13 +89,15 @@ public:
 
 	// Utilities for use by opcodes
 
-	void WriteExit(u32 destination);
-	void WriteExitDestInRSCRATCH();
+	void WriteExit(u32 destination, bool bl = false, u32 after = 0);
+	void JustWriteExit(u32 destination, bool bl, u32 after);
+	void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
+	void WriteBLRExit();
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
 	void WriteRfiExitDestInRSCRATCH();
 	void WriteCallInterpreter(UGeckoInstruction _inst);
-	void Cleanup();
+	bool Cleanup();
 
 	void GenerateConstantOverflow(bool overflow);
 	void GenerateConstantOverflow(s64 val);
