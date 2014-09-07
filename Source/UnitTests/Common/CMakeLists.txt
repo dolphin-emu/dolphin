@@ -6,3 +6,7 @@ add_dolphin_test(FixedSizeQueueTest FixedSizeQueueTest.cpp)
 add_dolphin_test(FlagTest FlagTest.cpp)
 add_dolphin_test(MathUtilTest MathUtilTest.cpp)
 add_dolphin_test(x64EmitterTest x64EmitterTest.cpp)
+
+if (RADARE2_FOUND)
+	add_aarch64_dolphin_test(Arm64EmitterTest Arm64EmitterTest.cpp)
+endif()
