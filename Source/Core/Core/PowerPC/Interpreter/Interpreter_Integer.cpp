@@ -149,7 +149,7 @@ void Interpreter::twi(UGeckoInstruction _inst)
 	s32 b = _inst.SIMM_16;
 	s32 TO = _inst.TO;
 
-	ERROR_LOG(POWERPC, "twi rA %x SIMM %x TO %0x", a, b, TO);
+	DEBUG_LOG(POWERPC, "twi rA %x SIMM %x TO %0x", a, b, TO);
 
 	if (((a < b) && (TO & 0x10)) ||
 	    ((a > b) && (TO & 0x08)) ||
