@@ -24,7 +24,8 @@
 #include "Common/StdMakeUnique.h"
 #include "Common/StringUtil.h"
 #include "Common/Crypto/ec.h"
-#include "DolphinWX/MemoryCards/WiiSaveCrypted.h"
+
+#include "Core/HW/WiiSaveCrypted.h"
 
 static Common::replace_v replacements;
 
