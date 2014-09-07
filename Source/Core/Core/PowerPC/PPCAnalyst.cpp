@@ -213,14 +213,17 @@ static void AnalyzeFunction2(Symbol *func)
 	func->flags = flags;
 }
 
-// IMPORTANT - CURRENTLY ASSUMES THAT A IS A COMPARE
 static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 {
+	const GekkoOPInfo *a_info = a.opinfo;
 	const GekkoOPInfo *b_info = b.opinfo;
+	int a_flags = a_info->flags;
 	int b_flags = b_info->flags;
-	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL))
+	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
 		return false;
-	if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.hex & 1))
+	if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.Rc))
+		return false;
+	if ((a_flags & (FL_SET_CA | FL_READ_CA)) && (b_flags & (FL_SET_CA | FL_READ_CA)))
 		return false;
 
 	switch (b.inst.OPCD)
@@ -250,20 +253,16 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	{
 		int regInA = a.regsIn[j];
 		int regInB = b.regsIn[j];
-		if (regInA >= 0 &&
-			(b.regsOut[0] == regInA ||
-			 b.regsOut[1] == regInA))
-		{
-			// reg collision! don't swap
+		// register collision: b outputs to one of a's inputs
+		if (regInA >= 0 && (b.regsOut[0] == regInA || b.regsOut[1] == regInA))
 			return false;
-		}
-		if (regInB >= 0 &&
-			(a.regsOut[0] == regInB ||
-			 a.regsOut[1] == regInB))
-		{
-			// reg collision! don't swap
+		// register collision: a outputs to one of b's inputs
+		if (regInB >= 0 && (a.regsOut[0] == regInB || a.regsOut[1] == regInB))
 			return false;
-		}
+		// register collision: b outputs to one of a's outputs (overwriting it)
+		for (int k = 0; k < 2; k++)
+			if (b.regsOut[k] >= 0 && (b.regsOut[k] == a.regsOut[0] || b.regsOut[k] == a.regsOut[1]))
+				return false;
 	}
 
 	return true;
@@ -403,27 +402,74 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 		leafSize, niceSize, unniceSize);
 }
 
-void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
+static bool isCmp(const CodeOp& a)
 {
-	// Instruction Reordering Pass
-	// Bubble down compares towards branches, so that they can be merged.
-	// -2: -1 for the pair, -1 for not swapping with the final instruction which is probably the branch.
-	for (u32 i = 0; i < (instructions - 2); ++i)
+	return (a.inst.OPCD == 10 || a.inst.OPCD == 11) || (a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32));
+}
+
+static bool isRlwinm_rc(const CodeOp& a)
+{
+	return a.inst.OPCD == 21 && a.inst.Rc;
+}
+
+static bool isCarryOp(const CodeOp& a)
+{
+	return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) && a.opinfo->type == OPTYPE_INTEGER;
+}
+
+void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type)
+{
+	// Bubbling an instruction sometimes reveals another opportunity to bubble an instruction, so do
+	// multiple passes.
+	while (true)
 	{
-		CodeOp &a = code[i];
-		CodeOp &b = code[i + 1];
-		// All integer compares can be reordered.
-		if ((a.inst.OPCD == 10 || a.inst.OPCD == 11) ||
-			(a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32)))
+		// Instruction Reordering Pass
+		// Carry pass: bubble carry-using instructions as close to each other as possible, so we can avoid
+		// storing the carry flag.
+		// Compare pass: bubble compare instructions next to branches, so they can be merged.
+		bool swapped = false;
+		int increment = reverse ? -1 : 1;
+		int start = reverse ? instructions - 1 : 0;
+		int end = reverse ? 0 : instructions - 1;
+		for (int i = start; i != end; i += increment)
 		{
-			// Got a compare instruction.
-			if (CanSwapAdjacentOps(a, b))
+			CodeOp &a = code[i];
+			CodeOp &b = code[i + increment];
+			// Reorder integer compares, rlwinm., and carry-affecting ops
+			// (if we add more merged branch instructions, add them here!)
+			if ((type == REORDER_CARRY && isCarryOp(a)) || (type == REORDER_CMP && (isCmp(a) || isRlwinm_rc(a))))
 			{
-				// Alright, let's bubble it down!
-				std::swap(a, b);
+				// once we're next to a carry instruction, don't move away!
+				if (type == REORDER_CARRY && i != start)
+				{
+					// if we read the CA flag, and the previous instruction sets it, don't move away.
+					if (!reverse && (a.opinfo->flags & FL_READ_CA) && (code[i - increment].opinfo->flags & FL_SET_CA))
+						continue;
+					// if we set the CA flag, and the next instruction reads it, don't move away.
+					if (reverse && (a.opinfo->flags & FL_SET_CA) && (code[i - increment].opinfo->flags & FL_READ_CA))
+						continue;
+				}
+
+				if (CanSwapAdjacentOps(a, b))
+				{
+					// Alright, let's bubble it!
+					std::swap(a, b);
+					swapped = true;
+				}
 			}
 		}
+		if (!swapped)
+			return;
 	}
+}
+
+void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
+{
+	// For carry, bubble instructions *towards* each other; one direction often isn't enough
+	// to get pairs like addc/adde next to each other.
+	ReorderInstructionsCore(instructions, code, true, REORDER_CARRY);
+	ReorderInstructionsCore(instructions, code, false, REORDER_CARRY);
+	ReorderInstructionsCore(instructions, code, false, REORDER_CMP);
 }
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index)
@@ -463,7 +509,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	// We're going to try to avoid storing carry in XER if we can avoid it -- keep it in the x86 carry flag!
 	// If the instruction reads CA but doesn't write it, we still need to store CA in XER; we can't
 	// leave it in flags.
-	code->wantsCAInFlags = code->wantsCA && code->outputCA && code->inst.SUBOP10 != 512;
+	code->wantsCAInFlags = code->wantsCA && code->outputCA && opinfo->type == OPTYPE_INTEGER;
 
 	// mfspr/mtspr can affect/use XER, so be super careful here
 	// we need to note specifically that mfspr needs CA in XER, not in the x86 carry flag

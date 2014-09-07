@@ -144,6 +144,13 @@ class PPCAnalyzer
 {
 private:
 
+	enum ReorderType
+	{
+		REORDER_CARRY,
+		REORDER_CMP
+	};
+
+	void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
 	void ReorderInstructions(u32 instructions, CodeOp *code);
 	void SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index);
 
