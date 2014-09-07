@@ -476,16 +476,16 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	switch (accessSize)
 	{
 	case 64:
-		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U64) : ((void *)&Memory::Write_U64_Swap), reg_value, reg_addr, false);
+		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U64) : ((void *)&Memory::Write_U64_Swap), reg_value, reg_addr);
 		break;
 	case 32:
-		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), reg_value, reg_addr, false);
+		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), reg_value, reg_addr);
 		break;
 	case 16:
-		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), reg_value, reg_addr, false);
+		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), reg_value, reg_addr);
 		break;
 	case 8:
-		ABI_CallFunctionRR((void *)&Memory::Write_U8, reg_value, reg_addr, false);
+		ABI_CallFunctionRR((void *)&Memory::Write_U8, reg_value, reg_addr);
 		break;
 	}
 	ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);

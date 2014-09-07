@@ -753,25 +753,16 @@ public:
 
 	// Pass a register as a parameter.
 	void ABI_CallFunctionR(void *func, X64Reg reg1);
-	void ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2, bool noProlog = false);
+	void ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2);
 
 	// Helper method for the above, or can be used separately.
 	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2, Gen::X64Reg temp);
-
-	// A function that doesn't have any control over what it will do to regs,
-	// such as the dispatcher, should be surrounded by these.
-	void ABI_PushAllCalleeSavedRegsAndAdjustStack();
-	void ABI_PopAllCalleeSavedRegsAndAdjustStack();
 
 	// Saves/restores the registers and adjusts the stack to be aligned as
 	// required by the ABI, where the previous alignment was as specified.
 	// Push returns the size of the shadow space, i.e. the offset of the frame.
 	size_t ABI_PushRegistersAndAdjustStack(u32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
 	void ABI_PopRegistersAndAdjustStack(u32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
-
-	unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize, bool noProlog = false);
-	void ABI_AlignStack(unsigned int frameSize, bool noProlog = false);
-	void ABI_RestoreStack(unsigned int frameSize, bool noProlog = false);
 
 	inline int ABI_GetNumXMMRegs() { return 16; }
 

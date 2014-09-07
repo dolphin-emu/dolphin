@@ -87,9 +87,7 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	if (inst.W)
 		OR(32, R(RSCRATCH2), Imm8(8));
 
-	ABI_AlignStack(0);
 	CALLptr(MScaled(RSCRATCH2, SCALE_8, (u32)(u64)asm_routines.pairedLoadQuantized));
-	ABI_RestoreStack(0);
 
 	// MEMCHECK_START // FIXME: MMU does not work here because of unsafe memory access
 
