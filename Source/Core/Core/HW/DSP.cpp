@@ -37,8 +37,8 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 
 namespace DSP
 {
@@ -443,18 +443,11 @@ static void UpdateInterrupts()
 
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
 
-	if ((g_dspState.DSPControl.Hex >> 1) & g_dspState.DSPControl.Hex & (INT_DSP | INT_ARAM | INT_AID))
+	if ((g_dspState.DSPControl.Hex >> 1) & g_dspState.DSPControl.Hex & INT_ARAM)
 	{
-		if (jit && PC != 0 && (jit->js.dspARAMAddresses.find(PC)) == (jit->js.dspARAMAddresses.end()) && (g_dspState.DSPControl.ARAM & g_dspState.DSPControl.ARAM_mask))
+		if (g_dspState.DSPControl.ARAM & g_dspState.DSPControl.ARAM_mask)
 		{
-			int type = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
-			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || (type == OPTYPE_STOREPS))
-			{
-				jit->js.dspARAMAddresses.insert(PC);
-
-				// Invalidate the JIT block so that it gets recompiled with the external exception check included.
-				jit->GetBlockCache()->InvalidateICache(PC, 4);
-			}
+			JitInterface::CompileExceptionCheck(JitInterface::EXCEPTIONS_ARAM_DMA);
 		}
 	}
 }

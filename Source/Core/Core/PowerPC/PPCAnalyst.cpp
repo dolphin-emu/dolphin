@@ -654,7 +654,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 	for (u32 i = 0; i < blockSize; ++i)
 	{
-		UGeckoInstruction inst = JitInterface::Read_Opcode_JIT(address);
+		UGeckoInstruction inst = JitInterface::ReadOpcodeJIT(address);
 
 		if (inst.hex != 0)
 		{

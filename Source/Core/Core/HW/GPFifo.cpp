@@ -8,8 +8,8 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -86,18 +86,7 @@ void STACKALIGN CheckGatherPipe()
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
 
 		// Profile where the FIFO writes are occurring.
-		if (jit && PC != 0 && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
-		{
-			// Log only stores, fp stores and ps stores, filtering out other instructions arrived via optimizeGatherPipe
-			int type = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
-			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || type == OPTYPE_STOREPS)
-			{
-				jit->js.fifoWriteAddresses.insert(PC);
-
-				// Invalidate the JIT block so that it gets recompiled with the external exception check included.
-				jit->GetBlockCache()->InvalidateICache(PC, 4);
-			}
-		}
+		JitInterface::CompileExceptionCheck(JitInterface::EXCEPTIONS_FIFO_WRITE);
 	}
 }
 

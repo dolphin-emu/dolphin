@@ -216,7 +216,7 @@ namespace JitInterface
 			jit->GetBlockCache()->InvalidateICache(address, size);
 	}
 
-	u32 Read_Opcode_JIT(u32 _Address)
+	u32 ReadOpcodeJIT(u32 _Address)
 	{
 		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
 		{
@@ -235,6 +235,42 @@ namespace JitInterface
 		else
 			inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
 		return inst;
+	}
+
+	void CompileExceptionCheck(int type)
+	{
+		if (!jit)
+			return;
+
+		std::unordered_set<u32> *exception_addresses;
+
+		switch (type)
+		{
+		case EXCEPTIONS_FIFO_WRITE:
+		{
+			exception_addresses = &jit->js.fifoWriteAddresses;
+			break;
+		}
+		case EXCEPTIONS_ARAM_DMA:
+		{
+			exception_addresses = &jit->js.dspARAMAddresses;
+			break;
+		}
+		default:
+			ERROR_LOG(POWERPC, "Unknown exception check type");
+		}
+
+		if (PC != 0 && (exception_addresses->find(PC)) == (exception_addresses->end()))
+		{
+			int type = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
+			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || (type == OPTYPE_STOREPS))
+			{
+				exception_addresses->insert(PC);
+
+				// Invalidate the JIT block so that it gets recompiled with the external exception check included.
+				jit->GetBlockCache()->InvalidateICache(PC, 4);
+			}
+		}
 	}
 
 	void Shutdown()

@@ -11,6 +11,12 @@
 
 namespace JitInterface
 {
+	enum
+	{
+		EXCEPTIONS_FIFO_WRITE,
+		EXCEPTIONS_ARAM_DMA
+	};
+
 	void DoState(PointerWrap &p);
 
 	CPUCoreBase *InitJitCore(int core);
@@ -24,7 +30,7 @@ namespace JitInterface
 	bool HandleFault(uintptr_t access_address, SContext* ctx);
 
 	// used by JIT to read instructions
-	u32 Read_Opcode_JIT(const u32 _Address);
+	u32 ReadOpcodeJIT(const u32 _Address);
 
 	// Clearing CodeCache
 	void ClearCache();
@@ -32,6 +38,8 @@ namespace JitInterface
 	void ClearSafe();
 
 	void InvalidateICache(u32 address, u32 size);
+
+	void CompileExceptionCheck(int type);
 
 	void Shutdown();
 }
