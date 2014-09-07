@@ -281,6 +281,8 @@ private:
 	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
+	void ABI_CalculateFrameSize(u32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
+
 protected:
 	inline void Write8(u8 value)   {*code++ = value;}
 	inline void Write16(u16 value) {*(u16*)code = (value); code += 2;}
@@ -761,9 +763,11 @@ public:
 	void ABI_PushAllCalleeSavedRegsAndAdjustStack();
 	void ABI_PopAllCalleeSavedRegsAndAdjustStack();
 
-	// A more flexible version of the above.
-	void ABI_PushRegistersAndAdjustStack(u32 mask, bool noProlog);
-	void ABI_PopRegistersAndAdjustStack(u32 mask, bool noProlog);
+	// Saves/restores the registers and adjusts the stack to be aligned as
+	// required by the ABI, where the previous alignment was as specified.
+	// Push returns the size of the shadow space, i.e. the offset of the frame.
+	size_t ABI_PushRegistersAndAdjustStack(u32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
+	void ABI_PopRegistersAndAdjustStack(u32 mask, size_t rsp_alignment, size_t needed_frame_size = 0);
 
 	unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize, bool noProlog = false);
 	void ABI_AlignStack(unsigned int frameSize, bool noProlog = false);

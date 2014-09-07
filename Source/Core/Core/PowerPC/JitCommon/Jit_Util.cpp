@@ -204,9 +204,9 @@ private:
 
 	void CallLambda(int sbits, const std::function<T(u32)>* lambda)
 	{
-		m_code->ABI_PushRegistersAndAdjustStack(m_registers_in_use, false);
+		m_code->ABI_PushRegistersAndAdjustStack(m_registers_in_use, 0);
 		m_code->ABI_CallLambdaC(lambda, m_address);
-		m_code->ABI_PopRegistersAndAdjustStack(m_registers_in_use, false);
+		m_code->ABI_PopRegistersAndAdjustStack(m_registers_in_use, 0);
 		MoveOpArgToReg(sbits, R(ABI_RETURN));
 	}
 
@@ -305,7 +305,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			}
 			else
 			{
-				ABI_PushRegistersAndAdjustStack(registersInUse, false);
+				ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 				switch (accessSize)
 				{
 				case 64: ABI_CallFunctionC((void *)&Memory::Read_U64, address); break;
@@ -313,7 +313,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				case 16: ABI_CallFunctionC((void *)&Memory::Read_U16_ZX, address); break;
 				case 8:  ABI_CallFunctionC((void *)&Memory::Read_U8_ZX, address); break;
 				}
-				ABI_PopRegistersAndAdjustStack(registersInUse, false);
+				ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
 				MEMCHECK_START
 
@@ -350,7 +350,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 
 			FixupBranch fast = J_CC(CC_Z, true);
 
-			ABI_PushRegistersAndAdjustStack(registersInUse, false);
+			ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 			switch (accessSize)
 			{
 			case 64:
@@ -366,7 +366,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				ABI_CallFunctionA((void *)&Memory::Read_U8_ZX, addr_loc);
 				break;
 			}
-			ABI_PopRegistersAndAdjustStack(registersInUse, false);
+			ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
 			MEMCHECK_START
 
@@ -470,9 +470,9 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	FixupBranch fast = J_CC(CC_Z, true);
 	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
 	MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
-	bool noProlog = (0 != (flags & SAFE_LOADSTORE_NO_PROLOG));
+	size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
 	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
-	ABI_PushRegistersAndAdjustStack(registersInUse, noProlog);
+	ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
 	switch (accessSize)
 	{
 	case 64:
@@ -488,7 +488,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 		ABI_CallFunctionRR((void *)&Memory::Write_U8, reg_value, reg_addr, false);
 		break;
 	}
-	ABI_PopRegistersAndAdjustStack(registersInUse, noProlog);
+	ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
 	FixupBranch exit = J();
 	SetJumpTarget(fast);
 	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);

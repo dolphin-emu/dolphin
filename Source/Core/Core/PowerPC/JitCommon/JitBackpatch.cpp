@@ -56,10 +56,8 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
 
 	// It's a read. Easy.
-	// It ought to be necessary to align the stack here.  Since it seems to not
-	// affect anybody, I'm not going to add it just to be completely safe about
-	// performance.
-	ABI_PushRegistersAndAdjustStack(registersInUse, true);
+	// RSP alignment here is 8 due to the call.
+	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
 
 	if (addrReg != ABI_PARAM1)
 		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
@@ -91,7 +89,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 		MOV(32, R(dataReg), R(ABI_RETURN));
 	}
 
-	ABI_PopRegistersAndAdjustStack(registersInUse, true);
+	ABI_PopRegistersAndAdjustStack(registersInUse, 8);
 	RET();
 	return trampoline;
 }
@@ -115,7 +113,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
 	MOV(32, PPCSTATE(pc), Imm32(pc));
 
-	ABI_PushRegistersAndAdjustStack(registersInUse, true);
+	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
 
 	MOVTwo(64, ABI_PARAM1, dataReg, ABI_PARAM2, addrReg, ABI_PARAM3);
 
@@ -140,7 +138,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 		break;
 	}
 
-	ABI_PopRegistersAndAdjustStack(registersInUse, true);
+	ABI_PopRegistersAndAdjustStack(registersInUse, 8);
 	RET();
 
 	return trampoline;

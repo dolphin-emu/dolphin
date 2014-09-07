@@ -116,11 +116,11 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		FixupBranch noIdle = J_CC(CC_NZ);
 
 		u32 registersInUse = CallerSavedRegistersInUse();
-		ABI_PushRegistersAndAdjustStack(registersInUse, false);
+		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
 		ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
 
-		ABI_PopRegistersAndAdjustStack(registersInUse, false);
+		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
 		// ! we must continue executing of the loop after exception handling, maybe there is still 0 in r0
 		//MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
@@ -285,9 +285,9 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	// supposedly there are, at least for some MMU titles. Let's be careful and support it to be sure.
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
 	u32 registersInUse = CallerSavedRegistersInUse();
-	ABI_PushRegistersAndAdjustStack(registersInUse, false);
+	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 	ABI_CallFunctionR((void *)&Memory::ClearCacheLine, RSCRATCH);
-	ABI_PopRegistersAndAdjustStack(registersInUse, false);
+	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
 	FixupBranch exit = J();
 	SetJumpTarget(fast);
@@ -374,7 +374,7 @@ void Jit64::stX(UGeckoInstruction inst)
 				MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
 
 				u32 registersInUse = CallerSavedRegistersInUse();
-				ABI_PushRegistersAndAdjustStack(registersInUse, false);
+				ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 				switch (accessSize)
 				{
 				case 32:
@@ -387,7 +387,7 @@ void Jit64::stX(UGeckoInstruction inst)
 					ABI_CallFunctionAC((void *)&Memory::Write_U8, gpr.R(s), addr);
 					break;
 				}
-				ABI_PopRegistersAndAdjustStack(registersInUse, false);
+				ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 				if (update)
 					gpr.SetImmediate32(a, addr);
 				return;

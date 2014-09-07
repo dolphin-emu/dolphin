@@ -584,7 +584,7 @@ void VertexLoader::CompileVertexTranslator()
 		PanicAlert("Trying to recompile a vertex translator");
 
 	m_compiledCode = GetCodePtr();
-	ABI_PushAllCalleeSavedRegsAndAdjustStack();
+	ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8);
 
 	// Start loop here
 	const u8 *loop_start = GetCodePtr();
@@ -845,7 +845,7 @@ void VertexLoader::CompileVertexTranslator()
 	SUB(32, MatR(RAX), Imm8(1));
 
 	J_CC(CC_NZ, loop_start);
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8);
 	RET();
 #endif
 }
