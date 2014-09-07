@@ -125,6 +125,8 @@ void InstallExceptionHandler()
 	handlerInstalled = true;
 }
 
+void UninstallExceptionHandler() {}
+
 #elif defined(__APPLE__)
 
 void CheckKR(const char* name, kern_return_t kr)
@@ -243,6 +245,8 @@ void InstallExceptionHandler()
 	CheckKR("mach_port_request_notification", mach_port_request_notification(mach_task_self(), port, MACH_NOTIFY_NO_SENDERS, 0, port, MACH_MSG_TYPE_MAKE_SEND_ONCE, &previous));
 }
 
+void UninstallExceptionHandler() {}
+
 #elif defined(_POSIX_VERSION)
 
 static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
@@ -273,6 +277,12 @@ static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 
 void InstallExceptionHandler()
 {
+	stack_t signal_stack;
+	signal_stack.ss_sp = malloc(SIGSTKSZ);
+	signal_stack.ss_size = SIGSTKSZ;
+	signal_stack.ss_flags = 0;
+	if (sigaltstack(&signal_stack, nullptr))
+		PanicAlert("sigaltstack failed");
 	struct sigaction sa;
 	sa.sa_handler = nullptr;
 	sa.sa_sigaction = &sigsegv_handler;
@@ -281,6 +291,16 @@ void InstallExceptionHandler()
 	sigaction(SIGSEGV, &sa, nullptr);
 }
 
+void UninstallExceptionHandler()
+{
+	stack_t signal_stack, old_stack;
+	signal_stack.ss_flags = SS_DISABLE;
+	if (!sigaltstack(&signal_stack, &old_stack) &&
+	    !(old_stack.ss_flags & SS_DISABLE))
+	{
+		free(old_stack.ss_sp);
+	}
+}
 #else
 
 #error Unsupported x86_64 platform! Report this if you support sigaction

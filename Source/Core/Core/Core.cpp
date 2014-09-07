@@ -277,6 +277,10 @@ static void CpuThread()
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
+	#if _M_X86_64 || _M_ARM_32
+	EMM::UninstallExceptionHandler();
+	#endif
+
 	return;
 }
 

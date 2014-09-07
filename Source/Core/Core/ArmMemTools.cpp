@@ -86,4 +86,7 @@ void InstallExceptionHandler()
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGSEGV, &sa, nullptr);
 }
+
+void UninstallExceptionHandler() {}
+
 }  // namespace
