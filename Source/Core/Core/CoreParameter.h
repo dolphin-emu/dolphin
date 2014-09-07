@@ -146,7 +146,7 @@ struct SCoreStartupParameter
 	bool bWii;
 
 	// Interface settings
-	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
+	bool bConfirmStop, bHideCursor, bAutoHideCursor, bOnScreenDisplayMessages;
 	std::string theme_name;
 
 	// Hotkeys

@@ -11,7 +11,6 @@
 
 bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style);
 static MsgAlertHandler msg_handler = DefaultMsgHandler;
-static bool AlertEnabled = true;
 
 std::string DefaultStringTranslator(const char* text);
 static StringTranslator str_translator = DefaultStringTranslator;
@@ -27,12 +26,6 @@ void RegisterMsgAlertHandler(MsgAlertHandler handler)
 void RegisterStringTranslator(StringTranslator translator)
 {
 	str_translator = translator;
-}
-
-// enable/disable the alert handler
-void SetEnableAlert(bool enable)
-{
-	AlertEnabled = enable;
 }
 
 // This is the first stop for gui alerts where the log is updated and the
@@ -80,7 +73,7 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	ERROR_LOG(MASTER_LOG, "%s: %s", caption.c_str(), buffer);
 
 	// Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
-	if (msg_handler && (AlertEnabled || Style == QUESTION || Style == CRITICAL))
+	if (msg_handler)
 		return msg_handler(caption.c_str(), buffer, yes_no, Style);
 
 	return true;

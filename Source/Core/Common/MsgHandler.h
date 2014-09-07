@@ -27,7 +27,6 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	__attribute__((format(printf, 3, 4)))
 #endif
 	;
-void SetEnableAlert(bool enable);
 
 #ifndef GEKKO
 #ifdef _WIN32

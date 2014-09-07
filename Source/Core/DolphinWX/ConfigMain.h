@@ -96,7 +96,6 @@ private:
 
 		// Interface settings
 		ID_INTERFACE_CONFIRMSTOP,
-		ID_INTERFACE_USEPANICHANDLERS,
 		ID_INTERFACE_ONSCREENDISPLAYMESSAGES,
 		ID_INTERFACE_LANG,
 		ID_HOTKEY_CONFIG,
@@ -171,7 +170,6 @@ private:
 
 	// Interface
 	wxCheckBox* ConfirmStop;
-	wxCheckBox* UsePanicHandlers;
 	wxCheckBox* OnScreenDisplayMessages;
 	wxChoice* InterfaceLang;
 	wxButton* HotkeyConfig;

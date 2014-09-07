@@ -195,7 +195,6 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
 	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
 	interface->Set("ConfirmStop", m_LocalCoreStartupParameter.bConfirmStop);
-	interface->Set("UsePanicHandlers", m_LocalCoreStartupParameter.bUsePanicHandlers);
 	interface->Set("OnScreenDisplayMessages", m_LocalCoreStartupParameter.bOnScreenDisplayMessages);
 	interface->Set("HideCursor", m_LocalCoreStartupParameter.bHideCursor);
 	interface->Set("AutoHideCursor", m_LocalCoreStartupParameter.bAutoHideCursor);
@@ -401,7 +400,6 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
 	interface->Get("ConfirmStop",             &m_LocalCoreStartupParameter.bConfirmStop,      true);
-	interface->Get("UsePanicHandlers",        &m_LocalCoreStartupParameter.bUsePanicHandlers, true);
 	interface->Get("OnScreenDisplayMessages", &m_LocalCoreStartupParameter.bOnScreenDisplayMessages, true);
 	interface->Get("HideCursor",              &m_LocalCoreStartupParameter.bHideCursor,       false);
 	interface->Get("AutoHideCursor",          &m_LocalCoreStartupParameter.bAutoHideCursor,   false);
