@@ -11,7 +11,6 @@
 #include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/VideoInterface.h"
-#include "Interpolator.h"
 
 // UGLINESS
 #include "Core/PowerPC/PowerPC.h"
@@ -20,61 +19,38 @@
 #include <tmmintrin.h>
 #endif
 
-float twos2float(u16 s) {
-	int n = (s16)s;
-	if (n > 0) {
-		return (float) (n / (float) 0x7fff);
-	}
-	else {
-		return (float) (n / (float) 0x8000);
-	}
-}
-
-s16 float2stwos(float f) {
-	int n;
-	if (f > 0) {
-		n = (s16) (f * 0x7fff);
-	}
-	else {
-		n = (s16) (f * 0x8000);
-	}
-	return (s16) n;
-}
-
 CMixer::MixerFifo::MixerFifo(CMixer *mixer, unsigned sample_rate)
 	: m_mixer(mixer)
 	, m_input_sample_rate(sample_rate)
 	, m_indexW(0)
 	, m_indexR(0)
+	, m_previousW(0)
 	, m_LVolume(256)
 	, m_RVolume(256)
 	, m_numLeftI(0.0f)
 	, m_frac(0)
 {
 	memset(m_buffer, 0, sizeof(m_buffer));
-	std::string interpAlgo = SConfig::GetInstance().sInterp;
+
+	// get the selected interpolator and make new
+	interpAlgo = SConfig::GetInstance().sInterp;
 	if (interpAlgo == INTERP_LINEAR)
-		interp = new Linear(m_buffer);
+		m_interp = new Linear(m_buffer);
 	else if (interpAlgo == INTERP_CUBIC)
-		interp = new Cubic(m_buffer);
+		m_interp = new Cubic(m_buffer);
 	else
-		interp = new Linear(m_buffer);
+		m_interp = new Linear(m_buffer);
+}
+
+// clean up interpolator pointer
+CMixer::MixerFifo::~MixerFifo() {
+	delete m_interp;
+	m_interp = nullptr;
 }
 
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
 {
-	/*srand((u32)time(NULL));
-	unsigned int currentSample = 0;
-	int rand1 = 0, rand2 = 0, rand3 = 0, rand4 = 0;
-	float errorL1 = 0, errorL2 = 0;
-	float errorR1 = 0, errorR2 = 0;
-	float shape = 0.5f;
-	float w = (0xFFFF);
-	float width = 1.f / w;
-	float dither = width / RAND_MAX;
-	float doffset = width * 0.5f;
-	float temp;*/
 	// Cache access in non-volatile variable
 	// This is the only function changing the read value, so it's safe to
 	// cache it locally although it's written here.
@@ -83,7 +59,6 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	// Without this cache, the compiler wouldn't be allowed to optimize the
 	// interpolation loop.
 	u32 indexR = Common::AtomicLoad(m_indexR);
-	u32 startR = indexR;
 	u32 indexW = Common::AtomicLoad(m_indexW);
 
 	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);	
@@ -103,96 +78,18 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
 
-	// if not framelimit, then ratio = 0x10000
-	//const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate );	//ratio of aid over sample, scaled to be 0 - 0x10000
-	float ratio = aid_sample_rate / (float) m_mixer->m_sampleRate;
+	float ratio = aid_sample_rate / (float) m_mixer->m_sampleRate;	// keep ratio as floating point, convert to int only for linear interpolation
 	
 	s32 lvolume = m_LVolume;
 	s32 rvolume = m_RVolume;
 
-	interp->setRatio(ratio);
-	interp->setVolume(lvolume, rvolume);
-	unsigned int currentSample = interp->interpolate(samples, numSamples, indexR, indexW);
+	// set interpolate parameters
+	m_interp->setRatio(ratio);	// ratio of in/out sample rate
+	m_interp->setVolume(lvolume, rvolume);
 
-	/*
-	// TODO: consider a higher-quality resampling algorithm.
-	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2)
-	{
-		
-		u32 indexRp = indexR - 2; //previous sample
-		u32 indexR2 = indexR + 2; //next
-		u32 indexR4 = indexR + 4; //nextnext
-		float f2 = (m_frac * m_frac);
-		float f3 = (f2 * m_frac);
-
-		float s0, s1, s2, s3;
-		float a, b, c, d;
-		s0 = twos2float(Common::swap16(m_buffer[(indexRp) & INDEX_MASK])); //previous
-		s1 = twos2float(Common::swap16(m_buffer[(indexR) & INDEX_MASK])); // current
-		s2 = twos2float(Common::swap16(m_buffer[(indexR2) & INDEX_MASK])); //next
-		s3 = twos2float(Common::swap16(m_buffer[(indexR4) & INDEX_MASK])); //nextnext
-		a = -s0 + (3 * (s1 - s2)) + s3;
-		b = (2 * s0) - (5 * s1) + (4 * s2) - s3;
-		c = -s0 + s2;
-		d = 2 * s1;
-		float sampleL = a * f3;
-		sampleL += b * f2;
-		sampleL += c * m_frac;
-		sampleL += d;
-		sampleL /= 2;
-		sampleL = sampleL * lvolume;
-		sampleL += twos2float(samples[currentSample + 1]);
-
-		rand2 = rand1;
-		rand1 = rand();
-		temp = sampleL + shape * (errorL1 + errorL1 - errorL2);
-		sampleL = temp + doffset + dither * (float) (rand1 - rand2);
-
-		if (sampleL > 1.0) sampleL = 1.0;
-		if (sampleL < -1.0) sampleL = -1.0;
-		int sampleLi = float2stwos(sampleL);
-		samples[currentSample + 1] = sampleLi;
-
-		errorL2 = errorL1;
-		errorL1 = temp - sampleL;
-
-
-
-		s0 = twos2float(Common::swap16(m_buffer[(indexRp + 1) & INDEX_MASK])); //previous
-		s1 = twos2float(Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK])); // current
-		s2 = twos2float(Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK])); //next
-		s3 = twos2float(Common::swap16(m_buffer[(indexR4 + 1) & INDEX_MASK])); //nextnext
-		a = -s0 + (3 * (s1 - s2)) + s3;
-		b = (2 * s0) - (5 * s1) + (4 * s2) - s3;
-		c = -s0 + s2;
-		d = 2 * s1;
-		float sampleR = a * f3;
-		sampleR += b * f2;
-		sampleR += c * m_frac;
-		sampleR += d;
-		sampleR /= 2; // divided by 2
-		sampleR = sampleR * rvolume;
-		sampleR += twos2float(samples[currentSample]);
-
-		rand4 = rand3;
-		rand3 = rand();
-		temp = sampleR + shape * (errorR1 + errorR1 - errorR2);
-		sampleR = temp + doffset + dither * (float) (rand3 - rand4);
-
-		if (sampleR > 1.0) sampleR = 1.0;
-		if (sampleR < -1.0) sampleR = -1.0;
-		int sampleRi = float2stwos(sampleR);
-		samples[currentSample] = sampleRi;
-
-		errorR2 = errorR1;
-		errorR1 = temp - sampleR;
-
-		m_frac += ratio;
-		indexR += 2 * (int)m_frac;
-		float intpart;
-		m_frac = modf(m_frac, &intpart);
-	}*/
-
+	// interpolate!
+	unsigned int currentSample = m_interp->interpolate(samples, numSamples, indexR, indexW);
+	
 	// Padding
 	short s[2];
 	s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
@@ -244,6 +141,7 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 	// indexR isn't allowed to cache in the audio throttling loop as it
 	// needs to get updates to not deadlock.
 	u32 indexW = Common::AtomicLoad(m_indexW);
+	m_previousW = indexW;
 
 	// Check if we have enough free space
 	// indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
@@ -265,6 +163,12 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 	}
 
 	Common::AtomicAdd(m_indexW, num_samples * 2);
+
+	// we need to convert the new values to floats if using cubic and lanczos
+	if (interpAlgo == INTERP_CUBIC) {
+		u32 indexW = Common::AtomicLoad(m_indexW);
+		((Cubic*) m_interp)->populateFloats(m_previousW, indexW);
+	}
 
 	return;
 }

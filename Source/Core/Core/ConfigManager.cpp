@@ -116,6 +116,7 @@ SConfig::SConfig()
 {
 	// Make sure we have log manager
 	LoadSettings();
+	NOTICE_LOG(AUDIO, "sInterp after load = %s", sInterp);
 }
 
 void SConfig::Init()
@@ -326,9 +327,10 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 	dsp->Set("EnableJIT", m_DSPEnableJIT);
 	dsp->Set("DumpAudio", m_DumpAudio);
 	dsp->Set("Backend", sBackend);
-	dsp->Set("Interp", sInterp);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
+	NOTICE_LOG(AUDIO, "Set Interp = %s", sInterp);
+	dsp->Set("Interp", sInterp);
 }
 
 void SConfig::SaveInputSettings(IniFile& ini)
@@ -548,7 +550,6 @@ void SConfig::LoadMovieSettings(IniFile& ini)
 void SConfig::LoadDSPSettings(IniFile& ini)
 {
 	IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
-
 	dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
 	dsp->Get("DumpAudio", &m_DumpAudio, false);
 #if defined __linux__ && HAVE_ALSA
@@ -562,9 +563,10 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #else
 	dsp->Get("Backend", &sBackend, BACKEND_NULLSOUND);
 #endif
-	dsp->Get("Interp", &sInterp);
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+	dsp->Get("Interp", &sInterp, INTERP_LINEAR);
+	NOTICE_LOG(AUDIO, "Interpreter = %s", sInterp);
 }
 
 void SConfig::LoadInputSettings(IniFile& ini)

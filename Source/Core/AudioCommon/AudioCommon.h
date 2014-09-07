@@ -22,6 +22,4 @@ namespace AudioCommon
 	void UpdateSoundStream();
 	void ClearAudioBuffer(bool mute);
 	void SendAIBuffer(short* samples, unsigned int num_samples);
-	float twos2float(u16 s);
-	s16 float2atwos(float f);
 }

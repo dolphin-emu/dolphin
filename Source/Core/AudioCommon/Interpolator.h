@@ -5,14 +5,31 @@
 #pragma once
 
 #include "Common/Common.h"
+#include <time.h>
+#include <cmath>
 
+#ifndef M_PI
+#define M_PI  3.14159265358979323846
+#endif
+
+#define BIT_DEPTH		16
 #define CLAMP			((1 << (BIT_DEPTH - 1)) - 1)
 #define MAX_SAMPLES     (1024 * 2) // 64ms = 2048/32000
 #define INDEX_MASK      (MAX_SAMPLES * 2 - 1)
+#define DPPS_MASK		0xF1
+
+#define DITHER_SHAPE	0.5f
+#define WORD			(0xFFFF)
+#define WIDTH			1.f / WORD
+#define DITHER_SIZE		WIDTH / RAND_MAX
+#define DOFFSET			WIDTH * DITHER_SHAPE
+
+#define SINC_FSIZE		2048
+#define SINC_SIZE		5
 
 class Interpolator {
 public:
-	virtual u32 interpolate(short* samples, unsigned int num, u32& indexR, u32 indexW) {}
+	virtual u32 interpolate(short* samples, unsigned int num, u32& indexR, u32 indexW) { return 0; }
 	virtual ~Interpolator() {}
 	virtual void setRatio(float ratio) {}
 	virtual void setVolume(s32 lvolume, s32 rvolume) {}
@@ -31,9 +48,10 @@ public:
 		, m_frac(0)
 	{
 		mix_buffer = buff_pointer;
+		NOTICE_LOG(AUDIO, "USING LINEAR INTERPOLATOR");
 	}
 
-	virtual ~Linear();
+	virtual ~Linear() {}
 	u32 interpolate(short* samples, unsigned int num, u32& indexR, u32 indexW);
 	void setRatio(float ratio);
 	void setVolume(s32 lvolume, s32 rvolume);
@@ -52,14 +70,53 @@ public:
 		, m_frac(0)
 	{
 		mix_buffer = buff_pointer;
+		memset(float_buffer, 0, sizeof(float_buffer));
+		NOTICE_LOG(AUDIO, "USING CUBIC INTERPOLATOR");
+		srand((u32) time(NULL));
 	}
-
-	virtual ~Cubic();
+	virtual ~Cubic() {}
 	u32 interpolate(short* samples, unsigned int num, u32& indexR, u32 indexW);
 	void setRatio(float ratio);
 	void setVolume(s32 lvolume, s32 rvolume);
+	void populateFloats(u32 start, u32 stop);
 private:
+	float float_buffer[MAX_SAMPLES * 2];
 	float m_ratio;
 	float m_lvolume, m_rvolume;
 	float m_frac;
+	int rand1, rand2, rand3, rand4;
+	float errorL1, errorL2;
+	float errorR1, errorR2;
+};
+
+class Lanczos : public Interpolator {
+public:
+	Lanczos(short* buff_pointer)
+		: m_ratio(0)
+		, m_lvolume(1.f)
+		, m_rvolume(1.f)
+		, m_frac(0)
+	{
+		mix_buffer = buff_pointer;
+		NOTICE_LOG(AUDIO, "USING LANCZOS INTERPOLATOR");
+		srand((u32) time(NULL));
+		memset(float_buffer, 0, sizeof(float_buffer));
+		memset(m_sinc_table, 0, sizeof(m_sinc_table));
+	}
+	virtual ~Lanczos() {}
+	u32 interpolate(short* samples, unsigned int num, u32& indexR, u32 indexW);
+	void setRatio(float ratio);
+	void setVolume(s32 lvolume, s32 rvolume);
+	void populateFloats(u32 start, u32 stop);
+private:
+	float sinc_sinc(float x, float window_width);
+	void populate_sinc_table();
+	float float_buffer[MAX_SAMPLES * 2];
+	float m_sinc_table[SINC_FSIZE][SINC_SIZE];
+	float m_ratio;
+	float m_lvolume, m_rvolume;
+	float m_frac;
+	int rand1, rand2, rand3, rand4;
+	float errorL1, errorL2;
+	float errorR1, errorR2;
 };

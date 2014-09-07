@@ -7,6 +7,7 @@
 #include <mutex>
 #include <string>
 
+#include "Interpolator.h"
 #include "AudioCommon/WaveFile.h"
 
 // 16 bit Stereo
@@ -88,6 +89,7 @@ protected:
 	class MixerFifo {
 	public:
 		MixerFifo(CMixer *mixer, unsigned sample_rate);
+		~MixerFifo();
 		void PushSamples(const short* samples, unsigned int num_samples);
 		unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
 		void SetInputSampleRate(unsigned int rate);
@@ -96,9 +98,11 @@ protected:
 		CMixer *m_mixer;
 		unsigned m_input_sample_rate;
 		short m_buffer[MAX_SAMPLES * 2];
-		Interpolator* interp;
+		std::string interpAlgo;
+		Interpolator *m_interp;
 		volatile u32 m_indexW;
 		volatile u32 m_indexR;
+		u32 m_previousW;
 		// Volume ranges from 0-256
 		volatile s32 m_LVolume;
 		volatile s32 m_RVolume;

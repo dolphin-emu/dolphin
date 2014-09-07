@@ -148,6 +148,7 @@ EVT_CHECKBOX(ID_ENABLE_THROTTLE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DUMP_AUDIO, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DPL2DECODER, CConfigMain::AudioSettingsChanged)
 EVT_CHOICE(ID_BACKEND, CConfigMain::AudioSettingsChanged)
+EVT_CHOICE(ID_INTERP, CConfigMain::AudioSettingsChanged)
 EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
@@ -672,6 +673,7 @@ void CConfigMain::CreateGUIControls()
 	{
 		Latency->Disable();
 		BackendSelection->Disable();
+		Interpolation->Disable();
 		DPL2Decoder->Disable();
 	}
 
@@ -983,7 +985,7 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_INTERP:
-		SConfig::GetInstance().sInterp = Interpolation->GetSelection();
+		SConfig::GetInstance().sInterp = WxStrToStr(Interpolation->GetStringSelection());
 		break;
 		
 	case ID_LATENCY:
