@@ -152,7 +152,7 @@ void OpenALStream::SoundLoop()
 	// Short Silence
 	memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_FLOAT);
 	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * FRAME_STEREO_SHORT);
-	for (int i = 0; i < numBuffers; i++)
+	for (int i = 0; i < numBuffers; ++i)
 	{
 		if (surround_capable)
 			alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, 4 * FRAME_SURROUND_FLOAT, ulFrequency);

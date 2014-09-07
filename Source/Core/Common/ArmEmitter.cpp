@@ -41,7 +41,7 @@ inline u32 RotL(u32 a, int amount)
 bool TryMakeOperand2(u32 imm, Operand2 &op2)
 {
 	// Just brute force it.
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; ++i)
 	{
 		int mask = RotR(0xFF, i * 2);
 		if ((imm & mask) == imm)
@@ -94,7 +94,7 @@ Operand2 AssumeMakeOperand2(u32 imm)
 bool ARMXEmitter::TrySetValue_TwoOp(ARMReg reg, u32 val)
 {
 	int ops = 0;
-	for (int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; ++i)
 	{
 		if ((val >> (i*2)) & 0x3)
 		{
@@ -321,7 +321,7 @@ u8 *ARMXEmitter::GetWritableCodePtr()
 
 void ARMXEmitter::ReserveCodeSpace(u32 bytes)
 {
-	for (u32 i = 0; i < bytes/4; i++)
+	for (u32 i = 0; i < bytes/4; ++i)
 		Write32(0xE1200070); //bkpt 0
 }
 
@@ -368,7 +368,7 @@ void ARMXEmitter::SetCC(CCFlags cond)
 
 void ARMXEmitter::NOP(int count)
 {
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < count; ++i)
 	{
 		Write32(condition | 0x01A00000);
 	}
@@ -487,7 +487,7 @@ void ARMXEmitter::PUSH(const int num, ...)
 	int i;
 	va_list vl;
 	va_start(vl, num);
-	for (i=0;i<num;i++)
+	for (i=0;i<num;++i)
 	{
 		Reg = va_arg(vl, u32);
 		RegList |= (1 << Reg);
@@ -502,7 +502,7 @@ void ARMXEmitter::POP(const int num, ...)
 	int i;
 	va_list vl;
 	va_start(vl, num);
-	for (i=0;i<num;i++)
+	for (i=0;i<num;++i)
 	{
 		Reg = va_arg(vl, u32);
 		RegList |= (1 << Reg);
@@ -875,7 +875,7 @@ void ARMXEmitter::STMFD(ARMReg dest, bool WriteBack, const int Regnum, ...)
 	int i;
 	va_list vl;
 	va_start(vl, Regnum);
-	for (i=0;i<Regnum;i++)
+	for (i=0;i<Regnum;++i)
 	{
 		Reg = va_arg(vl, u32);
 		RegList |= (1 << Reg);
@@ -890,7 +890,7 @@ void ARMXEmitter::LDMFD(ARMReg dest, bool WriteBack, const int Regnum, ...)
 	int i;
 	va_list vl;
 	va_start(vl, Regnum);
-	for (i=0;i<Regnum;i++)
+	for (i=0;i<Regnum;++i)
 	{
 		Reg = va_arg(vl, u32);
 		RegList |= (1 << Reg);
