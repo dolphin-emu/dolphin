@@ -17,8 +17,6 @@ extern bool g_bSkipCurrentFrame;
 void Fifo_Init();
 void Fifo_Shutdown();
 
-u8* GetVideoBufferStartPtr();
-
 void Fifo_DoState(PointerWrap &f);
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);
 

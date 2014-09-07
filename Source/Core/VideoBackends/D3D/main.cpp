@@ -173,7 +173,6 @@ void VideoBackend::Video_Prepare()
 	Fifo_Init();
 	IndexGenerator::Init();
 	VertexLoaderManager::Init();
-	OpcodeDecoder_Init();
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
 	CommandProcessor::Init();
@@ -195,7 +194,6 @@ void VideoBackend::Shutdown()
 		CommandProcessor::Shutdown();
 		PixelShaderManager::Shutdown();
 		VertexShaderManager::Shutdown();
-		OpcodeDecoder_Shutdown();
 		VertexLoaderManager::Shutdown();
 
 		// internal interfaces

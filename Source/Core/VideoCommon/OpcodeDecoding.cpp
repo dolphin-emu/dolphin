@@ -240,16 +240,6 @@ static u32 Decode(u8* end)
 	return cycles;
 }
 
-void OpcodeDecoder_Init()
-{
-	g_pVideoData = GetVideoBufferStartPtr();
-}
-
-
-void OpcodeDecoder_Shutdown()
-{
-}
-
 u32 OpcodeDecoder_Run(u8* end)
 {
 	u32 totalCycles = 0;
