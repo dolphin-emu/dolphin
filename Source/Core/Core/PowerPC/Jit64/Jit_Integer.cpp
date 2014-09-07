@@ -750,36 +750,7 @@ void Jit64::subfic(UGeckoInstruction inst)
 	// This instruction has no RC flag
 }
 
-void Jit64::subfcx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START;
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, (d == a || d == b), true);
 
-	JitClearCAOV(inst.OE);
-	if (d == b)
-	{
-		SUB(32, gpr.R(d), gpr.R(a));
-	}
-	else if (d == a)
-	{
-		MOV(32, R(RSCRATCH), gpr.R(a));
-		MOV(32, gpr.R(d), gpr.R(b));
-		SUB(32, gpr.R(d), R(RSCRATCH));
-	}
-	else
-	{
-		MOV(32, gpr.R(d), gpr.R(b));
-		SUB(32, gpr.R(d), gpr.R(a));
-	}
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	FinalizeCarryOverflow(inst.OE, true);
-
-	gpr.UnlockAll();
-}
 
 void Jit64::subfx(UGeckoInstruction inst)
 {
@@ -1285,36 +1256,44 @@ void Jit64::arithXex(UGeckoInstruction inst)
 	gpr.UnlockAll();
 }
 
-void Jit64::addcx(UGeckoInstruction inst)
+void Jit64::arithcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
+	bool add = !!(inst.SUBOP10 & 2); // add or sub
 	int a = inst.RA, b = inst.RB, d = inst.RD;
+	gpr.Lock(a, b, d);
+	gpr.BindToRegister(d, d == a || d == b, true);
+	JitClearCAOV(inst.OE);
 
-	if ((d == a) || (d == b))
+	if (d == a && d != b)
 	{
-		int operand = ((d == a) ? b : a);
-		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, true);
-		JitClearCAOV(inst.OE);
-		ADD(32, gpr.R(d), gpr.R(operand));
-		FinalizeCarryOverflow(inst.OE);
-		if (inst.Rc)
-			ComputeRC(gpr.R(d));
-		gpr.UnlockAll();
+		if (add)
+		{
+			ADD(32, gpr.R(d), gpr.R(b));
+		}
+		else
+		{
+			// special case, because sub isn't reversible
+			MOV(32, R(RSCRATCH), gpr.R(a));
+			MOV(32, gpr.R(d), gpr.R(b));
+			SUB(32, gpr.R(d), R(RSCRATCH));
+		}
 	}
 	else
 	{
-		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, false);
-		JitClearCAOV(inst.OE);
-		MOV(32, gpr.R(d), gpr.R(a));
-		ADD(32, gpr.R(d), gpr.R(b));
-		FinalizeCarryOverflow(inst.OE);
-		if (inst.Rc)
-			ComputeRC(gpr.R(d));
-		gpr.UnlockAll();
+		if (d != b)
+			MOV(32, gpr.R(d), gpr.R(b));
+		if (add)
+			ADD(32, gpr.R(d), gpr.R(a));
+		else
+			SUB(32, gpr.R(d), gpr.R(a));
 	}
+
+	FinalizeCarryOverflow(inst.OE, !add);
+	if (inst.Rc)
+		ComputeRC(gpr.R(d));
+	gpr.UnlockAll();
 }
 
 void Jit64::rlwinmx(UGeckoInstruction inst)

@@ -139,7 +139,7 @@ public:
 	void DynaRunTable63(UGeckoInstruction _inst);
 
 	void addx(UGeckoInstruction inst);
-	void addcx(UGeckoInstruction inst);
+	void arithcx(UGeckoInstruction inst);
 	void mulli(UGeckoInstruction inst);
 	void mulhwXx(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
@@ -215,7 +215,6 @@ public:
 	void dcbz(UGeckoInstruction inst);
 
 	void subfic(UGeckoInstruction inst);
-	void subfcx(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
 
 	void twx(UGeckoInstruction inst);
