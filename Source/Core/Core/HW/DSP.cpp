@@ -532,14 +532,10 @@ void UpdateAudioDMA()
 static void Do_ARAM_DMA()
 {
 	g_dspState.DSPControl.DMAState = 1;
-	if (g_arDMA.Cnt.count == 32)
-	{
-		CompleteARAM(0, 0);
-	}
-	else
-	{
-		CoreTiming::ScheduleEvent_Threadsafe(0, et_CompleteARAM);
-	}
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_CompleteARAM);
+
+	// Force an early exception check on large transfers. Fixes RE2 audio.
+	CoreTiming::ForceExceptionCheck(250);
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
