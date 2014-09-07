@@ -911,7 +911,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			//options
 			for (auto& groupSetting : group->settings)
 			{
-				if (groupSetting.get()->high == 100)
+				if (groupSetting.get()->high == DEFAULT_HIGH_VALUE)
 				{
 					PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
 					if (groupSetting.get()->is_iterate == true)
