@@ -1,4 +1,4 @@
-Dolphin VR 4.0-2702
+Dolphin VR 4.0-3194
 (Unofficial Dolphin build with Oculus Rift support.)
 Open Source licence: GPL v2
 
@@ -13,7 +13,7 @@ How to run:
 
 Optional: Copy sixense_x64.dll, iweardrv.dll, and iwrstdrv.dll into your Dolphin directory.
 
-Oculus Rift DK1 to DK2 are supported. You need the Oculus 0.4.1 or 0.4.0 runtime installed.
+Oculus Rift DK1 to DK2 are supported. You need the Oculus 0.4.2 runtime installed.
 Set the Rift Display Mode to "Extend Desktop to the HMD", or it won't work!
 Plug the Rift in, and make sure the service is running, before launching Dolphin.
 
@@ -21,7 +21,7 @@ Only the OpenGL renderer will work. In Graphics, turn off Render To Main Window.
 In the Graphics options Enhancements tab set the internal resolution to a multiple
 of the native. 1x Native is much too blurry, I use 2.5x Native for my DK1.
 Lower resoultions are faster but blurrier.
-I haven't tested Anti-Aliasing or Anisotropic filtering, so use at own risk!
+Anti-aliasing is working now.
 Post-Processing has no effect and is not implemented.
 eXternal Frame Buffer is always disabled regardless of what you choose.
 Turning Free-Look on in the Advanced tab allows you to walk around with Shift+WASD.

@@ -22,7 +22,7 @@ Please read the [FAQ](http://dolphin-emu.org/docs/faq/) before use.
 
 ## Installation on Windows
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2013 is a hard requirement since previous versions don't support
+Visual Studio 2013 Update 3 is a hard requirement since previous versions don't support
 many C++ features that we use. Other compilers might be able to build Dolphin
 on Windows but have not been tested and are not recommended to be used.
 
@@ -33,7 +33,7 @@ installer is not necessary to run Dolphin since the Build directory contains
 a working Dolphin distribution.
 
 ## Oculus Rift
-To build with Oculus Rift support, you need the Oculus Rift SDK 0.4.0 or above.
+To build with Oculus Rift support, you need the Oculus Rift SDK 0.4.2 or above.
 Copy the LibOVR folder from the Oculus Rift SDK into the Externals folder,
 and clean and rebuild. The presense or absense of the LibOVR folder changes the
 HAVE_OCULUSSDK preprocessor definition.
