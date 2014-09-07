@@ -230,8 +230,7 @@ void DoState(PointerWrap &p)
 			// if we had to create a temporary device, discard it if we're not loading.
 			// also, if no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created.
-			if (p.GetMode() != PointerWrap::MODE_READ ||
-				(!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
+			if (p.GetMode() != PointerWrap::MODE_READ || !Movie::IsMovieActive())
 			{
 				delete pSaveDevice;
 			}
@@ -257,7 +256,7 @@ void Init()
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;
 
-		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+		if (Movie::IsMovieActive())
 			AddDevice(Movie::IsUsingPad(i) ?  (Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
 		else if (!NetPlay::IsNetPlayRunning())
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
@@ -531,7 +530,7 @@ void RunSIBuffer()
 int GetTicksToNextSIPoll()
 {
 	// Poll for input at regular intervals (once per frame) when playing or recording a movie
-	if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
+	if (Movie::IsMovieActive())
 	{
 		if (Movie::IsNetPlayRecording())
 			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
