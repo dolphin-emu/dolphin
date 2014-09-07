@@ -341,7 +341,7 @@ bool Wiimote::Step()
 	m_rumble->controls[0]->control_ref->State(m_rumble_on);
 
 	// when a movie is active, this button status update is disabled (moved), because movies only record data reports.
-	if (!(Movie::IsPlayingInput() || Movie::IsRecordingInput()) || NetPlay::IsNetPlayRunning())
+	if (!(Movie::IsMovieActive()) || NetPlay::IsNetPlayRunning())
 	{
 		UpdateButtonsStatus();
 	}
@@ -401,7 +401,7 @@ void Wiimote::UpdateButtonsStatus()
 void Wiimote::GetCoreData(u8* const data)
 {
 	// when a movie is active, the button update happens here instead of Wiimote::Step, to avoid potential desync issues.
-	if (Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::IsNetPlayRunning())
+	if (Movie::IsMovieActive() || NetPlay::IsNetPlayRunning())
 	{
 		UpdateButtonsStatus();
 	}

@@ -209,9 +209,8 @@ protected:
 			GENERIC_LOG(LogType, LogTypes::LINFO, "    OutBuffer: 0x%08x (0x%x):",
 				OutBuffer, OutBufferSize);
 
-			#if defined(MAX_LOGLEVEL) && MAX_LOGLEVEL >= INFO_LEVEL
-			DumpCommands(OutBuffer, OutBufferSize, LogType, Verbosity);
-			#endif
+			if (Verbosity >= LogTypes::LOG_LEVELS::LINFO)
+				DumpCommands(OutBuffer, OutBufferSize, LogType, Verbosity);
 		}
 	}
 };

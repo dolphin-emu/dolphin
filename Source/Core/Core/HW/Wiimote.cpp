@@ -53,7 +53,7 @@ void Initialize(void* const hwnd, bool wait)
 	WiimoteReal::Initialize(wait);
 
 	// reload Wiimotes with our settings
-	if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
+	if (Movie::IsMovieActive())
 		Movie::ChangeWiiPads();
 }
 

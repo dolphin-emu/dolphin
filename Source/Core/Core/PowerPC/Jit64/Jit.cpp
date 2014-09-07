@@ -39,14 +39,6 @@ using namespace PowerPC;
 
 // Various notes below
 
-// Register allocation
-//   RAX - Generic quicktemp register
-//   RBX - point to base of memory map
-//   RSI RDI R12 R13 R14 R15 - free for allocation
-//   RCX RDX R8 R9 R10 R11 - allocate in emergencies. These need to be flushed before functions are called.
-//   RSP - stack pointer, do not generally use, very dangerous
-//   RBP - ?
-
 // IMPORTANT:
 // Make sure that all generated code and all emulator state sits under the 2GB boundary so that
 // RIP addressing can be used easily. Windows will always allocate static code under the 2GB boundary.
@@ -210,8 +202,8 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	fpr.Flush();
 	if (js.isLastInstruction)
 	{
-		MOV(32, M(&PC), Imm32(js.compilerPC));
-		MOV(32, M(&NPC), Imm32(js.compilerPC + 4));
+		MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
 	}
 	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
 	ABI_CallFunctionC((void*)instr, inst.hex);
@@ -279,7 +271,7 @@ void Jit64::WriteExit(u32 destination)
 {
 	Cleanup();
 
-	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
@@ -298,48 +290,48 @@ void Jit64::WriteExit(u32 destination)
 	}
 	else
 	{
-		MOV(32, M(&PC), Imm32(destination));
+		MOV(32, PPCSTATE(pc), Imm32(destination));
 		JMP(asm_routines.dispatcher, true);
 	}
 
 	b->linkData.push_back(linkData);
 }
 
-void Jit64::WriteExitDestInEAX()
+void Jit64::WriteExitDestInRSCRATCH()
 {
-	MOV(32, M(&PC), R(EAX));
+	MOV(32, PPCSTATE(pc), R(RSCRATCH));
 	Cleanup();
-	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
-void Jit64::WriteRfiExitDestInEAX()
+void Jit64::WriteRfiExitDestInRSCRATCH()
 {
-	MOV(32, M(&PC), R(EAX));
-	MOV(32, M(&NPC), R(EAX));
+	MOV(32, PPCSTATE(pc), R(RSCRATCH));
+	MOV(32, PPCSTATE(npc), R(RSCRATCH));
 	Cleanup();
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
 void Jit64::WriteExceptionExit()
 {
 	Cleanup();
-	MOV(32, R(EAX), M(&PC));
-	MOV(32, M(&NPC), R(EAX));
+	MOV(32, R(RSCRATCH), PPCSTATE(pc));
+	MOV(32, PPCSTATE(npc), R(RSCRATCH));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
 void Jit64::WriteExternalExceptionExit()
 {
 	Cleanup();
-	MOV(32, R(EAX), M(&PC));
-	MOV(32, M(&NPC), R(EAX));
+	MOV(32, R(RSCRATCH), PPCSTATE(pc));
+	MOV(32, PPCSTATE(npc), R(RSCRATCH));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-	SUB(32, M(&PowerPC::ppcState.downcount), Imm32(js.downcountAmount));
+	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -426,7 +418,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	// Downcount flag check. The last block decremented downcounter, and the flag should still be available.
 	FixupBranch skip = J_CC(CC_NBE);
-	MOV(32, M(&PC), Imm32(js.blockStart));
+	MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
 	JMP(asm_routines.doTiming, true);  // downcount hit zero - go doTiming.
 	SetJumpTarget(skip);
 
@@ -452,7 +444,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	}
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
 	// should help logged stack-traces become more accurate
-	MOV(32, M(&PC), Imm32(js.blockStart));
+	MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
 #endif
 
 	// Start up the register allocators
@@ -501,7 +493,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
 			js.fifoBytesThisBlock -= 32;
-			MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
+			MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 			u32 registersInUse = CallerSavedRegistersInUse();
 			ABI_PushRegistersAndAdjustStack(registersInUse, false);
 			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
@@ -520,9 +512,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 					HLEFunction(function);
 					if (type == HLE::HLE_HOOK_REPLACE)
 					{
-						MOV(32, R(EAX), M(&NPC));
+						MOV(32, R(RSCRATCH), PPCSTATE(npc));
 						js.downcountAmount += js.st.numCycles;
-						WriteExitDestInEAX();
+						WriteExitDestInRSCRATCH();
 						break;
 					}
 				}
@@ -537,13 +529,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				fpr.Flush();
 
 				//This instruction uses FPU - needs to add FP exception bailout
-				TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
+				TEST(32, PPCSTATE(msr), Imm32(1 << 13)); // Test FP enabled bit
 				FixupBranch b1 = J_CC(CC_NZ, true);
 
 				// If a FPU exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
-				MOV(32, M(&PC), Imm32(ops[i].address));
-				OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+				OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
 				WriteExceptionExit();
 
 				SetJumpTarget(b1);
@@ -557,16 +549,16 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				gpr.Flush();
 				fpr.Flush();
 
-				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
+				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
 				FixupBranch clearInt = J_CC(CC_NZ, true);
-				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
 				FixupBranch noExtException = J_CC(CC_Z, true);
-				TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
+				TEST(32, PPCSTATE(msr), Imm32(0x0008000));
 				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
 				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
 				FixupBranch noCPInt = J_CC(CC_Z, true);
 
-				MOV(32, M(&PC), Imm32(ops[i].address));
+				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
 				WriteExternalExceptionExit();
 
 				SetJumpTarget(noCPInt);
@@ -580,7 +572,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				gpr.Flush();
 				fpr.Flush();
 
-				MOV(32, M(&PC), Imm32(ops[i].address));
+				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
@@ -597,12 +589,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				gpr.Flush();
 				fpr.Flush();
 
-				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
+				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
 				FixupBranch noMemException = J_CC(CC_Z, true);
 
 				// If a memory exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
-				MOV(32, M(&PC), Imm32(ops[i].address));
+				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
 				WriteExceptionExit();
 				SetJumpTarget(noMemException);
 			}
@@ -645,13 +637,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (code_block.m_memory_exception)
 	{
 		// Address of instruction could not be translated
-		MOV(32, M(&NPC), Imm32(js.compilerPC));
+		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC));
 
-		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
+		OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI));
 
 		// Remove the invalid instruction from the icache, forcing a recompile
-		MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
-		MOV(32,MatR(RAX),Imm32(JIT_ICACHE_INVALID_WORD));
+		MOV(64, R(RSCRATCH), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
+		MOV(32,MatR(RSCRATCH),Imm32(JIT_ICACHE_INVALID_WORD));
 
 		WriteExceptionExit();
 	}

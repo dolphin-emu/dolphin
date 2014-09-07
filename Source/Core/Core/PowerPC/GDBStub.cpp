@@ -147,7 +147,8 @@ static gdb_bp_t *gdb_bp_empty_slot(u32 type)
 	if (p == nullptr)
 		return nullptr;
 
-	for (i = 0; i < GDB_MAX_BP; i++) {
+	for (i = 0; i < GDB_MAX_BP; i++)
+	{
 		if (p[i].active == 0)
 			return &p[i];
 	}
@@ -164,7 +165,8 @@ static gdb_bp_t *gdb_bp_find(u32 type, u32 addr, u32 len)
 	if (p == nullptr)
 		return nullptr;
 
-	for (i = 0; i < GDB_MAX_BP; i++) {
+	for (i = 0; i < GDB_MAX_BP; i++)
+	{
 		if (p[i].active == 1 &&
 			p[i].addr == addr &&
 			p[i].len == len)
@@ -178,9 +180,11 @@ static void gdb_bp_remove(u32 type, u32 addr, u32 len)
 {
 	gdb_bp_t *p;
 
-	do {
+	do
+	{
 		p = gdb_bp_find(type, addr, len);
-		if (p != nullptr) {
+		if (p != nullptr)
+		{
 			DEBUG_LOG(GDB_STUB, "gdb: removed a breakpoint: %08x bytes at %08x\n", len, addr);
 			p->active = 0;
 			memset(p, 0, sizeof(gdb_bp_t));
@@ -197,7 +201,8 @@ static int gdb_bp_check(u32 addr, u32 type)
 	if (p == nullptr)
 		return 0;
 
-	for (i = 0; i < GDB_MAX_BP; i++) {
+	for (i = 0; i < GDB_MAX_BP; i++)
+	{
 		if (p[i].active == 1 &&
 			(addr >= p[i].addr && addr < p[i].addr + p[i].len))
 			return 1;
@@ -246,12 +251,14 @@ static void gdb_read_command()
 		gdb_signal(SIGTRAP);
 		return;
 	}
-	else if (c != GDB_STUB_START) {
+	else if (c != GDB_STUB_START)
+	{
 		DEBUG_LOG(GDB_STUB, "gdb: read invalid byte %02x\n", c);
 		return;
 	}
 
-	while ((c = gdb_read_byte()) != GDB_STUB_END) {
+	while ((c = gdb_read_byte()) != GDB_STUB_END)
+	{
 		cmd_bfr[cmd_len++] = c;
 		if (cmd_len == sizeof cmd_bfr)
 		{
@@ -266,7 +273,8 @@ static void gdb_read_command()
 
 	chk_calc = gdb_calc_chksum();
 
-	if (chk_calc != chk_read) {
+	if (chk_calc != chk_read)
+	{
 		ERROR_LOG(GDB_STUB, "gdb: invalid checksum: calculated %02x and read %02x for $%s# (length: %d)\n", chk_calc, chk_read, cmd_bfr, cmd_len);
 		cmd_len = 0;
 
@@ -469,13 +477,15 @@ static void gdb_read_registers()
 
 	memset(bfr, 0, sizeof bfr);
 
-	for (i = 0; i < 32; i++) {
+	for (i = 0; i < 32; i++)
+	{
 		wbe32hex(bufptr + i*8, GPR(i));
 	}
 	bufptr += 32 * 8;
 
 	/*
-	for (i = 0; i < 32; i++) {
+	for (i = 0; i < 32; i++)
+	{
 		wbe32hex(bufptr + i*8, riPS0(i));
 	}
 	bufptr += 32 * 8;
@@ -500,7 +510,8 @@ static void gdb_write_registers()
 	u32 i;
 	u8 * bufptr = cmd_bfr;
 
-	for (i = 0; i < 32; i++) {
+	for (i = 0; i < 32; i++)
+	{
 		GPR(i) = re32hex(bufptr + i*8);
 	}
 	bufptr += 32 * 8;
@@ -649,7 +660,8 @@ static void _gdb_add_bp()
 	u32 i, addr = 0, len = 0;
 
 	type = hex2char(cmd_bfr[1]);
-	switch (type) {
+	switch (type)
+	{
 		case 0:
 		case 1:
 			type = GDB_BP_TYPE_X;
@@ -869,7 +881,8 @@ int gdb_signal(u32 s)
 
 	sig = s;
 
-	if (send_signal) {
+	if (send_signal)
+	{
 		gdb_handle_signal();
 		send_signal = 0;
 	}

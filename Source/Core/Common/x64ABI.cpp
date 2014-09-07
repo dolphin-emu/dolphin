@@ -353,20 +353,7 @@ void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1)
 void XEmitter::ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2, bool noProlog)
 {
 	ABI_AlignStack(0, noProlog);
-	if (reg2 != ABI_PARAM1)
-	{
-		if (reg1 != ABI_PARAM1)
-			MOV(64, R(ABI_PARAM1), R(reg1));
-		if (reg2 != ABI_PARAM2)
-			MOV(64, R(ABI_PARAM2), R(reg2));
-	}
-	else
-	{
-		if (reg2 != ABI_PARAM2)
-			MOV(64, R(ABI_PARAM2), R(reg2));
-		if (reg1 != ABI_PARAM1)
-			MOV(64, R(ABI_PARAM1), R(reg1));
-	}
+	MOVTwo(64, ABI_PARAM1, reg1, ABI_PARAM2, reg2, ABI_PARAM3);
 	u64 distance = u64(func) - (u64(code) + 5);
 	if (distance >= 0x0000000080000000ULL &&
 	    distance <  0xFFFFFFFF80000000ULL)
@@ -380,6 +367,30 @@ void XEmitter::ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2, bool noP
 		CALL(func);
 	}
 	ABI_RestoreStack(0, noProlog);
+}
+
+void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2, X64Reg temp)
+{
+	if (dst1 == src2 && dst2 == src1)
+	{
+		// need a temporary
+		MOV(bits, R(temp), R(src1));
+		src1 = temp;
+	}
+	if (src2 != dst1)
+	{
+		if (dst1 != src1)
+			MOV(bits, R(dst1), R(src1));
+		if (dst2 != src2)
+			MOV(bits, R(dst2), R(src2));
+	}
+	else
+	{
+		if (dst2 != src2)
+			MOV(bits, R(dst2), R(src2));
+		if (dst1 != src1)
+			MOV(bits, R(dst1), R(src1));
+	}
 }
 
 void XEmitter::ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)

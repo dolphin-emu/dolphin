@@ -101,11 +101,8 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 	m_DataAppSize             = ReaderBig.Read32(0x18);
 	m_FooterSize              = ReaderBig.Read32(0x1C);
 
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
-	_dbg_assert_msg_(BOOT, Reserved==0x00, "WiiWAD: Reserved must be 0x00");
-#else
-	(void)Reserved;
-#endif
+	if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG)
+		_dbg_assert_msg_(BOOT, Reserved==0x00, "WiiWAD: Reserved must be 0x00");
 
 	u32 Offset = 0x40;
 	m_pCertificateChain   = CreateWADEntry(_rReader, m_CertificateChainSize, Offset);  Offset += ROUND_UP(m_CertificateChainSize, 0x40);

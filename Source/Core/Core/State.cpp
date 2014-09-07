@@ -236,9 +236,9 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 			File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
 	}
 
-	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
+	if ((Movie::IsMovieActive()) && !Movie::IsJustStartingRecordingInputFromSaveState())
 		Movie::SaveRecording(filename + ".dtm");
-	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
+	else if (!Movie::IsMovieActive())
 		File::Delete(filename + ".dtm");
 
 	File::IOFile f(filename, "wb");
@@ -437,7 +437,7 @@ void LoadAs(const std::string& filename)
 	{
 		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 		SaveToBuffer(g_undo_load_buffer);
-		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+		if (Movie::IsMovieActive())
 			Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
 		else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) +"undo.dtm"))
 			File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
@@ -607,10 +607,10 @@ void UndoLoadState()
 	std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 	if (!g_undo_load_buffer.empty())
 	{
-		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") || (!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
+		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") || (!Movie::IsMovieActive()))
 		{
 			LoadFromBuffer(g_undo_load_buffer);
-			if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+			if (Movie::IsMovieActive())
 				Movie::LoadInput(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
 		}
 		else

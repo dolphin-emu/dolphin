@@ -113,7 +113,7 @@ static bool IsMovieHeader(u8 magic[4])
 
 std::string GetInputDisplay()
 {
-	if (!IsPlayingInput() && !IsRecordingInput())
+	if (!IsMovieActive())
 	{
 		g_numPads = 0;
 		for (int i = 0; i < 4; i++)
@@ -198,7 +198,7 @@ void Init()
 	for (auto& disp : g_InputDisplay)
 		disp.clear();
 
-	if (!IsPlayingInput() && !IsRecordingInput())
+	if (!IsMovieActive())
 	{
 		g_bRecordingFromSaveState = false;
 		g_rerecords = 0;
@@ -273,7 +273,7 @@ void SetReadOnly(bool bEnabled)
 void FrameSkipping()
 {
 	// Frameskipping will desync movie playback
-	if (!IsPlayingInput() && !IsRecordingInput())
+	if (!IsMovieActive())
 	{
 		std::lock_guard<std::mutex> lk(cs_frameSkip);
 
@@ -308,6 +308,11 @@ bool IsJustStartingPlayingInputFromSaveState()
 bool IsPlayingInput()
 {
 	return (g_playMode == MODE_PLAYING);
+}
+
+bool IsMovieActive()
+{
+	return g_playMode != MODE_NONE;
 }
 
 bool IsReadOnly()
@@ -438,17 +443,21 @@ bool BeginRecordingInput(int controllers)
 	g_currentLagCount = g_totalLagCount = 0;
 	g_currentInputCount = g_totalInputCount = 0;
 	g_totalTickCount = g_tickCountAtLastInput = 0;
+	bongos = 0;
+	memcards = 0;
 	if (NetPlay::IsNetPlayRunning())
 	{
 		bNetPlay = true;
 		g_recordingStartTime = NETPLAY_INITIAL_GCTIME;
 	}
 	else
+	{
 		g_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
+	}
 
 	g_rerecords = 0;
 
-	for (int i = 0; i < MAX_SI_CHANNELS; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			bongos |= (1 << i);
 
@@ -1253,7 +1262,7 @@ void GetSettings()
 
 void CheckMD5()
 {
-	for (int i=0, n=0; i<16; i++)
+	for (int i = 0, n = 0; i < 16; ++i)
 	{
 		if (tmpHeader.md5[i] != 0)
 			continue;

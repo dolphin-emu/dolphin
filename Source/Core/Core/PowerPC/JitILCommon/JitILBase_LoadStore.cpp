@@ -137,19 +137,13 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 		return;
 	}
 	INSTRUCTION_START;
-		MOV(32, R(EAX), gpr.R(inst.RB));
+		MOV(32, R(RSCRATCH), gpr.R(inst.RB));
 	if (inst.RA)
-		ADD(32, R(EAX), gpr.R(inst.RA));
-	AND(32, R(EAX), Imm32(~31));
+		ADD(32, R(RSCRATCH), gpr.R(inst.RA));
+	AND(32, R(RSCRATCH), Imm32(~31));
 	PXOR(XMM0, R(XMM0));
-#if _M_X86_64
-	MOVAPS(MComplex(EBX, EAX, SCALE_1, 0), XMM0);
-	MOVAPS(MComplex(EBX, EAX, SCALE_1, 16), XMM0);
-#else
-	AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-	MOVAPS(MDisp(EAX, (u32)Memory::base), XMM0);
-	MOVAPS(MDisp(EAX, (u32)Memory::base + 16), XMM0);
-#endif
+	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
+	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
 #endif
 }
 
