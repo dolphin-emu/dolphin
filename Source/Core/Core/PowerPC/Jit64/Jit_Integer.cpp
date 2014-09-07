@@ -44,30 +44,76 @@ void Jit64::GenerateOverflow()
 	SetJumpTarget(exit);
 }
 
+void Jit64::FinalizeCarry(CCFlags cond)
+{
+	js.carryFlagSet = false;
+	js.carryFlagInverted = false;
+	if (js.op->wantsCA)
+	{
+		if (js.next_op->wantsCAInFlags)
+		{
+			if (cond == CC_C || cond == CC_NC)
+			{
+				js.carryFlagInverted = cond == CC_NC;
+			}
+			else
+			{
+				// convert the condition to a carry flag (is there a better way?)
+				SETcc(cond, R(RSCRATCH));
+				BT(8, R(RSCRATCH), Imm8(0));
+			}
+			js.carryFlagSet = true;
+		}
+		else
+		{
+			JitSetCAIf(cond);
+		}
+	}
+}
+
+// Unconditional version
+void Jit64::FinalizeCarry(bool ca)
+{
+	js.carryFlagSet = false;
+	js.carryFlagInverted = false;
+	if (js.op->wantsCA)
+	{
+		if (js.next_op->wantsCAInFlags)
+		{
+			if (ca)
+				STC();
+			else
+				CLC();
+			js.carryFlagSet = true;
+		}
+		else if (ca)
+		{
+			JitSetCA();
+		}
+		else
+		{
+			JitClearCAOV(true, false);
+		}
+	}
+}
+
 // Assumes CA,OV are clear
-void Jit64::FinalizeCarryOverflow(bool ca, bool oe, bool inv)
+void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 {
 	// USES_XER
 	if (oe)
 	{
-		// this is slightly messy because JitSetCAIf modifies x86 flags, so we have to do it in both
-		// sides of the branch.
+		// Make sure not to lose the carry flags (not a big deal, this path is rare).
+		PUSHF();
+		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~(XER_SO_MASK | XER_OV_MASK)));
 		FixupBranch jno = J_CC(CC_NO);
-		if (ca)
-			JitSetCAIf(inv ? CC_NC : CC_C);
 		//XER[OV/SO] = 1
 		OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
-		FixupBranch exit = J();
 		SetJumpTarget(jno);
-		if (ca)
-			JitSetCAIf(inv ? CC_NC : CC_C);
-		SetJumpTarget(exit);
+		POPF();
 	}
-	else if (ca)
-	{
-		// Do carry
-		JitSetCAIf(inv ? CC_NC : CC_C);
-	}
+	// Do carry
+	FinalizeCarry(inv ? CC_NC : CC_C);
 }
 
 void Jit64::ComputeRC(const Gen::OpArg & arg)
@@ -135,7 +181,6 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 	if (a || binary || carry)
 	{
 		carry &= js.op->wantsCA;
-		JitClearCAOV(carry, false);
 		if (gpr.R(a).IsImm() && !carry)
 		{
 			gpr.SetImmediate32(d, doop((u32)gpr.R(a).offset, value));
@@ -159,7 +204,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 			}
 		}
 		if (carry)
-			JitSetCAIf(CC_C);
+			FinalizeCarry(CC_C);
 		if (Rc)
 			ComputeRC(gpr.R(d));
 	}
@@ -720,38 +765,31 @@ void Jit64::subfic(UGeckoInstruction inst)
 	{
 		if (imm == 0)
 		{
-			JitClearCAOV(js.op->wantsCA, false);
 			// Flags act exactly like subtracting from 0
 			NEG(32, gpr.R(d));
 			// Output carry is inverted
-			if (js.op->wantsCA)
-				JitSetCAIf(CC_NC);
+			FinalizeCarry(CC_NC);
 		}
 		else if (imm == -1)
 		{
-			// CA is always set in this case
-			if (js.op->wantsCA)
-				JitSetCA();
 			NOT(32, gpr.R(d));
+			// CA is always set in this case
+			FinalizeCarry(true);
 		}
 		else
 		{
-			JitClearCAOV(js.op->wantsCA, false);
 			NOT(32, gpr.R(d));
 			ADD(32, gpr.R(d), Imm32(imm+1));
 			// Output carry is normal
-			if (js.op->wantsCA)
-				JitSetCAIf(CC_C);
+			FinalizeCarry(CC_C);
 		}
 	}
 	else
 	{
-		JitClearCAOV(js.op->wantsCA, false);
 		MOV(32, gpr.R(d), Imm32(imm));
 		SUB(32, gpr.R(d), gpr.R(a));
 		// Output carry is inverted
-		if (js.op->wantsCA)
-			JitSetCAIf(CC_NC);
+		FinalizeCarry(CC_NC);
 	}
 	gpr.UnlockAll();
 	// This instruction has no RC flag
@@ -1233,29 +1271,44 @@ void Jit64::arithXex(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = regsource ? inst.RB : a;
 	int d = inst.RD;
+	bool same_input_sub = !add && regsource && a == b;
 
 	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, d == a || d == b);
-	JitGetAndClearCAOV(inst.OE);
+	gpr.BindToRegister(d, !same_input_sub && (d == a || d == b));
+	if (!js.carryFlagSet)
+		JitGetAndClearCAOV(inst.OE);
 
 	bool invertedCarry = false;
-	if (!add && regsource && d == b)
+	// Special case: subfe A, B, B is a common compiler idiom
+	if (same_input_sub)
 	{
 		// Convert carry to borrow
-		CMC();
+		if (!js.carryFlagInverted)
+			CMC();
+		SBB(32, gpr.R(d), gpr.R(d));
+		invertedCarry = true;
+	}
+	else if (!add && regsource && d == b)
+	{
+		if (!js.carryFlagInverted)
+			CMC();
+		if (d != b)
+			MOV(32, gpr.R(d), gpr.R(b));
 		SBB(32, gpr.R(d), gpr.R(a));
 		invertedCarry = true;
 	}
 	else
 	{
 		OpArg source = regsource ? gpr.R(d == b ? a : b) : Imm32(mex ? 0xFFFFFFFF : 0);
+		if (js.carryFlagInverted)
+			CMC();
 		if (d != a && d != b)
 			MOV(32, gpr.R(d), gpr.R(a));
 		if (!add)
 			NOT(32, gpr.R(d));
 		ADC(32, gpr.R(d), source);
 	}
-	FinalizeCarryOverflow(js.op->wantsCA, inst.OE, invertedCarry);
+	FinalizeCarryOverflow(inst.OE, invertedCarry);
 	if (inst.Rc)
 		ComputeRC(gpr.R(d));
 	gpr.UnlockAll();
@@ -1269,7 +1322,6 @@ void Jit64::arithcx(UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, d == a || d == b, true);
-	JitClearCAOV(js.op->wantsCA, inst.OE);
 
 	if (d == a && d != b)
 	{
@@ -1295,7 +1347,7 @@ void Jit64::arithcx(UGeckoInstruction inst)
 			SUB(32, gpr.R(d), gpr.R(a));
 	}
 
-	FinalizeCarryOverflow(js.op->wantsCA, inst.OE, !add);
+	FinalizeCarryOverflow(inst.OE, !add);
 	if (inst.Rc)
 		ComputeRC(gpr.R(d));
 	gpr.UnlockAll();
@@ -1688,7 +1740,6 @@ void Jit64::srawx(UGeckoInstruction inst)
 	gpr.FlushLockX(ECX);
 	gpr.Lock(a, s, b);
 	gpr.BindToRegister(a, (a == s || a == b), true);
-	JitClearCAOV(js.op->wantsCA, false);
 	MOV(32, R(ECX), gpr.R(b));
 	if (a != s)
 		MOV(32, gpr.R(a), gpr.R(s));
@@ -1699,12 +1750,12 @@ void Jit64::srawx(UGeckoInstruction inst)
 		MOV(32, R(RSCRATCH), gpr.R(a));
 		SHR(64, gpr.R(a), Imm8(32));
 		TEST(32, gpr.R(a), R(RSCRATCH));
-		JitSetCAIf(CC_NZ);
 	}
 	else
 	{
 		SHR(64, gpr.R(a), Imm8(32));
 	}
+	FinalizeCarry(CC_NZ);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	if (inst.Rc)
@@ -1758,14 +1809,14 @@ void Jit64::srawix(UGeckoInstruction inst)
 				SAR(32, gpr.R(a), Imm8(amount));
 				SHL(32, R(RSCRATCH), Imm8(32 - amount));
 				TEST(32, R(RSCRATCH), gpr.R(a));
-				JitSetCAIf(CC_NZ);
+				FinalizeCarry(CC_NZ);
 			}
 		}
 	}
 	else
 	{
 		gpr.Lock(a, s);
-		JitClearCAOV(js.op->wantsCA, false);
+		FinalizeCarry(false);
 		gpr.BindToRegister(a, a == s, true);
 
 		if (a != s)

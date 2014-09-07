@@ -35,6 +35,7 @@ struct CodeOp //16B
 	bool wantsCR1;
 	bool wantsFPRF;
 	bool wantsCA;
+	bool wantsCAInFlags;
 	bool outputCR0;
 	bool outputCR1;
 	bool outputFPRF;

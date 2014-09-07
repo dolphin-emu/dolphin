@@ -460,7 +460,13 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	code->wantsCA = (opinfo->flags & FL_READ_CA) ? true : false;
 	code->outputCA = (opinfo->flags & FL_SET_CA) ? true : false;
 
+	// We're going to try to avoid storing carry in XER if we can avoid it -- keep it in the x86 carry flag!
+	// If the instruction reads CA but doesn't write it, we still need to store CA in XER; we can't
+	// leave it in flags.
+	code->wantsCAInFlags = code->wantsCA && code->outputCA && code->inst.SUBOP10 != 512;
+
 	// mfspr/mtspr can affect/use XER, so be super careful here
+	// we need to note specifically that mfspr needs CA in XER, not in the x86 carry flag
 	if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 339) // mfspr
 		code->wantsCA = ((code->inst.SPRU << 5) | (code->inst.SPRL & 0x1F)) == SPR_XER;
 	if (code->inst.OPCD == 31 && code->inst.SUBOP10 == 467) // mtspr

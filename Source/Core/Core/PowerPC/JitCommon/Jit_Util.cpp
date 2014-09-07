@@ -822,6 +822,7 @@ void EmuCodeBlock::JitSetCAIf(CCFlags conditionCode)
 	SETcc(conditionCode, R(RSCRATCH));
 	MOVZX(32, 8, RSCRATCH, R(RSCRATCH));
 	SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
+	AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_CA_MASK));
 	OR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); //XER.CA = 1
 }
 

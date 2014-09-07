@@ -457,6 +457,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
 	js.skipnext = false;
+	js.carryFlagSet = false;
+	js.carryFlagInverted = false;
 	js.compilerPC = nextPC;
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
@@ -488,6 +490,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			// help peephole optimizations
 			js.next_inst = ops[i + 1].inst;
 			js.next_compilerPC = ops[i + 1].address;
+			js.next_op = &ops[i + 1];
 		}
 
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)

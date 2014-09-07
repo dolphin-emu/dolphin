@@ -273,7 +273,7 @@ static GekkoOPTemplate table31[] =
 	{339, &Jit64::mfspr},                  //"mfspr",  OPTYPE_SPR, FL_OUT_D}},
 	{467, &Jit64::mtspr},                  //"mtspr",  OPTYPE_SPR, 0, 2}},
 	{371, &Jit64::mftb},                   //"mftb",   OPTYPE_SYSTEM, FL_OUT_D | FL_TIMER}},
-	{512, &Jit64::mcrxr},                  //"mcrxr",  OPTYPE_SYSTEM, 0}},
+	{512, &Jit64::mcrxr},                  //"mcrxr",  OPTYPE_SYSTEM, FL_READ_CA | FL_SET_CA}},
 	{595, &Jit64::FallBackToInterpreter},  //"mfsr",   OPTYPE_SYSTEM, FL_OUT_D, 2}},
 	{659, &Jit64::FallBackToInterpreter},  //"mfsrin", OPTYPE_SYSTEM, FL_OUT_D, 2}},
 
