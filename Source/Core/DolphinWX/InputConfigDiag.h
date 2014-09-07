@@ -7,6 +7,7 @@
 #define SLIDER_TICK_COUNT    100
 #define DETECT_WAIT_TIME     2500
 #define PREVIEW_UPDATE_TIME  25
+#define DEFAULT_HIGH_VALUE   100
 
 // might have to change this setup for wiimote
 #define PROFILES_PATH       "Profiles/"
