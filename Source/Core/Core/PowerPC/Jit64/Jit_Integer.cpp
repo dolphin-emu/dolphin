@@ -1997,6 +1997,8 @@ void Jit64::twx(UGeckoInstruction inst)
 
 	s32 a = inst.RA;
 
+	gpr.KillImmediate(a, true, false);
+
 	if (inst.OPCD == 3) // twi
 		CMP(32, gpr.R(a), gpr.R(inst.RB));
 	else // tw
