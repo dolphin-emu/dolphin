@@ -349,12 +349,10 @@ void Jit64::WriteBLRExit()
 	if (disturbed)
 		MOV(32, R(RSCRATCH), PPCSTATE(pc));
 	CMP(64, R(RSCRATCH), MDisp(RSP, 8));
-	FixupBranch nope = J_CC(CC_NE);
-	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
-	RET();
-	SetJumpTarget(nope);
 	MOV(32, R(RSCRATCH), Imm32(js.downcountAmount));
-	JMP(asm_routines.dispatcherMispredictedBLR, true);
+	J_CC(CC_NE, asm_routines.dispatcherMispredictedBLR);
+	SUB(32, PPCSTATE(downcount), R(RSCRATCH));
+	RET();
 }
 
 void Jit64::WriteRfiExitDestInRSCRATCH()
