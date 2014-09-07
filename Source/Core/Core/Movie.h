@@ -87,7 +87,7 @@ struct DTMHeader
 	bool bProgressive;
 	bool bDSPHLE;
 	bool bFastDiscSpeed;
-	u8  CPUCore;            // 0 = interpreter, 1 = JIT, 2 = JITIL
+	u8  CPUCore;            // 0 = interpreter, 1 = JIT
 	bool bEFBAccessEnable;
 	bool bEFBCopyEnable;
 	bool bCopyEFBToTexture;

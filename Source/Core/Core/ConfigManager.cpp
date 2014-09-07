@@ -512,8 +512,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("SlotB",       (int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 	core->Get("SerialPort1", (int*)&m_EXIDevice[2], EXIDEVICE_NONE);
 	core->Get("BBA_MAC",           &m_bba_mac);
-	core->Get("TimeProfiling",     &m_LocalCoreStartupParameter.bJITILTimeProfiling, false);
-	core->Get("OutputIR",          &m_LocalCoreStartupParameter.bJITILOutputIR,      false);
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
 		core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);

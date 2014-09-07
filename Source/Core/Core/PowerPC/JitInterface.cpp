@@ -20,8 +20,6 @@
 #if _M_X86
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
-#include "Core/PowerPC/Jit64IL/JitIL.h"
-#include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 #endif
 
 #if _M_ARM_32
@@ -53,11 +51,6 @@ namespace JitInterface
 				ptr = new Jit64();
 				break;
 			}
-			case 2:
-			{
-				ptr = new JitIL();
-				break;
-			}
 			#endif
 			#if _M_ARM_32
 			case 3:
@@ -85,11 +78,6 @@ namespace JitInterface
 			case 1:
 			{
 				Jit64Tables::InitTables();
-				break;
-			}
-			case 2:
-			{
-				JitILTables::InitTables();
 				break;
 			}
 			#endif
