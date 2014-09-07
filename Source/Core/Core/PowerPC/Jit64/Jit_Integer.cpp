@@ -781,84 +781,6 @@ void Jit64::subfcx(UGeckoInstruction inst)
 	gpr.UnlockAll();
 }
 
-void Jit64::subfex(UGeckoInstruction inst)
-{
-	INSTRUCTION_START;
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, (d == a || d == b), true);
-
-	JitGetAndClearCAOV(inst.OE);
-
-	bool invertedCarry = false;
-	if (d == b)
-	{
-		// Convert carry to borrow
-		CMC();
-		SBB(32, gpr.R(d), gpr.R(a));
-		invertedCarry = true;
-	}
-	else if (d == a)
-	{
-		NOT(32, gpr.R(d));
-		ADC(32, gpr.R(d), gpr.R(b));
-	}
-	else
-	{
-		MOV(32, gpr.R(d), gpr.R(a));
-		NOT(32, gpr.R(d));
-		ADC(32, gpr.R(d), gpr.R(b));
-	}
-	FinalizeCarryOverflow(inst.OE, invertedCarry);
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-
-	gpr.UnlockAll();
-}
-
-void Jit64::subfmex(UGeckoInstruction inst)
-{
-	// USES_XER
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, d = inst.RD;
-	gpr.Lock(a, d);
-	gpr.BindToRegister(d, d == a);
-
-	JitGetAndClearCAOV(inst.OE);
-	if (d != a)
-		MOV(32, gpr.R(d), gpr.R(a));
-	NOT(32, gpr.R(d));
-	ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
-	FinalizeCarryOverflow(inst.OE);
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
-}
-
-void Jit64::subfzex(UGeckoInstruction inst)
-{
-	// USES_XER
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, d = inst.RD;
-
-	gpr.Lock(a, d);
-	gpr.BindToRegister(d, d == a);
-
-	JitGetAndClearCAOV(inst.OE);
-	if (d != a)
-		MOV(32, gpr.R(d), gpr.R(a));
-	NOT(32, gpr.R(d));
-	ADC(32, gpr.R(d), Imm8(0));
-	FinalizeCarryOverflow(inst.OE);
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-
-	gpr.UnlockAll();
-}
-
 void Jit64::subfx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -1325,26 +1247,39 @@ void Jit64::addx(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::addex(UGeckoInstruction inst)
+void Jit64::arithXex(UGeckoInstruction inst)
 {
-	// USES_XER
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, b = inst.RB, d = inst.RD;
+	bool regsource = !(inst.SUBOP10 & 64); // addex or subfex
+	bool mex = !!(inst.SUBOP10 & 32);      // addmex/subfmex or addzex/subfzex
+	bool add = !!(inst.SUBOP10 & 2);       // add or sub
+	int a = inst.RA;
+	int b = regsource ? inst.RB : a;
+	int d = inst.RD;
 
 	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, (d == a) || (d == b));
+	gpr.BindToRegister(d, d == a || d == b);
 	JitGetAndClearCAOV(inst.OE);
-	if ((d == a) || (d == b))
+
+	bool invertedCarry = false;
+	if (!add && regsource && d == b)
 	{
-		ADC(32, gpr.R(d), gpr.R((d == a) ? b : a));
+		// Convert carry to borrow
+		CMC();
+		SBB(32, gpr.R(d), gpr.R(a));
+		invertedCarry = true;
 	}
 	else
 	{
-		MOV(32, gpr.R(d), gpr.R(a));
-		ADC(32, gpr.R(d), gpr.R(b));
+		OpArg source = regsource ? gpr.R(d == b ? a : b) : Imm32(mex ? 0xFFFFFFFF : 0);
+		if (d != a && d != b)
+			MOV(32, gpr.R(d), gpr.R(a));
+		if (!add)
+			NOT(32, gpr.R(d));
+		ADC(32, gpr.R(d), source);
 	}
-	FinalizeCarryOverflow(inst.OE);
+	FinalizeCarryOverflow(inst.OE, invertedCarry);
 	if (inst.Rc)
 		ComputeRC(gpr.R(d));
 	gpr.UnlockAll();
@@ -1380,44 +1315,6 @@ void Jit64::addcx(UGeckoInstruction inst)
 			ComputeRC(gpr.R(d));
 		gpr.UnlockAll();
 	}
-}
-
-void Jit64::addmex(UGeckoInstruction inst)
-{
-	// USES_XER
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, d = inst.RD;
-
-	gpr.Lock(d);
-	gpr.BindToRegister(d, d == a);
-	JitGetAndClearCAOV(inst.OE);
-	if (d != a)
-		MOV(32, gpr.R(d), gpr.R(a));
-	ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
-	FinalizeCarryOverflow(inst.OE);
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
-}
-
-void Jit64::addzex(UGeckoInstruction inst)
-{
-	// USES_XER
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, d = inst.RD;
-
-	gpr.Lock(d);
-	gpr.BindToRegister(d, d == a);
-	JitGetAndClearCAOV(inst.OE);
-	if (d != a)
-		MOV(32, gpr.R(d), gpr.R(a));
-	ADC(32, gpr.R(d), Imm8(0));
-	FinalizeCarryOverflow(inst.OE);
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
 }
 
 void Jit64::rlwinmx(UGeckoInstruction inst)

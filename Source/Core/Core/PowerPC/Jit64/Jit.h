@@ -147,9 +147,7 @@ public:
 	void divwx(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
 	void srawx(UGeckoInstruction inst);
-	void addex(UGeckoInstruction inst);
-	void addmex(UGeckoInstruction inst);
-	void addzex(UGeckoInstruction inst);
+	void arithXex(UGeckoInstruction inst);
 
 	void extsXx(UGeckoInstruction inst);
 
@@ -219,9 +217,6 @@ public:
 	void subfic(UGeckoInstruction inst);
 	void subfcx(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
-	void subfex(UGeckoInstruction inst);
-	void subfmex(UGeckoInstruction inst);
-	void subfzex(UGeckoInstruction inst);
 
 	void twx(UGeckoInstruction inst);
 
