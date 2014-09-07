@@ -634,6 +634,12 @@ else()
 	include_directories(Externals/SOIL)
 endif()
 
+check_lib(RADARE2 r_asm libr/r_asm.h QUIET)
+
+if (RADARE2_FOUND)
+	message("Radare2 found, enabling AArch64 unittests")
+endif()
+
 if (ANDROID)
 	message("Using static iconv from Externals")
 	include_directories(Externals/libiconv-1.14/include)
