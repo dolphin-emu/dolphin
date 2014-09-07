@@ -911,19 +911,31 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			//options
 			for (auto& groupSetting : group->settings)
 			{
-				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
-				if (groupSetting.get()->is_iterate == true)
+				if (groupSetting.get()->high == DEFAULT_HIGH_VALUE)
 				{
-					setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSettingUI, eventsink);
-					groupSetting.get()->value = 0;
+					PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
+					if (groupSetting.get()->is_iterate == true)
+					{
+						setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSettingUI, eventsink);
+						groupSetting.get()->value = 0;
+					}
+					else
+					{
+						setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+					}
+					options.push_back(setting_cbox);
+					Add(setting_cbox->wxcontrol, 0, wxALL | wxLEFT, 5);
 				}
 				else
 				{
-					setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+					PadSettingSpin* setting = new PadSettingSpin(parent, groupSetting.get());
+					setting->wxcontrol->Bind(wxEVT_SPINCTRL, &GamepadPage::AdjustSetting, eventsink);
+					options.push_back(setting);
+					wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
+					szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr(groupSetting->name))), 0, wxCENTER | wxRIGHT, 3);
+					szr->Add(setting->wxcontrol, 0, wxRIGHT, 3);
+					Add(szr, 0, wxALL | wxCENTER, 3);
 				}
-				options.push_back(setting_cbox);
-
-				Add(setting_cbox->wxcontrol, 0, wxALL|wxLEFT, 5);
 			}
 		}
 		break;

@@ -521,7 +521,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("WiiSDCard",                 &m_WiiSDCard,                                   false);
 	core->Get("WiiKeyboard",               &m_WiiKeyboard,                                 false);
 	core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning,                   false);
-	core->Get("WiimoteEnableSpeaker",      &m_WiimoteEnableSpeaker,                        true);
+	core->Get("WiimoteEnableSpeaker",      &m_WiimoteEnableSpeaker,                        false);
 	core->Get("RunCompareServer",          &m_LocalCoreStartupParameter.bRunCompareServer, false);
 	core->Get("RunCompareClient",          &m_LocalCoreStartupParameter.bRunCompareClient, false);
 	core->Get("MMU",                       &m_LocalCoreStartupParameter.bMMU,              false);

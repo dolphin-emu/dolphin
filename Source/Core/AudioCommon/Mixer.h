@@ -24,6 +24,7 @@ public:
 	CMixer(unsigned int BackendSampleRate)
 		: m_dma_mixer(this, 32000)
 		, m_streaming_mixer(this, 48000)
+		, m_wiimote_speaker_mixer(this, 3000)
 		, m_sampleRate(BackendSampleRate)
 		, m_logAudio(0)
 		, m_speed(0)
@@ -39,11 +40,13 @@ public:
 	// Called from main thread
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
 	virtual void PushStreamingSamples(const short* samples, unsigned int num_samples);
+	virtual void PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples, unsigned int sample_rate);
 	unsigned int GetSampleRate() const { return m_sampleRate; }
 
 	void SetDMAInputSampleRate(unsigned int rate);
 	void SetStreamInputSampleRate(unsigned int rate);
 	void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
+	void SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume);
 
 	virtual void StartLogAudio(const std::string& filename)
 	{
@@ -112,6 +115,7 @@ protected:
 	};
 	MixerFifo m_dma_mixer;
 	MixerFifo m_streaming_mixer;
+	MixerFifo m_wiimote_speaker_mixer;
 	unsigned int m_sampleRate;
 
 	WaveFileWriter g_wave_writer;
