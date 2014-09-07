@@ -113,7 +113,7 @@ static bool IsMovieHeader(u8 magic[4])
 
 std::string GetInputDisplay()
 {
-	if (!IsPlayingInput() && !IsRecordingInput())
+	if (!IsMovieActive())
 	{
 		g_numPads = 0;
 		for (int i = 0; i < 4; i++)
@@ -198,7 +198,7 @@ void Init()
 	for (auto& disp : g_InputDisplay)
 		disp.clear();
 
-	if (!IsPlayingInput() && !IsRecordingInput())
+	if (!IsMovieActive())
 	{
 		g_bRecordingFromSaveState = false;
 		g_rerecords = 0;
@@ -273,7 +273,7 @@ void SetReadOnly(bool bEnabled)
 void FrameSkipping()
 {
 	// Frameskipping will desync movie playback
-	if (!IsPlayingInput() && !IsRecordingInput())
+	if (!IsMovieActive())
 	{
 		std::lock_guard<std::mutex> lk(cs_frameSkip);
 
@@ -308,6 +308,11 @@ bool IsJustStartingPlayingInputFromSaveState()
 bool IsPlayingInput()
 {
 	return (g_playMode == MODE_PLAYING);
+}
+
+bool IsMovieActive()
+{
+	return g_playMode != MODE_NONE;
 }
 
 bool IsReadOnly()

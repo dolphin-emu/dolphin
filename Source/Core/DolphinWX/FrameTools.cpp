@@ -1097,7 +1097,7 @@ void CFrame::DoStop()
 		// TODO: Show the author/description dialog here
 		if (Movie::IsRecordingInput())
 			DoRecordingSave();
-		if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
+		if (Movie::IsMovieActive())
 			Movie::EndPlayInput(false);
 		NetPlay::StopGame();
 
@@ -1644,7 +1644,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_RESET)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Movie::IsRecordingInput());
 	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!Initialized);
-	GetMenuBar()->FindItem(IDM_RECORDEXPORT)->Enable(Movie::IsPlayingInput() || Movie::IsRecordingInput());
+	GetMenuBar()->FindItem(IDM_RECORDEXPORT)->Enable(Movie::IsMovieActive());
 	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->Enable(Running || Paused);

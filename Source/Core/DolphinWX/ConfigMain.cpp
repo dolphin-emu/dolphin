@@ -757,7 +757,7 @@ void CConfigMain::CreateGUIControls()
 	{
 		sbGamecubeDevSettings->Add(GCSIDeviceText[i], 1, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 0);
 		sbGamecubeDevSettings->Add(GCSIDevice[i], 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 0);
-		if (NetPlay::IsNetPlayRunning() || Movie::IsRecordingInput() || Movie::IsPlayingInput())
+		if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
 		{
 			GCSIDevice[i]->Disable();
 		}
