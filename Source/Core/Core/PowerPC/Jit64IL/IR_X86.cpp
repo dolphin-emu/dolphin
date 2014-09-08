@@ -1645,7 +1645,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->AND(32, R(RSCRATCH), PPCSTATE(spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, RSCRATCH2, R(RSCRATCH));
 
-			Jit->MOV(32, R(RSCRATCH2), regLocForInst(RI, getOp2(I)));
+			Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp2(I)));
 			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
 			Jit->CALLptr(MScaled(RSCRATCH2, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
 			if (RI.IInfo[I - RI.FirstI] & 4)
