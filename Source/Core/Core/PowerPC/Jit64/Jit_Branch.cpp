@@ -192,7 +192,11 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		SetJumpTarget(b);
 
 		if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+		{
+			gpr.Flush();
+			fpr.Flush();
 			WriteExit(js.compilerPC + 4);
+		}
 	}
 }
 
@@ -239,5 +243,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		SetJumpTarget( pCTRDontBranch );
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush();
+		fpr.Flush();
 		WriteExit(js.compilerPC + 4);
+	}
 }
