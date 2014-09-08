@@ -18,8 +18,6 @@
 #define MAX_FREQ_SHIFT  200  // per 32000 Hz
 #define CONTROL_FACTOR  0.2f // in freq_shift per fifo size offset
 #define CONTROL_AVG     32
-#define BIT_DEPTH		16
-#define CLAMP			((1 << (BIT_DEPTH - 1)) - 1)
 
 class CMixer {
 

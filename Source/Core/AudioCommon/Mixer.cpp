@@ -38,6 +38,8 @@ CMixer::MixerFifo::MixerFifo(CMixer *mixer, unsigned sample_rate)
 		m_interp = new Linear(m_buffer);
 	else if (interpAlgo == INTERP_CUBIC)
 		m_interp = new Cubic(m_buffer);
+	else if (interpAlgo == INTERP_LANCZOS)
+		m_interp = new Lanczos(m_buffer);
 	else
 		m_interp = new Linear(m_buffer);
 }
@@ -67,10 +69,6 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	if (offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
 	if (offset < -MAX_FREQ_SHIFT) offset = -MAX_FREQ_SHIFT;
 
-	//render numleft sample pairs to samples[]
-	//advance indexR with sample position
-	//remember fractional offset
-
 	u32 framelimit = SConfig::GetInstance().m_Framelimit;
 	float aid_sample_rate = m_input_sample_rate + offset;
 	if (consider_framelimit && framelimit > 1)
@@ -78,8 +76,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
 
-	float ratio = aid_sample_rate / (float) m_mixer->m_sampleRate;	// keep ratio as floating point, convert to int only for linear interpolation
-	
+	float ratio = aid_sample_rate / (float) m_mixer->m_sampleRate;
 	s32 lvolume = m_LVolume;
 	s32 rvolume = m_RVolume;
 
@@ -168,6 +165,10 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 	if (interpAlgo == INTERP_CUBIC) {
 		u32 indexW = Common::AtomicLoad(m_indexW);
 		((Cubic*) m_interp)->populateFloats(m_previousW, indexW);
+	}
+	else if (interpAlgo == INTERP_LANCZOS) {
+		u32 indexW = Common::AtomicLoad(m_indexW);
+		((Lanczos*) m_interp)->populateFloats(m_previousW, indexW);
 	}
 
 	return;

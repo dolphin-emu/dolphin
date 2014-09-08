@@ -15,17 +15,18 @@
 #define BIT_DEPTH		16
 #define CLAMP			((1 << (BIT_DEPTH - 1)) - 1)
 #define MAX_SAMPLES     (1024 * 2) // 64ms = 2048/32000
-#define INDEX_MASK      (MAX_SAMPLES * 2 - 1)
-#define DPPS_MASK		0xF1
+#define INDEX_MASK      (MAX_SAMPLES * 2 - 1)	// mask for the buffer
+#define DPPS_MASK		0xF1	   // tells DPPS to apply to all inputs, and store in 1st index
 
+// Dither defines
 #define DITHER_SHAPE	0.5f
 #define WORD			(0xFFFF)
 #define WIDTH			1.f / WORD
 #define DITHER_SIZE		WIDTH / RAND_MAX
 #define DOFFSET			WIDTH * DITHER_SHAPE
 
-#define SINC_FSIZE		2048
-#define SINC_SIZE		5
+#define SINC_FSIZE		4096	// sinc table granularity = 1 / SINC_FSIZE.
+#define SINC_SIZE		(5 - 1) // see comment for populate_sinc_table()
 
 class Interpolator {
 public:
@@ -84,9 +85,10 @@ private:
 	float m_ratio;
 	float m_lvolume, m_rvolume;
 	float m_frac;
-	int rand1, rand2, rand3, rand4;
-	float errorL1, errorL2;
-	float errorR1, errorR2;
+	// dithering vars
+	int m_randL1, m_randL2, m_randR1, m_randR2;
+	float m_errorL1, m_errorL2;
+	float m_errorR1, m_errorR2;
 };
 
 class Lanczos : public Interpolator {
@@ -102,6 +104,7 @@ public:
 		srand((u32) time(NULL));
 		memset(float_buffer, 0, sizeof(float_buffer));
 		memset(m_sinc_table, 0, sizeof(m_sinc_table));
+		populate_sinc_table();
 	}
 	virtual ~Lanczos() {}
 	u32 interpolate(short* samples, unsigned int num, u32& indexR, u32 indexW);
@@ -116,7 +119,8 @@ private:
 	float m_ratio;
 	float m_lvolume, m_rvolume;
 	float m_frac;
-	int rand1, rand2, rand3, rand4;
-	float errorL1, errorL2;
-	float errorR1, errorR2;
+	// dithering vars
+	int m_randL1, m_randL2, m_randR1, m_randR2;
+	float m_errorL1, m_errorL2;
+	float m_errorR1, m_errorR2;
 };

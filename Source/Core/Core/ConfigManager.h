@@ -25,6 +25,7 @@
 // Interpolation Algorithms
 #define INTERP_LINEAR		"Linear"
 #define INTERP_CUBIC		"Cubic"
+#define INTERP_LANCZOS		"Lanczos"
 struct SConfig : NonCopyable
 {
 	// Wii Devices
