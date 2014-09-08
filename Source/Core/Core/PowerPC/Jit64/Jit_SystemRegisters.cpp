@@ -45,6 +45,17 @@ void Jit64::SetCRFieldBit(int field, int bit, Gen::X64Reg in)
 	MOV(64, R(RSCRATCH2), PPCSTATE(cr_val[field]));
 	MOVZX(32, 8, in, R(in));
 
+	// Gross but necessary; if the input is totally zero and we set SO or LT,
+	// or even just add the (1<<32), GT will suddenly end up set without us
+	// intending to. This can break actual games, so fix it up.
+	if (bit != CR_GT_BIT)
+	{
+		TEST(64, R(RSCRATCH2), R(RSCRATCH2));
+		FixupBranch dont_clear_gt = J_CC(CC_NZ);
+		BTS(64, R(RSCRATCH2), Imm8(63));
+		SetJumpTarget(dont_clear_gt);
+	}
+
 	switch (bit)
 	{
 	case CR_SO_BIT:  // set bit 61 to input
@@ -434,38 +445,35 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	// instance, if the two CR bits being loaded are the same, two loads are
 	// not required.
 
-	// USES_CR
-	// crandc or crorc or creqv or crnand or crnor
-	bool negateA = inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 289 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
-	// crnand or crnor
-	bool negateB = inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
+	// creqv or crnand or crnor
+	bool negateA = inst.SUBOP10 == 289 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
+	// crandc or crorc or crnand or crnor
+	bool negateB = inst.SUBOP10 == 129 || inst.SUBOP10 == 417 || inst.SUBOP10 == 225 || inst.SUBOP10 == 33;
 
-	GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), RSCRATCH2, negateA);
-	GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), RSCRATCH, negateB);
+	GetCRFieldBit(inst.CRBA >> 2, 3 - (inst.CRBA & 3), RSCRATCH, negateA);
+	GetCRFieldBit(inst.CRBB >> 2, 3 - (inst.CRBB & 3), RSCRATCH2, negateB);
 
 	// Compute combined bit
 	switch (inst.SUBOP10)
 	{
 	case 33:  // crnor: ~(A || B) == (~A && ~B)
-	case 129: // crandc
-	case 257: // crand
+	case 129: // crandc: A && ~B
+	case 257: // crand:  A && B
 		AND(8, R(RSCRATCH), R(RSCRATCH2));
 		break;
 
-	case 193: // crxor
-	case 289: // creqv
+	case 193: // crxor: A ^ B
+	case 289: // creqv: ~(A ^ B) = ~A ^ B
 		XOR(8, R(RSCRATCH), R(RSCRATCH2));
 		break;
 
 	case 225: // crnand: ~(A && B) == (~A || ~B)
-	case 417: // crorc
-	case 449: // cror
+	case 417: // crorc: A || ~B
+	case 449: // cror:  A || B
 		OR(8, R(RSCRATCH), R(RSCRATCH2));
 		break;
 	}
 
 	// Store result bit in CRBD
 	SetCRFieldBit(inst.CRBD >> 2, 3 - (inst.CRBD & 3), RSCRATCH);
-
-	gpr.UnlockAllX();
 }
