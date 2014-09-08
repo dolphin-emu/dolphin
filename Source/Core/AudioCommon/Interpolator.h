@@ -25,7 +25,7 @@
 #define DITHER_SIZE		WIDTH / RAND_MAX
 #define DOFFSET			WIDTH * DITHER_SHAPE
 
-#define SINC_FSIZE		4096	// sinc table granularity = 1 / SINC_FSIZE.
+#define SINC_FSIZE		65536	// sinc table granularity = 1 / SINC_FSIZE.
 #define SINC_SIZE		(5 - 1) // see comment for populate_sinc_table()
 
 class Interpolator {

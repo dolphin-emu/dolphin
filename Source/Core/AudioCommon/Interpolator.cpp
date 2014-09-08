@@ -360,23 +360,12 @@ u32 Lanczos::interpolate(short* samples, unsigned int num, u32& indexR, u32 inde
 		float sl3 = float_buffer[(indexR2) & INDEX_MASK];
 		float sl4 = float_buffer[(indexR4) & INDEX_MASK];
 
-#ifdef _M_SSE
-#if _M_SSE >= 0x401
-		GC_ALIGNED16(float) resultl[4];
-		_mm_store_ps(resultl, _mm_dp_ps(_mm_set_ps(sl1, sl2, sl3, sl4), _mm_load_ps(table), DPPS_MASK));
-		float sampleL = resultl[0];
-#else
-		GC_ALIGNED16(float) resultl[4];
-		_mm_store_ps(resultl, _mm_mul_ps(_mm_set_ps(sl1, sl2, sl3, sl4), _mm_load_ps(table)));
-		float sampleL = resultl[0] + resultl[1] + resultl[2] + resultl[3];
-#endif
-#else
 		float al = sl1 * table[0];
 		float bl = sl2 * table[1];
 		float cl = sl3 * table[2];
 		float dl = sl4 * table[3];
 		float sampleL = al + bl + cl + dl;
-#endif
+
 		sampleL = sampleL * m_lvolume;
 		sampleL += twos2float(samples[currentSample + 1]);
 
@@ -400,23 +389,12 @@ u32 Lanczos::interpolate(short* samples, unsigned int num, u32& indexR, u32 inde
 		float sr2 = float_buffer[(indexR + 1) & INDEX_MASK];
 		float sr3 = float_buffer[(indexR2 + 1) & INDEX_MASK];
 		float sr4 = float_buffer[(indexR4 + 1) & INDEX_MASK];
-#ifdef _M_SSE
-#if _M_SSE >= 0x401
-		GC_ALIGNED16(float) resultr[4];
-		_mm_store_ps(resultr, _mm_dp_ps(_mm_set_ps(sr1, sr2, sr3, sr4), _mm_load_ps(table), DPPS_MASK));
-		float sampleR = resultr[0];
-#else
-		GC_ALIGNED16(float) resultr[4];
-		_mm_store_ps(resultr, _mm_mul_ps(_mm_set_ps(sr1, sr2, sr3, sr4), _mm_load_ps(table)));
-		float sampleR = resultr[0] + resultr[1] + resultr[2] + resultr[3];
-#endif
-#else
+
 		float ar = sr1 * table[0];
 		float br = sr2 * table[1];
 		float cr = sr3 * table[2];
 		float dr = sr4 * table[3];
 		float sampleR = ar + br + cr + dr;
-#endif	
 
 		sampleR = sampleR * m_rvolume;
 		sampleR += twos2float(samples[currentSample]);
