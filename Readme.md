@@ -39,10 +39,11 @@ will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
 
 ### Build steps:
-1. `mkdir Build`
-2. `cd Build`
-3. `cmake ..`
-4. `make`
+1. `sudo apt-get install cmake libfreetype6-dev libusb-1.0-0-dev libpango1.0-dev libgtk2.0.dev`
+2. `mkdir Build`
+3. `cd Build`
+4. `cmake ..`
+5. `make`
 
 On OS X, an application bundle will be created in `./Binaries`.
 
