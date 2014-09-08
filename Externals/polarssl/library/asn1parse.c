@@ -1,7 +1,7 @@
 /*
  *  Generic ASN.1 parsing
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ASN1_PARSE_C)
 
@@ -33,8 +37,8 @@
 #include "polarssl/bignum.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
 #define polarssl_free       free
@@ -87,7 +91,8 @@ int asn1_get_len( unsigned char **p,
             if( ( end - *p ) < 5 )
                 return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
 
-            *len = ( (*p)[1] << 24 ) | ( (*p)[2] << 16 ) | ( (*p)[3] << 8 ) | (*p)[4];
+            *len = ( (*p)[1] << 24 ) | ( (*p)[2] << 16 ) | ( (*p)[3] << 8 ) |
+                   (*p)[4];
             (*p) += 5;
             break;
 
@@ -189,7 +194,7 @@ int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
         return( ret );
 
     /* Check length, subtract one for actual bit string length */
-    if ( bs->len < 1 )
+    if( bs->len < 1 )
         return( POLARSSL_ERR_ASN1_OUT_OF_DATA );
     bs->len -= 1;
 
@@ -206,7 +211,7 @@ int asn1_get_bitstring( unsigned char **p, const unsigned char *end,
     if( *p != end )
         return( POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-    return 0;
+    return( 0 );
 }
 
 /*
@@ -260,7 +265,7 @@ int asn1_get_sequence_of( unsigned char **p,
         *p += buf->len;
 
         /* Allocate and assign next pointer */
-        if (*p < end)
+        if( *p < end )
         {
             cur->next = (asn1_sequence *) polarssl_malloc(
                  sizeof( asn1_sequence ) );
@@ -383,4 +388,4 @@ asn1_named_data *asn1_find_named_data( asn1_named_data *list,
     return( list );
 }
 
-#endif
+#endif /* POLARSSL_ASN1_PARSE_C */

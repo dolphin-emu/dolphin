@@ -5,7 +5,7 @@
  *
  * \author Mathias Olsson <mathias@kompetensum.com>
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -33,7 +33,11 @@
  * http://tools.ietf.org/html/rfc6070 (Test vectors)
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PKCS5_C)
 
@@ -42,13 +46,19 @@
 #include "polarssl/cipher.h"
 #include "polarssl/oid.h"
 
-static int pkcs5_parse_pbkdf2_params( asn1_buf *params,
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
+#endif
+
+static int pkcs5_parse_pbkdf2_params( const asn1_buf *params,
                                       asn1_buf *salt, int *iterations,
                                       int *keylen, md_type_t *md_type )
 {
     int ret;
     asn1_buf prf_alg_oid;
-    unsigned char **p = &params->p;
+    unsigned char *p = params->p;
     const unsigned char *end = params->p + params->len;
 
     if( params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
@@ -63,28 +73,28 @@ static int pkcs5_parse_pbkdf2_params( asn1_buf *params,
      *  }
      *
      */
-    if( ( ret = asn1_get_tag( p, end, &salt->len, ASN1_OCTET_STRING ) ) != 0 )
+    if( ( ret = asn1_get_tag( &p, end, &salt->len, ASN1_OCTET_STRING ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
 
-    salt->p = *p;
-    *p += salt->len;
+    salt->p = p;
+    p += salt->len;
 
-    if( ( ret = asn1_get_int( p, end, iterations ) ) != 0 )
+    if( ( ret = asn1_get_int( &p, end, iterations ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
 
-    if( *p == end )
+    if( p == end )
         return( 0 );
 
-    if( ( ret = asn1_get_int( p, end, keylen ) ) != 0 )
+    if( ( ret = asn1_get_int( &p, end, keylen ) ) != 0 )
     {
         if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
             return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
     }
 
-    if( *p == end )
+    if( p == end )
         return( 0 );
 
-    if( ( ret = asn1_get_alg_null( p, end, &prf_alg_oid ) ) != 0 )
+    if( ( ret = asn1_get_alg_null( &p, end, &prf_alg_oid ) ) != 0 )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
 
     if( !OID_CMP( OID_HMAC_SHA1, &prf_alg_oid ) )
@@ -92,7 +102,7 @@ static int pkcs5_parse_pbkdf2_params( asn1_buf *params,
 
     *md_type = POLARSSL_MD_SHA1;
 
-    if( *p != end )
+    if( p != end )
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT +
                 POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
@@ -119,9 +129,6 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
 
     p = pbe_params->p;
     end = p + pbe_params->len;
-
-    memset( &md_ctx, 0, sizeof(md_context_t) );
-    memset( &cipher_ctx, 0, sizeof(cipher_context_t) );
 
     /*
      *  PBES2-params ::= SEQUENCE {
@@ -152,16 +159,23 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( md_info == NULL )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
-    if( ( ret = asn1_get_alg( &p, end, &enc_scheme_oid, &enc_scheme_params ) ) != 0 )
+    if( ( ret = asn1_get_alg( &p, end, &enc_scheme_oid,
+                              &enc_scheme_params ) ) != 0 )
+    {
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT + ret );
+    }
 
-    if ( oid_get_cipher_alg( &enc_scheme_oid, &cipher_alg ) != 0 )
+    if( oid_get_cipher_alg( &enc_scheme_oid, &cipher_alg ) != 0 )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
     cipher_info = cipher_info_from_type( cipher_alg );
     if( cipher_info == NULL )
         return( POLARSSL_ERR_PKCS5_FEATURE_UNAVAILABLE );
 
+    /*
+     * The value of keylen from pkcs5_parse_pbkdf2_params() is ignored
+     * since it is optional and we don't know if it was set or not
+     */
     keylen = cipher_info->key_length / 8;
 
     if( enc_scheme_params.tag != ASN1_OCTET_STRING ||
@@ -170,13 +184,16 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
         return( POLARSSL_ERR_PKCS5_INVALID_FORMAT );
     }
 
+    md_init( &md_ctx );
+    cipher_init( &cipher_ctx );
+
     memcpy( iv, enc_scheme_params.p, enc_scheme_params.len );
 
     if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
         goto exit;
 
-    if ( ( ret = pkcs5_pbkdf2_hmac( &md_ctx, pwd, pwdlen, salt.p, salt.len,
-                                    iterations, keylen, key ) ) != 0 )
+    if( ( ret = pkcs5_pbkdf2_hmac( &md_ctx, pwd, pwdlen, salt.p, salt.len,
+                                   iterations, keylen, key ) ) != 0 )
     {
         goto exit;
     }
@@ -187,24 +204,13 @@ int pkcs5_pbes2( asn1_buf *pbe_params, int mode,
     if( ( ret = cipher_setkey( &cipher_ctx, key, 8 * keylen, mode ) ) != 0 )
         goto exit;
 
-    if( ( ret = cipher_set_iv( &cipher_ctx, iv, enc_scheme_params.len ) ) != 0 )
-        goto exit;
-
-    if( ( ret = cipher_reset( &cipher_ctx ) ) != 0 )
-        goto exit;
-
-    if( ( ret = cipher_update( &cipher_ctx, data, datalen,
-                                output, &olen ) ) != 0 )
-    {
-        goto exit;
-    }
-
-    if( ( ret = cipher_finish( &cipher_ctx, output + olen, &olen ) ) != 0 )
+    if( ( ret = cipher_crypt( &cipher_ctx, iv, enc_scheme_params.len,
+                              data, datalen, output, &olen ) ) != 0 )
         ret = POLARSSL_ERR_PKCS5_PASSWORD_MISMATCH;
 
 exit:
-    md_free_ctx( &md_ctx );
-    cipher_free_ctx( &cipher_ctx );
+    md_free( &md_ctx );
+    cipher_free( &cipher_ctx );
 
     return( ret );
 }
@@ -247,7 +253,7 @@ int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
 
         memcpy( md1, work, md_size );
 
-        for ( i = 1; i < iteration_count; i++ )
+        for( i = 1; i < iteration_count; i++ )
         {
             // U2 ends up in md1
             //
@@ -281,6 +287,16 @@ int pkcs5_pbkdf2_hmac( md_context_t *ctx, const unsigned char *password,
 }
 
 #if defined(POLARSSL_SELF_TEST)
+
+#if !defined(POLARSSL_SHA1_C)
+int pkcs5_self_test( int verbose )
+{
+    if( verbose != 0 )
+        polarssl_printf( "  PBKDF2 (SHA1): skipped\n\n" );
+
+    return( 0 );
+}
+#else
 
 #include <stdio.h>
 
@@ -319,7 +335,7 @@ uint32_t key_len[MAX_TESTS] =
     { 20, 20, 20, 20, 25, 16 };
 
 
-unsigned char result_key[MAX_TESTS][32] = 
+unsigned char result_key[MAX_TESTS][32] =
 {
     { 0x0c, 0x60, 0xc8, 0x0f, 0x96, 0x1f, 0x0e, 0x71,
       0xf3, 0xa9, 0xb5, 0x24, 0xaf, 0x60, 0x12, 0x06,
@@ -348,16 +364,28 @@ int pkcs5_self_test( int verbose )
     int ret, i;
     unsigned char key[64];
 
+    md_init( &sha1_ctx );
+
     info_sha1 = md_info_from_type( POLARSSL_MD_SHA1 );
     if( info_sha1 == NULL )
-        return( 1 );
+    {
+        ret = 1;
+        goto exit;
+    }
 
     if( ( ret = md_init_ctx( &sha1_ctx, info_sha1 ) ) != 0 )
-        return( 1 );
+    {
+        ret = 1;
+        goto exit;
+    }
+
+    if( verbose != 0 )
+        polarssl_printf( "  PBKDF2 note: test #3 may be slow!\n" );
 
     for( i = 0; i < MAX_TESTS; i++ )
     {
-        printf( "  PBKDF2 (SHA1) #%d: ", i );
+        if( verbose != 0 )
+            polarssl_printf( "  PBKDF2 (SHA1) #%d: ", i );
 
         ret = pkcs5_pbkdf2_hmac( &sha1_ctx, password[i], plen[i], salt[i],
                                   slen[i], it_cnt[i], key_len[i], key );
@@ -365,22 +393,24 @@ int pkcs5_self_test( int verbose )
             memcmp( result_key[i], key, key_len[i] ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
-    printf( "\n" );
+    polarssl_printf( "\n" );
 
-    if( ( ret = md_free_ctx( &sha1_ctx ) ) != 0 )
-        return( 1 );
+exit:
+    md_free( &sha1_ctx );
 
     return( 0 );
 }
+#endif /* POLARSSL_SHA1_C */
 
 #endif /* POLARSSL_SELF_TEST */
 

@@ -3,7 +3,7 @@
  *
  * \brief SSL ciphersuites for PolarSSL
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -25,7 +25,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SSL_TLS_C)
 
@@ -42,27 +46,34 @@
 /*
  * Ordered from most preferred to least preferred in terms of security.
  *
- * Current rule (except weak and null which come last):
+ * Current rule (except rc4, weak and null which come last):
  * 1. By key exchange:
  *    Forward-secure non-PSK > forward-secure PSK > other non-PSK > other PSK
  * 2. By key length and cipher:
- *    AES-256 > Camellia-256 > AES-128 > Camellia-128 > 3DES > RC4
- * 3. By cipher mode when relevant GCM > CBC
- * 4. By hash function used
+ *    AES-256 > Camellia-256 > AES-128 > Camellia-128 > 3DES
+ * 3. By cipher mode when relevant GCM > CCM > CBC > CCM_8
+ * 4. By hash function used when relevant
  * 5. By key exchange/auth again: EC > non-EC
  */
 static const int ciphersuite_preference[] =
 {
+#if defined(SSL_CIPHERSUITES)
+    SSL_CIPHERSUITES,
+#else
     /* All AES-256 ephemeral suites */
     TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
     TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
     TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+    TLS_ECDHE_ECDSA_WITH_AES_256_CCM,
+    TLS_DHE_RSA_WITH_AES_256_CCM,
     TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,
     TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
     TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
     TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
     TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
     TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+    TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8,
+    TLS_DHE_RSA_WITH_AES_256_CCM_8,
 
     /* All CAMELLIA-256 ephemeral suites */
     TLS_ECDHE_ECDSA_WITH_CAMELLIA_256_GCM_SHA384,
@@ -77,12 +88,16 @@ static const int ciphersuite_preference[] =
     TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
     TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
     TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+    TLS_ECDHE_ECDSA_WITH_AES_128_CCM,
+    TLS_DHE_RSA_WITH_AES_128_CCM,
     TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
     TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
     TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
     TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
     TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
     TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+    TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8,
+    TLS_DHE_RSA_WITH_AES_128_CCM_8,
 
     /* All CAMELLIA-128 ephemeral suites */
     TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_GCM_SHA256,
@@ -97,11 +112,10 @@ static const int ciphersuite_preference[] =
     TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
     TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
     TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
-    TLS_ECDHE_RSA_WITH_RC4_128_SHA,
 
     /* The PSK ephemeral suites */
     TLS_DHE_PSK_WITH_AES_256_GCM_SHA384,
+    TLS_DHE_PSK_WITH_AES_256_CCM,
     TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA384,
     TLS_DHE_PSK_WITH_AES_256_CBC_SHA384,
     TLS_ECDHE_PSK_WITH_AES_256_CBC_SHA,
@@ -109,8 +123,10 @@ static const int ciphersuite_preference[] =
     TLS_DHE_PSK_WITH_CAMELLIA_256_GCM_SHA384,
     TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384,
     TLS_DHE_PSK_WITH_CAMELLIA_256_CBC_SHA384,
+    TLS_DHE_PSK_WITH_AES_256_CCM_8,
 
     TLS_DHE_PSK_WITH_AES_128_GCM_SHA256,
+    TLS_DHE_PSK_WITH_AES_128_CCM,
     TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256,
     TLS_DHE_PSK_WITH_AES_128_CBC_SHA256,
     TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA,
@@ -118,14 +134,14 @@ static const int ciphersuite_preference[] =
     TLS_DHE_PSK_WITH_CAMELLIA_128_GCM_SHA256,
     TLS_DHE_PSK_WITH_CAMELLIA_128_CBC_SHA256,
     TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256,
+    TLS_DHE_PSK_WITH_AES_128_CCM_8,
 
     TLS_ECDHE_PSK_WITH_3DES_EDE_CBC_SHA,
     TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDHE_PSK_WITH_RC4_128_SHA,
-    TLS_DHE_PSK_WITH_RC4_128_SHA,
 
     /* All AES-256 suites */
     TLS_RSA_WITH_AES_256_GCM_SHA384,
+    TLS_RSA_WITH_AES_256_CCM,
     TLS_RSA_WITH_AES_256_CBC_SHA256,
     TLS_RSA_WITH_AES_256_CBC_SHA,
     TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384,
@@ -134,6 +150,7 @@ static const int ciphersuite_preference[] =
     TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384,
     TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384,
     TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,
+    TLS_RSA_WITH_AES_256_CCM_8,
 
     /* All CAMELLIA-256 suites */
     TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384,
@@ -146,6 +163,7 @@ static const int ciphersuite_preference[] =
 
     /* All AES-128 suites */
     TLS_RSA_WITH_AES_128_GCM_SHA256,
+    TLS_RSA_WITH_AES_128_CCM,
     TLS_RSA_WITH_AES_128_CBC_SHA256,
     TLS_RSA_WITH_AES_128_CBC_SHA,
     TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256,
@@ -154,6 +172,7 @@ static const int ciphersuite_preference[] =
     TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,
     TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256,
     TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,
+    TLS_RSA_WITH_AES_128_CCM_8,
 
     /* All CAMELLIA-128 suites */
     TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256,
@@ -166,12 +185,8 @@ static const int ciphersuite_preference[] =
 
     /* All remaining >= 128-bit suites */
     TLS_RSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_RSA_WITH_RC4_128_SHA,
-    TLS_RSA_WITH_RC4_128_MD5,
     TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDH_RSA_WITH_RC4_128_SHA,
     TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,
-    TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
 
     /* The RSA PSK suites */
     TLS_RSA_PSK_WITH_AES_256_GCM_SHA384,
@@ -187,22 +202,36 @@ static const int ciphersuite_preference[] =
     TLS_RSA_PSK_WITH_CAMELLIA_128_CBC_SHA256,
 
     TLS_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
-    TLS_RSA_PSK_WITH_RC4_128_SHA,
 
     /* The PSK suites */
     TLS_PSK_WITH_AES_256_GCM_SHA384,
+    TLS_PSK_WITH_AES_256_CCM,
     TLS_PSK_WITH_AES_256_CBC_SHA384,
     TLS_PSK_WITH_AES_256_CBC_SHA,
     TLS_PSK_WITH_CAMELLIA_256_GCM_SHA384,
     TLS_PSK_WITH_CAMELLIA_256_CBC_SHA384,
+    TLS_PSK_WITH_AES_256_CCM_8,
 
     TLS_PSK_WITH_AES_128_GCM_SHA256,
+    TLS_PSK_WITH_AES_128_CCM,
     TLS_PSK_WITH_AES_128_CBC_SHA256,
     TLS_PSK_WITH_AES_128_CBC_SHA,
     TLS_PSK_WITH_CAMELLIA_128_GCM_SHA256,
     TLS_PSK_WITH_CAMELLIA_128_CBC_SHA256,
+    TLS_PSK_WITH_AES_128_CCM_8,
 
     TLS_PSK_WITH_3DES_EDE_CBC_SHA,
+
+    /* RC4 suites */
+    TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
+    TLS_ECDHE_RSA_WITH_RC4_128_SHA,
+    TLS_ECDHE_PSK_WITH_RC4_128_SHA,
+    TLS_DHE_PSK_WITH_RC4_128_SHA,
+    TLS_RSA_WITH_RC4_128_SHA,
+    TLS_RSA_WITH_RC4_128_MD5,
+    TLS_ECDH_RSA_WITH_RC4_128_SHA,
+    TLS_ECDH_ECDSA_WITH_RC4_128_SHA,
+    TLS_RSA_PSK_WITH_RC4_128_SHA,
     TLS_PSK_WITH_RC4_128_SHA,
 
     /* Weak suites */
@@ -231,12 +260,9 @@ static const int ciphersuite_preference[] =
     TLS_PSK_WITH_NULL_SHA256,
     TLS_PSK_WITH_NULL_SHA,
 
+#endif
     0
 };
-
-#define MAX_CIPHERSUITES    160
-static int supported_ciphersuites[MAX_CIPHERSUITES];
-static int supported_init = 0;
 
 static const ssl_ciphersuite_t ciphersuite_definitions[] =
 {
@@ -288,6 +314,28 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       0 },
 #endif /* POLARSSL_GCM_C */
 #endif /* POLARSSL_SHA512_C */
+#if defined(POLARSSL_CCM_C)
+    { TLS_ECDHE_ECDSA_WITH_AES_256_CCM, "TLS-ECDHE-ECDSA-WITH-AES-256-CCM",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8, "TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+    { TLS_ECDHE_ECDSA_WITH_AES_128_CCM, "TLS-ECDHE-ECDSA-WITH-AES-128-CCM",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8, "TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_ECDHE_ECDSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+#endif /* POLARSSL_CCM_C */
 #endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -527,6 +575,28 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       0 },
 #endif /* POLARSSL_SHA1_C */
 #endif /* POLARSSL_CIPHER_MODE_CBC */
+#if defined(POLARSSL_CCM_C)
+    { TLS_DHE_RSA_WITH_AES_256_CCM, "TLS-DHE-RSA-WITH-AES-256-CCM",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_DHE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_DHE_RSA_WITH_AES_256_CCM_8, "TLS-DHE-RSA-WITH-AES-256-CCM-8",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_DHE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+    { TLS_DHE_RSA_WITH_AES_128_CCM, "TLS-DHE-RSA-WITH-AES-128-CCM",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_DHE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_DHE_RSA_WITH_AES_128_CCM_8, "TLS-DHE-RSA-WITH-AES-128-CCM-8",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_DHE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+#endif /* POLARSSL_CCM_C */
 #endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -640,6 +710,28 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       0 },
 #endif /* POLARSSL_CIPHER_MODE_CBC */
 #endif /* POLARSSL_SHA1_C */
+#if defined(POLARSSL_CCM_C)
+    { TLS_RSA_WITH_AES_256_CCM, "TLS-RSA-WITH-AES-256-CCM",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_RSA_WITH_AES_256_CCM_8, "TLS-RSA-WITH-AES-256-CCM-8",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+    { TLS_RSA_WITH_AES_128_CCM, "TLS-RSA-WITH-AES-128-CCM",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_RSA_WITH_AES_128_CCM_8, "TLS-RSA-WITH-AES-128-CCM-8",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_RSA,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+#endif /* POLARSSL_CCM_C */
 #endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -1012,6 +1104,28 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       0 },
 #endif /* POLARSSL_SHA1_C */
 #endif /* POLARSSL_CIPHER_MODE_CBC */
+#if defined(POLARSSL_CCM_C)
+    { TLS_PSK_WITH_AES_256_CCM, "TLS-PSK-WITH-AES-256-CCM",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_PSK,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_PSK_WITH_AES_256_CCM_8, "TLS-PSK-WITH-AES-256-CCM-8",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_PSK,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+    { TLS_PSK_WITH_AES_128_CCM, "TLS-PSK-WITH-AES-128-CCM",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_PSK,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_PSK_WITH_AES_128_CCM_8, "TLS-PSK-WITH-AES-128-CCM-8",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_PSK,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+#endif /* POLARSSL_CCM_C */
 #endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -1126,6 +1240,28 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
       0 },
 #endif /* POLARSSL_SHA1_C */
 #endif /* POLARSSL_CIPHER_MODE_CBC */
+#if defined(POLARSSL_CCM_C)
+    { TLS_DHE_PSK_WITH_AES_256_CCM, "TLS-DHE-PSK-WITH-AES-256-CCM",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_DHE_PSK,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_DHE_PSK_WITH_AES_256_CCM_8, "TLS-DHE-PSK-WITH-AES-256-CCM-8",
+      POLARSSL_CIPHER_AES_256_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_DHE_PSK,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+    { TLS_DHE_PSK_WITH_AES_128_CCM, "TLS-DHE-PSK-WITH-AES-128-CCM",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_DHE_PSK,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      0 },
+    { TLS_DHE_PSK_WITH_AES_128_CCM_8, "TLS-DHE-PSK-WITH-AES-128-CCM-8",
+      POLARSSL_CIPHER_AES_128_CCM, POLARSSL_MD_SHA256, POLARSSL_KEY_EXCHANGE_DHE_PSK,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_3,
+      POLARSSL_CIPHERSUITE_SHORT_TAG },
+#endif /* POLARSSL_CCM_C */
 #endif /* POLARSSL_AES_C */
 
 #if defined(POLARSSL_CAMELLIA_C)
@@ -1543,6 +1679,17 @@ static const ssl_ciphersuite_t ciphersuite_definitions[] =
     { 0, "", 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
+#if defined(SSL_CIPHERSUITES)
+const int *ssl_list_ciphersuites( void )
+{
+    return( ciphersuite_preference );
+}
+#else
+#define MAX_CIPHERSUITES    sizeof( ciphersuite_definitions     ) /         \
+                            sizeof( ciphersuite_definitions[0]  )
+static int supported_ciphersuites[MAX_CIPHERSUITES];
+static int supported_init = 0;
+
 const int *ssl_list_ciphersuites( void )
 {
     /*
@@ -1551,25 +1698,33 @@ const int *ssl_list_ciphersuites( void )
      */
     if( supported_init == 0 )
     {
-        const int *p = ciphersuite_preference;
-        int *q = supported_ciphersuites;
-        size_t i;
-        size_t max = sizeof(supported_ciphersuites) / sizeof(int);
+        const int *p;
+        int *q;
 
-        for( i = 0; i < max - 1 && p[i] != 0; i++ )
+        for( p = ciphersuite_preference, q = supported_ciphersuites;
+             *p != 0 && q < supported_ciphersuites + MAX_CIPHERSUITES - 1;
+             p++ )
         {
-            if( ssl_ciphersuite_from_id( p[i] ) != NULL )
-                *(q++) = p[i];
+#if defined(POLARSSL_REMOVE_ARC4_CIPHERSUITES)
+            const ssl_ciphersuite_t *cs_info;
+            if( ( cs_info = ssl_ciphersuite_from_id( *p ) ) != NULL &&
+                cs_info->cipher != POLARSSL_CIPHER_ARC4_128 )
+#else
+            if( ssl_ciphersuite_from_id( *p ) != NULL )
+#endif
+                *(q++) = *p;
         }
         *q = 0;
 
         supported_init = 1;
     }
 
-    return supported_ciphersuites;
+    return( supported_ciphersuites );
 };
+#endif /* SSL_CIPHERSUITES */
 
-const ssl_ciphersuite_t *ssl_ciphersuite_from_string( const char *ciphersuite_name )
+const ssl_ciphersuite_t *ssl_ciphersuite_from_string(
+                                                const char *ciphersuite_name )
 {
     const ssl_ciphersuite_t *cur = ciphersuite_definitions;
 
@@ -1648,7 +1803,7 @@ pk_type_t ssl_get_ciphersuite_sig_pk_alg( const ssl_ciphersuite_t *info )
             return( POLARSSL_PK_NONE );
     }
 }
-#endif
+#endif /* POLARSSL_PK_C */
 
 #if defined(POLARSSL_ECDH_C) || defined(POLARSSL_ECDSA_C)
 int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
@@ -1666,7 +1821,7 @@ int ssl_ciphersuite_uses_ec( const ssl_ciphersuite_t *info )
             return( 0 );
     }
 }
-#endif
+#endif /* POLARSSL_ECDH_C || POLARSSL_ECDSA_C */
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
@@ -1683,6 +1838,6 @@ int ssl_ciphersuite_uses_psk( const ssl_ciphersuite_t *info )
             return( 0 );
     }
 }
-#endif
+#endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
-#endif
+#endif /* POLARSSL_SSL_TLS_C */

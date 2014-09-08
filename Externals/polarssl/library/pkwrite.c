@@ -1,7 +1,7 @@
 /*
  *  Public Key layer for writing key files and structures
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PK_WRITE_C)
 
@@ -44,8 +48,8 @@
 #include "polarssl/pem.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc
@@ -69,7 +73,8 @@ static int pk_write_rsa_pubkey( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_mpi( p, start, &rsa->N ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     return( (int) len );
 }
@@ -187,7 +192,8 @@ int pk_write_pubkey_der( pk_context *key, unsigned char *buf, size_t size )
                                                         par_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                ASN1_SEQUENCE ) );
 
     return( (int) len );
 }
@@ -214,10 +220,11 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
         ASN1_CHK_ADD( len, asn1_write_int( &c, buf, 0 ) );
 
         ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
     }
     else
-#endif
+#endif /* POLARSSL_RSA_C */
 #if defined(POLARSSL_ECP_C)
     if( pk_get_type( key ) == POLARSSL_PK_ECKEY )
     {
@@ -267,10 +274,11 @@ int pk_write_key_der( pk_context *key, unsigned char *buf, size_t size )
         ASN1_CHK_ADD( len, asn1_write_int( &c, buf, 1 ) );
 
         ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
     }
     else
-#endif
+#endif /* POLARSSL_ECP_C */
         return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
     return( (int) len );

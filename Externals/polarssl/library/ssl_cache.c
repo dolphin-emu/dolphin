@@ -1,7 +1,7 @@
 /*
  *  SSL session cache implementation
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,14 +27,18 @@
  * to store and retrieve the session information.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SSL_CACHE_C)
 
 #include "polarssl/ssl_cache.h"
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
 #define polarssl_free       free
@@ -101,7 +105,9 @@ int ssl_cache_get( void *data, ssl_session *session )
          */
         if( entry->peer_cert.p != NULL )
         {
-            session->peer_cert = (x509_crt *) polarssl_malloc( sizeof(x509_crt) );
+            session->peer_cert =
+                (x509_crt *) polarssl_malloc( sizeof(x509_crt) );
+
             if( session->peer_cert == NULL )
             {
                 ret = 1;
@@ -186,17 +192,15 @@ int ssl_cache_set( void *data, const ssl_session *session )
         /*
          * Reuse oldest entry if max_entries reached
          */
-        if( old != NULL && count >= cache->max_entries )
+        if( count >= cache->max_entries )
         {
-            cur = old;
-            memset( &cur->session, 0, sizeof(ssl_session) );
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-            if( cur->peer_cert.p != NULL )
+            if( old == NULL )
             {
-                polarssl_free( cur->peer_cert.p );
-                memset( &cur->peer_cert, 0, sizeof(x509_buf) );
+                ret = 1;
+                goto exit;
             }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
+
+            cur = old;
         }
 #else /* POLARSSL_HAVE_TIME */
         /*
@@ -213,22 +217,17 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
             cur = cache->chain;
             cache->chain = cur->next;
-
-#if defined(POLARSSL_X509_CRT_PARSE_C)
-            if( cur->peer_cert.p != NULL )
-            {
-                polarssl_free( cur->peer_cert.p );
-                memset( &cur->peer_cert, 0, sizeof(x509_buf) );
-            }
-#endif /* POLARSSL_X509_CRT_PARSE_C */
-
-            memset( cur, 0, sizeof(ssl_cache_entry) );
+            cur->next = NULL;
             prv->next = cur;
         }
 #endif /* POLARSSL_HAVE_TIME */
         else
         {
-            cur = (ssl_cache_entry *) polarssl_malloc( sizeof(ssl_cache_entry) );
+            /*
+             * max_entries not reached, create new entry
+             */
+            cur = (ssl_cache_entry *)
+                        polarssl_malloc( sizeof(ssl_cache_entry) );
             if( cur == NULL )
             {
                 ret = 1;
@@ -252,11 +251,21 @@ int ssl_cache_set( void *data, const ssl_session *session )
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
+     * If we're reusing an entry, free its certificate first
+     */
+    if( cur->peer_cert.p != NULL )
+    {
+        polarssl_free( cur->peer_cert.p );
+        memset( &cur->peer_cert, 0, sizeof(x509_buf) );
+    }
+
+    /*
      * Store peer certificate
      */
     if( session->peer_cert != NULL )
     {
-        cur->peer_cert.p = (unsigned char *) polarssl_malloc( session->peer_cert->raw.len );
+        cur->peer_cert.p = (unsigned char *)
+                                polarssl_malloc( session->peer_cert->raw.len );
         if( cur->peer_cert.p == NULL )
         {
             ret = 1;
@@ -312,8 +321,7 @@ void ssl_cache_free( ssl_cache_context *cache )
         ssl_session_free( &prv->session );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
-        if( prv->peer_cert.p != NULL )
-            polarssl_free( prv->peer_cert.p );
+        polarssl_free( prv->peer_cert.p );
 #endif /* POLARSSL_X509_CRT_PARSE_C */
 
         polarssl_free( prv );

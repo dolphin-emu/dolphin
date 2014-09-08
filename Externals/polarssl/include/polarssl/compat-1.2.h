@@ -27,7 +27,11 @@
 #ifndef POLARSSL_COMPAT_1_2_H
 #define POLARSSL_COMPAT_1_2_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 // Comment out to disable prototype change warnings
 #define SHOW_PROTOTYPE_CHANGE_WARNINGS
@@ -167,7 +171,7 @@ static inline int sha4_self_test( int verbose ) {
 #warning "rsa_pkcs1_verify() prototype changed. Manual change required if used"
 #warning "rsa_pkcs1_decrypt() prototype changed. Manual change required if used"
 #endif
-#endif
+#endif /* POLARSSL_RSA_C */
 
 #if defined(POLARSSL_DHM_C)
 #if defined(SHOW_PROTOTYPE_CHANGE_WARNINGS)

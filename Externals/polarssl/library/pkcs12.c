@@ -1,7 +1,7 @@
 /*
  *  PKCS#12 Personal Information Exchange Syntax
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -29,7 +29,11 @@
  *  ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-12/pkcs-12v1-1.asn
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PKCS12_C)
 
@@ -44,6 +48,11 @@
 #if defined(POLARSSL_DES_C)
 #include "polarssl/des.h"
 #endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 static int pkcs12_parse_pbe_params( asn1_buf *params,
                                     asn1_buf *salt, int *iterations )
@@ -89,13 +98,14 @@ static int pkcs12_pbe_derive_key_iv( asn1_buf *pbe_params, md_type_t md_type,
     size_t i;
     unsigned char unipwd[258];
 
-    memset(&salt, 0, sizeof(asn1_buf));
-    memset(&unipwd, 0, sizeof(unipwd));
+    memset( &salt, 0, sizeof(asn1_buf) );
+    memset( &unipwd, 0, sizeof(unipwd) );
 
-    if( ( ret = pkcs12_parse_pbe_params( pbe_params, &salt, &iterations ) ) != 0 )
+    if( ( ret = pkcs12_parse_pbe_params( pbe_params, &salt,
+                                         &iterations ) ) != 0 )
         return( ret );
 
-    for(i = 0; i < pwdlen; i++)
+    for( i = 0; i < pwdlen; i++ )
         unipwd[i * 2 + 1] = pwd[i];
 
     if( ( ret = pkcs12_derivation( key, keylen, unipwd, pwdlen * 2 + 2,
@@ -137,6 +147,8 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
     arc4_context ctx;
     ((void) mode);
 
+    arc4_init( &ctx );
+
     if( ( ret = pkcs12_pbe_derive_key_iv( pbe_params, POLARSSL_MD_SHA1,
                                           pwd, pwdlen,
                                           key, 16, NULL, 0 ) ) != 0 )
@@ -146,9 +158,13 @@ int pkcs12_pbe_sha1_rc4_128( asn1_buf *pbe_params, int mode,
 
     arc4_setup( &ctx, key, 16 );
     if( ( ret = arc4_crypt( &ctx, len, data, output ) ) != 0 )
-        return( ret );
+        goto exit;
 
-    return( 0 );
+exit:
+    polarssl_zeroize( key, sizeof( key ) );
+    arc4_free( &ctx );
+
+    return( ret );
 #endif /* POLARSSL_ARC4_C */
 }
 
@@ -178,6 +194,8 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
         return( ret );
     }
 
+    cipher_init( &cipher_ctx );
+
     if( ( ret = cipher_init_ctx( &cipher_ctx, cipher_info ) ) != 0 )
         goto exit;
 
@@ -200,7 +218,9 @@ int pkcs12_pbe( asn1_buf *pbe_params, int mode,
         ret = POLARSSL_ERR_PKCS12_PASSWORD_MISMATCH;
 
 exit:
-    cipher_free_ctx( &cipher_ctx );
+    polarssl_zeroize( key, sizeof( key ) );
+    polarssl_zeroize( iv,  sizeof( iv  ) );
+    cipher_free( &cipher_ctx );
 
     return( ret );
 }
@@ -247,7 +267,9 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
     if( md_info == NULL )
         return( POLARSSL_ERR_PKCS12_FEATURE_UNAVAILABLE );
 
-    if ( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
+    md_init( &md_ctx );
+
+    if( ( ret = md_init_ctx( &md_ctx, md_info ) ) != 0 )
         return( ret );
     hlen = md_get_size( md_info );
 
@@ -325,7 +347,12 @@ int pkcs12_derivation( unsigned char *data, size_t datalen,
     ret = 0;
 
 exit:
-    md_free_ctx( &md_ctx );
+    polarssl_zeroize( salt_block, sizeof( salt_block ) );
+    polarssl_zeroize( pwd_block, sizeof( pwd_block ) );
+    polarssl_zeroize( hash_block, sizeof( hash_block ) );
+    polarssl_zeroize( hash_output, sizeof( hash_output ) );
+
+    md_free( &md_ctx );
 
     return( ret );
 }

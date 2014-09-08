@@ -3,7 +3,7 @@
  *
  * \brief  Multi-precision integer library
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -30,7 +30,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
@@ -47,7 +51,7 @@ typedef UINT32 uint32_t;
 typedef UINT64 uint64_t;
 #else
 #include <inttypes.h>
-#endif
+#endif /* _MSC_VER && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_MPI_FILE_IO_ERROR                     -0x0002  /**< An error occurred while reading from or writing to a file. */
 #define POLARSSL_ERR_MPI_BAD_INPUT_DATA                    -0x0004  /**< Bad input parameters to function. */
@@ -65,7 +69,7 @@ typedef UINT64 uint64_t;
  */
 #define POLARSSL_MPI_MAX_LIMBS                             10000
 
-#if !defined(POLARSSL_CONFIG_OPTIONS)
+#if !defined(POLARSSL_MPI_WINDOW_SIZE)
 /*
  * Maximum window size used for modular exponentiation. Default: 6
  * Minimum value: 1. Maximum value: 6.
@@ -76,7 +80,9 @@ typedef UINT64 uint64_t;
  * Reduction in size, reduces speed.
  */
 #define POLARSSL_MPI_WINDOW_SIZE                           6        /**< Maximum windows size used. */
+#endif /* !POLARSSL_MPI_WINDOW_SIZE */
 
+#if !defined(POLARSSL_MPI_MAX_SIZE)
 /*
  * Maximum size of MPIs allowed in bits and bytes for user-MPIs.
  * ( Default: 512 bytes => 4096 bits, Maximum tested: 2048 bytes => 16384 bits )
@@ -85,8 +91,7 @@ typedef UINT64 uint64_t;
  * of limbs required (POLARSSL_MPI_MAX_LIMBS) is higher.
  */
 #define POLARSSL_MPI_MAX_SIZE                              512      /**< Maximum number of bytes for usable MPIs. */
-
-#endif /* !POLARSSL_CONFIG_OPTIONS */
+#endif /* !POLARSSL_MPI_MAX_SIZE */
 
 #define POLARSSL_MPI_MAX_BITS                              ( 8 * POLARSSL_MPI_MAX_SIZE )    /**< Maximum number of bits for usable MPIs. */
 
@@ -129,7 +134,7 @@ typedef uint32_t t_udbl;
 #else
   /*
    * 32-bit integers can be forced on 64-bit arches (eg. for testing purposes)
-   * by defining POLARSSL_HAVE_INT32 and undefining POARSSL_HAVE_ASM
+   * by defining POLARSSL_HAVE_INT32 and undefining POLARSSL_HAVE_ASM
    */
   #if ( ! defined(POLARSSL_HAVE_INT32) && \
           defined(_MSC_VER) && defined(_M_AMD64) )
@@ -162,8 +167,8 @@ typedef uint32_t t_udbl;
            #define POLARSSL_HAVE_UDBL
          #endif
        #endif
-    #endif
-  #endif
+    #endif /* !POLARSSL_HAVE_INT32 && __GNUC__ && 64-bit platform */
+  #endif /* !POLARSSL_HAVE_INT32 && _MSC_VER && _M_AMD64 */
 #endif /* POLARSSL_HAVE_INT16 */
 #endif /* POLARSSL_HAVE_INT8  */
 
@@ -409,7 +414,9 @@ int mpi_write_file( const char *p, const mpi *X, int radix, FILE *fout );
 int mpi_read_binary( mpi *X, const unsigned char *buf, size_t buflen );
 
 /**
- * \brief          Export X into unsigned binary data, big endian
+ * \brief          Export X into unsigned binary data, big endian.
+ *                 Always fills the whole buffer, which will start with zeros
+ *                 if the number is smaller.
  *
  * \param X        Source MPI
  * \param buf      Output buffer
@@ -640,7 +647,7 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b );
 /**
  * \brief          Sliding-window exponentiation: X = A^E mod N
  *
- * \param X        Destination MPI 
+ * \param X        Destination MPI
  * \param A        Left-hand MPI
  * \param E        Exponent MPI
  * \param N        Modular MPI
@@ -648,8 +655,8 @@ int mpi_mod_int( t_uint *r, const mpi *A, t_sint b );
  *
  * \return         0 if successful,
  *                 POLARSSL_ERR_MPI_MALLOC_FAILED if memory allocation failed,
- *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even or if
- *                 E is negative
+ *                 POLARSSL_ERR_MPI_BAD_INPUT_DATA if N is negative or even or
+ *                 if E is negative
  *
  * \note           _RR is used to avoid re-computing R*R mod N across
  *                 multiple calls, which speeds up things a bit. It can
@@ -717,7 +724,8 @@ int mpi_is_prime( mpi *X,
  * \brief          Prime number generation
  *
  * \param X        Destination MPI
- * \param nbits    Required size of X in bits ( 3 <= nbits <= POLARSSL_MPI_MAX_BITS )
+ * \param nbits    Required size of X in bits
+ *                 ( 3 <= nbits <= POLARSSL_MPI_MAX_BITS )
  * \param dh_flag  If 1, then (X-1)/2 will be prime too
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter

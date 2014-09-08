@@ -1,5 +1,5 @@
 /**
- * \file rdm160.h
+ * \file ripemd160.h
  *
  * \brief RIPE MD-160 message digest
  *
@@ -27,7 +27,11 @@
 #ifndef POLARSSL_RIPEMD160_H
 #define POLARSSL_RIPEMD160_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <string.h>
 
@@ -38,7 +42,7 @@ typedef UINT32 uint32_t;
 #include <inttypes.h>
 #endif
 
-#define POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR              -0x0074  /**< Read/write error in file. */
+#define POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR              -0x007E  /**< Read/write error in file. */
 
 #if !defined(POLARSSL_RIPEMD160_ALT)
 // Regular implementation
@@ -61,6 +65,20 @@ typedef struct
     unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
 ripemd160_context;
+
+/**
+ * \brief          Initialize RIPEMD-160 context
+ *
+ * \param ctx      RIPEMD-160 context to be initialized
+ */
+void ripemd160_init( ripemd160_context *ctx );
+
+/**
+ * \brief          Clear RIPEMD-160 context
+ *
+ * \param ctx      RIPEMD-160 context to be cleared
+ */
+void ripemd160_free( ripemd160_context *ctx );
 
 /**
  * \brief          RIPEMD-160 context setup

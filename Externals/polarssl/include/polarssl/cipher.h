@@ -1,11 +1,11 @@
 /**
  * \file cipher.h
- * 
+ *
  * \brief Generic cipher wrapper.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -30,9 +30,13 @@
 #ifndef POLARSSL_CIPHER_H
 #define POLARSSL_CIPHER_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
-#if defined(POLARSSL_GCM_C)
+#if defined(POLARSSL_GCM_C) || defined(POLARSSL_CCM_C)
 #define POLARSSL_CIPHER_MODE_AEAD
 #endif
 
@@ -56,6 +60,9 @@
 #define POLARSSL_ERR_CIPHER_INVALID_PADDING                -0x6200  /**< Input data contains invalid padding and is rejected. */
 #define POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED            -0x6280  /**< Decryption of block requires a full block. */
 #define POLARSSL_ERR_CIPHER_AUTH_FAILED                    -0x6300  /**< Authentication failed (for AEAD modes). */
+
+#define POLARSSL_CIPHER_VARIABLE_IV_LEN     0x01    /**< Cipher accepts IVs of variable length */
+#define POLARSSL_CIPHER_VARIABLE_KEY_LEN    0x02    /**< Cipher accepts keys of variable length */
 
 #ifdef __cplusplus
 extern "C" {
@@ -116,6 +123,12 @@ typedef enum {
     POLARSSL_CIPHER_BLOWFISH_CFB64,
     POLARSSL_CIPHER_BLOWFISH_CTR,
     POLARSSL_CIPHER_ARC4_128,
+    POLARSSL_CIPHER_AES_128_CCM,
+    POLARSSL_CIPHER_AES_192_CCM,
+    POLARSSL_CIPHER_AES_256_CCM,
+    POLARSSL_CIPHER_CAMELLIA_128_CCM,
+    POLARSSL_CIPHER_CAMELLIA_192_CCM,
+    POLARSSL_CIPHER_CAMELLIA_256_CCM,
 } cipher_type_t;
 
 typedef enum {
@@ -123,10 +136,11 @@ typedef enum {
     POLARSSL_MODE_ECB,
     POLARSSL_MODE_CBC,
     POLARSSL_MODE_CFB,
-    POLARSSL_MODE_OFB,
+    POLARSSL_MODE_OFB, /* Unused! */
     POLARSSL_MODE_CTR,
     POLARSSL_MODE_GCM,
     POLARSSL_MODE_STREAM,
+    POLARSSL_MODE_CCM,
 } cipher_mode_t;
 
 typedef enum {
@@ -169,29 +183,34 @@ typedef struct {
 
     /** Encrypt using ECB */
     int (*ecb_func)( void *ctx, operation_t mode,
-            const unsigned char *input, unsigned char *output );
+                     const unsigned char *input, unsigned char *output );
 
     /** Encrypt using CBC */
-    int (*cbc_func)( void *ctx, operation_t mode, size_t length, unsigned char *iv,
-            const unsigned char *input, unsigned char *output );
+    int (*cbc_func)( void *ctx, operation_t mode, size_t length,
+                     unsigned char *iv, const unsigned char *input,
+                     unsigned char *output );
 
     /** Encrypt using CFB (Full length) */
     int (*cfb_func)( void *ctx, operation_t mode, size_t length, size_t *iv_off,
-            unsigned char *iv, const unsigned char *input, unsigned char *output );
+                     unsigned char *iv, const unsigned char *input,
+                     unsigned char *output );
 
     /** Encrypt using CTR */
-    int (*ctr_func)( void *ctx, size_t length, size_t *nc_off, unsigned char *nonce_counter,
-            unsigned char *stream_block, const unsigned char *input, unsigned char *output );
+    int (*ctr_func)( void *ctx, size_t length, size_t *nc_off,
+                     unsigned char *nonce_counter, unsigned char *stream_block,
+                     const unsigned char *input, unsigned char *output );
 
     /** Encrypt using STREAM */
     int (*stream_func)( void *ctx, size_t length,
                         const unsigned char *input, unsigned char *output );
 
     /** Set key for encryption purposes */
-    int (*setkey_enc_func)( void *ctx, const unsigned char *key, unsigned int key_length);
+    int (*setkey_enc_func)( void *ctx, const unsigned char *key,
+                            unsigned int key_length );
 
     /** Set key for decryption purposes */
-    int (*setkey_dec_func)( void *ctx, const unsigned char *key, unsigned int key_length);
+    int (*setkey_dec_func)( void *ctx, const unsigned char *key,
+                            unsigned int key_length);
 
     /** Allocate a new context */
     void * (*ctx_alloc_func)( void );
@@ -222,8 +241,8 @@ typedef struct {
      *  For cipher that accept many sizes: recommended size */
     unsigned int iv_size;
 
-    /** Flag for ciphers that accept many sizes of IV/NONCE */
-    int accepts_variable_iv_size;
+    /** Flags for variable IV size, variable key size, etc. */
+    int flags;
 
     /** block size, in bytes */
     unsigned int block_size;
@@ -313,15 +332,31 @@ const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
                                               const cipher_mode_t mode );
 
 /**
+ * \brief               Initialize a cipher_context (as NONE)
+ */
+void cipher_init( cipher_context_t *ctx );
+
+/**
+ * \brief               Free and clear the cipher-specific context of ctx.
+ *                      Freeing ctx itself remains the responsibility of the
+ *                      caller.
+ */
+void cipher_free( cipher_context_t *ctx );
+
+/**
  * \brief               Initialises and fills the cipher context structure with
  *                      the appropriate values.
+ *
+ * \note                Currently also clears structure. In future versions you
+ *                      will be required to call cipher_init() on the structure
+ *                      first.
  *
  * \param ctx           context to initialise. May not be NULL.
  * \param cipher_info   cipher to use.
  *
- * \return              \c 0 on success,
- *                      \c POLARSSL_ERR_CIPHER_BAD_INPUT_DATA on parameter failure,
- *                      \c POLARSSL_ERR_CIPHER_ALLOC_FAILED if allocation of the
+ * \return              0 on success,
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA on parameter failure,
+ *                      POLARSSL_ERR_CIPHER_ALLOC_FAILED if allocation of the
  *                      cipher-specific context failed.
  */
 int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
@@ -330,10 +365,11 @@ int cipher_init_ctx( cipher_context_t *ctx, const cipher_info_t *cipher_info );
  * \brief               Free the cipher-specific context of ctx. Freeing ctx
  *                      itself remains the responsibility of the caller.
  *
+ * \note                Deprecated: Redirects to cipher_free()
+ *
  * \param ctx           Free the cipher-specific context
  *
- * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
- *                      parameter verification fails.
+ * \returns             0
  */
 int cipher_free_ctx( cipher_context_t *ctx );
 
@@ -470,8 +506,8 @@ static inline operation_t cipher_get_operation( const cipher_context_t *ctx )
  *                      parameter verification fails or a cipher specific
  *                      error code.
  */
-int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_length,
-        const operation_t operation );
+int cipher_setkey( cipher_context_t *ctx, const unsigned char *key,
+                   int key_length, const operation_t operation );
 
 #if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
 /**
@@ -497,7 +533,7 @@ int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
  * \param iv_len        IV length for ciphers with variable-size IV;
  *                      discarded by ciphers with fixed-size IV.
  *
- * \returns             O on success, or POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+ * \returns             0 on success, or POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
  *
  * \note                Some ciphers don't use IVs nor NONCE. For these
  *                      ciphers, this function has no effect.
@@ -515,25 +551,21 @@ int cipher_set_iv( cipher_context_t *ctx,
  */
 int cipher_reset( cipher_context_t *ctx );
 
-#if defined(POLARSSL_CIPHER_MODE_AEAD)
+#if defined(POLARSSL_GCM_C)
 /**
  * \brief               Add additional data (for AEAD ciphers).
- *                      This function has no effect for non-AEAD ciphers.
- *                      For AEAD ciphers, it may or may not be called
- *                      repeatedly, and/or interleaved with calls to
- *                      cipher_udpate(), depending on the cipher.
- *                      E.g. for GCM is must be called exactly once, right
- *                      after cipher_reset().
+ *                      Currently only supported with GCM.
+ *                      Must be called exactly once, after cipher_reset().
  *
  * \param ctx           generic cipher context
  * \param ad            Additional data to use.
  * \param ad_len        Length of ad.
  *
- * \returns             0 on success, or a specific error code.
+ * \return              0 on success, or a specific error code.
  */
 int cipher_update_ad( cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len );
-#endif /* POLARSSL_CIPHER_MODE_AEAD */
+#endif /* POLARSSL_GCM_C */
 
 /**
  * \brief               Generic cipher update function. Encrypts/decrypts
@@ -564,8 +596,8 @@ int cipher_update_ad( cipher_context_t *ctx,
  *                      function, except the last one before cipher_finish(),
  *                      must have ilen a multiple of the block size.
  */
-int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
-        unsigned char *output, size_t *olen );
+int cipher_update( cipher_context_t *ctx, const unsigned char *input,
+                   size_t ilen, unsigned char *output, size_t *olen );
 
 /**
  * \brief               Generic cipher finalisation function. If data still
@@ -587,10 +619,10 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
 int cipher_finish( cipher_context_t *ctx,
                    unsigned char *output, size_t *olen );
 
-#if defined(POLARSSL_CIPHER_MODE_AEAD)
+#if defined(POLARSSL_GCM_C)
 /**
  * \brief               Write tag for AEAD ciphers.
- *                      No effect for other ciphers.
+ *                      Currently only supported with GCM.
  *                      Must be called after cipher_finish().
  *
  * \param ctx           Generic cipher context
@@ -604,9 +636,8 @@ int cipher_write_tag( cipher_context_t *ctx,
 
 /**
  * \brief               Check tag for AEAD ciphers.
- *                      No effect for other ciphers.
- *                      Calling time depends on the cipher:
- *                      for GCM, must be called after cipher_finish().
+ *                      Currently only supported with GCM.
+ *                      Must be called after cipher_finish().
  *
  * \param ctx           Generic cipher context
  * \param tag           Buffer holding the tag
@@ -616,6 +647,103 @@ int cipher_write_tag( cipher_context_t *ctx,
  */
 int cipher_check_tag( cipher_context_t *ctx,
                       const unsigned char *tag, size_t tag_len );
+#endif /* POLARSSL_GCM_C */
+
+/**
+ * \brief               Generic all-in-one encryption/decryption
+ *                      (for all ciphers except AEAD constructs).
+ *
+ * \param ctx           generic cipher context
+ * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
+ * \param iv_len        IV length for ciphers with variable-size IV;
+ *                      discarded by ciphers with fixed-size IV.
+ * \param input         buffer holding the input data
+ * \param ilen          length of the input data
+ * \param output        buffer for the output data. Should be able to hold at
+ *                      least ilen + block_size. Cannot be the same buffer as
+ *                      input!
+ * \param olen          length of the output data, will be filled with the
+ *                      actual number of bytes written.
+ *
+ * \note                Some ciphers don't use IVs nor NONCE. For these
+ *                      ciphers, use iv = NULL and iv_len = 0.
+ *
+ * \returns             0 on success, or
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA, or
+ *                      POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED if decryption
+ *                      expected a full block but was not provided one, or
+ *                      POLARSSL_ERR_CIPHER_INVALID_PADDING on invalid padding
+ *                      while decrypting, or
+ *                      a cipher specific error code.
+ */
+int cipher_crypt( cipher_context_t *ctx,
+                  const unsigned char *iv, size_t iv_len,
+                  const unsigned char *input, size_t ilen,
+                  unsigned char *output, size_t *olen );
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+/**
+ * \brief               Generic autenticated encryption (AEAD ciphers).
+ *
+ * \param ctx           generic cipher context
+ * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
+ * \param iv_len        IV length for ciphers with variable-size IV;
+ *                      discarded by ciphers with fixed-size IV.
+ * \param ad            Additional data to authenticate.
+ * \param ad_len        Length of ad.
+ * \param input         buffer holding the input data
+ * \param ilen          length of the input data
+ * \param output        buffer for the output data.
+ *                      Should be able to hold at least ilen.
+ * \param olen          length of the output data, will be filled with the
+ *                      actual number of bytes written.
+ * \param tag           buffer for the authentication tag
+ * \param tag_len       desired tag length
+ *
+ * \returns             0 on success, or
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA, or
+ *                      a cipher specific error code.
+ */
+int cipher_auth_encrypt( cipher_context_t *ctx,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *ad, size_t ad_len,
+                         const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen,
+                         unsigned char *tag, size_t tag_len );
+
+/**
+ * \brief               Generic autenticated decryption (AEAD ciphers).
+ *
+ * \param ctx           generic cipher context
+ * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
+ * \param iv_len        IV length for ciphers with variable-size IV;
+ *                      discarded by ciphers with fixed-size IV.
+ * \param ad            Additional data to be authenticated.
+ * \param ad_len        Length of ad.
+ * \param input         buffer holding the input data
+ * \param ilen          length of the input data
+ * \param output        buffer for the output data.
+ *                      Should be able to hold at least ilen.
+ * \param olen          length of the output data, will be filled with the
+ *                      actual number of bytes written.
+ * \param tag           buffer holding the authentication tag
+ * \param tag_len       length of the authentication tag
+ *
+ * \returns             0 on success, or
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA, or
+ *                      POLARSSL_ERR_CIPHER_AUTH_FAILED if data isn't authentic,
+ *                      or a cipher specific error code.
+ *
+ * \note                If the data is not authentic, then the output buffer
+ *                      is zeroed out to prevent the unauthentic plaintext to
+ *                      be used by mistake, making this interface safer.
+ */
+int cipher_auth_decrypt( cipher_context_t *ctx,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *ad, size_t ad_len,
+                         const unsigned char *input, size_t ilen,
+                         unsigned char *output, size_t *olen,
+                         const unsigned char *tag, size_t tag_len );
 #endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 /**

@@ -27,7 +27,11 @@
 #ifndef POLARSSL_X509_CRL_H
 #define POLARSSL_X509_CRL_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include "x509.h"
 
@@ -71,7 +75,7 @@ typedef struct _x509_crl
     x509_buf raw;           /**< The raw certificate data (DER). */
     x509_buf tbs;           /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;
+    int version;            /**< CRL version (1=v1, 2=v2) */
     x509_buf sig_oid1;
 
     x509_buf issuer_raw;    /**< The raw issuer data (DER). */
@@ -88,7 +92,8 @@ typedef struct _x509_crl
     x509_buf sig_oid2;
     x509_buf sig;
     md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
-    pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
+    pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */
+    void *sig_opts;             /**< Signature options to be passed to pk_verify_ext(), e.g. for RSASSA-PSS */
 
     struct _x509_crl *next;
 }

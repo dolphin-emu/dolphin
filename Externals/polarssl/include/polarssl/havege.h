@@ -54,6 +54,13 @@ havege_state;
 void havege_init( havege_state *hs );
 
 /**
+ * \brief          Clear HAVEGE state
+ *
+ * \param hs       HAVEGE state to be cleared
+ */
+void havege_free( havege_state *hs );
+
+/**
  * \brief          HAVEGE rand function
  *
  * \param p_rng    A HAVEGE state
