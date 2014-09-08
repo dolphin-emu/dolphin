@@ -193,7 +193,7 @@
 #    LIBRARY_OUTPUT_PATH_ROOT should be set in cache to determine where Android
 #    libraries will be installed.
 #    Default is ${CMAKE_SOURCE_DIR}, and the android libs will always be
-#    under the ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}
+#    under the ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}
 #    (depending on the target ABI). This is convenient for Android packaging.
 #
 #  Change Log:
@@ -835,6 +835,12 @@ else()
  message( SEND_ERROR "Unknown ANDROID_ABI=\"${ANDROID_ABI}\" is specified." )
 endif()
 
+if( X86_64 )
+ set( ANDROID_NDK_OUTPUT_ABI_NAME "x86-64" )
+else()
+ set( ANDROID_NDK_OUTPUT_ABI_NAME ${ANDROID_NDK_ABI_NAME} )
+endif()
+
 if( CMAKE_BINARY_DIR AND EXISTS "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeSystem.cmake" )
  # really dirty hack
  # it is not possible to change CMAKE_SYSTEM_PROCESSOR after the first run...
@@ -1255,9 +1261,9 @@ if( ANDROID_COMPILER_IS_CLANG )
 endif()
 set( CMAKE_C_PLATFORM_ID Linux )
 if( ARM64_V8A OR X86_64 OR MIPS64 )
- set( CMAKE_C_SIZEOF_DATA_PTR 4 )
-else()
  set( CMAKE_C_SIZEOF_DATA_PTR 8 )
+else()
+ set( CMAKE_C_SIZEOF_DATA_PTR 4 )
 endif()
 set( CMAKE_C_HAS_ISYSROOT 1 )
 set( CMAKE_C_COMPILER_ABI ELF )
@@ -1267,9 +1273,9 @@ if( ANDROID_COMPILER_IS_CLANG )
 endif()
 set( CMAKE_CXX_PLATFORM_ID Linux )
 if( ARM64_V8A OR X86_64 OR MIPS64 )
- set( CMAKE_CXX_SIZEOF_DATA_PTR 4 )
-else()
  set( CMAKE_CXX_SIZEOF_DATA_PTR 8 )
+else()
+ set( CMAKE_CXX_SIZEOF_DATA_PTR 4 )
 endif()
 set( CMAKE_CXX_HAS_ISYSROOT 1 )
 set( CMAKE_CXX_COMPILER_ABI ELF )
@@ -1608,11 +1614,11 @@ set( CMAKE_INSTALL_PREFIX "${ANDROID_TOOLCHAIN_ROOT}/user" CACHE STRING "path fo
 
 if(NOT _CMAKE_IN_TRY_COMPILE)
  if( EXISTS "${CMAKE_SOURCE_DIR}/jni/CMakeLists.txt" )
-  set( EXECUTABLE_OUTPUT_PATH "${LIBRARY_OUTPUT_PATH_ROOT}/bin/${ANDROID_NDK_ABI_NAME}" CACHE PATH "Output directory for applications" )
+  set( EXECUTABLE_OUTPUT_PATH "${LIBRARY_OUTPUT_PATH_ROOT}/bin/${ANDROID_NDK_OUTPUT_ABI_NAME}" CACHE PATH "Output directory for applications" )
  else()
   set( EXECUTABLE_OUTPUT_PATH "${LIBRARY_OUTPUT_PATH_ROOT}/bin" CACHE PATH "Output directory for applications" )
  endif()
- set( LIBRARY_OUTPUT_PATH "${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}" CACHE PATH "path for android libs" )
+ set( LIBRARY_OUTPUT_PATH "${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}" CACHE PATH "path for android libs" )
 endif()
 
 # copy shaed stl library to build directory
