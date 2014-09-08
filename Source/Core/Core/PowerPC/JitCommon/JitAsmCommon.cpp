@@ -110,9 +110,9 @@ void CommonAsmRoutines::GenFrsqrte()
 	SetJumpTarget(complex1);
 	SetJumpTarget(complex2);
 	SetJumpTarget(complex3);
-	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, false);
+	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocalSquareRoot);
-	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, false);
+	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	RET();
 }
 
@@ -169,9 +169,9 @@ void CommonAsmRoutines::GenFres()
 
 	SetJumpTarget(complex1);
 	SetJumpTarget(complex2);
-	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, false);
+	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocal);
-	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, false);
+	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	RET();
 }
 
@@ -258,9 +258,10 @@ void CommonAsmRoutines::GenQuantizedStores()
 	SwapAndStore(64, MComplex(RMEM, RSCRATCH_EXTRA, SCALE_1, 0), RSCRATCH);
 	FixupBranch skip_complex = J(true);
 	SetJumpTarget(too_complex);
-	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
+	// RSP alignment here is 8 due to the call.
+	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	ABI_CallFunctionR((void *)&WriteDual32, RSCRATCH_EXTRA);
-	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
+	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	SetJumpTarget(skip_complex);
 	RET();
 

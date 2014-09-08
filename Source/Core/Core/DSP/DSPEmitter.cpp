@@ -384,7 +384,9 @@ const u8 *DSPEmitter::CompileStub()
 void DSPEmitter::CompileDispatcher()
 {
 	enterDispatcher = AlignCode16();
-	ABI_PushAllCalleeSavedRegsAndAdjustStack();
+	// We don't use floating point (high 16 bits).
+	u32 registers_used = ABI_ALL_CALLEE_SAVED & 0xffff;
+	ABI_PushRegistersAndAdjustStack(registers_used, 8);
 
 	const u8 *dispatcherLoop = GetCodePtr();
 
@@ -419,6 +421,6 @@ void DSPEmitter::CompileDispatcher()
 		SetJumpTarget(exceptionExit);
 	}
 	//MOV(32, M(&cyclesLeft), Imm32(0));
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	ABI_PopRegistersAndAdjustStack(registers_used, 8);
 	RET();
 }
