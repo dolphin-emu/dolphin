@@ -132,6 +132,7 @@ set(SRCS	ActionReplay.cpp
 			HW/WiimoteEmu/Encryption.cpp
 			HW/WiimoteEmu/Speaker.cpp
 			HW/WiimoteReal/WiimoteReal.cpp
+			HW/WiiSaveCrypted.cpp
 			IPC_HLE/ICMPLin.cpp
 			IPC_HLE/WII_IPC_HLE.cpp
 			IPC_HLE/WII_IPC_HLE_Device_DI.cpp
