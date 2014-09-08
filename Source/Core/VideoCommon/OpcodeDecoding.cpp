@@ -12,7 +12,7 @@
 // while interpreting them, and hope that the vertex format doesn't change, though, if you do it right
 // when they are called. The reason is that the vertex format affects the sizes of the vertices.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Core/Core.h"
 #include "Core/Host.h"

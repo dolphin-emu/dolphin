@@ -7,7 +7,7 @@
 #include <string>
 
 #include "Common/BitField.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #pragma pack(4)
 

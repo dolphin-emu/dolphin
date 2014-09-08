@@ -20,7 +20,7 @@
 #include <wx/window.h>
 #include <wx/windowid.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 #include "Core/PowerPC/Gekko.h"

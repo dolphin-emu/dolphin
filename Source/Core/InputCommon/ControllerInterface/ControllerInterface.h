@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ExpressionParser.h"

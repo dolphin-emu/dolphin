@@ -4,7 +4,7 @@
 
 #include <emmintrin.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
 #include "Core/HW/MMIO.h"

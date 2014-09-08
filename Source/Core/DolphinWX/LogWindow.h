@@ -17,7 +17,7 @@
 #include <wx/translation.h>
 #include <wx/windowid.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Logging/LogManager.h"
 
 class CFrame;

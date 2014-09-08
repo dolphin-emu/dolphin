@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Common/CodeBlock.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #if defined(__SYMBIAN32__) || defined(PANDORA)
 #include <signal.h>

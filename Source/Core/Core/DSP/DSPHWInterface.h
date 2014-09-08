@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1

@@ -5,7 +5,7 @@
 #include <functional>
 
 #include "AudioCommon/PulseAudioStream.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 
 namespace

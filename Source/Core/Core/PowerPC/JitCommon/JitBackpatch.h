@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
 

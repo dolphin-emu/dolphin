@@ -14,8 +14,8 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32

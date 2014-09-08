@@ -9,7 +9,7 @@
 #include "Common/Thread.h"
 #endif
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/x64Analyzer.h"
 
 #include "Core/MemTools.h"

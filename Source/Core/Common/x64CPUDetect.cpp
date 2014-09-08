@@ -5,7 +5,7 @@
 #include <cstring>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 
 #ifdef _WIN32

@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 void dsp_reg_store_stack(int stack_reg, u16 val);
 u16 dsp_reg_load_stack(int stack_reg);

@@ -11,8 +11,8 @@
 #include <utility>
 #include <vector>
 
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "DiscIO/FileBlob.h"

@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 // idk in case I wanted to change it to double or something, idk what's best
 typedef double ControlState;

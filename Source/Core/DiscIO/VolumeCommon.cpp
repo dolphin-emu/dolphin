@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"
 
 namespace DiscIO

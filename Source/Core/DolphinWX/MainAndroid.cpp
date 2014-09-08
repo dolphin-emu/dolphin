@@ -24,8 +24,8 @@
 #include <EGL/egl.h>
 
 #include "Android/ButtonManager.h"
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"

@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <string>
 
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 

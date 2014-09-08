@@ -5,7 +5,7 @@
 #pragma once
 
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
 
 void InitBPMemory();

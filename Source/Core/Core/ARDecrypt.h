@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/ActionReplay.h"
 
 namespace ActionReplay

@@ -5,7 +5,7 @@
 #pragma once
 
 #include <queue>
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 class PointerWrap;
 

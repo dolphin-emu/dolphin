@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 namespace MathUtil
 {
