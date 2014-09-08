@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <functional>
-
 #include "AudioCommon/AlsaSoundStream.h"
 #include "Common/Common.h"
 #include "Common/Thread.h"
@@ -24,7 +22,7 @@ AlsaSound::~AlsaSound()
 
 bool AlsaSound::Start()
 {
-	thread = std::thread(std::mem_fn(&AlsaSound::SoundLoop), this);
+	thread = std::thread(&AlsaSound::SoundLoop, this);
 	thread_data = 0;
 	return true;
 }
