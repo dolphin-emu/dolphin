@@ -1,7 +1,7 @@
 /*
  *  Public Key abstraction layer: wrapper functions
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PK_C)
 
@@ -40,21 +44,26 @@
 #include "polarssl/ecdsa.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
 
-/* Used by RSA-alt too */
-static int rsa_can_do( pk_type_t type )
-{
-    return( type == POLARSSL_PK_RSA );
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
 }
 
 #if defined(POLARSSL_RSA_C)
+static int rsa_can_do( pk_type_t type )
+{
+    return( type == POLARSSL_PK_RSA ||
+            type == POLARSSL_PK_RSASSA_PSS );
+}
+
 static size_t rsa_get_size( const void *ctx )
 {
     return( 8 * ((const rsa_context *) ctx)->len );
@@ -64,11 +73,20 @@ static int rsa_verify_wrap( void *ctx, md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
 {
-    if( sig_len != ((rsa_context *) ctx)->len )
+    int ret;
+
+    if( sig_len < ((rsa_context *) ctx)->len )
         return( POLARSSL_ERR_RSA_VERIFY_FAILED );
 
-    return( rsa_pkcs1_verify( (rsa_context *) ctx, NULL, NULL,
-                RSA_PUBLIC, md_alg, (unsigned int) hash_len, hash, sig ) );
+    if( ( ret = rsa_pkcs1_verify( (rsa_context *) ctx, NULL, NULL,
+                                  RSA_PUBLIC, md_alg,
+                                  (unsigned int) hash_len, hash, sig ) ) != 0 )
+        return( ret );
+
+    if( sig_len > ((rsa_context *) ctx)->len )
+        return( POLARSSL_ERR_PK_SIG_LEN_MISMATCH );
+
+    return( 0 );
 }
 
 static int rsa_sign_wrap( void *ctx, md_type_t md_alg,
@@ -114,7 +132,7 @@ static void *rsa_alloc_wrap( void )
     if( ctx != NULL )
         rsa_init( (rsa_context *) ctx, 0, 0 );
 
-    return ctx;
+    return( ctx );
 }
 
 static void rsa_free_wrap( void *ctx )
@@ -259,7 +277,7 @@ const pk_info_t eckey_info = {
 };
 
 /*
- * EC key resticted to ECDH
+ * EC key restricted to ECDH
  */
 static int eckeydh_can_do( pk_type_t type )
 {
@@ -292,10 +310,16 @@ static int ecdsa_verify_wrap( void *ctx, md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
 {
+    int ret;
     ((void) md_alg);
 
-    return( ecdsa_read_signature( (ecdsa_context *) ctx,
-                hash, hash_len, sig, sig_len ) );
+    ret = ecdsa_read_signature( (ecdsa_context *) ctx,
+                                hash, hash_len, sig, sig_len );
+
+    if( ret == POLARSSL_ERR_ECP_SIG_LEN_MISMATCH )
+        return( POLARSSL_ERR_PK_SIG_LEN_MISMATCH );
+
+    return( ret );
 }
 
 static int ecdsa_sign_wrap( void *ctx, md_type_t md_alg,
@@ -315,7 +339,7 @@ static int ecdsa_sign_wrap( void *ctx, md_type_t md_alg,
 
     return( ecdsa_write_signature( (ecdsa_context *) ctx,
                 hash, hash_len, sig, sig_len, f_rng, p_rng ) );
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 }
 
 static void *ecdsa_alloc_wrap( void )
@@ -353,11 +377,16 @@ const pk_info_t ecdsa_info = {
  * Support for alternative RSA-private implementations
  */
 
+static int rsa_alt_can_do( pk_type_t type )
+{
+    return( type == POLARSSL_PK_RSA );
+}
+
 static size_t rsa_alt_get_size( const void *ctx )
 {
     const rsa_alt_context *rsa_alt = (const rsa_alt_context *) ctx;
 
-    return( rsa_alt->key_len_func( rsa_alt->key ) );
+    return( 8 * rsa_alt->key_len_func( rsa_alt->key ) );
 }
 
 static int rsa_alt_sign_wrap( void *ctx, md_type_t md_alg,
@@ -397,11 +426,12 @@ static void *rsa_alt_alloc_wrap( void )
     if( ctx != NULL )
         memset( ctx, 0, sizeof( rsa_alt_context ) );
 
-    return ctx;
+    return( ctx );
 }
 
 static void rsa_alt_free_wrap( void *ctx )
 {
+    polarssl_zeroize( ctx, sizeof( rsa_alt_context ) );
     polarssl_free( ctx );
 }
 
@@ -409,7 +439,7 @@ const pk_info_t rsa_alt_info = {
     POLARSSL_PK_RSA_ALT,
     "RSA-alt",
     rsa_alt_get_size,
-    rsa_can_do,
+    rsa_alt_can_do,
     NULL,
     rsa_alt_sign_wrap,
     rsa_alt_decrypt_wrap,

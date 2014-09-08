@@ -1,7 +1,7 @@
 /*
  *  X.509 Certificate Signing Request (CSR) parsing
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -25,16 +25,19 @@
 /*
  *  The ITU-T X.509 standard defines a certificate format for PKI.
  *
- *  http://www.ietf.org/rfc/rfc3279.txt
- *  http://www.ietf.org/rfc/rfc3280.txt
- *
- *  ftp://ftp.rsasecurity.com/pub/pkcs/ascii/pkcs-1v2.asc
+ *  http://www.ietf.org/rfc/rfc5280.txt (Certificates and CRLs)
+ *  http://www.ietf.org/rfc/rfc3279.txt (Alg IDs for CRLs)
+ *  http://www.ietf.org/rfc/rfc2986.txt (CSRs, aka PKCS#10)
  *
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.680-0207.pdf
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_X509_CSR_PARSE_C)
 
@@ -44,8 +47,8 @@
 #include "polarssl/pem.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
 #define polarssl_malloc     malloc
 #define polarssl_free       free
@@ -57,6 +60,11 @@
 #if defined(POLARSSL_FS_IO) || defined(EFIX64) || defined(EFI32)
 #include <stdio.h>
 #endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 /*
  *  Version  ::=  INTEGER  {  v1(0)  }
@@ -82,17 +90,17 @@ static int x509_csr_get_version( unsigned char **p,
 }
 
 /*
- * Parse a CSR
+ * Parse a CSR in DER format
  */
-int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
+int x509_csr_parse_der( x509_csr *csr,
+                        const unsigned char *buf, size_t buflen )
 {
     int ret;
     size_t len;
     unsigned char *p, *end;
-#if defined(POLARSSL_PEM_PARSE_C)
-    size_t use_len;
-    pem_context pem;
-#endif
+    x509_buf sig_params;
+
+    memset( &sig_params, 0, sizeof( x509_buf ) );
 
     /*
      * Check for valid input
@@ -102,41 +110,15 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
 
     x509_csr_init( csr );
 
-#if defined(POLARSSL_PEM_PARSE_C)
-    pem_init( &pem );
-    ret = pem_read_buffer( &pem,
-                           "-----BEGIN CERTIFICATE REQUEST-----",
-                           "-----END CERTIFICATE REQUEST-----",
-                           buf, NULL, 0, &use_len );
+    /*
+     * first copy the raw DER data
+     */
+    p = (unsigned char *) polarssl_malloc( len = buflen );
 
-    if( ret == 0 )
-    {
-        /*
-         * Was PEM encoded, steal PEM buffer
-         */
-        p = pem.buf;
-        pem.buf = NULL;
-        len = pem.buflen;
-        pem_free( &pem );
-    }
-    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
-    {
-        pem_free( &pem );
-        return( ret );
-    }
-    else
-#endif
-    {
-        /*
-         * nope, copy the raw DER data
-         */
-        p = (unsigned char *) polarssl_malloc( len = buflen );
+    if( p == NULL )
+        return( POLARSSL_ERR_X509_MALLOC_FAILED );
 
-        if( p == NULL )
-            return( POLARSSL_ERR_X509_MALLOC_FAILED );
-
-        memcpy( p, buf, buflen );
-    }
+    memcpy( p, buf, buflen );
 
     csr->raw.p = p;
     csr->raw.len = len;
@@ -243,14 +225,15 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
      *  signatureAlgorithm   AlgorithmIdentifier,
      *  signature            BIT STRING
      */
-    if( ( ret = x509_get_alg_null( &p, end, &csr->sig_oid ) ) != 0 )
+    if( ( ret = x509_get_alg( &p, end, &csr->sig_oid, &sig_params ) ) != 0 )
     {
         x509_csr_free( csr );
         return( ret );
     }
 
-    if( ( ret = x509_get_sig_alg( &csr->sig_oid, &csr->sig_md,
-                                  &csr->sig_pk ) ) != 0 )
+    if( ( ret = x509_get_sig_alg( &csr->sig_oid, &sig_params,
+                                  &csr->sig_md, &csr->sig_pk,
+                                  &csr->sig_opts ) ) != 0 )
     {
         x509_csr_free( csr );
         return( POLARSSL_ERR_X509_UNKNOWN_SIG_ALG );
@@ -272,6 +255,51 @@ int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
     return( 0 );
 }
 
+/*
+ * Parse a CSR, allowing for PEM or raw DER encoding
+ */
+int x509_csr_parse( x509_csr *csr, const unsigned char *buf, size_t buflen )
+{
+    int ret;
+#if defined(POLARSSL_PEM_PARSE_C)
+    size_t use_len;
+    pem_context pem;
+#endif
+
+    /*
+     * Check for valid input
+     */
+    if( csr == NULL || buf == NULL )
+        return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
+
+#if defined(POLARSSL_PEM_PARSE_C)
+    pem_init( &pem );
+    ret = pem_read_buffer( &pem,
+                           "-----BEGIN CERTIFICATE REQUEST-----",
+                           "-----END CERTIFICATE REQUEST-----",
+                           buf, NULL, 0, &use_len );
+
+    if( ret == 0 )
+    {
+        /*
+         * Was PEM encoded, parse the result
+         */
+        if( ( ret = x509_csr_parse_der( csr, pem.buf, pem.buflen ) ) != 0 )
+            return( ret );
+
+        pem_free( &pem );
+        return( 0 );
+    }
+    else if( ret != POLARSSL_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
+    {
+        pem_free( &pem );
+        return( ret );
+    }
+    else
+#endif /* POLARSSL_PEM_PARSE_C */
+    return( x509_csr_parse_der( csr, buf, buflen ) );
+}
+
 #if defined(POLARSSL_FS_IO)
 /*
  * Load a CSR into the structure
@@ -282,12 +310,12 @@ int x509_csr_parse_file( x509_csr *csr, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = x509_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = x509_csr_parse( csr, buf, n );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -309,7 +337,7 @@ int x509_csr_parse_file( x509_csr *csr, const char *path )
  * This fuction tries to 'fix' this by at least suggesting enlarging the
  * size by 20.
  */
-static int compat_snprintf(char *str, size_t size, const char *format, ...)
+static int compat_snprintf( char *str, size_t size, const char *format, ... )
 {
     va_list ap;
     int res = -1;
@@ -321,29 +349,29 @@ static int compat_snprintf(char *str, size_t size, const char *format, ...)
     va_end( ap );
 
     // No quick fix possible
-    if ( res < 0 )
+    if( res < 0 )
         return( (int) size + 20 );
 
-    return res;
+    return( res );
 }
 
 #define snprintf compat_snprintf
-#endif
+#endif /* _MSC_VER && !snprintf && !EFIX64 && !EFI32 */
 
 #define POLARSSL_ERR_DEBUG_BUF_TOO_SMALL    -2
 
-#define SAFE_SNPRINTF()                         \
-{                                               \
-    if( ret == -1 )                             \
-        return( -1 );                           \
-                                                \
-    if ( (unsigned int) ret > n ) {             \
-        p[n - 1] = '\0';                        \
-        return POLARSSL_ERR_DEBUG_BUF_TOO_SMALL;\
-    }                                           \
-                                                \
-    n -= (unsigned int) ret;                    \
-    p += (unsigned int) ret;                    \
+#define SAFE_SNPRINTF()                             \
+{                                                   \
+    if( ret == -1 )                                 \
+        return( -1 );                               \
+                                                    \
+    if( (unsigned int) ret > n ) {                  \
+        p[n - 1] = '\0';                            \
+        return( POLARSSL_ERR_DEBUG_BUF_TOO_SMALL ); \
+    }                                               \
+                                                    \
+    n -= (unsigned int) ret;                        \
+    p += (unsigned int) ret;                        \
 }
 
 #define BEFORE_COLON    14
@@ -357,7 +385,6 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
     int ret;
     size_t n;
     char *p;
-    const char *desc;
     char key_size_str[BEFORE_COLON];
 
     p = buf;
@@ -375,11 +402,8 @@ int x509_csr_info( char *buf, size_t size, const char *prefix,
     ret = snprintf( p, n, "\n%ssigned using  : ", prefix );
     SAFE_SNPRINTF();
 
-    ret = oid_get_sig_alg_desc( &csr->sig_oid, &desc );
-    if( ret != 0 )
-        ret = snprintf( p, n, "???"  );
-    else
-        ret = snprintf( p, n, "%s", desc );
+    ret = x509_sig_alg_gets( p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md,
+                             csr->sig_opts );
     SAFE_SNPRINTF();
 
     if( ( ret = x509_key_size_helper( key_size_str, BEFORE_COLON,
@@ -416,22 +440,26 @@ void x509_csr_free( x509_csr *csr )
 
     pk_free( &csr->pk );
 
+#if defined(POLARSSL_X509_RSASSA_PSS_SUPPORT)
+    polarssl_free( csr->sig_opts );
+#endif
+
     name_cur = csr->subject.next;
     while( name_cur != NULL )
     {
         name_prv = name_cur;
         name_cur = name_cur->next;
-        memset( name_prv, 0, sizeof( x509_name ) );
+        polarssl_zeroize( name_prv, sizeof( x509_name ) );
         polarssl_free( name_prv );
     }
 
     if( csr->raw.p != NULL )
     {
-        memset( csr->raw.p, 0, csr->raw.len );
+        polarssl_zeroize( csr->raw.p, csr->raw.len );
         polarssl_free( csr->raw.p );
     }
 
-    memset( csr, 0, sizeof( x509_csr ) );
+    polarssl_zeroize( csr, sizeof( x509_csr ) );
 }
 
 #endif /* POLARSSL_X509_CSR_PARSE_C */

@@ -1,7 +1,7 @@
 /*
  *  FIPS-180-2 compliant SHA-384/512 implementation
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -28,7 +28,11 @@
  *  http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_SHA512_C)
 
@@ -37,6 +41,17 @@
 #if defined(POLARSSL_FS_IO) || defined(POLARSSL_SELF_TEST)
 #include <stdio.h>
 #endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
+#endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 #if !defined(POLARSSL_SHA512_ALT)
 
@@ -55,7 +70,7 @@
         | ( (uint64_t) (b)[(i) + 6] <<  8 )       \
         | ( (uint64_t) (b)[(i) + 7]       );      \
 }
-#endif
+#endif /* GET_UINT64_BE */
 
 #ifndef PUT_UINT64_BE
 #define PUT_UINT64_BE(n,b,i)                            \
@@ -69,7 +84,7 @@
     (b)[(i) + 6] = (unsigned char) ( (n) >>  8 );       \
     (b)[(i) + 7] = (unsigned char) ( (n)       );       \
 }
-#endif
+#endif /* PUT_UINT64_BE */
 
 /*
  * Round constants
@@ -117,6 +132,19 @@ static const uint64_t K[80] =
     UL64(0x4CC5D4BECB3E42B6),  UL64(0x597F299CFC657E2A),
     UL64(0x5FCB6FAB3AD6FAEC),  UL64(0x6C44198C4A475817)
 };
+
+void sha512_init( sha512_context *ctx )
+{
+    memset( ctx, 0, sizeof( sha512_context ) );
+}
+
+void sha512_free( sha512_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( sha512_context ) );
+}
 
 /*
  * SHA-512 context setup
@@ -226,12 +254,13 @@ void sha512_process( sha512_context *ctx, const unsigned char data[128] )
 /*
  * SHA-512 process buffer
  */
-void sha512_update( sha512_context *ctx, const unsigned char *input, size_t ilen )
+void sha512_update( sha512_context *ctx, const unsigned char *input,
+                    size_t ilen )
 {
     size_t fill;
     unsigned int left;
 
-    if( ilen <= 0 )
+    if( ilen == 0 )
         return;
 
     left = (unsigned int) (ctx->total[0] & 0x7F);
@@ -320,11 +349,11 @@ void sha512( const unsigned char *input, size_t ilen,
 {
     sha512_context ctx;
 
+    sha512_init( &ctx );
     sha512_starts( &ctx, is384 );
     sha512_update( &ctx, input, ilen );
     sha512_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( sha512_context ) );
+    sha512_free( &ctx );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -341,14 +370,14 @@ int sha512_file( const char *path, unsigned char output[64], int is384 )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( POLARSSL_ERR_SHA512_FILE_IO_ERROR );
 
+    sha512_init( &ctx );
     sha512_starts( &ctx, is384 );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         sha512_update( &ctx, buf, n );
 
     sha512_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( sha512_context ) );
+    sha512_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
@@ -389,7 +418,7 @@ void sha512_hmac_starts( sha512_context *ctx, const unsigned char *key,
     sha512_starts( ctx, is384 );
     sha512_update( ctx, ctx->ipad, 128 );
 
-    memset( sum, 0, sizeof( sum ) );
+    polarssl_zeroize( sum, sizeof( sum ) );
 }
 
 /*
@@ -418,7 +447,7 @@ void sha512_hmac_finish( sha512_context *ctx, unsigned char output[64] )
     sha512_update( ctx, tmpbuf, hlen );
     sha512_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    polarssl_zeroize( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -439,11 +468,11 @@ void sha512_hmac( const unsigned char *key, size_t keylen,
 {
     sha512_context ctx;
 
+    sha512_init( &ctx );
     sha512_hmac_starts( &ctx, key, keylen, is384 );
     sha512_hmac_update( &ctx, input, ilen );
     sha512_hmac_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( sha512_context ) );
+    sha512_free( &ctx );
 }
 
 #if defined(POLARSSL_SELF_TEST)
@@ -451,7 +480,7 @@ void sha512_hmac( const unsigned char *key, size_t keylen,
 /*
  * FIPS-180-2 test vectors
  */
-static unsigned char sha512_test_buf[3][113] = 
+static unsigned char sha512_test_buf[3][113] =
 {
     { "abc" },
     { "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
@@ -670,10 +699,12 @@ static const unsigned char sha512_hmac_test_sum[14][64] =
  */
 int sha512_self_test( int verbose )
 {
-    int i, j, k, buflen;
+    int i, j, k, buflen, ret = 0;
     unsigned char buf[1024];
     unsigned char sha512sum[64];
     sha512_context ctx;
+
+    sha512_init( &ctx );
 
     for( i = 0; i < 6; i++ )
     {
@@ -681,7 +712,7 @@ int sha512_self_test( int verbose )
         k = i < 3;
 
         if( verbose != 0 )
-            printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
+            polarssl_printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
 
         sha512_starts( &ctx, k );
 
@@ -701,17 +732,18 @@ int sha512_self_test( int verbose )
         if( memcmp( sha512sum, sha512_test_sum[i], 64 - k * 16 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
     for( i = 0; i < 14; i++ )
     {
@@ -719,7 +751,7 @@ int sha512_self_test( int verbose )
         k = i < 7;
 
         if( verbose != 0 )
-            printf( "  HMAC-SHA-%d test #%d: ", 512 - k * 128, j + 1 );
+            polarssl_printf( "  HMAC-SHA-%d test #%d: ", 512 - k * 128, j + 1 );
 
         if( j == 5 || j == 6 )
         {
@@ -740,21 +772,25 @@ int sha512_self_test( int verbose )
         if( memcmp( sha512sum, sha512_hmac_test_sum[i], buflen ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
-            return( 1 );
+            ret = 1;
+            goto exit;
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
     }
 
     if( verbose != 0 )
-        printf( "\n" );
+        polarssl_printf( "\n" );
 
-    return( 0 );
+exit:
+    sha512_free( &ctx );
+
+    return( ret );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_SHA512_C */

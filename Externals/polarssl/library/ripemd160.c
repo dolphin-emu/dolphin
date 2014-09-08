@@ -29,7 +29,11 @@
  *  http://ehash.iaik.tugraz.at/wiki/RIPEMD-160
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_RIPEMD160_C)
 
@@ -41,6 +45,12 @@
 
 #if defined(POLARSSL_SELF_TEST)
 #include <string.h>
+#endif
+
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
+#else
+#define polarssl_printf printf
 #endif
 
 /*
@@ -65,6 +75,24 @@
     (b)[(i) + 3] = (unsigned char) ( (n) >> 24 );       \
 }
 #endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
+void ripemd160_init( ripemd160_context *ctx )
+{
+    memset( ctx, 0, sizeof( ripemd160_context ) );
+}
+
+void ripemd160_free( ripemd160_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    polarssl_zeroize( ctx, sizeof( ripemd160_context ) );
+}
 
 /*
  * RIPEMD-160 context setup
@@ -270,7 +298,7 @@ void ripemd160_update( ripemd160_context *ctx,
     size_t fill;
     uint32_t left;
 
-    if( ilen <= 0 )
+    if( ilen == 0 )
         return;
 
     left = ctx->total[0] & 0x3F;
@@ -349,11 +377,11 @@ void ripemd160( const unsigned char *input, size_t ilen,
 {
     ripemd160_context ctx;
 
+    ripemd160_init( &ctx );
     ripemd160_starts( &ctx );
     ripemd160_update( &ctx, input, ilen );
     ripemd160_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( ripemd160_context ) );
+    ripemd160_free( &ctx );
 }
 
 #if defined(POLARSSL_FS_IO)
@@ -370,14 +398,14 @@ int ripemd160_file( const char *path, unsigned char output[20] )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( POLARSSL_ERR_RIPEMD160_FILE_IO_ERROR );
 
+    ripemd160_init( &ctx );
     ripemd160_starts( &ctx );
 
     while( ( n = fread( buf, 1, sizeof( buf ), f ) ) > 0 )
         ripemd160_update( &ctx, buf, n );
 
     ripemd160_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( ripemd160_context ) );
+    ripemd160_free( &ctx );
 
     if( ferror( f ) != 0 )
     {
@@ -418,7 +446,7 @@ void ripemd160_hmac_starts( ripemd160_context *ctx,
     ripemd160_starts( ctx );
     ripemd160_update( ctx, ctx->ipad, 64 );
 
-    memset( sum, 0, sizeof( sum ) );
+    polarssl_zeroize( sum, sizeof( sum ) );
 }
 
 /*
@@ -443,7 +471,7 @@ void ripemd160_hmac_finish( ripemd160_context *ctx, unsigned char output[20] )
     ripemd160_update( ctx, tmpbuf, 20 );
     ripemd160_finish( ctx, output );
 
-    memset( tmpbuf, 0, sizeof( tmpbuf ) );
+    polarssl_zeroize( tmpbuf, sizeof( tmpbuf ) );
 }
 
 /*
@@ -464,11 +492,11 @@ void ripemd160_hmac( const unsigned char *key, size_t keylen,
 {
     ripemd160_context ctx;
 
+    ripemd160_init( &ctx );
     ripemd160_hmac_starts( &ctx, key, keylen );
     ripemd160_hmac_update( &ctx, input, ilen );
     ripemd160_hmac_finish( &ctx, output );
-
-    memset( &ctx, 0, sizeof( ripemd160_context ) );
+    ripemd160_free( &ctx );
 }
 
 
@@ -573,7 +601,7 @@ int ripemd160_self_test( int verbose )
     for( i = 0; i < TESTS; i++ )
     {
         if( verbose != 0 )
-            printf( "  RIPEMD-160 test #%d: ", i + 1 );
+            polarssl_printf( "  RIPEMD-160 test #%d: ", i + 1 );
 
         ripemd160( (const unsigned char *) ripemd160_test_input[i],
                    strlen( ripemd160_test_input[i] ),
@@ -582,18 +610,19 @@ int ripemd160_self_test( int verbose )
         if( memcmp( output, ripemd160_test_md[i], 20 ) != 0 )
         {
             if( verbose != 0 )
-                printf( "failed\n" );
+                polarssl_printf( "failed\n" );
 
             return( 1 );
         }
 
         if( verbose != 0 )
-            printf( "passed\n" );
+            polarssl_printf( "passed\n" );
 
         for( j = 0; j < KEYS; j++ )
         {
             if( verbose != 0 )
-                printf( "  HMAC-RIPEMD-160 test #%d, key #%d: ", i + 1, j + 1 );
+                polarssl_printf( "  HMAC-RIPEMD-160 test #%d, key #%d: ",
+                                 i + 1, j + 1 );
 
             ripemd160_hmac( ripemd160_test_key[j], 20,
                             (const unsigned char *) ripemd160_test_input[i],
@@ -603,22 +632,22 @@ int ripemd160_self_test( int verbose )
             if( memcmp( output, ripemd160_test_hmac[j][i], 20 ) != 0 )
             {
                 if( verbose != 0 )
-                    printf( "failed\n" );
+                    polarssl_printf( "failed\n" );
 
                 return( 1 );
             }
 
             if( verbose != 0 )
-                printf( "passed\n" );
+                polarssl_printf( "passed\n" );
         }
 
         if( verbose != 0 )
-            printf( "\n" );
+            polarssl_printf( "\n" );
     }
 
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_RIPEMD160_C */

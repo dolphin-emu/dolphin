@@ -27,13 +27,35 @@
 #ifndef POLARSSL_DEBUG_H
 #define POLARSSL_DEBUG_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 #include "ssl.h"
 #if defined(POLARSSL_ECP_C)
 #include "ecp.h"
 #endif
 
 #if defined(POLARSSL_DEBUG_C)
+
+#define POLARSSL_DEBUG_LOG_FULL         0 /**< Include file:line in log lines */
+#define POLARSSL_DEBUG_LOG_RAW          1 /**< Only log raw debug lines */
+
+/**
+ * \name SECTION: Module settings
+ *
+ * The configuration options you can set for this module are in this section.
+ * Either change them in config.h or define them on the compiler command line.
+ * \{
+ */
+
+#if !defined(POLARSSL_DEBUG_DFL_MODE)
+#define POLARSSL_DEBUG_DFL_MODE POLARSSL_DEBUG_LOG_FULL /**< Default log: Full or Raw */
+#endif
+
+/* \} name SECTION: Module settings */
+
 
 #define SSL_DEBUG_MSG( level, args )                    \
     debug_print_msg( ssl, level, __FILE__, __LINE__, debug_fmt args );
@@ -59,7 +81,7 @@
     debug_print_crt( ssl, level, __FILE__, __LINE__, text, crt );
 #endif
 
-#else
+#else /* POLARSSL_DEBUG_C */
 
 #define SSL_DEBUG_MSG( level, args )            do { } while( 0 )
 #define SSL_DEBUG_RET( level, text, ret )       do { } while( 0 )
@@ -68,11 +90,29 @@
 #define SSL_DEBUG_ECP( level, text, X )         do { } while( 0 )
 #define SSL_DEBUG_CRT( level, text, crt )       do { } while( 0 )
 
-#endif
+#endif /* POLARSSL_DEBUG_C */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * \brief   Set the log mode for the debug functions globally
+ *          (Default value: POLARSSL_DEBUG_DFL_MODE)
+ *
+ * \param log_mode      The log mode to use (POLARSSL_DEBUG_LOG_FULL or
+ *                                           POLARSSL_DEBUG_LOG_RAW)
+ */
+void debug_set_log_mode( int log_mode );
+
+/**
+ * \brief   Set the level threshold to handle globally. Messages that have a
+ *          level over the threshold value are ignored.
+ *          (Default value: 0 (No debug))
+ *
+ * \param threshold     maximum level of messages to pass on
+ */
+void debug_set_threshold( int threshold );
 
 char *debug_fmt( const char *format, ... );
 

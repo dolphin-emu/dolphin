@@ -210,6 +210,30 @@ extern "C" {
 #define TLS_ECDHE_PSK_WITH_CAMELLIA_128_CBC_SHA256 0xC09A /**< Not in SSL3! */
 #define TLS_ECDHE_PSK_WITH_CAMELLIA_256_CBC_SHA384 0xC09B /**< Not in SSL3! */
 
+#define TLS_RSA_WITH_AES_128_CCM                0xC09C  /**< TLS 1.2 */
+#define TLS_RSA_WITH_AES_256_CCM                0xC09D  /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_128_CCM            0xC09E  /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_256_CCM            0xC09F  /**< TLS 1.2 */
+#define TLS_RSA_WITH_AES_128_CCM_8              0xC0A0  /**< TLS 1.2 */
+#define TLS_RSA_WITH_AES_256_CCM_8              0xC0A1  /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_128_CCM_8          0xC0A2  /**< TLS 1.2 */
+#define TLS_DHE_RSA_WITH_AES_256_CCM_8          0xC0A3  /**< TLS 1.2 */
+#define TLS_PSK_WITH_AES_128_CCM                0xC0A4  /**< TLS 1.2 */
+#define TLS_PSK_WITH_AES_256_CCM                0xC0A5  /**< TLS 1.2 */
+#define TLS_DHE_PSK_WITH_AES_128_CCM            0xC0A6  /**< TLS 1.2 */
+#define TLS_DHE_PSK_WITH_AES_256_CCM            0xC0A7  /**< TLS 1.2 */
+#define TLS_PSK_WITH_AES_128_CCM_8              0xC0A8  /**< TLS 1.2 */
+#define TLS_PSK_WITH_AES_256_CCM_8              0xC0A9  /**< TLS 1.2 */
+#define TLS_DHE_PSK_WITH_AES_128_CCM_8          0xC0AA  /**< TLS 1.2 */
+#define TLS_DHE_PSK_WITH_AES_256_CCM_8          0xC0AB  /**< TLS 1.2 */
+/* The last two are named with PSK_DHE in the RFC, which looks like a typo */
+
+#define TLS_ECDHE_ECDSA_WITH_AES_128_CCM        0xC0AC  /**< TLS 1.2 */
+#define TLS_ECDHE_ECDSA_WITH_AES_256_CCM        0xC0AD  /**< TLS 1.2 */
+#define TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8      0xC0AE  /**< TLS 1.2 */
+#define TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8      0xC0AF  /**< TLS 1.2 */
+
+/* Reminder: update _ssl_premaster_secret when adding a new key exchange */
 typedef enum {
     POLARSSL_KEY_EXCHANGE_NONE = 0,
     POLARSSL_KEY_EXCHANGE_RSA,
@@ -226,7 +250,9 @@ typedef enum {
 
 typedef struct _ssl_ciphersuite_t ssl_ciphersuite_t;
 
-#define POLARSSL_CIPHERSUITE_WEAK   0x01    /**< Weak ciphersuite flag      */
+#define POLARSSL_CIPHERSUITE_WEAK       0x01    /**< Weak ciphersuite flag  */
+#define POLARSSL_CIPHERSUITE_SHORT_TAG  0x02    /**< Short authentication tag,
+                                                     eg for CCM_8 */
 
 /**
  * \brief   This structure is used for storing ciphersuite information

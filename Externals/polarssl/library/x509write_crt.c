@@ -1,7 +1,7 @@
 /*
  *  X.509 certificate writing
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -29,7 +29,11 @@
  * - attributes: PKCS#9 v2.0 aka RFC 2985
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_X509_CRT_WRITE_C)
 
@@ -41,6 +45,11 @@
 #if defined(POLARSSL_PEM_WRITE_C)
 #include "polarssl/pem.h"
 #endif /* POLARSSL_PEM_WRITE_C */
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 void x509write_crt_init( x509write_cert *ctx )
 {
@@ -58,7 +67,7 @@ void x509write_crt_free( x509write_cert *ctx )
     asn1_free_named_data_list( &ctx->issuer );
     asn1_free_named_data_list( &ctx->extensions );
 
-    memset( ctx, 0, sizeof(x509write_cert) );
+    polarssl_zeroize( ctx, sizeof(x509write_cert) );
 }
 
 void x509write_crt_set_version( x509write_cert *ctx, int version )
@@ -106,8 +115,8 @@ int x509write_crt_set_serial( x509write_cert *ctx, const mpi *serial )
 int x509write_crt_set_validity( x509write_cert *ctx, const char *not_before,
                                 const char *not_after )
 {
-    if( strlen(not_before) != X509_RFC5280_UTC_TIME_LEN - 1 ||
-        strlen(not_after)  != X509_RFC5280_UTC_TIME_LEN - 1 )
+    if( strlen( not_before ) != X509_RFC5280_UTC_TIME_LEN - 1 ||
+        strlen( not_after )  != X509_RFC5280_UTC_TIME_LEN - 1 )
     {
         return( POLARSSL_ERR_X509_BAD_INPUT_DATA );
     }
@@ -151,7 +160,8 @@ int x509write_crt_set_basic_constraints( x509write_cert *ctx,
     }
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                ASN1_SEQUENCE ) );
 
     return x509write_crt_set_extension( ctx, OID_BASIC_CONSTRAINTS,
                                         OID_SIZE( OID_BASIC_CONSTRAINTS ),
@@ -166,7 +176,7 @@ int x509write_crt_set_subject_key_identifier( x509write_cert *ctx )
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf));
+    memset( buf, 0, sizeof(buf) );
     ASN1_CHK_ADD( len, pk_write_pubkey( &c, buf, ctx->subject_key ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
@@ -188,7 +198,7 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
 
-    memset( buf, 0, sizeof(buf));
+    memset( buf, 0, sizeof(buf) );
     ASN1_CHK_ADD( len, pk_write_pubkey( &c, buf, ctx->issuer_key ) );
 
     sha1( buf + sizeof(buf) - len, len, buf + sizeof(buf) - 20 );
@@ -199,7 +209,8 @@ int x509write_crt_set_authority_key_identifier( x509write_cert *ctx )
     ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONTEXT_SPECIFIC | 0 ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, buf, ASN1_CONSTRUCTED |
+                                                ASN1_SEQUENCE ) );
 
     return x509write_crt_set_extension( ctx, OID_AUTHORITY_KEY_IDENTIFIER,
                                    OID_SIZE( OID_AUTHORITY_KEY_IDENTIFIER ),
@@ -313,9 +324,11 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
      */
     ASN1_CHK_ADD( len, x509_write_extensions( &c, tmp_buf, ctx->extensions ) );
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 3 ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
+                                                    ASN1_CONSTRUCTED | 3 ) );
 
     /*
      *  SubjectPublicKeyInfo
@@ -345,7 +358,8 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
 
     len += sub_len;
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, sub_len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
 
     /*
      *  Issuer  ::=  Name
@@ -370,10 +384,12 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
     ASN1_CHK_ADD( sub_len, asn1_write_int( &c, tmp_buf, ctx->version ) );
     len += sub_len;
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, sub_len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 0 ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONTEXT_SPECIFIC |
+                                                    ASN1_CONSTRUCTED | 0 ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
 
     /*
      * Make signature
@@ -398,7 +414,8 @@ int x509write_crt_der( x509write_cert *ctx, unsigned char *buf, size_t size,
 
     len += sig_and_oid_len;
     ASN1_CHK_ADD( len, asn1_write_len( &c2, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c2, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c2, buf, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     return( (int) len );
 }
