@@ -199,6 +199,13 @@ void XAudio2_7::SetVolume(int volume)
 		m_mastering_voice->SetVolume(m_volume);
 }
 
+float XAudio2_7::GetVolume()
+{
+	float* pV = NULL;
+	m_mastering_voice->GetVolume(pV);
+	return *pV;
+}
+
 void XAudio2_7::Update()
 {
 	//m_sound_sync_event.Set();

@@ -29,6 +29,7 @@ public:
 	virtual bool Start() { return false; }
 	virtual void SetVolume(int) {}
 	virtual void SoundLoop() {}
+	virtual float GetVolume() { return 0; }
 	virtual void Stop() {}
 	virtual void Update() {}
 	virtual void Clear(bool mute) { m_muted = mute; }
