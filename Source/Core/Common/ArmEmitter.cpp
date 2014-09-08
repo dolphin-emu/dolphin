@@ -483,31 +483,31 @@ void ARMXEmitter::BL(ARMReg src)
 void ARMXEmitter::PUSH(const int num, ...)
 {
 	u16 RegList = 0;
-	u8 Reg;
-	int i;
+
 	va_list vl;
 	va_start(vl, num);
-	for (i=0;i<num;i++)
+	for (int i = 0; i < num; i++)
 	{
-		Reg = va_arg(vl, u32);
+		u8 Reg = va_arg(vl, u32);
 		RegList |= (1 << Reg);
 	}
 	va_end(vl);
+
 	Write32(condition | (2349 << 16) | RegList);
 }
 void ARMXEmitter::POP(const int num, ...)
 {
 	u16 RegList = 0;
-	u8 Reg;
-	int i;
+
 	va_list vl;
 	va_start(vl, num);
-	for (i=0;i<num;i++)
+	for (int i = 0; i < num; i++)
 	{
-		Reg = va_arg(vl, u32);
+		u8 Reg = va_arg(vl, u32);
 		RegList |= (1 << Reg);
 	}
 	va_end(vl);
+
 	Write32(condition | (2237 << 16) | RegList);
 }
 
@@ -871,31 +871,31 @@ void ARMXEmitter::WriteRegStoreOp(u32 op, ARMReg dest, bool WriteBack, u16 RegLi
 void ARMXEmitter::STMFD(ARMReg dest, bool WriteBack, const int Regnum, ...)
 {
 	u16 RegList = 0;
-	u8 Reg;
-	int i;
+
 	va_list vl;
 	va_start(vl, Regnum);
-	for (i=0;i<Regnum;i++)
+	for (int i = 0; i < Regnum; i++)
 	{
-		Reg = va_arg(vl, u32);
+		u8 Reg = va_arg(vl, u32);
 		RegList |= (1 << Reg);
 	}
 	va_end(vl);
+
 	WriteRegStoreOp(0x90, dest, WriteBack, RegList);
 }
 void ARMXEmitter::LDMFD(ARMReg dest, bool WriteBack, const int Regnum, ...)
 {
 	u16 RegList = 0;
-	u8 Reg;
-	int i;
+
 	va_list vl;
 	va_start(vl, Regnum);
-	for (i=0;i<Regnum;i++)
+	for (int i = 0; i < Regnum; i++)
 	{
-		Reg = va_arg(vl, u32);
+		u8 Reg = va_arg(vl, u32);
 		RegList |= (1 << Reg);
 	}
 	va_end(vl);
+
 	WriteRegStoreOp(0x89, dest, WriteBack, RegList);
 }
 

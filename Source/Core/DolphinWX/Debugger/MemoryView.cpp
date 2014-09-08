@@ -3,8 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
-#include <cstdio>
-#include <cstring>
 #include <string>
 #include <wx/brush.h>
 #include <wx/chartype.h>
@@ -25,6 +23,7 @@
 
 #include "Common/Common.h"
 #include "Common/DebugInterface.h"
+#include "Common/StringUtil.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
@@ -174,8 +173,7 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 
 		case IDM_COPYHEX:
 			{
-			char temp[24];
-			sprintf(temp, "%08x", debugger->ReadExtraMemory(memory, selection));
+			std::string temp = StringFromFormat("%08x", debugger->ReadExtraMemory(memory, selection));
 			wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
 			}
 			break;
@@ -314,29 +312,33 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
 		if (debugger->IsAlive())
 		{
-			char dis[256] = {0};
+			std::string dis;
 			u32 mem_data = debugger->ReadExtraMemory(memory, address);
 
 			if (viewAsType == VIEWAS_FP)
 			{
 				float flt = *(float *)(&mem_data);
-				sprintf(dis, "f: %f", flt);
+				dis = StringFromFormat("f: %f", flt);
 			}
 			else if (viewAsType == VIEWAS_ASCII)
 			{
-				u32 a[4] = {(mem_data&0xff000000)>>24,
-					(mem_data&0xff0000)>>16,
-					(mem_data&0xff00)>>8,
-					mem_data&0xff};
+				u32 a[4] = {
+					(mem_data & 0xff000000) >> 24,
+					(mem_data & 0xff0000) >> 16,
+					(mem_data & 0xff00) >> 8,
+					(mem_data & 0xff)
+				};
+
 				for (auto& word : a)
+				{
 					if (word == '\0')
 						word = ' ';
-				sprintf(dis, "%c%c%c%c", a[0], a[1], a[2], a[3]);
+				}
+
+				dis = StringFromFormat("%c%c%c%c", a[0], a[1], a[2], a[3]);
 			}
 			else if (viewAsType == VIEWAS_HEX)
 			{
-				dis[0] = 0;
-				dis[1] = 0;
 				u32 mema[8] = {
 					debugger->ReadExtraMemory(memory, address),
 					debugger->ReadExtraMemory(memory, address+4),
@@ -350,51 +352,46 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
 				for (auto& word : mema)
 				{
-					char buf[32] = "";
 					switch (dataType)
 					{
 					case 0:
-						sprintf(buf, " %02X %02X %02X %02X",
-							((word&0xff000000)>>24)&0xFF,
-							((word&0xff0000)>>16)&0xFF,
-							((word&0xff00)>>8)&0xFF,
-							word&0xff);
+						dis += StringFromFormat(" %02X %02X %02X %02X",
+							((word & 0xff000000) >> 24) & 0xFF,
+							((word & 0xff0000) >> 16) & 0xFF,
+							((word & 0xff00) >> 8) & 0xFF,
+							word & 0xff);
 						break;
 					case 1:
-						sprintf(buf, " %02X%02X %02X%02X",
-							((word&0xff000000)>>24)&0xFF,
-							((word&0xff0000)>>16)&0xFF,
-							((word&0xff00)>>8)&0xFF,
-							word&0xff);
+						dis += StringFromFormat(" %02X%02X %02X%02X",
+							((word & 0xff000000) >> 24) & 0xFF,
+							((word & 0xff0000) >> 16) & 0xFF,
+							((word & 0xff00) >> 8) & 0xFF,
+							word & 0xff);
 						break;
 					case 2:
-						sprintf(buf, " %02X%02X%02X%02X",
-							((word&0xff000000)>>24)&0xFF,
-							((word&0xff0000)>>16)&0xFF,
-							((word&0xff00)>>8)&0xFF,
-							word&0xff);
+						dis += StringFromFormat(" %02X%02X%02X%02X",
+							((word & 0xff000000) >> 24) & 0xFF,
+							((word & 0xff0000) >> 16) & 0xFF,
+							((word & 0xff00) >> 8) & 0xFF,
+							word & 0xff);
 						break;
 					}
-					strcat(dis, buf);
 				}
 			}
 			else
 			{
-				sprintf(dis, "INVALID VIEWAS TYPE");
+				dis = "INVALID VIEWAS TYPE";
 			}
 
-			char desc[256] = "";
 			if (viewAsType != VIEWAS_HEX)
 				dc.DrawText(StrToWxStr(dis), textPlacement + fontSize*(8 + 8), rowY1);
 			else
 				dc.DrawText(StrToWxStr(dis), textPlacement, rowY1);
 
-			if (desc[0] == 0)
-				strcpy(desc, debugger->GetDescription(address).c_str());
-
 			dc.SetTextForeground(*wxBLUE);
 
-			if (strlen(desc))
+			std::string desc = debugger->GetDescription(address);
+			if (!desc.empty())
 				dc.DrawText(StrToWxStr(desc), 17+fontSize*((8+8+8+30)*2), rowY1);
 
 			// Show blue memory check dot

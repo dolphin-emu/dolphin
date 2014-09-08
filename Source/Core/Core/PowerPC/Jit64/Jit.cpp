@@ -495,9 +495,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.fifoBytesThisBlock -= 32;
 			MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 			u32 registersInUse = CallerSavedRegistersInUse();
-			ABI_PushRegistersAndAdjustStack(registersInUse, false);
+			ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
-			ABI_PopRegistersAndAdjustStack(registersInUse, false);
+			ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 		}
 
 		u32 function = HLE::GetFunctionIndex(ops[i].address);

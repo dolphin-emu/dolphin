@@ -53,5 +53,7 @@
 
 #endif // WIN32
 
+#define ABI_ALL_CALLEE_SAVED ((u32) ~ABI_ALL_CALLER_SAVED)
+
 #define ABI_RETURN RAX
 

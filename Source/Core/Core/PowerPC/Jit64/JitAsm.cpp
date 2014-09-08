@@ -16,7 +16,7 @@ using namespace Gen;
 void Jit64AsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
-	ABI_PushAllCalleeSavedRegsAndAdjustStack();
+	ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8);
 
 	// Two statically allocated registers.
 	MOV(64, R(RMEM), Imm64((u64)Memory::base));
@@ -39,7 +39,7 @@ void Jit64AsmRoutineManager::Generate()
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
-				ABI_PopAllCalleeSavedRegsAndAdjustStack();
+				ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8);
 				RET();
 				SetJumpTarget(noBreakpoint);
 				SetJumpTarget(notStepping);
@@ -126,7 +126,7 @@ void Jit64AsmRoutineManager::Generate()
 		J_CC(CC_Z, outerLoop);
 
 	//Landing pad for drec space
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8);
 	RET();
 
 	GenerateCommon();
