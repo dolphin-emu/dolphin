@@ -426,6 +426,8 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			{
 				if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 				{
+					gpr.Flush();
+					fpr.Flush();
 					WriteExit(js.next_compilerPC + 4);
 				}
 			}
@@ -2030,5 +2032,9 @@ void Jit64::twx(UGeckoInstruction inst)
 	SetJumpTarget(dont_trap);
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush();
+		fpr.Flush();
 		WriteExit(js.compilerPC + 4);
+	}
 }
