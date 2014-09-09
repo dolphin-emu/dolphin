@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/Common.h"
+#include "Core/CoreParameter.h"
 
 struct GCPadStatus;
 class PointerWrap;
@@ -87,7 +88,7 @@ struct DTMHeader
 	bool bProgressive;
 	bool bDSPHLE;
 	bool bFastDiscSpeed;
-	u8  CPUCore;            // 0 = interpreter, 1 = JIT, 2 = JITIL
+	u8 CPUCore;
 	bool bEFBAccessEnable;
 	bool bEFBCopyEnable;
 	bool bCopyEFBToTexture;
@@ -133,7 +134,7 @@ bool IsProgressive();
 bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
-int  GetCPUMode();
+CPUBackend GetCPUMode();
 bool IsStartingFromClearSave();
 bool IsUsingMemcard(int memcard);
 bool IsSyncGPU();

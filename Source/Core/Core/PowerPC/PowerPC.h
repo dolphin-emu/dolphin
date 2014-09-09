@@ -101,9 +101,9 @@ static_assert(offsetof(PowerPC::PowerPCState, above_fits_in_first_0x100) <= 0x10
 
 enum CPUState
 {
-	CPU_RUNNING = 0,
-	CPU_STEPPING = 2,
-	CPU_POWERDOWN = 3,
+	STATE_RUNNING = 0,
+	STATE_STEPPING = 2,
+	STATE_POWERDOWN = 3,
 };
 
 extern PowerPCState ppcState;

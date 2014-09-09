@@ -394,7 +394,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
 		" slow, perhaps slower than 1 fps."),
 		wxITEM_CHECK);
-	interpreter->Check(_LocalCoreStartupParameter.iCPUCore == 0);
+	interpreter->Check(_LocalCoreStartupParameter.iCPUCore == CPU_INTERPRETER);
 	pCoreMenu->AppendSeparator();
 
 	pCoreMenu->Append(IDM_JITBLOCKLINKING, _("&JIT Block Linking off"),

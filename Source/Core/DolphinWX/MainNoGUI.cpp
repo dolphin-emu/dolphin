@@ -53,7 +53,7 @@ void Host_Message(int Id)
 	}
 }
 
-void* windowHandle;
+static void* windowHandle;
 void* Host_GetRenderHandle()
 {
 	return windowHandle;
@@ -367,7 +367,7 @@ int main(int argc, char* argv[])
 
 	platform->MainLoop();
 	Core::Stop();
-	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+	while (PowerPC::GetState() != PowerPC::STATE_POWERDOWN)
 		updateMainFrameEvent.Wait();
 
 	platform->Shutdown();

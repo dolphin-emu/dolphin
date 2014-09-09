@@ -20,7 +20,7 @@
 std::string PPCDebugInterface::Disassemble(unsigned int address)
 {
 	// Memory::ReadUnchecked_U32 seemed to crash on shutdown
-	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
+	if (PowerPC::GetState() == PowerPC::STATE_POWERDOWN)
 		return "";
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)

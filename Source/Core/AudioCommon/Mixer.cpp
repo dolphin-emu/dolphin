@@ -113,7 +113,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider
 
 	memset(samples, 0, num_samples * 2 * sizeof(short));
 
-	if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
+	if (PowerPC::GetState() != PowerPC::STATE_RUNNING)
 	{
 		// Silence
 		return num_samples;

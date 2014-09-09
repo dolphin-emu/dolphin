@@ -254,7 +254,8 @@ static void CpuThread()
 	}
 
 	#if _M_X86_64 || _M_ARM_32
-	if (_CoreParameter.bFastmem)
+	// No need to install the segfault handler when using the interpreter backend.
+	if (_CoreParameter.bFastmem && _CoreParameter.iCPUCore != CPU_INTERPRETER)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
 
@@ -378,11 +379,16 @@ void EmuThread()
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer ||
-					_CoreParameter.bRunCompareClient))
+	if (_CoreParameter.iCPUCore != CPU_INTERPRETER &&
+		(!_CoreParameter.bRunCompareServer ||
+		 _CoreParameter.bRunCompareClient))
+	{
 		PowerPC::SetMode(PowerPC::MODE_JIT);
+	}
 	else
+	{
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+	}
 
 	// Update the window again because all stuff is initialized
 	Host_UpdateDisasmDialog();
@@ -425,7 +431,7 @@ void EmuThread()
 		// Spawn the CPU+GPU thread
 		s_cpu_thread = std::thread(cpuThreadFunc);
 
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		while (PowerPC::GetState() != PowerPC::STATE_POWERDOWN)
 		{
 			g_video_backend->PeekMessages();
 			Common::SleepCurrentThread(20);

@@ -49,7 +49,8 @@ struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
 	     bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack, bProgressive;
-	int iCPUCore, Volume;
+	CPUBackend iCPUCore;
+	int Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];
 	unsigned int framelimit, frameSkip;
@@ -152,7 +153,7 @@ bool BootCore(const std::string& _rFilename)
 		core_section->Get("DSPHLE",           &StartUp.bDSPHLE, StartUp.bDSPHLE);
 		core_section->Get("DSPThread",        &StartUp.bDSPThread, StartUp.bDSPThread);
 		core_section->Get("GFXBackend",       &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
-		core_section->Get("CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
+		core_section->Get("CPUCore",          (int*)&StartUp.iCPUCore, StartUp.iCPUCore);
 		core_section->Get("HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		core_section->Get("ProgressiveScan",  &StartUp.bProgressive, StartUp.bProgressive);
 		if (core_section->Get("FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))

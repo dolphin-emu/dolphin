@@ -522,7 +522,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		// Comment out the following to disable breakpoints (speed-up)
 		if (!Profiler::g_ProfileBlocks)
 		{
-			if (GetState() == CPU_STEPPING)
+			if (GetState() == STATE_STEPPING)
 				blockSize = 1;
 			Trace();
 		}
@@ -656,7 +656,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 
-			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != STATE_STEPPING)
 			{
 				ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));
 			}

@@ -367,7 +367,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( g_filename.c_str() ) )
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		while (PowerPC::GetState() != PowerPC::STATE_POWERDOWN)
 			updateMainFrameEvent.Wait();
 
 	WiimoteReal::Shutdown();

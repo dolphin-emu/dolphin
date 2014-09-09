@@ -61,7 +61,7 @@ static bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgress
 bool g_bClearSave = false;
 static bool bSyncGPU = false, bNetPlay = false;
 static std::string videoBackend = "unknown";
-static int iCPUCore = 1;
+static CPUBackend iCPUCore = CPU_JIT_X64;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
 static std::string author = "";
@@ -151,9 +151,9 @@ void FrameUpdate()
 	}
 
 	// ("framestop") the only purpose of this is to cause interpreter/jit Run() to return temporarily.
-	// after that we set it back to CPU_RUNNING and continue as normal.
+	// after that we set it back to STATE_RUNNING and continue as normal.
 	if (g_bFrameStop)
-		*PowerPC::GetStatePtr() = PowerPC::CPU_STEPPING;
+		*PowerPC::GetStatePtr() = PowerPC::STATE_STEPPING;
 
 	if (g_framesToSkip)
 		FrameSkipping();
@@ -369,7 +369,7 @@ bool IsFastDiscSpeed()
 	return bFastDiscSpeed;
 }
 
-int GetCPUMode()
+CPUBackend GetCPUMode()
 {
 	return iCPUCore;
 }
@@ -711,7 +711,7 @@ void ReadHeader()
 		bProgressive = tmpHeader.bProgressive;
 		bDSPHLE = tmpHeader.bDSPHLE;
 		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-		iCPUCore = tmpHeader.CPUCore;
+		iCPUCore = (CPUBackend)tmpHeader.CPUCore;
 		g_bClearSave = tmpHeader.bClearSave;
 		memcards = tmpHeader.memcards;
 		bongos = tmpHeader.bongos;

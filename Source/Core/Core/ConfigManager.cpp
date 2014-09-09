@@ -487,13 +487,13 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	IniFile::Section* core = ini.GetOrCreateSection("Core");
 
 	core->Get("HLE_BS2",      &m_LocalCoreStartupParameter.bHLE_BS2, false);
+	CPUBackend default_cpu_backend = CPU_INTERPRETER;
 #ifdef _M_X86
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 1);
+	default_cpu_backend = CPU_JIT_X64;
 #elif _M_ARM_32
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 3);
-#else
-	core->Get("CPUCore",      &m_LocalCoreStartupParameter.iCPUCore, 0);
+	default_cpu_backend = CPU_JIT_ARM;
 #endif
+	core->Get("CPUCore",     (int*)&m_LocalCoreStartupParameter.iCPUCore, default_cpu_backend);
 	core->Get("Fastmem",           &m_LocalCoreStartupParameter.bFastmem,      true);
 	core->Get("DSPThread",         &m_LocalCoreStartupParameter.bDSPThread,    false);
 	core->Get("DSPHLE",            &m_LocalCoreStartupParameter.bDSPHLE,       true);

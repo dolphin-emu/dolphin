@@ -30,7 +30,7 @@ namespace PowerPC
 
 // STATE_TO_SAVE
 PowerPCState GC_ALIGNED16(ppcState);
-static volatile CPUState state = CPU_POWERDOWN;
+static volatile CPUState state = STATE_POWERDOWN;
 
 Interpreter * const interpreter = Interpreter::getInstance();
 static CoreMode mode;
@@ -135,7 +135,7 @@ void Init(int cpu_core)
 
 	switch (cpu_core)
 	{
-		case 0:
+		case CPU_INTERPRETER:
 		{
 			cpu_core_base = interpreter;
 			break;
@@ -158,7 +158,7 @@ void Init(int cpu_core)
 	{
 		mode = MODE_INTERPRETER;
 	}
-	state = CPU_STEPPING;
+	state = STATE_STEPPING;
 
 	ppcState.iCache.Init();
 }
@@ -168,7 +168,7 @@ void Shutdown()
 	JitInterface::Shutdown();
 	interpreter->Shutdown();
 	cpu_core_base = nullptr;
-	state = CPU_POWERDOWN;
+	state = STATE_POWERDOWN;
 }
 
 CoreMode GetMode()
@@ -205,7 +205,7 @@ void SingleStep()
 
 void RunLoop()
 {
-	state = CPU_RUNNING;
+	state = STATE_RUNNING;
 	cpu_core_base->Run();
 	Host_UpdateDisasmDialog();
 }
@@ -222,19 +222,19 @@ volatile CPUState *GetStatePtr()
 
 void Start()
 {
-	state = CPU_RUNNING;
+	state = STATE_RUNNING;
 	Host_UpdateDisasmDialog();
 }
 
 void Pause()
 {
-	state = CPU_STEPPING;
+	state = STATE_STEPPING;
 	Host_UpdateDisasmDialog();
 }
 
 void Stop()
 {
-	state = CPU_POWERDOWN;
+	state = STATE_POWERDOWN;
 	Host_UpdateDisasmDialog();
 }
 
