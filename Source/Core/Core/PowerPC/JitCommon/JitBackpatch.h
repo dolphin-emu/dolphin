@@ -89,8 +89,9 @@ const int BACKPATCH_SIZE = 5;
 		#define CTX_SP sp
 		#define CTX_PC pc
 	#elif _M_ARM_32
+		#include <asm/sigcontext.h>
 		// Add others if required.
-		typedef struct sigcontext SContext;
+		typedef sigcontext SContext;
 		#define CTX_PC  arm_pc
 	#else
 		#warning No context definition for OS
