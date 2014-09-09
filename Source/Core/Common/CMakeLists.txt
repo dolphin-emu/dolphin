@@ -46,6 +46,9 @@ else()
 	if(_M_X86) #X86
 		set(SRCS ${SRCS}
 		         x64FPURoundMode.cpp)
+	else() # Generic
+		set(SRCS ${SRCS}
+		         GenericFPURoundMode.cpp)
 	endif()
 	set(SRCS ${SRCS} x64CPUDetect.cpp)
 endif()
