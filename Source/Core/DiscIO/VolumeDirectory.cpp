@@ -148,12 +148,8 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 
 std::string CVolumeDirectory::GetUniqueID() const
 {
-	char buffer[7];
-	memcpy(buffer, m_diskHeader.data(), 6);
-	buffer[6] = 0;
-
-	std::string id = buffer;
-	return id;
+	static const size_t ID_LENGTH = 6;
+	return std::string(m_diskHeader.begin(), m_diskHeader.begin() + ID_LENGTH);
 }
 
 void CVolumeDirectory::SetUniqueID(std::string _ID)
