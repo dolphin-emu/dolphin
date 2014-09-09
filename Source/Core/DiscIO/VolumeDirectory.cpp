@@ -152,13 +152,13 @@ std::string CVolumeDirectory::GetUniqueID() const
 	return std::string(m_diskHeader.begin(), m_diskHeader.begin() + ID_LENGTH);
 }
 
-void CVolumeDirectory::SetUniqueID(std::string _ID)
+void CVolumeDirectory::SetUniqueID(std::string id)
 {
-	u32 length = (u32)_ID.length();
+	size_t length = id.length();
 	if (length > 6)
 		length = 6;
 
-	memcpy(m_diskHeader.data(), _ID.c_str(), length);
+	memcpy(m_diskHeader.data(), id.c_str(), length);
 }
 
 IVolume::ECountry CVolumeDirectory::GetCountry() const
@@ -178,13 +178,13 @@ std::vector<std::string> CVolumeDirectory::GetNames() const
 	return std::vector<std::string>(1, (char*)(&m_diskHeader[0x20]));
 }
 
-void CVolumeDirectory::SetName(std::string _Name)
+void CVolumeDirectory::SetName(std::string name)
 {
-	u32 length = (u32)_Name.length();
+	size_t length = name.length();
 	if (length > MAX_NAME_LENGTH)
 	    length = MAX_NAME_LENGTH;
 
-	memcpy(&m_diskHeader[0x20], _Name.c_str(), length);
+	memcpy(&m_diskHeader[0x20], name.c_str(), length);
 	m_diskHeader[length + 0x20] = 0;
 }
 
@@ -260,7 +260,7 @@ bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
 	if (!_rApploader.empty())
 	{
 		std::string data;
-		if (!File::ReadFileToString(_rApploader.c_str(), data))
+		if (!File::ReadFileToString(_rApploader, data))
 		{
 			PanicAlertT("Apploader unable to load from file");
 			return false;
