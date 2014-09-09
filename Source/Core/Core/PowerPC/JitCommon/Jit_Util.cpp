@@ -803,15 +803,26 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 	OR(32, PPCSTATE(fpscr), R(RSCRATCH));
 }
 
-
-void EmuCodeBlock::JitClearCA()
+void EmuCodeBlock::JitGetAndClearCAOV(bool oe)
 {
-	AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
+	if (oe)
+		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_OV_MASK)); //XER.OV = 0
+	BTR(32, PPCSTATE(spr[SPR_XER]), Imm8(29)); //carry = XER.CA, XER.CA = 0
 }
 
 void EmuCodeBlock::JitSetCA()
 {
 	OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
+}
+
+// Some testing shows CA is set roughly ~1/3 of the time (relative to clears), so
+// branchless calculation of CA is probably faster in general.
+void EmuCodeBlock::JitSetCAIf(CCFlags conditionCode)
+{
+	SETcc(conditionCode, R(RSCRATCH));
+	MOVZX(32, 8, RSCRATCH, R(RSCRATCH));
+	SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
+	OR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); //XER.CA = 1
 }
 
 void EmuCodeBlock::JitClearCAOV(bool oe)
