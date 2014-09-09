@@ -177,14 +177,22 @@ std::string Device::GetName() const
 {
 	switch (m_subtype)
 	{
-	case XINPUT_DEVSUBTYPE_GAMEPAD: return "Gamepad"; break;
-	case XINPUT_DEVSUBTYPE_WHEEL: return "Wheel"; break;
-	case XINPUT_DEVSUBTYPE_ARCADE_STICK: return "Arcade Stick"; break;
-	case XINPUT_DEVSUBTYPE_FLIGHT_STICK: return "Flight Stick"; break;
-	case XINPUT_DEVSUBTYPE_DANCE_PAD: return "Dance Pad"; break;
-	case XINPUT_DEVSUBTYPE_GUITAR: return "Guitar"; break;
-	case XINPUT_DEVSUBTYPE_DRUM_KIT: return "Drum Kit"; break;
-	default: return "Device"; break;
+	case XINPUT_DEVSUBTYPE_GAMEPAD:
+		return "Gamepad";
+	case XINPUT_DEVSUBTYPE_WHEEL:
+		return "Wheel";
+	case XINPUT_DEVSUBTYPE_ARCADE_STICK:
+		return "Arcade Stick";
+	case XINPUT_DEVSUBTYPE_FLIGHT_STICK:
+		return "Flight Stick";
+	case XINPUT_DEVSUBTYPE_DANCE_PAD:
+		return "Dance Pad";
+	case XINPUT_DEVSUBTYPE_GUITAR:
+		return "Guitar";
+	case XINPUT_DEVSUBTYPE_DRUM_KIT:
+		return "Drum Kit";
+	default:
+		return "Device";
 	}
 }
 
