@@ -1999,10 +1999,12 @@ void Jit64::twx(UGeckoInstruction inst)
 
 	s32 a = inst.RA;
 
+	gpr.KillImmediate(a, true, false);
+
 	if (inst.OPCD == 3) // twi
-		CMP(32, gpr.R(a), gpr.R(inst.RB));
-	else // tw
 		CMP(32, gpr.R(a), Imm32((s32)(s16)inst.SIMM_16));
+	else // tw
+		CMP(32, gpr.R(a), gpr.R(inst.RB));
 
 	std::vector<FixupBranch> fixups;
 	CCFlags conditions[] = { CC_A, CC_B, CC_E, CC_G, CC_L };
