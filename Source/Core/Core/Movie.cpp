@@ -116,7 +116,7 @@ std::string GetInputDisplay()
 	if (!IsMovieActive())
 	{
 		s_numPads = 0;
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; ++i)
 		{
 			if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 				s_numPads |= (1 << i);
@@ -175,9 +175,9 @@ void Init()
 		ReadHeader();
 		std::thread md5thread(CheckMD5);
 		md5thread.detach();
-		if ((strncmp((char *)tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6)))
+		if (strncmp((char *)tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6))
 		{
-			PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str());
+			PanicAlertT("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str());
 			EndPlayInput(false);
 		}
 	}
@@ -219,7 +219,7 @@ void InputUpdate()
 		s_tickCountAtLastInput = CoreTiming::GetTicks();
 	}
 
-	if (IsPlayingInput() && g_currentInputCount == (g_totalInputCount -1) && SConfig::GetInstance().m_PauseMovie)
+	if (IsPlayingInput() && g_currentInputCount == (g_totalInputCount - 1) && SConfig::GetInstance().m_PauseMovie)
 		Core::SetState(Core::CORE_PAUSE);
 }
 
@@ -273,7 +273,7 @@ void SetReadOnly(bool bEnabled)
 void FrameSkipping()
 {
 	// Frameskipping will desync movie playback
-	if (!IsMovieActive())
+	if (!IsMovieActive() || NetPlay::IsNetPlayRunning())
 	{
 		std::lock_guard<std::mutex> lk(cs_frameSkip);
 
@@ -400,14 +400,14 @@ void ChangePads(bool instantly)
 
 	int controllers = 0;
 
-	for (int i = 0; i < MAX_SI_CHANNELS; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			controllers |= (1 << i);
 
 	if (instantly && (s_numPads & 0x0F) == controllers)
 		return;
 
-	for (int i = 0; i < MAX_SI_CHANNELS; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 		if (instantly) // Changes from savestates need to be instantaneous
 			SerialInterface::AddDevice(IsUsingPad(i) ? (IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
 		else
@@ -418,7 +418,7 @@ void ChangeWiiPads(bool instantly)
 {
 	int controllers = 0;
 
-	for (int i = 0; i < MAX_WIIMOTES; i++)
+	for (int i = 0; i < MAX_WIIMOTES; ++i)
 		if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
 			controllers |= (1 << i);
 
@@ -426,7 +426,7 @@ void ChangeWiiPads(bool instantly)
 	if (instantly && (s_numPads >> 4) == controllers)
 		return;
 
-	for (int i = 0; i < MAX_WIIMOTES; i++)
+	for (int i = 0; i < MAX_WIIMOTES; ++i)
 	{
 		g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
 		GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
@@ -638,16 +638,16 @@ void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 	s_padState.DPadLeft  = ((PadStatus->button & PAD_BUTTON_LEFT) != 0);
 	s_padState.DPadRight = ((PadStatus->button & PAD_BUTTON_RIGHT) != 0);
 
-	s_padState.L = ((PadStatus->button & PAD_TRIGGER_L) != 0);
-	s_padState.R = ((PadStatus->button & PAD_TRIGGER_R) != 0);
-	s_padState.TriggerL = PadStatus->triggerLeft;
-	s_padState.TriggerR = PadStatus->triggerRight;
+	s_padState.L         = ((PadStatus->button & PAD_TRIGGER_L) != 0);
+	s_padState.R         = ((PadStatus->button & PAD_TRIGGER_R) != 0);
+	s_padState.TriggerL  = PadStatus->triggerLeft;
+	s_padState.TriggerR  = PadStatus->triggerRight;
 
 	s_padState.AnalogStickX = PadStatus->stickX;
 	s_padState.AnalogStickY = PadStatus->stickY;
 
-	s_padState.CStickX = PadStatus->substickX;
-	s_padState.CStickY = PadStatus->substickY;
+	s_padState.CStickX   = PadStatus->substickX;
+	s_padState.CStickY   = PadStatus->substickY;
 
 	SetInputDisplayString(s_padState, controllerID);
 }
@@ -673,9 +673,9 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 
 void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf)
 {
-	u8* const coreData = rptf.core?(data+rptf.core):nullptr;
-	u8* const accelData = rptf.accel?(data+rptf.accel):nullptr;
-	u8* const irData = rptf.ir?(data+rptf.ir):nullptr;
+	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
+	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
+	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
 	u8 size = rptf.size;
 	SetWiiInputDisplayString(wiimote, coreData, accelData, irData);
 
@@ -750,7 +750,8 @@ bool PlayInput(const std::string& filename)
 	if (!IsMovieHeader(tmpHeader.filetype))
 	{
 		PanicAlertT("Invalid recording file");
-		goto cleanup;
+		g_recordfd.Close();
+		return false;
 	}
 
 	ReadHeader();
@@ -781,10 +782,6 @@ bool PlayInput(const std::string& filename)
 	}
 
 	return true;
-
-cleanup:
-	g_recordfd.Close();
-	return false;
 }
 
 void DoState(PointerWrap &p)
@@ -885,7 +882,7 @@ void LoadInput(const std::string& filename)
 					}
 					else
 					{
-						int frame = i/8;
+						int frame = i / 8;
 						ControllerState curPadState;
 						memcpy(&curPadState, &(tmpInput[frame*8]), 8);
 						ControllerState movPadState;
@@ -904,7 +901,6 @@ void LoadInput(const std::string& filename)
 							(int)frame,
 							(int)movPadState.Start, (int)movPadState.A, (int)movPadState.B, (int)movPadState.X, (int)movPadState.Y, (int)movPadState.Z, (int)movPadState.DPadUp, (int)movPadState.DPadDown, (int)movPadState.DPadLeft, (int)movPadState.DPadRight, (int)movPadState.L, (int)movPadState.R, (int)movPadState.TriggerL, (int)movPadState.TriggerR, (int)movPadState.AnalogStickX, (int)movPadState.AnalogStickY, (int)movPadState.CStickX, (int)movPadState.CStickY);
 
-						memcpy(tmpInput, movInput, s_currentByte);
 					}
 					break;
 				}
@@ -1020,10 +1016,9 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 		// This implementation assumes the disc change will only happen once. Trying to change more than that will cause
 		// it to load the last disc every time. As far as i know though, there are no 3+ disc games, so this should be fine.
 		Core::SetState(Core::CORE_PAUSE);
-		int numPaths = (int)SConfig::GetInstance().m_ISOFolder.size();
 		bool found = false;
 		std::string path;
-		for (int i = 0; i < numPaths; i++)
+		for (int i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); ++i)
 		{
 			path = SConfig::GetInstance().m_ISOFolder[i];
 			if (File::Exists(path + '/' + g_discChange))
@@ -1039,7 +1034,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 		}
 		else
 		{
-			PanicAlert("Change the disc to %s", g_discChange.c_str());
+			PanicAlertT("Change the disc to %s", g_discChange.c_str());
 		}
 	}
 
@@ -1059,9 +1054,9 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf)
 		return false;
 	}
 
-	u8* const coreData = rptf.core?(data+rptf.core):nullptr;
-	u8* const accelData = rptf.accel?(data+rptf.accel):nullptr;
-	u8* const irData = rptf.ir?(data+rptf.ir):nullptr;
+	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
+	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
+	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
 	u8 size = rptf.size;
 
 	u8 sizeInMovie = tmpInput[s_currentByte];
@@ -1240,7 +1235,7 @@ void GetSettings()
 
 		file_irom.ReadArray(irom.data(), DSP_IROM_SIZE);
 		file_irom.Close();
-		for (int i = 0; i < DSP_IROM_SIZE; i++)
+		for (int i = 0; i < DSP_IROM_SIZE; ++i)
 			irom[i] = Common::swap16(irom[i]);
 
 		std::vector<u16> coef(DSP_COEF_SIZE);
@@ -1248,7 +1243,7 @@ void GetSettings()
 
 		file_coef.ReadArray(coef.data(), DSP_COEF_SIZE);
 		file_coef.Close();
-		for (int i = 0; i < DSP_COEF_SIZE; i++)
+		for (int i = 0; i < DSP_COEF_SIZE; ++i)
 			coef[i] = Common::swap16(coef[i]);
 		s_DSPiromHash = HashAdler32((u8*)irom.data(), DSP_IROM_BYTE_SIZE);
 		s_DSPcoefHash = HashAdler32((u8*)coef.data(), DSP_COEF_BYTE_SIZE);
