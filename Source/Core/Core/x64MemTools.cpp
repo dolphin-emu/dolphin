@@ -243,7 +243,7 @@ void InstallExceptionHandler()
 	CheckKR("mach_port_request_notification", mach_port_request_notification(mach_task_self(), port, MACH_NOTIFY_NO_SENDERS, 0, port, MACH_MSG_TYPE_MAKE_SEND_ONCE, &previous));
 }
 
-#elif !defined(ANDROID)
+#elif defined(_POSIX_VERSION)
 
 static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 {
@@ -280,6 +280,10 @@ void InstallExceptionHandler()
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGSEGV, &sa, nullptr);
 }
+
+#else
+
+#error Unsupported x86_64 platform! Report this if you support sigaction
 
 #endif
 
