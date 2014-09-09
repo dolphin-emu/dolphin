@@ -166,23 +166,11 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/Interpreter/Interpreter_Tables.cpp
 			PowerPC/JitCommon/JitBase.cpp
 			PowerPC/JitCommon/JitCache.cpp
-			PowerPC/JitILCommon/IR.cpp
-			PowerPC/JitILCommon/JitILBase_Branch.cpp
-			PowerPC/JitILCommon/JitILBase_LoadStore.cpp
-			PowerPC/JitILCommon/JitILBase_SystemRegisters.cpp
-			PowerPC/JitILCommon/JitILBase_LoadStoreFloating.cpp
-			PowerPC/JitILCommon/JitILBase_LoadStorePaired.cpp
-			PowerPC/JitILCommon/JitILBase_Paired.cpp
-			PowerPC/JitILCommon/JitILBase_FloatingPoint.cpp
-			PowerPC/JitILCommon/JitILBase_Integer.cpp
 			)
 
 if(_M_X86)
 	set(SRCS ${SRCS}
 			x64MemTools.cpp
-			PowerPC/Jit64IL/IR_X86.cpp
-			PowerPC/Jit64IL/JitIL.cpp
-			PowerPC/Jit64IL/JitIL_Tables.cpp
 			PowerPC/Jit64/Jit64_Tables.cpp
 			PowerPC/Jit64/JitAsm.cpp
 			PowerPC/Jit64/Jit_Branch.cpp
