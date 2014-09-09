@@ -7,21 +7,21 @@
 namespace Arm64Gen
 {
 
-void ARM64XEmitter::SetCodePtr(u8 *ptr)
+void ARM64XEmitter::SetCodePtr(u8* ptr)
 {
-	code = ptr;
-	startcode = code;
-	lastCacheFlushEnd = ptr;
+	m_code = ptr;
+	m_startcode = m_code;
+	m_lastCacheFlushEnd = ptr;
 }
 
-const u8 *ARM64XEmitter::GetCodePtr() const
+const u8* ARM64XEmitter::GetCodePtr() const
 {
-	return code;
+	return m_code;
 }
 
-u8 *ARM64XEmitter::GetWritableCodePtr()
+u8* ARM64XEmitter::GetWritableCodePtr()
 {
-	return code;
+	return m_code;
 }
 
 void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
@@ -30,29 +30,29 @@ void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
 		BRK(0);
 }
 
-const u8 *ARM64XEmitter::AlignCode16()
+const u8* ARM64XEmitter::AlignCode16()
 {
-	int c = int((u64)code & 15);
+	int c = int((u64)m_code & 15);
 	if (c)
 		ReserveCodeSpace(16-c);
-	return code;
+	return m_code;
 }
 
-const u8 *ARM64XEmitter::AlignCodePage()
+const u8* ARM64XEmitter::AlignCodePage()
 {
-	int c = int((u64)code & 4095);
+	int c = int((u64)m_code & 4095);
 	if (c)
 		ReserveCodeSpace(4096-c);
-	return code;
+	return m_code;
 }
 
 void ARM64XEmitter::FlushIcache()
 {
-	FlushIcacheSection(lastCacheFlushEnd, code);
-	lastCacheFlushEnd = code;
+	FlushIcacheSection(m_lastCacheFlushEnd, m_code);
+	m_lastCacheFlushEnd = m_code;
 }
 
-void ARM64XEmitter::FlushIcacheSection(u8 *start, u8 *end)
+void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
 {
 #if defined(IOS)
 	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
@@ -184,8 +184,8 @@ u32 LoadStoreExcEnc[][5] = {
 
 void ARM64XEmitter::EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr)
 {
-	bool b64Bit = is64Bit(Rt);
-	s64 distance = (s64)ptr - (s64(code) + 8);
+	bool b64Bit = Is64Bit(Rt);
+	s64 distance = (s64)ptr - (s64(m_code) + 8);
 
 	_assert_msg_(DYNA_REC, !(distance & 0x3), "%s: distance must be a multiple of 4: %lx", __FUNCTION__, distance);
 
@@ -200,8 +200,8 @@ void ARM64XEmitter::EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr
 
 void ARM64XEmitter::EncodeTestBranchInst(u32 op, ARM64Reg Rt, u8 bits, const void* ptr)
 {
-	bool b64Bit = is64Bit(Rt);
-	s64 distance = (s64)ptr - (s64(code) + 8);
+	bool b64Bit = Is64Bit(Rt);
+	s64 distance = (s64)ptr - (s64(m_code) + 8);
 
 	_assert_msg_(DYNA_REC, !(distance & 0x3), "%s: distance must be a multiple of 4: %lx", __FUNCTION__, distance);
 
@@ -216,7 +216,7 @@ void ARM64XEmitter::EncodeTestBranchInst(u32 op, ARM64Reg Rt, u8 bits, const voi
 
 void ARM64XEmitter::EncodeUnconditionalBranchInst(u32 op, const void* ptr)
 {
-	s64 distance = (s64)ptr - s64(code);
+	s64 distance = (s64)ptr - s64(m_code);
 
 	_assert_msg_(DYNA_REC, !(distance & 0x3), "%s: distance must be a multiple of 4: %lx", __FUNCTION__, distance);
 
@@ -256,7 +256,7 @@ void ARM64XEmitter::EncodeArithmeticInst(u32 instenc, bool flags, ARM64Reg Rd, A
 
 void ARM64XEmitter::EncodeArithmeticCarryInst(u32 op, bool flags, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-	bool b64Bit = is64Bit(Rd);
+	bool b64Bit = Is64Bit(Rd);
 
 	Rd = DecodeReg(Rd);
 	Rm = DecodeReg(Rm);
@@ -267,7 +267,7 @@ void ARM64XEmitter::EncodeArithmeticCarryInst(u32 op, bool flags, ARM64Reg Rd, A
 
 void ARM64XEmitter::EncodeCondCompareImmInst(u32 op, ARM64Reg Rn, u32 imm, u32 nzcv, CCFlags cond)
 {
-	bool b64Bit = is64Bit(Rn);
+	bool b64Bit = Is64Bit(Rn);
 
 	_assert_msg_(DYNA_REC, !(imm & ~0x1F), "%s: too large immediate: %d", __FUNCTION__, imm)
 	_assert_msg_(DYNA_REC, !(nzcv & ~0xF), "%s: Flags out of range: %d", __FUNCTION__, nzcv)
@@ -279,7 +279,7 @@ void ARM64XEmitter::EncodeCondCompareImmInst(u32 op, ARM64Reg Rn, u32 imm, u32 n
 
 void ARM64XEmitter::EncodeCondCompareRegInst(u32 op, ARM64Reg Rn, ARM64Reg Rm, u32 nzcv, CCFlags cond)
 {
-	bool b64Bit = is64Bit(Rm);
+	bool b64Bit = Is64Bit(Rm);
 
 	_assert_msg_(DYNA_REC, !(nzcv & ~0xF), "%s: Flags out of range: %d", __FUNCTION__, nzcv)
 
@@ -291,7 +291,7 @@ void ARM64XEmitter::EncodeCondCompareRegInst(u32 op, ARM64Reg Rn, ARM64Reg Rm, u
 
 void ARM64XEmitter::EncodeCondSelectInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, CCFlags cond)
 {
-	bool b64Bit = is64Bit(Rd);
+	bool b64Bit = Is64Bit(Rd);
 
 	Rd = DecodeReg(Rd);
 	Rm = DecodeReg(Rm);
@@ -303,7 +303,7 @@ void ARM64XEmitter::EncodeCondSelectInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, 
 
 void ARM64XEmitter::EncodeData1SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn)
 {
-	bool b64Bit = is64Bit(Rd);
+	bool b64Bit = Is64Bit(Rd);
 
 	Rd = DecodeReg(Rd);
 	Rn = DecodeReg(Rn);
@@ -314,7 +314,7 @@ void ARM64XEmitter::EncodeData1SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn)
 
 void ARM64XEmitter::EncodeData2SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
 {
-	bool b64Bit = is64Bit(Rd);
+	bool b64Bit = Is64Bit(Rd);
 
 	Rd = DecodeReg(Rd);
 	Rm = DecodeReg(Rm);
@@ -326,7 +326,7 @@ void ARM64XEmitter::EncodeData2SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, AR
 
 void ARM64XEmitter::EncodeData3SrcInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra)
 {
-	bool b64Bit = is64Bit(Rd);
+	bool b64Bit = Is64Bit(Rd);
 
 	Rd = DecodeReg(Rd);
 	Rm = DecodeReg(Rm);
@@ -348,8 +348,8 @@ void ARM64XEmitter::EncodeLogicalInst(u32 instenc, ARM64Reg Rd, ARM64Reg Rn, ARM
 
 void ARM64XEmitter::EncodeLoadRegisterInst(u32 bitop, ARM64Reg Rt, u32 imm)
 {
-	bool b64Bit = is64Bit(Rt);
-	bool bVec = isVector(Rt);
+	bool b64Bit = Is64Bit(Rt);
+	bool bVec = IsVector(Rt);
 
 	_assert_msg_(DYNA_REC, !(imm & 0xFFFFF), "%s: offset too large %d", __FUNCTION__, imm);
 
@@ -373,9 +373,9 @@ void ARM64XEmitter::EncodeLoadStoreExcInst(u32 instenc,
 
 void ARM64XEmitter::EncodeLoadStorePairedInst(u32 op, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn, u32 imm)
 {
-	bool b64Bit = is64Bit(Rt);
-	bool b128Bit = is128Bit(Rt);
-	bool bVec = isVector(Rt);
+	bool b64Bit = Is64Bit(Rt);
+	bool b128Bit = Is128Bit(Rt);
+	bool bVec = IsVector(Rt);
 
 	if (b128Bit)
 		imm >>= 4;
@@ -402,8 +402,8 @@ void ARM64XEmitter::EncodeLoadStorePairedInst(u32 op, ARM64Reg Rt, ARM64Reg Rt2,
 
 void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, u32 op2, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
 {
-	bool b64Bit = is64Bit(Rt);
-	bool bVec = isVector(Rt);
+	bool b64Bit = Is64Bit(Rt);
+	bool bVec = IsVector(Rt);
 
 	if (b64Bit)
 		imm >>= 3;
@@ -419,8 +419,8 @@ void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, u32 op2, ARM64Reg Rt, ARM
 
 void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
 {
-	bool b64Bit = is64Bit(Rt);
-	bool bVec = isVector(Rt);
+	bool b64Bit = Is64Bit(Rt);
+	bool bVec = IsVector(Rt);
 
 	if (b64Bit)
 		imm >>= 3;
@@ -436,7 +436,7 @@ void ARM64XEmitter::EncodeLoadStoreIndexedInst(u32 op, ARM64Reg Rt, ARM64Reg Rn,
 
 void ARM64XEmitter::EncodeMOVWideInst(u32 op, ARM64Reg Rd, u32 imm, ShiftAmount pos)
 {
-	bool b64Bit = is64Bit(Rd);
+	bool b64Bit = Is64Bit(Rd);
 
 	_assert_msg_(DYNA_REC, !(imm & ~0xFFFF), "%s: immediate out of range: %d", __FUNCTION__, imm);
 
@@ -446,7 +446,7 @@ void ARM64XEmitter::EncodeMOVWideInst(u32 op, ARM64Reg Rd, u32 imm, ShiftAmount 
 
 void ARM64XEmitter::EncodeBitfieldMOVInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)
 {
-	bool b64Bit = is64Bit(Rd);
+	bool b64Bit = Is64Bit(Rd);
 
 	Rd = DecodeReg(Rd);
 	Rn = DecodeReg(Rn);
@@ -466,7 +466,7 @@ void ARM64XEmitter::EncodeLoadStoreRegisterOffset(u32 size, u32 opc, ARM64Reg Rt
 
 void ARM64XEmitter::EncodeAddSubImmInst(u32 op, bool flags, u32 shift, u32 imm, ARM64Reg Rn, ARM64Reg Rd)
 {
-	bool b64Bit = is64Bit(Rd);
+	bool b64Bit = Is64Bit(Rd);
 
 	_assert_msg_(DYNA_REC, !(imm & ~0xFFF), "%s: immediate too large: %x", __FUNCTION__, imm);
 
@@ -480,7 +480,7 @@ void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 i
 {
 	// Sometimes Rd is fixed to SP, but can still be 32bit or 64bit.
 	// Use Rn to determine bitness here.
-	bool b64Bit = is64Bit(Rn);
+	bool b64Bit = Is64Bit(Rn);
 
 	Rd = DecodeReg(Rd);
 	Rn = DecodeReg(Rn);
@@ -490,11 +490,11 @@ void ARM64XEmitter::EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 i
 }
 
 // FixupBranch branching
-void ARM64XEmitter::SetJumpTarget(FixupBranch const &branch)
+void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
 {
 	bool Not = false;
 	u32 inst = 0;
-	s64 distance = (s64)(code - branch.ptr);
+	s64 distance = (s64)(m_code - branch.ptr);
 	distance >>= 2;
 
 	switch (branch.type)
@@ -504,7 +504,7 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const &branch)
 		case 0: // CBZ
 		{
 			_assert_msg_(DYNA_REC, distance >= -0xFFFFF && distance < 0xFFFFF, "%s(%d): Received too large distance: %lx", __FUNCTION__, branch.type, distance);
-			bool b64Bit = is64Bit(branch.reg);
+			bool b64Bit = Is64Bit(branch.reg);
 			ARM64Reg reg = DecodeReg(branch.reg);
 			inst = (b64Bit << 31) | (0x1A << 25) | (Not << 24) | (distance << 5) | reg;
 		}
@@ -537,7 +537,7 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const &branch)
 FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
 {
 	FixupBranch branch;
-	branch.ptr = code;
+	branch.ptr = m_code;
 	branch.type = 0;
 	branch.reg = Rt;
 	HINT(HINT_NOP);
@@ -546,7 +546,7 @@ FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
 FixupBranch ARM64XEmitter::CBNZ(ARM64Reg Rt)
 {
 	FixupBranch branch;
-	branch.ptr = code;
+	branch.ptr = m_code;
 	branch.type = 1;
 	branch.reg = Rt;
 	HINT(HINT_NOP);
@@ -555,7 +555,7 @@ FixupBranch ARM64XEmitter::CBNZ(ARM64Reg Rt)
 FixupBranch ARM64XEmitter::B(CCFlags cond)
 {
 	FixupBranch branch;
-	branch.ptr = code;
+	branch.ptr = m_code;
 	branch.type = 2;
 	branch.cond = cond;
 	HINT(HINT_NOP);
@@ -564,7 +564,7 @@ FixupBranch ARM64XEmitter::B(CCFlags cond)
 FixupBranch ARM64XEmitter::TBZ(ARM64Reg Rt, u8 bit)
 {
 	FixupBranch branch;
-	branch.ptr = code;
+	branch.ptr = m_code;
 	branch.type = 3;
 	branch.reg = Rt;
 	branch.bit = bit;
@@ -574,7 +574,7 @@ FixupBranch ARM64XEmitter::TBZ(ARM64Reg Rt, u8 bit)
 FixupBranch ARM64XEmitter::TBNZ(ARM64Reg Rt, u8 bit)
 {
 	FixupBranch branch;
-	branch.ptr = code;
+	branch.ptr = m_code;
 	branch.type = 4;
 	branch.reg = Rt;
 	branch.bit = bit;
@@ -584,7 +584,7 @@ FixupBranch ARM64XEmitter::TBNZ(ARM64Reg Rt, u8 bit)
 FixupBranch ARM64XEmitter::B()
 {
 	FixupBranch branch;
-	branch.ptr = code;
+	branch.ptr = m_code;
 	branch.type = 5;
 	HINT(HINT_NOP);
 	return branch;
@@ -592,7 +592,7 @@ FixupBranch ARM64XEmitter::B()
 FixupBranch ARM64XEmitter::BL()
 {
 	FixupBranch branch;
-	branch.ptr = code;
+	branch.ptr = m_code;
 	branch.type = 6;
 	HINT(HINT_NOP);
 	return branch;
@@ -611,7 +611,7 @@ void ARM64XEmitter::CBNZ(ARM64Reg Rt, const void* ptr)
 // Conditional Branch
 void ARM64XEmitter::B(CCFlags cond, const void* ptr)
 {
-	s64 distance = (s64)ptr - (s64(code) + 8);
+	s64 distance = (s64)ptr - (s64(m_code) + 8);
 	distance >>= 2;
 
 	_assert_msg_(DYNA_REC, distance >= -0xFFFFF && distance < 0xFFFFF, "%s: Received too large distance: %lx", __FUNCTION__, distance);
@@ -630,11 +630,11 @@ void ARM64XEmitter::TBNZ(ARM64Reg Rt, u8 bits, const void* ptr)
 }
 
 // Unconditional Branch
-void ARM64XEmitter::B(const void *ptr)
+void ARM64XEmitter::B(const void* ptr)
 {
 	EncodeUnconditionalBranchInst(0, ptr);
 }
-void ARM64XEmitter::BL(const void *ptr)
+void ARM64XEmitter::BL(const void* ptr)
 {
 	EncodeUnconditionalBranchInst(1, ptr);
 }
@@ -1051,7 +1051,7 @@ void ARM64XEmitter::SUBS(ARM64Reg Rd, ARM64Reg Rn, u32 imm, bool shift)
 }
 void ARM64XEmitter::CMP(ARM64Reg Rn, u32 imm, bool shift)
 {
-	EncodeAddSubImmInst(1, true, shift, imm, Rn, is64Bit(Rn) ? SP : WSP);
+	EncodeAddSubImmInst(1, true, shift, imm, Rn, Is64Bit(Rn) ? SP : WSP);
 }
 
 // Data Processing (Immediate)
@@ -1147,43 +1147,43 @@ void ARM64XEmitter::LDARH(ARM64Reg Rt, ARM64Reg Rn)
 }
 void ARM64XEmitter::STXR(ARM64Reg Rs, ARM64Reg Rt, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(12 + is64Bit(Rt), Rs, SP, Rt, Rn);
+	EncodeLoadStoreExcInst(12 + Is64Bit(Rt), Rs, SP, Rt, Rn);
 }
 void ARM64XEmitter::STLXR(ARM64Reg Rs, ARM64Reg Rt, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(14 + is64Bit(Rt), Rs, SP, Rt, Rn);
+	EncodeLoadStoreExcInst(14 + Is64Bit(Rt), Rs, SP, Rt, Rn);
 }
 void ARM64XEmitter::STXP(ARM64Reg Rs, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(16 + is64Bit(Rt), Rs, Rt2, Rt, Rn);
+	EncodeLoadStoreExcInst(16 + Is64Bit(Rt), Rs, Rt2, Rt, Rn);
 }
 void ARM64XEmitter::STLXP(ARM64Reg Rs, ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(18 + is64Bit(Rt), Rs, Rt2, Rt, Rn);
+	EncodeLoadStoreExcInst(18 + Is64Bit(Rt), Rs, Rt2, Rt, Rn);
 }
 void ARM64XEmitter::LDXR(ARM64Reg Rt, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(20 + is64Bit(Rt), SP, SP, Rt, Rn);
+	EncodeLoadStoreExcInst(20 + Is64Bit(Rt), SP, SP, Rt, Rn);
 }
 void ARM64XEmitter::LDAXR(ARM64Reg Rt, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(22 + is64Bit(Rt), SP, SP, Rt, Rn);
+	EncodeLoadStoreExcInst(22 + Is64Bit(Rt), SP, SP, Rt, Rn);
 }
 void ARM64XEmitter::LDXP(ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(24 + is64Bit(Rt), SP, Rt2, Rt, Rn);
+	EncodeLoadStoreExcInst(24 + Is64Bit(Rt), SP, Rt2, Rt, Rn);
 }
 void ARM64XEmitter::LDAXP(ARM64Reg Rt, ARM64Reg Rt2, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(26 + is64Bit(Rt), SP, Rt2, Rt, Rn);
+	EncodeLoadStoreExcInst(26 + Is64Bit(Rt), SP, Rt2, Rt, Rn);
 }
 void ARM64XEmitter::STLR(ARM64Reg Rt, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(28 + is64Bit(Rt), SP, SP, Rt, Rn);
+	EncodeLoadStoreExcInst(28 + Is64Bit(Rt), SP, SP, Rt, Rn);
 }
 void ARM64XEmitter::LDAR(ARM64Reg Rt, ARM64Reg Rn)
 {
-	EncodeLoadStoreExcInst(30 + is64Bit(Rt), SP, SP, Rt, Rn);
+	EncodeLoadStoreExcInst(30 + Is64Bit(Rt), SP, SP, Rt, Rn);
 }
 
 // Load/Store no-allocate pair (offset)
@@ -1217,9 +1217,9 @@ void ARM64XEmitter::LDRB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
 void ARM64XEmitter::LDRSB(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(is64Bit(Rt) ? 0x0E6 : 0x0E7, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x0E6 : 0x0E7, Rt, Rn, imm);
 	else
-		EncodeLoadStoreIndexedInst(is64Bit(Rt) ? 0x0E2 : 0x0E3,
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x0E2 : 0x0E3,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
 }
 void ARM64XEmitter::STRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
@@ -1241,25 +1241,25 @@ void ARM64XEmitter::LDRH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
 void ARM64XEmitter::LDRSH(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(is64Bit(Rt) ? 0x1E6 : 0x1E7, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x1E6 : 0x1E7, Rt, Rn, imm);
 	else
-		EncodeLoadStoreIndexedInst(is64Bit(Rt) ? 0x1E2 : 0x1E3,
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x1E2 : 0x1E3,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
 }
 void ARM64XEmitter::STR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(is64Bit(Rt) ? 0x3E4 : 0x2E4, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E4 : 0x2E4, Rt, Rn, imm);
 	else
-		EncodeLoadStoreIndexedInst(is64Bit(Rt) ? 0x3E0 : 0x2E0,
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E0 : 0x2E0,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
 }
 void ARM64XEmitter::LDR(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
 {
 	if (type == INDEX_UNSIGNED)
-		EncodeLoadStoreIndexedInst(is64Bit(Rt) ? 0x3E5 : 0x2E5, Rt, Rn, imm);
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E5 : 0x2E5, Rt, Rn, imm);
 	else
-		EncodeLoadStoreIndexedInst(is64Bit(Rt) ? 0x3E1 : 0x2E1,
+		EncodeLoadStoreIndexedInst(Is64Bit(Rt) ? 0x3E1 : 0x2E1,
 				type == INDEX_POST ? 1 : 3, Rt, Rn, imm);
 }
 void ARM64XEmitter::LDRSW(IndexType type, ARM64Reg Rt, ARM64Reg Rn, u32 imm)
@@ -1282,7 +1282,7 @@ void ARM64XEmitter::LDRB(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType exten
 }
 void ARM64XEmitter::LDRSB(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend)
 {
-	bool b64Bit = is64Bit(Rt);
+	bool b64Bit = Is64Bit(Rt);
 	EncodeLoadStoreRegisterOffset(0, 3 - b64Bit, Rt, Rn, Rm, extend);
 }
 void ARM64XEmitter::STRH(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend)
@@ -1295,17 +1295,17 @@ void ARM64XEmitter::LDRH(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType exten
 }
 void ARM64XEmitter::LDRSH(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend)
 {
-	bool b64Bit = is64Bit(Rt);
+	bool b64Bit = Is64Bit(Rt);
 	EncodeLoadStoreRegisterOffset(1, 3 - b64Bit, Rt, Rn, Rm, extend);
 }
 void ARM64XEmitter::STR(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend)
 {
-	bool b64Bit = is64Bit(Rt);
+	bool b64Bit = Is64Bit(Rt);
 	EncodeLoadStoreRegisterOffset(2 + b64Bit, 0, Rt, Rn, Rm, extend);
 }
 void ARM64XEmitter::LDR(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend)
 {
-	bool b64Bit = is64Bit(Rt);
+	bool b64Bit = Is64Bit(Rt);
 	EncodeLoadStoreRegisterOffset(2 + b64Bit, 1, Rt, Rn, Rm, extend);
 }
 void ARM64XEmitter::LDRSW(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType extend)
@@ -1320,11 +1320,11 @@ void ARM64XEmitter::PRFM(ARM64Reg Rt, ARM64Reg Rn, ARM64Reg Rm, ExtendType exten
 // Wrapper around MOVZ+MOVK
 void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
 {
-	unsigned parts = is64Bit(Rd) ? 4 : 2;
+	unsigned parts = Is64Bit(Rd) ? 4 : 2;
 	bool upload_part[4] = {};
 	bool need_movz = false;
 
-	if (!is64Bit(Rd))
+	if (!Is64Bit(Rd))
 		_assert_msg_(DYNA_REC, !(imm >> 32), "%s: immediate doesn't fit in 32bit register: %lx", __FUNCTION__, imm);
 
 	// XXX: Optimize more

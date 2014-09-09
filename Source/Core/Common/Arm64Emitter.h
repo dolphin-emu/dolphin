@@ -74,9 +74,9 @@ enum ARM64Reg
 	INVALID_REG = 0xFFFFFFFF
 };
 
-inline bool is64Bit(ARM64Reg reg) { return reg & 0x20; }
-inline bool is128Bit(ARM64Reg reg) { return reg & 0xC0; }
-inline bool isVector(ARM64Reg reg) { return (reg & 0xC0) != 0; }
+inline bool Is64Bit(ARM64Reg reg) { return reg & 0x20; }
+inline bool Is128Bit(ARM64Reg reg) { return reg & 0xC0; }
+inline bool IsVector(ARM64Reg reg) { return (reg & 0xC0) != 0; }
 inline ARM64Reg DecodeReg(ARM64Reg reg) { return (ARM64Reg)(reg & 0x1F); }
 inline ARM64Reg EncodeRegTo64(ARM64Reg reg) { return (ARM64Reg)(reg | 0x20); }
 
@@ -122,7 +122,7 @@ enum ExtendType
 
 struct FixupBranch
 {
-	u8 *ptr;
+	u8* ptr;
 	// Type defines
 	// 0 = CBZ (32bit)
 	// 1 = CBNZ (32bit)
@@ -178,93 +178,101 @@ enum BarrierType
 
 class ArithOption
 {
-	public:
-		enum WidthSpecifier {
-			WIDTH_DEFAULT,
-			WIDTH_32BIT,
-			WIDTH_64BIT,
-		};
-		enum ExtendSpecifier {
-			EXTEND_UXTB = 0x0,
-			EXTEND_UXTH = 0x1,
-			EXTEND_UXTW = 0x2, /* Also LSL on 32bit width */
-			EXTEND_UXTX = 0x3, /* Also LSL on 64bit width */
-			EXTEND_SXTB = 0x4,
-			EXTEND_SXTH = 0x5,
-			EXTEND_SXTW = 0x6,
-			EXTEND_SXTX = 0x7,
-		};
-		enum TypeSpecifier {
-			TYPE_EXTENDEDREG,
-			TYPE_IMM,
-			TYPE_SHIFTEDREG,
-		};
-	private:
-		ARM64Reg        _destReg;
-		WidthSpecifier  _width;
-		ExtendSpecifier _extend;
-		TypeSpecifier   _type;
-		ShiftType       _shifttype;
-		u32             _shift;
-	public:
-		ArithOption(ARM64Reg Rd)
+public:
+	enum WidthSpecifier
+	{
+		WIDTH_DEFAULT,
+		WIDTH_32BIT,
+		WIDTH_64BIT,
+	};
+
+	enum ExtendSpecifier
+	{
+		EXTEND_UXTB = 0x0,
+		EXTEND_UXTH = 0x1,
+		EXTEND_UXTW = 0x2, /* Also LSL on 32bit width */
+		EXTEND_UXTX = 0x3, /* Also LSL on 64bit width */
+		EXTEND_SXTB = 0x4,
+		EXTEND_SXTH = 0x5,
+		EXTEND_SXTW = 0x6,
+		EXTEND_SXTX = 0x7,
+	};
+
+	enum TypeSpecifier
+	{
+		TYPE_EXTENDEDREG,
+		TYPE_IMM,
+		TYPE_SHIFTEDREG,
+	};
+
+private:
+	ARM64Reg        m_destReg;
+	WidthSpecifier  m_width;
+	ExtendSpecifier m_extend;
+	TypeSpecifier   m_type;
+	ShiftType       m_shifttype;
+	u32             m_shift;
+
+public:
+	ArithOption(ARM64Reg Rd)
+	{
+		m_destReg = Rd;
+		m_shift = 0;
+		m_type = TYPE_EXTENDEDREG;
+		if (Is64Bit(Rd))
 		{
-			_destReg = Rd;
-			_shift = 0;
-			_type = TYPE_EXTENDEDREG;
-			if (is64Bit(Rd))
-			{
-				_width = WIDTH_64BIT;
-				_extend = EXTEND_UXTX;
-			}
-			else
-			{
-				_width = WIDTH_32BIT;
-				_extend = EXTEND_UXTW;
-			}
+			m_width = WIDTH_64BIT;
+			m_extend = EXTEND_UXTX;
 		}
-		ArithOption(ARM64Reg Rd, ShiftType ShiftType, u32 Shift)
+		else
 		{
-			_destReg = Rd;
-			_shift = Shift;
-			_shifttype = ShiftType;
-			_type = TYPE_SHIFTEDREG;
-			if (is64Bit(Rd))
-				_width = WIDTH_64BIT;
-			else
-				_width = WIDTH_32BIT;
+			m_width = WIDTH_32BIT;
+			m_extend = EXTEND_UXTW;
 		}
-		TypeSpecifier GetType()
+	}
+	ArithOption(ARM64Reg Rd, ShiftType shift_type, u32 shift)
+	{
+		m_destReg = Rd;
+		m_shift = shift;
+		m_shifttype = shift_type;
+		m_type = TYPE_SHIFTEDREG;
+		if (Is64Bit(Rd))
+			m_width = WIDTH_64BIT;
+		else
+			m_width = WIDTH_32BIT;
+	}
+	TypeSpecifier GetType()
+	{
+		return m_type;
+	}
+	u32 GetData()
+	{
+		switch (m_type)
 		{
-			return _type;
+			case TYPE_EXTENDEDREG:
+				return (m_width == WIDTH_64BIT ? (1 << 31) : 0) |
+				       (m_extend << 13) |
+				       (m_shift << 10);
+			break;
+			case TYPE_SHIFTEDREG:
+				return (m_width == WIDTH_64BIT ? (1 << 31) : 0) |
+				       (m_shifttype << 22) |
+				       (m_shift << 10);
+			break;
+			default:
+				_dbg_assert_msg_(DYNA_REC, false, "Invalid type in GetData");
+			break;
 		}
-		u32 GetData()
-		{
-			switch (_type)
-			{
-				case TYPE_EXTENDEDREG:
-					return (_width == WIDTH_64BIT ? (1 << 31) : 0) |
-						 (_extend << 13) |
-						 (_shift << 10);
-				break;
-				case TYPE_SHIFTEDREG:
-					return (_width == WIDTH_64BIT ? (1 << 31) : 0) |
-						 (_shifttype << 22) |
-						 (_shift << 10);
-				break;
-				default:
-					_dbg_assert_msg_(DYNA_REC, false, "Invalid type in GetData");
-				break;
-			}
-			return 0;
-		}
+		return 0;
+	}
 };
 
 class ARM64XEmitter
 {
 private:
-	u8 *code, *startcode;
-	u8 *lastCacheFlushEnd;
+	u8* m_code;
+	u8* m_startcode;
+	u8* m_lastCacheFlushEnd;
 
 	void EncodeCompareBranchInst(u32 op, ARM64Reg Rt, const void* ptr);
 	void EncodeTestBranchInst(u32 op, ARM64Reg Rt, u8 bits, const void* ptr);
@@ -293,23 +301,33 @@ private:
 	void EncodeLogicalImmInst(u32 op, ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 
 protected:
-	inline void Write32(u32 value) {*(u32*)code = value; code+=4;}
+	inline void Write32(u32 value)
+	{
+		*(u32*)m_code = value;
+		m_code += 4;
+	}
 
 public:
-	ARM64XEmitter() : code(0), startcode(0), lastCacheFlushEnd(0) {}
-	virtual ~ARM64XEmitter() {}
+	ARM64XEmitter()
+		: m_code(nullptr), m_startcode(nullptr), m_lastCacheFlushEnd(nullptr)
+	{
+	}
 
-	void SetCodePtr(u8 *ptr);
+	virtual ~ARM64XEmitter()
+	{
+	}
+
+	void SetCodePtr(u8* ptr);
 	void ReserveCodeSpace(u32 bytes);
-	const u8 *AlignCode16();
-	const u8 *AlignCodePage();
-	const u8 *GetCodePtr() const;
+	const u8* AlignCode16();
+	const u8* AlignCodePage();
+	const u8* GetCodePtr() const;
 	void FlushIcache();
-	void FlushIcacheSection(u8 *start, u8 *end);
-	u8 *GetWritableCodePtr();
+	void FlushIcacheSection(u8* start, u8* end);
+	u8* GetWritableCodePtr();
 
 	// FixupBranch branching
-	void SetJumpTarget(FixupBranch const &branch);
+	void SetJumpTarget(FixupBranch const& branch);
 	FixupBranch CBZ(ARM64Reg Rt);
 	FixupBranch CBNZ(ARM64Reg Rt);
 	FixupBranch B(CCFlags cond);
@@ -330,8 +348,8 @@ public:
 	void TBNZ(ARM64Reg Rt, u8 bits, const void* ptr);
 
 	// Unconditional Branch
-	void B(const void *ptr);
-	void BL(const void *ptr);
+	void B(const void* ptr);
+	void BL(const void* ptr);
 
 	// Unconditional Branch (register)
 	void BR(ARM64Reg Rn);
