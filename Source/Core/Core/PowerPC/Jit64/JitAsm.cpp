@@ -25,7 +25,7 @@ void Jit64AsmRoutineManager::Generate()
 
 	const u8* outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
-		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
+		FixupBranch skipToRealDispatch = J(Core::g_CoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
 
 		dispatcher = GetCodePtr();
 			// The result of slice decrementation should be in flags if somebody jumped here
