@@ -25,14 +25,14 @@ void Jit64AsmRoutineManager::Generate()
 
 	const u8* outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
-		FixupBranch skipToRealDispatch = J(Core::g_CoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
+		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
 
 		dispatcher = GetCodePtr();
 			// The result of slice decrementation should be in flags if somebody jumped here
 			// IMPORTANT - We jump on negative, not carry!!!
 			FixupBranch bail = J_CC(CC_BE, true);
 
-			if (Core::g_CoreStartupParameter.bEnableDebugging)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 			{
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
 				FixupBranch notStepping = J_CC(CC_Z);
@@ -55,11 +55,11 @@ void Jit64AsmRoutineManager::Generate()
 			FixupBranch no_mem;
 			FixupBranch exit_mem;
 			FixupBranch exit_vmem;
-			if (Core::g_CoreStartupParameter.bWii)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 				mask = JIT_ICACHE_EXRAM_BIT;
-			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
 				mask |= JIT_ICACHE_VMEM_BIT;
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii || SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
 			{
 				TEST(32, R(RSCRATCH), Imm32(mask));
 				no_mem = J_CC(CC_NZ);
@@ -68,12 +68,12 @@ void Jit64AsmRoutineManager::Generate()
 			MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCache));
 			MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii || SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
 			{
 				exit_mem = J();
 				SetJumpTarget(no_mem);
 			}
-			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
 			{
 				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_VMEM_BIT));
 				FixupBranch no_vmem = J_CC(CC_Z);
@@ -81,10 +81,10 @@ void Jit64AsmRoutineManager::Generate()
 				MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
 				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
-				if (Core::g_CoreStartupParameter.bWii) exit_vmem = J();
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) exit_vmem = J();
 				SetJumpTarget(no_vmem);
 			}
-			if (Core::g_CoreStartupParameter.bWii)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 			{
 				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
@@ -94,9 +94,9 @@ void Jit64AsmRoutineManager::Generate()
 
 				SetJumpTarget(no_exram);
 			}
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii || SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
 				SetJumpTarget(exit_mem);
-			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack))
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack))
 				SetJumpTarget(exit_vmem);
 
 			TEST(32, R(RSCRATCH), R(RSCRATCH));

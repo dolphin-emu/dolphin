@@ -175,9 +175,9 @@ void Init()
 		ReadHeader();
 		std::thread md5thread(CheckMD5);
 		md5thread.detach();
-		if ((strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)))
+		if ((strncmp((char *)tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6)))
 		{
-			PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
+			PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str());
 			EndPlayInput(false);
 		}
 	}
@@ -471,7 +471,7 @@ bool BeginRecordingInput(int controllers)
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
 		// TODO: find a way to GetTitleDataPath() from Movie::Init()
-		if (Core::g_CoreStartupParameter.bWii)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
 			if (File::Exists(Common::GetTitleDataPath(g_titleID) + "banner.bin"))
 				Movie::g_bClearSave = false;
@@ -831,7 +831,7 @@ void LoadInput(const std::string& filename)
 	}
 
 	ChangePads(true);
-	if (Core::g_CoreStartupParameter.bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		ChangeWiiPads(true);
 
 	u64 totalSavedBytes = t_record.GetSize() - 256;
@@ -1123,9 +1123,9 @@ void SaveRecording(const std::string& filename)
 	memset(&header, 0, sizeof(DTMHeader));
 
 	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
-	strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
-	header.bWii = Core::g_CoreStartupParameter.bWii;
-	header.numControllers = g_numPads & (Core::g_CoreStartupParameter.bWii ? 0xFF : 0x0F);
+	strncpy((char *)header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
+	header.bWii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	header.numControllers = g_numPads & (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 0xFF : 0x0F);
 
 	header.bFromSaveState = g_bRecordingFromSaveState;
 	header.frameCount = g_totalFrames;
@@ -1216,7 +1216,7 @@ void GetSettings()
 	bSyncGPU = SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU;
 	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 	bNetPlay = NetPlay::IsNetPlayRunning();
-	if (!Core::g_CoreStartupParameter.bWii)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
 	memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;

@@ -23,10 +23,6 @@ extern bool g_aspect_wide;
 namespace Core
 {
 
-// Get core parameters
-// TODO: kill, use SConfig instead
-extern SCoreStartupParameter g_CoreStartupParameter;
-
 bool GetIsFramelimiterTempDisabled();
 void SetIsFramelimiterTempDisabled(bool disable);
 

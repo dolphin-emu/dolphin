@@ -22,7 +22,7 @@ void JitArm::psq_l(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+	FALLBACK_IF(js.memcheck || !SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem);
 
 	bool update = inst.OPCD == 57;
 	s32 offset = inst.SIMM_12;
@@ -62,7 +62,7 @@ void JitArm::psq_lx(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+	FALLBACK_IF(js.memcheck || !SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem);
 
 	bool update = inst.SUBOP10 == 38;
 
@@ -113,7 +113,7 @@ void JitArm::psq_st(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+	FALLBACK_IF(js.memcheck || !SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem);
 
 	bool update = inst.OPCD == 61;
 	s32 offset = inst.SIMM_12;
@@ -160,7 +160,7 @@ void JitArm::psq_stx(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	FALLBACK_IF(js.memcheck || !Core::g_CoreStartupParameter.bFastmem);
+	FALLBACK_IF(js.memcheck || !SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem);
 
 	bool update = inst.SUBOP10 == 39;
 

@@ -18,6 +18,7 @@
 #include "Common/Atomic.h"
 #include "Common/Common.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
@@ -240,8 +241,8 @@ u32 Read_Opcode(u32 _Address)
 		return 0x00000000;
 	}
 
-	if (Core::g_CoreStartupParameter.bMMU &&
-		!Core::g_CoreStartupParameter.bTLBHack &&
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
+		!SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack &&
 		(_Address & ADDR_MASK_MEM1))
 	{
 		// TODO: Check for MSR instruction address translation flag before translating
@@ -880,7 +881,7 @@ static u32 TranslateBlockAddress(const u32 addr, const XCheckTLBFlag _Flag)
 	u32 batu = (m_MSR.PR ? BATU_Vp : BATU_Vs);
 
 	// Check for enhanced mode (secondary BAT enable) using 8 BATs
-	bool enhanced_bats = Core::g_CoreStartupParameter.bWii && HID4.SBE;
+	bool enhanced_bats = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && HID4.SBE;
 
 	if (_Flag != FLAG_OPCODE)
 	{
