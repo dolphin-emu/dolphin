@@ -4,7 +4,7 @@
 
 #include <cinttypes>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/x64Emitter.h"
 #include "Common/Logging/Log.h"

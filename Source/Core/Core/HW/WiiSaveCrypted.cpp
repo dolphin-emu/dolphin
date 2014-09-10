@@ -17,7 +17,7 @@
 #include <polarssl/md5.h>
 #include <polarssl/sha1.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/NandPaths.h"

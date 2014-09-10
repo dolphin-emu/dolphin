@@ -4,7 +4,7 @@
 
 #include <cinttypes>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/Core.h"

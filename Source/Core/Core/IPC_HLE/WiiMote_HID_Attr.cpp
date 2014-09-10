@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/IPC_HLE/WiiMote_HID_Attr.h"
 
 #if 0

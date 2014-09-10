@@ -4,7 +4,7 @@
 
 #include <cinttypes>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 
 #include "Core/DSP/DSPCore.h"

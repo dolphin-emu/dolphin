@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 // --- Gekko Instruction ---
 

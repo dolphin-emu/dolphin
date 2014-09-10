@@ -21,7 +21,7 @@
 #include <wx/string.h>
 #include <wx/window.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
 #include "DolphinWX/Globals.h"

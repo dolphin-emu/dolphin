@@ -28,8 +28,8 @@
 #include <wx/utils.h>
 #include <wx/window.h>
 
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

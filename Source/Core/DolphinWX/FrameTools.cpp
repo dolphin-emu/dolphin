@@ -36,7 +36,7 @@
 #endif
 
 #include "Common/CDUtils.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"

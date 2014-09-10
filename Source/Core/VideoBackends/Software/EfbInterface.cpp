@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/Software/BPMemLoader.h"

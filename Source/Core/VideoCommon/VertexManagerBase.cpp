@@ -1,4 +1,4 @@
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/Debugger.h"
@@ -144,7 +144,8 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 
 void VertexManager::Flush()
 {
-	if (IsFlushed) return;
+	if (IsFlushed)
+		return;
 
 	// loading a state will invalidate BP, so check for it
 	g_video_backend->CheckInvalidState();

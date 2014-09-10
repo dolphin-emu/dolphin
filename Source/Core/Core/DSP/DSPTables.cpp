@@ -4,7 +4,7 @@
 
 // Additional copyrights go to Duddie (c) 2005 (duddie@walla.com)
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPInterpreter.h"

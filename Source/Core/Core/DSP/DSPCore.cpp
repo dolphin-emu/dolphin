@@ -23,7 +23,7 @@
 
    ====================================================================*/
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"

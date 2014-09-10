@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 
 class DSPDebugInterface final : public DebugInterface

@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"

@@ -36,7 +36,7 @@
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Thread.h"
 #include "Common/Logging/ConsoleListener.h"

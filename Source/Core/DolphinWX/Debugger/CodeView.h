@@ -16,7 +16,7 @@
 #include <wx/graphics.h>
 #include <wx/windowid.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 wxDECLARE_EVENT(wxEVT_CODEVIEW_CHANGE, wxCommandEvent);
 

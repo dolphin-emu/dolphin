@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
 bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style);

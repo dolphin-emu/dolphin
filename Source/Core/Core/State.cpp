@@ -6,7 +6,7 @@
 #include <thread>
 #include <lzo/lzo1x.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"

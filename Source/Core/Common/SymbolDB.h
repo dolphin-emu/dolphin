@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 struct SCall
 {

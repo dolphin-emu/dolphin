@@ -33,7 +33,7 @@
 #include <wx/translation.h>
 #include <wx/utils.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 #include "Core/FifoPlayer/FifoPlayer.h"

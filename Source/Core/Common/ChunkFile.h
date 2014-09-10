@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 

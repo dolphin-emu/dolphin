@@ -25,8 +25,8 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include <string>
 
 #include "Common/ChunkFile.h"
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Thread.h"
 

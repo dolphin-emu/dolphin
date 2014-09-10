@@ -7,7 +7,7 @@
 #include <tuple>
 
 #include "Common/BreakPoints.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/PowerPC/CPUCoreBase.h"

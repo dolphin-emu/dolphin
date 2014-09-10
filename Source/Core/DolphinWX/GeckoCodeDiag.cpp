@@ -22,7 +22,7 @@
 #include <wx/translation.h>
 #include <wx/window.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"

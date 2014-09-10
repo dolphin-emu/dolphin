@@ -6,7 +6,7 @@
 
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/WaveFile.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 class SoundStream
 {

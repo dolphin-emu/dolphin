@@ -11,7 +11,7 @@
 #include <functional>
 
 #include "Common/CodeBlock.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 namespace Gen
 {

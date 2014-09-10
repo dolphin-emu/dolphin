@@ -8,7 +8,7 @@
 
 #include <signal.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 
 #include "Core/HW/CPU.h"

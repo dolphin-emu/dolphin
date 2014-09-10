@@ -14,7 +14,7 @@
 #include <string>
 #include <zlib.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/StringUtil.h"

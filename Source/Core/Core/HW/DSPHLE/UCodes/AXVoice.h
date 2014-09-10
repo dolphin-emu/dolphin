@@ -14,7 +14,7 @@
 
 #include <functional>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"

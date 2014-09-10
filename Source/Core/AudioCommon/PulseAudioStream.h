@@ -11,7 +11,7 @@
 #include <atomic>
 
 #include "AudioCommon/SoundStream.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 
 class PulseAudio final : public SoundStream

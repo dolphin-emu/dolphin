@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/VertexLoader.h"

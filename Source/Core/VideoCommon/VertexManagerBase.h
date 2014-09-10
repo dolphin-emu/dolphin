@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 class NativeVertexFormat;
 class PointerWrap;

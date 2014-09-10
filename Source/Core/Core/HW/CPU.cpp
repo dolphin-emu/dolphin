@@ -5,7 +5,7 @@
 #include <mutex>
 
 #include "AudioCommon/AudioCommon.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Core/Core.h"
 #include "Core/DSPEmulator.h"

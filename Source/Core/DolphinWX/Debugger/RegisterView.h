@@ -10,7 +10,7 @@
 #include <wx/string.h>
 #include <wx/windowid.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 class wxWindow;
 

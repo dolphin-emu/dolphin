@@ -7,7 +7,7 @@
 #include <set>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MemArena.h"
 #include "Common/StringUtil.h"
 

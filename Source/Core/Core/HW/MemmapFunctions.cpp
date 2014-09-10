@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common/Atomic.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

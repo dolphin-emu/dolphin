@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 // TODO: Add peephole optimizations for multiple consecutive lfd/lfs/stfd/stfs since they are so common,

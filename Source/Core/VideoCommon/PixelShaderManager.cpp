@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"

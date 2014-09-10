@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "AudioCommon/PulseAudioStream.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 
 namespace

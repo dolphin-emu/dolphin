@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/StringUtil.h"
 

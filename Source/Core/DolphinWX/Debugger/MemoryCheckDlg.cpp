@@ -16,7 +16,7 @@
 #include <wx/translation.h>
 
 #include "Common/BreakPoints.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxUtils.h"
