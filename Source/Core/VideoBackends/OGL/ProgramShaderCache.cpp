@@ -243,7 +243,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const char* vcode, const 
 		return false;
 	}
 
-	GLuint pid = shader.glprogid = glCreateProgram();;
+	GLuint pid = shader.glprogid = glCreateProgram();
 
 	glAttachShader(pid, vsid);
 	glAttachShader(pid, psid);
