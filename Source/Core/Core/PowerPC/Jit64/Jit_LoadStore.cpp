@@ -21,9 +21,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
 	// Skip disabled JIT instructions
-	FALLBACK_IF(Core::g_CoreStartupParameter.bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
-	FALLBACK_IF(Core::g_CoreStartupParameter.bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
-	FALLBACK_IF(Core::g_CoreStartupParameter.bJITLoadStorelwzOff && (inst.OPCD == 32));
+	FALLBACK_IF(SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87));
+	FALLBACK_IF(SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)));
+	FALLBACK_IF(SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelwzOff && (inst.OPCD == 32));
 
 	// Determine memory access size and sign extend
 	int accessSize = 0;
@@ -264,14 +264,14 @@ void Jit64::dcbz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	if (Core::g_CoreStartupParameter.bDCBZOFF)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDCBZOFF)
 		return;
 
 	int a = inst.RA;
 	int b = inst.RB;
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
 		mem_mask |= Memory::ADDR_MASK_MEM1;
 
 	MOV(32, R(RSCRATCH), gpr.R(b));

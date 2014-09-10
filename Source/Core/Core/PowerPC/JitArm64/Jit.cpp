@@ -165,7 +165,7 @@ void JitArm64::SingleStep()
 
 void STACKALIGN JitArm64::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || Core::g_CoreStartupParameter.bJITNoBlockCache)
+	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{
 		ClearCache();
 	}
@@ -180,7 +180,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 {
 	int blockSize = code_buf->GetSize();
 
-	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
 		blockSize = 1;
@@ -229,7 +229,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
 
-	if (!Core::g_CoreStartupParameter.bEnableDebugging)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
 	// Translate instructions

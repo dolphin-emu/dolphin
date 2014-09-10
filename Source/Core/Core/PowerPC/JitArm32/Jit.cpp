@@ -285,7 +285,7 @@ void JitArm::PrintDebug(UGeckoInstruction inst, u32 level)
 
 void STACKALIGN JitArm::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || Core::g_CoreStartupParameter.bJITNoBlockCache)
+	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{
 		ClearCache();
 	}
@@ -305,7 +305,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 {
 	int blockSize = code_buf->GetSize();
 
-	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
 		blockSize = 1;
@@ -394,7 +394,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	fpr.Start(js.fpa);
 	js.downcountAmount = 0;
 
-	if (!Core::g_CoreStartupParameter.bEnableDebugging)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
 	js.skipnext = false;
@@ -445,7 +445,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			POP(4, R0, R1, R2, R3);
 		}
 
-		if (Core::g_CoreStartupParameter.bEnableDebugging)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		{
 			// Add run count
 			static const u64 One = 1;

@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 
@@ -93,7 +94,7 @@ void SWBPWritten(int address, int newvalue)
 			u8 *ptr = nullptr;
 
 			// TODO - figure out a cleaner way.
-			if (Core::g_CoreStartupParameter.bWii)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 				ptr = Memory::GetPointer(bpmem.tmem_config.tlut_src << 5);
 			else
 				ptr = Memory::GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);

@@ -556,7 +556,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		return address;
 	}
 
-	if (Core::g_CoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT))
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU && (address & JIT_ICACHE_VMEM_BIT))
 	{
 		if (!Memory::TranslateAddress(address, Memory::FLAG_OPCODE))
 		{
