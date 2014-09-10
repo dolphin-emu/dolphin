@@ -389,7 +389,7 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 		{
 			// filename has region, but it's not == gameRegion
 			// Just set the correct filename, the EXI Device will create it if it doesn't exist
-			memcardPath = filename.replace(filename.size()-ext.size(), ext.size(), ext);;
+			memcardPath = filename.replace(filename.size()-ext.size(), ext.size(), ext);
 		}
 	}
 }

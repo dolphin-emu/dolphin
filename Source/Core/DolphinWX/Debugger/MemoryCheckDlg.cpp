@@ -77,7 +77,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
 	bool OnRead = m_pReadFlag->GetValue();
 	bool OnWrite = m_pWriteFlag->GetValue();
 	bool Log = m_log_flag->GetValue();
-	bool Break = m_break_flag->GetValue();;
+	bool Break = m_break_flag->GetValue();
 
 	u32 StartAddress, EndAddress;
 	bool EndAddressOK = EndAddressString.Len() &&
