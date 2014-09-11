@@ -76,7 +76,7 @@ public:
 	bool RemoveTitle(u64 _titleID);
 
 private:
-	CNANDContentManager() {};
+	CNANDContentManager() {}
 	~CNANDContentManager();
 
 	static CNANDContentManager m_Instance;

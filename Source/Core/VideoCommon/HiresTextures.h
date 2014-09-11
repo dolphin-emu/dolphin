@@ -15,4 +15,4 @@ void Init(const std::string& gameCode);
 bool HiresTexExists(const std::string& filename);
 PC_TexFormat GetHiresTex(const std::string& fileName, unsigned int* pWidth, unsigned int* pHeight, unsigned int* required_size, int texformat, unsigned int data_size, u8* data);
 
-};
+}

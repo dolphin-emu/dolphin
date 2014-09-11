@@ -37,7 +37,7 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 	DEBUG_LOG(SERIALINTERFACE, "%s", temp.c_str());
 #endif
 	return 0;
-};
+}
 
 
 // Stub class for saying nothing is attached, and not having to deal with null pointers :)

@@ -328,4 +328,4 @@ int Wiimote::IOWrite(const unsigned char *buf, size_t len)
 		return 0;
 }
 
-};
+}

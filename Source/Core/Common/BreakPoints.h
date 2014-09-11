@@ -96,5 +96,5 @@ public:
 	TMemCheck *GetMemCheck(u32 address);
 	void Remove(u32 _Address);
 
-	void Clear() { m_MemChecks.clear(); };
+	void Clear() { m_MemChecks.clear(); }
 };

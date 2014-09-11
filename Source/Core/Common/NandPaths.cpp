@@ -104,4 +104,4 @@ void ReadReplacements(replace_v& replacements)
 		replacements.push_back(std::make_pair(letter, replacement));
 }
 
-};
+}
