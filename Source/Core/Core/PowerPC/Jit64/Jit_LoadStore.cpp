@@ -108,6 +108,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 		// do our job at first
 		s32 offset = (s32)(s16)inst.SIMM_16;
+		gpr.BindToRegister(a, true, false);
 		gpr.BindToRegister(d, false, true);
 		SafeLoadToReg(gpr.RX(d), gpr.R(a), accessSize, offset, CallerSavedRegistersInUse(), signExtend);
 

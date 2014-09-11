@@ -29,8 +29,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 
 	FALLBACK_IF((!indexed && !a) || (update && a == d));
 
-	if (update)
-		gpr.BindToRegister(a, true, true);
+	gpr.BindToRegister(a, true, update);
 
 	s32 offset = 0;
 	OpArg addr = gpr.R(a);

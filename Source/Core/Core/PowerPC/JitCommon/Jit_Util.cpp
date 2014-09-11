@@ -250,6 +250,45 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 	}
 }
 
+FixupBranch EmuCodeBlock::CheckIfSafeAddress(X64Reg reg_value, X64Reg reg_addr, u32 registers_in_use, u32 mem_mask)
+{
+	registers_in_use |= (1 << reg_addr);
+	registers_in_use |= (1 << reg_value);
+
+	// Get ourselves a free register; try to pick one that doesn't involve pushing, if we can.
+	X64Reg scratch = RSCRATCH;
+	if (!(registers_in_use & (1 << RSCRATCH)))
+		scratch = RSCRATCH;
+	else if (!(registers_in_use & (1 << RSCRATCH_EXTRA)))
+		scratch = RSCRATCH_EXTRA;
+	else
+		scratch = reg_addr;
+
+	// On Gamecube games with MMU, do a little bit of extra work to make sure we're not accessing the
+	// 0x81800000 to 0x83FFFFFF range.
+	// It's okay to take a shortcut and not check this range on non-MMU games, since we're already
+	// assuming they'll never do an invalid memory access.
+	// The slightly more complex check needed for Wii games using the space just above MEM1 isn't
+	// implemented here yet, since there are no known working Wii MMU games to test it with.
+	if (jit->js.memcheck && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	{
+		if (scratch == reg_addr)
+			PUSH(scratch);
+		else
+			MOV(32, R(scratch), R(reg_addr));
+		AND(32, R(scratch), Imm32(0x3FFFFFFF));
+		CMP(32, R(scratch), Imm32(0x01800000));
+		if (scratch == reg_addr)
+			POP(scratch);
+		return J_CC(CC_AE, farcode.Enabled());
+	}
+	else
+	{
+		TEST(32, R(reg_addr), Imm32(mem_mask));
+		return J_CC(CC_NZ, farcode.Enabled());
+	}
+}
+
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags)
 {
 	if (!jit->js.memcheck)
@@ -333,46 +372,37 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		}
 		else
 		{
-			OpArg addr_loc = opAddress;
+			_assert_msg_(DYNA_REC, opAddress.IsSimpleReg(), "Incorrect use of SafeLoadToReg (address isn't register or immediate)");
+			X64Reg reg_addr = opAddress.GetSimpleReg();
 			if (offset)
 			{
-				addr_loc = R(RSCRATCH);
-				if (opAddress.IsSimpleReg())
-				{
-					LEA(32, RSCRATCH, MDisp(opAddress.GetSimpleReg(), offset));
-				}
-				else
-				{
-					MOV(32, R(RSCRATCH), opAddress);
-					ADD(32, R(RSCRATCH), Imm32(offset));
-				}
+				reg_addr = RSCRATCH;
+				LEA(32, RSCRATCH, MDisp(opAddress.GetSimpleReg(), offset));
 			}
-			TEST(32, addr_loc, Imm32(mem_mask));
 
 			FixupBranch slow, exit;
-			slow = J_CC(CC_NZ, farcode.Enabled());
-			UnsafeLoadToReg(reg_value, addr_loc, accessSize, 0, signExtend);
+			slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse, mem_mask);
+			UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
 			if (farcode.Enabled())
 				SwitchToFarCode();
 			else
 				exit = J(true);
 			SetJumpTarget(slow);
-
 			size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
 			ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
 			switch (accessSize)
 			{
 			case 64:
-				ABI_CallFunctionA((void *)&Memory::Read_U64, addr_loc);
+				ABI_CallFunctionR((void *)&Memory::Read_U64, reg_addr);
 				break;
 			case 32:
-				ABI_CallFunctionA((void *)&Memory::Read_U32, addr_loc);
+				ABI_CallFunctionR((void *)&Memory::Read_U32, reg_addr);
 				break;
 			case 16:
-				ABI_CallFunctionA((void *)&Memory::Read_U16_ZX, addr_loc);
+				ABI_CallFunctionR((void *)&Memory::Read_U16_ZX, reg_addr);
 				break;
 			case 8:
-				ABI_CallFunctionA((void *)&Memory::Read_U8_ZX, addr_loc);
+				ABI_CallFunctionR((void *)&Memory::Read_U8_ZX, reg_addr);
 				break;
 			}
 			ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -478,8 +508,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
 
 	FixupBranch slow, exit;
-	TEST(32, R(reg_addr), Imm32(mem_mask));
-	slow = J_CC(CC_NZ, farcode.Enabled());
+	slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse, mem_mask);
 	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
 	if (farcode.Enabled())
 		SwitchToFarCode();
