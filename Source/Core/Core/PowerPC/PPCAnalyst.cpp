@@ -467,9 +467,13 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 {
 	// For carry, bubble instructions *towards* each other; one direction often isn't enough
 	// to get pairs like addc/adde next to each other.
-	ReorderInstructionsCore(instructions, code, true, REORDER_CARRY);
-	ReorderInstructionsCore(instructions, code, false, REORDER_CARRY);
-	ReorderInstructionsCore(instructions, code, false, REORDER_CMP);
+	if (HasOption(OPTION_CARRY_MERGE))
+	{
+		ReorderInstructionsCore(instructions, code, true, REORDER_CARRY);
+		ReorderInstructionsCore(instructions, code, false, REORDER_CARRY);
+	}
+	if (HasOption(OPTION_BRANCH_MERGE))
+		ReorderInstructionsCore(instructions, code, false, REORDER_CMP);
 }
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index)
@@ -509,7 +513,10 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	// We're going to try to avoid storing carry in XER if we can avoid it -- keep it in the x86 carry flag!
 	// If the instruction reads CA but doesn't write it, we still need to store CA in XER; we can't
 	// leave it in flags.
-	code->wantsCAInFlags = code->wantsCA && code->outputCA && opinfo->type == OPTYPE_INTEGER;
+	if (HasOption(OPTION_CARRY_MERGE))
+		code->wantsCAInFlags = code->wantsCA && code->outputCA && opinfo->type == OPTYPE_INTEGER;
+	else
+		code->wantsCAInFlags = false;
 
 	// mfspr/mtspr can affect/use XER, so be super careful here
 	// we need to note specifically that mfspr needs CA in XER, not in the x86 carry flag
