@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "Common/Common.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/MMIOHandlers.h"
 
 namespace MMIO
@@ -40,8 +41,18 @@ const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
 // interface.
 inline bool IsMMIOAddress(u32 address)
 {
-	return ((address & 0xFE7F0000) == 0xCC000000) &&
-	       ((address & 0x0000FFFF) != 0x00008000);
+	if (address == 0xCC008000)
+		return false; // WG Pipe
+	if ((address & 0xFFFF0000) == 0xCC000000)
+		return true; // GameCube MMIOs
+
+	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	{
+		return ((address & 0xFFFF0000) == 0xCD000000) || // Wii MMIOs
+		       ((address & 0xFFFF0000) == 0xCD800000);   // Mirror of Wii MMIOs
+	}
+
+	return false;
 }
 
 // Compute the internal unique ID for a given MMIO address. This ID is computed
