@@ -676,12 +676,12 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 
 			if (!follow)
 			{
+				address += 4;
 				if (!conditional_continue && opinfo->flags & FL_ENDBLOCK) //right now we stop early
 				{
 					found_exit = true;
 					break;
 				}
-				address += 4;
 			}
 			// XXX: We don't support inlining yet.
 #if 0
