@@ -10,7 +10,6 @@
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
 #define ARMFPUREGS 32
-using namespace ArmGen;
 
 class ArmFPRCache
 {
