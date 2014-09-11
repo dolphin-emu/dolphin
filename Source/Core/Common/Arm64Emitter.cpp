@@ -1081,6 +1081,20 @@ void ARM64XEmitter::UBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)
 {
 	EncodeBitfieldMOVInst(2, Rd, Rn, immr, imms);
 }
+void ARM64XEmitter::SXTB(ARM64Reg Rd, ARM64Reg Rn)
+{
+	SBFM(Rd, Rn, 0, 7);
+}
+void ARM64XEmitter::SXTH(ARM64Reg Rd, ARM64Reg Rn)
+{
+	SBFM(Rd, Rn, 0, 15);
+}
+void ARM64XEmitter::SXTW(ARM64Reg Rd, ARM64Reg Rn)
+{
+	_assert_msg_(DYNA_REC, Is64Bit(Rd), "%s requires 64bit register as destination", __FUNCTION__);
+
+	SBFM(Rd, Rn, 0, 31);
+}
 
 // Load Register (Literal)
 void ARM64XEmitter::LDR(ARM64Reg Rt, u32 imm)

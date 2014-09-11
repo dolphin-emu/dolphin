@@ -477,6 +477,9 @@ public:
 	void BFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 	void SBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
 	void UBFM(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
+	void SXTB(ARM64Reg Rd, ARM64Reg Rn);
+	void SXTH(ARM64Reg Rd, ARM64Reg Rn);
+	void SXTW(ARM64Reg Rd, ARM64Reg Rn);
 
 	// Load Register (Literal)
 	void LDR(ARM64Reg Rt, u32 imm);
