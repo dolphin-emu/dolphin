@@ -34,6 +34,10 @@ GLuint FramebufferManager::m_efbColor[2];
 GLuint FramebufferManager::m_efbDepth[2];
 GLuint FramebufferManager::m_efbColorSwap[2]; // for hot swap when reinterpreting EFB pixel formats
 
+// Front buffers for Asynchronous Timewarp, to be swapped with either m_efbColor or m_resolvedColorTexture
+// at the end of a frame. The back buffer is rendered to while the front buffer is displayed, then they are flipped.
+volatile GLuint FramebufferManager::m_frontBuffer[2]; 
+
 // Only used in MSAA mode.
 GLuint FramebufferManager::m_resolvedFramebuffer[2];
 GLuint FramebufferManager::m_resolvedColorTexture[2];
@@ -100,11 +104,12 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glActiveTexture(GL_TEXTURE0 + 9);
 	for (int eye = 0; eye < m_eye_count; ++eye)
 	{
-		GLuint glObj[3];
-		glGenTextures(3, glObj);
+		GLuint glObj[4];
+		glGenTextures(4, glObj);
 		m_efbColor[eye] = glObj[0];
 		m_efbDepth[eye] = glObj[1];
 		m_efbColorSwap[eye] = glObj[2];
+		m_frontBuffer[eye] = glObj[3];
 
 		// OpenGL MSAA textures are a different kind of texture type and must be allocated
 		// with a different function, so we create them separately.
@@ -113,6 +118,12 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 			m_textureType = GL_TEXTURE_2D;
 
 			glBindTexture(m_textureType, m_efbColor[eye]);
+			glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
+			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexImage2D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+			glBindTexture(m_textureType, m_frontBuffer[eye]);
 			glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(m_textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -148,11 +159,17 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 			// The old way is to "resolve" this multisampled texture by copying it into a non-sampled texture.
 			// This would lead to an unneeded copy of the EFB, so we are going to avoid it.
 			// But as this job isn't done right now, we do need that texture for resolving:
-			glGenTextures(2, glObj);
+			glGenTextures(3, glObj);
 			m_resolvedColorTexture[eye] = glObj[0];
 			m_resolvedDepthTexture[eye] = glObj[1];
 
 			glBindTexture(GL_TEXTURE_2D, m_resolvedColorTexture[eye]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+			glBindTexture(GL_TEXTURE_2D, m_frontBuffer[eye]);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -449,6 +466,34 @@ void FramebufferManager::SwapRenderEye()
 {
 	m_current_eye = 1 - m_current_eye;
 	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[m_current_eye]);
+}
+
+void FramebufferManager::SwapAsyncFrontBuffers()
+{
+	if (m_msaaSamples <= 1)
+	{
+		GLuint temp;
+		for (int eye = 0; eye < m_eye_count; eye++)
+		{
+			temp = m_efbColor[eye];
+			m_efbColor[eye] = m_frontBuffer[eye];
+			m_frontBuffer[eye] = temp;
+			glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[eye]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_efbColor[eye], 0);
+		}
+	}
+	else
+	{
+		GLuint temp;
+		for (int eye = 0; eye < m_eye_count; eye++)
+		{
+			temp = m_resolvedColorTexture[eye];
+			m_resolvedColorTexture[eye] = m_frontBuffer[eye];
+			m_frontBuffer[eye] = temp;
+			glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[eye]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_resolvedColorTexture[eye], 0);
+		}
+	}
 }
 
 

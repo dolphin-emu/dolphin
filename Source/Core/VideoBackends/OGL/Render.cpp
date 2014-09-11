@@ -56,6 +56,7 @@
 #endif
 
 static bool g_first_rift_frame = true;
+static GLsync eyesFence = 0;
 
 void VideoConfig::UpdateProjectionHack()
 {
@@ -672,7 +673,7 @@ Renderer::~Renderer()
 void Renderer::Shutdown()
 {
 #ifdef HAVE_OCULUSSDK
-	if (g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR)
+	if (g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		//TargetRectangle targetRc = ConvertEFBRectangle(rc);
 
@@ -1444,15 +1445,187 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 #endif
 }
 
+void Renderer::AsyncTimewarpDraw()
+{
+#ifdef HAVE_OCULUSSDK
+	auto frameTime = ovrHmd_BeginFrame(hmd, g_ovr_frameindex++);
+	g_ovr_lock.unlock();
+
+	if (0 == frameTime.TimewarpPointSeconds) {
+		ovr_WaitTillTime(frameTime.TimewarpPointSeconds - 0.002);
+	}
+	else {
+		ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
+	}
+
+	// Grab the most recent textures
+	for (int eye = 0; eye < 2; eye++)
+	{
+		((ovrGLTexture&)(FramebufferManager::m_eye_texture[eye])).OGL.TexId = FramebufferManager::m_frontBuffer[eye];
+	}
+	g_ovr_lock.lock();
+	ovrHmd_EndFrame(hmd, g_front_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+	ovrHmd_DismissHSWDisplay(hmd);
+
+	static int w = 0, h = 0;
+	// Save screenshot
+	if (s_bScreenshot)
+	{
+		TargetRectangle flipped_trc = GetTargetRectangle();
+		if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
+		{
+			std::swap(flipped_trc.left, flipped_trc.right);
+		}
+		else
+		{
+			// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+			std::swap(flipped_trc.top, flipped_trc.bottom);
+		}
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+		SaveScreenshot(s_sScreenshotName, flipped_trc);
+		// Reset settings
+		s_sScreenshotName.clear();
+		s_bScreenshot = false;
+	}
+
+	// Frame dumps are handled a little differently in Windows
+	// Frame dumping disabled entirely on GLES3
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+	{
+#if defined _WIN32 || defined HAVE_LIBAV
+		if (g_ActiveConfig.bDumpFrames)
+		{
+			TargetRectangle flipped_trc = GetTargetRectangle();
+			if (DriverDetails::HasBug(DriverDetails::BUG_ROTATEDFRAMEBUFFER))
+			{
+				std::swap(flipped_trc.left, flipped_trc.right);
+			}
+			else
+			{
+				// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+				std::swap(flipped_trc.top, flipped_trc.bottom);
+			}
+
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+			if (frame_data.empty() || w != flipped_trc.GetWidth() ||
+				h != flipped_trc.GetHeight())
+			{
+				w = flipped_trc.GetWidth();
+				h = flipped_trc.GetHeight();
+				frame_data.resize(3 * w * h);
+			}
+			glPixelStorei(GL_PACK_ALIGNMENT, 1);
+			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
+			if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
+			{
+				if (!bLastFrameDumped)
+				{
+#ifdef _WIN32
+					bAVIDumping = AVIDump::Start(nullptr, w, h);
+#else
+					bAVIDumping = AVIDump::Start(w, h);
+#endif
+					if (!bAVIDumping)
+					{
+						OSD::AddMessage("AVIDump Start failed", 2000);
+					}
+					else
+					{
+						OSD::AddMessage(StringFromFormat(
+							"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+							File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h), 2000);
+					}
+				}
+				if (bAVIDumping)
+				{
+#ifndef _WIN32
+					FlipImageData(&frame_data[0], w, h);
+#endif
+
+					AVIDump::AddFrame(&frame_data[0], w, h);
+				}
+
+				bLastFrameDumped = true;
+			}
+			else
+			{
+				NOTICE_LOG(VIDEO, "Error reading framebuffer");
+			}
+		}
+		else
+		{
+			if (bLastFrameDumped && bAVIDumping)
+			{
+				std::vector<u8>().swap(frame_data);
+				w = h = 0;
+				AVIDump::Stop();
+				bAVIDumping = false;
+				OSD::AddMessage("Stop dumping frames", 2000);
+			}
+			bLastFrameDumped = false;
+		}
+#else
+		if (g_ActiveConfig.bDumpFrames)
+		{
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+			std::string movie_file_name;
+			w = GetTargetRectangle().GetWidth();
+			h = GetTargetRectangle().GetHeight();
+			frame_data.resize(3 * w * h);
+			glPixelStorei(GL_PACK_ALIGNMENT, 1);
+			glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
+			if (GL_REPORT_ERROR() == GL_NO_ERROR)
+			{
+				if (!bLastFrameDumped)
+				{
+					movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
+					pFrameDump.Open(movie_file_name, "wb");
+					if (!pFrameDump)
+					{
+						OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
+					}
+					else
+					{
+						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
+					}
+				}
+				if (pFrameDump)
+				{
+					FlipImageData(&frame_data[0], w, h);
+					pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
+					pFrameDump.Flush();
+				}
+				bLastFrameDumped = true;
+			}
+		}
+		else
+		{
+			if (bLastFrameDumped)
+				pFrameDump.Close();
+			bLastFrameDumped = false;
+		}
+#endif
+	}
+	// end of frame dumping code
+#endif
+}
+
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 #ifdef HAVE_OCULUSSDK
 	if (g_first_rift_frame && g_has_rift && g_ActiveConfig.bEnableVR)
 	{
-		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
-		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
-		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
+		if (!g_ActiveConfig.bAsynchronousTimewarp)
+		{
+			g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
+			g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
+			g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
+		}
 		g_first_rift_frame = false;
 
 		int cap = 0;
@@ -1483,6 +1656,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		return;
 	}
 
+	eyesFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	ResetAPIState();
 
 	m_post_processor->Update(s_backbuffer_width, s_backbuffer_height);
@@ -1587,11 +1761,37 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
 
-		// Let OVR do distortion rendering, Present and flush/sync.
-		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-		// Dismiss health and safety warning as soon as possible (it covers our own health and safety warning).
-		ovrHmd_DismissHSWDisplay(hmd);
-
+		if (!g_ActiveConfig.bAsynchronousTimewarp)
+		{
+			// Let OVR do distortion rendering, Present and flush/sync.
+			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			// Dismiss health and safety warning as soon as possible (it covers our own health and safety warning).
+			ovrHmd_DismissHSWDisplay(hmd);
+		}
+		else
+		{
+			// Wait for OpenGL to finish drawing the commands we have given it,
+			// and when finished, swap the back buffer textures to the front buffer textures
+			do
+			{
+				eyesFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+				if (eyesFence != 0) {
+					GLenum result = glClientWaitSync(eyesFence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
+					switch (result)
+					{
+					case GL_ALREADY_SIGNALED:
+					case GL_CONDITION_SATISFIED:
+						g_ovr_lock.lock();
+						eyesFence = 0;
+						FramebufferManager::SwapAsyncFrontBuffers();
+						g_front_eye_poses[0] = g_eye_poses[0];
+						g_front_eye_poses[1] = g_eye_poses[1];
+						g_ovr_lock.unlock();
+						break;
+					}
+				}
+			} while (eyesFence != 0);
+		}
 	}
 #endif
 	else
@@ -1914,7 +2114,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	}
 	TextureCache::OnConfigChanged(g_ActiveConfig);
 #ifdef HAVE_OCULUSSDK
-	if (g_has_rift && g_ActiveConfig.bEnableVR)
+	if (g_has_rift && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		g_rift_frame_timing = ovrHmd_BeginFrame(hmd, 0);
 	}

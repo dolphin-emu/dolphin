@@ -107,11 +107,14 @@ public:
 	// convtype=0 -> rgb8->rgba6, convtype=2 -> rgba6->rgb8
 	static void ReinterpretPixelData(unsigned int convtype, int eye);
 
+	static void SwapAsyncFrontBuffers();
+
 	// Oculus Rift
 #ifdef HAVE_OCULUSSDK
 	static void ConfigureRift();
 	static ovrGLTexture m_eye_texture[2];
 #endif
+	static volatile GLuint m_frontBuffer[2];
 	static bool m_stereo3d;
 	static int m_eye_count, m_current_eye;
 

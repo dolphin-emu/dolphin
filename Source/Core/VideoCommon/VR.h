@@ -16,6 +16,8 @@ const float DEFAULT_VR_UNITS_PER_METRE = 1.0f, DEFAULT_VR_HUD_DISTANCE = 1.5f, D
 #include "Kernel/OVR_Math.h"
 #endif
 
+#include <mutex>
+
 #include "Common/MathUtil.h"
 
 #ifndef M_PI
@@ -46,5 +48,7 @@ extern ovrHmdDesc hmdDesc;
 extern ovrFovPort g_eye_fov[2];
 extern ovrEyeRenderDesc g_eye_render_desc[2];
 extern ovrFrameTiming g_rift_frame_timing;
-extern ovrPosef g_eye_poses[2];
+extern ovrPosef g_eye_poses[2], g_front_eye_poses[2];
+extern std::mutex g_ovr_lock;
+extern int g_ovr_frameindex;
 #endif

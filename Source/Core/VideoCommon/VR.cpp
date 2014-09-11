@@ -25,7 +25,9 @@ ovrHmdDesc hmdDesc;
 ovrFovPort g_eye_fov[2];
 ovrEyeRenderDesc g_eye_render_desc[2];
 ovrFrameTiming g_rift_frame_timing;
-ovrPosef g_eye_poses[2];
+ovrPosef g_eye_poses[2], g_front_eye_poses[2];
+std::mutex g_ovr_lock;
+int g_ovr_frameindex;
 #endif
 
 bool g_force_vr = false;
@@ -143,8 +145,11 @@ void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift && hmd)
 	{
+		// we can only call GetEyePose between BeginFrame and EndFrame
+		g_ovr_lock.lock();
 		g_eye_poses[ovrEye_Left] = ovrHmd_GetEyePose(hmd, ovrEye_Left);
 		g_eye_poses[ovrEye_Right] = ovrHmd_GetEyePose(hmd, ovrEye_Right);
+		g_ovr_lock.unlock();
 		//ovrTrackingState ss = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
 		//if (ss.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked))
 		{

@@ -125,6 +125,7 @@ struct VideoConfig final
 	// VR global
 	float fScale;
 	float fLeanBackAngle;
+	bool bAsynchronousTimewarp;
 	bool bEnableVR;
 	bool bLowPersistence;
 	bool bDynamicPrediction;

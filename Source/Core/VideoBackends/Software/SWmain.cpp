@@ -97,6 +97,16 @@ bool VideoSoftware::Initialize(void *window_handle)
 	return true;
 }
 
+bool VideoSoftware::InitializeOtherThread(void *window_handle)
+{
+	if (!GLInterface->Create(window_handle))
+	{
+		INFO_LOG(VIDEO, "GLInterface::Create failed.");
+		return false;
+	}
+	return true;
+}
+
 void VideoSoftware::DoState(PointerWrap& p)
 {
 	bool software = true;
@@ -168,10 +178,20 @@ void VideoSoftware::Shutdown()
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
 
+	GLInterface->ShutdownOffscreen();
+}
+
+void VideoSoftware::ShutdownOtherThread()
+{
 	GLInterface->Shutdown();
 }
 
 void VideoSoftware::Video_Cleanup()
+{
+	GLInterface->ClearCurrentOffscreen();
+}
+
+void VideoSoftware::Video_CleanupOtherThread()
 {
 	GLInterface->ClearCurrent();
 }
@@ -179,7 +199,7 @@ void VideoSoftware::Video_Cleanup()
 // This is called after Video_Initialize() from the Core
 void VideoSoftware::Video_Prepare()
 {
-	GLInterface->MakeCurrent();
+	GLInterface->MakeCurrentOffscreen();
 
 	// Init extension support.
 	if (!GLExtensions::Init())
@@ -198,6 +218,11 @@ void VideoSoftware::Video_Prepare()
 	SWRenderer::Prepare();
 
 	INFO_LOG(VIDEO, "Video backend initialized.");
+}
+
+void VideoSoftware::Video_PrepareOtherThread()
+{
+	GLInterface->MakeCurrent();
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -335,6 +360,13 @@ void VideoSoftware::Video_EnterLoop()
 void VideoSoftware::Video_ExitLoop()
 {
 	fifoStateRun = false;
+}
+
+void VideoSoftware::Video_AsyncTimewarpDraw()
+{
+#ifdef HAVE_OCULUSSDK
+
+#endif
 }
 
 // TODO : could use the OSD class in video common, we would need to implement the Renderer class

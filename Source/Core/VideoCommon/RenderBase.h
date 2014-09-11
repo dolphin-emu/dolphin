@@ -108,6 +108,8 @@ public:
 	virtual void ResetAPIState() = 0;
 	virtual void RestoreAPIState() = 0;
 
+	virtual void AsyncTimewarpDraw() = 0;
+
 	// Finish up the current frame, print some stats
 	static void Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f);
 	virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f) = 0;

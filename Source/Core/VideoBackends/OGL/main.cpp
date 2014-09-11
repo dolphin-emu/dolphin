@@ -169,14 +169,37 @@ bool VideoBackend::Initialize(void *window_handle)
 
 	InitInterface();
 	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-	if (!GLInterface->Create(window_handle))
+	if (window_handle)
+	{
+		if (!GLInterface->Create(window_handle))
 		return false;
+	}
+	else
+	{
+		if (!GLInterface->CreateOffscreen())
+			return false;
+	}
 
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_INIT);
 
 	s_BackendInitialized = true;
+	return true;
+}
 
+bool VideoBackend::InitializeOtherThread(void *window_handle)
+{
+	g_ovr_lock.lock();
+	if (window_handle)
+	{
+		if (!GLInterface->Create(window_handle))
+			return false;
+	}
+	else
+	{
+		if (!GLInterface->CreateOffscreen())
+			return false;
+	}
 	return true;
 }
 
@@ -184,7 +207,7 @@ bool VideoBackend::Initialize(void *window_handle)
 // Run from the graphics thread
 void VideoBackend::Video_Prepare()
 {
-	GLInterface->MakeCurrent();
+	GLInterface->MakeCurrentOffscreen();
 
 	g_renderer = new Renderer;
 
@@ -211,6 +234,11 @@ void VideoBackend::Video_Prepare()
 	Host_Message(WM_USER_CREATE);
 }
 
+void VideoBackend::Video_PrepareOtherThread()
+{
+	GLInterface->MakeCurrent();
+}
+
 void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
@@ -218,6 +246,11 @@ void VideoBackend::Shutdown()
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
 
+	GLInterface->ShutdownOffscreen();
+}
+
+void VideoBackend::ShutdownOtherThread()
+{
 	GLInterface->Shutdown();
 }
 
@@ -246,8 +279,14 @@ void VideoBackend::Video_Cleanup()
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
 		g_renderer = nullptr;
-		GLInterface->ClearCurrent();
+		GLInterface->ClearCurrentOffscreen();
 	}
+}
+
+void VideoBackend::Video_CleanupOtherThread()
+{
+	g_ovr_lock.unlock();
+	GLInterface->ClearCurrent();
 }
 
 }

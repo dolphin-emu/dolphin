@@ -11,7 +11,9 @@ namespace SW
 class VideoSoftware : public VideoBackend
 {
 	bool Initialize(void *window_handle) override;
+	bool InitializeOtherThread(void *window_handle) override;
 	void Shutdown() override;
+	void ShutdownOtherThread() override;
 
 	std::string GetName() const override;
 	std::string GetDisplayName() const override;
@@ -23,12 +25,15 @@ class VideoSoftware : public VideoBackend
 	void ShowConfig(void* parent) override;
 
 	void Video_Prepare() override;
+	void Video_PrepareOtherThread() override;
 	void Video_Cleanup() override;
+	void Video_CleanupOtherThread() override;
 
 	void Video_EnterLoop() override;
 	void Video_ExitLoop() override;
 	void Video_BeginField(u32, u32, u32) override;
 	void Video_EndField() override;
+	void Video_AsyncTimewarpDraw() override;
 
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) override;
 	u32 Video_GetQueryResult(PerfQueryType type) override;

@@ -48,6 +48,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
   bFullscreen(false), bRenderToMain(false),
   bProgressive(false), bDisableScreenSaver(false),
+  bAsyncronousTimewarp(true),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600),
   bLoopFifoReplay(true)
 {
@@ -90,6 +91,7 @@ void SCoreStartupParameter::LoadDefaults()
 	iPosY = 100;
 	iWidth = 800;
 	iHeight = 600;
+	bAsyncronousTimewarp = true;
 
 	bLoopFifoReplay = true;
 

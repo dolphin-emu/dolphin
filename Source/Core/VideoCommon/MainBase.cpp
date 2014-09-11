@@ -61,6 +61,11 @@ void VideoBackendHardware::Video_ExitLoop()
 	s_perfQueryReadyEvent.Set();
 }
 
+void VideoBackendHardware::Video_AsyncTimewarpDraw()
+{
+	g_renderer->AsyncTimewarpDraw();
+}
+
 void VideoBackendHardware::Video_SetRendering(bool bEnabled)
 {
 	Fifo_SetRendering(bEnabled);

@@ -14,12 +14,17 @@ public:
 	void Swap();
 	void* GetFuncAddress(const std::string& name);
 	bool Create(void *window_handle);
+	bool CreateOffscreen();
 	bool MakeCurrent();
+	bool MakeCurrentOffscreen();
 	bool ClearCurrent();
+	bool ClearCurrentOffscreen();
 	void Shutdown();
+	void ShutdownOffscreen();
 
 	void Update();
 	bool PeekMessages();
 
 	HWND m_window_handle;
+	HWND m_offscreen_window_handle = nullptr;
 };

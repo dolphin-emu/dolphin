@@ -14,6 +14,8 @@
 
 static HDC hDC = nullptr;       // Private GDI Device Context
 static HGLRC hRC = nullptr;     // Permanent Rendering Context
+static HDC hOffscreenDC = nullptr;       // Private GDI Device Context
+static HGLRC hOffscreenRC = nullptr;     // Permanent Rendering Context
 static HINSTANCE dllHandle = nullptr; // Handle to OpenGL32.dll
 
 // typedef from wglext.h
@@ -128,6 +130,103 @@ bool cInterfaceWGL::Create(void *window_handle)
 		return false;
 	}
 
+	if (hOffscreenRC && hRC)
+		wglShareLists(hRC, hOffscreenRC);
+
+	return true;
+}
+
+// Create offscreen rendering window and its secondary OpenGL context
+// This is used for the normal rendering thread with asynchronous timewarp
+bool cInterfaceWGL::CreateOffscreen()
+{
+	if (m_offscreen_window_handle != nullptr)
+		return false;
+
+	// Create offscreen window here!
+	int width = 640;
+	int height = 480;
+
+	WNDCLASSEX wndClass;
+	wndClass.cbSize = sizeof(WNDCLASSEX);
+	wndClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_DBLCLKS;
+	wndClass.lpfnWndProc = DefWindowProc;
+	wndClass.cbClsExtra = 0;
+	wndClass.cbWndExtra = 0;
+	wndClass.hInstance = 0;
+	wndClass.hIcon = 0;
+	wndClass.hCursor = LoadCursor(0, IDC_ARROW);
+	wndClass.hbrBackground = 0;
+	wndClass.lpszMenuName = 0;
+	wndClass.lpszClassName = _T("DolphinOffscreenOpenGL");
+	wndClass.hIconSm = 0;
+	RegisterClassEx(&wndClass);
+
+	// Create the window. Position and size it.
+	HWND wnd = CreateWindowEx(0,
+		_T("DolphinOffscreenOpenGL"),
+		_T("Dolphin offscreen OpenGL"),
+		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+		CW_USEDEFAULT, CW_USEDEFAULT, width, height,
+		0, 0, 0, 0);
+	m_offscreen_window_handle = wnd;
+
+#ifdef _WIN32
+	if (!dllHandle)
+		dllHandle = LoadLibrary(TEXT("OpenGL32.dll"));
+#endif
+
+	PIXELFORMATDESCRIPTOR pfd =         // pfd Tells Windows How We Want Things To Be
+	{
+		sizeof(PIXELFORMATDESCRIPTOR),  // Size Of This Pixel Format Descriptor
+		1,                              // Version Number
+		PFD_DRAW_TO_WINDOW |            // Format Must Support Window
+		PFD_SUPPORT_OPENGL |        // Format Must Support OpenGL
+		PFD_DOUBLEBUFFER,           // Must Support Double Buffering
+		PFD_TYPE_RGBA,                  // Request An RGBA Format
+		32,                             // Select Our Color Depth
+		0, 0, 0, 0, 0, 0,               // Color Bits Ignored
+		0,                              // 8bit Alpha Buffer
+		0,                              // Shift Bit Ignored
+		0,                              // No Accumulation Buffer
+		0, 0, 0, 0,                     // Accumulation Bits Ignored
+		0,                              // 0Bit Z-Buffer (Depth Buffer)
+		0,                              // 0bit Stencil Buffer
+		0,                              // No Auxiliary Buffer
+		PFD_MAIN_PLANE,                 // Main Drawing Layer
+		0,                              // Reserved
+		0, 0, 0                         // Layer Masks Ignored
+	};
+
+	int      PixelFormat;               // Holds The Results After Searching For A Match
+
+	if (!(hOffscreenDC = GetDC(m_offscreen_window_handle)))
+	{
+		PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
+		return false;
+	}
+
+	if (!(PixelFormat = ChoosePixelFormat(hOffscreenDC, &pfd)))
+	{
+		PanicAlert("(2) Can't find a suitable PixelFormat.");
+		return false;
+	}
+
+	if (!SetPixelFormat(hOffscreenDC, PixelFormat, &pfd))
+	{
+		PanicAlert("(3) Can't set the PixelFormat.");
+		return false;
+	}
+
+	if (!(hOffscreenRC = wglCreateContext(hOffscreenDC)))
+	{
+		PanicAlert("(4) Can't create an OpenGL rendering context.");
+		return false;
+	}
+
+	if (hOffscreenRC && hRC)
+		wglShareLists(hRC, hOffscreenRC);
+
 	return true;
 }
 
@@ -142,9 +241,32 @@ bool cInterfaceWGL::MakeCurrent()
 	return success;
 }
 
+bool cInterfaceWGL::MakeCurrentOffscreen()
+{
+	bool success; 
+	if (hOffscreenDC && hOffscreenRC)
+		success = wglMakeCurrent(hOffscreenDC, hOffscreenRC) ? true : false;
+	else
+		success = wglMakeCurrent(hDC, hRC) ? true : false;
+	if (success)
+	{
+		// Grab the swap interval function pointer
+		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
+	}
+	return success;
+}
+
 bool cInterfaceWGL::ClearCurrent()
 {
 	return wglMakeCurrent(hDC, nullptr) ? true : false;
+}
+
+bool cInterfaceWGL::ClearCurrentOffscreen()
+{
+	if (hOffscreenDC)
+		return wglMakeCurrent(hOffscreenDC, nullptr) ? true : false;
+	else
+		return wglMakeCurrent(hDC, nullptr) ? true : false;
 }
 
 // Update window width, size and etc. Called from Render.cpp
@@ -176,6 +298,32 @@ void cInterfaceWGL::Shutdown()
 	{
 		ERROR_LOG(VIDEO, "Attempt to release device context failed.");
 		hDC = nullptr;
+	}
+}
+
+// Close backend
+void cInterfaceWGL::ShutdownOffscreen()
+{
+	if (!hOffscreenDC && !hOffscreenRC)
+	{
+		Shutdown();
+		return;
+	}
+	if (hOffscreenRC)
+	{
+		if (!wglMakeCurrent(nullptr, nullptr))
+			NOTICE_LOG(VIDEO, "Could not release drawing context.");
+
+		if (!wglDeleteContext(hOffscreenRC))
+			ERROR_LOG(VIDEO, "Attempt to release rendering context failed.");
+
+		hOffscreenRC = nullptr;
+	}
+
+	if (hOffscreenDC && !ReleaseDC(m_offscreen_window_handle, hOffscreenDC))
+	{
+		ERROR_LOG(VIDEO, "Attempt to release device context failed.");
+		hOffscreenDC = nullptr;
 	}
 }
 

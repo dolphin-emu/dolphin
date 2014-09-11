@@ -29,9 +29,13 @@ public:
 	virtual u32 GetMode() { return s_opengl_mode; }
 	virtual void* GetFuncAddress(const std::string& name) { return nullptr; }
 	virtual bool Create(void *window_handle) { return true; }
+	virtual bool CreateOffscreen() { return true; }
 	virtual bool MakeCurrent() { return true; }
+	virtual bool MakeCurrentOffscreen() { return true; }
 	virtual bool ClearCurrent() { return true; }
+	virtual bool ClearCurrentOffscreen() { return true; }
 	virtual void Shutdown() {}
+	virtual void ShutdownOffscreen() {}
 
 	virtual void SwapInterval(int Interval) { }
 	virtual u32 GetBackBufferWidth() { return s_backbuffer_width; }

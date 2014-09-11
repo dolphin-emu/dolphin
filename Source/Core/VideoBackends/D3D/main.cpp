@@ -157,6 +157,11 @@ bool VideoBackend::Initialize(void *window_handle)
 	return true;
 }
 
+bool VideoBackend::InitializeOtherThread(void *window_handle)
+{
+	return true;
+}
+
 void VideoBackend::Video_Prepare()
 {
 	// internal interfaces
@@ -181,6 +186,12 @@ void VideoBackend::Video_Prepare()
 
 	// Tell the host that the window is ready
 	Host_Message(WM_USER_CREATE);
+}
+
+void VideoBackend::Video_PrepareOtherThread()
+{
+	// In OpenGL this would be GLInterface->MakeCurrent();
+	// probably not needed for multithreaded Direct3D.
 }
 
 void VideoBackend::Shutdown()
@@ -211,7 +222,15 @@ void VideoBackend::Shutdown()
 	}
 }
 
+void VideoBackend::ShutdownOtherThread()
+{
+}
+
 void VideoBackend::Video_Cleanup()
+{
+}
+
+void VideoBackend::Video_CleanupOtherThread()
 {
 }
 

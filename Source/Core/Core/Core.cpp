@@ -14,6 +14,7 @@
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/CPUDetect.h"
+#include "Common/Event.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
@@ -57,6 +58,7 @@
 #include "DiscIO/FileMonitor.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 // TODO: ugly, remove
@@ -82,7 +84,13 @@ static bool s_is_started = false;
 static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
+static std::thread s_vr_thread;
 static StoppedCallbackFunc s_on_stopped_callback = nullptr;
+
+static Common::Event s_vr_thread_ready;
+static Common::Event s_nonvr_thread_ready;
+static bool s_stop_vr_thread = false;
+static bool s_vr_thread_failure = false;
 
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
@@ -177,6 +185,19 @@ bool Init()
 
 		// The Emu Thread was stopped, synchronize with it.
 		s_emu_thread.join();
+	}
+	if (s_vr_thread.joinable())
+	{
+		if (IsRunning())
+		{
+			PanicAlertT("VR Thread already running");
+			return false;
+		}
+		s_stop_vr_thread = true;
+		s_nonvr_thread_ready.Set();
+
+		// The VR Thread was stopped, synchronize with it.
+		s_vr_thread.join();
 	}
 
 	g_CoreStartupParameter = _CoreParameter;
@@ -315,6 +336,46 @@ static void FifoPlayerThread()
 	return;
 }
 
+void VRThread()
+{
+	Common::SetCurrentThreadName("VR Thread");
+
+	const SCoreStartupParameter& _CoreParameter =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+	NOTICE_LOG(VR, "[VR Thread] Starting VR Thread - g_video_backend->Initialize()");
+	if (!g_video_backend->InitializeOtherThread(s_window_handle))
+	{
+		s_vr_thread_failure = true;
+		s_vr_thread_ready.Set();
+		return;
+	}
+	s_vr_thread_ready.Set();
+	s_nonvr_thread_ready.Wait();
+
+	NOTICE_LOG(VR, "[VR Thread] g_video_backend->Video_Prepare()");
+	g_video_backend->Video_PrepareOtherThread();
+	s_vr_thread_ready.Set();
+	s_nonvr_thread_ready.Wait();
+
+	NOTICE_LOG(VR, "[VR Thread] Main VR loop");
+	while (!s_stop_vr_thread)
+	{
+		if (g_renderer)
+			g_renderer->AsyncTimewarpDraw();
+	}
+
+	g_video_backend->Video_CleanupOtherThread();
+	s_vr_thread_ready.Set();
+	s_nonvr_thread_ready.Wait();
+
+	NOTICE_LOG(VR, "[VR Thread] g_video_backend->Shutdown()");
+	g_video_backend->ShutdownOtherThread();
+	s_vr_thread_ready.Set();
+
+	NOTICE_LOG(VR, "[VR Thread] Stopping VR Thread");
+}
+
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
@@ -333,11 +394,39 @@ void EmuThread()
 
 	HW::Init();
 
-	if (!g_video_backend->Initialize(s_window_handle))
+	// Initialize backend, and optionally VR thread for asynchronous timewarp rendering
+	if (_CoreParameter.bAsyncronousTimewarp)
 	{
-		PanicAlert("Failed to initialize video backend!");
-		Host_Message(WM_USER_STOP);
-		return;
+		if (!g_video_backend->Initialize(nullptr))
+		{
+			PanicAlert("Failed to initialize video backend!");
+			Host_Message(WM_USER_STOP);
+			return;
+		}
+		// Start the VR thread
+		s_stop_vr_thread = false;
+		s_vr_thread_failure = false;
+		s_nonvr_thread_ready.Reset();
+		s_vr_thread_ready.Reset();
+		s_vr_thread = std::thread(VRThread);
+		s_vr_thread_ready.Wait();
+		if (s_vr_thread_failure)
+		{
+			PanicAlert("Failed to initialize video backend in VR Thread!");
+			s_vr_thread.join();
+			Host_Message(WM_USER_STOP);
+			return;
+		}
+	}
+	else
+	{
+		if (!g_video_backend->Initialize(s_window_handle))
+		{
+			PanicAlert("Failed to initialize video backend!");
+			Host_Message(WM_USER_STOP);
+			return;
+		}
+
 	}
 
 	OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
@@ -395,6 +484,13 @@ void EmuThread()
 	else
 		cpuThreadFunc = CpuThread;
 
+	// 	On VR Thread: g_video_backend->Video_PrepareOtherThread();
+	if (_CoreParameter.bAsyncronousTimewarp)
+	{
+		s_nonvr_thread_ready.Set();
+		s_vr_thread_ready.Wait();
+	}
+
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
@@ -406,6 +502,9 @@ void EmuThread()
 
 		// Spawn the CPU thread
 		s_cpu_thread = std::thread(cpuThreadFunc);
+
+		// VR thread starts main loop in background
+		s_nonvr_thread_ready.Set();
 
 		// become the GPU thread
 		g_video_backend->Video_EnterLoop();
@@ -421,6 +520,9 @@ void EmuThread()
 		// thread, the video backend window hangs in single core mode
 		// because noone is pumping messages.
 		Common::SetCurrentThreadName("Emuthread - Idle");
+
+		// VR thread starts main loop in background
+		s_nonvr_thread_ready.Set();
 
 		// Spawn the CPU+GPU thread
 		s_cpu_thread = std::thread(cpuThreadFunc);
@@ -447,8 +549,18 @@ void EmuThread()
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 
+	if (_CoreParameter.bAsyncronousTimewarp)
+	{
+		// Tell the VR Thread to stop
+		s_nonvr_thread_ready.Set();
+		s_stop_vr_thread = true;
+		s_vr_thread_ready.Wait();
+	}
+
 	if (_CoreParameter.bCPUThread)
+	{
 		g_video_backend->Video_Cleanup();
+	}
 
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
@@ -464,7 +576,15 @@ void EmuThread()
 	INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
 	Pad::Shutdown();
 	Wiimote::Shutdown();
+
+	// Oculus Rift VR thread
+	if (_CoreParameter.bAsyncronousTimewarp)
+	{
+		s_stop_vr_thread = true;
+		s_vr_thread.join();
+	}
 	g_video_backend->Shutdown();
+
 	AudioCommon::ShutdownSoundStream();
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
