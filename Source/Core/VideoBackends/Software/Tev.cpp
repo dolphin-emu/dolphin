@@ -5,7 +5,7 @@
 #include <cmath>
 
 #include "Common/ChunkFile.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/SWStatistics.h"

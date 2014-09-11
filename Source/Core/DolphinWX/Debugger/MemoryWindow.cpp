@@ -24,7 +24,7 @@
 #include <wx/windowid.h>
 #include <wx/wxcrtvararg.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"

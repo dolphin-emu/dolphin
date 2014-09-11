@@ -27,7 +27,11 @@
 #ifndef POLARSSL_XTEA_H
 #define POLARSSL_XTEA_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <string.h>
 
@@ -59,6 +63,20 @@ typedef struct
     uint32_t k[4];       /*!< key */
 }
 xtea_context;
+
+/**
+ * \brief          Initialize XTEA context
+ *
+ * \param ctx      XTEA context to be initialized
+ */
+void xtea_init( xtea_context *ctx );
+
+/**
+ * \brief          Clear XTEA context
+ *
+ * \param ctx      XTEA context to be cleared
+ */
+void xtea_free( xtea_context *ctx );
 
 /**
  * \brief          XTEA key schedule

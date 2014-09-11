@@ -104,7 +104,6 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="MemcardManager.cpp" />
-    <ClCompile Include="MemoryCards\WiiSaveCrypted.cpp" />
     <ClCompile Include="NetWindow.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
     <ClCompile Include="SoftwareVideoConfigDialog.cpp" />
@@ -150,7 +149,6 @@
     <ClInclude Include="LogWindow.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="MemcardManager.h" />
-    <ClInclude Include="MemoryCards\WiiSaveCrypted.h" />
     <ClInclude Include="NetWindow.h" />
     <ClInclude Include="PatchAddEdit.h" />
     <ClInclude Include="SoftwareVideoConfigDialog.h" />

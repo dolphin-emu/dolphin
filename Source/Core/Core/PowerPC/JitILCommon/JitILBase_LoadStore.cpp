@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 void JitILBase::lhax(UGeckoInstruction inst)
@@ -131,7 +131,7 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 
 	// TODO!
 #if 0
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITOff || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStoreOff)
 	{
 		Default(inst);
 		return;

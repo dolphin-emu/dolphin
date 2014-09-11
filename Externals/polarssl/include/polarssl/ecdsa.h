@@ -30,7 +30,7 @@
 #include "ecp.h"
 
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
-#include "polarssl/md.h"
+#include "md.h"
 #endif
 
 /**
@@ -40,7 +40,7 @@
  */
 typedef struct
 {
-    ecp_group grp;      /*!<  ellipitic curve used          */
+    ecp_group grp;      /*!<  elliptic curve used           */
     mpi d;              /*!<  secret signature key          */
     ecp_point Q;        /*!<  public signature key          */
     mpi r;              /*!<  first integer from signature  */
@@ -90,7 +90,7 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
 int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
                     const mpi *d, const unsigned char *buf, size_t blen,
                     md_type_t md_alg );
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 
 /**
  * \brief           Verify ECDSA signature of a previously hashed message
@@ -163,7 +163,7 @@ int ecdsa_write_signature_det( ecdsa_context *ctx,
                                const unsigned char *hash, size_t hlen,
                                unsigned char *sig, size_t *slen,
                                md_type_t md_alg );
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 
 /**
  * \brief           Read and verify an ECDSA signature
@@ -175,7 +175,9 @@ int ecdsa_write_signature_det( ecdsa_context *ctx,
  * \param slen      Size of sig
  *
  * \return          0 if successful,
- *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid
+ *                  POLARSSL_ERR_ECP_BAD_INPUT_DATA if signature is invalid,
+ *                  POLARSSL_ERR_ECP_SIG_LEN_MISTMATCH if the signature is
+ *                  valid but its actual length is less than siglen,
  *                  or a POLARSSL_ERR_ECP or POLARSSL_ERR_MPI error code
  */
 int ecdsa_read_signature( ecdsa_context *ctx,
@@ -231,4 +233,4 @@ int ecdsa_self_test( int verbose );
 }
 #endif
 
-#endif
+#endif /* ecdsa.h */

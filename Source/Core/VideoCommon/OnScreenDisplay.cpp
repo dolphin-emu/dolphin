@@ -6,7 +6,7 @@
 #include <map>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"

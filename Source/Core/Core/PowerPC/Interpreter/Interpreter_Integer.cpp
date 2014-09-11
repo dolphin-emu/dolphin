@@ -413,7 +413,7 @@ void Interpreter::tw(UGeckoInstruction _inst)
 	s32 b = m_GPR[_inst.RB];
 	s32 TO = _inst.TO;
 
-	ERROR_LOG(POWERPC, "tw rA %0x rB %0x TO %0x", a, b, TO);
+	DEBUG_LOG(POWERPC, "tw rA %0x rB %0x TO %0x", a, b, TO);
 
 	if (((a < b) && (TO & 0x10)) ||
 	    ((a > b) && (TO & 0x08)) ||

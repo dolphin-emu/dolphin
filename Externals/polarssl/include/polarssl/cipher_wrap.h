@@ -1,6 +1,6 @@
 /**
  * \file cipher_wrap.h
- * 
+ *
  * \brief Cipher wrappers.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
@@ -29,7 +29,11 @@
 #ifndef POLARSSL_CIPHER_WRAP_H
 #define POLARSSL_CIPHER_WRAP_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 #include "cipher.h"
 
 #ifdef __cplusplus

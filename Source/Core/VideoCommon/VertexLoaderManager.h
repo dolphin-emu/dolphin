@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
 namespace VertexLoaderManager

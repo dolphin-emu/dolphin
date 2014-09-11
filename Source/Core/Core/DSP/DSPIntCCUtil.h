@@ -8,7 +8,7 @@
 
 // Anything to do with SR and conditions goes here.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 namespace DSPInterpreter
 {

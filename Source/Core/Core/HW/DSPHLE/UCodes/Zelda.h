@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 // Obviously missing things that must be in here, somewhere among the "unknown":

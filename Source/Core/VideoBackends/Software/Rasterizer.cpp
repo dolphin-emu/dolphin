@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/HwRasterizer.h"

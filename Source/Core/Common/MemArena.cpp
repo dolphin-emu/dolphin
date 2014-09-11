@@ -7,7 +7,7 @@
 #include <set>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MemArena.h"
 #include "Common/StringUtil.h"
 
@@ -233,7 +233,6 @@ bail:
 u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	u32 total_mem = 0;
-	int base_attempts = 0;
 
 	for (int i = 0; i < num_views; i++)
 	{
@@ -266,8 +265,6 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	}
 #endif
 
-	if (base_attempts)
-		PanicAlert("No possible memory base pointer found!");
 	return base;
 }
 

@@ -9,7 +9,7 @@
 #include <SLES/OpenSLES_Android.h>
 
 #include "AudioCommon/OpenSLESStream.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 // engine interfaces
 static SLObjectItf engineObject;

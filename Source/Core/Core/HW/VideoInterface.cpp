@@ -3,9 +3,10 @@
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/State.h"
@@ -136,10 +137,10 @@ void Preset(bool _bNTSC)
 	m_VBeamPos = 0; // RG4JC0 checks for a zero VBeamPos
 
 	// 54MHz, capable of progressive scan
-	m_Clock = Core::g_CoreStartupParameter.bProgressive;
+	m_Clock = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
 
 	// Say component cable is plugged
-	m_DTVStatus.component_plugged = Core::g_CoreStartupParameter.bProgressive;
+	m_DTVStatus.component_plugged = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
 
 	UpdateParameters();
 }
@@ -171,7 +172,7 @@ void Init()
 
 	fields = 1;
 
-	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.bForceNTSCJ;
+	m_DTVStatus.ntsc_j = SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ;
 
 	for (UVIInterruptRegister& reg : m_InterruptRegister)
 	{
@@ -399,7 +400,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void SetRegionReg(char region)
 {
-	if (!Core::g_CoreStartupParameter.bForceNTSCJ)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ)
 		m_DTVStatus.ntsc_j = region == 'J';
 }
 
@@ -477,7 +478,7 @@ void UpdateParameters()
 
 int GetNumFields()
 {
-	if (Core::g_CoreStartupParameter.bVBeamSpeedHack)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeamSpeedHack)
 		return (2 / fields);
 	else
 		return 1;
@@ -491,7 +492,7 @@ unsigned int GetTicksPerLine()
 	}
 	else
 	{
-		if (Core::g_CoreStartupParameter.bVBeamSpeedHack)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeamSpeedHack)
 			return TicksPerFrame / s_lineCount;
 		else
 			return TicksPerFrame / (s_lineCount / (2 / fields)) ;

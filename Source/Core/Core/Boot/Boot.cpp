@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/MathUtil.h"

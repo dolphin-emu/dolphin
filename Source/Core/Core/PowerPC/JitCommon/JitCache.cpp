@@ -11,7 +11,7 @@
 
 #include "disasm.h"
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"

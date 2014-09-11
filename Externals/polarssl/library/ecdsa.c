@@ -1,7 +1,7 @@
 /*
  *  Elliptic curve DSA
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -29,7 +29,11 @@
  * SEC1 http://www.secg.org/index.php?action=secg,docs_secg
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ECDSA_C)
 
@@ -37,101 +41,10 @@
 #include "polarssl/asn1write.h"
 
 #if defined(POLARSSL_ECDSA_DETERMINISTIC)
-/*
- * Simplified HMAC_DRBG context.
- * No reseed counter, no prediction resistance flag.
- */
-typedef struct
-{
-    md_context_t md_ctx;
-    unsigned char V[POLARSSL_MD_MAX_SIZE];
-    unsigned char K[POLARSSL_MD_MAX_SIZE];
-} hmac_drbg_context;
+#include "polarssl/hmac_drbg.h"
+#endif
 
-/*
- * Simplified HMAC_DRBG update, using optional additional data
- */
-static void hmac_drbg_update( hmac_drbg_context *ctx,
-                              const unsigned char *data, size_t data_len )
-{
-    size_t md_len = ctx->md_ctx.md_info->size;
-    unsigned char rounds = ( data != NULL && data_len != 0 ) ? 2 : 1;
-    unsigned char sep[1];
-
-    for( sep[0] = 0; sep[0] < rounds; sep[0]++ )
-    {
-        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-        md_hmac_update( &ctx->md_ctx, sep, 1 );
-        if( rounds == 2 )
-            md_hmac_update( &ctx->md_ctx, data, data_len );
-        md_hmac_finish( &ctx->md_ctx, ctx->K );
-
-        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-        md_hmac_finish( &ctx->md_ctx, ctx->V );
-    }
-}
-
-/*
- * Simplified HMAC_DRBG initialisation.
- *
- * Uses an entropy buffer rather than callback,
- * assume personalisation string is included in entropy buffer,
- * assumes md_info is not NULL and valid.
- */
-static void hmac_drbg_init( hmac_drbg_context *ctx,
-                            const md_info_t * md_info,
-                            const unsigned char *data, size_t data_len )
-{
-    memset( ctx, 0, sizeof( hmac_drbg_context ) );
-    md_init_ctx( &ctx->md_ctx, md_info );
-
-    memset( ctx->V, 0x01, md_info->size );
-    /* ctx->K is already 0 */
-
-    hmac_drbg_update( ctx, data, data_len );
-}
-
-/*
- * Simplified HMAC_DRBG random function
- */
-static int hmac_drbg_random( void *state,
-                             unsigned char *output, size_t out_len )
-{
-    hmac_drbg_context *ctx = (hmac_drbg_context *) state;
-    size_t md_len = ctx->md_ctx.md_info->size;
-    size_t left = out_len;
-    unsigned char *out = output;
-
-    while( left != 0 )
-    {
-        size_t use_len = left > md_len ? md_len : left;
-
-        md_hmac_starts( &ctx->md_ctx, ctx->K, md_len );
-        md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-        md_hmac_finish( &ctx->md_ctx, ctx->V );
-
-        memcpy( out, ctx->V, use_len );
-        out += use_len;
-        left -= use_len;
-    }
-
-    hmac_drbg_update( ctx, NULL, 0 );
-
-    return( 0 );
-}
-
-static void hmac_drbg_free( hmac_drbg_context *ctx )
-{
-    if( ctx == NULL )
-        return;
-
-    md_free_ctx( &ctx->md_ctx );
-
-    memset( ctx, 0, sizeof( hmac_drbg_context ) );
-}
-
+#if defined(POLARSSL_ECDSA_DETERMINISTIC)
 /*
  * This a hopefully temporary compatibility function.
  *
@@ -140,7 +53,7 @@ static void hmac_drbg_free( hmac_drbg_context *ctx )
  *
  * Argument is the minimum size in bytes of the MD output.
  */
-static const md_info_t *md_info_by_size( int min_size )
+static const md_info_t *md_info_by_size( size_t min_size )
 {
     const md_info_t *md_cur, *md_picked = NULL;
     const int *md_alg;
@@ -148,7 +61,7 @@ static const md_info_t *md_info_by_size( int min_size )
     for( md_alg = md_list(); *md_alg != 0; md_alg++ )
     {
         if( ( md_cur = md_info_from_type( *md_alg ) ) == NULL ||
-            md_cur->size < min_size ||
+            (size_t) md_cur->size < min_size ||
             ( md_picked != NULL && md_cur->size > md_picked->size ) )
             continue;
 
@@ -157,7 +70,7 @@ static const md_info_t *md_info_by_size( int min_size )
 
     return( md_picked );
 }
-#endif
+#endif /* POLARSSL_ECDSA_DETERMINISTIC */
 
 /*
  * Derive a suitable integer for group grp from a buffer of length len
@@ -167,7 +80,7 @@ static int derive_mpi( const ecp_group *grp, mpi *x,
                        const unsigned char *buf, size_t blen )
 {
     int ret;
-    size_t n_size = (grp->nbits + 7) / 8;
+    size_t n_size = ( grp->nbits + 7 ) / 8;
     size_t use_size = blen > n_size ? n_size : blen;
 
     MPI_CHK( mpi_read_binary( x, buf, use_size ) );
@@ -190,17 +103,16 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
                 const mpi *d, const unsigned char *buf, size_t blen,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    int ret, key_tries, sign_tries;
+    int ret, key_tries, sign_tries, blind_tries;
     ecp_point R;
-    mpi k, e;
+    mpi k, e, t;
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
     if( grp->N.p == NULL )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA );
 
     ecp_point_init( &R );
-    mpi_init( &k );
-    mpi_init( &e );
+    mpi_init( &k ); mpi_init( &e ); mpi_init( &t );
 
     sign_tries = 0;
     do
@@ -229,10 +141,30 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
         MPI_CHK( derive_mpi( grp, &e, buf, blen ) );
 
         /*
-         * Step 6: compute s = (e + r * d) / k mod n
+         * Generate a random value to blind inv_mod in next step,
+         * avoiding a potential timing leak.
+         */
+        blind_tries = 0;
+        do
+        {
+            size_t n_size = ( grp->nbits + 7 ) / 8;
+            MPI_CHK( mpi_fill_random( &t, n_size, f_rng, p_rng ) );
+            MPI_CHK( mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
+
+            /* See ecp_gen_keypair() */
+            if( ++blind_tries > 30 )
+                return( POLARSSL_ERR_ECP_RANDOM_FAILED );
+        }
+        while( mpi_cmp_int( &t, 1 ) < 0 ||
+               mpi_cmp_mpi( &t, &grp->N ) >= 0 );
+
+        /*
+         * Step 6: compute s = (e + r * d) / k = t (e + rd) / (kt) mod n
          */
         MPI_CHK( mpi_mul_mpi( s, r, d ) );
         MPI_CHK( mpi_add_mpi( &e, &e, s ) );
+        MPI_CHK( mpi_mul_mpi( &e, &e, &t ) );
+        MPI_CHK( mpi_mul_mpi( &k, &k, &t ) );
         MPI_CHK( mpi_inv_mod( s, &k, &grp->N ) );
         MPI_CHK( mpi_mul_mpi( s, s, &e ) );
         MPI_CHK( mpi_mod_mpi( s, s, &grp->N ) );
@@ -247,8 +179,7 @@ int ecdsa_sign( ecp_group *grp, mpi *r, mpi *s,
 
 cleanup:
     ecp_point_free( &R );
-    mpi_free( &k );
-    mpi_free( &e );
+    mpi_free( &k ); mpi_free( &e ); mpi_free( &t );
 
     return( ret );
 }
@@ -284,7 +215,7 @@ int ecdsa_sign_det( ecp_group *grp, mpi *r, mpi *s,
     MPI_CHK( mpi_write_binary( d, data, grp_len ) );
     MPI_CHK( derive_mpi( grp, &h, buf, blen ) );
     MPI_CHK( mpi_write_binary( &h, data + grp_len, grp_len ) );
-    hmac_drbg_init( &rng_ctx, md_info, data, 2 * grp_len );
+    hmac_drbg_init_buf( &rng_ctx, md_info, data, 2 * grp_len );
 
     ret = ecdsa_sign( grp, r, s, d, buf, blen,
                       hmac_drbg_random, &rng_ctx );
@@ -495,11 +426,14 @@ int ecdsa_read_signature( ecdsa_context *ctx,
         ( ret = asn1_get_mpi( &p, end, &ctx->s ) ) != 0 )
         return( POLARSSL_ERR_ECP_BAD_INPUT_DATA + ret );
 
-    if( p != end )
-        return( POLARSSL_ERR_ECP_BAD_INPUT_DATA +
-                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+    if( ( ret = ecdsa_verify( &ctx->grp, hash, hlen,
+                              &ctx->Q, &ctx->r, &ctx->s ) ) != 0 )
+        return( ret );
 
-    return( ecdsa_verify( &ctx->grp, hash, hlen, &ctx->Q, &ctx->r, &ctx->s ) );
+    if( p != end )
+        return( POLARSSL_ERR_ECP_SIG_LEN_MISMATCH );
+
+    return( 0 );
 }
 
 /*
@@ -564,6 +498,6 @@ int ecdsa_self_test( int verbose )
     return( 0 );
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif /* defined(POLARSSL_ECDSA_C) */
+#endif /* POLARSSL_ECDSA_C */

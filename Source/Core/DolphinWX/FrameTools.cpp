@@ -36,7 +36,7 @@
 #endif
 
 #include "Common/CDUtils.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
@@ -54,6 +54,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiiSaveCrypted.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -78,7 +79,6 @@
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
-#include "DolphinWX/MemoryCards/WiiSaveCrypted.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 

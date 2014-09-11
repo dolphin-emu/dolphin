@@ -2,10 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <functional>
-
 #include "AudioCommon/AlsaSoundStream.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 
 #define FRAME_COUNT_MIN 256
@@ -24,7 +22,7 @@ AlsaSound::~AlsaSound()
 
 bool AlsaSound::Start()
 {
-	thread = std::thread(std::mem_fn(&AlsaSound::SoundLoop), this);
+	thread = std::thread(&AlsaSound::SoundLoop, this);
 	thread_data = 0;
 	return true;
 }

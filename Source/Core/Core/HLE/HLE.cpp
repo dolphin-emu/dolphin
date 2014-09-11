@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -143,10 +143,10 @@ int GetFunctionFlagsByIndex(u32 index)
 
 bool IsEnabled(int flags)
 {
-	if (flags == HLE::HLE_TYPE_MEMORY && Core::g_CoreStartupParameter.bMMU)
+	if (flags == HLE::HLE_TYPE_MEMORY && SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 		return false;
 
-	if (flags == HLE::HLE_TYPE_DEBUG && !Core::g_CoreStartupParameter.bEnableDebugging && PowerPC::GetMode() != MODE_INTERPRETER)
+	if (flags == HLE::HLE_TYPE_DEBUG && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && PowerPC::GetMode() != MODE_INTERPRETER)
 		return false;
 
 	return true;

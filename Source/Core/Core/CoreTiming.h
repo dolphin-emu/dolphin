@@ -18,7 +18,7 @@
 //   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
 
 #include <string>
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 class PointerWrap;
 

@@ -27,7 +27,7 @@
 #include <wx/aui/auibar.h>
 
 #include "Common/BreakPoints.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
 #include "Core/Core.h"
@@ -501,37 +501,37 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 			bAutomaticStart = !bAutomaticStart;
 			return;
 		case IDM_JITOFF:
-			Core::g_CoreStartupParameter.bJITOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITOff = event.IsChecked();
 			break;
 		case IDM_JITLSOFF:
-			Core::g_CoreStartupParameter.bJITLoadStoreOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStoreOff = event.IsChecked();
 			break;
 		case IDM_JITLSLXZOFF:
-			Core::g_CoreStartupParameter.bJITLoadStorelXzOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelXzOff = event.IsChecked();
 			break;
 		case IDM_JITLSLWZOFF:
-			Core::g_CoreStartupParameter.bJITLoadStorelwzOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelwzOff = event.IsChecked();
 			break;
 		case IDM_JITLSLBZXOFF:
-			Core::g_CoreStartupParameter.bJITLoadStorelbzxOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorelbzxOff = event.IsChecked();
 			break;
 		case IDM_JITLSFOFF:
-			Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStoreFloatingOff = event.IsChecked();
 			break;
 		case IDM_JITLSPOFF:
-			Core::g_CoreStartupParameter.bJITLoadStorePairedOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITLoadStorePairedOff = event.IsChecked();
 			break;
 		case IDM_JITFPOFF:
-			Core::g_CoreStartupParameter.bJITFloatingPointOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITFloatingPointOff = event.IsChecked();
 			break;
 		case IDM_JITIOFF:
-			Core::g_CoreStartupParameter.bJITIntegerOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITIntegerOff = event.IsChecked();
 			break;
 		case IDM_JITPOFF:
-			Core::g_CoreStartupParameter.bJITPairedOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITPairedOff = event.IsChecked();
 			break;
 		case IDM_JITSROFF:
-			Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked();
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bJITSystemRegistersOff = event.IsChecked();
 			break;
 	}
 

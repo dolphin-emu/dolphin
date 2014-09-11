@@ -23,7 +23,7 @@
 
    ====================================================================*/
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPStacks.h"

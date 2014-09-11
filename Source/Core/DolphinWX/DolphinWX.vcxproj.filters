@@ -87,9 +87,6 @@
     <ClCompile Include="NetWindow.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
-    <ClCompile Include="MemoryCards\WiiSaveCrypted.cpp">
-      <Filter>GUI\Saves</Filter>
-    </ClCompile>
     <ClCompile Include="Debugger\DebuggerPanel.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
@@ -212,9 +209,6 @@
     </ClInclude>
     <ClInclude Include="NetWindow.h">
       <Filter>GUI\NetPlay</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryCards\WiiSaveCrypted.h">
-      <Filter>GUI\Saves</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\DebuggerPanel.h">
       <Filter>GUI\Video</Filter>

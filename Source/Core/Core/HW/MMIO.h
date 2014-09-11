@@ -40,7 +40,7 @@ const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
 // interface.
 inline bool IsMMIOAddress(u32 address)
 {
-	return ((address & 0xE0000000) == 0xC0000000) &&
+	return ((address & 0xFE7F0000) == 0xCC000000) &&
 	       ((address & 0x0000FFFF) != 0x00008000);
 }
 

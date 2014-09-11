@@ -14,8 +14,8 @@
 #include <wx/string.h>
 
 #include "Common/ChunkFile.h"
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/IniFile.h"

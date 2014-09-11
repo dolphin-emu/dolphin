@@ -28,7 +28,7 @@
 #include <wx/textctrl.h>
 #include <wx/translation.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

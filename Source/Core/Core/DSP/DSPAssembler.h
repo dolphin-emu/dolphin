@@ -27,7 +27,7 @@
 #include <map>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"

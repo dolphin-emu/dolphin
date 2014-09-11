@@ -2,10 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <functional>
-
 #include "AudioCommon/PulseAudioStream.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 
 namespace
@@ -25,7 +23,7 @@ PulseAudio::PulseAudio(CMixer *mixer)
 bool PulseAudio::Start()
 {
 	m_run_thread = true;
-	m_thread = std::thread(std::mem_fn(&PulseAudio::SoundLoop), this);
+	m_thread = std::thread(&PulseAudio::SoundLoop, this);
 	return true;
 }
 

@@ -1,7 +1,7 @@
 /*
  * ASN.1 buffer writing functionality
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,14 +23,18 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_ASN1_WRITE_C)
 
 #include "polarssl/asn1write.h"
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc
@@ -109,12 +113,12 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
         return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
 
     (*p) -= len;
-    mpi_write_binary( X, *p, len );
+    MPI_CHK( mpi_write_binary( X, *p, len ) );
 
     // DER format assumes 2s complement for numbers, so the leftmost bit
     // should be 0 for positive numbers and 1 for negative numbers.
     //
-    if ( X->s ==1 && **p & 0x80 )
+    if( X->s ==1 && **p & 0x80 )
     {
         if( *p - start < 1 )
             return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
@@ -126,7 +130,10 @@ int asn1_write_mpi( unsigned char **p, unsigned char *start, mpi *X )
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_INTEGER ) );
 
-    return( (int) len );
+    ret = (int) len;
+
+cleanup:
+    return( ret );
 }
 #endif /* POLARSSL_BIGNUM_C */
 
@@ -210,7 +217,7 @@ int asn1_write_int( unsigned char **p, unsigned char *start, int val )
     len += 1;
     *--(*p) = val;
 
-    if ( val > 0 && **p & 0x80 )
+    if( val > 0 && **p & 0x80 )
     {
         if( *p - start < 1 )
             return( POLARSSL_ERR_ASN1_BUF_TOO_SMALL );
@@ -356,4 +363,4 @@ asn1_named_data *asn1_store_named_data( asn1_named_data **head,
 
     return( cur );
 }
-#endif
+#endif /* POLARSSL_ASN1_WRITE_C */

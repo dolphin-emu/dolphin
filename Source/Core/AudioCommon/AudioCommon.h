@@ -5,7 +5,7 @@
 #pragma once
 
 #include "AudioCommon/SoundStream.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 
 class CMixer;

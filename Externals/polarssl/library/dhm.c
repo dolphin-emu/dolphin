@@ -1,7 +1,7 @@
 /*
  *  Diffie-Hellman-Merkle key exchange
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -28,7 +28,11 @@
  *  http://www.cacr.math.uwaterloo.ca/hac/ (chapter 12)
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_DHM_C)
 
@@ -42,13 +46,19 @@
 #include "polarssl/asn1.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
 #include <stdlib.h>
+#define polarssl_printf     printf
 #define polarssl_malloc     malloc
 #define polarssl_free       free
 #endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 /*
  * helper to validate the mpi size and import it
@@ -91,8 +101,9 @@ static int dhm_check_range( const mpi *param, const mpi *P )
     int ret = POLARSSL_ERR_DHM_BAD_INPUT_DATA;
 
     mpi_init( &L ); mpi_init( &U );
-    mpi_lset( &L, 2 );
-    mpi_sub_int( &U, P, 2 );
+
+    MPI_CHK( mpi_lset( &L, 2 ) );
+    MPI_CHK( mpi_sub_int( &U, P, 2 ) );
 
     if( mpi_cmp_mpi( param, &L ) >= 0 &&
         mpi_cmp_mpi( param, &U ) <= 0 )
@@ -100,9 +111,14 @@ static int dhm_check_range( const mpi *param, const mpi *P )
         ret = 0;
     }
 
+cleanup:
     mpi_free( &L ); mpi_free( &U );
-
     return( ret );
+}
+
+void dhm_init( dhm_context *ctx )
+{
+    memset( ctx, 0, sizeof( dhm_context ) );
 }
 
 /*
@@ -113,8 +129,6 @@ int dhm_read_params( dhm_context *ctx,
                      const unsigned char *end )
 {
     int ret;
-
-    dhm_free( ctx );
 
     if( ( ret = dhm_read_bignum( &ctx->P,  p, end ) ) != 0 ||
         ( ret = dhm_read_bignum( &ctx->G,  p, end ) ) != 0 ||
@@ -152,7 +166,7 @@ int dhm_make_params( dhm_context *ctx, int x_size,
         mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-            mpi_shift_r( &ctx->X, 1 );
+            MPI_CHK( mpi_shift_r( &ctx->X, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_DHM_MAKE_PARAMS_FAILED );
@@ -238,7 +252,7 @@ int dhm_make_public( dhm_context *ctx, int x_size,
         mpi_fill_random( &ctx->X, x_size, f_rng, p_rng );
 
         while( mpi_cmp_mpi( &ctx->X, &ctx->P ) >= 0 )
-            mpi_shift_r( &ctx->X, 1 );
+            MPI_CHK( mpi_shift_r( &ctx->X, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED );
@@ -311,7 +325,7 @@ static int dhm_update_blinding( dhm_context *ctx,
         mpi_fill_random( &ctx->Vi, mpi_size( &ctx->P ), f_rng, p_rng );
 
         while( mpi_cmp_mpi( &ctx->Vi, &ctx->P ) >= 0 )
-            mpi_shift_r( &ctx->Vi, 1 );
+            MPI_CHK( mpi_shift_r( &ctx->Vi, 1 ) );
 
         if( count++ > 10 )
             return( POLARSSL_ERR_MPI_NOT_ACCEPTABLE );
@@ -389,14 +403,15 @@ void dhm_free( dhm_context *ctx )
     mpi_free( &ctx->GX ); mpi_free( &ctx->X ); mpi_free( &ctx->G );
     mpi_free( &ctx->P );
 
-    memset( ctx, 0, sizeof( dhm_context ) );
+    polarssl_zeroize( ctx, sizeof( dhm_context ) );
 }
 
 #if defined(POLARSSL_ASN1_PARSE_C)
 /*
  * Parse DHM parameters
  */
-int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen )
+int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
+                   size_t dhminlen )
 {
     int ret;
     size_t len;
@@ -405,7 +420,6 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
     pem_context pem;
 
     pem_init( &pem );
-    memset( dhm, 0, sizeof( dhm_context ) );
 
     ret = pem_read_buffer( &pem,
                            "-----BEGIN DH PARAMETERS-----",
@@ -425,7 +439,7 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
     p = ( ret == 0 ) ? pem.buf : (unsigned char *) dhmin;
 #else
     p = (unsigned char *) dhmin;
-#endif
+#endif /* POLARSSL_PEM_PARSE_C */
     end = p + dhminlen;
 
     /*
@@ -458,6 +472,8 @@ int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin, size_t dhminlen
     }
 
     ret = 0;
+
+    dhm->len = mpi_size( &dhm->P );
 
 exit:
 #if defined(POLARSSL_PEM_PARSE_C)
@@ -521,12 +537,12 @@ int dhm_parse_dhmfile( dhm_context *dhm, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( ( ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = dhm_parse_dhm( dhm, buf, n );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -547,30 +563,36 @@ int dhm_self_test( int verbose )
     int ret;
     dhm_context dhm;
 
+    dhm_init( &dhm );
+
     if( verbose != 0 )
-        printf( "  DHM parameter load: " );
+        polarssl_printf( "  DHM parameter load: " );
 
     if( ( ret = dhm_parse_dhm( &dhm, (const unsigned char *) test_dhm_params,
                                strlen( test_dhm_params ) ) ) != 0 )
     {
         if( verbose != 0 )
-            printf( "failed\n" );
+            polarssl_printf( "failed\n" );
 
-        return( ret );
+        ret = 1;
+        goto exit;
     }
 
     if( verbose != 0 )
-        printf( "passed\n\n" );
+        polarssl_printf( "passed\n\n" );
 
+exit:
     dhm_free( &dhm );
 
-    return( 0 );
+    return( ret );
 #else
-    ((void) verbose);
-    return( POLARSSL_ERR_X509_FEATURE_UNAVAILABLE );
-#endif
+    if( verbose != 0 )
+        polarssl_printf( "  DHM parameter load: skipped\n" );
+
+    return( 0 );
+#endif /* POLARSSL_CERTS_C */
 }
 
-#endif
+#endif /* POLARSSL_SELF_TEST */
 
-#endif
+#endif /* POLARSSL_DHM_C */

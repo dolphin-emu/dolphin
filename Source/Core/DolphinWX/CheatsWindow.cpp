@@ -31,7 +31,7 @@
 #include <wx/translation.h>
 #include <wx/validate.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Core/ActionReplay.h"
@@ -276,9 +276,9 @@ void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
 void wxCheatsWindow::UpdateGUI()
 {
 	// load code
-	m_gameini_default = Core::g_CoreStartupParameter.LoadDefaultGameIni();
-	m_gameini_local = Core::g_CoreStartupParameter.LoadLocalGameIni();
-	m_gameini_local_path = Core::g_CoreStartupParameter.m_strGameIniLocal;
+	m_gameini_default = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
+	m_gameini_local = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
+	m_gameini_local_path = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal;
 	Load_ARCodes();
 	Load_GeckoCodes();
 
@@ -289,7 +289,7 @@ void wxCheatsWindow::UpdateGUI()
 
 	// write the ISO name in the title
 	if (Core::IsRunning())
-		SetTitle(title + ": " + Core::g_CoreStartupParameter.GetUniqueID() + " - " + Core::g_CoreStartupParameter.m_strName);
+		SetTitle(title + ": " + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + " - " + SConfig::GetInstance().m_LocalCoreStartupParameter.m_strName);
 	else
 		SetTitle(title);
 }
@@ -319,7 +319,7 @@ void wxCheatsWindow::Load_ARCodes()
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, Core::g_CoreStartupParameter.GetUniqueID(), true);
+	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID(), true);
 }
 
 void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (event))

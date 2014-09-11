@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
 #include "Core/PowerPC/JitInterface.h"
@@ -359,7 +359,7 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {
 	// HACK but works... we think
-	if (!Core::g_CoreStartupParameter.bDCBZOFF)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bDCBZOFF)
 		Memory::ClearCacheLine(Helper_Get_EA_X(_inst) & (~31));
 	if (!JitInterface::GetCore())
 		PowerPC::CheckExceptions();

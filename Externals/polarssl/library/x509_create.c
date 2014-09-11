@@ -1,7 +1,7 @@
 /*
  *  X.509 base functions for creating certificates / CSRs
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_X509_CREATE_C)
 
@@ -36,6 +40,59 @@
 #define strncasecmp _strnicmp
 #endif
 
+typedef struct {
+    const char *name;
+    size_t name_len;
+    const char*oid;
+} x509_attr_descriptor_t;
+
+#define ADD_STRLEN( s )     s, sizeof( s ) - 1
+
+static const x509_attr_descriptor_t x509_attrs[] =
+{
+    { ADD_STRLEN( "CN" ),                       OID_AT_CN },
+    { ADD_STRLEN( "commonName" ),               OID_AT_CN },
+    { ADD_STRLEN( "C" ),                        OID_AT_COUNTRY },
+    { ADD_STRLEN( "countryName" ),              OID_AT_COUNTRY },
+    { ADD_STRLEN( "O" ),                        OID_AT_ORGANIZATION },
+    { ADD_STRLEN( "organizationName" ),         OID_AT_ORGANIZATION },
+    { ADD_STRLEN( "L" ),                        OID_AT_LOCALITY },
+    { ADD_STRLEN( "locality" ),                 OID_AT_LOCALITY },
+    { ADD_STRLEN( "R" ),                        OID_PKCS9_EMAIL },
+    { ADD_STRLEN( "OU" ),                       OID_AT_ORG_UNIT },
+    { ADD_STRLEN( "organizationalUnitName" ),   OID_AT_ORG_UNIT },
+    { ADD_STRLEN( "ST" ),                       OID_AT_STATE },
+    { ADD_STRLEN( "stateOrProvinceName" ),      OID_AT_STATE },
+    { ADD_STRLEN( "emailAddress" ),             OID_PKCS9_EMAIL },
+    { ADD_STRLEN( "serialNumber" ),             OID_AT_SERIAL_NUMBER },
+    { ADD_STRLEN( "postalAddress" ),            OID_AT_POSTAL_ADDRESS },
+    { ADD_STRLEN( "postalCode" ),               OID_AT_POSTAL_CODE },
+    { ADD_STRLEN( "dnQualifier" ),              OID_AT_DN_QUALIFIER },
+    { ADD_STRLEN( "title" ),                    OID_AT_TITLE },
+    { ADD_STRLEN( "surName" ),                  OID_AT_SUR_NAME },
+    { ADD_STRLEN( "SN" ),                       OID_AT_SUR_NAME },
+    { ADD_STRLEN( "givenName" ),                OID_AT_GIVEN_NAME },
+    { ADD_STRLEN( "GN" ),                       OID_AT_GIVEN_NAME },
+    { ADD_STRLEN( "initials" ),                 OID_AT_INITIALS },
+    { ADD_STRLEN( "pseudonym" ),                OID_AT_PSEUDONYM },
+    { ADD_STRLEN( "generationQualifier" ),      OID_AT_GENERATION_QUALIFIER },
+    { ADD_STRLEN( "domainComponent" ),          OID_DOMAIN_COMPONENT },
+    { ADD_STRLEN( "DC" ),                       OID_DOMAIN_COMPONENT },
+    { NULL, 0, NULL }
+};
+
+static const char *x509_at_oid_from_name( const char *name, size_t name_len )
+{
+    const x509_attr_descriptor_t *cur;
+
+    for( cur = x509_attrs; cur->name != NULL; cur++ )
+        if( cur->name_len == name_len &&
+            strncasecmp( cur->name, name, name_len ) == 0 )
+            break;
+
+    return( cur->oid );
+}
+
 int x509_string_to_names( asn1_named_data **head, const char *name )
 {
     int ret = 0;
@@ -43,7 +100,6 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
     const char *end = s + strlen( s );
     const char *oid = NULL;
     int in_tag = 1;
-    asn1_named_data *cur;
 
     /* Clear existing chain if present */
     asn1_free_named_data_list( head );
@@ -52,27 +108,7 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
     {
         if( in_tag && *c == '=' )
         {
-            if( c - s == 2 && strncasecmp( s, "CN", 2 ) == 0 )
-                oid = OID_AT_CN;
-            else if( c - s == 1 && strncasecmp( s, "C", 1 ) == 0 )
-                oid = OID_AT_COUNTRY;
-            else if( c - s == 1 && strncasecmp( s, "O", 1 ) == 0 )
-                oid = OID_AT_ORGANIZATION;
-            else if( c - s == 1 && strncasecmp( s, "L", 1 ) == 0 )
-                oid = OID_AT_LOCALITY;
-            else if( c - s == 1 && strncasecmp( s, "R", 1 ) == 0 )
-                oid = OID_PKCS9_EMAIL;
-            else if( c - s == 2 && strncasecmp( s, "OU", 2 ) == 0 )
-                oid = OID_AT_ORG_UNIT;
-            else if( c - s == 2 && strncasecmp( s, "ST", 2 ) == 0 )
-                oid = OID_AT_STATE;
-            else if( c - s == 12 && strncasecmp( s, "serialNumber", 12 ) == 0 )
-                oid = OID_AT_SERIAL_NUMBER;
-            else if( c - s == 13 && strncasecmp( s, "postalAddress", 13 ) == 0 )
-                oid = OID_AT_POSTAL_ADDRESS;
-            else if( c - s == 10 && strncasecmp( s, "postalCode", 10 ) == 0 )
-                oid = OID_AT_POSTAL_CODE;
-            else
+            if( ( oid = x509_at_oid_from_name( s, c - s ) ) == NULL )
             {
                 ret = POLARSSL_ERR_X509_UNKNOWN_OID;
                 goto exit;
@@ -84,9 +120,9 @@ int x509_string_to_names( asn1_named_data **head, const char *name )
 
         if( !in_tag && ( *c == ',' || c == end ) )
         {
-            if( ( cur = asn1_store_named_data( head, oid, strlen( oid ),
-                                               (unsigned char *) s,
-                                               c - s ) ) == NULL )
+            if( asn1_store_named_data( head, oid, strlen( oid ),
+                                       (unsigned char *) s,
+                                       c - s ) == NULL )
             {
                 return( POLARSSL_ERR_X509_MALLOC_FAILED );
             }
@@ -165,10 +201,12 @@ static int x509_write_name( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_oid( p, start, oid, oid_len ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SET ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SET ) );
 
     return( (int) len );
 }
@@ -189,7 +227,8 @@ int x509_write_names( unsigned char **p, unsigned char *start,
     }
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     return( (int) len );
 }
@@ -244,7 +283,8 @@ static int x509_write_extension( unsigned char **p, unsigned char *start,
     ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_OID ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( p, start, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( p, start, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     return( (int) len );
 }

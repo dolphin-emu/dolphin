@@ -511,6 +511,9 @@
     <ClCompile Include="HW\SystemTimers.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
+    <ClCompile Include="HW\WiiSaveCrypted.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
     <ClCompile Include="DSP\DSPAssembler.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
@@ -1027,6 +1030,9 @@
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
     <ClInclude Include="HW\SystemTimers.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\WiiSaveCrypted.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPAssembler.h">

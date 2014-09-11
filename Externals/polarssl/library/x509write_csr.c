@@ -1,7 +1,7 @@
 /*
  *  X.509 Certificate Signing Request writing
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -28,7 +28,11 @@
  * - attributes: PKCS#9 v2.0 aka RFC 2985
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_X509_CSR_WRITE_C)
 
@@ -43,6 +47,11 @@
 #include <string.h>
 #include <stdlib.h>
 
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 void x509write_csr_init( x509write_csr *ctx )
 {
     memset( ctx, 0, sizeof(x509write_csr) );
@@ -53,7 +62,7 @@ void x509write_csr_free( x509write_csr *ctx )
     asn1_free_named_data_list( &ctx->subject );
     asn1_free_named_data_list( &ctx->extensions );
 
-    memset( ctx, 0, sizeof(x509write_csr) );
+    polarssl_zeroize( ctx, sizeof(x509write_csr) );
 }
 
 void x509write_csr_set_md_alg( x509write_csr *ctx, md_type_t md_alg )
@@ -146,20 +155,24 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
     if( len )
     {
         ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                                        ASN1_SEQUENCE ) );
 
         ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SET ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                                        ASN1_SET ) );
 
         ASN1_CHK_ADD( len, asn1_write_oid( &c, tmp_buf, OID_PKCS9_CSR_EXT_REQ,
                                           OID_SIZE( OID_PKCS9_CSR_EXT_REQ ) ) );
 
         ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+        ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                                        ASN1_SEQUENCE ) );
     }
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_CONTEXT_SPECIFIC ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                                    ASN1_CONTEXT_SPECIFIC ) );
 
     ASN1_CHK_ADD( pub_len, pk_write_pubkey_der( ctx->key,
                                                 tmp_buf, c - tmp_buf ) );
@@ -177,7 +190,8 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
     ASN1_CHK_ADD( len, asn1_write_int( &c, tmp_buf, 0 ) );
 
     ASN1_CHK_ADD( len, asn1_write_len( &c, tmp_buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c, tmp_buf, ASN1_CONSTRUCTED |
+                                                    ASN1_SEQUENCE ) );
 
     /*
      * Prepare signature
@@ -208,7 +222,8 @@ int x509write_csr_der( x509write_csr *ctx, unsigned char *buf, size_t size,
 
     len += sig_and_oid_len;
     ASN1_CHK_ADD( len, asn1_write_len( &c2, buf, len ) );
-    ASN1_CHK_ADD( len, asn1_write_tag( &c2, buf, ASN1_CONSTRUCTED | ASN1_SEQUENCE ) );
+    ASN1_CHK_ADD( len, asn1_write_tag( &c2, buf, ASN1_CONSTRUCTED |
+                                                 ASN1_SEQUENCE ) );
 
     return( (int) len );
 }

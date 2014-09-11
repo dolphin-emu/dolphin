@@ -3,7 +3,7 @@
  *
  * \brief The RSA public-key cryptosystem
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,7 +27,11 @@
 #ifndef POLARSSL_RSA_H
 #define POLARSSL_RSA_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include "bignum.h"
 #include "md.h"
@@ -60,6 +64,8 @@
 
 #define RSA_SIGN        1
 #define RSA_CRYPT       2
+
+#define RSA_SALT_LEN_ANY    -1
 
 /*
  * The above constants may be used even if the RSA module is compile out,
@@ -122,10 +128,31 @@ rsa_context;
  *
  * \note           The hash_id parameter is actually ignored
  *                 when using RSA_PKCS_V15 padding.
+ *
+ * \note           Choice of padding mode is strictly enforced for private key
+ *                 operations, since there might be security concerns in
+ *                 mixing padding modes. For public key operations it's merely
+ *                 a default value, which can be overriden by calling specific
+ *                 rsa_rsaes_xxx or rsa_rsassa_xxx functions.
+ *
+ * \note           The chosen hash is always used for OEAP encryption.
+ *                 For PSS signatures, it's always used for making signatures,
+ *                 but can be overriden (and always is, if set to
+ *                 POLARSSL_MD_NONE) for verifying them.
  */
 void rsa_init( rsa_context *ctx,
                int padding,
                int hash_id);
+
+/**
+ * \brief          Set padding for an already initialized RSA context
+ *                 See \c rsa_init() for details.
+ *
+ * \param ctx      RSA context to be set
+ * \param padding  RSA_PKCS_V15 or RSA_PKCS_V21
+ * \param hash_id  RSA_PKCS_V21 hash identifier
+ */
+void rsa_set_padding( rsa_context *ctx, int padding, int hash_id);
 
 /**
  * \brief          Generate an RSA keypair
@@ -386,11 +413,8 @@ int rsa_rsaes_oaep_decrypt( rsa_context *ctx,
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  *
- * \note           In case of PKCS#1 v2.1 encoding keep in mind that
- *                 the hash_id in the RSA context is the one used for the
- *                 encoding. hash_id in the function call is the type of hash
- *                 that is encoded. According to RFC 3447 it is advised to
- *                 keep both hashes the same.
+ * \note           In case of PKCS#1 v2.1 encoding, see comments on
+ * \note           \c rsa_rsassa_pss_sign() for details on md_alg and hash_id.
  */
 int rsa_pkcs1_sign( rsa_context *ctx,
                     int (*f_rng)(void *, unsigned char *, size_t),
@@ -447,9 +471,8 @@ int rsa_rsassa_pkcs1_v15_sign( rsa_context *ctx,
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  *
- * \note           In case of PKCS#1 v2.1 encoding keep in mind that
- *                 the hash_id in the RSA context is the one used for the
- *                 encoding. hash_id in the function call is the type of hash
+ * \note           The hash_id in the RSA context is the one used for the
+ *                 encoding. md_alg in the function call is the type of hash
  *                 that is encoded. According to RFC 3447 it is advised to
  *                 keep both hashes the same.
  */
@@ -482,11 +505,8 @@ int rsa_rsassa_pss_sign( rsa_context *ctx,
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  *
- * \note           In case of PKCS#1 v2.1 encoding keep in mind that
- *                 the hash_id in the RSA context is the one used for the
- *                 verification. hash_id in the function call is the type of hash
- *                 that is verified. According to RFC 3447 it is advised to
- *                 keep both hashes the same.
+ * \note           In case of PKCS#1 v2.1 encoding, see comments on
+ *                 \c rsa_rsassa_pss_verify() about md_alg and hash_id.
  */
 int rsa_pkcs1_verify( rsa_context *ctx,
                       int (*f_rng)(void *, unsigned char *, size_t),
@@ -526,6 +546,7 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
 
 /**
  * \brief          Perform a PKCS#1 v2.1 PSS verification (RSASSA-PSS-VERIFY)
+ *                 (This is the "simple" version.)
  *
  * \param ctx      points to an RSA public key
  * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
@@ -542,11 +563,11 @@ int rsa_rsassa_pkcs1_v15_verify( rsa_context *ctx,
  * \note           The "sig" buffer must be as large as the size
  *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
  *
- * \note           In case of PKCS#1 v2.1 encoding keep in mind that
- *                 the hash_id in the RSA context is the one used for the
- *                 verification. hash_id in the function call is the type of hash
- *                 that is verified. According to RFC 3447 it is advised to
- *                 keep both hashes the same.
+ * \note           The hash_id in the RSA context is the one used for the
+ *                 verification. md_alg in the function call is the type of
+ *                 hash that is verified. According to RFC 3447 it is advised to
+ *                 keep both hashes the same. If hash_id in the RSA context is
+ *                 unset, the md_alg from the function call is used.
  */
 int rsa_rsassa_pss_verify( rsa_context *ctx,
                            int (*f_rng)(void *, unsigned char *, size_t),
@@ -556,6 +577,41 @@ int rsa_rsassa_pss_verify( rsa_context *ctx,
                            unsigned int hashlen,
                            const unsigned char *hash,
                            const unsigned char *sig );
+
+/**
+ * \brief          Perform a PKCS#1 v2.1 PSS verification (RSASSA-PSS-VERIFY)
+ *                 (This is the version with "full" options.)
+ *
+ * \param ctx      points to an RSA public key
+ * \param f_rng    RNG function (Only needed for RSA_PRIVATE)
+ * \param p_rng    RNG parameter
+ * \param mode     RSA_PUBLIC or RSA_PRIVATE
+ * \param md_alg   a POLARSSL_MD_* (use POLARSSL_MD_NONE for signing raw data)
+ * \param hashlen  message digest length (for POLARSSL_MD_NONE only)
+ * \param hash     buffer holding the message digest
+ * \param mgf1_hash_id message digest used for mask generation
+ * \param expected_salt_len Length of the salt used in padding, use
+ *                 RSA_SALT_LEN_ANY to accept any salt length
+ * \param sig      buffer holding the ciphertext
+ *
+ * \return         0 if the verify operation was successful,
+ *                 or an POLARSSL_ERR_RSA_XXX error code
+ *
+ * \note           The "sig" buffer must be as large as the size
+ *                 of ctx->N (eg. 128 bytes if RSA-1024 is used).
+ *
+ * \note           The hash_id in the RSA context is ignored.
+ */
+int rsa_rsassa_pss_verify_ext( rsa_context *ctx,
+                               int (*f_rng)(void *, unsigned char *, size_t),
+                               void *p_rng,
+                               int mode,
+                               md_type_t md_alg,
+                               unsigned int hashlen,
+                               const unsigned char *hash,
+                               md_type_t mgf1_hash_id,
+                               int expected_salt_len,
+                               const unsigned char *sig );
 
 /**
  * \brief          Copy the components of an RSA context

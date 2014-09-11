@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <functional>
-#include <string.h>
+#include <cstring>
 
 #include "AudioCommon/AOSoundStream.h"
 #include "AudioCommon/Mixer.h"
@@ -50,7 +49,7 @@ bool AOSound::Start()
 {
 	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
 
-	thread = std::thread(std::mem_fn(&AOSound::SoundLoop), this);
+	thread = std::thread(&AOSound::SoundLoop, this);
 	return true;
 }
 

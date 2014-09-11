@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/PowerPC/PPCTables.h"
 
 class PPCSymbolDB;
@@ -67,6 +67,11 @@ struct BlockRegStats
 	{
 		return std::max(lastRead[reg], lastWrite[reg]) -
 			   std::min(firstRead[reg], firstWrite[reg]);
+	}
+
+	bool IsUsed(int reg)
+	{
+		return (numReads[reg] + numWrites[reg]) > 0;
 	}
 
 	inline void SetInputRegister(int reg, short opindex)

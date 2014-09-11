@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"
 
 #if defined(HAVE_WX) && HAVE_WX

@@ -56,7 +56,6 @@ set(GUI_SRCS
 	LogWindow.cpp
 	Main.cpp
 	MemcardManager.cpp
-	MemoryCards/WiiSaveCrypted.cpp
 	NetWindow.cpp
 	PatchAddEdit.cpp
 	PostProcessingConfigDiag.cpp
@@ -156,10 +155,10 @@ if(ANDROID)
 	"-Wl,--no-whole-archive"
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_ABI_NAME}
+		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_ABI_NAME}/
+		COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/${ANDROID_NDK_OUTPUT_ABI_NAME}/
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/

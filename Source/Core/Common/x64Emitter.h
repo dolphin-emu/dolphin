@@ -11,7 +11,7 @@
 #include <functional>
 
 #include "Common/CodeBlock.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 namespace Gen
 {
@@ -756,7 +756,7 @@ public:
 	void ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2);
 
 	// Helper method for the above, or can be used separately.
-	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2, Gen::X64Reg temp);
+	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2);
 
 	// Saves/restores the registers and adjusts the stack to be aligned as
 	// required by the ABI, where the previous alignment was as specified.

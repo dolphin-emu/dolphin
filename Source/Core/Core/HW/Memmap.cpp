@@ -9,7 +9,7 @@
 // may be redirected here (for example to Read_U32()).
 
 #include "Common/ChunkFile.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MemArena.h"
 #include "Common/MemoryUtil.h"
 

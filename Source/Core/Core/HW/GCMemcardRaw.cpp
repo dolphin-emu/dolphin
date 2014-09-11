@@ -5,6 +5,7 @@
 #include <chrono>
 #include "Common/ChunkFile.h"
 #include "Common/StdMakeUnique.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCMemcard.h"
 #include "Core/HW/GCMemcardRaw.h"
@@ -60,7 +61,7 @@ MemoryCard::~MemoryCard()
 
 void MemoryCard::FlushThread()
 {
-	if (!Core::g_CoreStartupParameter.bEnableMemcardSaving)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableMemcardSaving)
 	{
 		return;
 	}

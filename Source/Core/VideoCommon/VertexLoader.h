@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 
 #include "VideoCommon/CPMemory.h"

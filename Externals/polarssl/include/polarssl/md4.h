@@ -3,7 +3,7 @@
  *
  * \brief MD4 message digest algorithm (hash function)
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -27,7 +27,11 @@
 #ifndef POLARSSL_MD4_H
 #define POLARSSL_MD4_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include <string.h>
 
@@ -61,6 +65,20 @@ typedef struct
     unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
 md4_context;
+
+/**
+ * \brief          Initialize MD4 context
+ *
+ * \param ctx      MD4 context to be initialized
+ */
+void md4_init( md4_context *ctx );
+
+/**
+ * \brief          Clear MD4 context
+ *
+ * \param ctx      MD4 context to be cleared
+ */
+void md4_free( md4_context *ctx );
 
 /**
  * \brief          MD4 context setup
@@ -124,7 +142,8 @@ int md4_file( const char *path, unsigned char output[16] );
  * \param key      HMAC secret key
  * \param keylen   length of the HMAC key
  */
-void md4_hmac_starts( md4_context *ctx, const unsigned char *key, size_t keylen );
+void md4_hmac_starts( md4_context *ctx, const unsigned char *key,
+                      size_t keylen );
 
 /**
  * \brief          MD4 HMAC process buffer
@@ -133,7 +152,8 @@ void md4_hmac_starts( md4_context *ctx, const unsigned char *key, size_t keylen 
  * \param input    buffer holding the  data
  * \param ilen     length of the input data
  */
-void md4_hmac_update( md4_context *ctx, const unsigned char *input, size_t ilen );
+void md4_hmac_update( md4_context *ctx, const unsigned char *input,
+                      size_t ilen );
 
 /**
  * \brief          MD4 HMAC final digest

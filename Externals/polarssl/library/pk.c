@@ -1,7 +1,7 @@
 /*
  *  Public Key abstraction layer
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PK_C)
 
@@ -39,6 +43,11 @@
 #if defined(POLARSSL_ECDSA_C)
 #include "polarssl/ecdsa.h"
 #endif
+
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
 
 /*
  * Initialise a pk_context
@@ -57,13 +66,12 @@ void pk_init( pk_context *ctx )
  */
 void pk_free( pk_context *ctx )
 {
-    if( ctx == NULL || ctx->pk_info == NULL)
+    if( ctx == NULL || ctx->pk_info == NULL )
         return;
 
     ctx->pk_info->ctx_free_func( ctx->pk_ctx );
-    ctx->pk_ctx = NULL;
 
-    ctx->pk_info = NULL;
+    polarssl_zeroize( ctx, sizeof( pk_context ) );
 }
 
 /*
@@ -74,21 +82,21 @@ const pk_info_t * pk_info_from_type( pk_type_t pk_type )
     switch( pk_type ) {
 #if defined(POLARSSL_RSA_C)
         case POLARSSL_PK_RSA:
-            return &rsa_info;
+            return( &rsa_info );
 #endif
 #if defined(POLARSSL_ECP_C)
         case POLARSSL_PK_ECKEY:
-            return &eckey_info;
+            return( &eckey_info );
         case POLARSSL_PK_ECKEY_DH:
-            return &eckeydh_info;
+            return( &eckeydh_info );
 #endif
 #if defined(POLARSSL_ECDSA_C)
         case POLARSSL_PK_ECDSA:
-            return &ecdsa_info;
+            return( &ecdsa_info );
 #endif
-        /* POLARSSL_PK_RSA_ALT ommited on purpose */
+        /* POLARSSL_PK_RSA_ALT omitted on purpose */
         default:
-            return NULL;
+            return( NULL );
     }
 }
 
@@ -185,6 +193,59 @@ int pk_verify( pk_context *ctx, md_type_t md_alg,
 }
 
 /*
+ * Verify a signature with options
+ */
+int pk_verify_ext( pk_type_t type, const void *options,
+                   pk_context *ctx, md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   const unsigned char *sig, size_t sig_len )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    if( ! pk_can_do( ctx, type ) )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
+
+    if( type == POLARSSL_PK_RSASSA_PSS )
+    {
+#if defined(POLARSSL_RSA_C) && defined(POLARSSL_PKCS1_V21)
+        int ret;
+        const pk_rsassa_pss_options *pss_opts;
+
+        if( options == NULL )
+            return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+        pss_opts = (const pk_rsassa_pss_options *) options;
+
+        if( sig_len < pk_get_len( ctx ) )
+            return( POLARSSL_ERR_RSA_VERIFY_FAILED );
+
+        ret = rsa_rsassa_pss_verify_ext( pk_rsa( *ctx ),
+                NULL, NULL, RSA_PUBLIC,
+                md_alg, hash_len, hash,
+                pss_opts->mgf1_hash_id,
+                pss_opts->expected_salt_len,
+                sig );
+        if( ret != 0 )
+            return( ret );
+
+        if( sig_len > pk_get_len( ctx ) )
+            return( POLARSSL_ERR_PK_SIG_LEN_MISMATCH );
+
+        return( 0 );
+#else
+        return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
+#endif
+    }
+
+    /* General case: no options */
+    if( options != NULL )
+        return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    return( pk_verify( ctx, md_alg, hash, hash_len, sig, sig_len ) );
+}
+
+/*
  * Make a signature
  */
 int pk_sign( pk_context *ctx, md_type_t md_alg,
@@ -257,6 +318,9 @@ int pk_debug( const pk_context *ctx, pk_debug_item *items )
 {
     if( ctx == NULL || ctx->pk_info == NULL )
         return( POLARSSL_ERR_PK_BAD_INPUT_DATA );
+
+    if( ctx->pk_info->debug_func == NULL )
+        return( POLARSSL_ERR_PK_TYPE_MISMATCH );
 
     ctx->pk_info->debug_func( ctx->pk_ctx, items );
     return( 0 );

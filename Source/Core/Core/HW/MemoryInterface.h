@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 namespace MMIO { class Mapping; }
 class PointerWrap;

@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 enum GLInterfaceMode {
 	MODE_DETECT = 0,

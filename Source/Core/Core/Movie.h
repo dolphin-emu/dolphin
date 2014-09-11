@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 struct GCPadStatus;
 class PointerWrap;
@@ -35,7 +35,7 @@ struct ControllerState
 {
 	bool Start:1, A:1, B:1, X:1, Y:1, Z:1; // Binary buttons, 6 bits
 	bool DPadUp:1, DPadDown:1,             // Binary D-Pad buttons, 4 bits
-	    DPadLeft:1, DPadRight:1;
+	     DPadLeft:1, DPadRight:1;
 	bool L:1, R:1;                         // Binary triggers, 2 bits
 	bool disc:1;                           // Checks for disc being changed
 	bool reserved:3;                       // Reserved bits used for padding, 4 bits
@@ -77,7 +77,7 @@ struct DTMHeader
 
 	u8  videoBackend[16];   // UTF-8 representation of the video backend
 	u8  audioEmulator[16];  // UTF-8 representation of the audio emulator
-	unsigned char  md5[16]; // MD5 of game iso
+	u8  md5[16];            // MD5 of game iso
 
 	u64 recordingStartTime; // seconds since 1970 that recording started (used for RTC)
 
@@ -87,7 +87,7 @@ struct DTMHeader
 	bool bProgressive;
 	bool bDSPHLE;
 	bool bFastDiscSpeed;
-	u8  CPUCore;            // 0 = interpreter, 1 = JIT, 2 = JITIL
+	u8   CPUCore;           // 0 = interpreter, 1 = JIT, 2 = JITIL
 	bool bEFBAccessEnable;
 	bool bEFBCopyEnable;
 	bool bCopyEFBToTexture;
@@ -97,16 +97,16 @@ struct DTMHeader
 	bool bUseRealXFB;
 	u8   memcards;
 	bool bClearSave;        // Create a new memory card when playing back a movie if true
-	u8 bongos;
+	u8   bongos;
 	bool bSyncGPU;
 	bool bNetPlay;
-	u8 reserved[13];        // Padding for any new config options
-	u8 discChange[40];      // Name of iso file to switch to, for two disc games.
-	u8 revision[20];        // Git hash
-	u32 DSPiromHash;
-	u32 DSPcoefHash;
-	u64 tickCount;	        // Number of ticks in the recording
-	u8 reserved2[11];       // Make heading 256 bytes, just because we can
+	u8   reserved[13];      // Padding for any new config options
+	u8   discChange[40];    // Name of iso file to switch to, for two disc games.
+	u8   revision[20];      // Git hash
+	u32  DSPiromHash;
+	u32  DSPcoefHash;
+	u64  tickCount;	        // Number of ticks in the recording
+	u8   reserved2[11];     // Make heading 256 bytes, just because we can
 };
 static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
 

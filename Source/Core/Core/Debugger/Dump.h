@@ -9,7 +9,7 @@
 #pragma once
 
 #include <string>
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 class CDump
 {

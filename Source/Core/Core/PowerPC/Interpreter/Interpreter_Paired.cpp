@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"

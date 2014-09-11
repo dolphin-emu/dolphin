@@ -11,7 +11,7 @@
 #include "Kernel/OVR_Math.h"
 #endif
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"

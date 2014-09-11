@@ -915,12 +915,12 @@ void JitArm::twx(UGeckoInstruction inst)
 
 	if (inst.OPCD == 3) // twi
 	{
-		CMP(gpr.R(a), gpr.R(inst.RB));
+		MOVI2R(RB, (s32)(s16)inst.SIMM_16);
+		CMP(gpr.R(a), RB);
 	}
 	else // tw
 	{
-		MOVI2R(RB, (s32)(s16)inst.SIMM_16);
-		CMP(gpr.R(a), RB);
+		CMP(gpr.R(a), gpr.R(inst.RB));
 	}
 
 	FixupBranch al = B_CC(CC_LT);

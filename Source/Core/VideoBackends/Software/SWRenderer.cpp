@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "VideoBackends/OGL/GLInterfaceBase.h"

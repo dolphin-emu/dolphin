@@ -1,7 +1,7 @@
 /*
  *  Public Key layer for parsing key files and structures
  *
- *  Copyright (C) 2006-2013, Brainspark B.V.
+ *  Copyright (C) 2006-2014, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -23,7 +23,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "polarssl/config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #if defined(POLARSSL_PK_PARSE_C)
 
@@ -50,8 +54,8 @@
 #include "polarssl/pkcs12.h"
 #endif
 
-#if defined(POLARSSL_MEMORY_C)
-#include "polarssl/memory.h"
+#if defined(POLARSSL_PLATFORM_C)
+#include "polarssl/platform.h"
 #else
 #include <stdlib.h>
 #define polarssl_malloc     malloc
@@ -59,6 +63,11 @@
 #endif
 
 #if defined(POLARSSL_FS_IO)
+/* Implementation that should never be optimized out by the compiler */
+static void polarssl_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 /*
  * Load all data from a file into a given buffer.
  */
@@ -111,7 +120,7 @@ int pk_parse_keyfile( pk_context *ctx,
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     if( pwd == NULL )
@@ -120,7 +129,7 @@ int pk_parse_keyfile( pk_context *ctx,
         ret = pk_parse_key( ctx, buf, n,
                 (const unsigned char *) pwd, strlen( pwd ) );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -135,12 +144,12 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path )
     size_t n;
     unsigned char *buf;
 
-    if ( (ret = load_file( path, &buf, &n ) ) != 0 )
+    if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
     ret = pk_parse_public_key( ctx, buf, n );
 
-    memset( buf, 0, n + 1 );
+    polarssl_zeroize( buf, n + 1 );
     polarssl_free( buf );
 
     return( ret );
@@ -148,12 +157,12 @@ int pk_parse_public_keyfile( pk_context *ctx, const char *path )
 #endif /* POLARSSL_FS_IO */
 
 #if defined(POLARSSL_ECP_C)
-/* Get an EC group id from an ECParameters buffer
+/* Minimally parse an ECParameters buffer to and asn1_buf
  *
  * ECParameters ::= CHOICE {
  *   namedCurve         OBJECT IDENTIFIER
+ *   specifiedCurve     SpecifiedECDomain -- = SEQUENCE { ... }
  *   -- implicitCurve   NULL
- *   -- specifiedCurve  SpecifiedECDomain
  * }
  */
 static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
@@ -161,10 +170,22 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
 {
     int ret;
 
+    /* Tag may be either OID or SEQUENCE */
     params->tag = **p;
+    if( params->tag != ASN1_OID
+#if defined(POLARSSL_PK_PARSE_EC_EXTENDED)
+            && params->tag != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE )
+#endif
+            )
+    {
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_UNEXPECTED_TAG );
+    }
 
-    if( ( ret = asn1_get_tag( p, end, &params->len, ASN1_OID ) ) != 0 )
+    if( ( ret = asn1_get_tag( p, end, &params->len, params->tag ) ) != 0 )
+    {
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
+    }
 
     params->p = *p;
     *p += params->len;
@@ -176,16 +197,262 @@ static int pk_get_ecparams( unsigned char **p, const unsigned char *end,
     return( 0 );
 }
 
+#if defined(POLARSSL_PK_PARSE_EC_EXTENDED)
+/*
+ * Parse a SpecifiedECDomain (SEC 1 C.2) and (mostly) fill the group with it.
+ * WARNING: the resulting group should only be used with
+ * pk_group_id_from_specified(), since its base point may not be set correctly
+ * if it was encoded compressed.
+ *
+ *  SpecifiedECDomain ::= SEQUENCE {
+ *      version SpecifiedECDomainVersion(ecdpVer1 | ecdpVer2 | ecdpVer3, ...),
+ *      fieldID FieldID {{FieldTypes}},
+ *      curve Curve,
+ *      base ECPoint,
+ *      order INTEGER,
+ *      cofactor INTEGER OPTIONAL,
+ *      hash HashAlgorithm OPTIONAL,
+ *      ...
+ *  }
+ *
+ * We only support prime-field as field type, and ignore hash and cofactor.
+ */
+static int pk_group_from_specified( const asn1_buf *params, ecp_group *grp )
+{
+    int ret;
+    unsigned char *p = params->p;
+    const unsigned char * const end = params->p + params->len;
+    const unsigned char *end_field, *end_curve;
+    size_t len;
+    int ver;
+
+    /* SpecifiedECDomainVersion ::= INTEGER { 1, 2, 3 } */
+    if( ( ret = asn1_get_int( &p, end, &ver ) ) != 0 )
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    if( ver < 1 || ver > 3 )
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
+
+    /*
+     * FieldID { FIELD-ID:IOSet } ::= SEQUENCE { -- Finite field
+     *       fieldType FIELD-ID.&id({IOSet}),
+     *       parameters FIELD-ID.&Type({IOSet}{@fieldType})
+     * }
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+        return( ret );
+
+    end_field = p + len;
+
+    /*
+     * FIELD-ID ::= TYPE-IDENTIFIER
+     * FieldTypes FIELD-ID ::= {
+     *       { Prime-p IDENTIFIED BY prime-field } |
+     *       { Characteristic-two IDENTIFIED BY characteristic-two-field }
+     * }
+     * prime-field OBJECT IDENTIFIER ::= { id-fieldType 1 }
+     */
+    if( ( ret = asn1_get_tag( &p, end_field, &len, ASN1_OID ) ) != 0 )
+        return( ret );
+
+    if( len != OID_SIZE( OID_ANSI_X9_62_PRIME_FIELD ) ||
+        memcmp( p, OID_ANSI_X9_62_PRIME_FIELD, len ) != 0 )
+    {
+        return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
+    }
+
+    p += len;
+
+    /* Prime-p ::= INTEGER -- Field of size p. */
+    if( ( ret = asn1_get_mpi( &p, end_field, &grp->P ) ) != 0 )
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    grp->pbits = mpi_msb( &grp->P );
+
+    if( p != end_field )
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    /*
+     * Curve ::= SEQUENCE {
+     *       a FieldElement,
+     *       b FieldElement,
+     *       seed BIT STRING OPTIONAL
+     *       -- Shall be present if used in SpecifiedECDomain
+     *       -- with version equal to ecdpVer2 or ecdpVer3
+     * }
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len,
+            ASN1_CONSTRUCTED | ASN1_SEQUENCE ) ) != 0 )
+        return( ret );
+
+    end_curve = p + len;
+
+    /*
+     * FieldElement ::= OCTET STRING
+     * containing an integer in the case of a prime field
+     */
+    if( ( ret = asn1_get_tag( &p, end_curve, &len, ASN1_OCTET_STRING ) ) != 0 ||
+        ( ret = mpi_read_binary( &grp->A, p, len ) ) != 0 )
+    {
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
+    }
+
+    p += len;
+
+    if( ( ret = asn1_get_tag( &p, end_curve, &len, ASN1_OCTET_STRING ) ) != 0 ||
+        ( ret = mpi_read_binary( &grp->B, p, len ) ) != 0 )
+    {
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
+    }
+
+    p += len;
+
+    /* Ignore seed BIT STRING OPTIONAL */
+    if( ( ret = asn1_get_tag( &p, end_curve, &len, ASN1_BIT_STRING ) ) == 0 )
+        p += len;
+
+    if( p != end_curve )
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT +
+                POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
+
+    /*
+     * ECPoint ::= OCTET STRING
+     */
+    if( ( ret = asn1_get_tag( &p, end, &len, ASN1_OCTET_STRING ) ) != 0 )
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    if( ( ret = ecp_point_read_binary( grp, &grp->G,
+                                      ( const unsigned char *) p, len ) ) != 0 )
+    {
+        /*
+         * If we can't read the point because it's compressed, cheat by
+         * reading only the X coordinate and the parity bit of Y.
+         */
+        if( ret != POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE ||
+            ( p[0] != 0x02 && p[0] != 0x03 ) ||
+            len != mpi_size( &grp->P ) + 1 ||
+            mpi_read_binary( &grp->G.X, p + 1, len - 1 ) != 0 ||
+            mpi_lset( &grp->G.Y, p[0] - 2 ) != 0 ||
+            mpi_lset( &grp->G.Z, 1 ) != 0 )
+        {
+            return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
+        }
+    }
+
+    p += len;
+
+    /*
+     * order INTEGER
+     */
+    if( ( ret = asn1_get_mpi( &p, end, &grp->N ) ) )
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
+
+    grp->nbits = mpi_msb( &grp->N );
+
+    /*
+     * Allow optional elements by purposefully not enforcing p == end here.
+     */
+
+    return( 0 );
+}
+
+/*
+ * Find the group id associated with an (almost filled) group as generated by
+ * pk_group_from_specified(), or return an error if unknown.
+ */
+static int pk_group_id_from_group( const ecp_group *grp, ecp_group_id *grp_id )
+{
+    int ret = 0;
+    ecp_group ref;
+    const ecp_group_id *id;
+
+    ecp_group_init( &ref );
+
+    for( id = ecp_grp_id_list(); *id != POLARSSL_ECP_DP_NONE; id++ )
+    {
+        /* Load the group associated to that id */
+        ecp_group_free( &ref );
+        MPI_CHK( ecp_use_known_dp( &ref, *id ) );
+
+        /* Compare to the group we were given, starting with easy tests */
+        if( grp->pbits == ref.pbits && grp->nbits == ref.nbits &&
+            mpi_cmp_mpi( &grp->P, &ref.P ) == 0 &&
+            mpi_cmp_mpi( &grp->A, &ref.A ) == 0 &&
+            mpi_cmp_mpi( &grp->B, &ref.B ) == 0 &&
+            mpi_cmp_mpi( &grp->N, &ref.N ) == 0 &&
+            mpi_cmp_mpi( &grp->G.X, &ref.G.X ) == 0 &&
+            mpi_cmp_mpi( &grp->G.Z, &ref.G.Z ) == 0 &&
+            /* For Y we may only know the parity bit, so compare only that */
+            mpi_get_bit( &grp->G.Y, 0 ) == mpi_get_bit( &ref.G.Y, 0 ) )
+        {
+            break;
+        }
+
+    }
+
+cleanup:
+    ecp_group_free( &ref );
+
+    *grp_id = *id;
+
+    if( ret == 0 && *id == POLARSSL_ECP_DP_NONE )
+        ret = POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE;
+
+    return( ret );
+}
+
+/*
+ * Parse a SpecifiedECDomain (SEC 1 C.2) and find the associated group ID
+ */
+static int pk_group_id_from_specified( const asn1_buf *params,
+                                       ecp_group_id *grp_id )
+{
+    int ret;
+    ecp_group grp;
+
+    ecp_group_init( &grp );
+
+    if( ( ret = pk_group_from_specified( params, &grp ) ) != 0 )
+        goto cleanup;
+
+    ret = pk_group_id_from_group( &grp, grp_id );
+
+cleanup:
+    ecp_group_free( &grp );
+
+    return( ret );
+}
+#endif /* POLARSSL_PK_PARSE_EC_EXTENDED */
+
 /*
  * Use EC parameters to initialise an EC group
+ *
+ * ECParameters ::= CHOICE {
+ *   namedCurve         OBJECT IDENTIFIER
+ *   specifiedCurve     SpecifiedECDomain -- = SEQUENCE { ... }
+ *   -- implicitCurve   NULL
  */
 static int pk_use_ecparams( const asn1_buf *params, ecp_group *grp )
 {
     int ret;
     ecp_group_id grp_id;
 
-    if( oid_get_ec_grp( params, &grp_id ) != 0 )
-        return( POLARSSL_ERR_PK_UNKNOWN_NAMED_CURVE );
+    if( params->tag == ASN1_OID )
+    {
+        if( oid_get_ec_grp( params, &grp_id ) != 0 )
+            return( POLARSSL_ERR_PK_UNKNOWN_NAMED_CURVE );
+    }
+    else
+    {
+#if defined(POLARSSL_PK_PARSE_EC_EXTENDED)
+        if( ( ret = pk_group_id_from_specified( params, &grp_id ) ) != 0 )
+            return( ret );
+#else
+        return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
+#endif
+    }
 
     /*
      * grp may already be initilialized; if so, make sure IDs match
@@ -201,6 +468,10 @@ static int pk_use_ecparams( const asn1_buf *params, ecp_group *grp )
 
 /*
  * EC public key is an EC point
+ *
+ * The caller is responsible for clearing the structure upon failure if
+ * desired. Take care to pass along the possible ECP_FEATURE_UNAVAILABLE
+ * return code of ecp_point_read_binary() and leave p in a usable state.
  */
 static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
                             ecp_keypair *key )
@@ -208,19 +479,17 @@ static int pk_get_ecpubkey( unsigned char **p, const unsigned char *end,
     int ret;
 
     if( ( ret = ecp_point_read_binary( &key->grp, &key->Q,
-                    (const unsigned char *) *p, end - *p ) ) != 0 ||
-        ( ret = ecp_check_pubkey( &key->grp, &key->Q ) ) != 0 )
+                    (const unsigned char *) *p, end - *p ) ) == 0 )
     {
-        ecp_keypair_free( key );
-        return( POLARSSL_ERR_PK_INVALID_PUBKEY );
+        ret = ecp_check_pubkey( &key->grp, &key->Q );
     }
 
     /*
-     * We know ecp_point_read_binary consumed all bytes
+     * We know ecp_point_read_binary consumed all bytes or failed
      */
     *p = (unsigned char *) end;
 
-    return( 0 );
+    return( ret );
 }
 #endif /* POLARSSL_ECP_C */
 
@@ -451,7 +720,7 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
                                   size_t keylen )
 {
     int ret;
-    int version;
+    int version, pubkey_done;
     size_t len;
     asn1_buf params;
     unsigned char *p = (unsigned char *) key;
@@ -513,8 +782,10 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
     }
 
     /*
-     * Is 'publickey' present? If not, create it from the private key.
+     * Is 'publickey' present? If not, or if we can't read it (eg because it
+     * is compressed), create it from the private key.
      */
+    pubkey_done = 0;
     if( ( ret = asn1_get_tag( &p, end, &len,
                     ASN1_CONTEXT_SPECIFIC | ASN1_CONSTRUCTED | 1 ) ) == 0 )
     {
@@ -527,16 +798,27 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
             return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT +
                     POLARSSL_ERR_ASN1_LENGTH_MISMATCH );
 
-        if( ( ret = pk_get_ecpubkey( &p, end2, eck ) ) != 0 )
-            return( ret );
+        if( ( ret = pk_get_ecpubkey( &p, end2, eck ) ) == 0 )
+            pubkey_done = 1;
+        else
+        {
+            /*
+             * The only acceptable failure mode of pk_get_ecpubkey() above
+             * is if the point format is not recognized.
+             */
+            if( ret != POLARSSL_ERR_ECP_FEATURE_UNAVAILABLE )
+                return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT );
+        }
     }
-    else if ( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
+    else if( ret != POLARSSL_ERR_ASN1_UNEXPECTED_TAG )
     {
         ecp_keypair_free( eck );
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
     }
-    else if( ( ret = ecp_mul( &eck->grp, &eck->Q, &eck->d, &eck->grp.G,
-                              NULL, NULL ) ) != 0 )
+
+    if( ! pubkey_done &&
+        ( ret = ecp_mul( &eck->grp, &eck->Q, &eck->d, &eck->grp.G,
+                                                      NULL, NULL ) ) != 0 )
     {
         ecp_keypair_free( eck );
         return( POLARSSL_ERR_PK_KEY_INVALID_FORMAT + ret );
@@ -548,7 +830,7 @@ static int pk_parse_key_sec1_der( ecp_keypair *eck,
         return( ret );
     }
 
-    return 0;
+    return( 0 );
 }
 #endif /* POLARSSL_ECP_C */
 
@@ -637,7 +919,7 @@ static int pk_parse_key_pkcs8_unencrypted_der(
 #endif /* POLARSSL_ECP_C */
         return( POLARSSL_ERR_PK_UNKNOWN_PK_ALG );
 
-    return 0;
+    return( 0 );
 }
 
 /*
@@ -648,7 +930,7 @@ static int pk_parse_key_pkcs8_encrypted_der(
                                     const unsigned char *key, size_t keylen,
                                     const unsigned char *pwd, size_t pwdlen )
 {
-    int ret;
+    int ret, decrypted = 0;
     size_t len;
     unsigned char buf[2048];
     unsigned char *p, *end;
@@ -712,6 +994,8 @@ static int pk_parse_key_pkcs8_encrypted_der(
 
             return( ret );
         }
+
+        decrypted = 1;
     }
     else if( OID_CMP( OID_PKCS12_PBE_SHA1_RC4_128, &pbe_alg_oid ) )
     {
@@ -728,6 +1012,8 @@ static int pk_parse_key_pkcs8_encrypted_der(
         //
         if( *buf != ( ASN1_CONSTRUCTED | ASN1_SEQUENCE ) )
             return( POLARSSL_ERR_PK_PASSWORD_MISMATCH );
+
+        decrypted = 1;
     }
     else
 #endif /* POLARSSL_PKCS12_C */
@@ -742,13 +1028,17 @@ static int pk_parse_key_pkcs8_encrypted_der(
 
             return( ret );
         }
+
+        decrypted = 1;
     }
     else
 #endif /* POLARSSL_PKCS5_C */
     {
         ((void) pwd);
-        return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
     }
+
+    if( decrypted == 0 )
+        return( POLARSSL_ERR_PK_FEATURE_UNAVAILABLE );
 
     return( pk_parse_key_pkcs8_unencrypted_der( pk, buf, len ) );
 }
@@ -951,7 +1241,7 @@ int pk_parse_public_key( pk_context *ctx,
         pem_free( &pem );
         return( ret );
     }
-#endif
+#endif /* POLARSSL_PEM_PARSE_C */
     p = (unsigned char *) key;
 
     ret = pk_parse_subpubkey( &p, p + keylen, ctx );

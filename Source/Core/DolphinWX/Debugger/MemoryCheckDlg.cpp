@@ -16,7 +16,7 @@
 #include <wx/translation.h>
 
 #include "Common/BreakPoints.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxUtils.h"
@@ -77,7 +77,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
 	bool OnRead = m_pReadFlag->GetValue();
 	bool OnWrite = m_pWriteFlag->GetValue();
 	bool Log = m_log_flag->GetValue();
-	bool Break = m_break_flag->GetValue();;
+	bool Break = m_break_flag->GetValue();
 
 	u32 StartAddress, EndAddress;
 	bool EndAddressOK = EndAddressString.Len() &&

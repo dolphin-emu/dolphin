@@ -10,7 +10,6 @@
 
 #include <SFML/Network.hpp>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Common/Thread.h"

@@ -27,7 +27,11 @@
 #ifndef POLARSSL_X509_CRT_H
 #define POLARSSL_X509_CRT_H
 
+#if !defined(POLARSSL_CONFIG_FILE)
 #include "config.h"
+#else
+#include POLARSSL_CONFIG_FILE
+#endif
 
 #include "x509.h"
 
@@ -55,7 +59,7 @@ typedef struct _x509_crt
     x509_buf raw;               /**< The raw certificate data (DER). */
     x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;                /**< The X.509 version. (0=v1, 1=v2, 2=v3) */
+    int version;                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
     x509_buf serial;            /**< Unique id for certificate issued by a specific CA. */
     x509_buf sig_oid1;          /**< Signature algorithm, e.g. sha1RSA */
 
@@ -72,23 +76,24 @@ typedef struct _x509_crt
 
     x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
     x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
-    x509_buf v3_ext;            /**< Optional X.509 v3 extensions. Only Basic Contraints are supported at this time. */
+    x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
     x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only dNSName supported). */
 
     int ext_types;              /**< Bit string containing detected and parsed extensions */
     int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
     int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
 
-    unsigned char key_usage;    /**< Optional key usage extension value: See the values below */
+    unsigned char key_usage;    /**< Optional key usage extension value: See the values in x509.h */
 
     x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
 
-    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values below */
+    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
 
     x509_buf sig_oid2;          /**< Signature algorithm. Must match sig_oid1. */
     x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
     md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. POLARSSL_MD_SHA256 */
-    pk_type_t sig_pk            /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */;
+    pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. POLARSSL_PK_RSA */
+    void *sig_opts;             /**< Signature options to be passed to pk_verify_ext(), e.g. for RSASSA-PSS */
 
     struct _x509_crt *next;     /**< Next certificate in the CA-chain. */
 }
@@ -243,6 +248,44 @@ int x509_crt_verify( x509_crt *crt,
                      const char *cn, int *flags,
                      int (*f_vrfy)(void *, x509_crt *, int, int *),
                      void *p_vrfy );
+
+#if defined(POLARSSL_X509_CHECK_KEY_USAGE)
+/**
+ * \brief          Check usage of certificate against keyUsage extension.
+ *
+ * \param crt      Leaf certificate used.
+ * \param usage    Intended usage(s) (eg KU_KEY_ENCIPHERMENT before using the
+ *                 certificate to perform an RSA key exchange).
+ *
+ * \return         0 is these uses of the certificate are allowed,
+ *                 POLARSSL_ERR_X509_BAD_INPUT_DATA if the keyUsage extension
+ *                 is present but does not contain all the bits set in the
+ *                 usage argument.
+ *
+ * \note           You should only call this function on leaf certificates, on
+ *                 (intermediate) CAs the keyUsage extension is automatically
+ *                 checked by \c x509_crt_verify().
+ */
+int x509_crt_check_key_usage( const x509_crt *crt, int usage );
+#endif /* POLARSSL_X509_CHECK_KEY_USAGE) */
+
+#if defined(POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE)
+/**
+ * \brief          Check usage of certificate against extentedJeyUsage.
+ *
+ * \param crt      Leaf certificate used.
+ * \param usage_oid Intended usage (eg OID_SERVER_AUTH or OID_CLIENT_AUTH).
+ * \param usage_len Length of usage_oid (eg given by OID_SIZE()).
+ *
+ * \return         0 is this use of the certificate is allowed,
+ *                 POLARSSL_ERR_X509_BAD_INPUT_DATA if not.
+ *
+ * \note           Usually only makes sense on leaf certificates.
+ */
+int x509_crt_check_extended_key_usage( const x509_crt *crt,
+                                       const char *usage_oid,
+                                       size_t usage_len );
+#endif /* POLARSSL_X509_CHECK_EXTENDED_KEY_USAGE) */
 
 #if defined(POLARSSL_X509_CRL_PARSE_C)
 /**

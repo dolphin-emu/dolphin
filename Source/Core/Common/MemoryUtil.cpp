@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 
 #ifdef _WIN32

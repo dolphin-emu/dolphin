@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
 
 // Log in two categories, and save three other options in the same byte

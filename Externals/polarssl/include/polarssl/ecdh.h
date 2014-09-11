@@ -47,23 +47,24 @@ typedef enum
  */
 typedef struct
 {
-    ecp_group grp;      /*!<  ellipitic curve used      */
-    mpi d;              /*!<  our secret value          */
-    ecp_point Q;        /*!<  our public value          */
-    ecp_point Qp;       /*!<  peer's public value       */
-    mpi z;              /*!<  shared secret             */
-    int point_format;   /*!<  format for point export   */
-    ecp_point Vi;       /*!<  blinding value (for later)    */
-    ecp_point Vf;       /*!<  un-blinding value (for later) */
-    mpi _d;             /*!<  previous d                    */
+    ecp_group grp;      /*!<  elliptic curve used                           */
+    mpi d;              /*!<  our secret value (private key)                */
+    ecp_point Q;        /*!<  our public value (public key)                 */
+    ecp_point Qp;       /*!<  peer's public value (public key)              */
+    mpi z;              /*!<  shared secret                                 */
+    int point_format;   /*!<  format for point export in TLS messages       */
+    ecp_point Vi;       /*!<  blinding value (for later)                    */
+    ecp_point Vf;       /*!<  un-blinding value (for later)                 */
+    mpi _d;             /*!<  previous d (for later)                        */
 }
 ecdh_context;
 
 /**
- * \brief           Generate a public key
+ * \brief           Generate a public key.
+ *                  Raw function that only does the core computation.
  *
  * \param grp       ECP group
- * \param d         Destination MPI (secret exponent)
+ * \param d         Destination MPI (secret exponent, aka private key)
  * \param Q         Destination point (public key)
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
@@ -77,11 +78,12 @@ int ecdh_gen_public( ecp_group *grp, mpi *d, ecp_point *Q,
 
 /**
  * \brief           Compute shared secret
+ *                  Raw function that only does the core computation.
  *
  * \param grp       ECP group
  * \param z         Destination MPI (shared secret)
  * \param Q         Public key from other party
- * \param d         Our secret exponent
+ * \param d         Our secret exponent (private key)
  * \param f_rng     RNG function (see notes)
  * \param p_rng     RNG parameter
  *
@@ -112,7 +114,8 @@ void ecdh_init( ecdh_context *ctx );
 void ecdh_free( ecdh_context *ctx );
 
 /**
- * \brief           Setup and write the ServerKeyExhange parameters
+ * \brief           Generate a public key and a TLS ServerKeyExchange payload.
+ *                  (First function used by a TLS server for ECDHE.)
  *
  * \param ctx       ECDH context
  * \param olen      number of chars written
@@ -132,7 +135,8 @@ int ecdh_make_params( ecdh_context *ctx, size_t *olen,
                       void *p_rng );
 
 /**
- * \brief           Parse the ServerKeyExhange parameters
+ * \brief           Parse and procress a TLS ServerKeyExhange payload.
+ *                  (First function used by a TLS client for ECDHE.)
  *
  * \param ctx       ECDH context
  * \param buf       pointer to start of input buffer
@@ -144,7 +148,10 @@ int ecdh_read_params( ecdh_context *ctx,
                       const unsigned char **buf, const unsigned char *end );
 
 /**
- * \brief           Setup an ECDH context from an EC key
+ * \brief           Setup an ECDH context from an EC key.
+ *                  (Used by clients and servers in place of the
+ *                  ServerKeyEchange for static ECDH: import ECDH parameters
+ *                  from a certificate's EC key information.)
  *
  * \param ctx       ECDH constext to set
  * \param key       EC key to use
@@ -156,7 +163,8 @@ int ecdh_get_params( ecdh_context *ctx, const ecp_keypair *key,
                      ecdh_side side );
 
 /**
- * \brief           Setup and export the client's public value
+ * \brief           Generate a public key and a TLS ClientKeyExchange payload.
+ *                  (Second function used by a TLS client for ECDH(E).)
  *
  * \param ctx       ECDH context
  * \param olen      number of bytes actually written
@@ -173,7 +181,8 @@ int ecdh_make_public( ecdh_context *ctx, size_t *olen,
                       void *p_rng );
 
 /**
- * \brief           Parse and import the client's public value
+ * \brief           Parse and process a TLS ClientKeyExchange payload.
+ *                  (Second function used by a TLS server for ECDH(E).)
  *
  * \param ctx       ECDH context
  * \param buf       start of input buffer
@@ -185,7 +194,8 @@ int ecdh_read_public( ecdh_context *ctx,
                       const unsigned char *buf, size_t blen );
 
 /**
- * \brief           Derive and export the shared secret
+ * \brief           Derive and export the shared secret.
+ *                  (Last function used by both TLS client en servers.)
  *
  * \param ctx       ECDH context
  * \param olen      number of bytes written
@@ -212,4 +222,4 @@ int ecdh_self_test( int verbose );
 }
 #endif
 
-#endif
+#endif /* ecdh.h */

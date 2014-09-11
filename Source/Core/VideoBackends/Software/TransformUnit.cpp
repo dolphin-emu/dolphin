@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
 #include "VideoBackends/Software/BPMemLoader.h"

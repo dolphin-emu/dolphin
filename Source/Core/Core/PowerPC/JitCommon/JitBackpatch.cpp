@@ -7,7 +7,7 @@
 
 #include "disasm.h"
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -115,7 +115,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 
 	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
 
-	MOVTwo(64, ABI_PARAM1, dataReg, ABI_PARAM2, addrReg, ABI_PARAM3);
+	MOVTwo(64, ABI_PARAM1, dataReg, ABI_PARAM2, addrReg);
 
 	if (info.displacement)
 	{

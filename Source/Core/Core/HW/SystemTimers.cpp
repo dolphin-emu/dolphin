@@ -43,7 +43,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 */
 
 #include "Common/Atomic.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 

@@ -36,7 +36,7 @@
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Thread.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -59,6 +59,7 @@
 
 #include "InputCommon/GCPadStatus.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -1023,11 +1024,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else if (IsHotkey(event, HK_TOGGLE_EFBCOPIES))
 		{
 			OSDChoice = 3;
-			// Toggle EFB copy
-			if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
+			// Toggle EFB copies between EFB2RAM and EFB2Texture
+			if (!g_Config.bEFBCopyEnable)
 			{
-				g_Config.bEFBCopyEnable ^= true;
-				g_Config.bCopyEFBToTexture = false;
+				OSD::AddMessage("EFB Copies are disabled, enable them in Graphics settings for toggling", 6000);
 			}
 			else
 			{

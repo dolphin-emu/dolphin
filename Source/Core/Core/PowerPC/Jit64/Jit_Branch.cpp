@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
@@ -192,7 +192,11 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		SetJumpTarget(b);
 
 		if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+		{
+			gpr.Flush();
+			fpr.Flush();
 			WriteExit(js.compilerPC + 4);
+		}
 	}
 }
 
@@ -239,5 +243,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		SetJumpTarget( pCTRDontBranch );
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+	{
+		gpr.Flush();
+		fpr.Flush();
 		WriteExit(js.compilerPC + 4);
+	}
 }

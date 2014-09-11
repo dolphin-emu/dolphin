@@ -40,7 +40,7 @@
 #include <wx/windowid.h>
 
 #include "Common/CDUtils.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
@@ -53,6 +53,7 @@
 #include "Core/Movie.h"
 #include "Core/Boot/Boot.h"
 #include "Core/HW/DVDInterface.h"
+#include "Core/HW/WiiSaveCrypted.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -63,7 +64,6 @@
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
-#include "DolphinWX/MemoryCards/WiiSaveCrypted.h"
 #include "DolphinWX/resources/Flag_Europe.xpm"
 #include "DolphinWX/resources/Flag_France.xpm"
 #include "DolphinWX/resources/Flag_Germany.xpm"
@@ -397,7 +397,7 @@ static wxString NiceSizeFormat(u64 _size)
 	// Find largest power of 2 less than _size.
 	// div 10 to get largest named unit less than _size
 	// 10 == log2(1024) (number of B in a KiB, KiB in a MiB, etc)
-	const u64 unit = Log2(std::max<u64>(_size, 1)) / 10;
+	const u64 unit = IntLog2(std::max<u64>(_size, 1)) / 10;
 	const u64 unit_size = (1 << (unit * 10));
 
 	// mul 1000 for 3 decimal places, add 5 to round up, div 10 for 2 decimal places

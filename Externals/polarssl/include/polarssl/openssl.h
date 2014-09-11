@@ -98,7 +98,7 @@ inline rsa_context* d2i_RSA_PUBKEY( void *ignore, unsigned char **bufptr,
 
     memset( rsa, 0, sizeof( rsa_context ) );
 
-    if( ( len ==  94 && 
+    if( ( len ==  94 &&
           mpi_read_binary( &rsa->N, &buffer[ 25],  64 ) == 0 &&
           mpi_read_binary( &rsa->E, &buffer[ 91],   3 ) == 0 ) ||
         ( len == 162 &&

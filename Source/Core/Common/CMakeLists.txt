@@ -31,19 +31,26 @@ set(SRCS BreakPoints.cpp
          Logging/LogManager.cpp)
 
 
-if(_M_ARM_32) #ARMv7
-    set(SRCS ${SRCS}
-         ArmCPUDetect.cpp
-         ArmEmitter.cpp
-         GenericFPURoundMode.cpp)
-elseif(_M_X86) #X86
-    set(SRCS ${SRCS}
-         x64CPUDetect.cpp
-         x64FPURoundMode.cpp)
-else() #Generic
-    set(SRCS ${SRCS}
-         GenericFPURoundMode.cpp
-         x64CPUDetect.cpp)
+if(_M_ARM)
+	if (_M_ARM_32) #ARMv7
+		set(SRCS ${SRCS}
+		         ArmEmitter.cpp)
+	else() #AArch64
+		set(SRCS ${SRCS}
+	               Arm64Emitter.cpp)
+	endif()
+	set(SRCS ${SRCS}
+	    ArmCPUDetect.cpp
+	    GenericFPURoundMode.cpp)
+else()
+	if(_M_X86) #X86
+		set(SRCS ${SRCS}
+		         x64FPURoundMode.cpp)
+	else() # Generic
+		set(SRCS ${SRCS}
+		         GenericFPURoundMode.cpp)
+	endif()
+	set(SRCS ${SRCS} x64CPUDetect.cpp)
 endif()
 if(WIN32)
     set(SRCS ${SRCS} ExtendedTrace.cpp)

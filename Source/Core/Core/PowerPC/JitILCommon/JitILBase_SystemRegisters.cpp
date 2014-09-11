@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 

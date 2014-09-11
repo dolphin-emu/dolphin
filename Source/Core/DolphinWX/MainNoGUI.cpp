@@ -9,7 +9,7 @@
 #include <getopt.h>
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Logging/LogManager.h"
 

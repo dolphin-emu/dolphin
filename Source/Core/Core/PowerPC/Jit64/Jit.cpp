@@ -10,7 +10,7 @@
 #include <windows.h>
 #endif
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
@@ -142,27 +142,27 @@ void Jit64::Init()
 	   where this cause problems, so I'm enabling this by default, since I seem to get perhaps as much as 20% more
 	   fps with this option enabled. If you suspect that this option cause problems you can also disable it from the
 	   debugging window. */
-	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
 		jo.enableBlocklink = false;
-		Core::g_CoreStartupParameter.bSkipIdle = false;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = false;
 	}
 	else
 	{
-		if (!Core::g_CoreStartupParameter.bJITBlockLinking)
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bJITBlockLinking)
 		{
 			jo.enableBlocklink = false;
 		}
 		else
 		{
-			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
+			jo.enableBlocklink = !SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 		}
 	}
-	jo.fpAccurateFcmp = Core::g_CoreStartupParameter.bEnableFPRF;
+	jo.fpAccurateFcmp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = true;
-	js.memcheck = Core::g_CoreStartupParameter.bMMU;
+	js.memcheck = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
@@ -372,7 +372,7 @@ void Jit64::Trace()
 
 void STACKALIGN Jit64::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || Core::g_CoreStartupParameter.bJITNoBlockCache)
+	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{
 		ClearCache();
 	}
@@ -386,7 +386,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 {
 	int blockSize = code_buf->GetSize();
 
-	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
 		if (!Profiler::g_ProfileBlocks)
@@ -453,7 +453,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	fpr.Start();
 
 	js.downcountAmount = 0;
-	if (!Core::g_CoreStartupParameter.bEnableDebugging)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		js.downcountAmount += PatchEngine::GetSpeedhackCycles(code_block.m_address);
 
 	js.skipnext = false;
@@ -567,7 +567,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SetJumpTarget(clearInt);
 			}
 
-			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
 			{
 				gpr.Flush();
 				fpr.Flush();

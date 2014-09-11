@@ -5,7 +5,7 @@
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
 // Should give a very noticeable speed boost to paired single heavy code.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 
 #include "Core/PowerPC/Jit64/Jit.h"

@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/CPMemLoader.h"
