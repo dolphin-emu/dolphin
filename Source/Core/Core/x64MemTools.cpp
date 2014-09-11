@@ -23,42 +23,6 @@
 namespace EMM
 {
 
-static bool DoFault(u64 bad_address, SContext *ctx)
-{
-	if (!JitInterface::IsInCodeSpace((u8*) ctx->CTX_PC))
-	{
-		// Let's not prevent debugging.
-		return false;
-	}
-
-	u64 memspace_bottom = (u64)Memory::base;
-	u64 memspace_top = memspace_bottom +
-#if _ARCH_64
-		0x100000000ULL;
-#else
-		0x40000000;
-#endif
-
-	if (bad_address < memspace_bottom || bad_address >= memspace_top)
-	{
-		return false;
-	}
-
-	u32 em_address = (u32)(bad_address - memspace_bottom);
-	const u8 *new_pc = jit->BackPatch((u8*) ctx->CTX_PC, em_address, ctx);
-	if (new_pc)
-	{
-		ctx->CTX_PC = (u64) new_pc;
-	}
-	else
-	{
-		// there was an error, give the debugger a chance
-		return false;
-	}
-
-	return true;
-}
-
 #ifdef _WIN32
 
 LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
@@ -74,10 +38,10 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			}
 
 			// virtual address of the inaccessible data
-			u64 badAddress = (u64)pPtrs->ExceptionRecord->ExceptionInformation[1];
+			uintptr_t badAddress = (uintptr_t)pPtrs->ExceptionRecord->ExceptionInformation[1];
 			CONTEXT *ctx = pPtrs->ContextRecord;
 
-			if (DoFault(badAddress, ctx))
+			if (JitInterface::HandleFault(badAddress, ctx))
 			{
 				return (DWORD)EXCEPTION_CONTINUE_EXECUTION;
 			}
@@ -198,7 +162,7 @@ void ExceptionThread(mach_port_t port)
 
 		x86_thread_state64_t *state = (x86_thread_state64_t *) msg_in.old_state;
 
-		bool ok = DoFault(msg_in.code[1], state);
+		bool ok = JitInterface::HandleFault((uintptr_t) msg_in.code[1], state);
 
 		// Set up the reply.
 		msg_out.Head.msgh_bits = MACH_MSGH_BITS(MACH_MSGH_BITS_REMOTE(msg_in.Head.msgh_bits), 0);
@@ -263,12 +227,12 @@ static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 		// Huh? Return.
 		return;
 	}
-	u64 bad_address = (u64)info->si_addr;
+	uintptr_t bad_address = (uintptr_t)info->si_addr;
 
 	// Get all the information we can out of the context.
 	mcontext_t *ctx = &context->uc_mcontext;
 	// assume it's not a write
-	if (!DoFault(bad_address, ctx))
+	if (!JitInterface::HandleFault(bad_address, ctx))
 	{
 		// retry and crash
 		signal(SIGSEGV, SIG_DFL);

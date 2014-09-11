@@ -66,12 +66,23 @@ bool DisamLoadStore(const u32 inst, ARMReg &rD, u8 &accessSize, bool &Store)
 	}
 	return true;
 }
-const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
+
+bool JitArm::HandleFault(uintptr_t access_address, SContext* ctx)
+{
+	if (access_address < (uintptr_t)Memory::base)
+	{
+		PanicAlertT("Exception handler - access below memory space. %08llx%08llx",
+		            access_address >> 32, access_address);
+	}
+	return BackPatch(ctx);
+}
+
+bool JitArm::BackPatch(SContext* ctx)
 {
 	// TODO: This ctx needs to be filled with our information
-	SContext *ctx = (SContext *)ctx_void;
 
 	// We need to get the destination register before we start
+	u8* codePtr = (u8*)ctx->CTX_PC;
 	u32 Value = *(u32*)codePtr;
 	ARMReg rD;
 	u8 accessSize;
@@ -109,7 +120,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 		u32 newPC = ctx->CTX_PC - (ARMREGOFFSET + 4 * 4);
 		ctx->CTX_PC = newPC;
 		emitter.FlushIcache();
-		return (u8*)ctx->CTX_PC;
+		return true;
 	}
 	else
 	{
@@ -135,7 +146,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 		emitter.MOV(rD, R14); // 8
 		ctx->CTX_PC -= ARMREGOFFSET + (4 * 4);
 		emitter.FlushIcache();
-		return (u8*)ctx->CTX_PC;
+		return true;
 	}
 	return 0;
 }

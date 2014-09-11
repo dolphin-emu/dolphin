@@ -195,9 +195,10 @@ if(_M_X86)
 			PowerPC/Jit64/Jit_Paired.cpp
 			PowerPC/Jit64/JitRegCache.cpp
 			PowerPC/Jit64/Jit_SystemRegisters.cpp
-			PowerPC/JitCommon/JitBackpatch.cpp
 			PowerPC/JitCommon/JitAsmCommon.cpp
-			PowerPC/JitCommon/Jit_Util.cpp)
+			PowerPC/JitCommon/JitBackpatch.cpp
+			PowerPC/JitCommon/Jit_Util.cpp
+			PowerPC/JitCommon/TrampolineCache.cpp)
 elseif(_M_ARM_32)
 	set(SRCS ${SRCS}
 			ArmMemTools.cpp

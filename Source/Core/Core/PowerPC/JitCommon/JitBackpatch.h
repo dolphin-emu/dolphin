@@ -5,11 +5,6 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Common/x64Analyzer.h"
-#include "Common/x64Emitter.h"
-
-// We need at least this many bytes for backpatching.
-const int BACKPATCH_SIZE = 5;
 
 // meh.
 #if defined(_WIN32)
@@ -147,8 +142,8 @@ const int BACKPATCH_SIZE = 5;
 #endif
 
 #if _M_X86_64
-#define CTX_PC CTX_RIP
 #include <stddef.h>
+#define CTX_PC CTX_RIP
 static inline u64 *ContextRN(SContext* ctx, int n)
 {
 	static const u8 offsets[] =
@@ -173,13 +168,3 @@ static inline u64 *ContextRN(SContext* ctx, int n)
 	return (u64 *) ((char *) ctx + offsets[n]);
 }
 #endif
-
-class TrampolineCache : public Gen::X64CodeBlock
-{
-public:
-	void Init();
-	void Shutdown();
-
-	const u8 *GetReadTrampoline(const InstructionInfo &info, u32 registersInUse);
-	const u8 *GetWriteTrampoline(const InstructionInfo &info, u32 registersInUse, u32 pc);
-};
