@@ -272,6 +272,9 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
 		{
 			mem_mask |= Memory::ADDR_MASK_MEM1;
+			// The Gamecube doesn't have EXRAM, so it's safe to assume this.
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+				mem_mask |= 0x02000000;
 		}
 
 #ifdef ENABLE_MEM_CHECK
@@ -457,6 +460,9 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
 	{
 		mem_mask |= Memory::ADDR_MASK_MEM1;
+		// The Gamecube doesn't have EXRAM, so it's safe to assume this.
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+			mem_mask |= 0x02000000;
 	}
 
 #ifdef ENABLE_MEM_CHECK
