@@ -17,6 +17,8 @@
 #include "Core/PowerPC/JitArm32/JitFPRCache.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
+using namespace ArmGen;
+
 void JitArm::lfXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

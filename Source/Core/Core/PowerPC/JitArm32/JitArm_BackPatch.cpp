@@ -11,6 +11,8 @@
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
 
+using namespace ArmGen;
+
 // This generates some fairly heavy trampolines, but:
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be

@@ -17,6 +17,8 @@
 #include "Core/PowerPC/JitArm32/JitFPRCache.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
+using namespace ArmGen;
+
 void JitArm::Helper_UpdateCR1(ARMReg fpscr, ARMReg temp)
 {
 }

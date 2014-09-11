@@ -8,7 +8,6 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-using namespace ArmGen;
 // This ARM Register cache actually pre loads the most used registers before
 // the block to increase speed since every memory load requires two
 // instructions to load it. We are going to use R0-RMAX as registers for the
@@ -88,12 +87,12 @@ struct JRCPPC
 {
 	u32 PPCReg; // Tied to which PPC Register
 	bool PS1;
-	ARMReg Reg; // Tied to which ARM Register
+	ArmGen::ARMReg Reg; // Tied to which ARM Register
 	u32 LastLoad;
 };
 struct JRCReg
 {
-	ARMReg Reg; // Which reg this is.
+	ArmGen::ARMReg Reg; // Which reg this is.
 	bool free;
 };
 class ArmRegCache
@@ -106,27 +105,27 @@ private:
 	int NUMPPCREG;
 	int NUMARMREG;
 
-	ARMReg *GetAllocationOrder(int &count);
-	ARMReg *GetPPCAllocationOrder(int &count);
+	ArmGen::ARMReg *GetAllocationOrder(int &count);
+	ArmGen::ARMReg *GetPPCAllocationOrder(int &count);
 
 	u32 GetLeastUsedRegister(bool increment);
 	bool FindFreeRegister(u32 &regindex);
 protected:
-	ARMXEmitter *emit;
+	ArmGen::ARMXEmitter *emit;
 
 public:
 	ArmRegCache();
 	~ArmRegCache() {}
 
-	void Init(ARMXEmitter *emitter);
+	void Init(ArmGen::ARMXEmitter *emitter);
 	void Start(PPCAnalyst::BlockRegStats &stats);
 
-	ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
-	void Unlock(ARMReg R0, ARMReg R1 = INVALID_REG, ARMReg R2 = INVALID_REG, ARMReg R3 = INVALID_REG);
+	ArmGen::ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
+	void Unlock(ArmGen::ARMReg R0, ArmGen::ARMReg R1 = ArmGen::INVALID_REG, ArmGen::ARMReg R2 = ArmGen::INVALID_REG, ArmGen::ARMReg R3 = ArmGen::INVALID_REG);
 	void Flush(FlushMode mode = FLUSH_ALL);
-	ARMReg R(u32 preg); // Returns a cached register
+	ArmGen::ARMReg R(u32 preg); // Returns a cached register
 	bool IsImm(u32 preg) { return regs[preg].GetType() == REG_IMM; }
 	u32 GetImm(u32 preg) { return regs[preg].GetImm(); }
 	void SetImmediate(u32 preg, u32 imm);
-	ARMReg BindToRegister(u32 preg);
+	ArmGen::ARMReg BindToRegister(u32 preg);
 };

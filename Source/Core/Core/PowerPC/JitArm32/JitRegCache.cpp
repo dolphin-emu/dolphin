@@ -5,6 +5,8 @@
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
+using namespace ArmGen;
+
 ArmRegCache::ArmRegCache()
 {
 	emit = 0;

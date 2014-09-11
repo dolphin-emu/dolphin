@@ -15,6 +15,8 @@
 #include "Core/PowerPC/JitArm32/JitAsm.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
+using namespace ArmGen;
+
 void JitArm::ps_rsqrte(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

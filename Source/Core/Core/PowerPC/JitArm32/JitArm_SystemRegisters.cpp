@@ -14,6 +14,8 @@
 #include "Core/PowerPC/JitArm32/JitAsm.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
+using namespace ArmGen;
+
 FixupBranch JitArm::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
 	ARMReg RA = gpr.GetReg();
