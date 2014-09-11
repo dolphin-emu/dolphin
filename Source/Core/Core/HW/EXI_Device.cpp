@@ -59,7 +59,7 @@ void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize)
 		TransferByte(uByte);
 		Memory::Write_U8(uByte, _uAddr++);
 	}
-};
+}
 
 
 // --- class CEXIDummy ---

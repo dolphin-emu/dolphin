@@ -76,4 +76,4 @@ enum
 namespace NetPlay
 {
 	bool IsNetPlayRunning();
-};
+}

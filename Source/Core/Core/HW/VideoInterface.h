@@ -355,4 +355,4 @@ union UVIHorizontalStepping
 	unsigned int GetTicksPerFrame();
 
 	int GetNumFields();
-};
+}

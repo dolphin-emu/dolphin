@@ -12,8 +12,8 @@ public:
 	virtual ~GFXDebuggerBase() {}
 
 	// if paused, debugging functions can be enabled
-	virtual void OnPause() {};
-	virtual void OnContinue() {};
+	virtual void OnPause() {}
+	virtual void OnContinue() {}
 
 	void DumpPixelShader(const std::string& path);
 	void DumpVertexShader(const std::string& path);

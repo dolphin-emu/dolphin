@@ -41,7 +41,7 @@ public:
 	u32 getNgId()         {return Common::swap32(BootMiiKeysBin.ng_id);}
 	u32 getNgKeyId()      {return Common::swap32(BootMiiKeysBin.ng_key_id);}
 	const u8* getNgPriv() {return BootMiiKeysBin.ng_priv;}
-	const u8* getNgSig()  {return BootMiiKeysBin.ng_sig;};
+	const u8* getNgSig()  {return BootMiiKeysBin.ng_sig;}
 private:
 	void InitDefaults();
 

@@ -43,4 +43,4 @@ void FastWrite8(const u8 _iValue);
 void FastWrite16(const u16 _iValue);
 void FastWrite32(const u32 _iValue);
 void FastWrite64(const u64 _iValue);
-};
+}
