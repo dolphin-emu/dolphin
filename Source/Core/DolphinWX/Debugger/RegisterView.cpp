@@ -98,7 +98,7 @@ static void SetSpecialRegValue(int reg, u32 value)
 void CRegTable::SetValue(int row, int col, const wxString& strNewVal)
 {
 	u32 newVal = 0;
-	if (TryParse(WxStrToStr(strNewVal), &newVal))
+	if (TryParse("0x" + WxStrToStr(strNewVal), &newVal))
 	{
 		if (row < 32)
 		{
