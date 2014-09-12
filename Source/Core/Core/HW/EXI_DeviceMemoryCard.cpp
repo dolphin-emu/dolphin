@@ -274,44 +274,44 @@ void CEXIMemoryCard::SetCS(int cs)
 	{
 		switch (command)
 		{
-			case cmdSectorErase:
-				if (m_uPosition > 2)
+		case cmdSectorErase:
+			if (m_uPosition > 2)
+			{
+				memorycard->ClearBlock(address & (memory_card_size - 1));
+
+				status |= MC_STATUS_BUSY;
+				status &= ~MC_STATUS_READY;
+				CmdDoneLater(tSHSL + tSE);
+			}
+			break;
+
+		case cmdChipErase:
+			if (m_uPosition > 2)
+			{
+				// TODO: Investigate on HW, I (LPFaint99) believe that this only
+				// erases the system area (Blocks 0-4)
+				memorycard->ClearAll();
+
+				status &= ~MC_STATUS_BUSY;
+			}
+			break;
+
+		case cmdPageProgram:
+			if (m_uPosition > 4)
+			{
+				int i = 0;
+				for (int count = m_uPosition - 5; count > 0; count--)
 				{
-					memorycard->ClearBlock(address & (memory_card_size - 1));
-
-					status |= MC_STATUS_BUSY;
-					status &= ~MC_STATUS_READY;
-					CmdDoneLater(tSHSL + tSE);
+					memorycard->Write(address, 1, &(programming_buffer[i++]));
+					i &= 127;
+					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
 				}
-				break;
 
-			case cmdChipErase:
-				if (m_uPosition > 2)
-				{
-					// TODO: Investigate on HW, I (LPFaint99) believe that this only
-					// erases the system area (Blocks 0-4)
-					memorycard->ClearAll();
+				status &= ~MC_STATUS_BUSY;
 
-					status &= ~MC_STATUS_BUSY;
-				}
-				break;
-
-			case cmdPageProgram:
-				if (m_uPosition > 4)
-				{
-					int i = 0;
-					for (int count = m_uPosition - 5; count > 0; count--)
-					{
-						memorycard->Write(address, 1, &(programming_buffer[i++]));
-						i &= 127;
-						address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
-					}
-
-					status &= ~MC_STATUS_BUSY;
-
-					CmdDoneLater(tSHSL + tPP);
-				}
-				break;
+				CmdDoneLater(tSHSL + tPP);
+			}
+			break;
 		}
 	}
 }
@@ -339,104 +339,104 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 	{
 		switch (command)
 		{
-			case cmdNintendoID:
-				// Nintendo card:
-				// 00 | 80 00 00 00 10 00 00 00
-				// "bigben" card:
-				// 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
-				// we do it the Nintendo way.
-				byte = (m_uPosition == 1) ? 0x80 : static_cast<u8>(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
-				break;
+		case cmdNintendoID:
+			// Nintendo card:
+			// 00 | 80 00 00 00 10 00 00 00
+			// "bigben" card:
+			// 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
+			// we do it the Nintendo way.
+			byte = (m_uPosition == 1) ? 0x80 : static_cast<u8>(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
+			break;
 
-			case cmdReadArray:
-				switch (m_uPosition)
-				{
-					case 1: // AD1
-						address = byte << 17;
-						byte = 0xFF;
-						break;
-					case 2: // AD2
-						address |= byte << 9;
-						break;
-					case 3: // AD3
-						address |= (byte & 3) << 7;
-						break;
-					case 4: // BA
-						address |= (byte & 0x7F);
-						break;
-				}
-
-				if (m_uPosition > 1) // not specified for 1..8, anyway
-				{
-					memorycard->Read(address & (memory_card_size - 1), 1, &byte);
-					// after 9 bytes, we start incrementing the address,
-					// but only the sector offset - the pointer wraps around
-					if (m_uPosition >= 9)
-						address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
-				}
-				break;
-
-			case cmdReadStatus:
-				// (unspecified for byte 1)
-				byte = status;
-				break;
-
-			case cmdReadID:
-				if (m_uPosition == 1) // (unspecified)
-					byte = static_cast<u8>(card_id >> 8);
-				else
-					byte = static_cast<u8>((m_uPosition & 1) ? (card_id) : (card_id >> 8));
-				break;
-
-			case cmdSectorErase:
-				switch (m_uPosition)
-				{
-					case 1: // AD1
-						address = byte << 17;
-						break;
-					case 2: // AD2
-						address |= byte << 9;
-						break;
-				}
+		case cmdReadArray:
+			switch (m_uPosition)
+			{
+			case 1: // AD1
+				address = byte << 17;
 				byte = 0xFF;
 				break;
-
-			case cmdSetInterrupt:
-				if (m_uPosition == 1)
-					interruptSwitch = byte;
-				byte = 0xFF;
+			case 2: // AD2
+				address |= byte << 9;
 				break;
-
-			case cmdChipErase:
-				byte = 0xFF;
+			case 3: // AD3
+				address |= (byte & 3) << 7;
 				break;
-
-			case cmdPageProgram:
-				switch (m_uPosition)
-				{
-					case 1: // AD1
-						address = byte << 17;
-						break;
-					case 2: // AD2
-						address |= byte << 9;
-						break;
-					case 3: // AD3
-						address |= (byte & 3) << 7;
-						break;
-					case 4: // BA
-						address |= (byte & 0x7F);
-						break;
-				}
-
-				if (m_uPosition >= 5)
-					programming_buffer[((m_uPosition - 5) & 0x7F)] = byte; // wrap around after 128 bytes
-
-				byte = 0xFF;
+			case 4: // BA
+				address |= (byte & 0x7F);
 				break;
+			}
 
-			default:
-				WARN_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: unknown command byte 0x%02x)", card_index, byte);
-				byte = 0xFF;
+			if (m_uPosition > 1) // not specified for 1..8, anyway
+			{
+				memorycard->Read(address & (memory_card_size - 1), 1, &byte);
+				// after 9 bytes, we start incrementing the address,
+				// but only the sector offset - the pointer wraps around
+				if (m_uPosition >= 9)
+					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
+			}
+			break;
+
+		case cmdReadStatus:
+			// (unspecified for byte 1)
+			byte = status;
+			break;
+
+		case cmdReadID:
+			if (m_uPosition == 1) // (unspecified)
+				byte = static_cast<u8>(card_id >> 8);
+			else
+				byte = static_cast<u8>((m_uPosition & 1) ? (card_id) : (card_id >> 8));
+			break;
+
+		case cmdSectorErase:
+			switch (m_uPosition)
+			{
+			case 1: // AD1
+				address = byte << 17;
+				break;
+			case 2: // AD2
+				address |= byte << 9;
+				break;
+			}
+			byte = 0xFF;
+			break;
+
+		case cmdSetInterrupt:
+			if (m_uPosition == 1)
+				interruptSwitch = byte;
+			byte = 0xFF;
+			break;
+
+		case cmdChipErase:
+			byte = 0xFF;
+			break;
+
+		case cmdPageProgram:
+			switch (m_uPosition)
+			{
+			case 1: // AD1
+				address = byte << 17;
+				break;
+			case 2: // AD2
+				address |= byte << 9;
+				break;
+			case 3: // AD3
+				address |= (byte & 3) << 7;
+				break;
+			case 4: // BA
+				address |= (byte & 0x7F);
+				break;
+			}
+
+			if (m_uPosition >= 5)
+				programming_buffer[((m_uPosition - 5) & 0x7F)] = byte; // wrap around after 128 bytes
+
+			byte = 0xFF;
+			break;
+
+		default:
+			WARN_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: unknown command byte 0x%02x)", card_index, byte);
+			byte = 0xFF;
 		}
 	}
 

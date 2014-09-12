@@ -168,7 +168,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 void CEXIChannel::TransferComplete(u64 userData, int cyclesLate)
 {
 	u32 channelID = static_cast<u32>(userData);
-	CEXIChannel* channel = ExpansionInterface::FindChannel(channelID);
+	CEXIChannel* channel = ExpansionInterface::GetChannel(channelID);
 
 	if (channel->m_Control.DMA)
 	{
