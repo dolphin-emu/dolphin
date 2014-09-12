@@ -59,22 +59,9 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	: card_index(index)
 {
-	struct
-	{
-		const char *done;
-	} const event_names[] = {
-		{ "memcardDoneA" },
-		{ "memcardDoneB" },
-	};
-
-	if ((size_t)index >= ArraySize(event_names))
-	{
-		PanicAlertT("Trying to create invalid memory card index.");
-	}
 	// we're potentially leaking events here, since there's no RemoveEvent
 	// until emu shutdown, but I guess it's inconsequential
-	et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done,
-		CmdDoneCallback);
+	et_cmd_done = CoreTiming::RegisterEvent((index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
 
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -259,7 +246,7 @@ void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
 	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: CmdDoneLater (cycles: %llu)", card_index, cycles);
 	CoreTiming::RemoveEvent(et_cmd_done);
-	CoreTiming::ScheduleEvent(static_cast<int>(cycles), et_cmd_done, static_cast<u64>(card_index));
+	CoreTiming::ScheduleEvent((int)cycles, et_cmd_done, (u64)card_index);
 }
 
 void CEXIMemoryCard::SetCS(int cs)
@@ -281,6 +268,9 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				status |= MC_STATUS_BUSY;
 				status &= ~MC_STATUS_READY;
+
+				//???
+
 				CmdDoneLater(tSHSL + tSE);
 			}
 			break;
@@ -291,23 +281,22 @@ void CEXIMemoryCard::SetCS(int cs)
 				// TODO: Investigate on HW, I (LPFaint99) believe that this only
 				// erases the system area (Blocks 0-4)
 				memorycard->ClearAll();
-
 				status &= ~MC_STATUS_BUSY;
 			}
 			break;
 
 		case cmdPageProgram:
-			if (m_uPosition > 4)
+			if (m_uPosition >= 5)
 			{
-				int i = 0;
-				for (int count = m_uPosition - 5; count > 0; count--)
+				int i=0;
+				status &= ~MC_STATUS_BUSY;
+
+				for (int count = 0; count < ((int)m_uPosition - 5); count++)
 				{
 					memorycard->Write(address, 1, &(programming_buffer[i++]));
 					i &= 127;
-					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
+					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
 				}
-
-				status &= ~MC_STATUS_BUSY;
 
 				CmdDoneLater(tSHSL + tPP);
 			}
@@ -331,8 +320,8 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 
 			status |= MC_STATUS_READY;
 
-			m_uPosition = 0;
 			byte = 0xFF;
+			m_uPosition = 0;
 		}
 	}
 	else
@@ -340,12 +329,16 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 		switch (command)
 		{
 		case cmdNintendoID:
+			//
 			// Nintendo card:
 			// 00 | 80 00 00 00 10 00 00 00
 			// "bigben" card:
 			// 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
 			// we do it the Nintendo way.
-			byte = (m_uPosition == 1) ? 0x80 : static_cast<u8>(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
+			if (m_uPosition == 1)
+				byte = 0x80; // dummy cycle
+			else
+				byte = (u8)(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
 			break;
 
 		case cmdReadArray:
@@ -365,14 +358,13 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 				address |= (byte & 0x7F);
 				break;
 			}
-
 			if (m_uPosition > 1) // not specified for 1..8, anyway
 			{
 				memorycard->Read(address & (memory_card_size - 1), 1, &byte);
 				// after 9 bytes, we start incrementing the address,
 				// but only the sector offset - the pointer wraps around
 				if (m_uPosition >= 9)
-					address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
+					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
 			}
 			break;
 
@@ -383,9 +375,9 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 
 		case cmdReadID:
 			if (m_uPosition == 1) // (unspecified)
-				byte = static_cast<u8>(card_id >> 8);
+				byte = (u8)(card_id >> 8);
 			else
-				byte = static_cast<u8>((m_uPosition & 1) ? (card_id) : (card_id >> 8));
+				byte = (u8)((m_uPosition & 1) ? (card_id) : (card_id >> 8));
 			break;
 
 		case cmdSectorErase:
@@ -440,8 +432,8 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 		}
 	}
 
-	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: TransferByte < (byte: 0x%02x, command: 0x%02x, status: 0x%02x, position: %d)", card_index, byte, command, status, m_uPosition);
 	m_uPosition++;
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: TransferByte < (byte: 0x%02x, command: 0x%02x, status: 0x%02x, position: %d)", card_index, byte, command, status, m_uPosition);
 }
 
 bool CEXIMemoryCard::IsInterruptSet()

@@ -153,8 +153,8 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				}
 
 				u64 transferTime = 8ULL * transferSize * SystemTimers::GetTicksPerSecond() / GetClockRate();
-				CoreTiming::ScheduleEvent_Threadsafe(static_cast<int>(transferTime), transferComplete, m_ChannelId);
-				CoreTiming::ForceExceptionCheck(static_cast<int>(transferTime));
+				CoreTiming::ScheduleEvent((int)transferTime, transferComplete, m_ChannelId);
+				CoreTiming::ForceExceptionCheck((int)transferTime);
 			}
 		})
 	);
@@ -167,7 +167,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void CEXIChannel::TransferComplete(u64 userData, int cyclesLate)
 {
-	u32 channelID = static_cast<u32>(userData);
+	u32 channelID = (u32)(userData);
 	CEXIChannel* channel = ExpansionInterface::GetChannel(channelID);
 
 	if (channel->m_Control.DMA)
