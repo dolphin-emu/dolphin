@@ -299,10 +299,8 @@ void CEXIMemoryCard::SetCS(int cs)
 			case cmdPageProgram:
 				if (m_uPosition > 4)
 				{
-					int count = m_uPosition - 5;
 					int i = 0;
-
-					while (count--)
+					for (int count = m_uPosition - 5; count > 0; count--)
 					{
 						memorycard->Write(address, 1, &(programming_buffer[i++]));
 						i &= 127;

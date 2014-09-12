@@ -52,16 +52,14 @@ private:
 		cmdChipErase        = 0xF4,
 	};
 
-	/*
-		Memory Card timing information
-
-		These values are based off of this datasheet:
-			http://justanothercoder.com/~booto/DSA-543837.pdf
-
-		tSHSL is how long it takes for CS to deselect
-		tPP is the time it takes for cmdPageProgram to complete
-		tSE is the time it takes for cmdSectorErase to complete
-	*/
+	//	Memory Card timing information
+	//
+	//	These values are based off of this datasheet:
+	//		http://justanothercoder.com/~booto/DSA-543837.pdf
+	//
+	//	tSHSL is how long it takes for CS to deselect
+	//	tPP is the time it takes for cmdPageProgram to complete
+	//	tSE is the time it takes for cmdSectorErase to complete
 	u64 tSHSL;
 	u64 tPP;
 	u64 tSE;

@@ -108,7 +108,7 @@ IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 	return nullptr;
 }
 
-CEXIChannel* FindChannel(int channelID)
+CEXIChannel* FindChannel(u32 channelID)
 {
 	return g_Channels[channelID];
 }

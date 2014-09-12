@@ -146,7 +146,7 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 					// DMA
 					switch (m_Control.RW)
 					{
-						case EXI_READ: pDevice->DMARead (m_DMAMemoryAddress, transferSize); break;
+						case EXI_READ: pDevice->DMARead(m_DMAMemoryAddress, transferSize); break;
 						case EXI_WRITE: pDevice->DMAWrite(m_DMAMemoryAddress, transferSize); break;
 						default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI DMA: Unknown transfer type %i", m_Control.RW);
 					}
