@@ -30,9 +30,6 @@
 #define MC_STATUS_READY             0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
 
-static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
-static const u32 MC_TRANSFER_RATE_WRITE = (u32)(96.125f * 1024.0f);
-
 // Takes care of the nasty recovery of the 'this' pointer from card_index,
 // stored in the userdata parameter of the CoreTiming event.
 void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata, std::function<void(CEXIMemoryCard*)> callback)
@@ -59,24 +56,15 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 	});
 }
 
-void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, int cyclesLate)
-{
-	EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance)
-	{
-		instance->TransferComplete();
-	});
-}
-
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	: card_index(index)
 {
 	struct
 	{
 		const char *done;
-		const char *transfer_complete;
 	} const event_names[] = {
-		{ "memcardDoneA", "memcardTransferCompleteA" },
-		{ "memcardDoneB", "memcardTransferCompleteB" },
+		{ "memcardDoneA" },
+		{ "memcardDoneB" },
 	};
 
 	if ((size_t)index >= ArraySize(event_names))
@@ -87,12 +75,10 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	// until emu shutdown, but I guess it's inconsequential
 	et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done,
 		CmdDoneCallback);
-	et_transfer_complete = CoreTiming::RegisterEvent(
-		event_names[index].transfer_complete, TransferCompleteCallback);
 
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
-	command = 0;
+	command = 0x00;
 	status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
 	m_uPosition = 0;
 	memset(programming_buffer, 0, sizeof(programming_buffer));
@@ -132,6 +118,12 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	u8 header[20] = {0};
 	memorycard->Read(0, ArraySize(header), header);
 	SetCardFlashID(header, card_index);
+
+	tSHSL = SystemTimers::GetTicksPerSecond() * 100ULL / 1000000000ULL; // 100 nanoseconds
+	tPP = SystemTimers::GetTicksPerSecond() * 650ULL / 1000000ULL; // 650 microseconds
+	tSE = SystemTimers::GetTicksPerSecond() * 62ULL / 1000ULL; // 62 milliseconds
+
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: Timing Information (tSHSL: %llu, tPP: %llu, tSE: %llu)", card_index, tSHSL, tPP, tSE);
 }
 
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
@@ -244,12 +236,6 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
 CEXIMemoryCard::~CEXIMemoryCard()
 {
 	CoreTiming::RemoveEvent(et_cmd_done);
-	CoreTiming::RemoveEvent(et_transfer_complete);
-}
-
-bool CEXIMemoryCard::UseDelayedTransferCompletion()
-{
-	return true;
 }
 
 bool CEXIMemoryCard::IsPresent()
@@ -263,23 +249,24 @@ void CEXIMemoryCard::CmdDone()
 	status &= ~MC_STATUS_BUSY;
 
 	m_bInterruptSet = 1;
-}
+	ExpansionInterface::UpdateInterrupts();
 
-void CEXIMemoryCard::TransferComplete()
-{
-	// Transfer complete, send interrupt
-	ExpansionInterface::GetChannel(card_index)->SendTransferComplete();
+	m_bInterruptSet = 0;
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: CmdDone", card_index);
 }
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: CmdDoneLater (cycles: %llu)", card_index, cycles);
 	CoreTiming::RemoveEvent(et_cmd_done);
-	CoreTiming::ScheduleEvent((int)cycles, et_cmd_done, (u64)card_index);
+	CoreTiming::ScheduleEvent(static_cast<int>(cycles), et_cmd_done, static_cast<u64>(card_index));
 }
 
 void CEXIMemoryCard::SetCS(int cs)
 {
-	if (cs)  // not-selected to selected
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: SetCS (cs: 0x%02x, status: 0x%02x, command: 0x%02x)", card_index, cs, status, command);
+
+	if (cs)
 	{
 		m_uPosition = 0;
 	}
@@ -287,88 +274,58 @@ void CEXIMemoryCard::SetCS(int cs)
 	{
 		switch (command)
 		{
-		case cmdSectorErase:
-			if (m_uPosition > 2)
-			{
-				memorycard->ClearBlock(address & (memory_card_size - 1));
-				status |= MC_STATUS_BUSY;
-				status &= ~MC_STATUS_READY;
-
-				//???
-
-				CmdDoneLater(5000);
-			}
-			break;
-
-		case cmdChipErase:
-			if (m_uPosition > 2)
-			{
-				// TODO: Investigate on HW, I (LPFaint99) believe that this only
-				// erases the system area (Blocks 0-4)
-				memorycard->ClearAll();
-				status &= ~MC_STATUS_BUSY;
-			}
-			break;
-
-		case cmdPageProgram:
-			if (m_uPosition >= 5)
-			{
-				int count = m_uPosition - 5;
-				int i=0;
-				status &= ~0x80;
-
-				while (count--)
+			case cmdSectorErase:
+				if (m_uPosition > 2)
 				{
-					memorycard->Write(address, 1, &(programming_buffer[i++]));
-					i &= 127;
-					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
-				}
+					memorycard->ClearBlock(address & (memory_card_size - 1));
 
-				CmdDoneLater(5000);
-			}
-			break;
+					status |= MC_STATUS_BUSY;
+					status &= ~MC_STATUS_READY;
+					CmdDoneLater(tSHSL + tSE);
+				}
+				break;
+
+			case cmdChipErase:
+				if (m_uPosition > 2)
+				{
+					// TODO: Investigate on HW, I (LPFaint99) believe that this only
+					// erases the system area (Blocks 0-4)
+					memorycard->ClearAll();
+
+					status &= ~MC_STATUS_BUSY;
+				}
+				break;
+
+			case cmdPageProgram:
+				if (m_uPosition > 4)
+				{
+					int count = m_uPosition - 5;
+					int i = 0;
+
+					while (count--)
+					{
+						memorycard->Write(address, 1, &(programming_buffer[i++]));
+						i &= 127;
+						address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
+					}
+
+					status &= ~MC_STATUS_BUSY;
+
+					CmdDoneLater(tSHSL + tPP);
+				}
+				break;
 		}
 	}
 }
 
-bool CEXIMemoryCard::IsInterruptSet()
-{
-	if (interruptSwitch)
-		return m_bInterruptSet;
-	return false;
-}
-
 void CEXIMemoryCard::TransferByte(u8 &byte)
 {
-	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: > %02x", byte);
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: TransferByte > (byte: 0x%02x, command: 0x%02x, status: 0x%02x, position: %d)", card_index, byte, command, status, m_uPosition);
 	if (m_uPosition == 0)
 	{
 		command = byte;  // first byte is command
 		byte = 0xFF; // would be tristate, but we don't care.
 
-		switch (command) // This seems silly, do we really need it?
-		{
-		case cmdNintendoID:
-		case cmdReadArray:
-		case cmdArrayToBuffer:
-		case cmdSetInterrupt:
-		case cmdWriteBuffer:
-		case cmdReadStatus:
-		case cmdReadID:
-		case cmdReadErrorBuffer:
-		case cmdWakeUp:
-		case cmdSleep:
-		case cmdClearStatus:
-		case cmdSectorErase:
-		case cmdPageProgram:
-		case cmdExtraByteProgram:
-		case cmdChipErase:
-			INFO_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.", command);
-			break;
-		default:
-			WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0", command);
-			break;
-		}
 		if (command == cmdClearStatus)
 		{
 			status &= ~MC_STATUS_PROGRAMEERROR;
@@ -376,123 +333,124 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 
 			status |= MC_STATUS_READY;
 
-			m_bInterruptSet = 0;
-
-			byte = 0xFF;
 			m_uPosition = 0;
+			byte = 0xFF;
 		}
 	}
 	else
 	{
 		switch (command)
 		{
-		case cmdNintendoID:
-			//
-			// Nintendo card:
-			// 00 | 80 00 00 00 10 00 00 00
-			// "bigben" card:
-			// 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
-			// we do it the Nintendo way.
-			if (m_uPosition == 1)
-				byte = 0x80; // dummy cycle
-			else
-				byte = (u8)(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
-			break;
+			case cmdNintendoID:
+				// Nintendo card:
+				// 00 | 80 00 00 00 10 00 00 00
+				// "bigben" card:
+				// 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
+				// we do it the Nintendo way.
+				byte = (m_uPosition == 1) ? 0x80 : static_cast<u8>(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
+				break;
 
-		case cmdReadArray:
-			switch (m_uPosition)
-			{
-			case 1: // AD1
-				address = byte << 17;
+			case cmdReadArray:
+				switch (m_uPosition)
+				{
+					case 1: // AD1
+						address = byte << 17;
+						byte = 0xFF;
+						break;
+					case 2: // AD2
+						address |= byte << 9;
+						break;
+					case 3: // AD3
+						address |= (byte & 3) << 7;
+						break;
+					case 4: // BA
+						address |= (byte & 0x7F);
+						break;
+				}
+
+				if (m_uPosition > 1) // not specified for 1..8, anyway
+				{
+					memorycard->Read(address & (memory_card_size - 1), 1, &byte);
+					// after 9 bytes, we start incrementing the address,
+					// but only the sector offset - the pointer wraps around
+					if (m_uPosition >= 9)
+						address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
+				}
+				break;
+
+			case cmdReadStatus:
+				// (unspecified for byte 1)
+				byte = status;
+				break;
+
+			case cmdReadID:
+				if (m_uPosition == 1) // (unspecified)
+					byte = static_cast<u8>(card_id >> 8);
+				else
+					byte = static_cast<u8>((m_uPosition & 1) ? (card_id) : (card_id >> 8));
+				break;
+
+			case cmdSectorErase:
+				switch (m_uPosition)
+				{
+					case 1: // AD1
+						address = byte << 17;
+						break;
+					case 2: // AD2
+						address |= byte << 9;
+						break;
+				}
 				byte = 0xFF;
 				break;
-			case 2: // AD2
-				address |= byte << 9;
-				break;
-			case 3: // AD3
-				address |= (byte & 3) << 7;
-				break;
-			case 4: // BA
-				address |= (byte & 0x7F);
-				break;
-			}
-			if (m_uPosition > 1) // not specified for 1..8, anyway
-			{
-				memorycard->Read(address & (memory_card_size - 1), 1, &byte);
-				// after 9 bytes, we start incrementing the address,
-				// but only the sector offset - the pointer wraps around
-				if (m_uPosition >= 9)
-					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
-			}
-			break;
 
-		case cmdReadStatus:
-			// (unspecified for byte 1)
-			byte = status;
-			break;
-
-		case cmdReadID:
-			if (m_uPosition == 1) // (unspecified)
-				byte = (u8)(card_id >> 8);
-			else
-				byte = (u8)((m_uPosition & 1) ? (card_id) : (card_id >> 8));
-			break;
-
-		case cmdSectorErase:
-			switch (m_uPosition)
-			{
-			case 1: // AD1
-				address = byte << 17;
+			case cmdSetInterrupt:
+				if (m_uPosition == 1)
+					interruptSwitch = byte;
+				byte = 0xFF;
 				break;
-			case 2: // AD2
-				address |= byte << 9;
+
+			case cmdChipErase:
+				byte = 0xFF;
 				break;
-			}
-			byte = 0xFF;
-			break;
 
-		case cmdSetInterrupt:
-			if (m_uPosition == 1)
-			{
-				interruptSwitch = byte;
-			}
-			byte = 0xFF;
-			break;
+			case cmdPageProgram:
+				switch (m_uPosition)
+				{
+					case 1: // AD1
+						address = byte << 17;
+						break;
+					case 2: // AD2
+						address |= byte << 9;
+						break;
+					case 3: // AD3
+						address |= (byte & 3) << 7;
+						break;
+					case 4: // BA
+						address |= (byte & 0x7F);
+						break;
+				}
 
-		case cmdChipErase:
-			byte = 0xFF;
-			break;
+				if (m_uPosition >= 5)
+					programming_buffer[((m_uPosition - 5) & 0x7F)] = byte; // wrap around after 128 bytes
 
-		case cmdPageProgram:
-			switch (m_uPosition)
-			{
-			case 1: // AD1
-				address = byte << 17;
+				byte = 0xFF;
 				break;
-			case 2: // AD2
-				address |= byte << 9;
-				break;
-			case 3: // AD3
-				address |= (byte & 3) << 7;
-				break;
-			case 4: // BA
-				address |= (byte & 0x7F);
-				break;
-			}
 
-			if (m_uPosition >= 5)
-				programming_buffer[((m_uPosition - 5) & 0x7F)] = byte; // wrap around after 128 bytes
-
-			byte = 0xFF;
-			break;
-
-		default:
-			WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x\n", byte);
-			byte = 0xFF;
+			default:
+				WARN_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: unknown command byte 0x%02x)", card_index, byte);
+				byte = 0xFF;
 		}
 	}
+
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: TransferByte < (byte: 0x%02x, command: 0x%02x, status: 0x%02x, position: %d)", card_index, byte, command, status, m_uPosition);
 	m_uPosition++;
-	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
+}
+
+bool CEXIMemoryCard::IsInterruptSet()
+{
+	if (interruptSwitch)
+		return m_bInterruptSet;
+	return false;
 }
 
 void CEXIMemoryCard::DoState(PointerWrap &p)
@@ -537,11 +495,6 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 		DEBUG_LOG(EXPANSIONINTERFACE, "reading from block: %x",
 			address / BLOCK_SIZE);
 	}
-
-	// Schedule transfer complete later based on read speed
-	CoreTiming::ScheduleEvent(
-		_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
-		et_transfer_complete, (u64)card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -555,9 +508,4 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 		DEBUG_LOG(EXPANSIONINTERFACE, "writing to block: %x",
 			address / BLOCK_SIZE);
 	}
-
-	// Schedule transfer complete later based on write speed
-	CoreTiming::ScheduleEvent(
-		_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
-		et_transfer_complete, (u64)card_index);
 }

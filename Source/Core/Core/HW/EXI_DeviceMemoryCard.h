@@ -13,7 +13,6 @@ public:
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs) override;
 	bool IsInterruptSet() override;
-	bool UseDelayedTransferCompletion() override;
 	bool IsPresent() override;
 	void DoState(PointerWrap &p) override;
 	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) override;
@@ -28,14 +27,8 @@ private:
 	// Scheduled when a command that required delayed end signaling is done.
 	static void CmdDoneCallback(u64 userdata, int cyclesLate);
 
-	// Scheduled when memory card is done transferring data
-	static void TransferCompleteCallback(u64 userdata, int cyclesLate);
-
 	// Signals that the command that was previously executed is now done.
 	void CmdDone();
-
-	// Signals that the transfer that was previously executed is now done.
-	void TransferComplete();
 
 	// Variant of CmdDone which schedules an event later in the future to complete the command.
 	void CmdDoneLater(u64 cycles);
@@ -59,15 +52,29 @@ private:
 		cmdChipErase        = 0xF4,
 	};
 
+	/*
+		Memory Card timing information
+
+		These values are based off of this datasheet:
+			http://justanothercoder.com/~booto/DSA-543837.pdf
+
+		tSHSL is how long it takes for CS to deselect
+		tPP is the time it takes for cmdPageProgram to complete
+		tSE is the time it takes for cmdSectorErase to complete
+	*/
+	u64 tSHSL;
+	u64 tPP;
+	u64 tSE;
+
 	int card_index;
-	int et_cmd_done, et_transfer_complete;
+	int et_cmd_done;
 	//! memory card state
 
 	// STATE_TO_SAVE
 	int interruptSwitch;
 	bool m_bInterruptSet;
 	int command;
-	int status;
+	u8 status;
 	u32 m_uPosition;
 	u8 programming_buffer[128];
 	//! memory card parameters

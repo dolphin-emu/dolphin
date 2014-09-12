@@ -97,11 +97,6 @@ void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 devi
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | ((u64)device_type << 16) | device_num);
 }
 
-CEXIChannel* GetChannel(u32 index)
-{
-	return g_Channels[index];
-}
-
 IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 {
 	for (auto& channel : g_Channels)
@@ -111,6 +106,11 @@ IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 			return device;
 	}
 	return nullptr;
+}
+
+CEXIChannel* FindChannel(int channelID)
+{
+	return g_Channels[channelID];
 }
 
 void UpdateInterrupts()
