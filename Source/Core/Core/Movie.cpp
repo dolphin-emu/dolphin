@@ -53,7 +53,7 @@ static size_t tmpInputAllocated = 0;
 static u64 s_currentByte = 0, s_totalBytes = 0;
 u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0;
-u64 g_totalLagCount = 0; // just stats
+static u64 s_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0; // just stats
 static u64 s_recordingStartTime; // seconds since 1970 that recording started
@@ -142,7 +142,7 @@ void FrameUpdate()
 	if (IsRecordingInput())
 	{
 		g_totalFrames = g_currentFrame;
-		g_totalLagCount = g_currentLagCount;
+		s_totalLagCount = g_currentLagCount;
 	}
 	if (s_bFrameStep)
 	{
@@ -440,7 +440,7 @@ bool BeginRecordingInput(int controllers)
 
 	s_numPads = controllers;
 	g_currentFrame = g_totalFrames = 0;
-	g_currentLagCount = g_totalLagCount = 0;
+	g_currentLagCount = s_totalLagCount = 0;
 	g_currentInputCount = g_totalInputCount = 0;
 	s_totalTickCount = s_tickCountAtLastInput = 0;
 	s_bongos = 0;
@@ -756,7 +756,7 @@ bool PlayInput(const std::string& filename)
 
 	ReadHeader();
 	g_totalFrames = tmpHeader.frameCount;
-	g_totalLagCount = tmpHeader.lagCount;
+	s_totalLagCount = tmpHeader.lagCount;
 	g_totalInputCount = tmpHeader.inputCount;
 	s_totalTickCount = tmpHeader.tickCount;
 	g_currentFrame = 0;
@@ -844,7 +844,7 @@ void LoadInput(const std::string& filename)
 	if (!s_bReadOnly || tmpInput == nullptr)
 	{
 		g_totalFrames = tmpHeader.frameCount;
-		g_totalLagCount = tmpHeader.lagCount;
+		s_totalLagCount = tmpHeader.lagCount;
 		g_totalInputCount = tmpHeader.inputCount;
 		s_totalTickCount = s_tickCountAtLastInput = tmpHeader.tickCount;
 
@@ -1018,7 +1018,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 		Core::SetState(Core::CORE_PAUSE);
 		bool found = false;
 		std::string path;
-		for (int i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); ++i)
+		for (size_t i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); ++i)
 		{
 			path = SConfig::GetInstance().m_ISOFolder[i];
 			if (File::Exists(path + '/' + g_discChange))
@@ -1124,7 +1124,7 @@ void SaveRecording(const std::string& filename)
 
 	header.bFromSaveState = s_bRecordingFromSaveState;
 	header.frameCount = g_totalFrames;
-	header.lagCount = g_totalLagCount;
+	header.lagCount = s_totalLagCount;
 	header.inputCount = g_totalInputCount;
 	header.numRerecords = s_rerecords;
 	header.recordingStartTime = s_recordingStartTime;
