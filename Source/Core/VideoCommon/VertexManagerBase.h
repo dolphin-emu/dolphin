@@ -43,8 +43,8 @@ public:
 	virtual ::NativeVertexFormat* CreateNativeVertexFormat() = 0;
 
 	static void DoState(PointerWrap& p);
-	virtual void CreateDeviceObjects(){};
-	virtual void DestroyDeviceObjects(){};
+	virtual void CreateDeviceObjects(){}
+	virtual void DestroyDeviceObjects(){}
 
 protected:
 	virtual void vDoState(PointerWrap& p) {  }

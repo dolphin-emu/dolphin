@@ -84,4 +84,4 @@ void ForceExceptionCheck(int cycles);
 
 extern int slicelength;
 
-}; // end of namespace
+} // end of namespace

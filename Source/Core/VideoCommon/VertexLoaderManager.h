@@ -24,6 +24,6 @@ namespace VertexLoaderManager
 	void AppendListToString(std::string *dest);
 
 	NativeVertexFormat* GetCurrentVertexFormat();
-};
+}
 
 void RecomputeCachedArraybases();

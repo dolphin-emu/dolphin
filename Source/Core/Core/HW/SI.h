@@ -37,4 +37,4 @@ void ChangeDevice(SIDevices device, int channel);
 
 int GetTicksToNextSIPoll();
 
-}; // end of namespace SerialInterface
+} // end of namespace SerialInterface

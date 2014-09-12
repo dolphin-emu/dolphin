@@ -141,4 +141,4 @@ u32 TranslateAddress(u32 _Address, XCheckTLBFlag _Flag);
 void InvalidateTLBEntry(u32 _Address);
 extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
-};
+}

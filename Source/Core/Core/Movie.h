@@ -179,4 +179,4 @@ typedef void(*ManipFunction)(GCPadStatus*, int);
 
 void SetInputManip(ManipFunction);
 void CallInputManip(GCPadStatus* PadStatus, int controllerID);
-};
+}
