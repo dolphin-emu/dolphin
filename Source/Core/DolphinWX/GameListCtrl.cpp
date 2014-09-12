@@ -588,6 +588,7 @@ void CGameListCtrl::ScanForISOs()
 					case DiscIO::IVolume::COUNTRY_TAIWAN:
 						if (!SConfig::GetInstance().m_ListTaiwan)
 							list = false;
+						break;
 					case DiscIO::IVolume::COUNTRY_KOREA:
 						if (!SConfig::GetInstance().m_ListKorea)
 							list = false;
