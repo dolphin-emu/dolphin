@@ -21,7 +21,6 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		// PAL
 		case 'D': // German
 			return IVolume::COUNTRY_GERMANY;
-			break;
 
 		case 'X': // Used by a couple PAL games
 		case 'Y': // German, french
@@ -32,50 +31,40 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		case 'P':
 		case 'U': // Australia
 			return IVolume::COUNTRY_EUROPE;
-			break;
 
 		case 'F':
 			return IVolume::COUNTRY_FRANCE;
-			break;
 
 		case 'I':
 			return IVolume::COUNTRY_ITALY;
-			break;
 
 		case 'R':
 			return IVolume::COUNTRY_RUSSIA;
-			break;
 
 		// NTSC
 		case 'E':
 		case 'N': // Japanese import to USA and other NTSC regions
 		case 'Z': // Prince Of Persia - The Forgotten Sands (WII)
 			return IVolume::COUNTRY_USA;
-			break;
 
 		case 'J':
 			return IVolume::COUNTRY_JAPAN;
-			break;
 
 		case 'K':
 		case 'T': // Korea with English language
 		case 'Q': // Korea with Japanese language
 			return IVolume::COUNTRY_KOREA;
-			break;
 
 		case 'O':
 			return IVolume::COUNTRY_SDK;
-			break;
 
 		case 'W':
 			return IVolume::COUNTRY_TAIWAN;
-			break;
 
 		default:
 			if (CountryCode > 'A') // Silently ignore IOS wads
 				WARN_LOG(DISCIO, "Unknown Country Code! %c", CountryCode);
 			return IVolume::COUNTRY_UNKNOWN;
-			break;
 	}
 }
 
