@@ -112,9 +112,9 @@ void Interpreter::mtfsfx(UGeckoInstruction _inst)
 
 void Interpreter::mcrxr(UGeckoInstruction _inst)
 {
-	// USES_XER
-	SetCRField(_inst.CRFD, PowerPC::ppcState.spr[SPR_XER] >> 28);
-	PowerPC::ppcState.spr[SPR_XER] &= ~0xF0000000; // clear 0-3
+	SetCRField(_inst.CRFD, GetXER().Hex >> 28);
+	PowerPC::ppcState.xer_ca = 0;
+	PowerPC::ppcState.xer_so_ov = 0;
 }
 
 void Interpreter::mfcr(UGeckoInstruction _inst)
@@ -235,6 +235,9 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
 				rSPR(iIndex) &= ~1;
 		}
 		break;
+	case SPR_XER:
+		rSPR(iIndex) = GetXER().Hex;
+		break;
 	}
 	m_GPR[_inst.RD] = rSPR(iIndex);
 }
@@ -349,6 +352,10 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 	// Page table base etc
 	case SPR_SDR:
 		Memory::SDRUpdated();
+		break;
+
+	case SPR_XER:
+		SetXER(rSPR(iIndex));
 		break;
 	}
 }

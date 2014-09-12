@@ -61,6 +61,12 @@ struct GC_ALIGNED64(PowerPCState)
 	// This variable should be inside of the CoreTiming namespace if we wanted to be correct.
 	int downcount;
 
+	// XER, reformatted into byte fields for easier access.
+	u8 xer_ca;
+	u8 xer_so_ov; // format: (SO << 1) | OV
+	// The Broadway CPU implements bits 16-23 of the XER register... even though it doesn't support lscbx
+	u16 xer_stringctrl;
+
 #if _M_X86_64
 	// This member exists for the purpose of an assertion in x86 JitBase.cpp
 	// that its offset <= 0x100.  To minimize code size on x86, we want as much
@@ -252,35 +258,40 @@ inline u32 GetCR()
 	return PowerPC::CompactCR();
 }
 
-// SetCarry/GetCarry may speed up soon.
 inline void SetCarry(int ca)
 {
-	((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).CA = ca;
+	PowerPC::ppcState.xer_ca = ca;
 }
 
 inline int GetCarry()
 {
-	return ((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).CA;
+	return PowerPC::ppcState.xer_ca;
 }
 
 inline UReg_XER GetXER()
 {
-	return ((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]);
+	u32 xer = 0;
+	xer |= PowerPC::ppcState.xer_stringctrl;
+	xer |= PowerPC::ppcState.xer_ca << XER_CA_SHIFT;
+	xer |= PowerPC::ppcState.xer_so_ov << XER_OV_SHIFT;
+	return xer;
 }
 
 inline void SetXER(UReg_XER new_xer)
 {
-	((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]) = new_xer;
+	PowerPC::ppcState.xer_stringctrl = new_xer.BYTE_COUNT + (new_xer.BYTE_CMP << 8);
+	PowerPC::ppcState.xer_ca = new_xer.CA;
+	PowerPC::ppcState.xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
 }
 
 inline int GetXER_SO()
 {
-	return ((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).SO;
+	return PowerPC::ppcState.xer_so_ov >> 1;
 }
 
 inline void SetXER_SO(int value)
 {
-	((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).SO = value;
+	PowerPC::ppcState.xer_so_ov |= value << 1;
 }
 
 void UpdateFPRF(double dvalue);
