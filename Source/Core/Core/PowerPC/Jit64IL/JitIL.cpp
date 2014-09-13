@@ -241,8 +241,6 @@ namespace JitILProfiler
 	}
 };
 
-static int CODE_SIZE = 1024*1024*32;
-
 void JitIL::Init()
 {
 	jo.optimizeStack = true;
@@ -273,9 +271,10 @@ void JitIL::Init()
 
 	trampolines.Init();
 	AllocCodeSpace(CODE_SIZE);
-
 	blocks.Init();
 	asm_routines.Init();
+
+	farcode.Init(js.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
 
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
@@ -306,6 +305,7 @@ void JitIL::Shutdown()
 	blocks.Shutdown();
 	trampolines.Shutdown();
 	asm_routines.Shutdown();
+	farcode.Shutdown();
 }
 
 
@@ -504,7 +504,8 @@ void JitIL::Trace()
 
 void STACKALIGN JitIL::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
+	if (GetSpaceLeft() < 0x10000 || farcode.GetSpaceLeft() < 0x10000 || blocks.IsFull() ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{
 		ClearCache();
 	}
