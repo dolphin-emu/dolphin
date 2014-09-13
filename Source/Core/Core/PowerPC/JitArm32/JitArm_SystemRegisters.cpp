@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/ArmEmitter.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -13,6 +13,8 @@
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitArm32/JitAsm.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
+
+using namespace ArmGen;
 
 FixupBranch JitArm::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
