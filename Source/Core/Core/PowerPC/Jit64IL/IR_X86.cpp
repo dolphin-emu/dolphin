@@ -909,7 +909,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
 		case IdleBranch:
-			regMarkUse(RI, I, getOp1(getOp1(I)), 1);
+			regMarkUse(RI, I, getOp1(I), 1);
 			break;
 		case BranchCond:
 		{
@@ -2088,9 +2088,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 		case IdleBranch:
 		{
-			Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
-					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));
-			FixupBranch cont = Jit->J_CC(CC_NE);
+			// If value is 0, we don't need to call out to the idle function.
+			OpArg value = regLocForInst(RI, getOp1(I));
+			Jit->TEST(32, value, value);
+			FixupBranch noidle = Jit->J_CC(CC_NZ);
 
 			RI.Jit->Cleanup(); // is it needed?
 			Jit->ABI_CallFunction((void *)&PowerPC::OnIdleIL);
@@ -2098,9 +2099,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->MOV(32, PPCSTATE(pc), Imm32(ibuild->GetImmValue( getOp2(I) )));
 			Jit->WriteExceptionExit();
 
-			Jit->SetJumpTarget(cont);
+			Jit->SetJumpTarget(noidle);
 			if (RI.IInfo[I - RI.FirstI] & 4)
-					regClearInst(RI, getOp1(getOp1(I)));
+					regClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
 				regClearInst(RI, getOp2(I));
 			break;
