@@ -18,11 +18,10 @@ static const struct
 	const int   DefaultKey;
 	const int   DefaultModifier;
 } g_HKData[] = {
-#ifdef __APPLE__
-	{ "Open",                79 /* 'O' */,        2 /* wxMOD_CMD */ },
+	{ "Open",                79 /* 'O' */,        2 /* wxMOD_CONTROL */},
 	{ "ChangeDisc",          0,                   0 /* wxMOD_NONE */ },
 	{ "RefreshList",         0,                   0 /* wxMOD_NONE */ },
-
+#ifdef __APPLE__
 	{ "PlayPause",           80 /* 'P' */,        2 /* wxMOD_CMD */ },
 	{ "Stop",                87 /* 'W' */,        2 /* wxMOD_CMD */ },
 	{ "Reset",               0,                   0 /* wxMOD_NONE */ },
@@ -43,10 +42,6 @@ static const struct
 	{ "Wiimote4Connect",     52 /* '4' */,        2 /* wxMOD_CMD */ },
 	{ "BalanceBoardConnect", 53 /* '4' */,        2 /* wxMOD_CMD */ },
 #else
-	{ "Open",                79 /* 'O' */,        2 /* wxMOD_CONTROL */},
-	{ "ChangeDisc",          0,                   0 /* wxMOD_NONE */ },
-	{ "RefreshList",         0,                   0 /* wxMOD_NONE */ },
-
 	{ "PlayPause",           349 /* WXK_F10 */,   0 /* wxMOD_NONE */ },
 	{ "Stop",                27 /* WXK_ESCAPE */, 0 /* wxMOD_NONE */ },
 	{ "Reset",               0,                   0 /* wxMOD_NONE */ },
