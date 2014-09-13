@@ -24,6 +24,8 @@ enum
 	FL_IN_C            = (1<<11),
 	FL_IN_S            = (1<<12),
 	FL_IN_AB           = FL_IN_A | FL_IN_B,
+	FL_IN_AC           = FL_IN_A | FL_IN_C,
+	FL_IN_ABC          = FL_IN_A | FL_IN_B | FL_IN_C,
 	FL_IN_SB           = FL_IN_S | FL_IN_B,
 	FL_IN_A0B          = FL_IN_A0 | FL_IN_B,
 	FL_IN_A0BC         = FL_IN_A0 | FL_IN_B | FL_IN_C,
@@ -39,6 +41,18 @@ enum
 	FL_SET_FPRF        = (1<<20),
 	FL_READ_FPRF       = (1<<21),
 	FL_SET_OE          = (1<<22),
+	FL_IN_FLOAT_A      = (1<<23),
+	FL_IN_FLOAT_B      = (1<<24),
+	FL_IN_FLOAT_C      = (1<<25),
+	FL_IN_FLOAT_S      = (1<<26),
+	FL_IN_FLOAT_D      = (1<<27),
+	FL_IN_FLOAT_AB     = FL_IN_FLOAT_A | FL_IN_FLOAT_B,
+	FL_IN_FLOAT_AC     = FL_IN_FLOAT_A | FL_IN_FLOAT_C,
+	FL_IN_FLOAT_ABC    = FL_IN_FLOAT_A | FL_IN_FLOAT_B | FL_IN_FLOAT_C,
+	FL_OUT_FLOAT_D     = (1<<28),
+	FL_OUT_FLOAT_S     = (1<<29),
+	// Used in the case of double ops (they don't modify the top half of the output)
+	FL_INOUT_FLOAT_D   = FL_IN_FLOAT_D | FL_OUT_FLOAT_D,
 };
 
 enum
@@ -54,7 +68,8 @@ enum
 	OPTYPE_STORE   ,
 	OPTYPE_LOADFP  ,
 	OPTYPE_STOREFP ,
-	OPTYPE_FPU     ,
+	OPTYPE_DOUBLEFP,
+	OPTYPE_SINGLEFP,
 	OPTYPE_PS      ,
 	OPTYPE_DCACHE  ,
 	OPTYPE_ICACHE  ,

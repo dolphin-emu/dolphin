@@ -527,6 +527,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 
 	int numOut = 0;
 	int numIn = 0;
+	int numFloatIn = 0;
 	if (opinfo->flags & FL_OUT_A)
 	{
 		code->regsOut[numOut++] = code->inst.RA;
@@ -563,14 +564,29 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 		block->m_gpa->SetInputRegister(code->inst.RS, index);
 	}
 
+	code->fregOut = -1;
+	if (opinfo->flags & FL_OUT_FLOAT_D)
+		code->fregOut = code->inst.FD;
+	else if (opinfo->flags & FL_OUT_FLOAT_S)
+		code->fregOut = code->inst.FS;
+	if (opinfo->flags & FL_IN_FLOAT_A)
+		code->fregsIn[numFloatIn++] = code->inst.FA;
+	if (opinfo->flags & FL_IN_FLOAT_B)
+		code->fregsIn[numFloatIn++] = code->inst.FB;
+	if (opinfo->flags & FL_IN_FLOAT_C)
+		code->fregsIn[numFloatIn++] = code->inst.FC;
+	if (opinfo->flags & FL_IN_FLOAT_D)
+		code->fregsIn[numFloatIn++] = code->inst.FD;
+	if (opinfo->flags & FL_IN_FLOAT_S)
+		code->fregsIn[numFloatIn++] = code->inst.FS;
+
 	// Set remaining register slots as unused (-1)
 	for (int j = numIn; j < 3; j++)
 		code->regsIn[j] = -1;
 	for (int j = numOut; j < 2; j++)
 		code->regsOut[j] = -1;
-	for (int j = 0; j < 3; j++)
+	for (int j = numFloatIn; j < 4; j++)
 		code->fregsIn[j] = -1;
-	code->fregOut = -1;
 
 	switch (opinfo->type)
 	{
@@ -580,7 +596,8 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	case OPTYPE_LOADFP:
 	case OPTYPE_STOREFP:
 		break;
-	case OPTYPE_FPU:
+	case OPTYPE_SINGLEFP:
+	case OPTYPE_DOUBLEFP:
 		break;
 	case OPTYPE_BRANCH:
 		if (code->inst.hex == 0x4e800020)
@@ -788,6 +805,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	bool wantsCR1 = true;
 	bool wantsFPRF = true;
 	bool wantsCA = true;
+	u32 fregInUse = 0;
+	u32 regInUse = 0;
 	for (int i = block->m_num_instructions - 1; i >= 0; i--)
 	{
 		bool opWantsCR0  = code[i].wantsCR0;
@@ -806,6 +825,24 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		wantsCR1  &= !code[i].outputCR1  || opWantsCR1;
 		wantsFPRF &= !code[i].outputFPRF || opWantsFPRF;
 		wantsCA   &= !code[i].outputCA   || opWantsCA;
+		code[i].gprInUse = regInUse;
+		code[i].fprInUse = fregInUse;
+		// TODO: if there's no possible endblocks or exceptions in between, tell the regcache
+		// we can throw away a register if it's going to be overwritten later.
+		for (int j = 0; j < 3; j++)
+			if (code[i].regsIn[j] >= 0)
+				regInUse |= 1 << code[i].regsIn[j];
+		for (int j = 0; j < 4; j++)
+			if (code[i].fregsIn[j] >= 0)
+				fregInUse |= 1 << code[i].fregsIn[j];
+		// For now, we need to count output registers as "used" though; otherwise the flush
+		// will result in a redundant store (e.g. store to regcache, then store again to
+		// the same location later).
+		for (int j = 0; j < 2; j++)
+			if (code[i].regsOut[j] >= 0)
+				regInUse |= 1 << code[i].regsOut[j];
+		if (code[i].fregOut >= 0)
+			fregInUse |= 1 << code[i].fregOut;
 	}
 	return address;
 }
