@@ -239,12 +239,12 @@ void CEXIMemoryCard::CmdDone()
 	ExpansionInterface::UpdateInterrupts();
 
 	m_bInterruptSet = 0;
-	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: CmdDone", card_index);
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: CmdDone (status: 0x%02x, command: 0x%02x)", card_index, status, command);
 }
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
-	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: CmdDoneLater (cycles: %llu)", card_index, cycles);
+	DEBUG_LOG(EXPANSIONINTERFACE, "EXIChannel[%d]: CmdDoneLater (cycles: %llu, status: 0x%02x, command: 0x%02x)", card_index, cycles, status, command);
 	CoreTiming::RemoveEvent(et_cmd_done);
 	CoreTiming::ScheduleEvent((int)cycles, et_cmd_done, (u64)card_index);
 }
