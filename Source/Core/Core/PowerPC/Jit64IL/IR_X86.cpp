@@ -577,7 +577,7 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size)
 	X64Reg reg;
 	auto info = regBuildMemAddress(RI, I, getOp1(I), 1, Size, &reg);
 
-	RI.Jit->SafeLoadToReg(reg, info.first, Size, info.second, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+	RI.Jit->SafeLoadToReg(reg, info.first, Size, info.second, regsInUse(RI), false);
 	if (regReadUse(RI, I))
 		RI.regs[reg] = I;
 }
@@ -619,7 +619,7 @@ static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size)
 		RI.Jit->MOV(32, R(RSCRATCH), regLocForInst(RI, getOp1(I)));
 	}
 
-	RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, Size, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+	RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, Size, 0, regsInUse(RI));
 	if (RI.IInfo[I - RI.FirstI] & 4)
 		regClearInst(RI, getOp1(I));
 }
@@ -1557,7 +1557,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = fregFindFreeReg(RI);
 			Jit->MOV(32, R(RSCRATCH2), regLocForInst(RI, getOp1(I)));
-			RI.Jit->SafeLoadToReg(RSCRATCH2, R(RSCRATCH2), 32, 0, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			RI.Jit->SafeLoadToReg(RSCRATCH2, R(RSCRATCH2), 32, 0, regsInUse(RI), false);
 			Jit->MOVD_xmm(reg, R(RSCRATCH2));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1571,7 +1571,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			X64Reg reg = fregFindFreeReg(RI);
 			const OpArg loc = regLocForInst(RI, getOp1(I));
 			Jit->MOV(32, R(RSCRATCH2), loc);
-			RI.Jit->SafeLoadToReg(RSCRATCH2, R(RSCRATCH2), 64, 0, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			RI.Jit->SafeLoadToReg(RSCRATCH2, R(RSCRATCH2), 64, 0, regsInUse(RI), false);
 			Jit->MOVQ_xmm(reg, R(RSCRATCH2));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1612,7 +1612,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				Jit->MOV(32, R(RSCRATCH), loc1);
 
 			Jit->MOV(32, R(RSCRATCH2), regLocForInst(RI, getOp2(I)));
-			RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, regsInUse(RI));
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -1628,7 +1628,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->MOVAPD(XMM0, value);
 			Jit->MOVQ_xmm(R(RSCRATCH), XMM0);
 			Jit->MOV(32, R(RSCRATCH2), address);
-			RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 64, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 64, 0, regsInUse(RI));
 
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
