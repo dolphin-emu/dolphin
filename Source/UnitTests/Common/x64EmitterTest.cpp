@@ -471,7 +471,7 @@ SHIFT_TEST(SAR)
 		}; \
 		for (const auto& regset : regsets) \
 			for (const auto& r : regset.regs) \
-			{ \
+									{ \
 				emitter->Name(regset.bits, R(r.reg), R(RAX)); \
 				emitter->Name(regset.bits, R(RAX), R(r.reg)); \
 				emitter->Name(regset.bits, R(r.reg), Imm8(0x42)); \
@@ -480,7 +480,7 @@ SHIFT_TEST(SAR)
 				                  #Name " " + regset.out_name + ", " + r.name + " " \
 				                  #Name " " + r.name + ", 0x42 " \
 				                  #Name " " + regset.size + " ptr ds:[r12], " + r.name); \
-			} \
+									} \
 	}
 
 BT_TEST(BT)
@@ -506,14 +506,14 @@ BT_TEST(BTC)
 		}; \
 		for (const auto& regset : regsets) \
 			for (const auto& r : regset.regs) \
-			{ \
+									{ \
 				emitter->Name(regset.bits, R(r.reg)); \
 				emitter->Name(regset.bits, MatR(RAX)); \
 				emitter->Name(regset.bits, MatR(R12)); \
 				ExpectDisassembly(#Name " " + r.name + " " \
 				                  #Name " " + regset.size + " ptr ds:[rax] " \
 				                  #Name " " + regset.size + " ptr ds:[r12]"); \
-			} \
+									} \
 	}
 
 ONE_OP_ARITH_TEST(NOT)
@@ -527,12 +527,14 @@ ONE_OP_ARITH_TEST(NEG)
 			std::vector<NamedReg> regs; \
 			std::string size; \
 			std::string rax_name; \
+			Gen::OpArg imm; \
+			std::string immname; \
 		} regsets[] = { \
-			{ 8, reg8names, "byte", "al" }, \
-			{ 8, reg8hnames, "byte", "al" }, \
-			{ 16, reg16names, "word", "ax" }, \
-			{ 32, reg32names, "dword", "eax" }, \
-			{ 64, reg64names, "qword", "rax" }, \
+			{ 8, reg8names, "byte", "al", Imm8(0xEF), "0xef" }, \
+			{ 8, reg8hnames, "byte", "al", Imm8(0xEF), "0xef" }, \
+			{ 16, reg16names, "word", "ax", Imm16(0xBEEF), "0xbeef" }, \
+			{ 32, reg32names, "dword", "eax", Imm32(0xDEADBEEF), "0xdeadbeef" }, \
+			{ 64, reg64names, "qword", "rax", Imm32(0xDEADBEEF), "0xffffffffdeadbeef" }, \
 		}; \
 		for (const auto& regset : regsets) \
 			for (const auto& r : regset.regs) \
@@ -541,10 +543,12 @@ ONE_OP_ARITH_TEST(NEG)
 				emitter->Name(regset.bits, R(RAX), R(r.reg)); \
 				emitter->Name(regset.bits, R(r.reg), MatR(RAX)); \
 				emitter->Name(regset.bits, MatR(RAX), R(r.reg)); \
+				emitter->Name(regset.bits, R(r.reg), regset.imm); \
 				ExpectDisassembly(#Name " " + r.name + ", " + regset.rax_name + " " \
 				                  #Name " " + regset.rax_name + ", " + r.name + " " \
 				                  #Name " " + r.name + ", " + regset.size + " ptr ds:[rax] " \
-				                  #Name " " + regset.size + " ptr ds:[rax], " + r.name); \
+				                  #Name " " + regset.size + " ptr ds:[rax], " + r.name + " " \
+				                  #Name " " + r.name + ", " + regset.immname ); \
 			} \
 	}
 
