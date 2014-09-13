@@ -33,6 +33,22 @@ void JitILBase::lXz(UGeckoInstruction inst)
 		ibuild.EmitStoreGReg(addr, inst.RA);
 
 	IREmitter::InstLoc val;
+
+	// Idle Skipping. This really should be done somewhere else.
+	// Either lower in the IR or higher in PPCAnalyist
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+		inst.OPCD == 32 && // Lwx
+		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
+		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
+		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
+	{
+		val = ibuild.EmitLoad32(addr);
+		ibuild.EmitIdleBranch(val, ibuild.EmitIntConst(js.compilerPC));
+		ibuild.EmitStoreGReg(val, inst.RD);
+		return;
+	}
+
 	switch (inst.OPCD & ~0x1)
 	{
 	case 32: // lwz
