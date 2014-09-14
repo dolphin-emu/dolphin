@@ -197,6 +197,7 @@ void CPUInfo::Detect()
 		// Check for more features.
 		__cpuid(cpu_id, 0x80000001);
 		if (cpu_id[2] & 1) bLAHFSAHF64 = true;
+		if ((cpu_id[2] >> 5) & 1) bLZCNT = true;
 		if ((cpu_id[3] >> 29) & 1) bLongMode = true;
 	}
 

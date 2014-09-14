@@ -318,41 +318,35 @@ TEST_F(x64EmitterTest, CMOVcc_Register)
 	}
 }
 
-TEST_F(x64EmitterTest, BSF)
-{
-	emitter->BSF(64, R12, R(RAX));
-	emitter->BSF(32, R12, R(RAX));
-	emitter->BSF(16, R12, R(RAX));
+#define BITSEARCH_TEST(Name) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		struct { \
+			int bits; \
+			std::vector<NamedReg> regs; \
+			std::string size; \
+			std::string rax_name; \
+		} regsets[] = { \
+			{ 16, reg16names, "word", "ax" }, \
+			{ 32, reg32names, "dword", "eax" }, \
+			{ 64, reg64names, "qword", "rax" }, \
+		}; \
+		for (const auto& regset : regsets) \
+			for (const auto& r : regset.regs) \
+			{ \
+				emitter->Name(regset.bits, r.reg, R(RAX)); \
+				emitter->Name(regset.bits, RAX, R(r.reg)); \
+				emitter->Name(regset.bits, r.reg, MatR(RAX)); \
+				ExpectDisassembly(#Name " " + r.name + ", " + regset.rax_name + " " \
+				                  #Name " " + regset.rax_name + ", " + r.name + " " \
+				                  #Name " " + r.name + ", " + regset.size + " ptr ds:[rax] " ); \
+			} \
+	}
 
-	emitter->BSF(64, R12, MatR(RAX));
-	emitter->BSF(32, R12, MatR(RAX));
-	emitter->BSF(16, R12, MatR(RAX));
-
-	ExpectDisassembly("bsf r12, rax "
-	                  "bsf r12d, eax "
-	                  "bsf r12w, ax "
-	                  "bsf r12, qword ptr ds:[rax] "
-	                  "bsf r12d, dword ptr ds:[rax] "
-	                  "bsf r12w, word ptr ds:[rax]");
-}
-
-TEST_F(x64EmitterTest, BSR)
-{
-	emitter->BSR(64, R12, R(RAX));
-	emitter->BSR(32, R12, R(RAX));
-	emitter->BSR(16, R12, R(RAX));
-
-	emitter->BSR(64, R12, MatR(RAX));
-	emitter->BSR(32, R12, MatR(RAX));
-	emitter->BSR(16, R12, MatR(RAX));
-
-	ExpectDisassembly("bsr r12, rax "
-	                  "bsr r12d, eax "
-	                  "bsr r12w, ax "
-	                  "bsr r12, qword ptr ds:[rax] "
-	                  "bsr r12d, dword ptr ds:[rax] "
-	                  "bsr r12w, word ptr ds:[rax]");
-}
+BITSEARCH_TEST(BSR);
+BITSEARCH_TEST(BSF);
+BITSEARCH_TEST(LZCNT);
+BITSEARCH_TEST(TZCNT);
 
 TEST_F(x64EmitterTest, PREFETCH)
 {

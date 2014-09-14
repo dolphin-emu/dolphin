@@ -750,12 +750,14 @@ void XEmitter::IDIV(int bits, OpArg src) {WriteMulDivType(bits, src, 7);}
 void XEmitter::NEG(int bits, OpArg src)  {WriteMulDivType(bits, src, 3);}
 void XEmitter::NOT(int bits, OpArg src)  {WriteMulDivType(bits, src, 2);}
 
-void XEmitter::WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2)
+void XEmitter::WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep)
 {
 	_assert_msg_(DYNA_REC, !src.IsImm(), "WriteBitSearchType - Imm argument");
 	src.operandReg = (u8)dest;
 	if (bits == 16)
 		Write8(0x66);
+	if (rep)
+		Write8(0xF3);
 	src.WriteRex(this, bits, bits);
 	Write8(0x0F);
 	Write8(byte2);
@@ -771,6 +773,19 @@ void XEmitter::MOVNTI(int bits, OpArg dest, X64Reg src)
 
 void XEmitter::BSF(int bits, X64Reg dest, OpArg src) {WriteBitSearchType(bits,dest,src,0xBC);} //bottom bit to top bit
 void XEmitter::BSR(int bits, X64Reg dest, OpArg src) {WriteBitSearchType(bits,dest,src,0xBD);} //top bit to bottom bit
+
+void XEmitter::TZCNT(int bits, X64Reg dest, OpArg src)
+{
+	if (!cpu_info.bBMI1)
+		PanicAlert("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
+	WriteBitSearchType(bits, dest, src, 0xBC, true);
+}
+void XEmitter::LZCNT(int bits, X64Reg dest, OpArg src)
+{
+	if (!cpu_info.bLZCNT)
+		PanicAlert("Trying to use LZCNT on a system that doesn't support it. Bad programmer.");
+	WriteBitSearchType(bits, dest, src, 0xBD, true);
+}
 
 void XEmitter::MOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
 {
