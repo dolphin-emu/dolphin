@@ -14,6 +14,7 @@
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/Tev.h"
 #include "VideoBackends/Software/XFMemLoader.h"
+#include "VideoCommon/BoundingBox.h"
 
 
 #define BLOCK_SIZE 2
@@ -130,7 +131,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	if (z < 0 || z > 0x00ffffff)
 		return;
 
-	if (bpmem.UseEarlyDepthTest() && g_SWVideoConfig.bZComploc)
+	if (!BoundingBox::active && bpmem.UseEarlyDepthTest() && g_SWVideoConfig.bZComploc)
 	{
 		// TODO: Test if perf regs are incremented even if test is disabled
 		EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
@@ -317,7 +318,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 {
 	INCSTAT(swstats.thisFrame.numTrianglesDrawn);
 
-	if (g_SWVideoConfig.bHwRasterizer)
+	if (g_SWVideoConfig.bHwRasterizer && !BoundingBox::active)
 	{
 		HwRasterizer::DrawTriangleFrontFace(v0, v1, v2);
 		return;
@@ -414,82 +415,252 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	if (DY23 < 0 || (DY23 == 0 && DX23 > 0)) C2++;
 	if (DY31 < 0 || (DY31 == 0 && DX31 > 0)) C3++;
 
-	// Loop through blocks
-	for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
+	// If drawing, rasterize every block
+	if (!BoundingBox::active)
 	{
-		for (s32 x = minx; x < maxx; x += BLOCK_SIZE)
+		// Loop through blocks
+		for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
 		{
-			// Corners of block
-			s32 x0 = x << 4;
-			s32 x1 = (x + BLOCK_SIZE - 1) << 4;
-			s32 y0 = y << 4;
-			s32 y1 = (y + BLOCK_SIZE - 1) << 4;
-
-			// Evaluate half-space functions
-			bool a00 = C1 + DX12 * y0 - DY12 * x0 > 0;
-			bool a10 = C1 + DX12 * y0 - DY12 * x1 > 0;
-			bool a01 = C1 + DX12 * y1 - DY12 * x0 > 0;
-			bool a11 = C1 + DX12 * y1 - DY12 * x1 > 0;
-			int a = (a00 << 0) | (a10 << 1) | (a01 << 2) | (a11 << 3);
-
-			bool b00 = C2 + DX23 * y0 - DY23 * x0 > 0;
-			bool b10 = C2 + DX23 * y0 - DY23 * x1 > 0;
-			bool b01 = C2 + DX23 * y1 - DY23 * x0 > 0;
-			bool b11 = C2 + DX23 * y1 - DY23 * x1 > 0;
-			int b = (b00 << 0) | (b10 << 1) | (b01 << 2) | (b11 << 3);
-
-			bool c00 = C3 + DX31 * y0 - DY31 * x0 > 0;
-			bool c10 = C3 + DX31 * y0 - DY31 * x1 > 0;
-			bool c01 = C3 + DX31 * y1 - DY31 * x0 > 0;
-			bool c11 = C3 + DX31 * y1 - DY31 * x1 > 0;
-			int c = (c00 << 0) | (c10 << 1) | (c01 << 2) | (c11 << 3);
-
-			// Skip block when outside an edge
-			if (a == 0x0 || b == 0x0 || c == 0x0)
-				continue;
-
-			BuildBlock(x, y);
-
-			// Accept whole block when totally covered
-			if (a == 0xF && b == 0xF && c == 0xF)
+			for (s32 x = minx; x < maxx; x += BLOCK_SIZE)
 			{
-				for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
-				{
-					for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
-					{
-						Draw(x + ix, y + iy, ix, iy);
-					}
-				}
-			}
-			else // Partially covered block
-			{
-				s32 CY1 = C1 + DX12 * y0 - DY12 * x0;
-				s32 CY2 = C2 + DX23 * y0 - DY23 * x0;
-				s32 CY3 = C3 + DX31 * y0 - DY31 * x0;
+				// Corners of block
+				s32 x0 = x << 4;
+				s32 x1 = (x + BLOCK_SIZE - 1) << 4;
+				s32 y0 = y << 4;
+				s32 y1 = (y + BLOCK_SIZE - 1) << 4;
 
-				for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
-				{
-					s32 CX1 = CY1;
-					s32 CX2 = CY2;
-					s32 CX3 = CY3;
+				// Evaluate half-space functions
+				bool a00 = C1 + DX12 * y0 - DY12 * x0 > 0;
+				bool a10 = C1 + DX12 * y0 - DY12 * x1 > 0;
+				bool a01 = C1 + DX12 * y1 - DY12 * x0 > 0;
+				bool a11 = C1 + DX12 * y1 - DY12 * x1 > 0;
+				int a = (a00 << 0) | (a10 << 1) | (a01 << 2) | (a11 << 3);
 
-					for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
+				bool b00 = C2 + DX23 * y0 - DY23 * x0 > 0;
+				bool b10 = C2 + DX23 * y0 - DY23 * x1 > 0;
+				bool b01 = C2 + DX23 * y1 - DY23 * x0 > 0;
+				bool b11 = C2 + DX23 * y1 - DY23 * x1 > 0;
+				int b = (b00 << 0) | (b10 << 1) | (b01 << 2) | (b11 << 3);
+
+				bool c00 = C3 + DX31 * y0 - DY31 * x0 > 0;
+				bool c10 = C3 + DX31 * y0 - DY31 * x1 > 0;
+				bool c01 = C3 + DX31 * y1 - DY31 * x0 > 0;
+				bool c11 = C3 + DX31 * y1 - DY31 * x1 > 0;
+				int c = (c00 << 0) | (c10 << 1) | (c01 << 2) | (c11 << 3);
+
+				// Skip block when outside an edge
+				if (a == 0x0 || b == 0x0 || c == 0x0)
+					continue;
+
+				BuildBlock(x, y);
+
+				// Accept whole block when totally covered
+				if (a == 0xF && b == 0xF && c == 0xF)
+				{
+					for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
 					{
-						if (CX1 > 0 && CX2 > 0 && CX3 > 0)
+						for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
 						{
 							Draw(x + ix, y + iy, ix, iy);
 						}
-
-						CX1 -= FDY12;
-						CX2 -= FDY23;
-						CX3 -= FDY31;
 					}
+				}
+				else // Partially covered block
+				{
+					s32 CY1 = C1 + DX12 * y0 - DY12 * x0;
+					s32 CY2 = C2 + DX23 * y0 - DY23 * x0;
+					s32 CY3 = C3 + DX31 * y0 - DY31 * x0;
 
-					CY1 += FDX12;
-					CY2 += FDX23;
-					CY3 += FDX31;
+					for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
+					{
+						s32 CX1 = CY1;
+						s32 CX2 = CY2;
+						s32 CX3 = CY3;
+
+						for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
+						{
+							if (CX1 > 0 && CX2 > 0 && CX3 > 0)
+							{
+								Draw(x + ix, y + iy, ix, iy);
+							}
+
+							CX1 -= FDY12;
+							CX2 -= FDY23;
+							CX3 -= FDY31;
+						}
+
+						CY1 += FDX12;
+						CY2 += FDX23;
+						CY3 += FDX31;
+					}
 				}
 			}
+		}
+	}
+	else
+	{
+		// If we are only calculating bbox, we only need to find the topmost,
+		// leftmost, bottom most and rightmost pixels to be drawn.
+		// So instead of drawing every single one of the triangle's pixels,
+		// four loops are run: one for the top pixel, one for the left, one for
+		// the bottom and one for the right. As soon as a pixel that is to be
+		// drawn is found, the loop breaks. This enables a ~150% speedbost in
+		// bbox calculation, albeit at the cost of some ugly repetitive code.
+		const s32 FTOP    = miny << 4;
+		const s32 FLEFT   = minx << 4;
+		const s32 FBOTTOM = maxy << 4;
+		const s32 FRIGHT  = maxx << 4;
+
+		// Start checking for bbox top
+		s32 CY1 = C1 + DX12 * FTOP - DY12 * FLEFT;
+		s32 CY2 = C2 + DX23 * FTOP - DY23 * FLEFT;
+		s32 CY3 = C3 + DX31 * FTOP - DY31 * FLEFT;
+
+		// Loop
+		for (s32 y = miny; y <= maxy; ++y)
+		{
+			if (y >= BoundingBox::coords[BoundingBox::TOP])
+				break;
+
+			s32 CX1 = CY1;
+			s32 CX2 = CY2;
+			s32 CX3 = CY3;
+
+			for (s32 x = minx; x <= maxx; ++x)
+			{
+				if (CX1 > 0 && CX2 > 0 && CX3 > 0)
+				{
+					// Build the new raster block every other pixel
+					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
+
+					Draw(x, y, x & 1, y & 1);
+
+					if (y >= BoundingBox::coords[BoundingBox::TOP])
+						break;
+				}
+
+				CX1 -= FDY12;
+				CX2 -= FDY23;
+				CX3 -= FDY31;
+			}
+
+			CY1 += FDX12;
+			CY2 += FDX23;
+			CY3 += FDX31;
+		}
+
+		// Checking for bbox left
+		s32 CX1 = C1 + DX12 * FTOP - DY12 * FLEFT;
+		s32 CX2 = C2 + DX23 * FTOP - DY23 * FLEFT;
+		s32 CX3 = C3 + DX31 * FTOP - DY31 * FLEFT;
+
+		// Loop
+		for (s32 x = minx; x <= maxx; ++x)
+		{
+			if (x >= BoundingBox::coords[BoundingBox::LEFT])
+				break;
+
+			s32 CY1 = CX1;
+			s32 CY2 = CX2;
+			s32 CY3 = CX3;
+
+			for (s32 y = miny; y <= maxy; ++y)
+			{
+				if (CY1 > 0 && CY2 > 0 && CY3 > 0)
+				{
+					// Build the new raster block every other pixel
+					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
+
+					Draw(x, y, x & 1, y & 1);
+
+					if (x >= BoundingBox::coords[BoundingBox::LEFT])
+						break;
+				}
+
+				CY1 += FDX12;
+				CY2 += FDX23;
+				CY3 += FDX31;
+			}
+
+			CX1 -= FDY12;
+			CX2 -= FDY23;
+			CX3 -= FDY31;
+		}
+
+		// Checking for bbox bottom
+		CY1 = C1 + DX12 * FBOTTOM - DY12 * FRIGHT;
+		CY2 = C2 + DX23 * FBOTTOM - DY23 * FRIGHT;
+		CY3 = C3 + DX31 * FBOTTOM - DY31 * FRIGHT;
+
+		// Loop
+		for (s32 y = maxy; y >= miny; --y)
+		{
+			s32 CX1 = CY1;
+			s32 CX2 = CY2;
+			s32 CX3 = CY3;
+
+			if (y <= BoundingBox::coords[BoundingBox::BOTTOM])
+				break;
+
+			for (s32 x = maxx; x >= minx; --x)
+			{
+				if (CX1 > 0 && CX2 > 0 && CX3 > 0)
+				{
+					// Build the new raster block every other pixel
+					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
+
+					Draw(x, y, x & 1, y & 1);
+
+					if (y <= BoundingBox::coords[BoundingBox::BOTTOM])
+						break;
+				}
+
+				CX1 += FDY12;
+				CX2 += FDY23;
+				CX3 += FDY31;
+			}
+
+			CY1 -= FDX12;
+			CY2 -= FDX23;
+			CY3 -= FDX31;
+		}
+
+		// Checking for bbox right
+		CX1 = C1 + DX12 * FBOTTOM - DY12 * FRIGHT;
+		CX2 = C2 + DX23 * FBOTTOM - DY23 * FRIGHT;
+		CX3 = C3 + DX31 * FBOTTOM - DY31 * FRIGHT;
+
+		// Loop
+		for (s32 x = maxx; x >= minx; --x)
+		{
+			if (x <= BoundingBox::coords[BoundingBox::RIGHT])
+				break;
+
+			s32 CY1 = CX1;
+			s32 CY2 = CX2;
+			s32 CY3 = CX3;
+
+			for (s32 y = maxy; y >= miny; --y)
+			{
+				if (CY1 > 0 && CY2 > 0 && CY3 > 0)
+				{
+					// Build the new raster block every other pixel
+					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
+
+					Draw(x, y, x & 1, y & 1);
+
+					if (x <= BoundingBox::coords[BoundingBox::RIGHT])
+						break;
+				}
+
+				CY1 -= FDX12;
+				CY2 -= FDX23;
+				CY3 -= FDX31;
+			}
+
+			CX1 += FDY12;
+			CX2 += FDY23;
+			CX3 += FDY31;
 		}
 	}
 }

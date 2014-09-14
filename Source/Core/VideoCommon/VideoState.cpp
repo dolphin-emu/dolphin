@@ -14,6 +14,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/XFMemory.h"
+#include "VideoCommon/BoundingBox.h"
 
 static void DoState(PointerWrap &p)
 {
@@ -51,6 +52,10 @@ static void DoState(PointerWrap &p)
 
 	VertexManager::DoState(p);
 	p.DoMarker("VertexManager");
+
+	BoundingBox::DoState(p);
+	p.DoMarker("BoundingBox");
+
 
 	// TODO: search for more data that should be saved and add it here
 }

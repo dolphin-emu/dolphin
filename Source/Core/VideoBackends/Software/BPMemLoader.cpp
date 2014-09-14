@@ -14,6 +14,7 @@
 
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/VideoCommon.h"
 
 
@@ -73,12 +74,12 @@ void SWBPWritten(int address, int newvalue)
 		EfbCopy::CopyEfb();
 		break;
 	case BPMEM_CLEARBBOX1:
-		PixelEngine::bbox[0] = newvalue >> 10;
-		PixelEngine::bbox[1] = newvalue & 0x3ff;
+		BoundingBox::coords[BoundingBox::LEFT] = newvalue >> 10;
+		BoundingBox::coords[BoundingBox::RIGHT] = newvalue & 0x3ff;
 		break;
 	case BPMEM_CLEARBBOX2:
-		PixelEngine::bbox[2] = newvalue >> 10;
-		PixelEngine::bbox[3] = newvalue & 0x3ff;
+		BoundingBox::coords[BoundingBox::TOP] = newvalue >> 10;
+		BoundingBox::coords[BoundingBox::BOTTOM] = newvalue & 0x3ff;
 		break;
 	case BPMEM_CLEAR_PIXEL_PERF:
 		// TODO: I didn't test if the value written to this register affects the amount of cleared registers
