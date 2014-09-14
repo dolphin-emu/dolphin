@@ -38,8 +38,6 @@ public:
 	virtual void DMAWrite(u32 _uAddr, u32 _uSize);
 	virtual void DMARead (u32 _uAddr, u32 _uSize);
 
-	virtual bool UseDelayedTransferCompletion() {return false;}
-
 	virtual bool IsPresent() {return false;}
 	virtual void SetCS(int) {}
 	virtual void DoState(PointerWrap&) {}

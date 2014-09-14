@@ -83,9 +83,10 @@ private:
 	// Since channels operate a bit differently from each other
 	u32 m_ChannelId;
 
-	int updateInterrupts;
+	int updateInterrupts, transferComplete;
 
 	static void UpdateInterrupts(u64 userdata, int cyclesLate);
+	static void TransferComplete(u64 userData, int cyclesLate);
 
 public:
 	// get device
@@ -97,13 +98,13 @@ public:
 
 	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-	void SendTransferComplete();
-
 	void AddDevice(const TEXIDevices device_type, const int device_num);
 	void AddDevice(IEXIDevice* pDevice, const int device_num, bool notifyPresenceChanged=true);
 
 	// Remove all devices
 	void RemoveDevices();
+
+	u32 GetClockRate() const;
 
 	bool IsCausingInterrupt();
 	void DoState(PointerWrap &p);

@@ -10,6 +10,7 @@
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #define EXI_READ      0
@@ -22,6 +23,16 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 	m_ImmData(0),
 	m_ChannelId(ChannelId)
 {
+	struct
+	{
+		const char* complete;
+		const char* interrupts;
+	} const eventNames[] = {
+		{ "EXIChannel0_TransferComplete", "EXIChannel0_UpdateInterrupts" },
+		{ "EXIChannel1_TransferComplete", "EXIChannel1_UpdateInterrupts" },
+		{ "EXIChannel2_TransferComplete", "EXIChannel2_UpdateInterrupts" },
+	};
+
 	m_Control.Hex = 0;
 	m_Status.Hex = 0;
 
@@ -33,11 +44,14 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 	for (auto& device : m_pDevices)
 		device.reset(EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId));
 
-	updateInterrupts = CoreTiming::RegisterEvent("EXIInterrupt", UpdateInterrupts);
+	updateInterrupts = CoreTiming::RegisterEvent(eventNames[m_ChannelId].interrupts, UpdateInterrupts);
+	transferComplete = CoreTiming::RegisterEvent(eventNames[m_ChannelId].complete, TransferComplete);
 }
 
 CEXIChannel::~CEXIChannel()
 {
+	CoreTiming::RemoveEvent(updateInterrupts);
+	CoreTiming::RemoveEvent(transferComplete);
 	RemoveDevices();
 }
 
@@ -113,33 +127,34 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				if (pDevice == nullptr)
 					return;
 
+				u32 transferSize = 0;
 				if (m_Control.DMA == 0)
 				{
+					transferSize = m_Control.TLEN + 1;
 					// immediate data
 					switch (m_Control.RW)
 					{
-						case EXI_READ: m_ImmData = pDevice->ImmRead(m_Control.TLEN + 1); break;
-						case EXI_WRITE: pDevice->ImmWrite(m_ImmData, m_Control.TLEN + 1); break;
-						case EXI_READWRITE: pDevice->ImmReadWrite(m_ImmData, m_Control.TLEN + 1); break;
+						case EXI_READ: m_ImmData = pDevice->ImmRead(transferSize); break;
+						case EXI_WRITE: pDevice->ImmWrite(m_ImmData, transferSize); break;
+						case EXI_READWRITE: pDevice->ImmReadWrite(m_ImmData, transferSize); break;
 						default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI Imm: Unknown transfer type %i", m_Control.RW);
 					}
 				}
 				else
 				{
+					transferSize = m_DMALength;
 					// DMA
 					switch (m_Control.RW)
 					{
-						case EXI_READ: pDevice->DMARead (m_DMAMemoryAddress, m_DMALength); break;
-						case EXI_WRITE: pDevice->DMAWrite(m_DMAMemoryAddress, m_DMALength); break;
+						case EXI_READ: pDevice->DMARead(m_DMAMemoryAddress, transferSize); break;
+						case EXI_WRITE: pDevice->DMAWrite(m_DMAMemoryAddress, transferSize); break;
 						default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI DMA: Unknown transfer type %i", m_Control.RW);
 					}
 				}
 
-				m_Control.TSTART = 0;
-
-				// Check if device needs specific timing, otherwise just complete transfer immediately
-				if (!pDevice->UseDelayedTransferCompletion())
-					SendTransferComplete();
+				u64 transferTime = 8ULL * transferSize * SystemTimers::GetTicksPerSecond() / GetClockRate();
+				CoreTiming::ScheduleEvent((int)transferTime, transferComplete, m_ChannelId);
+				CoreTiming::ForceExceptionCheck((int)transferTime);
 			}
 		})
 	);
@@ -150,16 +165,29 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	);
 }
 
-void CEXIChannel::SendTransferComplete()
+void CEXIChannel::TransferComplete(u64 userData, int cyclesLate)
 {
-	m_Status.TCINT = 1;
-	CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
+	u32 channelID = (u32)(userData);
+	CEXIChannel* channel = ExpansionInterface::GetChannel(channelID);
+
+	if (channel->m_Control.DMA)
+	{
+		channel->m_Status.TCINT = 1;
+		ExpansionInterface::UpdateInterrupts();
+	}
+
+	channel->m_Control.TSTART = 0;
 }
 
 void CEXIChannel::RemoveDevices()
 {
 	for (auto& device : m_pDevices)
 		device.reset(nullptr);
+}
+
+u32 CEXIChannel::GetClockRate() const
+{
+	return (1 << m_Status.CLK) * 1000000;
 }
 
 void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
