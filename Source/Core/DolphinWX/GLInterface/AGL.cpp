@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <wx/panel.h>
-
 #include "DolphinWX/GLInterface/AGL.h"
 
 #include "VideoCommon/RenderBase.h"
@@ -19,8 +17,7 @@ void cInterfaceAGL::Swap()
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceAGL::Create(void *window_handle)
 {
-	// FIXME: Get rid of the explicit use of wxPanel here. This shouldn't be necessary.
-	cocoaWin = reinterpret_cast<NSView*>(((wxPanel*)window_handle)->GetHandle());
+	cocoaWin = reinterpret_cast<NSView*>(window_handle);
 	NSSize size = [cocoaWin frame].size;
 
 	// Enable high-resolution display support.
