@@ -132,7 +132,7 @@ void CJitWindow::Compare(u32 em_address)
 	const u8 *end = code + block->codeSize;
 	char *sptr = (char*)xDis;
 
-	int num_x86_instructions = 0;
+	u32 num_x86_instructions = 0;
 	while ((u8*)disasmPtr < end)
 	{
 		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
@@ -145,7 +145,7 @@ void CJitWindow::Compare(u32 em_address)
 
 	// == Fill in ppc box
 	u32 ppc_addr = block->originalAddress;
-	PPCAnalyst::CodeBuffer code_buffer(32000);
+	std::vector<PPCAnalyst::CodeOp> code_buf(32000);
 	PPCAnalyst::BlockStats st;
 	PPCAnalyst::BlockRegStats gpa;
 	PPCAnalyst::BlockRegStats fpa;
@@ -157,12 +157,12 @@ void CJitWindow::Compare(u32 em_address)
 	code_block.m_gpa = &gpa;
 	code_block.m_fpa = &fpa;
 
-	if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, block->codeSize) != 0xFFFFFFFF)
+	if (analyzer.Analyze(ppc_addr, &code_block, code_buf.data(), block->codeSize) != 0xFFFFFFFF)
 	{
 		sptr = (char*)xDis;
 		for (u32 i = 0; i < code_block.m_num_instructions; i++)
 		{
-			const PPCAnalyst::CodeOp &op = code_buffer.codebuffer[i];
+			const PPCAnalyst::CodeOp &op = code_buf[i];
 			std::string temp = GekkoDisassembler::Disassemble(op.inst.hex, op.address);
 			sptr += sprintf(sptr, "%08x %s\n", op.address, temp.c_str());
 		}
@@ -178,9 +178,9 @@ void CJitWindow::Compare(u32 em_address)
 
 		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
 
-		sptr += sprintf(sptr, "Num instr: PPC: %i  x86: %i  (blowup: %i%%)\n",
+		sptr += sprintf(sptr, "Num instr: PPC: %u  x86: %u  (blowup: %u%%)\n",
 				code_block.m_num_instructions, num_x86_instructions, 100 * num_x86_instructions / code_block.m_num_instructions - 100);
-		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n",
+		sptr += sprintf(sptr, "Num bytes: PPC: %u  x86: %u  (blowup: %u%%)\n",
 				code_block.m_num_instructions * 4, block->codeSize, 100 * block->codeSize / (4 * code_block.m_num_instructions) - 100);
 
 		ppc_box->SetValue(StrToWxStr((char*)xDis));

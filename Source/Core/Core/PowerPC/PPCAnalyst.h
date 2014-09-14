@@ -103,20 +103,6 @@ struct BlockRegStats
 };
 
 
-class CodeBuffer
-{
-	int size_;
-public:
-	CodeBuffer(int size);
-	~CodeBuffer();
-
-	int GetSize() const { return size_; }
-
-	PPCAnalyst::CodeOp *codebuffer;
-
-
-};
-
 struct CodeBlock
 {
 	// Beginning PPC address.
@@ -185,11 +171,11 @@ public:
 	void ClearOption(AnalystOption option) { m_options &= ~(option); }
 	bool HasOption(AnalystOption option) { return !!(m_options & option); }
 
-	u32 Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize);
+	u32 Analyze(u32 address, CodeBlock *block, CodeOp* code, u32 blockSize);
 };
 
 void LogFunctionCall(u32 addr);
 void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db);
-bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
+bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 32000);
 
 }  // namespace

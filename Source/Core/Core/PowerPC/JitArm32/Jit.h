@@ -47,7 +47,7 @@ private:
 	ArmRegCache gpr;
 	ArmFPRCache fpr;
 
-	PPCAnalyst::CodeBuffer code_buffer;
+	std::vector<PPCAnalyst::CodeOp> code_buffer;
 
 	void DoDownCount();
 
@@ -68,7 +68,7 @@ public:
 	// Jit!
 
 	void Jit(u32 em_address);
-	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
+	const u8* DoJit(u32 em_address, std::vector<PPCAnalyst::CodeOp>& code, JitBlock *b);
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 

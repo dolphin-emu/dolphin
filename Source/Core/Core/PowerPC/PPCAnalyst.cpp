@@ -31,20 +31,8 @@
 
 namespace PPCAnalyst
 {
-static const int CODEBUFFER_SIZE = 32000;
 // 0 does not perform block merging
 static const u32 FUNCTION_FOLLOWING_THRESHOLD = 16;
-
-CodeBuffer::CodeBuffer(int size)
-{
-	codebuffer = new PPCAnalyst::CodeOp[size];
-	size_ = size;
-}
-
-CodeBuffer::~CodeBuffer()
-{
-	delete[] codebuffer;
-}
 
 void AnalyzeFunction2(Symbol &func);
 u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc);
@@ -93,8 +81,6 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 	while (true)
 	{
 		func.size += 4;
-		if (func.size >= CODEBUFFER_SIZE * 4) //weird
-			return false;
 
 		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
 		if (max_size && func.size > max_size)
@@ -463,37 +449,37 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	if (opinfo->flags & FL_OUT_A)
 	{
 		code->regsOut[numOut++] = code->inst.RA;
-		block->m_gpa->SetOutputRegister(code->inst.RA, index);
+		block->m_gpa->SetOutputRegister(code->inst.RA, (short) index);
 	}
 	if (opinfo->flags & FL_OUT_D)
 	{
 		code->regsOut[numOut++] = code->inst.RD;
-		block->m_gpa->SetOutputRegister(code->inst.RD, index);
+		block->m_gpa->SetOutputRegister(code->inst.RD, (short) index);
 	}
 	if (opinfo->flags & FL_OUT_S)
 	{
 		code->regsOut[numOut++] = code->inst.RS;
-		block->m_gpa->SetOutputRegister(code->inst.RS, index);
+		block->m_gpa->SetOutputRegister(code->inst.RS, (short) index);
 	}
 	if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
 	{
 		code->regsIn[numIn++] = code->inst.RA;
-		block->m_gpa->SetInputRegister(code->inst.RA, index);
+		block->m_gpa->SetInputRegister(code->inst.RA, (short) index);
 	}
 	if (opinfo->flags & FL_IN_B)
 	{
 		code->regsIn[numIn++] = code->inst.RB;
-		block->m_gpa->SetInputRegister(code->inst.RB, index);
+		block->m_gpa->SetInputRegister(code->inst.RB, (short) index);
 	}
 	if (opinfo->flags & FL_IN_C)
 	{
 		code->regsIn[numIn++] = code->inst.RC;
-		block->m_gpa->SetInputRegister(code->inst.RC, index);
+		block->m_gpa->SetInputRegister(code->inst.RC, (short) index);
 	}
 	if (opinfo->flags & FL_IN_S)
 	{
 		code->regsIn[numIn++] = code->inst.RS;
-		block->m_gpa->SetInputRegister(code->inst.RS, index);
+		block->m_gpa->SetInputRegister(code->inst.RS, (short) index);
 	}
 
 	// Set remaining register slots as unused (-1)
@@ -529,7 +515,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInf
 	}
 }
 
-u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize)
+u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeOp* code, u32 blockSize)
 {
 	// Clear block stats
 	memset(block->m_stats, 0, sizeof(BlockStats));
@@ -566,8 +552,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		}
 	}
 
-	CodeOp *code = buffer->codebuffer;
-
 	bool found_exit = false;
 	u32 return_address = 0;
 	u32 numFollows = 0;
@@ -580,18 +564,19 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		if (inst.hex != 0)
 		{
 			num_inst++;
-			memset(&code[i], 0, sizeof(CodeOp));
+			CodeOp* op = &code[i];
+			memset(op, 0, sizeof(CodeOp));
 			GekkoOPInfo *opinfo = GetOpInfo(inst);
 
-			code[i].opinfo = opinfo;
-			code[i].address = address;
-			code[i].inst = inst;
-			code[i].branchTo = -1;
-			code[i].branchToIndex = -1;
-			code[i].skip = false;
+			op->opinfo = opinfo;
+			op->address = address;
+			op->inst = inst;
+			op->branchTo = -1;
+			op->branchToIndex = -1;
+			op->skip = false;
 			block->m_stats->numCycles += opinfo->numCycles;
 
-			SetInstructionStats(block, &code[i], opinfo, i);
+			SetInstructionStats(block, op, opinfo, i);
 
 			bool follow = false;
 			u32 destination = 0;
@@ -721,7 +706,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 	bool wantsCR1 = true;
 	bool wantsPS1 = true;
 	bool wantsFPRF = true;
-	for (int i = block->m_num_instructions - 1; i >= 0; i--)
+	for (u32 i = block->m_num_instructions - 1; i != (u32)-1; i--)
 	{
 		wantsCR0 |= code[i].wantsCR0 || code[i].canEndBlock;
 		wantsCR1 |= code[i].wantsCR1 || code[i].canEndBlock;
