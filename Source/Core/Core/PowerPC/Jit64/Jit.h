@@ -101,6 +101,8 @@ public:
 	void GenerateConstantOverflow(s64 val);
 	void GenerateOverflow();
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
+	void FinalizeCarry(Gen::CCFlags cond);
+	void FinalizeCarry(bool ca);
 	void ComputeRC(const Gen::OpArg & arg);
 
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
@@ -139,7 +141,7 @@ public:
 	void DynaRunTable63(UGeckoInstruction _inst);
 
 	void addx(UGeckoInstruction inst);
-	void addcx(UGeckoInstruction inst);
+	void arithcx(UGeckoInstruction inst);
 	void mulli(UGeckoInstruction inst);
 	void mulhwXx(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
@@ -147,9 +149,7 @@ public:
 	void divwx(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
 	void srawx(UGeckoInstruction inst);
-	void addex(UGeckoInstruction inst);
-	void addmex(UGeckoInstruction inst);
-	void addzex(UGeckoInstruction inst);
+	void arithXex(UGeckoInstruction inst);
 
 	void extsXx(UGeckoInstruction inst);
 
@@ -217,11 +217,7 @@ public:
 	void dcbz(UGeckoInstruction inst);
 
 	void subfic(UGeckoInstruction inst);
-	void subfcx(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
-	void subfex(UGeckoInstruction inst);
-	void subfmex(UGeckoInstruction inst);
-	void subfzex(UGeckoInstruction inst);
 
 	void twx(UGeckoInstruction inst);
 

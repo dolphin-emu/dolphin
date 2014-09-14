@@ -44,28 +44,76 @@ void Jit64::GenerateOverflow()
 	SetJumpTarget(exit);
 }
 
+void Jit64::FinalizeCarry(CCFlags cond)
+{
+	js.carryFlagSet = false;
+	js.carryFlagInverted = false;
+	if (js.op->wantsCA)
+	{
+		if (js.next_op->wantsCAInFlags)
+		{
+			if (cond == CC_C || cond == CC_NC)
+			{
+				js.carryFlagInverted = cond == CC_NC;
+			}
+			else
+			{
+				// convert the condition to a carry flag (is there a better way?)
+				SETcc(cond, R(RSCRATCH));
+				BT(8, R(RSCRATCH), Imm8(0));
+			}
+			js.carryFlagSet = true;
+		}
+		else
+		{
+			JitSetCAIf(cond);
+		}
+	}
+}
+
+// Unconditional version
+void Jit64::FinalizeCarry(bool ca)
+{
+	js.carryFlagSet = false;
+	js.carryFlagInverted = false;
+	if (js.op->wantsCA)
+	{
+		if (js.next_op->wantsCAInFlags)
+		{
+			if (ca)
+				STC();
+			else
+				CLC();
+			js.carryFlagSet = true;
+		}
+		else if (ca)
+		{
+			JitSetCA();
+		}
+		else
+		{
+			JitClearCAOV(true, false);
+		}
+	}
+}
+
 // Assumes CA,OV are clear
 void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 {
 	// USES_XER
 	if (oe)
 	{
-		// this is slightly messy because JitSetCAIf modifies x86 flags, so we have to do it in both
-		// sides of the branch.
+		// Make sure not to lose the carry flags (not a big deal, this path is rare).
+		PUSHF();
+		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~(XER_SO_MASK | XER_OV_MASK)));
 		FixupBranch jno = J_CC(CC_NO);
-		JitSetCAIf(inv ? CC_NC : CC_C);
 		//XER[OV/SO] = 1
 		OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
-		FixupBranch exit = J();
 		SetJumpTarget(jno);
-		JitSetCAIf(inv ? CC_NC : CC_C);
-		SetJumpTarget(exit);
+		POPF();
 	}
-	else
-	{
-		// Do carry
-		JitSetCAIf(inv ? CC_NC : CC_C);
-	}
+	// Do carry
+	FinalizeCarry(inv ? CC_NC : CC_C);
 }
 
 void Jit64::ComputeRC(const Gen::OpArg & arg)
@@ -129,10 +177,10 @@ static u32 Xor(u32 a, u32 b)
 void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc, bool carry)
 {
 	gpr.Lock(d, a);
-	if (a || binary || carry)  // yeh nasty special case addic
+	// Be careful; addic treats r0 as r0, but addi treats r0 as zero.
+	if (a || binary || carry)
 	{
-		if (carry)
-			JitClearCAOV(false);
+		carry &= js.op->wantsCA;
 		if (gpr.R(a).IsImm() && !carry)
 		{
 			gpr.SetImmediate32(d, doop((u32)gpr.R(a).offset, value));
@@ -156,7 +204,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 			}
 		}
 		if (carry)
-			JitSetCAIf(CC_C);
+			FinalizeCarry(CC_C);
 		if (Rc)
 			ComputeRC(gpr.R(d));
 	}
@@ -239,6 +287,9 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 
 bool Jit64::CheckMergedBranch(int crf)
 {
+	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
+		return false;
+
 	const UGeckoInstruction& next = js.next_inst;
 	return (((next.OPCD == 16 /* bcx */) ||
 	        ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
@@ -721,146 +772,34 @@ void Jit64::subfic(UGeckoInstruction inst)
 	{
 		if (imm == 0)
 		{
-			JitClearCAOV(false);
 			// Flags act exactly like subtracting from 0
 			NEG(32, gpr.R(d));
 			// Output carry is inverted
-			JitSetCAIf(CC_NC);
+			FinalizeCarry(CC_NC);
 		}
 		else if (imm == -1)
 		{
-			// CA is always set in this case
-			JitSetCA();
 			NOT(32, gpr.R(d));
+			// CA is always set in this case
+			FinalizeCarry(true);
 		}
 		else
 		{
-			JitClearCAOV(false);
 			NOT(32, gpr.R(d));
 			ADD(32, gpr.R(d), Imm32(imm+1));
 			// Output carry is normal
-			JitSetCAIf(CC_C);
+			FinalizeCarry(CC_C);
 		}
 	}
 	else
 	{
-		JitClearCAOV(false);
 		MOV(32, gpr.R(d), Imm32(imm));
 		SUB(32, gpr.R(d), gpr.R(a));
 		// Output carry is inverted
-		JitSetCAIf(CC_NC);
+		FinalizeCarry(CC_NC);
 	}
 	gpr.UnlockAll();
 	// This instruction has no RC flag
-}
-
-void Jit64::subfcx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START;
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, (d == a || d == b), true);
-
-	JitClearCAOV(inst.OE);
-	if (d == b)
-	{
-		SUB(32, gpr.R(d), gpr.R(a));
-	}
-	else if (d == a)
-	{
-		MOV(32, R(RSCRATCH), gpr.R(a));
-		MOV(32, gpr.R(d), gpr.R(b));
-		SUB(32, gpr.R(d), R(RSCRATCH));
-	}
-	else
-	{
-		MOV(32, gpr.R(d), gpr.R(b));
-		SUB(32, gpr.R(d), gpr.R(a));
-	}
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	FinalizeCarryOverflow(inst.OE, true);
-
-	gpr.UnlockAll();
-}
-
-void Jit64::subfex(UGeckoInstruction inst)
-{
-	INSTRUCTION_START;
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, (d == a || d == b), true);
-
-	JitGetAndClearCAOV(inst.OE);
-
-	bool invertedCarry = false;
-	if (d == b)
-	{
-		// Convert carry to borrow
-		CMC();
-		SBB(32, gpr.R(d), gpr.R(a));
-		invertedCarry = true;
-	}
-	else if (d == a)
-	{
-		NOT(32, gpr.R(d));
-		ADC(32, gpr.R(d), gpr.R(b));
-	}
-	else
-	{
-		MOV(32, gpr.R(d), gpr.R(a));
-		NOT(32, gpr.R(d));
-		ADC(32, gpr.R(d), gpr.R(b));
-	}
-	FinalizeCarryOverflow(inst.OE, invertedCarry);
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-
-	gpr.UnlockAll();
-}
-
-void Jit64::subfmex(UGeckoInstruction inst)
-{
-	// USES_XER
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, d = inst.RD;
-	gpr.Lock(a, d);
-	gpr.BindToRegister(d, d == a);
-
-	JitGetAndClearCAOV(inst.OE);
-	if (d != a)
-		MOV(32, gpr.R(d), gpr.R(a));
-	NOT(32, gpr.R(d));
-	ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
-	FinalizeCarryOverflow(inst.OE);
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
-}
-
-void Jit64::subfzex(UGeckoInstruction inst)
-{
-	// USES_XER
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, d = inst.RD;
-
-	gpr.Lock(a, d);
-	gpr.BindToRegister(d, d == a);
-
-	JitGetAndClearCAOV(inst.OE);
-	if (d != a)
-		MOV(32, gpr.R(d), gpr.R(a));
-	NOT(32, gpr.R(d));
-	ADC(32, gpr.R(d), Imm8(0));
-	FinalizeCarryOverflow(inst.OE);
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-
-	gpr.UnlockAll();
 }
 
 void Jit64::subfx(UGeckoInstruction inst)
@@ -1329,96 +1268,93 @@ void Jit64::addx(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::addex(UGeckoInstruction inst)
+void Jit64::arithXex(UGeckoInstruction inst)
 {
-	// USES_XER
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, b = inst.RB, d = inst.RD;
+	bool regsource = !(inst.SUBOP10 & 64); // addex or subfex
+	bool mex = !!(inst.SUBOP10 & 32);      // addmex/subfmex or addzex/subfzex
+	bool add = !!(inst.SUBOP10 & 2);       // add or sub
+	int a = inst.RA;
+	int b = regsource ? inst.RB : a;
+	int d = inst.RD;
+	bool same_input_sub = !add && regsource && a == b;
 
 	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, (d == a) || (d == b));
-	JitGetAndClearCAOV(inst.OE);
-	if ((d == a) || (d == b))
+	gpr.BindToRegister(d, !same_input_sub && (d == a || d == b));
+	if (!js.carryFlagSet)
+		JitGetAndClearCAOV(inst.OE);
+
+	bool invertedCarry = false;
+	// Special case: subfe A, B, B is a common compiler idiom
+	if (same_input_sub)
 	{
-		ADC(32, gpr.R(d), gpr.R((d == a) ? b : a));
+		// Convert carry to borrow
+		if (!js.carryFlagInverted)
+			CMC();
+		SBB(32, gpr.R(d), gpr.R(d));
+		invertedCarry = true;
+	}
+	else if (!add && regsource && d == b)
+	{
+		if (!js.carryFlagInverted)
+			CMC();
+		if (d != b)
+			MOV(32, gpr.R(d), gpr.R(b));
+		SBB(32, gpr.R(d), gpr.R(a));
+		invertedCarry = true;
 	}
 	else
 	{
-		MOV(32, gpr.R(d), gpr.R(a));
-		ADC(32, gpr.R(d), gpr.R(b));
+		OpArg source = regsource ? gpr.R(d == b ? a : b) : Imm32(mex ? 0xFFFFFFFF : 0);
+		if (js.carryFlagInverted)
+			CMC();
+		if (d != a && d != b)
+			MOV(32, gpr.R(d), gpr.R(a));
+		if (!add)
+			NOT(32, gpr.R(d));
+		ADC(32, gpr.R(d), source);
 	}
-	FinalizeCarryOverflow(inst.OE);
+	FinalizeCarryOverflow(inst.OE, invertedCarry);
 	if (inst.Rc)
 		ComputeRC(gpr.R(d));
 	gpr.UnlockAll();
 }
 
-void Jit64::addcx(UGeckoInstruction inst)
+void Jit64::arithcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
+	bool add = !!(inst.SUBOP10 & 2); // add or sub
 	int a = inst.RA, b = inst.RB, d = inst.RD;
+	gpr.Lock(a, b, d);
+	gpr.BindToRegister(d, d == a || d == b, true);
 
-	if ((d == a) || (d == b))
+	if (d == a && d != b)
 	{
-		int operand = ((d == a) ? b : a);
-		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, true);
-		JitClearCAOV(inst.OE);
-		ADD(32, gpr.R(d), gpr.R(operand));
-		FinalizeCarryOverflow(inst.OE);
-		if (inst.Rc)
-			ComputeRC(gpr.R(d));
-		gpr.UnlockAll();
+		if (add)
+		{
+			ADD(32, gpr.R(d), gpr.R(b));
+		}
+		else
+		{
+			// special case, because sub isn't reversible
+			MOV(32, R(RSCRATCH), gpr.R(a));
+			MOV(32, gpr.R(d), gpr.R(b));
+			SUB(32, gpr.R(d), R(RSCRATCH));
+		}
 	}
 	else
 	{
-		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, false);
-		JitClearCAOV(inst.OE);
-		MOV(32, gpr.R(d), gpr.R(a));
-		ADD(32, gpr.R(d), gpr.R(b));
-		FinalizeCarryOverflow(inst.OE);
-		if (inst.Rc)
-			ComputeRC(gpr.R(d));
-		gpr.UnlockAll();
+		if (d != b)
+			MOV(32, gpr.R(d), gpr.R(b));
+		if (add)
+			ADD(32, gpr.R(d), gpr.R(a));
+		else
+			SUB(32, gpr.R(d), gpr.R(a));
 	}
-}
 
-void Jit64::addmex(UGeckoInstruction inst)
-{
-	// USES_XER
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, d = inst.RD;
-
-	gpr.Lock(d);
-	gpr.BindToRegister(d, d == a);
-	JitGetAndClearCAOV(inst.OE);
-	if (d != a)
-		MOV(32, gpr.R(d), gpr.R(a));
-	ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
-	FinalizeCarryOverflow(inst.OE);
-	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
-}
-
-void Jit64::addzex(UGeckoInstruction inst)
-{
-	// USES_XER
-	INSTRUCTION_START
-	JITDISABLE(bJITIntegerOff);
-	int a = inst.RA, d = inst.RD;
-
-	gpr.Lock(d);
-	gpr.BindToRegister(d, d == a);
-	JitGetAndClearCAOV(inst.OE);
-	if (d != a)
-		MOV(32, gpr.R(d), gpr.R(a));
-	ADC(32, gpr.R(d), Imm8(0));
-	FinalizeCarryOverflow(inst.OE);
+	FinalizeCarryOverflow(inst.OE, !add);
 	if (inst.Rc)
 		ComputeRC(gpr.R(d));
 	gpr.UnlockAll();
@@ -1811,16 +1747,22 @@ void Jit64::srawx(UGeckoInstruction inst)
 	gpr.FlushLockX(ECX);
 	gpr.Lock(a, s, b);
 	gpr.BindToRegister(a, (a == s || a == b), true);
-	JitClearCAOV(false);
 	MOV(32, R(ECX), gpr.R(b));
 	if (a != s)
 		MOV(32, gpr.R(a), gpr.R(s));
 	SHL(64, gpr.R(a), Imm8(32));
 	SAR(64, gpr.R(a), R(ECX));
-	MOV(32, R(RSCRATCH), gpr.R(a));
-	SHR(64, gpr.R(a), Imm8(32));
-	TEST(32, gpr.R(a), R(RSCRATCH));
-	JitSetCAIf(CC_NZ);
+	if (js.op->wantsCA)
+	{
+		MOV(32, R(RSCRATCH), gpr.R(a));
+		SHR(64, gpr.R(a), Imm8(32));
+		TEST(32, gpr.R(a), R(RSCRATCH));
+	}
+	else
+	{
+		SHR(64, gpr.R(a), Imm8(32));
+	}
+	FinalizeCarry(CC_NZ);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	if (inst.Rc)
@@ -1838,41 +1780,50 @@ void Jit64::srawix(UGeckoInstruction inst)
 	{
 		gpr.Lock(a, s);
 		gpr.BindToRegister(a, a == s, true);
-		MOV(32, R(RSCRATCH), gpr.R(s));
-		if (a != s)
-			MOV(32, gpr.R(a), R(RSCRATCH));
-		// some optimized common cases that can be done in slightly fewer ops
-		if (amount == 31)
+		if (!js.op->wantsCA)
 		{
-			JitSetCA();
-			SAR(32, gpr.R(a), Imm8(31));
-			NEG(32, R(RSCRATCH));                                     // RSCRATCH = input == INT_MIN ? INT_MIN : -input;
-			AND(32, R(RSCRATCH), Imm32(0x80000000));                  // RSCRATCH = input < 0 && input != INT_MIN ? 0 : 0x80000000
-			SHR(32, R(RSCRATCH), Imm8(31 - XER_CA_SHIFT));
-			XOR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); // XER.CA = (input < 0 && input != INT_MIN)
-		}
-		else if (amount == 1)
-		{
-			JitClearCAOV(false);
-			SHR(32, R(RSCRATCH), Imm8(31));                          // sign
-			AND(32, R(RSCRATCH), gpr.R(a));                          // (sign && carry)
-			SAR(32, gpr.R(a), Imm8(1));
-			SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
-			OR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); // XER.CA = sign && carry, aka (input&0x80000001) == 0x80000001
+			if (a != s)
+				MOV(32, gpr.R(a), gpr.R(s));
+			SAR(32, gpr.R(a), Imm8(amount));
 		}
 		else
 		{
-			JitClearCAOV(false);
-			SAR(32, gpr.R(a), Imm8(amount));
-			SHL(32, R(RSCRATCH), Imm8(32 - amount));
-			TEST(32, R(RSCRATCH), gpr.R(a));
-			JitSetCAIf(CC_NZ);
+			MOV(32, R(RSCRATCH), gpr.R(s));
+			if (a != s)
+				MOV(32, gpr.R(a), R(RSCRATCH));
+			// some optimized common cases that can be done in slightly fewer ops
+			if (amount == 31)
+			{
+				JitSetCA();
+				SAR(32, gpr.R(a), Imm8(31));
+				NEG(32, R(RSCRATCH));                                     // RSCRATCH = input == INT_MIN ? INT_MIN : -input;
+				AND(32, R(RSCRATCH), Imm32(0x80000000));                  // RSCRATCH = input < 0 && input != INT_MIN ? 0 : 0x80000000
+				SHR(32, R(RSCRATCH), Imm8(31 - XER_CA_SHIFT));
+				XOR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); // XER.CA = (input < 0 && input != INT_MIN)
+			}
+			else if (amount == 1)
+			{
+				JitClearCAOV(true, false);
+				SHR(32, R(RSCRATCH), Imm8(31));                          // sign
+				AND(32, R(RSCRATCH), gpr.R(a));                          // (sign && carry)
+				SAR(32, gpr.R(a), Imm8(1));
+				SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
+				OR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); // XER.CA = sign && carry, aka (input&0x80000001) == 0x80000001
+			}
+			else
+			{
+				JitClearCAOV(true, false);
+				SAR(32, gpr.R(a), Imm8(amount));
+				SHL(32, R(RSCRATCH), Imm8(32 - amount));
+				TEST(32, R(RSCRATCH), gpr.R(a));
+				FinalizeCarry(CC_NZ);
+			}
 		}
 	}
 	else
 	{
 		gpr.Lock(a, s);
-		JitClearCAOV(false);
+		FinalizeCarry(false);
 		gpr.BindToRegister(a, a == s, true);
 
 		if (a != s)
