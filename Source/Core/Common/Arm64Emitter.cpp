@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <limits>
+
 #include "Arm64Emitter.h"
 
 namespace Arm64Gen
@@ -1340,6 +1342,23 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
 
 	if (!Is64Bit(Rd))
 		_assert_msg_(DYNA_REC, !(imm >> 32), "%s: immediate doesn't fit in 32bit register: %lx", __FUNCTION__, imm);
+
+	if (!imm)
+	{
+		// Zero immediate, just clear the register
+		EOR(Rd, Rd, Rd, ArithOption(Rd, ST_LSL, 0));
+		return;
+	}
+
+	if ((Is64Bit(Rd) && imm == std::numeric_limits<u64>::max()) ||
+	    (!Is64Bit(Rd) && imm == std::numeric_limits<u32>::max()))
+	{
+		// Max unsigned value
+		// Set to ~ZR
+		ARM64Reg ZR = Is64Bit(Rd) ? SP : WSP;
+		ORN(Rd, Rd, ZR, ArithOption(ZR, ST_LSL, 0));
+		return;
+	}
 
 	// XXX: Optimize more
 	// XXX: Support rotating immediates to save instructions
