@@ -463,7 +463,11 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			SetJumpTarget(pDontBranch);
 
 			if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+			{
+				gpr.Flush();
+				fpr.Flush();
 				WriteExit(js.next_compilerPC + 4);
+			}
 		}
 	}
 
