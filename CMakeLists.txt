@@ -1,13 +1,14 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.8)
 
 option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
-option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
+option(DISABLE_WX "Disable wxWidgets (use Qt or CLI interface)" OFF)
+option(ENABLE_QT "Enable Qt (use the experimental Qt interface)" OFF)
 option(ENABLE_PCH "Use PCH to speed up compilation" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
@@ -638,6 +639,11 @@ if (ANDROID)
 	message("Using static iconv from Externals")
 	include_directories(Externals/libiconv-1.14/include)
 	add_subdirectory(Externals/libiconv-1.14)
+endif()
+
+if(ENABLE_QT)
+	find_package(Qt5Widgets REQUIRED)
+	message("Found Qt version ${Qt5Core_VERSION}, enabling the Qt backend")
 endif()
 
 if(NOT DISABLE_WX AND NOT ANDROID)
