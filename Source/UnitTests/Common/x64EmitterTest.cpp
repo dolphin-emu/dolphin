@@ -471,7 +471,7 @@ SHIFT_TEST(SAR)
 		}; \
 		for (const auto& regset : regsets) \
 			for (const auto& r : regset.regs) \
-									{ \
+			{ \
 				emitter->Name(regset.bits, R(r.reg), R(RAX)); \
 				emitter->Name(regset.bits, R(RAX), R(r.reg)); \
 				emitter->Name(regset.bits, R(r.reg), Imm8(0x42)); \
@@ -480,7 +480,7 @@ SHIFT_TEST(SAR)
 				                  #Name " " + regset.out_name + ", " + r.name + " " \
 				                  #Name " " + r.name + ", 0x42 " \
 				                  #Name " " + regset.size + " ptr ds:[r12], " + r.name); \
-									} \
+			} \
 	}
 
 BT_TEST(BT)
@@ -506,14 +506,14 @@ BT_TEST(BTC)
 		}; \
 		for (const auto& regset : regsets) \
 			for (const auto& r : regset.regs) \
-									{ \
+			{ \
 				emitter->Name(regset.bits, R(r.reg)); \
 				emitter->Name(regset.bits, MatR(RAX)); \
 				emitter->Name(regset.bits, MatR(R12)); \
 				ExpectDisassembly(#Name " " + r.name + " " \
 				                  #Name " " + regset.size + " ptr ds:[rax] " \
 				                  #Name " " + regset.size + " ptr ds:[r12]"); \
-									} \
+			} \
 	}
 
 ONE_OP_ARITH_TEST(NOT)
@@ -942,14 +942,14 @@ VEX_RM_TEST(BLSI)
 		}; \
 		for (const auto& regset : regsets) \
 			for (const auto& r : regset.regs) \
-						{ \
+			{ \
 				emitter->Name(regset.bits, r.reg, R(RAX), 4); \
 				emitter->Name(regset.bits, RAX, R(r.reg), 4); \
 				emitter->Name(regset.bits, r.reg, MatR(R12), 4); \
 				ExpectDisassembly(#Name " " + r.name+ ", " + regset.out_name  + ", 0x04 " \
 				                  #Name " " + regset.out_name + ", " + r.name + ", 0x04 " \
 				                  #Name " " + r.name + ", " + regset.size + " ptr ds:[r12], 0x04 "); \
-						} \
+			} \
 	}
 
 VEX_RMI_TEST(RORX)
