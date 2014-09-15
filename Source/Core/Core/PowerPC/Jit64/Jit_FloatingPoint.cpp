@@ -200,6 +200,39 @@ void Jit64::fsign(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
+void Jit64::fselx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
+	int d = inst.FD;
+	int a = inst.FA;
+	int b = inst.FB;
+	int c = inst.FC;
+
+	fpr.Lock(a, b, c, d);
+	MOVSD(XMM0, fpr.R(a));
+	PXOR(XMM1, R(XMM1));
+	// XMM0 = XMM0 < 0 ? all 1s : all 0s
+	CMPSD(XMM0, R(XMM1), LT);
+	if (cpu_info.bSSE4_1)
+	{
+		MOVSD(XMM1, fpr.R(c));
+		BLENDVPD(XMM1, fpr.R(b));
+	}
+	else
+	{
+		MOVSD(XMM1, R(XMM0));
+		PAND(XMM0, fpr.R(b));
+		PANDN(XMM1, fpr.R(c));
+		POR(XMM1, R(XMM0));
+	}
+	fpr.BindToRegister(d, false);
+	MOVSD(fpr.RX(d), R(XMM1));
+	fpr.UnlockAll();
+}
+
 void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
