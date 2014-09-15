@@ -1083,11 +1083,6 @@ InstLoc IRBuilder::FoldBranchCond(InstLoc Op1, InstLoc Op2)
 	return EmitBiOp(BranchCond, Op1, Op2);
 }
 
-InstLoc IRBuilder::FoldIdleBranch(InstLoc Op1, InstLoc Op2)
-{
-	return EmitBiOp(IdleBranch, EmitICmpEq(getOp1(getOp1(Op1)), getOp2(getOp1(Op1))), Op2);
-}
-
 InstLoc IRBuilder::FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2)
 {
 	if (isImm(*Op1))
@@ -1245,8 +1240,6 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 			return FoldRol(Op1, Op2);
 		case BranchCond:
 			return FoldBranchCond(Op1, Op2);
-		case IdleBranch:
-			return FoldIdleBranch(Op1, Op2);
 		case ICmpEq: case ICmpNe:
 		case ICmpUgt: case ICmpUlt: case ICmpUge: case ICmpUle:
 		case ICmpSgt: case ICmpSlt: case ICmpSge: case ICmpSle:

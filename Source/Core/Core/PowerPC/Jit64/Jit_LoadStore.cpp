@@ -238,7 +238,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	if (update && storeAddress)
 	{
 		gpr.BindToRegister(a, true, true);
-		MEMCHECK_START
+		MEMCHECK_START(false)
 		MOV(32, gpr.R(a), opAddress);
 		MEMCHECK_END
 	}
@@ -279,18 +279,20 @@ void Jit64::dcbz(UGeckoInstruction inst)
 		ADD(32, R(RSCRATCH), gpr.R(a));
 	AND(32, R(RSCRATCH), Imm32(~31));
 	TEST(32, R(RSCRATCH), Imm32(mem_mask));
-	FixupBranch fast = J_CC(CC_Z, true);
+	FixupBranch slow = J_CC(CC_NZ, true);
 
 	// Should this code ever run? I can't find any games that use DCBZ on non-physical addresses, but
 	// supposedly there are, at least for some MMU titles. Let's be careful and support it to be sure.
+	SwitchToFarCode();
+	SetJumpTarget(slow);
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
 	u32 registersInUse = CallerSavedRegistersInUse();
 	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 	ABI_CallFunctionR((void *)&Memory::ClearCacheLine, RSCRATCH);
 	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+	FixupBranch exit = J(true);
 
-	FixupBranch exit = J();
-	SetJumpTarget(fast);
+	SwitchToNearCode();
 	PXOR(XMM0, R(XMM0));
 	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
 	MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
@@ -411,7 +413,7 @@ void Jit64::stX(UGeckoInstruction inst)
 
 		if (update && offset)
 		{
-			MEMCHECK_START
+			MEMCHECK_START(false)
 			gpr.KillImmediate(a, true, true);
 
 			ADD(32, gpr.R(a), Imm32((u32)offset));
@@ -433,10 +435,11 @@ void Jit64::stXx(UGeckoInstruction inst)
 
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	FALLBACK_IF(!a || a == s || a == b);
+	bool update = !!(inst.SUBOP10 & 32);
 
 	gpr.Lock(a, b, s);
 
-	if (inst.SUBOP10 & 32)
+	if (update)
 	{
 		gpr.BindToRegister(a, true, true);
 		ADD(32, gpr.R(a), gpr.R(b));
@@ -482,6 +485,14 @@ void Jit64::stXx(UGeckoInstruction inst)
 		reg_value = gpr.RX(s);
 	}
 	SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse());
+
+	if (update && js.memcheck)
+	{
+		// revert the address change if an exception occurred
+		MEMCHECK_START(true)
+		SUB(32, gpr.R(a), gpr.R(b));
+		MEMCHECK_END;
+	}
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();

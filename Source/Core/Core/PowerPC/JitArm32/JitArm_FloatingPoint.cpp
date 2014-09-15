@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/ArmEmitter.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -16,6 +16,8 @@
 #include "Core/PowerPC/JitArm32/JitAsm.h"
 #include "Core/PowerPC/JitArm32/JitFPRCache.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
+
+using namespace ArmGen;
 
 void JitArm::Helper_UpdateCR1(ARMReg fpscr, ARMReg temp)
 {

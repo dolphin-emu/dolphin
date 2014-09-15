@@ -5,7 +5,7 @@
 #include <map>
 
 #include "Common/ArmEmitter.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -23,7 +23,6 @@
 #include "Core/PowerPC/JitArm32/JitArm_Tables.h"
 
 using namespace ArmGen;
-using namespace PowerPC;
 
 static int CODE_SIZE = 1024*1024*32;
 

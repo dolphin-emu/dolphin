@@ -266,7 +266,7 @@ private:
 	void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
 	void WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
 	void WriteMulDivType(int bits, OpArg src, int ext);
-	void WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2);
+	void WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep = false);
 	void WriteShift(int bits, OpArg dest, OpArg &shift, int ext);
 	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
 	void WriteMXCSR(OpArg arg, int ext);
@@ -453,6 +453,11 @@ public:
 
 	// Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
 	void MOVBE(int dbits, const OpArg& dest, const OpArg& src);
+
+	// Available only on AMD >= Phenom or Intel >= Haswell
+	void LZCNT(int bits, X64Reg dest, OpArg src);
+	// Note: this one is actually part of BMI1
+	void TZCNT(int bits, X64Reg dest, OpArg src);
 
 	// WARNING - These two take 11-13 cycles and are VectorPath! (AMD64)
 	void STMXCSR(OpArg memloc);

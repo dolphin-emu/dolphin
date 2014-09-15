@@ -4,12 +4,14 @@
 
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
+
+using namespace ArmGen;
 
 // This generates some fairly heavy trampolines, but:
 // 1) It's really necessary. We don't know anything about the context.

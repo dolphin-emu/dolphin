@@ -11,11 +11,13 @@
 
 namespace MMIO { class Mapping; }
 
-#define MEMCHECK_START \
+// If inv is true, invert the check (i.e. skip over the associated code if an exception hits,
+// instead of skipping over the code if an exception isn't hit).
+#define MEMCHECK_START(inv) \
 	Gen::FixupBranch memException; \
 	if (jit->js.memcheck) \
 	{ TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI)); \
-	memException = J_CC(Gen::CC_NZ, true); }
+	memException = J_CC((inv) ? Gen::CC_Z : Gen::CC_NZ, true); }
 
 #define MEMCHECK_END \
 	if (jit->js.memcheck) \
@@ -32,15 +34,50 @@ namespace MMIO { class Mapping; }
 #define PPCSTATE_SRR0 PPCSTATE(spr[SPR_SRR0])
 #define PPCSTATE_SRR1 PPCSTATE(spr[SPR_SRR1])
 
+// A place to throw blocks of code we don't want polluting the cache, e.g. rarely taken
+// exception branches.
+class FarCodeCache : public Gen::X64CodeBlock
+{
+private:
+	bool m_enabled = false;
+public:
+	bool Enabled() { return m_enabled; }
+	void Init(int size) { AllocCodeSpace(size); m_enabled = true; }
+	void Shutdown() { FreeCodeSpace(); m_enabled = false; }
+};
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
+	static const int CODE_SIZE = 1024 * 1024 * 32;
+
+	// a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
+	// mostly exception handling, so give it a whole bunch more space if the MMU is on.
+	static const int FARCODE_SIZE = 1024 * 1024 * 8;
+	static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
+
+	FarCodeCache farcode;
+	u8* nearcode; // Backed up when we switch to far code.
+
+	// Simple functions to switch between near and far code emitting
+	void SwitchToFarCode()
+	{
+		nearcode = GetWritableCodePtr();
+		SetCodePtr(farcode.GetWritableCodePtr());
+	}
+
+	void SwitchToNearCode()
+	{
+		farcode.SetCodePtr(GetWritableCodePtr());
+		SetCodePtr(nearcode);
+	}
+
 	void LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src);
 	void SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src);
 
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
-	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset);
+	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset, bool signExtend = false);
 	// these return the address of the MOV, for backpatching
 	u8 *UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true);
 	u8 *UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend);

@@ -577,7 +577,7 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size)
 	X64Reg reg;
 	auto info = regBuildMemAddress(RI, I, getOp1(I), 1, Size, &reg);
 
-	RI.Jit->SafeLoadToReg(reg, info.first, Size, info.second, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+	RI.Jit->SafeLoadToReg(reg, info.first, Size, info.second, regsInUse(RI), false);
 	if (regReadUse(RI, I))
 		RI.regs[reg] = I;
 }
@@ -619,7 +619,7 @@ static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size)
 		RI.Jit->MOV(32, R(RSCRATCH), regLocForInst(RI, getOp1(I)));
 	}
 
-	RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, Size, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+	RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, Size, 0, regsInUse(RI));
 	if (RI.IInfo[I - RI.FirstI] & 4)
 		regClearInst(RI, getOp1(I));
 }
@@ -909,7 +909,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
 		case IdleBranch:
-			regMarkUse(RI, I, getOp1(getOp1(I)), 1);
+			regMarkUse(RI, I, getOp1(I), 1);
 			break;
 		case BranchCond:
 		{
@@ -1557,7 +1557,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = fregFindFreeReg(RI);
 			Jit->MOV(32, R(RSCRATCH2), regLocForInst(RI, getOp1(I)));
-			RI.Jit->SafeLoadToReg(RSCRATCH2, R(RSCRATCH2), 32, 0, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			RI.Jit->SafeLoadToReg(RSCRATCH2, R(RSCRATCH2), 32, 0, regsInUse(RI), false);
 			Jit->MOVD_xmm(reg, R(RSCRATCH2));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1571,7 +1571,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			X64Reg reg = fregFindFreeReg(RI);
 			const OpArg loc = regLocForInst(RI, getOp1(I));
 			Jit->MOV(32, R(RSCRATCH2), loc);
-			RI.Jit->SafeLoadToReg(RSCRATCH2, R(RSCRATCH2), 64, 0, regsInUse(RI), false, EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			RI.Jit->SafeLoadToReg(RSCRATCH2, R(RSCRATCH2), 64, 0, regsInUse(RI), false);
 			Jit->MOVQ_xmm(reg, R(RSCRATCH2));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1590,13 +1590,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			// Hence, we need to mask out the unused bits. The layout of the GQR register is
 			// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
 			// 0b0011111100000111, or 0x3F07.
-			Jit->MOV(32, R(RSCRATCH), Imm32(0x3F07));
-			Jit->AND(32, R(RSCRATCH), M(((char *)&GQR(quantreg)) + 2));
-			Jit->MOVZX(32, 8, RSCRATCH2, R(RSCRATCH));
-			Jit->OR(32, R(RSCRATCH2), Imm8(w << 3));
+			Jit->MOV(32, R(RSCRATCH2), Imm32(0x3F07));
+			Jit->AND(32, R(RSCRATCH2), M(((char *)&GQR(quantreg)) + 2));
+			Jit->MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+			Jit->OR(32, R(RSCRATCH), Imm8(w << 3));
 
 			Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(RSCRATCH2, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
+			Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
 			Jit->MOVAPD(reg, R(XMM0));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1612,7 +1612,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				Jit->MOV(32, R(RSCRATCH), loc1);
 
 			Jit->MOV(32, R(RSCRATCH2), regLocForInst(RI, getOp2(I)));
-			RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, regsInUse(RI));
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -1628,7 +1628,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->MOVAPD(XMM0, value);
 			Jit->MOVQ_xmm(R(RSCRATCH), XMM0);
 			Jit->MOV(32, R(RSCRATCH2), address);
-			RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 64, 0, regsInUse(RI), EmuCodeBlock::SAFE_LOADSTORE_NO_FASTMEM);
+			RI.Jit->SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 64, 0, regsInUse(RI));
 
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
@@ -1641,13 +1641,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			regSpill(RI, RSCRATCH);
 			regSpill(RI, RSCRATCH2);
 			u32 quantreg = *I >> 24;
-			Jit->MOV(32, R(RSCRATCH), Imm32(0x3F07));
-			Jit->AND(32, R(RSCRATCH), PPCSTATE(spr[SPR_GQR0 + quantreg]));
-			Jit->MOVZX(32, 8, RSCRATCH2, R(RSCRATCH));
+			Jit->MOV(32, R(RSCRATCH2), Imm32(0x3F07));
+			Jit->AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + quantreg]));
+			Jit->MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
 			Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp2(I)));
 			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(RSCRATCH2, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
+			Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -2088,9 +2088,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 		case IdleBranch:
 		{
-			Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
-					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));
-			FixupBranch cont = Jit->J_CC(CC_NE);
+			// If value is 0, we don't need to call out to the idle function.
+			OpArg value = regLocForInst(RI, getOp1(I));
+			Jit->TEST(32, value, value);
+			FixupBranch noidle = Jit->J_CC(CC_NZ);
 
 			RI.Jit->Cleanup(); // is it needed?
 			Jit->ABI_CallFunction((void *)&PowerPC::OnIdleIL);
@@ -2098,9 +2099,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->MOV(32, PPCSTATE(pc), Imm32(ibuild->GetImmValue( getOp2(I) )));
 			Jit->WriteExceptionExit();
 
-			Jit->SetJumpTarget(cont);
+			Jit->SetJumpTarget(noidle);
 			if (RI.IInfo[I - RI.FirstI] & 4)
-					regClearInst(RI, getOp1(getOp1(I)));
+					regClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
 				regClearInst(RI, getOp2(I));
 			break;

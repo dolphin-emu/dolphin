@@ -27,13 +27,18 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = inst.RB;
 
-	FALLBACK_IF(!indexed && !a);
+	FALLBACK_IF((!indexed && !a) || (update && a == d));
 
 	if (update)
 		gpr.BindToRegister(a, true, true);
 
 	s32 offset = 0;
 	OpArg addr = gpr.R(a);
+	if (update && js.memcheck)
+	{
+		addr = R(RSCRATCH2);
+		MOV(32, addr, gpr.R(a));
+	}
 	if (indexed)
 	{
 		if (update)
@@ -58,14 +63,17 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 		if (update)
 			ADD(32, addr, Imm32((s32)(s16)inst.SIMM_16));
 		else
-			offset = (s32)(s16)inst.SIMM_16;
+			offset = (s16)inst.SIMM_16;
 	}
 
-	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, CallerSavedRegistersInUse(), false);
+	u32 registersInUse = CallerSavedRegistersInUse();
+	if (update && js.memcheck)
+		registersInUse |= (1 << RSCRATCH2);
+	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false);
 	fpr.Lock(d);
 	fpr.BindToRegister(d, js.memcheck || !single);
 
-	MEMCHECK_START
+	MEMCHECK_START(false)
 	if (single)
 	{
 		ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);
@@ -75,6 +83,8 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 		MOVQ_xmm(XMM0, R(RSCRATCH));
 		MOVSD(fpr.RX(d), R(XMM0));
 	}
+	if (update && js.memcheck)
+		MOV(32, gpr.R(a), addr);
 	MEMCHECK_END
 	fpr.UnlockAll();
 	gpr.UnlockAll();
@@ -93,9 +103,10 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = inst.RB;
 
-	FALLBACK_IF(!indexed && !a);
+	FALLBACK_IF((!indexed && !a) || (update && (a == s || a == b)));
 
 	s32 offset = 0;
+	s32 imm = (s16)inst.SIMM_16;
 	if (indexed)
 	{
 		if (update)
@@ -121,11 +132,11 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 		if (update)
 		{
 			gpr.BindToRegister(a, true, true);
-			ADD(32, gpr.R(a), Imm32((s32)(s16)inst.SIMM_16));
+			ADD(32, gpr.R(a), Imm32(imm));
 		}
 		else
 		{
-			offset = (s32)(s16)inst.SIMM_16;
+			offset = imm;
 		}
 		MOV(32, R(RSCRATCH2), gpr.R(a));
 	}
@@ -144,6 +155,13 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 		else
 			MOV(64, R(RSCRATCH), fpr.R(s));
 		SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 64, offset, CallerSavedRegistersInUse());
+	}
+	if (js.memcheck && update)
+	{
+		// revert the address change if an exception occurred
+		MEMCHECK_START(true)
+		SUB(32, gpr.R(a), indexed ? gpr.R(b) : Imm32(imm));
+		MEMCHECK_END
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();

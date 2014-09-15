@@ -463,7 +463,11 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			SetJumpTarget(pDontBranch);
 
 			if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
+			{
+				gpr.Flush();
+				fpr.Flush();
 				WriteExit(js.next_compilerPC + 4);
+			}
 		}
 	}
 
@@ -1901,13 +1905,19 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
 	else
 	{
 		gpr.Lock(a, s);
-		gpr.KillImmediate(s, true, false);
-		gpr.BindToRegister(a, (a == s), true);
-		BSR(32, gpr.R(a).GetSimpleReg(), gpr.R(s));
-		FixupBranch gotone = J_CC(CC_NZ);
-		MOV(32, gpr.R(a), Imm32(63));
-		SetJumpTarget(gotone);
-		XOR(32, gpr.R(a), Imm8(0x1f));  // flip order
+		gpr.BindToRegister(a, a == s, true);
+		if (cpu_info.bLZCNT)
+		{
+			LZCNT(32, gpr.RX(a), gpr.R(s));
+		}
+		else
+		{
+			BSR(32, gpr.RX(a), gpr.R(s));
+			FixupBranch gotone = J_CC(CC_NZ);
+			MOV(32, gpr.R(a), Imm32(63));
+			SetJumpTarget(gotone);
+			XOR(32, gpr.R(a), Imm8(0x1f));  // flip order
+		}
 		gpr.UnlockAll();
 	}
 

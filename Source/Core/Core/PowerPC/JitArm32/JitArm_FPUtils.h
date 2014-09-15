@@ -15,22 +15,22 @@ static const double minmaxFloat[2] = {-(double)0x80000000, (double)0x7FFFFFFF};
 static const double doublenum = 0xfff8000000000000ull;
 
 // Exception masks
-static Operand2 FRFIMask(5, 0x8); // 0x60000
-static Operand2 FIMask(2, 8); // 0x20000
-static Operand2 FRMask(4, 8); // 0x40000
-static Operand2 FXMask(2, 1); // 0x80000000
-static Operand2 VEMask(0x40, 0); // 0x40
+static ArmGen::Operand2 FRFIMask(5, 0x8); // 0x60000
+static ArmGen::Operand2 FIMask(2, 8); // 0x20000
+static ArmGen::Operand2 FRMask(4, 8); // 0x40000
+static ArmGen::Operand2 FXMask(2, 1); // 0x80000000
+static ArmGen::Operand2 VEMask(0x40, 0); // 0x40
 
-static Operand2 XXException(2, 4); // 0x2000000
-static Operand2 CVIException(1, 0xC); // 0x100
-static Operand2 NANException(1, 4); // 0x1000000
-static Operand2 VXVCException(8, 8); // 0x80000
-static Operand2 ZXException(1, 3); // 0x4000000
-static Operand2 VXSQRTException(2, 5); // 0x200
+static ArmGen::Operand2 XXException(2, 4); // 0x2000000
+static ArmGen::Operand2 CVIException(1, 0xC); // 0x100
+static ArmGen::Operand2 NANException(1, 4); // 0x1000000
+static ArmGen::Operand2 VXVCException(8, 8); // 0x80000
+static ArmGen::Operand2 ZXException(1, 3); // 0x4000000
+static ArmGen::Operand2 VXSQRTException(2, 5); // 0x200
 
-inline void JitArm::SetFPException(ARMReg Reg, u32 Exception)
+inline void JitArm::SetFPException(ArmGen::ARMReg Reg, u32 Exception)
 {
-	Operand2 *ExceptionMask;
+	ArmGen::Operand2 *ExceptionMask;
 	switch (Exception)
 	{
 		case FPSCR_VXCVI:
@@ -56,7 +56,7 @@ inline void JitArm::SetFPException(ARMReg Reg, u32 Exception)
 			return;
 		break;
 	}
-	ARMReg rB = gpr.GetReg();
+	ArmGen::ARMReg rB = gpr.GetReg();
 	MOV(rB, Reg);
 	ORR(Reg, Reg, *ExceptionMask);
 	CMP(rB, Reg);

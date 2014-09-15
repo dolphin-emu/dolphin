@@ -241,11 +241,11 @@ public:
 		else
 			m_width = WIDTH_32BIT;
 	}
-	TypeSpecifier GetType()
+	TypeSpecifier GetType() const
 	{
 		return m_type;
 	}
-	u32 GetData()
+	u32 GetData() const
 	{
 		switch (m_type)
 		{

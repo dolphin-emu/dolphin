@@ -5,6 +5,8 @@
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitArm32/JitFPRCache.h"
 
+using namespace ArmGen;
+
 ArmFPRCache::ArmFPRCache()
 {
 	emit = 0;

@@ -36,12 +36,8 @@
 #include "Core/PowerPC/JitILCommon/IR.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-class JitIL : public JitILBase, public EmuCodeBlock
+class JitIL : public JitILBase
 {
-private:
-	JitBlockCache blocks;
-	TrampolineCache trampolines;
-
 public:
 	Jit64AsmRoutineManager asm_routines;
 
@@ -59,12 +55,6 @@ public:
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
 
 	void Trace();
-
-	JitBlockCache *GetBlockCache() override { return &blocks; }
-
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) override { return nullptr; };
-
-	bool IsInCodeSpace(u8 *ptr) override { return IsInSpace(ptr); }
 
 	void ClearCache() override;
 	const u8 *GetDispatcher()
