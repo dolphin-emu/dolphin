@@ -119,7 +119,8 @@ static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use int
 #else
 static wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
 #endif
-static wxString temp_desc = wxTRANSLATE("Game specific VR option.");
+static wxString async_desc = wxTRANSLATE("Render head rotation updates in a separate thread at full frame rate using Timewarp even when the game runs at a lower frame rate.");
+static wxString temp_desc = wxTRANSLATE("Game specific VR option, in metres or degrees");
 static wxString scale_desc = wxTRANSLATE("(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = Barbie doll size, 0.02x = Lego size\n\nIf unsure, use 1.00.");
 static wxString lean_desc = wxTRANSLATE("How many degrees leaning back should count as vertical.\n0 = sitting/standing, 45 = reclining\n90 = playing lying on your back, -90 = on your front\n\nIf unsure, use 0.");
 static wxString enablevr_desc = wxTRANSLATE("Enable Virtual Reality (if your HMD was detected when you started Dolphin).\n\nIf unsure, leave this checked.");
@@ -677,6 +678,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_vr->Add(CreateCheckBox(page_vr, _("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
 		szr_vr->Add(CreateCheckBox(page_vr, _("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
 		szr_vr->Add(CreateCheckBox(page_vr, _("HQ distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
+		szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, _("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bAsynchronousTimewarp));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("All games"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

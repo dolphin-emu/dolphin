@@ -46,7 +46,7 @@ VideoConfig::VideoConfig()
 	fScale = 1.0f;
 	fLeanBackAngle = 0;
 	bEnableVR = true;
-	bAsynchronousTimewarp = true;
+	bAsynchronousTimewarp = false;
 	bLowPersistence = true;
 	bDynamicPrediction = true;
 	bOrientationTracking = true;
@@ -135,7 +135,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	vr->Get("Scale", &fScale, 1.0f);
 	vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
 	vr->Get("EnableVR", &bEnableVR, true);
-	vr->Get("AsynchronousTimewarp", &bAsynchronousTimewarp, true);
 	vr->Get("LowPersistence", &bLowPersistence, true);
 	vr->Get("DynamicPrediction", &bDynamicPrediction, true);
 	vr->Get("OrientationTracking", &bOrientationTracking, true);
@@ -407,7 +406,6 @@ void VideoConfig::Save(const std::string& ini_file)
 	vr->Set("Scale", fScale);
 	vr->Set("LeanBackAngle", fLeanBackAngle);
 	vr->Set("EnableVR", bEnableVR);
-	vr->Set("AsynchronousTimewarp", bAsynchronousTimewarp);
 	vr->Set("LowPersistence", bLowPersistence);
 	vr->Set("DynamicPrediction", bDynamicPrediction);
 	vr->Set("OrientationTracking", bOrientationTracking);

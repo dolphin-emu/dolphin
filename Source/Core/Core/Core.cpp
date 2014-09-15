@@ -60,6 +60,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 // TODO: ugly, remove
 bool g_aspect_wide;
@@ -391,7 +392,7 @@ void EmuThread()
 	HW::Init();
 
 	// Initialize backend, and optionally VR thread for asynchronous timewarp rendering
-	if (_CoreParameter.bAsyncronousTimewarp)
+	if (_CoreParameter.bAsynchronousTimewarp)
 	{
 		if (!g_video_backend->Initialize(nullptr))
 		{
@@ -399,6 +400,9 @@ void EmuThread()
 			Host_Message(WM_USER_STOP);
 			return;
 		}
+		g_Config.bAsynchronousTimewarp = true;
+		g_ActiveConfig.bAsynchronousTimewarp = g_Config.bAsynchronousTimewarp;
+
 		// Start the VR thread
 		s_stop_vr_thread = false;
 		s_vr_thread_failure = false;
@@ -422,6 +426,8 @@ void EmuThread()
 			Host_Message(WM_USER_STOP);
 			return;
 		}
+		g_Config.bAsynchronousTimewarp = false;
+		g_ActiveConfig.bAsynchronousTimewarp = g_Config.bAsynchronousTimewarp;
 
 	}
 
@@ -481,7 +487,7 @@ void EmuThread()
 		cpuThreadFunc = CpuThread;
 
 	// 	On VR Thread: g_video_backend->Video_PrepareOtherThread();
-	if (_CoreParameter.bAsyncronousTimewarp)
+	if (_CoreParameter.bAsynchronousTimewarp)
 	{
 		s_nonvr_thread_ready.Set();
 		s_vr_thread_ready.Wait();
@@ -545,7 +551,7 @@ void EmuThread()
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 
-	if (_CoreParameter.bAsyncronousTimewarp)
+	if (_CoreParameter.bAsynchronousTimewarp)
 	{
 		// Tell the VR Thread to stop
 		s_nonvr_thread_ready.Set();
@@ -574,7 +580,7 @@ void EmuThread()
 	Wiimote::Shutdown();
 
 	// Oculus Rift VR thread
-	if (_CoreParameter.bAsyncronousTimewarp)
+	if (_CoreParameter.bAsynchronousTimewarp)
 	{
 		s_stop_vr_thread = true;
 		s_vr_thread.join();

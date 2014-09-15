@@ -229,6 +229,7 @@ protected:
 
 			progressive_scan_checkbox->Disable();
 			render_to_main_checkbox->Disable();
+			async_timewarp_checkbox->Disable();
 		}
 		ev.Skip();
 	}
@@ -262,6 +263,7 @@ protected:
 
 	SettingCheckBox* borderless_fullscreen;
 	SettingCheckBox* render_to_main_checkbox;
+	SettingCheckBox* async_timewarp_checkbox;
 
 	SettingRadioButton* efbcopy_texture;
 	SettingRadioButton* efbcopy_ram;

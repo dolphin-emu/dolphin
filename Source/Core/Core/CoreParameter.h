@@ -160,7 +160,7 @@ struct SCoreStartupParameter
 	bool bRenderWindowAutoSize, bKeepWindowOnTop;
 	bool bFullscreen, bRenderToMain;
 	bool bProgressive, bDisableScreenSaver;
-	bool bAsyncronousTimewarp;
+	bool bAsynchronousTimewarp;
 
 	int iPosX, iPosY, iWidth, iHeight;
 

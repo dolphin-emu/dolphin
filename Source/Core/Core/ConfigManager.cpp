@@ -239,6 +239,9 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
 	display->Set("ProgressiveScan", m_LocalCoreStartupParameter.bProgressive);
 	display->Set("DisableScreenSaver", m_LocalCoreStartupParameter.bDisableScreenSaver);
 	display->Set("ForceNTSCJ", m_LocalCoreStartupParameter.bForceNTSCJ);
+
+	IniFile::Section* vr = ini.GetOrCreateSection("VR");
+	vr->Set("AsynchronousTimewarp", m_LocalCoreStartupParameter.bAsynchronousTimewarp);
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
@@ -446,6 +449,9 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 	display->Get("ProgressiveScan",      &m_LocalCoreStartupParameter.bProgressive,            false);
 	display->Get("DisableScreenSaver",   &m_LocalCoreStartupParameter.bDisableScreenSaver,     true);
 	display->Get("ForceNTSCJ",           &m_LocalCoreStartupParameter.bForceNTSCJ,             false);
+
+	IniFile::Section* vr = ini.GetOrCreateSection("VR");
+	vr->Get("AsynchronousTimewarp",      &m_LocalCoreStartupParameter.bAsynchronousTimewarp,   false);
 }
 
 void SConfig::LoadGameListSettings(IniFile& ini)
