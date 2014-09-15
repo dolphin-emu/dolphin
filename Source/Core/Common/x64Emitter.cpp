@@ -1222,6 +1222,7 @@ void XEmitter::WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg 
 		}
 		else
 		{
+			_assert_msg_(DYNA_REC, a2.IsSimpleReg() || a2.IsImm(), "WriteNormalOp - a1 and a2 cannot both be memory");
 			a1.WriteNormalOp(emit, true, op, a2, bits);
 		}
 	}
