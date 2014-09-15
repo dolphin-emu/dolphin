@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <QMainWindow>
 
 // Predefinitions
@@ -16,7 +17,7 @@ class DMainWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	explicit DMainWindow(QWidget *p = 0);
+	explicit DMainWindow(QWidget* p = nullptr);
 	~DMainWindow();
 
 private slots:
@@ -28,5 +29,5 @@ private slots:
 	void on_actAbout_triggered();
 
 private:
-	Ui::DMainWindow *ui;
+	std::unique_ptr<Ui::DMainWindow> ui;
 };

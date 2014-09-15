@@ -7,28 +7,24 @@
 
 #include "AboutDialog.h"
 #include "ui_AboutDialog.h"
+#include "Common/Common.h"
+#include "Common/StdMakeUnique.h"
 
-// TODO
-#define scm_desc_str "unknown"
-#define scm_branch_str "unknown"
-#define scm_rev_git_str "0000000"
-
-DAboutDialog::DAboutDialog(QWidget *p) :
-    QDialog(p),
-    ui(new Ui::DAboutDialog)
+DAboutDialog::DAboutDialog(QWidget* p)
+	: QDialog(p)
 {
+	ui = std::make_unique<Ui::DAboutDialog>();
 	ui->setupUi(this);
-	ui->label->setText(ui->label->text().arg(scm_desc_str,
-	                                         "2014",
-	                                         scm_branch_str,
-	                                         scm_rev_git_str,
-	                                         __DATE__,
-	                                         __TIME__));
+	ui->label->setText(ui->label->text().arg(QLatin1String(scm_desc_str),
+	                                         QStringLiteral("2014"),
+	                                         QLatin1String(scm_branch_str),
+	                                         QLatin1String(scm_rev_git_str),
+	                                         QStringLiteral(__DATE__),
+	                                         QStringLiteral(__TIME__)));
 }
 
 DAboutDialog::~DAboutDialog()
 {
-	delete ui;
 }
 
 void DAboutDialog::on_label_linkActivated(const QString &link)

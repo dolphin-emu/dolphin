@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <QDialog>
 
 // Predefinitions
@@ -16,12 +17,12 @@ class DAboutDialog : public QDialog
 	Q_OBJECT
 
 public:
-	explicit DAboutDialog(QWidget *p = 0);
+	explicit DAboutDialog(QWidget* p = nullptr);
 	~DAboutDialog();
 
 private slots:
-	void on_label_linkActivated(const QString &link);
+	void on_label_linkActivated(const QString& link);
 
 private:
-	Ui::DAboutDialog *ui;
+	std::unique_ptr<Ui::DAboutDialog> ui;
 };

@@ -14,7 +14,7 @@
 static bool IsOsSupported()
 {
 #ifdef Q_OS_OSX
-	return QSysInfo::MacVersion >= QSysInfo::MV_10_7;
+	return QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7;
 #elif defined(Q_OS_WIN)
 	return (QSysInfo::WindowsVersion & QSysInfo::WV_NT_based) >= QSysInfo::WV_VISTA;
 #else
