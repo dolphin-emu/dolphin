@@ -116,16 +116,20 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 	FinalizeCarry(inv ? CC_NC : CC_C);
 }
 
-void Jit64::ComputeRC(const Gen::OpArg & arg)
+void Jit64::ComputeRC(const Gen::OpArg & arg, bool sign_extend)
 {
 	if (arg.IsImm())
 	{
 		MOV(64, PPCSTATE(cr_val[0]), Imm32((s32)arg.offset));
 	}
-	else
+	else if (sign_extend)
 	{
 		MOVSX(64, 32, RSCRATCH, arg);
 		MOV(64, PPCSTATE(cr_val[0]), R(RSCRATCH));
+	}
+	else
+	{
+		MOV(64, PPCSTATE(cr_val[0]), arg);
 	}
 }
 
@@ -206,7 +210,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 		if (carry)
 			FinalizeCarry(CC_C);
 		if (Rc)
-			ComputeRC(gpr.R(d));
+			ComputeRC(gpr.R(d), doop != And || (value & 0x80000000));
 	}
 	else if (doop == Add)
 	{
