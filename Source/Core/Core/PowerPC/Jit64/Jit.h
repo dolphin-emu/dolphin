@@ -118,13 +118,15 @@ public:
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
 	void FinalizeCarry(Gen::CCFlags cond);
 	void FinalizeCarry(bool ca);
-	void ComputeRC(const Gen::OpArg & arg);
+	void ComputeRC(const Gen::OpArg & arg, bool needs_test = true, bool needs_sext = true);
 
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
 	Gen::OpArg ExtractFromReg(int reg, int offset);
 	void AndWithMask(Gen::X64Reg reg, u32 mask);
 	bool CheckMergedBranch(int crf);
 	void DoMergedBranch();
+	void DoMergedBranchCondition();
+	void DoMergedBranchImmediate(s64 val);
 
 	// Reads a given bit of a given CR register part.
 	void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
