@@ -398,12 +398,11 @@ CFrame::CFrame(wxFrame* parent,
 	m_LogWindow->Hide();
 	m_LogWindow->Disable();
 
-	g_TASInputDlg[0] = new TASInputDlg(this);
-	g_TASInputDlg[1] = new TASInputDlg(this);
-	g_TASInputDlg[2] = new TASInputDlg(this);
-	g_TASInputDlg[3] = new TASInputDlg(this);
+	for (int i = 0; i < 8; ++i)
+		g_TASInputDlg[i] = new TASInputDlg(this);
 
-	Movie::SetInputManip(TASManipFunction);
+	Movie::SetGCInputManip(GCTASManipFunction);
+	Movie::SetWiiInputManip(WiiTASManipFunction);
 
 	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
 	Core::SetOnStoppedCallback(OnStoppedCallback);
@@ -974,15 +973,21 @@ void OnStoppedCallback()
 	}
 }
 
-void TASManipFunction(GCPadStatus* PadStatus, int controllerID)
+void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID)
 {
 	if (main_frame)
-		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus, controllerID);
+		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus);
+}
+
+void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID)
+{
+	if (main_frame)
+		main_frame->g_TASInputDlg[controllerID + 4]->GetValues(data, rptf);
 }
 
 bool TASInputHasFocus()
 {
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 8; ++i)
 	{
 		if (main_frame->g_TASInputDlg[i]->TASHasFocus())
 			return true;

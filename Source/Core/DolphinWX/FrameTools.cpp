@@ -699,10 +699,17 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 
 	for (int i = 0; i < 4; ++i)
 	{
-		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
+		if (SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_NONE && SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_GC_GBA)
 		{
+			g_TASInputDlg[i]->CreateGCLayout();
 			g_TASInputDlg[i]->Show(true);
 			g_TASInputDlg[i]->SetTitle("TAS Input - Controller " + number[i]);
+		}
+		if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU && !(Core::IsRunning() && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii))
+		{
+			g_TASInputDlg[i+4]->CreateWiiLayout();
+			g_TASInputDlg[i+4]->Show(true);
+			g_TASInputDlg[i+4]->SetTitle("TAS Input - Wiimote " + number[i]);
 		}
 	}
 }
