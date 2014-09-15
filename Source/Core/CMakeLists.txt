@@ -6,3 +6,7 @@ add_subdirectory(DolphinWX)
 add_subdirectory(InputCommon)
 add_subdirectory(VideoCommon)
 add_subdirectory(VideoBackends)
+
+if(ENABLE_QT)
+	add_subdirectory(DolphinQt)
+endif()
