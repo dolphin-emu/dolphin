@@ -42,10 +42,9 @@ class OpArg
 {
 public:
 	OpArg()
+		: m_type(REG_NOTLOADED), m_reg(INVALID_REG),
+		  m_value(0), m_last_used(0)
 	{
-		m_type = REG_NOTLOADED;
-		m_reg = INVALID_REG;
-		m_value = 0;
 	}
 
 	RegType GetType()
@@ -73,29 +72,39 @@ public:
 	{
 		m_type = REG_REG;
 		m_reg = reg;
+
+		m_away_reg = INVALID_REG;
 	}
 	void LoadToAway(ARM64Reg reg, RegLocation location)
 	{
 		m_type = REG_AWAY;
-		m_reg = INVALID_REG;
 		m_away_reg = reg;
 		m_away_location = location;
-	}
-	void LoadAwayToReg(ARM64Reg reg)
-	{
-		// We are still an away type
-		// We just are also in another register
-		m_reg = reg;
+
+		m_reg = INVALID_REG;
 	}
 	void LoadToImm(u32 imm)
 	{
 		m_type = REG_IMM;
 		m_value = imm;
+
+		m_reg = INVALID_REG;
+		m_away_reg = INVALID_REG;
 	}
 	void Flush()
 	{
+		// Invalidate any previous information
 		m_type = REG_NOTLOADED;
+		m_reg = INVALID_REG;
+		m_away_reg = INVALID_REG;
+
+		// Arbitrarily large value that won't roll over on a lot of increments
+		m_last_used = 0xFFFF;
 	}
+
+	u32 GetLastUsed() { return m_last_used; }
+	void ResetLastUsed() { m_last_used = 0; }
+	void IncrementLastUsed() { ++m_last_used; }
 
 private:
 	// For REG_REG
@@ -110,6 +119,8 @@ private:
 
 	// For REG_IMM
 	u32 m_value; // IMM value
+
+	u32 m_last_used;
 };
 
 class HostReg
@@ -117,10 +128,10 @@ class HostReg
 public:
 	HostReg() : m_reg(INVALID_REG), m_locked(false) {}
 	HostReg(ARM64Reg reg) : m_reg(reg), m_locked(false) {}
-	bool IsLocked(void) { return m_locked; }
-	void Lock(void) { m_locked = true; }
-	void Unlock(void) { m_locked = false; }
-	ARM64Reg GetReg(void) { return m_reg; }
+	bool IsLocked() { return m_locked; }
+	void Lock() { m_locked = true; }
+	void Unlock() { m_locked = false; }
+	ARM64Reg GetReg() { return m_reg; }
 
 	bool operator==(const ARM64Reg& reg)
 	{
@@ -135,7 +146,7 @@ private:
 class Arm64RegCache
 {
 public:
-	Arm64RegCache(void) : m_emit(nullptr), m_reg_stats(nullptr) {};
+	Arm64RegCache() : m_emit(nullptr), m_reg_stats(nullptr) {};
 	virtual ~Arm64RegCache() {};
 
 	void Init(ARM64XEmitter *emitter);
@@ -151,7 +162,7 @@ public:
 
 	// Returns a temporary register for use
 	// Requires unlocking after done
-	ARM64Reg GetReg(void);
+	ARM64Reg GetReg();
 
 	// Locks a register so a cache cannot use it
 	// Useful for function calls
@@ -177,13 +188,19 @@ public:
 
 protected:
 	// Get the order of the host registers
-	virtual void GetAllocationOrder(void) = 0;
+	virtual void GetAllocationOrder() = 0;
+
+	// Flushes the most stale register
+	virtual void FlushMostStaleRegister() = 0;
 
 	// Lock a register
 	void LockRegister(ARM64Reg host_reg);
 
 	// Unlock a register
 	void UnlockRegister(ARM64Reg host_reg);
+
+	// Get available host registers
+	u32 GetUnlockedRegisterCount();
 
 	// Code emitter
 	ARM64XEmitter *m_emit;
@@ -220,7 +237,10 @@ public:
 
 protected:
 	// Get the order of the host registers
-	void GetAllocationOrder(void);
+	void GetAllocationOrder();
+
+	// Flushes the most stale register
+	void FlushMostStaleRegister();
 
 	// Our guest GPRs
 	// PowerPC has 32 GPRs
@@ -228,6 +248,14 @@ protected:
 
 private:
 	bool IsCalleeSaved(ARM64Reg reg);
+
+	void IncrementAllUsed()
+	{
+		for (auto& reg : m_guest_registers)
+			reg.IncrementLastUsed();
+	}
+
+	void FlushRegister(u32 preg);
 };
 
 class Arm64FPRCache : public Arm64RegCache
@@ -243,7 +271,10 @@ public:
 
 protected:
 	// Get the order of the host registers
-	void GetAllocationOrder(void);
+	void GetAllocationOrder();
+
+	// Flushes the most stale register
+	void FlushMostStaleRegister();
 
 	// Our guest FPRs
 	// Gekko has 32 paired registers(32x2)

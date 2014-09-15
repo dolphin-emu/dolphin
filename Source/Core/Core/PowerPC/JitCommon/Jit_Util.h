@@ -76,6 +76,7 @@ public:
 	void LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src);
 	void SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src);
 
+	Gen::FixupBranch CheckIfSafeAddress(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, u32 registers_in_use, u32 mem_mask);
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset, bool signExtend = false);
 	// these return the address of the MOV, for backpatching
@@ -111,7 +112,7 @@ public:
 	void JitGetAndClearCAOV(bool oe);
 	void JitSetCA();
 	void JitSetCAIf(Gen::CCFlags conditionCode);
-	void JitClearCAOV(bool oe);
+	void JitClearCAOV(bool ca, bool oe);
 
 	void ForceSinglePrecisionS(Gen::X64Reg xmm);
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);

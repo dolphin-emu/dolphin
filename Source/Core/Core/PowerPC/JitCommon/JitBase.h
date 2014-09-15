@@ -81,13 +81,16 @@ protected:
 		bool isLastInstruction;
 		bool memcheck;
 		bool skipnext;
+		bool carryFlagSet;
+		bool carryFlagInverted;
 
 		int fifoBytesThisBlock;
 
 		PPCAnalyst::BlockStats st;
 		PPCAnalyst::BlockRegStats gpa;
 		PPCAnalyst::BlockRegStats fpa;
-		PPCAnalyst::CodeOp *op;
+		PPCAnalyst::CodeOp* op;
+		PPCAnalyst::CodeOp* next_op;
 		u8* rewriteStart;
 
 		JitBlock *curBlock;

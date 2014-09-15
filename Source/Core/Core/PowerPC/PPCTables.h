@@ -38,6 +38,7 @@ enum
 	FL_LOADSTORE       = (1<<19),
 	FL_SET_FPRF        = (1<<20),
 	FL_READ_FPRF       = (1<<21),
+	FL_SET_OE          = (1<<22),
 };
 
 enum
