@@ -103,7 +103,7 @@ public:
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
 	void FinalizeCarry(Gen::CCFlags cond);
 	void FinalizeCarry(bool ca);
-	void ComputeRC(const Gen::OpArg & arg, bool sign_extend = true);
+	void ComputeRC(const Gen::OpArg & arg);
 
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
 	Gen::OpArg ExtractFromReg(int reg, int offset);

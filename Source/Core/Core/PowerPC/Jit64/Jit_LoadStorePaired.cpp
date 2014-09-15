@@ -95,8 +95,10 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	MOV(32, R(RSCRATCH2), Imm32(0x3F07));
 	AND(32, R(RSCRATCH2), M(((char *)&GQR(inst.I)) + 2));
 	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+	if (inst.W)
+		OR(32, R(RSCRATCH), Imm8(8));
 
-	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(asm_routines.pairedLoadQuantized + inst.W * 8)));
+	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedLoadQuantized));
 
 	MEMCHECK_START(false)
 	CVTPS2PD(fpr.RX(s), R(XMM0));
