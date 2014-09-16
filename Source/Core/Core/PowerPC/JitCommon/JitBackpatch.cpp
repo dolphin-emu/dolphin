@@ -115,8 +115,31 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 
 	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
 
-	MOVTwo(64, ABI_PARAM1, dataReg, ABI_PARAM2, addrReg);
-
+	if (info.hasImmediate)
+	{
+		if (addrReg != ABI_PARAM2)
+			MOV(64, R(ABI_PARAM2), R(addrReg));
+		// we have to swap back the immediate to pass it to the write functions
+		switch (info.operandSize)
+		{
+		case 8:
+			PanicAlert("Invalid 64-bit immediate!");
+			break;
+		case 4:
+			MOV(32, R(ABI_PARAM1), Imm32(Common::swap32((u32)info.immediate)));
+			break;
+		case 2:
+			MOV(16, R(ABI_PARAM1), Imm16(Common::swap16((u16)info.immediate)));
+			break;
+		case 1:
+			MOV(8, R(ABI_PARAM1), Imm8((u8)info.immediate));
+			break;
+		}
+	}
+	else
+	{
+		MOVTwo(64, ABI_PARAM1, dataReg, ABI_PARAM2, addrReg);
+	}
 	if (info.displacement)
 	{
 		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
@@ -220,7 +243,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		u32 pc = it->second;
 
 		u8 *start;
-		if (info.byteSwap)
+		if (info.byteSwap || info.hasImmediate)
 		{
 			// The instruction is a MOVBE but it failed so the value is still in little-endian byte order.
 			start = codePtr;

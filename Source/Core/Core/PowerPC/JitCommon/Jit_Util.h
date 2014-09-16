@@ -76,11 +76,15 @@ public:
 	void LoadAndSwap(int size, Gen::X64Reg dst, const Gen::OpArg& src);
 	void SwapAndStore(int size, const Gen::OpArg& dst, Gen::X64Reg src);
 
-	Gen::FixupBranch CheckIfSafeAddress(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, u32 registers_in_use, u32 mem_mask);
+	Gen::FixupBranch CheckIfSafeAddress(Gen::OpArg reg_value, Gen::X64Reg reg_addr, u32 registers_in_use, u32 mem_mask);
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset, bool signExtend = false);
 	// these return the address of the MOV, for backpatching
-	u8 *UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true);
+	u8 *UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true);
+	u8 *UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true)
+	{
+		UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap);
+	}
 	u8 *UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend);
 
 	// Generate a load/write from the MMIO handler for a given address. Only
@@ -98,7 +102,12 @@ public:
 	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags = 0);
 	// Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves
 	// reg_value if the load fails and js.memcheck is enabled.
-	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags = 0);
+	// Works with immediate inputs and simple registers only.
+	void SafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags = 0);
+	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags = 0)
+	{
+		SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, registersInUse, flags);
+	}
 
 	// applies to safe and unsafe WriteRegToReg
 	bool WriteClobbersRegValue(int accessSize, bool swap)

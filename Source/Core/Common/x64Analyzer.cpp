@@ -136,6 +136,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 		info->isMemoryWrite = true;
 		info->hasImmediate = true;
 		info->immediate = *codePtr;
+		info->operandSize = 1;
 		codePtr++;
 		break;
 
