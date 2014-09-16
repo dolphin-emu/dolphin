@@ -106,8 +106,9 @@ void Jit64AsmRoutineManager::Generate()
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
-			MOV(32, R(ABI_PARAM1), PPCSTATE(pc));
-			CALL((void *)&Jit);
+			ABI_PushRegistersAndAdjustStack(0, 0);
+			ABI_CallFunctionA((void *)&Jit, PPCSTATE(pc));
+			ABI_PopRegistersAndAdjustStack(0, 0);
 
 			JMP(dispatcherNoCheck); // no point in special casing this
 

@@ -174,7 +174,9 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 		MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
 	}
 	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
+	ABI_PushRegistersAndAdjustStack(0, 0);
 	ABI_CallFunctionC((void*)instr, inst.hex);
+	ABI_PopRegistersAndAdjustStack(0, 0);
 }
 
 void Jit64::unknown_instruction(UGeckoInstruction inst)
@@ -191,7 +193,9 @@ void Jit64::HLEFunction(UGeckoInstruction _inst)
 {
 	gpr.Flush();
 	fpr.Flush();
+	ABI_PushRegistersAndAdjustStack(0, 0);
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
+	ABI_PopRegistersAndAdjustStack(0, 0);
 }
 
 void Jit64::DoNothing(UGeckoInstruction _inst)
@@ -227,7 +231,9 @@ void Jit64::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 	{
+		ABI_PushRegistersAndAdjustStack(0, 0);
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+		ABI_PopRegistersAndAdjustStack(0, 0);
 	}
 
 	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
@@ -278,7 +284,9 @@ void Jit64::WriteRfiExitDestInRSCRATCH()
 	MOV(32, PPCSTATE(pc), R(RSCRATCH));
 	MOV(32, PPCSTATE(npc), R(RSCRATCH));
 	Cleanup();
+	ABI_PushRegistersAndAdjustStack(0, 0);
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
+	ABI_PopRegistersAndAdjustStack(0, 0);
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
@@ -288,7 +296,9 @@ void Jit64::WriteExceptionExit()
 	Cleanup();
 	MOV(32, R(RSCRATCH), PPCSTATE(pc));
 	MOV(32, PPCSTATE(npc), R(RSCRATCH));
+	ABI_PushRegistersAndAdjustStack(0, 0);
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
+	ABI_PopRegistersAndAdjustStack(0, 0);
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
@@ -298,7 +308,9 @@ void Jit64::WriteExternalExceptionExit()
 	Cleanup();
 	MOV(32, R(RSCRATCH), PPCSTATE(pc));
 	MOV(32, PPCSTATE(npc), R(RSCRATCH));
+	ABI_PushRegistersAndAdjustStack(0, 0);
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
+	ABI_PopRegistersAndAdjustStack(0, 0);
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
@@ -395,7 +407,11 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	b->normalEntry = normalEntry;
 
 	if (ImHereDebug)
+	{
+		ABI_PushRegistersAndAdjustStack(0, 0);
 		ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
+		ABI_PopRegistersAndAdjustStack(0, 0);
+	}
 
 	// Conditionally add profiling code.
 	if (Profiler::g_ProfileBlocks)
@@ -548,7 +564,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				fpr.Flush();
 
 				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+				ABI_PushRegistersAndAdjustStack(0, 0);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+				ABI_PopRegistersAndAdjustStack(0, 0);
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
 
