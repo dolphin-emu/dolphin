@@ -1766,6 +1766,8 @@ void XEmitter::ANDN(int bits, X64Reg regOp1, X64Reg regOp2, OpArg arg) {WriteBMI
 void XEmitter::LOCK()  { Write8(0xF0); }
 void XEmitter::REP()   { Write8(0xF3); }
 void XEmitter::REPNE() { Write8(0xF2); }
+void XEmitter::FSOverride() { Write8(0x64); }
+void XEmitter::GSOverride() { Write8(0x65); }
 
 void XEmitter::FWAIT()
 {

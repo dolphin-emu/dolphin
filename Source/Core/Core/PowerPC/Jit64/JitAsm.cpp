@@ -23,8 +23,18 @@ void Jit64AsmRoutineManager::Generate()
 	// for the shadow region before calls in this function.  This call will
 	// waste a bit of space for a second shadow, but whatever.
 	ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, /*frame*/ 16);
+	if (m_stack_top)
+	{
+		// Pivot the stack to our custom one.
+		MOV(64, R(RSCRATCH), R(RSP));
+		MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
+		MOV(64, MDisp(RSP, 0x18), R(RSCRATCH));
+	}
+	else
+	{
+		MOV(64, M(&s_saved_rsp), R(RSP));
+	}
 	// something that can't pass the BLR test
-	MOV(64, M(&s_saved_rsp), R(RSP));
 	MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
 
 	// Two statically allocated registers.
@@ -46,7 +56,10 @@ void Jit64AsmRoutineManager::Generate()
 		ABI_PopRegistersAndAdjustStack(1 << RSCRATCH, 0);
 		#endif
 
-		MOV(64, R(RSP), M(&s_saved_rsp));
+		if (m_stack_top)
+			MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
+		else
+			MOV(64, R(RSP), M(&s_saved_rsp));
 
 		SUB(32, PPCSTATE(downcount), R(RSCRATCH));
 
@@ -54,6 +67,8 @@ void Jit64AsmRoutineManager::Generate()
 			// The result of slice decrementation should be in flags if somebody jumped here
 			// IMPORTANT - We jump on negative, not carry!!!
 			FixupBranch bail = J_CC(CC_BE, true);
+
+			FixupBranch dbg_exit;
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 			{
@@ -63,11 +78,7 @@ void Jit64AsmRoutineManager::Generate()
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				ABI_PopRegistersAndAdjustStack(0, 0);
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-				FixupBranch noBreakpoint = J_CC(CC_Z);
-				MOV(64, R(RSP), M(&s_saved_rsp));
-				ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
-				RET();
-				SetJumpTarget(noBreakpoint);
+				dbg_exit = J_CC(CC_NZ);
 				SetJumpTarget(notStepping);
 			}
 
@@ -155,7 +166,17 @@ void Jit64AsmRoutineManager::Generate()
 		J_CC(CC_Z, outerLoop);
 
 	//Landing pad for drec space
-	MOV(64, R(RSP), M(&s_saved_rsp));
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		SetJumpTarget(dbg_exit);
+	if (m_stack_top)
+	{
+		MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x8));
+		POP(RSP);
+	}
+	else
+	{
+		MOV(64, R(RSP), M(&s_saved_rsp));
+	}
 	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 	RET();
 
