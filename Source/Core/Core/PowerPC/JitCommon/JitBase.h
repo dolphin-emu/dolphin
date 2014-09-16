@@ -31,6 +31,8 @@
 // The following register assignments are common to Jit64 and Jit64IL:
 // RSCRATCH and RSCRATCH2 are always scratch registers and can be used without
 // limitation.
+// Note: some places still assume RAX is a scratch (e.g. instructions like LAHF
+// that specifically access parts of RAX). Be careful if changing this.
 #define RSCRATCH RAX
 #define RSCRATCH2 RDX
 // RSCRATCH_EXTRA may be in the allocation order, so it has to be flushed

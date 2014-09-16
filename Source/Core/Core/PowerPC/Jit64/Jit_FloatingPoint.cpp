@@ -236,6 +236,8 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
+	// FIXME: accurate fcmp is currently set if FPRF is on, so the FPRF path never gets taken.
+	// Whether the non-FPRF aspects of interpreter fcmp are actually needed should be tested.
 	FALLBACK_IF(jo.fpAccurateFcmp);
 
 	//bool ordered = inst.SUBOP10 == 32;
@@ -244,68 +246,57 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	int crf = inst.CRFD;
 	bool fprf = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF && js.op->wantsFPRF;
 
-	fpr.Lock(a,b);
-	fpr.BindToRegister(b, true);
+	fpr.Lock(a, b);
 
-	if (fprf)
-		AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
+	// These tables don't hurt cache as much as one would think, since EQ/SO are pretty rare for floats,
+	// and the middle sections are never accessed.
+	// EFLAGS = [SF(0),ZF,0,AF(0),0,PF,1,CF]
+	static const u8 FlagsToFPRF[68] =
+	{
+		CR_LT, CR_GT,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		CR_EQ, 0, 0, CR_SO
+	};
+	static const u64 FlagsToCR[68] =
+	{
+		PPCCRToInternal(CR_LT), PPCCRToInternal(CR_GT),
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		PPCCRToInternal(CR_EQ), 0, 0, PPCCRToInternal(CR_SO)
+	};
+
+	fpr.BindToRegister(b, true, false);
+
 	// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
-	UCOMISD(fpr.R(b).GetSimpleReg(), fpr.R(a));
-
-	FixupBranch pNaN, pLesser, pGreater;
-	FixupBranch continue1, continue2, continue3;
-
-	if (a != b)
+	UCOMISD(fpr.RX(b), fpr.R(a));
+	if (!cpu_info.bLAHFSAHF64)
 	{
-		// if B > A, goto Lesser's jump target
-		pLesser  = J_CC(CC_A);
+		// Probably way slower than it needs to be, but very few CPUs don't have LAHF support, so let's not
+		// worry too much about them.
+		SETcc(CC_Z, R(RSCRATCH));
+		SETcc(CC_P, R(RSCRATCH2));
+		SETcc(CC_C, R(AH));					// CF
+		SHL(8, R(RSCRATCH), Imm8(6));		// ZF
+		SHL(8, R(RSCRATCH2), Imm8(2));		// PF
+		OR(8, R(RSCRATCH), R(AH));
+		OR(8, R(RSCRATCH), R(RSCRATCH2));
+		MOVZX(32, 8, RSCRATCH, R(RSCRATCH));
 	}
-
-	// if (B != B) or (A != A), goto NaN's jump target
-	pNaN = J_CC(CC_P);
-
-	if (a != b)
+	else
 	{
-		// if B < A, goto Greater's jump target
-		// JB can't precede the NaN check because it doesn't test ZF
-		pGreater = J_CC(CC_B);
+		LAHF();
+		MOVZX(32, 8, RSCRATCH, R(AH));
 	}
-
-	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_EQ)));
+	MOV(64, R(RSCRATCH2), MScaled(RSCRATCH, SCALE_8, (u32)(u64)FlagsToCR - (cpu_info.bLAHFSAHF64 ? 16 : 0)));
+	MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH2));
 	if (fprf)
-		OR(32, PPCSTATE(fpscr), Imm32(CR_EQ << FPRF_SHIFT));
-
-	continue1 = J();
-
-	SetJumpTarget(pNaN);
-	MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_SO)));
-	if (fprf)
-		OR(32, PPCSTATE(fpscr), Imm32(CR_SO << FPRF_SHIFT));
-
-	if (a != b)
 	{
-		continue2 = J();
-
-		SetJumpTarget(pGreater);
-		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_GT)));
-		if (fprf)
-			OR(32, PPCSTATE(fpscr), Imm32(CR_GT << FPRF_SHIFT));
-		continue3 = J();
-
-		SetJumpTarget(pLesser);
-		MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(CR_LT)));
-		if (fprf)
-			OR(32, PPCSTATE(fpscr), Imm32(CR_LT << FPRF_SHIFT));
+		MOV(64, R(RSCRATCH2), MDisp(RSCRATCH, (u32)(u64)FlagsToFPRF - (cpu_info.bLAHFSAHF64 ? 16 : 0)));
+		AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
+		SHL(32, R(RSCRATCH), Imm8(FPRF_SHIFT));
+		OR(32, PPCSTATE(fpscr), R(RSCRATCH));
 	}
-
-	SetJumpTarget(continue1);
-	if (a != b)
-	{
-		SetJumpTarget(continue2);
-		SetJumpTarget(continue3);
-	}
-
-	MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
 	fpr.UnlockAll();
 }
 
