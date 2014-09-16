@@ -399,18 +399,25 @@ void Jit64::stX(UGeckoInstruction inst)
 
 		gpr.Lock(a, s);
 		gpr.BindToRegister(a, true, false);
-		X64Reg reg_value;
-		if (WriteClobbersRegValue(accessSize, /* swap */ true))
+		if (gpr.R(s).IsImm())
 		{
-			MOV(32, R(RSCRATCH2), gpr.R(s));
-			reg_value = RSCRATCH2;
+			SafeWriteRegToReg(gpr.R(s), gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 		}
 		else
 		{
-			gpr.BindToRegister(s, true, false);
-			reg_value = gpr.RX(s);
+			X64Reg reg_value;
+			if (WriteClobbersRegValue(accessSize, /* swap */ true))
+			{
+				MOV(32, R(RSCRATCH2), gpr.R(s));
+				reg_value = RSCRATCH2;
+			}
+			else
+			{
+				gpr.BindToRegister(s, true, false);
+				reg_value = gpr.RX(s);
+			}
+			SafeWriteRegToReg(reg_value, gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 		}
-		SafeWriteRegToReg(reg_value, gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 
 		if (update && offset)
 		{
@@ -474,18 +481,25 @@ void Jit64::stXx(UGeckoInstruction inst)
 			break;
 	}
 
-	X64Reg reg_value;
-	if (WriteClobbersRegValue(accessSize, /* swap */ true))
+	if (gpr.R(s).IsImm())
 	{
-		MOV(32, R(RSCRATCH), gpr.R(s));
-		reg_value = RSCRATCH;
+		SafeWriteRegToReg(gpr.R(s), RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse());
 	}
 	else
 	{
-		gpr.BindToRegister(s, true, false);
-		reg_value = gpr.RX(s);
+		X64Reg reg_value;
+		if (WriteClobbersRegValue(accessSize, /* swap */ true))
+		{
+			MOV(32, R(RSCRATCH), gpr.R(s));
+			reg_value = RSCRATCH;
+		}
+		else
+		{
+			gpr.BindToRegister(s, true, false);
+			reg_value = gpr.RX(s);
+		}
+		SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse());
 	}
-	SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse());
 
 	if (update && js.memcheck)
 	{
@@ -530,8 +544,15 @@ void Jit64::stmw(UGeckoInstruction inst)
 			MOV(32, R(RSCRATCH), gpr.R(inst.RA));
 		else
 			XOR(32, R(RSCRATCH), R(RSCRATCH));
-		MOV(32, R(RSCRATCH2), gpr.R(i));
-		SafeWriteRegToReg(RSCRATCH2, RSCRATCH, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, CallerSavedRegistersInUse());
+		if (gpr.R(i).IsImm())
+		{
+			SafeWriteRegToReg(gpr.R(i), RSCRATCH, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, CallerSavedRegistersInUse());
+		}
+		else
+		{
+			MOV(32, R(RSCRATCH2), gpr.R(i));
+			SafeWriteRegToReg(RSCRATCH2, RSCRATCH, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16, CallerSavedRegistersInUse());
+		}
 	}
 	gpr.UnlockAllX();
 }
