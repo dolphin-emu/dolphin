@@ -83,7 +83,7 @@ public:
 	u8 *UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true);
 	u8 *UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true)
 	{
-		UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap);
+		return UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap);
 	}
 	u8 *UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend);
 
