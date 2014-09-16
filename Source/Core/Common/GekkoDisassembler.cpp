@@ -89,6 +89,10 @@ static const char* cmpname[4] = {
 	"cmpw", "cmpd", "cmplw", "cmpld"
 };
 
+static const char* ps_cmpname[4] = {
+	"ps_cmpu0", "ps_cmpo0", "ps_cmpu1", "ps_cmpo1"
+};
+
 static const char* b_ext[4] = {
 	"", "l", "a", "la"
 };
@@ -379,7 +383,7 @@ void GekkoDisassembler::cmpi(u32 in, int uimm)
 		i = (int)PPCGETCRD(in);
 		if (i != 0)
 		{
-			m_operands += StringFromFormat("cr%c,", '0' + i);
+			m_operands += StringFromFormat("cr%c, ", '0' + i);
 		}
 
 		m_operands += imm(in, uimm, 2, false);
@@ -977,8 +981,13 @@ void GekkoDisassembler::ps(u32 inst)
 	switch ((inst >> 1) & 0x1F)
 	{
 	case 6:
-		m_opcode = "ps_lux";
+		m_opcode = inst & 0x40 ? "psq_lux" : "psq_lx";
 		m_operands = StringFromFormat("p%u, (r%u + r%u)", FD, RA, RB);
+		return;
+
+	case 7:
+		m_opcode = inst & 0x40 ? "psq_stux" : "psq_stx";
+		m_operands = StringFromFormat("(r%u + r%u), p%u", RA, RB, FS);
 		return;
 
 	case 18:
@@ -1091,25 +1100,18 @@ void GekkoDisassembler::ps(u32 inst)
 		return;
 
 	case 0:
-		m_opcode = "ps_cmpu0";
-		m_operands = "ps_cmpu0";
-		return;
-
 	case 32:
-		m_opcode = "ps_cmpq0";
-		m_operands = "ps_cmpo0";
-		return;
-
 	case 64:
-		m_opcode = "ps_cmpu1";
-		m_operands = "ps_cmpu1";
-		return;
-
 	case 96:
-		m_opcode = "ps_cmpo1";
-		m_operands = "ps_cmpo1";
-		return;
+	{
+		m_opcode = ps_cmpname[(inst >> 6) & 0x3];
 
+		int i = (int)PPCGETCRD(inst);
+		if (i != 0)
+			m_operands += StringFromFormat("cr%c, ", '0' + i);
+		m_operands += StringFromFormat("p%u, p%u", FA, FB);
+		return;
+	}
 	case 528:
 		m_opcode = "ps_merge00";
 		m_operands = StringFromFormat("p%u, p%u[0],p%u[0]", FD, FA, FB);
@@ -1131,9 +1133,10 @@ void GekkoDisassembler::ps(u32 inst)
 		return;
 
 	case 1014:
-		m_opcode = "dcbz_l";
-		m_operands = "";
-		return;
+		if (inst & PPCDMASK)
+			ill(inst);
+		else
+			dab(inst, "dcbz_l", 3, 0, 0, 0, 0);
 	}
 
 	//	default:
@@ -1152,7 +1155,7 @@ void GekkoDisassembler::ps_mem(u32 inst)
 
 	case 57:
 		m_opcode = "psq_lu";
-		m_operands = "";
+		m_operands = StringFromFormat("p%u, %i(r%u)", RS, SEX12(inst & 0xFFF), RA);;
 		break;
 
 	case 60:
@@ -1162,7 +1165,7 @@ void GekkoDisassembler::ps_mem(u32 inst)
 
 	case 61:
 		m_opcode = "psq_stu";
-		m_operands = StringFromFormat("r%u, p%u ?", RA, RS);
+		m_operands = StringFromFormat("%i(r%u), p%u", SEX12(inst & 0xFFF), RA, RS);
 		break;
 	}
 }
