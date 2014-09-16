@@ -70,6 +70,7 @@ extern "C" {
 #include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
 };
 
+int g_saveSlot = 1;
 
 CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
 		const wxPoint& pos, const wxSize& size, long style)
@@ -276,10 +277,13 @@ EVT_MENU(IDM_UNDOLOADSTATE,     CFrame::OnUndoLoadState)
 EVT_MENU(IDM_UNDOSAVESTATE,     CFrame::OnUndoSaveState)
 EVT_MENU(IDM_LOADSTATEFILE, CFrame::OnLoadStateFromFile)
 EVT_MENU(IDM_SAVESTATEFILE, CFrame::OnSaveStateToFile)
+EVT_MENU(IDM_SAVESELECTEDSLOT, CFrame::OnSaveCurrentSlot)
+EVT_MENU(IDM_LOADSELECTEDSLOT, CFrame::OnLoadCurrentSlot)
 
 EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT10, CFrame::OnLoadState)
 EVT_MENU_RANGE(IDM_LOADLAST1, IDM_LOADLAST8, CFrame::OnLoadLastState)
 EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT10, CFrame::OnSaveState)
+EVT_MENU_RANGE(IDM_SELECTSLOT1, IDM_SELECTSLOT10, CFrame::OnSelectSlot)
 EVT_MENU_RANGE(IDM_FRAMESKIP0, IDM_FRAMESKIP9, CFrame::OnFrameSkip)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
 EVT_MENU_RANGE(IDM_CONNECT_WIIMOTE1, IDM_CONNECT_BALANCEBOARD, CFrame::OnConnectWiimote)
@@ -931,6 +935,19 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_UNDO_SAVE_STATE: return IDM_UNDOSAVESTATE;
 	case HK_LOAD_STATE_FILE: return IDM_LOADSTATEFILE;
 	case HK_SAVE_STATE_FILE: return IDM_SAVESTATEFILE;
+
+	case HK_SELECT_STATE_SLOT_1: return IDM_SELECTSLOT1;
+	case HK_SELECT_STATE_SLOT_2: return IDM_SELECTSLOT2;
+	case HK_SELECT_STATE_SLOT_3: return IDM_SELECTSLOT3;
+	case HK_SELECT_STATE_SLOT_4: return IDM_SELECTSLOT4;
+	case HK_SELECT_STATE_SLOT_5: return IDM_SELECTSLOT5;
+	case HK_SELECT_STATE_SLOT_6: return IDM_SELECTSLOT6;
+	case HK_SELECT_STATE_SLOT_7: return IDM_SELECTSLOT7;
+	case HK_SELECT_STATE_SLOT_8: return IDM_SELECTSLOT8;
+	case HK_SELECT_STATE_SLOT_9: return IDM_SELECTSLOT9;
+	case HK_SELECT_STATE_SLOT_10: return IDM_SELECTSLOT10;
+	case HK_SAVE_STATE_SLOT_SELECTED: return IDM_SAVESELECTEDSLOT;
+	case HK_LOAD_STATE_SLOT_SELECTED: return IDM_LOADSELECTEDSLOT;
 	}
 
 	return -1;
@@ -1052,8 +1069,27 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			if (--SConfig::GetInstance().m_Framelimit > 0x19)
 				SConfig::GetInstance().m_Framelimit = 0x19;
 		}
+		else if (IsHotkey(event, HK_SAVE_STATE_SLOT_SELECTED))
+		{
+			State::Save(g_saveSlot);
+		}
+		else if (IsHotkey(event, HK_LOAD_STATE_SLOT_SELECTED))
+		{
+			State::Load(g_saveSlot);
+		}
+
 		else
 		{
+			for (int i = HK_SELECT_STATE_SLOT_1; i < HK_SELECT_STATE_SLOT_10; ++i)
+			{
+				if (IsHotkey (event, i))
+				{
+					wxCommandEvent slot_event;
+					slot_event.SetId(i + IDM_SELECTSLOT1 - HK_SELECT_STATE_SLOT_1);
+					CFrame::OnSelectSlot(slot_event);
+				}
+			}
+
 			unsigned int i = NUM_HOTKEYS;
 			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || TASInputHasFocus())
 			{
