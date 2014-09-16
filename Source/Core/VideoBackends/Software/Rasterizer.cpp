@@ -533,7 +533,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 					// Build the new raster block every other pixel
 					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
 
-					Draw(x, y, x & 1, y & 1);
+					Draw(x, y, x & (BLOCK_SIZE - 1), y & (BLOCK_SIZE - 1));
 
 					if (y >= BoundingBox::coords[BoundingBox::TOP])
 						break;
@@ -560,9 +560,9 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 			if (x >= BoundingBox::coords[BoundingBox::LEFT])
 				break;
 
-			s32 CY1 = CX1;
-			s32 CY2 = CX2;
-			s32 CY3 = CX3;
+			CY1 = CX1;
+			CY2 = CX2;
+			CY3 = CX3;
 
 			for (s32 y = miny; y <= maxy; ++y)
 			{
@@ -571,7 +571,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 					// Build the new raster block every other pixel
 					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
 
-					Draw(x, y, x & 1, y & 1);
+					Draw(x, y, x & (BLOCK_SIZE - 1), y & (BLOCK_SIZE - 1));
 
 					if (x >= BoundingBox::coords[BoundingBox::LEFT])
 						break;
@@ -595,9 +595,9 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 		// Loop
 		for (s32 y = maxy; y >= miny; --y)
 		{
-			s32 CX1 = CY1;
-			s32 CX2 = CY2;
-			s32 CX3 = CY3;
+			CX1 = CY1;
+			CX2 = CY2;
+			CX3 = CY3;
 
 			if (y <= BoundingBox::coords[BoundingBox::BOTTOM])
 				break;
@@ -609,7 +609,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 					// Build the new raster block every other pixel
 					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
 
-					Draw(x, y, x & 1, y & 1);
+					Draw(x, y, x & (BLOCK_SIZE - 1), y & (BLOCK_SIZE - 1));
 
 					if (y <= BoundingBox::coords[BoundingBox::BOTTOM])
 						break;
@@ -636,9 +636,9 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 			if (x <= BoundingBox::coords[BoundingBox::RIGHT])
 				break;
 
-			s32 CY1 = CX1;
-			s32 CY2 = CX2;
-			s32 CY3 = CX3;
+			CY1 = CX1;
+			CY2 = CX2;
+			CY3 = CX3;
 
 			for (s32 y = maxy; y >= miny; --y)
 			{
@@ -647,7 +647,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 					// Build the new raster block every other pixel
 					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
 
-					Draw(x, y, x & 1, y & 1);
+					Draw(x, y, x & (BLOCK_SIZE - 1), y & (BLOCK_SIZE - 1));
 
 					if (x <= BoundingBox::coords[BoundingBox::RIGHT])
 						break;

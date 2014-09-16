@@ -93,8 +93,6 @@ void LOADERDECL Update()
 	if (g_VtxDesc.Normal != NOT_PRESENT)
 	{
 		// Feed normal input data and transform
-		myVat.g0.NormalIndex3;
-
 		memcpy((u8 *)myVertex.normal, bufferPos + vertexDecl.normals[0].offset, sizeof(float) * 3 * ((myVat.g0.NormalElements) ? 3 : 1));
 
 		TransformUnit::TransformNormal(&myVertex, myVat.g0.NormalElements, outVertex);

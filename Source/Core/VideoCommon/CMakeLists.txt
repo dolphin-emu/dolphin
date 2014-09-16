@@ -1,4 +1,5 @@
-set(SRCS	BPFunctions.cpp
+set(SRCS	BoundingBox.cpp
+			BPFunctions.cpp
 			BPMemory.cpp
 			BPStructs.cpp
 			CPMemory.cpp
