@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DMainWindow</class>
+ <widget class="QMainWindow" name="DMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>998</width>
+    <height>598</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dolphin</string>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>64</width>
+    <height>64</height>
+   </size>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonTextUnderIcon</enum>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
+  </property>
+  <widget class="QStackedWidget" name="wgtCentral"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>998</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="mnuFile">
+    <property name="title">
+     <string>Fi&amp;le</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="mnuEmulation">
+    <property name="title">
+     <string>E&amp;mulation</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="mnuOptions">
+    <property name="title">
+     <string>Optio&amp;ns</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="mnuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="mnuView">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="mnuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actWebsite"/>
+    <addaction name="actOnlineDocs"/>
+    <addaction name="actGitHub"/>
+    <addaction name="separator"/>
+    <addaction name="actAbout"/>
+   </widget>
+   <addaction name="mnuFile"/>
+   <addaction name="mnuEmulation"/>
+   <addaction name="mnuOptions"/>
+   <addaction name="mnuTools"/>
+   <addaction name="mnuView"/>
+   <addaction name="mnuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolbar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <action name="actWebsite">
+   <property name="text">
+    <string>&amp;Website</string>
+   </property>
+  </action>
+  <action name="actOnlineDocs">
+   <property name="text">
+    <string>&amp;Online Documentation</string>
+   </property>
+  </action>
+  <action name="actGitHub">
+   <property name="text">
+    <string>&amp;Dolphin at GitHub</string>
+   </property>
+  </action>
+  <action name="actAbout">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
