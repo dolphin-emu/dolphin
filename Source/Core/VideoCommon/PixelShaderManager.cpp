@@ -12,8 +12,11 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
-static bool s_bFogRangeAdjustChanged;
-static bool s_bViewPortChanged;
+bool PixelShaderManager::s_bFogRangeAdjustChanged;
+bool PixelShaderManager::s_bViewPortChanged;
+
+std::array<int4,4> PixelShaderManager::s_tev_color;
+std::array<int4,4> PixelShaderManager::s_tev_konst_color;
 
 PixelShaderConstants PixelShaderManager::constants;
 bool PixelShaderManager::dirty;
@@ -21,6 +24,9 @@ bool PixelShaderManager::dirty;
 void PixelShaderManager::Init()
 {
 	memset(&constants, 0, sizeof(constants));
+	memset(s_tev_color.data(), 0, sizeof(s_tev_color));
+	memset(s_tev_konst_color.data(), 0, sizeof(s_tev_konst_color));
+
 	Dirty();
 }
 
@@ -29,14 +35,15 @@ void PixelShaderManager::Dirty()
 	s_bFogRangeAdjustChanged = true;
 	s_bViewPortChanged = true;
 
-	SetColorChanged(0, 0);
-	SetColorChanged(0, 1);
-	SetColorChanged(0, 2);
-	SetColorChanged(0, 3);
-	SetColorChanged(1, 0);
-	SetColorChanged(1, 1);
-	SetColorChanged(1, 2);
-	SetColorChanged(1, 3);
+	for (unsigned index = 0; index < s_tev_color.size(); ++index)
+	{
+		for (int comp = 0; comp < 4; ++comp)
+		{
+			SetTevColor(index, comp, s_tev_color[index][comp]);
+			SetTevKonstColor(index, comp, s_tev_konst_color[index][comp]);
+		}
+	}
+
 	SetAlpha();
 	SetDestAlpha();
 	SetZTextureBias();
@@ -107,16 +114,22 @@ void PixelShaderManager::SetConstants()
 	}
 }
 
-void PixelShaderManager::SetColorChanged(int type, int num)
+void PixelShaderManager::SetTevColor(int index, int component, s32 value)
 {
-	int4* c = type ? constants.kcolors : constants.colors;
-	c[num][0] = static_cast<s32>(bpmem.tevregs[num].red);
-	c[num][3] = static_cast<s32>(bpmem.tevregs[num].alpha);
-	c[num][2] = static_cast<s32>(bpmem.tevregs[num].blue);
-	c[num][1] = static_cast<s32>(bpmem.tevregs[num].green);
+	auto& c = constants.colors[index];
+	c[component] = s_tev_color[index][component] = value;
 	dirty = true;
 
-	PRIM_LOG("pixel %scolor%d: %d %d %d %d\n", type?"k":"", num, c[num][0], c[num][1], c[num][2], c[num][3]);
+	PRIM_LOG("tev color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
+}
+
+void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
+{
+	auto& c = constants.kcolors[index];
+	c[component] = s_tev_konst_color[index][component] = value;
+	dirty = true;
+
+	PRIM_LOG("tev konst color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
 }
 
 void PixelShaderManager::SetAlpha()
@@ -265,11 +278,13 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
 
 void PixelShaderManager::DoState(PointerWrap &p)
 {
-	p.Do(constants);
-	p.Do(dirty);
+	p.DoArray(s_tev_color);
+	p.DoArray(s_tev_konst_color);
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
+		// Reload current state from global GPU state
+		// NOTE: This requires that all GPU memory has been loaded already.
 		Dirty();
 	}
 }
