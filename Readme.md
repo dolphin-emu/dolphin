@@ -38,6 +38,9 @@ bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
 
+### Ubuntu Dependencies:
+`sudo apt-get install cmake libfreetype6-dev libusb-1.0-0-dev libpango1.0-dev libgtk2.0.dev`
+
 ### Build steps:
 1. `mkdir Build`
 2. `cd Build`
