@@ -10,11 +10,11 @@
 
 #include "Core/Host.h"
 
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VertexLoader.h"
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoader_Position.h"

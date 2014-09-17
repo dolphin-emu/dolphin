@@ -10,6 +10,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/Fifo.h"
@@ -19,7 +20,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"

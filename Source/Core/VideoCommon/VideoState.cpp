@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/CPMemory.h"
@@ -14,7 +15,6 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/XFMemory.h"
-#include "VideoCommon/BoundingBox.h"
 
 static void DoState(PointerWrap &p)
 {

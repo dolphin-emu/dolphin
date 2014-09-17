@@ -12,9 +12,9 @@
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/Tev.h"
 
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/VideoCommon.h"
 
 

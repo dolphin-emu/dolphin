@@ -14,9 +14,9 @@
 #include "Core/State.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoCommon.h"
 

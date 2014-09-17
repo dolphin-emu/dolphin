@@ -2,13 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoCommon/PixelShaderManager.h"
-#include "VideoBackends/Software/SetupUnit.h"
-#include "VideoBackends/Software/TransformUnit.h"
+
+
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/Rasterizer.h"
-
+#include "VideoBackends/Software/SetupUnit.h"
+#include "VideoBackends/Software/TransformUnit.h"
 #include "VideoCommon/BoundingBox.h"
+#include "VideoCommon/PixelShaderManager.h"
+
 
 namespace BoundingBox
 {
@@ -123,7 +125,7 @@ void LOADERDECL Update()
 	myVertex.texMtx[5] = (vertexDesc.Tex5MatIdx) ? texMtxIdx[idx++] : MatrixIndexB.Tex5MtxIdx;
 	myVertex.texMtx[6] = (vertexDesc.Tex6MatIdx) ? texMtxIdx[idx++] : MatrixIndexB.Tex6MtxIdx;
 	myVertex.texMtx[7] = (vertexDesc.Tex7MatIdx) ? texMtxIdx[idx++] : MatrixIndexB.Tex7MtxIdx;
-	
+
 	// Feed texture coordinate data
 	for (int i = 0; i < 8; ++i)
 	{
