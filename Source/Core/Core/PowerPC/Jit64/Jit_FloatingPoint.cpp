@@ -10,8 +10,8 @@
 
 using namespace Gen;
 
-static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
-static const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x0000000000000000ULL};
+static const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
 static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
 void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS)
@@ -77,16 +77,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 	if (single)
 	{
 		ForceSinglePrecisionS(fpr.RX(d));
-		if (cpu_info.bSSE3)
-		{
-			MOVDDUP(fpr.RX(d), fpr.R(d));
-		}
-		else
-		{
-			if (!fpr.R(d).IsSimpleReg(fpr.RX(d)))
-				MOVQ_xmm(fpr.RX(d), fpr.R(d));
-			UNPCKLPD(fpr.RX(d), R(fpr.RX(d)));
-		}
+		MOVDDUP(fpr.RX(d), fpr.R(d));
 	}
 	SetFPRFIfNeeded(inst, fpr.RX(d));
 	fpr.UnlockAll();
@@ -136,29 +127,29 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	int d = inst.FD;
 
 	fpr.Lock(a, b, c, d);
-	MOVSD(XMM0, fpr.R(c));
-	if (single_precision)
-		Force25BitPrecision(XMM0, XMM1);
-	switch (inst.SUBOP5)
+
+	// nmsub is implemented a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately
+	if (inst.SUBOP5 == 30) //nmsub
 	{
-	case 28: //msub
+		MOVSD(XMM1, fpr.R(c));
+		if (single_precision)
+			Force25BitPrecision(XMM1, XMM0);
+		MULSD(XMM1, fpr.R(a));
+		MOVSD(XMM0, fpr.R(b));
+		SUBSD(XMM0, R(XMM1));
+	}
+	else
+	{
+		MOVSD(XMM0, fpr.R(c));
+		if (single_precision)
+			Force25BitPrecision(XMM0, XMM1);
 		MULSD(XMM0, fpr.R(a));
-		SUBSD(XMM0, fpr.R(b));
-		break;
-	case 29: //madd
-		MULSD(XMM0, fpr.R(a));
-		ADDSD(XMM0, fpr.R(b));
-		break;
-	case 30: //nmsub
-		MULSD(XMM0, fpr.R(a));
-		SUBSD(XMM0, fpr.R(b));
-		PXOR(XMM0, M((void*)&psSignBits2));
-		break;
-	case 31: //nmadd
-		MULSD(XMM0, fpr.R(a));
-		ADDSD(XMM0, fpr.R(b));
-		PXOR(XMM0, M((void*)&psSignBits2));
-		break;
+		if (inst.SUBOP5 == 28) //msub
+			SUBSD(XMM0, fpr.R(b));
+		else                   //(n)madd
+			ADDSD(XMM0, fpr.R(b));
+		if (inst.SUBOP5 == 31) //nmadd
+			PXOR(XMM0, M((void*)&psSignBits2));
 	}
 	fpr.BindToRegister(d, false);
 	//YES it is necessary to dupe the result :(
@@ -186,23 +177,59 @@ void Jit64::fsign(UGeckoInstruction inst)
 	int b = inst.FB;
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d, true, true);
-	MOVSD(XMM0, fpr.R(b));
+
+	if (d != b)
+		MOVSD(fpr.RX(d), fpr.R(b));
 	switch (inst.SUBOP10)
 	{
 	case 40:  // fnegx
-		PXOR(XMM0, M((void*)&psSignBits2));
+		// We can cheat and not worry about clobbering the top half by using masks
+		// that don't modify the top half.
+		PXOR(fpr.RX(d), M((void*)&psSignBits2));
 		break;
 	case 264: // fabsx
-		PAND(XMM0, M((void*)&psAbsMask2));
+		PAND(fpr.RX(d), M((void*)&psAbsMask2));
 		break;
 	case 136: // fnabs
-		POR(XMM0, M((void*)&psSignBits2));
+		POR(fpr.RX(d), M((void*)&psSignBits2));
 		break;
 	default:
 		PanicAlert("fsign bleh");
 		break;
 	}
-	MOVSD(fpr.R(d), XMM0);
+	fpr.UnlockAll();
+}
+
+void Jit64::fselx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+
+	int d = inst.FD;
+	int a = inst.FA;
+	int b = inst.FB;
+	int c = inst.FC;
+
+	fpr.Lock(a, b, c, d);
+	MOVSD(XMM0, fpr.R(a));
+	PXOR(XMM1, R(XMM1));
+	// XMM0 = XMM0 < 0 ? all 1s : all 0s
+	CMPSD(XMM0, R(XMM1), LT);
+	if (cpu_info.bSSE4_1)
+	{
+		MOVSD(XMM1, fpr.R(c));
+		BLENDVPD(XMM1, fpr.R(b));
+	}
+	else
+	{
+		MOVSD(XMM1, R(XMM0));
+		PAND(XMM0, fpr.R(b));
+		PANDN(XMM1, fpr.R(c));
+		POR(XMM1, R(XMM0));
+	}
+	fpr.BindToRegister(d, false);
+	MOVSD(fpr.RX(d), R(XMM1));
 	fpr.UnlockAll();
 }
 
@@ -220,14 +247,22 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
 	fpr.Lock(b, d);
 
-	// We don't need to load d, but if it is loaded, we need to mark it as dirty.
 	if (fpr.IsBound(d))
+	{
+		// We don't need to load d, but if it is loaded, we need to mark it as dirty.
 		fpr.BindToRegister(d);
-
-	// b needs to be in a register because "MOVSD reg, mem" sets the upper bits (64+) to zero and we don't want that.
-	fpr.BindToRegister(b, true, false);
-
-	MOVSD(fpr.R(d), fpr.RX(b));
+		// We have to use MOVLPD if b isn't loaded because "MOVSD reg, mem" sets the upper bits (64+)
+		// to zero and we don't want that.
+		if (!fpr.R(b).IsSimpleReg())
+			MOVLPD(fpr.RX(d), fpr.R(b));
+		else
+			MOVSD(fpr.R(d), fpr.RX(b));
+	}
+	else
+	{
+		fpr.BindToRegister(b, true, false);
+		MOVSD(fpr.R(d), fpr.RX(b));
+	}
 
 	fpr.UnlockAll();
 }
