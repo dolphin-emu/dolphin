@@ -222,10 +222,10 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		                                        !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 	}
 
-		// This below line can be used to prove that blr "eats flags" in practice.
-		// This observation will let us do a lot of fun observations.
+	// This below line can be used to prove that blr "eats flags" in practice.
+	// This observation could let us do some useful optimizations.
 #ifdef ACID_TEST
-		AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
+	AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
 #endif
 
 	MOV(32, R(RSCRATCH), PPCSTATE_LR);

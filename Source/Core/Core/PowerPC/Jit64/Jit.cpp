@@ -27,10 +27,9 @@
 using namespace Gen;
 using namespace PowerPC;
 
-// Dolphin's PowerPC->x86 JIT dynamic recompiler
-// (Nearly) all code by ector (hrydgard)
+// Dolphin's PowerPC->x86_64 JIT dynamic recompiler
+// Written mostly by ector (hrydgard)
 // Features:
-// * x86 & x64 support, lots of shared code.
 // * Basic block linking
 // * Fast dispatcher
 
@@ -49,10 +48,6 @@ using namespace PowerPC;
 // * Does it make sense to finish off the remaining non-jitted instructions? Seems we are hitting diminishing returns.
 
 // Other considerations
-//
-// Many instructions have shorter forms for EAX. However, I believe their performance boost
-// will be as small to be negligible, so I haven't dirtied up the code with that. AMD recommends it in their
-// optimization manuals, though.
 //
 // We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets
 // from the starts of each block, marking the exits so that they can be nicely patched at any time.
@@ -88,48 +83,16 @@ using namespace PowerPC;
     CR2-CR4 are non-volatile, rest of CR is volatile -> dropped on blr.
 	R5-R12 are volatile -> dropped on blr.
   * classic inlining across calls.
-
-Low hanging fruit:
-stfd -- guaranteed in memory
-cmpl
-mulli
-stfs
-stwu
-lb/stzx
-
-bcx - optimize!
-bcctr
-stfs
-psq_st
-addx
-orx
-rlwimix
-fcmpo
-DSP_UpdateARAMDMA
-lfd
-stwu
-cntlzwx
-bcctrx
-WriteBigEData
-
-TODO
-lha
-srawx
-addic_rc
-addex
-subfcx
-subfex
-
-fmaddx
-fmulx
-faddx
-fnegx
-frspx
-frsqrtex
-ps_sum0
-ps_muls0
-ps_adds1
-
+  * Track which registers a block clobbers without using, then take advantage of this knowledge
+    when compiling a block that links to that block.
+  * Track more dependencies between instructions, e.g. avoiding PPC_FP code, single/double
+    conversion, movddup on non-paired singles, etc where possible.
+  * Support loads/stores directly from xmm registers in jit_util and the backpatcher; this might
+    help AMD a lot since gpr/xmm transfers are slower there.
+  * Smarter register allocation in general; maybe learn to drop values once we know they won't be
+    used again before being overwritten?
+  * More flexible reordering; there's limits to how far we can go because of exception handling
+    and such, but it's currently limited to integer ops only. This can definitely be made better.
 */
 
 void Jit64::Init()
