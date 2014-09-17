@@ -2040,11 +2040,11 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 			break;
 
 		case 44:
-			fdabc(in, "sqrts", 2, 0);
+			fdabc(in, "sqrts", 1, 0);
 			break;
 
 		case 48:
-			fdabc(in, "res", 2, 0);
+			fdabc(in, "res", 1, 0);
 			break;
 
 		case 50:
@@ -2106,7 +2106,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 				break;
 
 			case 12:
-				fdabc(in, "sqrt", 2, 0);
+				fdabc(in, "sqrt", 1, 0);
 				break;
 
 			case 14:
@@ -2135,10 +2135,6 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 
 			case 30:
 				fdabc(in, "nmadd", 7, 0);
-				break;
-
-			case 52:
-				m_opcode = "XXX dp 52";
 				break;
 
 			default:

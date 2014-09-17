@@ -184,47 +184,63 @@ static const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8,
 
 static const float GC_ALIGNED16(m_quantizeTableS[]) =
 {
-	(1ULL <<  0), (1ULL <<  1), (1ULL <<  2), (1ULL <<  3),
-	(1ULL <<  4), (1ULL <<  5), (1ULL <<  6), (1ULL <<  7),
-	(1ULL <<  8), (1ULL <<  9), (1ULL << 10), (1ULL << 11),
-	(1ULL << 12), (1ULL << 13), (1ULL << 14), (1ULL << 15),
-	(1ULL << 16), (1ULL << 17), (1ULL << 18), (1ULL << 19),
-	(1ULL << 20), (1ULL << 21), (1ULL << 22), (1ULL << 23),
-	(1ULL << 24), (1ULL << 25), (1ULL << 26), (1ULL << 27),
-	(1ULL << 28), (1ULL << 29), (1ULL << 30), (1ULL << 31),
-	1.0 / (1ULL << 32), 1.0 / (1ULL << 31), 1.0 / (1ULL << 30), 1.0 / (1ULL << 29),
-	1.0 / (1ULL << 28), 1.0 / (1ULL << 27), 1.0 / (1ULL << 26), 1.0 / (1ULL << 25),
-	1.0 / (1ULL << 24), 1.0 / (1ULL << 23), 1.0 / (1ULL << 22), 1.0 / (1ULL << 21),
-	1.0 / (1ULL << 20), 1.0 / (1ULL << 19), 1.0 / (1ULL << 18), 1.0 / (1ULL << 17),
-	1.0 / (1ULL << 16), 1.0 / (1ULL << 15), 1.0 / (1ULL << 14), 1.0 / (1ULL << 13),
-	1.0 / (1ULL << 12), 1.0 / (1ULL << 11), 1.0 / (1ULL << 10), 1.0 / (1ULL << 9),
-	1.0 / (1ULL << 8), 1.0 / (1ULL << 7), 1.0 / (1ULL << 6), 1.0 / (1ULL << 5),
-	1.0 / (1ULL << 4), 1.0 / (1ULL << 3), 1.0 / (1ULL << 2), 1.0 / (1ULL << 1),
+	(1ULL <<  0), (1ULL <<  0), (1ULL <<  1), (1ULL <<  1), (1ULL <<  2), (1ULL <<  2), (1ULL <<  3), (1ULL <<  3),
+	(1ULL <<  4), (1ULL <<  4), (1ULL <<  5), (1ULL <<  5), (1ULL <<  6), (1ULL <<  6), (1ULL <<  7), (1ULL <<  7),
+	(1ULL <<  8), (1ULL <<  8), (1ULL <<  9), (1ULL <<  9), (1ULL << 10), (1ULL << 10), (1ULL << 11), (1ULL << 11),
+	(1ULL << 12), (1ULL << 12), (1ULL << 13), (1ULL << 13), (1ULL << 14), (1ULL << 14), (1ULL << 15), (1ULL << 15),
+	(1ULL << 16), (1ULL << 16), (1ULL << 17), (1ULL << 17), (1ULL << 18), (1ULL << 18), (1ULL << 19), (1ULL << 19),
+	(1ULL << 20), (1ULL << 20), (1ULL << 21), (1ULL << 21), (1ULL << 22), (1ULL << 22), (1ULL << 23), (1ULL << 23),
+	(1ULL << 24), (1ULL << 24), (1ULL << 25), (1ULL << 25), (1ULL << 26), (1ULL << 26), (1ULL << 27), (1ULL << 27),
+	(1ULL << 28), (1ULL << 28), (1ULL << 29), (1ULL << 29), (1ULL << 30), (1ULL << 30), (1ULL << 31), (1ULL << 31),
+	1.0 / (1ULL << 32), 1.0 / (1ULL << 32), 1.0 / (1ULL << 31), 1.0 / (1ULL << 31),
+	1.0 / (1ULL << 30), 1.0 / (1ULL << 30), 1.0 / (1ULL << 29), 1.0 / (1ULL << 29),
+	1.0 / (1ULL << 28), 1.0 / (1ULL << 28), 1.0 / (1ULL << 27), 1.0 / (1ULL << 27),
+	1.0 / (1ULL << 26), 1.0 / (1ULL << 26), 1.0 / (1ULL << 25), 1.0 / (1ULL << 25),
+	1.0 / (1ULL << 24), 1.0 / (1ULL << 24), 1.0 / (1ULL << 23), 1.0 / (1ULL << 23),
+	1.0 / (1ULL << 22), 1.0 / (1ULL << 22), 1.0 / (1ULL << 21), 1.0 / (1ULL << 21),
+	1.0 / (1ULL << 20), 1.0 / (1ULL << 20), 1.0 / (1ULL << 19), 1.0 / (1ULL << 19),
+	1.0 / (1ULL << 18), 1.0 / (1ULL << 18), 1.0 / (1ULL << 17), 1.0 / (1ULL << 17),
+	1.0 / (1ULL << 16), 1.0 / (1ULL << 16), 1.0 / (1ULL << 15), 1.0 / (1ULL << 15),
+	1.0 / (1ULL << 14), 1.0 / (1ULL << 14), 1.0 / (1ULL << 13), 1.0 / (1ULL << 13),
+	1.0 / (1ULL << 12), 1.0 / (1ULL << 12), 1.0 / (1ULL << 11), 1.0 / (1ULL << 11),
+	1.0 / (1ULL << 10), 1.0 / (1ULL << 10), 1.0 / (1ULL <<  9), 1.0 / (1ULL <<  9),
+	1.0 / (1ULL <<  8), 1.0 / (1ULL <<  8), 1.0 / (1ULL <<  7), 1.0 / (1ULL <<  7),
+	1.0 / (1ULL <<  6), 1.0 / (1ULL <<  6), 1.0 / (1ULL <<  5), 1.0 / (1ULL <<  5),
+	1.0 / (1ULL <<  4), 1.0 / (1ULL <<  4), 1.0 / (1ULL <<  3), 1.0 / (1ULL <<  3),
+	1.0 / (1ULL <<  2), 1.0 / (1ULL <<  2), 1.0 / (1ULL <<  1), 1.0 / (1ULL <<  1),
 };
 
 static const float GC_ALIGNED16(m_dequantizeTableS[]) =
 {
-	1.0 / (1ULL <<  0), 1.0 / (1ULL <<  1), 1.0 / (1ULL <<  2), 1.0 / (1ULL <<  3),
-	1.0 / (1ULL <<  4), 1.0 / (1ULL <<  5), 1.0 / (1ULL <<  6), 1.0 / (1ULL <<  7),
-	1.0 / (1ULL <<  8), 1.0 / (1ULL <<  9), 1.0 / (1ULL << 10), 1.0 / (1ULL << 11),
-	1.0 / (1ULL << 12), 1.0 / (1ULL << 13), 1.0 / (1ULL << 14), 1.0 / (1ULL << 15),
-	1.0 / (1ULL << 16), 1.0 / (1ULL << 17), 1.0 / (1ULL << 18), 1.0 / (1ULL << 19),
-	1.0 / (1ULL << 20), 1.0 / (1ULL << 21), 1.0 / (1ULL << 22), 1.0 / (1ULL << 23),
-	1.0 / (1ULL << 24), 1.0 / (1ULL << 25), 1.0 / (1ULL << 26), 1.0 / (1ULL << 27),
-	1.0 / (1ULL << 28), 1.0 / (1ULL << 29), 1.0 / (1ULL << 30), 1.0 / (1ULL << 31),
-	(1ULL << 32), (1ULL << 31), (1ULL << 30), (1ULL << 29),
-	(1ULL << 28), (1ULL << 27), (1ULL << 26), (1ULL << 25),
-	(1ULL << 24), (1ULL << 23), (1ULL << 22), (1ULL << 21),
-	(1ULL << 20), (1ULL << 19), (1ULL << 18), (1ULL << 17),
-	(1ULL << 16), (1ULL << 15), (1ULL << 14), (1ULL << 13),
-	(1ULL << 12), (1ULL << 11), (1ULL << 10), (1ULL <<  9),
-	(1ULL <<  8), (1ULL <<  7), (1ULL <<  6), (1ULL <<  5),
-	(1ULL <<  4), (1ULL <<  3), (1ULL <<  2), (1ULL <<  1),
+	1.0 / (1ULL <<  0), 1.0 / (1ULL <<  0), 1.0 / (1ULL <<  1), 1.0 / (1ULL <<  1),
+	1.0 / (1ULL <<  2), 1.0 / (1ULL <<  2), 1.0 / (1ULL <<  3), 1.0 / (1ULL <<  3),
+	1.0 / (1ULL <<  4), 1.0 / (1ULL <<  4), 1.0 / (1ULL <<  5), 1.0 / (1ULL <<  5),
+	1.0 / (1ULL <<  6), 1.0 / (1ULL <<  6), 1.0 / (1ULL <<  7), 1.0 / (1ULL <<  7),
+	1.0 / (1ULL <<  8), 1.0 / (1ULL <<  8), 1.0 / (1ULL <<  9), 1.0 / (1ULL <<  9),
+	1.0 / (1ULL << 10), 1.0 / (1ULL << 10), 1.0 / (1ULL << 11), 1.0 / (1ULL << 11),
+	1.0 / (1ULL << 12), 1.0 / (1ULL << 12), 1.0 / (1ULL << 13), 1.0 / (1ULL << 13),
+	1.0 / (1ULL << 14), 1.0 / (1ULL << 14), 1.0 / (1ULL << 15), 1.0 / (1ULL << 15),
+	1.0 / (1ULL << 16), 1.0 / (1ULL << 16), 1.0 / (1ULL << 17), 1.0 / (1ULL << 17),
+	1.0 / (1ULL << 18), 1.0 / (1ULL << 18), 1.0 / (1ULL << 19), 1.0 / (1ULL << 19),
+	1.0 / (1ULL << 20), 1.0 / (1ULL << 20), 1.0 / (1ULL << 21), 1.0 / (1ULL << 21),
+	1.0 / (1ULL << 22), 1.0 / (1ULL << 22), 1.0 / (1ULL << 23), 1.0 / (1ULL << 23),
+	1.0 / (1ULL << 24), 1.0 / (1ULL << 24), 1.0 / (1ULL << 25), 1.0 / (1ULL << 25),
+	1.0 / (1ULL << 26), 1.0 / (1ULL << 26), 1.0 / (1ULL << 27), 1.0 / (1ULL << 27),
+	1.0 / (1ULL << 28), 1.0 / (1ULL << 28), 1.0 / (1ULL << 29), 1.0 / (1ULL << 29),
+	1.0 / (1ULL << 30), 1.0 / (1ULL << 30), 1.0 / (1ULL << 31), 1.0 / (1ULL << 31),
+	(1ULL << 32), (1ULL << 32), (1ULL << 31), (1ULL << 31), (1ULL << 30), (1ULL << 30), (1ULL << 29), (1ULL << 29),
+	(1ULL << 28), (1ULL << 28), (1ULL << 27), (1ULL << 27), (1ULL << 26), (1ULL << 26), (1ULL << 25), (1ULL << 25),
+	(1ULL << 24), (1ULL << 24), (1ULL << 23), (1ULL << 23), (1ULL << 22), (1ULL << 22), (1ULL << 21), (1ULL << 21),
+	(1ULL << 20), (1ULL << 20), (1ULL << 19), (1ULL << 19), (1ULL << 18), (1ULL << 18), (1ULL << 17), (1ULL << 17),
+	(1ULL << 16), (1ULL << 16), (1ULL << 15), (1ULL << 15), (1ULL << 14), (1ULL << 14), (1ULL << 13), (1ULL << 13),
+	(1ULL << 12), (1ULL << 12), (1ULL << 11), (1ULL << 11), (1ULL << 10), (1ULL << 10), (1ULL <<  9), (1ULL <<  9),
+	(1ULL <<  8), (1ULL <<  8), (1ULL <<  7), (1ULL <<  7), (1ULL <<  6), (1ULL <<  6), (1ULL <<  5), (1ULL <<  5),
+	(1ULL <<  4), (1ULL <<  4), (1ULL <<  3), (1ULL <<  3), (1ULL <<  2), (1ULL <<  2), (1ULL <<  1), (1ULL <<  1),
 };
 
 static float GC_ALIGNED16(psTemp[4]);
 
-static const float GC_ALIGNED16(m_65535) = 65535.0f;
+static const float GC_ALIGNED16(m_65535[4]) = {65535.0f, 65535.0f, 65535.0f, 65535.0f};
 static const float GC_ALIGNED16(m_32767) = 32767.0f;
 static const float GC_ALIGNED16(m_m32768) = -32768.0f;
 static const float GC_ALIGNED16(m_255) = 255.0f;
@@ -273,14 +289,11 @@ void CommonAsmRoutines::GenQuantizedStores()
 	RET();
 
 	const u8* storePairedU8 = AlignCode4();
-	SHR(32, R(RSCRATCH2), Imm8(6));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	PUNPCKLDQ(XMM1, R(XMM1));
+	SHR(32, R(RSCRATCH2), Imm8(5));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 #ifdef QUANTIZE_OVERFLOW_SAFE
-	MOVSS(XMM1, M((void *)&m_65535));
-	PUNPCKLDQ(XMM1, R(XMM1));
-	MINPS(XMM0, R(XMM1));
+	MINPS(XMM0, M((void *)&m_65535));
 #endif
 	CVTTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
@@ -291,14 +304,11 @@ void CommonAsmRoutines::GenQuantizedStores()
 	RET();
 
 	const u8* storePairedS8 = AlignCode4();
-	SHR(32, R(RSCRATCH2), Imm8(6));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	PUNPCKLDQ(XMM1, R(XMM1));
+	SHR(32, R(RSCRATCH2), Imm8(5));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 #ifdef QUANTIZE_OVERFLOW_SAFE
-	MOVSS(XMM1, M((void *)&m_65535));
-	PUNPCKLDQ(XMM1, R(XMM1));
-	MINPS(XMM0, R(XMM1));
+	MINPS(XMM0, M((void *)&m_65535));
 #endif
 	CVTTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
@@ -310,41 +320,47 @@ void CommonAsmRoutines::GenQuantizedStores()
 	RET();
 
 	const u8* storePairedU16 = AlignCode4();
-	SHR(32, R(RSCRATCH2), Imm8(6));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	PUNPCKLDQ(XMM1, R(XMM1));
+	SHR(32, R(RSCRATCH2), Imm8(5));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 
-	// PACKUSDW is available only in SSE4
-	PXOR(XMM1, R(XMM1));
-	MAXPS(XMM0, R(XMM1));
-	MOVSS(XMM1, M((void *)&m_65535));
-	PUNPCKLDQ(XMM1, R(XMM1));
-	MINPS(XMM0, R(XMM1));
+	if (cpu_info.bSSE4_1)
+	{
+#ifdef QUANTIZE_OVERFLOW_SAFE
+		MINPS(XMM0, M((void *)&m_65535));
+#endif
+		CVTTPS2DQ(XMM0, R(XMM0));
+		PACKUSDW(XMM0, R(XMM0));
+		MOVD_xmm(R(RSCRATCH), XMM0);
+		BSWAP(32, RSCRATCH);
+		ROL(32, R(RSCRATCH), Imm8(16));
+	}
+	else
+	{
+		XORPS(XMM1, R(XMM1));
+		MAXPS(XMM0, R(XMM1));
+		MINPS(XMM0, M((void *)&m_65535));
 
-	CVTTPS2DQ(XMM0, R(XMM0));
-	MOVQ_xmm(M(psTemp), XMM0);
-	// place ps[0] into the higher word, ps[1] into the lower
-	// so no need in ROL after BSWAP
-	MOVZX(32, 16, RSCRATCH, M((char*)psTemp + 0));
-	SHL(32, R(RSCRATCH), Imm8(16));
-	MOV(16, R(RSCRATCH), M((char*)psTemp + 4));
+		CVTTPS2DQ(XMM0, R(XMM0));
+		MOVQ_xmm(M(psTemp), XMM0);
+		// place ps[0] into the higher word, ps[1] into the lower
+		// so no need in ROL after BSWAP
+		MOVZX(32, 16, RSCRATCH, M((char*)psTemp + 0));
+		SHL(32, R(RSCRATCH), Imm8(16));
+		MOV(16, R(RSCRATCH), M((char*)psTemp + 4));
+		BSWAP(32, RSCRATCH);
+	}
 
-	BSWAP(32, RSCRATCH);
 	SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 32, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 
 	RET();
 
 	const u8* storePairedS16 = AlignCode4();
-	SHR(32, R(RSCRATCH2), Imm8(6));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	// SHUFPS or UNPCKLPS might be a better choice here. The last one might just be an alias though.
-	PUNPCKLDQ(XMM1, R(XMM1));
+	SHR(32, R(RSCRATCH2), Imm8(5));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 #ifdef QUANTIZE_OVERFLOW_SAFE
-	MOVSS(XMM1, M((void *)&m_65535));
-	PUNPCKLDQ(XMM1, R(XMM1));
-	MINPS(XMM0, R(XMM1));
+	MINPS(XMM0, M((void *)&m_65535));
 #endif
 	CVTTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
@@ -395,10 +411,10 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	}*/
 
 	const u8* storeSingleU8 = AlignCode4();  // Used by MKWii
-	SHR(32, R(RSCRATCH2), Imm8(6));
+	SHR(32, R(RSCRATCH2), Imm8(5));
 	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULSS(XMM0, R(XMM1));
-	PXOR(XMM1, R(XMM1));
+	XORPS(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M((void *)&m_255));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
@@ -406,7 +422,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	RET();
 
 	const u8* storeSingleS8 = AlignCode4();
-	SHR(32, R(RSCRATCH2), Imm8(6));
+	SHR(32, R(RSCRATCH2), Imm8(5));
 	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULSS(XMM0, R(XMM1));
 	MAXSS(XMM0, M((void *)&m_m128));
@@ -416,10 +432,10 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	RET();
 
 	const u8* storeSingleU16 = AlignCode4();  // Used by MKWii
-	SHR(32, R(RSCRATCH2), Imm8(6));
+	SHR(32, R(RSCRATCH2), Imm8(5));
 	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULSS(XMM0, R(XMM1));
-	PXOR(XMM1, R(XMM1));
+	XORPS(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M((void *)&m_65535));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
@@ -427,7 +443,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	RET();
 
 	const u8* storeSingleS16 = AlignCode4();
-	SHR(32, R(RSCRATCH2), Imm8(6));
+	SHR(32, R(RSCRATCH2), Imm8(5));
 	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULSS(XMM0, R(XMM1));
 	MAXSS(XMM0, M((void *)&m_m32768));
@@ -507,13 +523,19 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0);
 	}
 	MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
-	PXOR(XMM1, R(XMM1));
-	PUNPCKLBW(XMM0, R(XMM1));
-	PUNPCKLWD(XMM0, R(XMM1));
+	if (cpu_info.bSSE4_1)
+	{
+		PMOVZXBD(XMM0, R(XMM0));
+	}
+	else
+	{
+		PXOR(XMM1, R(XMM1));
+		PUNPCKLBW(XMM0, R(XMM1));
+		PUNPCKLWD(XMM0, R(XMM1));
+	}
 	CVTDQ2PS(XMM0, R(XMM0));
-	SHR(32, R(RSCRATCH2), Imm8(6));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
-	PUNPCKLDQ(XMM1, R(XMM1));
+	SHR(32, R(RSCRATCH2), Imm8(5));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULPS(XMM0, R(XMM1));
 	RET();
 
@@ -524,7 +546,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 8, 0); // RSCRATCH_EXTRA = 0x000000xx
 	MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
 	CVTDQ2PS(XMM0, R(XMM0)); // Is CVTSI2SS better?
-	SHR(32, R(RSCRATCH2), Imm8(6));
+	SHR(32, R(RSCRATCH2), Imm8(5));
 	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULSS(XMM0, R(XMM1));
 	UNPCKLPS(XMM0, M((void*)m_one));
@@ -542,13 +564,19 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0);
 	}
 	MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
-	PUNPCKLBW(XMM0, R(XMM0));
-	PUNPCKLWD(XMM0, R(XMM0));
-	PSRAD(XMM0, 24);
+	if (cpu_info.bSSE4_1)
+	{
+		PMOVSXBD(XMM0, R(XMM0));
+	}
+	else
+	{
+		PUNPCKLBW(XMM0, R(XMM0));
+		PUNPCKLWD(XMM0, R(XMM0));
+		PSRAD(XMM0, 24);
+	}
 	CVTDQ2PS(XMM0, R(XMM0));
-	SHR(32, R(RSCRATCH2), Imm8(6));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
-	PUNPCKLDQ(XMM1, R(XMM1));
+	SHR(32, R(RSCRATCH2), Imm8(5));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULPS(XMM0, R(XMM1));
 	RET();
 
@@ -559,7 +587,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToRegNoSwap(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 8, 0, true);
 	MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
 	CVTDQ2PS(XMM0, R(XMM0));
-	SHR(32, R(RSCRATCH2), Imm8(6));
+	SHR(32, R(RSCRATCH2), Imm8(5));
 	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULSS(XMM0, R(XMM1));
 	UNPCKLPS(XMM0, M((void*)m_one));
@@ -573,12 +601,18 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 32, 0, false);
 	ROL(32, R(RSCRATCH_EXTRA), Imm8(16));
 	MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
-	PXOR(XMM1, R(XMM1));
-	PUNPCKLWD(XMM0, R(XMM1));
+	if (cpu_info.bSSE4_1)
+	{
+		PMOVZXWD(XMM0, R(XMM0));
+	}
+	else
+	{
+		PXOR(XMM1, R(XMM1));
+		PUNPCKLWD(XMM0, R(XMM1));
+	}
 	CVTDQ2PS(XMM0, R(XMM0));
-	SHR(32, R(RSCRATCH2), Imm8(6));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
-	PUNPCKLDQ(XMM1, R(XMM1));
+	SHR(32, R(RSCRATCH2), Imm8(5));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULPS(XMM0, R(XMM1));
 	RET();
 
@@ -589,7 +623,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0, false);
 	MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
 	CVTDQ2PS(XMM0, R(XMM0));
-	SHR(32, R(RSCRATCH2), Imm8(6));
+	SHR(32, R(RSCRATCH2), Imm8(5));
 	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULSS(XMM0, R(XMM1));
 	UNPCKLPS(XMM0, M((void*)m_one));
@@ -602,12 +636,18 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 32, 0, false);
 	ROL(32, R(RSCRATCH_EXTRA), Imm8(16));
 	MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
-	PUNPCKLWD(XMM0, R(XMM0));
-	PSRAD(XMM0, 16);
+	if (cpu_info.bSSE4_1)
+	{
+		PMOVSXWD(XMM0, R(XMM0));
+	}
+	else
+	{
+		PUNPCKLWD(XMM0, R(XMM0));
+		PSRAD(XMM0, 16);
+	}
 	CVTDQ2PS(XMM0, R(XMM0));
-	SHR(32, R(RSCRATCH2), Imm8(6));
-	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
-	PUNPCKLDQ(XMM1, R(XMM1));
+	SHR(32, R(RSCRATCH2), Imm8(5));
+	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULPS(XMM0, R(XMM1));
 	RET();
 
@@ -618,7 +658,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		UnsafeLoadRegToReg(RSCRATCH_EXTRA, RSCRATCH_EXTRA, 16, 0, true);
 	MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
 	CVTDQ2PS(XMM0, R(XMM0));
-	SHR(32, R(RSCRATCH2), Imm8(6));
+	SHR(32, R(RSCRATCH2), Imm8(5));
 	MOVSS(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
 	MULSS(XMM0, R(XMM1));
 	UNPCKLPS(XMM0, M((void*)m_one));
