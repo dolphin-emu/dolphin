@@ -20,33 +20,14 @@ Please read the [FAQ](http://dolphin-emu.org/docs/faq/) before use.
     * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
     * A graphics card that supports Direct3D 11 / OpenGL 4.4 is recommended.
 
-## Installation on Windows
-Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2013 is a hard requirement since previous versions don't support
-many C++ features that we use. Other compilers might be able to build Dolphin
-on Windows but have not been tested and are not recommended to be used.
+## Building and Installing Dolphin
 
-An installer can be created by using the `Installer_win32.nsi` and
-`Installer_x64.nsi` scripts in the Installer directory. This will require the
-Nullsoft Scriptable Install System (NSIS) to be installed. Creating an
-installer is not necessary to run Dolphin since the Build directory contains
-a working Dolphin distribution.
+See the following wiki pages for info on compiling and building Dolphin:
 
-## Installation on Linux/OS X
-Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
-bundled with Dolphin and used if they're not installed on your system. CMake
-will inform you if a bundled library is used or if you need to install any
-missing packages yourself.
+* [Building for Linux](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Linux)
+* [Building for Max OS X](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Mac-OS-X)
+* [Building for Windows](https://github.com/dolphin-emu/dolphin/wiki/Building-for-Windows)
 
-### Build steps:
-1. `mkdir Build`
-2. `cd Build`
-3. `cmake ..`
-4. `make`
-
-On OS X, an application bundle will be created in `./Binaries`.
-
-On Linux, it's strongly recommended to perform a global installation via `sudo make install`.
 
 ## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall
