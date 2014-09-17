@@ -1458,12 +1458,12 @@ void Renderer::AsyncTimewarpDraw()
 		ovr_WaitTillTime(frameTime.NextFrameSeconds - 0.008);
 	}
 
+	g_ovr_lock.lock();
 	// Grab the most recent textures
 	for (int eye = 0; eye < 2; eye++)
 	{
 		((ovrGLTexture&)(FramebufferManager::m_eye_texture[eye])).OGL.TexId = FramebufferManager::m_frontBuffer[eye];
 	}
-	g_ovr_lock.lock();
 	ovrHmd_EndFrame(hmd, g_front_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
 	ovrHmd_DismissHSWDisplay(hmd);
 
@@ -1832,7 +1832,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	// Save screenshot
-	if (s_bScreenshot)
+	if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		SaveScreenshot(s_sScreenshotName, flipped_trc);
@@ -1842,8 +1842,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	}
 
 	// Frame dumps are handled a little differently in Windows
-	// Frame dumping disabled entirely on GLES3
-	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+	// Frame dumping disabled entirely on GLES3, or handled elsewhere for Oculus Rift's Asynchronous Timewarp
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
 #if defined _WIN32 || defined HAVE_LIBAV
 		if (g_ActiveConfig.bDumpFrames)
@@ -1986,9 +1986,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 			ApplySSAASettings();
 
+			if (g_ActiveConfig.bAsynchronousTimewarp)
+				g_ovr_lock.lock();
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples);
+			if (g_ActiveConfig.bAsynchronousTimewarp)
+				g_ovr_lock.unlock();
 		}
 	}
 

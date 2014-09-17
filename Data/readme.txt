@@ -1,6 +1,6 @@
-Dolphin VR 4.0-3194
+Dolphin VR 4.0-3381
 (Unofficial Dolphin build with Oculus Rift support.)
-Open Source licence: GPL v2
+Open Source licence: GPL v2 (my contributions are GPL v2+)
 
 The official Dolphin website: https://dolphin-emu.org
 See the website for non-VR related help, and the Wiki for game specific information.
@@ -15,7 +15,10 @@ Optional: Copy sixense_x64.dll, iweardrv.dll, and iwrstdrv.dll into your Dolphin
 
 Oculus Rift DK1 to DK2 are supported. You need the Oculus 0.4.2 runtime installed.
 Set the Rift Display Mode to "Extend Desktop to the HMD", or it won't work!
-Plug the Rift in, and make sure the service is running, before launching Dolphin.
+Dolphin performs best if it is the only monitor connected to the desktop, but that
+also makes the menus more difficult to use.
+Plug the Rift in, turn it on, and make sure the service is running, before launching
+Dolphin.
 
 Only the OpenGL renderer will work. In Graphics, turn off Render To Main Window.
 In the Graphics options Enhancements tab set the internal resolution to a multiple
@@ -26,6 +29,9 @@ Post-Processing has no effect and is not implemented.
 eXternal Frame Buffer is always disabled regardless of what you choose.
 Turning Free-Look on in the Advanced tab allows you to walk around with Shift+WASD.
 The OnScreen Display or debug information doesn't work in VR mode, so don't bother.
+An Asynchronous Timewarp option is now available, but is very buggy. It can only be
+changed before playing, not during play. When not using the Rift or not using OpenGL,
+make sure Asynchronous Timewarp is disabled.
 
 Choose a game and click the Play button to start. Acknowledge the warning, then put 
 on the Rift. Keep the mouse over the Rift's window, and click to focus input.
