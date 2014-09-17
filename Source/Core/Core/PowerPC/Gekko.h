@@ -267,7 +267,8 @@ union UGeckoInstruction
 	// paired single quantized load/store
 	struct
 	{
-		u32         : 7;
+		u32         : 1;
+		u32 SUBOP6  : 6;
 		// Graphics quantization register to use
 		u32 Ix      : 3;
 		// 0: paired single, 1: scalar

@@ -92,10 +92,10 @@ static GekkoOPTemplate primarytable[] =
 	{54, &Jit64::stfXXX},                //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
 	{55, &Jit64::stfXXX},                //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 
-	{56, &Jit64::psq_l},                 //"psq_l",   OPTYPE_PS, FL_IN_A}},
-	{57, &Jit64::psq_l},                 //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
-	{60, &Jit64::psq_st},                //"psq_st",  OPTYPE_PS, FL_IN_A}},
-	{61, &Jit64::psq_st},                //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
+	{56, &Jit64::psq_lXX},                //"psq_l",   OPTYPE_PS, FL_IN_A}},
+	{57, &Jit64::psq_lXX},                //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
+	{60, &Jit64::psq_stXX},               //"psq_st",  OPTYPE_PS, FL_IN_A}},
+	{61, &Jit64::psq_stXX},               //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
 
 	//missing: 0, 5, 6, 9, 22, 30, 62, 58
 	{0,  &Jit64::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
@@ -150,10 +150,10 @@ static GekkoOPTemplate table4_2[] =
 
 static GekkoOPTemplate table4_3[] =
 {
-	{6,  &Jit64::FallBackToInterpreter},  //"psq_lx",   OPTYPE_PS, 0}},
-	{7,  &Jit64::FallBackToInterpreter},  //"psq_stx",  OPTYPE_PS, 0}},
-	{38, &Jit64::FallBackToInterpreter},  //"psq_lux",  OPTYPE_PS, 0}},
-	{39, &Jit64::FallBackToInterpreter},  //"psq_stux", OPTYPE_PS, 0}},
+	{6,  &Jit64::psq_lXX},  //"psq_lx",   OPTYPE_PS, 0}},
+	{7,  &Jit64::psq_stXX}, //"psq_stx",  OPTYPE_PS, 0}},
+	{38, &Jit64::psq_lXX},  //"psq_lux",  OPTYPE_PS, 0}},
+	{39, &Jit64::psq_stXX}, //"psq_stux", OPTYPE_PS, 0}},
 };
 
 static GekkoOPTemplate table19[] =
