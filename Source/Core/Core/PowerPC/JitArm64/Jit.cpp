@@ -255,19 +255,19 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		}
 		if (!ops[i].skip)
 		{
-				if (js.memcheck && (opinfo->flags & FL_USE_FPU))
-				{
-					// Don't do this yet
-					BRK(0x7777);
-				}
+			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
+			{
+				// Don't do this yet
+				BRK(0x7777);
+			}
 
-				JitArm64Tables::CompileInstruction(ops[i]);
+			JitArm64Tables::CompileInstruction(ops[i]);
 
-				if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
-				{
-					// Don't do this yet
-					BRK(0x666);
-				}
+			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
+			{
+				// Don't do this yet
+				BRK(0x666);
+			}
 		}
 	}
 
