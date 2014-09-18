@@ -32,9 +32,9 @@ typedef struct ucontext {
 } ucontext_t;
 #endif
 
-void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
+static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 {
-	if (signal != SIGSEGV)
+	if (sig != SIGSEGV)
 	{
 		// We are not interested in other signals - handle it as usual.
 		return;
@@ -47,33 +47,18 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 		return;
 	}
 
-
 	// Get all the information we can out of the context.
 	mcontext_t *ctx = &context->uc_mcontext;
 
-	void *fault_memory_ptr = (void*)ctx->arm_r10;
-	u8 *fault_instruction_ptr = (u8 *)ctx->arm_pc;
+	// comex says hello, and is most curious whether this is arm_r10 for a
+	// reason as opposed to si_addr like the x64MemTools.cpp version.  Is there
+	// even a need for this file to be architecture specific?
+	uintptr_t fault_memory_ptr = (uintptr_t)ctx->arm_r10;
 
-	if (!JitInterface::IsInCodeSpace(fault_instruction_ptr))
+	if (!JitInterface::HandleFault(fault_memory_ptr, ctx))
 	{
-		// Let's not prevent debugging.
-		return;
-	}
-
-	u64 bad_address = (u64)fault_memory_ptr;
-	u64 memspace_bottom = (u64)Memory::base;
-	if (bad_address < memspace_bottom)
-	{
-		PanicAlertT("Exception handler - access below memory space. %08llx%08llx",
-			bad_address >> 32, bad_address);
-	}
-
-	u32 em_address = (u32)(bad_address - memspace_bottom);
-
-	const u8 *new_rip = jit->BackPatch(fault_instruction_ptr, em_address, ctx);
-	if (new_rip)
-	{
-		ctx->arm_pc = (u32) new_rip;
+		// retry and crash
+		signal(SIGSEGV, SIG_DFL);
 	}
 }
 
@@ -86,4 +71,7 @@ void InstallExceptionHandler()
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGSEGV, &sa, nullptr);
 }
+
+void UninstallExceptionHandler() {}
+
 }  // namespace

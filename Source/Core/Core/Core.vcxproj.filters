@@ -640,6 +640,9 @@
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\JitCommon\TrampolineCache.cpp">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\Jit64IL\IR_X86.cpp">
       <Filter>PowerPC\JitIL</Filter>
     </ClCompile>
@@ -1183,6 +1186,9 @@
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\JitCache.h">
+      <Filter>PowerPC\JitCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitCommon\TrampolineCache.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64IL\JitIL.h">

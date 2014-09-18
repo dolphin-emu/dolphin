@@ -7,6 +7,7 @@
 #include <string>
 #include "Common/ChunkFile.h"
 #include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/JitCommon/JitBackpatch.h"
 
 namespace JitInterface
 {
@@ -20,8 +21,7 @@ namespace JitInterface
 	void WriteProfileResults(const std::string& filename);
 
 	// Memory Utilities
-	bool IsInCodeSpace(u8 *ptr);
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx);
+	bool HandleFault(uintptr_t access_address, SContext* ctx);
 
 	// used by JIT to read instructions
 	u32 Read_Opcode_JIT(const u32 _Address);

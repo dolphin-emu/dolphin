@@ -58,6 +58,8 @@ private:
 	void SetFPException(ArmGen::ARMReg Reg, u32 Exception);
 
 	ArmGen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
+
+	bool BackPatch(SContext* ctx);
 public:
 	JitArm() : code_buffer(32000) {}
 	~JitArm() {}
@@ -72,9 +74,7 @@ public:
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx);
-
-	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
+	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
 	void Trace();
 

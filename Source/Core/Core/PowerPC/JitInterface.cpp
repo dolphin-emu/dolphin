@@ -190,13 +190,9 @@ namespace JitInterface
 		}
 		#endif
 	}
-	bool IsInCodeSpace(u8 *ptr)
+	bool HandleFault(uintptr_t access_address, SContext* ctx)
 	{
-		return jit->IsInCodeSpace(ptr);
-	}
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx)
-	{
-		return jit->BackPatch(codePtr, em_address, ctx);
+		return jit->HandleFault(access_address, ctx);
 	}
 
 	void ClearCache()

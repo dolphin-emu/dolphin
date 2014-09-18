@@ -43,10 +43,11 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 
 	if (cpu_info.bSSE4_1)
 	{
-		PXOR(XMM0, R(XMM0));
-		CMPPD(XMM0, fpr.R(a), LT); // XMM0 = XMM0 >= 0 ? all 1s : all 0s
-		MOVAPD(XMM1, fpr.R(b));
-		BLENDVPD(XMM1, fpr.R(c));
+		MOVAPD(XMM0, fpr.R(a));
+		PXOR(XMM1, R(XMM1));
+		CMPPD(XMM0, R(XMM1), LT); // XMM0 = XMM0 < 0 ? all 1s : all 0s
+		MOVAPD(XMM1, fpr.R(c));
+		BLENDVPD(XMM1, fpr.R(b));
 	}
 	else
 	{

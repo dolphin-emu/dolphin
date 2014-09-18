@@ -17,6 +17,7 @@ public:
 
 	const u8 *enterCode;
 
+	const u8 *dispatcherMispredictedBLR;
 	const u8 *dispatcher;
 	const u8 *dispatcherNoCheck;
 	const u8 *dispatcherPcInRSCRATCH;

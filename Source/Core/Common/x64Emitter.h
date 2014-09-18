@@ -467,6 +467,8 @@ public:
 	void LOCK();
 	void REP();
 	void REPNE();
+	void FSOverride();
+	void GSOverride();
 
 	// x87
 	enum x87StatusWordBits {

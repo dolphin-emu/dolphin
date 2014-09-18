@@ -26,6 +26,7 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/JitCommon/TrampolineCache.h"
 
 // TODO: find a better place for x86-specific stuff
 // The following register assignments are common to Jit64 and Jit64IL:
@@ -110,24 +111,20 @@ public:
 
 	virtual void Jit(u32 em_address) = 0;
 
-	virtual const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) = 0;
-
 	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 
-	virtual bool IsInCodeSpace(u8 *ptr) = 0;
+	virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
 };
 
 class Jitx86Base : public JitBase, public EmuCodeBlock
 {
 protected:
+	bool BackPatch(u32 emAddress, SContext* ctx);
 	JitBlockCache blocks;
 	TrampolineCache trampolines;
 public:
 	JitBlockCache *GetBlockCache() override { return &blocks; }
-
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) override;
-
-	bool IsInCodeSpace(u8 *ptr) override { return IsInSpace(ptr); }
+	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 };
 
 extern JitBase *jit;
