@@ -116,8 +116,7 @@ using namespace PowerPC;
 // accessed, immediately turn into regular pages but cause a trap... but
 // putting them in the path of RSP just leads to something (in the kernel?)
 // thinking a regular stack extension is required.  So this protection is not
-// supported on Windows yet...  We still use a separate stack for the sake of
-// simplicity.
+// supported on Windows yet...
 
 enum
 {
