@@ -147,11 +147,11 @@ void CMemoryView::OnScrollWheel(wxMouseEvent& event)
 
 	if (scroll_down)
 	{
-		curAddress += num_lines;
+		curAddress += num_lines * 4;
 	}
 	else
 	{
-		curAddress -= num_lines;
+		curAddress -= num_lines * 4;
 	}
 
 	Refresh();

@@ -127,11 +127,11 @@ void CCodeView::OnScrollWheel(wxMouseEvent& event)
 
 	if (scroll_down)
 	{
-		m_curAddress += num_lines;
+		m_curAddress += num_lines * 4;
 	}
 	else
 	{
-		m_curAddress -= num_lines;
+		m_curAddress -= num_lines * 4;
 	}
 
 	Refresh();
