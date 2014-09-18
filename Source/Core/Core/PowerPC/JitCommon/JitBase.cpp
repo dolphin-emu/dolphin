@@ -13,9 +13,9 @@
 
 JitBase *jit;
 
-void Jit(u32 em_address)
+bool Jitx86Base::JitStub(u32 em_address)
 {
-	jit->Jit(em_address);
+	return static_cast<Jitx86Base*>(jit)->Jit(em_address);
 }
 
 u32 Helper_Mask(u8 mb, u8 me)

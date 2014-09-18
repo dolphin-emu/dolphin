@@ -69,6 +69,7 @@ public:
 
 	// Jit!
 
+	static void JitStub(u32 em_address);
 	void Jit(u32 em_address);
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
 

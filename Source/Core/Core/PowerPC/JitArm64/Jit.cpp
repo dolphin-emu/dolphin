@@ -163,6 +163,11 @@ void JitArm64::SingleStep()
 	pExecAddr();
 }
 
+void JitArm64::JitStub(u32 em_address)
+{
+	static_cast<JitArm64*>(jit)->Jit(em_address);
+}
+
 void STACKALIGN JitArm64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)

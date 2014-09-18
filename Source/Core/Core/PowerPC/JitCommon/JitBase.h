@@ -109,8 +109,6 @@ public:
 
 	virtual JitBaseBlockCache *GetBlockCache() = 0;
 
-	virtual void Jit(u32 em_address) = 0;
-
 	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 
 	virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
@@ -119,17 +117,17 @@ public:
 class Jitx86Base : public JitBase, public EmuCodeBlock
 {
 protected:
+	virtual bool Jit(u32 em_address) = 0;
 	bool BackPatch(u32 emAddress, SContext* ctx);
 	JitBlockCache blocks;
 	TrampolineCache trampolines;
 public:
+	static bool JitStub(u32 em_address);
 	JitBlockCache *GetBlockCache() override { return &blocks; }
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 };
 
 extern JitBase *jit;
-
-void Jit(u32 em_address);
 
 // Merged routines that should be moved somewhere better
 u32 Helper_Mask(u8 mb, u8 me);
