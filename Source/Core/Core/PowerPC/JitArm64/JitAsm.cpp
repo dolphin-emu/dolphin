@@ -44,7 +44,7 @@ void JitArm64AsmRoutineManager::Generate()
 
 		SetJumpTarget(JitBlock);
 
-		MOVI2R(X30, (u64)&Jit);
+		MOVI2R(X30, (u64)&JitArm64::Jit);
 		BLR(X30);
 
 		B(dispatcherNoCheck);

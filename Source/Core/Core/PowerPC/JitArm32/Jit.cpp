@@ -282,6 +282,11 @@ void JitArm::PrintDebug(UGeckoInstruction inst, u32 level)
 	}
 }
 
+void JitArm::JitStub(u32 em_address)
+{
+	static_cast<JitArm*>(jit)->Jit(em_address);
+}
+
 void STACKALIGN JitArm::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)

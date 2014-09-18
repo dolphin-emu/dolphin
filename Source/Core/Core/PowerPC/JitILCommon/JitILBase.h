@@ -27,8 +27,6 @@ public:
 
 	IREmitter::IRBuilder ibuild;
 
-	virtual void Jit(u32 em_address) = 0;
-
 	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 
 	// OPCODES

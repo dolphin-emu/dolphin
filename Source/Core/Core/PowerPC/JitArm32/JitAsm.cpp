@@ -135,7 +135,7 @@ void JitArmAsmRoutineManager::Generate()
 
 		// If we get to this point, that means that we don't have the block cached to execute
 		// So call ArmJit to compile the block and then execute it.
-		MOVI2R(R14, (u32)&Jit);
+		MOVI2R(R14, (u32)&JitArm32::Jit);
 		BL(R14);
 
 		B(dispatcherNoCheck);

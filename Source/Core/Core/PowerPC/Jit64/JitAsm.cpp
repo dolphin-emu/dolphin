@@ -144,7 +144,7 @@ void Jit64AsmRoutineManager::Generate()
 
 			//Ok, no block, let's jit
 			ABI_PushRegistersAndAdjustStack(0, 0);
-			ABI_CallFunctionA((void *)&Jit, PPCSTATE(pc));
+			ABI_CallFunctionA((void *)&Jitx86Base::JitStub, PPCSTATE(pc));
 			ABI_PopRegistersAndAdjustStack(0, 0);
 
 			JMP(dispatcherNoCheck); // no point in special casing this
