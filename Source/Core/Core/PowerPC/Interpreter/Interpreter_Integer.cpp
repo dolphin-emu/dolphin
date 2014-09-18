@@ -362,8 +362,10 @@ void Interpreter::srawx(UGeckoInstruction _inst)
 		}
 		else
 		{
-			m_GPR[_inst.RA] = (u32)((s32)m_GPR[_inst.RS] >> amount);
-			if (m_GPR[_inst.RS] & 0x80000000)
+			s32 rrs = m_GPR[_inst.RS];
+			m_GPR[_inst.RA] = rrs >> amount;
+
+			if ((rrs < 0) && (rrs << (32 - amount)))
 				SetCarry(1);
 			else
 				SetCarry(0);
