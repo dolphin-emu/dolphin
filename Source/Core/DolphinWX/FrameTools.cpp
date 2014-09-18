@@ -1245,11 +1245,9 @@ void CFrame::OnConfigPAD(wxCommandEvent& WXUNUSED (event))
 	{
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		Pad::Initialize((void *)win);
-#elif defined(__APPLE__)
-		Pad::Initialize((void *)this);
+		Pad::Initialize(reinterpret_cast<void*>(win));
 #else
-		Pad::Initialize(GetHandle());
+		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 	}
 	InputConfigDialog m_ConfigFrame(this, *pad_plugin, _trans("Dolphin GCPad Configuration"));
@@ -1273,11 +1271,9 @@ void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 	{
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		Wiimote::Initialize((void *)win);
-#elif defined(__APPLE__)
-		Wiimote::Initialize((void *)this);
+		Wiimote::Initialize(reinterpret_cast<void*>(win));
 #else
-		Wiimote::Initialize(GetHandle());
+		Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
 	}
 	WiimoteConfigDiag m_ConfigFrame(this, *wiimote_plugin);
