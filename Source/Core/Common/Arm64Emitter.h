@@ -453,6 +453,8 @@ public:
 	void EON(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
 	void ANDS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
 	void BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shift);
+	void MOV(ARM64Reg Rd, ARM64Reg Rm);
+	void MVN(ARM64Reg Rd, ARM64Reg Rm);
 
 	// Logical (immediate)
 	void AND(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms);
