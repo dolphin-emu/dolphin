@@ -129,7 +129,7 @@ enum
 
 void Jit64::AllocStack()
 {
-#if defined(_WIN32)
+#ifndef _WIN32
 	m_stack = (u8*)AllocateMemoryPages(STACK_SIZE);
 	ReadProtectMemory(m_stack, GUARD_SIZE);
 	ReadProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
@@ -138,7 +138,7 @@ void Jit64::AllocStack()
 
 void Jit64::FreeStack()
 {
-#if defined(_WIN32)
+#ifndef _WIN32
 	if (m_stack)
 	{
 		FreeMemoryPages(m_stack, STACK_SIZE);
