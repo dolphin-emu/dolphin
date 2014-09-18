@@ -557,15 +557,19 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 		case IDM_SEARCHINSTRUCTION:
 		{
 			wxString str = wxGetTextFromUser("", _("Op?"), wxEmptyString, this);
-			for (u32 addr = 0x80000000; addr < 0x80100000; addr += 4)
+			auto const wx_name = WxStrToStr(str);
+			bool found = false;
+			for (u32 addr = 0x80000000; addr < 0x80180000; addr += 4)
 			{
 				const char *name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
-				auto const wx_name = WxStrToStr(str);
 				if (name && (wx_name == name))
 				{
 					NOTICE_LOG(POWERPC, "Found %s at %08x", wx_name.c_str(), addr);
+					found = true;
 				}
 			}
+			if (!found)
+				NOTICE_LOG(POWERPC, "Opcode %s not found", wx_name.c_str());
 			break;
 		}
 	}
