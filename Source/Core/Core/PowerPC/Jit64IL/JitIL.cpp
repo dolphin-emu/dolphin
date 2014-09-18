@@ -272,7 +272,7 @@ void JitIL::Init()
 	trampolines.Init();
 	AllocCodeSpace(CODE_SIZE);
 	blocks.Init();
-	asm_routines.Init(nullptr);
+	asm_routines.Init(/*jit_uses_rsp*/ false, nullptr);
 
 	farcode.Init(js.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
 
@@ -502,16 +502,19 @@ void JitIL::Trace()
 		PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
-void STACKALIGN JitIL::Jit(u32 em_address)
+bool STACKALIGN JitIL::Jit(u32 em_address)
 {
+	bool cache_was_cleared = false;
 	if (GetSpaceLeft() < 0x10000 || farcode.GetSpaceLeft() < 0x10000 || blocks.IsFull() ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{
 		ClearCache();
+		cache_was_cleared = true;
 	}
 	int block_num = blocks.AllocateBlock(em_address);
 	JitBlock *b = blocks.GetBlock(block_num);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
+	return cache_was_cleared;
 }
 
 const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)

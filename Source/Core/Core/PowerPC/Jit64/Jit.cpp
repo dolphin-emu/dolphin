@@ -217,7 +217,7 @@ void Jit64::Init()
 		AllocStack();
 
 	blocks.Init();
-	asm_routines.Init(m_stack ? (m_stack + STACK_SIZE) : nullptr);
+	asm_routines.Init(m_enable_blr_optimization, m_stack ? (m_stack + STACK_SIZE) : nullptr);
 
 	// important: do this *after* generating the global asm routines, because we can't use farcode in them.
 	// it'll crash because the farcode functions get cleared on JIT clears.
@@ -512,8 +512,9 @@ void Jit64::Trace()
 		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
-void STACKALIGN Jit64::Jit(u32 em_address)
+bool STACKALIGN Jit64::Jit(u32 em_address)
 {
+	bool cache_was_cleared = false;
 	if (GetSpaceLeft() < 0x10000 ||
 	    farcode.GetSpaceLeft() < 0x10000 ||
 		blocks.IsFull() ||
@@ -521,11 +522,13 @@ void STACKALIGN Jit64::Jit(u32 em_address)
 		m_clear_cache_asap)
 	{
 		ClearCache();
+		cache_was_cleared = true;
 	}
 
 	int block_num = blocks.AllocateBlock(em_address);
 	JitBlock *b = blocks.GetBlock(block_num);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
+	return cache_was_cleared;
 }
 
 const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)

@@ -117,12 +117,12 @@ public:
 class Jitx86Base : public JitBase, public EmuCodeBlock
 {
 protected:
-	virtual void Jit(u32 em_address) = 0;
+	virtual bool Jit(u32 em_address) = 0;
 	bool BackPatch(u32 emAddress, SContext* ctx);
 	JitBlockCache blocks;
 	TrampolineCache trampolines;
 public:
-	static void JitStub(u32 em_address);
+	static bool JitStub(u32 em_address);
 	JitBlockCache *GetBlockCache() override { return &blocks; }
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 };

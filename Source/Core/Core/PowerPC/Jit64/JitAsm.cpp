@@ -23,16 +23,19 @@ void Jit64AsmRoutineManager::Generate()
 	// for the shadow region before calls in this function.  This call will
 	// waste a bit of space for a second shadow, but whatever.
 	ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, /*frame*/ 16);
-	if (m_stack_top)
+	if (m_jit_uses_rsp)
 	{
-		// Pivot the stack to our custom one.
-		MOV(64, R(RSCRATCH), R(RSP));
-		MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
-		MOV(64, MDisp(RSP, 0x18), R(RSCRATCH));
-	}
-	else
-	{
-		MOV(64, M(&s_saved_rsp), R(RSP));
+		if (m_stack_top)
+		{
+			// Pivot the stack to our custom one.
+			MOV(64, R(RSCRATCH), R(RSP));
+			MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
+			MOV(64, MDisp(RSP, 0x18), R(RSCRATCH));
+		}
+		else
+		{
+			MOV(64, M(&s_saved_rsp), R(RSP));
+		}
 	}
 	// something that can't pass the BLR test
 	MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
@@ -56,10 +59,7 @@ void Jit64AsmRoutineManager::Generate()
 		ABI_PopRegistersAndAdjustStack(1 << RSCRATCH, 0);
 		#endif
 
-		if (m_stack_top)
-			MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
-		else
-			MOV(64, R(RSP), M(&s_saved_rsp));
+		ResetStack();
 
 		SUB(32, PPCSTATE(downcount), R(RSCRATCH));
 
@@ -146,7 +146,13 @@ void Jit64AsmRoutineManager::Generate()
 			ABI_PushRegistersAndAdjustStack(0, 0);
 			ABI_CallFunctionA((void *)&Jitx86Base::JitStub, PPCSTATE(pc));
 			ABI_PopRegistersAndAdjustStack(0, 0);
-
+			if (m_jit_uses_rsp)
+			{
+				TEST(8, R(ABI_RETURN), R(ABI_RETURN));
+				FixupBranch no_stack_reset = J_CC(CC_Z);
+				ResetStack();
+				SetJumpTarget(no_stack_reset);
+			}
 			JMP(dispatcherNoCheck); // no point in special casing this
 
 		SetJumpTarget(bail);
@@ -168,19 +174,27 @@ void Jit64AsmRoutineManager::Generate()
 	//Landing pad for drec space
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		SetJumpTarget(dbg_exit);
-	if (m_stack_top)
+	ResetStack();
+	if (m_jit_uses_rsp && m_stack_top)
 	{
-		MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x8));
+		ADD(64, R(RSP), Imm8(0x18));
 		POP(RSP);
-	}
-	else
-	{
-		MOV(64, R(RSP), M(&s_saved_rsp));
 	}
 	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 	RET();
 
 	GenerateCommon();
+}
+
+void Jit64AsmRoutineManager::ResetStack()
+{
+	if (m_jit_uses_rsp)
+	{
+		if (m_stack_top)
+			MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
+		else
+			MOV(64, R(RSP), M(&s_saved_rsp));
+	}
 }
 
 void Jit64AsmRoutineManager::GenerateCommon()
