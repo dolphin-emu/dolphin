@@ -272,7 +272,7 @@ void JitIL::Init()
 	trampolines.Init();
 	AllocCodeSpace(CODE_SIZE);
 	blocks.Init();
-	asm_routines.Init();
+	asm_routines.Init(nullptr);
 
 	farcode.Init(js.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
 

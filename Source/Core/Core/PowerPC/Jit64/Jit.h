@@ -18,6 +18,10 @@
 // ----------
 #pragma once
 
+#ifdef _WIN32
+#include <winnt.h>
+#endif
+
 #include "Common/x64ABI.h"
 #include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
@@ -40,6 +44,9 @@
 class Jit64 : public Jitx86Base
 {
 private:
+	void AllocStack();
+	void FreeStack();
+
 	GPRRegCache gpr;
 	FPURegCache fpr;
 
@@ -48,12 +55,18 @@ private:
 	PPCAnalyst::CodeBuffer code_buffer;
 	Jit64AsmRoutineManager asm_routines;
 
+	bool m_enable_blr_optimization;
+	bool m_clear_cache_asap;
+	u8* m_stack;
+
 public:
 	Jit64() : code_buffer(32000) {}
 	~Jit64() {}
 
 	void Init() override;
 	void Shutdown() override;
+
+	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
 	// Jit!
 
@@ -89,13 +102,15 @@ public:
 
 	// Utilities for use by opcodes
 
-	void WriteExit(u32 destination);
-	void WriteExitDestInRSCRATCH();
+	void WriteExit(u32 destination, bool bl = false, u32 after = 0);
+	void JustWriteExit(u32 destination, bool bl, u32 after);
+	void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
+	void WriteBLRExit();
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
 	void WriteRfiExitDestInRSCRATCH();
 	void WriteCallInterpreter(UGeckoInstruction _inst);
-	void Cleanup();
+	bool Cleanup();
 
 	void GenerateConstantOverflow(bool overflow);
 	void GenerateConstantOverflow(s64 val);

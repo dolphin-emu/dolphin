@@ -56,6 +56,10 @@ public:
 
 	void Trace();
 
+	JitBlockCache *GetBlockCache() override { return &blocks; }
+
+	bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
+
 	void ClearCache() override;
 	const u8 *GetDispatcher()
 	{
@@ -105,4 +109,5 @@ public:
 	void DynaRunTable31(UGeckoInstruction _inst) override;
 	void DynaRunTable59(UGeckoInstruction _inst) override;
 	void DynaRunTable63(UGeckoInstruction _inst) override;
+
 };

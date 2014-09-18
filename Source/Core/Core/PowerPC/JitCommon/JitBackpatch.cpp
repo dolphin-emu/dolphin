@@ -3,23 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
-#include <string>
 
 #include "disasm.h"
 
-#include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-#ifdef _WIN32
-	#include <windows.h>
-#endif
-
-
 using namespace Gen;
-
-extern u8 *trampolineCodePtr;
 
 static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress)
 {
@@ -35,176 +25,51 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress)
 	return;
 }
 
-void TrampolineCache::Init()
+// This generates some fairly heavy trampolines, but it doesn't really hurt.
+// Only instructions that access I/O will get these, and there won't be that
+// many of them in a typical program/game.
+bool Jitx86Base::HandleFault(uintptr_t access_address, SContext* ctx)
 {
-	AllocCodeSpace(4 * 1024 * 1024);
+	// TODO: do we properly handle off-the-end?
+	if (access_address >= (uintptr_t)Memory::base && access_address < (uintptr_t)Memory::base + 0x100010000)
+		return BackPatch((u32)(access_address - (uintptr_t)Memory::base), ctx);
+
+	return false;
 }
 
-void TrampolineCache::Shutdown()
+bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 {
-	FreeCodeSpace();
-}
+	u8* codePtr = (u8*) ctx->CTX_PC;
 
-// Extremely simplistic - just generate the requested trampoline. May reuse them in the future.
-const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 registersInUse)
-{
-	if (GetSpaceLeft() < 1024)
-		PanicAlert("Trampoline cache full");
-
-	const u8 *trampoline = GetCodePtr();
-	X64Reg addrReg = (X64Reg)info.scaledReg;
-	X64Reg dataReg = (X64Reg)info.regOperandReg;
-
-	// It's a read. Easy.
-	// RSP alignment here is 8 due to the call.
-	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
-
-	if (addrReg != ABI_PARAM1)
-		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
-
-	if (info.displacement)
-		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
-
-	switch (info.operandSize)
-	{
-	case 4:
-		CALL((void *)&Memory::Read_U32);
-		break;
-	case 2:
-		CALL((void *)&Memory::Read_U16);
-		SHL(32, R(ABI_RETURN), Imm8(16));
-		break;
-	case 1:
-		CALL((void *)&Memory::Read_U8);
-		break;
-	}
-
-	if (info.signExtend && info.operandSize == 1)
-	{
-		// Need to sign extend value from Read_U8.
-		MOVSX(32, 8, dataReg, R(ABI_RETURN));
-	}
-	else if (dataReg != EAX)
-	{
-		MOV(32, R(dataReg), R(ABI_RETURN));
-	}
-
-	ABI_PopRegistersAndAdjustStack(registersInUse, 8);
-	RET();
-	return trampoline;
-}
-
-// Extremely simplistic - just generate the requested trampoline. May reuse them in the future.
-const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 registersInUse, u32 pc)
-{
-	if (GetSpaceLeft() < 1024)
-		PanicAlert("Trampoline cache full");
-
-	const u8 *trampoline = GetCodePtr();
-
-	X64Reg dataReg = (X64Reg)info.regOperandReg;
-	X64Reg addrReg = (X64Reg)info.scaledReg;
-
-	// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a
-	// hardware access - we can take shortcuts.
-	// Don't treat FIFO writes specially for now because they require a burst
-	// check anyway.
-
-	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
-	MOV(32, PPCSTATE(pc), Imm32(pc));
-
-	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
-
-	if (info.hasImmediate)
-	{
-		if (addrReg != ABI_PARAM2)
-			MOV(64, R(ABI_PARAM2), R(addrReg));
-		// we have to swap back the immediate to pass it to the write functions
-		switch (info.operandSize)
-		{
-		case 8:
-			PanicAlert("Invalid 64-bit immediate!");
-			break;
-		case 4:
-			MOV(32, R(ABI_PARAM1), Imm32(Common::swap32((u32)info.immediate)));
-			break;
-		case 2:
-			MOV(16, R(ABI_PARAM1), Imm16(Common::swap16((u16)info.immediate)));
-			break;
-		case 1:
-			MOV(8, R(ABI_PARAM1), Imm8((u8)info.immediate));
-			break;
-		}
-	}
-	else
-	{
-		MOVTwo(64, ABI_PARAM1, dataReg, ABI_PARAM2, addrReg);
-	}
-	if (info.displacement)
-	{
-		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
-	}
-
-	switch (info.operandSize)
-	{
-	case 8:
-		CALL((void *)&Memory::Write_U64);
-		break;
-	case 4:
-		CALL((void *)&Memory::Write_U32);
-		break;
-	case 2:
-		CALL((void *)&Memory::Write_U16);
-		break;
-	case 1:
-		CALL((void *)&Memory::Write_U8);
-		break;
-	}
-
-	ABI_PopRegistersAndAdjustStack(registersInUse, 8);
-	RET();
-
-	return trampoline;
-}
-
-
-// This generates some fairly heavy trampolines, but:
-// 1) It's really necessary. We don't know anything about the context.
-// 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be
-//    that many of them in a typical program/game.
-const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
-{
-	SContext *ctx = (SContext *)ctx_void;
-
-	if (!jit->IsInCodeSpace(codePtr))
-		return nullptr;  // this will become a regular crash real soon after this
+	if (!IsInSpace(codePtr))
+		return false;  // this will become a regular crash real soon after this
 
 	InstructionInfo info = {};
 
 	if (!DisassembleMov(codePtr, &info))
 	{
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
-		return nullptr;
+		return false;
 	}
 
 	if (info.otherReg != RMEM)
 	{
 		PanicAlert("BackPatch : Base reg not RMEM."
 		           "\n\nAttempted to access %08x.", emAddress);
-		return nullptr;
+		return false;
 	}
 
 	if (info.byteSwap && info.instructionSize < BACKPATCH_SIZE)
 	{
 		PanicAlert("BackPatch: MOVBE is too small");
-		return nullptr;
+		return false;
 	}
 
 	auto it = registersInUseAtLoc.find(codePtr);
 	if (it == registersInUseAtLoc.end())
 	{
 		PanicAlert("BackPatch: no register use entry for address %p", codePtr);
-		return nullptr;
+		return false;
 	}
 
 	u32 registersInUse = it->second;
@@ -228,7 +93,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		{
 			emitter.NOP(padding);
 		}
-		return codePtr;
+		ctx->CTX_PC = (u64)codePtr;
 	}
 	else
 	{
@@ -281,6 +146,8 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		{
 			emitter.NOP(padding);
 		}
-		return start;
+		ctx->CTX_PC = (u64)start;
 	}
+
+	return true;
 }

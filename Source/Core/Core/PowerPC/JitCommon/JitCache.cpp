@@ -364,7 +364,10 @@ using namespace Gen;
 	void JitBlockCache::WriteLinkBlock(u8* location, const u8* address)
 	{
 		XEmitter emit(location);
-		emit.JMP(address, true);
+		if (*location == 0xE8)
+			emit.CALL(address);
+		else
+			emit.JMP(address, true);
 	}
 
 	void JitBlockCache::WriteDestroyBlock(const u8* location, u32 address)

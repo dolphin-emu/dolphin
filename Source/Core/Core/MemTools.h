@@ -11,4 +11,5 @@ namespace EMM
 {
 	typedef u32 EAddr;
 	void InstallExceptionHandler();
+	void UninstallExceptionHandler();
 }

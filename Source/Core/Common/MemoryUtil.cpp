@@ -158,6 +158,25 @@ void FreeAlignedMemory(void* ptr)
 	}
 }
 
+void ReadProtectMemory(void* ptr, size_t size)
+{
+	bool error_occurred = false;
+
+#ifdef _WIN32
+	DWORD oldValue;
+	if (!VirtualProtect(ptr, size, PAGE_NOACCESS, &oldValue))
+		error_occurred = true;
+#else
+	int retval = mprotect(ptr, size, PROT_NONE);
+
+	if (retval != 0)
+		error_occurred = true;
+#endif
+
+	if (error_occurred)
+		PanicAlert("ReadProtectMemory failed!\n%s", GetLastErrorMsg());
+}
+
 void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 {
 	bool error_occurred = false;

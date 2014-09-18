@@ -312,7 +312,7 @@ void Jit64::DoMergedBranch()
 			destination = SignExt16(js.next_inst.BD << 2);
 		else
 			destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-		WriteExit(destination);
+		WriteExit(destination, js.next_inst.LK, js.next_compilerPC + 4);
 	}
 	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
 	{
@@ -320,7 +320,7 @@ void Jit64::DoMergedBranch()
 			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
 		MOV(32, R(RSCRATCH), M(&CTR));
 		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-		WriteExitDestInRSCRATCH();
+		WriteExitDestInRSCRATCH(js.next_inst.LK, js.next_compilerPC + 4);
 	}
 	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
 	{
@@ -328,7 +328,7 @@ void Jit64::DoMergedBranch()
 		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
 		if (js.next_inst.LK)
 			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
-		WriteExitDestInRSCRATCH();
+		WriteExitDestInRSCRATCH(js.next_inst.LK, js.next_compilerPC + 4);
 	}
 	else
 	{
