@@ -198,6 +198,8 @@ public:
 	void ps_arith(UGeckoInstruction inst); //aggregate
 	void ps_mergeXX(UGeckoInstruction inst);
 	void ps_maddXX(UGeckoInstruction inst);
+	void ps_res(UGeckoInstruction inst);
+	void ps_rsqrte(UGeckoInstruction inst);
 	void ps_sum(UGeckoInstruction inst);
 	void ps_muls(UGeckoInstruction inst);
 	void ps_cmpXX(UGeckoInstruction inst);
