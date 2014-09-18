@@ -78,7 +78,7 @@ void Jit64AsmRoutineManager::Generate()
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				ABI_PopRegistersAndAdjustStack(0, 0);
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-				dbg_exit = J_CC(CC_NZ);
+				dbg_exit = J_CC(CC_NZ, true);
 				SetJumpTarget(notStepping);
 			}
 
