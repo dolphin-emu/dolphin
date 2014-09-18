@@ -116,8 +116,7 @@ using namespace PowerPC;
 // accessed, immediately turn into regular pages but cause a trap... but
 // putting them in the path of RSP just leads to something (in the kernel?)
 // thinking a regular stack extension is required.  So this protection is not
-// supported on Windows yet...  We still use a separate stack for the sake of
-// simplicity.
+// supported on Windows yet...
 
 enum
 {
@@ -129,7 +128,7 @@ enum
 
 void Jit64::AllocStack()
 {
-#if defined(_WIN32)
+#ifndef _WIN32
 	m_stack = (u8*)AllocateMemoryPages(STACK_SIZE);
 	ReadProtectMemory(m_stack, GUARD_SIZE);
 	ReadProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
@@ -138,7 +137,7 @@ void Jit64::AllocStack()
 
 void Jit64::FreeStack()
 {
-#if defined(_WIN32)
+#ifndef _WIN32
 	if (m_stack)
 	{
 		FreeMemoryPages(m_stack, STACK_SIZE);
@@ -330,7 +329,9 @@ bool Jit64::Cleanup()
 	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
 	if (MMCR0.Hex || MMCR1.Hex)
 	{
+		ABI_PushRegistersAndAdjustStack(0, 0);
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
+		ABI_PopRegistersAndAdjustStack(0, 0);
 		did_something = true;
 	}
 
