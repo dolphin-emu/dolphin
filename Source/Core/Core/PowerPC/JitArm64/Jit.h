@@ -35,6 +35,8 @@ public:
 
 	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 
+	bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
+
 	void ClearCache();
 
 	CommonAsmRoutinesBase *GetAsmRoutines()
