@@ -64,6 +64,8 @@ enum NormalSSEOps
 	sseMOVLPDtoRM  = 0x13,
 	sseMOVHPDfromRM= 0x16,
 	sseMOVHPDtoRM  = 0x17,
+	sseMOVHLPS     = 0x12,
+	sseMOVLHPS     = 0x16,
 	sseMASKMOVDQU  = 0xF7,
 	sseLDDQU       = 0xF0,
 	sseSHUF        = 0xC6,
@@ -1525,6 +1527,9 @@ void XEmitter::MOVLPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(64, sseMOVLPDfromRM,
 void XEmitter::MOVHPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(64, sseMOVHPDfromRM, false, regOp, arg);}
 void XEmitter::MOVLPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(64, sseMOVLPDtoRM, false, regOp, arg);}
 void XEmitter::MOVHPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(64, sseMOVHPDtoRM, false, regOp, arg);}
+
+void XEmitter::MOVHLPS(X64Reg regOp1, X64Reg regOp2) {WriteSSEOp(32, sseMOVHLPS, true, regOp1, R(regOp2));}
+void XEmitter::MOVLHPS(X64Reg regOp1, X64Reg regOp2) {WriteSSEOp(32, sseMOVLHPS, true, regOp1, R(regOp2));}
 
 void XEmitter::CVTPS2PD(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x5A, true, regOp, arg);}
 void XEmitter::CVTPD2PS(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5A, true, regOp, arg);}
