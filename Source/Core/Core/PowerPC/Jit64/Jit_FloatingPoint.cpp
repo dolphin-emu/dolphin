@@ -267,25 +267,32 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-void Jit64::fcmpx(UGeckoInstruction inst)
+void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(jo.fpAccurateFcmp);
-
-	//bool ordered = inst.SUBOP10 == 32;
-	int a   = inst.FA;
-	int b   = inst.FB;
-	int crf = inst.CRFD;
 	bool fprf = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF && js.op->wantsFPRF;
+	//bool ordered = !!(inst.SUBOP10 & 32);
+	int a = inst.FA;
+	int b = inst.FB;
+	int crf = inst.CRFD;
 
-	fpr.Lock(a,b);
-	fpr.BindToRegister(b, true);
+	fpr.Lock(a, b);
+	fpr.BindToRegister(b, true, false);
 
 	if (fprf)
 		AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
-	// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
-	UCOMISD(fpr.R(b).GetSimpleReg(), fpr.R(a));
+
+	if (upper)
+	{
+		fpr.BindToRegister(a, true, false);
+		MOVHLPS(XMM0, fpr.RX(a));
+		MOVHLPS(XMM1, fpr.RX(b));
+		UCOMISD(XMM1, R(XMM0));
+	}
+	else
+	{
+		// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
+		UCOMISD(fpr.RX(b), fpr.R(a));
+	}
 
 	FixupBranch pNaN, pLesser, pGreater;
 	FixupBranch continue1, continue2, continue3;
@@ -293,7 +300,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	if (a != b)
 	{
 		// if B > A, goto Lesser's jump target
-		pLesser  = J_CC(CC_A);
+		pLesser = J_CC(CC_A);
 	}
 
 	// if (B != B) or (A != A), goto NaN's jump target
@@ -342,6 +349,15 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 
 	MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
 	fpr.UnlockAll();
+}
+
+void Jit64::fcmpx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(jo.fpAccurateFcmp);
+
+	FloatCompare(inst);
 }
 
 void Jit64::fctiwx(UGeckoInstruction inst)

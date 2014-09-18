@@ -110,14 +110,14 @@ static GekkoOPTemplate primarytable[] =
 
 static GekkoOPTemplate table4[] =
 {    //SUBOP10
-	{0,    &Jit64::FallBackToInterpreter}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
-	{32,   &Jit64::FallBackToInterpreter}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
+	{0,    &Jit64::ps_cmpXX},              //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
+	{32,   &Jit64::ps_cmpXX},              //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
 	{40,   &Jit64::ps_sign},               //"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
 	{136,  &Jit64::ps_sign},               //"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
 	{264,  &Jit64::ps_sign},               //"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
-	{64,   &Jit64::FallBackToInterpreter}, //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
+	{64,   &Jit64::ps_cmpXX},              //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
 	{72,   &Jit64::ps_mr},                 //"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
-	{96,   &Jit64::FallBackToInterpreter}, //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
+	{96,   &Jit64::ps_cmpXX},              //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
 	{528,  &Jit64::ps_mergeXX},            //"ps_merge00", OPTYPE_PS, FL_RC_BIT}},
 	{560,  &Jit64::ps_mergeXX},            //"ps_merge01", OPTYPE_PS, FL_RC_BIT}},
 	{592,  &Jit64::ps_mergeXX},            //"ps_merge10", OPTYPE_PS, FL_RC_BIT}},

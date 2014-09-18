@@ -351,3 +351,12 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	MOVAPD(fpr.RX(d), R(XMM0));
 	fpr.UnlockAll();
 }
+
+void Jit64::ps_cmpXX(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(jo.fpAccurateFcmp);
+
+	FloatCompare(inst, !!(inst.SUBOP10 & 64));
+}
