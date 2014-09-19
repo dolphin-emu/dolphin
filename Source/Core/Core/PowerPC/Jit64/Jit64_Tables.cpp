@@ -284,10 +284,10 @@ static GekkoOPTemplate table31[] =
 	// Unused instructions on GC
 	{310, &Jit64::FallBackToInterpreter},  //"eciwx",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{438, &Jit64::FallBackToInterpreter},  //"ecowx",   OPTYPE_INTEGER, FL_RC_BIT}},
-	{854, &Jit64::FallBackToInterpreter},  //"eieio",   OPTYPE_INTEGER, FL_RC_BIT}},
+	{854, &Jit64::DoNothing},              //"eieio",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{306, &Jit64::FallBackToInterpreter},  //"tlbie",   OPTYPE_SYSTEM, 0}},
 	{370, &Jit64::FallBackToInterpreter},  //"tlbia",   OPTYPE_SYSTEM, 0}},
-	{566, &Jit64::FallBackToInterpreter},  //"tlbsync", OPTYPE_SYSTEM, 0}},
+	{566, &Jit64::DoNothing},              //"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
 static GekkoOPTemplate table31_2[] =
