@@ -1359,7 +1359,7 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
+void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
@@ -1370,7 +1370,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	}
 
 	u32 xfbCount = 0;
-	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, xfbCount);
 	if (g_ActiveConfig.VirtualXFBEnabled() && (!xfbSourceList || xfbCount == 0))
 	{
 		DumpFrame(frame_data, w, h);
@@ -1426,14 +1426,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 				// use virtual xfb with offset
 				int xfbHeight = xfbSource->srcHeight;
 				int xfbWidth = xfbSource->srcWidth;
-				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
+				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
 
 				MathUtil::Rectangle<u32> rect_u32;
 
 				rect_u32.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / fbHeight;
 				rect_u32.bottom = flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / fbHeight;
-				rect_u32.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / fbWidth)/2;
-				rect_u32.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / fbWidth)/2;
+				rect_u32.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / fbStride)/2;
+				rect_u32.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / fbStride)/2;
 
 				drawRc.top      = static_cast<float>(rect_u32.top);
 				drawRc.bottom   = static_cast<float>(rect_u32.bottom);
@@ -1457,6 +1457,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 			sourceRc.right = xfbSource->sourceRc.right;
 			sourceRc.top = xfbSource->sourceRc.top;
 			sourceRc.bottom = xfbSource->sourceRc.bottom;
+
+			sourceRc.right -= fbStride - fbWidth;
 
 			xfbSource->Draw(sourceRc, drawRc);
 		}
@@ -1603,16 +1605,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangl
 	}
 	// Finish up the current frame, print some stats
 
-	SetWindowSize(fbWidth, fbHeight);
+	SetWindowSize(fbStride, fbHeight);
 
 	GLInterface->Update(); // just updates the render window position and the backbuffer size
 
 	bool xfbchanged = false;
 
-	if (FramebufferManagerBase::LastXfbWidth() != fbWidth || FramebufferManagerBase::LastXfbHeight() != fbHeight)
+	if (FramebufferManagerBase::LastXfbWidth() != fbStride || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		unsigned int const last_w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
+		unsigned int const last_w = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
 		unsigned int const last_h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
 		FramebufferManagerBase::SetLastXfbWidth(last_w);
 		FramebufferManagerBase::SetLastXfbHeight(last_h);
