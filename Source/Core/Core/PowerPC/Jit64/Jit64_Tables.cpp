@@ -222,8 +222,8 @@ static GekkoOPTemplate table31[] =
 	{119, &Jit64::lXXx},                   //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte reverse
-	{534, &Jit64::FallBackToInterpreter},  //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{790, &Jit64::FallBackToInterpreter},  //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{534, &Jit64::lXXx},                   //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{790, &Jit64::lXXx},                   //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 
 	// Conditional load/store (Wii SMP)
 	{150, &Jit64::FallBackToInterpreter},  //"stwcxd", OPTYPE_STORE, FL_EVIL | FL_SET_CR0}},
@@ -246,8 +246,8 @@ static GekkoOPTemplate table31[] =
 	{247, &Jit64::stXx},                   //"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store bytereverse
-	{662, &Jit64::FallBackToInterpreter},  //"stwbrx", OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{918, &Jit64::FallBackToInterpreter},  //"sthbrx", OPTYPE_STORE, FL_IN_A | FL_IN_B}},
+	{662, &Jit64::stXx},                   //"stwbrx", OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{918, &Jit64::stXx},                   //"sthbrx", OPTYPE_STORE, FL_IN_A | FL_IN_B}},
 
 	{661, &Jit64::FallBackToInterpreter},  //"stswx",  OPTYPE_STORE, FL_EVIL}},
 	{725, &Jit64::FallBackToInterpreter},  //"stswi",  OPTYPE_STORE, FL_EVIL}},
