@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "Common/CommonTypes.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/Boot/ElfReader.h"

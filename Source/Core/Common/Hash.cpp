@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include "Common/CommonFuncs.h"
 #include "Common/Hash.h"
 #if _M_SSE >= 0x402
 #include "Common/CPUDetect.h"

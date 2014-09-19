@@ -12,6 +12,7 @@
 #include <sys/ucontext.h>   // Look in here for the context definition.
 #endif
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Core/MemTools.h"
 #include "Core/HW/Memmap.h"

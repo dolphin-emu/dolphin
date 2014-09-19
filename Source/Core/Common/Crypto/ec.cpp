@@ -11,7 +11,7 @@
 #include <ctime>
 #include <string.h>
 
-#include "Common/CommonTypes.h"
+#include "Common/Common.h"
 #include "Common/Crypto/bn.h"
 #include "Common/Crypto/ec.h"
 

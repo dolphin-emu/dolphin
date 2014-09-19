@@ -4,6 +4,7 @@
 
 #include <sstream>
 
+#include "Common/CommonFuncs.h"
 #include "Common/MathUtil.h"
 
 #include "Core/HW/DSP.h"

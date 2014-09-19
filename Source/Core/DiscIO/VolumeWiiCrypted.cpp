@@ -9,7 +9,9 @@
 #include <polarssl/aes.h>
 #include <polarssl/sha1.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeGC.h"

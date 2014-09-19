@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 

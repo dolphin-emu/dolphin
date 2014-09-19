@@ -9,6 +9,7 @@
 
 #include "AudioCommon/SoundStream.h"
 #include "Common/Event.h"
+#include "Common/Thread.h"
 
 #if defined(HAVE_AO) && HAVE_AO
 #include <ao/ao.h>
