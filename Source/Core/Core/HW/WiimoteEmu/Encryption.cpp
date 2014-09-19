@@ -4,6 +4,7 @@
 //
 // Copyright (C) Hector Martin "marcan" (hector@marcansoft.com)
 
+#include <cstring>
 
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Common/CommonTypes.h"
+#include "Common/Common.h"
 #include "Common/CPUDetect.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"

@@ -4,7 +4,9 @@
 
 #include <vector>
 
-#include "Common/CommonTypes.h"
+#include "Common/Common.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "Core/IPC_HLE/WiiMote_HID_Attr.h"
 
 #if 0

@@ -6,6 +6,8 @@
 #include <cstring>
 #include <errno.h>
 
+#include "Common/CommonFuncs.h"
+
 // Neither Android nor OS X support TLS
 #if  defined(__APPLE__) || (ANDROID && __clang__)
 #define __thread

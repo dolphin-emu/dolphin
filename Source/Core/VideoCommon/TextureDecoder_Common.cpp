@@ -2,6 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cmath>
+
+#include "Common/Common.h"
+
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/sfont.inc"
 #include "VideoCommon/TextureDecoder.h"

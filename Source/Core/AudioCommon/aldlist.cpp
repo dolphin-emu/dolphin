@@ -23,7 +23,7 @@
  */
 
 #include "AudioCommon/aldlist.h"
-#include "Common/CommonTypes.h"
+#include "Common/Common.h"
 #ifdef _WIN32
 #include "../../../Externals/OpenAL/include/al.h"
 #include "../../../Externals/OpenAL/include/alc.h"

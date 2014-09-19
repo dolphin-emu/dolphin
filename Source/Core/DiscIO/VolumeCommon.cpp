@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/Volume.h"
 
 namespace DiscIO

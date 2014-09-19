@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/CommonTypes.h"
+#include "Common/Common.h"
 #include "Core/HW/Memmap.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"

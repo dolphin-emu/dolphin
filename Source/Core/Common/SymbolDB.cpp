@@ -9,6 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/SymbolDB.h"
+#include "Common/Logging/Log.h"
 
 void SymbolDB::List()
 {

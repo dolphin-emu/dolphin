@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
