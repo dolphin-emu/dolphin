@@ -220,8 +220,8 @@ public:
 	void lfXXX(UGeckoInstruction inst);
 	void stfXXX(UGeckoInstruction inst);
 	void stfiwx(UGeckoInstruction inst);
-	void psq_l(UGeckoInstruction inst);
-	void psq_st(UGeckoInstruction inst);
+	void psq_lXX(UGeckoInstruction inst);
+	void psq_stXX(UGeckoInstruction inst);
 
 	void fmaddXX(UGeckoInstruction inst);
 	void fsign(UGeckoInstruction inst);
