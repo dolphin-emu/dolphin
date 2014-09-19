@@ -10,8 +10,8 @@
 
 using namespace Gen;
 
-static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x0000000000000000ULL};
-static const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
+static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x0000000000000000ULL};
+static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
 static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
 void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS)
@@ -149,7 +149,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 		else                   //(n)madd
 			ADDSD(XMM0, fpr.R(b));
 		if (inst.SUBOP5 == 31) //nmadd
-			PXOR(XMM0, M((void*)&psSignBits2));
+			PXOR(XMM0, M((void*)&psSignBits));
 	}
 	fpr.BindToRegister(d, false);
 	//YES it is necessary to dupe the result :(
@@ -185,13 +185,13 @@ void Jit64::fsign(UGeckoInstruction inst)
 	case 40:  // fnegx
 		// We can cheat and not worry about clobbering the top half by using masks
 		// that don't modify the top half.
-		PXOR(fpr.RX(d), M((void*)&psSignBits2));
+		PXOR(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	case 264: // fabsx
-		PAND(fpr.RX(d), M((void*)&psAbsMask2));
+		PAND(fpr.RX(d), M((void*)&psAbsMask));
 		break;
 	case 136: // fnabs
-		POR(fpr.RX(d), M((void*)&psSignBits2));
+		POR(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	default:
 		PanicAlert("fsign bleh");
