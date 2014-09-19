@@ -479,9 +479,11 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 		                               Imm8((u8)reg_value.offset);
 	}
 
+	// TODO: support byte-swapped non-immediate fastmem stores
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
 	    SConfig::GetInstance().m_LocalCoreStartupParameter.bFastmem &&
-	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
+	    !(flags & SAFE_LOADSTORE_NO_FASTMEM) &&
+		(reg_value.IsImm() || !(flags & SAFE_LOADSTORE_NO_SWAP))
 #ifdef ENABLE_MEM_CHECK
 	    && !SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging
 #endif
