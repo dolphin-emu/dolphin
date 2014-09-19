@@ -151,6 +151,7 @@
     <string name="video_settings">Video</string>
     <string name="software_renderer">Software Renderer</string>
     <string name="opengl_es3">OpenGL ES</string>
+    <string name="opengl">OpenGL</string>
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_desc">%s</string>
     <string name="show_fps">Show FPS</string>

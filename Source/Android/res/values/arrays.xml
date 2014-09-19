@@ -53,6 +53,16 @@
         <item>Software Renderer</item>
         <item>OGL</item>
     </string-array>
+
+    <!-- Video Backend Selection - Supports desktop OpenGL -->
+    <string-array name="videoBackendEntriesGL" translatable="false">
+        <item>@string/software_renderer</item>
+        <item>@string/opengl</item>
+    </string-array>
+    <string-array name="videoBackendValuesGL" translatable="false">
+        <item>Software Renderer</item>
+        <item>OGL</item>
+    </string-array>
     
     <!-- Video Backend Selection - No OpenGL ES 3 support -->
     <string-array name="videoBackendEntriesNoGLES3" translatable="false">
@@ -61,7 +71,6 @@
     <string-array name="videoBackendValuesNoGLES3" translatable="false">
         <item>Software Renderer</item>
     </string-array>
-    
     
     <!-- EFB Copy Method Preference -->
     <string-array name="efbCopyMethodEntries" translatable="false">
