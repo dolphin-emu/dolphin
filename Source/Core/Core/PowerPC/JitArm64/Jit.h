@@ -77,6 +77,10 @@ public:
 	void bcctrx(UGeckoInstruction inst);
 	void bclrx(UGeckoInstruction inst);
 
+	// Integer
+	void arith_imm(UGeckoInstruction inst);
+	void boolX(UGeckoInstruction inst);
+
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
 
@@ -102,5 +106,10 @@ private:
 	void WriteExitDestInR(ARM64Reg dest);
 
 	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
+
+	void ComputeRC(u32 d);
+
+	typedef u32 (*Operation)(u32, u32);
+	void reg_imm(u32 d, u32 a, bool binary, u32 value, Operation do_op, void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, ARM64Reg, ArithOption), bool Rc = false);
 };
 
