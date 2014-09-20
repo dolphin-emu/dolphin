@@ -973,11 +973,7 @@ void CFrame::StartGame(const std::string& filename)
 				X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
 
-#ifdef _WIN32
-		::SetFocus((HWND)m_RenderParent->GetHandle());
-#else
 		m_RenderParent->SetFocus();
-#endif
 
 		wxTheApp->Bind(wxEVT_KEY_DOWN,    &CFrame::OnKeyDown, this);
 		wxTheApp->Bind(wxEVT_KEY_UP,      &CFrame::OnKeyUp,   this);
