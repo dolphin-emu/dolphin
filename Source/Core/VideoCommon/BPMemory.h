@@ -550,7 +550,7 @@ union GenMode
 	BitField<10,4,u32> numtevstages;
 	BitField<14,2,CullMode> cullmode;
 	BitField<16,3,u32> numindstages;
-	BitField<19,5,u32> zfreeze;
+	BitField<19,1,u32> zfreeze;
 
 	u32 hex;
 };
