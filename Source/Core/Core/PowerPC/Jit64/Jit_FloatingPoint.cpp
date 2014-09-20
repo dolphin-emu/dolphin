@@ -212,10 +212,12 @@ void Jit64::fselx(UGeckoInstruction inst)
 	int c = inst.FC;
 
 	fpr.Lock(a, b, c, d);
-	MOVSD(XMM0, fpr.R(a));
-	PXOR(XMM1, R(XMM1));
-	// XMM0 = XMM0 < 0 ? all 1s : all 0s
-	CMPSD(XMM0, R(XMM1), LT);
+	MOVSD(XMM1, fpr.R(a));
+	PXOR(XMM0, R(XMM0));
+	// This condition is very tricky; there's only one right way to handle both the case of
+	// negative/positive zero and NaN properly.
+	// (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
+	CMPSD(XMM0, R(XMM1), NLE);
 	if (cpu_info.bSSE4_1)
 	{
 		MOVSD(XMM1, fpr.R(c));
@@ -228,7 +230,7 @@ void Jit64::fselx(UGeckoInstruction inst)
 		PANDN(XMM1, fpr.R(c));
 		POR(XMM1, R(XMM0));
 	}
-	fpr.BindToRegister(d, false);
+	fpr.BindToRegister(d, true);
 	MOVSD(fpr.RX(d), R(XMM1));
 	fpr.UnlockAll();
 }
