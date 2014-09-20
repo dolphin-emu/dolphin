@@ -82,6 +82,7 @@ public:
 	void boolX(UGeckoInstruction inst);
 	void extsXx(UGeckoInstruction inst);
 	void cntlzwx(UGeckoInstruction inst);
+	void negx(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);

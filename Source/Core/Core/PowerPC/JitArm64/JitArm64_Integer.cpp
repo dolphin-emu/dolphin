@@ -270,3 +270,21 @@ void JitArm64::cntlzwx(UGeckoInstruction inst)
 	if (inst.Rc)
 		ComputeRC(a);
 }
+
+void JitArm64::negx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	int a = inst.RA;
+	int d = inst.RD;
+
+	FALLBACK_IF(inst.OE);
+
+	if (gpr.IsImm(a))
+		gpr.SetImmediate(d, ~((u32)gpr.GetImm(a)) + 1);
+	else
+		SUB(gpr.R(d), WSP, gpr.R(a), ArithOption(gpr.R(a), ST_LSL, 0));
+
+	if (inst.Rc)
+		ComputeRC(d);
+}
