@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 
 // --- Gekko Instruction ---
@@ -300,25 +301,28 @@ union UGeckoInstruction
 // --- Gekko Special Registers ---
 //
 
+// quantize types
+enum EQuantizeType : u32
+{
+	QUANTIZE_FLOAT = 0,
+	QUANTIZE_U8    = 4,
+	QUANTIZE_U16   = 5,
+	QUANTIZE_S8    = 6,
+	QUANTIZE_S16   = 7,
+};
 
 // GQR Register
 union UGQR
 {
+	BitField< 0, 3, EQuantizeType> st_type;
+	BitField< 8, 6, u32> st_scale;
+	BitField<16, 3, EQuantizeType> ld_type;
+	BitField<24, 6, u32> ld_scale;
+
 	u32 Hex;
-	struct
-	{
-		u32 ST_TYPE  : 3;
-		u32          : 5;
-		u32 ST_SCALE : 6;
-		u32          : 2;
-		u32 LD_TYPE  : 3;
-		u32          : 5;
-		u32 LD_SCALE : 6;
-		u32          : 2;
-	};
 
 	UGQR(u32 _hex) { Hex = _hex; }
-	UGQR()         {Hex = 0;  }
+	UGQR()         { Hex = 0;  }
 };
 
 // FPU Register
@@ -720,17 +724,6 @@ union UReg_PTE
 //
 // --- Gekko Types and Defs ---
 //
-
-
-// quantize types
-enum EQuantizeType
-{
-	QUANTIZE_FLOAT = 0,
-	QUANTIZE_U8    = 4,
-	QUANTIZE_U16   = 5,
-	QUANTIZE_S8    = 6,
-	QUANTIZE_S16   = 7,
-};
 
 // branches
 enum
