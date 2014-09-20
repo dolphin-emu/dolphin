@@ -24,10 +24,12 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 
 	s32 offset = inst.SIMM_12;
 	bool indexed = inst.OPCD == 4;
-	bool update = (inst.OPCD == 61 && offset) || (inst.OPCD == 4 && inst.SUBOP6 & 32);
+	bool update = (inst.OPCD == 61 && offset) || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
 	int a = inst.RA;
 	int b = indexed ? inst.RB : a;
 	int s = inst.FS;
+	int i = indexed ? inst.Ix : inst.I;
+	int w = indexed ? inst.Wx : inst.W;
 
 	gpr.Lock(a, b);
 	gpr.FlushLockX(RSCRATCH_EXTRA);
@@ -57,11 +59,11 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
 	// 0b0011111100000111, or 0x3F07.
 	MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-	AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + inst.I]));
+	AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
 	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
 	// FIXME: Fix ModR/M encoding to allow [RSCRATCH2*8+disp32] without a base register!
-	if (inst.W)
+	if (w)
 	{
 		// One value
 		PXOR(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
@@ -96,10 +98,12 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 
 	s32 offset = inst.SIMM_12;
 	bool indexed = inst.OPCD == 4;
-	bool update = (inst.OPCD == 57 && offset) || (inst.OPCD == 4 && inst.SUBOP6 & 32);
+	bool update = (inst.OPCD == 57 && offset) || (inst.OPCD == 4 && !!(inst.SUBOP6 & 32));
 	int a = inst.RA;
 	int b = indexed ? inst.RB : a;
 	int s = inst.FS;
+	int i = indexed ? inst.Ix : inst.I;
+	int w = indexed ? inst.Wx : inst.W;
 
 	gpr.Lock(a, b);
 	gpr.FlushLockX(RSCRATCH_EXTRA);
@@ -126,13 +130,13 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 	MOV(32, R(RSCRATCH2), Imm32(0x3F07));
 
 	// Get the high part of the GQR register
-	OpArg gqr = PPCSTATE(spr[SPR_GQR0 + inst.I]);
+	OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
 	gqr.offset += 2;
 
 	AND(32, R(RSCRATCH2), gqr);
 	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
-	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[inst.W * 8])));
+	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
 
 	MEMCHECK_START(false)
 	CVTPS2PD(fpr.RX(s), R(XMM0));
