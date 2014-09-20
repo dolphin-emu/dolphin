@@ -1,4 +1,4 @@
-Dolphin VR 4.0-3381
+Dolphin VR 4.0-3399
 (Unofficial Dolphin build with Oculus Rift support.)
 Open Source licence: GPL v2 (my contributions are GPL v2+)
 
@@ -43,6 +43,7 @@ the correct depth. It's different for every game.
 You can edit the per-game settings by right clicking a game in the list and
 choosing "properties". It doesn't take effect until you restart the game. 
 You can also adjust the settings with the keyboard during the game.
+And there's now a VR Game tab in the graphics options.
 
 ## Free-Look Keys:
 (Free-Look must be turned on. These keys often conflict with game controls,
@@ -201,6 +202,7 @@ Zelda: Wind Waker (dot in middle of screen)
 Animal Crossing GameCube (near-clipping when turning head)
 Bomberman Generation (angled camera)
 Mario Party 4 (working, angled camera)
+Alien Hominid (menus are the wrong scale)
 Zelda Twilight Princess GameCube (Effects are missing, map is black, water has no reflections, hawkeye has problem in top left corner) 
 Mario Party 5 (white characters at start)
 Baldur's Gate Dark Alliance (lights at HUD depth, angled camera)
@@ -209,11 +211,12 @@ Pikmin 2 (3D HUD at wrong depth, far clipping)
 Zelda Collector's Edition: OOT (Giant A button behind you)
 Zelda Collector's Edition: Majora's Mask (Giant A button behind you)
 Sonic Adventures DX (white subtitles and some screens)
+Paper Mario (works, a few things render strangely)
+Ikagura (HUD doesn't line up right yet)
 Donkey Konga 2 (slight menu issues)
 Tony Hawks Pro 4 (some intros missing head-tracking)
 Four Swords Adventures (z-fighting, letterboxing)
 Mario Kart Double Dash (dirty screen)
-Paper Mario (works, a few things render strangely)
 Soul Calibur 2 (HUD is ocluded by world behind it)
 Metroid Prime (lots of culling, skybox is wrong depth)
 Metroid Prime 2 Echoes GameCube (lots of culling, scan cursor in top left)
@@ -234,6 +237,7 @@ Time Splitters (black noise)
 Sonic Heroes (most things missing)
 Luigi's Mansion (only intro works)
 
+Battalion Wars (crashes when starting a level)
 Zelda Collector's Edition: Zelda 1 (broken)
 Zelda Collector's Edition: Zelda 2 (broken)
 Game Boy Player (freezes)
@@ -243,6 +247,7 @@ Final Fantasy Crystal (Crash, CPU)
 Super Mario Strikers (Crash)
 Viewtiful Joe (crash)
 Pokemon Box Ruby and Sapphire (crash)
+Bloody War Primal Fury (crash)
 
 ## VR compatability for Nintendo 64 games:
 These games have been tested, and had their defaults set to the correct scale.
