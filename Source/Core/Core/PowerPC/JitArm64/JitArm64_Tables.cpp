@@ -191,7 +191,7 @@ static GekkoOPTemplate table31[] =
 	{284, &JitArm64::boolX},                    //"eqvx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{0,   &JitArm64::FallBackToInterpreter},    //"cmp",    OPTYPE_INTEGER, FL_IN_AB | FL_SET_CRn}},
 	{32,  &JitArm64::FallBackToInterpreter},    //"cmpl",   OPTYPE_INTEGER, FL_IN_AB | FL_SET_CRn}},
-	{26,  &JitArm64::FallBackToInterpreter},    //"cntlzwx",OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
+	{26,  &JitArm64::cntlzwx},                  //"cntlzwx",OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
 	{922, &JitArm64::extsXx},                   //"extshx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
 	{954, &JitArm64::extsXx},                   //"extsbx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
 	{536, &JitArm64::FallBackToInterpreter},    //"srwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},

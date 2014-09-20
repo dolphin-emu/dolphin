@@ -81,6 +81,7 @@ public:
 	void arith_imm(UGeckoInstruction inst);
 	void boolX(UGeckoInstruction inst);
 	void extsXx(UGeckoInstruction inst);
+	void cntlzwx(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);

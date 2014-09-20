@@ -243,3 +243,30 @@ void JitArm64::extsXx(UGeckoInstruction inst)
 	if (inst.Rc)
 		ComputeRC(a);
 }
+
+void JitArm64::cntlzwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	int a = inst.RA;
+	int s = inst.RS;
+
+	if (gpr.IsImm(s))
+	{
+		u32 mask = 0x80000000;
+		u32 i = 0;
+		for (; i < 32; i++, mask >>= 1)
+		{
+			if ((u32)gpr.GetImm(s) & mask)
+				break;
+		}
+		gpr.SetImmediate(a, i);
+	}
+	else
+	{
+		CLZ(gpr.R(a), gpr.R(s));
+	}
+
+	if (inst.Rc)
+		ComputeRC(a);
+}
