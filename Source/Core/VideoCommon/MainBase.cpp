@@ -93,7 +93,7 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 			u32 bLower = s_beginFieldArgs.xfbAddr;
 			u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbStride * s_beginFieldArgs.fbHeight;
 
-			if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
+			if (AddressRangesOverlap(aLower, aUpper, bLower, bUpper))
 				VideoFifo_CheckSwapRequest();
 		}
 	}
