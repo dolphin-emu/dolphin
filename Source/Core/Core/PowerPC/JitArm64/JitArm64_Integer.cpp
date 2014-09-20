@@ -227,3 +227,19 @@ void JitArm64::boolX(UGeckoInstruction inst)
 			ComputeRC(a);
 	}
 }
+
+void JitArm64::extsXx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	int a = inst.RA, s = inst.RS;
+	int size = inst.SUBOP10 == 922 ? 16 : 8;
+
+	if (gpr.IsImm(s))
+		gpr.SetImmediate(a, (u32)(s32)(size == 16 ? (s16)gpr.GetImm(s) : (s8)gpr.GetImm(s)));
+	else
+		SBFM(gpr.R(a), gpr.R(s), 0, size - 1);
+
+	if (inst.Rc)
+		ComputeRC(a);
+}
