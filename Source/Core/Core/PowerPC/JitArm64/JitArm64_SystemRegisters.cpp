@@ -59,6 +59,14 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
 	WriteExit(js.compilerPC + 4);
 }
 
+void JitArm64::mfmsr(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	LDR(INDEX_UNSIGNED, gpr.R(inst.RD), X29, PPCSTATE_OFF(msr));
+}
+
 void JitArm64::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
