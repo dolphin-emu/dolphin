@@ -1307,13 +1307,23 @@ void Jit64::arithXex(UGeckoInstruction inst)
 	else
 	{
 		OpArg source = regsource ? gpr.R(d == b ? a : b) : Imm32(mex ? 0xFFFFFFFF : 0);
-		if (js.carryFlagInverted)
-			CMC();
 		if (d != a && d != b)
 			MOV(32, gpr.R(d), gpr.R(a));
 		if (!add)
 			NOT(32, gpr.R(d));
-		ADC(32, gpr.R(d), source);
+		// if the source is an immediate, we can invert carry by going from add -> sub and doing src = -1 - src
+		if (js.carryFlagInverted && source.IsImm())
+		{
+			source.offset = -1 - (s32)source.offset;
+			SBB(32, gpr.R(d), source);
+			invertedCarry = true;
+		}
+		else
+		{
+			if (js.carryFlagInverted)
+				CMC();
+			ADC(32, gpr.R(d), source);
+		}
 	}
 	FinalizeCarryOverflow(inst.OE, invertedCarry);
 	if (inst.Rc)
