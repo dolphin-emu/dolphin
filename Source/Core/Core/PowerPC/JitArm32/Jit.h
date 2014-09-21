@@ -153,7 +153,9 @@ public:
 	void subfic(UGeckoInstruction _inst);
 	void cntlzwx(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
+	void cmpl(UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);
+	void cmpli(UGeckoInstruction _inst);
 	void negx(UGeckoInstruction _inst);
 	void mulhwux(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);
