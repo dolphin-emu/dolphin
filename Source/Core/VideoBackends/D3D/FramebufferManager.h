@@ -4,6 +4,20 @@
 
 #pragma once
 
+#ifdef HAVE_OCULUSSDK
+#define OVR_D3D_VERSION 11
+
+#include "Kernel/OVR_Types.h"
+#include "OVR_CAPI.h"
+#include "OVR_CAPI_D3D.h"
+#include "Kernel/OVR_Math.h"
+
+extern "C"
+{
+	void ovrhmd_EnableHSWDisplaySDKRender(ovrHmd hmd, ovrBool enabled);
+}
+#endif
+
 #include "d3d11.h"
 
 #include "VideoBackends/D3D/D3DTexture.h"
@@ -62,23 +76,37 @@ public:
 	FramebufferManager();
 	~FramebufferManager();
 
-	static D3DTexture2D* &GetEFBColorTexture();
-	static ID3D11Texture2D* &GetEFBColorStagingBuffer();
+	static D3DTexture2D* &GetEFBColorTexture(int eye);
+	static ID3D11Texture2D* &GetEFBColorStagingBuffer(int eye);
 
-	static D3DTexture2D* &GetEFBDepthTexture();
-	static D3DTexture2D* &GetEFBDepthReadTexture();
-	static ID3D11Texture2D* &GetEFBDepthStagingBuffer();
+	static D3DTexture2D* &GetEFBDepthTexture(int eye);
+	static D3DTexture2D* &GetEFBDepthReadTexture(int eye);
+	static ID3D11Texture2D* &GetEFBDepthStagingBuffer(int eye);
 
-	static D3DTexture2D* &GetResolvedEFBColorTexture();
-	static D3DTexture2D* &GetResolvedEFBDepthTexture();
+	static D3DTexture2D* &GetResolvedEFBColorTexture(int eye);
+	static D3DTexture2D* &GetResolvedEFBDepthTexture(int eye);
 
-	static D3DTexture2D* &GetEFBColorTempTexture() { return m_efb.color_temp_tex; }
-	static void SwapReinterpretTexture()
+	static D3DTexture2D* &GetEFBColorTempTexture(int eye) { return m_efb[eye].color_temp_tex; }
+	static void SwapReinterpretTexture(int eye)
 	{
-		D3DTexture2D* swaptex = GetEFBColorTempTexture();
-		m_efb.color_temp_tex = GetEFBColorTexture();
-		m_efb.color_tex = swaptex;
+		D3DTexture2D* swaptex = GetEFBColorTempTexture(eye);
+		m_efb[eye].color_temp_tex = GetEFBColorTexture(eye);
+		m_efb[eye].color_tex = swaptex;
 	}
+
+	static void RenderToEye(int eye);
+	static void SwapRenderEye();
+
+	static void SwapAsyncFrontBuffers();
+
+	// Oculus Rift
+#ifdef HAVE_OCULUSSDK
+	static void ConfigureRift();
+	static ovrD3D11Texture m_eye_texture[2];
+#endif
+	//static volatile GLuint m_frontBuffer[2];
+	static bool m_stereo3d;
+	static int m_eye_count, m_current_eye;
 
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
@@ -99,7 +127,7 @@ private:
 
 		D3DTexture2D* resolved_color_tex;
 		D3DTexture2D* resolved_depth_tex;
-	} m_efb;
+	} m_efb[2];
 };
 
 }  // namespace DX11

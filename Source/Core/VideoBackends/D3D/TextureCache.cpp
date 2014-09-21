@@ -125,6 +125,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
+	int eye = 0;
+
 	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		g_renderer->ResetAPIState();
@@ -159,12 +161,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		// Create texture copy
 		D3D::drawShadedTexQuad(
-			(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture()->GetSRV() : FramebufferManager::GetEFBColorTexture()->GetSRV(),
+			(srcFormat == PEControl::Z24) ? FramebufferManager::GetEFBDepthTexture(eye)->GetSRV() : FramebufferManager::GetEFBColorTexture(eye)->GetSRV(),
 			&sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
 			(srcFormat == PEControl::Z24) ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
 			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture(eye)->GetRTV(), FramebufferManager::GetEFBDepthTexture(eye)->GetDSV());
 
 		g_renderer->RestoreAPIState();
 	}

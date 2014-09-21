@@ -270,7 +270,7 @@ void XFBEncoder::Shutdown()
 	SAFE_RELEASE(m_out);
 }
 
-void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcRect, float gamma)
+void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcRect, float gamma, int eye)
 {
 	HRESULT hr;
 
@@ -313,7 +313,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
 
-	ID3D11ShaderResourceView* pEFB = FramebufferManager::GetEFBColorTexture()->GetSRV();
+	ID3D11ShaderResourceView* pEFB = FramebufferManager::GetEFBColorTexture(eye)->GetSRV();
 
 	D3D::context->PSSetConstantBuffers(0, 1, &m_encodeParams);
 	D3D::context->PSSetShaderResources(0, 1, &pEFB);
@@ -367,8 +367,8 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	g_renderer->RestoreAPIState();
 	D3D::context->OMSetRenderTargets(1,
-		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
-		FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		&FramebufferManager::GetEFBColorTexture(eye)->GetRTV(),
+		FramebufferManager::GetEFBDepthTexture(eye)->GetDSV());
 }
 
 }

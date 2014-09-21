@@ -295,8 +295,6 @@ bool DolphinApp::OnInit()
 	if (selectVideoBackend && videoBackendName != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
 			WxStrToStr(videoBackendName);
-	if (g_has_hmd)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend = "OGL";
 
 	if (selectAudioEmulation)
 	{

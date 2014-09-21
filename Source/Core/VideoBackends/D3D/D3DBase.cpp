@@ -31,7 +31,7 @@ namespace D3D
 
 ID3D11Device* device = nullptr;
 ID3D11DeviceContext* context = nullptr;
-static IDXGISwapChain* swapchain = nullptr;
+IDXGISwapChain* swapchain = nullptr;
 D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = nullptr;
 HWND hWnd;

@@ -1033,6 +1033,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf)
 {
+	int eye = 0;
 	if (!m_ready) // Make sure we initialized OK
 		return 0;
 
@@ -1122,11 +1123,11 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
 
 		ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
-			FramebufferManager::GetEFBDepthTexture()->GetSRV() :
+			FramebufferManager::GetEFBDepthTexture(eye)->GetSRV() :
 			// FIXME: Instead of resolving EFB, it would be better to pick out a
 			// single sample from each pixel. The game may break if it isn't
 			// expecting the blurred edges around multisampled shapes.
-			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+			FramebufferManager::GetResolvedEFBColorTexture(eye)->GetSRV();
 
 		D3D::context->PSSetConstantBuffers(0, 1, &m_encodeParams);
 		D3D::context->PSSetShaderResources(0, 1, &pEFB);
@@ -1183,8 +1184,8 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 	g_renderer->RestoreAPIState();
 	D3D::context->OMSetRenderTargets(1,
-		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
-		FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		&FramebufferManager::GetEFBColorTexture(eye)->GetRTV(),
+		FramebufferManager::GetEFBDepthTexture(eye)->GetDSV());
 
 	return encodeSize;
 }
