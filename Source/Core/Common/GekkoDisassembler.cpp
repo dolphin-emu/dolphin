@@ -356,16 +356,18 @@ void GekkoDisassembler::trapi(u32 in, unsigned char dmode)
 {
 	const char* cnd = trap_condition[PPCGETD(in)];
 
+
+	m_flags |= dmode;
 	if (cnd != nullptr)
 	{
-		m_flags |= dmode;
 		m_opcode = StringFromFormat("t%c%s", dmode ? 'd' : 'w', cnd);
-		m_operands = imm(in, 0, 2, false);
 	}
 	else
 	{
-		ill(in);
+		m_opcode = StringFromFormat("t%ci", dmode ? 'd' : 'w');
+		m_operands = StringFromFormat("%d, ", PPCGETD(in));
 	}
+	m_operands += imm(in, 0, 2, false);
 }
 
 
