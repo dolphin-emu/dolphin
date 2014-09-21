@@ -589,15 +589,17 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetTargetWidth(), (float)g_renderer->GetTargetHeight());
 	D3D::context->RSSetViewports(1, &vp);
 
-	int eye = 0;
-	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture(eye)->GetRTV(), nullptr);
-	D3D::SetPointCopySampler();
-	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture(eye)->GetSRV(), &source, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
-
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+	{
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture(eye)->GetRTV(), nullptr);
+		D3D::SetPointCopySampler();
+		D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture(eye)->GetSRV(), &source, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+	}
 	g_renderer->RestoreAPIState();
 
-	FramebufferManager::SwapReinterpretTexture(eye);
-	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture(eye)->GetRTV(), FramebufferManager::GetEFBDepthTexture(eye)->GetDSV());
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+		FramebufferManager::SwapReinterpretTexture(eye);
+	FramebufferManager::RenderToEye(0);
 }
 
 void SetSrcBlend(D3D11_BLEND val)
@@ -1139,11 +1141,17 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			g_ovr_lock.unlock();
 	}
 
+	// VR Clear screen before every frame
+	float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; eye++)
+	{
+		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture(eye)->GetRTV(), clear_col);
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture(eye)->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+	}
 	// begin next frame
 	RestoreAPIState();
 	D3D::BeginFrame();
-	int eye = 0;
-	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture(eye)->GetRTV(), FramebufferManager::GetEFBDepthTexture(eye)->GetDSV());
+	FramebufferManager::RenderToEye(0);
 	SetViewport();
 }
 

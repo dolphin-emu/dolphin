@@ -141,63 +141,58 @@ void VertexManager::Draw(UINT stride)
 	D3D::context->IASetVertexBuffers(0, 1, &m_vertex_buffers[m_current_vertex_buffer], &stride, &m_vertex_draw_offset);
 	D3D::context->IASetIndexBuffer(m_index_buffers[m_current_index_buffer], DXGI_FORMAT_R16_UINT, 0);
 
-	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
-		if (eye)
-			FramebufferManager::SwapRenderEye();
-		if (current_primitive_type == PRIMITIVE_TRIANGLES)
+		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
+		INCSTAT(stats.thisFrame.numDrawCalls);
+	}
+	else if (current_primitive_type == PRIMITIVE_LINES)
+	{
+		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
+		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
+
+		bool texOffsetEnable[8];
+
+		for (int i = 0; i < 8; ++i)
+			texOffsetEnable[i] = bpmem.texcoords[i].s.line_offset;
+
+		if (m_lineShader.SetShader(components, lineWidth,
+			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
-			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
+			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
 			INCSTAT(stats.thisFrame.numDrawCalls);
+
+			D3D::context->GSSetShader(nullptr, nullptr, 0);
+			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
-		else if (current_primitive_type == PRIMITIVE_LINES)
+	}
+	else //if (current_primitive_type == PRIMITIVE_POINTS)
+	{
+		float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
+		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
+		float vpWidth = 2.0f * xfmem.viewport.wd;
+		float vpHeight = -2.0f * xfmem.viewport.ht;
+
+		bool texOffsetEnable[8];
+
+		for (int i = 0; i < 8; ++i)
+			texOffsetEnable[i] = bpmem.texcoords[i].s.point_offset;
+
+		if (m_pointShader.SetShader(components, pointSize,
+			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
-			float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
-			float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
-			float vpWidth = 2.0f * xfmem.viewport.wd;
-			float vpHeight = -2.0f * xfmem.viewport.ht;
+			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
+			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
+			INCSTAT(stats.thisFrame.numDrawCalls);
 
-			bool texOffsetEnable[8];
-
-			for (int i = 0; i < 8; ++i)
-				texOffsetEnable[i] = bpmem.texcoords[i].s.line_offset;
-
-			if (m_lineShader.SetShader(components, lineWidth,
-				texOffset, vpWidth, vpHeight, texOffsetEnable))
-			{
-				((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
-				D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-				D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-				INCSTAT(stats.thisFrame.numDrawCalls);
-
-				D3D::context->GSSetShader(nullptr, nullptr, 0);
-				((DX11::Renderer*)g_renderer)->RestoreCull();
-			}
-		}
-		else //if (current_primitive_type == PRIMITIVE_POINTS)
-		{
-			float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
-			float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
-			float vpWidth = 2.0f * xfmem.viewport.wd;
-			float vpHeight = -2.0f * xfmem.viewport.ht;
-
-			bool texOffsetEnable[8];
-
-			for (int i = 0; i < 8; ++i)
-				texOffsetEnable[i] = bpmem.texcoords[i].s.point_offset;
-
-			if (m_pointShader.SetShader(components, pointSize,
-				texOffset, vpWidth, vpHeight, texOffsetEnable))
-			{
-				((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
-				D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-				D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
-				INCSTAT(stats.thisFrame.numDrawCalls);
-
-				D3D::context->GSSetShader(nullptr, nullptr, 0);
-				((DX11::Renderer*)g_renderer)->RestoreCull();
-			}
+			D3D::context->GSSetShader(nullptr, nullptr, 0);
+			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}
 }
@@ -219,11 +214,22 @@ void VertexManager::vFlush(bool useDstAlpha)
 	PrepareDrawBuffers();
 	unsigned int stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
 	VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
-	g_renderer->ApplyState(useDstAlpha);
 
-	Draw(stride);
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+	{
+		if (eye)
+			FramebufferManager::SwapRenderEye();
+		// Each eye needs its own projection matrix
+		if (FramebufferManager::m_stereo3d)
+		{
+			memcpy(VertexShaderManager::constants.projection, VertexShaderManager::constants_eye_projection[FramebufferManager::m_current_eye], 4 * 16);
+		}
+		g_renderer->ApplyState(useDstAlpha);
 
-	g_renderer->RestoreState();
+		Draw(stride);
+
+		g_renderer->RestoreState();
+	}
 }
 
 void VertexManager::ResetBuffer(u32 stride)

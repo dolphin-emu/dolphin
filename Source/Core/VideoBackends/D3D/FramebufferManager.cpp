@@ -263,7 +263,7 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 
 void FramebufferManager::RenderToEye(int eye)
 {
-	if (!m_stereo3d)
+	if (!m_stereo3d && eye)
 		return;
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture(eye)->GetRTV(), FramebufferManager::GetEFBDepthTexture(eye)->GetDSV());
 	m_current_eye = eye;
