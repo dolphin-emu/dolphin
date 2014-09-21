@@ -17,7 +17,7 @@ using namespace ArmGen;
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be
 //    that many of them in a typical program/game.
-bool DisamLoadStore(const u32 inst, ARMReg &rD, u8 &accessSize, bool &Store)
+static bool DisamLoadStore(const u32 inst, ARMReg &rD, u8 &accessSize, bool &Store)
 {
 	u8 op = (inst >> 20) & 0xFF;
 	rD = (ARMReg)((inst >> 12) & 0xF);
