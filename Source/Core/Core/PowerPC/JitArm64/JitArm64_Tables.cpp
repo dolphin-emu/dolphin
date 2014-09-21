@@ -172,7 +172,7 @@ static GekkoOPTemplate table19[] =
 	{193, &JitArm64::FallBackToInterpreter},    //"crxor",  OPTYPE_CR, FL_EVIL}},
 
 	{150, &JitArm64::DoNothing},                //"isync",  OPTYPE_ICACHE, FL_EVIL}},
-	{0,   &JitArm64::FallBackToInterpreter},    //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
+	{0,   &JitArm64::mcrf},                     //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
 
 	{50,  &JitArm64::rfi},                      //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
 	{18,  &JitArm64::Break},                    //"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}

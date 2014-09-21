@@ -58,3 +58,18 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
 
 	WriteExit(js.compilerPC + 4);
 }
+
+void JitArm64::mcrf(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	if (inst.CRFS != inst.CRFD)
+	{
+		ARM64Reg WA = gpr.GetReg();
+		ARM64Reg XA = EncodeRegTo64(WA);
+		LDR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[inst.CRFS]));
+		STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[inst.CRFD]));
+		gpr.Unlock(WA);
+	}
+}
