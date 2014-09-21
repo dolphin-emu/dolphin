@@ -80,8 +80,8 @@
 #define BPMEM_TX_SETTLUT_4      0xB8 // 0xB8 + 4
 #define BPMEM_TEV_COLOR_ENV     0xC0 // 0xC0 + (2 * 16)
 #define BPMEM_TEV_ALPHA_ENV     0xC1 // 0xC1 + (2 * 16)
-#define BPMEM_TEV_REGISTER_L    0xE0 // 0xE0 + (2 * 4)
-#define BPMEM_TEV_REGISTER_H    0xE1 // 0xE1 + (2 * 4)
+#define BPMEM_TEV_COLOR_RA      0xE0 // 0xE0 + (2 * 4)
+#define BPMEM_TEV_COLOR_BG      0xE1 // 0xE1 + (2 * 4)
 #define BPMEM_FOGRANGE          0xE8 // 0xE8 + 6
 #define BPMEM_FOGPARAM0         0xEE
 #define BPMEM_FOGBMAGNITUDE     0xEF
@@ -852,6 +852,8 @@ union TevReg
 	// Access to individual registers
 	BitField< 0, 32,u64> low;
 	BitField<32, 32,u64> high;
+
+	// TODO: Check if Konst uses all 11 bits or just 8
 
 	// Low register
 	BitField< 0,11,s64> red;
