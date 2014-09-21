@@ -4,7 +4,9 @@
 
 #include <queue>
 
+#include "Common/CommonFuncs.h"
 #include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceGBA.h"
 

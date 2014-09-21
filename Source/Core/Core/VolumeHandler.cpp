@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/CommonFuncs.h"
 #include "Core/VolumeHandler.h"
 #include "DiscIO/VolumeCreator.h"
 

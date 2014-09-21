@@ -10,8 +10,8 @@
 
 using namespace Gen;
 
-static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x0000000000000000ULL};
-static const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
+static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x0000000000000000ULL};
+static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL};
 static const double GC_ALIGNED16(half_qnan_and_s32_max[2]) = {0x7FFFFFFF, -0x80000};
 
 void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS)
@@ -149,7 +149,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 		else                   //(n)madd
 			ADDSD(XMM0, fpr.R(b));
 		if (inst.SUBOP5 == 31) //nmadd
-			PXOR(XMM0, M((void*)&psSignBits2));
+			PXOR(XMM0, M((void*)&psSignBits));
 	}
 	fpr.BindToRegister(d, false);
 	//YES it is necessary to dupe the result :(
@@ -185,13 +185,13 @@ void Jit64::fsign(UGeckoInstruction inst)
 	case 40:  // fnegx
 		// We can cheat and not worry about clobbering the top half by using masks
 		// that don't modify the top half.
-		PXOR(fpr.RX(d), M((void*)&psSignBits2));
+		PXOR(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	case 264: // fabsx
-		PAND(fpr.RX(d), M((void*)&psAbsMask2));
+		PAND(fpr.RX(d), M((void*)&psAbsMask));
 		break;
 	case 136: // fnabs
-		POR(fpr.RX(d), M((void*)&psSignBits2));
+		POR(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	default:
 		PanicAlert("fsign bleh");
@@ -212,10 +212,12 @@ void Jit64::fselx(UGeckoInstruction inst)
 	int c = inst.FC;
 
 	fpr.Lock(a, b, c, d);
-	MOVSD(XMM0, fpr.R(a));
-	PXOR(XMM1, R(XMM1));
-	// XMM0 = XMM0 < 0 ? all 1s : all 0s
-	CMPSD(XMM0, R(XMM1), LT);
+	MOVSD(XMM1, fpr.R(a));
+	PXOR(XMM0, R(XMM0));
+	// This condition is very tricky; there's only one right way to handle both the case of
+	// negative/positive zero and NaN properly.
+	// (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
+	CMPSD(XMM0, R(XMM1), NLE);
 	if (cpu_info.bSSE4_1)
 	{
 		MOVSD(XMM1, fpr.R(c));
@@ -228,7 +230,7 @@ void Jit64::fselx(UGeckoInstruction inst)
 		PANDN(XMM1, fpr.R(c));
 		POR(XMM1, R(XMM0));
 	}
-	fpr.BindToRegister(d, false);
+	fpr.BindToRegister(d, true);
 	MOVSD(fpr.RX(d), R(XMM1));
 	fpr.UnlockAll();
 }
@@ -267,25 +269,32 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-void Jit64::fcmpx(UGeckoInstruction inst)
+void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 {
-	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(jo.fpAccurateFcmp);
-
-	//bool ordered = inst.SUBOP10 == 32;
-	int a   = inst.FA;
-	int b   = inst.FB;
-	int crf = inst.CRFD;
 	bool fprf = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF && js.op->wantsFPRF;
+	//bool ordered = !!(inst.SUBOP10 & 32);
+	int a = inst.FA;
+	int b = inst.FB;
+	int crf = inst.CRFD;
 
-	fpr.Lock(a,b);
-	fpr.BindToRegister(b, true);
+	fpr.Lock(a, b);
+	fpr.BindToRegister(b, true, false);
 
 	if (fprf)
 		AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
-	// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
-	UCOMISD(fpr.R(b).GetSimpleReg(), fpr.R(a));
+
+	if (upper)
+	{
+		fpr.BindToRegister(a, true, false);
+		MOVHLPS(XMM0, fpr.RX(a));
+		MOVHLPS(XMM1, fpr.RX(b));
+		UCOMISD(XMM1, R(XMM0));
+	}
+	else
+	{
+		// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
+		UCOMISD(fpr.RX(b), fpr.R(a));
+	}
 
 	FixupBranch pNaN, pLesser, pGreater;
 	FixupBranch continue1, continue2, continue3;
@@ -293,7 +302,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	if (a != b)
 	{
 		// if B > A, goto Lesser's jump target
-		pLesser  = J_CC(CC_A);
+		pLesser = J_CC(CC_A);
 	}
 
 	// if (B != B) or (A != A), goto NaN's jump target
@@ -342,6 +351,15 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 
 	MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
 	fpr.UnlockAll();
+}
+
+void Jit64::fcmpx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(jo.fpAccurateFcmp);
+
+	FloatCompare(inst);
 }
 
 void Jit64::fctiwx(UGeckoInstruction inst)

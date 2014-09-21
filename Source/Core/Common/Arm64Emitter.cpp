@@ -1011,6 +1011,14 @@ void ARM64XEmitter::BICS(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ArithOption Shif
 {
 	EncodeLogicalInst(7, Rd, Rn, Rm, Shift);
 }
+void ARM64XEmitter::MOV(ARM64Reg Rd, ARM64Reg Rm)
+{
+	ORR(Rd, Is64Bit(Rd) ? SP : WSP, Rm, ArithOption(Rm, ST_LSL, 0));
+}
+void ARM64XEmitter::MVN(ARM64Reg Rd, ARM64Reg Rm)
+{
+	ORN(Rd, Is64Bit(Rd) ? SP : WSP, Rm, ArithOption(Rm, ST_LSL, 0));
+}
 
 // Logical (immediate)
 void ARM64XEmitter::AND(ARM64Reg Rd, ARM64Reg Rn, u32 immr, u32 imms)

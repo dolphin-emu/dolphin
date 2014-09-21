@@ -583,6 +583,9 @@ public:
 	void MOVLPD(OpArg arg, X64Reg regOp);
 	void MOVHPD(OpArg arg, X64Reg regOp);
 
+	void MOVHLPS(X64Reg regOp1, X64Reg regOp2);
+	void MOVLHPS(X64Reg regOp1, X64Reg regOp2);
+
 	void MOVD_xmm(X64Reg dest, const OpArg &arg);
 	void MOVQ_xmm(X64Reg dest, OpArg arg);
 	void MOVD_xmm(const OpArg &arg, X64Reg src);

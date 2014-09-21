@@ -253,6 +253,20 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls()
 		_("Save State Slot 9"),
 		_("Save State Slot 10"),
 
+		_("Select State Slot 1"),
+		_("Select State Slot 2"),
+		_("Select State Slot 3"),
+		_("Select State Slot 4"),
+		_("Select State Slot 5"),
+		_("Select State Slot 6"),
+		_("Select State Slot 7"),
+		_("Select State Slot 8"),
+		_("Select State Slot 9"),
+		_("Select State Slot 10"),
+
+		_("Save to selected slot"),
+		_("Load from selected slot"),
+
 		_("Load State Last 1"),
 		_("Load State Last 2"),
 		_("Load State Last 3"),

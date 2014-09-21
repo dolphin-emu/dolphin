@@ -331,6 +331,10 @@ private:
 	void StartGame(const std::string& filename);
 	void OnChangeColumnsVisible(wxCommandEvent& event);
 
+	void OnSelectSlot(wxCommandEvent& event);
+	void OnSaveCurrentSlot(wxCommandEvent& event);
+	void OnLoadCurrentSlot(wxCommandEvent& event);
+
 	// Event table
 	DECLARE_EVENT_TABLE();
 };
@@ -343,3 +347,4 @@ void OnStoppedCallback();
 // For TASInputDlg
 void TASManipFunction(GCPadStatus* PadStatus, int controllerID);
 bool TASInputHasFocus();
+extern int g_saveSlot;

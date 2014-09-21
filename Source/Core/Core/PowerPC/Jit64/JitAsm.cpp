@@ -56,10 +56,7 @@ void Jit64AsmRoutineManager::Generate()
 		ABI_PopRegistersAndAdjustStack(1 << RSCRATCH, 0);
 		#endif
 
-		if (m_stack_top)
-			MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
-		else
-			MOV(64, R(RSP), M(&s_saved_rsp));
+		ResetStack();
 
 		SUB(32, PPCSTATE(downcount), R(RSCRATCH));
 
@@ -78,7 +75,7 @@ void Jit64AsmRoutineManager::Generate()
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				ABI_PopRegistersAndAdjustStack(0, 0);
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-				dbg_exit = J_CC(CC_NZ);
+				dbg_exit = J_CC(CC_NZ, true);
 				SetJumpTarget(notStepping);
 			}
 
@@ -147,6 +144,9 @@ void Jit64AsmRoutineManager::Generate()
 			ABI_CallFunctionA((void *)&Jit, PPCSTATE(pc));
 			ABI_PopRegistersAndAdjustStack(0, 0);
 
+			// Jit might have cleared the code cache
+			ResetStack();
+
 			JMP(dispatcherNoCheck); // no point in special casing this
 
 		SetJumpTarget(bail);
@@ -168,20 +168,26 @@ void Jit64AsmRoutineManager::Generate()
 	//Landing pad for drec space
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		SetJumpTarget(dbg_exit);
+	ResetStack();
 	if (m_stack_top)
 	{
-		MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x8));
+		ADD(64, R(RSP), Imm8(0x18));
 		POP(RSP);
-	}
-	else
-	{
-		MOV(64, R(RSP), M(&s_saved_rsp));
 	}
 	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 	RET();
 
 	GenerateCommon();
 }
+
+void Jit64AsmRoutineManager::ResetStack()
+{
+	if (m_stack_top)
+		MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
+	else
+		MOV(64, R(RSP), M(&s_saved_rsp));
+}
+
 
 void Jit64AsmRoutineManager::GenerateCommon()
 {

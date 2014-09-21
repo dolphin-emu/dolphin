@@ -92,10 +92,10 @@ static GekkoOPTemplate primarytable[] =
 	{54, &Jit64::stfXXX},                //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
 	{55, &Jit64::stfXXX},                //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 
-	{56, &Jit64::psq_l},                 //"psq_l",   OPTYPE_PS, FL_IN_A}},
-	{57, &Jit64::psq_l},                 //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
-	{60, &Jit64::psq_st},                //"psq_st",  OPTYPE_PS, FL_IN_A}},
-	{61, &Jit64::psq_st},                //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
+	{56, &Jit64::psq_lXX},                //"psq_l",   OPTYPE_PS, FL_IN_A}},
+	{57, &Jit64::psq_lXX},                //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
+	{60, &Jit64::psq_stXX},               //"psq_st",  OPTYPE_PS, FL_IN_A}},
+	{61, &Jit64::psq_stXX},               //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
 
 	//missing: 0, 5, 6, 9, 22, 30, 62, 58
 	{0,  &Jit64::FallBackToInterpreter}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
@@ -110,14 +110,14 @@ static GekkoOPTemplate primarytable[] =
 
 static GekkoOPTemplate table4[] =
 {    //SUBOP10
-	{0,    &Jit64::FallBackToInterpreter}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
-	{32,   &Jit64::FallBackToInterpreter}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
+	{0,    &Jit64::ps_cmpXX},              //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
+	{32,   &Jit64::ps_cmpXX},              //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
 	{40,   &Jit64::ps_sign},               //"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
 	{136,  &Jit64::ps_sign},               //"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
 	{264,  &Jit64::ps_sign},               //"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
-	{64,   &Jit64::FallBackToInterpreter}, //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
+	{64,   &Jit64::ps_cmpXX},              //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
 	{72,   &Jit64::ps_mr},                 //"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
-	{96,   &Jit64::FallBackToInterpreter}, //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
+	{96,   &Jit64::ps_cmpXX},              //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
 	{528,  &Jit64::ps_mergeXX},            //"ps_merge00", OPTYPE_PS, FL_RC_BIT}},
 	{560,  &Jit64::ps_mergeXX},            //"ps_merge01", OPTYPE_PS, FL_RC_BIT}},
 	{592,  &Jit64::ps_mergeXX},            //"ps_merge10", OPTYPE_PS, FL_RC_BIT}},
@@ -138,9 +138,9 @@ static GekkoOPTemplate table4_2[] =
 	{20, &Jit64::ps_arith},  //"ps_sub",    OPTYPE_PS, 0}},
 	{21, &Jit64::ps_arith},  //"ps_add",    OPTYPE_PS, 0}},
 	{23, &Jit64::ps_sel},    //"ps_sel",    OPTYPE_PS, 0}},
-	{24, &Jit64::FallBackToInterpreter},    //"ps_res",    OPTYPE_PS, 0}},
+	{24, &Jit64::ps_res},    //"ps_res",    OPTYPE_PS, 0}},
 	{25, &Jit64::ps_arith},  //"ps_mul",    OPTYPE_PS, 0}},
-	{26, &Jit64::FallBackToInterpreter},    //"ps_rsqrte", OPTYPE_PS, 0, 1}},
+	{26, &Jit64::ps_rsqrte}, //"ps_rsqrte", OPTYPE_PS, 0, 1}},
 	{28, &Jit64::ps_maddXX}, //"ps_msub",   OPTYPE_PS, 0}},
 	{29, &Jit64::ps_maddXX}, //"ps_madd",   OPTYPE_PS, 0}},
 	{30, &Jit64::ps_maddXX}, //"ps_nmsub",  OPTYPE_PS, 0}},
@@ -150,10 +150,10 @@ static GekkoOPTemplate table4_2[] =
 
 static GekkoOPTemplate table4_3[] =
 {
-	{6,  &Jit64::FallBackToInterpreter},  //"psq_lx",   OPTYPE_PS, 0}},
-	{7,  &Jit64::FallBackToInterpreter},  //"psq_stx",  OPTYPE_PS, 0}},
-	{38, &Jit64::FallBackToInterpreter},  //"psq_lux",  OPTYPE_PS, 0}},
-	{39, &Jit64::FallBackToInterpreter},  //"psq_stux", OPTYPE_PS, 0}},
+	{6,  &Jit64::psq_lXX},  //"psq_lx",   OPTYPE_PS, 0}},
+	{7,  &Jit64::psq_stXX}, //"psq_stx",  OPTYPE_PS, 0}},
+	{38, &Jit64::psq_lXX},  //"psq_lux",  OPTYPE_PS, 0}},
+	{39, &Jit64::psq_stXX}, //"psq_stux", OPTYPE_PS, 0}},
 };
 
 static GekkoOPTemplate table19[] =
@@ -222,8 +222,8 @@ static GekkoOPTemplate table31[] =
 	{119, &Jit64::lXXx},                   //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte reverse
-	{534, &Jit64::FallBackToInterpreter},  //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{790, &Jit64::FallBackToInterpreter},  //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{534, &Jit64::lXXx},                   //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{790, &Jit64::lXXx},                   //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 
 	// Conditional load/store (Wii SMP)
 	{150, &Jit64::FallBackToInterpreter},  //"stwcxd", OPTYPE_STORE, FL_EVIL | FL_SET_CR0}},
@@ -246,8 +246,8 @@ static GekkoOPTemplate table31[] =
 	{247, &Jit64::stXx},                   //"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store bytereverse
-	{662, &Jit64::FallBackToInterpreter},  //"stwbrx", OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{918, &Jit64::FallBackToInterpreter},  //"sthbrx", OPTYPE_STORE, FL_IN_A | FL_IN_B}},
+	{662, &Jit64::stXx},                   //"stwbrx", OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{918, &Jit64::stXx},                   //"sthbrx", OPTYPE_STORE, FL_IN_A | FL_IN_B}},
 
 	{661, &Jit64::FallBackToInterpreter},  //"stswx",  OPTYPE_STORE, FL_EVIL}},
 	{725, &Jit64::FallBackToInterpreter},  //"stswi",  OPTYPE_STORE, FL_EVIL}},
@@ -284,10 +284,10 @@ static GekkoOPTemplate table31[] =
 	// Unused instructions on GC
 	{310, &Jit64::FallBackToInterpreter},  //"eciwx",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{438, &Jit64::FallBackToInterpreter},  //"ecowx",   OPTYPE_INTEGER, FL_RC_BIT}},
-	{854, &Jit64::FallBackToInterpreter},  //"eieio",   OPTYPE_INTEGER, FL_RC_BIT}},
+	{854, &Jit64::DoNothing},              //"eieio",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{306, &Jit64::FallBackToInterpreter},  //"tlbie",   OPTYPE_SYSTEM, 0}},
 	{370, &Jit64::FallBackToInterpreter},  //"tlbia",   OPTYPE_SYSTEM, 0}},
-	{566, &Jit64::FallBackToInterpreter},  //"tlbsync", OPTYPE_SYSTEM, 0}},
+	{566, &Jit64::DoNothing},              //"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
 static GekkoOPTemplate table31_2[] =

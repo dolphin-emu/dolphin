@@ -43,17 +43,17 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 
 	if (cpu_info.bSSE4_1)
 	{
-		MOVAPD(XMM0, fpr.R(a));
-		PXOR(XMM1, R(XMM1));
-		CMPPD(XMM0, R(XMM1), LT); // XMM0 = XMM0 < 0 ? all 1s : all 0s
+		MOVAPD(XMM1, fpr.R(a));
+		PXOR(XMM0, R(XMM0));
+		CMPPD(XMM0, R(XMM1), NLE);
 		MOVAPD(XMM1, fpr.R(c));
 		BLENDVPD(XMM1, fpr.R(b));
 	}
 	else
 	{
-		MOVAPD(XMM1, fpr.R(a));
-		PXOR(XMM0, R(XMM0));
-		CMPPD(XMM1, R(XMM0), LT); // XMM0 = XMM0 < 0 ? all 1s : all 0s
+		MOVAPD(XMM0, fpr.R(a));
+		PXOR(XMM1, R(XMM1));
+		CMPPD(XMM1, R(XMM0), NLE);
 		MOVAPD(XMM0, R(XMM1));
 		PAND(XMM1, fpr.R(b));
 		PANDN(XMM0, fpr.R(c));
@@ -282,6 +282,59 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
+void Jit64::ps_rsqrte(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+	int b = inst.FB;
+	int d = inst.FD;
+
+	gpr.FlushLockX(RSCRATCH_EXTRA);
+	fpr.Lock(b, d);
+	fpr.BindToRegister(b, true, false);
+	fpr.BindToRegister(d, false);
+
+	MOVSD(XMM0, fpr.R(b));
+	CALL((void *)asm_routines.frsqrte);
+	MOVSD(fpr.R(d), XMM0);
+
+	MOVHLPS(XMM0, fpr.RX(b));
+	CALL((void *)asm_routines.frsqrte);
+	MOVLHPS(fpr.RX(d), XMM0);
+
+	ForceSinglePrecisionP(fpr.RX(d));
+	SetFPRFIfNeeded(inst, fpr.RX(d));
+	fpr.UnlockAll();
+	gpr.UnlockAllX();
+}
+
+void Jit64::ps_res(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(inst.Rc);
+	int b = inst.FB;
+	int d = inst.FD;
+
+	gpr.FlushLockX(RSCRATCH_EXTRA);
+	fpr.Lock(b, d);
+	fpr.BindToRegister(b, true, false);
+	fpr.BindToRegister(d, false);
+
+	MOVSD(XMM0, fpr.R(b));
+	CALL((void *)asm_routines.fres);
+	MOVSD(fpr.R(d), XMM0);
+
+	MOVHLPS(XMM0, fpr.RX(b));
+	CALL((void *)asm_routines.fres);
+	MOVLHPS(fpr.RX(d), XMM0);
+
+	ForceSinglePrecisionP(fpr.RX(d));
+	SetFPRFIfNeeded(inst, fpr.RX(d));
+	fpr.UnlockAll();
+	gpr.UnlockAllX();
+}
 
 //TODO: add optimized cases
 void Jit64::ps_maddXX(UGeckoInstruction inst)
@@ -350,4 +403,13 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 	SetFPRFIfNeeded(inst, XMM0);
 	MOVAPD(fpr.RX(d), R(XMM0));
 	fpr.UnlockAll();
+}
+
+void Jit64::ps_cmpXX(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff);
+	FALLBACK_IF(jo.fpAccurateFcmp);
+
+	FloatCompare(inst, !!(inst.SUBOP10 & 64));
 }

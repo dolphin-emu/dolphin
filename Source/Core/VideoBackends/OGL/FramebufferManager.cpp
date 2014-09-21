@@ -8,6 +8,7 @@
 #include "VideoCommon/VR920.h"
 #endif
 
+#include "Common/CommonFuncs.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"

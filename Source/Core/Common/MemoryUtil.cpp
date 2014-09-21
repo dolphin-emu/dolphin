@@ -6,8 +6,11 @@
 #include <cstdlib>
 #include <string>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 
 #ifdef _WIN32
 #include <windows.h>

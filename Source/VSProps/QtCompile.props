@@ -9,9 +9,12 @@
     <QtIncludeDir>$(QTDIR)include\</QtIncludeDir>
     <QtLibDir>$(QTDIR)lib\</QtLibDir>
     <QtBinDir>$(QTDIR)bin\</QtBinDir>
+    <QtPluginsDir>$(QTDIR)plugins\</QtPluginsDir>
     <QtToolOutDir>$(IntDir)</QtToolOutDir>
     <QtMocOutPrefix>$(QtToolOutDir)moc_</QtMocOutPrefix>
-    <QtLibSuffix Condition="'$(Configuration)'=='Debug'">d</QtLibSuffix>
+    <QtDebugSuffix>d</QtDebugSuffix>
+    <QtLibSuffix Condition="'$(Configuration)'=='Debug'">$(QtDebugSuffix)</QtLibSuffix>
+    <QtPluginFolder>QtPlugins</QtPluginFolder>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -117,17 +120,43 @@
     <IcuDlls Include="icudt52;icuin52;icuuc52" />
     <QtLibNames Include="@(IcuDlls);Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Widgets$(QtLibSuffix)" />
     <QtDlls Include="@(QtLibNames -> '$(QtBinDir)%(Identity).dll')" />
+    <!--Filter plugins to copy based on the observation that all debug versions end in "d"-->
+    <QtAllPlugins Include="$(QtPluginsDir)**\*$(QtLibSuffix).dll" />
+    <QtPlugins Condition="'$(Configuration)'=='Debug'" Include="@(QtAllPlugins)" />
+    <QtPlugins Condition="'$(Configuration)'=='Release'" Exclude="$(QtPluginsDir)**\*$(QtDebugSuffix).dll" Include="@(QtAllPlugins)" />
+    <QtPluginsDest Include="@(QtPlugins -> '$(BinaryOutputDir)$(QtPluginFolder)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </ItemGroup>
+  <PropertyGroup>
+    <QtConfFile>$(BinaryOutputDir)qt.conf</QtConfFile>
+  </PropertyGroup>
   <Target Name="QtCopyBinaries"
     AfterTargets="Build"
     Condition="'$(I_AM_BUILDACUS)'==''"
-    Inputs="@(QtDlls)"
-    Outputs="@(QtDlls -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    Inputs="@(QtDlls);@(QtPlugins)"
+    Outputs="@(QtDlls -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)');@(QtPlugins -> '$(BinaryOutputDir)$(QtPluginFolder)\%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Qt .dlls" Importance="High" />
     <Copy
-        SourceFiles="@(QtDlls)"
-        DestinationFolder="$(BinaryOutputDir)"
-        Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(QtDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(QtDlls.Extension)').Ticks)"
+      SourceFiles="@(QtDlls)"
+      DestinationFolder="$(BinaryOutputDir)"
+      SkipUnchangedFiles="true"
+    />
+    <Copy
+      SourceFiles="@(QtPlugins)"
+      DestinationFiles="@(QtPluginsDest)"
+      SkipUnchangedFiles="true"
+    />
+  </Target>
+  <Target Name="QtCreateConf"
+    BeforeTargets="QtCopyBinaries"
+    Condition="!Exists('$(QtConfFile)')">
+    <!--
+      Create a file which tells Qt where to look for "plugins".
+      Otherwise Qt only looks in ./<subtype>/type.dll instead of ./$(QtPluginFolder)/<subtype>/type.dll, which is messy
+      -->
+    <WriteLinesToFile
+      File="$(QtConfFile)"
+      Lines="[Paths];Plugins = ./$(QtPluginFolder)"
+      Overwrite="true"
     />
   </Target>
 </Project>

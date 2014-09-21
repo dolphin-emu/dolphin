@@ -8,7 +8,8 @@
 
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
-
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/BannerLoaderGC.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"

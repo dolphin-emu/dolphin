@@ -47,9 +47,15 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		// Setting valid video backends.
 		//
 		final ListPreference videoBackends = (ListPreference) findPreference("gpuPref");
+		final boolean deviceSupportsGL = eglHelper.supportsOpenGL();
 		final boolean deviceSupportsGLES3 = eglHelper.supportsGLES3();
 
-		if (deviceSupportsGLES3)
+		if (deviceSupportsGL)
+		{
+			videoBackends.setEntries(R.array.videoBackendEntriesGL);
+			videoBackends.setEntryValues(R.array.videoBackendValuesGL);
+		}
+		else if (deviceSupportsGLES3)
 		{
 			videoBackends.setEntries(R.array.videoBackendEntriesGLES3);
 			videoBackends.setEntryValues(R.array.videoBackendValuesGLES3);

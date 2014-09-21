@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/ColorUtil.h"
-#include "Common/CommonTypes.h"
+#include "Common/CommonFuncs.h"
 
 namespace ColorUtil
 {

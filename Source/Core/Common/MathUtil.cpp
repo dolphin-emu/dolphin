@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <numeric>
 
 #include "Common/CommonTypes.h"
