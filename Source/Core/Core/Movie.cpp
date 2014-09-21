@@ -74,7 +74,6 @@ static u32 s_DSPcoefHash = 0;
 
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;
-static int s_currentSaveVersion = 0;
 
 static std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
 
@@ -786,9 +785,6 @@ bool PlayInput(const std::string& filename)
 
 void DoState(PointerWrap &p)
 {
-	static const int MOVIE_STATE_VERSION = 1;
-	s_currentSaveVersion = MOVIE_STATE_VERSION;
-	p.Do(s_currentSaveVersion);
 	// many of these could be useful to save even when no movie is active,
 	// and the data is tiny, so let's just save it regardless of movie state.
 	p.Do(g_currentFrame);
