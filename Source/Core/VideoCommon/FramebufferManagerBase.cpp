@@ -99,7 +99,7 @@ const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbA
 		u32 dstLower = vxfb->xfbAddr;
 		u32 dstUpper = vxfb->xfbAddr + 2 * vxfb->xfbWidth * vxfb->xfbHeight;
 
-		if (addrRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
+		if (AddressRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
 		{
 			m_overlappingXFBArray[xfbCount] = vxfb->xfbSource;
 			++xfbCount;
@@ -213,7 +213,7 @@ void FramebufferManagerBase::ReplaceVirtualXFB()
 			it->xfbHeight = 0;
 			it->xfbWidth = 0;
 		}
-		else if (addrRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
+		else if (AddressRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
 		{
 			s32 upperOverlap = (srcUpper - dstLower) / lineSize;
 			s32 lowerOverlap = (dstUpper - srcLower) / lineSize;
