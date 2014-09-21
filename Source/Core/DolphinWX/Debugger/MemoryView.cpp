@@ -24,6 +24,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
+#include "Core/HW/Memmap.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
@@ -309,6 +310,9 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			dc.DrawText(StrToWxStr(mem), 17+fontSize*(8), rowY1);
 			dc.SetTextForeground(*wxBLACK);
 		}
+
+		if (!Memory::IsRAMAddress(address))
+			continue;
 
 		if (debugger->IsAlive())
 		{
