@@ -87,6 +87,8 @@ public:
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
 	void mcrf(UGeckoInstruction inst);
+	void mfsr(UGeckoInstruction inst);
+	void mtsr(UGeckoInstruction inst);
 
 	// LoadStore
 	void icbi(UGeckoInstruction inst);

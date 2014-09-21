@@ -73,3 +73,19 @@ void JitArm64::mcrf(UGeckoInstruction inst)
 		gpr.Unlock(WA);
 	}
 }
+
+void JitArm64::mfsr(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	LDR(INDEX_UNSIGNED, gpr.R(inst.RD), X29, PPCSTATE_OFF(sr[inst.SR]));
+}
+
+void JitArm64::mtsr(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	STR(INDEX_UNSIGNED, gpr.R(inst.RS), X29, PPCSTATE_OFF(sr[inst.SR]));
+}
