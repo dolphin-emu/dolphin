@@ -89,3 +89,35 @@ void JitArm64::mtsr(UGeckoInstruction inst)
 
 	STR(INDEX_UNSIGNED, gpr.R(inst.RS), X29, PPCSTATE_OFF(sr[inst.SR]));
 }
+
+void JitArm64::mfsrin(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	ARM64Reg index = gpr.GetReg();
+	ARM64Reg index64 = EncodeRegTo64(index);
+	ARM64Reg RB = gpr.R(inst.RB);
+
+	UBFM(index, RB, 28, 31);
+	ADD(index64, X29, index64, ArithOption(index64, ST_LSL, 2));
+	LDR(INDEX_UNSIGNED, gpr.R(inst.RD), index64, PPCSTATE_OFF(sr[0]));
+
+	gpr.Unlock(index);
+}
+
+void JitArm64::mtsrin(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITSystemRegistersOff);
+
+	ARM64Reg index = gpr.GetReg();
+	ARM64Reg index64 = EncodeRegTo64(index);
+	ARM64Reg RB = gpr.R(inst.RB);
+
+	UBFM(index, RB, 28, 31);
+	ADD(index64, X29, index64, ArithOption(index64, ST_LSL, 2));
+	STR(INDEX_UNSIGNED, gpr.R(inst.RD), index64, PPCSTATE_OFF(sr[0]));
+
+	gpr.Unlock(index);
+}
