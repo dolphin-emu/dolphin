@@ -201,7 +201,7 @@ protected:
 				label_adapter->Disable();
 			}
 
-#if !defined(_APPLE_)
+#ifndef __APPLE__
 			// This isn't supported on OSX.
 
 			choice_display_resolution->Disable();
