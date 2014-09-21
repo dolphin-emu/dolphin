@@ -92,6 +92,7 @@ public:
 	void mtsr(UGeckoInstruction inst);
 	void mfsrin(UGeckoInstruction inst);
 	void mtsrin(UGeckoInstruction inst);
+	void twx(UGeckoInstruction inst);
 
 	// LoadStore
 	void icbi(UGeckoInstruction inst);

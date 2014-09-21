@@ -129,3 +129,65 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
 
 	gpr.Unlock(index);
 }
+
+void JitArm64::twx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	gpr.Flush(FlushMode::FLUSH_ALL);
+	fpr.Flush(FlushMode::FLUSH_ALL);
+
+	s32 a = inst.RA;
+
+	ARM64Reg WA = gpr.GetReg();
+
+	if (inst.OPCD == 3) // twi
+	{
+		if (inst.SIMM_16 >= 0 && inst.SIMM_16 < 4096)
+		{
+			// Can fit in immediate in to the instruction encoding
+			CMP(gpr.R(a), inst.SIMM_16);
+		}
+		else
+		{
+			MOVI2R(WA, (s32)(s16)inst.SIMM_16);
+			CMP(gpr.R(a), WA);
+		}
+	}
+	else // tw
+	{
+		CMP(gpr.R(a), gpr.R(inst.RB));
+	}
+
+	std::vector<FixupBranch> fixups;
+	CCFlags conditions[] = { CC_LT, CC_GT, CC_EQ, CC_VC, CC_VS };
+
+	for (int i = 0; i < 5; i++)
+	{
+		if (inst.TO & (1 << i))
+		{
+			FixupBranch f = B(conditions[i]);
+			fixups.push_back(f);
+		}
+	}
+	FixupBranch dont_trap = B();
+
+	for (const FixupBranch& fixup : fixups)
+	{
+		SetJumpTarget(fixup);
+	}
+
+	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+	ORR(WA, WA, 24, 0); // Same as WA | EXCEPTION_PROGRAM
+	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+
+	MOVI2R(WA, js.compilerPC);
+
+	// WA is unlocked in this function
+	WriteExceptionExit(WA);
+
+	SetJumpTarget(dont_trap);
+
+	WriteExit(js.compilerPC + 4);
+}
