@@ -23,10 +23,12 @@ GeckoSockServer::GeckoSockServer()
 GeckoSockServer::~GeckoSockServer()
 {
 	if (clientThread.joinable())
+	{
 		--client_count;
 
-	client_running = false;
-	clientThread.join();
+		client_running = false;
+		clientThread.join();
+	}
 
 	if (client_count <= 0)
 	{
