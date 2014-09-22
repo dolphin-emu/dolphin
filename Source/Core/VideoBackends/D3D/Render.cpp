@@ -237,7 +237,7 @@ Renderer::Renderer(void *&window_handle)
 
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-	for (int eye = 0; eye < 2; eye++)
+	for (int eye = 0; eye < FramebufferManager::m_eye_count; eye++)
 	{
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture(eye)->GetRTV(), ClearColor);
 		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture(eye)->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
