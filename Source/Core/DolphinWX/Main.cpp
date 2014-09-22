@@ -207,9 +207,21 @@ bool DolphinApp::OnInit()
 			"User folder path",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
+		// -vr option like in Oculus Rift Source engine games and Doom 3 BFG
 		{
 			wxCMD_LINE_SWITCH, "vr", nullptr,
 			"force Virtual Reality on",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		// -force-d3d11 and -force-ogl options like in Oculus Rift unity demos
+		{
+			wxCMD_LINE_SWITCH, "force-d3d11", nullptr,
+			"force use of Direct3D 11 backend",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_SWITCH, "force-ogl", nullptr,
+			"force use of OpenGL backend",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -232,6 +244,16 @@ bool DolphinApp::OnInit()
 	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
 	playMovie = parser.Found("movie", &movieFile);
 	g_force_vr = parser.Found("vr");
+	if (parser.Found("force-d3d11"))
+	{
+		selectVideoBackend = true;
+		videoBackendName = "D3D";
+	}
+	else if (parser.Found("force-ogl"))
+	{
+		selectVideoBackend = true;
+		videoBackendName = "OGL";
+	}
 
 	if (parser.Found("user", &userPath))
 	{
