@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <string>
+#include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
 namespace ciface
