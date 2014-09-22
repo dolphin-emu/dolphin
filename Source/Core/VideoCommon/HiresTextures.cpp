@@ -94,7 +94,13 @@ PC_TexFormat GetHiresTex(const std::string& filename, unsigned int* pWidth, unsi
 	int height;
 	int channels;
 
-	u8 *temp = SOIL_load_image(textureMap[filename].c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
+	File::IOFile file;
+	file.Open(textureMap[filename], "rb");
+	std::vector<u8> buffer(file.GetSize());
+	file.ReadBytes(buffer.data(), file.GetSize());
+
+	u8* temp = SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), &width, &height, &channels, SOIL_LOAD_RGBA);
+
 	if (temp == nullptr)
 	{
 		ERROR_LOG(VIDEO, "Custom texture %s failed to load", textureMap[filename].c_str());
