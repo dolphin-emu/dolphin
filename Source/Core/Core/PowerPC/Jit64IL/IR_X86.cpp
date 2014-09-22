@@ -29,6 +29,7 @@ The register allocation is linear scan allocation.
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 
 using namespace IREmitter;
@@ -1889,11 +1890,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			// NaN
 			Jit->SetJumpTarget(pNan);
 			Jit->MOV(32, R(destreg), Imm32(0x1));
-
-			static const u32 FPSCR_VE = (u32)1 << (31 - 24);
-			static const u32 FPSCR_VXVC = (u32)1 << (31 - 12);
-			static const u32 FPSCR_VXSNAN = (u32)1 << (31 - 7);
-			static const u32 FPSCR_FX = (u32)1 << (31 - 0);
 
 			if (ordered)
 			{

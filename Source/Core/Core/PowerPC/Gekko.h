@@ -407,6 +407,7 @@ const u32 FPSCR_VXVC   = 1U << (31 - 12);
 const u32 FPSCR_VXSOFT = 1U << (31 - 21);
 const u32 FPSCR_VXSQRT = 1U << (31 - 22);
 const u32 FPSCR_VXCVI  = 1U << (31 - 23);
+const u32 FPSCR_VE     = 1U << (31 - 24);
 
 const u32 FPSCR_VX_ANY = FPSCR_VXSNAN | FPSCR_VXISI | FPSCR_VXIDI | FPSCR_VXZDZ | FPSCR_VXIMZ |
                          FPSCR_VXVC | FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI;
