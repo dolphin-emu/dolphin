@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <vector>
+
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/RasterFont.h"
@@ -141,7 +143,7 @@ RasterFont::RasterFont()
 	glGenTextures(1, &texture);
 	glActiveTexture(GL_TEXTURE0+8);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	u32* texture_data = new u32[CHAR_WIDTH * CHAR_COUNT * CHAR_HEIGHT];
+	std::vector<u32> texture_data(CHAR_WIDTH * CHAR_COUNT * CHAR_HEIGHT);
 	for (int y = 0; y < CHAR_HEIGHT; y++)
 	{
 		for (int c = 0; c < CHAR_COUNT; c++)
@@ -154,8 +156,7 @@ RasterFont::RasterFont()
 		}
 	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data);
-	delete [] texture_data;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data.data());
 
 	// generate shader
 	ProgramShaderCache::CompileShader(s_shader, s_vertexShaderSrc, s_fragmentShaderSrc);
@@ -188,7 +189,7 @@ RasterFont::~RasterFont()
 
 void RasterFont::printMultilineText(const std::string& text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
 {
-	GLfloat* vertices = new GLfloat[text.length() * 6 * 4];
+	std::vector<GLfloat> vertices(text.length() * 6 * 4);
 
 	int usage = 0;
 	GLfloat delta_x = GLfloat(2 * CHAR_WIDTH) / GLfloat(bbWidth);
@@ -253,15 +254,12 @@ void RasterFont::printMultilineText(const std::string& text, double start_x, dou
 
 	if (!usage)
 	{
-		delete [] vertices;
 		return;
 	}
 
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, usage*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-
-	delete [] vertices;
+	glBufferData(GL_ARRAY_BUFFER, usage*sizeof(GLfloat), vertices.data(), GL_STREAM_DRAW);
 
 	s_shader.Bind();
 
