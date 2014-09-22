@@ -325,6 +325,13 @@ void STACKALIGN GatherPipeBursted()
 	else
 		fifo.CPWritePointer += GATHER_PIPE_SIZE;
 
+	if (m_CPCtrlReg.GPReadEnable && m_CPCtrlReg.GPLinkEnable)
+	{
+		ProcessorInterface::Fifo_CPUWritePointer = fifo.CPWritePointer;
+		ProcessorInterface::Fifo_CPUBase = fifo.CPBase;
+		ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
+	}
+
 	Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
 
 	if (!IsOnThread())
@@ -484,13 +491,6 @@ void SetCpControlRegister()
 	fifo.bFF_HiWatermarkInt = m_CPCtrlReg.FifoOverflowIntEnable;
 	fifo.bFF_LoWatermarkInt = m_CPCtrlReg.FifoUnderflowIntEnable;
 	fifo.bFF_GPLinkEnable = m_CPCtrlReg.GPLinkEnable;
-
-	if (m_CPCtrlReg.GPReadEnable && m_CPCtrlReg.GPLinkEnable)
-	{
-		ProcessorInterface::Fifo_CPUWritePointer = fifo.CPWritePointer;
-		ProcessorInterface::Fifo_CPUBase = fifo.CPBase;
-		ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
-	}
 
 	if (fifo.bFF_GPReadEnable && !m_CPCtrlReg.GPReadEnable)
 	{
