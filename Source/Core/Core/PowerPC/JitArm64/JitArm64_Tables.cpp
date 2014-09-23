@@ -42,7 +42,7 @@ static GekkoOPTemplate primarytable[] =
 
 	{1,  &JitArm64::HLEFunction},               //"HLEFunction", OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{2,  &JitArm64::FallBackToInterpreter},     //"DynaBlock",   OPTYPE_SYSTEM, 0}},
-	{3,  &JitArm64::Break},                     //"twi",         OPTYPE_SYSTEM, FL_ENDBLOCK}},
+	{3,  &JitArm64::twx},                       //"twi",         OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{17, &JitArm64::sc},                        //"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
 
 	{7,  &JitArm64::FallBackToInterpreter},     //"mulli",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_RC_BIT, 2}},
@@ -172,7 +172,7 @@ static GekkoOPTemplate table19[] =
 	{193, &JitArm64::FallBackToInterpreter},    //"crxor",  OPTYPE_CR, FL_EVIL}},
 
 	{150, &JitArm64::DoNothing},                //"isync",  OPTYPE_ICACHE, FL_EVIL}},
-	{0,   &JitArm64::FallBackToInterpreter},    //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
+	{0,   &JitArm64::mcrf},                     //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
 
 	{50,  &JitArm64::rfi},                      //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
 	{18,  &JitArm64::Break},                    //"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}
@@ -191,9 +191,9 @@ static GekkoOPTemplate table31[] =
 	{284, &JitArm64::boolX},                    //"eqvx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{0,   &JitArm64::FallBackToInterpreter},    //"cmp",    OPTYPE_INTEGER, FL_IN_AB | FL_SET_CRn}},
 	{32,  &JitArm64::FallBackToInterpreter},    //"cmpl",   OPTYPE_INTEGER, FL_IN_AB | FL_SET_CRn}},
-	{26,  &JitArm64::FallBackToInterpreter},    //"cntlzwx",OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
-	{922, &JitArm64::FallBackToInterpreter},    //"extshx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
-	{954, &JitArm64::FallBackToInterpreter},    //"extsbx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
+	{26,  &JitArm64::cntlzwx},                  //"cntlzwx",OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
+	{922, &JitArm64::extsXx},                   //"extshx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
+	{954, &JitArm64::extsXx},                   //"extsbx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
 	{536, &JitArm64::FallBackToInterpreter},    //"srwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 	{792, &JitArm64::FallBackToInterpreter},    //"srawx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 	{824, &JitArm64::FallBackToInterpreter},    //"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
@@ -267,19 +267,19 @@ static GekkoOPTemplate table31[] =
 	{983, &JitArm64::FallBackToInterpreter},    //"stfiwx", OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
 
 	{19,  &JitArm64::FallBackToInterpreter},    //"mfcr",   OPTYPE_SYSTEM, FL_OUT_D}},
-	{83,  &JitArm64::FallBackToInterpreter},    //"mfmsr",  OPTYPE_SYSTEM, FL_OUT_D}},
+	{83,  &JitArm64::mfmsr},                    //"mfmsr",  OPTYPE_SYSTEM, FL_OUT_D}},
 	{144, &JitArm64::FallBackToInterpreter},    //"mtcrf",  OPTYPE_SYSTEM, 0}},
 	{146, &JitArm64::mtmsr},                    //"mtmsr",  OPTYPE_SYSTEM, FL_ENDBLOCK}},
-	{210, &JitArm64::FallBackToInterpreter},    //"mtsr",   OPTYPE_SYSTEM, 0}},
-	{242, &JitArm64::FallBackToInterpreter},    //"mtsrin", OPTYPE_SYSTEM, 0}},
+	{210, &JitArm64::mtsr},                     //"mtsr",   OPTYPE_SYSTEM, 0}},
+	{242, &JitArm64::mtsrin},                   //"mtsrin", OPTYPE_SYSTEM, 0}},
 	{339, &JitArm64::FallBackToInterpreter},    //"mfspr",  OPTYPE_SPR, FL_OUT_D}},
 	{467, &JitArm64::FallBackToInterpreter},    //"mtspr",  OPTYPE_SPR, 0, 2}},
 	{371, &JitArm64::FallBackToInterpreter},    //"mftb",   OPTYPE_SYSTEM, FL_OUT_D | FL_TIMER}},
 	{512, &JitArm64::FallBackToInterpreter},    //"mcrxr",  OPTYPE_SYSTEM, 0}},
-	{595, &JitArm64::FallBackToInterpreter},    //"mfsr",   OPTYPE_SYSTEM, FL_OUT_D, 2}},
-	{659, &JitArm64::FallBackToInterpreter},    //"mfsrin", OPTYPE_SYSTEM, FL_OUT_D, 2}},
+	{595, &JitArm64::mfsr},                     //"mfsr",   OPTYPE_SYSTEM, FL_OUT_D, 2}},
+	{659, &JitArm64::mfsrin},                   //"mfsrin", OPTYPE_SYSTEM, FL_OUT_D, 2}},
 
-	{4,   &JitArm64::Break},                    //"tw",     OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
+	{4,   &JitArm64::twx},                      //"tw",     OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
 	{598, &JitArm64::DoNothing},                //"sync",   OPTYPE_SYSTEM, 0, 2}},
 	{982, &JitArm64::icbi},                     //"icbi",   OPTYPE_SYSTEM, FL_ENDBLOCK, 3}},
 
@@ -310,7 +310,7 @@ static GekkoOPTemplate table31_2[] =
 	{11,   &JitArm64::FallBackToInterpreter},   //"mulhwux", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
 	{235,  &JitArm64::FallBackToInterpreter},   //"mullwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
 	{747,  &JitArm64::FallBackToInterpreter},   //"mullwox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
-	{104,  &JitArm64::FallBackToInterpreter},   //"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{104,  &JitArm64::negx},                    //"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{40,   &JitArm64::FallBackToInterpreter},   //"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{552,  &JitArm64::FallBackToInterpreter},   //"subox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{8,    &JitArm64::FallBackToInterpreter},   //"subfcx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},

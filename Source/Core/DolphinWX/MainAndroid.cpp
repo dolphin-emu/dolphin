@@ -133,7 +133,7 @@ static inline u32 GetPixel(u32 *buffer, unsigned int x, unsigned int y) {
 	return buffer[y * 192 + x];
 }
 
-bool LoadBanner(std::string filename, u32 *Banner)
+static bool LoadBanner(std::string filename, u32 *Banner)
 {
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
 
@@ -188,7 +188,8 @@ bool LoadBanner(std::string filename, u32 *Banner)
 
 	return false;
 }
-std::string GetName(std::string filename)
+
+static std::string GetName(std::string filename)
 {
 	if (!m_names.empty())
 		return m_names[0];
@@ -202,7 +203,7 @@ std::string GetName(std::string filename)
 	return name;
 }
 
-std::string GetJString(JNIEnv *env, jstring jstr)
+static std::string GetJString(JNIEnv *env, jstring jstr)
 {
 	std::string result = "";
 	if (!jstr)

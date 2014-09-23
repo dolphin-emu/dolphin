@@ -80,9 +80,19 @@ public:
 	// Integer
 	void arith_imm(UGeckoInstruction inst);
 	void boolX(UGeckoInstruction inst);
+	void extsXx(UGeckoInstruction inst);
+	void cntlzwx(UGeckoInstruction inst);
+	void negx(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
+	void mfmsr(UGeckoInstruction inst);
+	void mcrf(UGeckoInstruction inst);
+	void mfsr(UGeckoInstruction inst);
+	void mtsr(UGeckoInstruction inst);
+	void mfsrin(UGeckoInstruction inst);
+	void mtsrin(UGeckoInstruction inst);
+	void twx(UGeckoInstruction inst);
 
 	// LoadStore
 	void icbi(UGeckoInstruction inst);

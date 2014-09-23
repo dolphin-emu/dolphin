@@ -328,7 +328,7 @@ void Jit64::DoMergedBranch()
 		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
 		if (js.next_inst.LK)
 			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
-		WriteExitDestInRSCRATCH(js.next_inst.LK, js.next_compilerPC + 4);
+		WriteBLRExit();
 	}
 	else
 	{

@@ -168,32 +168,32 @@ void JitArm::subfic(UGeckoInstruction inst)
 	// This instruction has no RC flag
 }
 
-u32 Add(u32 a, u32 b)
+static u32 Add(u32 a, u32 b)
 {
 	return a + b;
 }
 
-u32 Sub(u32 a, u32 b)
+static u32 Sub(u32 a, u32 b)
 {
 	return a - b;
 }
 
-u32 Mul(u32 a, u32 b)
+static u32 Mul(u32 a, u32 b)
 {
 	return a * b;
 }
 
-u32 Or (u32 a, u32 b)
+static u32 Or (u32 a, u32 b)
 {
 	return a | b;
 }
 
-u32 And(u32 a, u32 b)
+static u32 And(u32 a, u32 b)
 {
 	return a & b;
 }
 
-u32 Xor(u32 a, u32 b)
+static u32 Xor(u32 a, u32 b)
 {
 	return a ^ b;
 }
