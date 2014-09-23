@@ -318,7 +318,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
-		for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
 			out.Write("centroid in float3 uv%d;\n", i);
 		}
