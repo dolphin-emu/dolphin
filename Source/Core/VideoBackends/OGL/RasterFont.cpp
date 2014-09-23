@@ -216,7 +216,7 @@ void RasterFont::printMultilineText(const std::string& text, double start_x, dou
 			continue;
 		}
 
-		if ((u32) c < CHAR_OFFSET || (u32) c >= CHAR_COUNT + CHAR_OFFSET)
+		if (c < CHAR_OFFSET || c >= CHAR_COUNT + CHAR_OFFSET)
 			continue;
 
 		vertices[usage++] = x;
