@@ -220,7 +220,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_SWITCH, "force-ogl", nullptr,
+			wxCMD_LINE_SWITCH, "force-opengl", nullptr,
 			"force use of OpenGL backend",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
@@ -249,7 +249,7 @@ bool DolphinApp::OnInit()
 		selectVideoBackend = true;
 		videoBackendName = "D3D";
 	}
-	else if (parser.Found("force-ogl"))
+	else if (parser.Found("force-opengl"))
 	{
 		selectVideoBackend = true;
 		videoBackendName = "OGL";
