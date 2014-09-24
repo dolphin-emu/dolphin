@@ -499,7 +499,7 @@ void Interpreter::lhzx(UGeckoInstruction _inst)
 void Interpreter::lswx(UGeckoInstruction _inst)
 {
 	u32 EA = Helper_Get_EA_X(_inst);
-	u32 n = rSPR(SPR_XER) & 0x7F;
+	u32 n = (u8)PowerPC::ppcState.xer_stringctrl;
 	int r = _inst.RD;
 	int i = 0;
 
@@ -727,7 +727,7 @@ void Interpreter::stswi(UGeckoInstruction _inst)
 void Interpreter::stswx(UGeckoInstruction _inst)
 {
 	u32 EA = Helper_Get_EA_X(_inst);
-	u32 n = rSPR(SPR_XER) & 0x7F;
+	u32 n = (u8)PowerPC::ppcState.xer_stringctrl;
 	int r = _inst.RS;
 	int i = 0;
 

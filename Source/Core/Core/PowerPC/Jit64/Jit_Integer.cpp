@@ -22,12 +22,12 @@ void Jit64::GenerateConstantOverflow(bool overflow)
 	if (overflow)
 	{
 		//XER[OV/SO] = 1
-		OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
+		MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_OV_MASK | XER_SO_MASK));
 	}
 	else
 	{
 		//XER[OV] = 0
-		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_OV_MASK));
+		AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));
 	}
 }
 
@@ -36,11 +36,11 @@ void Jit64::GenerateOverflow()
 {
 	FixupBranch jno = J_CC(CC_NO);
 	//XER[OV/SO] = 1
-	OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
+	MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_OV_MASK | XER_SO_MASK));
 	FixupBranch exit = J();
 	SetJumpTarget(jno);
 	//XER[OV] = 0
-	AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~XER_OV_MASK));
+	AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));
 	SetJumpTarget(exit);
 }
 
@@ -60,7 +60,7 @@ void Jit64::FinalizeCarry(CCFlags cond)
 			{
 				// convert the condition to a carry flag (is there a better way?)
 				SETcc(cond, R(RSCRATCH));
-				BT(8, R(RSCRATCH), Imm8(0));
+				SHR(8, R(RSCRATCH), Imm8(1));
 			}
 			js.carryFlagSet = true;
 		}
@@ -92,23 +92,22 @@ void Jit64::FinalizeCarry(bool ca)
 		}
 		else
 		{
-			JitClearCAOV(true, false);
+			JitClearCA();
 		}
 	}
 }
 
-// Assumes CA,OV are clear
 void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 {
-	// USES_XER
 	if (oe)
 	{
 		// Make sure not to lose the carry flags (not a big deal, this path is rare).
 		PUSHF();
-		AND(32, PPCSTATE(spr[SPR_XER]), Imm32(~(XER_SO_MASK | XER_OV_MASK)));
+		//XER[OV] = 0
+		AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));
 		FixupBranch jno = J_CC(CC_NO);
 		//XER[OV/SO] = 1
-		OR(32, PPCSTATE(spr[SPR_XER]), Imm32(XER_SO_MASK | XER_OV_MASK));
+		MOV(8, PPCSTATE(xer_so_ov), Imm8(XER_SO_MASK | XER_OV_MASK));
 		SetJumpTarget(jno);
 		POPF();
 	}
@@ -1792,27 +1791,15 @@ void Jit64::srawix(UGeckoInstruction inst)
 			if (a != s)
 				MOV(32, gpr.R(a), R(RSCRATCH));
 			// some optimized common cases that can be done in slightly fewer ops
-			if (amount == 31)
+			if (amount == 1)
 			{
-				JitSetCA();
-				SAR(32, gpr.R(a), Imm8(31));
-				NEG(32, R(RSCRATCH));                                     // RSCRATCH = input == INT_MIN ? INT_MIN : -input;
-				AND(32, R(RSCRATCH), Imm32(0x80000000));                  // RSCRATCH = input < 0 && input != INT_MIN ? 0 : 0x80000000
-				SHR(32, R(RSCRATCH), Imm8(31 - XER_CA_SHIFT));
-				XOR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); // XER.CA = (input < 0 && input != INT_MIN)
-			}
-			else if (amount == 1)
-			{
-				JitClearCAOV(true, false);
-				SHR(32, R(RSCRATCH), Imm8(31));                          // sign
-				AND(32, R(RSCRATCH), gpr.R(a));                          // (sign && carry)
+				SHR(32, R(RSCRATCH), Imm8(31));         // sign
+				AND(32, R(RSCRATCH), gpr.R(a));         // (sign && carry)
 				SAR(32, gpr.R(a), Imm8(1));
-				SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
-				OR(32, PPCSTATE(spr[SPR_XER]), R(RSCRATCH)); // XER.CA = sign && carry, aka (input&0x80000001) == 0x80000001
+				MOV(8, PPCSTATE(xer_ca), R(RSCRATCH));  // XER.CA = sign && carry, aka (input&0x80000001) == 0x80000001
 			}
 			else
 			{
-				JitClearCAOV(true, false);
 				SAR(32, gpr.R(a), Imm8(amount));
 				SHL(32, R(RSCRATCH), Imm8(32 - amount));
 				TEST(32, R(RSCRATCH), gpr.R(a));
