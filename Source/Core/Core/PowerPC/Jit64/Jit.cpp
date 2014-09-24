@@ -741,6 +741,15 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
+			// If we have a register that will never be used again, flush it.
+			for (int j = 0; j < 32; j++)
+			{
+				if (!(ops[i].gprInUse & (1 << j)))
+					gpr.StoreFromRegister(j);
+				if (!(ops[i].fprInUse & (1 << j)))
+					fpr.StoreFromRegister(j);
+			}
+
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
 				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
