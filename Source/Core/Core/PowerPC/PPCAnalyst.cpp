@@ -407,11 +407,6 @@ static bool isCmp(const CodeOp& a)
 	return (a.inst.OPCD == 10 || a.inst.OPCD == 11) || (a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32));
 }
 
-static bool isRlwinm_rc(const CodeOp& a)
-{
-	return a.inst.OPCD == 21 && a.inst.Rc;
-}
-
 static bool isCarryOp(const CodeOp& a)
 {
 	return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) && a.opinfo->type == OPTYPE_INTEGER;
@@ -437,7 +432,7 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
 			CodeOp &b = code[i + increment];
 			// Reorder integer compares, rlwinm., and carry-affecting ops
 			// (if we add more merged branch instructions, add them here!)
-			if ((type == REORDER_CARRY && isCarryOp(a)) || (type == REORDER_CMP && (isCmp(a) || isRlwinm_rc(a))))
+			if ((type == REORDER_CARRY && isCarryOp(a)) || (type == REORDER_CMP && (isCmp(a) || a.outputCR0)))
 			{
 				// once we're next to a carry instruction, don't move away!
 				if (type == REORDER_CARRY && i != start)
@@ -469,8 +464,8 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 	// to get pairs like addc/adde next to each other.
 	if (HasOption(OPTION_CARRY_MERGE))
 	{
-		ReorderInstructionsCore(instructions, code, true, REORDER_CARRY);
 		ReorderInstructionsCore(instructions, code, false, REORDER_CARRY);
+		ReorderInstructionsCore(instructions, code, true, REORDER_CARRY);
 	}
 	if (HasOption(OPTION_BRANCH_MERGE))
 		ReorderInstructionsCore(instructions, code, false, REORDER_CMP);
