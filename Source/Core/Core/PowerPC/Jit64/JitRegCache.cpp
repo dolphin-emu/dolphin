@@ -108,7 +108,22 @@ X64Reg RegCache::GetFreeXReg()
 			return (X64Reg)xr;
 		}
 	}
-	//Okay, not found :( Force grab one
+	// Okay, not found :( Force grab one!
+
+	// First, see if we have any registers that are only going to be used for a float store.
+	// These go through GPRs, so the cost of tossing them back into memory is lower than anything else.
+	for (size_t i = 0; i < aCount; i++)
+	{
+		X64Reg xr = (X64Reg)aOrder[i];
+		if (xregs[xr].locked)
+			continue;
+		size_t preg = xregs[xr].ppcReg;
+		if (!regs[preg].locked && !(jit->js.op->fprInXmm & (1 << preg)))
+		{
+			StoreFromRegister(preg);
+			return xr;
+		}
+	}
 
 	//TODO - add a pass to grab xregs whose ppcreg is not used in the next 3 instructions
 	u32 last_used = 0xFFFFFFFF;
@@ -365,4 +380,15 @@ void RegCache::Flush(FlushMode mode)
 	}
 
 	cur_use_quantum = 0;
+}
+
+int RegCache::NumFreeRegisters()
+{
+	int count = 0;
+	size_t aCount;
+	const int* aOrder = GetAllocationOrder(aCount);
+	for (size_t i = 0; i < aCount; i++)
+		if (!xregs[aOrder[i]].locked && xregs[aOrder[i]].free)
+			count++;
+	return count;
 }

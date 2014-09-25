@@ -727,6 +727,26 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SetJumpTarget(noBreakpoint);
 			}
 
+			// If we have an input register that is going to be used again, load it pre-emptively,
+			// even if the instruction doesn't strictly need it in a register, to avoid redundant
+			// loads later. Of course, don't do this if we're already out of registers.
+			// As a bit of a heuristic, make sure we have at least one register left over for the
+			// output, which needs to be bound in the actual instruction compilation.
+			// TODO: make this smarter in the case that we're actually register-starved, i.e.
+			// prioritize the more important registers.
+			for (int k = 0; k < 3 && gpr.NumFreeRegisters() >= 2; k++)
+			{
+				int reg = ops[i].regsIn[k];
+				if (reg >= 0 && (ops[i].gprInUse & (1 << reg)) && !gpr.R(reg).IsImm())
+					gpr.BindToRegister(reg, true, false);
+			}
+			for (int k = 0; k < 4 && fpr.NumFreeRegisters() >= 2; k++)
+			{
+				int reg = ops[i].fregsIn[k];
+				if (reg >= 0 && (ops[i].fprInXmm & (1 << reg)))
+					fpr.BindToRegister(reg, true, false);
+			}
+
 			Jit64Tables::CompileInstruction(ops[i]);
 
 			// If we have a register that will never be used again, flush it.

@@ -123,6 +123,7 @@ public:
 
 
 	Gen::X64Reg GetFreeXReg();
+	int NumFreeRegisters();
 };
 
 class GPRRegCache : public RegCache
