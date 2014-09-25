@@ -174,12 +174,15 @@ int RegCache::SanityCheck() const
 
 void RegCache::DiscardRegContentsIfCached(size_t preg)
 {
-	if (IsBound(preg))
+	if (regs[preg].away)
 	{
-		X64Reg xr = regs[preg].location.GetSimpleReg();
-		xregs[xr].free = true;
-		xregs[xr].dirty = false;
-		xregs[xr].ppcReg = INVALID_REG;
+		if (regs[preg].location.IsSimpleReg())
+		{
+			X64Reg xr = regs[preg].location.GetSimpleReg();
+			xregs[xr].free = true;
+			xregs[xr].dirty = false;
+			xregs[xr].ppcReg = INVALID_REG;
+		}
 		regs[preg].away = false;
 		regs[preg].location = GetDefaultLocation(preg);
 		regs[preg].last_used_quantum = 0;
