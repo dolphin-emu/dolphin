@@ -1354,11 +1354,11 @@ static wxString GetOptionName(wxString::const_iterator p,
 // have other characters.
 
 // A short option additionally can have these
-#define wxCMD_LINE_CHARS_ALLOWED_BY_SHORT_OPTION wxT("_?")
+#define wxCMD_LINE_CHARS_ALLOWED_BY_SHORT_OPTION wxT("_?-")
 
 // A long option can have the same characters as a short option and a '-'.
 #define wxCMD_LINE_CHARS_ALLOWED_BY_LONG_OPTION \
-    wxCMD_LINE_CHARS_ALLOWED_BY_SHORT_OPTION wxT("-")
+    wxCMD_LINE_CHARS_ALLOWED_BY_SHORT_OPTION wxT("")
 
 static wxString GetShortOptionName(wxString::const_iterator p,
                                   wxString::const_iterator end)

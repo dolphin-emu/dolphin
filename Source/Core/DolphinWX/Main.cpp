@@ -214,6 +214,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		// -force-d3d11 and -force-ogl options like in Oculus Rift unity demos
+		// note, wxwidgets had to be modified to allow this
 		{
 			wxCMD_LINE_SWITCH, "force-d3d11", nullptr,
 			"force use of Direct3D 11 backend",
