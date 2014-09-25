@@ -118,11 +118,13 @@ public:
 	static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
 
 	PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor; }
+	// Max height/width
+	virtual int GetMaxTextureSize() = 0;
 
 protected:
 
 	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
-	static bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height);
+	bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height);
 
 	static void CheckFifoRecording();
 	static void RecordVideoMemory();

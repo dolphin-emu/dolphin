@@ -49,6 +49,8 @@ public:
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc) override;
 
 	static bool CheckForResize();
+
+	int GetMaxTextureSize() override;
 };
 
 }

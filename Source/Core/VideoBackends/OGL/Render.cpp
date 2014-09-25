@@ -1904,4 +1904,11 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 
 }
 
+int Renderer::GetMaxTextureSize()
+{
+	int max_size;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_size);
+	return max_size;
+}
+
 }
