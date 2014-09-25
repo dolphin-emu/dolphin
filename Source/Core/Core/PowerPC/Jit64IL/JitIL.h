@@ -58,8 +58,6 @@ public:
 
 	JitBlockCache *GetBlockCache() override { return &blocks; }
 
-	bool HandleFault(uintptr_t access_address, SContext* ctx) override { return false; }
-
 	void ClearCache() override;
 	const u8 *GetDispatcher()
 	{
