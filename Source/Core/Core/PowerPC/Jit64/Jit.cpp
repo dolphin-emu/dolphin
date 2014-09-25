@@ -174,26 +174,12 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 void Jit64::Init()
 {
 	jo.optimizeStack = true;
-	/* This will enable block linking in JitBlockCache::FinalizeBlock(), it gives faster execution but may not
-	   be as stable as the alternative (to not link the blocks). However, I have not heard about any good examples
-	   where this cause problems, so I'm enabling this by default, since I seem to get perhaps as much as 20% more
-	   fps with this option enabled. If you suspect that this option cause problems you can also disable it from the
-	   debugging window. */
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	jo.enableBlocklink = true;
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bJITBlockLinking ||
+		 SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
+		// TODO: support block linking with MMU
 		jo.enableBlocklink = false;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = false;
-	}
-	else
-	{
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bJITBlockLinking)
-		{
-			jo.enableBlocklink = false;
-		}
-		else
-		{
-			jo.enableBlocklink = !SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
-		}
 	}
 	jo.fpAccurateFcmp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF;
 	jo.optimizeGatherPipe = true;
