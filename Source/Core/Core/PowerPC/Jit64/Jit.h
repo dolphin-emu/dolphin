@@ -119,6 +119,7 @@ public:
 	void FinalizeCarry(Gen::CCFlags cond);
 	void FinalizeCarry(bool ca);
 	void ComputeRC(const Gen::OpArg & arg, bool needs_test = true, bool needs_sext = true);
+	void OptimizedMOV(int d, Gen::OpArg src, bool Rc);
 
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
 	Gen::OpArg ExtractFromReg(int reg, int offset);
