@@ -121,7 +121,7 @@ public:
 	void JitGetAndClearCAOV(bool oe);
 	void JitSetCA();
 	void JitSetCAIf(Gen::CCFlags conditionCode);
-	void JitClearCAOV(bool ca, bool oe);
+	void JitClearCA();
 
 	void ForceSinglePrecisionS(Gen::X64Reg xmm);
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);

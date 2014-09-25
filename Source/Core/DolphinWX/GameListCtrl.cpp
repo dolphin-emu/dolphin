@@ -973,16 +973,13 @@ void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
 	const GameListItem *iso =  GetSelectedISO();
 	if (!iso)
 		return;
+
 	u64 title;
-	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(iso->GetFileName());
-	if (Iso)
+	std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(iso->GetFileName()));
+	if (volume && volume->GetTitleID((u8*)&title))
 	{
-		if (Iso->GetTitleID((u8*)&title))
-		{
-			title = Common::swap64(title);
-			CWiiSaveCrypted::ExportWiiSave(title);
-		}
-		delete Iso;
+		title = Common::swap64(title);
+		CWiiSaveCrypted::ExportWiiSave(title);
 	}
 }
 

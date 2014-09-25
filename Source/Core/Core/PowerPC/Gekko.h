@@ -335,16 +335,17 @@ union UFPR
 #define XER_CA_SHIFT 29
 #define XER_OV_SHIFT 30
 #define XER_SO_SHIFT 31
-#define XER_CA_MASK (1U << XER_CA_SHIFT)
-#define XER_OV_MASK (1U << XER_OV_SHIFT)
-#define XER_SO_MASK (1U << XER_SO_SHIFT)
+#define XER_OV_MASK 1
+#define XER_SO_MASK 2
 // XER
 union UReg_XER
 {
 	struct
 	{
 		u32 BYTE_COUNT : 7;
-		u32            : 22;
+		u32            : 1;
+		u32 BYTE_CMP   : 8;
+		u32            : 13;
 		u32 CA         : 1;
 		u32 OV         : 1;
 		u32 SO         : 1;

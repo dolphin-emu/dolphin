@@ -1027,9 +1027,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 				break;
 
 			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOV(32, R(reg), PPCSTATE(spr[SPR_XER]));
-			Jit->SHR(32, R(reg), Imm8(29));
-			Jit->AND(32, R(reg), Imm8(1));
+			Jit->MOVZX(32, 8, reg, PPCSTATE(xer_ca));
 			RI.regs[reg] = I;
 			break;
 		}
@@ -1107,7 +1105,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			Jit->JitSetCA();
 			FixupBranch cont = Jit->J();
 			Jit->SetJumpTarget(nocarry);
-			Jit->JitClearCAOV(true, false);
+			Jit->JitClearCA();
 			Jit->SetJumpTarget(cont);
 			regNormalRegClear(RI, I);
 			break;

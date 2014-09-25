@@ -29,7 +29,7 @@ struct CodeOp //16B
 	s8 regsOut[2];
 	s8 regsIn[3];
 	s8 fregOut;
-	s8 fregsIn[3];
+	s8 fregsIn[4];
 	bool isBranchTarget;
 	bool wantsCR0;
 	bool wantsCR1;
@@ -42,6 +42,9 @@ struct CodeOp //16B
 	bool outputCA;
 	bool canEndBlock;
 	bool skip;  // followed BL-s for example
+	// which registers are still needed after this instruction in this block
+	u32 gprInUse;
+	u32 fprInUse;
 };
 
 struct BlockStats

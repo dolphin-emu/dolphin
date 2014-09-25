@@ -58,7 +58,7 @@ namespace ButtonManager
 		TRIGGER_R
 	};
 
-	void AddBind(std::string dev, sBind *bind)
+	static void AddBind(std::string dev, sBind *bind)
 	{
 		auto it = m_controllers.find(dev);
 		if (it != m_controllers.end())

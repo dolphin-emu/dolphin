@@ -140,7 +140,6 @@ void Jit64::mtspr(UGeckoInstruction inst)
 
 	case SPR_LR:
 	case SPR_CTR:
-	case SPR_XER:
 		// These are safe to do the easy way, see the bottom of this function.
 		break;
 
@@ -154,6 +153,24 @@ void Jit64::mtspr(UGeckoInstruction inst)
 	case SPR_GQR0 + 7:
 		// These are safe to do the easy way, see the bottom of this function.
 		break;
+
+	case SPR_XER:
+		gpr.Lock(d);
+		gpr.BindToRegister(d, true, false);
+		MOV(32, R(RSCRATCH), gpr.R(d));
+		AND(32, R(RSCRATCH), Imm32(0xff7f));
+		MOV(16, PPCSTATE(xer_stringctrl), R(RSCRATCH));
+
+		MOV(32, R(RSCRATCH), gpr.R(d));
+		SHR(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
+		AND(8, R(RSCRATCH), Imm8(1));
+		MOV(8, PPCSTATE(xer_ca), R(RSCRATCH));
+
+		MOV(32, R(RSCRATCH), gpr.R(d));
+		SHR(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
+		MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
+		gpr.UnlockAll();
+		return;
 
 	default:
 		FALLBACK_IF(true);
@@ -238,6 +255,18 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		gpr.UnlockAllX();
 		break;
 	}
+	case SPR_XER:
+		gpr.Lock(d);
+		gpr.BindToRegister(d, false);
+		MOVZX(32, 16, gpr.RX(d), PPCSTATE(xer_stringctrl));
+		MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_ca));
+		SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
+		OR(32, gpr.R(d), R(RSCRATCH));
+
+		MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
+		SHL(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
+		OR(32, gpr.R(d), R(RSCRATCH));
+		break;
 	case SPR_WPAR:
 	case SPR_DEC:
 	case SPR_PMC1:
@@ -422,17 +451,20 @@ void Jit64::mcrxr(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff);
 
-	// USES_CR
-
 	// Copy XER[0-3] into CR[inst.CRFD]
-	MOV(32, R(RSCRATCH), PPCSTATE(spr[SPR_XER]));
-	SHR(32, R(RSCRATCH), Imm8(28));
+	MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_ca));
+	MOVZX(32, 8, RSCRATCH2, PPCSTATE(xer_so_ov));
+	// [0 SO OV CA]
+	LEA(32, RSCRATCH, MComplex(RSCRATCH, RSCRATCH2, SCALE_2, 0));
+	// [SO OV CA 0] << 3
+	SHL(32, R(RSCRATCH), Imm8(4));
 
-	MOV(64, R(RSCRATCH), MScaled(RSCRATCH, SCALE_8, (u32)(u64)m_crTable));
+	MOV(64, R(RSCRATCH), MDisp(RSCRATCH, (u32)(u64)m_crTable));
 	MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
 
 	// Clear XER[0-3]
-	AND(32, PPCSTATE(spr[SPR_XER]), Imm32(0x0FFFFFFF));
+	MOV(8, PPCSTATE(xer_ca), Imm8(0));
+	MOV(8, PPCSTATE(xer_so_ov), Imm8(0));
 }
 
 void Jit64::crXXX(UGeckoInstruction inst)
