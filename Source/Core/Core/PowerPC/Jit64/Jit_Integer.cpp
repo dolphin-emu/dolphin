@@ -589,6 +589,10 @@ void Jit64::boolX(UGeckoInstruction inst)
 				gpr.BindToRegister(a, false, true);
 				MOV(32, gpr.R(a), gpr.R(s));
 			}
+			else if (inst.Rc)
+			{
+				gpr.BindToRegister(a, true, false);
+			}
 			needs_test = true;
 		}
 		else if ((inst.SUBOP10 == 476 /* nandx */) || (inst.SUBOP10 == 124 /* norx */))
@@ -598,6 +602,10 @@ void Jit64::boolX(UGeckoInstruction inst)
 				gpr.Lock(a,s);
 				gpr.BindToRegister(a, false, true);
 				MOV(32, gpr.R(a), gpr.R(s));
+			}
+			else if (inst.Rc)
+			{
+				gpr.BindToRegister(a, true, true);
 			}
 			else
 			{
