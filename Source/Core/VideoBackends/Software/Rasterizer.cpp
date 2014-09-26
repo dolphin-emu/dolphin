@@ -314,6 +314,22 @@ static void BuildBlock(s32 blockX, s32 blockY)
 	}
 }
 
+inline void PrepareBlock(s32 blockX, s32 blockY)
+{
+	static s32 x = -1;
+	static s32 y = -1;
+
+	blockX &= ~(BLOCK_SIZE - 1);
+	blockY &= ~(BLOCK_SIZE - 1);
+
+	if (x != blockX || y != blockY)
+	{
+		x = blockX;
+		y = blockY;
+		BuildBlock(x, y);
+	}
+}
+
 void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
 {
 	INCSTAT(swstats.thisFrame.numTrianglesDrawn);
@@ -401,10 +417,6 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 			InitSlope(&TexSlopes[i][comp], v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1], v2->texCoords[i][comp] * w[2], fltdx31, fltdx12, fltdy12, fltdy31);
 	}
 
-	// Start in corner of 8x8 block
-	minx &= ~(BLOCK_SIZE - 1);
-	miny &= ~(BLOCK_SIZE - 1);
-
 	// Half-edge constants
 	s32 C1 = DY12 * X1 - DX12 * Y1;
 	s32 C2 = DY23 * X2 - DX23 * Y2;
@@ -418,6 +430,10 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	// If drawing, rasterize every block
 	if (!BoundingBox::active)
 	{
+		// Start in corner of 8x8 block
+		minx &= ~(BLOCK_SIZE - 1);
+		miny &= ~(BLOCK_SIZE - 1);
+
 		// Loop through blocks
 		for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
 		{
@@ -499,8 +515,25 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	}
 	else
 	{
-		// If we are only calculating bbox, we only need to find the topmost,
-		// leftmost, bottom most and rightmost pixels to be drawn.
+		// Calculating bbox
+		// First check for alpha channel - don't do anything it if always fails,
+		// Change bbox to primitive size if it always passes
+		AlphaTest::TEST_RESULT alphaRes = bpmem.alpha_test.TestResult();
+
+		if (alphaRes != AlphaTest::UNDETERMINED)
+		{
+			if (alphaRes == AlphaTest::PASS)
+			{
+				BoundingBox::coords[BoundingBox::TOP]    = std::min(BoundingBox::coords[BoundingBox::TOP],    (u16) miny);
+				BoundingBox::coords[BoundingBox::LEFT]   = std::min(BoundingBox::coords[BoundingBox::LEFT],   (u16) minx);
+				BoundingBox::coords[BoundingBox::BOTTOM] = std::max(BoundingBox::coords[BoundingBox::BOTTOM], (u16) maxy);
+				BoundingBox::coords[BoundingBox::RIGHT]  = std::max(BoundingBox::coords[BoundingBox::RIGHT],  (u16) maxx);
+			}
+			return;
+		}
+
+		// If we are calculating bbox with alpha, we only need to find the
+		// topmost, leftmost, bottom most and rightmost pixels to be drawn.
 		// So instead of drawing every single one of the triangle's pixels,
 		// four loops are run: one for the top pixel, one for the left, one for
 		// the bottom and one for the right. As soon as a pixel that is to be
@@ -531,8 +564,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 				if (CX1 > 0 && CX2 > 0 && CX3 > 0)
 				{
 					// Build the new raster block every other pixel
-					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
-
+					PrepareBlock(x, y);
 					Draw(x, y, x & (BLOCK_SIZE - 1), y & (BLOCK_SIZE - 1));
 
 					if (y >= BoundingBox::coords[BoundingBox::TOP])
@@ -548,6 +580,9 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 			CY2 += FDX23;
 			CY3 += FDX31;
 		}
+
+		// Update top limit
+		miny = std::max((s32) BoundingBox::coords[BoundingBox::TOP], miny);
 
 		// Checking for bbox left
 		s32 CX1 = C1 + DX12 * FTOP - DY12 * FLEFT;
@@ -568,9 +603,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 			{
 				if (CY1 > 0 && CY2 > 0 && CY3 > 0)
 				{
-					// Build the new raster block every other pixel
-					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
-
+					PrepareBlock(x, y);
 					Draw(x, y, x & (BLOCK_SIZE - 1), y & (BLOCK_SIZE - 1));
 
 					if (x >= BoundingBox::coords[BoundingBox::LEFT])
@@ -586,6 +619,9 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 			CX2 -= FDY23;
 			CX3 -= FDY31;
 		}
+
+		// Update left limit
+		minx = std::max((s32) BoundingBox::coords[BoundingBox::LEFT], minx);
 
 		// Checking for bbox bottom
 		CY1 = C1 + DX12 * FBOTTOM - DY12 * FRIGHT;
@@ -607,8 +643,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 				if (CX1 > 0 && CX2 > 0 && CX3 > 0)
 				{
 					// Build the new raster block every other pixel
-					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
-
+					PrepareBlock(x, y);
 					Draw(x, y, x & (BLOCK_SIZE - 1), y & (BLOCK_SIZE - 1));
 
 					if (y <= BoundingBox::coords[BoundingBox::BOTTOM])
@@ -624,6 +659,9 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 			CY2 -= FDX23;
 			CY3 -= FDX31;
 		}
+
+		// Update bottom limit
+		maxy = std::min((s32) BoundingBox::coords[BoundingBox::BOTTOM], maxy);
 
 		// Checking for bbox right
 		CX1 = C1 + DX12 * FBOTTOM - DY12 * FRIGHT;
@@ -645,8 +683,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 				if (CY1 > 0 && CY2 > 0 && CY3 > 0)
 				{
 					// Build the new raster block every other pixel
-					BuildBlock((x & ~(BLOCK_SIZE - 1)), y & ~(BLOCK_SIZE - 1));
-
+					PrepareBlock(x, y);
 					Draw(x, y, x & (BLOCK_SIZE - 1), y & (BLOCK_SIZE - 1));
 
 					if (x <= BoundingBox::coords[BoundingBox::RIGHT])
