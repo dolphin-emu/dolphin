@@ -52,7 +52,8 @@ void Jit64::FinalizeCarry(CCFlags cond)
 	js.carryFlagInverted = false;
 	if (js.op->wantsCA)
 	{
-		if (js.next_op->wantsCAInFlags)
+		// Be careful: a breakpoint kills flags in between instructions
+		if (js.next_op->wantsCAInFlags && !js.next_inst_bp)
 		{
 			if (cond == CC_C || cond == CC_NC)
 			{

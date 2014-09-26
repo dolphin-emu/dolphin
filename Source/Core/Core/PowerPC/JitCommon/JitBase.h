@@ -84,6 +84,7 @@ protected:
 		bool skipnext;
 		bool carryFlagSet;
 		bool carryFlagInverted;
+		bool next_inst_bp;
 
 		int fifoBytesThisBlock;
 
