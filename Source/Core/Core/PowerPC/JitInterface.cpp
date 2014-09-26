@@ -210,10 +210,10 @@ namespace JitInterface
 			jit->GetBlockCache()->Clear();
 	}
 
-	void InvalidateICache(u32 address, u32 size)
+	void InvalidateICache(u32 address, u32 size, bool modified)
 	{
 		if (jit)
-			jit->GetBlockCache()->InvalidateICache(address, size);
+			jit->GetBlockCache()->InvalidateICache(address, size, modified);
 	}
 
 	u32 Read_Opcode_JIT(u32 _Address)

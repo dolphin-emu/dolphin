@@ -95,7 +95,7 @@ void STACKALIGN CheckGatherPipe()
 				jit->js.fifoWriteAddresses.insert(PC);
 
 				// Invalidate the JIT block so that it gets recompiled with the external exception check included.
-				jit->GetBlockCache()->InvalidateICache(PC, 4);
+				jit->GetBlockCache()->InvalidateICache(PC, 4, false);
 			}
 		}
 	}

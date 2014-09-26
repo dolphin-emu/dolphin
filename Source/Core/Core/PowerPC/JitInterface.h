@@ -31,7 +31,9 @@ namespace JitInterface
 
 	void ClearSafe();
 
-	void InvalidateICache(u32 address, u32 size);
+	// "modified" represents whether the code was really modified, or we're just
+	// requesting a recompile.
+	void InvalidateICache(u32 address, u32 size, bool modified);
 
 	void Shutdown();
 }
