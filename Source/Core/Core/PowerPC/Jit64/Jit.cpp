@@ -159,7 +159,7 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 		// CALLs, but we can't yet.  Fake the downcount so we're forced to the
 		// dispatcher (no block linking), and clear the cache so we're sent to
 		// Jit.  Yeah, it's kind of gross.
-		GetBlockCache()->InvalidateICache(0, 0xffffffff);
+		GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
 		CoreTiming::ForceExceptionCheck(0);
 		m_clear_cache_asap = true;
 

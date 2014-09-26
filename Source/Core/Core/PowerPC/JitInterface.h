@@ -36,7 +36,8 @@ namespace JitInterface
 
 	void ClearSafe();
 
-	void InvalidateICache(u32 address, u32 size);
+	// If "forced" is true, a recompile is being requested on code that hasn't been modified.
+	void InvalidateICache(u32 address, u32 size, bool forced);
 
 	void CompileExceptionCheck(int type);
 

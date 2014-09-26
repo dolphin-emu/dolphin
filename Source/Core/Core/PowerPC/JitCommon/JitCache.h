@@ -161,7 +161,7 @@ public:
 	CompiledCode GetCompiledCodeFromBlock(int block_num);
 
 	// DOES NOT WORK CORRECTLY WITH INLINING
-	void InvalidateICache(u32 address, const u32 length);
+	void InvalidateICache(u32 address, const u32 length, bool forced);
 	void DestroyBlock(int block_num, bool invalidate);
 };
 

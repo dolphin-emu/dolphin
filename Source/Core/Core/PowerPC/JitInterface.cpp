@@ -210,10 +210,10 @@ namespace JitInterface
 			jit->GetBlockCache()->Clear();
 	}
 
-	void InvalidateICache(u32 address, u32 size)
+	void InvalidateICache(u32 address, u32 size, bool forced)
 	{
 		if (jit)
-			jit->GetBlockCache()->InvalidateICache(address, size);
+			jit->GetBlockCache()->InvalidateICache(address, size, forced);
 	}
 
 	u32 ReadOpcodeJIT(u32 _Address)
@@ -263,7 +263,7 @@ namespace JitInterface
 				exception_addresses->insert(PC);
 
 				// Invalidate the JIT block so that it gets recompiled with the external exception check included.
-				jit->GetBlockCache()->InvalidateICache(PC, 4);
+				jit->GetBlockCache()->InvalidateICache(PC, 4, true);
 			}
 		}
 	}

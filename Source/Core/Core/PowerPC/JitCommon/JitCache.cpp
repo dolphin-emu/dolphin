@@ -327,7 +327,7 @@ using namespace Gen;
 		WriteDestroyBlock(b.checkedEntry, b.originalAddress);
 	}
 
-	void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length)
+	void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool forced)
 	{
 		// Convert the logical address to a physical address for the block map
 		u32 pAddr = address & 0x1FFFFFFF;
@@ -357,6 +357,16 @@ using namespace Gen;
 			if (it1 != it2)
 			{
 				block_map.erase(it1, it2);
+			}
+
+			// If the code was actually modified, we need to clear the relevant entries from the
+			// FIFO write address cache, so we don't end up with FIFO checks in places they shouldn't
+			// be (this can clobber flags, and thus break any optimization that relies on flags
+			// being in the right place between instructions).
+			if (!forced)
+			{
+				for (u32 i = address; i < address + length; i += 4)
+					jit->js.fifoWriteAddresses.erase(i);
 			}
 		}
 	}
