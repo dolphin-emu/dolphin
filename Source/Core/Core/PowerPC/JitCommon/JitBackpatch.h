@@ -7,7 +7,12 @@
 #include "Common/CommonTypes.h"
 
 // meh.
-#if defined(_WIN32)
+#if defined(_M_GENERIC)
+	// JitBase uses SContext; it should have no concrete implementations in a
+	// generic build.
+	struct FakeGenericContext;
+	typedef FakeGenericContext SContext;
+#elif defined(_WIN32)
 	#include <windows.h>
 	typedef CONTEXT SContext;
 	#if _M_X86_64

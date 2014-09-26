@@ -45,12 +45,13 @@ if(_M_ARM)
 else()
 	if(_M_X86) #X86
 		set(SRCS ${SRCS}
-		         x64FPURoundMode.cpp)
+		         x64FPURoundMode.cpp
+		         x64CPUDetect.cpp)
 	else() # Generic
 		set(SRCS ${SRCS}
-		         GenericFPURoundMode.cpp)
+		         GenericFPURoundMode.cpp
+		         GenericCPUDetect.cpp)
 	endif()
-	set(SRCS ${SRCS} x64CPUDetect.cpp)
 endif()
 if(WIN32)
     set(SRCS ${SRCS} ExtendedTrace.cpp)
