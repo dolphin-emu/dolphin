@@ -612,6 +612,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 				gpr.KillImmediate(a, true, true);
 			}
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if ((inst.SUBOP10 == 412 /* orcx */) || (inst.SUBOP10 == 284 /* eqvx */))
 		{
@@ -640,6 +641,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 		{
 			AND(32, gpr.R(a), operand);
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if (inst.SUBOP10 == 60) // andcx
 		{
@@ -663,6 +665,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 		{
 			OR(32, gpr.R(a), operand);
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if (inst.SUBOP10 == 412) // orcx
 		{
@@ -707,6 +710,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 			MOV(32, gpr.R(a), gpr.R(s));
 			AND(32, gpr.R(a), gpr.R(b));
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if (inst.SUBOP10 == 60) // andcx
 		{
@@ -724,6 +728,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 			MOV(32, gpr.R(a), gpr.R(s));
 			OR(32, gpr.R(a), gpr.R(b));
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if (inst.SUBOP10 == 412) // orcx
 		{
