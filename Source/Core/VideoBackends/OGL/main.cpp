@@ -291,4 +291,9 @@ void VideoBackend::Video_CleanupOtherThread()
 	GLInterface->ClearCurrent();
 }
 
+bool VideoBackend::Video_CanDoAsync()
+{
+	return g_has_rift;
+}
+
 }
