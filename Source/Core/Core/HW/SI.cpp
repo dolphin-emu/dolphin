@@ -504,7 +504,7 @@ void UpdateDevices()
 
 SIDevices GetDeviceType(int channel)
 {
-	if (channel < 0 || channel > 4)
+	if (channel < 0 || channel > 3)
 		return SIDEVICE_NONE;
 	else
 		return g_Channel[channel].m_pDevice->GetDeviceType();
