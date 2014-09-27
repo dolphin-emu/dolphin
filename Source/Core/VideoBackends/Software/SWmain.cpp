@@ -97,8 +97,9 @@ bool VideoSoftware::Initialize(void *window_handle)
 	return true;
 }
 
-bool VideoSoftware::InitializeOtherThread(void *window_handle)
+bool VideoSoftware::InitializeOtherThread(void *window_handle, std::thread *video_thread)
 {
+	m_video_thread = video_thread;
 	if (!GLInterface->Create(window_handle))
 	{
 		INFO_LOG(VIDEO, "GLInterface::Create failed.");

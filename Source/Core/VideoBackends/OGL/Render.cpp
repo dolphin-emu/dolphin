@@ -1464,8 +1464,14 @@ void Renderer::AsyncTimewarpDraw()
 	{
 		((ovrGLTexture&)(FramebufferManager::m_eye_texture[eye])).OGL.TexId = FramebufferManager::m_frontBuffer[eye];
 	}
+#ifdef _WIN32
+	//HANDLE thread_handle = g_video_backend->m_video_thread->native_handle();
+	//SuspendThread(thread_handle);
+#endif
 	ovrHmd_EndFrame(hmd, g_front_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
-	ovrHmd_DismissHSWDisplay(hmd);
+#ifdef _WIN32
+	//ResumeThread(thread_handle);
+#endif
 
 	static int w = 0, h = 0;
 	// Save screenshot

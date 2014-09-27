@@ -344,8 +344,12 @@ void VRThread()
 	const SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
+	std::thread *video_thread = &s_emu_thread;
+	if (!_CoreParameter.bCPUThread)
+		video_thread = &s_cpu_thread;
+
 	NOTICE_LOG(VR, "[VR Thread] Starting VR Thread - g_video_backend->Initialize()");
-	if (!g_video_backend->InitializeOtherThread(s_window_handle))
+	if (!g_video_backend->InitializeOtherThread(s_window_handle, video_thread))
 	{
 		s_vr_thread_failure = true;
 		s_vr_thread_ready.Set();

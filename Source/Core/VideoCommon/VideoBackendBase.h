@@ -71,7 +71,7 @@ public:
 	virtual unsigned int PeekMessages() = 0;
 
 	virtual bool Initialize(void *window_handle) = 0;
-	virtual bool InitializeOtherThread(void *window_handle) = 0;
+	virtual bool InitializeOtherThread(void *window_handle, std::thread *video_thread) = 0;
 	virtual void Shutdown() = 0;
 	virtual void ShutdownOtherThread() = 0;
 	virtual void RunLoop(bool enable) = 0;
@@ -122,6 +122,8 @@ public:
 	virtual void DoState(PointerWrap &p) = 0;
 
 	virtual void CheckInvalidState() = 0;
+
+	std::thread *m_video_thread;
 };
 
 extern std::vector<VideoBackend*> g_available_video_backends;

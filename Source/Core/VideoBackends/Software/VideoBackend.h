@@ -11,7 +11,7 @@ namespace SW
 class VideoSoftware : public VideoBackend
 {
 	bool Initialize(void *window_handle) override;
-	bool InitializeOtherThread(void *window_handle) override;
+	bool InitializeOtherThread(void *window_handle, std::thread *video_thread) override;
 	void Shutdown() override;
 	void ShutdownOtherThread() override;
 

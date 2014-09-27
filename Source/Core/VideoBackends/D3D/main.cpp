@@ -157,8 +157,9 @@ bool VideoBackend::Initialize(void *window_handle)
 	return true;
 }
 
-bool VideoBackend::InitializeOtherThread(void *window_handle)
+bool VideoBackend::InitializeOtherThread(void *window_handle, std::thread *video_thread)
 {
+	m_video_thread = video_thread;
 	return true;
 }
 
