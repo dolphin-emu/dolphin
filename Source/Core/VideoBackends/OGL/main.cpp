@@ -230,7 +230,8 @@ void VideoBackend::Video_Prepare()
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
-
+	// VR Asynchronous timewarp may require this.
+	glFinish();
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
 }

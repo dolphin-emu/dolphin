@@ -291,6 +291,9 @@ static void CpuThread()
 	}
 	#endif
 
+	// VR thread starts main loop in background
+	s_nonvr_thread_ready.Set();
+
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 
@@ -533,9 +536,6 @@ void EmuThread()
 		// thread, the video backend window hangs in single core mode
 		// because noone is pumping messages.
 		Common::SetCurrentThreadName("Emuthread - Idle");
-
-		// VR thread starts main loop in background
-		s_nonvr_thread_ready.Set();
 
 		// Spawn the CPU+GPU thread
 		s_cpu_thread = std::thread(cpuThreadFunc);

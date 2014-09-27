@@ -1789,11 +1789,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 					{
 					case GL_ALREADY_SIGNALED:
 					case GL_CONDITION_SATISFIED:
-						g_ovr_lock.lock();
 						eyesFence = 0;
+						g_ovr_lock.lock();
 						FramebufferManager::SwapAsyncFrontBuffers();
 						g_front_eye_poses[0] = g_eye_poses[0];
 						g_front_eye_poses[1] = g_eye_poses[1];
+						glFinish();
 						g_ovr_lock.unlock();
 						break;
 					}
@@ -1999,6 +2000,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples);
+			glFinish();
 			if (g_ActiveConfig.bAsynchronousTimewarp)
 				g_ovr_lock.unlock();
 		}
