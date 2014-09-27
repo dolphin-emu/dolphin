@@ -96,19 +96,17 @@ void CommonAsmRoutines::GenFrsqrte()
 	SetJumpTarget(zero);
 	TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
 	FixupBranch skip_set_fx1 = J_CC(CC_NZ);
-	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX));
-	SetJumpTarget(skip_set_fx1);
-	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
+	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_ZX));
 	FixupBranch complex3 = J();
 
 	// Exception flags for negative input.
 	SetJumpTarget(negative);
 	TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_VXSQRT));
 	FixupBranch skip_set_fx2 = J_CC(CC_NZ);
-	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX));
-	SetJumpTarget(skip_set_fx2);
-	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_VXSQRT));
+	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_VXSQRT));
 
+	SetJumpTarget(skip_set_fx1);
+	SetJumpTarget(skip_set_fx2);
 	SetJumpTarget(complex1);
 	SetJumpTarget(complex2);
 	SetJumpTarget(complex3);
@@ -165,9 +163,8 @@ void CommonAsmRoutines::GenFres()
 	SetJumpTarget(zero);
 	TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
 	FixupBranch skip_set_fx1 = J_CC(CC_NZ);
-	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX));
+	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_ZX));
 	SetJumpTarget(skip_set_fx1);
-	OR(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
 
 	SetJumpTarget(complex1);
 	SetJumpTarget(complex2);

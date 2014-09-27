@@ -13,9 +13,7 @@
 #else
 
 //#include <config/i386/cpuid.h>
-#ifndef _M_GENERIC
 #include <xmmintrin.h>
-#endif
 
 #if defined __FreeBSD__
 #include <sys/types.h>
@@ -24,9 +22,7 @@
 static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 							unsigned int *ecx, unsigned int *edx)
 {
-#if defined _M_GENERIC
-	(*eax) = (*ebx) = (*ecx) = (*edx) = 0;
-#elif defined _LP64
+#if defined _LP64
 	// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to
 	// restored at the end of the asm block.
 	__asm__ (
@@ -71,11 +67,9 @@ static void __cpuid(int info[4], int x)
 #define _XCR_XFEATURE_ENABLED_MASK 0
 static unsigned long long _xgetbv(unsigned int index)
 {
-#ifndef _M_GENERIC
 	unsigned int eax, edx;
 	__asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
 	return ((unsigned long long)edx << 32) | eax;
-#endif
 }
 
 #endif

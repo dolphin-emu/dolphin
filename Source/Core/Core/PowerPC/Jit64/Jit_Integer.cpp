@@ -589,6 +589,10 @@ void Jit64::boolX(UGeckoInstruction inst)
 				gpr.BindToRegister(a, false, true);
 				MOV(32, gpr.R(a), gpr.R(s));
 			}
+			else if (inst.Rc)
+			{
+				gpr.BindToRegister(a, true, false);
+			}
 			needs_test = true;
 		}
 		else if ((inst.SUBOP10 == 476 /* nandx */) || (inst.SUBOP10 == 124 /* norx */))
@@ -599,11 +603,16 @@ void Jit64::boolX(UGeckoInstruction inst)
 				gpr.BindToRegister(a, false, true);
 				MOV(32, gpr.R(a), gpr.R(s));
 			}
+			else if (inst.Rc)
+			{
+				gpr.BindToRegister(a, true, true);
+			}
 			else
 			{
 				gpr.KillImmediate(a, true, true);
 			}
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if ((inst.SUBOP10 == 412 /* orcx */) || (inst.SUBOP10 == 284 /* eqvx */))
 		{
@@ -632,6 +641,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 		{
 			AND(32, gpr.R(a), operand);
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if (inst.SUBOP10 == 60) // andcx
 		{
@@ -655,6 +665,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 		{
 			OR(32, gpr.R(a), operand);
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if (inst.SUBOP10 == 412) // orcx
 		{
@@ -699,6 +710,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 			MOV(32, gpr.R(a), gpr.R(s));
 			AND(32, gpr.R(a), gpr.R(b));
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if (inst.SUBOP10 == 60) // andcx
 		{
@@ -716,6 +728,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 			MOV(32, gpr.R(a), gpr.R(s));
 			OR(32, gpr.R(a), gpr.R(b));
 			NOT(32, gpr.R(a));
+			needs_test = true;
 		}
 		else if (inst.SUBOP10 == 412) // orcx
 		{

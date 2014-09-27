@@ -502,6 +502,14 @@ void UpdateDevices()
 	UpdateInterrupts();
 }
 
+SIDevices GetDeviceType(int channel)
+{
+	if (channel < 0 || channel > 4)
+		return SIDEVICE_NONE;
+	else
+		return g_Channel[channel].m_pDevice->GetDeviceType();
+}
+
 void RunSIBuffer()
 {
 	// Math inLength
