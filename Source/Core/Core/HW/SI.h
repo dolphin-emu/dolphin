@@ -35,6 +35,8 @@ void AddDevice(ISIDevice* pDevice);
 void ChangeDeviceCallback(u64 userdata, int cyclesLate);
 void ChangeDevice(SIDevices device, int channel);
 
+SIDevices GetDeviceType(int channel);
+
 int GetTicksToNextSIPoll();
 
 } // end of namespace SerialInterface
