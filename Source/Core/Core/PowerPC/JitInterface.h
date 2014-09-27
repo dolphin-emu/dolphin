@@ -13,8 +13,7 @@ namespace JitInterface
 {
 	enum
 	{
-		EXCEPTIONS_FIFO_WRITE,
-		EXCEPTIONS_ARAM_DMA
+		EXCEPTIONS_FIFO_WRITE
 	};
 
 	void DoState(PointerWrap &p);

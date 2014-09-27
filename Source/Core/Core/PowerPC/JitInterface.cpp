@@ -251,19 +251,14 @@ namespace JitInterface
 			exception_addresses = &jit->js.fifoWriteAddresses;
 			break;
 		}
-		case EXCEPTIONS_ARAM_DMA:
-		{
-			exception_addresses = &jit->js.dspARAMAddresses;
-			break;
-		}
 		default:
 			ERROR_LOG(POWERPC, "Unknown exception check type");
 		}
 
 		if (PC != 0 && (exception_addresses->find(PC)) == (exception_addresses->end()))
 		{
-			int type = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
-			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || (type == OPTYPE_STOREPS))
+			int optype = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
+			if (optype == OPTYPE_STORE || optype == OPTYPE_STOREFP || (optype == OPTYPE_STOREPS))
 			{
 				exception_addresses->insert(PC);
 

@@ -158,6 +158,9 @@ static ARAMInfo g_ARAM;
 static DSPState g_dspState;
 static AudioDMA g_audioDMA;
 static ARAM_DMA g_arDMA;
+static u32 last_mmaddr;
+static u32 last_aram_dma_count;
+static bool instant_dma;
 
 union ARAM_Info
 {
@@ -195,6 +198,9 @@ void DoState(PointerWrap &p)
 	p.Do(g_AR_MODE);
 	p.Do(g_AR_REFRESH);
 	p.Do(dsp_slice);
+	p.Do(last_mmaddr);
+	p.Do(last_aram_dma_count);
+	p.Do(instant_dma);
 
 	dsp_emulator->DoState(p);
 }
@@ -213,6 +219,12 @@ static void CompleteARAM(u64 userdata, int cyclesLate)
 	GenerateDSPInterrupt(INT_ARAM);
 }
 
+void EnableInstantDMA()
+{
+	CoreTiming::RemoveEvent(et_CompleteARAM);
+	CompleteARAM(0, 0);
+	instant_dma = true;
+}
 
 DSPEmulator *GetDSPEmulator()
 {
@@ -249,6 +261,11 @@ void Init(bool hle)
 	g_ARAM_Info.Hex = 0;
 	g_AR_MODE = 1; // ARAM Controller has init'd
 	g_AR_REFRESH = 156; // 156MHz
+
+	instant_dma = false;
+
+	last_aram_dma_count = 0;
+	last_mmaddr = 0;
 
 	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
 	et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
@@ -442,14 +459,6 @@ static void UpdateInterrupts()
 	bool ints_set = (((g_dspState.DSPControl.Hex >> 1) & g_dspState.DSPControl.Hex & (INT_DSP | INT_ARAM | INT_AID)) != 0);
 
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
-
-	if ((g_dspState.DSPControl.Hex >> 1) & g_dspState.DSPControl.Hex & INT_ARAM)
-	{
-		if (g_dspState.DSPControl.ARAM & g_dspState.DSPControl.ARAM_mask)
-		{
-			JitInterface::CompileExceptionCheck(JitInterface::EXCEPTIONS_ARAM_DMA);
-		}
-	}
 }
 
 static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate)
@@ -525,11 +534,20 @@ void UpdateAudioDMA()
 static void Do_ARAM_DMA()
 {
 	g_dspState.DSPControl.DMAState = 1;
-	CoreTiming::ScheduleEvent_Threadsafe(0, et_CompleteARAM);
 
-	// Force an early exception check on large transfers (transfers longer than 250+ ticks).
-	// The shorter transfers are checked by dspARAMAddresses.  Fixes RE2 audio.
-	CoreTiming::ForceExceptionCheck(250);
+	// ARAM DMA transfer rate has been measured on real hw
+	int ticksToTransfer = (g_arDMA.Cnt.count / 32) * 246;
+
+	if (instant_dma)
+		ticksToTransfer = 0;
+
+	CoreTiming::ScheduleEvent_Threadsafe(ticksToTransfer, et_CompleteARAM);
+
+	if (instant_dma)
+		CoreTiming::ForceExceptionCheck(100);
+
+	last_mmaddr = g_arDMA.MMAddr;
+	last_aram_dma_count = g_arDMA.Cnt.count;
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
@@ -653,6 +671,15 @@ void WriteARAM(u8 value, u32 _uAddress)
 u8 *GetARAMPtr()
 {
 	return g_ARAM.ptr;
+}
+
+u64 DMAInProgress()
+{
+	if (g_dspState.DSPControl.DMAState == 1)
+	{
+		return ((u64)last_mmaddr << 32 | (last_mmaddr + last_aram_dma_count));
+	}
+	return 0;
 }
 
 } // end of namespace DSP
