@@ -49,7 +49,7 @@
     <Message Text="rcc %(ResFiles.Filename)" Importance="High" />
     <Error Condition="!$(QtDirValid)" Text="QTDIR not set or non-existent (pull the submodule?)" />
     <MakeDir Directories="$(QtToolOutDir)" />
-    <Exec Command="$(QtBinDir)rcc.exe %(ResFiles.FullPath) -o $(QtToolOutDir)qrc_%(ResFiles.Filename).h" />
+    <Exec Command="&quot;$(QtBinDir)rcc.exe&quot; &quot;%(ResFiles.FullPath)&quot; -o &quot;$(QtToolOutDir)qrc_%(ResFiles.Filename).h&quot;" />
   </Target>
   
   <Target Name="QtResourceClean">
@@ -68,7 +68,7 @@
     <Message Text="uic %(UiFiles.Filename)" Importance="High" />
     <Error Condition="!$(QtDirValid)" Text="QTDIR not set or non-existent (pull the submodule?)" />
     <MakeDir Directories="$(QtToolOutDir)" />
-    <Exec Command="$(QtBinDir)uic.exe %(UiFiles.FullPath) -o $(QtToolOutDir)ui_%(UiFiles.Filename).h" />
+    <Exec Command="&quot;$(QtBinDir)uic.exe&quot; &quot;%(UiFiles.FullPath)&quot; -o &quot;$(QtToolOutDir)ui_%(UiFiles.Filename).h&quot;" />
   </Target>
   
   <Target Name="QtUiClean">
@@ -80,8 +80,16 @@
   <PropertyGroup>
     <MocDefines>-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -D_SECURE_SCL=0 -D_ARCH_64=1 -D_M_X86_64=1 -DPSAPI_VERSION=1 -D_M_X86=1 -DUSE_UPNP -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -DUNICODE</MocDefines>
     <MocDefines Condition="'$(Configuration)'=='Release'">-DQT_NO_DEBUG -DNDEBUG $(MocDefines)</MocDefines>
-    <MocIncludes>-I$(QtIncludeDir)QtWidgets -I$(QtIncludeDir)QtGui -I$(QtIncludeDir)QtCore -I$(QtIncludeDir) -I$(QtToolOutDir) -I.</MocIncludes>
-    <MocIncludes>-I$(ExternalsDir)zlib -I$(ExternalsDir)SOIL -I$(ExternalsDir)SFML\include -I$(ExternalsDir)portaudio\include -I$(ExternalsDir)polarssl\include -I$(ExternalsDir)miniupnpc\src -I$(ExternalsDir)LZO -I$(ExternalsDir)libusbx\libusb -I$(ExternalsDir)libpng -I$(ExternalsDir)GL -I$(ExternalsDir)Bochs_disasm -I$(ExternalsDir) -I$(CoreDir) $(MocIncludes)</MocIncludes>
+    <!-- !!!HOLY UGLY BATMAN!!!
+        Be very careful here when adding include directories. Each path must have the whole arg surrounded by doublequotes - HOWEVER,
+        the ending doublequote cannot be directly preceeded by a directory seperator. In other words, you must use:
+        "-I$(SomeDir) "
+        instead of
+        "-I$(SomeDir)"
+        in order to prevent the trailing slash from escaping the doublequote after value replacement.
+        -->
+    <MocIncludes>"-I$(QtIncludeDir)QtWidgets" "-I$(QtIncludeDir)QtGui" "-I$(QtIncludeDir)QtCore" "-I$(QtIncludeDir) " "-I$(QtToolOutDir) " -I.</MocIncludes>
+    <MocIncludes>"-I$(ExternalsDir)zlib" "-I$(ExternalsDir)SOIL" "-I$(ExternalsDir)SFML\include" "-I$(ExternalsDir)portaudio\include" "-I$(ExternalsDir)polarssl\include" "-I$(ExternalsDir)miniupnpc\src" "-I$(ExternalsDir)LZO" "-I$(ExternalsDir)libusbx\libusb" "-I$(ExternalsDir)libpng" "-I$(ExternalsDir)GL" "-I$(ExternalsDir)Bochs_disasm" "-I$(ExternalsDir) " "-I$(CoreDir) " $(MocIncludes)</MocIncludes>
   </PropertyGroup>
   <Target Name="QtMoc"
     BeforeTargets="ClCompile"
@@ -91,7 +99,7 @@
     <Message Text="moc %(QtMoc.Filename)" Importance="High" />
     <Error Condition="!$(QtDirValid)" Text="QTDIR not set or non-existent (pull the submodule?)" />
     <MakeDir Directories="$(QtToolOutDir)" />
-    <Exec Command="$(QtBinDir)moc.exe %(QtMoc.FullPath) -o $(QtToolOutDir)moc_%(QtMoc.Filename).cpp -f%(QtMoc.Filename)%(QtMoc.Extension) $(MocDefines) $(MocIncludes)" />
+    <Exec Command="&quot;$(QtBinDir)moc.exe&quot; &quot;%(QtMoc.FullPath)&quot; -o &quot;$(QtToolOutDir)moc_%(QtMoc.Filename).cpp&quot; -f%(QtMoc.Filename)%(QtMoc.Extension) $(MocDefines) $(MocIncludes)" />
   </Target>
   
   <ItemGroup>
