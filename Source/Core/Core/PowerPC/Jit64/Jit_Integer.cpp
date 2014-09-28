@@ -562,22 +562,25 @@ void Jit64::boolX(UGeckoInstruction inst)
 
 	if (gpr.R(s).IsImm() && gpr.R(b).IsImm())
 	{
+		const u32 rs_offset = static_cast<u32>(gpr.R(s).offset);
+		const u32 rb_offset = static_cast<u32>(gpr.R(b).offset);
+
 		if (inst.SUBOP10 == 28)       // andx
-			gpr.SetImmediate32(a, (u32)gpr.R(s).offset & (u32)gpr.R(b).offset);
+			gpr.SetImmediate32(a, rs_offset & rb_offset);
 		else if (inst.SUBOP10 == 476) // nandx
-			gpr.SetImmediate32(a, ~((u32)gpr.R(s).offset & (u32)gpr.R(b).offset));
+			gpr.SetImmediate32(a, ~(rs_offset & rb_offset));
 		else if (inst.SUBOP10 == 60)  // andcx
-			gpr.SetImmediate32(a, (u32)gpr.R(s).offset & (~(u32)gpr.R(b).offset));
+			gpr.SetImmediate32(a, rs_offset & (~rb_offset));
 		else if (inst.SUBOP10 == 444) // orx
-			gpr.SetImmediate32(a, (u32)gpr.R(s).offset | (u32)gpr.R(b).offset);
+			gpr.SetImmediate32(a, rs_offset | rb_offset);
 		else if (inst.SUBOP10 == 124) // norx
-			gpr.SetImmediate32(a, ~((u32)gpr.R(s).offset | (u32)gpr.R(b).offset));
+			gpr.SetImmediate32(a, ~(rs_offset | rb_offset));
 		else if (inst.SUBOP10 == 412) // orcx
-			gpr.SetImmediate32(a, (u32)gpr.R(s).offset | (~(u32)gpr.R(b).offset));
+			gpr.SetImmediate32(a, rs_offset | (~rb_offset));
 		else if (inst.SUBOP10 == 316) // xorx
-			gpr.SetImmediate32(a, (u32)gpr.R(s).offset ^ (u32)gpr.R(b).offset);
+			gpr.SetImmediate32(a, rs_offset ^ rb_offset);
 		else if (inst.SUBOP10 == 284) // eqvx
-			gpr.SetImmediate32(a, ~((u32)gpr.R(s).offset ^ (u32)gpr.R(b).offset));
+			gpr.SetImmediate32(a, ~(rs_offset ^ rb_offset));
 	}
 	else if (s == b)
 	{
