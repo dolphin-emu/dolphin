@@ -1236,10 +1236,10 @@ void Renderer::SetViewport()
 	{
 		// In VR we must use the entire EFB, not just the copyTexSrc area that is normally used.
 		// So scale from copyTexSrc to entire EFB, and we won't use copyTexSrc during rendering.
-		X = (xfmem.viewport.xOrig - xfmem.viewport.wd - bpmem.copyTexSrcXY.x - (float)scissorXOff) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
-		Y = (float)GetTargetHeight() - (xfmem.viewport.yOrig - xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
-		Width = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
-		Height = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		//X = (xfmem.viewport.xOrig - xfmem.viewport.wd - bpmem.copyTexSrcXY.x - (float)scissorXOff) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		//Y = (float)GetTargetHeight() - (xfmem.viewport.yOrig - xfmem.viewport.ht - bpmem.copyTexSrcXY.y - (float)scissorYOff) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
+		//Width = (2.0f * xfmem.viewport.wd) * (float)GetTargetWidth() / (float)bpmem.copyTexSrcWH.x;
+		//Height = (-2.0f * xfmem.viewport.ht) * (float)GetTargetHeight() / (float)bpmem.copyTexSrcWH.y;
 		X = 0.0f; Y = 0.0f; Width = (float)GetTargetWidth(); Height = (float)GetTargetHeight();
 	}
 
