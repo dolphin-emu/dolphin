@@ -140,7 +140,6 @@ void Interpreter::psq_l(UGeckoInstruction _inst)
 	const unsigned int ldScale = gqr.ld_scale;
 	const u32 EA = _inst.RA ?
 		(m_GPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
-	printf("psq_l at offset %d\n", _inst.SIMM_12);
 
 	int c = 4;
 	if (ldType == QUANTIZE_U8  || ldType == QUANTIZE_S8)
