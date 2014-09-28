@@ -1,4 +1,4 @@
-Dolphin VR 4.0-3399
+Dolphin VR 4.0-3567
 (Unofficial Dolphin build with Oculus Rift support.)
 Open Source licence: GPL v2 (my contributions are GPL v2+)
 
@@ -20,7 +20,7 @@ also makes the menus more difficult to use.
 Plug the Rift in, turn it on, and make sure the service is running, before launching
 Dolphin.
 
-Only the OpenGL renderer will work. In Graphics, turn off Render To Main Window.
+Only Direct3D and OpenGL renderers will work. In Graphics, turn off Render To Main Window.
 In the Graphics options Enhancements tab set the internal resolution to a multiple
 of the native. 1x Native is much too blurry, I use 2.5x Native for my DK1.
 Lower resoultions are faster but blurrier.
@@ -29,13 +29,19 @@ Post-Processing has no effect and is not implemented.
 eXternal Frame Buffer is always disabled regardless of what you choose.
 Turning Free-Look on in the Advanced tab allows you to walk around with Shift+WASD.
 The OnScreen Display or debug information doesn't work in VR mode, so don't bother.
-An Asynchronous Timewarp option is now available, but is very buggy. It can only be
-changed before playing, not during play. When not using the Rift or not using OpenGL,
-make sure Asynchronous Timewarp is disabled.
+An Asynchronous Timewarp option is now available for OpenGL ONLY, but is very buggy.
+It can only be changed before playing, not during play. In D3D it has no effect.
 
 Choose a game and click the Play button to start. Acknowledge the warning, then put 
 on the Rift. Keep the mouse over the Rift's window, and click to focus input.
 Shift+R recenters the view.
+
+Try toggling fullscreen with Alt+Enter if it doesn't look right.
+
+There appears to be a memory leak that slows down the game if you play for a long time.
+Try doing a save state and then exit and restart Dolphin and load the save state
+if your performance drops. Also there may be issues with stopping a game then starting
+another game without restarting Dolphin. Sorry, it's a work in progress.
 
 Per-game Settings:
 Virtual Reality needs to be the correct scale, and the 2D elements need to be at
