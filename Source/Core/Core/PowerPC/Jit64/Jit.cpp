@@ -697,8 +697,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			}
 
 			// Add an external exception check if the instruction writes to the FIFO.
-			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end() ||
-				jit->js.dspARAMAddresses.find(ops[i].address) != jit->js.dspARAMAddresses.end())
+			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
 			{
 				TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
 				FixupBranch clearInt = J_CC(CC_NZ);
@@ -708,14 +707,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SetJumpTarget(extException);
 				TEST(32, PPCSTATE(msr), Imm32(0x0008000));
 				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-				if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
-				{
-					TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
-				}
-				else
-				{
-					TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_DSP));
-				}
+				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
 				FixupBranch noCPInt = J_CC(CC_Z, true);
 
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
