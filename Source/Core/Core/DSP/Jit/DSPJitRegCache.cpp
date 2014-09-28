@@ -505,26 +505,21 @@ void DSPJitRegCache::pushRegs()
 void DSPJitRegCache::popRegs()
 {
 	emitter.MOV(64, M(&ebp_store), R(RBP));
-	int push_count = 0;
-	for (X64CachedReg& xreg : xregs)
-	{
-		if (xreg.pushed)
-		{
-			push_count++;
-		}
-	}
 
-	for (int i = NUMXREGS-1; i >= 0; i--)
+	int push_count = 0;
+	for (int i = NUMXREGS - 1; i >= 0; i--)
 	{
 		if (xregs[i].pushed)
 		{
-			emitter.POP((X64Reg)i);
+			push_count++;
+
+			emitter.POP(static_cast<X64Reg>(i));
 			xregs[i].pushed = false;
 			xregs[i].guest_reg = DSP_REG_USED;
 		}
 	}
 
-	//hardcoding alignment to 16 bytes
+	// hardcoding alignment to 16 bytes
 	if (push_count & 1)
 	{
 		emitter.ADD(64,R(RSP),Imm32(8));
