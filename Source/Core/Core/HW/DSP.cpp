@@ -37,6 +37,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace DSP
@@ -157,6 +158,9 @@ static ARAMInfo g_ARAM;
 static DSPState g_dspState;
 static AudioDMA g_audioDMA;
 static ARAM_DMA g_arDMA;
+static u32 last_mmaddr;
+static u32 last_aram_dma_count;
+static bool instant_dma;
 
 union ARAM_Info
 {
@@ -194,6 +198,9 @@ void DoState(PointerWrap &p)
 	p.Do(g_AR_MODE);
 	p.Do(g_AR_REFRESH);
 	p.Do(dsp_slice);
+	p.Do(last_mmaddr);
+	p.Do(last_aram_dma_count);
+	p.Do(instant_dma);
 
 	dsp_emulator->DoState(p);
 }
@@ -212,6 +219,12 @@ static void CompleteARAM(u64 userdata, int cyclesLate)
 	GenerateDSPInterrupt(INT_ARAM);
 }
 
+void EnableInstantDMA()
+{
+	CoreTiming::RemoveEvent(et_CompleteARAM);
+	CompleteARAM(0, 0);
+	instant_dma = true;
+}
 
 DSPEmulator *GetDSPEmulator()
 {
@@ -248,6 +261,11 @@ void Init(bool hle)
 	g_ARAM_Info.Hex = 0;
 	g_AR_MODE = 1; // ARAM Controller has init'd
 	g_AR_REFRESH = 156; // 156MHz
+
+	instant_dma = false;
+
+	last_aram_dma_count = 0;
+	last_mmaddr = 0;
 
 	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
 	et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
@@ -516,28 +534,20 @@ void UpdateAudioDMA()
 static void Do_ARAM_DMA()
 {
 	g_dspState.DSPControl.DMAState = 1;
-	if (g_arDMA.Cnt.count == 32)
-	{
-		// Beyond Good and Evil (GGEE41) sends count 32
-		// Lost Kingdoms 2 needs the exception check here in DSP HLE mode
-		CompleteARAM(0, 0);
-		CoreTiming::ForceExceptionCheck(100);
-	}
-	else
-	{
-		CoreTiming::ScheduleEvent_Threadsafe(0, et_CompleteARAM);
 
-		// Force an early exception check on large transfers. Fixes RE2 audio.
-		// NFS:HP2 (<= 6144)
-		// Viewtiful Joe (<= 6144)
-		// Sonic Mega Collection (> 2048)
-		// Paper Mario battles (> 32)
-		// Mario Super Baseball (> 32)
-		// Knockout Kings 2003 loading (> 32)
-		// WWE DOR (> 32)
-		if (g_arDMA.Cnt.count > 2048 && g_arDMA.Cnt.count <= 6144)
-			CoreTiming::ForceExceptionCheck(100);
-	}
+	// ARAM DMA transfer rate has been measured on real hw
+	int ticksToTransfer = (g_arDMA.Cnt.count / 32) * 246;
+
+	if (instant_dma)
+		ticksToTransfer = 0;
+
+	CoreTiming::ScheduleEvent_Threadsafe(ticksToTransfer, et_CompleteARAM);
+
+	if (instant_dma)
+		CoreTiming::ForceExceptionCheck(100);
+
+	last_mmaddr = g_arDMA.MMAddr;
+	last_aram_dma_count = g_arDMA.Cnt.count;
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
@@ -661,6 +671,15 @@ void WriteARAM(u8 value, u32 _uAddress)
 u8 *GetARAMPtr()
 {
 	return g_ARAM.ptr;
+}
+
+u64 DMAInProgress()
+{
+	if (g_dspState.DSPControl.DMAState == 1)
+	{
+		return ((u64)last_mmaddr << 32 | (last_mmaddr + last_aram_dma_count));
+	}
+	return 0;
 }
 
 } // end of namespace DSP
