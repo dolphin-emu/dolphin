@@ -44,13 +44,11 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 	// Avoid the crash if Memory::GetPointer failed ..
 	if (startAddress != nullptr)
 	{
-		g_pVideoData = startAddress;
-
 		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		u8 *end = g_pVideoData + size;
-		cycles = OpcodeDecoder_Run(end);
+		OpcodeDecoder_Run(startAddress, startAddress + size, &cycles);
+
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -240,29 +238,23 @@ static u32 Decode(u8* end)
 	return cycles;
 }
 
-void OpcodeDecoder_Init()
-{
-	g_pVideoData = GetVideoBufferStartPtr();
-}
-
-
-void OpcodeDecoder_Shutdown()
-{
-}
-
-u32 OpcodeDecoder_Run(u8* end)
+size_t OpcodeDecoder_Run(u8* start, u8* end, u32* cycles)
 {
 	u32 totalCycles = 0;
+	size_t bytes_used = 0;
+	g_pVideoData = start;
 	while (true)
 	{
-		u8* old = g_pVideoData;
-		u32 cycles = Decode(end);
-		if (cycles == 0)
+		u32 cur_cycles = Decode(end);
+		if (cur_cycles == 0)
 		{
-			g_pVideoData = old;
 			break;
 		}
-		totalCycles += cycles;
+		totalCycles += cur_cycles;
+		bytes_used = g_pVideoData - start;
 	}
-	return totalCycles;
+	if (cycles) {
+		*cycles = totalCycles;
+	}
+	return bytes_used;
 }
