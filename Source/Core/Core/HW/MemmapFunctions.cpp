@@ -34,6 +34,8 @@
 namespace Memory
 {
 
+#define HW_PAGE_SIZE 4096
+
 // EFB RE
 /*
 GXPeekZ
@@ -123,17 +125,51 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 	else
 	{
 		// MMU
-		u32 tlb_addr = TranslateAddress(em_address, flag);
-		if (tlb_addr == 0)
+		// Handle loads that cross page boundaries (ewwww)
+		if (sizeof(T) > 1 && (em_address & (HW_PAGE_SIZE - 1)) > HW_PAGE_SIZE - sizeof(T))
 		{
-			if (flag == FLAG_READ)
+			_var = 0;
+			// This could be unaligned down to the byte level... hopefully this is rare, so doing it this
+			// way isn't too terrible.
+			// TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
+			// Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
+			u32 tlb_addr = TranslateAddress(em_address, flag);
+			for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++)
 			{
-				GenerateDSIException(em_address, false);
+				// Start of the new page... translate the address again!
+				if (!(addr & (HW_PAGE_SIZE-1)))
+					tlb_addr = TranslateAddress(addr, flag);
+				// Important: we need to generate the DSI on the first store that caused the fault, NOT
+				// the address of the start of the load.
+				if (tlb_addr == 0)
+				{
+					if (flag == FLAG_READ)
+					{
+						GenerateDSIException(addr, false);
+						break;
+					}
+				}
+				else
+				{
+					_var <<= 8;
+					_var |= m_pRAM[tlb_addr & RAM_MASK];
+				}
 			}
 		}
 		else
 		{
-			_var = bswap((*(const T*)&m_pRAM[tlb_addr & RAM_MASK]));
+			u32 tlb_addr = TranslateAddress(em_address, flag);
+			if (tlb_addr == 0)
+			{
+				if (flag == FLAG_READ)
+				{
+					GenerateDSIException(em_address, false);
+				}
+			}
+			else
+			{
+				_var = bswap((*(const T*)&m_pRAM[tlb_addr & RAM_MASK]));
+			}
 		}
 	}
 }
@@ -208,17 +244,44 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 	else
 	{
 		// MMU
-		u32 tlb_addr = TranslateAddress(em_address, flag);
-		if (tlb_addr == 0)
+		// Handle stores that cross page boundaries (ewwww)
+		if (sizeof(T) > 1 && (em_address & (HW_PAGE_SIZE-1)) > HW_PAGE_SIZE - sizeof(T))
 		{
-			if (flag == FLAG_WRITE)
+			T val = bswap(data);
+			u32 tlb_addr = TranslateAddress(em_address, flag);
+			for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++)
 			{
-				GenerateDSIException(em_address, true);
+				if (!(addr & (HW_PAGE_SIZE-1)))
+					tlb_addr = TranslateAddress(addr, flag);
+				if (tlb_addr == 0)
+				{
+					if (flag == FLAG_WRITE)
+					{
+						GenerateDSIException(addr, true);
+						break;
+					}
+				}
+				else
+				{
+					m_pRAM[tlb_addr & RAM_MASK] = (u8)val;
+					val >>= 8;
+				}
 			}
 		}
 		else
 		{
-			*(T*)&m_pRAM[tlb_addr & RAM_MASK] = bswap(data);
+			u32 tlb_addr = TranslateAddress(em_address, flag);
+			if (tlb_addr == 0)
+			{
+				if (flag == FLAG_WRITE)
+				{
+					GenerateDSIException(em_address, true);
+				}
+			}
+			else
+			{
+				*(T*)&m_pRAM[tlb_addr & RAM_MASK] = bswap(data);
+			}
 		}
 	}
 }
@@ -607,7 +670,6 @@ void SDRUpdated()
 #define TLB_WAYS 2
 #define NUM_TLBS 2
 
-#define HW_PAGE_SIZE 4096
 #define HW_PAGE_INDEX_SHIFT 12
 #define HW_PAGE_INDEX_MASK 0x3f
 #define HW_PAGE_TAG_SHIFT 18
