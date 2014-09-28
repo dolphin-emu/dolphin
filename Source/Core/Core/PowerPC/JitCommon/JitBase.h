@@ -97,7 +97,6 @@ protected:
 		JitBlock *curBlock;
 
 		std::unordered_set<u32> fifoWriteAddresses;
-		std::unordered_set<u32> dspARAMAddresses;
 	};
 
 	PPCAnalyst::CodeBlock code_block;
