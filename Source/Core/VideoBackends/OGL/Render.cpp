@@ -1794,7 +1794,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 						FramebufferManager::SwapAsyncFrontBuffers();
 						g_front_eye_poses[0] = g_eye_poses[0];
 						g_front_eye_poses[1] = g_eye_poses[1];
-						glFinish();
+						//glFinish();
 						g_ovr_lock.unlock();
 						break;
 					}
