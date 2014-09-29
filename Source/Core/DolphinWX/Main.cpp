@@ -574,6 +574,7 @@ void Host_RequestRenderWindowSize(int width, int height)
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
+// Fullscreen
 void Host_RequestFullscreen(bool enable_fullscreen)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FULLSCREENREQUEST);
@@ -631,6 +632,7 @@ bool Host_RendererHasFocus()
 	return main_frame->RendererHasFocus();
 }
 
+// Connect Wiimote
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
 	CFrame::ConnectWiimote(wm_idx, connect);

@@ -650,6 +650,7 @@ void CISOProperties::OnCloseClick(wxCommandEvent& WXUNUSED (event))
 	Close();
 }
 
+// Right click banner
 void CISOProperties::RightClickOnBanner(wxMouseEvent& event)
 {
 	wxMenu* popupMenu = new wxMenu;
@@ -659,6 +660,7 @@ void CISOProperties::RightClickOnBanner(wxMouseEvent& event)
 	event.Skip();
 }
 
+// Save banner as .PNG
 void CISOProperties::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
 {
 	wxString dirHome;
@@ -671,6 +673,7 @@ void CISOProperties::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
+// Right click file tree
 void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 {
 	m_Treectrl->SelectItem(event.GetItem());
@@ -714,6 +717,7 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 	event.Skip();
 }
 
+// Extract file from ISO
 void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 {
 	wxString File = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
@@ -748,6 +752,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
+// Export directory from ISO
 void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder, const int partitionNum)
 {
 	DiscIO::IFileSystem* const fs = DiscIO::IsVolumeWiiDisc(OpenISO) ? WiiDisc[partitionNum].FileSystem : pFileSystem;
@@ -1134,6 +1139,7 @@ bool CISOProperties::SaveGameConfig()
 	return success;
 }
 
+// Edit file in external editor
 void CISOProperties::LaunchExternalEditor(const std::string& filename)
 {
 #ifdef __APPLE__
@@ -1171,6 +1177,7 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename)
 	SetFocus();
 }
 
+// Edit game config file
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 {
 	SaveGameConfig();
@@ -1185,6 +1192,7 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 	LoadGameConfig();
 }
 
+// Generate MD5 sum
 void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
 {
 	u8 output[16];
@@ -1347,6 +1355,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 	RemovePatch->Enable(false);
 }
 
+// Load Action Replay cheats
 void CISOProperties::ActionReplayList_Load()
 {
 	arCodes.clear();
@@ -1364,6 +1373,7 @@ void CISOProperties::ActionReplayList_Load()
 	}
 }
 
+// Save Action Replay cheats
 void CISOProperties::ActionReplayList_Save()
 {
 	std::vector<std::string> lines;
