@@ -610,6 +610,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.carryFlagSet = false;
 	js.carryFlagInverted = false;
 	js.compilerPC = nextPC;
+	js.immediateGQR.fill(false);
 	// Translate instructions
 	for (u32 i = 0; i < code_block.m_num_instructions; i++)
 	{

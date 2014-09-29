@@ -152,6 +152,10 @@ void Jit64::mtspr(UGeckoInstruction inst)
 	case SPR_GQR0 + 6:
 	case SPR_GQR0 + 7:
 		// These are safe to do the easy way, see the bottom of this function.
+		// If this block is loading a GQR from an immediate, we can do some nice optimizations...
+		js.immediateGQR[iIndex - SPR_GQR0] = gpr.R(d).IsImm();
+		if (gpr.R(d).IsImm())
+			js.immediateGQRVal[iIndex - SPR_GQR0] = (u32)gpr.R(d).offset;
 		break;
 
 	case SPR_XER:

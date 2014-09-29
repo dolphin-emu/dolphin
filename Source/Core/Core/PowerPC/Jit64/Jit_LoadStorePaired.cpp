@@ -54,13 +54,27 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	// In memcheck mode, don't update the address until the exception check
 	if (update && !js.memcheck)
 		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
-	// Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
-	// Hence, we need to mask out the unused bits. The layout of the GQR register is
-	// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
-	// 0b0011111100000111, or 0x3F07.
-	MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-	AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
-	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+
+	// If we already know what the GQR is, we can just precalculate everything! TODO: maybe inline some stuff instead
+	// of calling out to it? Better ways of figuring out the GQR other than "it's been set in the block"?
+	if (js.immediateGQR[i])
+	{
+		u32 qfactor = (js.immediateGQRVal[i]) & 0x3F00;
+		if (!qfactor)
+			XOR(32, R(RSCRATCH2), R(RSCRATCH2));
+		else
+			MOV(32, R(RSCRATCH2), Imm32(qfactor));
+	}
+	else
+	{
+		// Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
+		// Hence, we need to mask out the unused bits. The layout of the GQR register is
+		// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
+		// 0b0011111100000111, or 0x3F07.
+		MOV(32, R(RSCRATCH2), Imm32(0x3F07));
+		AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
+		MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+	}
 
 	// FIXME: Fix ModR/M encoding to allow [RSCRATCH2*8+disp32] without a base register!
 	if (w)
@@ -68,13 +82,19 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 		// One value
 		PXOR(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
 		CVTSD2SS(XMM0, fpr.R(s));
-		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
+		if (js.immediateGQR[i])
+			CALL(asm_routines.singleStoreQuantized[js.immediateGQRVal[i] & 7]);
+		else
+			CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
 	}
 	else
 	{
 		// Pair of values
 		CVTPD2PS(XMM0, fpr.R(s));
-		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
+		if (js.immediateGQR[i])
+			CALL(asm_routines.pairedStoreQuantized[js.immediateGQRVal[i] & 7]);
+		else
+			CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
 	}
 
 	if (update && js.memcheck)
@@ -127,16 +147,30 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 	// In memcheck mode, don't update the address until the exception check
 	if (update && !js.memcheck)
 		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
-	MOV(32, R(RSCRATCH2), Imm32(0x3F07));
 
-	// Get the high part of the GQR register
-	OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
-	gqr.offset += 2;
+	if (js.immediateGQR[i])
+	{
+		u32 qfactor = (js.immediateGQRVal[i] >> 16) & 0x3F00;
+		if (!qfactor)
+			XOR(32, R(RSCRATCH2), R(RSCRATCH2));
+		else
+			MOV(32, R(RSCRATCH2), Imm32(qfactor));
+	}
+	else
+	{
+		MOV(32, R(RSCRATCH2), Imm32(0x3F07));
+		// Get the high part of the GQR register
+		OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
+		gqr.offset += 2;
 
-	AND(32, R(RSCRATCH2), gqr);
-	MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+		AND(32, R(RSCRATCH2), gqr);
+		MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+	}
 
-	CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
+	if (js.immediateGQR[i])
+		CALL(asm_routines.pairedLoadQuantized[((js.immediateGQRVal[i]>>16) & 7) + w * 8]);
+	else
+		CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
 
 	MEMCHECK_START(false)
 	CVTPS2PD(fpr.RX(s), R(XMM0));
