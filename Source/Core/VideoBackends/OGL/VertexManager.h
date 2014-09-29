@@ -43,6 +43,7 @@ protected:
 private:
 	void Draw(u32 stride);
 	void vFlush(bool useDstAlpha) override;
+	void vFlush3D(bool useDstAlpha);
 	void PrepareDrawBuffers(u32 stride);
 };
 
