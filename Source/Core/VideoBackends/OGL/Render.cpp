@@ -1353,7 +1353,7 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 #if defined(HAVE_LIBAV) || defined(_WIN32)
 		if (g_ActiveConfig.bDumpFrames && !data.empty())
 		{
-			AVIDump::AddFrame(&data[0], w, h);
+			AVIDump::AddFrame(&data[0]);
 		}
 #endif
 }
@@ -1539,7 +1539,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 						FlipImageData(&frame_data[0], w, h);
 					#endif
 
-						AVIDump::AddFrame(&frame_data[0], w, h);
+						AVIDump::AddFrame(&frame_data[0]);
 				}
 
 				bLastFrameDumped = true;
