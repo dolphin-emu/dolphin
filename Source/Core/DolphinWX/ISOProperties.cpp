@@ -395,9 +395,11 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	//sbVR->Add(OverrideTextVR, 0, wxEXPAND | wxALL, 5);
 	wxStaticBoxSizer * const sb3D = new wxStaticBoxSizer(wxVERTICAL, m_VR, _("3D World"));
 	sbVR->Add(sb3D, 0, wxEXPAND | wxALL, 5);
-	Disable3D = new wxCheckBox(m_VR, ID_DISABLE_3D, _("Disable 3D"), wxDefaultPosition, wxDefaultSize, GetElementStyle("VR", "Disable3D"));
+	// Disable3D = new wxCheckBox(m_VR, ID_DISABLE_3D, _("Disable 3D"), wxDefaultPosition, wxDefaultSize, GetElementStyle("VR", "Disable3D"));
 	HudFullscreen = new wxCheckBox(m_VR, ID_HUD_FULLSCREEN, _("HUD Fullscreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("VR", "HudFullscreen"));
-	sb3D->Add(Disable3D, 0, wxLEFT, 5);
+	HudOnTop = new wxCheckBox(m_VR, ID_HUD_ON_TOP, _("HUD On Top"), wxDefaultPosition, wxDefaultSize, GetElementStyle("VR", "HudOnTop"));
+	//sb3D->Add(Disable3D, 0, wxLEFT, 5);
+	sb3D->Add(HudOnTop, 0, wxLEFT, 5);
 	sb3D->Add(HudFullscreen, 0, wxLEFT, 5);
 	wxGridBagSizer *s3DGrid = new wxGridBagSizer();
 	sb3D->Add(s3DGrid, 0, wxEXPAND);
@@ -1159,8 +1161,9 @@ void CISOProperties::LoadGameConfig()
 
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
-	SetCheckboxValueFromGameini("VR", "Disable3D", Disable3D);
+	//SetCheckboxValueFromGameini("VR", "Disable3D", Disable3D);
 	SetCheckboxValueFromGameini("VR", "HudFullscreen", HudFullscreen);
+	SetCheckboxValueFromGameini("VR", "HudOnTop", HudOnTop);
 	float fTemp;
 
 	fTemp = DEFAULT_VR_UNITS_PER_METRE;
@@ -1313,8 +1316,9 @@ bool CISOProperties::SaveGameConfig()
 	std::string emu_issues = EmuIssues->GetValue().ToStdString();
 	SAVE_IF_NOT_DEFAULT("EmuState", "EmulationIssues", emu_issues, "");
 
-	SaveGameIniValueFrom3StateCheckbox("VR", "Disable3D", Disable3D);
+	//SaveGameIniValueFrom3StateCheckbox("VR", "Disable3D", Disable3D);
 	SaveGameIniValueFrom3StateCheckbox("VR", "HudFullscreen", HudFullscreen);
+	SaveGameIniValueFrom3StateCheckbox("VR", "HudOnTop", HudOnTop);
 	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)UnitsPerMetre->GetValue(), DEFAULT_VR_UNITS_PER_METRE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)HudDistance->GetValue(), DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)HudThickness->GetValue(), DEFAULT_VR_HUD_THICKNESS);

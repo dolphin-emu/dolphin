@@ -130,6 +130,8 @@ void VertexManager::Draw(u32 stride)
 
 void VertexManager::vFlush3D(bool useDstAlpha)
 {
+	if (VertexShaderManager::m_layer_on_top)
+		glDepthFunc(GL_ALWAYS);
 	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
 	u32 stride = nativeVertexFmt->GetVertexStride();
 
@@ -267,6 +269,21 @@ void VertexManager::vFlush3D(bool useDstAlpha)
 
 	ClearEFBCache();
 
+	if (VertexShaderManager::m_layer_on_top)
+	{
+		const GLenum glCmpFuncs[8] =
+		{
+			GL_NEVER,
+			GL_LESS,
+			GL_EQUAL,
+			GL_LEQUAL,
+			GL_GREATER,
+			GL_NOTEQUAL,
+			GL_GEQUAL,
+			GL_ALWAYS
+		};
+		glDepthFunc(glCmpFuncs[bpmem.zmode.func]);
+	}
 	GL_REPORT_ERRORD();
 }
 

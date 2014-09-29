@@ -1322,7 +1322,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
 	if (convtype == 0 || convtype == 2)
 	{
-		FramebufferManager::ReinterpretPixelData(convtype, 0);
+		//FramebufferManager::ReinterpretPixelData(convtype, 0);
 	}
 	else
 	{

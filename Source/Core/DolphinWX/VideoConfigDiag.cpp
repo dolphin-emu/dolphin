@@ -137,6 +137,7 @@ static wxString flipvertical_desc = wxTRANSLATE("Flip the screen vertically.\n\n
 static wxString srgb_desc = wxTRANSLATE("\"Assume input images are in sRGB gamma-corrected color space.\"\n\nIf unsure, leave this unchecked.");
 static wxString overdrive_desc = wxTRANSLATE("Try to fix true black smearing by overdriving brightness transitions.\n\nIf unsure, leave this unchecked.");
 static wxString hqdistortion_desc = wxTRANSLATE("\"High-quality sampling of distortion buffer for anti-aliasing\".\n\nIf unsure, leave this unchecked.");
+static wxString hudontop_desc = wxTRANSLATE("Always draw the HUD on top of everything else.\nUse this when you can't see the HUD because the world is covering it up.\n\nIf unsure, leave this unchecked.");
 
 static wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf unsure, use the first one.");
 static wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, use your desktop resolution.\nIf still unsure, use the highest resolution which works for you.");
@@ -797,6 +798,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
 		}
+		szr_vr->Add(CreateCheckBox(page_vr, _("HUD on top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, _("For this game only"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

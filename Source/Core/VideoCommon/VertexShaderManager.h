@@ -37,5 +37,6 @@ public:
 
 	static VertexShaderConstants constants;
 	static float4 constants_eye_projection[2][4];
+	static bool m_layer_on_top;
 	static bool dirty;
 };

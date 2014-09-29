@@ -49,6 +49,7 @@ static float s_fViewRotation[2];
 
 VertexShaderConstants VertexShaderManager::constants;
 float4 VertexShaderManager::constants_eye_projection[2][4];
+bool VertexShaderManager::m_layer_on_top;
 
 bool VertexShaderManager::dirty;
 
@@ -363,6 +364,8 @@ void VertexShaderManager::Init()
 {
 	Dirty();
 
+	m_layer_on_top = false;
+
 	memset(&xfmem, 0, sizeof(xfmem));
 	memset(&constants, 0 , sizeof(constants));
 	ResetView();
@@ -613,6 +616,7 @@ void VertexShaderManager::SetProjectionConstants()
 {
 	float *rawProjection = xfmem.projection.rawProjection;
 
+	m_layer_on_top = false;
 	bool bFullscreenLayer = g_ActiveConfig.bHudFullscreen && xfmem.projection.type != GX_PERSPECTIVE;
 	bool bFlashing = (debug_projNum - 1) == g_ActiveConfig.iSelectedLayer;
 	bool bStuckToHead = false, bHide = false;
@@ -800,6 +804,7 @@ void VertexShaderManager::SetProjectionConstants()
 		else
 		{
 			if (vr_widest_3d_HFOV > 0) {
+				m_layer_on_top = g_ActiveConfig.bHudOnTop;
 				znear = vr_widest_3d_zNear;
 				zfar = vr_widest_3d_zFar;
 				hfov = vr_widest_3d_HFOV;

@@ -1064,6 +1064,49 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	TextureCache::Cleanup();
 
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+	{
+		if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
+			g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction)
+		{
+			int caps = ovrHmd_GetEnabledCaps(hmd) & ~(ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
+			if (g_Config.bLowPersistence)
+				caps |= ovrHmdCap_LowPersistence;
+			if (g_Config.bDynamicPrediction)
+				caps |= ovrHmdCap_DynamicPrediction;
+
+			ovrHmd_SetEnabledCaps(hmd, caps);
+		}
+
+		if (g_Config.bOrientationTracking != g_ActiveConfig.bOrientationTracking ||
+			g_Config.bMagYawCorrection != g_ActiveConfig.bMagYawCorrection ||
+			g_Config.bPositionTracking != g_ActiveConfig.bPositionTracking)
+		{
+			int cap = 0;
+			if (g_ActiveConfig.bOrientationTracking)
+				cap |= ovrTrackingCap_Orientation;
+			if (g_ActiveConfig.bMagYawCorrection)
+				cap |= ovrTrackingCap_MagYawCorrection;
+			if (g_ActiveConfig.bPositionTracking)
+				cap |= ovrTrackingCap_Position;
+			ovrHmd_ConfigureTracking(hmd, cap, 0);
+		}
+
+		if (g_Config.bChromatic != g_ActiveConfig.bChromatic ||
+			g_Config.bTimewarp != g_ActiveConfig.bTimewarp ||
+			g_Config.bVignette != g_ActiveConfig.bVignette ||
+			g_Config.bNoRestore != g_ActiveConfig.bNoRestore ||
+			g_Config.bFlipVertical != g_ActiveConfig.bFlipVertical ||
+			g_Config.bSRGB != g_ActiveConfig.bSRGB ||
+			g_Config.bOverdrive != g_ActiveConfig.bOverdrive ||
+			g_Config.bHqDistortion != g_ActiveConfig.bHqDistortion)
+		{
+			FramebufferManager::ConfigureRift();
+		}
+	}
+#endif
+
 	// Enable configuration changes
 	UpdateActiveConfig();
 	// VR XFB isn't implemented yet, so always disable it for VR
@@ -1206,6 +1249,11 @@ void Renderer::RestoreAPIState()
 void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	HRESULT hr;
+
+	if (VertexShaderManager::m_layer_on_top)
+	{
+		gx_state.depthdc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+	}
 
 	if (bUseDstAlpha)
 	{

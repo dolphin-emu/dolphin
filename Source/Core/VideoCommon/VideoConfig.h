@@ -157,6 +157,7 @@ struct VideoConfig final
 	float fTelescopeMaxFOV;
 	bool bDisable3D;
 	bool bHudFullscreen;
+	bool bHudOnTop;
 	int iTelescopeEye;
 	int iMetroidPrime;
 	// VR layer debugging

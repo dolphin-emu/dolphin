@@ -265,12 +265,14 @@ void VideoConfig::GameIniLoad()
 	fScreenPitch = DEFAULT_VR_SCREEN_PITCH;
 	bDisable3D = false;
 	bHudFullscreen = false;
+	bHudOnTop = false;
 	iSelectedLayer = -1;
 	iFlashState = 0;
 
 
 	CHECK_SETTING("VR", "Disable3D", bDisable3D);
 	CHECK_SETTING("VR", "HudFullscreen", bHudFullscreen);
+	CHECK_SETTING("VR", "HudOnTop", bHudOnTop);
 	CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
 	CHECK_SETTING("VR", "HudThickness", fHudThickness);
 	CHECK_SETTING("VR", "HudDistance", fHudDistance);
@@ -323,6 +325,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "Disable3D", bDisable3D, false);
 	SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
+	SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
 	SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
 	SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
 	SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)fCameraForward, DEFAULT_VR_CAMERA_FORWARD);
