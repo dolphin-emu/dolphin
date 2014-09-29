@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
+#include "Common/Hash.h"
 
 // m_components
 enum
@@ -86,6 +86,20 @@ struct PortableVertexDeclaration
 		return memcmp(this, &b, sizeof(PortableVertexDeclaration)) == 0;
 	}
 };
+
+namespace std
+{
+
+template <>
+struct hash<PortableVertexDeclaration>
+{
+	size_t operator()(const PortableVertexDeclaration& decl) const
+	{
+		return HashFletcher((u8 *) &decl, sizeof(decl));
+	}
+};
+
+}
 
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
 // is in the respective backend, not here in VideoCommon.

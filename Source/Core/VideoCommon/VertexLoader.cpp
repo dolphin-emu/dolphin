@@ -33,13 +33,10 @@
 
 // Matrix components are first in GC format but later in PC format - we need to store it temporarily
 // when decoding each vertex.
-static u8 s_curposmtx = MatrixIndexA.PosNormalMtxIdx;
+static u8 s_curposmtx = g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
 static u8 s_curtexmtx[8];
 static int s_texmtxwrite = 0;
 static int s_texmtxread = 0;
-
-static int loop_counter;
-
 
 // Vertex loaders read these. Although the scale ones should be baked into the shader.
 int tcIndex;
@@ -90,7 +87,7 @@ static void LOADERDECL PosMtx_Write()
 	DataWrite<u8>(0);
 
 	// Resetting current position matrix to default is needed for bbox to behave
-	s_curposmtx = (u8) MatrixIndexA.PosNormalMtxIdx;
+	s_curposmtx = (u8) g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
 }
 
 static void LOADERDECL UpdateBoundingBoxPrepare()
@@ -548,7 +545,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_compiledCode = nullptr;
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
-	loop_counter = 0;
+	m_native_vertex_format = nullptr;
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
 	VertexLoader_TextCoord::Init();
@@ -584,8 +581,11 @@ void VertexLoader::CompileVertexTranslator()
 		PanicAlert("Trying to recompile a vertex translator");
 
 	m_compiledCode = GetCodePtr();
-	// We don't use any callee saved registers or anything but RAX.
-	ABI_PushRegistersAndAdjustStack(0, 8);
+	// We only use RAX (caller saved) and RBX (callee saved).
+	ABI_PushRegistersAndAdjustStack(1 << RBX, 8);
+
+	// save count
+	MOV(64, R(RBX), R(ABI_PARAM1));
 
 	// Start loop here
 	const u8 *loop_start = GetCodePtr();
@@ -842,11 +842,10 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_VERTEX_LOADER_JIT
 	// End loop here
-	MOV(64, R(RAX), Imm64((u64)&loop_counter));
-	SUB(32, MatR(RAX), Imm8(1));
+	SUB(64, R(RBX), Imm8(1));
 
 	J_CC(CC_NZ, loop_start);
-	ABI_PopRegistersAndAdjustStack(0, 8);
+	ABI_PopRegistersAndAdjustStack(1 << RBX, 8);
 	RET();
 #endif
 }
@@ -912,8 +911,7 @@ void VertexLoader::ConvertVertices ( int count )
 #ifdef USE_VERTEX_LOADER_JIT
 	if (count > 0)
 	{
-		loop_counter = count;
-		((void (*)())(void*)m_compiledCode)();
+		((void (*)(int))(void*)m_compiledCode)(count);
 	}
 #else
 	for (int s = 0; s < count; s++)
@@ -1035,3 +1033,22 @@ void VertexLoader::AppendToString(std::string *dest) const
 	}
 	dest->append(StringFromFormat(" - %i v\n", m_numLoadedVertices));
 }
+
+NativeVertexFormat* VertexLoader::GetNativeVertexFormat()
+{
+	if (m_native_vertex_format)
+		return m_native_vertex_format;
+	auto& native = s_native_vertex_map[m_native_vtx_decl];
+	if (!native)
+	{
+		auto raw_pointer = g_vertex_manager->CreateNativeVertexFormat();
+		native = std::unique_ptr<NativeVertexFormat>(raw_pointer);
+		native->Initialize(m_native_vtx_decl);
+		native->m_components = m_native_components;
+	}
+	m_native_vertex_format = native.get();
+	return native.get();
+
+}
+
+std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> VertexLoader::s_native_vertex_map;

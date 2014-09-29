@@ -123,6 +123,7 @@ void VideoBackendHardware::Video_EndField()
 {
 	if (s_BackendInitialized)
 	{
+		SyncGPU(SYNC_GPU_SWAP);
 		s_swapRequested.Set();
 	}
 }
@@ -158,6 +159,8 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 {
 	if (s_BackendInitialized && g_ActiveConfig.bEFBAccessEnable)
 	{
+		SyncGPU(SYNC_GPU_EFB_POKE);
+
 		s_accessEFBArgs.type = type;
 		s_accessEFBArgs.x = x;
 		s_accessEFBArgs.y = y;
@@ -198,6 +201,8 @@ u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
 	{
 		return 0;
 	}
+
+	SyncGPU(SYNC_GPU_PERFQUERY);
 
 	// TODO: Is this check sane?
 	if (!g_perf_query->IsFlushed())
@@ -307,5 +312,10 @@ bool VideoBackendHardware::Video_IsPossibleWaitingSetDrawDone()
 void VideoBackendHardware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
 {
 	CommandProcessor::RegisterMMIO(mmio, base);
+}
+
+void VideoBackendHardware::UpdateWantDeterminism(bool want)
+{
+	Fifo_UpdateWantDeterminism(want);
 }
 

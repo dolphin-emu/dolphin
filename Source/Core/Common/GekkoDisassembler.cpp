@@ -977,6 +977,11 @@ void GekkoDisassembler::mtfsb(u32 in, int n)
 #define TBR ((inst >> 11) & 0x3ff)
 #define CRM ((inst >> 12) & 0xff)
 
+#define I ((inst >> 12) & 0x7)
+#define W ((inst >> 15) & 0x1)
+#define IX ((inst >> 7) & 0x7)
+#define WX ((inst >> 10) & 0x1)
+
 
 void GekkoDisassembler::ps(u32 inst)
 {
@@ -984,12 +989,12 @@ void GekkoDisassembler::ps(u32 inst)
 	{
 	case 6:
 		m_opcode = inst & 0x40 ? "psq_lux" : "psq_lx";
-		m_operands = StringFromFormat("p%u, (r%u + r%u)", FD, RA, RB);
+		m_operands = StringFromFormat("p%u, (r%u + r%u), %d, qr%d", FD, RA, RB, WX, IX);
 		return;
 
 	case 7:
 		m_opcode = inst & 0x40 ? "psq_stux" : "psq_stx";
-		m_operands = StringFromFormat("(r%u + r%u), p%u", RA, RB, FS);
+		m_operands = StringFromFormat("(r%u + r%u), p%u, %d, qr%d", RA, RB, FS, WX, IX);
 		return;
 
 	case 18:
@@ -1152,22 +1157,22 @@ void GekkoDisassembler::ps_mem(u32 inst)
 	{
 	case 56:
 		m_opcode = "psq_l";
-		m_operands = StringFromFormat("p%u, %i(r%u)", RS, SEX12(inst & 0xFFF), RA);
+		m_operands = StringFromFormat("p%u, %i(r%u), %d, qr%d", RS, SEX12(inst & 0xFFF), RA, W, I);
 		break;
 
 	case 57:
 		m_opcode = "psq_lu";
-		m_operands = StringFromFormat("p%u, %i(r%u)", RS, SEX12(inst & 0xFFF), RA);;
+		m_operands = StringFromFormat("p%u, %i(r%u), %d, qr%d", RS, SEX12(inst & 0xFFF), RA, W, I);;
 		break;
 
 	case 60:
 		m_opcode = "psq_st";
-		m_operands = StringFromFormat("%i(r%u), p%u", SEX12(inst & 0xFFF), RA, RS);
+		m_operands = StringFromFormat("%i(r%u), p%u, %d, qr%d", SEX12(inst & 0xFFF), RA, RS, W, I);
 		break;
 
 	case 61:
 		m_opcode = "psq_stu";
-		m_operands = StringFromFormat("%i(r%u), p%u", SEX12(inst & 0xFFF), RA, RS);
+		m_operands = StringFromFormat("%i(r%u), p%u, %d, qr%d", SEX12(inst & 0xFFF), RA, RS, W, I);
 		break;
 	}
 }

@@ -242,6 +242,8 @@ public:
 		}
 	}
 
+	void UpdateWantDeterminism(bool want);
+
 private:
 	WiiSockMan() = default;
 

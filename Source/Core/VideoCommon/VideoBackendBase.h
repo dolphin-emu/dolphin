@@ -124,6 +124,8 @@ public:
 
 	virtual void CheckInvalidState() = 0;
 
+	virtual void UpdateWantDeterminism(bool want) {}
+
 	std::thread *m_video_thread;
 };
 
@@ -160,6 +162,8 @@ class VideoBackendHardware : public VideoBackend
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 	void DoState(PointerWrap &p) override;
+
+	void UpdateWantDeterminism(bool want) override;
 
 	bool m_invalid;
 

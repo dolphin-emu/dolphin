@@ -437,6 +437,8 @@ bool BeginRecordingInput(int controllers)
 	if (s_playMode != MODE_NONE || controllers == 0)
 		return false;
 
+	bool was_unpaused = Core::PauseAndLock(true);
+
 	s_numPads = controllers;
 	g_currentFrame = g_totalFrames = 0;
 	g_currentLagCount = s_totalLagCount = 0;
@@ -486,6 +488,10 @@ bool BeginRecordingInput(int controllers)
 	EnsureTmpInputSize(1);
 
 	s_currentByte = s_totalBytes = 0;
+
+	Core::UpdateWantDeterminism();
+
+	Core::PauseAndLock(false, was_unpaused);
 
 	Core::DisplayMessage("Starting movie recording", 2000);
 	return true;
@@ -763,6 +769,8 @@ bool PlayInput(const std::string& filename)
 	g_currentInputCount = 0;
 
 	s_playMode = MODE_PLAYING;
+
+	Core::UpdateWantDeterminism();
 
 	s_totalBytes = g_recordfd.GetSize() - 256;
 	EnsureTmpInputSize((size_t)s_totalBytes);
@@ -1097,6 +1105,7 @@ void EndPlayInput(bool cont)
 		s_rerecords = 0;
 		s_currentByte = 0;
 		s_playMode = MODE_NONE;
+		Core::UpdateWantDeterminism();
 		Core::DisplayMessage("Movie End.", 2000);
 		s_bRecordingFromSaveState = false;
 		// we don't clear these things because otherwise we can't resume playback if we load a movie state later

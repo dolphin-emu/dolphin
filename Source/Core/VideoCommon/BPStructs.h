@@ -7,5 +7,4 @@
 #include "VideoCommon/BPMemory.h"
 
 void BPInit();
-void LoadBPReg(u32 value0);
 void BPReload();

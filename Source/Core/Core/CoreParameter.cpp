@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <memory>
 
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
@@ -135,7 +136,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				bootDrive)
 			{
 				m_BootType = BOOT_ISO;
-				DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename);
+				std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));
 				if (pVolume == nullptr)
 				{
 					if (bootDrive)
@@ -153,7 +154,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				m_strRevisionSpecificUniqueID = pVolume->GetRevisionSpecificUniqueID();
 
 				// Check if we have a Wii disc
-				bWii = DiscIO::IsVolumeWiiDisc(pVolume);
+				bWii = DiscIO::IsVolumeWiiDisc(pVolume.get());
 				switch (pVolume->GetCountry())
 				{
 				case DiscIO::IVolume::COUNTRY_USA:
@@ -184,10 +185,12 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 						bNTSC = false;
 						Region = EUR_DIR;
 						break;
-					}else return false;
+					}
+					else
+					{
+						return false;
+					}
 				}
-
-				delete pVolume;
 			}
 			else if (!strcasecmp(Extension.c_str(), ".elf"))
 			{
@@ -211,17 +214,16 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				bNTSC = true;
 				m_BootType = BOOT_DFF;
 
-				FifoDataFile *ddfFile = FifoDataFile::Load(m_strFilename, true);
+				std::unique_ptr<FifoDataFile> ddfFile(FifoDataFile::Load(m_strFilename, true));
 
 				if (ddfFile)
 				{
 					bWii = ddfFile->GetIsWii();
-					delete ddfFile;
 				}
 			}
 			else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
 			{
-				const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename);
+				std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));
 				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
 
 				if (ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex()) == nullptr)
@@ -269,7 +271,6 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				{
 					m_strName = pVolume->GetName();
 					m_strUniqueID = pVolume->GetUniqueID();
-					delete pVolume;
 				}
 				else
 				{
@@ -281,18 +282,16 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 
 				// Use the TitleIDhex for name and/or unique ID if launching from nand folder
 				// or if it is not ascii characters (specifically sysmenu could potentially apply to other things)
-				char titleidstr[17];
-				snprintf(titleidstr, 17, "%016" PRIx64, ContentLoader.GetTitleID());
+				std::string titleidstr = StringFromFormat("%016" PRIx64, ContentLoader.GetTitleID());
 
-				if (!m_strName.length())
+				if (m_strName.empty())
 				{
 					m_strName = titleidstr;
 				}
-				if (!m_strUniqueID.length())
+				if (m_strUniqueID.empty())
 				{
 					m_strUniqueID = titleidstr;
 				}
-
 			}
 			else
 			{

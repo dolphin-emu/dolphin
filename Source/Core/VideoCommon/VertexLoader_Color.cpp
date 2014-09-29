@@ -117,7 +117,7 @@ template <typename I>
 void Color_ReadIndex_16b_565()
 {
 	auto const Index = DataRead<I>();
-	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])));
+	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex])));
 	_SetCol565(val);
 }
 
@@ -125,7 +125,7 @@ template <typename I>
 void Color_ReadIndex_24b_888()
 {
 	auto const Index = DataRead<I>();
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
 
@@ -133,7 +133,7 @@ template <typename I>
 void Color_ReadIndex_32b_888x()
 {
 	auto const Index = DataRead<I>();
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
 
@@ -141,7 +141,7 @@ template <typename I>
 void Color_ReadIndex_16b_4444()
 {
 	auto const Index = DataRead<I>();
-	u16 val = *(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]));
+	u16 val = *(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]));
 	_SetCol4444(val);
 }
 
@@ -149,7 +149,7 @@ template <typename I>
 void Color_ReadIndex_24b_6666()
 {
 	auto const Index = DataRead<I>();
-	const u8* pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]) - 1;
+	const u8* pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]) - 1;
 	u32 val = Common::swap32(pData);
 	_SetCol6666(val);
 }
@@ -158,7 +158,7 @@ template <typename I>
 void Color_ReadIndex_32b_8888()
 {
 	auto const Index = DataRead<I>();
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read32(iAddress));
 }
 

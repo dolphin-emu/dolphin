@@ -23,6 +23,8 @@ extern bool g_aspect_wide;
 namespace Core
 {
 
+extern bool g_want_determinism;
+
 bool GetIsFramelimiterTempDisabled();
 void SetIsFramelimiterTempDisabled(bool disable);
 
@@ -78,5 +80,8 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 // for calling back into UI code without introducing a dependency on it in core
 typedef void(*StoppedCallbackFunc)(void);
 void SetOnStoppedCallback(StoppedCallbackFunc callback);
+
+// Run on the GUI thread when the factors change.
+void UpdateWantDeterminism(bool initial = false);
 
 }  // namespace
