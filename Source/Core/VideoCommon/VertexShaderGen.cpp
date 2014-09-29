@@ -245,8 +245,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// donko - this has caused problems in some games. removed for now.
 	bool texGenSpecialCase = false;
 	/*bool texGenSpecialCase =
-		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
-		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
+		((g_main_cp_state.vtx_desc.Hex & 0x60600L) == g_main_cp_state.vtx_desc.Hex) && // only pos and tex coord 0
+		(g_main_cp_state.vtx_desc.Tex0Coord != NOT_PRESENT) &&
 		(xfmem.texcoords[0].texmtxinfo.inputform == XF_TEXINPUT_AB11);
 		*/
 

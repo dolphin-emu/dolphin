@@ -74,7 +74,7 @@ protected:
 
 	void ResetPointers()
 	{
-		g_pVideoData = &input_memory[0];
+		g_video_buffer_read_ptr = &input_memory[0];
 		VertexManager::s_pCurBufferPointer = &output_memory[0];
 		m_input_pos = m_output_pos = 0;
 	}

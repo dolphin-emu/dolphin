@@ -116,6 +116,8 @@ public:
 	virtual void DoState(PointerWrap &p) = 0;
 
 	virtual void CheckInvalidState() = 0;
+
+	virtual void UpdateWantDeterminism(bool want) {}
 };
 
 extern std::vector<VideoBackend*> g_available_video_backends;
@@ -150,6 +152,8 @@ class VideoBackendHardware : public VideoBackend
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 	void DoState(PointerWrap &p) override;
+
+	void UpdateWantDeterminism(bool want) override;
 
 	bool m_invalid;
 

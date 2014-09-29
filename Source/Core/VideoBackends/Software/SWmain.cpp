@@ -116,14 +116,7 @@ void VideoSoftware::DoState(PointerWrap& p)
 	p.DoPOD(swstats);
 
 	// CP Memory
-	p.DoArray(arraybases, 16);
-	p.DoArray(arraystrides, 16);
-	p.Do(MatrixIndexA);
-	p.Do(MatrixIndexB);
-	p.Do(g_VtxDesc.Hex);
-	p.DoArray(g_VtxAttr, 8);
-	p.DoMarker("CP Memory");
-
+	DoCPState(p);
 }
 
 void VideoSoftware::CheckInvalidState()

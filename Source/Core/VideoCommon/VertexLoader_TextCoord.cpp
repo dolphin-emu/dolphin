@@ -73,7 +73,7 @@ void LOADERDECL TexCoord_ReadIndex()
 
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
-		+ (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));
+		+ (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0 + tcIndex]));
 	auto const scale = tcScale[tcIndex];
 	DataWriter dst;
 
@@ -94,7 +94,7 @@ void LOADERDECL TexCoord_ReadIndex_Short2_SSE4()
 
 	// Heavy in ZWW
 	auto const index = DataRead<I>();
-	const s32 *pData = (const s32*)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
+	const s32 *pData = (const s32*)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0+tcIndex]));
 	const __m128i a = _mm_cvtsi32_si128(*pData);
 	const __m128i b = _mm_shuffle_epi8(a, kMaskSwap16_2);
 	const __m128i c = _mm_cvtepi16_epi32(b);
@@ -117,7 +117,7 @@ void LOADERDECL TexCoord_ReadIndex_Float2_SSSE3()
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
 
 	auto const index = DataRead<I>();
-	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
+	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * g_main_cp_state.array_strides[ARRAY_TEXCOORD0+tcIndex]));
 	GC_ALIGNED128(const __m128i a = _mm_loadl_epi64((__m128i*)pData));
 	GC_ALIGNED128(const __m128i b = _mm_shuffle_epi8(a, kMaskSwap32));
 	_mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);

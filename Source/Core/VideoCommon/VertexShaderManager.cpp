@@ -329,8 +329,8 @@ void VertexShaderManager::SetConstants()
 	{
 		bPosNormalMatrixChanged = false;
 
-		const float *pos = (const float *)xfmem.posMatrices + MatrixIndexA.PosNormalMtxIdx * 4;
-		const float *norm = (const float *)xfmem.normalMatrices + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
+		const float *pos = (const float *)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
+		const float *norm = (const float *)xfmem.normalMatrices + 3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31);
 
 		memcpy(constants.posnormalmatrix, pos, 3*16);
 		memcpy(constants.posnormalmatrix[3], norm, 12);
@@ -344,10 +344,10 @@ void VertexShaderManager::SetConstants()
 		bTexMatricesChanged[0] = false;
 		const float *fptrs[] =
 		{
-			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex0MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex1MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex2MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexA.Tex3MtxIdx * 4]
+			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex2MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4]
 		};
 
 		for (int i = 0; i < 4; ++i)
@@ -361,10 +361,10 @@ void VertexShaderManager::SetConstants()
 	{
 		bTexMatricesChanged[1] = false;
 		const float *fptrs[] = {
-			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex4MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex5MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex6MtxIdx * 4],
-			(const float *)&xfmem.posMatrices[MatrixIndexB.Tex7MtxIdx * 4]
+			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4],
+			(const float *)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex7MtxIdx * 4]
 		};
 
 		for (int i = 0; i < 4; ++i)
@@ -536,26 +536,26 @@ void VertexShaderManager::SetConstants()
 
 void VertexShaderManager::InvalidateXFRange(int start, int end)
 {
-	if (((u32)start >= (u32)MatrixIndexA.PosNormalMtxIdx * 4 &&
-		 (u32)start <  (u32)MatrixIndexA.PosNormalMtxIdx * 4 + 12) ||
-		((u32)start >= XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31) * 3 &&
-		 (u32)start <  XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31) * 3 + 9))
+	if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 &&
+		 (u32)start <  (u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4 + 12) ||
+		((u32)start >= XFMEM_NORMALMATRICES + ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 &&
+		 (u32)start <  XFMEM_NORMALMATRICES + ((u32)g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31) * 3 + 9))
 	{
 		bPosNormalMatrixChanged = true;
 	}
 
-	if (((u32)start >= (u32)MatrixIndexA.Tex0MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex0MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexA.Tex1MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex1MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexA.Tex2MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex2MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexA.Tex3MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex3MtxIdx*4+12))
+	if (((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx*4 && (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex0MtxIdx*4+12) ||
+		((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx*4 && (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex1MtxIdx*4+12) ||
+		((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx*4 && (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex2MtxIdx*4+12) ||
+		((u32)start >= (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx*4 && (u32)start < (u32)g_main_cp_state.matrix_index_a.Tex3MtxIdx*4+12))
 	{
 		bTexMatricesChanged[0] = true;
 	}
 
-	if (((u32)start >= (u32)MatrixIndexB.Tex4MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex4MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexB.Tex5MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex5MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexB.Tex6MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex6MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexB.Tex7MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex7MtxIdx*4+12))
+	if (((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx*4 && (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex4MtxIdx*4+12) ||
+		((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx*4 && (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex5MtxIdx*4+12) ||
+		((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx*4 && (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex6MtxIdx*4+12) ||
+		((u32)start >= (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx*4 && (u32)start < (u32)g_main_cp_state.matrix_index_b.Tex7MtxIdx*4+12))
 	{
 		bTexMatricesChanged[1] = true;
 	}
@@ -628,23 +628,23 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 
 void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
 {
-	if (MatrixIndexA.Hex != Value)
+	if (g_main_cp_state.matrix_index_a.Hex != Value)
 	{
 		VertexManager::Flush();
-		if (MatrixIndexA.PosNormalMtxIdx != (Value&0x3f))
+		if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value&0x3f))
 			bPosNormalMatrixChanged = true;
 		bTexMatricesChanged[0] = true;
-		MatrixIndexA.Hex = Value;
+		g_main_cp_state.matrix_index_a.Hex = Value;
 	}
 }
 
 void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
 {
-	if (MatrixIndexB.Hex != Value)
+	if (g_main_cp_state.matrix_index_b.Hex != Value)
 	{
 		VertexManager::Flush();
 		bTexMatricesChanged[1] = true;
-		MatrixIndexB.Hex = Value;
+		g_main_cp_state.matrix_index_b.Hex = Value;
 	}
 }
 

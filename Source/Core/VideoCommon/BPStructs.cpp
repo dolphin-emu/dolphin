@@ -173,7 +173,8 @@ static void BPWritten(const BPCmd& bp)
 		switch (bp.newvalue & 0xFF)
 		{
 		case 0x02:
-			PixelEngine::SetFinish(); // may generate interrupt
+			if (!g_use_deterministic_gpu_thread)
+				PixelEngine::SetFinish(); // may generate interrupt
 			DEBUG_LOG(VIDEO, "GXSetDrawDone SetPEFinish (value: 0x%02X)", (bp.newvalue & 0xFFFF));
 			return;
 
@@ -183,11 +184,13 @@ static void BPWritten(const BPCmd& bp)
 		}
 		return;
 	case BPMEM_PE_TOKEN_ID: // Pixel Engine Token ID
-		PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false);
+		if (!g_use_deterministic_gpu_thread)
+			PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false);
 		DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bp.newvalue & 0xFFFF));
 		return;
 	case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID
-		PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true);
+		if (!g_use_deterministic_gpu_thread)
+			PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true);
 		DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bp.newvalue & 0xFFFF));
 		return;
 
@@ -683,6 +686,26 @@ void LoadBPReg(u32 value0)
 		bpmem.bpMask = 0xFFFFFF;
 
 	BPWritten(bp);
+}
+
+void LoadBPRegPreprocess(u32 value0)
+{
+	int regNum = value0 >> 24;
+	// masking could hypothetically be a problem
+	u32 newval = value0 & 0xffffff;
+	switch (regNum)
+	{
+	case BPMEM_SETDRAWDONE:
+		if ((newval & 0xff) == 0x02)
+			PixelEngine::SetFinish();
+		break;
+	case BPMEM_PE_TOKEN_ID:
+		PixelEngine::SetToken(newval & 0xffff, false);
+		break;
+	case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID
+		PixelEngine::SetToken(newval & 0xffff, true);
+		break;
+	}
 }
 
 void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)

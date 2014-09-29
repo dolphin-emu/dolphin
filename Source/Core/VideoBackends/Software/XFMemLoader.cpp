@@ -74,7 +74,7 @@ void SWLoadIndexedXF(u32 val, int array)
 	int size = ((val >> 12) & 0xF) + 1;
 	//load stuff from array to address in xf mem
 
-	u32 *pData = (u32*)Memory::GetPointer(arraybases[array] + arraystrides[array]*index);
+	u32 *pData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[array] + g_main_cp_state.array_strides[array]*index);
 
 	// byteswap data
 	u32 buffer[16];

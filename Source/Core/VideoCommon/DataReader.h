@@ -6,7 +6,7 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
-extern u8* g_pVideoData;
+extern u8* g_video_buffer_read_ptr;
 
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
 #include <tmmintrin.h>
@@ -14,20 +14,20 @@ extern u8* g_pVideoData;
 
 __forceinline void DataSkip(u32 skip)
 {
-	g_pVideoData += skip;
+	g_video_buffer_read_ptr += skip;
 }
 
 // probably unnecessary
 template <int count>
 __forceinline void DataSkip()
 {
-	g_pVideoData += count;
+	g_video_buffer_read_ptr += count;
 }
 
 template <typename T>
-__forceinline T DataPeek(int _uOffset)
+__forceinline T DataPeek(int _uOffset, u8** bufp = &g_video_buffer_read_ptr)
 {
-	auto const result = Common::FromBigEndian(*reinterpret_cast<T*>(g_pVideoData + _uOffset));
+	auto const result = Common::FromBigEndian(*reinterpret_cast<T*>(*bufp + _uOffset));
 	return result;
 }
 
@@ -48,18 +48,18 @@ __forceinline u32 DataPeek32(int _uOffset)
 }
 
 template <typename T>
-__forceinline T DataRead()
+__forceinline T DataRead(u8** bufp = &g_video_buffer_read_ptr)
 {
-	auto const result = DataPeek<T>(0);
-	DataSkip<sizeof(T)>();
+	auto const result = DataPeek<T>(0, bufp);
+	*bufp += sizeof(T);
 	return result;
 }
 
 class DataReader
 {
 public:
-	inline DataReader() : buffer(g_pVideoData), offset(0) {}
-	inline ~DataReader() { g_pVideoData += offset; }
+	inline DataReader() : buffer(g_video_buffer_read_ptr), offset(0) {}
+	inline ~DataReader() { g_video_buffer_read_ptr += offset; }
 	template <typename T> inline T Read()
 	{
 		const T result = Common::FromBigEndian(*(T*)(buffer + offset));
@@ -94,14 +94,14 @@ __forceinline u32 DataReadU32()
 
 __forceinline u32 DataReadU32Unswapped()
 {
-	u32 tmp = *(u32*)g_pVideoData;
-	g_pVideoData += 4;
+	u32 tmp = *(u32*)g_video_buffer_read_ptr;
+	g_video_buffer_read_ptr += 4;
 	return tmp;
 }
 
 __forceinline u8* DataGetPosition()
 {
-	return g_pVideoData;
+	return g_video_buffer_read_ptr;
 }
 
 template <typename T>
