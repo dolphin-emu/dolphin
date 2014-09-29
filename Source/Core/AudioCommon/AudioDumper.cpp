@@ -1,28 +1,15 @@
-#include <string>
 #include <sstream>
+#include <string>
 
+#include "AudioCommon/AudioDumper.h"
 #include "Common/Common.h"
-#include "AudioDumper.h"
 #include "Common/FileUtil.h"
 
 /* automatically dumps to a series of files, splitting segments whenever sample rate (supplied per block) changes
 or 2GB is reached
 */
 
-
-
-
-
-/*
-				if (ac_Config.m_DumpAudio)
-				{
-					std::string audio_file_name = File::GetUserPath(D_DUMPAUDIO_IDX) + "audiodump.wav";
-					File::CreateFullPath(audio_file_name);
-					mixer->StartLogAudio(audio_file_name.c_str());
-				}
-*/
-
-AudioDumper::AudioDumper (std::string _basename)
+AudioDumper::AudioDumper(const std::string& _basename)
 {
 	currentrate = 0;
 	fileopen = false;
@@ -60,26 +47,18 @@ bool AudioDumper::checkem (int srate)
 		fileindex++;
 	}
 	return true;
-
 }
 
-void AudioDumper::dumpsamplesBE (const short *buff, int nsamp, int srate)
+void AudioDumper::DumpSamplesBE (const short *buff, int nsamp, int srate)
 {
 	if (!checkem (srate))
 		return;
 	wfr.AddStereoSamplesBE (buff, nsamp);
 }
 
-void AudioDumper::dumpsamples (const short *buff, int nsamp, int srate)
+void AudioDumper::DumpSamples (const short *buff, int nsamp, int srate)
 {
 	if (!checkem (srate))
 		return;
 	wfr.AddStereoSamples (buff, nsamp);
 }
-
-
-
-
-
-
-

@@ -38,7 +38,7 @@
     <ClCompile Include="aldlist.cpp" />
     <ClCompile Include="AudioCommon.cpp" />
     <ClCompile Include="DPL2Decoder.cpp" />
-	<ClCompile Include="AudioDumper.cpp" />
+    <ClCompile Include="AudioDumper.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="NullSoundStream.cpp" />
     <ClCompile Include="OpenALStream.cpp" />
@@ -55,7 +55,7 @@
     <ClInclude Include="AudioCommon.h" />
     <ClInclude Include="CoreAudioSoundStream.h" />
     <ClInclude Include="DPL2Decoder.h" />
-	<ClInclude Include="AudioDumper.h" />
+    <ClInclude Include="AudioDumper.h" />
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="NullSoundStream.h" />
     <ClInclude Include="OpenALStream.h" />

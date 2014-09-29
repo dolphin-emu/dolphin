@@ -29,6 +29,10 @@
 #include "AudioCommon/AudioCommon.h" // for m_DumpAudioToAVI
 #include "Core/ConfigManager.h" // for EuRGB60
 
+// DUMP HACK
+#include "Core/CoreTiming.h"
+#include "Core/HW/SystemTimers.h"
+
 HWND m_emuWnd;
 LONG m_byteBuffer;
 LONG m_frameCount;
@@ -76,7 +80,7 @@ bool AVIDump::Start(HWND hWnd, int w, int h)
 	// clear CFR frame cache on start, not on file create (which is also segment switch)
 	SetBitmapFormat();
 	if (SConfig::GetInstance().m_DumpAudioToAVI)
-		StoreFrame(NULL);
+		StoreFrame(nullptr);
 
 
 	return CreateFile();
@@ -200,7 +204,7 @@ void AVIDump::CloseFile()
 	if (m_streamSound)
 	{
 		AVIStreamClose(m_streamSound);
-		m_streamSound = NULL;
+		m_streamSound = nullptr;
 	}
 
 	if (m_file)
@@ -216,7 +220,7 @@ void AVIDump::Stop()
 {
 	// flush any leftover sound data
 	if (m_streamSound)
-		AddSoundInternal(NULL, 0);
+		AddSoundInternal(nullptr);
 	// store one copy of the last video frame, CFR case
 	if (SConfig::GetInstance().m_DumpAudioToAVI && m_streamCompressed)
 		AVIStreamWrite(m_streamCompressed, m_frameCount++, 1, GetFrame(), m_bitmap.biSizeImage, AVIIF_KEYFRAME, NULL, &m_byteBuffer);
@@ -232,17 +236,8 @@ void AVIDump::Stop()
 	NOTICE_LOG(VIDEO, "Stop");
 }
 
-// DUMP HACK
-#include "Core/CoreTiming.h"
-#include "Core/HW/SystemTimers.h"
-
 void AVIDump::AddSoundBE(const short *data, int nsamp, int rate)
 {
-	/* do these checks in AddSound
-	if (!m_streamSound)
-	return;
-	*/
-
 	static short *buff = NULL;
 	static int nsampf = 0;
 	if (nsampf < nsamp)
@@ -260,7 +255,7 @@ void AVIDump::AddSoundBE(const short *data, int nsamp, int rate)
 
 // interleave is extra big (10s) because the buffer must be able to store potentially quite a bit of data,
 // audio before the video dump starts
-const int soundinterleave = 480000;
+static const int soundinterleave = 480000;
 
 void AVIDump::AddSoundInternal(const short *data, int nsamp)
 {
@@ -287,9 +282,6 @@ void AVIDump::AddSoundInternal(const short *data, int nsamp)
 			{
 				if (m_streamSound)
 					AVIStreamWrite(m_streamSound, m_samplesSound, soundinterleave, buff, soundinterleave * 4, 0, NULL, &m_byteBuffer);
-				else
-					; // audio stream should have been ready by now, nothing to be done
-
 				m_totalBytes += m_byteBuffer;
 				m_samplesSound += soundinterleave;
 				buffpos = 0;
@@ -300,8 +292,6 @@ void AVIDump::AddSoundInternal(const short *data, int nsamp)
 	{
 		if (m_streamSound)
 			AVIStreamWrite(m_streamSound, m_samplesSound, buffpos / 2, buff, buffpos * 2, 0, NULL, &m_byteBuffer);
-		else
-			; // shouldn't happen?
 		m_totalBytes += m_byteBuffer;
 		m_samplesSound += buffpos / 2;
 		buffpos = 0;
@@ -383,7 +373,7 @@ void AVIDump::StoreFrame(const void *data)
 
 }
 
-void *AVIDump::GetFrame(void)
+void *AVIDump::GetFrame()
 {
 	return storedframe;
 }
@@ -419,7 +409,6 @@ void AVIDump::AddFrame(const u8* data)
 			m_fileCount++;
 			CreateFile();
 		}
-
 	}
 	else
 	{

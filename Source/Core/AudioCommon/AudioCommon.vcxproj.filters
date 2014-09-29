@@ -23,7 +23,7 @@
     <ClCompile Include="XAudio2_7Stream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
-	<ClCompile Include="AudioDumper.cpp" />
+    <ClCompile Include="AudioDumper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aldlist.h" />
@@ -59,7 +59,7 @@
     <ClInclude Include="AlsaSoundStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
-	<ClInclude Include="AudioDumper.h" />
+    <ClInclude Include="AudioDumper.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

@@ -1,8 +1,7 @@
-#ifndef _AUDIODUMPER_H
-#define _AUDIODUMPER_H
+#pragma once
 
-#include "WaveFile.h"
 #include <string>
+#include "AudioCommon/WaveFile.h"
 
 struct AudioDumper
 {
@@ -14,17 +13,9 @@ private:
 	std::string basename;
 	bool checkem (int srate);
 public:
-	AudioDumper (std::string _basename);
+	AudioDumper(const std::string& _basename);
 	~AudioDumper ();
 
-	void dumpsamples (const short *buff, int nsamp, int srate);
-	void dumpsamplesBE (const short *buff, int nsamp, int srate);
+	void DumpSamples (const short *buff, int nsamp, int srate);
+	void DumpSamplesBE (const short *buff, int nsamp, int srate);
 };
-
-
-
-
-
-
-
-#endif
