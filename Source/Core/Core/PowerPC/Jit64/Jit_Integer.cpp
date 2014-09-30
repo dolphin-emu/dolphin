@@ -40,9 +40,13 @@ void Jit64::GenerateOverflow()
 	FixupBranch exit = J();
 	SetJumpTarget(jno);
 	//XER[OV] = 0
-	PUSHF();
-	AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));
-	POPF();
+	//We need to do this without modifying flags so as not to break stuff that assumes flags
+	//aren't clobbered (carry, branch merging): speed doesn't really matter here (this is really
+	//rare).
+	static const u8 ovtable[4] = {0, 0, XER_SO_MASK, XER_SO_MASK};
+	MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
+	MOV(8, R(RSCRATCH), MDisp(RSCRATCH, (u32)(u64)ovtable));
+	MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
 	SetJumpTarget(exit);
 }
 
@@ -65,6 +69,7 @@ void Jit64::FinalizeCarry(CCFlags cond)
 				SETcc(cond, R(RSCRATCH));
 				SHR(8, R(RSCRATCH), Imm8(1));
 			}
+			LockFlags();
 			js.carryFlagSet = true;
 		}
 		else
@@ -87,6 +92,7 @@ void Jit64::FinalizeCarry(bool ca)
 				STC();
 			else
 				CLC();
+			LockFlags();
 			js.carryFlagSet = true;
 		}
 		else if (ca)
@@ -1269,6 +1275,8 @@ void Jit64::arithXex(UGeckoInstruction inst)
 	gpr.BindToRegister(d, !same_input_sub && (d == a || d == b));
 	if (!js.carryFlagSet)
 		JitGetAndClearCAOV(inst.OE);
+	else
+		UnlockFlags();
 
 	bool invertedCarry = false;
 	// Special case: subfe A, B, B is a common compiler idiom

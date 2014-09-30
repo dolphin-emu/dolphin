@@ -119,6 +119,14 @@ const u8 *XEmitter::AlignCodePage()
 	return code;
 }
 
+// This operation modifies flags; check to see the flags are locked.
+// If the flags are locked, we should immediately and loudly fail before
+// causing a subtle JIT bug.
+void XEmitter::CheckFlags()
+{
+	_assert_msg_(DYNA_REC, !flags_locked, "Attempt to modify flags while flags locked!");
+}
+
 void XEmitter::WriteModRM(int mod, int reg, int rm)
 {
 	Write8((u8)((mod << 6) | ((reg & 7) << 3) | (rm & 7)));
@@ -559,9 +567,9 @@ void XEmitter::NOP(size_t size)
 }
 
 void XEmitter::PAUSE() {Write8(0xF3); NOP();} //use in tight spinloops for energy saving on some cpu
-void XEmitter::CLC()  {Write8(0xF8);} //clear carry
-void XEmitter::CMC()  {Write8(0xF5);} //flip carry
-void XEmitter::STC()  {Write8(0xF9);} //set carry
+void XEmitter::CLC()  {CheckFlags(); Write8(0xF8);} //clear carry
+void XEmitter::CMC()  {CheckFlags(); Write8(0xF5);} //flip carry
+void XEmitter::STC()  {CheckFlags(); Write8(0xF9);} //set carry
 
 //TODO: xchg ah, al ???
 void XEmitter::XCHG_AHAL()
@@ -573,10 +581,10 @@ void XEmitter::XCHG_AHAL()
 
 //These two can not be executed on early Intel 64-bit CPU:s, only on AMD!
 void XEmitter::LAHF() {Write8(0x9F);}
-void XEmitter::SAHF() {Write8(0x9E);}
+void XEmitter::SAHF() {CheckFlags(); Write8(0x9E);}
 
 void XEmitter::PUSHF() {Write8(0x9C);}
-void XEmitter::POPF()  {Write8(0x9D);}
+void XEmitter::POPF()  {CheckFlags(); Write8(0x9D);}
 
 void XEmitter::LFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xE8);}
 void XEmitter::MFENCE() {Write8(0x0F); Write8(0xAE); Write8(0xF0);}
@@ -730,6 +738,7 @@ void XEmitter::CMOVcc(int bits, X64Reg dest, OpArg src, CCFlags flag)
 void XEmitter::WriteMulDivType(int bits, OpArg src, int ext)
 {
 	_assert_msg_(DYNA_REC, !src.IsImm(), "WriteMulDivType - Imm argument");
+	CheckFlags();
 	src.operandReg = ext;
 	if (bits == 16)
 		Write8(0x66);
@@ -755,6 +764,7 @@ void XEmitter::NOT(int bits, OpArg src)  {WriteMulDivType(bits, src, 2);}
 void XEmitter::WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2, bool rep)
 {
 	_assert_msg_(DYNA_REC, !src.IsImm(), "WriteBitSearchType - Imm argument");
+	CheckFlags();
 	src.operandReg = (u8)dest;
 	if (bits == 16)
 		Write8(0x66);
@@ -778,12 +788,14 @@ void XEmitter::BSR(int bits, X64Reg dest, OpArg src) {WriteBitSearchType(bits,de
 
 void XEmitter::TZCNT(int bits, X64Reg dest, OpArg src)
 {
+	CheckFlags();
 	if (!cpu_info.bBMI1)
 		PanicAlert("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
 	WriteBitSearchType(bits, dest, src, 0xBC, true);
 }
 void XEmitter::LZCNT(int bits, X64Reg dest, OpArg src)
 {
+	CheckFlags();
 	if (!cpu_info.bLZCNT)
 		PanicAlert("Trying to use LZCNT on a system that doesn't support it. Bad programmer.");
 	WriteBitSearchType(bits, dest, src, 0xBD, true);
@@ -903,6 +915,7 @@ void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
 //shift can be either imm8 or cl
 void XEmitter::WriteShift(int bits, OpArg dest, OpArg &shift, int ext)
 {
+	CheckFlags();
 	bool writeImm = false;
 	if (dest.IsImm())
 	{
@@ -952,6 +965,7 @@ void XEmitter::SAR(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, sh
 // index can be either imm8 or register, don't use memory destination because it's slow
 void XEmitter::WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext)
 {
+	CheckFlags();
 	if (dest.IsImm())
 	{
 		_assert_msg_(DYNA_REC, 0, "WriteBitTest - can't test imms");
@@ -986,6 +1000,7 @@ void XEmitter::BTC(int bits, OpArg dest, OpArg index) {WriteBitTest(bits, dest, 
 //shift can be either imm8 or cl
 void XEmitter::SHRD(int bits, OpArg dest, OpArg src, OpArg shift)
 {
+	CheckFlags();
 	if (dest.IsImm())
 	{
 		_assert_msg_(DYNA_REC, 0, "SHRD - can't use imms as destination");
@@ -1017,6 +1032,7 @@ void XEmitter::SHRD(int bits, OpArg dest, OpArg src, OpArg shift)
 
 void XEmitter::SHLD(int bits, OpArg dest, OpArg src, OpArg shift)
 {
+	CheckFlags();
 	if (dest.IsImm())
 	{
 		_assert_msg_(DYNA_REC, 0, "SHLD - can't use imms as destination");
@@ -1230,25 +1246,26 @@ void XEmitter::WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg 
 	}
 }
 
-void XEmitter::ADD (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmADD, a1, a2);}
-void XEmitter::ADC (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmADC, a1, a2);}
-void XEmitter::SUB (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmSUB, a1, a2);}
-void XEmitter::SBB (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmSBB, a1, a2);}
-void XEmitter::AND (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmAND, a1, a2);}
-void XEmitter::OR  (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmOR , a1, a2);}
-void XEmitter::XOR (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmXOR, a1, a2);}
+void XEmitter::ADD (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmADD, a1, a2);}
+void XEmitter::ADC (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmADC, a1, a2);}
+void XEmitter::SUB (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmSUB, a1, a2);}
+void XEmitter::SBB (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmSBB, a1, a2);}
+void XEmitter::AND (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmAND, a1, a2);}
+void XEmitter::OR  (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmOR , a1, a2);}
+void XEmitter::XOR (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmXOR, a1, a2);}
 void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2)
 {
 	if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
 		ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
 	WriteNormalOp(this, bits, nrmMOV, a1, a2);
 }
-void XEmitter::TEST(int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmTEST, a1, a2);}
-void XEmitter::CMP (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmCMP, a1, a2);}
+void XEmitter::TEST(int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmTEST, a1, a2);}
+void XEmitter::CMP (int bits, const OpArg &a1, const OpArg &a2) {CheckFlags(); WriteNormalOp(this, bits, nrmCMP, a1, a2);}
 void XEmitter::XCHG(int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmXCHG, a1, a2);}
 
 void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
 {
+	CheckFlags();
 	if (bits == 8)
 	{
 		_assert_msg_(DYNA_REC, 0, "IMUL - illegal bit size!");
@@ -1301,6 +1318,7 @@ void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
 
 void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a)
 {
+	CheckFlags();
 	if (bits == 8)
 	{
 		_assert_msg_(DYNA_REC, 0, "IMUL - illegal bit size!");
@@ -1387,6 +1405,7 @@ void XEmitter::WriteVEXOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg r
 
 void XEmitter::WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes)
 {
+	CheckFlags();
 	if (!cpu_info.bBMI1)
 		PanicAlert("Trying to use BMI1 on a system that doesn't support it. Bad programmer.");
 	WriteVEXOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
@@ -1394,6 +1413,7 @@ void XEmitter::WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg 
 
 void XEmitter::WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes)
 {
+	CheckFlags();
 	if (!cpu_info.bBMI2)
 		PanicAlert("Trying to use BMI2 on a system that doesn't support it. Bad programmer.");
 	WriteVEXOp(size, opPrefix, op, regOp1, regOp2, arg, extrabytes);
