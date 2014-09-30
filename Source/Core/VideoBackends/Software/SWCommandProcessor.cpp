@@ -174,7 +174,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	);
 }
 
-void STACKALIGN GatherPipeBursted()
+void GatherPipeBursted()
 {
 	if (cpreg.ctrl.GPLinkEnable)
 	{

@@ -302,7 +302,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	);
 }
 
-void STACKALIGN GatherPipeBursted()
+void GatherPipeBursted()
 {
 	ProcessFifoEvents();
 	// if we aren't linked, we don't care about gather pipe data
