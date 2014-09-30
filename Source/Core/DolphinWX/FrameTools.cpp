@@ -157,19 +157,6 @@ wxMenuBar* CFrame::CreateMenu()
 	emulationMenu->Append(IDM_RESET, GetMenuLabel(HK_RESET));
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));
-	emulationMenu->AppendSeparator();
-	emulationMenu->Append(IDM_RECORD, GetMenuLabel(HK_START_RECORDING));
-	emulationMenu->Append(IDM_PLAYRECORD, GetMenuLabel(HK_PLAY_RECORDING));
-	emulationMenu->Append(IDM_RECORDEXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
-	emulationMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
-	emulationMenu->Append(IDM_TASINPUT, _("TAS Input"));
-	emulationMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at end of movie"));
-	emulationMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_PauseMovie);
-	emulationMenu->AppendCheckItem(IDM_SHOWLAG, _("Show lag counter"));
-	emulationMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_ShowLag);
-	emulationMenu->Check(IDM_RECORDREADONLY, true);
-	emulationMenu->AppendSeparator();
-
 	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
 	wxMenu *skippingMenu = new wxMenu;
@@ -213,6 +200,21 @@ wxMenuBar* CFrame::CreateMenu()
 		loadMenu->Append(IDM_LOADLAST1 + i - 1, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i - 1));
 
 	menubar->Append(emulationMenu, _("&Emulation"));
+
+	// Movie menu
+	wxMenu* movieMenu = new wxMenu;
+	movieMenu->Append(IDM_RECORD, GetMenuLabel(HK_START_RECORDING));
+	movieMenu->Append(IDM_PLAYRECORD, GetMenuLabel(HK_PLAY_RECORDING));
+	movieMenu->Append(IDM_RECORDEXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
+	movieMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
+	movieMenu->Append(IDM_TASINPUT, _("TAS Input"));
+	movieMenu->AppendSeparator();
+	movieMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at end of movie"));
+	movieMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_PauseMovie);
+	movieMenu->AppendCheckItem(IDM_SHOWLAG, _("Show lag counter"));
+	movieMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_ShowLag);
+	movieMenu->Check(IDM_RECORDREADONLY, true);
+	menubar->Append(movieMenu, _("&Movie"));
 
 	// Options menu
 	wxMenu* pOptionsMenu = new wxMenu;
@@ -399,10 +401,10 @@ wxString CFrame::GetMenuLabel(int Id)
 			break;
 
 		case HK_START_RECORDING:
-			Label = _("Start Re&cording");
+			Label = _("Start Re&cording Input");
 			break;
 		case HK_PLAY_RECORDING:
-			Label = _("P&lay Recording...");
+			Label = _("P&lay Input Recording...");
 			break;
 		case HK_EXPORT_RECORDING:
 			Label = _("Export Recording...");
