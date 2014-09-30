@@ -1,4 +1,4 @@
-Dolphin VR 4.0-3567
+Dolphin VR 4.0-3628
 (Unofficial Dolphin build with Oculus Rift support.)
 Open Source licence: GPL v2 (my contributions are GPL v2+)
 
@@ -212,6 +212,7 @@ Alien Hominid (menus are the wrong scale)
 Zelda Twilight Princess GameCube (Effects are missing, map is black, water has no reflections, hawkeye has problem in top left corner) 
 Mario Party 5 (white characters at start)
 Baldur's Gate Dark Alliance (lights at HUD depth, angled camera)
+Hunter: The Reckoning (movies aren't visible, just click start until you see the menu or game)
 Pikmin (3D HUD at wrong depth)
 Pikmin 2 (3D HUD at wrong depth, far clipping)
 Zelda Collector's Edition: OOT (Giant A button behind you)
