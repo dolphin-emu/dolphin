@@ -27,7 +27,7 @@ bool getAccel(int index, bool sideways, bool has_extension, float* gx, float* gy
 				+ g_hydra_state[right].a[2] * g_hydra.c[right].rotation_matrix[i][2];
 		}
 
-		// Note that here X means to the CONTROLLER'S left, Y means to the CONTROLLER'S tail, and Z means to the CONTROLLER'S top! 
+		// Note that here gX means to the CONTROLLER'S left, gY means to the CONTROLLER'S tail, and gZ means to the CONTROLLER'S top! 
 		// Tilt sensing.
 		// If the left Hydra is docked, or an extension is plugged in then just
 		// hold the right Hydra sideways yourself. Otherwise in sideways mode 
@@ -39,16 +39,19 @@ bool getAccel(int index, bool sideways, bool has_extension, float* gx, float* gy
 			// angle between the hydras
 			float x = g_hydra.c[right].position[0] - g_hydra.c[left].position[0];
 			float y = g_hydra.c[right].position[1] - g_hydra.c[left].position[1];
-			float dist = sqrtf(x*x + y*y);
+			float z = g_hydra.c[right].position[2] - g_hydra.c[left].position[2];
+			float dist = sqrtf(x*x + y*y + z*z);
 			if (dist > 0)
 			{
 				x = x / dist;
 				y = y / dist;
+				z = z / dist;
 			}
 			else
 			{
 				x = 1;
 				y = 0;
+				z = 0;
 			}
 			*gy = y;
 			float tail_up = g_hydra.c[right].rotation_matrix[2][1];
@@ -62,8 +65,12 @@ bool getAccel(int index, bool sideways, bool has_extension, float* gx, float* gy
 			}
 			else
 			{
-				*gx = x * tail_up / len;
-				*gz = x * stick_up / len;
+				if (dist > 0)
+				{
+					float horiz_dist = sqrtf(x*x + z*z);
+					*gx = horiz_dist * tail_up / len;
+					*gz = horiz_dist * stick_up / len;
+				}
 			}
 
 			// Convert rel acc from m/s/s to G's, and to sideways Wiimote's coordinate system.
