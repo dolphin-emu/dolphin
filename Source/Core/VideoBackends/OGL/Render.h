@@ -84,6 +84,8 @@ public:
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc) override;
 
+	int GetMaxTextureSize() override;
+
 private:
 	void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data);
 };
