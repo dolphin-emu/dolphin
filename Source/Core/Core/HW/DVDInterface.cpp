@@ -320,7 +320,7 @@ static void DTKStreamingCallback(u64 userdata, int cyclesLate)
 		memset(tempPCM, 0, sizeof(tempPCM));
 		samples_processed = NUM_SAMPLES;
 	}
-	soundStream->GetMixer()->PushStreamingSamples(tempPCM, samples_processed);
+	g_sound_stream->GetMixer()->PushStreamingSamples(tempPCM, samples_processed);
 
 	int ticks_to_dtk = int(SystemTimers::GetTicksPerSecond() * u64(samples_processed) / 48000);
 	CoreTiming::ScheduleEvent(ticks_to_dtk - cyclesLate, dtk);
