@@ -24,6 +24,7 @@ void Fifo_Shutdown();
 
 u8* GetVideoBufferStartPtr();
 u8* GetVideoBufferEndPtr();
+void SetVideoBufferFastpathEndPtr(u8* read_ptr, size_t size);
 
 void Fifo_DoState(PointerWrap &f);
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);

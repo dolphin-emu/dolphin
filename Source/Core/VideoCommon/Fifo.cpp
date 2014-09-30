@@ -44,6 +44,7 @@ u8* g_video_buffer_read_ptr;
 static std::atomic<u8*> s_video_buffer_write_ptr;
 static std::atomic<u8*> s_video_buffer_seen_ptr;
 u8* g_video_buffer_pp_read_ptr;
+static u8* s_video_buffer_fastpath_end_ptr;
 // The read_ptr is always owned by the GPU thread.  In normal mode, so is the
 // write_ptr, despite it being atomic.  In g_use_deterministic_gpu_thread mode,
 // things get a bit more complicated:
@@ -55,6 +56,7 @@ u8* g_video_buffer_pp_read_ptr;
 // FIFO.  Maybe someday it will be under the lock.  For now, because RunGpuLoop
 // polls, it's just atomic.
 // - The pp_read_ptr is the CPU preprocessing version of the read_ptr.
+// For fastpath_end_ptr, see SetVideoBufferFastpathEndPtr.
 
 void Fifo_DoState(PointerWrap &p)
 {
@@ -68,6 +70,8 @@ void Fifo_DoState(PointerWrap &p)
 		// We're good and paused, right?
 		s_video_buffer_seen_ptr = g_video_buffer_pp_read_ptr = g_video_buffer_read_ptr;
 	}
+	if (p.mode == PointerWrap::MODE_READ)
+		s_video_buffer_fastpath_end_ptr = s_video_buffer;
 	p.Do(g_bSkipCurrentFrame);
 }
 
@@ -110,6 +114,7 @@ void Fifo_Shutdown()
 	s_video_buffer_seen_ptr = nullptr;
 	s_fifo_aux_write_ptr = nullptr;
 	s_fifo_aux_read_ptr = nullptr;
+	s_video_buffer_fastpath_end_ptr = nullptr;
 }
 
 u8* GetVideoBufferStartPtr()
@@ -121,6 +126,23 @@ u8* GetVideoBufferEndPtr()
 {
 	return s_video_buffer_write_ptr;
 }
+
+void SetVideoBufferFastpathEndPtr(u8* base, size_t size)
+{
+	// Called when we need at least size more bytes of data after base (but
+	// base + size could overflow).
+	// This is an optimization that avoids the need to go all the way through
+	// Decode and recalculate how much data is needed for every 32 bytes that
+	// get written to the FIFO - currently, for the very common case of large
+	// amounts of vertex data.  As a micro-optimization, we also bundle the
+	// overflow check in here, although it probably doesn't matter.
+	u8* end = s_video_buffer + FIFO_SIZE;
+	if (size > (size_t)(end - base))
+		s_video_buffer_fastpath_end_ptr = end;
+	else
+		s_video_buffer_fastpath_end_ptr = base + size;
+}
+
 
 void Fifo_SetRendering(bool enabled)
 {
@@ -178,6 +200,7 @@ void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
 			g_video_buffer_pp_read_ptr = s_video_buffer;
 			g_video_buffer_read_ptr = s_video_buffer;
 			s_video_buffer_seen_ptr = write_ptr;
+			s_video_buffer_fastpath_end_ptr = s_video_buffer;
 		}
 	}
 }
@@ -207,18 +230,19 @@ void* PopFifoAuxBuffer(size_t size)
 }
 
 // Description: RunGpuLoop() sends data through this function.
-static void ReadDataFromFifo(u8* _uData, u32 len)
+static void ReadDataFromFifo(u8* _uData)
 {
-	if (len > (s_video_buffer + FIFO_SIZE - s_video_buffer_write_ptr))
+	size_t len = 32;
+	if (len > (size_t)(s_video_buffer + FIFO_SIZE - s_video_buffer_write_ptr))
 	{
-		size_t size = s_video_buffer_write_ptr - g_video_buffer_read_ptr;
-		if (len > FIFO_SIZE - size)
+		size_t existing_len = s_video_buffer_write_ptr - g_video_buffer_read_ptr;
+		if (len > (size_t)(FIFO_SIZE - existing_len))
 		{
-			PanicAlert("FIFO out of bounds (existing %lu + new %lu > %lu)", (unsigned long) size, (unsigned long) len, (unsigned long) FIFO_SIZE);
+			PanicAlert("FIFO out of bounds (existing %lu + new %lu > %lu)", (unsigned long) existing_len, (unsigned long) len, (unsigned long) FIFO_SIZE);
 			return;
 		}
-		memmove(s_video_buffer, g_video_buffer_read_ptr, size);
-		s_video_buffer_write_ptr = s_video_buffer + size;
+		memmove(s_video_buffer, g_video_buffer_read_ptr, existing_len);
+		s_video_buffer_write_ptr = s_video_buffer + existing_len;
 		g_video_buffer_read_ptr = s_video_buffer;
 	}
 	// Copy new video instructions to s_video_buffer for future use in rendering the new picture
@@ -227,10 +251,19 @@ static void ReadDataFromFifo(u8* _uData, u32 len)
 }
 
 // The deterministic_gpu_thread version.
-static void ReadDataFromFifoOnCPU(u8* _uData, u32 len)
+static void ReadDataFromFifoOnCPU(u8* _uData)
 {
+	size_t len = 32;
 	u8 *write_ptr = s_video_buffer_write_ptr;
-	if (len > (s_video_buffer + FIFO_SIZE - write_ptr))
+	u8 *new_write_ptr = write_ptr + len;
+	if (new_write_ptr <= s_video_buffer_fastpath_end_ptr)
+	{
+		memcpy(write_ptr, _uData, len);
+		s_video_buffer_write_ptr = new_write_ptr;
+		return;
+	}
+	s_video_buffer_fastpath_end_ptr = s_video_buffer;
+	if (len > (size_t)(s_video_buffer + FIFO_SIZE - write_ptr))
 	{
 		// We can't wrap around while the GPU is working on the data.
 		// This should be very rare due to the reset in SyncGPU.
@@ -241,10 +274,10 @@ static void ReadDataFromFifoOnCPU(u8* _uData, u32 len)
 			return;
 		}
 		write_ptr = s_video_buffer_write_ptr;
-		size_t size = write_ptr - g_video_buffer_pp_read_ptr;
-		if (len > FIFO_SIZE - size)
+		size_t existing_len = write_ptr - g_video_buffer_pp_read_ptr;
+		if (len > (size_t)(FIFO_SIZE - existing_len))
 		{
-			PanicAlert("FIFO out of bounds (existing %lu + new %lu > %lu)", (unsigned long) size, (unsigned long) len, (unsigned long) FIFO_SIZE);
+			PanicAlert("FIFO out of bounds (existing %lu + new %lu > %lu)", (unsigned long) existing_len, (unsigned long) len, (unsigned long) FIFO_SIZE);
 			return;
 		}
 	}
@@ -260,6 +293,7 @@ void ResetVideoBuffer()
 	s_video_buffer_write_ptr = s_video_buffer;
 	s_video_buffer_seen_ptr = s_video_buffer;
 	g_video_buffer_pp_read_ptr = s_video_buffer;
+	s_video_buffer_fastpath_end_ptr = s_video_buffer;
 	s_fifo_aux_write_ptr = s_fifo_aux_data;
 	s_fifo_aux_read_ptr = s_fifo_aux_data;
 }
@@ -321,7 +355,7 @@ void RunGpuLoop()
 					_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
 						"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
 
-					ReadDataFromFifo(uData, 32);
+					ReadDataFromFifo(uData);
 
 					u8* write_ptr = s_video_buffer_write_ptr;
 
@@ -394,13 +428,13 @@ void RunGpu()
 
 		if (g_use_deterministic_gpu_thread)
 		{
-			ReadDataFromFifoOnCPU(uData, 32);
+			ReadDataFromFifoOnCPU(uData);
 		}
 		else
 		{
 			FPURoundMode::SaveSIMDState();
 			FPURoundMode::LoadDefaultSIMDState();
-			ReadDataFromFifo(uData, 32);
+			ReadDataFromFifo(uData);
 			OpcodeDecoder_Run(s_video_buffer_write_ptr);
 			FPURoundMode::LoadSIMDState();
 		}

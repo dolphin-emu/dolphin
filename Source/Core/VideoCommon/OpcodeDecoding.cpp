@@ -260,7 +260,10 @@ static u32 Decode(u8* end)
 			{
 				size_t size = num_vertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK, is_preprocess);
 				if ((size_t) (end - *bufp) < size)
+				{
+					SetVideoBufferFastpathEndPtr(*bufp, size);
 					return 0;
+				}
 				*bufp += size;
 			}
 			else
