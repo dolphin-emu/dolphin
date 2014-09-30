@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include "Common/x64Emitter.h"
 
 class DSPEmitter;
@@ -28,8 +29,6 @@ enum DSPJitSignExtend
 	ZERO,
 	NONE
 };
-
-#define NUMXREGS 16
 
 class DSPJitRegCache
 {
@@ -62,8 +61,8 @@ private:
  */
 	};
 
-	DynamicReg regs[DSP_REG_MAX_MEM_BACKED+1];
-	X64CachedReg xregs[NUMXREGS];
+	std::array<DynamicReg, 37> regs;
+	std::array<X64CachedReg, 16> xregs;
 
 	DSPEmitter &emitter;
 	bool temporary;
