@@ -484,7 +484,7 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 	if (wxIsMainThread())
 #endif
 		return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
-				(yes_no) ? wxYES_NO : wxOK, wxGetActiveWindow());
+				(yes_no) ? wxYES_NO : wxOK, wxWindow::FindFocus());
 #ifdef __WXGTK__
 	else
 	{
