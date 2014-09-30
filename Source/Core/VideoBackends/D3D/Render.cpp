@@ -896,9 +896,23 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	D3D::context->RSSetViewports(1, &vp);
 
 	// Finish up the current frame, print some stats
-	if (g_ActiveConfig.bShowFPS)
+	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
 	{
-		std::string fps = StringFromFormat("FPS: %d\n", m_fps_counter.m_fps);
+		std::string fps = "";
+		if (g_ActiveConfig.bShowFPS)
+			fps = StringFromFormat("FPS: %d", m_fps_counter.m_fps);
+
+		if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
+			fps += " - ";
+		if (SConfig::GetInstance().m_ShowFrameCount)
+		{
+			fps += StringFromFormat("Frame: %d", Movie::g_currentFrame);
+			if (Movie::IsPlayingInput())
+				fps += StringFromFormat(" / %d", Movie::g_totalFrames);
+		}
+
+		fps += "\n";
+
 		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
