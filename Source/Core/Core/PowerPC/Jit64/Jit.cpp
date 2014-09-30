@@ -174,26 +174,12 @@ bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 void Jit64::Init()
 {
 	jo.optimizeStack = true;
-	/* This will enable block linking in JitBlockCache::FinalizeBlock(), it gives faster execution but may not
-	   be as stable as the alternative (to not link the blocks). However, I have not heard about any good examples
-	   where this cause problems, so I'm enabling this by default, since I seem to get perhaps as much as 20% more
-	   fps with this option enabled. If you suspect that this option cause problems you can also disable it from the
-	   debugging window. */
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	jo.enableBlocklink = true;
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bJITBlockLinking ||
+		 SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
+		// TODO: support block linking with MMU
 		jo.enableBlocklink = false;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = false;
-	}
-	else
-	{
-		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bJITBlockLinking)
-		{
-			jo.enableBlocklink = false;
-		}
-		else
-		{
-			jo.enableBlocklink = !SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
-		}
 	}
 	jo.fpAccurateFcmp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableFPRF;
 	jo.optimizeGatherPipe = true;
@@ -477,7 +463,7 @@ void Jit64::WriteExternalExceptionExit()
 	JMP(asm_routines.dispatcher, true);
 }
 
-void STACKALIGN Jit64::Run()
+void Jit64::Run()
 {
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 	pExecAddr();
@@ -512,7 +498,7 @@ void Jit64::Trace()
 		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
-void STACKALIGN Jit64::Jit(u32 em_address)
+void Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 ||
 	    farcode.GetSpaceLeft() < 0x10000 ||
@@ -624,6 +610,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
 			js.next_inst = 0;
+			js.next_inst_bp = false;
 			if (Profiler::g_ProfileBlocks)
 			{
 				// CAUTION!!! push on stack regs you use, do your stuff, then pop
@@ -641,6 +628,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.next_inst = ops[i + 1].inst;
 			js.next_compilerPC = ops[i + 1].address;
 			js.next_op = &ops[i + 1];
+			js.next_inst_bp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i + 1].address);
 		}
 
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)

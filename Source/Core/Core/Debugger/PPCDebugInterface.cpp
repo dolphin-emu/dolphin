@@ -25,25 +25,27 @@ std::string PPCDebugInterface::Disassemble(unsigned int address)
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		if (Memory::IsRAMAddress(address, true, true))
+		if (!Memory::IsRAMAddress(address, true, true))
 		{
-			u32 op = Memory::Read_Instruction(address);
-			std::string disasm = GekkoDisassembler::Disassemble(op, address);
-
-			UGeckoInstruction inst;
-			inst.hex = Memory::ReadUnchecked_U32(address);
-
-			if (inst.OPCD == 1)
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || !((address & JIT_ICACHE_VMEM_BIT) &&
+				Memory::TranslateAddress(address, Memory::FLAG_OPCODE)))
 			{
-				disasm += " (hle)";
+				return "(No RAM here)";
 			}
+		}
 
-			return disasm;
-		}
-		else
+		u32 op = Memory::Read_Instruction(address);
+		std::string disasm = GekkoDisassembler::Disassemble(op, address);
+
+		UGeckoInstruction inst;
+		inst.hex = Memory::ReadUnchecked_U32(address);
+
+		if (inst.OPCD == 1)
 		{
-			return "(No RAM here)";
+			disasm += " (hle)";
 		}
+
+		return disasm;
 	}
 	else
 	{

@@ -220,7 +220,7 @@ void JitArm::WriteExit(u32 destination)
 	b->linkData.push_back(linkData);
 }
 
-void STACKALIGN JitArm::Run()
+void JitArm::Run()
 {
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 	pExecAddr();
@@ -282,7 +282,7 @@ void JitArm::PrintDebug(UGeckoInstruction inst, u32 level)
 	}
 }
 
-void STACKALIGN JitArm::Jit(u32 em_address)
+void JitArm::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{

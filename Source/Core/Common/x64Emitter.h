@@ -261,6 +261,9 @@ class XEmitter
 	friend struct OpArg;  // for Write8 etc
 private:
 	u8 *code;
+	bool flags_locked;
+
+	void CheckFlags();
 
 	void Rex(int w, int r, int x, int b);
 	void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
@@ -290,8 +293,8 @@ protected:
 	inline void Write64(u64 value) {*(u64*)code = (value); code += 8;}
 
 public:
-	XEmitter() { code = nullptr; }
-	XEmitter(u8 *code_ptr) { code = code_ptr; }
+	XEmitter() { code = nullptr; flags_locked = false; }
+	XEmitter(u8 *code_ptr) { code = code_ptr; flags_locked = false; }
 	virtual ~XEmitter() {}
 
 	void WriteModRM(int mod, int rm, int reg);
@@ -304,6 +307,9 @@ public:
 	const u8 *AlignCodePage();
 	const u8 *GetCodePtr() const;
 	u8 *GetWritableCodePtr();
+
+	void LockFlags() { flags_locked = true; }
+	void UnlockFlags() { flags_locked = false; }
 
 	// Looking for one of these? It's BANNED!! Some instructions are slow on modern CPU
 	// INC, DEC, LOOP, LOOPNE, LOOPE, ENTER, LEAVE, XCHG, XLAT, REP MOVSB/MOVSD, REP SCASD + other string instr.,

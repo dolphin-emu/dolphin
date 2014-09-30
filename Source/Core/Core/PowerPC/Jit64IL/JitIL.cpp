@@ -463,7 +463,7 @@ void JitIL::WriteExceptionExit()
 	JMP(asm_routines.dispatcher, true);
 }
 
-void STACKALIGN JitIL::Run()
+void JitIL::Run()
 {
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 	pExecAddr();
@@ -502,7 +502,7 @@ void JitIL::Trace()
 		PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
-void STACKALIGN JitIL::Jit(u32 em_address)
+void JitIL::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || farcode.GetSpaceLeft() < 0x10000 || blocks.IsFull() ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
