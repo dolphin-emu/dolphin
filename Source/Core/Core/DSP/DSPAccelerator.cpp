@@ -122,8 +122,11 @@ u16 dsp_read_accelerator()
 	switch (g_dsp.ifx_regs[DSP_FORMAT])
 	{
 		case 0x00:  // ADPCM audio
+			if ((Address & 15) == 0)
+				step_size_bytes = 2;
+			else
+				step_size_bytes = 1;
 			val = ADPCM_Step(Address);
-			step_size_bytes = 2;
 			break;
 		case 0x0A:  // 16-bit PCM audio
 			val = (DSPHost::ReadHostMemory(Address * 2) << 8) | DSPHost::ReadHostMemory(Address * 2 + 1);
