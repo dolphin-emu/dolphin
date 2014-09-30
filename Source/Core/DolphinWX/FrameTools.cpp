@@ -1155,7 +1155,7 @@ void CFrame::DoStop()
 			}
 		}
 		// Save VR game-specific settings
-		if (g_has_hmd)
+		if (g_has_hmd && g_Config.VRSettingsModified())
 		{
 			Core::EState state = Core::GetState();
 			Core::SetState(Core::CORE_PAUSE);
@@ -1182,8 +1182,8 @@ void CFrame::DoStop()
 				// save VR settings
 				g_Config.GameIniSave();
 			}
-
 		}
+
 		// TODO: Show the author/description dialog here
 		if (Movie::IsRecordingInput())
 			DoRecordingSave();

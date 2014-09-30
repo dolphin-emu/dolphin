@@ -18,6 +18,8 @@
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
+// VR settings need to be saved manually, with a prompt if settings are changed. This detects when they have changed.
+VideoConfig g_SavedConfig;
 
 void UpdateActiveConfig()
 {
@@ -291,6 +293,7 @@ void VideoConfig::GameIniLoad()
 
 	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick", fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
 
+	g_SavedConfig = *this;
 	if (gfx_override_exists)
 		OSD::AddMessage("Warning: Opening the graphics configuration will reset settings and might cause issues!", 10000);
 }
@@ -338,6 +341,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
 	GameIniLocal.Save(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal);
+	g_SavedConfig = *this;
 }
 
 void VideoConfig::VerifyValidity()
@@ -428,4 +432,26 @@ void VideoConfig::Save(const std::string& ini_file)
 bool VideoConfig::IsVSync()
 {
 	return bVSync && !Core::GetIsFramelimiterTempDisabled();
+}
+
+bool VideoConfig::VRSettingsModified()
+{
+	return fUnitsPerMetre != g_SavedConfig.fUnitsPerMetre
+		|| fHudThickness != g_SavedConfig.fHudThickness
+		|| fHudDistance != g_SavedConfig.fHudDistance
+		|| fCameraForward != g_SavedConfig.fCameraForward
+		|| fCameraPitch != g_SavedConfig.fCameraPitch
+		|| fAimDistance != g_SavedConfig.fAimDistance
+		|| fScreenHeight != g_SavedConfig.fScreenHeight
+		|| fScreenThickness != g_SavedConfig.fScreenThickness
+		|| fScreenDistance != g_SavedConfig.fScreenDistance
+		|| fScreenRight != g_SavedConfig.fScreenRight
+		|| fScreenUp != g_SavedConfig.fScreenUp
+		|| fScreenPitch != g_SavedConfig.fScreenPitch
+		|| fTelescopeMaxFOV != g_SavedConfig.fTelescopeMaxFOV
+		|| bDisable3D != g_SavedConfig.bDisable3D
+		|| bHudFullscreen != g_SavedConfig.bHudFullscreen
+		|| bHudOnTop != g_SavedConfig.bHudOnTop
+		|| iTelescopeEye != g_SavedConfig.iTelescopeEye
+		|| iMetroidPrime != g_SavedConfig.iMetroidPrime;
 }

@@ -55,6 +55,7 @@ struct VideoConfig final
 	void Save(const std::string& ini_file);
 	void UpdateProjectionHack();
 	bool IsVSync();
+	bool VRSettingsModified();
 
 	// General
 	bool bVSync;
