@@ -70,6 +70,7 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
                         std::string* writable_map_file)
 {
 	std::string title_id_str;
+	size_t name_begin_index;
 
 	SCoreStartupParameter& _StartupPara = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	switch (_StartupPara.m_BootType)
@@ -90,9 +91,14 @@ bool CBoot::FindMapFile(std::string* existing_map_file,
 
 	case SCoreStartupParameter::BOOT_ELF:
 	case SCoreStartupParameter::BOOT_DOL:
-		// Strip the .elf/.dol file extension
+		// Strip the .elf/.dol file extension and directories before the name
+		name_begin_index = _StartupPara.m_strFilename.find_last_of("/") + 1;
+		if ((_StartupPara.m_strFilename.find_last_of("\\") + 1) > name_begin_index)
+		{
+			name_begin_index = _StartupPara.m_strFilename.find_last_of("\\") + 1;
+		}
 		title_id_str = _StartupPara.m_strFilename.substr(
-				0, _StartupPara.m_strFilename.size() - 4);
+				name_begin_index, _StartupPara.m_strFilename.size() - 4 - name_begin_index);
 		break;
 
 	default:
