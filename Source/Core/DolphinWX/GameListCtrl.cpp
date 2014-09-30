@@ -198,11 +198,11 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 	EVT_MENU(IDM_OPENSAVEFOLDER, CGameListCtrl::OnOpenSaveFolder)
 	EVT_MENU(IDM_EXPORTSAVE, CGameListCtrl::OnExportSave)
-	EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
-	EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
-	EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
-	EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
-	EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
+	EVT_MENU(IDM_SETDEFAULTISO, CGameListCtrl::OnSetDefaultISO)
+	EVT_MENU(IDM_COMPRESSISO, CGameListCtrl::OnCompressISO)
+	EVT_MENU(IDM_MULTICOMPRESSISO, CGameListCtrl::OnMultiCompressISO)
+	EVT_MENU(IDM_MULTIDECOMPRESSISO, CGameListCtrl::OnMultiDecompressISO)
+	EVT_MENU(IDM_DELETEISO, CGameListCtrl::OnDeleteISO)
 	EVT_MENU(IDM_LIST_CHANGEDISC, CGameListCtrl::OnChangeDisc)
 END_EVENT_TABLE()
 
@@ -873,23 +873,23 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 				popupMenu->Append(IDM_EXPORTSAVE, _("Export Wii save (Experimental)"));
 			}
 			popupMenu->Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
-			popupMenu->AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
+			popupMenu->AppendCheckItem(IDM_SETDEFAULTISO, _("Set as &default ISO"));
 
 			// First we have to decide a starting value when we append it
 			if (selected_iso->GetFileName() == SConfig::GetInstance().
 				m_LocalCoreStartupParameter.m_strDefaultGCM)
-				popupMenu->FindItem(IDM_SETDEFAULTGCM)->Check();
+				popupMenu->FindItem(IDM_SETDEFAULTISO)->Check();
 
 			popupMenu->AppendSeparator();
-			popupMenu->Append(IDM_DELETEGCM, _("&Delete ISO..."));
+			popupMenu->Append(IDM_DELETEISO, _("&Delete ISO..."));
 
 			if (selected_iso->GetPlatform() != GameListItem::WII_WAD)
 			{
 				if (selected_iso->IsCompressed())
-					popupMenu->Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
+					popupMenu->Append(IDM_COMPRESSISO, _("Decompress ISO..."));
 				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" &&
 				         selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
-					popupMenu->Append(IDM_COMPRESSGCM, _("Compress ISO..."));
+					popupMenu->Append(IDM_COMPRESSISO, _("Compress ISO..."));
 			}
 			else
 			{
@@ -908,10 +908,10 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 	else if (GetSelectedItemCount() > 1)
 	{
 		wxMenu* popupMenu = new wxMenu;
-		popupMenu->Append(IDM_DELETEGCM, _("&Delete selected ISOs..."));
+		popupMenu->Append(IDM_DELETEISO, _("&Delete selected ISOs..."));
 		popupMenu->AppendSeparator();
-		popupMenu->Append(IDM_MULTICOMPRESSGCM, _("Compress selected ISOs..."));
-		popupMenu->Append(IDM_MULTIDECOMPRESSGCM, _("Decompress selected ISOs..."));
+		popupMenu->Append(IDM_MULTICOMPRESSISO, _("Compress selected ISOs..."));
+		popupMenu->Append(IDM_MULTIDECOMPRESSISO, _("Decompress selected ISOs..."));
 		PopupMenu(popupMenu);
 	}
 }
@@ -984,7 +984,7 @@ void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
 }
 
 // Save this file as the default file
-void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& event)
+void CGameListCtrl::OnSetDefaultISO(wxCommandEvent& event)
 {
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso) return;
@@ -1004,7 +1004,7 @@ void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& event)
 	}
 }
 
-void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
+void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED (event))
 {
 	if (GetSelectedItemCount() == 1)
 	{
@@ -1066,12 +1066,12 @@ void CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void
 	((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
 }
 
-void CGameListCtrl::OnMultiCompressGCM(wxCommandEvent& /*event*/)
+void CGameListCtrl::OnMultiCompressISO(wxCommandEvent& /*event*/)
 {
 	CompressSelection(true);
 }
 
-void CGameListCtrl::OnMultiDecompressGCM(wxCommandEvent& /*event*/)
+void CGameListCtrl::OnMultiDecompressISO(wxCommandEvent& /*event*/)
 {
 	CompressSelection(false);
 }
@@ -1172,7 +1172,7 @@ void CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg
 		Update((int)(percent*1000), StrToWxStr(text));
 }
 
-void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
+void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 {
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)

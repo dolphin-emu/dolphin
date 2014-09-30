@@ -98,11 +98,11 @@ private:
 	void OnOpenContainingFolder(wxCommandEvent& event);
 	void OnOpenSaveFolder(wxCommandEvent& event);
 	void OnExportSave(wxCommandEvent& event);
-	void OnSetDefaultGCM(wxCommandEvent& event);
-	void OnDeleteGCM(wxCommandEvent& event);
-	void OnCompressGCM(wxCommandEvent& event);
-	void OnMultiCompressGCM(wxCommandEvent& event);
-	void OnMultiDecompressGCM(wxCommandEvent& event);
+	void OnSetDefaultISO(wxCommandEvent& event);
+	void OnDeleteISO(wxCommandEvent& event);
+	void OnCompressISO(wxCommandEvent& event);
+	void OnMultiCompressISO(wxCommandEvent& event);
+	void OnMultiDecompressISO(wxCommandEvent& event);
 	void OnInstallWAD(wxCommandEvent& event);
 	void OnChangeDisc(wxCommandEvent& event);
 
