@@ -151,7 +151,7 @@ void JitArm64::WriteExitDestInR(ARM64Reg Reg)
 	BR(EncodeRegTo64(Reg));
 }
 
-void STACKALIGN JitArm64::Run()
+void JitArm64::Run()
 {
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 	pExecAddr();
@@ -163,7 +163,7 @@ void JitArm64::SingleStep()
 	pExecAddr();
 }
 
-void STACKALIGN JitArm64::Jit(u32 em_address)
+void JitArm64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockCache)
 	{

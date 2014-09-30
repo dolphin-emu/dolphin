@@ -463,7 +463,7 @@ void Jit64::WriteExternalExceptionExit()
 	JMP(asm_routines.dispatcher, true);
 }
 
-void STACKALIGN Jit64::Run()
+void Jit64::Run()
 {
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 	pExecAddr();
@@ -498,7 +498,7 @@ void Jit64::Trace()
 		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
 }
 
-void STACKALIGN Jit64::Jit(u32 em_address)
+void Jit64::Jit(u32 em_address)
 {
 	if (GetSpaceLeft() < 0x10000 ||
 	    farcode.GetSpaceLeft() < 0x10000 ||

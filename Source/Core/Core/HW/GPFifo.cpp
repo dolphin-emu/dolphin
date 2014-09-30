@@ -55,7 +55,7 @@ void ResetGatherPipe()
 	m_gatherPipeCount = 0;
 }
 
-void STACKALIGN CheckGatherPipe()
+void CheckGatherPipe()
 {
 	if (m_gatherPipeCount >= GATHER_PIPE_SIZE)
 	{
