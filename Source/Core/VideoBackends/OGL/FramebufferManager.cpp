@@ -522,7 +522,8 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype, int eye)
 	src_texture = m_efbColor[eye];
 	m_efbColor[eye] = m_efbColorSwap[eye];
 	m_efbColorSwap[eye] = src_texture;
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor[eye], 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[eye]);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_efbColor[eye], 0);
 
 	glViewport(0,0, m_targetWidth, m_targetHeight);
 	glActiveTexture(GL_TEXTURE0 + 9);
@@ -531,6 +532,11 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype, int eye)
 	m_pixel_format_shaders[convtype ? 1 : 0].Bind();
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindTexture(m_textureType, 0);
+
+#ifdef HAVE_OCULUSSDK
+	if (g_has_rift)
+		m_eye_texture[eye].OGL.TexId = m_efbColor[eye];
+#endif
 
 	g_renderer->RestoreAPIState();
 }

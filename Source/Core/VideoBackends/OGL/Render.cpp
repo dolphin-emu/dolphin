@@ -672,6 +672,7 @@ Renderer::~Renderer()
 
 void Renderer::Shutdown()
 {
+	static int ElementArrayBufferBinding, ArrayBufferBinding;
 #ifdef HAVE_OCULUSSDK
 	if (g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
 	{
@@ -688,7 +689,11 @@ void Renderer::Shutdown()
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
 
 		// Let OVR do distortion rendering, Present and flush/sync.
+		glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ElementArrayBufferBinding);
+		glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &ArrayBufferBinding);
 		ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);
+		glBindBuffer(GL_ARRAY_BUFFER, ArrayBufferBinding);
 	}
 #endif
 	g_first_rift_frame = true;
@@ -1322,7 +1327,15 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
 	if (convtype == 0 || convtype == 2)
 	{
-		//FramebufferManager::ReinterpretPixelData(convtype, 0);
+		// Reinterpretting pixel data crashes OpenGL at the next glFinish
+		//for (int eye = 0; eye < FramebufferManager::m_eye_count; ++eye)
+		//{
+		//	if (eye)
+		//		FramebufferManager::SwapRenderEye();
+		//	FramebufferManager::ReinterpretPixelData(convtype, FramebufferManager::m_current_eye);
+		//}
+		if (!g_has_hmd)
+			FramebufferManager::ReinterpretPixelData(convtype, 0);
 	}
 	else
 	{
@@ -1772,7 +1785,18 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		if (!g_ActiveConfig.bAsynchronousTimewarp)
 		{
 			// Let OVR do distortion rendering, Present and flush/sync.
+			static int ElementArrayBufferBinding, ArrayBufferBinding, VertexArrayBinding;
+			glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &ElementArrayBufferBinding);
+			glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &ArrayBufferBinding);
+			glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &VertexArrayBinding);
+			glBindVertexArray(0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			ovrHmd_EndFrame(hmd, g_eye_poses, &FramebufferManager::m_eye_texture[0].Texture);
+			//glBindVertexArray(VertexArrayBinding);
+			glBindVertexArray(0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementArrayBufferBinding);
+			glBindBuffer(GL_ARRAY_BUFFER, ArrayBufferBinding);
 			// Dismiss health and safety warning as soon as possible (it covers our own health and safety warning).
 			ovrHmd_DismissHSWDisplay(hmd);
 		}
