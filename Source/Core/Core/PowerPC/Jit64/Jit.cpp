@@ -610,6 +610,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			// WARNING - cmp->branch merging will screw this up.
 			js.isLastInstruction = true;
 			js.next_inst = 0;
+			js.next_inst_bp = false;
 			if (Profiler::g_ProfileBlocks)
 			{
 				// CAUTION!!! push on stack regs you use, do your stuff, then pop
@@ -627,6 +628,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.next_inst = ops[i + 1].inst;
 			js.next_compilerPC = ops[i + 1].address;
 			js.next_op = &ops[i + 1];
+			js.next_inst_bp = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i + 1].address);
 		}
 
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
