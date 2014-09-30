@@ -620,9 +620,11 @@ static void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const
 		s_InputDisplay[controllerID].append(accel);
 	}
 
-	if (irData) // incomplete
+	if (irData)
 	{
-		std::string ir = StringFromFormat(" IR:%d,%d", ((u8*)irData)[0], ((u8*)irData)[1]);
+		u16 x = irData[0] | ((irData[2] >> 4 & 0x3) << 8);
+		u16 y = irData[1] | ((irData[2] >> 2 & 0x3) << 8);
+		std::string ir = StringFromFormat(" IR:%d,%d", x, y);
 		s_InputDisplay[controllerID].append(ir);
 	}
 
