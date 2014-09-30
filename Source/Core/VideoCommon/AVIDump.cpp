@@ -82,7 +82,6 @@ bool AVIDump::Start(HWND hWnd, int w, int h)
 	if (SConfig::GetInstance().m_DumpAudioToAVI)
 		StoreFrame(nullptr);
 
-
 	return CreateFile();
 }
 
