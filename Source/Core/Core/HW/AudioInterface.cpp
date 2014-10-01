@@ -197,7 +197,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				DEBUG_LOG(AUDIO_INTERFACE, "Change AISFR to %s", tmpAICtrl.AISFR ? "48khz":"32khz");
 				m_Control.AISFR = tmpAICtrl.AISFR;
 				g_AISSampleRate = tmpAICtrl.AISFR ? 48000 : 32000;
-				soundStream->GetMixer()->SetStreamInputSampleRate(g_AISSampleRate);
+				g_sound_stream->GetMixer()->SetStreamInputSampleRate(g_AISSampleRate);
 				g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_AISSampleRate;
 			}
 			// Set frequency of DMA
@@ -206,7 +206,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				DEBUG_LOG(AUDIO_INTERFACE, "Change AIDFR to %s", tmpAICtrl.AIDFR ? "32khz":"48khz");
 				m_Control.AIDFR = tmpAICtrl.AIDFR;
 				g_AIDSampleRate = tmpAICtrl.AIDFR ? 32000 : 48000;
-				soundStream->GetMixer()->SetDMAInputSampleRate(g_AIDSampleRate);
+				g_sound_stream->GetMixer()->SetDMAInputSampleRate(g_AIDSampleRate);
 			}
 
 
@@ -245,7 +245,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::DirectRead<u32>(&m_Volume.hex),
 		MMIO::ComplexWrite<u32>([](u32, u32 val) {
 			m_Volume.hex = val;
-			soundStream->GetMixer()->SetStreamingVolume(m_Volume.left, m_Volume.right);
+			g_sound_stream->GetMixer()->SetStreamingVolume(m_Volume.left, m_Volume.right);
 		})
 	);
 
