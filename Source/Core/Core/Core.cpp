@@ -690,9 +690,9 @@ void UpdateTitle()
 	std::string SMessage = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
 
 	// Update the audio timestretcher with the current speed
-	if (soundStream)
+	if (g_sound_stream)
 	{
-		CMixer* pMixer = soundStream->GetMixer();
+		CMixer* pMixer = g_sound_stream->GetMixer();
 		pMixer->UpdateSpeed((float)Speed / 100);
 	}
 

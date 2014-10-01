@@ -21,7 +21,7 @@
 #include "Core/Movie.h"
 
 // This shouldn't be a global, at least not here.
-SoundStream *soundStream = nullptr;
+SoundStream* g_sound_stream = nullptr;
 
 namespace AudioCommon
 {
@@ -33,38 +33,38 @@ namespace AudioCommon
 
 		std::string backend = SConfig::GetInstance().sBackend;
 		if (backend == BACKEND_OPENAL           && OpenALStream::isValid())
-			soundStream = new OpenALStream(mixer);
+			g_sound_stream = new OpenALStream(mixer);
 		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid())
-			soundStream = new NullSound(mixer);
+			g_sound_stream = new NullSound(mixer);
 		else if (backend == BACKEND_XAUDIO2)
 		{
 			if (XAudio2::isValid())
-				soundStream = new XAudio2(mixer);
+				g_sound_stream = new XAudio2(mixer);
 			else if (XAudio2_7::isValid())
-				soundStream = new XAudio2_7(mixer);
+				g_sound_stream = new XAudio2_7(mixer);
 		}
 		else if (backend == BACKEND_AOSOUND     && AOSound::isValid())
-			soundStream = new AOSound(mixer);
+			g_sound_stream = new AOSound(mixer);
 		else if (backend == BACKEND_ALSA        && AlsaSound::isValid())
-			soundStream = new AlsaSound(mixer);
+			g_sound_stream = new AlsaSound(mixer);
 		else if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid())
-			soundStream = new CoreAudioSound(mixer);
+			g_sound_stream = new CoreAudioSound(mixer);
 		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
-			soundStream = new PulseAudio(mixer);
+			g_sound_stream = new PulseAudio(mixer);
 		else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
-			soundStream = new OpenSLESStream(mixer);
+			g_sound_stream = new OpenSLESStream(mixer);
 
-		if (!soundStream && NullSound::isValid())
+		if (!g_sound_stream && NullSound::isValid())
 		{
 			WARN_LOG(DSPHLE, "Could not initialize backend %s, using %s instead.",
 				backend.c_str(), BACKEND_NULLSOUND);
-			soundStream = new NullSound(mixer);
+			g_sound_stream = new NullSound(mixer);
 		}
 
-		if (soundStream)
+		if (g_sound_stream)
 		{
 			UpdateSoundStream();
-			if (soundStream->Start())
+			if (g_sound_stream->Start())
 			{
 				if (SConfig::GetInstance().m_DumpAudio)
 				{
@@ -73,15 +73,15 @@ namespace AudioCommon
 					mixer->StartLogAudio(audio_file_name);
 				}
 
-				return soundStream;
+				return g_sound_stream;
 			}
 			PanicAlertT("Could not initialize backend %s.", backend.c_str());
 		}
 
 		PanicAlertT("Sound backend %s is not valid.", backend.c_str());
 
-		delete soundStream;
-		soundStream = nullptr;
+		delete g_sound_stream;
+		g_sound_stream = nullptr;
 		return nullptr;
 	}
 
@@ -89,14 +89,14 @@ namespace AudioCommon
 	{
 		INFO_LOG(DSPHLE, "Shutting down sound stream");
 
-		if (soundStream)
+		if (g_sound_stream)
 		{
-			soundStream->Stop();
+			g_sound_stream->Stop();
 			if (SConfig::GetInstance().m_DumpAudio)
-				soundStream->GetMixer()->StopLogAudio();
-				//soundStream->StopLogAudio();
-			delete soundStream;
-			soundStream = nullptr;
+				g_sound_stream->GetMixer()->StopLogAudio();
+				//g_sound_stream->StopLogAudio();
+			delete g_sound_stream;
+			g_sound_stream = nullptr;
 		}
 
 		INFO_LOG(DSPHLE, "Done shutting down sound stream");
@@ -127,12 +127,12 @@ namespace AudioCommon
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	{
-		if (soundStream)
+		if (g_sound_stream)
 		{
 			// audio typically doesn't maintain its own "paused" state
 			// (that's already handled by the CPU and whatever else being paused)
 			// so it should be good enough to only lock/unlock here.
-			CMixer* pMixer = soundStream->GetMixer();
+			CMixer* pMixer = g_sound_stream->GetMixer();
 			if (pMixer)
 			{
 				std::mutex& csMixing = pMixer->MixerCritical();
@@ -145,30 +145,30 @@ namespace AudioCommon
 	}
 	void UpdateSoundStream()
 	{
-		if (soundStream)
+		if (g_sound_stream)
 		{
-			soundStream->SetVolume(SConfig::GetInstance().m_Volume);
+			g_sound_stream->SetVolume(SConfig::GetInstance().m_Volume);
 		}
 	}
 
 	void ClearAudioBuffer(bool mute)
 	{
-		if (soundStream)
-			soundStream->Clear(mute);
+		if (g_sound_stream)
+			g_sound_stream->Clear(mute);
 	}
 
 	void SendAIBuffer(short *samples, unsigned int num_samples)
 	{
-		if (!soundStream)
+		if (!g_sound_stream)
 			return;
 
-		CMixer* pMixer = soundStream->GetMixer();
+		CMixer* pMixer = g_sound_stream->GetMixer();
 
 		if (pMixer && samples)
 		{
 			pMixer->PushSamples(samples, num_samples);
 		}
 
-		soundStream->Update();
+		g_sound_stream->Update();
 	}
 }
