@@ -1403,7 +1403,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 	if (!path.IsEmpty())
 	{
-		CWiiSaveCrypted::ImportWiiSave(WxStrToStr(path).c_str());
+		CWiiSaveCrypted::ImportWiiSave(WxStrToStr(path));
 	}
 }
 
