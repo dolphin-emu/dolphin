@@ -833,7 +833,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	// Dump frames
 	static int w = 0, h = 0;
-	if (g_ActiveConfig.bDumpFrames)
+	if (g_ActiveConfig.bDumpFrames && g_ActiveConfig.bUseXFB)
 	{
 		static int s_recordWidth;
 		static int s_recordHeight;
