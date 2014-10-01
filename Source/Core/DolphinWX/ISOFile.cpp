@@ -157,11 +157,13 @@ GameListItem::~GameListItem()
 {
 }
 
+// Load from cache
 bool GameListItem::LoadFromCache()
 {
 	return CChunkFileReader::Load<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
 }
 
+// Save to cache
 void GameListItem::SaveToCache()
 {
 	if (!File::IsDirectory(File::GetUserPath(D_CACHE_IDX)))

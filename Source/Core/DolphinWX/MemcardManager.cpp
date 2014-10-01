@@ -146,6 +146,7 @@ CMemcardManager::~CMemcardManager()
 	SaveSettings();
 }
 
+// Load settings
 bool CMemcardManager::LoadSettings()
 {
 	if (MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)))
@@ -175,6 +176,7 @@ bool CMemcardManager::LoadSettings()
 	return false;
 }
 
+// Save settings
 bool CMemcardManager::SaveSettings()
 {
 	MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));

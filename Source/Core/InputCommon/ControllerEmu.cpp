@@ -20,6 +20,7 @@ void ControllerEmu::UpdateReferences(ControllerInterface& devi)
 	}
 }
 
+// Set default device
 void ControllerEmu::UpdateDefaultDevice()
 {
 	for (auto& ctrlGroup : groups)

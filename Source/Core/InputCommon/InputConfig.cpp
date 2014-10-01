@@ -14,6 +14,7 @@ InputConfig::~InputConfig()
 		delete pad;
 }
 
+// Load configuration file
 bool InputConfig::LoadConfig(bool isGC)
 {
 	IniFile inifile;
@@ -94,6 +95,7 @@ bool InputConfig::LoadConfig(bool isGC)
 	}
 }
 
+// Save configuration file
 void InputConfig::SaveConfig()
 {
 	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini";

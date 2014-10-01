@@ -135,6 +135,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
 		lines.push_back(std::string("*") + note);
 }
 
+// Save cheats
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 {
 	std::vector<std::string> lines;

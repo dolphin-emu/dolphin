@@ -215,6 +215,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 	UpdateActiveList();
 }
 
+// Load cheats
 void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalIni, IniFile& localIni)
 {
 	LoadCodes(globalIni, localIni, true);
