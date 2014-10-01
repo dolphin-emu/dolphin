@@ -33,6 +33,7 @@ CFileSystemGCWii::~CFileSystemGCWii()
 	m_FileInfoVector.clear();
 }
 
+// Get file size
 u64 CFileSystemGCWii::GetFileSize(const std::string& _rFullPath)
 {
 	if (!m_Initialized)

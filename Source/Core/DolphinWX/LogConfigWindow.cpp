@@ -112,6 +112,7 @@ void LogConfigWindow::CreateGUIControls()
 	Layout();
 }
 
+// Load settings
 void LogConfigWindow::LoadSettings()
 {
 	IniFile ini;
@@ -165,6 +166,7 @@ void LogConfigWindow::LoadSettings()
 	}
 }
 
+// Save settings
 void LogConfigWindow::SaveSettings()
 {
 	IniFile ini;

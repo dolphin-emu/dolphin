@@ -186,6 +186,7 @@ void CLogWindow::OnClose(wxCloseEvent& event)
 	event.Skip();
 }
 
+// Save settings
 void CLogWindow::SaveSettings()
 {
 	IniFile ini;
@@ -246,6 +247,7 @@ wxTextCtrl* CLogWindow::CreateTextCtrl(wxPanel* parent, wxWindowID id, long Styl
 	return TC;
 }
 
+// Change font
 void CLogWindow::OnFontChange(wxCommandEvent& event)
 {
 	// Update selected font
