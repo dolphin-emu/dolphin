@@ -123,7 +123,7 @@ public:
 
 protected:
 
-	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
+	static void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY);
 	bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height);
 
 	static void CheckFifoRecording();

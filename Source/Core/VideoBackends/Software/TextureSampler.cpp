@@ -16,8 +16,9 @@
 namespace TextureSampler
 {
 
-static inline void WrapCoord(int &coord, int wrapMode, int imageSize)
+static inline void WrapCoord(int* coordp, int wrapMode, int imageSize)
 {
+	int coord = *coordp;
 	switch (wrapMode)
 	{
 		case 0: // clamp
@@ -37,6 +38,7 @@ static inline void WrapCoord(int &coord, int wrapMode, int imageSize)
 			}
 			break;
 	}
+	*coordp = coord;
 }
 
 static inline void SetTexel(u8 *inTexel, u32 *outTexel, u32 fract)
@@ -177,10 +179,10 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 		u8 sampledTex[4];
 		u32 texel[4];
 
-		WrapCoord(imageS, tm0.wrap_s, imageWidth);
-		WrapCoord(imageT, tm0.wrap_t, imageHeight);
-		WrapCoord(imageSPlus1, tm0.wrap_s, imageWidth);
-		WrapCoord(imageTPlus1, tm0.wrap_t, imageHeight);
+		WrapCoord(&imageS, tm0.wrap_s, imageWidth);
+		WrapCoord(&imageT, tm0.wrap_t, imageHeight);
+		WrapCoord(&imageSPlus1, tm0.wrap_s, imageWidth);
+		WrapCoord(&imageTPlus1, tm0.wrap_t, imageHeight);
 
 		if (!(ti0.format == GX_TF_RGBA8 && texUnit.texImage1[subTexmap].image_type))
 		{
@@ -223,8 +225,8 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 		int imageT = t >> 7;
 
 		// nearest neighbor sampling
-		WrapCoord(imageS, tm0.wrap_s, imageWidth);
-		WrapCoord(imageT, tm0.wrap_t, imageHeight);
+		WrapCoord(&imageS, tm0.wrap_s, imageWidth);
+		WrapCoord(&imageT, tm0.wrap_t, imageHeight);
 
 		if (!(ti0.format == GX_TF_RGBA8 && texUnit.texImage1[subTexmap].image_type))
 			TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, ti0.format, tlut, tlutfmt);

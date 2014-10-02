@@ -334,57 +334,57 @@ namespace EfbInterface
 		}
 	}
 
-	static void LogicBlend(u32 srcClr, u32 &dstClr, BlendMode::LogicOp op)
+	static void LogicBlend(u32 srcClr, u32* dstClr, BlendMode::LogicOp op)
 	{
 		switch (op)
 		{
 		case BlendMode::CLEAR:
-			dstClr = 0;
+			*dstClr = 0;
 			break;
 		case BlendMode::AND:
-			dstClr = srcClr & dstClr;
+			*dstClr = srcClr & *dstClr;
 			break;
 		case BlendMode::AND_REVERSE:
-			dstClr = srcClr & (~dstClr);
+			*dstClr = srcClr & (~*dstClr);
 			break;
 		case BlendMode::COPY:
-			dstClr = srcClr;
+			*dstClr = srcClr;
 			break;
 		case BlendMode::AND_INVERTED:
-			dstClr = (~srcClr) & dstClr;
+			*dstClr = (~srcClr) & *dstClr;
 			break;
 		case BlendMode::NOOP:
 			// Do nothing
 			break;
 		case BlendMode::XOR:
-			dstClr = srcClr ^ dstClr;
+			*dstClr = srcClr ^ *dstClr;
 			break;
 		case BlendMode::OR:
-			dstClr = srcClr | dstClr;
+			*dstClr = srcClr | *dstClr;
 			break;
 		case BlendMode::NOR:
-			dstClr = ~(srcClr | dstClr);
+			*dstClr = ~(srcClr | *dstClr);
 			break;
 		case BlendMode::EQUIV:
-			dstClr = ~(srcClr ^ dstClr);
+			*dstClr = ~(srcClr ^ *dstClr);
 			break;
 		case BlendMode::INVERT:
-			dstClr = ~dstClr;
+			*dstClr = ~*dstClr;
 			break;
 		case BlendMode::OR_REVERSE:
-			dstClr = srcClr | (~dstClr);
+			*dstClr = srcClr | (~*dstClr);
 			break;
 		case BlendMode::COPY_INVERTED:
-			dstClr = ~srcClr;
+			*dstClr = ~srcClr;
 			break;
 		case BlendMode::OR_INVERTED:
-			dstClr = (~srcClr) | dstClr;
+			*dstClr = (~srcClr) | *dstClr;
 			break;
 		case BlendMode::NAND:
-			dstClr = ~(srcClr & dstClr);
+			*dstClr = ~(srcClr & *dstClr);
 			break;
 		case BlendMode::SET:
-			dstClr = 0xffffffff;
+			*dstClr = 0xffffffff;
 			break;
 		}
 	}
@@ -416,7 +416,7 @@ namespace EfbInterface
 		}
 		else if (bpmem.blendmode.logicopenable)
 		{
-			LogicBlend(*((u32*)color), dstClr, bpmem.blendmode.logicmode);
+			LogicBlend(*((u32*)color), &dstClr, bpmem.blendmode.logicmode);
 		}
 		else
 		{

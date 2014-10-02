@@ -31,20 +31,20 @@ FramebufferManagerBase::~FramebufferManagerBase()
 	delete m_realXFBSource;
 }
 
-const XFBSourceBase* const* FramebufferManagerBase::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
+const XFBSourceBase* const* FramebufferManagerBase::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32* xfbCountP)
 {
 	if (!g_ActiveConfig.bUseXFB)
 		return nullptr;
 
 	if (g_ActiveConfig.bUseRealXFB)
-		return GetRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+		return GetRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCountP);
 	else
-		return GetVirtualXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+		return GetVirtualXFBSource(xfbAddr, fbWidth, fbHeight, xfbCountP);
 }
 
-const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
+const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32* xfbCountP)
 {
-	xfbCount = 1;
+	*xfbCountP = 1;
 
 	// recreate if needed
 	if (m_realXFBSource && (m_realXFBSource->texWidth != fbWidth || m_realXFBSource->texHeight != fbHeight))
@@ -79,9 +79,9 @@ const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr
 	return &m_overlappingXFBArray[0];
 }
 
-const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
+const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32* xfbCountP)
 {
-	xfbCount = 0;
+	u32 xfbCount = 0;
 
 	if (m_virtualXFBList.empty())  // no Virtual XFBs available
 		return nullptr;
@@ -106,6 +106,7 @@ const XFBSourceBase* const* FramebufferManagerBase::GetVirtualXFBSource(u32 xfbA
 		}
 	}
 
+	*xfbCountP = xfbCount;
 	return &m_overlappingXFBArray[0];
 }
 
