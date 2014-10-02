@@ -141,7 +141,7 @@ void Jit64::FreeStack()
 	if (m_stack)
 	{
 		FreeMemoryPages(m_stack, STACK_SIZE);
-		m_stack = NULL;
+		m_stack = nullptr;
 	}
 #endif
 }
