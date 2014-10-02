@@ -22,16 +22,13 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 	u8 modRMbyte = 0;
 	u8 sibByte = 0;
 	bool hasModRM = false;
+	u8 prefix = 0;
 
 	int displacementSize = 0;
 
-	if (*codePtr == 0x66)
+	if (*codePtr == 0x66 || *codePtr == 0x67 || *codePtr == 0xF3)
 	{
-		info->operandSize = 2;
-		codePtr++;
-	}
-	else if (*codePtr == 0x67)
-	{
+		prefix = *codePtr;
 		codePtr++;
 	}
 
@@ -52,12 +49,20 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 	{
 		opcode = (opcode << 8) | *codePtr++;
 		opcode_length = 2;
-		if ((opcode & 0xFB) == 0x38)
+		if ((prefix == 0x66 && opcode == 0x0F6E) || (prefix == 0xF3 && opcode == 0x0F7E) ||
+			(prefix == 0x66 && opcode == 0x0F7E) || (prefix == 0x66 && opcode == 0x0FD6))
+		{
+			info->isXmm = true;
+		}
+		else if ((opcode & 0xFB) == 0x38)
 		{
 			opcode = (opcode << 8) | *codePtr++;
 			opcode_length = 3;
 		}
 	}
+
+	if (prefix == 0x66 && !info->isXmm)
+		info->operandSize = 2;
 
 	switch (opcode_length)
 	{
@@ -70,12 +75,14 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 			}
 			break;
 		case 2:
-			if (((opcode & 0xF0) == 0x00 && (opcode & 0x0F) >= 0x04 && (opcode & 0x0D) != 0x0D) ||
+			// movd and movq always have mod R/M bytes
+			if (!info->isXmm &&
+				(((opcode & 0xF0) == 0x00 && (opcode & 0x0F) >= 0x04 && (opcode & 0x0D) != 0x0D) ||
 			    ((opcode & 0xF0) == 0xA0 && (opcode & 0x07) <= 0x02) ||
 			    (opcode & 0xF0) == 0x30 ||
 			    (opcode & 0xFF) == 0x77 ||
 			    (opcode & 0xF0) == 0x80 ||
-			    (opcode & 0xF8) == 0xC8)
+			    (opcode & 0xF8) == 0xC8))
 			{
 				// No mod R/M byte
 			}
@@ -206,6 +213,27 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 	case 0x0FBF: // movsx on short
 		info->signExtend = true;
 		info->operandSize = 2;
+		break;
+
+	case 0x0F6E: // movd
+		info->operandSize = 4;
+		break;
+
+	case 0x0F7E: // movq or movd
+		if (prefix == 0xF3)
+		{
+			info->operandSize = 8;
+		}
+		else
+		{
+			info->isMemoryWrite = true;
+			info->operandSize = 4;
+		}
+		break;
+
+	case 0x0FD6: // movq
+		info->operandSize = 8;
+		info->isMemoryWrite = true;
 		break;
 
 	case 0x0F38F0: // movbe read

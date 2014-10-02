@@ -65,6 +65,13 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 		break;
 	}
 
+	if (info.isXmm)
+	{
+		if (info.operandSize == 4)
+			MOVD_xmm(dataReg, R(ABI_RETURN));
+		else
+			MOVQ_xmm(dataReg, R(ABI_RETURN));
+	}
 	if (info.signExtend && info.operandSize == 1)
 	{
 		// Need to sign extend value from Read_U8.
@@ -121,6 +128,15 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 			MOV(8, R(ABI_PARAM1), Imm8((u8)info.immediate));
 			break;
 		}
+	}
+	else if (info.isXmm)
+	{
+		if (info.operandSize == 4)
+			MOVD_xmm(R(ABI_PARAM1), dataReg);
+		else
+			MOVQ_xmm(R(ABI_PARAM1), dataReg);
+		if (addrReg != ABI_PARAM2)
+			MOV(32, R(ABI_PARAM2), R(addrReg));
 	}
 	else
 	{

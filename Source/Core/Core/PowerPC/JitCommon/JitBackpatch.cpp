@@ -73,18 +73,40 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 	}
 
 	u32 registersInUse = it->second;
+	if (info.isXmm)
+		ERROR_LOG(COMMON, "xmm backpatch at %x, write=%d!", codePtr, info.isMemoryWrite);
 
 	if (!info.isMemoryWrite)
 	{
 		XEmitter emitter(codePtr);
-		int bswapNopCount;
-		if (info.byteSwap || info.operandSize == 1)
-			bswapNopCount = 0;
-		// Check the following BSWAP for REX byte
-		else if ((codePtr[info.instructionSize] & 0xF0) == 0x40)
-			bswapNopCount = 3;
+		int bswapNopCount = 0;
+		if (info.isXmm)
+		{
+			// See if the next instruction is a pshufb
+			if (codePtr[info.instructionSize] == 0x66)
+			{
+				// Check for REX byte
+				if ((codePtr[info.instructionSize + 1] & 0xF0) == 0x40)
+				{
+					if (codePtr[info.instructionSize + 2] == 0x0F && codePtr[info.instructionSize + 3] == 0x38)
+						bswapNopCount = 10;
+				}
+				else if (codePtr[info.instructionSize + 1] == 0x0F && codePtr[info.instructionSize + 2] == 0x38)
+				{
+					bswapNopCount = 9;
+				}
+			}
+		}
 		else
-			bswapNopCount = 2;
+		{
+			if (info.byteSwap || info.operandSize == 1)
+				bswapNopCount = 0;
+			// Check the following BSWAP for REX byte
+			else if ((codePtr[info.instructionSize] & 0xF0) == 0x40)
+				bswapNopCount = 3;
+			else
+				bswapNopCount = 2;
+		}
 
 		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
@@ -116,23 +138,24 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		else
 		{
 			// We entered here with a BSWAP-ed register. We'll have to swap it back.
-			u64 *ptr = ContextRN(ctx, info.regOperandReg);
+			u64 *ptr = ContextRN(ctx, info.regOperandReg, info.isXmm);
 			int bswapSize = 0;
+			bool rex = (info.regOperandReg >= 8 ? 1 : 0);
 			switch (info.operandSize)
 			{
 			case 1:
 				bswapSize = 0;
 				break;
 			case 2:
-				bswapSize = 4 + (info.regOperandReg >= 8 ? 1 : 0);
+				bswapSize = 4 + rex;
 				*ptr = Common::swap16((u16) *ptr);
 				break;
 			case 4:
-				bswapSize = 2 + (info.regOperandReg >= 8 ? 1 : 0);
+				bswapSize = info.isXmm ? 9 + rex : 2 + rex;
 				*ptr = Common::swap32((u32) *ptr);
 				break;
 			case 8:
-				bswapSize = 3;
+				bswapSize = info.isXmm ? 9 + rex : 3;
 				*ptr = Common::swap64(*ptr);
 				break;
 			}

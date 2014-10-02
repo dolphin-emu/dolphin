@@ -423,7 +423,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		gpr.BindToRegister(a, true, false);
 		if (gpr.R(s).IsImm())
 		{
-			SafeWriteRegToReg(gpr.R(s), gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
+			SafeWriteRegToReg(gpr.R(s), gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), false, SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 		}
 		else
 		{
@@ -438,7 +438,7 @@ void Jit64::stX(UGeckoInstruction inst)
 				gpr.BindToRegister(s, true, false);
 				reg_value = gpr.RX(s);
 			}
-			SafeWriteRegToReg(reg_value, gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
+			SafeWriteRegToReg(reg_value, gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(), false, SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 		}
 
 		if (update && offset)
@@ -508,7 +508,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 
 	if (gpr.R(s).IsImm())
 	{
-		SafeWriteRegToReg(gpr.R(s), RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
+		SafeWriteRegToReg(gpr.R(s), RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), false, byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 	}
 	else
 	{
@@ -523,7 +523,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 			gpr.BindToRegister(s, true, false);
 			reg_value = gpr.RX(s);
 		}
-		SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
+		SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, CallerSavedRegistersInUse(), false, byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 	}
 
 	if (update && js.memcheck)

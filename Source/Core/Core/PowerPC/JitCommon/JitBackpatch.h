@@ -33,6 +33,22 @@
 		#define CTX_R14 R14
 		#define CTX_R15 R15
 		#define CTX_RIP Rip
+		#define CTX_XMM0 Xmm0
+		#define CTX_XMM1 Xmm1
+		#define CTX_XMM2 Xmm2
+		#define CTX_XMM3 Xmm3
+		#define CTX_XMM4 Xmm4
+		#define CTX_XMM5 Xmm5
+		#define CTX_XMM6 Xmm6
+		#define CTX_XMM7 Xmm7
+		#define CTX_XMM8 Xmm8
+		#define CTX_XMM9 Xmm9
+		#define CTX_XMM10 Xmm10
+		#define CTX_XMM11 Xmm11
+		#define CTX_XMM12 Xmm12
+		#define CTX_XMM13 Xmm13
+		#define CTX_XMM14 Xmm14
+		#define CTX_XMM15 Xmm15
 	#else
 		#error No context definition for OS
 	#endif
@@ -58,6 +74,22 @@
 		#define CTX_R14 __r14
 		#define CTX_R15 __r15
 		#define CTX_RIP __rip
+		#define CTX_XMM0 __xmm0
+		#define CTX_XMM1 __xmm1
+		#define CTX_XMM2 __xmm2
+		#define CTX_XMM3 __xmm3
+		#define CTX_XMM4 __xmm4
+		#define CTX_XMM5 __xmm5
+		#define CTX_XMM6 __xmm6
+		#define CTX_XMM7 __xmm7
+		#define CTX_XMM8 __xmm8
+		#define CTX_XMM9 __xmm9
+		#define CTX_XMM10 __xmm10
+		#define CTX_XMM11 __xmm11
+		#define CTX_XMM12 __xmm12
+		#define CTX_XMM13 __xmm13
+		#define CTX_XMM14 __xmm14
+		#define CTX_XMM15 __xmm15
 	#else
 		#error No context definition for OS
 	#endif
@@ -149,27 +181,47 @@
 #if _M_X86_64
 #include <stddef.h>
 #define CTX_PC CTX_RIP
-static inline u64 *ContextRN(SContext* ctx, int n)
+static inline u64 *ContextRN(SContext* ctx, int n, bool xmm)
 {
-	static const u8 offsets[] =
+	static const u16 offsets[2][16] =
 	{
-		offsetof(SContext, CTX_RAX),
-		offsetof(SContext, CTX_RCX),
-		offsetof(SContext, CTX_RDX),
-		offsetof(SContext, CTX_RBX),
-		offsetof(SContext, CTX_RSP),
-		offsetof(SContext, CTX_RBP),
-		offsetof(SContext, CTX_RSI),
-		offsetof(SContext, CTX_RDI),
-		offsetof(SContext, CTX_R8),
-		offsetof(SContext, CTX_R9),
-		offsetof(SContext, CTX_R10),
-		offsetof(SContext, CTX_R11),
-		offsetof(SContext, CTX_R12),
-		offsetof(SContext, CTX_R13),
-		offsetof(SContext, CTX_R14),
-		offsetof(SContext, CTX_R15)
+		{
+			offsetof(SContext, CTX_RAX),
+			offsetof(SContext, CTX_RCX),
+			offsetof(SContext, CTX_RDX),
+			offsetof(SContext, CTX_RBX),
+			offsetof(SContext, CTX_RSP),
+			offsetof(SContext, CTX_RBP),
+			offsetof(SContext, CTX_RSI),
+			offsetof(SContext, CTX_RDI),
+			offsetof(SContext, CTX_R8),
+			offsetof(SContext, CTX_R9),
+			offsetof(SContext, CTX_R10),
+			offsetof(SContext, CTX_R11),
+			offsetof(SContext, CTX_R12),
+			offsetof(SContext, CTX_R13),
+			offsetof(SContext, CTX_R14),
+			offsetof(SContext, CTX_R15)
+		},
+		{
+			offsetof(SContext, CTX_XMM0),
+			offsetof(SContext, CTX_XMM1),
+			offsetof(SContext, CTX_XMM2),
+			offsetof(SContext, CTX_XMM3),
+			offsetof(SContext, CTX_XMM4),
+			offsetof(SContext, CTX_XMM5),
+			offsetof(SContext, CTX_XMM6),
+			offsetof(SContext, CTX_XMM7),
+			offsetof(SContext, CTX_XMM8),
+			offsetof(SContext, CTX_XMM9),
+			offsetof(SContext, CTX_XMM10),
+			offsetof(SContext, CTX_XMM11),
+			offsetof(SContext, CTX_XMM12),
+			offsetof(SContext, CTX_XMM13),
+			offsetof(SContext, CTX_XMM14),
+			offsetof(SContext, CTX_XMM15)
+		}
 	};
-	return (u64 *) ((char *) ctx + offsets[n]);
+	return (u64 *) ((char *) ctx + offsets[xmm][n]);
 }
 #endif

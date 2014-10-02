@@ -68,18 +68,17 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 	u32 registersInUse = CallerSavedRegistersInUse();
 	if (update && js.memcheck)
 		registersInUse |= (1 << RSCRATCH2);
-	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false);
 	fpr.Lock(d);
 	fpr.BindToRegister(d, js.memcheck || !single);
+	SafeLoadToReg(XMM0, addr, single ? 32 : 64, offset, registersInUse, false, true);
 
 	MEMCHECK_START(false)
 	if (single)
 	{
-		ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);
+		ConvertSingleToDouble(fpr.RX(d), XMM0, false);
 	}
 	else
 	{
-		MOVQ_xmm(XMM0, R(RSCRATCH));
 		MOVSD(fpr.RX(d), R(XMM0));
 	}
 	if (update && js.memcheck)
@@ -144,17 +143,14 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 	{
 		fpr.BindToRegister(s, true, false);
 		ConvertDoubleToSingle(XMM0, fpr.RX(s));
-		SafeWriteF32ToReg(XMM0, RSCRATCH2, offset, CallerSavedRegistersInUse());
-		fpr.UnlockAll();
+		SafeWriteRegToReg(XMM0, RSCRATCH2, 32, offset, CallerSavedRegistersInUse(), true);
 	}
 	else
 	{
-		if (fpr.R(s).IsSimpleReg())
-			MOVQ_xmm(R(RSCRATCH), fpr.RX(s));
-		else
-			MOV(64, R(RSCRATCH), fpr.R(s));
-		SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 64, offset, CallerSavedRegistersInUse());
+		MOVAPD(XMM0, fpr.R(s));
+		SafeWriteRegToReg(XMM0, RSCRATCH2, 64, offset, CallerSavedRegistersInUse(), true);
 	}
+
 	if (js.memcheck && update)
 	{
 		// revert the address change if an exception occurred
@@ -162,6 +158,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 		SUB(32, gpr.R(a), indexed ? gpr.R(b) : Imm32(imm));
 		MEMCHECK_END
 	}
+	fpr.UnlockAll();
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
