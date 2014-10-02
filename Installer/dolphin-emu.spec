@@ -50,7 +50,6 @@ BuildRequires:  pkgconfig(xrandr)
 BuildRequires:  pkgconfig(zlib)
 
 %if 0%{?fedora}
-BuildRequires:  glew-devel
 BuildRequires:  libusb-devel
 BuildRequires:  lzo-devel
 # Disable miniupnpc in OBS for F20
@@ -65,7 +64,6 @@ BuildRequires:  soundtouch-devel
 %endif
 
 %if 0%{?suse_version}
-BuildRequires:  glew-devel
 BuildRequires:  libminiupnpc-devel
 BuildRequires:  libSDL2-devel
 BuildRequires:  libSOIL-devel
