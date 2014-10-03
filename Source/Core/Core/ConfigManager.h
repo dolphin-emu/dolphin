@@ -86,6 +86,7 @@ struct SConfig : NonCopyable
 	std::string m_WirelessMac;
 	bool m_PauseMovie;
 	bool m_ShowLag;
+	bool m_ShowFrameCount;
 	std::string m_strMovieAuthor;
 	unsigned int m_FrameSkip;
 

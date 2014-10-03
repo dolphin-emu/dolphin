@@ -214,6 +214,8 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_PauseMovie);
 	movieMenu->AppendCheckItem(IDM_SHOWLAG, _("Show lag counter"));
 	movieMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_ShowLag);
+	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show frame counter"));
+	movieMenu->Check(IDM_SHOWFRAMECOUNT, SConfig::GetInstance().m_ShowFrameCount);
 	movieMenu->Check(IDM_RECORDREADONLY, true);
 	menubar->Append(movieMenu, _("&Movie"));
 
@@ -733,6 +735,12 @@ void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnShowLag(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_ShowLag = !SConfig::GetInstance().m_ShowLag;
+	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnShowFrameCount(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_ShowFrameCount = !SConfig::GetInstance().m_ShowFrameCount;
 	SConfig::GetInstance().SaveSettings();
 }
 
