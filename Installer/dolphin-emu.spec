@@ -23,6 +23,7 @@ Release:    0%{?dist}
 Group:      System/Emulators/Other
 License:    GPL-2.0
 URL:        http://www.dolphin-emu.org/
+BuildArch:  x86_64 armv7l aarch64
 
 # For this spec file to work, the Dolphin Emulator sources must be located
 # in a directory named dolphin-emu-4.0 (with "4.0" being the version
@@ -42,10 +43,10 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  cmake >= 2.8
 BuildRequires:  gcc-c++
 BuildRequires:  gtk2-devel
-BuildRequires:	pkgconfig(alsa)
-BuildRequires:	pkgconfig(ao)
-BuildRequires:	pkgconfig(bluez)
-BuildRequires:	pkgconfig(libpulse)
+BuildRequires:  pkgconfig(alsa)
+BuildRequires:  pkgconfig(ao)
+BuildRequires:  pkgconfig(bluez)
+BuildRequires:  pkgconfig(libpulse)
 BuildRequires:  pkgconfig(xrandr)
 BuildRequires:  pkgconfig(zlib)
 
