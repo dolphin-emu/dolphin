@@ -213,14 +213,20 @@ bool DolphinApp::OnInit()
 
 	// Gets the command line parameters
 	wxCmdLineParser parser(cmdLineDesc, argc, argv);
-	if (parser.Parse() != 0)
+	if (argc == 2)
+	{
+		LoadFile = true;
+		FileToLoad = argv[1];
+	}
+	else if (parser.Parse() != 0)
 	{
 		return false;
 	}
 
 	UseDebugger = parser.Found("debugger");
 	UseLogger = parser.Found("logger");
-	LoadFile = parser.Found("exec", &FileToLoad);
+	if (!LoadFile)
+		LoadFile = parser.Found("exec", &FileToLoad);
 	BatchMode = parser.Found("batch");
 	selectVideoBackend = parser.Found("video_backend", &videoBackendName);
 	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
