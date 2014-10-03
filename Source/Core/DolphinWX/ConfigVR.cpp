@@ -146,6 +146,8 @@ void CConfigVR::CreateGUIControls()
 		_("HUD Thicker"),
 		_("HUD Thinner"),
 
+		_("2D Screen Larger"),
+		_("2D Screen Smaller"),
 		_("2D Camera Forward"),
 		_("2D Camera Backward"),
 		//_("2D Screen Left"), //Doesn't exist right now?

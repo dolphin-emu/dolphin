@@ -137,14 +137,16 @@ static const struct
 		{ "VRPermanentCameraBackward",  0, 0 /* wxMOD_NONE */ },
 		{ "VRLargerScale",              0, 0 /* wxMOD_NONE */ },
 		{ "VRSmallerScale",	            0, 0 /* wxMOD_NONE */ },
-		{ "VRTiltCameraUp",             0, 0 /* wxMOD_NONE */ },
-		{ "VRTiltCameraDown",           0, 0 /* wxMOD_NONE */ },
+		{ "VRCameraTiltUp",             0, 0 /* wxMOD_NONE */ },
+		{ "VRCameraTiltDown",           0, 0 /* wxMOD_NONE */ },
 
 		{ "VRHUDForward",               0, 0 /* wxMOD_NONE */ },
 		{ "VRHUDBackward",              0, 0 /* wxMOD_NONE */ },
 		{ "VRHUDThicker",               0, 0 /* wxMOD_NONE */ },
 		{ "VRHUDThinner",               0, 0 /* wxMOD_NONE */ },
 
+		{ "VR2DScreenLarger",           0, 0 /* wxMOD_NONE */ },
+		{ "VR2DScreenSmaller",          0, 0 /* wxMOD_NONE */ },
 		{ "VR2DCameraForward",          0, 0 /* wxMOD_NONE */ },
 		{ "VR2DCameraBackward",         0, 0 /* wxMOD_NONE */ },
 		//{ "VR2DScreenLeft",             0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
