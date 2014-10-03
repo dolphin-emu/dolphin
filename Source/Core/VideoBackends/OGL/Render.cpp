@@ -709,8 +709,23 @@ void Renderer::DrawDebugInfo()
 	// Draw various messages on the screen, like FPS, statistics, etc.
 	std::string debug_info;
 
-	if (g_ActiveConfig.bShowFPS)
-		debug_info += StringFromFormat("FPS: %d\n", m_fps_counter.m_fps);
+	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
+	{
+		std::string fps = "";
+		if (g_ActiveConfig.bShowFPS)
+			debug_info += StringFromFormat("FPS: %d", m_fps_counter.m_fps);
+
+		if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
+			debug_info += " - ";
+		if (SConfig::GetInstance().m_ShowFrameCount)
+		{
+			debug_info += StringFromFormat("Frame: %d", Movie::g_currentFrame);
+			if (Movie::IsPlayingInput())
+				debug_info += StringFromFormat(" / %d", Movie::g_totalFrames);
+		}
+
+		debug_info += "\n";
+	}
 
 	if (SConfig::GetInstance().m_ShowLag)
 		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
