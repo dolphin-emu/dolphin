@@ -64,6 +64,7 @@
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/CheatsWindow.h"
 #include "DolphinWX/ConfigMain.h"
+#include "DolphinWX/ConfigVR.h"
 #include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
@@ -225,6 +226,7 @@ wxMenuBar* CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_DSP_EMULATOR, _("&DSP Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _("GameCube &Pad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _("&Wiimote Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_VR, _("&VR Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
 	if (g_pCodeWindow)
 	{
@@ -544,6 +546,7 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_DSP_EMULATOR,   _("DSP"),      m_Bitmaps[Toolbar_ConfigDSP],  _("DSP settings"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_PAD_PLUGIN,     _("GCPad"),    m_Bitmaps[Toolbar_ConfigPAD],  _("GameCube Pad settings"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote],    _("Wiimote settings"));
+	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_VR,             _("VR"),       m_Bitmaps[Toolbar_ConfigVR],   _("VR settings"));
 }
 
 
@@ -591,6 +594,7 @@ void CFrame::InitBitmaps()
 	m_Bitmaps[Toolbar_Wiimote   ].LoadFile(dir + "wiimote.png",    wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Screenshot].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_FullScreen].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigVR  ].LoadFile(dir + "vr.png",         wxBITMAP_TYPE_PNG);
 
 	// Update in case the bitmap has been updated
 	if (m_ToolBar != nullptr)
@@ -1373,6 +1377,14 @@ void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 	{
 		Wiimote::Shutdown();
 	}
+}
+
+void CFrame::OnConfigVR(wxCommandEvent& WXUNUSED(event))
+{
+	CConfigVR ConfigVR(this);
+	//ConfigMain.SetSelectedTab(CConfigMain::ID_VRPAGE);
+	if (ConfigVR.ShowModal() == wxID_OK)
+		m_GameListCtrl->Update();
 }
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))

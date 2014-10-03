@@ -238,6 +238,7 @@ EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
 EVT_MENU(IDM_CONFIG_DSP_EMULATOR, CFrame::OnConfigDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnConfigPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnConfigWiimote)
+EVT_MENU(IDM_CONFIG_VR, CFrame::OnConfigVR)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
 
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnPerspectiveMenu)
@@ -875,6 +876,13 @@ static bool IsHotkey(wxKeyEvent &event, int Id)
 			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 }
 
+static bool IsVRSettingsKey(wxKeyEvent &event, int Id)
+{
+	return (event.GetKeyCode() != WXK_NONE &&
+		event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] &&
+		event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id]);
+}
+
 int GetCmdForHotkey(unsigned int key)
 {
 	switch (key)
@@ -1134,6 +1142,36 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			ConnectWiimote(WiimoteId, connect);
 		}
 
+		float debugSpeed = 0.1f; //How big the VR Camera Movement adjustments are.
+
+		if (IsVRSettingsKey(event, VR_POSITION_RESET)) {
+			VertexShaderManager::ResetView();
+#ifdef HAVE_OCULUSSDK
+			if (g_has_rift)
+			{
+				ovrHmd_RecenterPose(hmd);
+			}
+#endif
+		}
+		if (IsVRSettingsKey(event, VR_CAMERA_FORWARD)) {
+			VertexShaderManager::TranslateView(0.0f, debugSpeed);
+		}
+		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_BACKWARD)) {
+			VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+		}
+		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_UP)) {
+			VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+		}
+		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_DOWN)) {
+			VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+		}
+		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_LEFT)) {
+			VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+		}
+		else if (g_Config.bFreeLook && IsVRSettingsKey(event, VR_CAMERA_RIGHT)) {
+			VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+		}
+
 		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
 		{
 			// everything is in metres, except UnitsPerMetre which is in game units
@@ -1146,27 +1184,27 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			case '0':
 				debugSpeed *= 2.0f;
 				break;
-			case 'W':
-				VertexShaderManager::TranslateView(0.0f, debugSpeed);
-				break;
-			case 'S':
-				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
-				break;
-			case 'A':
-				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
-				break;
-			case 'D':
-				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
-				break;
-			case 'Q':
-				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
-				break;
-			case 'E':
-				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
-				break;
-			case 'R':
-				VertexShaderManager::ResetView();
-				break;
+			//case 'W':
+			//	VertexShaderManager::TranslateView(0.0f, debugSpeed);
+			//	break;
+			//case 'S':
+			//	VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+			//	break;
+			//case 'A':
+			//	VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+			//	break;
+			//case 'D':
+			//	VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+			//	break;
+			//case 'Q':
+			//	VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+			//	break;
+			//case 'E':
+			//	VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+			//	break;
+			//case 'R':
+			//	VertexShaderManager::ResetView();
+			//	break;
 			default:
 				break;
 			}

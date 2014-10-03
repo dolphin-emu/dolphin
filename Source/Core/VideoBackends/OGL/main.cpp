@@ -230,8 +230,13 @@ void VideoBackend::Video_Prepare()
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
-	// VR Asynchronous timewarp may require this.
+	
+	//This call is needed to ensure all OpenGL calls finish before
+	//entering the GPU thread.  Without this, AMD Drivers crash on
+	//first pass through the OculusSDK when doing a glDrawElements
+	//in CAPI_GL_DistortionRenderer.cpp when using Asynchronous Timewarp
 	glFinish();
+
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
 }

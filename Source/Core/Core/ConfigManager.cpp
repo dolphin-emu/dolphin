@@ -120,6 +120,44 @@ static const struct
 	{ "LoadStateFile",       0,                   0 /* wxMOD_NONE */ },
 };
 
+static const struct
+{
+	const char* IniText;
+	const int   DefaultKey;
+	const int   DefaultModifier;
+} g_VRData[] = {
+		{ "VRPositionReset",            0, 0 /* wxMOD_NONE */ },
+		{ "VRCameraForward",            0, 0 /* wxMOD_NONE */ },
+		{ "VRCameraBackward",           0, 0 /* wxMOD_NONE */ },
+		{ "VRCameraLeft",               0, 0 /* wxMOD_NONE */ },
+		{ "VRCameraRight",              0, 0 /* wxMOD_NONE */ },
+		{ "VRCameraUp",                 0, 0 /* wxMOD_NONE */ },
+		{ "VRCameraDown",               0, 0 /* wxMOD_NONE */ },
+		{ "VRPermanentCameraForward",   0, 0 /* wxMOD_NONE */ },
+		{ "VRPermanentCameraBackward",  0, 0 /* wxMOD_NONE */ },
+		{ "VRLargerScale",              0, 0 /* wxMOD_NONE */ },
+		{ "VRSmallerScale",	            0, 0 /* wxMOD_NONE */ },
+		{ "VRTiltCameraUp",             0, 0 /* wxMOD_NONE */ },
+		{ "VRTiltCameraDown",           0, 0 /* wxMOD_NONE */ },
+
+		{ "VRHUDForward",               0, 0 /* wxMOD_NONE */ },
+		{ "VRHUDBackward",              0, 0 /* wxMOD_NONE */ },
+		{ "VRHUDThicker",               0, 0 /* wxMOD_NONE */ },
+		{ "VRHUDThinner",               0, 0 /* wxMOD_NONE */ },
+
+		{ "VR2DCameraForward",          0, 0 /* wxMOD_NONE */ },
+		{ "VR2DCameraBackward",         0, 0 /* wxMOD_NONE */ },
+		//{ "VR2DScreenLeft",             0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
+		//{ "VR2DScreenRight",            0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
+		{ "VR2DCameraUp",               0, 0 /* wxMOD_NONE */ },
+		{ "VR2DCameraDown",             0, 0 /* wxMOD_NONE */ },
+		{ "VR2DCameraTiltUp",           0, 0 /* wxMOD_NONE */ },
+		{ "VR2DCameraTiltDown",         0, 0 /* wxMOD_NONE */ },
+		{ "VR2DScreenThicker",          0, 0 /* wxMOD_NONE */ },
+		{ "VR2DScreenThinner",          0, 0 /* wxMOD_NONE */ },
+
+};
+
 SConfig::SConfig()
 {
 	// Make sure we have log manager
@@ -160,6 +198,7 @@ void SConfig::SaveSettings()
 	SaveDSPSettings(ini);
 	SaveInputSettings(ini);
 	SaveFifoPlayerSettings(ini);
+	SaveVRSettings(ini);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
@@ -229,6 +268,18 @@ void SConfig::SaveHotkeySettings(IniFile& ini)
 		hotkeys->Set(g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
 		hotkeys->Set(std::string(g_HKData[i].IniText) + "Modifier",
 			m_LocalCoreStartupParameter.iHotkeyModifier[i]);
+	}
+}
+
+void SConfig::SaveVRSettings(IniFile& ini)
+{
+	IniFile::Section* vrsettings = ini.GetOrCreateSection("VR");
+
+	for (int i = 0; i < NUM_VR_OPTIONS; i++)
+	{
+		vrsettings->Set(g_VRData[i].IniText, m_LocalCoreStartupParameter.iVRSettings[i]);
+		vrsettings->Set(std::string(g_VRData[i].IniText) + "Modifier",
+			m_LocalCoreStartupParameter.iVRSettingsModifier[i]);
 	}
 }
 
@@ -376,6 +427,7 @@ void SConfig::LoadSettings()
 	LoadDSPSettings(ini);
 	LoadInputSettings(ini);
 	LoadFifoPlayerSettings(ini);
+	LoadVRSettings(ini);
 
 	m_SYSCONF = new SysConf();
 }
@@ -444,6 +496,19 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 		    &m_LocalCoreStartupParameter.iHotkey[i], g_HKData[i].DefaultKey);
 		hotkeys->Get(std::string(g_HKData[i].IniText) + "Modifier",
 		    &m_LocalCoreStartupParameter.iHotkeyModifier[i], g_HKData[i].DefaultModifier);
+	}
+}
+
+void SConfig::LoadVRSettings(IniFile& ini)
+{
+	IniFile::Section* vrsettings = ini.GetOrCreateSection("VR");
+
+	for (int i = 0; i < NUM_VR_OPTIONS; i++)
+	{
+		vrsettings->Get(g_VRData[i].IniText,
+			&m_LocalCoreStartupParameter.iVRSettings[i], g_VRData[i].DefaultKey);
+		vrsettings->Get(std::string(g_VRData[i].IniText) + "Modifier",
+			&m_LocalCoreStartupParameter.iVRSettingsModifier[i], g_VRData[i].DefaultModifier);
 	}
 }
 

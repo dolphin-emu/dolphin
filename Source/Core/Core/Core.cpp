@@ -371,9 +371,6 @@ void VRThread()
 	s_vr_thread_ready.Set();
 	s_nonvr_thread_ready.Wait();
 
-	// Add this line to fix race condition with init thread.
-	//Common::SleepCurrentThread(5000);
-
 	NOTICE_LOG(VR, "[VR Thread] Main VR loop");
 	while (!s_stop_vr_thread)
 	{
