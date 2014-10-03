@@ -1516,7 +1516,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 #if defined _WIN32 || defined HAVE_LIBAV
-		if (g_ActiveConfig.bDumpFrames)
+		if (g_ActiveConfig.bDumpFrames && g_ActiveConfig.bUseXFB)
 		{
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 			if (frame_data.empty() || w != flipped_trc.GetWidth() ||
@@ -1577,7 +1577,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			bLastFrameDumped = false;
 		}
 #else
-		if (g_ActiveConfig.bDumpFrames)
+		if (g_ActiveConfig.bDumpFrames && g_ActiveConfig.bUseXFB)
 		{
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 			std::string movie_file_name;
