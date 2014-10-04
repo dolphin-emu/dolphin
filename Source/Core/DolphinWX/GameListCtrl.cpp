@@ -1104,6 +1104,8 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	for (u32 i=0; i < m_numberItem; i++)
 	{
 		const GameListItem *iso = GetSelectedISO();
+		if (iso->GetPlatform() == GameListItem::WII_WAD || iso->GetFileName().rfind(".wbfs") != std::string::npos)
+			continue;
 
 			if (!iso->IsCompressed() && _compress)
 			{
