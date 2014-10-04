@@ -43,9 +43,9 @@ bool CBoot::EmulatedBS2_GC()
 	// Set up MSR and the BAT SPR registers.
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 	m_MSR.FP = 1;
-	PowerPC::ppcState.spr[SPR_IBAT0U] = 0x800001ff;
+	PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
 	PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
-	PowerPC::ppcState.spr[SPR_DBAT0U] = 0x800001ff;
+	PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
 	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
 	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
 	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
@@ -325,11 +325,11 @@ bool CBoot::EmulatedBS2_Wii()
 		// Set up MSR and the BAT SPR registers.
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 		m_MSR.FP = 1;
-		PowerPC::ppcState.spr[SPR_IBAT0U] = 0x800001ff;
+		PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
 		PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
 		PowerPC::ppcState.spr[SPR_IBAT4L] = 0x90001fff;
 		PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
-		PowerPC::ppcState.spr[SPR_DBAT0U] = 0x800001ff;
+		PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
 		PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
 		PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
 		PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
