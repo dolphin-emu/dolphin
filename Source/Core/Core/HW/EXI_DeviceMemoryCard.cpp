@@ -152,7 +152,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 	else if (strUniqueID.length() >= 4)
 	{
 		CountryCode = DiscIO::CountrySwitch(strUniqueID.at(3));
-		memcpy((u8 *)&CurrentGameId, strUniqueID.c_str(), 4);
+		CurrentGameId = BE32((u8*)strUniqueID.c_str());
 	}
 	bool ascii = true;
 	std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
