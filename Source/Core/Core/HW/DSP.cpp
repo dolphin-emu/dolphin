@@ -24,6 +24,7 @@
 // Nintendo games).
 
 #include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/AudioDumper.h"
 
 #include "Common/MemoryUtil.h"
 
@@ -40,8 +41,11 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "VideoCommon/AVIDump.h"
+
 namespace DSP
 {
+	AudioDumper *HackDump;
 
 // register offsets
 enum
@@ -269,6 +273,9 @@ void Init(bool hle)
 
 	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
 	et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
+
+	// AUDIO DUMP HACK
+	HackDump = new AudioDumper(std::string("dspdump"));
 }
 
 void Shutdown()
@@ -282,6 +289,9 @@ void Shutdown()
 	dsp_emulator->Shutdown();
 	delete dsp_emulator;
 	dsp_emulator = nullptr;
+
+	delete HackDump;
+	HackDump = 0;
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -498,6 +508,7 @@ void UpdateDSPSlice(int cycles)
 void UpdateAudioDMA()
 {
 	static short zero_samples[8*2] = { 0 };
+	static int oldrate = 32000;
 	if (g_audioDMA.AudioDMAControl.Enable)
 	{
 		// Read audio at g_audioDMA.current_source_address in RAM and push onto an
@@ -520,14 +531,23 @@ void UpdateAudioDMA()
 				// We make the samples ready as soon as possible
 				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
 				AudioCommon::SendAIBuffer((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8);
+				if (SConfig::GetInstance().m_DumpAudio)
+					HackDump->DumpSamplesBE((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8, oldrate);
+				if (SConfig::GetInstance().m_DumpAudioToAVI)
+					AVIDump::AddSoundBE((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8, oldrate);
 			}
 			GenerateDSPInterrupt(DSP::INT_AID);
 		}
 	}
 	else
 	{
+		if (SConfig::GetInstance().m_DumpAudio)
+			HackDump->DumpSamples(&zero_samples[0], 8, oldrate);
+		if (SConfig::GetInstance().m_DumpAudioToAVI)
+			AVIDump::AddSound(&zero_samples[0], 8, oldrate);
 		AudioCommon::SendAIBuffer(&zero_samples[0], 8);
 	}
+	oldrate = AudioInterface::GetAIDSampleRate();
 }
 
 static void Do_ARAM_DMA()

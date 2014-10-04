@@ -311,7 +311,26 @@ unsigned int GetAIDSampleRate()
 }
 
 void Update(u64 userdata, int cyclesLate)
-{
+{	
+	// AUDIO HACK LOGGING
+	static std::FILE *f2 = NULL;
+	if (!f2)
+	{
+		f2 = std::fopen("dolphin_dtklog.txt", "w");
+		if (f2)
+			std::fprintf(f2, "cpu,cpudelta,arate,enabled\n");
+	}
+	if (f2)
+	{
+		static u64 lasttime = 0;
+		u64 cputime = CoreTiming::GetTicks();
+		int audiorate = AudioInterface::g_AISSampleRate;
+		const char *enablec = m_Control.PSTAT ? "TRUE" : "FALSE";
+		u64 diff = cputime - lasttime;
+
+		std::fprintf(f2, "%I64u,%I64u,%i,%s\n", cputime, diff, audiorate, enablec);
+		lasttime = cputime;
+	}
 	if (m_Control.PSTAT)
 	{
 		const u64 Diff = CoreTiming::GetTicks() - g_LastCPUTime;

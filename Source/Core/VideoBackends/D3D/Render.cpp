@@ -714,7 +714,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
 		if (g_ActiveConfig.bDumpFrames && !frame_data.empty())
-			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
+			AVIDump::AddFrame(&frame_data[0]);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -725,7 +725,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
 		if (g_ActiveConfig.bDumpFrames && !frame_data.empty())
-			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
+			AVIDump::AddFrame(&frame_data[0]);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -872,7 +872,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				h = s_recordHeight;
 			}
 			formatBufferDump((u8*)map.pData, &frame_data[0], s_recordWidth, s_recordHeight, map.RowPitch);
-			AVIDump::AddFrame(&frame_data[0], GetTargetRectangle().GetWidth(), GetTargetRectangle().GetHeight());
+			AVIDump::AddFrame(&frame_data[0]);
 			D3D::context->Unmap(s_screenshot_texture, 0);
 		}
 		bLastFrameDumped = true;
