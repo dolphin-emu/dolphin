@@ -13,12 +13,12 @@
 class CWiiSaveCrypted
 {
 public:
-	bool static ImportWiiSave(const char* filename);
+	bool static ImportWiiSave(const std::string& filename);
 	bool static ExportWiiSave(u64 title_id);
 	void static ExportAllSaves();
 
 private:
-	CWiiSaveCrypted(const char* filename, u64 title_id = 0);
+	CWiiSaveCrypted(const std::string& filename, u64 title_id = 0);
 	~CWiiSaveCrypted();
 	void ReadHDR();
 	void ReadBKHDR();
@@ -31,7 +31,7 @@ private:
 	void make_ec_cert(u8 *cert, const u8 *sig, const char *signer, const char *name,
 		const u8 *priv, const u32 key_id);
 	bool getPaths(bool for_export = false);
-	void ScanForFiles(std::string save_directory, std::vector<std::string>& file_list,
+	void ScanForFiles(const std::string& save_directory, std::vector<std::string>& file_list,
 		u32 *num_files, u32 *size_files);
 
 	static const u8 s_sd_key[16];
