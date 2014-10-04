@@ -68,9 +68,12 @@ namespace AudioCommon
 			{
 				if (SConfig::GetInstance().m_DumpAudio)
 				{
-					std::string audio_file_name = File::GetUserPath(D_DUMPAUDIO_IDX) + "audiodump.wav";
-					File::CreateFullPath(audio_file_name);
-					mixer->StartLogAudio(audio_file_name);
+					std::string audio_file_name_dtk = File::GetUserPath(D_DUMPAUDIO_IDX) + "dtkdump.wav";
+					std::string audio_file_name_dsp = File::GetUserPath(D_DUMPAUDIO_IDX) + "dspdump.wav";
+					File::CreateFullPath(audio_file_name_dtk);
+					File::CreateFullPath(audio_file_name_dsp);
+					mixer->StartLogDTKAudio(audio_file_name_dtk);
+					mixer->StartLogDSPAudio(audio_file_name_dsp);
 				}
 
 				return g_sound_stream;
@@ -93,8 +96,11 @@ namespace AudioCommon
 		{
 			g_sound_stream->Stop();
 			if (SConfig::GetInstance().m_DumpAudio)
-				g_sound_stream->GetMixer()->StopLogAudio();
+			{
+				g_sound_stream->GetMixer()->StopLogDTKAudio();
+				g_sound_stream->GetMixer()->StopLogDSPAudio();
 				//g_sound_stream->StopLogAudio();
+			}
 			delete g_sound_stream;
 			g_sound_stream = nullptr;
 		}
