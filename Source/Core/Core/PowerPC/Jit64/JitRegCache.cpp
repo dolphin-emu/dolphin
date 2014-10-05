@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <vector>
 
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
@@ -98,14 +99,13 @@ void RegCache::UnlockAllX()
 
 X64Reg RegCache::GetFreeXReg()
 {
-	size_t aCount;
-	const int* aOrder = GetAllocationOrder(aCount);
-	for (size_t i = 0; i < aCount; i++)
+	std::vector<X64Reg> alloc_order = GetAllocationOrder();
+
+	for (const X64Reg& xreg : alloc_order)
 	{
-		X64Reg xr = (X64Reg)aOrder[i];
-		if (!xregs[xr].locked && xregs[xr].free)
+		if (!xregs[xreg].locked && xregs[xreg].free)
 		{
-			return (X64Reg)xr;
+			return xreg;
 		}
 	}
 	//Okay, not found :( Force grab one
@@ -114,16 +114,17 @@ X64Reg RegCache::GetFreeXReg()
 	u32 last_used = 0xFFFFFFFF;
 	X64Reg last_used_xr = INVALID_REG;
 	size_t last_used_preg = 0;
-	for (size_t i = 0; i < aCount; i++)
+
+	for (const X64Reg& xreg : alloc_order)
 	{
-		X64Reg xr = (X64Reg)aOrder[i];
-		if (xregs[xr].locked)
+		if (xregs[xreg].locked)
 			continue;
-		size_t preg = xregs[xr].ppcReg;
+
+		size_t preg = xregs[xreg].ppcReg;
 		if (!regs[preg].locked && regs[preg].last_used_quantum < last_used)
 		{
 			last_used = regs[preg].last_used_quantum;
-			last_used_xr = xr;
+			last_used_xr = xreg;
 			last_used_preg = preg;
 		}
 	}
@@ -194,9 +195,9 @@ void GPRRegCache::SetImmediate32(size_t preg, u32 immValue)
 	regs[preg].location = Imm32(immValue);
 }
 
-const int* GPRRegCache::GetAllocationOrder(size_t& count)
+std::vector<X64Reg> GPRRegCache::GetAllocationOrder()
 {
-	static const int allocationOrder[] =
+	static std::vector<X64Reg> allocation_order =
 	{
 		// R12, when used as base register, for example in a LEA, can generate bad code! Need to look into this.
 #ifdef _WIN32
@@ -205,18 +206,18 @@ const int* GPRRegCache::GetAllocationOrder(size_t& count)
 		R12, R13, R14, RSI, RDI, R8, R9, R10, R11, RCX
 #endif
 	};
-	count = sizeof(allocationOrder) / sizeof(const int);
-	return allocationOrder;
+
+	return allocation_order;
 }
 
-const int* FPURegCache::GetAllocationOrder(size_t& count)
+std::vector<X64Reg> FPURegCache::GetAllocationOrder()
 {
-	static const int allocationOrder[] =
+	static std::vector<X64Reg> allocation_order =
 	{
 		XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5
 	};
-	count = sizeof(allocationOrder) / sizeof(int);
-	return allocationOrder;
+
+	return allocation_order;
 }
 
 OpArg GPRRegCache::GetDefaultLocation(size_t reg) const
