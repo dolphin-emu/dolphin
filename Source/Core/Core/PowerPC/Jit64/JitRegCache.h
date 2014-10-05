@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cinttypes>
+#include <vector>
 
 #include "Common/x64Emitter.h"
 
@@ -42,7 +43,7 @@ protected:
 	std::array<PPCCachedReg, 32> regs;
 	std::array<X64CachedReg, NUMXREGS> xregs;
 
-	virtual const int *GetAllocationOrder(size_t& count) = 0;
+	virtual std::vector<Gen::X64Reg> GetAllocationOrder() = 0;
 
 	Gen::XEmitter *emit;
 
@@ -131,7 +132,7 @@ public:
 	void StoreRegister(size_t preg, Gen::OpArg newLoc) override;
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
-	const int* GetAllocationOrder(size_t& count) override;
+	std::vector<Gen::X64Reg> GetAllocationOrder() override;
 	void SetImmediate32(size_t preg, u32 immValue);
 };
 
@@ -141,6 +142,6 @@ class FPURegCache : public RegCache
 public:
 	void StoreRegister(size_t preg, Gen::OpArg newLoc) override;
 	void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
-	const int* GetAllocationOrder(size_t& count) override;
+	std::vector<Gen::X64Reg> GetAllocationOrder() override;
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
 };
