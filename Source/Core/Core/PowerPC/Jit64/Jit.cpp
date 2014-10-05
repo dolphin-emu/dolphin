@@ -614,7 +614,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.next_inst_bp = false;
 			if (Profiler::g_ProfileBlocks)
 			{
-				// CAUTION!!! push on stack regs you use, do your stuff, then pop
 				PROFILER_VPUSH;
 				// get end tic
 				PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);
