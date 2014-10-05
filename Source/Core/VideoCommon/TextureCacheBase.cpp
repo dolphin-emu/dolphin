@@ -267,7 +267,7 @@ bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsign
 	return true;
 }
 
-PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height)
+PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int* widthp, unsigned int* heightp)
 {
 	std::string texPathTemp;
 	unsigned int newWidth = 0;
@@ -293,6 +293,7 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 
 	if (ret != PC_TEX_FMT_NONE)
 	{
+		unsigned int width = *widthp, height = *heightp;
 		if (level > 0 && (newWidth != width || newHeight != height))
 			ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.", newWidth, newHeight, texPathTemp.c_str(), width, height);
 		if (newWidth * height != newHeight * width)
@@ -300,8 +301,8 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 		if (newWidth % width || newHeight % height)
 			WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. Please use an integer upscaling factor based on the native size %dx%d.", newWidth, newHeight, texPathTemp.c_str(), width, height);
 
-		width = newWidth;
-		height = newHeight;
+		*widthp = newWidth;
+		*heightp = newHeight;
 	}
 	return ret;
 }
@@ -466,8 +467,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 
 	if (g_ActiveConfig.bHiresTextures)
 	{
-		// This function may modify width/height.
-		pcfmt = LoadCustomTexture(tex_hash, texformat, 0, width, height);
+		pcfmt = LoadCustomTexture(tex_hash, texformat, 0, &width, &height);
 		if (pcfmt != PC_TEX_FMT_NONE)
 		{
 			if (expandedWidth != width || expandedHeight != height)
@@ -584,7 +584,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 				unsigned int mip_width = CalculateLevelSize(width, level);
 				unsigned int mip_height = CalculateLevelSize(height, level);
 
-				LoadCustomTexture(tex_hash, texformat, level, mip_width, mip_height);
+				LoadCustomTexture(tex_hash, texformat, level, &mip_width, &mip_height);
 				entry->Load(mip_width, mip_height, mip_width, level);
 			}
 		}

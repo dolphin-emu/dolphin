@@ -116,7 +116,7 @@ protected:
 
 private:
 	static bool CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels);
-	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height);
+	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int* width, unsigned int* height);
 	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
 
 	static TCacheEntryBase* AllocateRenderTarget(unsigned int width, unsigned int height);

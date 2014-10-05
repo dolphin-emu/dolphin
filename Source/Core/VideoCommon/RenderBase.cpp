@@ -151,17 +151,17 @@ int Renderer::EFBToScaledY(int y)
 	};
 }
 
-void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
+void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY)
 {
 	if (g_ActiveConfig.iEFBScale == SCALE_AUTO || g_ActiveConfig.iEFBScale == SCALE_AUTO_INTEGRAL)
 	{
-		scaledX = x;
-		scaledY = y;
+		*scaledX = x;
+		*scaledY = y;
 	}
 	else
 	{
-		scaledX = x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
-		scaledY = y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+		*scaledX = x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
+		*scaledY = y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
 	}
 }
 
@@ -228,7 +228,7 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 			break;
 	}
 	if (s_LastEFBScale > SCALE_AUTO_INTEGRAL)
-		CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, newEFBWidth, newEFBHeight);
+		CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, &newEFBWidth, &newEFBHeight);
 
 	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
 	{
@@ -477,7 +477,7 @@ void Renderer::SetWindowSize(int width, int height)
 		height = 1;
 
 	// Scale the window size by the EFB scale.
-	CalculateTargetScale(width, height, width, height);
+	CalculateTargetScale(width, height, &width, &height);
 
 	Host_RequestRenderWindowSize(width, height);
 }

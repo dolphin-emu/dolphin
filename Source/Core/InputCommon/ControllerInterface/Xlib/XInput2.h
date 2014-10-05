@@ -54,11 +54,11 @@ private:
 	{
 	public:
 		std::string GetName() const override { return name; }
-		Button(unsigned int index, unsigned int& buttons);
+		Button(unsigned int index, unsigned int* buttons);
 		ControlState GetState() const override;
 
 	private:
-		const unsigned int& m_buttons;
+		const unsigned int* m_buttons;
 		const unsigned int m_index;
 		std::string name;
 	};
@@ -68,11 +68,11 @@ private:
 	public:
 		std::string GetName() const override { return name; }
 		bool IsDetectable() override { return false; }
-		Cursor(u8 index, bool positive, const float& cursor);
+		Cursor(u8 index, bool positive, const float* cursor);
 		ControlState GetState() const override;
 
 	private:
-		const float& m_cursor;
+		const float* m_cursor;
 		const u8     m_index;
 		const bool   m_positive;
 		std::string  name;
@@ -83,11 +83,11 @@ private:
 	public:
 		std::string GetName() const override { return name; }
 		bool IsDetectable() override { return false; }
-		Axis(u8 index, bool positive, const float& axis);
+		Axis(u8 index, bool positive, const float* axis);
 		ControlState GetState() const override;
 
 	private:
-		const float& m_axis;
+		const float* m_axis;
 		const u8     m_index;
 		const bool   m_positive;
 		std::string  name;
