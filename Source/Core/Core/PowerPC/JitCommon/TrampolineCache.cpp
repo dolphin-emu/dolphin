@@ -46,7 +46,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 	ABI_PushRegistersAndAdjustStack(registersInUse, 8);
 
 	if (addrReg != ABI_PARAM1)
-		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
+		MOV(32, R(ABI_PARAM1), R(addrReg));
 
 	if (info.displacement)
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));

@@ -39,7 +39,7 @@ const u8 CWiiSaveCrypted::s_md5_blanker[16] = {
 };
 const u32 CWiiSaveCrypted::s_ng_id = 0x0403AC68;
 
-bool CWiiSaveCrypted::ImportWiiSave(const char* filename)
+bool CWiiSaveCrypted::ImportWiiSave(const std::string& filename)
 {
 	CWiiSaveCrypted save_file(filename);
 	return save_file.m_valid;
@@ -102,11 +102,10 @@ void CWiiSaveCrypted::ExportAllSaves()
 		(File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
 
-CWiiSaveCrypted::CWiiSaveCrypted(const char* filename, u64 title_id)
-	: m_title_id(title_id)
+CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
+	: m_encrypted_save_path(filename), m_title_id(title_id)
 {
 	Common::ReadReplacements(replacements);
-	m_encrypted_save_path = std::string(filename);
 	memcpy(m_sd_iv, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
 
 	if (!title_id) // Import
@@ -612,7 +611,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
 	return true;
 }
 
-void CWiiSaveCrypted::ScanForFiles(std::string save_directory, std::vector<std::string>& file_list,
+void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory, std::vector<std::string>& file_list,
 	u32 *num_files, u32 *size_files)
 {
 	std::vector<std::string> directories;
@@ -632,13 +631,13 @@ void CWiiSaveCrypted::ScanForFiles(std::string save_directory, std::vector<std::
 		File::ScanDirectoryTree(directories[i], fst_tmp);
 		for (const File::FSTEntry& elem : fst_tmp.children)
 		{
-			if (strncmp(elem.virtualName.c_str(), "banner.bin", 10) != 0)
+			if (elem.virtualName != "banner.bin")
 			{
 				num++;
 				size += FILE_HDR_SZ;
 				if (elem.isDirectory)
 				{
-					if ((elem.virtualName == "nocopy") || elem.virtualName == "nomove")
+					if (elem.virtualName == "nocopy" || elem.virtualName == "nomove")
 					{
 						NOTICE_LOG(CONSOLE,
 							"This save will likely require homebrew tools to copy to a real Wii.");

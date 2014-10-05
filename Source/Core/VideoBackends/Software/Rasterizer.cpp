@@ -210,7 +210,7 @@ static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, fl
 	slope->f0 = f1;
 }
 
-static inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
+static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoord)
 {
 	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
 	u8 subTexmap = texmap & 3;
@@ -240,20 +240,21 @@ static inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord
 	}
 
 	// get LOD in s28.4
-	lod = FixedLog2(std::max(sDelta, tDelta));
+	s32 lod = FixedLog2(std::max(sDelta, tDelta));
 
 	// bias is s2.5
 	int bias = tm0.lod_bias;
 	bias >>= 1;
 	lod += bias;
 
-	linear = ((lod > 0 && (tm0.min_filter & 4)) || (lod <= 0 && tm0.mag_filter));
+	*linear = ((lod > 0 && (tm0.min_filter & 4)) || (lod <= 0 && tm0.mag_filter));
 
 	// order of checks matters
 	// should be:
 	// if lod > max then max
 	// else if lod < min then min
 	lod = CLAMP(lod, (s32)tm1.min_lod, (s32)tm1.max_lod);
+	*lodp = lod;
 }
 
 static void BuildBlock(s32 blockX, s32 blockY)
@@ -295,7 +296,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 		u32 texcoord = indref & 3;
 		indref >>= 3;
 
-		CalculateLOD(rasterBlock.IndirectLod[i], rasterBlock.IndirectLinear[i], texmap, texcoord);
+		CalculateLOD(&rasterBlock.IndirectLod[i], &rasterBlock.IndirectLinear[i], texmap, texcoord);
 	}
 
 	for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
@@ -307,7 +308,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 			u32 texmap = order.getTexMap(stageOdd);
 			u32 texcoord = order.getTexCoord(stageOdd);
 
-			CalculateLOD(rasterBlock.TextureLod[i], rasterBlock.TextureLinear[i], texmap, texcoord);
+			CalculateLOD(&rasterBlock.TextureLod[i], &rasterBlock.TextureLinear[i], texmap, texcoord);
 		}
 	}
 }
