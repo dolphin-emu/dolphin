@@ -98,6 +98,8 @@ protected:
 		JitBlock *curBlock;
 
 		std::unordered_set<u32> fifoWriteAddresses;
+		std::unordered_map<u32, u32> registersInUseAtLoc;
+		std::unordered_map<u8 *, u32> pcAtLoc;
 	};
 
 	PPCAnalyst::CodeBlock code_block;

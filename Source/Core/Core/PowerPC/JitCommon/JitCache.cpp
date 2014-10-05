@@ -359,14 +359,19 @@ using namespace Gen;
 				block_map.erase(it1, it2);
 			}
 
-			// If the code was actually modified, we need to clear the relevant entries from the
-			// FIFO write address cache, so we don't end up with FIFO checks in places they shouldn't
-			// be (this can clobber flags, and thus break any optimization that relies on flags
-			// being in the right place between instructions).
 			if (!forced)
 			{
 				for (u32 i = address; i < address + length; i += 4)
+				{
+					// If the code was actually modified, we need to clear the relevant entries from the
+					// FIFO write address cache, so we don't end up with FIFO checks in places they shouldn't
+					// be (this can clobber flags, and thus break any optimization that relies on flags
+					// being in the right place between instructions).
 					jit->js.fifoWriteAddresses.erase(i);
+					// We use these entries to determine whether there's a fastmem fault at this location,
+					// so clear it since the block is being replaced.
+					jit->js.registersInUseAtLoc.erase(i);
+				}
 			}
 		}
 	}
