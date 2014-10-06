@@ -13,7 +13,6 @@ public:
 	const u8 *fifoDirectWrite8;
 	const u8 *fifoDirectWrite16;
 	const u8 *fifoDirectWrite32;
-	const u8 *fifoDirectWriteFloat;
 
 	const u8 *enterCode;
 

@@ -186,8 +186,6 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	GenFifoWrite(16);
 	fifoDirectWrite32 = AlignCode4();
 	GenFifoWrite(32);
-	fifoDirectWriteFloat = AlignCode4();
-	GenFifoFloatWrite();
 	frsqrte = AlignCode4();
 	GenFrsqrte();
 	fres = AlignCode4();
