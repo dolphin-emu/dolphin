@@ -126,37 +126,37 @@ static const struct
 	const int   DefaultKey;
 	const int   DefaultModifier;
 } g_VRData[] = {
-		{ "VRPositionReset",            0, 0 /* wxMOD_NONE */ },
-		{ "VRCameraForward",            0, 0 /* wxMOD_NONE */ },
-		{ "VRCameraBackward",           0, 0 /* wxMOD_NONE */ },
-		{ "VRCameraLeft",               0, 0 /* wxMOD_NONE */ },
-		{ "VRCameraRight",              0, 0 /* wxMOD_NONE */ },
-		{ "VRCameraUp",                 0, 0 /* wxMOD_NONE */ },
-		{ "VRCameraDown",               0, 0 /* wxMOD_NONE */ },
-		{ "VRPermanentCameraForward",   0, 0 /* wxMOD_NONE */ },
-		{ "VRPermanentCameraBackward",  0, 0 /* wxMOD_NONE */ },
-		{ "VRLargerScale",              0, 0 /* wxMOD_NONE */ },
-		{ "VRSmallerScale",	            0, 0 /* wxMOD_NONE */ },
-		{ "VRCameraTiltUp",             0, 0 /* wxMOD_NONE */ },
-		{ "VRCameraTiltDown",           0, 0 /* wxMOD_NONE */ },
+		{ "FreeLookReset",              82, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookForward",            87, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookBackward",           83, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookLeft",               65, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookRight",              68, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookUp",                 69, 4 /* wxMOD_SHIFT */ },
+		{ "FreeLookDown",               81, 4 /* wxMOD_SHIFT */ },
+		{ "VRPermanentCameraForward",   80, 4 /* wxMOD_SHIFT */ },
+		{ "VRPermanentCameraBackward",  59, 4 /* wxMOD_SHIFT */ },
+		{ "VRLargerScale",              61, 4 /* wxMOD_SHIFT */ },
+		{ "VRSmallerScale",	            45, 4 /* wxMOD_SHIFT */ },
+		{ "VRCameraTiltUp",             79, 4 /* wxMOD_SHIFT */ },
+		{ "VRCameraTiltDown",           76, 4 /* wxMOD_SHIFT */ },
 
-		{ "VRHUDForward",               0, 0 /* wxMOD_NONE */ },
-		{ "VRHUDBackward",              0, 0 /* wxMOD_NONE */ },
-		{ "VRHUDThicker",               0, 0 /* wxMOD_NONE */ },
-		{ "VRHUDThinner",               0, 0 /* wxMOD_NONE */ },
+		{ "VRHUDForward",               47, 4 /* wxMOD_SHIFT */ },
+		{ "VRHUDBackward",              46, 4 /* wxMOD_SHIFT */ },
+		{ "VRHUDThicker",               93, 4 /* wxMOD_SHIFT */ },
+		{ "VRHUDThinner",               91, 4 /* wxMOD_SHIFT */ },
 
-		{ "VR2DScreenLarger",           0, 0 /* wxMOD_NONE */ },
-		{ "VR2DScreenSmaller",          0, 0 /* wxMOD_NONE */ },
-		{ "VR2DCameraForward",          0, 0 /* wxMOD_NONE */ },
-		{ "VR2DCameraBackward",         0, 0 /* wxMOD_NONE */ },
+		{ "VR2DScreenLarger",           44, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DScreenSmaller",          77, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraForward",          74, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraBackward",         85, 4 /* wxMOD_SHIFT */ },
 		//{ "VR2DScreenLeft",             0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
 		//{ "VR2DScreenRight",            0, 0 /* wxMOD_NONE */ }, //doesn't_exist_right_now?
-		{ "VR2DCameraUp",               0, 0 /* wxMOD_NONE */ },
-		{ "VR2DCameraDown",             0, 0 /* wxMOD_NONE */ },
-		{ "VR2DCameraTiltUp",           0, 0 /* wxMOD_NONE */ },
-		{ "VR2DCameraTiltDown",         0, 0 /* wxMOD_NONE */ },
-		{ "VR2DScreenThicker",          0, 0 /* wxMOD_NONE */ },
-		{ "VR2DScreenThinner",          0, 0 /* wxMOD_NONE */ },
+		{ "VR2DCameraUp",               72, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraDown",             89, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraTiltUp",           73, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DCameraTiltDown",         75, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DScreenThicker",          84, 4 /* wxMOD_SHIFT */ },
+		{ "VR2DScreenThinner",          71, 4 /* wxMOD_SHIFT */ },
 
 };
 
@@ -276,7 +276,7 @@ void SConfig::SaveHotkeySettings(IniFile& ini)
 
 void SConfig::SaveVRSettings(IniFile& ini)
 {
-	IniFile::Section* vrsettings = ini.GetOrCreateSection("VR");
+	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
 
 	for (int i = 0; i < NUM_VR_OPTIONS; i++)
 	{
@@ -505,7 +505,7 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 
 void SConfig::LoadVRSettings(IniFile& ini)
 {
-	IniFile::Section* vrsettings = ini.GetOrCreateSection("VR");
+	IniFile::Section* vrsettings = ini.GetOrCreateSection("Hotkeys");
 
 	for (int i = 0; i < NUM_VR_OPTIONS; i++)
 	{

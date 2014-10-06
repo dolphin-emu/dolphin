@@ -1143,7 +1143,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			ConnectWiimote(WiimoteId, connect);
 		}
 
-		float debugSpeed = 0.1f; //How big the VR Camera Movement adjustments are.
+		static float debugSpeed = 0.1f; //How big the VR Camera Movement adjustments are.
 
 		if (IsVRSettingsKey(event, VR_POSITION_RESET)) {
 			VertexShaderManager::ResetView();
@@ -1304,7 +1304,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
 		{
 			// everything is in metres, except UnitsPerMetre which is in game units
-			static float debugSpeed = 0.1f; 
 			switch (event.GetKeyCode())
 			{
 			case '9':
