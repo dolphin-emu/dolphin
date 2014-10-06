@@ -435,7 +435,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	// Audio DMA blocks remaining is invalid to write to, and requires logic on
 	// the read side.
 	mmio->Register(base | AUDIO_DMA_BLOCKS_LEFT,
-		MMIO::DirectRead<u16>(&g_audioDMA.remaining_blocks_count),
+		MMIO::ComplexRead<u16>([](u32) {
+			// remaining_blocks_count is zero-based.  DreamMix World Fighters will hang if it never reaches zero.
+			return (g_audioDMA.remaining_blocks_count > 0 ? g_audioDMA.remaining_blocks_count - 1 : 0);
+		}),
 		MMIO::InvalidWrite<u16>()
 	);
 
@@ -475,7 +478,6 @@ static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate)
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
 {
 	CoreTiming::ScheduleEvent_Threadsafe_Immediate(et_GenerateDSPInterrupt, type);
-	CoreTiming::ForceExceptionCheck(100);
 }
 
 // called whenever SystemTimers thinks the dsp deserves a few more cycles

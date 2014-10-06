@@ -52,6 +52,8 @@
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/JitWindow.h"
 
+#include "UICommon/UICommon.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VR.h"
 
@@ -83,15 +85,6 @@
 #endif
 
 class wxFrame;
-
-// Nvidia drivers >= v302 will check if the application exports a global
-// variable named NvOptimusEnablement to know if it should run the app in high
-// performance graphics mode or using the IGP.
-#ifdef WIN32
-extern "C" {
-	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
-}
-#endif
 
 // ------------
 //  Main window
@@ -232,14 +225,20 @@ bool DolphinApp::OnInit()
 
 	// Gets the command line parameters
 	wxCmdLineParser parser(cmdLineDesc, argc, argv);
-	if (parser.Parse() != 0)
+	if (argc == 2 && File::Exists(argv[1].ToUTF8().data()))
+	{
+		LoadFile = true;
+		FileToLoad = argv[1];
+	}
+	else if (parser.Parse() != 0)
 	{
 		return false;
 	}
 
 	UseDebugger = parser.Found("debugger");
 	UseLogger = parser.Found("logger");
-	LoadFile = parser.Found("exec", &FileToLoad);
+	if (!LoadFile)
+		LoadFile = parser.Found("exec", &FileToLoad);
 	BatchMode = parser.Found("batch");
 	selectVideoBackend = parser.Found("video_backend", &videoBackendName);
 	selectAudioEmulation = parser.Found("audio_emulation", &audioEmulationName);
@@ -287,33 +286,8 @@ bool DolphinApp::OnInit()
 	}
 #endif
 
-	// Copy initial Wii NAND data from Sys to User.
-	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR DIR_SEP,
-	              File::GetUserPath(D_WIIUSER_IDX));
-
-	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
-	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
-	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_GAMESETTINGS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
-	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
-
-	LogManager::Init();
-	SConfig::Init();
-	VideoBackend::PopulateList();
-	InitVR();
-	WiimoteReal::LoadSettings();
+	UICommon::CreateDirectories();
+	UICommon::Init();
 
 	if (selectVideoBackend && videoBackendName != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
@@ -331,8 +305,6 @@ bool DolphinApp::OnInit()
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);
-
-	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
 
 	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX;
 	int y = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY;
@@ -476,11 +448,7 @@ void DolphinApp::OnEndSession(wxCloseEvent& event)
 int DolphinApp::OnExit()
 {
 	Core::Shutdown();
-	WiimoteReal::Shutdown();
-	VideoBackend::ClearList();
-	SConfig::Shutdown();
-	LogManager::Shutdown();
-	ShutdownVR();
+	UICommon::Shutdown();
 
 	delete m_locale;
 

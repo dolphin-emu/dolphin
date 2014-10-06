@@ -231,6 +231,7 @@ EVT_MENU(IDM_RECORDREADONLY, CFrame::OnRecordReadOnly)
 EVT_MENU(IDM_TASINPUT, CFrame::OnTASInput)
 EVT_MENU(IDM_TOGGLE_PAUSEMOVIE, CFrame::OnTogglePauseMovie)
 EVT_MENU(IDM_SHOWLAG, CFrame::OnShowLag)
+EVT_MENU(IDM_SHOWFRAMECOUNT, CFrame::OnShowFrameCount)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
@@ -1142,7 +1143,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			ConnectWiimote(WiimoteId, connect);
 		}
 
-		float debugSpeed = 0.1f; //How big the VR Camera Movement adjustments are.
+		static float debugSpeed = 0.1f; //How big the VR Camera Movement adjustments are.
 
 		if (IsVRSettingsKey(event, VR_POSITION_RESET)) {
 			VertexShaderManager::ResetView();
@@ -1174,11 +1175,13 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else if (g_has_rift && IsVRSettingsKey(event, VR_LARGER_SCALE)) {
 			// Make everything 10% bigger (and further)
 			g_Config.fUnitsPerMetre /= 1.10f;
+			VertexShaderManager::ScaleView(1.10f);
 			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_SMALLER_SCALE)) {
 			// Make everything 10% smaller (and closer)
 			g_Config.fUnitsPerMetre *= 1.10f;
+			VertexShaderManager::ScaleView(1.0f / 1.10f);
 			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_PERMANENT_CAMERA_FORWARD)) {
@@ -1303,7 +1306,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
 		{
 			// everything is in metres, except UnitsPerMetre which is in game units
-			static float debugSpeed = 0.1f; 
 			switch (event.GetKeyCode())
 			{
 			case '9':

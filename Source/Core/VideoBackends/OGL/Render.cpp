@@ -759,8 +759,23 @@ void Renderer::DrawDebugInfo()
 	// Draw various messages on the screen, like FPS, statistics, etc.
 	std::string debug_info;
 
-	if (g_ActiveConfig.bShowFPS)
-		debug_info += StringFromFormat("FPS: %d\n", m_fps_counter.m_fps);
+	if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
+	{
+		std::string fps = "";
+		if (g_ActiveConfig.bShowFPS)
+			debug_info += StringFromFormat("FPS: %d", m_fps_counter.m_fps);
+
+		if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
+			debug_info += " - ";
+		if (SConfig::GetInstance().m_ShowFrameCount)
+		{
+			debug_info += StringFromFormat("Frame: %lu", Movie::g_currentFrame);
+			if (Movie::IsPlayingInput())
+				debug_info += StringFromFormat(" / %lu", Movie::g_totalFrames);
+		}
+
+		debug_info += "\n";
+	}
 
 	if (SConfig::GetInstance().m_ShowLag)
 		debug_info += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
@@ -1667,7 +1682,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 
 	u32 xfbCount = 0;
-	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, xfbCount);
+	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
 	if (g_ActiveConfig.VirtualXFBEnabled() && (!xfbSourceList || xfbCount == 0))
 	{
 		DumpFrame(frame_data, w, h);
@@ -2371,6 +2386,13 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 
 	return success;
 
+}
+
+int Renderer::GetMaxTextureSize()
+{
+	int max_size;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_size);
+	return max_size;
 }
 
 }

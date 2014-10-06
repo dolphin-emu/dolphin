@@ -424,7 +424,7 @@ void Fifo_UpdateWantDeterminism(bool want)
 	// We are paused (or not running at all yet) and have m_csHWVidOccupied, so
 	// it should be safe to change this.
 	const SCoreStartupParameter& param = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	bool gpu_thread;
+	bool gpu_thread = false;
 	switch (param.m_GPUDeterminismMode)
 	{
 		case GPU_DETERMINISM_AUTO:

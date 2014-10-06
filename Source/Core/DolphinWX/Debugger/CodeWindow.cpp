@@ -288,7 +288,7 @@ void CCodeWindow::SingleStep()
 {
 	if (CCPU::IsStepping())
 	{
-		JitInterface::InvalidateICache(PC, 4);
+		JitInterface::InvalidateICache(PC, 4, true);
 		CCPU::StepOpcode(&sync_event);
 		wxThread::Sleep(20);
 		// need a short wait here

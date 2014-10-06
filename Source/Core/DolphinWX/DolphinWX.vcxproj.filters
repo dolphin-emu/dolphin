@@ -295,6 +295,8 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="$(CoreDir)..\..\Installer\Dolphin.ico" />
+    <Image Include="$(CoreDir)..\..\Installer\Dolphin.ico">
+      <Filter>Resources</Filter>
+    </Image>
   </ItemGroup>
 </Project>

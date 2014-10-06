@@ -22,6 +22,8 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "UICommon/UICommon.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 
 static bool rendererHasFocus = true;
@@ -347,12 +349,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	LogManager::Init();
-	SConfig::Init();
-	VideoBackend::PopulateList();
-	VideoBackend::ActivateBackend(SConfig::GetInstance().
-		m_LocalCoreStartupParameter.m_strVideoBackend);
-	WiimoteReal::LoadSettings();
+	UICommon::Init();
 
 	platform->Init();
 
@@ -372,10 +369,7 @@ int main(int argc, char* argv[])
 
 	platform->Shutdown();
 	Core::Shutdown();
-	WiimoteReal::Shutdown();
-	VideoBackend::ClearList();
-	SConfig::Shutdown();
-	LogManager::Shutdown();
+	UICommon::Shutdown();
 
 	delete platform;
 

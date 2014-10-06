@@ -66,7 +66,7 @@ void BreakPoints::Add(const TBreakPoint& bp)
 	{
 		m_BreakPoints.push_back(bp);
 		if (jit)
-			jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
+			jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
 	}
 }
 
@@ -82,7 +82,7 @@ void BreakPoints::Add(u32 em_address, bool temp)
 		m_BreakPoints.push_back(pt);
 
 		if (jit)
-			jit->GetBlockCache()->InvalidateICache(em_address, 4);
+			jit->GetBlockCache()->InvalidateICache(em_address, 4, true);
 	}
 }
 
@@ -94,7 +94,7 @@ void BreakPoints::Remove(u32 em_address)
 		{
 			m_BreakPoints.erase(i);
 			if (jit)
-				jit->GetBlockCache()->InvalidateICache(em_address, 4);
+				jit->GetBlockCache()->InvalidateICache(em_address, 4, true);
 			return;
 		}
 	}
@@ -106,7 +106,7 @@ void BreakPoints::Clear()
 	{
 		for (const TBreakPoint& bp : m_BreakPoints)
 		{
-			jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
+			jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
 		}
 	}
 

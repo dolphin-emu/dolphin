@@ -10,6 +10,7 @@
 
 struct GCPadStatus;
 class PointerWrap;
+struct wiimote_key;
 
 namespace WiimoteEmu
 {
@@ -162,7 +163,7 @@ bool PlayInput(const std::string& filename);
 void LoadInput(const std::string& filename);
 void ReadHeader();
 void PlayController(GCPadStatus* PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf);
+bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const struct wiimote_key key);
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap &p);
@@ -170,7 +171,7 @@ void CheckMD5();
 void GetMD5();
 void Shutdown();
 void CheckPadStatus(GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf);
+void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext, const struct wiimote_key key);
 
 std::string GetInputDisplay();
 

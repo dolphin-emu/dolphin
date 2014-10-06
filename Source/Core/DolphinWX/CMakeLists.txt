@@ -3,6 +3,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 set(LIBS	core
+			uicommon
 			${LZO}
 			${GTK2_LIBRARIES})
 
