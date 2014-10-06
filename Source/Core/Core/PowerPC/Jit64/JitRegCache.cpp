@@ -174,12 +174,15 @@ int RegCache::SanityCheck() const
 
 void RegCache::DiscardRegContentsIfCached(size_t preg)
 {
-	if (IsBound(preg))
+	if (regs[preg].away)
 	{
-		X64Reg xr = regs[preg].location.GetSimpleReg();
-		xregs[xr].free = true;
-		xregs[xr].dirty = false;
-		xregs[xr].ppcReg = INVALID_REG;
+		if (regs[preg].location.IsSimpleReg())
+		{
+			X64Reg xr = regs[preg].location.GetSimpleReg();
+			xregs[xr].free = true;
+			xregs[xr].dirty = false;
+			xregs[xr].ppcReg = INVALID_REG;
+		}
 		regs[preg].away = false;
 		regs[preg].location = GetDefaultLocation(preg);
 		regs[preg].last_used_quantum = 0;
@@ -365,4 +368,15 @@ void RegCache::Flush(FlushMode mode)
 	}
 
 	cur_use_quantum = 0;
+}
+
+int RegCache::NumFreeRegisters()
+{
+	int count = 0;
+	size_t aCount;
+	const int* aOrder = GetAllocationOrder(aCount);
+	for (size_t i = 0; i < aCount; i++)
+		if (!xregs[aOrder[i]].locked && xregs[aOrder[i]].free)
+			count++;
+	return count;
 }

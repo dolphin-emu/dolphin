@@ -218,7 +218,11 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 		}
 		else if (a == d)
 		{
-			gpr.BindToRegister(d, true);
+			// We need the value in a register in this case.
+			if (Rc)
+				gpr.BindToRegister(d, true);
+			else
+				gpr.KillImmediate(d, true, true);
 			(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
 		}
 		else
@@ -252,6 +256,16 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 	gpr.UnlockAll();
 }
 
+// Optimized MOV: store directly to memory if we're not going to use this register again.
+void Jit64::OptimizedMOV(int d, OpArg src, bool Rc)
+{
+	if (src.IsSimpleReg() && !(js.op->gprInUse & (1 << d)) && !Rc)
+		gpr.DiscardRegContentsIfCached(d);
+	else
+		gpr.BindToRegister(d, false, true);
+	MOV(32, gpr.R(d), src);
+}
+
 void Jit64::reg_imm(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -268,8 +282,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 		else if (inst.SIMM_16 == 0 && d != a && a != 0)
 		{
 			gpr.Lock(a, d);
-			gpr.BindToRegister(d, false, true);
-			MOV(32, gpr.R(d), gpr.R(a));
+			OptimizedMOV(d, gpr.R(a), false);
 			gpr.UnlockAll();
 		}
 		else
@@ -596,8 +609,7 @@ void Jit64::boolX(UGeckoInstruction inst)
 			if (a != s)
 			{
 				gpr.Lock(a,s);
-				gpr.BindToRegister(a, false, true);
-				MOV(32, gpr.R(a), gpr.R(s));
+				OptimizedMOV(a, gpr.R(s), inst.Rc);
 			}
 			else if (inst.Rc)
 			{
@@ -1019,7 +1031,7 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
 			IMUL(32, gpr.R(b));
 		else
 			MUL(32, gpr.R(b));
-		MOV(32, gpr.R(d), R(EDX));
+		OptimizedMOV(d, R(EDX), inst.Rc);
 	}
 	if (inst.Rc)
 		ComputeRC(gpr.R(d));
@@ -1125,20 +1137,15 @@ void Jit64::divwux(UGeckoInstruction inst)
 		gpr.KillImmediate(b, true, false);
 		CMP(32, gpr.R(b), Imm32(0));
 		FixupBranch not_div_by_zero = J_CC(CC_NZ);
-		MOV(32, gpr.R(d), R(EDX));
+		OptimizedMOV(d, R(EDX), inst.Rc);
 		if (inst.OE)
-		{
 			GenerateConstantOverflow(true);
-		}
-		//MOV(32, R(RAX), gpr.R(d));
 		FixupBranch end = J();
 		SetJumpTarget(not_div_by_zero);
 		DIV(32, gpr.R(b));
-		MOV(32, gpr.R(d), R(EAX));
+		OptimizedMOV(d, R(EAX), inst.Rc);
 		if (inst.OE)
-		{
 			GenerateConstantOverflow(false);
-		}
 		SetJumpTarget(end);
 	}
 	if (inst.Rc)
@@ -1182,9 +1189,7 @@ void Jit64::divwx(UGeckoInstruction inst)
 		FixupBranch not_div_by_zero = J_CC(CC_NZ);
 		MOV(32, gpr.R(d), R(EDX));
 		if (inst.OE)
-		{
 			GenerateConstantOverflow(true);
-		}
 		FixupBranch end1 = J();
 		SetJumpTarget(not_div_by_zero);
 		CMP(32, gpr.R(b), R(EDX));
@@ -1194,18 +1199,14 @@ void Jit64::divwx(UGeckoInstruction inst)
 		FixupBranch no_overflow = J_CC(CC_NO);
 		XOR(32, gpr.R(d), gpr.R(d));
 		if (inst.OE)
-		{
 			GenerateConstantOverflow(true);
-		}
 		FixupBranch end2 = J();
 		SetJumpTarget(not_div_by_neg_one);
 		IDIV(32, gpr.R(b));
-		MOV(32, gpr.R(d), R(EAX));
+		OptimizedMOV(d, R(EAX), inst.Rc);
 		SetJumpTarget(no_overflow);
 		if (inst.OE)
-		{
 			GenerateConstantOverflow(false);
-		}
 		SetJumpTarget(end1);
 		SetJumpTarget(end2);
 	}
