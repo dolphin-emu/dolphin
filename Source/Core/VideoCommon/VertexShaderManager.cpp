@@ -1345,6 +1345,13 @@ void VertexShaderManager::SetMaterialColorChanged(int index, u32 color)
 	nMaterialsChanged  |= (1 << index);
 }
 
+void VertexShaderManager::ScaleView(float scale)
+{
+	for (int i = 0; i < 3; i++)
+		s_fViewTranslationVector[i] *= scale;
+	bProjectionChanged = true;
+}
+
 void VertexShaderManager::TranslateView(float x, float y, float z)
 {
 	float result[3];

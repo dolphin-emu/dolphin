@@ -1175,11 +1175,13 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else if (g_has_rift && IsVRSettingsKey(event, VR_LARGER_SCALE)) {
 			// Make everything 10% bigger (and further)
 			g_Config.fUnitsPerMetre /= 1.10f;
+			VertexShaderManager::ScaleView(1.10f);
 			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_SMALLER_SCALE)) {
 			// Make everything 10% smaller (and closer)
 			g_Config.fUnitsPerMetre *= 1.10f;
+			VertexShaderManager::ScaleView(1.0f / 1.10f);
 			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre, 100.0f / g_Config.fUnitsPerMetre);
 		}
 		else if (g_has_rift && IsVRSettingsKey(event, VR_PERMANENT_CAMERA_FORWARD)) {
