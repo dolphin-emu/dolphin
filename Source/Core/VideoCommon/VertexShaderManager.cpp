@@ -620,6 +620,7 @@ void VertexShaderManager::SetProjectionConstants()
 	bool bFullscreenLayer = g_ActiveConfig.bHudFullscreen && xfmem.projection.type != GX_PERSPECTIVE;
 	bool bFlashing = (debug_projNum - 1) == g_ActiveConfig.iSelectedLayer;
 	bool bStuckToHead = false, bHide = false;
+	int flipped_x = 1, flipped_y = 1;
 	float fScaleHack = 1, fWidthHack = 1, fHeightHack = 1, fUpHack = 0, fRightHack = 0;
 
 	if (g_ActiveConfig.iMetroidPrime)
@@ -952,12 +953,13 @@ void VertexShaderManager::SetProjectionConstants()
 					INFO_LOG(VR, "flipped X");
 				// flip all the x axis values, except x squared (data[0])
 				//Needed for Action Girlz Racing, Backyard Baseball
-				rotation_matrix.data[1] *= -1;
-				rotation_matrix.data[2] *= -1;
-				rotation_matrix.data[3] *= -1;
-				rotation_matrix.data[4] *= -1;
-				rotation_matrix.data[8] *= -1;
-				rotation_matrix.data[12] *= -1;
+				//rotation_matrix.data[1] *= -1;
+				//rotation_matrix.data[2] *= -1;
+				//rotation_matrix.data[3] *= -1;
+				//rotation_matrix.data[4] *= -1;
+				//rotation_matrix.data[8] *= -1;
+				//rotation_matrix.data[12] *= -1;
+				flipped_x = -1;
 			}
 			if (rawProjection[2]<0)
 			{
@@ -965,12 +967,13 @@ void VertexShaderManager::SetProjectionConstants()
 					INFO_LOG(VR, "flipped Y");
 				// flip all the y axis values, except y squared (data[5])
 				// Needed for ABBA
-				rotation_matrix.data[1] *= -1;
-				rotation_matrix.data[4] *= -1;
-				rotation_matrix.data[6] *= -1;
-				rotation_matrix.data[7] *= -1;
-				rotation_matrix.data[9] *= -1;
-				rotation_matrix.data[13] *= -1;
+				//rotation_matrix.data[1] *= -1;
+				//rotation_matrix.data[4] *= -1;
+				//rotation_matrix.data[6] *= -1;
+				//rotation_matrix.data[7] *= -1;
+				//rotation_matrix.data[9] *= -1;
+				//rotation_matrix.data[13] *= -1;
+				flipped_y = -1;
 			}
 		}
 
@@ -1131,6 +1134,39 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 final_matrix_left, final_matrix_right;
 		Matrix44::Multiply(proj_left, view_matrix_left, final_matrix_left);
 		Matrix44::Multiply(proj_right, view_matrix_right, final_matrix_right);
+		if (flipped_x < 0)
+		{
+			// flip all the x axis values, except x squared (data[0])
+			//Needed for Action Girlz Racing, Backyard Baseball
+			final_matrix_left.data[1] *= -1;
+			final_matrix_left.data[2] *= -1;
+			final_matrix_left.data[3] *= -1;
+			final_matrix_left.data[4] *= -1;
+			final_matrix_left.data[8] *= -1;
+			final_matrix_left.data[12] *= -1;
+			final_matrix_right.data[1] *= -1;
+			final_matrix_right.data[2] *= -1;
+			final_matrix_right.data[3] *= -1;
+			final_matrix_right.data[4] *= -1;
+			final_matrix_right.data[8] *= -1;
+			final_matrix_right.data[12] *= -1;
+		}
+		if (flipped_y < 0)
+		{
+			final_matrix_left.data[1] *= -1;
+			final_matrix_left.data[4] *= -1;
+			final_matrix_left.data[6] *= -1;
+			final_matrix_left.data[7] *= -1;
+			final_matrix_left.data[9] *= -1;
+			final_matrix_left.data[13] *= -1;
+			final_matrix_right.data[1] *= -1;
+			final_matrix_right.data[4] *= -1;
+			final_matrix_right.data[6] *= -1;
+			final_matrix_right.data[7] *= -1;
+			final_matrix_right.data[9] *= -1;
+			final_matrix_right.data[13] *= -1;
+		}
+
 		// If we are supposed to hide the layer, zero out the projection matrix
 		if (bHideLeft) {
 			memset(final_matrix_left.data, 0, 16 * sizeof(final_matrix_left.data[0]));
@@ -1143,37 +1179,6 @@ void VertexShaderManager::SetProjectionConstants()
 		memcpy(constants.projection, final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[0], final_matrix_left.data, 4 * 16);
 		memcpy(constants_eye_projection[1], final_matrix_right.data, 4 * 16);
-		//Matrix44 mtxA, mtxB, mtxView;
-		//if (MetroidPrime_DrawingHelmet) {
-		//	if (vr_render_eye == 0) // mono
-		//		Matrix44::LoadIdentity(mtxA);
-		//	else { // 3D
-		//		float v[3] = { 8.0f, 0.3f, 3.0f }; // move camera left into left eye hole
-		//		if (vr_render_eye>0) v[0] = -v[0]; // or right
-		//		Matrix44::Translate(mtxA, v);
-		//	}
-		//	Matrix44::LoadIdentity(mtxB); // keep locked to head
-		//	Matrix44::Multiply(mtxB, mtxA, mtxView);
-		//	Matrix44::Set(projMtx, g_fProjectionMatrix);
-		//	Matrix44::Multiply(projMtx, mtxView, rotatedMtx);
-		//}
-		//else if (MetroidPrime_DrawingVisor) {
-		//	if (vr_render_eye == 0) // mono
-		//		Matrix44::LoadIdentity(mtxA);
-		//	else { // 3D
-		//		float v[3] = { 8.1f, 0.0f, 3.0f }; // move camera left into left eye hole
-		//		if (vr_render_eye>0) v[0] = -v[0]; // or right
-		//		Matrix44::Translate(mtxA, v);
-		//	}
-		//	Matrix44::LoadIdentity(mtxB); // keep locked to head
-		//	Matrix44::Multiply(mtxB, mtxA, mtxView);
-		//	Matrix44::Set(projMtx, g_fProjectionMatrix);
-		//	Matrix44::Multiply(projMtx, mtxView, rotatedMtx);
-		//}
-		//else { //VR Normal Oculus Rift Headtracking
-		//	Matrix44::Set(projMtx, g_fProjectionMatrix);
-		//	Matrix44::Multiply(projMtx, g_ActiveConfig.mHeadTracking, rotatedMtx);
-		//}
 	}
 	else if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo) && xfmem.projection.type == GX_PERSPECTIVE)
 	{
