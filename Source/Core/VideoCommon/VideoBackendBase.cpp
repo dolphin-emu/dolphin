@@ -32,6 +32,13 @@ static bool IsGteVista()
 
 	return VerifyVersionInfo(&osvi, VER_MAJORVERSION, dwlConditionMask) != FALSE;
 }
+
+// Nvidia drivers >= v302 will check if the application exports a global
+// variable named NvOptimusEnablement to know if it should run the app in high
+// performance graphics mode or using the IGP.
+extern "C" {
+__declspec(dllexport) DWORD NvOptimusEnablement = 1;
+}
 #endif
 
 void VideoBackend::PopulateList()
