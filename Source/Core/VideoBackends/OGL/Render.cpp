@@ -719,9 +719,9 @@ void Renderer::DrawDebugInfo()
 			debug_info += " - ";
 		if (SConfig::GetInstance().m_ShowFrameCount)
 		{
-			debug_info += StringFromFormat("Frame: %d", Movie::g_currentFrame);
+			debug_info += StringFromFormat("Frame: %lu", Movie::g_currentFrame);
 			if (Movie::IsPlayingInput())
-				debug_info += StringFromFormat(" / %d", Movie::g_totalFrames);
+				debug_info += StringFromFormat(" / %lu", Movie::g_totalFrames);
 		}
 
 		debug_info += "\n";
