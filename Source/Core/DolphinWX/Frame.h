@@ -192,6 +192,7 @@ private:
 		Toolbar_ConfigDSP,
 		Toolbar_ConfigPAD,
 		Toolbar_Wiimote,
+		Toolbar_ConfigVR,
 		EToolbar_Max
 	};
 
@@ -292,6 +293,7 @@ private:
 	void OnConfigDSP(wxCommandEvent& event);
 	void OnConfigPAD(wxCommandEvent& event);
 	void OnConfigWiimote(wxCommandEvent& event);
+	void OnConfigVR(wxCommandEvent& event);
 	void OnConfigHotkey(wxCommandEvent& event);
 
 	void OnToggleFullscreen(wxCommandEvent& event);

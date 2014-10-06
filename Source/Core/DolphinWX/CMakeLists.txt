@@ -26,6 +26,7 @@ set(GUI_SRCS
 	AboutDolphin.cpp
 	CheatsWindow.cpp
 	ConfigMain.cpp
+	ConfigVR.cpp
 	Debugger/BreakpointDlg.cpp
 	Debugger/BreakpointView.cpp
 	Debugger/BreakpointWindow.cpp

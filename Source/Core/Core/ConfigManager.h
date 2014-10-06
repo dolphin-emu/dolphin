@@ -132,6 +132,7 @@ private:
 	void SaveInputSettings(IniFile& ini);
 	void SaveMovieSettings(IniFile& ini);
 	void SaveFifoPlayerSettings(IniFile& ini);
+	void SaveVRSettings(IniFile& ini);
 
 	void LoadGeneralSettings(IniFile& ini);
 	void LoadInterfaceSettings(IniFile& ini);
@@ -143,6 +144,7 @@ private:
 	void LoadInputSettings(IniFile& ini);
 	void LoadMovieSettings(IniFile& ini);
 	void LoadFifoPlayerSettings(IniFile& ini);
+	void LoadVRSettings(IniFile& ini);
 
 	static SConfig* m_Instance;
 };
