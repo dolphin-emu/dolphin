@@ -314,7 +314,7 @@ static void BuildBlock(s32 blockX, s32 blockY)
 	}
 }
 
-inline void PrepareBlock(s32 blockX, s32 blockY)
+static inline void PrepareBlock(s32 blockX, s32 blockY)
 {
 	static s32 x = -1;
 	static s32 y = -1;
@@ -539,10 +539,10 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 		// the bottom and one for the right. As soon as a pixel that is to be
 		// drawn is found, the loop breaks. This enables a ~150% speedbost in
 		// bbox calculation, albeit at the cost of some ugly repetitive code.
-		const s32 FTOP    = miny << 4;
 		const s32 FLEFT   = minx << 4;
-		const s32 FBOTTOM = maxy << 4;
 		const s32 FRIGHT  = maxx << 4;
+		s32 FTOP    = miny << 4;
+		s32 FBOTTOM = maxy << 4;
 
 		// Start checking for bbox top
 		s32 CY1 = C1 + DX12 * FTOP - DY12 * FLEFT;
@@ -583,6 +583,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 
 		// Update top limit
 		miny = std::max((s32) BoundingBox::coords[BoundingBox::TOP], miny);
+		FTOP = miny << 4;
 
 		// Checking for bbox left
 		s32 CX1 = C1 + DX12 * FTOP - DY12 * FLEFT;
@@ -662,6 +663,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 
 		// Update bottom limit
 		maxy = std::min((s32) BoundingBox::coords[BoundingBox::BOTTOM], maxy);
+		FBOTTOM = maxy << 4;
 
 		// Checking for bbox right
 		CX1 = C1 + DX12 * FBOTTOM - DY12 * FRIGHT;
