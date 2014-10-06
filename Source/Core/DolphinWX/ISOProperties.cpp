@@ -663,7 +663,7 @@ void CISOProperties::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
 {
 	wxString dirHome;
 
-	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format("%s.png", m_GameID->GetLabel().c_str()),
+	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format("%s.png", m_GameID->GetValue().c_str()),
 		wxALL_FILES_PATTERN, wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 	if (dialog.ShowModal() == wxID_OK)
 	{
