@@ -513,8 +513,8 @@ wxString CFrame::GetMenuLabel(int Id)
 
 	hotkeymodifier &= wxMOD_CONTROL | wxMOD_ALT | wxMOD_SHIFT;
 
-	Modifier = InputCommon::WXKeymodToString(hotkeymodifier);
-	Hotkey = InputCommon::WXKeyToString(hotkey);
+	Modifier = WxUtils::WXKeymodToString(hotkeymodifier);
+	Hotkey = WxUtils::WXKeyToString(hotkey);
 	if (Modifier.Len() + Hotkey.Len() > 0)
 		Label += '\t';
 

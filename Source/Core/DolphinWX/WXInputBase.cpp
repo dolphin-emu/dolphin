@@ -9,7 +9,7 @@
 
 #include "DolphinWX/WXInputBase.h"
 
-namespace InputCommon
+namespace WxUtils
 {
 
 const wxString WXKeyToString(int keycode)
