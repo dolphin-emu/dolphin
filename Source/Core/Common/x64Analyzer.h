@@ -20,6 +20,8 @@ struct InstructionInfo
 	bool byteSwap;
 	u64 immediate;
 	s32 displacement;
+
+	bool operator==(const InstructionInfo &other) const;
 };
 
 struct ModRM
