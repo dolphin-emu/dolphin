@@ -61,7 +61,7 @@ private:
 
 	// Stuff from banner
 	std::string m_company;
-	std::vector<std::string> m_names;
+	std::vector<std::string> m_banner_names;
 	std::vector<std::string> m_descriptions;
 
 	std::string m_UniqueID;
