@@ -344,8 +344,6 @@ wxMenuBar* CFrame::CreateMenu()
 		columnsMenu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
 		columnsMenu->Check(IDM_SHOW_STATE, SConfig::GetInstance().m_showStateColumn);
 
-
-
 	menubar->Append(viewMenu, _("&View"));
 
 	if (g_pCodeWindow)
@@ -522,7 +520,6 @@ wxString CFrame::GetMenuLabel(int Id)
 	return Label + Modifier + Hotkey;
 }
 
-
 // Create toolbar items
 // ---------------------
 void CFrame::PopulateToolbar(wxToolBar* ToolBar)
@@ -547,7 +544,6 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_PAD_PLUGIN,     _("GCPad"),    m_Bitmaps[Toolbar_ConfigPAD],  _("GameCube Pad settings"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_WIIMOTE_PLUGIN, _("Wiimote"),  m_Bitmaps[Toolbar_Wiimote],    _("Wiimote settings"));
 }
-
 
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
@@ -1038,7 +1034,6 @@ void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 		m_GameListCtrl->Update();
 	}
 }
-
 
 void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {
