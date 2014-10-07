@@ -140,10 +140,13 @@ public:
 
 	void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
-	void tri_op(int d, int a, int b, bool reversible, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS = false);
+	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg),
+	            void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS = false);
 	typedef u32 (*Operation)(u32 a, u32 b);
-	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
-	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS = false);
+	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
+		          bool Rc = false, bool carry = false);
+	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg),
+	               void (Gen::XEmitter::*sseOp)(Gen::X64Reg, Gen::OpArg), UGeckoInstruction inst, bool roundRHS = false);
 	void FloatCompare(UGeckoInstruction inst, bool upper = false);
 
 	// OPCODES

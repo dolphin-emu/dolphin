@@ -608,13 +608,98 @@ void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm)
 	}
 }
 
-void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm)
+void EmuCodeBlock::ForceSinglePrecisionP(X64Reg output, X64Reg input)
 {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	if (jit->jo.accurateSinglePrecision)
 	{
-		CVTPD2PS(xmm, R(xmm));
-		CVTPS2PD(xmm, R(xmm));
+		CVTPD2PS(input, R(input));
+		CVTPS2PD(output, R(input));
+	}
+	else if (output != input)
+	{
+		MOVAPD(output, R(input));
+	}
+}
+
+// Abstract between AVX and SSE: automatically handle 3-operand instructions
+void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg), void (XEmitter::*sseOp)(X64Reg, OpArg),
+                          X64Reg regOp, OpArg arg1, OpArg arg2, bool packed, bool reversible)
+{
+	if (arg1.IsSimpleReg() && regOp == arg1.GetSimpleReg())
+	{
+		(this->*sseOp)(regOp, arg2);
+	}
+	else if (arg1.IsSimpleReg() && cpu_info.bAVX)
+	{
+		(this->*avxOp)(regOp, arg1.GetSimpleReg(), arg2);
+	}
+	else if (arg2.IsSimpleReg() && arg2.GetSimpleReg() == regOp)
+	{
+		if (reversible)
+		{
+			(this->*sseOp)(regOp, arg1);
+		}
+		else
+		{
+			// The ugly case: regOp == arg2 without AVX, or with arg1 == memory
+			if (!arg1.IsSimpleReg() || arg1.GetSimpleReg() != XMM0)
+				MOVAPD(XMM0, arg1);
+			if (cpu_info.bAVX)
+			{
+				(this->*avxOp)(regOp, XMM0, arg2);
+			}
+			else
+			{
+				(this->*sseOp)(XMM0, arg2);
+				if (packed)
+					MOVAPD(regOp, R(XMM0));
+				else
+					MOVSD(regOp, R(XMM0));
+			}
+		}
+	}
+	else
+	{
+		if (packed)
+			MOVAPD(regOp, arg1);
+		else
+			MOVSD(regOp, arg1);
+		(this->*sseOp)(regOp, arg1 == arg2 ? R(regOp) : arg2);
+	}
+}
+
+// Abstract between AVX and SSE: automatically handle 3-operand instructions
+void EmuCodeBlock::avx_op(void (XEmitter::*avxOp)(X64Reg, X64Reg, OpArg, u8), void (XEmitter::*sseOp)(X64Reg, OpArg, u8),
+                          X64Reg regOp, OpArg arg1, OpArg arg2, u8 imm)
+{
+	if (arg1.IsSimpleReg() && regOp == arg1.GetSimpleReg())
+	{
+		(this->*sseOp)(regOp, arg2, imm);
+	}
+	else if (arg1.IsSimpleReg() && cpu_info.bAVX)
+	{
+		(this->*avxOp)(regOp, arg1.GetSimpleReg(), arg2, imm);
+	}
+	else if (arg2.IsSimpleReg() && arg2.GetSimpleReg() == regOp)
+	{
+		// The ugly case: regOp == arg2 without AVX, or with arg1 == memory
+		if (!arg1.IsSimpleReg() || arg1.GetSimpleReg() != XMM0)
+			MOVAPD(XMM0, arg1);
+		if (cpu_info.bAVX)
+		{
+			(this->*avxOp)(regOp, XMM0, arg2, imm);
+		}
+		else
+		{
+			(this->*sseOp)(XMM0, arg2, imm);
+			MOVAPD(regOp, R(XMM0));
+		}
+	}
+	else
+	{
+		MOVAPD(regOp, arg1);
+		(this->*sseOp)(regOp, arg1 == arg2 ? R(regOp) : arg2, imm);
 	}
 }
 
@@ -625,15 +710,25 @@ static const u64 GC_ALIGNED16(psRoundBit[2]) = {0x8000000, 0x8000000};
 // a single precision multiply. To be precise, it drops the low 28 bits of the mantissa,
 // rounding to nearest as it does.
 // It needs a temp, so let the caller pass that in.
-void EmuCodeBlock::Force25BitPrecision(X64Reg xmm, X64Reg tmp)
+void EmuCodeBlock::Force25BitPrecision(X64Reg output, OpArg input, X64Reg tmp)
 {
 	if (jit->jo.accurateSinglePrecision)
 	{
 		// mantissa = (mantissa & ~0xFFFFFFF) + ((mantissa & (1ULL << 27)) << 1);
-		MOVAPD(tmp, R(xmm));
-		PAND(xmm, M((void*)&psMantissaTruncate));
-		PAND(tmp, M((void*)&psRoundBit));
-		PADDQ(xmm, R(tmp));
+		if (input.IsSimpleReg() && cpu_info.bAVX)
+		{
+			VPAND(tmp, input.GetSimpleReg(), M((void*)&psRoundBit));
+			VPAND(output, input.GetSimpleReg(), M((void*)&psMantissaTruncate));
+			PADDQ(output, R(tmp));
+		}
+		else
+		{
+			if (!input.IsSimpleReg() || input.GetSimpleReg() != output)
+				MOVAPD(output, input);
+			avx_op(&XEmitter::VPAND, &XEmitter::PAND, tmp, R(output), M((void*)&psRoundBit), true, true);
+			PAND(output, M((void*)&psMantissaTruncate));
+			PADDQ(output, R(tmp));
+		}
 	}
 }
 
