@@ -187,7 +187,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 
 bool CRenderFrame::ShowFullScreen(bool show, long style)
 {
-	if (show)
+	if (show && !g_Config.bBorderlessFullscreen)
 	{
 		// OpenGL requires the pop-up style to activate exclusive mode.
 		SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
