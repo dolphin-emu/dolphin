@@ -134,13 +134,12 @@ wxMenuBar* CFrame::CreateMenu()
 
 	wxMenu *externalDrive = new wxMenu;
 	fileMenu->Append(IDM_DRIVES, _("&Boot from DVD Drive..."), externalDrive);
-
-	drives = cdio_get_devices();
-	// Windows Limitation of 24 character drives
-	for (unsigned int i = 0; i < drives.size() && i < 24; i++)
-	{
-		externalDrive->Append(IDM_DRIVE1 + i, StrToWxStr(drives[i]));
-	}
+		drives = cdio_get_devices();
+		// Windows Limitation of 24 character drives
+		for (unsigned int i = 0; i < drives.size() && i < 24; i++)
+		{
+			externalDrive->Append(IDM_DRIVE1 + i, StrToWxStr(drives[i]));
+		}
 
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_REFRESH, GetMenuLabel(HK_REFRESH_LIST));
@@ -296,52 +295,54 @@ wxMenuBar* CFrame::CreateMenu()
 
 	wxMenu *platformMenu = new wxMenu;
 	viewMenu->AppendSubMenu(platformMenu, _("Show Platforms"));
-	platformMenu->AppendCheckItem(IDM_LISTWII, _("Show Wii"));
-	platformMenu->Check(IDM_LISTWII, SConfig::GetInstance().m_ListWii);
-	platformMenu->AppendCheckItem(IDM_LISTGC, _("Show GameCube"));
-	platformMenu->Check(IDM_LISTGC, SConfig::GetInstance().m_ListGC);
-	platformMenu->AppendCheckItem(IDM_LISTWAD, _("Show Wad"));
-	platformMenu->Check(IDM_LISTWAD, SConfig::GetInstance().m_ListWad);
+		platformMenu->AppendCheckItem(IDM_LISTWII, _("Show Wii"));
+		platformMenu->Check(IDM_LISTWII, SConfig::GetInstance().m_ListWii);
+		platformMenu->AppendCheckItem(IDM_LISTGC, _("Show GameCube"));
+		platformMenu->Check(IDM_LISTGC, SConfig::GetInstance().m_ListGC);
+		platformMenu->AppendCheckItem(IDM_LISTWAD, _("Show Wad"));
+		platformMenu->Check(IDM_LISTWAD, SConfig::GetInstance().m_ListWad);
 
 	wxMenu *regionMenu = new wxMenu;
 	viewMenu->AppendSubMenu(regionMenu, _("Show Regions"));
-	regionMenu->AppendCheckItem(IDM_LISTJAP, _("Show JAP"));
-	regionMenu->Check(IDM_LISTJAP, SConfig::GetInstance().m_ListJap);
-	regionMenu->AppendCheckItem(IDM_LISTPAL, _("Show PAL"));
-	regionMenu->Check(IDM_LISTPAL, SConfig::GetInstance().m_ListPal);
-	regionMenu->AppendCheckItem(IDM_LISTUSA, _("Show USA"));
-	regionMenu->Check(IDM_LISTUSA, SConfig::GetInstance().m_ListUsa);
-	regionMenu->AppendSeparator();
-	regionMenu->AppendCheckItem(IDM_LISTFRANCE, _("Show France"));
-	regionMenu->Check(IDM_LISTFRANCE, SConfig::GetInstance().m_ListFrance);
-	regionMenu->AppendCheckItem(IDM_LISTITALY, _("Show Italy"));
-	regionMenu->Check(IDM_LISTITALY, SConfig::GetInstance().m_ListItaly);
-	regionMenu->AppendCheckItem(IDM_LISTKOREA, _("Show Korea"));
-	regionMenu->Check(IDM_LISTKOREA, SConfig::GetInstance().m_ListKorea);
-	regionMenu->AppendCheckItem(IDM_LISTTAIWAN, _("Show Taiwan"));
-	regionMenu->Check(IDM_LISTTAIWAN, SConfig::GetInstance().m_ListTaiwan);
-	regionMenu->AppendCheckItem(IDM_LIST_UNK, _("Show unknown"));
-	regionMenu->Check(IDM_LIST_UNK, SConfig::GetInstance().m_ListUnknown);
+		regionMenu->AppendCheckItem(IDM_LISTJAP, _("Show JAP"));
+		regionMenu->Check(IDM_LISTJAP, SConfig::GetInstance().m_ListJap);
+		regionMenu->AppendCheckItem(IDM_LISTPAL, _("Show PAL"));
+		regionMenu->Check(IDM_LISTPAL, SConfig::GetInstance().m_ListPal);
+		regionMenu->AppendCheckItem(IDM_LISTUSA, _("Show USA"));
+		regionMenu->Check(IDM_LISTUSA, SConfig::GetInstance().m_ListUsa);
+		regionMenu->AppendSeparator();
+		regionMenu->AppendCheckItem(IDM_LISTFRANCE, _("Show France"));
+		regionMenu->Check(IDM_LISTFRANCE, SConfig::GetInstance().m_ListFrance);
+		regionMenu->AppendCheckItem(IDM_LISTITALY, _("Show Italy"));
+		regionMenu->Check(IDM_LISTITALY, SConfig::GetInstance().m_ListItaly);
+		regionMenu->AppendCheckItem(IDM_LISTKOREA, _("Show Korea"));
+		regionMenu->Check(IDM_LISTKOREA, SConfig::GetInstance().m_ListKorea);
+		regionMenu->AppendCheckItem(IDM_LISTTAIWAN, _("Show Taiwan"));
+		regionMenu->Check(IDM_LISTTAIWAN, SConfig::GetInstance().m_ListTaiwan);
+		regionMenu->AppendCheckItem(IDM_LIST_UNK, _("Show unknown"));
+		regionMenu->Check(IDM_LIST_UNK, SConfig::GetInstance().m_ListUnknown);
+		
 	viewMenu->AppendCheckItem(IDM_LISTDRIVES, _("Show Drives"));
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
+		
 	viewMenu->Append(IDM_PURGECACHE, _("Purge Cache"));
 
 	wxMenu *columnsMenu = new wxMenu;
 	viewMenu->AppendSubMenu(columnsMenu, _("Select Columns"));
-	columnsMenu->AppendCheckItem(IDM_SHOW_SYSTEM, _("Platform"));
-	columnsMenu->Check(IDM_SHOW_SYSTEM, SConfig::GetInstance().m_showSystemColumn);
-	columnsMenu->AppendCheckItem(IDM_SHOW_BANNER, _("Banner"));
-	columnsMenu->Check(IDM_SHOW_BANNER, SConfig::GetInstance().m_showBannerColumn);
-	columnsMenu->AppendCheckItem(IDM_SHOW_NOTES, _("Notes"));
-	columnsMenu->Check(IDM_SHOW_NOTES, SConfig::GetInstance().m_showNotesColumn);
-	columnsMenu->AppendCheckItem(IDM_SHOW_ID, _("Game ID"));
-	columnsMenu->Check(IDM_SHOW_ID, SConfig::GetInstance().m_showIDColumn);
-	columnsMenu->AppendCheckItem(IDM_SHOW_REGION, _("Region"));
-	columnsMenu->Check(IDM_SHOW_REGION, SConfig::GetInstance().m_showRegionColumn);
-	columnsMenu->AppendCheckItem(IDM_SHOW_SIZE, _("File size"));
-	columnsMenu->Check(IDM_SHOW_SIZE, SConfig::GetInstance().m_showSizeColumn);
-	columnsMenu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
-	columnsMenu->Check(IDM_SHOW_STATE, SConfig::GetInstance().m_showStateColumn);
+		columnsMenu->AppendCheckItem(IDM_SHOW_SYSTEM, _("Platform"));
+		columnsMenu->Check(IDM_SHOW_SYSTEM, SConfig::GetInstance().m_showSystemColumn);
+		columnsMenu->AppendCheckItem(IDM_SHOW_BANNER, _("Banner"));
+		columnsMenu->Check(IDM_SHOW_BANNER, SConfig::GetInstance().m_showBannerColumn);
+		columnsMenu->AppendCheckItem(IDM_SHOW_NOTES, _("Notes"));
+		columnsMenu->Check(IDM_SHOW_NOTES, SConfig::GetInstance().m_showNotesColumn);
+		columnsMenu->AppendCheckItem(IDM_SHOW_ID, _("Game ID"));
+		columnsMenu->Check(IDM_SHOW_ID, SConfig::GetInstance().m_showIDColumn);
+		columnsMenu->AppendCheckItem(IDM_SHOW_REGION, _("Region"));
+		columnsMenu->Check(IDM_SHOW_REGION, SConfig::GetInstance().m_showRegionColumn);
+		columnsMenu->AppendCheckItem(IDM_SHOW_SIZE, _("File size"));
+		columnsMenu->Check(IDM_SHOW_SIZE, SConfig::GetInstance().m_showSizeColumn);
+		columnsMenu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
+		columnsMenu->Check(IDM_SHOW_STATE, SConfig::GetInstance().m_showStateColumn);
 
 
 
