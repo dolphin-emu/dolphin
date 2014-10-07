@@ -45,6 +45,9 @@ struct CodeOp //16B
 	// which registers are still needed after this instruction in this block
 	u32 gprInUse;
 	u32 fprInUse;
+	// we do double stores from GPRs, so we don't want to load a PowerPC floating point register into
+	// an XMM only to move it again to a GPR afterwards.
+	u32 fprInXmm;
 };
 
 struct BlockStats

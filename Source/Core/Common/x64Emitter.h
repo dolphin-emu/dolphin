@@ -126,6 +126,11 @@ struct OpArg
 		//if scale == 0 never mind offsetting
 		offset = _offset;
 	}
+	bool operator==(OpArg b)
+	{
+		return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
+		       indexReg == b.indexReg && offset == b.offset;
+	}
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
 	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
@@ -273,11 +278,11 @@ private:
 	void WriteShift(int bits, OpArg dest, OpArg &shift, int ext);
 	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
 	void WriteMXCSR(OpArg arg, int ext);
-	void WriteSSEOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
-	void WriteSSSE3Op(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
-	void WriteSSE41Op(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
-	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
-	void WriteAVXOp(int size, u16 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteSSEOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteSSSE3Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteSSE41Op(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteAVXOp(u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteVEXOp(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
@@ -725,9 +730,18 @@ public:
 	void VSUBSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VMULSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VDIVSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VADDPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VSUBPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VMULPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VDIVPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPOR(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPXOR(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VSHUFPD(X64Reg regOp1, X64Reg regOp2, OpArg arg, u8 shuffle);
+	void VUNPCKLPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VUNPCKHPD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
 	// VEX GPR instructions
 	void SARX(int bits, X64Reg regOp1, OpArg arg, X64Reg regOp2);

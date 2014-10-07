@@ -223,3 +223,19 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 	info->instructionSize = (int)(codePtr - startCodePtr);
 	return true;
 }
+
+bool InstructionInfo::operator==(const InstructionInfo &other) const
+{
+	return operandSize     == other.operandSize     &&
+	       instructionSize == other.instructionSize &&
+	       regOperandReg   == other.regOperandReg   &&
+	       otherReg        == other.otherReg        &&
+	       scaledReg       == other.scaledReg       &&
+	       zeroExtend      == other.zeroExtend      &&
+	       signExtend      == other.signExtend      &&
+	       hasImmediate    == other.hasImmediate    &&
+	       isMemoryWrite   == other.isMemoryWrite   &&
+	       byteSwap        == other.byteSwap        &&
+	       immediate       == other.immediate       &&
+	       displacement    == other.displacement;
+}
