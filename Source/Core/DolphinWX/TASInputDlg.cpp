@@ -93,6 +93,10 @@ void TASInputDlg::CreateWiiLayout()
 	Buttons[11] = nullptr; //&C;
 	Buttons[12] = nullptr; //&Z;
 
+	Controls[2] = nullptr;
+	Controls[3] = nullptr;
+	Controls[4] = nullptr;
+	Controls[5] = nullptr;
 	Controls[6] = &xCont;
 	Controls[7] = &yCont;
 	Controls[8] = &zCont;
@@ -179,6 +183,9 @@ void TASInputDlg::CreateGCLayout()
 	Controls[3] = &rCont;
 	Controls[4] = &CStick.xCont;
 	Controls[5] = &CStick.yCont;
+	Controls[6] = nullptr;
+	Controls[7] = nullptr;
+	Controls[8] = nullptr;
 
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
