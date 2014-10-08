@@ -89,7 +89,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 					if (pBannerLoader->IsValid())
 					{
 						if (m_Platform != WII_WAD)
-							m_names = pBannerLoader->GetNames();
+							m_banner_names = pBannerLoader->GetNames();
 						m_company = pBannerLoader->GetCompany();
 						m_descriptions = pBannerLoader->GetDescriptions();
 
@@ -176,7 +176,7 @@ void GameListItem::DoState(PointerWrap &p)
 {
 	p.Do(m_volume_names);
 	p.Do(m_company);
-	p.Do(m_names);
+	p.Do(m_banner_names);
 	p.Do(m_descriptions);
 	p.Do(m_UniqueID);
 	p.Do(m_FileSize);
@@ -250,11 +250,11 @@ std::string GameListItem::GetBannerName(int _index) const
 {
 	u32 const index = _index;
 
-	if (index < m_names.size() && !m_names[index].empty())
-		return m_names[index];
+	if (index < m_banner_names.size() && !m_banner_names[index].empty())
+		return m_banner_names[index];
 
-	if (!m_names.empty())
-		return m_names[0];
+	if (!m_banner_names.empty())
+		return m_banner_names[0];
 
 	return "";
 }
