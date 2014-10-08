@@ -101,7 +101,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 	memset(&PadStatus, 0, sizeof(PadStatus));
 
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
-	Movie::CallInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
+	Movie::CallGCInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
 
 	u32 netValues[2];
 	if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues))

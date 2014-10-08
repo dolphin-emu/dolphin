@@ -47,9 +47,9 @@ void JitArm::ComputeCarry()
 {
 	ARMReg tmp = gpr.GetReg();
 	SetCC(CC_CS);
-	ORR(tmp, tmp, 1);
+	MOV(tmp, 1);
 	SetCC(CC_CC);
-	BIC(tmp, tmp, 1);
+	EOR(tmp, tmp, tmp);
 	SetCC();
 	STRB(tmp, R9, PPCSTATE_OFF(xer_ca));
 	gpr.Unlock(tmp);
@@ -58,11 +58,10 @@ void JitArm::ComputeCarry()
 void JitArm::ComputeCarry(bool Carry)
 {
 	ARMReg tmp = gpr.GetReg();
-	LDRB(tmp, R9, PPCSTATE_OFF(xer_ca));
 	if (Carry)
-		ORR(tmp, tmp, 1);
+		MOV(tmp, 1);
 	else
-		BIC(tmp, tmp, 1);
+		EOR(tmp, tmp, tmp);
 	STRB(tmp, R9, PPCSTATE_OFF(xer_ca));
 	gpr.Unlock(tmp);
 }
