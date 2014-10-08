@@ -23,6 +23,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "DolphinWX/Globals.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -98,7 +99,7 @@ public:
 	CCodeWindow* g_pCodeWindow;
 	NetPlaySetupDiag* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
-	TASInputDlg* g_TASInputDlg[4];
+	TASInputDlg* g_TASInputDlg[8];
 
 	void InitBitmaps();
 	void DoPause();
@@ -346,6 +347,7 @@ void OnAfterLoadCallback();
 void OnStoppedCallback();
 
 // For TASInputDlg
-void TASManipFunction(GCPadStatus* PadStatus, int controllerID);
+void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID);
+void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID);
 bool TASInputHasFocus();
 extern int g_saveSlot;

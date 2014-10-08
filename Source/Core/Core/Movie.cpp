@@ -81,7 +81,8 @@ static std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm
 
 static std::string s_InputDisplay[8];
 
-static ManipFunction mfunc = nullptr;
+static GCManipFunction gcmfunc = nullptr;
+static WiiManipFunction wiimfunc = nullptr;
 
 static void EnsureTmpInputSize(size_t bound)
 {
@@ -631,8 +632,8 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 	if (irData)
 	{
 		u16 x = irData[0] | ((irData[2] >> 4 & 0x3) << 8);
-		u16 y = irData[1] | ((irData[2] >> 2 & 0x3) << 8);
-		std::string ir = StringFromFormat(" IR:%d,%d", x, y);
+		u16 y = irData[1] | ((irData[2] >> 6 & 0x3) << 8);
+		std::string ir = StringFromFormat(" IR:%d,%d", x,y);
 		s_InputDisplay[controllerID].append(ir);
 	}
 
@@ -1245,15 +1246,24 @@ void SaveRecording(const std::string& filename)
 		Core::DisplayMessage(StringFromFormat("Failed to save %s", filename.c_str()), 2000);
 }
 
-void SetInputManip(ManipFunction func)
+void SetGCInputManip(GCManipFunction func)
 {
-	mfunc = func;
+	gcmfunc = func;
+}
+void SetWiiInputManip(WiiManipFunction func)
+{
+	wiimfunc = func;
 }
 
-void CallInputManip(GCPadStatus* PadStatus, int controllerID)
+void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 {
-	if (mfunc)
-		(*mfunc)(PadStatus, controllerID);
+	if (gcmfunc)
+		(*gcmfunc)(PadStatus, controllerID);
+}
+void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID)
+{
+	if (wiimfunc)
+		(*wiimfunc)(data, rptf, controllerID);
 }
 
 void SetGraphicsConfig()

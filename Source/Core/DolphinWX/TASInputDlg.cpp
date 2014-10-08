@@ -23,171 +23,207 @@
 #include <wx/windowid.h>
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/WiimoteEmu/MatrixMath.h"
 #include "DolphinWX/TASInputDlg.h"
 #include "InputCommon/GCPadStatus.h"
 
+
 BEGIN_EVENT_TABLE(TASInputDlg, wxDialog)
-
-EVT_SLIDER(ID_MAIN_X_SLIDER, TASInputDlg::UpdateFromSliders)
-EVT_SLIDER(ID_MAIN_Y_SLIDER, TASInputDlg::UpdateFromSliders)
-EVT_SLIDER(ID_C_X_SLIDER, TASInputDlg::UpdateFromSliders)
-EVT_SLIDER(ID_C_Y_SLIDER, TASInputDlg::UpdateFromSliders)
-EVT_SLIDER(ID_L_SLIDER, TASInputDlg::UpdateFromSliders)
-EVT_SLIDER(ID_R_SLIDER, TASInputDlg::UpdateFromSliders)
-
-EVT_TEXT(ID_MAIN_X_TEXT, TASInputDlg::UpdateFromText)
-EVT_TEXT(ID_MAIN_Y_TEXT, TASInputDlg::UpdateFromText)
-EVT_TEXT(ID_C_X_TEXT, TASInputDlg::UpdateFromText)
-EVT_TEXT(ID_C_Y_TEXT, TASInputDlg::UpdateFromText)
-EVT_TEXT(ID_L_TEXT, TASInputDlg::UpdateFromText)
-EVT_TEXT(ID_R_TEXT, TASInputDlg::UpdateFromText)
-
 EVT_CLOSE(TASInputDlg::OnCloseWindow)
-
 END_EVENT_TABLE()
 
 TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
-		const wxPoint& position, const wxSize& size, long style)
+                         const wxPoint& position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	A_turbo = B_turbo = X_turbo = Y_turbo = Z_turbo = L_turbo = R_turbo = START_turbo = DL_turbo = DR_turbo = DD_turbo = DU_turbo = false;
-	xaxis = yaxis = c_xaxis = c_yaxis = 128;
-	A_cont = B_cont = X_cont = Y_cont = Z_cont = L_cont = L_button_cont = R_cont = R_button_cont = START_cont = DL_cont = DR_cont = DD_cont = DU_cont = mstickx = msticky = cstickx = csticky = false;
+	Buttons[0] = &A;
+	Buttons[1] = &B;
+	Buttons[2] = &dpad_down;
+	Buttons[3] = &dpad_up;
+	Buttons[4] = &dpad_left;
+	Buttons[5] = &dpad_right;
+	Buttons[13] = nullptr;
 
-	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
-	wxStaticBoxSizer* const main_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Main Stick"));
-	wxBoxSizer* const main_xslider_box = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer* const main_yslider_box = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer* const main_stick_box = new wxBoxSizer(wxVERTICAL);
+	Controls[0] = &MainStick.xCont;
+	Controls[1] = &MainStick.yCont;
+	Controls[9] = nullptr;
 
-	static_bitmap_main = new wxStaticBitmap(this, ID_MAIN_STICK, TASInputDlg::CreateStickBitmap(128,128));
-	static_bitmap_main->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::OnMouseDownL, this);
-	static_bitmap_main->Bind(wxEVT_MOTION, &TASInputDlg::OnMouseDownL, this);
-	static_bitmap_main->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
-	wx_mainX_s = new wxSlider(this, ID_MAIN_X_SLIDER, 128, 0, 255);
-	wx_mainX_s->SetMinSize(wxSize(120,-1));
-	wx_mainX_t = new wxTextCtrl(this, ID_MAIN_X_TEXT, "128", wxDefaultPosition, wxSize(40, 20));
-	wx_mainX_t->SetMaxLength(3);
-	wx_mainY_s = new wxSlider(this, ID_MAIN_Y_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
-	wx_mainY_s->SetMinSize(wxSize(-1,120));
-	wx_mainY_t = new wxTextCtrl(this, ID_MAIN_Y_TEXT, "128", wxDefaultPosition, wxSize(40, 20));
-	wx_mainY_t->SetMaxLength(3);
+	A = CreateButton("A");
+	B = CreateButton("B");
+	dpad_up = CreateButton("Up");
+	dpad_right = CreateButton("Right");
+	dpad_down = CreateButton("Down");
+	dpad_left = CreateButton("Left");
 
-	main_xslider_box->Add(wx_mainX_s, 0, wxALIGN_TOP);
-	main_xslider_box->Add(wx_mainX_t, 0, wxALIGN_TOP);
-	main_stick_box->Add(main_xslider_box);
-	main_stick_box->Add(static_bitmap_main, 0, wxALL|wxCENTER, 3);
-	main_box->Add(main_stick_box);
-	main_yslider_box->Add(wx_mainY_s, 0, wxALIGN_CENTER_VERTICAL);
-	main_yslider_box->Add(wx_mainY_t, 0, wxALIGN_CENTER_VERTICAL);
-	main_box->Add(main_yslider_box);
+	buttons_dpad->AddSpacer(20);
+	buttons_dpad->Add(dpad_up.Checkbox, false);
+	buttons_dpad->AddSpacer(20);
+	buttons_dpad->Add(dpad_left.Checkbox, false);
+	buttons_dpad->AddSpacer(20);
+	buttons_dpad->Add(dpad_right.Checkbox, false);
+	buttons_dpad->AddSpacer(20);
+	buttons_dpad->Add(dpad_down.Checkbox, false);
+	buttons_dpad->AddSpacer(20);
+}
 
-	wxStaticBoxSizer* const c_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("C Stick"));
-	wxBoxSizer* const c_xslider_box = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer* const c_yslider_box = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer* const c_stick_box = new wxBoxSizer(wxVERTICAL);
+const int TASInputDlg::GCPadButtonsBitmask[12] = {
+	PAD_BUTTON_A, PAD_BUTTON_B, PAD_BUTTON_DOWN, PAD_BUTTON_UP, PAD_BUTTON_LEFT,PAD_BUTTON_RIGHT,
+	PAD_BUTTON_X, PAD_BUTTON_Y, PAD_TRIGGER_Z, PAD_TRIGGER_L, PAD_TRIGGER_R, PAD_BUTTON_START
+};
 
-	static_bitmap_c = new wxStaticBitmap(this, ID_C_STICK, TASInputDlg::CreateStickBitmap(128,128));
-	static_bitmap_c->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::OnMouseDownL, this);
-	static_bitmap_c->Bind(wxEVT_MOTION, &TASInputDlg::OnMouseDownL, this);
-	static_bitmap_c->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
-	wx_cX_s = new wxSlider(this, ID_C_X_SLIDER, 128, 0, 255);
-	wx_cX_s->SetMinSize(wxSize(120,-1));
-	wx_cX_t = new wxTextCtrl(this, ID_C_X_TEXT, "128", wxDefaultPosition, wxSize(40, 20));
-	wx_cX_t->SetMaxLength(3);
-	wx_cY_s = new wxSlider(this, ID_C_Y_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
-	wx_cY_s->SetMinSize(wxSize(-1,120));
-	wx_cY_t = new wxTextCtrl(this, ID_C_Y_TEXT, "128", wxDefaultPosition, wxSize(40, 20));
-	wx_cY_t->SetMaxLength(3);
+const int TASInputDlg::WiiButtonsBitmask[13] = {
+	WiimoteEmu::Wiimote::BUTTON_A, WiimoteEmu::Wiimote::BUTTON_B, WiimoteEmu::Wiimote::PAD_DOWN,
+	WiimoteEmu::Wiimote::PAD_UP, WiimoteEmu::Wiimote::PAD_LEFT, WiimoteEmu::Wiimote::PAD_RIGHT,
+	WiimoteEmu::Wiimote::BUTTON_ONE, WiimoteEmu::Wiimote::BUTTON_TWO, WiimoteEmu::Wiimote::BUTTON_PLUS,
+	WiimoteEmu::Wiimote::BUTTON_MINUS, WiimoteEmu::Wiimote::BUTTON_HOME
+};
 
-	c_xslider_box->Add(wx_cX_s, 0, wxALIGN_TOP);
-	c_xslider_box->Add(wx_cX_t, 0, wxALIGN_TOP);
-	c_stick_box->Add(c_xslider_box);
-	c_stick_box->Add(static_bitmap_c,0, wxALL|wxCenter,3);
-	c_box->Add(c_stick_box);
-	c_yslider_box->Add(wx_cY_s, 0, wxALIGN_CENTER_VERTICAL);
-	c_yslider_box->Add(wx_cY_t, 0, wxALIGN_CENTER_VERTICAL);
-	c_box->Add(c_yslider_box);
+void TASInputDlg::CreateWiiLayout()
+{
+	if (hasLayout)
+		return;
+	isWii = true;
+	hasLayout = true;
 
-	wxStaticBoxSizer* const shoulder_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
+	Buttons[6] = &ONE;
+	Buttons[7] = &TWO;
+	Buttons[8] = &PLUS;
+	Buttons[9] = &MINUS;
+	Buttons[10] = &HOME;
+	Buttons[11] = nullptr; //&C;
+	Buttons[12] = nullptr; //&Z;
 
-	wx_l_s = new wxSlider(this, ID_L_SLIDER, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
-	wx_l_s->SetMinSize(wxSize(-1,100));
-	wx_l_t = new wxTextCtrl(this, ID_L_TEXT, "0", wxDefaultPosition, wxSize(40, 20));
-	wx_l_t->SetMaxLength(3);
-	wx_r_s = new wxSlider(this, ID_R_SLIDER, 0, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
-	wx_r_s->SetMinSize(wxSize(-1,100));
-	wx_r_t = new wxTextCtrl(this, ID_R_TEXT, "0", wxDefaultPosition, wxSize(40, 20));
-	wx_r_t->SetMaxLength(3);
+	Controls[6] = &xCont;
+	Controls[7] = &yCont;
+	Controls[8] = &zCont;
 
-	shoulder_box->Add(wx_l_s, 0, wxALIGN_CENTER_VERTICAL);
-	shoulder_box->Add(wx_l_t, 0, wxALIGN_CENTER_VERTICAL);
-	shoulder_box->Add(wx_r_s, 0, wxALIGN_CENTER_VERTICAL);
-	shoulder_box->Add(wx_r_t, 0, wxALIGN_CENTER_VERTICAL);
+	MainStick = CreateStick(ID_MAIN_STICK);
+	wxStaticBoxSizer* const main_stick = CreateStickLayout(&MainStick, "IR");
+	MainStick.xCont.defaultValue = 512;
+	MainStick.yCont.defaultValue = 384;
+
+	wxStaticBoxSizer* const axisBox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Orientation"));
+	wxStaticBoxSizer* const xBox = new wxStaticBoxSizer(wxVERTICAL, this, _("X"));
+	wxStaticBoxSizer* const yBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Y"));
+	wxStaticBoxSizer* const zBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Z"));
+
+	xCont = CreateControl(wxSL_VERTICAL, -1, 100);
+	yCont = CreateControl(wxSL_VERTICAL, -1, 100);
+	zCont = CreateControl(wxSL_VERTICAL, -1, 100);
+	zCont.defaultValue = 154;
+	xBox->Add(xCont.Slider, 0, wxALIGN_CENTER_VERTICAL);
+	xBox->Add(xCont.Text, 0, wxALIGN_CENTER_VERTICAL);
+	yBox->Add(yCont.Slider, 0, wxALIGN_CENTER_VERTICAL);
+	yBox->Add(yCont.Text, 0, wxALIGN_CENTER_VERTICAL);
+	zBox->Add(zCont.Slider, 0, wxALIGN_CENTER_VERTICAL);
+	zBox->Add(zCont.Text, 0, wxALIGN_CENTER_VERTICAL);
+	axisBox->Add(xBox);
+	axisBox->Add(yBox);
+	axisBox->Add(zBox);
+
+	for (unsigned int i = 0; i < 10; ++i)
+	{
+		if (Controls[i] != nullptr)
+			Controls[i]->Slider->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnRightClickSlider), nullptr, this);
+	}
 
 	wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
 	wxGridSizer* const buttons_grid = new wxGridSizer(4);
 
-	wx_a_button = new wxCheckBox(this, ID_A, "A");
-	wx_a_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_a_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_b_button = new wxCheckBox(this, ID_B, "B");
-	wx_b_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_b_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_x_button = new wxCheckBox(this, ID_X, "X");
-	wx_x_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_x_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_y_button = new wxCheckBox(this, ID_Y, "Y");
-	wx_y_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_y_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_l_button = new wxCheckBox(this, ID_L, "L");
-	wx_l_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_l_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_r_button = new wxCheckBox(this, ID_R, "R");
-	wx_r_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_r_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_z_button = new wxCheckBox(this, ID_Z, "Z");
-	wx_z_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_z_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_start_button = new wxCheckBox(this, ID_START, "Start");
-	wx_start_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_start_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
+	//C = CreateButton("C");
+	//Z = CreateButton("Z");
+	PLUS = CreateButton("+");
+	MINUS = CreateButton("-");
+	ONE = CreateButton("1");
+	TWO = CreateButton("2");
+	HOME = CreateButton("HOME");
 
-	buttons_grid->Add(wx_a_button,false);
-	buttons_grid->Add(wx_b_button,false);
-	buttons_grid->Add(wx_x_button,false);
-	buttons_grid->Add(wx_y_button,false);
-	buttons_grid->Add(wx_l_button,false);
-	buttons_grid->Add(wx_r_button,false);
-	buttons_grid->Add(wx_z_button,false);
-	buttons_grid->Add(wx_start_button,false);
+	buttons_grid->Add(A.Checkbox, false);
+	buttons_grid->Add(B.Checkbox, false);
+	//buttons_grid->Add(C.Checkbox, false);
+	//buttons_grid->Add(Z.Checkbox, false);
+	buttons_grid->Add(PLUS.Checkbox, false);
+	buttons_grid->Add(MINUS.Checkbox, false);
+	buttons_grid->Add(ONE.Checkbox, false);
+	buttons_grid->Add(TWO.Checkbox, false);
+	buttons_grid->Add(HOME.Checkbox, false);
 	buttons_grid->AddSpacer(5);
 
-	wxGridSizer* const buttons_dpad = new wxGridSizer(3);
+	buttons_box->Add(buttons_grid);
+	buttons_box->Add(buttons_dpad);
 
-	wx_up_button = new wxCheckBox(this, ID_UP, "Up");
-	wx_up_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_up_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_right_button = new wxCheckBox(this, ID_RIGHT, "Right");
-	wx_right_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_right_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_down_button = new wxCheckBox(this, ID_DOWN, "Down");
-	wx_down_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_down_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
-	wx_left_button = new wxCheckBox(this, ID_LEFT, "Left");
-	wx_left_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
-	wx_left_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
+	wxBoxSizer* const main_szr = new wxBoxSizer(wxHORIZONTAL);
 
-	buttons_dpad->AddSpacer(20);
-	buttons_dpad->Add(wx_up_button,false);
-	buttons_dpad->AddSpacer(20);
-	buttons_dpad->Add(wx_left_button,false);
-	buttons_dpad->AddSpacer(20);
-	buttons_dpad->Add(wx_right_button,false);
-	buttons_dpad->AddSpacer(20);
-	buttons_dpad->Add(wx_down_button,false);
-	buttons_dpad->AddSpacer(20);
+	main_szr->Add(main_stick);
+	main_szr->Add(axisBox);
+	main_szr->Add(buttons_box);
+	SetSizerAndFit(main_szr);
+	ResetValues();
+}
+
+void TASInputDlg::CreateGCLayout()
+{
+	if (hasLayout)
+		return;
+	hasLayout = true;
+
+	Buttons[6] = &X;
+	Buttons[7] = &Y;
+	Buttons[8] = &Z;
+	Buttons[9] = &L;
+	Buttons[10] = &R;
+	Buttons[11] = &START;
+	Buttons[12] = nullptr;
+
+	Controls[2] = &lCont;
+	Controls[3] = &rCont;
+	Controls[4] = &CStick.xCont;
+	Controls[5] = &CStick.yCont;
+
+	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
+	MainStick = CreateStick(ID_MAIN_STICK);
+	wxStaticBoxSizer* const main_box = CreateStickLayout(&MainStick, "Main Stick");
+
+	CStick = CreateStick(ID_C_STICK);
+	wxStaticBoxSizer* const c_box = CreateStickLayout(&CStick, "C Stick");
+
+	wxStaticBoxSizer* const shoulder_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
+	lCont = CreateControl(wxSL_VERTICAL | wxSL_INVERSE, -1, 100);
+	lCont.defaultValue = 0;
+	rCont = CreateControl(wxSL_VERTICAL | wxSL_INVERSE, -1, 100);
+	rCont.defaultValue = 0;
+	shoulder_box->Add(lCont.Slider, 0, wxALIGN_CENTER_VERTICAL);
+	shoulder_box->Add(lCont.Text, 0, wxALIGN_CENTER_VERTICAL);
+	shoulder_box->Add(rCont.Slider, 0, wxALIGN_CENTER_VERTICAL);
+	shoulder_box->Add(rCont.Text, 0, wxALIGN_CENTER_VERTICAL);
+
+	for (unsigned int i = 0; i < 10; ++i)
+	{
+		if (Controls[i] != nullptr)
+			Controls[i]->Slider->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnRightClickSlider), nullptr, this);
+	}
+
+	wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
+	wxGridSizer* const buttons_grid = new wxGridSizer(4);
+
+	X = CreateButton("X");
+	Y = CreateButton("Y");
+	L = CreateButton("L");
+	R = CreateButton("R");
+	Z = CreateButton("Z");
+	START = CreateButton("Start");
+
+	buttons_grid->Add(A.Checkbox, false);
+	buttons_grid->Add(B.Checkbox, false);
+	buttons_grid->Add(X.Checkbox, false);
+	buttons_grid->Add(Y.Checkbox, false);
+	buttons_grid->Add(L.Checkbox, false);
+	buttons_grid->Add(R.Checkbox, false);
+	buttons_grid->Add(Z.Checkbox, false);
+	buttons_grid->Add(START.Checkbox, false);
+	buttons_grid->AddSpacer(5);
+
 	buttons_box->Add(buttons_grid);
 	buttons_box->Add(buttons_dpad);
 
@@ -209,355 +245,316 @@ TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
 	ResetValues();
 }
 
+
+TASInputDlg::Control TASInputDlg::CreateControl(long style, int width, int height, u32 range)
+{
+	Control tempCont;
+	tempCont.range = range;
+	tempCont.Slider = new wxSlider(this, eleID++, range/2+1, 0, range, wxDefaultPosition, wxDefaultSize, style);
+	tempCont.Slider->SetMinSize(wxSize(width, height));
+	tempCont.Slider->Connect(wxEVT_SLIDER, wxCommandEventHandler(TASInputDlg::UpdateFromSliders), nullptr, this);
+	tempCont.Text = new wxTextCtrl(this, eleID++, std::to_string(range/2+1), wxDefaultPosition, wxSize(40, 20));
+	tempCont.Text->SetMaxLength(range > 999 ? 4 : 3);
+	tempCont.Text_ID = eleID - 1;
+	tempCont.Text->Connect(wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler(TASInputDlg::UpdateFromText), nullptr, this);
+	tempCont.Slider_ID = eleID - 2;
+	return tempCont;
+}
+
+TASInputDlg::Stick TASInputDlg::CreateStick(int id_stick)
+{
+	Stick tempStick;
+	tempStick.bitmap = new wxStaticBitmap(this, id_stick, CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
+	tempStick.bitmap->Connect(wxEVT_MOTION, wxMouseEventHandler(TASInputDlg::OnMouseDownL), nullptr, this);
+	tempStick.bitmap->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::OnMouseDownL), nullptr, this);
+	tempStick.bitmap->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpR), nullptr, this);
+	tempStick.xCont = CreateControl(wxSL_HORIZONTAL | (isWii ? wxSL_INVERSE : 0), 120, -1, isWii ? 1024 : 255);
+	tempStick.yCont = CreateControl(wxSL_VERTICAL | (isWii ? 0 : wxSL_INVERSE), -1, 120, isWii ? 768 : 255);
+	return tempStick;
+}
+
+wxStaticBoxSizer* TASInputDlg::CreateStickLayout(Stick* tempStick, std::string title)
+{
+	wxStaticBoxSizer* const temp_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _(title));
+	wxBoxSizer* const temp_xslider_box = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* const temp_yslider_box = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* const temp_stick_box = new wxBoxSizer(wxVERTICAL);
+
+	temp_xslider_box->Add(tempStick->xCont.Slider, 0, wxALIGN_TOP);
+	temp_xslider_box->Add(tempStick->xCont.Text, 0, wxALIGN_TOP);
+	temp_stick_box->Add(temp_xslider_box);
+	temp_stick_box->Add(tempStick->bitmap,0, wxALL|wxCenter,3);
+	temp_box->Add(temp_stick_box);
+	temp_yslider_box->Add(tempStick->yCont.Slider, 0, wxALIGN_CENTER_VERTICAL);
+	temp_yslider_box->Add(tempStick->yCont.Text, 0, wxALIGN_CENTER_VERTICAL);
+	temp_box->Add(temp_yslider_box);
+	return temp_box;
+}
+
+TASInputDlg::Button TASInputDlg::CreateButton(const std::string& name)
+{
+	Button temp;
+	wxCheckBox* checkbox = new wxCheckBox(this, eleID++, name, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxCheckBoxNameStr);
+	checkbox->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), nullptr, this);
+	checkbox->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), nullptr, this);
+	temp.Checkbox = checkbox;
+	temp.ID = eleID - 1;
+	return temp;
+}
+
 void TASInputDlg::ResetValues()
 {
-	mainX = mainY = cX = cY = 128;
-	lTrig = rTrig = 0;
+	if (!hasLayout)
+		return;
 
-	wx_mainX_s->SetValue(128);
-	wx_mainY_s->SetValue(128);
-	wx_cX_s->SetValue(128);
-	wx_cY_s->SetValue(128);
-	wx_l_s->SetValue(0);
-	wx_r_s->SetValue(0);
+	for (unsigned int i = 0; i < 14; ++i)
+	{
+		if (Buttons[i] != nullptr)
+			Buttons[i]->Checkbox->SetValue(false);
+	}
 
-	wx_mainX_t->SetValue("128");
-	wx_mainY_t->SetValue("128");
-	wx_cX_t->SetValue("128");
-	wx_cY_t->SetValue("128");
-	wx_l_t->SetValue("0");
-	wx_r_t->SetValue("0");
+	for (unsigned int i = 0; i < 10; ++i)
+	{
+		if (Controls[i] != nullptr)
+		{
+			Controls[i]->value = Controls[i]->defaultValue;
+			Controls[i]->Slider->SetValue(Controls[i]->defaultValue);
+			Controls[i]->Text->SetValue(std::to_string(Controls[i]->defaultValue));
+		}
+	}
+}
 
-	wx_up_button->SetValue(false);
-	wx_down_button->SetValue(false);
-	wx_left_button->SetValue(false);
-	wx_right_button->SetValue(false);
-	wx_a_button->SetValue(false);
-	wx_b_button->SetValue(false);
-	wx_x_button->SetValue(false);
-	wx_y_button->SetValue(false);
-	wx_l_button->SetValue(false);
-	wx_r_button->SetValue(false);
-	wx_z_button->SetValue(false);
-	wx_start_button->SetValue(false);
+void TASInputDlg::SetStickValue(bool* ActivatedByKeyboard, int* AmountPressed, wxTextCtrl* Textbox, int CurrentValue, int center)
+{
+	if (CurrentValue != center)
+	{
+		*AmountPressed = CurrentValue;
+		*ActivatedByKeyboard = true;
+		Textbox->SetValue(std::to_string(*AmountPressed));
+	}
+	else if (*ActivatedByKeyboard)
+	{
+		*AmountPressed = center;
+		*ActivatedByKeyboard = false;
+		Textbox->SetValue(std::to_string(*AmountPressed));
+	}
+}
+
+void TASInputDlg::SetSliderValue(Control* control, int CurrentValue, int defaultValue)
+{
+	if (CurrentValue != defaultValue)
+	{
+		control->value = CurrentValue;
+		control->SetByKeyboard = true;
+		control->Text->SetValue(std::to_string(CurrentValue));
+	}
+	else if (control->SetByKeyboard)
+	{
+		control->value = defaultValue;
+		control->SetByKeyboard = false;
+		control->Text->SetValue(std::to_string(defaultValue));
+	}
+}
+
+void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
+{
+	if (CurrentState)
+	{
+		button->SetByKeyboard = true;
+		button->Checkbox->SetValue(CurrentState);
+	}
+	else if (button->SetByKeyboard)
+	{
+		button->SetByKeyboard = false;
+		button->Checkbox->SetValue(CurrentState);
+	}
+}
+
+void TASInputDlg::SetWiiButtons(wm_core* butt)
+{
+	for (unsigned int i = 0; i < 14; ++i)
+	{
+		if (Buttons[i] != nullptr)
+			*butt |= (Buttons[i]->Checkbox->IsChecked()) ? WiiButtonsBitmask[i] : 0;
+	}
+	ButtonTurbo();
 }
 
 void TASInputDlg::GetKeyBoardInput(GCPadStatus* PadStatus)
 {
-	if (PadStatus->stickX != GCPadStatus::MAIN_STICK_CENTER_X)
-	{
-		mainX = PadStatus->stickX;
-		mstickx = true;
-		wx_mainX_t->SetValue(wxString::Format("%i", mainX));
-	}
+	SetStickValue(&MainStick.xCont.SetByKeyboard, &MainStick.xCont.value, MainStick.xCont.Text, PadStatus->stickX);
+	SetStickValue(&MainStick.yCont.SetByKeyboard, &MainStick.yCont.value, MainStick.yCont.Text, PadStatus->stickY);
 
-	else if (mstickx)
-	{
-		mstickx = false;
-		mainX = GCPadStatus::MAIN_STICK_CENTER_X;
-		wx_mainX_t->SetValue(wxString::Format("%i", mainX));
-	}
+	SetStickValue(&CStick.xCont.SetByKeyboard, &CStick.xCont.value, CStick.xCont.Text, PadStatus->substickX);
+	SetStickValue(&CStick.yCont.SetByKeyboard, &CStick.yCont.value, CStick.yCont.Text, PadStatus->substickY);
 
-	if (PadStatus->stickY != GCPadStatus::MAIN_STICK_CENTER_Y)
+	for (unsigned int i = 0; i < 14; ++i)
 	{
-		mainY = PadStatus->stickY;
-		msticky = true;
-		wx_mainY_t->SetValue(wxString::Format("%i",mainY));
+		if (Buttons[i] != nullptr)
+			SetButtonValue(Buttons[i], ((PadStatus->button & GCPadButtonsBitmask[i]) != 0));
 	}
-	else if (msticky)
-	{
-		msticky = false;
-		mainY = GCPadStatus::MAIN_STICK_CENTER_Y;
-		wx_mainY_t->SetValue(wxString::Format("%i", mainY));
-	}
-
-	if (PadStatus->substickX != GCPadStatus::C_STICK_CENTER_X)
-	{
-		cX = PadStatus->substickX;
-		cstickx = true;
-		wx_cX_t->SetValue(wxString::Format("%i", cX));
-	}
-	else if (cstickx)
-	{
-		cstickx = false;
-		cX = GCPadStatus::C_STICK_CENTER_X;
-		wx_cX_t->SetValue(wxString::Format("%i", cX));
-	}
-
-	if (PadStatus->substickY != GCPadStatus::C_STICK_CENTER_Y)
-	{
-		cY = PadStatus->substickY;
-		csticky = true;
-		wx_cY_t->SetValue(wxString::Format("%i", cY));
-	}
-	else if (csticky)
-	{
-		csticky = false;
-		cY = GCPadStatus::C_STICK_CENTER_Y;
-		wx_cY_t->SetValue(wxString::Format("%i", cY));
-	}
-
-	if ((PadStatus->button & PAD_BUTTON_UP) != 0)
-	{
-		wx_up_button->SetValue(true);
-		DU_cont = true;
-	}
-	else if (DU_cont)
-	{
-		wx_up_button->SetValue(false);
-		DU_cont = false;
-	}
-
-	if ((PadStatus->button & PAD_BUTTON_DOWN) != 0)
-	{
-		wx_down_button->SetValue(true);
-		DD_cont = true;
-	}
-	else if (DD_cont)
-	{
-		wx_down_button->SetValue(false);
-		DD_cont = false;
-	}
-
-	if ((PadStatus->button & PAD_BUTTON_LEFT) != 0)
-	{
-		wx_left_button->SetValue(true);
-		DL_cont = true;
-	}
-	else if (DL_cont)
-	{
-		wx_left_button->SetValue(false);
-		DL_cont = false;
-	}
-
-	if ((PadStatus->button & PAD_BUTTON_RIGHT) != 0)
-	{
-		wx_right_button->SetValue(true);
-		DR_cont = true;
-	}
-	else if (DR_cont)
-	{
-		wx_right_button->SetValue(false);
-		DR_cont = false;
-	}
-
-	if ((PadStatus->button & PAD_BUTTON_A) != 0)
-	{
-		wx_a_button->SetValue(true);
-		A_cont = true;
-	}
-	else if (A_cont)
-	{
-		wx_a_button->SetValue(false);
-		A_cont = false;
-	}
-
-	if ((PadStatus->button & PAD_BUTTON_B) != 0)
-	{
-		wx_b_button->SetValue(true);
-		B_cont = true;
-	}
-	else if (B_cont)
-	{
-		wx_b_button->SetValue(false);
-		B_cont = false;
-	}
-
-	if ((PadStatus->button & PAD_BUTTON_X) != 0)
-	{
-		wx_x_button->SetValue(true);
-		X_cont = true;
-	}
-	else if (X_cont)
-	{
-		wx_x_button->SetValue(false);
-		X_cont = false;
-	}
-
-	if ((PadStatus->button & PAD_BUTTON_Y) != 0)
-	{
-		wx_y_button->SetValue(true);
-		Y_cont = true;
-	}
-	else if (Y_cont)
-	{
-		wx_y_button->SetValue(false);
-		Y_cont = false;
-	}
-
-	if ((PadStatus->triggerLeft) != 0)
-	{
-		if (PadStatus->triggerLeft == 255)
-		{
-			wx_l_button->SetValue(true);
-			L_button_cont = true;
-		}
-		else if (L_button_cont)
-		{
-			wx_l_button->SetValue(false);
-			L_button_cont = false;
-		}
-
-		wx_l_s->SetValue(PadStatus->triggerLeft);
-		wx_l_t->SetValue(wxString::Format("%i", PadStatus->triggerLeft));
-		L_cont = true;
-	}
-	else if (L_cont)
-	{
-		wx_l_button->SetValue(false);
-		wx_l_s->SetValue(0);
-		wx_l_t->SetValue("0");
-		L_cont = false;
-	}
-
-	if ((PadStatus->triggerRight) != 0)
-	{
-		if (PadStatus->triggerRight == 255)
-		{
-			wx_r_button->SetValue(true);
-			R_button_cont = true;
-		}
-		else if (R_button_cont)
-		{
-			wx_r_button->SetValue(false);
-			R_button_cont = false;
-		}
-
-		wx_r_s->SetValue(PadStatus->triggerRight);
-		wx_r_t->SetValue(wxString::Format("%i", PadStatus->triggerRight));
-		R_cont = true;
-	}
-	else if (R_cont)
-	{
-		wx_r_button->SetValue(false);
-		wx_r_s->SetValue(0);
-		wx_r_t->SetValue("0");
-		R_cont = false;
-	}
-
-	if ((PadStatus->button & PAD_TRIGGER_Z) != 0)
-	{
-		wx_z_button->SetValue(true);
-		Z_cont = true;
-	}
-	else if (Z_cont)
-	{
-		wx_z_button->SetValue(false);
-		Z_cont = false;
-	}
-
-	if ((PadStatus->button & PAD_BUTTON_START) != 0)
-	{
-		wx_start_button->SetValue(true);
-		START_cont = true;
-	}
-	else if (START_cont)
-	{
-		wx_start_button->SetValue(false);
-		START_cont = false;
-	}
+	SetButtonValue(&L, ((PadStatus->triggerLeft) != 0) || ((PadStatus->button & PAD_TRIGGER_L) != 0));
+	SetButtonValue(&R, ((PadStatus->triggerRight) != 0) || ((PadStatus->button & PAD_TRIGGER_R) != 0));
 }
 
-void TASInputDlg::SetLandRTriggers()
+void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf)
 {
-	if (wx_l_button->GetValue())
-		lTrig = 255;
-	else
-		lTrig = wx_l_s->GetValue();
+	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
+	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
+	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
 
-	if (wx_r_button->GetValue())
-		rTrig = 255;
-	else
-		rTrig = wx_r_s->GetValue();
+	if (coreData)
+	{
+		for (unsigned int i = 0; i < 14; ++i)
+		{
+			if (Buttons[i] != nullptr)
+				SetButtonValue(Buttons[i], (*(wm_core*)coreData & WiiButtonsBitmask[i]) != 0);
+		}
+	}
+	if (accelData)
+	{
+		wm_accel* dt = (wm_accel*)accelData;
+
+		SetSliderValue(&xCont, dt->x);
+		SetSliderValue(&yCont, dt->y);
+		SetSliderValue(&zCont, dt->z, 154);
+	}
+
+	// I don't think this can be made to work in a sane manner.
+	//if (irData)
+	//{
+	//	u16 x = 1023 - (irData[0] | ((irData[2] >> 4 & 0x3) << 8));
+	//	u16 y = irData[1] | ((irData[2] >> 6 & 0x3) << 8);
+
+	//	SetStickValue(&MainStick.xCont.SetByKeyboard, &MainStick.xCont.value, MainStick.xCont.Text, x, 561);
+	//	SetStickValue(&MainStick.yCont.SetByKeyboard, &MainStick.yCont.value, MainStick.yCont.Text, y, 486);
+	//}
 }
 
-void TASInputDlg::GetValues(GCPadStatus* PadStatus, int controllerID)
+void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf)
 {
 	if (!IsShown())
+		return;
+	if (!isWii)
+		return;
+
+	GetKeyBoardInput(data, rptf);
+
+	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
+	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
+	u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
+	u8 size = rptf.size;
+
+	if (coreData)
+		SetWiiButtons((wm_core*)coreData);
+
+	if (accelData)
+	{
+		wm_accel* dt = (wm_accel*)accelData;
+		dt->x = xCont.value;
+		dt->y = yCont.value;
+		dt->z = zCont.value;
+	}
+	if (irData)
+	{
+		u16 x[4];
+		u16 y;
+
+		x[0] = MainStick.xCont.value;
+		y = MainStick.yCont.value;
+		x[1] = x[0] + 100;
+		x[2] = x[0] - 10;
+		x[3] = x[1] + 10;
+
+		u8 mode;
+		// Mode 5 not supported in core anyway.
+		if (rptf.ext)
+			mode = (rptf.ext - rptf.ir) == 10 ? 1 : 3;
+		else
+			mode = (rptf.size - rptf.ir) == 10 ? 1 : 3;
+
+		if (mode == 1)
+		{
+			memset(irData, 0xFF, sizeof(wm_ir_basic) * 2);
+			wm_ir_basic* data = (wm_ir_basic*)irData;
+			for (unsigned int i = 0; i < 2; ++i)
+			{
+				if (x[i*2] < 1024 && y < 768)
+				{
+					data[i].x1 = static_cast<u8>(x[i*2]);
+					data[i].x1hi = x[i*2] >> 8;
+
+					data[i].y1 = static_cast<u8>(y);
+					data[i].y1hi = y >> 8;
+				}
+				if (x[i*2+1] < 1024 && y < 768)
+				{
+					data[i].x2 = static_cast<u8>(x[i*2+1]);
+					data[i].x2hi = x[i*2+1] >> 8;
+
+					data[i].y2 = static_cast<u8>(y);
+					data[i].y2hi = y >> 8;
+				}
+			}
+		}
+		else
+		{
+			memset(data, 0xFF, sizeof(wm_ir_extended) * 4);
+			wm_ir_extended* const data = (wm_ir_extended*)irData;
+			for (unsigned int i = 0; i < 4; ++i)
+			{
+				if (x[i] < 1024 && y < 768)
+				{
+					data[i].x = static_cast<u8>(x[i]);
+					data[i].xhi = x[i] >> 8;
+
+					data[i].y = static_cast<u8>(y);
+					data[i].yhi = y >> 8;
+
+					data[i].size = 10;
+				}
+			}
+		}
+	}
+}
+
+void TASInputDlg::GetValues(GCPadStatus* PadStatus)
+{
+	if (!IsShown())
+		return;
+	if (isWii)
 		return;
 
 	//TODO:: Make this instant not when polled.
 	GetKeyBoardInput(PadStatus);
-	SetLandRTriggers();
 
-	PadStatus->stickX = mainX;
-	PadStatus->stickY = mainY;
-	PadStatus->substickX = cX;
-	PadStatus->substickY = cY;
-	PadStatus->triggerLeft = lTrig;
-	PadStatus->triggerRight = rTrig;
+	PadStatus->stickX = MainStick.xCont.value;
+	PadStatus->stickY = MainStick.yCont.value;
+	PadStatus->substickX = CStick.xCont.value;
+	PadStatus->substickY = CStick.yCont.value;
+	PadStatus->triggerLeft = L.Checkbox->GetValue() ? 255 : lCont.Slider->GetValue();
+	PadStatus->triggerRight = R.Checkbox->GetValue() ? 255 : rCont.Slider->GetValue();
 
-	if (wx_up_button->IsChecked())
-		PadStatus->button |= PAD_BUTTON_UP;
-	else
-		PadStatus->button &= ~PAD_BUTTON_UP;
-
-	if (wx_down_button->IsChecked())
-		PadStatus->button |= PAD_BUTTON_DOWN;
-	else
-		PadStatus->button &= ~PAD_BUTTON_DOWN;
-
-	if (wx_left_button->IsChecked())
-		PadStatus->button |= PAD_BUTTON_LEFT;
-	else
-		PadStatus->button &= ~PAD_BUTTON_LEFT;
-
-	if (wx_right_button->IsChecked())
-		PadStatus->button |= PAD_BUTTON_RIGHT;
-	else
-		PadStatus->button &= ~PAD_BUTTON_RIGHT;
-
-	if (wx_a_button->IsChecked())
+	for (unsigned int i = 0; i < 14; ++i)
 	{
-		PadStatus->button |= PAD_BUTTON_A;
+		if (Buttons[i] != nullptr)
+		{
+			if (Buttons[i]->Checkbox->IsChecked())
+				PadStatus->button |= GCPadButtonsBitmask[i];
+			else
+				PadStatus->button &= ~GCPadButtonsBitmask[i];
+		}
+	}
+
+	if (A.Checkbox->IsChecked())
 		PadStatus->analogA = 0xFF;
-	}
 	else
-	{
-		PadStatus->button &= ~PAD_BUTTON_A;
 		PadStatus->analogA = 0x00;
-	}
 
-	if (wx_b_button->IsChecked())
-	{
-		PadStatus->button |= PAD_BUTTON_B;
+	if (B.Checkbox->IsChecked())
 		PadStatus->analogB = 0xFF;
-	}
 	else
-	{
-		PadStatus->button &= ~PAD_BUTTON_B;
 		PadStatus->analogB = 0x00;
-	}
-
-	if (wx_x_button->IsChecked())
-		PadStatus->button |= PAD_BUTTON_X;
-	else
-		PadStatus->button &= ~PAD_BUTTON_X;
-
-	if (wx_y_button->IsChecked())
-		PadStatus->button |= PAD_BUTTON_Y;
-	else
-		PadStatus->button &= ~PAD_BUTTON_Y;
-
-	if (wx_z_button->IsChecked())
-		PadStatus->button |= PAD_TRIGGER_Z;
-	else
-		PadStatus->button &= ~PAD_TRIGGER_Z;
-
-	if (wx_start_button->IsChecked())
-		PadStatus->button |= PAD_BUTTON_START;
-	else
-		PadStatus->button &= ~PAD_BUTTON_START;
-
-	if (wx_r_button->IsChecked() || rTrig >= 255)
-		PadStatus->button |= PAD_TRIGGER_R;
-	else
-		PadStatus->button &= ~PAD_TRIGGER_R;
-
-	if (wx_l_button->IsChecked() || lTrig >= 255)
-		PadStatus->button |= PAD_TRIGGER_L;
-	else
-		PadStatus->button &= ~PAD_TRIGGER_L;
 
 	ButtonTurbo();
 }
@@ -565,154 +562,43 @@ void TASInputDlg::GetValues(GCPadStatus* PadStatus, int controllerID)
 void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 {
 	wxTextCtrl* text;
-	u8* v;
-	update = 0;
 
-	switch (event.GetId())
+	for (unsigned int i = 0; i < 10; ++i)
 	{
-		case ID_MAIN_X_SLIDER:
-			text = wx_mainX_t;
-			v = &mainX;
-			xaxis =((wxSlider*) event.GetEventObject())->GetValue();
-			update = 1;
-			break;
-
-		case ID_MAIN_Y_SLIDER:
-			text = wx_mainY_t;
-			v = &mainY;
-			yaxis = 256 - ((wxSlider*) event.GetEventObject())->GetValue();
-			update = 1;
-			break;
-
-		case ID_C_X_SLIDER:
-			text = wx_cX_t;
-			v = &cX;
-			c_xaxis = ((wxSlider*) event.GetEventObject())->GetValue();
-			update = 2;
-			break;
-
-		case ID_C_Y_SLIDER:
-			text = wx_cY_t;
-			v = &cY;
-			c_yaxis = 256 -((wxSlider*) event.GetEventObject())->GetValue();
-			update = 2;
-			break;
-
-		case ID_L_SLIDER:
-			text = wx_l_t;
-			v = &lTrig;
-			break;
-
-		case ID_R_SLIDER:
-			text = wx_r_t;
-			v = &rTrig;
-			break;
-
-		default:
-			return;
+		if (Controls[i] != nullptr && event.GetId() == Controls[i]->Slider_ID)
+			text = Controls[i]->Text;
 	}
-
 	int value = ((wxSlider*) event.GetEventObject())->GetValue();
-	*v = (u8) value;
-	text->SetValue(wxString::Format("%i", value));
-
-	if (update == 1)
-	{
-		static_bitmap_main->SetBitmap(TASInputDlg::CreateStickBitmap(xaxis, yaxis));
-	}
-
-	if (update == 2)
-	{
-		static_bitmap_c->SetBitmap(TASInputDlg::CreateStickBitmap(c_xaxis, c_yaxis));
-	}
+	text->SetValue(std::to_string(value));
 }
 
 void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 {
-	wxSlider* slider;
-	u8* v;
-	update = 0;
-	update_axis = 0;
-
-	switch (event.GetId())
-	{
-		case ID_MAIN_X_TEXT:
-			slider = wx_mainX_s;
-			v = &mainX;
-			update = 1;
-			update_axis = 1;
-			break;
-
-		case ID_MAIN_Y_TEXT:
-			slider = wx_mainY_s;
-			v = &mainY;
-			update = 1;
-			update_axis = 2;
-			break;
-
-		case ID_C_X_TEXT:
-			slider = wx_cX_s;
-			v = &cX;
-			update = 2;
-			update_axis = 1;
-			break;
-
-		case ID_C_Y_TEXT:
-			slider = wx_cY_s;
-			v = &cY;
-			update = 2;
-			update_axis = 2;
-			break;
-
-		case ID_L_TEXT:
-			slider = wx_l_s;
-			v = &lTrig;
-			break;
-
-		case ID_R_TEXT:
-			slider = wx_r_s;
-			v = &rTrig;
-			break;
-
-		default:
-			return;
-	}
+	int v;
 	unsigned long value;
 
-	if (((wxTextCtrl*) event.GetEventObject())->GetValue().ToULong(&value))
+	if (!((wxTextCtrl*) event.GetEventObject())->GetValue().ToULong(&value))
+		return;
+
+	for (unsigned int i = 0; i < 10; ++i)
 	{
-		*v = (u8) (value > 255 ? 255 : value);
-		slider->SetValue(*v);
-
-		if (update == 1)
+		if (Controls[i] != nullptr && event.GetId() == Controls[i]->Text_ID)
 		{
-			if (update_axis == 1)
-			{
-				xaxis = *v;
-				static_bitmap_main->SetBitmap(TASInputDlg::CreateStickBitmap(xaxis,yaxis));
-			}
-			else if (update_axis == 2)
-			{
-				yaxis =256 - *v;
-				static_bitmap_main->SetBitmap(TASInputDlg::CreateStickBitmap(xaxis,yaxis));
-			}
-
-		}
-		else if (update == 2)
-		{
-			if (update_axis == 1)
-			{
-				c_xaxis = *v;
-				static_bitmap_c->SetBitmap(TASInputDlg::CreateStickBitmap(c_xaxis,c_yaxis));
-			}
-			else if (update_axis == 2)
-			{
-				c_yaxis =256- *v;
-				static_bitmap_c->SetBitmap(TASInputDlg::CreateStickBitmap(c_xaxis,c_yaxis));
-			}
-
+			v = value > Controls[i]->range ? Controls[i]->range : value;
+			Controls[i]->Slider->SetValue(v);
+			Controls[i]->value = v;
 		}
 	}
+	if (!isWii)
+		CStick.bitmap->SetBitmap(CreateStickBitmap(CStick.xCont.value, 255 - CStick.yCont.value));
+
+	int x = (u8)((double)MainStick.xCont.value / (double)MainStick.xCont.range * 255.0);
+	int y = (u8)((double)MainStick.yCont.value / (double)MainStick.yCont.range * 255.0);
+	if (!isWii)
+		y = 255 - (u8)y;
+	else
+		x = 255 - (u8)x;
+	MainStick.bitmap->SetBitmap(CreateStickBitmap(x, y));
 }
 
 void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
@@ -728,394 +614,153 @@ void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
 bool TASInputDlg::TASHasFocus()
 {
 	//allows numbers to be used as hotkeys
-	if (TextBoxHasFocus())
-		return false;
+	for (unsigned int i = 0; i < 10; ++i)
+	{
+		if (Controls[i] != nullptr && wxWindow::FindFocus() == Controls[i]->Text)
+			return false;
+	}
 
 	if (wxWindow::FindFocus() == this)
 		return true;
-	else if (wxWindow::FindFocus() != nullptr &&
-	         wxWindow::FindFocus()->GetParent() == this)
+	else if (wxWindow::FindFocus() != nullptr && wxWindow::FindFocus()->GetParent() == this)
 		return true;
 	else
 		return false;
 }
 
-bool TASInputDlg::TextBoxHasFocus()
-{
-	if (wxWindow::FindFocus() == wx_mainX_t)
-		return true;
-
-	if (wxWindow::FindFocus() == wx_mainY_t)
-		return true;
-
-	if (wxWindow::FindFocus() == wx_cX_t)
-		return true;
-
-	if (wxWindow::FindFocus() == wx_cY_t)
-		return true;
-
-	if (wxWindow::FindFocus() == wx_l_t)
-		return true;
-
-	if (wxWindow::FindFocus() == wx_r_t)
-		return true;
-
-	return false;
-}
-
 void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 {
-	wxSlider *sliderX,*sliderY;
-	wxStaticBitmap* sbitmap;
-	wxTextCtrl *textX, *textY;
-	int *x,*y;
+	Stick* stick = nullptr;
+	if (event.GetId() == ID_MAIN_STICK)
+		stick = &MainStick;
+	else if (event.GetId() == ID_C_STICK)
+		stick = &CStick;
 
-	switch (event.GetId())
+	if (stick == nullptr)
+		return;
+
+	u32 xCenter = stick->xCont.range / 2 + (stick->xCont.range % 2 == 0 ? 0 : 1);
+	u32 yCenter = stick->yCont.range / 2 + (stick->yCont.range % 2 == 0 ? 0 : 1);
+
+	stick->xCont.value = xCenter;
+	stick->yCont.value = yCenter;
+	stick->bitmap->SetBitmap(CreateStickBitmap(128,128));
+	stick->xCont.Text->SetValue(std::to_string(xCenter));
+	stick->yCont.Text->SetValue(std::to_string(yCenter));
+	stick->xCont.Slider->SetValue(xCenter);
+	stick->yCont.Slider->SetValue(yCenter);
+
+	event.Skip(true);
+}
+
+void TASInputDlg::OnRightClickSlider(wxMouseEvent& event)
+{
+	for (unsigned int i = 0; i < 10; ++i)
 	{
-		case ID_MAIN_STICK:
-			sliderX = wx_mainX_s;
-			sliderY = wx_mainY_s;
-			textX = wx_mainX_t;
-			textY = wx_mainY_t;
-			sbitmap = static_bitmap_main;
-			x = &xaxis;
-			y = &yaxis;
-			break;
-
-		case ID_C_STICK:
-			sliderX = wx_cX_s;
-			sliderY = wx_cY_s;
-			textX = wx_cX_t;
-			textY = wx_cY_t;
-			sbitmap = static_bitmap_c;
-			x = &c_xaxis;
-			y = &c_yaxis;
-			break;
-
-		default:
-			return;
+		if (Controls[i] != nullptr && event.GetId() == Controls[i]->Slider_ID)
+		{
+			Controls[i]->value = Controls[i]->defaultValue;
+			Controls[i]->Slider->SetValue(Controls[i]->defaultValue);
+			Controls[i]->Text->SetValue(std::to_string(Controls[i]->defaultValue));
+		}
 	}
-
-	*x = 128;
-	*y = 128;
-
-	sbitmap->SetBitmap(TASInputDlg::CreateStickBitmap(*x,*y));
-
-	textX->SetValue(wxString::Format("%i", *x));
-	textY->SetValue(wxString::Format("%i", 256 - *y));
-
-	sliderX->SetValue(*x);
-	sliderY->SetValue(256 - *y);
-	event.Skip();
 }
 
 void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 {
-	if (event.GetEventType() == wxEVT_MOTION && !event.LeftIsDown())
+	if (!event.LeftIsDown())
 		return;
 
-	wxSlider *sliderX,*sliderY;
-	wxStaticBitmap* sbitmap;
-	wxTextCtrl *textX, *textY;
-	int *x,*y;
-
-	switch (event.GetId())
-	{
-		case ID_MAIN_STICK:
-			sliderX = wx_mainX_s;
-			sliderY = wx_mainY_s;
-			textX = wx_mainX_t;
-			textY = wx_mainY_t;
-			sbitmap = static_bitmap_main;
-			x = &xaxis;
-			y = &yaxis;
-			break;
-
-		case ID_C_STICK:
-			sliderX = wx_cX_s;
-			sliderY = wx_cY_s;
-			textX = wx_cX_t;
-			textY = wx_cY_t;
-			sbitmap = static_bitmap_c;
-			x = &c_xaxis;
-			y = &c_yaxis;
-			break;
-
-		default:
-			return;
-	}
+	Stick* stick;
+	if (event.GetId() == ID_MAIN_STICK)
+		stick = &MainStick;
+	else if (event.GetId() == ID_C_STICK)
+		stick = &CStick;
+	else
+		return;
 
 	wxPoint ptM(event.GetPosition());
-	*x = ptM.x *2;
-	*y = ptM.y * 2;
+	stick->xCont.value = ptM.x * stick->xCont.range / 127;
+	stick->yCont.value = ptM.y * stick->yCont.range / 127;
 
-	if (*x > 255)
-		*x = 255;
+	if ((unsigned)stick->yCont.value > stick->yCont.range)
+		stick->yCont.value = stick->yCont.range;
+	if ((unsigned)stick->xCont.value > stick->xCont.range)
+		stick->xCont.value = stick->xCont.range;
 
-	if (*y > 255)
-		*y = 255;
+	if (!isWii)
+		stick->yCont.value = 255 - (u8)stick->yCont.value;
+	else
+		stick->xCont.value = stick->xCont.range - (u16)stick->xCont.value;
 
-	sbitmap->SetBitmap(TASInputDlg::CreateStickBitmap(*x,*y));
+	stick->xCont.value = (unsigned)stick->xCont.value > stick->xCont.range ? stick->xCont.range : stick->xCont.value;
+	stick->yCont.value = (unsigned)stick->yCont.value > stick->yCont.range ? stick->yCont.range : stick->yCont.value;
+	stick->xCont.value = (unsigned)stick->xCont.value < 0 ? 0 : stick->xCont.value;
+	stick->yCont.value = (unsigned)stick->yCont.value < 0 ? 0 : stick->yCont.value;
 
-	textX->SetValue(wxString::Format("%i", *x));
-	textY->SetValue(wxString::Format("%i", 256 - *y));
+	int x = (u8)((double)stick->xCont.value / (double)stick->xCont.range * 255.0);
+	int y = (u8)((double)stick->yCont.value / (double)stick->yCont.range * 255.0);
 
-	sliderX->SetValue(*x);
-	sliderY->SetValue(256 - *y);
-	event.Skip();
-}
+	stick->bitmap->SetBitmap(CreateStickBitmap(ptM.x*2, ptM.y*2));
 
-void TASInputDlg::SetTurboFalse(wxMouseEvent& event)
-{
-	switch (event.GetId())
-	{
-		case ID_A:
-			A_turbo = false;
-			break;
+	stick->xCont.Text->SetValue(std::to_string(stick->xCont.value));
+	stick->yCont.Text->SetValue(std::to_string(stick->yCont.value));
 
-		case ID_B:
-			B_turbo = false;
-			break;
-
-		case ID_X:
-			X_turbo = false;
-			break;
-
-		case ID_Y:
-			Y_turbo = false;
-			break;
-
-		case ID_Z:
-			Z_turbo = false;
-			break;
-
-		case ID_L:
-			L_turbo = false;
-			break;
-
-		case ID_R:
-			R_turbo = false;
-			break;
-
-		case ID_START:
-			START_turbo = false;
-			break;
-
-		case ID_UP:
-			DU_turbo = false;
-			break;
-
-		case ID_DOWN:
-			DD_turbo = false;
-			break;
-
-		case ID_LEFT:
-			DL_turbo = false;
-			break;
-
-		case ID_RIGHT:
-			DR_turbo = false;
-			break;
-
-		default:
-			return;
-	}
-
-	event.Skip();
+	stick->xCont.Slider->SetValue(stick->xCont.value);
+	stick->yCont.Slider->SetValue(stick->yCont.value);
+	event.Skip(true);
 }
 
 void TASInputDlg::SetTurbo(wxMouseEvent& event)
 {
-	wxCheckBox* placeholder;
-
-	switch (event.GetId())
+	Button* button;
+	for (unsigned int i = 0; i < 14; ++i)
 	{
-		case ID_A:
-			placeholder = wx_a_button;
-			A_turbo = !A_turbo;
-			break;
-
-		case ID_B:
-			placeholder = wx_b_button;
-			B_turbo = !B_turbo;
-			break;
-
-		case ID_X:
-			placeholder = wx_x_button;
-			X_turbo = !X_turbo;
-			break;
-
-		case ID_Y:
-			placeholder = wx_y_button;
-			Y_turbo = !Y_turbo;
-			break;
-
-		case ID_Z:
-			placeholder = wx_z_button;
-			Z_turbo = !Z_turbo;
-			break;
-
-		case ID_L:
-			placeholder = wx_l_button;
-			L_turbo = !L_turbo;
-			break;
-
-		case ID_R:
-			placeholder = wx_r_button;
-			R_turbo = !R_turbo;
-			break;
-
-		case ID_START:
-			placeholder = wx_start_button;
-			START_turbo = !START_turbo;
-			break;
-
-		case ID_UP:
-			placeholder = wx_up_button;
-			DU_turbo = !DU_turbo;
-			break;
-
-		case ID_DOWN:
-			placeholder = wx_down_button;
-			DD_turbo = !DD_turbo;
-			break;
-
-		case ID_LEFT:
-			placeholder = wx_left_button;
-			DL_turbo = !DL_turbo;
-			break;
-
-		case ID_RIGHT:
-			placeholder = wx_right_button;
-			DR_turbo = !DR_turbo;
-			break;
-		default:
-			return;
+		if (Buttons[i] != nullptr && event.GetId() == Buttons[i]->ID)
+			button = Buttons[i];
 	}
-	placeholder->SetValue(true);
+	if (event.LeftDown())
+	{
+		button->TurboOn = false;
+		event.Skip(true);
+		return;
+	}
+	button->Checkbox->SetValue(true);
+	button->TurboOn = !button->TurboOn;
+	event.Skip(true);
 }
 
 void TASInputDlg::ButtonTurbo()
 {
-	if (A_turbo)
+	for (unsigned int i = 0; i < 14; ++i)
 	{
-		if (wx_a_button->GetValue())
-			wx_a_button->SetValue(false);
-		else
-			wx_a_button->SetValue(true);
-	}
-
-	if (B_turbo)
-	{
-		if (wx_b_button->GetValue())
-			wx_b_button->SetValue(false);
-		else
-			wx_b_button->SetValue(true);
-	}
-
-	if (X_turbo)
-	{
-		if (wx_x_button->GetValue())
-			wx_x_button->SetValue(false);
-		else
-			wx_x_button->SetValue(true);
-	}
-
-	if (Y_turbo)
-	{
-		if (wx_y_button->GetValue())
-			wx_y_button->SetValue(false);
-		else
-			wx_y_button->SetValue(true);
-	}
-
-	if (Z_turbo)
-	{
-		if (wx_z_button->GetValue())
-			wx_z_button->SetValue(false);
-		else
-			wx_z_button->SetValue(true);
-	}
-
-	if (L_turbo)
-	{
-		if (wx_l_button->GetValue())
-			wx_l_button->SetValue(false);
-		else
-			wx_l_button->SetValue(true);
-	}
-
-	if (R_turbo)
-	{
-		if (wx_r_button->GetValue())
-			wx_r_button->SetValue(false);
-		else
-			wx_r_button->SetValue(true);
-	}
-
-	if (START_turbo)
-	{
-		if (wx_start_button->GetValue())
-			wx_start_button->SetValue(false);
-		else
-			wx_start_button->SetValue(true);
-		}
-
-	if (DU_turbo)
-	{
-		if (wx_up_button->GetValue())
-			wx_up_button->SetValue(false);
-		else
-			wx_up_button->SetValue(true);
-	}
-
-	if (DD_turbo)
-	{
-		if (wx_down_button->GetValue())
-			wx_down_button->SetValue(false);
-		else
-			wx_down_button->SetValue(true);
-	}
-
-	if (DL_turbo)
-	{
-		if (wx_left_button->GetValue())
-			wx_left_button->SetValue(false);
-		else
-			wx_left_button->SetValue(true);
-	}
-
-	if (DR_turbo)
-	{
-		if (wx_right_button->GetValue())
-			wx_right_button->SetValue(false);
-		else
-			wx_right_button->SetValue(true);
+		if (Buttons[i] != nullptr && Buttons[i]->TurboOn)
+			Buttons[i]->Checkbox->SetValue(!Buttons[i]->Checkbox->GetValue());
 	}
 }
 
 wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
 {
-	x = x/2;
-	y = y/2;
+	x = x / 2;
+	y = y / 2;
 
 	wxMemoryDC memDC;
-	wxBitmap stick_bitmap(127, 127);
-	memDC.SelectObject(stick_bitmap);
+	wxBitmap bitmap(129, 129);
+	memDC.SelectObject(bitmap);
 	memDC.SetBackground(*wxLIGHT_GREY_BRUSH);
 	memDC.Clear();
 	memDC.SetBrush(*wxWHITE_BRUSH);
-	memDC.DrawCircle(65,65,64);
+	memDC.DrawCircle(65, 65, 64);
 	memDC.SetBrush(*wxRED_BRUSH);
-	memDC.DrawLine(64,64,x,y);
-	memDC.DrawLine(63,64,x-1,y);
-	memDC.DrawLine(65,64,x+1,y);
-	memDC.DrawLine(64,63,x,y-1);
-	memDC.DrawLine(64,65,x,y+1);
+	memDC.DrawLine(64, 64, x, y);
+	memDC.DrawLine(63, 64, x - 1, y);
+	memDC.DrawLine(65, 64, x + 1 , y);
+	memDC.DrawLine(64, 63, x, y - 1);
+	memDC.DrawLine(64, 65, x, y + 1);
 	memDC.SetPen(*wxBLACK_PEN);
-	memDC.CrossHair(64,64);
+	memDC.CrossHair(64, 64);
 	memDC.SetBrush(*wxBLUE_BRUSH);
-	memDC.DrawCircle(x,y,5);
+	memDC.DrawCircle(x, y, 5);
 	memDC.SelectObject(wxNullBitmap);
-	return stick_bitmap;
+	return bitmap;
 }
