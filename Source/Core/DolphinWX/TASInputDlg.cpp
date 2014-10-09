@@ -169,7 +169,6 @@ void TASInputDlg::CreateGCLayout()
 {
 	if (hasLayout)
 		return;
-	hasLayout = true;
 
 	Buttons[6] = &X;
 	Buttons[7] = &Y;
@@ -250,6 +249,8 @@ void TASInputDlg::CreateGCLayout()
 	main_szr->Add(bottom_box);
 	SetSizerAndFit(main_szr);
 	ResetValues();
+
+	hasLayout = true;
 }
 
 
@@ -620,6 +621,8 @@ void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
 
 bool TASInputDlg::TASHasFocus()
 {
+	if (!hasLayout)
+		return false;
 	//allows numbers to be used as hotkeys
 	for (unsigned int i = 0; i < 10; ++i)
 	{
