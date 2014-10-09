@@ -259,7 +259,7 @@ public final class EmulationActivity extends Activity
 				builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which)
 					{
-						finish();
+						onDestroy();
 					}
 				});
 				builder.show();
