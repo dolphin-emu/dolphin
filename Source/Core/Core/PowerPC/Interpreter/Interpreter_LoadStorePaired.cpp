@@ -109,20 +109,20 @@ float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quant
 		break;
 
 	case QUANTIZE_U8:
-		fResult = static_cast<float>(Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = (float)Memory::Read_U8(_Addr) * m_dequantizeTable[_uScale];
 		break;
 
 	case QUANTIZE_U16:
-		fResult = static_cast<float>(Memory::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = (float)Memory::Read_U16(_Addr) * m_dequantizeTable[_uScale];
 		break;
 
 	case QUANTIZE_S8:
-		fResult = static_cast<float>((s8)Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = (float)(s8)Memory::Read_U8(_Addr) * m_dequantizeTable[_uScale];
 		break;
 
 		// used for THP player
 	case QUANTIZE_S16:
-		fResult = static_cast<float>((s16)Memory::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
+		fResult = (float)(s16)Memory::Read_U16(_Addr) * m_dequantizeTable[_uScale];
 		break;
 
 	default:

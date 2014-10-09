@@ -107,17 +107,17 @@ void GCPad::GetInput(GCPadStatus* const pad)
 
 	// sticks
 	m_main_stick->GetState(&x, &y);
-	pad->stickX = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X + (x * GCPadStatus::MAIN_STICK_RADIUS));
-	pad->stickY = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y + (y * GCPadStatus::MAIN_STICK_RADIUS));
+	pad->stickX = (u8)(GCPadStatus::MAIN_STICK_CENTER_X + (x * GCPadStatus::MAIN_STICK_RADIUS));
+	pad->stickY = (u8)(GCPadStatus::MAIN_STICK_CENTER_Y + (y * GCPadStatus::MAIN_STICK_RADIUS));
 
 	m_c_stick->GetState(&x, &y);
-	pad->substickX = static_cast<u8>(GCPadStatus::C_STICK_CENTER_X + (x * GCPadStatus::C_STICK_RADIUS));
-	pad->substickY = static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y + (y * GCPadStatus::C_STICK_RADIUS));
+	pad->substickX = (u8)(GCPadStatus::C_STICK_CENTER_X + (x * GCPadStatus::C_STICK_RADIUS));
+	pad->substickY = (u8)(GCPadStatus::C_STICK_CENTER_Y + (y * GCPadStatus::C_STICK_RADIUS));
 
 	// triggers
 	m_triggers->GetState(&pad->button, trigger_bitmasks, triggers);
-	pad->triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
-	pad->triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+	pad->triggerLeft = (u8)(triggers[0] * 0xFF);
+	pad->triggerRight = (u8)(triggers[1] * 0xFF);
 }
 
 void GCPad::SetMotor(const u8 on)

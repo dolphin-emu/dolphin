@@ -144,7 +144,7 @@ static void ApplySSAASettings()
 			if (g_ogl_config.bSupportSampleShading)
 			{
 				glEnable(GL_SAMPLE_SHADING_ARB);
-				GLfloat min_sample_shading_value = static_cast<GLfloat>(s_MSAASamples);
+				GLfloat min_sample_shading_value = (GLfloat)s_MSAASamples;
 				glMinSampleShadingARB(min_sample_shading_value);
 			}
 			else
@@ -844,7 +844,7 @@ void Renderer::DrawDebugInfo()
 
 		s_ShowEFBCopyRegions.Bind();
 		glBindVertexArray(s_ShowEFBCopyRegions_VAO);
-		GLsizei count = static_cast<GLsizei>(stats.efb_regions.size() * 2*6);
+		GLsizei count = (GLsizei)(stats.efb_regions.size() * 2*6);
 		glDrawArrays(GL_LINES, 0, count);
 
 		// Restore Line Size
@@ -1204,7 +1204,7 @@ void Renderer::SetViewport()
 	{
 		auto iceilf = [](float f)
 		{
-			return static_cast<GLint>(ceilf(f));
+			return (GLint)ceilf(f);
 		};
 		glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
 	}
@@ -1431,10 +1431,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			if (g_ActiveConfig.bUseRealXFB)
 			{
-				drawRc.top      = static_cast<float>(flipped_trc.top);
-				drawRc.bottom   = static_cast<float>(flipped_trc.bottom);
-				drawRc.left     = static_cast<float>(flipped_trc.left);
-				drawRc.right    = static_cast<float>(flipped_trc.right);
+				drawRc.top      = (float)flipped_trc.top;
+				drawRc.bottom   = (float)flipped_trc.bottom;
+				drawRc.left     = (float)flipped_trc.left;
+				drawRc.right    = (float)flipped_trc.right;
 			}
 			else
 			{
@@ -1450,10 +1450,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				rect_u32.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / fbStride)/2;
 				rect_u32.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / fbStride)/2;
 
-				drawRc.top      = static_cast<float>(rect_u32.top);
-				drawRc.bottom   = static_cast<float>(rect_u32.bottom);
-				drawRc.left     = static_cast<float>(rect_u32.left);
-				drawRc.right    = static_cast<float>(rect_u32.right);
+				drawRc.top      = (float)rect_u32.top;
+				drawRc.bottom   = (float)rect_u32.bottom;
+				drawRc.left     = (float)rect_u32.left;
+				drawRc.right    = (float)rect_u32.right;
 
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target

@@ -63,11 +63,11 @@ void SWBPWritten(int address, int newvalue)
 		break;
 	case BPMEM_PE_TOKEN_ID: // Pixel Engine Token ID
 		DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bpmem.petoken & 0xFFFF));
-		PixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), false);
+		PixelEngine::SetToken((u16)bpmem.petokenint, false);
 		break;
 	case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID
 		DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bpmem.petokenint & 0xFFFF));
-		PixelEngine::SetToken(static_cast<u16>(bpmem.petokenint & 0xFFFF), true);
+		PixelEngine::SetToken((u16)bpmem.petokenint, true);
 		break;
 	case BPMEM_TRIGGER_EFB_COPY:
 		EfbCopy::CopyEfb();
@@ -154,8 +154,8 @@ void SWBPWritten(int address, int newvalue)
 			TevReg& reg = bpmem.tevregs[regNum];
 			bool is_konst = reg.type_ra != 0;
 
-			Rasterizer::SetTevReg(regNum, Tev::ALP_C, is_konst, static_cast<s16>(reg.alpha));
-			Rasterizer::SetTevReg(regNum, Tev::RED_C, is_konst, static_cast<s16>(reg.red));
+			Rasterizer::SetTevReg(regNum, Tev::ALP_C, is_konst, (s16)reg.alpha);
+			Rasterizer::SetTevReg(regNum, Tev::RED_C, is_konst, (s16)reg.red);
 
 			break;
 		}
@@ -169,8 +169,8 @@ void SWBPWritten(int address, int newvalue)
 			TevReg& reg = bpmem.tevregs[regNum];
 			bool is_konst = reg.type_bg != 0;
 
-			Rasterizer::SetTevReg(regNum, Tev::GRN_C, is_konst, static_cast<s16>(reg.green));
-			Rasterizer::SetTevReg(regNum, Tev::BLU_C, is_konst, static_cast<s16>(reg.blue));
+			Rasterizer::SetTevReg(regNum, Tev::GRN_C, is_konst, (s16)reg.green);
+			Rasterizer::SetTevReg(regNum, Tev::BLU_C, is_konst, (s16)reg.blue);
 
 			break;
 		}

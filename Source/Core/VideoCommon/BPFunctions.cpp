@@ -212,14 +212,14 @@ void OnPixelFormatChange()
 
 	if (convtype == -1)
 	{
-		ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d\n", static_cast<int>(old_format), static_cast<int>(new_format));
+		ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d\n", (int)old_format, (int)new_format);
 		goto skip;
 	}
 
 	g_renderer->ReinterpretPixelData(convtype);
 
 skip:
-	DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", static_cast<int>(new_format), static_cast<int>(bpmem.zcontrol.zformat));
+	DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", (int)new_format, (int)bpmem.zcontrol.zformat);
 
 	Renderer::StorePixelFormat(new_format);
 }

@@ -317,7 +317,7 @@ void Update(u64 userdata, int cyclesLate)
 		const u64 Diff = CoreTiming::GetTicks() - g_LastCPUTime;
 		if (Diff > g_CPUCyclesPerSample)
 		{
-			const u32 Samples = static_cast<u32>(Diff / g_CPUCyclesPerSample);
+			const u32 Samples = (u32)(Diff / g_CPUCyclesPerSample);
 			g_LastCPUTime += Samples * g_CPUCyclesPerSample;
 			IncreaseSampleCount(Samples);
 		}
