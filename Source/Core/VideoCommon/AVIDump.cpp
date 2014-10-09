@@ -273,7 +273,7 @@ bool AVIDump::CreateFile()
 	s_stream->codec->bit_rate = 400000;
 	s_stream->codec->width = s_width;
 	s_stream->codec->height = s_height;
-	s_stream->codec->time_base = (AVRational){1, static_cast<int>(VideoInterface::TargetRefreshRate)};
+	s_stream->codec->time_base = (AVRational){1, (int)VideoInterface::TargetRefreshRate};
 	s_stream->codec->gop_size = 12;
 	s_stream->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
 

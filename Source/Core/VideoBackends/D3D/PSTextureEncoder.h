@@ -62,7 +62,7 @@ private:
 	ComboKey MakeComboKey(unsigned int dstFormat,
 		PEControl::PixelFormat srcFormat, bool isIntensity, bool scaleByHalf)
 	{
-		return (dstFormat << 4) | (static_cast<int>(srcFormat) << 2) | (isIntensity ? (1<<1) : 0)
+		return (dstFormat << 4) | ((int)srcFormat << 2) | (isIntensity ? (1<<1) : 0)
 			| (scaleByHalf ? (1<<0) : 0);
 	}
 

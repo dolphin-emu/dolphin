@@ -484,42 +484,42 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf)
 		if (mode == 1)
 		{
 			memset(irData, 0xFF, sizeof(wm_ir_basic) * 2);
-			wm_ir_basic* data = (wm_ir_basic*)irData;
+			wm_ir_basic* irBasic = (wm_ir_basic*)irData;
 			for (unsigned int i = 0; i < 2; ++i)
 			{
 				if (x[i*2] < 1024 && y < 768)
 				{
-					data[i].x1 = static_cast<u8>(x[i*2]);
-					data[i].x1hi = x[i*2] >> 8;
+					irBasic[i].x1 = (u8)x[i*2];
+					irBasic[i].x1hi = x[i*2] >> 8;
 
-					data[i].y1 = static_cast<u8>(y);
-					data[i].y1hi = y >> 8;
+					irBasic[i].y1 = (u8)y;
+					irBasic[i].y1hi = y >> 8;
 				}
 				if (x[i*2+1] < 1024 && y < 768)
 				{
-					data[i].x2 = static_cast<u8>(x[i*2+1]);
-					data[i].x2hi = x[i*2+1] >> 8;
+					irBasic[i].x2 = (u8)x[i*2+1];
+					irBasic[i].x2hi = x[i*2+1] >> 8;
 
-					data[i].y2 = static_cast<u8>(y);
-					data[i].y2hi = y >> 8;
+					irBasic[i].y2 = (u8)y;
+					irBasic[i].y2hi = y >> 8;
 				}
 			}
 		}
 		else
 		{
 			memset(data, 0xFF, sizeof(wm_ir_extended) * 4);
-			wm_ir_extended* const data = (wm_ir_extended*)irData;
+			wm_ir_extended* const irExtended = (wm_ir_extended*)irData;
 			for (unsigned int i = 0; i < 4; ++i)
 			{
 				if (x[i] < 1024 && y < 768)
 				{
-					data[i].x = static_cast<u8>(x[i]);
-					data[i].xhi = x[i] >> 8;
+					irExtended[i].x = (u8)x[i];
+					irExtended[i].xhi = x[i] >> 8;
 
-					data[i].y = static_cast<u8>(y);
-					data[i].yhi = y >> 8;
+					irExtended[i].y = (u8)y;
+					irExtended[i].yhi = y >> 8;
 
-					data[i].size = 10;
+					irExtended[i].size = 10;
 				}
 			}
 		}

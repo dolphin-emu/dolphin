@@ -55,7 +55,7 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", (int)bpmem.zcontrol.pixel_format);
 		}
 	}
 
@@ -95,7 +95,7 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", (int)bpmem.zcontrol.pixel_format);
 		}
 	}
 
@@ -136,7 +136,7 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", (int)bpmem.zcontrol.pixel_format);
 		}
 	}
 
@@ -172,7 +172,7 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", (int)bpmem.zcontrol.pixel_format);
 		}
 	}
 
@@ -200,7 +200,7 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", (int)bpmem.zcontrol.pixel_format);
 		}
 	}
 
@@ -224,7 +224,7 @@ namespace EfbInterface
 			}
 			break;
 		default:
-			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+			ERROR_LOG(VIDEO, "Unsupported pixel format: %i", (int)bpmem.zcontrol.pixel_format);
 		}
 
 		return depth;

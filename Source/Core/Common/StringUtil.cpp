@@ -184,7 +184,7 @@ bool TryParse(const std::string &str, u32 *const output)
 		return false;
 #endif
 
-	*output = static_cast<u32>(value);
+	*output = (u32)value;
 	return true;
 }
 

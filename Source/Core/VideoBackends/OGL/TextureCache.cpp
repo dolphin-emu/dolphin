@@ -293,8 +293,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		}
 
 		TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
-		glUniform4f(uniform_location, static_cast<float>(R.left), static_cast<float>(R.top),
-			static_cast<float>(R.right), static_cast<float>(R.bottom));
+		glUniform4f(uniform_location, (float)R.left, (float)R.top,
+			(float)R.right, (float)R.bottom);
 		GL_REPORT_ERRORD();
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

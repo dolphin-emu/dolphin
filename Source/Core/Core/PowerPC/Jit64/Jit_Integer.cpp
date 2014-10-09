@@ -569,8 +569,8 @@ void Jit64::boolX(UGeckoInstruction inst)
 
 	if (gpr.R(s).IsImm() && gpr.R(b).IsImm())
 	{
-		const u32 rs_offset = static_cast<u32>(gpr.R(s).offset);
-		const u32 rb_offset = static_cast<u32>(gpr.R(b).offset);
+		const u32 rs_offset = (u32)gpr.R(s).offset;
+		const u32 rb_offset = (u32)gpr.R(b).offset;
 
 		if (inst.SUBOP10 == 28)       // andx
 			gpr.SetImmediate32(a, rs_offset & rb_offset);

@@ -185,12 +185,12 @@ static void BPWritten(const BPCmd& bp)
 		return;
 	case BPMEM_PE_TOKEN_ID: // Pixel Engine Token ID
 		if (!g_use_deterministic_gpu_thread)
-			PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), false);
+			PixelEngine::SetToken((u16)bp.newvalue, false);
 		DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bp.newvalue & 0xFFFF));
 		return;
 	case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID
 		if (!g_use_deterministic_gpu_thread)
-			PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), true);
+			PixelEngine::SetToken((u16)bp.newvalue, true);
 		DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bp.newvalue & 0xFFFF));
 		return;
 
@@ -241,7 +241,7 @@ static void BPWritten(const BPCmd& bp)
 
 				float num_xfb_lines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
 
-				u32 height = static_cast<u32>(num_xfb_lines);
+				u32 height = (u32)num_xfb_lines;
 				if (height > MAX_XFB_HEIGHT)
 				{
 					INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines: %d (%f)",

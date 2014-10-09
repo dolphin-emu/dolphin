@@ -204,7 +204,7 @@ void CWiiSaveCrypted::WriteHDR()
 	memset(&m_header, 0, HEADER_SZ);
 
 	std::string banner_file_path = m_wii_title_path + "banner.bin";
-	u32 banner_size = static_cast<u32>(File::GetSize(banner_file_path));
+	u32 banner_size = (u32)File::GetSize(banner_file_path);
 	m_header.hdr.BannerSize =  Common::swap32(banner_size);
 
 	m_header.hdr.SaveGameTitle = Common::swap64(m_title_id);
@@ -398,7 +398,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 		}
 		else
 		{
-			file_size = static_cast<u32>(File::GetSize(m_files_list[i]));
+			file_size = (u32)File::GetSize(m_files_list[i]);
 			file_hdr_tmp.type = 1;
 		}
 

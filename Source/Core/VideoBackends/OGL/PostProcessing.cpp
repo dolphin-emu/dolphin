@@ -292,7 +292,7 @@ std::string OpenGLPostProcessing::LoadShaderOptions(const std::string& code)
 		}
 		else if (it.second.m_type == PostProcessingShaderConfiguration::ConfigurationOption::OptionType::OPTION_INTEGER)
 		{
-			u32 count = static_cast<u32>(it.second.m_integer_values.size());
+			u32 count = (u32)it.second.m_integer_values.size();
 			if (count == 1)
 				glsl_options += StringFromFormat("uniform int     option_%s;\n", it.first.c_str());
 			else
@@ -300,7 +300,7 @@ std::string OpenGLPostProcessing::LoadShaderOptions(const std::string& code)
 		}
 		else if (it.second.m_type == PostProcessingShaderConfiguration::ConfigurationOption::OptionType::OPTION_FLOAT)
 		{
-			u32 count = static_cast<u32>(it.second.m_float_values.size());
+			u32 count = (u32)it.second.m_float_values.size();
 			if (count == 1)
 				glsl_options += StringFromFormat("uniform float   option_%s;\n", it.first.c_str());
 			else
