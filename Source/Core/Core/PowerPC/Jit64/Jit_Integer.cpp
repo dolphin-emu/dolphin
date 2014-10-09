@@ -355,7 +355,8 @@ void Jit64::DoMergedBranch()
 	else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
 	{
 		MOV(32, R(RSCRATCH), M(&LR));
-		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
+		if (!m_enable_blr_optimization)
+			AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
 		if (js.next_inst.LK)
 			MOV(32, M(&LR), Imm32(js.next_compilerPC + 4));
 		WriteBLRExit();

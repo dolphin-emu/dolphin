@@ -48,6 +48,7 @@ void Jit64AsmRoutineManager::Generate()
 		ABI_PopRegistersAndAdjustStack({}, 0);
 		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
 		dispatcherMispredictedBLR = GetCodePtr();
+		AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
 
 		#if 0 // debug mispredicts
 		MOV(32, R(ABI_PARAM1), MDisp(RSP, 8)); // guessed_pc
