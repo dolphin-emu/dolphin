@@ -1389,10 +1389,29 @@ void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnConfigVR(wxCommandEvent& WXUNUSED(event))
 {
+	InputConfig* const pad_plugin = Pad::GetConfig();
+	bool was_init = false;
+	if (g_controller_interface.IsInit()) // check if game is running
+	{
+		was_init = true;
+	}
+	else
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		Window win = X11Utils::XWindowFromHandle(GetHandle());
+		Pad::Initialize(reinterpret_cast<void*>(win));
+#else
+		Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
+#endif
+	}
+	
 	CConfigVR ConfigVR(this);
-	//ConfigMain.SetSelectedTab(CConfigMain::ID_VRPAGE);
-	if (ConfigVR.ShowModal() == wxID_OK)
-		m_GameListCtrl->Update();
+	ConfigVR.ShowModal();
+	ConfigVR.Destroy();
+	if (!was_init) // if game isn't running
+	{
+		Pad::Shutdown();
+	}
 }
 
 void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED (event))

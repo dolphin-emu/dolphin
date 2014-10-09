@@ -2,84 +2,28 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <algorithm>
-#include <functional>
-#include <string>
-#include <vector>
-
-#include <wx/bitmap.h>
-#include <wx/chartype.h>
-#include <wx/checkbox.h>
-#include <wx/choice.h>
-#include <wx/dcmemory.h>
-#include <wx/defs.h>
-#include <wx/dialog.h>
-#include <wx/event.h>
-#include <wx/filepicker.h>
+#include <wx/combobox.h>
 #include <wx/gbsizer.h>
-#include <wx/gdicmn.h>
-#include <wx/layout.h>
-#include <wx/listbox.h>
-#include <wx/menu.h>
-#include <wx/msgdlg.h>
 #include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/radiobox.h>
 #include <wx/sizer.h>
-#include <wx/slider.h>
-#include <wx/spinbutt.h>
-#include <wx/spinctrl.h>
-#include <wx/statbmp.h>
 #include <wx/stattext.h>
-#include <wx/string.h>
-#include <wx/textctrl.h>
-#include <wx/translation.h>
-#include <wx/validate.h>
-#include <wx/window.h>
-#include <wx/windowid.h>
-
 
 #include "DolphinWX/WXInputBase.h"
 
-#include "Common/CommonPaths.h"
-#include "Common/CommonTypes.h"
-#include "Common/FileSearch.h"
-#include "Common/SysConf.h"
-
-#include "Core/ConfigManager.h"
-#include "Core/CoreParameter.h"
 #include "Core/Core.h"
 
 #include "DolphinWX/ConfigVR.h"
-#include "DolphinWX/Frame.h"
-#include "DolphinWX/Globals.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
-#include "DolphinWX/Debugger/CodeWindow.h"
-
-#define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text)
-
-#ifdef WIN32
-//only used with xgettext to be picked up as translatable string.
-//win32 does not have wx on its path, the provided wxALL_FILES
-//translation does not work there.
-#define unusedALL_FILES wxTRANSLATE("All files (*.*)|*.*");
-#endif
 
 BEGIN_EVENT_TABLE(CConfigVR, wxDialog)
 
-EVT_COMMAND_RANGE(0, NUM_VR_OPTIONS - 1, wxEVT_BUTTON, CConfigVR::OnButtonClick)
+//EVT_COMMAND_RANGE(0, NUM_VR_OPTIONS - 1, wxEVT_BUTTON, CConfigVR::OnButtonClick)
+//EVT_COMMAND_RANGE(0, NUM_VR_OPTIONS - 1, wxEVT_BUTTON, CConfigVR::DetectControl)
+
 //EVT_TIMER(wxID_ANY, CConfigVR::OnButtonTimer)
 
 EVT_CLOSE(CConfigVR::OnClose)
-//EVT_RADIOBOX(ID_DSPENGINE, CConfigVR::AudioSettingsChanged)
-//EVT_SLIDER(ID_VOLUME, CConfigVR::AudioSettingsChanged)
-//EVT_CHOICE(ID_WII_IPL_LNG, CConfigVR::WiiSettingsChanged)
-//EVT_LISTBOX(ID_ISOPATHS, CConfigVR::ISOPathsSelectionChanged)
-//EVT_CHECKBOX(ID_RECURSIVEISOPATH, CConfigVR::RecursiveDirectoryChanged)
-//EVT_BUTTON(ID_ADDISOPATH, CConfigVR::AddRemoveISOPaths)
-//EVT_FILEPICKER_CHANGED(ID_DEFAULTISO, CConfigVR::DefaultISOChanged)
-//EVT_DIRPICKER_CHANGED(ID_DVDROOT, CConfigVR::DVDRootChanged)
 
 END_EVENT_TABLE()
 
@@ -88,10 +32,17 @@ CConfigVR::CConfigVR(wxWindow* parent, wxWindowID id, const wxString& title,
 	: wxDialog(parent, id, title, position, size, style)
 {
 	CreateGUIControls();
+
+	UpdateDeviceComboBox();
 }
 
 CConfigVR::~CConfigVR()
 {
+}
+
+namespace
+{
+	const float INPUT_DETECT_THRESHOLD = 0.55f;
 }
 
 // Used to restrict changing of some options while emulator is running
@@ -107,16 +58,14 @@ void CConfigVR::UpdateGUI()
 		//CPUEngine->Disable();
 		//_NTSCJ->Disable();
 	}
-}
-void CConfigVR::InitializeGUILists()
-{
+
+	device_cbox->SetValue(StrToWxStr(default_device.ToString()));
 }
 
 #define VR_NUM_COLUMNS 2
 
 void CConfigVR::CreateGUIControls()
 {
-	InitializeGUILists();
 
 	const wxString pageNames[] =
 	{
@@ -180,14 +129,16 @@ void CConfigVR::CreateGUIControls()
 		wxGridBagSizer *sVRKeys = new wxGridBagSizer();
 
 		// Header line
-		for (int i = 0; i < VR_NUM_COLUMNS; i++)
-		{
-			wxBoxSizer *HeaderSizer = new wxBoxSizer(wxHORIZONTAL);
-			wxStaticText *StaticTextHeader = new wxStaticText(Page, wxID_ANY, _("Action"));
-			HeaderSizer->Add(StaticTextHeader, 1, wxALL, 2);
-			StaticTextHeader = new wxStaticText(Page, wxID_ANY, _("Key"), wxDefaultPosition, size);
-			HeaderSizer->Add(StaticTextHeader, 0, wxALL, 2);
-			sVRKeys->Add(HeaderSizer, wxGBPosition(0, i), wxDefaultSpan, wxEXPAND | wxLEFT, (i > 0) ? 30 : 1);
+		if (j == 0){
+			for (int i = 0; i < VR_NUM_COLUMNS; i++)
+			{
+				wxBoxSizer *HeaderSizer = new wxBoxSizer(wxHORIZONTAL);
+				wxStaticText *StaticTextHeader = new wxStaticText(Page, wxID_ANY, _("Action"));
+				HeaderSizer->Add(StaticTextHeader, 1, wxALL, 2);
+				StaticTextHeader = new wxStaticText(Page, wxID_ANY, _("Key"), wxDefaultPosition, size);
+				HeaderSizer->Add(StaticTextHeader, 0, wxALL, 2);
+				sVRKeys->Add(HeaderSizer, wxGBPosition(0, i), wxDefaultSpan, wxEXPAND | wxLEFT, (i > 0) ? 30 : 1);
+			}
 		}
 
 		int column_break = (page_breaks[j+1] + page_breaks[j] + 1) / 2;
@@ -199,12 +150,15 @@ void CConfigVR::CreateGUIControls()
 
 			// Key selection button
 			m_Button_VRSettings[i] = new wxButton(Page, i, wxEmptyString, wxDefaultPosition, size);
+
 			m_Button_VRSettings[i]->SetFont(m_SmallFont);
-			m_Button_VRSettings[i]->SetToolTip(_("Left click to change the controlling key.\nEnter space to clear."));
+			m_Button_VRSettings[i]->SetToolTip(_("Left click to change the controlling key.\nAssign space to clear."));
 			SetButtonText(i,
 				InputCommon::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
-				InputCommon::WXKeymodToString(
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]));
+				InputCommon::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]));
+
+			//m_Button_VRSettings[i]->Bind(wxEVT_RIGHT_UP, &CConfigVR::ConfigControl, this);
+			m_Button_VRSettings[i]->Bind(wxEVT_BUTTON, &CConfigVR::DetectControl, this);
 
 			wxBoxSizer *sVRKey = new wxBoxSizer(wxHORIZONTAL);
 			sVRKey->Add(stHotkeys, 1, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL | wxALL, 2);
@@ -215,12 +169,31 @@ void CConfigVR::CreateGUIControls()
 				wxDefaultSpan, wxEXPAND | wxLEFT, (i < column_break) ? 1 : 30);
 		}
 
-		wxStaticBoxSizer *sVRKeyBox = new wxStaticBoxSizer(wxVERTICAL, Page, _("VR Camera Controls"));
-		sVRKeyBox->Add(sVRKeys);
+		if (j == 0) {
 
-		wxBoxSizer* const sPage = new wxBoxSizer(wxVERTICAL);
-		sPage->Add(sVRKeyBox, 0, wxEXPAND | wxALL, 5);
-		Page->SetSizer(sPage);
+			wxStaticBoxSizer *sVRKeyBox = new wxStaticBoxSizer(wxVERTICAL, Page, _("VR Camera Controls"));
+			sVRKeyBox->Add(sVRKeys);
+
+			wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer(wxHORIZONTAL, Page, _("Device"));
+
+			device_cbox = new wxComboBox(Page, -1, "", wxDefaultPosition, wxSize(64, -1));
+			device_cbox->ToggleWindowStyle(wxTE_PROCESS_ENTER);
+
+			wxButton* refresh_button = new wxButton(Page, -1, _("Refresh"), wxDefaultPosition, wxSize(60, -1));
+
+			device_cbox->Bind(wxEVT_COMBOBOX, &CConfigVR::SetDevice, this);
+			device_cbox->Bind(wxEVT_TEXT_ENTER, &CConfigVR::SetDevice, this);
+			refresh_button->Bind(wxEVT_BUTTON, &CConfigVR::RefreshDevices, this);
+
+			device_sbox->Add(device_cbox, 4, wxLEFT | wxRIGHT, 3);
+			device_sbox->Add(refresh_button, 1, wxLEFT | wxRIGHT, 3);
+
+			wxBoxSizer* const sPage = new wxBoxSizer(wxVERTICAL);
+			sPage->Add(device_sbox, 0, wxEXPAND | wxALL, 5);
+			sPage->Add(sVRKeyBox, 0, wxEXPAND | wxALL, 5);
+			Page->SetSizer(sPage);
+
+		}
 	}
 
 	wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
@@ -229,52 +202,26 @@ void CConfigVR::CreateGUIControls()
 	SetSizerAndFit(sMainSizer);
 	SetFocus();
 
+}
 
-#if 0
+//Poll devices available and put them in the device combo box.
+void CConfigVR::UpdateDeviceComboBox()
+{
+	ciface::Core::DeviceQualifier dq;
+	device_cbox->Clear();
 
-	// Create the notebook and pages
-	Notebook = new wxNotebook(this, ID_NOTEBOOK);
-	wxPanel* const VRLookPage = new wxPanel(Notebook, ID_VRLOOKPAGE);
+	int i = 0;
+	for (ciface::Core::Device* d : g_controller_interface.Devices()) //For Every Device Attached
+	{
+		dq.FromDevice(d);
+		device_cbox->Append(StrToWxStr(dq.ToString())); //Put Name of Device into Combo Box
+		if (i == 0){
+			device_cbox->SetValue(StrToWxStr(dq.ToString())); //Show first device detected in Combo Box by default
+		}
+		i++;
+	}
 
-	Notebook->AddPage(VRLookPage, _("VR Free Look"));
-
-	wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
-
-	main_szr->Add(Notebook, 1, wxEXPAND | wxALL, 5);
-
-	//top_box->AddSpacer(5);
-	//top_box->Add(main_box);
-	//top_box->AddSpacer(5);
-	//top_box->Add(c_box);
-	//top_box->AddSpacer(5);
-	//bottom_box->AddSpacer(5);
-	//bottom_box->Add(shoulder_box);
-	//bottom_box->AddSpacer(5);
-	//bottom_box->Add(buttons_box);
-	//bottom_box->AddSpacer(5);
-
-	//main_szr->Add(top_box);
-	//main_szr->Add(bottom_box);
-
-	wxBoxSizer* const sVRLookPage = new wxBoxSizer(wxVERTICAL);
-	//sVRLookPage->Add(top_box, 0, wxEXPAND | wxALL, 5);
-	//sVRLookPage->Add(bottom_box, 0, wxEXPAND | wxALL, 5);
-	VRLookPage->SetSizer(sVRLookPage);
-
-
-	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
-	main_szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-
-	InitializeGUIValues();
-	InitializeGUITooltips();
-
-	UpdateGUI(); //This function disables things that cannot be changed during emulation.
-
-	//SetSizerAndFit(main_szr);
-	Center();
-	SetFocus();
-
-#endif
+	default_device.FromString(WxStrToStr(device_cbox->GetValue())); //Set device to be used to match what's selected in the Combo Box
 }
 
 void CConfigVR::OnClose(wxCloseEvent& WXUNUSED (event))
@@ -290,58 +237,56 @@ void CConfigVR::OnOk(wxCommandEvent& WXUNUSED (event))
 	//SConfig::GetInstance().SaveSettings();
 }
 
-
-// Display and Interface settings
-// This is used if settings are changed.  Loads them?
-void CConfigVR::DisplaySettingsChanged(wxCommandEvent& event)
+//On Combo Box Selection
+void CConfigVR::SetDevice(wxCommandEvent&)
 {
-#if 0
-	switch (event.GetId())
-	{
-	// Display - Interface
-	case ID_INTERFACE_CONFIRMSTOP:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop = ConfirmStop->IsChecked();
-		break;
-	case ID_INTERFACE_USEPANICHANDLERS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers = UsePanicHandlers->IsChecked();
-		SetEnableAlert(UsePanicHandlers->IsChecked());
-		break;
-	case ID_INTERFACE_ONSCREENDISPLAYMESSAGES:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages = OnScreenDisplayMessages->IsChecked();
-		SetEnableAlert(OnScreenDisplayMessages->IsChecked());
-		break;
-	case ID_INTERFACE_LANG:
-		if (SConfig::GetInstance().m_InterfaceLanguage != langIds[InterfaceLang->GetSelection()])
-			SuccessAlertT("You must restart Dolphin in order for the change to take effect.");
-		SConfig::GetInstance().m_InterfaceLanguage = langIds[InterfaceLang->GetSelection()];
-		break;
-	case ID_HOTKEY_CONFIG:
-		{
-			CConfigVR m_HotkeyDialog(this);
-			m_HotkeyDialog.ShowModal();
-		}
-		// Update the GUI in case menu accelerators were changed
-		main_frame->UpdateGUI();
-		break;
-	}
-#endif
+	default_device.FromString(WxStrToStr(device_cbox->GetValue()));
+
+	// show user what it was validated as
+	device_cbox->SetValue(StrToWxStr(default_device.ToString()));
+
+	// this will set all the controls to this default device
+	//vr_hotkey_controller->UpdateDefaultDevice();
+
+	// update references
+	//std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
+	//vr_hotkey_controller->UpdateReferences(g_controller_interface);
 }
 
-// Save keyboard key mapping
-void CConfigVR::SaveButtonMapping(int Id, int Key, int Modkey)
+//On Refresh Button Click
+void CConfigVR::RefreshDevices(wxCommandEvent&)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] = Key;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
+	//std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
+
+	// refresh devices
+	g_controller_interface.Shutdown();
+	g_controller_interface.Initialize();
+
+	// update all control references
+	//UpdateControlReferences();
+
+	// update device cbox
+	UpdateDeviceComboBox();
 }
 
-void CConfigVR::EndGetButtons()
+// Input button clicked
+void CConfigVR::OnButtonClick(wxCommandEvent& event)
 {
-	wxTheApp->Unbind(wxEVT_KEY_DOWN, &CConfigVR::OnKeyDown, this);
-	//m_ButtonMappingTimer.Stop();
-	//GetButtonWaitingTimer = 0;
-	//GetButtonWaitingID = 0;
-	ClickedButton = nullptr;
-	SetEscapeId(wxID_ANY);
+	event.Skip();
+
+	//if (m_ButtonMappingTimer.IsRunning())
+	//	return;
+
+	wxTheApp->Bind(wxEVT_KEY_DOWN, &CConfigVR::OnKeyDown, this);
+
+	// Get the button
+	ClickedButton = (wxButton *)event.GetEventObject();
+	SetEscapeId(wxID_CANCEL);  //This stops escape from exiting the whole ConfigVR box.
+	// Save old label so we can revert back
+	OldLabel = ClickedButton->GetLabel();
+	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
+	ClickedButton->SetLabel(_("<Press Key>"));
+	//DoGetButtons(ClickedButton->GetId());
 }
 
 void CConfigVR::OnKeyDown(wxKeyEvent& event)
@@ -362,6 +307,11 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 		{
 			SaveButtonMapping(ClickedButton->GetId(), -1, 0);
 			SetButtonText(ClickedButton->GetId(), wxString());
+		}
+		// Cancel and restore the old label if escape is hit.
+		else if (g_Pressed == WXK_ESCAPE){
+			ClickedButton->SetLabel(OldLabel);
+			return;
 		}
 		else
 		{
@@ -400,22 +350,161 @@ void CConfigVR::SetButtonText(int id, const wxString &keystr, const wxString &mo
 	m_Button_VRSettings[id]->SetLabel(modkeystr + keystr);
 }
 
-// Input button clicked
-void CConfigVR::OnButtonClick(wxCommandEvent& event)
+// Save keyboard key mapping
+void CConfigVR::SaveButtonMapping(int Id, int Key, int Modkey)
 {
-	event.Skip();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[Id] = Key;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[Id] = Modkey;
+}
 
-	//if (m_ButtonMappingTimer.IsRunning())
-	//	return;
+void CConfigVR::EndGetButtons()
+{
+	wxTheApp->Unbind(wxEVT_KEY_DOWN, &CConfigVR::OnKeyDown, this);
+	//m_ButtonMappingTimer.Stop();
+	//GetButtonWaitingTimer = 0;
+	//GetButtonWaitingID = 0;
+	ClickedButton = nullptr;
+	SetEscapeId(wxID_ANY);
+}
 
-	wxTheApp->Bind(wxEVT_KEY_DOWN, &CConfigVR::OnKeyDown, this);
+void CConfigVR::ConfigControl(wxEvent& event)
+{
+//	m_control_dialog = new ControlDialog(this, m_config, ((ControlButtonVR*)event.GetEventObject())->control_reference);
+//	m_control_dialog->ShowModal();
+//	m_control_dialog->Destroy();
 
-	// Get the button
-	ClickedButton = (wxButton *)event.GetEventObject();
-	SetEscapeId(wxID_CANCEL);
-	// Save old label so we can revert back
-	OldLabel = ClickedButton->GetLabel();
-	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
-	ClickedButton->SetLabel(_("<Press Key>"));
-	//DoGetButtons(ClickedButton->GetId());
+	// update changes that were made in the dialog
+	//UpdateGUI();
+}
+
+void CConfigVR::DetectControl(wxCommandEvent& event)
+{
+	wxButton* btn = (wxButton*)event.GetEventObject();
+	//if (DetectButton(btn) && m_iterate == true)
+	if (DetectButton(btn, event))
+	{
+#if 0
+		auto it = std::find(control_buttons.begin(), control_buttons.end(), btn);
+
+		// std find will never return end since btn will always be found in control_buttons
+		++it;
+		for (; it != control_buttons.end(); ++it)
+		{
+			if (!DetectButton(*it))
+				break;
+		}
+#endif
+	}
+}
+
+inline bool IsAlphabetic(wxString &str)
+{
+	for (wxUniChar c : str)
+		if (!isalpha(c))
+			return false;
+
+	return true;
+}
+
+inline void GetExpressionForControl(wxString &expr,
+	wxString &control_name,
+	ciface::Core::DeviceQualifier *control_device = nullptr,
+	ciface::Core::DeviceQualifier *default_device = nullptr)
+{
+	expr = "";
+
+	// non-default device
+	if (control_device && default_device && !(*control_device == *default_device))
+	{
+		expr += control_device->ToString();
+		expr += ":";
+	}
+
+	// append the control name
+	expr += control_name;
+
+	if (!IsAlphabetic(expr))
+		expr = wxString::Format("`%s`", expr);
+}
+
+bool CConfigVR::DetectButton(wxButton* button, wxCommandEvent& event)
+{
+	bool success = false;
+	// find device :/
+	ciface::Core::Device* const dev = g_controller_interface.FindDevice(default_device);
+	if (dev)
+	{
+		if (default_device.name == "Keyboard Mouse") {
+			OnButtonClick(event);
+		}
+		else {
+			button->SetLabel(_("<Press Button>"));
+
+			// This makes the "Press Button" text work on Linux. true (only if needed) prevents crash on Windows
+			wxTheApp->Yield(true);
+
+			//std::lock_guard<std::recursive_mutex> lk(m_config.controls_lock);
+			//ciface::Core::Device::Control* const ctrl = button->control_reference->Detect(DETECT_WAIT_TIME, dev);
+			ciface::Core::Device::Control* const ctrl = InputDetect(DETECT_WAIT_TIME, dev);
+
+			// if we got input, update expression and reference
+			if (ctrl)
+			{
+				wxString control_name = ctrl->GetName();
+				wxString expr;
+				GetExpressionForControl(expr, control_name);
+				button->SetLabel(expr);
+				//button->control_reference->expression = expr;
+				//g_controller_interface.UpdateReference(button->control_reference, default_device);
+				success = true;
+			}
+		}
+	}
+
+	UpdateGUI();
+
+	return success;
+}
+
+
+ciface::Core::Device::Control* CConfigVR::InputDetect(const unsigned int ms, ciface::Core::Device* const device)
+{
+	unsigned int time = 0;
+	std::vector<bool> states(device->Inputs().size());
+
+	if (device->Inputs().size() == 0)
+		return nullptr;
+
+	// get starting state of all inputs,
+	// so we can ignore those that were activated at time of Detect start
+	std::vector<ciface::Core::Device::Input*>::const_iterator
+		i = device->Inputs().begin(),
+		e = device->Inputs().end();
+	for (std::vector<bool>::iterator state = states.begin(); i != e; ++i)
+		*state++ = ((*i)->GetState() > (1 - INPUT_DETECT_THRESHOLD));
+
+	while (time < ms)
+	{
+		device->UpdateInput();
+		i = device->Inputs().begin();
+		for (std::vector<bool>::iterator state = states.begin(); i != e; ++i, ++state)
+		{
+			// detected an input
+			if ((*i)->IsDetectable() && (*i)->GetState() > INPUT_DETECT_THRESHOLD)
+			{
+				// input was released at some point during Detect call
+				// return the detected input
+				if (false == *state)
+					return *i;
+			}
+			else if ((*i)->GetState() < (1 - INPUT_DETECT_THRESHOLD))
+			{
+				*state = false;
+			}
+		}
+		Common::SleepCurrentThread(10); time += 10;
+	}
+
+	// no input was detected
+	return nullptr;
 }
