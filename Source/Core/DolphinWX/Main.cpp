@@ -559,7 +559,7 @@ void Host_SetStartupDebuggingParameters()
 		StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
 		StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
 		StartUp.bJITNoBlockCache = main_frame->g_pCodeWindow->JITNoBlockCache();
-		StartUp.bJITBlockLinking = main_frame->g_pCodeWindow->JITBlockLinking();
+		StartUp.bJITNoBlockLinking = main_frame->g_pCodeWindow->JITNoBlockLinking();
 	}
 	else
 	{
