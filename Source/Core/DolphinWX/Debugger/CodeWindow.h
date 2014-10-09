@@ -59,7 +59,7 @@ class CCodeWindow
 		bool BootToPause();
 		bool AutomaticStart();
 		bool JITNoBlockCache();
-		bool JITBlockLinking();
+		bool JITNoBlockLinking();
 		bool JumpToAddress(u32 address);
 
 		void Update() override;
