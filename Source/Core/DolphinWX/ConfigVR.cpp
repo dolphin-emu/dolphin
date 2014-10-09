@@ -154,8 +154,9 @@ void CConfigVR::CreateGUIControls()
 			m_Button_VRSettings[i]->SetFont(m_SmallFont);
 			m_Button_VRSettings[i]->SetToolTip(_("Left click to change the controlling key.\nAssign space to clear."));
 			SetButtonText(i,
-				InputCommon::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
-				InputCommon::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]));
+
+			WxUtils::WXKeyToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettings[i]),
+			WxUtils::WXKeymodToString(SConfig::GetInstance().m_LocalCoreStartupParameter.iVRSettingsModifier[i]));
 
 			//m_Button_VRSettings[i]->Bind(wxEVT_RIGHT_UP, &CConfigVR::ConfigControl, this);
 			m_Button_VRSettings[i]->Bind(wxEVT_BUTTON, &CConfigVR::DetectControl, this);
@@ -322,8 +323,8 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 				// We compare against this to see if we have a duplicate bind attempt.
 				wxString existingHotkey = btn->GetLabel();
 
-				wxString tentativeModKey = InputCommon::WXKeymodToString(g_Modkey);
-				wxString tentativePressedKey = InputCommon::WXKeyToString(g_Pressed);
+				wxString tentativeModKey = WxUtils::WXKeymodToString(g_Modkey);
+				wxString tentativePressedKey = WxUtils::WXKeyToString(g_Pressed);
 				wxString tentativeHotkey(tentativeModKey + tentativePressedKey);
 
 				// Found a button that already has this binding. Unbind it.
@@ -336,8 +337,8 @@ void CConfigVR::OnKeyDown(wxKeyEvent& event)
 
 			// Proceed to apply the binding to the selected button.
 			SetButtonText(ClickedButton->GetId(),
-				InputCommon::WXKeyToString(g_Pressed),
-				InputCommon::WXKeymodToString(g_Modkey));
+				WxUtils::WXKeyToString(g_Pressed),
+				WxUtils::WXKeymodToString(g_Modkey));
 			SaveButtonMapping(ClickedButton->GetId(), g_Pressed, g_Modkey);
 		}
 		EndGetButtons();

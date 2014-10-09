@@ -4,14 +4,10 @@
 
 #pragma once
 
-#if defined(HAVE_WX) && HAVE_WX
 #include <wx/string.h>
-#endif
 
-namespace InputCommon
+namespace WxUtils
 {
-#if defined(HAVE_WX) && HAVE_WX
 const wxString WXKeyToString(int keycode);
 const wxString WXKeymodToString(int modifier);
-#endif
 }
