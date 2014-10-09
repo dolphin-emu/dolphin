@@ -206,7 +206,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		// Declare samplers
 		for (int i = 0; i < 8; ++i)
-			out.Write("SAMPLER_BINDING(%d) uniform sampler2D samp%d;\n", i, i);
+			out.Write("SAMPLER_BINDING(%d) uniform sampler2DArray samp%d;\n", i, i);
 	}
 	else // D3D
 	{
@@ -931,7 +931,7 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	if (ApiType == API_D3D)
 		out.Write("iround(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
-		out.Write("iround(255.0 * texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap, texcoords, texmap, texswap);
+		out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS"[%d].xy, 0.0))).%s;\n", texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =

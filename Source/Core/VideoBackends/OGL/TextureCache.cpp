@@ -98,14 +98,14 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 			s_ActiveTexture = stage;
 		}
 
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 		s_Textures[stage] = texture;
 	}
 }
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
-	return SaveTexture(filename, GL_TEXTURE_2D, texture, virtual_width, virtual_height, level);
+	return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, texture, virtual_width, virtual_height, level);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
@@ -172,8 +172,8 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	entry.pcfmt = pcfmt;
 
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_2D, entry.texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, tex_levels - 1);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, entry.texture);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, tex_levels - 1);
 
 	entry.Load(width, height, expanded_width, 0);
 
@@ -189,12 +189,12 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	if (pcfmt != PC_TEX_FMT_DXT1)
 	{
 		glActiveTexture(GL_TEXTURE0+9);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 
 		if (expanded_width != width)
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
-		glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, level, gl_iformat, width, height, 1, 0, gl_format, gl_type, temp);
 
 		if (expanded_width != width)
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
@@ -213,21 +213,23 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 {
 	TCacheEntry *const entry = new TCacheEntry;
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_2D, entry->texture);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, entry->texture);
 
 	const GLenum
 		gl_format = GL_RGBA,
 		gl_iformat = GL_RGBA,
 		gl_type = GL_UNSIGNED_BYTE;
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, nullptr);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	int layers = 1;
+
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, gl_iformat, scaled_tex_w, scaled_tex_h, layers, 0, gl_format, gl_type, nullptr);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
 	glGenFramebuffers(1, &entry->framebuffer);
 	FramebufferManager::SetFramebuffer(entry->framebuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, entry->texture, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, entry->texture, 0);
 
 	SetStage();
 
@@ -251,7 +253,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		FramebufferManager::SetFramebuffer(framebuffer);
 
 		glActiveTexture(GL_TEXTURE0+9);
-		glBindTexture(GL_TEXTURE_2D, read_texture);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, read_texture);
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
@@ -309,7 +311,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	{
 		static int count = 0;
 		SaveTexture(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-			count++), GL_TEXTURE_2D, texture, virtual_width, virtual_height, 0);
+			count++), GL_TEXTURE_2D_ARRAY, texture, virtual_width, virtual_height, 0);
 	}
 
 	g_renderer->RestoreAPIState();
@@ -318,25 +320,25 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 TextureCache::TextureCache()
 {
 	const char *pColorMatrixProg =
-		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 colmat[7];\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture(samp9, uv0);\n"
+		"	vec4 texcol = texture(samp9, vec3(uv0, 0.0));\n"
 		"	texcol = round(texcol * colmat[5]) * colmat[6];\n"
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
 	const char *pDepthMatrixProg =
-		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 colmat[5];\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture(samp9, uv0);\n"
+		"	vec4 texcol = texture(samp9, vec3(uv0, 0.0));\n"
 
 		// 255.99998474121 = 16777215/16777216*256
 		"	float workspace = texcol.x * 255.99998474121;\n"
@@ -364,12 +366,12 @@ TextureCache::TextureCache()
 
 	const char *VProgram =
 		"out vec2 uv0;\n"
-		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"void main()\n"
 		"{\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0));\n"
+		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy);\n"
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 

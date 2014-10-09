@@ -47,13 +47,14 @@ namespace OGL
 
 struct XFBSource : public XFBSourceBase
 {
-	XFBSource(GLuint tex) : texture(tex) {}
+	XFBSource(GLuint tex, int layers) : texture(tex), m_layers(layers) {}
 	~XFBSource();
 
 	void CopyEFB(float Gamma) override;
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
 
 	const GLuint texture;
+	const int m_layers;
 };
 
 class FramebufferManager : public FramebufferManagerBase
@@ -100,6 +101,7 @@ private:
 	static int m_msaaSamples;
 
 	static GLenum m_textureType;
+	static int m_EFBLayers;
 
 	static GLuint m_efbFramebuffer;
 	static GLuint m_xfbFramebuffer;

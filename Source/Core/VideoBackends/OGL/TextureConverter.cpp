@@ -72,21 +72,21 @@ static void CreatePrograms()
 	const char *VProgramRgbToYuyv =
 		"out vec2 uv0;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
-		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"void main()\n"
 		"{\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0));\n"
+		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy);\n"
 		"}\n";
 	const char *FProgramRgbToYuyv =
-		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
+		"SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	vec3 c0 = texture(samp9, (uv0 - dFdx(uv0) * 0.25)).rgb;\n"
-		"	vec3 c1 = texture(samp9, (uv0 + dFdx(uv0) * 0.25)).rgb;\n"
+		"	vec3 c0 = texture(samp9, vec3(uv0 - dFdx(uv0) * 0.25, 0.0)).rgb;\n"
+		"	vec3 c1 = texture(samp9, vec3(uv0 + dFdx(uv0) * 0.25, 0.0)).rgb;\n"
 		"	vec3 c01 = (c0 + c1) * 0.5;\n"
 		"	vec3 y_const = vec3(0.257,0.504,0.098);\n"
 		"	vec3 u_const = vec3(-0.148,-0.291,0.439);\n"
@@ -224,17 +224,17 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 
 	// set source texture
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_2D, srcTexture);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, srcTexture);
 
 	if (linearFilter)
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 	else
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
@@ -365,7 +365,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[1]);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, destTexture, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, destTexture, 0);
 
 	// activate source texture
 	// set srcAddr as data for source texture

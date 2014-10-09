@@ -206,6 +206,10 @@ static void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
 }
+static void GLAPIENTRY FramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level)
+{
+	glFramebufferTextureLayer(target, attachment, texture, level, 0);
+}
 
 static void InitDriverInfo()
 {
@@ -460,6 +464,11 @@ Renderer::Renderer()
 	{
 		glDepthRangef = DepthRangef;
 		glClearDepthf = ClearDepthf;
+	}
+
+	if (!(GLExtensions::Version() >= 320))
+	{
+		glFramebufferTexture = FramebufferTexture;
 	}
 
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
