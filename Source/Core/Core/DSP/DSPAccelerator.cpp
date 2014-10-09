@@ -15,13 +15,13 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 {
 	const s16 *pCoefTable = (const s16 *)&g_dsp.ifx_regs[DSP_COEF_A1_0];
 
-	if (((_rSamplePos)& 15) == 0)
+	if (((_rSamplePos) & 15) == 0)
 	{
 		g_dsp.ifx_regs[DSP_PRED_SCALE] = DSPHost::ReadHostMemory((_rSamplePos & ~15) >> 1);
 		_rSamplePos += 2;
 	}
 
-	int scale = 1 << (g_dsp.ifx_regs[DSP_PRED_SCALE] & 0xF);
+	int scale = (g_dsp.ifx_regs[DSP_PRED_SCALE] & 0xF);
 	int coef_idx = (g_dsp.ifx_regs[DSP_PRED_SCALE] >> 4) & 0x7;
 
 	s32 coef1 = pCoefTable[coef_idx * 2 + 0];
@@ -35,7 +35,7 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 		temp -= 16;
 
 	// 0x400 = 0.5  in 11-bit fixed point
-	int val = (scale * temp) + ((0x400 + coef1 * (s16)g_dsp.ifx_regs[DSP_YN1] + coef2 * (s16)g_dsp.ifx_regs[DSP_YN2]) >> 11);
+	int val = (temp << scale) + ((0x400 + coef1 * (s16)g_dsp.ifx_regs[DSP_YN1] + coef2 * (s16)g_dsp.ifx_regs[DSP_YN2]) >> 11);
 
 	MathUtil::Clamp(&val, -0x7FFF, 0x7FFF);
 
@@ -111,7 +111,7 @@ u16 dsp_read_accelerator()
 	const u32 EndAddress = (g_dsp.ifx_regs[DSP_ACEAH] << 16) | g_dsp.ifx_regs[DSP_ACEAL];
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 	u16 val;
-	u8 step_size_bytes = 0;
+	bool isLoop = false;
 
 	// let's do the "hardware" decode DSP_FORMAT is interesting - the Zelda
 	// ucode seems to indicate that the bottom two bits specify the "read size"
@@ -123,27 +123,27 @@ u16 dsp_read_accelerator()
 	{
 		case 0x00:  // ADPCM audio
 			val = ADPCM_Step(Address);
-			step_size_bytes = 2;
+			isLoop = ((Address >> 1) == (EndAddress >> 1) + 1);
 			break;
 		case 0x0A:  // 16-bit PCM audio
 			val = (DSPHost::ReadHostMemory(Address * 2) << 8) | DSPHost::ReadHostMemory(Address * 2 + 1);
 			g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 			g_dsp.ifx_regs[DSP_YN1] = val;
-			step_size_bytes = 2;
 			Address++;
+			isLoop = (Address == EndAddress + 1);
 			break;
 		case 0x19:  // 8-bit PCM audio
 			val = DSPHost::ReadHostMemory(Address) << 8;
 			g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 			g_dsp.ifx_regs[DSP_YN1] = val;
-			step_size_bytes = 1;
 			Address++;
+			isLoop = (Address == EndAddress + 1);
 			break;
 		default:
 			ERROR_LOG(DSPLLE, "dsp_read_accelerator() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
-			step_size_bytes = 1;
-			Address++;
 			val = 0;
+			Address++;
+			isLoop = (Address == EndAddress + 1);
 			break;
 	}
 
@@ -156,7 +156,7 @@ u16 dsp_read_accelerator()
 	// Somehow, YN1 and YN2 must be initialized with their "loop" values,
 	// so yeah, it seems likely that we should raise an exception to let
 	// the DSP program do that, at least if DSP_FORMAT == 0x0A.
-	if (Address == (EndAddress + step_size_bytes - 1))
+	if (isLoop)
 	{
 		// Set address back to start address.
 		Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
