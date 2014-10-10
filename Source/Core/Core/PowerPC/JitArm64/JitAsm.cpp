@@ -31,7 +31,7 @@ void JitArm64AsmRoutineManager::Generate()
 		LDR(INDEX_UNSIGNED, W28, X29, PPCSTATE_OFF(pc)); // Load the current PC into W28
 		BFM(W28, WSP, 3, 2); // Wipe the top 3 bits. Same as PC & JIT_ICACHE_MASK
 
-		MOVI2R(X27, (u64)jit->GetBlockCache()->iCache);
+		MOVI2R(X27, (u64)jit->GetBlockCache()->iCache.data());
 		LDR(W27, X27, X28);
 
 		FixupBranch JitBlock = TBNZ(W27, 7); // Test the 7th bit
