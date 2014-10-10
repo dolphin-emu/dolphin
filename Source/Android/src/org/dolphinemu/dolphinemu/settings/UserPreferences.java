@@ -96,7 +96,7 @@ public final class UserPreferences
 		editor.putBoolean("fastDepthCalculation",    getConfig("gfx_opengl.ini", "Settings", "FastDepthCalc", "True").equals("True"));
 
 		// Apply the changes.
-		editor.commit();
+		editor.apply();
 	}
 
 	// Small utility method that shortens calls to NativeLibrary.GetConfig.
