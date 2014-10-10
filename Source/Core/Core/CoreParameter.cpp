@@ -23,7 +23,7 @@
 
 SCoreStartupParameter::SCoreStartupParameter()
 : bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
-  bJITNoBlockCache(false), bJITNoBlockLinking(true),
+  bJITNoBlockCache(false), bJITNoBlockLinking(false),
   bJITOff(false),
   bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
   bJITLoadStorelwzOff(false), bJITLoadStorelbzxOff(false),

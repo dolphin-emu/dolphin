@@ -493,7 +493,7 @@ wxString CFrame::GetMenuLabel(int Id)
 			break;
 
 		case HK_LOAD_STATE_SLOT_SELECTED:
-			Label = _("load state from selected slot");
+			Label = _("Load state from selected slot");
 			break;
 
 		case HK_SELECT_STATE_SLOT_1:
