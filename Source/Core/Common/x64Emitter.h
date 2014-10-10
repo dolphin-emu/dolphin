@@ -101,6 +101,17 @@ enum NormalOp {
 	nrmXCHG,
 };
 
+enum {
+	CMP_EQ = 0,
+	CMP_LT = 1,
+	CMP_LE = 2,
+	CMP_UNORD = 3,
+	CMP_NEQ = 4,
+	CMP_NLT = 5,
+	CMP_NLE = 6,
+	CMP_ORD = 7,
+};
+
 enum FloatOp {
 	floatLD = 0,
 	floatST = 2,
@@ -526,6 +537,14 @@ public:
 	void CMPSS(X64Reg regOp, OpArg arg, u8 compare);
 	void CMPSD(X64Reg regOp, OpArg arg, u8 compare);
 
+	inline void CMPEQSS(X64Reg regOp, OpArg arg) { CMPSS(regOp, arg, CMP_EQ); }
+	inline void CMPLTSS(X64Reg regOp, OpArg arg) { CMPSS(regOp, arg, CMP_LT); }
+	inline void CMPLESS(X64Reg regOp, OpArg arg) { CMPSS(regOp, arg, CMP_LE); }
+	inline void CMPUNORDSS(X64Reg regOp, OpArg arg) { CMPSS(regOp, arg, CMP_UNORD); }
+	inline void CMPNEQSS(X64Reg regOp, OpArg arg) { CMPSS(regOp, arg, CMP_NEQ); }
+	inline void CMPNLTSS(X64Reg regOp, OpArg arg) { CMPSS(regOp, arg, CMP_NLT); }
+	inline void CMPORDSS(X64Reg regOp, OpArg arg) { CMPSS(regOp, arg, CMP_ORD); }
+
 	// SSE/SSE2: Floating point packed arithmetic (x4 for float, x2 for double)
 	void ADDPS(X64Reg regOp, OpArg arg);
 	void ADDPD(X64Reg regOp, OpArg arg);
@@ -690,6 +709,7 @@ public:
 	void PMINUB(X64Reg dest, OpArg arg);
 
 	void PMOVMSKB(X64Reg dest, OpArg arg);
+	void PSHUFD(X64Reg dest, OpArg arg, u8 shuffle);
 	void PSHUFB(X64Reg dest, OpArg arg);
 
 	void PSHUFLW(X64Reg dest, OpArg arg, u8 shuffle);
@@ -698,10 +718,12 @@ public:
 	void PSRLD(X64Reg reg, int shift);
 	void PSRLQ(X64Reg reg, int shift);
 	void PSRLQ(X64Reg reg, OpArg arg);
+	void PSRLDQ(X64Reg reg, int shift);
 
 	void PSLLW(X64Reg reg, int shift);
 	void PSLLD(X64Reg reg, int shift);
 	void PSLLQ(X64Reg reg, int shift);
+	void PSLLDQ(X64Reg reg, int shift);
 
 	void PSRAW(X64Reg reg, int shift);
 	void PSRAD(X64Reg reg, int shift);

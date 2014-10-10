@@ -1636,6 +1636,11 @@ void XEmitter::PSRLQ(X64Reg reg, OpArg arg)
 	WriteSSEOp(0x66, 0xd3, reg, arg);
 }
 
+void XEmitter::PSRLDQ(X64Reg reg, int shift) {
+	WriteSSEOp(0x66, 0x73, (X64Reg)3, R(reg));
+	Write8(shift);
+}
+
 void XEmitter::PSLLW(X64Reg reg, int shift)
 {
 	WriteSSEOp(0x66, 0x71, (X64Reg)6, R(reg));
@@ -1653,6 +1658,12 @@ void XEmitter::PSLLQ(X64Reg reg, int shift)
 	WriteSSEOp(0x66, 0x73, (X64Reg)6, R(reg));
 	Write8(shift);
 }
+
+void XEmitter::PSLLDQ(X64Reg reg, int shift) {
+	WriteSSEOp(0x66, 0x73, (X64Reg)7, R(reg));
+	Write8(shift);
+}
+
 
 // WARNING not REX compatible
 void XEmitter::PSRAW(X64Reg reg, int shift)
@@ -1761,7 +1772,7 @@ void XEmitter::PMINSW(X64Reg dest, OpArg arg)   {WriteSSEOp(0x66, 0xEA, dest, ar
 void XEmitter::PMINUB(X64Reg dest, OpArg arg)   {WriteSSEOp(0x66, 0xDA, dest, arg); }
 
 void XEmitter::PMOVMSKB(X64Reg dest, OpArg arg)    {WriteSSEOp(0x66, 0xD7, dest, arg); }
-
+void XEmitter::PSHUFD(X64Reg regOp, OpArg arg, u8 shuffle)    {WriteSSEOp(0x66, 0x70, regOp, arg, 1); Write8(shuffle);}
 void XEmitter::PSHUFLW(X64Reg regOp, OpArg arg, u8 shuffle)   {WriteSSEOp(0xF2, 0x70, regOp, arg, 1); Write8(shuffle);}
 
 // VEX
