@@ -624,14 +624,14 @@ void CFrame::BootGame(const std::string& filename)
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
 		else if (!StartUp.m_strDefaultGCM.empty() &&
-		         wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
+		         File::Exists(StartUp.m_strDefaultGCM))
 		{
 			bootfile = StartUp.m_strDefaultGCM;
 		}
 		else
 		{
 			if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			    wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			    File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				bootfile = SConfig::GetInstance().m_LastFilename;
 			}
@@ -1782,7 +1782,7 @@ void CFrame::UpdateGUI()
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			         wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			         File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
