@@ -194,6 +194,8 @@ private:
 };
 
 inline OpArg M(const void *ptr) {return OpArg((u64)ptr, (int)SCALE_RIP);}
+template <typename T>
+inline OpArg M(const T *ptr)    {return OpArg((u64)(const void *)ptr, (int)SCALE_RIP);}
 inline OpArg R(X64Reg value)    {return OpArg(0, SCALE_NONE, value);}
 inline OpArg MatR(X64Reg value) {return OpArg(0, SCALE_ATREG, value);}
 
@@ -230,7 +232,7 @@ inline OpArg ImmPtr(const void* imm) {return Imm64((u64)imm);}
 inline OpArg ImmPtr(const void* imm) {return Imm32((u32)imm);}
 #endif
 
-inline u32 PtrOffset(void* ptr, void* base)
+inline u32 PtrOffset(const void* ptr, const void* base)
 {
 #ifdef _ARCH_64
 	s64 distance = (s64)ptr-(s64)base;
@@ -603,6 +605,11 @@ public:
 	void MOVUPS(OpArg arg, X64Reg regOp);
 	void MOVUPD(OpArg arg, X64Reg regOp);
 
+	void MOVDQA(X64Reg regOp, OpArg arg);
+	void MOVDQA(OpArg arg, X64Reg regOp);
+	void MOVDQU(X64Reg regOp, OpArg arg);
+	void MOVDQU(OpArg arg, X64Reg regOp);
+
 	void MOVSS(X64Reg regOp, OpArg arg);
 	void MOVSD(X64Reg regOp, OpArg arg);
 	void MOVSS(OpArg arg, X64Reg regOp);
@@ -713,6 +720,7 @@ public:
 	void PSHUFB(X64Reg dest, OpArg arg);
 
 	void PSHUFLW(X64Reg dest, OpArg arg, u8 shuffle);
+	void PSHUFHW(X64Reg dest, OpArg arg, u8 shuffle);
 
 	void PSRLW(X64Reg reg, int shift);
 	void PSRLD(X64Reg reg, int shift);
@@ -785,27 +793,27 @@ public:
 	// Utility functions
 	// The difference between this and CALL is that this aligns the stack
 	// where appropriate.
-	void ABI_CallFunction(void *func);
+	void ABI_CallFunction(const void *func);
 
-	void ABI_CallFunctionC16(void *func, u16 param1);
-	void ABI_CallFunctionCC16(void *func, u32 param1, u16 param2);
+	void ABI_CallFunctionC16(const void *func, u16 param1);
+	void ABI_CallFunctionCC16(const void *func, u32 param1, u16 param2);
 
 	// These only support u32 parameters, but that's enough for a lot of uses.
 	// These will destroy the 1 or 2 first "parameter regs".
-	void ABI_CallFunctionC(void *func, u32 param1);
-	void ABI_CallFunctionCC(void *func, u32 param1, u32 param2);
-	void ABI_CallFunctionCP(void *func, u32 param1, void *param2);
-	void ABI_CallFunctionCCC(void *func, u32 param1, u32 param2, u32 param3);
-	void ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *param3);
-	void ABI_CallFunctionCCCP(void *func, u32 param1, u32 param2,u32 param3, void *param4);
-	void ABI_CallFunctionPC(void *func, void *param1, u32 param2);
-	void ABI_CallFunctionPPC(void *func, void *param1, void *param2,u32 param3);
-	void ABI_CallFunctionAC(void *func, const OpArg &arg1, u32 param2);
-	void ABI_CallFunctionA(void *func, const OpArg &arg1);
+	void ABI_CallFunctionC(const void *func, u32 param1);
+	void ABI_CallFunctionCC(const void *func, u32 param1, u32 param2);
+	void ABI_CallFunctionCP(const void *func, u32 param1, void *param2);
+	void ABI_CallFunctionCCC(const void *func, u32 param1, u32 param2, u32 param3);
+	void ABI_CallFunctionCCP(const void *func, u32 param1, u32 param2, void *param3);
+	void ABI_CallFunctionCCCP(const void *func, u32 param1, u32 param2,u32 param3, void *param4);
+	void ABI_CallFunctionPC(const void *func, void *param1, u32 param2);
+	void ABI_CallFunctionPPC(const void *func, void *param1, void *param2, u32 param3);
+	void ABI_CallFunctionAC(const void *func, const OpArg &arg1, u32 param2);
+	void ABI_CallFunctionA(const void *func, const OpArg &arg1);
 
 	// Pass a register as a parameter.
-	void ABI_CallFunctionR(void *func, X64Reg reg1);
-	void ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2);
+	void ABI_CallFunctionR(const void *func, X64Reg reg1);
+	void ABI_CallFunctionRR(const void *func, X64Reg reg1, X64Reg reg2);
 
 	// Helper method for the above, or can be used separately.
 	void MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, Gen::X64Reg dst2, Gen::X64Reg src2);
