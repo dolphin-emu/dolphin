@@ -1643,7 +1643,8 @@ void XEmitter::PSRLQ(X64Reg reg, OpArg arg)
 	WriteSSEOp(0x66, 0xd3, reg, arg);
 }
 
-void XEmitter::PSRLDQ(X64Reg reg, int shift) {
+void XEmitter::PSRLDQ(X64Reg reg, int shift)
+{
 	WriteSSEOp(0x66, 0x73, (X64Reg)3, R(reg));
 	Write8(shift);
 }
@@ -1666,7 +1667,8 @@ void XEmitter::PSLLQ(X64Reg reg, int shift)
 	Write8(shift);
 }
 
-void XEmitter::PSLLDQ(X64Reg reg, int shift) {
+void XEmitter::PSLLDQ(X64Reg reg, int shift)
+{
 	WriteSSEOp(0x66, 0x73, (X64Reg)7, R(reg));
 	Write8(shift);
 }
