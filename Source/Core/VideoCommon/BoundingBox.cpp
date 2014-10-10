@@ -87,12 +87,12 @@ void LOADERDECL Update()
 
 	// Feed vertex position and matrix
 	myVertex.position = Vec3((const float *)bufferPos);
-	myVertex.posMtx = vertexDesc.PosMatIdx ? posMtxIdx : MatrixIndexA.PosNormalMtxIdx;
+	myVertex.posMtx = vertexDesc.PosMatIdx ? posMtxIdx : g_main_cp_state.matrix_index_a.PosNormalMtxIdx;
 
 	// Transform position
 	TransformUnit::TransformPosition(&myVertex, outVertex);
 
-	if (g_VtxDesc.Normal != NOT_PRESENT)
+	if (g_main_cp_state.vtx_desc.Normal != NOT_PRESENT)
 	{
 		// Feed normal input data and transform
 		memcpy((u8 *)myVertex.normal, bufferPos + vertexDecl.normals[0].offset, sizeof(float) * 3 * ((myVat.g0.NormalElements) ? 3 : 1));
@@ -117,14 +117,14 @@ void LOADERDECL Update()
 	// Feed texture matrices
 	int idx = 0;
 
-	myVertex.texMtx[0] = (vertexDesc.Tex0MatIdx) ? texMtxIdx[idx++] : MatrixIndexA.Tex0MtxIdx;
-	myVertex.texMtx[1] = (vertexDesc.Tex1MatIdx) ? texMtxIdx[idx++] : MatrixIndexA.Tex1MtxIdx;
-	myVertex.texMtx[2] = (vertexDesc.Tex2MatIdx) ? texMtxIdx[idx++] : MatrixIndexA.Tex2MtxIdx;
-	myVertex.texMtx[3] = (vertexDesc.Tex3MatIdx) ? texMtxIdx[idx++] : MatrixIndexA.Tex3MtxIdx;
-	myVertex.texMtx[4] = (vertexDesc.Tex4MatIdx) ? texMtxIdx[idx++] : MatrixIndexB.Tex4MtxIdx;
-	myVertex.texMtx[5] = (vertexDesc.Tex5MatIdx) ? texMtxIdx[idx++] : MatrixIndexB.Tex5MtxIdx;
-	myVertex.texMtx[6] = (vertexDesc.Tex6MatIdx) ? texMtxIdx[idx++] : MatrixIndexB.Tex6MtxIdx;
-	myVertex.texMtx[7] = (vertexDesc.Tex7MatIdx) ? texMtxIdx[idx++] : MatrixIndexB.Tex7MtxIdx;
+	myVertex.texMtx[0] = (vertexDesc.Tex0MatIdx) ? texMtxIdx[idx++] : g_main_cp_state.matrix_index_a.Tex0MtxIdx;
+	myVertex.texMtx[1] = (vertexDesc.Tex1MatIdx) ? texMtxIdx[idx++] : g_main_cp_state.matrix_index_a.Tex1MtxIdx;
+	myVertex.texMtx[2] = (vertexDesc.Tex2MatIdx) ? texMtxIdx[idx++] : g_main_cp_state.matrix_index_a.Tex2MtxIdx;
+	myVertex.texMtx[3] = (vertexDesc.Tex3MatIdx) ? texMtxIdx[idx++] : g_main_cp_state.matrix_index_a.Tex3MtxIdx;
+	myVertex.texMtx[4] = (vertexDesc.Tex4MatIdx) ? texMtxIdx[idx++] : g_main_cp_state.matrix_index_b.Tex4MtxIdx;
+	myVertex.texMtx[5] = (vertexDesc.Tex5MatIdx) ? texMtxIdx[idx++] : g_main_cp_state.matrix_index_b.Tex5MtxIdx;
+	myVertex.texMtx[6] = (vertexDesc.Tex6MatIdx) ? texMtxIdx[idx++] : g_main_cp_state.matrix_index_b.Tex6MtxIdx;
+	myVertex.texMtx[7] = (vertexDesc.Tex7MatIdx) ? texMtxIdx[idx++] : g_main_cp_state.matrix_index_b.Tex7MtxIdx;
 
 	// Feed texture coordinate data
 	for (int i = 0; i < 8; ++i)
