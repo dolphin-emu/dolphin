@@ -1119,7 +1119,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 						WxStrToStr(browseDialog.GetPath()),
 						FileName);
 
-				if (wxFileExists(StrToWxStr(OutputFileName)) &&
+				if (File::Exists(OutputFileName) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
 								StrToWxStr(OutputFileName)),
@@ -1147,7 +1147,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 						WxStrToStr(browseDialog.GetPath()),
 						FileName);
 
-				if (wxFileExists(StrToWxStr(OutputFileName)) &&
+				if (File::Exists(OutputFileName) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
 								StrToWxStr(OutputFileName)),
