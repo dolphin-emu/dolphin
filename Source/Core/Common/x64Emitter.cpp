@@ -66,6 +66,8 @@ enum NormalSSEOps
 	sseMOVHPDtoRM  = 0x17,
 	sseMOVHLPS     = 0x12,
 	sseMOVLHPS     = 0x16,
+	sseMOVDQfromRM = 0x6F,
+	sseMOVDQtoRM   = 0x7F,
 	sseMASKMOVDQU  = 0xF7,
 	sseLDDQU       = 0xF0,
 	sseSHUF        = 0xC6,
@@ -1540,6 +1542,11 @@ void XEmitter::MOVUPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(0x66, sseMOVUPfromRM
 void XEmitter::MOVUPS(OpArg arg, X64Reg regOp)  {WriteSSEOp(0x00, sseMOVUPtoRM, regOp, arg);}
 void XEmitter::MOVUPD(OpArg arg, X64Reg regOp)  {WriteSSEOp(0x66, sseMOVUPtoRM, regOp, arg);}
 
+void XEmitter::MOVDQA(X64Reg regOp, OpArg arg)  {WriteSSEOp(0x66, sseMOVDQfromRM, regOp, arg);}
+void XEmitter::MOVDQA(OpArg arg, X64Reg regOp)  {WriteSSEOp(0x66, sseMOVDQtoRM, regOp, arg);}
+void XEmitter::MOVDQU(X64Reg regOp, OpArg arg)  {WriteSSEOp(0xF3, sseMOVDQfromRM, regOp, arg);}
+void XEmitter::MOVDQU(OpArg arg, X64Reg regOp)  {WriteSSEOp(0xF3, sseMOVDQtoRM, regOp, arg);}
+
 void XEmitter::MOVSS(X64Reg regOp, OpArg arg)   {WriteSSEOp(0xF3, sseMOVUPfromRM, regOp, arg);}
 void XEmitter::MOVSD(X64Reg regOp, OpArg arg)   {WriteSSEOp(0xF2, sseMOVUPfromRM, regOp, arg);}
 void XEmitter::MOVSS(OpArg arg, X64Reg regOp)   {WriteSSEOp(0xF3, sseMOVUPtoRM, regOp, arg);}
@@ -1636,6 +1643,12 @@ void XEmitter::PSRLQ(X64Reg reg, OpArg arg)
 	WriteSSEOp(0x66, 0xd3, reg, arg);
 }
 
+void XEmitter::PSRLDQ(X64Reg reg, int shift)
+{
+	WriteSSEOp(0x66, 0x73, (X64Reg)3, R(reg));
+	Write8(shift);
+}
+
 void XEmitter::PSLLW(X64Reg reg, int shift)
 {
 	WriteSSEOp(0x66, 0x71, (X64Reg)6, R(reg));
@@ -1653,6 +1666,13 @@ void XEmitter::PSLLQ(X64Reg reg, int shift)
 	WriteSSEOp(0x66, 0x73, (X64Reg)6, R(reg));
 	Write8(shift);
 }
+
+void XEmitter::PSLLDQ(X64Reg reg, int shift)
+{
+	WriteSSEOp(0x66, 0x73, (X64Reg)7, R(reg));
+	Write8(shift);
+}
+
 
 // WARNING not REX compatible
 void XEmitter::PSRAW(X64Reg reg, int shift)
@@ -1761,8 +1781,9 @@ void XEmitter::PMINSW(X64Reg dest, OpArg arg)   {WriteSSEOp(0x66, 0xEA, dest, ar
 void XEmitter::PMINUB(X64Reg dest, OpArg arg)   {WriteSSEOp(0x66, 0xDA, dest, arg); }
 
 void XEmitter::PMOVMSKB(X64Reg dest, OpArg arg)    {WriteSSEOp(0x66, 0xD7, dest, arg); }
-
+void XEmitter::PSHUFD(X64Reg regOp, OpArg arg, u8 shuffle)    {WriteSSEOp(0x66, 0x70, regOp, arg, 1); Write8(shuffle);}
 void XEmitter::PSHUFLW(X64Reg regOp, OpArg arg, u8 shuffle)   {WriteSSEOp(0xF2, 0x70, regOp, arg, 1); Write8(shuffle);}
+void XEmitter::PSHUFHW(X64Reg regOp, OpArg arg, u8 shuffle)   {WriteSSEOp(0xF3, 0x70, regOp, arg, 1); Write8(shuffle);}
 
 // VEX
 void XEmitter::VADDSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(0xF2, sseADD, regOp1, regOp2, arg);}
