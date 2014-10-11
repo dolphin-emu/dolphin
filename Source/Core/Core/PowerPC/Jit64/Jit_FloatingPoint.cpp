@@ -64,12 +64,13 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 
 	bool single = inst.OPCD == 59;
+	bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
 	switch (inst.SUBOP5)
 	{
 	case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::VDIVSD, &XEmitter::DIVSD, inst); break; //div
 	case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::VSUBSD, &XEmitter::SUBSD, inst); break; //sub
 	case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true, single, &XEmitter::VADDSD, &XEmitter::ADDSD, inst); break; //add
-	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, single, &XEmitter::VMULSD, &XEmitter::MULSD, inst, single); break; //mul
+	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, single, &XEmitter::VMULSD, &XEmitter::MULSD, inst, round_input); break; //mul
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
 	}
@@ -81,12 +82,12 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	JITDISABLE(bJITFloatingPointOff);
 	FALLBACK_IF(inst.Rc);
 
-	bool single_precision = inst.OPCD == 59;
-
 	int a = inst.FA;
 	int b = inst.FB;
 	int c = inst.FC;
 	int d = inst.FD;
+	bool single_precision = inst.OPCD == 59;
+	bool round_input = single_precision && !jit->js.op->fprIsSingle[c];
 
 	fpr.Lock(a, b, c, d);
 
@@ -98,10 +99,10 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	// instances on different computers giving identical results.
 	if (cpu_info.bFMA && !Core::g_want_determinism)
 	{
-		if (single_precision)
+		if (single_precision && round_input)
 			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
 		else
-			MOVSD(XMM0, fpr.R(c));
+			MOVAPD(XMM0, fpr.R(c));
 		// Statistics suggests b is a lot less likely to be unbound in practice, so
 		// if we have to pick one of a or b to bind, let's make it b.
 		fpr.BindToRegister(b, true, false);
@@ -128,20 +129,20 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	else if (inst.SUBOP5 == 30) //nmsub
 	{
 		// nmsub is implemented a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately
-		if (single_precision)
+		if (single_precision && round_input)
 			Force25BitPrecision(XMM1, fpr.R(c), XMM0);
 		else
-			MOVSD(XMM1, fpr.R(c));
+			MOVAPD(XMM1, fpr.R(c));
 		MULSD(XMM1, fpr.R(a));
 		MOVSD(XMM0, fpr.R(b));
 		SUBSD(XMM0, R(XMM1));
 	}
 	else
 	{
-		if (single_precision)
+		if (single_precision && round_input)
 			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
 		else
-			MOVSD(XMM0, fpr.R(c));
+			MOVAPD(XMM0, fpr.R(c));
 		MULSD(XMM0, fpr.R(a));
 		if (inst.SUBOP5 == 28) //msub
 			SUBSD(XMM0, fpr.R(b));

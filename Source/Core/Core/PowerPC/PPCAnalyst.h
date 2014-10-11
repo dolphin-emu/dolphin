@@ -51,6 +51,8 @@ struct CodeOp //16B
 	// we do double stores from GPRs, so we don't want to load a PowerPC floating point register into
 	// an XMM only to move it again to a GPR afterwards.
 	BitSet32 fprInXmm;
+	// whether an fpr is known to be an actual single-precision value at this point in the block.
+	BitSet32 fprIsSingle;
 };
 
 struct BlockStats

@@ -827,10 +827,21 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		// the same location later).
 		gprInUse |= code[i].regsOut;
 		if (code[i].fregOut >= 0)
-		{
 			fprInUse[code[i].fregOut] = true;
-			if (strncmp(code[i].opinfo->opname, "stfd", 4))
-				fprInXmm[code[i].fregOut] = true;
+	}
+
+	// Forward scan, for flags that need the other direction for calculation
+	BitSet32 fprIsSingle;
+	for (u32 i = 0; i < block->m_num_instructions; i++)
+	{
+		code[i].fprIsSingle = fprIsSingle;
+		if (code[i].fregOut >= 0)
+		{
+			// This instruction outputs float, so we can omit the special rounding done in fmuls/fmadds
+			if (code[i].opinfo->type == OPTYPE_SINGLEFP || code[i].opinfo->type == OPTYPE_PS || strncmp(code[i].opinfo->opname, "lfs", 3))
+				fprIsSingle[code[i].fregOut] = true;
+			else
+				fprIsSingle[code[i].fregOut] = false;
 		}
 	}
 	return address;
