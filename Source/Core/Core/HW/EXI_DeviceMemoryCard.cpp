@@ -72,8 +72,8 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 {
 	struct
 	{
-		const char *done;
-		const char *transfer_complete;
+		const char* done;
+		const char* transfer_complete;
 	} const event_names[] = {
 		{ "memcardDoneA", "memcardTransferCompleteA" },
 		{ "memcardDoneB", "memcardTransferCompleteB" },

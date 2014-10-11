@@ -307,7 +307,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const char* code)
 {
 	GLuint result = glCreateShader(type);
 
-	const char *src[] = {s_glsl_header, code};
+	const char* src[] = {s_glsl_header, code};
 
 	glShaderSource(result, 2, src, nullptr);
 	glCompileShader(result);

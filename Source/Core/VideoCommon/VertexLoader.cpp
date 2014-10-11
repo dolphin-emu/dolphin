@@ -981,16 +981,16 @@ void VertexLoader::SetVAT(const VAT& vat)
 void VertexLoader::AppendToString(std::string *dest) const
 {
 	dest->reserve(250);
-	static const char *posMode[4] = {
+	static const char* posMode[4] = {
 		"Inv",
 		"Dir",
 		"I8",
 		"I16",
 	};
-	static const char *posFormats[5] = {
+	static const char* posFormats[5] = {
 		"u8", "s8", "u16", "s16", "flt",
 	};
-	static const char *colorFormat[8] = {
+	static const char* colorFormat[8] = {
 		"565",
 		"888",
 		"888x",

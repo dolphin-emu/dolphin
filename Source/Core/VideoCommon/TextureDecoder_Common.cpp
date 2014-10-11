@@ -195,7 +195,7 @@ static void TexDecoder_DrawOverlay(u8 *dst, int width, int height, int texformat
 		int xcnt = 0;
 		int nchar = sfont_map[(int)*fmt];
 
-		const unsigned char *ptr = sfont_raw[nchar]; // each char is up to 9x10
+		const unsigned char* ptr = sfont_raw[nchar]; // each char is up to 9x10
 
 		for (int x = 0; x < 9;x++)
 		{

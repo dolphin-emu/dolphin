@@ -53,7 +53,7 @@ std::string PPCDebugInterface::Disassemble(unsigned int address)
 	}
 }
 
-void PPCDebugInterface::GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
+void PPCDebugInterface::GetRawMemoryString(int memory, unsigned int address, char* dest, int max_size)
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{

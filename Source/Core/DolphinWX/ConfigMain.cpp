@@ -58,7 +58,7 @@
 struct CPUCore
 {
 	int CPUid;
-	const char *name;
+	const char* name;
 };
 const CPUCore CPUCores[] = {
 	{0, wxTRANSLATE("Interpreter (VERY slow)")},

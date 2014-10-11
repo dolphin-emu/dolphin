@@ -1789,7 +1789,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			X64Reg reg = fregFindFreeReg(RI);
 			unsigned ppcreg = *I >> 8;
-			char *p = (char*)&(PowerPC::ppcState.ps[ppcreg][0]);
+			char* p = (char*)&(PowerPC::ppcState.ps[ppcreg][0]);
 			Jit->MOV(32, R(RSCRATCH2), M(p+4));
 			Jit->AND(32, R(RSCRATCH2), Imm32(0x7ff00000));
 			Jit->CMP(32, R(RSCRATCH2), Imm32(0x38000000));

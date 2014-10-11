@@ -1,5 +1,5 @@
 /* XPM */
-static const char * Platform_Wad_xpm[] = {
+static const char*  Platform_Wad_xpm[] = {
 "96 32 347 2",
 "  	c None",
 ". 	c #FFFFFF",

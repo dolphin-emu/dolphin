@@ -163,8 +163,8 @@ static void ApplySSAASettings()
 #if defined(_DEBUG) || defined(DEBUGFAST)
 static void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
-	const char *s_source;
-	const char *s_type;
+	const char* s_source;
+	const char* s_type;
 
 	switch (source)
 	{

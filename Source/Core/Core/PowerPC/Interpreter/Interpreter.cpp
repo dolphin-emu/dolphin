@@ -315,7 +315,7 @@ void Interpreter::ClearCache()
 	// Do nothing.
 }
 
-const char *Interpreter::GetName()
+const char* Interpreter::GetName()
 {
 #ifdef _ARCH_64
 		return "Interpreter64";

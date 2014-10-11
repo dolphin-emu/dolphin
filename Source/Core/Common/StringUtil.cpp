@@ -31,7 +31,7 @@ bool AsciiToHex(const std::string& _szValue, u32& result)
 	// Set errno to a good state.
 	errno = 0;
 
-	char *endptr = nullptr;
+	char* endptr = nullptr;
 	const u32 value = strtoul(_szValue.c_str(), &endptr, 16);
 
 	if (!endptr || *endptr)
@@ -95,7 +95,7 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 std::string StringFromFormat(const char* format, ...)
 {
 	va_list args;
-	char *buf = nullptr;
+	char* buf = nullptr;
 #ifdef _WIN32
 	int required = 0;
 
@@ -165,7 +165,7 @@ std::string StripQuotes(const std::string& s)
 
 bool TryParse(const std::string &str, u32 *const output)
 {
-	char *endptr = nullptr;
+	char* endptr = nullptr;
 
 	// Reset errno to a value other than ERANGE
 	errno = 0;

@@ -104,7 +104,7 @@ bool Host_RendererHasFocus()
 
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
-void Host_SysMessage(const char *fmt, ...)
+void Host_SysMessage(const char* fmt, ...)
 {
 	va_list list;
 	char msg[512];

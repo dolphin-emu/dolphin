@@ -34,7 +34,7 @@ void StackTrace(HANDLE, char const* msg, FILE *file);
 void StackTrace(HANDLE, char const* msg, FILE *file, DWORD eip, DWORD esp, DWORD ebp);
 
 // functions by Masken
-void etfprintf(FILE *file, const char *format, ...);
+void etfprintf(FILE *file, const char* format, ...);
 void etfprint(FILE *file, const std::string &text);
 
 #else // not WIN32

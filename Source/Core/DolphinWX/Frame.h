@@ -111,7 +111,7 @@ public:
 	void ToggleLogWindow(bool bShow);
 	void ToggleLogConfigWindow(bool bShow);
 	void PostEvent(wxCommandEvent& event);
-	void StatusBarMessage(const char * Text, ...);
+	void StatusBarMessage(const char*  Text, ...);
 	void ClearStatusBar();
 	void GetRenderWindowSize(int& x, int& y, int& width, int& height);
 	void OnRenderWindowSizeRequest(int width, int height);

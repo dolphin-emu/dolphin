@@ -104,7 +104,7 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 	generate_ecdsa(sig_out, sig_out + 30, ap_priv, hash);
 }
 
-void make_blanksig_ec_cert(u8 *cert_out, const char *signer, const char *name, const u8 *private_key, u32 key_id)
+void make_blanksig_ec_cert(u8 *cert_out, const char* signer, const char* name, const u8 *private_key, u32 key_id)
 {
 	memset(cert_out, 0, 0x180);
 	*(u32*)cert_out = Common::swap32(0x10002);

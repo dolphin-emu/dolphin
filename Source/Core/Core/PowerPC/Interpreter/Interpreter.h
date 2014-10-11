@@ -26,7 +26,7 @@ public:
 
 	void Run() override;
 	void ClearCache() override;
-	const char *GetName() override;
+	const char* GetName() override;
 
 	typedef void (*_interpreterInstruction)(UGeckoInstruction instCode);
 

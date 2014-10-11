@@ -97,7 +97,7 @@ public:
 	const XFuncMap &Symbols() const { return functions; }
 	XFuncMap &AccessSymbols() { return functions; }
 
-	void Clear(const char *prefix = "");
+	void Clear(const char* prefix = "");
 	void List();
 	void Index();
 };

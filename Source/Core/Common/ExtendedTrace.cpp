@@ -402,7 +402,7 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 #define UEFBUFSIZE 2048
 static char g_uefbuf[UEFBUFSIZE];
 
-void etfprintf(FILE *file, const char *format, ...)
+void etfprintf(FILE *file, const char* format, ...)
 {
 	va_list ap;
 	va_start(ap, format);

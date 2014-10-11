@@ -91,7 +91,7 @@ public:
 		return &asm_routines;
 	}
 
-	const char *GetName() override
+	const char* GetName() override
 	{
 		return "JIT64";
 	}

@@ -16,7 +16,7 @@ std::string DSPDebugInterface::Disassemble(unsigned int address)
 	return DSPSymbols::GetLineText(address);
 }
 
-void DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
+void DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address, char* dest, int max_size)
 {
 	if (DSPCore_GetState() == DSPCORE_STOP)
 	{

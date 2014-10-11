@@ -90,7 +90,7 @@ public:
 		return &asm_routines;
 	}
 
-	const char *GetName()
+	const char* GetName()
 	{
 		return "JITARM";
 	}

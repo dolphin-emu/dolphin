@@ -130,7 +130,7 @@ void CJitWindow::Compare(u32 em_address)
 	const u8 *code = (const u8 *)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
 	u64 disasmPtr = (u64)code;
 	const u8 *end = code + block->codeSize;
-	char *sptr = (char*)xDis;
+	char* sptr = (char*)xDis;
 
 	int num_x86_instructions = 0;
 	while ((u8*)disasmPtr < end)

@@ -32,6 +32,6 @@ void Clear();
 int Addr2Line(u16 address);
 int Line2Addr(int line);   // -1 for not found
 
-const char *GetLineText(int line);
+const char* GetLineText(int line);
 
 }  // namespace DSPSymbols

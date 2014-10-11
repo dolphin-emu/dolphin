@@ -66,7 +66,7 @@ static const SPatch OSBreakPoints[] =
 	{ "FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction },
 };
 
-void Patch(u32 addr, const char *hle_func_name)
+void Patch(u32 addr, const char* hle_func_name)
 {
 	for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
 	{

@@ -222,7 +222,7 @@ void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalIni, IniFile& local
 }
 
 
-static void LogInfo(const char *format, ...)
+static void LogInfo(const char* format, ...)
 {
 	if (!b_RanOnce)
 	{

@@ -53,7 +53,7 @@ public:
 	~CLogWindow();
 
 	void SaveSettings();
-	void Log(LogTypes::LOG_LEVELS, const char *text) override;
+	void Log(LogTypes::LOG_LEVELS, const char* text) override;
 
 	int x, y, winpos;
 

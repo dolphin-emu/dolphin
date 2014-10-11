@@ -16,7 +16,7 @@ public:
 	ConsoleListener();
 	~ConsoleListener();
 
-	void Open(bool Hidden = false, int Width = 100, int Height = 100, const char * Name = "Console");
+	void Open(bool Hidden = false, int Width = 100, int Height = 100, const char*  Name = "Console");
 	void UpdateHandle();
 	void Close();
 	bool IsOpen();
@@ -26,7 +26,7 @@ public:
 #ifdef _WIN32
 	COORD GetCoordinates(int BytesRead, int BufferWidth);
 #endif
-	void Log(LogTypes::LOG_LEVELS, const char *Text) override;
+	void Log(LogTypes::LOG_LEVELS, const char* Text) override;
 	void ClearScreen(bool Cursor = true);
 
 private:

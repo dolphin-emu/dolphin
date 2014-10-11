@@ -21,7 +21,7 @@
 #include "Common/Logging/LogManager.h"
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-		const char *file, int line, const char* fmt, ...)
+		const char* file, int line, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -125,7 +125,7 @@ LogManager::~LogManager()
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-	const char *file, int line, const char *format, va_list args)
+	const char* file, int line, const char* format, va_list args)
 {
 	char temp[MAX_MSGLEN];
 	LogContainer *log = m_Log[type];
@@ -178,7 +178,7 @@ void LogContainer::RemoveListener(LogListener *listener)
 	m_listeners.erase(listener);
 }
 
-void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char *msg)
+void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char* msg)
 {
 	std::lock_guard<std::mutex> lk(m_listeners_lock);
 
@@ -194,7 +194,7 @@ FileLogListener::FileLogListener(const std::string& filename)
 	SetEnable(true);
 }
 
-void FileLogListener::Log(LogTypes::LOG_LEVELS, const char *msg)
+void FileLogListener::Log(LogTypes::LOG_LEVELS, const char* msg)
 {
 	if (!IsEnabled() || !IsValid())
 		return;
@@ -203,7 +203,7 @@ void FileLogListener::Log(LogTypes::LOG_LEVELS, const char *msg)
 	m_logfile << msg << std::flush;
 }
 
-void DebuggerLogListener::Log(LogTypes::LOG_LEVELS, const char *msg)
+void DebuggerLogListener::Log(LogTypes::LOG_LEVELS, const char* msg)
 {
 #if _MSC_VER
 	::OutputDebugStringA(msg);

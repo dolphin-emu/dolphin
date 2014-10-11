@@ -39,7 +39,7 @@ namespace HwRasterizer
 	static void CreateShaders()
 	{
 		// Color Vertices
-		static const char *fragcolText =
+		static const char* fragcolText =
 			"#ifdef GL_ES\n"
 			"precision highp float;\n"
 			"#endif\n"
@@ -48,7 +48,7 @@ namespace HwRasterizer
 			"	gl_FragColor = TexCoordOut;\n"
 			"}\n";
 		// Texture Vertices
-		static const char *fragtexText =
+		static const char* fragtexText =
 			"#ifdef GL_ES\n"
 			"precision highp float;\n"
 			"#define texture2DRect texture2D\n"
@@ -60,7 +60,7 @@ namespace HwRasterizer
 			"	gl_FragColor = texture2DRect(Texture, TexCoordOut.xy);\n"
 			"}\n";
 		// Clear shader
-		static const char *fragclearText =
+		static const char* fragclearText =
 			"#ifdef GL_ES\n"
 			"precision highp float;\n"
 			"#endif\n"
@@ -69,7 +69,7 @@ namespace HwRasterizer
 			"	gl_FragColor = Color;\n"
 			"}\n";
 		// Generic passthrough vertice shaders
-		static const char *vertShaderText =
+		static const char* vertShaderText =
 			"attribute vec4 pos;\n"
 			"attribute vec4 TexCoordIn;\n "
 			"varying vec4 TexCoordOut;\n "
@@ -77,7 +77,7 @@ namespace HwRasterizer
 			"	gl_Position = pos;\n"
 			"	TexCoordOut = TexCoordIn;\n"
 			"}\n";
-		static const char *vertclearText =
+		static const char* vertclearText =
 			"attribute vec4 pos;\n"
 			"void main() {\n"
 			"	gl_Position = pos;\n"

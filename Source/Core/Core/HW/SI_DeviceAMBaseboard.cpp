@@ -36,7 +36,7 @@ public:
 	{
 		AddData((const unsigned char*)data, len);
 	}
-	void AddData(const char *data)
+	void AddData(const char* data)
 	{
 		AddData(data, strlen(data));
 	}
@@ -53,7 +53,7 @@ public:
 		AddData(m_csum + len - 2);
 	}
 
-	void AddData(const unsigned char *dst, size_t len, int sync = 0)
+	void AddData(const unsigned char* dst, size_t len, int sync = 0)
 	{
 		while (len--)
 		{
@@ -246,7 +246,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 								jvs_io_buffer[jvs_io_length++] = ptr(pptr + i);
 							int node = jvs_io_buffer[1];
 
-							unsigned char *jvs_io = jvs_io_buffer + 3;
+							unsigned char* jvs_io = jvs_io_buffer + 3;
 							jvs_io_length--; // checksum
 							while (jvs_io < (jvs_io_buffer + jvs_io_length))
 							{
@@ -373,7 +373,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 
 							res[resp++] = ptr(0);
 
-							unsigned char *buf = msg.m_msg;
+							unsigned char* buf = msg.m_msg;
 							int len = msg.m_ptr;
 							res[resp++] = len;
 							for (i=0; i<len; ++i)
@@ -397,7 +397,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 				res[1] = len;
 				csum = 0;
 				char logptr[1024];
-				char *log = logptr;
+				char* log = logptr;
 				for (i=0; i<0x7F; ++i)
 				{
 					csum += ptr(i) = res[i];

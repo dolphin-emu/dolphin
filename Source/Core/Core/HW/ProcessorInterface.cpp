@@ -164,7 +164,7 @@ void UpdateException()
 		Common::AtomicAnd(PowerPC::ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
 }
 
-static const char *Debug_GetInterruptName(u32 _causemask)
+static const char* Debug_GetInterruptName(u32 _causemask)
 {
 	switch (_causemask)
 	{

@@ -22,7 +22,7 @@ void AddAutoBreakpoints()
 {
 #if defined(_DEBUG) || defined(DEBUGFAST)
 #if 1
-	const char *bps[] = {
+	const char* bps[] = {
 		"PPCHalt",
 	};
 

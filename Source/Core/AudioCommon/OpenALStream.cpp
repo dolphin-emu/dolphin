@@ -28,7 +28,7 @@ bool OpenALStream::Start()
 	ALDeviceList pDeviceList;
 	if (pDeviceList.GetNumDevices())
 	{
-		char *defDevName = pDeviceList.GetDeviceName(pDeviceList.GetDefaultDevice());
+		char* defDevName = pDeviceList.GetDeviceName(pDeviceList.GetDefaultDevice());
 
 		WARN_LOG(AUDIO, "Found OpenAL device %s", defDevName);
 

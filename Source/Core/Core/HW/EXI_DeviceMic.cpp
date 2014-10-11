@@ -14,7 +14,7 @@
 
 #include <portaudio.h>
 
-void CEXIMic::StreamLog(const char *msg)
+void CEXIMic::StreamLog(const char* msg)
 {
 	DEBUG_LOG(EXPANSIONINTERFACE, "%s: %s",
 		msg, Pa_GetErrorText(pa_error));

@@ -18,7 +18,7 @@ namespace ActionReplay
 {
 
 // Alphanumeric filter for text<->bin conversion
-static const char *filter = "0123456789ABCDEFGHJKMNPQRTUVWXYZILOS";
+static const char* filter = "0123456789ABCDEFGHJKMNPQRTUVWXYZILOS";
 
 static u32 genseeds[0x20];
 
@@ -391,7 +391,7 @@ static bool batchdecrypt(u32 *codes, u16 size)
 	// Unfinished (so says Parasyte :p )
 }
 
-static int GetVal(const char *flt, char chr)
+static int GetVal(const char* flt, char chr)
 {
 	int ret = (int)(strchr(flt,chr) - flt);
 	switch (ret)

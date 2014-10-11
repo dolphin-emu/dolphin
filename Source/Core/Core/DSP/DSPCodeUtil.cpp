@@ -106,7 +106,7 @@ void GenRandomCode(u32 size, std::vector<u16> &code)
 }
 
 void CodeToHeader(const std::vector<u16> &code, std::string _filename,
-				  const char *name, std::string &header)
+				  const char* name, std::string &header)
 {
 	std::vector<u16> code_padded = code;
 	// Pad with nops to 32byte boundary
@@ -133,7 +133,7 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 }
 
 void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>* filenames,
-				   u32 numCodes, const char *name, std::string &header)
+				   u32 numCodes, const char* name, std::string &header)
 {
 	std::vector<std::vector<u16> > codes_padded;
 	u32 reserveSize = 0;

@@ -135,7 +135,7 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 	case IOCTLV_NET_SSL_NEW:
 	{
 		int verifyOption = Memory::Read_U32(BufferOut);
-		const char * hostname = (const char*) Memory::GetPointer(BufferOut2);
+		const char*  hostname = (const char*) Memory::GetPointer(BufferOut2);
 
 		int freeSSL = this->getSSLFreeID();
 		if (freeSSL)

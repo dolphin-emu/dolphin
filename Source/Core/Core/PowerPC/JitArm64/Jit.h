@@ -49,7 +49,7 @@ public:
 
 	void Jit(u32 em_address);
 
-	const char *GetName()
+	const char* GetName()
 	{
 		return "JITARM64";
 	}

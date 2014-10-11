@@ -561,7 +561,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 			bool found = false;
 			for (u32 addr = 0x80000000; addr < 0x80180000; addr += 4)
 			{
-				const char *name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
+				const char* name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
 				if (name && (wx_name == name))
 				{
 					NOTICE_LOG(POWERPC, "Found %s at %08x", wx_name.c_str(), addr);

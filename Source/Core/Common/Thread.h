@@ -79,6 +79,6 @@ inline void YieldCPU()
 	std::this_thread::yield();
 }
 
-void SetCurrentThreadName(const char *name);
+void SetCurrentThreadName(const char* name);
 
 } // namespace Common

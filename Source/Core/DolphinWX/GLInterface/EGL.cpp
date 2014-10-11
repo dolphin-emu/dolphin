@@ -86,7 +86,7 @@ err_exit:
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceEGL::Create(void *window_handle)
 {
-	const char *s;
+	const char* s;
 	EGLint egl_major, egl_minor;
 
 	egl_dpy = OpenDisplay();

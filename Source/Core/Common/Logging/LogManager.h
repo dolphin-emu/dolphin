@@ -22,7 +22,7 @@ class LogListener
 public:
 	virtual ~LogListener() {}
 
-	virtual void Log(LogTypes::LOG_LEVELS, const char *msg) = 0;
+	virtual void Log(LogTypes::LOG_LEVELS, const char* msg) = 0;
 };
 
 class FileLogListener : public LogListener
@@ -30,7 +30,7 @@ class FileLogListener : public LogListener
 public:
 	FileLogListener(const std::string& filename);
 
-	void Log(LogTypes::LOG_LEVELS, const char *msg) override;
+	void Log(LogTypes::LOG_LEVELS, const char* msg) override;
 
 	bool IsValid() { return !m_logfile.fail(); }
 	bool IsEnabled() const { return m_enable; }
@@ -47,7 +47,7 @@ private:
 class DebuggerLogListener : public LogListener
 {
 public:
-	void Log(LogTypes::LOG_LEVELS, const char *msg) override;
+	void Log(LogTypes::LOG_LEVELS, const char* msg) override;
 };
 
 class LogContainer
@@ -61,7 +61,7 @@ public:
 	void AddListener(LogListener* listener);
 	void RemoveListener(LogListener* listener);
 
-	void Trigger(LogTypes::LOG_LEVELS, const char *msg);
+	void Trigger(LogTypes::LOG_LEVELS, const char* msg);
 
 	bool IsEnabled() const { return m_enable; }
 	void SetEnable(bool enable) { m_enable = enable; }
@@ -99,7 +99,7 @@ public:
 	static u32 GetMaxLevel() { return MAX_LOGLEVEL; }
 
 	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-			 const char *file, int line, const char *fmt, va_list args);
+			 const char* file, int line, const char* fmt, va_list args);
 
 	void SetLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 	{
