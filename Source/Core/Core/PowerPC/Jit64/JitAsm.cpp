@@ -91,33 +91,23 @@ void Jit64AsmRoutineManager::Generate()
 			FixupBranch exit_vmem;
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 				mask = JIT_ICACHE_EXRAM_BIT;
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-				mask |= JIT_ICACHE_VMEM_BIT;
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii || SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-			{
-				TEST(32, R(RSCRATCH), Imm32(mask));
-				no_mem = J_CC(CC_NZ);
-			}
+			mask |= JIT_ICACHE_VMEM_BIT;
+			TEST(32, R(RSCRATCH), Imm32(mask));
+			no_mem = J_CC(CC_NZ);
 			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
 			MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCache));
 			MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii || SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-			{
-				exit_mem = J();
-				SetJumpTarget(no_mem);
-			}
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-			{
-				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_VMEM_BIT));
-				FixupBranch no_vmem = J_CC(CC_Z);
-				AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
-				MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
-				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
+			exit_mem = J();
+			SetJumpTarget(no_mem);
+			TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_VMEM_BIT));
+			FixupBranch no_vmem = J_CC(CC_Z);
+			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
+			MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
+			MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) exit_vmem = J();
-				SetJumpTarget(no_vmem);
-			}
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) exit_vmem = J();
+			SetJumpTarget(no_vmem);
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 			{
 				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
@@ -128,9 +118,8 @@ void Jit64AsmRoutineManager::Generate()
 
 				SetJumpTarget(no_exram);
 			}
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii || SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
-				SetJumpTarget(exit_mem);
-			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack))
+			SetJumpTarget(exit_mem);
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 				SetJumpTarget(exit_vmem);
 
 			TEST(32, R(RSCRATCH), R(RSCRATCH));

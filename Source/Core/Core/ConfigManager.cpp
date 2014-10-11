@@ -536,7 +536,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("RunCompareServer",          &m_LocalCoreStartupParameter.bRunCompareServer, false);
 	core->Get("RunCompareClient",          &m_LocalCoreStartupParameter.bRunCompareClient, false);
 	core->Get("MMU",                       &m_LocalCoreStartupParameter.bMMU,              false);
-	core->Get("TLBHack",                   &m_LocalCoreStartupParameter.bTLBHack,          false);
 	core->Get("BBDumpPort",                &m_LocalCoreStartupParameter.iBBDumpPort,       -1);
 	core->Get("VBeam",                     &m_LocalCoreStartupParameter.bVBeamSpeedHack,   false);
 	core->Get("SyncGPU",                   &m_LocalCoreStartupParameter.bSyncGPU,          false);

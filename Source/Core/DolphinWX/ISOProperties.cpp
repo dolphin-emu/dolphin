@@ -389,8 +389,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "SkipIdle"));
 	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "MMU"));
 	MMU->SetToolTip(_("Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
-	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("MMU Speed Hack"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "TLBHack"));
-	TLBHack->SetToolTip(_("Fast version of the MMU. Does not work for every game."));
 	DCBZOFF = new wxCheckBox(m_GameConfig, ID_DCBZOFF, _("Skip DCBZ clearing"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DCBZ"));
 	DCBZOFF->SetToolTip(_("Bypass the clearing of the data cache by the DCBZ instruction. Usually leave this option disabled."));
 	VBeam = new wxCheckBox(m_GameConfig, ID_VBEAM, _("VBeam Speed Hack"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "VBeam"));
@@ -426,7 +424,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(CPUThread, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(SkipIdle, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(MMU, 0, wxLEFT, 5);
-	sbCoreOverrides->Add(TLBHack, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DCBZOFF, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(VBeam, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(SyncGPU, 0, wxLEFT, 5);
@@ -1013,7 +1010,6 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Core", "CPUThread", CPUThread);
 	SetCheckboxValueFromGameini("Core", "SkipIdle", SkipIdle);
 	SetCheckboxValueFromGameini("Core", "MMU", MMU);
-	SetCheckboxValueFromGameini("Core", "TLBHack", TLBHack);
 	SetCheckboxValueFromGameini("Core", "DCBZ", DCBZOFF);
 	SetCheckboxValueFromGameini("Core", "VBeam", VBeam);
 	SetCheckboxValueFromGameini("Core", "SyncGPU", SyncGPU);
@@ -1088,7 +1084,6 @@ bool CISOProperties::SaveGameConfig()
 	SaveGameIniValueFrom3StateCheckbox("Core", "CPUThread", CPUThread);
 	SaveGameIniValueFrom3StateCheckbox("Core", "SkipIdle", SkipIdle);
 	SaveGameIniValueFrom3StateCheckbox("Core", "MMU", MMU);
-	SaveGameIniValueFrom3StateCheckbox("Core", "TLBHack", TLBHack);
 	SaveGameIniValueFrom3StateCheckbox("Core", "DCBZ", DCBZOFF);
 	SaveGameIniValueFrom3StateCheckbox("Core", "VBeam", VBeam);
 	SaveGameIniValueFrom3StateCheckbox("Core", "SyncGPU", SyncGPU);

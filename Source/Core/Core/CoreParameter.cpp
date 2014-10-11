@@ -39,7 +39,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bMergeBlocks(false), bEnableMemcardSaving(true),
   bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
-  bMMU(false), bDCBZOFF(false), bTLBHack(false), iBBDumpPort(0), bVBeamSpeedHack(false),
+  bMMU(false), bDCBZOFF(false), iBBDumpPort(0), bVBeamSpeedHack(false),
   bSyncGPU(false), bFastDiscSpeed(false),
   SelectedLanguage(0), bWii(false),
   bConfirmStop(false), bHideCursor(false),
@@ -75,7 +75,6 @@ void SCoreStartupParameter::LoadDefaults()
 	bEnableFPRF = false;
 	bMMU = false;
 	bDCBZOFF = false;
-	bTLBHack = false;
 	iBBDumpPort = -1;
 	bVBeamSpeedHack = false;
 	bSyncGPU = false;

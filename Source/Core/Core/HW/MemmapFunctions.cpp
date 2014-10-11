@@ -305,7 +305,6 @@ u32 Read_Opcode(u32 _Address)
 	}
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU &&
-		!SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack &&
 		(_Address & ADDR_MASK_MEM1))
 	{
 		// TODO: Check for MSR instruction address translation flag before translating
