@@ -123,7 +123,7 @@ bool WiiWAD::IsWiiWAD(const std::string& name)
 	CBlobBigEndianReader big_endian_reader(*blob_reader);
 	bool result = false;
 
-	// check for wii wad
+	// check for Wii wad
 	if (big_endian_reader.Read32(0x00) == 0x20)
 	{
 		u32 wad_type = big_endian_reader.Read32(0x04);

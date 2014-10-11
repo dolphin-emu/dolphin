@@ -313,8 +313,8 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_TITLE, _("Title"));
 
 		// Instead of showing the notes + the company, which is unknown with
-		// wii titles We show in the same column : company for GC games and
-		// description for wii/wad games
+		// Wii titles We show in the same column : company for GC games and
+		// description for Wii/wad games
 		InsertColumn(COLUMN_NOTES, _("Notes"));
 		InsertColumn(COLUMN_ID, _("ID"));
 		InsertColumn(COLUMN_COUNTRY, "");

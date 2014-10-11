@@ -304,7 +304,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
 void CheckExceptions()
 {
 	// Make sure we are checking against the latest EXI status. This is required
-	// for devices which interrupt frequently, such as the gc mic
+	// for devices which interrupt frequently, such as the GC mic
 	ExpansionInterface::UpdateInterrupts();
 
 	// Read volatile data once

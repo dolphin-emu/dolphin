@@ -173,7 +173,7 @@ private:
 		{
 			case 0x6ba3b3ea: // IPL - PAL
 			case 0x24b22038: // IPL - NTSC/NTSC-JAP
-			case 0x42f64ac4: // Luigi
+			case 0x42f64ac4: // Luigi's Mansion
 			case 0x4be6a5cb: // AC, Pikmin NTSC
 				return true;
 			default:

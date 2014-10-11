@@ -253,7 +253,7 @@ static void EncodeToRamUsingShader(GLuint srcTexture,
 	{
 		// writing to a texture of a different size
 		// also copy more then one block line, so the different strides matters
-		// copy into one pbo first, map this buffer, and then memcpy into gc memory
+		// copy into one pbo first, map this buffer, and then memcpy into GC memory
 		// in this way, we only have one vram->ram transfer, but maybe a bigger
 		// cpu overhead because of the pbo
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, s_PBO);
