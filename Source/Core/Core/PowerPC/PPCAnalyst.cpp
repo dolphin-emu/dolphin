@@ -830,18 +830,45 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 			fprInUse[code[i].fregOut] = true;
 	}
 
-	// Forward scan, for flags that need the other direction for calculation
-	BitSet32 fprIsSingle;
+	// Forward scan, for flags that need the other direction for calculation.
+	BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe;
 	for (u32 i = 0; i < block->m_num_instructions; i++)
 	{
 		code[i].fprIsSingle = fprIsSingle;
+		code[i].fprIsDuplicated = fprIsDuplicated;
+		code[i].fprIsStoreSafe = fprIsStoreSafe;
 		if (code[i].fregOut >= 0)
 		{
-			// This instruction outputs float, so we can omit the special rounding done in fmuls/fmadds
-			if (code[i].opinfo->type == OPTYPE_SINGLEFP || code[i].opinfo->type == OPTYPE_PS || strncmp(code[i].opinfo->opname, "lfs", 3))
+			fprIsSingle[code[i].fregOut] = false;
+			fprIsDuplicated[code[i].fregOut] = false;
+			fprIsStoreSafe[code[i].fregOut] = false;
+			// Single, duplicated, and doesn't need PPC_FP.
+			if (code[i].opinfo->type == OPTYPE_SINGLEFP)
+			{
 				fprIsSingle[code[i].fregOut] = true;
-			else
-				fprIsSingle[code[i].fregOut] = false;
+				fprIsDuplicated[code[i].fregOut] = true;
+				fprIsStoreSafe[code[i].fregOut] = true;
+			}
+			// Single and duplicated, but might be a denormal (not safe to skip PPC_FP).
+			// TODO: if we go directly from a load to store, skip conversion entirely?
+			// TODO: if we go directly from a load to a float instruction, and the value isn't used
+			// for anything else, we can skip PPC_FP on a load too.
+			if (!strncmp(code[i].opinfo->opname, "lfs", 3))
+			{
+				fprIsSingle[code[i].fregOut] = true;
+				fprIsDuplicated[code[i].fregOut] = true;
+			}
+			// Paired are still floats, but the top/bottom halves may differ.
+			if (code[i].opinfo->type == OPTYPE_PS || code[i].opinfo->type == OPTYPE_LOADPS)
+			{
+				fprIsSingle[code[i].fregOut] = true;
+				fprIsStoreSafe[code[i].fregOut] = true;
+			}
+			// Careful: changing the float mode in a block breaks this optimization, since
+			// a previous float op might have had had FTZ off while the later store has FTZ
+			// on. So, discard all information we have.
+			if (!strncmp(code[i].opinfo->opname, "mtfs", 4))
+				fprIsStoreSafe = BitSet32(0);
 		}
 	}
 	return address;

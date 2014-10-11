@@ -53,6 +53,11 @@ struct CodeOp //16B
 	BitSet32 fprInXmm;
 	// whether an fpr is known to be an actual single-precision value at this point in the block.
 	BitSet32 fprIsSingle;
+	// whether an fpr is known to have identical top and bottom halves (e.g. due to a single instruction)
+	BitSet32 fprIsDuplicated;
+	// whether an fpr is the output of a single-precision arithmetic instruction, i.e. whether we can safely
+	// skip PPC_FP.
+	BitSet32 fprIsStoreSafe;
 };
 
 struct BlockStats
