@@ -90,9 +90,44 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
 	fpr.Lock(a, b, c, d);
 
-	// nmsub is implemented a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately
-	if (inst.SUBOP5 == 30) //nmsub
+	// While we don't know if any games are actually affected (replays seem to work with all the usual
+	// suspects for desyncing), netplay and other applications need absolute perfect determinism, so
+	// be extra careful and don't use FMA, even if in theory it might be okay.
+	// Note that FMA isn't necessarily less correct (it may actually be closer to correct) compared
+	// to what the Gekko does here; in deterministic mode, the important thing is multiple Dolphin
+	// instances on different computers giving identical results.
+	if (cpu_info.bFMA && !Core::g_want_determinism)
 	{
+		if (single_precision)
+			Force25BitPrecision(XMM0, fpr.R(c), XMM1);
+		else
+			MOVSD(XMM0, fpr.R(c));
+		// Statistics suggests b is a lot less likely to be unbound in practice, so
+		// if we have to pick one of a or b to bind, let's make it b.
+		fpr.BindToRegister(b, true, false);
+		switch (inst.SUBOP5)
+		{
+		case 28: //msub
+			VFMSUB132SD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		case 29: //madd
+			VFMADD132SD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+			// PowerPC and x86 define NMADD/NMSUB differently
+			// x86: D = -A*C (+/-) B
+			// PPC: D = -(A*C (+/-) B)
+			// so we have to swap them; the ADD/SUB here isn't a typo.
+		case 30: //nmsub
+			VFNMADD132SD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		case 31: //nmadd
+			VFNMSUB132SD(XMM0, fpr.RX(b), fpr.R(a));
+			break;
+		}
+	}
+	else if (inst.SUBOP5 == 30) //nmsub
+	{
+		// nmsub is implemented a little differently ((b - a*c) instead of -(a*c - b)), so handle it separately
 		if (single_precision)
 			Force25BitPrecision(XMM1, fpr.R(c), XMM0);
 		else
@@ -115,6 +150,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 		if (inst.SUBOP5 == 31) //nmadd
 			PXOR(XMM0, M((void*)&psSignBits));
 	}
+
 	fpr.BindToRegister(d, false);
 	//YES it is necessary to dupe the result :(
 	//TODO : analysis - does the top reg get used? If so, dupe, if not, don't.

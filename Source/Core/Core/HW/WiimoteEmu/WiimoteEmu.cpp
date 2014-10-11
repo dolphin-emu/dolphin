@@ -517,18 +517,18 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		{
 			if (x[i*2] < 1024 && y[i*2] < 768)
 			{
-				irdata[i].x1 = u8(x[i*2]);
+				irdata[i].x1 = static_cast<u8>(x[i*2]);
 				irdata[i].x1hi = x[i*2] >> 8;
 
-				irdata[i].y1 = u8(y[i*2]);
+				irdata[i].y1 = static_cast<u8>(y[i*2]);
 				irdata[i].y1hi = y[i*2] >> 8;
 			}
 			if (x[i*2+1] < 1024 && y[i*2+1] < 768)
 			{
-				irdata[i].x2 = u8(x[i*2+1]);
+				irdata[i].x2 = static_cast<u8>(x[i*2+1]);
 				irdata[i].x2hi = x[i*2+1] >> 8;
 
-				irdata[i].y2 = u8(y[i*2+1]);
+				irdata[i].y2 = static_cast<u8>(y[i*2+1]);
 				irdata[i].y2hi = y[i*2+1] >> 8;
 			}
 		}
@@ -542,10 +542,10 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		for (unsigned int i = 0; i < 4; ++i)
 			if (x[i] < 1024 && y[i] < 768)
 			{
-				irdata[i].x = u8(x[i]);
+				irdata[i].x = static_cast<u8>(x[i]);
 				irdata[i].xhi = x[i] >> 8;
 
-				irdata[i].y = u8(y[i]);
+				irdata[i].y = static_cast<u8>(y[i]);
 				irdata[i].yhi = y[i] >> 8;
 
 				irdata[i].size = 10;
@@ -729,6 +729,8 @@ void Wiimote::Update()
 				}
 			}
 		}
+
+		Movie::CallWiiInputManip(data, rptf, m_index);
 	}
 	if (NetPlay::IsNetPlayRunning())
 	{

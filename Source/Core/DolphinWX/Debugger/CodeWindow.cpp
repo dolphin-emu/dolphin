@@ -397,7 +397,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	interpreter->Check(_LocalCoreStartupParameter.iCPUCore == 0);
 	pCoreMenu->AppendSeparator();
 
-	pCoreMenu->Append(IDM_JITBLOCKLINKING, _("&JIT Block Linking off"),
+	pCoreMenu->Append(IDM_JITNOBLOCKLINKING, _("&JIT Block Linking off"),
 		_("Provide safer execution by not linking the JIT blocks."),
 		wxITEM_CHECK);
 
@@ -596,9 +596,9 @@ bool CCodeWindow::JITNoBlockCache()
 	return GetMenuBar()->IsChecked(IDM_JITNOBLOCKCACHE);
 }
 
-bool CCodeWindow::JITBlockLinking()
+bool CCodeWindow::JITNoBlockLinking()
 {
-	return GetMenuBar()->IsChecked(IDM_JITBLOCKLINKING);
+	return GetMenuBar()->IsChecked(IDM_JITNOBLOCKLINKING);
 }
 
 // Toolbar

@@ -175,8 +175,8 @@ void Jit64::Init()
 {
 	jo.optimizeStack = true;
 	jo.enableBlocklink = true;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bJITBlockLinking ||
-		 SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITNoBlockLinking ||
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU)
 	{
 		// TODO: support block linking with MMU
 		jo.enableBlocklink = false;
@@ -614,7 +614,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.next_inst_bp = false;
 			if (Profiler::g_ProfileBlocks)
 			{
-				// CAUTION!!! push on stack regs you use, do your stuff, then pop
 				PROFILER_VPUSH;
 				// get end tic
 				PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);

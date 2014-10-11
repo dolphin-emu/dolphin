@@ -159,7 +159,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 									// Get an editor.
 									SharedPreferences.Editor editor = sPrefs.edit();
 									editor.putString("gpuPref", "Software Renderer");
-									editor.commit();
+									editor.apply();
 									videoBackends.setValue("Software Renderer");
 									videoBackends.setSummary("Software Renderer");
 								}

@@ -151,7 +151,7 @@ struct VideoConfig final
 	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
 	bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
 	bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
-	bool BorderlessFullscreenEnabled() const { return !backend_info.bSupportsExclusiveFullscreen || bBorderlessFullscreen; }
+	bool ExclusiveFullscreenEnabled() const { return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen; }
 };
 
 extern VideoConfig g_Config;

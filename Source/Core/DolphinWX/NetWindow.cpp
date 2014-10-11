@@ -65,9 +65,7 @@ static std::string BuildGameName(const GameListItem& game)
 	// Lang needs to be consistent
 	auto const lang = 0;
 
-	std::string name(game.GetBannerName(lang));
-	if (name.empty())
-		name = game.GetVolumeName(lang);
+	std::string name(game.GetName(lang));
 
 	if (game.GetRevision() != 0)
 		return name + " (" + game.GetUniqueID() + ", Revision " + std::to_string((long long)game.GetRevision()) + ")";
