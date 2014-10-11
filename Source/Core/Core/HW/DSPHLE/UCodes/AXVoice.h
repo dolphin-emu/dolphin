@@ -149,7 +149,7 @@ void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 u16 AcceleratorGetSample()
 {
 	u16 ret;
-	u8 step_size_bytes = 0;
+	bool isLoop = false;
 
 	// See below for explanations about acc_end_reached.
 	if (acc_end_reached)
@@ -166,7 +166,7 @@ u16 AcceleratorGetSample()
 				*acc_cur_addr += 2;
 			}
 
-			int scale = 1 << (acc_pb->adpcm.pred_scale & 0xF);
+			int scale = (acc_pb->adpcm.pred_scale & 0xF);
 			int coef_idx = (acc_pb->adpcm.pred_scale >> 4) & 0x7;
 
 			s32 coef1 = acc_pb->adpcm.coefs[coef_idx * 2 + 0];
@@ -179,14 +179,14 @@ u16 AcceleratorGetSample()
 			if (temp >= 8)
 				temp -= 16;
 
-			int val = (scale * temp) + ((0x400 + coef1 * acc_pb->adpcm.yn1 + coef2 * acc_pb->adpcm.yn2) >> 11);
+			int val = (temp << scale) + ((0x400 + coef1 * acc_pb->adpcm.yn1 + coef2 * acc_pb->adpcm.yn2) >> 11);
 			MathUtil::Clamp(&val, -0x7FFF, 0x7FFF);
 
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = val;
-			step_size_bytes = 2;
-			*acc_cur_addr += 1;
 			ret = val;
+			*acc_cur_addr += 1;
+			isLoop = ((*acc_cur_addr >> 1) == (acc_end_addr >> 1) + 1);
 			break;
 		}
 
@@ -194,28 +194,31 @@ u16 AcceleratorGetSample()
 			ret = (DSP::ReadARAM(*acc_cur_addr * 2) << 8) | DSP::ReadARAM(*acc_cur_addr * 2 + 1);
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = ret;
-			step_size_bytes = 2;
 			*acc_cur_addr += 1;
+			isLoop = (*acc_cur_addr == acc_end_addr + 1);
 			break;
 
 		case 0x19: // 8-bit PCM audio
 			ret = DSP::ReadARAM(*acc_cur_addr) << 8;
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = ret;
-			step_size_bytes = 1;
 			*acc_cur_addr += 1;
+			isLoop = (*acc_cur_addr == acc_end_addr + 1);
 			break;
 
 		default:
 			ERROR_LOG(DSPHLE, "Unknown sample format: %d", acc_pb->audio_addr.sample_format);
-			return 0;
+			ret = 0;
+			*acc_cur_addr += 1;
+			isLoop = (*acc_cur_addr == acc_end_addr + 1);
+			break;
 	}
 
 	// Have we reached the end address?
 	//
 	// On real hardware, this would raise an interrupt that is handled by the
 	// UCode. We simulate what this interrupt does here.
-	if (*acc_cur_addr == (acc_end_addr + step_size_bytes - 1))
+	if (isLoop)
 	{
 		// loop back to loop_addr.
 		*acc_cur_addr = acc_loop_addr;
