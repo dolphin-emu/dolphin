@@ -175,10 +175,6 @@ protected:
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 
-		// Borderless Fullscreen
-		borderless_fullscreen->Enable(vconfig.backend_info.bSupportsExclusiveFullscreen);
-		borderless_fullscreen->Show(vconfig.backend_info.bSupportsExclusiveFullscreen);
-
 		// EFB copy
 		efbcopy_texture->Enable(vconfig.bEFBCopyEnable);
 		efbcopy_ram->Enable(vconfig.bEFBCopyEnable);
