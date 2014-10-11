@@ -73,7 +73,7 @@ protected:
 private:
 	virtual XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) = 0;
 	// TODO: figure out why OGL is different for this guy
-	virtual void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) = 0;
+	virtual void GetTargetSize(unsigned int* width, unsigned int* height, const EFBRectangle& sourceRc) = 0;
 
 	static VirtualXFBListType::iterator FindVirtualXFB(u32 xfbAddr, u32 width, u32 height);
 

@@ -21,8 +21,8 @@ private:
 	int NUMPPCREG;
 	int NUMARMREG;
 
-	ArmGen::ARMReg *GetAllocationOrder(int &count);
-	ArmGen::ARMReg *GetPPCAllocationOrder(int &count);
+	ArmGen::ARMReg *GetAllocationOrder(int& count);
+	ArmGen::ARMReg *GetPPCAllocationOrder(int& count);
 
 	ArmGen::ARMReg GetPPCReg(u32 preg, bool PS1, bool preLoad);
 

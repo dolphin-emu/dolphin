@@ -661,7 +661,7 @@ bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
 	list->RemoveAll();
 
 	u8 nFiles = memoryCard[card]->GetNumFiles();
-	int *images = new int[nFiles*2];
+	int* images = new int[nFiles*2];
 
 	for (u8 i = 0;i < nFiles;i++)
 	{

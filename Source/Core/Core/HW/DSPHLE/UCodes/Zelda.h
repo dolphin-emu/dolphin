@@ -132,8 +132,8 @@ public:
 
 	void DoState(PointerWrap &p) override;
 
-	int *templbuffer;
-	int *temprbuffer;
+	int* templbuffer;
+	int* temprbuffer;
 
 	// Simple dump ...
 	int DumpAFC(u8* pIn, const int size, const int srate);

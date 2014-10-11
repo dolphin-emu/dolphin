@@ -19,8 +19,8 @@
 #include <sys/types.h>
 #include <machine/cpufunc.h>
 #else
-static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
-							unsigned int *ecx, unsigned int *edx)
+static inline void do_cpuid(unsigned int* eax, unsigned int* ebx,
+							unsigned int* ecx, unsigned int* edx)
 {
 #if defined _LP64
 	// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to

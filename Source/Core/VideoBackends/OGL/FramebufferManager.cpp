@@ -442,7 +442,7 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 	return new XFBSource(texture);
 }
 
-void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)
+void FramebufferManager::GetTargetSize(unsigned int* width, unsigned int* height, const EFBRectangle& sourceRc)
 {
 	*width = m_targetWidth;
 	*height = m_targetHeight;

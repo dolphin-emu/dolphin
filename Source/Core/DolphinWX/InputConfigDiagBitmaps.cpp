@@ -249,7 +249,7 @@ static void DrawControlGroupBox(wxDC &dc, ControlGroupBox *g)
 		// draw the shit
 		dc.SetPen(*wxGREY_PEN);
 
-		unsigned int * const bitmasks = new unsigned int[ button_count ];
+		unsigned int*  const bitmasks = new unsigned int[ button_count ];
 		for (unsigned int n = 0; n<button_count; ++n)
 			bitmasks[n] = (1 << n);
 

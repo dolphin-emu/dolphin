@@ -76,10 +76,10 @@ typedef IntegerSetting<u32> U32Setting;
 class SettingChoice : public wxChoice
 {
 public:
-	SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num = 0, const wxString choices[] = nullptr, long style = 0);
+	SettingChoice(wxWindow* parent, int& setting, const wxString& tooltip, int num = 0, const wxString choices[] = nullptr, long style = 0);
 	void UpdateValue(wxCommandEvent& ev);
 private:
-	int &m_setting;
+	int& m_setting;
 };
 
 class VideoConfigDiag : public wxDialog
