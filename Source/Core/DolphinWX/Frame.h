@@ -111,7 +111,7 @@ public:
 	void ToggleLogWindow(bool bShow);
 	void ToggleLogConfigWindow(bool bShow);
 	void PostEvent(wxCommandEvent& event);
-	void StatusBarMessage(const char * Text, ...);
+	void StatusBarMessage(const char*  Text, ...);
 	void ClearStatusBar();
 	void GetRenderWindowSize(int& x, int& y, int& width, int& height);
 	void OnRenderWindowSizeRequest(int width, int height);
@@ -148,8 +148,8 @@ public:
 	bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
 	// Perspectives (Should find a way to make all of this private)
-	void DoAddPage(wxWindow *Win, int i, bool Float);
-	void DoRemovePage(wxWindow *, bool bHide = true);
+	void DoAddPage(wxWindow* Win, int i, bool Float);
+	void DoRemovePage(wxWindow* , bool bHide = true);
 	struct SPerspectives
 	{
 		std::string Name;
@@ -207,7 +207,7 @@ private:
 
 	// Utility
 	wxString GetMenuLabel(int Id);
-	wxWindow * GetNotebookPageFromId(wxWindowID Id);
+	wxWindow*  GetNotebookPageFromId(wxWindowID Id);
 	wxAuiNotebook * GetNotebookFromId(u32 NBId);
 	int GetNotebookCount();
 	wxAuiNotebook *CreateEmptyNotebook();
@@ -235,7 +235,7 @@ private:
 	void DoFloatNotebookPage(wxWindowID Id);
 	wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
 			const wxString& title = "",
-			wxWindow * = nullptr);
+			wxWindow*  = nullptr);
 	wxString AuiFullscreen, AuiCurrent;
 	void AddPane();
 	void UpdateCurrentPerspective();

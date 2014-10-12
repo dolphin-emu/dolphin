@@ -18,8 +18,8 @@ namespace DebugUtil
 
 	void OnFrameEnd(u32 width, u32 height);
 
-	void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name);
+	void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char* name);
 
 	void DrawTempBuffer(u8 *color, int buffer);
-	void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char *name);
+	void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char* name);
 }

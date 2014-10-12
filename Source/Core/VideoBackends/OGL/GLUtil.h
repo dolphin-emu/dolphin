@@ -16,11 +16,11 @@
 void InitInterface();
 
 // Helpers
-GLuint OpenGL_CompileProgram(const char *vertexShader, const char *fragmentShader);
+GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShader);
 
 // Error reporting - use the convenient macros.
-GLuint OpenGL_ReportGLError(const char *function, const char *file, int line);
-bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
+GLuint OpenGL_ReportGLError(const char* function, const char* file, int line);
+bool OpenGL_ReportFBOError(const char* function, const char* file, int line);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 #define GL_REPORT_ERROR()         OpenGL_ReportGLError(__FUNCTION__, __FILE__, __LINE__)

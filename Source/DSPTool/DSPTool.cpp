@@ -45,7 +45,7 @@ static bool RoundTrip(const std::vector<u16> &code1)
 
 // This test goes from text ASM to binary to text ASM and once again back to binary.
 // Very convenient for testing. Then the two binaries are compared.
-static bool SuperTrip(const char *asm_code)
+static bool SuperTrip(const char* asm_code)
 {
 	std::vector<u16> code1, code2;
 	std::string text;
@@ -199,7 +199,7 @@ static void RunAsmTests()
 // Print results from DSPSpy register dump
 //   dsptool -p dsp_dump0.bin
 // So far, all this binary can do is test partially that itself works correctly.
-int main(int argc, const char *argv[])
+int main(int argc, const char* argv[])
 {
 	if (argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
 	{

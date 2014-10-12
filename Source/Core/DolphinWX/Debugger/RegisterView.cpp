@@ -23,7 +23,7 @@ class wxWindow;
 
 // F-zero 80005e60 wtf??
 
-static const char *special_reg_names[] = {
+static const char* special_reg_names[] = {
 	"PC", "LR", "CTR", "CR", "FPSCR", "MSR", "SRR0", "SRR1", "Exceptions", "Int Mask", "Int Cause",
 };
 
@@ -172,7 +172,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 	return attr;
 }
 
-CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
+CRegisterView::CRegisterView(wxWindow* parent, wxWindowID id)
 	: wxGrid(parent, id)
 {
 	SetTable(new CRegTable(), true);

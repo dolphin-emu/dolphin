@@ -173,7 +173,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			// this command sucks because it asks of the number of used
 			// fsBlocks and inodes
 			// It should be correct, but don't count on it...
-			const char *relativepath = (const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address);
+			const char* relativepath = (const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address);
 			std::string path(HLE_IPC_BuildFilename(relativepath, CommandBuffer.InBuffer[0].m_Size));
 			u32 fsBlocks = 0;
 			u32 iNodes = 0;

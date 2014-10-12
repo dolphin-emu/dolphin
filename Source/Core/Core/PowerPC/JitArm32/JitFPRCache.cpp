@@ -57,7 +57,7 @@ void ArmFPRCache::Start(PPCAnalyst::BlockRegStats &stats)
 	}
 }
 
-ARMReg *ArmFPRCache::GetPPCAllocationOrder(int &count)
+ARMReg *ArmFPRCache::GetPPCAllocationOrder(int& count)
 {
 	// This will return us the allocation order of the registers we can use on
 	// the ppc side.
@@ -70,7 +70,7 @@ ARMReg *ArmFPRCache::GetPPCAllocationOrder(int &count)
 	count = sizeof(allocationOrder) / sizeof(const int);
 	return allocationOrder;
 }
-ARMReg *ArmFPRCache::GetAllocationOrder(int &count)
+ARMReg *ArmFPRCache::GetAllocationOrder(int& count)
 {
 	// This will return us the allocation order of the registers we can use on
 	// the host side.

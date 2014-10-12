@@ -38,7 +38,7 @@ class CMemcardManager : public wxDialog
 {
 	public:
 
-		CMemcardManager(wxWindow *parent, wxWindowID id = wxID_ANY, const wxString& title = wxGetTranslation(MEMCARDMAN_TITLE),
+		CMemcardManager(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxGetTranslation(MEMCARDMAN_TITLE),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MEMCARD_MANAGER_STYLE);
 		virtual ~CMemcardManager();
 

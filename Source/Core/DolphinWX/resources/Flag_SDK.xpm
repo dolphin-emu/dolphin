@@ -1,5 +1,5 @@
 /* XPM */
-static const char * Flag_SDK_xpm[] = {
+static const char*  Flag_SDK_xpm[] = {
 "96 32 79 1",
 " 	c None",
 ".	c #000000",

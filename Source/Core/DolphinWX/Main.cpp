@@ -325,7 +325,7 @@ bool DolphinApp::OnInit()
 	return true;
 }
 
-void DolphinApp::MacOpenFile(const wxString &fileName)
+void DolphinApp::MacOpenFile(const wxString& fileName)
 {
 	FileToLoad = fileName;
 	LoadFile = true;
@@ -434,7 +434,7 @@ void DolphinApp::OnFatalException()
 // ------------
 // Talk to GUI
 
-void Host_SysMessage(const char *fmt, ...)
+void Host_SysMessage(const char* fmt, ...)
 {
 	va_list list;
 	char msg[512];
@@ -468,7 +468,7 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 #endif
 }
 
-std::string wxStringTranslator(const char *text)
+std::string wxStringTranslator(const char* text)
 {
 	return WxStrToStr(wxGetTranslation(wxString::FromUTF8(text)));
 }

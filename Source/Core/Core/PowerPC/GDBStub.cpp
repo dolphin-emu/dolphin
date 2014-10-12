@@ -307,7 +307,7 @@ static int gdb_data_available() {
 	return 0;
 }
 
-static void gdb_reply(const char *reply)
+static void gdb_reply(const char* reply)
 {
 	u8 chk;
 	u32 left;

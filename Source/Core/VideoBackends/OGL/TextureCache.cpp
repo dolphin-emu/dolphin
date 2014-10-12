@@ -341,7 +341,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 TextureCache::TextureCache()
 {
-	const char *pColorMatrixProg =
+	const char* pColorMatrixProg =
 		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[7];\n"
 		"in vec2 uv0;\n"
@@ -353,7 +353,7 @@ TextureCache::TextureCache()
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
-	const char *pDepthMatrixProg =
+	const char* pDepthMatrixProg =
 		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[5];\n"
 		"in vec2 uv0;\n"
@@ -386,7 +386,7 @@ TextureCache::TextureCache()
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
-	const char *VProgram =
+	const char* VProgram =
 		"out vec2 uv0;\n"
 		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom

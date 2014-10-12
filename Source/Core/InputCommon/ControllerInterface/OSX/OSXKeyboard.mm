@@ -116,7 +116,7 @@ Keyboard::Key::Key(IOHIDElementRef element, IOHIDDeviceRef device)
 	static const struct PrettyKeys
 	{
 		const uint32_t    code;
-		const char *const name;
+		const char* const name;
 	} named_keys[] = {
 		{ kHIDUsage_KeyboardA, "A" },
 		{ kHIDUsage_KeyboardB, "B" },

@@ -1,4 +1,4 @@
-static const char *rating_5[] = {
+static const char* rating_5[] = {
 "96 32 33 1",
 "7 c #EBB027",
 "  c None",
@@ -67,7 +67,7 @@ static const char *rating_5[] = {
 "                                                                                                "
 };
 
-static const char *rating_4[] = {
+static const char* rating_4[] = {
 "96 32 47 1",
 "l c #D2D2D2",
 "o c #E1E1E1",
@@ -150,7 +150,7 @@ static const char *rating_4[] = {
 "                                                                                                "
 };
 
-static const char *rating_3[] = {
+static const char* rating_3[] = {
 "96 32 47 1",
 "l c #D2D2D2",
 "o c #E1E1E1",
@@ -233,7 +233,7 @@ static const char *rating_3[] = {
 "                                                                                                "
 };
 
-static const char *rating_2[] = {
+static const char* rating_2[] = {
 "96 32 47 1",
 "l c #D2D2D2",
 "o c #E1E1E1",
@@ -316,7 +316,7 @@ static const char *rating_2[] = {
 "                                                                                                "
 };
 
-static const char *rating_1[] = {
+static const char* rating_1[] = {
 "96 32 47 1",
 "l c #D2D2D2",
 "o c #E1E1E1",
@@ -399,7 +399,7 @@ static const char *rating_1[] = {
 "                                                                                                "
 };
 
-static const char *rating_0[] = {
+static const char* rating_0[] = {
 "96 32 15 1",
 "; c #D2D2D2",
 ". c #E1E1E1",

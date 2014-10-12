@@ -70,7 +70,7 @@ struct param2_t
 
 struct DSPOPCTemplate
 {
-	const char *name;
+	const char* name;
 	u16 opcode;
 	u16 opcode_mask;
 
@@ -115,9 +115,9 @@ extern const pdlabel_t regnames[];
 extern const pdlabel_t pdlabels[];
 extern const u32 pdlabels_size;
 
-const char *pdname(u16 val);
-const char *pdregname(int val);
-const char *pdregnamelong(int val);
+const char* pdname(u16 val);
+const char* pdregname(int val);
+const char* pdregnamelong(int val);
 
 void InitInstructionTable();
 void applyWriteBackLog();

@@ -28,7 +28,7 @@ namespace HLE
 
 	void PatchFunctions();
 
-	void Patch(u32 pc, const char *func_name);
+	void Patch(u32 pc, const char* func_name);
 	u32 UnPatch(const std::string& patchName);
 	void Execute(u32 _CurrentPC, u32 _Instruction);
 

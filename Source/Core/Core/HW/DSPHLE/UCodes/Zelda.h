@@ -132,8 +132,8 @@ public:
 
 	void DoState(PointerWrap &p) override;
 
-	int *templbuffer;
-	int *temprbuffer;
+	int* templbuffer;
+	int* temprbuffer;
 
 	// Simple dump ...
 	int DumpAFC(u8* pIn, const int size, const int srate);
@@ -265,7 +265,7 @@ private:
 	u8 *GetARAMPointer(u32 address);
 
 	// AFC decoder
-	static void AFCdecodebuffer(const s16 *coef, const char *input, signed short *out, short *histp, short *hist2p, int type);
+	static void AFCdecodebuffer(const s16 *coef, const char* input, signed short *out, short *histp, short *hist2p, int type);
 
 	void ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB);
 	void WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB);

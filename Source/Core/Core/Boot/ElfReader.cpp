@@ -80,13 +80,13 @@ ElfReader::ElfReader(void *ptr)
 	entryPoint = header->e_entry;
 }
 
-const char *ElfReader::GetSectionName(int section) const
+const char* ElfReader::GetSectionName(int section) const
 {
 	if (sections[section].sh_type == SHT_NULL)
 		return nullptr;
 
 	int nameOffset = sections[section].sh_name;
-	char *ptr = (char*)GetSectionDataPtr(header->e_shstrndx);
+	char* ptr = (char*)GetSectionDataPtr(header->e_shstrndx);
 
 	if (ptr)
 		return ptr + nameOffset;
@@ -155,7 +155,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 	for (int i=0; i<GetNumSections(); i++)
 	{
 		Elf32_Shdr *s = &sections[i];
-		const char *name = GetSectionName(i);
+		const char* name = GetSectionName(i);
 
 		u32 writeAddr = s->sh_addr + baseAddress;
 		sectionOffsets[i] = writeAddr - vaddr;
@@ -176,11 +176,11 @@ bool ElfReader::LoadInto(u32 vaddr)
 	return true;
 }
 
-SectionID ElfReader::GetSectionByName(const char *name, int firstSection) const
+SectionID ElfReader::GetSectionByName(const char* name, int firstSection) const
 {
 	for (int i = firstSection; i < header->e_shnum; i++)
 	{
-		const char *secname = GetSectionName(i);
+		const char* secname = GetSectionName(i);
 
 		if (secname != nullptr && strcmp(name, secname) == 0)
 			return i;
@@ -195,7 +195,7 @@ bool ElfReader::LoadSymbols()
 	if (sec != -1)
 	{
 		int stringSection = sections[sec].sh_link;
-		const char *stringBase = (const char *)GetSectionDataPtr(stringSection);
+		const char* stringBase = (const char *)GetSectionDataPtr(stringSection);
 
 		//We have a symbol table!
 		Elf32_Sym *symtab = (Elf32_Sym *)(GetSectionDataPtr(sec));
@@ -210,7 +210,7 @@ bool ElfReader::LoadSymbols()
 			int type = symtab[sym].st_info & 0xF;
 			int sectionIndex = Common::swap16(symtab[sym].st_shndx);
 			int value = Common::swap32(symtab[sym].st_value);
-			const char *name = stringBase + Common::swap32(symtab[sym].st_name);
+			const char* name = stringBase + Common::swap32(symtab[sym].st_name);
 			if (bRelocate)
 				value += sectionAddrs[sectionIndex];
 

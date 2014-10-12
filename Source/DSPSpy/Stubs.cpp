@@ -86,7 +86,7 @@ void CriticalSection::Leave()
 namespace File
 {
 
-bool WriteStringToFile(bool text_file, const std::string &str, const char *filename)
+bool WriteStringToFile(bool text_file, const std::string &str, const char* filename)
 {
 	FILE *f = fopen(filename, text_file ? "w" : "wb");
 	if (!f)
@@ -101,7 +101,7 @@ bool WriteStringToFile(bool text_file, const std::string &str, const char *filen
 	return true;
 }
 
-bool ReadFileToString(bool text_file, const char *filename, std::string &str)
+bool ReadFileToString(bool text_file, const char* filename, std::string &str)
 {
 	FILE *f = fopen(filename, text_file ? "r" : "rb");
 	if (!f)
@@ -109,7 +109,7 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 	fseeko(f, 0, SEEK_END);
 	size_t len = ftello(f);
 	fseeko(f, 0, SEEK_SET);
-	char *buf = new char[len + 1];
+	char* buf = new char[len + 1];
 	buf[fread(buf, 1, len, f)] = 0;
 	str = std::string(buf, len);
 	fclose(f);

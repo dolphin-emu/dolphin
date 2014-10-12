@@ -353,7 +353,7 @@ void CLogWindow::UpdateLog()
 	m_ignoreLogTimer = false;
 }
 
-void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
+void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char* text)
 {
 	std::lock_guard<std::mutex> lk(m_LogSection);
 

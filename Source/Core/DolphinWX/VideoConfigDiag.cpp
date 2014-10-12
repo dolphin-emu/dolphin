@@ -70,7 +70,7 @@ SettingRadioButton::BoolSetting(wxWindow* parent, const wxString& label, const w
 	Bind(wxEVT_RADIOBUTTON, &SettingRadioButton::UpdateValue, this);
 }
 
-SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num, const wxString choices[], long style)
+SettingChoice::SettingChoice(wxWindow* parent, int& setting, const wxString& tooltip, int num, const wxString choices[], long style)
 	: wxChoice(parent, -1, wxDefaultPosition, wxDefaultSize, num, choices)
 	, m_setting(setting)
 {

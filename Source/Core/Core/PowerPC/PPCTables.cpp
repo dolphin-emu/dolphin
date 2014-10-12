@@ -166,7 +166,7 @@ namespace {
 }
 #endif
 
-const char *GetInstructionName(UGeckoInstruction _inst)
+const char* GetInstructionName(UGeckoInstruction _inst)
 {
 	const GekkoOPInfo *info = GetOpInfo(_inst);
 	return info ? info->opname : nullptr;

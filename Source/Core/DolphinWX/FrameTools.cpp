@@ -1378,7 +1378,7 @@ void CFrame::ClearStatusBar()
 	}
 }
 
-void CFrame::StatusBarMessage(const char * Text, ...)
+void CFrame::StatusBarMessage(const char*  Text, ...)
 {
 	const int MAX_BYTES = 1024*10;
 	char Str[MAX_BYTES];

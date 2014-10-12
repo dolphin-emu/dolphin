@@ -32,7 +32,7 @@ wxString CDSPRegTable::GetValue(int row, int col)
 	return wxEmptyString;
 }
 
-void CDSPRegTable::SetValue(int, int, const wxString &)
+void CDSPRegTable::SetValue(int, int, const wxString& )
 {
 }
 
@@ -75,7 +75,7 @@ wxGridCellAttr *CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKi
 	return attr;
 }
 
-DSPRegisterView::DSPRegisterView(wxWindow *parent, wxWindowID id)
+DSPRegisterView::DSPRegisterView(wxWindow* parent, wxWindowID id)
 	: wxGrid(parent, id, wxDefaultPosition, wxSize(130, 120))
 {
 	SetTable(new CDSPRegTable(), true);

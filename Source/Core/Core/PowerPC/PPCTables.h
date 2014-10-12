@@ -96,7 +96,7 @@ enum
 
 struct GekkoOPInfo
 {
-	const char *opname;
+	const char* opname;
 	int type;
 	int flags;
 	int numCycles;
@@ -130,6 +130,6 @@ bool UsesFPU(UGeckoInstruction _inst);
 void CountInstruction(UGeckoInstruction _inst);
 void PrintInstructionRunCounts();
 void LogCompiledInstructions();
-const char *GetInstructionName(UGeckoInstruction _inst);
+const char* GetInstructionName(UGeckoInstruction _inst);
 
 }  // namespace

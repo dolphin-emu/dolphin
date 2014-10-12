@@ -57,8 +57,8 @@ static float PHackValue(std::string sValue)
 {
 	float f = 0;
 	bool fp = false;
-	const char *cStr = sValue.c_str();
-	char *c = new char[strlen(cStr)+1];
+	const char* cStr = sValue.c_str();
+	char* c = new char[strlen(cStr)+1];
 	std::istringstream sTof("");
 
 	for (unsigned int i=0; i<=strlen(cStr); ++i)
@@ -89,7 +89,7 @@ void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 {
 	float fhackvalue1 = 0, fhackvalue2 = 0;
 	float fhacksign1 = 1.0, fhacksign2 = 1.0;
-	const char *sTemp[2];
+	const char* sTemp[2];
 
 	if (iPhackvalue[0] == 1)
 	{

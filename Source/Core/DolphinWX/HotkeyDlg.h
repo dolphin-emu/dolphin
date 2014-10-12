@@ -27,9 +27,9 @@ class wxWindow;
 class HotkeyConfigDialog : public wxDialog
 {
 	public:
-		HotkeyConfigDialog(wxWindow *parent,
+		HotkeyConfigDialog(wxWindow* parent,
 				wxWindowID id = 1,
-				const wxString &title = _("Hotkey Configuration"),
+				const wxString& title = _("Hotkey Configuration"),
 				const wxPoint& pos = wxDefaultPosition,
 				const wxSize& size = wxDefaultSize,
 				long style = wxDEFAULT_DIALOG_STYLE);
@@ -51,7 +51,7 @@ class HotkeyConfigDialog : public wxDialog
 		void SaveButtonMapping(int Id, int Key, int Modkey);
 		void CreateHotkeyGUIControls();
 
-		void SetButtonText(int id, const wxString &keystr, const wxString &modkeystr = wxString());
+		void SetButtonText(int id, const wxString& keystr, const wxString& modkeystr = wxString());
 
 		void DoGetButtons(int id);
 		void EndGetButtons();

@@ -268,7 +268,7 @@ bool Rename(const std::string &srcFilename, const std::string &destFilename)
 }
 
 #ifndef _WIN32
-static void FSyncPath(const char *path)
+static void FSyncPath(const char* path)
 {
 	int fd = open(path, O_RDONLY);
 	if (fd != -1)
@@ -291,7 +291,7 @@ bool RenameSync(const std::string &srcFilename, const std::string &destFilename)
 		close(fd);
 	}
 #else
-	char *path = strdup(srcFilename.c_str());
+	char* path = strdup(srcFilename.c_str());
 	FSyncPath(path);
 	FSyncPath(dirname(path));
 	free(path);
@@ -663,7 +663,7 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 // Returns the current directory
 std::string GetCurrentDir()
 {
-	char *dir;
+	char* dir;
 	// Get the current working directory (getcwd uses malloc)
 	if (!(dir = __getcwd(nullptr, 0)))
 	{

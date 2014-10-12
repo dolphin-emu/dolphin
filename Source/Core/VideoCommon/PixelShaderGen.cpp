@@ -19,7 +19,7 @@
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
 
 
-static const char *tevKSelTableC[] =
+static const char* tevKSelTableC[] =
 {
 	"255,255,255",  // 1   = 0x00
 	"223,223,223",  // 7_8 = 0x01
@@ -55,7 +55,7 @@ static const char *tevKSelTableC[] =
 	I_KCOLORS"[3].aaa", // K3_A = 0x1F
 };
 
-static const char *tevKSelTableA[] =
+static const char* tevKSelTableA[] =
 {
 	"255",  // 1   = 0x00
 	"223",  // 7_8 = 0x01
@@ -91,7 +91,7 @@ static const char *tevKSelTableA[] =
 	I_KCOLORS"[3].a", // K3_A = 0x1F
 };
 
-static const char *tevCInputTable[] =
+static const char* tevCInputTable[] =
 {
 	"prev.rgb",          // CPREV,
 	"prev.aaa",          // APREV,
@@ -111,7 +111,7 @@ static const char *tevCInputTable[] =
 	"int3(0,0,0)",       // ZERO
 };
 
-static const char *tevAInputTable[] =
+static const char* tevAInputTable[] =
 {
 	"prev.a",        // APREV,
 	"c0.a",          // A0,
@@ -123,7 +123,7 @@ static const char *tevAInputTable[] =
 	"0",             // ZERO
 };
 
-static const char *tevRasTable[] =
+static const char* tevRasTable[] =
 {
 	"iround(colors_0 * 255.0)",
 	"iround(colors_1 * 255.0)",
@@ -135,14 +135,14 @@ static const char *tevRasTable[] =
 	"int4(0, 0, 0, 0)", // zero
 };
 
-static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
-static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
+static const char* tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
+static const char* tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 
 static char text[16384];
 
 template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, const char swapModeTable[4][5]);
 template<class T> static inline void WriteTevRegular(T& out, const char* components, int bias, int op, int clamp, int shift);
-template<class T> static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
+template<class T> static inline void SampleTexture(T& out, const char* texcoords, const char* texswap, int texmap, API_TYPE ApiType);
 template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data);
 
@@ -587,8 +587,8 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		// perform the indirect op on the incoming regular coordinates using iindtex%d as the offset coords
 		if (bpmem.tevind[n].bs != ITBA_OFF)
 		{
-			const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
-			const char *tevIndAlphaMask[] = {"248", "224", "240", "248"}; // 0b11111000, 0b11100000, 0b11110000, 0b11111000
+			const char* tevIndAlphaSel[]   = {"", "x", "y", "z"};
+			const char* tevIndAlphaMask[] = {"248", "224", "240", "248"}; // 0b11111000, 0b11100000, 0b11110000, 0b11111000
 			out.Write("alphabump = iindtex%d.%s & %s;\n",
 					bpmem.tevind[n].bt,
 					tevIndAlphaSel[bpmem.tevind[n].bs],
@@ -602,12 +602,12 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (bpmem.tevind[n].mid != 0)
 		{
 			// format
-			const char *tevIndFmtMask[] = { "255", "31", "15", "7" };
+			const char* tevIndFmtMask[] = { "255", "31", "15", "7" };
 			out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, bpmem.tevind[n].bt, tevIndFmtMask[bpmem.tevind[n].fmt]);
 
 			// bias - TODO: Check if this needs to be this complicated..
-			const char *tevIndBiasField[] = { "", "x", "y", "xy", "z", "xz", "yz", "xyz" }; // indexed by bias
-			const char *tevIndBiasAdd[] = { "-128", "1", "1", "1" }; // indexed by fmt
+			const char* tevIndBiasField[] = { "", "x", "y", "xy", "z", "xz", "yz", "xyz" }; // indexed by bias
+			const char* tevIndBiasAdd[] = { "-128", "1", "1", "1" }; // indexed by fmt
 			if (bpmem.tevind[n].bias == ITB_S || bpmem.tevind[n].bias == ITB_T || bpmem.tevind[n].bias == ITB_U)
 				out.Write("\tiindtevcrd%d.%s += int(%s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 			else if (bpmem.tevind[n].bias == ITB_ST || bpmem.tevind[n].bias == ITB_SU || bpmem.tevind[n].bias == ITB_TU)
@@ -661,7 +661,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		// ---------
 		// Wrapping
 		// ---------
-		const char *tevIndWrapStart[]  = {"0", "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)", "1" }; // TODO: Should the last one be 1 or (1<<7)?
+		const char* tevIndWrapStart[]  = {"0", "(256<<7)", "(128<<7)", "(64<<7)", "(32<<7)", "(16<<7)", "1" }; // TODO: Should the last one be 1 or (1<<7)?
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
@@ -709,7 +709,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		uid_data.stagehash[n].tevksel_swap2b = bpmem.tevksel[i*2+1].swap2;
 		uid_data.stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
 
-		const char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
+		const char* rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		out.Write("\trastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
 	}
 
@@ -735,7 +735,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 
 		uid_data.stagehash[n].tevorders_texmap= bpmem.tevorders[n/2].getTexMap(n&1);
 
-		const char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
+		const char* texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		uid_data.SetTevindrefTexmap(i, texmap);
 
 		out.Write("\ttextemp = ");
@@ -793,7 +793,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	}
 	else
 	{
-		const char *function_table[] =
+		const char* function_table[] =
 		{
 			"((tevin_a.r > tevin_b.r) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_R8_GT
 			"((tevin_a.r == tevin_b.r) ? tevin_c.rgb : int3(0,0,0))", // TEVCMP_R8_EQ
@@ -823,7 +823,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	}
 	else
 	{
-		const char *function_table[] =
+		const char* function_table[] =
 		{
 			"((tevin_a.r > tevin_b.r) ? tevin_c.a : 0)", // TEVCMP_R8_GT
 			"((tevin_a.r == tevin_b.r) ? tevin_c.a : 0)", // TEVCMP_R8_EQ
@@ -850,7 +850,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 template<class T>
 static inline void WriteTevRegular(T& out, const char* components, int bias, int op, int clamp, int shift)
 {
-	const char *tevScaleTableLeft[] =
+	const char* tevScaleTableLeft[] =
 	{
 		"",       // SCALE_1
 		" << 1",  // SCALE_2
@@ -858,7 +858,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 		"",       // DIVIDE_2
 	};
 
-	const char *tevScaleTableRight[] =
+	const char* tevScaleTableRight[] =
 	{
 		"",       // SCALE_1
 		"",       // SCALE_2
@@ -866,7 +866,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 		" >> 1",  // DIVIDE_2
 	};
 
-	const char *tevLerpBias[] = // indexed by 2*op+(shift==3)
+	const char* tevLerpBias[] = // indexed by 2*op+(shift==3)
 	{
 		"",
 		" + 128",
@@ -874,7 +874,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 		" + 127",
 	};
 
-	const char *tevBiasTable[] =
+	const char* tevBiasTable[] =
 	{
 		"",        // ZERO,
 		" + 128",  // ADDHALF,
@@ -882,7 +882,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 		"",
 	};
 
-	const char *tevOpTable[] = {
+	const char* tevOpTable[] = {
 		"+",      // TEVOP_ADD = 0,
 		"-",      // TEVOP_SUB = 1,
 	};
@@ -901,7 +901,7 @@ static inline void WriteTevRegular(T& out, const char* components, int bias, int
 }
 
 template<class T>
-static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
+static inline void SampleTexture(T& out, const char* texcoords, const char* texswap, int texmap, API_TYPE ApiType)
 {
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 
@@ -911,7 +911,7 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 		out.Write("iround(255.0 * texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy)).%s;\n", texmap, texcoords, texmap, texswap);
 }
 
-static const char *tevAlphaFuncsTable[] =
+static const char* tevAlphaFuncsTable[] =
 {
 	"(false)",					// NEVER
 	"(prev.a <  %s)",			// LESS
@@ -923,7 +923,7 @@ static const char *tevAlphaFuncsTable[] =
 	"(true)"					// ALWAYS
 };
 
-static const char *tevAlphaFunclogicTable[] =
+static const char* tevAlphaFunclogicTable[] =
 {
 	" && ", // and
 	" || ", // or
@@ -934,7 +934,7 @@ static const char *tevAlphaFunclogicTable[] =
 template<class T>
 static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
 {
-	static const char *alphaRef[2] =
+	static const char* alphaRef[2] =
 	{
 		I_ALPHA".r",
 		I_ALPHA".g"
@@ -983,7 +983,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 	out.Write("\t}\n");
 }
 
-static const char *tevFogFuncsTable[] =
+static const char* tevFogFuncsTable[] =
 {
 	"",                                                      // No Fog
 	"",                                                      // ?

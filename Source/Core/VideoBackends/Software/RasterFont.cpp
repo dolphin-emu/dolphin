@@ -128,7 +128,7 @@ RasterFont::~RasterFont()
 	delete [] temp_buffer;
 }
 
-void RasterFont::printString(const char *s, double x, double y, double z)
+void RasterFont::printString(const char* s, double x, double y, double z)
 {
 	int length = (int)strlen(s);
 	if (!length)
@@ -137,7 +137,7 @@ void RasterFont::printString(const char *s, double x, double y, double z)
 		length = TEMP_BUFFER_SIZE - 1;
 
 	// Sanitize string to avoid GL errors.
-	char *s2 = temp_buffer;
+	char* s2 = temp_buffer;
 	memcpy(s2, s, length);
 	s2[length] = 0;
 	for (int i = 0; i < length; i++)
@@ -158,19 +158,19 @@ void RasterFont::printString(const char *s, double x, double y, double z)
 	GL_REPORT_ERRORD();
 }
 
-void RasterFont::printCenteredString(const char *s, double y, int screen_width, double z)
+void RasterFont::printCenteredString(const char* s, double y, int screen_width, double z)
 {
 	int length = (int)strlen(s);
 	int x = (int)(screen_width/2.0 - (length/2.0) * CHAR_WIDTH);
 	printString(s, x, y, z);
 }
 
-void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight)
+void RasterFont::printMultilineText(const char* text, double start_x, double start_y, double z, int bbWidth, int bbHeight)
 {
 	double x = start_x;
 	double y = start_y;
 	char temp[1024];
-	char *t = temp;
+	char* t = temp;
 	while (*text)
 	{
 		if (*text == '\n')

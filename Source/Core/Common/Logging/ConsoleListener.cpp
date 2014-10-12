@@ -33,7 +33,7 @@ ConsoleListener::~ConsoleListener()
 // 100, 100, "Dolphin Log Console"
 // Open console window - width and height is the size of console window
 // Name is the window title
-void ConsoleListener::Open(bool Hidden, int Width, int Height, const char *Title)
+void ConsoleListener::Open(bool Hidden, int Width, int Height, const char* Title)
 {
 #ifdef _WIN32
 	if (!GetConsoleWindow())
@@ -240,7 +240,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 #endif
 }
 
-void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
+void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char* Text)
 {
 #if defined(_WIN32)
 	/*

@@ -52,7 +52,7 @@ Initial import
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
 
-static const char *err_string[] =
+static const char* err_string[] =
 {
 	"",
 	"Unknown Error",
@@ -99,7 +99,7 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16> &code, std
 {
 	if (line_numbers)
 		line_numbers->clear();
-	const char *fname = "tmp.asm";
+	const char* fname = "tmp.asm";
 	if (!File::WriteStringToFile(text, fname))
 		return false;
 	InitPass(1);
@@ -139,14 +139,14 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16> &code, std
 	return true;
 }
 
-void DSPAssembler::ShowError(err_t err_code, const char *extra_info)
+void DSPAssembler::ShowError(err_t err_code, const char* extra_info)
 {
 
 	if (!settings_.force)
 		failed = true;
 
 	char error_buffer[1024];
-	char *buf_ptr = error_buffer;
+	char* buf_ptr = error_buffer;
 	buf_ptr += sprintf(buf_ptr, "%i : %s ", code_line, cur_line.c_str());
 	if (!extra_info)
 		extra_info = "-";
@@ -160,7 +160,7 @@ void DSPAssembler::ShowError(err_t err_code, const char *extra_info)
 	last_error = err_code;
 }
 
-static char *skip_spaces(char *ptr)
+static char* skip_spaces(char* ptr)
 {
 	while (*ptr == ' ')
 		ptr++;
@@ -168,11 +168,11 @@ static char *skip_spaces(char *ptr)
 }
 
 // Parse a standalone value - it can be a number in one of several formats or a label.
-s32 DSPAssembler::ParseValue(const char *str)
+s32 DSPAssembler::ParseValue(const char* str)
 {
 	bool negative = false;
 	s32 val = 0;
-	const char *ptr = str;
+	const char* ptr = str;
 
 	if (ptr[0] == '#')
 	{
@@ -273,7 +273,7 @@ s32 DSPAssembler::ParseValue(const char *str)
 // - dst will become "string"
 // - Returned string from the function will be " 1234"
 //
-char *DSPAssembler::FindBrackets(char *src, char *dst)
+char* DSPAssembler::FindBrackets(char* src, char* dst)
 {
 	s32 len = (s32) strlen(src);
 	s32 first = -1;
@@ -320,13 +320,13 @@ char *DSPAssembler::FindBrackets(char *src, char *dst)
 }
 
 // Bizarre in-place expression evaluator.
-u32 DSPAssembler::ParseExpression(const char *ptr)
+u32 DSPAssembler::ParseExpression(const char* ptr)
 {
-	char *pbuf;
+	char* pbuf;
 	s32 val = 0;
 
-	char *d_buffer = (char *)malloc(1024);
-	char *s_buffer = (char *)malloc(1024);
+	char* d_buffer = (char *)malloc(1024);
+	char* s_buffer = (char *)malloc(1024);
 	strcpy(s_buffer, ptr);
 
 	while ((pbuf = FindBrackets(s_buffer, d_buffer)) != nullptr)
@@ -419,10 +419,10 @@ u32 DSPAssembler::ParseExpression(const char *ptr)
 }
 
 // Destroys parstr
-u32 DSPAssembler::GetParams(char *parstr, param_t *par)
+u32 DSPAssembler::GetParams(char* parstr, param_t *par)
 {
 	u32 count = 0;
-	char *tmpstr = skip_spaces(parstr);
+	char* tmpstr = skip_spaces(parstr);
 	tmpstr = strtok(tmpstr, ",\x00");
 	for (int i = 0; i < 10; i++)
 	{
@@ -474,7 +474,7 @@ u32 DSPAssembler::GetParams(char *parstr, param_t *par)
 	return count;
 }
 
-const opc_t *DSPAssembler::FindOpcode(const char *opcode, u32 par_count, const opc_t * const opcod, int opcod_size)
+const opc_t *DSPAssembler::FindOpcode(const char* opcode, u32 par_count, const opc_t * const opcod, int opcod_size)
 {
 	if (opcode[0] == 'C' && opcode[1] == 'W')
 		return &cw;
@@ -779,7 +779,7 @@ void DSPAssembler::InitPass(int pass)
 	segment_addr[SEGMENT_OVERLAY] = 0;
 }
 
-bool DSPAssembler::AssembleFile(const char *fname, int pass)
+bool DSPAssembler::AssembleFile(const char* fname, int pass)
 {
 	int disable_text = 0; // modified by Hermes
 
@@ -856,7 +856,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			if (c == 0)
 				break; // modified by Hermes
 		}
-		char *ptr = line;
+		char* ptr = line;
 
 		std::string label;
 
@@ -880,9 +880,9 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			}
 		}
 
-		char *opcode = nullptr;
+		char* opcode = nullptr;
 		opcode = strtok(ptr, " ");
-		char *opcode_ext = nullptr;
+		char* opcode_ext = nullptr;
 
 		u32 params_count = 0;
 		u32 params_count_ext = 0;
@@ -900,8 +900,8 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			params_count = 0;
 			params_count_ext = 0;
 
-			char *paramstr = strtok(nullptr, "\0");
-			char *paramstr_ext = nullptr;
+			char* paramstr = strtok(nullptr, "\0");
+			char* paramstr_ext = nullptr;
 			// there is valid opcode so probably we have parameters
 
 			if (paramstr)
@@ -943,7 +943,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		{
 			if (params[0].type == P_STR)
 			{
-				char *tmpstr;
+				char* tmpstr;
 				u32 thisCodeline = code_line;
 
 				if (include_dir.size())

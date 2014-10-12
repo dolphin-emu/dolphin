@@ -69,7 +69,7 @@ static void CreatePrograms()
 	 *     inbetween the two Pixels, and only blurs over these two pixels.
 	 */
 	// Output is BGRA because that is slightly faster than RGBA.
-	const char *VProgramRgbToYuyv =
+	const char* VProgramRgbToYuyv =
 		"out vec2 uv0;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
@@ -79,7 +79,7 @@ static void CreatePrograms()
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0));\n"
 		"}\n";
-	const char *FProgramRgbToYuyv =
+	const char* FProgramRgbToYuyv =
 		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
@@ -104,13 +104,13 @@ static void CreatePrograms()
 	 * same algorithm as the flipper, and could result in slight colour inaccuracies
 	 * when run back through this shader.
 	 */
-	const char *VProgramYuyvToRgb =
+	const char* VProgramYuyvToRgb =
 		"void main()\n"
 		"{\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
-	const char *FProgramYuyvToRgb =
+	const char* FProgramYuyvToRgb =
 		"SAMPLER_BINDING(9) uniform sampler2D samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
@@ -154,7 +154,7 @@ static SHADER &GetOrCreateEncodingShader(u32 format)
 		}
 #endif
 
-		const char *VProgram =
+		const char* VProgram =
 			"void main()\n"
 			"{\n"
 			"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"

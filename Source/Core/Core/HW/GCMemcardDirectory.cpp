@@ -11,7 +11,7 @@
 #include "DiscIO/Volume.h"
 
 const int NO_INDEX = -1;
-static const char *MC_HDR = "MC_SYSTEM_AREA";
+static const char* MC_HDR = "MC_SYSTEM_AREA";
 
 int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry card_region, bool currentGameOnly)
 {

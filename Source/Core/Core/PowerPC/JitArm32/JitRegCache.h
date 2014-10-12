@@ -105,8 +105,8 @@ private:
 	int NUMPPCREG;
 	int NUMARMREG;
 
-	ArmGen::ARMReg *GetAllocationOrder(int &count);
-	ArmGen::ARMReg *GetPPCAllocationOrder(int &count);
+	ArmGen::ARMReg *GetAllocationOrder(int& count);
+	ArmGen::ARMReg *GetPPCAllocationOrder(int& count);
 
 	u32 GetLeastUsedRegister(bool increment);
 	bool FindFreeRegister(u32 &regindex);

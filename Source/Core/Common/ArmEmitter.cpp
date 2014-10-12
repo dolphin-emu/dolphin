@@ -541,7 +541,7 @@ const s32 InstOps[][4] = {{16, 0, 0, 0}, // AND(s)
                           {26, -1, -1, -1}, // MOVT
                          };
 
-const char *InstNames[] = {"AND",
+const char* InstNames[] = {"AND",
                            "EOR",
                            "SUB",
                            "RSB",
@@ -763,7 +763,7 @@ const s32 LoadStoreOps[][4] = {
 	{ 0x5,  0x1,  -1, -1}, // LDRSB
 	{ 0x5,  0x1,  -1, -1}, // LDRSH
 };
-const char *LoadStoreNames[] = {
+const char* LoadStoreNames[] = {
 	"STR",
 	"LDR",
 	"STRB",
@@ -978,7 +978,7 @@ static const VFPEnc VFPOps[16][2] = {
 	{{  -1,   -1}, {0x3B, 0x30}}, // 14: VABSi
 	};
 
-static const char *VFPOpNames[16] = {
+static const char* VFPOpNames[16] = {
 	"VMLA",
 	"VNMLA",
 	"VMLS",

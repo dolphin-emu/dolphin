@@ -55,7 +55,7 @@ void SWRenderer::Shutdown()
 
 static void CreateShaders()
 {
-	static const char *fragShaderText =
+	static const char* fragShaderText =
 		"#ifdef GL_ES\n"
 		"precision highp float;\n"
 		"#endif\n"
@@ -64,7 +64,7 @@ static void CreateShaders()
 		"void main() {\n"
 		"	gl_FragColor = texture2D(Texture, TexCoordOut);\n"
 		"}\n";
-	static const char *vertShaderText =
+	static const char* vertShaderText =
 		"#ifdef GL_ES\n"
 		"precision highp float;\n"
 		"#endif\n"
@@ -106,7 +106,7 @@ void SWRenderer::Prepare()
 	GL_REPORT_ERRORD();
 }
 
-void SWRenderer::SetScreenshot(const char *_szFilename)
+void SWRenderer::SetScreenshot(const char* _szFilename)
 {
 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 	s_sScreenshotName = _szFilename;

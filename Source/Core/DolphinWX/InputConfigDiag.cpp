@@ -362,7 +362,7 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 	UpdateGUI();
 }
 
-inline bool IsAlphabetic(wxString &str)
+inline bool IsAlphabetic(wxString& str)
 {
 	for (wxUniChar c : str)
 		if (!isalpha(c))
@@ -371,8 +371,8 @@ inline bool IsAlphabetic(wxString &str)
 	return true;
 }
 
-inline void GetExpressionForControl(wxString &expr,
-				    wxString &control_name,
+inline void GetExpressionForControl(wxString& expr,
+				    wxString& control_name,
 				    ciface::Core::DeviceQualifier *control_device = nullptr,
 				    ciface::Core::DeviceQualifier *default_device = nullptr)
 {
@@ -392,7 +392,7 @@ inline void GetExpressionForControl(wxString &expr,
 		expr = wxString::Format("`%s`", expr);
 }
 
-bool ControlDialog::GetExpressionForSelectedControl(wxString &expr)
+bool ControlDialog::GetExpressionForSelectedControl(wxString& expr)
 {
 	const int num = control_lbox->GetSelection();
 

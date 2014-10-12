@@ -116,7 +116,7 @@ static const u8 rasters[CHAR_COUNT][CHAR_HEIGHT] = {
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x8f, 0xf1, 0x60, 0x00, 0x00, 0x00}
 };
 
-static const char *s_vertexShaderSrc =
+static const char* s_vertexShaderSrc =
 	"uniform vec2 charSize;\n"
 	"in vec2 rawpos;\n"
 	"in vec2 tex0;\n"
@@ -126,7 +126,7 @@ static const char *s_vertexShaderSrc =
 	"	uv0 = tex0 * charSize;\n"
 	"}\n";
 
-static const char *s_fragmentShaderSrc =
+static const char* s_fragmentShaderSrc =
 	"SAMPLER_BINDING(8) uniform sampler2D samp8;\n"
 	"uniform vec4 color;\n"
 	"in vec2 uv0;\n"

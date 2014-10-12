@@ -374,7 +374,7 @@ bool GCMemcard::GCI_FileName(u8 index, std::string &filename) const
 }
 
 // DEntry functions, all take u8 index < DIRLEN (127)
-// Functions that have ascii output take a char *buffer
+// Functions that have ascii output take a char* buffer
 
 std::string GCMemcard::DEntry_GameCode(u8 index) const
 {

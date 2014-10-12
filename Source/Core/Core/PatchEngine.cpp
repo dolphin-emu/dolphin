@@ -37,7 +37,7 @@ using namespace Common;
 namespace PatchEngine
 {
 
-const char *PatchTypeStrings[] =
+const char* PatchTypeStrings[] =
 {
 	"byte",
 	"word",

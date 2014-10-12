@@ -577,7 +577,7 @@ static void WriteZ24Encoder(char*& p, API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
+const char* GenerateEncodingShader(u32 format,API_TYPE ApiType)
 {
 #ifndef ANDROID
 	locale_t locale = newlocale(LC_NUMERIC_MASK, "C", nullptr); // New locale for compilation
@@ -585,7 +585,7 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 #endif
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
-	char *p = text;
+	char* p = text;
 
 	switch (format)
 	{

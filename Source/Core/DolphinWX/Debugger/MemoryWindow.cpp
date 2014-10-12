@@ -341,7 +341,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 	long count = 0;
 	char copy[3] = {0};
 	long newsize = 0;
-	unsigned char *tmp2 = nullptr;
+	unsigned char* tmp2 = nullptr;
 	char* tmpstr = nullptr;
 
 	if (chkHex->GetValue())

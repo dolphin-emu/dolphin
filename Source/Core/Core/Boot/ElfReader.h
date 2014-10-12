@@ -19,7 +19,7 @@ typedef int SectionID;
 class ElfReader
 {
 private:
-	char *base;
+	char* base;
 	u32 *base32;
 
 	Elf32_Ehdr *header;
@@ -47,7 +47,7 @@ public:
 	int GetNumSegments() const { return (int)(header->e_phnum); }
 	int GetNumSections() const { return (int)(header->e_shnum); }
 	const u8 *GetPtr(int offset) const { return (u8*)base + offset; }
-	const char *GetSectionName(int section) const;
+	const char* GetSectionName(int section) const;
 	const u8 *GetSectionDataPtr(int section) const
 	{
 		if (section < 0 || section >= header->e_shnum)
@@ -67,7 +67,7 @@ public:
 	}
 	u32 GetSectionAddr(SectionID section) const { return sectionAddrs[section]; }
 	int GetSectionSize(SectionID section) const { return sections[section].sh_size; }
-	SectionID GetSectionByName(const char *name, int firstSection = 0) const; //-1 for not found
+	SectionID GetSectionByName(const char* name, int firstSection = 0) const; //-1 for not found
 
 	bool DidRelocate()
 	{

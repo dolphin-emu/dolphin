@@ -162,7 +162,7 @@ static void DumpColorTexture(const std::string& filename, u32 width, u32 height)
 	TextureToPng(SWRenderer::GetCurrentColorTexture(), width * 4, filename, width, height, true);
 }
 
-void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name)
+void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char* name)
 {
 	int buffer = bufferBase + subBuffer;
 
@@ -187,7 +187,7 @@ void DrawTempBuffer(u8 *color, int buffer)
 	*(dst++) = color[3];
 }
 
-void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char *name)
+void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char* name)
 {
 	int buffer = bufferBase + subBuffer;
 

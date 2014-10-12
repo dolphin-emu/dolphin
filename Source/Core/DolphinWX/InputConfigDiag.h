@@ -126,7 +126,7 @@ private:
 	wxStaticText*      m_bound_label;
 	wxStaticText*      m_error_label;
 	ciface::Core::DeviceQualifier    m_devq;
-	bool GetExpressionForSelectedControl(wxString &expr);
+	bool GetExpressionForSelectedControl(wxString& expr);
 };
 
 class ExtensionButton : public wxButton

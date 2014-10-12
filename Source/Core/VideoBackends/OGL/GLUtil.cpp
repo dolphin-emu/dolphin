@@ -114,7 +114,7 @@ GLuint OpenGL_CompileProgram(const char* vertexShader, const char* fragmentShade
 }
 
 
-GLuint OpenGL_ReportGLError(const char *function, const char *file, int line)
+GLuint OpenGL_ReportGLError(const char* function, const char* file, int line)
 {
 	GLint err = glGetError();
 	if (err != GL_NO_ERROR)
@@ -125,12 +125,12 @@ GLuint OpenGL_ReportGLError(const char *function, const char *file, int line)
 	return err;
 }
 
-bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
+bool OpenGL_ReportFBOError(const char* function, const char* file, int line)
 {
 	unsigned int fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (fbo_status != GL_FRAMEBUFFER_COMPLETE)
 	{
-		const char *error = "unknown error";
+		const char* error = "unknown error";
 		switch (fbo_status)
 		{
 			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:

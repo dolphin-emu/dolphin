@@ -157,7 +157,7 @@ namespace Clipper
 				continue;												\
 																		\
 	 		{															\
-				int *tmp = inlist;										\
+				int* tmp = inlist;										\
 				inlist = outlist;										\
 				outlist = tmp;											\
 				n = outcount;											\
@@ -186,7 +186,7 @@ namespace Clipper
 		}														\
 	}
 
-	static void ClipTriangle(int *indices, int* numIndices)
+	static void ClipTriangle(int* indices, int* numIndices)
 	{
 		int mask = 0;
 
@@ -199,7 +199,7 @@ namespace Clipper
 			for (int i = 0; i < 3; i += 3)
 			{
 				int vlist[2][2*6+1];
-				int *inlist = vlist[0], *outlist = vlist[1];
+				int* inlist = vlist[0], *outlist = vlist[1];
 				int n = 3;
 				int numVertices = 3;
 
@@ -236,7 +236,7 @@ namespace Clipper
 		}
 	}
 
-	static void ClipLine(int *indices)
+	static void ClipLine(int* indices)
 	{
 		int mask = 0;
 		int clip_mask[2] = { 0, 0 };

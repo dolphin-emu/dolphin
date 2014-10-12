@@ -14,7 +14,7 @@ class DSPDebugInterface final : public DebugInterface
 public:
 	DSPDebugInterface(){}
 	virtual std::string Disassemble(unsigned int address) override;
-	virtual void GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size) override;
+	virtual void GetRawMemoryString(int memory, unsigned int address, char* dest, int max_size) override;
 	virtual int GetInstructionSize(int instruction) override { return 1; }
 	virtual bool IsAlive() override;
 	virtual bool IsBreakpoint(unsigned int address) override;

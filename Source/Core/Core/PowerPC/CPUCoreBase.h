@@ -14,5 +14,5 @@ public:
 	virtual void ClearCache() = 0;
 	virtual void Run() = 0;
 	virtual void SingleStep() = 0;
-	virtual const char *GetName() = 0;
+	virtual const char* GetName() = 0;
 };

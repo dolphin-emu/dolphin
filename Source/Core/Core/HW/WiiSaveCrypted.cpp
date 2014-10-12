@@ -549,7 +549,7 @@ void CWiiSaveCrypted::do_sig()
 	m_valid = data_file.IsGood();
 }
 
-void CWiiSaveCrypted::make_ec_cert(u8 *cert, const u8 *sig, const char *signer, const char *name,
+void CWiiSaveCrypted::make_ec_cert(u8 *cert, const u8 *sig, const char* signer, const char* name,
 	const u8 *priv, const u32 key_id)
 {
 	memset(cert, 0, 0x180);

@@ -82,7 +82,7 @@ public:
 
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
-	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) override;
+	void GetTargetSize(unsigned int* width, unsigned int* height, const EFBRectangle& sourceRc) override;
 
 	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 

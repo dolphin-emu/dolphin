@@ -24,7 +24,7 @@ class wxWindow;
 class DSPDebuggerLLE : public wxPanel
 {
 public:
-	DSPDebuggerLLE(wxWindow *parent, wxWindowID id = wxID_ANY);
+	DSPDebuggerLLE(wxWindow* parent, wxWindowID id = wxID_ANY);
 	virtual ~DSPDebuggerLLE();
 
 	void Update() override;

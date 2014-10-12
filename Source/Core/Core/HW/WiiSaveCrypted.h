@@ -28,7 +28,7 @@ private:
 	void ImportWiiSaveFiles();
 	void ExportWiiSaveFiles();
 	void do_sig();
-	void make_ec_cert(u8 *cert, const u8 *sig, const char *signer, const char *name,
+	void make_ec_cert(u8 *cert, const u8 *sig, const char* signer, const char* name,
 		const u8 *priv, const u32 key_id);
 	bool getPaths(bool for_export = false);
 	void ScanForFiles(const std::string& save_directory, std::vector<std::string>& file_list,

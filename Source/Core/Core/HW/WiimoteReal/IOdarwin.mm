@@ -303,7 +303,7 @@ void Wiimote::IOWakeup()
 	}
 }
 
-int Wiimote::IORead(unsigned char *buf)
+int Wiimote::IORead(unsigned char* buf)
 {
 	input = buf;
 	inputlen = -1;
@@ -313,7 +313,7 @@ int Wiimote::IORead(unsigned char *buf)
 	return inputlen;
 }
 
-int Wiimote::IOWrite(const unsigned char *buf, size_t len)
+int Wiimote::IOWrite(const unsigned char* buf, size_t len)
 {
 	IOReturn ret;
 

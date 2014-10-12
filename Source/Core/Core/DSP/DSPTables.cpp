@@ -502,12 +502,12 @@ const char* pdname(u16 val)
 	return tmpstr;
 }
 
-const char *pdregname(int val)
+const char* pdregname(int val)
 {
 	return regnames[val].name;
 }
 
-const char *pdregnamelong(int val)
+const char* pdregnamelong(int val)
 {
 	return regnames[val].description;
 }

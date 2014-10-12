@@ -42,7 +42,7 @@ protected:
 	std::array<PPCCachedReg, 32> regs;
 	std::array<X64CachedReg, NUMXREGS> xregs;
 
-	virtual const int *GetAllocationOrder(size_t& count) = 0;
+	virtual const int* GetAllocationOrder(size_t& count) = 0;
 
 	Gen::XEmitter *emit;
 

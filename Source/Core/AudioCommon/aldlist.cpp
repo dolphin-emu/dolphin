@@ -53,8 +53,8 @@ ALDeviceList::ALDeviceList()
 	//if (LoadOAL10Library(nullptr, &ALFunction) == TRUE) {
 		if (alcIsExtensionPresent(nullptr, "ALC_ENUMERATION_EXT"))
 		{
-			const char *devices = alcGetString(nullptr, ALC_DEVICE_SPECIFIER);
-			const char *defaultDeviceName = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
+			const char* devices = alcGetString(nullptr, ALC_DEVICE_SPECIFIER);
+			const char* defaultDeviceName = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
 			// go through device list (each device terminated with a single nullptr, list terminated with double nullptr)
 			for (s32 index = 0; devices != nullptr && strlen(devices) > 0; index++, devices += strlen(devices) + 1)
 			{
@@ -70,7 +70,7 @@ ALDeviceList::ALDeviceList()
 					{
 						alcMakeContextCurrent(context);
 						// if new actual device name isn't already in the list, then add it...
-						const char *actualDeviceName = alcGetString(device, ALC_DEVICE_SPECIFIER);
+						const char* actualDeviceName = alcGetString(device, ALC_DEVICE_SPECIFIER);
 						bool bNewName = true;
 						for (s32 i = 0; i < GetNumDevices(); i++)
 						{
@@ -160,7 +160,7 @@ s32 ALDeviceList::GetNumDevices()
 /*
  * Returns the device name at an index in the complete device list
  */
-char * ALDeviceList::GetDeviceName(s32 index)
+char*  ALDeviceList::GetDeviceName(s32 index)
 {
 	if (index < GetNumDevices())
 		return (char *)vDeviceInfo[index].strDeviceName.c_str();
@@ -196,7 +196,7 @@ u32 ALDeviceList::GetMaxNumSources(s32 index)
 /*
  * Checks if the extension is supported on the given device
  */
-bool ALDeviceList::IsExtensionSupported(s32 index, char *szExtName)
+bool ALDeviceList::IsExtensionSupported(s32 index, char* szExtName)
 {
 	bool bReturn = false;
 
@@ -258,7 +258,7 @@ void ALDeviceList::FilterDevicesMaxVer(s32 major, s32 minor)
 /*
  * Deselects device which don't support the given extension name
  */
-void ALDeviceList::FilterDevicesExtension(char *szExtName)
+void ALDeviceList::FilterDevicesExtension(char* szExtName)
 {
 	bool bFound;
 

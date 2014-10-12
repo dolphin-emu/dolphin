@@ -315,7 +315,7 @@ void CFrame::DoUnfloatPage(int Id)
 	wxFrame * Win = (wxFrame*)FindWindowById(Id);
 	if (!Win) return;
 
-	wxWindow * Child = Win->GetChildren().Item(0)->GetData();
+	wxWindow*  Child = Win->GetChildren().Item(0)->GetData();
 	Child->Reparent(this);
 	DoAddPage(Child, g_pCodeWindow->iNbAffiliation[Child->GetId() - IDM_LOGWINDOW], false);
 	Win->Destroy();
@@ -336,7 +336,7 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 
 	for (int i = IDM_LOGWINDOW; i <= IDM_CODEWINDOW; i++)
 	{
-		wxWindow *Win = FindWindowById(i);
+		wxWindow* Win = FindWindowById(i);
 		if (Win && Win->IsEnabled())
 		{
 			Item = new wxMenuItem(MenuPopup, i + IDM_FLOAT_LOGWINDOW - IDM_LOGWINDOW,
@@ -410,11 +410,11 @@ void CFrame::TogglePane()
 	}
 }
 
-void CFrame::DoRemovePage(wxWindow *Win, bool bHide)
+void CFrame::DoRemovePage(wxWindow* Win, bool bHide)
 {
 	if (!Win) return;
 
-	wxWindow *Parent = FindWindowById(Win->GetId() +
+	wxWindow* Parent = FindWindowById(Win->GetId() +
 			IDM_LOGWINDOW_PARENT - IDM_LOGWINDOW);
 
 	if (Parent)
@@ -456,7 +456,7 @@ void CFrame::DoRemovePage(wxWindow *Win, bool bHide)
 		AddRemoveBlankPage();
 }
 
-void CFrame::DoAddPage(wxWindow *Win, int i, bool Float)
+void CFrame::DoAddPage(wxWindow* Win, int i, bool Float)
 {
 	if (!Win) return;
 
@@ -884,7 +884,7 @@ void CFrame::AddPane()
 	m_Mgr->Update();
 }
 
-wxWindow * CFrame::GetNotebookPageFromId(wxWindowID Id)
+wxWindow*  CFrame::GetNotebookPageFromId(wxWindowID Id)
 {
 	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{

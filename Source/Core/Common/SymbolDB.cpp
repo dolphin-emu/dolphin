@@ -24,7 +24,7 @@ void SymbolDB::List()
 	         (unsigned long)functions.size());
 }
 
-void SymbolDB::Clear(const char *prefix)
+void SymbolDB::Clear(const char* prefix)
 {
 	// TODO: honor prefix
 	functions.clear();

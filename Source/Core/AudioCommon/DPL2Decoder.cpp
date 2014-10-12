@@ -116,7 +116,7 @@ opt   beta constant used only when designing using kaiser windows
 
 returns 0 if OK, -1 if fail
 */
-static float* DesignFIR(unsigned int *n, float* fc, float opt)
+static float* DesignFIR(unsigned int* n, float* fc, float opt)
 {
 	unsigned int  o   = *n & 1;              // Indicator for odd filter length
 	unsigned int  end = ((*n + 1) >> 1) - o; // Loop end

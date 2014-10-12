@@ -87,7 +87,7 @@ void WaveFileWriter::Write(u32 value)
 	file.WriteArray(&value, 1);
 }
 
-void WaveFileWriter::Write4(const char *ptr)
+void WaveFileWriter::Write4(const char* ptr)
 {
 	file.WriteBytes(ptr, 4);
 }

@@ -237,7 +237,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename)
 		char name[512];
 		sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &unknown, name);
 
-		const char *namepos = strstr(line, name);
+		const char* namepos = strstr(line, name);
 		if (namepos != nullptr) //would be odd if not :P
 			strcpy(name, namepos);
 		name[strlen(name) - 1] = 0;

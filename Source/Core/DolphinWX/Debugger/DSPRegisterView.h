@@ -34,7 +34,7 @@ public:
 	int GetNumberRows() override { return 32; }
 	bool IsEmptyCell(int row, int col) override { return false; }
 	wxString GetValue(int row, int col) override;
-	void SetValue(int row, int col, const wxString &) override;
+	void SetValue(int row, int col, const wxString& ) override;
 	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
 	void UpdateCachedRegs();
 };

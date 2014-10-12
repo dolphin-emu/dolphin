@@ -44,7 +44,7 @@ int Line2Addr(int line)   // -1 for not found
 		return -1;
 }
 
-const char *GetLineText(int line)
+const char* GetLineText(int line)
 {
 	if (line > 0 && line < (int)lines.size())
 	{

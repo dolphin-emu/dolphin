@@ -34,8 +34,8 @@ BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
 	EVT_TIMER(wxID_ANY, HotkeyConfigDialog::OnButtonTimer)
 END_EVENT_TABLE()
 
-HotkeyConfigDialog::HotkeyConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
-		const wxPoint &position, const wxSize& size, long style)
+HotkeyConfigDialog::HotkeyConfigDialog(wxWindow* parent, wxWindowID id, const wxString& title,
+		const wxPoint& position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 , m_ButtonMappingTimer(this)
 {
@@ -120,7 +120,7 @@ void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
 }
 
 // Update the textbox for the buttons
-void HotkeyConfigDialog::SetButtonText(int id, const wxString &keystr, const wxString &modkeystr)
+void HotkeyConfigDialog::SetButtonText(int id, const wxString& keystr, const wxString& modkeystr)
 {
 	m_Button_Hotkeys[id]->SetLabel(modkeystr + keystr);
 }

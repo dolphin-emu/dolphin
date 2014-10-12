@@ -67,7 +67,7 @@ private:
 	int pa_error; // PaError
 	void *pa_stream; // PaStream
 
-	void StreamLog(const char *msg);
+	void StreamLog(const char* msg);
 	void StreamInit();
 	void StreamTerminate();
 	void StreamStart();

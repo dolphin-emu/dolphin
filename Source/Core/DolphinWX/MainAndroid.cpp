@@ -106,7 +106,7 @@ bool Host_RendererHasFocus()
 
 void Host_ConnectWiimote(int wm_idx, bool connect) {}
 
-void Host_SysMessage(const char *fmt, ...)
+void Host_SysMessage(const char* fmt, ...)
 {
 	va_list args;
 
@@ -211,7 +211,7 @@ static std::string GetJString(JNIEnv *env, jstring jstr)
 	if (!jstr)
 		return result;
 
-	const char *s = env->GetStringUTFChars(jstr, nullptr);
+	const char* s = env->GetStringUTFChars(jstr, nullptr);
 	result = s;
 	env->ReleaseStringUTFChars(jstr, s);
 	return result;
