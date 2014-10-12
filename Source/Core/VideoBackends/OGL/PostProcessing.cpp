@@ -277,6 +277,147 @@ void OpenGLPostProcessing::CreateHeader()
 
 		"#define GetOption(x) (option_##x)\n"
 		"#define OptionEnabled(x) (option_##x != 0)\n";
+
+	bool supports_gather = g_ogl_config.eSupportedGLSLVersion == GLSL_400 ||
+	                       g_ogl_config.eSupportedGLSLVersion == GLSLES_310;
+	bool supports_gather_extension = !supports_gather && GLExtensions::Supports("GL_ARB_texture_gather");
+
+	if (supports_gather)
+	{
+		m_glsl_header +=
+			"#define SampleGather(comp) textureGather(samp9, uv0, comp)\n"
+			"#define SampleGatherOffset(offset, comp) textureGatherOffset(samp9, uv0, offset, comp)\n";
+	}
+	else if (supports_gather_extension)
+	{
+		m_glsl_header +=
+			"#extension GL_ARB_texture_gather : enable\n"
+
+			"float4 SampleGather(int comp)\n"
+			"{\n"
+				"\tif (comp == 0)\n"
+				"\t{\n"
+					"\t\treturn textureGather(samp9, uv0);\n"
+				"\t}\n"
+				"\telse if (comp == 1)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0).g;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * float2(1.0,  0.0))).g;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * float2(1.0, -1.0))).g;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * float2(0.0, -1.0))).g;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+				"\telse if (comp == 2)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0).b;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * float2(1.0,  0.0))).b;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * float2(1.0, -1.0))).b;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * float2(0.0, -1.0))).b;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+				"\telse if (comp == 3)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0).a;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * float2(1.0,  0.0))).a;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * float2(1.0, -1.0))).a;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * float2(0.0, -1.0))).a;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+			"}\n";
+	}
+	else
+	{
+		m_glsl_header +=
+			"float4 SampleGather(int comp)\n"
+			"{\n"
+				"\tif (comp == 0)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0).r;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * float2(1.0,  0.0))).r;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * float2(1.0, -1.0))).r;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * float2(0.0, -1.0))).r;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+				"\telse if (comp == 1)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0).g;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * float2(1.0,  0.0))).g;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * float2(1.0, -1.0))).g;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * float2(0.0, -1.0))).g;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+				"\telse if (comp == 2)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0).b;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * float2(1.0,  0.0))).b;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * float2(1.0, -1.0))).b;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * float2(0.0, -1.0))).b;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+				"\telse if (comp == 3)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0).a;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * float2(1.0,  0.0))).a;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * float2(1.0, -1.0))).a;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * float2(0.0, -1.0))).a;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+			"}\n";
+	}
+
+	if (!supports_gather)
+	{
+		// This could be slightly improved for situations that support the extension but not GL 4.0.
+		// Some shader compilers don't support constant expression propagation through functions though.
+		// Would have been only a slight improvement for if you need the offset and only the red component.
+		m_glsl_header +=
+			"float4 SampleGatherOffset(const int2 offset, int comp)\n"
+			"{\n"
+				"\tif (comp == 0)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0 + (resolution.zw * float2(offset))).r;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * (float2(1.0,  0.0) + float2(offset)))).r;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * (float2(1.0, -1.0) + float2(offset)))).r;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * (float2(0.0, -1.0) + float2(offset)))).r;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+				"\telse if (comp == 1)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0 + (resolution.zw * float2(offset))).g;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * (float2(1.0,  0.0) + float2(offset)))).g;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * (float2(1.0, -1.0) + float2(offset)))).g;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * (float2(0.0, -1.0) + float2(offset)))).g;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+				"\telse if (comp == 2)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0 + (resolution.zw * float2(offset))).b;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * (float2(1.0,  0.0) + float2(offset)))).b;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * (float2(1.0, -1.0) + float2(offset)))).b;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * (float2(0.0, -1.0) + float2(offset)))).b;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+				"\telse if (comp == 3)\n"
+				"\t{\n"
+					"\t\tfloat4 result;\n"
+					"\t\tresult.x = texture(samp9, uv0 + (resolution.zw * float2(offset))).a;\n"
+					"\t\tresult.y = texture(samp9, uv0 + (resolution.zw * (float2(1.0,  0.0) + float2(offset)))).a;\n"
+					"\t\tresult.z = texture(samp9, uv0 + (resolution.zw * (float2(1.0, -1.0) + float2(offset)))).a;\n"
+					"\t\tresult.w = texture(samp9, uv0 + (resolution.zw * (float2(0.0, -1.0) + float2(offset)))).a;\n"
+					"\t\treturn result;\n"
+				"\t}\n"
+			"}\n";
+	}
 }
 
 std::string OpenGLPostProcessing::LoadShaderOptions(const std::string& code)
