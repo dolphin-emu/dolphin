@@ -38,7 +38,7 @@ void ControllerEmu::UpdateDefaultDevice()
 
 void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::string& defdev, const std::string& base)
 {
-	std::string group(base + name); group += "/";
+	std::string group(base + name + "/");
 
 	// settings
 	for (auto& s : settings)
@@ -100,7 +100,7 @@ void ControllerEmu::LoadConfig(IniFile::Section *sec, const std::string& base)
 
 void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::string& defdev, const std::string& base)
 {
-	std::string group(base + name); group += "/";
+	std::string group(base + name + "/");
 
 	for (auto& s : settings)
 	{
