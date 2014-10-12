@@ -32,7 +32,7 @@ public:
 		m_csum = 0;
 		AddData(hdr, 3, 1);
 	}
-	void AddData(const void *data, size_t len)
+	void AddData(const void* data, size_t len)
 	{
 		AddData((const unsigned char*)data, len);
 	}
@@ -280,10 +280,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									break;
 								case 0x14: // get features
 									msg.AddData(1);
-									msg.AddData((void *)"\x01\x02\x0a\x00", 4);  // 2 player, 10 bit
-									msg.AddData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
-									//msg.addData((void *)"\x03\x02\x08\x00", 4);
-									msg.AddData((void *)"\x00\x00\x00\x00", 4);
+									msg.AddData((void*)"\x01\x02\x0a\x00", 4);  // 2 player, 10 bit
+									msg.AddData((void*)"\x02\x02\x00\x00", 4);  // 2 coin slots
+									//msg.addData((void*)"\x03\x02\x08\x00", 4);
+									msg.AddData((void*)"\x00\x00\x00\x00", 4);
 									break;
 								case 0x15:
 									while (*jvs_io++) {};

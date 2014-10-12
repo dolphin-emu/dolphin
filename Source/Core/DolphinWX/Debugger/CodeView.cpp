@@ -275,7 +275,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 		case IDM_COPYFUNCTION:
 			{
-				Symbol *symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
+				Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
 				if (symbol)
 				{
 					std::string text;
@@ -337,7 +337,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 		case IDM_RENAMESYMBOL:
 			{
-				Symbol *symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
+				Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
 				if (symbol)
 				{
 					wxTextEntryDialog input_symbol(this, _("Rename symbol:"),

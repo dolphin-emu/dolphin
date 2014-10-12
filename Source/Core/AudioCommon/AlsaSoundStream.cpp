@@ -48,7 +48,7 @@ void AlsaSound::SoundLoop()
 	Common::SetCurrentThreadName("Audio thread - alsa");
 	while (!thread_data)
 	{
-		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
+		m_mixer->Mix(reinterpret_cast<short*>(mix_buffer), frames_to_deliver);
 		int rc = m_muted ? 1337 : snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
 		if (rc == -EPIPE)
 		{

@@ -7,7 +7,7 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
-void ZeldaUCode::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void ZeldaUCode::RenderSynth_RectWave(ZeldaVoicePB& PB, s32* _Buffer, int _Size)
 {
 	s64 ratio = ((s64)PB.RatioInt << 16) * 16;
 	s64 TrueSamplePosition = PB.CurSampleFrac;
@@ -79,7 +79,7 @@ _lRestart:
 	PB.CurSampleFrac = TrueSamplePosition & 0xFFFF;
 }
 
-void ZeldaUCode::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void ZeldaUCode::RenderSynth_SawWave(ZeldaVoicePB& PB, s32* _Buffer, int _Size)
 {
 	s32 ratio = (s32)ceil((float)PB.RatioInt / 3);
 	s64 pos = PB.CurSampleFrac;
@@ -93,7 +93,7 @@ void ZeldaUCode::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 	PB.CurSampleFrac = pos & 0xFFFF;
 }
 
-void ZeldaUCode::RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void ZeldaUCode::RenderSynth_Constant(ZeldaVoicePB& PB, s32* _Buffer, int _Size)
 {
 	// TODO: Header, footer
 	for (int i = 0; i < _Size; i++)
@@ -122,7 +122,7 @@ inline u16 AddValueToReg(u32 ar, s32 ix)
 	return nar;
 }
 
-void ZeldaUCode::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+void ZeldaUCode::RenderSynth_WaveTable(ZeldaVoicePB& PB, s32* _Buffer, int _Size)
 {
 	u16 address;
 

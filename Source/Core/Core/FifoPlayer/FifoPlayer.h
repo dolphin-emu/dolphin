@@ -82,7 +82,7 @@ private:
 	void LoadBPReg(u8 reg, u32 value);
 	void LoadCPReg(u8 reg, u32 value);
 	void LoadXFReg(u16 reg, u32 value);
-	void LoadXFMem16(u16 address, u32 *data);
+	void LoadXFMem16(u16 address, u32* data);
 
 	bool ShouldLoadBP(u8 address);
 

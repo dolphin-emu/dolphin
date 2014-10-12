@@ -41,8 +41,8 @@ public:
 	void Update() override;
 
 	void BrowseForDirectory();
-	const GameListItem *GetSelectedISO();
-	const GameListItem *GetISO(size_t index) const;
+	const GameListItem* GetSelectedISO();
+	const GameListItem* GetISO(size_t index) const;
 
 	enum
 	{

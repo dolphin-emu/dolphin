@@ -70,7 +70,7 @@ public:
 
 	// Warning - this one is trickier to use right.
 	// Use pass == 2 if you're just using it by itself.
-	bool DisassembleOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest);
+	bool DisassembleOpcode(const u16* binbuf, int base_addr, int pass, u16* pc, std::string &dest);
 
 private:
 	// Moves PC forward and writes the result to dest.

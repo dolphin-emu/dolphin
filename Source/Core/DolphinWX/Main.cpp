@@ -97,7 +97,7 @@ BEGIN_EVENT_TABLE(DolphinApp, wxApp)
 END_EVENT_TABLE()
 
 bool wxMsgAlert(const char*, const char*, bool, int);
-std::string wxStringTranslator(const char *);
+std::string wxStringTranslator(const char*);
 
 CFrame* main_frame = nullptr;
 

@@ -46,7 +46,7 @@ private:
 	const bool m_cleanup_com;
 
 	static HMODULE m_xaudio2_dll;
-	static void *PXAudio2Create;
+	static void* PXAudio2Create;
 
 	static bool InitLibrary();
 

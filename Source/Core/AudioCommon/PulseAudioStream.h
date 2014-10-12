@@ -38,9 +38,9 @@ private:
 	void PulseShutdown();
 
 	// wrapper callback functions, last parameter _must_ be PulseAudio*
-	static void StateCallback(pa_context *c, void *userdata);
-	static void WriteCallback(pa_stream *s, size_t length, void *userdata);
-	static void UnderflowCallback(pa_stream *s, void *userdata);
+	static void StateCallback(pa_context *c, void* userdata);
+	static void WriteCallback(pa_stream *s, size_t length, void* userdata);
+	static void UnderflowCallback(pa_stream *s, void* userdata);
 
 	std::thread m_thread;
 	std::atomic<bool> m_run_thread;

@@ -103,7 +103,7 @@ static inline void DecodeBytes_C4_RGB565(u32* dst, const u8* src, const u8* tlut
 	}
 }
 
-static inline void DecodeBytes_C4_RGB5A3(u32 *dst, const u8* src, const u8* tlut_)
+static inline void DecodeBytes_C4_RGB5A3(u32* dst, const u8* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
 	for (int x = 0; x < 4; x++)
@@ -133,7 +133,7 @@ static inline void DecodeBytes_C8_RGB565(u32* dst, const u8* src, const u8* tlut
 	}
 }
 
-static inline void DecodeBytes_C8_RGB5A3(u32 *dst, const u8* src, const u8* tlut_)
+static inline void DecodeBytes_C8_RGB5A3(u32* dst, const u8* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
 	for (int x = 0; x < 8; x++)
@@ -163,7 +163,7 @@ static inline void DecodeBytes_C14X2_RGB565(u32* dst, const u16* src, const u8* 
 	}
 }
 
-static inline void DecodeBytes_C14X2_RGB5A3(u32 *dst, const u16 *src, const u8* tlut_)
+static inline void DecodeBytes_C14X2_RGB5A3(u32* dst, const u16* src, const u8* tlut_)
 {
 	const u16* tlut = (u16*) tlut_;
 	for (int x = 0; x < 4; x++)
@@ -173,7 +173,7 @@ static inline void DecodeBytes_C14X2_RGB5A3(u32 *dst, const u16 *src, const u8* 
 	}
 }
 
-static inline void DecodeBytes_IA4(u32 *dst, const u8* src)
+static inline void DecodeBytes_IA4(u32* dst, const u8* src)
 {
 	for (int x = 0; x < 8; x++)
 	{
@@ -190,7 +190,7 @@ static inline u32 makeRGBA(int r, int g, int b, int a)
 	return (a<<24)|(b<<16)|(g<<8)|r;
 }
 
-static void DecodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
+static void DecodeDXTBlock(u32* dst, const DXTBlock *src, int pitch)
 {
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
 	// Needs more speed.
@@ -258,7 +258,7 @@ static inline void SetOpenMPThreadCount(int width, int height)
 // TODO: complete SSE2 optimization of less often used texture formats.
 // TODO: refactor algorithms using _mm_loadl_epi64 unaligned loads to prefer 128-bit aligned loads.
 
-PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
+PC_TexFormat _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt)
 {
 	SetOpenMPThreadCount(width, height);
 
@@ -312,7 +312,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 					for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8,yStep++)
 						for (int iy = 0, xStep =  4 * yStep; iy < 8; iy += 2,xStep++)
 						{
-							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
+							const __m128i r0 = _mm_loadl_epi64((const __m128i*)(src + 8 * xStep));
 							// We want the hi 4 bits of each 8-bit word replicated to 32-bit words:
 							// (00000000 00000000 HhGgFfEe DdCcBbAa) -> (00000000 00000000 HHGGFFEE DDCCBBAA)
 							const __m128i i1 = _mm_and_si128(r0, kMask_xf0);
@@ -348,7 +348,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 					for (int x = 0, yStep = (y / 8) * Wsteps8 ; x < width; x += 8, yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, xStep++)
 						{
-							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
+							const __m128i r0 = _mm_loadl_epi64((const __m128i*)(src + 8 * xStep));
 							// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 							const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
 
@@ -425,12 +425,12 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 							const __m128i mask7654 = _mm_set_epi8(7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4);
 							__m128i *quaddst, r, rgba0, rgba1;
 							// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-							r = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
+							r = _mm_loadl_epi64((const __m128i*)(src + 8 * xStep));
 							// Shuffle select bytes to expand from (0000 0000 hgfe dcba) to:
 							rgba0 = _mm_shuffle_epi8(r, mask3210); // (dddd cccc bbbb aaaa)
 							rgba1 = _mm_shuffle_epi8(r, mask7654); // (hhhh gggg ffff eeee)
 
-							quaddst = (__m128i *)(dst + (y + iy)*width + x);
+							quaddst = (__m128i*)(dst + (y + iy)*width + x);
 							_mm_storeu_si128(quaddst, rgba0);
 							_mm_storeu_si128(quaddst+1, rgba1);
 						}
@@ -454,7 +454,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 						__m128i *quaddst;
 
 						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-						const __m128i r0 = _mm_loadl_epi64((const __m128i *)src2);
+						const __m128i r0 = _mm_loadl_epi64((const __m128i*)src2);
 						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 						const __m128i r1 = _mm_unpacklo_epi8(r0, r0);
 
@@ -464,14 +464,14 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 						const __m128i rgba1 = _mm_unpackhi_epi8(r1, r1);
 
 						// Store (dddd cccc bbbb aaaa) out:
-						quaddst = (__m128i *)(dst + (y + 0)*width + x);
+						quaddst = (__m128i*)(dst + (y + 0)*width + x);
 						_mm_storeu_si128(quaddst, rgba0);
 						// Store (hhhh gggg ffff eeee) out:
 						_mm_storeu_si128(quaddst+1, rgba1);
 
 						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
 						src2 += 8;
-						const __m128i r2 = _mm_loadl_epi64((const __m128i *)src2);
+						const __m128i r2 = _mm_loadl_epi64((const __m128i*)src2);
 						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 						const __m128i r3 = _mm_unpacklo_epi8(r2, r2);
 
@@ -481,14 +481,14 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 						const __m128i rgba3 = _mm_unpackhi_epi8(r3, r3);
 
 						// Store (dddd cccc bbbb aaaa) out:
-						quaddst = (__m128i *)(dst + (y + 1)*width + x);
+						quaddst = (__m128i*)(dst + (y + 1)*width + x);
 						_mm_storeu_si128(quaddst, rgba2);
 						// Store (hhhh gggg ffff eeee) out:
 						_mm_storeu_si128(quaddst+1, rgba3);
 
 						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
 						src2 += 8;
-						const __m128i r4 = _mm_loadl_epi64((const __m128i *)src2);
+						const __m128i r4 = _mm_loadl_epi64((const __m128i*)src2);
 						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 						const __m128i r5 = _mm_unpacklo_epi8(r4, r4);
 
@@ -498,14 +498,14 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 						const __m128i rgba5 = _mm_unpackhi_epi8(r5, r5);
 
 						// Store (dddd cccc bbbb aaaa) out:
-						quaddst = (__m128i *)(dst + (y + 2)*width + x);
+						quaddst = (__m128i*)(dst + (y + 2)*width + x);
 						_mm_storeu_si128(quaddst, rgba4);
 						// Store (hhhh gggg ffff eeee) out:
 						_mm_storeu_si128(quaddst+1, rgba5);
 
 						// Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
 						src2 += 8;
-						const __m128i r6 = _mm_loadl_epi64((const __m128i *)src2);
+						const __m128i r6 = _mm_loadl_epi64((const __m128i*)src2);
 						// Shuffle low 64-bits with itself to expand from (0000 0000 hgfe dcba) to (hhgg ffee ddcc bbaa)
 						const __m128i r7 = _mm_unpacklo_epi8(r6, r6);
 
@@ -515,7 +515,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 						const __m128i rgba7 = _mm_unpackhi_epi8(r7, r7);
 
 						// Store (dddd cccc bbbb aaaa) out:
-						quaddst = (__m128i *)(dst + (y + 3)*width + x);
+						quaddst = (__m128i*)(dst + (y + 3)*width + x);
 						_mm_storeu_si128(quaddst, rgba6);
 						// Store (hhhh gggg ffff eeee) out:
 						_mm_storeu_si128(quaddst+1, rgba7);
@@ -575,7 +575,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 						{
 							const __m128i mask = _mm_set_epi8(6, 7, 7, 7, 4, 5, 5, 5, 2, 3, 3, 3, 0, 1, 1, 1);
 							// Load 4x 16-bit IA8 samples from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src + 8 * xStep));
+							const __m128i r0 = _mm_loadl_epi64((const __m128i*)(src + 8 * xStep));
 							// Shuffle to (ghhh efff cddd abbb)
 							const __m128i r1 = _mm_shuffle_epi8(r0, mask);
 							_mm_storeu_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
@@ -598,7 +598,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 							// Expands a 16-bit "IA" to a 32-bit "AIII". Each char is an 8-bit value.
 
 							// Load 4x 16-bit IA8 samples from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe dcba)
-							const __m128i r0 = _mm_loadl_epi64((const __m128i *)(src+ 8 * xStep));
+							const __m128i r0 = _mm_loadl_epi64((const __m128i*)(src+ 8 * xStep));
 
 							// Logical shift all 16-bit words right by 8 bits (0000 0000 hgfe dcba) to (0000 0000 0h0f 0d0b)
 							// This gets us only the I components.
@@ -676,7 +676,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 				for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 					for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 					{
-						__m128i *dxtsrc = (__m128i *)(src + 8 * xStep);
+						__m128i *dxtsrc = (__m128i*)(src + 8 * xStep);
 						// Load 4x 16-bit colors: (0000 0000 hgfe dcba)
 						// where hg, fe, ba, and dc are 16-bit colors in big-endian order
 						const __m128i rgb565x4 = _mm_loadl_epi64(dxtsrc);
@@ -729,7 +729,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 							)
 						);
 
-						__m128i *ptr = (__m128i *)(dst + (y + iy) * width + x);
+						__m128i *ptr = (__m128i*)(dst + (y + iy) * width + x);
 						_mm_storeu_si128(ptr, abgr888x4);
 					}
 		}
@@ -753,7 +753,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						{
-							u32 *newdst = dst+(y+iy)*width+x;
+							u32* newdst = dst+(y+iy)*width+x;
 							const __m128i mask = _mm_set_epi8(-128,-128,6,7,-128,-128,4,5,-128,-128,2,3,-128,-128,0,1);
 								const __m128i valV = _mm_shuffle_epi8(_mm_loadl_epi64((const __m128i*)(src + 8 * xStep)),mask);
 								int cmp = _mm_movemask_epi8(valV); //MSB: 0x2 = val0; 0x20=val1; 0x200 = val2; 0x2000=val3
@@ -811,7 +811,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 								else
 								{
 									// TODO: Vectorise (Either 4-way branch or do both and select is better than this)
-									u32 *vals = (u32*) &valV;
+									u32* vals = (u32*) &valV;
 									int r,g,b,a;
 									for (int i=0; i < 4; ++i)
 									{
@@ -846,8 +846,8 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 					for (int x = 0, yStep = (y / 4) * Wsteps4; x < width; x += 4, yStep++)
 						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						{
-							u32 *newdst = dst+(y+iy)*width+x;
-							const u16 *newsrc = (const u16*)(src + 8 * xStep);
+							u32* newdst = dst+(y+iy)*width+x;
+							const u16* newsrc = (const u16*)(src + 8 * xStep);
 
 							// TODO: weak point
 							const u16 val0 = Common::swap16(newsrc[0]);
@@ -921,7 +921,7 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 							else
 							{
 								// TODO: Vectorise (Either 4-way branch or do both and select is better than this)
-								u32 *vals = (u32*) &valV;
+								u32* vals = (u32*) &valV;
 								int r,g,b,a;
 								for (int i=0; i < 4; ++i)
 								{
@@ -1114,11 +1114,11 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 						const __m128i allFFs128 = _mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
 
 						// Load 128 bits, i.e. two DXTBlocks (64-bits each)
-						const __m128i dxt = _mm_loadu_si128((__m128i *)(src + sizeof(struct DXTBlock) * 2 * xStep));
+						const __m128i dxt = _mm_loadu_si128((__m128i*)(src + sizeof(struct DXTBlock) * 2 * xStep));
 
 						// Copy the 2-bit indices from each DXT block:
 						GC_ALIGNED16( u32 dxttmp[4] );
-						_mm_store_si128((__m128i *)dxttmp, dxt);
+						_mm_store_si128((__m128i*)dxttmp, dxt);
 
 						u32 dxt0sel = dxttmp[1];
 						u32 dxt1sel = dxttmp[3];
@@ -1249,17 +1249,17 @@ PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int he
 						// REFERENCE:
 						u32 tmp0[4][4], tmp1[4][4];
 
-						DecodeDXTBlock(&(tmp0[0][0]), (const DXTBlock *)src, 4);
-						DecodeDXTBlock(&(tmp1[0][0]), (const DXTBlock *)(src + 8), 4);
+						DecodeDXTBlock(&(tmp0[0][0]), (const DXTBlock*)src, 4);
+						DecodeDXTBlock(&(tmp1[0][0]), (const DXTBlock*)(src + 8), 4);
 #endif
 
-						u32 *dst32 = ( dst + (y + z*4) * width + x );
+						u32* dst32 = ( dst + (y + z*4) * width + x );
 
 						// Copy the colors here:
 						GC_ALIGNED16( u32 colors0[4] );
 						GC_ALIGNED16( u32 colors1[4] );
-						_mm_store_si128((__m128i *)colors0, mmcolors0);
-						_mm_store_si128((__m128i *)colors1, mmcolors1);
+						_mm_store_si128((__m128i*)colors0, mmcolors0);
+						_mm_store_si128((__m128i*)colors1, mmcolors1);
 
 						// Row 0:
 						dst32[(width * 0) + 0] = colors0[(dxt0sel >> ((0*8)+6)) & 3];

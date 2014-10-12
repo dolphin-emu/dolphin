@@ -127,7 +127,7 @@ void CJitWindow::Compare(u32 em_address)
 	// 800031f0
 	// == Fill in x86 box
 
-	const u8* code = (const u8 *)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
+	const u8* code = (const u8*)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
 	u64 disasmPtr = (u64)code;
 	const u8* end = code + block->codeSize;
 	char* sptr = (char*)xDis;

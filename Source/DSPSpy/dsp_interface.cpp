@@ -4,7 +4,7 @@
 
 #include "dsp_interface.h"
 
-void IDSP::SendTask(void *addr, u16 iram_addr, u16 len, u16 start)
+void IDSP::SendTask(void* addr, u16 iram_addr, u16 len, u16 start)
 {
 	// addr			main ram addr			4byte aligned (1 Gekko word)
 	// iram_addr	dsp addr				4byte aligned (2 DSP words)

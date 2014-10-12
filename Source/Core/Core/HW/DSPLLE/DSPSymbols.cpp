@@ -56,7 +56,7 @@ const char* GetLineText(int line)
 	}
 }
 
-Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
+Symbol* DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 {
 	XFuncMap::iterator it = functions.find(addr);
 
@@ -221,7 +221,7 @@ void AutoDisassembly(u16 start_addr, u16 end_addr)
 	DSPDisassembler disasm(settings);
 
 	u16 addr = start_addr;
-	const u16 *ptr = (start_addr >> 15) ? g_dsp.irom : g_dsp.iram;
+	const u16* ptr = (start_addr >> 15) ? g_dsp.irom : g_dsp.iram;
 	while (addr < end_addr)
 	{
 		line_to_addr[line_counter] = addr;

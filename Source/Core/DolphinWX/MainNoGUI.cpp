@@ -133,11 +133,11 @@ void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
 class PlatformX11 : public Platform
 {
-	Display *dpy;
+	Display* dpy;
 	Window win;
 	Cursor blankCursor = None;
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-	X11Utils::XRRConfiguration *XRRConfig;
+	X11Utils::XRRConfiguration* XRRConfig;
 #endif
 
 	void Init() override
@@ -157,7 +157,7 @@ class PlatformX11 : public Platform
 		XSetWMProtocols(dpy, win, wmProtocols, 1);
 		XMapRaised(dpy, win);
 		XFlush(dpy);
-		windowHandle = (void *) win;
+		windowHandle = (void*) win;
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 			X11Utils::InhibitScreensaver(dpy, win, true);
@@ -275,8 +275,8 @@ class PlatformX11 : public Platform
 				XGetGeometry(dpy, win, &winDummy,
 					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
 					     &SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
-					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					     (unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+					     (unsigned int*)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+					     (unsigned int*)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
 					     &borderDummy, &depthDummy);
 			}
 			usleep(100000);

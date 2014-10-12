@@ -172,13 +172,13 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 			_tcscpy(lpszUnDSymbol, _T("WinMain(HINSTANCE,HINSTANCE,LPCTSTR,int)"));
 		else
 			if ( _tcscmp(lpszUnDSymbol, _T("_main")) == 0 )
-				_tcscpy(lpszUnDSymbol, _T("main(int,TCHAR * *)"));
+				_tcscpy(lpszUnDSymbol, _T("main(int,TCHAR**)"));
 			else
 				if ( _tcscmp(lpszUnDSymbol, _T("_mainCRTStartup")) == 0 )
 					_tcscpy(lpszUnDSymbol, _T("mainCRTStartup()"));
 				else
 					if ( _tcscmp(lpszUnDSymbol, _T("_wmain")) == 0 )
-						_tcscpy(lpszUnDSymbol, _T("wmain(int,TCHAR * *,TCHAR * *)"));
+						_tcscpy(lpszUnDSymbol, _T("wmain(int,TCHAR * *,TCHAR**)"));
 					else
 						if ( _tcscmp(lpszUnDSymbol, _T("_wmainCRTStartup")) == 0 )
 							_tcscpy(lpszUnDSymbol, _T("wmainCRTStartup()"));
@@ -281,7 +281,7 @@ void PrintFunctionAndSourceInfo(FILE* file, const STACKFRAME& callstack)
 	etfprint(file, "     " + TStrToUTF8(srcInfo) + " : " + TStrToUTF8(symInfo) + "\n");
 }
 
-void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
+void StackTrace( HANDLE hThread, const char* lpszMessage, FILE* file )
 {
 	STACKFRAME     callStack;
 	BOOL           bResult;
@@ -346,7 +346,7 @@ void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 			ResumeThread( hThread );
 }
 
-void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, DWORD esp, DWORD ebp )
+void StackTrace(HANDLE hThread, const char* lpszMessage, FILE* file, DWORD eip, DWORD esp, DWORD ebp )
 {
 	STACKFRAME     callStack;
 	BOOL           bResult;
@@ -402,7 +402,7 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 #define UEFBUFSIZE 2048
 static char g_uefbuf[UEFBUFSIZE];
 
-void etfprintf(FILE *file, const char* format, ...)
+void etfprintf(FILE* file, const char* format, ...)
 {
 	va_list ap;
 	va_start(ap, format);
@@ -411,7 +411,7 @@ void etfprintf(FILE *file, const char* format, ...)
 	va_end(ap);
 }
 
-void etfprint(FILE *file, const std::string &text)
+void etfprint(FILE* file, const std::string &text)
 {
 	size_t len = text.length();
 	fwrite(text.data(), 1, len, file);

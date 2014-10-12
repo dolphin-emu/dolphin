@@ -60,10 +60,10 @@ public:
 	void SetIsWii(bool isWii);
 	bool GetIsWii() const;
 
-	u32 *GetBPMem() { return m_BPMem; }
-	u32 *GetCPMem() { return m_CPMem; }
-	u32 *GetXFMem() { return m_XFMem; }
-	u32 *GetXFRegs() { return m_XFRegs; }
+	u32* GetBPMem() { return m_BPMem; }
+	u32* GetCPMem() { return m_CPMem; }
+	u32* GetXFMem() { return m_XFMem; }
+	u32* GetXFRegs() { return m_XFRegs; }
 
 	void AddFrame(const FifoFrameInfo &frameInfo);
 	const FifoFrameInfo &GetFrame(u32 frame) const { return m_Frames[frame]; }

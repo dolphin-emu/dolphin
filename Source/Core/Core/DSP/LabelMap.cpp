@@ -49,7 +49,7 @@ void LabelMap::DeleteLabel(const std::string &label)
 	}
 }
 
-bool LabelMap::GetLabelValue(const std::string &name, u16 *value, LabelType type) const
+bool LabelMap::GetLabelValue(const std::string &name, u16* value, LabelType type) const
 {
 	for (auto& label : labels)
 	{

@@ -178,7 +178,7 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 	wxTheApp->Bind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
 
 	// Get the button
-	ClickedButton = (wxButton *)event.GetEventObject();
+	ClickedButton = (wxButton*)event.GetEventObject();
 	SetEscapeId(wxID_CANCEL);
 	// Save old label so we can revert back
 	OldLabel = ClickedButton->GetLabel();

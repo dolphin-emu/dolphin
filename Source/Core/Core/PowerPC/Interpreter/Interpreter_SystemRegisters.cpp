@@ -221,7 +221,7 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
 
 	case SPR_TL:
 	case SPR_TU:
-		*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
+		*((u64*)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
 		break;
 
 	case SPR_WPAR:

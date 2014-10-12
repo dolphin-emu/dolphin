@@ -196,7 +196,7 @@ public:
 		return FFDeviceSendForceFeedbackCommand(m_device, flags);
 	}
 
-	HRESULT SetCooperativeLevel(void *taskIdentifier, FFCooperativeLevelFlag flags)
+	HRESULT SetCooperativeLevel(void* taskIdentifier, FFCooperativeLevelFlag flags)
 	{
 		return FFDeviceSetCooperativeLevel(m_device, taskIdentifier, flags);
 	}

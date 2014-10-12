@@ -146,7 +146,7 @@ void OpenALStream::SoundLoop()
 	uiSource = 0;
 
 	// Generate some AL Buffers for streaming
-	alGenBuffers(numBuffers, (ALuint *)uiBuffers);
+	alGenBuffers(numBuffers, (ALuint*)uiBuffers);
 	// Generate a Source to playback the Buffers
 	alGenSources(1, &uiSource);
 

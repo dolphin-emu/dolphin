@@ -229,7 +229,7 @@ void CMemoryWindow::OnSymbolListChange(wxCommandEvent& event)
 	int index = symbols->GetSelection();
 	if (index >= 0)
 	{
-		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
+		Symbol* pSymbol = static_cast<Symbol*>(symbols->GetClientData(index));
 		if (pSymbol != nullptr)
 		{
 			memview->Center(pSymbol->address);

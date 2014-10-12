@@ -32,7 +32,7 @@ public:
 	~ALDeviceList ();
 	s32 GetNumDevices();
 	char* GetDeviceName(s32 index);
-	void GetDeviceVersion(s32 index, s32 *major, s32 *minor);
+	void GetDeviceVersion(s32 index, s32* major, s32* minor);
 	u32 GetMaxNumSources(s32 index);
 	bool IsExtensionSupported(s32 index, char* szExtName);
 	s32 GetDefaultDevice();

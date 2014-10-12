@@ -44,12 +44,12 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 	const RECT *AsRECT() const
 	{
 		// The types are binary compatible so this works.
-		return (const RECT *)this;
+		return (const RECT*)this;
 	}
 	RECT *AsRECT()
 	{
 		// The types are binary compatible so this works.
-		return (RECT *)this;
+		return (RECT*)this;
 	}
 #endif
 };

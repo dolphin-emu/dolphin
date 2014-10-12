@@ -149,7 +149,7 @@
 #if _M_X86_64
 #include <stddef.h>
 #define CTX_PC CTX_RIP
-static inline u64 *ContextRN(SContext* ctx, int n)
+static inline u64* ContextRN(SContext* ctx, int n)
 {
 	static const u8 offsets[] =
 	{
@@ -170,6 +170,6 @@ static inline u64 *ContextRN(SContext* ctx, int n)
 		offsetof(SContext, CTX_R14),
 		offsetof(SContext, CTX_R15)
 	};
-	return (u64 *) ((char *) ctx + offsets[n]);
+	return (u64*) ((char*) ctx + offsets[n]);
 }
 #endif

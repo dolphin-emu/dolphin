@@ -69,8 +69,8 @@ IBlobReader* CreateBlobReader(const std::string& filename);
 typedef void (*CompressCB)(const std::string& text, float percent, void* arg);
 
 bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u32 sub_type = 0, int sector_size = 16384,
-		CompressCB callback = nullptr, void *arg = nullptr);
+		CompressCB callback = nullptr, void* arg = nullptr);
 bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
-		CompressCB callback = nullptr, void *arg = nullptr);
+		CompressCB callback = nullptr, void* arg = nullptr);
 
 }  // namespace

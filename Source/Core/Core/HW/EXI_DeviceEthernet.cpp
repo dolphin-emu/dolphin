@@ -347,7 +347,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 			data = Common::swap16(data & 0xffff);
 		else if (size == 4)
 			data = Common::swap32(data);
-		DirectFIFOWrite((u8 *)&data, size);
+		DirectFIFOWrite((u8*)&data, size);
 		// Do not increment address
 		return;
 
@@ -370,7 +370,7 @@ void CEXIETHERNET::DirectFIFOWrite(u8* data, u32 size)
 	// In direct mode, the hardware handles creating the state required by the
 	// GMAC instead of finagling with packet descriptors and such
 
-	u16 *tx_fifo_count = (u16 *)&mBbaMem[BBA_TXFIFOCNT];
+	u16* tx_fifo_count = (u16*)&mBbaMem[BBA_TXFIFOCNT];
 
 	memcpy(tx_fifo + *tx_fifo_count, data, size);
 
@@ -383,7 +383,7 @@ void CEXIETHERNET::DirectFIFOWrite(u8* data, u32 size)
 
 void CEXIETHERNET::SendFromDirectFIFO()
 {
-	SendFrame(tx_fifo, *(u16 *)&mBbaMem[BBA_TXFIFOCNT]);
+	SendFrame(tx_fifo, *(u16*)&mBbaMem[BBA_TXFIFOCNT]);
 }
 
 void CEXIETHERNET::SendFromPacketBuffer()
@@ -394,7 +394,7 @@ void CEXIETHERNET::SendFromPacketBuffer()
 void CEXIETHERNET::SendComplete()
 {
 	mBbaMem[BBA_NCRA] &= ~(NCRA_ST0 | NCRA_ST1);
-	*(u16 *)&mBbaMem[BBA_TXFIFOCNT] = 0;
+	*(u16*)&mBbaMem[BBA_TXFIFOCNT] = 0;
 
 	if (mBbaMem[BBA_IMR] & INT_T)
 	{
@@ -461,7 +461,7 @@ inline bool CEXIETHERNET::RecvMACFilter()
 
 inline void CEXIETHERNET::inc_rwp()
 {
-	u16 *rwp = (u16 *)&mBbaMem[BBA_RWP];
+	u16* rwp = (u16*)&mBbaMem[BBA_RWP];
 
 	if (*rwp + 1 == page_ptr(BBA_RHBP))
 		*rwp = page_ptr(BBA_BP);
@@ -498,7 +498,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 	end_ptr   = ptr_from_page_ptr(BBA_RHBP);
 	read_ptr  = ptr_from_page_ptr(BBA_RRP);
 
-	descriptor = (Descriptor *)write_ptr;
+	descriptor = (Descriptor*)write_ptr;
 	write_ptr += 4;
 
 	for (u32 i = 0, off = 4; i < mRecvBufferLength; ++i, ++off)
@@ -553,7 +553,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 	{
 		if (mBbaMem[BBA_MISC2] & MISC2_AUTORCVR)
 		{
-			*(u16 *)&mBbaMem[BBA_RWP] = rwp_initial;
+			*(u16*)&mBbaMem[BBA_RWP] = rwp_initial;
 		}
 		else
 		{
@@ -561,7 +561,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 		}
 	}
 
-	descriptor->set(*(u16 *)&mBbaMem[BBA_RWP], 4 + mRecvBufferLength, status);
+	descriptor->set(*(u16*)&mBbaMem[BBA_RWP], 4 + mRecvBufferLength, status);
 
 	mBbaMem[BBA_LRPS] = status;
 

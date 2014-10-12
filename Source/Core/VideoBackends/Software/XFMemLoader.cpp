@@ -46,7 +46,7 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 	}
 }
 
-void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
+void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32* pData)
 {
 	// do not allow writes past registers
 	if (baseAddress + transferSize > 0x1058)
@@ -74,7 +74,7 @@ void SWLoadIndexedXF(u32 val, int array)
 	int size = ((val >> 12) & 0xF) + 1;
 	//load stuff from array to address in xf mem
 
-	u32 *pData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[array] + g_main_cp_state.array_strides[array]*index);
+	u32* pData = (u32*)Memory::GetPointer(g_main_cp_state.array_bases[array] + g_main_cp_state.array_strides[array]*index);
 
 	// byteswap data
 	u32 buffer[16];

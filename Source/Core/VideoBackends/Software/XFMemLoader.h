@@ -12,6 +12,6 @@ void InitXFMemory();
 
 void XFWritten(u32 transferSize, u32 baseAddress);
 
-void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData);
+void SWLoadXFReg(u32 transferSize, u32 baseAddress, u32* pData);
 
 void SWLoadIndexedXF(u32 val, int array);

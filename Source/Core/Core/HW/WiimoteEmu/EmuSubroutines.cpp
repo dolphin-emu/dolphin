@@ -118,7 +118,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		case WM_SPACE_REGS2:
 		{
 			const u8 region_offset = (u8)address;
-			void *region_ptr = nullptr;
+			void* region_ptr = nullptr;
 			int region_size = 0;
 
 			switch (data[3])
@@ -205,7 +205,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		address &= 0xFEFFFF;
 		u16 size = Common::swap16(rd->size);
 		u8* const block = new u8[size];
-		void *region_ptr = nullptr;
+		void* region_ptr = nullptr;
 
 		dataRep.push(((data[2]>>1)<<16) + ((data[3])<<8) + addressLO);
 
@@ -600,7 +600,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 		if (data[1] == WM_REPORT_CORE_ACCEL_EXT16)
 		{
-			wm_extension *nc = (wm_extension*)&data[7];
+			wm_extension* nc = (wm_extension*)&data[7];
 
 			SExt = StringFromFormat(
 				"%02x %02x | %02x %02x %02x | %02x"
@@ -611,7 +611,7 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 		if (data[1] == WM_REPORT_CORE_ACCEL_IR10_EXT6)
 		{
-			wm_ir_basic *ir = (wm_ir_basic*)&data[7];
+			wm_ir_basic* ir = (wm_ir_basic*)&data[7];
 
 			SIR = StringFromFormat(
 				"%4u %4u %4u %4u"
@@ -621,8 +621,8 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 				, ir->y2 | ir->y1hi << 8);
 
 			/*
-			wm_motionplus *mp = (wm_motionplus*)&data[17];
-			wm_nc_mp  *nc_mp = (wm_nc_mp *)&data[17];
+			wm_motionplus* mp = (wm_motionplus*)&data[17];
+			wm_nc_mp* nc_mp   = (wm_nc_mp*)&data[17];
 
 			if (mp->is_mp_data)
 			{
@@ -955,7 +955,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 				address &= 0xFF00FF;
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = nullptr;
+			void* region_ptr = nullptr;
 			int region_size = 0;
 
 			switch (address >> 16)
@@ -1100,7 +1100,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				address &= 0xFF00FF;
 
 			const u8 region_offset = (u8)address;
-			void *region_ptr = nullptr;
+			void* region_ptr = nullptr;
 			int region_size = 0;
 
 			switch (address >> 16)

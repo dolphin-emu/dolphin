@@ -183,7 +183,7 @@ static std::string MakeLowerCase(std::string in)
 	return in;
 }
 
-bool DSPDisassembler::DisassembleOpcode(const u16 *binbuf, int base_addr, int pass, u16 *pc, std::string &dest)
+bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pass, u16* pc, std::string &dest)
 {
 	std::string buf(" ");
 

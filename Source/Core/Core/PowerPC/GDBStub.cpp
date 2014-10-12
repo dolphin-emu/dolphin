@@ -354,7 +354,7 @@ static void gdb_handle_query()
 {
 	DEBUG_LOG(GDB_STUB, "gdb: query '%s'\n", cmd_bfr+1);
 
-	if (!strcmp((const char *)(cmd_bfr+1), "TStatus"))
+	if (!strcmp((const char*)(cmd_bfr+1), "TStatus"))
 	{
 		return gdb_reply("T0");
 	}
@@ -466,13 +466,13 @@ static void gdb_read_register()
 			break;
 	}
 
-	gdb_reply((char *)reply);
+	gdb_reply((char*)reply);
 }
 
 static void gdb_read_registers()
 {
 	static u8 bfr[GDB_BFR_MAX - 4];
-	u8*  bufptr = bfr;
+	u8* bufptr = bfr;
 	u32 i;
 
 	memset(bfr, 0, sizeof bfr);
@@ -502,13 +502,13 @@ static void gdb_read_registers()
 	*/
 
 
-	gdb_reply((char *)bfr);
+	gdb_reply((char*)bfr);
 }
 
 static void gdb_write_registers()
 {
 	u32 i;
-	u8*  bufptr = cmd_bfr;
+	u8* bufptr = cmd_bfr;
 
 	for (i = 0; i < 32; i++)
 	{
@@ -523,7 +523,7 @@ static void gdb_write_register()
 {
 	u32 id;
 
-	u8*  bufptr = cmd_bfr + 3;
+	u8* bufptr = cmd_bfr + 3;
 
 	id = hex2char(cmd_bfr[1]);
 	if (cmd_bfr[2] != '=')
@@ -591,12 +591,12 @@ static void gdb_read_mem()
 
 	if (len*2 > sizeof reply)
 		gdb_reply("E01");
-	u8*  data = Memory::GetPointer(addr);
+	u8* data = Memory::GetPointer(addr);
 	if (!data)
 		return gdb_reply("E0");
 	mem2hex(reply, data, len);
 	reply[len*2] = '\0';
-	gdb_reply((char *)reply);
+	gdb_reply((char*)reply);
 }
 
 static void gdb_write_mem()
@@ -615,7 +615,7 @@ static void gdb_write_mem()
 		len = (len << 4) | hex2char(cmd_bfr[i++]);
 	DEBUG_LOG(GDB_STUB, "gdb: write memory: %08x bytes to %08x\n", len, addr);
 
-	u8*  dst = Memory::GetPointer(addr);
+	u8* dst = Memory::GetPointer(addr);
 	if (!dst)
 		return gdb_reply("E00");
 	hex2mem(dst, cmd_bfr + i + 1, len);
@@ -826,7 +826,7 @@ void gdb_init(u32 port)
 	saddr_server.sin_port = htons(port);
 	saddr_server.sin_addr.s_addr = INADDR_ANY;
 
-	if (bind(tmpsock, (struct sockaddr *)&saddr_server, sizeof saddr_server) < 0)
+	if (bind(tmpsock, (struct sockaddr*)&saddr_server, sizeof saddr_server) < 0)
 		ERROR_LOG(GDB_STUB, "Failed to bind gdb socket");
 
 	if (listen(tmpsock, 1) < 0)
@@ -834,7 +834,7 @@ void gdb_init(u32 port)
 
 	INFO_LOG(GDB_STUB, "Waiting for gdb to connect...\n");
 
-	sock = accept(tmpsock, (struct sockaddr *)&saddr_client, &len);
+	sock = accept(tmpsock, (struct sockaddr*)&saddr_client, &len);
 	if (sock < 0)
 		ERROR_LOG(GDB_STUB, "Failed to accept gdb client");
 	INFO_LOG(GDB_STUB, "Client connected.\n");

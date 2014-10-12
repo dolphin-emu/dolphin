@@ -192,14 +192,14 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 
 // Second pass analysis, done after the first pass is done for all functions
 // so we have more information to work with
-static void AnalyzeFunction2(Symbol *func)
+static void AnalyzeFunction2(Symbol* func)
 {
 	u32 flags = func->flags;
 
 	bool nonleafcall = false;
 	for (const SCall& c : func->calls)
 	{
-		Symbol *called_func = g_symbolDB.GetSymbolFromAddr(c.function);
+		Symbol* called_func = g_symbolDB.GetSymbolFromAddr(c.function);
 		if (called_func && (called_func->flags & FFLAG_LEAF) == 0)
 		{
 			nonleafcall = true;
@@ -317,7 +317,7 @@ static void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 			if (PPCTables::IsValidInstruction(Memory::Read_Instruction(location)))
 			{
 				//check if this function is already mapped
-				Symbol *f = func_db->AddFunction(location);
+				Symbol* f = func_db->AddFunction(location);
 				if (!f)
 					break;
 				else

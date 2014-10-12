@@ -6,14 +6,14 @@
 
 #include "AudioCommon/CoreAudioSoundStream.h"
 
-OSStatus CoreAudioSound::callback(void *inRefCon,
-	AudioUnitRenderActionFlags *ioActionFlags,
-	const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
-	UInt32 inNumberFrames, AudioBufferList *ioData)
+OSStatus CoreAudioSound::callback(void* inRefCon,
+	AudioUnitRenderActionFlags* ioActionFlags,
+	const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber,
+	UInt32 inNumberFrames, AudioBufferList* ioData)
 {
 	for (UInt32 i = 0; i < ioData->mNumberBuffers; i++)
-		((CoreAudioSound *)inRefCon)->m_mixer->
-			Mix((short *)ioData->mBuffers[i].mData,
+		((CoreAudioSound*)inRefCon)->m_mixer->
+			Mix((short*)ioData->mBuffers[i].mData,
 				ioData->mBuffers[i].mDataByteSize / 4);
 
 	return noErr;

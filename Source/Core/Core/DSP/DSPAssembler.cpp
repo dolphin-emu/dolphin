@@ -109,7 +109,7 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16> &code, std
 	// We now have the size of the output buffer
 	if (m_totalSize > 0)
 	{
-		gdg_buffer = (char *)malloc(m_totalSize * sizeof(u16) + 4);
+		gdg_buffer = (char*)malloc(m_totalSize * sizeof(u16) + 4);
 		if (!gdg_buffer)
 			return false;
 
@@ -124,7 +124,7 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16> &code, std
 	code.resize(m_totalSize);
 	for (int i = 0; i < m_totalSize; i++)
 	{
-		code[i] = *(u16 *)(gdg_buffer + i * 2);
+		code[i] = *(u16*)(gdg_buffer + i * 2);
 	}
 
 	if (gdg_buffer)
@@ -325,8 +325,8 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
 	char* pbuf;
 	s32 val = 0;
 
-	char* d_buffer = (char *)malloc(1024);
-	char* s_buffer = (char *)malloc(1024);
+	char* d_buffer = (char*)malloc(1024);
+	char* s_buffer = (char*)malloc(1024);
 	strcpy(s_buffer, ptr);
 
 	while ((pbuf = FindBrackets(s_buffer, d_buffer)) != nullptr)
@@ -738,7 +738,7 @@ bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool 
 
 
 // Merge opcode with params.
-void DSPAssembler::BuildCode(const opc_t *opc, param_t *par, u32 par_count, u16 *outbuf)
+void DSPAssembler::BuildCode(const opc_t *opc, param_t *par, u32 par_count, u16* outbuf)
 {
 	outbuf[m_cur_addr] |= opc->opcode;
 	for (u32 i = 0; i < par_count; i++)
@@ -948,12 +948,12 @@ bool DSPAssembler::AssembleFile(const char* fname, int pass)
 
 				if (include_dir.size())
 				{
-					tmpstr = (char *)malloc(include_dir.size() + strlen(params[0].str) + 2);
+					tmpstr = (char*)malloc(include_dir.size() + strlen(params[0].str) + 2);
 					sprintf(tmpstr, "%s/%s", include_dir.c_str(), params[0].str);
 				}
 				else
 				{
-					tmpstr = (char *)malloc(strlen(params[0].str) + 1);
+					tmpstr = (char*)malloc(strlen(params[0].str) + 1);
 					strcpy(tmpstr, params[0].str);
 				}
 
@@ -1033,10 +1033,10 @@ bool DSPAssembler::AssembleFile(const char* fname, int pass)
 		if (pass == 2)
 		{
 			// generate binary
-			((u16 *)gdg_buffer)[m_cur_addr] = 0x0000;
-			BuildCode(opc, params, params_count, (u16 *)gdg_buffer);
+			((u16*)gdg_buffer)[m_cur_addr] = 0x0000;
+			BuildCode(opc, params, params_count, (u16*)gdg_buffer);
 			if (opc_ext)
-				BuildCode(opc_ext, params_ext, params_count_ext, (u16 *)gdg_buffer);
+				BuildCode(opc_ext, params_ext, params_count_ext, (u16*)gdg_buffer);
 		}
 
 		m_cur_addr += opcode_size;

@@ -83,7 +83,7 @@ void PatchFunctions()
 	orig_instruction.clear();
 	for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
 	{
-		Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
+		Symbol* symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
 		if (symbol)
 		{
 			for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
@@ -98,7 +98,7 @@ void PatchFunctions()
 	{
 		for (size_t i = 1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
 		{
-			Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
+			Symbol* symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
 			if (symbol)
 			{
 				PowerPC::breakpoints.Add(symbol->address, false);

@@ -236,7 +236,7 @@ void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
 	int index = m_SymbolList->GetSelection();
 	if (index >= 0)
 	{
-		Symbol* pSymbol = static_cast<Symbol *>(m_SymbolList->GetClientData(index));
+		Symbol* pSymbol = static_cast<Symbol*>(m_SymbolList->GetClientData(index));
 		if (pSymbol != nullptr)
 		{
 			if (pSymbol->type == Symbol::SYMBOL_FUNCTION)

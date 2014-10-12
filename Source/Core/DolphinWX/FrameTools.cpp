@@ -132,7 +132,7 @@ wxMenuBar* CFrame::CreateMenu()
 	fileMenu->Append(wxID_OPEN, GetMenuLabel(HK_OPEN));
 	fileMenu->Append(IDM_CHANGEDISC, GetMenuLabel(HK_CHANGE_DISC));
 
-	wxMenu *externalDrive = new wxMenu;
+	wxMenu* externalDrive = new wxMenu;
 	fileMenu->Append(IDM_DRIVES, _("&Boot from DVD Drive..."), externalDrive);
 
 	drives = cdio_get_devices();
@@ -159,7 +159,7 @@ wxMenuBar* CFrame::CreateMenu()
 	emulationMenu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));
 	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
-	wxMenu *skippingMenu = new wxMenu;
+	wxMenu* skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
 	for (int i = 0; i < 10; i++)
 		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format("%i", i), wxEmptyString, wxITEM_RADIO);
@@ -170,9 +170,9 @@ wxMenuBar* CFrame::CreateMenu()
 	emulationMenu->Append(IDM_SCREENSHOT, GetMenuLabel(HK_SCREENSHOT));
 
 	emulationMenu->AppendSeparator();
-	wxMenu *saveMenu = new wxMenu;
-	wxMenu *loadMenu = new wxMenu;
-	wxMenu *slotSelectMenu = new wxMenu;
+	wxMenu* saveMenu = new wxMenu;
+	wxMenu* loadMenu = new wxMenu;
+	wxMenu* slotSelectMenu = new wxMenu;
 	emulationMenu->Append(IDM_LOADSTATE, _("&Load State"), loadMenu);
 	emulationMenu->Append(IDM_SAVESTATE, _("Sa&ve State"), saveMenu);
 	emulationMenu->Append(IDM_SELECTSLOT, _("Select State slot"), slotSelectMenu);
@@ -294,7 +294,7 @@ wxMenuBar* CFrame::CreateMenu()
 		viewMenu->Check(IDM_LOGCONFIGWINDOW, SConfig::GetInstance().m_InterfaceLogConfigWindow);
 	}
 
-	wxMenu *platformMenu = new wxMenu;
+	wxMenu* platformMenu = new wxMenu;
 	viewMenu->AppendSubMenu(platformMenu, _("Show Platforms"));
 	platformMenu->AppendCheckItem(IDM_LISTWII, _("Show Wii"));
 	platformMenu->Check(IDM_LISTWII, SConfig::GetInstance().m_ListWii);
@@ -303,7 +303,7 @@ wxMenuBar* CFrame::CreateMenu()
 	platformMenu->AppendCheckItem(IDM_LISTWAD, _("Show Wad"));
 	platformMenu->Check(IDM_LISTWAD, SConfig::GetInstance().m_ListWad);
 
-	wxMenu *regionMenu = new wxMenu;
+	wxMenu* regionMenu = new wxMenu;
 	viewMenu->AppendSubMenu(regionMenu, _("Show Regions"));
 	regionMenu->AppendCheckItem(IDM_LISTJAP, _("Show JAP"));
 	regionMenu->Check(IDM_LISTJAP, SConfig::GetInstance().m_ListJap);
@@ -326,7 +326,7 @@ wxMenuBar* CFrame::CreateMenu()
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
 	viewMenu->Append(IDM_PURGECACHE, _("Purge Cache"));
 
-	wxMenu *columnsMenu = new wxMenu;
+	wxMenu* columnsMenu = new wxMenu;
 	viewMenu->AppendSubMenu(columnsMenu, _("Select Columns"));
 	columnsMenu->AppendCheckItem(IDM_SHOW_SYSTEM, _("Platform"));
 	columnsMenu->Check(IDM_SHOW_SYSTEM, SConfig::GetInstance().m_showSystemColumn);
@@ -988,7 +988,7 @@ void CFrame::StartGame(const std::string& filename)
 	}
 
 #if defined(__APPLE__)
-	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSView *view = (NSView*) m_RenderFrame->GetHandle();
 	NSWindow *window = [view window];
 
 	[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
@@ -1183,7 +1183,7 @@ void CFrame::OnStopped()
 	{
 #if defined(__APPLE__)
 		// Disable the full screen button when not in a game.
-		NSView *view = (NSView *)m_RenderFrame->GetHandle();
+		NSView *view = (NSView*)m_RenderFrame->GetHandle();
 		NSWindow *window = [view window];
 
 		[window setCollectionBehavior : NSWindowCollectionBehaviorDefault];
@@ -1363,7 +1363,7 @@ void CFrame::ClearStatusBar()
 	}
 }
 
-void CFrame::StatusBarMessage(const char*  Text, ...)
+void CFrame::StatusBarMessage(const char* Text, ...)
 {
 	const int MAX_BYTES = 1024*10;
 	char Str[MAX_BYTES];
@@ -1443,7 +1443,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 	{
 	case IDM_LIST_INSTALLWAD:
 	{
-		const GameListItem *iso = m_GameListCtrl->GetSelectedISO();
+		const GameListItem* iso = m_GameListCtrl->GetSelectedISO();
 		if (!iso)
 			return;
 		fileName = iso->GetFileName();
@@ -1481,7 +1481,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 }
 
 
-void CFrame::UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem)
+void CFrame::UpdateWiiMenuChoice(wxMenuItem* WiiMenuItem)
 {
 	if (!WiiMenuItem)
 	{
@@ -1533,7 +1533,7 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
 	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !GetUsbPointer()->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected());
 }
 
-// Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
+// Toggle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
@@ -1685,7 +1685,7 @@ void CFrame::UpdateGUI()
 		m_ToolBar->EnableTool(IDM_STOP, Running || Paused);
 		m_ToolBar->EnableTool(IDM_TOGGLE_FULLSCREEN, Running || Paused);
 		m_ToolBar->EnableTool(IDM_SCREENSHOT, Running || Paused);
-		// Don't allow wiimote config while in GameCube mode
+		// Don't allow Wiimote config while in GameCube mode
 		m_ToolBar->EnableTool(IDM_CONFIG_WIIMOTE_PLUGIN, !RunningGamecube);
 	}
 
@@ -1746,7 +1746,7 @@ void CFrame::UpdateGUI()
 	if (m_ToolBar)
 	{
 		// Get the tool that controls pausing/playing
-		wxToolBarToolBase * PlayTool = m_ToolBar->FindById(IDM_PLAY);
+		wxToolBarToolBase* PlayTool = m_ToolBar->FindById(IDM_PLAY);
 
 		if (PlayTool)
 		{

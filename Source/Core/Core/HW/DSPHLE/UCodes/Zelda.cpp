@@ -411,7 +411,7 @@ void ZeldaUCode::ExecuteList()
 			m_reverb_pbs_addr = Read32() & 0x7FFFFFFF;  // WARNING: reverb PBs are very different from voice PBs!
 
 			// Read the other table
-			u16 *tmp_ptr = (u16*)Memory::GetPointer(m_unk_table_addr);
+			u16* tmp_ptr = (u16*)Memory::GetPointer(m_unk_table_addr);
 			for (int i = 0; i < 0x280; i++)
 				m_misc_table[i] = (s16)Common::swap16(tmp_ptr[i]);
 

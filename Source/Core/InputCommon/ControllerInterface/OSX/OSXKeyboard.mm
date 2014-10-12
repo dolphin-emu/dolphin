@@ -15,7 +15,7 @@ namespace ciface
 namespace OSX
 {
 
-Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void *window)
+Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void* window)
 	: m_device(device)
 	, m_device_name(name)
 	, m_index(index)
@@ -58,7 +58,7 @@ bool Keyboard::UpdateInput()
 {
 	CGRect bounds = CGRectZero;
 	uint32_t windowid[1] = { m_windowid };
-	CFArrayRef windowArray = CFArrayCreate(nullptr, (const void **) windowid, 1, nullptr);
+	CFArrayRef windowArray = CFArrayCreate(nullptr, (const void**) windowid, 1, nullptr);
 	CFArrayRef windowDescriptions = CGWindowListCreateDescriptionFromArray(windowArray);
 	CFDictionaryRef windowDescription = (CFDictionaryRef) CFArrayGetValueAtIndex((CFArrayRef) windowDescriptions, 0);
 

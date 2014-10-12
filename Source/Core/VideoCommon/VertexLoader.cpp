@@ -861,7 +861,7 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 }
 // ARMTODO: This should be done in a better way
 #ifndef _M_GENERIC
-void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
+void VertexLoader::WriteGetVariable(int bits, OpArg dest, void* address)
 {
 #ifdef USE_VERTEX_LOADER_JIT
 	MOV(64, R(RAX), Imm64((u64)address));
@@ -869,7 +869,7 @@ void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 #endif
 }
 
-void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
+void VertexLoader::WriteSetVariable(int bits, void* address, OpArg value)
 {
 #ifdef USE_VERTEX_LOADER_JIT
 	MOV(64, R(RAX), Imm64((u64)address));

@@ -111,7 +111,7 @@ public:
 	void ToggleLogWindow(bool bShow);
 	void ToggleLogConfigWindow(bool bShow);
 	void PostEvent(wxCommandEvent& event);
-	void StatusBarMessage(const char*  Text, ...);
+	void StatusBarMessage(const char* Text, ...);
 	void ClearStatusBar();
 	void GetRenderWindowSize(int& x, int& y, int& width, int& height);
 	void OnRenderWindowSizeRequest(int width, int height);
@@ -122,12 +122,12 @@ public:
 	bool UIHasFocus();
 	void DoFullscreen(bool bF);
 	void ToggleDisplayMode (bool bFullscreen);
-	void UpdateWiiMenuChoice(wxMenuItem *WiiMenuItem=nullptr);
+	void UpdateWiiMenuChoice(wxMenuItem* WiiMenuItem=nullptr);
 	void PopulateSavedPerspectives();
 	static void ConnectWiimote(int wm_idx, bool connect);
 	void UpdateTitle(const std::string &str);
 
-	const CGameListCtrl *GetGameListCtrl() const;
+	const CGameListCtrl* GetGameListCtrl() const;
 	virtual wxMenuBar* GetMenuBar() const override;
 
 #ifdef __WXGTK__
@@ -137,14 +137,14 @@ public:
 #endif
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-	X11Utils::XRRConfiguration *m_XRRConfig;
+	X11Utils::XRRConfiguration* m_XRRConfig;
 #endif
 
 	wxMenu* m_SavedPerspectives;
 
-	wxToolBar *m_ToolBar;
+	wxToolBar* m_ToolBar;
 	// AUI
-	wxAuiManager *m_Mgr;
+	wxAuiManager* m_Mgr;
 	bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
 	// Perspectives (Should find a way to make all of this private)
@@ -207,10 +207,10 @@ private:
 
 	// Utility
 	wxString GetMenuLabel(int Id);
-	wxWindow*  GetNotebookPageFromId(wxWindowID Id);
-	wxAuiNotebook * GetNotebookFromId(u32 NBId);
+	wxWindow* GetNotebookPageFromId(wxWindowID Id);
+	wxAuiNotebook* GetNotebookFromId(u32 NBId);
 	int GetNotebookCount();
-	wxAuiNotebook *CreateEmptyNotebook();
+	wxAuiNotebook* CreateEmptyNotebook();
 
 	// Perspectives
 	void AddRemoveBlankPage();
@@ -233,9 +233,9 @@ private:
 	void OnFloatingPageClosed(wxCloseEvent& event);
 	void OnFloatingPageSize(wxSizeEvent& event);
 	void DoFloatNotebookPage(wxWindowID Id);
-	wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY,
+	wxFrame* CreateParentFrame(wxWindowID Id = wxID_ANY,
 			const wxString& title = "",
-			wxWindow*  = nullptr);
+			wxWindow* = nullptr);
 	wxString AuiFullscreen, AuiCurrent;
 	void AddPane();
 	void UpdateCurrentPerspective();

@@ -689,7 +689,7 @@ struct tlb_entry
 static tlb_entry tlb[NUM_TLBS][TLB_SIZE/TLB_WAYS][TLB_WAYS];
 #endif
 
-static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
+static u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32* paddr)
 {
 #ifdef FAST_TLB_CACHE
 	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];

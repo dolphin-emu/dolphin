@@ -314,7 +314,7 @@ static void point_mul(u8* d, const u8* a, const u8* b) // a is bignum
 		}
 }
 
-static void silly_random(u8*  rndArea, u8 count)
+static void silly_random(u8* rndArea, u8 count)
 {
 	u16 i;
 	srand((unsigned) (time(nullptr)));
@@ -332,7 +332,7 @@ void generate_ecdsa(u8* R, u8* S, const u8* k, const u8* hash)
 	u8 m[30];
 	u8 minv[30];
 	u8 mG[60];
-	//FILE *fp;
+	//FILE* fp;
 
 	elt_zero(e);
 	memcpy(e + 10, hash, 20);

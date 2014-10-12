@@ -70,7 +70,7 @@ public:
 
 	virtual unsigned int PeekMessages() = 0;
 
-	virtual bool Initialize(void *window_handle) = 0;
+	virtual bool Initialize(void* window_handle) = 0;
 	virtual void Shutdown() = 0;
 	virtual void RunLoop(bool enable) = 0;
 

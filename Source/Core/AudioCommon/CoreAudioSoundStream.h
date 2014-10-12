@@ -33,11 +33,11 @@ private:
 	AudioUnit audioUnit;
 	int m_volume;
 
-	static OSStatus callback(void *inRefCon,
-		AudioUnitRenderActionFlags *ioActionFlags,
-		const AudioTimeStamp *inTimeStamp,
+	static OSStatus callback(void* inRefCon,
+		AudioUnitRenderActionFlags* ioActionFlags,
+		const AudioTimeStamp* inTimeStamp,
 		UInt32 inBusNumber, UInt32 inNumberFrames,
-		AudioBufferList *ioData);
+		AudioBufferList* ioData);
 #else
 public:
 	CoreAudioSound(CMixer *mixer) : SoundStream(mixer) {}

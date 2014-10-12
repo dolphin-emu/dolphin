@@ -249,7 +249,7 @@ public:
 	u16 compilePC;
 	u16 startAddr;
 	Block *blockLinks;
-	u16 *blockSize;
+	u16* blockSize;
 	std::list<u16> unresolvedJumps[MAX_BLOCKS];
 
 	DSPJitRegCache gpr;

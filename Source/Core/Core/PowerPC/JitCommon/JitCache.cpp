@@ -382,7 +382,7 @@ using namespace Gen;
 
 	void JitBlockCache::WriteDestroyBlock(const u8* location, u32 address)
 	{
-		XEmitter emit((u8 *)location);
+		XEmitter emit((u8*)location);
 		emit.MOV(32, PPCSTATE(pc), Imm32(address));
 		emit.JMP(jit->GetAsmRoutines()->dispatcher, true);
 	}

@@ -126,7 +126,7 @@ void StreamingVoiceContext::OnBufferEnd(void* context)
 
 HMODULE XAudio2::m_xaudio2_dll = nullptr;
 typedef decltype(&XAudio2Create) XAudio2Create_t;
-void *XAudio2::PXAudio2Create = nullptr;
+void* XAudio2::PXAudio2Create = nullptr;
 
 bool XAudio2::InitLibrary()
 {

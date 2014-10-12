@@ -64,7 +64,7 @@ void DoState(PointerWrap &p)
 	// and because the values it's changing have been added to CoreTiming::DoState, so it might conflict to mess with them here.
 
 	// rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
-	// *((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
+	// *((u64*)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
 
 	p.DoPOD(ppcState);
 

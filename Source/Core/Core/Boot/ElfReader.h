@@ -20,18 +20,18 @@ class ElfReader
 {
 private:
 	char* base;
-	u32 *base32;
+	u32* base32;
 
 	Elf32_Ehdr *header;
 	Elf32_Phdr *segments;
 	Elf32_Shdr *sections;
 
-	u32 *sectionAddrs;
+	u32* sectionAddrs;
 	bool bRelocate;
 	u32 entryPoint;
 
 public:
-	ElfReader(void *ptr);
+	ElfReader(void* ptr);
 	~ElfReader() { }
 
 	u32 Read32(int off) const { return base32[off>>2]; }

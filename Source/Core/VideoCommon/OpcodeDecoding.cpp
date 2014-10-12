@@ -86,7 +86,7 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 	g_video_buffer_pp_read_ptr = old_read_ptr;
 }
 
-static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
+static void UnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess)
 {
 	// TODO(Omega): Maybe dump FIFO to file on this error
 	std::string temp = StringFromFormat(

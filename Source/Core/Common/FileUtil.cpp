@@ -322,7 +322,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 	char buffer[BSIZE];
 
 	// Open input file
-	FILE *input = fopen(srcFilename.c_str(), "rb");
+	FILE* input = fopen(srcFilename.c_str(), "rb");
 	if (!input)
 	{
 		ERROR_LOG(COMMON, "Copy: input failed %s --> %s: %s",
@@ -331,7 +331,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 	}
 
 	// open output file
-	FILE *output = fopen(destFilename.c_str(), "wb");
+	FILE* output = fopen(destFilename.c_str(), "wb");
 	if (!output)
 	{
 		fclose(input);
@@ -425,7 +425,7 @@ u64 GetSize(const int fd)
 }
 
 // Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE *f)
+u64 GetSize(FILE* f)
 {
 	// can't use off_t here because it can be 32-bit
 	u64 pos = ftello(f);

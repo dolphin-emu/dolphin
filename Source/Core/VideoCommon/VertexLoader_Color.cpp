@@ -60,12 +60,12 @@ __forceinline void _SetCol565(u16 val)
 
 __forceinline u32 _Read24(const u8* addr)
 {
-	return (*(const u32 *)addr) | AMASK;
+	return (*(const u32*)addr) | AMASK;
 }
 
 __forceinline u32 _Read32(const u8* addr)
 {
-	return *(const u32 *)addr;
+	return *(const u32*)addr;
 }
 
 
@@ -117,7 +117,7 @@ template <typename I>
 void Color_ReadIndex_16b_565()
 {
 	auto const Index = DataRead<I>();
-	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex])));
+	u16 val = Common::swap16(*(const u16*)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex])));
 	_SetCol565(val);
 }
 
@@ -141,7 +141,7 @@ template <typename I>
 void Color_ReadIndex_16b_4444()
 {
 	auto const Index = DataRead<I>();
-	u16 val = *(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]));
+	u16 val = *(const u16*)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * g_main_cp_state.array_strides[ARRAY_COLOR+colIndex]));
 	_SetCol4444(val);
 }
 

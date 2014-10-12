@@ -22,7 +22,7 @@ static IOHIDManagerRef HIDManager = nullptr;
 static CFStringRef OurRunLoop = CFSTR("DolphinOSXInput");
 static std::map<std::string, int> kbd_name_counts, joy_name_counts;
 
-void DeviceElementDebugPrint(const void *value, void *context)
+void DeviceElementDebugPrint(const void* value, void* context)
 {
 	IOHIDElementRef e = (IOHIDElementRef)value;
 	bool recurse = false;
@@ -139,21 +139,21 @@ void DeviceDebugPrint(IOHIDDeviceRef device)
 #endif
 }
 
-static void *g_window;
+static void* g_window;
 
 static void DeviceMatching_callback(void* inContext,
 	IOReturn inResult,
-	void *inSender,
+	void* inSender,
 	IOHIDDeviceRef inIOHIDDeviceRef)
 {
-	NSString *pName = (NSString *)
+	NSString *pName = (NSString*)
 		IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey));
 	std::string name = (pName != nullptr) ? [pName UTF8String] : "Unknown device";
 
 	DeviceDebugPrint(inIOHIDDeviceRef);
 
 	std::vector<Core::Device*> *devices =
-		(std::vector<Core::Device*> *)inContext;
+		(std::vector<Core::Device*>*)inContext;
 
 	// Add to the devices vector if it's of a type we want
 	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
@@ -171,7 +171,7 @@ static void DeviceMatching_callback(void* inContext,
 			name, joy_name_counts[name]++));
 }
 
-void Init(std::vector<Core::Device*>& devices, void *window)
+void Init(std::vector<Core::Device*>& devices, void* window)
 {
 	HIDManager = IOHIDManagerCreate(kCFAllocatorDefault,
 		kIOHIDOptionsTypeNone);
@@ -184,7 +184,7 @@ void Init(std::vector<Core::Device*>& devices, void *window)
 
 	// Callbacks for acquisition or loss of a matching device
 	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager,
-		DeviceMatching_callback, (void *)&devices);
+		DeviceMatching_callback, (void*)&devices);
 
 	// Match devices that are plugged in right now
 	IOHIDManagerScheduleWithRunLoop(HIDManager,

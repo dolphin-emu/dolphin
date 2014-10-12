@@ -69,7 +69,7 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 		return;
 
 	// TODO consider using static max size instead of new
-	s16 *samples = new s16[sd->length * 2];
+	s16* samples = new s16[sd->length * 2];
 
 	unsigned int sample_rate_dividend;
 	u8 volume_divisor;

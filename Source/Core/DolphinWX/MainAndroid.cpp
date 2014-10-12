@@ -128,14 +128,14 @@ static inline u32 Average32(u32 a, u32 b) {
 	return ((a >> 1) & 0x7f7f7f7f) + ((b >> 1) & 0x7f7f7f7f);
 }
 
-static inline u32 GetPixel(u32 *buffer, unsigned int x, unsigned int y) {
+static inline u32 GetPixel(u32* buffer, unsigned int x, unsigned int y) {
 	// thanks to unsignedness, these also check for <0 automatically.
 	if (x > 191) return 0;
 	if (y > 63) return 0;
 	return buffer[y * 192 + x];
 }
 
-static bool LoadBanner(std::string filename, u32 *Banner)
+static bool LoadBanner(std::string filename, u32* Banner)
 {
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
 

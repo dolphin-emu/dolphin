@@ -127,7 +127,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider
 	return num_samples;
 }
 
-void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_samples)
+void CMixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
 {
 	// Cache access in non-volatile variable
 	// indexR isn't allowed to cache in the audio throttling loop as it
@@ -158,17 +158,17 @@ void CMixer::MixerFifo::PushSamples(const short *samples, unsigned int num_sampl
 	return;
 }
 
-void CMixer::PushSamples(const short *samples, unsigned int num_samples)
+void CMixer::PushSamples(const short* samples, unsigned int num_samples)
 {
 	m_dma_mixer.PushSamples(samples, num_samples);
 }
 
-void CMixer::PushStreamingSamples(const short *samples, unsigned int num_samples)
+void CMixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
 {
 	m_streaming_mixer.PushSamples(samples, num_samples);
 }
 
-void CMixer::PushWiimoteSpeakerSamples(const short *samples, unsigned int num_samples, unsigned int sample_rate)
+void CMixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples, unsigned int sample_rate)
 {
 	short samples_stereo[MAX_SAMPLES * 2];
 

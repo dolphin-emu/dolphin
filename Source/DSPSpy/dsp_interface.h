@@ -30,7 +30,7 @@ public:
 
 	// Yeah, yeah, having a method here makes this not a pure interface - but
 	// the implementation does nothing but calling the virtual methods above.
-	void SendTask(void *addr, u16 iram_addr, u16 len, u16 start);
+	void SendTask(void* addr, u16 iram_addr, u16 len, u16 start);
 };
 
 #endif  // _DSP_INTERFACE_H

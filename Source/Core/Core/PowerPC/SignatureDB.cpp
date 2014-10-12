@@ -110,7 +110,7 @@ void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 	for (const auto& entry : database)
 	{
 		u32 hash = entry.first;
-		Symbol *function = symbol_db->GetSymbolFromHash(hash);
+		Symbol* function = symbol_db->GetSymbolFromHash(hash);
 		if (function)
 		{
 			// Found the function. Let's rename it according to the symbol file.

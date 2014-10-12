@@ -388,7 +388,7 @@ void XEmitter::CALLptr(OpArg arg)
 	arg.WriteRest(this);
 }
 
-void XEmitter::CALL(const void *fnptr)
+void XEmitter::CALL(const void* fnptr)
 {
 	u64 distance = u64(fnptr) - (u64(code) + 5);
 	_assert_msg_(DYNA_REC,

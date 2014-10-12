@@ -74,7 +74,7 @@ void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 		{
 			for (int iy = 0; iy < 4; iy++, src += 8)
 			{
-				u32 *tdst = dst+(y+iy)*width+x;
+				u32* tdst = dst+(y+iy)*width+x;
 				for (int ix = 0; ix < 8; ix++)
 				{
 					// huh, this seems wrong. CI8, not 5A3, no?

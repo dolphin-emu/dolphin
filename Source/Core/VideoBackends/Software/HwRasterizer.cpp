@@ -355,7 +355,7 @@ namespace HwRasterizer
 
 		DebugUtil::GetTextureRGBA(temp, 0, 0, image_width, image_height);
 
-		glGenTextures(1, (GLuint *)&texture);
+		glGenTextures(1, (GLuint*)&texture);
 		glBindTexture(texType, texture);
 		glTexImage2D(texType, 0, GL_RGBA, (GLsizei)image_width, (GLsizei)image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 

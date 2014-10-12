@@ -289,7 +289,7 @@ void ARMXEmitter::MOVI2R(ARMReg reg, u32 val, bool optimize)
 	}
 }
 
-void ARMXEmitter::QuickCallFunction(ARMReg reg, void *func)
+void ARMXEmitter::QuickCallFunction(ARMReg reg, void* func)
 {
 	if (BLInRange(func))
 	{
@@ -419,7 +419,7 @@ FixupBranch ARMXEmitter::B_CC(CCFlags Cond)
 	Write32(condition | 0x01A00000);
 	return branch;
 }
-void ARMXEmitter::B_CC(CCFlags Cond, const void *fnptr)
+void ARMXEmitter::B_CC(CCFlags Cond, const void* fnptr)
 {
 	s32 distance = (s32)fnptr - (s32(code) + 8);
 	_assert_msg_(DYNA_REC, distance > -0x2000000 && distance <= 0x2000000,
@@ -446,7 +446,7 @@ void ARMXEmitter::SetJumpTarget(FixupBranch const &branch)
 	instr |= (0 == branch.type) ? /* B */ 0x0A000000 : /* BL */ 0x0B000000;
 	*(u32*)branch.ptr = instr;
 }
-void ARMXEmitter::B(const void *fnptr)
+void ARMXEmitter::B(const void* fnptr)
 {
 	s32 distance = (s32)fnptr - (s32(code) + 8);
 	_assert_msg_(DYNA_REC, distance > -0x2000000 && distance <= 0x2000000,
@@ -460,7 +460,7 @@ void ARMXEmitter::B(ARMReg src)
 	Write32(condition | 0x12FFF10 | src);
 }
 
-bool ARMXEmitter::BLInRange(const void *fnptr)
+bool ARMXEmitter::BLInRange(const void* fnptr)
 {
 	s32 distance = (s32)fnptr - (s32(code) + 8);
 	if (distance <= -0x2000000 || distance > 0x2000000)
@@ -469,7 +469,7 @@ bool ARMXEmitter::BLInRange(const void *fnptr)
 		return true;
 }
 
-void ARMXEmitter::BL(const void *fnptr)
+void ARMXEmitter::BL(const void* fnptr)
 {
 	s32 distance = (s32)fnptr - (s32(code) + 8);
 	_assert_msg_(DYNA_REC, distance > -0x2000000 && distance <= 0x2000000,

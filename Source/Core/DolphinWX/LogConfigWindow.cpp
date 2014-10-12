@@ -242,9 +242,9 @@ void LogConfigWindow::OnWriteWindowChecked(wxCommandEvent& event)
 		if (m_checks->IsChecked(i))
 		{
 			if (m_writeWindow)
-				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogWindow);
+				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, (LogListener*)m_LogWindow);
 			else
-				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogWindow);
+				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, (LogListener*)m_LogWindow);
 		}
 	}
 }
@@ -257,9 +257,9 @@ void LogConfigWindow::OnWriteDebuggerChecked(wxCommandEvent& event)
 		if (m_checks->IsChecked(i))
 		{
 			if (m_writeDebugger)
-				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogManager->GetDebuggerListener());
+				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, (LogListener*)m_LogManager->GetDebuggerListener());
 			else
-				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogManager->GetDebuggerListener());
+				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, (LogListener*)m_LogManager->GetDebuggerListener());
 		}
 	}
 }
@@ -283,7 +283,7 @@ void LogConfigWindow::ToggleLog(int _logType, bool enable)
 	if (enable)
 	{
 		if (m_writeWindow)
-			m_LogManager->AddListener(logType, (LogListener *)m_LogWindow);
+			m_LogManager->AddListener(logType, (LogListener*)m_LogWindow);
 		if (m_writeFile)
 			m_LogManager->AddListener(logType, m_LogManager->GetFileListener());
 		if (m_writeConsole)
@@ -293,7 +293,7 @@ void LogConfigWindow::ToggleLog(int _logType, bool enable)
 	}
 	else
 	{
-		m_LogManager->RemoveListener(logType, (LogListener *)m_LogWindow);
+		m_LogManager->RemoveListener(logType, (LogListener*)m_LogWindow);
 		m_LogManager->RemoveListener(logType, m_LogManager->GetFileListener());
 		m_LogManager->RemoveListener(logType, m_LogManager->GetConsoleListener());
 		m_LogManager->RemoveListener(logType, m_LogManager->GetDebuggerListener());

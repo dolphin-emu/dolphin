@@ -142,9 +142,9 @@ void CCodeWindow::Save()
 
 // Symbols, JIT, Profiler
 // ----------------
-void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
+void CCodeWindow::CreateMenuSymbols(wxMenuBar* pMenuBar)
 {
-	wxMenu *pSymbolsMenu = new wxMenu;
+	wxMenu* pSymbolsMenu = new wxMenu;
 	pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _("&Clear symbols"));
 	pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _("&Generate symbol map"));
 	pSymbolsMenu->AppendSeparator();
@@ -167,7 +167,7 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 	pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _("&Rename symbols from file..."));
 	pMenuBar->Append(pSymbolsMenu, _("&Symbols"));
 
-	wxMenu *pProfilerMenu = new wxMenu;
+	wxMenu* pProfilerMenu = new wxMenu;
 	pProfilerMenu->Append(IDM_PROFILEBLOCKS, _("&Profile blocks"), wxEmptyString, wxITEM_CHECK);
 	pProfilerMenu->AppendSeparator();
 	pProfilerMenu->Append(IDM_WRITEPROFILE, _("&Write to profile.txt, show"));
@@ -299,7 +299,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 					std::istringstream ss(line);
 					ss >> std::hex >> address >> std::dec >> type >> name;
 
-					Symbol *symbol = g_symbolDB.GetSymbolFromAddr(address);
+					Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
 					if (symbol)
 						symbol->name = line.substr(12);
 				}
@@ -379,7 +379,7 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 	int index = symbols->GetSelection();
 	if (index >= 0)
 	{
-		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
+		Symbol* pSymbol = static_cast<Symbol*>(symbols->GetClientData(index));
 		if (pSymbol != nullptr)
 		{
 			if (pSymbol->type == Symbol::SYMBOL_DATA)

@@ -171,7 +171,7 @@ public:
 	void UpdateLocation();
 
 private:
-	bool LoadFromFileInternal(FILE *fh);
+	bool LoadFromFileInternal(FILE* fh);
 	void GenerateSysConf();
 	void Clear();
 

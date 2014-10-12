@@ -107,9 +107,9 @@ void CPUInfo::Detect()
 	// Detect CPU's CPUID capabilities, and grab cpu string
 	__cpuid(cpu_id, 0x00000000);
 	u32 max_std_fn = cpu_id[0];  // EAX
-	*((int *)cpu_string) = cpu_id[1];
-	*((int *)(cpu_string + 4)) = cpu_id[3];
-	*((int *)(cpu_string + 8)) = cpu_id[2];
+	*((int*)cpu_string) = cpu_id[1];
+	*((int*)(cpu_string + 4)) = cpu_id[3];
+	*((int*)(cpu_string + 8)) = cpu_id[2];
 	__cpuid(cpu_id, 0x80000000);
 	u32 max_ex_fn = cpu_id[0];
 	if (!strcmp(cpu_string, "GenuineIntel"))

@@ -1590,12 +1590,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			// UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
 			// 0b0011111100000111, or 0x3F07.
 			Jit->MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-			Jit->AND(32, R(RSCRATCH2), M(((char *)&GQR(quantreg)) + 2));
+			Jit->AND(32, R(RSCRATCH2), M(((char*)&GQR(quantreg)) + 2));
 			Jit->MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 			Jit->OR(32, R(RSCRATCH), Imm8(w << 3));
 
 			Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
+			Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(((JitIL*)jit)->asm_routines.pairedLoadQuantized)));
 			Jit->MOVAPD(reg, R(XMM0));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1646,7 +1646,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp2(I)));
 			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
+			Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(((JitIL*)jit)->asm_routines.pairedStoreQuantized)));
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -2088,7 +2088,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			FixupBranch noidle = Jit->J_CC(CC_NZ);
 
 			RI.Jit->Cleanup(); // is it needed?
-			Jit->ABI_CallFunction((void *)&PowerPC::OnIdleIL);
+			Jit->ABI_CallFunction((void*)&PowerPC::OnIdleIL);
 
 			Jit->MOV(32, PPCSTATE(pc), Imm32(ibuild->GetImmValue( getOp2(I) )));
 			Jit->WriteExceptionExit();
@@ -2174,7 +2174,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 		case ShortIdleLoop:
 		{
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-			Jit->ABI_CallFunction((void *)&CoreTiming::Idle);
+			Jit->ABI_CallFunction((void*)&CoreTiming::Idle);
 			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
 			Jit->WriteExceptionExit();
 			break;
@@ -2265,7 +2265,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			FixupBranch noExtException = Jit->J_CC(CC_Z);
 			Jit->TEST(32, PPCSTATE(msr), Imm32(0x0008000));
 			FixupBranch noExtIntEnable = Jit->J_CC(CC_Z);
-			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+			Jit->TEST(32, M((void*)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
 			FixupBranch noCPInt = Jit->J_CC(CC_Z);
 
 			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
@@ -2282,7 +2282,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 
 			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
-			Jit->ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+			Jit->ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckBreakPoints));
 			Jit->TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 			FixupBranch noBreakpoint = Jit->J_CC(CC_Z);
 			Jit->WriteExit(InstLoc);

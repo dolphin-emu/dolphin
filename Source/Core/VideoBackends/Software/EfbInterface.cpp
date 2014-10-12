@@ -48,7 +48,7 @@ namespace EfbInterface
 		case PEControl::RGBA6_Z24:
 			{
 				u32 a32 = a;
-				u32 *dst = (u32*)&efb[offset];
+				u32* dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xffffffc0;
 				val |= (a32 >> 2) & 0x0000003f;
 				*dst = val;
@@ -67,7 +67,7 @@ namespace EfbInterface
 		case PEControl::Z24:
 			{
 				u32 src = *(u32*)rgb;
-				u32 *dst = (u32*)&efb[offset];
+				u32* dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= src >> 8;
 				*dst = val;
@@ -76,7 +76,7 @@ namespace EfbInterface
 		case PEControl::RGBA6_Z24:
 			{
 				u32 src = *(u32*)rgb;
-				u32 *dst = (u32*)&efb[offset];
+				u32* dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff00003f;
 				val |= (src >> 4) & 0x00000fc0; // blue
 				val |= (src >> 6) & 0x0003f000; // green
@@ -88,7 +88,7 @@ namespace EfbInterface
 			{
 				INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
 				u32 src = *(u32*)rgb;
-				u32 *dst = (u32*)&efb[offset];
+				u32* dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= src >> 8;
 				*dst = val;
@@ -107,7 +107,7 @@ namespace EfbInterface
 		case PEControl::Z24:
 			{
 				u32 src = *(u32*)color;
-				u32 *dst = (u32*)&efb[offset];
+				u32* dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= src >> 8;
 				*dst = val;
@@ -116,7 +116,7 @@ namespace EfbInterface
 		case PEControl::RGBA6_Z24:
 			{
 				u32 src = *(u32*)color;
-				u32 *dst = (u32*)&efb[offset];
+				u32* dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= (src >> 2) & 0x0000003f; // alpha
 				val |= (src >> 4) & 0x00000fc0; // blue
@@ -129,7 +129,7 @@ namespace EfbInterface
 			{
 				INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
 				u32 src = *(u32*)color;
-				u32 *dst = (u32*)&efb[offset];
+				u32* dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= src >> 8;
 				*dst = val;
@@ -148,7 +148,7 @@ namespace EfbInterface
 		case PEControl::Z24:
 			{
 				u32 src = *(u32*)&efb[offset];
-				u32 *dst = (u32*)color;
+				u32* dst = (u32*)color;
 				u32 val = 0xff | ((src & 0x00ffffff) << 8);
 				*dst = val;
 			}
@@ -166,7 +166,7 @@ namespace EfbInterface
 			{
 				INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
 				u32 src = *(u32*)&efb[offset];
-				u32 *dst = (u32*)color;
+				u32* dst = (u32*)color;
 				u32 val = 0xff | ((src & 0x00ffffff) << 8);
 				*dst = val;
 			}
@@ -184,7 +184,7 @@ namespace EfbInterface
 		case PEControl::RGBA6_Z24:
 		case PEControl::Z24:
 			{
-				u32 *dst = (u32*)&efb[offset];
+				u32* dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= depth & 0x00ffffff;
 				*dst = val;
@@ -193,7 +193,7 @@ namespace EfbInterface
 		case PEControl::RGB565_Z16:
 			{
 				INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
-				u32 *dst = (u32*)&efb[offset];
+				u32* dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= depth & 0x00ffffff;
 				*dst = val;

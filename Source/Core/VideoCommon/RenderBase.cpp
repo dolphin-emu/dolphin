@@ -500,12 +500,12 @@ void Renderer::CheckFifoRecording()
 
 void Renderer::RecordVideoMemory()
 {
-	u32 *bpmem_ptr = (u32*)&bpmem;
+	u32* bpmem_ptr = (u32*)&bpmem;
 	u32 cpmem[256];
 	// The FIFO recording format splits XF memory into xfmem and xfregs; follow
 	// that split here.
-	u32 *xfmem_ptr = (u32*)&xfmem;
-	u32 *xfregs_ptr = (u32*)&xfmem + FifoDataFile::XF_MEM_SIZE;
+	u32* xfmem_ptr = (u32*)&xfmem;
+	u32* xfregs_ptr = (u32*)&xfmem + FifoDataFile::XF_MEM_SIZE;
 	u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
 	memset(cpmem, 0, 256 * 4);

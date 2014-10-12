@@ -265,16 +265,16 @@ private:
 	u8* GetARAMPointer(u32 address);
 
 	// AFC decoder
-	static void AFCdecodebuffer(const s16 *coef, const char* input, signed short *out, short *histp, short *hist2p, int type);
+	static void AFCdecodebuffer(const s16* coef, const char* input, signed short* out, short* histp, short* hist2p, int type);
 
 	void ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB);
 	void WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB);
 
 	// Voice formats
-	void RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
-	void RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
-	void RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
-	void RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
+	void RenderSynth_Constant(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
+	void RenderSynth_RectWave(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
+	void RenderSynth_SawWave(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
+	void RenderSynth_WaveTable(ZeldaVoicePB& PB, s32* _Buffer, int _Size);
 
 	void RenderVoice_PCM8(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
 	void RenderVoice_PCM16(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
@@ -282,10 +282,10 @@ private:
 	void RenderVoice_AFC(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
 	void RenderVoice_Raw(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
 
-	void Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do_resample = false);
+	void Resample(ZeldaVoicePB& PB, int size, s16* in, s32* out, bool do_resample = false);
 
 	int ConvertRatio(int pb_ratio);
-	int SizeForResampling(ZeldaVoicePB &PB, int size);
+	int SizeForResampling(ZeldaVoicePB& PB, int size);
 
 	// Renders a voice and mixes it into LeftBuffer, RightBuffer
 	void RenderAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);

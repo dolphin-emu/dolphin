@@ -678,7 +678,7 @@ bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
 
 			if (numFrames>0) // Just use the first one
 			{
-				u32 *icdata = animData;
+				u32* icdata = animData;
 
 				for (int y=0;y<32;y++)
 				{

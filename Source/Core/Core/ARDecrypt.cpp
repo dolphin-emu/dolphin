@@ -143,7 +143,7 @@ static const u32 table7[0x40] = {
 };
 
 
-static void generateseeds(u32 *seeds, const u8* seedtable, u8 doreverse)
+static void generateseeds(u32* seeds, const u8* seedtable, u8 doreverse)
 {
 	u32 tmp3;
 	u8 array0[0x38],array1[0x38],array2[0x08];
@@ -213,19 +213,19 @@ static void buildseeds()
 	generateseeds(genseeds,gensubtable,0);
 }
 
-static void getcode(u32 *src, u32 *addr, u32 *val)
+static void getcode(u32* src, u32* addr, u32* val)
 {
 	*addr = Common::swap32(src[0]);
 	*val = Common::swap32(src[1]);
 }
 
-static void setcode(u32 *dst, u32 addr, u32 val)
+static void setcode(u32* dst, u32 addr, u32 val)
 {
 	dst[0] = Common::swap32(addr);
 	dst[1] = Common::swap32(val);
 }
 
-static u16 gencrc16(u32 *codes, u16 size)
+static u16 gencrc16(u32* codes, u16 size)
 {
 	u16 ret = 0;
 
@@ -243,13 +243,13 @@ static u16 gencrc16(u32 *codes, u16 size)
 	return ret;
 }
 
-static u8 verifycode(u32 *codes, u16 size)
+static u8 verifycode(u32* codes, u16 size)
 {
 	u16 tmp = gencrc16(codes,size);
 	return (((tmp>>12)^(tmp>>8)^(tmp>>4)^tmp)&0x0F);
 }
 
-static void unscramble1(u32 *addr, u32 *val)
+static void unscramble1(u32* addr, u32* val)
 {
 	u32 tmp;
 
@@ -276,7 +276,7 @@ static void unscramble1(u32 *addr, u32 *val)
 	*val ^= tmp;
 }
 
-static void unscramble2(u32 *addr, u32 *val)
+static void unscramble2(u32* addr, u32* val)
 {
 	u32 tmp;
 
@@ -303,7 +303,7 @@ static void unscramble2(u32 *addr, u32 *val)
 	*addr = _rotr((*addr^tmp),4);
 }
 
-static void decryptcode(u32 *seeds, u32 *code)
+static void decryptcode(u32* seeds, u32* code)
 {
 	u32 addr,val;
 	u32 tmp,tmp2;
@@ -325,7 +325,7 @@ static void decryptcode(u32 *seeds, u32 *code)
 	setcode(code,val,addr);
 }
 
-static bool getbitstring(u32 *ctrl, u32 *out, u8 len)
+static bool getbitstring(u32* ctrl, u32* out, u8 len)
 {
 	u32 tmp=(ctrl[0]+(ctrl[1]<<2));
 
@@ -348,7 +348,7 @@ static bool getbitstring(u32 *ctrl, u32 *out, u8 len)
 	return true;
 }
 
-static bool batchdecrypt(u32 *codes, u16 size)
+static bool batchdecrypt(u32* codes, u16 size)
 {
 	u32 tmp,*ptr=codes;
 	u32 tmparray[4] = { 0 },tmparray2[8] = { 0 };
@@ -410,7 +410,7 @@ static int GetVal(const char* flt, char chr)
 	return ret;
 }
 
-static int alphatobin(u32 *dst, std::vector<std::string> alpha, int size)
+static int alphatobin(u32* dst, std::vector<std::string> alpha, int size)
 {
 	int j = 0;
 	int ret = 0;

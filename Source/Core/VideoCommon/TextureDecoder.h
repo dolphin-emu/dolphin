@@ -86,4 +86,4 @@ void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* sr
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
 /* Internal method, implemented by TextureDecoder_Generic and TextureDecoder_x64. */
-PC_TexFormat _TexDecoder_DecodeImpl(u32 * dst, const u8*  src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt);
+PC_TexFormat _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt);

@@ -297,7 +297,7 @@ private:
 	}
 
 	__forceinline
-	void DoVoid(void *data, u32 size)
+	void DoVoid(void* data, u32 size)
 	{
 		switch (mode)
 		{

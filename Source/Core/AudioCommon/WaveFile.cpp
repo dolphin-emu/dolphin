@@ -92,7 +92,7 @@ void WaveFileWriter::Write4(const char* ptr)
 	file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamples(const short *sample_data, u32 count)
+void WaveFileWriter::AddStereoSamples(const short* sample_data, u32 count)
 {
 	if (!file)
 		PanicAlertT("WaveFileWriter - file not open.");
@@ -115,7 +115,7 @@ void WaveFileWriter::AddStereoSamples(const short *sample_data, u32 count)
 	audio_size += count * 4;
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count)
+void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count)
 {
 	if (!file)
 		PanicAlertT("WaveFileWriter - file not open.");

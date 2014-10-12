@@ -392,7 +392,7 @@ Renderer::Renderer()
 
 	// check the max texture width and height
 	GLint max_texture_size;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&max_texture_size);
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint*)&max_texture_size);
 	if (max_texture_size < 1024)
 	{
 		PanicAlert("GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024.",

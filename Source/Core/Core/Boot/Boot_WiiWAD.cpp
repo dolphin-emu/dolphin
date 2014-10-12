@@ -25,7 +25,7 @@
 #include "DiscIO/VolumeCreator.h"
 #include "DiscIO/WiiWad.h"
 
-static u32 state_checksum(u32 *buf, int len)
+static u32 state_checksum(u32* buf, int len)
 {
 	u32 checksum = 0;
 	len = len>>2;

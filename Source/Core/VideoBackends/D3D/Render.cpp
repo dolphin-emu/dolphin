@@ -177,7 +177,7 @@ void CreateScreenshotTexture(const TargetRectangle& rc)
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
 }
 
-Renderer::Renderer(void *&window_handle)
+Renderer::Renderer(void* &window_handle)
 {
 	D3D::Create((HWND)window_handle);
 

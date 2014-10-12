@@ -182,7 +182,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		if (m_uPosition == 3)
 		{
 			// Get the time ...
-			u32 &rtc = *((u32 *)&m_RTC);
+			u32 &rtc = *((u32*)&m_RTC);
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 			{
 				// Subtract Wii bias

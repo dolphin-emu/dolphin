@@ -152,7 +152,7 @@ void RasterFont::printString(const char* s, double x, double y, double z)
 
 	glPushAttrib (GL_LIST_BIT);
 	glListBase(fontOffset);
-	glCallLists((GLsizei)strlen(s2), GL_UNSIGNED_BYTE, (GLubyte *) s2);
+	glCallLists((GLsizei)strlen(s2), GL_UNSIGNED_BYTE, (GLubyte*) s2);
 	GL_REPORT_ERRORD();
 	glPopAttrib();
 	GL_REPORT_ERRORD();

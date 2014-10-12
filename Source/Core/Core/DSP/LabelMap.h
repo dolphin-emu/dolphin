@@ -34,6 +34,6 @@ public:
 	void RegisterDefaults();
 	void RegisterLabel(const std::string &label, u16 lval, LabelType type = LABEL_VALUE);
 	void DeleteLabel(const std::string &label);
-	bool GetLabelValue(const std::string &label, u16 *value, LabelType type = LABEL_ANY) const;
+	bool GetLabelValue(const std::string &label, u16* value, LabelType type = LABEL_ANY) const;
 	void Clear();
 };

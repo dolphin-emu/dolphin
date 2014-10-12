@@ -79,8 +79,8 @@ protected:
 public:
 	SymbolDB() {}
 	virtual ~SymbolDB() {}
-	virtual Symbol *GetSymbolFromAddr(u32 addr) { return nullptr; }
-	virtual Symbol *AddFunction(u32 startAddr) { return nullptr; }
+	virtual Symbol* GetSymbolFromAddr(u32 addr) { return nullptr; }
+	virtual Symbol* AddFunction(u32 startAddr) { return nullptr; }
 
 	void AddCompleteSymbol(const Symbol &symbol);
 

@@ -44,7 +44,7 @@ void Jit64AsmRoutineManager::Generate()
 
 	const u8* outerLoop = GetCodePtr();
 		ABI_PushRegistersAndAdjustStack(0, 0);
-		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
+		ABI_CallFunction(reinterpret_cast<void*>(&CoreTiming::Advance));
 		ABI_PopRegistersAndAdjustStack(0, 0);
 		FixupBranch skipToRealDispatch = J(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging); //skip the sync and compare first time
 		dispatcherMispredictedBLR = GetCodePtr();
@@ -52,7 +52,7 @@ void Jit64AsmRoutineManager::Generate()
 		#if 0 // debug mispredicts
 		MOV(32, R(ABI_PARAM1), MDisp(RSP, 8)); // guessed_pc
 		ABI_PushRegistersAndAdjustStack(1 << RSCRATCH, 0);
-		CALL(reinterpret_cast<void *>(&ReportMispredict));
+		CALL(reinterpret_cast<void*>(&ReportMispredict));
 		ABI_PopRegistersAndAdjustStack(1 << RSCRATCH, 0);
 		#endif
 
@@ -72,7 +72,7 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
 				FixupBranch notStepping = J_CC(CC_Z);
 				ABI_PushRegistersAndAdjustStack(0, 0);
-				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+				ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckBreakPoints));
 				ABI_PopRegistersAndAdjustStack(0, 0);
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				dbg_exit = J_CC(CC_NZ, true);
@@ -141,7 +141,7 @@ void Jit64AsmRoutineManager::Generate()
 
 			//Ok, no block, let's jit
 			ABI_PushRegistersAndAdjustStack(0, 0);
-			ABI_CallFunctionA((void *)&Jit, PPCSTATE(pc));
+			ABI_CallFunctionA((void*)&Jit, PPCSTATE(pc));
 			ABI_PopRegistersAndAdjustStack(0, 0);
 
 			// Jit might have cleared the code cache
@@ -158,7 +158,7 @@ void Jit64AsmRoutineManager::Generate()
 		MOV(32, R(RSCRATCH), PPCSTATE(pc));
 		MOV(32, PPCSTATE(npc), R(RSCRATCH));
 		ABI_PushRegistersAndAdjustStack(0, 0);
-		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
+		ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckExternalExceptions));
 		ABI_PopRegistersAndAdjustStack(0, 0);
 		SetJumpTarget(noExtException);
 
@@ -223,5 +223,5 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	ADD(32, 1, M(&m_gatherPipeCount));
 	RET();
 	SetJumpTarget(skip_fast_write);
-	CALL((void *)&Memory::Write_U8);*/
+	CALL((void*)&Memory::Write_U8);*/
 }

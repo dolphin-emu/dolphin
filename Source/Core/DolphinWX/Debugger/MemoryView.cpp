@@ -321,7 +321,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
 			if (viewAsType == VIEWAS_FP)
 			{
-				float flt = *(float *)(&mem_data);
+				float flt = *(float*)(&mem_data);
 				dis = StringFromFormat("f: %f", flt);
 			}
 			else if (viewAsType == VIEWAS_ASCII)

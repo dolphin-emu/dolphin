@@ -50,7 +50,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 	return;
 }
 
-void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer *transfer)
+void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer* transfer)
 {
 	int ret = HIDERR_NO_DEVICE_FOUND;
 	u32 replyAddress = (u32)(size_t)transfer->user_data;
@@ -185,17 +185,17 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		ReturnValue = HIDERR_NO_DEVICE_FOUND;
 
-		libusb_device_handle * dev_handle = GetDeviceByDevNum(dev_num);
+		libusb_device_handle* dev_handle = GetDeviceByDevNum(dev_num);
 
 		if (dev_handle == nullptr)
 		{
 			DEBUG_LOG(WII_IPC_HID, "Could not find handle: %X", dev_num);
 			break;
 		}
-		struct libusb_transfer *transfer = libusb_alloc_transfer(0);
+		struct libusb_transfer* transfer = libusb_alloc_transfer(0);
 		transfer->flags |= LIBUSB_TRANSFER_FREE_BUFFER | LIBUSB_TRANSFER_FREE_TRANSFER;
 
-		u8*  buffer = (u8*)malloc(wLength + LIBUSB_CONTROL_SETUP_SIZE);
+		u8* buffer = (u8*)malloc(wLength + LIBUSB_CONTROL_SETUP_SIZE);
 		libusb_fill_control_setup(buffer, bmRequestType, bRequest, wValue, wIndex, wLength);
 		memcpy(buffer + LIBUSB_CONTROL_SETUP_SIZE, Memory::GetPointer(data), wLength);
 		libusb_fill_control_transfer(transfer, dev_handle, buffer, handleUsbUpdates, (void*)(size_t)_CommandAddress, /* no timeout */ 0);
@@ -218,7 +218,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		ReturnValue = HIDERR_NO_DEVICE_FOUND;
 
-		libusb_device_handle * dev_handle = GetDeviceByDevNum(dev_num);
+		libusb_device_handle* dev_handle = GetDeviceByDevNum(dev_num);
 
 		if (dev_handle == nullptr)
 		{
@@ -226,7 +226,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			break;
 		}
 
-		struct libusb_transfer *transfer = libusb_alloc_transfer(0);
+		struct libusb_transfer* transfer = libusb_alloc_transfer(0);
 		transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
 		libusb_fill_interrupt_transfer(transfer, dev_handle, endpoint, Memory::GetPointer(data), length,
 									   handleUsbUpdates, (void*)(size_t)_CommandAddress, 0);
@@ -273,7 +273,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 }
 
 
-bool CWII_IPC_HLE_Device_hid::ClaimDevice(libusb_device_handle * dev)
+bool CWII_IPC_HLE_Device_hid::ClaimDevice(libusb_device_handle* dev)
 {
 	int ret = 0;
 	if ((ret = libusb_kernel_driver_active(dev, 0)) == 1)
@@ -341,18 +341,18 @@ void CWII_IPC_HLE_Device_hid::ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, c
 	dest->bNumConfigurations = src->bNumConfigurations;
 }
 
-void CWII_IPC_HLE_Device_hid::ConvertConfigToWii(WiiHIDConfigDescriptor *dest, const struct libusb_config_descriptor *src)
+void CWII_IPC_HLE_Device_hid::ConvertConfigToWii(WiiHIDConfigDescriptor* dest, const struct libusb_config_descriptor* src)
 {
 	memcpy(dest,src,sizeof(WiiHIDConfigDescriptor));
 	dest->wTotalLength = Common::swap16(dest->wTotalLength);
 }
 
-void CWII_IPC_HLE_Device_hid::ConvertInterfaceToWii(WiiHIDInterfaceDescriptor *dest, const struct libusb_interface_descriptor *src)
+void CWII_IPC_HLE_Device_hid::ConvertInterfaceToWii(WiiHIDInterfaceDescriptor* dest, const struct libusb_interface_descriptor* src)
 {
 	memcpy(dest,src,sizeof(WiiHIDInterfaceDescriptor));
 }
 
-void CWII_IPC_HLE_Device_hid::ConvertEndpointToWii(WiiHIDEndpointDescriptor *dest, const struct libusb_endpoint_descriptor *src)
+void CWII_IPC_HLE_Device_hid::ConvertEndpointToWii(WiiHIDEndpointDescriptor* dest, const struct libusb_endpoint_descriptor* src)
 {
 	memcpy(dest,src,sizeof(WiiHIDEndpointDescriptor));
 	dest->wMaxPacketSize = Common::swap16(dest->wMaxPacketSize);
@@ -366,18 +366,18 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 	//int OffsetDevice = 0;
 	int d,c,ic,i,e; /* config, interface container, interface, endpoint  */
 
-	libusb_device **list;
+	libusb_device** list;
 	//libusb_device *found = nullptr;
 	ssize_t cnt = libusb_get_device_list(nullptr, &list);
 	DEBUG_LOG(WII_IPC_HID, "Found %ld viable USB devices.", cnt);
 	for (d = 0; d < cnt; d++)
 	{
-		libusb_device *device = list[d];
+		libusb_device* device = list[d];
 		struct libusb_device_descriptor desc;
 		int dRet = libusb_get_device_descriptor (device, &desc);
 		if (dRet)
 		{
-			// could not aquire the descriptor, no point in trying to use it.
+			// could not acquire the descriptor, no point in trying to use it.
 			DEBUG_LOG(WII_IPC_HID, "libusb_get_device_descriptor failed with error: %d", dRet);
 			continue;
 		}
@@ -395,7 +395,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
 		for (c = 0; deviceValid && c < desc.bNumConfigurations; c++)
 		{
-			struct libusb_config_descriptor *config = nullptr;
+			struct libusb_config_descriptor* config = nullptr;
 			int cRet = libusb_get_config_descriptor(device, c, &config);
 			// do not try to use usb devices with more than one interface, games can crash
 			if (cRet == 0 && config->bNumInterfaces <= MAX_HID_INTERFACES)
@@ -407,11 +407,11 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
 				for (ic = 0; ic < config->bNumInterfaces; ic++)
 				{
-					const struct libusb_interface *interfaceContainer = &config->interface[ic];
+					const struct libusb_interface* interfaceContainer = &config->interface[ic];
 
 					for (i = 0; i < interfaceContainer->num_altsetting; i++)
 					{
-						const struct libusb_interface_descriptor *interface = &interfaceContainer->altsetting[i];
+						const struct libusb_interface_descriptor* interface = &interfaceContainer->altsetting[i];
 
 						if (interface->bInterfaceClass == LIBUSB_CLASS_HID)
 							isHID = true;
@@ -432,7 +432,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
 						} //endpoints
 					} // interfaces
-				} // interface containters
+				} // interface containers
 				libusb_free_config_descriptor(config);
 				config = nullptr;
 			}
@@ -485,7 +485,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 			std::lock_guard<std::mutex> lk(m_open_devices_mutex);
 			if (m_open_devices.find(i) != m_open_devices.end())
 			{
-				libusb_device_handle *handle = m_open_devices[i];
+				libusb_device_handle* handle = m_open_devices[i];
 				libusb_close(handle);
 				m_open_devices.erase(i);
 			}
@@ -507,10 +507,10 @@ int CWII_IPC_HLE_Device_hid::Align(int num, int alignment)
 }
 
 
-libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
+libusb_device_handle* CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 {
-	libusb_device **list;
-	libusb_device_handle *handle = nullptr;
+	libusb_device** list;
+	libusb_device_handle* handle = nullptr;
 	ssize_t cnt;
 
 	if (devNum >= MAX_DEVICE_DEVNUM)
@@ -544,7 +544,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 
 	for (ssize_t i = 0; i < cnt; i++)
 	{
-		libusb_device *device = list[i];
+		libusb_device* device = list[i];
 		struct libusb_device_descriptor desc;
 		int dRet = libusb_get_device_descriptor (device, &desc);
 		u8 bus = libusb_get_bus_number (device);

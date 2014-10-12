@@ -27,7 +27,7 @@ static bool drawingHwTriangles = false;
 
 static const int NUM_OBJECT_BUFFERS = 40;
 
-static u32 *ObjectBuffer[NUM_OBJECT_BUFFERS];
+static u32* ObjectBuffer[NUM_OBJECT_BUFFERS];
 static u32 TempBuffer[NUM_OBJECT_BUFFERS];
 
 static bool DrawnToBuffer[NUM_OBJECT_BUFFERS];

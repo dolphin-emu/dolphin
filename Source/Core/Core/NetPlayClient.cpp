@@ -463,7 +463,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_START_GAME;
 	spac << m_current_game;
-	spac << (char *)&g_NetPlaySettings;
+	spac << (char*)&g_NetPlaySettings;
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	m_socket.Send(spac);
@@ -844,7 +844,7 @@ u8 NetPlayClient::LocalWiimoteToInGameWiimote(u8 local_pad)
 
 // called from ---CPU--- thread
 // Actual Core function which is called on every frame
-bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, GCPadStatus PadStatus, u32 *PADStatus)
+bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, GCPadStatus PadStatus, u32* PADStatus)
 {
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
@@ -864,12 +864,12 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
 		return false;
 }
 
-bool CSIDevice_GCSteeringWheel::NetPlay_GetInput(u8 numPAD, GCPadStatus PadStatus, u32 *PADStatus)
+bool CSIDevice_GCSteeringWheel::NetPlay_GetInput(u8 numPAD, GCPadStatus PadStatus, u32* PADStatus)
 {
 	return CSIDevice_GCController::NetPlay_GetInput(numPAD, PadStatus, PADStatus);
 }
 
-bool CSIDevice_DanceMat::NetPlay_GetInput(u8 numPAD, GCPadStatus PadStatus, u32 *PADStatus)
+bool CSIDevice_DanceMat::NetPlay_GetInput(u8 numPAD, GCPadStatus PadStatus, u32* PADStatus)
 {
 	return CSIDevice_GCController::NetPlay_GetInput(numPAD, PadStatus, PADStatus);
 }

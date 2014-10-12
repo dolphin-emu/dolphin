@@ -14,7 +14,7 @@
 
 void ZeldaUCode::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {
-	u16 *memory = (u16*)Memory::GetPointer(_Addr);
+	u16* memory = (u16*)Memory::GetPointer(_Addr);
 
 	// Perform byteswap
 	for (int i = 0; i < (0x180 / 2); i++)
@@ -33,7 +33,7 @@ void ZeldaUCode::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 
 void ZeldaUCode::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {
-	u16 *memory = (u16*)Memory::GetPointer(_Addr);
+	u16* memory = (u16*)Memory::GetPointer(_Addr);
 
 	// Word swap all 32-bit variables.
 	PB.RestartPos = (PB.RestartPos << 16) | (PB.RestartPos >> 16);
@@ -51,7 +51,7 @@ int ZeldaUCode::ConvertRatio(int pb_ratio)
 	return pb_ratio * 16;
 }
 
-int ZeldaUCode::SizeForResampling(ZeldaVoicePB &PB, int size)
+int ZeldaUCode::SizeForResampling(ZeldaVoicePB& PB, int size)
 {
 	// This is the little calculation at the start of every sample decoder
 	// in the ucode.
@@ -61,7 +61,7 @@ int ZeldaUCode::SizeForResampling(ZeldaVoicePB &PB, int size)
 // Simple resampler, linear interpolation.
 // Any future state should be stored in PB.raw[0x3c to 0x3f].
 // In must point 4 samples into a buffer.
-void ZeldaUCode::Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do_resample)
+void ZeldaUCode::Resample(ZeldaVoicePB& PB, int size, s16* in, s32* out, bool do_resample)
 {
 	if (!do_resample)
 	{
@@ -93,14 +93,14 @@ void ZeldaUCode::Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool do
 	PB.CurSampleFrac = position & 0xFFFF;
 }
 
-static void UpdateSampleCounters10(ZeldaVoicePB &PB)
+static void UpdateSampleCounters10(ZeldaVoicePB& PB)
 {
 	PB.RemLength = PB.Length - PB.RestartPos;
 	PB.CurAddr = PB.StartAddr + (PB.RestartPos << 1);
 	PB.ReachedEnd = 0;
 }
 
-void ZeldaUCode::RenderVoice_PCM16(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
+void ZeldaUCode::RenderVoice_PCM16(ZeldaVoicePB& PB, s16* _Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size);
 	u32 rem_samples = _RealSize;
@@ -132,7 +132,7 @@ clear_buffer:
 		}
 	}
 	// SetupAccelerator
-	const s16 *read_ptr = (s16*)GetARAMPointer(PB.CurAddr);
+	const s16* read_ptr = (s16*)GetARAMPointer(PB.CurAddr);
 	if (PB.RemLength < (u32)rem_samples)
 	{
 		// finish-up loop
@@ -151,14 +151,14 @@ clear_buffer:
 	PB.CurAddr += rem_samples << 1;
 }
 
-static void UpdateSampleCounters8(ZeldaVoicePB &PB)
+static void UpdateSampleCounters8(ZeldaVoicePB& PB)
 {
 	PB.RemLength = PB.Length - PB.RestartPos;
 	PB.CurAddr = PB.StartAddr + PB.RestartPos;
 	PB.ReachedEnd = 0;
 }
 
-void ZeldaUCode::RenderVoice_PCM8(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
+void ZeldaUCode::RenderVoice_PCM8(ZeldaVoicePB& PB, s16* _Buffer, int _Size)
 {
 	int _RealSize = SizeForResampling(PB, _Size);
 	u32 rem_samples = _RealSize;
@@ -214,7 +214,7 @@ template <typename T>
 void PrintObject(const T &Obj)
 {
 	std::stringstream ss;
-	u8* o = (u8 *)&Obj;
+	u8* o = (u8*)&Obj;
 
 	// If this miscompiles, adjust the size of
 	// ZeldaVoicePB to 0x180 bytes (0xc0 shorts).
@@ -233,7 +233,7 @@ void PrintObject(const T &Obj)
 	DEBUG_LOG(DSPHLE, "AFC PB:%s", ss.str().c_str());
 }
 
-void ZeldaUCode::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
+void ZeldaUCode::RenderVoice_AFC(ZeldaVoicePB& PB, s16* _Buffer, int _Size)
 {
 	// TODO: Compare mono, stereo and surround samples
 #if defined DEBUG || defined DEBUGFAST
@@ -375,13 +375,13 @@ restart:
 	// end of block (Zelda 03b2)
 }
 
-void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer);
+void Decoder21_ReadAudio(ZeldaVoicePB& PB, int size, s16* _Buffer);
 
 // Researching what's actually inside the mysterious 0x21 case
 // 0x21 seems to really just be reading raw 16-bit audio from RAM (not ARAM).
 // The rules seem to be quite different, though.
 // It's used for streaming, not for one-shot or looped sample playback.
-void ZeldaUCode::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
+void ZeldaUCode::RenderVoice_Raw(ZeldaVoicePB& PB, s16* _Buffer, int _Size)
 {
 	// Decoder0x21 starts here.
 	u32 _RealSize = SizeForResampling(PB, _Size);
@@ -438,7 +438,7 @@ void ZeldaUCode::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	Decoder21_ReadAudio(PB, _RealSize, _Buffer);
 }
 
-void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
+void Decoder21_ReadAudio(ZeldaVoicePB& PB, int size, s16* _Buffer)
 {
 	// 0af6
 	if (!size)
@@ -463,7 +463,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
 
 	const u32 ram_mask = 0x1FFFFFF;
 	const u8* source = Memory::GetPointer(0x80000000);
-	const u16 *src = (u16 *)(source + (ACC0 & ram_mask));
+	const u16* src = (u16*)(source + (ACC0 & ram_mask));
 
 	for (u32 i = 0; i < (ACC1 >> 16); i++)
 	{
@@ -474,7 +474,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
 }
 
 
-void ZeldaUCode::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)
+void ZeldaUCode::RenderAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size)
 {
 	if (PB.IsBlank)
 	{

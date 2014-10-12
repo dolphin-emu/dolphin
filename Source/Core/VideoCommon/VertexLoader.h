@@ -151,7 +151,7 @@ private:
 	void WriteCall(TPipelineFunction);
 
 #ifndef _M_GENERIC
-	void WriteGetVariable(int bits, Gen::OpArg dest, void *address);
-	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
+	void WriteGetVariable(int bits, Gen::OpArg dest, void* address);
+	void WriteSetVariable(int bits, void* address, Gen::OpArg dest);
 #endif
 };

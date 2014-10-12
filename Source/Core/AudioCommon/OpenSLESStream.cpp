@@ -22,7 +22,7 @@ static SLPlayItf bqPlayerPlay;
 static SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
 static SLMuteSoloItf bqPlayerMuteSolo;
 static SLVolumeItf bqPlayerVolume;
-static CMixer *g_mixer;
+static CMixer* g_mixer;
 #define BUFFER_SIZE 512
 #define BUFFER_SIZE_IN_SAMPLES (BUFFER_SIZE / 2)
 
@@ -30,12 +30,12 @@ static CMixer *g_mixer;
 static short buffer[2][BUFFER_SIZE];
 static int curBuffer = 0;
 
-static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
+static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void* context)
 {
 	assert(bq == bqPlayerBufferQueue);
 	assert(nullptr == context);
 
-	short *nextBuffer = buffer[curBuffer];
+	short* nextBuffer = buffer[curBuffer];
 	int nextSize = sizeof(buffer[0]);
 
 	SLresult result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, nextBuffer, nextSize);
@@ -48,7 +48,7 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 
 	curBuffer ^= 1; // Switch buffer
 	// Render to the fresh buffer
-	g_mixer->Mix(reinterpret_cast<short *>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
+	g_mixer->Mix(reinterpret_cast<short*>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
 }
 
 bool OpenSLESStream::Start()

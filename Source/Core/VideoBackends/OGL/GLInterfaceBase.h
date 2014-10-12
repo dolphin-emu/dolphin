@@ -28,7 +28,7 @@ public:
 	virtual void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
 	virtual u32 GetMode() { return s_opengl_mode; }
 	virtual void* GetFuncAddress(const std::string& name) { return nullptr; }
-	virtual bool Create(void *window_handle) { return true; }
+	virtual bool Create(void* window_handle) { return true; }
 	virtual bool MakeCurrent() { return true; }
 	virtual bool ClearCurrent() { return true; }
 	virtual void Shutdown() {}

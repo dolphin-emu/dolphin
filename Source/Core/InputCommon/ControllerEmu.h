@@ -221,7 +221,7 @@ public:
 	public:
 		MixedTriggers(const std::string& _name);
 
-		void GetState(u16 *const digital, const u16* bitmasks, ControlState* analog)
+		void GetState(u16* const digital, const u16* bitmasks, ControlState* analog)
 		{
 			const unsigned int trig_count = ((unsigned int) (controls.size() / 2));
 			for (unsigned int i=0; i<trig_count; ++i,++bitmasks,++analog)

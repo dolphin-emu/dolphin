@@ -15,7 +15,7 @@ void cInterfaceAGL::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceAGL::Create(void *window_handle)
+bool cInterfaceAGL::Create(void* window_handle)
 {
 	cocoaWin = reinterpret_cast<NSView*>(window_handle);
 	NSSize size = [cocoaWin frame].size;
@@ -105,6 +105,6 @@ void cInterfaceAGL::Update()
 
 void cInterfaceAGL::SwapInterval(int interval)
 {
-	[cocoaCtx setValues:(GLint *)&interval forParameter:NSOpenGLCPSwapInterval];
+	[cocoaCtx setValues:(GLint*)&interval forParameter:NSOpenGLCPSwapInterval];
 }
 

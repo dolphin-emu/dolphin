@@ -349,7 +349,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
 			u32 offset = base + (blkOff >> 1);
 
 			u8 val = (*(src + offset) >> rs) & 0xF;
-			u16 *tlut = (u16*) tlut_;
+			u16* tlut = (u16*) tlut_;
 
 			*((u32*)dst) = DecodePixel_Paletted(tlut[val], tlutfmt);
 		}
@@ -403,7 +403,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
 			u32 blkOff = (blkT << 3) + blkS;
 
 			u8 val = *(src + base + blkOff);
-			u16 *tlut = (u16*) tlut_;
+			u16* tlut = (u16*) tlut_;
 
 			*((u32*)dst) = DecodePixel_Paletted(tlut[val], tlutfmt);
 		}
@@ -457,7 +457,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
 			const u16* valAddr = (u16*)(src + offset);
 
 			u16 val = Common::swap16(*valAddr) & 0x3FFF;
-			u16 *tlut = (u16*) tlut_;
+			u16* tlut = (u16*) tlut_;
 
 			*((u32*)dst) = DecodePixel_Paletted(tlut[val], tlutfmt);
 		}

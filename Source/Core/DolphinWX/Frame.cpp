@@ -478,7 +478,7 @@ bool CFrame::RendererIsFullscreen()
 #if defined(__APPLE__)
 	if (m_RenderFrame != nullptr)
 	{
-		NSView *view = (NSView *) m_RenderFrame->GetHandle();
+		NSView *view = (NSView*) m_RenderFrame->GetHandle();
 		NSWindow *window = [view window];
 
 		fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
@@ -676,7 +676,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 
 	case IDM_WINDOWSIZEREQUEST:
 		{
-			std::pair<int, int> *win_size = (std::pair<int, int> *)(event.GetClientData());
+			std::pair<int, int> *win_size = (std::pair<int, int>*)(event.GetClientData());
 			OnRenderWindowSizeRequest(win_size->first, win_size->second);
 			delete win_size;
 		}
@@ -1107,7 +1107,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 						if (cmd >= 0)
 						{
 							wxCommandEvent evt(wxEVT_MENU, cmd);
-							wxMenuItem *item = GetMenuBar()->FindItem(cmd);
+							wxMenuItem* item = GetMenuBar()->FindItem(cmd);
 							if (item && item->IsCheckable())
 							{
 								item->wxMenuItemBase::Toggle();
@@ -1271,7 +1271,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	ToggleDisplayMode(enable_fullscreen);
 
 #if defined(__APPLE__)
-	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSView *view = (NSView*) m_RenderFrame->GetHandle();
 	NSWindow *window = [view window];
 
 	if (enable_fullscreen != RendererIsFullscreen())
@@ -1344,7 +1344,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain) ? false : enable_fullscreen;
 }
 
-const CGameListCtrl *CFrame::GetGameListCtrl() const
+const CGameListCtrl* CFrame::GetGameListCtrl() const
 {
 	return m_GameListCtrl;
 }

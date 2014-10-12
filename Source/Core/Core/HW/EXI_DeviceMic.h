@@ -65,7 +65,7 @@ private:
 
 	// Streaming input interface
 	int pa_error; // PaError
-	void *pa_stream; // PaStream
+	void* pa_stream; // PaStream
 
 	void StreamLog(const char* msg);
 	void StreamInit();
@@ -86,7 +86,7 @@ public:
 
 	// Arbitrarily small ringbuffer used by audio input backend in order to
 	// keep delay tolerable
-	s16 *stream_buffer;
+	s16* stream_buffer;
 	int stream_size;
 	int stream_wpos;
 	int stream_rpos;

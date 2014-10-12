@@ -396,7 +396,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d, d == b);
 	MOVSD(XMM0, fpr.R(b));
-	CALL((void *)asm_routines.frsqrte);
+	CALL((void*)asm_routines.frsqrte);
 	MOVSD(fpr.R(d), XMM0);
 	SetFPRFIfNeeded(inst, fpr.RX(d));
 	fpr.UnlockAll();
@@ -415,7 +415,7 @@ void Jit64::fresx(UGeckoInstruction inst)
 	fpr.Lock(b, d);
 	fpr.BindToRegister(d, d == b);
 	MOVSD(XMM0, fpr.R(b));
-	CALL((void *)asm_routines.fres);
+	CALL((void*)asm_routines.fres);
 	MOVSD(fpr.R(d), XMM0);
 	SetFPRFIfNeeded(inst, fpr.RX(d));
 	fpr.UnlockAll();

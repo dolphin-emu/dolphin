@@ -190,7 +190,7 @@ int PPCDebugInterface::GetColor(unsigned int address)
 		0xd0FFd0,  // light green
 		0xFFFFd0,  // light yellow
 	};
-	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(address);
+	Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
 	if (!symbol)
 		return 0xFFFFFF;
 	if (symbol->type != Symbol::SYMBOL_FUNCTION)

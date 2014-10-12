@@ -142,7 +142,7 @@ namespace JitInterface
 	#ifdef _WIN32
 		u64 timecost_sum = 0;
 		u64 countsPerSec;
-		QueryPerformanceFrequency((LARGE_INTEGER *)&countsPerSec);
+		QueryPerformanceFrequency((LARGE_INTEGER*)&countsPerSec);
 	#endif
 		for (int i = 0; i < jit->GetBlockCache()->GetNumBlocks(); i++)
 		{

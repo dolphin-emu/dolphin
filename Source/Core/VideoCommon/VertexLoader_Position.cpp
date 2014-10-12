@@ -109,7 +109,7 @@ template <typename I, bool three>
 void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 {
 	auto const index = DataRead<I>();
-	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
+	const u32* pData = (const u32*)(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
 	GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
 	GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
 	_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);

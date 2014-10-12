@@ -185,7 +185,7 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 	sMutex.unlock();
 }
 
-void FifoRecorder::SetVideoMemory(u32 *bpMem, u32 *cpMem, u32 *xfMem, u32 *xfRegs, u32 xfRegsSize)
+void FifoRecorder::SetVideoMemory(u32* bpMem, u32* cpMem, u32* xfMem, u32* xfRegs, u32 xfRegsSize)
 {
 	sMutex.lock();
 

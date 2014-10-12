@@ -102,7 +102,7 @@ struct GCMBlock
 	u8 block[BLOCK_SIZE];
 };
 
-void calc_checksumsBE(u16 *buf, u32 length, u16 *csum, u16 *inv_csum);
+void calc_checksumsBE(u16* buf, u32 length, u16* csum, u16* inv_csum);
 
 #pragma pack(push,1)
 struct Header           //Offset    Size    Description
@@ -124,13 +124,13 @@ struct Header           //Offset    Size    Description
 	u8 Unused2[7680];   //0x0200    0x1e00  Unused (0xff)
 
 
-	void CARD_GetSerialNo(u32 *serial1, u32 *serial2) const
+	void CARD_GetSerialNo(u32* serial1, u32* serial2) const
 	{
 		u32 _serial[8];
 
 		for (int i = 0; i < 8; i++)
 		{
-			memcpy(&_serial[i], (u8 *)this + (i * 4), 4);
+			memcpy(&_serial[i], (u8*)this + (i * 4), 4);
 		}
 
 		*serial1 = _serial[0] ^ _serial[2] ^ _serial[4] ^ _serial[6];
@@ -143,7 +143,7 @@ struct Header           //Offset    Size    Description
 	Header(int slot = 0, u16 sizeMb = MemCard2043Mb, bool ascii = true)
 	{
 		memset(this, 0xFF, BLOCK_SIZE);
-		*(u16 *)SizeMb = BE16(sizeMb);
+		*(u16*)SizeMb = BE16(sizeMb);
 		Encoding = BE16(ascii ? 0 : 1);
 		u64 rand = CEXIIPL::GetGCTime();
 		formatTime = Common::swap64(rand);
@@ -157,9 +157,9 @@ struct Header           //Offset    Size    Description
 		SramBias = g_SRAM.counter_bias;
 		SramLang = BE32(g_SRAM.lang);
 		// TODO: determine the purpose of Unk2 1 works for slot A, 0 works for both slot A and slot B
-		*(u32 *)&Unk2 = 0; // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-		*(u16 *)&deviceID = 0;
-		calc_checksumsBE((u16 *)this, 0xFE, &Checksum, &Checksum_Inv);
+		*(u32*)&Unk2 = 0; // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+		*(u16*)&deviceID = 0;
+		calc_checksumsBE((u16*)this, 0xFE, &Checksum, &Checksum_Inv);
 	}
 };
 
@@ -169,7 +169,7 @@ struct DEntry
 	DEntry() { memset(this, 0xFF, DENTRY_SIZE); }
 	std::string GCI_FileName() const
 	{
-		std::string filename = std::string((char *)Makercode, 2) + '-' + std::string((char *)Gamecode, 4) + '-' + (char *)Filename +
+		std::string filename = std::string((char*)Makercode, 2) + '-' + std::string((char*)Gamecode, 4) + '-' + (char*)Filename +
 			".gci";
 		static Common::replace_v replacements;
 		if (replacements.size() == 0)
@@ -255,7 +255,7 @@ struct Directory
 		Dir[idx] = d;
 		fixChecksums();
 	}
-	void fixChecksums() { calc_checksumsBE((u16 *)this, 0xFFE, &Checksum, &Checksum_Inv); }
+	void fixChecksums() { calc_checksumsBE((u16*)this, 0xFFE, &Checksum, &Checksum_Inv); }
 };
 
 struct BlockAlloc
@@ -269,7 +269,7 @@ struct BlockAlloc
 	u16 GetNextBlock(u16 Block) const;
 	u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
 	bool ClearBlocks(u16 StartingBlock, u16 Length);
-	void fixChecksums() { calc_checksumsBE((u16 *)&UpdateCounter, 0xFFE, &Checksum, &Checksum_Inv); }
+	void fixChecksums() { calc_checksumsBE((u16*)&UpdateCounter, 0xFFE, &Checksum, &Checksum_Inv); }
 	BlockAlloc(u16 sizeMb = MemCard2043Mb)
 	{
 		memset(this, 0, BLOCK_SIZE);
@@ -304,9 +304,9 @@ public:
 	bool LoadSaveBlocks();
 	bool HasCopyProtection()
 	{
-		if ((strcmp((char *)m_gci_header.Filename, "PSO_SYSTEM") == 0) ||
-			(strcmp((char *)m_gci_header.Filename, "PSO3_SYSTEM") == 0) ||
-			(strcmp((char *)m_gci_header.Filename, "f_zero.dat") == 0))
+		if ((strcmp((char*)m_gci_header.Filename, "PSO_SYSTEM") == 0) ||
+			(strcmp((char*)m_gci_header.Filename, "PSO3_SYSTEM") == 0) ||
+			(strcmp((char*)m_gci_header.Filename, "f_zero.dat") == 0))
 			return true;
 		return false;
 	}

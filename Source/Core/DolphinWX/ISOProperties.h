@@ -196,7 +196,7 @@ private:
 	void SetRefresh(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
 
-	GameListItem *OpenGameListItem;
+	GameListItem* OpenGameListItem;
 
 	std::vector<const DiscIO::SFileInfo *> GCFiles;
 	typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;

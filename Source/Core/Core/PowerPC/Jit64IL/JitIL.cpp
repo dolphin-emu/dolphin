@@ -372,12 +372,12 @@ void JitIL::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 	{
-		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+		ABI_CallFunction((void*)&GPFifo::CheckGatherPipe);
 	}
 
 	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
 	if (MMCR0.Hex || MMCR1.Hex)
-		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
+		ABI_CallFunctionCCC((void*)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
 void JitIL::WriteExit(u32 destination)
@@ -385,7 +385,7 @@ void JitIL::WriteExit(u32 destination)
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
 	{
-		ABI_CallFunction((void *)JitILProfiler::End);
+		ABI_CallFunction((void*)JitILProfiler::End);
 	}
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
@@ -418,7 +418,7 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
 	{
-		ABI_CallFunction((void *)JitILProfiler::End);
+		ABI_CallFunction((void*)JitILProfiler::End);
 	}
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
@@ -431,9 +431,9 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
 	{
-		ABI_CallFunction((void *)JitILProfiler::End);
+		ABI_CallFunction((void*)JitILProfiler::End);
 	}
-	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
+	ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckExceptions));
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
@@ -443,11 +443,11 @@ void JitIL::WriteExceptionExit()
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
 	{
-		ABI_CallFunction((void *)JitILProfiler::End);
+		ABI_CallFunction((void*)JitILProfiler::End);
 	}
 	MOV(32, R(EAX), PPCSTATE(pc));
 	MOV(32, PPCSTATE(npc), R(EAX));
-	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
+	ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckExceptions));
 	SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
@@ -546,7 +546,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	b->normalEntry = normalEntry;
 
 	if (ImHereDebug)
-		ABI_CallFunction((void *)&ImHere); // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
+		ABI_CallFunction((void*)&ImHere); // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 
 	if (js.fpa.any)
 	{
@@ -581,7 +581,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling)
 	{
 		JitILProfiler::Block& block = JitILProfiler::Add(codeHash);
-		ABI_CallFunctionC((void *)JitILProfiler::Begin, block.index);
+		ABI_CallFunctionC((void*)JitILProfiler::Begin, block.index);
 	}
 
 	// Start up IR builder (structure that collects the

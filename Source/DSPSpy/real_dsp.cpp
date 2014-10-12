@@ -15,7 +15,7 @@
 static vu16* const _dspReg = (u16*)0xCC005000;
 
 // Handler for DSP interrupt.
-static void dsp_irq_handler(u32 nIrq, void *pCtx)
+static void dsp_irq_handler(u32 nIrq, void* pCtx)
 {
 	// Acknowledge interrupt?
 	_dspReg[5] = (_dspReg[5] & ~(DSPCR_AIINT|DSPCR_ARINT)) | DSPCR_DSPINT;

@@ -56,7 +56,7 @@ public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	Keyboard(IOHIDDeviceRef device, std::string name, int index, void *window);
+	Keyboard(IOHIDDeviceRef device, std::string name, int index, void* window);
 
 	std::string GetName() const;
 	std::string GetSource() const;

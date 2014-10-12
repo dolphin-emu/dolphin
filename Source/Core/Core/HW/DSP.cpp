@@ -249,7 +249,7 @@ void Init(bool hle)
 		g_ARAM.wii_mode = false;
 		g_ARAM.size = ARAM_SIZE;
 		g_ARAM.mask = ARAM_MASK;
-		g_ARAM.ptr = (u8 *)AllocateMemoryPages(g_ARAM.size);
+		g_ARAM.ptr = (u8*)AllocateMemoryPages(g_ARAM.size);
 	}
 
 	memset(&g_audioDMA, 0, sizeof(g_audioDMA));
@@ -425,7 +425,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				g_audioDMA.remaining_blocks_count = g_audioDMA.AudioDMAControl.NumBlocks;
 
 				// We make the samples ready as soon as possible
-				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
+				void* address = Memory::GetPointer(g_audioDMA.SourceAddress);
 				AudioCommon::SendAIBuffer((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8);
 				CoreTiming::ScheduleEvent_Threadsafe(80, et_GenerateDSPInterrupt, INT_AID);
 			}
@@ -521,7 +521,7 @@ void UpdateAudioDMA()
 			if (g_audioDMA.remaining_blocks_count != 0)
 			{
 				// We make the samples ready as soon as possible
-				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
+				void* address = Memory::GetPointer(g_audioDMA.SourceAddress);
 				AudioCommon::SendAIBuffer((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8);
 			}
 			GenerateDSPInterrupt(DSP::INT_AID);

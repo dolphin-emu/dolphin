@@ -111,7 +111,7 @@ void CommonAsmRoutines::GenFrsqrte()
 	SetJumpTarget(complex2);
 	SetJumpTarget(complex3);
 	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocalSquareRoot);
+	ABI_CallFunction((void*)&MathUtil::ApproximateReciprocalSquareRoot);
 	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	RET();
 }
@@ -169,7 +169,7 @@ void CommonAsmRoutines::GenFres()
 	SetJumpTarget(complex1);
 	SetJumpTarget(complex2);
 	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-	ABI_CallFunction((void *)&MathUtil::ApproximateReciprocal);
+	ABI_CallFunction((void*)&MathUtil::ApproximateReciprocal);
 	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	RET();
 }
@@ -255,7 +255,7 @@ static const float GC_ALIGNED16(m_one[]) = {1.0f, 0.0f, 0.0f, 0.0f};
 
 static void WriteDual32(u32 address)
 {
-	Memory::Write_U64(*(u64 *) psTemp, address);
+	Memory::Write_U64(*(u64*) psTemp, address);
 }
 
 // See comment in header for in/outs.
@@ -279,7 +279,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 	}
 	// RSP alignment here is 8 due to the call.
 	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-	ABI_CallFunctionR((void *)&WriteDual32, RSCRATCH_EXTRA);
+	ABI_CallFunctionR((void*)&WriteDual32, RSCRATCH_EXTRA);
 	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
 	if (!jit->js.memcheck)
 		SetJumpTarget(skip_complex);
@@ -290,7 +290,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 #ifdef QUANTIZE_OVERFLOW_SAFE
-	MINPS(XMM0, M((void *)&m_65535));
+	MINPS(XMM0, M((void*)&m_65535));
 #endif
 	CVTTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
@@ -305,7 +305,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 #ifdef QUANTIZE_OVERFLOW_SAFE
-	MINPS(XMM0, M((void *)&m_65535));
+	MINPS(XMM0, M((void*)&m_65535));
 #endif
 	CVTTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
@@ -324,7 +324,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 	if (cpu_info.bSSE4_1)
 	{
 #ifdef QUANTIZE_OVERFLOW_SAFE
-		MINPS(XMM0, M((void *)&m_65535));
+		MINPS(XMM0, M((void*)&m_65535));
 #endif
 		CVTTPS2DQ(XMM0, R(XMM0));
 		PACKUSDW(XMM0, R(XMM0));
@@ -336,7 +336,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 	{
 		XORPS(XMM1, R(XMM1));
 		MAXPS(XMM0, R(XMM1));
-		MINPS(XMM0, M((void *)&m_65535));
+		MINPS(XMM0, M((void*)&m_65535));
 
 		CVTTPS2DQ(XMM0, R(XMM0));
 		MOVQ_xmm(M(psTemp), XMM0);
@@ -357,7 +357,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 	MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	MULPS(XMM0, R(XMM1));
 #ifdef QUANTIZE_OVERFLOW_SAFE
-	MINPS(XMM0, M((void *)&m_65535));
+	MINPS(XMM0, M((void*)&m_65535));
 #endif
 	CVTTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
@@ -394,7 +394,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	/*
 	if (cpu_info.bSSSE3)
 	{
-		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
+		PSHUFB(XMM0, M((void*)pbswapShuffle2x4));
 		// TODO: SafeWriteFloat
 		MOVSS(M(&psTemp[0]), XMM0);
 		MOV(32, R(RSCRATCH), M(&psTemp[0]));
@@ -412,7 +412,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	XORPS(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
-	MINSS(XMM0, M((void *)&m_255));
+	MINSS(XMM0, M((void*)&m_255));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
 	SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 8, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
@@ -420,8 +420,8 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	const u8* storeSingleS8 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
 	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	MAXSS(XMM0, M((void *)&m_m128));
-	MINSS(XMM0, M((void *)&m_127));
+	MAXSS(XMM0, M((void*)&m_m128));
+	MINSS(XMM0, M((void*)&m_127));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
 	SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 8, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
@@ -431,7 +431,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
 	XORPS(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
-	MINSS(XMM0, M((void *)&m_65535));
+	MINSS(XMM0, M((void*)&m_65535));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
 	SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 16, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
@@ -439,8 +439,8 @@ void CommonAsmRoutines::GenQuantizedSingleStores()
 	const u8* storeSingleS16 = AlignCode4();
 	SHR(32, R(RSCRATCH2), Imm8(5));
 	MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
-	MAXSS(XMM0, M((void *)&m_m32768));
-	MINSS(XMM0, M((void *)&m_32767));
+	MAXSS(XMM0, M((void*)&m_m32768));
+	MINSS(XMM0, M((void*)&m_32767));
 	CVTTSS2SI(RSCRATCH, R(XMM0));
 	SafeWriteRegToReg(RSCRATCH, RSCRATCH_EXTRA, 16, 0, QUANTIZED_REGS_TO_SAVE, SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_NO_FASTMEM);
 	RET();
@@ -473,7 +473,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	else if (cpu_info.bSSSE3)
 	{
 		MOVQ_xmm(XMM0, MComplex(RMEM, RSCRATCH_EXTRA, 1, 0));
-		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
+		PSHUFB(XMM0, M((void*)pbswapShuffle2x4));
 	}
 	else
 	{
@@ -493,7 +493,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 	else if (cpu_info.bSSSE3)
 	{
 		MOVD_xmm(XMM0, MComplex(RMEM, RSCRATCH_EXTRA, 1, 0));
-		PSHUFB(XMM0, M((void *)pbswapShuffle1x4));
+		PSHUFB(XMM0, M((void*)pbswapShuffle1x4));
 		UNPCKLPS(XMM0, M((void*)m_one));
 	}
 	else

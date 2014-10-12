@@ -186,5 +186,5 @@ CRegisterView::CRegisterView(wxWindow* parent, wxWindowID id)
 void CRegisterView::Update()
 {
 	ForceRefresh();
-	((CRegTable *)GetTable())->UpdateCachedRegs();
+	((CRegTable*)GetTable())->UpdateCachedRegs();
 }

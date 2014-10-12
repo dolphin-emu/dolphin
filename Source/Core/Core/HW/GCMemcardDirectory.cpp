@@ -114,7 +114,7 @@ int GCMemcardDirectory::LoadGCI(std::string fileName, DiscIO::IVolume::ECountry 
 						fileName.c_str());
 			return NO_INDEX;
 		}
-		*(u16 *)&gci.m_gci_header.FirstBlock = first_block;
+		*(u16*)&gci.m_gci_header.FirstBlock = first_block;
 		if (gci.HasCopyProtection() && gci.LoadSaveBlocks())
 		{
 
@@ -216,23 +216,23 @@ s32 GCMemcardDirectory::Read(u32 address, s32 length, u8* destaddress)
 		{
 		case 0:
 			m_LastBlock = block;
-			m_LastBlockAddress = (u8 *)&m_hdr;
+			m_LastBlockAddress = (u8*)&m_hdr;
 			break;
 		case 1:
 			m_LastBlock = -1;
-			m_LastBlockAddress = (u8 *)&m_dir1;
+			m_LastBlockAddress = (u8*)&m_dir1;
 			break;
 		case 2:
 			m_LastBlock = -1;
-			m_LastBlockAddress = (u8 *)&m_dir2;
+			m_LastBlockAddress = (u8*)&m_dir2;
 			break;
 		case 3:
 			m_LastBlock = block;
-			m_LastBlockAddress = (u8 *)&m_bat1;
+			m_LastBlockAddress = (u8*)&m_bat1;
 			break;
 		case 4:
 			m_LastBlock = block;
-			m_LastBlockAddress = (u8 *)&m_bat2;
+			m_LastBlockAddress = (u8*)&m_bat2;
 			break;
 		default:
 			m_LastBlock = SaveAreaRW(block);
@@ -275,7 +275,7 @@ s32 GCMemcardDirectory::Write(u32 destaddress, s32 length, u8* srcaddress)
 		{
 		case 0:
 			m_LastBlock = block;
-			m_LastBlockAddress = (u8 *)&m_hdr;
+			m_LastBlockAddress = (u8*)&m_hdr;
 			break;
 		case 1:
 		case 2:
@@ -292,11 +292,11 @@ s32 GCMemcardDirectory::Write(u32 destaddress, s32 length, u8* srcaddress)
 		}
 		case 3:
 			m_LastBlock = block;
-			m_LastBlockAddress = (u8 *)&m_bat1;
+			m_LastBlockAddress = (u8*)&m_bat1;
 			break;
 		case 4:
 			m_LastBlock = block;
-			m_LastBlockAddress = (u8 *)&m_bat2;
+			m_LastBlockAddress = (u8*)&m_bat2;
 			break;
 		default:
 			m_LastBlock = SaveAreaRW(block, true);
@@ -329,35 +329,35 @@ void GCMemcardDirectory::ClearBlock(u32 address)
 	{
 	case 0:
 		m_LastBlock = block;
-		m_LastBlockAddress = (u8 *)&m_hdr;
+		m_LastBlockAddress = (u8*)&m_hdr;
 		break;
 	case 1:
 		m_LastBlock = -1;
-		m_LastBlockAddress = (u8 *)&m_dir1;
+		m_LastBlockAddress = (u8*)&m_dir1;
 		break;
 	case 2:
 		m_LastBlock = -1;
-		m_LastBlockAddress = (u8 *)&m_dir2;
+		m_LastBlockAddress = (u8*)&m_dir2;
 		break;
 	case 3:
 		m_LastBlock = block;
-		m_LastBlockAddress = (u8 *)&m_bat1;
+		m_LastBlockAddress = (u8*)&m_bat1;
 		break;
 	case 4:
 		m_LastBlock = block;
-		m_LastBlockAddress = (u8 *)&m_bat2;
+		m_LastBlockAddress = (u8*)&m_bat2;
 		break;
 	default:
 		m_LastBlock = SaveAreaRW(block, true);
 		if (m_LastBlock == -1)
 			return;
 	}
-	((GCMBlock *)m_LastBlockAddress)->Erase();
+	((GCMBlock*)m_LastBlockAddress)->Erase();
 }
 
 inline void GCMemcardDirectory::SyncSaves()
 {
-	Directory *current = &m_dir2;
+	Directory* current = &m_dir2;
 
 	if (BE16(m_dir1.UpdateCounter) > BE16(m_dir2.UpdateCounter))
 	{
@@ -368,7 +368,7 @@ inline void GCMemcardDirectory::SyncSaves()
 	{
 		if (BE32(current->Dir[i].Gamecode) != 0xFFFFFFFF)
 		{
-			INFO_LOG(EXPANSIONINTERFACE, "Syncing Save %x", *(u32 *)&(current->Dir[i].Gamecode));
+			INFO_LOG(EXPANSIONINTERFACE, "Syncing Save %x", *(u32*)&(current->Dir[i].Gamecode));
 			bool added = false;
 			while (i >= m_saves.size())
 			{
@@ -377,7 +377,7 @@ inline void GCMemcardDirectory::SyncSaves()
 				added = true;
 			}
 
-			if (added || memcmp((u8 *)&(m_saves[i].m_gci_header), (u8 *)&(current->Dir[i]), DENTRY_SIZE))
+			if (added || memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->Dir[i]), DENTRY_SIZE))
 			{
 				m_saves[i].m_dirty = true;
 				u32 gamecode = BE32(m_saves[i].m_gci_header.Gamecode);
@@ -391,7 +391,7 @@ inline void GCMemcardDirectory::SyncSaves()
 					PanicAlertT("Game overwrote with another games save, data corruption ahead %x, %x ",
 						BE32(m_saves[i].m_gci_header.Gamecode), BE32(current->Dir[i].Gamecode));
 				}
-				memcpy((u8 *)&(m_saves[i].m_gci_header), (u8 *)&(current->Dir[i]), DENTRY_SIZE);
+				memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->Dir[i]), DENTRY_SIZE);
 				if (old_start != new_start)
 				{
 					INFO_LOG(EXPANSIONINTERFACE, "Save moved from %x to %x", old_start, new_start);
@@ -404,10 +404,10 @@ inline void GCMemcardDirectory::SyncSaves()
 				}
 			}
 		}
-		else if ((i < m_saves.size()) && (*(u32 *)&(m_saves[i].m_gci_header) != 0xFFFFFFFF))
+		else if ((i < m_saves.size()) && (*(u32*)&(m_saves[i].m_gci_header) != 0xFFFFFFFF))
 		{
 			INFO_LOG(EXPANSIONINTERFACE, "Clearing and/or Deleting Save %x", BE32(m_saves[i].m_gci_header.Gamecode));
-			*(u32 *)&(m_saves[i].m_gci_header.Gamecode) = 0xFFFFFFFF;
+			*(u32*)&(m_saves[i].m_gci_header.Gamecode) = 0xFFFFFFFF;
 			m_saves[i].m_save_data.clear();
 			m_saves[i].m_used_blocks.clear();
 			m_saves[i].m_dirty = true;
@@ -457,7 +457,7 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 destaddress, u32 length, u8* srcaddre
 {
 	u32 block = destaddress / BLOCK_SIZE;
 	u32 offset = destaddress % BLOCK_SIZE;
-	Directory *dest = (block == 1) ? &m_dir1 : &m_dir2;
+	Directory* dest = (block == 1) ? &m_dir1 : &m_dir2;
 	u16 Dnum = offset / DENTRY_SIZE;
 
 	if (Dnum == DIRLEN)
@@ -465,11 +465,11 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 destaddress, u32 length, u8* srcaddre
 		// first 58 bytes should always be 0xff
 		// needed to update the update ctr, checksums
 		// could check for writes to the 6 important bytes but doubtful that it improves performance noticably
-		memcpy((u8 *)(dest)+offset, srcaddress, length);
+		memcpy((u8*)(dest)+offset, srcaddress, length);
 		SyncSaves();
 	}
 	else
-		memcpy((u8 *)(dest)+offset, srcaddress, length);
+		memcpy((u8*)(dest)+offset, srcaddress, length);
 	return length;
 }
 

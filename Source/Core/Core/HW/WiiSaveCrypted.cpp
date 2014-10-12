@@ -423,7 +423,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 			m_valid = false;
 			return;
 		}
-		strncpy((char *)file_hdr_tmp.name, name.c_str(), sizeof(file_hdr_tmp.name));
+		strncpy((char*)file_hdr_tmp.name, name.c_str(), sizeof(file_hdr_tmp.name));
 
 		{
 		File::IOFile fpData_bin(m_encrypted_save_path, "ab");
@@ -612,7 +612,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
 }
 
 void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory, std::vector<std::string>& file_list,
-	u32 *num_files, u32 *size_files)
+	u32* num_files, u32* size_files)
 {
 	std::vector<std::string> directories;
 	directories.push_back(save_directory);

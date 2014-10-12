@@ -58,15 +58,15 @@ static void byteswapSection(Elf32_Shdr &sec)
 	bswap(sec.sh_type);
 }
 
-ElfReader::ElfReader(void *ptr)
+ElfReader::ElfReader(void* ptr)
 {
 	base = (char*)ptr;
-	base32 = (u32 *)ptr;
+	base32 = (u32*)ptr;
 	header = (Elf32_Ehdr*)ptr;
 	byteswapHeader(*header);
 
-	segments = (Elf32_Phdr *)(base + header->e_phoff);
-	sections = (Elf32_Shdr *)(base + header->e_shoff);
+	segments = (Elf32_Phdr*)(base + header->e_phoff);
+	sections = (Elf32_Shdr*)(base + header->e_shoff);
 
 	for (int i = 0; i < GetNumSegments(); i++)
 	{
@@ -135,8 +135,8 @@ bool ElfReader::LoadInto(u32 vaddr)
 			u8* dst = Memory::GetPointer(writeAddr);
 			u32 srcSize = p->p_filesz;
 			u32 dstSize = p->p_memsz;
-			u32 *s = (u32*)src;
-			u32 *d = (u32*)dst;
+			u32* s = (u32*)src;
+			u32* d = (u32*)dst;
 			for (int j = 0; j < (int)(srcSize + 3) / 4; j++)
 			{
 				*d++ = /*_byteswap_ulong*/(*s++);
@@ -195,10 +195,10 @@ bool ElfReader::LoadSymbols()
 	if (sec != -1)
 	{
 		int stringSection = sections[sec].sh_link;
-		const char* stringBase = (const char *)GetSectionDataPtr(stringSection);
+		const char* stringBase = (const char*)GetSectionDataPtr(stringSection);
 
 		//We have a symbol table!
-		Elf32_Sym *symtab = (Elf32_Sym *)(GetSectionDataPtr(sec));
+		Elf32_Sym *symtab = (Elf32_Sym*)(GetSectionDataPtr(sec));
 		int numSymbols = sections[sec].sh_size / sizeof(Elf32_Sym);
 		for (int sym = 0; sym < numSymbols; sym++)
 		{

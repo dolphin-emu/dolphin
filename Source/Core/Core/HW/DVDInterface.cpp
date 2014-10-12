@@ -265,7 +265,7 @@ static void TransferComplete(u64 userdata, int cyclesLate)
 		FinishExecuteRead();
 }
 
-static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
+static u32 ProcessDTKSamples(short* tempPCM, u32 num_samples)
 {
 	u32 samples_processed = 0;
 	do
@@ -387,7 +387,7 @@ void EjectDiscCallback(u64 userdata, int cyclesLate)
 void InsertDiscCallback(u64 userdata, int cyclesLate)
 {
 	std::string& SavedFileName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
-	std::string *_FileName = (std::string *)userdata;
+	std::string *_FileName = (std::string*)userdata;
 
 	if (!VolumeHandler::SetVolumeName(*_FileName))
 	{

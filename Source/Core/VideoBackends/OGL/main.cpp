@@ -148,13 +148,13 @@ static void InitBackendInfo()
 	GetShaders(g_Config.backend_info.PPShaders);
 }
 
-void VideoBackend::ShowConfig(void *_hParent)
+void VideoBackend::ShowConfig(void* _hParent)
 {
 	InitBackendInfo();
 	Host_ShowVideoConfig(_hParent, GetDisplayName(), "gfx_opengl");
 }
 
-bool VideoBackend::Initialize(void *window_handle)
+bool VideoBackend::Initialize(void* window_handle)
 {
 	InitializeShared();
 	InitBackendInfo();

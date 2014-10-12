@@ -31,7 +31,7 @@ PPCSymbolDB::~PPCSymbolDB()
 }
 
 // Adds the function to the list, unless it's already there
-Symbol *PPCSymbolDB::AddFunction(u32 startAddr)
+Symbol* PPCSymbolDB::AddFunction(u32 startAddr)
 {
 	if (startAddr < 0x80000010)
 		return nullptr;
@@ -61,7 +61,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 	if (iter != functions.end())
 	{
 		// already got it, let's just update name, checksum & size to be sure.
-		Symbol *tempfunc = &iter->second;
+		Symbol* tempfunc = &iter->second;
 		tempfunc->name = name;
 		tempfunc->hash = SignatureDB::ComputeCodeChecksum(startAddr, startAddr + size);
 		tempfunc->type = type;
@@ -84,7 +84,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 	}
 }
 
-Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
+Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
 	if (!Memory::IsRAMAddress(addr))
 		return nullptr;
@@ -107,7 +107,7 @@ Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 
 const std::string PPCSymbolDB::GetDescription(u32 addr)
 {
-	Symbol *symbol = GetSymbolFromAddr(addr);
+	Symbol* symbol = GetSymbolFromAddr(addr);
 	if (symbol)
 		return symbol->name;
 	else

@@ -177,7 +177,7 @@ void Init()
 		ReadHeader();
 		std::thread md5thread(CheckMD5);
 		md5thread.detach();
-		if (strncmp((char *)tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6))
+		if (strncmp((char*)tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6))
 		{
 			PanicAlertT("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str());
 			EndPlayInput(false);
@@ -1187,7 +1187,7 @@ void SaveRecording(const std::string& filename)
 	memset(&header, 0, sizeof(DTMHeader));
 
 	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
-	strncpy((char *)header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
+	strncpy((char*)header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
 	header.bWii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	header.numControllers = s_numPads & (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 0xFF : 0x0F);
 
@@ -1204,7 +1204,7 @@ void SaveRecording(const std::string& filename)
 	header.bProgressive = s_bProgressive;
 	header.bDSPHLE = s_bDSPHLE;
 	header.bFastDiscSpeed = s_bFastDiscSpeed;
-	strncpy((char *)header.videoBackend, s_videoBackend.c_str(),ArraySize(header.videoBackend));
+	strncpy((char*)header.videoBackend, s_videoBackend.c_str(),ArraySize(header.videoBackend));
 	header.CPUCore = s_iCPUCore;
 	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
 	header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
@@ -1217,8 +1217,8 @@ void SaveRecording(const std::string& filename)
 	header.bClearSave = g_bClearSave;
 	header.bSyncGPU = s_bSyncGPU;
 	header.bNetPlay = s_bNetPlay;
-	strncpy((char *)header.discChange, g_discChange.c_str(),ArraySize(header.discChange));
-	strncpy((char *)header.author, s_author.c_str(),ArraySize(header.author));
+	strncpy((char*)header.discChange, g_discChange.c_str(),ArraySize(header.discChange));
+	strncpy((char*)header.author, s_author.c_str(),ArraySize(header.author));
 	memcpy(header.md5,s_MD5,16);
 	header.bongos = s_bongos;
 	memcpy(header.revision, s_revision, ArraySize(header.revision));

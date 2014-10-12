@@ -160,10 +160,10 @@ s32 ALDeviceList::GetNumDevices()
 /*
  * Returns the device name at an index in the complete device list
  */
-char*  ALDeviceList::GetDeviceName(s32 index)
+char* ALDeviceList::GetDeviceName(s32 index)
 {
 	if (index < GetNumDevices())
-		return (char *)vDeviceInfo[index].strDeviceName.c_str();
+		return (char*)vDeviceInfo[index].strDeviceName.c_str();
 	else
 		return nullptr;
 }
@@ -171,7 +171,7 @@ char*  ALDeviceList::GetDeviceName(s32 index)
 /*
  * Returns the major and minor version numbers for a device at a specified index in the complete list
  */
-void ALDeviceList::GetDeviceVersion(s32 index, s32 *major, s32 *minor)
+void ALDeviceList::GetDeviceVersion(s32 index, s32* major, s32* minor)
 {
 	if (index < GetNumDevices())
 	{

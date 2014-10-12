@@ -238,7 +238,7 @@ bool GCMemcard::Save()
 	return mcdFile.Close();
 }
 
-void calc_checksumsBE(u16 *buf, u32 length, u16 *csum, u16 *inv_csum)
+void calc_checksumsBE(u16* buf, u32 length, u16* csum, u16* inv_csum)
 {
 	*csum = *inv_csum = 0;
 
@@ -523,7 +523,7 @@ std::string GCMemcard::GetSaveComment1(u8 index) const
 	{
 		return "";
 	}
-	return std::string((const char *)mc_data_blocks[DataBlock].block + Comment1, DENTRY_STRLEN);
+	return std::string((const char*)mc_data_blocks[DataBlock].block + Comment1, DENTRY_STRLEN);
 }
 
 std::string GCMemcard::GetSaveComment2(u8 index) const
@@ -538,7 +538,7 @@ std::string GCMemcard::GetSaveComment2(u8 index) const
 	{
 		return "";
 	}
-	return std::string((const char *)mc_data_blocks[DataBlock].block + Comment2, DENTRY_STRLEN);
+	return std::string((const char*)mc_data_blocks[DataBlock].block + Comment2, DENTRY_STRLEN);
 }
 
 bool GCMemcard::GetDEntry(u8 index, DEntry &dest) const
@@ -1043,7 +1043,7 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 		return false;
 
 	u32 DataOffset = BE32(CurrentDir->Dir[index].ImageOffset);
-	u32 DataBlock = BE16(CurrentDir->Dir[index].FirstBlock) - MC_FST_BLOCKS;
+	u32 DataBlock =  BE16(CurrentDir->Dir[index].FirstBlock) - MC_FST_BLOCKS;
 
 	if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
 	{
@@ -1054,14 +1054,14 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 
 	if (bnrFormat&1)
 	{
-		u8  *pxdata  = (u8* )(mc_data_blocks[DataBlock].block + DataOffset);
-		u16 *paldata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset + pixels);
+		u8  *pxdata  = (u8*) (mc_data_blocks[DataBlock].block + DataOffset);
+		u16* paldata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset + pixels);
 
 		ColorUtil::decodeCI8image(buffer, pxdata, paldata, 96, 32);
 	}
 	else
 	{
-		u16 *pxdata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset);
+		u16* pxdata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset);
 
 		ColorUtil::decode5A3image(buffer, pxdata, 96, 32);
 	}
@@ -1167,7 +1167,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
 				buffer += 32*32;
 				break;
 			case CI8: // CI8 with own palette
-				u16 *paldata = (u16*)(data[i] + 32*32);
+				u16* paldata = (u16*)(data[i] + 32*32);
 				ColorUtil::decodeCI8image(buffer, data[i], paldata, 32, 32);
 				buffer += 32*32;
 				break;
@@ -1192,7 +1192,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
 						buffer += 32*32;
 						break;
 					case CI8: // CI8 with own palette
-						u16 *paldata = (u16*)(data[j] + 32*32);
+						u16* paldata = (u16*)(data[j] + 32*32);
 						ColorUtil::decodeCI8image(buffer, data[j], paldata, 32, 32);
 						buffer += 32*32;
 						break;
@@ -1212,12 +1212,12 @@ bool GCMemcard::Format(u8* card_data, bool ascii, u16 SizeMb)
 	memset(card_data, 0xFF, BLOCK_SIZE*3);
 	memset(card_data + BLOCK_SIZE*3, 0, BLOCK_SIZE*2);
 
-	*((Header *)card_data) = Header(SLOT_A, SizeMb, ascii);
+	*((Header*)card_data) = Header(SLOT_A, SizeMb, ascii);
 
-	*((Directory *)(card_data + BLOCK_SIZE)) = Directory();
-	*((Directory *)(card_data + BLOCK_SIZE * 2)) = Directory();
-	*((BlockAlloc *)(card_data + BLOCK_SIZE * 3)) = BlockAlloc(SizeMb);
-	*((BlockAlloc *)(card_data + BLOCK_SIZE * 4)) = BlockAlloc(SizeMb);
+	*((Directory*)(card_data + BLOCK_SIZE)) = Directory();
+	*((Directory*)(card_data + BLOCK_SIZE * 2)) = Directory();
+	*((BlockAlloc*)(card_data + BLOCK_SIZE * 3)) = BlockAlloc(SizeMb);
+	*((BlockAlloc*)(card_data + BLOCK_SIZE * 4)) = BlockAlloc(SizeMb);
 	return true;
 }
 

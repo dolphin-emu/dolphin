@@ -64,7 +64,7 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 {
 	event.Veto();
 
-	wxAuiNotebook * nb = (wxAuiNotebook*)event.pane->window;
+	wxAuiNotebook* nb = (wxAuiNotebook*)event.pane->window;
 	if (!nb) return;
 
 	if (!g_pCodeWindow)
@@ -292,12 +292,12 @@ void CFrame::ToggleFloatWindow(int Id)
 
 void CFrame::DoFloatNotebookPage(wxWindowID Id)
 {
-	wxPanel *Win = (wxPanel*)FindWindowById(Id);
+	wxPanel* Win = (wxPanel*)FindWindowById(Id);
 	if (!Win) return;
 
 	for (int i = 0; i < GetNotebookCount(); i++)
 	{
-		wxAuiNotebook *nb = GetNotebookFromId(i);
+		wxAuiNotebook* nb = GetNotebookFromId(i);
 		if (nb->GetPageIndex(Win) != wxNOT_FOUND)
 		{
 			nb->RemovePage(nb->GetPageIndex(Win));
@@ -312,10 +312,10 @@ void CFrame::DoFloatNotebookPage(wxWindowID Id)
 
 void CFrame::DoUnfloatPage(int Id)
 {
-	wxFrame * Win = (wxFrame*)FindWindowById(Id);
+	wxFrame* Win = (wxFrame*)FindWindowById(Id);
 	if (!Win) return;
 
-	wxWindow*  Child = Win->GetChildren().Item(0)->GetData();
+	wxWindow* Child = Win->GetChildren().Item(0)->GetData();
 	Child->Reparent(this);
 	DoAddPage(Child, g_pCodeWindow->iNbAffiliation[Child->GetId() - IDM_LOGWINDOW], false);
 	Win->Destroy();
@@ -389,7 +389,7 @@ void CFrame::ShowResizePane()
 void CFrame::TogglePane()
 {
 	// Get the first notebook
-	wxAuiNotebook * NB = nullptr;
+	wxAuiNotebook* NB = nullptr;
 	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
 		if (m_Mgr->GetAllPanes()[i].window->IsKindOf(CLASSINFO(wxAuiNotebook)))
@@ -884,14 +884,14 @@ void CFrame::AddPane()
 	m_Mgr->Update();
 }
 
-wxWindow*  CFrame::GetNotebookPageFromId(wxWindowID Id)
+wxWindow* CFrame::GetNotebookPageFromId(wxWindowID Id)
 {
 	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
 		if (!m_Mgr->GetAllPanes()[i].window->IsKindOf(CLASSINFO(wxAuiNotebook)))
 			continue;
 
-		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
+		wxAuiNotebook* NB = (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
 		for (u32 j = 0; j < NB->GetPageCount(); j++)
 		{
 			if (NB->GetPage(j)->GetId() == Id)
@@ -938,7 +938,7 @@ void CFrame::AddRemoveBlankPage()
 		if (!m_Mgr->GetAllPanes()[i].window->IsKindOf(CLASSINFO(wxAuiNotebook)))
 			continue;
 
-		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
+		wxAuiNotebook* NB = (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
 		for (u32 j = 0; j < NB->GetPageCount(); j++)
 		{
 			if (NB->GetPageText(j).IsSameAs("<>") && NB->GetPageCount() > 1)
@@ -957,7 +957,7 @@ int CFrame::GetNotebookAffiliation(wxWindowID Id)
 		if (!m_Mgr->GetAllPanes()[i].window->IsKindOf(CLASSINFO(wxAuiNotebook)))
 			continue;
 
-		wxAuiNotebook * NB = (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
+		wxAuiNotebook* NB = (wxAuiNotebook*)m_Mgr->GetAllPanes()[i].window;
 		for (u32 k = 0; k < NB->GetPageCount(); k++)
 		{
 			if (NB->GetPage(k)->GetId() == Id)
@@ -993,7 +993,7 @@ int CFrame::GetNotebookCount()
 	return Ret;
 }
 
-wxAuiNotebook * CFrame::GetNotebookFromId(u32 NBId)
+wxAuiNotebook* CFrame::GetNotebookFromId(u32 NBId)
 {
 	for (u32 i = 0, j = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{

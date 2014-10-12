@@ -40,25 +40,25 @@ void CEXIMic::StreamTerminate()
 		StreamLog("Pa_Terminate");
 }
 
-static int Pa_Callback(const void *inputBuffer, void *outputBuffer,
+static int Pa_Callback(const void* inputBuffer, void* outputBuffer,
 	unsigned long framesPerBuffer,
 	const PaStreamCallbackTimeInfo *timeInfo,
 	PaStreamCallbackFlags statusFlags,
-	void *userData)
+	void* userData)
 {
 	(void)outputBuffer;
 	(void)timeInfo;
 	(void)statusFlags;
 
-	CEXIMic *mic = (CEXIMic *)userData;
+	CEXIMic *mic = (CEXIMic*)userData;
 
 	std::lock_guard<std::mutex> lk(mic->ring_lock);
 
 	if (mic->stream_wpos + mic->buff_size_samples > mic->stream_size)
 		mic->stream_wpos = 0;
 
-	s16 *buff_in = (s16 *)inputBuffer;
-	s16 *buff_out = &mic->stream_buffer[mic->stream_wpos];
+	s16* buff_in = (s16*)inputBuffer;
+	s16* buff_out = &mic->stream_buffer[mic->stream_wpos];
 
 	if (buff_in == nullptr)
 	{
@@ -118,7 +118,7 @@ void CEXIMic::StreamReadOne()
 
 	if (samples_avail >= buff_size_samples)
 	{
-		s16 *last_buffer = &stream_buffer[stream_rpos];
+		s16* last_buffer = &stream_buffer[stream_rpos];
 		memcpy(ring_buffer, last_buffer, buff_size);
 
 		samples_avail -= buff_size_samples;

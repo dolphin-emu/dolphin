@@ -16,7 +16,7 @@ public:
 	FifoRecordAnalyzer();
 
 	// Must call this before analyzing GP commands
-	void Initialize(u32 *bpMem, u32 *cpMem);
+	void Initialize(u32* bpMem, u32* cpMem);
 
 	// Assumes data contains all information for the command
 	// Calls FifoRecorder::WriteMemory

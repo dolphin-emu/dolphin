@@ -163,7 +163,7 @@ std::string StripQuotes(const std::string& s)
 		return s;
 }
 
-bool TryParse(const std::string &str, u32 *const output)
+bool TryParse(const std::string &str, u32* const output)
 {
 	char* endptr = nullptr;
 

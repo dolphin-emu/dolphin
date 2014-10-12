@@ -90,7 +90,7 @@ void DSPEmitter::checkExceptions(u32 retval)
 
 	DSPJitRegCache c(gpr);
 	gpr.saveRegs();
-	ABI_CallFunction((void *)&DSPCore_CheckExceptions);
+	ABI_CallFunction((void*)&DSPCore_CheckExceptions);
 	MOV(32, R(EAX), Imm32(retval));
 	JMP(returnDispatcher, true);
 	gpr.loadRegs(false);
@@ -375,7 +375,7 @@ void DSPEmitter::Compile(u16 start_addr)
 const u8* DSPEmitter::CompileStub()
 {
 	const u8* entryPoint = AlignCode16();
-	ABI_CallFunction((void *)&CompileCurrent);
+	ABI_CallFunction((void*)&CompileCurrent);
 	XOR(32, R(EAX), R(EAX)); // Return 0 cycles executed
 	JMP(returnDispatcher);
 	return entryPoint;

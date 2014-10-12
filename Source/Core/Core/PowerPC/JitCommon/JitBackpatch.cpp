@@ -87,7 +87,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 			bswapNopCount = 2;
 
 		const u8* trampoline = trampolines.GetReadTrampoline(info, registersInUse);
-		emitter.CALL((void *)trampoline);
+		emitter.CALL((void*)trampoline);
 		int padding = info.instructionSize + bswapNopCount - BACKPATCH_SIZE;
 		if (padding > 0)
 		{
@@ -116,7 +116,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		else
 		{
 			// We entered here with a BSWAP-ed register. We'll have to swap it back.
-			u64 *ptr = ContextRN(ctx, info.regOperandReg);
+			u64* ptr = ContextRN(ctx, info.regOperandReg);
 			int bswapSize = 0;
 			switch (info.operandSize)
 			{
@@ -140,7 +140,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 		}
 		XEmitter emitter(start);
 		const u8* trampoline = trampolines.GetWriteTrampoline(info, registersInUse, pc);
-		emitter.CALL((void *)trampoline);
+		emitter.CALL((void*)trampoline);
 		ptrdiff_t padding = (codePtr - emitter.GetCodePtr()) + info.instructionSize;
 		if (padding > 0)
 		{

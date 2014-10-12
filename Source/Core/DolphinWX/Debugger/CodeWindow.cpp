@@ -125,12 +125,12 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	sizerBig->Fit(this);
 }
 
-wxMenuBar *CCodeWindow::GetMenuBar()
+wxMenuBar* CCodeWindow::GetMenuBar()
 {
 	return Parent->GetMenuBar();
 }
 
-wxToolBar *CCodeWindow::GetToolBar()
+wxToolBar* CCodeWindow::GetToolBar()
 {
 	return Parent->m_ToolBar;
 }
@@ -333,14 +333,14 @@ void CCodeWindow::UpdateLists()
 {
 	callers->Clear();
 	u32 addr = codeview->GetSelection();
-	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(addr);
+	Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
 	if (!symbol)
 		return;
 
 	for (auto& call : symbol->callers)
 	{
 		u32 caller_addr = call.callAddress;
-		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
+		Symbol* caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
 		if (caller_symbol)
 		{
 			int idx = callers->Append(StrToWxStr(StringFromFormat
@@ -353,7 +353,7 @@ void CCodeWindow::UpdateLists()
 	for (auto& call : symbol->calls)
 	{
 		u32 call_addr = call.function;
-		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
+		Symbol* call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
 		if (call_symbol)
 		{
 			int idx = calls->Append(StrToWxStr(StringFromFormat
@@ -384,7 +384,7 @@ void CCodeWindow::UpdateCallstack()
 }
 
 // Create CPU Mode menus
-void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar)
+void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar* pMenuBar)
 {
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;

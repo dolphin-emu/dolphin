@@ -240,7 +240,7 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
 	}
 }
 
-void FillCPMemoryArray(u32 *memory)
+void FillCPMemoryArray(u32* memory)
 {
 	memory[0x30] = g_main_cp_state.matrix_index_a.Hex;
 	memory[0x40] = g_main_cp_state.matrix_index_b.Hex;

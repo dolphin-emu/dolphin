@@ -351,10 +351,10 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 				switch (accessSize)
 				{
-				case 64: ABI_CallFunctionC((void *)&Memory::Read_U64, address); break;
-				case 32: ABI_CallFunctionC((void *)&Memory::Read_U32, address); break;
-				case 16: ABI_CallFunctionC((void *)&Memory::Read_U16_ZX, address); break;
-				case 8:  ABI_CallFunctionC((void *)&Memory::Read_U8_ZX, address); break;
+				case 64: ABI_CallFunctionC((void*)&Memory::Read_U64, address); break;
+				case 32: ABI_CallFunctionC((void*)&Memory::Read_U32, address); break;
+				case 16: ABI_CallFunctionC((void*)&Memory::Read_U16_ZX, address); break;
+				case 8:  ABI_CallFunctionC((void*)&Memory::Read_U8_ZX, address); break;
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
@@ -394,16 +394,16 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 			switch (accessSize)
 			{
 			case 64:
-				ABI_CallFunctionR((void *)&Memory::Read_U64, reg_addr);
+				ABI_CallFunctionR((void*)&Memory::Read_U64, reg_addr);
 				break;
 			case 32:
-				ABI_CallFunctionR((void *)&Memory::Read_U32, reg_addr);
+				ABI_CallFunctionR((void*)&Memory::Read_U32, reg_addr);
 				break;
 			case 16:
-				ABI_CallFunctionR((void *)&Memory::Read_U16_ZX, reg_addr);
+				ABI_CallFunctionR((void*)&Memory::Read_U16_ZX, reg_addr);
 				break;
 			case 8:
-				ABI_CallFunctionR((void *)&Memory::Read_U8_ZX, reg_addr);
+				ABI_CallFunctionR((void*)&Memory::Read_U8_ZX, reg_addr);
 				break;
 			}
 			ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -561,16 +561,16 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 	switch (accessSize)
 	{
 	case 64:
-		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U64) : ((void *)&Memory::Write_U64_Swap), reg, reg_addr);
+		ABI_CallFunctionRR(swap ? ((void*)&Memory::Write_U64) : ((void*)&Memory::Write_U64_Swap), reg, reg_addr);
 		break;
 	case 32:
-		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), reg, reg_addr);
+		ABI_CallFunctionRR(swap ? ((void*)&Memory::Write_U32) : ((void*)&Memory::Write_U32_Swap), reg, reg_addr);
 		break;
 	case 16:
-		ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), reg, reg_addr);
+		ABI_CallFunctionRR(swap ? ((void*)&Memory::Write_U16) : ((void*)&Memory::Write_U16_Swap), reg, reg_addr);
 		break;
 	case 8:
-		ABI_CallFunctionRR((void *)&Memory::Write_U8, reg, reg_addr);
+		ABI_CallFunctionRR((void*)&Memory::Write_U8, reg, reg_addr);
 		break;
 	}
 	ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -765,7 +765,7 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 	MOVSD(XMM1, R(src));
 
 	// Grab Exponent
-	PAND(XMM1, M((void *)&double_exponent));
+	PAND(XMM1, M((void*)&double_exponent));
 	PSRLQ(XMM1, 52);
 	MOVD_xmm(R(RSCRATCH), XMM1);
 
@@ -785,15 +785,15 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 	// xmm1 = fraction | 0x0010000000000000
 	MOVSD(XMM1, R(src));
-	PAND(XMM1, M((void *)&double_fraction));
-	POR(XMM1, M((void *)&double_explicit_top_bit));
+	PAND(XMM1, M((void*)&double_fraction));
+	POR(XMM1, M((void*)&double_explicit_top_bit));
 
 	// fraction >> shift
 	PSRLQ(XMM1, R(XMM0));
 
 	// OR the sign bit in.
 	MOVSD(XMM0, R(src));
-	PAND(XMM0, M((void *)&double_sign_bit));
+	PAND(XMM0, M((void*)&double_sign_bit));
 	PSRLQ(XMM0, 32);
 	POR(XMM1, R(XMM0));
 
@@ -806,12 +806,12 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
 	// We want bits 0, 1
 	MOVSD(XMM1, R(src));
-	PAND(XMM1, M((void *)&double_top_two_bits));
+	PAND(XMM1, M((void*)&double_top_two_bits));
 	PSRLQ(XMM1, 32);
 
 	// And 5 through to 34
 	MOVSD(XMM0, R(src));
-	PAND(XMM0, M((void *)&double_bottom_bits));
+	PAND(XMM0, M((void*)&double_bottom_bits));
 	PSRLQ(XMM0, 29);
 
 	// OR them togther

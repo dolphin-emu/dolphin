@@ -43,12 +43,12 @@ void ToggleFullscreen(Display *dpy, Window win)
 
 
 #if defined(HAVE_WX) && HAVE_WX
-Window XWindowFromHandle(void *Handle)
+Window XWindowFromHandle(void* Handle)
 {
 	return GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(Handle)));
 }
 
-Display *XDisplayFromHandle(void *Handle)
+Display *XDisplayFromHandle(void* Handle)
 {
 	return GDK_WINDOW_XDISPLAY(gtk_widget_get_window(GTK_WIDGET(Handle)));
 }
@@ -61,8 +61,8 @@ void InhibitScreensaver(Display *dpy, Window win, bool suspend)
 
 	// Call xdg-screensaver
 	char* argv[4] = {
-		(char *)"xdg-screensaver",
-		(char *)(suspend ? "suspend" : "resume"),
+		(char*)"xdg-screensaver",
+		(char*)(suspend ? "suspend" : "resume"),
 		id,
 		nullptr};
 	pid_t pid;

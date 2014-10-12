@@ -25,12 +25,12 @@
 
 #include "Thread.h"
 
-void *AllocateMemoryPages(size_t size)
+void* AllocateMemoryPages(size_t size)
 {
 	return malloc(size);
 }
 
-void FreeMemoryPages(void *pages, size_t size)
+void FreeMemoryPages(void* pages, size_t size)
 {
 	free(pages);
 }
@@ -88,7 +88,7 @@ namespace File
 
 bool WriteStringToFile(bool text_file, const std::string &str, const char* filename)
 {
-	FILE *f = fopen(filename, text_file ? "w" : "wb");
+	FILE* f = fopen(filename, text_file ? "w" : "wb");
 	if (!f)
 		return false;
 	size_t len = str.size();
@@ -103,7 +103,7 @@ bool WriteStringToFile(bool text_file, const std::string &str, const char* filen
 
 bool ReadFileToString(bool text_file, const char* filename, std::string &str)
 {
-	FILE *f = fopen(filename, text_file ? "r" : "rb");
+	FILE* f = fopen(filename, text_file ? "r" : "rb");
 	if (!f)
 		return false;
 	fseeko(f, 0, SEEK_END);

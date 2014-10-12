@@ -22,7 +22,7 @@ FifoRecordAnalyzer::FifoRecordAnalyzer() :
 {
 }
 
-void FifoRecordAnalyzer::Initialize(u32 *bpMem, u32 *cpMem)
+void FifoRecordAnalyzer::Initialize(u32* bpMem, u32* cpMem)
 {
 	m_DrawingObject = false;
 

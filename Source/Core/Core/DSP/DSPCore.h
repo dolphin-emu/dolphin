@@ -267,10 +267,10 @@ struct SDSP
 
 	// When state saving, all of the above can just be memcpy'd into the save state.
 	// The below needs special handling.
-	u16 *iram;
-	u16 *dram;
-	u16 *irom;
-	u16 *coef;
+	u16* iram;
+	u16* dram;
+	u16* irom;
+	u16* coef;
 
 	// This one doesn't really belong here.
 	u8  *cpu_ram;

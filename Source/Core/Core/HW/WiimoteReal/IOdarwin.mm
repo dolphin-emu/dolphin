@@ -11,7 +11,7 @@
 @end
 
 @implementation SearchBT
-- (void) deviceInquiryComplete: (IOBluetoothDeviceInquiry *) sender
+- (void) deviceInquiryComplete: (IOBluetoothDeviceInquiry*) sender
 	error: (IOReturn) error
 	aborted: (BOOL) aborted
 {
@@ -19,8 +19,8 @@
 	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
-- (void) deviceInquiryDeviceFound: (IOBluetoothDeviceInquiry *) sender
-	device: (IOBluetoothDevice *) device
+- (void) deviceInquiryDeviceFound: (IOBluetoothDeviceInquiry*) sender
+	device: (IOBluetoothDevice*) device
 {
 	NOTICE_LOG(WIIMOTE, "Discovered bluetooth device at %s: %s",
 		[[device addressString] UTF8String],
@@ -35,8 +35,8 @@
 @end
 
 @implementation ConnectBT
-- (void) l2capChannelData: (IOBluetoothL2CAPChannel *) l2capChannel
-	data: (unsigned char *) data
+- (void) l2capChannelData: (IOBluetoothL2CAPChannel*) l2capChannel
+	data: (unsigned char*) data
 	length: (NSUInteger) length
 {
 	IOBluetoothDevice *device = [l2capChannel device];
@@ -76,7 +76,7 @@
 	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
-- (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel
+- (void) l2capChannelClosed: (IOBluetoothL2CAPChannel*) l2capChannel
 {
 	IOBluetoothDevice *device = [l2capChannel device];
 	WiimoteReal::Wiimote *wm = nullptr;
@@ -320,7 +320,7 @@ int Wiimote::IOWrite(const unsigned char* buf, size_t len)
 	if (!IsConnected())
 		return 0;
 
-	ret = [ichan writeAsync: const_cast<void*>((void *)buf) length: (int)len refcon: nil];
+	ret = [ichan writeAsync: const_cast<void*>((void*)buf) length: (int)len refcon: nil];
 
 	if (ret == kIOReturnSuccess)
 		return len;

@@ -13,7 +13,7 @@
 // The hardware adpcm decoder :)
 static s16 ADPCM_Step(u32& _rSamplePos)
 {
-	const s16 *pCoefTable = (const s16 *)&g_dsp.ifx_regs[DSP_COEF_A1_0];
+	const s16* pCoefTable = (const s16*)&g_dsp.ifx_regs[DSP_COEF_A1_0];
 
 	if (((_rSamplePos)& 15) == 0)
 	{

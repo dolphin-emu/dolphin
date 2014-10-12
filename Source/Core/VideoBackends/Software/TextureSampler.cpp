@@ -41,7 +41,7 @@ static inline void WrapCoord(int* coordp, int wrapMode, int imageSize)
 	*coordp = coord;
 }
 
-static inline void SetTexel(u8* inTexel, u32 *outTexel, u32 fract)
+static inline void SetTexel(u8* inTexel, u32* outTexel, u32 fract)
 {
 	outTexel[0] = inTexel[0] * fract;
 	outTexel[1] = inTexel[1] * fract;
@@ -49,7 +49,7 @@ static inline void SetTexel(u8* inTexel, u32 *outTexel, u32 fract)
 	outTexel[3] = inTexel[3] * fract;
 }
 
-static inline void AddTexel(u8* inTexel, u32 *outTexel, u32 fract)
+static inline void AddTexel(u8* inTexel, u32* outTexel, u32 fract)
 {
 	outTexel[0] += inTexel[0] * fract;
 	outTexel[1] += inTexel[1] * fract;

@@ -38,7 +38,7 @@ namespace EfbCopy
 
 			if (!g_SWVideoConfig.bBypassXFB)
 			{
-				EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed *) Memory::GetPointer(xfbAddr);
+				EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed*) Memory::GetPointer(xfbAddr);
 
 				EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
 			}

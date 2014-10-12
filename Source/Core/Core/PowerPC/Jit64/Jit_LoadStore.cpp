@@ -133,7 +133,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		u32 registersInUse = CallerSavedRegistersInUse();
 		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
-		ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
+		ABI_CallFunctionC((void*)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
 
 		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
@@ -311,7 +311,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC));
 	u32 registersInUse = CallerSavedRegistersInUse();
 	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-	ABI_CallFunctionR((void *)&Memory::ClearCacheLine, RSCRATCH);
+	ABI_CallFunctionR((void*)&Memory::ClearCacheLine, RSCRATCH);
 	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 	FixupBranch exit = J(true);
 
@@ -372,13 +372,13 @@ void Jit64::stX(UGeckoInstruction inst)
 				switch (accessSize)
 				{
 				case 8:
-					CALL((void *)asm_routines.fifoDirectWrite8);
+					CALL((void*)asm_routines.fifoDirectWrite8);
 					break;
 				case 16:
-					CALL((void *)asm_routines.fifoDirectWrite16);
+					CALL((void*)asm_routines.fifoDirectWrite16);
 					break;
 				case 32:
-					CALL((void *)asm_routines.fifoDirectWrite32);
+					CALL((void*)asm_routines.fifoDirectWrite32);
 					break;
 				}
 				js.fifoBytesThisBlock += accessSize >> 3;
@@ -403,13 +403,13 @@ void Jit64::stX(UGeckoInstruction inst)
 				switch (accessSize)
 				{
 				case 32:
-					ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), gpr.R(s), addr);
+					ABI_CallFunctionAC(true ? ((void*)&Memory::Write_U32) : ((void*)&Memory::Write_U32_Swap), gpr.R(s), addr);
 					break;
 				case 16:
-					ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), gpr.R(s), addr);
+					ABI_CallFunctionAC(true ? ((void*)&Memory::Write_U16) : ((void*)&Memory::Write_U16_Swap), gpr.R(s), addr);
 					break;
 				case 8:
-					ABI_CallFunctionAC((void *)&Memory::Write_U8, gpr.R(s), addr);
+					ABI_CallFunctionAC((void*)&Memory::Write_U8, gpr.R(s), addr);
 					break;
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, 0);

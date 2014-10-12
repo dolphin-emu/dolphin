@@ -373,7 +373,7 @@ namespace JitILTables
 
 void CompileInstruction(PPCAnalyst::CodeOp & op)
 {
-	JitIL *jitil = (JitIL *)jit;
+	JitIL *jitil = (JitIL*)jit;
 	(jitil->*dynaOpTable[op.inst.OPCD])(op.inst);
 	GekkoOPInfo *info = op.opinfo;
 	if (info)

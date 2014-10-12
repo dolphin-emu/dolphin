@@ -18,5 +18,5 @@ public:
 	};
 
 	static void InitFilter();
-	static void DecodeBlock(s16 *pcm, const u8* adpcm);
+	static void DecodeBlock(s16* pcm, const u8* adpcm);
 };

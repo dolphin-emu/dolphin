@@ -24,7 +24,7 @@
 // results are close enough to use for LOD
 static inline s32 FixedLog2(float f)
 {
-	u32 *x = (u32*)&f;
+	u32* x = (u32*)&f;
 	s32 logInt = ((*x & 0x7F800000) >> 19) - 2032; // integer part
 	s32 logFract = (*x & 0x007fffff) >> 19; // approximate fractional part
 

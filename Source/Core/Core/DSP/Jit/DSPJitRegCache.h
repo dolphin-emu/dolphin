@@ -42,7 +42,7 @@ private:
 	struct DynamicReg
 	{
 		Gen::OpArg loc;
-		void *mem;
+		void* mem;
 		size_t size;
 		bool dirty;
 		bool used;

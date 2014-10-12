@@ -25,7 +25,7 @@ void JitArmBlockCache::WriteLinkBlock(u8* location, const u8* address)
 
 void JitArmBlockCache::WriteDestroyBlock(const u8* location, u32 address)
 {
-	ARMXEmitter emit((u8 *)location);
+	ARMXEmitter emit((u8*)location);
 	emit.MOVI2R(R11, address);
 	emit.MOVI2R(R12, (u32)jit->GetAsmRoutines()->dispatcher);
 	emit.STR(R11, R9, PPCSTATE_OFF(pc));

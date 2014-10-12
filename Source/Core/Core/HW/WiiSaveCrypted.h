@@ -32,7 +32,7 @@ private:
 		const u8* priv, const u32 key_id);
 	bool getPaths(bool for_export = false);
 	void ScanForFiles(const std::string& save_directory, std::vector<std::string>& file_list,
-		u32 *num_files, u32 *size_files);
+		u32* num_files, u32* size_files);
 
 	static const u8 s_sd_key[16];
 	static const u8 s_md5_blanker[16];

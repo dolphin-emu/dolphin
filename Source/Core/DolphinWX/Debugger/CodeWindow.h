@@ -38,7 +38,7 @@ class CCodeWindow
 	public:
 
 		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter,
-			CFrame * parent,
+			CFrame* parent,
 			wxWindowID id = wxID_ANY,
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
@@ -50,9 +50,9 @@ class CCodeWindow
 		void Save();
 
 		// Parent interaction
-		CFrame *Parent;
-		wxMenuBar * GetMenuBar();
-		wxToolBar * GetToolBar();
+		CFrame* Parent;
+		wxMenuBar* GetMenuBar();
+		wxToolBar* GetToolBar();
 		wxBitmap m_Bitmaps[ToolbarDebugBitmapMax];
 
 		bool UseInterpreter();
@@ -64,9 +64,9 @@ class CCodeWindow
 
 		void Update() override;
 		void NotifyMapLoaded();
-		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
-		void CreateMenuOptions(wxMenu *pMenu);
-		void CreateMenuSymbols(wxMenuBar *pMenuBar);
+		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar* pMenuBar);
+		void CreateMenuOptions(wxMenu* pMenu);
+		void CreateMenuSymbols(wxMenuBar* pMenuBar);
 		void RecreateToolbar(wxToolBar*);
 		void PopulateToolbar(wxToolBar* toolBar);
 		void UpdateButtonStates();

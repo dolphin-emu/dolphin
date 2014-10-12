@@ -51,15 +51,15 @@
 // Used for communications with the DSP, such as dumping registers etc.
 u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000)));
 
-static void *xfb = nullptr;
+static void* xfb = nullptr;
 void (*reboot)() = (void(*)())0x80001800;
-GXRModeObj *rmode;
+GXRModeObj* rmode;
 
 static vu16* const _dspReg = (u16*)0xCC005000;
 
-u16 *dspbufP;
-u16 *dspbufC;
-u32 *dspbufU;
+u16* dspbufP;
+u16* dspbufC;
+u32* dspbufU;
 
 u16 dspreg_in[32] = {
 	0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10,
@@ -125,7 +125,7 @@ s32 cursor_reg = 0;
 // Currently selected digit.
 s32 small_cursor_x;
 // Value currently being edited.
-u16 *reg_value;
+u16* reg_value;
 
 RealDSP real_dsp;
 
@@ -144,7 +144,7 @@ bool regs_equal(int reg, u16 value1, u16 value2)
 		return value1 == value2;
 }
 
-void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_regs)
+void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_regs)
 {
 	for (int j = 0; j < 4 ; j++)
 	{
@@ -178,8 +178,8 @@ void print_reg_block(int x, int y, int sel, const u16 *regs, const u16 *compare_
 
 void print_regs(int _step, int _dsp_steps)
 {
-	const u16 *regs = _step == 0 ? dspreg_in : dspreg_out[_step - 1];
-	const u16 *regs2 = dspreg_out[_step];
+	const u16* regs = _step == 0 ? dspreg_in : dspreg_out[_step - 1];
+	const u16* regs2 = dspreg_out[_step];
 
 	print_reg_block(0, 2, _step == 0 ? cursor_reg : -1, regs, regs2);
 	print_reg_block(33, 2, -1, regs2, regs);
@@ -221,9 +221,9 @@ void DumpDSP_ROMs(const u16* rom, const u16* coef)
 #ifdef HW_RVL
 	char filename[260] = {0};
 	sprintf(filename, "sd:/dsp_rom.bin");
-	FILE *fROM = fopen(filename, "wb");
+	FILE* fROM = fopen(filename, "wb");
 	sprintf(filename, "sd:/dsp_coef.bin");
-	FILE *fCOEF = fopen(filename, "wb");
+	FILE* fCOEF = fopen(filename, "wb");
 
 	if (fROM && fCOEF)
 	{
@@ -336,10 +336,10 @@ void handle_dsp_mail(void)
 				dspbufC[0x00 + n] = dspreg_in[n];
 			DCFlushRange(dspbufC, 0x2000);
 			// Then send the code.
-			DCFlushRange((void *)dsp_code[curUcode], 0x2000);
+			DCFlushRange((void*)dsp_code[curUcode], 0x2000);
 			// DMA ucode to iram base, entry point is just after exception vectors...0x10
 			// NOTE: for any ucode made by dsptool, the block length will be 8191
-			real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0, sizeof(dsp_code[curUcode])-1, 0x10);
+			real_dsp.SendTask((void*)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0, sizeof(dsp_code[curUcode])-1, 0x10);
 
 			runningUcode = curUcode + 1;
 
@@ -355,7 +355,7 @@ void handle_dsp_mail(void)
 		{
 			// Send memory dump (dsp dram from someone's cube?)
 			// not really sure why this is important - I guess just to try to keep tests predictable
-			u16* tmpBuf = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
+			u16* tmpBuf = (u16*)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
 
 			while (real_dsp.CheckMailTo());
 			real_dsp.SendMailTo((u32)tmpBuf);
@@ -436,7 +436,7 @@ void dump_all_ucodes(bool fastmode)
 	u32 written;
 
 	sprintf(filename, "sd:/dsp_dump_all.bin");
-	FILE *f2 = fopen(filename, "wb");
+	FILE* f2 = fopen(filename, "wb");
 	fclose(f2);
 
 	for (int UCodeToDump = 0; UCodeToDump < NUM_UCODES; UCodeToDump++)
@@ -459,13 +459,13 @@ void dump_all_ucodes(bool fastmode)
 		VIDEO_WaitVSync();
 
 		sprintf(filename, "sd:/dsp_dump_all.bin");
-		FILE *f2 = fopen(filename, "ab");
+		FILE* f2 = fopen(filename, "ab");
 
 		if (fastmode == false)
 		{
 			// Then write microcode dump to file
 			sprintf(filename, "sd:/dsp_dump%d.bin", UCodeToDump);
-			FILE *f = fopen(filename, "wb");
+			FILE* f = fopen(filename, "wb");
 			if (f)
 			{
 				// First write initial regs
@@ -578,9 +578,9 @@ int main()
 
 	ui_mode = UIM_SEL;
 
-	dspbufP = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(dspbuffer);	// physical
+	dspbufP = (u16*)MEM_VIRTUAL_TO_PHYSICAL(dspbuffer);	// physical
 	dspbufC = dspbuffer;									// cached
-	dspbufU = (u32 *)(MEM_K0_TO_K1(dspbuffer));				// uncached
+	dspbufU = (u32*)(MEM_K0_TO_K1(dspbuffer));				// uncached
 
 	DCInvalidateRange(dspbuffer, 0x2000);
 	for (int j = 0; j < 0x800; j++)

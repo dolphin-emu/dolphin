@@ -31,10 +31,10 @@ FifoPlaybackAnalyzer::FifoPlaybackAnalyzer()
 void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<AnalyzedFrameInfo> &frameInfo)
 {
 	// Load BP memory
-	u32 *bpMem = file->GetBPMem();
+	u32* bpMem = file->GetBPMem();
 	memcpy(&m_BpMem, bpMem, sizeof(BPMemory));
 
-	u32 *cpMem = file->GetCPMem();
+	u32* cpMem = file->GetCPMem();
 	FifoAnalyzer::LoadCPReg(0x50, cpMem[0x50], m_CpMem);
 	FifoAnalyzer::LoadCPReg(0x60, cpMem[0x60], m_CpMem);
 

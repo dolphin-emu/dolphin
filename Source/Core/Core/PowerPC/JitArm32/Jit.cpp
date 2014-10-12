@@ -348,7 +348,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	b->normalEntry = normalEntry;
 
 	if (ImHereDebug)
-		QuickCallFunction(R14, (void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
+		QuickCallFunction(R14, (void*)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 
 	if (js.fpa.any)
 	{

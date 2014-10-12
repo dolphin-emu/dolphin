@@ -34,7 +34,7 @@ static u8 workspace[56];
 * NOTE: to handle odd number of bytes, last (even) byte in
 * buffer have a value of 0 (we assume that it does)
 */
-u16 cksum(const u16 *buffer, int length)
+u16 cksum(const u16* buffer, int length)
 {
 	u32 sum = 0;
 
@@ -53,16 +53,16 @@ u16 cksum(const u16 *buffer, int length)
 int icmp_echo_req(const u32 s, const sockaddr_in *addr, const u8* data, const u32 data_length)
 {
 	memset(workspace, 0, sizeof(workspace));
-	icmp_hdr *header  = (icmp_hdr *)workspace;
+	icmp_hdr *header  = (icmp_hdr*)workspace;
 	header->type      = ICMP_ECHOREQ;
 	header->code      = 0;
 	header->checksum  = 0;
 	memcpy(&header->id, data, data_length);
 
-	header->checksum = cksum((u16 *)header, ICMP_HDR_LEN + data_length);
+	header->checksum = cksum((u16*)header, ICMP_HDR_LEN + data_length);
 
 	int num_bytes = sendto((SOCKET)s, (LPSTR)header, ICMP_HDR_LEN + data_length, 0,
-		(sockaddr *)addr, sizeof(sockaddr));
+		(sockaddr*)addr, sizeof(sockaddr));
 
 	if (num_bytes >= ICMP_HDR_LEN)
 		num_bytes -= ICMP_HDR_LEN;
@@ -86,7 +86,7 @@ int icmp_echo_rep(const u32 s, sockaddr_in *addr, const u32 timeout, const u32 d
 	{
 		num_bytes = recvfrom((SOCKET)s, (LPSTR)workspace,
 			IP_HDR_LEN + ICMP_HDR_LEN + data_length,
-			0, (sockaddr *)addr, &addr_length);
+			0, (sockaddr*)addr, &addr_length);
 
 		// TODO do we need to memcmp the data?
 

@@ -101,7 +101,7 @@ bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
 	// TitleID offset in tik is 0x1DC
 	return RAWRead(m_VolumeOffset + 0x1DC, 8, _pBuffer);
 }
-void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32 * _sz) const
+void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32* _sz) const
 {
 	*_sz = 0;
 	u32 tmdSz,
