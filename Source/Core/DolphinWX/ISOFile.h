@@ -56,7 +56,6 @@ public:
 private:
 	std::string m_FileName;
 
-	// TODO: eliminate this and overwrite with names from banner when available?
 	std::vector<std::string> m_volume_names;
 
 	// Stuff from banner
