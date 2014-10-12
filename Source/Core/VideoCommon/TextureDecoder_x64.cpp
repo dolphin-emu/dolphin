@@ -190,7 +190,7 @@ static inline u32 makeRGBA(int r, int g, int b, int a)
 	return (a<<24)|(b<<16)|(g<<8)|r;
 }
 
-static void DecodeDXTBlock(u32* dst, const DXTBlock *src, int pitch)
+static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
 {
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
 	// Needs more speed.

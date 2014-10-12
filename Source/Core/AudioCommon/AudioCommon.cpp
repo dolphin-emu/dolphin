@@ -27,7 +27,7 @@ namespace AudioCommon
 {
 	SoundStream* InitSoundStream()
 	{
-		CMixer *mixer = new CMixer(48000);
+		CMixer* mixer = new CMixer(48000);
 
 		// TODO: possible memleak with mixer
 

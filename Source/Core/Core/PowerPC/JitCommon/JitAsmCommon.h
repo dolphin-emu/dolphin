@@ -33,19 +33,19 @@ public:
 	// Out: XMM0: Bottom two 32-bit slots hold the read value,
 	//            converted to a pair of floats.
 	// Trashes: all three RSCRATCH
-	const u8 **pairedLoadQuantized;
+	const u8** pairedLoadQuantized;
 
 	// In: array index: GQR to use.
 	// In: ECX: Address to write to.
 	// In: XMM0: Bottom two 32-bit slots hold the pair of floats to be written.
 	// Out: Nothing.
 	// Trashes: all three RSCRATCH
-	const u8 **pairedStoreQuantized;
+	const u8** pairedStoreQuantized;
 
 	// In: array index: GQR to use.
 	// In: ECX: Address to write to.
 	// In: XMM0: Bottom 32-bit slot holds the float to be written.
-	const u8 **singleStoreQuantized;
+	const u8** singleStoreQuantized;
 
 };
 

@@ -7,7 +7,7 @@
 
 using namespace Arm64Gen;
 
-void Arm64RegCache::Init(ARM64XEmitter *emitter)
+void Arm64RegCache::Init(ARM64XEmitter* emitter)
 {
 	m_emit = emitter;
 	GetAllocationOrder();

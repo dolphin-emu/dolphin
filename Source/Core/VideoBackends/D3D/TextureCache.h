@@ -32,7 +32,7 @@ private:
 		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat) override;
+			const float* colmat) override;
 
 		void Bind(unsigned int stage) override;
 		bool Save(const std::string& filename, unsigned int level) override;

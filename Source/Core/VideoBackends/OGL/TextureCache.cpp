@@ -252,7 +252,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-	const float *colmat)
+	const float* colmat)
 {
 	g_renderer->ResetAPIState(); // reset any game specific settings
 

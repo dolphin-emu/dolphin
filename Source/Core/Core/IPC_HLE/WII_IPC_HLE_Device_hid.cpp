@@ -367,7 +367,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 	int d,c,ic,i,e; /* config, interface container, interface, endpoint  */
 
 	libusb_device** list;
-	//libusb_device *found = nullptr;
+	//libusb_device* found = nullptr;
 	ssize_t cnt = libusb_get_device_list(nullptr, &list);
 	DEBUG_LOG(WII_IPC_HID, "Found %ld viable USB devices.", cnt);
 	for (d = 0; d < cnt; d++)

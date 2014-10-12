@@ -43,8 +43,8 @@ enum {
 
 struct MemoryView
 {
-	u8 **out_ptr_low;
-	u8 **out_ptr;
+	u8** out_ptr_low;
+	u8** out_ptr;
 	u32 virtual_address;
 	u32 size;
 	u32 flags;
@@ -52,5 +52,5 @@ struct MemoryView
 
 // Uses a memory arena to set up an emulator-friendly memory map according to
 // a passed-in list of MemoryView structures.
-u8* MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
-void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
+u8* MemoryMap_Setup(const MemoryView* views, int num_views, u32 flags, MemArena* arena);
+void MemoryMap_Shutdown(const MemoryView* views, int num_views, u32 flags, MemArena* arena);

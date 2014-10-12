@@ -46,7 +46,7 @@
 template <class T>
 struct LinkedListItem : public T
 {
-	LinkedListItem<T> *next;
+	LinkedListItem<T>* next;
 };
 
 // Wrapper class
@@ -61,11 +61,11 @@ public:
 		MODE_VERIFY, // compare
 	};
 
-	u8 **ptr;
+	u8** ptr;
 	Mode mode;
 
 public:
-	PointerWrap(u8 **ptr_, Mode mode_) : ptr(ptr_), mode(mode_) {}
+	PointerWrap(u8** ptr_, Mode mode_) : ptr(ptr_), mode(mode_) {}
 
 	void SetMode(Mode mode_) { mode = mode_; }
 	Mode GetMode() const { return mode; }

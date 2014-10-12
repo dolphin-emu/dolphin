@@ -742,7 +742,7 @@ void Renderer::DrawDebugInfo()
 		GLsizeiptr length = stats.efb_regions.size() * sizeof(GLfloat) * (2 + 3) * 2 * 6;
 		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
 		glBufferData(GL_ARRAY_BUFFER, length, nullptr, GL_STREAM_DRAW);
-		GLfloat *Vertices = (GLfloat*)glMapBufferRange(GL_ARRAY_BUFFER, 0, length, GL_MAP_WRITE_BIT);
+		GLfloat* Vertices = (GLfloat*)glMapBufferRange(GL_ARRAY_BUFFER, 0, length, GL_MAP_WRITE_BIT);
 
 		// Draw EFB copy regions rectangles
 		int a = 0;

@@ -603,7 +603,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		js.compilerPC = ops[i].address;
 		js.op = &ops[i];
 		js.instructionNumber = i;
-		const GekkoOPInfo *opinfo = ops[i].opinfo;
+		const GekkoOPInfo* opinfo = ops[i].opinfo;
 		js.downcountAmount += opinfo->numCycles;
 
 		if (i == (code_block.m_num_instructions - 1))

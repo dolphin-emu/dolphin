@@ -38,7 +38,7 @@ private:
 
 	std::unique_ptr<IXAudio2, Releaser> m_xaudio2;
 	std::unique_ptr<StreamingVoiceContext> m_voice_context;
-	IXAudio2MasteringVoice *m_mastering_voice;
+	IXAudio2MasteringVoice* m_mastering_voice;
 
 	Common::Event m_sound_sync_event;
 	float m_volume;
@@ -51,7 +51,7 @@ private:
 	static bool InitLibrary();
 
 public:
-	XAudio2(CMixer *mixer);
+	XAudio2(CMixer* mixer);
 	virtual ~XAudio2();
 
 	virtual bool Start();
@@ -66,7 +66,7 @@ public:
 #else
 
 public:
-	XAudio2(CMixer *mixer)
+	XAudio2(CMixer* mixer)
 		: SoundStream(mixer)
 	{}
 

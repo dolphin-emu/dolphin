@@ -223,17 +223,17 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
 	float sDelta, tDelta;
 	if (tm0.diag_lod)
 	{
-		float *uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
-		float *uv1 = rasterBlock.Pixel[1][1].Uv[texcoord];
+		float* uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
+		float* uv1 = rasterBlock.Pixel[1][1].Uv[texcoord];
 
 		sDelta = fabsf(uv0[0] - uv1[0]);
 		tDelta = fabsf(uv0[1] - uv1[1]);
 	}
 	else
 	{
-		float *uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
-		float *uv1 = rasterBlock.Pixel[1][0].Uv[texcoord];
-		float *uv2 = rasterBlock.Pixel[0][1].Uv[texcoord];
+		float* uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
+		float* uv1 = rasterBlock.Pixel[1][0].Uv[texcoord];
+		float* uv2 = rasterBlock.Pixel[0][1].Uv[texcoord];
 
 		sDelta = std::max(fabsf(uv0[0] - uv1[0]), fabsf(uv0[0] - uv2[0]));
 		tDelta = std::max(fabsf(uv0[1] - uv1[1]), fabsf(uv0[1] - uv2[1]));

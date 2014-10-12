@@ -12,7 +12,7 @@ ArmRegCache::ArmRegCache()
 	emit = 0;
 }
 
-void ArmRegCache::Init(ARMXEmitter *emitter)
+void ArmRegCache::Init(ARMXEmitter* emitter)
 {
 	emit = emitter;
 	ARMReg *PPCRegs = GetPPCAllocationOrder(NUMPPCREG);

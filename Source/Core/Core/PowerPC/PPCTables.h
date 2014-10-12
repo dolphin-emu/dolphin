@@ -104,18 +104,18 @@ struct GekkoOPInfo
 	int compileCount;
 	u32 lastUse;
 };
-extern GekkoOPInfo *m_infoTable[64];
-extern GekkoOPInfo *m_infoTable4[1024];
-extern GekkoOPInfo *m_infoTable19[1024];
-extern GekkoOPInfo *m_infoTable31[1024];
-extern GekkoOPInfo *m_infoTable59[32];
-extern GekkoOPInfo *m_infoTable63[1024];
+extern GekkoOPInfo* m_infoTable[64];
+extern GekkoOPInfo* m_infoTable4[1024];
+extern GekkoOPInfo* m_infoTable19[1024];
+extern GekkoOPInfo* m_infoTable31[1024];
+extern GekkoOPInfo* m_infoTable59[32];
+extern GekkoOPInfo* m_infoTable63[1024];
 
-extern GekkoOPInfo *m_allInstructions[512];
+extern GekkoOPInfo* m_allInstructions[512];
 
 extern int m_numInstructions;
 
-GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
+GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst);
 Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
 
 class cJit64;

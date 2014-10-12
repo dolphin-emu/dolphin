@@ -377,7 +377,7 @@ void CompileInstruction(PPCAnalyst::CodeOp & op)
 {
 	JitArm64 *jitarm = (JitArm64*)jit;
 	(jitarm->*dynaOpTable[op.inst.OPCD])(op.inst);
-	GekkoOPInfo *info = op.opinfo;
+	GekkoOPInfo* info = op.opinfo;
 	if (info)
 	{
 #ifdef OPLOG

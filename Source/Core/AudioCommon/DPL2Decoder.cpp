@@ -35,11 +35,11 @@ static float adapt_l_gain, adapt_r_gain, adapt_lpr_gain, adapt_lmr_gain;
 static std::vector<float> lf, rf, lr, rr, cf, cr;
 static float LFE_buf[256];
 static unsigned int lfe_pos;
-static float *filter_coefs_lfe;
+static float* filter_coefs_lfe;
 static unsigned int len125;
 
 template<class T, class _ftype_t>
-static _ftype_t DotProduct(int count,const T *buf,const _ftype_t *coefficients)
+static _ftype_t DotProduct(int count,const T* buf,const _ftype_t* coefficients)
 {
 	float sum0=0,sum1=0,sum2=0,sum3=0;
 	for (;count>=4;buf+=4,coefficients+=4,count-=4)
@@ -57,7 +57,7 @@ static _ftype_t DotProduct(int count,const T *buf,const _ftype_t *coefficients)
 }
 
 template<class T>
-static T FIRFilter(const T *buf, int pos, int len, int count, const float *coefficients)
+static T FIRFilter(const T* buf, int pos, int len, int count, const float* coefficients)
 {
 	int count1, count2;
 
@@ -74,7 +74,7 @@ static T FIRFilter(const T *buf, int pos, int len, int count, const float *coeff
 	}
 
 	// high part of window
-	const T *ptr = &buf[pos];
+	const T* ptr = &buf[pos];
 
 	float r1=DotProduct(count1,ptr,coefficients);coefficients+=count1;
 	float r2=DotProduct(count2,buf,coefficients);
@@ -131,7 +131,7 @@ static float* DesignFIR(unsigned int* n, float* fc, float opt)
 	if (*n==0) return nullptr;
 	MathUtil::Clamp(&fc[0],float(0.001),float(1));
 
-	float *w=(float*)calloc(sizeof(float),*n);
+	float* w=(float*)calloc(sizeof(float),*n);
 
 	// Get window coefficients
 	Hamming(*n,w);
@@ -139,7 +139,7 @@ static float* DesignFIR(unsigned int* n, float* fc, float opt)
 	fc1=*fc;
 	// Cutoff frequency must be < 0.5 where 0.5 <=> Fs/2
 	fc1 = ((fc1 <= 1.0) && (fc1 > 0.0)) ? fc1/2 : 0.25f;
-	k1 *= fc1;
+	k1* = fc1;
 
 	// Low pass filter
 
@@ -165,7 +165,7 @@ static float* DesignFIR(unsigned int* n, float* fc, float opt)
 	// Normalize gain
 	g=1/g;
 	for (u32 i = 0; i < *n; i++)
-		w[i] *= g;
+		w[i]* = g;
 
 	return w;
 }
@@ -202,11 +202,11 @@ static float* CalculateCoefficients125HzLowpass(int rate)
 {
 	len125 = 256;
 	float f = 125.0f / (rate / 2);
-	float *coeffs = DesignFIR(&len125, &f, 0);
+	float* coeffs = DesignFIR(&len125, &f, 0);
 	static const float M3_01DB = 0.7071067812f;
 	for (unsigned int i = 0; i < len125; i++)
 	{
-		coeffs[i] *= M3_01DB;
+		coeffs[i]* = M3_01DB;
 	}
 	return coeffs;
 }
@@ -219,15 +219,15 @@ static float PassiveLock(float x)
 	return x1 - x1 / (1 + ax1s * ax1s) + 1;
 }
 
-static void MatrixDecode(const float *in, const int k, const int il,
+static void MatrixDecode(const float* in, const int k, const int il,
 	const int ir, bool decode_rear,
 	const int _dlbuflen,
 	float _l_fwr, float _r_fwr,
 	float _lpr_fwr, float _lmr_fwr,
-	float *_adapt_l_gain, float *_adapt_r_gain,
-	float *_adapt_lpr_gain, float *_adapt_lmr_gain,
-	float *_lf, float *_rf, float *_lr,
-	float *_rr, float *_cf)
+	float* _adapt_l_gain, float* _adapt_r_gain,
+	float* _adapt_lpr_gain, float* _adapt_lmr_gain,
+	float* _lf, float* _rf, float* _lr,
+	float* _rr, float* _cf)
 {
 	static const float M9_03DB = 0.3535533906f;
 	static const float MATAGCTRIG = 8.0f;   /* (Fuzzy) AGC trigger */
@@ -304,7 +304,7 @@ static void MatrixDecode(const float *in, const int k, const int il,
 	_cf[k] += c_agc_cfk + c_agc_cfk;
 }
 
-void DPL2Decode(float *samples, int numsamples, float *out)
+void DPL2Decode(float* samples, int numsamples, float* out)
 {
 	static const unsigned int FWRDURATION = 240; // FWR average duration (samples)
 	static const int cfg_delay = 0;
@@ -333,8 +333,8 @@ void DPL2Decode(float *samples, int numsamples, float *out)
 		memset(LFE_buf, 0, sizeof(LFE_buf));
 	}
 
-	float *in = samples; // Input audio data
-	float *end = in + numsamples * fmt_nchannels; // Loop end
+	float* in = samples; // Input audio data
+	float* end = in + numsamples * fmt_nchannels; // Loop end
 
 	while (in < end)
 	{

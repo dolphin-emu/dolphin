@@ -149,7 +149,7 @@ public:
 	Arm64RegCache() : m_emit(nullptr), m_reg_stats(nullptr) {};
 	virtual ~Arm64RegCache() {};
 
-	void Init(ARM64XEmitter *emitter);
+	void Init(ARM64XEmitter* emitter);
 
 	virtual void Start(PPCAnalyst::BlockRegStats &stats) {}
 
@@ -203,7 +203,7 @@ protected:
 	u32 GetUnlockedRegisterCount();
 
 	// Code emitter
-	ARM64XEmitter *m_emit;
+	ARM64XEmitter* m_emit;
 
 	// Host side registers that hold the host registers in order of use
 	std::vector<HostReg> m_host_registers;

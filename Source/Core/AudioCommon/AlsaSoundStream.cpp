@@ -10,7 +10,7 @@
 #define BUFFER_SIZE_MAX 8192
 #define BUFFER_SIZE_BYTES (BUFFER_SIZE_MAX*2*2)
 
-AlsaSound::AlsaSound(CMixer *mixer) : SoundStream(mixer), thread_data(0), handle(nullptr), frames_to_deliver(FRAME_COUNT_MIN)
+AlsaSound::AlsaSound(CMixer* mixer) : SoundStream(mixer), thread_data(0), handle(nullptr), frames_to_deliver(FRAME_COUNT_MIN)
 {
 	mix_buffer = new u8[BUFFER_SIZE_BYTES];
 }
@@ -69,8 +69,8 @@ bool AlsaSound::AlsaInit()
 	unsigned int sample_rate = m_mixer->GetSampleRate();
 	int err;
 	int dir;
-	snd_pcm_sw_params_t *swparams;
-	snd_pcm_hw_params_t *hwparams;
+	snd_pcm_sw_params_t* swparams;
+	snd_pcm_hw_params_t* hwparams;
 	snd_pcm_uframes_t buffer_size,buffer_size_max;
 	unsigned int periods;
 

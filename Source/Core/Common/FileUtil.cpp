@@ -488,7 +488,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 #else
 	struct dirent dirent, *result = nullptr;
 
-	DIR *dirp = opendir(directory.c_str());
+	DIR* dirp = opendir(directory.c_str());
 	if (!dirp)
 		return 0;
 
@@ -555,7 +555,7 @@ bool DeleteDirRecursively(const std::string &directory)
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = nullptr;
-	DIR *dirp = opendir(directory.c_str());
+	DIR* dirp = opendir(directory.c_str());
 	if (!dirp)
 		return false;
 
@@ -629,7 +629,7 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = nullptr;
-	DIR *dirp = opendir(source_path.c_str());
+	DIR* dirp = opendir(source_path.c_str());
 	if (!dirp) return;
 
 	while (!readdir_r(dirp, &dirent, &result) && result)

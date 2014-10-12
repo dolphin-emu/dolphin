@@ -62,7 +62,7 @@ public:
 	{
 		if (NeedSize)
 			Common::AtomicDecrement(m_size);
-		ElementPtr *tmpptr = m_read_ptr;
+		ElementPtr* tmpptr = m_read_ptr;
 		// advance the read pointer
 		m_read_ptr = AtomicLoad(tmpptr->next);
 		// set the next element to nullptr to stop the recursive deletion
@@ -78,7 +78,7 @@ public:
 		if (NeedSize)
 			Common::AtomicDecrement(m_size);
 
-		ElementPtr *tmpptr = m_read_ptr;
+		ElementPtr* tmpptr = m_read_ptr;
 		m_read_ptr = AtomicLoadAcquire(tmpptr->next);
 		t = std::move(tmpptr->current);
 		tmpptr->next = nullptr;
@@ -109,11 +109,11 @@ private:
 		}
 
 		T current;
-		ElementPtr *volatile next;
+		ElementPtr* volatile next;
 	};
 
-	ElementPtr *m_write_ptr;
-	ElementPtr *m_read_ptr;
+	ElementPtr* m_write_ptr;
+	ElementPtr* m_read_ptr;
 	volatile u32 m_size;
 };
 

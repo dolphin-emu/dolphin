@@ -178,7 +178,7 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 					_tcscpy(lpszUnDSymbol, _T("mainCRTStartup()"));
 				else
 					if ( _tcscmp(lpszUnDSymbol, _T("_wmain")) == 0 )
-						_tcscpy(lpszUnDSymbol, _T("wmain(int,TCHAR * *,TCHAR**)"));
+						_tcscpy(lpszUnDSymbol, _T("wmain(int,TCHAR**,TCHAR**)"));
 					else
 						if ( _tcscmp(lpszUnDSymbol, _T("_wmainCRTStartup")) == 0 )
 							_tcscpy(lpszUnDSymbol, _T("wmainCRTStartup()"));

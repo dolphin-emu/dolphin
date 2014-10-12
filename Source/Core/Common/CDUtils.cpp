@@ -136,7 +136,7 @@ std::vector<std::string> cdio_get_devices()
 // checklist: /dev/cdrom, /dev/dvd /dev/hd?, /dev/scd? /dev/sr?
 static struct
 {
-	const char*  format;
+	const char* format;
 	unsigned int num_min;
 	unsigned int num_max;
 } checklist[] =

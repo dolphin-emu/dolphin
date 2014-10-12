@@ -122,7 +122,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 	u32 baseAddress = bRelocate?vaddr:0;
 	for (int i = 0; i < header->e_phnum; i++)
 	{
-		Elf32_Phdr *p = segments + i;
+		Elf32_Phdr* p = segments + i;
 
 		INFO_LOG(MASTER_LOG, "Type: %i Vaddr: %08x Filesz: %i Memsz: %i ", p->p_type, p->p_vaddr, p->p_filesz, p->p_memsz);
 
@@ -154,7 +154,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 
 	for (int i=0; i<GetNumSections(); i++)
 	{
-		Elf32_Shdr *s = &sections[i];
+		Elf32_Shdr* s = &sections[i];
 		const char* name = GetSectionName(i);
 
 		u32 writeAddr = s->sh_addr + baseAddress;
@@ -198,7 +198,7 @@ bool ElfReader::LoadSymbols()
 		const char* stringBase = (const char*)GetSectionDataPtr(stringSection);
 
 		//We have a symbol table!
-		Elf32_Sym *symtab = (Elf32_Sym*)(GetSectionDataPtr(sec));
+		Elf32_Sym* symtab = (Elf32_Sym*)(GetSectionDataPtr(sec));
 		int numSymbols = sections[sec].sh_size / sizeof(Elf32_Sym);
 		for (int sym = 0; sym < numSymbols; sym++)
 		{

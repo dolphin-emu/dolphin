@@ -642,8 +642,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	// For historical reasons, Dolphin doesn't actually implement "pure" EFB to RAM emulation, but only EFB to texture and hybrid EFB copies.
 
 	float colmat[28] = {0};
-	float *const fConstAdd = colmat + 16;
-	float *const ColorMask = colmat + 20;
+	float* const fConstAdd = colmat + 16;
+	float* const ColorMask = colmat + 20;
 	ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f;
 	ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 255.0f;
 	unsigned int cbufid = -1;

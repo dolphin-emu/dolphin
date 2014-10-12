@@ -277,8 +277,8 @@ public:
 // the return value, which will be false if these fail to find a Operand2 that
 // represents your 32-bit imm value.
 bool TryMakeOperand2(u32 imm, Operand2 &op2);
-bool TryMakeOperand2_AllowInverse(u32 imm, Operand2 &op2, bool *inverse);
-bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool *negated);
+bool TryMakeOperand2_AllowInverse(u32 imm, Operand2 &op2, bool* inverse);
+bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool* negated);
 
 // Use this only when you know imm can be made into an Operand2.
 Operand2 AssumeMakeOperand2(u32 imm);
@@ -560,7 +560,7 @@ enum NEONAlignment
 class NEONXEmitter
 {
 private:
-	ARMXEmitter *_emit;
+	ARMXEmitter* _emit;
 	inline void Write32(u32 value) { _emit->Write32(value); }
 
 	inline u32 encodedSize(u32 value)
@@ -581,7 +581,7 @@ private:
 	void VREVX(u32 size, u32 Size, ARMReg Vd, ARMReg Vm);
 
 public:
-	NEONXEmitter(ARMXEmitter *emit)
+	NEONXEmitter(ARMXEmitter* emit)
 		: _emit(emit)
 	{}
 

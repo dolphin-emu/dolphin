@@ -13,7 +13,7 @@ const size_t CHANNEL_COUNT = 2;
 const size_t BUFFER_SIZE = BUFFER_SAMPLES * CHANNEL_COUNT * sizeof(s16);
 }
 
-PulseAudio::PulseAudio(CMixer *mixer)
+PulseAudio::PulseAudio(CMixer* mixer)
 	: SoundStream(mixer)
 	, m_thread()
 	, m_run_thread()

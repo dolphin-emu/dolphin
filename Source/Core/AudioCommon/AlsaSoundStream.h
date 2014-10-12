@@ -16,7 +16,7 @@ class AlsaSound final : public SoundStream
 {
 #if defined(HAVE_ALSA) && HAVE_ALSA
 public:
-	AlsaSound(CMixer *mixer);
+	AlsaSound(CMixer* mixer);
 	virtual ~AlsaSound();
 
 	virtual bool Start() override;
@@ -41,10 +41,10 @@ private:
 	// 2 = done shutting down.
 	volatile int thread_data;
 
-	snd_pcm_t *handle;
+	snd_pcm_t* handle;
 	int frames_to_deliver;
 #else
 public:
-	AlsaSound(CMixer *mixer) : SoundStream(mixer) {}
+	AlsaSound(CMixer* mixer) : SoundStream(mixer) {}
 #endif
 };

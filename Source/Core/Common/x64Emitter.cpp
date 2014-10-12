@@ -137,7 +137,7 @@ void XEmitter::WriteSIB(int scale, int index, int base)
 	Write8((u8)((scale << 6) | ((index & 7) << 3) | (base & 7)));
 }
 
-void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
+void OpArg::WriteRex(XEmitter* emit, int opBits, int bits, int customOp) const
 {
 	if (customOp == -1)       customOp = operandReg;
 	u8 op = 0x40;
@@ -187,7 +187,7 @@ void OpArg::WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp
 	}
 }
 
-void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
+void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
 	bool warn_64bit_offset) const
 {
 	if (_operandReg == INVALID_REG)
@@ -1062,7 +1062,7 @@ void XEmitter::SHLD(int bits, OpArg dest, OpArg src, OpArg shift)
 	}
 }
 
-void OpArg::WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg _operandReg, int bits)
+void OpArg::WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg _operandReg, int bits)
 {
 	if (bits == 16)
 		emit->Write8(0x66);
@@ -1074,7 +1074,7 @@ void OpArg::WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg _operandReg, int bit
 }
 
 //operand can either be immediate or register
-void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const
+void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const
 {
 	X64Reg _operandReg;
 	if (IsImm())
@@ -1220,7 +1220,7 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 	}
 }
 
-void XEmitter::WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2)
+void XEmitter::WriteNormalOp(XEmitter* emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2)
 {
 	if (a1.IsImm())
 	{

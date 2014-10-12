@@ -32,7 +32,7 @@ wxString CDSPRegTable::GetValue(int row, int col)
 	return wxEmptyString;
 }
 
-void CDSPRegTable::SetValue(int, int, const wxString& )
+void CDSPRegTable::SetValue(int, int, const wxString&)
 {
 }
 
@@ -52,9 +52,9 @@ void CDSPRegTable::UpdateCachedRegs()
 	}
 }
 
-wxGridCellAttr *CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
+wxGridCellAttr* CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 {
-	wxGridCellAttr *attr = new wxGridCellAttr();
+	wxGridCellAttr* attr = new wxGridCellAttr();
 
 	attr->SetBackgroundColour(*wxWHITE);
 

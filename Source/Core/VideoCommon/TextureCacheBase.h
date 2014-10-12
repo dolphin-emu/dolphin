@@ -79,7 +79,7 @@ public:
 		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat) = 0;
+			const float* colmat) = 0;
 
 		int IntersectsMemoryRange(u32 range_address, u32 range_size) const;
 

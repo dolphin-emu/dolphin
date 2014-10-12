@@ -131,16 +131,16 @@ struct OpArg
 		return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
 		       indexReg == b.indexReg && offset == b.offset;
 	}
-	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
+	void WriteRex(XEmitter* emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVex(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
-	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
-	void WriteFloatModRM(XEmitter *emit, FloatOp op);
-	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
+	void WriteRest(XEmitter* emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
+	void WriteFloatModRM(XEmitter* emit, FloatOp op);
+	void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
 	u64 offset;  // use RIP-relative as much as possible - 64-bit immediates are not available.
 	u16 operandReg;
 
-	void WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
+	void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg &operand, int bits) const;
 	bool IsImm() const {return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 || scale == SCALE_IMM64;}
 	bool IsSimpleReg() const {return scale == SCALE_NONE;}
 	bool IsSimpleReg(X64Reg reg) const
@@ -287,7 +287,7 @@ private:
 	void WriteBMI1Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, OpArg arg);
-	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
+	void WriteNormalOp(XEmitter* emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 	void ABI_CalculateFrameSize(u32 mask, size_t rsp_alignment, size_t needed_frame_size, size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
 

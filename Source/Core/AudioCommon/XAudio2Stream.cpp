@@ -22,7 +22,7 @@ private:
 	void SubmitBuffer(PBYTE buf_data);
 
 public:
-	StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer, Common::Event& pSyncEvent);
+	StreamingVoiceContext(IXAudio2* pXAudio2, CMixer* pMixer, Common::Event& pSyncEvent);
 
 	~StreamingVoiceContext();
 
@@ -56,7 +56,7 @@ void StreamingVoiceContext::SubmitBuffer(PBYTE buf_data)
 	m_source_voice->SubmitSourceBuffer(&buf);
 }
 
-StreamingVoiceContext::StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer, Common::Event& pSyncEvent)
+StreamingVoiceContext::StreamingVoiceContext(IXAudio2* pXAudio2, CMixer* pMixer, Common::Event& pSyncEvent)
 	: m_mixer(pMixer)
 	, m_sound_sync_event(pSyncEvent)
 	, xaudio_buffer(new BYTE[NUM_BUFFERS * BUFFER_SIZE_BYTES]())
@@ -155,7 +155,7 @@ bool XAudio2::InitLibrary()
 	return true;
 }
 
-XAudio2::XAudio2(CMixer *mixer)
+XAudio2::XAudio2(CMixer* mixer)
 	: SoundStream(mixer)
 	, m_mastering_voice(nullptr)
 	, m_volume(1.0f)

@@ -168,7 +168,7 @@ void MemChecks::Remove(u32 _Address)
 	}
 }
 
-TMemCheck *MemChecks::GetMemCheck(u32 address)
+TMemCheck* MemChecks::GetMemCheck(u32 address)
 {
 	for (TMemCheck& bp : m_MemChecks)
 	{
@@ -187,7 +187,7 @@ TMemCheck *MemChecks::GetMemCheck(u32 address)
 	return nullptr;
 }
 
-void TMemCheck::Action(DebugInterface *debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc)
+void TMemCheck::Action(DebugInterface* debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc)
 {
 	if ((write && OnWrite) || (!write && OnRead))
 	{

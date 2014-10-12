@@ -81,7 +81,7 @@ private:
 	static void FileLoaded();
 	static void FrameWritten();
 
-	static wxEvtHandler *volatile m_EvtHandler;
+	static wxEvtHandler* volatile m_EvtHandler;
 
 	wxNotebook* m_Notebook;
 	wxPanel* m_PlayPage;

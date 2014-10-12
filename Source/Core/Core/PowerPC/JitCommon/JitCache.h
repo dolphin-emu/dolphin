@@ -106,7 +106,7 @@ public:
 
 class JitBaseBlockCache
 {
-	const u8 **blockCodePointers;
+	const u8** blockCodePointers;
 	JitBlock *blocks;
 	int num_blocks;
 	std::multimap<u32, int> links_to;
@@ -147,7 +147,7 @@ public:
 	// Code Cache
 	JitBlock *GetBlock(int block_num);
 	int GetNumBlocks() const;
-	const u8 **GetCodePointers();
+	const u8** GetCodePointers();
 	u8* iCache;
 	u8* iCacheEx;
 	u8* iCacheVMEM;

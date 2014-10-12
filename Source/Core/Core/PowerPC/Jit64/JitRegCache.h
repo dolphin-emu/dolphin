@@ -44,7 +44,7 @@ protected:
 
 	virtual const int* GetAllocationOrder(size_t& count) = 0;
 
-	Gen::XEmitter *emit;
+	Gen::XEmitter* emit;
 
 	u32 cur_use_quantum;
 
@@ -55,7 +55,7 @@ public:
 	void Start();
 
 	void DiscardRegContentsIfCached(size_t preg);
-	void SetEmitter(Gen::XEmitter *emitter)
+	void SetEmitter(Gen::XEmitter* emitter)
 	{
 		emit = emitter;
 	}

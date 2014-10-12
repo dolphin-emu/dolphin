@@ -15,7 +15,7 @@ class NullSound final : public SoundStream
 	short realtimeBuffer[BUF_SIZE / sizeof(short)];
 
 public:
-	NullSound(CMixer *mixer)
+	NullSound(CMixer* mixer)
 		: SoundStream(mixer)
 	{}
 

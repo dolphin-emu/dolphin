@@ -201,7 +201,7 @@ using namespace Gen;
 #endif
 	}
 
-	const u8 **JitBaseBlockCache::GetCodePointers()
+	const u8** JitBaseBlockCache::GetCodePointers()
 	{
 		return blockCodePointers;
 	}

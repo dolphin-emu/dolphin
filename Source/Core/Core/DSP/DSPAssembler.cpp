@@ -419,7 +419,7 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
 }
 
 // Destroys parstr
-u32 DSPAssembler::GetParams(char* parstr, param_t *par)
+u32 DSPAssembler::GetParams(char* parstr, param_t* par)
 {
 	u32 count = 0;
 	char* tmpstr = skip_spaces(parstr);
@@ -474,7 +474,7 @@ u32 DSPAssembler::GetParams(char* parstr, param_t *par)
 	return count;
 }
 
-const opc_t *DSPAssembler::FindOpcode(const char* opcode, u32 par_count, const opc_t * const opcod, int opcod_size)
+const opc_t* DSPAssembler::FindOpcode(const char* opcode, u32 par_count, const opc_t*  const opcod, int opcod_size)
 {
 	if (opcode[0] == 'C' && opcode[1] == 'W')
 		return &cw;
@@ -484,7 +484,7 @@ const opc_t *DSPAssembler::FindOpcode(const char* opcode, u32 par_count, const o
 		opcode = alias_iter->second.c_str();
 	for (int i = 0; i < opcod_size; i++)
 	{
-		const opc_t *opc = &opcod[i];
+		const opc_t* opc = &opcod[i];
 		if (strcmp(opc->name, opcode) == 0)
 		{
 			if (par_count < opc->param_count)
@@ -510,7 +510,7 @@ static u16 get_mask_shifted_down(u16 mask)
 	return mask;
 }
 
-bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool ext)
+bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, int count, bool ext)
 {
 	for (int i = 0; i < count; i++)
 	{
@@ -738,7 +738,7 @@ bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool 
 
 
 // Merge opcode with params.
-void DSPAssembler::BuildCode(const opc_t *opc, param_t *par, u32 par_count, u16* outbuf)
+void DSPAssembler::BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf)
 {
 	outbuf[m_cur_addr] |= opc->opcode;
 	for (u32 i = 0; i < par_count; i++)
@@ -1002,7 +1002,7 @@ bool DSPAssembler::AssembleFile(const char* fname, int pass)
 			continue;
 		}
 
-		const opc_t *opc = FindOpcode(opcode, params_count, opcodes, opcodes_size);
+		const opc_t* opc = FindOpcode(opcode, params_count, opcodes, opcodes_size);
 		if (!opc)
 			opc = &cw;
 
@@ -1010,7 +1010,7 @@ bool DSPAssembler::AssembleFile(const char* fname, int pass)
 
 		VerifyParams(opc, params, params_count);
 
-		const opc_t *opc_ext = nullptr;
+		const opc_t* opc_ext = nullptr;
 		// Check for opcode extensions.
 		if (opc->extended)
 		{

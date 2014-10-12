@@ -32,10 +32,10 @@ bool OpenALStream::Start()
 
 		WARN_LOG(AUDIO, "Found OpenAL device %s", defDevName);
 
-		ALCdevice *pDevice = alcOpenDevice(defDevName);
+		ALCdevice* pDevice = alcOpenDevice(defDevName);
 		if (pDevice)
 		{
-			ALCcontext *pContext = alcCreateContext(pDevice, nullptr);
+			ALCcontext* pContext = alcCreateContext(pDevice, nullptr);
 			if (pContext)
 			{
 				// Used to determine an appropriate period size (2x period = total buffer size)
@@ -88,8 +88,8 @@ void OpenALStream::Stop()
 	uiSource = 0;
 	alDeleteBuffers(numBuffers, uiBuffers);
 
-	ALCcontext *pContext = alcGetCurrentContext();
-	ALCdevice *pDevice = alcGetContextsDevice(pContext);
+	ALCcontext* pContext = alcGetCurrentContext();
+	ALCdevice* pDevice = alcGetContextsDevice(pContext);
 
 	alcMakeContextCurrent(nullptr);
 	alcDestroyContext(pContext);

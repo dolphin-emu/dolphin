@@ -124,7 +124,7 @@ static inline void DecodeBytes_RGB5A3(u32* dst, const u16* src)
 #endif
 }
 
-static inline void DecodeBytes_RGBA8(u32* dst, const u16* src, const u16*  src2)
+static inline void DecodeBytes_RGBA8(u32* dst, const u16* src, const u16* src2)
 {
 #if 0
 	for (int x = 0; x < 4; x++)
@@ -151,7 +151,7 @@ static inline u32 MakeRGBA(int r, int g, int b, int a)
 	return (a<<24)|(b<<16)|(g<<8)|r;
 }
 
-static void DecodeDXTBlock(u32* dst, const DXTBlock *src, int pitch)
+static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
 {
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
 	// Needs more speed.

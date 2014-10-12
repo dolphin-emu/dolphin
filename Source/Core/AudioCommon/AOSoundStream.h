@@ -24,14 +24,14 @@ class AOSound final : public SoundStream
 
 	int buf_size;
 
-	ao_device *device;
+	ao_device* device;
 	ao_sample_format format;
 	int default_driver;
 
 	short realtimeBuffer[1024 * 1024];
 
 public:
-	AOSound(CMixer *mixer) : SoundStream(mixer) {}
+	AOSound(CMixer* mixer) : SoundStream(mixer) {}
 
 	virtual ~AOSound();
 
@@ -50,6 +50,6 @@ public:
 
 #else
 public:
-	AOSound(CMixer *mixer) : SoundStream(mixer) {}
+	AOSound(CMixer* mixer) : SoundStream(mixer) {}
 #endif
 };

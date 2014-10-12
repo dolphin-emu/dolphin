@@ -138,9 +138,9 @@ void CRegTable::UpdateCachedRegs()
 	}
 }
 
-wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
+wxGridCellAttr* CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 {
-	wxGridCellAttr *attr = new wxGridCellAttr();
+	wxGridCellAttr* attr = new wxGridCellAttr();
 
 	attr->SetBackgroundColour(*wxWHITE);
 	attr->SetFont(DebuggerFont);

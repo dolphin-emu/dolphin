@@ -15,14 +15,14 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 
-GekkoOPInfo *m_infoTable[64];
-GekkoOPInfo *m_infoTable4[1024];
-GekkoOPInfo *m_infoTable19[1024];
-GekkoOPInfo *m_infoTable31[1024];
-GekkoOPInfo *m_infoTable59[32];
-GekkoOPInfo *m_infoTable63[1024];
+GekkoOPInfo* m_infoTable[64];
+GekkoOPInfo* m_infoTable4[1024];
+GekkoOPInfo* m_infoTable19[1024];
+GekkoOPInfo* m_infoTable31[1024];
+GekkoOPInfo* m_infoTable59[32];
+GekkoOPInfo* m_infoTable63[1024];
 
-GekkoOPInfo *m_allInstructions[512];
+GekkoOPInfo* m_allInstructions[512];
 int m_numInstructions;
 
 const u64 m_crTable[16] =
@@ -33,9 +33,9 @@ const u64 m_crTable[16] =
 	PPCCRToInternal(0xC), PPCCRToInternal(0xD), PPCCRToInternal(0xE), PPCCRToInternal(0xF),
 };
 
-GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
+GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst)
 {
-	GekkoOPInfo *info = m_infoTable[_inst.OPCD];
+	GekkoOPInfo* info = m_infoTable[_inst.OPCD];
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
@@ -64,7 +64,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 
 Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 {
-	const GekkoOPInfo *info = m_infoTable[_inst.OPCD];
+	const GekkoOPInfo* info = m_infoTable[_inst.OPCD];
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
@@ -168,19 +168,19 @@ namespace {
 
 const char* GetInstructionName(UGeckoInstruction _inst)
 {
-	const GekkoOPInfo *info = GetOpInfo(_inst);
+	const GekkoOPInfo* info = GetOpInfo(_inst);
 	return info ? info->opname : nullptr;
 }
 
 bool IsValidInstruction(UGeckoInstruction _inst)
 {
-	const GekkoOPInfo *info = GetOpInfo(_inst);
+	const GekkoOPInfo* info = GetOpInfo(_inst);
 	return info != nullptr;
 }
 
 void CountInstruction(UGeckoInstruction _inst)
 {
-	GekkoOPInfo *info = GetOpInfo(_inst);
+	GekkoOPInfo* info = GetOpInfo(_inst);
 	if (info)
 	{
 		info->runCount++;
@@ -194,7 +194,7 @@ void PrintInstructionRunCounts()
 	temp.reserve(m_numInstructions);
 	for (int i = 0; i < m_numInstructions; ++i)
 	{
-		GekkoOPInfo *pInst = m_allInstructions[i];
+		GekkoOPInfo* pInst = m_allInstructions[i];
 		temp.emplace_back(pInst->opname, pInst->runCount);
 	}
 	std::sort(temp.begin(), temp.end(),
@@ -220,7 +220,7 @@ void LogCompiledInstructions()
 	File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
-		GekkoOPInfo *pInst = m_allInstructions[i];
+		GekkoOPInfo* pInst = m_allInstructions[i];
 		if (pInst->compileCount > 0)
 		{
 			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\t%08x\n", pInst->opname,
@@ -231,7 +231,7 @@ void LogCompiledInstructions()
 	f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
-		GekkoOPInfo *pInst = m_allInstructions[i];
+		GekkoOPInfo* pInst = m_allInstructions[i];
 		if (pInst->compileCount == 0)
 		{
 			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\n", pInst->opname,

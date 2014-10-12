@@ -46,7 +46,7 @@ class OpenALStream final : public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
-	OpenALStream(CMixer *mixer)
+	OpenALStream(CMixer* mixer)
 		: SoundStream(mixer)
 		, uiSource(0)
 	{}
@@ -74,7 +74,7 @@ private:
 	u8 numBuffers;
 #else
 public:
-	OpenALStream(CMixer *mixer)
+	OpenALStream(CMixer* mixer)
 		: SoundStream(mixer)
 	{}
 #endif // HAVE_OPENAL

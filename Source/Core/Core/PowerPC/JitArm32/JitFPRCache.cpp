@@ -12,7 +12,7 @@ ArmFPRCache::ArmFPRCache()
 	emit = 0;
 }
 
-void ArmFPRCache::Init(ARMXEmitter *emitter)
+void ArmFPRCache::Init(ARMXEmitter* emitter)
 {
 	emit = emitter;
 	ARMReg *PPCRegs = GetPPCAllocationOrder(NUMPPCREG);

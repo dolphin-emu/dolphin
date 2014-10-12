@@ -372,9 +372,9 @@ namespace Jit64Tables
 
 void CompileInstruction(PPCAnalyst::CodeOp & op)
 {
-	Jit64 *jit64 = (Jit64*)jit;
+	Jit64* jit64 = (Jit64*)jit;
 	(jit64->*dynaOpTable[op.inst.OPCD])(op.inst);
-	GekkoOPInfo *info = op.opinfo;
+	GekkoOPInfo* info = op.opinfo;
 	if (info)
 	{
 #ifdef OPLOG

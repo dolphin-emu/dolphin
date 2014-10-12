@@ -10,7 +10,7 @@
 
 class CMixer;
 
-extern SoundStream *g_sound_stream;
+extern SoundStream* g_sound_stream;
 
 namespace AudioCommon
 {

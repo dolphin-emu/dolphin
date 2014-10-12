@@ -123,7 +123,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-	const float *colmat)
+	const float* colmat)
 {
 	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{

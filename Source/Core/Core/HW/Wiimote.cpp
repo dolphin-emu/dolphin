@@ -151,7 +151,7 @@ unsigned int GetAttached()
 // input/output: ptr: [Description Needed]
 // input: mode        [Description needed]
 //
-void DoState(u8 **ptr, PointerWrap::Mode mode)
+void DoState(u8** ptr, PointerWrap::Mode mode)
 {
 	// TODO:
 

@@ -215,8 +215,8 @@ static void AnalyzeFunction2(Symbol* func)
 
 static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 {
-	const GekkoOPInfo *a_info = a.opinfo;
-	const GekkoOPInfo *b_info = b.opinfo;
+	const GekkoOPInfo* a_info = a.opinfo;
+	const GekkoOPInfo* b_info = b.opinfo;
 	int a_flags = a_info->flags;
 	int b_flags = b_info->flags;
 	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
@@ -471,7 +471,7 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp *code)
 		ReorderInstructionsCore(instructions, code, false, REORDER_CMP);
 }
 
-void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index)
+void PPCAnalyzer::SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo* opinfo, u32 index)
 {
 	code->wantsCR0 = false;
 	code->wantsCR1 = false;
@@ -660,7 +660,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 
 		{
 			num_inst++;
 			memset(&code[i], 0, sizeof(CodeOp));
-			GekkoOPInfo *opinfo = GetOpInfo(inst);
+			GekkoOPInfo* opinfo = GetOpInfo(inst);
 
 			code[i].opinfo = opinfo;
 			code[i].address = address;

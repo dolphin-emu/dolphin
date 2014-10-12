@@ -23,7 +23,7 @@ public:
 		x = y = z = f;
 	}
 
-	explicit Vec3(const float *f)
+	explicit Vec3(const float* f)
 	{
 		x = f[0];
 		y = f[1];

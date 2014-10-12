@@ -14,7 +14,7 @@ class CoreAudioSound final : public SoundStream
 {
 #ifdef __APPLE__
 public:
-	CoreAudioSound(CMixer *mixer);
+	CoreAudioSound(CMixer* mixer);
 	virtual ~CoreAudioSound();
 
 	virtual bool Start();
@@ -40,6 +40,6 @@ private:
 		AudioBufferList* ioData);
 #else
 public:
-	CoreAudioSound(CMixer *mixer) : SoundStream(mixer) {}
+	CoreAudioSound(CMixer* mixer) : SoundStream(mixer) {}
 #endif
 };

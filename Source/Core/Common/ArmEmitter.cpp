@@ -54,7 +54,7 @@ bool TryMakeOperand2(u32 imm, Operand2 &op2)
 	return false;
 }
 
-bool TryMakeOperand2_AllowInverse(u32 imm, Operand2 &op2, bool *inverse)
+bool TryMakeOperand2_AllowInverse(u32 imm, Operand2 &op2, bool* inverse)
 {
 	if (!TryMakeOperand2(imm, op2))
 	{
@@ -68,7 +68,7 @@ bool TryMakeOperand2_AllowInverse(u32 imm, Operand2 &op2, bool *inverse)
 	}
 }
 
-bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool *negated)
+bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool* negated)
 {
 	if (!TryMakeOperand2(imm, op2))
 	{

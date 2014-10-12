@@ -171,7 +171,7 @@ u8* MemArena::Find4GBBase()
 		continue; \
 
 
-static bool Memory_TryBase(u8* base, const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+static bool Memory_TryBase(u8* base, const MemoryView* views, int num_views, u32 flags, MemArena* arena)
 {
 	// OK, we know where to find free space. Now grab it!
 	// We just mimic the popular BAT setup.
@@ -230,7 +230,7 @@ bail:
 	return false;
 }
 
-u8* MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+u8* MemoryMap_Setup(const MemoryView* views, int num_views, u32 flags, MemArena* arena)
 {
 	u32 total_mem = 0;
 
@@ -268,7 +268,7 @@ u8* MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	return base;
 }
 
-void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+void MemoryMap_Shutdown(const MemoryView* views, int num_views, u32 flags, MemArena* arena)
 {
 	std::set<void*> freeset;
 	for (int i = 0; i < num_views; i++)

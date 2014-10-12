@@ -329,8 +329,8 @@ void VertexShaderManager::SetConstants()
 	{
 		bPosNormalMatrixChanged = false;
 
-		const float *pos = (const float*)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
-		const float *norm = (const float*)xfmem.normalMatrices + 3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31);
+		const float* pos = (const float*)xfmem.posMatrices + g_main_cp_state.matrix_index_a.PosNormalMtxIdx * 4;
+		const float* norm = (const float*)xfmem.normalMatrices + 3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31);
 
 		memcpy(constants.posnormalmatrix, pos, 3*16);
 		memcpy(constants.posnormalmatrix[3], norm, 12);
@@ -342,7 +342,7 @@ void VertexShaderManager::SetConstants()
 	if (bTexMatricesChanged[0])
 	{
 		bTexMatricesChanged[0] = false;
-		const float *fptrs[] =
+		const float* fptrs[] =
 		{
 			(const float*)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4],
 			(const float*)&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex1MtxIdx * 4],
@@ -360,7 +360,7 @@ void VertexShaderManager::SetConstants()
 	if (bTexMatricesChanged[1])
 	{
 		bTexMatricesChanged[1] = false;
-		const float *fptrs[] = {
+		const float* fptrs[] = {
 			(const float*)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex4MtxIdx * 4],
 			(const float*)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex5MtxIdx * 4],
 			(const float*)&xfmem.posMatrices[g_main_cp_state.matrix_index_b.Tex6MtxIdx * 4],
@@ -406,7 +406,7 @@ void VertexShaderManager::SetConstants()
 	{
 		bProjectionChanged = false;
 
-		float *rawProjection = xfmem.projection.rawProjection;
+		float* rawProjection = xfmem.projection.rawProjection;
 
 		switch (xfmem.projection.type)
 		{

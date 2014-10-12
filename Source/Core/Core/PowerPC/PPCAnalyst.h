@@ -22,7 +22,7 @@ namespace PPCAnalyst
 struct CodeOp //16B
 {
 	UGeckoInstruction inst;
-	GekkoOPInfo * opinfo;
+	GekkoOPInfo*  opinfo;
 	u32 address;
 	u32 branchTo; //if 0, not a branch
 	int branchToIndex; //index of target block
@@ -158,7 +158,7 @@ private:
 
 	void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
 	void ReorderInstructions(u32 instructions, CodeOp *code);
-	void SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo, u32 index);
+	void SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo* opinfo, u32 index);
 
 	// Options
 	u32 m_options;

@@ -49,7 +49,7 @@ wxDEFINE_EVENT(RECORDING_FINISHED_EVENT, wxCommandEvent);
 wxDEFINE_EVENT(FRAME_WRITTEN_EVENT, wxCommandEvent);
 
 static std::recursive_mutex sMutex;
-wxEvtHandler *volatile FifoPlayerDlg::m_EvtHandler = nullptr;
+wxEvtHandler* volatile FifoPlayerDlg::m_EvtHandler = nullptr;
 
 FifoPlayerDlg::FifoPlayerDlg(wxWindow* const parent) :
 	wxDialog(parent, wxID_ANY, _("FIFO Player")),

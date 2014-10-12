@@ -13,7 +13,7 @@ class OpenSLESStream final : public SoundStream
 {
 #ifdef ANDROID
 public:
-	OpenSLESStream(CMixer *mixer)
+	OpenSLESStream(CMixer* mixer)
 		: SoundStream(mixer)
 	{
 	}
@@ -31,7 +31,7 @@ private:
 	Common::Event soundSyncEvent;
 #else
 public:
-	OpenSLESStream(CMixer *mixer)
+	OpenSLESStream(CMixer* mixer)
 		: SoundStream(mixer)
 	{
 	}

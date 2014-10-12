@@ -98,7 +98,7 @@ private:
 	s32 ParseValue(const char* str);
 	u32 ParseExpression(const char* ptr);
 
-	u32 GetParams(char* parstr, param_t *par);
+	u32 GetParams(char* parstr, param_t* par);
 
 	void InitPass(int pass);
 	bool AssembleFile(const char* fname, int pass);
@@ -107,9 +107,9 @@ private:
 	// void ShowWarning(err_t err_code, const char* extra_info = nullptr);
 
 	char* FindBrackets(char* src, char* dst);
-	const opc_t *FindOpcode(const char* opcode, u32 par_count, const opc_t * const opcod, int opcod_size);
-	bool VerifyParams(const opc_t *opc, param_t *par, int count, bool ext = false);
-	void BuildCode(const opc_t *opc, param_t *par, u32 par_count, u16* outbuf);
+	const opc_t* FindOpcode(const char* opcode, u32 par_count, const opc_t* const opcod, int opcod_size);
+	bool VerifyParams(const opc_t* opc, param_t* par, int count, bool ext = false);
+	void BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf);
 
 	char* gdg_buffer;
 

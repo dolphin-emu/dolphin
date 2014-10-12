@@ -22,9 +22,9 @@ private:
 	char* base;
 	u32* base32;
 
-	Elf32_Ehdr *header;
-	Elf32_Phdr *segments;
-	Elf32_Shdr *sections;
+	Elf32_Ehdr* header;
+	Elf32_Phdr* segments;
+	Elf32_Shdr* sections;
 
 	u32* sectionAddrs;
 	bool bRelocate;

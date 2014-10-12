@@ -40,7 +40,7 @@ static void sigsegv_handler(int sig, siginfo_t *info, void* raw_context)
 		// We are not interested in other signals - handle it as usual.
 		return;
 	}
-	ucontext_t *context = (ucontext_t*)raw_context;
+	ucontext_t* context = (ucontext_t*)raw_context;
 	int sicode = info->si_code;
 	if (sicode != SEGV_MAPERR && sicode != SEGV_ACCERR)
 	{

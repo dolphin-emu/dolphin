@@ -85,7 +85,7 @@ public:
 protected:
 	class MixerFifo {
 	public:
-		MixerFifo(CMixer *mixer, unsigned sample_rate)
+		MixerFifo(CMixer* mixer, unsigned sample_rate)
 			: m_mixer(mixer)
 			, m_input_sample_rate(sample_rate)
 			, m_indexW(0)
@@ -102,7 +102,7 @@ protected:
 		void SetInputSampleRate(unsigned int rate);
 		void SetVolume(unsigned int lvolume, unsigned int rvolume);
 	private:
-		CMixer *m_mixer;
+		CMixer* m_mixer;
 		unsigned m_input_sample_rate;
 		short m_buffer[MAX_SAMPLES * 2];
 		volatile u32 m_indexW;

@@ -29,16 +29,16 @@ private:
 	u32 GetLeastUsedRegister(bool increment);
 	bool FindFreeRegister(u32 &regindex);
 protected:
-	ArmGen::ARMXEmitter *emit;
+	ArmGen::ARMXEmitter* emit;
 
 public:
 	ArmFPRCache();
 	~ArmFPRCache() {}
 
-	void Init(ArmGen::ARMXEmitter *emitter);
+	void Init(ArmGen::ARMXEmitter* emitter);
 	void Start(PPCAnalyst::BlockRegStats &stats);
 
-	void SetEmitter(ArmGen::ARMXEmitter *emitter) {emit = emitter;}
+	void SetEmitter(ArmGen::ARMXEmitter* emitter) {emit = emitter;}
 
 	ArmGen::ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
 	void Unlock(ArmGen::ARMReg V0);
