@@ -494,22 +494,36 @@ Renderer::Renderer()
 	}
 	else
 	{
-		if (strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
+		// Grab the GLSL version as a integer
+		u32 glsl_version = 0;
+		u32 glsl_major = 0;
+		u32 glsl_minor = 0;
+		std::string glsl_version_string;
+		std::istringstream buffer(g_ogl_config.glsl_version);
+		buffer >> glsl_version_string;
+		sscanf(glsl_version_string.c_str(), "%d.%d", &glsl_major, &glsl_minor);
+		glsl_version = glsl_major * 100 + glsl_minor;
+
+		if (glsl_version <= 120)
 		{
 			PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
 					"GPU: Does your video card support OpenGL 3.0?\n"
 					"GPU: Your driver supports GLSL %s", g_ogl_config.glsl_version);
 			bSuccess = false;
 		}
-		else if (strstr(g_ogl_config.glsl_version, "1.30"))
+		else if (glsl_version == 130)
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 		}
-		else if (strstr(g_ogl_config.glsl_version, "1.40"))
+		else if (glsl_version == 140)
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+		}
+		else if (glsl_version >= 400)
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSL_400;
 		}
 		else
 		{

@@ -54,6 +54,8 @@ static std::string GetGLSLVersionString()
 			return "#version 140";
 		case GLSL_150:
 			return "#version 150";
+		case GLSL_400:
+			return "#version 400";
 	}
 	// Shouldn't ever hit this
 	return "#version ERROR";
