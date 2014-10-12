@@ -151,8 +151,16 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 				}
 				else
 				{
-					_var <<= 8;
-					_var |= m_pRAM[tlb_addr & RAM_MASK];
+					if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
+					{
+						_var <<= 8;
+						_var = m_pEXRAM[tlb_addr & EXRAM_MASK];
+					}
+					else
+					{
+						_var <<= 8;
+						_var |= m_pRAM[tlb_addr & RAM_MASK];
+					}
 				}
 			}
 		}
@@ -168,7 +176,14 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 			}
 			else
 			{
-				_var = bswap((*(const T*)&m_pRAM[tlb_addr & RAM_MASK]));
+				if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
+				{
+					_var = bswap((*(const T*)&m_pEXRAM[tlb_addr & EXRAM_MASK]));
+				}
+				else
+				{
+					_var = bswap((*(const T*)&m_pRAM[tlb_addr & RAM_MASK]));
+				}
 			}
 		}
 	}
@@ -263,8 +278,16 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 				}
 				else
 				{
-					m_pRAM[tlb_addr & RAM_MASK] = (u8)val;
-					val >>= 8;
+					if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
+					{
+						m_pEXRAM[tlb_addr & EXRAM_MASK] = (u8)val;
+						val >>= 8;
+					}
+					else
+					{
+						m_pRAM[tlb_addr & RAM_MASK] = (u8)val;
+						val >>= 8;
+					}
 				}
 			}
 		}
@@ -280,7 +303,14 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 			}
 			else
 			{
-				*(T*)&m_pRAM[tlb_addr & RAM_MASK] = bswap(data);
+				if (m_pEXRAM && (tlb_addr & 0xF0000000) == 0x10000000)
+				{
+					*(T*)&m_pEXRAM[tlb_addr & EXRAM_MASK] = bswap(data);
+				}
+				else
+				{
+					*(T*)&m_pRAM[tlb_addr & RAM_MASK] = bswap(data);
+				}
 			}
 		}
 	}
