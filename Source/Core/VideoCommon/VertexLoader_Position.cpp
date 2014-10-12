@@ -96,7 +96,17 @@ void LOADERDECL Pos_ReadIndex()
 	DataWriter dst;
 
 	for (int i = 0; i < 3; ++i)
-		dst.Write(i<N ? PosScale(Common::FromBigEndian(data[i]), scale) : 0.f);
+		if (index == std::numeric_limits<I>::max())
+		{
+			// HACK: vertices with indexed positions id == -1 shall be skipped completely.
+			// So if a triangle_strip of 0 1 2 3 -1 4 5 6 is rendered, the primitives 012 321 234 543 456 shall be generated.
+			// This hack skips the primitives with this vertices, so 012 321 654 will be generated.
+			dst.Write<float>(NAN);
+		}
+		else
+		{
+			dst.Write(i<N ? PosScale(Common::FromBigEndian(data[i]), scale) : 0.f);
+		}
 
 	LOG_VTX();
 }
@@ -109,11 +119,22 @@ template <typename I, bool three>
 void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 {
 	auto const index = DataRead<I>();
-	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
-	GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
-	GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
-	_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
-	VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
+	if (index == std::numeric_limits<I>::max())
+	{
+		DataWriter dst;
+		for (int i = 0; i < 3; ++i)
+		{
+			dst.Write<float>(NAN);
+		}
+	}
+	else
+	{
+		const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (index * g_main_cp_state.array_strides[ARRAY_POSITION]));
+		GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
+		GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
+		_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
+		VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
+	}
 	LOG_VTX();
 }
 #endif
