@@ -13,6 +13,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/CoreTiming.h"
 #include "Core/HW/VideoInterface.h" //for TargetRefreshRate
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/VideoConfig.h"
