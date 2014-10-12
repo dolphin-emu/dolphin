@@ -325,7 +325,7 @@ bool DolphinApp::OnInit()
 	return true;
 }
 
-void DolphinApp::MacOpenFile(const wxString &fileName)
+void DolphinApp::MacOpenFile(const wxString& fileName)
 {
 	FileToLoad = fileName;
 	LoadFile = true;

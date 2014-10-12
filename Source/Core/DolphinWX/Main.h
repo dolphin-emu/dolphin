@@ -29,7 +29,7 @@ private:
 	void OnFatalException() override;
 	bool Initialize(int& c, wxChar **v) override;
 	void InitLanguageSupport();
-	void MacOpenFile(const wxString &fileName);
+	void MacOpenFile(const wxString& fileName);
 
 	DECLARE_EVENT_TABLE()
 

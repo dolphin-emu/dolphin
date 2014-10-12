@@ -786,7 +786,7 @@ bool CFrame::RendererHasFocus()
 	if (m_RenderFrame->GetHWND() == window)
 		return true;
 #else
-	wxWindow *window = wxWindow::FindFocus();
+	wxWindow* window = wxWindow::FindFocus();
 	if (window == nullptr)
 		return false;
 	// Why these different cases?
@@ -809,7 +809,7 @@ bool CFrame::UIHasFocus()
 	// focus. If it's not one of our windows, then it will return
 	// null.
 
-	wxWindow *focusWindow = wxWindow::FindFocus();
+	wxWindow* focusWindow = wxWindow::FindFocus();
 	return (focusWindow != nullptr);
 }
 
