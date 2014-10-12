@@ -99,7 +99,7 @@ void Jit64AsmRoutineManager::Generate()
 				no_mem = J_CC(CC_NZ);
 			}
 			AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
-			MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCache));
+			MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCache.data()));
 			MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii || SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
@@ -112,7 +112,7 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_VMEM_BIT));
 				FixupBranch no_vmem = J_CC(CC_Z);
 				AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
-				MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
+				MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheVMEM.data()));
 				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) exit_vmem = J();
@@ -123,7 +123,7 @@ void Jit64AsmRoutineManager::Generate()
 				TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
 				FixupBranch no_exram = J_CC(CC_Z);
 				AND(32, R(RSCRATCH), Imm32(JIT_ICACHEEX_MASK));
-				MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheEx));
+				MOV(64, R(RSCRATCH2), Imm64((u64)jit->GetBlockCache()->iCacheEx.data()));
 				MOV(32, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_1, 0));
 
 				SetJumpTarget(no_exram);

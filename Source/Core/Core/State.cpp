@@ -25,6 +25,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
+#include "VideoCommon/AVIDump.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace State
@@ -116,6 +117,9 @@ static void DoState(PointerWrap &p)
 	p.DoMarker("CoreTiming");
 	Movie::DoState(p);
 	p.DoMarker("Movie");
+#if defined(HAVE_LIBAV) || defined (WIN32)
+	AVIDump::DoState();
+#endif
 }
 
 void LoadFromBuffer(std::vector<u8>& buffer)

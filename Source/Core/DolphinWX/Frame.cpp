@@ -188,19 +188,23 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 
 bool CRenderFrame::ShowFullScreen(bool show, long style)
 {
-	if (show)
+#if defined WIN32
+	if (show && !g_Config.bBorderlessFullscreen)
 	{
 		// OpenGL requires the pop-up style to activate exclusive mode.
 		SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
 	}
+#endif
 
 	bool result = wxTopLevelWindow::ShowFullScreen(show, style);
 
+#if defined WIN32
 	if (!show)
 	{
 		// Restore the default style.
 		SetWindowStyle((GetWindowStyle() & ~wxPOPUP_WINDOW) | wxDEFAULT_FRAME_STYLE);
 	}
+#endif
 
 	return result;
 }
@@ -234,6 +238,8 @@ EVT_MENU(IDM_SHOWLAG, CFrame::OnShowLag)
 EVT_MENU(IDM_SHOWFRAMECOUNT, CFrame::OnShowFrameCount)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
+EVT_MENU(IDM_TOGGLE_DUMPFRAMES, CFrame::OnToggleDumpFrames)
+EVT_MENU(IDM_TOGGLE_DUMPAUDIO, CFrame::OnToggleDumpAudio)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
 EVT_MENU(IDM_CONFIG_DSP_EMULATOR, CFrame::OnConfigDSP)
@@ -1581,7 +1587,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-	if (!g_Config.BorderlessFullscreenEnabled() &&
+	if (g_Config.ExclusiveFullscreenEnabled() &&
 		!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 		Core::GetState() == Core::CORE_PAUSE)
 	{
@@ -1608,7 +1614,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 	{
 		m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
 	}
-	else if (g_Config.BorderlessFullscreenEnabled() ||
+	else if (!g_Config.ExclusiveFullscreenEnabled() ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		// Exiting exclusive fullscreen should be done from a Renderer callback.
@@ -1665,7 +1671,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 		m_RenderFrame->Raise();
 	}
 
-	g_Config.bFullscreen = (g_Config.BorderlessFullscreenEnabled() ||
+	g_Config.bFullscreen = (!g_Config.ExclusiveFullscreenEnabled() ||
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain) ? false : enable_fullscreen;
 }
 

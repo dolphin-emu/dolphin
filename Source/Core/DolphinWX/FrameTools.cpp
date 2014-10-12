@@ -218,6 +218,11 @@ wxMenuBar* CFrame::CreateMenu()
 	movieMenu->AppendCheckItem(IDM_SHOWFRAMECOUNT, _("Show frame counter"));
 	movieMenu->Check(IDM_SHOWFRAMECOUNT, SConfig::GetInstance().m_ShowFrameCount);
 	movieMenu->Check(IDM_RECORDREADONLY, true);
+	movieMenu->AppendSeparator();
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPFRAMES, _("Dump frames"));
+	movieMenu->Check(IDM_TOGGLE_DUMPFRAMES, g_ActiveConfig.bDumpFrames);
+	movieMenu->AppendCheckItem(IDM_TOGGLE_DUMPAUDIO, _("Dump audio"));
+	movieMenu->Check(IDM_TOGGLE_DUMPAUDIO, SConfig::GetInstance().m_DumpAudio);
 	menubar->Append(movieMenu, _("&Movie"));
 
 	// Options menu
@@ -647,14 +652,14 @@ void CFrame::BootGame(const std::string& filename)
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
 		else if (!StartUp.m_strDefaultGCM.empty() &&
-		         wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
+		         File::Exists(StartUp.m_strDefaultGCM))
 		{
 			bootfile = StartUp.m_strDefaultGCM;
 		}
 		else
 		{
 			if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			    wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			    File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				bootfile = SConfig::GetInstance().m_LastFilename;
 			}
@@ -741,6 +746,16 @@ void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_PauseMovie = !SConfig::GetInstance().m_PauseMovie;
 	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnToggleDumpFrames(wxCommandEvent& WXUNUSED(event))
+{
+	g_ActiveConfig.bDumpFrames = !g_ActiveConfig.bDumpFrames;
+}
+
+void CFrame::OnToggleDumpAudio(wxCommandEvent& WXUNUSED(event))
+{
+	SConfig::GetInstance().m_DumpAudio = !SConfig::GetInstance().m_DumpAudio;
 }
 
 void CFrame::OnShowLag(wxCommandEvent& WXUNUSED (event))
@@ -1152,7 +1167,7 @@ void CFrame::DoStop()
 
 			// If exclusive fullscreen is not enabled then we can pause the emulation
 			// before we've exited fullscreen. If not then we need to exit fullscreen first.
-			if (!RendererIsFullscreen() || g_Config.BorderlessFullscreenEnabled() ||
+			if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
 				SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			{
 				Core::SetState(Core::CORE_PAUSE);
@@ -1879,7 +1894,7 @@ void CFrame::UpdateGUI()
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty() &&
-			         wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			         File::Exists(SConfig::GetInstance().m_LastFilename))
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);

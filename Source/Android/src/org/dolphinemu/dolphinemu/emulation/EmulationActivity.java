@@ -190,13 +190,13 @@ public final class EmulationActivity extends Activity
 				{
 					overlay.setVisibility(View.VISIBLE);
 					item.setTitle(R.string.disable_input_overlay);
-					sharedPrefs.edit().putBoolean("showInputOverlay", true).commit();
+					sharedPrefs.edit().putBoolean("showInputOverlay", true).apply();
 				}
 				else // Hide the overlay
 				{
 					overlay.setVisibility(View.INVISIBLE);
 					item.setTitle(R.string.enable_input_overlay);
-					sharedPrefs.edit().putBoolean("showInputOverlay", false).commit();
+					sharedPrefs.edit().putBoolean("showInputOverlay", false).apply();
 				}
 
 				return true;

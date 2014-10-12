@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <bitset>
 #include <map>
 #include <memory>
@@ -106,17 +107,19 @@ public:
 
 class JitBaseBlockCache
 {
-	const u8 **blockCodePointers;
-	JitBlock *blocks;
+	enum
+	{
+		MAX_NUM_BLOCKS = 65536 * 2,
+	};
+
+	std::array<const u8*, MAX_NUM_BLOCKS> blockCodePointers;
+	std::array<JitBlock, MAX_NUM_BLOCKS> blocks;
 	int num_blocks;
 	std::multimap<u32, int> links_to;
 	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
 	ValidBlockBitSet valid_block;
 
-	enum
-	{
-		MAX_NUM_BLOCKS = 65536*2,
-	};
+	bool m_initialized;
 
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
 	void LinkBlockExits(int i);
@@ -128,9 +131,7 @@ class JitBaseBlockCache
 	virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;
 
 public:
-	JitBaseBlockCache() :
-		blockCodePointers(nullptr), blocks(nullptr), num_blocks(0),
-		iCache(nullptr), iCacheEx(nullptr), iCacheVMEM(nullptr)
+	JitBaseBlockCache() : num_blocks(0), m_initialized(false)
 	{
 	}
 
@@ -148,9 +149,9 @@ public:
 	JitBlock *GetBlock(int block_num);
 	int GetNumBlocks() const;
 	const u8 **GetCodePointers();
-	u8 *iCache;
-	u8 *iCacheEx;
-	u8 *iCacheVMEM;
+	std::array<u8, JIT_ICACHE_SIZE>   iCache;
+	std::array<u8, JIT_ICACHEEX_SIZE> iCacheEx;
+	std::array<u8, JIT_ICACHE_SIZE>   iCacheVMEM;
 
 	u32* GetICachePtr(u32 addr);
 

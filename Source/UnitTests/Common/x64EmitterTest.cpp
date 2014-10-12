@@ -948,4 +948,47 @@ VEX_RM_TEST(BLSI)
 
 VEX_RMI_TEST(RORX)
 
+// for AVX instructions that take the form op reg, reg, r/m
+#define AVX_RRM_TEST(Name, sizename) \
+	TEST_F(x64EmitterTest, Name) \
+	{ \
+		struct { \
+			int bits; \
+			std::vector<NamedReg> regs; \
+			std::string out_name; \
+			std::string size; \
+		} regsets[] = { \
+			{ 64, xmmnames, "xmm0", sizename }, \
+		}; \
+		for (const auto& regset : regsets) \
+			for (const auto& r : regset.regs) \
+			{ \
+				emitter->Name(r.reg, RAX, R(RAX)); \
+				emitter->Name(RAX, RAX, R(r.reg)); \
+				emitter->Name(RAX, r.reg, MatR(R12)); \
+				ExpectDisassembly(#Name " " + r.name+ ", " + regset.out_name + ", " + regset.out_name  + " " \
+				                  #Name " " + regset.out_name + ", " + regset.out_name + ", " + r.name + " " \
+				                  #Name " " + regset.out_name + ", " + r.name + ", " + regset.size + " ptr ds:[r12] "); \
+			} \
+	}
+
+#define FMA_TEST(Name, P, packed) \
+	AVX_RRM_TEST(Name ## 132 ## P ## S, packed ? "dqword" : "dword") \
+	AVX_RRM_TEST(Name ## 213 ## P ## S, packed ? "dqword" : "dword") \
+	AVX_RRM_TEST(Name ## 231 ## P ## S, packed ? "dqword" : "dword") \
+	AVX_RRM_TEST(Name ## 132 ## P ## D, packed ? "dqword" : "qword") \
+	AVX_RRM_TEST(Name ## 213 ## P ## D, packed ? "dqword" : "qword") \
+	AVX_RRM_TEST(Name ## 231 ## P ## D, packed ? "dqword" : "qword")
+
+FMA_TEST(VFMADD, P, true)
+FMA_TEST(VFMADD, S, false)
+FMA_TEST(VFMSUB, P, true)
+FMA_TEST(VFMSUB, S, false)
+FMA_TEST(VFNMADD, P, true)
+FMA_TEST(VFNMADD, S, false)
+FMA_TEST(VFNMSUB, P, true)
+FMA_TEST(VFNMSUB, S, false)
+FMA_TEST(VFMADDSUB, P, true)
+FMA_TEST(VFMSUBADD, P, true)
+
 }  // namespace Gen
